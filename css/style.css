@@ -2756,13 +2756,15 @@ header .accent {
     position: relative;
 }
 
-#rotation-chart {
+#rotation-chart,
+[data-role="dps-canvas"] {
     width: 100%;
     border-radius: 4px;
     display: block;
 }
 
-#rotation-effects-chart {
+#rotation-effects-chart,
+[data-role="effects-canvas"] {
     width: 100%;
     border-radius: 4px;
     display: block;

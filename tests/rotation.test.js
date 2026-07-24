@@ -16,16 +16,16 @@ import {
 import {
     buildChartSeries,
     continuumEndTimelineMarkers,
-    RELIC_ICONS,
     simulationEventLogCsv,
     simulationEventLogRows,
     skillBreakdownRows,
     timelineWeaponRows,
 } from '../js/professions/mesmer/app/app-rotation-ui.js';
+import { RELIC_DATA } from '../js/platform/gw2/gear-data.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {
     assert.equal(
-        RELIC_ICONS['Relic of the Claw'],
+        RELIC_DATA.Claw.icon,
         'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
     );
 });

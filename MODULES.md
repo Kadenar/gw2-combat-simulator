@@ -112,12 +112,12 @@ Public orchestration API. Prepares run configuration, drives scheduler execution
 - [hit-resolution.js](js/sim/resolver/hit-resolution.js) — calculates and records strike damage.
 - [condition-resolution.js](js/sim/resolver/condition-resolution.js) — resolves condition applications and ticks.
 
-### Shared Simulation (`js/sim/shared/`)
+### Shared Platform Simulation
 
-- [event-queue.js](js/sim/shared/event-queue.js) — stable chronological and priority ordering.
-- [scheduled-event-stream.js](js/sim/shared/scheduled-event-stream.js) — versioned scheduler-to-resolver boundary.
-- [target-state.js](js/sim/shared/target-state.js) — normalizes target-condition assumptions.
-- [simulation-time.js](js/sim/shared/simulation-time.js) — shared floating-point timeline tolerance.
+- [event-queue.js](js/platform/engine/event-queue.js) — stable chronological and priority ordering.
+- [compat-scheduled-event-stream.js](js/platform/engine/compat-scheduled-event-stream.js) — legacy scheduler-to-resolver boundary.
+- [clock.js](js/platform/engine/clock.js) — shared floating-point timeline tolerance.
+- [target-state.js](js/platform/gw2/target-state.js) — normalizes target-condition assumptions.
 
 ### Mechanics (`js/sim/mechanics/`)
 
@@ -217,7 +217,8 @@ Post-scheduler phase that converts timed events into damage numbers using calcul
 | `js/sim/` | Rotation simulation engine |
 | `js/sim/scheduler/` | Action scheduling, cooldown tracking |
 | `js/sim/resolver/` | Damage calculation, effect resolution |
-| `js/sim/shared/` | Event queue, serialization |
+| `js/platform/engine/` | Shared scheduling, event queue, and simulation primitives |
+| `js/platform/gw2/` | Shared Guild Wars 2 formulas, gear, relics, and target state |
 | `js/sim/mechanics/` | Profession rules, skill definitions |
 | `tests/browser/` | Browser interaction fixtures |
 | `tests/helpers/` | Shared testing utilities |

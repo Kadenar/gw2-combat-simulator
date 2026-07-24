@@ -1,28 +1,40 @@
 import { eliteSpecialization } from './app-runtime.js';
 import { ammoDisplayView } from '../../../platform/ui/ammo-display.js';
 import { resourceDisplayView } from '../../../platform/ui/resource-display.js';
-import { paletteView } from '../../../platform/ui/palette.js';
-import { eventLogCsv } from '../../../platform/ui/event-log.js';
+import {
+    bindPaletteInteractions,
+    paletteGroupHtml,
+    paletteView,
+    virtualPaletteSkillHtml,
+} from '../../../platform/ui/palette.js';
+import {
+    eventLogCsv,
+    mountEventLog,
+} from '../../../platform/ui/event-log.js';
 import {
     skillBreakdownRows as transformSkillBreakdownRows,
 } from '../../../platform/ui/result-tables.js';
 import {
+    bindTimelineInteractions,
     clearTimelineDropIndicators,
     eventTimelineMarkers,
-    getSkillDropInsertionIndex,
     moveRotationEntry,
+    updateRotationEntry,
     timelineRows,
-    updateSkillDropIndicator,
 } from '../../../platform/ui/timeline.js';
 import {
     resultSummaryMetrics as transformResultSummaryMetrics,
 } from '../../../platform/ui/result-transform.js';
-import { chartValueAt as valueAtChartPoint } from '../../../platform/ui/charts.js';
-import { escapeHtml as esc } from '../../../platform/ui/html.js';
 import {
-    nextResultSortState,
-    sortResultRows,
-} from '../../../app/app-rotation-ui.js';
+    buildChartSeries as buildSharedChartSeries,
+    chartValueAt,
+} from '../../../platform/ui/charts.js';
+import {
+    mountRotationResults,
+    SKILL_COLS,
+} from '../../../platform/ui/rotation-results.js';
+import { escapeHtml as esc } from '../../../platform/ui/html.js';
+import { RELIC_DATA } from '../../../platform/gw2/gear-data.js';
 
 const CONCURRENT_OFFSET_MS = 100;
 const PLACEHOLDER_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
@@ -32,17 +44,6 @@ const ACTION_ICONS = {
     'Dodge / Mirage Cloak': 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
     'Swap Weapons': 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
     'Continuum Shift': 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png',
-};
-export const RELIC_ICONS = {
-    'Relic of Akeem': 'https://render.guildwars2.com/file/594C437E9606A167F4F372BCEB0C2B7C7828037B/3122330.png',
-    'Relic of Aristocracy': 'https://render.guildwars2.com/file/BCC01F0B6616FE26ED4BE159532A6A6FBD0EA2D8/3122332.png',
-    'Relic of the Claw': 'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
-    'Relic of the Eagle': 'https://render.guildwars2.com/file/DFF4EB43AD0803F60D105658052321A0BE1AF02C/3592832.png',
-    'Relic of Fireworks': 'https://render.guildwars2.com/file/2999CCF7C94267B2EE3DDA7459050864622927C9/3122349.png',
-    'Relic of the Fractal': 'https://render.guildwars2.com/file/B2D409644147BF18935A95A52505ABCB9EECE142/3122351.png',
-    'Relic of Peitha': 'https://render.guildwars2.com/file/949A6A4179F514FCDEF3AC3D9C292B38D5E0047D/3122365.png',
-    'Relic of the Thief': 'https://render.guildwars2.com/file/3523AC08EB04347CF371E9A91F4B985D12FB4ED3/3122371.png',
-    'Relic of Thorns': 'https://wiki.guildwars2.com/images/8/8a/Relic_of_Thorns.png',
 };
 const EFFECT_COLORS = {
     Bleeding: '#d84b4b',
@@ -83,6 +84,23 @@ const EFFECT_STACK_CAPS = {
 };
 
 const seconds = ms => `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
+
+function resolveRelicIcon(label) {
+    const value = String(label || '');
+    for (const [name, relic] of Object.entries(RELIC_DATA)) {
+        if (
+            relic.icon
+            && (
+                value === name
+                || value.startsWith(`Relic of ${name}`)
+                || value.startsWith(`Relic of the ${name}`)
+            )
+        ) {
+            return relic.icon;
+        }
+    }
+    return '';
+}
 
 function procFilterKey(proc) {
     return `${proc.type}:${proc.skill}`;
@@ -133,29 +151,6 @@ function resolvePaletteDropItem(app, name) {
 
 export { moveRotationEntry };
 
-function applyTimelineDrop(app, insertAt) {
-    const drag = app.dragState;
-    if (!drag) return false;
-    app.dragState = null;
-
-    if (drag.source === 'timeline') {
-        if (!moveRotationEntry(app.build.rotation, drag.index, insertAt)) return false;
-        app.changed(false);
-        return true;
-    }
-
-    if (drag.source === 'palette') {
-        const entry = resolvePaletteDropItem(app, drag.name);
-        if (entry == null) return false;
-        const boundedTarget = Math.max(0, Math.min(insertAt, app.build.rotation.length));
-        app.build.rotation.splice(boundedTarget, 0, entry);
-        app.changed(false);
-        return true;
-    }
-
-    return false;
-}
-
 function uniqueByName(skills) {
     return [...new Map(skills.map(skill => [skill.name, skill])).values()];
 }
@@ -168,7 +163,7 @@ function currentAmmo(app, name) {
     return app.results?.endState?.ammo?.[name] || null;
 }
 
-function paletteIcon(app, skill, contextAvailable = true, contextMessage = '') {
+function paletteSkillView(app, skill, contextAvailable = true, contextMessage = '') {
     const cd = currentCooldown(app, skill.name);
     const ammo = currentAmmo(app, skill.name);
     const maximumAmmo = ammo?.maximum ?? Number(skill.ammo || 0);
@@ -194,30 +189,18 @@ function paletteIcon(app, skill, contextAvailable = true, contextMessage = '') {
                 : 'Available now',
         skill.description || '',
     ].filter(Boolean).join('\n');
-    const ammoClasses = ammoDisplay
-        ? ` pal-has-ammo${ammoDisplay.available ? ' pal-ammo-available' : ''}`
-        : '';
-    const ammoIndicator = ammoDisplay
-        ? `<span class="pal-charges">${ammoDisplay.current}/${ammoDisplay.maximum}</span>
-        <span class="pal-ammo-pips" aria-hidden="true">${ammoDisplay.pips.map(filled =>
-            `<span class="pal-ammo-pip${filled ? ' filled' : ''}"></span>`
-        ).join('')}</span>`
-        : '';
-    return `<div class="pal-skill${unavailable ? ' pal-disabled' : ''}${!contextAvailable ? ' pal-context-disabled' : ''}${highlighted ? ' pal-ambush-active' : ''}${ammoClasses}"
-        data-skill="${esc(skill.name)}" title="${esc(title)}" draggable="${contextAvailable}"
-        ${ammoDisplay ? `aria-label="${esc(`${skill.name}: ${ammoDisplay.label}`)}"` : ''}
-        style="--att-border:${unavailable ? '#625a73' : highlighted ? '#f0c766' : '#a88be8'}">
-        <img src="${esc(skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON)}" alt="" />
-        ${cd.remaining ? `<span class="pal-cd">${seconds(cd.remaining)}</span>` : ''}
-        ${ammoIndicator}
-    </div>`;
-}
-
-function virtualIcon(name, label, icon, disabled = false) {
-    return `<div class="pal-skill${disabled ? ' pal-disabled' : ''}" data-skill="${name}"
-        title="${esc(label)}" draggable="${disabled ? 'false' : 'true'}" style="--att-border:#8d7a57">
-        <img src="${esc(icon)}" alt="" />
-    </div>`;
+    return {
+        name: skill.name,
+        icon: skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON,
+        title,
+        color: unavailable ? '#625a73' : highlighted ? '#f0c766' : '#a88be8',
+        disabled: unavailable,
+        contextDisabled: !contextAvailable,
+        highlighted,
+        draggable: contextAvailable,
+        cooldownLabel: cd.remaining ? seconds(cd.remaining) : '',
+        ammo: ammoDisplay,
+    };
 }
 
 function weaponSkills(app) {
@@ -244,12 +227,12 @@ function addGroup(
     unavailableMessage = () => '',
 ) {
     if (!skills.length) return '';
-    return `<div class="pal-group">
-        <div class="pal-label" style="color:${color}">${esc(label)}</div>
-        <div class="pal-row">${skills.map(skill =>
-            paletteIcon(app, skill, isAvailable(skill), unavailableMessage(skill))
-        ).join('')}</div>
-    </div>`;
+    return paletteGroupHtml({
+        label,
+        color,
+        skills: skills.map(skill =>
+            paletteSkillView(app, skill, isAvailable(skill), unavailableMessage(skill))),
+    });
 }
 
 function activeResourceGroup(app) {
@@ -452,18 +435,24 @@ export function renderPalette(app) {
         '<div class="pal-break"></div>' +
         addGroup(app, 'Act', actions, '#70b6d0') +
         `<div class="pal-group"><div class="pal-label" style="color:#d66d2f">Cmb</div>
-            <div class="pal-row">${virtualIcon('__combat_start', 'Combat Start', COMBAT_START_ICON, app.build.rotation.some(item => (item.name || item) === '__combat_start'))}</div>
+            <div class="pal-row">${virtualPaletteSkillHtml({
+                name: '__combat_start',
+                title: 'Combat Start',
+                icon: COMBAT_START_ICON,
+                disabled: app.build.rotation.some(item => (item.name || item) === '__combat_start'),
+            })}</div>
         </div>
         <div class="pal-group"><div class="pal-label" style="color:#8d7a57">W8</div>
-            <div class="pal-row">${virtualIcon('__wait', 'Wait', WAIT_ICON)}</div>
+            <div class="pal-row">${virtualPaletteSkillHtml({
+                name: '__wait',
+                title: 'Wait',
+                icon: WAIT_ICON,
+            })}</div>
         </div>`;
 
-    element.querySelectorAll('.pal-skill').forEach(icon => {
-        const name = icon.dataset.skill;
-        const draggable = Boolean(name) && !icon.classList.contains('pal-disabled');
-        icon.setAttribute('draggable', draggable ? 'true' : 'false');
-        icon.addEventListener('click', event => {
-            if (icon.classList.contains('pal-context-disabled')) return;
+    bindPaletteInteractions(element, {
+        onActivate(name, event) {
+            const icon = event.currentTarget;
             if (name === '__combat_start' && icon.classList.contains('pal-disabled')) return;
             if (name === '__wait') {
                 const raw = prompt('Wait duration (ms):', '1000');
@@ -483,23 +472,58 @@ export function renderPalette(app) {
             } else {
                 app.addRotation(name);
             }
-        });
-        icon.addEventListener('dragstart', event => {
-            if (!draggable) {
-                event.preventDefault();
-                return;
-            }
+        },
+        onDragStart(name) {
             app.dragState = { source: 'palette', name };
-            icon.classList.add('dragging');
-            event.dataTransfer.setData('text/plain', name);
-            event.dataTransfer.effectAllowed = 'copy';
-        });
-        icon.addEventListener('dragend', () => {
-            icon.classList.remove('dragging');
+        },
+        onDragEnd() {
             app.dragState = null;
             clearTimelineDropIndicators(document.getElementById('rotation-timeline'));
-        });
+        },
     });
+}
+
+function editRotationOption(app, index, key, label) {
+    const entry = app.build.rotation[index];
+    const item = typeof entry === 'string' ? { name: entry } : entry;
+    const raw = prompt(label, String(item?.[key] ?? ''));
+    if (raw == null || Number(raw) < 1) return false;
+    app.build.rotation[index] = updateRotationEntry(entry, {
+        [key]: Math.round(Number(raw)),
+    });
+    return true;
+}
+
+function timelineInteractionOptions(app) {
+    return {
+        rotation: app.build.rotation,
+        getDragState: () => app.dragState,
+        setDragState: value => {
+            app.dragState = value;
+        },
+        resolvePaletteEntry: name => resolvePaletteDropItem(app, name),
+        onChanged: () => app.changed(false),
+        onRemove: index => app.build.rotation.splice(index, 1),
+        onTruncate: index => app.build.rotation.splice(index),
+        onEditOffset: index => editRotationOption(
+            app,
+            index,
+            'offset',
+            'Offset (ms) from the start of the preceding cast:',
+        ),
+        onEditInterrupt: index => editRotationOption(
+            app,
+            index,
+            'interruptMs',
+            'Interrupt time (ms):',
+        ),
+        onEditWait: index => editRotationOption(
+            app,
+            index,
+            'waitMs',
+            'Wait duration (ms):',
+        ),
+    };
 }
 
 export function renderTimeline(app) {
@@ -516,20 +540,7 @@ export function renderTimeline(app) {
             <span>Click or drag skills from the palette above</span>
         </div>`;
         if (procElement) procElement.innerHTML = '';
-        element.ondragover = event => {
-            if (!app.dragState) return;
-            event.preventDefault();
-            element.classList.add('drag-over-empty');
-        };
-        element.ondragleave = event => {
-            if (event.target === element) element.classList.remove('drag-over-empty');
-        };
-        element.ondrop = event => {
-            if (!app.dragState) return;
-            event.preventDefault();
-            element.classList.remove('drag-over-empty');
-            applyTimelineDrop(app, 0);
-        };
+        bindTimelineInteractions(element, timelineInteractionOptions(app));
         return;
     }
     element.classList.remove('is-empty');
@@ -629,7 +640,7 @@ export function renderTimeline(app) {
                 ? activeTraits.find(trait => trait.name === proc.skill)?.icon
                 : '';
             const relicIcon = proc.type === 'relic_proc'
-                ? RELIC_ICONS[proc.skill]
+                ? resolveRelicIcon(proc.skill)
                 : '';
             const sourceIcon = app.skillByName.get(proc.sourceSkill)?.icon;
             const icon = proc.icon || traitIcon || relicIcon || sourceIcon || PLACEHOLDER_ICON;
@@ -686,121 +697,7 @@ export function renderTimeline(app) {
         });
     }
 
-    element.querySelectorAll('.rot-skill:not(.rot-injected)').forEach(item => {
-        const index = Number(item.dataset.idx);
-        const remove = item.querySelector('.rot-x');
-        remove?.setAttribute('draggable', 'false');
-        remove?.addEventListener('mousedown', event => {
-            event.preventDefault();
-            event.stopPropagation();
-        });
-        remove?.addEventListener('dragstart', event => {
-            event.preventDefault();
-            event.stopPropagation();
-        });
-        remove?.addEventListener('click', event => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (event.shiftKey) app.build.rotation.splice(index);
-            else app.build.rotation.splice(index, 1);
-            app.changed(false);
-        });
-        item.addEventListener('dragstart', event => {
-            app.dragState = { source: 'timeline', index };
-            item.classList.add('dragging');
-            event.dataTransfer.setData('text/plain', String(index));
-            event.dataTransfer.effectAllowed = 'move';
-        });
-        item.addEventListener('dragend', () => {
-            item.classList.remove('dragging');
-            app.dragState = null;
-            clearTimelineDropIndicators(element);
-        });
-        item.addEventListener('dragover', event => {
-            if (!app.dragState) return;
-            event.preventDefault();
-            clearTimelineDropIndicators(element);
-            updateSkillDropIndicator(item, event.clientX);
-        });
-        item.addEventListener('dragleave', () => {
-            item.classList.remove('drag-insert-before', 'drag-insert-after');
-        });
-        item.addEventListener('drop', event => {
-            if (!app.dragState) return;
-            event.preventDefault();
-            event.stopPropagation();
-            const insertAt = getSkillDropInsertionIndex(item, event.clientX);
-            clearTimelineDropIndicators(element);
-            if (insertAt != null) applyTimelineDrop(app, insertAt);
-        });
-    });
-    element.querySelectorAll('.rot-row:not(.rot-procs-row) > .rot-row-skills').forEach(row => {
-        row.addEventListener('dragover', event => {
-            if (!app.dragState || event.target.closest('.rot-skill')) return;
-            event.preventDefault();
-            clearTimelineDropIndicators(element);
-            row.classList.add('drag-over');
-        });
-        row.addEventListener('dragleave', event => {
-            if (event.target === row) row.classList.remove('drag-over');
-        });
-        row.addEventListener('drop', event => {
-            if (!app.dragState || event.target.closest('.rot-skill')) return;
-            event.preventDefault();
-            event.stopPropagation();
-            const insertAt = Number(row.dataset.insertIdx);
-            clearTimelineDropIndicators(element);
-            if (Number.isInteger(insertAt)) applyTimelineDrop(app, insertAt);
-        });
-    });
-    element.ondragover = event => {
-        if (!app.dragState || event.target.closest('.rot-row-skills')) return;
-        event.preventDefault();
-        clearTimelineDropIndicators(element);
-        element.classList.add('drag-over-empty');
-    };
-    element.ondragleave = event => {
-        if (event.target === element) element.classList.remove('drag-over-empty');
-    };
-    element.ondrop = event => {
-        if (!app.dragState || event.target.closest('.rot-row-skills')) return;
-        event.preventDefault();
-        clearTimelineDropIndicators(element);
-        applyTimelineDrop(app, app.build.rotation.length);
-    };
-    element.querySelectorAll('.rot-offset-badge').forEach(badge => {
-        badge.addEventListener('click', event => {
-            event.stopPropagation();
-            const index = Number(badge.dataset.idx);
-            const item = app.build.rotation[index];
-            const raw = prompt('Offset (ms) from the start of the preceding cast:', String(item.offset));
-            if (raw == null || Number(raw) < 1) return;
-            item.offset = Math.round(Number(raw));
-            app.changed(false);
-        });
-    });
-    element.querySelectorAll('.rot-interrupt-badge').forEach(badge => {
-        badge.addEventListener('click', event => {
-            event.stopPropagation();
-            const index = Number(badge.dataset.idx);
-            const item = app.build.rotation[index];
-            const raw = prompt('Interrupt time (ms):', String(item.interruptMs));
-            if (raw == null || Number(raw) < 1) return;
-            item.interruptMs = Math.round(Number(raw));
-            app.changed(false);
-        });
-    });
-    element.querySelectorAll('.rot-wait-badge').forEach(badge => {
-        badge.addEventListener('click', event => {
-            event.stopPropagation();
-            const index = Number(badge.dataset.idx);
-            const item = app.build.rotation[index];
-            const raw = prompt('Wait duration (ms):', String(item.waitMs));
-            if (raw == null || Number(raw) < 1) return;
-            item.waitMs = Math.round(Number(raw));
-            app.changed(false);
-        });
-    });
+    bindTimelineInteractions(element, timelineInteractionOptions(app));
 }
 
 export function resultSummaryMetrics(result) {
@@ -993,49 +890,18 @@ export function renderEventLog(app) {
         if (element) element.innerHTML = '';
         return;
     }
-    const wasOpen = element.querySelector('details')?.open ?? false;
-    const wasPhantasmOnly = element.querySelector('.log-filter-phantasm')?.checked ?? false;
     const eventLog = simulationEventLogRows(result, app.build);
-    element.innerHTML = `<details class="res-log-wrap"${wasOpen ? ' open' : ''}>
-        <summary>Event Log (${eventLog.length} events)</summary>
-        <div class="log-controls">
-            <button type="button" class="btn-csv-export">Download CSV Log</button>
-            <label class="log-filter-label">
-                <input type="checkbox" class="log-filter-phantasm"${wasPhantasmOnly ? ' checked' : ''} />
-                Phantasm &amp; Clone only
-            </label>
-        </div>
-        <div class="res-log${wasPhantasmOnly ? ' log-phantasm-only' : ''}"></div>
-    </details>`;
-    const details = element.querySelector('details');
-    const logElement = element.querySelector('.res-log');
-    const renderLogLines = () => {
-        if (!logElement || logElement.dataset.rendered === 'true') return;
-        logElement.innerHTML = eventLog.map(event =>
-            `<div class="log-line${event.phantasmClone ? ' log-phantasm' : ''}">
-                <span class="log-time">${event.at.toFixed(3)}s</span>
-                <span class="log-desc${event.className ? ` ${esc(event.className)}` : ''}">${esc(event.description)}</span>
-            </div>`
-        ).join('');
-        logElement.dataset.rendered = 'true';
-    };
-    if (details?.open) renderLogLines();
-    details?.addEventListener('toggle', () => {
-        if (details.open) renderLogLines();
-    });
-    element.querySelector('.log-filter-phantasm')?.addEventListener('change', e => {
-        element.querySelector('.res-log')?.classList.toggle('log-phantasm-only', e.target.checked);
-    });
-    element.querySelector('.btn-csv-export')?.addEventListener('click', () => {
-        const blob = new Blob([simulationEventLogCsv(eventLog)], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = 'mesmer-event-log.csv';
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-        URL.revokeObjectURL(url);
+    mountEventLog(element, eventLog.map(event => ({
+        ...event,
+        rowClassName: event.phantasmClone ? 'log-phantasm' : '',
+    })), {
+        title: 'Event Log',
+        filename: 'mesmer-event-log.csv',
+        filters: [{
+            id: 'phantasm',
+            label: 'Phantasm & Clone only',
+            predicate: event => event.phantasmClone,
+        }],
     });
 }
 
@@ -1053,92 +919,10 @@ function effectName(kind) {
 }
 
 export function buildChartSeries(result, sampleStepMs = 250) {
-    const durationMs = Math.max(
-        1,
-        Math.round(Number(result.deathTime ?? result.duration ?? 0) * 1000),
-    );
-    const interval = Math.max(50, Math.min(1000, Number(sampleStepMs) || 250));
-    const times = [];
-    for (let time = 0; time < durationMs; time += interval) times.push(time);
-    times.push(durationMs);
-
-    const resolved = result.resolvedEvents || [];
-    const strikeEvents = resolved.filter(event =>
-        event.type === 'damage' && Number(event.damage || 0) > 0);
-    const conditionEvents = resolved.filter(event =>
-        event.type === 'condition' && Number(event.damage || 0) > 0);
-    const dpsStartMs = Number(
-        result.dpsStartTime ?? result.firstHitTime ?? 0,
-    ) * 1000;
-    const dps = times.map(time => {
-        const elapsedSeconds = (time - dpsStartMs) / 1000;
-        if (elapsedSeconds <= 0) return { t: time, v: 0 };
-        let cumulativeDamage = 0;
-        for (const event of strikeEvents) {
-            if (Number(event.at || 0) * 1000 <= time) {
-                cumulativeDamage += Number(event.damage || 0);
-            }
-        }
-        for (const event of conditionEvents) {
-            if (Array.isArray(event.damageTicks)) {
-                for (const tick of event.damageTicks) {
-                    if (Number(tick.at || 0) * 1000 <= time) {
-                        cumulativeDamage += Number(tick.damage || 0);
-                    }
-                }
-                continue;
-            }
-            if (Number(event.at || 0) * 1000 <= time) {
-                cumulativeDamage += Number(event.damage || 0);
-            }
-        }
-        return { t: time, v: cumulativeDamage / elapsedSeconds };
+    return buildSharedChartSeries(result, sampleStepMs, {
+        effectName,
+        stackCaps: EFFECT_STACK_CAPS,
     });
-
-    const applications = [];
-    for (const event of resolved) {
-        if (event.type !== 'condition') continue;
-        const start = Number(event.at || 0) * 1000;
-        const end = Number(
-            event.expiresAt
-            ?? (Number(event.at || 0) + Number(event.effectiveDuration ?? event.duration ?? 0)),
-        ) * 1000;
-        if (end > start) {
-            applications.push({
-                name: effectName(event.condition),
-                start,
-                end,
-                stacks: Number(event.stacks || 1),
-            });
-        }
-    }
-    for (const event of result.events || []) {
-        if (event.type !== 'buff' || !Number(event.duration || 0)) continue;
-        const start = Number(event.at || 0) * 1000;
-        applications.push({
-            name: effectName(event.kind),
-            start,
-            end: start + Number(event.duration) * 1000,
-            stacks: Number(event.stacks || 1),
-        });
-    }
-
-    const effects = {};
-    for (const name of [...new Set(applications.map(entry => entry.name))]) {
-        const matching = applications.filter(entry => entry.name === name);
-        effects[name] = times.map(time => ({
-            t: time,
-            v: Math.min(
-                EFFECT_STACK_CAPS[name] ?? Infinity,
-                matching.reduce(
-                    (sum, entry) =>
-                        sum + (entry.start <= time && entry.end > time ? entry.stacks : 0),
-                    0,
-                ),
-            ),
-        }));
-    }
-    return { durationMs, dps, effects };
 }
 
 function resultIcon(app, row) {
@@ -1149,8 +933,8 @@ function resultIcon(app, row) {
         || row.name.includes(candidate.name));
     if (trait?.icon) return trait.icon;
 
-    const relicName = Object.keys(RELIC_ICONS).find(name => row.name.startsWith(name));
-    if (relicName) return RELIC_ICONS[relicName];
+    const relicIcon = resolveRelicIcon(row.name);
+    if (relicIcon) return relicIcon;
 
     for (const name of [row.name, row.sourceSkill, baseBreakdownName(row.name)]) {
         const icon = app.skillByName.get(name)?.icon;
@@ -1168,303 +952,7 @@ function resultIcon(app, row) {
     return PLACEHOLDER_ICON;
 }
 
-const chartNumber = value => {
-    const number = Number(value || 0);
-    if (number >= 1_000_000) return `${(number / 1_000_000).toFixed(1)}m`;
-    if (number >= 1000) return `${(number / 1000).toFixed(number >= 10_000 ? 0 : 1)}k`;
-    return number.toFixed(number < 10 && number % 1 ? 1 : 0);
-};
-
-function niceAxisMaximum(value) {
-    if (!(value > 0)) return 1;
-    const magnitude = 10 ** Math.floor(Math.log10(value));
-    const normalized = value / magnitude;
-    const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-    return rounded * magnitude;
-}
-
-function drawLineChart(canvas, lines, durationMs, height = 260) {
-    if (!canvas) return null;
-    const cssWidth = Math.max(
-        360,
-        Math.floor(canvas.parentElement?.clientWidth || canvas.closest('.chart-wrap')?.clientWidth || 760),
-    );
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(cssWidth * dpr);
-    canvas.height = Math.round(height * dpr);
-    canvas.style.height = `${height}px`;
-    const context = canvas.getContext('2d');
-    context.setTransform(dpr, 0, 0, dpr, 0, 0);
-    context.clearRect(0, 0, cssWidth, height);
-
-    const pad = { top: 16, right: 16, bottom: 28, left: 54 };
-    const plotWidth = cssWidth - pad.left - pad.right;
-    const plotHeight = height - pad.top - pad.bottom;
-    const maxValue = niceAxisMaximum(Math.max(
-        0,
-        ...lines.flatMap(line => line.points.map(point => Number(point.v || 0))),
-    ));
-    context.font = '10px sans-serif';
-    context.lineWidth = 1;
-    context.textBaseline = 'middle';
-
-    for (let index = 0; index <= 5; index += 1) {
-        const ratio = index / 5;
-        const y = pad.top + plotHeight * (1 - ratio);
-        context.strokeStyle = 'rgba(255,255,255,.08)';
-        context.beginPath();
-        context.moveTo(pad.left, y);
-        context.lineTo(cssWidth - pad.right, y);
-        context.stroke();
-        context.fillStyle = '#8d8d9f';
-        context.textAlign = 'right';
-        context.fillText(chartNumber(maxValue * ratio), pad.left - 7, y);
-
-        const x = pad.left + plotWidth * ratio;
-        context.textAlign = 'center';
-        context.textBaseline = 'top';
-        context.fillText(
-            `${((durationMs * ratio) / 1000).toFixed(durationMs < 10_000 ? 1 : 0)}s`,
-            x,
-            height - pad.bottom + 8,
-        );
-        context.textBaseline = 'middle';
-    }
-
-    for (const line of lines) {
-        if (!line.points.length) continue;
-        context.strokeStyle = line.color;
-        context.lineWidth = 2;
-        context.beginPath();
-        line.points.forEach((point, index) => {
-            const x = pad.left + (Number(point.t || 0) / durationMs) * plotWidth;
-            const y = pad.top + (1 - Number(point.v || 0) / maxValue) * plotHeight;
-            if (index === 0) context.moveTo(x, y);
-            else context.lineTo(x, y);
-        });
-        context.stroke();
-    }
-
-    if (!lines.length) {
-        context.fillStyle = '#8d8d9f';
-        context.textAlign = 'center';
-        context.fillText('No timed effects in this rotation', pad.left + plotWidth / 2, pad.top + plotHeight / 2);
-    }
-
-    return {
-        cssWidth,
-        height,
-        pad,
-        plotWidth,
-        plotHeight,
-    };
-}
-
-function chartHtml(series) {
-    const effects = Object.keys(series.effects);
-    return `<div class="chart-wrap">
-        <div class="chart-title">DPS &amp; Effects Over Time</div>
-        <div class="chart-toggles">
-            <label><input type="checkbox" data-series="dps" checked />
-                <span class="swatch" style="background:#54c96b"></span>DPS</label>
-            ${effects.map((name, index) => `<label>
-                <input type="checkbox" data-series="${esc(name)}" ${index < 8 ? 'checked' : ''} />
-                <span class="swatch" style="background:${EFFECT_COLORS[name] || `hsl(${(index * 61 + 210) % 360} 62% 62%)`}"></span>
-                ${esc(name)}
-            </label>`).join('')}
-        </div>
-        <div class="chart-panels">
-            <div class="chart-panel">
-                <div class="chart-panel-title">DPS Over Time</div>
-                <div class="chart-canvas-wrap">
-                    <canvas id="rotation-chart"></canvas>
-                    <div class="chart-tooltip" id="rotation-chart-tooltip"></div>
-                </div>
-            </div>
-            <div class="chart-panel">
-                <div class="chart-panel-title">Effects Over Time</div>
-                <div class="chart-canvas-wrap">
-                    <canvas id="rotation-effects-chart"></canvas>
-                    <div class="chart-tooltip" id="rotation-effects-tooltip"></div>
-                </div>
-            </div>
-        </div>
-    </div>`;
-}
-
-export function chartValueAt(points, time) {
-    return valueAtChartPoint(points, time);
-}
-
-function bindCharts(element, series) {
-    const chartState = {
-        dpsLayout: null,
-        effectsLayout: null,
-        effectLines: [],
-    };
-
-    const redraw = () => {
-        const selected = new Set(
-            [...element.querySelectorAll('.chart-toggles input:checked')]
-                .map(input => input.dataset.series),
-        );
-        chartState.dpsLayout = drawLineChart(
-            element.querySelector('#rotation-chart'),
-            selected.has('dps')
-                ? [{ name: 'DPS', color: '#54c96b', points: series.dps }]
-                : [],
-            series.durationMs,
-            280,
-        );
-        const effectLines = Object.entries(series.effects)
-            .filter(([name]) => selected.has(name))
-            .map(([name, points], index) => ({
-                name,
-                points,
-                color: EFFECT_COLORS[name] || `hsl(${(index * 61 + 210) % 360} 62% 62%)`,
-            }));
-        chartState.effectLines = effectLines;
-        chartState.effectsLayout = drawLineChart(
-            element.querySelector('#rotation-effects-chart'),
-            effectLines,
-            series.durationMs,
-            260,
-        );
-    };
-
-    const bindHover = (canvasId, tooltipId, kind) => {
-        const canvas = element.querySelector(`#${canvasId}`);
-        const tooltip = element.querySelector(`#${tooltipId}`);
-        if (!canvas || !tooltip) return;
-
-        canvas.addEventListener('mouseleave', () => {
-            tooltip.style.display = 'none';
-        });
-        canvas.addEventListener('mousemove', event => {
-            const layout = kind === 'dps'
-                ? chartState.dpsLayout
-                : chartState.effectsLayout;
-            if (!layout) return;
-
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = layout.cssWidth / Math.max(1, rect.width);
-            const scaleY = layout.height / Math.max(1, rect.height);
-            const pointerX = event.clientX - rect.left;
-            const pointerY = event.clientY - rect.top;
-            const chartX = pointerX * scaleX;
-            const chartY = pointerY * scaleY;
-            const minX = layout.pad.left;
-            const maxX = layout.cssWidth - layout.pad.right;
-            const minY = layout.pad.top;
-            const maxY = layout.pad.top + layout.plotHeight;
-
-            if (chartX < minX || chartX > maxX || chartY < minY || chartY > maxY) {
-                tooltip.style.display = 'none';
-                return;
-            }
-
-            const time = Math.max(
-                0,
-                Math.min(
-                    series.durationMs,
-                    ((chartX - minX) / layout.plotWidth) * series.durationMs,
-                ),
-            );
-            const timeLabel = `${(time / 1000).toFixed(2)}s`;
-            let body;
-            if (kind === 'dps') {
-                const dps = Math.round(chartValueAt(series.dps, time));
-                body = `<div>DPS: ${dps.toLocaleString()}</div>`;
-            } else {
-                const entries = chartState.effectLines
-                    .map(line => ({
-                        name: line.name,
-                        value: Math.round(chartValueAt(line.points, time)),
-                    }))
-                    .filter(entry => entry.value > 0);
-                body = entries.length
-                    ? entries.map(entry => `<div>${esc(entry.name)}: ${entry.value}</div>`).join('')
-                    : '<div>No visible stack effects</div>';
-            }
-
-            tooltip.innerHTML = `<div><b>${timeLabel}</b></div>${body}`;
-            tooltip.style.left = `${pointerX + 12}px`;
-            tooltip.style.top = `${pointerY + 12}px`;
-            tooltip.style.display = 'block';
-        });
-    };
-
-    element.querySelectorAll('.chart-toggles input').forEach(input =>
-        input.addEventListener('change', redraw));
-    bindHover('rotation-chart', 'rotation-chart-tooltip', 'dps');
-    bindHover('rotation-effects-chart', 'rotation-effects-tooltip', 'effects');
-    redraw();
-    requestAnimationFrame(redraw);
-}
-
-const MESMER_SKILL_COLS = [
-    { key: 'name', label: 'Skill', numeric: false },
-    { key: 'strike', label: 'Strike', numeric: true },
-    { key: 'condition', label: 'Condition', numeric: true },
-    { key: 'total', label: 'Total', numeric: true },
-    { key: 'dps', label: 'DPS', numeric: true },
-    { key: 'average', label: 'Avg/Cast', numeric: true },
-    { key: 'dct', label: 'DCT', numeric: true },
-    { key: 'casts', label: 'Casts', numeric: true },
-    { key: 'hits', label: 'Hits', numeric: true },
-];
-
-function renderSkillRow(app, row, number) {
-    return `<div class="res-row">
-        <span class="res-skill"><img src="${esc(resultIcon(app, row))}" alt="" />${esc(row.name)}</span>
-        <span>${number(row.strike)}</span>
-        <span class="condi">${number(row.condition)}</span>
-        <span class="total">${number(row.total)}</span>
-        <span class="dps">${number(row.dps)}</span>
-        <span>${row.average == null ? '&mdash;' : number(row.average)}</span>
-        <span>${row.dct == null ? '&mdash;' : number(row.dct)}</span>
-        <span>${row.casts}</span>
-        <span>${row.hits}</span>
-    </div>`;
-}
-
-function applySkillBreakdownSort(element, app, number) {
-    const { skillRows } = app._skillBreakdownState;
-    const col = app._skillSortCol;
-    const dir = app._skillSortDir;
-    const sorted = sortResultRows(skillRows, MESMER_SKILL_COLS, col, dir);
-    const rowsEl = element.querySelector('.mesmer-skill-breakdown .res-skill-rows');
-    if (rowsEl) rowsEl.innerHTML = sorted.map(row => renderSkillRow(app, row, number)).join('');
-
-    const hdr = element.querySelector('.mesmer-skill-breakdown .res-hdr-sortable');
-    if (hdr) {
-        hdr.querySelectorAll('span[data-sort-col]').forEach(span => {
-            const key = span.dataset.sortCol;
-            const isActive = app._skillSortCol === key;
-            const indicator = isActive ? (app._skillSortDir === 'asc' ? ' ▲' : ' ▼') : '';
-            const colDef = MESMER_SKILL_COLS.find(c => c.key === key);
-            span.textContent = (colDef?.label ?? key) + indicator;
-        });
-    }
-}
-
-function bindSkillBreakdownSort(element, app, number) {
-    const hdr = element.querySelector('.mesmer-skill-breakdown .res-hdr-sortable');
-    if (!hdr) return;
-    hdr.querySelectorAll('span[data-sort-col]').forEach(span => {
-        span.addEventListener('click', () => {
-            const col = span.dataset.sortCol;
-            const next = nextResultSortState(
-                app._skillSortCol,
-                app._skillSortDir,
-                col,
-            );
-            app._skillSortCol = next.column;
-            app._skillSortDir = next.direction;
-            applySkillBreakdownSort(element, app, number);
-        });
-    });
-}
+export { chartValueAt };
 
 export function renderResults(app) {
     const element = document.getElementById('rotation-results');
@@ -1477,68 +965,42 @@ export function renderResults(app) {
     const skillRows = skillBreakdownRows(result);
     const conditions = result.conditionBreakdown || [];
     const series = buildChartSeries(result);
-    const number = value => Math.round(Number(value || 0)).toLocaleString();
     const contributions = result.contributions || [];
-
-    const sortIndicator = (col) => {
-        if (!app._skillSortCol || app._skillSortCol !== col) return '';
-        return app._skillSortDir === 'asc' ? ' ▲' : ' ▼';
-    };
-
-    element.innerHTML = `<div class="res-summary">
-        ${metrics.map(metric => `<div class="res-stat">
-            <span class="res-label">${metric.label}</span>
-            <span class="res-val${metric.className ? ` ${metric.className}` : ''}">${metric.value}</span>
-        </div>`).join('')}
-    </div>
-    <div class="res-breakdown mesmer-skill-breakdown">
-        <div class="res-hdr res-hdr-sortable">
-            ${MESMER_SKILL_COLS.map(col =>
-                `<span data-sort-col="${col.key}">${col.label}${sortIndicator(col.key)}</span>`
-            ).join('')}
-        </div>
-        <div class="res-skill-rows">
-            ${skillRows.map(row => renderSkillRow(app, row, number)).join('')}
-        </div>
-    </div>
-    ${conditions.length ? `<div class="res-breakdown cond-breakdown">
-        <div class="res-hdr cond-hdr">
-            <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
-        </div>
-        ${conditions.map(condition => `<div class="res-row">
-            <span class="res-skill condi">${esc(condition.name)}</span>
-            <span class="condi">${number(condition.damage)}</span>
-            <span class="dps">${number(condition.dps)}</span>
-            <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
-        </div>`).join('')}
-        <div class="res-row res-total">
-            <span class="res-skill"><b>Total Conditions</b></span>
-            <span class="condi"><b>${number(result.conditionDamage)}</b></span>
-            <span class="dps"><b>${number(result.conditionDamage / Math.max(0.001, result.duration))}</b></span>
-            <span></span>
-        </div>
-    </div>` : ''}
-    ${chartHtml(series)}
-    ${contributions.length ? `<div class="res-contributions">
-        <h4>Modifier Contributions</h4>
-        <div class="contrib-table">
-            <div class="contrib-hdr">
-                <span>Modifier</span><span>DPS Increase</span><span>% Increase</span>
-            </div>
-            ${contributions.map(contribution => {
-                const sign = contribution.dpsIncrease >= 0 ? '+' : '';
-                return `<div class="contrib-row">
-                    <span class="contrib-name">${esc(contribution.name)}</span>
-                    <span class="contrib-val">${sign}${number(contribution.dpsIncrease)}</span>
-                    <span class="contrib-pct">${sign}${Number(contribution.pctIncrease).toFixed(2)}%</span>
-                </div>`;
-            }).join('')}
-        </div>
-    </div>` : ''}
-    ${result.warnings.length ? `<div class="sim-warnings">${result.warnings.map(esc).join('<br>')}</div>` : ''}`;
-    bindCharts(element, series);
     app._skillBreakdownState = { skillRows };
-    bindSkillBreakdownSort(element, app, number);
+    mountRotationResults(element, {
+        metrics,
+        skillRows,
+        skillColumns: SKILL_COLS,
+        conditions,
+        conditionTotal: conditions.length ? {
+            label: 'Total Conditions',
+            damage: result.conditionDamage,
+            dps: result.conditionDamage / Math.max(0.001, result.duration),
+        } : null,
+        contributions,
+        warnings: result.warnings || [],
+        chartSeries: series,
+    }, {
+        resolveSkillIcon: row => resultIcon(app, row),
+        placeholderIcon: PLACEHOLDER_ICON,
+        skillBreakdownClassName: 'mesmer-skill-breakdown',
+        chartOptions: {
+            title: 'DPS & Effects Over Time',
+            dpsLabel: 'DPS',
+            dpsColor: '#54c96b',
+            colors: EFFECT_COLORS,
+            defaultVisibleEffectLimit: 8,
+            emptyEffectsText: 'No timed effects in this rotation',
+        },
+        sortState: {
+            column: app._skillSortCol,
+            direction: app._skillSortDir,
+        },
+        onSortStateChange(nextState) {
+            app._skillSortCol = nextState.column;
+            app._skillSortDir = nextState.direction;
+        },
+    });
 }
 
 export function renderRotationBuilder(app) {
