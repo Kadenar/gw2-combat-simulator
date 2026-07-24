@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from './helpers/fixture-harness-core.js';
-import { simulateSequence } from '../js/sim/simulator.js';
+import {
+    simulateSequence,
+} from '../js/professions/mesmer/simulation.js';
 import { chartValueAt } from '../js/platform/ui/charts.js';
 import {
     resultSummaryMetrics,
@@ -12,7 +14,7 @@ import {
 import {
     nextResultSortState,
     sortResultRows,
-} from '../js/app/app-rotation-ui.js';
+} from '../js/platform/ui/rotation-results.js';
 import {
     buildChartSeries,
     continuumEndTimelineMarkers,
@@ -604,11 +606,11 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
         event => event.reason === 'Phantasmal Duelist phantasm conversion',
     );
     const resummon = chronophantasma.events.find(
-        event => event.type === 'phantasm_resummoned'
+        event => event.type === 'mesmer.phantasm-resummoned'
             && event.name === 'Phantasmal Duelist',
     );
     const repeat = chronophantasma.events.find(
-        event => event.type === 'phantasm_attack'
+        event => event.type === 'mesmer.phantasm-attack'
             && event.name === 'Phantasmal Duelist'
             && event.repeat,
     );
@@ -2371,14 +2373,14 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
 
     assert.equal(
         normal.events.find(event =>
-            event.type === 'phantasm_summoned'
+            event.type === 'mesmer.phantasm-summoned'
             && event.name === 'Phantasmal Lancer'
         )?.count,
         1,
     );
     assert.equal(
         empowered.events.find(event =>
-            event.type === 'phantasm_summoned'
+            event.type === 'mesmer.phantasm-summoned'
             && event.name === 'Phantasmal Lancer'
         )?.count,
         2,

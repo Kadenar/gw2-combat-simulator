@@ -32,10 +32,10 @@ test("shared app metadata owns common attributes and target conditions", () => {
   assert.equal(STACKING_TARGET_CONDITIONS.has("Burning"), false);
 });
 
-test("shared app runtime and rotation helpers are profession neutral", async () => {
+test("shared app runtime and platform rotation helpers are profession neutral", async () => {
   const sources = await Promise.all([
     readFile(new URL("../js/app/app-runtime.js", import.meta.url), "utf8"),
-    readFile(new URL("../js/app/app-rotation-ui.js", import.meta.url), "utf8"),
+    readFile(new URL("../js/platform/ui/rotation-results.js", import.meta.url), "utf8"),
   ]);
   const professionTerms = [
     "Mesmer",

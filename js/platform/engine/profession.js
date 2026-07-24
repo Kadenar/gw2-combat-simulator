@@ -67,6 +67,22 @@ function composeHooks(value, hookName, fallback) {
   };
 }
 
+export function createEventReactions(value) {
+  const reactions = {};
+  for (const [eventType, handlers] of Object.entries(value || {})) {
+    const hooks = orderedHooks(handlers, `eventReactions.${eventType}`);
+    reactions[eventType] = (context, event, details = {}) => {
+      let result;
+      for (const hook of hooks) {
+        const next = hook.handler(context, event, details);
+        if (next !== undefined) result = next;
+      }
+      return result;
+    };
+  }
+  return Object.freeze(reactions);
+}
+
 function assertDefinition(definition) {
   if (!definition || typeof definition !== "object") {
     throw new TypeError("A profession definition must be an object.");
@@ -133,6 +149,9 @@ export function defineProfession(definition) {
     eventHandlers: Object.freeze({
       ...(resolverHooks.eventHandlers || definition.eventHandlers || {}),
     }),
+    eventReactions: createEventReactions(
+      resolverHooks.eventReactions || definition.eventReactions,
+    ),
     paletteGroups: ui.paletteGroups || (() => []),
     resourceView: ui.resourceView || (() => null),
     ui: Object.freeze({

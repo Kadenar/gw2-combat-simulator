@@ -19,13 +19,13 @@ import {
     AMBUSH_SKILLS,
     PSEUDO_SKILLS,
     skillOverride,
-} from '../js/sim/mechanics/mesmer-skill-overrides.js';
+} from '../js/professions/mesmer/mechanics/mesmer-skill-overrides.js';
 import {
     BASE_SKILL_DATA_BY_ID,
 } from '../js/data/skill-mechanics.js';
 import {
     normalizedSkill,
-} from '../js/sim/mechanics/mesmer-skill-normalization.js';
+} from '../js/professions/mesmer/mechanics/mesmer-skill-normalization.js';
 
 test('catalog contains every Mesmer specialization and trait', () => {
     assert.deepEqual(

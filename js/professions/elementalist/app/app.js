@@ -32,7 +32,7 @@ import {
 import {
     nextResultSortState,
     sortResultRows,
-} from '../../../app/app-rotation-ui.js';
+} from '../../../platform/ui/rotation-results.js';
 import {
     DERIVED_ATTRIBUTES,
     groupedOptions,

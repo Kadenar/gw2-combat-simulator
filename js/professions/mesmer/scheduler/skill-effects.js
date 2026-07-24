@@ -101,13 +101,13 @@ export function createSkillEffectController({
         );
       }
       addEvent({
-        type: "phantasm_summoned",
+        type: "mesmer.phantasm-summoned",
         at,
         name: skill.name,
         count: phantasmCount,
       });
       addEvent({
-        type: "phantasm_attack",
+        type: "mesmer.phantasm-attack",
         at: phantasmDamageAt,
         name: skill.name,
         count: phantasmCount,
@@ -143,13 +143,13 @@ export function createSkillEffectController({
           );
         }
         addEvent({
-          type: "phantasm_resummoned",
+          type: "mesmer.phantasm-resummoned",
           at: phantasmSpawnAt,
           name: skill.name,
           count: phantasmCount,
         });
         addEvent({
-          type: "phantasm_attack",
+          type: "mesmer.phantasm-attack",
           at: chronophantasmaDamageAt,
           name: skill.name,
           count: phantasmCount,

@@ -6,7 +6,13 @@ import {
   strikeDamage,
 } from "./damage.js";
 
-const noop = () => {};
+function react(context, event, details = {}) {
+  return context.profession.eventReactions?.[event.type]?.(
+    context,
+    event,
+    details,
+  );
+}
 
 function attributes(context) {
   return {
@@ -56,6 +62,12 @@ export function commonDamageHandler(context, event) {
     damage,
     hits,
   );
+  react(context, event, {
+    damage,
+    criticalChance: chance,
+    criticalDamage: critical,
+    stats,
+  });
 }
 
 export function commonConditionHandler(context, event) {
@@ -75,17 +87,31 @@ export function commonConditionHandler(context, event) {
   );
   const current = context.state.conditions.get(event.condition) || 0;
   context.state.conditions.set(event.condition, current + damage);
+  react(context, event, { damage, stats });
+}
+
+function reactingNoop(context, event) {
+  react(context, event);
 }
 
 export function createCommonEventHandlers() {
   return {
-    action: noop,
+    action: reactingNoop,
+    combat_start: reactingNoop,
     damage: commonDamageHandler,
     condition: commonConditionHandler,
-    condition_tick: noop,
-    control: noop,
-    blind: noop,
-    weapon_set: noop,
-    proc: (context, event) => context.state.procs.push(event),
+    condition_tick: reactingNoop,
+    control: reactingNoop,
+    blind: reactingNoop,
+    weapon_set: reactingNoop,
+    marker: reactingNoop,
+    resource: reactingNoop,
+    buff: reactingNoop,
+    weakness_vulnerability: reactingNoop,
+    peitha: reactingNoop,
+    proc: (context, event) => {
+      context.state.procs.push(event);
+      react(context, event);
+    },
   };
 }

@@ -332,7 +332,7 @@ export function createProfessionActionController({
     state.instruments.set(data.instrument, expiresAt);
     state.lastInstrument = data.instrument;
     addEvent({
-      type: "instrument",
+      type: "mesmer.instrument",
       at: at + epsilon,
       instrument: data.instrument,
       expiresAt,

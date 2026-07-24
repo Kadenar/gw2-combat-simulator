@@ -4,6 +4,8 @@ export * from "./damage.js";
 export * from "./event-handlers.js";
 export * from "./gear-data.js";
 export * from "./relic-rules.js";
+export * from "./resolver/index.js";
+export * from "./scheduler/index.js";
 export * from "./simulate.js";
 export * from "./target-state.js";
 export * from "./weapon-sigils.js";

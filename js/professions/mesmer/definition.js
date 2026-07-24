@@ -12,6 +12,10 @@ import {
 } from "./simulation.js";
 import { createMesmerState, snapshotMesmerState } from "./state.js";
 import { mesmerAttributeRules } from "./attribute-rules.js";
+import {
+  mesmerResolverEventHandlers,
+  mesmerResolverEventReactions,
+} from "./resolver/event-handlers.js";
 import { mesmerUi } from "./ui.js";
 
 export const mesmerProfession = defineProfession({
@@ -32,7 +36,8 @@ export const mesmerProfession = defineProfession({
     snapshot: context => snapshotMesmerState(context.state.profession),
   },
   resolverHooks: {
-    eventHandlers: {},
+    eventHandlers: mesmerResolverEventHandlers,
+    eventReactions: mesmerResolverEventReactions,
   },
   ui: mesmerUi,
   simulation: Object.freeze({

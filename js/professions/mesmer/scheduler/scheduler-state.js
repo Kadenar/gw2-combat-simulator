@@ -1,4 +1,11 @@
 import { createMesmerState } from "../state.js";
+import {
+  createSchedulerState as createPlatformSchedulerState,
+} from "../../../platform/engine/scheduler-state.js";
+
+const MESMER_STATE_CONTRACT = Object.freeze({
+  createProfessionState: createMesmerState,
+});
 
 // Compatibility state for the original Mesmer scheduler. Mesmer fields live
 // under profession; the proxy keeps old focused controllers working while they
@@ -7,17 +14,15 @@ export function createSchedulerState({
   infiniteForge = false,
   startingTime = 0,
 } = {}) {
-  const shared = {
-    time: startingTime,
-    cooldowns: new Map(),
-    ammo: new Map(),
-    activeWeaponSet: 1,
-    skillUses: new Map(),
-    pendingEvents: [],
-    profession: createMesmerState({ infiniteForge }),
+  const shared = createPlatformSchedulerState({
+    profession: MESMER_STATE_CONTRACT,
+    config: { infiniteForge },
+    startingTime,
+  });
+  Object.assign(shared, {
     hasExplicitCombatStart: false,
     combatStartTime: 0,
-  };
+  });
   return new Proxy(shared, {
     get(target, property, receiver) {
       if (Reflect.has(target, property)) {
