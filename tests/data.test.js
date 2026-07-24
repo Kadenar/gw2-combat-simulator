@@ -5,10 +5,15 @@ import { RELIC_NAMES } from '../js/data/gear-data.js';
 import { TRAITS } from '../js/data/traits-data.js';
 import {
     AMBUSH_ATTACKS,
+    CLONE_ATTACKS,
     PHANTASM_ATTACK_TIMINGS,
     PHANTASM_NAME_BY_SKILL,
 } from '../js/sim/mechanics/mesmer-illusion-data.js';
-import { MECHANIC_SKILLS } from '../js/sim/mechanics/mesmer-profession-data.js';
+import {
+    INSTRUMENTS,
+    MECHANIC_SKILLS,
+    SHATTERS,
+} from '../js/sim/mechanics/mesmer-profession-data.js';
 import {
     AMBUSH_SKILLS,
     PSEUDO_SKILLS,
@@ -237,6 +242,178 @@ test('Mirage ambush data uses current player and clone variants', () => {
     assert.deepEqual(
         AMBUSH_ATTACKS.Staff.player.conditions.map(condition => condition.name),
         ['Bleeding', 'Torment', 'Confusion'],
+    );
+});
+
+test('supplied player and clone coefficient table is preserved', () => {
+    const normalized = name =>
+        normalizedSkill(
+            SKILLS.find(skill => skill.name === name)
+            || PSEUDO_SKILLS.find(skill => skill.name === name),
+        );
+    const totalCoefficient = skill =>
+        skill.damage.reduce((sum, group) => sum + group.coefficient, 0);
+    const playerSkills = [
+        ['Lacerating Chop', 0.55, 0.43],
+        ['Ethereal Chop', 0.55, 0.53],
+        ['Mirror Strikes', 1.1, 0.72],
+        ['Lingering Thoughts', 1.2, 0.93],
+        ['Axes of Symmetry', 1.75, 1.02],
+        ['Mind Stab', 1.8, 0.36],
+        ['Phantasmal Berserker', 3.66, 0.56],
+        ['Illusionary Wave', 0.3, 0.64],
+        ['Unstable Bladestorm', 3, 0.44],
+    ];
+
+    for (const [name, coefficient, quicknessCast] of playerSkills) {
+        const skill = normalized(name);
+        assert.ok(Math.abs(totalCoefficient(skill) - coefficient) < 1e-12, name);
+        assert.ok(Math.abs(skill.activation / 1.5 - quicknessCast) < 1e-12, name);
+    }
+
+    assert.equal(AMBUSH_ATTACKS.Axe.player.coefficient, 1);
+    assert.equal(AMBUSH_ATTACKS.Axe.activation / 1.5, 0.52);
+    assert.deepEqual(
+        CLONE_ATTACKS.Axe.sequence.map(step => [
+            step.name,
+            step.coefficient,
+            step.interval,
+        ]),
+        [
+            ['Clone: Lacerating Chop', 0.55, 1.51],
+            ['Clone: Ethereal Chop', 0.55, 1.61],
+            ['Clone: Mirror Strikes', 1.1, 1.17],
+        ],
+    );
+    assert.equal(CLONE_ATTACKS.Dagger.coefficient, 0.7);
+    assert.deepEqual(
+        [
+            AMBUSH_ATTACKS.Axe.clone.coefficient,
+            AMBUSH_ATTACKS.Axe.clone.activation,
+        ],
+        [3.7, 1.11],
+    );
+    assert.equal(AMBUSH_ATTACKS.Dagger.clone.coefficient, 3);
+});
+
+test('supplied utility, spear, staff, and phantasm coefficients are preserved', () => {
+    const normalized = name =>
+        normalizedSkill(
+            SKILLS.find(skill => skill.name === name)
+            || PSEUDO_SKILLS.find(skill => skill.name === name),
+        );
+    const effectiveCoefficient = skill => {
+        const phantasmCount = Number(skill.resource?.count || 1);
+        return skill.damage.reduce(
+            (sum, group) =>
+                sum + group.coefficient
+                * (group.source === 'Phantasm' ? phantasmCount : 1),
+            0,
+        );
+    };
+    const expectedSkills = {
+        'Thousand Cuts': 5,
+        Jaunt: 1,
+        'Crystal Sands': 2.4,
+        'Power Spike': 1.33,
+        'Mirage Advance': 1.5,
+        'Phantasmal Disenchanter': 2.05,
+        'Rain of Swords': 6,
+        'Sword of Decimation': 1.5,
+        'Tale of the Tortured Mastermind': 4,
+        'Well of Action': 4.5,
+        'Well of Calamity': 6,
+        'Well of Senility': 4.5,
+        Psycut: 1,
+        Psystrike: 1,
+        'Mind Pierce': 1.5,
+        'Mind the Gap': 1.92,
+        'Imaginary Inversion': 2.4,
+        'Phantasmal Lancer': 3.46,
+        'Mental Collapse': 3,
+        'Phantasmal Warlock': 1.85,
+        'Chaos Storm': 1.98,
+        'Phantasmal Swordsman': 4.81,
+        'The Prestige': 1,
+        'Phantasmal Mage': 0.69,
+    };
+
+    for (const [name, coefficient] of Object.entries(expectedSkills)) {
+        assert.ok(
+            Math.abs(effectiveCoefficient(normalized(name)) - coefficient) < 1e-12,
+            name,
+        );
+    }
+
+    assert.deepEqual(
+        CLONE_ATTACKS.Spear.sequence.map(step => [
+            step.name,
+            step.coefficient,
+        ]),
+        [
+            ['Clone: Psycut', 1],
+            ['Clone: Psystrike', 1],
+            ['Clone: Mind Pierce', 1.5],
+        ],
+    );
+    assert.equal(AMBUSH_ATTACKS.Spear.clone.coefficient, 3.15);
+    assert.equal(CLONE_ATTACKS.Staff.coefficient, 0.49);
+    assert.equal(AMBUSH_ATTACKS.Staff.clone.coefficient, 1.12);
+
+    const lancer = normalized('Phantasmal Lancer');
+    assert.equal(
+        lancer.damage.find(group => group.source === 'Phantasm').coefficient,
+        1.23,
+    );
+    const swordsman = normalized('Phantasmal Swordsman');
+    assert.deepEqual(
+        swordsman.damage.map(group => [group.label, group.coefficient]),
+        [
+            ['Mesmer strike', 0.5],
+            ['Phantasm leap', 1.03],
+            ['Phantasm Blurred Frenzy', 3.28],
+        ],
+    );
+    const mage = normalized('Phantasmal Mage');
+    assert.deepEqual(
+        mage.damage.map(group => [group.source, group.coefficient]),
+        [
+            ['Player', 0.19],
+            ['Phantasm', 0.5],
+        ],
+    );
+});
+
+test('supplied shatter and instrument coefficient tables are preserved', () => {
+    const expectedShatters = {
+        'Mind Wrack': [0.81, 1.61, 2.42, 3.22],
+        'Cry of Frustration': [0.42, 0.84, 1.25, 1.67],
+        Diversion: [0, 0, 0, 0],
+        Distortion: [0, 0, 0, 0],
+        'Split Second': [1.61, 3.22, 3.86, 4.51],
+        Rewinder: [0.42, 0.84, 1.25, 1.67],
+        'Time Sink': [0, 0, 0, 0],
+        'Bladesong Harmony': [0, 0.7, 1.4, 2.1, 2.8, 3.5],
+        'Bladesong Sorrow': [0, 0.42, 0.84, 1.25, 1.67, 2.09],
+        'Bladesong Dissonance': [0, 1, 1, 1, 1, 1],
+        'Bladeturn Requiem': [0, 0.3, 0.6, 0.9, 1.2, 1.5],
+        'Continuum Split': [0, 0, 0, 0],
+    };
+    for (const [name, coefficients] of Object.entries(expectedShatters)) {
+        assert.deepEqual(SHATTERS[name].coefficients, coefficients, name);
+    }
+
+    assert.deepEqual(
+        Object.fromEntries(Object.entries(INSTRUMENTS).map(([name, data]) => [
+            name,
+            data.coefficient,
+        ])),
+        {
+            'Lively Lute': 3,
+            'Flustering Flute': 1,
+            'Deafening Drum': 2,
+            'Harmonious Harp': 0,
+        },
     );
 });
 

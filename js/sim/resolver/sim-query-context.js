@@ -284,6 +284,9 @@ export function buildResolverQuery(config, traits, events, model) {
       commonMultiplier(time, false) *
       Number(config.modifiers?.strike || 1) *
       Number(activeSigilSetAt(time).strike || 1);
+    if (event.skillName === "Mind Stab") {
+      multiplier *= 1 + vulnerabilityStacksAt(time) * 0.01;
+    }
     // Fragility: +0.5% strike damage per stack of Vulnerability (on top of the
     // base 1%/stack from Vulnerability itself). Strike-only and does not affect
     // phantasm strikes.
