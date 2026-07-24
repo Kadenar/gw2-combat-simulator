@@ -25,6 +25,7 @@ import {
     readJsonFile,
 } from '../../../app/app-io.js';
 import { chartValueAt } from '../../../platform/ui/charts.js';
+import { ammoDisplayView } from '../../../platform/ui/ammo-display.js';
 import {
     resultSummaryMetrics,
 } from '../../../platform/ui/result-transform.js';
@@ -2677,7 +2678,16 @@ class App {
         const c = this._skillColor(skill, skill.name);
         const cls = available ? '' : ' pal-disabled';
         const charges = this._getChargeCount(skill);
-        const chargeBadge = charges !== null ? `<span class="pal-charges">${charges}</span>` : '';
+        const ammoDisplay = ammoDisplayView(charges, skill.maximumCount);
+        const ammoClasses = ammoDisplay
+            ? ` pal-has-ammo${ammoDisplay.available ? ' pal-ammo-available' : ''}`
+            : '';
+        const chargeIndicator = ammoDisplay
+            ? `<span class="pal-charges">${ammoDisplay.current}/${ammoDisplay.maximum}</span>
+            <span class="pal-ammo-pips" aria-hidden="true">${ammoDisplay.pips.map(filled =>
+                `<span class="pal-ammo-pip${filled ? ' filled' : ''}"></span>`
+            ).join('')}</span>`
+            : '';
         let cdSecs = this._getSkillCD(opts.cooldownSkill || skill);
         if (opts.cooldownSkill) {
             const ownCd = this._getSkillCD(skill);
@@ -2685,8 +2695,10 @@ class App {
         }
         const cdBadge = cdSecs !== null ? `<span class="pal-cd">${cdSecs.toFixed(1)}</span>` : '';
         const title = opts.title || skill.name;
-        return `<div class="pal-skill${cls}" data-skill="${esc(skill.name)}" title="${esc(title)}" style="--att-border:${c}">
-            <img src="${icon || PLACEHOLDER_ICON}" />${chargeBadge}${cdBadge}</div>`;
+        return `<div class="pal-skill${cls}${ammoClasses}" data-skill="${esc(skill.name)}" title="${esc(title)}"
+            ${ammoDisplay ? `aria-label="${esc(`${skill.name}: ${ammoDisplay.label}`)}"` : ''}
+            style="--att-border:${c}">
+            <img src="${icon || PLACEHOLDER_ICON}" />${chargeIndicator}${cdBadge}</div>`;
     }
 
     _renderPalette() {

@@ -316,6 +316,18 @@ frame.addEventListener('load', async () => {
             icon(document, 'Split Second').querySelector('.pal-charges')?.textContent === '2/2',
             'Shatter Storm did not expose two Split Second ammo charges',
         );
+        assert(
+            icon(document, 'Split Second').querySelectorAll('.pal-ammo-pip.filled').length === 2,
+            'Split Second did not render two filled ammo pips',
+        );
+        icon(document, 'Split Second').click();
+        assert(
+            icon(document, 'Split Second').querySelector('.pal-charges')?.textContent === '1/2'
+            && icon(document, 'Split Second').querySelectorAll('.pal-ammo-pip.filled').length === 1,
+            'Split Second did not visibly consume one ammo charge',
+        );
+        app.build.rotation = [];
+        app.changed();
         const split = icon(document, 'Continuum Split');
         const shift = icon(document, 'Continuum Shift');
         assert(split?.nextElementSibling === shift, 'Continuum Shift is not directly beside Continuum Split');
