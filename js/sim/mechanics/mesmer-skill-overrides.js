@@ -4,8 +4,8 @@
  * flip/ambush skills, and simulator-only actions.
  */
 
-import { INSTRUMENTS, SHATTERS } from "./mesmer-profession-data.js";
-import { AMBUSH_ATTACKS } from "./mesmer-illusion-data.js";
+import { AMBUSH_ATTACKS } from "../../data/mesmer-illusion-data.js";
+import { INSTRUMENTS, SHATTERS } from "../../data/mesmer-profession-data.js";
 
 /**
  * Weapon autoattack chains: progression of skills per weapon type.
