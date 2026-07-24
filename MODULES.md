@@ -15,13 +15,22 @@ Main application controller. Creates MesmerApp class that initializes the page, 
 Build persistence and initialization. Provides functions to create default builds, load/save builds from localStorage, and merge saved builds with defaults while maintaining backward compatibility.
 
 ### [app-runtime.js](js/app/app-runtime.js)
-Simulation orchestration layer. Transforms UI build into simulation config, determines elite specialization, calculates attributes, and triggers simulation runs. Bridges app state and simulation engine.
+Profession-neutral modifier comparison orchestration. Mesmer
+build-to-simulation mapping and modifier candidate rules live in
+`js/professions/mesmer/app/app-runtime.js`.
 
 ### [app-io.js](js/app/app-io.js)
 File I/O utilities. Provides functions to export builds/rotations as JSON files and import them from user-selected files.
 
 ### [app-rotation-ui.js](js/app/app-rotation-ui.js)
-Rotation builder UI. Renders the skill rotation timeline, handles drag-and-drop actions, manages concurrent skill placement, and displays skill/effect breakdowns with color-coded conditions and passive effects.
+Profession-neutral result-table sorting helpers shared by browser adapters.
+Mirage effects, Continuum Shift controls, phantasm/clone logging, and Mesmer
+palette rendering live in
+`js/professions/mesmer/app/app-rotation-ui.js`.
+
+### [app-ui.js](js/app/app-ui.js)
+Shared application metadata and HTML option rendering for gear, attributes, and
+target-condition controls.
 
 ---
 
@@ -54,7 +63,9 @@ Trait processing. Extracts trait data from specialization catalog, maps traits t
 Attribute calculations and damage formulas.
 
 ### [calc-attributes.js](js/core/calc-attributes.js)
-Attribute calculation engine. Computes final attributes (Power, Precision, etc.) from gear, runes, food, traits, utilities, infusions, and sigils. Tracks breakdowns for each stat source and derives secondary attributes (Crit Chance, Crit Damage, Boon/Condition Duration).
+Profession-neutral compatibility entry point for common attribute assembly.
+Profession traits and skill bonuses are applied by each profession's own
+calculator under `js/professions/<profession>/core/calc-attributes.js`.
 
 ### [damage.js](js/core/damage.js)
 Damage calculation formulas. Provides strike damage calculation, expected crit multiplier, condition tick damage, and full skill damage breakdowns including per-tick and per-stack effects.
@@ -141,7 +152,7 @@ User Input (UI)
     ↓
 [app-state.js] - Build persistence
     ↓
-[app-runtime.js] - Build → Simulation config transformation
+[professions/mesmer/app/app-runtime.js] - Build → Simulation config transformation
     ↓
 [simulator.js] - Public orchestrator
     ├→ [scheduler.js] - Action scheduling phase
@@ -167,7 +178,7 @@ User Input (UI)
 Results
     ↓
 [app.js] - Render UI with breakdown
-    ├→ [app-rotation-ui.js] - Timeline/rotation display
+    ├→ [professions/mesmer/app/app-rotation-ui.js] - Timeline/rotation display
     └→ Display damage totals, breakdowns, active cooldowns
 ```
 

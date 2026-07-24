@@ -23,23 +23,28 @@ import {
     modifierContributionRequest,
     recalculate,
     runSimulation,
-} from './app-runtime.js';
-import { renderResults, renderRotationBuilder } from './app-rotation-ui.js';
+} from '../professions/mesmer/app/app-runtime.js';
+import {
+    renderResults,
+    renderRotationBuilder,
+} from '../professions/mesmer/app/app-rotation-ui.js';
 import { escapeHtml as esc } from '../platform/ui/html.js';
-
-const option = (value, selected, label = value, disabled = false) =>
-    `<option value="${esc(value)}"${value === selected ? ' selected' : ''}${disabled ? ' disabled' : ''}>${esc(label)}</option>`;
+import {
+    DERIVED_ATTRIBUTES,
+    groupedOptions,
+    option,
+    PERCENT_ATTRIBUTES,
+    PERMANENT_TARGET_CONDITIONS,
+    PRIMARY_ATTRIBUTES,
+    SPECIFIC_CONDITION_DURATION_ATTRIBUTES,
+    STACKING_TARGET_CONDITIONS,
+} from './app-ui.js';
 
 // Wiki specialization banners are exactly 647×136 px — matching the trait panel width,
 // so they frame edge-to-edge with no vertical crop. The generated catalog ships the raw
 // API backgrounds (1024×256), which get center-cropped to an inconsistent zoomed band.
 // Special:FilePath redirects to the actual file regardless of internal hash paths.
 const SPEC_BG = name => `https://wiki.guildwars2.com/wiki/Special:FilePath/${encodeURIComponent(name)}_specialization.png`;
-
-// Helper to generate grouped select options (for runes, food, etc.)
-const groupedOptions = (groups, selected) => groups.map(group =>
-    `<optgroup label="${esc(group.label)}">${group.items.map(item => option(item, selected)).join('')}</optgroup>`
-).join('');
 
 const PERMANENT_BOONS = [
     ['fury', 'Fury'],
@@ -48,14 +53,6 @@ const PERMANENT_BOONS = [
     ['regeneration', 'Regeneration'],
     ['vigor', 'Vigor'],
 ];
-const PERMANENT_TARGET_CONDITIONS = [
-    'Vulnerability', 'Weakness', 'Blindness', 'Slow',
-    'Chilled', 'Cripple', 'Immobilize',
-    'Burning', 'Bleeding', 'Torment', 'Confusion', 'Poisoned',
-];
-const STACKING_TARGET_CONDITIONS = new Set([
-    'Vulnerability', 'Bleeding', 'Torment', 'Confusion',
-]);
 const EFFECT_COLORS = {
     Might: '#d9a441',
     Fury: '#d65e5e',
@@ -398,16 +395,9 @@ class MesmerApp {
         document.getElementById('attribute-weapon-set').value =
             String(this.attributeWeaponSet);
         const attributes = this.attributeData.attributes;
-        const percent = new Set([
-            'Critical Chance', 'Critical Damage', 'Condition Duration', 'Boon Duration',
-            'Bleeding Duration', 'Burning Duration', 'Confusion Duration', 'Poison Duration', 'Torment Duration',
-        ]);
-        const primary = ['Power', 'Precision', 'Toughness', 'Vitality', 'Ferocity', 'Condition Damage', 'Expertise', 'Concentration', 'Healing Power'];
-        const derived = ['Critical Chance', 'Critical Damage', 'Condition Duration', 'Boon Duration',
-            'Bleeding Duration', 'Burning Duration', 'Confusion Duration', 'Poison Duration', 'Torment Duration'];
         const section = (title, names) => `<div class="attr-section"><h4>${title}</h4>${names.map(name => {
             let value = attributes[name]?.final || 0;
-            if (name.endsWith(' Duration') && name !== 'Condition Duration' && name !== 'Boon Duration') {
+            if (SPECIFIC_CONDITION_DURATION_ATTRIBUTES.has(name)) {
                 value += attributes['Condition Duration']?.final || 0;
             }
             const breakdown = attributes[name]
@@ -415,9 +405,11 @@ class MesmerApp {
                     .map(([key, amount]) => `${key}: ${Math.round(amount * 100) / 100}`).join('\n')
                 : '';
             return `<div class="attr-row" title="${esc(breakdown)}"><span class="attr-name">${name}</span>
-                <span class="attr-val">${percent.has(name) ? `${value.toFixed(2)}%` : Math.round(value).toLocaleString()}</span></div>`;
+                <span class="attr-val">${PERCENT_ATTRIBUTES.has(name) ? `${value.toFixed(2)}%` : Math.round(value).toLocaleString()}</span></div>`;
         }).join('')}</div>`;
-        document.getElementById('attributes-list').innerHTML = section('Primary', primary) + section('Derived', derived);
+        document.getElementById('attributes-list').innerHTML =
+            section('Primary', PRIMARY_ATTRIBUTES)
+            + section('Derived', DERIVED_ATTRIBUTES);
     }
 
     availableSlotSkills(type) {

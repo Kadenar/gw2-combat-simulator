@@ -7,9 +7,55 @@ import {
     modifierContributionRequest,
     runSimulation,
     simulationConfig,
+} from '../js/professions/mesmer/app/app-runtime.js';
+import {
+    calculateAttributes as calculateCommonAttributes,
+} from '../js/core/calc-attributes.js';
+import {
+    calculateContributionComparisons,
 } from '../js/app/app-runtime.js';
-import { calcAttributes } from '../js/core/calc-attributes.js';
+import {
+    calculateAttributes as calculateMesmerAttributes,
+} from '../js/professions/mesmer/core/calc-attributes.js';
 import { setWeaponSigil } from '../js/core/weapon-sigils.js';
+
+const calcAttributes = calculateMesmerAttributes;
+
+test('shared contribution comparisons accept a profession simulator', () => {
+    const simulate = (_rotation, config) => ({ dps: config.dps });
+    const contributions = calculateContributionComparisons({
+        rotation: [],
+        baseConfig: { dps: 100 },
+        comparisons: [{
+            modifier: { id: 'test', label: 'Test modifier' },
+            config: { dps: 80 },
+        }],
+    }, simulate);
+
+    assert.deepEqual(contributions, [{
+        id: 'test',
+        name: 'Test modifier',
+        dpsIncrease: 20,
+        pctIncrease: 25,
+    }]);
+});
+
+test('core attribute calculation does not apply Mesmer build rules', () => {
+    const build = createDefaultBuild();
+    const common = calculateCommonAttributes(build);
+    const mesmer = calculateMesmerAttributes(
+        build,
+        [{ id: 10232, name: 'Signet of Domination' }],
+    );
+
+    assert.equal(common.activeTraits, undefined);
+    assert.equal(common.attributes['Condition Damage'].traits, 0);
+    assert.equal(
+        mesmer.attributes['Condition Damage'].final
+            - common.attributes['Condition Damage'].final,
+        180,
+    );
+});
 
 test('attributes are derived from selected gear instead of user-entered stats', () => {
     const berserker = createDefaultBuild();
@@ -140,6 +186,16 @@ test('simulation config preserves non-sigil condition duration bonuses', () => {
     assert.equal(config.stats.conditionDurationBonus, 15);
     assert.deepEqual(config.stats.conditionDurationBonuses, {});
     assert.equal(config.sigilSets[0].conditionDurationBonuses.Torment, 20);
+});
+
+test('Mesmer runtime excludes Malicious Sorcery from static duration bonuses', () => {
+    const build = createDefaultBuild();
+    build.specializations.find(spec => spec.name === 'Illusions').traits = '1-2-3';
+    const attributeData = calcAttributes(build, []);
+    const config = simulationConfig({ build, attributeData });
+
+    assert.equal(attributeData.attributes['Confusion Duration'].traits, 25);
+    assert.equal(config.stats.conditionDurationBonuses.Confusion, undefined);
 });
 
 test('simulation config exposes the selected target skill activation rate', () => {

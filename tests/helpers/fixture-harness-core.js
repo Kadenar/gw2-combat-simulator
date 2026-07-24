@@ -1,5 +1,7 @@
 import { createDefaultBuild } from '../../js/app/app-state.js';
-import { calcAttributes } from '../../js/core/calc-attributes.js';
+import {
+  calculateAttributes as calcAttributes,
+} from "../../js/professions/mesmer/core/calc-attributes.js";
 import { simulateSequence } from '../../js/sim/simulator.js';
 
 export function defaultSimulationConfig(overrides = {}) {

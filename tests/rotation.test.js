@@ -2,17 +2,33 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from './helpers/fixture-harness-core.js';
 import { simulateSequence } from '../js/sim/simulator.js';
+import { chartValueAt } from '../js/platform/ui/charts.js';
+import {
+    resultSummaryMetrics,
+} from '../js/platform/ui/result-transform.js';
+import {
+    moveRotationEntry,
+} from '../js/platform/ui/timeline.js';
+import {
+    nextResultSortState,
+    sortResultRows,
+} from '../js/app/app-rotation-ui.js';
 import {
     buildChartSeries,
-    chartValueAt,
     continuumEndTimelineMarkers,
-    moveRotationEntry,
-    resultSummaryMetrics,
+    RELIC_ICONS,
     simulationEventLogCsv,
     simulationEventLogRows,
     skillBreakdownRows,
     timelineWeaponRows,
-} from '../js/app/app-rotation-ui.js';
+} from '../js/professions/mesmer/app/app-rotation-ui.js';
+
+test('Relic of the Claw uses its relic icon in the proc timeline', () => {
+    assert.equal(
+        RELIC_ICONS['Relic of the Claw'],
+        'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
+    );
+});
 
 test('queueing a cooling-down icon waits until it is available', () => {
     const result = simulateSequence(['Bladecall', 'Bladecall'], defaultSimulationConfig());
@@ -1161,7 +1177,8 @@ test('Relic of the Claw buffs strikes after a control skill for eight seconds', 
     assert.ok(equipped.procSteps.some(proc =>
         proc.type === 'relic_proc'
         && proc.skill === 'Relic of the Claw'
-        && proc.sourceSkill === 'Bladesong Dissonance'));
+        && proc.sourceSkill === 'Bladesong Dissonance'
+        && proc.detail === 'activated'));
 });
 
 test('Relic of the Claw can trigger from a non-damaging control skill and expires', () => {
@@ -1187,7 +1204,7 @@ test('Relic of the Claw can trigger from a non-damaging control skill and expire
     assert.ok(Math.abs(activeDamage / expiredDamage - 1.07) < 1e-12);
 });
 
-test('timed relic buffs only add a proc when the buff was not already active', () => {
+test('Relic of the Claw records activation and refresh procs', () => {
     const claw = simulateSequence(
         ['Signet of Domination', 'Diversion', { name: '__wait', waitMs: 8001 }, 'Signet of Domination'],
         defaultSimulationConfig({
@@ -1196,11 +1213,19 @@ test('timed relic buffs only add a proc when the buff was not already active', (
             relic: 'Claw',
         }),
     );
-    assert.equal(
-        claw.procSteps.filter(proc => proc.skill === 'Relic of the Claw').length,
-        2,
+    assert.deepEqual(
+        claw.procSteps
+            .filter(proc => proc.skill === 'Relic of the Claw')
+            .map(proc => ({ sourceSkill: proc.sourceSkill, detail: proc.detail })),
+        [
+            { sourceSkill: 'Signet of Domination', detail: 'activated' },
+            { sourceSkill: 'Diversion', detail: 'refreshed' },
+            { sourceSkill: 'Signet of Domination', detail: 'activated' },
+        ],
     );
+});
 
+test('timed relic buffs only add a proc when the buff was not already active', () => {
     const fireworks = simulateSequence(
         ['Chaos Storm', { name: '__wait', waitMs: 14000 }, 'Chaos Storm'],
         defaultSimulationConfig({
@@ -2713,6 +2738,42 @@ test('result summary includes kill time when target health is exhausted', () => 
         ['Duration', 'Kill Time', 'Total Damage', 'DPS', 'Strike', 'Condition'],
     );
     assert.equal(buildChartSeries(result).durationMs, result.deathTime * 1000);
+});
+
+test('result table sorting cycles consistently across profession views', () => {
+    assert.deepEqual(nextResultSortState(null, null, 'dps'), {
+        column: 'dps',
+        direction: 'desc',
+    });
+    assert.deepEqual(nextResultSortState('dps', 'desc', 'dps'), {
+        column: 'dps',
+        direction: 'asc',
+    });
+    assert.deepEqual(nextResultSortState('dps', 'asc', 'dps'), {
+        column: null,
+        direction: null,
+    });
+
+    const rows = [
+        { name: 'Beta', total: 20, dps: 5 },
+        { name: 'Alpha', total: 10, dps: 8 },
+    ];
+    const columns = [
+        { key: 'name', numeric: false },
+        { key: 'dps', numeric: true },
+    ];
+    assert.deepEqual(
+        sortResultRows(rows, columns, null, null).map(row => row.name),
+        ['Beta', 'Alpha'],
+    );
+    assert.deepEqual(
+        sortResultRows(rows, columns, 'dps', 'desc').map(row => row.name),
+        ['Alpha', 'Beta'],
+    );
+    assert.deepEqual(
+        sortResultRows(rows, columns, 'name', 'asc').map(row => row.name),
+        ['Alpha', 'Beta'],
+    );
 });
 
 test('skill breakdown combines strike and condition damage by source skill', () => {

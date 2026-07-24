@@ -1,4 +1,6 @@
-import { calculateModifierContributions } from './app-runtime.js';
+import {
+    calculateModifierContributions,
+} from '../professions/mesmer/app/app-runtime.js';
 
 self.addEventListener('message', ({ data }) => {
     const { requestId, request } = data;
