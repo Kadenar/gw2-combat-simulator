@@ -708,9 +708,9 @@ const baseBreakdownName = name => String(name || '').split('—')[0].trim();
 
 const eventLogOrder = {
     cast: 10,
-    phantasm_summoned: 20,
-    phantasm_resummoned: 21,
-    phantasm_attack: 22,
+    'mesmer.phantasm-summoned': 20,
+    'mesmer.phantasm-resummoned': 21,
+    'mesmer.phantasm-attack': 22,
     resource: 30,
     marker: 40,
     proc: 50,
@@ -746,7 +746,7 @@ export function simulationEventLogRows(result, build = null) {
                 push(event.endsAt, 'cast_end', `END ${event.name}`);
                 break;
             }
-            case 'phantasm_summoned':
+            case 'mesmer.phantasm-summoned':
                 push(
                     event.at,
                     event.type,
@@ -755,7 +755,7 @@ export function simulationEventLogRows(result, build = null) {
                     true,
                 );
                 break;
-            case 'phantasm_resummoned':
+            case 'mesmer.phantasm-resummoned':
                 push(
                     event.at,
                     event.type,
@@ -764,7 +764,7 @@ export function simulationEventLogRows(result, build = null) {
                     true,
                 );
                 break;
-            case 'phantasm_attack':
+            case 'mesmer.phantasm-attack':
                 push(
                     event.at,
                     event.type,
@@ -840,7 +840,7 @@ export function simulationEventLogRows(result, build = null) {
                     'trigger',
                 );
                 break;
-            case 'instrument':
+            case 'mesmer.instrument':
                 push(
                     event.at,
                     'trigger',

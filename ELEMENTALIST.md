@@ -92,20 +92,19 @@ GW2/
 ```
 index.html / fixtures.html
         │
-        ├── js/app/app.js
+        ├── js/professions/elementalist/app/app.js
         │       │
-        │       ├── js/app/* helpers
-        │       ├── js/data/*
-        │       ├── js/core/*
-        │       └── js/sim/run/sim-runner.js
+        │       ├── js/professions/elementalist/app/* helpers
+        │       ├── js/professions/elementalist/data/*
+        │       └── js/professions/elementalist/sim/run/sim-runner.js
         │               │
-        │               └── js/simulation.js
+        │               └── js/professions/elementalist/simulation.js
         │                       │
-        │                       └── js/sim/run/sim-run-orchestration.js
+        │                       └── js/professions/elementalist/sim/run/sim-run-orchestration.js
         │                               │
-        │                               ├── js/sim/scheduler/*
-        │                               ├── js/sim/shared/sim-scheduled-event-stream.js
-        │                               └── js/sim/resolver/*
+        │                               ├── js/professions/elementalist/sim/scheduler/*
+        │                               ├── js/professions/elementalist/sim/shared/*
+        │                               └── js/professions/elementalist/sim/resolver/*
         │
         └── js/fixtures/fixture-harness-page.js
                 │
@@ -148,7 +147,7 @@ The gear optimizer and its worker entry.
 
 The regression harness used to compare current behavior against saved baselines.
 
-### `js/sim/`
+### `js/professions/elementalist/sim/`
 
 The internal simulator, split by responsibility:
 
@@ -296,7 +295,7 @@ Pure math functions with no side effects. Constants:
 
 ---
 
-### `js/simulation.js` — Simulation Engine
+### `js/professions/elementalist/simulation.js` — Simulation Engine
 
 The core of the app. The `SimulationEngine` class processes a user-defined rotation and produces a full damage timeline.
 

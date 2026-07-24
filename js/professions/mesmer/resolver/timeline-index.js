@@ -15,7 +15,9 @@ export function createTimelineIndex({
   sigilSet,
 }) {
   const buffEvents = events.filter((event) => event.type === "buff");
-  const instrumentEvents = events.filter((event) => event.type === "instrument");
+  const instrumentEvents = events.filter(
+    event => event.type === "mesmer.instrument",
+  );
   const weaponSetEvents = events.filter((event) => event.type === "weapon_set");
   const cooldownEvents = events.filter(
     (event) =>

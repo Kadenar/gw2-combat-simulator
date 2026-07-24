@@ -6,11 +6,13 @@ import {
     aggregateSigilSet,
     weaponSigilsForSet,
 } from '../../../platform/gw2/weapon-sigils.js';
-import { simulateSequence } from '../simulation.js';
+import { mesmerProfession } from '../definition.js';
 import { mesmerResourceDefinition as getResourceDefinition } from '../ui.js';
 import {
     calculateContributionComparisons,
 } from '../../../app/app-runtime.js';
+
+const { simulateSequence } = mesmerProfession.simulation;
 
 // Determines which elite specialization is active (Chronomancer, Mirage, Virtuoso, Troubadour)
 // Returns 'Core' if no elite spec is selected

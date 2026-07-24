@@ -14,10 +14,11 @@ js/
   app/             browser composition and persistence adapters
 ```
 
-`js/sim`, most of `js/core`, and `js/data` contain compatibility exports for
-pre-refactor public module paths. `js/core/calc-attributes.js` is intentionally
-profession-neutral and delegates only to common GW2 attribute assembly. New
-code must import the owning platform or profession module directly.
+Most of `js/core` and `js/data` contain compatibility exports for pre-refactor
+public module paths. The obsolete `js/sim` compatibility tree has been
+removed. `js/core/calc-attributes.js` is intentionally profession-neutral and
+delegates only to common GW2 attribute assembly. New code must import the
+owning platform or profession module directly.
 
 The Elementalist scheduler, resolver, data loader, optimizer, and profession
 mechanics remain under its profession directory. Common damage formulas,
@@ -73,7 +74,8 @@ export const exampleProfession = defineProfession({
   castRules,
   schedulerHooks,
   resolverHooks: {
-    eventHandlers,
+    eventHandlers,  // exclusive custom event types
+    eventReactions, // reactions to standard GW2 event types
   },
   ui: {
     paletteGroups,
@@ -83,13 +85,20 @@ export const exampleProfession = defineProfession({
 ```
 
 All hooks are optional. Missing validation accepts the cast, missing modifier
-hooks return their input, and other hooks are no-ops. Hook arrays accept
+hooks return their input, and other hooks are no-ops. Scheduler hooks and
+resolver event reactions accept
 `{ id, order, handler }`; lower order runs first and declaration order breaks
 ties deterministically.
 
 Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill
 uses, pending events, and `profession`. Profession resources and mechanic
 timers live under `state.profession`.
+
+The platform scheduler handles ordinary declarative skills. A profession with
+actor-specific timing, such as Mesmer clone and phantasm attacks, composes its
+own mechanic controllers over the shared scheduler state, cooldown controller,
+and GW2 event factory. It must still emit the canonical event stream; it does
+not copy common cooldown, ammo, or event-representation logic.
 
 ## Events
 
@@ -110,6 +119,28 @@ Common types are `action`, `damage`, `condition`, `condition_tick`, `control`,
 `example.resource` by registering it in `resolverHooks.eventHandlers`.
 Duplicate registrations, missing required handlers, and unknown namespaced
 events throw explicit errors.
+
+Standard event types are owned by `platform/gw2/resolver`. A profession reacts
+to them through `resolverHooks.eventReactions` without replacing the common
+handler:
+
+```js
+resolverHooks: {
+  eventHandlers: {
+    "example.resource": handleResource,
+  },
+  eventReactions: {
+    damage: handleProfessionCriticalTraits,
+    control: handleProfessionInterruptTraits,
+  },
+}
+```
+
+Common handlers resolve damage and conditions, drain the queue, enforce combat
+and target-death bounds, and apply sigils and relics. Reactions receive the
+resolved context plus capabilities such as `hitContext` and `applyCondition`.
+For example, Ineptitude is a Mesmer `control`/`blind` reaction; control relics
+and control-triggered sigils remain common GW2 behavior.
 
 ## Skills, traits, and rotations
 
@@ -159,11 +190,14 @@ rotation entries; storage and the simulator contract use normalized commands.
 
 1. Add `js/professions/<id>/` with catalog, build, state, rules, UI view models,
    and a `defineProfession()` composition.
-2. Register stable skill/trait IDs and namespaced custom event handlers.
+2. Register stable skill/trait IDs, namespaced custom event handlers, and only
+   the standard event reactions the profession needs.
 3. Add the profession to `js/app/composition.js` or a future profession picker.
 4. Add an end-to-end fixture that imports no other profession.
 5. Run `npm test` and `npm run check`.
 
-No engine, GW2, or shared UI branch should be needed. If a new rule is truly
-shared by multiple professions, add it to `platform/gw2`; otherwise keep it in
-the profession module.
+No engine, GW2, or shared UI branch should be needed. New professions should
+use `platform/engine` scheduler state/cooldowns and the `platform/gw2`
+scheduler event factory and resolver. If a new rule is truly shared by
+multiple professions, add it to `platform/gw2`; otherwise keep it in the
+profession module as a scheduler mechanic or resolver reaction.

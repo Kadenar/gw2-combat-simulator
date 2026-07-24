@@ -1,13 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { defaultSimulationConfig } from "./helpers/fixture-harness-core.js";
-import { simulateSequence } from "../js/sim/simulator.js";
-import { resolveScheduledStream } from "../js/sim/resolver/resolve-timeline.js";
+import {
+  simulateSequence,
+} from "../js/professions/mesmer/simulation.js";
+import {
+  resolveScheduledStream,
+} from "../js/professions/mesmer/resolver/resolve-timeline.js";
 import { enqueueOrdered } from "../js/platform/engine/event-queue.js";
 import {
   buildScheduledEventStream,
 } from "../js/platform/engine/compat-scheduled-event-stream.js";
-import { createCloneAttackScheduler } from "../js/sim/mechanics/illusion-actions.js";
+import {
+  createCloneAttackScheduler,
+} from "../js/professions/mesmer/mechanics/illusion-actions.js";
 
 test("clone attacks are scheduled lazily as the timeline advances", () => {
   const state = { clones: [] };

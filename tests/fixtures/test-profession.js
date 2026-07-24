@@ -10,7 +10,10 @@ const catalog = createCanonicalCatalog({
       weapon: "Fixture Blade",
       slot: 1,
       castTimeMs: 1000,
-      effects: [{ type: "strike", coefficient: 1, hits: 1 }],
+      effects: [
+        { type: "strike", coefficient: 1, hits: 1 },
+        { type: "control" },
+      ],
     },
     {
       id: 900002,
@@ -53,7 +56,7 @@ export const testProfession = defineProfession({
     }),
   },
   resources: {
-    createProfessionState: () => ({ charge: 0 }),
+    createProfessionState: () => ({ charge: 0, controlEvents: 0 }),
   },
   attributeRules: {
     modifyAttributes: (context, attributes) => ({
@@ -71,9 +74,17 @@ export const testProfession = defineProfession({
         );
       },
     },
+    eventReactions: {
+      control: context => {
+        context.state.profession.controlEvents += 1;
+      },
+    },
   },
   schedulerHooks: {
-    snapshot: context => ({ charge: context.state.profession.charge }),
+    snapshot: context => ({
+      charge: context.state.profession.charge,
+      controlEvents: context.state.profession.controlEvents,
+    }),
   },
   ui: {
     paletteGroups: () => [{

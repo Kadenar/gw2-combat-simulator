@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { createCanonicalCatalog } from "../js/platform/engine/catalog.js";
+import { COMMON_EVENT_TYPES } from "../js/platform/engine/events.js";
 import { HandlerRegistry } from "../js/platform/engine/handler-registry.js";
 import { defineProfession } from "../js/platform/engine/profession.js";
 import { resolveScheduledStream } from "../js/platform/engine/resolver.js";
@@ -34,9 +35,30 @@ test("profession contract supplies defaults and deterministic hook ordering", ()
         { id: "same", order: 10, handler: () => calls.push("same") },
       ],
     },
+    resolverHooks: {
+      eventReactions: {
+        control: [
+          {
+            id: "later-control",
+            order: 20,
+            handler: () => calls.push("later-control"),
+          },
+          {
+            id: "first-control",
+            order: 10,
+            handler: () => calls.push("first-control"),
+          },
+        ],
+      },
+    },
   });
   profession.initialize({});
   assert.deepEqual(calls, ["first", "same", "later"]);
+  profession.eventReactions.control({}, { type: "control" });
+  assert.deepEqual(
+    calls,
+    ["first", "same", "later", "first-control", "later-control"],
+  );
   assert.equal(profession.validateCast({}, {}), true);
   assert.deepEqual(profession.createProfessionState({}), {});
   assert.equal(profession.modifyStrikeDamage({}, 12), 12);
@@ -70,7 +92,7 @@ test("generic scheduler state contains no profession-specific fields", () => {
       "time",
     ].sort(),
   );
-  assert.deepEqual(state.profession, { charge: 0 });
+  assert.deepEqual(state.profession, { charge: 0, controlEvents: 0 });
   assert.equal(Object.hasOwn(state, "clones"), false);
   assert.equal(Object.hasOwn(state, "numericResource"), false);
 });
@@ -148,6 +170,7 @@ test("test profession runs end to end without importing Mesmer", () => {
   });
   assert.ok(base.totalDamage > withoutTrait.totalDamage);
   assert.equal(base.profession.charge, 1);
+  assert.equal(base.profession.controlEvents, 1);
   assert.equal(base.schedulerState.profession.charge, 0);
   assert.equal(base.events.every(event =>
     event.type && Number.isFinite(event.at) && event.source && event.sourceId != null), true);
@@ -221,6 +244,20 @@ test("Mesmer state creation and snapshots are profession owned", () => {
   assert.equal(snapshot.numericResource, 3);
   assert.equal(snapshot.cloneCount, 1);
   assert.equal(mesmerProfession.id, "mesmer");
+  assert.equal(typeof mesmerProfession.eventReactions.damage, "function");
+  assert.equal(typeof mesmerProfession.eventReactions.control, "function");
+  assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "damage"), false);
+  assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "control"), false);
+  assert.equal(
+    Object.keys(mesmerProfession.eventHandlers)
+      .every(type => type.startsWith("mesmer.")),
+    true,
+  );
+  assert.equal(
+    COMMON_EVENT_TYPES.some(type =>
+      Object.hasOwn(mesmerProfession.eventHandlers, type)),
+    false,
+  );
 });
 
 async function javascriptFiles(root) {
@@ -262,4 +299,12 @@ test("test profession fixture has no Mesmer dependency", async () => {
     "utf8",
   );
   assert.doesNotMatch(source, /mesmer/i);
+});
+
+test("obsolete sim compatibility tree is removed", async () => {
+  const target = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js/sim",
+  );
+  await assert.rejects(readdir(target), error => error?.code === "ENOENT");
 });
