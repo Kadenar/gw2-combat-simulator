@@ -481,11 +481,18 @@ export function renderPalette(app) {
 
 export function renderTimeline(app) {
     const element = document.getElementById('rotation-timeline');
+    const procElement = document.getElementById('rotation-procs');
+    const procPanelWasOpen = procElement?.querySelector('.rotation-procs-wrap')?.open ?? false;
     element.ondragover = null;
     element.ondragleave = null;
     element.ondrop = null;
     if (!app.build.rotation.length) {
-        element.innerHTML = '<div class="rot-empty">Click skills above to build rotation</div>';
+        element.classList.add('is-empty');
+        element.innerHTML = `<div class="rot-empty">
+            <strong>Build your rotation</strong>
+            <span>Click or drag skills from the palette above</span>
+        </div>`;
+        if (procElement) procElement.innerHTML = '';
         element.ondragover = event => {
             if (!app.dragState) return;
             event.preventDefault();
@@ -502,6 +509,7 @@ export function renderTimeline(app) {
         };
         return;
     }
+    element.classList.remove('is-empty');
     const steps = new Map((app.results?.steps || []).filter(step => step.ri >= 0).map(step => [step.ri, step]));
     const rows = timelineWeaponRows(app.build.rotation);
 
@@ -582,10 +590,11 @@ export function renderTimeline(app) {
                 <span class="proc-time">${time}</span>
             </div>`;
         }).join('');
-        timelineHtml += `<div class="rot-row rot-procs-row">
-            <div class="rot-row-label">
+        if (procElement) procElement.innerHTML = `<details class="rotation-procs-wrap"${procPanelWasOpen ? ' open' : ''}>
+            <summary>Procs (${procSteps.length} activation${procSteps.length === 1 ? '' : 's'})</summary>
+            <div class="rotation-procs-content">
                 <details class="proc-filter"${app.procFilterOpen ? ' open' : ''}>
-                    <summary title="Choose which proc types are shown">Procs <span class="proc-filter-count">${visibleProcCount}/${procOptions.length}</span></summary>
+                    <summary title="Choose which proc types are shown">Visible <span class="proc-filter-count">${visibleProcCount}/${procOptions.length}</span></summary>
                     <div class="proc-filter-menu">
                         ${procOptions.map(proc => {
                             const key = procFilterKey(proc);
@@ -596,13 +605,13 @@ export function renderTimeline(app) {
                         }).join('')}
                     </div>
                 </details>
+                <div class="proc-icons-row">${procs}</div>
             </div>
-            <div class="rot-row-skills proc-icons-row">${procs}</div>
-        </div>`;
-    }
+        </details>`;
+    } else if (procElement) procElement.innerHTML = '';
     element.innerHTML = timelineHtml;
 
-    const procFilter = element.querySelector('.proc-filter');
+    const procFilter = procElement?.querySelector('.proc-filter');
     if (procFilter) {
         procFilter.addEventListener('toggle', () => {
             app.procFilterOpen = procFilter.open;
