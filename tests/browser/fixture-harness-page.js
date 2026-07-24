@@ -1,4 +1,4 @@
-import { runCoreFixtures } from './fixture-harness-core.js';
+import { runCoreFixtures } from '../helpers/fixture-harness-core.js';
 
 const output = document.getElementById('fixture-output');
 try {

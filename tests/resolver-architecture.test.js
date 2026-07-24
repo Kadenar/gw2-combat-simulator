@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { defaultSimulationConfig } from "../js/fixtures/fixture-harness-core.js";
+import { defaultSimulationConfig } from "./helpers/fixture-harness-core.js";
 import { simulateSequence } from "../js/sim/simulator.js";
 import { resolveScheduledStream } from "../js/sim/resolver/resolve-timeline.js";
 import { enqueueOrdered } from "../js/sim/shared/event-queue.js";

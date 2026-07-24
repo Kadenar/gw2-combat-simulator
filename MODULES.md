@@ -117,17 +117,17 @@ Public orchestration API. Prepares run configuration, drives scheduler execution
 - [trait-rules.js](js/sim/mechanics/trait-rules.js) — resolver-time trait reactions.
 - [relic-rules.js](js/sim/mechanics/relic-rules.js) — relic triggers and modifiers.
 
-## Fixtures (`js/fixtures/`)
+## Test fixtures
 
 Testing utilities and harnesses.
 
-### [fixture-harness-core.js](js/fixtures/fixture-harness-core.js)
+### [fixture-harness-core.js](tests/helpers/fixture-harness-core.js)
 Core test harness. Provides default simulation config and build factory for unit tests.
 
-### [fixture-harness-page.js](js/fixtures/fixture-harness-page.js)
+### [fixture-harness-page.js](tests/browser/fixture-harness-page.js)
 Page fixture harness. DOM utilities and page initialization helpers for integration tests.
 
-### [browser-interaction-fixture.js](js/fixtures/browser-interaction-fixture.js)
+### [browser-interaction-fixture.js](tests/browser/browser-interaction-fixture.js)
 Browser interaction testing. Simulates user UI interactions (clicks, form changes) for end-to-end test scenarios.
 
 ---
@@ -207,4 +207,5 @@ Post-scheduler phase that converts timed events into damage numbers using calcul
 | `js/sim/resolver/` | Damage calculation, effect resolution |
 | `js/sim/shared/` | Event queue, serialization |
 | `js/sim/mechanics/` | Profession rules, skill definitions |
-| `js/fixtures/` | Testing utilities |
+| `tests/browser/` | Browser interaction fixtures |
+| `tests/helpers/` | Shared testing utilities |
