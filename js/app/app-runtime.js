@@ -207,21 +207,36 @@ export function modifierCandidates(app) {
     return candidates;
 }
 
-export function computeModifierContributions(app) {
+export function modifierContributionRequest(app) {
     const baseConfig = simulationConfig(app);
     // Use an infinite target for contribution passes so every comparison uses
     // the same rotation window. Eagle is HP-gated and must retain target HP.
     if (app.build.relic !== 'Eagle') {
         baseConfig.target = { ...baseConfig.target, health: 0 };
     }
-    const baseline = simulateSequence(app.build.rotation, baseConfig);
-    const contributions = [];
-    for (const modifier of modifierCandidates(app)) {
-        const withoutConfig = simulationConfig(app, modifier);
+    const comparisons = modifierCandidates(app).map(modifier => {
+        const config = simulationConfig(app, modifier);
         if (app.build.relic !== 'Eagle') {
-            withoutConfig.target = { ...withoutConfig.target, health: 0 };
+            config.target = { ...config.target, health: 0 };
         }
-        const without = simulateSequence(app.build.rotation, withoutConfig);
+        return { modifier, config };
+    });
+    return {
+        rotation: app.build.rotation,
+        baseConfig,
+        comparisons,
+    };
+}
+
+export function calculateModifierContributions({
+    rotation,
+    baseConfig,
+    comparisons,
+}) {
+    const baseline = simulateSequence(rotation, baseConfig);
+    const contributions = [];
+    for (const { modifier, config } of comparisons) {
+        const without = simulateSequence(rotation, config);
         const dpsIncrease = baseline.dps - without.dps;
         if (Math.abs(dpsIncrease) < 0.005) continue;
         contributions.push({
@@ -234,10 +249,13 @@ export function computeModifierContributions(app) {
     return contributions.sort((a, b) => b.dpsIncrease - a.dpsIncrease);
 }
 
+export function computeModifierContributions(app) {
+    return calculateModifierContributions(modifierContributionRequest(app));
+}
+
 // Executes the rotation simulator with current build config
 // Stores results in app.results for display in rotation builder and damage breakdown
 export function runSimulation(app) {
     app.results = simulateSequence(app.build.rotation, simulationConfig(app));
-    app.results.contributions = computeModifierContributions(app);
     return app.results;
 }

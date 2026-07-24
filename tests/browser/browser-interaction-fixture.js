@@ -7,6 +7,15 @@ const assert = (condition, message) => {
     if (!condition) throw new Error(message);
 };
 
+const waitFor = async (predicate, timeoutMs = 3000) => {
+    const deadline = performance.now() + timeoutMs;
+    while (performance.now() < deadline) {
+        if (predicate()) return;
+        await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    throw new Error('timed out waiting for background modifier contributions');
+};
+
 const icon = (document, name) =>
     [...document.querySelectorAll('.pal-skill')].find(element => element.dataset.skill === name);
 
@@ -33,7 +42,7 @@ const dataTransfer = () => {
     };
 };
 
-frame.addEventListener('load', () => {
+frame.addEventListener('load', async () => {
     let app;
     let originalBuild;
     try {
@@ -321,6 +330,7 @@ frame.addEventListener('load', () => {
         assert(!icon(document, 'Continuum Shift').classList.contains('pal-context-disabled'), 'Continuum Shift stayed disabled');
         icon(document, 'Continuum Shift').click();
         assert(!app.results.endState.continuumActive, 'Continuum Shift did not end the split');
+        await waitFor(() => Array.isArray(app.results?.contributions));
 
         output.dataset.status = 'passed';
         output.textContent = 'PASSED: drag/drop, clone display, Continuum Shift, reporting tables/charts, action icons, weapons, cooldowns, and Shift+click';

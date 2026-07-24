@@ -17,8 +17,14 @@ import { setWeaponSigil } from '../core/weapon-sigils.js';
 import { activeProfession } from './composition.js';
 import { createDefaultBuild, loadBuild, replaceBuild, saveBuild } from './app-state.js';
 import { downloadJson, readJsonFile } from './app-io.js';
-import { recalculate, runSimulation, eliteSpecialization } from './app-runtime.js';
-import { renderRotationBuilder } from './app-rotation-ui.js';
+import {
+    calculateModifierContributions,
+    eliteSpecialization,
+    modifierContributionRequest,
+    recalculate,
+    runSimulation,
+} from './app-runtime.js';
+import { renderResults, renderRotationBuilder } from './app-rotation-ui.js';
 
 // HTML escape function to prevent XSS attacks in dynamically generated HTML
 const esc = value => String(value ?? '')
@@ -98,6 +104,9 @@ class MesmerApp {
         this.attributeData = null;
         this.results = null;
         this.dragState = null;
+        this.modifierContributionTimer = null;
+        this.modifierContributionWorker = null;
+        this.modifierContributionRequestId = 0;
     }
 
     // Initialization hook: bind event listeners, trigger initial render, hide loading overlay
@@ -115,6 +124,7 @@ class MesmerApp {
         this.normalizeSelectedSkills();
         recalculate(this);
         runSimulation(this);
+        this.scheduleModifierContributions();
         saveBuild(this.build);
         if (rebuildStatic) {
             if (rebuildGear) this.renderGear();
@@ -124,6 +134,48 @@ class MesmerApp {
             this.renderAssumptions();
         }
         renderRotationBuilder(this);
+    }
+
+    scheduleModifierContributions() {
+        const requestId = ++this.modifierContributionRequestId;
+        clearTimeout(this.modifierContributionTimer);
+        this.modifierContributionTimer = null;
+        this.modifierContributionWorker?.terminate();
+        this.modifierContributionWorker = null;
+
+        if (!this.build.rotation.length || !this.results) return;
+
+        const request = modifierContributionRequest(this);
+        const applyContributions = contributions => {
+            if (requestId !== this.modifierContributionRequestId || !this.results) return;
+            this.results.contributions = contributions;
+            renderResults(this);
+        };
+
+        this.modifierContributionTimer = setTimeout(() => {
+            this.modifierContributionTimer = null;
+            if (requestId !== this.modifierContributionRequestId) return;
+
+            if (typeof Worker === 'function') {
+                const worker = new Worker(
+                    new URL('./modifier-contributions-worker.js', import.meta.url),
+                    { type: 'module' },
+                );
+                this.modifierContributionWorker = worker;
+                worker.addEventListener('message', ({ data }) => {
+                    if (data.requestId !== requestId) return;
+                    worker.terminate();
+                    if (this.modifierContributionWorker === worker) {
+                        this.modifierContributionWorker = null;
+                    }
+                    if (!data.error) applyContributions(data.contributions);
+                });
+                worker.postMessage({ requestId, request });
+                return;
+            }
+
+            applyContributions(calculateModifierContributions(request));
+        }, 100);
     }
 
     // Ensures selected skills are valid for current elite specialization
