@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '../js/fixtures/fixture-harness-core.js';
-import { simulateSequence } from '../js/sim/sim-engine.js';
+import { simulateSequence } from '../js/sim/simulator.js';
 import {
     buildChartSeries,
     chartValueAt,
@@ -659,7 +659,7 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
     );
     const scepterTorment = scepter.resolvedEvents.filter(event =>
         event.type === 'condition'
-        && event.skillName === 'Scepter Clone'
+        && event.skillName === 'Clone: Ether Bolt'
         && event.condition === 'Torment');
     assert.equal(scepterTorment.length, 2);
     assert.ok(scepterTorment.every(event => event.duration === 4));
@@ -677,7 +677,8 @@ test('destroyed clones do not apply prescheduled autoattack conditions', () => {
     );
     assert.equal(
         result.resolvedEvents.some(event =>
-            event.type === 'condition' && event.skillName === 'Staff Clone'),
+            event.type === 'condition'
+            && event.skillName === 'Clone: Winds of Chaos'),
         false,
     );
 });
@@ -2384,13 +2385,113 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
         ]),
     );
     assert.deepEqual(coefficientBySource(normal), {
-        Player: 2.23,
+        Player: 1,
         Phantasm: 1.23,
     });
     assert.deepEqual(coefficientBySource(empowered), {
-        Player: 2.23,
+        Player: 1,
         Phantasm: 2.46,
     });
+});
+
+test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six times', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Virtuoso',
+        primaryWeapon: 'Dagger',
+        secondaryWeapon: 'Sword',
+        selectedTraits: [],
+    });
+    const consecutive = simulateSequence(
+        ['Flying Cutter', 'Flying Cutter', 'Flying Cutter'],
+        config,
+    );
+    const burst = consecutive.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.name === 'Cutter Burst');
+    assert.equal(burst.length, 3);
+    assert.ok(Math.abs(
+        burst.reduce((sum, event) => sum + event.coefficient, 0) - 0.6,
+    ) < 1e-12);
+
+    const expired = simulateSequence(
+        [
+            'Flying Cutter',
+            { name: '__wait', waitMs: 5001 },
+            'Flying Cutter',
+            'Flying Cutter',
+        ],
+        config,
+    );
+    assert.equal(
+        expired.resolvedEvents.filter(event =>
+            event.type === 'damage' && event.name === 'Cutter Burst').length,
+        0,
+    );
+
+    const bladecall = simulateSequence(['Bladecall'], config);
+    const bladecallHits = bladecall.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Bladecall');
+    assert.equal(bladecallHits.length, 6);
+    assert.ok(Math.abs(
+        bladecallHits.reduce(
+            (sum, event) => sum + event.coefficient,
+            0,
+        ) - 1.5,
+    ) < 1e-12);
+});
+
+test('supplied trait attacks execute with their exact coefficients', () => {
+    const coefficient = (result, skillName) =>
+        result.resolvedEvents
+            .filter(event =>
+                event.type === 'damage'
+                && event.skillName === skillName
+            )
+            .reduce((sum, event) => sum + event.coefficient, 0);
+
+    const madness = simulateSequence(
+        ['Ether Feast'],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            selectedTraits: ['Method of Madness'],
+            selectedSkills: ['Ether Feast'],
+        }),
+    );
+    assert.ok(
+        Math.abs(coefficient(madness, 'Lesser Chaos Storm') - 1.98) < 1e-12,
+    );
+
+    const phantasmalBlade = simulateSequence(
+        ['Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            primaryWeapon: 'Spear',
+            secondaryWeapon: '',
+            selectedTraits: ['Phantasmal Blades'],
+            initialResource: 0,
+        }),
+    );
+    assert.equal(coefficient(phantasmalBlade, 'Phantasmal Blade'), 0.7);
+
+    const syncopate = simulateSequence(
+        ['Illusionary Wave'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: '',
+            selectedTraits: ['Syncopate'],
+        }),
+    );
+    assert.equal(coefficient(syncopate, 'Syncopate'), 0.75);
+
+    const timeBomb = simulateSequence(
+        ['Time Sink', { name: '__wait', waitMs: 5000 }],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            selectedTraits: ['Time Bomb'],
+            initialResource: 1,
+        }),
+    );
+    assert.equal(coefficient(timeBomb, 'Time Bomb'), 3);
 });
 
 test('Bountiful Blades stocks each Berserker blade independently', () => {

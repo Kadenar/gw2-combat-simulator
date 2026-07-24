@@ -1,5 +1,5 @@
 /**
- * Creates profession action controller: handles shatters, instruments, Crescendo.
+ * Handles profession shatters, instruments, and Crescendo.
  * Manages resource consumption, trait procs (Maim/Phantom Pain/Illusionary Membrane/etc.).
  * Returns: consumeResources, currentResource, handleCrescendo, handleInstrument, handleShatter, triggerShatterTraits.
  * @param {Object} config - Scheduler config (state, traits, resourceDefinition, etc.)
@@ -21,6 +21,7 @@ export function createProfessionActionController({
   activePrimaryWeapon,
   queueResources,
   byName,
+  traitDamage,
 }) {
   const currentResource = () =>
     resourceDefinition.singular === "clone"
@@ -259,6 +260,37 @@ export function createProfessionActionController({
       isBladeSong,
       { skipMaim: shatter.kind === "blade-requiem" },
     );
+    if (
+      skill.name === "Time Sink"
+      && traits.has("Time Bomb")
+      && at >= state.timeBombUntil - epsilon
+    ) {
+      const timeBomb = traitDamage["Time Bomb"];
+      state.timeBombUntil = at + timeBomb.duration;
+      addEvent({
+        type: "buff",
+        at,
+        kind: "time-bomb",
+        stacks: 1,
+        duration: timeBomb.duration + epsilon,
+        sourceSkill: skill.name,
+      });
+      addDamage(
+        {
+          name: "Time Bomb",
+          weapon: "Utility",
+          blade: false,
+        },
+        state.timeBombUntil,
+        {
+          coefficient: timeBomb.coefficient,
+          hits: timeBomb.hits,
+          source: "Player",
+          weapon: "utility",
+        },
+      );
+      addTraitProc("Time Bomb", at, skill.name, "explodes after 5s");
+    }
     if (
       isBladeSong
       && traits.has("Infinite Forge")

@@ -93,7 +93,7 @@ mesmer-simulator/
     resolver/   runtime context, hits, conditions, triggers, and application
     shared/     scheduled-stream contract and stable chronological queue
     mechanics/  split skill/illusion/profession data and runtime rules
-    sim-engine  public orchestration API
+    simulator  public orchestration API
   tests/        Node regression tests
 ```
 

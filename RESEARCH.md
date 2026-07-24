@@ -189,8 +189,8 @@ References:
   remains outside the damage total because endurance is not simulated.
 - Competitive PvP and WvW splits are intentionally excluded.
 
-When live balance changes, regenerate `js/data/mesmer-catalog.js` from the current
-API and Wiki, review the manual normalizations in
-`js/sim/mechanics/mesmer-skill-normalization.js` and the profession/illusion
-data modules beside it, update the snapshot date, and rerun the test suite and
-`fixtures/browser.html`.
+When live balance changes, regenerate the metadata-only
+`js/data/mesmer-catalog.js` from the current API, update simulator mechanics in
+`js/sim/mechanics/mesmer-skill-data.js` or the authoritative override and
+profession/illusion data modules beside it, update the snapshot date, and rerun
+the test suite and `fixtures/browser.html`.

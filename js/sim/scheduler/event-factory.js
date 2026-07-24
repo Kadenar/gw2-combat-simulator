@@ -1,23 +1,23 @@
 /**
- * Creates event factory: produces damage, condition, trait, and base events.
- * Queues combat intents (Bloodsong, Jagged Mind, Sharper Images) alongside events.
+ * Creates scheduled damage, condition, trait, and base events.
+ * Queues expected-proc candidates (Bloodsong, Jagged Mind, Sharper Images).
  * @param {Array} events - Event array to populate
  * @param {number} horizon - Simulation end time (events past this are dropped)
  * @param {number} epsilon - Floating-point epsilon
  * @param {Function} conditionName - Condition name normalizer
  * @param {Object} conditionFormulas - Valid conditions lookup
- * @param {Function} queueCombatIntent - Intent queuing function
+ * @param {Function} queueExpectedProc - Expected-proc candidate queue
  * @param {Function} activePrimaryWeapon - Current primary weapon getter
  * @param {Function} activeWeaponSet - Current weapon set getter
  * @returns {Object} Factory with addEvent, addTraitProc, addCondition, addDamage
  */
-export function createSchedulerEventFactory({
+export function createEventFactory({
   events,
   horizon,
   epsilon,
   conditionName,
   conditionFormulas,
-  queueCombatIntent,
+  queueExpectedProc,
   activePrimaryWeapon,
   activeWeaponSet,
 }) {
@@ -54,7 +54,7 @@ export function createSchedulerEventFactory({
   });
 
   /**
-   * Adds condition event and queues bleeding intent if applicable.
+   * Adds a condition event and queues a bleeding proc candidate.
    * Only adds if condition has formula and duration.
    * @param {string} skillName - Skill applying condition
    * @param {number} at - Application time
@@ -86,7 +86,7 @@ export function createSchedulerEventFactory({
       ...extra,
     });
     if (name === "Bleeding") {
-      queueCombatIntent({
+      queueExpectedProc({
         type: "bleeding",
         at,
         stacks: Number(condition.stacks || 1),
@@ -99,7 +99,7 @@ export function createSchedulerEventFactory({
   };
 
   /**
-   * Adds damage events (one per hit) and queues hit intents.
+   * Adds damage events and queues hit proc candidates.
    * Splits damage coefficient evenly across all hits.
    * @param {Object} skill - Skill with name, weapon, blade props
    * @param {number} at - Damage time
@@ -126,7 +126,7 @@ export function createSchedulerEventFactory({
         blade: Boolean(extra.blade ?? skill.blade),
         ...extra,
       });
-      queueCombatIntent({
+      queueExpectedProc({
         type: "hit",
         at,
         hits: 1,

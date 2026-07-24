@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { defaultSimulationConfig } from "../js/fixtures/fixture-harness-core.js";
-import { simulateSequence } from "../js/sim/sim-engine.js";
-import { resolveScheduledStream } from "../js/sim/resolver/sim-resolver.js";
-import { enqueueOrdered } from "../js/sim/shared/sim-event-queue.js";
-import { buildScheduledEventStream } from "../js/sim/shared/sim-scheduled-event-stream.js";
-import { createCloneAttackScheduler } from "../js/sim/mechanics/sim-illusion-actions.js";
+import { simulateSequence } from "../js/sim/simulator.js";
+import { resolveScheduledStream } from "../js/sim/resolver/resolve-timeline.js";
+import { enqueueOrdered } from "../js/sim/shared/event-queue.js";
+import { buildScheduledEventStream } from "../js/sim/shared/scheduled-event-stream.js";
+import { createCloneAttackScheduler } from "../js/sim/mechanics/illusion-actions.js";
 
 test("clone attacks are scheduled lazily as the timeline advances", () => {
   const state = { clones: [] };
@@ -92,6 +92,10 @@ test("condition applications shorter than one second deal fractional damage", ()
       source: "Player",
     }],
     rotationEndTime: 2,
+    resolverHandoff: {
+      warnings: ["resolver handoff warning"],
+      cloneDeaths: [],
+    },
   });
   const result = resolveScheduledStream({
     stream,
@@ -100,10 +104,6 @@ test("condition applications shorter than one second deal fractional damage", ()
       sigilSets: [{ names: [] }],
     },
     traits: new Set(),
-    scheduler: {
-      warnings: [],
-      cloneDeaths: new Map(),
-    },
     query: {
       statsAt: () => ({
         power: 1000,
@@ -129,6 +129,7 @@ test("condition applications shorter than one second deal fractional damage", ()
   assert.equal(result.firstHitTime, 0);
   assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
   assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.5);
+  assert.deepEqual(result.warnings, ["resolver handoff warning"]);
 });
 
 test("permanent damaging target conditions are assumptions, not player damage", () => {

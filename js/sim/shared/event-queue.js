@@ -1,4 +1,4 @@
-// Event queue management with priority ordering
+// Stable event queue management with priority ordering
 // Contract: sort by time first, then priority, then insertion order for stability
 
 let nextQueueSequence = 1;

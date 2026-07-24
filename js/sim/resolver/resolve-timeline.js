@@ -1,17 +1,18 @@
-// Main resolver: post-scheduler damage calculation
+// Timeline resolver: post-scheduler damage calculation
 // Converts scheduled events to damage numbers using calculated attributes and condition formulas
 // Tracks breakdown by skill/source, applies trait/relic modifiers, produces encounter timeline
 
-import { createRuntimeContext } from "./sim-runtime-context.js";
-import { drainQueuedEvents } from "./sim-resolver-events.js";
-import { assertScheduledEventStream } from "../shared/sim-scheduled-event-stream.js";
-import { recordPassiveRelicTimeline } from "../mechanics/sim-relic-rules.js";
+import { createRuntimeState } from "./runtime-state.js";
+import { runEventLoop } from "./event-loop.js";
+import { assertScheduledEventStream } from "../shared/scheduled-event-stream.js";
+import { EPSILON } from "../shared/simulation-time.js";
+import { recordPassiveRelicTimeline } from "../mechanics/relic-rules.js";
 
 // Count number of times each skill was cast in event stream
 function addCastsToBreakdown(ctx, events, effectiveEnd) {
   const casts = new Map();
   for (const event of events) {
-    if (event.type !== "action" || event.at > effectiveEnd + 0.0001) continue;
+    if (event.type !== "action" || event.at > effectiveEnd + EPSILON) continue;
     casts.set(event.name, (casts.get(event.name) || 0) + 1);
   }
   for (const entry of ctx.breakdown.values()) {
@@ -30,23 +31,24 @@ export function resolveScheduledStream({
   stream,
   config,
   traits,
-  scheduler,
   query,
   helpers,
 }) {
   const scheduled = assertScheduledEventStream(stream);
   const queue = scheduled.events.map(event => ({ ...event }));
-  const ctx = createRuntimeContext({
+  const handoff = scheduled.resolverHandoff || {};
+  const ctx = createRuntimeState({
     config,
     traits,
-    scheduler,
     horizon: scheduled.rotationEndTime,
     query,
     helpers,
     queue,
+    cloneDeaths: new Map(handoff.cloneDeaths || []),
+    warnings: [...(handoff.warnings || [])],
   });
-  if (scheduled.resolverHandoff?.hasExplicitCombatStart) {
-    ctx.combatStartTime = scheduled.resolverHandoff.combatStartTime;
+  if (handoff.hasExplicitCombatStart) {
+    ctx.combatStartTime = handoff.combatStartTime;
   }
 
   recordPassiveRelicTimeline(
@@ -68,21 +70,21 @@ export function resolveScheduledStream({
     }
   }
 
-  drainQueuedEvents(ctx);
+  runEventLoop(ctx);
   const totalDamage = ctx.totals.strike + ctx.totals.condition;
   const effectiveEnd = ctx.deathTime ?? scheduled.rotationEndTime;
   const effectiveEvents = scheduled.events.filter(
-    (event) => event.at <= effectiveEnd + 0.0001,
+    (event) => event.at <= effectiveEnd + EPSILON,
   );
   const casts = addCastsToBreakdown(ctx, effectiveEvents, effectiveEnd);
   // Builder-mode duration starts when the sequence starts, so its DPS must use
   // that same window. Starting at the first hit inflated short rotations by
   // silently dropping casts and waits before that hit from the denominator.
   // An explicit combat marker remains the opt-in way to exclude precombat time.
-  const dpsStart = scheduled.resolverHandoff?.hasExplicitCombatStart
-    ? Number(scheduled.resolverHandoff.combatStartTime || 0)
+  const dpsStart = handoff.hasExplicitCombatStart
+    ? Number(handoff.combatStartTime || 0)
     : 0;
-  const dpsWindow = Math.max(0.0001, effectiveEnd - dpsStart);
+  const dpsWindow = Math.max(EPSILON, effectiveEnd - dpsStart);
 
   return {
     duration: scheduled.rotationEndTime,
@@ -110,7 +112,7 @@ export function resolveScheduledStream({
     procSteps: ctx.procSteps
       .filter(step => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
       .sort((a, b) => a.start - b.start),
-    warnings: [...new Set(scheduler.warnings)],
+    warnings: [...new Set(ctx.warnings)],
     casts: [...casts.entries()]
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count),

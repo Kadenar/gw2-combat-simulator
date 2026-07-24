@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test --test-isolation=none",
-    "check": "node --check js/app/app.js && node --check js/sim/sim-engine.js && node --check js/sim/scheduler/sim-scheduler.js && node --check js/sim/resolver/sim-resolver.js && node --check js/sim/resolver/sim-query-context.js && node --check js/core/calc-attributes.js"
+    "check": "node --check js/app/app.js && node --check js/sim/simulator.js && node --check js/sim/scheduler/scheduler.js && node --check js/sim/scheduler/cast-controller.js && node --check js/sim/resolver/resolve-timeline.js && node --check js/sim/resolver/resolver-query.js && node --check js/core/calc-attributes.js"
   },
   "engines": {
     "node": ">=20"

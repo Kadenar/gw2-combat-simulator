@@ -1,5 +1,5 @@
 import { MECHANIC_SKILLS } from '../sim/mechanics/mesmer-profession-data.js';
-import { PSEUDO_SKILLS } from '../sim/mechanics/mesmer-skill-normalization.js';
+import { PSEUDO_SKILLS } from '../sim/mechanics/mesmer-skill-overrides.js';
 import { eliteSpecialization } from './app-runtime.js';
 
 const CONCURRENT_OFFSET_MS = 100;

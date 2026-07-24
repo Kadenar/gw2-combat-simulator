@@ -13,10 +13,17 @@ import {
     INSTRUMENTS,
     MECHANIC_SKILLS,
     SHATTERS,
+    TRAIT_DAMAGE,
 } from '../js/sim/mechanics/mesmer-profession-data.js';
 import {
     AMBUSH_SKILLS,
     PSEUDO_SKILLS,
+    skillOverride,
+} from '../js/sim/mechanics/mesmer-skill-overrides.js';
+import {
+    BASE_SKILL_DATA_BY_ID,
+} from '../js/sim/mechanics/mesmer-skill-data.js';
+import {
     normalizedSkill,
 } from '../js/sim/mechanics/mesmer-skill-normalization.js';
 
@@ -32,6 +39,27 @@ test('catalog contains every Mesmer specialization and trait', () => {
             ['Arcane Thievery', 'Veil'].includes(skill.name)),
         [],
     );
+});
+
+test('generated skill catalog contains metadata only', () => {
+    const expectedKeys = ['description', 'icon', 'id', 'name', 'slot'];
+    for (const skill of SKILLS) {
+        assert.deepEqual(Object.keys(skill).sort(), expectedKeys, skill.name);
+    }
+});
+
+test('base skill data does not duplicate authoritative overrides', () => {
+    for (const skill of SKILLS) {
+        const base = BASE_SKILL_DATA_BY_ID[skill.id];
+        assert.ok(base, `${skill.name} is missing simulator-owned base data`);
+        for (const key of Object.keys(skillOverride(skill.name))) {
+            assert.equal(
+                Object.hasOwn(base, key),
+                false,
+                `${skill.name}.${key} exists in both base data and overrides`,
+            );
+        }
+    }
 });
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
@@ -329,7 +357,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
         'Mind Pierce': 1.5,
         'Mind the Gap': 1.92,
         'Imaginary Inversion': 2.4,
-        'Phantasmal Lancer': 3.46,
+        'Phantasmal Lancer': 2.23,
         'Mental Collapse': 3,
         'Phantasmal Warlock': 1.85,
         'Chaos Storm': 1.98,
@@ -381,6 +409,99 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
             ['Player', 0.19],
             ['Phantasm', 0.5],
         ],
+    );
+});
+
+test('latest supplied weapon, clone, ambush, and trait coefficients are preserved', () => {
+    const normalized = name =>
+        normalizedSkill(
+            SKILLS.find(skill => skill.name === name)
+            || PSEUDO_SKILLS.find(skill => skill.name === name),
+        );
+    const totalCoefficient = name =>
+        normalized(name).damage.reduce(
+            (sum, group) => sum + group.coefficient,
+            0,
+        );
+    const expectedSkills = {
+        'Ether Bolt': 0.5,
+        'Ether Blast': 0.5,
+        'Ether Clone': 0.75,
+        Counterspell: 0.1,
+        'Confusing Images': 5.32,
+        'Gravity Well': 5.4,
+        'Mind Slash': 1,
+        'Mind Gash': 1,
+        'Blurred Frenzy': 3.6,
+        'Blade Leap': 1.5,
+        'Counter Blade': 0.1,
+        Bladecall: 1.5,
+        'Friendly Fire': 0.5,
+        Journey: 1.5,
+        Abstraction: 2.5,
+        'Phantasmal Sharpshooter': 2.28,
+        'Phantasmal Lancer': 2.23,
+    };
+
+    for (const [name, coefficient] of Object.entries(expectedSkills)) {
+        assert.ok(
+            Math.abs(totalCoefficient(name) - coefficient) < 1e-12,
+            name,
+        );
+    }
+    assert.equal(normalized('Mind Spike').boonlessCoefficient, 2);
+
+    assert.equal(CLONE_ATTACKS.Scepter.coefficient, 0.3);
+    assert.equal(AMBUSH_ATTACKS.Scepter.player.coefficient, 1.25);
+    assert.equal(AMBUSH_ATTACKS.Scepter.clone.coefficient, 3.75);
+    assert.deepEqual(
+        CLONE_ATTACKS.Sword.sequence.map(step => [
+            step.name,
+            step.coefficient,
+        ]),
+        [
+            ['Clone: Mind Slash', 0.75],
+            ['Clone: Mind Gash', 0.75],
+            ['Clone: Mind Stab', 0.12],
+        ],
+    );
+    assert.equal(AMBUSH_ATTACKS.Sword.player.coefficient, 3);
+    assert.equal(AMBUSH_ATTACKS.Sword.clone.coefficient, 3);
+    assert.equal(AMBUSH_ATTACKS.Greatsword.player.coefficient, 3.19);
+    assert.equal(AMBUSH_ATTACKS.Rifle.player.coefficient, 2.6);
+
+    const flyingCutter = normalized('Flying Cutter');
+    assert.equal(flyingCutter.damage[0].coefficient, 0.5);
+    assert.deepEqual(flyingCutter.trackedHitDamage, {
+        hitsRequired: 3,
+        duration: 5,
+        damage: {
+            coefficient: 0.6,
+            hits: 3,
+            label: 'Cutter Burst',
+            source: 'Player',
+        },
+    });
+    assert.deepEqual(
+        normalized('Bladecall').damage.map(group => [
+            group.coefficient,
+            group.hits,
+        ]),
+        [[0.75, 3], [0.75, 3]],
+    );
+    assert.deepEqual(
+        Object.fromEntries(
+            Object.entries(TRAIT_DAMAGE).map(([name, data]) => [
+                name,
+                data.coefficient,
+            ]),
+        ),
+        {
+            'Lesser Chaos Storm': 1.98,
+            'Phantasmal Blade': 0.7,
+            Syncopate: 0.75,
+            'Time Bomb': 3,
+        },
     );
 });
 

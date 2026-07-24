@@ -79,7 +79,8 @@ export const CLONE_ATTACKS = {
   },
   Rifle: { coefficient: 0.5, hits: 1, interval: 1.2, weaponStrength: 26.5 },
   Scepter: {
-    coefficient: 0.5,
+    name: "Clone: Ether Bolt",
+    coefficient: 0.3,
     hits: 1,
     interval: 2,
     weaponStrength: 34,
@@ -123,10 +124,28 @@ export const CLONE_ATTACKS = {
     ],
   },
   Sword: {
-    coefficient: 4,
-    hits: 3,
-    interval: 2.48,
     weaponStrength: 20.5,
+    firstAttackDelay: 2.48,
+    sequence: [
+      {
+        name: "Clone: Mind Slash",
+        coefficient: 0.75,
+        hits: 1,
+        interval: 2.48 / 3,
+      },
+      {
+        name: "Clone: Mind Gash",
+        coefficient: 0.75,
+        hits: 1,
+        interval: 2.48 / 3,
+      },
+      {
+        name: "Clone: Mind Stab",
+        coefficient: 0.12,
+        hits: 1,
+        interval: 2.48 / 3,
+      },
+    ],
   },
 };
 
@@ -193,7 +212,7 @@ export const AMBUSH_ATTACKS = {
       "Ambush. Shoot a beam at a targeted foe, and secondary beams at foes near your target.",
     activation: 1.5,
     cooldown: 0.5,
-    player: { coefficient: 3.1875, hits: 3 },
+    player: { coefficient: 3.19, hits: 3 },
     clone: { coefficient: 3.1875, hits: 3 },
     playerBoons: [{ name: "Might", duration: 5, stacks: 6 }],
     vulnerability: { duration: 5, stacks: 6 },
@@ -207,7 +226,7 @@ export const AMBUSH_ATTACKS = {
       "Ambush. Spray invigorating magic, damaging enemies and healing allies.",
     activation: 0.25,
     cooldown: 1,
-    player: { coefficient: 2.5, hits: 4 },
+    player: { coefficient: 2.6, hits: 4 },
     clone: { coefficient: 1.2, hits: 4 },
     playerBoons: [{ name: "Vigor", duration: 4, stacks: 1 }],
   },
@@ -229,7 +248,7 @@ export const AMBUSH_ATTACKS = {
       ],
     },
     clone: {
-      coefficient: 1.25,
+      coefficient: 3.75,
       hits: 5,
       conditions: [
         { name: "Confusion", duration: 2, stacks: 2 },
@@ -296,7 +315,7 @@ export const AMBUSH_ATTACKS = {
     activation: 0.75,
     cooldown: 1,
     player: { coefficient: 3, hits: 1 },
-    clone: { coefficient: 1, hits: 1 },
+    clone: { coefficient: 3, hits: 1 },
     createsClone: true,
     control: true,
   },

@@ -47,7 +47,7 @@ Complete documentation of all exported functions in the mesmer-simulator project
 **`simulationConfig(app)`**
 - Transforms app build into simulation engine config (stats, boons, target health and permanent conditions, weapons, traits).
 - Parameters: `app` - MesmerApp instance
-- Returns: `SimConfig` object for sim-engine.simulateSequence()
+- Returns: `SimConfig` object for simulator.simulateSequence()
 
 **`runSimulation(app)`**
 - Executes simulateSequence() with current build/rotation, stores results in app.results.
@@ -165,197 +165,51 @@ Complete documentation of all exported functions in the mesmer-simulator project
 
 ## Simulation Engine (`js/sim/`)
 
-### sim-engine.js
+### simulator.js
 
-**`createDefaultConfig()`**
-- Creates default simulation config: 30s duration, Virtuoso spec, Dagger/Sword, default stats/boons/target.
-- Returns: `SimConfig` object
-
-**`getResourceDefinition(specialization)`**
-- Returns resource type definition: singular/plural/maximum (e.g., clone/clones/3 for core).
-- Parameters: specialization name
-- Returns: `{ singular: string, plural: string, maximum: number }`
-
-**`simulateRotation(rotation, userConfig = {})`**
-- Executes rotation repeatedly (benchmark mode) until horizon or max actions. Useful for repeated simulations.
-- Parameters: rotation array, userConfig overrides
-- Returns: Detailed simulation results with damage breakdown
-
-**`simulateSequence(rotation, userConfig = {})`**
-- Single-pass sequence execution (builder mode). Tracks step-by-step timeline, cooldowns at end, supports concurrent skill placement.
-- Parameters: rotation array (items can be skill names or `{ name, interruptMs, offset }`), userConfig
-- Returns: Results with `{ steps[], endState: { cooldowns, ammo, resource }, ...damageBreakdown }`
-
-**`skillById(id)`**
-- Lookup skill by GW2 skill ID.
-- Parameters: id (number)
-- Returns: Skill object or undefined
-
-**`availableSkills(config)`**
-- Filters all skills to those available for the build (specialization, terrestrial environment).
-- Parameters: config (simulation config)
-- Returns: Array of available skill objects
-
-**`calculatedAttributes(config)`**
-- Computes attributes from simulation config (used internally for damage calculation).
-- Parameters: config
-- Returns: Static attributes object
-
----
+- **`createDefaultConfig()`** — creates the default simulation configuration.
+- **`getResourceDefinition(specialization)`** — returns clone, blade, or note resource metadata.
+- **`simulateRotation(rotation, config)`** — repeats a benchmark rotation through the configured horizon.
+- **`simulateSequence(rotation, config)`** — executes one builder sequence and returns timeline/end-state data.
+- **`skillById(id)`** — looks up a normalized skill.
+- **`availableSkills(config)`** — returns skills usable by the current build.
+- **`calculatedAttributes(config)`** — derives static attributes for display.
 
 ## Scheduler (`js/sim/scheduler/`)
 
-### sim-scheduler-state.js
-
-**`createSchedulerState(options = {})`**
-- Creates fresh scheduler state: cooldowns, ammo, clones, pending resources, weapon set, instruments, etc.
-- Parameters: `{ infiniteForge, startingTime }`
-- Returns: State object
-
----
-
-### sim-scheduler-events.js
-
-**`createSchedulerEventFactory(helpers)`**
-- Factory for creating scheduler events. Provides addEvent, addCondition, addDamage, addTraitProc helpers.
-- Parameters: object with helpers (events, horizon, epsilon, conditionName, etc.)
-- Returns: Object with `{ addEvent, addCondition, addDamage, addTraitProc, ... }` methods
-
----
-
-### sim-scheduler-intents.js
-
-**`createSchedulerIntentController(model)`**
-- Creates intent controller: translates skill casts to scheduler events, manages weapon swap, autoattack chains.
-- Parameters: model (scheduler model)
-- Returns: Object with methods for casting, intent handling
-
----
-
-### sim-scheduler.js
-
-**`createScheduler(config, traits, horizon, model)`**
-- Creates main scheduler instance from config/traits. Coordinates state, events, intents, clone attacks, profession actions.
-- Parameters: config (sim config), traits (Set of trait names), horizon (duration), model (scheduler model)
-- Returns: Scheduler instance with `{ cast(skill), advanceTo(time), state, events, warnings }`
-
----
+- **`createScheduler(config, traits, horizon, model)`** in `scheduler.js` — composes scheduler state and focused controllers.
+- **`createSchedulerState(options)`** in `scheduler-state.js` — creates state for one run.
+- **`createEventFactory(options)`** in `event-factory.js` — creates typed scheduler events.
+- **`createExpectedProcTracker(options)`** in `expected-procs.js` — tracks deterministic expected trait procs.
+- **`createCastController(options)`** in `cast-controller.js` — validates and dispatches casts.
+- **`createCooldownController(options)`** in `cooldown-controller.js` — owns cooldown and ammo state.
+- **`createContinuumController(options)`** in `continuum-controller.js` — snapshots and restores Continuum Split.
+- **`createResourceController(options)`** in `resource-controller.js` — owns resource gains.
+- **`createSkillEffectController(options)`** in `skill-effects.js` — schedules ordinary skill effects.
 
 ## Resolver (`js/sim/resolver/`)
 
-### sim-runtime-context.js
-
-**`createRuntimeContext(options)`**
-- Creates resolver execution context: breakdown tracking, condition state, proc tracking, relic state, sigil timers.
-- Parameters: object with `{ config, traits, scheduler, horizon, query, helpers, queue }`
-- Returns: Runtime context object with methods for recording procs, damage, conditions
-
----
-
-### sim-query-context.js
-
-**`buildResolverQuery(config, traits, events, model)`**
-- Builds queryable event index for resolver (buffs, weapons, Aristocracy triggers, instruments, thorns stacks).
-- Parameters: config, traits (Set), events array, model (resolver model)
-- Returns: Query object with functions for looking up stacked buffs, durations, instrument state, etc.
-
----
-
-### sim-resolver.js
-
-**`resolveScheduledStream(options)`**
-- Main resolver: processes scheduled events through damage/condition/effect resolution, produces final breakdown.
-- Parameters: object with `{ stream, config, traits, scheduler, query, helpers }`
-- Returns: Damage breakdown with breakdowns by skill, damage/condition totals, encounter timeline
-
----
+- **`resolveScheduledStream(options)`** in `resolve-timeline.js` — resolves a versioned scheduled timeline.
+- **`createRuntimeState(options)`** in `runtime-state.js` — creates mutable state for one resolver pass.
+- **`runEventLoop(ctx)`** in `event-loop.js` — drains the ordered event queue.
+- **`buildResolverQuery(config, traits, events, model)`** in `resolver-query.js` — composes resolver queries.
+- **`createTimelineIndex(options)`** in `timeline-index.js` — builds temporal event lookups.
+- **`createCombatStats(options)`** in `combat-stats.js` — builds attributes and critical-strike queries.
+- **`createDamageModifiers(options)`** in `damage-modifiers.js` — builds strike, condition, and duration modifiers.
 
 ## Shared Simulation (`js/sim/shared/`)
 
-### sim-event-queue.js
-
-**`compareQueuedEvents(a, b)`**
-- Comparator for event sorting: by time, then priority, then insertion order.
-- Parameters: two event objects
-- Returns: `number` (-1, 0, 1)
-
-**`enqueueOrdered(queue, event)`**
-- Inserts event into queue maintaining sorted order (uses binary search).
-- Parameters: queue (array), event (object)
-- Returns: Event object
-
-**`sortQueuedEvents(queue)`**
-- Sorts entire queue in-place using compareQueuedEvents.
-- Parameters: queue (array)
-- Returns: Sorted queue
-
-**`takeNextEvent(queue)`**
-- Dequeues and returns first event (FIFO).
-- Parameters: queue (array)
-- Returns: First event or undefined
-
----
-
-### sim-scheduled-event-stream.js
-
-**`buildScheduledEventStream(options)`**
-- Creates versioned event stream for passing to resolver.
-- Parameters: object with `{ events, rotationEndTime, resolverHandoff, source }`
-- Returns: Scheduled event stream object
-
-**`assertScheduledEventStream(stream)`**
-- Validates stream structure/version. Throws if invalid.
-- Parameters: stream (object)
-- Returns: Stream object (if valid)
-
----
+- **`enqueueOrdered(queue, event)`**, **`sortQueuedEvents(queue)`**, and **`takeNextEvent(queue)`** in `event-queue.js` — maintain stable event ordering.
+- **`buildScheduledEventStream(options)`** and **`assertScheduledEventStream(stream)`** in `scheduled-event-stream.js` — define the scheduler/resolver boundary.
 
 ## Mechanics (`js/sim/mechanics/`)
 
-### mesmer-skill-normalization.js
-
-**`normalizedSkill(rawSkill)`**
-- Transforms catalog skill into usable form: adds activation/cooldown adjustments per boons.
-- Parameters: rawSkill from catalog
-- Returns: Normalized skill object
-
----
-
-### sim-profession-actions.js
-
-**`createProfessionActionController(helpers)`**
-- Factory for profession mechanics: shatters, blade generation, notes, clone attacks, resource consumption.
-- Parameters: helpers object with state, traits, resourceDefinition, etc.
-- Returns: Object with shatter/bladesong/instrument trigger functions
-
----
-
-### sim-illusion-actions.js
-
-**`createCloneAttackScheduler(helpers)`**
-- Schedules clone/phantasm auto-attacks and applies ambush effects.
-- Parameters: helpers (scheduler, state, config, etc.)
-- Returns: Scheduler for clone attacks
-
----
-
-### sim-resolver-trait-rules.js
-
-**`createTraitRuleResolver(query)`**
-- Applies trait-specific damage/condition modifiers during hit resolution.
-- Parameters: query (resolver query)
-- Returns: Object with functions for applying trait modifiers
-
----
-
-### sim-relic-rules.js
-
-**`recordPassiveRelicTimeline(ctx, events, horizon)`**
-- Generates passive events for relics (Aristocracy, Peitha, Thorns, etc.) and applies ongoing effects.
-- Parameters: ctx (runtime context), events (array), horizon (duration)
-- Returns: void (modifies ctx and events in place)
-
----
+- **`normalizedSkill(rawSkill)`** in `mesmer-skill-normalization.js` — canonicalizes one generated skill using hand-authored corrections.
+- `mesmer-skill-overrides.js` exports simulator-only skills, autoattack chains, and override lookup helpers.
+- **`createProfessionActionController(options)`** in `profession-actions.js` — handles shatters, instruments, and profession resources.
+- **`createCloneAttackScheduler(options)`** in `illusion-actions.js` — schedules clone autoattacks.
+- **`createMirageActionController(options)`** in `mirage-actions.js` — handles Mirage Cloak and ambushes.
+- **`recordPassiveRelicTimeline(ctx, events, horizon)`** in `relic-rules.js` — records passive relic effects.
 
 ## Fixtures (`js/fixtures/`)
 

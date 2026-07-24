@@ -3,12 +3,11 @@
  * Base formulas from core damage module; resolver adds moving Torment, Confusion activation damage.
  */
 import { conditionTickDamage } from "../../core/damage.js";
-import { enqueueOrdered } from "../shared/sim-event-queue.js";
-import { permanentTargetConditionStacks } from "../shared/sim-target-state.js";
-import { targetHealthMultiplier } from "./sim-hit-resolution.js";
+import { enqueueOrdered } from "../shared/event-queue.js";
+import { EPSILON } from "../shared/simulation-time.js";
+import { permanentTargetConditionStacks } from "../shared/target-state.js";
+import { targetHealthMultiplier } from "./damage-modifiers.js";
 
-/** Floating-point epsilon for time comparisons. */
-const EPSILON = 0.0001;
 /** Moving Torment: base 22 + 0.06 per condition damage. */
 const MOVING_TORMENT = { base: 22, scaling: 0.06 };
 /** Confusion activation damage: base 16.24 + 0.0325 per condition damage. */
