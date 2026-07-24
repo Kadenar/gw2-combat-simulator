@@ -1,4 +1,5 @@
 import { eliteSpecialization } from './app-runtime.js';
+import { ammoDisplayView } from '../../../platform/ui/ammo-display.js';
 import { resourceDisplayView } from '../../../platform/ui/resource-display.js';
 import { paletteView } from '../../../platform/ui/palette.js';
 import { eventLogCsv } from '../../../platform/ui/event-log.js';
@@ -170,6 +171,11 @@ function currentAmmo(app, name) {
 function paletteIcon(app, skill, contextAvailable = true, contextMessage = '') {
     const cd = currentCooldown(app, skill.name);
     const ammo = currentAmmo(app, skill.name);
+    const maximumAmmo = ammo?.maximum ?? Number(skill.ammo || 0);
+    const ammoDisplay = ammoDisplayView(
+        ammo?.charges ?? maximumAmmo,
+        maximumAmmo,
+    );
     const unavailable = cd.remaining > 0 || !contextAvailable;
     const highlighted = Boolean(skill.ambush) && !unavailable;
     const activation = Number(skill.activation || 0);
@@ -179,21 +185,31 @@ function paletteIcon(app, skill, contextAvailable = true, contextMessage = '') {
         skill.cooldown ? `Cooldown: ${skill.cooldown}s` : '',
         !contextAvailable
             ? contextMessage || 'Unavailable in the current state'
-            : ammo
-                ? `${ammo.charges}/${ammo.maximum} ammo${
-                    ammo.remaining ? ` · next charge in ${seconds(ammo.remaining)}` : ''
+            : ammoDisplay
+                ? `${ammoDisplay.label}${
+                    ammo?.remaining ? ` · next charge in ${seconds(ammo.remaining)}` : ''
                 }`
                 : cd.remaining
                 ? `Remaining: ${seconds(cd.remaining)} · available at ${seconds(cd.readyAt)}`
                 : 'Available now',
         skill.description || '',
     ].filter(Boolean).join('\n');
-    return `<div class="pal-skill${unavailable ? ' pal-disabled' : ''}${!contextAvailable ? ' pal-context-disabled' : ''}${highlighted ? ' pal-ambush-active' : ''}"
+    const ammoClasses = ammoDisplay
+        ? ` pal-has-ammo${ammoDisplay.available ? ' pal-ammo-available' : ''}`
+        : '';
+    const ammoIndicator = ammoDisplay
+        ? `<span class="pal-charges">${ammoDisplay.current}/${ammoDisplay.maximum}</span>
+        <span class="pal-ammo-pips" aria-hidden="true">${ammoDisplay.pips.map(filled =>
+            `<span class="pal-ammo-pip${filled ? ' filled' : ''}"></span>`
+        ).join('')}</span>`
+        : '';
+    return `<div class="pal-skill${unavailable ? ' pal-disabled' : ''}${!contextAvailable ? ' pal-context-disabled' : ''}${highlighted ? ' pal-ambush-active' : ''}${ammoClasses}"
         data-skill="${esc(skill.name)}" title="${esc(title)}" draggable="${contextAvailable}"
+        ${ammoDisplay ? `aria-label="${esc(`${skill.name}: ${ammoDisplay.label}`)}"` : ''}
         style="--att-border:${unavailable ? '#625a73' : highlighted ? '#f0c766' : '#a88be8'}">
         <img src="${esc(skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON)}" alt="" />
         ${cd.remaining ? `<span class="pal-cd">${seconds(cd.remaining)}</span>` : ''}
-        ${ammo ? `<span class="pal-charges">${ammo.charges}/${ammo.maximum}</span>` : ''}
+        ${ammoIndicator}
     </div>`;
 }
 

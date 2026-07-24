@@ -1547,6 +1547,46 @@ header .accent {
     transform: none;
 }
 
+.pal-skill.pal-has-ammo {
+    margin-bottom: 11px;
+    overflow: visible;
+}
+
+.pal-skill.pal-has-ammo img {
+    border-radius: 2px;
+}
+
+.pal-skill.pal-ammo-available {
+    box-shadow: 0 0 7px color-mix(in srgb, var(--att-border) 55%, transparent);
+}
+
+.pal-ammo-pips {
+    position: absolute;
+    right: 1px;
+    bottom: -10px;
+    left: 1px;
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    height: 7px;
+    pointer-events: none;
+}
+
+.pal-ammo-pip {
+    width: 7px;
+    height: 7px;
+    box-sizing: border-box;
+    border: 1px solid color-mix(in srgb, var(--att-border) 55%, #25202d);
+    border-radius: 50%;
+    background: #25202d;
+}
+
+.pal-ammo-pip.filled {
+    border-color: color-mix(in srgb, var(--att-border) 75%, white);
+    background: var(--att-border);
+    box-shadow: 0 0 5px color-mix(in srgb, var(--att-border) 80%, transparent);
+}
+
 .pistol-bullet {
     position: relative;
     width: 32px;
@@ -1585,11 +1625,13 @@ header .accent {
     right: -1px;
     background: #000b;
     color: #eee;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
-    line-height: 1;
-    padding: 1px 3px;
+    line-height: 1.1;
+    padding: 2px 3px;
     border-radius: 3px 0 3px 0;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px #000;
     pointer-events: none;
 }
 
