@@ -75,7 +75,7 @@ frame.addEventListener('load', async () => {
         app.build.specializations[2] = { name: 'Virtuoso', traits: '3-3-3' };
         app.renderSkills();
 
-        assert(document.getElementById('target-hp')?.value === '4000000', 'target HP control missing');
+        assert(document.getElementById('target-hp')?.value === '3970000', 'target HP control missing');
         assert(
             document.querySelector(
                 '#perma-boons [data-effect-type="condition"][data-effect-key="Slow"]',

@@ -299,7 +299,7 @@ test("Egotism is applied once by the health-aware runtime", () => {
     target: {
       ...defaults.target,
       vulnerability: 0,
-      health: 4000000,
+      health: 3970000,
     },
   });
   const base = simulateSequence(["Mind Slash"], config);
