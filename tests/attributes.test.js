@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDefaultBuild, replaceBuild } from '../js/app/app-state.js';
 import {
+    calculateModifierContributions,
     computeModifierContributions,
+    modifierContributionRequest,
+    runSimulation,
     simulationConfig,
 } from '../js/app/app-runtime.js';
 import { calcAttributes } from '../js/core/calc-attributes.js';
@@ -182,6 +185,28 @@ test('modifier contributions compare the active build against each modifier remo
     assert.ok(contributions.every(entry =>
         Number.isFinite(entry.dpsIncrease)
         && Number.isFinite(entry.pctIncrease)));
+});
+
+test('interactive simulation leaves contribution passes to the background worker', () => {
+    const build = createDefaultBuild();
+    build.rotation = ['Bladecall'];
+    build.relic = '';
+    build.selectedSkills = {};
+    const app = {
+        build,
+        attributeData: calcAttributes(build, []),
+        attributeWeaponSet: 1,
+        skillByName: new Map(),
+    };
+
+    const result = runSimulation(app);
+    assert.equal(result.contributions, undefined);
+
+    const request = structuredClone(modifierContributionRequest(app));
+    assert.deepEqual(
+        calculateModifierContributions(request),
+        computeModifierContributions(app),
+    );
 });
 
 test('saved builds fall back when their relic is no longer available', () => {
