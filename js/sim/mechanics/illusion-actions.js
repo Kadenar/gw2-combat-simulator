@@ -1,5 +1,5 @@
 /**
- * Creates clone attack scheduler: schedules periodic clone attacks based on weapon.
+ * Schedules periodic clone attacks based on weapon.
  * Manages clone attack timing (interval per weapon), damage, conditions.
  * Returns: initializeClone, nextAttackAt, scheduleAt.
  * @param {Object} config - Scheduler config (state, cloneAttacks data, etc.)

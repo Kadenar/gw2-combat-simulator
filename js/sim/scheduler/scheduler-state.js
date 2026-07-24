@@ -1,4 +1,4 @@
-// Initialize scheduler state machine
+// Initialize scheduler state for one simulation run
 // Tracks cooldowns, ammo, clones, pending resources, active weapon set, instruments
 // Also tracks special mechanics like Continuum Split, counterspell availability, blade/note generation
 
@@ -13,9 +13,11 @@ export function createSchedulerState({
     numericResource: 0,
     clones: [],
     pendingResources: [],
-    pendingCombatIntents: [],
+    pendingExpectedProcs: [],
     activeWeaponSet: 1,
     skillUses: new Map(),
+    trackedSkillHits: new Map(),
+    traitReadyAt: new Map(),
     instruments: new Map(),
     lastInstrument: "",
     continuum: null,
@@ -32,5 +34,6 @@ export function createSchedulerState({
     ambushSource: "",
     cloneAmbushUntil: 0,
     riddleOfSandReady: false,
+    timeBombUntil: 0,
   };
 }

@@ -1,17 +1,17 @@
 /**
- * Creates intent controller: processes deferred combat intents for Bloodsong, Jagged Mind, Sharper Images.
- * Intents fire after a delay or are batched (e.g., bleeding stacks triggering Bloodsong progress).
+ * Tracks deterministic expected procs for Bloodsong, Jagged Mind, and Sharper Images.
+ * Candidates fire after a delay or are batched before resource gains.
  * @param {Object} config - Simulation config
  * @param {Set} traits - Selected traits
- * @param {Object} state - Scheduler state (tracks progress, pending intents)
- * @param {Map} cloneDeaths - Clone death times (ignores intents from dead clones)
+ * @param {Object} state - Scheduler state with expected-proc progress
+ * @param {Map} cloneDeaths - Clone death times
  * @param {number} epsilon - Floating-point epsilon
  * @param {Function} baseCriticalChance - Critical hit chance calculator
  * @param {Function} activePrimaryWeapon - Current primary weapon getter
  * @param {Function} queueResources - Resource queuing function
- * @returns {Object} Intent controller with queue(intent), nextAt(), processNext()
+ * @returns {Object} Tracker with queue(candidate), nextAt(), processNext()
  */
-export function createSchedulerIntentController({
+export function createExpectedProcTracker({
   state,
   config,
   traits,
@@ -68,75 +68,74 @@ export function createSchedulerIntentController({
   };
 
   /**
-   * Processes a single intent: verifies clone alive, handles bleeding/hit intent types.
+   * Processes one expected-proc candidate after verifying its source is active.
    * Triggers: Bloodsong (bleeding), Jagged Mind (blade hits), Sharper Images (clone/phantasm hits).
-   * @param {Object} intent - Intent with type (bleeding/hit), source, cloneId, at, stacks/hits/blade props
+   * @param {Object} candidate - Bleeding or hit candidate
    */
-  const process = (intent) => {
+  const process = (candidate) => {
     if (
-      intent.cloneId
-      && (cloneDeaths.get(intent.cloneId) ?? Infinity)
-        <= intent.at + epsilon
+      candidate.cloneId
+      && (cloneDeaths.get(candidate.cloneId) ?? Infinity)
+        <= candidate.at + epsilon
     ) return;
 
-    if (intent.type === "bleeding") {
-      trackBloodsong(intent.at, intent.stacks, 0);
+    if (candidate.type === "bleeding") {
+      trackBloodsong(candidate.at, candidate.stacks, 0);
       return;
     }
-    if (intent.type !== "hit") return;
+    if (candidate.type !== "hit") return;
 
     const criticalChance = baseCriticalChance(
       config,
       traits,
-      intent.source,
-      intent.weaponSet,
+      candidate.source,
+      candidate.weaponSet,
     );
-    if (intent.blade && traits.has("Jagged Mind")) {
+    if (candidate.blade && traits.has("Jagged Mind")) {
       trackBloodsong(
-        intent.at,
+        candidate.at,
         0,
-        intent.hits,
-        intent.source,
-        intent.weaponSet,
+        candidate.hits,
+        candidate.source,
+        candidate.weaponSet,
       );
     }
     if (
       traits.has("Sharper Images")
-      && (intent.source === "Clone" || intent.source === "Phantasm")
+      && (candidate.source === "Clone" || candidate.source === "Phantasm")
     ) {
-      state.sharperImagesProgress += intent.hits * criticalChance;
+      state.sharperImagesProgress += candidate.hits * criticalChance;
       const bleeding = Math.floor(state.sharperImagesProgress + epsilon);
       if (bleeding > 0) {
         state.sharperImagesProgress -= bleeding;
-        trackBloodsong(intent.at, bleeding, 0);
+        trackBloodsong(candidate.at, bleeding, 0);
       }
     }
   };
 
   return {
     /**
-     * Queues an intent to be processed later (sorted by time).
-     * @param {Object} intent - Intent with at (time) and other properties
+     * Queues a candidate to be processed later.
+     * @param {Object} candidate - Candidate with an `at` timestamp
      */
-    queue(intent) {
-      state.pendingCombatIntents.push(intent);
-      state.pendingCombatIntents.sort((a, b) => a.at - b.at);
+    queue(candidate) {
+      state.pendingExpectedProcs.push(candidate);
+      state.pendingExpectedProcs.sort((a, b) => a.at - b.at);
     },
 
     /**
-     * Returns next intent time or Infinity if no pending intents.
-     * @returns {number} Time of next intent
+     * Returns the next candidate time or Infinity.
      */
     nextAt() {
-      return state.pendingCombatIntents[0]?.at ?? Infinity;
+      return state.pendingExpectedProcs[0]?.at ?? Infinity;
     },
 
     /**
-     * Removes and processes next pending intent.
+     * Removes and processes the next candidate.
      */
     processNext() {
-      const intent = state.pendingCombatIntents.shift();
-      if (intent) process(intent);
+      const candidate = state.pendingExpectedProcs.shift();
+      if (candidate) process(candidate);
     },
   };
 }

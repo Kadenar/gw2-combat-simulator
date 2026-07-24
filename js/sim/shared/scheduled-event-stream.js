@@ -1,4 +1,4 @@
-// Event stream serialization for passing scheduler output to resolver
+// Versioned event stream passed from scheduler to resolver
 // Versioned format ensures compatibility if schema changes in future
 
 export const SCHEDULED_EVENT_STREAM_KIND = "mesmer_scheduled_event_stream";

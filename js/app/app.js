@@ -12,14 +12,16 @@ import {
     UTILITY_NAMES,
     WEAPON_DATA,
 } from '../data/gear-data.js';
-import { SKILLS, SPECIALIZATIONS } from '../data/mesmer-catalog.js';
+import { SPECIALIZATIONS } from '../data/mesmer-catalog.js';
 import {
     AMBUSH_SKILLS,
     PSEUDO_SKILLS,
-    normalizedSkill,
+} from '../sim/mechanics/mesmer-skill-overrides.js';
+import {
+    SIMULATOR_SKILLS,
 } from '../sim/mechanics/mesmer-skill-normalization.js';
 import { setWeaponSigil } from '../core/weapon-sigils.js';
-import { getResourceDefinition } from '../sim/sim-engine.js';
+import { getResourceDefinition } from '../sim/simulator.js';
 import { createDefaultBuild, loadBuild, replaceBuild, saveBuild } from './app-state.js';
 import { downloadJson, readJsonFile } from './app-io.js';
 import { recalculate, runSimulation, eliteSpecialization } from './app-runtime.js';
@@ -89,7 +91,7 @@ class MesmerApp {
     constructor() {
         this.build = loadBuild();
         this.skills = [
-            ...SKILLS.map(normalizedSkill),
+            ...SIMULATOR_SKILLS,
             ...AMBUSH_SKILLS,
             ...PSEUDO_SKILLS,
         ];

@@ -6,7 +6,7 @@ import {
     aggregateSigilSet,
     weaponSigilsForSet,
 } from '../core/weapon-sigils.js';
-import { getResourceDefinition, simulateSequence } from '../sim/sim-engine.js';
+import { getResourceDefinition, simulateSequence } from '../sim/simulator.js';
 
 // Determines which elite specialization is active (Chronomancer, Mirage, Virtuoso, Troubadour)
 // Returns 'Core' if no elite spec is selected

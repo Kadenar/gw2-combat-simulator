@@ -1,5 +1,5 @@
 /**
- * Maps legacy condition field names to their modern counterparts.
+ * Maps legacy target-condition fields to their modern counterparts.
  * Used for backward compatibility with older config formats.
  */
 const LEGACY_TARGET_FIELDS = {

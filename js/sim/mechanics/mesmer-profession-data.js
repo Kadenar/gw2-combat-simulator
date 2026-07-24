@@ -29,6 +29,29 @@ export const CONDITION_FORMULAS = {
   },
 };
 
+export const TRAIT_DAMAGE = Object.freeze({
+  "Lesser Chaos Storm": {
+    coefficient: 1.98,
+    hits: 6,
+    cooldown: 28,
+  },
+  "Phantasmal Blade": {
+    coefficient: 0.7,
+    hits: 1,
+    weaponStrength: 2553.5,
+  },
+  Syncopate: {
+    coefficient: 0.75,
+    hits: 1,
+  },
+  "Time Bomb": {
+    coefficient: 3,
+    hits: 1,
+    duration: 5,
+    damageIncrease: 0.1,
+  },
+});
+
 export const SHATTERS = {
   "Mind Wrack": {
     slot: 1,

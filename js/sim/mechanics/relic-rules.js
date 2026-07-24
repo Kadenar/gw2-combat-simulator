@@ -1,8 +1,8 @@
 /**
- * Relic trigger rules for damage resolution: strike/condition multipliers, active-hit effects, passive timelines.
+ * Relic trigger rules: strike/condition multipliers, active-hit effects, passive timelines.
  */
 
-const EPSILON = 0.0001;
+import { EPSILON } from "../shared/simulation-time.js";
 
 /**
  * Calculates strike damage multiplier for active relics.

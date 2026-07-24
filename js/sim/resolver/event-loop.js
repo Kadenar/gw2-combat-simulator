@@ -1,4 +1,5 @@
-import { sortQueuedEvents, takeNextEvent } from "../shared/sim-event-queue.js";
+import { sortQueuedEvents, takeNextEvent } from "../shared/event-queue.js";
+import { EPSILON } from "../shared/simulation-time.js";
 import {
   handleBlindEvent,
   handleConditionEvent,
@@ -7,7 +8,7 @@ import {
   handleDamageEvent,
   handlePeithaEvent,
   handleWeaponSetEvent,
-} from "./sim-event-handlers.js";
+} from "./event-handlers.js";
 
 /**
  * Extracts target health from config. Defaults to Infinity if not set or ≤ 0.
@@ -25,14 +26,14 @@ function targetHealth(ctx) {
 
 /**
  * Checks if an event belongs to a clone that was destroyed before the event time.
- * @param {Object} ctx - Resolver context with scheduler.cloneDeaths map
+ * @param {Object} ctx - Resolver context with cloneDeaths map
  * @param {Object} event - Event with optional cloneId
  * @returns {boolean} True if event should be skipped (clone dead)
  */
 function destroyedCloneEvent(ctx, event) {
   if (!event.cloneId) return false;
-  const destroyedAt = ctx.scheduler.cloneDeaths.get(event.cloneId) ?? Infinity;
-  return destroyedAt <= event.at + 0.0001;
+  const destroyedAt = ctx.cloneDeaths.get(event.cloneId) ?? Infinity;
+  return destroyedAt <= event.at + EPSILON;
 }
 
 /**
@@ -42,14 +43,14 @@ function destroyedCloneEvent(ctx, event) {
  * Tracks death time when total damage + condition ≥ target health.
  * @param {Object} ctx - Resolver context with queue, config, scheduler, totals, horizon, deathTime
  */
-export function drainQueuedEvents(ctx) {
+export function runEventLoop(ctx) {
   const queue = ctx.queue;
   const hp = targetHealth(ctx);
   sortQueuedEvents(queue);
 
   while (queue.length > 0) {
     const event = takeNextEvent(queue);
-    if (event.at > ctx.horizon + 0.0001) break;
+    if (event.at > ctx.horizon + EPSILON) break;
     if (ctx.deathTime != null && event.at > ctx.deathTime) break;
     if (destroyedCloneEvent(ctx, event)) continue;
     if (

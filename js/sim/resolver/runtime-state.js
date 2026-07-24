@@ -1,24 +1,26 @@
-// Creates resolver execution context
+// Creates mutable runtime state for one resolver pass
 // Maintains damage breakdown, condition state, proc tracking, relic state, sigil timers
 // Provides recordProc/addDamage/addCondition methods for event handlers
 
-export function createRuntimeContext({
+export function createRuntimeState({
   config,
   traits,
-  scheduler,
   horizon,
   query,
   helpers,
   queue,
+  cloneDeaths = new Map(),
+  warnings = [],
 }) {
   return {
     config,
     traits,
-    scheduler,
     horizon,
     query,
     helpers,
     queue,
+    cloneDeaths,
+    warnings,
     breakdown: new Map(),
     conditions: new Map(),
     conditionState: new Map(),

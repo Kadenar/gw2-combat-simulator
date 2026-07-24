@@ -6,21 +6,8 @@ import {
   expectedCritMultiplier,
   strikeDamage,
 } from "../../core/damage.js";
-import { relicStrikeMultiplier } from "../mechanics/sim-relic-rules.js";
-
-/**
- * Calculates Egotism multiplier: +10% damage while target > 50% health, else 1.
- * @param {Object} ctx - Resolver context with config.target.health, totals.strike/condition
- * @returns {number} Multiplier (1 or 1.1)
- */
-export function targetHealthMultiplier(ctx) {
-  if (!ctx.traits.has("Egotism")) return 1;
-  const targetHealth = Number(ctx.config.target?.health || 0);
-  if (!(targetHealth > 0)) return 1;
-  return ctx.totals.strike + ctx.totals.condition < targetHealth * 0.5
-    ? 1.1
-    : 1;
-}
+import { relicStrikeMultiplier } from "../mechanics/relic-rules.js";
+import { targetHealthMultiplier } from "./damage-modifiers.js";
 
 /**
  * Builds hit resolution context: calculates base damage, crit multiplier, outgoing multiplier.
@@ -62,4 +49,27 @@ export function buildHitResolutionContext(ctx, event) {
     baseDamage,
     damage: baseDamage * criticalMultiplier * outgoingMultiplier,
   };
+}
+
+/**
+ * Applies a resolved hit: adds damage to totals, records breakdown, marks damage time.
+ * @param {Object} ctx - Resolver context
+ * @param {Object} event - Damage event
+ * @param {Object} hitContext - Hit resolution context with damage, critical
+ * @returns {Object} Resolved hit with damage, criticalChance, criticalDamage
+ */
+export function applyResolvedHit(ctx, event, hitContext) {
+  const damage = hitContext.damage;
+  ctx.totals.strike += damage;
+  ctx.addBreakdown(event.name, damage, "strikeDamage", Number(event.hits || 1));
+  ctx.markDamageTime(event.at);
+
+  const resolved = {
+    ...event,
+    damage,
+    criticalChance: hitContext.critical.chance,
+    criticalDamage: hitContext.critical.damage,
+  };
+  ctx.resolved.push(resolved);
+  return resolved;
 }

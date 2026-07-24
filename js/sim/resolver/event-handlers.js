@@ -1,28 +1,29 @@
 /**
- * Event handlers for resolver: damage, conditions, control, blind, Peitha, weapon set.
+ * Event handlers for damage, conditions, control, blind, Peitha, and weapon sets.
  * Dispatches to damage/condition/trait handlers; manages sigil procs, trait effects, relic rules.
  */
-import { applyResolvedHit } from "./sim-hit-application.js";
-import { buildHitResolutionContext } from "./sim-hit-resolution.js";
+import {
+  applyResolvedHit,
+  buildHitResolutionContext,
+} from "./hit-resolution.js";
 import {
   activeConditionStackCount,
   applyCondition,
   handleConditionTick,
-} from "./sim-condition-resolution.js";
+} from "./condition-resolution.js";
 import { SIGIL_PROCS } from "../../data/gear-data.js";
-import { enqueueOrdered } from "../shared/sim-event-queue.js";
+import { enqueueOrdered } from "../shared/event-queue.js";
 import {
   applyMistStranger,
   handleControlRelics,
   handlePeithaRelic,
   handleRelicsAfterHit,
-} from "../mechanics/sim-relic-rules.js";
+} from "../mechanics/relic-rules.js";
 import {
   handleCriticalTraits,
   triggerIneptitude,
-} from "../mechanics/sim-resolver-trait-rules.js";
-
-const EPSILON = 0.0001;
+} from "../mechanics/trait-rules.js";
+import { EPSILON } from "../shared/simulation-time.js";
 
 /** Looks up skill by name from skillsByName map. */
 function triggeringSkill(ctx, event) {

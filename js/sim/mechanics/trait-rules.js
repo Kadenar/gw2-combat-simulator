@@ -1,9 +1,9 @@
 /**
- * Trait mechanics during damage resolution: critical trait procs (Sharper Images, Jagged Mind),
+ * Trait mechanics during resolution: critical trait procs (Sharper Images, Jagged Mind),
  * interrupt triggers (Ineptitude).
  */
 
-const EPSILON = 0.0001;
+import { EPSILON } from "../shared/simulation-time.js";
 
 /**
  * Handles critical trait procs: Sharper Images (clone/phantasm crit → Bleeding),

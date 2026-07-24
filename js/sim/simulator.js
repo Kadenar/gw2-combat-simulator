@@ -1,8 +1,7 @@
-// Main simulation engine orchestrator
+// Public simulation orchestrator
 // Two-phase pipeline: 1) Scheduler (action sequencing), 2) Resolver (damage calculation)
 // Exposes simulateRotation (repeatable) and simulateSequence (single-pass builder mode)
 
-import { SKILLS } from "../data/mesmer-catalog.js";
 import {
   AMBUSH_ATTACKS,
   CLONE_ATTACKS,
@@ -19,20 +18,23 @@ import {
   MECHANIC_SKILLS,
   PEITHA_SKILLS,
   SHATTERS,
+  TRAIT_DAMAGE,
 } from "./mechanics/mesmer-profession-data.js";
 import {
   AMBUSH_SKILLS,
   AUTOATTACK_CHAINS,
   PSEUDO_SKILLS,
-  normalizedSkill,
+} from "./mechanics/mesmer-skill-overrides.js";
+import {
+  SIMULATOR_SKILLS,
 } from "./mechanics/mesmer-skill-normalization.js";
-import { buildScheduledEventStream } from "./shared/sim-scheduled-event-stream.js";
-import { resolveScheduledStream } from "./resolver/sim-resolver.js";
-import { buildResolverQuery } from "./resolver/sim-query-context.js";
-import { createScheduler } from "./scheduler/sim-scheduler.js";
+import { prepareSimulationConfig } from "./run/prepare-config.js";
+import { buildScheduledEventStream } from "./shared/scheduled-event-stream.js";
+import { EPSILON } from "./shared/simulation-time.js";
+import { resolveScheduledStream } from "./resolver/resolve-timeline.js";
+import { buildResolverQuery } from "./resolver/resolver-query.js";
+import { createScheduler } from "./scheduler/scheduler.js";
 
-/** Floating-point epsilon for robust time comparisons (prevents rounding errors). */
-const EPSILON = 0.0001;
 /** Safety limit to prevent infinite action loops in rotation simulations. */
 const MAX_ACTIONS = 10_000;
 /** Cooldown IDs unaffected by Continuum Split (e.g., weapon swap). */
@@ -46,14 +48,14 @@ const THORNS_CONDITION_DAMAGE = 30;
 /** Relic of Thorns: maximum stack count. */
 const THORNS_MAX_STACKS = 10;
 
-const byName = (name) => SKILLS.find((skill) => skill.name === name);
 const allSkills = [
-  ...SKILLS.map(normalizedSkill),
+  ...SIMULATOR_SKILLS,
   ...AMBUSH_SKILLS,
   ...PSEUDO_SKILLS,
 ];
 const skillsById = new Map(allSkills.map((skill) => [skill.id, skill]));
 const skillsByName = new Map(allSkills.map((skill) => [skill.name, skill]));
+const byName = (name) => skillsByName.get(name);
 const flipSkillsByParent = new Map(
   allSkills
     .filter((skill) => skill.flipParent)
@@ -412,6 +414,7 @@ const SCHEDULER_MODEL = Object.freeze({
   PHANTASM_ATTACK_TIMINGS,
   PHANTASM_NAME_BY_SKILL,
   SHATTERS,
+  TRAIT_DAMAGE,
   adjustedCooldown,
   allSkills,
   autoattackChainPositions,
@@ -427,7 +430,6 @@ const SCHEDULER_MODEL = Object.freeze({
 });
 
 const RESOLVER_QUERY_MODEL = Object.freeze({
-  EPSILON,
   THORNS_CONDITION_DAMAGE,
   clamp,
   durationMultiplier,
@@ -455,6 +457,8 @@ function resolveEvents(config, traits, scheduler, horizon) {
       activeWeaponSet: scheduler.state.activeWeaponSet,
       hasExplicitCombatStart: scheduler.state.hasExplicitCombatStart,
       combatStartTime: scheduler.state.combatStartTime,
+      cloneDeaths: [...scheduler.cloneDeaths],
+      warnings: [...scheduler.warnings],
     },
   });
 
@@ -462,7 +466,6 @@ function resolveEvents(config, traits, scheduler, horizon) {
     stream,
     config,
     traits,
-    scheduler,
     query,
     helpers: {
       conditionName,
@@ -482,21 +485,7 @@ function resolveEvents(config, traits, scheduler, horizon) {
  */
 export function simulateRotation(rotation, userConfig = {}) {
   const defaults = createDefaultConfig();
-  const config = {
-    ...defaults,
-    ...userConfig,
-    stats: { ...defaults.stats, ...(userConfig.stats || {}) },
-    boons: { ...defaults.boons, ...(userConfig.boons || {}) },
-    target: {
-      ...defaults.target,
-      ...(userConfig.target || {}),
-      conditions:
-        userConfig.target
-        && Object.hasOwn(userConfig.target, "conditions")
-          ? { ...(userConfig.target.conditions || {}) }
-          : { ...defaults.target.conditions },
-    },
-  };
+  const config = prepareSimulationConfig(defaults, userConfig);
   const horizon = clamp(Number(config.duration || 30), 1, 600);
   const traits = selectedTraitSet(config);
   const scheduler = createScheduler(config, traits, horizon, SCHEDULER_MODEL);
@@ -552,22 +541,9 @@ export function simulateRotation(rotation, userConfig = {}) {
  */
 export function simulateSequence(rotation, userConfig = {}) {
   const defaults = createDefaultConfig();
-  const config = {
-    ...defaults,
-    ...userConfig,
+  const config = prepareSimulationConfig(defaults, userConfig, {
     duration: 600,
-    stats: { ...defaults.stats, ...(userConfig.stats || {}) },
-    boons: { ...defaults.boons, ...(userConfig.boons || {}) },
-    target: {
-      ...defaults.target,
-      ...(userConfig.target || {}),
-      conditions:
-        userConfig.target
-        && Object.hasOwn(userConfig.target, "conditions")
-          ? { ...(userConfig.target.conditions || {}) }
-          : { ...defaults.target.conditions },
-    },
-  };
+  });
   const traits = selectedTraitSet(config);
   const scheduler = createScheduler(config, traits, 600, SCHEDULER_MODEL);
   const steps = [];
@@ -923,11 +899,6 @@ export function availableSkills(config) {
  */
 export function calculatedAttributes(config) {
   const defaults = createDefaultConfig();
-  const merged = {
-    ...defaults,
-    ...config,
-    stats: { ...defaults.stats, ...(config.stats || {}) },
-    boons: { ...defaults.boons, ...(config.boons || {}) },
-  };
+  const merged = prepareSimulationConfig(defaults, config);
   return staticAttributes(merged, selectedTraitSet(merged));
 }

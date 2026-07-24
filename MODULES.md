@@ -30,7 +30,7 @@ Rotation builder UI. Renders the skill rotation timeline, handles drag-and-drop 
 Static Guild Wars 2 game data and lookups.
 
 ### [mesmer-catalog.js](js/data/mesmer-catalog.js)
-Mesmer skill catalog and specialization definitions. Auto-generated snapshot from official GW2 API. Contains all specializations (core + elite), trait definitions, and skill metadata.
+Auto-generated GW2 API metadata snapshot. Contains specialization and trait definitions plus skill IDs, names, descriptions, icons, and slots. It intentionally contains no simulator mechanics.
 
 ### [gear-data.js](js/data/gear-data.js)
 Ascended gear stat tables and equipment lookups. Defines stat values for all gear prefixes (Berserker's, Assassin's, etc.), runes, sigils, food, utilities, infusions, and weapons. Profession-neutral except for Mesmer weapons.
@@ -57,92 +57,59 @@ Weapon sigil management. Normalizes sigil selections, provides sigil lookup by w
 
 ## Simulation Engine (`js/sim/`)
 
-Core rotation simulation and damage calculation.
+The simulation is a two-phase pipeline: scheduling creates a versioned timeline, then resolution evaluates it without access to live scheduler state.
 
-### [sim-engine.js](js/sim/sim-engine.js)
-Main simulation orchestrator. Provides `simulateRotation()` (repeatable benchmark) and `simulateSequence()` (single-pass builder display) functions. Parses rotations, manages scheduler state, resolves events, and returns detailed damage breakdowns with cooldown/ammo state.
+### [simulator.js](js/sim/simulator.js)
+Public orchestration API. Prepares run configuration, drives scheduler execution, builds the scheduler-to-resolver handoff, and shapes final results.
+
+### Run Setup (`js/sim/run/`)
+
+- [prepare-config.js](js/sim/run/prepare-config.js) — creates an isolated configuration for each run.
 
 ### Scheduler (`js/sim/scheduler/`)
 
-Tracks action scheduling and cooldown state during rotation execution.
-
-#### [sim-scheduler.js](js/sim/scheduler/sim-scheduler.js)
-Scheduler factory. Creates scheduler instance from config/traits/horizon, coordinates sub-components (state, intents, events), and exposes `cast(skill)` and `advanceTo(time)` APIs.
-
-#### [sim-scheduler-state.js](js/sim/scheduler/sim-scheduler-state.js)
-Scheduler state machine. Manages active weapon set, cooldowns, ammo, clones, Continuum Split state, and blade/note resources. Tracks pending resource gains and autoattack chain progression.
-
-#### [sim-scheduler-events.js](js/sim/scheduler/sim-scheduler-events.js)
-Event factory and sequencing. Creates action/cooldown/resource/condition events with timing and priority. Handles activation time calculation, skill effects sequencing, and ammo recharge logic.
-
-#### [sim-scheduler-intents.js](js/sim/scheduler/sim-scheduler-intents.js)
-Intent-to-action parsing. Translates skill casts and user intents into scheduled events. Manages weapon swap sequencing, autoattack chains, and interrupt behavior.
+- [scheduler.js](js/sim/scheduler/scheduler.js) — thin composition root for scheduler controllers.
+- [scheduler-state.js](js/sim/scheduler/scheduler-state.js) — creates mutable state for one scheduling pass.
+- [event-factory.js](js/sim/scheduler/event-factory.js) — creates typed scheduled events.
+- [expected-procs.js](js/sim/scheduler/expected-procs.js) — accumulates deterministic Bloodsong, Jagged Mind, and Sharper Images procs.
+- [cast-controller.js](js/sim/scheduler/cast-controller.js) — validates casts, advances cooldowns, and dispatches skill behavior.
+- [cooldown-controller.js](js/sim/scheduler/cooldown-controller.js) — owns cooldown and ammo bookkeeping.
+- [continuum-controller.js](js/sim/scheduler/continuum-controller.js) — captures and restores Continuum Split state.
+- [resource-controller.js](js/sim/scheduler/resource-controller.js) — owns clone, blade, and note gains.
+- [skill-effects.js](js/sim/scheduler/skill-effects.js) — schedules ordinary skill, pulse, phantasm, and trait effects.
 
 ### Resolver (`js/sim/resolver/`)
 
-Post-scheduling damage and effect resolution.
-
-#### [sim-resolver.js](js/sim/resolver/sim-resolver.js)
-Event resolution orchestrator. Creates runtime context, records passive relic timelines, drains queued events through resolver, and produces final damage/condition breakdown.
-
-#### [sim-runtime-context.js](js/sim/resolver/sim-runtime-context.js)
-Resolver execution context. Manages damage/condition/trait proc tracking, builds damage breakdown by source, coordinates event dispatch to specialized handlers.
-
-#### [sim-resolver-events.js](js/sim/resolver/sim-resolver-events.js)
-Event handler dispatch. Routes events to specialized resolvers (hit resolution, condition resolution, event handlers) and manages event queue draining.
-
-#### [sim-hit-resolution.js](js/sim/resolver/sim-hit-resolution.js)
-Hit damage calculation. Resolves action events to strike/condition damage using calculated attributes, applies critical strike multipliers, and tracks per-hit breakdowns.
-
-#### [sim-condition-resolution.js](js/sim/resolver/sim-condition-resolution.js)
-Condition application and damage. Resolves condition events, applies duration bonuses, calculates tick damage over duration, and handles condition-specific mechanics (e.g., Torment movement penalty).
-
-#### [sim-query-context.js](js/sim/resolver/sim-query-context.js)
-Pre-resolver query context. Builds queryable maps of events by type/skill for use during resolution. Provides utilities for condition duration multipliers and sigil aggregation.
-
-#### [sim-event-handlers.js](js/sim/resolver/sim-event-handlers.js)
-Specialized event handlers. Routes non-damage events (trait procs, boons, effects) through appropriate resolvers.
+- [resolve-timeline.js](js/sim/resolver/resolve-timeline.js) — resolver composition root and result builder.
+- [runtime-state.js](js/sim/resolver/runtime-state.js) — mutable state for one resolution pass.
+- [event-loop.js](js/sim/resolver/event-loop.js) — drains the ordered event queue.
+- [event-handlers.js](js/sim/resolver/event-handlers.js) — dispatches event types.
+- [timeline-index.js](js/sim/resolver/timeline-index.js) — indexes timestamp-based boons, cooldowns, instruments, and weapon sets.
+- [combat-stats.js](js/sim/resolver/combat-stats.js) — calculates timestamp-aware attributes and critical strikes.
+- [damage-modifiers.js](js/sim/resolver/damage-modifiers.js) — calculates strike, condition, and duration modifiers.
+- [resolver-query.js](js/sim/resolver/resolver-query.js) — composes read-only timeline, stat, and modifier queries.
+- [hit-resolution.js](js/sim/resolver/hit-resolution.js) — calculates and records strike damage.
+- [condition-resolution.js](js/sim/resolver/condition-resolution.js) — resolves condition applications and ticks.
 
 ### Shared Simulation (`js/sim/shared/`)
 
-Common event handling and serialization.
-
-#### [sim-event-queue.js](js/sim/shared/sim-event-queue.js)
-Event queue management. Maintains chronological + priority-based + insertion-order event ordering. Provides enqueue, sort, and dequeue operations for the event timeline.
-
-#### [sim-scheduled-event-stream.js](js/sim/shared/sim-scheduled-event-stream.js)
-Event stream serialization. Wraps scheduler-produced events into a versioned, serializable stream format for passing to resolver. Includes validation and schema enforcement.
-
-#### [sim-target-state.js](js/sim/shared/sim-target-state.js)
-Normalizes permanent target-condition assumptions and exposes their active stack
-counts to damage, trait, and relic resolution.
+- [event-queue.js](js/sim/shared/event-queue.js) — stable chronological and priority ordering.
+- [scheduled-event-stream.js](js/sim/shared/scheduled-event-stream.js) — versioned scheduler-to-resolver boundary.
+- [target-state.js](js/sim/shared/target-state.js) — normalizes target-condition assumptions.
+- [simulation-time.js](js/sim/shared/simulation-time.js) — shared floating-point timeline tolerance.
 
 ### Mechanics (`js/sim/mechanics/`)
 
-Profession-specific rules and skill definitions.
-
-#### [mesmer-illusion-data.js](js/sim/mechanics/mesmer-illusion-data.js)
-Illusion/clone attack tables. Defines weapon strength values, clone auto-attack patterns by weapon, phantasm attack timings, and ambush attack schedules.
-
-#### [mesmer-profession-data.js](js/sim/mechanics/mesmer-profession-data.js)
-Profession mechanics data. Condition formulas (base + scaling), shatter definitions, instrument definitions, control/blind/ambush skill lists, and Peitha relic skill tags.
-
-#### [mesmer-skill-normalization.js](js/sim/mechanics/mesmer-skill-normalization.js)
-Skill definition normalization. Transforms raw catalog skills into usable form, adds pseudo-skills (Weapon Swap, Wait, Combat Start), handles skill activation/cooldown adjustments per boons, and auto-attack chain definitions.
-
-#### [sim-profession-actions.js](js/sim/mechanics/sim-profession-actions.js)
-Profession mechanic controller. Implements shatters, blade generation, note management, and clone attacks. Handles resource consumption, trait-specific shatter behavior (Chrono, Virtuoso, Troubadour), and melee attacking.
-
-#### [sim-illusion-actions.js](js/sim/mechanics/sim-illusion-actions.js)
-Clone/phantasm attack scheduling. Schedules clone auto-attack loops, phantasm attacks, and applies ambush effects. Manages clone death tracking and attack output generation.
-
-#### [sim-resolver-trait-rules.js](js/sim/mechanics/sim-resolver-trait-rules.js)
-Trait effect resolution. Applies trait-specific damage/condition modifiers during hit resolution (e.g., Empowered Illusions, Malicious Sorcery).
-
-#### [sim-relic-rules.js](js/sim/mechanics/sim-relic-rules.js)
-Relic passive effect timeline. Generates passive events for relics (Aristocracy, Peitha, etc.) and applies ongoing effects to damage.
-
----
+- [mesmer-illusion-data.js](js/sim/mechanics/mesmer-illusion-data.js) — illusion, phantasm, and ambush data.
+- [mesmer-profession-data.js](js/sim/mechanics/mesmer-profession-data.js) — profession mechanic data.
+- [mesmer-skill-data.js](js/sim/mechanics/mesmer-skill-data.js) — simulator-owned base skill mechanics absent from the override table.
+- [mesmer-skill-normalization.js](js/sim/mechanics/mesmer-skill-normalization.js) — combines generated metadata, base mechanics, and authoritative overrides into canonical skills.
+- [mesmer-skill-overrides.js](js/sim/mechanics/mesmer-skill-overrides.js) — hand-authored skills, measured timings, and catalog corrections.
+- [illusion-actions.js](js/sim/mechanics/illusion-actions.js) — clone attack scheduling.
+- [profession-actions.js](js/sim/mechanics/profession-actions.js) — shatters, instruments, and specialization resources.
+- [mirage-actions.js](js/sim/mechanics/mirage-actions.js) — Mirage Cloak and ambush behavior.
+- [trait-rules.js](js/sim/mechanics/trait-rules.js) — resolver-time trait reactions.
+- [relic-rules.js](js/sim/mechanics/relic-rules.js) — relic triggers and modifiers.
 
 ## Fixtures (`js/fixtures/`)
 
@@ -170,25 +137,26 @@ User Input (UI)
     ↓
 [app-runtime.js] - Build → Simulation config transformation
     ↓
-[sim-engine.js] - Main orchestrator
-    ├→ [sim-scheduler.js] - Action scheduling phase
-    │   ├→ [sim-scheduler-state.js] - State tracking
-    │   ├→ [sim-scheduler-events.js] - Event creation
-    │   └→ [sim-scheduler-intents.js] - Skill intent parsing
+[simulator.js] - Public orchestrator
+    ├→ [scheduler.js] - Action scheduling phase
+    │   ├→ [scheduler-state.js] - State tracking
+    │   ├→ [event-factory.js] - Event creation
+    │   ├→ [expected-procs.js] - Expected proc tracking
+    │   └→ focused mechanic controllers
     │
     ├→ [calc-attributes.js] - Attribute calculation
     │   ├→ [gear-data.js] - Gear stat lookup
     │   ├→ [traits-data.js] - Active trait extraction
     │   └→ [weapon-sigils.js] - Sigil stat aggregation
     │
-    └→ [sim-resolver.js] - Damage resolution phase
-        ├→ [sim-runtime-context.js] - Resolution context
-        ├→ [sim-resolver-events.js] - Event dispatch
-        ├→ [sim-hit-resolution.js] - Strike damage calc
-        ├→ [sim-condition-resolution.js] - Condition damage calc
-        ├→ [sim-resolver-trait-rules.js] - Trait modifiers
-        ├→ [sim-relic-rules.js] - Relic passive effects
-        └→ [sim-profession-actions.js] - Shatter/resource effects
+    └→ [resolve-timeline.js] - Damage resolution phase
+        ├→ [runtime-state.js] - Resolution state
+        ├→ [event-loop.js] - Event dispatch
+        ├→ [resolver-query.js] - Timeline/stat/modifier queries
+        ├→ [hit-resolution.js] - Strike damage calc
+        ├→ [condition-resolution.js] - Condition damage calc
+        ├→ [trait-rules.js] - Trait modifiers
+        └→ [relic-rules.js] - Relic passive effects
 
 Results
     ↓
