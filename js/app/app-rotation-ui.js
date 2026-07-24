@@ -304,6 +304,29 @@ export function timelineWeaponRows(rotation = []) {
     return rows;
 }
 
+export function continuumEndTimelineMarkers(result, rotationLength = 0) {
+    const steps = (result?.steps || [])
+        .filter(step => step.ri >= 0 && !step.invalid)
+        .sort((a, b) => a.start - b.start || a.ri - b.ri);
+    return (result?.events || [])
+        .filter(event =>
+            event.type === 'marker'
+            && event.name === 'Continuum Shift'
+            && event.detail === 'split expired'
+        )
+        .map(event => {
+            const start = Math.round(Number(event.at || 0) * 1000);
+            const nextStep = steps.find(step => step.start >= start);
+            return {
+                insertionIndex: nextStep?.ri ?? rotationLength,
+                skill: event.name,
+                start,
+                detail: event.detail,
+            };
+        })
+        .sort((a, b) => a.start - b.start);
+}
+
 export function renderStartResource(app) {
     const element = document.getElementById('start-att-selector');
     const definition = app.results?.endState?.resourceDefinition
@@ -539,10 +562,39 @@ export function renderTimeline(app) {
     const steps = new Map((app.results?.steps || []).filter(step => step.ri >= 0).map(step => [step.ri, step]));
     const rows = timelineWeaponRows(app.build.rotation);
 
-    let timelineHtml = rows.map(row => {
+    const continuumEnds = continuumEndTimelineMarkers(
+        app.results,
+        app.build.rotation.length,
+    );
+    const continuumEndsByIndex = new Map();
+    for (const marker of continuumEnds) {
+        const markers = continuumEndsByIndex.get(marker.insertionIndex) || [];
+        markers.push(marker);
+        continuumEndsByIndex.set(marker.insertionIndex, markers);
+    }
+    const renderContinuumEnd = marker => {
+        const time = `${(marker.start / 1000).toFixed(2)}s`;
+        const detail = [
+            'Continuum Shift',
+            `Continuum Split ended automatically at ${time}`,
+            'Cooldown state restored',
+        ].join('\n');
+        return `<div class="rot-skill rot-injected" title="${esc(detail)}"
+            style="--att-border:#d6b46b">
+            <img src="${esc(ACTION_ICONS['Continuum Shift'])}" alt="" />
+            <span class="rot-injected-badge">AUTO</span>
+            <span class="rot-time">${time}</span>
+        </div>`;
+    };
+
+    let timelineHtml = rows.map((row, rowNumber) => {
         const weapons = row.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
         const weaponLabel = weapons.filter(Boolean).join('/') || 'Unequipped';
-        const skills = row.skills.map(({ entry, index }, rowIndex) => {
+        const rowItems = [];
+        row.skills.forEach(({ entry, index }) => {
+            for (const marker of continuumEndsByIndex.get(index) || []) {
+                rowItems.push(renderContinuumEnd(marker));
+            }
             const item = typeof entry === 'string' ? { name: entry } : entry;
             const skill = app.skillByName.get(item.name);
             const step = steps.get(index);
@@ -558,8 +610,7 @@ export function renderTimeline(app) {
             const titleSuffix = invalid
                 ? `\n${step.invalidReason || 'Not valid here — will not be simulated'}`
                 : step ? `\nCast: ${(step.start / 1000).toFixed(2)}s → ${(step.end / 1000).toFixed(2)}s` : '';
-            return `${rowIndex ? '<span class="rot-arrow">→</span>' : ''}
-                <div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}" draggable="true"
+            rowItems.push(`<div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}" draggable="true"
                     data-idx="${index}" title="${esc(display)}${titleSuffix}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
@@ -568,8 +619,16 @@ export function renderTimeline(app) {
                     ${item.offset != null ? `<span class="rot-offset-badge" data-idx="${index}">⊙${item.offset}ms</span>` : ''}
                     ${item.interruptMs != null ? `<span class="rot-gapfill-badge rot-interrupt-badge" data-idx="${index}">✂${item.interruptMs}ms</span>` : ''}
                     ${item.waitMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.waitMs}ms</span>` : ''}
-                </div>`;
-        }).join('');
+                </div>`);
+        });
+        if (rowNumber === rows.length - 1) {
+            for (const marker of continuumEndsByIndex.get(app.build.rotation.length) || []) {
+                rowItems.push(renderContinuumEnd(marker));
+            }
+        }
+        const skills = rowItems
+            .map((item, index) => `${index ? '<span class="rot-arrow">→</span>' : ''}${item}`)
+            .join('');
         const insertAt = row.skills.length ? row.skills.at(-1).index + 1 : 0;
         return `<div class="rot-row" style="--row-color:#9d7bd0">
             <div class="rot-row-label" title="Weapon set ${row.weaponSet}: ${esc(weaponLabel)}">W${row.weaponSet}</div>
@@ -653,7 +712,7 @@ export function renderTimeline(app) {
         });
     }
 
-    element.querySelectorAll('.rot-skill').forEach(item => {
+    element.querySelectorAll('.rot-skill:not(.rot-injected)').forEach(item => {
         const index = Number(item.dataset.idx);
         const remove = item.querySelector('.rot-x');
         remove?.setAttribute('draggable', 'false');

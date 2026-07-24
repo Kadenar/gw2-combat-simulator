@@ -180,6 +180,7 @@ export function createCastController({
     );
     const activation = baseActivation / quickness;
     const end = Math.min(horizon, start + Math.max(0.05, activation));
+    const castEnd = activation > 0 ? end : start;
     const shatterSpent =
       shatters[skill.name] && shatters[skill.name].kind !== "continuum"
         ? consumeResources(start)
@@ -192,12 +193,11 @@ export function createCastController({
     if (ammo) {
       ammo.charges -= 1;
       if (ammo.nextRechargeAt == null) {
-        ammo.nextRechargeAt = start + ammo.rechargeDuration;
+        ammo.nextRechargeAt = castEnd + ammo.rechargeDuration;
       }
-      refreshAmmo(skill, start);
+      refreshAmmo(skill, castEnd);
     } else if (cooldown) {
-      const cooldownStart = skill.cooldownStartsOnCastEnd ? end : start;
-      state.cooldowns.set(skill.id, cooldownStart + cooldown);
+      state.cooldowns.set(skill.id, castEnd + cooldown);
     }
     addEvent({
       type: "action",

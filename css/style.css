@@ -2086,6 +2086,25 @@ header .accent {
     opacity: 0.9;
 }
 
+.rot-skill.rot-injected {
+    border-style: dashed;
+    cursor: default;
+}
+
+.rot-injected-badge {
+    position: absolute;
+    top: -6px;
+    right: -7px;
+    padding: 1px 3px;
+    border-radius: 4px;
+    background: #d6b46b;
+    color: #201b28;
+    font-size: 7px;
+    font-weight: 700;
+    line-height: 10px;
+    pointer-events: none;
+}
+
 /* A queued command that is not valid in this position (e.g. Power Spike woven
    into the Mantra of Pain channel). Shown smaller and muted; never simulated. */
 .rot-skill.rot-invalid {

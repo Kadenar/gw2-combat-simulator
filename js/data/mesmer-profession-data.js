@@ -68,7 +68,7 @@ export const SHATTERS = {
   "Split Second": {
     slot: 1,
     kind: "chrono-power",
-    coefficients: [1.61, 3.22, 3.86, 4.51],
+    coefficients: [1.534, 3.22, 3.86, 4.51],
   },
   Rewinder: {
     slot: 2,
