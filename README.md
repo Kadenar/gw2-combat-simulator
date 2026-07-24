@@ -1,5 +1,9 @@
 # Guild Wars 2 Mesmer Simulator
 
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the profession contract, event
+schema, import boundaries, persistence migrations, and steps for adding a new
+profession.
+
 A standalone, deterministic PvE build and rotation simulator for:
 
 - Core Mesmer

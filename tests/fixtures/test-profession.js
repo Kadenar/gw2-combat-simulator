@@ -1,0 +1,92 @@
+import { createCanonicalCatalog } from "../../js/platform/engine/catalog.js";
+import { defineProfession } from "../../js/platform/engine/profession.js";
+
+const catalog = createCanonicalCatalog({
+  generated: [
+    {
+      id: 900001,
+      name: "Fixture Slash",
+      type: "Weapon",
+      weapon: "Fixture Blade",
+      slot: 1,
+      castTimeMs: 1000,
+      effects: [{ type: "strike", coefficient: 1, hits: 1 }],
+    },
+    {
+      id: 900002,
+      name: "Fixture Charge",
+      type: "Utility",
+      slot: 2,
+      castTimeMs: 0,
+      handlerId: "fixture.charge",
+      effects: [{
+        type: "custom",
+        eventType: "fixture.resource",
+        event: { amount: 1 },
+      }],
+    },
+  ],
+  handlerIds: ["fixture.charge"],
+  weapons: ["Fixture Blade"],
+});
+
+export const testProfession = defineProfession({
+  id: "fixture",
+  name: "Fixture",
+  catalog,
+  build: {
+    createBuildDefaults: () => ({
+      schemaVersion: 3,
+      profession: "fixture",
+      traitIds: ["fixture.power"],
+      rotation: [],
+    }),
+    migrateBuild: saved => ({
+      schemaVersion: 3,
+      profession: "fixture",
+      traitIds: Array.isArray(saved?.traitIds) ? saved.traitIds : [],
+      rotation: Array.isArray(saved?.rotation) ? saved.rotation : [],
+    }),
+    validateBuild: build => ({
+      valid: build?.profession === "fixture",
+      errors: build?.profession === "fixture" ? [] : ["Wrong profession."],
+    }),
+  },
+  resources: {
+    createProfessionState: () => ({ charge: 0 }),
+  },
+  attributeRules: {
+    modifyAttributes: (context, attributes) => ({
+      ...attributes,
+      power: attributes.power
+        + (context.config.traitIds?.includes("fixture.power") ? 100 : 0),
+    }),
+  },
+  resolverHooks: {
+    eventHandlers: {
+      "fixture.resource": (context, event) => {
+        context.state.profession.charge = Math.min(
+          5,
+          context.state.profession.charge + Number(event.amount || 0),
+        );
+      },
+    },
+  },
+  schedulerHooks: {
+    snapshot: context => ({ charge: context.state.profession.charge }),
+  },
+  ui: {
+    paletteGroups: () => [{
+      id: "fixture",
+      label: "Fixture",
+      skillIds: [900001, 900002],
+    }],
+    resourceView: context => ({
+      id: "charge",
+      singular: "charge",
+      plural: "charges",
+      maximum: 5,
+      value: context.state?.profession?.charge || 0,
+    }),
+  },
+});
