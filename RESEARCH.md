@@ -190,7 +190,8 @@ References:
 - Competitive PvP and WvW splits are intentionally excluded.
 
 When live balance changes, regenerate the metadata-only
-`js/data/catalog.js` from the current API, update simulator mechanics in
-`js/data/skill-mechanics.js`, the profession/illusion data modules, or
+`js/professions/mesmer/data/mesmer-catalog.js` from the current API, update
+simulator mechanics in the Mesmer-owned skill, profession, or illusion data
+modules under `js/professions/mesmer/data/`, or
 the authoritative authored skill table as appropriate, update the snapshot
 date, and rerun the test suite and `tests/browser/browser.html`.
