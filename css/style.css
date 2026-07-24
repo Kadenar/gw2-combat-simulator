@@ -1857,7 +1857,6 @@ header .accent {
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-gutter: stable;
-    overscroll-behavior: contain;
 }
 
 .rotation-timeline.drag-over-empty {
