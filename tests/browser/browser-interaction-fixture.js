@@ -1,4 +1,4 @@
-import { createDefaultBuild } from '../app/app-state.js';
+import { createDefaultBuild } from '../../js/app/app-state.js';
 
 const output = document.getElementById('fixture-output');
 const frame = document.getElementById('simulator');

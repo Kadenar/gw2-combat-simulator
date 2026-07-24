@@ -1,6 +1,6 @@
-import { createDefaultBuild } from '../app/app-state.js';
-import { calcAttributes } from '../core/calc-attributes.js';
-import { simulateSequence } from '../sim/simulator.js';
+import { createDefaultBuild } from '../../js/app/app-state.js';
+import { calcAttributes } from '../../js/core/calc-attributes.js';
+import { simulateSequence } from '../../js/sim/simulator.js';
 
 export function defaultSimulationConfig(overrides = {}) {
     return {

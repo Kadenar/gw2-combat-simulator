@@ -87,14 +87,15 @@ mesmer-simulator/
   js/app/       UI, persistence, import/export, rotation builder
   js/core/      gear-derived attributes and damage helpers
   js/data/      gear, trait, specialization, and skill catalogs
-  js/fixtures/  deterministic and browser interaction fixtures
   js/sim/
     scheduler/  rotation scheduling, state, intents, and event creation
     resolver/   runtime context, hits, conditions, triggers, and application
     shared/     scheduled-stream contract and stable chronological queue
     mechanics/  split skill/illusion/profession data and runtime rules
     simulator  public orchestration API
-  tests/        Node regression tests
+  tests/        test suites and fixtures
+    browser/    browser interaction fixtures
+    helpers/    shared test helpers
 ```
 
 ## Scope

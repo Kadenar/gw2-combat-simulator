@@ -211,7 +211,7 @@ Complete documentation of all exported functions in the mesmer-simulator project
 - **`createMirageActionController(options)`** in `mirage-actions.js` — handles Mirage Cloak and ambushes.
 - **`recordPassiveRelicTimeline(ctx, events, horizon)`** in `relic-rules.js` — records passive relic effects.
 
-## Fixtures (`js/fixtures/`)
+## Test helpers (`tests/helpers/`)
 
 ### fixture-harness-core.js
 
