@@ -2,7 +2,7 @@ import { calculateCommonAttributes } from "../../../platform/gw2/attributes.js";
 import * as elementalistGearData from "../data/gear-data.js";
 import { applyElementalistBuildAttributeRules } from "../build-attributes.js";
 
-export function calcAttributes(build, skills) {
+export function calculateAttributes(build, skills) {
   const common = calculateCommonAttributes(build, {
     data: elementalistGearData,
     sigilNames: build.sigils || [],
@@ -13,3 +13,5 @@ export function calcAttributes(build, skills) {
     selectedSkills: skills,
   });
 }
+
+export const calcAttributes = calculateAttributes;

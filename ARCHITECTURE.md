@@ -14,9 +14,10 @@ js/
   app/             browser composition and persistence adapters
 ```
 
-`js/sim`, `js/core`, and `js/data` contain Mesmer compatibility exports for the
-pre-refactor public module paths. New code must import the owning platform or
-profession module directly.
+`js/sim`, most of `js/core`, and `js/data` contain compatibility exports for
+pre-refactor public module paths. `js/core/calc-attributes.js` is intentionally
+profession-neutral and delegates only to common GW2 attribute assembly. New
+code must import the owning platform or profession module directly.
 
 The Elementalist scheduler, resolver, data loader, optimizer, and profession
 mechanics remain under its profession directory. Common damage formulas,
@@ -24,6 +25,17 @@ attribute assembly, equipment data, event ordering, file I/O, and UI
 primitives use the platform or shared app layers. Its custom scheduled-stream
 handoff remains profession-owned because it carries Elementalist lookahead and
 runtime state that is not part of the generic event schema.
+
+Each profession owns its final build attribute calculation. The shared
+`calculateCommonAttributes()` function assembles equipment, consumables,
+infusions, sigils, and base derived stats; the Mesmer and Elementalist
+calculators then apply only their own trait and skill rules.
+
+Profession-specific browser rendering follows the same boundary. Mesmer
+palette rules, Continuum Shift markers, Mirage effects, and phantasm/clone log
+formatting live under `js/professions/mesmer/app`; shared result transforms,
+chart queries, timeline operations, and small app UI helpers remain in the
+platform or `js/app` layers.
 
 The shared profession selector routes between the Mesmer and Elementalist
 applications while preserving one visual system and independent persisted

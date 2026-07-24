@@ -24,6 +24,23 @@ import {
     loadPresetBundle,
     readJsonFile,
 } from '../../../app/app-io.js';
+import { chartValueAt } from '../../../platform/ui/charts.js';
+import {
+    resultSummaryMetrics,
+} from '../../../platform/ui/result-transform.js';
+import {
+    nextResultSortState,
+    sortResultRows,
+} from '../../../app/app-rotation-ui.js';
+import {
+    DERIVED_ATTRIBUTES,
+    groupedOptions,
+    option,
+    PERMANENT_TARGET_CONDITIONS,
+    PRIMARY_ATTRIBUTES,
+    SPECIFIC_CONDITION_DURATION_ATTRIBUTES,
+    STACKING_TARGET_CONDITIONS,
+} from '../../../app/app-ui.js';
 import {
     convertEIRotation,
     extractLogId,
@@ -455,9 +472,7 @@ class App {
             const hidden = is2H && slot === 'Weapon2';
             const label = is2H && slot === 'Weapon1' ? 'Weapon (2H)' : slot;
             const cur = this.build.gear[slot] || PREFIXES[0];
-            const opts = PREFIXES.map(p =>
-                `<option value="${esc(p)}"${p === cur ? ' selected' : ''}>${esc(p)}</option>`
-            ).join('');
+            const opts = PREFIXES.map(prefix => option(prefix, cur)).join('');
             return `<div class="gear-row"${hidden ? ' style="display:none"' : ''}>
                 <span class="gear-label">${label}</span>
                 <select class="gear-select" data-slot="${slot}">${opts}</select>
@@ -483,13 +498,13 @@ class App {
             <div class="gear-row">
                 <span class="gear-label">MH Type</span>
                 <select class="gear-select" id="sel-mh">
-                    ${mhTypes.map(t => `<option value="${esc(t)}"${t === this.build.weapons[0] ? ' selected' : ''}>${esc(t)}</option>`).join('')}
+                    ${mhTypes.map(type => option(type, this.build.weapons[0])).join('')}
                 </select>
             </div>
             <div class="gear-row" id="oh-row" style="${isMH2H ? 'opacity:.4;pointer-events:none' : ''}">
                 <span class="gear-label">OH Type</span>
                 <select class="gear-select" id="sel-oh">
-                    ${ohTypes.map(t => `<option value="${esc(t)}"${t === this.build.weapons[1] ? ' selected' : ''}>${esc(t)}</option>`).join('')}
+                    ${ohTypes.map(type => option(type, this.build.weapons[1])).join('')}
                 </select>
             </div>`;
 
@@ -515,10 +530,9 @@ class App {
         const relicNames = RELIC_NAMES;
 
         const selRow = (label, id, options, selected, cls = '', groups = null) => {
-            const mkOpt = o => `<option value="${esc(o)}"${o === selected ? ' selected' : ''}>${esc(o)}</option>`;
             const optionsHtml = groups
-                ? groups.map(g => `<optgroup label="${esc(g.label)}">${g.items.map(mkOpt).join('')}</optgroup>`).join('')
-                : options.map(mkOpt).join('');
+                ? groupedOptions(groups, selected)
+                : options.map(value => option(value, selected)).join('');
             return `<div class="gear-row">
                 <span class="gear-label">${label}</span>
                 <select class="gear-select${cls ? ' ' + cls : ''}" id="${id}">
@@ -529,18 +543,10 @@ class App {
 
         const consumableRow = (label, id, options, selected, descFn, cls = '', optLabelFn = null, groups = null) => {
             const hint = selected ? esc(descFn(selected)) : '';
-            const mkOpt = o => {
-                const optText = optLabelFn ? optLabelFn(o) : o;
-                return `<option value="${esc(o)}"${o === selected ? ' selected' : ''}>${esc(optText)}</option>`;
-            };
-            let optionsHtml;
-            if (groups) {
-                optionsHtml = groups.map(g =>
-                    `<optgroup label="${esc(g.label)}">${g.items.map(mkOpt).join('')}</optgroup>`
-                ).join('');
-            } else {
-                optionsHtml = options.map(mkOpt).join('');
-            }
+            const labelFor = optLabelFn || (value => value);
+            const optionsHtml = groups
+                ? groupedOptions(groups, selected, labelFor)
+                : options.map(value => option(value, selected, labelFor(value))).join('');
             return `<div class="gear-row consumable-row">
                 <span class="gear-label">${label}</span>
                 <div class="consumable-select-wrap">
@@ -569,7 +575,7 @@ class App {
                 <div class="infusion-controls">
                     <input type="number" class="inf-count" data-inf="${i}" value="${inf.count}" min="0" max="18" step="1" />
                     <select class="gear-select inf-stat" data-inf="${i}">
-                        ${INFUSION_STATS.map(s => `<option value="${esc(s)}"${s === inf.stat ? ' selected' : ''}>${esc(s)}</option>`).join('')}
+                        ${INFUSION_STATS.map(stat => option(stat, inf.stat)).join('')}
                     </select>
                 </div>
             </div>`).join('')}
@@ -635,20 +641,18 @@ class App {
             'Quickness Duration', 'Might Duration', 'Fury Duration']);
         const fmt = (n, v) => pctSet.has(n) ? v.toFixed(2) + '%' : Math.round(v).toString();
 
-        const primary = ['Power', 'Precision', 'Toughness', 'Vitality', 'Ferocity', 'Condition Damage', 'Expertise', 'Concentration', 'Healing Power'];
-        const derived = ['Critical Chance', 'Critical Damage', 'Condition Duration', 'Boon Duration',
-            'Burning Duration', 'Bleeding Duration', 'Torment Duration', 'Confusion Duration', 'Poison Duration'];
-
         // Specific condition durations are additive with the general Condition Duration.
         // Show the effective combined value so displayed numbers match what the sim uses.
-        const SPEC_COND_DUR = new Set(['Burning Duration', 'Bleeding Duration', 'Torment Duration', 'Confusion Duration', 'Poison Duration']);
         const condDurBase = baseAttrs['Condition Duration']?.final ?? 0;
         const condDurCond = condAttrs?.['Condition Duration']?.final ?? condDurBase;
 
         const row = (n) => {
             let base = baseAttrs[n]?.final ?? 0;
             let cond = condAttrs?.[n]?.final ?? base;
-            if (SPEC_COND_DUR.has(n)) { base += condDurBase; cond += condDurCond; }
+            if (SPECIFIC_CONDITION_DURATION_ATTRIBUTES.has(n)) {
+                base += condDurBase;
+                cond += condDurCond;
+            }
             const delta = cond - base;
             const hasDelta = Math.abs(delta) > 0.005;
             const sign = delta > 0 ? '+' : '';
@@ -667,7 +671,9 @@ class App {
             for (const n of keys) h += row(n);
             return h + '</div>';
         };
-        container.innerHTML = section('Primary', primary) + section('Derived', derived);
+        container.innerHTML =
+            section('Primary', PRIMARY_ATTRIBUTES)
+            + section('Derived', DERIVED_ATTRIBUTES);
         this.renderEffectivePower();
     }
 
@@ -1512,9 +1518,8 @@ class App {
 
             // Build spec dropdown options (exclude specs used in other slots)
             const optionsHtml = SPECIALIZATIONS.map(sn => {
-                const disabled = sn !== spec.name && usedSpecs.has(sn) ? ' disabled' : '';
-                const selected = sn === spec.name ? ' selected' : '';
-                return `<option value="${sn}"${selected}${disabled}>${sn}</option>`;
+                const disabled = sn !== spec.name && usedSpecs.has(sn);
+                return option(sn, spec.name, sn, disabled);
             }).join('');
 
             return `<div class="spec-row" style="--spec-bg:url('${bgUrl}')">
@@ -2164,12 +2169,13 @@ class App {
             'Protection', 'Resolution', 'Regeneration', 'Vigor',
             'Resistance', 'Stability', 'Aegis',
         ];
-        const PERMA_CONDS = [
-            'Vulnerability', 'Weakness', 'Blindness', 'Slow',
-            'Chilled', 'Cripple', 'Immobilize',
-            'Burning', 'Bleeding', 'Torment', 'Confusion', 'Poisoned',
-        ];
-        const STACK_EFFECTS = { Might: 25, Stability: 25, Vulnerability: 25, Bleeding: 25, Confusion: 25, Torment: 25 };
+        const STACK_EFFECTS = {
+            Might: 25,
+            Stability: 25,
+            ...Object.fromEntries(
+                [...STACKING_TARGET_CONDITIONS].map(name => [name, 25]),
+            ),
+        };
 
         const renderGroup = (title, list) => {
             let h = `<div class="perma-group"><span class="perma-group-label">${title}</span>`;
@@ -2191,7 +2197,9 @@ class App {
             return h;
         };
 
-        el.innerHTML = renderGroup('Boons', PERMA_BOONS) + renderGroup('Conditions', PERMA_CONDS);
+        el.innerHTML =
+            renderGroup('Boons', PERMA_BOONS)
+            + renderGroup('Conditions', PERMANENT_TARGET_CONDITIONS);
 
         el.querySelectorAll('input[type="checkbox"]').forEach(cb => {
             cb.addEventListener('change', () => {
@@ -2729,18 +2737,19 @@ class App {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         };
-        const dur = (r.rotationMs / 1000).toFixed(2);
-        const killTime = r.deathTime !== null ? (r.deathTime / 1000).toFixed(2) : null;
-
-        let h = `<div class="res-summary">
-            <div class="res-stat"><span class="res-label">Duration</span><span class="res-val">${dur}s</span></div>`;
-        if (killTime !== null) {
-            h += `<div class="res-stat"><span class="res-label">Kill Time</span><span class="res-val kill-time">${killTime}s</span></div>`;
-        }
-        h += `<div class="res-stat"><span class="res-label">Total Damage</span><span class="res-val">${Math.round(r.totalDamage).toLocaleString()}</span></div>
-            <div class="res-stat"><span class="res-label">DPS</span><span class="res-val dps">${Math.round(r.dps).toLocaleString()}</span></div>
-            <div class="res-stat"><span class="res-label">Strike</span><span class="res-val">${Math.round(r.totalStrike).toLocaleString()}</span></div>
-            <div class="res-stat"><span class="res-label">Condition</span><span class="res-val condi">${Math.round(r.totalCondition).toLocaleString()}</span></div>
+        const summary = resultSummaryMetrics({
+            duration: r.rotationMs / 1000,
+            deathTime: r.deathTime == null ? null : r.deathTime / 1000,
+            totalDamage: r.totalDamage,
+            dps: r.dps,
+            strikeDamage: r.totalStrike,
+            conditionDamage: r.totalCondition,
+        });
+        let h = `<div class="res-summary">${summary.map(metric => `
+            <div class="res-stat">
+                <span class="res-label">${metric.label}</span>
+                <span class="res-val${metric.className ? ` ${metric.className}` : ''}">${metric.value}</span>
+            </div>`).join('')}
         </div>`;
 
         if (this.benchmarkInfo) {
@@ -2955,12 +2964,13 @@ class App {
         hdr.querySelectorAll('span[data-sort-col]').forEach(span => {
             span.addEventListener('click', () => {
                 const col = span.dataset.sortCol;
-                if (this._skillSortCol === col) {
-                    this._skillSortDir = this._skillSortDir === 'desc' ? 'asc' : this._skillSortDir === 'asc' ? null : 'desc';
-                } else {
-                    this._skillSortDir = 'desc';
-                }
-                this._skillSortCol = this._skillSortDir ? col : null;
+                const next = nextResultSortState(
+                    this._skillSortCol,
+                    this._skillSortDir,
+                    col,
+                );
+                this._skillSortCol = next.column;
+                this._skillSortDir = next.direction;
                 this._applySkillBreakdownSort(el);
             });
         });
@@ -2973,19 +2983,7 @@ class App {
 
         const col = this._skillSortCol;
         const dir = this._skillSortDir;
-        const sorted = [...skillRows];
-        if (col && dir) {
-            const colDef = SKILL_COLS.find(c => c.key === col);
-            if (colDef?.numeric) {
-                sorted.sort((a, b) => dir === 'asc' ? a[col] - b[col] : b[col] - a[col]);
-            } else {
-                sorted.sort((a, b) => dir === 'asc'
-                    ? a[col].localeCompare(b[col])
-                    : b[col].localeCompare(a[col]));
-            }
-        } else {
-            sorted.sort((a, b) => b.total - a.total);
-        }
+        const sorted = sortResultRows(skillRows, SKILL_COLS, col, dir);
 
         const rowsEl = el.querySelector('.res-skill-rows');
         if (rowsEl) rowsEl.innerHTML = sorted.map(renderSkillRow).join('');
@@ -3062,16 +3060,6 @@ class App {
         return 20;
     }
 
-    _getLineValueAt(line, t) {
-        if (!line?.length) return 0;
-        let value = line[0].v;
-        for (const point of line) {
-            if (point.t > t) break;
-            value = point.v;
-        }
-        return value;
-    }
-
     _showChartTooltip(tooltip, html, x, y) {
         if (!tooltip) return;
         tooltip.innerHTML = html;
@@ -3117,7 +3105,7 @@ class App {
                 const timeLabel = this._formatRelativeSeconds((t - (state.displayTimeOrigin || 0)) / 1000, 2);
 
                 if (kind === 'dps') {
-                    const dps = Math.round(this._getLineValueAt(state.dpsLine, t));
+                    const dps = Math.round(chartValueAt(state.dpsLine, t));
                     this._showChartTooltip(
                         tooltip,
                         `<div><b>${timeLabel}</b></div><div>DPS: ${dps.toLocaleString()}</div>`,
@@ -3131,7 +3119,7 @@ class App {
                     const entries = [];
                     for (const [name, line] of Object.entries(state.effectLines)) {
                         if (!state.toggles[name]) continue;
-                        const value = Math.round(this._getLineValueAt(line, t));
+                        const value = Math.round(chartValueAt(line, t));
                         if (value > 0) entries.push(`<div>${esc(name)}: ${value}</div>`);
                     }
                     const body = entries.length > 0 ? entries.join('') : '<div>No visible stack effects</div>';

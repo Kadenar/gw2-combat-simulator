@@ -164,9 +164,13 @@ export function handleControlRelics(ctx, event, conditionHelpers) {
   if (ctx.config.relic === "Claw") {
     const wasActive = ctx.relic.buffUntil > event.at;
     ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 8);
-    if (!wasActive) {
-      ctx.recordProc("relic", "Relic of the Claw", event.at, event.skillName);
-    }
+    ctx.recordProc(
+      "relic",
+      "Relic of the Claw",
+      event.at,
+      event.skillName,
+      wasActive ? "refreshed" : "activated",
+    );
   }
   maybeTriggerAkeem(ctx, event, conditionHelpers);
 }
