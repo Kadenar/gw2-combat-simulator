@@ -4,11 +4,13 @@ import { SKILLS, SPECIALIZATIONS } from '../js/data/mesmer-catalog.js';
 import { RELIC_NAMES } from '../js/data/gear-data.js';
 import { TRAITS } from '../js/data/traits-data.js';
 import {
+    AMBUSH_ATTACKS,
     PHANTASM_ATTACK_TIMINGS,
     PHANTASM_NAME_BY_SKILL,
 } from '../js/sim/mechanics/mesmer-illusion-data.js';
 import { MECHANIC_SKILLS } from '../js/sim/mechanics/mesmer-profession-data.js';
 import {
+    AMBUSH_SKILLS,
     PSEUDO_SKILLS,
     normalizedSkill,
 } from '../js/sim/mechanics/mesmer-skill-normalization.js';
@@ -19,7 +21,12 @@ test('catalog contains every Mesmer specialization and trait', () => {
         ['Domination', 'Dueling', 'Chaos', 'Inspiration', 'Illusions', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'],
     );
     assert.equal(TRAITS.length, 108);
-    assert.equal(SKILLS.length, 118);
+    assert.equal(SKILLS.length, 115);
+    assert.deepEqual(
+        SKILLS.filter(skill =>
+            ['Arcane Thievery', 'Veil'].includes(skill.name)),
+        [],
+    );
 });
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
@@ -186,4 +193,56 @@ test('rotation actions use the requested icons without a duplicate fixed wait', 
     assert.equal(dodge.icon, 'https://wiki.guildwars2.com/images/b/b2/Dodge.png');
     assert.equal(shift.icon, 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png');
     assert.equal(PSEUDO_SKILLS.some(skill => skill.name === 'Wait 1 second'), false);
+});
+
+test('every terrestrial Mirage main-hand weapon has a selectable ambush skill', () => {
+    assert.deepEqual(
+        AMBUSH_SKILLS.map(skill => [skill.weapon, skill.name]),
+        [
+            ['Axe', 'Imaginary Axes'],
+            ['Dagger', 'Phantom Razor'],
+            ['Greatsword', 'Split Surge'],
+            ['Rifle', 'Effervescence'],
+            ['Scepter', 'Ether Barrage'],
+            ['Spear', 'Fractured Glass'],
+            ['Staff', 'Chaos Vortex'],
+            ['Sword', 'Mirage Thrust'],
+        ],
+    );
+    assert.ok(AMBUSH_SKILLS.every(skill =>
+        skill.ambush
+        && skill.specialization === 'Mirage'
+        && skill.slot === 'Weapon_1'
+        && skill.icon));
+});
+
+test('Mirage ambush data uses current player and clone variants', () => {
+    assert.deepEqual(AMBUSH_ATTACKS.Axe.player, {
+        coefficient: 1,
+        hits: 2,
+        conditions: [{ name: 'Torment', duration: 3.5, stacks: 3 }],
+    });
+    assert.equal(AMBUSH_ATTACKS.Dagger.name, 'Phantom Razor');
+    assert.equal(AMBUSH_ATTACKS.Dagger.player.coefficient, 3);
+    assert.equal(AMBUSH_ATTACKS.Spear.name, 'Fractured Glass');
+    assert.equal(AMBUSH_ATTACKS.Spear.id, 73067);
+    assert.deepEqual(AMBUSH_ATTACKS.Spear.player, {
+        coefficient: 3.15,
+        hits: 7,
+    });
+    assert.deepEqual(AMBUSH_ATTACKS.Spear.vulnerability, {
+        duration: 6,
+        stacks: 7,
+    });
+    assert.deepEqual(
+        AMBUSH_ATTACKS.Staff.player.conditions.map(condition => condition.name),
+        ['Bleeding', 'Torment', 'Confusion'],
+    );
+});
+
+test('dodge models two endurance charges with a ten-second base recharge', () => {
+    const dodge = PSEUDO_SKILLS.find(skill => skill.name === 'Dodge / Mirage Cloak');
+    assert.equal(dodge.cooldown, 10);
+    assert.equal(dodge.ammo, 2);
+    assert.equal(dodge.activation, 0);
 });

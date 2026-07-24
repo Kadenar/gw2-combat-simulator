@@ -14,6 +14,7 @@ import {
 } from '../data/gear-data.js';
 import { SKILLS, SPECIALIZATIONS } from '../data/mesmer-catalog.js';
 import {
+    AMBUSH_SKILLS,
     PSEUDO_SKILLS,
     normalizedSkill,
 } from '../sim/mechanics/mesmer-skill-normalization.js';
@@ -89,6 +90,7 @@ class MesmerApp {
         this.build = loadBuild();
         this.skills = [
             ...SKILLS.map(normalizedSkill),
+            ...AMBUSH_SKILLS,
             ...PSEUDO_SKILLS,
         ];
         this.skillByName = new Map(this.skills.map(skill => [skill.name, skill]));

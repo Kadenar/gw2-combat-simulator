@@ -28,5 +28,9 @@ export function createSchedulerState({
     hasExplicitCombatStart: false,
     combatStartTime: 0,
     clarityUntil: 0,
+    ambushUntil: 0,
+    ambushSource: "",
+    cloneAmbushUntil: 0,
+    riddleOfSandReady: false,
   };
 }

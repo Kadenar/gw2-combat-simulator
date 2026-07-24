@@ -2,7 +2,7 @@
  * Mesmer illusion mechanics: weapon coefficients, clone/ambush/phantasm attack data, timings.
  * - WEAPON_STRENGTH: Base damage multiplier by weapon type (lower = weaker).
  * - CLONE_ATTACKS: Auto-attack pattern (interval, coefficient, conditions per weapon).
- * - AMBUSH_ATTACKS: Mirage dodge attack (Mirage Cloak, Infinite Horizon).
+ * - AMBUSH_ATTACKS: Mirage weapon-skill replacements granted by Mirage Cloak.
  * - PHANTASM_ATTACK_TIMINGS: Phantasm cast + damage + spawn times (measured from skill start).
  * - PHANTASM_NAME_BY_SKILL: Maps summoning skills to phantasm names.
  */
@@ -85,39 +85,173 @@ export const CLONE_ATTACKS = {
 };
 
 /**
- * Mirage Ambush attacks (dodge end): weapon-based, damage coefficient, hits, conditions.
- * Used by Mirage Cloak (player dodge) and Infinite Horizon (clone dodge).
+ * Mirage Ambush attacks. Player and clone values differ for several weapons,
+ * so both variants are kept explicitly. Coefficients are totals across all
+ * hits, matching the scheduler's damage-group format.
  */
 export const AMBUSH_ATTACKS = {
   Axe: {
+    id: 44321,
     name: "Imaginary Axes",
-    coefficient: 1.5,
-    hits: 3,
-    conditions: [
-      { name: "Bleeding", duration: 5, stacks: 3 },
-      { name: "Torment", duration: 5, stacks: 3 },
-    ],
+    icon:
+      "https://render.guildwars2.com/file/38ED6AA595AEF00C0F704D0565DB7DD24B623850/1770513.png",
+    description:
+      "Ambush. Release phantasmal axes that seek out the nearest target after a short delay.",
+    activation: 0.5,
+    cooldown: 1,
+    player: {
+      coefficient: 1,
+      hits: 2,
+      conditions: [{ name: "Torment", duration: 3.5, stacks: 3 }],
+    },
+    clone: {
+      coefficient: 1,
+      hits: 2,
+      conditions: [{ name: "Torment", duration: 4, stacks: 1 }],
+    },
   },
-  Dagger: { name: "Ambush Assault", coefficient: 1.5, hits: 3 },
-  Greatsword: { name: "Split Surge", coefficient: 1.5, hits: 3 },
-  Rifle: { name: "Effervescence", coefficient: 1, hits: 1 },
+  Dagger: {
+    id: 69389,
+    name: "Phantom Razor",
+    icon:
+      "https://render.guildwars2.com/file/45D4ADDEDD740AFDD1AF1EB9632BFCB3FFACE75F/3098873.png",
+    description:
+      "Ambush. Slice your foe with a flurry of blades. Each blade inflicts different conditions.",
+    activation: 0.75,
+    cooldown: 1,
+    player: {
+      coefficient: 3,
+      hits: 3,
+      conditions: [
+        { name: "Bleeding", duration: 5, stacks: 2 },
+        { name: "Torment", duration: 5, stacks: 2 },
+      ],
+    },
+    clone: {
+      coefficient: 1.49,
+      hits: 3,
+      conditions: [
+        { name: "Bleeding", duration: 7, stacks: 1 },
+        { name: "Torment", duration: 7, stacks: 1 },
+      ],
+    },
+  },
+  Greatsword: {
+    id: 44241,
+    name: "Split Surge",
+    icon:
+      "https://render.guildwars2.com/file/66067CFD182ED01761DC5992E679BFA2057B5954/1770507.png",
+    description:
+      "Ambush. Shoot a beam at a targeted foe, and secondary beams at foes near your target.",
+    activation: 1.5,
+    cooldown: 0.5,
+    player: { coefficient: 3.1875, hits: 3 },
+    clone: { coefficient: 3.1875, hits: 3 },
+    playerBoons: [{ name: "Might", duration: 5, stacks: 6 }],
+    vulnerability: { duration: 5, stacks: 6 },
+  },
+  Rifle: {
+    id: 71800,
+    name: "Effervescence",
+    icon:
+      "https://render.guildwars2.com/file/4F0FBD163F2F996D1292B90193C356402BF7554D/3256357.png",
+    description:
+      "Ambush. Spray invigorating magic, damaging enemies and healing allies.",
+    activation: 0.25,
+    cooldown: 1,
+    player: { coefficient: 2.5, hits: 4 },
+    clone: { coefficient: 1.2, hits: 4 },
+    playerBoons: [{ name: "Vigor", duration: 4, stacks: 1 }],
+  },
   Scepter: {
+    id: 42304,
     name: "Ether Barrage",
-    coefficient: 1.6,
-    hits: 4,
-    conditions: [{ name: "Confusion", duration: 4, stacks: 4 }],
+    icon:
+      "https://render.guildwars2.com/file/26CCD4729A4E32E75704E50F6B35DB70040680B8/1770508.png",
+    description:
+      "Ambush. Launch a barrage of chaos orbs at your foe, inflicting confusion and torment. Condition duration is halved for clones.",
+    activation: 1.5,
+    cooldown: 1,
+    player: {
+      coefficient: 1.25,
+      hits: 5,
+      conditions: [
+        { name: "Confusion", duration: 4, stacks: 2 },
+        { name: "Torment", duration: 4, stacks: 3 },
+      ],
+    },
+    clone: {
+      coefficient: 1.25,
+      hits: 5,
+      conditions: [
+        { name: "Confusion", duration: 2, stacks: 2 },
+        { name: "Torment", duration: 2, stacks: 3 },
+      ],
+    },
   },
-  Spear: { name: "Phantom Razor", coefficient: 1.8, hits: 2 },
+  Spear: {
+    id: 73067,
+    name: "Fractured Glass",
+    icon:
+      "https://render.guildwars2.com/file/5169DEF67A777AA8023122EDCFCEE9A548DCF599/3379151.png",
+    description:
+      "Ambush. Pierce targets in front of you in a flurry of blows, leaving them vulnerable.",
+    activation: 1,
+    cooldown: 1,
+    player: { coefficient: 3.15, hits: 7 },
+    clone: { coefficient: 3.15, hits: 7 },
+    vulnerability: { duration: 6, stacks: 7 },
+  },
   Staff: {
+    id: 40184,
     name: "Chaos Vortex",
-    coefficient: 0.8,
-    hits: 2,
-    conditions: [
-      { name: "Bleeding", duration: 8, stacks: 2 },
-      { name: "Torment", duration: 8, stacks: 2 },
+    icon:
+      "https://render.guildwars2.com/file/0E2D7DB6FB4C0A9F681759099DE5D794A04914BF/1770510.png",
+    description:
+      "Ambush. Release a vortex of chaos energy that inflicts damaging conditions on foes and grants boons to allies.",
+    activation: 1,
+    cooldown: 1,
+    player: {
+      coefficient: 0.6,
+      hits: 1,
+      conditions: [
+        { name: "Bleeding", duration: 10, stacks: 1 },
+        { name: "Torment", duration: 10, stacks: 1 },
+        { name: "Confusion", duration: 10, stacks: 1 },
+      ],
+    },
+    clone: {
+      coefficient: 0.6,
+      hits: 1,
+      conditions: [
+        { name: "Bleeding", duration: 4, stacks: 1 },
+        { name: "Torment", duration: 4, stacks: 1 },
+        { name: "Confusion", duration: 3, stacks: 1 },
+      ],
+    },
+    playerBoons: [
+      { name: "Might", duration: 15, stacks: 2 },
+      { name: "Fury", duration: 2, stacks: 1 },
+    ],
+    cloneBoons: [
+      { name: "Might", duration: 15, stacks: 2 },
+      { name: "Fury", duration: 2, stacks: 1 },
     ],
   },
-  Sword: { name: "Mirage Thrust", coefficient: 1.6, hits: 1 },
+  Sword: {
+    id: 45230,
+    name: "Mirage Thrust",
+    icon:
+      "https://render.guildwars2.com/file/609505304F1D0AB548710E92335E5F550D7E396E/1770511.png",
+    description:
+      "Ambush. Lunge at your foe, briefly daze them, and leave behind a clone.",
+    activation: 0.75,
+    cooldown: 1,
+    player: { coefficient: 3, hits: 1 },
+    clone: { coefficient: 1, hits: 1 },
+    createsClone: true,
+    control: true,
+  },
 };
 
 // Measured from the start of the player's cast. `damage` is when the phantasm

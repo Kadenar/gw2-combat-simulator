@@ -77,6 +77,23 @@ export function buildResolverQuery(config, traits, events, model) {
         event.at + event.duration > time,
     );
 
+  const mightStacksAt = (time) => clamp(
+    Number(config.boons?.might || 0)
+      + timedStacks("might", time, 1, 25),
+    0,
+    25,
+  );
+  const furyActiveAt = (time) =>
+    Boolean(config.boons?.fury) || timedActive("fury", time);
+  const vigorActiveAt = (time) =>
+    Boolean(config.boons?.vigor) || timedActive("vigor", time);
+  const vulnerabilityStacksAt = (time) => clamp(
+    permanentTargetConditionStacks(config, "Vulnerability")
+      + timedStacks("target-vulnerability", time, 1, 25),
+    0,
+    25,
+  );
+
   /** Gets active instruments at time. */
   const instrumentsAt = (time) =>
     instrumentEvents.filter(
@@ -143,8 +160,10 @@ export function buildResolverQuery(config, traits, events, model) {
       && skillOnCooldownAt(10232, time)
         ? 180
         : 0;
+    const dynamicMightBonus =
+      30 * Math.max(0, mightStacksAt(time) - Number(config.boons?.might || 0));
     return {
-      power: base.power * fortissimo,
+      power: (base.power + dynamicMightBonus) * fortissimo,
       precision: base.precision * fortissimo,
       ferocity:
         (base.ferocity +
@@ -154,6 +173,7 @@ export function buildResolverQuery(config, traits, events, model) {
         (
           base.conditionDamage
           + thornsConditionDamage
+          + dynamicMightBonus
           - dominationConditionDamage
         ) * fortissimo,
       expertise: (base.expertise - midnightExpertise) * fortissimo,
@@ -179,11 +199,11 @@ export function buildResolverQuery(config, traits, events, model) {
       chance +=
         Number(activeSigilSetAt(time).criticalChanceBonus || 0) / 100;
     }
-    if (!illusion && config.boons?.fury) chance += 0.25;
+    if (!illusion && furyActiveAt(time)) chance += 0.25;
     if (
       !illusion
       && config.relic === "Mistburn"
-      && Number(config.boons?.might || 0) >= 10
+      && mightStacksAt(time) >= 10
     ) {
       chance += 0.1;
     }
@@ -194,7 +214,7 @@ export function buildResolverQuery(config, traits, events, model) {
         || event.source === "Clone"
         || event.source === "Phantasm")
     ) chance += 0.15;
-    if (!illusion && traits.has("Quiet Intensity") && config.boons?.fury) {
+    if (!illusion && traits.has("Quiet Intensity") && furyActiveAt(time)) {
       chance += 0.15;
     }
     if (event.source === "Phantasm" && traits.has("Phantasmal Fury")) {
@@ -221,16 +241,12 @@ export function buildResolverQuery(config, traits, events, model) {
    * @returns {number} Multiplier ≥ 1
    */
   const commonMultiplier = (time, condition = false) => {
-    const vulnerability = clamp(
-      permanentTargetConditionStacks(config, "Vulnerability"),
-      0,
-      25,
-    );
+    const vulnerability = vulnerabilityStacksAt(time);
     // Vulnerability increases both strike and condition damage, so it stays in
     // the common multiplier. Fragility and Vicious Expression are strike-only
     // and live in strikeMultiplier instead.
     let multiplier = 1 + vulnerability / 100;
-    if (traits.has("Nomad's Endurance") && config.boons?.vigor) {
+    if (traits.has("Nomad's Endurance") && vigorActiveAt(time)) {
       multiplier *= condition ? 1.05 : 1.1;
     }
     multiplier *=
@@ -272,11 +288,7 @@ export function buildResolverQuery(config, traits, events, model) {
     // base 1%/stack from Vulnerability itself). Strike-only and does not affect
     // phantasm strikes.
     if (traits.has("Fragility") && event.source !== "Phantasm") {
-      const vulnerability = clamp(
-        permanentTargetConditionStacks(config, "Vulnerability"),
-        0,
-        25,
-      );
+      const vulnerability = vulnerabilityStacksAt(time);
       multiplier *= 1 + vulnerability * 0.005;
     }
     // Vicious Expression: +10% strike damage for you and your illusions, further
@@ -288,7 +300,7 @@ export function buildResolverQuery(config, traits, events, model) {
     if (event.source === "Phantasm") {
       if (traits.has("Empowered Illusions")) multiplier *= 1.15;
       if (traits.has("Phantasmal Force")) {
-        multiplier *= 1 + clamp(config.boons?.might || 0, 0, 25) * 0.01;
+        multiplier *= 1 + mightStacksAt(time) * 0.01;
       }
     }
     if (event.shatter && traits.has("Mental Anguish")) {

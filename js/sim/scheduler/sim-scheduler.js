@@ -12,6 +12,10 @@ const CLARITY_CONSUMERS = new Set([
   "Phantasmal Lancer",
   "Mental Collapse",
 ]);
+const MIRAGE_CLOAK_SKILLS = new Set([
+  "Illusionary Ambush",
+  "Sand through Glass",
+]);
 
 /**
  * Main simulation scheduler: orchestrates combat state, action timing, clone attacks, effects.
@@ -64,6 +68,7 @@ export function createScheduler(config, traits, horizon, model) {
   const resourceDefinition = getResourceDefinition(config.specialization);
   const cloneDeaths = new Map();
   let cloneSequence = 0;
+  let ambushCreatedClones = () => {};
 
   const state = createSchedulerState({
     infiniteForge: traits.has("Infinite Forge"),
@@ -131,6 +136,7 @@ export function createScheduler(config, traits, horizon, model) {
     if (!amount) return;
     let gained = 0;
     const created = [];
+    const createdClones = [];
 
     if (resourceDefinition.singular === "clone") {
       for (let index = 0; index < amount; index += 1) {
@@ -143,7 +149,9 @@ export function createScheduler(config, traits, horizon, model) {
           createdAt: at + index * EPSILON,
           weapon: weapon || activePrimaryWeapon(),
         };
-        state.clones.push(cloneAttackScheduler.initializeClone(clone));
+        const initialized = cloneAttackScheduler.initializeClone(clone);
+        state.clones.push(initialized);
+        createdClones.push(initialized);
         created.push({ id: clone.id, weapon: clone.weapon });
         gained += 1;
       }
@@ -185,6 +193,7 @@ export function createScheduler(config, traits, horizon, model) {
         "Fortissimo",
         "Illusionary Reversion",
         "Infinite Forge",
+        "Self-Deception",
       ].find((name) => reason.startsWith(name));
       if (resourceTrait && traits.has(resourceTrait)) {
         addTraitProc(
@@ -193,6 +202,16 @@ export function createScheduler(config, traits, horizon, model) {
           reason,
           `+${gained} ${resourceDefinition.singular}`,
         );
+      }
+      if (
+        (
+          reason === "Deceptive Evasion"
+          || reason === "Self-Deception: Illusionary Ambush"
+        )
+        && traits.has("Infinite Horizon")
+        && state.cloneAmbushUntil >= at - EPSILON
+      ) {
+        ambushCreatedClones(at, createdClones);
       }
     }
   };
@@ -479,67 +498,199 @@ export function createScheduler(config, traits, horizon, model) {
     });
   };
 
-  /**
-   * Handles Mirage Ambush: damage, conditions, and Infinite Horizon clone hits.
-   * Only runs if specialization === "Mirage".
-   * @param {number} at - Time of ambush (dodge end time)
-   */
-  const handleAmbush = (at) => {
+  const addBoon = (at, boon, sourceSkill) => {
+    addEvent({
+      type: "buff",
+      at,
+      kind: String(boon.name || "").toLowerCase(),
+      stacks: Number(boon.stacks || 1),
+      duration: Number(boon.duration || 0),
+      sourceSkill,
+    });
+  };
+
+  const addAmbushVulnerability = (at, ambush) => {
+    if (!ambush.vulnerability) return;
+    addEvent({
+      type: "buff",
+      at,
+      kind: "target-vulnerability",
+      stacks: ambush.vulnerability.stacks,
+      duration: ambush.vulnerability.duration,
+      sourceSkill: ambush.name,
+    });
+    addEvent({
+      type: "weakness_vulnerability",
+      at,
+      skillName: ambush.name,
+    });
+  };
+
+  const executeCloneAmbushes = (at, clones = state.clones) => {
+    if (!traits.has("Infinite Horizon") || !clones.length) return;
+    addTraitProc(
+      "Infinite Horizon",
+      at,
+      activePrimaryWeapon(),
+      `${clones.length} clone${clones.length === 1 ? "" : "s"}`,
+    );
+    for (const clone of clones) {
+      const weapon = clone.weapon || activePrimaryWeapon();
+      const ambush = AMBUSH_ATTACKS[weapon];
+      if (!ambush) continue;
+      const attack = CLONE_ATTACKS[weapon] || CLONE_ATTACKS.Sword;
+      const pseudo = { name: ambush.name, weapon, blade: false };
+      addDamage(
+        pseudo,
+        at,
+        {
+          coefficient: ambush.clone.coefficient,
+          hits: ambush.clone.hits,
+          source: "Clone",
+        },
+        {
+          cloneId: clone.id,
+          weaponStrength: attack.weaponStrength,
+          source: "Clone",
+          name: `${ambush.name} — Clone`,
+        },
+      );
+      for (const condition of ambush.clone.conditions || []) {
+        addCondition(
+          `${ambush.name} — Clone`,
+          at,
+          condition,
+          "Clone",
+          "",
+          { cloneId: clone.id },
+        );
+      }
+      for (const boon of ambush.cloneBoons || []) {
+        addBoon(at, boon, `${ambush.name} — Clone`);
+      }
+    }
+  };
+  ambushCreatedClones = executeCloneAmbushes;
+
+  const grantAmbushWindow = (at, source, duration = 1.5) => {
     if (config.specialization !== "Mirage") return;
+    state.ambushUntil = Math.max(state.ambushUntil, at + duration);
+    state.ambushSource = source;
+    addEvent({
+      type: "marker",
+      at,
+      name: "Ambush Window",
+      detail: `${source} (${duration}s)`,
+    });
+  };
+
+  const reduceDuneCloakShatters = (at, source) => {
+    if (!traits.has("Dune Cloak")) return;
+    for (const name of ["Mind Wrack", "Cry of Frustration"]) {
+      const shatter = skillsByName.get(name);
+      const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
+      if (readyAt != null) {
+        state.cooldowns.set(shatter.id, Math.max(at, readyAt - 1));
+      }
+    }
+    addTraitProc(
+      "Dune Cloak",
+      at,
+      source,
+      "Mind Wrack and Cry of Frustration recharge reduced by 1s",
+    );
+  };
+
+  const grantMirageCloak = (
+    at,
+    source,
+    { duration = 0.75, grantCloneCloak = true } = {},
+  ) => {
+    if (config.specialization !== "Mirage") return;
+    grantAmbushWindow(at, source);
+    addEvent({
+      type: "buff",
+      at,
+      kind: "mirage-cloak",
+      stacks: 1,
+      duration,
+      sourceSkill: source,
+    });
+    if (traits.has("Renewing Oasis")) {
+      addBoon(at, { name: "Regeneration", duration: 4 }, source);
+      addTraitProc("Renewing Oasis", at, source, "4s regeneration");
+    }
+    if (traits.has("Elusive Mind")) {
+      addTraitProc("Elusive Mind", at, source, "3 conditions removed");
+    }
+    reduceDuneCloakShatters(at, source);
+    if (grantCloneCloak && traits.has("Infinite Horizon")) {
+      state.cloneAmbushUntil = at + duration;
+      executeCloneAmbushes(at, state.clones);
+    }
+  };
+
+  const executePlayerAmbush = (skill, at) => {
     const weapon = activePrimaryWeapon();
     const ambush = AMBUSH_ATTACKS[weapon];
-    if (!ambush) {
-      warnings.push(`No modeled Mirage ambush for ${weapon}.`);
-      return;
-    }
-    const pseudo = {
-      name: ambush.name,
-      weapon,
-      blade: false,
-    };
+    if (!ambush || skill.name !== ambush.name) return;
+    const pseudo = { name: ambush.name, weapon, blade: false };
     addDamage(pseudo, at, {
-      coefficient: ambush.coefficient,
-      hits: ambush.hits,
+      coefficient: ambush.player.coefficient,
+      hits: ambush.player.hits,
       source: "Player",
     });
-    for (const condition of ambush.conditions || []) {
+    for (const condition of ambush.player.conditions || []) {
       addCondition(ambush.name, at, condition);
     }
-    if (traits.has("Infinite Horizon")) {
-      const attack = CLONE_ATTACKS[weapon] || CLONE_ATTACKS.Sword;
-      if (state.clones.length) {
-        addTraitProc(
-          "Infinite Horizon",
-          at + EPSILON,
-          ambush.name,
-          `${state.clones.length} clone${state.clones.length === 1 ? "" : "s"}`,
-        );
-      }
-      for (const clone of state.clones) {
-        addDamage(
-          pseudo,
-          at + EPSILON,
-          {
-            coefficient: ambush.coefficient,
-            hits: ambush.hits,
-            source: "Clone",
-          },
-          {
-            cloneId: clone.id,
-            weaponStrength: attack.weaponStrength,
-            source: "Clone",
-            name: `${ambush.name} — Clone`,
-          },
-        );
-        for (const condition of ambush.conditions || []) {
-          addCondition(
-            `${ambush.name} — Clone`,
-            at,
-            condition,
-            "Clone",
-          );
-        }
-      }
+    if (state.riddleOfSandReady && traits.has("Riddle of Sand")) {
+      addCondition(
+        ambush.name,
+        at,
+        { name: "Confusion", duration: 4, stacks: 2 },
+        "Player",
+        `${ambush.name} — Riddle of Sand`,
+      );
+      addTraitProc("Riddle of Sand", at, ambush.name, "2 confusion");
+      state.riddleOfSandReady = false;
+    }
+    for (const boon of ambush.playerBoons || []) {
+      addBoon(at, boon, ambush.name);
+    }
+    if (traits.has("Mirage Mantle")) {
+      addBoon(at, { name: "Alacrity", duration: 4 }, ambush.name);
+      addBoon(at, { name: "Vigor", duration: 3 }, ambush.name);
+      addTraitProc("Mirage Mantle", at, ambush.name, "4s alacrity, 3s vigor");
+    }
+    addAmbushVulnerability(at, ambush);
+    if (ambush.createsClone) {
+      queueResources(at + EPSILON, 1, weapon, ambush.name);
+    }
+    state.ambushUntil = 0;
+    state.ambushSource = "";
+  };
+
+  const handleMirageShatter = (skill, at, spent) => {
+    if (config.specialization !== "Mirage") return;
+    if (traits.has("Riddle of Sand")) {
+      state.riddleOfSandReady = true;
+      addTraitProc("Riddle of Sand", at, skill.name, "ambush primed");
+    }
+    if (traits.has("Nomad's Endurance")) {
+      addBoon(at, { name: "Vigor", duration: 3 }, skill.name);
+      addTraitProc("Nomad's Endurance", at, skill.name, "3s vigor");
+    }
+    if (skill.name === "Distortion" && traits.has("Desert Distortion")) {
+      grantAmbushWindow(at, "Desert Distortion");
+      addTraitProc(
+        "Desert Distortion",
+        at,
+        skill.name,
+        `${spent} Mirage Mirror${spent === 1 ? "" : "s"} created`,
+      );
+    }
+    if (traits.has("Dune Cloak") && spent >= 3) {
+      grantMirageCloak(at, "Dune Cloak", { duration: 1 });
     }
   };
 
@@ -872,6 +1023,7 @@ export function createScheduler(config, traits, horizon, model) {
 
   /** Initializes scheduler: sets starting weapon set, initial resources, Split Second ammo. */
   const initialize = () => {
+    state.riddleOfSandReady = traits.has("Riddle of Sand");
     if (config.startingWeaponSet === 2 && config.weaponSet2Primary) {
       state.activeWeaponSet = 2;
       addEvent({ type: "weapon_set", at: 0, weaponSet: 2 });
@@ -884,6 +1036,8 @@ export function createScheduler(config, traits, horizon, model) {
     gainResources(0, initial, config.primaryWeapon, "initial");
     const splitSecond = skillsByName.get("Split Second");
     if (splitSecond) ensureAmmo(splitSecond);
+    const dodge = skillsByName.get("Dodge / Mirage Cloak");
+    if (dodge) ensureAmmo(dodge);
     // Mantras are pre-channeled on the bench: arm their ammo-based flips (e.g.
     // Power Spike) from the opening with a full set of charges.
     for (const skill of allSkills) {
@@ -909,6 +1063,20 @@ export function createScheduler(config, traits, horizon, model) {
     if (!skillAvailable(skill, config)) {
       warnings.push(`${skill.name} is unavailable for this build.`);
       return false;
+    }
+    if (skill.ambush) {
+      const activeAmbush = AMBUSH_ATTACKS[activePrimaryWeapon()];
+      if (
+        !activeAmbush
+        || activeAmbush.name !== skill.name
+        || !state.ambushSource
+        || state.ambushUntil <= state.time + EPSILON
+      ) {
+        warnings.push(
+          `${skill.name} skipped at ${state.time.toFixed(2)}s: no active Mirage Cloak ambush window.`,
+        );
+        return false;
+      }
     }
 
     const chainPosition = autoattackChainPositions.get(skill.name);
@@ -971,6 +1139,18 @@ export function createScheduler(config, traits, horizon, model) {
       advanceTo(state.time);
       ammo = refreshAmmo(skill, state.time);
     }
+    if (
+      skill.ambush
+      && (
+        !state.ambushSource
+        || state.ambushUntil <= state.time + EPSILON
+      )
+    ) {
+      warnings.push(
+        `${skill.name} skipped: its ambush window expired before the skill recharged.`,
+      );
+      return false;
+    }
     if (state.time >= horizon - EPSILON) return false;
 
     const start = state.time;
@@ -1031,7 +1211,7 @@ export function createScheduler(config, traits, horizon, model) {
       return true;
     }
     if (skill.id === -1) {
-      handleAmbush(end);
+      grantMirageCloak(end, skill.name);
       if (traits.has("Deceptive Evasion")) {
         queueResources(
           end + EPSILON,
@@ -1044,16 +1224,34 @@ export function createScheduler(config, traits, horizon, model) {
     }
 
     let clarityConsumed = false;
-    if (skill.name === "Continuum Split") {
+    if (skill.ambush) {
+      executePlayerAmbush(skill, end);
+    } else if (skill.name === "Continuum Split") {
       handleContinuumSplit(skill, end);
     } else if (SHATTERS[skill.name]) {
       handleShatter(skill, end, shatterSpent);
+      handleMirageShatter(skill, end, shatterSpent);
     } else if (INSTRUMENTS[skill.name]) {
       handleInstrument(skill, end);
     } else if (skill.name === "Crescendo") {
       handleCrescendo(skill, end);
     } else {
       clarityConsumed = handleGenericSkill(skill, end, start);
+      if (MIRAGE_CLOAK_SKILLS.has(skill.name)) {
+        grantMirageCloak(end, skill.name);
+      }
+      if (
+        traits.has("Self-Deception")
+        && String(skill.description || "").startsWith("Deception.")
+        && currentResource() > 0
+      ) {
+        queueResources(
+          end + EPSILON,
+          1,
+          activePrimaryWeapon(),
+          `Self-Deception: ${skill.name}`,
+        );
+      }
       const armedFlip = flipSkillsByParent.get(skill.name);
       if (armedFlip && ammoMaximum(armedFlip)) {
         // Ammo mantra (e.g. Mantra of Pain → Power Spike): re-channeling refills

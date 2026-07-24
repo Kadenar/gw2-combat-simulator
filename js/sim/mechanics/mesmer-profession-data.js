@@ -68,6 +68,7 @@ export const CONTROL_SKILLS = new Set([
   "Bladesong Dissonance",
   "Into the Void",
   "Counter Blade",
+  "Mirage Thrust",
 ]);
 
 // These skills blind the primary benchmark target directly. Magic Bullet is
