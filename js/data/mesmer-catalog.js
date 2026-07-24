@@ -1237,25 +1237,6 @@ export const SKILLS = [
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Mirror"
   },
   {
-    "id": 10185,
-    "name": "Arcane Thievery",
-    "description": "Manipulation. Send conditions you have to your foe and steal their boons. Successfully hitting your target inflicts slow on them while granting you quickness.",
-    "icon": "https://render.guildwars2.com/file/BEDBA7E72F06AA51D124B9B29EA53D4E3FEAFA48/103728.png",
-    "type": "Utility",
-    "weapon": "",
-    "slot": "Utility",
-    "specialization": "",
-    "environment": "Terrestrial",
-    "activation": 0.25,
-    "cooldown": 25,
-    "damage": [],
-    "conditions": [],
-    "phantasm": false,
-    "resource": null,
-    "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Arcane_Thievery"
-  },
-  {
     "id": 10186,
     "name": "Temporal Curtain",
     "description": "Create a wall of energy that grants swiftness to allies who cross it and cripples foes who touch it. Allies may cross the wall more than once but receive less swiftness after the first crossing.",
@@ -1273,25 +1254,6 @@ export const SKILLS = [
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Temporal_Curtain"
-  },
-  {
-    "id": 10187,
-    "name": "Veil",
-    "description": "Glamour. Create a wall that grants stealth to you and your allies.",
-    "icon": "https://render.guildwars2.com/file/BA0BFC7465492CDE157741087CCA3D932F4E6542/103729.png",
-    "type": "Utility",
-    "weapon": "",
-    "slot": "Utility",
-    "specialization": "",
-    "environment": "Terrestrial",
-    "activation": 0.25,
-    "cooldown": 30,
-    "damage": [],
-    "conditions": [],
-    "phantasm": false,
-    "resource": null,
-    "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Veil"
   },
   {
     "id": 10189,

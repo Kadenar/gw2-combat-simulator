@@ -5,6 +5,7 @@
  */
 
 import { INSTRUMENTS, SHATTERS } from "./mesmer-profession-data.js";
+import { AMBUSH_ATTACKS } from "./mesmer-illusion-data.js";
 
 /**
  * Weapon autoattack chains: progression of skills per weapon type.
@@ -305,6 +306,30 @@ export const FLIP_SKILLS = [
   }),
 ];
 
+export const AMBUSH_SKILLS = Object.entries(AMBUSH_ATTACKS).map(
+  ([weapon, ambush]) => ({
+    id: ambush.id,
+    name: ambush.name,
+    description: ambush.description,
+    icon: ambush.icon,
+    type: "Weapon",
+    weapon,
+    slot: "Weapon_1",
+    specialization: "Mirage",
+    environment: "Terrestrial",
+    activation: ambush.activation,
+    cooldown: ambush.cooldown,
+    damage: [],
+    conditions: [],
+    phantasm: false,
+    resource: null,
+    blade: false,
+    ambush: true,
+    wikiUrl:
+      `https://wiki.guildwars2.com/wiki/${ambush.name.replaceAll(" ", "_")}`,
+  }),
+);
+
 export const PSEUDO_SKILLS = [
   {
     id: 10314,
@@ -371,12 +396,13 @@ export const PSEUDO_SKILLS = [
     id: -1,
     name: "Dodge / Mirage Cloak",
     description:
-      "Spend a dodge. On Mirage, execute the active weapon ambush; Infinite Horizon also commands every clone to ambush.",
+      "Spend 50 endurance. Mirage gains Mirage Cloak and an ambush window; Infinite Horizon commands active clones to ambush.",
     icon: "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
     type: "Action",
     slot: "Action",
-    activation: 1.2,
-    cooldown: 0,
+    activation: 0,
+    cooldown: 10,
+    ammo: 2,
   },
   {
     id: -3,
