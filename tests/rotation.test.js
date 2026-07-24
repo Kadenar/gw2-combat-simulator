@@ -281,7 +281,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
             coefficient: normalDamage.reduce((sum, event) => sum + event.coefficient, 0),
             hits: normalDamage.reduce((sum, event) => sum + event.hits, 0),
         },
-        { coefficient: 0.9, hits: 6 },
+        { coefficient: 1.85, hits: 6 },
     );
     assert.equal(normalTorment.stacks, 12);
     assert.equal(normalTorment.source, 'Phantasm');
@@ -290,7 +290,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
             coefficient: repeatedDamage.reduce((sum, event) => sum + event.coefficient, 0),
             hits: repeatedDamage.reduce((sum, event) => sum + event.hits, 0),
         },
-        { coefficient: 0.9, hits: 6 },
+        { coefficient: 1.85, hits: 6 },
     );
     assert.equal(repeatedTorment.stacks, 12);
     assert.equal(repeatedTorment.source, 'Phantasm');
@@ -472,6 +472,85 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
         pistolSkills.steps.map(step => step.end - step.start),
         [540, 440],
     );
+
+    const axeSkills = simulateSequence(
+        [
+            'Lacerating Chop',
+            'Ethereal Chop',
+            'Mirror Strikes',
+            'Lingering Thoughts',
+            'Axes of Symmetry',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            primaryWeapon: 'Axe',
+            secondaryWeapon: 'Pistol',
+            initialResource: 0,
+        }),
+    );
+    assert.deepEqual(
+        axeSkills.steps.map(step => step.end - step.start),
+        [430, 530, 720, 930, 1020],
+    );
+
+    const greatswordSkills = simulateSequence(
+        ['Mind Stab', 'Phantasmal Berserker', 'Illusionary Wave'],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: '',
+            initialResource: 0,
+        }),
+    );
+    assert.deepEqual(
+        greatswordSkills.steps.map(step => step.end - step.start),
+        [360, 560, 640],
+    );
+});
+
+test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Greatsword',
+        secondaryWeapon: '',
+        selectedTraits: [],
+        modifiers: { strike: 1, condition: 1 },
+    });
+    const damageAt = vulnerability => simulateSequence(
+        ['Mind Stab'],
+        {
+            ...config,
+            target: {
+                ...config.target,
+                conditions: {
+                    ...config.target.conditions,
+                    Vulnerability: vulnerability,
+                },
+            },
+        },
+    ).resolvedEvents.find(event =>
+        event.type === 'damage' && event.skillName === 'Mind Stab').damage;
+
+    assert.ok(Math.abs(damageAt(25) / damageAt(0) - 1.5625) < 1e-12);
+});
+
+test('Phantasmal Berserker uses supplied base and traited coefficients', () => {
+    const coefficientAt = selectedTraits => simulateSequence(
+        ['Phantasmal Berserker', { name: '__wait', waitMs: 2000 }],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: '',
+            selectedTraits,
+            initialResource: 0,
+        }),
+    ).events.filter(event =>
+        event.type === 'damage'
+        && event.skillName === 'Phantasmal Berserker')
+        .reduce((sum, event) => sum + event.coefficient, 0);
+
+    assert.ok(Math.abs(coefficientAt([]) - 3.66) < 1e-12);
+    assert.ok(Math.abs(coefficientAt(['Bountiful Blades']) - 4.4472) < 1e-12);
 });
 
 test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat', () => {
@@ -526,7 +605,7 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
 
 test('condition-bearing clone autoattacks apply their damaging conditions', () => {
     const axe = simulateSequence(
-        ['Mirror Images', { name: '__wait', waitMs: 3000 }],
+        ['Mirror Images', { name: '__wait', waitMs: 5000 }],
         defaultSimulationConfig({
             specialization: 'Mirage',
             selectedSkills: ['Mirror Images'],
@@ -536,7 +615,8 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
         }),
     );
     const axeConditions = axe.resolvedEvents.filter(event =>
-        event.type === 'condition' && event.skillName === 'Axe Clone');
+        event.type === 'condition'
+        && event.skillName.startsWith('Clone: '));
     assert.ok(axeConditions.some(event =>
         event.condition === 'Bleeding' && event.duration === 6));
     assert.ok(axeConditions.some(event =>
@@ -552,14 +632,16 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
         }),
     );
     const staffConditions = staff.resolvedEvents.filter(event =>
-        event.type === 'condition' && event.skillName === 'Staff Clone');
+        event.type === 'condition'
+        && event.skillName === 'Clone: Winds of Chaos');
     assert.equal(staffConditions.length, 2);
     assert.ok(staffConditions.some(event =>
         event.condition === 'Torment' && event.duration === 2));
     assert.ok(staffConditions.some(event =>
         event.condition === 'Confusion' && event.duration === 2));
     const staffHits = staff.resolvedEvents.filter(event =>
-        event.type === 'damage' && event.skillName === 'Staff Clone');
+        event.type === 'damage'
+        && event.skillName === 'Clone: Winds of Chaos');
     assert.equal(
         staffHits.reduce((sum, event) => sum + event.hits, 0),
         2,
@@ -2289,6 +2371,26 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
         ).length,
         2,
     );
+    const coefficientBySource = result => Object.fromEntries(
+        ['Player', 'Phantasm'].map(source => [
+            source,
+            result.resolvedEvents
+                .filter(event =>
+                    event.type === 'damage'
+                    && event.skillName === 'Phantasmal Lancer'
+                    && event.source === source
+                )
+                .reduce((sum, event) => sum + event.coefficient, 0),
+        ]),
+    );
+    assert.deepEqual(coefficientBySource(normal), {
+        Player: 2.23,
+        Phantasm: 1.23,
+    });
+    assert.deepEqual(coefficientBySource(empowered), {
+        Player: 2.23,
+        Phantasm: 2.46,
+    });
 });
 
 test('Bountiful Blades stocks each Berserker blade independently', () => {

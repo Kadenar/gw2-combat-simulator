@@ -30,19 +30,59 @@ export const CONDITION_FORMULAS = {
 };
 
 export const SHATTERS = {
-  "Mind Wrack": { slot: 1, kind: "core-power" },
-  "Cry of Frustration": { slot: 2, kind: "core-confusion" },
-  Diversion: { slot: 3, kind: "control" },
-  Distortion: { slot: 4, kind: "defense" },
-  "Split Second": { slot: 1, kind: "chrono-power" },
-  Rewinder: { slot: 2, kind: "chrono-confusion" },
-  "Time Sink": { slot: 3, kind: "control" },
-  "Bladesong Harmony": { slot: 1, kind: "blade-power" },
-  "Bladesong Sorrow": { slot: 2, kind: "blade-confusion" },
-  "Bladesong Dissonance": { slot: 3, kind: "blade-control" },
-  "Bladesong Distortion": { slot: 4, kind: "blade-defense" },
-  "Bladeturn Requiem": { slot: 5, kind: "blade-requiem" },
-  "Continuum Split": { slot: 5, kind: "continuum" },
+  "Mind Wrack": {
+    slot: 1,
+    kind: "core-power",
+    coefficients: [0.81, 1.61, 2.42, 3.22],
+  },
+  "Cry of Frustration": {
+    slot: 2,
+    kind: "core-confusion",
+    coefficients: [0.42, 0.84, 1.25, 1.67],
+  },
+  Diversion: { slot: 3, kind: "control", coefficients: [0, 0, 0, 0] },
+  Distortion: { slot: 4, kind: "defense", coefficients: [0, 0, 0, 0] },
+  "Split Second": {
+    slot: 1,
+    kind: "chrono-power",
+    coefficients: [1.61, 3.22, 3.86, 4.51],
+  },
+  Rewinder: {
+    slot: 2,
+    kind: "chrono-confusion",
+    coefficients: [0.42, 0.84, 1.25, 1.67],
+  },
+  "Time Sink": { slot: 3, kind: "control", coefficients: [0, 0, 0, 0] },
+  "Bladesong Harmony": {
+    slot: 1,
+    kind: "blade-power",
+    coefficients: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
+  },
+  "Bladesong Sorrow": {
+    slot: 2,
+    kind: "blade-confusion",
+    coefficients: [0, 0.42, 0.84, 1.25, 1.67, 2.09],
+  },
+  "Bladesong Dissonance": {
+    slot: 3,
+    kind: "blade-control",
+    coefficients: [0, 1, 1, 1, 1, 1],
+  },
+  "Bladesong Distortion": {
+    slot: 4,
+    kind: "blade-defense",
+    coefficients: [0, 0, 0, 0, 0, 0],
+  },
+  "Bladeturn Requiem": {
+    slot: 5,
+    kind: "blade-requiem",
+    coefficients: [0, 0.3, 0.6, 0.9, 1.2, 1.5],
+  },
+  "Continuum Split": {
+    slot: 5,
+    kind: "continuum",
+    coefficients: [0, 0, 0, 0],
+  },
 };
 
 // Skills whose modeled hit disables the benchmark target. Keep this explicit:
