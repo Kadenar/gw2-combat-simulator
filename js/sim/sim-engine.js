@@ -207,7 +207,8 @@ function selectedTraitSet(config) {
 
 /**
  * Calculates effective cooldown for a skill given config (traits, boons).
- * Applies: Master of Misdirection (-15% for shatters), Alacrity (+50% recharge speed).
+ * Applies: Master of Misdirection (-15% for shatters), Alacrity (+25% recharge
+ * speed), and Chronomancer's Time Marches On (+50% Alacrity recharge speed).
  * @param {Object} skill - Skill with cooldown property
  * @param {Object} config - Simulation config
  * @returns {number} Adjusted cooldown in seconds
@@ -219,7 +220,9 @@ function adjustedCooldown(skill, config) {
     (config.selectedTraits || []).includes("Master of Misdirection")
       ? 0.85
       : 1;
-  const alacrity = config.boons?.alacrity ? 1.5 : 1;
+  const alacrity = config.boons?.alacrity
+    ? config.specialization === "Chronomancer" ? 1.5 : 1.25
+    : 1;
   return (Number(skill.cooldown || 0) * traitModifier) / alacrity;
 }
 

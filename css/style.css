@@ -1504,7 +1504,7 @@ header .accent {
 } */
 
 .rotation-panel {
-    height: clamp(680px, 88vh, 1100px);
+    max-height: clamp(680px, 88vh, 1100px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -1911,13 +1911,11 @@ header .accent {
 } */
 
 .rotation-timeline {
-    flex: 1 1 auto;
-    min-height: 0;
-    /* important for flexbox scrolling */
+    flex: 0 1 auto;
+    min-height: 52px;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-gutter: stable;
-    overscroll-behavior: contain;
 }
 
 .rotation-timeline.drag-over-empty {

@@ -16,9 +16,9 @@ import {
 test('queueing a cooling-down icon waits until it is available', () => {
     const result = simulateSequence(['Bladecall', 'Bladecall'], defaultSimulationConfig());
     assert.equal(result.steps[0].start, 0);
-    assert.equal(result.steps[1].start, 3333);
-    assert.equal(result.endState.cooldowns.Bladecall.readyAt, 6667);
-    assert.equal(result.endState.cooldowns.Bladecall.remaining, 2893);
+    assert.equal(result.steps[1].start, 4000);
+    assert.equal(result.endState.cooldowns.Bladecall.readyAt, 8000);
+    assert.equal(result.endState.cooldowns.Bladecall.remaining, 3559);
 });
 
 test('Time Marches On makes alacrity recharge Chronomancer skills 50% faster', () => {
@@ -35,12 +35,24 @@ test('Time Marches On makes alacrity recharge Chronomancer skills 50% faster', (
     assert.equal(result.steps[1].start, 8000);
 });
 
-test('alacrity uses the same 50% recharge speed for non-Chronomancer skills', () => {
+test('alacrity gives non-Chronomancers 25% recharge speed', () => {
     const result = simulateSequence(
         ['Bladecall', 'Bladecall'],
         defaultSimulationConfig({ specialization: 'Core' }),
     );
-    assert.equal(result.steps[1].start, 3333);
+    assert.equal(result.steps[1].start, 4000);
+});
+
+test('Virtuoso alacrity recharges Imaginary Inversion in eight seconds', () => {
+    const result = simulateSequence(
+        ['Imaginary Inversion', 'Imaginary Inversion'],
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            primaryWeapon: 'Spear',
+            secondaryWeapon: '',
+        }),
+    );
+    assert.equal(result.steps[1].start, 8000);
 });
 
 test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
