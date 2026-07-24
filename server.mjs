@@ -36,5 +36,5 @@ createServer(async (request, response) => {
     response.end("Not found");
   }
 }).listen(port, "127.0.0.1", () => {
-  console.log(`Mesmer Simulator: http://127.0.0.1:${port}`);
+  console.log(`GW2 Combat Simulator: http://127.0.0.1:${port}`);
 });

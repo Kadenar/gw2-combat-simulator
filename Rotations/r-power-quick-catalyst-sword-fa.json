@@ -1,0 +1,616 @@
+{
+  "rotation": [
+    "Frost Aura",
+    "Air Attunement",
+    "__combat_start",
+    "Glyph of Elementals",
+    "Glyph of Storms (Air)",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 920
+    },
+    "Polaric Leap",
+    "Ride the Lightning",
+    "Quantum Strike",
+    {
+      "name": "Fire Attunement",
+      "offset": 401
+    },
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 556
+    },
+    "Relentless Fire",
+    "Ring of Fire",
+    "Fire Grab",
+    "Cauterizing Strike",
+    "Flame Uprising",
+    {
+      "name": "Air Attunement",
+      "offset": 203
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Earth Attunement",
+      "offset": 480
+    },
+    "Earthquake",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 120
+    },
+    "Churning Earth",
+    {
+      "name": "Air Attunement",
+      "offset": 121
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Water Attunement",
+      "offset": 117
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 283
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 400
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Polaric Leap",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 274
+    },
+    "Quantum Strike",
+    {
+      "name": "Fire Attunement",
+      "offset": 438
+    },
+    "Cauterizing Strike",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 286
+    },
+    "Ring of Fire",
+    {
+      "name": "Fire Strike",
+      "interruptMs": 156
+    },
+    "Flame Uprising",
+    "Fire Strike",
+    "Fire Swipe",
+    "Fire Grab",
+    {
+      "name": "Air Attunement",
+      "offset": 282
+    },
+    {
+      "name": "Charged Strike",
+      "interruptMs": 44
+    },
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Relentless Fire",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Earth Attunement",
+      "offset": 365
+    },
+    "Earthquake",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 228
+    },
+    "Rust Frenzy",
+    {
+      "name": "Air Attunement",
+      "offset": 281
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Water Attunement",
+      "offset": 81
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 238
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 402
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 721
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Polaric Leap",
+    "Quantum Strike",
+    {
+      "name": "Fire Attunement",
+      "offset": 164
+    },
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 358
+    },
+    "Cauterizing Strike",
+    "Ring of Fire",
+    "Flame Uprising",
+    "Fire Grab",
+    {
+      "name": "Air Attunement",
+      "offset": 81
+    },
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Earth Attunement",
+      "offset": 522
+    },
+    "Earthquake",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 279
+    },
+    "Churning Earth",
+    {
+      "name": "Air Attunement",
+      "offset": 198
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 169
+    },
+    "Call Lightning",
+    {
+      "name": "Water Attunement",
+      "offset": 168
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 326
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 447
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Polaric Leap",
+    "Quantum Strike",
+    {
+      "name": "Fire Attunement",
+      "offset": 161
+    },
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 362
+    },
+    "Relentless Fire",
+    "Cauterizing Strike",
+    "Ring of Fire",
+    "Flame Uprising",
+    "Fire Grab",
+    {
+      "name": "Air Attunement",
+      "offset": 167
+    },
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Earth Attunement",
+      "offset": 532
+    },
+    "Earthquake",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 200
+    },
+    "Rust Frenzy",
+    {
+      "name": "Air Attunement",
+      "offset": 158
+    },
+    "Glyph of Storms (Air)",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 480
+    },
+    {
+      "name": "Charged Strike",
+      "interruptMs": 39
+    },
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Water Attunement",
+      "offset": 46
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 242
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 364
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Polaric Leap",
+    "Quantum Strike",
+    {
+      "name": "Fire Attunement",
+      "offset": 158
+    },
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 362
+    },
+    "Cauterizing Strike",
+    "Ring of Fire",
+    "Flame Uprising",
+    {
+      "name": "Fire Strike",
+      "interruptMs": 121
+    },
+    "Fire Grab",
+    {
+      "name": "Air Attunement",
+      "offset": 121
+    },
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    {
+      "name": "Call Lightning",
+      "interruptMs": 35
+    },
+    "Relentless Fire",
+    "Call Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Earth Attunement",
+      "offset": 641
+    },
+    {
+      "name": "Crystal Slash",
+      "interruptMs": 35
+    },
+    "Earthquake",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 320
+    },
+    "Churning Earth",
+    {
+      "name": "Air Attunement",
+      "offset": 161
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 445
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Water Attunement",
+      "offset": 44
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 202
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 364
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Polaric Leap",
+    "Quantum Strike",
+    {
+      "name": "Fire Attunement",
+      "offset": 196
+    },
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 395
+    },
+    "Cauterizing Strike",
+    "Ring of Fire",
+    "Flame Uprising",
+    "Fire Grab",
+    {
+      "name": "Air Attunement",
+      "offset": 60
+    },
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 682
+    },
+    {
+      "name": "Charged Strike",
+      "interruptMs": 159
+    },
+    "Earth Attunement",
+    "Earthquake",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 240
+    },
+    "Rust Frenzy",
+    {
+      "name": "Air Attunement",
+      "offset": 321
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Water Attunement",
+      "offset": 80
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 237
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 365
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Polaric Leap",
+    "Quantum Strike",
+    {
+      "name": "Fire Attunement",
+      "offset": 196
+    },
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 355
+    },
+    "Relentless Fire",
+    "Cauterizing Strike",
+    "Ring of Fire",
+    {
+      "name": "Fire Strike",
+      "interruptMs": 157
+    },
+    "Fire Grab",
+    "Flame Uprising",
+    {
+      "name": "Air Attunement",
+      "offset": 80
+    },
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 601
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Earth Attunement",
+      "offset": 600
+    },
+    "Earthquake",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 282
+    },
+    "Churning Earth",
+    {
+      "name": "Air Attunement",
+      "offset": 122
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Water Attunement",
+      "offset": 80
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 280
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 402
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Polaric Leap",
+    "Quantum Strike",
+    {
+      "name": "Fire Attunement",
+      "offset": 277
+    },
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 437
+    },
+    "Cauterizing Strike",
+    "Ring of Fire",
+    "Flame Uprising",
+    "Fire Grab",
+    {
+      "name": "Air Attunement",
+      "offset": 85
+    },
+    "Ride the Lightning",
+    {
+      "name": "Charged Strike",
+      "interruptMs": 161
+    },
+    "Glyph of Storms (Air)",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 204
+    },
+    "Relentless Fire",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Earth Attunement",
+      "offset": 636
+    },
+    "Crystal Slash",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 443
+    },
+    "Crystalline Strike",
+    "Earthquake",
+    "Rust Frenzy",
+    {
+      "name": "Air Attunement",
+      "offset": 167
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Water Attunement",
+      "offset": 120
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 321
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 491
+    },
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Polaric Leap",
+    "Quantum Strike",
+    {
+      "name": "Fire Attunement",
+      "offset": 300
+    },
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 498
+    },
+    "Cauterizing Strike",
+    "Ring of Fire",
+    "Flame Uprising",
+    "Fire Grab",
+    {
+      "name": "Air Attunement",
+      "offset": 121
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 278
+    },
+    {
+      "name": "Charged Strike",
+      "interruptMs": 119
+    },
+    "Ride the Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    "Charged Strike",
+    "Polaric Slash",
+    "Call Lightning",
+    {
+      "name": "Earth Attunement",
+      "offset": 561
+    },
+    "Earthquake",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 204
+    },
+    "Churning Earth",
+    {
+      "name": "Air Attunement",
+      "offset": 122
+    }
+  ]
+}

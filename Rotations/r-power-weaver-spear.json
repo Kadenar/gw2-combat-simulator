@@ -1,0 +1,554 @@
+{
+  "rotation": [
+    "Etching: Derecho",
+    "Weave Self",
+    "Glyph of Storms (Air)",
+    {
+      "name": "Fire Attunement",
+      "offset": 10
+    },
+    {
+      "name": "__combat_start",
+      "offset": 20
+    },
+    "Galvanize",
+    "Derecho",
+    {
+      "name": "Arcane Blast",
+      "offset": 124
+    },
+    {
+      "name": "Fire Attunement",
+      "offset": 164
+    },
+    "Etching: Volcano",
+    "Blazing Barrage",
+    "Meteor",
+    {
+      "name": "Arcane Blast",
+      "offset": 238
+    },
+    "Seethe",
+    "Earth Attunement",
+    "Volcano",
+    {
+      "name": "Fiery Impact",
+      "offset": 79
+    },
+    {
+      "name": "Earth Attunement",
+      "offset": 282
+    },
+    "Etching: Haboob",
+    "Earthen Spear",
+    {
+      "name": "Primordial Stance (Earth)",
+      "offset": 40
+    },
+    "Fissure",
+    {
+      "name": "Fire Attunement",
+      "offset": 523
+    },
+    {
+      "name": "Flame Spear",
+      "interruptMs": 38
+    },
+    "Haboob",
+    {
+      "name": "Flame Spear",
+      "interruptMs": 240
+    },
+    "Blazing Barrage",
+    "Flame Spear",
+    {
+      "name": "Air Attunement",
+      "offset": 38
+    },
+    "Fulgor",
+    "Lightning Javelin",
+    {
+      "name": "Earth Attunement",
+      "offset": 600
+    },
+    "Stone Strike",
+    {
+      "name": "Shale Storm",
+      "offset": 123
+    },
+    {
+      "name": "Earth Attunement",
+      "offset": 323
+    },
+    "Stone Strike",
+    "Stone Strike",
+    "Earthen Spear",
+    {
+      "name": "Fire Attunement",
+      "offset": 202
+    },
+    "Blazing Barrage",
+    "Flame Spear",
+    "Air Attunement",
+    "Lightning Javelin",
+    {
+      "name": "Galvanize",
+      "offset": 518
+    },
+    "Air Attunement",
+    "Fulgor",
+    "Twister",
+    "Lightning Javelin",
+    {
+      "name": "Lightning Javelin",
+      "interruptMs": 121
+    },
+    "Etching: Derecho",
+    "Lightning Javelin",
+    {
+      "name": "Fire Attunement",
+      "offset": 158
+    },
+    "Blazing Barrage",
+    {
+      "name": "Primordial Stance (Fire)",
+      "offset": 42
+    },
+    "Derecho",
+    {
+      "name": "Arcane Blast",
+      "offset": 1
+    },
+    "Flame Spear",
+    {
+      "name": "Fire Attunement",
+      "offset": 79
+    },
+    {
+      "name": "Arcane Blast",
+      "offset": 276
+    },
+    {
+      "name": "Flame Spear",
+      "interruptMs": 79
+    },
+    "Etching: Volcano",
+    "Meteor",
+    "Seethe",
+    {
+      "name": "Water Attunement",
+      "offset": 243
+    },
+    "Volcano",
+    {
+      "name": "Frostfire Ward",
+      "offset": 280
+    },
+    "Ice Beam",
+    "Restorative Spear",
+    {
+      "name": "Air Attunement",
+      "offset": 163
+    },
+    "Etching: Jökulhlaup",
+    "Undertow",
+    {
+      "name": "Elutriate",
+      "offset": 123
+    },
+    "Fulgor",
+    "Lightning Javelin",
+    "Lightning Javelin",
+    "Jökulhlaup",
+    {
+      "name": "Fire Attunement",
+      "offset": 202
+    },
+    {
+      "name": "Galvanize",
+      "offset": 359
+    },
+    "Blazing Barrage",
+    "Flame Spear",
+    "Flame Spear",
+    "Flame Spear",
+    "Flame Spear",
+    {
+      "name": "Earth Attunement",
+      "offset": 400
+    },
+    "Fiery Impact",
+    "Earthen Spear",
+    {
+      "name": "Earth Attunement",
+      "offset": 159
+    },
+    "Etching: Haboob",
+    "Fissure",
+    "Stone Strike",
+    "Stone Strike",
+    "Stone Strike",
+    "Haboob",
+    {
+      "name": "Air Attunement",
+      "offset": 1
+    },
+    {
+      "name": "Shale Storm",
+      "offset": 118
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 319
+    },
+    "Etching: Derecho",
+    "Twister",
+    "Fulgor",
+    "Lightning Javelin",
+    "Lightning Javelin",
+    {
+      "name": "Lightning Javelin",
+      "interruptMs": 42
+    },
+    "Derecho",
+    {
+      "name": "Primordial Stance (Air)",
+      "offset": 79
+    },
+    {
+      "name": "Fire Attunement",
+      "offset": 363
+    },
+    "Blazing Barrage",
+    {
+      "name": "Galvanize",
+      "offset": 38
+    },
+    {
+      "name": "Fire Attunement",
+      "offset": 159
+    },
+    "Etching: Volcano",
+    "Meteor",
+    "Seethe",
+    "Flame Spear",
+    "Flame Spear",
+    "Volcano",
+    "Flame Spear",
+    "Flame Spear",
+    "Blazing Barrage",
+    {
+      "name": "Water Attunement",
+      "offset": 1
+    },
+    {
+      "name": "Frostfire Ward",
+      "offset": 200
+    },
+    {
+      "name": "Water Attunement",
+      "offset": 402
+    },
+    "Ice Beam",
+    "Undertow",
+    "Etching: Jökulhlaup",
+    "Restorative Spear",
+    "Restorative Spear",
+    "Restorative Spear",
+    {
+      "name": "Air Attunement",
+      "offset": 200
+    },
+    "Elutriate",
+    "Fulgor",
+    "Jökulhlaup",
+    {
+      "name": "Air Attunement",
+      "offset": 42
+    },
+    "Lightning Javelin",
+    "Twister",
+    "Lightning Javelin",
+    "Lightning Javelin",
+    "Lightning Javelin",
+    "Etching: Derecho",
+    "Fulgor",
+    {
+      "name": "Fire Attunement",
+      "offset": 243
+    },
+    {
+      "name": "Galvanize",
+      "offset": 359
+    },
+    {
+      "name": "Primordial Stance (Fire)",
+      "offset": 359
+    },
+    "Blazing Barrage",
+    "Glyph of Storms (Fire)",
+    "Fire Attunement",
+    "Flame Spear",
+    "Flame Spear",
+    "Etching: Volcano",
+    "Meteor",
+    "Seethe",
+    "Flame Spear",
+    "Flame Spear",
+    "Volcano",
+    "Blazing Barrage",
+    {
+      "name": "Earth Attunement",
+      "offset": 113
+    },
+    {
+      "name": "Fiery Impact",
+      "offset": 273
+    },
+    {
+      "name": "Earth Attunement",
+      "offset": 473
+    },
+    "Earthen Spear",
+    "Etching: Haboob",
+    "Fissure",
+    "Stone Strike",
+    "Stone Strike",
+    "Stone Strike",
+    "Haboob",
+    {
+      "name": "Air Attunement",
+      "offset": 84
+    },
+    {
+      "name": "Shale Storm",
+      "offset": 322
+    },
+    "Fulgor",
+    {
+      "name": "Air Attunement",
+      "offset": 241
+    },
+    "Twister",
+    "Lightning Javelin",
+    "Lightning Javelin",
+    "Lightning Javelin",
+    "Lightning Javelin",
+    "Lightning Javelin",
+    "Lightning Javelin",
+    "Etching: Derecho",
+    "Fulgor",
+    {
+      "name": "Fire Attunement",
+      "offset": 244
+    },
+    {
+      "name": "Primordial Stance (Fire)",
+      "offset": 320
+    },
+    {
+      "name": "Galvanize",
+      "offset": 403
+    },
+    "Blazing Barrage",
+    {
+      "name": "Arcane Blast",
+      "offset": 239
+    },
+    "Derecho",
+    {
+      "name": "Fire Attunement",
+      "offset": 238
+    },
+    "Flame Spear",
+    "Flame Spear",
+    "Flame Spear",
+    "Etching: Volcano",
+    "Meteor",
+    "Seethe",
+    "Flame Spear",
+    "Flame Spear",
+    "Volcano",
+    "Weave Self",
+    "Blazing Barrage",
+    {
+      "name": "Air Attunement",
+      "offset": 83
+    },
+    "Glyph of Storms (Air)",
+    "Fulgor",
+    {
+      "name": "Fire Attunement",
+      "offset": 121
+    },
+    {
+      "name": "Flame Spear",
+      "interruptMs": 80
+    },
+    "Twister",
+    {
+      "name": "Galvanize",
+      "offset": 122
+    },
+    "Flame Spear",
+    {
+      "name": "Earth Attunement",
+      "offset": 560
+    },
+    "Stone Strike",
+    "Fiery Impact",
+    "Earthen Spear",
+    {
+      "name": "Earth Attunement",
+      "offset": 119
+    },
+    "Etching: Haboob",
+    "Fissure",
+    "Stone Strike",
+    {
+      "name": "Air Attunement",
+      "offset": 363
+    },
+    "Fulgor",
+    {
+      "name": "Shale Storm",
+      "offset": 42
+    },
+    {
+      "name": "Lightning Javelin",
+      "interruptMs": 80
+    },
+    "Haboob",
+    {
+      "name": "Air Attunement",
+      "offset": 42
+    },
+    "Lightning Javelin",
+    "Lightning Javelin",
+    "Etching: Derecho",
+    {
+      "name": "Primordial Stance (Air)",
+      "offset": 159
+    },
+    {
+      "name": "Lightning Javelin",
+      "interruptMs": 281
+    },
+    "Fire Attunement",
+    "Blazing Barrage",
+    {
+      "name": "Arcane Blast",
+      "offset": 319
+    },
+    "Flame Spear",
+    "Derecho",
+    {
+      "name": "Arcane Blast",
+      "offset": 121
+    },
+    {
+      "name": "Fire Attunement",
+      "offset": 323
+    },
+    "Flame Spear",
+    {
+      "name": "Arcane Blast",
+      "offset": 560
+    },
+    "Flame Spear",
+    "Etching: Volcano",
+    {
+      "name": "Flame Spear",
+      "interruptMs": 49
+    },
+    "Meteor",
+    "Seethe",
+    {
+      "name": "Air Attunement",
+      "offset": 204
+    },
+    {
+      "name": "Lightning Javelin",
+      "interruptMs": 41
+    },
+    "Volcano",
+    {
+      "name": "Galvanize",
+      "offset": 200
+    },
+    {
+      "name": "Air Attunement",
+      "offset": 281
+    },
+    "Fulgor",
+    "Lightning Javelin",
+    {
+      "name": "Lightning Javelin",
+      "interruptMs": 79
+    },
+    "Twister",
+    {
+      "name": "Earth Attunement",
+      "offset": 285
+    },
+    "Stone Strike",
+    {
+      "name": "Stone Strike",
+      "interruptMs": 42
+    },
+    "Earthen Spear",
+    {
+      "name": "Stone Strike",
+      "interruptMs": 201
+    },
+    "Fire Attunement",
+    "Blazing Barrage",
+    {
+      "name": "Fiery Impact",
+      "offset": 401
+    },
+    "Flame Spear",
+    "Flame Spear",
+    {
+      "name": "Water Attunement",
+      "offset": 280
+    },
+    "Ice Beam",
+    {
+      "name": "Frostfire Ward",
+      "offset": 42
+    },
+    "Restorative Spear",
+    {
+      "name": "Air Attunement",
+      "offset": 559
+    },
+    "Fulgor",
+    {
+      "name": "Elutriate",
+      "offset": 42
+    },
+    "Undertow",
+    "Lightning Javelin",
+    {
+      "name": "Primordial Stance (Air)",
+      "offset": 601
+    },
+    "Lightning Javelin",
+    "Lightning Javelin",
+    {
+      "name": "Lightning Javelin",
+      "interruptMs": 201
+    },
+    "Fire Attunement",
+    "Blazing Barrage",
+    {
+      "name": "Galvanize",
+      "offset": 202
+    },
+    {
+      "name": "Fire Attunement",
+      "offset": 362
+    }
+  ]
+}

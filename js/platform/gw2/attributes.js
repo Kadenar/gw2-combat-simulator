@@ -36,6 +36,17 @@ export const CONDITION_DURATION_ATTRIBUTES = Object.freeze([
   "Poison Duration",
 ]);
 
+export const BOON_DURATION_ATTRIBUTES = Object.freeze([
+  "Quickness Duration",
+  "Might Duration",
+  "Fury Duration",
+]);
+
+export const SPECIFIC_DURATION_ATTRIBUTES = Object.freeze([
+  ...CONDITION_DURATION_ATTRIBUTES,
+  ...BOON_DURATION_ATTRIBUTES,
+]);
+
 export function addAttribute(target, key, value) {
   if (value) target[key] = (target[key] || 0) + value;
 }
@@ -69,8 +80,25 @@ export function derivedAttribute(
 
 export function calculateCommonAttributes(
   build,
-  { weaponSet = 1 } = {},
+  {
+    weaponSet = 1,
+    data = {},
+    sigilNames = null,
+    dedupeSigils = true,
+  } = {},
 ) {
+  const baseStats = data.BASE_STATS || BASE_STATS;
+  const foodData = data.FOOD_DATA || FOOD_DATA;
+  const gearSlots = data.GEAR_SLOTS || GEAR_SLOTS;
+  const gearStats = data.GEAR_STATS || GEAR_STATS;
+  const infusionBonus = data.INFUSION_BONUS || INFUSION_BONUS;
+  const jadeBotBonus = data.JBC_BONUS || JBC_BONUS;
+  const runeData = data.RUNE_DATA || RUNE_DATA;
+  const sigilData = data.SIGIL_DATA || SIGIL_DATA;
+  const utilityRates =
+    data.UTILITY_CONVERSION_RATES || UTILITY_CONVERSION_RATES;
+  const utilityData = data.UTILITY_DATA || UTILITY_DATA;
+  const weaponData = data.WEAPON_DATA || WEAPON_DATA;
   const gear = {};
   const runes = {};
   const foodConverted = {};
@@ -82,30 +110,36 @@ export function calculateCommonAttributes(
   const infusions = {};
 
   const mainHand = build.weapons?.[0] || "";
-  const isTwoHanded = WEAPON_DATA[mainHand]?.wielding === "2h";
-  for (const slot of GEAR_SLOTS) {
+  const isTwoHanded = weaponData[mainHand]?.wielding === "2h";
+  for (const slot of gearSlots) {
     if (isTwoHanded && slot === "Weapon2") continue;
     const statSlot = isTwoHanded && slot === "Weapon1" ? "Weapon2H" : slot;
-    addAttributes(gear, GEAR_STATS[build.gear?.[slot]]?.[statSlot]);
+    addAttributes(gear, gearStats[build.gear?.[slot]]?.[statSlot]);
   }
-  const rune = RUNE_DATA[build.rune];
+  const rune = runeData[build.rune];
   addAttributes(runes, rune?.stats);
   addAttributes(runeDurations, rune?.durations);
-  const food = FOOD_DATA[build.food];
+  const food = foodData[build.food];
   addAttributes(food?.isConverted ? foodConverted : foodBuff, food?.stats);
   addAttributes(foodDurations, food?.durations);
 
   const conversionPool = {};
+  const conversionPoolNoFood = {};
   for (const stat of PRIMARY_ATTRIBUTES) {
     conversionPool[stat] =
-      (BASE_STATS[stat] || 0)
+      (baseStats[stat] || 0)
       + (gear[stat] || 0)
       + (runes[stat] || 0)
       + (foodConverted[stat] || 0)
-      + (build.jadeBotCore ? JBC_BONUS[stat] || 0 : 0);
+      + (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
+    conversionPoolNoFood[stat] =
+      (baseStats[stat] || 0)
+      + (gear[stat] || 0)
+      + (runes[stat] || 0)
+      + (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
   }
-  for (const conversion of UTILITY_DATA[build.utility] || []) {
-    const rate = (UTILITY_CONVERSION_RATES[conversion.from] || 0) / 100;
+  for (const conversion of utilityData[build.utility] || []) {
+    const rate = (utilityRates[conversion.from] || 0) / 100;
     addAttribute(
       utility,
       conversion.to,
@@ -114,8 +148,12 @@ export function calculateCommonAttributes(
   }
 
   let sigilCriticalChance = 0;
-  for (const name of new Set(weaponSigilsForSet(build, weaponSet))) {
-    const sigil = SIGIL_DATA[name];
+  const selectedSigils = sigilNames || weaponSigilsForSet(build, weaponSet);
+  const effectiveSigils = dedupeSigils
+    ? new Set(selectedSigils)
+    : selectedSigils;
+  for (const name of effectiveSigils) {
+    const sigil = sigilData[name];
     if (!sigil) continue;
     if (sigil.conditionDuration) {
       addAttribute(sigilDurations, "Condition Duration", sigil.conditionDuration);
@@ -139,19 +177,19 @@ export function calculateCommonAttributes(
   }
   for (const infusion of build.infusions || []) {
     if (infusion?.stat && Number(infusion.count) > 0) {
-      addAttribute(infusions, infusion.stat, Number(infusion.count) * INFUSION_BONUS);
+      addAttribute(infusions, infusion.stat, Number(infusion.count) * infusionBonus);
     }
   }
 
   const attributes = {};
   for (const stat of PRIMARY_ATTRIBUTES) {
     const breakdown = {
-      base: BASE_STATS[stat] || 0,
+      base: baseStats[stat] || 0,
       gear: gear[stat] || 0,
       runes: runes[stat] || 0,
       food: (foodConverted[stat] || 0) + (foodBuff[stat] || 0),
       utility: utility[stat] || 0,
-      jbc: build.jadeBotCore ? JBC_BONUS[stat] || 0 : 0,
+      jbc: build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0,
       traits: 0,
       sigils: 0,
       infusions: infusions[stat] || 0,
@@ -190,7 +228,7 @@ export function calculateCommonAttributes(
     runeDurations["Condition Duration"] || 0,
     foodDurations["Condition Duration"] || 0,
   );
-  for (const key of CONDITION_DURATION_ATTRIBUTES) {
+  for (const key of SPECIFIC_DURATION_ATTRIBUTES) {
     const value =
       (runeDurations[key] || 0)
       + (foodDurations[key] || 0)
@@ -219,6 +257,7 @@ export function calculateCommonAttributes(
     specializations: [...(build.specializations || [])],
     commonContext: {
       conversionPool,
+      conversionPoolNoFood,
       runeDurations,
       foodDurations,
       sigilDurations,

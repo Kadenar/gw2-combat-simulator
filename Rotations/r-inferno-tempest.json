@@ -1,0 +1,291 @@
+{
+  "rotation": [
+    "Rock Barrier",
+    "Air Attunement",
+    {
+      "name": "__wait",
+      "waitMs": 5000
+    },
+    "Overload Air",
+    {
+      "name": "__combat_start",
+      "offset": 3100
+    },
+    {
+      "name": "Lightning Strike",
+      "offset": 3128
+    },
+    "Glyph of Elementals",
+    {
+      "name": "Arc Lightning",
+      "interruptMs": 38
+    },
+    "Feel the Burn!",
+    "Ride the Lightning",
+    {
+      "name": "Earth Attunement",
+      "offset": 123
+    },
+    {
+      "name": "Stone Shards",
+      "interruptMs": 86
+    },
+    "Earthquake",
+    "Churning Earth",
+    {
+      "name": "Hurl",
+      "offset": 1
+    },
+    {
+      "name": "Fire Attunement",
+      "offset": 445
+    },
+    "Phoenix",
+    "Ring of Fire",
+    "Fire Grab",
+    "Dragon's Tooth",
+    "Glyph of Storms (Fire)",
+    "Signet of Fire",
+    "Overload Fire",
+    "Dragon's Tooth",
+    "Phoenix",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Ring of Fire",
+    "Dragon's Tooth",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Phoenix",
+    "Fire Grab",
+    {
+      "name": "Air Attunement",
+      "offset": 167
+    },
+    {
+      "name": "Lightning Strike",
+      "offset": 521
+    },
+    "Signet of Fire",
+    "Ride the Lightning",
+    {
+      "name": "Arc Lightning",
+      "interruptMs": 2309
+    },
+    {
+      "name": "Feel the Burn!",
+      "offset": 1521
+    },
+    "Overload Air",
+    {
+      "name": "Lightning Strike",
+      "offset": 281
+    },
+    {
+      "name": "Earth Attunement",
+      "offset": 3170
+    },
+    {
+      "name": "Stone Shards",
+      "interruptMs": 84
+    },
+    "Earthquake",
+    "Churning Earth",
+    {
+      "name": "Fire Attunement",
+      "offset": 799
+    },
+    {
+      "name": "Flamestrike",
+      "interruptMs": 40
+    },
+    "Phoenix",
+    "Ring of Fire",
+    "Dragon's Tooth",
+    "Glyph of Storms (Fire)",
+    "Signet of Fire",
+    "Overload Fire",
+    "Dragon's Tooth",
+    "Phoenix",
+    "Fire Grab",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Ring of Fire",
+    "Dragon's Tooth",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Phoenix",
+    {
+      "name": "Air Attunement",
+      "offset": 243
+    },
+    "Feel the Burn!",
+    "Signet of Fire",
+    {
+      "name": "Lightning Strike",
+      "offset": 197
+    },
+    "Ride the Lightning",
+    {
+      "name": "Arc Lightning",
+      "interruptMs": 2443
+    },
+    "Overload Air",
+    {
+      "name": "Lightning Strike",
+      "offset": 479
+    },
+    "Earth Attunement",
+    {
+      "name": "Stone Shards",
+      "interruptMs": 120
+    },
+    "Earthquake",
+    "Churning Earth",
+    {
+      "name": "Fire Attunement",
+      "offset": 760
+    },
+    {
+      "name": "Flamestrike",
+      "interruptMs": 76
+    },
+    "Phoenix",
+    "Ring of Fire",
+    "Fire Grab",
+    "Dragon's Tooth",
+    "Glyph of Storms (Fire)",
+    "Signet of Fire",
+    "Overload Fire",
+    "Dragon's Tooth",
+    "Phoenix",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    {
+      "name": "Flamestrike",
+      "interruptMs": 43
+    },
+    "Ring of Fire",
+    "Dragon's Tooth",
+    "Flamestrike",
+    {
+      "name": "Feel the Burn!",
+      "offset": 405
+    },
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Phoenix",
+    "Fire Grab",
+    {
+      "name": "Air Attunement",
+      "offset": 161
+    },
+    "Lightning Strike",
+    "Signet of Fire",
+    "Ride the Lightning",
+    {
+      "name": "Arc Lightning",
+      "interruptMs": 2281
+    },
+    "Overload Air",
+    {
+      "name": "Lightning Strike",
+      "offset": 395
+    },
+    "Earth Attunement",
+    {
+      "name": "Stone Shards",
+      "interruptMs": 79
+    },
+    "Earthquake",
+    "Churning Earth",
+    {
+      "name": "Fire Attunement",
+      "offset": 840
+    },
+    {
+      "name": "Flamestrike",
+      "interruptMs": 77
+    },
+    "Phoenix",
+    "Ring of Fire",
+    "Dragon's Tooth",
+    "Glyph of Storms (Fire)",
+    "Signet of Fire",
+    "Overload Fire",
+    "Dragon's Tooth",
+    "Phoenix",
+    "Fire Grab",
+    "Flamestrike",
+    "Flamestrike",
+    {
+      "name": "Feel the Burn!",
+      "offset": 403
+    },
+    "Flamestrike",
+    "Flamestrike",
+    {
+      "name": "Flamestrike",
+      "interruptMs": 42
+    },
+    "Ring of Fire",
+    "Dragon's Tooth",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    {
+      "name": "Flamestrike",
+      "interruptMs": 76
+    },
+    "Phoenix",
+    {
+      "name": "Air Attunement",
+      "offset": 402
+    },
+    "Signet of Fire",
+    {
+      "name": "Lightning Strike",
+      "offset": 241
+    },
+    "Ride the Lightning",
+    {
+      "name": "Arc Lightning",
+      "interruptMs": 2641
+    },
+    "Overload Air",
+    {
+      "name": "Lightning Strike",
+      "offset": 317
+    },
+    {
+      "name": "Earth Attunement",
+      "offset": 3160
+    },
+    {
+      "name": "Stone Shards",
+      "interruptMs": 46
+    },
+    "Earthquake",
+    "Churning Earth",
+    {
+      "name": "Fire Attunement",
+      "offset": 802
+    },
+    "Phoenix",
+    "Ring of Fire",
+    "Fire Grab"
+  ]
+}

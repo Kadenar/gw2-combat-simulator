@@ -1,0 +1,530 @@
+{
+  "rotation": [
+    "Dazing Discharge",
+    "Water Attunement",
+    "Frigid Flurry",
+    "Earth Attunement",
+    "Shattering Stone",
+    "Fire Attunement",
+    {
+      "name": "__wait",
+      "waitMs": 5000
+    },
+    "Glyph of Elementals",
+    "__combat_start",
+    "Wildfire",
+    "Glyph of Storms (Fire)",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 921
+    },
+    "Elemental Explosion",
+    "Signet of Earth",
+    "Signet of Fire",
+    "Searing Salvo",
+    "Raging Ricochet",
+    {
+      "name": "Air Attunement",
+      "offset": 247
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 401
+    },
+    "Dazing Discharge",
+    "Cyclone",
+    {
+      "name": "Water Attunement",
+      "offset": 645
+    },
+    "Frigid Flurry",
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 242
+    },
+    "Tidal Surge",
+    {
+      "name": "Earth Attunement",
+      "offset": 199
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 40
+    },
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 276
+    },
+    "Dust Storm",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 160
+    },
+    "Raging Ricochet",
+    "Elemental Explosion",
+    "Signet of Fire",
+    "Searing Salvo",
+    "Signet of Earth",
+    "Scorching Shot",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 362
+    },
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    {
+      "name": "Air Attunement",
+      "offset": 123
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 321
+    },
+    "Dazing Discharge",
+    "Lightning Orb",
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 240
+    },
+    "Water Attunement",
+    "Frigid Flurry",
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 323
+    },
+    "Soothing Splash",
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 202
+    },
+    "Earth Attunement",
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 480
+    },
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Signet of Fire",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 42
+    },
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 200
+    },
+    "Raging Ricochet",
+    "Elemental Explosion",
+    "Wildfire",
+    "Signet of Earth",
+    "Glyph of Storms (Fire)",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 523
+    },
+    "Searing Salvo",
+    "Scorching Shot",
+    "Raging Ricochet",
+    {
+      "name": "Air Attunement",
+      "offset": 77
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 318
+    },
+    "Dazing Discharge",
+    "Cyclone",
+    {
+      "name": "Water Attunement",
+      "offset": 523
+    },
+    "Frigid Flurry",
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 242
+    },
+    "Tidal Surge",
+    {
+      "name": "Earth Attunement",
+      "offset": 283
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 157
+    },
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 359
+    },
+    "Signet of Fire",
+    "Dust Storm",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 359
+    },
+    "Raging Ricochet",
+    "Elemental Explosion",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 42
+    },
+    "Signet of Earth",
+    "Searing Salvo",
+    "Scorching Shot",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 367
+    },
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    {
+      "name": "Air Attunement",
+      "offset": 241
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 402
+    },
+    "Dazing Discharge",
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 76
+    },
+    "Lightning Orb",
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 117
+    },
+    "Signet of Fire",
+    {
+      "name": "Water Attunement",
+      "offset": 287
+    },
+    "Soothing Splash",
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 157
+    },
+    "Frigid Flurry",
+    {
+      "name": "Earth Attunement",
+      "offset": 1001
+    },
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 441
+    },
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 329
+    },
+    "Raging Ricochet",
+    "Signet of Earth",
+    "Wildfire",
+    "Glyph of Storms (Fire)",
+    "Signet of Fire",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 391
+    },
+    "Elemental Explosion",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 39
+    },
+    "Searing Salvo",
+    "Raging Ricochet",
+    {
+      "name": "Air Attunement",
+      "offset": 200
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 358
+    },
+    "Dazing Discharge",
+    "Cyclone",
+    {
+      "name": "Water Attunement",
+      "offset": 560
+    },
+    "Frigid Flurry",
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 278
+    },
+    "Tidal Surge",
+    {
+      "name": "Earth Attunement",
+      "offset": 200
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 40
+    },
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 322
+    },
+    "Dust Storm",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 241
+    },
+    "Raging Ricochet",
+    "Signet of Fire",
+    "Signet of Earth",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 837
+    },
+    "Elemental Explosion",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 161
+    },
+    "Searing Salvo",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    {
+      "name": "Air Attunement",
+      "offset": 120
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 318
+    },
+    "Dazing Discharge",
+    "Lightning Orb",
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 239
+    },
+    "Water Attunement",
+    "Frigid Flurry",
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 322
+    },
+    "Soothing Splash",
+    {
+      "name": "Earth Attunement",
+      "offset": 365
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 83
+    },
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 398
+    },
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Signet of Fire",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 123
+    },
+    "Raging Ricochet",
+    "Wildfire",
+    "Glyph of Storms (Fire)",
+    "Signet of Earth",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 81
+    },
+    "Elemental Explosion",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 77
+    },
+    "Searing Salvo",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 37
+    },
+    "Raging Ricochet",
+    {
+      "name": "Air Attunement",
+      "offset": 322
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 441
+    },
+    {
+      "name": "Electric Exposure",
+      "interruptMs": 78
+    },
+    "Dazing Discharge",
+    "Cyclone",
+    {
+      "name": "Water Attunement",
+      "offset": 602
+    },
+    "Frigid Flurry",
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 281
+    },
+    "Tidal Surge",
+    "Soothing Splash",
+    {
+      "name": "Earth Attunement",
+      "offset": 44
+    },
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 238
+    },
+    "Dust Storm",
+    "Signet of Fire",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 283
+    },
+    "Raging Ricochet",
+    "Elemental Explosion",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 120
+    },
+    "Searing Salvo",
+    "Signet of Earth",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 323
+    },
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    {
+      "name": "Air Attunement",
+      "offset": 76
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 235
+    },
+    "Dazing Discharge",
+    "Lightning Orb",
+    "Electric Exposure",
+    {
+      "name": "Water Attunement",
+      "offset": 84
+    },
+    "Frigid Flurry",
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 240
+    },
+    "Signet of Fire",
+    "Frozen Fusillade",
+    {
+      "name": "Soothing Splash",
+      "interruptMs": 243
+    },
+    "Earth Attunement",
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 280
+    },
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 397
+    },
+    "Raging Ricochet",
+    "Scorching Shot",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 241
+    },
+    "Searing Salvo",
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 479
+    },
+    "Signet of Earth",
+    "Scorching Shot"
+  ]
+}
