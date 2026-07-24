@@ -45,6 +45,27 @@ frame.addEventListener('load', () => {
         app.build = createDefaultBuild();
         app.changed();
 
+        assert(
+            !document.querySelector('#weapon-bar .wskill[title^="Phantom Razor"]'),
+            'Dagger ambush is visible for a non-Mirage build',
+        );
+        assert(
+            !document.querySelector('#weapon-bar .wskill[title^="Fractured Glass"]'),
+            'Spear ambush is visible for a non-Mirage build',
+        );
+        app.build.specializations[2] = { name: 'Mirage', traits: '1-1-1' };
+        app.renderSkills();
+        assert(
+            document.querySelector('#weapon-bar .wskill[title^="Phantom Razor"]'),
+            'Dagger ambush is hidden for a Mirage build',
+        );
+        assert(
+            document.querySelector('#weapon-bar .wskill[title^="Fractured Glass"]'),
+            'Spear ambush is hidden for a Mirage build',
+        );
+        app.build.specializations[2] = { name: 'Virtuoso', traits: '3-3-3' };
+        app.renderSkills();
+
         assert(document.getElementById('target-hp')?.value === '4000000', 'target HP control missing');
         assert(
             document.querySelector(

@@ -387,10 +387,12 @@ class MesmerApp {
     }
 
     renderSkills() {
+        const spec = eliteSpecialization(this.build);
         const skillsForSet = ([mh, oh]) => {
             const twoHanded = WEAPON_DATA[mh]?.wielding === '2h';
             return [...new Map(this.skills.filter(skill => {
                 if (skill.type !== 'Weapon') return false;
+                if (skill.ambush && spec !== 'Mirage') return false;
                 const slot = Number(String(skill.slot).match(/(\d)$/)?.[1] || 0);
                 return twoHanded
                     ? skill.weapon === mh
