@@ -30,8 +30,8 @@ export function relicStrikeMultiplier(ctx, event) {
       return config.relic === "Peitha" ? 1.1 : 1.07;
     case "Eagle": {
       const targetHealth = Number(config.target?.health || 0);
-      return targetHealth > 0
-        && totals.strike + totals.condition >= targetHealth * 0.5
+      return targetHealth > 0 &&
+        totals.strike + totals.condition >= targetHealth * 0.5
         ? 1.1
         : 1;
     }
@@ -82,10 +82,10 @@ export function applyMistStranger(ctx, event) {
  */
 export function handleRelicsAfterHit(ctx, event, skill) {
   if (
-    ctx.config.relic === "Thief"
-    && event.source === "Player"
-    && skill?.type === "Weapon"
-    && (Number(skill.cooldown || 0) > 0 || skill.resource)
+    ctx.config.relic === "Thief" &&
+    event.source === "Player" &&
+    skill?.type === "Weapon" &&
+    (Number(skill.cooldown || 0) > 0 || skill.resource)
   ) {
     if (ctx.relic.thiefUntil <= event.at) ctx.relic.thiefStacks = 0;
     ctx.relic.thiefStacks = Math.min(5, ctx.relic.thiefStacks + 1);
@@ -99,19 +99,14 @@ export function handleRelicsAfterHit(ctx, event, skill) {
     );
   }
   if (
-    ctx.config.relic === "Fireworks"
-    && event.source === "Player"
-    && Number(skill?.cooldown || 0) >= 20
+    ctx.config.relic === "Fireworks" &&
+    event.source === "Player" &&
+    Number(skill?.cooldown || 0) >= 20
   ) {
     const wasActive = ctx.relic.buffUntil > event.at;
     ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 6);
     if (!wasActive) {
-      ctx.recordProc(
-        "relic",
-        "Relic of Fireworks",
-        event.at,
-        event.skillName,
-      );
+      ctx.recordProc("relic", "Relic of Fireworks", event.at, event.skillName);
     }
   }
 }
@@ -122,13 +117,15 @@ function maybeTriggerAkeem(
   { activeConditionStackCount, applyCondition },
 ) {
   if (
-    ctx.config.relic !== "Akeem"
-    || event.at < ctx.relic.akeemReadyAt - EPSILON
-  ) return;
+    ctx.config.relic !== "Akeem" ||
+    event.at < ctx.relic.akeemReadyAt - EPSILON
+  )
+    return;
   if (
-    activeConditionStackCount(ctx, "Confusion", event.at) < 5
-    && activeConditionStackCount(ctx, "Torment", event.at) < 5
-  ) return;
+    activeConditionStackCount(ctx, "Confusion", event.at) < 5 &&
+    activeConditionStackCount(ctx, "Torment", event.at) < 5
+  )
+    return;
 
   ctx.relic.akeemReadyAt = event.at + 10;
   ctx.recordProc("relic", "Relic of Akeem", event.at, event.skillName);
@@ -164,9 +161,13 @@ export function handleControlRelics(ctx, event, conditionHelpers) {
   if (ctx.config.relic === "Claw") {
     const wasActive = ctx.relic.buffUntil > event.at;
     ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 8);
-    if (!wasActive) {
-      ctx.recordProc("relic", "Relic of the Claw", event.at, event.skillName);
-    }
+    ctx.recordProc(
+      "relic",
+      "Relic of the Claw",
+      event.at,
+      event.skillName,
+      wasActive ? "refreshed" : "activated",
+    );
   }
   maybeTriggerAkeem(ctx, event, conditionHelpers);
 }
@@ -208,9 +209,10 @@ export function recordPassiveRelicTimeline(ctx, events, rotationEndTime) {
     let expiresAt = -Infinity;
     for (const event of events) {
       if (
-        event.type !== "weakness_vulnerability"
-        || event.at < readyAt - EPSILON
-      ) continue;
+        event.type !== "weakness_vulnerability" ||
+        event.at < readyAt - EPSILON
+      )
+        continue;
       if (event.at >= expiresAt - EPSILON) stacks = 0;
       stacks = Math.min(5, stacks + 1);
       expiresAt = event.at + 8;
