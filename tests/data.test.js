@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { SKILLS, SPECIALIZATIONS } from '../js/data/mesmer-catalog.js';
+import { SKILLS, SPECIALIZATIONS } from '../js/data/catalog.js';
 import { RELIC_NAMES } from '../js/data/gear-data.js';
 import { TRAITS } from '../js/data/traits-data.js';
 import {
@@ -8,13 +8,13 @@ import {
     CLONE_ATTACKS,
     PHANTASM_ATTACK_TIMINGS,
     PHANTASM_NAME_BY_SKILL,
-} from '../js/data/mesmer-illusion-data.js';
+} from '../js/data/illusion-data.js';
 import {
     INSTRUMENTS,
     MECHANIC_SKILLS,
     SHATTERS,
     TRAIT_DAMAGE,
-} from '../js/data/mesmer-profession-data.js';
+} from '../js/data/profession-data.js';
 import {
     AMBUSH_SKILLS,
     PSEUDO_SKILLS,
@@ -22,7 +22,7 @@ import {
 } from '../js/sim/mechanics/mesmer-skill-overrides.js';
 import {
     BASE_SKILL_DATA_BY_ID,
-} from '../js/data/mesmer-skill-mechanics.js';
+} from '../js/data/skill-mechanics.js';
 import {
     normalizedSkill,
 } from '../js/sim/mechanics/mesmer-skill-normalization.js';

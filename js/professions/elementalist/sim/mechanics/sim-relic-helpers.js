@@ -12,10 +12,26 @@ function logRelicProc(S, relic, time, icon, skill = `Relic of ${relic}`) {
     pushReportingStep(S, { skill, start: time, end: time, att: S.att, type: 'relic_proc', ri: -1, icon });
 }
 
-function logRelicProcCtx(ctx, relic, time, icon, skill = `Relic of ${relic}`) {
+function logRelicProcCtx(
+    ctx,
+    relic,
+    time,
+    icon,
+    skill = `Relic of ${relic}`,
+    detail = '',
+) {
     const { S } = ctx;
-    ctx.log({ t: time, type: 'relic_proc', relic, skill });
-    ctx.addStep({ skill, start: time, end: time, att: S.att, type: 'relic_proc', ri: -1, icon });
+    ctx.log({ t: time, type: 'relic_proc', relic, skill, detail });
+    ctx.addStep({
+        skill,
+        start: time,
+        end: time,
+        att: S.att,
+        type: 'relic_proc',
+        ri: -1,
+        icon,
+        detail,
+    });
 }
 
 function activateTimedRelicBuff(S, proc, time) {
@@ -74,8 +90,19 @@ export function checkRelicOnHit(ctx, ev) {
             if (ev.cc) {
                 if (proc.icd > 0 && !isRelicIcdReady(S, relic, ev.time)) break;
                 if (proc.icd > 0) armRelicIcd(S, relic, ev.time, proc.icd);
-                if (proc.effectDuration > 0 && activateTimedRelicBuff(S, proc, ev.time)) {
-                    logRelicProcCtx(ctx, relic, ev.time, proc.icon);
+                if (proc.effectDuration > 0) {
+                    const activated = activateTimedRelicBuff(S, proc, ev.time);
+                    const skill = relic === 'Claw'
+                        ? 'Relic of the Claw'
+                        : `Relic of ${relic}`;
+                    logRelicProcCtx(
+                        ctx,
+                        relic,
+                        ev.time,
+                        proc.icon,
+                        skill,
+                        activated ? 'activated' : 'refreshed',
+                    );
                 }
             }
             break;

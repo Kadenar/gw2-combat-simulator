@@ -38,16 +38,16 @@ target-condition controls.
 
 Static Guild Wars 2 game data and lookups.
 
-### [mesmer-catalog.js](js/data/mesmer-catalog.js)
+### [catalog.js](js/data/catalog.js)
 Auto-generated GW2 API metadata snapshot. Contains specialization and trait definitions plus skill IDs, names, descriptions, icons, and slots. It intentionally contains no simulator mechanics.
 
-### [mesmer-skill-mechanics.js](js/data/mesmer-skill-mechanics.js)
+### [skill-mechanics.js](js/data/skill-mechanics.js)
 Simulator-owned base skill mechanics absent from the authoritative override table.
 
-### [mesmer-illusion-data.js](js/data/mesmer-illusion-data.js)
+### [illusion-data.js](js/data/illusion-data.js)
 Static weapon-strength, clone, ambush, and phantasm timing tables.
 
-### [mesmer-profession-data.js](js/data/mesmer-profession-data.js)
+### [profession-data.js](js/data/profession-data.js)
 Static condition, shatter, instrument, trait-damage, and skill-classification tables.
 
 ### [gear-data.js](js/data/gear-data.js)
