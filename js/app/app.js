@@ -97,6 +97,7 @@ class MesmerApp {
         this.attributeWeaponSet = 1;
         this.attributeData = null;
         this.results = null;
+        this.dragState = null;
     }
 
     // Initialization hook: bind event listeners, trigger initial render, hide loading overlay
@@ -144,6 +145,7 @@ class MesmerApp {
             if (!allowed) {
                 this.build.selectedSkills[slot] = this.skills.find(skill =>
                     skill.type === type
+                    && !skill.flipParent
                     && (!skill.specialization || skill.specialization === spec)
                 )?.name || '';
             }
@@ -375,7 +377,9 @@ class MesmerApp {
     availableSlotSkills(type) {
         const spec = eliteSpecialization(this.build);
         return this.skills.filter(skill =>
-            skill.type === type && (!skill.specialization || skill.specialization === spec));
+            skill.type === type
+            && !skill.flipParent
+            && (!skill.specialization || skill.specialization === spec));
     }
 
     renderSkills() {
@@ -398,9 +402,6 @@ class MesmerApp {
         document.getElementById('weapon-bar').innerHTML = `
             <div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 1</span>${set1Skills.map(weaponIcon).join('')}</div>
             <div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 2</span>${set2Skills.map(weaponIcon).join('')}</div>`;
-        const weapons = [...new Map(
-            [...set1Skills, ...set2Skills].map(skill => [skill.name, skill]),
-        ).values()];
 
         const slots = [
             ['Heal', 'Heal'], ['Utility1', 'Utility'], ['Utility2', 'Utility'], ['Utility3', 'Utility'], ['Elite', 'Elite'],
@@ -431,13 +432,27 @@ class MesmerApp {
             });
         });
 
-        const selectedNames = new Set([...weapons.map(skill => skill.name), ...Object.values(this.build.selectedSkills)]);
         const rows = [...new Map(
-            this.skills.filter(skill => selectedNames.has(skill.name)).map(skill => [skill.name, skill]),
+            [
+                ...set1Skills,
+                ...set2Skills,
+                ...slots.map(([key]) => this.skillByName.get(this.build.selectedSkills[key])).filter(Boolean),
+            ].map(skill => [skill.name, skill]),
         ).values()];
-        document.getElementById('skill-info-table').innerHTML = `<div class="skill-info-grid">${rows.map(skill =>
-            `<div class="skill-info-row"><img src="${esc(skill.icon || '')}" alt=""><span>${esc(skill.name)}</span>
-                <span>${Number(skill.activation || 0).toFixed(2)}s</span><span>${Number(skill.cooldown || 0)}s CD</span></div>`
+        document.getElementById('skill-info-table').innerHTML = `<div class="skill-info-grid">
+            <div class="skill-info-header" role="row">
+                <span role="columnheader">Skill</span>
+                <span role="columnheader">Cast Time</span>
+                <span role="columnheader">Base Cooldown</span>
+            </div>
+            ${rows.map(skill =>
+            `<div class="skill-info-row" role="row">
+                <span class="skill-info-skill" role="cell">
+                    <img src="${esc(skill.icon || '')}" alt=""><span class="skill-info-name">${esc(skill.name)}</span>
+                </span>
+                <span class="skill-info-value" role="cell">${Number(skill.activation || 0).toFixed(2)}s</span>
+                <span class="skill-info-value" role="cell">${Number(skill.cooldown || 0)}s CD</span>
+            </div>`
         ).join('')}</div>`;
     }
 

@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDefaultBuild, replaceBuild } from '../js/app/app-state.js';
-import { simulationConfig } from '../js/app/app-runtime.js';
+import {
+    computeModifierContributions,
+    simulationConfig,
+} from '../js/app/app-runtime.js';
 import { calcAttributes } from '../js/core/calc-attributes.js';
 import { setWeaponSigil } from '../js/core/weapon-sigils.js';
 
@@ -157,6 +160,28 @@ test('simulation config does not multiply duplicate sigil effects', () => {
     });
 
     assert.equal(config.sigilSets[0].strike, 1.05);
+});
+
+test('modifier contributions compare the active build against each modifier removed', () => {
+    const build = createDefaultBuild();
+    build.rotation = ['Bladecall'];
+    build.relic = '';
+    build.selectedSkills = {};
+    const app = {
+        build,
+        attributeData: calcAttributes(build, []),
+        attributeWeaponSet: 1,
+        skillByName: new Map(),
+    };
+    const contributions = computeModifierContributions(app);
+    const names = new Set(contributions.map(entry => entry.name));
+
+    assert.equal(names.has('Might'), true);
+    assert.equal(names.has('Vulnerability'), true);
+    assert.equal(names.has('Sigil of Force'), true);
+    assert.ok(contributions.every(entry =>
+        Number.isFinite(entry.dpsIncrease)
+        && Number.isFinite(entry.pctIncrease)));
 });
 
 test('saved builds fall back when their relic is no longer available', () => {

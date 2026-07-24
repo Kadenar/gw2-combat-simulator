@@ -138,6 +138,10 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     spawn: 2.56,
     chronophantasmaDamage: 4.68,
     chronophantasmaSpawn: 5.92,
+    // Virtuoso stocks Bountiful Blades' two blades independently when each
+    // Phantasmal Blade projectile arrives, rather than batching both at the
+    // clone-conversion endpoint.
+    virtuosoBladeHits: [3.12, 3.44],
   },
   "Phantasmal Defender": {
     castTime: 0.77,
@@ -167,13 +171,6 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     chronophantasmaDamage: 5.32,
     chronophantasmaSpawn: 5.56,
   },
-  "Phantasmal Mariner": {
-    castTime: 0.67,
-    damage: 1.842,
-    spawn: 2.56,
-    chronophantasmaDamage: 5.64,
-    chronophantasmaSpawn: 6.36,
-  },
   "Phantasmal Rogue": {
     castTime: 0.61,
     damage: 1.2,
@@ -201,13 +198,6 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     spawn: 4.24,
     chronophantasmaDamage: 8.56,
     chronophantasmaSpawn: 9.84,
-  },
-  "Phantasmal Whaler": {
-    castTime: 0.95,
-    damage: 2.04,
-    spawn: 3.16,
-    chronophantasmaDamage: 6.24,
-    chronophantasmaSpawn: 7.32,
   },
   // These post-table weapon phantasms retain explicit estimates.
   "Phantasmal Sharpshooter": {

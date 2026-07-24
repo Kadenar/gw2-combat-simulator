@@ -63,6 +63,7 @@ export function resolveScheduledStream({
         event.at,
         event.sourceSkill,
         event.detail,
+        event.icon,
       );
     }
   }

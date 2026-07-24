@@ -5,6 +5,7 @@ import { simulateSequence } from '../js/sim/sim-engine.js';
 import {
     buildChartSeries,
     chartValueAt,
+    moveRotationEntry,
     resultSummaryMetrics,
     simulationEventLogCsv,
     simulationEventLogRows,
@@ -1067,6 +1068,37 @@ test('Relic of the Claw can trigger from a non-damaging control skill and expire
     assert.ok(Math.abs(activeDamage / expiredDamage - 1.07) < 1e-12);
 });
 
+test('timed relic buffs only add a proc when the buff was not already active', () => {
+    const claw = simulateSequence(
+        ['Signet of Domination', 'Diversion', { name: '__wait', waitMs: 8001 }, 'Signet of Domination'],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            initialResource: 3,
+            relic: 'Claw',
+        }),
+    );
+    assert.equal(
+        claw.procSteps.filter(proc => proc.skill === 'Relic of the Claw').length,
+        2,
+    );
+
+    const fireworks = simulateSequence(
+        ['Chaos Storm', { name: '__wait', waitMs: 14000 }, 'Chaos Storm'],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            relic: 'Fireworks',
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
+            weaponSet2Primary: 'Staff',
+            weaponSet2Secondary: '',
+        }),
+    );
+    assert.equal(
+        fireworks.procSteps.filter(proc => proc.skill === 'Relic of Fireworks').length,
+        2,
+    );
+});
+
 test('Relic of Akeem triggers on control against five confusion stacks', () => {
     const result = simulateSequence(
         [
@@ -1319,6 +1351,22 @@ test('a final weapon swap remains on its originating weapon-set row', () => {
     const rows = timelineWeaponRows(['Bladecall', 'Swap Weapons']);
     assert.deepEqual(rows.map(row => row.weaponSet), [1]);
     assert.deepEqual(rows[0].skills.map(skill => skill.index), [0, 1]);
+});
+
+test('rotation drag reordering respects before and after insertion positions', () => {
+    const rotation = ['Bladecall', 'Mirror Blade', 'Mind Spike'];
+
+    assert.equal(moveRotationEntry(rotation, 0, 2), true);
+    assert.deepEqual(rotation, ['Mirror Blade', 'Bladecall', 'Mind Spike']);
+
+    assert.equal(moveRotationEntry(rotation, 2, 0), true);
+    assert.deepEqual(rotation, ['Mind Spike', 'Mirror Blade', 'Bladecall']);
+
+    assert.equal(moveRotationEntry(rotation, 0, rotation.length), true);
+    assert.deepEqual(rotation, ['Mirror Blade', 'Bladecall', 'Mind Spike']);
+
+    assert.equal(moveRotationEntry(rotation, 1, 2), false);
+    assert.deepEqual(rotation, ['Mirror Blade', 'Bladecall', 'Mind Spike']);
 });
 
 test('shift-queued Mirror Images after an instant action still grants clones', () => {
@@ -1693,6 +1741,88 @@ test('Shatter Storm gives Split Second two ammo charges', () => {
     );
 });
 
+test('Power Spike opens with two charges and reverts to Mantra of Pain when spent', () => {
+    const result = simulateSequence(
+        ['Power Spike', 'Power Spike', 'Power Spike'],
+        defaultSimulationConfig({ specialization: 'Core' }),
+    );
+    // The third cast has no charges left, so the flip reverts to its parent.
+    assert.deepEqual(result.steps.map(step => step.skill), ['Power Spike', 'Power Spike']);
+    assert.equal(result.steps[0].start, 0);
+    assert.equal(result.steps[1].start, 50);
+    assert.equal(result.endState.availableFlips['Power Spike'], undefined);
+    assert.equal(result.endState.ammo['Power Spike'], undefined);
+    assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
+});
+
+test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
+    const result = simulateSequence(
+        ['Power Spike', 'Power Spike', 'Mantra of Pain', 'Power Spike'],
+        defaultSimulationConfig({ specialization: 'Core' }),
+    );
+    assert.deepEqual(
+        result.steps.map(step => step.skill),
+        ['Power Spike', 'Power Spike', 'Mantra of Pain', 'Power Spike'],
+    );
+    assert.ok(result.endState.availableFlips['Power Spike']);
+    assert.equal(result.endState.availableFlips['Power Spike'].persistent, true);
+    assert.deepEqual(
+        {
+            charges: result.endState.ammo['Power Spike'].charges,
+            maximum: result.endState.ammo['Power Spike'].maximum,
+        },
+        { charges: 1, maximum: 2 },
+    );
+});
+
+test('Power Spike records its strike damage', () => {
+    const result = simulateSequence(
+        ['Power Spike'],
+        defaultSimulationConfig({ specialization: 'Core' }),
+    );
+    assert.ok(result.breakdown.some(entry =>
+        entry.name === 'Power Spike' && entry.strikeDamage > 0));
+});
+
+test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulated', () => {
+    const result = simulateSequence(
+        ['Power Spike', 'Power Spike', 'Mantra of Pain', { name: 'Power Spike', offset: 100 }],
+        defaultSimulationConfig({ specialization: 'Core' }),
+    );
+    const woven = result.steps.find(step => step.ri === 3);
+    assert.equal(woven.invalid, true);
+    // Only the two opener spikes are simulated; the woven one is skipped, so the
+    // refilled mantra keeps both charges.
+    assert.equal(
+        result.steps.filter(step => step.skill === 'Power Spike' && !step.invalid).length,
+        2,
+    );
+    assert.equal(result.endState.availableFlips['Power Spike'].persistent, true);
+    assert.equal(result.endState.ammo['Power Spike'].charges, 2);
+    assert.match(result.warnings.at(-1), /Mantra of Pain is still channeling/);
+});
+
+test('Power Spike stays invalid even when another instant is chained into the channel first', () => {
+    // Weaving an instant (Blink) into the channel and then Power Spike after it
+    // must still be caught: the flip is not armed until the channel completes,
+    // regardless of the immediately preceding command.
+    const result = simulateSequence(
+        [
+            'Power Spike', 'Power Spike', 'Mantra of Pain',
+            { name: 'Blink', offset: 100 },
+            { name: 'Power Spike', offset: 100 },
+        ],
+        defaultSimulationConfig({ specialization: 'Core' }),
+    );
+    const woven = result.steps.find(step => step.ri === 4);
+    assert.equal(woven.invalid, true);
+    assert.equal(
+        result.steps.filter(step => step.skill === 'Power Spike' && !step.invalid).length,
+        2,
+    );
+    assert.equal(result.endState.ammo['Power Spike'].charges, 2);
+});
+
 test('Illusionary Reversion refunds one clone only after shattering three', () => {
     const config = defaultSimulationConfig({
         specialization: 'Chronomancer',
@@ -1733,6 +1863,224 @@ test('Signet of the Ether resets every phantasm skill cooldown', () => {
     assert.equal(result.steps.length, 5);
     assert.ok(Math.abs(result.steps[3].start - result.steps[2].end) <= 1);
     assert.ok(Math.abs(result.steps[4].start - result.steps[3].end) <= 1);
+});
+
+test('Mental Collapse resets Mind the Gap cooldown', () => {
+    const result = simulateSequence(
+        ['Mind the Gap', 'Mental Collapse', 'Mind the Gap'],
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            primaryWeapon: 'Spear',
+            secondaryWeapon: '',
+        }),
+    );
+
+    assert.equal(result.steps.length, 3);
+    assert.ok(Math.abs(result.steps[2].start - result.steps[1].end) <= 1);
+    const resetOnly = simulateSequence(
+        ['Mind the Gap', 'Mental Collapse'],
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            primaryWeapon: 'Spear',
+            secondaryWeapon: '',
+        }),
+    );
+    assert.equal(resetOnly.endState.cooldowns['Mind the Gap'], undefined);
+});
+
+test('Mind the Gap grants 15 seconds of Clarity and displays it as a skill proc', () => {
+    const result = simulateSequence(
+        ['Mind the Gap'],
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            primaryWeapon: 'Spear',
+            secondaryWeapon: '',
+        }),
+    );
+
+    assert.equal(result.endState.clarityRemaining, 15000);
+    assert.ok(result.procSteps.some(proc =>
+        proc.skill === 'Clarity'
+        && proc.type === 'skill_proc'
+        && proc.sourceSkill === 'Mind the Gap'
+        && proc.icon.includes('Clarity.png')
+    ));
+});
+
+test('Mesmer spear skills 3, 4, and 5 consume Clarity', () => {
+    for (const consumer of [
+        'Imaginary Inversion',
+        'Phantasmal Lancer',
+        'Mental Collapse',
+    ]) {
+        const result = simulateSequence(
+            ['Mind the Gap', consumer],
+            defaultSimulationConfig({
+                specialization: 'Virtuoso',
+                primaryWeapon: 'Spear',
+                secondaryWeapon: '',
+            }),
+        );
+        assert.equal(result.endState.clarityRemaining, 0, consumer);
+    }
+});
+
+test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Virtuoso',
+        primaryWeapon: 'Spear',
+        secondaryWeapon: '',
+        initialResource: 0,
+    });
+    const normal = simulateSequence(
+        ['Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
+        config,
+    );
+    const empowered = simulateSequence(
+        ['Mind the Gap', 'Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
+        config,
+    );
+
+    assert.equal(
+        normal.events.find(event =>
+            event.type === 'phantasm_summoned'
+            && event.name === 'Phantasmal Lancer'
+        )?.count,
+        1,
+    );
+    assert.equal(
+        empowered.events.find(event =>
+            event.type === 'phantasm_summoned'
+            && event.name === 'Phantasmal Lancer'
+        )?.count,
+        2,
+    );
+    assert.equal(
+        normal.resolvedEvents.filter(event =>
+            event.type === 'damage'
+            && event.skillName === 'Phantasmal Lancer'
+            && event.source === 'Phantasm'
+        ).length,
+        1,
+    );
+    assert.equal(
+        empowered.resolvedEvents.filter(event =>
+            event.type === 'damage'
+            && event.skillName === 'Phantasmal Lancer'
+            && event.source === 'Phantasm'
+        ).length,
+        2,
+    );
+});
+
+test('Bountiful Blades stocks each Berserker blade independently', () => {
+    const result = simulateSequence(
+        ['Phantasmal Berserker', { name: '__wait', waitMs: 4000 }],
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            selectedTraits: ['Bountiful Blades'],
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: '',
+            initialResource: 0,
+        }),
+    );
+    const conversions = result.events.filter(event =>
+        event.type === 'resource'
+        && event.reason === 'Phantasmal Berserker phantasm conversion'
+    );
+
+    assert.deepEqual(conversions.map(event => event.amount), [1, 1]);
+    assert.ok(Math.abs(conversions[0].at - 3.1201) < 0.00001);
+    assert.ok(Math.abs(conversions[1].at - 3.4401) < 0.00001);
+});
+
+test('blades generated during a bladesong remain stocked afterward', () => {
+    const rotation = [
+        'Phantasmal Disenchanter',
+        'Imaginary Inversion',
+        { name: 'Bladeturn Requiem', offset: 100 },
+        'Mind the Gap',
+        'Phantasmal Lancer',
+        'Power Spike',
+        'Thousand Cuts',
+        'Mental Collapse',
+        'Mind the Gap',
+        'Swap Weapons',
+        'Phantasmal Berserker',
+        'Signet of the Ether',
+        'Phantasmal Berserker',
+        'Mind Stab',
+        'Mirror Blade',
+        'Bladesong Harmony',
+        'Rain of Swords',
+        'Phantasmal Disenchanter',
+        'Bladesong Sorrow',
+    ];
+    const result = simulateSequence(
+        rotation,
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            selectedTraits: ['Bountiful Blades', 'Infinite Forge'],
+            selectedSkills: [
+                'Signet of the Ether',
+                'Phantasmal Disenchanter',
+                'Rain of Swords',
+                'Mantra of Pain',
+                'Thousand Cuts',
+            ],
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: '',
+            weaponSet2Primary: 'Spear',
+            weaponSet2Secondary: '',
+            startingWeaponSet: 2,
+            initialResource: 5,
+        }),
+    );
+    const harmony = result.events.find(event =>
+        event.type === 'marker' && event.name === 'Bladesong Harmony'
+    );
+    const sorrow = result.events.find(event =>
+        event.type === 'marker' && event.name === 'Bladesong Sorrow'
+    );
+    const harmonyAction = result.events.find(event =>
+        event.type === 'action' && event.name === 'Bladesong Harmony'
+    );
+    const harmonySpend = result.events.find(event =>
+        event.type === 'resource'
+        && event.reason === 'profession mechanic'
+        && Math.abs(event.at - harmonyAction.at) < 0.00001
+    );
+
+    assert.equal(result.warnings.length, 0);
+    assert.equal(harmony.detail, '5 blades spent');
+    assert.equal(sorrow.detail, '5 blades spent');
+    assert.equal(harmonySpend.amount, -5);
+});
+
+test('Clarity makes only an empowered Mental Collapse a control skill', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Virtuoso',
+        primaryWeapon: 'Spear',
+        secondaryWeapon: '',
+    });
+    const normal = simulateSequence(['Mental Collapse'], config);
+    const empowered = simulateSequence(['Mind the Gap', 'Mental Collapse'], config);
+    const activeNearExpiry = simulateSequence(
+        ['Mind the Gap', { name: '__wait', waitMs: 14999 }, 'Mental Collapse'],
+        config,
+    );
+    const expired = simulateSequence(
+        ['Mind the Gap', { name: '__wait', waitMs: 15000 }, 'Mental Collapse'],
+        config,
+    );
+    const hasMentalCollapseControl = result => result.events.some(event =>
+        event.type === 'control' && event.skillName === 'Mental Collapse'
+    );
+
+    assert.equal(hasMentalCollapseControl(normal), false);
+    assert.equal(hasMentalCollapseControl(empowered), true);
+    assert.equal(hasMentalCollapseControl(activeNearExpiry), true);
+    assert.equal(hasMentalCollapseControl(expired), false);
 });
 
 test('Signet of the Ether does not generate a clone', () => {

@@ -28,10 +28,40 @@ export function recalculate(app) {
     );
 }
 
+function selectedSkills(app) {
+    return Object.values(app.build.selectedSkills)
+        .map(name => app.skillByName.get(name))
+        .filter(Boolean);
+}
+
+function attributesWithModifierDisabled(app, disabled) {
+    if (!disabled || (disabled.type !== 'Trait' && disabled.type !== 'Boon')) {
+        return app.attributeData;
+    }
+    let build = app.build;
+    if (disabled.type === 'Boon') {
+        const key = disabled.name.toLowerCase();
+        build = {
+            ...app.build,
+            assumptions: {
+                ...app.build.assumptions,
+                [key]: key === 'might' ? 0 : false,
+            },
+        };
+    }
+    return calcAttributes(
+        build,
+        selectedSkills(app),
+        app.attributeWeaponSet || 1,
+        disabled.type === 'Trait' ? disabled.name : null,
+    );
+}
+
 // Transforms UI build into simulation engine config format
 // Aggregates sigils, resolves elite spec, handles clone vs blade/note resource initialization
-export function simulationConfig(app) {
-    const attr = name => app.attributeData.attributes[name]?.final || 0;
+export function simulationConfig(app, disabled = null) {
+    const attributeData = attributesWithModifierDisabled(app, disabled);
+    const attr = name => attributeData.attributes[name]?.final || 0;
     const assumptions = app.build.assumptions;
     const targetSkillActivationsPerSecond = Math.max(
         0,
@@ -39,11 +69,17 @@ export function simulationConfig(app) {
     );
     const specialization = eliteSpecialization(app.build);
     const targetConditions = { ...(assumptions.targetConditions || {}) };
+    if (disabled?.type === 'Target' && disabled.name === 'Vulnerability') {
+        delete targetConditions.Vulnerability;
+    }
     const sigilSets = [1, 2]
         .map(setNumber => weaponSigilsForSet(app.build, setNumber))
+        .map(names => disabled?.type === 'Sigil'
+            ? names.filter(name => name !== disabled.name)
+            : names)
         .map(aggregateSigilSet);
     const displayedConditionDuration =
-        app.attributeData.attributes['Condition Duration'] || {};
+        attributeData.attributes['Condition Duration'] || {};
     const genericConditionDurationBonus = Math.max(
         0,
         Number(displayedConditionDuration.final || 0)
@@ -61,7 +97,7 @@ export function simulationConfig(app) {
                 // Keep it out of the static equipment/consumable bonus.
                 if (
                     name === 'Confusion'
-                    && app.attributeData.activeTraits
+                    && attributeData.activeTraits
                         .some(trait => trait.name === 'Malicious Sorcery')
                 ) {
                     bonus -= 25;
@@ -75,7 +111,7 @@ export function simulationConfig(app) {
     const startsWithClones = getResourceDefinition(specialization).singular === 'clone';
     return {
         specialization,
-        selectedTraits: app.attributeData.activeTraits.map(trait => trait.name),
+        selectedTraits: attributeData.activeTraits.map(trait => trait.name),
         selectedSkills: Object.values(app.build.selectedSkills),
         primaryWeapon: app.build.weapons[0],
         secondaryWeapon: app.build.weapons[1],
@@ -96,10 +132,14 @@ export function simulationConfig(app) {
             conditionDurationBonuses,
         },
         sigilSets,
-        relic: app.build.relic,
+        relic: disabled?.type === 'Relic' ? '' : app.build.relic,
         boons: {
-            might: assumptions.might,
-            fury: assumptions.fury,
+            might: disabled?.type === 'Boon' && disabled.name === 'Might'
+                ? 0
+                : assumptions.might,
+            fury: disabled?.type === 'Boon' && disabled.name === 'Fury'
+                ? false
+                : assumptions.fury,
             quickness: assumptions.quickness,
             alacrity: assumptions.alacrity,
             regeneration: assumptions.regeneration,
@@ -118,9 +158,83 @@ export function simulationConfig(app) {
     };
 }
 
+export function modifierCandidates(app) {
+    const candidates = [];
+    const assumptions = app.build.assumptions;
+    if (Number(assumptions.might) > 0) {
+        candidates.push({ id: 'Boon:Might', type: 'Boon', name: 'Might', label: 'Might' });
+    }
+    if (assumptions.fury) {
+        candidates.push({ id: 'Boon:Fury', type: 'Boon', name: 'Fury', label: 'Fury' });
+    }
+    if (Number(assumptions.targetConditions?.Vulnerability) > 0) {
+        candidates.push({
+            id: 'Target:Vulnerability',
+            type: 'Target',
+            name: 'Vulnerability',
+            label: 'Vulnerability',
+        });
+    }
+    for (const name of new Set((app.build.weaponSigils || []).flat())) {
+        if (name) {
+            candidates.push({
+                id: `Sigil:${name}`,
+                type: 'Sigil',
+                name,
+                label: `Sigil of ${name}`,
+            });
+        }
+    }
+    if (app.build.relic) {
+        candidates.push({
+            id: `Relic:${app.build.relic}`,
+            type: 'Relic',
+            name: app.build.relic,
+            label: `Relic of ${app.build.relic}`,
+        });
+    }
+    for (const trait of app.attributeData.activeTraits || []) {
+        candidates.push({
+            id: `Trait:${trait.name}`,
+            type: 'Trait',
+            name: trait.name,
+            label: trait.name,
+        });
+    }
+    return candidates;
+}
+
+export function computeModifierContributions(app) {
+    const baseConfig = simulationConfig(app);
+    // Use an infinite target for contribution passes so every comparison uses
+    // the same rotation window. Eagle is HP-gated and must retain target HP.
+    if (app.build.relic !== 'Eagle') {
+        baseConfig.target = { ...baseConfig.target, health: 0 };
+    }
+    const baseline = simulateSequence(app.build.rotation, baseConfig);
+    const contributions = [];
+    for (const modifier of modifierCandidates(app)) {
+        const withoutConfig = simulationConfig(app, modifier);
+        if (app.build.relic !== 'Eagle') {
+            withoutConfig.target = { ...withoutConfig.target, health: 0 };
+        }
+        const without = simulateSequence(app.build.rotation, withoutConfig);
+        const dpsIncrease = baseline.dps - without.dps;
+        if (Math.abs(dpsIncrease) < 0.005) continue;
+        contributions.push({
+            id: modifier.id,
+            name: modifier.label,
+            dpsIncrease,
+            pctIncrease: without.dps > 0 ? (dpsIncrease / without.dps) * 100 : 0,
+        });
+    }
+    return contributions.sort((a, b) => b.dpsIncrease - a.dpsIncrease);
+}
+
 // Executes the rotation simulator with current build config
 // Stores results in app.results for display in rotation builder and damage breakdown
 export function runSimulation(app) {
     app.results = simulateSequence(app.build.rotation, simulationConfig(app));
+    app.results.contributions = computeModifierContributions(app);
     return app.results;
 }

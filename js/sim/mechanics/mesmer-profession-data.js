@@ -50,7 +50,6 @@ export const SHATTERS = {
 // neither of which should activate Relic of the Claw.
 export const CONTROL_SKILLS = new Set([
   "Chaos Storm",
-  "Mantra of Distraction",
   "Illusionary Wave",
   "Magic Bullet",
   "Signet of Domination",

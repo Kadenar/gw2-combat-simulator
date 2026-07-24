@@ -45,7 +45,12 @@ function addObject(target, source) {
 // Main attribute calculation pipeline
 // Stages: 1) Gear stats, 2) Rune stats, 3) Food/utility conversions, 4) Trait bonuses, 5) Sigil effects
 // Returns full breakdown with derived attributes and per-source tracking
-export function calcAttributes(build, selectedSkills = [], weaponSet = 1) {
+export function calcAttributes(
+    build,
+    selectedSkills = [],
+    weaponSet = 1,
+    disabledTrait = null,
+) {
     const gear = {};
     const runes = {};
     const foodConverted = {};
@@ -90,7 +95,8 @@ export function calcAttributes(build, selectedSkills = [], weaponSet = 1) {
         add(utility, conversion.to, Math.round((conversionPool[conversion.from] || 0) * rate));
     }
 
-    const activeTraits = getActiveTraits(build.specializations || []);
+    const activeTraits = getActiveTraits(build.specializations || [])
+        .filter(trait => trait.name !== disabledTrait);
     const hasTrait = name => activeTraits.some(trait => trait.name === name);
     const assumptions = build.assumptions || {};
 

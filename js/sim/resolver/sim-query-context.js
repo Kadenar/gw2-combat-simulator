@@ -148,7 +148,7 @@ export function buildResolverQuery(config, traits, events, model) {
       precision: base.precision * fortissimo,
       ferocity:
         (base.ferocity +
-          timedStacks("fencer", time, 8, 10) * 15) *
+          timedStacks("fencer", time, 6, 10) * 15) *
         fortissimo,
       conditionDamage:
         (
@@ -214,7 +214,7 @@ export function buildResolverQuery(config, traits, events, model) {
   };
 
   /**
-   * Calculates common damage multiplier: Vulnerability, Fragility, Vicious Expression, Nomad's Endurance,
+   * Calculates common damage multiplier (applies to strikes and conditions): Vulnerability, Nomad's Endurance,
    * Compounding Power, Phantom Pain, Deadly Blades, Illusionary Membrane, Lute (Fortissimo), Altered Chord.
    * @param {number} time - Timestamp
    * @param {boolean} condition - If true, applies condition-specific modifiers
@@ -226,13 +226,10 @@ export function buildResolverQuery(config, traits, events, model) {
       0,
       25,
     );
+    // Vulnerability increases both strike and condition damage, so it stays in
+    // the common multiplier. Fragility and Vicious Expression are strike-only
+    // and live in strikeMultiplier instead.
     let multiplier = 1 + vulnerability / 100;
-    if (traits.has("Fragility")) {
-      multiplier *= 1 + vulnerability * 0.005;
-    }
-    if (traits.has("Vicious Expression") && config.target?.boonless) {
-      multiplier *= 1.15;
-    }
     if (traits.has("Nomad's Endurance") && config.boons?.vigor) {
       multiplier *= condition ? 1.05 : 1.1;
     }
@@ -261,7 +258,7 @@ export function buildResolverQuery(config, traits, events, model) {
   };
 
   /**
-   * Calculates strike damage multiplier: common + phantasm bonuses + Mental Anguish + Infinite Forge + Mental Focus.
+   * Calculates strike damage multiplier: common + Fragility + Vicious Expression + phantasm bonuses + Mental Anguish + Infinite Forge + Mental Focus.
    * @param {Object} event - Damage event with source (Player/Clone/Phantasm), blade, shatter, multiplier props
    * @param {number} time - Timestamp
    * @returns {number} Strike multiplier
@@ -271,6 +268,23 @@ export function buildResolverQuery(config, traits, events, model) {
       commonMultiplier(time, false) *
       Number(config.modifiers?.strike || 1) *
       Number(activeSigilSetAt(time).strike || 1);
+    // Fragility: +0.5% strike damage per stack of Vulnerability (on top of the
+    // base 1%/stack from Vulnerability itself). Strike-only and does not affect
+    // phantasm strikes.
+    if (traits.has("Fragility") && event.source !== "Phantasm") {
+      const vulnerability = clamp(
+        permanentTargetConditionStacks(config, "Vulnerability"),
+        0,
+        25,
+      );
+      multiplier *= 1 + vulnerability * 0.005;
+    }
+    // Vicious Expression: +10% strike damage for you and your illusions, further
+    // increased by +15% against foes without boons. Strike-only.
+    if (traits.has("Vicious Expression")) {
+      multiplier *= 1.1;
+      if (config.target?.boonless) multiplier *= 1.15;
+    }
     if (event.source === "Phantasm") {
       if (traits.has("Empowered Illusions")) multiplier *= 1.15;
       if (traits.has("Phantasmal Force")) {

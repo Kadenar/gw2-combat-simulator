@@ -27,5 +27,6 @@ export function createSchedulerState({
     sharperImagesProgress: 0,
     hasExplicitCombatStart: false,
     combatStartTime: 0,
+    clarityUntil: 0,
   };
 }

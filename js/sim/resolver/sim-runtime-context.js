@@ -57,7 +57,7 @@ export function createRuntimeContext({
       severanceUntil: 0,
     },
 
-    recordProc(type, name, at, sourceSkill = "", detail = "") {
+    recordProc(type, name, at, sourceSkill = "", detail = "", icon = "") {
       const start = Math.round(at * 1000);
       const key = `${type}|${name}|${start}|${sourceSkill}`;
       if (this.procKeys.has(key)) return;
@@ -68,6 +68,7 @@ export function createRuntimeContext({
         skill: name,
         sourceSkill,
         detail,
+        icon,
         start,
         end: start,
       });

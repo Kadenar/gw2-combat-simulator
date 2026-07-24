@@ -590,6 +590,44 @@ export function simulateSequence(rotation, userConfig = {}) {
       continue;
     }
 
+    // A concurrent ("weave") cast overlaps the previous command's cast window.
+    // An ammo mantra's flip (Power Spike) is only armed once its parent mantra's
+    // channel finishes, so weaving it before that arm time — however many instant
+    // skills are chained into the channel first — would display it before it is
+    // castable. Detect that against the flip's actual arm time (not just the
+    // preceding skill) and record it as invalid without simulating it.
+    const concurrentWeave =
+      item.offset != null && ri > 0 && Number(skill.activation || 0) === 0;
+    if (concurrentWeave && skill.flipParent && skill.ammo) {
+      const flipState = scheduler.state.availableFlips.get(skill.name);
+      const displayStart =
+        previousDisplayStart + Math.max(1, Number(item.offset)) / 1000;
+      const armedInTime =
+        flipState && displayStart >= (flipState.availableAt || 0) - EPSILON;
+      if (!armedInTime) {
+        const startMs = Math.round(displayStart * 1000);
+        steps.push({
+          ri,
+          skill: skill.name,
+          start: startMs,
+          end: startMs,
+          actualStart: startMs,
+          fullCastMs: 0,
+          interrupted: false,
+          invalid: true,
+          invalidReason: flipState
+            ? `${skill.name} cannot be queued while ${skill.flipParent} is channeling.`
+            : `${skill.name} is unavailable — channel ${skill.flipParent} first.`,
+        });
+        scheduler.warnings.push(
+          flipState
+            ? `${skill.name} skipped: ${skill.flipParent} is still channeling.`
+            : `${skill.name} skipped: ${skill.flipParent} must be channeled first.`,
+        );
+        continue;
+      }
+    }
+
     const actionCount = scheduler.events.length;
     const beforeCastTime = scheduler.state.time;
     const pendingBeforeCast = new Set(scheduler.state.pendingResources);
@@ -774,10 +812,16 @@ export function simulateSequence(rotation, userConfig = {}) {
   const availableFlips = {};
   for (const [name, flip] of scheduler.state.availableFlips) {
     if (flip.expiresAt < endTime - EPSILON) continue;
+    // Ammo mantras (Power Spike) stay armed until emptied, so they have no
+    // finite expiry; mark them persistent and leave the timers null.
+    const persistent = !Number.isFinite(flip.expiresAt);
     availableFlips[name] = {
       availableAt: Math.round(flip.availableAt * 1000),
-      expiresAt: Math.round(flip.expiresAt * 1000),
-      remaining: Math.max(0, Math.round((flip.expiresAt - endTime) * 1000)),
+      expiresAt: persistent ? null : Math.round(flip.expiresAt * 1000),
+      remaining: persistent
+        ? null
+        : Math.max(0, Math.round((flip.expiresAt - endTime) * 1000)),
+      persistent,
     };
   }
   const autoattackChains = Object.fromEntries(
@@ -797,6 +841,10 @@ export function simulateSequence(rotation, userConfig = {}) {
       ammo,
       resource,
       resourceDefinition,
+      clarityRemaining: Math.max(
+        0,
+        Math.round((scheduler.state.clarityUntil - endTime) * 1000),
+      ),
       activeWeaponSet: scheduler.state.activeWeaponSet,
       counterspellAvailable: scheduler.state.counterspellAvailable,
       availableFlips,

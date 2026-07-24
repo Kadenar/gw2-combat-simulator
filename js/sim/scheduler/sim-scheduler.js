@@ -4,6 +4,15 @@ import { createSchedulerEventFactory } from "./sim-scheduler-events.js";
 import { createSchedulerIntentController } from "./sim-scheduler-intents.js";
 import { createSchedulerState } from "./sim-scheduler-state.js";
 
+const CLARITY_DURATION = 15;
+const CLARITY_ICON =
+  "https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png";
+const CLARITY_CONSUMERS = new Set([
+  "Imaginary Inversion",
+  "Phantasmal Lancer",
+  "Mental Collapse",
+]);
+
 /**
  * Main simulation scheduler: orchestrates combat state, action timing, clone attacks, effects.
  * Two-phase pipeline: 1) Player actions via cast(), 2) Clone/phantasm attacks are sequenced.
@@ -205,9 +214,11 @@ export function createScheduler(config, traits, horizon, model) {
     queueResources,
   });
 
-  /** Calculates max ammo charges for a skill (e.g., Split Second with Shatter Storm = 2). */
-  const ammoMaximum = (skill) =>
-    skill.name === "Split Second" && traits.has("Shatter Storm") ? 2 : 0;
+  /** Calculates max ammo charges for a skill (e.g., Split Second with Shatter Storm = 2, Power Spike = 2). */
+  const ammoMaximum = (skill) => {
+    if (skill.name === "Split Second" && traits.has("Shatter Storm")) return 2;
+    return Number(skill.ammo || 0);
+  };
 
   /** Creates or retrieves ammo state for a skill, initializing with max charges. */
   const ensureAmmo = (skill) => {
@@ -541,6 +552,12 @@ export function createScheduler(config, traits, horizon, model) {
    */
   const handleGenericSkill = (skill, at, castStart = at) => {
     const useCount = state.skillUses.get(skill.id) || 1;
+    const clarityConsumed =
+      CLARITY_CONSUMERS.has(skill.name) &&
+      state.clarityUntil > castStart;
+    if (CLARITY_CONSUMERS.has(skill.name)) {
+      state.clarityUntil = 0;
+    }
     const pulseCount = Math.max(
       1,
       Math.trunc(Number(skill.pulseCount || 1)),
@@ -558,8 +575,16 @@ export function createScheduler(config, traits, horizon, model) {
       resourceDefinition.singular === "clone" &&
       currentResource() >= resourceDefinition.maximum;
     const isPhantasm = skill.resource?.mode === "phantasm";
+    // Bountiful Blades: Phantasmal Berserker summons an additional berserker
+    // (2 total), but each berserker deals 33% less damage. Net phantasm damage
+    // is 2 * 0.67 = 1.34x a single berserker.
+    const bountifulBerserker =
+      skill.name === "Phantasmal Berserker" && traits.has("Bountiful Blades");
+    const bountifulBerserkerDamage = bountifulBerserker ? 0.67 : 1;
     const phantasmCount = isPhantasm
-      ? Number(skill.resource?.count || 1)
+      ? Number(skill.resource?.count || 1) *
+        (skill.name === "Phantasmal Lancer" && clarityConsumed ? 2 : 1) *
+        (bountifulBerserker ? 2 : 1)
       : 1;
     const phantasmName = PHANTASM_NAME_BY_SKILL[skill.name] || skill.name;
     const phantasmTiming = PHANTASM_ATTACK_TIMINGS[phantasmName];
@@ -580,10 +605,16 @@ export function createScheduler(config, traits, horizon, model) {
     const phantasmConversionAt = hasChronophantasma
       ? phantasmEndpoint(phantasmTiming?.chronophantasmaSpawn)
       : phantasmSpawnAt;
+    const virtuosoBladeHits =
+      resourceDefinition.singular === "blade"
+      && !hasChronophantasma
+      && Array.isArray(phantasmTiming?.virtuosoBladeHits)
+        ? phantasmTiming.virtuosoBladeHits
+        : null;
     let chronophantasmaProc = false;
 
     if (isPhantasm) {
-      const count = Number(skill.resource?.count || 1);
+      const count = phantasmCount;
       if (traits.has("Compounding Power")) {
         markCompounding(at, count);
         addTraitProc(
@@ -646,7 +677,9 @@ export function createScheduler(config, traits, horizon, model) {
           ? {
               ...selectedGroup,
               coefficient:
-                Number(selectedGroup.coefficient || 0) * phantasmCount,
+                Number(selectedGroup.coefficient || 0)
+                * phantasmCount
+                * bountifulBerserkerDamage,
               hits: Number(selectedGroup.hits || 1) * phantasmCount,
             }
           : selectedGroup;
@@ -753,13 +786,37 @@ export function createScheduler(config, traits, horizon, model) {
         skill.weapon || activePrimaryWeapon(),
         skill.name,
       );
+    } else if (skill.resource?.mode === "phantasm" && virtuosoBladeHits) {
+      for (let index = 0; index < phantasmCount; index += 1) {
+        const measuredOffset =
+          virtuosoBladeHits[Math.min(index, virtuosoBladeHits.length - 1)];
+        queueResources(
+          phantasmEndpoint(measuredOffset) + EPSILON,
+          1,
+          null,
+          `${skill.name} phantasm conversion`,
+        );
+      }
     } else if (skill.resource?.mode === "phantasm") {
       queueResources(
         phantasmConversionAt + EPSILON,
-        skill.resource.count,
+        phantasmCount,
         null,
         `${skill.name} phantasm conversion`,
       );
+    }
+
+    if (skill.name === "Mind the Gap") {
+      state.clarityUntil = at + CLARITY_DURATION;
+      addEvent({
+        type: "proc",
+        procType: "skill",
+        at,
+        name: "Clarity",
+        sourceSkill: skill.name,
+        detail: "Spear skills 3-5 empowered for 15s",
+        icon: CLARITY_ICON,
+      });
     }
 
     if (skill.name === "Signet of the Ether") {
@@ -774,6 +831,19 @@ export function createScheduler(config, traits, horizon, model) {
         name: "Signet of the Ether",
         detail: "Phantasm skill cooldowns reset",
       });
+    }
+
+    if (skill.name === "Mental Collapse") {
+      const mindTheGap = skillsByName.get("Mind the Gap");
+      if (mindTheGap) {
+        state.cooldowns.delete(mindTheGap.id);
+        addEvent({
+          type: "marker",
+          at,
+          name: "Mental Collapse",
+          detail: "Mind the Gap cooldown reset",
+        });
+      }
     }
 
     if (
@@ -793,10 +863,11 @@ export function createScheduler(config, traits, horizon, model) {
             0,
           ),
         ),
-        duration: 8,
+        duration: 6,
       });
       addTraitProc("Fencer's Finesse", at + EPSILON, skill.name);
     }
+    return clarityConsumed;
   };
 
   /** Initializes scheduler: sets starting weapon set, initial resources, Split Second ammo. */
@@ -813,6 +884,17 @@ export function createScheduler(config, traits, horizon, model) {
     gainResources(0, initial, config.primaryWeapon, "initial");
     const splitSecond = skillsByName.get("Split Second");
     if (splitSecond) ensureAmmo(splitSecond);
+    // Mantras are pre-channeled on the bench: arm their ammo-based flips (e.g.
+    // Power Spike) from the opening with a full set of charges.
+    for (const skill of allSkills) {
+      if (skill.armedAtStart && skill.flipParent && ammoMaximum(skill)) {
+        state.availableFlips.set(skill.name, {
+          availableAt: 0,
+          expiresAt: Infinity,
+        });
+        ensureAmmo(skill);
+      }
+    }
   };
 
   /**
@@ -898,6 +980,14 @@ export function createScheduler(config, traits, horizon, model) {
     );
     const activation = baseActivation / quickness;
     const end = Math.min(horizon, start + Math.max(0.05, activation));
+    // Shatters consume their clones/blades when the cast begins. Keep the
+    // amount for damage resolution at cast completion so resources generated
+    // during a bladesong are not incorrectly fired by that same bladesong.
+    const shatterSpent =
+      SHATTERS[skill.name]
+      && SHATTERS[skill.name].kind !== "continuum"
+        ? consumeResources(start)
+        : null;
     state.time = end;
     advanceTo(end);
     state.skillUses.set(skill.id, (state.skillUses.get(skill.id) || 0) + 1);
@@ -953,18 +1043,29 @@ export function createScheduler(config, traits, horizon, model) {
       return true;
     }
 
+    let clarityConsumed = false;
     if (skill.name === "Continuum Split") {
       handleContinuumSplit(skill, end);
     } else if (SHATTERS[skill.name]) {
-      handleShatter(skill, end);
+      handleShatter(skill, end, shatterSpent);
     } else if (INSTRUMENTS[skill.name]) {
       handleInstrument(skill, end);
     } else if (skill.name === "Crescendo") {
       handleCrescendo(skill, end);
     } else {
-      handleGenericSkill(skill, end, start);
+      clarityConsumed = handleGenericSkill(skill, end, start);
       const armedFlip = flipSkillsByParent.get(skill.name);
-      if (armedFlip) {
+      if (armedFlip && ammoMaximum(armedFlip)) {
+        // Ammo mantra (e.g. Mantra of Pain → Power Spike): re-channeling refills
+        // every charge and keeps the flip available until it is emptied again.
+        state.availableFlips.set(armedFlip.name, {
+          availableAt: end,
+          expiresAt: Infinity,
+        });
+        state.ammo.delete(armedFlip.id);
+        state.cooldowns.delete(armedFlip.id);
+        ensureAmmo(armedFlip);
+      } else if (armedFlip) {
         const flip = {
           availableAt: start + Number(armedFlip.flipDelay || 0),
           expiresAt: start + Number(armedFlip.flipDuration || 0),
@@ -977,7 +1078,18 @@ export function createScheduler(config, traits, horizon, model) {
         }
       }
       if (skill.flipParent) {
-        state.availableFlips.delete(skill.name);
+        const flipAmmo = state.ammo.get(skill.id);
+        if (flipAmmo && flipAmmo.maximum) {
+          // Keep an ammo flip available while charges remain; once the last one
+          // is spent it reverts to its parent mantra (must be re-channeled).
+          if (flipAmmo.charges <= 0) {
+            state.availableFlips.delete(skill.name);
+            state.ammo.delete(skill.id);
+            state.cooldowns.delete(skill.id);
+          }
+        } else {
+          state.availableFlips.delete(skill.name);
+        }
         if (skill.name === "Counterspell") {
           state.counterspellAvailable = false;
         }
@@ -997,7 +1109,10 @@ export function createScheduler(config, traits, horizon, model) {
         }
       }
     }
-    if (CONTROL_SKILLS.has(skill.name)) {
+    if (
+      CONTROL_SKILLS.has(skill.name) ||
+      (skill.name === "Mental Collapse" && clarityConsumed)
+    ) {
       addEvent({
         type: "control",
         at: end,

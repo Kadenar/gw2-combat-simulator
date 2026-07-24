@@ -103,13 +103,16 @@ export function handleRelicsAfterHit(ctx, event, skill) {
     && event.source === "Player"
     && Number(skill?.cooldown || 0) >= 20
   ) {
+    const wasActive = ctx.relic.buffUntil > event.at;
     ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 6);
-    ctx.recordProc(
-      "relic",
-      "Relic of Fireworks",
-      event.at,
-      event.skillName,
-    );
+    if (!wasActive) {
+      ctx.recordProc(
+        "relic",
+        "Relic of Fireworks",
+        event.at,
+        event.skillName,
+      );
+    }
   }
 }
 
@@ -159,8 +162,11 @@ function maybeTriggerAkeem(
  */
 export function handleControlRelics(ctx, event, conditionHelpers) {
   if (ctx.config.relic === "Claw") {
+    const wasActive = ctx.relic.buffUntil > event.at;
     ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 8);
-    ctx.recordProc("relic", "Relic of the Claw", event.at, event.skillName);
+    if (!wasActive) {
+      ctx.recordProc("relic", "Relic of the Claw", event.at, event.skillName);
+    }
   }
   maybeTriggerAkeem(ctx, event, conditionHelpers);
 }

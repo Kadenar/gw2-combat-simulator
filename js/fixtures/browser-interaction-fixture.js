@@ -10,6 +10,29 @@ const assert = (condition, message) => {
 const icon = (document, name) =>
     [...document.querySelectorAll('.pal-skill')].find(element => element.dataset.skill === name);
 
+const dragEvent = (window, type, dataTransfer, options = {}) => {
+    const event = new window.MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: options.clientX || 0,
+    });
+    Object.defineProperty(event, 'dataTransfer', { value: dataTransfer });
+    return event;
+};
+
+const dataTransfer = () => {
+    const values = new Map();
+    return {
+        effectAllowed: 'none',
+        setData(type, value) {
+            values.set(type, String(value));
+        },
+        getData(type) {
+            return values.get(type) || '';
+        },
+    };
+};
+
 frame.addEventListener('load', () => {
     let app;
     let originalBuild;
@@ -77,6 +100,49 @@ frame.addEventListener('load', () => {
             weaponRows[0].querySelector('.rot-row-label').textContent.includes('W1')
                 && weaponRows[1].querySelector('.rot-row-label').textContent.includes('W2'),
             'weapon timeline rows do not identify their weapon sets',
+        );
+
+        app.build.rotation = ['Bladecall', 'Mirror Blade', 'Mind Spike'];
+        app.changed(false);
+        let timelineSkills = [...document.querySelectorAll('#rotation-timeline .rot-skill')];
+        const movedSkill = timelineSkills[0];
+        const dropTarget = timelineSkills[2];
+        const reorderTransfer = dataTransfer();
+        movedSkill.dispatchEvent(dragEvent(window, 'dragstart', reorderTransfer));
+        assert(movedSkill.classList.contains('dragging'), 'dragged timeline skill is not styled');
+        const targetRect = dropTarget.getBoundingClientRect();
+        dropTarget.dispatchEvent(dragEvent(window, 'dragover', reorderTransfer, {
+            clientX: targetRect.right + 1,
+        }));
+        assert(
+            dropTarget.classList.contains('drag-insert-after'),
+            'timeline does not show an after-insertion marker',
+        );
+        dropTarget.dispatchEvent(dragEvent(window, 'drop', reorderTransfer, {
+            clientX: targetRect.right + 1,
+        }));
+        movedSkill.dispatchEvent(dragEvent(window, 'dragend', reorderTransfer));
+        assert(
+            app.build.rotation.join('|') === 'Mirror Blade|Mind Spike|Bladecall',
+            'forward timeline drag reordered to the wrong index',
+        );
+
+        app.build.rotation = [];
+        app.changed(false);
+        const paletteSkill = icon(document, 'Bladecall');
+        const paletteTransfer = dataTransfer();
+        paletteSkill.dispatchEvent(dragEvent(window, 'dragstart', paletteTransfer));
+        const emptyTimeline = document.getElementById('rotation-timeline');
+        emptyTimeline.dispatchEvent(dragEvent(window, 'dragover', paletteTransfer));
+        assert(
+            emptyTimeline.classList.contains('drag-over-empty'),
+            'empty timeline does not show its drop target',
+        );
+        emptyTimeline.dispatchEvent(dragEvent(window, 'drop', paletteTransfer));
+        paletteSkill.dispatchEvent(dragEvent(window, 'dragend', paletteTransfer));
+        assert(
+            app.build.rotation.length === 1 && app.build.rotation[0] === 'Bladecall',
+            'palette drag did not insert into the empty timeline',
         );
 
         app.build.rotation = [];
@@ -231,7 +297,7 @@ frame.addEventListener('load', () => {
         assert(!app.results.endState.continuumActive, 'Continuum Shift did not end the split');
 
         output.dataset.status = 'passed';
-        output.textContent = 'PASSED: clone display, Continuum Shift, reporting tables/charts, action icons, weapons, cooldowns, and Shift+click';
+        output.textContent = 'PASSED: drag/drop, clone display, Continuum Shift, reporting tables/charts, action icons, weapons, cooldowns, and Shift+click';
     } catch (error) {
         output.dataset.status = 'failed';
         output.textContent = `FAILED: ${error.stack}`;

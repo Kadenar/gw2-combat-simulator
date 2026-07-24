@@ -19,7 +19,7 @@ test('catalog contains every Mesmer specialization and trait', () => {
         ['Domination', 'Dueling', 'Chaos', 'Inspiration', 'Illusions', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'],
     );
     assert.equal(TRAITS.length, 108);
-    assert.equal(SKILLS.length, 127);
+    assert.equal(SKILLS.length, 118);
 });
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
@@ -60,10 +60,8 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
             'Phantasmal Mage',
             'Phantasmal Warlock',
             'Phantasmal Berserker',
-            'Phantasmal Mariner',
             'Phantasmal Disenchanter',
             'Phantasmal Warden',
-            'Phantasmal Whaler',
             'Phantasmal Defender',
             'Echo of Memory',
             'Phantasmal Sharpshooter',
@@ -96,12 +94,10 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
         'Phantasmal Disenchanter': [0.76, 1.15, 1.84, 4.04, 4.72],
         'Phantasmal Duelist': [0.54, 2.4, 2.88, 6.44, 7.04],
         'Phantasmal Mage': [0.8, 2.27, 2.52, 5.32, 5.56],
-        'Phantasmal Mariner': [0.67, 1.842, 2.56, 5.64, 6.36],
         'Phantasmal Rogue': [0.61, 1.2, 2, 4.04, 4.76],
         'Phantasmal Swordsman': [0.86, 2.48, 3.6, 7.12, 8.27],
         'Phantasmal Warden': [0.46, 5.04, 7.24, 13.2, 15.32],
         'Phantasmal Warlock': [0.78, 2.96, 4.24, 8.56, 9.84],
-        'Phantasmal Whaler': [0.95, 2.04, 3.16, 6.24, 7.32],
     };
 
     for (const [skillName, values] of Object.entries(expected)) {
@@ -174,6 +170,7 @@ test('requested rifle, focus, and sword sequence flips are cataloged', () => {
             .map(skill => [skill.name, skill.flipParent]),
         [
             ['Counterspell', 'Illusionary Counter'],
+            ['Power Spike', 'Mantra of Pain'],
             ['Dimensional Aperture', 'Singularity Shot'],
             ['Abstraction', 'Inspiring Imagery'],
             ['Into the Void', 'Temporal Curtain'],

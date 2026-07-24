@@ -335,6 +335,36 @@ export const PSEUDO_SKILLS = [
     flipDuration: 2,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Counterspell",
   },
+  {
+    // Ammo-based flip of Mantra of Pain. Unlike the time-window flips above,
+    // Power Spike is armed from the opening (mantras are pre-channeled on the
+    // bench) with two charges, recharges one charge every 10 seconds while any
+    // charge remains, and reverts to Mantra of Pain once both are spent — the
+    // mantra must be re-channeled to refill it.
+    id: 10212,
+    name: "Power Spike",
+    description:
+      "Mantra. Damage your target. Opens the bench with two charges and reverts to Mantra of Pain once both are spent.",
+    icon:
+      "https://render.guildwars2.com/file/3519C5C770CCEAF92926D9495999E1F8A23D5AF3/103743.png",
+    type: "Utility",
+    weapon: "",
+    slot: "Utility",
+    specialization: "",
+    environment: "Terrestrial",
+    activation: 0,
+    cooldown: 10,
+    damage: [
+      { coefficient: 1.33, hits: 1, label: "Damage", source: "Player" },
+    ],
+    conditions: [],
+    resource: null,
+    blade: false,
+    flipParent: "Mantra of Pain",
+    ammo: 2,
+    armedAtStart: true,
+    wikiUrl: "https://wiki.guildwars2.com/wiki/Power_Spike",
+  },
   ...AUTOATTACK_CHAIN_SKILLS,
   ...FLIP_SKILLS,
   {
@@ -484,24 +514,10 @@ const choiceOverrides = {
   "Phantasmal Berserker": {
     activation: 0.84,
   },
-  "Phantasmal Mariner": {
-    activation: 1.005,
-    damage: [
-      { coefficient: 0.7, hits: 7, label: "Damage", source: "Phantasm", weapon: "phantasm mariner" },
-      { coefficient: 0.4, hits: 1, label: "Final Strike Damage", source: "Phantasm", weapon: "phantasm mariner" },
-      { coefficient: 0.8, hits: 1, label: "Evasive Strike Damage", source: "Phantasm", weapon: "spear" },
-    ],
-  },
   "Phantasmal Warden": {
     activation: 0.69,
     damage: [
       { coefficient: 1.656, hits: 12, label: "Damage", source: "Phantasm", weapon: "phantasm medium" },
-    ],
-  },
-  "Phantasmal Whaler": {
-    activation: 1.425,
-    damage: [
-      { coefficient: 0.6, hits: 4, label: "Damage", source: "Phantasm", weapon: "phantasm mariner" },
     ],
   },
   "Phantasmal Defender": {
@@ -563,7 +579,6 @@ const choiceOverrides = {
       },
     ],
   },
-  "Thousand Cuts": { activation: 0.5 },
   Bladecall: { activation: 0.66 },
 };
 

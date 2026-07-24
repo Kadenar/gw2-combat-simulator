@@ -109,15 +109,14 @@ export function createProfessionActionController({
     }
   };
 
-  const handleShatter = (skill, at) => {
+  const handleShatter = (skill, at, resourcesSpent = null) => {
     const shatter = shatters[skill.name];
     const isBladeSong = shatter.kind.startsWith("blade");
-    const available = currentResource();
-    if (isBladeSong && available < 1) {
+    if (isBladeSong && resourcesSpent == null && currentResource() < 1) {
       warnings.push(`${skill.name} skipped at ${at.toFixed(2)}s: no blades.`);
       return false;
     }
-    const spent = consumeResources(at);
+    const spent = resourcesSpent ?? consumeResources(at);
     const sources = spent + 1;
 
     if (shatter.kind === "core-power") {

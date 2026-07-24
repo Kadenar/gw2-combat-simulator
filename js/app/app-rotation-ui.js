@@ -54,6 +54,123 @@ const esc = value => String(value ?? '')
 
 const seconds = ms => `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
 
+function procFilterKey(proc) {
+    return `${proc.type}:${proc.skill}`;
+}
+
+function procFilterLabel(proc) {
+    const type = proc.type === 'relic_proc'
+        ? 'Relic'
+        : proc.type === 'skill_proc' ? 'Skill' : 'Trait';
+    return `${proc.skill} (${type})`;
+}
+
+function syncProcVisibility(app, procSteps) {
+    const procKeys = new Set(procSteps.map(procFilterKey));
+    const current = app.procVisibility instanceof Set ? app.procVisibility : null;
+    const knownKeys = app.procVisibilityKeys instanceof Set ? app.procVisibilityKeys : null;
+    app.procVisibility = new Set([...procKeys].filter(key =>
+        !knownKeys || !knownKeys.has(key) || current?.has(key),
+    ));
+    app.procVisibilityKeys = procKeys;
+    if (!current) {
+        app.procVisibility = procKeys;
+    }
+    return app.procVisibility;
+}
+
+function clearTimelineDropIndicators(root) {
+    if (!root) return;
+    root.classList.remove('drag-over', 'drag-over-empty', 'drag-insert-before', 'drag-insert-after');
+    root.querySelectorAll('.drag-over, .drag-over-empty, .drag-insert-before, .drag-insert-after')
+        .forEach(element => element.classList.remove(
+            'drag-over',
+            'drag-over-empty',
+            'drag-insert-before',
+            'drag-insert-after',
+        ));
+}
+
+function getSkillDropInsertionIndex(skillElement, clientX) {
+    const index = Number(skillElement.dataset.idx);
+    if (!Number.isInteger(index)) return null;
+    const rect = skillElement.getBoundingClientRect();
+    return clientX < rect.left + rect.width / 2 ? index : index + 1;
+}
+
+function updateSkillDropIndicator(skillElement, clientX) {
+    skillElement.classList.remove('drag-insert-before', 'drag-insert-after');
+    const rect = skillElement.getBoundingClientRect();
+    skillElement.classList.add(
+        clientX < rect.left + rect.width / 2
+            ? 'drag-insert-before'
+            : 'drag-insert-after',
+    );
+}
+
+function rotationItem(app, name, options = {}) {
+    const defaultInterruptMs = app.skillByName.get(name)?.defaultInterruptMs;
+    const resolvedOptions = defaultInterruptMs != null && options.interruptMs == null
+        ? { interruptMs: defaultInterruptMs, ...options }
+        : options;
+    return Object.keys(resolvedOptions).length ? { name, ...resolvedOptions } : name;
+}
+
+function resolvePaletteDropItem(app, name) {
+    if (!name) return null;
+    if (name === '__combat_start'
+        && app.build.rotation.some(entry => (entry.name || entry) === '__combat_start')) {
+        return null;
+    }
+    if (name === '__wait') {
+        const raw = prompt('Wait duration (ms):', '1000');
+        if (raw == null || Number(raw) < 1) return null;
+        return rotationItem(app, name, { waitMs: Math.round(Number(raw)) });
+    }
+    return rotationItem(app, name);
+}
+
+export function moveRotationEntry(rotation, fromIndex, toIndex) {
+    if (!Array.isArray(rotation)
+        || !Number.isInteger(fromIndex)
+        || !Number.isFinite(toIndex)
+        || fromIndex < 0
+        || fromIndex >= rotation.length) {
+        return false;
+    }
+
+    const boundedTarget = Math.max(0, Math.min(toIndex, rotation.length));
+    const insertAt = fromIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
+    if (insertAt === fromIndex) return false;
+
+    const [entry] = rotation.splice(fromIndex, 1);
+    rotation.splice(insertAt, 0, entry);
+    return true;
+}
+
+function applyTimelineDrop(app, insertAt) {
+    const drag = app.dragState;
+    if (!drag) return false;
+    app.dragState = null;
+
+    if (drag.source === 'timeline') {
+        if (!moveRotationEntry(app.build.rotation, drag.index, insertAt)) return false;
+        app.changed(false);
+        return true;
+    }
+
+    if (drag.source === 'palette') {
+        const entry = resolvePaletteDropItem(app, drag.name);
+        if (entry == null) return false;
+        const boundedTarget = Math.max(0, Math.min(insertAt, app.build.rotation.length));
+        app.build.rotation.splice(boundedTarget, 0, entry);
+        app.changed(false);
+        return true;
+    }
+
+    return false;
+}
+
 function uniqueByName(skills) {
     return [...new Map(skills.map(skill => [skill.name, skill])).values()];
 }
@@ -233,6 +350,16 @@ export function renderPalette(app) {
     const selected = Object.values(app.build.selectedSkills)
         .map(name => app.skillByName.get(name))
         .filter(Boolean);
+    // Non-weapon flips (Mantra of Pain → Power Spike) ride alongside their
+    // selected parent so the palette can offer the flip while it is armed.
+    const utilityFlipByParent = new Map(
+        app.skills
+            .filter(skill => skill.flipParent && skill.type !== 'Weapon')
+            .map(skill => [skill.flipParent, skill]));
+    const selectedWithFlips = uniqueByName(selected).flatMap(skill => {
+        const flip = utilityFlipByParent.get(skill.name);
+        return flip ? [skill, flip] : [skill];
+    });
     const actions = PSEUDO_SKILLS.filter(skill =>
         skill.type === 'Action'
         && skill.name !== 'Continuum Shift'
@@ -257,6 +384,24 @@ export function renderPalette(app) {
         }
         return '';
     };
+    // A charged mantra shows its flip (Power Spike); the parent (Mantra of Pain)
+    // stays locked until every charge is spent and the flip reverts.
+    const armedFlipFor = skill => {
+        const flip = utilityFlipByParent.get(skill.name);
+        return flip && availableFlips[flip.name] ? flip : null;
+    };
+    const utilitySkillAvailable = skill => {
+        if (skill.flipParent) return Boolean(availableFlips[skill.name]);
+        return !armedFlipFor(skill);
+    };
+    const utilitySkillUnavailableMessage = skill => {
+        if (skill.flipParent && !availableFlips[skill.name]) {
+            return `Unavailable until ${skill.flipParent} has been used`;
+        }
+        const flip = armedFlipFor(skill);
+        if (flip) return `Unavailable while ${flip.name} has charges`;
+        return '';
+    };
 
     element.innerHTML =
         addGroup(
@@ -278,7 +423,7 @@ export function renderPalette(app) {
             weaponSkillAvailable,
             weaponSkillUnavailableMessage,
         ) +
-        addGroup(app, 'Skill', uniqueByName(selected), '#cbb8ea') +
+        addGroup(app, 'Skill', selectedWithFlips, '#cbb8ea', utilitySkillAvailable, utilitySkillUnavailableMessage) +
         // Actions live on their own row so weapon skills can grow without
         // shoving Dodge/Combat Start/Wait into an awkward wrap.
         '<div class="pal-break"></div>' +
@@ -292,6 +437,8 @@ export function renderPalette(app) {
 
     element.querySelectorAll('.pal-skill').forEach(icon => {
         const name = icon.dataset.skill;
+        const draggable = Boolean(name) && !icon.classList.contains('pal-disabled');
+        icon.setAttribute('draggable', draggable ? 'true' : 'false');
         icon.addEventListener('click', event => {
             if (icon.classList.contains('pal-context-disabled')) return;
             if (name === '__combat_start' && icon.classList.contains('pal-disabled')) return;
@@ -315,8 +462,19 @@ export function renderPalette(app) {
             }
         });
         icon.addEventListener('dragstart', event => {
+            if (!draggable) {
+                event.preventDefault();
+                return;
+            }
+            app.dragState = { source: 'palette', name };
+            icon.classList.add('dragging');
             event.dataTransfer.setData('text/plain', name);
             event.dataTransfer.effectAllowed = 'copy';
+        });
+        icon.addEventListener('dragend', () => {
+            icon.classList.remove('dragging');
+            app.dragState = null;
+            clearTimelineDropIndicators(document.getElementById('rotation-timeline'));
         });
     });
 }
@@ -324,15 +482,23 @@ export function renderPalette(app) {
 export function renderTimeline(app) {
     const element = document.getElementById('rotation-timeline');
     element.ondragover = null;
+    element.ondragleave = null;
     element.ondrop = null;
     if (!app.build.rotation.length) {
         element.innerHTML = '<div class="rot-empty">Click skills above to build rotation</div>';
-        element.ondragover = event => event.preventDefault();
-        element.ondrop = event => {
+        element.ondragover = event => {
+            if (!app.dragState) return;
             event.preventDefault();
-            const name = event.dataTransfer.getData('text/plain');
-            if (!name) return;
-            app.addRotation(name, name === '__wait' ? { waitMs: 1000 } : {});
+            element.classList.add('drag-over-empty');
+        };
+        element.ondragleave = event => {
+            if (event.target === element) element.classList.remove('drag-over-empty');
+        };
+        element.ondrop = event => {
+            if (!app.dragState) return;
+            event.preventDefault();
+            element.classList.remove('drag-over-empty');
+            applyTimelineDrop(app, 0);
         };
         return;
     }
@@ -346,6 +512,7 @@ export function renderTimeline(app) {
             const item = typeof entry === 'string' ? { name: entry } : entry;
             const skill = app.skillByName.get(item.name);
             const step = steps.get(index);
+            const invalid = Boolean(step?.invalid);
             const display = item.name === '__wait' ? 'Wait'
                 : item.name === '__combat_start' ? 'Combat Start' : item.name;
             const icon = item.name === '__wait'
@@ -353,33 +520,44 @@ export function renderTimeline(app) {
                 : item.name === '__combat_start'
                     ? COMBAT_START_ICON
                     : skill?.icon || ACTION_ICONS[skill?.name] || PLACEHOLDER_ICON;
-            const time = step ? `${(step.start / 1000).toFixed(2)}s` : '';
+            const time = step && !invalid ? `${(step.start / 1000).toFixed(2)}s` : '';
+            const titleSuffix = invalid
+                ? `\n${step.invalidReason || 'Not valid here — will not be simulated'}`
+                : step ? `\nCast: ${(step.start / 1000).toFixed(2)}s → ${(step.end / 1000).toFixed(2)}s` : '';
             return `${rowIndex ? '<span class="rot-arrow">→</span>' : ''}
-                <div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}" draggable="true"
-                    data-idx="${index}" title="${esc(display)}${step ? `\nCast: ${(step.start / 1000).toFixed(2)}s → ${(step.end / 1000).toFixed(2)}s` : ''}">
+                <div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}" draggable="true"
+                    data-idx="${index}" title="${esc(display)}${titleSuffix}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
+                    ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
                     ${time ? `<span class="rot-time">${time}</span>` : ''}
                     ${item.offset != null ? `<span class="rot-offset-badge" data-idx="${index}">⊙${item.offset}ms</span>` : ''}
                     ${item.interruptMs != null ? `<span class="rot-gapfill-badge rot-interrupt-badge" data-idx="${index}">✂${item.interruptMs}ms</span>` : ''}
                     ${item.waitMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.waitMs}ms</span>` : ''}
                 </div>`;
         }).join('');
+        const insertAt = row.skills.length ? row.skills.at(-1).index + 1 : 0;
         return `<div class="rot-row" style="--row-color:#9d7bd0">
             <div class="rot-row-label" title="Weapon set ${row.weaponSet}: ${esc(weaponLabel)}">W${row.weaponSet}</div>
-            <div class="rot-row-skills">${skills}</div>
+            <div class="rot-row-skills" data-insert-idx="${insertAt}">${skills}</div>
         </div>`;
     }).join('');
 
     const procColors = {
         relic_proc: '#ddaa33',
         trait_proc: '#77cc77',
+        skill_proc: '#bb88ff',
     };
     const procSteps = [...(app.results?.procSteps || [])]
         .sort((a, b) => a.start - b.start);
     if (procSteps.length) {
+        const procVisibility = syncProcVisibility(app, procSteps);
+        const procOptions = [...new Map(
+            procSteps.map(proc => [procFilterKey(proc), proc]),
+        ).values()].sort((a, b) => procFilterLabel(a).localeCompare(procFilterLabel(b)));
+        const visibleProcCount = procOptions.filter(proc => procVisibility.has(procFilterKey(proc))).length;
         const activeTraits = app.attributeData?.activeTraits || [];
-        const procs = procSteps.map(proc => {
+        const procs = procSteps.filter(proc => procVisibility.has(procFilterKey(proc))).map(proc => {
             const traitIcon = proc.type === 'trait_proc'
                 ? activeTraits.find(trait => trait.name === proc.skill)?.icon
                 : '';
@@ -387,8 +565,10 @@ export function renderTimeline(app) {
                 ? RELIC_ICONS[proc.skill]
                 : '';
             const sourceIcon = app.skillByName.get(proc.sourceSkill)?.icon;
-            const icon = traitIcon || relicIcon || sourceIcon || PLACEHOLDER_ICON;
-            const type = proc.type === 'relic_proc' ? 'Relic' : 'Trait';
+            const icon = proc.icon || traitIcon || relicIcon || sourceIcon || PLACEHOLDER_ICON;
+            const type = proc.type === 'relic_proc'
+                ? 'Relic'
+                : proc.type === 'skill_proc' ? 'Skill' : 'Trait';
             const time = `${(proc.start / 1000).toFixed(2)}s`;
             const detail = [
                 proc.skill,
@@ -403,43 +583,123 @@ export function renderTimeline(app) {
             </div>`;
         }).join('');
         timelineHtml += `<div class="rot-row rot-procs-row">
-            <div class="rot-row-label">Procs</div>
+            <div class="rot-row-label">
+                <details class="proc-filter"${app.procFilterOpen ? ' open' : ''}>
+                    <summary title="Choose which proc types are shown">Procs <span class="proc-filter-count">${visibleProcCount}/${procOptions.length}</span></summary>
+                    <div class="proc-filter-menu">
+                        ${procOptions.map(proc => {
+                            const key = procFilterKey(proc);
+                            return `<label class="proc-filter-option">
+                                <input type="checkbox" data-proc-key="${esc(key)}"${procVisibility.has(key) ? ' checked' : ''}>
+                                <span>${esc(procFilterLabel(proc))}</span>
+                            </label>`;
+                        }).join('')}
+                    </div>
+                </details>
+            </div>
             <div class="rot-row-skills proc-icons-row">${procs}</div>
         </div>`;
     }
     element.innerHTML = timelineHtml;
 
-    element.querySelectorAll('.rot-x').forEach(remove => {
-        remove.addEventListener('click', event => {
+    const procFilter = element.querySelector('.proc-filter');
+    if (procFilter) {
+        procFilter.addEventListener('toggle', () => {
+            app.procFilterOpen = procFilter.open;
+        });
+        procFilter.querySelectorAll('input[data-proc-key]').forEach(input => {
+            input.addEventListener('change', () => {
+                const key = input.dataset.procKey;
+                if (input.checked) app.procVisibility.add(key);
+                else app.procVisibility.delete(key);
+                app.procFilterOpen = true;
+                renderTimeline(app);
+            });
+        });
+    }
+
+    element.querySelectorAll('.rot-skill').forEach(item => {
+        const index = Number(item.dataset.idx);
+        const remove = item.querySelector('.rot-x');
+        remove?.setAttribute('draggable', 'false');
+        remove?.addEventListener('mousedown', event => {
+            event.preventDefault();
             event.stopPropagation();
-            const index = Number(remove.parentElement.dataset.idx);
+        });
+        remove?.addEventListener('dragstart', event => {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+        remove?.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
             if (event.shiftKey) app.build.rotation.splice(index);
             else app.build.rotation.splice(index, 1);
             app.changed(false);
         });
-    });
-    element.querySelectorAll('.rot-skill').forEach(item => {
         item.addEventListener('dragstart', event => {
-            event.dataTransfer.setData('application/x-rotation-index', item.dataset.idx);
+            app.dragState = { source: 'timeline', index };
+            item.classList.add('dragging');
+            event.dataTransfer.setData('text/plain', String(index));
             event.dataTransfer.effectAllowed = 'move';
         });
-        item.addEventListener('dragover', event => event.preventDefault());
-        item.addEventListener('drop', event => {
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            app.dragState = null;
+            clearTimelineDropIndicators(element);
+        });
+        item.addEventListener('dragover', event => {
+            if (!app.dragState) return;
             event.preventDefault();
-            const to = Number(item.dataset.idx);
-            const rawFrom = event.dataTransfer.getData('application/x-rotation-index');
-            if (rawFrom !== '') {
-                const from = Number(rawFrom);
-                const [moved] = app.build.rotation.splice(from, 1);
-                app.build.rotation.splice(to, 0, moved);
-            } else {
-                const name = event.dataTransfer.getData('text/plain');
-                if (!name) return;
-                app.build.rotation.splice(to, 0, name === '__wait' ? { name, waitMs: 1000 } : name);
-            }
-            app.changed(false);
+            clearTimelineDropIndicators(element);
+            updateSkillDropIndicator(item, event.clientX);
+        });
+        item.addEventListener('dragleave', () => {
+            item.classList.remove('drag-insert-before', 'drag-insert-after');
+        });
+        item.addEventListener('drop', event => {
+            if (!app.dragState) return;
+            event.preventDefault();
+            event.stopPropagation();
+            const insertAt = getSkillDropInsertionIndex(item, event.clientX);
+            clearTimelineDropIndicators(element);
+            if (insertAt != null) applyTimelineDrop(app, insertAt);
         });
     });
+    element.querySelectorAll('.rot-row:not(.rot-procs-row) > .rot-row-skills').forEach(row => {
+        row.addEventListener('dragover', event => {
+            if (!app.dragState || event.target.closest('.rot-skill')) return;
+            event.preventDefault();
+            clearTimelineDropIndicators(element);
+            row.classList.add('drag-over');
+        });
+        row.addEventListener('dragleave', event => {
+            if (event.target === row) row.classList.remove('drag-over');
+        });
+        row.addEventListener('drop', event => {
+            if (!app.dragState || event.target.closest('.rot-skill')) return;
+            event.preventDefault();
+            event.stopPropagation();
+            const insertAt = Number(row.dataset.insertIdx);
+            clearTimelineDropIndicators(element);
+            if (Number.isInteger(insertAt)) applyTimelineDrop(app, insertAt);
+        });
+    });
+    element.ondragover = event => {
+        if (!app.dragState || event.target.closest('.rot-row-skills')) return;
+        event.preventDefault();
+        clearTimelineDropIndicators(element);
+        element.classList.add('drag-over-empty');
+    };
+    element.ondragleave = event => {
+        if (event.target === element) element.classList.remove('drag-over-empty');
+    };
+    element.ondrop = event => {
+        if (!app.dragState || event.target.closest('.rot-row-skills')) return;
+        event.preventDefault();
+        clearTimelineDropIndicators(element);
+        applyTimelineDrop(app, app.build.rotation.length);
+    };
     element.querySelectorAll('.rot-offset-badge').forEach(badge => {
         badge.addEventListener('click', event => {
             event.stopPropagation();
@@ -1260,6 +1520,7 @@ export function renderResults(app) {
     const conditions = result.conditionBreakdown || [];
     const series = buildChartSeries(result);
     const number = value => Math.round(Number(value || 0)).toLocaleString();
+    const contributions = result.contributions || [];
 
     const sortIndicator = (col) => {
         if (!app._skillSortCol || app._skillSortCol !== col) return '';
@@ -1300,6 +1561,22 @@ export function renderResults(app) {
         </div>
     </div>` : ''}
     ${chartHtml(series)}
+    ${contributions.length ? `<div class="res-contributions">
+        <h4>Modifier Contributions</h4>
+        <div class="contrib-table">
+            <div class="contrib-hdr">
+                <span>Modifier</span><span>DPS Increase</span><span>% Increase</span>
+            </div>
+            ${contributions.map(contribution => {
+                const sign = contribution.dpsIncrease >= 0 ? '+' : '';
+                return `<div class="contrib-row">
+                    <span class="contrib-name">${esc(contribution.name)}</span>
+                    <span class="contrib-val">${sign}${number(contribution.dpsIncrease)}</span>
+                    <span class="contrib-pct">${sign}${Number(contribution.pctIncrease).toFixed(2)}%</span>
+                </div>`;
+            }).join('')}
+        </div>
+    </div>` : ''}
     ${result.warnings.length ? `<div class="sim-warnings">${result.warnings.map(esc).join('<br>')}</div>` : ''}`;
     bindCharts(element, series);
     app._skillBreakdownState = { skillRows };

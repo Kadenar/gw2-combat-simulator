@@ -1529,44 +1529,6 @@ export const SKILLS = [
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Null_Field"
   },
   {
-    "id": 10204,
-    "name": "Mantra of Distraction",
-    "description": "Mantra. Meditate, charging a spell that will daze your target. Shatter skill 3's recharge time is partially refunded when this spell fully charges.",
-    "icon": "https://render.guildwars2.com/file/D9F87FB1FB2FF7471FC0AAEFB04A1F249F070D04/103738.png",
-    "type": "Utility",
-    "weapon": "",
-    "slot": "Utility",
-    "specialization": "",
-    "environment": "Terrestrial",
-    "activation": 2.25,
-    "cooldown": 12,
-    "damage": [],
-    "conditions": [],
-    "phantasm": false,
-    "resource": null,
-    "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mantra_of_Distraction"
-  },
-  {
-    "id": 10207,
-    "name": "Mantra of Resolve",
-    "description": "Mantra. Meditate, charging a spell that will cure conditions for you and nearby allies. Cure conditions on yourself and nearby allies when this spell is fully charged.",
-    "icon": "https://render.guildwars2.com/file/164A435EA2B0ADCA0BC92F09A254FD04A173DB30/103740.png",
-    "type": "Utility",
-    "weapon": "",
-    "slot": "Utility",
-    "specialization": "",
-    "environment": "Terrestrial",
-    "activation": 2.25,
-    "cooldown": 12,
-    "damage": [],
-    "conditions": [],
-    "phantasm": false,
-    "resource": null,
-    "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mantra_of_Resolve"
-  },
-  {
     "id": 10211,
     "name": "Mantra of Pain",
     "description": "Mantra. Meditate, charging a spell that will damage your target. Grant might to nearby allies when this spell is fully charged.",
@@ -1854,44 +1816,6 @@ export const SKILLS = [
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Signet_of_Inspiration"
-  },
-  {
-    "id": 10237,
-    "name": "Mantra of Concentration",
-    "description": "Mantra. Meditate, charging a spell that will break stuns and grant stability to nearby allies. Grant boons to nearby allies when this spell fully charges.",
-    "icon": "https://render.guildwars2.com/file/61E737065C9CFD372F58E1CD3BA748D6D5A02EF5/103751.png",
-    "type": "Utility",
-    "weapon": "",
-    "slot": "Utility",
-    "specialization": "",
-    "environment": "Terrestrial",
-    "activation": 2.25,
-    "cooldown": 15,
-    "damage": [],
-    "conditions": [],
-    "phantasm": false,
-    "resource": null,
-    "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mantra_of_Concentration"
-  },
-  {
-    "id": 10244,
-    "name": "Illusion of Life",
-    "description": "Manipulation. Give allies Illusion of Life at the target location, allowing them to get up from downed state and keep fighting. Fully revives allies if they kill a foe.",
-    "icon": "https://render.guildwars2.com/file/2D5057DE154D99382F4C6D6E1E6B06CCFEAA7AEF/103754.png",
-    "type": "Utility",
-    "weapon": "",
-    "slot": "Utility",
-    "specialization": "",
-    "environment": "Terrestrial",
-    "activation": 1.25,
-    "cooldown": 75,
-    "damage": [],
-    "conditions": [],
-    "phantasm": false,
-    "resource": null,
-    "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusion_of_Life"
   },
   {
     "id": 10245,
@@ -2358,42 +2282,6 @@ export const SKILLS = [
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Imminent_Voyage"
-  },
-  {
-    "id": 10328,
-    "name": "Phantasmal Whaler",
-    "description": "Phantasm. Cast Siren's Call on nearby foes and create an illusion that confuses foes with a harpoon gun.",
-    "icon": "https://render.guildwars2.com/file/ED0BA8B7AC0F232E383E0F7E26E6E27FEAE9A1F3/103787.png",
-    "type": "Weapon",
-    "weapon": "Trident",
-    "slot": "Weapon_4",
-    "specialization": "",
-    "environment": "Aquatic",
-    "activation": 0.5,
-    "cooldown": 5,
-    "damage": [
-      {
-        "coefficient": 0.6,
-        "hits": 4,
-        "label": "Damage",
-        "source": "Phantasm",
-        "weapon": ""
-      }
-    ],
-    "conditions": [
-      {
-        "name": "confusion",
-        "duration": 6,
-        "stacks": 8
-      }
-    ],
-    "phantasm": true,
-    "resource": {
-      "mode": "phantasm",
-      "count": 1
-    },
-    "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Whaler"
   },
   {
     "id": 10331,
