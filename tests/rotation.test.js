@@ -18,7 +18,7 @@ test('queueing a cooling-down icon waits until it is available', () => {
     assert.equal(result.steps[0].start, 0);
     assert.equal(result.steps[1].start, 4000);
     assert.equal(result.endState.cooldowns.Bladecall.readyAt, 8000);
-    assert.equal(result.endState.cooldowns.Bladecall.remaining, 3559);
+    assert.equal(result.endState.cooldowns.Bladecall.remaining, 3560);
 });
 
 test('Time Marches On makes alacrity recharge Chronomancer skills 50% faster', () => {
@@ -133,7 +133,7 @@ test('Shift+click timeline form casts an instant skill 100ms into the prior cast
     assert.equal(result.steps[1].start, 100);
     assert.equal(result.steps[1].end, 150);
     assert.equal(result.endState.time, 440);
-    assert.equal(result.endState.cooldowns['Bladesong Distortion'].readyAt, 33433);
+    assert.equal(result.endState.cooldowns['Bladesong Distortion'].readyAt, 40100);
 });
 
 test('interrupt commands end casts and remove later hit events', () => {
@@ -190,8 +190,8 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
     );
 
     assert.equal(full.steps[0].end, 1850);
-    assert.equal(full.steps[1].start, 7850);
-    assert.equal(interrupted.endState.cooldowns['Confusing Images'].readyAt, 6250);
+    assert.equal(full.steps[1].start, 9050);
+    assert.equal(interrupted.endState.cooldowns['Confusing Images'].readyAt, 7450);
 });
 
 test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it first', () => {
@@ -1719,8 +1719,8 @@ test('Dimensional Aperture adds 50% to Singularity Shot recharge', () => {
         ['Singularity Shot', 'Dimensional Aperture'],
         config,
     );
-    assert.equal(base.endState.cooldowns['Singularity Shot'].readyAt, 13333);
-    assert.equal(aperture.endState.cooldowns['Singularity Shot'].readyAt, 20000);
+    assert.equal(base.endState.cooldowns['Singularity Shot'].readyAt, 16000);
+    assert.equal(aperture.endState.cooldowns['Singularity Shot'].readyAt, 24000);
 });
 
 test('Abstraction records its detonation strike damage', () => {

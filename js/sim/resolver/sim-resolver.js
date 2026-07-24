@@ -108,7 +108,7 @@ export function resolveScheduledStream({
     events: effectiveEvents,
     resolvedEvents: ctx.resolved.sort((a, b) => a.at - b.at),
     procSteps: ctx.procSteps
-      .filter(step => step.start <= effectiveEnd * 1000 + 0.1)
+      .filter(step => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
       .sort((a, b) => a.start - b.start),
     warnings: [...new Set(scheduler.warnings)],
     casts: [...casts.entries()]
