@@ -1,11 +1,15 @@
 // Shared equipment, upgrade, and consumable data is owned by platform/gw2.
 // Elementalist keeps only its profession-specific weapon and relic options.
+import {
+  FOOD_DATA,
+  RUNE_DATA,
+} from "../../../platform/gw2/gear-data.js";
+
 export {
   BASE_STATS,
   effectiveSlotToGearSlot,
   FOOD_DATA,
   FOOD_GROUPS,
-  FOOD_NAMES,
   GEAR_SLOTS,
   GEAR_STATS,
   getActiveGearSlots,
@@ -15,7 +19,6 @@ export {
   PREFIXES,
   RUNE_DATA,
   RUNE_GROUPS,
-  RUNE_NAMES,
   SIGIL_DATA,
   SIGIL_NAMES,
   UTILITY_CONVERSION_RATES,
@@ -26,6 +29,11 @@ export {
 
 const sortNames = values => [...values].sort((left, right) =>
   left.localeCompare(right));
+
+// Keep derived display lists local so an older cached copy of the shared module
+// remains compatible while a GitHub Pages deployment propagates.
+export const FOOD_NAMES = Object.freeze(sortNames(Object.keys(FOOD_DATA)));
+export const RUNE_NAMES = Object.freeze(sortNames(Object.keys(RUNE_DATA)));
 
 export const WEAPON_DATA = Object.freeze({
   Pistol: { wielding: "mh", weaponStrength: 1000 },
