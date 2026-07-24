@@ -1920,6 +1920,18 @@ header .accent {
     border-radius: var(--radius);
 }
 
+.pal-skill.pal-ambush-active {
+    box-shadow:
+        0 0 0 1px rgba(255, 229, 150, .8),
+        0 0 14px rgba(240, 199, 102, .9);
+    animation: ambush-pulse 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes ambush-pulse {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.25); }
+}
+
 .rotation-timeline.is-empty {
     display: grid;
     place-items: center;

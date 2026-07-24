@@ -33,6 +33,12 @@ const EFFECT_COLORS = {
     'Deadly Blades': '#e38a8a',
     'Altered Chord': '#80bce8',
     "Fencer's Finesse": '#e1c070',
+    'Mirage Cloak': '#d6b46b',
+    Alacrity: '#9069d8',
+    Vigor: '#78bd45',
+    Might: '#d9a441',
+    Fury: '#d65e5e',
+    Regeneration: '#5ebc72',
 };
 const EFFECT_NAMES = {
     compounding: 'Compounding Power',
@@ -41,6 +47,13 @@ const EFFECT_NAMES = {
     'deadly-blades': 'Deadly Blades',
     'altered-chord': 'Altered Chord',
     fencer: "Fencer's Finesse",
+    'mirage-cloak': 'Mirage Cloak',
+    alacrity: 'Alacrity',
+    vigor: 'Vigor',
+    might: 'Might',
+    fury: 'Fury',
+    regeneration: 'Regeneration',
+    'target-vulnerability': 'Vulnerability',
 };
 const EFFECT_STACK_CAPS = {
     'Compounding Power': 5,
@@ -187,6 +200,7 @@ function paletteIcon(app, skill, contextAvailable = true, contextMessage = '') {
     const cd = currentCooldown(app, skill.name);
     const ammo = currentAmmo(app, skill.name);
     const unavailable = cd.remaining > 0 || !contextAvailable;
+    const highlighted = Boolean(skill.ambush) && !unavailable;
     const activation = Number(skill.activation || 0);
     const title = [
         skill.name,
@@ -203,9 +217,9 @@ function paletteIcon(app, skill, contextAvailable = true, contextMessage = '') {
                 : 'Available now',
         skill.description || '',
     ].filter(Boolean).join('\n');
-    return `<div class="pal-skill${unavailable ? ' pal-disabled' : ''}${!contextAvailable ? ' pal-context-disabled' : ''}"
+    return `<div class="pal-skill${unavailable ? ' pal-disabled' : ''}${!contextAvailable ? ' pal-context-disabled' : ''}${highlighted ? ' pal-ambush-active' : ''}"
         data-skill="${esc(skill.name)}" title="${esc(title)}" draggable="${contextAvailable}"
-        style="--att-border:${unavailable ? '#625a73' : '#a88be8'}">
+        style="--att-border:${unavailable ? '#625a73' : highlighted ? '#f0c766' : '#a88be8'}">
         <img src="${esc(skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON)}" alt="" />
         ${cd.remaining ? `<span class="pal-cd">${seconds(cd.remaining)}</span>` : ''}
         ${ammo ? `<span class="pal-charges">${ammo.charges}/${ammo.maximum}</span>` : ''}
@@ -227,6 +241,7 @@ function weaponSkills(app) {
     const twoHanded = app.weaponData[mh]?.wielding === '2h';
     return uniqueByName(app.skills.filter(skill => {
         if (skill.type !== 'Weapon') return false;
+        if (skill.ambush && eliteSpecialization(app.build) !== 'Mirage') return false;
         const number = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
         if (twoHanded) return skill.weapon === mh;
         return (number <= 3 && skill.weapon === mh) || (number >= 4 && skill.weapon === oh);
@@ -367,14 +382,25 @@ export function renderPalette(app) {
     const activeWeaponSet = app.results?.endState?.activeWeaponSet || 1;
     const continuumActive = Boolean(app.results?.endState?.continuumActive);
     const availableFlips = app.results?.endState?.availableFlips || {};
+    const availableAmbush = app.results?.endState?.availableAmbush || null;
     const autoattackChains = app.results?.endState?.autoattackChains || {};
     const weaponSkillAvailable = skill => {
+        if (skill.ambush) return availableAmbush?.name === skill.name;
+        if (availableAmbush && skill.slot === 'Weapon_1') return false;
         if (skill.flipParent && !availableFlips[skill.name]) return false;
         if (!skill.chainRoot) return true;
         const expected = autoattackChains[skill.chainRoot] || skill.chainRoot;
         return skill.name === expected;
     };
     const weaponSkillUnavailableMessage = skill => {
+        if (skill.ambush) {
+            return availableAmbush
+                ? `Current ambush is ${availableAmbush.name}`
+                : 'Gain Mirage Cloak to use this ambush';
+        }
+        if (availableAmbush && skill.slot === 'Weapon_1') {
+            return `${availableAmbush.name} currently replaces weapon skill 1`;
+        }
         if (skill.flipParent && !availableFlips[skill.name]) {
             return `Unavailable until ${skill.flipParent} has been used`;
         }
