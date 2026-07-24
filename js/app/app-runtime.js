@@ -112,6 +112,9 @@ export function simulationConfig(app, disabled = null) {
     return {
         specialization,
         selectedTraits: attributeData.activeTraits.map(trait => trait.name),
+        selectedTraitIds: attributeData.activeTraits
+            .map(trait => trait.id)
+            .filter(id => id != null),
         selectedSkills: Object.values(app.build.selectedSkills),
         primaryWeapon: app.build.weapons[0],
         secondaryWeapon: app.build.weapons[1],

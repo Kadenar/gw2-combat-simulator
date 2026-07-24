@@ -13,15 +13,8 @@ import {
     WEAPON_DATA,
 } from '../data/gear-data.js';
 import { SPECIALIZATIONS } from '../data/mesmer-catalog.js';
-import {
-    AMBUSH_SKILLS,
-    PSEUDO_SKILLS,
-} from '../sim/mechanics/mesmer-skill-overrides.js';
-import {
-    SIMULATOR_SKILLS,
-} from '../sim/mechanics/mesmer-skill-normalization.js';
 import { setWeaponSigil } from '../core/weapon-sigils.js';
-import { getResourceDefinition } from '../sim/simulator.js';
+import { activeProfession } from './composition.js';
 import { createDefaultBuild, loadBuild, replaceBuild, saveBuild } from './app-state.js';
 import { downloadJson, readJsonFile } from './app-io.js';
 import { recalculate, runSimulation, eliteSpecialization } from './app-runtime.js';
@@ -90,14 +83,17 @@ class MesmerApp {
     // Constructor initializes build from storage, loads all skills, sets up data references
     constructor() {
         this.build = loadBuild();
-        this.skills = [
-            ...SIMULATOR_SKILLS,
-            ...AMBUSH_SKILLS,
-            ...PSEUDO_SKILLS,
-        ];
-        this.skillByName = new Map(this.skills.map(skill => [skill.name, skill]));
-        this.weaponData = WEAPON_DATA;
-        this.resourceDefinition = getResourceDefinition;
+        this.profession = activeProfession;
+        this.skills = [...this.profession.catalog.skills];
+        this.skillByName = this.profession.catalog.skillsByName;
+        this.skillById = this.profession.catalog.skillsById;
+        this.weaponData = Object.fromEntries(
+            [...this.profession.catalog.weapons]
+                .filter(name => WEAPON_DATA[name])
+                .map(name => [name, WEAPON_DATA[name]]),
+        );
+        this.resourceDefinition = specialization =>
+            this.profession.ui.resourceView({ specialization });
         this.attributeWeaponSet = 1;
         this.attributeData = null;
         this.results = null;

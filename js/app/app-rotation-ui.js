@@ -1,6 +1,18 @@
-import { MECHANIC_SKILLS } from '../data/mesmer-profession-data.js';
-import { PSEUDO_SKILLS } from '../sim/mechanics/mesmer-skill-overrides.js';
 import { eliteSpecialization } from './app-runtime.js';
+import { resourceDisplayView } from '../platform/ui/resource-display.js';
+import { paletteView } from '../platform/ui/palette.js';
+import { eventLogCsv } from '../platform/ui/event-log.js';
+import {
+    skillBreakdownRows as transformSkillBreakdownRows,
+} from '../platform/ui/result-tables.js';
+import {
+    eventTimelineMarkers,
+    timelineRows,
+} from '../platform/ui/timeline.js';
+import {
+    resultSummaryMetrics as transformResultSummaryMetrics,
+} from '../platform/ui/result-transform.js';
+import { chartValueAt as valueAtChartPoint } from '../platform/ui/charts.js';
 
 const CONCURRENT_OFFSET_MS = 100;
 const PLACEHOLDER_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
@@ -266,15 +278,16 @@ function addGroup(
 }
 
 function activeResourceGroup(app) {
-    const definition = app.results?.endState?.resourceDefinition
-        || app.resourceDefinition(eliteSpecialization(app.build));
+    const definition = resourceDisplayView(app.profession, {
+        specialization: eliteSpecialization(app.build),
+        value: app.results?.endState?.resource ?? app.build.initialResource,
+    });
     const value = Math.max(0, Math.min(
         definition.maximum,
         app.results?.endState?.resource ?? app.build.initialResource,
     ));
-    const cloneResource = definition.singular === 'clone';
-    const label = cloneResource ? 'Cln' : definition.singular.slice(0, 3);
-    const title = `${cloneResource ? 'Active' : 'Current'} ${definition.plural}: ${value}/${definition.maximum}`;
+    const label = definition.shortLabel;
+    const title = `${definition.statusLabel} ${definition.plural}: ${value}/${definition.maximum}`;
     return `<div class="pal-group active-resource-group">
         <div class="pal-label" style="color:#c49cff">${esc(label)}</div>
         <div class="active-resource" data-resource-count="${value}" title="${esc(title)}"
@@ -289,42 +302,23 @@ function activeResourceGroup(app) {
 }
 
 export function timelineWeaponRows(rotation = []) {
-    const rows = [{ weaponSet: 1, skills: [] }];
-    let weaponSet = 1;
-    rotation.forEach((entry, index) => {
-        const item = typeof entry === 'string' ? { name: entry } : entry;
-        rows.at(-1).skills.push({ entry, index });
-        if (item.name === 'Swap Weapons') {
-            weaponSet = weaponSet === 1 ? 2 : 1;
-            if (index < rotation.length - 1) {
-                rows.push({ weaponSet, skills: [] });
-            }
-        }
+    return timelineRows(rotation, {
+        isWeaponSwap(entry) {
+            const item = typeof entry === 'string' ? { name: entry } : entry;
+            return item.name === 'Swap Weapons';
+        },
     });
-    return rows;
 }
 
 export function continuumEndTimelineMarkers(result, rotationLength = 0) {
-    const steps = (result?.steps || [])
-        .filter(step => step.ri >= 0 && !step.invalid)
-        .sort((a, b) => a.start - b.start || a.ri - b.ri);
-    return (result?.events || [])
-        .filter(event =>
+    return eventTimelineMarkers(
+        result,
+        rotationLength,
+        event =>
             event.type === 'marker'
             && event.name === 'Continuum Shift'
-            && event.detail === 'split expired'
-        )
-        .map(event => {
-            const start = Math.round(Number(event.at || 0) * 1000);
-            const nextStep = steps.find(step => step.start >= start);
-            return {
-                insertionIndex: nextStep?.ri ?? rotationLength,
-                skill: event.name,
-                start,
-                detail: event.detail,
-            };
-        })
-        .sort((a, b) => a.start - b.start);
+            && event.detail === 'split expired',
+    );
 }
 
 export function renderStartResource(app) {
@@ -333,8 +327,8 @@ export function renderStartResource(app) {
         || app.resourceDefinition(eliteSpecialization(app.build));
     // Clones only exist in combat, so those specs never open with resource and
     // the start selector is hidden for them. Blades/notes keep their opener.
-    const cloneResource = definition.singular === 'clone';
-    const value = cloneResource
+    const canStartWithResource = definition.canStart !== false;
+    const value = !canStartWithResource
         ? 0
         : Math.max(0, Math.min(definition.maximum, app.build.initialResource));
 
@@ -348,13 +342,13 @@ export function renderStartResource(app) {
         ).join('')}</div>`
         : '';
 
-    const resourceControl = cloneResource
-        ? ''
-        : `<span class="start-att-label">Start ${esc(definition.plural)}:</span>
+    const resourceControl = canStartWithResource
+        ? `<span class="start-att-label">Start ${esc(definition.plural)}:</span>
         <div class="resource-pips">${Array.from({ length: definition.maximum }, (_, index) =>
             `<button class="resource-pip${index < value ? ' active' : ''}" data-count="${index + 1}"
                 title="${index + 1} ${esc(definition.plural)}"></button>`
-        ).join('')}</div>`;
+        ).join('')}</div>`
+        : '';
 
     element.innerHTML = `${weaponControl}${resourceControl}
         <span class="start-att-label end-resource">Active ${esc(definition.plural)}:
@@ -378,8 +372,13 @@ export function renderStartResource(app) {
 export function renderPalette(app) {
     const element = document.getElementById('rotation-palette');
     const spec = eliteSpecialization(app.build);
-    const mechanicNames = MECHANIC_SKILLS[spec] || MECHANIC_SKILLS.Core;
-    const mechanics = mechanicNames.map(name => app.skillByName.get(name)).filter(Boolean);
+    const professionGroups = paletteView(app.profession, {
+        specialization: spec,
+        catalog: app.profession.catalog,
+    });
+    const mechanicIds = professionGroups
+        .find(group => group.id === 'profession')?.skillIds || [];
+    const mechanics = mechanicIds.map(id => app.skillById.get(id)).filter(Boolean);
     if (spec === 'Chronomancer') {
         const shift = app.skillByName.get('Continuum Shift');
         const splitIndex = mechanics.findIndex(skill => skill.name === 'Continuum Split');
@@ -398,7 +397,7 @@ export function renderPalette(app) {
         const flip = utilityFlipByParent.get(skill.name);
         return flip ? [skill, flip] : [skill];
     });
-    const actions = PSEUDO_SKILLS.filter(skill =>
+    const actions = app.skills.filter(skill =>
         skill.type === 'Action'
         && skill.name !== 'Continuum Shift'
         && (!skill.specialization || skill.specialization === spec));
@@ -830,23 +829,7 @@ export function renderTimeline(app) {
 }
 
 export function resultSummaryMetrics(result) {
-    const metrics = [
-        { label: 'Duration', value: `${result.duration.toFixed(2)}s`, className: '' },
-    ];
-    if (result.deathTime != null) {
-        metrics.push({
-            label: 'Kill Time',
-            value: `${Number(result.deathTime).toFixed(2)}s`,
-            className: 'kill-time',
-        });
-    }
-    metrics.push(
-        { label: 'Total Damage', value: Math.round(result.totalDamage).toLocaleString(), className: '' },
-        { label: 'DPS', value: Math.round(result.dps).toLocaleString(), className: 'dps' },
-        { label: 'Strike', value: Math.round(result.strikeDamage).toLocaleString(), className: '' },
-        { label: 'Condition', value: Math.round(result.conditionDamage).toLocaleString(), className: 'condi' },
-    );
-    return metrics;
+    return transformResultSummaryMetrics(result);
 }
 
 const baseBreakdownName = name => String(name || '').split('—')[0].trim();
@@ -1025,15 +1008,7 @@ export function simulationEventLogRows(result, build = null) {
 }
 
 export function simulationEventLogCsv(rows) {
-    const cell = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
-    return [
-        ['Time (s)', 'Type', 'Event'].map(cell).join(','),
-        ...rows.map(row => [
-            Number(row.at || 0).toFixed(3),
-            row.type,
-            row.description,
-        ].map(cell).join(',')),
-    ].join('\r\n');
+    return eventLogCsv(rows);
 }
 
 export function renderEventLog(app) {
@@ -1090,72 +1065,7 @@ export function renderEventLog(app) {
 }
 
 export function skillBreakdownRows(result) {
-    const actionDurations = new Map();
-    const actionCounts = new Map();
-    for (const event of result.events || []) {
-        if (event.type !== 'action') continue;
-        actionDurations.set(
-            event.name,
-            (actionDurations.get(event.name) || 0)
-                + Math.max(0, Number(event.endsAt || event.at) - Number(event.at || 0)),
-        );
-        actionCounts.set(event.name, (actionCounts.get(event.name) || 0) + 1);
-    }
-
-    const resolvedByName = new Map();
-    for (const event of result.resolvedEvents || []) {
-        if (!resolvedByName.has(event.name)) resolvedByName.set(event.name, event);
-    }
-
-    const grouped = new Map();
-    for (const entry of result.breakdown || []) {
-        const sourceEvent = resolvedByName.get(entry.name);
-        const sourceSkill = sourceEvent?.skillName || baseBreakdownName(entry.name);
-        const current = grouped.get(sourceSkill) || {
-            name: sourceSkill,
-            sourceSkill,
-            strike: 0,
-            condition: 0,
-            hits: 0,
-            fallbackCasts: 0,
-        };
-        current.strike += Number(entry.strikeDamage || 0);
-        current.condition += Number(entry.conditionDamage || 0);
-        current.hits += Number(entry.hits || 0);
-        current.fallbackCasts = Math.max(
-            current.fallbackCasts,
-            Number(entry.casts || 0),
-        );
-        grouped.set(sourceSkill, current);
-    }
-
-    return [...grouped.values()]
-        .map(entry => {
-            const casts = Number(
-                actionCounts.get(entry.sourceSkill)
-                ?? entry.fallbackCasts
-                ?? 0,
-            );
-            const total = entry.strike + entry.condition;
-            const castTime = Number(actionDurations.get(entry.sourceSkill) || 0);
-            return {
-                name: entry.name,
-                sourceSkill: entry.sourceSkill,
-                strike: entry.strike,
-                condition: entry.condition,
-                total,
-                dps: total / Math.max(
-                    0.001,
-                    Number(result.dpsWindow ?? result.duration ?? 0),
-                ),
-                average: casts > 0 ? total / casts : null,
-                dct: castTime > 0 ? total / castTime : null,
-                casts,
-                hits: entry.hits,
-            };
-        })
-        .filter(row => row.total > 0)
-        .sort((a, b) => b.total - a.total);
+    return transformSkillBreakdownRows(result);
 }
 
 function effectName(kind) {
@@ -1408,13 +1318,7 @@ function chartHtml(series) {
 }
 
 export function chartValueAt(points, time) {
-    if (!points?.length) return 0;
-    let value = Number(points[0].v || 0);
-    for (const point of points) {
-        if (Number(point.t || 0) > time) break;
-        value = Number(point.v || 0);
-    }
-    return value;
+    return valueAtChartPoint(points, time);
 }
 
 function bindCharts(element, series) {

@@ -6,9 +6,12 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test --test-isolation=none",
-    "check": "node --check js/app/app.js && node --check js/sim/simulator.js && node --check js/sim/scheduler/scheduler.js && node --check js/sim/scheduler/cast-controller.js && node --check js/sim/resolver/resolve-timeline.js && node --check js/sim/resolver/resolver-query.js && node --check js/core/calc-attributes.js"
+    "check": "tsc -p jsconfig.events.json && node scripts/check-js.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }
