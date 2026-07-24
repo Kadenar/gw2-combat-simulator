@@ -772,7 +772,7 @@ header .accent {
 .spec-bg {
     position: absolute;
     inset: 0;
-    background: var(--spec-bg) center center / cover no-repeat;
+    background: var(--spec-bg) center / 100% auto no-repeat;
 }
 
 .spec-content {

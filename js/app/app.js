@@ -34,6 +34,12 @@ const esc = value => String(value ?? '')
 const option = (value, selected, label = value, disabled = false) =>
     `<option value="${esc(value)}"${value === selected ? ' selected' : ''}${disabled ? ' disabled' : ''}>${esc(label)}</option>`;
 
+// Wiki specialization banners are exactly 647×136 px — matching the trait panel width,
+// so they frame edge-to-edge with no vertical crop. The generated catalog ships the raw
+// API backgrounds (1024×256), which get center-cropped to an inconsistent zoomed band.
+// Special:FilePath redirects to the actual file regardless of internal hash paths.
+const SPEC_BG = name => `https://wiki.guildwars2.com/wiki/Special:FilePath/${encodeURIComponent(name)}_specialization.png`;
+
 // Helper to generate grouped select options (for runes, food, etc.)
 const groupedOptions = (groups, selected) => groups.map(group =>
     `<optgroup label="${esc(group.label)}">${group.items.map(item => option(item, selected)).join('')}</optgroup>`
@@ -288,7 +294,7 @@ class MesmerApp {
         container.innerHTML = this.build.specializations.map((selection, lineIndex) => {
             const spec = SPECIALIZATIONS.find(candidate => candidate.name === selection.name) || SPECIALIZATIONS[0];
             const picks = selection.traits.split('-').map(Number);
-            return `<div class="spec-row" style="--spec-bg:url('${esc(spec.background)}')">
+            return `<div class="spec-row" style="--spec-bg:url('${esc(SPEC_BG(spec.name))}')">
                 <div class="spec-bg"></div><div class="spec-content">
                     <div class="spec-header-col">
                         <div class="spec-icon-wrap"><img src="${esc(spec.icon)}" alt=""></div>
