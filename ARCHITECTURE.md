@@ -10,12 +10,24 @@ js/
     ui/            palette/resource/timeline/log/result/chart view models
   professions/
     mesmer/        Mesmer catalog, build schema, resources, rules, simulation
+    elementalist/  Elementalist engine, data, app adapter, and optimizer
   app/             browser composition and persistence adapters
 ```
 
-`js/sim`, `js/core`, and `js/data` contain compatibility exports for the
+`js/sim`, `js/core`, and `js/data` contain Mesmer compatibility exports for the
 pre-refactor public module paths. New code must import the owning platform or
 profession module directly.
+
+The Elementalist scheduler, resolver, data loader, optimizer, and profession
+mechanics remain under its profession directory. Common damage formulas,
+attribute assembly, equipment data, event ordering, file I/O, and UI
+primitives use the platform or shared app layers. Its custom scheduled-stream
+handoff remains profession-owned because it carries Elementalist lookahead and
+runtime state that is not part of the generic event schema.
+
+The shared profession selector routes between the Mesmer and Elementalist
+applications while preserving one visual system and independent persisted
+builds.
 
 ## Dependency rules
 
@@ -115,7 +127,7 @@ The current persisted schema is:
 ```js
 {
   schemaVersion: 3,
-  profession: "mesmer",
+  profession: "mesmer", // or "elementalist"
   // profession build fields
 }
 ```
@@ -124,6 +136,12 @@ Each profession owns defaults, explicit version migrations, validation, and
 sanitization. The existing `gw2-mesmer-simulator-v2` localStorage key is kept
 so saved builds migrate in place. Browser state uses a compatibility view of
 rotation entries; storage and the simulator contract use normalized commands.
+
+## Included professions
+
+- `mesmer`: native profession-contract implementation.
+- `elementalist`: direct reference-engine port exposed through an
+  `elementalistProfession` contract adapter.
 
 ## Adding another profession
 

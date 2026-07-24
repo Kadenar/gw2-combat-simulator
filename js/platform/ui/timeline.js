@@ -1,3 +1,60 @@
+export function clearTimelineDropIndicators(root) {
+  if (!root) return;
+  root.classList.remove(
+    "drag-over",
+    "drag-over-empty",
+    "drag-insert-before",
+    "drag-insert-after",
+  );
+  root
+    .querySelectorAll(
+      ".drag-over, .drag-over-empty, .drag-insert-before, .drag-insert-after",
+    )
+    .forEach(element => element.classList.remove(
+      "drag-over",
+      "drag-over-empty",
+      "drag-insert-before",
+      "drag-insert-after",
+    ));
+}
+
+export function getSkillDropInsertionIndex(skillElement, clientX) {
+  const index = Number(skillElement?.dataset?.idx);
+  if (!Number.isInteger(index)) return null;
+  const rect = skillElement.getBoundingClientRect();
+  return clientX < rect.left + rect.width / 2 ? index : index + 1;
+}
+
+export function updateSkillDropIndicator(skillElement, clientX) {
+  skillElement.classList.remove("drag-insert-before", "drag-insert-after");
+  const rect = skillElement.getBoundingClientRect();
+  skillElement.classList.add(
+    clientX < rect.left + rect.width / 2
+      ? "drag-insert-before"
+      : "drag-insert-after",
+  );
+}
+
+export function moveRotationEntry(rotation, fromIndex, toIndex) {
+  if (
+    !Array.isArray(rotation)
+    || !Number.isInteger(fromIndex)
+    || !Number.isFinite(toIndex)
+    || fromIndex < 0
+    || fromIndex >= rotation.length
+  ) {
+    return false;
+  }
+
+  const boundedTarget = Math.max(0, Math.min(toIndex, rotation.length));
+  const insertAt = fromIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
+  if (insertAt === fromIndex) return false;
+
+  const [entry] = rotation.splice(fromIndex, 1);
+  rotation.splice(insertAt, 0, entry);
+  return true;
+}
+
 export function timelineRows(
   rotation = [],
   { startingWeaponSet = 1, isWeaponSwap = () => false } = {},

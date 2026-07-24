@@ -6,13 +6,18 @@ import {
     skillBreakdownRows as transformSkillBreakdownRows,
 } from '../platform/ui/result-tables.js';
 import {
+    clearTimelineDropIndicators,
     eventTimelineMarkers,
+    getSkillDropInsertionIndex,
+    moveRotationEntry,
     timelineRows,
+    updateSkillDropIndicator,
 } from '../platform/ui/timeline.js';
 import {
     resultSummaryMetrics as transformResultSummaryMetrics,
 } from '../platform/ui/result-transform.js';
 import { chartValueAt as valueAtChartPoint } from '../platform/ui/charts.js';
+import { escapeHtml as esc } from '../platform/ui/html.js';
 
 const CONCURRENT_OFFSET_MS = 100;
 const PLACEHOLDER_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
@@ -71,12 +76,6 @@ const EFFECT_STACK_CAPS = {
     'Compounding Power': 5,
 };
 
-const esc = value => String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-
 const seconds = ms => `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
 
 function procFilterKey(proc) {
@@ -104,35 +103,6 @@ function syncProcVisibility(app, procSteps) {
     return app.procVisibility;
 }
 
-function clearTimelineDropIndicators(root) {
-    if (!root) return;
-    root.classList.remove('drag-over', 'drag-over-empty', 'drag-insert-before', 'drag-insert-after');
-    root.querySelectorAll('.drag-over, .drag-over-empty, .drag-insert-before, .drag-insert-after')
-        .forEach(element => element.classList.remove(
-            'drag-over',
-            'drag-over-empty',
-            'drag-insert-before',
-            'drag-insert-after',
-        ));
-}
-
-function getSkillDropInsertionIndex(skillElement, clientX) {
-    const index = Number(skillElement.dataset.idx);
-    if (!Number.isInteger(index)) return null;
-    const rect = skillElement.getBoundingClientRect();
-    return clientX < rect.left + rect.width / 2 ? index : index + 1;
-}
-
-function updateSkillDropIndicator(skillElement, clientX) {
-    skillElement.classList.remove('drag-insert-before', 'drag-insert-after');
-    const rect = skillElement.getBoundingClientRect();
-    skillElement.classList.add(
-        clientX < rect.left + rect.width / 2
-            ? 'drag-insert-before'
-            : 'drag-insert-after',
-    );
-}
-
 function rotationItem(app, name, options = {}) {
     const defaultInterruptMs = app.skillByName.get(name)?.defaultInterruptMs;
     const resolvedOptions = defaultInterruptMs != null && options.interruptMs == null
@@ -155,23 +125,7 @@ function resolvePaletteDropItem(app, name) {
     return rotationItem(app, name);
 }
 
-export function moveRotationEntry(rotation, fromIndex, toIndex) {
-    if (!Array.isArray(rotation)
-        || !Number.isInteger(fromIndex)
-        || !Number.isFinite(toIndex)
-        || fromIndex < 0
-        || fromIndex >= rotation.length) {
-        return false;
-    }
-
-    const boundedTarget = Math.max(0, Math.min(toIndex, rotation.length));
-    const insertAt = fromIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
-    if (insertAt === fromIndex) return false;
-
-    const [entry] = rotation.splice(fromIndex, 1);
-    rotation.splice(insertAt, 0, entry);
-    return true;
-}
+export { moveRotationEntry };
 
 function applyTimelineDrop(app, insertAt) {
     const drag = app.dragState;

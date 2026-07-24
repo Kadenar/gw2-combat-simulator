@@ -28,3 +28,27 @@ export function readJsonFile(file) {
         reader.readAsText(file);
     });
 }
+
+export async function fetchJsonAsset(path, { optional = false } = {}) {
+    const response = await fetch(`${path}?t=${Date.now()}`);
+    if (!response.ok) {
+        if (optional) return null;
+        throw new Error(`Could not load ${path}`);
+    }
+    return response.json();
+}
+
+export function getRotationItems(payload) {
+    return Array.isArray(payload) ? payload : payload?.rotation;
+}
+
+export async function loadPresetBundle(preset) {
+    const buildData = await fetchJsonAsset(preset.build);
+    let rotationItems;
+    if (preset.rotation) {
+        const rotationData = await fetchJsonAsset(preset.rotation, { optional: true });
+        const items = getRotationItems(rotationData);
+        if (Array.isArray(items)) rotationItems = items;
+    }
+    return { buildData, rotationItems };
+}

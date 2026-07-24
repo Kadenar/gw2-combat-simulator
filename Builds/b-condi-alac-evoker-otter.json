@@ -1,0 +1,97 @@
+{
+  "build": {
+    "gear": {
+      "Helm": "Viper's",
+      "Shoulders": "Viper's",
+      "Chest": "Viper's",
+      "Gloves": "Viper's",
+      "Leggins": "Viper's",
+      "Boots": "Viper's",
+      "Amulet": "Viper's",
+      "Ring1": "Viper's",
+      "Ring2": "Viper's",
+      "Accessory1": "Viper's",
+      "Accessory2": "Viper's",
+      "Back": "Viper's",
+      "Weapon1": "Viper's",
+      "Weapon2": "Viper's"
+    },
+    "weapons": [
+      "Pistol",
+      "Warhorn"
+    ],
+    "rune": "Trapper",
+    "sigils": [
+      "Bursting",
+      "Malice"
+    ],
+    "relic": "Fractal",
+    "food": "Salsa-Topped Veggie Flatbread",
+    "utility": "Toxic Tuning Crystal",
+    "jadeBotCore": true,
+    "specializations": [
+      {
+        "name": "Fire",
+        "traits": "1-1-2"
+      },
+      {
+        "name": "Earth",
+        "traits": "2-1-2"
+      },
+      {
+        "name": "Evoker",
+        "traits": "1-2-1"
+      }
+    ],
+    "infusions": [
+      {
+        "stat": "Condition Damage",
+        "count": 0
+      },
+      {
+        "stat": "Expertise",
+        "count": 18
+      },
+      {
+        "stat": "Ferocity",
+        "count": 0
+      }
+    ]
+  },
+  "selectedSkills": {
+    "heal": "Rejuvenate",
+    "util1": "Fox's Fury",
+    "util2": "Signet of Fire",
+    "util3": "Signet of Earth",
+    "elite": "Glyph of Elementals"
+  },
+  "activeAttunement": "Fire",
+  "secondaryAttunement": "Fire",
+  "evokerElement": "Water",
+  "evokerStartCharges": 6,
+  "evokerStartEmpowered": 0,
+  "permaBoons": {
+    "Might": 25,
+    "Fury": true,
+    "Protection": true,
+    "Resolution": true,
+    "Alacrity": true,
+    "Quickness": true,
+    "Regeneration": true,
+    "Vigor": true,
+    "Swiftness": true,
+    "Bleeding": 5,
+    "Burning": true,
+    "Torment": 5,
+    "Confusion": 5,
+    "Poisoned": true,
+    "Chilled": true,
+    "Cripple": true,
+    "Slow": true,
+    "Weakness": true,
+    "Vulnerability": 25
+  },
+  "hitboxSize": "small",
+  "glyphBoonedElementals": true,
+  "thornsBossAuraOnly": false
+}

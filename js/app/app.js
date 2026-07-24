@@ -25,13 +25,7 @@ import {
     runSimulation,
 } from './app-runtime.js';
 import { renderResults, renderRotationBuilder } from './app-rotation-ui.js';
-
-// HTML escape function to prevent XSS attacks in dynamically generated HTML
-const esc = value => String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+import { escapeHtml as esc } from '../platform/ui/html.js';
 
 const option = (value, selected, label = value, disabled = false) =>
     `<option value="${esc(value)}"${value === selected ? ' selected' : ''}${disabled ? ' disabled' : ''}>${esc(label)}</option>`;

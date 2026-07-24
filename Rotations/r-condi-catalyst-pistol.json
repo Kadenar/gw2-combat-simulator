@@ -1,0 +1,468 @@
+{
+  "rotation": [
+    "Shattering Stone",
+    "Air Attunement",
+    "Dazing Discharge",
+    "Fire Attunement",
+    "Raging Ricochet",
+    "Water Attunement",
+    "Frigid Flurry",
+    {
+      "name": "__wait",
+      "waitMs": 5000
+    },
+    "Frost Aura",
+    "Earth Attunement",
+    {
+      "name": "__wait",
+      "waitMs": 4000
+    },
+    "Glyph of Elementals",
+    "__combat_start",
+    "Elemental Explosion",
+    "Deploy Jade Sphere (Earth)",
+    "Boulder Blast",
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 209
+    },
+    {
+      "name": "Deploy Jade Sphere (Fire)",
+      "offset": 400
+    },
+    "Ring of Fire",
+    "Raging Ricochet",
+    "Signet of Fire",
+    "Fire Grab",
+    "Glyph of Storms (Fire)",
+    "Signet of Earth",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Raging Ricochet",
+    "Searing Salvo",
+    {
+      "name": "Water Attunement",
+      "offset": 125
+    },
+    {
+      "name": "Frost Aura",
+      "offset": 283
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 326
+    },
+    "Frigid Flurry",
+    "Arcane Brilliance",
+    {
+      "name": "Air Attunement",
+      "offset": 160
+    },
+    "Ride the Lightning",
+    "Aerial Agility",
+    "Aerial Agility (chain)",
+    "Aerial Agility (dash)",
+    {
+      "name": "Earth Attunement",
+      "offset": 117
+    },
+    "Shattering Stone",
+    "Earthquake",
+    "Churning Earth",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 280
+    },
+    "Ring of Fire",
+    "Raging Ricochet",
+    "Fire Grab",
+    "Signet of Earth",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 233
+    },
+    "Raging Ricochet",
+    "Searing Salvo",
+    {
+      "name": "Water Attunement",
+      "offset": 242
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 400
+    },
+    {
+      "name": "Frost Aura",
+      "offset": 400
+    },
+    "Frigid Flurry",
+    {
+      "name": "Air Attunement",
+      "offset": 852
+    },
+    "Ride the Lightning",
+    "Aerial Agility",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 75
+    },
+    "Aerial Agility (chain)",
+    "Aerial Agility (dash)",
+    {
+      "name": "Earth Attunement",
+      "offset": 76
+    },
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 442
+    },
+    "Shattering Stone",
+    "Earthquake",
+    "Churning Earth",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Shattering Stone",
+    "Piercing Pebble",
+    {
+      "name": "Fire Attunement",
+      "offset": 275
+    },
+    "Ring of Fire",
+    "Raging Ricochet",
+    "Fire Grab",
+    "Glyph of Storms (Fire)",
+    "Signet of Earth",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 242
+    },
+    "Raging Ricochet",
+    "Searing Salvo",
+    {
+      "name": "Water Attunement",
+      "offset": 116
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 358
+    },
+    {
+      "name": "Frost Aura",
+      "offset": 358
+    },
+    "Frigid Flurry",
+    {
+      "name": "Air Attunement",
+      "offset": 802
+    },
+    "Ride the Lightning",
+    "Aerial Agility",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 42
+    },
+    "Aerial Agility (chain)",
+    "Aerial Agility (dash)",
+    "Signet of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 243
+    },
+    "Shattering Stone",
+    "Earthquake",
+    "Churning Earth",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 166
+    },
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 401
+    },
+    "Ring of Fire",
+    "Raging Ricochet",
+    "Fire Grab",
+    "Signet of Earth",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 159
+    },
+    "Signet of Fire",
+    "Raging Ricochet",
+    "Searing Salvo",
+    {
+      "name": "Water Attunement",
+      "offset": 275
+    },
+    {
+      "name": "Frost Aura",
+      "offset": 399
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 442
+    },
+    "Frigid Flurry",
+    "Arcane Brilliance",
+    {
+      "name": "Air Attunement",
+      "offset": 167
+    },
+    "Ride the Lightning",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 45
+    },
+    "Aerial Agility",
+    "Aerial Agility (chain)",
+    "Aerial Agility (dash)",
+    {
+      "name": "Earth Attunement",
+      "offset": 201
+    },
+    "Shattering Stone",
+    "Earthquake",
+    "Churning Earth",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 116
+    },
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 326
+    },
+    "Ring of Fire",
+    "Raging Ricochet",
+    "Signet of Fire",
+    "Fire Grab",
+    "Glyph of Storms (Fire)",
+    "Signet of Earth",
+    "Scorching Shot",
+    "Scorching Shot",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 158
+    },
+    "Raging Ricochet",
+    "Searing Salvo",
+    {
+      "name": "Water Attunement",
+      "offset": 134
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 342
+    },
+    {
+      "name": "Frost Aura",
+      "offset": 342
+    },
+    "Frigid Flurry",
+    {
+      "name": "Air Attunement",
+      "offset": 760
+    },
+    "Ride the Lightning",
+    "Aerial Agility",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 125
+    },
+    "Aerial Agility (chain)",
+    "Aerial Agility (dash)",
+    {
+      "name": "Earth Attunement",
+      "offset": 201
+    },
+    "Shattering Stone",
+    "Earthquake",
+    "Churning Earth",
+    "Elemental Explosion",
+    "Signet of Fire",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 42
+    },
+    "Boulder Blast",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 34
+    },
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 525
+    },
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 156
+    },
+    "Ring of Fire",
+    "Raging Ricochet",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 159
+    },
+    "Fire Grab",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Signet of Earth",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    {
+      "name": "Scorching Shot",
+      "interruptMs": 200
+    },
+    "Raging Ricochet",
+    "Searing Salvo",
+    {
+      "name": "Water Attunement",
+      "offset": 75
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 275
+    },
+    {
+      "name": "Frost Aura",
+      "offset": 317
+    },
+    "Frigid Flurry",
+    {
+      "name": "Air Attunement",
+      "offset": 759
+    },
+    "Aerial Agility",
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 239
+    },
+    "Ride the Lightning",
+    "Aerial Agility (chain)",
+    "Aerial Agility (dash)",
+    "Signet of Fire",
+    {
+      "name": "Earth Attunement",
+      "offset": 284
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 42
+    },
+    "Shattering Stone",
+    "Earthquake",
+    "Churning Earth",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 199
+    },
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 326
+    },
+    "Ring of Fire",
+    "Raging Ricochet",
+    "Fire Grab",
+    "Glyph of Storms (Fire)",
+    "Signet of Earth",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Scorching Shot",
+    "Signet of Fire",
+    "Raging Ricochet",
+    "Searing Salvo",
+    {
+      "name": "Water Attunement",
+      "offset": 200
+    },
+    {
+      "name": "Frost Aura",
+      "offset": 358
+    },
+    {
+      "name": "Deploy Jade Sphere (Water)",
+      "offset": 400
+    },
+    "Frigid Flurry",
+    "Arcane Brilliance",
+    {
+      "name": "Air Attunement",
+      "offset": 84
+    },
+    {
+      "name": "Deploy Jade Sphere (Air)",
+      "offset": 600
+    },
+    "Ride the Lightning",
+    "Aerial Agility",
+    "Aerial Agility (chain)",
+    "Aerial Agility (dash)",
+    {
+      "name": "Earth Attunement",
+      "offset": 167
+    },
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 41
+    },
+    "Shattering Stone",
+    "Earthquake",
+    {
+      "name": "Deploy Jade Sphere (Earth)",
+      "offset": 359
+    },
+    "Churning Earth",
+    "Elemental Explosion",
+    "Boulder Blast",
+    "Piercing Pebble",
+    "Piercing Pebble",
+    {
+      "name": "Piercing Pebble",
+      "interruptMs": 167
+    },
+    "Shattering Stone",
+    {
+      "name": "Fire Attunement",
+      "offset": 242
+    },
+    "Searing Salvo",
+    "Raging Ricochet",
+    "Fire Grab"
+  ]
+}

@@ -304,6 +304,7 @@ export const RUNE_DATA = {
     'Divinity': { stats: { Power: 78, Precision: 78, Ferocity: 78, Concentration: 78, 'Condition Damage': 78, Expertise: 78, Toughness: 78, Vitality: 78 }, durations: {} },
 };
 
+export const RUNE_NAMES = sortNames(Object.keys(RUNE_DATA));
 
 export const RUNE_GROUPS = [
     { label: 'Power', items: ['Dragonhunter', 'Scholar'] },
@@ -348,6 +349,7 @@ export const FOOD_DATA = {
     'Spherified Cilantro Oyster Soup': { isConverted: true, stats: { Power: 45, Ferocity: 45, Precision: 45, 'Condition Damage': 45, Expertise: 45, Vitality: 45, Toughness: 45, Concentration: 45 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
 };
 
+export const FOOD_NAMES = sortNames(Object.keys(FOOD_DATA));
 
 export const FOOD_GROUPS = [
     {

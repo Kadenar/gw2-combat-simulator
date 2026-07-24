@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>GW2 Mesmer Rotation Simulator</title>
+    <title>GW2 Combat Simulator — Mesmer</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -15,6 +15,13 @@
     <div id="app">
         <header>
             <h1>GW2 <span class="accent">Mesmer</span> Rotation Simulator</h1>
+            <label class="profession-picker" for="profession-select">
+                <span>Profession</span>
+                <select id="profession-select" data-active-profession="mesmer">
+                    <option value="mesmer">Mesmer</option>
+                    <option value="elementalist">Elementalist</option>
+                </select>
+            </label>
         </header>
         <div class="update-info"><strong>Mesmer PvE data snapshot: July 23, 2026</strong></div>
 
@@ -135,6 +142,7 @@
 
     </div>
 
+    <script type="module" src="js/app/profession-selector.js"></script>
     <script type="module" src="js/app/app.js"></script>
 </body>
 </html>
