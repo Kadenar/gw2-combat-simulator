@@ -20,6 +20,10 @@ condition durations come from the Guild Wars 2 Wiki:
 - `https://wiki.guildwars2.com/wiki/Mesmer_traits`
 - Individual skill and trait pages linked by the simulator catalog
 
+The supplied benchmark coefficient and timing tables take precedence for the
+explicit player, clone, phantasm, shatter, bladesong, and instrument rows they
+cover.
+
 Damage-relevant attribute conversions and modifier groupings were
 cross-checked against:
 
@@ -84,7 +88,12 @@ one PvE scenario rather than adding mutually exclusive values:
 - Chaos Storm is represented as six strike pulses and one expected poison
   application.
 - Flying Cutter adds Cutter Burst every third cast.
-- Unstable Bladestorm uses four storm pulses and three launched blades.
+- Axe clones preserve the supplied Lacerating Chop, Ethereal Chop, and Mirror
+  Strikes coefficients and measured attack timings instead of collapsing the
+  chain into one periodic event.
+- Unstable Bladestorm uses four storm pulses and four launched blades.
+- Resource-scaled shatter, bladesong, instrument, and Crescendo coefficients
+  use the supplied benchmark coefficient table.
 
 Mesmer weapon swapping is represented by a ten-second base-recharge action.
 Using it toggles the active weapon set and immediately replaces the weapon

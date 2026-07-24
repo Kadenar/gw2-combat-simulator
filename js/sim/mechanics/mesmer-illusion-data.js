@@ -36,18 +36,41 @@ export const WEAPON_STRENGTH = {
  */
 export const CLONE_ATTACKS = {
   Axe: {
-    coefficient: 2.2,
-    hits: 4,
-    interval: 2.25,
     weaponStrength: 28.5,
-    conditions: [
-      { name: "Bleeding", duration: 2, stacks: 1 },
-      { name: "Torment", duration: 2, stacks: 1 },
-      { name: "Bleeding", duration: 6, stacks: 1 },
-      { name: "Torment", duration: 6, stacks: 1 },
+    sequence: [
+      {
+        name: "Clone: Lacerating Chop",
+        coefficient: 0.55,
+        hits: 1,
+        interval: 1.51,
+        conditions: [{ name: "Bleeding", duration: 2, stacks: 1 }],
+      },
+      {
+        name: "Clone: Ethereal Chop",
+        coefficient: 0.55,
+        hits: 1,
+        interval: 1.61,
+        conditions: [{ name: "Torment", duration: 2, stacks: 1 }],
+      },
+      {
+        name: "Clone: Mirror Strikes",
+        coefficient: 1.1,
+        hits: 2,
+        interval: 1.17,
+        conditions: [
+          { name: "Bleeding", duration: 6, stacks: 1 },
+          { name: "Torment", duration: 6, stacks: 1 },
+        ],
+      },
     ],
   },
-  Dagger: { coefficient: 0.5, hits: 1, interval: 0.68, weaponStrength: 26.5 },
+  Dagger: {
+    name: "Clone: Flying Cutter",
+    coefficient: 0.7,
+    hits: 1,
+    interval: 0.68,
+    weaponStrength: 26.5,
+  },
   Greatsword: {
     coefficient: 1.1,
     hits: 3,
@@ -62,9 +85,32 @@ export const CLONE_ATTACKS = {
     weaponStrength: 34,
     conditions: [{ name: "Torment", duration: 4, stacks: 1 }],
   },
-  Spear: { coefficient: 3.5, hits: 3, interval: 2.18, weaponStrength: 26.3 },
+  Spear: {
+    weaponStrength: 26.3,
+    sequence: [
+      {
+        name: "Clone: Psycut",
+        coefficient: 1,
+        hits: 1,
+        interval: 0.93,
+      },
+      {
+        name: "Clone: Psystrike",
+        coefficient: 1,
+        hits: 1,
+        interval: 0.5,
+      },
+      {
+        name: "Clone: Mind Pierce",
+        coefficient: 1.5,
+        hits: 1,
+        interval: 0.75,
+      },
+    ],
+  },
   Staff: {
-    coefficient: 0.3,
+    name: "Clone: Winds of Chaos",
+    coefficient: 0.49,
     // A completed clone cast bounces through the target twice. The conditions
     // apply once per cast, while both bounces can strike and critically hit.
     hits: 2,
@@ -97,7 +143,7 @@ export const AMBUSH_ATTACKS = {
       "https://render.guildwars2.com/file/38ED6AA595AEF00C0F704D0565DB7DD24B623850/1770513.png",
     description:
       "Ambush. Release phantasmal axes that seek out the nearest target after a short delay.",
-    activation: 0.5,
+    activation: 0.78,
     cooldown: 1,
     player: {
       coefficient: 1,
@@ -105,8 +151,9 @@ export const AMBUSH_ATTACKS = {
       conditions: [{ name: "Torment", duration: 3.5, stacks: 3 }],
     },
     clone: {
-      coefficient: 1,
+      coefficient: 3.7,
       hits: 2,
+      activation: 1.11,
       conditions: [{ name: "Torment", duration: 4, stacks: 1 }],
     },
   },
@@ -128,8 +175,9 @@ export const AMBUSH_ATTACKS = {
       ],
     },
     clone: {
-      coefficient: 1.49,
+      coefficient: 3,
       hits: 3,
+      activation: 0,
       conditions: [
         { name: "Bleeding", duration: 7, stacks: 1 },
         { name: "Torment", duration: 7, stacks: 1 },
@@ -221,7 +269,7 @@ export const AMBUSH_ATTACKS = {
       ],
     },
     clone: {
-      coefficient: 0.6,
+      coefficient: 1.12,
       hits: 1,
       conditions: [
         { name: "Bleeding", duration: 4, stacks: 1 },
