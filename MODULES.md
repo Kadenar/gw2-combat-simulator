@@ -39,16 +39,17 @@ target-condition controls.
 Static Guild Wars 2 game data and lookups.
 
 ### [catalog.js](js/data/catalog.js)
-Auto-generated GW2 API metadata snapshot. Contains specialization and trait definitions plus skill IDs, names, descriptions, icons, and slots. It intentionally contains no simulator mechanics.
+Compatibility export for the Mesmer-owned catalog. The source snapshot lives in
+`js/professions/mesmer/data/mesmer-catalog.js`.
 
 ### [skill-mechanics.js](js/data/skill-mechanics.js)
-Simulator-owned base skill mechanics absent from the authoritative override table.
+Compatibility export for Mesmer-owned base skill mechanics.
 
 ### [illusion-data.js](js/data/illusion-data.js)
-Static weapon-strength, clone, ambush, and phantasm timing tables.
+Compatibility export for Mesmer-owned illusion data.
 
 ### [profession-data.js](js/data/profession-data.js)
-Static condition, shatter, instrument, trait-damage, and skill-classification tables.
+Compatibility export for Mesmer-owned profession data.
 
 ### [gear-data.js](js/data/gear-data.js)
 Ascended gear stat tables and equipment lookups. Defines stat values for all gear prefixes (Berserker's, Assassin's, etc.), runes, sigils, food, utilities, infusions, and weapons. Profession-neutral except for Mesmer weapons.
