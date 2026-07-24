@@ -540,9 +540,10 @@ export function createScheduler(config, traits, horizon, model) {
       if (!ambush) continue;
       const attack = CLONE_ATTACKS[weapon] || CLONE_ATTACKS.Sword;
       const pseudo = { name: ambush.name, weapon, blade: false };
+      const impactAt = at + Number(ambush.clone.activation || 0);
       addDamage(
         pseudo,
-        at,
+        impactAt,
         {
           coefficient: ambush.clone.coefficient,
           hits: ambush.clone.hits,
@@ -558,7 +559,7 @@ export function createScheduler(config, traits, horizon, model) {
       for (const condition of ambush.clone.conditions || []) {
         addCondition(
           `${ambush.name} — Clone`,
-          at,
+          impactAt,
           condition,
           "Clone",
           "",
@@ -566,7 +567,7 @@ export function createScheduler(config, traits, horizon, model) {
         );
       }
       for (const boon of ambush.cloneBoons || []) {
-        addBoon(at, boon, `${ambush.name} — Clone`);
+        addBoon(impactAt, boon, `${ambush.name} — Clone`);
       }
     }
   };
@@ -728,10 +729,10 @@ export function createScheduler(config, traits, horizon, model) {
     const isPhantasm = skill.resource?.mode === "phantasm";
     // Bountiful Blades: Phantasmal Berserker summons an additional berserker
     // (2 total), but each berserker deals 33% less damage. Net phantasm damage
-    // is 2 * 0.67 = 1.34x a single berserker.
+    // is 2 * 0.66 = 1.32x a single berserker.
     const bountifulBerserker =
       skill.name === "Phantasmal Berserker" && traits.has("Bountiful Blades");
-    const bountifulBerserkerDamage = bountifulBerserker ? 0.67 : 1;
+    const bountifulBerserkerDamage = bountifulBerserker ? 0.66 : 1;
     const phantasmCount = isPhantasm
       ? Number(skill.resource?.count || 1) *
         (skill.name === "Phantasmal Lancer" && clarityConsumed ? 2 : 1) *

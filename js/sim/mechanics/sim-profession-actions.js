@@ -120,12 +120,11 @@ export function createProfessionActionController({
     const sources = spent + 1;
 
     if (shatter.kind === "core-power") {
-      const coefficients = [1.15, 2.3, 2.76, 3.22];
       addDamage(
         skill,
         at,
         {
-          coefficient: coefficients[spent],
+          coefficient: shatter.coefficients[spent],
           hits: sources,
           source: "Player",
         },
@@ -135,7 +134,11 @@ export function createProfessionActionController({
       addDamage(
         skill,
         at,
-        { coefficient: 0.38 * sources, hits: sources, source: "Player" },
+        {
+          coefficient: shatter.coefficients[spent],
+          hits: sources,
+          source: "Player",
+        },
         { shatter: true },
       );
       const cryBonus = traits.has("Cry of Pain") ? 2 : 1;
@@ -145,12 +148,11 @@ export function createProfessionActionController({
         stacks: sources * cryBonus,
       });
     } else if (shatter.kind === "chrono-power") {
-      const coefficients = [1.534, 3.068, 3.678, 4.296];
       addDamage(
         skill,
         at,
         {
-          coefficient: coefficients[spent],
+          coefficient: shatter.coefficients[spent],
           hits: sources * 2,
           source: "Player",
         },
@@ -160,7 +162,11 @@ export function createProfessionActionController({
       addDamage(
         skill,
         at,
-        { coefficient: 0.38 * sources, hits: sources, source: "Player" },
+        {
+          coefficient: shatter.coefficients[spent],
+          hits: sources,
+          source: "Player",
+        },
         { shatter: true },
       );
       const cryBonus = traits.has("Cry of Pain") ? 2 : 1;
@@ -185,14 +191,22 @@ export function createProfessionActionController({
       addDamage(
         skill,
         at,
-        { coefficient: 0.7 * spent, hits: spent, source: "Player" },
+        {
+          coefficient: shatter.coefficients[spent],
+          hits: spent,
+          source: "Player",
+        },
         { shatter: true, blade: true },
       );
     } else if (shatter.kind === "blade-confusion") {
       addDamage(
         skill,
         at,
-        { coefficient: 0.38 * spent, hits: spent, source: "Player" },
+        {
+          coefficient: shatter.coefficients[spent],
+          hits: spent,
+          source: "Player",
+        },
         { shatter: true, blade: true },
       );
       addCondition(skill.name, at, {
@@ -204,7 +218,11 @@ export function createProfessionActionController({
       addDamage(
         skill,
         at,
-        { coefficient: 1, hits: 1, source: "Player" },
+        {
+          coefficient: shatter.coefficients[spent],
+          hits: 1,
+          source: "Player",
+        },
         { shatter: true, blade: true },
       );
     } else if (shatter.kind === "blade-requiem") {
@@ -212,7 +230,11 @@ export function createProfessionActionController({
         addDamage(
           skill,
           at + index,
-          { coefficient: 0.5, hits: 1, source: "Player" },
+          {
+            coefficient: shatter.coefficients[spent] / spent,
+            hits: 1,
+            source: "Player",
+          },
           { shatter: true, blade: true },
         );
         if (traits.has("Maim the Disillusioned")) {

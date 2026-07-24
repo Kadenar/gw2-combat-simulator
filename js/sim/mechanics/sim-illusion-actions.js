@@ -16,6 +16,14 @@ export function createCloneAttackScheduler({
   const attackFor = (clone) =>
     cloneAttacks[clone.weapon] || cloneAttacks.Sword;
 
+  const sequenceStep = (clone, attack) => {
+    if (!Array.isArray(attack.sequence) || attack.sequence.length === 0) {
+      return attack;
+    }
+    const index = Number(clone.attackSequenceIndex || 0) % attack.sequence.length;
+    return attack.sequence[index];
+  };
+
   /**
    * Initializes a clone: sets nextAttackAt to creation + first attack interval.
    * @param {Object} clone - Clone object
@@ -23,9 +31,11 @@ export function createCloneAttackScheduler({
    */
   const initializeClone = (clone) => {
     const attack = attackFor(clone);
+    clone.attackSequenceIndex = 0;
+    const step = sequenceStep(clone, attack);
     clone.nextAttackAt =
       clone.createdAt
-      + Number(attack.firstAttackDelay ?? attack.interval);
+      + Number(attack.firstAttackDelay ?? step.interval);
     return clone;
   };
 
@@ -41,29 +51,35 @@ export function createCloneAttackScheduler({
   /** Schedules a clone attack: adds damage, conditions, advances nextAttackAt by interval. */
   const scheduleAttack = (clone, at) => {
     const attack = attackFor(clone);
+    const step = sequenceStep(clone, attack);
+    const skillName = step.name || `${clone.weapon} Clone`;
     const cloneSkill = {
-      name: `${clone.weapon} Clone`,
+      name: skillName,
       weapon: clone.weapon,
       blade: false,
     };
     addDamage(cloneSkill, at, {
-      coefficient: attack.coefficient,
-      hits: attack.hits,
+      coefficient: step.coefficient,
+      hits: step.hits,
       source: "Clone",
       weaponStrength: attack.weaponStrength,
     }, {
       cloneId: clone.id,
       source: "Clone",
     });
-    for (const condition of attack.conditions || []) {
+    for (const condition of step.conditions || []) {
       addCondition(
-        `${clone.weapon} Clone`,
+        skillName,
         at,
         condition,
         "Clone",
         "",
         { cloneId: clone.id },
       );
+    }
+    if (Array.isArray(attack.sequence) && attack.sequence.length > 0) {
+      clone.attackSequenceIndex =
+        (Number(clone.attackSequenceIndex || 0) + 1) % attack.sequence.length;
     }
   };
 
@@ -75,7 +91,8 @@ export function createCloneAttackScheduler({
     for (const clone of state.clones) {
       if (clone.nextAttackAt > at + epsilon) continue;
       scheduleAttack(clone, at);
-      clone.nextAttackAt += attackFor(clone).interval;
+      const attack = attackFor(clone);
+      clone.nextAttackAt += Number(sequenceStep(clone, attack).interval);
     }
   };
 

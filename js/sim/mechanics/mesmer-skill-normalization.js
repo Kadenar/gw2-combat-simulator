@@ -132,7 +132,7 @@ export const AUTOATTACK_CHAIN_SKILLS = [
     icon:
       "https://render.guildwars2.com/file/257AE20DBC1F5BB232D8F37FED4443065ED10346/1770501.png",
     weapon: "Axe",
-    activation: 0.78,
+    activation: 0.795,
     coefficient: 0.55,
     conditions: [{ name: "Torment", duration: 2, stacks: 1 }],
     specialization: "Mirage",
@@ -437,7 +437,13 @@ const choiceOverrides = {
   "Phantasmal Warlock": {
     activation: 1.17,
     damage: [
-      { coefficient: 0.45, hits: 3, label: "Damage", source: "Phantasm", weapon: "phantasm medium" },
+      {
+        coefficient: 0.925,
+        hits: 3,
+        label: "One warlock",
+        source: "Phantasm",
+        weapon: "staff",
+      },
     ],
     conditions: [{ name: "Torment", duration: 4, stacks: 6 }],
   },
@@ -467,9 +473,32 @@ const choiceOverrides = {
     activation: 0.54,
   },
   "Lacerating Chop": {
-    // Measured at 440 ms with Quickness.
-    activation: 0.66,
+    // Measured at 430 ms with Quickness.
+    activation: 0.645,
     conditions: [{ name: "Bleeding", duration: 2, stacks: 1 }],
+  },
+  "Lingering Thoughts": {
+    // Measured at 930 ms with Quickness.
+    activation: 1.395,
+  },
+  "Axes of Symmetry": {
+    // Measured at 1020 ms with Quickness.
+    activation: 1.53,
+  },
+  "Mind Stab": {
+    // Measured at 360 ms with Quickness.
+    activation: 0.54,
+  },
+  "Mind the Gap": {
+    damage: [
+      {
+        coefficient: 1.92,
+        hits: 1,
+        label: "Outer-edge damage",
+        source: "Player",
+        weapon: "spear",
+      },
+    ],
   },
   Psycut: {
     // Psystrike and Mind Pierce now own the rest of the 2.18-second chain.
@@ -515,11 +544,11 @@ const choiceOverrides = {
     activation: 1.14,
     damage: [
       {
-        coefficient: 1,
+        coefficient: 2.05,
         hits: 1,
         label: "Target without boons",
         source: "Phantasm",
-        weapon: "phantasm medium",
+        weapon: "utility",
       },
     ],
   },
@@ -527,18 +556,148 @@ const choiceOverrides = {
     // The API currently omits the phantasm flag and clone conversion data.
     phantasm: true,
     resource: { mode: "phantasm", count: 1 },
+    damage: [
+      {
+        coefficient: 2.23,
+        hits: 1,
+        label: "Mesmer attack",
+        source: "Player",
+        weapon: "spear",
+      },
+      {
+        coefficient: 1.23,
+        hits: 1,
+        label: "One lancer",
+        source: "Phantasm",
+        weapon: "spear",
+      },
+    ],
   },
   "Phantasmal Swordsman": {
     activation: 1.29,
+    damage: [
+      {
+        coefficient: 0.5,
+        hits: 1,
+        label: "Mesmer strike",
+        source: "Player",
+        weapon: "sword",
+      },
+      {
+        coefficient: 1.03,
+        hits: 1,
+        label: "Phantasm leap",
+        source: "Phantasm",
+        weapon: "sword",
+      },
+      {
+        coefficient: 3.28,
+        hits: 8,
+        label: "Phantasm Blurred Frenzy",
+        source: "Phantasm",
+        weapon: "sword",
+      },
+    ],
   },
   "Phantasmal Mage": {
     activation: 1.2,
     damage: [
-      { coefficient: 0.5, hits: 1, label: "Damage", source: "Phantasm", weapon: "phantasm medium" },
+      {
+        coefficient: 0.19,
+        hits: 1,
+        label: "Mesmer attack",
+        source: "Player",
+        weapon: "torch",
+      },
+      {
+        coefficient: 0.5,
+        hits: 1,
+        label: "Phantasm attack",
+        source: "Phantasm",
+        weapon: "torch",
+      },
+    ],
+  },
+  "Rain of Swords": {
+    damage: [
+      {
+        coefficient: 6,
+        hits: 5,
+        label: "Damage",
+        source: "Player",
+        weapon: "utility",
+      },
+    ],
+  },
+  "Tale of the Tortured Mastermind": {
+    damage: [
+      {
+        coefficient: 4,
+        hits: 4,
+        label: "Damage",
+        source: "Player",
+        weapon: "utility",
+      },
+    ],
+  },
+  "Well of Action": {
+    damage: [
+      {
+        coefficient: 4.5,
+        hits: 3,
+        label: "Pulse damage",
+        source: "Player",
+        weapon: "utility",
+      },
+    ],
+  },
+  "Well of Calamity": {
+    damage: [
+      {
+        coefficient: 3.9,
+        hits: 3,
+        label: "Pulse damage",
+        source: "Player",
+        weapon: "utility",
+      },
+      {
+        coefficient: 2.1,
+        hits: 1,
+        label: "Final damage",
+        source: "Player",
+        weapon: "utility",
+      },
+    ],
+  },
+  "Well of Senility": {
+    damage: [
+      {
+        coefficient: 4.5,
+        hits: 3,
+        label: "Pulse damage",
+        source: "Player",
+        weapon: "utility",
+      },
     ],
   },
   "Phantasmal Berserker": {
     activation: 0.84,
+    damage: [
+      {
+        coefficient: 2.46,
+        hits: 4,
+        label: "One berserker",
+        source: "Phantasm",
+        weapon: "greatsword",
+      },
+      {
+        coefficient: 1.2,
+        hits: 1,
+        label: "Greatsword damage",
+        source: "Player",
+        weapon: "greatsword",
+      },
+    ],
   },
   "Phantasmal Warden": {
     activation: 0.69,
@@ -598,8 +757,8 @@ const choiceOverrides = {
         source: "Player",
       },
       {
-        coefficient: 1.5,
-        hits: 3,
+        coefficient: 2,
+        hits: 4,
         label: "Launched blades",
         source: "Player",
       },

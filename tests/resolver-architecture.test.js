@@ -226,7 +226,7 @@ test("Thief relic progresses on individual hits instead of an aggregate hit", ()
     && event.skillName === "Unstable Bladestorm"
   );
 
-  assert.equal(hits.length, 7);
+  assert.equal(hits.length, 8);
   assert.ok(hits[1].damage > hits[0].damage);
   assert.ok(hits[2].damage > hits[1].damage);
   assert.ok(hits[3].damage > hits[2].damage);
