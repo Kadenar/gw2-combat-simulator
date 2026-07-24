@@ -13,6 +13,7 @@ import { createSchedulerState } from "../js/platform/engine/scheduler-state.js";
 import { createScheduler } from "../js/platform/engine/scheduler.js";
 import { buildScheduledEventStream } from "../js/platform/engine/scheduled-event-stream.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
+import { WEAPON_DATA } from "../js/platform/gw2/gear-data.js";
 import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
@@ -20,6 +21,10 @@ import {
 } from "../js/professions/mesmer/build.js";
 import { mesmerCatalog } from "../js/professions/mesmer/catalog.js";
 import { mesmerProfession } from "../js/professions/mesmer/definition.js";
+import {
+  createDefaultConfig,
+  simulateSequence,
+} from "../js/professions/mesmer/simulation.js";
 import { createMesmerState, snapshotMesmerState } from "../js/professions/mesmer/state.js";
 import { testProfession } from "./fixtures/test-profession.js";
 
@@ -63,6 +68,75 @@ test("profession contract supplies defaults and deterministic hook ordering", ()
   assert.deepEqual(profession.createProfessionState({}), {});
   assert.equal(profession.modifyStrikeDamage({}, 12), 12);
   assert.deepEqual(profession.paletteGroups({}), []);
+});
+
+test("profession contract supports zero or multiple resource views", () => {
+  const none = defineProfession({
+    id: "resourceless",
+    name: "Resourceless",
+  });
+  const multiple = defineProfession({
+    id: "multi-resource",
+    name: "Multi Resource",
+    ui: {
+      resourceViews: () => [
+        { id: "pages", maximum: 5, value: 2 },
+        { id: "charges", maximum: 3, value: 1 },
+      ],
+    },
+  });
+  assert.deepEqual(none.ui.resourceViews({}), []);
+  assert.equal(none.ui.resourceView({}), null);
+  assert.equal(multiple.ui.resourceViews({}).length, 2);
+  assert.equal(multiple.ui.resourceView({}).id, "pages");
+});
+
+test("declarative boons can gate dynamic skill availability", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 920001,
+        name: "Grant Aegis",
+        castTimeMs: 0,
+        effects: [{
+          type: "boon",
+          boon: "aegis",
+          duration: 2,
+          stacks: 1,
+        }],
+      },
+      {
+        id: 920002,
+        name: "Aegis Strike",
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "boon-gated",
+    name: "Boon Gated",
+    catalog,
+    castRules: {
+      validateCast: context =>
+        context.skill.id !== 920002 || context.hasBuff("aegis"),
+    },
+  });
+  const available = simulateGw2({
+    profession,
+    rotation: ["Grant Aegis", "Aegis Strike"],
+  });
+  const expired = simulateGw2({
+    profession,
+    rotation: [
+      "Grant Aegis",
+      { type: "wait", durationMs: 2100 },
+      "Aegis Strike",
+    ],
+  });
+  assert.ok(available.totalDamage > 0);
+  assert.equal(expired.totalDamage, 0);
+  assert.match(expired.warnings.join(" "), /unavailable/);
 });
 
 test("handler registry rejects duplicates and missing required handlers", () => {
@@ -176,6 +250,32 @@ test("test profession runs end to end without importing Mesmer", () => {
     event.type && Number.isFinite(event.at) && event.source && event.sourceId != null), true);
 });
 
+test("Mesmer production simulation is reached through simulateGw2", () => {
+  const config = {
+    ...createDefaultConfig(),
+    target: {
+      ...createDefaultConfig().target,
+      health: 0,
+    },
+  };
+  const canonical = simulateGw2({
+    profession: mesmerProfession,
+    rotation: ["Bladecall"],
+    config,
+  });
+  const compatibility = simulateSequence(["Bladecall"], config);
+
+  assert.equal(canonical.totalDamage, compatibility.totalDamage);
+  assert.equal(canonical.strikeDamage, compatibility.strikeDamage);
+  assert.equal(canonical.conditionDamage, compatibility.conditionDamage);
+  assert.ok(canonical.totalDamage > 0);
+  assert.deepEqual(
+    Object.keys(canonical.endState).sort(),
+    ["activeWeaponSet", "ammo", "cooldowns", "profession", "time"].sort(),
+  );
+  assert.equal(canonical.endState.profession.resource, 5);
+});
+
 test("unknown required custom events fail clearly", () => {
   const stream = buildScheduledEventStream({
     events: [{
@@ -233,6 +333,12 @@ test("Mesmer build migrations produce validated schema version 3 data", () => {
     () => migrateMesmerBuild({ profession: "guardian" }),
     /Cannot load guardian/,
   );
+});
+
+test("common weapon data includes Guardian weapon families", () => {
+  assert.equal(WEAPON_DATA.Mace.wielding, "mh");
+  assert.equal(WEAPON_DATA.Hammer.wielding, "2h");
+  assert.equal(WEAPON_DATA.Longbow.wielding, "2h");
 });
 
 test("Mesmer state creation and snapshots are profession owned", () => {

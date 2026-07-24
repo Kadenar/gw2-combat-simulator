@@ -152,16 +152,16 @@ export function createScheduler(config, traits, horizon, model) {
   const advanceTo = (target) => {
     let guard = 0;
     while (guard++ < 100_000) {
-      const pendingAt = state.pendingResources[0]?.at ?? Infinity;
+      const pendingAt = state.profession.pendingResources[0]?.at ?? Infinity;
       const expectedProcAt = expectedProcs.nextAt();
-      const continuumAt = state.continuum?.expiresAt ?? Infinity;
+      const continuumAt = state.profession.continuum?.expiresAt ?? Infinity;
       const cloneAttackAt = cloneAttackScheduler.nextAttackAt();
       const next = Math.min(
         pendingAt,
         expectedProcAt,
         continuumAt,
         cloneAttackAt,
-        state.nextForgeAt,
+        state.profession.nextForgeAt,
       );
       if (next > target + EPSILON) break;
 
@@ -177,12 +177,12 @@ export function createScheduler(config, traits, horizon, model) {
         restoreContinuum(continuumAt, "split expired");
         continue;
       }
-      if (next === state.nextForgeAt) {
+      if (next === state.profession.nextForgeAt) {
         gainResources(next, 1, activePrimaryWeapon(), "Infinite Forge");
-        state.nextForgeAt += 3;
+        state.profession.nextForgeAt += 3;
         continue;
       }
-      const pending = state.pendingResources.shift();
+      const pending = state.profession.pendingResources.shift();
       gainResources(
         pending.at,
         pending.count,
@@ -191,13 +191,17 @@ export function createScheduler(config, traits, horizon, model) {
       );
     }
 
-    for (const [instrument, expiresAt] of state.instruments) {
-      if (expiresAt <= target + EPSILON) state.instruments.delete(instrument);
+    for (const [instrument, expiresAt] of state.profession.instruments) {
+      if (expiresAt <= target + EPSILON) {
+        state.profession.instruments.delete(instrument);
+      }
     }
-    for (const [name, flip] of state.availableFlips) {
+    for (const [name, flip] of state.profession.availableFlips) {
       if (flip.expiresAt < target - EPSILON) {
-        state.availableFlips.delete(name);
-        if (name === "Counterspell") state.counterspellAvailable = false;
+        state.profession.availableFlips.delete(name);
+        if (name === "Counterspell") {
+          state.profession.counterspellAvailable = false;
+        }
       }
     }
     for (const [id] of state.ammo) {
@@ -291,7 +295,7 @@ export function createScheduler(config, traits, horizon, model) {
   });
   /** Initializes scheduler: sets starting weapon set, initial resources, Split Second ammo. */
   const initialize = () => {
-    state.riddleOfSandReady = traits.has("Riddle of Sand");
+    state.profession.riddleOfSandReady = traits.has("Riddle of Sand");
     if (config.startingWeaponSet === 2 && config.weaponSet2Primary) {
       state.activeWeaponSet = 2;
       addEvent({ type: "weapon_set", at: 0, weaponSet: 2 });
@@ -310,7 +314,7 @@ export function createScheduler(config, traits, horizon, model) {
     // Power Spike) from the opening with a full set of charges.
     for (const skill of allSkills) {
       if (skill.armedAtStart && skill.flipParent && ammoMaximum(skill)) {
-        state.availableFlips.set(skill.name, {
+        state.profession.availableFlips.set(skill.name, {
           availableAt: 0,
           expiresAt: Infinity,
         });

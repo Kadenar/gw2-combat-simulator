@@ -31,6 +31,7 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
       context.emit({
         ...base,
         type: "damage",
+        name: skill.name,
         coefficient: Number(effect.coefficient || 0),
         hits: Math.max(1, Number(effect.hits || 1)),
         canCrit: effect.canCrit !== false,
@@ -39,12 +40,21 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
       context.emit({
         ...base,
         type: "condition",
+        name: `${skill.name} — ${effect.condition}`,
         condition: effect.condition,
         stacks: Number(effect.stacks),
         duration: Number(effect.duration),
       });
     } else if (effect.type === "control" || effect.type === "blind") {
       context.emit({ ...base, type: effect.type });
+    } else if (effect.type === "boon" || effect.type === "buff") {
+      context.emit({
+        ...base,
+        type: "buff",
+        kind: String(effect.boon || effect.kind || effect.name || "").toLowerCase(),
+        stacks: Math.max(1, Number(effect.stacks || 1)),
+        duration: Math.max(0, Number(effect.duration || 0)),
+      });
     } else if (effect.type === "custom") {
       context.emit({
         ...base,
@@ -82,6 +92,21 @@ export function createScheduler({
       events.push(normalized);
       state.pendingEvents.push(normalized);
       return normalized;
+    },
+    buffStacks(kind, at = state.time) {
+      const normalized = String(kind || "").toLowerCase();
+      const permanent = config.boons?.[normalized];
+      const base = permanent === true ? 1 : Number(permanent || 0);
+      return events
+        .filter(event =>
+          event.type === "buff"
+          && String(event.kind || "").toLowerCase() === normalized
+          && event.at <= at + epsilon
+          && event.at + Number(event.duration || 0) > at + epsilon)
+        .reduce((sum, event) => sum + Number(event.stacks || 1), base);
+    },
+    hasBuff(kind, at = state.time) {
+      return context.buffStacks(kind, at) > 0;
     },
   };
   profession.initialize(context);

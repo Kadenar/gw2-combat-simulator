@@ -10,7 +10,7 @@ import {
 import { enqueueOrdered } from "../js/platform/engine/event-queue.js";
 import {
   buildScheduledEventStream,
-} from "../js/platform/engine/compat-scheduled-event-stream.js";
+} from "../js/platform/engine/scheduled-event-stream.js";
 import {
   createCloneAttackScheduler,
 } from "../js/professions/mesmer/mechanics/illusion-actions.js";
@@ -98,6 +98,7 @@ test("condition applications shorter than one second deal fractional damage", ()
       duration: 0.5,
       stacks: 1,
       source: "Player",
+      sourceId: "short-bleed",
     }],
     rotationEndTime: 2,
     resolverHandoff: {

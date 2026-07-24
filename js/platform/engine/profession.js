@@ -108,6 +108,11 @@ export function defineProfession(definition) {
   const schedulerHooks = definition.schedulerHooks || {};
   const resolverHooks = definition.resolverHooks || {};
   const ui = definition.ui || {};
+  const legacyResourceView = ui.resourceView || (() => null);
+  const resourceViews = ui.resourceViews || (context => {
+    const view = legacyResourceView(context);
+    return view ? [view] : [];
+  });
   const sources = {
     initialize: schedulerHooks.initialize,
     validateCast: castRules.validateCast ?? schedulerHooks.validateCast,
@@ -153,11 +158,13 @@ export function defineProfession(definition) {
       resolverHooks.eventReactions || definition.eventReactions,
     ),
     paletteGroups: ui.paletteGroups || (() => []),
-    resourceView: ui.resourceView || (() => null),
+    resourceView: context => resourceViews(context)[0] || null,
+    resourceViews,
     ui: Object.freeze({
       ...ui,
       paletteGroups: ui.paletteGroups || (() => []),
-      resourceView: ui.resourceView || (() => null),
+      resourceView: context => resourceViews(context)[0] || null,
+      resourceViews,
     }),
     simulation: definition.simulation || null,
   };

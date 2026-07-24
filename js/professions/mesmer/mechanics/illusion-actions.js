@@ -12,6 +12,7 @@ export function createCloneAttackScheduler({
   addDamage,
   addCondition,
 }) {
+  const profession = state.profession || state;
   /** Gets attack pattern for a clone's weapon (defaults to Sword). */
   const attackFor = (clone) =>
     cloneAttacks[clone.weapon] || cloneAttacks.Sword;
@@ -42,7 +43,7 @@ export function createCloneAttackScheduler({
   /** Returns next attack time across all clones (or Infinity if none). */
   const nextAttackAt = () => {
     let next = Infinity;
-    for (const clone of state.clones) {
+    for (const clone of profession.clones) {
       next = Math.min(next, clone.nextAttackAt);
     }
     return next;
@@ -88,7 +89,7 @@ export function createCloneAttackScheduler({
    * @param {number} at - Current time
    */
   const scheduleAt = (at) => {
-    for (const clone of state.clones) {
+    for (const clone of profession.clones) {
       if (clone.nextAttackAt > at + epsilon) continue;
       scheduleAttack(clone, at);
       const attack = attackFor(clone);

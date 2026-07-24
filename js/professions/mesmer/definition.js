@@ -6,7 +6,6 @@ import {
 } from "./build.js";
 import { mesmerCatalog } from "./catalog.js";
 import {
-  createDefaultConfig,
   simulateRotation,
   simulateSequence,
 } from "./simulation.js";
@@ -31,7 +30,6 @@ export const mesmerProfession = defineProfession({
     createProfessionState: createMesmerState,
   },
   attributeRules: mesmerAttributeRules,
-  castRules: {},
   schedulerHooks: {
     snapshot: context => snapshotMesmerState(context.state.profession),
   },
@@ -41,9 +39,10 @@ export const mesmerProfession = defineProfession({
   },
   ui: mesmerUi,
   simulation: Object.freeze({
-    createDefaultConfig,
-    simulateRotation,
-    simulateSequence,
+    simulate: ({ rotation = [], config = {}, mode = "sequence" } = {}) =>
+      mode === "rotation"
+        ? simulateRotation(rotation, config)
+        : simulateSequence(rotation, config),
   }),
 });
 

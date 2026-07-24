@@ -13,6 +13,12 @@ export function createEventFactory(options) {
 
   return createGw2SchedulerEventFactory({
     ...options,
+    decorateDamageEvent(event, { skill, extra }) {
+      return {
+        ...event,
+        blade: Boolean(extra.blade ?? skill.blade),
+      };
+    },
     onConditionScheduled(event) {
       if (event.condition !== "Bleeding") return;
       queueExpectedProc({

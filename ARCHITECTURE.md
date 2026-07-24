@@ -11,6 +11,7 @@ js/
   professions/
     mesmer/        Mesmer catalog, build schema, resources, rules, simulation
     elementalist/  Elementalist engine, data, app adapter, and optimizer
+    guardian/      Minimal canonical Guardian weapon/virtue vertical slice
   app/             browser composition and persistence adapters
 ```
 
@@ -32,7 +33,10 @@ Each profession owns its final build attribute calculation. The shared
 infusions, sigils, and base derived stats; the Mesmer and Elementalist
 calculators then apply only their own trait and skill rules.
 
-Profession-specific browser rendering follows the same boundary. Mesmer
+Profession-specific browser rendering follows the same boundary. The shared
+shell receives a profession application adapter for its build codec, storage
+key, runtime/config builder, renderer hooks, filenames, specialization
+fallback, and background contribution worker. Mesmer
 palette rules, Continuum Shift markers, Mirage effects, and phantasm/clone log
 formatting live under `js/professions/mesmer/app`; shared result transforms,
 chart queries, timeline operations, and small app UI helpers remain in the
@@ -79,7 +83,10 @@ export const exampleProfession = defineProfession({
   },
   ui: {
     paletteGroups,
-    resourceView,
+    resourceViews, // zero, one, or multiple resource view models
+  },
+  simulation: {
+    simulate, // optional production pipeline reached only through simulateGw2
   },
 });
 ```
@@ -93,6 +100,12 @@ ties deterministically.
 Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill
 uses, pending events, and `profession`. Profession resources and mechanic
 timers live under `state.profession`.
+
+Application and test callers use `simulateGw2()`. It dispatches to the
+profession's production pipeline when present and otherwise uses the
+declarative scheduler. Canonical sequence results keep time, cooldowns, ammo,
+and active weapon set under `endState`; profession mechanics are exposed only
+through `endState.profession`.
 
 The platform scheduler handles ordinary declarative skills. A profession with
 actor-specific timing, such as Mesmer clone and phantasm attacks, composes its
@@ -170,7 +183,7 @@ The current persisted schema is:
 ```js
 {
   schemaVersion: 3,
-  profession: "mesmer", // or "elementalist"
+  profession: "mesmer", // or "elementalist" / "guardian"
   // profession build fields
 }
 ```
@@ -185,6 +198,8 @@ rotation entries; storage and the simulator contract use normalized commands.
 - `mesmer`: native profession-contract implementation.
 - `elementalist`: direct reference-engine port exposed through an
   `elementalistProfession` contract adapter.
+- `guardian`: minimal Sword, Justice/burning, weapon-swap, build-codec, and
+  palette slice proving the canonical extension path.
 
 ## Adding another profession
 

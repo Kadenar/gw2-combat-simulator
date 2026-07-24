@@ -2,17 +2,22 @@
 // Handles attribute calculation, simulation execution, and config transformation
 
 import { calculateAttributes } from '../core/calc-attributes.js';
+import { simulateGw2 } from '../../../platform/gw2/simulate.js';
 import {
-    aggregateSigilSet,
-    weaponSigilsForSet,
-} from '../../../platform/gw2/weapon-sigils.js';
+    createGw2SimulationConfig,
+} from '../../../app/gw2-simulation-config.js';
 import { mesmerProfession } from '../definition.js';
 import { mesmerResourceDefinition as getResourceDefinition } from '../ui.js';
 import {
     calculateContributionComparisons,
 } from '../../../app/app-runtime.js';
 
-const { simulateSequence } = mesmerProfession.simulation;
+const simulateSequence = (rotation, config) => simulateGw2({
+    profession: mesmerProfession,
+    rotation,
+    config,
+    mode: 'sequence',
+});
 
 // Determines which elite specialization is active (Chronomancer, Mirage, Virtuoso, Troubadour)
 // Returns 'Core' if no elite spec is selected
@@ -67,104 +72,28 @@ function attributesWithModifierDisabled(app, disabled) {
 // Aggregates sigils, resolves elite spec, handles clone vs blade/note resource initialization
 export function simulationConfig(app, disabled = null) {
     const attributeData = attributesWithModifierDisabled(app, disabled);
-    const attr = name => attributeData.attributes[name]?.final || 0;
-    const assumptions = app.build.assumptions;
-    const targetSkillActivationsPerSecond = Math.max(
-        0,
-        Number(assumptions.targetSkillActivationsPerSecond) || 0,
-    );
     const specialization = eliteSpecialization(app.build);
-    const targetConditions = { ...(assumptions.targetConditions || {}) };
-    if (disabled?.type === 'Target' && disabled.name === 'Vulnerability') {
-        delete targetConditions.Vulnerability;
-    }
-    const sigilSets = [1, 2]
-        .map(setNumber => weaponSigilsForSet(app.build, setNumber))
-        .map(names => disabled?.type === 'Sigil'
-            ? names.filter(name => name !== disabled.name)
-            : names)
-        .map(aggregateSigilSet);
-    const displayedConditionDuration =
-        attributeData.attributes['Condition Duration'] || {};
-    const genericConditionDurationBonus = Math.max(
-        0,
-        Number(displayedConditionDuration.final || 0)
-            - attr('Expertise') / 15
-            - Number(displayedConditionDuration.sigils || 0),
-    );
-    const conditionDurationBonuses = Object.fromEntries(
-        ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment']
-            .map(name => {
-                const duration = attributeData.attributes[`${name} Duration`] || {};
-                let bonus =
-                    Number(duration.final || 0)
-                    - Number(duration.sigils || 0);
-                // Malicious Sorcery is resolved from the active trait at runtime.
-                // Keep it out of the static equipment/consumable bonus.
-                if (
-                    name === 'Confusion'
-                    && attributeData.activeTraits
-                        .some(trait => trait.name === 'Malicious Sorcery')
-                ) {
-                    bonus -= 25;
-                }
-                return [name === 'Poison' ? 'Poisoned' : name, Math.max(0, bonus)];
-            })
-            .filter(([, bonus]) => bonus > 0),
-    );
-    // Clones only exist in combat, so clone specs never start with resource.
-    // Blade/note specs keep their configured opener count.
     const startsWithClones = getResourceDefinition(specialization).singular === 'clone';
-    return {
+    const activeTraits = attributeData.activeTraits || [];
+    const hasMaliciousSorcery = activeTraits
+        .some(trait => trait.name === 'Malicious Sorcery');
+    return createGw2SimulationConfig({
+        app,
+        attributeData,
         specialization,
-        selectedTraits: attributeData.activeTraits.map(trait => trait.name),
-        selectedTraitIds: attributeData.activeTraits
+        disabled,
+        selectedTraits: activeTraits.map(trait => trait.name),
+        selectedTraitIds: activeTraits
             .map(trait => trait.id)
             .filter(id => id != null),
-        selectedSkills: Object.values(app.build.selectedSkills),
-        primaryWeapon: app.build.weapons[0],
-        secondaryWeapon: app.build.weapons[1],
-        weaponSet2Primary: app.build.alternateWeapons[0],
-        weaponSet2Secondary: app.build.alternateWeapons[1],
-        startingWeaponSet: app.build.startingWeaponSet === 2 ? 2 : 1,
         initialResource: startsWithClones ? 0 : app.build.initialResource,
-        stats: {
-            power: attr('Power'),
-            precision: attr('Precision'),
-            ferocity: attr('Ferocity'),
-            conditionDamage: attr('Condition Damage'),
-            expertise: attr('Expertise'),
-            concentration: attr('Concentration'),
-            vitality: attr('Vitality'),
-            criticalChanceBonus: 0,
-            conditionDurationBonus: genericConditionDurationBonus,
-            conditionDurationBonuses,
+        // This trait is resolved at hit time, not as an equipment bonus.
+        adjustConditionDurationBonus(name, bonus) {
+            return name === 'Confusion' && hasMaliciousSorcery
+                ? bonus - 25
+                : bonus;
         },
-        sigilSets,
-        relic: disabled?.type === 'Relic' ? '' : app.build.relic,
-        boons: {
-            might: disabled?.type === 'Boon' && disabled.name === 'Might'
-                ? 0
-                : assumptions.might,
-            fury: disabled?.type === 'Boon' && disabled.name === 'Fury'
-                ? false
-                : assumptions.fury,
-            quickness: assumptions.quickness,
-            alacrity: assumptions.alacrity,
-            regeneration: assumptions.regeneration,
-            vigor: assumptions.vigor,
-        },
-        target: {
-            armor: app.build.targetArmor,
-            health: Math.max(0, Number(app.build.targetHealth) || 0),
-            conditions: targetConditions,
-            moving: assumptions.targetMoving,
-            boonless: assumptions.targetBoonless,
-            nearby: true,
-            activatingSkills: targetSkillActivationsPerSecond > 0,
-            confusionActivationsPerSecond: targetSkillActivationsPerSecond,
-        },
-    };
+    });
 }
 
 export function modifierCandidates(app) {
@@ -228,6 +157,7 @@ export function modifierContributionRequest(app) {
         return { modifier, config };
     });
     return {
+        professionId: mesmerProfession.id,
         rotation: app.build.rotation,
         baseConfig,
         comparisons,

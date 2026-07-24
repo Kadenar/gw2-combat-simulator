@@ -1,37 +1,46 @@
-import {
-  createDefaultTargetConditions,
-  createMesmerBuildDefaults,
-  migrateMesmerBuild,
-  toApplicationBuild,
-} from "../professions/mesmer/build.js";
+import { activeProfessionAppAdapter } from "./composition.js";
 
-// Preserve the existing key so locally saved v2 builds migrate in place.
-export const STORAGE_KEY = "gw2-mesmer-simulator-v2";
+export const STORAGE_KEY = activeProfessionAppAdapter.storageKey;
+export const createDefaultTargetConditions =
+  activeProfessionAppAdapter.createDefaultTargetConditions;
 
-export { createDefaultTargetConditions };
-
-export function createDefaultBuild() {
-  return toApplicationBuild(createMesmerBuildDefaults());
+function resolveAdapter(adapter) {
+  if (!adapter?.profession || !adapter.storageKey) {
+    throw new TypeError("Application state requires a profession app adapter.");
+  }
+  return adapter;
 }
 
-export function loadBuild() {
+export function createDefaultBuild(adapter = activeProfessionAppAdapter) {
+  const resolved = resolveAdapter(adapter);
+  return resolved.toApplicationBuild(
+    resolved.profession.createBuildDefaults(),
+  );
+}
+
+export function loadBuild(adapter = activeProfessionAppAdapter) {
+  const resolved = resolveAdapter(adapter);
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    return toApplicationBuild(saved || createMesmerBuildDefaults());
+    const saved = JSON.parse(localStorage.getItem(resolved.storageKey) || "null");
+    return resolved.toApplicationBuild(
+      saved || resolved.profession.createBuildDefaults(),
+    );
   } catch {
-    return createDefaultBuild();
+    return createDefaultBuild(resolved);
   }
 }
 
-export function saveBuild(build) {
-  const persisted = migrateMesmerBuild(build);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+export function saveBuild(build, adapter = activeProfessionAppAdapter) {
+  const resolved = resolveAdapter(adapter);
+  const persisted = resolved.profession.migrateBuild(build);
+  localStorage.setItem(resolved.storageKey, JSON.stringify(persisted));
 }
 
-export function replaceBuild(saved) {
+export function replaceBuild(saved, adapter = activeProfessionAppAdapter) {
+  const resolved = resolveAdapter(adapter);
   try {
-    return toApplicationBuild(saved);
+    return resolved.toApplicationBuild(saved);
   } catch {
-    return createDefaultBuild();
+    return createDefaultBuild(resolved);
   }
 }
