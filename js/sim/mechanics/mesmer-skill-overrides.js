@@ -462,7 +462,6 @@ const choiceOverrides = {
     // Measured at 1850 ms with Quickness.
     activation: 2.775,
     pulseCount: 7,
-    cooldownStartsOnCastEnd: true,
   },
   "Gravity Well": {
     damage: [

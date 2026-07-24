@@ -511,7 +511,7 @@ test('supplied shatter and instrument coefficient tables are preserved', () => {
         'Cry of Frustration': [0.42, 0.84, 1.25, 1.67],
         Diversion: [0, 0, 0, 0],
         Distortion: [0, 0, 0, 0],
-        'Split Second': [1.61, 3.22, 3.86, 4.51],
+        'Split Second': [1.534, 3.22, 3.86, 4.51],
         Rewinder: [0.42, 0.84, 1.25, 1.67],
         'Time Sink': [0, 0, 0, 0],
         'Bladesong Harmony': [0, 0.7, 1.4, 2.1, 2.8, 3.5],

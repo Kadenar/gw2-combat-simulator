@@ -629,6 +629,8 @@ export function simulateSequence(rotation, userConfig = {}) {
     const actionCount = scheduler.events.length;
     const beforeCastTime = scheduler.state.time;
     const pendingBeforeCast = new Set(scheduler.state.pendingResources);
+    const ammoRechargeBeforeCast =
+      scheduler.state.ammo.get(skill.id)?.nextRechargeAt ?? null;
     scheduler.cast(skill);
     let action = scheduler.events
       .slice(actionCount)
@@ -655,6 +657,14 @@ export function simulateSequence(rotation, userConfig = {}) {
           skill.id,
           scheduler.state.cooldowns.get(skill.id) + delta,
         );
+      }
+      const castAmmo = scheduler.state.ammo.get(skill.id);
+      if (
+        castAmmo
+        && ammoRechargeBeforeCast == null
+        && castAmmo.nextRechargeAt != null
+      ) {
+        castAmmo.nextRechargeAt += delta;
       }
       if (
         skill.name === "Continuum Split" &&
@@ -749,7 +759,18 @@ export function simulateSequence(rotation, userConfig = {}) {
         action.endsAt = interruptedEnd;
         actualEnd = interruptedEnd;
         scheduler.state.time = interruptedEnd;
-        if (skill.cooldownStartsOnCastEnd && scheduler.state.cooldowns.has(skill.id)) {
+        const castAmmo = scheduler.state.ammo.get(skill.id);
+        if (
+          castAmmo
+          && ammoRechargeBeforeCast == null
+          && castAmmo.nextRechargeAt != null
+        ) {
+          castAmmo.nextRechargeAt =
+            interruptedEnd + castAmmo.rechargeDuration;
+          if (castAmmo.charges === 0) {
+            scheduler.state.cooldowns.set(skill.id, castAmmo.nextRechargeAt);
+          }
+        } else if (scheduler.state.cooldowns.has(skill.id)) {
           scheduler.state.cooldowns.set(
             skill.id,
             interruptedEnd + adjustedCooldown(skill, config),

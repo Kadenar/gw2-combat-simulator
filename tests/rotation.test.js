@@ -5,6 +5,7 @@ import { simulateSequence } from '../js/sim/simulator.js';
 import {
     buildChartSeries,
     chartValueAt,
+    continuumEndTimelineMarkers,
     moveRotationEntry,
     resultSummaryMetrics,
     simulationEventLogCsv,
@@ -16,9 +17,10 @@ import {
 test('queueing a cooling-down icon waits until it is available', () => {
     const result = simulateSequence(['Bladecall', 'Bladecall'], defaultSimulationConfig());
     assert.equal(result.steps[0].start, 0);
-    assert.equal(result.steps[1].start, 4000);
-    assert.equal(result.endState.cooldowns.Bladecall.readyAt, 8000);
-    assert.equal(result.endState.cooldowns.Bladecall.remaining, 3560);
+    assert.equal(result.steps[0].end, 440);
+    assert.equal(result.steps[1].start, 4440);
+    assert.equal(result.endState.cooldowns.Bladecall.readyAt, 8880);
+    assert.equal(result.endState.cooldowns.Bladecall.remaining, 4000);
 });
 
 test('Time Marches On makes alacrity recharge Chronomancer skills 50% faster', () => {
@@ -35,15 +37,15 @@ test('Time Marches On makes alacrity recharge Chronomancer skills 50% faster', (
     assert.equal(result.steps[1].start, 8000);
 });
 
-test('alacrity gives non-Chronomancers 25% recharge speed', () => {
+test('non-Chronomancer alacrity starts the reduced cooldown after the cast', () => {
     const result = simulateSequence(
         ['Bladecall', 'Bladecall'],
         defaultSimulationConfig({ specialization: 'Core' }),
     );
-    assert.equal(result.steps[1].start, 4000);
+    assert.equal(result.steps[1].start, 4440);
 });
 
-test('Virtuoso alacrity recharges Imaginary Inversion in eight seconds', () => {
+test('Virtuoso alacrity starts Imaginary Inversion recharge after the cast', () => {
     const result = simulateSequence(
         ['Imaginary Inversion', 'Imaginary Inversion'],
         defaultSimulationConfig({
@@ -52,7 +54,7 @@ test('Virtuoso alacrity recharges Imaginary Inversion in eight seconds', () => {
             secondaryWeapon: '',
         }),
     );
-    assert.equal(result.steps[1].start, 8000);
+    assert.equal(result.steps[1].start, 8500);
 });
 
 test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
@@ -90,8 +92,8 @@ test("Fencer's Finesse reduces sword skill cooldowns by 20%", () => {
         },
     );
 
-    assert.equal(baseline.steps[1].start, 8000);
-    assert.equal(withTrait.steps[1].start, 6400);
+    assert.equal(baseline.steps[1].start, 8960);
+    assert.equal(withTrait.steps[1].start, 7360);
 });
 
 test('Flow of Time increases clone critical chance while alacrity is active', () => {
@@ -1824,8 +1826,8 @@ test('Dimensional Aperture adds 50% to Singularity Shot recharge', () => {
         ['Singularity Shot', 'Dimensional Aperture'],
         config,
     );
-    assert.equal(base.endState.cooldowns['Singularity Shot'].readyAt, 16000);
-    assert.equal(aperture.endState.cooldowns['Singularity Shot'].readyAt, 24000);
+    assert.equal(base.endState.cooldowns['Singularity Shot'].readyAt, 16333);
+    assert.equal(aperture.endState.cooldowns['Singularity Shot'].readyAt, 24333);
 });
 
 test('Abstraction records its detonation strike damage', () => {
@@ -2810,6 +2812,48 @@ test('Continuum Shift is available only while Continuum Split is active', () => 
 
     const shifted = simulateSequence(['Continuum Split', 'Continuum Shift'], config);
     assert.equal(shifted.endState.continuumActive, false);
+});
+
+test('expired Continuum Split is injected before the next rotation action', () => {
+    const rotation = [
+        'Continuum Split',
+        'Bladecall',
+        'Bladecall',
+        'Bladecall',
+    ];
+    const result = simulateSequence(
+        rotation,
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            initialResource: 3,
+        }),
+    );
+
+    assert.deepEqual(
+        continuumEndTimelineMarkers(result, rotation.length),
+        [{
+            insertionIndex: 3,
+            skill: 'Continuum Shift',
+            start: 6050,
+            detail: 'split expired',
+        }],
+    );
+});
+
+test('manual Continuum Shift is not duplicated as an injected timeline marker', () => {
+    const rotation = ['Continuum Split', 'Continuum Shift'];
+    const result = simulateSequence(
+        rotation,
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            initialResource: 3,
+        }),
+    );
+
+    assert.deepEqual(
+        continuumEndTimelineMarkers(result, rotation.length),
+        [],
+    );
 });
 
 test('Continuum Split does not restore weapon-swap cooldown', () => {
