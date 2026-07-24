@@ -1,6 +1,4 @@
-export function resourceDisplayView(profession, context) {
-  const view = profession.ui.resourceView(context);
-  if (!view) return null;
+function normalizeResourceView(view) {
   const maximum = Math.max(0, Number(view.maximum || 0));
   return {
     id: String(view.id || "resource"),
@@ -12,4 +10,18 @@ export function resourceDisplayView(profession, context) {
     shortLabel: String(view.shortLabel || view.singular || "Res"),
     statusLabel: String(view.statusLabel || "Current"),
   };
+}
+
+export function resourceDisplayViews(profession, context) {
+  const views = profession.ui.resourceViews
+    ? profession.ui.resourceViews(context)
+    : [profession.ui.resourceView(context)].filter(Boolean);
+  if (!Array.isArray(views)) {
+    throw new TypeError("Profession resourceViews must return an array.");
+  }
+  return views.filter(Boolean).map(normalizeResourceView);
+}
+
+export function resourceDisplayView(profession, context) {
+  return resourceDisplayViews(profession, context)[0] || null;
 }

@@ -438,6 +438,7 @@ export const WEAPON_DATA = {
     // Main-hand only
     Axe: { wielding: 'mh', weaponStrength: 1000 },
     Dagger: { wielding: 'mh', weaponStrength: 1000 },
+    Mace: { wielding: 'mh', weaponStrength: 1000 },
     Scepter: { wielding: 'mh', weaponStrength: 1000 },
     // Main-hand or off-hand
     Sword: { wielding: 'mh+oh', weaponStrength: 1000 },
@@ -448,6 +449,8 @@ export const WEAPON_DATA = {
     Torch: { wielding: 'oh', weaponStrength: 900 },
     // Two-handed
     Greatsword: { wielding: '2h', weaponStrength: 1100 },
+    Hammer: { wielding: '2h', weaponStrength: 1100 },
+    Longbow: { wielding: '2h', weaponStrength: 1000 },
     Rifle: { wielding: '2h', weaponStrength: 1150 },
     Spear: { wielding: '2h', weaponStrength: 1000 },
     Staff: { wielding: '2h', weaponStrength: 1100 },

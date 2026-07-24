@@ -81,6 +81,16 @@ test('two-handed weapons use one 2H item stat budget', () => {
     assert.equal(two.Precision.final, one.Precision.final - 1);
 });
 
+test('alternate two-handed weapons use the 2H stat budget for set two', () => {
+    const build = createDefaultBuild();
+    build.alternateWeapons = ['Spear', ''];
+    const first = calcAttributes(build, [], 1).attributes;
+    const second = calcAttributes(build, [], 2).attributes;
+
+    assert.equal(second.Power.final, first.Power.final + 1);
+    assert.equal(second.Precision.final, first.Precision.final - 1);
+});
+
 test('the default build persists a complete alternate weapon set', () => {
     const build = createDefaultBuild();
     assert.deepEqual(build.weapons, ['Dagger', 'Sword']);
@@ -123,6 +133,7 @@ test('choosing an equipped sigil swaps slots instead of creating a duplicate', (
 
 test('attribute calculation shows sigil bonuses from the chosen weapon set', () => {
     const build = createDefaultBuild();
+    build.alternateWeapons = ['Dagger', 'Sword'];
     build.weaponSigils = [
         ['Force', 'Malice'],
         ['Accuracy', 'Agony'],

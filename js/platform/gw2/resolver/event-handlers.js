@@ -10,6 +10,24 @@ import {
 
 const noop = () => {};
 
+function handleBuff(ctx, event, eventReactions) {
+  const kind = String(event.kind || "").toLowerCase();
+  const applications = ctx.boons.get(kind) || [];
+  applications.push({
+    at: event.at,
+    expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
+    stacks: Math.max(1, Number(event.stacks || 1)),
+  });
+  ctx.boons.set(kind, applications);
+  const activeStacks = applications
+    .filter(application => application.expiresAt > event.at)
+    .reduce((sum, application) => sum + application.stacks, 0);
+  reactionFor(eventReactions, "buff")(ctx, event, {
+    activeStacks,
+    applications,
+  });
+}
+
 function requireFunction(value, name) {
   if (typeof value !== "function") {
     throw new TypeError(`GW2 resolver handlers require ${name}.`);
@@ -155,7 +173,9 @@ export function createGw2ResolverEventHandlers({
     marker: noop,
     proc: noop,
     resource: noop,
-    buff: noop,
+    buff(ctx, event) {
+      handleBuff(ctx, event, eventReactions);
+    },
     weakness_vulnerability: noop,
 
     damage(ctx, event) {

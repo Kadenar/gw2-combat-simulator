@@ -30,6 +30,7 @@ export function createGw2ResolverRuntimeState({
     resolved: [],
     procSteps: [],
     procKeys: new Set(),
+    boons: new Map(),
     totals: {
       strike: 0,
       condition: 0,

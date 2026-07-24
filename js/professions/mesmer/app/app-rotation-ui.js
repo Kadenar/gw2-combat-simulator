@@ -84,6 +84,7 @@ const EFFECT_STACK_CAPS = {
 };
 
 const seconds = ms => `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
+const professionEndState = result => result?.endState?.profession || {};
 
 function resolveRelicIcon(label) {
     const value = String(label || '');
@@ -238,11 +239,13 @@ function addGroup(
 function activeResourceGroup(app) {
     const definition = resourceDisplayView(app.profession, {
         specialization: eliteSpecialization(app.build),
-        value: app.results?.endState?.resource ?? app.build.initialResource,
+        value:
+            professionEndState(app.results).resource
+            ?? app.build.initialResource,
     });
     const value = Math.max(0, Math.min(
         definition.maximum,
-        app.results?.endState?.resource ?? app.build.initialResource,
+        professionEndState(app.results).resource ?? app.build.initialResource,
     ));
     const label = definition.shortLabel;
     const title = `${definition.statusLabel} ${definition.plural}: ${value}/${definition.maximum}`;
@@ -281,8 +284,12 @@ export function continuumEndTimelineMarkers(result, rotationLength = 0) {
 
 export function renderStartResource(app) {
     const element = document.getElementById('start-att-selector');
-    const definition = app.results?.endState?.resourceDefinition
+    const definition = professionEndState(app.results).resourceDefinition
         || app.resourceDefinition(eliteSpecialization(app.build));
+    if (!definition) {
+        container.innerHTML = '';
+        return;
+    }
     // Clones only exist in combat, so those specs never open with resource and
     // the start selector is hidden for them. Blades/notes keep their opener.
     const canStartWithResource = definition.canStart !== false;
@@ -310,7 +317,7 @@ export function renderStartResource(app) {
 
     element.innerHTML = `${weaponControl}${resourceControl}
         <span class="start-att-label end-resource">Active ${esc(definition.plural)}:
-            ${app.results?.endState?.resource ?? value}/${definition.maximum}
+            ${professionEndState(app.results).resource ?? value}/${definition.maximum}
             · W${app.results?.endState?.activeWeaponSet || startSet}</span>`;
     element.querySelectorAll('.resource-pip').forEach(button => {
         button.addEventListener('click', () => {
@@ -360,10 +367,11 @@ export function renderPalette(app) {
         && skill.name !== 'Continuum Shift'
         && (!skill.specialization || skill.specialization === spec));
     const activeWeaponSet = app.results?.endState?.activeWeaponSet || 1;
-    const continuumActive = Boolean(app.results?.endState?.continuumActive);
-    const availableFlips = app.results?.endState?.availableFlips || {};
-    const availableAmbush = app.results?.endState?.availableAmbush || null;
-    const autoattackChains = app.results?.endState?.autoattackChains || {};
+    const professionState = professionEndState(app.results);
+    const continuumActive = Boolean(professionState.continuumActive);
+    const availableFlips = professionState.availableFlips || {};
+    const availableAmbush = professionState.availableAmbush || null;
+    const autoattackChains = professionState.autoattackChains || {};
     const weaponSkillAvailable = skill => {
         if (skill.ambush) return availableAmbush?.name === skill.name;
         if (availableAmbush && skill.slot === 'Weapon_1') return false;
@@ -722,7 +730,9 @@ const eventLogOrder = {
 
 export function simulationEventLogRows(result, build = null) {
     const rows = [];
-    const maximumResource = Number(result?.endState?.resourceDefinition?.maximum || 0);
+    const maximumResource = Number(
+        professionEndState(result).resourceDefinition?.maximum || 0,
+    );
     const push = (at, type, description, className = '', phantasmClone = false) => {
         rows.push({
             at: Number(at || 0),
@@ -896,7 +906,7 @@ export function renderEventLog(app) {
         rowClassName: event.phantasmClone ? 'log-phantasm' : '',
     })), {
         title: 'Event Log',
-        filename: 'mesmer-event-log.csv',
+        filename: app.adapter?.filenames?.eventLog || 'event-log.csv',
         filters: [{
             id: 'phantasm',
             label: 'Phantasm & Clone only',

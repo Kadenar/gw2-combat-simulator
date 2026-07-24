@@ -25,16 +25,18 @@ export function createProfessionActionController({
 }) {
   const currentResource = () =>
     resourceDefinition.singular === "clone"
-      ? state.clones.length
-      : state.numericResource;
+      ? state.profession.clones.length
+      : state.profession.numericResource;
 
   const consumeResources = (at) => {
     const spent = currentResource();
     if (resourceDefinition.singular === "clone") {
-      for (const clone of state.clones) cloneDeaths.set(clone.id, at);
-      state.clones = [];
+      for (const clone of state.profession.clones) {
+        cloneDeaths.set(clone.id, at);
+      }
+      state.profession.clones = [];
     } else {
-      state.numericResource = 0;
+      state.profession.numericResource = 0;
     }
     addEvent({
       type: "resource",
@@ -263,10 +265,10 @@ export function createProfessionActionController({
     if (
       skill.name === "Time Sink"
       && traits.has("Time Bomb")
-      && at >= state.timeBombUntil - epsilon
+      && at >= state.profession.timeBombUntil - epsilon
     ) {
       const timeBomb = traitDamage["Time Bomb"];
-      state.timeBombUntil = at + timeBomb.duration;
+      state.profession.timeBombUntil = at + timeBomb.duration;
       addEvent({
         type: "buff",
         at,
@@ -281,7 +283,7 @@ export function createProfessionActionController({
           weapon: "Utility",
           blade: false,
         },
-        state.timeBombUntil,
+        state.profession.timeBombUntil,
         {
           coefficient: timeBomb.coefficient,
           hits: timeBomb.hits,
@@ -329,8 +331,8 @@ export function createProfessionActionController({
       addCondition(skill.name, at, condition);
     }
     const expiresAt = at + 5 + spent * 5;
-    state.instruments.set(data.instrument, expiresAt);
-    state.lastInstrument = data.instrument;
+    state.profession.instruments.set(data.instrument, expiresAt);
+    state.profession.lastInstrument = data.instrument;
     addEvent({
       type: "mesmer.instrument",
       at: at + epsilon,
@@ -352,7 +354,7 @@ export function createProfessionActionController({
   };
 
   const handleCrescendo = (skill, at) => {
-    const activeInstruments = [...state.instruments.entries()].filter(
+    const activeInstruments = [...state.profession.instruments.entries()].filter(
       ([, expiresAt]) => expiresAt > at,
     );
     addDamage(skill, at, {
@@ -362,7 +364,7 @@ export function createProfessionActionController({
     });
 
     if (traits.has("Altered Chord")) {
-      if (state.lastInstrument === "Lute") {
+      if (state.profession.lastInstrument === "Lute") {
         addEvent({
           type: "buff",
           at: at + epsilon,
@@ -371,7 +373,7 @@ export function createProfessionActionController({
           duration: 10,
         });
         addTraitProc("Altered Chord", at + epsilon, skill.name, "Lute");
-      } else if (state.lastInstrument === "Flute") {
+      } else if (state.profession.lastInstrument === "Flute") {
         addCondition(
           skill.name,
           at,

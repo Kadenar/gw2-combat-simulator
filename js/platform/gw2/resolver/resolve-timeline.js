@@ -1,9 +1,5 @@
 import { EPSILON } from "../../engine/clock.js";
 import {
-  assertScheduledEventStream as assertCompatibilityStream,
-  SCHEDULED_EVENT_STREAM_KIND as COMPATIBILITY_STREAM_KIND,
-} from "../../engine/compat-scheduled-event-stream.js";
-import {
   assertScheduledEventStream as assertPlatformStream,
 } from "../../engine/scheduled-event-stream.js";
 import { recordPassiveRelicTimeline } from "../relic-rules.js";
@@ -11,12 +7,6 @@ import {
   createGw2ResolverHandlerRegistry,
   runGw2ResolverEventLoop,
 } from "./event-loop.js";
-
-function assertSupportedStream(stream) {
-  return stream?.kind === COMPATIBILITY_STREAM_KIND
-    ? assertCompatibilityStream(stream)
-    : assertPlatformStream(stream);
-}
 
 function addCastsToBreakdown(ctx, events, effectiveEnd) {
   const casts = new Map();
@@ -54,7 +44,7 @@ export function resolveGw2Timeline({
   if (typeof createRuntimeState !== "function") {
     throw new TypeError("GW2 timeline resolver requires createRuntimeState.");
   }
-  const scheduled = assertSupportedStream(stream);
+  const scheduled = assertPlatformStream(stream);
   const queue = scheduled.events.map(event => ({ ...event }));
   const handoff = scheduled.resolverHandoff || {};
   const ctx = createRuntimeState({

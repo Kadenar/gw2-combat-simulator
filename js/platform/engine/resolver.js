@@ -16,6 +16,7 @@ export function createResolverState({
     totals: { strike: 0, condition: 0 },
     breakdown: new Map(),
     conditions: new Map(),
+    boons: new Map(),
     resolvedEvents: [],
     procs: [],
     warnings: [],

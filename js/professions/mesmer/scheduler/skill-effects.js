@@ -33,9 +33,9 @@ export function createSkillEffectController({
   const handleGenericSkill = (skill, at, castStart = at) => {
     const clarityConsumed =
       CLARITY_CONSUMERS.has(skill.name)
-      && state.clarityUntil > castStart;
+      && state.profession.clarityUntil > castStart;
     if (CLARITY_CONSUMERS.has(skill.name)) {
-      state.clarityUntil = 0;
+      state.profession.clarityUntil = 0;
     }
     const pulseCount = Math.max(
       1,
@@ -227,7 +227,7 @@ export function createSkillEffectController({
     if (skill.trackedHitDamage) {
       const tracking = skill.trackedHitDamage;
       const minimum = at - Number(tracking.duration || 0);
-      const recentHits = (state.trackedSkillHits.get(skill.id) || [])
+      const recentHits = (state.profession.trackedSkillHits.get(skill.id) || [])
         .filter((hitAt) => hitAt > minimum + epsilon);
       const currentHits = (skill.damage || []).reduce(
         (sum, group) =>
@@ -250,7 +250,7 @@ export function createSkillEffectController({
           name: tracking.damage.label,
         });
       }
-      state.trackedSkillHits.set(skill.id, recentHits);
+      state.profession.trackedSkillHits.set(skill.id, recentHits);
     }
 
     const appliedConditions = etherCloneAtMaximum
@@ -339,7 +339,7 @@ export function createSkillEffectController({
     }
 
     if (skill.name === "Mind the Gap") {
-      state.clarityUntil = at + CLARITY_DURATION;
+      state.profession.clarityUntil = at + CLARITY_DURATION;
       addEvent({
         type: "proc",
         procType: "skill",
@@ -377,7 +377,8 @@ export function createSkillEffectController({
     }
     if (skill.type === "Heal" && traits.has("Method of Madness")) {
       const storm = traitDamage["Lesser Chaos Storm"];
-      const readyAt = state.traitReadyAt.get("Method of Madness") || 0;
+      const readyAt =
+        state.profession.traitReadyAt.get("Method of Madness") || 0;
       if (at >= readyAt - epsilon) {
         addDamage(
           {
@@ -394,7 +395,7 @@ export function createSkillEffectController({
           },
         );
         addTraitProc("Method of Madness", at, skill.name);
-        state.traitReadyAt.set(
+        state.profession.traitReadyAt.set(
           "Method of Madness",
           at + storm.cooldown,
         );

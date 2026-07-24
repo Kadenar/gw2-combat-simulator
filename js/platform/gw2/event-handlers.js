@@ -62,8 +62,19 @@ export function commonDamageHandler(context, event) {
     damage,
     hits,
   );
+  const applyCondition = (_reactionContext, conditionEvent) =>
+    commonConditionHandler(context, conditionEvent);
   react(context, event, {
     damage,
+    hitContext: {
+      damage,
+      stats,
+      critical: {
+        chance,
+        multiplier: critical,
+      },
+    },
+    applyCondition,
     criticalChance: chance,
     criticalDamage: critical,
     stats,
@@ -94,6 +105,22 @@ function reactingNoop(context, event) {
   react(context, event);
 }
 
+function commonBuffHandler(context, event) {
+  const kind = String(event.kind || "").toLowerCase();
+  const applications = context.state.boons.get(kind) || [];
+  applications.push({
+    at: event.at,
+    expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
+    stacks: Math.max(1, Number(event.stacks || 1)),
+  });
+  context.state.boons.set(kind, applications);
+  react(context, event, {
+    activeStacks: applications
+      .filter(application => application.expiresAt > event.at)
+      .reduce((sum, application) => sum + application.stacks, 0),
+  });
+}
+
 export function createCommonEventHandlers() {
   return {
     action: reactingNoop,
@@ -106,7 +133,7 @@ export function createCommonEventHandlers() {
     weapon_set: reactingNoop,
     marker: reactingNoop,
     resource: reactingNoop,
-    buff: reactingNoop,
+    buff: commonBuffHandler,
     weakness_vulnerability: reactingNoop,
     peitha: reactingNoop,
     proc: (context, event) => {

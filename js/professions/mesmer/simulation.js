@@ -25,7 +25,7 @@ import {
 } from "./mechanics/mesmer-skill-overrides.js";
 import { MESMER_SKILLS, mesmerCatalog } from "./catalog.js";
 import { prepareSimulationConfig } from "../../platform/engine/prepare-config.js";
-import { buildScheduledEventStream } from "../../platform/engine/compat-scheduled-event-stream.js";
+import { buildScheduledEventStream } from "../../platform/engine/scheduled-event-stream.js";
 import { EPSILON } from "../../platform/engine/clock.js";
 import { resolveScheduledStream } from "./resolver/resolve-timeline.js";
 import { buildResolverQuery } from "./resolver/resolver-query.js";
@@ -34,6 +34,14 @@ import {
   normalizeRotation,
   toLegacyRotationEntry,
 } from "../../platform/engine/rotation-commands.js";
+import {
+  gw2ConditionDurationMultiplier,
+  gw2EffectiveCooldown,
+  gw2RechargeRate,
+  gw2SigilSet,
+  gw2StaticAttributes,
+  gw2WeaponStrength,
+} from "../../platform/gw2/runtime-rules.js";
 
 /** Safety limit to prevent infinite action loops in rotation simulations. */
 const MAX_ACTIONS = 10_000;
@@ -236,10 +244,12 @@ function adjustedCooldown(skill, config) {
   ) {
     traitModifier *= 0.8;
   }
-  const alacrity = config.boons?.alacrity
-    ? config.specialization === "Chronomancer" ? 1.5 : 1.25
-    : 1;
-  return (Number(skill.cooldown || 0) * traitModifier) / alacrity;
+  return gw2EffectiveCooldown(skill, config, {
+    cooldownMultiplier: traitModifier,
+    rechargeRate: gw2RechargeRate(config, {
+      alacrityRate: config.specialization === "Chronomancer" ? 1.5 : 1.25,
+    }),
+  });
 }
 
 /**
@@ -249,22 +259,13 @@ function adjustedCooldown(skill, config) {
  * @param {Object} config - Simulation config with primaryWeapon
  * @returns {number} Weapon strength multiplier
  */
-function weaponStrength(event, config) {
-  if (event.weaponStrength) return event.weaponStrength;
-  const explicit = String(event.weapon || "");
-  if (/phantasm high/i.test(explicit)) return WEAPON_STRENGTH["Phantasm high"];
-  if (/phantasm medium/i.test(explicit)) {
-    return WEAPON_STRENGTH["Phantasm medium"];
-  }
-  const normalized =
-    explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
-  return (
-    WEAPON_STRENGTH[normalized] ||
-    WEAPON_STRENGTH[event.skillWeapon] ||
-    WEAPON_STRENGTH[config.primaryWeapon] ||
-    WEAPON_STRENGTH.Utility
-  );
-}
+const weaponStrength = (event, config) => gw2WeaponStrength(event, config, {
+  strengths: WEAPON_STRENGTH,
+  aliases: {
+    "phantasm high": "Phantasm high",
+    "phantasm medium": "Phantasm medium",
+  },
+});
 
 /**
  * Checks if a skill is available in the given config.
@@ -309,21 +310,7 @@ function skillAvailable(skill, config) {
  * @param {Object} config - Simulation config with stats/boons
  * @returns {Object} {power, precision, ferocity, conditionDamage, expertise, conditionDurationBonus, conditionDurationBonuses}
  */
-function staticAttributes(config) {
-  const mightBonus = 30 * Number(config.boons?.might || 0);
-  return {
-    power: Number(config.stats?.power || 0) + mightBonus,
-    precision: Number(config.stats?.precision || 0),
-    ferocity: Number(config.stats?.ferocity || 0),
-    conditionDamage: Number(config.stats?.conditionDamage || 0) + mightBonus,
-    expertise: Number(config.stats?.expertise || 0),
-    conditionDurationBonus:
-      Number(config.stats?.conditionDurationBonus || 0),
-    conditionDurationBonuses: {
-      ...(config.stats?.conditionDurationBonuses || {}),
-    },
-  };
-}
+const staticAttributes = config => gw2StaticAttributes(config);
 
 /**
  * Gets sigil set for a weapon set index (1 or 2).
@@ -331,9 +318,7 @@ function staticAttributes(config) {
  * @param {number} weaponSet - Weapon set (1 or 2)
  * @returns {Object} Sigil set object
  */
-function sigilSet(config, weaponSet) {
-  return config.sigilSets?.[Math.max(1, Number(weaponSet || 1)) - 1] || {};
-}
+const sigilSet = (config, weaponSet) => gw2SigilSet(config, weaponSet);
 
 /**
  * Calculates critical hit chance for an action source.
@@ -386,13 +371,13 @@ function baseCriticalChance(config, traits, source = "Player", weaponSet = 1) {
  * @returns {number} Duration multiplier [1, 2]
  */
 function durationMultiplier(name, stats, traits, extraBonus = 0) {
-  let bonus =
-    stats.expertise / 1500
-    + Number(stats.conditionDurationBonus || 0) / 100
-    + Number(stats.conditionDurationBonuses?.[name] || 0) / 100
-    + extraBonus;
-  if (name === "Confusion" && traits.has("Malicious Sorcery")) bonus += 0.25;
-  return clamp(1 + bonus, 1, 2);
+  const professionBonus =
+    name === "Confusion" && traits.has("Malicious Sorcery") ? 0.25 : 0;
+  return gw2ConditionDurationMultiplier(
+    name,
+    stats,
+    Number(extraBonus || 0) + professionBonus,
+  );
 }
 
 const SCHEDULER_MODEL = Object.freeze({
@@ -438,7 +423,17 @@ const RESOLVER_QUERY_MODEL = Object.freeze({
 function resolveEvents(config, traits, scheduler, horizon) {
   scheduler.advanceTo(horizon);
   const events = scheduler.events
-    .filter(event => event.at <= horizon + EPSILON);
+    .filter(event => event.at <= horizon + EPSILON)
+    .map(event => ({
+      ...event,
+      source: event.source || "System",
+      sourceId:
+        event.sourceId
+        ?? event.skillId
+        ?? event.skillName
+        ?? event.name
+        ?? event.type,
+    }));
   const query = buildResolverQuery(
     config,
     traits,
@@ -451,8 +446,9 @@ function resolveEvents(config, traits, scheduler, horizon) {
     resolverHandoff: {
       resource: getResourceDefinition(config.specialization),
       activeWeaponSet: scheduler.state.activeWeaponSet,
-      hasExplicitCombatStart: scheduler.state.hasExplicitCombatStart,
-      combatStartTime: scheduler.state.combatStartTime,
+      hasExplicitCombatStart:
+        scheduler.state.profession.hasExplicitCombatStart,
+      combatStartTime: scheduler.state.profession.combatStartTime,
       cloneDeaths: [...scheduler.cloneDeaths],
       warnings: [...scheduler.warnings],
     },
@@ -469,6 +465,22 @@ function resolveEvents(config, traits, scheduler, horizon) {
       weaponStrength,
     },
   });
+}
+
+function createCanonicalEndState(common, profession) {
+  const endState = { ...common, profession };
+  // Temporary source compatibility for existing consumers. Profession fields
+  // are non-enumerable so persisted/canonical results expose only
+  // endState.profession.
+  for (const key of Object.keys(profession)) {
+    if (Object.hasOwn(endState, key)) continue;
+    Object.defineProperty(endState, key, {
+      configurable: false,
+      enumerable: false,
+      get: () => endState.profession[key],
+    });
+  }
+  return endState;
 }
 
 /**
@@ -552,8 +564,8 @@ export function simulateSequence(rotation, userConfig = {}) {
 
     if (item.name === "__combat_start") {
       const combatStart = scheduler.state.time;
-      scheduler.state.hasExplicitCombatStart = true;
-      scheduler.state.combatStartTime = combatStart;
+      scheduler.state.profession.hasExplicitCombatStart = true;
+      scheduler.state.profession.combatStartTime = combatStart;
       scheduler.events.push({ type: "combat_start", at: combatStart });
       steps.push({
         ri,
@@ -593,7 +605,8 @@ export function simulateSequence(rotation, userConfig = {}) {
     const concurrentWeave =
       item.offset != null && ri > 0 && Number(skill.activation || 0) === 0;
     if (concurrentWeave && skill.flipParent && skill.ammo) {
-      const flipState = scheduler.state.availableFlips.get(skill.name);
+      const flipState =
+        scheduler.state.profession.availableFlips.get(skill.name);
       const displayStart =
         previousDisplayStart + Math.max(1, Number(item.offset)) / 1000;
       const armedInTime =
@@ -624,7 +637,8 @@ export function simulateSequence(rotation, userConfig = {}) {
 
     const actionCount = scheduler.events.length;
     const beforeCastTime = scheduler.state.time;
-    const pendingBeforeCast = new Set(scheduler.state.pendingResources);
+    const pendingBeforeCast =
+      new Set(scheduler.state.profession.pendingResources);
     const ammoRechargeBeforeCast =
       scheduler.state.ammo.get(skill.id)?.nextRechargeAt ?? null;
     scheduler.cast(skill);
@@ -644,10 +658,10 @@ export function simulateSequence(rotation, userConfig = {}) {
         if (Number.isFinite(event.endsAt)) event.endsAt += delta;
         if (Number.isFinite(event.expiresAt)) event.expiresAt += delta;
       }
-      for (const pending of scheduler.state.pendingResources) {
+      for (const pending of scheduler.state.profession.pendingResources) {
         if (!pendingBeforeCast.has(pending)) pending.at += delta;
       }
-      scheduler.state.pendingResources.sort((a, b) => a.at - b.at);
+      scheduler.state.profession.pendingResources.sort((a, b) => a.at - b.at);
       if (scheduler.state.cooldowns.has(skill.id)) {
         scheduler.state.cooldowns.set(
           skill.id,
@@ -664,9 +678,9 @@ export function simulateSequence(rotation, userConfig = {}) {
       }
       if (
         skill.name === "Continuum Split" &&
-        scheduler.state.continuum
+        scheduler.state.profession.continuum
       ) {
-        const continuum = scheduler.state.continuum;
+        const continuum = scheduler.state.profession.continuum;
         continuum.expiresAt += delta;
         if (continuum.splitReady) continuum.splitReady += delta;
         for (const [id, remaining] of continuum.remainingCooldowns) {
@@ -747,7 +761,8 @@ export function simulateSequence(rotation, userConfig = {}) {
           scheduler.events.length - actionCount,
           ...kept,
         );
-        scheduler.state.pendingResources = scheduler.state.pendingResources
+        scheduler.state.profession.pendingResources =
+          scheduler.state.profession.pendingResources
           .filter((pending) =>
             pendingBeforeCast.has(pending) ||
             pending.at <= interruptedEnd + EPSILON
@@ -822,10 +837,10 @@ export function simulateSequence(rotation, userConfig = {}) {
   }
   const resourceDefinition = getResourceDefinition(config.specialization);
   const resource = resourceDefinition.singular === "clone"
-    ? scheduler.state.clones.length
-    : scheduler.state.numericResource;
+    ? scheduler.state.profession.clones.length
+    : scheduler.state.profession.numericResource;
   const availableFlips = {};
-  for (const [name, flip] of scheduler.state.availableFlips) {
+  for (const [name, flip] of scheduler.state.profession.availableFlips) {
     if (flip.expiresAt < endTime - EPSILON) continue;
     // Ammo mantras (Power Spike) stay armed until emptied, so they have no
     // finite expiry; mark them persistent and leave the timers null.
@@ -842,50 +857,65 @@ export function simulateSequence(rotation, userConfig = {}) {
   const autoattackChains = Object.fromEntries(
     Object.keys(AUTOATTACK_CHAINS).map((root) => [
       root,
-      scheduler.state.autoattackChains.get(root) || root,
+      scheduler.state.profession.autoattackChains.get(root) || root,
     ]),
   );
+
+  const professionEndState = {
+    resource,
+    resourceDefinition,
+    clarityRemaining: Math.max(
+      0,
+      Math.round(
+        (scheduler.state.profession.clarityUntil - endTime) * 1000,
+      ),
+    ),
+    counterspellAvailable:
+      scheduler.state.profession.counterspellAvailable,
+    availableAmbush:
+      scheduler.state.profession.ambushSource
+      && scheduler.state.profession.ambushUntil > endTime + EPSILON
+        ? {
+            name: AMBUSH_ATTACKS[
+              scheduler.state.activeWeaponSet === 1
+                ? config.primaryWeapon
+                : config.weaponSet2Primary || config.primaryWeapon
+            ]?.name || "",
+            source: scheduler.state.profession.ambushSource,
+            expiresAt: Math.round(
+              scheduler.state.profession.ambushUntil * 1000,
+            ),
+            remaining: Math.max(
+              0,
+              Math.round(
+                (scheduler.state.profession.ambushUntil - endTime) * 1000,
+              ),
+            ),
+          }
+        : null,
+    availableFlips,
+    autoattackChains,
+    continuumActive: Boolean(scheduler.state.profession.continuum),
+    continuumRemaining: scheduler.state.profession.continuum
+      ? Math.max(
+        0,
+        Math.round(
+          (scheduler.state.profession.continuum.expiresAt - endTime) * 1000,
+        ),
+      )
+      : 0,
+  };
 
   return {
     ...result,
     duration: endTime,
     steps,
-    endState: {
+    endState: createCanonicalEndState({
       time: Math.round(endTime * 1000),
       cooldowns,
       ammo,
-      resource,
-      resourceDefinition,
-      clarityRemaining: Math.max(
-        0,
-        Math.round((scheduler.state.clarityUntil - endTime) * 1000),
-      ),
       activeWeaponSet: scheduler.state.activeWeaponSet,
-      counterspellAvailable: scheduler.state.counterspellAvailable,
-      availableAmbush:
-        scheduler.state.ambushSource
-        && scheduler.state.ambushUntil > endTime + EPSILON
-          ? {
-              name: AMBUSH_ATTACKS[
-                scheduler.state.activeWeaponSet === 1
-                  ? config.primaryWeapon
-                  : config.weaponSet2Primary || config.primaryWeapon
-              ]?.name || "",
-              source: scheduler.state.ambushSource,
-              expiresAt: Math.round(scheduler.state.ambushUntil * 1000),
-              remaining: Math.max(
-                0,
-                Math.round((scheduler.state.ambushUntil - endTime) * 1000),
-              ),
-            }
-          : null,
-      availableFlips,
-      autoattackChains,
-      continuumActive: Boolean(scheduler.state.continuum),
-      continuumRemaining: scheduler.state.continuum
-        ? Math.max(0, Math.round((scheduler.state.continuum.expiresAt - endTime) * 1000))
-        : 0,
-    },
+    }, professionEndState),
   };
 }
 

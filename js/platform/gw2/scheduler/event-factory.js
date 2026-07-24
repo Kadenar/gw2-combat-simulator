@@ -13,6 +13,7 @@ export function createGw2SchedulerEventFactory({
   activeWeaponSet,
   onConditionScheduled = () => {},
   onDamageScheduled = () => {},
+  decorateDamageEvent = event => event,
 }) {
   const addEvent = event => {
     if (event.at <= horizon + epsilon) events.push(event);
@@ -67,7 +68,7 @@ export function createGw2SchedulerEventFactory({
     const hits = Math.max(1, Math.trunc(Number(group.hits || 1)));
     const coefficient = Number(group.coefficient || 0) / hits;
     for (let index = 0; index < hits; index += 1) {
-      const event = addEvent({
+      const event = addEvent(decorateDamageEvent({
         type: "damage",
         at,
         name: extra.name || skill.name,
@@ -81,9 +82,8 @@ export function createGw2SchedulerEventFactory({
         weapon: group.weapon || "",
         weaponStrength: group.weaponStrength,
         skillWeapon: skill.weapon || activePrimaryWeapon(),
-        blade: Boolean(extra.blade ?? skill.blade),
         ...extra,
-      });
+      }, { skill, group, extra }));
       onDamageScheduled(event, {
         activeWeaponSet: activeWeaponSet(),
       });

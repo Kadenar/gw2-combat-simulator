@@ -1,4 +1,12 @@
-const EFFECT_TYPES = new Set(["strike", "condition", "control", "blind", "custom"]);
+const EFFECT_TYPES = new Set([
+  "strike",
+  "condition",
+  "control",
+  "blind",
+  "boon",
+  "buff",
+  "custom",
+]);
 
 function normalizeEffect(effect) {
   if (!effect || typeof effect !== "object" || !EFFECT_TYPES.has(effect.type)) {
@@ -13,6 +21,14 @@ function normalizeEffect(effect) {
     }
     if (!(Number(effect.stacks) > 0) || !(Number(effect.duration) > 0)) {
       throw new TypeError("Condition effects require positive stacks and duration.");
+    }
+  }
+  if (effect.type === "boon" || effect.type === "buff") {
+    if (!String(effect.boon || effect.kind || effect.name || "")) {
+      throw new TypeError("Boon and buff effects require a name.");
+    }
+    if (!(Number(effect.duration) > 0)) {
+      throw new TypeError("Boon and buff effects require a positive duration.");
     }
   }
   return Object.freeze({ ...effect });

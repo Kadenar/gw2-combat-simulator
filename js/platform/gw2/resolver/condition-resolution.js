@@ -130,6 +130,9 @@ export function createGw2ConditionResolution({
 
     const application = {
       ...event,
+      name:
+        event.name
+        || `${event.skillName || event.sourceId || "Condition"} — ${name}`,
       condition: name,
       stacks,
       effectiveDuration: duration,

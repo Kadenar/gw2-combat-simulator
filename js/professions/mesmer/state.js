@@ -22,6 +22,8 @@ export function createMesmerState(config = {}) {
     cloneAmbushUntil: 0,
     riddleOfSandReady: false,
     timeBombUntil: 0,
+    hasExplicitCombatStart: false,
+    combatStartTime: 0,
   };
 }
 
