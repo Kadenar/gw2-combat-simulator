@@ -1,5 +1,5 @@
 /**
- * Mesmer illusion mechanics: weapon coefficients, clone/ambush/phantasm attack data, timings.
+ * Mesmer illusion data: weapon coefficients, clone/ambush/phantasm attacks, and timings.
  * - WEAPON_STRENGTH: Base damage multiplier by weapon type (lower = weaker).
  * - CLONE_ATTACKS: Auto-attack pattern (interval, coefficient, conditions per weapon).
  * - AMBUSH_ATTACKS: Mirage weapon-skill replacements granted by Mirage Cloak.

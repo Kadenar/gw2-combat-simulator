@@ -191,6 +191,6 @@ References:
 
 When live balance changes, regenerate the metadata-only
 `js/data/mesmer-catalog.js` from the current API, update simulator mechanics in
-`js/sim/mechanics/mesmer-skill-data.js` or the authoritative override and
-profession/illusion data modules beside it, update the snapshot date, and rerun
-the test suite and `fixtures/browser.html`.
+`js/data/mesmer-skill-mechanics.js`, the profession/illusion data modules, or
+the authoritative authored skill table as appropriate, update the snapshot
+date, and rerun the test suite and `fixtures/browser.html`.

@@ -8,13 +8,13 @@ import {
     CLONE_ATTACKS,
     PHANTASM_ATTACK_TIMINGS,
     PHANTASM_NAME_BY_SKILL,
-} from '../js/sim/mechanics/mesmer-illusion-data.js';
+} from '../js/data/mesmer-illusion-data.js';
 import {
     INSTRUMENTS,
     MECHANIC_SKILLS,
     SHATTERS,
     TRAIT_DAMAGE,
-} from '../js/sim/mechanics/mesmer-profession-data.js';
+} from '../js/data/mesmer-profession-data.js';
 import {
     AMBUSH_SKILLS,
     PSEUDO_SKILLS,
@@ -22,7 +22,7 @@ import {
 } from '../js/sim/mechanics/mesmer-skill-overrides.js';
 import {
     BASE_SKILL_DATA_BY_ID,
-} from '../js/sim/mechanics/mesmer-skill-data.js';
+} from '../js/data/mesmer-skill-mechanics.js';
 import {
     normalizedSkill,
 } from '../js/sim/mechanics/mesmer-skill-normalization.js';

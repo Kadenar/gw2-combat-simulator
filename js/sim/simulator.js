@@ -8,7 +8,7 @@ import {
   PHANTASM_ATTACK_TIMINGS,
   PHANTASM_NAME_BY_SKILL,
   WEAPON_STRENGTH,
-} from "./mechanics/mesmer-illusion-data.js";
+} from "../data/mesmer-illusion-data.js";
 import {
   ARISTOCRACY_SKILLS,
   BLIND_SKILLS,
@@ -19,7 +19,7 @@ import {
   PEITHA_SKILLS,
   SHATTERS,
   TRAIT_DAMAGE,
-} from "./mechanics/mesmer-profession-data.js";
+} from "../data/mesmer-profession-data.js";
 import {
   AMBUSH_SKILLS,
   AUTOATTACK_CHAINS,

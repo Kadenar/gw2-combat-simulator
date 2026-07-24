@@ -1,5 +1,5 @@
 /**
- * Mesmer profession mechanics: condition damage formulas, shatter types, skill classifications, instruments.
+ * Mesmer profession data: condition formulas, shatter types, skill classifications, and instruments.
  * - CONDITION_FORMULAS: Damage per tick by condition (base + scaling per condition damage stat).
  * - SHATTERS: Shatter skills (Mind Wrack, Cry of Frustration, etc.) with slot and damage type.
  * - CONTROL_SKILLS: Skills that disable target (stun/daze/knockdown).

@@ -32,6 +32,15 @@ Static Guild Wars 2 game data and lookups.
 ### [mesmer-catalog.js](js/data/mesmer-catalog.js)
 Auto-generated GW2 API metadata snapshot. Contains specialization and trait definitions plus skill IDs, names, descriptions, icons, and slots. It intentionally contains no simulator mechanics.
 
+### [mesmer-skill-mechanics.js](js/data/mesmer-skill-mechanics.js)
+Simulator-owned base skill mechanics absent from the authoritative override table.
+
+### [mesmer-illusion-data.js](js/data/mesmer-illusion-data.js)
+Static weapon-strength, clone, ambush, and phantasm timing tables.
+
+### [mesmer-profession-data.js](js/data/mesmer-profession-data.js)
+Static condition, shatter, instrument, trait-damage, and skill-classification tables.
+
 ### [gear-data.js](js/data/gear-data.js)
 Ascended gear stat tables and equipment lookups. Defines stat values for all gear prefixes (Berserker's, Assassin's, etc.), runes, sigils, food, utilities, infusions, and weapons. Profession-neutral except for Mesmer weapons.
 
@@ -100,9 +109,6 @@ Public orchestration API. Prepares run configuration, drives scheduler execution
 
 ### Mechanics (`js/sim/mechanics/`)
 
-- [mesmer-illusion-data.js](js/sim/mechanics/mesmer-illusion-data.js) — illusion, phantasm, and ambush data.
-- [mesmer-profession-data.js](js/sim/mechanics/mesmer-profession-data.js) — profession mechanic data.
-- [mesmer-skill-data.js](js/sim/mechanics/mesmer-skill-data.js) — simulator-owned base skill mechanics absent from the override table.
 - [mesmer-skill-normalization.js](js/sim/mechanics/mesmer-skill-normalization.js) — combines generated metadata, base mechanics, and authoritative overrides into canonical skills.
 - [mesmer-skill-overrides.js](js/sim/mechanics/mesmer-skill-overrides.js) — hand-authored skills, measured timings, and catalog corrections.
 - [illusion-actions.js](js/sim/mechanics/illusion-actions.js) — clone attack scheduling.

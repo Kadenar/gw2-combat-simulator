@@ -1,10 +1,10 @@
 import { SKILLS as CATALOG_SKILLS } from "../../data/mesmer-catalog.js";
+import { BASE_SKILL_DATA_BY_ID } from "../../data/mesmer-skill-mechanics.js";
 import {
   autoattackChainPosition,
   isEngineHandledSkill,
   skillOverride,
 } from "./mesmer-skill-overrides.js";
-import { BASE_SKILL_DATA_BY_ID } from "./mesmer-skill-data.js";
 
 /**
  * Produces the canonical simulator representation of one generated catalog skill.
