@@ -1,0 +1,352 @@
+/**
+ * Creates profession action controller: handles shatters, instruments, Crescendo.
+ * Manages resource consumption, trait procs (Maim/Phantom Pain/Illusionary Membrane/etc.).
+ * Returns: consumeResources, currentResource, handleCrescendo, handleInstrument, handleShatter, triggerShatterTraits.
+ * @param {Object} config - Scheduler config (state, traits, resourceDefinition, etc.)
+ * @returns {Object} Profession action controller
+ */
+export function createProfessionActionController({
+  state,
+  traits,
+  resourceDefinition,
+  cloneDeaths,
+  epsilon,
+  shatters,
+  instruments,
+  warnings,
+  addEvent,
+  addTraitProc,
+  addCondition,
+  addDamage,
+  activePrimaryWeapon,
+  queueResources,
+  byName,
+}) {
+  const currentResource = () =>
+    resourceDefinition.singular === "clone"
+      ? state.clones.length
+      : state.numericResource;
+
+  const consumeResources = (at) => {
+    const spent = currentResource();
+    if (resourceDefinition.singular === "clone") {
+      for (const clone of state.clones) cloneDeaths.set(clone.id, at);
+      state.clones = [];
+    } else {
+      state.numericResource = 0;
+    }
+    addEvent({
+      type: "resource",
+      at,
+      amount: -spent,
+      value: 0,
+      resource: resourceDefinition.plural,
+      reason: "profession mechanic",
+    });
+    return spent;
+  };
+
+  const triggerShatterTraits = (
+    skill,
+    at,
+    spent,
+    bladeSong = false,
+    { skipMaim = false } = {},
+  ) => {
+    const shatter = shatters[skill.name];
+    const sources = bladeSong ? 1 : spent + 1;
+    if (!skipMaim && traits.has("Maim the Disillusioned")) {
+      addCondition(
+        skill.name,
+        at,
+        { name: "Torment", duration: 6, stacks: sources },
+        "Player",
+        `${skill.name} — Maim the Disillusioned`,
+      );
+      addTraitProc("Maim the Disillusioned", at, skill.name);
+    }
+    if (traits.has("Phantom Pain")) {
+      addEvent({
+        type: "buff",
+        at: at + epsilon,
+        kind: "phantom-pain",
+        stacks: Math.min(4, spent + 1),
+        duration: 10,
+      });
+      addTraitProc("Phantom Pain", at + epsilon, skill.name);
+    }
+    if (shatter?.slot === 2 && traits.has("Illusionary Membrane")) {
+      addEvent({
+        type: "buff",
+        at: at + epsilon,
+        kind: "illusionary-membrane",
+        stacks: 1,
+        duration: 15,
+      });
+      addTraitProc("Illusionary Membrane", at + epsilon, skill.name);
+    }
+    if (bladeSong && traits.has("Deadly Blades")) {
+      addEvent({
+        type: "buff",
+        at: at + epsilon,
+        kind: "deadly-blades",
+        stacks: 1,
+        duration: 7,
+      });
+      addTraitProc("Deadly Blades", at + epsilon, skill.name);
+    }
+    if (
+      resourceDefinition.singular === "clone"
+      && spent === 3
+      && traits.has("Illusionary Reversion")
+    ) {
+      queueResources(
+        at + epsilon,
+        1,
+        activePrimaryWeapon(),
+        "Illusionary Reversion",
+      );
+    }
+  };
+
+  const handleShatter = (skill, at) => {
+    const shatter = shatters[skill.name];
+    const isBladeSong = shatter.kind.startsWith("blade");
+    const available = currentResource();
+    if (isBladeSong && available < 1) {
+      warnings.push(`${skill.name} skipped at ${at.toFixed(2)}s: no blades.`);
+      return false;
+    }
+    const spent = consumeResources(at);
+    const sources = spent + 1;
+
+    if (shatter.kind === "core-power") {
+      const coefficients = [1.15, 2.3, 2.76, 3.22];
+      addDamage(
+        skill,
+        at,
+        {
+          coefficient: coefficients[spent],
+          hits: sources,
+          source: "Player",
+        },
+        { shatter: true },
+      );
+    } else if (shatter.kind === "core-confusion") {
+      addDamage(
+        skill,
+        at,
+        { coefficient: 0.38 * sources, hits: sources, source: "Player" },
+        { shatter: true },
+      );
+      const cryBonus = traits.has("Cry of Pain") ? 2 : 1;
+      addCondition(skill.name, at, {
+        name: "Confusion",
+        duration: traits.has("Cry of Pain") ? 4 : 3,
+        stacks: sources * cryBonus,
+      });
+    } else if (shatter.kind === "chrono-power") {
+      const coefficients = [1.534, 3.068, 3.678, 4.296];
+      addDamage(
+        skill,
+        at,
+        {
+          coefficient: coefficients[spent],
+          hits: sources * 2,
+          source: "Player",
+        },
+        { shatter: true },
+      );
+    } else if (shatter.kind === "chrono-confusion") {
+      addDamage(
+        skill,
+        at,
+        { coefficient: 0.38 * sources, hits: sources, source: "Player" },
+        { shatter: true },
+      );
+      const cryBonus = traits.has("Cry of Pain") ? 2 : 1;
+      addCondition(skill.name, at, {
+        name: "Confusion",
+        duration: traits.has("Cry of Pain") ? 4 : 3,
+        stacks: sources * cryBonus,
+      });
+      if (traits.has("Blinding Dissipation")) {
+        addEvent({
+          type: "blind",
+          at,
+          skillName: skill.name,
+          count: sources,
+        });
+        addTraitProc("Blinding Dissipation", at, skill.name);
+      }
+      const id = skill.id;
+      const ready = state.cooldowns.get(id) || at;
+      state.cooldowns.set(id, Math.max(at, ready - 3 * sources));
+    } else if (shatter.kind === "blade-power") {
+      addDamage(
+        skill,
+        at,
+        { coefficient: 0.7 * spent, hits: spent, source: "Player" },
+        { shatter: true, blade: true },
+      );
+    } else if (shatter.kind === "blade-confusion") {
+      addDamage(
+        skill,
+        at,
+        { coefficient: 0.38 * spent, hits: spent, source: "Player" },
+        { shatter: true, blade: true },
+      );
+      addCondition(skill.name, at, {
+        name: "Confusion",
+        duration: 3,
+        stacks: spent,
+      });
+    } else if (shatter.kind === "blade-control") {
+      addDamage(
+        skill,
+        at,
+        { coefficient: 1, hits: 1, source: "Player" },
+        { shatter: true, blade: true },
+      );
+    } else if (shatter.kind === "blade-requiem") {
+      for (let index = 0; index < spent; index += 1) {
+        addDamage(
+          skill,
+          at + index,
+          { coefficient: 0.5, hits: 1, source: "Player" },
+          { shatter: true, blade: true },
+        );
+        if (traits.has("Maim the Disillusioned")) {
+          addCondition(
+            skill.name,
+            at + index,
+            { name: "Torment", duration: 6, stacks: 1 },
+            "Player",
+            `${skill.name} — Maim the Disillusioned`,
+          );
+        }
+      }
+      if (traits.has("Maim the Disillusioned")) {
+        addTraitProc("Maim the Disillusioned", at, skill.name);
+      }
+    }
+
+    triggerShatterTraits(
+      skill,
+      at,
+      spent,
+      isBladeSong,
+      { skipMaim: shatter.kind === "blade-requiem" },
+    );
+    if (
+      isBladeSong
+      && traits.has("Infinite Forge")
+      && spent >= 5
+    ) {
+      queueResources(
+        at + epsilon * 2,
+        2,
+        activePrimaryWeapon(),
+        "Infinite Forge refund",
+      );
+    }
+    addEvent({
+      type: "marker",
+      at,
+      name: skill.name,
+      detail: `${spent} ${resourceDefinition.plural} spent`,
+    });
+    return true;
+  };
+
+  const handleInstrument = (skill, at) => {
+    const data = instruments[skill.name];
+    const spent = consumeResources(at);
+    if (data.coefficient) {
+      const coefficient =
+        data.coefficient
+        + (skill.name === "Lively Lute" && traits.has("Shredding") ? 1 : 0);
+      addDamage(skill, at, {
+        coefficient,
+        hits: data.hits + (coefficient > data.coefficient ? 1 : 0),
+        source: "Player",
+      });
+    }
+    for (const condition of data.conditions || []) {
+      addCondition(skill.name, at, condition);
+    }
+    const expiresAt = at + 5 + spent * 5;
+    state.instruments.set(data.instrument, expiresAt);
+    state.lastInstrument = data.instrument;
+    addEvent({
+      type: "instrument",
+      at: at + epsilon,
+      instrument: data.instrument,
+      expiresAt,
+    });
+    addEvent({
+      type: "marker",
+      at,
+      name: skill.name,
+      detail: `${data.instrument} playing for ${(5 + spent * 5).toFixed(0)}s`,
+    });
+
+    if (traits.has("Altered Chord") && spent > 0) {
+      const crescendo = byName("Crescendo");
+      const ready = state.cooldowns.get(crescendo?.id);
+      if (ready) state.cooldowns.set(crescendo.id, Math.max(at, ready - 2));
+    }
+  };
+
+  const handleCrescendo = (skill, at) => {
+    const activeInstruments = [...state.instruments.entries()].filter(
+      ([, expiresAt]) => expiresAt > at,
+    );
+    addDamage(skill, at, {
+      coefficient: 2.25 * (1 + activeInstruments.length * 0.25),
+      hits: 1,
+      source: "Player",
+    });
+
+    if (traits.has("Altered Chord")) {
+      if (state.lastInstrument === "Lute") {
+        addEvent({
+          type: "buff",
+          at: at + epsilon,
+          kind: "altered-chord",
+          stacks: 1,
+          duration: 10,
+        });
+        addTraitProc("Altered Chord", at + epsilon, skill.name, "Lute");
+      } else if (state.lastInstrument === "Flute") {
+        addCondition(
+          skill.name,
+          at,
+          { name: "Confusion", duration: 8, stacks: 5 },
+          "Player",
+          "Altered Chord — Confusion",
+        );
+        addTraitProc("Altered Chord", at, skill.name, "Flute");
+      }
+    }
+    if (traits.has("Fortissimo")) {
+      for (let index = 1; index <= 5; index += 1) {
+        queueResources(
+          at + index,
+          1,
+          activePrimaryWeapon(),
+          "Fortissimo",
+        );
+      }
+    }
+  };
+
+  return {
+    consumeResources,
+    currentResource,
+    handleCrescendo,
+    handleInstrument,
+    handleShatter,
+    triggerShatterTraits,
+  };
+}

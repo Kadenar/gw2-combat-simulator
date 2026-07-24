@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>GW2 Mesmer Rotation Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="loading-overlay">
+        <div class="loader-content"><div class="spinner"></div><div>Loading Mesmer data…</div></div>
+    </div>
+
+    <div id="app">
+        <header>
+            <h1>GW2 <span class="accent">Mesmer</span> Rotation Simulator</h1>
+        </header>
+        <div class="update-info"><strong>Mesmer PvE data snapshot: July 23, 2026</strong></div>
+
+        <details class="about-box">
+            <summary class="about-toggle">About this tool</summary>
+            <div class="about-body">
+                <p>This is a standalone Mesmer simulator. Select gear, upgrades,
+                    consumables, weapons, specializations, traits, and slot skills; attributes are calculated from
+                    those selections and passed directly into the rotation simulation.</p>
+                <ul>
+                    <li>Core Mesmer, Chronomancer, Mirage, Virtuoso, and Troubadour profession mechanics.</li>
+                    <li>Cooldown-aware icon palette: icons show remaining cooldown and the simulator waits until a
+                        queued skill becomes available.</li>
+                    <li>Shift+click instant skills to cast during the preceding animation. Ctrl+click casts to
+                        interrupt them at a chosen time.</li>
+                    <li>Expected-value strike and condition damage with clones, phantasms, shatters, ambushes,
+                        blades, notes, and supported trait interactions.</li>
+                </ul>
+                <p>Source assumptions and implementation coverage are documented in <code>RESEARCH.md</code>.</p>
+            </div>
+        </details>
+
+        <section class="build-section">
+            <div class="build-left">
+                <div class="panel gear-panel">
+                    <div class="panel-hdr">
+                        <h3>Gear</h3>
+                        <div class="build-io-btns">
+                            <button id="btn-export-build" class="btn btn-io">⬆ Export</button>
+                            <button id="btn-import-build" class="btn btn-io">⬇ Import</button>
+                            <button id="btn-reset-build" class="btn btn-clear">Reset</button>
+                            <input type="file" id="import-file-input" accept=".json" hidden>
+                        </div>
+                    </div>
+                    <div class="gear-columns">
+                        <div id="gear-slots" class="gear-col"></div>
+                        <div class="gear-col-right">
+                            <div id="equipment-info"></div>
+                            <div id="weapon-select" class="weapon-select"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="traits-panel" class="traits-panel-inline"></div>
+            </div>
+            <div class="panel attributes-panel">
+                <div class="attributes-header">
+                    <h3>Attributes</h3>
+                    <label for="attribute-weapon-set">
+                        <span>Weapon set</span>
+                        <select id="attribute-weapon-set" class="gear-select">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="attributes-list"></div>
+                <p class="attribute-note">Values are calculated for the selected weapon set. The simulation changes
+                    sigil bonuses when weapons are swapped. Boons are applied during simulation,
+                    not baked into the equipment totals above.</p>
+            </div>
+        </section>
+
+        <section class="skills-section">
+            <div class="panel skills-panel-left">
+                <div class="skill-bar-label">Weapon Bar</div>
+                <div id="weapon-bar" class="weapon-bar"></div>
+                <div class="skill-bar-label">Skill Bar</div>
+                <div id="skill-bar" class="skill-bar"></div>
+            </div>
+            <div class="panel skills-panel-right">
+                <h3>Selected Skills <span class="subtext">(cast and base cooldown)</span></h3>
+                <div id="skill-info-table"></div>
+            </div>
+        </section>
+
+        <section class="perma-section">
+            <div class="panel perma-panel">
+                <h3>Permanent Boons &amp; Target Conditions</h3>
+                <div id="perma-boons"></div>
+            </div>
+        </section>
+
+        <section class="rotation-section">
+            <div class="panel rotation-panel">
+                <h3>Rotation Builder</h3>
+                <div id="rotation-palette" class="rotation-palette"></div>
+                <p class="palette-hint">Click to queue · <b>Shift+click</b> an instant-cast skill to fire it during
+                    the previous cast · <b>Ctrl+click</b> a non-instant skill to interrupt it · cooldown badges show
+                    the state after the current timeline</p>
+                <div class="rotation-mid">
+                    <div class="rotation-tl-label">Rotation</div>
+                    <div id="start-att-selector" class="start-att-selector"></div>
+                    <div class="rotation-btns">
+                        <button id="btn-sim-clear" class="btn btn-clear">✕ Clear</button>
+                        <button id="btn-sim-rerun" class="btn btn-rerun">↳ Re-run</button>
+                        <button id="btn-export-rotation" class="btn btn-io">↓ Save Rotation</button>
+                        <button id="btn-import-rotation" class="btn btn-io">↑ Load Rotation</button>
+                        <input type="file" id="rotation-file-input" accept=".json" hidden>
+                        <div class="target-hp-wrap">
+                            <label for="target-hp">Target HP</label>
+                            <input id="target-hp" type="number" min="0" step="100000" value="4000000">
+                        </div>
+                        <div class="target-hp-wrap">
+                            <label for="target-armor">Target armor</label>
+                            <input id="target-armor" type="number" min="1" value="2597">
+                        </div>
+                    </div>
+                </div>
+                <div id="rotation-timeline" class="rotation-timeline"></div>
+                <div id="rotation-event-log" class="rotation-event-log"></div>
+            </div>
+            <div id="rotation-results" class="rotation-results"></div>
+        </section>
+
+    </div>
+
+    <script type="module" src="js/app/app.js"></script>
+</body>
+</html>

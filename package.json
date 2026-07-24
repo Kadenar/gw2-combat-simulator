@@ -1,0 +1,14 @@
+{
+  "name": "gw2-mesmer-simulator",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test --test-isolation=none",
+    "check": "node --check js/app/app.js && node --check js/sim/sim-engine.js && node --check js/sim/scheduler/sim-scheduler.js && node --check js/sim/resolver/sim-resolver.js && node --check js/sim/resolver/sim-query-context.js && node --check js/core/calc-attributes.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
