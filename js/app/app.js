@@ -12,7 +12,7 @@ import {
     UTILITY_NAMES,
     WEAPON_DATA,
 } from '../data/gear-data.js';
-import { SPECIALIZATIONS } from '../data/mesmer-catalog.js';
+import { SPECIALIZATIONS } from '../data/catalog.js';
 import { setWeaponSigil } from '../core/weapon-sigils.js';
 import { activeProfession } from './composition.js';
 import { createDefaultBuild, loadBuild, replaceBuild, saveBuild } from './app-state.js';

@@ -115,6 +115,42 @@ test("ported Elementalist data runs through the reference simulation engine", as
   assert.ok(result.dps > 0);
 });
 
+test("Elementalist Relic of the Claw displays activation and refresh procs", async () => {
+  const [skillsText, hitsText] = await Promise.all([
+    readFile(skillsCsv, "utf8"),
+    readFile(hitsCsv, "utf8"),
+  ]);
+  const data = {
+    skills: loadSkills(skillsText),
+    skillHits: loadSkillHits(hitsText),
+  };
+  const build = createElementalistBuildDefaults();
+  build.relic = "Claw";
+  const simulation = createSimulationEngine(
+    data,
+    calcBuildAttributes(build, {}),
+  );
+  simulation.rotation = ["Polaric Leap", "Updraft"];
+
+  const result = simulation.run("Air", null, null, {});
+  const clawProcs = result.steps
+    .filter(step => step.type === "relic_proc")
+    .map(({ skill, detail, icon }) => ({ skill, detail, icon }));
+
+  assert.deepEqual(clawProcs, [
+    {
+      skill: "Relic of the Claw",
+      detail: "activated",
+      icon: "https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png",
+    },
+    {
+      skill: "Relic of the Claw",
+      detail: "refreshed",
+      icon: "https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png",
+    },
+  ]);
+});
+
 test("every relative import in the Elementalist package resolves", async () => {
   const files = await javascriptFiles(professionRoot);
   assert.ok(files.length > 50);

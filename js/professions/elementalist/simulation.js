@@ -244,7 +244,8 @@ const RELIC_PROCS = {
     },
     Claw: {
         trigger: 'cc_any', icd: 0, strikeDmgM: 0.07, effectDuration: 8000,
-        conditions: null, icon: null,
+        conditions: null,
+        icon: 'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
     },
     Aristocracy: {
         trigger: 'apply_weakness_vuln', icd: 0, strikeDmgM: 0, effectDuration: 8000,
