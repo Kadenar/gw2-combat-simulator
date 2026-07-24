@@ -165,7 +165,7 @@ export function createDefaultConfig() {
     },
     target: {
       armor: 2597,
-      health: 4000000,
+      health: 3970000,
       conditions: {
         Bleeding: 1,
         Burning: true,
