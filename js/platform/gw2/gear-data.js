@@ -560,17 +560,53 @@ export const SIGIL_PROCS = Object.freeze({
 // Proc logic is implemented by the standalone runtime resolver.
 // This list controls which relics are available in the UI.
 export const RELIC_DATA = {
-    Akeem: { trigger: 'CC enemy with 5+ Torment/Confusion stacks', cooldown: 10 },
-    Fireworks: { trigger: 'Use weapon skill (CD ≥20s)', cooldown: 0 },
+    Akeem: {
+        trigger: 'CC enemy with 5+ Torment/Confusion stacks',
+        cooldown: 10,
+        icon: 'https://render.guildwars2.com/file/594C437E9606A167F4F372BCEB0C2B7C7828037B/3122330.png',
+    },
+    Fireworks: {
+        trigger: 'Use weapon skill (CD ≥20s)',
+        cooldown: 0,
+        icon: 'https://render.guildwars2.com/file/2999CCF7C94267B2EE3DDA7459050864622927C9/3122349.png',
+    },
     Mistburn: { trigger: 'At least 10 Might stacks', cooldown: 0 },
     'Mist Stranger': { trigger: 'Extra flat damage on every hit', cooldown: 0 },
-    Peitha: { trigger: 'Shadowstep or deception skill', cooldown: 4 },
-    Aristocracy: { trigger: 'Apply weakness or vulnerability', cooldown: 1 },
-    Claw: { trigger: 'CC enemy', cooldown: 0 },
-    Eagle: { trigger: 'Enemy below 50% HP', cooldown: 0 },
-    Fractal: { trigger: 'Apply bleeding on enemy with 6+ bleed stacks', cooldown: 20 },
-    Thorns: { trigger: 'Gain Condition Damage when struck by enemies', cooldown: 5 },
-    Thief: { trigger: 'Use weapon skill with CD or resource cost', cooldown: 0 },
+    Peitha: {
+        trigger: 'Shadowstep or deception skill',
+        cooldown: 4,
+        icon: 'https://render.guildwars2.com/file/949A6A4179F514FCDEF3AC3D9C292B38D5E0047D/3122365.png',
+    },
+    Aristocracy: {
+        trigger: 'Apply weakness or vulnerability',
+        cooldown: 1,
+        icon: 'https://render.guildwars2.com/file/BCC01F0B6616FE26ED4BE159532A6A6FBD0EA2D8/3122332.png',
+    },
+    Claw: {
+        trigger: 'CC enemy',
+        cooldown: 0,
+        icon: 'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
+    },
+    Eagle: {
+        trigger: 'Enemy below 50% HP',
+        cooldown: 0,
+        icon: 'https://render.guildwars2.com/file/DFF4EB43AD0803F60D105658052321A0BE1AF02C/3592832.png',
+    },
+    Fractal: {
+        trigger: 'Apply bleeding on enemy with 6+ bleed stacks',
+        cooldown: 20,
+        icon: 'https://render.guildwars2.com/file/B2D409644147BF18935A95A52505ABCB9EECE142/3122351.png',
+    },
+    Thorns: {
+        trigger: 'Gain Condition Damage when struck by enemies',
+        cooldown: 5,
+        icon: 'https://wiki.guildwars2.com/images/8/8a/Relic_of_Thorns.png',
+    },
+    Thief: {
+        trigger: 'Use weapon skill with CD or resource cost',
+        cooldown: 0,
+        icon: 'https://render.guildwars2.com/file/3523AC08EB04347CF371E9A91F4B985D12FB4ED3/3122371.png',
+    },
 };
 
 export const RELIC_NAMES = sortNames(Object.keys(RELIC_DATA));

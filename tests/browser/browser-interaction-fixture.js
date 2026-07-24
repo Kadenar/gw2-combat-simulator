@@ -205,11 +205,11 @@ frame.addEventListener('load', async () => {
             'skill breakdown icon is missing',
         );
         assert(
-            document.querySelector('#rotation-chart')
-                && document.querySelector('#rotation-effects-chart'),
+            document.querySelector('[data-role="dps-canvas"]')
+                && document.querySelector('[data-role="effects-canvas"]'),
             'DPS and effects charts are missing',
         );
-        const dpsChart = document.querySelector('#rotation-chart');
+        const dpsChart = document.querySelector('[data-role="dps-canvas"]');
         const dpsRect = dpsChart.getBoundingClientRect();
         dpsChart.dispatchEvent(new MouseEvent('mousemove', {
             bubbles: true,
@@ -217,10 +217,10 @@ frame.addEventListener('load', async () => {
             clientY: dpsRect.top + dpsRect.height / 2,
         }));
         assert(
-            document.querySelector('#rotation-chart-tooltip')?.textContent.includes('DPS:'),
+            document.querySelector('[data-role="dps-tooltip"]')?.textContent.includes('DPS:'),
             'DPS chart hover tooltip is missing',
         );
-        const effectsChart = document.querySelector('#rotation-effects-chart');
+        const effectsChart = document.querySelector('[data-role="effects-canvas"]');
         const effectsRect = effectsChart.getBoundingClientRect();
         effectsChart.dispatchEvent(new MouseEvent('mousemove', {
             bubbles: true,
@@ -228,7 +228,7 @@ frame.addEventListener('load', async () => {
             clientY: effectsRect.top + effectsRect.height / 2,
         }));
         assert(
-            document.querySelector('#rotation-effects-tooltip')?.textContent.includes('s'),
+            document.querySelector('[data-role="effects-tooltip"]')?.textContent.includes('s'),
             'effects chart hover tooltip is missing',
         );
         icon(document, 'Bladecall').click();

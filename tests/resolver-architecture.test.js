@@ -3,8 +3,10 @@ import test from "node:test";
 import { defaultSimulationConfig } from "./helpers/fixture-harness-core.js";
 import { simulateSequence } from "../js/sim/simulator.js";
 import { resolveScheduledStream } from "../js/sim/resolver/resolve-timeline.js";
-import { enqueueOrdered } from "../js/sim/shared/event-queue.js";
-import { buildScheduledEventStream } from "../js/sim/shared/scheduled-event-stream.js";
+import { enqueueOrdered } from "../js/platform/engine/event-queue.js";
+import {
+  buildScheduledEventStream,
+} from "../js/platform/engine/compat-scheduled-event-stream.js";
 import { createCloneAttackScheduler } from "../js/sim/mechanics/illusion-actions.js";
 
 test("clone attacks are scheduled lazily as the timeline advances", () => {
