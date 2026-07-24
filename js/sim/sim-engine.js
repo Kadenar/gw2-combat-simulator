@@ -21,6 +21,7 @@ import {
   SHATTERS,
 } from "./mechanics/mesmer-profession-data.js";
 import {
+  AMBUSH_SKILLS,
   AUTOATTACK_CHAINS,
   PSEUDO_SKILLS,
   normalizedSkill,
@@ -46,7 +47,11 @@ const THORNS_CONDITION_DAMAGE = 30;
 const THORNS_MAX_STACKS = 10;
 
 const byName = (name) => SKILLS.find((skill) => skill.name === name);
-const allSkills = [...SKILLS.map(normalizedSkill), ...PSEUDO_SKILLS];
+const allSkills = [
+  ...SKILLS.map(normalizedSkill),
+  ...AMBUSH_SKILLS,
+  ...PSEUDO_SKILLS,
+];
 const skillsById = new Map(allSkills.map((skill) => [skill.id, skill]));
 const skillsByName = new Map(allSkills.map((skill) => [skill.name, skill]));
 const flipSkillsByParent = new Map(
@@ -207,19 +212,32 @@ function selectedTraitSet(config) {
 
 /**
  * Calculates effective cooldown for a skill given config (traits, boons).
- * Applies: Master of Misdirection (-15% for shatters), Alacrity (+25% recharge
- * speed), and Chronomancer's Time Marches On (+50% Alacrity recharge speed).
+ * Applies: Master of Misdirection (-15% for shatters), Fencer's Finesse
+ * (-20% for sword skills), Alacrity (+25% recharge speed), and Chronomancer's
+ * Time Marches On (+50% Alacrity recharge speed).
  * @param {Object} skill - Skill with cooldown property
  * @param {Object} config - Simulation config
  * @returns {number} Adjusted cooldown in seconds
  */
 function adjustedCooldown(skill, config) {
   if (skill.name === "Swap Weapons") return Number(skill.cooldown || 0);
-  const traitModifier =
-    SHATTERS[skill.name] &&
-    (config.selectedTraits || []).includes("Master of Misdirection")
-      ? 0.85
-      : 1;
+  if (skill.name === "Dodge / Mirage Cloak") {
+    return Number(skill.cooldown || 0) / (config.boons?.vigor ? 1.5 : 1);
+  }
+  let traitModifier = 1;
+  const selectedTraits = config.selectedTraits || [];
+  if (
+    SHATTERS[skill.name]
+    && selectedTraits.includes("Master of Misdirection")
+  ) {
+    traitModifier *= 0.85;
+  }
+  if (
+    skill.weapon === "Sword"
+    && selectedTraits.includes("Fencer's Finesse")
+  ) {
+    traitModifier *= 0.8;
+  }
   const alacrity = config.boons?.alacrity
     ? config.specialization === "Chronomancer" ? 1.5 : 1.25
     : 1;
@@ -258,6 +276,7 @@ function weaponStrength(event, config) {
  * @returns {boolean} True if skill can be used
  */
 function skillAvailable(skill, config) {
+  if (skill.ambush) return config.specialization === "Mirage";
   if (skill.id < 0) {
     return (
       !skill.specialization ||
@@ -850,6 +869,23 @@ export function simulateSequence(rotation, userConfig = {}) {
       ),
       activeWeaponSet: scheduler.state.activeWeaponSet,
       counterspellAvailable: scheduler.state.counterspellAvailable,
+      availableAmbush:
+        scheduler.state.ambushSource
+        && scheduler.state.ambushUntil > endTime + EPSILON
+          ? {
+              name: AMBUSH_ATTACKS[
+                scheduler.state.activeWeaponSet === 1
+                  ? config.primaryWeapon
+                  : config.weaponSet2Primary || config.primaryWeapon
+              ]?.name || "",
+              source: scheduler.state.ambushSource,
+              expiresAt: Math.round(scheduler.state.ambushUntil * 1000),
+              remaining: Math.max(
+                0,
+                Math.round((scheduler.state.ambushUntil - endTime) * 1000),
+              ),
+            }
+          : null,
       availableFlips,
       autoattackChains,
       continuumActive: Boolean(scheduler.state.continuum),

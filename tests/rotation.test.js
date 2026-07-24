@@ -72,6 +72,28 @@ test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
     assert.equal(result.endState.cooldowns['Continuum Split'].readyAt, 61510);
 });
 
+test("Fencer's Finesse reduces sword skill cooldowns by 20%", () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Sword',
+        initialResource: 0,
+    });
+    const baseline = simulateSequence(
+        ['Blurred Frenzy', 'Blurred Frenzy'],
+        config,
+    );
+    const withTrait = simulateSequence(
+        ['Blurred Frenzy', 'Blurred Frenzy'],
+        {
+            ...config,
+            selectedTraits: ["Fencer's Finesse"],
+        },
+    );
+
+    assert.equal(baseline.steps[1].start, 8000);
+    assert.equal(withTrait.steps[1].start, 6400);
+});
+
 test('Flow of Time increases clone critical chance while alacrity is active', () => {
     const result = simulateSequence(
         ['Phase Retreat', { name: '__wait', waitMs: 2600 }],
@@ -1765,6 +1787,290 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
     assert.equal(result.endState.availableFlips['Power Spike'], undefined);
     assert.equal(result.endState.ammo['Power Spike'], undefined);
     assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
+});
+
+test('dodge uses two endurance charges and recharges one charge every ten seconds', () => {
+    const result = simulateSequence(
+        [
+            'Dodge / Mirage Cloak',
+            'Dodge / Mirage Cloak',
+            'Dodge / Mirage Cloak',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            initialResource: 0,
+            boons: {
+                ...defaultSimulationConfig().boons,
+                vigor: false,
+            },
+        }),
+    );
+
+    assert.deepEqual(result.steps.map(step => step.start), [0, 50, 10000]);
+    assert.deepEqual(
+        {
+            charges: result.endState.ammo['Dodge / Mirage Cloak'].charges,
+            maximum: result.endState.ammo['Dodge / Mirage Cloak'].maximum,
+        },
+        { charges: 0, maximum: 2 },
+    );
+});
+
+test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Mirage',
+        primaryWeapon: 'Axe',
+        secondaryWeapon: 'Pistol',
+        initialResource: 0,
+    });
+    const cloakOnly = simulateSequence(['Dodge / Mirage Cloak'], config);
+    assert.equal(
+        cloakOnly.resolvedEvents.some(event =>
+            event.type === 'damage' && event.skillName === 'Imaginary Axes'),
+        false,
+    );
+    assert.equal(cloakOnly.endState.availableAmbush.name, 'Imaginary Axes');
+    assert.equal(cloakOnly.endState.availableAmbush.source, 'Dodge / Mirage Cloak');
+
+    const used = simulateSequence(
+        ['Dodge / Mirage Cloak', 'Imaginary Axes'],
+        config,
+    );
+    assert.deepEqual(
+        used.steps.map(step => step.skill),
+        ['Dodge / Mirage Cloak', 'Imaginary Axes'],
+    );
+    assert.ok(used.resolvedEvents.some(event =>
+        event.type === 'damage'
+        && event.skillName === 'Imaginary Axes'
+        && event.source === 'Player'));
+    assert.equal(used.endState.availableAmbush, null);
+});
+
+test('ambush skills cannot be cast without an active ambush window', () => {
+    const result = simulateSequence(
+        ['Phantom Razor'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            primaryWeapon: 'Dagger',
+            secondaryWeapon: 'Sword',
+            initialResource: 0,
+        }),
+    );
+    assert.equal(result.steps.length, 0);
+    assert.match(result.warnings[0], /no active Mirage Cloak ambush window/);
+});
+
+test('all terrestrial Mirage weapons execute their correct ambush', () => {
+    const pairs = [
+        ['Axe', 'Imaginary Axes'],
+        ['Dagger', 'Phantom Razor'],
+        ['Greatsword', 'Split Surge'],
+        ['Rifle', 'Effervescence'],
+        ['Scepter', 'Ether Barrage'],
+        ['Spear', 'Fractured Glass'],
+        ['Staff', 'Chaos Vortex'],
+        ['Sword', 'Mirage Thrust'],
+    ];
+    for (const [weapon, ambush] of pairs) {
+        const result = simulateSequence(
+            ['Dodge / Mirage Cloak', ambush],
+            defaultSimulationConfig({
+                specialization: 'Mirage',
+                primaryWeapon: weapon,
+                secondaryWeapon: '',
+                initialResource: 0,
+            }),
+        );
+        assert.deepEqual(
+            result.steps.map(step => step.skill),
+            ['Dodge / Mirage Cloak', ambush],
+            weapon,
+        );
+        assert.ok(result.resolvedEvents.some(event =>
+            event.type === 'damage'
+            && event.skillName === ambush
+            && event.source === 'Player'), weapon);
+    }
+});
+
+test('Riddle of Sand applies to the first ambush and refreshes on shatter', () => {
+    const result = simulateSequence(
+        [
+            'Dodge / Mirage Cloak',
+            'Imaginary Axes',
+            'Mind Wrack',
+            'Sand through Glass',
+            'Imaginary Axes',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: ['Riddle of Sand'],
+            selectedSkills: ['Sand through Glass'],
+            primaryWeapon: 'Axe',
+            secondaryWeapon: 'Pistol',
+            initialResource: 0,
+        }),
+    );
+    const riddles = result.resolvedEvents.filter(event =>
+        event.type === 'condition'
+        && event.name.includes('Riddle of Sand'));
+    assert.equal(riddles.length, 2);
+    assert.ok(riddles.every(event =>
+        event.condition === 'Confusion'
+        && event.stacks === 2
+        && event.duration === 4));
+});
+
+test('Infinite Horizon commands active clones to ambush when cloak is gained', () => {
+    const result = simulateSequence(
+        ['Dodge / Mirage Cloak'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: ['Infinite Horizon'],
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
+            initialResource: 3,
+        }),
+    );
+    const cloneHits = result.resolvedEvents.filter(event =>
+        event.type === 'damage'
+        && event.skillName === 'Chaos Vortex'
+        && event.source === 'Clone');
+    assert.equal(cloneHits.length, 3);
+    assert.equal(
+        result.resolvedEvents.some(event =>
+            event.type === 'damage'
+            && event.skillName === 'Chaos Vortex'
+            && event.source === 'Player'),
+        false,
+    );
+});
+
+test('Deceptive Evasion clone immediately ambushes with Infinite Horizon', () => {
+    const result = simulateSequence(
+        ['Dodge / Mirage Cloak'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: ['Deceptive Evasion', 'Infinite Horizon'],
+            primaryWeapon: 'Sword',
+            secondaryWeapon: 'Sword',
+            initialResource: 0,
+        }),
+    );
+    assert.equal(result.endState.resource, 1);
+    assert.ok(result.resolvedEvents.some(event =>
+        event.type === 'damage'
+        && event.skillName === 'Mirage Thrust'
+        && event.source === 'Clone'));
+});
+
+test('Self-Deception creates a clone only when another clone is active', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Mirage',
+        selectedTraits: ['Self-Deception'],
+        selectedSkills: ['Crystal Sands'],
+        primaryWeapon: 'Axe',
+        secondaryWeapon: 'Pistol',
+    });
+    const activeClone = simulateSequence(
+        ['Crystal Sands'],
+        { ...config, initialResource: 1 },
+    );
+    const noClone = simulateSequence(
+        ['Crystal Sands'],
+        { ...config, initialResource: 0 },
+    );
+    assert.equal(activeClone.endState.resource, 2);
+    assert.equal(noClone.endState.resource, 0);
+});
+
+test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () => {
+    const distortion = simulateSequence(
+        ['Distortion'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: ['Desert Distortion'],
+            initialResource: 2,
+        }),
+    );
+    assert.equal(distortion.endState.availableAmbush.source, 'Desert Distortion');
+    assert.ok(distortion.procSteps.some(proc =>
+        proc.skill === 'Desert Distortion'));
+
+    const dune = simulateSequence(
+        ['Mind Wrack'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: ['Dune Cloak'],
+            initialResource: 3,
+            boons: {
+                ...defaultSimulationConfig().boons,
+                alacrity: false,
+            },
+        }),
+    );
+    assert.equal(dune.endState.availableAmbush.source, 'Dune Cloak');
+    assert.equal(dune.endState.cooldowns['Mind Wrack'].readyAt, 11000);
+});
+
+test('Mirage support and cloak traits emit their current effects', () => {
+    const result = simulateSequence(
+        ['Dodge / Mirage Cloak', 'Effervescence'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: [
+                'Mirage Mantle',
+                'Renewing Oasis',
+                'Elusive Mind',
+            ],
+            primaryWeapon: 'Rifle',
+            secondaryWeapon: '',
+            initialResource: 0,
+        }),
+    );
+    assert.ok(result.events.some(event =>
+        event.type === 'buff'
+        && event.kind === 'regeneration'
+        && event.duration === 4));
+    assert.ok(result.events.some(event =>
+        event.type === 'buff'
+        && event.kind === 'alacrity'
+        && event.duration === 4));
+    assert.ok(result.events.some(event =>
+        event.type === 'buff'
+        && event.kind === 'vigor'
+        && event.duration === 3));
+    assert.ok(result.procSteps.some(proc => proc.skill === 'Elusive Mind'));
+});
+
+test("Nomad's Endurance grants vigor on shatter and uses it for damage", () => {
+    const baseConfig = defaultSimulationConfig({
+        specialization: 'Mirage',
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Sword',
+        initialResource: 0,
+        boons: {
+            ...defaultSimulationConfig().boons,
+            vigor: false,
+        },
+    });
+    const without = simulateSequence(
+        ['Mind Wrack', 'Mind Slash'],
+        baseConfig,
+    );
+    const withTrait = simulateSequence(
+        ['Mind Wrack', 'Mind Slash'],
+        {
+            ...baseConfig,
+            selectedTraits: ["Nomad's Endurance"],
+        },
+    );
+    assert.ok(withTrait.strikeDamage > without.strikeDamage);
+    assert.ok(withTrait.events.some(event =>
+        event.type === 'buff'
+        && event.kind === 'vigor'
+        && event.duration === 3));
 });
 
 test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
