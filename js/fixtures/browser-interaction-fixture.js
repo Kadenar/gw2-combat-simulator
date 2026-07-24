@@ -133,6 +133,7 @@ frame.addEventListener('load', () => {
         const paletteTransfer = dataTransfer();
         paletteSkill.dispatchEvent(dragEvent(window, 'dragstart', paletteTransfer));
         const emptyTimeline = document.getElementById('rotation-timeline');
+        assert(emptyTimeline.classList.contains('is-empty'), 'empty timeline is not using the centered empty state');
         emptyTimeline.dispatchEvent(dragEvent(window, 'dragover', paletteTransfer));
         assert(
             emptyTimeline.classList.contains('drag-over-empty'),
@@ -151,7 +152,11 @@ frame.addEventListener('load', () => {
         assert(app.build.rotation.length === 1, 'normal palette click did not queue');
         assert(icon(document, 'Bladecall').querySelector('.pal-cd'), 'cooldown badge missing after cast');
         assert(icon(document, 'Bladecall').title.includes('available at'), 'ready time missing from cooldown tooltip');
-        assert(document.querySelector('.rot-procs-row'), 'relic and trait procs are missing below the rotation');
+        const procPanel = document.querySelector('.rotation-procs-wrap');
+        assert(procPanel, 'relic and trait proc panel is missing below the rotation');
+        assert(!procPanel.open, 'proc panel should be collapsed by default');
+        procPanel.querySelector(':scope > summary').click();
+        assert(procPanel.open, 'proc panel did not expand');
         assert(
             [...document.querySelectorAll('#rotation-results .res-label')]
                 .map(label => label.textContent)
