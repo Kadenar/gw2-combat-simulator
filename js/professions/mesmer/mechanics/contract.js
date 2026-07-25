@@ -40,7 +40,7 @@ import {
 } from "./profession-actions.js";
 import {
   MESMER_AUTOATTACK_CHAINS,
-  MESMER_PRESERVED_WEAPON_CHAIN_ROOT_IDS,
+  mesmerPreservesAutoattackChain,
 } from "./autoattack-chains.js";
 import {
   createContinuumController,
@@ -68,9 +68,6 @@ const TASK = Object.freeze({
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set([-3]);
 const autoattackChainPositions = indexAutoattackChains(
   MESMER_AUTOATTACK_CHAINS,
-);
-const preservedWeaponChainRoots = new Set(
-  MESMER_PRESERVED_WEAPON_CHAIN_ROOT_IDS,
 );
 const runtimes = new WeakMap();
 
@@ -399,8 +396,7 @@ function updateAutoattackChains(runtime, skill) {
   }
   if (Number(skill.activation || 0) > 0) {
     for (const root of state.profession.autoattackChains.keys()) {
-      const preserve =
-        preservedWeaponChainRoots.has(root) && skill.type === "Weapon";
+      const preserve = mesmerPreservesAutoattackChain(root, skill);
       if (!preserve) state.profession.autoattackChains.delete(root);
     }
   }

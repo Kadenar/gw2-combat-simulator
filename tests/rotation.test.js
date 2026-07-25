@@ -1918,6 +1918,51 @@ test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
     );
 });
 
+test('Imaginary Axes preserves the axe auto chain but other skills reset it', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Mirage',
+        initialResource: 0,
+        primaryWeapon: 'Axe',
+        secondaryWeapon: 'Pistol',
+    });
+    const preserved = simulateMesmer(
+        [
+            'Lacerating Chop',
+            'Dodge / Mirage Cloak',
+            'Imaginary Axes',
+            'Ethereal Chop',
+        ],
+        config,
+    );
+    assert.deepEqual(
+        preserved.steps.filter(step => !step.invalid).map(step => step.skill),
+        [
+            'Lacerating Chop',
+            'Dodge / Mirage Cloak',
+            'Imaginary Axes',
+            'Ethereal Chop',
+        ],
+    );
+    assert.equal(
+        preserved.endState.profession.autoattackChains[ID.LACERATING_CHOP],
+        ID.MIRROR_STRIKES,
+    );
+
+    const interrupted = simulateMesmer(
+        ['Lacerating Chop', 'Lingering Thoughts', 'Ethereal Chop'],
+        config,
+    );
+    assert.deepEqual(
+        interrupted.steps.filter(step => !step.invalid).map(step => step.skill),
+        ['Lacerating Chop', 'Lingering Thoughts'],
+    );
+    assert.equal(
+        interrupted.endState.profession.autoattackChains[ID.LACERATING_CHOP],
+        ID.LACERATING_CHOP,
+    );
+    assert.match(interrupted.warnings[0], /cast Lacerating Chop first/);
+});
+
 test('other auto chains reset on weapon skills and every chain resets on swap', () => {
     const swordConfig = defaultSimulationConfig({
         specialization: 'Core',
