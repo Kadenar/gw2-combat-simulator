@@ -11,6 +11,16 @@ export const MESMER_PRESERVED_WEAPON_CHAIN_ROOT_IDS = Object.freeze([
   ID.ETHER_BOLT,
 ]);
 
+export function mesmerPreservesAutoattackChain(rootId, skill) {
+  return (
+    MESMER_PRESERVED_WEAPON_CHAIN_ROOT_IDS.includes(rootId)
+    && skill.type === "Weapon"
+  ) || (
+    rootId === ID.LACERATING_CHOP
+    && skill.id === ID.IMAGINARY_AXES
+  );
+}
+
 const AUTOATTACK_CHAIN_POSITIONS = indexAutoattackChains(
   MESMER_AUTOATTACK_CHAINS,
 );
