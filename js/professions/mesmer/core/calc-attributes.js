@@ -6,5 +6,3 @@ import { applyMesmerBuildAttributeRules } from "../build-attributes.js";
 export const calculateAttributes = createCalculateAttributes(
   applyMesmerBuildAttributeRules,
 );
-
-export const calcAttributes = calculateAttributes;

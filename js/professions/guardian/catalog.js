@@ -16,8 +16,6 @@ import {
   GUARDIAN_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
 
-export { GUARDIAN_SKILL_IDS } from "./ids.js";
-
 export const GUARDIAN_NON_DPS_SKILL_NAMES = Object.freeze(new Set([
   "\"Advance!\"",
   "\"Save Yourselves!\"",

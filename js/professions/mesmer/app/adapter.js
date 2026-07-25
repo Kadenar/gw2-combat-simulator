@@ -39,5 +39,3 @@ export const mesmerAppAdapter = createGw2AppAdapter({
     return "Sword";
   },
 });
-
-export default mesmerAppAdapter;

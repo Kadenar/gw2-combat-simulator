@@ -41,5 +41,3 @@ export const guardianAppAdapter = createGw2AppAdapter({
     return offHands.includes("Focus") ? "Focus" : offHands[0] || "";
   },
 });
-
-export default guardianAppAdapter;
