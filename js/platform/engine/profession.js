@@ -196,6 +196,10 @@ export function defineProfession(definition) {
       resources.createProfessionState
       || definition.createProfessionState
       || (() => ({})),
+    createResolverState:
+      resources.createResolverState
+      || definition.createResolverState
+      || null,
     ...hooks,
     eventHandlers: Object.freeze({
       ...(resolverHooks.eventHandlers || definition.eventHandlers || {}),

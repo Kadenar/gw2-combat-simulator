@@ -12,6 +12,7 @@ js/
     mesmer/        Mesmer catalog, build schema, resources, rules, simulation
     elementalist/  Elementalist engine, data, app adapter, and optimizer
     guardian/      Guardian API catalog, virtues, rules, and declarative skills
+    necromancer/   Necromancer catalog, shrouds, summons, rules, and adapter
   app/             browser composition and persistence adapters
 ```
 
@@ -41,9 +42,12 @@ canonical result state. Specialized Mesmer timeline/log details are optional
 branches over those contracts; Guardian tome and forge availability is
 supplied by its profession UI definition.
 
-The shared profession selector routes between the Mesmer, Elementalist, and
-Guardian applications while preserving one visual system and independent
-persisted builds.
+The shared Mesmer/Guardian/Necromancer rotation palette renders both configured weapon
+sets. Only the active set is context-enabled; inactive-set skills remain
+visible so their cooldown state can still be inspected.
+
+The shared profession selector routes between all four applications while
+preserving one visual system and independent persisted builds.
 
 ## Dependency rules
 
@@ -72,6 +76,7 @@ export const exampleProfession = defineProfession({
   },
   resources: {
     createProfessionState,
+    createResolverState, // optional clean resolver-time initial state
   },
   attributeRules,
   castRules,
@@ -83,6 +88,8 @@ export const exampleProfession = defineProfession({
   ui: {
     paletteGroups,
     resourceViews, // zero, one, or multiple resource view models
+    isPaletteSkillAvailable,       // optional contextual castability
+    paletteSkillUnavailableMessage, // optional disabled-state explanation
   },
   simulation: {
     simulate, // optional production pipeline reached only through simulateGw2
@@ -207,7 +214,7 @@ The current persisted schema is:
 ```js
 {
   schemaVersion: 3,
-  profession: "mesmer", // or "elementalist" / "guardian"
+  profession: "mesmer", // or "elementalist" / "guardian" / "necromancer"
   // profession build fields
 }
 ```
@@ -226,6 +233,10 @@ rotation entries; storage and the simulator contract use normalized commands.
   current API snapshot, an explicit supplement for API-omitted bundle skills,
   complete executable skill coverage, all specialization mechanics, Guardian
   trait rules, build validation, and a shared-shell browser application.
+- `necromancer`: declarative shared-engine implementation with a reproducible
+  API snapshot, API-omitted shroud/Lich/Ritualist supplements, life force,
+  Reaper/Harbinger/Ritualist shrouds, Scourge shades, blight, minions,
+  spirits, trait reactions, build validation, and a shared-shell application.
 
 ## Adding another profession
 

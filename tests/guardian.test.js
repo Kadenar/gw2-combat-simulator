@@ -121,6 +121,116 @@ test("Guardian swaps weapons and exposes profession palette groups", () => {
   );
 });
 
+test("Guardian palettes keep inactive tome and forge skills visible", () => {
+  const inactiveFirebrand = {
+    specialization: "Firebrand",
+    professionState: {
+      activeTome: "",
+      tomePages: 5,
+      radiantForge: false,
+    },
+  };
+  const activeFirebrand = {
+    ...inactiveFirebrand,
+    professionState: {
+      ...inactiveFirebrand.professionState,
+      activeTome: "justice",
+    },
+  };
+  const inactiveFirebrandGroups =
+    guardianProfession.ui.paletteGroups(inactiveFirebrand);
+  const activeFirebrandGroups =
+    guardianProfession.ui.paletteGroups(activeFirebrand);
+  const groupIds = groups => groups.map(group => group.id);
+
+  assert.deepEqual(
+    groupIds(inactiveFirebrandGroups),
+    [
+      "profession",
+      "tome-justice",
+      "tome-resolve",
+      "tome-courage",
+    ],
+  );
+  assert.deepEqual(
+    activeFirebrandGroups.map(group => group.skillIds),
+    inactiveFirebrandGroups.map(group => group.skillIds),
+  );
+  assert.equal(
+    inactiveFirebrandGroups
+      .find(group => group.id === "tome-justice")
+      .skillIds.includes(GUARDIAN_SKILL_IDS.SEARING_SPELL),
+    true,
+  );
+  assert.equal(
+    inactiveFirebrandGroups
+      .find(group => group.id === "tome-resolve")
+      .skillIds.includes(GUARDIAN_SKILL_IDS.DESERT_BLOOM),
+    true,
+  );
+  assert.equal(
+    inactiveFirebrandGroups
+      .find(group => group.id === "tome-courage")
+      .skillIds.includes(GUARDIAN_SKILL_IDS.UNFLINCHING_CHARGE),
+    true,
+  );
+
+  const inactiveForgeGroups = guardianProfession.ui.paletteGroups({
+    specialization: "Luminary",
+    professionState: { radiantForge: false },
+  });
+  const activeForgeGroups = guardianProfession.ui.paletteGroups({
+    specialization: "Luminary",
+    professionState: { radiantForge: true },
+  });
+  assert.deepEqual(
+    activeForgeGroups.map(group => group.skillIds),
+    inactiveForgeGroups.map(group => group.skillIds),
+  );
+  assert.equal(
+    inactiveForgeGroups
+      .find(group => group.id === "radiant-forge")
+      .skillIds.includes(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER),
+    true,
+  );
+});
+
+test("Guardian palette availability follows the active tome or forge", () => {
+  const isAvailable = guardianProfession.ui.isPaletteSkillAvailable;
+  const trueStrike = guardianCatalog.skillsByName.get("True Strike");
+  const searingSpell =
+    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SEARING_SPELL);
+  const desertBloom =
+    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DESERT_BLOOM);
+  const dazzlingHammer =
+    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
+
+  assert.equal(isAvailable({
+    professionState: { activeTome: "", tomePages: 5 },
+  }, trueStrike), true);
+  assert.equal(isAvailable({
+    professionState: { activeTome: "", tomePages: 5 },
+  }, searingSpell), false);
+  assert.equal(isAvailable({
+    professionState: { activeTome: "justice", tomePages: 5 },
+  }, trueStrike), false);
+  assert.equal(isAvailable({
+    professionState: { activeTome: "justice", tomePages: 5 },
+  }, searingSpell), true);
+  assert.equal(isAvailable({
+    professionState: { activeTome: "justice", tomePages: 5 },
+  }, desertBloom), false);
+  assert.equal(isAvailable({
+    professionState: { radiantForge: false },
+  }, dazzlingHammer), false);
+  assert.equal(isAvailable({
+    professionState: { radiantForge: true },
+  }, trueStrike), false);
+  assert.equal(isAvailable({
+    professionState: { radiantForge: true },
+  }, dazzlingHammer), true);
+});
+
 test("Guardian only casts weapon skills equipped on the active set", () => {
   const result = simulateGw2({
     profession: guardianProfession,
@@ -145,6 +255,42 @@ test("Guardian only casts weapon skills equipped on the active set", () => {
     1,
   );
   assert.match(result.warnings.join(" "), /Through the Heart is unavailable/);
+});
+
+test("Guardian cannot cast weapon skills while a tome or forge is active", () => {
+  const firebrand = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Justice",
+      "True Strike",
+      "Stow Tome",
+      "True Strike",
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      primaryWeapon: "Mace",
+    },
+  });
+  const luminary = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Enter Radiant Forge",
+      "True Strike",
+      "Exit Radiant Forge",
+      "True Strike",
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      primaryWeapon: "Mace",
+    },
+  });
+
+  assert.equal(firebrand.steps[1].invalid, true);
+  assert.equal(Boolean(firebrand.steps[3].invalid), false);
+  assert.equal(luminary.steps[1].invalid, true);
+  assert.equal(Boolean(luminary.steps[3].invalid), false);
 });
 
 test("Guardian player strikes trigger shared player-owned sigils", () => {
@@ -489,6 +635,7 @@ test("Firebrand tomes consume shared pages and execute tome damage", () => {
       "Chapter 1: Searing Spell",
       "Chapter 4: Scorched Aftermath",
       "Epilogue: Ashes of the Just",
+      "Stow Tome",
       "True Strike",
       { type: "wait", durationMs: 6000 },
     ],
@@ -590,7 +737,7 @@ test("elite specializations expose their profession mechanics", () => {
       tomePages: 5,
       maximumTomePages: 5,
     },
-  })[0].skillIds;
+  }).flatMap(group => group.skillIds);
   const firebrandResources = guardianProfession.ui.resourceViews({
     specialization: "Firebrand",
     professionState: {

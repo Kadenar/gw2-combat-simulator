@@ -1,18 +1,19 @@
 # Guild Wars 2 Combat Simulator
 
 A standalone deterministic PvE build and rotation simulator with browser
-applications for Mesmer, Elementalist, and Guardian.
+applications for Mesmer, Elementalist, Guardian, and Necromancer.
 
 Select the profession from the shared header:
 
 - **Mesmer**: Core, Chronomancer, Mirage, Virtuoso, and Troubadour.
 - **Elementalist**: Core, Tempest, Weaver, Catalyst, and Evoker.
 - **Guardian**: Core, Dragonhunter, Firebrand, Willbender, and Luminary.
+- **Necromancer**: Core, Reaper, Scourge, Harbinger, and Ritualist.
 
 The Elementalist package is a direct port of the reference
 `Elementalist-Simulator` implementation. It retains its event scheduler,
 resolver, traits, attunements, profession resources, skill data, presets,
-rotation builder, and gear optimizer. Both profession applications use the
+rotation builder, and gear optimizer. All profession applications use the
 same visual system and keep independent browser-local builds.
 
 ## Run
@@ -41,6 +42,12 @@ Refresh the checked-in Guardian API snapshot with:
 npm run update:guardian-data
 ```
 
+Refresh the checked-in Necromancer API snapshot with:
+
+```powershell
+npm run update:necromancer-data
+```
+
 ## Layout
 
 ```text
@@ -51,17 +58,20 @@ gw2-combat-simulator/
       mesmer/                  Mesmer implementation
       elementalist/            Elementalist implementation and optimizer
       guardian/                Guardian data, rules, mechanics, and build codec
-    app/                       shared shell and Mesmer composition
+      necromancer/             Necromancer data, shrouds, summons, and rules
+    app/                       shared browser shell and composition
   Builds/                      Elementalist build presets
   Rotations/                   profession rotation examples
   csv input/                   Elementalist skill and hit data
   index.html                   Mesmer application
   elementalist.html            Elementalist application
   guardian.html                Guardian application
+  necromancer.html             Necromancer application
 ```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the profession contract and import
 boundaries. Mesmer implementation assumptions remain in
 [RESEARCH.md](RESEARCH.md); Elementalist implementation details are in
 [ELEMENTALIST.md](ELEMENTALIST.md); Guardian status is in
-[GUARDIAN.md](GUARDIAN.md).
+[GUARDIAN.md](GUARDIAN.md); Necromancer status is in
+[NECROMANCER.md](NECROMANCER.md).

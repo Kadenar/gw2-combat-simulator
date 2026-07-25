@@ -294,8 +294,12 @@ export function simulateDeclarativeGw2({
     commonHandlers,
     professionHandlers: profession.eventHandlers,
     professionState:
-      scheduled.stream.resolverHandoff?.professionState
-      ?? profession.createProfessionState(config),
+      typeof profession.createResolverState === "function"
+        ? profession.createResolverState(config, scheduled)
+        : (
+            scheduled.stream.resolverHandoff?.professionState
+            ?? profession.createProfessionState(config)
+          ),
   });
   return {
     ...resolved,
