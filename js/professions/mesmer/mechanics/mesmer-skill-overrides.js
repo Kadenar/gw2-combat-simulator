@@ -532,6 +532,15 @@ const choiceOverrides = {
     resource: null,
     defaultInterruptMs: 120,
   },
+  "Illusionary Riposte": {
+    // Damage, daze, and the two clones require a successful riposte.
+    // Activating or manually ending the riposte against an idle target does not
+    // trigger any of them; Counter Blade owns the manual flip's effects.
+    damage: [],
+    conditions: [],
+    resource: null,
+    defaultInterruptMs: 120,
+  },
   "Signet of the Ether": {
     // The active heals and resets phantasm cooldowns. Its passive reacts to
     // illusion summons; it does not summon an illusion itself.
