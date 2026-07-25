@@ -13,6 +13,7 @@ import {
   criticalDamageMultiplier,
 } from "./damage.js";
 import { WEAPON_DATA } from "./gear-data.js";
+import { relicConditionDurationBonus } from "./relic-rules.js";
 import {
   gw2ConditionDurationMultiplier,
   gw2SigilSet,
@@ -175,7 +176,12 @@ function createQuery(profession, config, events, traits) {
         Number(sigils.conditionDurationBonus || 0)
         + Number(sigils.conditionDurationBonuses?.[name] || 0)
       ) / 100;
-      const base = gw2ConditionDurationMultiplier(name, stats, sigilBonus);
+      const relicBonus = relicConditionDurationBonus(runtime, time);
+      const base = gw2ConditionDurationMultiplier(
+        name,
+        stats,
+        sigilBonus + relicBonus,
+      );
       const modified = profession.modifyConditionDuration(
         hookContext(time, {
           event,
