@@ -2,18 +2,18 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { defaultSimulationConfig } from "./helpers/fixture-harness-core.js";
 import {
-  simulateSequence,
-} from "../js/professions/mesmer/simulation.js";
+  simulateMesmer,
+} from "./helpers/mesmer-simulation.js";
 import {
-  resolveScheduledStream,
-} from "../js/professions/mesmer/resolver/resolve-timeline.js";
+  resolveTestGw2Stream,
+} from "./helpers/gw2-resolver.js";
 import { enqueueOrdered } from "../js/platform/engine/event-queue.js";
 import {
   buildScheduledEventStream,
 } from "../js/platform/engine/scheduled-event-stream.js";
 import {
   createCloneAttackScheduler,
-} from "../js/professions/mesmer/mechanics/illusion-actions.js";
+} from "../js/professions/mesmer/mechanics/illusions.js";
 
 test("clone attacks are scheduled lazily as the timeline advances", () => {
   const state = { clones: [] };
@@ -52,7 +52,7 @@ test("clone attacks are scheduled lazily as the timeline advances", () => {
 
 function tormentDamageAtMight(might) {
   const defaults = defaultSimulationConfig();
-  const result = simulateSequence(
+  const result = simulateMesmer(
     ["Ether Bolt", { name: "__wait", waitMs: 1000 }],
     defaultSimulationConfig({
       specialization: "Core",
@@ -103,10 +103,9 @@ test("condition applications shorter than one second deal fractional damage", ()
     rotationEndTime: 2,
     resolverHandoff: {
       warnings: ["resolver handoff warning"],
-      cloneDeaths: [],
     },
   });
-  const result = resolveScheduledStream({
+  const result = resolveTestGw2Stream({
     stream,
     config: {
       target: {},
@@ -143,7 +142,7 @@ test("condition applications shorter than one second deal fractional damage", ()
 
 test("permanent damaging target conditions are assumptions, not player damage", () => {
   const defaults = defaultSimulationConfig();
-  const result = simulateSequence(
+  const result = simulateMesmer(
     [{ name: "__wait", waitMs: 2000 }],
     defaultSimulationConfig({
       target: {
@@ -161,7 +160,7 @@ test("permanent damaging target conditions are assumptions, not player damage", 
 });
 
 test("DPS includes elapsed time before the first hit", () => {
-  const result = simulateSequence(
+  const result = simulateMesmer(
     [
       { name: "__wait", waitMs: 1000 },
       "Mind Slash",
@@ -182,7 +181,7 @@ test("DPS includes elapsed time before the first hit", () => {
 
 test("an explicit empty target condition map does not restore default conditions", () => {
   const defaults = defaultSimulationConfig();
-  const run = conditions => simulateSequence(
+  const run = conditions => simulateMesmer(
     ["Bladecall"],
     defaultSimulationConfig({
       target: {
@@ -217,7 +216,7 @@ test("same-time queued events retain stable insertion order", () => {
 
 test("Thief relic progresses on individual hits instead of an aggregate hit", () => {
   const defaults = defaultSimulationConfig();
-  const result = simulateSequence(
+  const result = simulateMesmer(
     ["Unstable Bladestorm", { name: "__wait", waitMs: 4000 }],
     defaultSimulationConfig({
       relic: "Thief",
@@ -245,14 +244,14 @@ test("Thief relic progresses on individual hits instead of an aggregate hit", ()
 });
 
 test("Bloodsong needs real bleeding and does not treat blade hits as bleeding", () => {
-  const withoutJaggedMind = simulateSequence(
+  const withoutJaggedMind = simulateMesmer(
     ["Unstable Bladestorm", { name: "__wait", waitMs: 8000 }],
     defaultSimulationConfig({
       initialResource: 0,
       selectedTraits: ["Bloodsong"],
     }),
   );
-  const withJaggedMind = simulateSequence(
+  const withJaggedMind = simulateMesmer(
     ["Unstable Bladestorm", { name: "__wait", waitMs: 8000 }],
     defaultSimulationConfig({
       initialResource: 0,
@@ -260,15 +259,15 @@ test("Bloodsong needs real bleeding and does not treat blade hits as bleeding", 
     }),
   );
 
-  assert.equal(withoutJaggedMind.endState.resource, 0);
+  assert.equal(withoutJaggedMind.endState.profession.resource, 0);
   assert.equal(withoutJaggedMind.conditionDamage, 0);
-  assert.equal(withJaggedMind.endState.resource, 1);
+  assert.equal(withJaggedMind.endState.profession.resource, 1);
   assert.ok(withJaggedMind.conditionDamage > 0);
 });
 
 test("target death resolves its timestamp and stops future events", () => {
   const defaults = defaultSimulationConfig();
-  const result = simulateSequence(
+  const result = simulateMesmer(
     [
       "Bladecall",
       { name: "__wait", waitMs: 5000 },
@@ -312,8 +311,8 @@ test("Egotism starts after the target falls below the Mesmer's health percentage
     },
   });
   const rotation = ["Mind Slash", "Mind Gash"];
-  const base = simulateSequence(rotation, config);
-  const egotism = simulateSequence(rotation, {
+  const base = simulateMesmer(rotation, config);
+  const egotism = simulateMesmer(rotation, {
     ...config,
     selectedTraits: ["Egotism"],
   });
@@ -329,7 +328,7 @@ test("Egotism starts after the target falls below the Mesmer's health percentage
 });
 
 test("explicit combat start excludes completed precombat damage", () => {
-  const result = simulateSequence(
+  const result = simulateMesmer(
     [
       "Bladecall",
       { name: "__wait", waitMs: 1000 },
@@ -349,7 +348,7 @@ test("explicit combat start excludes completed precombat damage", () => {
 });
 
 test("delayed combat start uses its offset instead of the preceding cast end", () => {
-  const result = simulateSequence(
+  const result = simulateMesmer(
     [
       "Mind Slash",
       { name: "__combat_start", offset: 100 },
@@ -372,7 +371,7 @@ test("delayed combat start uses its offset instead of the preceding cast end", (
 });
 
 test("DPS duration starts at the first hit in the supplied delayed-start rotation", () => {
-  const result = simulateSequence(
+  const result = simulateMesmer(
     [
       "Phantasmal Swordsman",
       { name: "__combat_start", offset: 700 },
@@ -389,7 +388,7 @@ test("DPS duration starts at the first hit in the supplied delayed-start rotatio
 });
 
 test("standalone Combat Start uses the first subsequent hit like Elementalist", () => {
-  const result = simulateSequence(
+  const result = simulateMesmer(
     [
       "__combat_start",
       "Phantasmal Swordsman",
@@ -407,7 +406,7 @@ test("standalone Combat Start uses the first subsequent hit like Elementalist", 
 });
 
 test("zero-length combat windows report zero DPS instead of epsilon DPS", () => {
-  const result = simulateSequence(
+  const result = simulateMesmer(
     [
       "Mind Slash",
       "__combat_start",
@@ -427,7 +426,7 @@ test("zero-length combat windows report zero DPS instead of epsilon DPS", () => 
 
 test("critical sigils enqueue and resolve their own proc event", () => {
   const defaults = defaultSimulationConfig();
-  const result = simulateSequence(
+  const result = simulateMesmer(
     ["Bladecall"],
     defaultSimulationConfig({
       stats: {
@@ -453,7 +452,7 @@ test("critical sigils enqueue and resolve their own proc event", () => {
 
 test("critical-strike food procs resolve as unmodified flat damage", () => {
   const defaults = defaultSimulationConfig();
-  const result = simulateSequence(
+  const result = simulateMesmer(
     ["Flying Cutter", { name: "__wait", waitMs: 2000 }, "Flying Cutter"],
     defaultSimulationConfig({
       food: "Cilantro Lime Sous-Vide Steak",
@@ -479,7 +478,7 @@ test("critical-strike food procs resolve as unmodified flat damage", () => {
 });
 
 test("slot-skill strikes select utility weapon strength generically", () => {
-  const result = simulateSequence(
+  const result = simulateMesmer(
     ["Power Spike"],
     defaultSimulationConfig({ specialization: "Core" }),
   );
@@ -492,7 +491,7 @@ test("slot-skill strikes select utility weapon strength generically", () => {
 
 test("Egotism does not increase condition damage", () => {
   const defaults = defaultSimulationConfig();
-  const run = selectedTraits => simulateSequence(
+  const run = selectedTraits => simulateMesmer(
     ["Phantasmal Swordsman", { name: "__wait", waitMs: 6000 }],
     defaultSimulationConfig({
       specialization: "Core",
@@ -513,7 +512,7 @@ test("Egotism does not increase condition damage", () => {
 });
 
 test("weapon-swap sigils resolve locally on the destination weapon set", () => {
-  const result = simulateSequence(
+  const result = simulateMesmer(
     ["Swap Weapons", "Psycut", { name: "__wait", waitMs: 2000 }],
     defaultSimulationConfig({
       primaryWeapon: "Dagger",
@@ -559,7 +558,7 @@ test("Severance affects strikes after its control trigger", () => {
       vulnerability: 0,
     },
   });
-  const run = names => simulateSequence(
+  const run = names => simulateMesmer(
     ["Magic Bullet", "Mind Slash"],
     {
       ...config,

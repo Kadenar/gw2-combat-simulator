@@ -15,13 +15,28 @@ export function createGw2SchedulerEventFactory({
   conditionFormulas,
   activePrimaryWeapon,
   activeWeaponSet,
+  emit = null,
+  defaultSource = "System",
   onConditionScheduled = () => {},
   onDamageScheduled = () => {},
   decorateDamageEvent = event => event,
 }) {
   const addEvent = event => {
-    if (event.at <= horizon + epsilon) events.push(event);
-    return event;
+    const normalized = {
+      source: event.source || defaultSource,
+      sourceId:
+        event.sourceId
+        ?? event.skillId
+        ?? event.skillName
+        ?? event.name
+        ?? event.type,
+      ...event,
+    };
+    if (normalized.at <= horizon + epsilon) {
+      if (emit) return emit(normalized);
+      events.push(normalized);
+    }
+    return normalized;
   };
 
   const addTraitProc = (
@@ -67,6 +82,7 @@ export function createGw2SchedulerEventFactory({
       skillId: extra.skillId ?? null,
       ...extra,
     });
+    if (!event) return null;
     onConditionScheduled(event, {
       activeWeaponSet: activeWeaponSet(),
     });
@@ -107,6 +123,7 @@ export function createGw2SchedulerEventFactory({
           || (slotSkill ? "Utility" : activePrimaryWeapon()),
         ...extra,
       }, { skill, group, extra }));
+      if (!event) continue;
       onDamageScheduled(event, {
         activeWeaponSet: activeWeaponSet(),
       });

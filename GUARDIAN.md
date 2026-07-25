@@ -66,8 +66,8 @@ stable-ID exceptions, and `skill-mechanics.js` exports their final composition.
 - Spear (Janthir Wilds) with the Illuminated mechanic (see below)
 - Static and resolver-time Guardian damage, recharge, condition, signet, and
   attribute trait rules
-- Shared rotation-timeline cast steps, including cast timestamps and invalid
-  cooldown attempts
+- Shared rotation-timeline cast steps, including cast timestamps and automatic
+  advancement to cooldown expiry
 - A damage-focused skill selector that omits support-only skills which cannot
   affect the tracked damage metrics
 - Schema-version-3 Guardian build migration and validation

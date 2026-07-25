@@ -1096,17 +1096,18 @@ export function renderEventLog(app) {
         return;
     }
     const eventLog = simulationEventLogRows(result, app.build);
+    const hasPhantasmClone = eventLog.some(event => event.phantasmClone);
     mountEventLog(element, eventLog.map(event => ({
         ...event,
         rowClassName: event.phantasmClone ? 'log-phantasm' : '',
     })), {
         title: 'Event Log',
         filename: app.adapter?.filenames?.eventLog || 'event-log.csv',
-        filters: [{
+        filters: hasPhantasmClone ? [{
             id: 'phantasm',
             label: 'Phantasm & Clone only',
             predicate: event => event.phantasmClone,
-        }],
+        }] : [],
     });
 }
 

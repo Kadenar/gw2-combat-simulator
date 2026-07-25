@@ -43,8 +43,8 @@ import { mesmerProfession } from "../js/professions/mesmer/definition.js";
 import { guardianCatalog } from "../js/professions/guardian/catalog.js";
 import {
   createDefaultConfig,
-  simulateSequence,
-} from "../js/professions/mesmer/simulation.js";
+  simulateMesmer,
+} from "./helpers/mesmer-simulation.js";
 import { createMesmerState, snapshotMesmerState } from "../js/professions/mesmer/state.js";
 import { testProfession } from "./fixtures/test-profession.js";
 
@@ -471,6 +471,35 @@ test("declarative ammo consumes and recharges shared charges", () => {
     rechargeDuration: 5,
     nextRechargeAt: 10,
   });
+});
+
+test("shared scheduler waits until a skill's exact cooldown expiry", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930002,
+      name: "Fixture Cooldown",
+      castTimeMs: 0,
+      cooldown: 0.3,
+      effects: [{ type: "strike", coefficient: 1 }],
+    }],
+  });
+  const profession = defineProfession({
+    id: "cooldown-fixture",
+    name: "Cooldown Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: ["Fixture Cooldown", "Fixture Cooldown"],
+  });
+  const actions = result.events.filter(event =>
+    event.type === "action");
+
+  assert.deepEqual(actions.map(event => event.at), [0, 0.3]);
+  assert.deepEqual(result.steps.map(step => step.start), [0, 300]);
+  assert.equal(result.endState.time, 300);
+  assert.equal(result.endState.cooldowns["Fixture Cooldown"].readyAt, 600);
+  assert.deepEqual(result.warnings, []);
 });
 
 test("declarative multi-hit and delayed effects preserve individual events", () => {
@@ -975,7 +1004,7 @@ test("Mesmer production simulation is reached through simulateGw2", () => {
     rotation: ["Bladecall"],
     config,
   });
-  const compatibility = simulateSequence(["Bladecall"], config);
+  const compatibility = simulateMesmer(["Bladecall"], config);
 
   assert.equal(canonical.totalDamage, compatibility.totalDamage);
   assert.equal(canonical.strikeDamage, compatibility.strikeDamage);

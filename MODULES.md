@@ -80,6 +80,8 @@ critical traits, and Bloodsong.
 ### Scheduler
 
 - [scheduler.js](js/platform/engine/scheduler.js) — default declarative scheduler and profession-hook dispatcher.
+- [task-queue.js](js/platform/engine/task-queue.js) — deterministic typed
+  state-work queue ordered by time, priority, and insertion order.
 - [effect-factories.js](js/platform/engine/effect-factories.js) — shared
   declarative strike, condition, timeline, control, and custom-effect
   constructors.
@@ -92,7 +94,8 @@ critical traits, and Bloodsong.
 - [GW2 scheduler policy](js/platform/gw2/scheduler/policy.js) — Quickness,
   Alacrity, and starting-weapon-set policy injected into the neutral scheduler.
 - [event-factory.js](js/platform/gw2/scheduler/event-factory.js) — canonical GW2 scheduler events.
-- [Mesmer scheduler](js/professions/mesmer/scheduler/scheduler.js) — Mesmer mechanic controllers composed over the shared state, cooldown, and event primitives.
+- [Mesmer contract](js/professions/mesmer/mechanics/contract.js) — Mesmer
+  availability, lifecycle hooks, task handlers, and end-state projection.
 
 ### Resolver
 
@@ -103,12 +106,12 @@ critical traits, and Bloodsong.
 - [hit-resolution.js](js/platform/gw2/resolver/hit-resolution.js) — shared strike resolution with injected profession modifiers.
 - [condition-resolution.js](js/platform/gw2/resolver/condition-resolution.js) — shared condition applications and ticks.
 - [Mesmer reactions](js/professions/mesmer/resolver/event-handlers.js) — Ineptitude, critical traits, Bloodsong, and Mesmer custom timeline events.
-- [Mesmer resolver profile](js/professions/mesmer/resolver/resolver-profile.js) — binds Mesmer queries and reactions to the shared resolver.
 
 ### Shared Platform Simulation
 
 - [event-queue.js](js/platform/engine/event-queue.js) — stable chronological and priority ordering.
-- [compat-scheduled-event-stream.js](js/platform/engine/compat-scheduled-event-stream.js) — legacy scheduler-to-resolver boundary.
+- [scheduled-event-stream.js](js/platform/engine/scheduled-event-stream.js) —
+  canonical scheduler-to-resolver boundary.
 - [clock.js](js/platform/engine/clock.js) — shared floating-point timeline tolerance.
 - [target-state.js](js/platform/gw2/target-state.js) — normalizes target-condition assumptions.
 
@@ -125,9 +128,18 @@ Mesmer, Guardian, and Necromancer use the same files for shared concepts:
 ### Mesmer-Specific Mechanics
 
 - [autoattack-chains.js](js/professions/mesmer/mechanics/autoattack-chains.js) — shared chain derivation plus Mesmer-specific chain-preservation policy.
-- [illusion-actions.js](js/professions/mesmer/mechanics/illusion-actions.js) — clone attack scheduling.
+- [contract.js](js/professions/mesmer/mechanics/contract.js) — standard
+  profession contract composition and task registration.
+- [illusions.js](js/professions/mesmer/mechanics/illusions.js) — task-driven
+  clone attack scheduling.
+- [resources.js](js/professions/mesmer/mechanics/resources.js) — clone, blade,
+  and note gains.
+- [continuum.js](js/professions/mesmer/mechanics/continuum.js) — Continuum
+  checkpoint and restoration behavior.
+- [expected-procs.js](js/professions/mesmer/mechanics/expected-procs.js) —
+  deterministic scheduling-relevant proc progress.
 - [profession-actions.js](js/professions/mesmer/mechanics/profession-actions.js) — shatters, instruments, and specialization resources.
-- [mirage-actions.js](js/professions/mesmer/mechanics/mirage-actions.js) — Mirage Cloak and ambush behavior.
+- [mirage.js](js/professions/mesmer/mechanics/mirage.js) — Mirage Cloak and ambush behavior.
 - [trait-rules.js](js/professions/mesmer/mechanics/trait-rules.js) — Mesmer resolver reactions.
 
 ## Test fixtures
@@ -147,41 +159,23 @@ Browser interaction testing. Simulates user UI interactions (clicks, form change
 
 ## Data Flow Architecture
 
-```
-User Input (UI)
+```text
+UI build and rotation
     ↓
-[app.js] - MesmerApp controller
+createProfessionRuntime → simulateGw2
     ↓
-[app-state.js] - Build persistence
+platform/engine/scheduler
+    ├→ common cooldown, ammo, cast lifecycle, and typed task queue
+    ├→ profession cast rules and scheduler hooks
+    └→ canonical scheduled-event stream
     ↓
-[professions/mesmer/app/app-runtime.js] - Build → Simulation config transformation
+platform/gw2/resolver
+    ├→ shared attributes, hits, conditions, sigils, relics, and target state
+    └→ profession attribute hooks, event handlers, and reactions
     ↓
-[simulator.js] - Public orchestrator
-    ├→ [scheduler.js] - Action scheduling phase
-    │   ├→ [scheduler-state.js] - State tracking
-    │   ├→ [event-factory.js] - Event creation
-    │   ├→ [expected-procs.js] - Expected proc tracking
-    │   └→ focused mechanic controllers
-    │
-    ├→ [calc-attributes.js] - Attribute calculation
-    │   ├→ [gear-data.js] - Gear stat lookup
-    │   ├→ [traits-data.js] - Active trait extraction
-    │   └→ [weapon-sigils.js] - Sigil stat aggregation
-    │
-    └→ [resolve-timeline.js] - Damage resolution phase
-        ├→ [runtime-state.js] - Resolution state
-        ├→ [event-loop.js] - Event dispatch
-        ├→ [resolver-query.js] - Timeline/stat/modifier queries
-        ├→ [hit-resolution.js] - Strike damage calc
-        ├→ [condition-resolution.js] - Condition damage calc
-        ├→ [trait-rules.js] - Trait modifiers
-        └→ [relic-rules.js] - Relic passive effects
-
-Results
+canonical result and endState.profession
     ↓
-[app.js] - Render UI with breakdown
-    ├→ [professions/mesmer/app/app-rotation-ui.js] - Timeline/rotation display
-    └→ Display damage totals, breakdowns, active cooldowns
+shared result, chart, timeline, and event-log renderers
 ```
 
 ---
