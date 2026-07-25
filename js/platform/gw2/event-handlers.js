@@ -6,7 +6,13 @@ import {
   strikeDamage,
 } from "./damage.js";
 
-const noop = () => {};
+function react(context, event, details = {}) {
+  return context.profession.eventReactions?.[event.type]?.(
+    context,
+    event,
+    details,
+  );
+}
 
 function attributes(context) {
   return {
@@ -56,6 +62,23 @@ export function commonDamageHandler(context, event) {
     damage,
     hits,
   );
+  const applyCondition = (_reactionContext, conditionEvent) =>
+    commonConditionHandler(context, conditionEvent);
+  react(context, event, {
+    damage,
+    hitContext: {
+      damage,
+      stats,
+      critical: {
+        chance,
+        multiplier: critical,
+      },
+    },
+    applyCondition,
+    criticalChance: chance,
+    criticalDamage: critical,
+    stats,
+  });
 }
 
 export function commonConditionHandler(context, event) {
@@ -75,17 +98,47 @@ export function commonConditionHandler(context, event) {
   );
   const current = context.state.conditions.get(event.condition) || 0;
   context.state.conditions.set(event.condition, current + damage);
+  react(context, event, { damage, stats });
+}
+
+function reactingNoop(context, event) {
+  react(context, event);
+}
+
+function commonBuffHandler(context, event) {
+  const kind = String(event.kind || "").toLowerCase();
+  const applications = context.state.boons.get(kind) || [];
+  applications.push({
+    at: event.at,
+    expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
+    stacks: Math.max(1, Number(event.stacks || 1)),
+  });
+  context.state.boons.set(kind, applications);
+  react(context, event, {
+    activeStacks: applications
+      .filter(application => application.expiresAt > event.at)
+      .reduce((sum, application) => sum + application.stacks, 0),
+  });
 }
 
 export function createCommonEventHandlers() {
   return {
-    action: noop,
+    action: reactingNoop,
+    combat_start: reactingNoop,
     damage: commonDamageHandler,
     condition: commonConditionHandler,
-    condition_tick: noop,
-    control: noop,
-    blind: noop,
-    weapon_set: noop,
-    proc: (context, event) => context.state.procs.push(event),
+    condition_tick: reactingNoop,
+    control: reactingNoop,
+    blind: reactingNoop,
+    weapon_set: reactingNoop,
+    marker: reactingNoop,
+    resource: reactingNoop,
+    buff: commonBuffHandler,
+    weakness_vulnerability: reactingNoop,
+    peitha: reactingNoop,
+    proc: (context, event) => {
+      context.state.procs.push(event);
+      react(context, event);
+    },
   };
 }

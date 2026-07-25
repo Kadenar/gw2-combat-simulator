@@ -3,6 +3,7 @@
 import {
   FOOD_DATA,
   RUNE_DATA,
+  WEAPON_DATA as SHARED_WEAPON_DATA,
 } from "../../../platform/gw2/gear-data.js";
 
 export {
@@ -36,17 +37,17 @@ export const FOOD_NAMES = Object.freeze(sortNames(Object.keys(FOOD_DATA)));
 export const RUNE_NAMES = Object.freeze(sortNames(Object.keys(RUNE_DATA)));
 
 export const WEAPON_DATA = Object.freeze({
-  Pistol: { wielding: "mh", weaponStrength: 1000 },
-  Sword: { wielding: "mh", weaponStrength: 1000 },
-  Scepter: { wielding: "mh", weaponStrength: 1000 },
-  Dagger: { wielding: "mh+oh", weaponStrength: 1000 },
-  Focus: { wielding: "oh", weaponStrength: 900 },
-  Warhorn: { wielding: "oh", weaponStrength: 900 },
-  Staff: { wielding: "2h", weaponStrength: 1100 },
-  Hammer: { wielding: "2h", weaponStrength: 1100 },
-  Spear: { wielding: "2h", weaponStrength: 1000 },
-  Unequipped: { wielding: "-", weaponStrength: 690.5 },
-  "Profession mechanic": { wielding: "-", weaponStrength: 1100 },
+  Pistol: { ...SHARED_WEAPON_DATA.Pistol, wielding: "mh" },
+  Sword: { ...SHARED_WEAPON_DATA.Sword, wielding: "mh" },
+  Scepter: { ...SHARED_WEAPON_DATA.Scepter, wielding: "mh" },
+  Dagger: { ...SHARED_WEAPON_DATA.Dagger, wielding: "mh+oh" },
+  Focus: { ...SHARED_WEAPON_DATA.Focus, wielding: "oh" },
+  Warhorn: { ...SHARED_WEAPON_DATA.Warhorn, wielding: "oh" },
+  Staff: { ...SHARED_WEAPON_DATA.Staff, wielding: "2h" },
+  Hammer: { ...SHARED_WEAPON_DATA.Hammer, wielding: "2h" },
+  Spear: { ...SHARED_WEAPON_DATA.Spear, wielding: "2h" },
+  Unequipped: SHARED_WEAPON_DATA.Unequipped,
+  "Profession mechanic": SHARED_WEAPON_DATA["Profession mechanic"],
 });
 
 export const RELIC_DATA = Object.freeze({

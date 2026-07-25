@@ -46,8 +46,8 @@ export function createResourceController({
 
     if (resourceDefinition.singular === "clone") {
       for (let index = 0; index < amount; index += 1) {
-        if (state.clones.length >= resourceDefinition.maximum) {
-          const replaced = state.clones.shift();
+        if (state.profession.clones.length >= resourceDefinition.maximum) {
+          const replaced = state.profession.clones.shift();
           cloneDeaths.set(replaced.id, at);
         }
         const clone = {
@@ -56,19 +56,19 @@ export function createResourceController({
           weapon: weapon || activePrimaryWeapon(),
         };
         const initialized = cloneAttackScheduler.initializeClone(clone);
-        state.clones.push(initialized);
+        state.profession.clones.push(initialized);
         createdClones.push(initialized);
         created.push({ id: clone.id, weapon: clone.weapon });
         gained += 1;
       }
     } else {
-      const before = state.numericResource;
-      state.numericResource = clamp(
+      const before = state.profession.numericResource;
+      state.profession.numericResource = clamp(
         before + amount,
         0,
         resourceDefinition.maximum,
       );
-      gained = state.numericResource - before;
+      gained = state.profession.numericResource - before;
     }
 
     if (gained <= 0) return;
@@ -78,8 +78,8 @@ export function createResourceController({
       amount: gained,
       value:
         resourceDefinition.singular === "clone"
-          ? state.clones.length
-          : state.numericResource,
+          ? state.profession.clones.length
+          : state.profession.numericResource,
       resource: resourceDefinition.plural,
       reason,
       created,
@@ -109,15 +109,15 @@ export function createResourceController({
         || reason === "Self-Deception: Illusionary Ambush"
       )
       && traits.has("Infinite Horizon")
-      && state.cloneAmbushUntil >= at - epsilon
+      && state.profession.cloneAmbushUntil >= at - epsilon
     ) {
       onAmbushCreatedClones(at, createdClones);
     }
   };
 
   const queueResources = (at, count, weapon, reason) => {
-    state.pendingResources.push({ at, count, weapon, reason });
-    state.pendingResources.sort((a, b) => a.at - b.at);
+    state.profession.pendingResources.push({ at, count, weapon, reason });
+    state.profession.pendingResources.sort((a, b) => a.at - b.at);
   };
 
   return {

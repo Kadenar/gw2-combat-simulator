@@ -4,11 +4,11 @@ import {
   INFUSION_STATS,
   RELIC_NAMES,
   WEAPON_DATA,
-} from "../../data/gear-data.js";
+} from "../../platform/gw2/gear-data.js";
 import {
   DEFAULT_WEAPON_SIGILS,
   normalizeWeaponSigils,
-} from "../../core/weapon-sigils.js";
+} from "../../platform/gw2/weapon-sigils.js";
 import {
   normalizeRotation,
   toLegacyRotationEntry,
@@ -77,7 +77,7 @@ export function createMesmerBuildDefaults() {
     },
     initialResource: 5,
     startingWeaponSet: 1,
-    targetHealth: 4_000_000,
+    targetHealth: 3_970_000,
     targetArmor: 2597,
     rotation: [],
   };

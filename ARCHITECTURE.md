@@ -11,13 +11,14 @@ js/
   professions/
     mesmer/        Mesmer catalog, build schema, resources, rules, simulation
     elementalist/  Elementalist engine, data, app adapter, and optimizer
+    guardian/      Minimal canonical Guardian weapon/virtue vertical slice
   app/             browser composition and persistence adapters
 ```
 
-`js/sim`, most of `js/core`, and `js/data` contain compatibility exports for
-pre-refactor public module paths. `js/core/calc-attributes.js` is intentionally
-profession-neutral and delegates only to common GW2 attribute assembly. New
-code must import the owning platform or profession module directly.
+The obsolete `js/core`, `js/data`, and `js/sim` compatibility trees have been
+removed. Common GW2 attribute assembly lives in `js/platform/gw2/attributes.js`;
+profession rules live in each profession's own calculator. New code must import
+the owning platform or profession module directly.
 
 The Elementalist scheduler, resolver, data loader, optimizer, and profession
 mechanics remain under its profession directory. Common damage formulas,
@@ -31,7 +32,10 @@ Each profession owns its final build attribute calculation. The shared
 infusions, sigils, and base derived stats; the Mesmer and Elementalist
 calculators then apply only their own trait and skill rules.
 
-Profession-specific browser rendering follows the same boundary. Mesmer
+Profession-specific browser rendering follows the same boundary. The shared
+shell receives a profession application adapter for its build codec, storage
+key, runtime/config builder, renderer hooks, filenames, specialization
+fallback, supported relic list, and background contribution worker. Mesmer
 palette rules, Continuum Shift markers, Mirage effects, and phantasm/clone log
 formatting live under `js/professions/mesmer/app`; shared result transforms,
 chart queries, timeline operations, and small app UI helpers remain in the
@@ -73,23 +77,46 @@ export const exampleProfession = defineProfession({
   castRules,
   schedulerHooks,
   resolverHooks: {
-    eventHandlers,
+    eventHandlers,  // exclusive custom event types
+    eventReactions, // reactions to standard GW2 event types
   },
   ui: {
     paletteGroups,
-    resourceView,
+    resourceViews, // zero, one, or multiple resource view models
+  },
+  simulation: {
+    simulate, // optional production pipeline reached only through simulateGw2
   },
 });
 ```
 
 All hooks are optional. Missing validation accepts the cast, missing modifier
-hooks return their input, and other hooks are no-ops. Hook arrays accept
+hooks return their input, and other hooks are no-ops. Scheduler hooks and
+resolver event reactions accept
 `{ id, order, handler }`; lower order runs first and declaration order breaks
 ties deterministically.
 
 Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill
 uses, pending events, and `profession`. Profession resources and mechanic
 timers live under `state.profession`.
+
+The neutral engine accepts scheduler policy callbacks. `platform/gw2` supplies
+the shared GW2 policy for Quickness-adjusted casts, Alacrity-adjusted recharge,
+ammo, and the configured starting weapon set. Profession hooks may then modify
+cast duration, recharge duration, or maximum ammo without copying the common
+state machine.
+
+Application and test callers use `simulateGw2()`. It dispatches to the
+profession's production pipeline when present and otherwise uses the
+declarative scheduler. Canonical sequence results keep time, cooldowns, ammo,
+and active weapon set under `endState`; profession mechanics are exposed only
+through `endState.profession`.
+
+The platform scheduler handles ordinary declarative skills. A profession with
+actor-specific timing, such as Mesmer clone and phantasm attacks, composes its
+own mechanic controllers over the shared scheduler state, cooldown controller,
+and GW2 event factory. It must still emit the canonical event stream; it does
+not copy common cooldown, ammo, or event-representation logic.
 
 ## Events
 
@@ -102,8 +129,13 @@ has:
   at,
   source,
   sourceId,
+  actorType, // "player", "summon", "effect", or "unknown"
 }
 ```
+
+`source` is a display/origin label and must not drive combat behavior.
+Player-only sigils, relics, and traits use `actorType`. The resolver retains a
+legacy source-label fallback for older scheduled streams.
 
 Common types are `action`, `damage`, `condition`, `condition_tick`, `control`,
 `blind`, `weapon_set`, and `proc`. A profession adds a namespaced type such as
@@ -111,12 +143,41 @@ Common types are `action`, `damage`, `condition`, `condition_tick`, `control`,
 Duplicate registrations, missing required handlers, and unknown namespaced
 events throw explicit errors.
 
+Standard event types are owned by `platform/gw2/resolver`. A profession reacts
+to them through `resolverHooks.eventReactions` without replacing the common
+handler:
+
+```js
+resolverHooks: {
+  eventHandlers: {
+    "example.resource": handleResource,
+  },
+  eventReactions: {
+    damage: handleProfessionCriticalTraits,
+    control: handleProfessionInterruptTraits,
+  },
+}
+```
+
+Common handlers resolve damage and conditions, drain the queue, enforce combat
+and target-death bounds, and apply sigils and relics. Reactions receive the
+resolved context plus capabilities such as `hitContext` and `applyCondition`.
+For example, Ineptitude is a Mesmer `control`/`blind` reaction; control relics
+and control-triggered sigils remain common GW2 behavior.
+
 ## Skills, traits, and rotations
 
 Behavior uses stable IDs. A canonical catalog merges generated metadata,
-simulator mechanics, explicit overrides, and extra skills. Validation rejects
-duplicate skill IDs, missing handlers or parent skills, invalid effects,
-invalid slots, and unavailable weapon metadata.
+simulator mechanics, explicit overrides, and extra skills. Callable
+`skillHandlers` are registered by handler ID and dispatched by the profession
+contract. Validation rejects duplicate skill IDs, missing callable handlers or
+parent skills, invalid effects, invalid slots, and unavailable weapon metadata.
+Resolver behavior looks skills up by `skillId`; display-name lookup is retained
+only for legacy streams and application-boundary rotation migration.
+
+Shared weapon data owns family strength and broad capabilities. Each canonical
+profession catalog owns exact `weaponHands` metadata. Application adapters
+derive their weapon selector data by combining those two sources.
 
 Normalized rotations use:
 
@@ -139,7 +200,7 @@ The current persisted schema is:
 ```js
 {
   schemaVersion: 3,
-  profession: "mesmer", // or "elementalist"
+  profession: "mesmer", // or "elementalist" / "guardian"
   // profession build fields
 }
 ```
@@ -154,16 +215,23 @@ rotation entries; storage and the simulator contract use normalized commands.
 - `mesmer`: native profession-contract implementation.
 - `elementalist`: direct reference-engine port exposed through an
   `elementalistProfession` contract adapter.
+- `guardian`: minimal Sword, Justice/burning, weapon-swap, build-codec, and
+  palette slice proving the canonical extension path.
 
 ## Adding another profession
 
 1. Add `js/professions/<id>/` with catalog, build, state, rules, UI view models,
    and a `defineProfession()` composition.
-2. Register stable skill/trait IDs and namespaced custom event handlers.
+2. Register stable skill/trait IDs, namespaced custom event handlers, and only
+   the standard event reactions the profession needs.
+   Declare exact hand availability in `weaponHands` and register callable
+   custom cast behavior in `skillHandlers`.
 3. Add the profession to `js/app/composition.js` or a future profession picker.
 4. Add an end-to-end fixture that imports no other profession.
 5. Run `npm test` and `npm run check`.
 
-No engine, GW2, or shared UI branch should be needed. If a new rule is truly
-shared by multiple professions, add it to `platform/gw2`; otherwise keep it in
-the profession module.
+No engine, GW2, or shared UI branch should be needed. New professions should
+use `platform/engine` scheduler state/cooldowns and the `platform/gw2`
+scheduler event factory and resolver. If a new rule is truly shared by
+multiple professions, add it to `platform/gw2`; otherwise keep it in the
+profession module as a scheduler mechanic or resolver reaction.

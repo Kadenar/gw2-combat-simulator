@@ -1,5 +1,6 @@
 export * from "./catalog.js";
 export * from "./clock.js";
+export * from "./cooldown-controller.js";
 export * from "./event-queue.js";
 export * from "./events.js";
 export * from "./handler-registry.js";

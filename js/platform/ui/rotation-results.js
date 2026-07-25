@@ -1,0 +1,192 @@
+import { mountTimeSeriesCharts } from "./charts.js";
+import { escapeHtml } from "./html.js";
+
+export const SKILL_COLS = [
+  { key: "name", label: "Skill", numeric: false },
+  { key: "strike", label: "Strike", numeric: true },
+  { key: "condition", label: "Condition", numeric: true, className: "condi" },
+  { key: "total", label: "Total", numeric: true, className: "total" },
+  { key: "dps", label: "DPS", numeric: true, className: "dps" },
+  { key: "average", label: "Avg/Cast", numeric: true },
+  { key: "dct", label: "DCT", numeric: true },
+  { key: "casts", label: "Casts", numeric: true },
+  { key: "hits", label: "Hits", numeric: true },
+];
+
+export function nextResultSortState(currentColumn, currentDirection, column) {
+  if (currentColumn !== column) {
+    return { column, direction: "desc" };
+  }
+  const direction = currentDirection === "desc"
+    ? "asc"
+    : currentDirection === "asc" ? null : "desc";
+  return {
+    column: direction ? column : null,
+    direction,
+  };
+}
+
+export function sortResultRows(rows, columns, column, direction) {
+  const sorted = [...(rows || [])];
+  if (!column || !direction) {
+    return sorted.sort((left, right) =>
+      Number(right.total || 0) - Number(left.total || 0));
+  }
+
+  const definition = (columns || []).find(candidate => candidate.key === column);
+  if (definition?.numeric) {
+    return sorted.sort((left, right) => {
+      const leftValue = left[column] ?? -Infinity;
+      const rightValue = right[column] ?? -Infinity;
+      return direction === "asc"
+        ? leftValue - rightValue
+        : rightValue - leftValue;
+    });
+  }
+  return sorted.sort((left, right) => direction === "asc"
+    ? String(left[column] ?? "").localeCompare(String(right[column] ?? ""))
+    : String(right[column] ?? "").localeCompare(String(left[column] ?? "")));
+}
+
+const number = value => Math.round(Number(value || 0)).toLocaleString();
+
+function skillCellHtml(row, column, options) {
+  const value = row[column.key];
+  if (column.key === "name") {
+    const icon = options.resolveSkillIcon?.(row) || options.placeholderIcon || "";
+    return `<span class="res-skill"><img src="${escapeHtml(icon)}" alt="" />${escapeHtml(value)}</span>`;
+  }
+  const formatted = column.format
+    ? column.format(value, row)
+    : value == null ? "&mdash;" : column.numeric ? number(value) : escapeHtml(value);
+  return `<span${column.className ? ` class="${escapeHtml(column.className)}"` : ""}>${column.format ? escapeHtml(formatted) : formatted}</span>`;
+}
+
+function skillRowHtml(row, columns, options) {
+  return `<div class="res-row">${columns.map(column =>
+    skillCellHtml(row, column, options)
+  ).join("")}</div>`;
+}
+
+function skillHeaderHtml(columns, sortState) {
+  return columns.map(column => {
+    const indicator = sortState.column === column.key
+      ? (sortState.direction === "asc" ? " ▲" : " ▼")
+      : "";
+    return `<span data-sort-col="${escapeHtml(column.key)}">${escapeHtml(column.label)}${indicator}</span>`;
+  }).join("");
+}
+
+export function mountRotationResults(container, model = {}, options = {}) {
+  if (!container) return null;
+  const metrics = model.metrics || [];
+  const skillRows = model.skillRows || [];
+  const skillColumns = model.skillColumns || [];
+  const conditions = model.conditions || [];
+  const contributions = model.contributions || [];
+  const warnings = model.warnings || [];
+  let sortState = {
+    column: options.sortState?.column || null,
+    direction: options.sortState?.direction || null,
+  };
+  const breakdownClassName = options.skillBreakdownClassName || "skill-breakdown";
+  const initialSkillRows = sortResultRows(
+    skillRows,
+    skillColumns,
+    sortState.column,
+    sortState.direction,
+  );
+
+  container.innerHTML = `<div class="res-summary">
+    ${metrics.map(metric => `<div class="res-stat">
+      <span class="res-label">${escapeHtml(metric.label)}</span>
+      <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ""}">${escapeHtml(metric.value)}</span>
+    </div>`).join("")}
+  </div>
+  ${skillColumns.length ? `<div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
+    <div class="res-hdr res-hdr-sortable" data-role="skill-header">
+      ${skillHeaderHtml(skillColumns, sortState)}
+    </div>
+    <div class="res-skill-rows" data-role="skill-rows">${initialSkillRows.map(row =>
+      skillRowHtml(row, skillColumns, options)).join("")}</div>
+  </div>` : ""}
+  ${conditions.length ? `<div class="res-breakdown cond-breakdown">
+    <div class="res-hdr cond-hdr">
+      <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
+    </div>
+    ${conditions.map(condition => `<div class="res-row">
+      <span class="res-skill condi">${escapeHtml(condition.name)}</span>
+      <span class="condi">${number(condition.damage)}</span>
+      <span class="dps">${number(condition.dps)}</span>
+      <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
+    </div>`).join("")}
+    ${model.conditionTotal ? `<div class="res-row res-total">
+      <span class="res-skill"><b>${escapeHtml(model.conditionTotal.label || "Total Conditions")}</b></span>
+      <span class="condi"><b>${number(model.conditionTotal.damage)}</b></span>
+      <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
+      <span></span>
+    </div>` : ""}
+  </div>` : ""}
+  ${model.chartSeries ? '<div data-role="result-charts"></div>' : ""}
+  ${contributions.length ? `<div class="res-contributions">
+    <h4>Modifier Contributions</h4>
+    <div class="contrib-table">
+      <div class="contrib-hdr">
+        <span>Modifier</span><span>DPS Increase</span><span>% Increase</span>
+      </div>
+      ${contributions.map(contribution => {
+        const sign = Number(contribution.dpsIncrease) >= 0 ? "+" : "";
+        return `<div class="contrib-row">
+          <span class="contrib-name">${escapeHtml(contribution.name)}</span>
+          <span class="contrib-val">${sign}${number(contribution.dpsIncrease)}</span>
+          <span class="contrib-pct">${sign}${Number(contribution.pctIncrease).toFixed(2)}%</span>
+        </div>`;
+      }).join("")}
+    </div>
+  </div>` : ""}
+  ${warnings.length ? `<div class="sim-warnings">${warnings.map(escapeHtml).join("<br>")}</div>` : ""}`;
+
+  const renderSortedRows = () => {
+    const sorted = sortResultRows(
+      skillRows,
+      skillColumns,
+      sortState.column,
+      sortState.direction,
+    );
+    const rowsElement = container.querySelector?.('[data-role="skill-rows"]');
+    if (rowsElement) {
+      rowsElement.innerHTML = sorted.map(row =>
+        skillRowHtml(row, skillColumns, options)).join("");
+    }
+    const header = container.querySelector?.('[data-role="skill-header"]');
+    if (header) {
+      header.innerHTML = skillHeaderHtml(skillColumns, sortState);
+      bindSort();
+    }
+  };
+  const bindSort = () => {
+    const header = container.querySelector?.('[data-role="skill-header"]');
+    for (const cell of header?.querySelectorAll?.("[data-sort-col]") || []) {
+      cell.onclick = () => {
+        sortState = nextResultSortState(
+          sortState.column,
+          sortState.direction,
+          cell.dataset.sortCol,
+        );
+        options.onSortStateChange?.({ ...sortState });
+        renderSortedRows();
+      };
+    }
+  };
+
+  bindSort();
+  const chartContainer = container.querySelector?.('[data-role="result-charts"]');
+  if (chartContainer) {
+    mountTimeSeriesCharts(
+      chartContainer,
+      model.chartSeries,
+      options.chartOptions || {},
+    );
+  }
+  return { getSortState: () => ({ ...sortState }), renderSortedRows };
+}

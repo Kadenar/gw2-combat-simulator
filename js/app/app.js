@@ -1,4 +1,4 @@
-// Main application controller for the Mesmer simulator
+// Profession-injected application shell.
 // Manages UI state, coordinates rendering, handles user interactions, orchestrates simulation pipeline
 
 import {
@@ -6,28 +6,15 @@ import {
     GEAR_SLOTS,
     INFUSION_STATS,
     PREFIXES,
-    RELIC_NAMES,
+    RELIC_NAMES as SHARED_RELIC_NAMES,
     RUNE_GROUPS,
     SIGIL_NAMES,
     UTILITY_NAMES,
-    WEAPON_DATA,
-} from '../data/gear-data.js';
-import { SPECIALIZATIONS } from '../data/catalog.js';
-import { setWeaponSigil } from '../core/weapon-sigils.js';
-import { activeProfession } from './composition.js';
+} from '../platform/gw2/gear-data.js';
+import { setWeaponSigil } from '../platform/gw2/weapon-sigils.js';
+import { activeProfessionAppAdapter } from './composition.js';
 import { createDefaultBuild, loadBuild, replaceBuild, saveBuild } from './app-state.js';
 import { downloadJson, readJsonFile } from './app-io.js';
-import {
-    calculateModifierContributions,
-    eliteSpecialization,
-    modifierContributionRequest,
-    recalculate,
-    runSimulation,
-} from '../professions/mesmer/app/app-runtime.js';
-import {
-    renderResults,
-    renderRotationBuilder,
-} from '../professions/mesmer/app/app-rotation-ui.js';
 import { escapeHtml as esc } from '../platform/ui/html.js';
 import {
     DERIVED_ATTRIBUTES,
@@ -76,21 +63,22 @@ const EFFECT_COLORS = {
 
 // Main application controller class
 // Maintains UI state, coordinates between UI and simulation engine
-class MesmerApp {
+export class ProfessionApp {
     // Constructor initializes build from storage, loads all skills, sets up data references
-    constructor() {
-        this.build = loadBuild();
-        this.profession = activeProfession;
+    constructor(adapter = activeProfessionAppAdapter) {
+        this.adapter = adapter;
+        this.profession = adapter.profession;
+        this.build = loadBuild(adapter);
         this.skills = [...this.profession.catalog.skills];
         this.skillByName = this.profession.catalog.skillsByName;
         this.skillById = this.profession.catalog.skillsById;
-        this.weaponData = Object.fromEntries(
-            [...this.profession.catalog.weapons]
-                .filter(name => WEAPON_DATA[name])
-                .map(name => [name, WEAPON_DATA[name]]),
-        );
+        this.weaponData = adapter.weaponData;
+        this.relicNames = adapter.relicNames || SHARED_RELIC_NAMES;
+        this.specializations = adapter.specializations;
+        this.resourceDefinitions = specialization =>
+            this.profession.ui.resourceViews({ specialization });
         this.resourceDefinition = specialization =>
-            this.profession.ui.resourceView({ specialization });
+            this.resourceDefinitions(specialization)[0] || null;
         this.attributeWeaponSet = 1;
         this.attributeData = null;
         this.results = null;
@@ -113,10 +101,10 @@ class MesmerApp {
     // rebuildGear: whether to rebuild gear panel (false for rapid gear changes with autocomplete)
     changed(rebuildStatic = true, rebuildGear = rebuildStatic) {
         this.normalizeSelectedSkills();
-        recalculate(this);
-        runSimulation(this);
+        this.adapter.recalculate(this);
+        this.adapter.runSimulation(this);
         this.scheduleModifierContributions();
-        saveBuild(this.build);
+        saveBuild(this.build, this.adapter);
         if (rebuildStatic) {
             if (rebuildGear) this.renderGear();
             this.renderTraits();
@@ -124,7 +112,7 @@ class MesmerApp {
             this.renderSkills();
             this.renderAssumptions();
         }
-        renderRotationBuilder(this);
+        this.adapter.renderRotationBuilder(this);
     }
 
     scheduleModifierContributions() {
@@ -136,11 +124,11 @@ class MesmerApp {
 
         if (!this.build.rotation.length || !this.results) return;
 
-        const request = modifierContributionRequest(this);
+        const request = this.adapter.modifierContributionRequest(this);
         const applyContributions = contributions => {
             if (requestId !== this.modifierContributionRequestId || !this.results) return;
             this.results.contributions = contributions;
-            renderResults(this);
+            this.adapter.renderResults(this);
         };
 
         this.modifierContributionTimer = setTimeout(() => {
@@ -165,14 +153,14 @@ class MesmerApp {
                 return;
             }
 
-            applyContributions(calculateModifierContributions(request));
+            applyContributions(this.adapter.calculateModifierContributions(request));
         }, 100);
     }
 
     // Ensures selected skills are valid for current elite specialization
     // Swaps skill if it's unavailable (e.g., switching specs invalidates spec-locked skills)
     normalizeSelectedSkills() {
-        const spec = eliteSpecialization(this.build);
+        const spec = this.adapter.eliteSpecialization(this.build);
         const slotTypes = {
             Heal: 'Heal',
             Utility1: 'Utility',
@@ -209,7 +197,7 @@ class MesmerApp {
 
     renderGear() {
         const b = this.build;
-        const twoHanded = WEAPON_DATA[b.weapons[0]]?.wielding === '2h';
+        const twoHanded = this.weaponData[b.weapons[0]]?.wielding === '2h';
         document.getElementById('gear-slots').innerHTML = GEAR_SLOTS.map(slot => {
             const hidden = twoHanded && slot === 'Weapon2';
             const label = twoHanded && slot === 'Weapon1'
@@ -231,14 +219,14 @@ class MesmerApp {
             });
         });
 
-        const mainHands = Object.entries(WEAPON_DATA)
+        const mainHands = Object.entries(this.weaponData)
             .filter(([, data]) => ['mh', 'mh+oh', '2h'].includes(data.wielding))
             .map(([name]) => name);
-        const offHands = Object.entries(WEAPON_DATA)
+        const offHands = Object.entries(this.weaponData)
             .filter(([, data]) => ['oh', 'mh+oh'].includes(data.wielding))
             .map(([name]) => name);
         const weaponSetRows = (setNumber, weapons, sigils) => {
-            const setTwoHanded = WEAPON_DATA[weapons[0]]?.wielding === '2h';
+            const setTwoHanded = this.weaponData[weapons[0]]?.wielding === '2h';
             return `<div class="weapon-set-heading">Weapon set ${setNumber}</div>
                 <div class="gear-row"><span class="gear-label">Main hand</span>
                     <select id="sel-mh${setNumber}" class="gear-select">${mainHands.map(name => option(name, weapons[0])).join('')}</select>
@@ -261,8 +249,13 @@ class MesmerApp {
         const bindWeaponSet = (setNumber, weapons, sigils) => {
             document.getElementById(`sel-mh${setNumber}`).addEventListener('change', event => {
                 weapons[0] = event.target.value;
-                if (WEAPON_DATA[event.target.value].wielding === '2h') weapons[1] = '';
-                else if (!weapons[1]) weapons[1] = 'Sword';
+                if (this.weaponData[event.target.value].wielding === '2h') weapons[1] = '';
+                else if (!weapons[1]) {
+                    weapons[1] = this.adapter.defaultOffhand({
+                        mainHand: event.target.value,
+                        offHands,
+                    }) || offHands[0] || '';
+                }
                 this.changed();
             });
             document.getElementById(`sel-oh${setNumber}`).addEventListener('change', event => {
@@ -282,7 +275,7 @@ class MesmerApp {
 
         document.getElementById('equipment-info').innerHTML = `
             ${this.selectRow('Rune', 'sel-rune', groupedOptions(RUNE_GROUPS, b.rune))}
-            ${this.selectRow('Relic', 'sel-relic', RELIC_NAMES.map(name => option(name, b.relic)).join(''))}
+            ${this.selectRow('Relic', 'sel-relic', this.relicNames.map(name => option(name, b.relic)).join(''))}
             ${this.selectRow('Food', 'sel-food', groupedOptions(FOOD_GROUPS, b.food))}
             ${this.selectRow('Utility', 'sel-utility', UTILITY_NAMES.map(name => option(name, b.utility)).join(''))}
             <div class="gear-row"><span class="gear-label">Jade Bot</span>
@@ -337,14 +330,15 @@ class MesmerApp {
         const container = document.getElementById('traits-panel');
         const selectedNames = this.build.specializations.map(spec => spec.name);
         container.innerHTML = this.build.specializations.map((selection, lineIndex) => {
-            const spec = SPECIALIZATIONS.find(candidate => candidate.name === selection.name) || SPECIALIZATIONS[0];
+            const spec = this.specializations.find(candidate => candidate.name === selection.name)
+                || this.specializations[0];
             const picks = selection.traits.split('-').map(Number);
             return `<div class="spec-row" style="--spec-bg:url('${esc(SPEC_BG(spec.name))}')">
                 <div class="spec-bg"></div><div class="spec-content">
                     <div class="spec-header-col">
                         <div class="spec-icon-wrap"><img src="${esc(spec.icon)}" alt=""></div>
                         <select class="spec-select" data-line="${lineIndex}">
-                            ${SPECIALIZATIONS.map(candidate => {
+                            ${this.specializations.map(candidate => {
                                 const used = selectedNames.includes(candidate.name) && candidate.name !== selection.name;
                                 return `<option value="${esc(candidate.name)}"${candidate.name === selection.name ? ' selected' : ''}${used ? ' disabled' : ''}>${esc(candidate.name)}</option>`;
                             }).join('')}
@@ -367,16 +361,28 @@ class MesmerApp {
         container.querySelectorAll('.spec-select').forEach(select => {
             select.addEventListener('change', () => {
                 this.build.specializations[Number(select.dataset.line)] = { name: select.value, traits: '1-1-1' };
-                const newSpec = SPECIALIZATIONS.find(spec => spec.name === select.value);
+                const newSpec = this.specializations.find(spec => spec.name === select.value);
                 if (newSpec.elite) {
                     this.build.specializations.forEach((other, index) => {
                         if (index === Number(select.dataset.line)) return;
-                        const otherSpec = SPECIALIZATIONS.find(spec => spec.name === other.name);
-                        if (otherSpec?.elite) this.build.specializations[index] = { name: 'Domination', traits: '1-1-1' };
+                        const otherSpec = this.specializations.find(spec => spec.name === other.name);
+                        if (otherSpec?.elite) {
+                            this.build.specializations[index] = {
+                                name: this.adapter.specializationFallback,
+                                traits: '1-1-1',
+                            };
+                        }
                     });
                 }
-                const definition = getResourceDefinition(eliteSpecialization(this.build));
-                this.build.initialResource = Math.min(this.build.initialResource, definition.maximum);
+                const definition = this.resourceDefinition(
+                    this.adapter.eliteSpecialization(this.build),
+                );
+                if (definition) {
+                    this.build.initialResource = Math.min(
+                        this.build.initialResource,
+                        definition.maximum,
+                    );
+                }
                 this.changed();
             });
         });
@@ -413,7 +419,7 @@ class MesmerApp {
     }
 
     availableSlotSkills(type) {
-        const spec = eliteSpecialization(this.build);
+        const spec = this.adapter.eliteSpecialization(this.build);
         return this.skills.filter(skill =>
             skill.type === type
             && !skill.flipParent
@@ -421,12 +427,15 @@ class MesmerApp {
     }
 
     renderSkills() {
-        const spec = eliteSpecialization(this.build);
+        const spec = this.adapter.eliteSpecialization(this.build);
         const skillsForSet = ([mh, oh]) => {
-            const twoHanded = WEAPON_DATA[mh]?.wielding === '2h';
+            const twoHanded = this.weaponData[mh]?.wielding === '2h';
             return [...new Map(this.skills.filter(skill => {
                 if (skill.type !== 'Weapon') return false;
-                if (skill.ambush && spec !== 'Mirage') return false;
+                if (!this.adapter.isSkillAvailable(skill, {
+                    build: this.build,
+                    specialization: spec,
+                })) return false;
                 const slot = Number(String(skill.slot).match(/(\d)$/)?.[1] || 0);
                 return twoHanded
                     ? skill.weapon === mh
@@ -602,7 +611,7 @@ class MesmerApp {
     bindPageControls() {
         document.getElementById('attribute-weapon-set').addEventListener('change', event => {
             this.attributeWeaponSet = Number(event.target.value) === 2 ? 2 : 1;
-            recalculate(this);
+            this.adapter.recalculate(this);
             this.renderAttributes();
         });
         document.addEventListener('click', event => {
@@ -616,20 +625,26 @@ class MesmerApp {
         });
         document.getElementById('btn-sim-rerun').addEventListener('click', () => this.changed(false));
         document.getElementById('btn-export-build').addEventListener('click', () =>
-            downloadJson('mesmer-build.json', this.build));
+            downloadJson(this.adapter.filenames.build, this.build));
         document.getElementById('btn-import-build').addEventListener('click', () =>
             document.getElementById('import-file-input').click());
         document.getElementById('import-file-input').addEventListener('change', async event => {
             if (!event.target.files[0]) return;
             try {
-                this.build = replaceBuild(await readJsonFile(event.target.files[0]));
+                this.build = replaceBuild(
+                    await readJsonFile(event.target.files[0]),
+                    this.adapter,
+                );
                 this.changed();
             } catch (error) {
                 alert(error.message);
             }
         });
         document.getElementById('btn-export-rotation').addEventListener('click', () =>
-            downloadJson('mesmer-rotation.json', { rotation: this.build.rotation }));
+            downloadJson(
+                this.adapter.filenames.rotation,
+                { rotation: this.build.rotation },
+            ));
         document.getElementById('btn-import-rotation').addEventListener('click', () =>
             document.getElementById('rotation-file-input').click());
         document.getElementById('rotation-file-input').addEventListener('change', async event => {
@@ -653,14 +668,18 @@ class MesmerApp {
             this.changed(false);
         });
         document.getElementById('btn-reset-build').addEventListener('click', () => {
-            if (!confirm('Reset the Mesmer build, skills, and rotation?')) return;
-            this.build = createDefaultBuild();
+            if (!confirm(this.adapter.resetPrompt)) return;
+            this.build = createDefaultBuild(this.adapter);
             this.changed();
         });
     }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    window.mesmerApp = new MesmerApp();
-    window.mesmerApp.init();
+    const app = new ProfessionApp(activeProfessionAppAdapter);
+    window.professionApp = app;
+    if (activeProfessionAppAdapter.globalName) {
+        window[activeProfessionAppAdapter.globalName] = app;
+    }
+    app.init();
 });

@@ -3,6 +3,7 @@
  */
 
 import { EPSILON } from "../engine/clock.js";
+import { isGw2PlayerActorEvent } from "./event-ownership.js";
 
 /**
  * Calculates strike damage multiplier for active relics.
@@ -46,7 +47,10 @@ export function relicStrikeMultiplier(ctx, event) {
  * @param {Object} event - Damage event
  */
 export function applyMistStranger(ctx, event) {
-  if (ctx.config.relic !== "Mist Stranger" || event.source !== "Player") return;
+  if (
+    ctx.config.relic !== "Mist Stranger"
+    || !isGw2PlayerActorEvent(event)
+  ) return;
   const siphon = 105 * Number(event.hits || 1);
   ctx.totals.strike += siphon;
   ctx.addBreakdown(
@@ -83,7 +87,7 @@ export function applyMistStranger(ctx, event) {
 export function handleRelicsAfterHit(ctx, event, skill) {
   if (
     ctx.config.relic === "Thief"
-    && event.source === "Player"
+    && isGw2PlayerActorEvent(event)
     && skill?.type === "Weapon"
     && (Number(skill.cooldown || 0) > 0 || skill.resource)
   ) {
@@ -100,7 +104,7 @@ export function handleRelicsAfterHit(ctx, event, skill) {
   }
   if (
     ctx.config.relic === "Fireworks"
-    && event.source === "Player"
+    && isGw2PlayerActorEvent(event)
     && Number(skill?.cooldown || 0) >= 20
   ) {
     const wasActive = ctx.relic.buffUntil > event.at;

@@ -45,4 +45,5 @@ export function mesmerResourceView(context = {}) {
 export const mesmerUi = Object.freeze({
   paletteGroups: mesmerPaletteGroups,
   resourceView: mesmerResourceView,
+  resourceViews: context => [mesmerResourceView(context)],
 });

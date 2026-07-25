@@ -1,31 +1,32 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from './helpers/fixture-harness-core.js';
-import { simulateSequence } from '../js/sim/simulator.js';
-import { chartValueAt } from '../js/platform/ui/charts.js';
 import {
-    resultSummaryMetrics,
-} from '../js/platform/ui/result-transform.js';
+    simulateSequence,
+} from '../js/professions/mesmer/simulation.js';
+import { chartValueAt } from '../js/platform/ui/charts.js';
 import {
     moveRotationEntry,
 } from '../js/platform/ui/timeline.js';
 import {
     nextResultSortState,
     sortResultRows,
-} from '../js/app/app-rotation-ui.js';
+} from '../js/platform/ui/rotation-results.js';
 import {
     buildChartSeries,
     continuumEndTimelineMarkers,
-    RELIC_ICONS,
+    formatResultTimelineTime,
+    resultSummaryMetrics,
     simulationEventLogCsv,
     simulationEventLogRows,
     skillBreakdownRows,
     timelineWeaponRows,
 } from '../js/professions/mesmer/app/app-rotation-ui.js';
+import { RELIC_DATA } from '../js/platform/gw2/gear-data.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {
     assert.equal(
-        RELIC_ICONS['Relic of the Claw'],
+        RELIC_DATA.Claw.icon,
         'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
     );
 });
@@ -232,6 +233,31 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
     assert.equal(full.steps[0].end, 1850);
     assert.equal(full.steps[1].start, 9050);
     assert.equal(interrupted.endState.cooldowns['Confusing Images'].readyAt, 7450);
+});
+
+test('Spatial Surge keeps channel packets completed before an interrupt', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Greatsword',
+        secondaryWeapon: '',
+        initialResource: 0,
+    });
+    const damageEvents = result => result.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Spatial Surge');
+    const full = damageEvents(simulateSequence(['Spatial Surge'], config));
+    const partial = damageEvents(simulateSequence(
+        [{ name: 'Spatial Surge', interruptMs: 600 }],
+        config,
+    ));
+    const beforeFirstPacket = damageEvents(simulateSequence(
+        [{ name: 'Spatial Surge', interruptMs: 200 }],
+        config,
+    ));
+
+    assert.equal(full.length, 3);
+    assert.equal(partial.length, 2);
+    assert.equal(beforeFirstPacket.length, 0);
+    assert.ok(partial[1].at > partial[0].at);
 });
 
 test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it first', () => {
@@ -552,7 +578,7 @@ test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {
     assert.ok(Math.abs(damageAt(25) / damageAt(0) - 1.5625) < 1e-12);
 });
 
-test('Phantasmal Berserker uses supplied base and traited coefficients', () => {
+test('Phantasmal Berserker uses its phantasm coefficient and Bountiful reduction', () => {
     const coefficientAt = selectedTraits => simulateSequence(
         ['Phantasmal Berserker', { name: '__wait', waitMs: 2000 }],
         defaultSimulationConfig({
@@ -567,8 +593,35 @@ test('Phantasmal Berserker uses supplied base and traited coefficients', () => {
         && event.skillName === 'Phantasmal Berserker')
         .reduce((sum, event) => sum + event.coefficient, 0);
 
-    assert.ok(Math.abs(coefficientAt([]) - 3.66) < 1e-12);
-    assert.ok(Math.abs(coefficientAt(['Bountiful Blades']) - 4.4472) < 1e-12);
+    assert.ok(Math.abs(coefficientAt([]) - 2.4) < 1e-12);
+    assert.ok(Math.abs(coefficientAt(['Bountiful Blades']) - 2.784) < 1e-12);
+});
+
+test('Mirror Blade resolves target-facing bounce damage as separate hits', () => {
+    const simulateMirrorBlade = selectedTraits => simulateSequence(
+        ['Mirror Blade', { name: '__wait', waitMs: 1000 }],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: '',
+            selectedTraits,
+            initialResource: 0,
+        }),
+    );
+    const result = simulateMirrorBlade(['Bountiful Blades']);
+    const hits = result.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Mirror Blade');
+    const baseHits = simulateMirrorBlade([]).resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Mirror Blade');
+
+    assert.equal(hits.length, 4);
+    assert.equal(baseHits.length, 3);
+    assert.deepEqual(
+        hits.map(event => event.coefficient),
+        [2.5, 0.1, 0.004, 0.00016],
+    );
+    assert.ok(hits.every((event, index) =>
+        index === 0 || event.at > hits[index - 1].at));
 });
 
 test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat', () => {
@@ -604,11 +657,11 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
         event => event.reason === 'Phantasmal Duelist phantasm conversion',
     );
     const resummon = chronophantasma.events.find(
-        event => event.type === 'phantasm_resummoned'
+        event => event.type === 'mesmer.phantasm-resummoned'
             && event.name === 'Phantasmal Duelist',
     );
     const repeat = chronophantasma.events.find(
-        event => event.type === 'phantasm_attack'
+        event => event.type === 'mesmer.phantasm-attack'
             && event.name === 'Phantasmal Duelist'
             && event.repeat,
     );
@@ -2371,14 +2424,14 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
 
     assert.equal(
         normal.events.find(event =>
-            event.type === 'phantasm_summoned'
+            event.type === 'mesmer.phantasm-summoned'
             && event.name === 'Phantasmal Lancer'
         )?.count,
         1,
     );
     assert.equal(
         empowered.events.find(event =>
-            event.type === 'phantasm_summoned'
+            event.type === 'mesmer.phantasm-summoned'
             && event.name === 'Phantasmal Lancer'
         )?.count,
         2,
@@ -2719,6 +2772,51 @@ test('result summary uses the expected metric order', () => {
         resultSummaryMetrics(result).map(metric => metric.label),
         ['Duration', 'Total Damage', 'DPS', 'Strike', 'Condition'],
     );
+});
+
+test('Duration and Kill Time account for an explicit Combat Start reference', () => {
+    const metrics = resultSummaryMetrics({
+        duration: 93.89,
+        deathTime: 93.89,
+        firstHitTime: 2.06,
+        events: [{ type: 'combat_start', at: 2.06 }],
+    });
+
+    assert.equal(metrics[0].label, 'Duration');
+    assert.equal(metrics[0].value, '91.83s');
+    assert.equal(metrics[1].label, 'Kill Time');
+    assert.equal(metrics[1].value, '91.83s');
+});
+
+test('Combat Start timeline timestamps use the first subsequent hit like Elementalist', () => {
+    const result = simulateSequence(
+        [
+            'Phantasmal Swordsman',
+            { name: '__combat_start', offset: 700 },
+            'Bladecall',
+        ],
+        defaultSimulationConfig(),
+    );
+
+    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.86s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '-0.16s');
+    assert.equal(formatResultTimelineTime(result.steps[2].start, result), '0.00s');
+    assert.equal(formatResultTimelineTime(result.steps[2].end, result), '0.44s');
+});
+
+test('timeline and DPS retain simulation time without Combat Start', () => {
+    const result = simulateSequence(
+        [
+            'Phantasmal Swordsman',
+            'Bladecall',
+        ],
+        defaultSimulationConfig(),
+    );
+
+    assert.equal(result.dpsStartTime, 0);
+    assert.equal(result.dpsWindow, 1.3);
+    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '0.00s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.86s');
 });
 
 test('result summary includes kill time when target health is exhausted', () => {

@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { createCanonicalCatalog } from "../js/platform/engine/catalog.js";
+import { COMMON_EVENT_TYPES } from "../js/platform/engine/events.js";
 import { HandlerRegistry } from "../js/platform/engine/handler-registry.js";
 import { defineProfession } from "../js/platform/engine/profession.js";
 import { resolveScheduledStream } from "../js/platform/engine/resolver.js";
@@ -13,12 +14,21 @@ import { createScheduler } from "../js/platform/engine/scheduler.js";
 import { buildScheduledEventStream } from "../js/platform/engine/scheduled-event-stream.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
+  createProfessionWeaponData,
+  WEAPON_DATA,
+} from "../js/platform/gw2/gear-data.js";
+import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
   validateMesmerBuild,
 } from "../js/professions/mesmer/build.js";
 import { mesmerCatalog } from "../js/professions/mesmer/catalog.js";
 import { mesmerProfession } from "../js/professions/mesmer/definition.js";
+import { guardianCatalog } from "../js/professions/guardian/catalog.js";
+import {
+  createDefaultConfig,
+  simulateSequence,
+} from "../js/professions/mesmer/simulation.js";
 import { createMesmerState, snapshotMesmerState } from "../js/professions/mesmer/state.js";
 import { testProfession } from "./fixtures/test-profession.js";
 
@@ -34,13 +44,103 @@ test("profession contract supplies defaults and deterministic hook ordering", ()
         { id: "same", order: 10, handler: () => calls.push("same") },
       ],
     },
+    resolverHooks: {
+      eventReactions: {
+        control: [
+          {
+            id: "later-control",
+            order: 20,
+            handler: () => calls.push("later-control"),
+          },
+          {
+            id: "first-control",
+            order: 10,
+            handler: () => calls.push("first-control"),
+          },
+        ],
+      },
+    },
   });
   profession.initialize({});
   assert.deepEqual(calls, ["first", "same", "later"]);
+  profession.eventReactions.control({}, { type: "control" });
+  assert.deepEqual(
+    calls,
+    ["first", "same", "later", "first-control", "later-control"],
+  );
   assert.equal(profession.validateCast({}, {}), true);
   assert.deepEqual(profession.createProfessionState({}), {});
   assert.equal(profession.modifyStrikeDamage({}, 12), 12);
   assert.deepEqual(profession.paletteGroups({}), []);
+});
+
+test("profession contract supports zero or multiple resource views", () => {
+  const none = defineProfession({
+    id: "resourceless",
+    name: "Resourceless",
+  });
+  const multiple = defineProfession({
+    id: "multi-resource",
+    name: "Multi Resource",
+    ui: {
+      resourceViews: () => [
+        { id: "pages", maximum: 5, value: 2 },
+        { id: "charges", maximum: 3, value: 1 },
+      ],
+    },
+  });
+  assert.deepEqual(none.ui.resourceViews({}), []);
+  assert.equal(none.ui.resourceView({}), null);
+  assert.equal(multiple.ui.resourceViews({}).length, 2);
+  assert.equal(multiple.ui.resourceView({}).id, "pages");
+});
+
+test("declarative boons can gate dynamic skill availability", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 920001,
+        name: "Grant Aegis",
+        castTimeMs: 0,
+        effects: [{
+          type: "boon",
+          boon: "aegis",
+          duration: 2,
+          stacks: 1,
+        }],
+      },
+      {
+        id: 920002,
+        name: "Aegis Strike",
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "boon-gated",
+    name: "Boon Gated",
+    catalog,
+    castRules: {
+      validateCast: context =>
+        context.skill.id !== 920002 || context.hasBuff("aegis"),
+    },
+  });
+  const available = simulateGw2({
+    profession,
+    rotation: ["Grant Aegis", "Aegis Strike"],
+  });
+  const expired = simulateGw2({
+    profession,
+    rotation: [
+      "Grant Aegis",
+      { type: "wait", durationMs: 2100 },
+      "Aegis Strike",
+    ],
+  });
+  assert.ok(available.totalDamage > 0);
+  assert.equal(expired.totalDamage, 0);
+  assert.match(expired.warnings.join(" "), /unavailable/);
 });
 
 test("handler registry rejects duplicates and missing required handlers", () => {
@@ -70,7 +170,7 @@ test("generic scheduler state contains no profession-specific fields", () => {
       "time",
     ].sort(),
   );
-  assert.deepEqual(state.profession, { charge: 0 });
+  assert.deepEqual(state.profession, { charge: 0, controlEvents: 0 });
   assert.equal(Object.hasOwn(state, "clones"), false);
   assert.equal(Object.hasOwn(state, "numericResource"), false);
 });
@@ -92,6 +192,70 @@ test("normalized commands migrate legacy casts, waits, concurrency, and interrup
     },
     { type: "combat-start" },
   ]);
+});
+
+test("normalized commands preserve delayed combat-start offsets", () => {
+  assert.deepEqual(normalizeRotation([
+    "Fixture Slash",
+    { name: "__combat_start", offset: 100 },
+  ], testProfession.catalog), [
+    { type: "cast", skillId: 900001 },
+    { type: "combat-start", concurrentOffsetMs: 100 },
+  ]);
+});
+
+test("generic simulation starts combat at a delayed marker within a cast", () => {
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: [
+      "Fixture Slash",
+      { name: "__combat_start", offset: 100 },
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: {
+      attributes: {
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 0,
+      },
+      target: { armor: 2597 },
+      weaponStrength: 1000,
+    },
+  });
+  const marker = result.events.find(event => event.type === "combat_start");
+
+  assert.equal(marker.at, 0.1);
+  assert.equal(result.firstHitTime, 1);
+  assert.equal(result.dpsStartTime, 1);
+  assert.equal(result.dpsWindow, 1);
+  assert.equal(result.dps, result.totalDamage);
+});
+
+test("generic simulation uses the first hit after a standalone combat marker", () => {
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: [
+      "__combat_start",
+      "Fixture Slash",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: {
+      attributes: {
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 0,
+      },
+      target: { armor: 2597 },
+      weaponStrength: 1000,
+    },
+  });
+
+  assert.equal(result.firstHitTime, 1);
+  assert.equal(result.dpsStartTime, result.firstHitTime);
+  assert.equal(result.dpsWindow, 1);
+  assert.equal(result.dps, result.totalDamage);
 });
 
 test("concurrent and interrupted casts are first-class scheduler commands", () => {
@@ -148,9 +312,123 @@ test("test profession runs end to end without importing Mesmer", () => {
   });
   assert.ok(base.totalDamage > withoutTrait.totalDamage);
   assert.equal(base.profession.charge, 1);
+  assert.equal(base.profession.controlEvents, 1);
   assert.equal(base.schedulerState.profession.charge, 0);
   assert.equal(base.events.every(event =>
     event.type && Number.isFinite(event.at) && event.source && event.sourceId != null), true);
+});
+
+test("declarative ammo consumes and recharges shared charges", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930001,
+      name: "Fixture Ammo",
+      castTimeMs: 0,
+      cooldown: 5,
+      ammo: 2,
+      effects: [{ type: "strike", coefficient: 1 }],
+    }],
+  });
+  const profession = defineProfession({
+    id: "ammo-fixture",
+    name: "Ammo Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Fixture Ammo",
+      "Fixture Ammo",
+      { type: "wait", durationMs: 5000 },
+    ],
+  });
+
+  assert.equal(
+    result.resolvedEvents.filter(event => event.type === "damage").length,
+    2,
+  );
+  assert.deepEqual(result.endState.ammo["Fixture Ammo"], {
+    charges: 1,
+    maximum: 2,
+    rechargeDuration: 5,
+    nextRechargeAt: 10,
+  });
+});
+
+test("resolver modifiers receive stable trait, event, and runtime context", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930002,
+      name: "Context Strike",
+      castTimeMs: 0,
+      effects: [{ type: "strike", coefficient: 1 }],
+    }],
+  });
+  let observed = null;
+  const profession = defineProfession({
+    id: "context-fixture",
+    name: "Context Fixture",
+    catalog,
+    attributeRules: {
+      modifyStrikeDamage(context, multiplier) {
+        observed = {
+          actorType: context.actorType,
+          hasState: Boolean(context.state),
+          skillId: context.skillId,
+          trait: context.traits.has("context-fixture.damage"),
+        };
+        return observed.trait && observed.skillId === 930002
+          ? multiplier * 2
+          : multiplier;
+      },
+    },
+  });
+  const base = simulateGw2({
+    profession,
+    rotation: ["Context Strike"],
+  });
+  const modified = simulateGw2({
+    profession,
+    rotation: ["Context Strike"],
+    config: {
+      selectedTraits: [],
+      selectedTraitIds: ["context-fixture.damage"],
+    },
+  });
+
+  assert.equal(modified.strikeDamage / base.strikeDamage, 2);
+  assert.deepEqual(observed, {
+    actorType: "player",
+    hasState: true,
+    skillId: 930002,
+    trait: true,
+  });
+});
+
+test("Mesmer production simulation is reached through simulateGw2", () => {
+  const config = {
+    ...createDefaultConfig(),
+    target: {
+      ...createDefaultConfig().target,
+      health: 0,
+    },
+  };
+  const canonical = simulateGw2({
+    profession: mesmerProfession,
+    rotation: ["Bladecall"],
+    config,
+  });
+  const compatibility = simulateSequence(["Bladecall"], config);
+
+  assert.equal(canonical.totalDamage, compatibility.totalDamage);
+  assert.equal(canonical.strikeDamage, compatibility.strikeDamage);
+  assert.equal(canonical.conditionDamage, compatibility.conditionDamage);
+  assert.ok(canonical.totalDamage > 0);
+  assert.deepEqual(
+    Object.keys(canonical.endState).sort(),
+    ["activeWeaponSet", "ammo", "cooldowns", "profession", "time"].sort(),
+  );
+  assert.equal(canonical.endState.profession.resource, 5);
 });
 
 test("unknown required custom events fail clearly", () => {
@@ -192,6 +470,75 @@ test("canonical catalog validation rejects duplicate ids and missing handlers", 
   assert.equal(mesmerCatalog.skillsById.size, mesmerCatalog.skills.length);
 });
 
+test("canonical skill handlers are callable and dispatched by handler id", () => {
+  let handled = 0;
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930003,
+      name: "Handled Skill",
+      handlerId: "fixture.handled",
+      castTimeMs: 0,
+      effects: [{ type: "strike", coefficient: 10 }],
+    }],
+    skillHandlers: {
+      "fixture.handled": () => {
+        handled += 1;
+        return true;
+      },
+    },
+  });
+  const profession = defineProfession({
+    id: "handled-fixture",
+    name: "Handled Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: ["Handled Skill"],
+  });
+
+  assert.equal(handled, 1);
+  assert.equal(result.totalDamage, 0);
+});
+
+test("shared relic behavior resolves triggering skills by stable id", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930004,
+        name: "Duplicate Name",
+        type: "Weapon",
+        cooldown: 20,
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+      {
+        id: 930005,
+        name: "Duplicate Name",
+        type: "Weapon",
+        cooldown: 0,
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "stable-id-fixture",
+    name: "Stable ID Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [{ type: "cast", skillId: 930004 }],
+    config: { relic: "Fireworks" },
+  });
+
+  assert.equal(
+    result.procSteps.some(step => step.skill === "Relic of Fireworks"),
+    true,
+  );
+});
+
 test("Mesmer build migrations produce validated schema version 3 data", () => {
   const migrated = migrateMesmerBuild({
     sigils: ["Force", "Impact"],
@@ -212,6 +559,21 @@ test("Mesmer build migrations produce validated schema version 3 data", () => {
   );
 });
 
+test("common weapon data includes Guardian weapon families", () => {
+  const guardianWeapons = createProfessionWeaponData(
+    guardianCatalog,
+  );
+  const mesmerWeapons = createProfessionWeaponData(mesmerCatalog);
+  assert.equal(guardianWeapons.Mace.wielding, "mh");
+  assert.equal(guardianWeapons.Sword.wielding, "mh+oh");
+  assert.equal(guardianWeapons.Hammer.wielding, "2h");
+  assert.equal(guardianWeapons.Longbow.wielding, "2h");
+  assert.equal(mesmerWeapons.Dagger.wielding, "mh");
+  assert.equal(mesmerWeapons.Pistol.wielding, "oh");
+  assert.equal(WEAPON_DATA.Warhorn.wielding, "oh");
+  assert.equal(WEAPON_DATA.Shortbow.wielding, "2h");
+});
+
 test("Mesmer state creation and snapshots are profession owned", () => {
   const state = createMesmerState({ infiniteForge: true });
   state.numericResource = 3;
@@ -221,6 +583,20 @@ test("Mesmer state creation and snapshots are profession owned", () => {
   assert.equal(snapshot.numericResource, 3);
   assert.equal(snapshot.cloneCount, 1);
   assert.equal(mesmerProfession.id, "mesmer");
+  assert.equal(typeof mesmerProfession.eventReactions.damage, "function");
+  assert.equal(typeof mesmerProfession.eventReactions.control, "function");
+  assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "damage"), false);
+  assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "control"), false);
+  assert.equal(
+    Object.keys(mesmerProfession.eventHandlers)
+      .every(type => type.startsWith("mesmer.")),
+    true,
+  );
+  assert.equal(
+    COMMON_EVENT_TYPES.some(type =>
+      Object.hasOwn(mesmerProfession.eventHandlers, type)),
+    false,
+  );
 });
 
 async function javascriptFiles(root) {
@@ -262,4 +638,17 @@ test("test profession fixture has no Mesmer dependency", async () => {
     "utf8",
   );
   assert.doesNotMatch(source, /mesmer/i);
+});
+
+test("obsolete compatibility trees are removed", async () => {
+  const root = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js",
+  );
+  for (const directory of ["core", "data", "sim"]) {
+    await assert.rejects(
+      readdir(path.join(root, directory)),
+      error => error?.code === "ENOENT",
+    );
+  }
 });
