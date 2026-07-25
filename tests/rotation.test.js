@@ -6,9 +6,6 @@ import {
 } from '../js/professions/mesmer/simulation.js';
 import { chartValueAt } from '../js/platform/ui/charts.js';
 import {
-    resultSummaryMetrics,
-} from '../js/platform/ui/result-transform.js';
-import {
     moveRotationEntry,
 } from '../js/platform/ui/timeline.js';
 import {
@@ -18,6 +15,8 @@ import {
 import {
     buildChartSeries,
     continuumEndTimelineMarkers,
+    formatResultTimelineTime,
+    resultSummaryMetrics,
     simulationEventLogCsv,
     simulationEventLogRows,
     skillBreakdownRows,
@@ -2773,6 +2772,51 @@ test('result summary uses the expected metric order', () => {
         resultSummaryMetrics(result).map(metric => metric.label),
         ['Duration', 'Total Damage', 'DPS', 'Strike', 'Condition'],
     );
+});
+
+test('Duration and Kill Time account for an explicit Combat Start reference', () => {
+    const metrics = resultSummaryMetrics({
+        duration: 93.89,
+        deathTime: 93.89,
+        firstHitTime: 2.06,
+        events: [{ type: 'combat_start', at: 2.06 }],
+    });
+
+    assert.equal(metrics[0].label, 'Duration');
+    assert.equal(metrics[0].value, '91.83s');
+    assert.equal(metrics[1].label, 'Kill Time');
+    assert.equal(metrics[1].value, '91.83s');
+});
+
+test('Combat Start timeline timestamps use the first subsequent hit like Elementalist', () => {
+    const result = simulateSequence(
+        [
+            'Phantasmal Swordsman',
+            { name: '__combat_start', offset: 700 },
+            'Bladecall',
+        ],
+        defaultSimulationConfig(),
+    );
+
+    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.86s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '-0.16s');
+    assert.equal(formatResultTimelineTime(result.steps[2].start, result), '0.00s');
+    assert.equal(formatResultTimelineTime(result.steps[2].end, result), '0.44s');
+});
+
+test('timeline and DPS retain simulation time without Combat Start', () => {
+    const result = simulateSequence(
+        [
+            'Phantasmal Swordsman',
+            'Bladecall',
+        ],
+        defaultSimulationConfig(),
+    );
+
+    assert.equal(result.dpsStartTime, 0);
+    assert.equal(result.dpsWindow, 1.3);
+    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '0.00s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.86s');
 });
 
 test('result summary includes kill time when target health is exhausted', () => {

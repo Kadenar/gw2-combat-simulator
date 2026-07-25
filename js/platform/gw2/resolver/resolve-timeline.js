@@ -93,10 +93,13 @@ export function resolveGw2Timeline({
     event => event.at <= effectiveEnd + EPSILON,
   );
   const casts = addCastsToBreakdown(ctx, effectiveEvents, effectiveEnd);
+  const explicitCombatStart = Number(handoff.combatStartTime || 0);
   const dpsStart = handoff.hasExplicitCombatStart
-    ? Number(handoff.combatStartTime || 0)
+    ? (ctx.firstHitTime ?? explicitCombatStart)
     : 0;
-  const dpsWindow = Math.max(EPSILON, effectiveEnd - dpsStart);
+  const dpsWindow = Math.max(0, effectiveEnd - dpsStart);
+  const damagePerSecond = damage =>
+    dpsWindow > 0 ? damage / dpsWindow : 0;
 
   return {
     duration: scheduled.rotationEndTime,
@@ -106,7 +109,7 @@ export function resolveGw2Timeline({
     lastHitTime: ctx.lastHitTime,
     deathTime: ctx.deathTime,
     totalDamage,
-    dps: totalDamage / dpsWindow,
+    dps: damagePerSecond(totalDamage),
     strikeDamage: ctx.totals.strike,
     conditionDamage: ctx.totals.condition,
     breakdown: [...ctx.breakdown.values()]
@@ -115,8 +118,8 @@ export function resolveGw2Timeline({
       .map(entry => ({
         name: entry.name,
         damage: entry.damage,
-        dps: entry.damage / dpsWindow,
-        averageStacks: entry.stackSeconds / dpsWindow,
+        dps: damagePerSecond(entry.damage),
+        averageStacks: damagePerSecond(entry.stackSeconds),
       }))
       .sort((left, right) => right.damage - left.damage),
     events: effectiveEvents,

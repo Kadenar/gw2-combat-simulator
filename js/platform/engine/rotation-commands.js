@@ -21,7 +21,15 @@ export function normalizeRotationCommand(entry, catalog = null) {
   }
 
   if (entry.type === "combat-start" || entry.name === "__combat_start") {
-    return { type: "combat-start" };
+    const command = { type: "combat-start" };
+    const concurrent = entry.concurrentOffsetMs ?? entry.offset;
+    if (concurrent != null) {
+      command.concurrentOffsetMs = finiteMilliseconds(
+        concurrent,
+        "Concurrent offset",
+      );
+    }
+    return command;
   }
   if (entry.type === "wait" || entry.name === "__wait") {
     return {
@@ -68,7 +76,13 @@ export function normalizeRotation(rotation, catalog = null, { strict = false } =
 }
 
 export function toLegacyRotationEntry(command, catalog) {
-  if (command.type === "combat-start") return { name: "__combat_start" };
+  if (command.type === "combat-start") {
+    const entry = { name: "__combat_start" };
+    if (command.concurrentOffsetMs != null) {
+      entry.offset = command.concurrentOffsetMs;
+    }
+    return entry;
+  }
   if (command.type === "wait") {
     return { name: "__wait", waitMs: command.durationMs };
   }

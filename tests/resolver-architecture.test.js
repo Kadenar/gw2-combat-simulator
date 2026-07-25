@@ -348,6 +348,83 @@ test("explicit combat start excludes completed precombat damage", () => {
   assert.ok(result.dpsWindow < result.duration);
 });
 
+test("delayed combat start uses its offset instead of the preceding cast end", () => {
+  const result = simulateSequence(
+    [
+      "Mind Slash",
+      { name: "__combat_start", offset: 100 },
+      { name: "__wait", waitMs: 1000 },
+    ],
+    defaultSimulationConfig({
+      specialization: "Core",
+      primaryWeapon: "Sword",
+      secondaryWeapon: "",
+      initialResource: 0,
+    }),
+  );
+
+  assert.equal(result.steps[1].start, 100);
+  assert.ok(Math.abs(result.firstHitTime - 0.36) < 1e-12);
+  assert.equal(result.dpsStartTime, result.firstHitTime);
+  assert.equal(result.dpsWindow, 1);
+  assert.equal(result.dps, result.totalDamage / result.dpsWindow);
+  assert.ok(result.dps < 100_000);
+});
+
+test("DPS duration starts at the first hit in the supplied delayed-start rotation", () => {
+  const result = simulateSequence(
+    [
+      "Phantasmal Swordsman",
+      { name: "__combat_start", offset: 700 },
+      "Bladecall",
+    ],
+    defaultSimulationConfig(),
+  );
+
+  assert.equal(result.steps[1].start, 700);
+  assert.equal(result.firstHitTime, 0.86);
+  assert.equal(result.duration, 1.3);
+  assert.ok(Math.abs(result.dpsWindow - 0.44) < 1e-12);
+  assert.equal(result.dps, result.totalDamage / result.dpsWindow);
+});
+
+test("standalone Combat Start uses the first subsequent hit like Elementalist", () => {
+  const result = simulateSequence(
+    [
+      "__combat_start",
+      "Phantasmal Swordsman",
+      "Bladecall",
+    ],
+    defaultSimulationConfig(),
+  );
+
+  assert.equal(result.steps[0].start, 0);
+  assert.equal(result.firstHitTime, 0.86);
+  assert.equal(result.duration, 1.3);
+  assert.equal(result.dpsStartTime, result.firstHitTime);
+  assert.ok(Math.abs(result.dpsWindow - 0.44) < 1e-12);
+  assert.equal(result.dps, result.totalDamage / result.dpsWindow);
+});
+
+test("zero-length combat windows report zero DPS instead of epsilon DPS", () => {
+  const result = simulateSequence(
+    [
+      "Mind Slash",
+      "__combat_start",
+    ],
+    defaultSimulationConfig({
+      specialization: "Core",
+      primaryWeapon: "Sword",
+      secondaryWeapon: "",
+      initialResource: 0,
+    }),
+  );
+
+  assert.equal(result.dpsStartTime, result.duration);
+  assert.equal(result.dpsWindow, 0);
+  assert.equal(result.dps, 0);
+});
+
 test("critical sigils enqueue and resolve their own proc event", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateSequence(
@@ -392,9 +469,13 @@ test("critical-strike food procs resolve as unmodified flat damage", () => {
 
   assert.equal(nourishment.length, 1);
   assert.equal(nourishment[0].damage, 325);
-  assert.ok(result.procSteps.some(proc =>
+  const nourishmentProc = result.procSteps.find(proc =>
     proc.type === "food_proc" && proc.skill === "Nourishment"
-  ));
+  );
+  assert.equal(
+    nourishmentProc.icon,
+    "https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png",
+  );
 });
 
 test("slot-skill strikes select utility weapon strength generically", () => {

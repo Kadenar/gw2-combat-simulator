@@ -90,6 +90,8 @@ export function createScheduler({
   const warnings = [];
   let order = 0;
   let previousCastStart = state.time;
+  let hasPreviousCast = false;
+  let combatStartTime = null;
 
   const context = {
     profession,
@@ -295,6 +297,7 @@ export function createScheduler({
       rechargeReadyAt,
     }, skill);
     previousCastStart = start;
+    hasPreviousCast = true;
     state.time = concurrent
       ? Math.max(state.time, effectiveEnd)
       : effectiveEnd;
@@ -308,9 +311,20 @@ export function createScheduler({
       if (command.type === "wait") {
         advanceTo(state.time + command.durationMs / 1000);
       } else if (command.type === "combat-start") {
+        if (combatStartTime != null) {
+          warnings.push("Combat Start is already set.");
+          continue;
+        }
+        const concurrent = (
+          command.concurrentOffsetMs != null
+          && hasPreviousCast
+        );
+        combatStartTime = concurrent
+          ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
+          : state.time;
         context.emit({
-          type: "action",
-          at: state.time,
+          type: "combat_start",
+          at: combatStartTime,
           source: "platform",
           sourceId: "combat-start",
           action: "combat-start",
@@ -332,6 +346,8 @@ export function createScheduler({
           profession: profession.id,
           professionState: profession.snapshot(context)
             ?? structuredClone(state.profession),
+          hasExplicitCombatStart: combatStartTime != null,
+          combatStartTime,
         },
       }),
     };
