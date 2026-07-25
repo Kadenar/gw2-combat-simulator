@@ -1,4 +1,4 @@
-import { GUARDIAN_SKILL_IDS as ID } from "../ids.js";
+import { GUARDIAN_SKILL_IDS as ID } from "../data/ids.js";
 
 /**
  * Spear "Illuminated" mechanic (Janthir Wilds guardian spear).

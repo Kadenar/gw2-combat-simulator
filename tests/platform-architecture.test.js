@@ -4,6 +4,22 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { createCanonicalCatalog } from "../js/platform/engine/catalog.js";
+import {
+  deriveAutoattackChains,
+  indexAutoattackChains,
+} from "../js/platform/engine/autoattack-chains.js";
+import {
+  blind,
+  boon,
+  buff,
+  condition,
+  conditionTimeline,
+  control,
+  custom,
+  repeatedCondition,
+  strike,
+  strikeTimeline,
+} from "../js/platform/engine/effect-factories.js";
 import { COMMON_EVENT_TYPES } from "../js/platform/engine/events.js";
 import { HandlerRegistry } from "../js/platform/engine/handler-registry.js";
 import { defineProfession } from "../js/platform/engine/profession.js";
@@ -93,6 +109,98 @@ test("profession contract supports zero or multiple resource views", () => {
   assert.equal(none.ui.resourceView({}), null);
   assert.equal(multiple.ui.resourceViews({}).length, 2);
   assert.equal(multiple.ui.resourceView({}).id, "pages");
+});
+
+test("shared autoattack helpers derive and index ID-based chains", () => {
+  const chains = deriveAutoattackChains([
+    { id: 1, type: "Weapon", slot: "Weapon_1", nextChainId: 2 },
+    { id: 2, type: "Weapon", slot: "Weapon_1", nextChainId: 3 },
+    { id: 3, type: "Weapon", slot: "Weapon_1", nextChainId: null },
+  ]);
+  assert.deepEqual(chains, [[1, 2, 3]]);
+  assert.deepEqual(indexAutoattackChains(chains).get(2), {
+    root: 1,
+    index: 1,
+    step: 2,
+    next: 3,
+  });
+});
+
+test("shared declarative factories preserve generic effect options", () => {
+  assert.deepEqual(
+    strike(2, {
+      hits: 2,
+      atMs: 100,
+      source: "Effect",
+      metadata: { damageKind: "fixture" },
+    }),
+    {
+      type: "strike",
+      coefficient: 2,
+      hits: 2,
+      atMs: 100,
+      source: "Effect",
+      metadata: { damageKind: "fixture" },
+    },
+  );
+  assert.deepEqual(
+    condition("Burning", 2, 3, {
+      atMs: 200,
+      source: "Effect",
+      metadata: { fixture: true },
+    }),
+    {
+      type: "condition",
+      condition: "Burning",
+      stacks: 2,
+      duration: 3,
+      source: "Effect",
+      atMs: 200,
+      metadata: { fixture: true },
+    },
+  );
+  assert.deepEqual(
+    repeatedCondition("Bleeding", {
+      count: 2,
+      duration: 4,
+      firstAtMs: 100,
+      intervalMs: 200,
+      source: "Effect",
+    }).map(effect => [effect.atMs, effect.source]),
+    [[100, "Effect"], [300, "Effect"]],
+  );
+  assert.deepEqual(control("fear", 300, {
+    source: "Effect",
+    metadata: { breakbar: 100 },
+  }), {
+    type: "control",
+    atMs: 300,
+    source: "Effect",
+    metadata: { controlKind: "fear", breakbar: 100 },
+  });
+  assert.deepEqual(blind(350, { source: "Effect" }), {
+    type: "blind",
+    atMs: 350,
+    source: "Effect",
+  });
+  assert.deepEqual(boon("fury", 2, { stacks: 2 }), {
+    type: "boon",
+    boon: "fury",
+    duration: 2,
+    stacks: 2,
+  });
+  assert.deepEqual(buff("target-vulnerability", 3, { stacks: 5 }), {
+    type: "buff",
+    kind: "target-vulnerability",
+    duration: 3,
+    stacks: 5,
+  });
+  assert.deepEqual(custom("fixture.event", 400, { value: 1 }), {
+    type: "custom",
+    eventType: "fixture.event",
+    atMs: 400,
+    event: { value: 1 },
+  });
 });
 
 test("declarative boons can gate dynamic skill availability", () => {
@@ -421,6 +529,306 @@ test("declarative multi-hit and delayed effects preserve individual events", () 
   assert.equal(result.endState.profession.hits, 4);
 });
 
+test("declarative strike timelines preserve per-hit coefficients and shared timestamps", () => {
+  const ticks = [
+    { atMs: 0, coefficient: 0.2 },
+    { atMs: 571, coefficient: 0.2 },
+    { atMs: 1000, coefficient: 0.5 },
+    { atMs: 1142, coefficient: 0.2 },
+    { atMs: 1714, coefficient: 0.2 },
+    { atMs: 2000, coefficient: 0.5 },
+    { atMs: 2285, coefficient: 0.2 },
+    { atMs: 2857, coefficient: 0.2 },
+    { atMs: 3000, coefficient: 0.5 },
+    { atMs: 3428, coefficient: 0.2 },
+    { atMs: 4000, coefficient: 0.2 },
+    { atMs: 4000, coefficient: 0.5 },
+  ];
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930023,
+      name: "Fixture Variable Hits",
+      castTimeMs: 4000,
+      effects: [strikeTimeline(ticks)],
+    }],
+  });
+  const profession = defineProfession({
+    id: "variable-hit-fixture",
+    name: "Variable Hit Fixture",
+    catalog,
+  });
+  const simulate = quickness => simulateGw2({
+    profession,
+    rotation: ["Fixture Variable Hits"],
+    config: { boons: { quickness } },
+  });
+  const normal = simulate(false);
+  const quick = simulate(true);
+  const normalHits = normal.resolvedEvents.filter(event =>
+    event.type === "damage");
+  const quickHits = quick.resolvedEvents.filter(event =>
+    event.type === "damage");
+  const quickAction = quick.events.find(event => event.type === "action");
+
+  assert.deepEqual(
+    normalHits.map(event => Math.round(event.at * 1000)),
+    ticks.map(tick => tick.atMs),
+  );
+  assert.deepEqual(
+    normalHits.map(event => event.coefficient),
+    ticks.map(tick => tick.coefficient),
+  );
+  assert.deepEqual(
+    normalHits.slice(-2).map(event => [event.at, event.coefficient]),
+    [[4, 0.2], [4, 0.5]],
+  );
+  assert.ok(Math.abs(
+    normalHits.reduce((sum, event) => sum + event.coefficient, 0) - 3.6,
+  ) < 1e-12);
+  assert.equal(Math.round((quickAction.endsAt - quickAction.at) * 1000), 2680);
+  assert.deepEqual(
+    quickHits.slice(-2).map(event => [
+      Math.round(event.at * 1000),
+      event.coefficient,
+    ]),
+    [[2680, 0.2], [2680, 0.5]],
+  );
+});
+
+test("declarative condition timelines preserve each application", () => {
+  const ticks = [
+    {
+      atMs: 0,
+      condition: "Burning",
+      stacks: 1,
+      duration: 2,
+    },
+    {
+      atMs: 500,
+      condition: "Bleeding",
+      stacks: 2,
+      duration: 4,
+    },
+    {
+      atMs: 2000,
+      condition: "Poisoned",
+      stacks: 1,
+      duration: 3,
+    },
+    {
+      atMs: 2000,
+      condition: "Burning",
+      stacks: 3,
+      duration: 5,
+    },
+  ];
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930025,
+      name: "Fixture Variable Conditions",
+      castTimeMs: 2000,
+      effects: [conditionTimeline(ticks)],
+    }],
+  });
+  const profession = defineProfession({
+    id: "condition-timeline-fixture",
+    name: "Condition Timeline Fixture",
+    catalog,
+  });
+  const simulate = quickness => simulateGw2({
+    profession,
+    rotation: ["Fixture Variable Conditions"],
+    config: { boons: { quickness } },
+  });
+  const normal = simulate(false);
+  const quick = simulate(true);
+  const normalApplications = normal.resolvedEvents.filter(event =>
+    event.type === "condition");
+  const quickApplications = quick.resolvedEvents.filter(event =>
+    event.type === "condition");
+  const quickAction = quick.events.find(event => event.type === "action");
+
+  assert.deepEqual(
+    normalApplications.map(event => ({
+      atMs: Math.round(event.at * 1000),
+      condition: event.condition,
+      stacks: event.stacks,
+      duration: event.duration,
+    })),
+    ticks,
+  );
+  assert.deepEqual(
+    normalApplications.slice(-2).map(event => [event.at, event.condition]),
+    [[2, "Poisoned"], [2, "Burning"]],
+  );
+  assert.ok(normal.conditionDamage > 0);
+  assert.equal(Math.round((quickAction.endsAt - quickAction.at) * 1000), 1360);
+  assert.deepEqual(
+    quickApplications.slice(-2).map(event => [
+      Math.round(event.at * 1000),
+      event.condition,
+    ]),
+    [[1360, "Poisoned"], [1360, "Burning"]],
+  );
+});
+
+test("canonical strike timelines reject invalid or ambiguous hits", () => {
+  const skillWithTicks = ticks => ({
+    id: 930024,
+    name: "Invalid Tick Fixture",
+    effects: [{ type: "strike", ticks }],
+  });
+
+  assert.throws(
+    () => createCanonicalCatalog({
+      generated: [skillWithTicks([
+        { atMs: 100, coefficient: 0.2 },
+        { atMs: 50, coefficient: 0.5 },
+      ])],
+    }),
+    /chronological/,
+  );
+  assert.throws(
+    () => createCanonicalCatalog({
+      generated: [skillWithTicks([{ atMs: 0, coefficient: -0.2 }])],
+    }),
+    /non-negative coefficient/,
+  );
+  assert.throws(
+    () => createCanonicalCatalog({
+      generated: [{
+        ...skillWithTicks([{ atMs: 0, coefficient: 0.2 }]),
+        effects: [{
+          type: "strike",
+          coefficient: 0.2,
+          ticks: [{ atMs: 0, coefficient: 0.2 }],
+        }],
+      }],
+    }),
+    /cannot use aggregate/,
+  );
+});
+
+test("canonical condition timelines reject invalid or ambiguous applications", () => {
+  const skillWithTicks = ticks => ({
+    id: 930026,
+    name: "Invalid Condition Timeline Fixture",
+    effects: [{ type: "condition", ticks }],
+  });
+
+  assert.throws(
+    () => createCanonicalCatalog({
+      generated: [skillWithTicks([{
+        atMs: 0,
+        condition: "Burning",
+        stacks: 0,
+        duration: 2,
+      }])],
+    }),
+    /positive stacks/,
+  );
+  assert.throws(
+    () => createCanonicalCatalog({
+      generated: [{
+        ...skillWithTicks([{
+          atMs: 0,
+          condition: "Burning",
+          stacks: 1,
+          duration: 2,
+        }]),
+        effects: [{
+          type: "condition",
+          condition: "Burning",
+          ticks: [{
+            atMs: 0,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          }],
+        }],
+      }],
+    }),
+    /cannot use aggregate/,
+  );
+});
+
+test("GW2 Quickness quantizes casts and derives cast-bound effect timing", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930020,
+      name: "Fixture Timeline",
+      castTimeMs: 2200,
+      effects: [{
+        type: "strike",
+        coefficient: 4,
+        hits: 4,
+        atMsList: [550, 1100, 1650, 2200],
+      }],
+    }, {
+      id: 930021,
+      name: "Fixture Channel",
+      castTimeMs: 600,
+      effects: [{
+        type: "strike",
+        coefficient: 3,
+        hits: 3,
+        atMs: 200,
+        intervalMs: 200,
+      }],
+    }, {
+      id: 930022,
+      name: "Fixture Field",
+      castTimeMs: 600,
+      effects: [{
+        type: "strike",
+        coefficient: 3,
+        hits: 3,
+        atCastEndOffsetMs: 1000,
+        intervalMs: 1000,
+      }],
+    }],
+  });
+  const profession = defineProfession({
+    id: "quickness-fixture",
+    name: "Quickness Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Fixture Timeline",
+      "Fixture Channel",
+      "Fixture Field",
+      { type: "wait", durationMs: 4000 },
+    ],
+    config: { boons: { quickness: true } },
+  });
+  const profile = skillName => {
+    const action = result.events.find(event =>
+      event.type === "action" && event.skillName === skillName);
+    return {
+      cast: Math.round((action.endsAt - action.at) * 1000),
+      ticks: result.resolvedEvents
+        .filter(event =>
+          event.type === "damage" && event.skillName === skillName)
+        .map(event => Math.round((event.at - action.at) * 1000)),
+    };
+  };
+
+  assert.deepEqual(profile("Fixture Timeline"), {
+    cast: 1480,
+    ticks: [370, 740, 1110, 1480],
+  });
+  assert.deepEqual(profile("Fixture Channel"), {
+    cast: 400,
+    ticks: [133, 267, 400],
+  });
+  assert.deepEqual(profile("Fixture Field"), {
+    cast: 400,
+    ticks: [1400, 2400, 3400],
+  });
+});
+
 test("GW2 declarative policy enforces active weapons and skill weapon strength", () => {
   const catalog = createCanonicalCatalog({
     generated: [
@@ -617,6 +1025,18 @@ test("canonical catalog validation rejects duplicate ids and missing handlers", 
     /missing handler/,
   );
   assert.equal(mesmerCatalog.skillsById.size, mesmerCatalog.skills.length);
+  const lastNameWins = createCanonicalCatalog({
+    generated: [
+      { id: 1, name: "Variant", effects: [] },
+      { id: 2, name: "Variant", effects: [] },
+    ],
+    skillNameCollision: "last",
+  });
+  assert.equal(lastNameWins.skillsByName.get("Variant").id, 2);
+  assert.throws(
+    () => createCanonicalCatalog({ skillNameCollision: "invalid" }),
+    /collision policy/,
+  );
 });
 
 test("canonical catalogs carry validated traits and specializations", () => {
@@ -837,6 +1257,52 @@ test("test profession fixture has no Mesmer dependency", async () => {
     "utf8",
   );
   assert.doesNotMatch(source, /mesmer/i);
+});
+
+test("declarative professions use the standard mechanics module roles", async () => {
+  const root = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js/professions",
+  );
+  for (const profession of ["mesmer", "guardian", "necromancer"]) {
+    const mechanicsRoot = path.join(root, profession, "mechanics");
+    const prefix = profession.toUpperCase();
+    const defaults = await readFile(
+      path.join(mechanicsRoot, "skill-defaults.js"),
+      "utf8",
+    );
+    const overrides = await readFile(
+      path.join(mechanicsRoot, "skill-overrides.js"),
+      "utf8",
+    );
+    const mechanics = await readFile(
+      path.join(mechanicsRoot, "skill-mechanics.js"),
+      "utf8",
+    );
+    await readFile(
+      path.join(mechanicsRoot, "autoattack-chains.js"),
+      "utf8",
+    );
+
+    assert.match(defaults, new RegExp(
+      `export const ${prefix}_SKILL_DEFAULTS\\b`,
+    ));
+    assert.match(overrides, new RegExp(
+      `export const ${prefix}_SKILL_OVERRIDES\\b`,
+    ));
+    assert.match(mechanics, /from "\.\/skill-defaults\.js"/);
+    assert.match(mechanics, /from "\.\/skill-overrides\.js"/);
+    assert.match(mechanics, new RegExp(
+      `export const ${prefix}_SKILL_MECHANICS\\b`,
+    ));
+
+    const catalog = await readFile(
+      path.join(root, profession, "catalog.js"),
+      "utf8",
+    );
+    assert.match(catalog, /mechanics\/skill-mechanics\.js/);
+    assert.doesNotMatch(catalog, /mechanics\/skill-(?:defaults|overrides)\.js/);
+  }
 });
 
 test("obsolete compatibility trees are removed", async () => {

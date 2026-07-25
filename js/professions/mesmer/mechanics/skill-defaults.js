@@ -1,11 +1,12 @@
 /**
- * Simulator-owned base mechanics for generated catalog skills.
+ * Simulator-owned default mechanics for generated catalog skills.
  *
- * Fields supplied by mesmer-skill-overrides.js are intentionally absent.
- * normalizedSkill() combines this data with catalog metadata and overrides.
+ * Fields supplied by skill-overrides.js are intentionally absent.
+ * createCanonicalCatalog() combines this data with generated metadata and
+ * stable-ID overrides.
  */
 
-export const BASE_SKILL_DATA_BY_ID = {
+export const MESMER_SKILL_DEFAULTS = Object.freeze({
   "10168": {
     "type": "Weapon",
     "weapon": "Scepter",
@@ -64,6 +65,51 @@ export const BASE_SKILL_DATA_BY_ID = {
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Slash"
+  },
+  "10171": {
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "activation": 0.78,
+    "cooldown": 0,
+    "damage": [
+      {
+        "coefficient": 1,
+        "hits": 1,
+        "label": "Damage",
+        "source": "Player",
+        "weapon": "sword"
+      }
+    ],
+    "conditions": [],
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Gash"
+  },
+  "10172": {
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "activation": 1.26,
+    "cooldown": 0,
+    "damage": [
+      {
+        "coefficient": 1.5,
+        "hits": 1,
+        "label": "Damage",
+        "source": "Player",
+        "weapon": "sword"
+      }
+    ],
+    "conditions": [],
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "boonlessCoefficient": 2,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Spike"
   },
   "10173": {
     "type": "Weapon",
@@ -800,6 +846,66 @@ export const BASE_SKILL_DATA_BY_ID = {
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Ether_Bolt"
   },
+  "10290": {
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "activation": 0.78,
+    "cooldown": 0,
+    "damage": [
+      {
+        "coefficient": 0.5,
+        "hits": 1,
+        "label": "Damage",
+        "source": "Player",
+        "weapon": "scepter"
+      }
+    ],
+    "conditions": [
+      {
+        "name": "Torment",
+        "duration": 6,
+        "stacks": 1
+      }
+    ],
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Ether_Blast"
+  },
+  "10291": {
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "activation": 1.26,
+    "cooldown": 0,
+    "damage": [
+      {
+        "coefficient": 0.75,
+        "hits": 1,
+        "label": "Damage",
+        "source": "Player",
+        "weapon": "scepter"
+      }
+    ],
+    "conditions": [],
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "maxCloneConditions": [
+      {
+        "name": "Torment",
+        "duration": 9,
+        "stacks": 1
+      }
+    ],
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Ether_Clone"
+  },
   "10302": {
     "type": "Utility",
     "weapon": "",
@@ -1287,6 +1393,67 @@ export const BASE_SKILL_DATA_BY_ID = {
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Lacerating_Chop"
+  },
+  "44840": {
+    "type": "Weapon",
+    "weapon": "Axe",
+    "specialization": "Mirage",
+    "environment": "Terrestrial",
+    "activation": 0.795,
+    "cooldown": 0,
+    "damage": [
+      {
+        "coefficient": 0.55,
+        "hits": 1,
+        "label": "Damage",
+        "source": "Player",
+        "weapon": "axe"
+      }
+    ],
+    "conditions": [
+      {
+        "name": "Torment",
+        "duration": 2,
+        "stacks": 1
+      }
+    ],
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Ethereal_Chop"
+  },
+  "41164": {
+    "type": "Weapon",
+    "weapon": "Axe",
+    "specialization": "Mirage",
+    "environment": "Terrestrial",
+    "activation": 1.08,
+    "cooldown": 0,
+    "damage": [
+      {
+        "coefficient": 1.1,
+        "hits": 2,
+        "label": "Damage",
+        "source": "Player",
+        "weapon": "axe"
+      }
+    ],
+    "conditions": [
+      {
+        "name": "Bleeding",
+        "duration": 6,
+        "stacks": 1
+      },
+      {
+        "name": "Torment",
+        "duration": 6,
+        "stacks": 1
+      }
+    ],
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mirror_Strikes"
   },
   "45046": {
     "type": "Utility",
@@ -1926,6 +2093,50 @@ export const BASE_SKILL_DATA_BY_ID = {
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Psycut"
   },
+  "73066": {
+    "type": "Weapon",
+    "weapon": "Spear",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "activation": 0.5,
+    "cooldown": 0,
+    "damage": [
+      {
+        "coefficient": 1,
+        "hits": 1,
+        "label": "Damage",
+        "source": "Player",
+        "weapon": "spear"
+      }
+    ],
+    "conditions": [],
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Psystrike"
+  },
+  "73095": {
+    "type": "Weapon",
+    "weapon": "Spear",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "activation": 0.75,
+    "cooldown": 0,
+    "damage": [
+      {
+        "coefficient": 1.5,
+        "hits": 1,
+        "label": "Damage",
+        "source": "Player",
+        "weapon": "spear"
+      }
+    ],
+    "conditions": [],
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Pierce"
+  },
   "76552": {
     "type": "Profession",
     "weapon": "",
@@ -2159,4 +2370,4 @@ export const BASE_SKILL_DATA_BY_ID = {
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Lively_Lute"
   }
-};
+});

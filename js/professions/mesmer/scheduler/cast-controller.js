@@ -14,7 +14,6 @@ export function createCastController({
   const {
     ambushAttacks,
     aristocracySkills,
-    autoattackChains,
     autoattackChainPositions,
     blindSkills,
     controlSkills,
@@ -22,10 +21,12 @@ export function createCastController({
     flipSkillsByParent,
     instruments,
     peithaSkills,
+    preservedWeaponChainRoots,
     shatters,
     traitDamage,
     adjustedCooldown,
     skillAvailable,
+    skillsById,
     skillsByName,
   } = rules;
   const {
@@ -55,17 +56,15 @@ export function createCastController({
   } = actions;
 
   const updateAutoattackChains = (skill, baseActivation) => {
-    const position = autoattackChainPositions.get(skill.name);
+    const position = autoattackChainPositions.get(skill.id);
     if (position) {
       for (const root of state.profession.autoattackChains.keys()) {
         if (root !== position.root) state.profession.autoattackChains.delete(root);
       }
-      const chain = autoattackChains[position.root];
-      const next = chain[(position.index + 1) % chain.length];
-      if (next === position.root) {
+      if (position.next == null) {
         state.profession.autoattackChains.delete(position.root);
       } else {
-        state.profession.autoattackChains.set(position.root, next);
+        state.profession.autoattackChains.set(position.root, position.next);
       }
       return;
     }
@@ -76,7 +75,7 @@ export function createCastController({
     if (baseActivation > 0) {
       for (const root of state.profession.autoattackChains.keys()) {
         const preserveScepterChain =
-          root === "Ether Bolt" && skill.type === "Weapon";
+          preservedWeaponChainRoots.has(root) && skill.type === "Weapon";
         if (!preserveScepterChain) state.profession.autoattackChains.delete(root);
       }
     }
@@ -103,13 +102,14 @@ export function createCastController({
       }
     }
 
-    const chainPosition = autoattackChainPositions.get(skill.name);
+    const chainPosition = autoattackChainPositions.get(skill.id);
     if (chainPosition) {
       const expected =
         state.profession.autoattackChains.get(chainPosition.root) || chainPosition.root;
-      if (skill.name !== expected) {
+      if (skill.id !== expected) {
+        const expectedName = skillsById.get(expected)?.name || expected;
         warnings.push(
-          `${skill.name} skipped at ${state.time.toFixed(2)}s: cast ${expected} first.`,
+          `${skill.name} skipped at ${state.time.toFixed(2)}s: cast ${expectedName} first.`,
         );
         return false;
       }

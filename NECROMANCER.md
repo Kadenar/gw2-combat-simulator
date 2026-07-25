@@ -20,8 +20,9 @@ Refresh the snapshot with:
 npm run update:necromancer-data
 ```
 
-The generator owns API metadata only. Simulator timing and behavior stay in
-`mechanics.js`; missing-but-stable entries stay in
+The generator owns API metadata only. Simulator timing and behavior stay under
+`mechanics/`, using the common defaults, overrides, final-mechanics, chains,
+and handlers boundaries. Missing-but-stable entries stay in
 `data/necromancer-supplemental-skills.js`, so refreshes do not overwrite them.
 Same-name API mode aliases resolve to one canonical selectable skill.
 

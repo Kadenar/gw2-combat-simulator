@@ -1,12 +1,12 @@
 export const PROFESSION_ROUTES = Object.freeze({
-  mesmer: "index.html",
+  mesmer: "mesmer.html",
   elementalist: "elementalist.html",
   guardian: "guardian.html",
   necromancer: "necromancer.html",
 });
 
 export function professionRoute(professionId) {
-  return PROFESSION_ROUTES[professionId] || PROFESSION_ROUTES.mesmer;
+  return PROFESSION_ROUTES[professionId] || "index.html";
 }
 
 export function bindProfessionSelector(root = document) {

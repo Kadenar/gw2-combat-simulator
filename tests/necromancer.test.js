@@ -27,7 +27,7 @@ import {
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
-} from "../js/professions/necromancer/ids.js";
+} from "../js/professions/necromancer/data/ids.js";
 
 const baseConfig = Object.freeze({
   stats: {

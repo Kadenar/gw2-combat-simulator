@@ -1,42 +1,61 @@
-import { GUARDIAN_SKILL_IDS as ID } from "../ids.js";
+/**
+ * Hand-authored exceptions to Guardian skill defaults.
+ *
+ * Final composition belongs in skill-mechanics.js.
+ */
+
+import { GUARDIAN_SKILL_IDS as ID } from "../data/ids.js";
 import {
+  blind,
+  boon,
   condition,
-  implemented,
+  control,
   repeatedCondition,
   strike,
-} from "./effect-factories.js";
+} from "../../../platform/engine/effect-factories.js";
+import {
+  implemented,
+} from "../../../platform/engine/skill-factories.js";
 
 export const GUARDIAN_SKILL_OVERRIDES = Object.freeze({
   [ID.GREAT_SWORD_STRIKE]: implemented({
-    castTimeMs: 500,
+    castTimeMs: 600,
     effects: [strike(1)],
   }),
   [ID.GREAT_SWORD_VENGEFUL_STRIKE]: implemented({
-    castTimeMs: 500,
+    castTimeMs: 840,
+    quicknessCastTimeMs: 600,
     effects: [strike(1.1)],
   }),
   [ID.GREAT_SWORD_WRATHFUL_STRIKE]: implemented({
-    castTimeMs: 500,
-    effects: [strike(1.5)],
+    castTimeMs: 1000,
+    effects: [strike(1.5, { atMs: 1000 })],
   }),
   [ID.WHIRLING_WRATH]: implemented({
-    castTimeMs: 750,
+    castTimeMs: 2200,
     effects: [
-      strike(2.45, { hits: 7, atMs: 100, intervalMs: 100 }),
-      strike(0.275, { atMs: 750, name: "Whirling Wrath Projectile" }),
+      strike(5.775, {
+        hits: 14,
+        atMsList: [
+          157, 314, 471, 628, 785, 942, 1099,
+          1257, 1414, 1571, 1728, 1885, 2042, 2200,
+        ],
+      }),
     ],
   }),
   [ID.LEAP_OF_FAITH]: implemented({
-    castTimeMs: 500,
-    effects: [strike(2), { type: "blind" }],
+    castTimeMs: 1000,
+    quicknessCastTimeMs: 720,
+    effects: [strike(2), blind()],
   }),
   [ID.SYMBOL_OF_RESOLUTION]: implemented({
-    castTimeMs: 250,
+    castTimeMs: 280,
+    quicknessCastTimeMs: 280,
     effects: [
-      strike(0.8, { atMs: 250, name: "Symbol of Resolution — Initial" }),
+      strike(0.8, { name: "Symbol of Resolution — Initial" }),
       strike(2.6, {
         hits: 4,
-        atMs: 250,
+        atCastEndOffsetMs: 1000,
         intervalMs: 1000,
         name: "Symbol of Resolution",
       }),
@@ -44,7 +63,11 @@ export const GUARDIAN_SKILL_OVERRIDES = Object.freeze({
   }),
   [ID.BINDING_BLADE]: implemented({
     castTimeMs: 750,
-    effects: [strike(2.5), { type: "control" }],
+    quicknessCastTimeMs: 480,
+    effects: [
+      strike(2.5, { atMs: 750 }),
+      control(),
+    ],
   }),
 
   [ID.SWORD_OF_WRATH]: implemented({
@@ -63,8 +86,8 @@ export const GUARDIAN_SKILL_OVERRIDES = Object.freeze({
     castTimeMs: 250,
     effects: [
       strike(3.25, { hits: 5, atMs: 250, intervalMs: 1000 }),
-      { type: "blind" },
-      { type: "boon", boon: "fury", duration: 2 },
+      blind(),
+      boon("fury", 2),
     ],
   }),
   [ID.ZEALOTS_DEFENSE]: implemented({
@@ -109,14 +132,14 @@ export const GUARDIAN_SKILL_OVERRIDES = Object.freeze({
   }),
   [ID.CHAINS_OF_LIGHT]: implemented({
     castTimeMs: 750,
-    effects: [strike(0.25), { type: "control" }],
+    effects: [strike(0.25), control()],
   }),
 
   [ID.RAY_OF_JUDGMENT]: implemented({
     castTimeMs: 750,
     effects: [
       strike(4.05, { hits: 6, atMs: 750, intervalMs: 500 }),
-      { type: "blind" },
+      blind(),
     ],
   }),
   [ID.SHIELD_OF_WRATH]: implemented({
@@ -188,16 +211,28 @@ export const GUARDIAN_SKILL_OVERRIDES = Object.freeze({
     effects: [
       strike(3),
       condition("Burning", 5, 6),
-      { type: "control" },
+      control(),
     ],
   }),
 
   [ID.SWORD_OF_JUSTICE]: implemented({
-    castTimeMs: 500,
-    cooldown: 15,
+    castTimeMs: 900,
+    cooldown: 20,
     ammo: 3,
     effects: [
-      strike(2.88, { hits: 4, atMs: 500, intervalMs: 1000 }),
+      strike(3.2, {
+        hits: 4,
+        atMs: 650,
+        intervalMs: 400,
+      }),
+    ],
+  }),
+  [ID.BANE_SIGNET]: implemented({
+    castTimeMs: 750,
+    quicknessCastTimeMs: 500,
+    effects: [
+      strike(1),
+      control(),
     ],
   }),
   [ID.SIGNET_OF_WRATH]: implemented({
@@ -205,7 +240,7 @@ export const GUARDIAN_SKILL_OVERRIDES = Object.freeze({
     effects: [
       strike(0.25),
       condition("Burning", 3, 5),
-      { type: "control" },
+      control(),
     ],
   }),
   [ID.PURGING_FLAMES]: implemented({
@@ -221,9 +256,34 @@ export const GUARDIAN_SKILL_OVERRIDES = Object.freeze({
     ],
   }),
   [ID.PROCESSION_OF_BLADES]: implemented({
-    castTimeMs: 250,
+    castTimeMs: 660,
     effects: [
-      strike(4.4, { hits: 10, atMs: 250, intervalMs: 500 }),
+      strike(4.4, {
+        hits: 10,
+        atMs: 1280,
+        intervalMs: 280,
+      }),
+    ],
+  }),
+  [ID.DRAGONS_MAW]: implemented({
+    castTimeMs: 660,
+    effects: [
+      strike(3.6, { atMs: 500 }),
+      control(),
+    ],
+  }),
+  [ID.PURIFICATION]: implemented({
+    castTimeMs: 660,
+    quicknessCastTimeMs: 600,
+    effects: [
+      strike(0.1875, { atMs: 500 }),
+      blind(),
+    ],
+  }),
+  [ID.TEST_OF_FAITH]: implemented({
+    castTimeMs: 0,
+    effects: [
+      strike(1.4, { atMs: 500 }),
     ],
   }),
 

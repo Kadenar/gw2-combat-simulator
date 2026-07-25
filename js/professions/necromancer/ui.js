@@ -1,5 +1,5 @@
 import { necromancerCatalog } from "./catalog.js";
-import { NECROMANCER_SKILL_IDS as ID } from "./ids.js";
+import { NECROMANCER_SKILL_IDS as ID } from "./data/ids.js";
 import { getActiveTraits } from "./data/traits-data.js";
 
 const ENTRY_ID_BY_SPECIALIZATION = Object.freeze({

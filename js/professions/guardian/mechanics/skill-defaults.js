@@ -1,10 +1,20 @@
+/**
+ * Baseline executable mechanics derived from generated catalog metadata.
+ *
+ * Exact exceptions belong in skill-overrides.js.
+ */
+
 import { GUARDIAN_BUNDLE_SKILLS } from "../data/guardian-bundle-skills.js";
 import { SKILLS } from "../data/guardian-catalog.js";
 import {
+  blind,
   condition,
-  implemented,
+  control,
   strike,
-} from "./effect-factories.js";
+} from "../../../platform/engine/effect-factories.js";
+import {
+  implemented,
+} from "../../../platform/engine/skill-factories.js";
 
 const ALL_GUARDIAN_SKILLS = Object.freeze([
   ...SKILLS,
@@ -71,13 +81,13 @@ function inferredEffects(skill) {
   }
   const description = String(skill.description || "");
   if (/\b(?:daze|stun|knock|pull|launch|sink|float)\w*\b/i.test(description)) {
-    effects.push({ type: "control" });
+    effects.push(control());
   }
-  if (/\bblind\w*\b/i.test(description)) effects.push({ type: "blind" });
+  if (/\bblind\w*\b/i.test(description)) effects.push(blind());
   return effects;
 }
 
-export const INFERRED_GUARDIAN_SKILL_MECHANICS = Object.freeze(
+export const GUARDIAN_SKILL_DEFAULTS = Object.freeze(
   Object.fromEntries(ALL_GUARDIAN_SKILLS.map(skill => [skill.id, implemented({
     castTimeMs: inferredCastTimeMs(skill),
     ...(skill.categories?.includes("Virtue")

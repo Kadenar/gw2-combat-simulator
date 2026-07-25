@@ -1,4 +1,4 @@
-import { GUARDIAN_TRAIT_IDS } from "./ids.js";
+import { GUARDIAN_TRAIT_IDS } from "./data/ids.js";
 
 export function createGuardianState(config = {}) {
   const selectedTraits = new Set(
