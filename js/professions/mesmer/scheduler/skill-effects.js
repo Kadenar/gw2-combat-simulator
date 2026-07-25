@@ -182,7 +182,12 @@ export function createSkillEffectController({
     }
 
     for (const group of skill.damage || []) {
-      const hitAt = group.source === "Phantasm" ? phantasmDamageAt : at;
+      if (group.requiredTrait && !traits.has(group.requiredTrait)) {
+        continue;
+      }
+      const hitAt = group.source === "Phantasm"
+        ? phantasmDamageAt
+        : at + Number(group.delay || 0);
       const selectedGroup =
         skill.boonlessCoefficient && config.target?.boonless
           ? { ...group, coefficient: skill.boonlessCoefficient }
@@ -198,7 +203,27 @@ export function createSkillEffectController({
               hits: Number(selectedGroup.hits || 1) * phantasmCount,
             }
           : selectedGroup;
+      const interval = Number(group.interval || 0);
       if (
+        interval > 0
+        && Number(scaledGroup.hits || 1) > 1
+      ) {
+        const hits = Math.max(
+          1,
+          Math.trunc(Number(scaledGroup.hits || 1)),
+        );
+        for (let index = 0; index < hits; index += 1) {
+          addDamage(
+            skill,
+            at + Number(group.firstDelay || 0) + index * interval,
+            {
+              ...scaledGroup,
+              coefficient: Number(scaledGroup.coefficient || 0) / hits,
+              hits: 1,
+            },
+          );
+        }
+      } else if (
         pulseTimes.length > 0
         && group.source !== "Phantasm"
         && Number(scaledGroup.hits || 1) === pulseCount
@@ -221,6 +246,28 @@ export function createSkillEffectController({
         if (!chronophantasmaProc) {
           addTraitProc("Chronophantasma", phantasmSpawnAt, skill.name);
           chronophantasmaProc = true;
+        }
+      }
+      if (
+        traits.has("Fencer's Finesse")
+        && skill.weapon === "Sword"
+        && group.source === "Phantasm"
+      ) {
+        addEvent({
+          type: "buff",
+          at: phantasmDamageAt + epsilon,
+          kind: "fencer",
+          stacks: Math.min(10, Number(scaledGroup.hits || 1)),
+          duration: 6,
+        });
+        if (hasChronophantasma) {
+          addEvent({
+            type: "buff",
+            at: chronophantasmaDamageAt + epsilon,
+            kind: "fencer",
+            stacks: Math.min(10, Number(scaledGroup.hits || 1)),
+            duration: 6,
+          });
         }
       }
     }

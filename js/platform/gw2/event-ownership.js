@@ -14,6 +14,7 @@ const SUMMON_SOURCES = new Set([
 ]);
 
 const EFFECT_SOURCES = new Set([
+  "Food",
   "Relic",
   "Sigil",
   "Trait",

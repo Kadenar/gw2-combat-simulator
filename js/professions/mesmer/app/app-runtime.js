@@ -11,6 +11,7 @@ import { mesmerResourceDefinition as getResourceDefinition } from '../ui.js';
 import {
     calculateContributionComparisons,
 } from '../../../app/app-runtime.js';
+import { FOOD_DATA } from '../../../platform/gw2/gear-data.js';
 
 const simulateSequence = (rotation, config) => simulateGw2({
     profession: mesmerProfession,
@@ -129,6 +130,14 @@ export function modifierCandidates(app) {
             type: 'Relic',
             name: app.build.relic,
             label: `Relic of ${app.build.relic}`,
+        });
+    }
+    if (FOOD_DATA[app.build.food]?.proc) {
+        candidates.push({
+            id: `Food:${app.build.food}`,
+            type: 'Food',
+            name: app.build.food,
+            label: `Food: ${FOOD_DATA[app.build.food].proc.name}`,
         });
     }
     for (const trait of app.attributeData.activeTraits || []) {

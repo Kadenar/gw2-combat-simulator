@@ -1,6 +1,6 @@
 import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
-import { SIGIL_PROCS } from "../gear-data.js";
+import { FOOD_DATA, SIGIL_PROCS } from "../gear-data.js";
 import {
   applyMistStranger,
   handleControlRelics,
@@ -112,6 +112,39 @@ function handleCriticalSigils(ctx, event, hitContext, applyCondition) {
   }
 }
 
+function handleCriticalFood(ctx, event, hitContext) {
+  if (!isGw2PlayerActorEvent(event) || !(event.coefficient > 0)) return;
+  const proc = FOOD_DATA[ctx.config.food]?.proc;
+  if (
+    proc?.type !== "critStrike"
+    || hitContext.critical.chance <= 0
+  ) return;
+
+  ctx.food.criticalProgress += hitContext.critical.chance * proc.chance;
+  if (ctx.food.criticalProgress < 1 - EPSILON) return;
+  if (event.at < ctx.food.readyAt - EPSILON) return;
+
+  ctx.food.criticalProgress -= 1;
+  ctx.food.readyAt = event.at + Number(proc.icdMs || 0) / 1000;
+  enqueueOrdered(ctx.queue, {
+    type: "damage",
+    at: event.at,
+    name: proc.name,
+    skillName: proc.name,
+    coefficient: 0,
+    flatDamage: proc.flatDamage,
+    hits: 1,
+    hitIndex: 1,
+    totalHits: 1,
+    source: "Food",
+    sourceId: `food.${String(proc.name || "proc").toLowerCase()}`,
+    actorType: "effect",
+    noCrit: true,
+    triggeredBy: event.skillName,
+  });
+  ctx.recordProc("food", proc.name, event.at, event.skillName);
+}
+
 function consumeDoom(ctx, event, applyCondition) {
   if (
     !ctx.sigil.doomPending
@@ -191,6 +224,7 @@ export function createGw2ResolverEventHandlers({
         applyCondition,
       });
       handleCriticalSigils(ctx, event, hitContext, applyCondition);
+      handleCriticalFood(ctx, event, hitContext);
       consumeDoom(ctx, event, applyCondition);
       handleRelicsAfterHit(ctx, event, triggeringSkill(ctx, event));
     },

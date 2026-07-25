@@ -83,6 +83,7 @@ export function createGw2SimulationConfig({
     },
     sigilSets,
     relic: disabled?.type === "Relic" ? "" : app.build.relic,
+    food: disabled?.type === "Food" ? "" : app.build.food,
     boons: {
       might:
         disabled?.type === "Boon" && disabled.name === "Might"

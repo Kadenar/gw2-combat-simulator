@@ -218,7 +218,7 @@ test("same-time queued events retain stable insertion order", () => {
 test("Thief relic progresses on individual hits instead of an aggregate hit", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateSequence(
-    ["Unstable Bladestorm"],
+    ["Unstable Bladestorm", { name: "__wait", waitMs: 4000 }],
     defaultSimulationConfig({
       relic: "Thief",
       stats: {
@@ -235,11 +235,13 @@ test("Thief relic progresses on individual hits instead of an aggregate hit", ()
     event.type === "damage"
     && event.skillName === "Unstable Bladestorm"
   );
+  const stormPulses = hits.filter(event => event.coefficient === 0.25);
 
   assert.equal(hits.length, 8);
-  assert.ok(hits[1].damage > hits[0].damage);
-  assert.ok(hits[2].damage > hits[1].damage);
-  assert.ok(hits[3].damage > hits[2].damage);
+  assert.equal(stormPulses.length, 4);
+  assert.ok(stormPulses[1].damage > stormPulses[0].damage);
+  assert.ok(stormPulses[2].damage > stormPulses[1].damage);
+  assert.ok(stormPulses[3].damage > stormPulses[2].damage);
 });
 
 test("Bloodsong needs real bleeding and does not treat blade hits as bleeding", () => {
@@ -292,7 +294,7 @@ test("target death resolves its timestamp and stops future events", () => {
   assert.ok(result.events.every(event => event.at <= result.deathTime + 0.0001));
 });
 
-test("Egotism is applied once by the health-aware runtime", () => {
+test("Egotism starts after the target falls below the Mesmer's health percentage", () => {
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
     specialization: "Core",
@@ -309,13 +311,21 @@ test("Egotism is applied once by the health-aware runtime", () => {
       health: 3970000,
     },
   });
-  const base = simulateSequence(["Mind Slash"], config);
-  const egotism = simulateSequence(["Mind Slash"], {
+  const rotation = ["Mind Slash", "Mind Gash"];
+  const base = simulateSequence(rotation, config);
+  const egotism = simulateSequence(rotation, {
     ...config,
     selectedTraits: ["Egotism"],
   });
+  const strike = (result, name) => result.resolvedEvents.find(event =>
+    event.type === "damage" && event.skillName === name
+  ).damage;
 
-  assert.ok(Math.abs(egotism.strikeDamage / base.strikeDamage - 1.1) < 1e-12);
+  assert.equal(strike(egotism, "Mind Slash"), strike(base, "Mind Slash"));
+  assert.ok(
+    Math.abs(strike(egotism, "Mind Gash") / strike(base, "Mind Gash") - 1.1)
+      < 1e-12,
+  );
 });
 
 test("explicit combat start excludes completed precombat damage", () => {
@@ -325,6 +335,7 @@ test("explicit combat start excludes completed precombat damage", () => {
       { name: "__wait", waitMs: 1000 },
       { name: "__combat_start" },
       "Unstable Bladestorm",
+      { name: "__wait", waitMs: 4000 },
     ],
     defaultSimulationConfig(),
   );
@@ -361,6 +372,63 @@ test("critical sigils enqueue and resolve their own proc event", () => {
   assert.ok(result.breakdown.some(entry =>
     entry.name === "Sigil of Air" && entry.strikeDamage > 0
   ));
+});
+
+test("critical-strike food procs resolve as unmodified flat damage", () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateSequence(
+    ["Flying Cutter", { name: "__wait", waitMs: 2000 }, "Flying Cutter"],
+    defaultSimulationConfig({
+      food: "Cilantro Lime Sous-Vide Steak",
+      stats: {
+        ...defaults.stats,
+        precision: 3100,
+      },
+    }),
+  );
+  const nourishment = result.resolvedEvents.filter(event =>
+    event.type === "damage" && event.skillName === "Nourishment"
+  );
+
+  assert.equal(nourishment.length, 1);
+  assert.equal(nourishment[0].damage, 325);
+  assert.ok(result.procSteps.some(proc =>
+    proc.type === "food_proc" && proc.skill === "Nourishment"
+  ));
+});
+
+test("slot-skill strikes select utility weapon strength generically", () => {
+  const result = simulateSequence(
+    ["Power Spike"],
+    defaultSimulationConfig({ specialization: "Core" }),
+  );
+  const powerSpike = result.resolvedEvents.find(event =>
+    event.type === "damage" && event.skillName === "Power Spike"
+  );
+
+  assert.equal(powerSpike.skillWeapon, "Utility");
+});
+
+test("Egotism does not increase condition damage", () => {
+  const defaults = defaultSimulationConfig();
+  const run = selectedTraits => simulateSequence(
+    ["Phantasmal Swordsman", { name: "__wait", waitMs: 6000 }],
+    defaultSimulationConfig({
+      specialization: "Core",
+      primaryWeapon: "Sword",
+      secondaryWeapon: "",
+      initialResource: 0,
+      selectedTraits: ["Sharper Images", ...selectedTraits],
+      target: {
+        ...defaults.target,
+        health: 3970000,
+      },
+    }),
+  );
+  const bleeding = result => result.conditionBreakdown
+    .find(entry => entry.name === "Bleeding")?.damage || 0;
+
+  assert.equal(bleeding(run(["Egotism"])), bleeding(run([])));
 });
 
 test("weapon-swap sigils resolve locally on the destination weapon set", () => {

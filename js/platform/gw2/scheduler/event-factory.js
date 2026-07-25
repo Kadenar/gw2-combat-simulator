@@ -81,6 +81,11 @@ export function createGw2SchedulerEventFactory({
       group.actorType
       || extra.actorType
       || gw2ActorTypeForSource(source);
+    const slotSkill = (
+      skill.type === "Heal"
+      || skill.type === "Utility"
+      || skill.type === "Elite"
+    );
     for (let index = 0; index < hits; index += 1) {
       const event = addEvent(decorateDamageEvent({
         type: "damage",
@@ -97,7 +102,9 @@ export function createGw2SchedulerEventFactory({
         skillId: extra.skillId ?? skill.id ?? null,
         weapon: group.weapon || "",
         weaponStrength: group.weaponStrength,
-        skillWeapon: skill.weapon || activePrimaryWeapon(),
+        skillWeapon:
+          skill.weapon
+          || (slotSkill ? "Utility" : activePrimaryWeapon()),
         ...extra,
       }, { skill, group, extra }));
       onDamageScheduled(event, {
