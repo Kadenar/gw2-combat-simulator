@@ -11,7 +11,7 @@ js/
   professions/
     mesmer/        Mesmer catalog, build schema, resources, rules, simulation
     elementalist/  Elementalist engine, data, app adapter, and optimizer
-    guardian/      Minimal canonical Guardian weapon/virtue vertical slice
+    guardian/      Guardian API catalog, virtues, rules, and declarative skills
   app/             browser composition and persistence adapters
 ```
 
@@ -35,15 +35,15 @@ calculators then apply only their own trait and skill rules.
 Profession-specific browser rendering follows the same boundary. The shared
 shell receives a profession application adapter for its build codec, storage
 key, runtime/config builder, renderer hooks, filenames, specialization
-fallback, supported relic list, and background contribution worker. Mesmer
-palette rules, Continuum Shift markers, Mirage effects, and phantasm/clone log
-formatting live under `js/professions/mesmer/app`; shared result transforms,
-chart queries, timeline operations, and small app UI helpers remain in the
-platform or `js/app` layers.
+fallback, supported relic list, and background contribution worker. The
+shared rotation renderer consumes profession palette/resource view models and
+canonical result state. Specialized Mesmer timeline/log details are optional
+branches over those contracts; Guardian tome and forge availability is
+supplied by its profession UI definition.
 
-The shared profession selector routes between the Mesmer and Elementalist
-applications while preserving one visual system and independent persisted
-builds.
+The shared profession selector routes between the Mesmer, Elementalist, and
+Guardian applications while preserving one visual system and independent
+persisted builds.
 
 ## Dependency rules
 
@@ -172,6 +172,7 @@ simulator mechanics, explicit overrides, and extra skills. Callable
 `skillHandlers` are registered by handler ID and dispatched by the profession
 contract. Validation rejects duplicate skill IDs, missing callable handlers or
 parent skills, invalid effects, invalid slots, and unavailable weapon metadata.
+Canonical catalogs may also carry validated trait and specialization metadata.
 Resolver behavior looks skills up by `skillId`; display-name lookup is retained
 only for legacy streams and application-boundary rotation migration.
 
@@ -192,6 +193,12 @@ Normalized rotations use:
 Legacy display-name entries are converted at the application boundary.
 Concurrent and interrupted casts are scheduler operations; their timing is
 decided before effects and cooldowns are scheduled.
+
+Declarative multi-hit effects emit one canonical damage event per hit. Optional
+hit intervals preserve channels and persistent attacks, including effects that
+finish after their cast. The GW2 scheduler policy rejects weapon skills that
+are not equipped on the active set, while allowing callers without equipment
+configuration to use isolated mechanic fixtures.
 
 ## Builds
 
@@ -215,8 +222,10 @@ rotation entries; storage and the simulator contract use normalized commands.
 - `mesmer`: native profession-contract implementation.
 - `elementalist`: direct reference-engine port exposed through an
   `elementalistProfession` contract adapter.
-- `guardian`: minimal Sword, Justice/burning, weapon-swap, build-codec, and
-  palette slice proving the canonical extension path.
+- `guardian`: declarative shared-engine implementation with a reproducible
+  current API snapshot, an explicit supplement for API-omitted bundle skills,
+  complete executable skill coverage, all specialization mechanics, Guardian
+  trait rules, build validation, and a shared-shell browser application.
 
 ## Adding another profession
 

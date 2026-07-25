@@ -21,7 +21,7 @@ import {
     simulationEventLogRows,
     skillBreakdownRows,
     timelineWeaponRows,
-} from '../js/professions/mesmer/app/app-rotation-ui.js';
+} from '../js/app/rotation-ui.js';
 import { RELIC_DATA } from '../js/platform/gw2/gear-data.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {

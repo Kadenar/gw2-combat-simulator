@@ -2538,7 +2538,9 @@ header .accent {
 }
 
 .mesmer-skill-breakdown .res-hdr,
-.mesmer-skill-breakdown .res-row {
+.mesmer-skill-breakdown .res-row,
+.guardian-skill-breakdown .res-hdr,
+.guardian-skill-breakdown .res-row {
     grid-template-columns: minmax(180px, 1fr) repeat(6, 72px) 48px 48px;
     min-width: 760px;
 }
@@ -3106,6 +3108,11 @@ header .accent {
 :root {
     --accent: #ad83df;
     --accent-dim: #7657a0;
+}
+
+.guardian-theme {
+    --accent: #72c1d9;
+    --accent-dim: #3f8197;
 }
 
 #loading-overlay.hidden {

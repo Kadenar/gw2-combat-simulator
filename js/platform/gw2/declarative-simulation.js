@@ -65,6 +65,10 @@ function createQuery(profession, config, events, traits) {
         config.stats?.power ?? config.attributes?.power ?? 1000,
       precision:
         config.stats?.precision ?? config.attributes?.precision ?? 1000,
+      toughness:
+        config.stats?.toughness ?? config.attributes?.toughness ?? 1000,
+      vitality:
+        config.stats?.vitality ?? config.attributes?.vitality ?? 1000,
       ferocity:
         config.stats?.ferocity ?? config.attributes?.ferocity ?? 0,
       conditionDamage:
@@ -73,6 +77,10 @@ function createQuery(profession, config, events, traits) {
         ?? 0,
       expertise:
         config.stats?.expertise ?? config.attributes?.expertise ?? 0,
+      concentration:
+        config.stats?.concentration ?? config.attributes?.concentration ?? 0,
+      healingPower:
+        config.stats?.healingPower ?? config.attributes?.healingPower ?? 0,
     },
   };
   let query;
@@ -168,7 +176,7 @@ function createQuery(profession, config, events, traits) {
         + Number(sigils.conditionDurationBonuses?.[name] || 0)
       ) / 100;
       const base = gw2ConditionDurationMultiplier(name, stats, sigilBonus);
-      return profession.modifyConditionDuration(
+      const modified = profession.modifyConditionDuration(
         hookContext(time, {
           event,
           condition: name,
@@ -176,6 +184,7 @@ function createQuery(profession, config, events, traits) {
         }),
         base,
       );
+      return Math.max(1, Math.min(2, Number(modified || 1)));
     },
     activeWeaponSetAt: timeline.activeWeaponSetAt,
     activeSigilSetAt: timeline.activeSigilSetAt,
@@ -290,6 +299,7 @@ export function simulateDeclarativeGw2({
   });
   return {
     ...resolved,
+    steps: scheduled.steps,
     endState: endState(profession, scheduled, resolved),
     schedulerState: scheduled.state,
     snapshot: scheduled.snapshot,

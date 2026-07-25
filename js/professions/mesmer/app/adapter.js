@@ -18,7 +18,7 @@ import {
 import {
   renderResults,
   renderRotationBuilder,
-} from "./app-rotation-ui.js";
+} from "../../../app/rotation-ui.js";
 
 const professionWeapons = createProfessionWeaponData(
   mesmerProfession.catalog,

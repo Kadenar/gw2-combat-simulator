@@ -138,8 +138,18 @@ test("declarative boons can gate dynamic skill availability", () => {
       "Aegis Strike",
     ],
   });
+  const extended = simulateGw2({
+    profession,
+    rotation: [
+      "Grant Aegis",
+      { type: "wait", durationMs: 3100 },
+      "Aegis Strike",
+    ],
+    config: { stats: { concentration: 1500 } },
+  });
   assert.ok(available.totalDamage > 0);
   assert.equal(expired.totalDamage, 0);
+  assert.ok(extended.totalDamage > 0);
   assert.match(expired.warnings.join(" "), /unavailable/);
 });
 
@@ -355,6 +365,145 @@ test("declarative ammo consumes and recharges shared charges", () => {
   });
 });
 
+test("declarative multi-hit and delayed effects preserve individual events", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930010,
+      name: "Fixture Flurry",
+      type: "Weapon",
+      weapon: "Greatsword",
+      castTimeMs: 300,
+      effects: [{
+        type: "strike",
+        coefficient: 3,
+        hits: 3,
+        atMs: 100,
+        intervalMs: 100,
+      }, {
+        type: "strike",
+        coefficient: 1,
+        atMs: 1000,
+      }],
+    }],
+    weapons: ["Greatsword"],
+    weaponHands: { Greatsword: "2h" },
+  });
+  const profession = defineProfession({
+    id: "multi-hit-fixture",
+    name: "Multi Hit Fixture",
+    catalog,
+    resources: {
+      createProfessionState: () => ({ hits: 0 }),
+    },
+    resolverHooks: {
+      eventReactions: {
+        damage: context => {
+          context.state.profession.hits += 1;
+        },
+      },
+    },
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Fixture Flurry",
+      { type: "wait", durationMs: 1000 },
+    ],
+  });
+  const events = result.resolvedEvents.filter(event =>
+    event.type === "damage");
+
+  assert.deepEqual(
+    events.map(event => Number(event.at.toFixed(3))),
+    [0.1, 0.2, 0.3, 1],
+  );
+  assert.deepEqual(events.map(event => event.hitIndex), [1, 2, 3, 1]);
+  assert.equal(result.endState.profession.hits, 4);
+});
+
+test("GW2 declarative policy enforces active weapons and skill weapon strength", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930011,
+        name: "Fixture Greatsword",
+        type: "Weapon",
+        weapon: "Greatsword",
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+      {
+        id: 930012,
+        name: "Fixture Sword",
+        type: "Weapon",
+        weapon: "Sword",
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+    ],
+    weapons: ["Greatsword", "Sword"],
+    weaponHands: { Greatsword: "2h", Sword: "mh" },
+  });
+  const profession = defineProfession({
+    id: "weapon-policy-fixture",
+    name: "Weapon Policy Fixture",
+    catalog,
+  });
+  const greatsword = simulateGw2({
+    profession,
+    rotation: ["Fixture Greatsword"],
+  });
+  const sword = simulateGw2({
+    profession,
+    rotation: ["Fixture Sword"],
+  });
+  const unavailable = simulateGw2({
+    profession,
+    rotation: ["Fixture Greatsword"],
+    config: { primaryWeapon: "Sword" },
+  });
+
+  assert.equal(greatsword.strikeDamage / sword.strikeDamage, 1.1);
+  assert.equal(unavailable.totalDamage, 0);
+  assert.match(unavailable.warnings.join(" "), /unavailable/);
+});
+
+test("profession condition-duration hooks remain under the GW2 cap", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930013,
+      name: "Fixture Burn",
+      castTimeMs: 0,
+      effects: [{
+        type: "condition",
+        condition: "Burning",
+        stacks: 1,
+        duration: 1,
+      }],
+    }],
+  });
+  const profession = defineProfession({
+    id: "duration-cap-fixture",
+    name: "Duration Cap Fixture",
+    catalog,
+    attributeRules: {
+      modifyConditionDuration: (_context, duration) => duration * 2,
+    },
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Fixture Burn",
+      { type: "wait", durationMs: 2000 },
+    ],
+    config: { stats: { expertise: 1500 } },
+  });
+  const burning = result.resolvedEvents.find(event =>
+    event.type === "condition");
+
+  assert.equal(burning.effectiveDuration, 2);
+});
+
 test("resolver modifiers receive stable trait, event, and runtime context", () => {
   const catalog = createCanonicalCatalog({
     generated: [{
@@ -468,6 +617,56 @@ test("canonical catalog validation rejects duplicate ids and missing handlers", 
     /missing handler/,
   );
   assert.equal(mesmerCatalog.skillsById.size, mesmerCatalog.skills.length);
+});
+
+test("canonical catalogs carry validated traits and specializations", () => {
+  const catalog = createCanonicalCatalog({
+    traits: [{ id: 1, name: "Fixture Trait" }],
+    specializations: [{ id: 2, name: "Fixture Line" }],
+  });
+  assert.equal(catalog.traits[0].name, "Fixture Trait");
+  assert.equal(catalog.specializations[0].name, "Fixture Line");
+  assert.throws(
+    () => createCanonicalCatalog({
+      traits: [
+        { id: 1, name: "One" },
+        { id: 1, name: "Two" },
+      ],
+    }),
+    /Duplicate or missing trait/,
+  );
+});
+
+test("catalog skill handlers receive calculated recharge timing", () => {
+  let observedReadyAt = null;
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930014,
+      name: "Timed Handler",
+      cooldown: 20,
+      castTimeMs: 1000,
+      handlerId: "fixture.timed",
+      effects: [],
+    }],
+    skillHandlers: {
+      "fixture.timed": context => {
+        observedReadyAt = context.rechargeReadyAt;
+        return true;
+      },
+    },
+  });
+  const profession = defineProfession({
+    id: "timed-handler-fixture",
+    name: "Timed Handler Fixture",
+    catalog,
+  });
+
+  simulateGw2({
+    profession,
+    rotation: ["Timed Handler"],
+    config: { boons: { alacrity: true } },
+  });
+  assert.equal(observedReadyAt, 17);
 });
 
 test("canonical skill handlers are callable and dispatched by handler id", () => {
@@ -651,4 +850,11 @@ test("obsolete compatibility trees are removed", async () => {
       error => error?.code === "ENOENT",
     );
   }
+  await assert.rejects(
+    readFile(
+      path.join(root, "professions", "mesmer", "app", "app-rotation-ui.js"),
+      "utf8",
+    ),
+    error => error?.code === "ENOENT",
+  );
 });
