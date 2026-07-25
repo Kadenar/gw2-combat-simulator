@@ -3,8 +3,8 @@ import {
   calculateAttributes as calcAttributes,
 } from "../../js/professions/mesmer/core/calc-attributes.js";
 import {
-    simulateSequence,
-} from '../../js/professions/mesmer/simulation.js';
+    simulateMesmer,
+} from './mesmer-simulation.js';
 
 export function defaultSimulationConfig(overrides = {}) {
     return {
@@ -58,11 +58,11 @@ export function defaultSimulationConfig(overrides = {}) {
 export function runCoreFixtures() {
     const build = createDefaultBuild();
     const attributes = calcAttributes(build, []);
-    const cooldown = simulateSequence(
+    const cooldown = simulateMesmer(
         ['Bladecall', 'Bladecall'],
         defaultSimulationConfig(),
     );
-    const concurrent = simulateSequence(
+    const concurrent = simulateMesmer(
         ['Bladecall', { name: 'Bladesong Distortion', offset: 100 }],
         defaultSimulationConfig(),
     );

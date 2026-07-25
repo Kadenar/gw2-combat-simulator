@@ -4,7 +4,6 @@
  * @param {Object} config - Simulation config
  * @param {Set} traits - Selected traits
  * @param {Object} state - Scheduler state with expected-proc progress
- * @param {Map} cloneDeaths - Clone death times
  * @param {number} epsilon - Floating-point epsilon
  * @param {Function} baseCriticalChance - Critical hit chance calculator
  * @param {Function} activePrimaryWeapon - Current primary weapon getter
@@ -15,7 +14,6 @@ export function createExpectedProcTracker({
   state,
   config,
   traits,
-  cloneDeaths,
   epsilon,
   baseCriticalChance,
   activePrimaryWeapon,
@@ -73,12 +71,6 @@ export function createExpectedProcTracker({
    * @param {Object} candidate - Bleeding or hit candidate
    */
   const process = (candidate) => {
-    if (
-      candidate.cloneId
-      && (cloneDeaths.get(candidate.cloneId) ?? Infinity)
-        <= candidate.at + epsilon
-    ) return;
-
     if (candidate.type === "bleeding") {
       trackBloodsong(candidate.at, candidate.stacks, 0);
       return;
@@ -114,6 +106,7 @@ export function createExpectedProcTracker({
   };
 
   return {
+    process,
     /**
      * Queues a candidate to be processed later.
      * @param {Object} candidate - Candidate with an `at` timestamp

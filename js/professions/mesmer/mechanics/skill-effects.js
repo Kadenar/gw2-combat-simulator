@@ -8,7 +8,7 @@ const CLARITY_CONSUMERS = new Set([
 ]);
 
 /**
- * Applies the scheduled effects of ordinary skills.
+ * Applies Mesmer-owned ordinary and phantasm skill effects.
  */
 export function createSkillEffectController({
   state,

@@ -1,5 +1,5 @@
 /**
- * Owns Continuum Split snapshots and restoration.
+ * Owns Continuum Split checkpoints and restoration.
  */
 export function createContinuumController({
   state,
@@ -10,6 +10,7 @@ export function createContinuumController({
   consumeResources,
   triggerShatterTraits,
   addEvent,
+  scheduleExpiry = null,
 }) {
   const restoreContinuum = (at, reason) => {
     if (!state.profession.continuum) return;
@@ -86,6 +87,7 @@ export function createContinuumController({
       autoattackChains: new Map(state.profession.autoattackChains),
       expiresAt: at + 1.5 * (spent + 1),
     };
+    scheduleExpiry?.(state.profession.continuum.expiresAt);
     triggerShatterTraits(skill, at, spent, false);
     addEvent({
       type: "marker",

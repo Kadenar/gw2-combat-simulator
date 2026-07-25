@@ -8,19 +8,20 @@ const RESOURCE_TRAITS = [
 ];
 
 /**
- * Owns clone/blade/note gains and their queued trait reactions.
+ * Owns clone/blade/note gains and their typed-task reactions.
  */
 export function createResourceController({
   state,
   traits,
   resourceDefinition,
-  cloneDeaths,
   epsilon,
   clamp,
   activePrimaryWeapon,
   cloneAttackScheduler,
   addEvent,
   addTraitProc,
+  destroyClone,
+  scheduleResourceTask = null,
 }) {
   let cloneSequence = 0;
   let onAmbushCreatedClones = () => {};
@@ -48,7 +49,7 @@ export function createResourceController({
       for (let index = 0; index < amount; index += 1) {
         if (state.profession.clones.length >= resourceDefinition.maximum) {
           const replaced = state.profession.clones.shift();
-          cloneDeaths.set(replaced.id, at);
+          destroyClone(replaced, at);
         }
         const clone = {
           id: ++cloneSequence,
@@ -116,6 +117,10 @@ export function createResourceController({
   };
 
   const queueResources = (at, count, weapon, reason) => {
+    if (scheduleResourceTask) {
+      scheduleResourceTask({ at, count, weapon, reason });
+      return;
+    }
     state.profession.pendingResources.push({ at, count, weapon, reason });
     state.profession.pendingResources.sort((a, b) => a.at - b.at);
   };

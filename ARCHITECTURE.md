@@ -9,7 +9,7 @@ js/
     gw2/           common combat, equipment, sigils, relics, attributes
     ui/            palette/resource/timeline/log/result/chart view models
   professions/
-    mesmer/        Mesmer catalog, build schema, resources, rules, simulation
+    mesmer/        Mesmer catalog, build schema, state, rules, and mechanics
     elementalist/  Elementalist engine, data, app adapter, and optimizer
     guardian/      Guardian API catalog, virtues, rules, and declarative skills
     necromancer/   Necromancer catalog, shrouds, summons, rules, and adapter
@@ -95,6 +95,7 @@ export const exampleProfession = defineProfession({
   resources: {
     createProfessionState,
     createResolverState, // optional clean resolver-time initial state
+    projectEndState,      // optional public profession-state projection
   },
   attributeRules,
   castRules,
@@ -109,9 +110,6 @@ export const exampleProfession = defineProfession({
     isPaletteSkillAvailable,       // optional contextual castability
     paletteSkillUnavailableMessage, // optional disabled-state explanation
   },
-  simulation: {
-    simulate, // optional production pipeline reached only through simulateGw2
-  },
 });
 ```
 
@@ -123,7 +121,8 @@ ties deterministically.
 
 Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill
 uses, pending events, and `profession`. Profession resources and mechanic
-timers live under `state.profession`.
+timers live under `state.profession`. Typed scheduler tasks carry serializable
+payloads and are dispatched to namespaced profession handlers.
 
 The neutral engine accepts scheduler policy callbacks. `platform/gw2` supplies
 the shared GW2 policy for Quickness-adjusted casts, Alacrity-adjusted recharge,
@@ -131,17 +130,17 @@ ammo, and the configured starting weapon set. Profession hooks may then modify
 cast duration, recharge duration, or maximum ammo without copying the common
 state machine.
 
-Application and test callers use `simulateGw2()`. It dispatches to the
-profession's production pipeline when present and otherwise uses the
-declarative scheduler. Canonical sequence results keep time, cooldowns, ammo,
-and active weapon set under `endState`; profession mechanics are exposed only
-through `endState.profession`.
+Application and test callers use `simulateGw2()`, which always runs the shared
+GW2 scheduler, event-stream builder, resolver, and result builder. Canonical
+sequence results keep time, cooldowns, ammo, and active weapon set under
+`endState`; profession mechanics are exposed only through
+`endState.profession`.
 
-The platform scheduler handles ordinary declarative skills. A profession with
-actor-specific timing, such as Mesmer clone and phantasm attacks, composes its
-own mechanic controllers over the shared scheduler state, cooldown controller,
-and GW2 event factory. It must still emit the canonical event stream; it does
-not copy common cooldown, ammo, or event-representation logic.
+The platform scheduler handles ordinary declarative skills and invokes
+profession hooks for complex behavior. Mesmer clone attacks, resource gains,
+expected procs, and Continuum expiry are profession-owned typed tasks on that
+clock. Phantasms are finite skill handlers. Mesmer does not own a scheduler,
+resolver wrapper, or result builder.
 
 ## Events
 
@@ -218,6 +217,14 @@ Normalized rotations use:
 Legacy display-name entries are converted at the application boundary.
 Concurrent and interrupted casts are scheduler operations; their timing is
 decided before effects and cooldowns are scheduled.
+
+Serial casts and shift-queued concurrent instants wait for finite cooldown,
+ammo, or profession availability, including when a concurrent instant becomes
+ready after its parent cast ends. Permanent availability blocks are still
+invalid. Once a queued command advances to its ready time, later rotation
+commands proceed from that chronological point. Cast completion and typed
+tasks run chronologically, and availability is reevaluated after intermediate
+tasks.
 
 Declarative multi-hit effects emit one canonical damage event per hit. Optional
 hit intervals preserve channels and persistent attacks, including effects that
