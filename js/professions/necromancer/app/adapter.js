@@ -1,12 +1,6 @@
 import {
-  WEAPON_DATA,
-  createProfessionWeaponData,
-  RELIC_NAMES,
-} from "../../../platform/gw2/gear-data.js";
-import {
-  renderResults,
-  renderRotationBuilder,
-} from "../../../app/rotation-ui.js";
+  createGw2AppAdapter,
+} from "../../../app/create-app-adapter.js";
 import {
   createDefaultTargetConditions,
   toApplicationBuild,
@@ -20,27 +14,17 @@ import {
   runSimulation,
 } from "./app-runtime.js";
 
-const professionWeapons = createProfessionWeaponData(
-  necromancerProfession.catalog,
-  { weaponData: WEAPON_DATA },
-);
-
-export const necromancerAppAdapter = Object.freeze({
-  id: necromancerProfession.id,
-  name: necromancerProfession.name,
+export const necromancerAppAdapter = createGw2AppAdapter({
   profession: necromancerProfession,
   storageKey: "gw2-necromancer-simulator-v3",
   globalName: "necromancerApp",
-  filenames: Object.freeze({
+  filenames: {
     build: "necromancer-build.json",
     rotation: "necromancer-rotation.json",
     eventLog: "necromancer-event-log.csv",
-  }),
+  },
   resetPrompt: "Reset the Necromancer build, skills, and rotation?",
   specializationFallback: "Spite",
-  specializations: necromancerProfession.catalog.specializations,
-  weaponData: professionWeapons,
-  relicNames: RELIC_NAMES,
   createDefaultTargetConditions,
   toApplicationBuild,
   eliteSpecialization,
@@ -48,8 +32,6 @@ export const necromancerAppAdapter = Object.freeze({
   runSimulation,
   modifierContributionRequest,
   calculateModifierContributions,
-  renderResults,
-  renderRotationBuilder,
   isSkillAvailable(skill, { specialization } = {}) {
     if (skill.implemented === false || skill.simulatorExcluded) return false;
     return !skill.specialization || skill.specialization === specialization;
@@ -58,5 +40,3 @@ export const necromancerAppAdapter = Object.freeze({
     return offHands.includes("Dagger") ? "Dagger" : offHands[0] || "";
   },
 });
-
-export default necromancerAppAdapter;

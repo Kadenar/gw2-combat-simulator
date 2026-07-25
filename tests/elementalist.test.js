@@ -51,7 +51,7 @@ async function javascriptFiles(directory) {
 
 test("profession selector exposes every ready application route", () => {
   assert.deepEqual(PROFESSION_ROUTES, {
-    mesmer: "index.html",
+    mesmer: "mesmer.html",
     elementalist: "elementalist.html",
     guardian: "guardian.html",
     necromancer: "necromancer.html",

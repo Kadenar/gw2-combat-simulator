@@ -1,11 +1,11 @@
 import { enqueueOrdered } from "../../platform/engine/event-queue.js";
 import {
   NECROMANCER_AUTOATTACK_CHAINS,
-} from "./mechanics.js";
+} from "./mechanics/autoattack-chains.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
-} from "./ids.js";
+} from "./data/ids.js";
 import {
   advanceNecromancerState,
   finalizeNecromancerCast,
@@ -13,7 +13,7 @@ import {
   handleNecromancerChillEvent,
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack,
-} from "./skill-handlers.js";
+} from "./mechanics/handlers.js";
 import { hasNecromancerTrait } from "./state.js";
 
 const ENTRY_SHROUD_BY_ID = Object.freeze({

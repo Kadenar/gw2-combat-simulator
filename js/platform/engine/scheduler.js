@@ -11,6 +11,15 @@ function baseDurationSeconds(skill) {
 }
 
 function effectAt(start, fullEnd, effect) {
+  if (Array.isArray(effect.ticks) && effect.ticks.length) {
+    return start + Number(effect.ticks[0].atMs) / 1000;
+  }
+  if (Array.isArray(effect.atMsList) && effect.atMsList.length) {
+    return start + Number(effect.atMsList[0]) / 1000;
+  }
+  if (effect.atCastEndOffsetMs != null) {
+    return fullEnd + Number(effect.atCastEndOffsetMs) / 1000;
+  }
   if (effect.atMs != null) return start + Number(effect.atMs) / 1000;
   if (effect.at != null) return start + Number(effect.at);
   return fullEnd;
@@ -20,7 +29,20 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
   const interrupted = effectiveEnd < fullEnd - context.epsilon;
   for (let index = 0; index < (skill.effects || []).length; index += 1) {
     const effect = skill.effects[index];
-    const firstAt = effectAt(start, fullEnd, effect);
+    const timing =
+      context.schedulerPolicy.effectTiming?.(
+        {
+          ...context,
+          skill,
+          start,
+          fullEnd,
+          effectiveEnd,
+        },
+        skill,
+        effect,
+      )
+      ?? effect;
+    const firstAt = effectAt(start, fullEnd, timing);
     if (interrupted && firstAt > effectiveEnd + context.epsilon) continue;
     const base = {
       source: effect.source || context.profession.id,
@@ -30,18 +52,34 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
       skillName: skill.name,
     };
     if (effect.type === "strike") {
-      const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
-      const coefficient = Number(effect.coefficient || 0) / hits;
-      const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+      const ticks = Array.isArray(timing.ticks)
+        ? timing.ticks
+        : null;
+      const atMsList = Array.isArray(timing.atMsList)
+        ? timing.atMsList.map(Number)
+        : null;
+      const hits = ticks?.length
+        || atMsList?.length
+        || Math.max(1, Math.trunc(Number(effect.hits || 1)));
+      const equalCoefficient = Number(effect.coefficient || 0) / hits;
+      const interval =
+        Math.max(0, Number(timing.intervalMs || 0)) / 1000;
       for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-        const at = firstAt + (hitIndex - 1) * interval;
+        const tick = ticks?.[hitIndex - 1];
+        const at = tick
+          ? start + Number(tick.atMs) / 1000
+          : atMsList
+            ? start + atMsList[hitIndex - 1] / 1000
+            : firstAt + (hitIndex - 1) * interval;
         if (interrupted && at > effectiveEnd + context.epsilon) break;
         context.emit({
           ...base,
           type: "damage",
           at,
           name: effect.name || skill.name,
-          coefficient,
+          coefficient: tick
+            ? Number(tick.coefficient)
+            : equalCoefficient,
           hits: 1,
           hitIndex,
           totalHits: hits,
@@ -51,6 +89,30 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
         });
       }
     } else if (effect.type === "condition") {
+      if (Array.isArray(timing.ticks)) {
+        for (
+          let applicationIndex = 1;
+          applicationIndex <= timing.ticks.length;
+          applicationIndex += 1
+        ) {
+          const tick = timing.ticks[applicationIndex - 1];
+          const at = start + Number(tick.atMs) / 1000;
+          if (interrupted && at > effectiveEnd + context.epsilon) break;
+          context.emit({
+            ...base,
+            at,
+            type: "condition",
+            name: effect.name || `${skill.name} — ${tick.condition}`,
+            condition: tick.condition,
+            stacks: Number(tick.stacks),
+            duration: Number(tick.duration),
+            applicationIndex,
+            totalApplications: timing.ticks.length,
+            ...(effect.metadata || {}),
+          });
+        }
+        continue;
+      }
       context.emit({
         ...base,
         at: firstAt,

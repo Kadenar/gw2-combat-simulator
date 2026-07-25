@@ -31,7 +31,6 @@ export function createScheduler(config, traits, horizon, model) {
   const {
     AMBUSH_ATTACKS,
     ARISTOCRACY_SKILLS,
-    AUTOATTACK_CHAINS,
     BLIND_SKILLS,
     CLONE_ATTACKS,
     CONDITION_FORMULAS,
@@ -53,6 +52,7 @@ export function createScheduler(config, traits, horizon, model) {
     conditionName,
     flipSkillsByParent,
     getResourceDefinition,
+    preservedWeaponChainRoots,
     skillAvailable,
     skillsById,
     skillsByName,
@@ -332,7 +332,6 @@ export function createScheduler(config, traits, horizon, model) {
     rules: {
       ambushAttacks: AMBUSH_ATTACKS,
       aristocracySkills: ARISTOCRACY_SKILLS,
-      autoattackChains: AUTOATTACK_CHAINS,
       autoattackChainPositions,
       blindSkills: BLIND_SKILLS,
       controlSkills: CONTROL_SKILLS,
@@ -340,10 +339,12 @@ export function createScheduler(config, traits, horizon, model) {
       flipSkillsByParent,
       instruments: INSTRUMENTS,
       peithaSkills: PEITHA_SKILLS,
+      preservedWeaponChainRoots,
       shatters: SHATTERS,
       traitDamage: TRAIT_DAMAGE,
       adjustedCooldown,
       skillAvailable,
+      skillsById,
       skillsByName,
     },
     cooldowns: {

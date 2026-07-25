@@ -4,21 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>GW2 Combat Simulator — Necromancer</title>
+    <title>GW2 Combat Simulator — Mesmer</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body data-profession="necromancer" class="necromancer-theme">
+<body>
     <div id="loading-overlay">
-        <div class="loader-content"><div class="spinner"></div><div>Loading Necromancer data…</div></div>
+        <div class="loader-content"><div class="spinner"></div><div>Loading Mesmer data…</div></div>
     </div>
 
     <div id="app">
         <header>
             <a class="home-link" href="index.html">← All professions</a>
-            <h1>GW2 <span class="accent">Necromancer</span> Rotation Simulator</h1>
+            <h1>GW2 <span class="accent">Mesmer</span> Rotation Simulator</h1>
             <label class="profession-picker" for="profession-select">
                 <span>Profession</span>
-                <select id="profession-select" data-active-profession="necromancer">
+                <select id="profession-select" data-active-profession="mesmer">
                     <option value="mesmer">Mesmer</option>
                     <option value="elementalist">Elementalist</option>
                     <option value="guardian">Guardian</option>
@@ -26,22 +26,23 @@
                 </select>
             </label>
         </header>
-        <div class="update-info"><strong>Necromancer PvE API snapshot: July 25, 2026</strong></div>
+        <div class="update-info"><strong>Mesmer PvE data snapshot: July 23, 2026</strong></div>
 
         <details class="about-box">
             <summary class="about-toggle">About this tool</summary>
             <div class="about-body">
-                <p>Select Necromancer gear, weapons, traits, and slot skills, then
-                    construct a cooldown- and life-force-aware rotation.</p>
+                <p>This is a standalone Mesmer simulator. Select gear, upgrades,
+                    consumables, weapons, specializations, traits, and slot skills; attributes are calculated from
+                    those selections and passed directly into the rotation simulation.</p>
                 <ul>
-                    <li>Core Necromancer, Reaper, Scourge, Harbinger, and Ritualist.</li>
-                    <li>All terrestrial weapon and slot skills in the generated catalog.</li>
-                    <li>Shrouds, shades, blight, minions, spirits, Lich Form, flips,
-                        ammo, autoattack chains, and damage traits.</li>
-                    <li>Shift+click instant skills for concurrent casts and Ctrl+click
-                        channels to configure interruption timing.</li>
+                    <li>Core Mesmer, Chronomancer, Mirage, Virtuoso, and Troubadour profession mechanics.</li>
+                    <li>Cooldown-aware icon palette: icons show remaining cooldown and the simulator waits until a
+                        queued skill becomes available.</li>
+                    <li>Shift+click instant skills to cast during the preceding animation. Ctrl+click casts to
+                        interrupt them at a chosen time.</li>
+                    <li>Expected-value strike and condition damage with clones, phantasms, shatters, ambushes,
+                        blades, notes, and supported trait interactions.</li>
                 </ul>
-                <p>Implementation details are documented in <code>NECROMANCER.md</code>.</p>
             </div>
         </details>
 
@@ -79,8 +80,9 @@
                     </label>
                 </div>
                 <div id="attributes-list"></div>
-                <p class="attribute-note">Values are calculated for the selected weapon
-                    set. Dynamic Necromancer modifiers resolve during simulation.</p>
+                <p class="attribute-note">Values are calculated for the selected weapon set. The simulation changes
+                    sigil bonuses when weapons are swapped. Boons are applied during simulation,
+                    not baked into the equipment totals above.</p>
             </div>
         </section>
 
@@ -111,9 +113,9 @@
             <div class="panel rotation-panel">
                 <h3>Rotation Builder</h3>
                 <div id="rotation-palette" class="rotation-palette"></div>
-                <p class="palette-hint">Click to queue · <b>Shift+click</b> an
-                    instant-cast skill to fire it during the previous cast ·
-                    <b>Ctrl+click</b> a non-instant skill to interrupt it</p>
+                <p class="palette-hint">Click to queue · <b>Shift+click</b> an instant-cast skill to fire it during
+                    the previous cast · <b>Ctrl+click</b> a non-instant skill to interrupt it · cooldown badges show
+                    the state after the current timeline</p>
                 <div class="rotation-mid">
                     <div class="rotation-tl-label">Rotation</div>
                     <div id="start-att-selector" class="start-att-selector"></div>
@@ -139,6 +141,7 @@
             </div>
             <div id="rotation-results" class="rotation-results"></div>
         </section>
+
     </div>
 
     <script type="module" src="js/app/profession-selector.js"></script>

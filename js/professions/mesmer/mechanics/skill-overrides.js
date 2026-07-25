@@ -1,188 +1,16 @@
 /**
  * Hand-authored additions and corrections layered over the generated skill catalog.
- * Includes measured timings, corrected coefficients, autoattack chain steps,
- * flip/ambush skills, and simulator-only actions.
+ * Includes measured timings, corrected coefficients, flip/ambush skills,
+ * and simulator-only actions.
+ * Defaults belong in skill-defaults.js; final composition belongs in
+ * skill-mechanics.js.
  */
 
 import { AMBUSH_ATTACKS } from "../data/mesmer-illusion-data.js";
-import { INSTRUMENTS, SHATTERS } from "../data/mesmer-profession-data.js";
-
-/**
- * Weapon autoattack chains: progression of skills per weapon type.
- * Each chain has 2-3 skills; can be resumed after casting a different skill (except gap-breakers).
- */
-export const AUTOATTACK_CHAINS = Object.freeze({
-  "Mind Slash": ["Mind Slash", "Mind Gash", "Mind Spike"],
-  "Ether Bolt": ["Ether Bolt", "Ether Blast", "Ether Clone"],
-  "Lacerating Chop": [
-    "Lacerating Chop",
-    "Ethereal Chop",
-    "Mirror Strikes",
-  ],
-  Psycut: ["Psycut", "Psystrike", "Mind Pierce"],
-});
-
-const autoattackChainPositions = new Map(
-  Object.entries(AUTOATTACK_CHAINS).flatMap(([root, names]) =>
-    names.map((name, index) => [name, { root, step: index + 1 }]),
-  ),
-);
-
-const autoattackChainSkill = ({
-  id,
-  name,
-  description,
-  icon,
-  weapon,
-  activation,
-  coefficient,
-  hits = 1,
-  conditions = [],
-  specialization = "",
-  resource = null,
-  ...extra
-}) => ({
-  id,
-  name,
-  description,
-  icon,
-  type: "Weapon",
-  weapon,
-  slot: "Weapon_1",
-  specialization,
-  environment: "Terrestrial",
-  activation,
-  cooldown: 0,
-  damage: [
-    {
-      coefficient,
-      hits,
-      label: "Damage",
-      source: "Player",
-      weapon: weapon.toLowerCase(),
-    },
-  ],
-  conditions,
-  phantasm: false,
-  resource,
-  blade: false,
-  wikiUrl: `https://wiki.guildwars2.com/wiki/${name.replaceAll(" ", "_")}`,
-  ...extra,
-});
-
-export const AUTOATTACK_CHAIN_SKILLS = [
-  autoattackChainSkill({
-    id: 10171,
-    name: "Mind Gash",
-    description: "Chain. Gash your foe to make them vulnerable.",
-    icon:
-      "https://render.guildwars2.com/file/CFFAD1180816A86DC03156B431A0B22C703FEAE4/103189.png",
-    weapon: "Sword",
-    activation: 0.78,
-    coefficient: 1,
-    chainRoot: "Mind Slash",
-    chainStep: 2,
-  }),
-  autoattackChainSkill({
-    id: 10172,
-    name: "Mind Spike",
-    description:
-      "Stab your foe and rip a boon. Deals additional damage to boonless targets.",
-    icon:
-      "https://render.guildwars2.com/file/4C1A68BFFDD61A4147BD41039BB82D0D4F4E766B/103190.png",
-    weapon: "Sword",
-    activation: 1.26,
-    coefficient: 1.5,
-    boonlessCoefficient: 2,
-    chainRoot: "Mind Slash",
-    chainStep: 3,
-  }),
-  autoattackChainSkill({
-    id: 10290,
-    name: "Ether Blast",
-    description: "Chain. Shoot a second bolt of energy at your target.",
-    icon:
-      "https://render.guildwars2.com/file/09C73FBE6CFA6AEFEF9A440AC162F2F5E8227867/103557.png",
-    weapon: "Scepter",
-    activation: 0.78,
-    coefficient: 0.5,
-    conditions: [{ name: "Torment", duration: 6, stacks: 1 }],
-    chainRoot: "Ether Bolt",
-    chainStep: 2,
-  }),
-  autoattackChainSkill({
-    id: 10291,
-    name: "Ether Clone",
-    description:
-      "Damage your target and summon a clone. Inflict torment instead at the clone limit.",
-    icon:
-      "https://render.guildwars2.com/file/66D5114144D3A271C72F48A124CCB70E040F3EE6/103771.png",
-    weapon: "Scepter",
-    activation: 1.26,
-    coefficient: 0.75,
-    resource: { mode: "add", count: 1 },
-    maxCloneConditions: [{ name: "Torment", duration: 9, stacks: 1 }],
-    chainRoot: "Ether Bolt",
-    chainStep: 3,
-  }),
-  autoattackChainSkill({
-    id: 44840,
-    name: "Ethereal Chop",
-    description: "Inflict torment on your target.",
-    icon:
-      "https://render.guildwars2.com/file/257AE20DBC1F5BB232D8F37FED4443065ED10346/1770501.png",
-    weapon: "Axe",
-    activation: 0.795,
-    coefficient: 0.55,
-    conditions: [{ name: "Torment", duration: 2, stacks: 1 }],
-    specialization: "Mirage",
-    chainRoot: "Lacerating Chop",
-    chainStep: 2,
-  }),
-  autoattackChainSkill({
-    id: 41164,
-    name: "Mirror Strikes",
-    description: "Inflict bleeding and torment on your target.",
-    icon:
-      "https://render.guildwars2.com/file/44E70008A846C1A03343996F1F10031966E41F0D/1770502.png",
-    weapon: "Axe",
-    activation: 1.08,
-    coefficient: 1.1,
-    hits: 2,
-    conditions: [
-      { name: "Bleeding", duration: 6, stacks: 1 },
-      { name: "Torment", duration: 6, stacks: 1 },
-    ],
-    specialization: "Mirage",
-    chainRoot: "Lacerating Chop",
-    chainStep: 3,
-  }),
-  autoattackChainSkill({
-    id: 73066,
-    name: "Psystrike",
-    description: "Rend your foe with an upward swing. Gain might per target struck.",
-    icon:
-      "https://render.guildwars2.com/file/0CBE4BCB69A5B2200980B4DC98BC0E6AC25675FC/3379153.png",
-    weapon: "Spear",
-    activation: 0.5,
-    coefficient: 1,
-    chainRoot: "Psycut",
-    chainStep: 2,
-  }),
-  autoattackChainSkill({
-    id: 73095,
-    name: "Mind Pierce",
-    description:
-      "Deliver a finishing thrust, breaking your opponent's mind and inflicting weakness.",
-    icon:
-      "https://render.guildwars2.com/file/3C543ADB3D7EF49DE574040241F1B206B20CB7A0/3379154.png",
-    weapon: "Spear",
-    activation: 0.75,
-    coefficient: 1.5,
-    chainRoot: "Psycut",
-    chainStep: 3,
-  }),
-];
+import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
+import {
+  implemented,
+} from "../../../platform/engine/skill-factories.js";
 
 const flipSkill = ({
   id,
@@ -390,7 +218,6 @@ export const PSEUDO_SKILLS = [
     armedAtStart: true,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Power_Spike",
   },
-  ...AUTOATTACK_CHAIN_SKILLS,
   ...FLIP_SKILLS,
   {
     id: -1,
@@ -428,13 +255,13 @@ export const PSEUDO_SKILLS = [
   },
 ];
 
-const choiceOverrides = {
-  "Winds of Chaos": {
+const overrideDefinitions = {
+  [ID.WINDS_OF_CHAOS]: implemented({
     // Measured at 760 ms with Quickness; store the unmodified cast time
     // because the scheduler applies Quickness separately.
     activation: 1.14,
-  },
-  "Phantasmal Warlock": {
+  }),
+  [ID.PHANTASMAL_WARLOCK]: implemented({
     activation: 1.17,
     damage: [
       {
@@ -446,24 +273,24 @@ const choiceOverrides = {
       },
     ],
     conditions: [{ name: "Torment", duration: 4, stacks: 6 }],
-  },
-  "Phantasmal Duelist": {
+  }),
+  [ID.PHANTASMAL_DUELIST]: implemented({
     activation: 0.81,
     damage: [
       { coefficient: 0.33, hits: 3, label: "Damage", source: "Player", weapon: "pistol" },
       { coefficient: 0.92, hits: 8, label: "Illusion Damage", source: "Phantasm", weapon: "phantasm medium" },
     ],
-  },
-  "Magic Bullet": {
+  }),
+  [ID.MAGIC_BULLET]: implemented({
     // Measured at 440 ms with Quickness.
     activation: 0.66,
-  },
-  "Confusing Images": {
+  }),
+  [ID.CONFUSING_IMAGES]: implemented({
     // Measured at 1850 ms with Quickness.
     activation: 2.775,
     pulseCount: 7,
-  },
-  "Gravity Well": {
+  }),
+  [ID.GRAVITY_WELL]: implemented({
     damage: [
       {
         coefficient: 3.3,
@@ -482,33 +309,33 @@ const choiceOverrides = {
         delay: 3,
       },
     ],
-  },
-  "Ether Bolt": {
+  }),
+  [ID.ETHER_BOLT]: implemented({
     // Measured at 440 ms with Quickness.
     activation: 0.66,
-  },
-  "Mind Slash": {
+  }),
+  [ID.MIND_SLASH]: implemented({
     // Measured at 360 ms with Quickness.
     activation: 0.54,
-  },
-  "Lacerating Chop": {
+  }),
+  [ID.LACERATING_CHOP]: implemented({
     // Measured at 430 ms with Quickness.
     activation: 0.645,
     conditions: [{ name: "Bleeding", duration: 2, stacks: 1 }],
-  },
-  "Lingering Thoughts": {
+  }),
+  [ID.LINGERING_THOUGHTS]: implemented({
     // Measured at 930 ms with Quickness.
     activation: 1.395,
-  },
-  "Axes of Symmetry": {
+  }),
+  [ID.AXES_OF_SYMMETRY]: implemented({
     // Measured at 1020 ms with Quickness.
     activation: 1.53,
-  },
-  "Mind Stab": {
+  }),
+  [ID.MIND_STAB]: implemented({
     // Measured at 360 ms with Quickness.
     activation: 0.54,
-  },
-  "Mind the Gap": {
+  }),
+  [ID.MIND_THE_GAP]: implemented({
     damage: [
       {
         coefficient: 1.92,
@@ -518,12 +345,12 @@ const choiceOverrides = {
         weapon: "spear",
       },
     ],
-  },
-  Psycut: {
+  }),
+  [ID.PSYCUT]: implemented({
     // Psystrike and Mind Pierce now own the rest of the 2.18-second chain.
     activation: 0.93,
-  },
-  "Illusionary Counter": {
+  }),
+  [ID.ILLUSIONARY_COUNTER]: implemented({
     // Damage, torment, and the two clones require a successful block.
     // Activating or manually ending the block against an idle target does not
     // trigger any of them; Counterspell owns the manual flip's effects.
@@ -531,15 +358,15 @@ const choiceOverrides = {
     conditions: [],
     resource: null,
     defaultInterruptMs: 120,
-  },
-  "Signet of the Ether": {
+  }),
+  [ID.SIGNET_OF_THE_ETHER]: implemented({
     // The active heals and resets phantasm cooldowns. Its passive reacts to
     // illusion summons; it does not summon an illusion itself.
     resource: null,
     // Measured at 920 ms with Quickness.
     activation: 1.38,
-  },
-  "Spatial Surge": {
+  }),
+  [ID.SPATIAL_SURGE]: implemented({
     pulseCount: 3,
     damage: [
       {
@@ -549,8 +376,8 @@ const choiceOverrides = {
         source: "Player",
       },
     ],
-  },
-  "Mirror Blade": {
+  }),
+  [ID.MIRROR_BLADE]: implemented({
     damage: [
       {
         coefficient: 2.5,
@@ -585,8 +412,8 @@ const choiceOverrides = {
         delay: 0.9,
       },
     ],
-  },
-  "Phantasmal Disenchanter": {
+  }),
+  [ID.PHANTASMAL_DISENCHANTER]: implemented({
     activation: 1.14,
     damage: [
       {
@@ -597,8 +424,8 @@ const choiceOverrides = {
         weapon: "phantasm medium",
       },
     ],
-  },
-  "Phantasmal Lancer": {
+  }),
+  [ID.PHANTASMAL_LANCER]: implemented({
     // The API currently omits the phantasm flag and clone conversion data.
     phantasm: true,
     resource: { mode: "phantasm", count: 1 },
@@ -618,8 +445,8 @@ const choiceOverrides = {
         weapon: "spear",
       },
     ],
-  },
-  "Phantasmal Swordsman": {
+  }),
+  [ID.PHANTASMAL_SWORDSMAN]: implemented({
     activation: 1.29,
     damage: [
       {
@@ -644,8 +471,8 @@ const choiceOverrides = {
         weapon: "phantasm medium",
       },
     ],
-  },
-  "Phantasmal Mage": {
+  }),
+  [ID.PHANTASMAL_MAGE]: implemented({
     activation: 1.2,
     damage: [
       {
@@ -663,8 +490,8 @@ const choiceOverrides = {
         weapon: "torch",
       },
     ],
-  },
-  "Phantasmal Sharpshooter": {
+  }),
+  [ID.PHANTASMAL_SHARPSHOOTER]: implemented({
     damage: [
       {
         coefficient: 2.28,
@@ -674,8 +501,8 @@ const choiceOverrides = {
         weapon: "rifle",
       },
     ],
-  },
-  "Blurred Frenzy": {
+  }),
+  [ID.BLURRED_FRENZY]: implemented({
     damage: [
       {
         coefficient: 3.6,
@@ -685,8 +512,8 @@ const choiceOverrides = {
         weapon: "sword",
       },
     ],
-  },
-  "Rain of Swords": {
+  }),
+  [ID.RAIN_OF_SWORDS]: implemented({
     damage: [
       {
         coefficient: 6,
@@ -696,8 +523,8 @@ const choiceOverrides = {
         weapon: "utility",
       },
     ],
-  },
-  "Tale of the Tortured Mastermind": {
+  }),
+  [ID.TALE_OF_THE_TORTURED_MASTERMIND]: implemented({
     damage: [
       {
         coefficient: 4,
@@ -707,8 +534,8 @@ const choiceOverrides = {
         weapon: "utility",
       },
     ],
-  },
-  "Well of Action": {
+  }),
+  [ID.WELL_OF_ACTION]: implemented({
     damage: [
       {
         coefficient: 4.5,
@@ -718,8 +545,8 @@ const choiceOverrides = {
         weapon: "utility",
       },
     ],
-  },
-  "Well of Calamity": {
+  }),
+  [ID.WELL_OF_CALAMITY]: implemented({
     damage: [
       {
         coefficient: 3.9,
@@ -738,8 +565,8 @@ const choiceOverrides = {
         delay: 3,
       },
     ],
-  },
-  "Well of Senility": {
+  }),
+  [ID.WELL_OF_SENILITY]: implemented({
     damage: [
       {
         coefficient: 4.5,
@@ -749,8 +576,8 @@ const choiceOverrides = {
         weapon: "utility",
       },
     ],
-  },
-  "Phantasmal Berserker": {
+  }),
+  [ID.PHANTASMAL_BERSERKER]: implemented({
     activation: 0.84,
     damage: [
       {
@@ -768,26 +595,26 @@ const choiceOverrides = {
         weapon: "greatsword",
       },
     ],
-  },
-  "Phantasmal Warden": {
+  }),
+  [ID.PHANTASMAL_WARDEN]: implemented({
     activation: 0.69,
     damage: [
       { coefficient: 1.656, hits: 12, label: "Damage", source: "Phantasm", weapon: "phantasm medium" },
     ],
-  },
-  "Phantasmal Defender": {
+  }),
+  [ID.PHANTASMAL_DEFENDER]: implemented({
     activation: 1.155,
     damage: [
       { coefficient: 0.4, hits: 1, label: "Damage", source: "Phantasm", weapon: "phantasm defender" },
     ],
-  },
-  "Echo of Memory": {
+  }),
+  [ID.ECHO_OF_MEMORY]: implemented({
     activation: 2.46,
     damage: [
       { coefficient: 0.9, hits: 1, label: "Damage", source: "Phantasm", weapon: "phantasm medium" },
     ],
-  },
-  "Chaos Storm": {
+  }),
+  [ID.CHAOS_STORM]: implemented({
     // Measured at 480 ms with Quickness.
     activation: 0.72,
     damage: [
@@ -802,8 +629,8 @@ const choiceOverrides = {
     // Each pulse applies one random condition (Poison/Chill/Weakness).
     // Only Poison deals condition damage; expected value is 6 × (1/3) = 2 stacks.
     conditions: [{ name: "Poisoned", duration: 4, stacks: 2 }],
-  },
-  "Flying Cutter": {
+  }),
+  [ID.FLYING_CUTTER]: implemented({
     damage: [
       {
         coefficient: 0.5,
@@ -822,8 +649,8 @@ const choiceOverrides = {
         source: "Player",
       },
     },
-  },
-  "Unstable Bladestorm": {
+  }),
+  [ID.UNSTABLE_BLADESTORM]: implemented({
     damage: [
       {
         coefficient: 1,
@@ -842,8 +669,8 @@ const choiceOverrides = {
         interval: 1,
       },
     ],
-  },
-  Bladecall: {
+  }),
+  [ID.BLADECALL]: implemented({
     activation: 0.66,
     damage: [
       {
@@ -861,8 +688,8 @@ const choiceOverrides = {
         weapon: "dagger",
       },
     ],
-  },
-  Abstraction: {
+  }),
+  [ID.ABSTRACTION]: implemented({
     damage: [
       {
         coefficient: 2.5,
@@ -872,18 +699,44 @@ const choiceOverrides = {
         weapon: "rifle",
       },
     ],
-  },
+  }),
 };
 
+export const MESMER_SKILL_OVERRIDES = Object.freeze({
+  ...overrideDefinitions,
+  [ID.TROUBADOUR_LINGERING_THOUGHTS]: implemented(
+    overrideDefinitions[ID.LINGERING_THOUGHTS],
+  ),
+  [ID.TROUBADOUR_AXES_OF_SYMMETRY]: implemented(
+    overrideDefinitions[ID.AXES_OF_SYMMETRY],
+  ),
+  [ID.TROUBADOUR_BLADECALL]: implemented(
+    overrideDefinitions[ID.BLADECALL],
+  ),
+});
+
 const handledByEngine = new Set([
-  ...Object.keys(SHATTERS),
-  ...Object.keys(INSTRUMENTS),
-  "Crescendo",
+  ID.MIND_WRACK,
+  ID.CRY_OF_FRUSTRATION,
+  ID.DIVERSION,
+  ID.DISTORTION,
+  ID.SPLIT_SECOND,
+  ID.REWINDER,
+  ID.TIME_SINK,
+  ID.BLADESONG_HARMONY,
+  ID.BLADESONG_SORROW,
+  ID.BLADESONG_DISSONANCE,
+  ID.BLADESONG_DISTORTION,
+  ID.BLADETURN_REQUIEM,
+  ID.CONTINUUM_SPLIT,
+  ID.LIVELY_LUTE,
+  ID.LIVELY_LUTE_ALTERNATE,
+  ID.FLUSTERING_FLUTE,
+  ID.DEAFENING_DRUM,
+  ID.HARMONIOUS_HARP,
+  ID.HARMONIOUS_HARP_ALTERNATE,
+  ID.CRESCENDO,
 ]);
 
-export const skillOverride = (name) => choiceOverrides[name] || {};
-
-export const autoattackChainPosition = (name) =>
-  autoattackChainPositions.get(name);
-
-export const isEngineHandledSkill = (name) => handledByEngine.has(name);
+export const isEngineHandledSkill = skillId =>
+  handledByEngine.has(Number(skillId));

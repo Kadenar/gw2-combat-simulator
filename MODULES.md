@@ -80,6 +80,13 @@ critical traits, and Bloodsong.
 ### Scheduler
 
 - [scheduler.js](js/platform/engine/scheduler.js) — default declarative scheduler and profession-hook dispatcher.
+- [effect-factories.js](js/platform/engine/effect-factories.js) — shared
+  declarative strike, condition, timeline, control, and custom-effect
+  constructors.
+- [skill-factories.js](js/platform/engine/skill-factories.js) — shared
+  canonical skill-mechanic constructors.
+- [autoattack-chains.js](js/platform/engine/autoattack-chains.js) — shared
+  ID-based autoattack-chain discovery and indexing.
 - [scheduler-state.js](js/platform/engine/scheduler-state.js) — profession-neutral mutable state.
 - [cooldown-controller.js](js/platform/engine/cooldown-controller.js) — shared cooldown and ammo state machine.
 - [GW2 scheduler policy](js/platform/gw2/scheduler/policy.js) — Quickness,
@@ -105,10 +112,19 @@ critical traits, and Bloodsong.
 - [clock.js](js/platform/engine/clock.js) — shared floating-point timeline tolerance.
 - [target-state.js](js/platform/gw2/target-state.js) — normalizes target-condition assumptions.
 
-### Mesmer Mechanics (`js/professions/mesmer/mechanics/`)
+### Declarative Profession Mechanics
 
-- [mesmer-skill-normalization.js](js/professions/mesmer/mechanics/mesmer-skill-normalization.js) — canonical Mesmer skill assembly.
-- [mesmer-skill-overrides.js](js/professions/mesmer/mechanics/mesmer-skill-overrides.js) — hand-authored mechanics and catalog corrections.
+Mesmer, Guardian, and Necromancer use the same files for shared concepts:
+
+- `mechanics/skill-defaults.js` — baseline executable skill mechanics.
+- `mechanics/skill-overrides.js` — stable-ID hand-authored exceptions.
+- `mechanics/skill-mechanics.js` — final composed mechanics map.
+- `mechanics/autoattack-chains.js` — autoattack-chain declarations.
+- `mechanics/handlers.js` — imperative runtime handlers, when needed.
+
+### Mesmer-Specific Mechanics
+
+- [autoattack-chains.js](js/professions/mesmer/mechanics/autoattack-chains.js) — shared chain derivation plus Mesmer-specific chain-preservation policy.
 - [illusion-actions.js](js/professions/mesmer/mechanics/illusion-actions.js) — clone attack scheduling.
 - [profession-actions.js](js/professions/mesmer/mechanics/profession-actions.js) — shatters, instruments, and specialization resources.
 - [mirage-actions.js](js/professions/mesmer/mechanics/mirage-actions.js) — Mirage Cloak and ambush behavior.

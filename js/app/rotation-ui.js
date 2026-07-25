@@ -268,6 +268,12 @@ export function weaponPaletteSectionHtml(weaponGroups = [], actionGroup = '') {
         + `style="display:flex;align-items:flex-start;gap:6px">${weapons}${actionGroup}</div>`;
 }
 
+export function autoattackChainSkillAvailable(skill, chainState = {}) {
+    if (!skill.chainRoot) return true;
+    const expected = chainState[skill.chainRoot] ?? skill.chainRoot;
+    return skill.name === expected || skill.id === Number(expected);
+}
+
 export function paletteActionSkills(app, specialization = activeSpecialization(app)) {
     return uniqueByName(app.skills.filter(skill =>
         skill.type === 'Action'
@@ -514,9 +520,7 @@ export function renderPalette(app) {
         if (skill.ambush) return availableAmbush?.name === skill.name;
         if (availableAmbush && skill.slot === 'Weapon_1') return false;
         if ((skill.flipParent || skill.flipParentId != null) && !flipAvailable(skill)) return false;
-        if (!skill.chainRoot) return true;
-        const expected = chainExpected(skill);
-        return skill.name === expected || skill.id === Number(expected);
+        return autoattackChainSkillAvailable(skill, autoattackChains);
     };
     const weaponSkillUnavailableMessage = (skill, weaponSet) => {
         if (weaponSet !== activeWeaponSet) {

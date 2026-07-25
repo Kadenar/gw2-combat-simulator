@@ -4,6 +4,9 @@ import {
     SKILLS,
     SPECIALIZATIONS,
 } from '../js/professions/mesmer/data/mesmer-catalog.js';
+import {
+    SKILLS as GUARDIAN_API_SKILLS,
+} from '../js/professions/guardian/data/guardian-catalog.js';
 import { RELIC_NAMES } from '../js/platform/gw2/gear-data.js';
 import { TRAITS } from '../js/professions/mesmer/data/traits-data.js';
 import {
@@ -20,15 +23,22 @@ import {
 } from '../js/professions/mesmer/data/mesmer-profession-data.js';
 import {
     AMBUSH_SKILLS,
+    MESMER_SKILL_OVERRIDES,
     PSEUDO_SKILLS,
-    skillOverride,
-} from '../js/professions/mesmer/mechanics/mesmer-skill-overrides.js';
+} from '../js/professions/mesmer/mechanics/skill-overrides.js';
 import {
-    BASE_SKILL_DATA_BY_ID,
-} from '../js/professions/mesmer/data/mesmer-skill-mechanics.js';
+    MESMER_AUTOATTACK_CHAINS,
+} from '../js/professions/mesmer/mechanics/autoattack-chains.js';
 import {
-    normalizedSkill,
-} from '../js/professions/mesmer/mechanics/mesmer-skill-normalization.js';
+    MESMER_SKILL_DEFAULTS,
+} from '../js/professions/mesmer/mechanics/skill-defaults.js';
+import {
+    MESMER_SKILL_MECHANICS,
+} from '../js/professions/mesmer/mechanics/skill-mechanics.js';
+import { mesmerCatalog } from '../js/professions/mesmer/catalog.js';
+import { MESMER_SKILL_IDS as ID } from '../js/professions/mesmer/data/ids.js';
+
+const catalogSkill = name => mesmerCatalog.skillsByName.get(name);
 
 test('catalog contains every Mesmer specialization and trait', () => {
     assert.deepEqual(
@@ -36,7 +46,7 @@ test('catalog contains every Mesmer specialization and trait', () => {
         ['Domination', 'Dueling', 'Chaos', 'Inspiration', 'Illusions', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'],
     );
     assert.equal(TRAITS.length, 108);
-    assert.equal(SKILLS.length, 115);
+    assert.equal(SKILLS.length, 123);
     assert.deepEqual(
         SKILLS.filter(skill =>
             ['Arcane Thievery', 'Veil'].includes(skill.name)),
@@ -44,31 +54,65 @@ test('catalog contains every Mesmer specialization and trait', () => {
     );
 });
 
-test('generated skill catalog contains metadata only', () => {
-    const expectedKeys = ['description', 'icon', 'id', 'name', 'slot'];
+test('Mesmer and Guardian API catalogs use the same skill record shape', () => {
+    const expectedKeys = Object.keys(GUARDIAN_API_SKILLS[0]).sort();
     for (const skill of SKILLS) {
         assert.deepEqual(Object.keys(skill).sort(), expectedKeys, skill.name);
     }
 });
 
-test('base skill data does not duplicate authoritative overrides', () => {
+test('Mesmer mechanics and overrides are keyed by stable skill id', () => {
+    assert.equal(
+        Object.entries(MESMER_SKILL_OVERRIDES).every(([id, override]) =>
+            Number.isInteger(Number(id)) && override.implemented === true),
+        true,
+    );
     for (const skill of SKILLS) {
-        const base = BASE_SKILL_DATA_BY_ID[skill.id];
-        assert.ok(base, `${skill.name} is missing simulator-owned base data`);
-        for (const key of Object.keys(skillOverride(skill.name))) {
+        const defaults = MESMER_SKILL_DEFAULTS[skill.id];
+        assert.ok(
+            defaults,
+            `${skill.name} is missing simulator-owned default mechanics`,
+        );
+        assert.equal(
+            MESMER_SKILL_MECHANICS[skill.id]?.implemented,
+            true,
+            skill.name,
+        );
+        for (const key of Object.keys(MESMER_SKILL_OVERRIDES[skill.id] || {})) {
+            if (key === 'implemented') continue;
             assert.equal(
-                Object.hasOwn(base, key),
+                Object.hasOwn(defaults, key),
                 false,
-                `${skill.name}.${key} exists in both base data and overrides`,
+                `${skill.name}.${key} exists in both defaults and overrides`,
             );
         }
     }
+    assert.equal(MESMER_SKILL_OVERRIDES[ID.WINDS_OF_CHAOS].activation, 1.14);
+    assert.equal(MESMER_SKILL_OVERRIDES['Winds of Chaos'], undefined);
+    assert.deepEqual(
+        MESMER_SKILL_OVERRIDES[ID.TROUBADOUR_BLADECALL],
+        MESMER_SKILL_OVERRIDES[ID.BLADECALL],
+    );
+});
+
+test('every Mesmer catalog skill is explicitly implemented', () => {
+    assert.equal(
+        mesmerCatalog.skills.every(skill => skill.implemented === true),
+        true,
+    );
+    assert.equal(
+        mesmerCatalog.skills.every(skill => Array.isArray(skill.effects)),
+        true,
+    );
+    assert.equal(
+        mesmerCatalog.skillsByName.get('Bladecall').id,
+        ID.BLADECALL,
+    );
 });
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
     const excluded = [
         'Brawler',
-        'Dragonhunter',
         'Krait',
         'Weaver',
         'Bloodstone',
@@ -92,7 +136,7 @@ test('each profession variant has a complete mechanic bar', () => {
 
 test('every cataloged phantasm has an attack timing before clone conversion', () => {
     const phantasms = SKILLS
-        .map(normalizedSkill)
+        .map(skill => mesmerCatalog.skillsById.get(skill.id))
         .filter(skill => skill.resource?.mode === 'phantasm');
 
     assert.deepEqual(
@@ -159,7 +203,11 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
         const catalogSkill = SKILLS.find(skill => skill.name === catalogName);
         if (catalogSkill) {
             assert.ok(
-                Math.abs(normalizedSkill(catalogSkill).activation / 1.5 - values[0]) < 1e-12,
+                Math.abs(
+                    mesmerCatalog.skillsById.get(catalogSkill.id).activation
+                    / 1.5
+                    - values[0],
+                ) < 1e-12,
                 `${skillName} has the wrong measured cast time`,
             );
         }
@@ -174,35 +222,42 @@ test('Counterspell is cataloged as Illusionary Counter’s clone-generating flip
 });
 
 test('Illusionary Counter does not grant its successful-block clones on activation', () => {
-    const counter = normalizedSkill(SKILLS.find(skill => skill.name === 'Illusionary Counter'));
+    const counter = catalogSkill('Illusionary Counter');
     assert.equal(counter.resource, null);
 });
 
 test('Signet of the Ether does not generate a clone on activation', () => {
-    const signet = normalizedSkill(SKILLS.find(skill => skill.name === 'Signet of the Ether'));
+    const signet = catalogSkill('Signet of the Ether');
     assert.equal(signet.resource, null);
 });
 
 test('Mesmer weapon autoattacks are cataloged as individual chain skills', () => {
-    const expectedChains = {
-        'Mind Slash': ['Mind Gash', 'Mind Spike'],
-        'Ether Bolt': ['Ether Blast', 'Ether Clone'],
-        'Lacerating Chop': ['Ethereal Chop', 'Mirror Strikes'],
-        Psycut: ['Psystrike', 'Mind Pierce'],
-    };
-    for (const [root, names] of Object.entries(expectedChains)) {
-        const rootSkill = normalizedSkill(SKILLS.find(skill => skill.name === root));
+    const expectedChains = [
+        [ID.MIND_SLASH, ID.MIND_GASH, ID.MIND_SPIKE],
+        [ID.ETHER_BOLT, ID.ETHER_BLAST, ID.ETHER_CLONE],
+        [ID.LACERATING_CHOP, ID.ETHEREAL_CHOP, ID.MIRROR_STRIKES],
+        [ID.PSYCUT, ID.PSYSTRIKE, ID.MIND_PIERCE],
+    ];
+    assert.deepEqual(MESMER_AUTOATTACK_CHAINS, expectedChains);
+    for (const chain of expectedChains) {
+        const [rootId, ...childIds] = chain;
+        const rootSkill = mesmerCatalog.skillsById.get(rootId);
         assert.equal(rootSkill.damage[0].hits, 1);
         assert.notEqual(rootSkill.damage[0].label, 'Full autoattack chain');
-        assert.equal(rootSkill.chainRoot, root);
+        assert.equal(rootSkill.chainRoot, rootId);
         assert.equal(rootSkill.chainStep, 1);
-        assert.deepEqual(
-            PSEUDO_SKILLS
-                .filter(skill => skill.chainRoot === root)
-                .sort((a, b) => a.chainStep - b.chainStep)
-                .map(skill => skill.name),
-            names,
-        );
+        assert.equal(rootSkill.nextChainId, childIds[0]);
+        chain.forEach((skillId, index) => {
+            const nextChainId = chain[index + 1] ?? null;
+            assert.equal(
+                SKILLS.find(skill => skill.id === skillId).nextChainId,
+                nextChainId,
+            );
+            assert.equal(
+                mesmerCatalog.skillsById.get(skillId).nextChainId,
+                nextChainId,
+            );
+        });
     }
 });
 
@@ -277,11 +332,7 @@ test('Mirage ambush data uses current player and clone variants', () => {
 });
 
 test('supplied player and clone coefficient table is preserved', () => {
-    const normalized = name =>
-        normalizedSkill(
-            SKILLS.find(skill => skill.name === name)
-            || PSEUDO_SKILLS.find(skill => skill.name === name),
-        );
+    const normalized = catalogSkill;
     const totalCoefficient = skill =>
         skill.damage.reduce((sum, group) => sum + group.coefficient, 0);
     const playerSkills = [
@@ -328,11 +379,7 @@ test('supplied player and clone coefficient table is preserved', () => {
 });
 
 test('supplied utility, spear, staff, and phantasm coefficients are preserved', () => {
-    const normalized = name =>
-        normalizedSkill(
-            SKILLS.find(skill => skill.name === name)
-            || PSEUDO_SKILLS.find(skill => skill.name === name),
-        );
+    const normalized = catalogSkill;
     const effectiveCoefficient = skill => {
         const phantasmCount = Number(skill.resource?.count || 1);
         return skill.damage.reduce(
@@ -416,11 +463,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
 });
 
 test('latest supplied weapon, clone, ambush, and trait coefficients are preserved', () => {
-    const normalized = name =>
-        normalizedSkill(
-            SKILLS.find(skill => skill.name === name)
-            || PSEUDO_SKILLS.find(skill => skill.name === name),
-        );
+    const normalized = catalogSkill;
     const totalCoefficient = name =>
         normalized(name).damage.reduce(
             (sum, group) => sum + group.coefficient,

@@ -1,12 +1,6 @@
 import {
-  WEAPON_DATA,
-  createProfessionWeaponData,
-  RELIC_NAMES,
-} from "../../../platform/gw2/gear-data.js";
-import {
-  renderResults,
-  renderRotationBuilder,
-} from "../../../app/rotation-ui.js";
+  createGw2AppAdapter,
+} from "../../../app/create-app-adapter.js";
 import {
   createDefaultTargetConditions,
   toApplicationBuild,
@@ -20,27 +14,17 @@ import {
   runSimulation,
 } from "./app-runtime.js";
 
-const professionWeapons = createProfessionWeaponData(
-  guardianProfession.catalog,
-  { weaponData: WEAPON_DATA },
-);
-
-export const guardianAppAdapter = Object.freeze({
-  id: guardianProfession.id,
-  name: guardianProfession.name,
+export const guardianAppAdapter = createGw2AppAdapter({
   profession: guardianProfession,
   storageKey: "gw2-guardian-simulator-v3",
   globalName: "guardianApp",
-  filenames: Object.freeze({
+  filenames: {
     build: "guardian-build.json",
     rotation: "guardian-rotation.json",
     eventLog: "guardian-event-log.csv",
-  }),
+  },
   resetPrompt: "Reset the Guardian build, skills, and rotation?",
   specializationFallback: "Zeal",
-  specializations: guardianProfession.catalog.specializations,
-  weaponData: professionWeapons,
-  relicNames: RELIC_NAMES,
   createDefaultTargetConditions,
   toApplicationBuild,
   eliteSpecialization,
@@ -48,8 +32,6 @@ export const guardianAppAdapter = Object.freeze({
   runSimulation,
   modifierContributionRequest,
   calculateModifierContributions,
-  renderResults,
-  renderRotationBuilder,
   isSkillAvailable(skill, { specialization } = {}) {
     if (skill.implemented === false || skill.simulatorExcluded) return false;
     if (skill.type === "Weapon") return true;
@@ -59,5 +41,3 @@ export const guardianAppAdapter = Object.freeze({
     return offHands.includes("Focus") ? "Focus" : offHands[0] || "";
   },
 });
-
-export default guardianAppAdapter;

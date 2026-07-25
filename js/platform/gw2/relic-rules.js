@@ -29,6 +29,8 @@ export function relicStrikeMultiplier(ctx, event) {
     case "Peitha":
       if (relic.buffUntil <= at) return 1;
       return config.relic === "Peitha" ? 1.1 : 1.07;
+    case "Dragonhunter":
+      return relic.buffUntil > at ? 1.1 : 1;
     case "Eagle": {
       const targetHealth = Number(config.target?.health || 0);
       return targetHealth > 0
@@ -118,6 +120,33 @@ export function handleRelicsAfterHit(ctx, event, skill) {
       );
     }
   }
+  if (
+    ctx.config.relic === "Dragonhunter"
+    && isGw2PlayerActorEvent(event)
+    && skill?.categories?.includes("Trap")
+  ) {
+    const wasActive = ctx.relic.buffUntil > event.at;
+    ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 5);
+    ctx.recordProc(
+      "relic",
+      "Relic of the Dragonhunter",
+      event.at,
+      event.skillName,
+      wasActive ? "refreshed" : "activated",
+    );
+  }
+}
+
+/**
+ * Condition-duration bonus from active relics (fraction, e.g. 0.1 = +10%).
+ * - Dragonhunter: +10% while the trap buff is active (5s after a trap hit).
+ * @param {Object} ctx - Resolver context
+ * @param {number} at - Application time
+ * @returns {number} Additive condition-duration bonus
+ */
+export function relicConditionDurationBonus(ctx, at) {
+  if (!ctx || ctx.config?.relic !== "Dragonhunter") return 0;
+  return ctx.relic?.buffUntil > at ? 0.1 : 0;
 }
 
 function maybeTriggerAkeem(

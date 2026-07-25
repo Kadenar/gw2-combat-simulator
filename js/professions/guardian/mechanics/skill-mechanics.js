@@ -1,8 +1,12 @@
-import { INFERRED_GUARDIAN_SKILL_MECHANICS } from "./skill-inference.js";
+/**
+ * Final ID-keyed mechanics map consumed by the profession catalog.
+ */
+
+import { GUARDIAN_SKILL_DEFAULTS } from "./skill-defaults.js";
 import { GUARDIAN_SKILL_OVERRIDES } from "./skill-overrides.js";
 
 export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
-  ...INFERRED_GUARDIAN_SKILL_MECHANICS,
+  ...GUARDIAN_SKILL_DEFAULTS,
   ...GUARDIAN_SKILL_OVERRIDES,
 });
 

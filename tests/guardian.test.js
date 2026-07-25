@@ -10,7 +10,6 @@ import {
 } from "../js/professions/guardian/build.js";
 import {
   guardianCatalog,
-  GUARDIAN_SKILL_IDS,
 } from "../js/professions/guardian/catalog.js";
 import {
   DATA_SNAPSHOT,
@@ -18,7 +17,10 @@ import {
 import {
   guardianProfession,
 } from "../js/professions/guardian/definition.js";
-import { GUARDIAN_TRAIT_IDS } from "../js/professions/guardian/ids.js";
+import {
+  GUARDIAN_SKILL_IDS,
+  GUARDIAN_TRAIT_IDS,
+} from "../js/professions/guardian/data/ids.js";
 
 const config = {
   stats: {
@@ -94,13 +96,235 @@ test("Justice passive counts individual hits and respects its active cooldown", 
     },
   });
 
-  assert.equal(passive.endState.profession.justicePassiveBurns, 1);
-  assert.equal(passive.endState.profession.justiceHitCount, 3);
+  assert.equal(passive.endState.profession.justicePassiveBurns, 2);
+  assert.equal(passive.endState.profession.justiceHitCount, 4);
   assert.equal(activated.endState.profession.justiceActiveBurns, 1);
   assert.equal(activated.endState.profession.justicePassiveBurns, 0);
   assert.equal(activated.endState.profession.virtueReadyAt.justice, 20);
-  assert.equal(permeating.endState.profession.justicePassiveBurns, 2);
+  assert.equal(permeating.endState.profession.justicePassiveBurns, 4);
   assert.equal(permeating.endState.profession.justiceHitCount, 2);
+});
+
+test("Guardian greatsword uses the reference cast and strike profiles", () => {
+  const simulate = quickness => simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Strike",
+      "Vengeful Strike",
+      "Wrathful Strike",
+      "Whirling Wrath",
+      "Leap of Faith",
+      "Symbol of Resolution",
+      "Binding Blade",
+      { type: "wait", durationMs: 5000 },
+    ],
+    config: {
+      ...config,
+      boons: { quickness },
+      primaryWeapon: "Greatsword",
+    },
+  });
+  const profile = (result, skillName) => {
+    const action = result.events.find(event =>
+      event.type === "action" && event.skillName === skillName);
+    return {
+      cast: Math.round((action.endsAt - action.at) * 1000),
+      ticks: result.resolvedEvents
+        .filter(event =>
+          event.type === "damage" && event.skillName === skillName)
+        .map(event => Math.round((event.at - action.at) * 1000)),
+      coefficient: Number(result.resolvedEvents
+        .filter(event =>
+          event.type === "damage" && event.skillName === skillName)
+        .reduce((sum, event) => sum + event.coefficient, 0)
+        .toFixed(4)),
+    };
+  };
+  const normal = simulate(false);
+  const quick = simulate(true);
+
+  assert.deepEqual(
+    ["Strike", "Vengeful Strike", "Wrathful Strike"]
+      .map(name => profile(normal, name).cast),
+    [600, 840, 1000],
+  );
+  assert.deepEqual(
+    ["Strike", "Vengeful Strike", "Wrathful Strike"]
+      .map(name => profile(quick, name).cast),
+    [400, 600, 680],
+  );
+  assert.deepEqual(profile(normal, "Whirling Wrath"), {
+    cast: 2200,
+    ticks: [
+      157, 314, 471, 628, 785, 942, 1099,
+      1257, 1414, 1571, 1728, 1885, 2042, 2200,
+    ],
+    coefficient: 5.775,
+  });
+  assert.deepEqual(profile(quick, "Whirling Wrath"), {
+    cast: 1480,
+    ticks: [
+      106, 211, 317, 422, 528, 634, 739,
+      846, 951, 1057, 1162, 1268, 1374, 1480,
+    ],
+    coefficient: 5.775,
+  });
+  assert.deepEqual(profile(quick, "Leap of Faith"), {
+    cast: 720,
+    ticks: [720],
+    coefficient: 2,
+  });
+  assert.deepEqual(profile(quick, "Symbol of Resolution"), {
+    cast: 280,
+    ticks: [280, 1280, 2280, 3280, 4280],
+    coefficient: 3.4,
+  });
+  assert.deepEqual(profile(quick, "Binding Blade"), {
+    cast: 480,
+    ticks: [480],
+    coefficient: 2.5,
+  });
+});
+
+test("Guardian utilities and traps use the reference damage timelines", () => {
+  const skillNames = [
+    "Sword of Justice",
+    "Procession of Blades",
+    "Bane Signet",
+    "Dragon's Maw",
+    "Purification",
+    "Test of Faith",
+  ];
+  const simulate = quickness => simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      ...skillNames,
+      { type: "wait", durationMs: 5000 },
+    ],
+    config: {
+      ...config,
+      boons: { quickness },
+      specialization: "Dragonhunter",
+    },
+  });
+  const profiles = result => Object.fromEntries(skillNames.map(skillName => {
+    const action = result.events.find(event =>
+      event.type === "action" && event.skillName === skillName);
+    const damage = result.resolvedEvents.filter(event =>
+      event.type === "damage" && event.skillName === skillName);
+    return [skillName, {
+      cast: Math.round((action.endsAt - action.at) * 1000),
+      ticks: damage.map(event =>
+        Math.round((event.at - action.at) * 1000)),
+      coefficient: Number(damage
+        .reduce((sum, event) => sum + event.coefficient, 0)
+        .toFixed(4)),
+    }];
+  }));
+  const normal = profiles(simulate(false));
+  const quick = profiles(simulate(true));
+
+  assert.deepEqual(
+    skillNames.map(name => normal[name].cast),
+    [900, 660, 750, 660, 660, 0],
+  );
+  assert.deepEqual(
+    skillNames.map(name => quick[name].cast),
+    [600, 440, 500, 440, 600, 0],
+  );
+  assert.deepEqual(quick["Sword of Justice"], {
+    cast: 600,
+    ticks: [650, 1050, 1450, 1850],
+    coefficient: 3.2,
+  });
+  assert.deepEqual(quick["Procession of Blades"], {
+    cast: 440,
+    ticks: [
+      1280, 1560, 1840, 2120, 2400,
+      2680, 2960, 3240, 3520, 3800,
+    ],
+    coefficient: 4.4,
+  });
+  assert.deepEqual(quick["Bane Signet"], {
+    cast: 500,
+    ticks: [500],
+    coefficient: 1,
+  });
+  assert.deepEqual(quick["Dragon's Maw"], {
+    cast: 440,
+    ticks: [500],
+    coefficient: 3.6,
+  });
+  assert.deepEqual(quick.Purification, {
+    cast: 600,
+    ticks: [500],
+    coefficient: 0.1875,
+  });
+  assert.deepEqual(quick["Test of Faith"], {
+    cast: 0,
+    ticks: [500],
+    coefficient: 1.4,
+  });
+});
+
+test("Spear Helio Rush arms Illuminated and enhances the next spear skill", () => {
+  const spearConfig = { ...config, primaryWeapon: "Spear" };
+
+  const helioAlone = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Helio Rush"],
+    config: spearConfig,
+  });
+  const gleamingAlone = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Gleaming Disc"],
+    config: spearConfig,
+  });
+  const combo = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Helio Rush", "Gleaming Disc"],
+    config: spearConfig,
+  });
+
+  // Helio Rush is not illuminated itself but arms the buff for the next attack.
+  assert.equal(helioAlone.endState.profession.spearIlluminatedArmed, true);
+  assert.equal(
+    helioAlone.procSteps.some(step => step.skill === "Illuminated"),
+    false,
+  );
+  assert.equal(
+    gleamingAlone.procSteps.some(step => step.skill === "Illuminated"),
+    false,
+  );
+
+  // The armed buff makes Gleaming Disc illuminated: an "Illuminated" proc fires
+  // and the combo out-damages the two skills cast in isolation.
+  const illuminated = combo.procSteps.filter(step => step.skill === "Illuminated");
+  assert.equal(illuminated.length, 1);
+  assert.equal(illuminated[0].sourceSkill, "Gleaming Disc");
+  assert.ok(
+    combo.strikeDamage
+      > helioAlone.strikeDamage + gleamingAlone.strikeDamage + 1,
+  );
+});
+
+test("Spear Symbol of Luminance keeps all spear skills illuminated while active", () => {
+  const spearConfig = { ...config, primaryWeapon: "Spear" };
+
+  const symbolThenHelio = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Symbol of Luminance", "Helio Rush"],
+    config: spearConfig,
+  });
+
+  // The window empowers Helio Rush even though nothing armed it beforehand.
+  assert.ok(symbolThenHelio.endState.profession.spearLuminanceUntil > 0);
+  assert.equal(
+    symbolThenHelio.procSteps.some(
+      step => step.skill === "Illuminated" && step.sourceSkill === "Helio Rush",
+    ),
+    true,
+  );
 });
 
 test("Guardian swaps weapons and exposes profession palette groups", () => {
@@ -347,7 +571,7 @@ test("Guardian timing applies Quickness, Alacrity, ammo, and trait recharge", ()
     config: { ...config, primaryWeapon: "Pistol" },
   });
 
-  assert.equal(quick.endState.time, 333);
+  assert.equal(quick.endState.time, 360);
   assert.equal(
     alacrity.endState.cooldowns["Virtue of Justice"].readyAt,
     16000,

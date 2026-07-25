@@ -5,7 +5,6 @@ import {
   RELIC_NAMES,
 } from "../../platform/gw2/gear-data.js";
 import {
-  DEFAULT_WEAPON_SIGILS,
   normalizeWeaponSigils,
 } from "../../platform/gw2/weapon-sigils.js";
 import {
@@ -44,15 +43,31 @@ export function createGuardianBuildDefaults() {
   return {
     schemaVersion: GUARDIAN_BUILD_SCHEMA_VERSION,
     profession: GUARDIAN_PROFESSION_ID,
-    gear: Object.fromEntries(
-      GEAR_SLOTS.map(slot => [slot, "Berserker's"]),
-    ),
-    weapons: ["Greatsword", ""],
-    alternateWeapons: ["Sword", "Focus"],
+    gear: {
+      Helm: "Berserker's",
+      Shoulders: "Berserker's",
+      Chest: "Dragon's",
+      Gloves: "Berserker's",
+      Leggins: "Dragon's",
+      Boots: "Berserker's",
+      Amulet: "Dragon's",
+      Ring1: "Dragon's",
+      Ring2: "Dragon's",
+      Accessory1: "Berserker's",
+      Accessory2: "Berserker's",
+      Back: "Dragon's",
+      Weapon1: "Berserker's",
+      Weapon2: "Berserker's",
+    },
+    weapons: ["Spear", ""],
+    alternateWeapons: ["Greatsword", ""],
     rune: "Dragonhunter",
-    weaponSigils: normalizeWeaponSigils(DEFAULT_WEAPON_SIGILS),
-    relic: "Thief",
-    food: "Bowl of Sweet and Spicy Butternut Squash Soup",
+    weaponSigils: normalizeWeaponSigils([
+      ["Force", "Impact"],
+      ["Force", "Impact"],
+    ]),
+    relic: "Dragonhunter",
+    food: "Cilantro Lime Sous-Vide Steak",
     utility: "Superior Sharpening Stone",
     jadeBotCore: true,
     infusions: [
@@ -61,16 +76,16 @@ export function createGuardianBuildDefaults() {
       { stat: "Condition Damage", count: 0 },
     ],
     specializations: [
+      { name: "Radiance", traits: "3-3-3" },
       { name: "Zeal", traits: "2-2-3" },
-      { name: "Radiance", traits: "2-3-3" },
-      { name: "Dragonhunter", traits: "1-2-2" },
+      { name: "Dragonhunter", traits: "1-2-3" },
     ],
     selectedSkills: {
-      Heal: "Litany of Wrath",
-      Utility1: "Sword of Justice",
-      Utility2: "Procession of Blades",
+      Heal: "Purification",
+      Utility1: "Procession of Blades",
+      Utility2: "Sword of Justice",
       Utility3: "Bane Signet",
-      Elite: "\"Feel My Wrath!\"",
+      Elite: "Dragon's Maw",
     },
     assumptions: {
       might: 25,

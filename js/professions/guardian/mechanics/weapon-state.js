@@ -1,16 +1,13 @@
-import { GUARDIAN_SKILL_IDS } from "../ids.js";
+import { GUARDIAN_SKILL_IDS } from "../data/ids.js";
 import { GUARDIAN_AUTOATTACK_CHAINS } from "./autoattack-chains.js";
 import { emitGuardianEvent } from "./events.js";
+import {
+  indexAutoattackChains,
+} from "../../../platform/engine/autoattack-chains.js";
 
-const CHAIN_POSITION_BY_SKILL_ID = new Map();
-for (const chain of GUARDIAN_AUTOATTACK_CHAINS) {
-  chain.forEach((skillId, index) => {
-    CHAIN_POSITION_BY_SKILL_ID.set(skillId, {
-      root: chain[0],
-      next: chain[index + 1] ?? null,
-    });
-  });
-}
+const CHAIN_POSITION_BY_SKILL_ID = indexAutoattackChains(
+  GUARDIAN_AUTOATTACK_CHAINS,
+);
 
 export function validateWeaponState(context, skill) {
   if (
