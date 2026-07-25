@@ -319,6 +319,9 @@ export const RUNE_GROUPS = [
 // isConverted: true  → stats feed into the conversion pool (subject to utility/trait conversions)
 // isConverted: false → stats applied after conversions as flat buffs
 // durations: percentage bonuses stored as numbers
+export const NOURISHMENT_ICON =
+    'https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png';
+
 export const FOOD_DATA = {
     'Plate of Jerk Poultry': { isConverted: true, stats: { Power: 150 }, durations: {} },
     'Plate of Truffle Steak': { isConverted: true, stats: { Power: 100, Precision: 70 }, durations: {} },

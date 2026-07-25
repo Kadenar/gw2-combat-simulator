@@ -554,6 +554,7 @@ export function renderTimeline(app) {
     element.classList.remove('is-empty');
     const steps = new Map((app.results?.steps || []).filter(step => step.ri >= 0).map(step => [step.ri, step]));
     const rows = timelineWeaponRows(app.build.rotation);
+    const formatTime = timeMs => formatResultTimelineTime(timeMs, app.results);
 
     const continuumEnds = continuumEndTimelineMarkers(
         app.results,
@@ -566,7 +567,7 @@ export function renderTimeline(app) {
         continuumEndsByIndex.set(marker.insertionIndex, markers);
     }
     const renderContinuumEnd = marker => {
-        const time = `${(marker.start / 1000).toFixed(2)}s`;
+        const time = formatTime(marker.start);
         const detail = [
             'Continuum Shift',
             `Continuum Split ended automatically at ${time}`,
@@ -599,10 +600,10 @@ export function renderTimeline(app) {
                 : item.name === '__combat_start'
                     ? COMBAT_START_ICON
                     : skill?.icon || ACTION_ICONS[skill?.name] || PLACEHOLDER_ICON;
-            const time = step && !invalid ? `${(step.start / 1000).toFixed(2)}s` : '';
+            const time = step && !invalid ? formatTime(step.start) : '';
             const titleSuffix = invalid
                 ? `\n${step.invalidReason || 'Not valid here — will not be simulated'}`
-                : step ? `\nCast: ${(step.start / 1000).toFixed(2)}s → ${(step.end / 1000).toFixed(2)}s` : '';
+                : step ? `\nCast: ${formatTime(step.start)} → ${formatTime(step.end)}` : '';
             rowItems.push(`<div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}" draggable="true"
                     data-idx="${index}" title="${esc(display)}${titleSuffix}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
@@ -655,7 +656,7 @@ export function renderTimeline(app) {
             const type = proc.type === 'relic_proc'
                 ? 'Relic'
                 : proc.type === 'skill_proc' ? 'Skill' : 'Trait';
-            const time = `${(proc.start / 1000).toFixed(2)}s`;
+            const time = formatTime(proc.start);
             const detail = [
                 proc.skill,
                 `${type} proc at ${time}`,
@@ -709,7 +710,33 @@ export function renderTimeline(app) {
 }
 
 export function resultSummaryMetrics(result) {
-    return transformResultSummaryMetrics(result);
+    const referenceSeconds = resultCombatReferenceMs(result) / 1000;
+    if (referenceSeconds <= 0) {
+        return transformResultSummaryMetrics(result);
+    }
+    return transformResultSummaryMetrics({
+        ...result,
+        duration: Math.max(0, Number(result?.duration || 0) - referenceSeconds),
+        deathTime: result?.deathTime == null
+            ? null
+            : Math.max(0, Number(result.deathTime) - referenceSeconds),
+    });
+}
+
+export function resultCombatReferenceMs(result) {
+    const marker = result?.events?.find(event => event.type === 'combat_start');
+    if (!marker) return 0;
+    const firstHitTime = result?.firstHitTime;
+    return firstHitTime != null && Number.isFinite(Number(firstHitTime))
+        ? Number(firstHitTime) * 1000
+        : Number(marker.at || 0) * 1000;
+}
+
+export function formatResultTimelineTime(timeMs, result, digits = 2) {
+    const precision = 10 ** digits;
+    const seconds = (Number(timeMs || 0) - resultCombatReferenceMs(result)) / 1000;
+    const normalized = Math.abs(seconds) < (0.5 / precision) ? 0 : seconds;
+    return `${normalized.toFixed(digits)}s`;
 }
 
 const baseBreakdownName = name => String(name || '').split('—')[0].trim();

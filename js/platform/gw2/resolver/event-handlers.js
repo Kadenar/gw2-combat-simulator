@@ -1,6 +1,10 @@
 import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
-import { FOOD_DATA, SIGIL_PROCS } from "../gear-data.js";
+import {
+  FOOD_DATA,
+  NOURISHMENT_ICON,
+  SIGIL_PROCS,
+} from "../gear-data.js";
 import {
   applyMistStranger,
   handleControlRelics,
@@ -142,7 +146,14 @@ function handleCriticalFood(ctx, event, hitContext) {
     noCrit: true,
     triggeredBy: event.skillName,
   });
-  ctx.recordProc("food", proc.name, event.at, event.skillName);
+  ctx.recordProc(
+    "food",
+    proc.name,
+    event.at,
+    event.skillName,
+    "",
+    NOURISHMENT_ICON,
+  );
 }
 
 function consumeDoom(ctx, event, applyCondition) {

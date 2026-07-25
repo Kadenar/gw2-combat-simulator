@@ -194,6 +194,70 @@ test("normalized commands migrate legacy casts, waits, concurrency, and interrup
   ]);
 });
 
+test("normalized commands preserve delayed combat-start offsets", () => {
+  assert.deepEqual(normalizeRotation([
+    "Fixture Slash",
+    { name: "__combat_start", offset: 100 },
+  ], testProfession.catalog), [
+    { type: "cast", skillId: 900001 },
+    { type: "combat-start", concurrentOffsetMs: 100 },
+  ]);
+});
+
+test("generic simulation starts combat at a delayed marker within a cast", () => {
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: [
+      "Fixture Slash",
+      { name: "__combat_start", offset: 100 },
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: {
+      attributes: {
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 0,
+      },
+      target: { armor: 2597 },
+      weaponStrength: 1000,
+    },
+  });
+  const marker = result.events.find(event => event.type === "combat_start");
+
+  assert.equal(marker.at, 0.1);
+  assert.equal(result.firstHitTime, 1);
+  assert.equal(result.dpsStartTime, 1);
+  assert.equal(result.dpsWindow, 1);
+  assert.equal(result.dps, result.totalDamage);
+});
+
+test("generic simulation uses the first hit after a standalone combat marker", () => {
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: [
+      "__combat_start",
+      "Fixture Slash",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: {
+      attributes: {
+        power: 1000,
+        precision: 1000,
+        ferocity: 0,
+        conditionDamage: 0,
+      },
+      target: { armor: 2597 },
+      weaponStrength: 1000,
+    },
+  });
+
+  assert.equal(result.firstHitTime, 1);
+  assert.equal(result.dpsStartTime, result.firstHitTime);
+  assert.equal(result.dpsWindow, 1);
+  assert.equal(result.dps, result.totalDamage);
+});
+
 test("concurrent and interrupted casts are first-class scheduler commands", () => {
   const scheduler = createScheduler({ profession: testProfession });
   const result = scheduler.run([

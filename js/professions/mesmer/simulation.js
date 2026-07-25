@@ -564,7 +564,10 @@ export function simulateSequence(rotation, userConfig = {}) {
     const item = { ...sequence[ri] };
 
     if (item.name === "__combat_start") {
-      const combatStart = scheduler.state.time;
+      const delayed = item.offset != null && ri > 0;
+      const combatStart = delayed
+        ? previousDisplayStart + Math.max(1, Number(item.offset)) / 1000
+        : scheduler.state.time;
       scheduler.state.profession.hasExplicitCombatStart = true;
       scheduler.state.profession.combatStartTime = combatStart;
       scheduler.events.push({ type: "combat_start", at: combatStart });
