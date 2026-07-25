@@ -1,7 +1,7 @@
 // ─── Static GW2 Data ───────────────────────────────────────────────────────
 // Ascended Guild Wars 2 stat values, validated against Discretize Gear Optimizer.
-// Weapon entries describe common wielding and strength metadata. Profession
-// modules decide which entries are available to a build.
+// Weapon entries describe family strength and broad hand capability. Profession
+// catalogs own their exact hand availability.
 
 export const GEAR_SLOTS = [
     'Helm', 'Shoulders', 'Chest', 'Gloves', 'Leggins', 'Boots',
@@ -319,6 +319,9 @@ export const RUNE_GROUPS = [
 // isConverted: true  → stats feed into the conversion pool (subject to utility/trait conversions)
 // isConverted: false → stats applied after conversions as flat buffs
 // durations: percentage bonuses stored as numbers
+export const NOURISHMENT_ICON =
+    'https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png';
+
 export const FOOD_DATA = {
     'Plate of Jerk Poultry': { isConverted: true, stats: { Power: 150 }, durations: {} },
     'Plate of Truffle Steak': { isConverted: true, stats: { Power: 100, Precision: 70 }, durations: {} },
@@ -435,20 +438,25 @@ export const UTILITY_NAMES = sortNames(Object.keys(UTILITY_DATA));
 // wielding: 'mh' = main-hand only, 'oh' = off-hand only,
 //           'mh+oh' = either hand, '2h' = two-handed, '-' = special
 export const WEAPON_DATA = {
-    // Main-hand only
-    Axe: { wielding: 'mh', weaponStrength: 1000 },
-    Dagger: { wielding: 'mh', weaponStrength: 1000 },
+    // Broadly available in either hand; profession catalogs narrow these.
+    Axe: { wielding: 'mh+oh', weaponStrength: 1000 },
+    Dagger: { wielding: 'mh+oh', weaponStrength: 1000 },
+    Mace: { wielding: 'mh+oh', weaponStrength: 1000 },
     Scepter: { wielding: 'mh', weaponStrength: 1000 },
     // Main-hand or off-hand
     Sword: { wielding: 'mh+oh', weaponStrength: 1000 },
     // Off-hand only
     Focus: { wielding: 'oh', weaponStrength: 900 },
-    Pistol: { wielding: 'oh', weaponStrength: 1000 },
+    Pistol: { wielding: 'mh+oh', weaponStrength: 1000 },
     Shield: { wielding: 'oh', weaponStrength: 900 },
     Torch: { wielding: 'oh', weaponStrength: 900 },
+    Warhorn: { wielding: 'oh', weaponStrength: 900 },
     // Two-handed
     Greatsword: { wielding: '2h', weaponStrength: 1100 },
+    Hammer: { wielding: '2h', weaponStrength: 1100 },
+    Longbow: { wielding: '2h', weaponStrength: 1000 },
     Rifle: { wielding: '2h', weaponStrength: 1150 },
+    Shortbow: { wielding: '2h', weaponStrength: 1000 },
     Spear: { wielding: '2h', weaponStrength: 1000 },
     Staff: { wielding: '2h', weaponStrength: 1100 },
     // Special / internal
@@ -560,17 +568,93 @@ export const SIGIL_PROCS = Object.freeze({
 // Proc logic is implemented by the standalone runtime resolver.
 // This list controls which relics are available in the UI.
 export const RELIC_DATA = {
-    Akeem: { trigger: 'CC enemy with 5+ Torment/Confusion stacks', cooldown: 10 },
-    Fireworks: { trigger: 'Use weapon skill (CD ≥20s)', cooldown: 0 },
+    Akeem: {
+        trigger: 'CC enemy with 5+ Torment/Confusion stacks',
+        cooldown: 10,
+        icon: 'https://render.guildwars2.com/file/594C437E9606A167F4F372BCEB0C2B7C7828037B/3122330.png',
+    },
+    Fireworks: {
+        trigger: 'Use weapon skill (CD ≥20s)',
+        cooldown: 0,
+        icon: 'https://render.guildwars2.com/file/2999CCF7C94267B2EE3DDA7459050864622927C9/3122349.png',
+    },
     Mistburn: { trigger: 'At least 10 Might stacks', cooldown: 0 },
     'Mist Stranger': { trigger: 'Extra flat damage on every hit', cooldown: 0 },
-    Peitha: { trigger: 'Shadowstep or deception skill', cooldown: 4 },
-    Aristocracy: { trigger: 'Apply weakness or vulnerability', cooldown: 1 },
-    Claw: { trigger: 'CC enemy', cooldown: 0 },
-    Eagle: { trigger: 'Enemy below 50% HP', cooldown: 0 },
-    Fractal: { trigger: 'Apply bleeding on enemy with 6+ bleed stacks', cooldown: 20 },
-    Thorns: { trigger: 'Gain Condition Damage when struck by enemies', cooldown: 5 },
-    Thief: { trigger: 'Use weapon skill with CD or resource cost', cooldown: 0 },
+    Peitha: {
+        trigger: 'Shadowstep or deception skill',
+        cooldown: 4,
+        icon: 'https://render.guildwars2.com/file/949A6A4179F514FCDEF3AC3D9C292B38D5E0047D/3122365.png',
+    },
+    Aristocracy: {
+        trigger: 'Apply weakness or vulnerability',
+        cooldown: 1,
+        icon: 'https://render.guildwars2.com/file/BCC01F0B6616FE26ED4BE159532A6A6FBD0EA2D8/3122332.png',
+    },
+    Claw: {
+        trigger: 'CC enemy',
+        cooldown: 0,
+        icon: 'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
+    },
+    Eagle: {
+        trigger: 'Enemy below 50% HP',
+        cooldown: 0,
+        icon: 'https://render.guildwars2.com/file/DFF4EB43AD0803F60D105658052321A0BE1AF02C/3592832.png',
+    },
+    Fractal: {
+        trigger: 'Apply bleeding on enemy with 6+ bleed stacks',
+        cooldown: 20,
+        icon: 'https://render.guildwars2.com/file/B2D409644147BF18935A95A52505ABCB9EECE142/3122351.png',
+    },
+    Thorns: {
+        trigger: 'Gain Condition Damage when struck by enemies',
+        cooldown: 5,
+        icon: 'https://wiki.guildwars2.com/images/8/8a/Relic_of_Thorns.png',
+    },
+    Thief: {
+        trigger: 'Use weapon skill with CD or resource cost',
+        cooldown: 0,
+        icon: 'https://render.guildwars2.com/file/3523AC08EB04347CF371E9A91F4B985D12FB4ED3/3122371.png',
+    },
 };
+
+function derivedProfessionWielding(catalog, weapon, fallback) {
+    const explicit = catalog?.weaponHands?.get?.(weapon);
+    if (explicit) return explicit;
+    if (fallback === '2h' || fallback === '-') return fallback;
+
+    const slots = (catalog?.skills || [])
+        .filter(skill => skill.weapon === weapon)
+        .map(skill => String(skill.slot || ''));
+    const mainHand = slots.some(slot => /^Weapon_[1-3]$/.test(slot));
+    const offHand = slots.some(slot => /^Weapon_[4-5]$/.test(slot));
+    if (mainHand && offHand) return 'mh+oh';
+    if (mainHand) return 'mh';
+    if (offHand) return 'oh';
+    return fallback;
+}
+
+/**
+ * Combines shared weapon-family strength with profession-owned availability.
+ */
+export function createProfessionWeaponData(
+    catalog,
+    { weaponData = WEAPON_DATA } = {},
+) {
+    return Object.freeze(Object.fromEntries(
+        [...(catalog?.weapons || [])]
+            .filter(name => weaponData[name])
+            .map(name => {
+                const shared = weaponData[name];
+                return [name, Object.freeze({
+                    ...shared,
+                    wielding: derivedProfessionWielding(
+                        catalog,
+                        name,
+                        shared.wielding,
+                    ),
+                })];
+            }),
+    ));
+}
 
 export const RELIC_NAMES = sortNames(Object.keys(RELIC_DATA));

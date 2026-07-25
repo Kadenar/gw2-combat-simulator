@@ -2,6 +2,7 @@ export function createSchedulerState({
   profession,
   config = {},
   startingTime = 0,
+  activeWeaponSet = 1,
 } = {}) {
   if (!profession || typeof profession.createProfessionState !== "function") {
     throw new TypeError("Scheduler state requires a profession contract.");
@@ -10,7 +11,7 @@ export function createSchedulerState({
     time: Number(startingTime || 0),
     cooldowns: new Map(),
     ammo: new Map(),
-    activeWeaponSet: 1,
+    activeWeaponSet: Math.max(1, Number(activeWeaponSet || 1)),
     skillUses: new Map(),
     pendingEvents: [],
     profession: profession.createProfessionState(config),

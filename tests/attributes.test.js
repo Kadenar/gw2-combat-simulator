@@ -9,15 +9,15 @@ import {
     simulationConfig,
 } from '../js/professions/mesmer/app/app-runtime.js';
 import {
-    calculateAttributes as calculateCommonAttributes,
-} from '../js/core/calc-attributes.js';
+    calculateCommonAttributes,
+} from '../js/platform/gw2/attributes.js';
 import {
     calculateContributionComparisons,
 } from '../js/app/app-runtime.js';
 import {
     calculateAttributes as calculateMesmerAttributes,
 } from '../js/professions/mesmer/core/calc-attributes.js';
-import { setWeaponSigil } from '../js/core/weapon-sigils.js';
+import { setWeaponSigil } from '../js/platform/gw2/weapon-sigils.js';
 
 const calcAttributes = calculateMesmerAttributes;
 
@@ -81,6 +81,16 @@ test('two-handed weapons use one 2H item stat budget', () => {
     assert.equal(two.Precision.final, one.Precision.final - 1);
 });
 
+test('alternate two-handed weapons use the 2H stat budget for set two', () => {
+    const build = createDefaultBuild();
+    build.alternateWeapons = ['Spear', ''];
+    const first = calcAttributes(build, [], 1).attributes;
+    const second = calcAttributes(build, [], 2).attributes;
+
+    assert.equal(second.Power.final, first.Power.final + 1);
+    assert.equal(second.Precision.final, first.Precision.final - 1);
+});
+
 test('the default build persists a complete alternate weapon set', () => {
     const build = createDefaultBuild();
     assert.deepEqual(build.weapons, ['Dagger', 'Sword']);
@@ -123,6 +133,7 @@ test('choosing an equipped sigil swaps slots instead of creating a duplicate', (
 
 test('attribute calculation shows sigil bonuses from the chosen weapon set', () => {
     const build = createDefaultBuild();
+    build.alternateWeapons = ['Dagger', 'Sword'];
     build.weaponSigils = [
         ['Force', 'Malice'],
         ['Accuracy', 'Agony'],
@@ -163,7 +174,7 @@ test('simulation config aggregates each weapon set sigils independently', () => 
     assert.equal(config.sigilSets[1].conditionDurationBonus, 10);
     assert.equal(config.target.activatingSkills, false);
     assert.equal(config.target.confusionActivationsPerSecond, 0);
-    assert.equal(config.target.health, 4000000);
+    assert.equal(config.target.health, 3970000);
     assert.equal(config.target.conditions.Vulnerability, 25);
     assert.equal(config.target.conditions.Slow, true);
     assert.equal(config.target.conditions.Bleeding, 1);
@@ -278,7 +289,7 @@ test('legacy target assumptions migrate to target health and conditions', () => 
         },
     });
 
-    assert.equal(migrated.targetHealth, 4000000);
+    assert.equal(migrated.targetHealth, 3970000);
     assert.equal(migrated.assumptions.targetConditions.Vulnerability, 12);
     assert.equal('targetHealthAbove50' in migrated.assumptions, false);
     assert.equal('vulnerability' in migrated.assumptions, false);

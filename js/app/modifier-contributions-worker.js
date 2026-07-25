@@ -1,13 +1,15 @@
-import {
-    calculateModifierContributions,
-} from '../professions/mesmer/app/app-runtime.js';
+import { getProfessionAppAdapter } from './composition.js';
 
-self.addEventListener('message', ({ data }) => {
+self.addEventListener('message', async ({ data }) => {
     const { requestId, request } = data;
     try {
+        const adapter = await getProfessionAppAdapter(request.professionId);
+        if (!adapter) {
+            throw new Error(`No application adapter for ${request.professionId}.`);
+        }
         self.postMessage({
             requestId,
-            contributions: calculateModifierContributions(request),
+            contributions: adapter.calculateModifierContributions(request),
         });
     } catch (error) {
         self.postMessage({

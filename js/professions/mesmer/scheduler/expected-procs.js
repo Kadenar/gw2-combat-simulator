@@ -42,7 +42,7 @@ export function createExpectedProcTracker({
       || !traits.has("Bloodsong")
     ) return;
 
-    state.bloodsongProgress +=
+    state.profession.bloodsongProgress +=
       Number(bleedingStacks || 0)
       + (
         traits.has("Jagged Mind")
@@ -56,8 +56,8 @@ export function createExpectedProcTracker({
           : 0
       );
 
-    while (state.bloodsongProgress >= 5 - epsilon) {
-      state.bloodsongProgress -= 5;
+    while (state.profession.bloodsongProgress >= 5 - epsilon) {
+      state.profession.bloodsongProgress -= 5;
       queueResources(
         at + epsilon,
         1,
@@ -104,10 +104,10 @@ export function createExpectedProcTracker({
       traits.has("Sharper Images")
       && (candidate.source === "Clone" || candidate.source === "Phantasm")
     ) {
-      state.sharperImagesProgress += candidate.hits * criticalChance;
-      const bleeding = Math.floor(state.sharperImagesProgress + epsilon);
+      state.profession.sharperImagesProgress += candidate.hits * criticalChance;
+      const bleeding = Math.floor(state.profession.sharperImagesProgress + epsilon);
       if (bleeding > 0) {
-        state.sharperImagesProgress -= bleeding;
+        state.profession.sharperImagesProgress -= bleeding;
         trackBloodsong(candidate.at, bleeding, 0);
       }
     }
@@ -119,22 +119,22 @@ export function createExpectedProcTracker({
      * @param {Object} candidate - Candidate with an `at` timestamp
      */
     queue(candidate) {
-      state.pendingExpectedProcs.push(candidate);
-      state.pendingExpectedProcs.sort((a, b) => a.at - b.at);
+      state.profession.pendingExpectedProcs.push(candidate);
+      state.profession.pendingExpectedProcs.sort((a, b) => a.at - b.at);
     },
 
     /**
      * Returns the next candidate time or Infinity.
      */
     nextAt() {
-      return state.pendingExpectedProcs[0]?.at ?? Infinity;
+      return state.profession.pendingExpectedProcs[0]?.at ?? Infinity;
     },
 
     /**
      * Removes and processes the next candidate.
      */
     processNext() {
-      const candidate = state.pendingExpectedProcs.shift();
+      const candidate = state.profession.pendingExpectedProcs.shift();
       if (candidate) process(candidate);
     },
   };

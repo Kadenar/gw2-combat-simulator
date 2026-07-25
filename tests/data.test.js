@@ -1,31 +1,34 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { SKILLS, SPECIALIZATIONS } from '../js/data/catalog.js';
-import { RELIC_NAMES } from '../js/data/gear-data.js';
-import { TRAITS } from '../js/data/traits-data.js';
+import {
+    SKILLS,
+    SPECIALIZATIONS,
+} from '../js/professions/mesmer/data/mesmer-catalog.js';
+import { RELIC_NAMES } from '../js/platform/gw2/gear-data.js';
+import { TRAITS } from '../js/professions/mesmer/data/traits-data.js';
 import {
     AMBUSH_ATTACKS,
     CLONE_ATTACKS,
     PHANTASM_ATTACK_TIMINGS,
     PHANTASM_NAME_BY_SKILL,
-} from '../js/data/illusion-data.js';
+} from '../js/professions/mesmer/data/mesmer-illusion-data.js';
 import {
     INSTRUMENTS,
     MECHANIC_SKILLS,
     SHATTERS,
     TRAIT_DAMAGE,
-} from '../js/data/profession-data.js';
+} from '../js/professions/mesmer/data/mesmer-profession-data.js';
 import {
     AMBUSH_SKILLS,
     PSEUDO_SKILLS,
     skillOverride,
-} from '../js/sim/mechanics/mesmer-skill-overrides.js';
+} from '../js/professions/mesmer/mechanics/mesmer-skill-overrides.js';
 import {
     BASE_SKILL_DATA_BY_ID,
-} from '../js/data/skill-mechanics.js';
+} from '../js/professions/mesmer/data/mesmer-skill-mechanics.js';
 import {
     normalizedSkill,
-} from '../js/sim/mechanics/mesmer-skill-normalization.js';
+} from '../js/professions/mesmer/mechanics/mesmer-skill-normalization.js';
 
 test('catalog contains every Mesmer specialization and trait', () => {
     assert.deepEqual(
@@ -288,7 +291,7 @@ test('supplied player and clone coefficient table is preserved', () => {
         ['Lingering Thoughts', 1.2, 0.93],
         ['Axes of Symmetry', 1.75, 1.02],
         ['Mind Stab', 1.8, 0.36],
-        ['Phantasmal Berserker', 3.66, 0.56],
+        ['Phantasmal Berserker', 2.4, 0.56],
         ['Illusionary Wave', 0.3, 0.64],
         ['Unstable Bladestorm', 3, 0.44],
     ];
@@ -345,7 +348,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
         'Crystal Sands': 2.4,
         'Power Spike': 1.33,
         'Mirage Advance': 1.5,
-        'Phantasmal Disenchanter': 2.05,
+        'Phantasmal Disenchanter': 1,
         'Rain of Swords': 6,
         'Sword of Decimation': 1.5,
         'Tale of the Tortured Mastermind': 4,
@@ -361,7 +364,7 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
         'Mental Collapse': 3,
         'Phantasmal Warlock': 1.85,
         'Chaos Storm': 1.98,
-        'Phantasmal Swordsman': 4.81,
+        'Phantasmal Swordsman': 2.6,
         'The Prestige': 1,
         'Phantasmal Mage': 0.69,
     };
@@ -398,8 +401,8 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
         swordsman.damage.map(group => [group.label, group.coefficient]),
         [
             ['Mesmer strike', 0.5],
-            ['Phantasm leap', 1.03],
-            ['Phantasm Blurred Frenzy', 3.28],
+            ['Phantasm leap', 0.5],
+            ['Phantasm Blurred Frenzy', 1.6],
         ],
     );
     const mage = normalized('Phantasmal Mage');

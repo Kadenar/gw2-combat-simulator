@@ -27,9 +27,7 @@ export const mesmerCatalog = Object.freeze({
   specializations: Object.freeze([...SPECIALIZATIONS]),
   skillsById: new Map(skills.map(skill => [skill.id, skill])),
   skillsByName: new Map(skills.map(skill => [skill.name, skill])),
-  handlerIds: new Set(
-    skills.map(skill => skill.handlerId).filter(Boolean),
-  ),
+  skillHandlers: new Map(),
   weapons: new Set(
     skills.map(skill => skill.weapon).filter(Boolean),
   ),

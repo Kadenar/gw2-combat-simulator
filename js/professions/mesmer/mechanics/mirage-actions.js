@@ -50,7 +50,7 @@ export function createMirageActionController({
     });
   };
 
-  const executeCloneAmbushes = (at, clones = state.clones) => {
+  const executeCloneAmbushes = (at, clones = state.profession.clones) => {
     if (!traits.has("Infinite Horizon") || !clones.length) return;
     addTraitProc(
       "Infinite Horizon",
@@ -98,8 +98,11 @@ export function createMirageActionController({
 
   const grantAmbushWindow = (at, source, duration = 1.5) => {
     if (config.specialization !== "Mirage") return;
-    state.ambushUntil = Math.max(state.ambushUntil, at + duration);
-    state.ambushSource = source;
+    state.profession.ambushUntil = Math.max(
+      state.profession.ambushUntil,
+      at + duration,
+    );
+    state.profession.ambushSource = source;
     addEvent({
       type: "marker",
       at,
@@ -149,8 +152,8 @@ export function createMirageActionController({
     }
     reduceDuneCloakShatters(at, source);
     if (grantCloneCloak && traits.has("Infinite Horizon")) {
-      state.cloneAmbushUntil = at + duration;
-      executeCloneAmbushes(at, state.clones);
+      state.profession.cloneAmbushUntil = at + duration;
+      executeCloneAmbushes(at, state.profession.clones);
     }
   };
 
@@ -167,7 +170,10 @@ export function createMirageActionController({
     for (const condition of ambush.player.conditions || []) {
       addCondition(ambush.name, at, condition);
     }
-    if (state.riddleOfSandReady && traits.has("Riddle of Sand")) {
+    if (
+      state.profession.riddleOfSandReady
+      && traits.has("Riddle of Sand")
+    ) {
       addCondition(
         ambush.name,
         at,
@@ -176,7 +182,7 @@ export function createMirageActionController({
         `${ambush.name} — Riddle of Sand`,
       );
       addTraitProc("Riddle of Sand", at, ambush.name, "2 confusion");
-      state.riddleOfSandReady = false;
+      state.profession.riddleOfSandReady = false;
     }
     for (const boon of ambush.playerBoons || []) {
       addBoon(at, boon, ambush.name);
@@ -190,14 +196,14 @@ export function createMirageActionController({
     if (ambush.createsClone) {
       queueResources(at + epsilon, 1, weapon, ambush.name);
     }
-    state.ambushUntil = 0;
-    state.ambushSource = "";
+    state.profession.ambushUntil = 0;
+    state.profession.ambushSource = "";
   };
 
   const handleMirageShatter = (skill, at, spent) => {
     if (config.specialization !== "Mirage") return;
     if (traits.has("Riddle of Sand")) {
-      state.riddleOfSandReady = true;
+      state.profession.riddleOfSandReady = true;
       addTraitProc("Riddle of Sand", at, skill.name, "ambush primed");
     }
     if (traits.has("Nomad's Endurance")) {

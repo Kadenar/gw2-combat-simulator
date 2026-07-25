@@ -57,27 +57,27 @@ export function createCastController({
   const updateAutoattackChains = (skill, baseActivation) => {
     const position = autoattackChainPositions.get(skill.name);
     if (position) {
-      for (const root of state.autoattackChains.keys()) {
-        if (root !== position.root) state.autoattackChains.delete(root);
+      for (const root of state.profession.autoattackChains.keys()) {
+        if (root !== position.root) state.profession.autoattackChains.delete(root);
       }
       const chain = autoattackChains[position.root];
       const next = chain[(position.index + 1) % chain.length];
       if (next === position.root) {
-        state.autoattackChains.delete(position.root);
+        state.profession.autoattackChains.delete(position.root);
       } else {
-        state.autoattackChains.set(position.root, next);
+        state.profession.autoattackChains.set(position.root, next);
       }
       return;
     }
     if (skill.id === -3) {
-      state.autoattackChains.clear();
+      state.profession.autoattackChains.clear();
       return;
     }
     if (baseActivation > 0) {
-      for (const root of state.autoattackChains.keys()) {
+      for (const root of state.profession.autoattackChains.keys()) {
         const preserveScepterChain =
           root === "Ether Bolt" && skill.type === "Weapon";
-        if (!preserveScepterChain) state.autoattackChains.delete(root);
+        if (!preserveScepterChain) state.profession.autoattackChains.delete(root);
       }
     }
   };
@@ -93,8 +93,8 @@ export function createCastController({
       if (
         !activeAmbush
         || activeAmbush.name !== skill.name
-        || !state.ambushSource
-        || state.ambushUntil <= state.time + epsilon
+        || !state.profession.ambushSource
+        || state.profession.ambushUntil <= state.time + epsilon
       ) {
         warnings.push(
           `${skill.name} skipped at ${state.time.toFixed(2)}s: no active Mirage Cloak ambush window.`,
@@ -106,7 +106,7 @@ export function createCastController({
     const chainPosition = autoattackChainPositions.get(skill.name);
     if (chainPosition) {
       const expected =
-        state.autoattackChains.get(chainPosition.root) || chainPosition.root;
+        state.profession.autoattackChains.get(chainPosition.root) || chainPosition.root;
       if (skill.name !== expected) {
         warnings.push(
           `${skill.name} skipped at ${state.time.toFixed(2)}s: cast ${expected} first.`,
@@ -116,7 +116,7 @@ export function createCastController({
     }
 
     if (skill.flipParent) {
-      const activeFlip = state.availableFlips.get(skill.name);
+      const activeFlip = state.profession.availableFlips.get(skill.name);
       if (!activeFlip || activeFlip.expiresAt < state.time - epsilon) {
         warnings.push(
           `${skill.name} skipped at ${state.time.toFixed(2)}s: ${skill.flipParent} is not active.`,
@@ -153,8 +153,8 @@ export function createCastController({
         );
         return false;
       }
-      if (state.continuum?.expiresAt < readyAt) {
-        state.time = state.continuum.expiresAt;
+      if (state.profession.continuum?.expiresAt < readyAt) {
+        state.time = state.profession.continuum.expiresAt;
         advanceTo(state.time);
         readyAt = state.cooldowns.get(skill.id) || state.time;
       }
@@ -164,7 +164,7 @@ export function createCastController({
     }
     if (
       skill.ambush
-      && (!state.ambushSource || state.ambushUntil <= state.time + epsilon)
+      && (!state.profession.ambushSource || state.profession.ambushUntil <= state.time + epsilon)
     ) {
       warnings.push(
         `${skill.name} skipped: its ambush window expired before the skill recharged.`,
@@ -219,7 +219,7 @@ export function createCastController({
       return true;
     }
     if (skill.id === -4) {
-      if (state.continuum) {
+      if (state.profession.continuum) {
         restoreContinuum(end, "manual shift");
       } else {
         warnings.push(
@@ -258,7 +258,7 @@ export function createCastController({
       handleMiragePostSkill(skill, end);
       const armedFlip = flipSkillsByParent.get(skill.name);
       if (armedFlip && ammoMaximum(armedFlip)) {
-        state.availableFlips.set(armedFlip.name, {
+        state.profession.availableFlips.set(armedFlip.name, {
           availableAt: end,
           expiresAt: Infinity,
         });
@@ -271,9 +271,9 @@ export function createCastController({
           expiresAt: start + Number(armedFlip.flipDuration || 0),
         };
         if (flip.expiresAt >= end - epsilon) {
-          state.availableFlips.set(armedFlip.name, flip);
+          state.profession.availableFlips.set(armedFlip.name, flip);
           if (armedFlip.name === "Counterspell") {
-            state.counterspellAvailable = true;
+            state.profession.counterspellAvailable = true;
           }
         }
       }
@@ -281,15 +281,15 @@ export function createCastController({
         const flipAmmo = state.ammo.get(skill.id);
         if (flipAmmo && flipAmmo.maximum) {
           if (flipAmmo.charges <= 0) {
-            state.availableFlips.delete(skill.name);
+            state.profession.availableFlips.delete(skill.name);
             state.ammo.delete(skill.id);
             state.cooldowns.delete(skill.id);
           }
         } else {
-          state.availableFlips.delete(skill.name);
+          state.profession.availableFlips.delete(skill.name);
         }
         if (skill.name === "Counterspell") {
-          state.counterspellAvailable = false;
+          state.profession.counterspellAvailable = false;
         }
         if (skill.parentCooldownIncrease) {
           const parent = skillsByName.get(skill.flipParent);
@@ -312,6 +312,23 @@ export function createCastController({
       || (skill.name === "Mental Collapse" && clarityConsumed);
     if (disabled) {
       addEvent({ type: "control", at: end, skillName: skill.name });
+      if (
+        traits.has("Danger Time")
+        && (
+          skill.name === "Time Sink"
+          || traits.has("Delayed Reactions")
+        )
+      ) {
+        addEvent({
+          type: "buff",
+          at: end,
+          kind: "danger-time",
+          stacks: 1,
+          duration: 10,
+          sourceSkill: skill.name,
+        });
+        addTraitProc("Danger Time", end, skill.name);
+      }
       if (traits.has("Syncopate")) {
         const damage = traitDamage.Syncopate;
         addDamage(

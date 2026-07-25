@@ -109,7 +109,10 @@ export function calculateCommonAttributes(
   const sigilDurations = {};
   const infusions = {};
 
-  const mainHand = build.weapons?.[0] || "";
+  const selectedWeapons = weaponSet === 2
+    ? build.alternateWeapons
+    : build.weapons;
+  const mainHand = selectedWeapons?.[0] || "";
   const isTwoHanded = weaponData[mainHand]?.wielding === "2h";
   for (const slot of gearSlots) {
     if (isTwoHanded && slot === "Weapon2") continue;

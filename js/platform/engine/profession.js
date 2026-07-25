@@ -5,11 +5,15 @@ const HOOK_NAMES = Object.freeze([
   "afterCast",
   "advance",
   "snapshot",
+  "modifyCastDuration",
+  "modifyRechargeDuration",
+  "modifyMaximumAmmo",
   "modifyAttributes",
   "modifyCriticalChance",
   "modifyCriticalDamage",
   "modifyStrikeDamage",
   "modifyConditionDamage",
+  "modifyConditionDuration",
 ]);
 
 const NOOP = () => undefined;
@@ -50,6 +54,15 @@ function composeHooks(value, hookName, fallback) {
     return (context, skill) =>
       hooks.every(hook => hook.handler(context, skill) !== false);
   }
+  if (hookName === "scheduleSkill") {
+    return (context, skill) => {
+      let handled = false;
+      for (const hook of hooks) {
+        if (hook.handler(context, skill) === true) handled = true;
+      }
+      return handled;
+    };
+  }
   if (hookName.startsWith("modify")) {
     return (context, initialValue) =>
       hooks.reduce((value, hook) => {
@@ -65,6 +78,32 @@ function composeHooks(value, hookName, fallback) {
     }
     return result;
   };
+}
+
+function combineHookSources(...sources) {
+  const combined = [];
+  for (const source of sources) {
+    if (source == null) continue;
+    if (Array.isArray(source)) combined.push(...source);
+    else combined.push(source);
+  }
+  return combined.length ? combined : undefined;
+}
+
+export function createEventReactions(value) {
+  const reactions = {};
+  for (const [eventType, handlers] of Object.entries(value || {})) {
+    const hooks = orderedHooks(handlers, `eventReactions.${eventType}`);
+    reactions[eventType] = (context, event, details = {}) => {
+      let result;
+      for (const hook of hooks) {
+        const next = hook.handler(context, event, details);
+        if (next !== undefined) result = next;
+      }
+      return result;
+    };
+  }
+  return Object.freeze(reactions);
 }
 
 function assertDefinition(definition) {
@@ -92,18 +131,46 @@ export function defineProfession(definition) {
   const schedulerHooks = definition.schedulerHooks || {};
   const resolverHooks = definition.resolverHooks || {};
   const ui = definition.ui || {};
+  const catalogSkillHandlers =
+    definition.catalog?.skillHandlers instanceof Map
+      ? definition.catalog.skillHandlers
+      : new Map();
+  const dispatchCatalogSkill = catalogSkillHandlers.size
+    ? (context, skill) => {
+        const handler = catalogSkillHandlers.get(String(skill.handlerId || ""));
+        return handler ? handler(context, skill) : undefined;
+      }
+    : null;
+  const legacyResourceView = ui.resourceView || (() => null);
+  const resourceViews = ui.resourceViews || (context => {
+    const view = legacyResourceView(context);
+    return view ? [view] : [];
+  });
   const sources = {
     initialize: schedulerHooks.initialize,
     validateCast: castRules.validateCast ?? schedulerHooks.validateCast,
-    scheduleSkill: castRules.scheduleSkill ?? schedulerHooks.scheduleSkill,
+    scheduleSkill: combineHookSources(
+      dispatchCatalogSkill,
+      castRules.scheduleSkill ?? schedulerHooks.scheduleSkill,
+    ),
     afterCast: schedulerHooks.afterCast,
     advance: schedulerHooks.advance,
     snapshot: schedulerHooks.snapshot,
+    modifyCastDuration:
+      castRules.modifyCastDuration
+      ?? schedulerHooks.modifyCastDuration,
+    modifyRechargeDuration:
+      castRules.modifyRechargeDuration
+      ?? schedulerHooks.modifyRechargeDuration,
+    modifyMaximumAmmo:
+      castRules.modifyMaximumAmmo
+      ?? schedulerHooks.modifyMaximumAmmo,
     modifyAttributes: attributeRules.modifyAttributes,
     modifyCriticalChance: attributeRules.modifyCriticalChance,
     modifyCriticalDamage: attributeRules.modifyCriticalDamage,
     modifyStrikeDamage: attributeRules.modifyStrikeDamage,
     modifyConditionDamage: attributeRules.modifyConditionDamage,
+    modifyConditionDuration: attributeRules.modifyConditionDuration,
   };
   const hooks = {};
   for (const name of HOOK_NAMES) {
@@ -133,12 +200,17 @@ export function defineProfession(definition) {
     eventHandlers: Object.freeze({
       ...(resolverHooks.eventHandlers || definition.eventHandlers || {}),
     }),
+    eventReactions: createEventReactions(
+      resolverHooks.eventReactions || definition.eventReactions,
+    ),
     paletteGroups: ui.paletteGroups || (() => []),
-    resourceView: ui.resourceView || (() => null),
+    resourceView: context => resourceViews(context)[0] || null,
+    resourceViews,
     ui: Object.freeze({
       ...ui,
       paletteGroups: ui.paletteGroups || (() => []),
-      resourceView: ui.resourceView || (() => null),
+      resourceView: context => resourceViews(context)[0] || null,
+      resourceViews,
     }),
     simulation: definition.simulation || null,
   };

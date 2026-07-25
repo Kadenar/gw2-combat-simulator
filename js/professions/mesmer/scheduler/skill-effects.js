@@ -33,9 +33,9 @@ export function createSkillEffectController({
   const handleGenericSkill = (skill, at, castStart = at) => {
     const clarityConsumed =
       CLARITY_CONSUMERS.has(skill.name)
-      && state.clarityUntil > castStart;
+      && state.profession.clarityUntil > castStart;
     if (CLARITY_CONSUMERS.has(skill.name)) {
-      state.clarityUntil = 0;
+      state.profession.clarityUntil = 0;
     }
     const pulseCount = Math.max(
       1,
@@ -101,13 +101,13 @@ export function createSkillEffectController({
         );
       }
       addEvent({
-        type: "phantasm_summoned",
+        type: "mesmer.phantasm-summoned",
         at,
         name: skill.name,
         count: phantasmCount,
       });
       addEvent({
-        type: "phantasm_attack",
+        type: "mesmer.phantasm-attack",
         at: phantasmDamageAt,
         name: skill.name,
         count: phantasmCount,
@@ -143,13 +143,13 @@ export function createSkillEffectController({
           );
         }
         addEvent({
-          type: "phantasm_resummoned",
+          type: "mesmer.phantasm-resummoned",
           at: phantasmSpawnAt,
           name: skill.name,
           count: phantasmCount,
         });
         addEvent({
-          type: "phantasm_attack",
+          type: "mesmer.phantasm-attack",
           at: chronophantasmaDamageAt,
           name: skill.name,
           count: phantasmCount,
@@ -182,7 +182,12 @@ export function createSkillEffectController({
     }
 
     for (const group of skill.damage || []) {
-      const hitAt = group.source === "Phantasm" ? phantasmDamageAt : at;
+      if (group.requiredTrait && !traits.has(group.requiredTrait)) {
+        continue;
+      }
+      const hitAt = group.source === "Phantasm"
+        ? phantasmDamageAt
+        : at + Number(group.delay || 0);
       const selectedGroup =
         skill.boonlessCoefficient && config.target?.boonless
           ? { ...group, coefficient: skill.boonlessCoefficient }
@@ -198,7 +203,27 @@ export function createSkillEffectController({
               hits: Number(selectedGroup.hits || 1) * phantasmCount,
             }
           : selectedGroup;
+      const interval = Number(group.interval || 0);
       if (
+        interval > 0
+        && Number(scaledGroup.hits || 1) > 1
+      ) {
+        const hits = Math.max(
+          1,
+          Math.trunc(Number(scaledGroup.hits || 1)),
+        );
+        for (let index = 0; index < hits; index += 1) {
+          addDamage(
+            skill,
+            at + Number(group.firstDelay || 0) + index * interval,
+            {
+              ...scaledGroup,
+              coefficient: Number(scaledGroup.coefficient || 0) / hits,
+              hits: 1,
+            },
+          );
+        }
+      } else if (
         pulseTimes.length > 0
         && group.source !== "Phantasm"
         && Number(scaledGroup.hits || 1) === pulseCount
@@ -223,11 +248,33 @@ export function createSkillEffectController({
           chronophantasmaProc = true;
         }
       }
+      if (
+        traits.has("Fencer's Finesse")
+        && skill.weapon === "Sword"
+        && group.source === "Phantasm"
+      ) {
+        addEvent({
+          type: "buff",
+          at: phantasmDamageAt + epsilon,
+          kind: "fencer",
+          stacks: Math.min(10, Number(scaledGroup.hits || 1)),
+          duration: 6,
+        });
+        if (hasChronophantasma) {
+          addEvent({
+            type: "buff",
+            at: chronophantasmaDamageAt + epsilon,
+            kind: "fencer",
+            stacks: Math.min(10, Number(scaledGroup.hits || 1)),
+            duration: 6,
+          });
+        }
+      }
     }
     if (skill.trackedHitDamage) {
       const tracking = skill.trackedHitDamage;
       const minimum = at - Number(tracking.duration || 0);
-      const recentHits = (state.trackedSkillHits.get(skill.id) || [])
+      const recentHits = (state.profession.trackedSkillHits.get(skill.id) || [])
         .filter((hitAt) => hitAt > minimum + epsilon);
       const currentHits = (skill.damage || []).reduce(
         (sum, group) =>
@@ -250,7 +297,7 @@ export function createSkillEffectController({
           name: tracking.damage.label,
         });
       }
-      state.trackedSkillHits.set(skill.id, recentHits);
+      state.profession.trackedSkillHits.set(skill.id, recentHits);
     }
 
     const appliedConditions = etherCloneAtMaximum
@@ -339,7 +386,7 @@ export function createSkillEffectController({
     }
 
     if (skill.name === "Mind the Gap") {
-      state.clarityUntil = at + CLARITY_DURATION;
+      state.profession.clarityUntil = at + CLARITY_DURATION;
       addEvent({
         type: "proc",
         procType: "skill",
@@ -377,7 +424,8 @@ export function createSkillEffectController({
     }
     if (skill.type === "Heal" && traits.has("Method of Madness")) {
       const storm = traitDamage["Lesser Chaos Storm"];
-      const readyAt = state.traitReadyAt.get("Method of Madness") || 0;
+      const readyAt =
+        state.profession.traitReadyAt.get("Method of Madness") || 0;
       if (at >= readyAt - epsilon) {
         addDamage(
           {
@@ -394,7 +442,7 @@ export function createSkillEffectController({
           },
         );
         addTraitProc("Method of Madness", at, skill.name);
-        state.traitReadyAt.set(
+        state.profession.traitReadyAt.set(
           "Method of Madness",
           at + storm.cooldown,
         );

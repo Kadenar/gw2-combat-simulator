@@ -2,7 +2,9 @@ import { createDefaultBuild } from '../../js/app/app-state.js';
 import {
   calculateAttributes as calcAttributes,
 } from "../../js/professions/mesmer/core/calc-attributes.js";
-import { simulateSequence } from '../../js/sim/simulator.js';
+import {
+    simulateSequence,
+} from '../../js/professions/mesmer/simulation.js';
 
 export function defaultSimulationConfig(overrides = {}) {
     return {
@@ -30,7 +32,7 @@ export function defaultSimulationConfig(overrides = {}) {
         },
         target: {
             armor: 2597,
-            health: 4000000,
+            health: 3970000,
             conditions: {
                 Bleeding: 1,
                 Burning: true,

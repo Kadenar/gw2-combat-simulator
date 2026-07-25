@@ -1,4 +1,19 @@
-const EFFECT_TYPES = new Set(["strike", "condition", "control", "blind", "custom"]);
+const EFFECT_TYPES = new Set([
+  "strike",
+  "condition",
+  "control",
+  "blind",
+  "boon",
+  "buff",
+  "custom",
+]);
+
+function normalizeSkillHandlers(value) {
+  const entries = value instanceof Map
+    ? [...value.entries()]
+    : Object.entries(value || {});
+  return new Map(entries.map(([id, handler]) => [String(id), handler]));
+}
 
 function normalizeEffect(effect) {
   if (!effect || typeof effect !== "object" || !EFFECT_TYPES.has(effect.type)) {
@@ -15,6 +30,14 @@ function normalizeEffect(effect) {
       throw new TypeError("Condition effects require positive stacks and duration.");
     }
   }
+  if (effect.type === "boon" || effect.type === "buff") {
+    if (!String(effect.boon || effect.kind || effect.name || "")) {
+      throw new TypeError("Boon and buff effects require a name.");
+    }
+    if (!(Number(effect.duration) > 0)) {
+      throw new TypeError("Boon and buff effects require a positive duration.");
+    }
+  }
   return Object.freeze({ ...effect });
 }
 
@@ -23,8 +46,9 @@ export function createCanonicalCatalog({
   mechanics = {},
   overrides = {},
   extraSkills = [],
-  handlerIds = [],
+  skillHandlers = {},
   weapons = [],
+  weaponHands = {},
 } = {}) {
   const declared = [...generated, ...extraSkills];
   const declaredIds = new Set();
@@ -56,14 +80,28 @@ export function createCanonicalCatalog({
     skills: Object.freeze(skills),
     skillsById: new Map(skills.map(skill => [skill.id, skill])),
     skillsByName: new Map(skills.map(skill => [skill.name, skill])),
-    handlerIds: new Set(handlerIds),
+    skillHandlers: normalizeSkillHandlers(skillHandlers),
     weapons: new Set(weapons),
+    weaponHands: new Map(
+      weaponHands instanceof Map
+        ? weaponHands
+        : Object.entries(weaponHands || {}),
+    ),
   };
   validateCanonicalCatalog(catalog);
   return Object.freeze(catalog);
 }
 
 export function validateCanonicalCatalog(catalog) {
+  const validWeaponHands = new Set(["mh", "oh", "mh+oh", "2h", "-"]);
+  for (const [weapon, wielding] of catalog?.weaponHands || []) {
+    if (!catalog.weapons?.has(weapon)) {
+      throw new Error(`Weapon hand metadata references unknown weapon ${weapon}.`);
+    }
+    if (!validWeaponHands.has(wielding)) {
+      throw new Error(`Weapon ${weapon} has invalid wielding metadata ${wielding}.`);
+    }
+  }
   const ids = new Set();
   for (const skill of catalog?.skills || []) {
     if (skill.id === undefined || skill.id === null || ids.has(skill.id)) {
@@ -71,7 +109,10 @@ export function validateCanonicalCatalog(catalog) {
     }
     ids.add(skill.id);
     if (!String(skill.name || "")) throw new Error(`Skill ${skill.id} has no name.`);
-    if (skill.handlerId && !catalog.handlerIds.has(skill.handlerId)) {
+    if (
+      skill.handlerId
+      && typeof catalog.skillHandlers?.get(String(skill.handlerId)) !== "function"
+    ) {
       throw new Error(`Skill ${skill.id} references missing handler ${skill.handlerId}.`);
     }
     for (const reference of [skill.parentId, skill.flipParentId]) {
