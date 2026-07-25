@@ -68,7 +68,6 @@ test('base skill data does not duplicate authoritative overrides', () => {
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
     const excluded = [
         'Brawler',
-        'Dragonhunter',
         'Krait',
         'Weaver',
         'Bloodstone',

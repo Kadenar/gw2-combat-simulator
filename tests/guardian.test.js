@@ -10,7 +10,6 @@ import {
 } from "../js/professions/guardian/build.js";
 import {
   guardianCatalog,
-  GUARDIAN_SKILL_IDS,
 } from "../js/professions/guardian/catalog.js";
 import {
   DATA_SNAPSHOT,
@@ -18,7 +17,10 @@ import {
 import {
   guardianProfession,
 } from "../js/professions/guardian/definition.js";
-import { GUARDIAN_TRAIT_IDS } from "../js/professions/guardian/ids.js";
+import {
+  GUARDIAN_SKILL_IDS,
+  GUARDIAN_TRAIT_IDS,
+} from "../js/professions/guardian/ids.js";
 
 const config = {
   stats: {
