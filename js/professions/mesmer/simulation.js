@@ -461,6 +461,7 @@ function resolveEvents(config, traits, scheduler, horizon) {
     query,
     helpers: {
       conditionName,
+      skillsById: mesmerCatalog.skillsById,
       skillsByName,
       weaponStrength,
     },

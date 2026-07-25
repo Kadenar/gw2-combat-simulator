@@ -1,6 +1,7 @@
 import {
   createCanonicalCatalog,
 } from "../../platform/engine/catalog.js";
+import { guardianSkillHandlers } from "./skill-handlers.js";
 
 export const GUARDIAN_SKILL_IDS = Object.freeze({
   STRIKE: 910001,
@@ -26,7 +27,6 @@ export const guardianCatalog = createCanonicalCatalog({
       slot: "Profession_1",
       castTimeMs: 0,
       cooldown: 20,
-      handlerId: "guardian.justice",
       effects: [{
         type: "custom",
         eventType: "guardian.justice-activated",
@@ -44,6 +44,12 @@ export const guardianCatalog = createCanonicalCatalog({
       effects: [],
     },
   ],
-  handlerIds: ["guardian.justice", "guardian.weapon-swap"],
+  skillHandlers: guardianSkillHandlers,
   weapons: ["Sword", "Mace", "Hammer", "Longbow"],
+  weaponHands: {
+    Sword: "mh+oh",
+    Mace: "mh",
+    Hammer: "2h",
+    Longbow: "2h",
+  },
 });

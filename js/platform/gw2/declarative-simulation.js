@@ -20,6 +20,8 @@ import {
   gw2WeaponStrength,
 } from "./runtime-rules.js";
 import { createGw2TimelineIndex } from "./timeline-index.js";
+import { createGw2SchedulerPolicy } from "./scheduler/policy.js";
+import { gw2EventActorType } from "./event-ownership.js";
 
 const WEAPON_STRENGTHS = Object.freeze(Object.fromEntries(
   Object.entries(WEAPON_DATA)
@@ -45,7 +47,15 @@ function reactionContext(ctx) {
   };
 }
 
-function createQuery(profession, config, events) {
+function selectedTraitValues(config) {
+  return new Set([
+    ...(Array.isArray(config.traitIds) ? config.traitIds : []),
+    ...(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []),
+    ...(Array.isArray(config.selectedTraits) ? config.selectedTraits : []),
+  ]);
+}
+
+function createQuery(profession, config, events, traits) {
   const timeline = createGw2TimelineIndex({ config, events });
   const configWithBaselineStats = {
     ...config,
@@ -65,63 +75,113 @@ function createQuery(profession, config, events) {
         config.stats?.expertise ?? config.attributes?.expertise ?? 0,
     },
   };
-  const hookContext = time => ({
+  let query;
+  const hookContext = (
+    time,
+    {
+      event = null,
+      condition = null,
+      runtime = null,
+    } = {},
+  ) => ({
     profession,
     config,
     time,
+    event,
+    skillId: event?.skillId ?? null,
+    sourceId: event?.sourceId ?? null,
+    actorType: event ? gw2EventActorType(event) : null,
+    condition,
+    traits,
+    query,
+    timeline,
+    runtime,
+    state: runtime?.state ?? null,
   });
-  const statsAt = time => profession.modifyAttributes(
-    hookContext(time),
-    gw2StaticAttributes(
-      configWithBaselineStats,
-      timeline.mightStacksAt(time),
-    ),
-  );
+  const statsAt = (time, event = null, runtime = null) =>
+    profession.modifyAttributes(
+      hookContext(time, { event, runtime }),
+      gw2StaticAttributes(
+        configWithBaselineStats,
+        timeline.mightStacksAt(time),
+      ),
+    );
 
-  return {
+  query = {
     statsAt,
-    critical(event, time) {
-      const stats = statsAt(time);
+    critical(event, time, runtime = null) {
+      const stats = statsAt(time, event, runtime);
       let chance = criticalChance(stats.precision);
       chance += Number(config.stats?.criticalChanceBonus || 0) / 100;
       chance +=
         Number(timeline.activeSigilSetAt(time).criticalChanceBonus || 0) / 100;
       if (timeline.furyActiveAt(time)) chance += 0.25;
-      chance = profession.modifyCriticalChance(hookContext(time), chance);
+      chance = profession.modifyCriticalChance(
+        hookContext(time, { event, runtime }),
+        chance,
+      );
       if (event.canCrit === false || event.noCrit) chance = 0;
       let damage = criticalDamageMultiplier(stats.ferocity);
-      damage = profession.modifyCriticalDamage(hookContext(time), damage);
+      damage = profession.modifyCriticalDamage(
+        hookContext(time, { event, runtime }),
+        damage,
+      );
       return {
         chance: Math.max(0, Math.min(1, chance)),
         damage: Math.max(1, Number(damage || 1)),
       };
     },
-    strikeMultiplier(_event, time) {
+    strikeMultiplier(event, time, runtime = null) {
       const base =
         (1 + timeline.vulnerabilityStacksAt(time) / 100)
         * Number(timeline.activeSigilSetAt(time).strike || 1)
         * Number(config.modifiers?.strike || 1);
-      return profession.modifyStrikeDamage(hookContext(time), base);
+      return profession.modifyStrikeDamage(
+        hookContext(time, { event, runtime }),
+        base,
+      );
     },
-    conditionMultiplier(_name, time) {
+    conditionMultiplier(name, time, event = null, runtime = null) {
       const base =
         (1 + timeline.vulnerabilityStacksAt(time) / 100)
         * Number(timeline.activeSigilSetAt(time).condition || 1)
         * Number(config.modifiers?.condition || 1);
-      return profession.modifyConditionDamage(hookContext(time), base);
+      return profession.modifyConditionDamage(
+        hookContext(time, {
+          event,
+          condition: name,
+          runtime,
+        }),
+        base,
+      );
     },
-    conditionDurationMultiplier(name, time, stats = statsAt(time)) {
+    conditionDurationMultiplier(
+      name,
+      time,
+      stats = statsAt(time),
+      event = null,
+      runtime = null,
+    ) {
       const sigils = timeline.activeSigilSetAt(time);
       const sigilBonus = (
         Number(sigils.conditionDurationBonus || 0)
         + Number(sigils.conditionDurationBonuses?.[name] || 0)
       ) / 100;
-      return gw2ConditionDurationMultiplier(name, stats, sigilBonus);
+      const base = gw2ConditionDurationMultiplier(name, stats, sigilBonus);
+      return profession.modifyConditionDuration(
+        hookContext(time, {
+          event,
+          condition: name,
+          runtime,
+        }),
+        base,
+      );
     },
     activeWeaponSetAt: timeline.activeWeaponSetAt,
     activeSigilSetAt: timeline.activeSigilSetAt,
     timedStacks: timeline.timedStacks,
   };
+  return query;
 }
 
 function endState(profession, scheduled, resolved) {
@@ -157,8 +217,18 @@ export function simulateDeclarativeGw2({
   rotation,
   config = {},
 } = {}) {
-  const scheduled = createScheduler({ profession, config }).run(rotation);
-  const query = createQuery(profession, config, scheduled.stream.events);
+  const traits = selectedTraitValues(config);
+  const scheduled = createScheduler({
+    profession,
+    config,
+    schedulerPolicy: createGw2SchedulerPolicy(config),
+  }).run(rotation);
+  const query = createQuery(
+    profession,
+    config,
+    scheduled.stream.events,
+    traits,
+  );
   const hitResolution = createGw2HitResolution();
   const conditionResolution = createGw2ConditionResolution({
     onConditionApplied(ctx, application) {
@@ -190,10 +260,11 @@ export function simulateDeclarativeGw2({
   const resolved = resolveGw2Timeline({
     stream: scheduled.stream,
     config,
-    traits: new Set(config.selectedTraits || config.traitIds || []),
+    traits,
     query,
     helpers: {
       conditionName,
+      skillsById: profession.catalog?.skillsById || new Map(),
       skillsByName: profession.catalog?.skillsByName || new Map(),
       weaponStrength: (event, currentConfig) => gw2WeaponStrength(
         event,

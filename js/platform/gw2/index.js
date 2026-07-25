@@ -2,6 +2,7 @@ export * from "./attributes.js";
 export * from "./condition-formulas.js";
 export * from "./damage.js";
 export * from "./declarative-simulation.js";
+export * from "./event-ownership.js";
 export * from "./event-handlers.js";
 export * from "./gear-data.js";
 export * from "./relic-rules.js";

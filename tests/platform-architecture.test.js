@@ -13,7 +13,10 @@ import { createSchedulerState } from "../js/platform/engine/scheduler-state.js";
 import { createScheduler } from "../js/platform/engine/scheduler.js";
 import { buildScheduledEventStream } from "../js/platform/engine/scheduled-event-stream.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
-import { WEAPON_DATA } from "../js/platform/gw2/gear-data.js";
+import {
+  createProfessionWeaponData,
+  WEAPON_DATA,
+} from "../js/platform/gw2/gear-data.js";
 import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
@@ -21,6 +24,7 @@ import {
 } from "../js/professions/mesmer/build.js";
 import { mesmerCatalog } from "../js/professions/mesmer/catalog.js";
 import { mesmerProfession } from "../js/professions/mesmer/definition.js";
+import { guardianCatalog } from "../js/professions/guardian/catalog.js";
 import {
   createDefaultConfig,
   simulateSequence,
@@ -250,6 +254,93 @@ test("test profession runs end to end without importing Mesmer", () => {
     event.type && Number.isFinite(event.at) && event.source && event.sourceId != null), true);
 });
 
+test("declarative ammo consumes and recharges shared charges", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930001,
+      name: "Fixture Ammo",
+      castTimeMs: 0,
+      cooldown: 5,
+      ammo: 2,
+      effects: [{ type: "strike", coefficient: 1 }],
+    }],
+  });
+  const profession = defineProfession({
+    id: "ammo-fixture",
+    name: "Ammo Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Fixture Ammo",
+      "Fixture Ammo",
+      { type: "wait", durationMs: 5000 },
+    ],
+  });
+
+  assert.equal(
+    result.resolvedEvents.filter(event => event.type === "damage").length,
+    2,
+  );
+  assert.deepEqual(result.endState.ammo["Fixture Ammo"], {
+    charges: 1,
+    maximum: 2,
+    rechargeDuration: 5,
+    nextRechargeAt: 10,
+  });
+});
+
+test("resolver modifiers receive stable trait, event, and runtime context", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930002,
+      name: "Context Strike",
+      castTimeMs: 0,
+      effects: [{ type: "strike", coefficient: 1 }],
+    }],
+  });
+  let observed = null;
+  const profession = defineProfession({
+    id: "context-fixture",
+    name: "Context Fixture",
+    catalog,
+    attributeRules: {
+      modifyStrikeDamage(context, multiplier) {
+        observed = {
+          actorType: context.actorType,
+          hasState: Boolean(context.state),
+          skillId: context.skillId,
+          trait: context.traits.has("context-fixture.damage"),
+        };
+        return observed.trait && observed.skillId === 930002
+          ? multiplier * 2
+          : multiplier;
+      },
+    },
+  });
+  const base = simulateGw2({
+    profession,
+    rotation: ["Context Strike"],
+  });
+  const modified = simulateGw2({
+    profession,
+    rotation: ["Context Strike"],
+    config: {
+      selectedTraits: [],
+      selectedTraitIds: ["context-fixture.damage"],
+    },
+  });
+
+  assert.equal(modified.strikeDamage / base.strikeDamage, 2);
+  assert.deepEqual(observed, {
+    actorType: "player",
+    hasState: true,
+    skillId: 930002,
+    trait: true,
+  });
+});
+
 test("Mesmer production simulation is reached through simulateGw2", () => {
   const config = {
     ...createDefaultConfig(),
@@ -315,6 +406,75 @@ test("canonical catalog validation rejects duplicate ids and missing handlers", 
   assert.equal(mesmerCatalog.skillsById.size, mesmerCatalog.skills.length);
 });
 
+test("canonical skill handlers are callable and dispatched by handler id", () => {
+  let handled = 0;
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930003,
+      name: "Handled Skill",
+      handlerId: "fixture.handled",
+      castTimeMs: 0,
+      effects: [{ type: "strike", coefficient: 10 }],
+    }],
+    skillHandlers: {
+      "fixture.handled": () => {
+        handled += 1;
+        return true;
+      },
+    },
+  });
+  const profession = defineProfession({
+    id: "handled-fixture",
+    name: "Handled Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: ["Handled Skill"],
+  });
+
+  assert.equal(handled, 1);
+  assert.equal(result.totalDamage, 0);
+});
+
+test("shared relic behavior resolves triggering skills by stable id", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930004,
+        name: "Duplicate Name",
+        type: "Weapon",
+        cooldown: 20,
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+      {
+        id: 930005,
+        name: "Duplicate Name",
+        type: "Weapon",
+        cooldown: 0,
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "stable-id-fixture",
+    name: "Stable ID Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [{ type: "cast", skillId: 930004 }],
+    config: { relic: "Fireworks" },
+  });
+
+  assert.equal(
+    result.procSteps.some(step => step.skill === "Relic of Fireworks"),
+    true,
+  );
+});
+
 test("Mesmer build migrations produce validated schema version 3 data", () => {
   const migrated = migrateMesmerBuild({
     sigils: ["Force", "Impact"],
@@ -336,9 +496,18 @@ test("Mesmer build migrations produce validated schema version 3 data", () => {
 });
 
 test("common weapon data includes Guardian weapon families", () => {
-  assert.equal(WEAPON_DATA.Mace.wielding, "mh");
-  assert.equal(WEAPON_DATA.Hammer.wielding, "2h");
-  assert.equal(WEAPON_DATA.Longbow.wielding, "2h");
+  const guardianWeapons = createProfessionWeaponData(
+    guardianCatalog,
+  );
+  const mesmerWeapons = createProfessionWeaponData(mesmerCatalog);
+  assert.equal(guardianWeapons.Mace.wielding, "mh");
+  assert.equal(guardianWeapons.Sword.wielding, "mh+oh");
+  assert.equal(guardianWeapons.Hammer.wielding, "2h");
+  assert.equal(guardianWeapons.Longbow.wielding, "2h");
+  assert.equal(mesmerWeapons.Dagger.wielding, "mh");
+  assert.equal(mesmerWeapons.Pistol.wielding, "oh");
+  assert.equal(WEAPON_DATA.Warhorn.wielding, "oh");
+  assert.equal(WEAPON_DATA.Shortbow.wielding, "2h");
 });
 
 test("Mesmer state creation and snapshots are profession owned", () => {

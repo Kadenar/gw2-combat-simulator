@@ -1,5 +1,7 @@
 import {
   WEAPON_DATA,
+  createProfessionWeaponData,
+  RELIC_NAMES,
 } from "../../../platform/gw2/gear-data.js";
 import { mesmerProfession } from "../definition.js";
 import {
@@ -18,11 +20,10 @@ import {
   renderRotationBuilder,
 } from "./app-rotation-ui.js";
 
-const professionWeapons = Object.freeze(Object.fromEntries(
-  [...mesmerProfession.catalog.weapons]
-    .filter(name => WEAPON_DATA[name])
-    .map(name => [name, WEAPON_DATA[name]]),
-));
+const professionWeapons = createProfessionWeaponData(
+  mesmerProfession.catalog,
+  { weaponData: WEAPON_DATA },
+);
 
 export const mesmerAppAdapter = Object.freeze({
   id: mesmerProfession.id,
@@ -39,6 +40,7 @@ export const mesmerAppAdapter = Object.freeze({
   specializationFallback: "Domination",
   specializations: mesmerProfession.catalog.specializations,
   weaponData: professionWeapons,
+  relicNames: RELIC_NAMES,
   createDefaultTargetConditions,
   toApplicationBuild,
   eliteSpecialization,

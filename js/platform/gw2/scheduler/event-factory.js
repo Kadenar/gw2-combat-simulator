@@ -1,3 +1,7 @@
+import {
+  gw2ActorTypeForSource,
+} from "../event-ownership.js";
+
 /**
  * Creates the standard damage, condition, proc, and timeline events emitted by
  * GW2 profession schedulers. Profession reactions observe emitted damage and
@@ -46,6 +50,9 @@ export function createGw2SchedulerEventFactory({
   ) => {
     const name = conditionName(condition.name);
     if (!conditionFormulas[name] || !condition.duration) return null;
+    const actorType =
+      extra.actorType
+      || gw2ActorTypeForSource(source);
     const event = addEvent({
       type: "condition",
       at,
@@ -56,6 +63,8 @@ export function createGw2SchedulerEventFactory({
       stacks: Number(condition.stacks || 1),
       source,
       sourceId: extra.sourceId ?? skillName,
+      actorType,
+      skillId: extra.skillId ?? null,
       ...extra,
     });
     onConditionScheduled(event, {
@@ -67,6 +76,11 @@ export function createGw2SchedulerEventFactory({
   const addDamage = (skill, at, group, extra = {}) => {
     const hits = Math.max(1, Math.trunc(Number(group.hits || 1)));
     const coefficient = Number(group.coefficient || 0) / hits;
+    const source = group.source || extra.source || "Player";
+    const actorType =
+      group.actorType
+      || extra.actorType
+      || gw2ActorTypeForSource(source);
     for (let index = 0; index < hits; index += 1) {
       const event = addEvent(decorateDamageEvent({
         type: "damage",
@@ -77,8 +91,10 @@ export function createGw2SchedulerEventFactory({
         hits: 1,
         hitIndex: index + 1,
         totalHits: hits,
-        source: group.source || extra.source || "Player",
+        source,
         sourceId: extra.sourceId ?? skill.id ?? skill.name,
+        actorType,
+        skillId: extra.skillId ?? skill.id ?? null,
         weapon: group.weapon || "",
         weaponStrength: group.weaponStrength,
         skillWeapon: skill.weapon || activePrimaryWeapon(),

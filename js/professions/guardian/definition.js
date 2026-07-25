@@ -28,23 +28,6 @@ export const guardianProfession = defineProfession({
   resources: {
     createProfessionState: createGuardianState,
   },
-  castRules: {
-    scheduleSkill(context, skill) {
-      if (skill.id !== GUARDIAN_SKILL_IDS.SWAP_WEAPONS) return false;
-      const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
-      context.state.activeWeaponSet = weaponSet;
-      context.emit({
-        type: "weapon_set",
-        at: context.effectiveEnd,
-        source: "guardian",
-        sourceId: skill.id,
-        skillId: skill.id,
-        skillName: skill.name,
-        weaponSet,
-      });
-      return true;
-    },
-  },
   schedulerHooks: {
     snapshot: context => structuredClone(context.state.profession),
   },

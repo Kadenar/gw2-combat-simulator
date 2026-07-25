@@ -35,7 +35,7 @@ calculators then apply only their own trait and skill rules.
 Profession-specific browser rendering follows the same boundary. The shared
 shell receives a profession application adapter for its build codec, storage
 key, runtime/config builder, renderer hooks, filenames, specialization
-fallback, and background contribution worker. Mesmer
+fallback, supported relic list, and background contribution worker. Mesmer
 palette rules, Continuum Shift markers, Mirage effects, and phantasm/clone log
 formatting live under `js/professions/mesmer/app`; shared result transforms,
 chart queries, timeline operations, and small app UI helpers remain in the
@@ -100,6 +100,12 @@ Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill
 uses, pending events, and `profession`. Profession resources and mechanic
 timers live under `state.profession`.
 
+The neutral engine accepts scheduler policy callbacks. `platform/gw2` supplies
+the shared GW2 policy for Quickness-adjusted casts, Alacrity-adjusted recharge,
+ammo, and the configured starting weapon set. Profession hooks may then modify
+cast duration, recharge duration, or maximum ammo without copying the common
+state machine.
+
 Application and test callers use `simulateGw2()`. It dispatches to the
 profession's production pipeline when present and otherwise uses the
 declarative scheduler. Canonical sequence results keep time, cooldowns, ammo,
@@ -123,8 +129,13 @@ has:
   at,
   source,
   sourceId,
+  actorType, // "player", "summon", "effect", or "unknown"
 }
 ```
+
+`source` is a display/origin label and must not drive combat behavior.
+Player-only sigils, relics, and traits use `actorType`. The resolver retains a
+legacy source-label fallback for older scheduled streams.
 
 Common types are `action`, `damage`, `condition`, `condition_tick`, `control`,
 `blind`, `weapon_set`, and `proc`. A profession adds a namespaced type such as
@@ -157,9 +168,16 @@ and control-triggered sigils remain common GW2 behavior.
 ## Skills, traits, and rotations
 
 Behavior uses stable IDs. A canonical catalog merges generated metadata,
-simulator mechanics, explicit overrides, and extra skills. Validation rejects
-duplicate skill IDs, missing handlers or parent skills, invalid effects,
-invalid slots, and unavailable weapon metadata.
+simulator mechanics, explicit overrides, and extra skills. Callable
+`skillHandlers` are registered by handler ID and dispatched by the profession
+contract. Validation rejects duplicate skill IDs, missing callable handlers or
+parent skills, invalid effects, invalid slots, and unavailable weapon metadata.
+Resolver behavior looks skills up by `skillId`; display-name lookup is retained
+only for legacy streams and application-boundary rotation migration.
+
+Shared weapon data owns family strength and broad capabilities. Each canonical
+profession catalog owns exact `weaponHands` metadata. Application adapters
+derive their weapon selector data by combining those two sources.
 
 Normalized rotations use:
 
@@ -206,6 +224,8 @@ rotation entries; storage and the simulator contract use normalized commands.
    and a `defineProfession()` composition.
 2. Register stable skill/trait IDs, namespaced custom event handlers, and only
    the standard event reactions the profession needs.
+   Declare exact hand availability in `weaponHands` and register callable
+   custom cast behavior in `skillHandlers`.
 3. Add the profession to `js/app/composition.js` or a future profession picker.
 4. Add an end-to-end fixture that imports no other profession.
 5. Run `npm test` and `npm run check`.
