@@ -2017,6 +2017,24 @@ test('requested weapon flips require and consume their parent sequence skill', (
     }
 });
 
+test('Illusionary Riposte defaults to a 120ms interrupt before Counter Blade', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        initialResource: 0,
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Sword',
+    });
+    const result = simulateMesmer(
+        ['Illusionary Riposte', 'Counter Blade'],
+        config,
+    );
+
+    assert.equal(result.steps[0].end, 120);
+    assert.equal(result.steps[0].interrupted, true);
+    assert.ok(result.steps[0].fullCastMs > 120);
+    assert.equal(result.steps[1].start, 120);
+});
+
 test('Into the Void waits for its one-second post-curtain delay', () => {
     const result = simulateMesmer(
         ['Temporal Curtain', 'Into the Void'],
