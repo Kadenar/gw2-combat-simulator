@@ -1,3 +1,4 @@
+// Public surface for the profession-neutral engine layer.
 export * from "./catalog.js";
 export * from "./clock.js";
 export * from "./cooldown-controller.js";
@@ -11,4 +12,4 @@ export * from "./rotation-commands.js";
 export * from "./scheduled-event-stream.js";
 export * from "./scheduler-state.js";
 export * from "./scheduler.js";
-export * from "./simulation.js";
+export * from "./task-queue.js";

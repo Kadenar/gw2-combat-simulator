@@ -27,6 +27,16 @@ export function createMesmerState(config = {}) {
   };
 }
 
+export function mesmerResourceDefinition(specialization) {
+  if (specialization === "Virtuoso") {
+    return { singular: "blade", plural: "blades", maximum: 5 };
+  }
+  if (specialization === "Troubadour") {
+    return { singular: "note", plural: "notes", maximum: 3 };
+  }
+  return { singular: "clone", plural: "clones", maximum: 3 };
+}
+
 export function snapshotMesmerState(state) {
   return {
     cloneCount: state.clones.length,

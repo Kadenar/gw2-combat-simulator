@@ -1,5 +1,8 @@
 /**
- * Creates an isolated run configuration from defaults and user overrides.
+ * Merges simulation defaults with user overrides while preserving nested object
+ * boundaries that callers routinely patch (`stats`, `boons`, and `target`).
+ * Target conditions are replaced as a unit when explicitly provided so stale
+ * assumptions do not leak in from defaults.
  */
 export function prepareSimulationConfig(
   defaults,

@@ -37,11 +37,11 @@ export function createProfessionRuntime({
   buildConfigInputs,
   buildConfigExtras,
 }) {
-  const simulateSequence = (rotation, config) => simulateGw2({
+  const simulateBuild = (rotation, config) => simulateGw2({
     profession,
     rotation,
     config,
-    mode: "sequence",
+    execution: { mode: "sequence" },
   });
 
   const eliteNames = new Set(
@@ -205,7 +205,7 @@ export function createProfessionRuntime({
   }) {
     return calculateContributionComparisons(
       { rotation, baseConfig, comparisons },
-      simulateSequence,
+      simulateBuild,
     );
   }
 
@@ -214,7 +214,7 @@ export function createProfessionRuntime({
   }
 
   function runSimulation(app) {
-    app.results = simulateSequence(
+    app.results = simulateBuild(
       app.build.rotation,
       simulationConfig(app),
     );
@@ -222,7 +222,7 @@ export function createProfessionRuntime({
   }
 
   return {
-    simulateSequence,
+    simulateBuild,
     eliteSpecialization,
     recalculate,
     simulationConfig,

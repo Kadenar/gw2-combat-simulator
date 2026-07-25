@@ -1,3 +1,10 @@
+// Rotation normalization utilities. They keep the scheduler focused on one
+// canonical command format while the app layer and importers continue to feed
+// legacy names and convenience shorthands.
+
+/**
+ * Coerces timing fields into non-negative millisecond values.
+ */
 function finiteMilliseconds(value, field) {
   const number = Number(value);
   if (!Number.isFinite(number) || number < 0) {
@@ -6,6 +13,9 @@ function finiteMilliseconds(value, field) {
   return number;
 }
 
+/**
+ * Converts one rotation entry into the canonical scheduler command shape.
+ */
 export function normalizeRotationCommand(entry, catalog = null) {
   if (typeof entry === "number") return { type: "cast", skillId: entry };
   if (typeof entry === "string") {
@@ -59,6 +69,10 @@ export function normalizeRotationCommand(entry, catalog = null) {
   return command;
 }
 
+/**
+ * Normalizes an entire rotation, optionally dropping malformed entries when the
+ * caller is doing best-effort migration instead of strict scheduling.
+ */
 export function normalizeRotation(rotation, catalog = null, { strict = false } = {}) {
   if (!Array.isArray(rotation)) {
     if (strict) throw new TypeError("Rotation must be an array.");
@@ -75,6 +89,9 @@ export function normalizeRotation(rotation, catalog = null, { strict = false } =
   return commands;
 }
 
+/**
+ * Converts a canonical command back into the app's legacy persisted shape.
+ */
 export function toLegacyRotationEntry(command, catalog) {
   if (command.type === "combat-start") {
     const entry = { name: "__combat_start" };

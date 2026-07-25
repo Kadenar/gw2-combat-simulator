@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from './helpers/fixture-harness-core.js';
 import {
-    simulateSequence,
-} from '../js/professions/mesmer/simulation.js';
+    simulateMesmer,
+} from './helpers/mesmer-simulation.js';
 import { chartValueAt } from '../js/platform/ui/charts.js';
 import {
     moveRotationEntry,
@@ -33,7 +33,7 @@ test('Relic of the Claw uses its relic icon in the proc timeline', () => {
 });
 
 test('queueing a cooling-down icon waits until it is available', () => {
-    const result = simulateSequence(['Bladecall', 'Bladecall'], defaultSimulationConfig());
+    const result = simulateMesmer(['Bladecall', 'Bladecall'], defaultSimulationConfig());
     assert.equal(result.steps[0].start, 0);
     assert.equal(result.steps[0].end, 440);
     assert.equal(result.steps[1].start, 4440);
@@ -42,7 +42,7 @@ test('queueing a cooling-down icon waits until it is available', () => {
 });
 
 test('Rewinder refunds three seconds per clone shattered without counting the mesmer', () => {
-    const secondCastAt = initialResource => simulateSequence(
+    const secondCastAt = initialResource => simulateMesmer(
         ['Rewinder', 'Rewinder'],
         defaultSimulationConfig({
             specialization: 'Chronomancer',
@@ -59,16 +59,16 @@ test('Rewinder refunds three seconds per clone shattered without counting the me
 });
 
 test('clone state remains capped at three when input or new summons exceed the cap', () => {
-    const initial = simulateSequence(
+    const initial = simulateMesmer(
         [{ name: '__wait', waitMs: 1 }],
         defaultSimulationConfig({
             specialization: 'Chronomancer',
             initialResource: 99,
         }),
     );
-    assert.equal(initial.endState.resource, 3);
+    assert.equal(initial.endState.profession.resource, 3);
 
-    const replaced = simulateSequence(
+    const replaced = simulateMesmer(
         ['Mirror Images', { name: '__wait', waitMs: 1 }],
         defaultSimulationConfig({
             specialization: 'Chronomancer',
@@ -79,12 +79,12 @@ test('clone state remains capped at three when input or new summons exceed the c
     const resourceEvents = replaced.events.filter(event =>
         event.type === 'resource' && event.resource === 'clones');
 
-    assert.equal(replaced.endState.resource, 3);
+    assert.equal(replaced.endState.profession.resource, 3);
     assert.ok(resourceEvents.every(event => event.value <= 3));
 });
 
 test('non-Chronomancer alacrity starts the reduced cooldown after the cast', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Bladecall', 'Bladecall'],
         defaultSimulationConfig({ specialization: 'Core' }),
     );
@@ -92,7 +92,7 @@ test('non-Chronomancer alacrity starts the reduced cooldown after the cast', () 
 });
 
 test('Virtuoso alacrity starts Imaginary Inversion recharge after the cast', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Imaginary Inversion', 'Imaginary Inversion'],
         defaultSimulationConfig({
             specialization: 'Virtuoso',
@@ -104,7 +104,7 @@ test('Virtuoso alacrity starts Imaginary Inversion recharge after the cast', () 
 });
 
 test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             { name: '__wait', waitMs: 2010 },
             'Continuum Split',
@@ -126,11 +126,11 @@ test("Fencer's Finesse reduces sword skill cooldowns by 20%", () => {
         primaryWeapon: 'Sword',
         initialResource: 0,
     });
-    const baseline = simulateSequence(
+    const baseline = simulateMesmer(
         ['Blurred Frenzy', 'Blurred Frenzy'],
         config,
     );
-    const withTrait = simulateSequence(
+    const withTrait = simulateMesmer(
         ['Blurred Frenzy', 'Blurred Frenzy'],
         {
             ...config,
@@ -143,7 +143,7 @@ test("Fencer's Finesse reduces sword skill cooldowns by 20%", () => {
 });
 
 test('Flow of Time increases clone critical chance while alacrity is active', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Phase Retreat', { name: '__wait', waitMs: 2600 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -162,11 +162,13 @@ test('Flow of Time increases clone critical chance while alacrity is active', ()
 });
 
 test('Phantasmal Fury increases phantasm critical chance', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Phantasmal Warlock', { name: '__wait', waitMs: 4000 }],
         defaultSimulationConfig({
             specialization: 'Core',
             selectedTraits: ['Phantasmal Fury'],
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
             initialResource: 0,
             stats: { precision: 1000 },
             boons: { fury: false, alacrity: false },
@@ -179,11 +181,13 @@ test('Phantasmal Fury increases phantasm critical chance', () => {
 });
 
 test('illusions do not inherit the mesmer Fury boon', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Phantasmal Warlock', { name: '__wait', waitMs: 4000 }],
         defaultSimulationConfig({
             specialization: 'Core',
             selectedTraits: [],
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
             initialResource: 0,
             stats: { precision: 1000 },
             boons: { fury: true, alacrity: false },
@@ -196,7 +200,7 @@ test('illusions do not inherit the mesmer Fury boon', () => {
 });
 
 test('Shift+click timeline form casts an instant skill 100ms into the prior cast', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Bladecall', { name: 'Bladesong Distortion', offset: 100 }],
         defaultSimulationConfig(),
     );
@@ -206,11 +210,35 @@ test('Shift+click timeline form casts an instant skill 100ms into the prior cast
     assert.equal(result.endState.cooldowns['Bladesong Distortion'].readyAt, 40100);
 });
 
+test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () => {
+    const result = simulateMesmer(
+        [
+            'Rewinder',
+            { name: '__wait', waitMs: 10000 },
+            'Bladecall',
+            { name: 'Rewinder', offset: 100 },
+        ],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            initialResource: 3,
+        }),
+    );
+
+    assert.equal(result.steps[2].end, 10490);
+    assert.equal(result.steps[3].start, 11000);
+    assert.deepEqual(result.warnings, []);
+});
+
 test('interrupt commands end casts and remove later hit events', () => {
-    const full = simulateSequence(['Confusing Images'], defaultSimulationConfig());
-    const interrupted = simulateSequence(
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Scepter',
+        secondaryWeapon: '',
+    });
+    const full = simulateMesmer(['Confusing Images'], config);
+    const interrupted = simulateMesmer(
         [{ name: 'Confusing Images', interruptMs: 250 }],
-        defaultSimulationConfig(),
+        config,
     );
     assert.equal(interrupted.steps[0].end, 250);
     assert.equal(interrupted.steps[0].interrupted, true);
@@ -224,8 +252,8 @@ test('Confusing Images applies seven timed confusion pulses and loses later puls
         secondaryWeapon: '',
         initialResource: 0,
     });
-    const full = simulateSequence(['Confusing Images'], config);
-    const interrupted = simulateSequence(
+    const full = simulateMesmer(['Confusing Images'], config);
+    const interrupted = simulateMesmer(
         [{ name: 'Confusing Images', interruptMs: 1000 }],
         config,
     );
@@ -254,7 +282,7 @@ test('Chaos Storm and Lesser Chaos Storm deal six strikes at one-second interval
             || Math.abs(event.at - events[index - 1].at - 1) < 1e-12));
     };
 
-    const chaosStorm = simulateSequence(
+    const chaosStorm = simulateMesmer(
         ['Chaos Storm', { name: '__wait', waitMs: 5000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -265,7 +293,7 @@ test('Chaos Storm and Lesser Chaos Storm deal six strikes at one-second interval
     );
     assertSixPulses(damageEvents(chaosStorm, 'Chaos Storm'));
 
-    const lesserChaosStorm = simulateSequence(
+    const lesserChaosStorm = simulateMesmer(
         ['Ether Feast', { name: '__wait', waitMs: 5000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -283,11 +311,11 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
         secondaryWeapon: '',
         initialResource: 0,
     });
-    const full = simulateSequence(
+    const full = simulateMesmer(
         ['Confusing Images', 'Confusing Images'],
         config,
     );
-    const interrupted = simulateSequence(
+    const interrupted = simulateMesmer(
         [{ name: 'Confusing Images', interruptMs: 250 }],
         config,
     );
@@ -306,12 +334,12 @@ test('Spatial Surge keeps channel packets completed before an interrupt', () => 
     });
     const damageEvents = result => result.resolvedEvents.filter(event =>
         event.type === 'damage' && event.skillName === 'Spatial Surge');
-    const full = damageEvents(simulateSequence(['Spatial Surge'], config));
-    const partial = damageEvents(simulateSequence(
+    const full = damageEvents(simulateMesmer(['Spatial Surge'], config));
+    const partial = damageEvents(simulateMesmer(
         [{ name: 'Spatial Surge', interruptMs: 600 }],
         config,
     ));
-    const beforeFirstPacket = damageEvents(simulateSequence(
+    const beforeFirstPacket = damageEvents(simulateMesmer(
         [{ name: 'Spatial Surge', interruptMs: 200 }],
         config,
     ));
@@ -332,7 +360,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
         primaryWeapon: 'Staff',
         secondaryWeapon: '',
     };
-    const normal = simulateSequence(
+    const normal = simulateMesmer(
         rotation,
         defaultSimulationConfig({
             ...baseConfig,
@@ -340,7 +368,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
             selectedTraits: [],
         }),
     );
-    const chronophantasma = simulateSequence(
+    const chronophantasma = simulateMesmer(
         rotation,
         defaultSimulationConfig({
             ...baseConfig,
@@ -419,11 +447,11 @@ test('phantasm conditions use the summoner condition sigil modifiers', () => {
         'Phantasmal Warlock',
         { name: '__wait', waitMs: 9000 },
     ];
-    const plain = simulateSequence(
+    const plain = simulateMesmer(
         rotation,
         defaultSimulationConfig(base),
     );
-    const withSigils = simulateSequence(
+    const withSigils = simulateMesmer(
         rotation,
         defaultSimulationConfig({
             ...base,
@@ -462,7 +490,7 @@ test('phantasm conditions use the summoner condition sigil modifiers', () => {
 });
 
 test('Compounding Power triggers for both phantasm summons and clone conversion', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Phantasmal Warlock', { name: '__wait', waitMs: 11000 }],
         defaultSimulationConfig({
             specialization: 'Chronomancer',
@@ -484,7 +512,7 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
 });
 
 test('Winds of Chaos uses its measured 760ms Quickness cast time', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Winds of Chaos'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -497,7 +525,7 @@ test('Winds of Chaos uses its measured 760ms Quickness cast time', () => {
 });
 
 test('Phantasmal Warlock uses its measured 780ms Quickness cast time', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Phantasmal Warlock'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -514,7 +542,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
         specialization: 'Core',
         initialResource: 0,
     };
-    const counterspell = simulateSequence(
+    const counterspell = simulateMesmer(
         ['Illusionary Counter', 'Counterspell'],
         defaultSimulationConfig({
             ...coreConfig,
@@ -524,13 +552,13 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
     );
     assert.equal(counterspell.steps[1].end - counterspell.steps[1].start, 600);
 
-    const signet = simulateSequence(
+    const signet = simulateMesmer(
         ['Signet of the Ether'],
         defaultSimulationConfig(coreConfig),
     );
     assert.equal(signet.steps[0].end - signet.steps[0].start, 920);
 
-    const chaosStorm = simulateSequence(
+    const chaosStorm = simulateMesmer(
         ['Chaos Storm'],
         defaultSimulationConfig({
             ...coreConfig,
@@ -540,7 +568,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
     );
     assert.equal(chaosStorm.steps[0].end - chaosStorm.steps[0].start, 480);
 
-    const scepterChain = simulateSequence(
+    const scepterChain = simulateMesmer(
         ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
         defaultSimulationConfig({
             ...coreConfig,
@@ -553,7 +581,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
         [440, 520, 840],
     );
 
-    const confusingImages = simulateSequence(
+    const confusingImages = simulateMesmer(
         ['Confusing Images'],
         defaultSimulationConfig({
             ...coreConfig,
@@ -566,7 +594,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
         1850,
     );
 
-    const pistolSkills = simulateSequence(
+    const pistolSkills = simulateMesmer(
         ['Phantasmal Duelist', 'Magic Bullet'],
         defaultSimulationConfig({
             ...coreConfig,
@@ -579,7 +607,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
         [540, 440],
     );
 
-    const axeSkills = simulateSequence(
+    const axeSkills = simulateMesmer(
         [
             'Lacerating Chop',
             'Ethereal Chop',
@@ -599,7 +627,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
         [430, 530, 720, 930, 1020],
     );
 
-    const greatswordSkills = simulateSequence(
+    const greatswordSkills = simulateMesmer(
         ['Mind Stab', 'Phantasmal Berserker', 'Illusionary Wave'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -622,7 +650,7 @@ test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {
         selectedTraits: [],
         modifiers: { strike: 1, condition: 1 },
     });
-    const damageAt = vulnerability => simulateSequence(
+    const damageAt = vulnerability => simulateMesmer(
         ['Mind Stab'],
         {
             ...config,
@@ -641,7 +669,7 @@ test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {
 });
 
 test('Phantasmal Berserker uses its phantasm coefficient and Bountiful reduction', () => {
-    const coefficientAt = selectedTraits => simulateSequence(
+    const coefficientAt = selectedTraits => simulateMesmer(
         ['Phantasmal Berserker', { name: '__wait', waitMs: 2000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -660,7 +688,7 @@ test('Phantasmal Berserker uses its phantasm coefficient and Bountiful reduction
 });
 
 test('Mirror Blade resolves target-facing bounce damage as separate hits', () => {
-    const simulateMirrorBlade = selectedTraits => simulateSequence(
+    const simulateMirrorBlade = selectedTraits => simulateMesmer(
         ['Mirror Blade', { name: '__wait', waitMs: 1000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -696,7 +724,7 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
         primaryWeapon: 'Scepter',
         secondaryWeapon: 'Pistol',
     };
-    const normal = simulateSequence(
+    const normal = simulateMesmer(
         rotation,
         defaultSimulationConfig({
             ...baseConfig,
@@ -704,7 +732,7 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
             selectedTraits: [],
         }),
     );
-    const chronophantasma = simulateSequence(
+    const chronophantasma = simulateMesmer(
         rotation,
         defaultSimulationConfig({
             ...baseConfig,
@@ -737,7 +765,7 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
 });
 
 test('condition-bearing clone autoattacks apply their damaging conditions', () => {
-    const axe = simulateSequence(
+    const axe = simulateMesmer(
         ['Mirror Images', { name: '__wait', waitMs: 5000 }],
         defaultSimulationConfig({
             specialization: 'Mirage',
@@ -755,7 +783,7 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
     assert.ok(axeConditions.some(event =>
         event.condition === 'Torment' && event.duration === 6));
 
-    const staff = simulateSequence(
+    const staff = simulateMesmer(
         ['Phase Retreat', { name: '__wait', waitMs: 2500 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -780,7 +808,7 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
         2,
     );
 
-    const scepter = simulateSequence(
+    const scepter = simulateMesmer(
         ['Mirror Images', { name: '__wait', waitMs: 2500 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -799,7 +827,7 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
 });
 
 test('destroyed clones do not apply prescheduled autoattack conditions', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Phase Retreat', 'Mind Wrack', { name: '__wait', waitMs: 2500 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -817,7 +845,7 @@ test('destroyed clones do not apply prescheduled autoattack conditions', () => {
 });
 
 test('Ineptitude applies confusion for each direct blind on a normal target', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Chaos Armor', 'Signet of Midnight', { name: '__wait', waitMs: 100 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -841,7 +869,7 @@ test('Ineptitude applies confusion for each direct blind on a normal target', ()
 
 test('Ineptitude uses its three-second interval on defiant targets', () => {
     const defaults = defaultSimulationConfig();
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Chaos Armor', 'Signet of Midnight', { name: '__wait', waitMs: 100 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -863,7 +891,7 @@ test('Ineptitude uses its three-second interval on defiant targets', () => {
 });
 
 test('Chaos Armor applies three base confusion plus two from Ineptitude', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Chaos Armor'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -882,7 +910,7 @@ test('Chaos Armor applies three base confusion plus two from Ineptitude', () => 
 });
 
 test('Counterspell applies five base confusion plus two from Ineptitude', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Illusionary Counter', 'Counterspell'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -901,7 +929,7 @@ test('Counterspell applies five base confusion plus two from Ineptitude', () => 
 });
 
 test('Signet of Midnight blind applies two confusion from Ineptitude', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Signet of Midnight'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -922,7 +950,7 @@ test('Signet of Midnight blind applies two confusion from Ineptitude', () => {
 
 test('Signet of Midnight expertise is inactive while recharging', () => {
     const defaults = defaultSimulationConfig();
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Confusing Images',
             'Signet of Midnight',
@@ -960,7 +988,7 @@ test('Signet of Midnight expertise is inactive while recharging', () => {
 
 test('Continuum Shift restores Signet of Midnight passive expertise', () => {
     const defaults = defaultSimulationConfig();
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Continuum Split',
             'Signet of Midnight',
@@ -1001,7 +1029,7 @@ test('Ineptitude treats control as an interrupt only for an activating target', 
         secondaryWeapon: 'Pistol',
         initialResource: 0,
     };
-    const idle = simulateSequence(
+    const idle = simulateMesmer(
         ['Magic Bullet', { name: '__wait', waitMs: 100 }],
         defaultSimulationConfig({
             ...config,
@@ -1012,7 +1040,7 @@ test('Ineptitude treats control as an interrupt only for an activating target', 
             },
         }),
     );
-    const active = simulateSequence(
+    const active = simulateMesmer(
         ['Magic Bullet', { name: '__wait', waitMs: 100 }],
         defaultSimulationConfig({
             ...config,
@@ -1032,7 +1060,7 @@ test('Ineptitude treats control as an interrupt only for an activating target', 
 });
 
 test('Blinding Dissipation triggers Ineptitude once per Rewinder strike', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Mirror Images', 'Rewinder'],
         defaultSimulationConfig({
             specialization: 'Chronomancer',
@@ -1052,7 +1080,7 @@ test('Blinding Dissipation triggers Ineptitude once per Rewinder strike', () => 
 
 test('stationary torment uses the current PvE formula', () => {
     const defaults = defaultSimulationConfig();
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Ether Bolt', { name: '__wait', waitMs: 1000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -1085,7 +1113,7 @@ test('stationary torment uses the current PvE formula', () => {
 
 test('static and condition-specific duration bonuses reach the resolver', () => {
     const defaults = defaultSimulationConfig();
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Ether Bolt', { name: '__wait', waitMs: 2000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -1123,7 +1151,7 @@ test('target skill activations add the current PvE confusion activation damage',
             might: 0,
         },
     };
-    const resultAt = confusionActivationsPerSecond => simulateSequence(
+    const resultAt = confusionActivationsPerSecond => simulateMesmer(
         ['Confusing Images', { name: '__wait', waitMs: 1000 }],
         defaultSimulationConfig({
             ...config,
@@ -1154,7 +1182,7 @@ test('target skill activations add the current PvE confusion activation damage',
 });
 
 test('event log distinguishes phantasm summon, attack, and clone conversion', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Phantasmal Duelist', { name: '__wait', waitMs: 7000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -1179,20 +1207,20 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
 });
 
 test('Virtuoso bladesongs spend the configured starting blades', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Bladesong Harmony'],
         defaultSimulationConfig({ initialResource: 5 }),
     );
-    assert.equal(result.endState.resource, 0);
+    assert.equal(result.endState.profession.resource, 0);
 });
 
 test('sigil and relic damage modifiers affect the queued rotation result', () => {
     const config = defaultSimulationConfig();
-    const base = simulateSequence(
+    const base = simulateMesmer(
         ['Bladecall', 'Unstable Bladestorm'],
         { ...config, relic: '', modifiers: { strike: 1, condition: 1 } },
     );
-    const equipped = simulateSequence(
+    const equipped = simulateMesmer(
         ['Bladecall', 'Unstable Bladestorm'],
         { ...config, relic: 'Thief', modifiers: { strike: 1.05, condition: 1 } },
     );
@@ -1209,8 +1237,8 @@ test('weapon swaps activate only the equipped set damage sigils', () => {
         modifiers: { strike: 1, condition: 1 },
     });
     const rotation = ['Bladecall', 'Swap Weapons', 'Psycut'];
-    const base = simulateSequence(rotation, config);
-    const equipped = simulateSequence(rotation, {
+    const base = simulateMesmer(rotation, config);
+    const equipped = simulateMesmer(rotation, {
         ...config,
         sigilSets: [
             { strike: 1.05, condition: 1 },
@@ -1225,7 +1253,7 @@ test('weapon swaps activate only the equipped set damage sigils', () => {
 });
 
 test('weapon swaps activate only the equipped set duration sigils', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Confusing Images',
             'Swap Weapons',
@@ -1269,11 +1297,11 @@ test('Relic of the Claw buffs strikes after a control skill for eight seconds', 
         relic: '',
         modifiers: { strike: 1, condition: 1 },
     });
-    const base = simulateSequence(
+    const base = simulateMesmer(
         ['Bladesong Dissonance', 'Bladecall'],
         config,
     );
-    const equipped = simulateSequence(
+    const equipped = simulateMesmer(
         ['Bladesong Dissonance', 'Bladecall'],
         { ...config, relic: 'Claw' },
     );
@@ -1303,11 +1331,11 @@ test('Relic of the Claw can trigger from a non-damaging control skill and expire
         relic: 'Claw',
         modifiers: { strike: 1, condition: 1 },
     });
-    const active = simulateSequence(
+    const active = simulateMesmer(
         ['Signet of Domination', 'Mind Slash'],
         config,
     );
-    const expired = simulateSequence(
+    const expired = simulateMesmer(
         ['Signet of Domination', { name: '__wait', waitMs: 8001 }, 'Mind Slash'],
         config,
     );
@@ -1320,7 +1348,7 @@ test('Relic of the Claw can trigger from a non-damaging control skill and expire
 });
 
 test('Relic of the Claw records activation and refresh procs', () => {
-    const claw = simulateSequence(
+    const claw = simulateMesmer(
         ['Signet of Domination', 'Diversion', { name: '__wait', waitMs: 8001 }, 'Signet of Domination'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -1341,7 +1369,7 @@ test('Relic of the Claw records activation and refresh procs', () => {
 });
 
 test('timed relic buffs only add a proc when the buff was not already active', () => {
-    const fireworks = simulateSequence(
+    const fireworks = simulateMesmer(
         ['Chaos Storm', { name: '__wait', waitMs: 14000 }, 'Chaos Storm'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -1359,7 +1387,7 @@ test('timed relic buffs only add a proc when the buff was not already active', (
 });
 
 test('Relic of Akeem triggers on control against five confusion stacks', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Bladesong Sorrow',
             'Bladecall',
@@ -1386,7 +1414,7 @@ test('Relic of Akeem triggers on control against five confusion stacks', () => {
 });
 
 test('Relic of Akeem is reported when its trigger ends the rotation', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Bladesong Sorrow',
             'Bladecall',
@@ -1409,18 +1437,18 @@ test('Relic of the Eagle activates after runtime damage drops the target below 5
         relic: '',
         modifiers: { strike: 1, condition: 1 },
     });
-    const probe = simulateSequence(['Bladecall'], config);
+    const probe = simulateMesmer(['Bladecall'], config);
     const firstHitDamage = probe.resolvedEvents.find(event =>
         event.type === 'damage' && event.skillName === 'Bladecall').damage;
     const target = {
         ...config.target,
         health: firstHitDamage * 1.5,
     };
-    const base = simulateSequence(
+    const base = simulateMesmer(
         ['Bladecall', 'Bladecall'],
         { ...config, target },
     );
-    const eagle = simulateSequence(
+    const eagle = simulateMesmer(
         ['Bladecall', 'Bladecall'],
         { ...config, relic: 'Eagle', target },
     );
@@ -1434,7 +1462,7 @@ test('Relic of the Eagle activates after runtime damage drops the target below 5
 });
 
 test('permanent target conditions satisfy condition-dependent relic triggers', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Bladesong Dissonance'],
         defaultSimulationConfig({
             relic: 'Akeem',
@@ -1464,7 +1492,7 @@ test('Relic of Mistburn grants ten percent critical chance at ten Might', () => 
         },
         modifiers: { strike: 1, condition: 1 },
     });
-    const resultAt = might => simulateSequence(
+    const resultAt = might => simulateMesmer(
         ['Bladecall'],
         {
             ...config,
@@ -1487,13 +1515,15 @@ test('Relic of Aristocracy extends conditions after weakness or vulnerability', 
         specialization: 'Core',
         relic: 'Aristocracy',
         initialResource: 0,
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Pistol',
         stats: {
             ...defaultSimulationConfig().stats,
             expertise: 0,
         },
         modifiers: { strike: 1, condition: 1 },
     });
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Mind Slash',
             'Mind Gash',
@@ -1527,11 +1557,11 @@ test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
         relic: '',
         modifiers: { strike: 1, condition: 1 },
     });
-    const base = simulateSequence(
+    const base = simulateMesmer(
         ['Blink', 'Mind Slash', { name: '__wait', waitMs: 8000 }],
         config,
     );
-    const equipped = simulateSequence(
+    const equipped = simulateMesmer(
         ['Blink', 'Mind Slash', { name: '__wait', waitMs: 8000 }],
         { ...config, relic: 'Peitha' },
     );
@@ -1553,6 +1583,8 @@ test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
         specialization: 'Core',
         initialResource: 0,
         relic: '',
+        primaryWeapon: 'Dagger',
+        secondaryWeapon: 'Pistol',
         modifiers: { strike: 1, condition: 1 },
     });
     const rotation = [
@@ -1560,8 +1592,8 @@ test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
         'Phantasmal Duelist',
         { name: '__wait', waitMs: 5000 },
     ];
-    const base = simulateSequence(rotation, config);
-    const equipped = simulateSequence(rotation, { ...config, relic: 'Thorns' });
+    const base = simulateMesmer(rotation, config);
+    const equipped = simulateMesmer(rotation, { ...config, relic: 'Thorns' });
 
     assert.ok(equipped.conditionDamage > base.conditionDamage);
     assert.deepEqual(
@@ -1573,7 +1605,7 @@ test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
 });
 
 test('weapon swap changes sets and observes its cooldown before swapping back', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Swap Weapons', 'Swap Weapons'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -1632,25 +1664,25 @@ test('shift-queued Mirror Images after an instant action still grants clones', (
     const config = defaultSimulationConfig({
         specialization: 'Core',
         initialResource: 0,
-        primaryWeapon: 'Sword',
+        primaryWeapon: 'Dagger',
         secondaryWeapon: 'Sword',
     });
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Blink', { name: 'Mirror Images', offset: 100 }],
         config,
     );
     assert.equal(result.endState.time, 150);
-    assert.equal(result.endState.resource, 2);
+    assert.equal(result.endState.profession.resource, 2);
 });
 
 test('shift-queued Mirror Images after a resource-generating cast grants both clones', () => {
     const config = defaultSimulationConfig({
         specialization: 'Core',
         initialResource: 0,
-        primaryWeapon: 'Sword',
+        primaryWeapon: 'Dagger',
         secondaryWeapon: 'Sword',
     });
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Bladecall', { name: 'Mirror Images', offset: 100 }],
         config,
     );
@@ -1659,7 +1691,7 @@ test('shift-queued Mirror Images after a resource-generating cast grants both cl
     );
 
     assert.equal(mirrorImagesResource?.amount, 2);
-    assert.equal(result.endState.resource, 3);
+    assert.equal(result.endState.profession.resource, 3);
 });
 
 test('clones from shift-queued Mirror Images are available to the next shatter', () => {
@@ -1669,13 +1701,13 @@ test('clones from shift-queued Mirror Images are available to the next shatter',
         primaryWeapon: 'Sword',
         secondaryWeapon: 'Sword',
     });
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Blink', { name: 'Mirror Images', offset: 100 }, 'Mind Wrack'],
         config,
     );
     assert.equal(result.steps.length, 3);
     assert.equal(result.steps[2].start, 150);
-    assert.equal(result.endState.resource, 0);
+    assert.equal(result.endState.profession.resource, 0);
 });
 
 test('Sharper Images uses deterministic expected-proc accumulation', () => {
@@ -1694,11 +1726,11 @@ test('Sharper Images uses deterministic expected-proc accumulation', () => {
             fury: false,
         },
     });
-    const first = simulateSequence(
+    const first = simulateMesmer(
         ['Phantasmal Duelist', { name: '__wait', waitMs: 1000 }],
         config,
     );
-    const second = simulateSequence(
+    const second = simulateMesmer(
         [
             'Phantasmal Duelist',
             { name: '__wait', waitMs: 16000 },
@@ -1728,7 +1760,7 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
         primaryWeapon: 'Scepter',
         secondaryWeapon: 'Sword',
     });
-    const counter = simulateSequence(['Illusionary Counter'], config);
+    const counter = simulateMesmer(['Illusionary Counter'], config);
     assert.equal(counter.steps[0].end, 120);
     assert.equal(counter.steps[0].interrupted, true);
     assert.ok(counter.steps[0].fullCastMs > 120);
@@ -1736,8 +1768,8 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
         counter.breakdown.some(entry => entry.name === 'Illusionary Counter'),
         false,
     );
-    assert.equal(counter.endState.resource, 0);
-    assert.equal(counter.endState.counterspellAvailable, true);
+    assert.equal(counter.endState.profession.resource, 0);
+    assert.equal(counter.endState.profession.counterspellAvailable, true);
     assert.equal(
         counter.resolvedEvents.some(event =>
             event.type === 'condition'
@@ -1746,18 +1778,18 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
         false,
     );
 
-    const unavailable = simulateSequence(['Counterspell'], config);
-    assert.equal(unavailable.steps.length, 0);
+    const unavailable = simulateMesmer(['Counterspell'], config);
+    assert.equal(unavailable.steps.filter(step => !step.invalid).length, 0);
     assert.match(unavailable.warnings[0], /Illusionary Counter is not active/);
 
-    const flipped = simulateSequence(
+    const flipped = simulateMesmer(
         ['Illusionary Counter', 'Counterspell', 'Counterspell'],
         config,
     );
-    assert.equal(flipped.steps.length, 2);
+    assert.equal(flipped.steps.filter(step => !step.invalid).length, 2);
     assert.equal(flipped.steps[1].start, 120);
-    assert.equal(flipped.endState.resource, 1);
-    assert.equal(flipped.endState.counterspellAvailable, false);
+    assert.equal(flipped.endState.profession.resource, 1);
+    assert.equal(flipped.endState.profession.counterspellAvailable, false);
     assert.ok(flipped.breakdown.some(entry => entry.name === 'Counterspell'));
 });
 
@@ -1768,9 +1800,9 @@ test('Ether Bolt and Ether Blast do not generate clones', () => {
         primaryWeapon: 'Scepter',
         secondaryWeapon: 'Sword',
     });
-    const result = simulateSequence(['Ether Bolt', 'Ether Blast'], config);
+    const result = simulateMesmer(['Ether Bolt', 'Ether Blast'], config);
     assert.deepEqual(result.steps.map(step => step.skill), ['Ether Bolt', 'Ether Blast']);
-    assert.equal(result.endState.resource, 0);
+    assert.equal(result.endState.profession.resource, 0);
 });
 
 test('Ether Clone creates a clone below cap and inflicts torment at cap', () => {
@@ -1779,11 +1811,11 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
         primaryWeapon: 'Scepter',
         secondaryWeapon: 'Sword',
     });
-    const belowCap = simulateSequence(
+    const belowCap = simulateMesmer(
         ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
         { ...config, initialResource: 2 },
     );
-    assert.equal(belowCap.endState.resource, 3);
+    assert.equal(belowCap.endState.profession.resource, 3);
     assert.equal(
         belowCap.events.some(event =>
             event.type === 'condition'
@@ -1792,11 +1824,11 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
         false,
     );
 
-    const atCap = simulateSequence(
+    const atCap = simulateMesmer(
         ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
         { ...config, initialResource: 3 },
     );
-    assert.equal(atCap.endState.resource, 3);
+    assert.equal(atCap.endState.profession.resource, 3);
     assert.ok(atCap.events.some(event =>
         event.type === 'condition'
         && event.skillName === 'Ether Clone'
@@ -1811,27 +1843,30 @@ test('autoattack chain steps unlock only after the preceding attack', () => {
         primaryWeapon: 'Scepter',
         secondaryWeapon: 'Sword',
     });
-    const locked = simulateSequence(['Ether Blast', 'Ether Clone'], config);
-    assert.equal(locked.steps.length, 0);
+    const locked = simulateMesmer(['Ether Blast', 'Ether Clone'], config);
+    assert.equal(locked.steps.filter(step => !step.invalid).length, 0);
     assert.match(locked.warnings[0], /cast Ether Bolt first/);
 
-    const skippedStep = simulateSequence(
+    const skippedStep = simulateMesmer(
         ['Ether Bolt', 'Ether Clone'],
         config,
     );
-    assert.deepEqual(skippedStep.steps.map(step => step.skill), ['Ether Bolt']);
+    assert.deepEqual(
+        skippedStep.steps.filter(step => !step.invalid).map(step => step.skill),
+        ['Ether Bolt'],
+    );
     assert.equal(
-        skippedStep.endState.autoattackChains[ID.ETHER_BOLT],
+        skippedStep.endState.profession.autoattackChains[ID.ETHER_BOLT],
         ID.ETHER_BLAST,
     );
     assert.match(skippedStep.warnings[0], /cast Ether Blast first/);
 
-    const completed = simulateSequence(
+    const completed = simulateMesmer(
         ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
         config,
     );
     assert.equal(
-        completed.endState.autoattackChains[ID.ETHER_BOLT],
+        completed.endState.profession.autoattackChains[ID.ETHER_BOLT],
         ID.ETHER_BOLT,
     );
 });
@@ -1843,7 +1878,7 @@ test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
         primaryWeapon: 'Scepter',
         secondaryWeapon: 'Sword',
     });
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Ether Bolt', 'Confusing Images', 'Ether Blast'],
         config,
     );
@@ -1852,7 +1887,7 @@ test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
         ['Ether Bolt', 'Confusing Images', 'Ether Blast'],
     );
     assert.equal(
-        result.endState.autoattackChains[ID.ETHER_BOLT],
+        result.endState.profession.autoattackChains[ID.ETHER_BOLT],
         ID.ETHER_CLONE,
     );
 });
@@ -1864,16 +1899,16 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
         primaryWeapon: 'Sword',
         secondaryWeapon: 'Sword',
     });
-    const interrupted = simulateSequence(
+    const interrupted = simulateMesmer(
         ['Mind Slash', 'Blurred Frenzy', 'Mind Gash'],
         swordConfig,
     );
     assert.deepEqual(
-        interrupted.steps.map(step => step.skill),
+        interrupted.steps.filter(step => !step.invalid).map(step => step.skill),
         ['Mind Slash', 'Blurred Frenzy'],
     );
     assert.equal(
-        interrupted.endState.autoattackChains[ID.MIND_SLASH],
+        interrupted.endState.profession.autoattackChains[ID.MIND_SLASH],
         ID.MIND_SLASH,
     );
 
@@ -1885,16 +1920,16 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
         weaponSet2Primary: 'Spear',
         weaponSet2Secondary: '',
     });
-    const swapped = simulateSequence(
+    const swapped = simulateMesmer(
         ['Ether Bolt', 'Swap Weapons', 'Ether Blast'],
         scepterConfig,
     );
     assert.deepEqual(
-        swapped.steps.map(step => step.skill),
+        swapped.steps.filter(step => !step.invalid).map(step => step.skill),
         ['Ether Bolt', 'Swap Weapons'],
     );
     assert.equal(
-        swapped.endState.autoattackChains[ID.ETHER_BOLT],
+        swapped.endState.profession.autoattackChains[ID.ETHER_BOLT],
         ID.ETHER_BOLT,
     );
 });
@@ -1906,12 +1941,16 @@ test('sword, scepter, axe, and spear auto chains cast as separate attacks', () =
         'Lacerating Chop', 'Ethereal Chop', 'Mirror Strikes',
         'Psycut', 'Psystrike', 'Mind Pierce',
     ];
-    const result = simulateSequence(
+    const result = simulateMesmer(
         chain,
         defaultSimulationConfig({
             specialization: 'Mirage',
             initialResource: 0,
             weaponmasterTraining: true,
+            primaryWeapon: '',
+            secondaryWeapon: '',
+            weaponSet2Primary: '',
+            weaponSet2Secondary: '',
         }),
     );
     assert.deepEqual(result.steps.map(step => step.skill), chain);
@@ -1923,6 +1962,10 @@ test('split autoattacks preserve each full-chain cadence', () => {
         specialization: 'Mirage',
         initialResource: 0,
         weaponmasterTraining: true,
+        primaryWeapon: '',
+        secondaryWeapon: '',
+        weaponSet2Primary: '',
+        weaponSet2Secondary: '',
         boons: {
             ...defaultSimulationConfig().boons,
             quickness: false,
@@ -1935,7 +1978,7 @@ test('split autoattacks preserve each full-chain cadence', () => {
         [['Psycut', 'Psystrike', 'Mind Pierce'], 2180],
     ];
     for (const [skills, expectedTime] of chains) {
-        assert.equal(simulateSequence(skills, config).endState.time, expectedTime);
+        assert.equal(simulateMesmer(skills, config).endState.time, expectedTime);
     }
 });
 
@@ -1943,6 +1986,10 @@ test('requested weapon flips require and consume their parent sequence skill', (
     const config = defaultSimulationConfig({
         specialization: 'Core',
         initialResource: 0,
+        primaryWeapon: '',
+        secondaryWeapon: '',
+        weaponSet2Primary: '',
+        weaponSet2Secondary: '',
     });
     const pairs = [
         ['Singularity Shot', 'Dimensional Aperture'],
@@ -1952,32 +1999,44 @@ test('requested weapon flips require and consume their parent sequence skill', (
         ['Illusionary Leap', 'Swap'],
     ];
     for (const [parent, flip] of pairs) {
-        const unavailable = simulateSequence([flip], config);
-        assert.equal(unavailable.steps.length, 0, flip);
+        const unavailable = simulateMesmer([flip], config);
+        assert.equal(
+            unavailable.steps.filter(step => !step.invalid).length,
+            0,
+            flip,
+        );
         assert.match(unavailable.warnings[0], new RegExp(parent), flip);
 
-        const result = simulateSequence([parent, flip, flip], config);
+        const result = simulateMesmer([parent, flip, flip], config);
         assert.deepEqual(
-            result.steps.map(step => step.skill),
+            result.steps.filter(step => !step.invalid).map(step => step.skill),
             [parent, flip],
             flip,
         );
-        assert.equal(result.endState.availableFlips[flip], undefined, flip);
+        assert.equal(result.endState.profession.availableFlips[flip], undefined, flip);
     }
 });
 
 test('Into the Void waits for its one-second post-curtain delay', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Temporal Curtain', 'Into the Void'],
-        defaultSimulationConfig({ specialization: 'Core' }),
+        defaultSimulationConfig({
+            specialization: 'Core',
+            primaryWeapon: '',
+            secondaryWeapon: '',
+        }),
     );
     assert.equal(result.steps[1].start, 1000);
 });
 
 test('Dimensional Aperture adds 50% to Singularity Shot recharge', () => {
-    const config = defaultSimulationConfig({ specialization: 'Core' });
-    const base = simulateSequence(['Singularity Shot'], config);
-    const aperture = simulateSequence(
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: '',
+        secondaryWeapon: '',
+    });
+    const base = simulateMesmer(['Singularity Shot'], config);
+    const aperture = simulateMesmer(
         ['Singularity Shot', 'Dimensional Aperture'],
         config,
     );
@@ -1986,16 +2045,20 @@ test('Dimensional Aperture adds 50% to Singularity Shot recharge', () => {
 });
 
 test('Abstraction records its detonation strike damage', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Inspiring Imagery', 'Abstraction'],
-        defaultSimulationConfig({ specialization: 'Core' }),
+        defaultSimulationConfig({
+            specialization: 'Core',
+            primaryWeapon: '',
+            secondaryWeapon: '',
+        }),
     );
     assert.ok(result.breakdown.some(entry =>
         entry.name === 'Abstraction' && entry.strikeDamage > 0));
 });
 
 test('Shatter Storm gives Split Second two ammo charges', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Split Second', 'Split Second', 'Split Second'],
         defaultSimulationConfig({
             specialization: 'Chronomancer',
@@ -2016,21 +2079,24 @@ test('Shatter Storm gives Split Second two ammo charges', () => {
 });
 
 test('Power Spike opens with two charges and reverts to Mantra of Pain when spent', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Power Spike', 'Power Spike', 'Power Spike'],
         defaultSimulationConfig({ specialization: 'Core' }),
     );
     // The third cast has no charges left, so the flip reverts to its parent.
-    assert.deepEqual(result.steps.map(step => step.skill), ['Power Spike', 'Power Spike']);
+    assert.deepEqual(
+        result.steps.filter(step => !step.invalid).map(step => step.skill),
+        ['Power Spike', 'Power Spike'],
+    );
     assert.equal(result.steps[0].start, 0);
     assert.equal(result.steps[1].start, 50);
-    assert.equal(result.endState.availableFlips['Power Spike'], undefined);
+    assert.equal(result.endState.profession.availableFlips['Power Spike'], undefined);
     assert.equal(result.endState.ammo['Power Spike'], undefined);
     assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
 });
 
 test('dodge uses two endurance charges and recharges one charge every ten seconds', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Dodge / Mirage Cloak',
             'Dodge / Mirage Cloak',
@@ -2063,16 +2129,16 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
         secondaryWeapon: 'Pistol',
         initialResource: 0,
     });
-    const cloakOnly = simulateSequence(['Dodge / Mirage Cloak'], config);
+    const cloakOnly = simulateMesmer(['Dodge / Mirage Cloak'], config);
     assert.equal(
         cloakOnly.resolvedEvents.some(event =>
             event.type === 'damage' && event.skillName === 'Imaginary Axes'),
         false,
     );
-    assert.equal(cloakOnly.endState.availableAmbush.name, 'Imaginary Axes');
-    assert.equal(cloakOnly.endState.availableAmbush.source, 'Dodge / Mirage Cloak');
+    assert.equal(cloakOnly.endState.profession.availableAmbush.name, 'Imaginary Axes');
+    assert.equal(cloakOnly.endState.profession.availableAmbush.source, 'Dodge / Mirage Cloak');
 
-    const used = simulateSequence(
+    const used = simulateMesmer(
         ['Dodge / Mirage Cloak', 'Imaginary Axes'],
         config,
     );
@@ -2084,11 +2150,11 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
         event.type === 'damage'
         && event.skillName === 'Imaginary Axes'
         && event.source === 'Player'));
-    assert.equal(used.endState.availableAmbush, null);
+    assert.equal(used.endState.profession.availableAmbush, null);
 });
 
 test('ambush skills cannot be cast without an active ambush window', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Phantom Razor'],
         defaultSimulationConfig({
             specialization: 'Mirage',
@@ -2097,7 +2163,7 @@ test('ambush skills cannot be cast without an active ambush window', () => {
             initialResource: 0,
         }),
     );
-    assert.equal(result.steps.length, 0);
+    assert.equal(result.steps.filter(step => !step.invalid).length, 0);
     assert.match(result.warnings[0], /no active Mirage Cloak ambush window/);
 });
 
@@ -2113,7 +2179,7 @@ test('all terrestrial Mirage weapons execute their correct ambush', () => {
         ['Sword', 'Mirage Thrust'],
     ];
     for (const [weapon, ambush] of pairs) {
-        const result = simulateSequence(
+        const result = simulateMesmer(
             ['Dodge / Mirage Cloak', ambush],
             defaultSimulationConfig({
                 specialization: 'Mirage',
@@ -2135,7 +2201,7 @@ test('all terrestrial Mirage weapons execute their correct ambush', () => {
 });
 
 test('Riddle of Sand applies to the first ambush and refreshes on shatter', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Dodge / Mirage Cloak',
             'Imaginary Axes',
@@ -2163,7 +2229,7 @@ test('Riddle of Sand applies to the first ambush and refreshes on shatter', () =
 });
 
 test('Infinite Horizon commands active clones to ambush when cloak is gained', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Dodge / Mirage Cloak'],
         defaultSimulationConfig({
             specialization: 'Mirage',
@@ -2188,7 +2254,7 @@ test('Infinite Horizon commands active clones to ambush when cloak is gained', (
 });
 
 test('Deceptive Evasion clone immediately ambushes with Infinite Horizon', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Dodge / Mirage Cloak'],
         defaultSimulationConfig({
             specialization: 'Mirage',
@@ -2198,7 +2264,7 @@ test('Deceptive Evasion clone immediately ambushes with Infinite Horizon', () =>
             initialResource: 0,
         }),
     );
-    assert.equal(result.endState.resource, 1);
+    assert.equal(result.endState.profession.resource, 1);
     assert.ok(result.resolvedEvents.some(event =>
         event.type === 'damage'
         && event.skillName === 'Mirage Thrust'
@@ -2213,20 +2279,20 @@ test('Self-Deception creates a clone only when another clone is active', () => {
         primaryWeapon: 'Axe',
         secondaryWeapon: 'Pistol',
     });
-    const activeClone = simulateSequence(
+    const activeClone = simulateMesmer(
         ['Crystal Sands'],
         { ...config, initialResource: 1 },
     );
-    const noClone = simulateSequence(
+    const noClone = simulateMesmer(
         ['Crystal Sands'],
         { ...config, initialResource: 0 },
     );
-    assert.equal(activeClone.endState.resource, 2);
-    assert.equal(noClone.endState.resource, 0);
+    assert.equal(activeClone.endState.profession.resource, 2);
+    assert.equal(noClone.endState.profession.resource, 0);
 });
 
 test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () => {
-    const distortion = simulateSequence(
+    const distortion = simulateMesmer(
         ['Distortion'],
         defaultSimulationConfig({
             specialization: 'Mirage',
@@ -2234,11 +2300,11 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
             initialResource: 2,
         }),
     );
-    assert.equal(distortion.endState.availableAmbush.source, 'Desert Distortion');
+    assert.equal(distortion.endState.profession.availableAmbush.source, 'Desert Distortion');
     assert.ok(distortion.procSteps.some(proc =>
         proc.skill === 'Desert Distortion'));
 
-    const dune = simulateSequence(
+    const dune = simulateMesmer(
         ['Mind Wrack'],
         defaultSimulationConfig({
             specialization: 'Mirage',
@@ -2250,12 +2316,12 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
             },
         }),
     );
-    assert.equal(dune.endState.availableAmbush.source, 'Dune Cloak');
+    assert.equal(dune.endState.profession.availableAmbush.source, 'Dune Cloak');
     assert.equal(dune.endState.cooldowns['Mind Wrack'].readyAt, 11000);
 });
 
 test('Mirage support and cloak traits emit their current effects', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Dodge / Mirage Cloak', 'Effervescence'],
         defaultSimulationConfig({
             specialization: 'Mirage',
@@ -2295,11 +2361,11 @@ test("Nomad's Endurance grants vigor on shatter and uses it for damage", () => {
             vigor: false,
         },
     });
-    const without = simulateSequence(
+    const without = simulateMesmer(
         ['Mind Wrack', 'Mind Slash'],
         baseConfig,
     );
-    const withTrait = simulateSequence(
+    const withTrait = simulateMesmer(
         ['Mind Wrack', 'Mind Slash'],
         {
             ...baseConfig,
@@ -2314,7 +2380,7 @@ test("Nomad's Endurance grants vigor on shatter and uses it for damage", () => {
 });
 
 test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Power Spike', 'Power Spike', 'Mantra of Pain', 'Power Spike'],
         defaultSimulationConfig({ specialization: 'Core' }),
     );
@@ -2322,8 +2388,8 @@ test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
         result.steps.map(step => step.skill),
         ['Power Spike', 'Power Spike', 'Mantra of Pain', 'Power Spike'],
     );
-    assert.ok(result.endState.availableFlips['Power Spike']);
-    assert.equal(result.endState.availableFlips['Power Spike'].persistent, true);
+    assert.ok(result.endState.profession.availableFlips['Power Spike']);
+    assert.equal(result.endState.profession.availableFlips['Power Spike'].persistent, true);
     assert.deepEqual(
         {
             charges: result.endState.ammo['Power Spike'].charges,
@@ -2334,7 +2400,7 @@ test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
 });
 
 test('Power Spike records its strike damage', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Power Spike'],
         defaultSimulationConfig({ specialization: 'Core' }),
     );
@@ -2343,7 +2409,7 @@ test('Power Spike records its strike damage', () => {
 });
 
 test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulated', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Power Spike', 'Power Spike', 'Mantra of Pain', { name: 'Power Spike', offset: 100 }],
         defaultSimulationConfig({ specialization: 'Core' }),
     );
@@ -2355,7 +2421,7 @@ test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulat
         result.steps.filter(step => step.skill === 'Power Spike' && !step.invalid).length,
         2,
     );
-    assert.equal(result.endState.availableFlips['Power Spike'].persistent, true);
+    assert.equal(result.endState.profession.availableFlips['Power Spike'].persistent, true);
     assert.equal(result.endState.ammo['Power Spike'].charges, 2);
     assert.match(result.warnings.at(-1), /Mantra of Pain is still channeling/);
 });
@@ -2364,7 +2430,7 @@ test('Power Spike stays invalid even when another instant is chained into the ch
     // Weaving an instant (Blink) into the channel and then Power Spike after it
     // must still be caught: the flip is not armed until the channel completes,
     // regardless of the immediately preceding command.
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Power Spike', 'Power Spike', 'Mantra of Pain',
             { name: 'Blink', offset: 100 },
@@ -2386,16 +2452,16 @@ test('Illusionary Reversion refunds one clone only after shattering three', () =
         specialization: 'Chronomancer',
         selectedTraits: ['Illusionary Reversion'],
     });
-    const fullShatter = simulateSequence(
+    const fullShatter = simulateMesmer(
         ['Split Second'],
         { ...config, initialResource: 3 },
     );
-    const partialShatter = simulateSequence(
+    const partialShatter = simulateMesmer(
         ['Split Second'],
         { ...config, initialResource: 2 },
     );
-    assert.equal(fullShatter.endState.resource, 1);
-    assert.equal(partialShatter.endState.resource, 0);
+    assert.equal(fullShatter.endState.profession.resource, 1);
+    assert.equal(partialShatter.endState.profession.resource, 0);
     assert.ok(
         simulationEventLogRows(fullShatter).some(event =>
             event.description.includes(
@@ -2405,7 +2471,7 @@ test('Illusionary Reversion refunds one clone only after shattering three', () =
 });
 
 test('Signet of the Ether resets every phantasm skill cooldown', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Phantasmal Duelist',
             'Phantasmal Warlock',
@@ -2424,7 +2490,7 @@ test('Signet of the Ether resets every phantasm skill cooldown', () => {
 });
 
 test('Mental Collapse resets Mind the Gap cooldown', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Mind the Gap', 'Mental Collapse', 'Mind the Gap'],
         defaultSimulationConfig({
             specialization: 'Virtuoso',
@@ -2435,7 +2501,7 @@ test('Mental Collapse resets Mind the Gap cooldown', () => {
 
     assert.equal(result.steps.length, 3);
     assert.ok(Math.abs(result.steps[2].start - result.steps[1].end) <= 1);
-    const resetOnly = simulateSequence(
+    const resetOnly = simulateMesmer(
         ['Mind the Gap', 'Mental Collapse'],
         defaultSimulationConfig({
             specialization: 'Virtuoso',
@@ -2447,7 +2513,7 @@ test('Mental Collapse resets Mind the Gap cooldown', () => {
 });
 
 test('Mind the Gap grants 15 seconds of Clarity and displays it as a skill proc', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Mind the Gap'],
         defaultSimulationConfig({
             specialization: 'Virtuoso',
@@ -2456,7 +2522,7 @@ test('Mind the Gap grants 15 seconds of Clarity and displays it as a skill proc'
         }),
     );
 
-    assert.equal(result.endState.clarityRemaining, 15000);
+    assert.equal(result.endState.profession.clarityRemaining, 15000);
     assert.ok(result.procSteps.some(proc =>
         proc.skill === 'Clarity'
         && proc.type === 'skill_proc'
@@ -2471,7 +2537,7 @@ test('Mesmer spear skills 3, 4, and 5 consume Clarity', () => {
         'Phantasmal Lancer',
         'Mental Collapse',
     ]) {
-        const result = simulateSequence(
+        const result = simulateMesmer(
             ['Mind the Gap', consumer],
             defaultSimulationConfig({
                 specialization: 'Virtuoso',
@@ -2479,7 +2545,7 @@ test('Mesmer spear skills 3, 4, and 5 consume Clarity', () => {
                 secondaryWeapon: '',
             }),
         );
-        assert.equal(result.endState.clarityRemaining, 0, consumer);
+        assert.equal(result.endState.profession.clarityRemaining, 0, consumer);
     }
 });
 
@@ -2490,11 +2556,11 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
         secondaryWeapon: '',
         initialResource: 0,
     });
-    const normal = simulateSequence(
+    const normal = simulateMesmer(
         ['Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
         config,
     );
-    const empowered = simulateSequence(
+    const empowered = simulateMesmer(
         ['Mind the Gap', 'Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
         config,
     );
@@ -2558,7 +2624,7 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
         secondaryWeapon: 'Sword',
         selectedTraits: [],
     });
-    const consecutive = simulateSequence(
+    const consecutive = simulateMesmer(
         ['Flying Cutter', 'Flying Cutter', 'Flying Cutter'],
         config,
     );
@@ -2569,7 +2635,7 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
         burst.reduce((sum, event) => sum + event.coefficient, 0) - 0.6,
     ) < 1e-12);
 
-    const expired = simulateSequence(
+    const expired = simulateMesmer(
         [
             'Flying Cutter',
             { name: '__wait', waitMs: 5001 },
@@ -2584,7 +2650,7 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
         0,
     );
 
-    const bladecall = simulateSequence(['Bladecall'], config);
+    const bladecall = simulateMesmer(['Bladecall'], config);
     const bladecallHits = bladecall.resolvedEvents.filter(event =>
         event.type === 'damage' && event.skillName === 'Bladecall');
     assert.equal(bladecallHits.length, 6);
@@ -2605,7 +2671,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
             )
             .reduce((sum, event) => sum + event.coefficient, 0);
 
-    const madness = simulateSequence(
+    const madness = simulateMesmer(
         ['Ether Feast', { name: '__wait', waitMs: 5000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -2617,7 +2683,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
         Math.abs(coefficient(madness, 'Lesser Chaos Storm') - 1.98) < 1e-12,
     );
 
-    const phantasmalBlade = simulateSequence(
+    const phantasmalBlade = simulateMesmer(
         ['Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
         defaultSimulationConfig({
             specialization: 'Virtuoso',
@@ -2629,7 +2695,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
     );
     assert.equal(coefficient(phantasmalBlade, 'Phantasmal Blade'), 0.7);
 
-    const syncopate = simulateSequence(
+    const syncopate = simulateMesmer(
         ['Illusionary Wave'],
         defaultSimulationConfig({
             specialization: 'Troubadour',
@@ -2640,7 +2706,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
     );
     assert.equal(coefficient(syncopate, 'Syncopate'), 0.75);
 
-    const timeBomb = simulateSequence(
+    const timeBomb = simulateMesmer(
         ['Time Sink', { name: '__wait', waitMs: 5000 }],
         defaultSimulationConfig({
             specialization: 'Chronomancer',
@@ -2652,7 +2718,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
 });
 
 test('Bountiful Blades stocks each Berserker blade independently', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Phantasmal Berserker', { name: '__wait', waitMs: 4000 }],
         defaultSimulationConfig({
             specialization: 'Virtuoso',
@@ -2694,7 +2760,7 @@ test('blades generated during a bladesong remain stocked afterward', () => {
         'Phantasmal Disenchanter',
         'Bladesong Sorrow',
     ];
-    const result = simulateSequence(
+    const result = simulateMesmer(
         rotation,
         defaultSimulationConfig({
             specialization: 'Virtuoso',
@@ -2741,13 +2807,13 @@ test('Clarity makes only an empowered Mental Collapse a control skill', () => {
         primaryWeapon: 'Spear',
         secondaryWeapon: '',
     });
-    const normal = simulateSequence(['Mental Collapse'], config);
-    const empowered = simulateSequence(['Mind the Gap', 'Mental Collapse'], config);
-    const activeNearExpiry = simulateSequence(
+    const normal = simulateMesmer(['Mental Collapse'], config);
+    const empowered = simulateMesmer(['Mind the Gap', 'Mental Collapse'], config);
+    const activeNearExpiry = simulateMesmer(
         ['Mind the Gap', { name: '__wait', waitMs: 14999 }, 'Mental Collapse'],
         config,
     );
-    const expired = simulateSequence(
+    const expired = simulateMesmer(
         ['Mind the Gap', { name: '__wait', waitMs: 15000 }, 'Mental Collapse'],
         config,
     );
@@ -2762,7 +2828,7 @@ test('Clarity makes only an empowered Mental Collapse a control skill', () => {
 });
 
 test('Signet of the Ether does not generate a clone', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Signet of the Ether'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -2770,7 +2836,7 @@ test('Signet of the Ether does not generate a clone', () => {
         }),
     );
 
-    assert.equal(result.endState.resource, 0);
+    assert.equal(result.endState.profession.resource, 0);
     assert.equal(
         result.events.some(
             event => event.type === 'resource' && event.reason === 'Signet of the Ether',
@@ -2780,7 +2846,7 @@ test('Signet of the Ether does not generate a clone', () => {
 });
 
 test('concurrent Continuum Split excludes the still-casting skill from its snapshot', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Phantasmal Warlock',
             { name: 'Continuum Split', offset: 100 },
@@ -2790,6 +2856,8 @@ test('concurrent Continuum Split excludes the still-casting skill from its snaps
         defaultSimulationConfig({
             specialization: 'Chronomancer',
             initialResource: 3,
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
         }),
     );
     assert.equal(result.steps[0].end, 780);
@@ -2798,7 +2866,7 @@ test('concurrent Continuum Split excludes the still-casting skill from its snaps
 });
 
 test('mid-rotation concurrent Continuum Split does not restore expired cooldowns', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Chaos Storm',
             { name: '__wait', waitMs: 14000 },
@@ -2820,7 +2888,7 @@ test('mid-rotation concurrent Continuum Split does not restore expired cooldowns
 });
 
 test('relic and trait activations are exposed as proc timeline steps', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Blurred Frenzy'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -2837,7 +2905,7 @@ test('relic and trait activations are exposed as proc timeline steps', () => {
 });
 
 test('result summary uses the expected metric order', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Blurred Frenzy'],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -2866,7 +2934,7 @@ test('Duration and Kill Time account for an explicit Combat Start reference', ()
 });
 
 test('Combat Start timeline timestamps use the first subsequent hit like Elementalist', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Phantasmal Swordsman',
             { name: '__combat_start', offset: 700 },
@@ -2882,7 +2950,7 @@ test('Combat Start timeline timestamps use the first subsequent hit like Element
 });
 
 test('timeline and DPS retain simulation time without Combat Start', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Phantasmal Swordsman',
             'Bladecall',
@@ -2898,7 +2966,7 @@ test('timeline and DPS retain simulation time without Combat Start', () => {
 
 test('result summary includes kill time when target health is exhausted', () => {
     const defaults = defaultSimulationConfig();
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Bladecall'],
         defaultSimulationConfig({
             target: {
@@ -2952,7 +3020,7 @@ test('result table sorting cycles consistently across profession views', () => {
 });
 
 test('skill breakdown combines strike and condition damage by source skill', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Confusing Images', { name: '__wait', waitMs: 3000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -2973,7 +3041,7 @@ test('skill breakdown combines strike and condition damage by source skill', () 
 });
 
 test('condition breakdown reports damage, DPS, and average stacks', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Confusing Images', { name: '__wait', waitMs: 3000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -2990,7 +3058,7 @@ test('condition breakdown reports damage, DPS, and average stacks', () => {
 });
 
 test('chart series expose cumulative DPS and condition stacks over time', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         ['Confusing Images', { name: '__wait', waitMs: 3000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -3042,12 +3110,12 @@ test('Continuum Shift is available only while Continuum Split is active', () => 
         specialization: 'Chronomancer',
         initialResource: 3,
     });
-    const split = simulateSequence(['Continuum Split'], config);
-    assert.equal(split.endState.continuumActive, true);
-    assert.ok(split.endState.continuumRemaining > 0);
+    const split = simulateMesmer(['Continuum Split'], config);
+    assert.equal(split.endState.profession.continuumActive, true);
+    assert.ok(split.endState.profession.continuumRemaining > 0);
 
-    const shifted = simulateSequence(['Continuum Split', 'Continuum Shift'], config);
-    assert.equal(shifted.endState.continuumActive, false);
+    const shifted = simulateMesmer(['Continuum Split', 'Continuum Shift'], config);
+    assert.equal(shifted.endState.profession.continuumActive, false);
 });
 
 test('expired Continuum Split is injected before the next rotation action', () => {
@@ -3057,7 +3125,7 @@ test('expired Continuum Split is injected before the next rotation action', () =
         'Bladecall',
         'Bladecall',
     ];
-    const result = simulateSequence(
+    const result = simulateMesmer(
         rotation,
         defaultSimulationConfig({
             specialization: 'Chronomancer',
@@ -3078,7 +3146,7 @@ test('expired Continuum Split is injected before the next rotation action', () =
 
 test('manual Continuum Shift is not duplicated as an injected timeline marker', () => {
     const rotation = ['Continuum Split', 'Continuum Shift'];
-    const result = simulateSequence(
+    const result = simulateMesmer(
         rotation,
         defaultSimulationConfig({
             specialization: 'Chronomancer',
@@ -3101,7 +3169,7 @@ test('Continuum Split does not restore weapon-swap cooldown', () => {
         weaponSet2Primary: 'Spear',
         weaponSet2Secondary: '',
     });
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Continuum Split',
             'Swap Weapons',
@@ -3124,7 +3192,7 @@ test('Continuum Split does not extend an existing weapon-swap cooldown', () => {
         weaponSet2Primary: 'Spear',
         weaponSet2Secondary: '',
     });
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [
             'Swap Weapons',
             'Continuum Split',
@@ -3145,20 +3213,20 @@ test('a build can open combat on its second weapon set', () => {
         weaponSet2Primary: 'Scepter',
         weaponSet2Secondary: '',
     });
-    const onSetTwo = simulateSequence(
+    const onSetTwo = simulateMesmer(
         [{ name: '__wait', waitMs: 1000 }],
         { ...base, startingWeaponSet: 2 },
     );
     assert.equal(onSetTwo.endState.activeWeaponSet, 2);
 
     // Swapping from a set-two opener lands on set one, proving t=0 was set two.
-    const swappedFromTwo = simulateSequence(
+    const swappedFromTwo = simulateMesmer(
         ['Swap Weapons'],
         { ...base, startingWeaponSet: 2 },
     );
     assert.equal(swappedFromTwo.endState.activeWeaponSet, 1);
 
-    const onSetOne = simulateSequence(
+    const onSetOne = simulateMesmer(
         [{ name: '__wait', waitMs: 1000 }],
         { ...base, startingWeaponSet: 1 },
     );
@@ -3166,7 +3234,7 @@ test('a build can open combat on its second weapon set', () => {
 });
 
 test('starting on weapon set two is ignored without a second weapon set', () => {
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [{ name: '__wait', waitMs: 1000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -3184,7 +3252,7 @@ test('starting on weapon set two is ignored without a second weapon set', () => 
 test('clone specs never open combat with clones', () => {
     // The app path forces initialResource to 0 for clone specs; the engine
     // still honours an explicit count so shatter setups stay testable.
-    const result = simulateSequence(
+    const result = simulateMesmer(
         [{ name: '__wait', waitMs: 1000 }],
         defaultSimulationConfig({
             specialization: 'Core',
@@ -3193,5 +3261,5 @@ test('clone specs never open combat with clones', () => {
             secondaryWeapon: 'Sword',
         }),
     );
-    assert.equal(result.endState.resource, 0);
+    assert.equal(result.endState.profession.resource, 0);
 });

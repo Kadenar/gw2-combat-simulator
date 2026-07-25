@@ -1,8 +1,14 @@
 import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from "./events.js";
 
+/**
+ * Versioned handoff format between scheduler and resolver.
+ */
 export const SCHEDULED_EVENT_STREAM_KIND = "gw2.simulation.events";
 export const SCHEDULED_EVENT_STREAM_VERSION = 1;
 
+/**
+ * Builds the immutable stream consumed by resolver pipelines and tests.
+ */
 export function buildScheduledEventStream({
   events,
   rotationEndTime,
@@ -25,6 +31,9 @@ export function buildScheduledEventStream({
   });
 }
 
+/**
+ * Validates a scheduler output stream before resolution or fixture reuse.
+ */
 export function assertScheduledEventStream(stream) {
   if (
     !stream

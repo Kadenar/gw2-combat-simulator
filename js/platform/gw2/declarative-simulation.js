@@ -104,6 +104,7 @@ function createQuery(profession, config, events, traits) {
     traits,
     query,
     timeline,
+    events,
     runtime,
     state: runtime?.state ?? null,
   });
@@ -176,7 +177,13 @@ function createQuery(profession, config, events, traits) {
         Number(sigils.conditionDurationBonus || 0)
         + Number(sigils.conditionDurationBonuses?.[name] || 0)
       ) / 100;
-      const relicBonus = relicConditionDurationBonus(runtime, time);
+      const relicBonus =
+        relicConditionDurationBonus(runtime, time)
+        + (
+          config.relic === "Aristocracy"
+            ? timeline.aristocracyStacksAt(time) * 0.03
+            : 0
+        );
       const base = gw2ConditionDurationMultiplier(
         name,
         stats,
@@ -218,12 +225,16 @@ function endState(profession, scheduled, resolved) {
       structuredClone(value),
     ]),
   );
+  const projected = profession.projectEndState(
+    scheduled.context,
+    resolved.profession,
+  );
   return {
     time: Math.round(endTime * 1000),
     cooldowns,
     ammo,
     activeWeaponSet: scheduled.state.activeWeaponSet,
-    profession: structuredClone(resolved.profession),
+    profession: structuredClone(projected ?? resolved.profession),
   };
 }
 
