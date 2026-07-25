@@ -236,6 +236,31 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
     assert.equal(interrupted.endState.cooldowns['Confusing Images'].readyAt, 7450);
 });
 
+test('Spatial Surge keeps channel packets completed before an interrupt', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Greatsword',
+        secondaryWeapon: '',
+        initialResource: 0,
+    });
+    const damageEvents = result => result.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Spatial Surge');
+    const full = damageEvents(simulateSequence(['Spatial Surge'], config));
+    const partial = damageEvents(simulateSequence(
+        [{ name: 'Spatial Surge', interruptMs: 600 }],
+        config,
+    ));
+    const beforeFirstPacket = damageEvents(simulateSequence(
+        [{ name: 'Spatial Surge', interruptMs: 200 }],
+        config,
+    ));
+
+    assert.equal(full.length, 3);
+    assert.equal(partial.length, 2);
+    assert.equal(beforeFirstPacket.length, 0);
+    assert.ok(partial[1].at > partial[0].at);
+});
+
 test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it first', () => {
     const rotation = [
         'Phantasmal Warlock',
@@ -554,7 +579,7 @@ test('Mind Stab applies its supplied Vulnerability coefficient scaling', () => {
     assert.ok(Math.abs(damageAt(25) / damageAt(0) - 1.5625) < 1e-12);
 });
 
-test('Phantasmal Berserker uses supplied base and traited coefficients', () => {
+test('Phantasmal Berserker uses its phantasm coefficient and Bountiful reduction', () => {
     const coefficientAt = selectedTraits => simulateSequence(
         ['Phantasmal Berserker', { name: '__wait', waitMs: 2000 }],
         defaultSimulationConfig({
@@ -569,8 +594,35 @@ test('Phantasmal Berserker uses supplied base and traited coefficients', () => {
         && event.skillName === 'Phantasmal Berserker')
         .reduce((sum, event) => sum + event.coefficient, 0);
 
-    assert.ok(Math.abs(coefficientAt([]) - 3.66) < 1e-12);
-    assert.ok(Math.abs(coefficientAt(['Bountiful Blades']) - 4.4472) < 1e-12);
+    assert.ok(Math.abs(coefficientAt([]) - 2.4) < 1e-12);
+    assert.ok(Math.abs(coefficientAt(['Bountiful Blades']) - 2.784) < 1e-12);
+});
+
+test('Mirror Blade resolves target-facing bounce damage as separate hits', () => {
+    const simulateMirrorBlade = selectedTraits => simulateSequence(
+        ['Mirror Blade', { name: '__wait', waitMs: 1000 }],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: '',
+            selectedTraits,
+            initialResource: 0,
+        }),
+    );
+    const result = simulateMirrorBlade(['Bountiful Blades']);
+    const hits = result.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Mirror Blade');
+    const baseHits = simulateMirrorBlade([]).resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Mirror Blade');
+
+    assert.equal(hits.length, 4);
+    assert.equal(baseHits.length, 3);
+    assert.deepEqual(
+        hits.map(event => event.coefficient),
+        [2.5, 0.1, 0.004, 0.00016],
+    );
+    assert.ok(hits.every((event, index) =>
+        index === 0 || event.at > hits[index - 1].at));
 });
 
 test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat', () => {

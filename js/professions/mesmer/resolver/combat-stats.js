@@ -1,7 +1,3 @@
-import {
-  targetHasPermanentCondition,
-} from "../../../platform/gw2/target-state.js";
-
 /**
  * Builds timestamp-aware attributes and critical-strike calculations.
  */
@@ -21,6 +17,7 @@ export function createCombatStats({
     instrumentsAt,
     mightStacksAt,
     skillOnCooldownAt,
+    timedActive,
     timedStacks,
   } = timeline;
 
@@ -66,7 +63,7 @@ export function createCombatStats({
     };
   };
 
-  const critical = (event, time) => {
+  const critical = (event, time, runtime = null) => {
     const stats = statsAt(time);
     const illusion = event.source === "Clone" || event.source === "Phantasm";
     let chance = 0.05 + Math.max(0, stats.precision - 1000) / 2100;
@@ -103,12 +100,25 @@ export function createCombatStats({
     chance = clamp(chance, 0, 1);
 
     let damage = 1.5 + stats.ferocity / 1500;
-    if (traits.has("Superiority Complex")) damage += 0.15;
+    if (
+      traits.has("Superiority Complex")
+      && event.source !== "Phantasm"
+    ) {
+      const targetHealth = Number(config.target?.health || 0);
+      const totalDamage =
+        Number(runtime?.totals?.strike || 0)
+        + Number(runtime?.totals?.condition || 0);
+      const enhanced =
+        Boolean(config.target?.disabled)
+        || (targetHealth > 0 && totalDamage >= targetHealth * 0.5);
+      damage *= enhanced ? 1.25 : 1.15;
+    }
     if (
       traits.has("Danger Time")
-      && targetHasPermanentCondition(config, "Slow")
+      && (event.source === "Player" || event.source === "Clone")
+      && timedActive("danger-time", time)
     ) {
-      damage += 0.05;
+      damage *= 1.05;
     }
     return { chance, damage };
   };

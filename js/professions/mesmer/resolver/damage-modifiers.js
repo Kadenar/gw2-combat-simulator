@@ -1,13 +1,12 @@
 /**
  * Builds timestamp-aware strike, condition, and duration modifiers.
  */
-export function targetHealthMultiplier(ctx) {
+export function targetHealthMultiplier(ctx, event) {
   if (!ctx.traits.has("Egotism")) return 1;
+  if (event?.source === "Phantasm") return 1;
   const targetHealth = Number(ctx.config.target?.health || 0);
   if (!(targetHealth > 0)) return 1;
-  return ctx.totals.strike + ctx.totals.condition < targetHealth * 0.5
-    ? 1.1
-    : 1;
+  return ctx.totals.strike + ctx.totals.condition > 0 ? 1.1 : 1;
 }
 
 export function createDamageModifiers({
@@ -58,10 +57,13 @@ export function createDamageModifiers({
   };
 
   const strikeMultiplier = (event, time) => {
+    const illusion =
+      event.source === "Clone"
+      || event.source === "Phantasm";
     let multiplier =
       commonMultiplier(time, false)
       * Number(config.modifiers?.strike || 1)
-      * Number(activeSigilSetAt(time).strike || 1);
+      * (illusion ? 1 : Number(activeSigilSetAt(time).strike || 1));
     if (event.skillName === "Mind Stab") {
       multiplier *= 1 + vulnerabilityStacksAt(time) * 0.01;
     }
@@ -69,7 +71,6 @@ export function createDamageModifiers({
       multiplier *= 1 + vulnerabilityStacksAt(time) * 0.005;
     }
     if (traits.has("Vicious Expression")) {
-      multiplier *= 1.1;
       if (config.target?.boonless) multiplier *= 1.15;
     }
     if (event.source === "Phantasm") {

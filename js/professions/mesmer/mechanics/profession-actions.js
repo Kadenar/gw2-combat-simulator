@@ -130,6 +130,7 @@ export function createProfessionActionController({
           coefficient: shatter.coefficients[spent],
           hits: sources,
           source: "Player",
+          weaponStrength: 1000,
         },
         { shatter: true },
       );
@@ -141,6 +142,7 @@ export function createProfessionActionController({
           coefficient: shatter.coefficients[spent],
           hits: sources,
           source: "Player",
+          weaponStrength: 1000,
         },
         { shatter: true },
       );
@@ -158,6 +160,7 @@ export function createProfessionActionController({
           coefficient: shatter.coefficients[spent],
           hits: sources * 2,
           source: "Player",
+          weaponStrength: 1000,
         },
         { shatter: true },
       );
@@ -169,6 +172,7 @@ export function createProfessionActionController({
           coefficient: shatter.coefficients[spent],
           hits: sources,
           source: "Player",
+          weaponStrength: 1000,
         },
         { shatter: true },
       );
@@ -198,6 +202,7 @@ export function createProfessionActionController({
           coefficient: shatter.coefficients[spent],
           hits: spent,
           source: "Player",
+          weaponStrength: 1000,
         },
         { shatter: true, blade: true },
       );
@@ -209,6 +214,7 @@ export function createProfessionActionController({
           coefficient: shatter.coefficients[spent],
           hits: spent,
           source: "Player",
+          weaponStrength: 1000,
         },
         { shatter: true, blade: true },
       );
@@ -225,6 +231,7 @@ export function createProfessionActionController({
           coefficient: shatter.coefficients[spent],
           hits: 1,
           source: "Player",
+          weaponStrength: 1000,
         },
         { shatter: true, blade: true },
       );
@@ -237,6 +244,7 @@ export function createProfessionActionController({
             coefficient: shatter.coefficients[spent] / spent,
             hits: 1,
             source: "Player",
+            weaponStrength: 1000,
           },
           { shatter: true, blade: true },
         );

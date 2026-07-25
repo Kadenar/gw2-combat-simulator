@@ -57,6 +57,10 @@ export function createGw2ResolverRuntimeState({
       doomPending: false,
       severanceUntil: 0,
     },
+    food: {
+      criticalProgress: 0,
+      readyAt: 0,
+    },
 
     recordProc(type, name, at, sourceSkill = "", detail = "", icon = "") {
       const start = Math.round(at * 1000);

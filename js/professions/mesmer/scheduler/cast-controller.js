@@ -312,6 +312,23 @@ export function createCastController({
       || (skill.name === "Mental Collapse" && clarityConsumed);
     if (disabled) {
       addEvent({ type: "control", at: end, skillName: skill.name });
+      if (
+        traits.has("Danger Time")
+        && (
+          skill.name === "Time Sink"
+          || traits.has("Delayed Reactions")
+        )
+      ) {
+        addEvent({
+          type: "buff",
+          at: end,
+          kind: "danger-time",
+          stacks: 1,
+          duration: 10,
+          sourceSkill: skill.name,
+        });
+        addTraitProc("Danger Time", end, skill.name);
+      }
       if (traits.has("Syncopate")) {
         const damage = traitDamage.Syncopate;
         addDamage(

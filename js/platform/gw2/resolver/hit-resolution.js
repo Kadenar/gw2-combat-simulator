@@ -13,28 +13,40 @@ export function createGw2HitResolution({
 } = {}) {
   function buildHitResolutionContext(ctx, event) {
     const stats = ctx.query.statsAt(event.at, event, ctx);
+    const flatStrike =
+      Number.isFinite(event.flatDamage)
+      || Number.isFinite(event.flatStrikeBase)
+      || Number.isFinite(event.flatStrikePowerCoeff);
     const critical = ctx.query.critical(event, event.at, ctx);
     if (ctx.sigil.severanceUntil > event.at) {
       critical.chance = Math.min(1, critical.chance + 250 / 2100);
       critical.damage += 250 / 1500;
     }
-    if (event.noCrit) critical.chance = 0;
-    const criticalMultiplier = expectedCritMultiplier(
-      critical.chance * 100,
-      critical.damage * 100,
-    );
-    const outgoingMultiplier =
-      ctx.query.strikeMultiplier(event, event.at, ctx)
-      * relicStrikeMultiplier(ctx, event)
-      * targetHealthMultiplier(ctx);
-    const strength = ctx.helpers.weaponStrength(event, ctx.config);
-    const armor = Math.max(1, Number(ctx.config.target?.armor || 2597));
-    const baseDamage = strikeDamage(
-      Number(event.coefficient || 0),
-      strength,
-      stats.power,
-      armor,
-    );
+    if (event.noCrit || flatStrike) critical.chance = 0;
+    const criticalMultiplier = flatStrike
+      ? 1
+      : expectedCritMultiplier(
+        critical.chance * 100,
+        critical.damage * 100,
+      );
+    const outgoingMultiplier = flatStrike
+      ? 1
+      : (
+        ctx.query.strikeMultiplier(event, event.at, ctx)
+        * relicStrikeMultiplier(ctx, event)
+        * targetHealthMultiplier(ctx, event)
+      );
+    const baseDamage = flatStrike
+      ? (
+        Number(event.flatDamage ?? event.flatStrikeBase ?? 0)
+        + Number(event.flatStrikePowerCoeff || 0) * stats.power
+      )
+      : strikeDamage(
+        Number(event.coefficient || 0),
+        ctx.helpers.weaponStrength(event, ctx.config),
+        stats.power,
+        Math.max(1, Number(ctx.config.target?.armor || 2597)),
+      );
 
     return {
       stats,
