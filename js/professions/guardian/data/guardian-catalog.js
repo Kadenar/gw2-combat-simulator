@@ -1,6 +1,6 @@
 // Generated Guild Wars 2 API metadata and trait snapshot.
 // Snapshot: 2026-07-25. Run scripts/update-guardian-api-data.mjs to refresh.
-// Simulator mechanics are maintained in guardian/mechanics.js.
+// Simulator mechanics are maintained under guardian/mechanics/.
 
 export const DATA_SNAPSHOT = "2026-07-25";
 export const SPECIALIZATIONS = [

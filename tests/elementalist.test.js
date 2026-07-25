@@ -54,12 +54,13 @@ test("profession selector exposes every ready application route", () => {
     mesmer: "index.html",
     elementalist: "elementalist.html",
     guardian: "guardian.html",
+    necromancer: "necromancer.html",
   });
   assert.equal(professionRoute("elementalist"), "elementalist.html");
   assert.equal(professionRoute("unknown"), "index.html");
   assert.deepEqual(
     professionOptions.map(({ id }) => id),
-    ["mesmer", "elementalist", "guardian"],
+    ["mesmer", "elementalist", "guardian", "necromancer"],
   );
 });
 

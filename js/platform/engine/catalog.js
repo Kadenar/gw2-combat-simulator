@@ -19,8 +19,16 @@ function normalizeEffect(effect) {
   if (!effect || typeof effect !== "object" || !EFFECT_TYPES.has(effect.type)) {
     throw new TypeError(`Invalid skill effect type: ${effect?.type}`);
   }
-  if (effect.type === "strike" && !(Number(effect.coefficient) >= 0)) {
-    throw new TypeError("Strike effects require a non-negative coefficient.");
+  if (
+    effect.type === "strike"
+    && !(Number(effect.coefficient) >= 0)
+    && !Number.isFinite(Number(effect.flatDamage))
+    && !Number.isFinite(Number(effect.flatStrikeBase))
+    && !Number.isFinite(Number(effect.flatStrikePowerCoeff))
+  ) {
+    throw new TypeError(
+      "Strike effects require a non-negative coefficient or flat strike data.",
+    );
   }
   if (effect.type === "condition") {
     if (!String(effect.condition || "")) {

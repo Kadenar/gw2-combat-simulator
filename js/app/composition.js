@@ -8,6 +8,7 @@ export const professionOptions = Object.freeze([
   { id: "mesmer", name: "Mesmer" },
   { id: "elementalist", name: "Elementalist" },
   { id: "guardian", name: "Guardian" },
+  { id: "necromancer", name: "Necromancer" },
 ]);
 
 const professionLoaders = Object.freeze({
@@ -19,6 +20,10 @@ const professionLoaders = Object.freeze({
   guardian: async () => {
     const module = await import("../professions/guardian/definition.js");
     return module.guardianProfession;
+  },
+  necromancer: async () => {
+    const module = await import("../professions/necromancer/definition.js");
+    return module.necromancerProfession;
   },
 });
 
@@ -34,6 +39,12 @@ const appAdapterLoaders = Object.freeze({
       "../professions/guardian/app/adapter.js"
     );
     return module.guardianAppAdapter;
+  },
+  necromancer: async () => {
+    const module = await import(
+      "../professions/necromancer/app/adapter.js"
+    );
+    return module.necromancerAppAdapter;
   },
 });
 

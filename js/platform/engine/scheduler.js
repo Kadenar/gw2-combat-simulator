@@ -23,9 +23,9 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
     const firstAt = effectAt(start, fullEnd, effect);
     if (interrupted && firstAt > effectiveEnd + context.epsilon) continue;
     const base = {
-      source: context.profession.id,
-      sourceId: skill.id,
-      actorType: "player",
+      source: effect.source || context.profession.id,
+      sourceId: effect.sourceId ?? skill.id,
+      actorType: effect.actorType || "player",
       skillId: skill.id,
       skillName: skill.name,
     };
@@ -47,6 +47,7 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
           totalHits: hits,
           skillWeapon: effect.weapon || skill.weapon || "",
           canCrit: effect.canCrit !== false,
+          ...(effect.metadata || {}),
         });
       }
     } else if (effect.type === "condition") {
@@ -58,9 +59,15 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
         condition: effect.condition,
         stacks: Number(effect.stacks),
         duration: Number(effect.duration),
+        ...(effect.metadata || {}),
       });
     } else if (effect.type === "control" || effect.type === "blind") {
-      context.emit({ ...base, at: firstAt, type: effect.type });
+      context.emit({
+        ...base,
+        at: firstAt,
+        type: effect.type,
+        ...(effect.metadata || {}),
+      });
     } else if (effect.type === "boon" || effect.type === "buff") {
       const baseDuration = Math.max(0, Number(effect.duration || 0));
       const duration =

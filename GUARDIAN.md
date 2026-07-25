@@ -21,8 +21,20 @@ canonical simulator catalog to 190 skills.
 
 Refresh it with `npm run update:guardian-data`. Generated API metadata is kept
 separate from simulator-owned timing and effect definitions in
-`js/professions/guardian/mechanics.js`; the bundle supplement is intentionally
+`js/professions/guardian/mechanics/`; the bundle supplement is intentionally
 preserved by that refresh.
+
+## Architecture
+
+`definition.js` is the Guardian composition root. Gameplay behavior is grouped
+by feature under `js/professions/guardian/mechanics/`: virtues, Firebrand
+tomes, Radiant Forge, and weapon state each own their cast validation,
+scheduler hooks, named skill handlers, and resolver reactions. `contract.js`
+combines those feature hooks in deterministic order.
+
+Ordinary timing, cooldowns, effects, and damage resolution continue to use the
+shared platform scheduler and GW2 resolver. Guardian does not maintain a
+parallel profession-specific engine.
 
 ## Implemented mechanics
 
@@ -36,11 +48,14 @@ preserved by that refresh.
 - Permeating Wrath's three-hit Justice interval
 - Renewed Focus virtue recharge
 - Weapon swapping and active-set skill validation
+- Persistent W1/W2 palette rows with inactive-set cooldown visibility
 - Guardian autoattack chains, sequence flips, ammo, channels, symbols, traps,
   spirit weapons, and persistent attacks
 - Dragonhunter physical virtues and Spear of Justice/Hunter's Verdict
 - Firebrand tome equip/stow, shared pages, page costs, regeneration,
   Archivist of Whispers, Loremaster, and Ashes of the Just
+- Persistent tome and Radiant Forge palette rows that retain cooldown displays
+  while inactive and lock weapon skills while either mode is active
 - Willbender physical skills and movement virtues
 - Luminary Radiant Forge entry/exit, duration, radiant-weapon flips, and
   weapon-dependent Glaring Burst
