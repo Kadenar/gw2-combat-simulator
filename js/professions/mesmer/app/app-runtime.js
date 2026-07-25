@@ -36,4 +36,7 @@ export const {
       },
     };
   },
+  buildConfigExtras() {
+    return { weaponmasterTraining: true };
+  },
 });

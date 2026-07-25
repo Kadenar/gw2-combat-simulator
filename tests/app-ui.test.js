@@ -194,6 +194,32 @@ test("Mesmer palette advances through autoattack chain skills", () => {
   );
 });
 
+test("Mesmer weapon palette orders autoattack chains by chain step", () => {
+  const build = createMesmerBuildDefaults();
+  build.specializations[2] = { name: "Mirage", traits: "1-1-1" };
+  build.weapons = ["Axe", "Sword"];
+  const app = {
+    profession: mesmerProfession,
+    build,
+    skills: mesmerProfession.catalog.skills,
+    adapter: {
+      eliteSpecialization: () => "Mirage",
+      isSkillAvailable: () => true,
+    },
+    weaponData: createProfessionWeaponData(
+      mesmerProfession.catalog,
+      { weaponData: WEAPON_DATA },
+    ),
+  };
+
+  assert.deepEqual(
+    weaponPaletteRows(app, 1)[0].skills
+      .filter(skill => skill.chainRoot === 44791)
+      .map(skill => skill.name),
+    ["Lacerating Chop", "Ethereal Chop", "Mirror Strikes"],
+  );
+});
+
 test("weapon-set palette groups render vertically in set order", () => {
   const html = weaponPaletteStackHtml([
     '<div data-weapon-set="1">W1</div>',

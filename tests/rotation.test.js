@@ -41,6 +41,32 @@ test('queueing a cooling-down icon waits until it is available', () => {
     assert.equal(result.endState.cooldowns.Bladecall.remaining, 4000);
 });
 
+test('Lingering Thoughts recharges one ammo count every six seconds', () => {
+    const defaults = defaultSimulationConfig();
+    const result = simulateMesmer(
+        ['Lingering Thoughts', 'Lingering Thoughts', 'Lingering Thoughts'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            initialResource: 0,
+            primaryWeapon: 'Axe',
+            boons: {
+                ...defaults.boons,
+                quickness: false,
+                alacrity: false,
+            },
+        }),
+    );
+
+    assert.deepEqual(
+        result.steps.map(step => step.start),
+        [0, 1645, 7395],
+    );
+    assert.equal(
+        result.endState.ammo['Lingering Thoughts'].rechargeDuration,
+        6,
+    );
+});
+
 test('Rewinder refunds three seconds per clone shattered without counting the mesmer', () => {
     const secondCastAt = initialResource => simulateMesmer(
         ['Rewinder', 'Rewinder'],

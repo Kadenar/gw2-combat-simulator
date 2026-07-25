@@ -34,8 +34,13 @@ export function gw2EffectiveCooldown(
     rechargeRate = gw2RechargeRate(config),
   } = {},
 ) {
+  const ammoRecharge = Number(skill.ammoRecharge || 0);
+  const baseRecharge =
+    Number(skill.ammo || 0) > 0 && ammoRecharge > 0
+      ? ammoRecharge
+      : Number(skill.cooldown ?? skill.recharge ?? 0);
   return (
-    Math.max(0, Number(skill.cooldown ?? skill.recharge ?? 0))
+    Math.max(0, baseRecharge)
     * Math.max(0, Number(cooldownMultiplier || 0))
   ) / Math.max(Number.EPSILON, Number(rechargeRate || 1));
 }

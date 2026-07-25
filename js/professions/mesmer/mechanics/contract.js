@@ -834,8 +834,9 @@ export function handleInfiniteForgeTask(context, task) {
   });
 }
 
-export function modifyMesmerRecharge(context, _sharedDuration) {
+export function modifyMesmerRecharge(context, sharedDuration) {
   const { skill, config } = context;
+  if (context.ammoCastLockout) return sharedDuration;
   if (skill.name === "Swap Weapons") return Number(skill.cooldown || 0);
   if (skill.name === "Dodge / Mirage Cloak") {
     return Number(skill.cooldown || 0) / (config.boons?.vigor ? 1.5 : 1);
