@@ -19,6 +19,9 @@ import {
   validateVirtueCast,
 } from "./virtues.js";
 import {
+  updateSpearIlluminationState,
+} from "./spear.js";
+import {
   updateWeaponCastState,
   validateWeaponState,
 } from "./weapon-state.js";
@@ -71,6 +74,11 @@ export const guardianSchedulerHooks = Object.freeze({
       id: "guardian.weapon-state",
       order: 10,
       handler: updateWeaponCastState,
+    },
+    {
+      id: "guardian.spear",
+      order: 20,
+      handler: updateSpearIlluminationState,
     },
   ]),
 });

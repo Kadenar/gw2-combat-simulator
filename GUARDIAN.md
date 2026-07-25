@@ -59,6 +59,7 @@ parallel profession-specific engine.
 - Willbender physical skills and movement virtues
 - Luminary Radiant Forge entry/exit, duration, radiant-weapon flips, and
   weapon-dependent Glaring Burst
+- Spear (Janthir Wilds) with the Illuminated mechanic (see below)
 - Static and resolver-time Guardian damage, recharge, condition, signet, and
   attribute trait rules
 - Shared rotation-timeline cast steps, including cast timestamps and invalid
@@ -72,3 +73,63 @@ bundle facts. Skills without measured timing overrides use consistent
 type-based activation defaults. The simulator models deterministic PvE combat
 output; ally positioning, incoming damage, revival, and other encounter-side
 support effects remain outside its damage model.
+
+## Spear Illuminated
+
+Guardian spear is modeled in `mechanics/spear.js` (a scheduler `afterCast`
+hook, registered in `contract.js`) plus calibrated overrides in
+`mechanics/skill-overrides.js`. Skill slots follow the API catalog:
+
+| Slot | Skill | Illuminated role |
+| --- | --- | --- |
+| Spear 1 | Daybreaking Slash | filler; never consumes the buff |
+| Spear 2 | Helio Rush | **arms** Illuminated for the next spear attack |
+| Spear 3 | Gleaming Disc | arms Illuminated |
+| Spear 4 | Solar Storm | arms Illuminated |
+| Spear 5 | Symbol of Luminance | opens a 5s window that keeps **all** spear skills illuminated |
+
+An illuminated cast of an enhanced-damage spear skill re-emits its strike ticks
+scaled by a per-skill multiplier, taken from the reference build's
+base→illuminated coefficients:
+
+- Helio Rush `1.8 → 2.7` (×1.50)
+- Gleaming Disc `1.5 → 1.875` (×1.25)
+- Solar Storm `3.6 → 4.5` (extra 4th/5th shard ≈ ×1.25)
+
+Each illuminated cast records an `Illuminated` proc (icon from the wiki) for the
+rotation timeline; Symbol of Luminance records its own empowerment proc.
+
+### Key differences from the reference build JSON
+
+The attached `build-dh-virtues-dh-relic-sp.json` reference models the same
+guardian effects declaratively; the simulator reproduces them differently:
+
+- **Illuminated is automatic, not hand-picked.** The reference JSON has
+  separate `… Illuminated` skills (`Solar Storm Illuminated`, `Helio Rush
+  Illuminated`, `Gleaming Disc Illuminated`) that the author swaps in manually
+  and links with `skills_to_put_on_cooldown`. The simulator tracks the
+  Illuminated state itself (armed by spear 2/3/4, held open by spear 5) and
+  applies the enhanced coefficients as an on-cast damage bonus — the rotation
+  only lists the base skill.
+- **Filler autoattacks never waste the buff.** Only the enhanced-damage spear
+  skills consume Illuminated, so a Daybreaking Slash between an armer and its
+  payoff does not eat the buff. In-game any spear attack consumes it; this is a
+  deliberate DPS-sim simplification and is documented here.
+- **Symbol of Luminance is a time window.** "While the symbol is active all
+  spear skills are illuminated" is modeled as a 5s window
+  (`spearLuminanceUntil`) rather than a positional in-symbol check; while the
+  window is open the armed buff is not consumed.
+- **Effects/buffs are code, not declarative `unique_effect` blocks.** The
+  reference JSON expresses relics, sigils, food, and traits (Symbolic Avenger,
+  Inspiring Virtue, DH Relic, Fiery Wrath, etc.) as `unique_effect`
+  `attribute_modifiers`/`attribute_conversions`. The simulator implements the
+  equivalents in `attribute-rules.js` (trait multipliers, conversions) and the
+  shared platform (`relic-rules.js`, sigils, food), driven by the selected
+  build rather than a per-build effect list.
+- **Spear is one weapon set, not "aquatic".** The reference JSON parks the
+  spear skills under an `aquatic` weapon slot; the simulator exposes Spear as a
+  real two-handed land weapon in the guardian catalog.
+
+Relic of the Dragonhunter procs now render its GW2 render-API icon in the
+rotation proc row (`RELIC_DATA.Dragonhunter.icon` in
+`js/platform/gw2/gear-data.js`).
