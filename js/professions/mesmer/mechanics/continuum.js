@@ -23,7 +23,7 @@ export function createContinuumController({
         .filter(([, remaining]) => remaining > epsilon)
         .map(([id, remaining]) => [id, at + remaining]),
     ]);
-    if (splitReady) state.cooldowns.set(state.profession.continuum.splitId, splitReady);
+    if (splitReady) state.cooldowns.set(state.profession.continuum.splitId, at + splitReady);
     state.ammo = new Map(
       [...state.profession.continuum.ammo].map(([id, ammo]) => [
         id,
