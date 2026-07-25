@@ -407,10 +407,15 @@ test("test profession fixture has no Mesmer dependency", async () => {
   assert.doesNotMatch(source, /mesmer/i);
 });
 
-test("obsolete sim compatibility tree is removed", async () => {
-  const target = path.resolve(
+test("obsolete compatibility trees are removed", async () => {
+  const root = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "../js/sim",
+    "../js",
   );
-  await assert.rejects(readdir(target), error => error?.code === "ENOENT");
+  for (const directory of ["core", "data", "sim"]) {
+    await assert.rejects(
+      readdir(path.join(root, directory)),
+      error => error?.code === "ENOENT",
+    );
+  }
 });

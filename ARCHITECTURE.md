@@ -15,11 +15,10 @@ js/
   app/             browser composition and persistence adapters
 ```
 
-Most of `js/core` and `js/data` contain compatibility exports for pre-refactor
-public module paths. The obsolete `js/sim` compatibility tree has been
-removed. `js/core/calc-attributes.js` is intentionally profession-neutral and
-delegates only to common GW2 attribute assembly. New code must import the
-owning platform or profession module directly.
+The obsolete `js/core`, `js/data`, and `js/sim` compatibility trees have been
+removed. Common GW2 attribute assembly lives in `js/platform/gw2/attributes.js`;
+profession rules live in each profession's own calculator. New code must import
+the owning platform or profession module directly.
 
 The Elementalist scheduler, resolver, data loader, optimizer, and profession
 mechanics remain under its profession directory. Common damage formulas,
