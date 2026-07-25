@@ -53,6 +53,9 @@ export function createGuardianState(config = {}) {
     radiantForge: false,
     radiantForgeEndsAt: 0,
     radiantWeapon: "",
+    // Spear "Illuminated" mechanic.
+    spearIlluminatedArmed: false,
+    spearLuminanceUntil: 0,
   };
 }
 

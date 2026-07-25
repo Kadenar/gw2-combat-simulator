@@ -227,6 +227,53 @@ export const GUARDIAN_SKILL_OVERRIDES = Object.freeze({
     ],
   }),
 
+  // Spear (Janthir Wilds). Calibrated from the reference build JSON; the
+  // Illuminated bonus is layered on at cast time (see mechanics/spear.js).
+  [ID.DAYBREAKING_SLASH]: implemented({
+    castTimeMs: 520,
+    effects: [strike(0.7)],
+  }),
+  [ID.HELIO_RUSH]: implemented({
+    castTimeMs: 320,
+    cooldown: 6.4,
+    ammo: 2,
+    effects: [strike(1.8, { atMs: 160 })],
+  }),
+  [ID.GLEAMING_DISC]: implemented({
+    castTimeMs: 560,
+    cooldown: 9.6,
+    effects: [
+      strike(1.5, {
+        hits: 2,
+        atMs: 480,
+        intervalMs: 680,
+        name: "Gleaming Disc",
+      }),
+    ],
+  }),
+  [ID.SOLAR_STORM]: implemented({
+    castTimeMs: 560,
+    cooldown: 15,
+    effects: [
+      strike(1.5, { atMs: 560, name: "Solar Storm — 1st Strike" }),
+      strike(1.2, { atMs: 760, name: "Solar Storm — 2nd Strike" }),
+      strike(0.9, { atMs: 960, name: "Solar Storm — 3rd Strike" }),
+    ],
+  }),
+  [ID.SYMBOL_OF_LUMINANCE]: implemented({
+    castTimeMs: 440,
+    cooldown: 15,
+    effects: [
+      strike(1.5, { atMs: 360, name: "Symbol of Luminance — Initial" }),
+      strike(0.5, {
+        hits: 5,
+        atMs: 360,
+        intervalMs: 1000,
+        name: "Symbol of Luminance",
+      }),
+    ],
+  }),
+
   [ID.JUSTICE]: implemented({
     castTimeMs: 0,
     handlerId: "guardian.virtue",

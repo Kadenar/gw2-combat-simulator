@@ -105,6 +105,66 @@ test("Justice passive counts individual hits and respects its active cooldown", 
   assert.equal(permeating.endState.profession.justiceHitCount, 2);
 });
 
+test("Spear Helio Rush arms Illuminated and enhances the next spear skill", () => {
+  const spearConfig = { ...config, primaryWeapon: "Spear" };
+
+  const helioAlone = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Helio Rush"],
+    config: spearConfig,
+  });
+  const gleamingAlone = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Gleaming Disc"],
+    config: spearConfig,
+  });
+  const combo = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Helio Rush", "Gleaming Disc"],
+    config: spearConfig,
+  });
+
+  // Helio Rush is not illuminated itself but arms the buff for the next attack.
+  assert.equal(helioAlone.endState.profession.spearIlluminatedArmed, true);
+  assert.equal(
+    helioAlone.procSteps.some(step => step.skill === "Illuminated"),
+    false,
+  );
+  assert.equal(
+    gleamingAlone.procSteps.some(step => step.skill === "Illuminated"),
+    false,
+  );
+
+  // The armed buff makes Gleaming Disc illuminated: an "Illuminated" proc fires
+  // and the combo out-damages the two skills cast in isolation.
+  const illuminated = combo.procSteps.filter(step => step.skill === "Illuminated");
+  assert.equal(illuminated.length, 1);
+  assert.equal(illuminated[0].sourceSkill, "Gleaming Disc");
+  assert.ok(
+    combo.strikeDamage
+      > helioAlone.strikeDamage + gleamingAlone.strikeDamage + 1,
+  );
+});
+
+test("Spear Symbol of Luminance keeps all spear skills illuminated while active", () => {
+  const spearConfig = { ...config, primaryWeapon: "Spear" };
+
+  const symbolThenHelio = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Symbol of Luminance", "Helio Rush"],
+    config: spearConfig,
+  });
+
+  // The window empowers Helio Rush even though nothing armed it beforehand.
+  assert.ok(symbolThenHelio.endState.profession.spearLuminanceUntil > 0);
+  assert.equal(
+    symbolThenHelio.procSteps.some(
+      step => step.skill === "Illuminated" && step.sourceSkill === "Helio Rush",
+    ),
+    true,
+  );
+});
+
 test("Guardian swaps weapons and exposes profession palette groups", () => {
   const result = simulateGw2({
     profession: guardianProfession,
