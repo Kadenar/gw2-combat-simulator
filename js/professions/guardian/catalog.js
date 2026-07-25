@@ -7,7 +7,7 @@ import {
   TRAITS,
 } from "./data/guardian-catalog.js";
 import { GUARDIAN_BUNDLE_SKILLS } from "./data/guardian-bundle-skills.js";
-import { GUARDIAN_SKILL_IDS } from "./ids.js";
+import { GUARDIAN_SKILL_IDS } from "./data/ids.js";
 import {
   GUARDIAN_AUTOATTACK_CHAINS,
 } from "./mechanics/autoattack-chains.js";

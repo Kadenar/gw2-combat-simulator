@@ -33,6 +33,7 @@ export const mesmerAppAdapter = createGw2AppAdapter({
   modifierContributionRequest,
   calculateModifierContributions,
   isSkillAvailable(skill, { specialization } = {}) {
+    if (skill.implemented === false || skill.simulatorExcluded) return false;
     return !skill.ambush || specialization === "Mirage";
   },
   defaultOffhand() {

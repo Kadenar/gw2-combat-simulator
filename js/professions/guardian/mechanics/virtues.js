@@ -2,7 +2,7 @@ import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js"
 import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
-} from "../ids.js";
+} from "../data/ids.js";
 import { selectedGuardianSpecialization } from "./availability.js";
 import { emitGuardianEvent } from "./events.js";
 

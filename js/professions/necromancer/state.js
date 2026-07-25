@@ -1,4 +1,4 @@
-import { NECROMANCER_TRAIT_IDS } from "./ids.js";
+import { NECROMANCER_TRAIT_IDS } from "./data/ids.js";
 
 export function selectedNecromancerTraits(config = {}) {
   return new Set([

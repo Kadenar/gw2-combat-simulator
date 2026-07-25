@@ -23,6 +23,7 @@ import {
     timelineWeaponRows,
 } from '../js/app/rotation-ui.js';
 import { RELIC_DATA } from '../js/platform/gw2/gear-data.js';
+import { MESMER_SKILL_IDS as ID } from '../js/professions/mesmer/data/ids.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {
     assert.equal(
@@ -1819,14 +1820,20 @@ test('autoattack chain steps unlock only after the preceding attack', () => {
         config,
     );
     assert.deepEqual(skippedStep.steps.map(step => step.skill), ['Ether Bolt']);
-    assert.equal(skippedStep.endState.autoattackChains['Ether Bolt'], 'Ether Blast');
+    assert.equal(
+        skippedStep.endState.autoattackChains[ID.ETHER_BOLT],
+        ID.ETHER_BLAST,
+    );
     assert.match(skippedStep.warnings[0], /cast Ether Blast first/);
 
     const completed = simulateSequence(
         ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
         config,
     );
-    assert.equal(completed.endState.autoattackChains['Ether Bolt'], 'Ether Bolt');
+    assert.equal(
+        completed.endState.autoattackChains[ID.ETHER_BOLT],
+        ID.ETHER_BOLT,
+    );
 });
 
 test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
@@ -1844,7 +1851,10 @@ test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
         result.steps.map(step => step.skill),
         ['Ether Bolt', 'Confusing Images', 'Ether Blast'],
     );
-    assert.equal(result.endState.autoattackChains['Ether Bolt'], 'Ether Clone');
+    assert.equal(
+        result.endState.autoattackChains[ID.ETHER_BOLT],
+        ID.ETHER_CLONE,
+    );
 });
 
 test('other auto chains reset on weapon skills and every chain resets on swap', () => {
@@ -1862,7 +1872,10 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
         interrupted.steps.map(step => step.skill),
         ['Mind Slash', 'Blurred Frenzy'],
     );
-    assert.equal(interrupted.endState.autoattackChains['Mind Slash'], 'Mind Slash');
+    assert.equal(
+        interrupted.endState.autoattackChains[ID.MIND_SLASH],
+        ID.MIND_SLASH,
+    );
 
     const scepterConfig = defaultSimulationConfig({
         specialization: 'Core',
@@ -1880,7 +1893,10 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
         swapped.steps.map(step => step.skill),
         ['Ether Bolt', 'Swap Weapons'],
     );
-    assert.equal(swapped.endState.autoattackChains['Ether Bolt'], 'Ether Bolt');
+    assert.equal(
+        swapped.endState.autoattackChains[ID.ETHER_BOLT],
+        ID.ETHER_BOLT,
+    );
 });
 
 test('sword, scepter, axe, and spear auto chains cast as separate attacks', () => {

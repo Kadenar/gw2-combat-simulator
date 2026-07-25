@@ -36,6 +36,10 @@ Ordinary timing, cooldowns, effects, and damage resolution continue to use the
 shared platform scheduler and GW2 resolver. Guardian does not maintain a
 parallel profession-specific engine.
 
+The shared mechanics roles use the same names as Mesmer and Necromancer:
+`skill-defaults.js` derives baseline mechanics, `skill-overrides.js` contains
+stable-ID exceptions, and `skill-mechanics.js` exports their final composition.
+
 ## Implemented mechanics
 
 - A complete executable catalog: every terrestrial weapon, healing, utility,

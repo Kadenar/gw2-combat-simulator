@@ -59,14 +59,14 @@ function tomeSkill({
   });
 }
 
-const damage = (coefficient, hits = 1, text = "Damage") => ({
+const damageFact = (coefficient, hits = 1, text = "Damage") => ({
   coefficient,
   coefficientPerHit: coefficient / hits,
   hits,
   text,
 });
 
-const condition = (conditionName, stacks, duration) => ({
+const conditionFact = (conditionName, stacks, duration) => ({
   condition: conditionName,
   stacks,
   duration,
@@ -81,8 +81,8 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
       "Tome. Incite a swelling of heat, damaging and burning foes in front of you.",
     slot: "Weapon_1",
     tome: "justice",
-    apiDamage: [damage(0.95)],
-    apiConditions: [condition("Burning", 1, 2.5)],
+    apiDamage: [damageFact(0.95)],
+    apiConditions: [conditionFact("Burning", 1, 2.5)],
   }),
   tomeSkill({
     id: 40635,
@@ -92,8 +92,8 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     slot: "Weapon_2",
     tome: "justice",
     recharge: 8,
-    apiDamage: [damage(0.55)],
-    apiConditions: [condition("Burning", 1, 10)],
+    apiDamage: [damageFact(0.55)],
+    apiConditions: [conditionFact("Burning", 1, 10)],
   }),
   tomeSkill({
     id: 42449,
@@ -103,7 +103,7 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     slot: "Weapon_3",
     tome: "justice",
     recharge: 10,
-    apiDamage: [damage(0.45)],
+    apiDamage: [damageFact(0.45)],
   }),
   tomeSkill({
     id: 40015,
@@ -113,7 +113,7 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     slot: "Weapon_4",
     tome: "justice",
     recharge: 15,
-    apiDamage: [damage(3.2, 5)],
+    apiDamage: [damageFact(3.2, 5)],
   }),
   tomeSkill({
     id: 42898,
@@ -187,7 +187,7 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     slot: "Weapon_2",
     tome: "courage",
     recharge: 4,
-    apiDamage: [damage(1.4)],
+    apiDamage: [damageFact(1.4)],
   }),
   tomeSkill({
     id: 41836,
@@ -228,7 +228,7 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     slot: "Weapon_1",
     specialization: "Luminary",
     radiantForgeSkill: true,
-    apiDamage: [damage(1)],
+    apiDamage: [damageFact(1)],
   }),
   bundleSkill({
     id: 77339,
@@ -243,7 +243,7 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     flipSkillId: 76910,
     radiantForgeSkill: true,
     radiantWeapon: "hammer",
-    apiDamage: [damage(1.2)],
+    apiDamage: [damageFact(1.2)],
   }),
   bundleSkill({
     id: 76910,
@@ -256,7 +256,7 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     specialization: "Luminary",
     radiantForgeSkill: true,
     radiantWeapon: "hammer",
-    apiDamage: [damage(1.25)],
+    apiDamage: [damageFact(1.25)],
   }),
   bundleSkill({
     id: 76708,
@@ -271,7 +271,7 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     flipSkillId: 77136,
     radiantForgeSkill: true,
     radiantWeapon: "staff",
-    apiDamage: [damage(1.2, 4, "Symbol Damage")],
+    apiDamage: [damageFact(1.2, 4, "Symbol Damage")],
   }),
   bundleSkill({
     id: 77136,
@@ -298,7 +298,7 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     flipSkillId: 77366,
     radiantForgeSkill: true,
     radiantWeapon: "blade",
-    apiDamage: [damage(1.5)],
+    apiDamage: [damageFact(1.5)],
   }),
   bundleSkill({
     id: 77366,
@@ -311,7 +311,10 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     specialization: "Luminary",
     radiantForgeSkill: true,
     radiantWeapon: "blade",
-    apiDamage: [damage(1), damage(0.8, 1, "Projectile Damage")],
+    apiDamage: [
+      damageFact(1),
+      damageFact(0.8, 1, "Projectile Damage"),
+    ],
   }),
   bundleSkill({
     id: 77197,
@@ -338,7 +341,7 @@ export const GUARDIAN_BUNDLE_SKILLS = Object.freeze([
     specialization: "Luminary",
     radiantForgeSkill: true,
     radiantWeapon: "bulwark",
-    apiDamage: [damage(1.2)],
+    apiDamage: [damageFact(1.2)],
   }),
 
   bundleSkill({

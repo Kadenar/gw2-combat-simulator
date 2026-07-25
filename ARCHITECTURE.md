@@ -60,6 +60,24 @@ preserving one visual system and independent persisted builds.
 `tests/platform-architecture.test.js` enforces these rules and rejects
 profession terminology inside the platform tree.
 
+## Declarative profession mechanics layout
+
+Mesmer, Guardian, and Necromancer use the same module roles under
+`js/professions/<profession>/mechanics/`:
+
+- `skill-defaults.js` produces baseline executable mechanics from generated
+  metadata or hand-maintained calibration data.
+- `skill-overrides.js` contains stable-ID exceptions to those defaults.
+- `skill-mechanics.js` is the only composition layer and exports the final
+  ID-keyed mechanics map consumed by the catalog.
+- `autoattack-chains.js` owns autoattack-chain declarations and derivation.
+- `handlers.js`, when needed, registers imperative skill behavior that cannot
+  be represented by declarative effects.
+
+Profession-specific mechanics remain in named feature modules beside these
+shared boundaries. A profession may derive its defaults differently, but the
+filename, export, and dependency direction retain the same meaning.
+
 ## Profession contract
 
 Create professions with `defineProfession()`:
@@ -226,7 +244,9 @@ rotation entries; storage and the simulator contract use normalized commands.
 
 ## Included professions
 
-- `mesmer`: native profession-contract implementation.
+- `mesmer`: native profession-contract implementation using the shared
+  canonical generated/mechanics/override catalog pipeline, with specialized
+  clone, phantasm, shatter, Continuum Split, and Mirage scheduling.
 - `elementalist`: direct reference-engine port exposed through an
   `elementalistProfession` contract adapter.
 - `guardian`: declarative shared-engine implementation with a reproducible

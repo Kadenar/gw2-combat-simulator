@@ -1,38 +1,60 @@
-import { SPECIALIZATIONS } from "./data/mesmer-catalog.js";
+import {
+  SKILLS,
+  SPECIALIZATIONS,
+} from "./data/mesmer-catalog.js";
 import { TRAITS } from "./data/traits-data.js";
 import {
-  AMBUSH_SKILLS,
-  PSEUDO_SKILLS,
-} from "./mechanics/mesmer-skill-overrides.js";
-import { SIMULATOR_SKILLS } from "./mechanics/mesmer-skill-normalization.js";
-import { validateCanonicalCatalog } from "../../platform/engine/catalog.js";
+  MESMER_EXTRA_SKILLS,
+  MESMER_SKILL_MECHANICS,
+} from "./mechanics/skill-mechanics.js";
+import {
+  createCanonicalCatalog,
+} from "../../platform/engine/catalog.js";
 
-const skills = [];
-const seen = new Set();
-for (const skill of [...SIMULATOR_SKILLS, ...AMBUSH_SKILLS, ...PSEUDO_SKILLS]) {
-  if (seen.has(skill.id)) {
-    throw new Error(`Duplicate Mesmer skill id: ${skill.id}`);
-  }
-  seen.add(skill.id);
-  skills.push(Object.freeze({
-    ...skill,
-    tags: Object.freeze([...(skill.tags || [])]),
-    effects: Object.freeze([...(skill.effects || [])]),
-  }));
-}
-
-export const mesmerCatalog = Object.freeze({
-  skills: Object.freeze(skills),
-  traits: Object.freeze([...TRAITS]),
-  specializations: Object.freeze([...SPECIALIZATIONS]),
-  skillsById: new Map(skills.map(skill => [skill.id, skill])),
-  skillsByName: new Map(skills.map(skill => [skill.name, skill])),
-  skillHandlers: new Map(),
-  weapons: new Set(
-    skills.map(skill => skill.weapon).filter(Boolean),
-  ),
+const generated = SKILLS.map(skill => ({
+  ...skill,
+  implemented: false,
+  effects: [],
+}));
+export const mesmerCatalog = createCanonicalCatalog({
+  generated,
+  mechanics: MESMER_SKILL_MECHANICS,
+  extraSkills: MESMER_EXTRA_SKILLS,
+  traits: TRAITS,
+  specializations: SPECIALIZATIONS,
+  // Preserve the original Mesmer name-based compatibility lookup while
+  // normalized rotations continue migrating toward stable skill ids.
+  skillNameCollision: "last",
+  weapons: [
+    "Axe",
+    "Dagger",
+    "Focus",
+    "Greatsword",
+    "Pistol",
+    "Rifle",
+    "Scepter",
+    "Shield",
+    "Spear",
+    "Staff",
+    "Sword",
+    "Torch",
+    "Trident",
+  ],
+  weaponHands: {
+    Axe: "mh",
+    Dagger: "mh",
+    Focus: "oh",
+    Greatsword: "2h",
+    Pistol: "oh",
+    Rifle: "2h",
+    Scepter: "mh",
+    Shield: "oh",
+    Spear: "2h",
+    Staff: "2h",
+    Sword: "mh+oh",
+    Torch: "oh",
+    Trident: "2h",
+  },
 });
-
-validateCanonicalCatalog(mesmerCatalog);
 
 export const MESMER_SKILLS = mesmerCatalog.skills;

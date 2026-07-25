@@ -3,7 +3,7 @@
 A standalone deterministic PvE build and rotation simulator with browser
 applications for Mesmer, Elementalist, Guardian, and Necromancer.
 
-Select the profession from the shared header:
+Choose a profession from the landing page or the shared simulator header:
 
 - **Mesmer**: Core, Chronomancer, Mirage, Virtuoso, and Troubadour.
 - **Elementalist**: Core, Tempest, Weaver, Catalyst, and Evoker.
@@ -63,7 +63,8 @@ gw2-combat-simulator/
   Builds/                      Elementalist build presets
   Rotations/                   profession rotation examples
   csv input/                   Elementalist skill and hit data
-  index.html                   Mesmer application
+  index.html                   Generic profession landing page
+  mesmer.html                  Mesmer application
   elementalist.html            Elementalist application
   guardian.html                Guardian application
   necromancer.html             Necromancer application

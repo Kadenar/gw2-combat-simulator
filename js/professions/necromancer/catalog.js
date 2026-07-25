@@ -10,11 +10,13 @@ import {
   NECROMANCER_SUPPLEMENTAL_SKILLS,
 } from "./data/necromancer-supplemental-skills.js";
 import {
-  NECROMANCER_AUTOATTACK_CHAINS,
   NECROMANCER_SKILL_MECHANICS,
-} from "./mechanics.js";
-import { NECROMANCER_SKILL_IDS } from "./ids.js";
-import { necromancerSkillHandlers } from "./skill-handlers.js";
+} from "./mechanics/skill-mechanics.js";
+import {
+  NECROMANCER_AUTOATTACK_CHAINS,
+} from "./mechanics/autoattack-chains.js";
+import { NECROMANCER_SKILL_IDS } from "./data/ids.js";
+import { necromancerSkillHandlers } from "./mechanics/handlers.js";
 
 export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(new Set([
   "Well of Blood",

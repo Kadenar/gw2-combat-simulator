@@ -287,7 +287,7 @@ async function main() {
   const source = [
     "// Generated Guild Wars 2 API metadata and trait snapshot.",
     `// Snapshot: ${snapshot}. Run scripts/update-necromancer-api-data.mjs to refresh.`,
-    "// Simulator mechanics are maintained in necromancer/mechanics.js.",
+    "// Simulator mechanics are maintained in necromancer/mechanics/.",
     "",
     `export const DATA_SNAPSHOT = ${JSON.stringify(snapshot)};`,
     `export const SPECIALIZATIONS = ${JSON.stringify(specializations, null, 2)};`,
