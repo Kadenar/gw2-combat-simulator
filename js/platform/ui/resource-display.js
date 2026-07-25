@@ -7,6 +7,11 @@ function normalizeResourceView(view) {
     maximum,
     value: Math.max(0, Math.min(maximum, Number(view.value || 0))),
     canStart: view.canStart !== false,
+    buildKey: String(view.buildKey || "initialResource"),
+    step: Math.max(0.01, Number(view.step || 1)),
+    displayMode: ["bar", "pips"].includes(view.displayMode)
+      ? view.displayMode
+      : maximum > 20 ? "bar" : "pips",
     shortLabel: String(view.shortLabel || view.singular || "Res"),
     statusLabel: String(view.statusLabel || "Current"),
   };

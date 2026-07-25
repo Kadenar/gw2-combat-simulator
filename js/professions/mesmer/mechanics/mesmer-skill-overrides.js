@@ -796,6 +796,7 @@ const choiceOverrides = {
         hits: 6,
         label: "Six pulses",
         source: "Player",
+        interval: 1,
       },
     ],
     // Each pulse applies one random condition (Poison/Chill/Weakness).

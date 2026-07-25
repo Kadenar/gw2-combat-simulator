@@ -427,20 +427,24 @@ export function createSkillEffectController({
       const readyAt =
         state.profession.traitReadyAt.get("Method of Madness") || 0;
       if (at >= readyAt - epsilon) {
-        addDamage(
-          {
-            name: "Lesser Chaos Storm",
-            weapon: "Utility",
-            blade: false,
-          },
-          at,
-          {
-            coefficient: storm.coefficient,
-            hits: storm.hits,
-            source: "Player",
-            weapon: "utility",
-          },
-        );
+        const hits = Math.max(1, Math.trunc(Number(storm.hits || 1)));
+        const interval = Math.max(0, Number(storm.interval || 0));
+        for (let index = 0; index < hits; index += 1) {
+          addDamage(
+            {
+              name: "Lesser Chaos Storm",
+              weapon: "Utility",
+              blade: false,
+            },
+            at + index * interval,
+            {
+              coefficient: Number(storm.coefficient || 0) / hits,
+              hits: 1,
+              source: "Player",
+              weapon: "utility",
+            },
+          );
+        }
         addTraitProc("Method of Madness", at, skill.name);
         state.profession.traitReadyAt.set(
           "Method of Madness",

@@ -250,7 +250,7 @@ async function main() {
   const source = [
     "// Generated Guild Wars 2 API metadata and trait snapshot.",
     `// Snapshot: ${snapshot}. Run scripts/update-guardian-api-data.mjs to refresh.`,
-    "// Simulator mechanics are maintained in guardian/mechanics.js.",
+    "// Simulator mechanics are maintained under guardian/mechanics/.",
     "",
     `export const DATA_SNAPSHOT = ${JSON.stringify(snapshot)};`,
     `export const SPECIALIZATIONS = ${JSON.stringify(specializations, null, 2)};`,

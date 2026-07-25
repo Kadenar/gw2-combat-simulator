@@ -2,6 +2,7 @@ export const PROFESSION_ROUTES = Object.freeze({
   mesmer: "index.html",
   elementalist: "elementalist.html",
   guardian: "guardian.html",
+  necromancer: "necromancer.html",
 });
 
 export function professionRoute(professionId) {
