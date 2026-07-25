@@ -17,12 +17,12 @@ function effectAt(start, fullEnd, effect) {
 }
 
 function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd) {
+  const interrupted = effectiveEnd < fullEnd - context.epsilon;
   for (let index = 0; index < (skill.effects || []).length; index += 1) {
     const effect = skill.effects[index];
-    const at = effectAt(start, fullEnd, effect);
-    if (at > effectiveEnd + context.epsilon) continue;
+    const firstAt = effectAt(start, fullEnd, effect);
+    if (interrupted && firstAt > effectiveEnd + context.epsilon) continue;
     const base = {
-      at,
       source: context.profession.id,
       sourceId: skill.id,
       actorType: "player",
@@ -30,17 +30,29 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
       skillName: skill.name,
     };
     if (effect.type === "strike") {
-      context.emit({
-        ...base,
-        type: "damage",
-        name: skill.name,
-        coefficient: Number(effect.coefficient || 0),
-        hits: Math.max(1, Number(effect.hits || 1)),
-        canCrit: effect.canCrit !== false,
-      });
+      const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
+      const coefficient = Number(effect.coefficient || 0) / hits;
+      const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+      for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
+        const at = firstAt + (hitIndex - 1) * interval;
+        if (interrupted && at > effectiveEnd + context.epsilon) break;
+        context.emit({
+          ...base,
+          type: "damage",
+          at,
+          name: effect.name || skill.name,
+          coefficient,
+          hits: 1,
+          hitIndex,
+          totalHits: hits,
+          skillWeapon: effect.weapon || skill.weapon || "",
+          canCrit: effect.canCrit !== false,
+        });
+      }
     } else if (effect.type === "condition") {
       context.emit({
         ...base,
+        at: firstAt,
         type: "condition",
         name: `${skill.name} — ${effect.condition}`,
         condition: effect.condition,
@@ -48,18 +60,29 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
         duration: Number(effect.duration),
       });
     } else if (effect.type === "control" || effect.type === "blind") {
-      context.emit({ ...base, type: effect.type });
+      context.emit({ ...base, at: firstAt, type: effect.type });
     } else if (effect.type === "boon" || effect.type === "buff") {
+      const baseDuration = Math.max(0, Number(effect.duration || 0));
+      const duration =
+        context.schedulerPolicy.effectDuration?.(
+          context,
+          skill,
+          effect,
+          baseDuration,
+        )
+        ?? baseDuration;
       context.emit({
         ...base,
+        at: firstAt,
         type: "buff",
         kind: String(effect.boon || effect.kind || effect.name || "").toLowerCase(),
         stacks: Math.max(1, Number(effect.stacks || 1)),
-        duration: Math.max(0, Number(effect.duration || 0)),
+        duration: Math.max(0, Number(duration || 0)),
       });
     } else if (effect.type === "custom") {
       context.emit({
         ...base,
+        at: firstAt,
         ...effect.event,
         type: effect.eventType,
       });
@@ -87,6 +110,7 @@ export function createScheduler({
     activeWeaponSet: initialWeaponSet,
   });
   const events = [];
+  const steps = [];
   const warnings = [];
   let order = 0;
   let previousCastStart = state.time;
@@ -101,6 +125,7 @@ export function createScheduler({
     events,
     warnings,
     epsilon,
+    schedulerPolicy,
     emit(event) {
       const normalized = createEvent({ ...event, __order: order++ });
       events.push(normalized);
@@ -210,7 +235,16 @@ export function createScheduler({
   function cast(command, commandIndex) {
     const skill = skillFor(command.skillId);
     if (!skill) {
-      warnings.push(`Unknown skill id ${command.skillId}.`);
+      const reason = `Unknown skill id ${command.skillId}.`;
+      warnings.push(reason);
+      steps.push({
+        ri: commandIndex,
+        skill: String(command.skillId),
+        start: Math.round(state.time * 1000),
+        end: Math.round(state.time * 1000),
+        invalid: true,
+        invalidReason: reason,
+      });
       return;
     }
     const concurrent = command.concurrentOffsetMs != null;
@@ -223,7 +257,17 @@ export function createScheduler({
       (ammo && ammo.charges <= 0)
       || (!ammo && readyAt > start + epsilon)
     ) {
-      warnings.push(`${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`);
+      const reason =
+        `${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`;
+      warnings.push(reason);
+      steps.push({
+        ri: commandIndex,
+        skill: skill.name,
+        start: Math.round(start * 1000),
+        end: Math.round(start * 1000),
+        invalid: true,
+        invalidReason: reason,
+      });
       return;
     }
     const castContext = {
@@ -234,8 +278,20 @@ export function createScheduler({
       start,
       ammo,
     };
-    if (!profession.validateCast(castContext, skill)) {
-      warnings.push(`${skill.name} is unavailable.`);
+    if (
+      schedulerPolicy.validateCast?.(castContext, skill) === false
+      || !profession.validateCast(castContext, skill)
+    ) {
+      const reason = `${skill.name} is unavailable.`;
+      warnings.push(reason);
+      steps.push({
+        ri: commandIndex,
+        skill: skill.name,
+        start: Math.round(start * 1000),
+        end: Math.round(start * 1000),
+        invalid: true,
+        invalidReason: reason,
+      });
       return;
     }
 
@@ -277,6 +333,8 @@ export function createScheduler({
       action,
       fullEnd,
       effectiveEnd,
+      rechargeDuration,
+      rechargeReadyAt,
     }, skill);
     if (handled !== true) {
       scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd);
@@ -296,6 +354,15 @@ export function createScheduler({
       rechargeDuration,
       rechargeReadyAt,
     }, skill);
+    steps.push({
+      ri: commandIndex,
+      skill: skill.name,
+      start: Math.round(start * 1000),
+      end: Math.round(effectiveEnd * 1000),
+      actualStart: Math.round(start * 1000),
+      fullCastMs: Math.round((fullEnd - start) * 1000),
+      interrupted: effectiveEnd < fullEnd - epsilon,
+    });
     previousCastStart = start;
     hasPreviousCast = true;
     state.time = concurrent
@@ -309,10 +376,26 @@ export function createScheduler({
     for (let index = 0; index < commands.length; index += 1) {
       const command = commands[index];
       if (command.type === "wait") {
+        const start = state.time;
         advanceTo(state.time + command.durationMs / 1000);
+        steps.push({
+          ri: index,
+          skill: "Wait",
+          start: Math.round(start * 1000),
+          end: Math.round(state.time * 1000),
+        });
       } else if (command.type === "combat-start") {
         if (combatStartTime != null) {
-          warnings.push("Combat Start is already set.");
+          const reason = "Combat Start is already set.";
+          warnings.push(reason);
+          steps.push({
+            ri: index,
+            skill: "Combat Start",
+            start: Math.round(state.time * 1000),
+            end: Math.round(state.time * 1000),
+            invalid: true,
+            invalidReason: reason,
+          });
           continue;
         }
         const concurrent = (
@@ -329,6 +412,12 @@ export function createScheduler({
           sourceId: "combat-start",
           action: "combat-start",
         });
+        steps.push({
+          ri: index,
+          skill: "Combat Start",
+          start: Math.round(combatStartTime * 1000),
+          end: Math.round(combatStartTime * 1000),
+        });
       } else {
         cast(command, index);
       }
@@ -337,6 +426,7 @@ export function createScheduler({
     return {
       state,
       events,
+      steps,
       warnings,
       snapshot: profession.snapshot(context) ?? structuredClone(state.profession),
       stream: buildScheduledEventStream({

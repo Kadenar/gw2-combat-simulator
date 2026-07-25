@@ -1,12 +1,13 @@
 # Guild Wars 2 Combat Simulator
 
-A standalone deterministic PvE build and rotation simulator for Mesmer and
-Elementalist.
+A standalone deterministic PvE build and rotation simulator with browser
+applications for Mesmer, Elementalist, and Guardian.
 
 Select the profession from the shared header:
 
 - **Mesmer**: Core, Chronomancer, Mirage, Virtuoso, and Troubadour.
 - **Elementalist**: Core, Tempest, Weaver, Catalyst, and Evoker.
+- **Guardian**: Core, Dragonhunter, Firebrand, Willbender, and Luminary.
 
 The Elementalist package is a direct port of the reference
 `Elementalist-Simulator` implementation. It retains its event scheduler,
@@ -34,6 +35,12 @@ npm test
 npm run check
 ```
 
+Refresh the checked-in Guardian API snapshot with:
+
+```powershell
+npm run update:guardian-data
+```
+
 ## Layout
 
 ```text
@@ -43,15 +50,18 @@ gw2-combat-simulator/
     professions/
       mesmer/                  Mesmer implementation
       elementalist/            Elementalist implementation and optimizer
+      guardian/                Guardian data, rules, mechanics, and build codec
     app/                       shared shell and Mesmer composition
   Builds/                      Elementalist build presets
   Rotations/                   profession rotation examples
   csv input/                   Elementalist skill and hit data
   index.html                   Mesmer application
   elementalist.html            Elementalist application
+  guardian.html                Guardian application
 ```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the profession contract and import
 boundaries. Mesmer implementation assumptions remain in
 [RESEARCH.md](RESEARCH.md); Elementalist implementation details are in
-[ELEMENTALIST.md](ELEMENTALIST.md).
+[ELEMENTALIST.md](ELEMENTALIST.md); Guardian status is in
+[GUARDIAN.md](GUARDIAN.md).

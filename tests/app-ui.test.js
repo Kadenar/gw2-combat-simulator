@@ -9,6 +9,13 @@ import {
   PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
 } from "../js/app/app-ui.js";
+import {
+  getProfessionAppAdapter,
+  professionOptions,
+} from "../js/app/composition.js";
+import {
+  professionRoute,
+} from "../js/app/profession-selector.js";
 
 test("shared app options escape labels and preserve selection state", () => {
   assert.equal(
@@ -61,4 +68,22 @@ test("shared app runtime and platform rotation helpers are profession neutral", 
       assert.equal(source.includes(term), false, term);
     }
   }
+});
+
+test("Guardian is exposed by the profession selector and app composition", async () => {
+  const guardianPage = await readFile(
+    new URL("../guardian.html", import.meta.url),
+    "utf8",
+  );
+  assert.equal(
+    professionOptions.some(option => option.id === "guardian"),
+    true,
+  );
+  assert.equal(professionRoute("guardian"), "guardian.html");
+  assert.equal(
+    (await getProfessionAppAdapter("guardian"))?.id,
+    "guardian",
+  );
+  assert.match(guardianPage, /data-profession="guardian"/);
+  assert.match(guardianPage, /data-active-profession="guardian"/);
 });

@@ -49,16 +49,17 @@ async function javascriptFiles(directory) {
   return nested.flat();
 }
 
-test("profession selector exposes Mesmer and Elementalist routes", () => {
+test("profession selector exposes every ready application route", () => {
   assert.deepEqual(PROFESSION_ROUTES, {
     mesmer: "index.html",
     elementalist: "elementalist.html",
+    guardian: "guardian.html",
   });
   assert.equal(professionRoute("elementalist"), "elementalist.html");
   assert.equal(professionRoute("unknown"), "index.html");
   assert.deepEqual(
     professionOptions.map(({ id }) => id),
-    ["mesmer", "elementalist"],
+    ["mesmer", "elementalist", "guardian"],
   );
 });
 

@@ -1,55 +1,124 @@
 import {
   createCanonicalCatalog,
 } from "../../platform/engine/catalog.js";
+import {
+  SKILLS,
+  SPECIALIZATIONS,
+  TRAITS,
+} from "./data/guardian-catalog.js";
+import { GUARDIAN_BUNDLE_SKILLS } from "./data/guardian-bundle-skills.js";
+import { GUARDIAN_SKILL_IDS } from "./ids.js";
+import {
+  GUARDIAN_AUTOATTACK_CHAINS,
+  GUARDIAN_SKILL_MECHANICS,
+} from "./mechanics.js";
 import { guardianSkillHandlers } from "./skill-handlers.js";
 
-export const GUARDIAN_SKILL_IDS = Object.freeze({
-  STRIKE: 910001,
-  JUSTICE: 910002,
-  SWAP_WEAPONS: 910003,
+export { GUARDIAN_SKILL_IDS } from "./ids.js";
+
+export const GUARDIAN_NON_DPS_SKILL_NAMES = Object.freeze(new Set([
+  "\"Advance!\"",
+  "\"Save Yourselves!\"",
+  "\"Hold the Line!\"",
+  "Signet of Mercy",
+  "Merciful Intervention",
+  "Wall of Reflection",
+  "Contemplation of Purity",
+  "\"Stand Your Ground!\"",
+  "Valorous Stance",
+  "Stalwart Stance",
+  "Mantra of Lore",
+  "Hallowed Ground",
+]));
+
+const allSkills = Object.freeze([...SKILLS, ...GUARDIAN_BUNDLE_SKILLS]);
+const generatedById = new Map(allSkills.map(skill => [skill.id, skill]));
+const chainRootById = new Map();
+for (const chain of GUARDIAN_AUTOATTACK_CHAINS) {
+  for (const skillId of chain) chainRootById.set(skillId, chain[0]);
+}
+const flipParentById = new Map();
+for (const skill of allSkills) {
+  if (
+    skill.flipSkillId != null
+    && skill.flipSkillId !== skill.nextChainId
+    && generatedById.has(skill.flipSkillId)
+    && generatedById.get(skill.flipSkillId)?.name !== skill.name
+    && !generatedById.get(skill.flipSkillId)?.categories
+      ?.includes("Virtue")
+  ) {
+    flipParentById.set(skill.flipSkillId, skill.id);
+  }
+}
+
+const generated = allSkills.map(skill => {
+  const flipParentId = flipParentById.get(skill.id);
+  return {
+    ...skill,
+    cooldown:
+      skill.ammo > 0
+        ? skill.ammoRecharge || skill.recharge
+        : skill.recharge,
+    chainRoot: chainRootById.get(skill.id) ?? null,
+    flipParentId: flipParentId ?? null,
+    flipParent: flipParentId == null
+      ? ""
+      : generatedById.get(flipParentId)?.name || "",
+    simulatorExcluded: GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name),
+    implemented: false,
+    effects: [],
+  };
 });
 
 export const guardianCatalog = createCanonicalCatalog({
-  generated: [
-    {
-      id: GUARDIAN_SKILL_IDS.STRIKE,
-      name: "True Strike",
-      type: "Weapon",
-      weapon: "Sword",
-      slot: "Weapon_1",
-      castTimeMs: 500,
-      effects: [{ type: "strike", coefficient: 0.8, hits: 1 }],
-    },
-    {
-      id: GUARDIAN_SKILL_IDS.JUSTICE,
-      name: "Virtue of Justice",
-      type: "Profession",
-      slot: "Profession_1",
-      castTimeMs: 0,
-      cooldown: 20,
-      effects: [{
-        type: "custom",
-        eventType: "guardian.justice-activated",
-        event: {},
-      }],
-    },
-    {
-      id: GUARDIAN_SKILL_IDS.SWAP_WEAPONS,
-      name: "Swap Weapons",
-      type: "Action",
-      slot: "Action",
-      castTimeMs: 0,
-      cooldown: 10,
-      handlerId: "guardian.weapon-swap",
-      effects: [],
-    },
-  ],
+  generated,
+  mechanics: GUARDIAN_SKILL_MECHANICS,
+  extraSkills: [{
+    id: GUARDIAN_SKILL_IDS.SWAP_WEAPONS,
+    name: "Swap Weapons",
+    description: "Swap between weapon sets. The swap has a 10-second recharge.",
+    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
+    type: "Action",
+    slot: "Action",
+    castTimeMs: 0,
+    cooldown: 10,
+    implemented: true,
+    handlerId: "guardian.weapon-swap",
+    effects: [],
+  }],
   skillHandlers: guardianSkillHandlers,
-  weapons: ["Sword", "Mace", "Hammer", "Longbow"],
+  traits: TRAITS,
+  specializations: SPECIALIZATIONS,
+  weapons: [
+    "Axe",
+    "Focus",
+    "Greatsword",
+    "Hammer",
+    "Longbow",
+    "Mace",
+    "Pistol",
+    "Scepter",
+    "Shield",
+    "Spear",
+    "Staff",
+    "Sword",
+    "Torch",
+  ],
   weaponHands: {
-    Sword: "mh+oh",
-    Mace: "mh",
+    Axe: "mh",
+    Focus: "oh",
+    Greatsword: "2h",
     Hammer: "2h",
     Longbow: "2h",
+    Mace: "mh",
+    Pistol: "mh+oh",
+    Scepter: "mh",
+    Shield: "oh",
+    Spear: "2h",
+    Staff: "2h",
+    Sword: "mh+oh",
+    Torch: "oh",
   },
 });
+
+export const GUARDIAN_SKILLS = guardianCatalog.skills;

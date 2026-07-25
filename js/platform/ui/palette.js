@@ -7,6 +7,7 @@ export function paletteView(profession, context) {
     id: String(group.id),
     label: String(group.label || group.id),
     skillIds: [...(group.skillIds || [])],
+    color: String(group.color || ""),
   }));
 }
 

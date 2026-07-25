@@ -12,7 +12,10 @@ import {
     UTILITY_NAMES,
 } from '../platform/gw2/gear-data.js';
 import { setWeaponSigil } from '../platform/gw2/weapon-sigils.js';
-import { activeProfessionAppAdapter } from './composition.js';
+import {
+    activeProfessionAppAdapter,
+    getProfessionAppAdapter,
+} from './composition.js';
 import { createDefaultBuild, loadBuild, replaceBuild, saveBuild } from './app-state.js';
 import { downloadJson, readJsonFile } from './app-io.js';
 import { escapeHtml as esc } from '../platform/ui/html.js';
@@ -171,13 +174,23 @@ export class ProfessionApp {
         for (const [slot, type] of Object.entries(slotTypes)) {
             const current = this.skillByName.get(this.build.selectedSkills[slot]);
             const allowed = current
+                && current.implemented !== false
                 && current.type === type
-                && (!current.specialization || current.specialization === spec);
+                && (!current.specialization || current.specialization === spec)
+                && this.adapter.isSkillAvailable(current, {
+                    build: this.build,
+                    specialization: spec,
+                });
             if (!allowed) {
                 this.build.selectedSkills[slot] = this.skills.find(skill =>
-                    skill.type === type
+                    skill.implemented !== false
+                    && skill.type === type
                     && !skill.flipParent
                     && (!skill.specialization || skill.specialization === spec)
+                    && this.adapter.isSkillAvailable(skill, {
+                        build: this.build,
+                        specialization: spec,
+                    })
                 )?.name || '';
             }
         }
@@ -421,9 +434,14 @@ export class ProfessionApp {
     availableSlotSkills(type) {
         const spec = this.adapter.eliteSpecialization(this.build);
         return this.skills.filter(skill =>
-            skill.type === type
+            skill.implemented !== false
+            && skill.type === type
             && !skill.flipParent
-            && (!skill.specialization || skill.specialization === spec));
+            && (!skill.specialization || skill.specialization === spec)
+            && this.adapter.isSkillAvailable(skill, {
+                build: this.build,
+                specialization: spec,
+            }));
     }
 
     renderSkills() {
@@ -675,11 +693,16 @@ export class ProfessionApp {
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    const app = new ProfessionApp(activeProfessionAppAdapter);
+window.addEventListener('DOMContentLoaded', async () => {
+    const professionId = document.body.dataset.profession
+        || document.getElementById('profession-select')?.dataset.activeProfession
+        || activeProfessionAppAdapter.id;
+    const adapter = await getProfessionAppAdapter(professionId)
+        || activeProfessionAppAdapter;
+    const app = new ProfessionApp(adapter);
     window.professionApp = app;
-    if (activeProfessionAppAdapter.globalName) {
-        window[activeProfessionAppAdapter.globalName] = app;
+    if (adapter.globalName) {
+        window[adapter.globalName] = app;
     }
     app.init();
 });

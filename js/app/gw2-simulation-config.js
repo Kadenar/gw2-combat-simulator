@@ -57,6 +57,27 @@ export function createGw2SimulationConfig({
       })
       .filter(([, bonus]) => bonus > 0),
   );
+  const displayedBoonDuration = attributeData.attributes["Boon Duration"] || {};
+  const genericBoonDurationBonus = Math.max(
+    0,
+    Number(displayedBoonDuration.final || 0)
+      - attr("Concentration") / 15
+      - Number(displayedBoonDuration.sigils || 0),
+  );
+  const boonDurationBonuses = Object.fromEntries(
+    ["Quickness", "Might", "Fury"]
+      .map(name => [
+        name,
+        Math.max(
+          0,
+          Number(attributeData.attributes[`${name} Duration`]?.final || 0)
+            - Number(
+              attributeData.attributes[`${name} Duration`]?.sigils || 0,
+            ),
+        ),
+      ])
+      .filter(([, bonus]) => bonus > 0),
+  );
 
   return {
     specialization,
@@ -76,6 +97,8 @@ export function createGw2SimulationConfig({
       conditionDamage: attr("Condition Damage"),
       expertise: attr("Expertise"),
       concentration: attr("Concentration"),
+      boonDurationBonus: genericBoonDurationBonus,
+      boonDurationBonuses,
       vitality: attr("Vitality"),
       criticalChanceBonus: 0,
       conditionDurationBonus: genericConditionDurationBonus,

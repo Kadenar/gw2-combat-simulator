@@ -1,5 +1,16 @@
 [
   {
+    "section": "Mirage",
+    "presets": [
+      {
+        "label": "Condi (Axe/Torch)",
+        "build": "Builds/b-condi-mirage-axe-torch.json",
+        "rotation": "Rotations/r-condi-mirage-axe-torch.json",
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Weaver",
     "presets": [
       {

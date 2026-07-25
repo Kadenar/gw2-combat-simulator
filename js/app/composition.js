@@ -7,6 +7,7 @@ export const activeProfessionAppAdapter = mesmerAppAdapter;
 export const professionOptions = Object.freeze([
   { id: "mesmer", name: "Mesmer" },
   { id: "elementalist", name: "Elementalist" },
+  { id: "guardian", name: "Guardian" },
 ]);
 
 const professionLoaders = Object.freeze({
@@ -28,6 +29,12 @@ export async function getProfession(professionId) {
 
 const appAdapterLoaders = Object.freeze({
   mesmer: async () => mesmerAppAdapter,
+  guardian: async () => {
+    const module = await import(
+      "../professions/guardian/app/adapter.js"
+    );
+    return module.guardianAppAdapter;
+  },
 });
 
 export async function getProfessionAppAdapter(professionId) {

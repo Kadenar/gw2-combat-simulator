@@ -47,6 +47,8 @@ export function createCanonicalCatalog({
   overrides = {},
   extraSkills = [],
   skillHandlers = {},
+  traits = [],
+  specializations = [],
   weapons = [],
   weaponHands = {},
 } = {}) {
@@ -76,11 +78,20 @@ export function createCanonicalCatalog({
     skill.tags = Object.freeze([...(skill.tags || [])]);
     return Object.freeze(skill);
   });
+  const skillsByName = new Map();
+  for (const skill of skills) {
+    if (!skillsByName.has(skill.name)) skillsByName.set(skill.name, skill);
+  }
   const catalog = {
     skills: Object.freeze(skills),
     skillsById: new Map(skills.map(skill => [skill.id, skill])),
-    skillsByName: new Map(skills.map(skill => [skill.name, skill])),
+    skillsByName,
     skillHandlers: normalizeSkillHandlers(skillHandlers),
+    traits: Object.freeze(traits.map(trait => Object.freeze({ ...trait }))),
+    specializations: Object.freeze(
+      specializations.map(specialization =>
+        Object.freeze({ ...specialization })),
+    ),
     weapons: new Set(weapons),
     weaponHands: new Map(
       weaponHands instanceof Map
@@ -131,6 +142,32 @@ export function validateCanonicalCatalog(catalog) {
     ) {
       throw new Error(`Skill ${skill.id} has invalid slot metadata.`);
     }
+  }
+  const traitIds = new Set();
+  for (const trait of catalog?.traits || []) {
+    if (trait.id === undefined || trait.id === null || traitIds.has(trait.id)) {
+      throw new Error(`Duplicate or missing trait id: ${trait.id}`);
+    }
+    if (!String(trait.name || "")) {
+      throw new Error(`Trait ${trait.id} has no name.`);
+    }
+    traitIds.add(trait.id);
+  }
+  const specializationIds = new Set();
+  for (const specialization of catalog?.specializations || []) {
+    if (
+      specialization.id === undefined
+      || specialization.id === null
+      || specializationIds.has(specialization.id)
+    ) {
+      throw new Error(
+        `Duplicate or missing specialization id: ${specialization.id}`,
+      );
+    }
+    if (!String(specialization.name || "")) {
+      throw new Error(`Specialization ${specialization.id} has no name.`);
+    }
+    specializationIds.add(specialization.id);
   }
   return catalog;
 }

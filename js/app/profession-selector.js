@@ -1,6 +1,7 @@
 export const PROFESSION_ROUTES = Object.freeze({
   mesmer: "index.html",
   elementalist: "elementalist.html",
+  guardian: "guardian.html",
 });
 
 export function professionRoute(professionId) {

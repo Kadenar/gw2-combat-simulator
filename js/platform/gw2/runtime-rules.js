@@ -7,10 +7,13 @@ export function gw2StaticAttributes(config, mightStacks = config.boons?.might) {
   return {
     power: Number(config.stats?.power || 0) + mightBonus,
     precision: Number(config.stats?.precision || 0),
+    toughness: Number(config.stats?.toughness || 0),
+    vitality: Number(config.stats?.vitality || 0),
     ferocity: Number(config.stats?.ferocity || 0),
     conditionDamage: Number(config.stats?.conditionDamage || 0) + mightBonus,
     expertise: Number(config.stats?.expertise || 0),
     concentration: Number(config.stats?.concentration || 0),
+    healingPower: Number(config.stats?.healingPower || 0),
     conditionDurationBonus:
       Number(config.stats?.conditionDurationBonus || 0),
     conditionDurationBonuses: {

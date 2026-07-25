@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test --test-isolation=none",
-    "check": "tsc -p jsconfig.events.json && node scripts/check-js.mjs"
+    "check": "tsc -p jsconfig.events.json && node scripts/check-js.mjs",
+    "update:guardian-data": "node scripts/update-guardian-api-data.mjs"
   },
   "engines": {
     "node": ">=20"

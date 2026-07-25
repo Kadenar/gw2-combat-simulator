@@ -1,19 +1,18 @@
-import { eliteSpecialization } from './app-runtime.js';
-import { ammoDisplayView } from '../../../platform/ui/ammo-display.js';
-import { resourceDisplayView } from '../../../platform/ui/resource-display.js';
+import { ammoDisplayView } from '../platform/ui/ammo-display.js';
+import { resourceDisplayView } from '../platform/ui/resource-display.js';
 import {
     bindPaletteInteractions,
     paletteGroupHtml,
     paletteView,
     virtualPaletteSkillHtml,
-} from '../../../platform/ui/palette.js';
+} from '../platform/ui/palette.js';
 import {
     eventLogCsv,
     mountEventLog,
-} from '../../../platform/ui/event-log.js';
+} from '../platform/ui/event-log.js';
 import {
     skillBreakdownRows as transformSkillBreakdownRows,
-} from '../../../platform/ui/result-tables.js';
+} from '../platform/ui/result-tables.js';
 import {
     bindTimelineInteractions,
     clearTimelineDropIndicators,
@@ -21,20 +20,20 @@ import {
     moveRotationEntry,
     updateRotationEntry,
     timelineRows,
-} from '../../../platform/ui/timeline.js';
+} from '../platform/ui/timeline.js';
 import {
     resultSummaryMetrics as transformResultSummaryMetrics,
-} from '../../../platform/ui/result-transform.js';
+} from '../platform/ui/result-transform.js';
 import {
     buildChartSeries as buildSharedChartSeries,
     chartValueAt,
-} from '../../../platform/ui/charts.js';
+} from '../platform/ui/charts.js';
 import {
     mountRotationResults,
     SKILL_COLS,
-} from '../../../platform/ui/rotation-results.js';
-import { escapeHtml as esc } from '../../../platform/ui/html.js';
-import { RELIC_DATA } from '../../../platform/gw2/gear-data.js';
+} from '../platform/ui/rotation-results.js';
+import { escapeHtml as esc } from '../platform/ui/html.js';
+import { RELIC_DATA } from '../platform/gw2/gear-data.js';
 
 const CONCURRENT_OFFSET_MS = 100;
 const PLACEHOLDER_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
@@ -85,6 +84,8 @@ const EFFECT_STACK_CAPS = {
 
 const seconds = ms => `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
 const professionEndState = result => result?.endState?.profession || {};
+const activeSpecialization = app =>
+    app.adapter.eliteSpecialization(app.build);
 
 function resolveRelicIcon(label) {
     const value = String(label || '');
@@ -161,7 +162,21 @@ function currentCooldown(app, name) {
 }
 
 function currentAmmo(app, name) {
-    return app.results?.endState?.ammo?.[name] || null;
+    const ammo = app.results?.endState?.ammo?.[name];
+    if (!ammo) return null;
+    if (ammo.remaining != null) return ammo;
+    const nextChargeAt = ammo.nextChargeAt != null
+        ? Number(ammo.nextChargeAt)
+        : ammo.nextRechargeAt == null
+            ? 0
+            : Number(ammo.nextRechargeAt) * 1000;
+    return {
+        ...ammo,
+        nextChargeAt,
+        remaining: nextChargeAt
+            ? Math.max(0, nextChargeAt - Number(app.results?.endState?.time || 0))
+            : 0,
+    };
 }
 
 function paletteSkillView(app, skill, contextAvailable = true, contextMessage = '') {
@@ -212,7 +227,10 @@ function weaponSkills(app) {
     const twoHanded = app.weaponData[mh]?.wielding === '2h';
     return uniqueByName(app.skills.filter(skill => {
         if (skill.type !== 'Weapon') return false;
-        if (skill.ambush && eliteSpecialization(app.build) !== 'Mirage') return false;
+        if (!app.adapter.isSkillAvailable(skill, {
+            build: app.build,
+            specialization: activeSpecialization(app),
+        })) return false;
         const number = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
         if (twoHanded) return skill.weapon === mh;
         return (number <= 3 && skill.weapon === mh) || (number >= 4 && skill.weapon === oh);
@@ -237,15 +255,20 @@ function addGroup(
 }
 
 function activeResourceGroup(app) {
+    const professionState = professionEndState(app.results);
     const definition = resourceDisplayView(app.profession, {
-        specialization: eliteSpecialization(app.build),
+        specialization: activeSpecialization(app),
         value:
-            professionEndState(app.results).resource
+            professionState.resource
             ?? app.build.initialResource,
+        professionState,
     });
+    if (!definition) return '';
     const value = Math.max(0, Math.min(
         definition.maximum,
-        professionEndState(app.results).resource ?? app.build.initialResource,
+        definition.value
+            ?? professionState.resource
+            ?? app.build.initialResource,
     ));
     const label = definition.shortLabel;
     const title = `${definition.statusLabel} ${definition.plural}: ${value}/${definition.maximum}`;
@@ -284,19 +307,13 @@ export function continuumEndTimelineMarkers(result, rotationLength = 0) {
 
 export function renderStartResource(app) {
     const element = document.getElementById('start-att-selector');
-    const definition = professionEndState(app.results).resourceDefinition
-        || app.resourceDefinition(eliteSpecialization(app.build));
-    if (!definition) {
-        container.innerHTML = '';
-        return;
-    }
-    // Clones only exist in combat, so those specs never open with resource and
-    // the start selector is hidden for them. Blades/notes keep their opener.
-    const canStartWithResource = definition.canStart !== false;
-    const value = !canStartWithResource
-        ? 0
-        : Math.max(0, Math.min(definition.maximum, app.build.initialResource));
-
+    const professionState = professionEndState(app.results);
+    const definition = professionState.resourceDefinition
+        || resourceDisplayView(app.profession, {
+            specialization: activeSpecialization(app),
+            professionState,
+            value: professionState.resource ?? app.build.initialResource,
+        });
     const hasSecondSet = Boolean(app.build.alternateWeapons?.[0]);
     const startSet = app.build.startingWeaponSet === 2 && hasSecondSet ? 2 : 1;
     const weaponControl = hasSecondSet
@@ -306,6 +323,25 @@ export function renderStartResource(app) {
                 data-set="${set}" title="Start on weapon set ${set}">W${set}</button>`
         ).join('')}</div>`
         : '';
+    if (!definition) {
+        element.innerHTML = `${weaponControl}
+            <span class="start-att-label end-resource">
+                Active weapon: W${app.results?.endState?.activeWeaponSet || startSet}
+            </span>`;
+        element.querySelectorAll('.weapon-set-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                app.build.startingWeaponSet = Number(button.dataset.set);
+                app.changed();
+            });
+        });
+        return;
+    }
+    // Clones only exist in combat, so those specs never open with resource and
+    // the start selector is hidden for them. Blades/notes keep their opener.
+    const canStartWithResource = definition.canStart !== false;
+    const value = !canStartWithResource
+        ? 0
+        : Math.max(0, Math.min(definition.maximum, app.build.initialResource));
 
     const resourceControl = canStartWithResource
         ? `<span class="start-att-label">Start ${esc(definition.plural)}:</span>
@@ -317,7 +353,7 @@ export function renderStartResource(app) {
 
     element.innerHTML = `${weaponControl}${resourceControl}
         <span class="start-att-label end-resource">Active ${esc(definition.plural)}:
-            ${professionEndState(app.results).resource ?? value}/${definition.maximum}
+            ${definition.value ?? professionState.resource ?? value}/${definition.maximum}
             · W${app.results?.endState?.activeWeaponSet || startSet}</span>`;
     element.querySelectorAll('.resource-pip').forEach(button => {
         button.addEventListener('click', () => {
@@ -336,14 +372,20 @@ export function renderStartResource(app) {
 
 export function renderPalette(app) {
     const element = document.getElementById('rotation-palette');
-    const spec = eliteSpecialization(app.build);
+    const spec = activeSpecialization(app);
     const professionGroups = paletteView(app.profession, {
         specialization: spec,
         catalog: app.profession.catalog,
+        professionState: professionEndState(app.results),
     });
-    const mechanicIds = professionGroups
-        .find(group => group.id === 'profession')?.skillIds || [];
-    const mechanics = mechanicIds.map(id => app.skillById.get(id)).filter(Boolean);
+    const renderedProfessionGroups = professionGroups.map(group => ({
+        ...group,
+        skills: group.skillIds
+            .map(id => app.skillById.get(id))
+            .filter(Boolean),
+    }));
+    const mechanics = renderedProfessionGroups
+        .find(group => group.id === 'profession')?.skills || [];
     if (spec === 'Chronomancer') {
         const shift = app.skillByName.get('Continuum Shift');
         const splitIndex = mechanics.findIndex(skill => skill.name === 'Continuum Split');
@@ -362,9 +404,13 @@ export function renderPalette(app) {
         const flip = utilityFlipByParent.get(skill.name);
         return flip ? [skill, flip] : [skill];
     });
+    const groupedIds = new Set(
+        renderedProfessionGroups.flatMap(group => group.skillIds),
+    );
     const actions = app.skills.filter(skill =>
         skill.type === 'Action'
         && skill.name !== 'Continuum Shift'
+        && !groupedIds.has(skill.id)
         && (!skill.specialization || skill.specialization === spec));
     const activeWeaponSet = app.results?.endState?.activeWeaponSet || 1;
     const professionState = professionEndState(app.results);
@@ -372,13 +418,20 @@ export function renderPalette(app) {
     const availableFlips = professionState.availableFlips || {};
     const availableAmbush = professionState.availableAmbush || null;
     const autoattackChains = professionState.autoattackChains || {};
+    const flipAvailable = skill => Boolean(
+        availableFlips[skill.id] ?? availableFlips[skill.name],
+    );
+    const chainExpected = skill => {
+        const root = skill.chainRoot;
+        return autoattackChains[root] || root;
+    };
     const weaponSkillAvailable = skill => {
         if (skill.ambush) return availableAmbush?.name === skill.name;
         if (availableAmbush && skill.slot === 'Weapon_1') return false;
-        if (skill.flipParent && !availableFlips[skill.name]) return false;
+        if ((skill.flipParent || skill.flipParentId != null) && !flipAvailable(skill)) return false;
         if (!skill.chainRoot) return true;
-        const expected = autoattackChains[skill.chainRoot] || skill.chainRoot;
-        return skill.name === expected;
+        const expected = chainExpected(skill);
+        return skill.name === expected || skill.id === Number(expected);
     };
     const weaponSkillUnavailableMessage = skill => {
         if (skill.ambush) {
@@ -389,12 +442,15 @@ export function renderPalette(app) {
         if (availableAmbush && skill.slot === 'Weapon_1') {
             return `${availableAmbush.name} currently replaces weapon skill 1`;
         }
-        if (skill.flipParent && !availableFlips[skill.name]) {
+        if ((skill.flipParent || skill.flipParentId != null) && !flipAvailable(skill)) {
             return `Unavailable until ${skill.flipParent} has been used`;
         }
         if (skill.chainRoot) {
-            const expected = autoattackChains[skill.chainRoot] || skill.chainRoot;
-            if (skill.name !== expected) return `Cast ${expected} first`;
+            const expected = chainExpected(skill);
+            if (skill.name !== expected && skill.id !== Number(expected)) {
+                const expectedSkill = app.skillById.get(Number(expected));
+                return `Cast ${expectedSkill?.name || expected} first`;
+            }
         }
         return '';
     };
@@ -405,11 +461,11 @@ export function renderPalette(app) {
         return flip && availableFlips[flip.name] ? flip : null;
     };
     const utilitySkillAvailable = skill => {
-        if (skill.flipParent) return Boolean(availableFlips[skill.name]);
+        if (skill.flipParent) return flipAvailable(skill);
         return !armedFlipFor(skill);
     };
     const utilitySkillUnavailableMessage = skill => {
-        if (skill.flipParent && !availableFlips[skill.name]) {
+        if (skill.flipParent && !flipAvailable(skill)) {
             return `Unavailable until ${skill.flipParent} has been used`;
         }
         const flip = armedFlipFor(skill);
@@ -417,17 +473,35 @@ export function renderPalette(app) {
         return '';
     };
 
+    const professionSkillAvailable = skill => {
+        if (skill.name === 'Continuum Shift') return continuumActive;
+        if (skill.name === 'Stow Tome') return Boolean(professionState.activeTome);
+        if (skill.name === 'Enter Radiant Forge') return !professionState.radiantForge;
+        if (skill.name === 'Exit Radiant Forge') return Boolean(professionState.radiantForge);
+        if ((skill.flipParent || skill.flipParentId != null) && !flipAvailable(skill)) {
+            return false;
+        }
+        return true;
+    };
+    const professionSkillUnavailableMessage = skill => {
+        if (skill.name === 'Continuum Shift') return 'Unavailable until Continuum Split is active';
+        if (skill.name === 'Stow Tome') return 'No tome is currently equipped';
+        if (skill.name === 'Enter Radiant Forge') return 'Radiant Forge is already active';
+        if (skill.name === 'Exit Radiant Forge') return 'Radiant Forge is not active';
+        if ((skill.flipParent || skill.flipParentId != null) && !flipAvailable(skill)) {
+            return `Unavailable until ${skill.flipParent} has been used`;
+        }
+        return '';
+    };
     element.innerHTML =
-        addGroup(
+        renderedProfessionGroups.map(group => addGroup(
             app,
-            'F',
-            mechanics,
-            '#c49cff',
-            skill => skill.name !== 'Continuum Shift' || continuumActive,
-            skill => skill.name === 'Continuum Shift'
-                ? 'Unavailable until Continuum Split is active'
-                : '',
-        ) +
+            group.label,
+            group.skills,
+            group.color || '#c49cff',
+            professionSkillAvailable,
+            professionSkillUnavailableMessage,
+        )).join('') +
         activeResourceGroup(app) +
         addGroup(
             app,
@@ -1020,7 +1094,7 @@ export function renderResults(app) {
     }, {
         resolveSkillIcon: row => resultIcon(app, row),
         placeholderIcon: PLACEHOLDER_ICON,
-        skillBreakdownClassName: 'mesmer-skill-breakdown',
+        skillBreakdownClassName: `${app.adapter.id}-skill-breakdown`,
         chartOptions: {
             title: 'DPS & Effects Over Time',
             dpsLabel: 'DPS',
