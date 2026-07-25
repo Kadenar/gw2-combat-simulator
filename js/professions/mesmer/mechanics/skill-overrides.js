@@ -359,6 +359,9 @@ const overrideDefinitions = {
     resource: null,
     defaultInterruptMs: 120,
   }),
+  [ID.ILLUSIONARY_RIPOSTE]: implemented({
+    defaultInterruptMs: 120,
+  }),
   [ID.SIGNET_OF_THE_ETHER]: implemented({
     // The active heals and resets phantasm cooldowns. Its passive reacts to
     // illusion summons; it does not summon an illusion itself.
