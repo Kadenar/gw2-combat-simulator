@@ -1,7 +1,7 @@
 // ─── Static GW2 Data ───────────────────────────────────────────────────────
 // Ascended Guild Wars 2 stat values, validated against Discretize Gear Optimizer.
-// Weapon entries describe common wielding and strength metadata. Profession
-// modules decide which entries are available to a build.
+// Weapon entries describe family strength and broad hand capability. Profession
+// catalogs own their exact hand availability.
 
 export const GEAR_SLOTS = [
     'Helm', 'Shoulders', 'Chest', 'Gloves', 'Leggins', 'Boots',
@@ -435,23 +435,25 @@ export const UTILITY_NAMES = sortNames(Object.keys(UTILITY_DATA));
 // wielding: 'mh' = main-hand only, 'oh' = off-hand only,
 //           'mh+oh' = either hand, '2h' = two-handed, '-' = special
 export const WEAPON_DATA = {
-    // Main-hand only
-    Axe: { wielding: 'mh', weaponStrength: 1000 },
-    Dagger: { wielding: 'mh', weaponStrength: 1000 },
-    Mace: { wielding: 'mh', weaponStrength: 1000 },
+    // Broadly available in either hand; profession catalogs narrow these.
+    Axe: { wielding: 'mh+oh', weaponStrength: 1000 },
+    Dagger: { wielding: 'mh+oh', weaponStrength: 1000 },
+    Mace: { wielding: 'mh+oh', weaponStrength: 1000 },
     Scepter: { wielding: 'mh', weaponStrength: 1000 },
     // Main-hand or off-hand
     Sword: { wielding: 'mh+oh', weaponStrength: 1000 },
     // Off-hand only
     Focus: { wielding: 'oh', weaponStrength: 900 },
-    Pistol: { wielding: 'oh', weaponStrength: 1000 },
+    Pistol: { wielding: 'mh+oh', weaponStrength: 1000 },
     Shield: { wielding: 'oh', weaponStrength: 900 },
     Torch: { wielding: 'oh', weaponStrength: 900 },
+    Warhorn: { wielding: 'oh', weaponStrength: 900 },
     // Two-handed
     Greatsword: { wielding: '2h', weaponStrength: 1100 },
     Hammer: { wielding: '2h', weaponStrength: 1100 },
     Longbow: { wielding: '2h', weaponStrength: 1000 },
     Rifle: { wielding: '2h', weaponStrength: 1150 },
+    Shortbow: { wielding: '2h', weaponStrength: 1000 },
     Spear: { wielding: '2h', weaponStrength: 1000 },
     Staff: { wielding: '2h', weaponStrength: 1100 },
     // Special / internal
@@ -611,5 +613,45 @@ export const RELIC_DATA = {
         icon: 'https://render.guildwars2.com/file/3523AC08EB04347CF371E9A91F4B985D12FB4ED3/3122371.png',
     },
 };
+
+function derivedProfessionWielding(catalog, weapon, fallback) {
+    const explicit = catalog?.weaponHands?.get?.(weapon);
+    if (explicit) return explicit;
+    if (fallback === '2h' || fallback === '-') return fallback;
+
+    const slots = (catalog?.skills || [])
+        .filter(skill => skill.weapon === weapon)
+        .map(skill => String(skill.slot || ''));
+    const mainHand = slots.some(slot => /^Weapon_[1-3]$/.test(slot));
+    const offHand = slots.some(slot => /^Weapon_[4-5]$/.test(slot));
+    if (mainHand && offHand) return 'mh+oh';
+    if (mainHand) return 'mh';
+    if (offHand) return 'oh';
+    return fallback;
+}
+
+/**
+ * Combines shared weapon-family strength with profession-owned availability.
+ */
+export function createProfessionWeaponData(
+    catalog,
+    { weaponData = WEAPON_DATA } = {},
+) {
+    return Object.freeze(Object.fromEntries(
+        [...(catalog?.weapons || [])]
+            .filter(name => weaponData[name])
+            .map(name => {
+                const shared = weaponData[name];
+                return [name, Object.freeze({
+                    ...shared,
+                    wielding: derivedProfessionWielding(
+                        catalog,
+                        name,
+                        shared.wielding,
+                    ),
+                })];
+            }),
+    ));
+}
 
 export const RELIC_NAMES = sortNames(Object.keys(RELIC_DATA));

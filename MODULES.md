@@ -57,6 +57,10 @@ Damage calculation formulas. Provides strike damage calculation, expected crit m
 ### [weapon-sigils.js](js/platform/gw2/weapon-sigils.js)
 Weapon sigil management. Normalizes sigil selections, provides sigil lookup by weapon set, and enforces sigil constraints (no duplicate sigils per set). Supports duration bonuses from sigils.
 
+### [event-ownership.js](js/platform/gw2/event-ownership.js)
+Canonical player, summon, and effect actor classification used by shared
+player-only sigil, relic, and trait rules.
+
 ---
 
 ## Simulation Engine
@@ -78,6 +82,8 @@ critical traits, and Bloodsong.
 - [scheduler.js](js/platform/engine/scheduler.js) — default declarative scheduler and profession-hook dispatcher.
 - [scheduler-state.js](js/platform/engine/scheduler-state.js) — profession-neutral mutable state.
 - [cooldown-controller.js](js/platform/engine/cooldown-controller.js) — shared cooldown and ammo state machine.
+- [GW2 scheduler policy](js/platform/gw2/scheduler/policy.js) — Quickness,
+  Alacrity, and starting-weapon-set policy injected into the neutral scheduler.
 - [event-factory.js](js/platform/gw2/scheduler/event-factory.js) — canonical GW2 scheduler events.
 - [Mesmer scheduler](js/professions/mesmer/scheduler/scheduler.js) — Mesmer mechanic controllers composed over the shared state, cooldown, and event primitives.
 

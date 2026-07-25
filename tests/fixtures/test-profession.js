@@ -21,7 +21,6 @@ const catalog = createCanonicalCatalog({
       type: "Utility",
       slot: 2,
       castTimeMs: 0,
-      handlerId: "fixture.charge",
       effects: [{
         type: "custom",
         eventType: "fixture.resource",
@@ -29,7 +28,6 @@ const catalog = createCanonicalCatalog({
       }],
     },
   ],
-  handlerIds: ["fixture.charge"],
   weapons: ["Fixture Blade"],
 });
 

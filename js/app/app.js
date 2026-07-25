@@ -6,7 +6,7 @@ import {
     GEAR_SLOTS,
     INFUSION_STATS,
     PREFIXES,
-    RELIC_NAMES,
+    RELIC_NAMES as SHARED_RELIC_NAMES,
     RUNE_GROUPS,
     SIGIL_NAMES,
     UTILITY_NAMES,
@@ -73,6 +73,7 @@ export class ProfessionApp {
         this.skillByName = this.profession.catalog.skillsByName;
         this.skillById = this.profession.catalog.skillsById;
         this.weaponData = adapter.weaponData;
+        this.relicNames = adapter.relicNames || SHARED_RELIC_NAMES;
         this.specializations = adapter.specializations;
         this.resourceDefinitions = specialization =>
             this.profession.ui.resourceViews({ specialization });
@@ -274,7 +275,7 @@ export class ProfessionApp {
 
         document.getElementById('equipment-info').innerHTML = `
             ${this.selectRow('Rune', 'sel-rune', groupedOptions(RUNE_GROUPS, b.rune))}
-            ${this.selectRow('Relic', 'sel-relic', RELIC_NAMES.map(name => option(name, b.relic)).join(''))}
+            ${this.selectRow('Relic', 'sel-relic', this.relicNames.map(name => option(name, b.relic)).join(''))}
             ${this.selectRow('Food', 'sel-food', groupedOptions(FOOD_GROUPS, b.food))}
             ${this.selectRow('Utility', 'sel-utility', UTILITY_NAMES.map(name => option(name, b.utility)).join(''))}
             <div class="gear-row"><span class="gear-label">Jade Bot</span>

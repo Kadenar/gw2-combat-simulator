@@ -7,6 +7,7 @@ import {
   handlePeithaRelic,
   handleRelicsAfterHit,
 } from "../relic-rules.js";
+import { isGw2PlayerActorEvent } from "../event-ownership.js";
 
 const noop = () => {};
 
@@ -36,7 +37,10 @@ function requireFunction(value, name) {
 }
 
 function triggeringSkill(ctx, event) {
-  return ctx.helpers.skillsByName.get(event.skillName);
+  return (
+    ctx.helpers.skillsById?.get(event.skillId ?? event.sourceId)
+    ?? ctx.helpers.skillsByName?.get(event.skillName)
+  );
 }
 
 function activeSigilNames(ctx, at, weaponSet = null) {
@@ -76,7 +80,7 @@ function queueSigilStrike(ctx, name, at, proc, sourceSkill) {
 }
 
 function handleCriticalSigils(ctx, event, hitContext, applyCondition) {
-  if (event.source !== "Player" || !(event.coefficient > 0)) return;
+  if (!isGw2PlayerActorEvent(event) || !(event.coefficient > 0)) return;
   const names = activeSigilNames(ctx, event.at)
     .filter(name => SIGIL_PROCS[name]?.trigger === "crit");
   if (!names.length || hitContext.critical.chance <= 0) return;
@@ -111,7 +115,7 @@ function handleCriticalSigils(ctx, event, hitContext, applyCondition) {
 function consumeDoom(ctx, event, applyCondition) {
   if (
     !ctx.sigil.doomPending
-    || event.source !== "Player"
+    || !isGw2PlayerActorEvent(event)
     || !(event.coefficient > 0)
   ) return;
   const proc = SIGIL_PROCS.Doom;

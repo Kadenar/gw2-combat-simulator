@@ -18,14 +18,17 @@ export function createCooldownController({
   const ammoMaximum = skill =>
     Math.max(0, Number(maximumAmmo(skill) || 0));
 
-  const ensureAmmo = skill => {
+  const ensureAmmo = (skill, at = state.time) => {
     const maximum = ammoMaximum(skill);
     if (!maximum) return null;
     if (!state.ammo.has(skill.id)) {
       state.ammo.set(skill.id, {
         charges: maximum,
         maximum,
-        rechargeDuration: rechargeDuration(skill),
+        rechargeDuration: Math.max(
+          0,
+          Number(rechargeDuration(skill, at) || 0),
+        ),
         nextRechargeAt: null,
       });
     }
@@ -33,7 +36,7 @@ export function createCooldownController({
   };
 
   const refreshAmmo = (skill, at) => {
-    const ammo = ensureAmmo(skill);
+    const ammo = ensureAmmo(skill, at);
     if (!ammo) return null;
     while (
       ammo.nextRechargeAt != null
@@ -53,9 +56,29 @@ export function createCooldownController({
     return ammo;
   };
 
+  const spendAmmo = (skill, at) => {
+    const ammo = refreshAmmo(skill, at);
+    if (!ammo || ammo.charges <= 0) return false;
+    ammo.charges -= 1;
+    if (ammo.nextRechargeAt == null) {
+      ammo.rechargeDuration = Math.max(
+        0,
+        Number(rechargeDuration(skill, at) || 0),
+      );
+      ammo.nextRechargeAt = at + ammo.rechargeDuration;
+    }
+    if (ammo.charges === 0) {
+      state.cooldowns.set(skill.id, ammo.nextRechargeAt);
+    } else {
+      state.cooldowns.delete(skill.id);
+    }
+    return ammo;
+  };
+
   return Object.freeze({
     ammoMaximum,
     ensureAmmo,
     refreshAmmo,
+    spendAmmo,
   });
 }

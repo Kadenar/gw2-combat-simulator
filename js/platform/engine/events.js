@@ -8,6 +8,7 @@ export const EVENT_SCHEMA_VERSION = 1;
  * @property {number} at
  * @property {string} source
  * @property {string|number} sourceId
+ * @property {"player"|"summon"|"effect"|"unknown"} [actorType]
  *
  * @typedef {SimulationEventBase & {
  *   type: "damage",

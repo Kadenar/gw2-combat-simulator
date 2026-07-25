@@ -61,6 +61,8 @@ export function createGw2ConditionResolution({
         at: application.at + index,
         source: application.source,
         sourceId: application.sourceId,
+        actorType: application.actorType,
+        skillId: application.skillId,
         condition: application.condition,
         application,
         fraction: 1,
@@ -73,6 +75,8 @@ export function createGw2ConditionResolution({
         at: application.at + activeDuration,
         source: application.source,
         sourceId: application.sourceId,
+        actorType: application.actorType,
+        skillId: application.skillId,
         condition: application.condition,
         application,
         fraction: remainder,
@@ -121,9 +125,15 @@ export function createGw2ConditionResolution({
 
   function applyCondition(ctx, event) {
     const name = ctx.helpers.conditionName(event.condition);
-    const stats = ctx.query.statsAt(event.at);
+    const stats = ctx.query.statsAt(event.at, event, ctx);
     const duration = Math.max(0, Number(event.duration || 0))
-      * ctx.query.conditionDurationMultiplier(name, event.at, stats, event);
+      * ctx.query.conditionDurationMultiplier(
+        name,
+        event.at,
+        stats,
+        event,
+        ctx,
+      );
     const expiresAt = event.at + duration;
     const stacks = Math.max(0, Number(event.stacks || 0));
     if (!stacks || !duration) return null;
@@ -169,12 +179,13 @@ export function createGw2ConditionResolution({
     const fraction = Math.max(0, Math.min(1, Number(event.fraction || 0)));
     if (!application || !fraction) return null;
 
-    const stats = ctx.query.statsAt(event.at);
+    const stats = ctx.query.statsAt(event.at, application, ctx);
     const perStack = conditionRate(ctx, event.condition, stats.conditionDamage)
       * ctx.query.conditionMultiplier(
         event.condition,
         event.at,
         application,
+        ctx,
       )
       * targetHealthMultiplier(ctx);
     const stackSeconds = application.stacks * fraction;

@@ -12,8 +12,8 @@ export function createGw2HitResolution({
   targetHealthMultiplier = () => 1,
 } = {}) {
   function buildHitResolutionContext(ctx, event) {
-    const stats = ctx.query.statsAt(event.at);
-    const critical = ctx.query.critical(event, event.at);
+    const stats = ctx.query.statsAt(event.at, event, ctx);
+    const critical = ctx.query.critical(event, event.at, ctx);
     if (ctx.sigil.severanceUntil > event.at) {
       critical.chance = Math.min(1, critical.chance + 250 / 2100);
       critical.damage += 250 / 1500;
@@ -24,7 +24,7 @@ export function createGw2HitResolution({
       critical.damage * 100,
     );
     const outgoingMultiplier =
-      ctx.query.strikeMultiplier(event, event.at)
+      ctx.query.strikeMultiplier(event, event.at, ctx)
       * relicStrikeMultiplier(ctx, event)
       * targetHealthMultiplier(ctx);
     const strength = ctx.helpers.weaponStrength(event, ctx.config);
