@@ -17,6 +17,7 @@ export const TRAIT_DAMAGE = Object.freeze({
   "Lesser Chaos Storm": {
     coefficient: 1.98,
     hits: 6,
+    interval: 1,
     cooldown: 28,
   },
   "Phantasmal Blade": {

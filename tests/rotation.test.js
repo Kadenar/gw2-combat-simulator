@@ -40,18 +40,46 @@ test('queueing a cooling-down icon waits until it is available', () => {
     assert.equal(result.endState.cooldowns.Bladecall.remaining, 4000);
 });
 
-test('Time Marches On makes alacrity recharge Chronomancer skills 50% faster', () => {
-    const result = simulateSequence(
+test('Rewinder refunds three seconds per clone shattered without counting the mesmer', () => {
+    const secondCastAt = initialResource => simulateSequence(
         ['Rewinder', 'Rewinder'],
         defaultSimulationConfig({
             specialization: 'Chronomancer',
+            initialResource,
+        }),
+    ).steps[1].start;
+
+    // Time Marches On makes Alacrity reduce the 30-second recharge to 20
+    // seconds. Rewinder then refunds three seconds for each actual clone.
+    assert.deepEqual(
+        [0, 1, 2, 3].map(secondCastAt),
+        [20000, 17000, 14000, 11000],
+    );
+});
+
+test('clone state remains capped at three when input or new summons exceed the cap', () => {
+    const initial = simulateSequence(
+        [{ name: '__wait', waitMs: 1 }],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            initialResource: 99,
+        }),
+    );
+    assert.equal(initial.endState.resource, 3);
+
+    const replaced = simulateSequence(
+        ['Mirror Images', { name: '__wait', waitMs: 1 }],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            selectedSkills: ['Mirror Images'],
             initialResource: 3,
         }),
     );
+    const resourceEvents = replaced.events.filter(event =>
+        event.type === 'resource' && event.resource === 'clones');
 
-    // Rewinder has a 30-second base recharge. Chronomancer alacrity reduces
-    // that to 20 seconds, then the mesmer and three clones refund 12 seconds.
-    assert.equal(result.steps[1].start, 8000);
+    assert.equal(replaced.endState.resource, 3);
+    assert.ok(resourceEvents.every(event => event.value <= 3));
 });
 
 test('non-Chronomancer alacrity starts the reduced cooldown after the cast', () => {
@@ -212,6 +240,39 @@ test('Confusing Images applies seven timed confusion pulses and loses later puls
     assert.ok(fullApplications.every((event, index) =>
         index === 0 || event.at > fullApplications[index - 1].at));
     assert.equal(interruptedApplications.length, 3);
+});
+
+test('Chaos Storm and Lesser Chaos Storm deal six strikes at one-second intervals', () => {
+    const damageEvents = (result, skillName) => result.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === skillName);
+    const assertSixPulses = events => {
+        assert.equal(events.length, 6);
+        assert.ok(events.every(event => event.hits === 1));
+        assert.ok(events.every((event, index) =>
+            index === 0
+            || Math.abs(event.at - events[index - 1].at - 1) < 1e-12));
+    };
+
+    const chaosStorm = simulateSequence(
+        ['Chaos Storm', { name: '__wait', waitMs: 5000 }],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
+            initialResource: 0,
+        }),
+    );
+    assertSixPulses(damageEvents(chaosStorm, 'Chaos Storm'));
+
+    const lesserChaosStorm = simulateSequence(
+        ['Ether Feast', { name: '__wait', waitMs: 5000 }],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            selectedTraits: ['Method of Madness'],
+            selectedSkills: ['Ether Feast'],
+        }),
+    );
+    assertSixPulses(damageEvents(lesserChaosStorm, 'Lesser Chaos Storm'));
 });
 
 test('Confusing Images starts its cooldown after its channel ends', () => {
@@ -2529,7 +2590,7 @@ test('supplied trait attacks execute with their exact coefficients', () => {
             .reduce((sum, event) => sum + event.coefficient, 0);
 
     const madness = simulateSequence(
-        ['Ether Feast'],
+        ['Ether Feast', { name: '__wait', waitMs: 5000 }],
         defaultSimulationConfig({
             specialization: 'Core',
             selectedTraits: ['Method of Madness'],

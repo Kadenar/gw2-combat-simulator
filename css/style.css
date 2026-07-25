@@ -3115,6 +3115,11 @@ header .accent {
     --accent-dim: #3f8197;
 }
 
+.necromancer-theme {
+    --accent: #69b87a;
+    --accent-dim: #3c7549;
+}
+
 #loading-overlay.hidden {
     display: none;
 }
@@ -3158,6 +3163,22 @@ header .accent {
     padding: 0 3px;
 }
 
+.active-resource-bar {
+    width: 64px;
+    height: 8px;
+    overflow: hidden;
+    border: 1px solid var(--accent-dim);
+    border-radius: 5px;
+    background: #20252a;
+}
+
+.active-resource-bar span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
 .active-resource-pip {
     width: 12px;
     height: 12px;
@@ -3195,6 +3216,21 @@ header .accent {
 
 .end-resource {
     margin-left: 7px;
+    color: var(--text);
+}
+
+.start-resource-number {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.start-resource-number input {
+    width: 52px;
+    padding: 3px 5px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-dark);
     color: var(--text);
 }
 

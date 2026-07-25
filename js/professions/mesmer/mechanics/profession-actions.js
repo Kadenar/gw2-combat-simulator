@@ -193,7 +193,7 @@ export function createProfessionActionController({
       }
       const id = skill.id;
       const ready = state.cooldowns.get(id) || at;
-      state.cooldowns.set(id, Math.max(at, ready - 3 * sources));
+      state.cooldowns.set(id, Math.max(at, ready - 3 * spent));
     } else if (shatter.kind === "blade-power") {
       addDamage(
         skill,

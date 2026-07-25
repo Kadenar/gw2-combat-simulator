@@ -1,5 +1,7 @@
 import { ammoDisplayView } from '../platform/ui/ammo-display.js';
-import { resourceDisplayView } from '../platform/ui/resource-display.js';
+import {
+    resourceDisplayViews,
+} from '../platform/ui/resource-display.js';
 import {
     bindPaletteInteractions,
     paletteGroupHtml,
@@ -44,6 +46,10 @@ const ACTION_ICONS = {
     'Swap Weapons': 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
     'Continuum Shift': 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png',
 };
+const PALETTE_ACTION_ORDER = new Map([
+    ['Dodge / Mirage Cloak', 0],
+    ['Swap Weapons', 1],
+]);
 const EFFECT_COLORS = {
     Bleeding: '#d84b4b',
     Burning: '#f28b3c',
@@ -219,9 +225,8 @@ function paletteSkillView(app, skill, contextAvailable = true, contextMessage = 
     };
 }
 
-function weaponSkills(app) {
-    const activeSet = app.results?.endState?.activeWeaponSet || 1;
-    const [mh, oh] = activeSet === 2
+export function weaponSkills(app, weaponSet = 1) {
+    const [mh, oh] = weaponSet === 2
         ? app.build.alternateWeapons
         : app.build.weapons;
     const twoHanded = app.weaponData[mh]?.wielding === '2h';
@@ -235,6 +240,47 @@ function weaponSkills(app) {
         if (twoHanded) return skill.weapon === mh;
         return (number <= 3 && skill.weapon === mh) || (number >= 4 && skill.weapon === oh);
     })).sort((a, b) => String(a.slot).localeCompare(String(b.slot)));
+}
+
+export function weaponPaletteRows(app, activeWeaponSet = 1) {
+    return [1, 2]
+        .map(weaponSet => ({
+            id: `weapon-set-${weaponSet}`,
+            label: `W${weaponSet}`,
+            weaponSet,
+            active: weaponSet === activeWeaponSet,
+            skills: weaponSkills(app, weaponSet),
+        }))
+        .filter(row => row.skills.length);
+}
+
+export function weaponPaletteStackHtml(groups = []) {
+    const content = groups.filter(Boolean).join('');
+    if (!content) return '';
+    return `<div class="weapon-palette-stack" data-role="weapon-set-stack" `
+        + `style="display:flex;flex-direction:column;align-items:stretch;gap:6px">${content}</div>`;
+}
+
+export function weaponPaletteSectionHtml(weaponGroups = [], actionGroup = '') {
+    const weapons = weaponPaletteStackHtml(weaponGroups);
+    if (!weapons && !actionGroup) return '';
+    return `<div class="weapon-palette-section" data-role="weapon-palette-section" `
+        + `style="display:flex;align-items:flex-start;gap:6px">${weapons}${actionGroup}</div>`;
+}
+
+export function paletteActionSkills(app, specialization = activeSpecialization(app)) {
+    return uniqueByName(app.skills.filter(skill =>
+        skill.type === 'Action'
+        && skill.name !== 'Continuum Shift'
+        && (!skill.specialization || skill.specialization === specialization)
+        && app.adapter.isSkillAvailable(skill, {
+            build: app.build,
+            specialization,
+        })
+    )).sort((left, right) =>
+        (PALETTE_ACTION_ORDER.get(left.name) ?? Number.MAX_SAFE_INTEGER)
+        - (PALETTE_ACTION_ORDER.get(right.name) ?? Number.MAX_SAFE_INTEGER)
+        || left.name.localeCompare(right.name));
 }
 
 function addGroup(
@@ -256,33 +302,39 @@ function addGroup(
 
 function activeResourceGroup(app) {
     const professionState = professionEndState(app.results);
-    const definition = resourceDisplayView(app.profession, {
+    const definitions = resourceDisplayViews(app.profession, {
         specialization: activeSpecialization(app),
         value:
             professionState.resource
             ?? app.build.initialResource,
         professionState,
+        initialResource: app.build.initialResource,
+        initialBlight: app.build.initialBlight,
     });
-    if (!definition) return '';
-    const value = Math.max(0, Math.min(
-        definition.maximum,
-        definition.value
-            ?? professionState.resource
-            ?? app.build.initialResource,
-    ));
-    const label = definition.shortLabel;
-    const title = `${definition.statusLabel} ${definition.plural}: ${value}/${definition.maximum}`;
-    return `<div class="pal-group active-resource-group">
-        <div class="pal-label" style="color:#c49cff">${esc(label)}</div>
-        <div class="active-resource" data-resource-count="${value}" title="${esc(title)}"
-            aria-label="${esc(title)}">
-            <div class="active-resource-pips">${Array.from(
+    return definitions.map(definition => {
+        const value = Math.max(0, Math.min(
+            definition.maximum,
+            definition.value ?? app.build[definition.buildKey],
+        ));
+        const title = `${definition.statusLabel} ${definition.plural}: ${value}/${definition.maximum}`;
+        const indicator = definition.displayMode === 'bar'
+            ? `<div class="active-resource-bar"><span style="width:${
+                definition.maximum ? value / definition.maximum * 100 : 0
+            }%"></span></div>`
+            : `<div class="active-resource-pips">${Array.from(
                 { length: definition.maximum },
                 (_, index) => `<span class="active-resource-pip${index < value ? ' active' : ''}"></span>`,
-            ).join('')}</div>
-            <strong>${value}/${definition.maximum}</strong>
-        </div>
-    </div>`;
+            ).join('')}</div>`;
+        return `<div class="pal-group active-resource-group">
+            <div class="pal-label" style="color:#c49cff">${esc(definition.shortLabel)}</div>
+            <div class="active-resource" data-resource-id="${esc(definition.id)}"
+                data-resource-count="${value}" title="${esc(title)}"
+                aria-label="${esc(title)}">
+                ${indicator}
+                <strong>${value}/${definition.maximum}</strong>
+            </div>
+        </div>`;
+    }).join('');
 }
 
 export function timelineWeaponRows(rotation = []) {
@@ -308,12 +360,13 @@ export function continuumEndTimelineMarkers(result, rotationLength = 0) {
 export function renderStartResource(app) {
     const element = document.getElementById('start-att-selector');
     const professionState = professionEndState(app.results);
-    const definition = professionState.resourceDefinition
-        || resourceDisplayView(app.profession, {
-            specialization: activeSpecialization(app),
-            professionState,
-            value: professionState.resource ?? app.build.initialResource,
-        });
+    const definitions = resourceDisplayViews(app.profession, {
+        specialization: activeSpecialization(app),
+        professionState,
+        value: professionState.resource ?? app.build.initialResource,
+        initialResource: app.build.initialResource,
+        initialBlight: app.build.initialBlight,
+    });
     const hasSecondSet = Boolean(app.build.alternateWeapons?.[0]);
     const startSet = app.build.startingWeaponSet === 2 && hasSecondSet ? 2 : 1;
     const weaponControl = hasSecondSet
@@ -323,7 +376,7 @@ export function renderStartResource(app) {
                 data-set="${set}" title="Start on weapon set ${set}">W${set}</button>`
         ).join('')}</div>`
         : '';
-    if (!definition) {
+    if (!definitions.length) {
         element.innerHTML = `${weaponControl}
             <span class="start-att-label end-resource">
                 Active weapon: W${app.results?.endState?.activeWeaponSet || startSet}
@@ -336,29 +389,54 @@ export function renderStartResource(app) {
         });
         return;
     }
-    // Clones only exist in combat, so those specs never open with resource and
-    // the start selector is hidden for them. Blades/notes keep their opener.
-    const canStartWithResource = definition.canStart !== false;
-    const value = !canStartWithResource
-        ? 0
-        : Math.max(0, Math.min(definition.maximum, app.build.initialResource));
+    const resourceControls = definitions.map(definition => {
+        if (definition.canStart === false) return '';
+        const key = definition.buildKey;
+        const value = Math.max(
+            0,
+            Math.min(definition.maximum, Number(app.build[key] || 0)),
+        );
+        if (definition.displayMode === 'bar') {
+            return `<label class="start-att-label start-resource-number">
+                Start ${esc(definition.plural)}:
+                <input type="number" min="0" max="${definition.maximum}"
+                    step="${definition.step}" value="${value}"
+                    data-resource-key="${esc(key)}">
+            </label>`;
+        }
+        return `<span class="start-att-label">Start ${esc(definition.plural)}:</span>
+            <div class="resource-pips">${Array.from(
+                { length: definition.maximum },
+                (_, index) =>
+                    `<button class="resource-pip${index < value ? ' active' : ''}"
+                        data-count="${index + 1}" data-resource-key="${esc(key)}"
+                        title="${index + 1} ${esc(definition.plural)}"></button>`,
+            ).join('')}</div>`;
+    }).join('');
+    const currentResources = definitions.map(definition =>
+        `${esc(definition.shortLabel)} ${
+            definition.value ?? Number(app.build[definition.buildKey] || 0)
+        }/${definition.maximum}`
+    ).join(' · ');
 
-    const resourceControl = canStartWithResource
-        ? `<span class="start-att-label">Start ${esc(definition.plural)}:</span>
-        <div class="resource-pips">${Array.from({ length: definition.maximum }, (_, index) =>
-            `<button class="resource-pip${index < value ? ' active' : ''}" data-count="${index + 1}"
-                title="${index + 1} ${esc(definition.plural)}"></button>`
-        ).join('')}</div>`
-        : '';
-
-    element.innerHTML = `${weaponControl}${resourceControl}
-        <span class="start-att-label end-resource">Active ${esc(definition.plural)}:
-            ${definition.value ?? professionState.resource ?? value}/${definition.maximum}
+    element.innerHTML = `${weaponControl}${resourceControls}
+        <span class="start-att-label end-resource">Active ${currentResources}
             · W${app.results?.endState?.activeWeaponSet || startSet}</span>`;
     element.querySelectorAll('.resource-pip').forEach(button => {
         button.addEventListener('click', () => {
             const count = Number(button.dataset.count);
-            app.build.initialResource = count === app.build.initialResource ? count - 1 : count;
+            const key = button.dataset.resourceKey || 'initialResource';
+            app.build[key] = count === app.build[key] ? count - 1 : count;
+            app.changed();
+        });
+    });
+    element.querySelectorAll('input[data-resource-key]').forEach(input => {
+        input.addEventListener('change', () => {
+            const key = input.dataset.resourceKey || 'initialResource';
+            app.build[key] = Math.max(
+                Number(input.min || 0),
+                Math.min(Number(input.max), Number(input.value) || 0),
+            );
             app.changed();
         });
     });
@@ -373,16 +451,18 @@ export function renderStartResource(app) {
 export function renderPalette(app) {
     const element = document.getElementById('rotation-palette');
     const spec = activeSpecialization(app);
-    const professionGroups = paletteView(app.profession, {
+    const paletteContext = {
         specialization: spec,
         catalog: app.profession.catalog,
         professionState: professionEndState(app.results),
-    });
+        build: app.build,
+    };
+    const professionGroups = paletteView(app.profession, paletteContext);
     const renderedProfessionGroups = professionGroups.map(group => ({
         ...group,
         skills: group.skillIds
             .map(id => app.skillById.get(id))
-            .filter(Boolean),
+            .filter(skill => skill && skill.type !== 'Action'),
     }));
     const mechanics = renderedProfessionGroups
         .find(group => group.id === 'profession')?.skills || [];
@@ -404,20 +484,23 @@ export function renderPalette(app) {
         const flip = utilityFlipByParent.get(skill.name);
         return flip ? [skill, flip] : [skill];
     });
-    const groupedIds = new Set(
-        renderedProfessionGroups.flatMap(group => group.skillIds),
-    );
-    const actions = app.skills.filter(skill =>
-        skill.type === 'Action'
-        && skill.name !== 'Continuum Shift'
-        && !groupedIds.has(skill.id)
-        && (!skill.specialization || skill.specialization === spec));
+    const actions = paletteActionSkills(app, spec);
     const activeWeaponSet = app.results?.endState?.activeWeaponSet || 1;
     const professionState = professionEndState(app.results);
     const continuumActive = Boolean(professionState.continuumActive);
     const availableFlips = professionState.availableFlips || {};
     const availableAmbush = professionState.availableAmbush || null;
     const autoattackChains = professionState.autoattackChains || {};
+    const professionAllowsPaletteSkill = skill =>
+        app.profession.ui.isPaletteSkillAvailable?.(
+            paletteContext,
+            skill,
+        ) !== false;
+    const professionPaletteUnavailableMessage = skill =>
+        app.profession.ui.paletteSkillUnavailableMessage?.(
+            paletteContext,
+            skill,
+        ) || '';
     const flipAvailable = skill => Boolean(
         availableFlips[skill.id] ?? availableFlips[skill.name],
     );
@@ -425,7 +508,9 @@ export function renderPalette(app) {
         const root = skill.chainRoot;
         return autoattackChains[root] || root;
     };
-    const weaponSkillAvailable = skill => {
+    const weaponSkillAvailable = (skill, weaponSet) => {
+        if (weaponSet !== activeWeaponSet) return false;
+        if (!professionAllowsPaletteSkill(skill)) return false;
         if (skill.ambush) return availableAmbush?.name === skill.name;
         if (availableAmbush && skill.slot === 'Weapon_1') return false;
         if ((skill.flipParent || skill.flipParentId != null) && !flipAvailable(skill)) return false;
@@ -433,7 +518,13 @@ export function renderPalette(app) {
         const expected = chainExpected(skill);
         return skill.name === expected || skill.id === Number(expected);
     };
-    const weaponSkillUnavailableMessage = skill => {
+    const weaponSkillUnavailableMessage = (skill, weaponSet) => {
+        if (weaponSet !== activeWeaponSet) {
+            return `Swap to weapon set ${weaponSet} to use this skill`;
+        }
+        if (!professionAllowsPaletteSkill(skill)) {
+            return professionPaletteUnavailableMessage(skill);
+        }
         if (skill.ambush) {
             return availableAmbush
                 ? `Current ambush is ${availableAmbush.name}`
@@ -474,20 +565,18 @@ export function renderPalette(app) {
     };
 
     const professionSkillAvailable = skill => {
+        if (!professionAllowsPaletteSkill(skill)) return false;
         if (skill.name === 'Continuum Shift') return continuumActive;
-        if (skill.name === 'Stow Tome') return Boolean(professionState.activeTome);
-        if (skill.name === 'Enter Radiant Forge') return !professionState.radiantForge;
-        if (skill.name === 'Exit Radiant Forge') return Boolean(professionState.radiantForge);
         if ((skill.flipParent || skill.flipParentId != null) && !flipAvailable(skill)) {
             return false;
         }
         return true;
     };
     const professionSkillUnavailableMessage = skill => {
+        if (!professionAllowsPaletteSkill(skill)) {
+            return professionPaletteUnavailableMessage(skill);
+        }
         if (skill.name === 'Continuum Shift') return 'Unavailable until Continuum Split is active';
-        if (skill.name === 'Stow Tome') return 'No tome is currently equipped';
-        if (skill.name === 'Enter Radiant Forge') return 'Radiant Forge is already active';
-        if (skill.name === 'Exit Radiant Forge') return 'Radiant Forge is not active';
         if ((skill.flipParent || skill.flipParentId != null) && !flipAvailable(skill)) {
             return `Unavailable until ${skill.flipParent} has been used`;
         }
@@ -503,19 +592,20 @@ export function renderPalette(app) {
             professionSkillUnavailableMessage,
         )).join('') +
         activeResourceGroup(app) +
-        addGroup(
-            app,
-            `W${activeWeaponSet}`,
-            weaponSkills(app),
-            '#a98fd8',
-            weaponSkillAvailable,
-            weaponSkillUnavailableMessage,
+        weaponPaletteSectionHtml(
+            weaponPaletteRows(app, activeWeaponSet).map(row => addGroup(
+                app,
+                row.label,
+                row.skills,
+                row.active ? '#a98fd8' : '#625a73',
+                skill => weaponSkillAvailable(skill, row.weaponSet),
+                skill => weaponSkillUnavailableMessage(skill, row.weaponSet),
+            )),
+            addGroup(app, 'Act', actions, '#70b6d0'),
         ) +
         addGroup(app, 'Skill', selectedWithFlips, '#cbb8ea', utilitySkillAvailable, utilitySkillUnavailableMessage) +
-        // Actions live on their own row so weapon skills can grow without
-        // shoving Dodge/Combat Start/Wait into an awkward wrap.
+        // Timeline-only controls stay on their own row.
         '<div class="pal-break"></div>' +
-        addGroup(app, 'Act', actions, '#70b6d0') +
         `<div class="pal-group"><div class="pal-label" style="color:#d66d2f">Cmb</div>
             <div class="pal-row">${virtualPaletteSkillHtml({
                 name: '__combat_start',
