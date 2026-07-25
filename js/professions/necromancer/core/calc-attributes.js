@@ -8,5 +8,3 @@ import {
 export const calculateAttributes = createCalculateAttributes(
   applyNecromancerBuildAttributeRules,
 );
-
-export const calcAttributes = calculateAttributes;

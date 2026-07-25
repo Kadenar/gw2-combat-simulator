@@ -8,11 +8,12 @@ from core engine handling and where logic can be pulled up into the shared
 Reference for "intended design" throughout is the project's own
 [ARCHITECTURE.md](ARCHITECTURE.md).
 
-> **Status:** The app-integration consolidation (§5 WI-1/2/3) has been
-> **implemented and validated** (285 tests + `npm run check` green). See
-> §"Work completed in this pass". The remaining item is the Mesmer
-> `simulateSequence` retirement (§5 WI-5), left un-started because it is
-> genuinely high-risk and partly sanctioned by the architecture.
+> **Status:** The app-integration consolidation (§5 WI-1/2/3) is
+> **implemented and validated** (285 tests + `npm run check` green). The
+> Mesmer engine items (WI-5, WI-6) were **investigated and deliberately not
+> done**: both fail a "won't break anything" bar for concrete, evidenced
+> reasons (§5). WI-4 was withdrawn earlier (§3.3). No safe Mesmer-engine
+> consolidation remains without a dedicated, fixture-guarded migration.
 
 ---
 
@@ -157,8 +158,8 @@ quick win. **WI-4 is withdrawn** (see §5).
 | A | `createGw2AppAdapter(options)` factory | ✅ Done → `app/create-app-adapter.js` |
 | B | `createProfessionRuntime(descriptor)` shared orchestration | ✅ Done → `app/create-profession-runtime.js` |
 | C | `createCalculateAttributes(applyRules)` | ✅ Done → `platform/gw2/attributes.js` |
-| D | Retire Mesmer `simulateSequence`; fall through to `simulateDeclarativeGw2` | ⏳ WI-5 (XL, not started) |
-| E | Remove dead `resolverHooks` double-wiring | ⏳ WI-6 (fold into WI-5) |
+| D | Retire Mesmer `simulateSequence`; fall through to `simulateDeclarativeGw2` | ⛔ WI-5 — not safe as a contained change (§5) |
+| E | Remove "dead" `resolverHooks` double-wiring | ⛔ WI-6 — not dead; enforced by tests (§5) |
 | F | ~~Make Mesmer lazy-loaded~~ | ❌ Withdrawn (see §3.3) |
 
 ---
@@ -189,33 +190,53 @@ quick win. **WI-4 is withdrawn** (see §5).
 - Not safe without reworking synchronous default-adapter resolution (§3.3).
   Not worth the risk for the structural gain.
 
-### WI-5 — Retire Mesmer `simulateSequence` *(D — the big one)*
-- **Effort:** XL · **Risk:** High · **Not started.** Do behind golden-master
-  fixtures, in phases.
-- **Pre-req:** snapshot representative Mesmer rotations (Virtuoso;
-  Chrono/Continuum; Mirage ambush) through the current pipeline as a
-  regression oracle.
-- **Phase 1 — Scheduler.** Re-home the mechanic controllers
-  (`cast`/`continuum`/`resource`/`skill-effects`/`expected-procs`) as
-  `scheduleSkill`/`afterCast`/`advance` hooks composed over the *platform*
-  scheduler (`platform/engine/scheduler.js`), rather than Mesmer's parallel
-  `createScheduler`. The shared primitives are already in use, so this is a
-  wiring migration, not a rewrite of cooldown/ammo/event logic.
-- **Phase 2 — Drop `simulation.simulate`.** Let Mesmer fall through to
-  `simulateDeclarativeGw2` like Guardian/Necromancer. Move Mesmer-only
-  end-state fields (available flips, ambush, continuum, autoattack chains)
-  into `snapshot()` / `endState.profession`. Concurrent weaves, interrupts,
-  combat-start, steps, and cooldown/ammo export then come from the generic
-  scheduler for free.
-- **Acceptance:** golden-master parity within tolerance;
-  `tests/platform-architecture.test.js` green; `mesmer/simulation.js` and the
-  bespoke `scheduler/scheduler.js` deleted; Mesmer defines no `simulation`
-  pipeline.
+### WI-5 — Retire Mesmer `simulateSequence` *(D — the big one)* — ⛔ NOT SAFE AS A CONTAINED CHANGE
+- **Effort:** XL · **Risk:** High · **Investigated; deferred.**
+- **Blocker (evidenced):** Mesmer's scheduler is a *different cast model* from
+  the platform scheduler, not just a different wiring of the same one:
+  - **Auto-wait vs reject.** Mesmer's `cast`
+    ([cast-controller.js:145-164](js/professions/mesmer/scheduler/cast-controller.js#L145-L164))
+    advances `state.time` to a skill's ready time when it is on cooldown
+    (`config.autoWaitForCooldowns`), with bespoke Continuum-expiry handling.
+    The platform scheduler instead marks an on-cooldown cast **invalid** and
+    does not advance
+    ([scheduler.js:263-279](js/platform/engine/scheduler.js#L263-L279)). Mesmer
+    rotations (and `simulateRotation`'s cooldown-cycling loop) rely on the
+    auto-wait; the platform has no such policy.
+  - **Activation model differs.** Mesmer uses `baseActivation / quickness`
+    with a `Math.max(0.05, …)` floor and a 0.5s default for positive-id skills
+    ([cast-controller.js:177-183](js/professions/mesmer/scheduler/cast-controller.js#L177-L183));
+    the platform uses `baseDurationSeconds` + scheduler policy. Different cast
+    durations → different event timings.
+  - **Post-hoc concurrency shifting.** `simulateSequence` shifts whole blocks
+    of already-emitted events (plus Continuum cooldowns, ammo, pending
+    resources) for concurrent weaves; the platform computes the start *before*
+    emitting. Opposite ordering of operations.
+  - Consequence: swapping the scheduler changes cast semantics and would break
+    a large fraction of the 285 tests unless the platform scheduler first grows
+    a matching auto-wait policy and Mesmer's exact activation defaults. That is
+    a multi-step migration behind golden-master fixtures, **not** a change that
+    "won't break anything."
+- **Recommended path when undertaken:** first add an opt-in `autoWaitForCooldowns`
+  policy to the platform scheduler (benefits all professions), reconcile the
+  activation defaults, then migrate Mesmer controller-by-controller against a
+  golden-master oracle. Dedicated effort, not a cleanup pass.
 
-### WI-6 — Remove Mesmer dead reaction wiring *(E)*
-- **Effort:** S · **Risk:** Low (fold into WI-5 Phase 2). Consume
-  `profession.eventReactions` instead of rebuilding via
-  `createEventReactions`.
+### WI-6 — Remove Mesmer "dead" reaction wiring *(E)* — ⛔ NOT SAFE / NOT ACTUALLY DEAD
+- **Effort:** S · **Risk:** Low-looking but blocked. **Investigated; withdrawn.**
+- **Correction:** the `resolverHooks` in `mesmer/definition.js` are **not** dead.
+  [platform-architecture.test.js:784-796](tests/platform-architecture.test.js#L784-L796)
+  asserts `mesmerProfession.eventReactions.damage`/`.control` are functions and
+  that `eventHandlers` exposes only `mesmer.*` namespaced keys. That wiring is
+  the enforced profession-contract surface; removing it breaks tests.
+- The only genuine redundancy is that `resolver/resolver-profile.js` and
+  `resolver/condition-resolution.js` *also* call
+  `createEventReactions(mesmerResolverEventReactions)` on the same source. It
+  cannot be replaced by consuming `profession.eventReactions` because that
+  creates an import cycle (`definition.js → simulation.js → resolve-timeline.js
+  → resolver-profile.js → definition.js`), leaving `mesmerProfession` in the
+  temporal dead zone at module-eval time. Both paths already import the same
+  source module, so this is cheap, harmless duplication — no safe win here.
 
 ---
 

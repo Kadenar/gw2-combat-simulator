@@ -16,8 +16,6 @@ import {
 import { NECROMANCER_SKILL_IDS } from "./ids.js";
 import { necromancerSkillHandlers } from "./skill-handlers.js";
 
-export { NECROMANCER_SKILL_IDS } from "./ids.js";
-
 export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(new Set([
   "Well of Blood",
   "Consume Conditions",

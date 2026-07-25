@@ -40,5 +40,3 @@ export const necromancerAppAdapter = createGw2AppAdapter({
     return offHands.includes("Dagger") ? "Dagger" : offHands[0] || "";
   },
 });
-
-export default necromancerAppAdapter;

@@ -8,5 +8,3 @@ import {
 export const calculateAttributes = createCalculateAttributes(
   applyGuardianBuildAttributeRules,
 );
-
-export const calcAttributes = calculateAttributes;
