@@ -41,8 +41,8 @@ import {
 } from "../js/professions/mesmer/definition.js";
 import {
   createDefaultConfig,
-  simulateSequence,
-} from "../js/professions/mesmer/simulation.js";
+  simulateMesmer,
+} from "./helpers/mesmer-simulation.js";
 
 test("shared app options escape labels and preserve selection state", () => {
   assert.equal(
@@ -181,7 +181,7 @@ test("Mesmer palette advances through autoattack chain skills", () => {
   };
   const skill = name => mesmerProfession.catalog.skillsByName.get(name);
   const availabilityAfter = rotation => {
-    const result = simulateSequence(rotation, config);
+    const result = simulateMesmer(rotation, config);
     const chainState = result.endState.profession.autoattackChains;
     return ["Mind Slash", "Mind Gash", "Mind Spike"].map(name =>
       autoattackChainSkillAvailable(skill(name), chainState));

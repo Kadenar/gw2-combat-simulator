@@ -5,13 +5,19 @@
  */
 const HOOK_NAMES = Object.freeze([
   "initialize",
+  "availability",
   "validateCast",
   "scheduleSkill",
   "afterCast",
   "advance",
   "snapshot",
+  "projectEndState",
+  "onCastStart",
+  "onCastComplete",
+  "onEventScheduled",
   "modifyCastDuration",
   "modifyRechargeDuration",
+  "modifyRechargeStart",
   "modifyMaximumAmmo",
   "modifyAttributes",
   "modifyCriticalChance",
@@ -24,6 +30,7 @@ const HOOK_NAMES = Object.freeze([
 const NOOP = () => undefined;
 const IDENTITY_SECOND_ARGUMENT = (_context, value) => value;
 const VALID_CAST = () => true;
+const READY_CAST = () => ({ ready: true });
 
 /**
  * Normalizes one hook or hook list into an order-stable array.
@@ -63,6 +70,50 @@ function orderedHooks(value, hookName) {
 function composeHooks(value, hookName, fallback) {
   const hooks = orderedHooks(value, hookName);
   if (!hooks.length) return fallback;
+  if (hookName === "availability") {
+    return (context, skill) => {
+      let result = { ready: true };
+      for (const hook of hooks) {
+        const next = hook.handler(context, skill);
+        if (next == null || next === true) continue;
+        const availability = next === false
+          ? {
+              ready: false,
+              retryAt: null,
+              code: `${hook.id}.unavailable`,
+              reason: `${skill.name} is unavailable.`,
+            }
+          : next;
+        if (availability.ready !== false) continue;
+        if (availability.retryAt == null) return {
+          ready: false,
+          retryAt: null,
+          code: String(availability.code || `${hook.id}.unavailable`),
+          reason: String(
+            availability.reason || `${skill.name} is unavailable.`,
+          ),
+        };
+        const retryAt = Number(availability.retryAt);
+        if (!Number.isFinite(retryAt)) {
+          throw new TypeError(
+            `${hook.id} returned a non-finite cast retry time.`,
+          );
+        }
+        if (result.ready || retryAt > result.retryAt) {
+          result = {
+            ready: false,
+            retryAt,
+            code: String(availability.code || `${hook.id}.not-ready`),
+            reason: String(
+              availability.reason
+              || `${skill.name} is not ready until ${retryAt.toFixed(3)}.`,
+            ),
+          };
+        }
+      }
+      return result;
+    };
+  }
   if (hookName === "validateCast") {
     return (context, skill) =>
       hooks.every(hook => hook.handler(context, skill) !== false);
@@ -172,6 +223,7 @@ export function defineProfession(definition) {
   });
   const sources = {
     initialize: schedulerHooks.initialize,
+    availability: castRules.availability ?? schedulerHooks.availability,
     validateCast: castRules.validateCast ?? schedulerHooks.validateCast,
     scheduleSkill: combineHookSources(
       dispatchCatalogSkill,
@@ -180,12 +232,21 @@ export function defineProfession(definition) {
     afterCast: schedulerHooks.afterCast,
     advance: schedulerHooks.advance,
     snapshot: schedulerHooks.snapshot,
+    projectEndState:
+      resources.projectEndState
+      ?? schedulerHooks.projectEndState,
+    onCastStart: schedulerHooks.onCastStart,
+    onCastComplete: schedulerHooks.onCastComplete,
+    onEventScheduled: schedulerHooks.onEventScheduled,
     modifyCastDuration:
       castRules.modifyCastDuration
       ?? schedulerHooks.modifyCastDuration,
     modifyRechargeDuration:
       castRules.modifyRechargeDuration
       ?? schedulerHooks.modifyRechargeDuration,
+    modifyRechargeStart:
+      castRules.modifyRechargeStart
+      ?? schedulerHooks.modifyRechargeStart,
     modifyMaximumAmmo:
       castRules.modifyMaximumAmmo
       ?? schedulerHooks.modifyMaximumAmmo,
@@ -198,8 +259,10 @@ export function defineProfession(definition) {
   };
   const hooks = {};
   for (const name of HOOK_NAMES) {
-    const fallback = name === "validateCast"
-      ? VALID_CAST
+    const fallback = name === "availability"
+      ? READY_CAST
+      : name === "validateCast"
+        ? VALID_CAST
       : name.startsWith("modify")
         ? IDENTITY_SECOND_ARGUMENT
         : NOOP;
@@ -224,6 +287,9 @@ export function defineProfession(definition) {
       resources.createResolverState
       || definition.createResolverState
       || null,
+    taskHandlers: Object.freeze({
+      ...(schedulerHooks.taskHandlers || {}),
+    }),
     ...hooks,
     eventHandlers: Object.freeze({
       ...(resolverHooks.eventHandlers || definition.eventHandlers || {}),

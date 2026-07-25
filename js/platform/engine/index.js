@@ -12,4 +12,4 @@ export * from "./rotation-commands.js";
 export * from "./scheduled-event-stream.js";
 export * from "./scheduler-state.js";
 export * from "./scheduler.js";
-export * from "./simulation.js";
+export * from "./task-queue.js";

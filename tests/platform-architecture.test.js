@@ -43,8 +43,8 @@ import { mesmerProfession } from "../js/professions/mesmer/definition.js";
 import { guardianCatalog } from "../js/professions/guardian/catalog.js";
 import {
   createDefaultConfig,
-  simulateSequence,
-} from "../js/professions/mesmer/simulation.js";
+  simulateMesmer,
+} from "./helpers/mesmer-simulation.js";
 import { createMesmerState, snapshotMesmerState } from "../js/professions/mesmer/state.js";
 import { testProfession } from "./fixtures/test-profession.js";
 
@@ -1004,7 +1004,7 @@ test("Mesmer production simulation is reached through simulateGw2", () => {
     rotation: ["Bladecall"],
     config,
   });
-  const compatibility = simulateSequence(["Bladecall"], config);
+  const compatibility = simulateMesmer(["Bladecall"], config);
 
   assert.equal(canonical.totalDamage, compatibility.totalDamage);
   assert.equal(canonical.strikeDamage, compatibility.strikeDamage);

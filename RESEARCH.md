@@ -8,7 +8,7 @@ Primary profession metadata, skill IDs, descriptions, icons, specialization
 membership, trait ordering, and trait descriptions come from the official Guild
 Wars 2 API:
 
-- `https://api.guildwars2.com/v2/professions/Mesmer`
+- `https://api.guildwars2.com/v2/professions`
 - `https://api.guildwars2.com/v2/specializations`
 - `https://api.guildwars2.com/v2/traits`
 - `https://api.guildwars2.com/v2/skills`

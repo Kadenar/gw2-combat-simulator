@@ -4,7 +4,7 @@ const MIRAGE_CLOAK_SKILLS = new Set([
 ]);
 
 /**
- * Owns Mirage cloak, ambush, and shatter reactions during scheduling.
+ * Owns Mirage cloak, ambush, and shatter reactions.
  */
 export function createMirageActionController({
   state,

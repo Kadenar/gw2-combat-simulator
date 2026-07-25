@@ -9,7 +9,7 @@ export function createProfessionActionController({
   state,
   traits,
   resourceDefinition,
-  cloneDeaths,
+  destroyClone,
   epsilon,
   shatters,
   instruments,
@@ -32,7 +32,7 @@ export function createProfessionActionController({
     const spent = currentResource();
     if (resourceDefinition.singular === "clone") {
       for (const clone of state.profession.clones) {
-        cloneDeaths.set(clone.id, at);
+        destroyClone(clone, at);
       }
       state.profession.clones = [];
     } else {

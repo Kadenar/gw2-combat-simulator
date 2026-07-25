@@ -6,9 +6,10 @@ import {
 } from "./build.js";
 import { mesmerCatalog } from "./catalog.js";
 import {
-  simulateRotation,
-  simulateSequence,
-} from "./simulation.js";
+  mesmerCastRules,
+  mesmerSchedulerHooks,
+  projectMesmerEndState,
+} from "./mechanics/contract.js";
 import { createMesmerState, snapshotMesmerState } from "./state.js";
 import { mesmerAttributeRules } from "./attribute-rules.js";
 import {
@@ -28,9 +29,17 @@ export const mesmerProfession = defineProfession({
   },
   resources: {
     createProfessionState: createMesmerState,
+    createResolverState: () => ({
+      ineptitudeReadyAt: 0,
+      sharperImagesProgress: 0,
+      bloodsongProgress: 0,
+    }),
+    projectEndState: projectMesmerEndState,
   },
   attributeRules: mesmerAttributeRules,
+  castRules: mesmerCastRules,
   schedulerHooks: {
+    ...mesmerSchedulerHooks,
     snapshot: context => snapshotMesmerState(context.state.profession),
   },
   resolverHooks: {
@@ -38,12 +47,6 @@ export const mesmerProfession = defineProfession({
     eventReactions: mesmerResolverEventReactions,
   },
   ui: mesmerUi,
-  simulation: Object.freeze({
-    simulate: ({ rotation = [], config = {}, mode = "sequence" } = {}) =>
-      mode === "rotation"
-        ? simulateRotation(rotation, config)
-        : simulateSequence(rotation, config),
-  }),
 });
 
 export default mesmerProfession;
