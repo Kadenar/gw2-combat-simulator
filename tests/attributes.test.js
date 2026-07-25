@@ -182,6 +182,32 @@ test('simulation config aggregates each weapon set sigils independently', () => 
     assert.equal(config.target.conditions.Confusion, 1);
 });
 
+test('Mesmer browser simulations retain weaponmaster training', () => {
+    const build = createDefaultBuild();
+    build.specializations[2] = { name: 'Mirage', traits: '1-1-1' };
+    build.weapons = ['Dagger', 'Sword'];
+    build.alternateWeapons = ['Axe', 'Sword'];
+    build.rotation = [
+        'Flying Cutter',
+        'Unstable Bladestorm',
+        'Swap Weapons',
+        'Lingering Thoughts',
+        'Axes of Symmetry',
+    ];
+    const app = {
+        build,
+        attributeData: calcAttributes(build, []),
+    };
+
+    assert.equal(simulationConfig(app).weaponmasterTraining, true);
+    assert.deepEqual(
+        runSimulation(app).steps
+            .filter(step => step.invalid)
+            .map(step => step.skill),
+        [],
+    );
+});
+
 test('simulation config preserves non-sigil condition duration bonuses', () => {
     const build = createDefaultBuild();
     build.rune = 'Trapper';

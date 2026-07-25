@@ -378,6 +378,17 @@ test('supplied player and clone coefficient table is preserved', () => {
     assert.equal(AMBUSH_ATTACKS.Dagger.clone.coefficient, 3);
 });
 
+test('Lingering Thoughts variants use the six-second count recharge', () => {
+    for (const id of [
+        ID.LINGERING_THOUGHTS,
+        ID.TROUBADOUR_LINGERING_THOUGHTS,
+    ]) {
+        const skill = mesmerCatalog.skillsById.get(id);
+        assert.equal(skill.ammo, 2);
+        assert.equal(skill.ammoRecharge, 6);
+    }
+});
+
 test('supplied utility, spear, staff, and phantasm coefficients are preserved', () => {
     const normalized = catalogSkill;
     const effectiveCoefficient = skill => {

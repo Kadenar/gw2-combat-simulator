@@ -18,6 +18,19 @@ export function createCooldownController({
   const ammoMaximum = skill =>
     Math.max(0, Number(maximumAmmo(skill) || 0));
 
+  const syncAmmoCooldown = (skill, ammo, at) => {
+    const activeLockout = Number(state.cooldowns.get(skill.id) || 0);
+    const readyAt = Math.max(
+      activeLockout > at + epsilon ? activeLockout : 0,
+      ammo.charges === 0 ? Number(ammo.nextRechargeAt || 0) : 0,
+    );
+    if (readyAt > at + epsilon) {
+      state.cooldowns.set(skill.id, readyAt);
+    } else {
+      state.cooldowns.delete(skill.id);
+    }
+  };
+
   /**
    * Lazily initializes ammo tracking for skills that use charges.
    */
@@ -55,11 +68,7 @@ export function createCooldownController({
           ? ammo.nextRechargeAt + ammo.rechargeDuration
           : null;
     }
-    if (ammo.charges === 0 && ammo.nextRechargeAt != null) {
-      state.cooldowns.set(skill.id, ammo.nextRechargeAt);
-    } else {
-      state.cooldowns.delete(skill.id);
-    }
+    syncAmmoCooldown(skill, ammo, at);
     return ammo;
   };
 
@@ -77,11 +86,24 @@ export function createCooldownController({
       );
       ammo.nextRechargeAt = at + ammo.rechargeDuration;
     }
-    if (ammo.charges === 0) {
-      state.cooldowns.set(skill.id, ammo.nextRechargeAt);
-    } else {
-      state.cooldowns.delete(skill.id);
-    }
+    syncAmmoCooldown(skill, ammo, at);
+    return ammo;
+  };
+
+  /**
+   * Applies the short between-cast recharge independently from count recharge.
+   */
+  const setAmmoLockout = (skill, readyAt, at = state.time) => {
+    const ammo = ensureAmmo(skill, at);
+    if (!ammo) return null;
+    state.cooldowns.set(
+      skill.id,
+      Math.max(
+        Number(state.cooldowns.get(skill.id) || 0),
+        Number(readyAt || 0),
+      ),
+    );
+    syncAmmoCooldown(skill, ammo, at);
     return ammo;
   };
 
@@ -89,6 +111,7 @@ export function createCooldownController({
     ammoMaximum,
     ensureAmmo,
     refreshAmmo,
+    setAmmoLockout,
     spendAmmo,
   });
 }

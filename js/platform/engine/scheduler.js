@@ -313,9 +313,18 @@ export function createScheduler({
       skill,
       at,
     };
+    const ammoRecharge = Number(skill.ammoRecharge || 0);
     const baseDuration = Math.max(
       0,
-      Number(skill.cooldown ?? skill.recharge ?? 0),
+      Number(
+        details.ammoCastLockout
+          ? Number(skill.ammo || 0) > 0
+            ? skill.recharge ?? 0
+            : 0
+          : Number(skill.ammo || 0) > 0 && ammoRecharge > 0
+          ? ammoRecharge
+          : skill.cooldown ?? skill.recharge ?? 0,
+      ),
     );
     const sharedDuration = schedulerPolicy.rechargeDuration?.(
       rechargeContext,
@@ -372,6 +381,7 @@ export function createScheduler({
       fullEnd,
       effectiveEnd,
       rechargeDuration,
+      ammoLockoutDuration,
       rechargeStart,
       rechargeReadyAt,
     } = reservation;
@@ -380,6 +390,13 @@ export function createScheduler({
     if (active?.size === 0) inFlight.delete(skill.id);
     if (reservation.ammo) {
       cooldownController.spendAmmo(skill, rechargeStart);
+      if (ammoLockoutDuration > 0) {
+        cooldownController.setAmmoLockout(
+          skill,
+          rechargeStart + ammoLockoutDuration,
+          rechargeStart,
+        );
+      }
     } else if (rechargeDuration) {
       state.cooldowns.set(skill.id, rechargeStart + rechargeDuration);
     }
@@ -389,6 +406,7 @@ export function createScheduler({
       fullEnd,
       effectiveEnd,
       rechargeDuration,
+      ammoLockoutDuration,
       rechargeStart,
       rechargeReadyAt,
       reservationId: reservation.id,
@@ -445,9 +463,7 @@ export function createScheduler({
 
   function engineAvailability(skill, at) {
     const ammo = cooldownController.refreshAmmo(skill, at);
-    const readyAt = ammo?.charges <= 0
-      ? ammo.nextRechargeAt
-      : state.cooldowns.get(skill.id) || 0;
+    const readyAt = state.cooldowns.get(skill.id) || 0;
     const active = inFlight.get(skill.id);
     const activeReservations = active?.size
       ? [...active]
@@ -461,7 +477,10 @@ export function createScheduler({
           ?? at))
       : 0;
     const result = [];
-    if ((ammo && ammo.charges <= 0) || (!ammo && readyAt > at + epsilon)) {
+    if (
+      readyAt > at + epsilon
+      || (ammo && ammo.charges <= 0)
+    ) {
       result.push(unavailable(
         `${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`,
         "platform.cooldown",
@@ -605,6 +624,15 @@ export function createScheduler({
       fullEnd,
       effectiveEnd,
     });
+    const ammoLockoutDuration =
+      castContext.ammo && Number(skill.ammo || 0) > 0
+      ? rechargeDurationFor(skill, effectiveEnd, {
+          ...castContext,
+          fullEnd,
+          effectiveEnd,
+          ammoCastLockout: true,
+        })
+      : 0;
     const rechargeStart = Math.max(
       start,
       Number(
@@ -619,13 +647,16 @@ export function createScheduler({
         ),
       ),
     );
+    const ammoChargeReadyAt =
+      castContext.ammo && castContext.ammo.charges <= 1
+        ? castContext.ammo.nextRechargeAt
+          ?? rechargeStart + rechargeDuration
+        : 0;
+    const ammoLockoutReadyAt = castContext.ammo && ammoLockoutDuration > 0
+      ? rechargeStart + ammoLockoutDuration
+      : 0;
     const rechargeReadyAt = castContext.ammo
-      ? (
-          castContext.ammo.charges <= 1
-            ? castContext.ammo.nextRechargeAt
-              ?? rechargeStart + rechargeDuration
-            : null
-        )
+      ? Math.max(ammoChargeReadyAt, ammoLockoutReadyAt) || null
       : rechargeDuration > 0
         ? rechargeStart + rechargeDuration
         : null;
@@ -638,6 +669,7 @@ export function createScheduler({
       fullEnd,
       effectiveEnd,
       rechargeDuration,
+      ammoLockoutDuration,
       rechargeStart,
       rechargeReadyAt,
       action: null,
@@ -667,6 +699,7 @@ export function createScheduler({
       fullEnd,
       effectiveEnd,
       rechargeDuration,
+      ammoLockoutDuration,
       rechargeStart,
       rechargeReadyAt,
       reservationId,

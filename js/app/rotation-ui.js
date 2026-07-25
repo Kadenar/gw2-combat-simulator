@@ -189,6 +189,9 @@ function paletteSkillView(app, skill, contextAvailable = true, contextMessage = 
     const cd = currentCooldown(app, skill.name);
     const ammo = currentAmmo(app, skill.name);
     const maximumAmmo = ammo?.maximum ?? Number(skill.ammo || 0);
+    const recharge = maximumAmmo && Number(skill.ammoRecharge || 0) > 0
+        ? Number(skill.ammoRecharge)
+        : Number(skill.cooldown || 0);
     const ammoDisplay = ammoDisplayView(
         ammo?.charges ?? maximumAmmo,
         maximumAmmo,
@@ -199,7 +202,9 @@ function paletteSkillView(app, skill, contextAvailable = true, contextMessage = 
     const title = [
         skill.name,
         activation ? `Cast: ${activation.toFixed(2)}s` : 'Instant cast',
-        skill.cooldown ? `Cooldown: ${skill.cooldown}s` : '',
+        recharge
+            ? `${maximumAmmo ? 'Count recharge' : 'Cooldown'}: ${recharge}s`
+            : '',
         !contextAvailable
             ? contextMessage || 'Unavailable in the current state'
             : ammoDisplay
@@ -239,7 +244,14 @@ export function weaponSkills(app, weaponSet = 1) {
         const number = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
         if (twoHanded) return skill.weapon === mh;
         return (number <= 3 && skill.weapon === mh) || (number >= 4 && skill.weapon === oh);
-    })).sort((a, b) => String(a.slot).localeCompare(String(b.slot)));
+    })).sort((a, b) => {
+        const slotOrder = String(a.slot).localeCompare(String(b.slot));
+        if (slotOrder) return slotOrder;
+        const chainOrder =
+            Number(a.chainStep ?? Number.MAX_SAFE_INTEGER)
+            - Number(b.chainStep ?? Number.MAX_SAFE_INTEGER);
+        return chainOrder || 0;
+    });
 }
 
 export function weaponPaletteRows(app, activeWeaponSet = 1) {

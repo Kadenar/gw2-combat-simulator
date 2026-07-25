@@ -442,8 +442,10 @@ test("declarative ammo consumes and recharges shared charges", () => {
       id: 930001,
       name: "Fixture Ammo",
       castTimeMs: 0,
-      cooldown: 5,
+      cooldown: 0.25,
+      recharge: 0.25,
       ammo: 2,
+      ammoRecharge: 5,
       effects: [{ type: "strike", coefficient: 1 }],
     }],
   });
@@ -464,6 +466,12 @@ test("declarative ammo consumes and recharges shared charges", () => {
   assert.equal(
     result.resolvedEvents.filter(event => event.type === "damage").length,
     2,
+  );
+  assert.deepEqual(
+    result.events
+      .filter(event => event.type === "action")
+      .map(event => event.at),
+    [0, 0.25],
   );
   assert.deepEqual(result.endState.ammo["Fixture Ammo"], {
     charges: 1,
