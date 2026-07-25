@@ -533,7 +533,7 @@ const choiceOverrides = {
     defaultInterruptMs: 120,
   },
   "Illusionary Riposte": {
-    // Damage, daze, and the two clones require a successful riposte.
+    // Damage, evade, and the clone require a successful block.
     // Activating or manually ending the riposte against an idle target does not
     // trigger any of them; Counter Blade owns the manual flip's effects.
     damage: [],
