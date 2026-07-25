@@ -1,8 +1,6 @@
 import {
-  WEAPON_DATA,
-  createProfessionWeaponData,
-  RELIC_NAMES,
-} from "../../../platform/gw2/gear-data.js";
+  createGw2AppAdapter,
+} from "../../../app/create-app-adapter.js";
 import { mesmerProfession } from "../definition.js";
 import {
   createDefaultTargetConditions,
@@ -15,32 +13,18 @@ import {
   recalculate,
   runSimulation,
 } from "./app-runtime.js";
-import {
-  renderResults,
-  renderRotationBuilder,
-} from "../../../app/rotation-ui.js";
 
-const professionWeapons = createProfessionWeaponData(
-  mesmerProfession.catalog,
-  { weaponData: WEAPON_DATA },
-);
-
-export const mesmerAppAdapter = Object.freeze({
-  id: mesmerProfession.id,
-  name: mesmerProfession.name,
+export const mesmerAppAdapter = createGw2AppAdapter({
   profession: mesmerProfession,
   storageKey: "gw2-mesmer-simulator-v2",
   globalName: "mesmerApp",
-  filenames: Object.freeze({
+  filenames: {
     build: "mesmer-build.json",
     rotation: "mesmer-rotation.json",
     eventLog: "mesmer-event-log.csv",
-  }),
+  },
   resetPrompt: "Reset the Mesmer build, skills, and rotation?",
   specializationFallback: "Domination",
-  specializations: mesmerProfession.catalog.specializations,
-  weaponData: professionWeapons,
-  relicNames: RELIC_NAMES,
   createDefaultTargetConditions,
   toApplicationBuild,
   eliteSpecialization,
@@ -48,8 +32,6 @@ export const mesmerAppAdapter = Object.freeze({
   runSimulation,
   modifierContributionRequest,
   calculateModifierContributions,
-  renderResults,
-  renderRotationBuilder,
   isSkillAvailable(skill, { specialization } = {}) {
     return !skill.ambush || specialization === "Mirage";
   },
