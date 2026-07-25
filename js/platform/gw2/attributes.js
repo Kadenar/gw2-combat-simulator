@@ -268,3 +268,31 @@ export function calculateCommonAttributes(
     },
   };
 }
+
+/**
+ * Builds a profession attribute calculator that assembles the shared common
+ * attributes and then applies the profession's own trait/skill rules.
+ *
+ * Every profession's `calculateAttributes` is this same wrapper; only the
+ * `applyBuildAttributeRules` step differs. Rules receive `weaponSet` so
+ * calculators that need it can use it; those that do not simply ignore it.
+ *
+ * @param {Function} applyBuildAttributeRules - `(common, context) => attributeData`
+ * @returns {Function} `(build, selectedSkills?, weaponSet?, disabledTrait?)`
+ */
+export function createCalculateAttributes(applyBuildAttributeRules) {
+  return function calculateAttributes(
+    build,
+    selectedSkills = [],
+    weaponSet = 1,
+    disabledTrait = null,
+  ) {
+    const common = calculateCommonAttributes(build, { weaponSet });
+    return applyBuildAttributeRules(common, {
+      build,
+      selectedSkills,
+      weaponSet,
+      disabledTrait,
+    });
+  };
+}
