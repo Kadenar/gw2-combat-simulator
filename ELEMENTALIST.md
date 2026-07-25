@@ -83,7 +83,10 @@ GW2/
 └── outdated docs/                     # Archived planning/refactor notes
 ```
 
-**Note:** Gear prefixes, runes, food, utility, sigils, weapons, relics, and traits are hardcoded in JavaScript (`js/data/gear-data.js` and `js/data/traits-data.js`). Only Skills and Skill_hits data are loaded from CSV.
+**Note:** Gear prefixes, runes, food, utility, sigils, weapons, relics, and
+traits are hardcoded in JavaScript under
+`js/professions/elementalist/data/`. Only Skills and Skill_hits data are
+loaded from CSV.
 
 ---
 
@@ -125,14 +128,16 @@ Browser-facing application code.
 - optimizer panel integration
 - GW2 icon/API helpers
 
-### `js/core/`
+### `js/professions/elementalist/core/`
 
-Shared calculations used by multiple parts of the project.
+Elementalist-owned build calculations.
 
 - attribute calculation
-- strike/condition damage formulas
+- Elementalist trait and equipped-skill bonuses
 
-### `js/data/`
+Shared strike and condition formulas live under `js/platform/gw2/`.
+
+### `js/professions/elementalist/data/`
 
 Project data sources.
 
@@ -162,7 +167,7 @@ The internal simulator, split by responsibility:
 
 ## File-by-File Reference
 
-### `js/data/gear-data.js` — Static GW2 Data
+### `js/professions/elementalist/data/gear-data.js` — Static GW2 Data
 
 Centralizes all static item/modifier data.
 
@@ -185,7 +190,7 @@ Centralizes all static item/modifier data.
 
 ---
 
-### `js/data/traits-data.js` — Trait Definitions
+### `js/professions/elementalist/data/traits-data.js` — Trait Definitions
 
 All Elementalist trait data.
 
@@ -200,7 +205,7 @@ All Elementalist trait data.
 
 ---
 
-### `js/core/calc-attributes.js` — Attribute Calculation Pipeline
+### `js/professions/elementalist/core/calc-attributes.js` — Attribute Calculation Pipeline
 
 Computes all character attributes dynamically from the current build state. Called by `App` whenever the build changes.
 
@@ -249,7 +254,7 @@ Each primary stat entry: `{ final, base, gear, runes, food, utility, jbc, traits
 
 ---
 
-### `js/data/csv-loader.js` — Data Loading
+### `js/professions/elementalist/data/csv-loader.js` — Data Loading
 
 Now only loads the two skills CSVs. All gear/trait/sigil/weapon/relic data has been migrated to JS modules.
 

@@ -9,15 +9,15 @@ import {
     simulationConfig,
 } from '../js/professions/mesmer/app/app-runtime.js';
 import {
-    calculateAttributes as calculateCommonAttributes,
-} from '../js/core/calc-attributes.js';
+    calculateCommonAttributes,
+} from '../js/platform/gw2/attributes.js';
 import {
     calculateContributionComparisons,
 } from '../js/app/app-runtime.js';
 import {
     calculateAttributes as calculateMesmerAttributes,
 } from '../js/professions/mesmer/core/calc-attributes.js';
-import { setWeaponSigil } from '../js/core/weapon-sigils.js';
+import { setWeaponSigil } from '../js/platform/gw2/weapon-sigils.js';
 
 const calcAttributes = calculateMesmerAttributes;
 

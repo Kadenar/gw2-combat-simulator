@@ -28,44 +28,33 @@ target-condition controls.
 
 ---
 
-## Data Layer (`js/data/`)
+## Data ownership
 
-Static Guild Wars 2 game data and lookups.
+Static Guild Wars 2 game data and lookups live with their owning layer.
 
-### [catalog.js](js/data/catalog.js)
-Compatibility export for the Mesmer-owned catalog. The source snapshot lives in
-`js/professions/mesmer/data/mesmer-catalog.js`.
-
-### [skill-mechanics.js](js/data/skill-mechanics.js)
-Compatibility export for Mesmer-owned base skill mechanics.
-
-### [illusion-data.js](js/data/illusion-data.js)
-Compatibility export for Mesmer-owned illusion data.
-
-### [profession-data.js](js/data/profession-data.js)
-Compatibility export for Mesmer-owned profession data.
-
-### [gear-data.js](js/data/gear-data.js)
-Ascended gear stat tables and equipment lookups. Defines stat values for all gear prefixes (Berserker's, Assassin's, etc.), runes, sigils, food, utilities, infusions, and weapons. Profession-neutral except for Mesmer weapons.
-
-### [traits-data.js](js/data/traits-data.js)
-Trait processing. Extracts trait data from specialization catalog, maps traits to tiers/positions, applies stat annotations, and provides active trait lookup by specialization selection.
+- [Mesmer catalog](js/professions/mesmer/data/mesmer-catalog.js), skill
+  mechanics, illusion data, profession data, and traits live under
+  `js/professions/mesmer/data/`.
+- [Shared gear data](js/platform/gw2/gear-data.js) contains equipment,
+  consumable, infusion, weapon, sigil, rune, and relic lookups.
+- Elementalist-owned data and CSV loading live under
+  `js/professions/elementalist/data/`.
 
 ---
 
-## Core Mechanics (`js/core/`)
+## Shared GW2 Mechanics (`js/platform/gw2/`)
 
 Attribute calculations and damage formulas.
 
-### [calc-attributes.js](js/core/calc-attributes.js)
-Profession-neutral compatibility entry point for common attribute assembly.
+### [attributes.js](js/platform/gw2/attributes.js)
+Profession-neutral common attribute assembly.
 Profession traits and skill bonuses are applied by each profession's own
 calculator under `js/professions/<profession>/core/calc-attributes.js`.
 
-### [damage.js](js/core/damage.js)
+### [damage.js](js/platform/gw2/damage.js)
 Damage calculation formulas. Provides strike damage calculation, expected crit multiplier, condition tick damage, and full skill damage breakdowns including per-tick and per-stack effects.
 
-### [weapon-sigils.js](js/core/weapon-sigils.js)
+### [weapon-sigils.js](js/platform/gw2/weapon-sigils.js)
 Weapon sigil management. Normalizes sigil selections, provides sigil lookup by weapon set, and enforces sigil constraints (no duplicate sigils per set). Supports duration bonuses from sigils.
 
 ---
@@ -202,10 +191,9 @@ Post-scheduler phase that converts timed events into damage numbers using calcul
 | Path | Purpose |
 |------|---------|
 | `js/app/` | UI, state management, orchestration |
-| `js/data/` | Static GW2 data, catalogs |
-| `js/core/` | Attribute calc, damage formulas, gear |
 | `js/platform/engine/` | Shared scheduling, event queue, and simulation primitives |
-| `js/platform/gw2/` | Shared GW2 formulas, scheduler events, resolver, gear, relics, and target state |
+| `js/platform/gw2/` | Shared GW2 formulas, data, scheduler events, resolver, gear, relics, and target state |
+| `js/professions/*/data/` | Profession-owned catalogs, mechanics data, traits, and loaders |
 | `js/professions/mesmer/mechanics/` | Mesmer rules and skill definitions |
 | `tests/browser/` | Browser interaction fixtures |
 | `tests/helpers/` | Shared testing utilities |
