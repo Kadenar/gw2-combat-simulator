@@ -29,7 +29,7 @@ export function mesmerResourceView(context = {}) {
   const definition = mesmerResourceDefinition(specialization);
   const state = context.state?.profession || context.professionState || {};
   const value = definition.id === "clones"
-    ? Number(state.clones?.length || 0)
+    ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
     : Number(state.numericResource || context.value || 0);
   return {
     ...definition,

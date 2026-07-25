@@ -17,6 +17,7 @@ import {
   professionRoute,
 } from "../js/app/profession-selector.js";
 import {
+  autoattackChainSkillAvailable,
   paletteActionSkills,
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
@@ -38,6 +39,10 @@ import {
 import {
   mesmerProfession,
 } from "../js/professions/mesmer/definition.js";
+import {
+  createDefaultConfig,
+  simulateSequence,
+} from "../js/professions/mesmer/simulation.js";
 
 test("shared app options escape labels and preserve selection state", () => {
   assert.equal(
@@ -110,6 +115,34 @@ test("Guardian is exposed by the profession selector and app composition", async
   assert.match(guardianPage, /data-active-profession="guardian"/);
 });
 
+test("the generic landing page and profession simulators have separate entries", async () => {
+  const [landingPage, ...professionPages] = await Promise.all([
+    readFile(new URL("../index.html", import.meta.url), "utf8"),
+    readFile(new URL("../mesmer.html", import.meta.url), "utf8"),
+    readFile(new URL("../elementalist.html", import.meta.url), "utf8"),
+    readFile(new URL("../guardian.html", import.meta.url), "utf8"),
+    readFile(new URL("../necromancer.html", import.meta.url), "utf8"),
+  ]);
+  const [mesmerPage] = professionPages;
+
+  assert.match(landingPage, /<body class="landing-page">/);
+  assert.match(landingPage, /href="mesmer\.html"/);
+  assert.match(landingPage, /href="elementalist\.html"/);
+  assert.match(landingPage, /href="guardian\.html"/);
+  assert.match(landingPage, /href="necromancer\.html"/);
+  assert.doesNotMatch(landingPage, /js\/app\/app\.js/);
+  assert.doesNotMatch(landingPage, /ARCHITECTURE\.md/);
+  for (const professionPage of professionPages) {
+    assert.match(
+      professionPage,
+      /<a class="home-link" href="index\.html">← All professions<\/a>/,
+    );
+  }
+  assert.match(mesmerPage, /data-active-profession="mesmer"/);
+  assert.match(mesmerPage, /js\/app\/app\.js/);
+  assert.equal(professionRoute("mesmer"), "mesmer.html");
+});
+
 test("Mesmer and Guardian palettes retain both weapon-set rows", () => {
   const appFor = (profession, build) => ({
     profession,
@@ -136,6 +169,29 @@ test("Mesmer and Guardian palettes retain both weapon-set rows", () => {
     assert.deepEqual(setTwo.map(row => row.active), [false, true]);
     assert.equal(setOne.every(row => row.skills.length > 0), true);
   }
+});
+
+test("Mesmer palette advances through autoattack chain skills", () => {
+  const config = {
+    ...createDefaultConfig(),
+    specialization: "Core",
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Focus",
+    initialResource: 0,
+  };
+  const skill = name => mesmerProfession.catalog.skillsByName.get(name);
+  const availabilityAfter = rotation => {
+    const result = simulateSequence(rotation, config);
+    const chainState = result.endState.profession.autoattackChains;
+    return ["Mind Slash", "Mind Gash", "Mind Spike"].map(name =>
+      autoattackChainSkillAvailable(skill(name), chainState));
+  };
+
+  assert.deepEqual(availabilityAfter(["Mind Slash"]), [false, true, false]);
+  assert.deepEqual(
+    availabilityAfter(["Mind Slash", "Mind Gash"]),
+    [false, false, true],
+  );
 });
 
 test("weapon-set palette groups render vertically in set order", () => {

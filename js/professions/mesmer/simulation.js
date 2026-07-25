@@ -21,9 +21,13 @@ import {
   TRAIT_DAMAGE,
 } from "./data/mesmer-profession-data.js";
 import {
-  AUTOATTACK_CHAINS,
-} from "./mechanics/mesmer-skill-overrides.js";
+  MESMER_AUTOATTACK_CHAINS,
+  MESMER_PRESERVED_WEAPON_CHAIN_ROOT_IDS,
+} from "./mechanics/autoattack-chains.js";
 import { MESMER_SKILLS, mesmerCatalog } from "./catalog.js";
+import {
+  indexAutoattackChains,
+} from "../../platform/engine/autoattack-chains.js";
 import { prepareSimulationConfig } from "../../platform/engine/prepare-config.js";
 import { buildScheduledEventStream } from "../../platform/engine/scheduled-event-stream.js";
 import { EPSILON } from "../../platform/engine/clock.js";
@@ -65,10 +69,11 @@ const flipSkillsByParent = new Map(
     .filter((skill) => skill.flipParent)
     .map((skill) => [skill.flipParent, skill]),
 );
-const autoattackChainPositions = new Map(
-  Object.entries(AUTOATTACK_CHAINS).flatMap(([root, names]) =>
-    names.map((name, index) => [name, { root, index }]),
-  ),
+const autoattackChainPositions = indexAutoattackChains(
+  MESMER_AUTOATTACK_CHAINS,
+);
+const preservedWeaponChainRoots = new Set(
+  MESMER_PRESERVED_WEAPON_CHAIN_ROOT_IDS,
 );
 
 /** Clamps value to [min, max] range. */
@@ -383,7 +388,6 @@ function durationMultiplier(name, stats, traits, extraBonus = 0) {
 const SCHEDULER_MODEL = Object.freeze({
   AMBUSH_ATTACKS,
   ARISTOCRACY_SKILLS,
-  AUTOATTACK_CHAINS,
   BLIND_SKILLS,
   CLONE_ATTACKS,
   CONDITION_FORMULAS,
@@ -405,6 +409,7 @@ const SCHEDULER_MODEL = Object.freeze({
   conditionName,
   flipSkillsByParent,
   getResourceDefinition,
+  preservedWeaponChainRoots,
   skillAvailable,
   skillsById,
   skillsByName,
@@ -859,9 +864,9 @@ export function simulateSequence(rotation, userConfig = {}) {
     };
   }
   const autoattackChains = Object.fromEntries(
-    Object.keys(AUTOATTACK_CHAINS).map((root) => [
-      root,
-      scheduler.state.profession.autoattackChains.get(root) || root,
+    MESMER_AUTOATTACK_CHAINS.map((chain) => [
+      chain[0],
+      scheduler.state.profession.autoattackChains.get(chain[0]) || chain[0],
     ]),
   );
 

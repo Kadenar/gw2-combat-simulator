@@ -18,6 +18,14 @@ import { mesmerCatalog } from "./catalog.js";
 export const BUILD_SCHEMA_VERSION = 3;
 export const PROFESSION_ID = "mesmer";
 
+const SLOT_TYPES = Object.freeze({
+  Heal: "Heal",
+  Utility1: "Utility",
+  Utility2: "Utility",
+  Utility3: "Utility",
+  Elite: "Elite",
+});
+
 export function createDefaultTargetConditions() {
   return {
     Bleeding: 1,
@@ -194,9 +202,13 @@ function applyDefaults(saved) {
   }
   for (const [slot, fallback] of Object.entries(defaults.selectedSkills)) {
     const selected = merged.selectedSkills[slot];
+    const candidate = mesmerCatalog.skillsByName.get(selected);
     if (
       typeof selected !== "string"
-      || (selected && !mesmerCatalog.skillsByName.has(selected))
+      || !candidate?.implemented
+      || candidate.simulatorExcluded
+      || candidate.type !== SLOT_TYPES[slot]
+      || candidate.flipParentId != null
     ) {
       merged.selectedSkills[slot] = fallback;
     }
@@ -247,6 +259,26 @@ export function validateMesmerBuild(build) {
     }
     if (!plainObject(build.gear) || Array.isArray(build.gear)) {
       errors.push("gear must be an object.");
+    }
+    if (
+      !build.selectedSkills
+      || typeof build.selectedSkills !== "object"
+      || Array.isArray(build.selectedSkills)
+    ) {
+      errors.push("selectedSkills must be an object.");
+    } else {
+      for (const [slot, type] of Object.entries(SLOT_TYPES)) {
+        const skill = mesmerCatalog.skillsByName.get(
+          build.selectedSkills[slot],
+        );
+        if (
+          !skill?.implemented
+          || skill.simulatorExcluded
+          || skill.type !== type
+        ) {
+          errors.push(`${slot} must contain an available ${type} skill.`);
+        }
+      }
     }
   }
   return { valid: errors.length === 0, errors };

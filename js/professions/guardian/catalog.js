@@ -7,7 +7,7 @@ import {
   TRAITS,
 } from "./data/guardian-catalog.js";
 import { GUARDIAN_BUNDLE_SKILLS } from "./data/guardian-bundle-skills.js";
-import { GUARDIAN_SKILL_IDS } from "./ids.js";
+import { GUARDIAN_SKILL_IDS } from "./data/ids.js";
 import {
   GUARDIAN_AUTOATTACK_CHAINS,
 } from "./mechanics/autoattack-chains.js";
@@ -15,8 +15,6 @@ import { guardianSkillHandlers } from "./mechanics/handlers.js";
 import {
   GUARDIAN_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
-
-export { GUARDIAN_SKILL_IDS } from "./ids.js";
 
 export const GUARDIAN_NON_DPS_SKILL_NAMES = Object.freeze(new Set([
   "\"Advance!\"",

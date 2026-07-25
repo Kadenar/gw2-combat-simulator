@@ -38,9 +38,13 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   JURISDICTION: 71817,
 
   SWORD_OF_JUSTICE: 9168,
+  BANE_SIGNET: 9093,
   SIGNET_OF_WRATH: 9151,
   PURGING_FLAMES: 9187,
   PROCESSION_OF_BLADES: 30364,
+  TEST_OF_FAITH: 29786,
+  PURIFICATION: 30025,
+  DRAGONS_MAW: 30273,
 
   JUSTICE: 9115,
   COURAGE: 9118,
@@ -78,6 +82,13 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
 
   WINGS_OF_RESOLVE: 30083,
   SHIELD_OF_COURAGE: 30029,
+
+  // Spear (Janthir Wilds) — Illuminated mechanic
+  DAYBREAKING_SLASH: 73055,
+  HELIO_RUSH: 72940,
+  GLEAMING_DISC: 72978,
+  SOLAR_STORM: 73094,
+  SYMBOL_OF_LUMINANCE: 73132,
 
   // Compatibility with the original Guardian vertical-slice test fixture.
   STRIKE: 9109,

@@ -50,6 +50,25 @@ header h1 {
     letter-spacing: 1px;
 }
 
+.home-link {
+    display: inline-block;
+    margin-bottom: 7px;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.home-link:hover,
+.home-link:focus-visible {
+    color: var(--accent);
+    outline: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 header .accent {
     color: var(--accent);
 }

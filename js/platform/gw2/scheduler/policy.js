@@ -1,5 +1,69 @@
 const QUICKNESS_ACTION_RATE = 1.5;
+const ACTION_TICK_MS = 40;
 const ALACRITY_RECHARGE_RATE = 1.25;
+
+function quantizeUp(value, interval) {
+  if (!(value > 0)) return 0;
+  return Math.ceil(value / interval - 1e-9) * interval;
+}
+
+function baseCastDurationMs(skill) {
+  if (skill.castTimeMs != null) {
+    return Math.max(0, Number(skill.castTimeMs));
+  }
+  return Math.max(
+    0,
+    Number(skill.activation ?? skill.castTime ?? 0) * 1000,
+  );
+}
+
+function castBoundTiming(effect, baseCastMs) {
+  if (!(baseCastMs > 0)) return false;
+  if (Array.isArray(effect.ticks) && effect.ticks.length) {
+    return Math.abs(
+      Number(effect.ticks.at(-1).atMs) - baseCastMs,
+    ) < 0.001;
+  }
+  if (Array.isArray(effect.atMsList) && effect.atMsList.length) {
+    return Math.abs(
+      Number(effect.atMsList.at(-1)) - baseCastMs,
+    ) < 0.001;
+  }
+  if (effect.atMs == null) return false;
+  const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
+  const lastAtMs =
+    Number(effect.atMs)
+    + (hits - 1) * Math.max(0, Number(effect.intervalMs || 0));
+  return Math.abs(lastAtMs - baseCastMs) < 0.001;
+}
+
+function scaleCastBoundTiming(context, skill, effect) {
+  const baseCastMs = baseCastDurationMs(skill);
+  if (!castBoundTiming(effect, baseCastMs)) return effect;
+  const adjustedCastMs =
+    Math.max(0, Number(context.fullEnd - context.start)) * 1000;
+  const scale = adjustedCastMs / baseCastMs;
+  return {
+    ...effect,
+    ...(Array.isArray(effect.ticks)
+      ? {
+          ticks: effect.ticks.map(tick => ({
+            ...tick,
+            atMs: Number(tick.atMs) * scale,
+          })),
+        }
+      : {}),
+    ...(effect.atMs == null
+      ? {}
+      : { atMs: Number(effect.atMs) * scale }),
+    ...(Array.isArray(effect.atMsList)
+      ? { atMsList: effect.atMsList.map(value => Number(value) * scale) }
+      : {}),
+    ...(effect.intervalMs == null
+      ? {}
+      : { intervalMs: Number(effect.intervalMs) * scale }),
+  };
+}
 
 function titleCase(value) {
   const normalized = String(value || "").toLowerCase();
@@ -56,10 +120,18 @@ export function createGw2SchedulerPolicy(config = {}) {
       return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
     },
 
-    castDuration(context, _skill, baseDuration) {
-      return context.hasBuff("quickness", context.start)
-        ? baseDuration / QUICKNESS_ACTION_RATE
-        : baseDuration;
+    castDuration(context, skill, baseDuration) {
+      if (!context.hasBuff("quickness", context.start)) return baseDuration;
+      if (skill.quicknessCastTimeMs != null) {
+        return Math.max(0, Number(skill.quicknessCastTimeMs)) / 1000;
+      }
+      const quicknessMs = baseDuration * 1000 / QUICKNESS_ACTION_RATE;
+      return quantizeUp(quicknessMs, ACTION_TICK_MS) / 1000;
+    },
+
+    effectTiming(context, skill, effect) {
+      if (!context.hasBuff("quickness", context.start)) return effect;
+      return scaleCastBoundTiming(context, skill, effect);
     },
 
     rechargeDuration(context, _skill, baseDuration) {

@@ -15,12 +15,132 @@ function normalizeSkillHandlers(value) {
   return new Map(entries.map(([id, handler]) => [String(id), handler]));
 }
 
+function normalizeStrikeTicks(value) {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new TypeError("Strike tick timelines require at least one hit.");
+  }
+  let previousAtMs = -Infinity;
+  return Object.freeze(value.map((tick, index) => {
+    const atMs = Number(tick?.atMs);
+    const coefficient = Number(tick?.coefficient);
+    if (!(atMs >= 0) || !Number.isFinite(atMs)) {
+      throw new TypeError(`Strike tick ${index + 1} requires a valid atMs.`);
+    }
+    if (!(coefficient >= 0) || !Number.isFinite(coefficient)) {
+      throw new TypeError(
+        `Strike tick ${index + 1} requires a non-negative coefficient.`,
+      );
+    }
+    if (atMs < previousAtMs) {
+      throw new TypeError("Strike tick timelines must be chronological.");
+    }
+    previousAtMs = atMs;
+    return Object.freeze({ ...tick, atMs, coefficient });
+  }));
+}
+
+function normalizeConditionTicks(value) {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new TypeError(
+      "Condition tick timelines require at least one application.",
+    );
+  }
+  let previousAtMs = -Infinity;
+  return Object.freeze(value.map((tick, index) => {
+    const atMs = Number(tick?.atMs);
+    const condition = String(tick?.condition || "");
+    const stacks = Number(tick?.stacks);
+    const duration = Number(tick?.duration);
+    if (!(atMs >= 0) || !Number.isFinite(atMs)) {
+      throw new TypeError(
+        `Condition application ${index + 1} requires a valid atMs.`,
+      );
+    }
+    if (atMs < previousAtMs) {
+      throw new TypeError("Condition tick timelines must be chronological.");
+    }
+    if (!condition) {
+      throw new TypeError(
+        `Condition application ${index + 1} requires a condition id.`,
+      );
+    }
+    if (!(stacks > 0) || !Number.isFinite(stacks)) {
+      throw new TypeError(
+        `Condition application ${index + 1} requires positive stacks.`,
+      );
+    }
+    if (!(duration > 0) || !Number.isFinite(duration)) {
+      throw new TypeError(
+        `Condition application ${index + 1} requires a positive duration.`,
+      );
+    }
+    previousAtMs = atMs;
+    return Object.freeze({
+      ...tick,
+      atMs,
+      condition,
+      stacks,
+      duration,
+    });
+  }));
+}
+
 function normalizeEffect(effect) {
   if (!effect || typeof effect !== "object" || !EFFECT_TYPES.has(effect.type)) {
     throw new TypeError(`Invalid skill effect type: ${effect?.type}`);
   }
   if (
+    effect.ticks != null
+    && effect.type !== "strike"
+    && effect.type !== "condition"
+  ) {
+    throw new TypeError(
+      `Effect type ${effect.type} does not support tick timelines.`,
+    );
+  }
+  const strikeTicks = effect.type === "strike" && effect.ticks != null
+    ? normalizeStrikeTicks(effect.ticks)
+    : null;
+  const conditionTicks = effect.type === "condition" && effect.ticks != null
+    ? normalizeConditionTicks(effect.ticks)
+    : null;
+  if (
+    strikeTicks
+    && (
+      effect.coefficient != null
+      || effect.hits != null
+      || effect.atMs != null
+      || effect.atMsList != null
+      || effect.atCastEndOffsetMs != null
+      || effect.intervalMs != null
+      || effect.flatDamage != null
+      || effect.flatStrikeBase != null
+      || effect.flatStrikePowerCoeff != null
+    )
+  ) {
+    throw new TypeError(
+      "Strike tick timelines cannot use aggregate coefficient or timing fields.",
+    );
+  }
+  if (
+    conditionTicks
+    && (
+      effect.condition != null
+      || effect.stacks != null
+      || effect.duration != null
+      || effect.atMs != null
+      || effect.atMsList != null
+      || effect.atCastEndOffsetMs != null
+      || effect.intervalMs != null
+    )
+  ) {
+    throw new TypeError(
+      "Condition tick timelines cannot use aggregate application or timing fields.",
+    );
+  }
+  if (
     effect.type === "strike"
+    && !strikeTicks
     && !(Number(effect.coefficient) >= 0)
     && !Number.isFinite(Number(effect.flatDamage))
     && !Number.isFinite(Number(effect.flatStrikeBase))
@@ -31,10 +151,13 @@ function normalizeEffect(effect) {
     );
   }
   if (effect.type === "condition") {
-    if (!String(effect.condition || "")) {
+    if (!conditionTicks && !String(effect.condition || "")) {
       throw new TypeError("Condition effects require a condition id.");
     }
-    if (!(Number(effect.stacks) > 0) || !(Number(effect.duration) > 0)) {
+    if (
+      !conditionTicks
+      && (!(Number(effect.stacks) > 0) || !(Number(effect.duration) > 0))
+    ) {
       throw new TypeError("Condition effects require positive stacks and duration.");
     }
   }
@@ -46,7 +169,11 @@ function normalizeEffect(effect) {
       throw new TypeError("Boon and buff effects require a positive duration.");
     }
   }
-  return Object.freeze({ ...effect });
+  return Object.freeze({
+    ...effect,
+    ...(strikeTicks ? { ticks: strikeTicks } : {}),
+    ...(conditionTicks ? { ticks: conditionTicks } : {}),
+  });
 }
 
 export function createCanonicalCatalog({
@@ -59,7 +186,13 @@ export function createCanonicalCatalog({
   specializations = [],
   weapons = [],
   weaponHands = {},
+  skillNameCollision = "first",
 } = {}) {
+  if (!["first", "last"].includes(skillNameCollision)) {
+    throw new TypeError(
+      `Invalid skill name collision policy: ${skillNameCollision}`,
+    );
+  }
   const declared = [...generated, ...extraSkills];
   const declaredIds = new Set();
   for (const skill of declared) {
@@ -88,7 +221,12 @@ export function createCanonicalCatalog({
   });
   const skillsByName = new Map();
   for (const skill of skills) {
-    if (!skillsByName.has(skill.name)) skillsByName.set(skill.name, skill);
+    if (
+      skillNameCollision === "last"
+      || !skillsByName.has(skill.name)
+    ) {
+      skillsByName.set(skill.name, skill);
+    }
   }
   const catalog = {
     skills: Object.freeze(skills),

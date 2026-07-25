@@ -2,7 +2,7 @@ import { targetHasPermanentCondition } from "../../platform/gw2/target-state.js"
 import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
-} from "./ids.js";
+} from "./data/ids.js";
 
 function hasTrait(context, id) {
   if (context.traits?.has(id) || context.traits?.has(String(id))) return true;

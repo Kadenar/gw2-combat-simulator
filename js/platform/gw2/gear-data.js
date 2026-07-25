@@ -595,6 +595,11 @@ export const RELIC_DATA = {
         cooldown: 0,
         icon: 'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
     },
+    Dragonhunter: {
+        trigger: 'Hit a foe with a trap skill (+10% strike damage and condition duration for 5s)',
+        cooldown: 0,
+        icon: 'https://render.guildwars2.com/file/F61EEC535059F1FA027049AB4DEFCD5465405DB7/3122344.png',
+    },
     Eagle: {
         trigger: 'Enemy below 50% HP',
         cooldown: 0,
