@@ -1,3 +1,4 @@
+// Public surface for the profession-neutral engine layer.
 export * from "./catalog.js";
 export * from "./clock.js";
 export * from "./cooldown-controller.js";

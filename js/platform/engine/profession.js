@@ -1,3 +1,8 @@
+/**
+ * Profession contract composition. This module turns sparse profession
+ * definitions into deterministic no-op-safe contracts so the neutral engine can
+ * run different professions without special cases.
+ */
 const HOOK_NAMES = Object.freeze([
   "initialize",
   "validateCast",
@@ -20,6 +25,9 @@ const NOOP = () => undefined;
 const IDENTITY_SECOND_ARGUMENT = (_context, value) => value;
 const VALID_CAST = () => true;
 
+/**
+ * Normalizes one hook or hook list into an order-stable array.
+ */
 function orderedHooks(value, hookName) {
   const entries = value == null
     ? []
@@ -47,6 +55,11 @@ function orderedHooks(value, hookName) {
       || left.id.localeCompare(right.id));
 }
 
+/**
+ * Reduces normalized hooks into one callable function with semantics tailored
+ * to the hook family: validators must all pass, modifiers chain their return
+ * values, and ordinary hooks simply run in order.
+ */
 function composeHooks(value, hookName, fallback) {
   const hooks = orderedHooks(value, hookName);
   if (!hooks.length) return fallback;
@@ -80,6 +93,10 @@ function composeHooks(value, hookName, fallback) {
   };
 }
 
+/**
+ * Flattens optional hook sources without forcing profession definitions to use
+ * one specific container shape.
+ */
 function combineHookSources(...sources) {
   const combined = [];
   for (const source of sources) {
@@ -90,6 +107,9 @@ function combineHookSources(...sources) {
   return combined.length ? combined : undefined;
 }
 
+/**
+ * Normalizes resolver event reactions into deterministic per-event dispatchers.
+ */
 export function createEventReactions(value) {
   const reactions = {};
   for (const [eventType, handlers] of Object.entries(value || {})) {
@@ -106,6 +126,9 @@ export function createEventReactions(value) {
   return Object.freeze(reactions);
 }
 
+/**
+ * Rejects malformed profession definitions before hook composition begins.
+ */
 function assertDefinition(definition) {
   if (!definition || typeof definition !== "object") {
     throw new TypeError("A profession definition must be an object.");
@@ -119,8 +142,9 @@ function assertDefinition(definition) {
 }
 
 /**
- * Creates an immutable, composable profession contract.
- * Optional capabilities are deterministic no-ops.
+ * Creates an immutable profession contract with stable defaults for every
+ * optional capability. The returned object is what the engine depends on; raw
+ * profession definition objects are intentionally not used directly elsewhere.
  */
 export function defineProfession(definition) {
   assertDefinition(definition);
@@ -221,4 +245,7 @@ export function defineProfession(definition) {
   return Object.freeze(profession);
 }
 
+/**
+ * Ordered list of supported hook names, mainly for documentation and tests.
+ */
 export const PROFESSION_HOOK_ORDER = HOOK_NAMES;

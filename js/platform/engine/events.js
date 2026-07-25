@@ -1,3 +1,8 @@
+/**
+ * Canonical event schema shared by the platform scheduler and resolver.
+ * Professions may add custom types, but every event crossing the boundary must
+ * still satisfy this base shape.
+ */
 export const EVENT_SCHEMA_VERSION = 1;
 
 /**
@@ -33,6 +38,9 @@ export const EVENT_SCHEMA_VERSION = 1;
  * @typedef {DamageEvent|ConditionEvent|CommonEvent|SimulationEventBase} SimulationEvent
  */
 
+/**
+ * Event types owned by the shared platform resolver.
+ */
 export const COMMON_EVENT_TYPES = Object.freeze([
   "action",
   "combat_start",
@@ -50,7 +58,11 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   "peitha",
 ]);
 
-/** @param {unknown} candidate */
+/**
+ * Verifies that an arbitrary value satisfies the shared event contract.
+ *
+ * @param {unknown} candidate
+ */
 export function assertSimulationEvent(candidate) {
   if (!candidate || typeof candidate !== "object") {
     throw new TypeError("Simulation event must be an object.");
@@ -65,7 +77,11 @@ export function assertSimulationEvent(candidate) {
   return /** @type {SimulationEvent} */ (candidate);
 }
 
-/** @param {SimulationEvent} event */
+/**
+ * Validates and freezes an event before it enters a scheduled event stream.
+ *
+ * @param {SimulationEvent} event
+ */
 export function createEvent(event) {
   return Object.freeze({ schemaVersion: EVENT_SCHEMA_VERSION, ...assertSimulationEvent(event) });
 }

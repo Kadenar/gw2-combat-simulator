@@ -581,7 +581,8 @@ test("Guardian timing applies Quickness, Alacrity, ammo, and trait recharge", ()
     17000,
   );
   assert.equal(ammo.endState.ammo["Hail of Justice"].charges, 0);
-  assert.match(ammo.warnings.join(" "), /on cooldown/);
+  assert.equal(ammo.steps[2].start, 10250);
+  assert.deepEqual(ammo.warnings, []);
 });
 
 test("Guardian symbols and persistent attacks resolve after their casts", () => {
@@ -803,7 +804,7 @@ test("non-DPS Guardian slot skills are excluded from the simulator surface", () 
   );
 });
 
-test("Guardian results expose cast timestamps and cooldown-invalid steps", () => {
+test("Guardian results advance to cooldown expiry before recasting", () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
@@ -838,17 +839,17 @@ test("Guardian results expose cast timestamps and cooldown-invalid steps", () =>
       {
         ri: 4,
         skill: "Virtue of Justice",
-        start: 2000,
-        end: 2000,
-        invalid: true,
+        start: 22000,
+        end: 22000,
+        invalid: false,
       },
     ],
   );
   assert.equal(
     result.endState.cooldowns["Virtue of Justice"].readyAt,
-    22000,
+    42000,
   );
-  assert.match(result.steps[4].invalidReason, /on cooldown/);
+  assert.deepEqual(result.warnings, []);
 });
 
 test("Firebrand tomes consume shared pages and execute tome damage", () => {

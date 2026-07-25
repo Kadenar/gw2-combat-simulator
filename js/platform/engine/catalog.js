@@ -1,3 +1,8 @@
+/**
+ * Canonical catalog assembly for profession-neutral skill metadata. This is the
+ * boundary where generated API data, hand-authored mechanics, explicit
+ * overrides, and resolver handlers become one validated immutable lookup.
+ */
 const EFFECT_TYPES = new Set([
   "strike",
   "condition",
@@ -8,6 +13,10 @@ const EFFECT_TYPES = new Set([
   "custom",
 ]);
 
+/**
+ * Normalizes handler maps so catalog lookup is always string-keyed regardless
+ * of whether the source used a plain object or Map.
+ */
 function normalizeSkillHandlers(value) {
   const entries = value instanceof Map
     ? [...value.entries()]
@@ -15,6 +24,9 @@ function normalizeSkillHandlers(value) {
   return new Map(entries.map(([id, handler]) => [String(id), handler]));
 }
 
+/**
+ * Validates explicit strike timelines and freezes each hit descriptor.
+ */
 function normalizeStrikeTicks(value) {
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError("Strike tick timelines require at least one hit.");
@@ -39,6 +51,9 @@ function normalizeStrikeTicks(value) {
   }));
 }
 
+/**
+ * Validates explicit condition-application timelines and freezes each entry.
+ */
 function normalizeConditionTicks(value) {
   if (!Array.isArray(value) || value.length === 0) {
     throw new TypeError(
@@ -85,6 +100,9 @@ function normalizeConditionTicks(value) {
   }));
 }
 
+/**
+ * Validates one declarative effect and normalizes any embedded timelines.
+ */
 function normalizeEffect(effect) {
   if (!effect || typeof effect !== "object" || !EFFECT_TYPES.has(effect.type)) {
     throw new TypeError(`Invalid skill effect type: ${effect?.type}`);
@@ -176,6 +194,10 @@ function normalizeEffect(effect) {
   });
 }
 
+/**
+ * Builds the immutable catalog consumed by the shared scheduler, resolver, and
+ * app adapters.
+ */
 export function createCanonicalCatalog({
   generated = [],
   mechanics = {},
@@ -249,6 +271,9 @@ export function createCanonicalCatalog({
   return Object.freeze(catalog);
 }
 
+/**
+ * Enforces referential integrity and shape rules for a canonical catalog.
+ */
 export function validateCanonicalCatalog(catalog) {
   const validWeaponHands = new Set(["mh", "oh", "mh+oh", "2h", "-"]);
   for (const [weapon, wielding] of catalog?.weaponHands || []) {

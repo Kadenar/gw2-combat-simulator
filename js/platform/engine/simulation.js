@@ -2,6 +2,10 @@ import { HandlerRegistry } from "./handler-registry.js";
 import { createScheduler } from "./scheduler.js";
 import { resolveScheduledStream } from "./resolver.js";
 
+/**
+ * End-to-end helper that schedules a rotation, resolves the resulting stream,
+ * and returns scheduler-facing state alongside the canonical damage result.
+ */
 export function simulate({
   profession,
   rotation,
