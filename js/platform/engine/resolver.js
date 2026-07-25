@@ -1,6 +1,13 @@
 import { assertScheduledEventStream } from "./scheduled-event-stream.js";
 import { sortQueuedEvents } from "./event-queue.js";
 
+// Minimal resolver implementation for event streams whose behavior is fully
+// provided by registered handlers. Shared GW2 resolution layers build on this
+// state shape rather than reimplementing queue management.
+
+/**
+ * Creates the base mutable state consumed by stream resolution.
+ */
 export function createResolverState({
   profession,
   config = {},
@@ -23,6 +30,9 @@ export function createResolverState({
   };
 }
 
+/**
+ * Accumulates per-skill damage totals in the canonical breakdown map.
+ */
 export function addBreakdown(state, id, name, type, damage, hits = 0) {
   const current = state.breakdown.get(id) || {
     id,
@@ -38,6 +48,10 @@ export function addBreakdown(state, id, name, type, damage, hits = 0) {
   state.breakdown.set(id, current);
 }
 
+/**
+ * Runs a scheduled event stream through the supplied handler registry and
+ * returns canonical damage totals plus resolver-side state snapshots.
+ */
 export function resolveScheduledStream({
   stream,
   profession,

@@ -1,3 +1,7 @@
+/**
+ * Creates the profession-neutral mutable state owned by the scheduler.
+ * Profession-specific resources are nested under `state.profession`.
+ */
 export function createSchedulerState({
   profession,
   config = {},

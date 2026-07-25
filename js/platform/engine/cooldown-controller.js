@@ -18,6 +18,9 @@ export function createCooldownController({
   const ammoMaximum = skill =>
     Math.max(0, Number(maximumAmmo(skill) || 0));
 
+  /**
+   * Lazily initializes ammo tracking for skills that use charges.
+   */
   const ensureAmmo = (skill, at = state.time) => {
     const maximum = ammoMaximum(skill);
     if (!maximum) return null;
@@ -35,6 +38,10 @@ export function createCooldownController({
     return state.ammo.get(skill.id);
   };
 
+  /**
+   * Advances ammo recharge state to a specific time and mirrors full
+   * depletion into the shared cooldown map.
+   */
   const refreshAmmo = (skill, at) => {
     const ammo = ensureAmmo(skill, at);
     if (!ammo) return null;
@@ -56,6 +63,9 @@ export function createCooldownController({
     return ammo;
   };
 
+  /**
+   * Spends one charge and, when needed, starts the recharge timer.
+   */
   const spendAmmo = (skill, at) => {
     const ammo = refreshAmmo(skill, at);
     if (!ammo || ammo.charges <= 0) return false;

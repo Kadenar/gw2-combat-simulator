@@ -5,11 +5,22 @@ import { createSchedulerState } from "./scheduler-state.js";
 import { buildScheduledEventStream } from "./scheduled-event-stream.js";
 import { sortQueuedEvents } from "./event-queue.js";
 
+// Shared declarative scheduler. It owns canonical command execution, cooldown
+// and ammo bookkeeping, event emission, and the scheduler-to-resolver handoff.
+// Professions customize behavior through the profession contract and injected
+// scheduler policy rather than forking this state machine.
+
+/**
+ * Reads a skill's base cast duration from canonical metadata.
+ */
 function baseDurationSeconds(skill) {
   if (skill.castTimeMs != null) return Math.max(0, Number(skill.castTimeMs)) / 1000;
   return Math.max(0, Number(skill.activation ?? skill.castTime ?? 0));
 }
 
+/**
+ * Resolves the first timestamp at which an effect should fire.
+ */
 function effectAt(start, fullEnd, effect) {
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return start + Number(effect.ticks[0].atMs) / 1000;
@@ -25,6 +36,10 @@ function effectAt(start, fullEnd, effect) {
   return fullEnd;
 }
 
+/**
+ * Expands declarative skill effects into canonical scheduled events. This is
+ * only used when a profession hook does not fully handle the cast itself.
+ */
 function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd) {
   const interrupted = effectiveEnd < fullEnd - context.epsilon;
   for (let index = 0; index < (skill.effects || []).length; index += 1) {
@@ -159,6 +174,9 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
   }
 }
 
+/**
+ * Creates a scheduler instance for one profession/configuration pair.
+ */
 export function createScheduler({
   profession,
   config = {},
@@ -218,6 +236,9 @@ export function createScheduler({
     },
   };
 
+  /**
+   * Computes cast duration after shared policy and profession modifiers.
+   */
   function castDurationFor(castContext, skill) {
     const baseDuration = baseDurationSeconds(skill);
     const sharedDuration = schedulerPolicy.castDuration?.(
@@ -231,6 +252,9 @@ export function createScheduler({
     );
   }
 
+  /**
+   * Computes recharge duration after shared policy and profession modifiers.
+   */
   function rechargeDurationFor(skill, at = state.time, details = {}) {
     const rechargeContext = {
       ...context,
@@ -258,6 +282,9 @@ export function createScheduler({
     );
   }
 
+  /**
+   * Computes the maximum ammo a skill should expose in the current context.
+   */
   function maximumAmmoFor(skill) {
     const baseMaximum = Math.max(0, Number(skill.ammo || 0));
     const sharedMaximum = schedulerPolicy.maximumAmmo?.(
@@ -289,6 +316,10 @@ export function createScheduler({
     catalog?.skillsById?.get(skillId)
     || catalog?.skills?.find(skill => skill.id === skillId);
 
+  /**
+   * Advances scheduler time, refreshing rechargeable state and giving the
+   * profession hook a chance to progress its own timers.
+   */
   function advanceTo(time) {
     const target = Math.max(state.time, Number(time));
     for (const skillId of state.ammo.keys()) {
@@ -301,6 +332,10 @@ export function createScheduler({
       .filter(event => event.at > target + epsilon);
   }
 
+  /**
+   * Executes one cast command, including cooldown waits, validation, event
+   * emission, profession hooks, and step reporting.
+   */
   function cast(command, commandIndex) {
     const skill = skillFor(command.skillId);
     if (!skill) {
@@ -317,11 +352,27 @@ export function createScheduler({
       return;
     }
     const concurrent = command.concurrentOffsetMs != null;
-    const start = concurrent
+    let start = concurrent
       ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
       : state.time;
-    const ammo = cooldownController.refreshAmmo(skill, start);
-    const readyAt = state.cooldowns.get(skill.id) || 0;
+    let ammo = cooldownController.refreshAmmo(skill, start);
+    let readyAt = ammo?.charges <= 0
+      ? ammo.nextRechargeAt
+      : state.cooldowns.get(skill.id) || 0;
+
+    if (
+      !concurrent
+      && readyAt > start + epsilon
+      && Number.isFinite(readyAt)
+    ) {
+      advanceTo(readyAt);
+      start = state.time;
+      ammo = cooldownController.refreshAmmo(skill, start);
+      readyAt = ammo?.charges <= 0
+        ? ammo.nextRechargeAt
+        : state.cooldowns.get(skill.id) || 0;
+    }
+
     if (
       (ammo && ammo.charges <= 0)
       || (!ammo && readyAt > start + epsilon)
@@ -440,6 +491,10 @@ export function createScheduler({
     advanceTo(state.time);
   }
 
+  /**
+   * Executes a normalized rotation and returns both the mutable scheduler state
+   * and an immutable scheduled event stream for resolution.
+   */
   function run(rotation) {
     const commands = normalizeRotation(rotation, catalog, { strict: true });
     for (let index = 0; index < commands.length; index += 1) {

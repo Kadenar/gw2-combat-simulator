@@ -173,9 +173,10 @@ test("Scourge shades use ammo and shade skills spend life force", () => {
     { type: "wait", durationMs: 1000 },
   ], { initialResource: 30 });
 
-  assert.equal(ammo.endState.profession.shades.length, 3);
+  assert.equal(ammo.endState.profession.shades.length, 2);
   assert.equal(ammo.endState.profession.lifeForce, 100);
-  assert.match(ammo.warnings.join(" "), /on cooldown/);
+  assert.equal(ammo.steps[3].start, 15500);
+  assert.deepEqual(ammo.warnings, []);
   assert.equal(cost.endState.profession.lifeForce, 9);
   assert.ok(cost.conditionDamage > 0);
 });
