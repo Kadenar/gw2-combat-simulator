@@ -11,9 +11,12 @@ import {
 import { necromancerCatalog } from "./catalog.js";
 import {
   necromancerCastRules,
-  necromancerResolverHooks,
   necromancerSchedulerHooks,
-} from "./contract.js";
+} from "./mechanics/contract.js";
+import {
+  necromancerResolverEventHandlers,
+  necromancerResolverEventReactions,
+} from "./resolver/event-handlers.js";
 import {
   createNecromancerState,
   snapshotNecromancerState,
@@ -43,7 +46,10 @@ export const necromancerProfession = defineProfession({
     snapshot: context =>
       snapshotNecromancerState(context.state.profession),
   },
-  resolverHooks: necromancerResolverHooks,
+  resolverHooks: {
+    eventHandlers: necromancerResolverEventHandlers,
+    eventReactions: necromancerResolverEventReactions,
+  },
   ui: necromancerUi,
 });
 

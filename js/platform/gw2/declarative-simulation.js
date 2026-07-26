@@ -48,12 +48,29 @@ function reactionContext(ctx) {
   };
 }
 
-function selectedTraitValues(config) {
-  return new Set([
+// Builds a trait set that carries both the numeric id and the name for every
+// selected trait, regardless of whether the config supplied ids, names, or
+// both. Hooks can then query by TRAIT_ID constants or by name interchangeably.
+function selectedTraitValues(config, catalog) {
+  const values = new Set([
     ...(Array.isArray(config.traitIds) ? config.traitIds : []),
     ...(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []),
     ...(Array.isArray(config.selectedTraits) ? config.selectedTraits : []),
   ]);
+  const byId = new Map();
+  const byName = new Map();
+  for (const trait of catalog?.traits || []) {
+    byId.set(Number(trait.id), trait);
+    byName.set(trait.name, trait);
+  }
+  for (const value of [...values]) {
+    const trait = byName.get(value) || byId.get(Number(value));
+    if (trait) {
+      values.add(Number(trait.id));
+      values.add(trait.name);
+    }
+  }
+  return values;
 }
 
 function createQuery(profession, config, events, traits) {
@@ -243,7 +260,7 @@ export function simulateDeclarativeGw2({
   rotation,
   config = {},
 } = {}) {
-  const traits = selectedTraitValues(config);
+  const traits = selectedTraitValues(config, profession.catalog);
   const scheduled = createScheduler({
     profession,
     config,

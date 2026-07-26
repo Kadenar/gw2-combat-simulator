@@ -3,6 +3,7 @@ import {
   handleCriticalTraits,
   triggerIneptitude,
 } from "../mechanics/trait-rules.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 
 const noop = () => {};
 
@@ -53,7 +54,7 @@ export function handleMesmerConditionEvent(
   if (
     !application
     || application.condition !== "Bleeding"
-    || !ctx.traits.has("Bloodsong")
+    || !ctx.traits.has(TRAIT.BLOODSONG)
     || application.stacks <= 0
   ) return;
 

@@ -1,8 +1,14 @@
+import { MESMER_TRAIT_IDS as TRAIT } from "./data/ids.js";
+
 const EPSILON = 0.0001;
 
-function hasTrait(context, name) {
-  return context.traits?.has(name)
-    || context.config?.selectedTraits?.includes(name);
+function hasTrait(context, id) {
+  if (context.traits?.has(id) || context.traits?.has(String(id))) return true;
+  return [
+    ...(context.config?.traitIds || []),
+    ...(context.config?.selectedTraitIds || []),
+    ...(context.config?.selectedTraits || []),
+  ].some(value => value === id || String(value) === String(id));
 }
 
 function illusionSource(context) {
@@ -35,7 +41,7 @@ function thornsStacksAt(time) {
 export function applyMesmerAttributes(context, attributes) {
   const instruments = instrumentsAt(context);
   const fortissimo =
-    hasTrait(context, "Fortissimo") && instruments.length
+    hasTrait(context, TRAIT.FORTISSIMO) && instruments.length
       ? 1 + instruments.length * 0.04
       : 1;
   const thorns =
@@ -85,16 +91,16 @@ export function applyMesmerCriticalChance(context, initialValue) {
     value += 0.1;
   }
   if (
-    hasTrait(context, "Flow of Time")
+    hasTrait(context, TRAIT.FLOW_OF_TIME)
     && context.config.boons?.alacrity
     && ["Player", "Clone", "Phantasm"].includes(event.source)
   ) value += 0.15;
   if (
     !illusion
-    && hasTrait(context, "Quiet Intensity")
+    && hasTrait(context, TRAIT.QUIET_INTENSITY)
     && context.timeline?.furyActiveAt(context.time)
   ) value += 0.15;
-  if (event.source === "Phantasm" && hasTrait(context, "Phantasmal Fury")) {
+  if (event.source === "Phantasm" && hasTrait(context, TRAIT.PHANTASMAL_FURY)) {
     value += context.config.specialization === "Virtuoso" ? 0.4 : 0.25;
   }
   return Math.max(0, Math.min(1, value));
@@ -104,7 +110,7 @@ export function applyMesmerCriticalDamage(context, initialValue) {
   const event = context.event || {};
   let value = Number(initialValue || 1);
   if (
-    hasTrait(context, "Superiority Complex")
+    hasTrait(context, TRAIT.SUPERIORITY_COMPLEX)
     && event.source !== "Phantasm"
   ) {
     const targetHealth = Number(context.config.target?.health || 0);
@@ -117,7 +123,7 @@ export function applyMesmerCriticalDamage(context, initialValue) {
     value *= enhanced ? 1.25 : 1.15;
   }
   if (
-    hasTrait(context, "Danger Time")
+    hasTrait(context, TRAIT.DANGER_TIME)
     && (event.source === "Player" || event.source === "Clone")
     && timedActive(context, "danger-time")
   ) value *= 1.05;
@@ -127,7 +133,7 @@ export function applyMesmerCriticalDamage(context, initialValue) {
 function commonDamageMultiplier(context, condition) {
   let value = 1;
   if (
-    hasTrait(context, "Nomad's Endurance")
+    hasTrait(context, TRAIT.NOMADS_ENDURANCE)
     && context.timeline?.vigorActiveAt(context.time)
   ) value *= condition ? 1.05 : 1.1;
   value *= 1 + timedStacks(context, "compounding", 8, 5) * 0.01;
@@ -146,7 +152,7 @@ function commonDamageMultiplier(context, condition) {
     .some(event => event.instrument === "Lute");
   if (lute) {
     value *= 1.1;
-    if (hasTrait(context, "Shredding")) value *= 1.15;
+    if (hasTrait(context, TRAIT.SHREDDING)) value *= 1.15;
   }
   if (!condition && timedActive(context, "altered-chord")) value *= 1.25;
   return value;
@@ -169,30 +175,30 @@ export function applyMesmerStrikeDamage(context, initialValue) {
   if (event.skillName === "Mind Stab") {
     value *= 1 + vulnerability * 0.01;
   }
-  if (hasTrait(context, "Fragility") && event.source !== "Phantasm") {
+  if (hasTrait(context, TRAIT.FRAGILITY) && event.source !== "Phantasm") {
     value *= 1 + vulnerability * 0.005;
   }
   if (
-    hasTrait(context, "Vicious Expression")
+    hasTrait(context, TRAIT.VICIOUS_EXPRESSION)
     && context.config.target?.boonless
   ) value *= 1.15;
   if (event.source === "Phantasm") {
-    if (hasTrait(context, "Empowered Illusions")) value *= 1.15;
-    if (hasTrait(context, "Phantasmal Force")) {
+    if (hasTrait(context, TRAIT.EMPOWERED_ILLUSIONS)) value *= 1.15;
+    if (hasTrait(context, TRAIT.PHANTASMAL_FORCE)) {
       value *= 1 + context.timeline.mightStacksAt(context.time) * 0.01;
     }
   }
-  if (event.shatter && hasTrait(context, "Mental Anguish")) {
+  if (event.shatter && hasTrait(context, TRAIT.MENTAL_ANGUISH)) {
     value *= context.config.target?.activatingSkills ? 1.25 : 1.5;
   }
-  if (event.blade && hasTrait(context, "Infinite Forge")) value *= 1.07;
+  if (event.blade && hasTrait(context, TRAIT.INFINITE_FORGE)) value *= 1.07;
   if (
-    hasTrait(context, "Mental Focus")
+    hasTrait(context, TRAIT.MENTAL_FOCUS)
     && context.config.target?.nearby
     && event.source === "Player"
   ) value *= 1.05;
   if (
-    hasTrait(context, "Egotism")
+    hasTrait(context, TRAIT.EGOTISM)
     && event.source !== "Phantasm"
     && Number(context.config.target?.health || 0) > 0
     && (
@@ -208,7 +214,7 @@ export function applyMesmerConditionDamage(context, initialValue) {
     * commonDamageMultiplier(context, true);
   if (
     context.condition === "Bleeding"
-    && hasTrait(context, "Bloodsong")
+    && hasTrait(context, TRAIT.BLOODSONG)
   ) value *= 1.25;
   return value;
 }
@@ -216,7 +222,7 @@ export function applyMesmerConditionDamage(context, initialValue) {
 export function applyMesmerConditionDuration(context, initialValue) {
   return (
     context.condition === "Confusion"
-    && hasTrait(context, "Malicious Sorcery")
+    && hasTrait(context, TRAIT.MALICIOUS_SORCERY)
   )
     ? Math.min(2, Number(initialValue || 1) + 0.25)
     : initialValue;

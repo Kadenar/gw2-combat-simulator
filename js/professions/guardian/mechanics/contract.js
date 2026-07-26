@@ -3,19 +3,13 @@ import {
 } from "./availability.js";
 import {
   advanceRadiantForgeState,
-  guardianRadiantForgeEventHandlers,
   validateRadiantForgeCast,
 } from "./radiant-forge.js";
 import {
   advanceTomeState,
-  guardianTomeEventHandlers,
-  reactToAshesHit,
   validateTomeCast,
 } from "./tomes.js";
 import {
-  handleVirtueActivation,
-  handleVirtueRefresh,
-  reactToJusticeHit,
   validateVirtueCast,
 } from "./virtues.js";
 import {
@@ -81,27 +75,4 @@ export const guardianSchedulerHooks = Object.freeze({
       handler: updateSpearIlluminationState,
     },
   ]),
-});
-
-export const guardianResolverHooks = Object.freeze({
-  eventHandlers: Object.freeze({
-    "guardian.virtue-activated": handleVirtueActivation,
-    "guardian.virtues-refreshed": handleVirtueRefresh,
-    ...guardianTomeEventHandlers,
-    ...guardianRadiantForgeEventHandlers,
-  }),
-  eventReactions: Object.freeze({
-    damage: Object.freeze([
-      {
-        id: "guardian.ashes-of-the-just",
-        order: 10,
-        handler: reactToAshesHit,
-      },
-      {
-        id: "guardian.justice",
-        order: 20,
-        handler: reactToJusticeHit,
-      },
-    ]),
-  }),
 });

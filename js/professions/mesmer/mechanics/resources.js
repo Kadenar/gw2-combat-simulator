@@ -1,3 +1,6 @@
+import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+
+// Names (not ids) — matched against proc `reason` strings via startsWith below.
 const RESOURCE_TRAITS = [
   "Bloodsong",
   "Deceptive Evasion",
@@ -85,7 +88,7 @@ export function createResourceController({
       reason,
       created,
     });
-    if (traits.has("Compounding Power") && reason !== "initial") {
+    if (traits.has(TRAIT.COMPOUNDING_POWER) && reason !== "initial") {
       markCompounding(at, gained);
       addTraitProc(
         "Compounding Power",
@@ -109,7 +112,7 @@ export function createResourceController({
         reason === "Deceptive Evasion"
         || reason === "Self-Deception: Illusionary Ambush"
       )
-      && traits.has("Infinite Horizon")
+      && traits.has(TRAIT.INFINITE_HORIZON)
       && state.profession.cloneAmbushUntil >= at - epsilon
     ) {
       onAmbushCreatedClones(at, createdClones);

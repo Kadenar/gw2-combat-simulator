@@ -702,8 +702,8 @@ export const MESMER_SKILL_DEFAULTS = Object.freeze({
     "cooldown": 0,
     "damage": [
       {
-        "coefficient": 0.3,
-        "hits": 1,
+        "coefficient": 0.6,
+        "hits": 2,
         "label": "Damage",
         "source": "Player",
         "weapon": "staff"
