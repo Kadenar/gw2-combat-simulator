@@ -1,6 +1,6 @@
 # Mesmer data and modeling notes
 
-Data snapshot: **2026-07-23**
+Data snapshot: **2026-07-25**
 
 ## Sources
 
@@ -38,7 +38,7 @@ per-skill rotation table.
 
 | Area | Count |
 | --- | ---: |
-| Mesmer skills from the official API | 127 |
+| Mesmer skills from the official API | 123 |
 | Skills with modeled strike coefficients | 78 |
 | Skills with modeled damaging conditions | 25 |
 | Core trait lines | 5 |

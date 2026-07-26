@@ -6,23 +6,29 @@ A single-page application for simulating Guild Wars 2 Elementalist combat rotati
 
 ## Running the App
 
-Requires a local web server (file:// won't work due to CSV fetch).
+The Elementalist application ships inside the combined simulator. Start the
+shared dev server from the repository root (a server is required because the
+Elementalist skill data is fetched from CSV; `file://` will not work):
 
-```bash
-# From the GW2 directory:
-python -m http.server 8000
-# Then open http://localhost:8000
+```powershell
+npm start
 ```
+
+Then open `http://127.0.0.1:4173/elementalist.html`, or choose Elementalist from
+the landing page at `http://127.0.0.1:4173`.
 
 ---
 
 ## Current Status
 
-This document reflects the current folderized codebase.
+This document describes the Elementalist package as ported into the combined
+`gw2-combat-simulator` repository.
 
-- `README.md` stays as the user-facing overview.
-- Older planning and refactor notes are archived separately.
-- The simulator now has an explicit `schedule -> resolve` split internally.
+- The root `README.md` is the user-facing overview for all four professions.
+- Elementalist code now lives under `js/professions/elementalist/`; shared
+  damage, attributes, gear, event-queue, I/O, and UI helpers live under
+  `js/platform/` and `js/app/`.
+- The simulator keeps its explicit `schedule -> resolve` split internally.
 
 The most useful mental model is:
 
@@ -32,55 +38,44 @@ The most useful mental model is:
 
 ## Project Structure
 
-> Port note: this document describes the original Elementalist repository.
-> In the combined simulator, these files live under
-> `js/professions/elementalist/`. Shared damage, attribute, equipment,
-> event-queue, I/O, and UI helpers live under `js/platform/` or `js/app/`.
-> The original browser fixture harness was not ported because nothing in the
-> application or test suite referenced it; combined-repository regression
-> fixtures remain under `tests/`.
+> Port note: the field-by-field mechanic descriptions below were carried over
+> from the original standalone `Elementalist-Simulator` repository and still
+> describe the same behavior. Only the file locations changed in the combined
+> repository. Shared damage, attribute, gear, event-queue, I/O, and UI helpers
+> now live under `js/platform/` and `js/app/`; Elementalist-owned code lives
+> under `js/professions/elementalist/`. The original standalone browser fixture
+> harness was not ported; combined-repository regression fixtures live under
+> `tests/`.
+
+Combined-repository layout of the Elementalist package:
 
 ```
-GW2/
-├── index.html                         # Main app entry
-├── fixtures.html                      # Fixture harness entry
-├── css/style.css                      # App styling
+gw2-combat-simulator/
+├── elementalist.html                  # Elementalist application entry
+├── index.html                         # Shared profession landing page
 ├── js/
-│   ├── app/                           # Browser UI and state wiring
-│   │   ├── app.js
-│   │   ├── app-runtime.js
-│   │   ├── app-state.js
-│   │   ├── app-io.js
-│   │   ├── app-rotation-ui.js
-│   │   ├── app-optimizer.js
-│   │   └── gw2-api.js
-│   ├── core/                          # Shared math/build calculations
-│   │   ├── calc-attributes.js
-│   │   └── damage.js
-│   ├── data/                          # Static data and CSV loading
-│   │   ├── csv-loader.js
-│   │   ├── gear-data.js
-│   │   └── traits-data.js
-│   ├── optimizer/                     # Gear optimizer + worker
-│   │   ├── optimizer.js
-│   │   └── optimizer-worker.js
-│   ├── fixtures/                      # Fixture harness runtime
-│   │   ├── fixture-harness-core.js
-│   │   └── fixture-harness-page.js
-│   ├── sim/                           # Internal simulator modules
-│   │   ├── run/
-│   │   ├── scheduler/
-│   │   ├── resolver/
-│   │   ├── shared/
-│   │   ├── state/
-│   │   └── mechanics/
-│   └── simulation.js                  # Public simulation engine root
+│   ├── app/                           # Profession-neutral browser shell
+│   ├── platform/                      # Shared engine, GW2 formulas/data, UI contracts
+│   └── professions/elementalist/
+│       ├── definition.js              # defineProfession() composition + adapter
+│       ├── simulation.js              # Public simulation engine root
+│       ├── build.js / build-attributes.js / state.js
+│       ├── app/                       # Elementalist UI wiring and app adapter
+│       ├── core/                      # Attribute calculation (calc-attributes.js)
+│       ├── data/                      # Static gear/trait data + CSV loading
+│       ├── optimizer/                 # Gear optimizer + worker
+│       └── sim/                       # Internal simulator modules
+│           ├── run/                   # Run preparation and orchestration
+│           ├── scheduler/             # Rotation commands -> timed events
+│           ├── resolver/              # Process events in time order
+│           ├── shared/                # Scheduler/resolver handoff helpers
+│           ├── state/                 # Named state domains
+│           └── mechanics/             # Gameplay-specific mechanic logic
 ├── csv input/
 │   ├── Tool_Elementalist - Skills_data.csv
 │   └── Tool_Elementalist - Skill_hits_data.csv
-├── fixtures/                          # Saved fixture states + baselines
-├── TODO/                              # User todo list + internal technical roadmap
-└── outdated docs/                     # Archived planning/refactor notes
+├── Builds/                            # Elementalist build presets
+└── Rotations/                         # Rotation examples
 ```
 
 **Note:** Gear prefixes, runes, food, utility, sigils, weapons, relics, and
@@ -93,34 +88,32 @@ loaded from CSV.
 ## Architecture Overview
 
 ```
-index.html / fixtures.html
+elementalist.html
         │
-        ├── js/professions/elementalist/app/app.js
-        │       │
-        │       ├── js/professions/elementalist/app/* helpers
-        │       ├── js/professions/elementalist/data/*
-        │       └── js/professions/elementalist/sim/run/sim-runner.js
-        │               │
-        │               └── js/professions/elementalist/simulation.js
-        │                       │
-        │                       └── js/professions/elementalist/sim/run/sim-run-orchestration.js
-        │                               │
-        │                               ├── js/professions/elementalist/sim/scheduler/*
-        │                               ├── js/professions/elementalist/sim/shared/*
-        │                               └── js/professions/elementalist/sim/resolver/*
-        │
-        └── js/fixtures/fixture-harness-page.js
+        ├── js/app/*                    (shared profession-neutral shell)
+        └── js/professions/elementalist/app/*
                 │
-                └── js/fixtures/fixture-harness-core.js
+                ├── js/professions/elementalist/data/*
+                └── js/professions/elementalist/sim/run/sim-runner.js
+                        │
+                        └── js/professions/elementalist/simulation.js
+                                │
+                                └── js/professions/elementalist/sim/run/sim-run-orchestration.js
+                                        │
+                                        ├── js/professions/elementalist/sim/scheduler/*
+                                        ├── js/professions/elementalist/sim/shared/*
+                                        └── js/professions/elementalist/sim/resolver/*
 ```
 
 ---
 
 ## Current Code Layout
 
-### `js/app/`
+### `js/app/` and `js/professions/elementalist/app/`
 
-Browser-facing application code.
+Browser-facing application code. `js/app/` is the shared profession-neutral
+shell; Elementalist-specific wiring lives under
+`js/professions/elementalist/app/`.
 
 - UI rendering
 - DOM event wiring
@@ -144,13 +137,9 @@ Project data sources.
 - static gear/trait data
 - CSV loading for skills and hit tables
 
-### `js/optimizer/`
+### `js/professions/elementalist/optimizer/`
 
 The gear optimizer and its worker entry.
-
-### `js/fixtures/`
-
-The regression harness used to compare current behavior against saved baselines.
 
 ### `js/professions/elementalist/sim/`
 
@@ -288,7 +277,7 @@ Pure math functions with no side effects. Constants:
 
 ---
 
-### `js/app/gw2-api.js` — Icon Fetching
+### `js/professions/elementalist/app/gw2-api.js` — Icon Fetching
 
 `GW2API` class fetches skill/trait/specialization icons from the official GW2 API.
 
@@ -373,7 +362,7 @@ Modifier types handled:
 
 ---
 
-### `js/app/app.js` — UI Controller
+### `js/professions/elementalist/app/app.js` — UI Controller
 
 The `App` class manages all DOM rendering and user interaction.
 
