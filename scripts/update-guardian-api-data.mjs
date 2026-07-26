@@ -6,16 +6,8 @@ const API_ROOT = "https://api.guildwars2.com/v2";
 const PROFESSION_ID = "Guardian";
 const OUTPUT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../js/professions/guardian/data/guardian-catalog.js",
+  "../js/professions/guardian/data/guardian-api-metadata.js",
 );
-const DAMAGING_CONDITIONS = new Set([
-  "Bleeding",
-  "Burning",
-  "Confusion",
-  "Poisoned",
-  "Torment",
-]);
-
 async function api(pathname) {
   const response = await fetch(`${API_ROOT}${pathname}`);
   if (!response.ok) {
@@ -46,11 +38,6 @@ function traitSnapshot(trait, specialization) {
     tier: trait.tier,
     position: trait.slot === "Minor" ? 0 : trait.order + 1,
     slot: trait.slot,
-    facts: (trait.facts || []).map(({
-      icon: _icon,
-      description: _description,
-      ...fact
-    }) => fact),
   };
 }
 
@@ -88,30 +75,6 @@ function skillSnapshot(skill, {
     ammoRecharge: Number(countRecharge?.duration || 0),
     nextChainId: skill.next_chain ?? null,
     flipSkillId: skill.flip_skill ?? null,
-    apiDamage: (skill.facts || [])
-      .filter(fact =>
-        fact.type === "Damage"
-        && Number.isFinite(Number(fact.dmg_multiplier)))
-      .map(fact => {
-        const hits = Math.max(1, Number(fact.hit_count || 1));
-        const coefficientPerHit = Number(fact.dmg_multiplier);
-        return {
-          coefficient: coefficientPerHit * hits,
-          coefficientPerHit,
-          hits,
-          text: fact.text || "Damage",
-        };
-      }),
-    apiConditions: (skill.facts || [])
-      .filter(fact =>
-        fact.type === "Buff"
-        && DAMAGING_CONDITIONS.has(fact.status))
-      .map(fact => ({
-        condition: fact.status,
-        duration: Number(fact.duration || 0),
-        stacks: Math.max(1, Number(fact.apply_count || 1)),
-        text: fact.text || "Apply Buff/Condition",
-      })),
   };
 }
 
@@ -254,10 +217,6 @@ async function main() {
     "",
     `export const DATA_SNAPSHOT = ${JSON.stringify(snapshot)};`,
     `export const SPECIALIZATIONS = ${JSON.stringify(specializations, null, 2)};`,
-    "export const TRAITS = SPECIALIZATIONS.flatMap(specialization => [",
-    "  ...specialization.minorTraits,",
-    "  ...specialization.majorTraits.flat(),",
-    "]);",
     `export const SKILLS = ${JSON.stringify(skills, null, 2)};`,
     "",
   ].join("\n");

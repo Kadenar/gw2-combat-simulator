@@ -1,5 +1,5 @@
 import { GUARDIAN_BUNDLE_SKILLS } from "../data/guardian-bundle-skills.js";
-import { SKILLS } from "../data/guardian-catalog.js";
+import { SKILLS } from "../data/guardian-api-metadata.js";
 import {
   deriveAutoattackChains,
 } from "../../../platform/engine/autoattack-chains.js";

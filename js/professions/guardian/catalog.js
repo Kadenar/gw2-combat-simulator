@@ -4,15 +4,15 @@ import {
 import {
   SKILLS,
   SPECIALIZATIONS,
-  TRAITS,
-} from "./data/guardian-catalog.js";
+} from "./data/guardian-api-metadata.js";
+import { TRAITS } from "./data/traits-data.js";
 import { GUARDIAN_BUNDLE_SKILLS } from "./data/guardian-bundle-skills.js";
-import { GUARDIAN_SKILL_IDS } from "./data/ids.js";
 import {
   GUARDIAN_AUTOATTACK_CHAINS,
 } from "./mechanics/autoattack-chains.js";
 import { guardianSkillHandlers } from "./mechanics/handlers.js";
 import {
+  GUARDIAN_EXTRA_SKILLS,
   GUARDIAN_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
 
@@ -73,19 +73,7 @@ const generated = allSkills.map(skill => {
 export const guardianCatalog = createCanonicalCatalog({
   generated,
   mechanics: GUARDIAN_SKILL_MECHANICS,
-  extraSkills: [{
-    id: GUARDIAN_SKILL_IDS.SWAP_WEAPONS,
-    name: "Swap Weapons",
-    description: "Swap between weapon sets. The swap has a 10-second recharge.",
-    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
-    type: "Action",
-    slot: "Action",
-    castTimeMs: 0,
-    cooldown: 10,
-    implemented: true,
-    handlerId: "guardian.weapon-swap",
-    effects: [],
-  }],
+  extraSkills: GUARDIAN_EXTRA_SKILLS,
   skillHandlers: guardianSkillHandlers,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,

@@ -3,10 +3,10 @@ import test from 'node:test';
 import {
     SKILLS,
     SPECIALIZATIONS,
-} from '../js/professions/mesmer/data/mesmer-catalog.js';
+} from "../js/professions/mesmer/data/mesmer-api-metadata.js";
 import {
     SKILLS as GUARDIAN_API_SKILLS,
-} from '../js/professions/guardian/data/guardian-catalog.js';
+} from "../js/professions/guardian/data/guardian-api-metadata.js";
 import { RELIC_NAMES } from '../js/platform/gw2/gear-data.js';
 import { TRAITS } from '../js/professions/mesmer/data/traits-data.js';
 import {
@@ -23,18 +23,12 @@ import {
 } from '../js/professions/mesmer/data/mesmer-profession-data.js';
 import {
     AMBUSH_SKILLS,
-    MESMER_SKILL_OVERRIDES,
     PSEUDO_SKILLS,
-} from '../js/professions/mesmer/mechanics/skill-overrides.js';
+    MESMER_SKILL_MECHANICS,
+} from "../js/professions/mesmer/mechanics/skill-mechanics.js";
 import {
     MESMER_AUTOATTACK_CHAINS,
 } from '../js/professions/mesmer/mechanics/autoattack-chains.js';
-import {
-    MESMER_SKILL_DEFAULTS,
-} from '../js/professions/mesmer/mechanics/skill-defaults.js';
-import {
-    MESMER_SKILL_MECHANICS,
-} from '../js/professions/mesmer/mechanics/skill-mechanics.js';
 import { mesmerCatalog } from '../js/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '../js/professions/mesmer/data/ids.js';
 
@@ -61,37 +55,32 @@ test('Mesmer and Guardian API catalogs use the same skill record shape', () => {
     }
 });
 
-test('Mesmer mechanics and overrides are keyed by stable skill id', () => {
+test("Mesmer mechanics are the sole simulation source and use stable skill ids", () => {
     assert.equal(
-        Object.entries(MESMER_SKILL_OVERRIDES).every(([id, override]) =>
-            Number.isInteger(Number(id)) && override.implemented === true),
+        Object.entries(MESMER_SKILL_MECHANICS).every(([id, mechanics]) =>
+            Number.isInteger(Number(id)) && mechanics.implemented === true),
         true,
     );
     for (const skill of SKILLS) {
-        const defaults = MESMER_SKILL_DEFAULTS[skill.id];
         assert.ok(
-            defaults,
-            `${skill.name} is missing simulator-owned default mechanics`,
+            MESMER_SKILL_MECHANICS[skill.id],
+            `${skill.name} is missing authoritative simulation mechanics`,
         );
         assert.equal(
             MESMER_SKILL_MECHANICS[skill.id]?.implemented,
             true,
             skill.name,
         );
-        for (const key of Object.keys(MESMER_SKILL_OVERRIDES[skill.id] || {})) {
-            if (key === 'implemented') continue;
-            assert.equal(
-                Object.hasOwn(defaults, key),
-                false,
-                `${skill.name}.${key} exists in both defaults and overrides`,
-            );
-        }
     }
-    assert.equal(MESMER_SKILL_OVERRIDES[ID.WINDS_OF_CHAOS].activation, 1.14);
-    assert.equal(MESMER_SKILL_OVERRIDES['Winds of Chaos'], undefined);
+    assert.equal(MESMER_SKILL_MECHANICS[ID.WINDS_OF_CHAOS].activation, 1.14);
+    assert.equal(MESMER_SKILL_MECHANICS["Winds of Chaos"], undefined);
     assert.deepEqual(
-        MESMER_SKILL_OVERRIDES[ID.TROUBADOUR_BLADECALL],
-        MESMER_SKILL_OVERRIDES[ID.BLADECALL],
+        MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].damage,
+        MESMER_SKILL_MECHANICS[ID.BLADECALL].damage,
+    );
+    assert.equal(
+        MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].activation,
+        MESMER_SKILL_MECHANICS[ID.BLADECALL].activation,
     );
 });
 

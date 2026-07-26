@@ -67,9 +67,9 @@ target-condition controls.
 
 Static Guild Wars 2 game data and lookups live with their owning layer.
 
-- [Mesmer catalog](js/professions/mesmer/data/mesmer-catalog.js), skill
-  mechanics, illusion data, profession data, and traits live under
-  `js/professions/mesmer/data/`.
+- Generated profession API metadata lives in each profession's
+  `data/<profession>-api-metadata.js`; authoritative skill formulas live in
+  `mechanics/skill-mechanics.js`.
 - [Shared gear data](js/platform/gw2/gear-data.js) contains equipment,
   consumable, infusion, weapon, sigil, rune, and relic lookups.
 - Elementalist-owned data and CSV loading live under
@@ -154,9 +154,9 @@ critical traits, and Bloodsong.
 
 Mesmer, Guardian, and Necromancer use the same files for shared concepts:
 
-- `mechanics/skill-defaults.js` — baseline executable skill mechanics.
-- `mechanics/skill-overrides.js` — stable-ID hand-authored exceptions.
-- `mechanics/skill-mechanics.js` — final composed mechanics map.
+- `data/<profession>-api-metadata.js` — generated identity and presentation
+  metadata only.
+- `mechanics/skill-mechanics.js` — the sole authoritative skill mechanics map.
 - `mechanics/autoattack-chains.js` — autoattack-chain declarations.
 - `mechanics/handlers.js` — imperative runtime handlers, when needed.
 

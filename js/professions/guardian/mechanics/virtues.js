@@ -5,6 +5,7 @@ import {
 } from "../data/ids.js";
 import { selectedGuardianSpecialization } from "./availability.js";
 import { emitGuardianEvent } from "./events.js";
+import { GUARDIAN_HANDLER_MECHANICS } from "./skill-mechanics.js";
 
 export const GUARDIAN_VIRTUE_NAMES_BY_SPECIALIZATION = Object.freeze({
   Core: Object.freeze([
@@ -113,6 +114,7 @@ function applyJusticeBurn(
     active,
   },
 ) {
+  const burn = GUARDIAN_HANDLER_MECHANICS.justiceBurn;
   const sourceId = active
     ? "guardian.justice-active"
     : "guardian.justice-passive";
@@ -125,9 +127,9 @@ function applyJusticeBurn(
     skillId: GUARDIAN_SKILL_IDS.JUSTICE,
     skillName: "Virtue of Justice",
     name: `Virtue of Justice — ${active ? "Active" : "Passive"} Burning`,
-    condition: "Burning",
-    stacks: 1,
-    duration: 2,
+    condition: burn.condition,
+    stacks: burn.stacks,
+    duration: burn.duration,
   });
   context.state.profession.justiceBurns += 1;
   if (active) context.state.profession.justiceActiveBurns += 1;

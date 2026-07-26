@@ -62,21 +62,20 @@ profession terminology inside the platform tree.
 
 ## Declarative profession mechanics layout
 
-Mesmer, Guardian, and Necromancer use the same module roles under
-`js/professions/<profession>/mechanics/`:
+Mesmer, Guardian, and Necromancer use the same module roles:
 
-- `skill-defaults.js` produces baseline executable mechanics from generated
-  metadata or hand-maintained calibration data.
-- `skill-overrides.js` contains stable-ID exceptions to those defaults.
-- `skill-mechanics.js` is the only composition layer and exports the final
-  ID-keyed mechanics map consumed by the catalog.
+- `data/<profession>-api-metadata.js` is generated presentation and identity
+  metadata. It is never a source of coefficients or damaging conditions.
+- `data/traits-data.js` is the only module that exports the flattened runtime
+  `TRAITS` collection; it derives that view from specialization metadata.
+- `mechanics/skill-mechanics.js` is the single authoritative ID-keyed source
+  for every field that can affect simulation results.
 - `autoattack-chains.js` owns autoattack-chain declarations and derivation.
 - `handlers.js`, when needed, registers imperative skill behavior that cannot
   be represented by declarative effects.
 
-Profession-specific mechanics remain in named feature modules beside these
-shared boundaries. A profession may derive its defaults differently, but the
-filename, export, and dependency direction retain the same meaning.
+Profession-specific state machines remain in named feature modules beside
+these boundaries. Skill entries reference those handlers explicitly.
 
 ## Profession contract
 

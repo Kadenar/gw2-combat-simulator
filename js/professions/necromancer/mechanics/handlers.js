@@ -8,6 +8,7 @@ import {
   snapshotNecromancerState,
   syncNecromancerResources,
 } from "../state.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "./skill-mechanics.js";
 
 const SHROUD_ENTRY = Object.freeze({
   [ID.DEATH_SHROUD]: "death",
@@ -322,19 +323,20 @@ export function advanceNecromancerState(context, target) {
       ) {
         const skill =
           context.catalog.skillsById.get(ID.SIGNET_OF_VAMPIRISM);
+        const passive = MECHANICS.signetOfVampirism.passive;
         emitDamage(context, skill, 0, {
           at: state.vampirismNextAt,
           name: "Signet of Vampirism — Passive Life Siphon",
           skillWeapon: "Unequipped",
           metadata: {
-            flatStrikeBase: 129,
-            flatStrikePowerCoeff: 0.03,
+            flatStrikeBase: passive.flatStrikeBase,
+            flatStrikePowerCoeff: passive.flatStrikePowerCoeff,
             noCrit: true,
             damageKind: "life-steal",
           },
         });
       }
-      state.vampirismNextAt += 3;
+      state.vampirismNextAt += MECHANICS.signetOfVampirism.passive.interval;
     }
   }
 
@@ -429,7 +431,9 @@ function activateShroud(context, skill) {
     emitBuff(context, skill, "fury", 8);
   }
   if (hasTrait(context, TRAIT.SPITEFUL_SPIRIT)) {
-    emitDamage(context, skill, 1, {
+    emitDamage(context, skill, MECHANICS.traitStrikeCoefficient[
+      TRAIT.SPITEFUL_SPIRIT
+    ], {
       name: "Spiteful Spirit",
       source: "Trait",
       sourceId: TRAIT.SPITEFUL_SPIRIT,
@@ -482,14 +486,15 @@ function lich(context, skill) {
 
 function signetOfVampirism(context, skill) {
   const at = context.effectiveEnd;
-  for (let index = 1; index <= 6; index += 1) {
+  const active = MECHANICS.signetOfVampirism.active;
+  for (let index = 1; index <= active.hits; index += 1) {
     emitDamage(context, skill, 0, {
-      at: at + index,
+      at: at + index * active.interval,
       name: "Signet of Vampirism — Vampiric Mark",
       skillWeapon: "Unequipped",
       metadata: {
-        flatStrikeBase: 163,
-        flatStrikePowerCoeff: 0.05,
+        flatStrikeBase: active.flatStrikeBase,
+        flatStrikePowerCoeff: active.flatStrikePowerCoeff,
         noCrit: true,
         damageKind: "life-steal",
       },
@@ -537,85 +542,8 @@ function flip(context, skill) {
   return false;
 }
 
-const MINIONS = Object.freeze({
-  [ID.SUMMON_BLOOD_FIEND]: {
-    key: "blood-fiend",
-    count: 1,
-    coefficient: 0.3,
-    interval: 2,
-    commandId: ID.TASTE_OF_DEATH,
-  },
-  [ID.SUMMON_BONE_FIEND]: {
-    key: "bone-fiend",
-    count: 1,
-    coefficient: 0.4,
-    interval: 2.4,
-    commandId: ID.RIGOR_MORTIS,
-  },
-  [ID.SUMMON_BONE_MINIONS]: {
-    key: "bone-minion",
-    count: 2,
-    coefficient: 0.2,
-    interval: 1.5,
-    commandId: ID.PUTRID_EXPLOSION,
-  },
-  [ID.SUMMON_FLESH_WURM]: {
-    key: "flesh-wurm",
-    count: 1,
-    coefficient: 0.6,
-    interval: 2.5,
-    commandId: ID.NECROTIC_TRAVERSAL,
-  },
-  [ID.SUMMON_SHADOW_FIEND]: {
-    key: "shadow-fiend",
-    count: 1,
-    coefficient: 0.3,
-    interval: 1.8,
-    commandId: ID.HAUNT,
-  },
-  [ID.SUMMON_FLESH_GOLEM]: {
-    key: "flesh-golem",
-    count: 1,
-    coefficient: 0.5,
-    interval: 2.2,
-    commandId: ID.CHARGE,
-  },
-});
-
-const COMMANDS = Object.freeze({
-  [ID.RIGOR_MORTIS]: {
-    minion: "bone-fiend",
-    coefficient: 0.5,
-    control: "immobilize",
-  },
-  [ID.PUTRID_EXPLOSION]: {
-    minion: "bone-minion",
-    coefficient: 1,
-    condition: ["Poisoned", 1, 5],
-    consumes: 1,
-  },
-  [ID.NECROTIC_TRAVERSAL]: {
-    minion: "flesh-wurm",
-    coefficient: 0,
-    condition: ["Poisoned", 2, 9],
-    consumes: 1,
-  },
-  [ID.TASTE_OF_DEATH]: {
-    minion: "blood-fiend",
-    coefficient: 0,
-    consumes: 1,
-  },
-  [ID.HAUNT]: {
-    minion: "shadow-fiend",
-    coefficient: 0.4,
-    control: "blind",
-  },
-  [ID.CHARGE]: {
-    minion: "flesh-golem",
-    coefficient: 1.5,
-    control: "knockdown",
-  },
-});
+const MINIONS = MECHANICS.minions;
+const COMMANDS = MECHANICS.minionCommands;
 
 function queueSummonAttacks(context, skill, definition, at) {
   const horizon = at + Math.max(180, Number(context.config.duration || 0));
@@ -645,14 +573,19 @@ function emitCreatureSummonTraits(context, skill, at, count = 1) {
     gainNecromancerLifeForce(context, 10 * count, at);
   }
   if (hasTrait(context, TRAIT.EXPLOSIVE_GROWTH)) {
-    emitDamage(context, skill, 1.2 * count, {
+    emitDamage(
+      context,
+      skill,
+      MECHANICS.traitStrikeCoefficient[TRAIT.EXPLOSIVE_GROWTH] * count,
+      {
       at,
       name: "Explosive Growth",
       source: "Trait",
       sourceId: TRAIT.EXPLOSIVE_GROWTH,
       actorType: "effect",
       skillWeapon: "Unequipped",
-    });
+      },
+    );
   }
 }
 
@@ -729,6 +662,7 @@ function minionCommand(context, skill) {
 function shade(context, skill) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
+  const shadeMechanics = MECHANICS.shade;
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
     const maximum = hasTrait(context, TRAIT.SAND_SAVANT) ? 1 : 3;
     state.shades = [...state.shades, at + 15]
@@ -743,12 +677,12 @@ function shade(context, skill) {
   syncNecromancerResources(state);
   emitState(context, at, "shade");
 
-  emitDamage(context, skill, 0.666, {
+  emitDamage(context, skill, shadeMechanics.manifest.coefficient, {
     name: "Sand Shade — Strike",
     sourceId: ID.MANIFEST_SAND_SHADE,
     skillWeapon: "Unequipped",
   });
-  emitCondition(context, skill, "Torment", 1, 2, {
+  emitCondition(context, skill, ...shadeMechanics.manifest.condition, {
     sourceId: ID.MANIFEST_SAND_SHADE,
   });
 
@@ -756,7 +690,7 @@ function shade(context, skill) {
     skill.id === ID.NEFARIOUS_FAVOR
     && hasTrait(context, TRAIT.SADISTIC_SEARING)
   ) {
-    emitCondition(context, skill, "Burning", 1, 4, {
+    emitCondition(context, skill, ...shadeMechanics.sadisticSearing.condition, {
       source: "Trait",
       sourceId: TRAIT.SADISTIC_SEARING,
       actorType: "effect",
@@ -764,22 +698,31 @@ function shade(context, skill) {
   } else if (skill.id === ID.SAND_CASCADE) {
     emitBuff(context, skill, "might", 6, 2);
   } else if (skill.id === ID.GARISH_PILLAR) {
-    emitDamage(context, skill, 0.333);
+    emitDamage(context, skill, shadeMechanics.garishPillar.coefficient);
     emitControl(context, skill, "fear");
   } else if (skill.id === ID.DESERT_SHROUD) {
-    emitDamage(context, skill, 3.15, {
+    emitDamage(context, skill, shadeMechanics.desertShroud.coefficient, {
       at,
-      hits: 7,
-      interval: 1,
+      hits: shadeMechanics.desertShroud.hits,
+      interval: shadeMechanics.desertShroud.interval,
     });
-    for (let index = 0; index < 7; index += 1) {
-      emitCondition(context, skill, "Torment", 1, 5, {
-        at: at + index,
+    for (
+      let index = 0;
+      index < shadeMechanics.desertShroud.hits;
+      index += 1
+    ) {
+      emitCondition(context, skill, ...shadeMechanics.desertShroud.condition, {
+        at: at + index * shadeMechanics.desertShroud.interval,
       });
     }
   } else if (skill.id === ID.SANDSTORM_SHROUD) {
-    emitDamage(context, skill, 3, { at: at + 4 });
-    emitCondition(context, skill, "Torment", 6, 5, { at: at + 4 });
+    const sandstorm = shadeMechanics.sandstormShroud;
+    emitDamage(context, skill, sandstorm.coefficient, {
+      at: at + sandstorm.delay,
+    });
+    emitCondition(context, skill, ...sandstorm.condition, {
+      at: at + sandstorm.delay,
+    });
   }
   return true;
 }
@@ -791,14 +734,19 @@ function applyCascadingCorruption(context, skill, consumed, at) {
   if (state.cascadingCorruptionStacks < 20) return;
   state.cascadingCorruptionStacks -= 20;
   state.meltdownUntil = at + 10;
-  emitDamage(context, skill, 1, {
+  emitDamage(
+    context,
+    skill,
+    MECHANICS.traitStrikeCoefficient[TRAIT.CASCADING_CORRUPTION],
+    {
     at,
     name: "Cascading Corruption",
     source: "Trait",
     sourceId: TRAIT.CASCADING_CORRUPTION,
     actorType: "effect",
     skillWeapon: "Unequipped",
-  });
+    },
+  );
 }
 
 function elixir(context, skill) {
@@ -810,37 +758,32 @@ function elixir(context, skill) {
   const consumed = empowered ? consumeBlight(state, threshold, at) : 0;
   applyCascadingCorruption(context, skill, consumed, at);
   emitState(context, at, "blight-consumed");
-  const durationMultiplier = empowered ? 2 : 1;
-  const coefficient = {
-    [ID.ELIXIR_OF_PROMISE]: 0.8,
-    [ID.ELIXIR_OF_RISK]: 2,
-    [ID.ELIXIR_OF_BLISS]: 0.8,
-    [ID.ELIXIR_OF_IGNORANCE]: 0.8,
-    [ID.ELIXIR_OF_ANGUISH]: 1,
-    [ID.ELIXIR_OF_AMBITION]: 1.5,
-  }[skill.id] || 0;
-  emitDamage(context, skill, coefficient * (empowered ? 2 : 1), {
+  const elixirMechanics = MECHANICS.elixirs;
+  const durationMultiplier = empowered
+    ? elixirMechanics.durationMultiplier
+    : 1;
+  const coefficient = elixirMechanics.coefficientBySkillId[skill.id] || 0;
+  emitDamage(
+    context,
+    skill,
+    coefficient * (empowered
+      ? elixirMechanics.empoweredCoefficientMultiplier
+      : 1),
+    {
     metadata: {
       blightEmpowered: empowered,
       necromancerBlight: state.blight,
     },
-  });
+    },
+  );
   if (skill.id === ID.ELIXIR_OF_PROMISE) {
-    emitCondition(
-      context,
-      skill,
-      "Poisoned",
-      3,
-      5 * durationMultiplier,
-    );
+    const [name, stacks, duration] =
+      elixirMechanics.conditionBySkillId[skill.id];
+    emitCondition(context, skill, name, stacks, duration * durationMultiplier);
   } else if (skill.id === ID.ELIXIR_OF_RISK) {
-    emitCondition(
-      context,
-      skill,
-      "Torment",
-      3,
-      5 * durationMultiplier,
-    );
+    const [name, stacks, duration] =
+      elixirMechanics.conditionBySkillId[skill.id];
+    emitCondition(context, skill, name, stacks, duration * durationMultiplier);
     emitBuff(context, skill, "might", 10, 10);
     emitBuff(context, skill, "fury", 10);
   } else if (skill.id === ID.ELIXIR_OF_IGNORANCE) {
@@ -856,19 +799,13 @@ function elixir(context, skill) {
   } else if (skill.id === ID.ELIXIR_OF_ANGUISH) {
     emitBuff(context, skill, "quickness", 5);
   } else if (skill.id === ID.ELIXIR_OF_AMBITION) {
-    for (const name of [
-      "Bleeding",
-      "Burning",
-      "Confusion",
-      "Poisoned",
-      "Torment",
-    ]) {
+    for (const name of elixirMechanics.ambitionConditions) {
       emitCondition(
         context,
         skill,
         name,
-        3,
-        5 * durationMultiplier,
+        elixirMechanics.ambitionConditionStacks,
+        elixirMechanics.ambitionConditionDuration * durationMultiplier,
       );
     }
     emitBuff(context, skill, "might", 5, 25);
@@ -888,44 +825,41 @@ function blightSkill(context, skill) {
   const consumed = empowered ? consumeBlight(state, 5, at) : 0;
   applyCascadingCorruption(context, skill, consumed, at);
   emitState(context, at, "blight-skill");
-  if (skill.id === ID.DEVOURING_CUT) {
-    emitDamage(context, skill, empowered ? 2 : 1, {
+  const skillMechanics = MECHANICS.blightSkills[skill.id];
+  if (!skillMechanics) return false;
+  emitDamage(
+    context,
+    skill,
+    empowered
+      ? skillMechanics.empoweredCoefficient
+      : skillMechanics.coefficient,
+    {
       metadata: { blightEmpowered: empowered, necromancerBlight: state.blight },
-    });
-    if (empowered) emitCondition(context, skill, "Torment", 5, 5);
-  } else {
-    emitDamage(context, skill, empowered ? 2.8 : 1.4, {
-      metadata: { blightEmpowered: empowered, necromancerBlight: state.blight },
-    });
+    },
+  );
+  if (empowered) {
+    emitCondition(context, skill, ...skillMechanics.empoweredCondition);
+  }
+  if (skill.id !== ID.DEVOURING_CUT) {
     emitControl(
       context,
       skill,
       hasTrait(context, TRAIT.DOOM_APPROACHES) ? "fear" : "daze",
     );
-    if (empowered) emitCondition(context, skill, "Torment", 5, 7);
   }
   return true;
 }
 
-const SPIRITS = Object.freeze({
-  [ID.ANGUISH]: {
-    key: "anguish",
-    attackCoefficient: 0.75,
-  },
-  [ID.WANDERLUST]: {
-    key: "wanderlust",
-    attackCoefficient: 0.6,
-  },
-  [ID.PRESERVATION]: {
-    key: "preservation",
-    attackCoefficient: 0,
-  },
-});
+const SPIRITS = MECHANICS.spirits;
 
 function queueSpiritAutoattacks(context, skill, spirit, at) {
   if (!(spirit.attackCoefficient > 0)) return;
   const horizon = at + Math.max(180, Number(context.config.duration || 0));
-  for (let attackAt = at + 3; attackAt <= horizon; attackAt += 3) {
+  for (
+    let attackAt = at + MECHANICS.spiritAttackInterval;
+    attackAt <= horizon;
+    attackAt += MECHANICS.spiritAttackInterval
+  ) {
     context.emit({
       type: "necromancer.summon-attack",
       at: attackAt,
@@ -947,14 +881,22 @@ function ritualist(context, skill) {
   const at = context.effectiveEnd;
   if (skill.id === ID.ESSENCE_BLAST) {
     const spirits = Object.keys(state.activeSpirits).length;
-    emitDamage(context, skill, 0.75 * (1 + spirits * 0.15), {
+    const essence = MECHANICS.essenceBlast;
+    emitDamage(
+      context,
+      skill,
+      essence.coefficient * (1 + spirits * essence.coefficientPerSpirit),
+      {
       metadata: { activeSpirits: spirits },
-    });
+      },
+    );
     return true;
   }
   if (skill.id === ID.SUMMON_SPIRITS) {
     for (const key of Object.keys(state.activeSpirits)) {
-      const coefficient = key === "anguish" ? 2 : key === "wanderlust" ? 1 : 0;
+      const coefficient = Object.values(SPIRITS)
+        .find(definition => definition.key === key)
+        ?.activeCoefficient || 0;
       if (coefficient > 0) {
         emitDamage(context, skill, coefficient, {
           source: "Spirit",
@@ -978,17 +920,18 @@ function ritualist(context, skill) {
   emitCreatureSummonTraits(context, skill, at);
 
   if (skill.id === ID.ANGUISH) {
-    emitDamage(context, skill, 3.5, {
-      hits: 7,
-      interval: 0.1,
+    emitDamage(context, skill, spirit.summonCoefficient, {
+      hits: spirit.summonHits,
+      interval: spirit.summonInterval,
       source: "Spirit",
       actorType: "summon",
       metadata: { summonKind: "spirit" },
     });
-    for (let index = 1; index <= 10; index += 1) {
+    const painfulBond = MECHANICS.painfulBond;
+    for (let index = 1; index <= painfulBond.hits; index += 1) {
       context.emit({
         type: "damage",
-        at: at + index,
+        at: at + index * painfulBond.interval,
         source: "Spirit",
         sourceId: "ritualist.painful-bond",
         actorType: "effect",
@@ -996,17 +939,17 @@ function ritualist(context, skill) {
         skillName: skill.name,
         name: "Painful Bond",
         coefficient: 0,
-        flatStrikeBase: 200,
-        flatStrikePowerCoeff: 0.4,
+        flatStrikeBase: painfulBond.flatStrikeBase,
+        flatStrikePowerCoeff: painfulBond.flatStrikePowerCoeff,
         noCrit: true,
         damageKind: "life-steal",
       });
     }
   } else if (skill.id === ID.WANDERLUST) {
-    emitDamage(context, skill, 1);
-    emitDamage(context, skill, 0.72, {
-      hits: 4,
-      interval: 1,
+    emitDamage(context, skill, spirit.summonCoefficient);
+    emitDamage(context, skill, spirit.lingeringCoefficient, {
+      hits: spirit.lingeringHits,
+      interval: spirit.lingeringInterval,
       source: "Spirit",
       actorType: "summon",
       metadata: { summonKind: "spirit" },
@@ -1020,7 +963,7 @@ function ritualist(context, skill) {
 function innervate(context, skill) {
   const at = context.effectiveEnd;
   if (skill.id === ID.INNERVATE_ANGUISH) {
-    emitDamage(context, skill, 1.3, {
+    emitDamage(context, skill, MECHANICS.innervateAnguish.coefficient, {
       source: "Spirit",
       actorType: "summon",
       metadata: { summonKind: "spirit" },
@@ -1035,19 +978,20 @@ function innervate(context, skill) {
 
 function summonMadness(context, skill) {
   const start = context.effectiveEnd;
-  for (let index = 0; index < 8; index += 1) {
-    const summonAt = start + index;
+  const madness = MECHANICS.summonMadness;
+  for (let index = 0; index < madness.summons; index += 1) {
+    const summonAt = start + index * madness.summonInterval;
     emitCreatureSummonTraits(context, skill, summonAt);
-    emitDamage(context, skill, 0.33, {
-      at: summonAt + 1,
+    emitDamage(context, skill, madness.attack.coefficient, {
+      at: summonAt + madness.attack.delay,
       name: "Unstable Horror — Attack",
       source: "Minion",
       sourceId: `unstable-horror.${index}`,
       actorType: "summon",
       metadata: { summonKind: "minion" },
     });
-    emitDamage(context, skill, 1.25, {
-      at: summonAt + 6,
+    emitDamage(context, skill, madness.explosion.coefficient, {
+      at: summonAt + madness.explosion.delay,
       name: "Unstable Horror — Explosion",
       source: "Minion",
       sourceId: `unstable-horror.${index}`,

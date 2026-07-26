@@ -1304,14 +1304,6 @@ test("declarative professions use the standard mechanics module roles", async ()
   for (const profession of ["mesmer", "guardian", "necromancer"]) {
     const mechanicsRoot = path.join(root, profession, "mechanics");
     const prefix = profession.toUpperCase();
-    const defaults = await readFile(
-      path.join(mechanicsRoot, "skill-defaults.js"),
-      "utf8",
-    );
-    const overrides = await readFile(
-      path.join(mechanicsRoot, "skill-overrides.js"),
-      "utf8",
-    );
     const mechanics = await readFile(
       path.join(mechanicsRoot, "skill-mechanics.js"),
       "utf8",
@@ -1321,17 +1313,10 @@ test("declarative professions use the standard mechanics module roles", async ()
       "utf8",
     );
 
-    assert.match(defaults, new RegExp(
-      `export const ${prefix}_SKILL_DEFAULTS\\b`,
-    ));
-    assert.match(overrides, new RegExp(
-      `export const ${prefix}_SKILL_OVERRIDES\\b`,
-    ));
-    assert.match(mechanics, /from "\.\/skill-defaults\.js"/);
-    assert.match(mechanics, /from "\.\/skill-overrides\.js"/);
     assert.match(mechanics, new RegExp(
       `export const ${prefix}_SKILL_MECHANICS\\b`,
     ));
+    assert.doesNotMatch(mechanics, /apiDamage|apiConditions/);
 
     const catalog = await readFile(
       path.join(root, profession, "catalog.js"),
@@ -1339,6 +1324,19 @@ test("declarative professions use the standard mechanics module roles", async ()
     );
     assert.match(catalog, /mechanics\/skill-mechanics\.js/);
     assert.doesNotMatch(catalog, /mechanics\/skill-(?:defaults|overrides)\.js/);
+
+    const metadata = await readFile(
+      path.join(root, profession, "data", `${profession}-api-metadata.js`),
+      "utf8",
+    );
+    assert.doesNotMatch(
+      metadata,
+      /apiDamage|apiConditions|"facts"|"coefficient"|dmg_multiplier/,
+    );
+    if (profession !== "mesmer") {
+      assert.doesNotMatch(metadata, /export const TRAITS\b/);
+      assert.match(catalog, /data\/traits-data\.js/);
+    }
   }
 });
 

@@ -1,7 +1,7 @@
 import {
   SKILLS,
   SPECIALIZATIONS,
-} from "./data/mesmer-catalog.js";
+} from "./data/mesmer-api-metadata.js";
 import { TRAITS } from "./data/traits-data.js";
 import {
   MESMER_EXTRA_SKILLS,

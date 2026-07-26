@@ -2,7 +2,7 @@ import {
   deriveAutoattackChains,
   indexAutoattackChains,
 } from "../../../platform/engine/autoattack-chains.js";
-import { SKILLS } from "../data/mesmer-catalog.js";
+import { SKILLS } from "../data/mesmer-api-metadata.js";
 import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
 
 export const MESMER_AUTOATTACK_CHAINS = deriveAutoattackChains(SKILLS);

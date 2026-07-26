@@ -368,7 +368,9 @@ export function createProfessionActionController({
       ([, expiresAt]) => expiresAt > at,
     );
     addDamage(skill, at, {
-      coefficient: 2.25 * (1 + activeInstruments.length * 0.25),
+      coefficient:
+        skill.baseCoefficient
+        * (1 + activeInstruments.length * skill.instrumentDamageIncrease),
       hits: 1,
       source: "Player",
     });

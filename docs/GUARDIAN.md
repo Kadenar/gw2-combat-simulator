@@ -7,7 +7,7 @@ as Mesmer.
 
 ## Data
 
-`js/professions/guardian/data/guardian-catalog.js` is generated from the
+`js/professions/guardian/data/guardian-api-metadata.js` is generated from the
 official Guild Wars 2 API. It currently contains:
 
 - 164 terrestrial or linked Guardian skills
@@ -36,17 +36,16 @@ Ordinary timing, cooldowns, effects, and damage resolution continue to use the
 shared platform scheduler and GW2 resolver. Guardian does not maintain a
 parallel profession-specific engine.
 
-The shared mechanics roles use the same names as Mesmer and Necromancer:
-`skill-defaults.js` derives baseline mechanics, `skill-overrides.js` contains
-stable-ID exceptions, and `skill-mechanics.js` exports their final composition.
+Like Mesmer and Necromancer, Guardian keeps every simulation-affecting skill
+field in `mechanics/skill-mechanics.js`. Generated API metadata does not
+provide runtime coefficients, conditions, hit counts, intervals, or cast time.
 
 ## Implemented mechanics
 
 - A complete executable catalog: every terrestrial weapon, healing, utility,
   elite, and profession skill has scheduler mechanics
-- API-derived strike packets, damaging conditions, cooldowns, ammo, chains,
-  and flips, with calibrated overrides for multi-hit, channel, symbol, trap,
-  and persistent-damage skills
+- Explicit strike packets, damaging conditions, cooldowns, ammo, chains, and
+  flips, including multi-hit, channel, symbol, trap, and persistent attacks
 - Core Justice, Resolve, and Courage activation and recharge
 - Justice active burning and five-hit passive burning
 - Permeating Wrath's three-hit Justice interval
@@ -81,8 +80,8 @@ support effects remain outside its damage model.
 ## Spear Illuminated
 
 Guardian spear is modeled in `mechanics/spear.js` (a scheduler `afterCast`
-hook, registered in `contract.js`) plus calibrated overrides in
-`mechanics/skill-overrides.js`. Skill slots follow the API catalog:
+hook, registered in `contract.js`) plus its authoritative entries in
+`mechanics/skill-mechanics.js`. Skill slots follow the API metadata:
 
 | Slot | Skill | Illuminated role |
 | --- | --- | --- |

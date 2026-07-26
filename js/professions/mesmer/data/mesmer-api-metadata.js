@@ -1,6 +1,5 @@
-// Guild Wars 2 API metadata and trait snapshot.
-// Snapshot: 2026-07-25. Maintained manually.
-// Simulator mechanics are maintained under js/professions/mesmer/mechanics.
+// Generated Guild Wars 2 API metadata for mesmer.
+// Snapshot: 2026-07-25. This file is not a source of simulation mechanics.
 
 export const DATA_SNAPSHOT = "2026-07-25";
 export const SPECIALIZATIONS = [
@@ -1010,35 +1009,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.7850000000000001,
-        "coefficientPerHit": 0.255,
-        "hits": 7,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 5.32,
-        "coefficientPerHit": 0.76,
-        "hits": 7,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 7,
-        "stacks": 7,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 4,
-        "stacks": 7,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10169,
@@ -1054,23 +1025,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.33,
-        "coefficientPerHit": 0.33,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Poisoned",
-        "duration": 4,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10170,
@@ -1086,16 +1041,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 10171,
-    "flipSkillId": 10171,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 10171
   },
   {
     "id": 10171,
@@ -1111,16 +1057,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 10172,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10172,
@@ -1136,22 +1073,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2,
-        "coefficientPerHit": 2,
-        "hits": 1,
-        "text": "Damage without Boons"
-      },
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage with Boons"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10173,
@@ -1169,16 +1091,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 10337,
-    "apiDamage": [
-      {
-        "coefficient": 0.003,
-        "coefficientPerHit": 0.003,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 10337
   },
   {
     "id": 10174,
@@ -1196,28 +1109,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Phantasm Damage"
-      },
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Sword Strike Damage"
-      },
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Phantasm Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10175,
@@ -1235,41 +1127,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.99,
-        "coefficientPerHit": 0.33,
-        "hits": 3,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.92,
-        "coefficientPerHit": 0.115,
-        "hits": 8,
-        "text": "Illusion Damage"
-      },
-      {
-        "coefficient": 0.8,
-        "coefficientPerHit": 0.1,
-        "hits": 8,
-        "text": "Illusion Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Bleeding",
-        "duration": 4,
-        "stacks": 8,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Bleeding",
-        "duration": 3,
-        "stacks": 8,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10176,
@@ -1285,9 +1143,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10177,
@@ -1305,9 +1161,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10186,
@@ -1323,9 +1177,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 10363,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 10363
   },
   {
     "id": 10189,
@@ -1343,29 +1195,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 9,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 3,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10190,
@@ -1381,23 +1211,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.38,
-        "coefficientPerHit": 0.38,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 3,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10191,
@@ -1413,28 +1227,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 49068,
-    "apiDamage": [
-      {
-        "coefficient": 1.15,
-        "coefficientPerHit": 1.15,
-        "hits": 1,
-        "text": "1 Clone"
-      },
-      {
-        "coefficient": 1.84,
-        "coefficientPerHit": 0.92,
-        "hits": 2,
-        "text": "2 Clones"
-      },
-      {
-        "coefficient": 2.415,
-        "coefficientPerHit": 0.805,
-        "hits": 3,
-        "text": "3 Clones"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 49068
   },
   {
     "id": 10192,
@@ -1450,9 +1243,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10197,
@@ -1470,9 +1261,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 10199,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 10199
   },
   {
     "id": 10200,
@@ -1490,9 +1279,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10201,
@@ -1510,9 +1297,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10202,
@@ -1530,9 +1315,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10203,
@@ -1550,9 +1333,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10211,
@@ -1570,9 +1351,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 10212,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 10212
   },
   {
     "id": 10213,
@@ -1590,9 +1369,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 10214,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 10214
   },
   {
     "id": 10216,
@@ -1610,29 +1387,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.44999999999999996,
-        "coefficientPerHit": 0.15,
-        "hits": 3,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.22499999999999998,
-        "coefficientPerHit": 0.075,
-        "hits": 3,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Torment",
-        "duration": 4,
-        "stacks": 2,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10218,
@@ -1648,16 +1403,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.8,
-        "coefficientPerHit": 1.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10219,
@@ -1673,22 +1419,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 44241,
-    "apiDamage": [
-      {
-        "coefficient": 1.101,
-        "coefficientPerHit": 0.367,
-        "hits": 3,
-        "text": "Maximum Damage"
-      },
-      {
-        "coefficient": 0.801,
-        "coefficientPerHit": 0.267,
-        "hits": 3,
-        "text": "Minimum Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 44241
   },
   {
     "id": 10220,
@@ -1704,16 +1435,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.3,
-        "coefficientPerHit": 0.3,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10221,
@@ -1731,28 +1453,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.2,
-        "coefficientPerHit": 0.3,
-        "hits": 4,
-        "text": "Phantasm Damage"
-      },
-      {
-        "coefficient": 0.6,
-        "coefficientPerHit": 0.15,
-        "hits": 4,
-        "text": "Phantasm Damage"
-      },
-      {
-        "coefficient": 1.2,
-        "coefficientPerHit": 1.2,
-        "hits": 1,
-        "text": "Greatsword Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10229,
@@ -1768,29 +1469,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.2,
-        "coefficientPerHit": 0.2,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 3,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 5,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10232,
@@ -1808,9 +1487,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10234,
@@ -1828,9 +1505,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10236,
@@ -1848,9 +1523,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10245,
@@ -1868,9 +1541,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10247,
@@ -1888,9 +1559,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10258,
@@ -1906,23 +1575,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 39959,
-    "apiDamage": [
-      {
-        "coefficient": 0.3,
-        "coefficientPerHit": 0.3,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Bleeding",
-        "duration": 1,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 39959
   },
   {
     "id": 10259,
@@ -1938,16 +1591,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.8,
-        "coefficientPerHit": 0.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10260,
@@ -1963,16 +1607,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.28,
-        "coefficientPerHit": 1.28,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10267,
@@ -1990,34 +1625,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage without Boons"
-      },
-      {
-        "coefficient": 0.4,
-        "coefficientPerHit": 0.4,
-        "hits": 1,
-        "text": "Damage with Boons"
-      },
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage without Boons"
-      },
-      {
-        "coefficient": 0.2,
-        "coefficientPerHit": 0.2,
-        "hits": 1,
-        "text": "Damage with Boons"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10273,
@@ -2033,29 +1641,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 40184,
-    "apiDamage": [
-      {
-        "coefficient": 0.3,
-        "coefficientPerHit": 0.3,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Torment",
-        "duration": 5,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 5,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 40184
   },
   {
     "id": 10276,
@@ -2073,23 +1659,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 10314,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Torment",
-        "duration": 8,
-        "stacks": 5,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 10314
   },
   {
     "id": 10280,
@@ -2107,22 +1677,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 10358,
-    "apiDamage": [
-      {
-        "coefficient": 2,
-        "coefficientPerHit": 2,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 10358
   },
   {
     "id": 10282,
@@ -2140,22 +1695,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.6560000000000001,
-        "coefficientPerHit": 0.138,
-        "hits": 12,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 1.2000000000000002,
-        "coefficientPerHit": 0.1,
-        "hits": 12,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10285,
@@ -2171,23 +1711,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 9,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10287,
@@ -2203,9 +1727,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10289,
@@ -2221,23 +1743,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 10290,
-    "flipSkillId": 10290,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Torment",
-        "duration": 4,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 10290
   },
   {
     "id": 10290,
@@ -2253,23 +1759,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 10291,
-    "flipSkillId": 10291,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Torment",
-        "duration": 6,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 10291
   },
   {
     "id": 10291,
@@ -2287,23 +1777,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.75,
-        "coefficientPerHit": 0.75,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Torment",
-        "duration": 9,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10302,
@@ -2321,9 +1795,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10310,
@@ -2341,9 +1813,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10311,
@@ -2361,9 +1831,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10327,
@@ -2381,9 +1849,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10331,
@@ -2399,22 +1865,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 5,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 5,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 10333,
@@ -2430,22 +1881,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.75,
-        "coefficientPerHit": 0.75,
-        "hits": 1,
-        "text": "Maximum Damage"
-      },
-      {
-        "coefficient": 0.75,
-        "coefficientPerHit": 0.75,
-        "hits": 1,
-        "text": "Maximum Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10334,
@@ -2461,22 +1897,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3.6,
-        "coefficientPerHit": 0.45,
-        "hits": 8,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 1.024,
-        "coefficientPerHit": 0.128,
-        "hits": 8,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 10341,
@@ -2494,22 +1915,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.4,
-        "coefficientPerHit": 0.4,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.2,
-        "coefficientPerHit": 0.2,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 21750,
@@ -2527,9 +1933,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 24755,
@@ -2545,16 +1949,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 5,
-        "coefficientPerHit": 0.5,
-        "hits": 10,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 29519,
@@ -2572,9 +1967,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 29526,
@@ -2592,9 +1985,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 29578,
@@ -2612,9 +2003,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 29830,
@@ -2630,9 +2019,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 30747,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 30747
   },
   {
     "id": 29856,
@@ -2650,16 +2037,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30305,
@@ -2677,9 +2055,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30359,
@@ -2697,22 +2073,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.1,
-        "coefficientPerHit": 1.1,
-        "hits": 1,
-        "text": "Pulse Damage"
-      },
-      {
-        "coefficient": 2.1,
-        "coefficientPerHit": 2.1,
-        "hits": 1,
-        "text": "Final Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30525,
@@ -2730,22 +2091,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.3,
-        "coefficientPerHit": 1.3,
-        "hits": 1,
-        "text": "Pulse Damage"
-      },
-      {
-        "coefficient": 2.1,
-        "coefficientPerHit": 2.1,
-        "hits": 1,
-        "text": "Final Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30643,
@@ -2761,16 +2107,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30769,
@@ -2788,22 +2125,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 29649,
-    "apiDamage": [
-      {
-        "coefficient": 0.9,
-        "coefficientPerHit": 0.9,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.45,
-        "coefficientPerHit": 0.45,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 29649
   },
   {
     "id": 30814,
@@ -2821,16 +2143,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Pulse Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 35637,
@@ -2846,16 +2159,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 40200,
@@ -2873,9 +2177,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 41065,
@@ -2893,23 +2195,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.4000000000000004,
-        "coefficientPerHit": 0.4,
-        "hits": 6,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 4,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 41164,
@@ -2925,29 +2211,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.1,
-        "coefficientPerHit": 0.55,
-        "hits": 2,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Bleeding",
-        "duration": 6,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Torment",
-        "duration": 6,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 42851,
@@ -2965,16 +2229,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 45666,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 45666
   },
   {
     "id": 43064,
@@ -2992,9 +2247,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 43343,
@@ -3010,9 +2263,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 43761,
@@ -3028,47 +2279,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 69385,
-    "apiDamage": [
-      {
-        "coefficient": 1.25,
-        "coefficientPerHit": 1.25,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 1.75,
-        "coefficientPerHit": 1.75,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 3,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 3,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 6,
-        "stacks": 5,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 6,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 69385
   },
   {
     "id": 44791,
@@ -3084,35 +2295,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 44840,
-    "flipSkillId": 44840,
-    "apiDamage": [
-      {
-        "coefficient": 0.55,
-        "coefficientPerHit": 0.55,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Bleeding",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Bleeding",
-        "duration": 1,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Torment",
-        "duration": 1,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 44840
   },
   {
     "id": 44840,
@@ -3128,23 +2311,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 41164,
-    "flipSkillId": 41164,
-    "apiDamage": [
-      {
-        "coefficient": 0.55,
-        "coefficientPerHit": 0.55,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Torment",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 41164
   },
   {
     "id": 45046,
@@ -3162,9 +2329,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 45243,
@@ -3180,23 +2345,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 6,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.2000000000000002,
-        "coefficientPerHit": 0.4,
-        "hits": 3,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Torment",
-        "duration": 4,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 45425,
@@ -3212,16 +2361,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 6,
-        "coefficientPerHit": 1.2,
-        "hits": 5,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 45449,
@@ -3239,35 +2379,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 20,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 6,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 2,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 56873,
@@ -3283,9 +2395,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 56928,
@@ -3301,23 +2411,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.38,
-        "coefficientPerHit": 0.38,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 3,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 56930,
@@ -3333,28 +2427,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 56925,
-    "apiDamage": [
-      {
-        "coefficient": 0.767,
-        "coefficientPerHit": 0.767,
-        "hits": 1,
-        "text": "1 Clone"
-      },
-      {
-        "coefficient": 1.226,
-        "coefficientPerHit": 0.613,
-        "hits": 2,
-        "text": "2 Clones"
-      },
-      {
-        "coefficient": 1.6110000000000002,
-        "coefficientPerHit": 0.537,
-        "hits": 3,
-        "text": "3 Clones"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 56925
   },
   {
     "id": 62510,
@@ -3370,22 +2443,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 69389,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.6000000000000001,
-        "coefficientPerHit": 0.2,
-        "hits": 3,
-        "text": "Flurry Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 69389
   },
   {
     "id": 62522,
@@ -3401,16 +2459,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.7,
-        "coefficientPerHit": 0.35,
-        "hits": 2,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62560,
@@ -3426,22 +2475,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.25,
-        "coefficientPerHit": 0.25,
-        "hits": 1,
-        "text": "Outgoing Damage"
-      },
-      {
-        "coefficient": 0.25,
-        "coefficientPerHit": 0.25,
-        "hits": 1,
-        "text": "Returning Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62568,
@@ -3457,16 +2491,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62675,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 62675
   },
   {
     "id": 62573,
@@ -3482,16 +2507,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 20,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62597,
@@ -3507,16 +2523,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62602,
@@ -3532,16 +2539,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62607,
@@ -3557,22 +2555,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.25,
-        "coefficientPerHit": 0.25,
-        "hits": 1,
-        "text": "Storm Damage"
-      },
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Blade Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62616,
@@ -3588,23 +2571,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.38,
-        "coefficientPerHit": 0.38,
-        "hits": 1,
-        "text": "Strike Damage per Blade Spent"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 3,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 62617,
@@ -3620,16 +2587,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62586,
-    "apiDamage": [
-      {
-        "coefficient": 0.7,
-        "coefficientPerHit": 0.7,
-        "hits": 1,
-        "text": "Strike Damage per Blade Spent"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 62586
   },
   {
     "id": 68273,
@@ -3645,9 +2603,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 69311,
@@ -3663,22 +2619,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.25,
-        "coefficientPerHit": 0.25,
-        "hits": 1,
-        "text": "Outgoing Damage"
-      },
-      {
-        "coefficient": 0.25,
-        "coefficientPerHit": 0.25,
-        "hits": 1,
-        "text": "Returning Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 69344,
@@ -3694,23 +2635,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 6,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.2000000000000002,
-        "coefficientPerHit": 0.4,
-        "hits": 3,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Torment",
-        "duration": 4,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 69385,
@@ -3726,47 +2651,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.25,
-        "coefficientPerHit": 1.25,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 1.75,
-        "coefficientPerHit": 1.75,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 3,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 3,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 6,
-        "stacks": 5,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Confusion",
-        "duration": 6,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 71892,
@@ -3782,16 +2667,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 71800,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 71800
   },
   {
     "id": 71897,
@@ -3809,16 +2685,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 72005,
@@ -3834,9 +2701,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 72076,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 72076
   },
   {
     "id": 72007,
@@ -3854,22 +2719,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.01,
-        "coefficientPerHit": 0.01,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 72008,
@@ -3885,9 +2735,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 71792,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 71792
   },
   {
     "id": 72946,
@@ -3903,28 +2751,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.6,
-        "coefficientPerHit": 0.6,
-        "hits": 1,
-        "text": "Phantasm Damage"
-      },
-      {
-        "coefficient": 0.4,
-        "coefficientPerHit": 0.4,
-        "hits": 1,
-        "text": "Phantasm Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 72957,
@@ -3940,16 +2767,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3,
-        "coefficientPerHit": 1,
-        "hits": 3,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 73066,
@@ -3965,16 +2783,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 73095,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 73093,
@@ -3990,16 +2799,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.6,
-        "coefficientPerHit": 1.6,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 73095,
@@ -4015,16 +2815,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 73152,
@@ -4040,16 +2831,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.4,
-        "coefficientPerHit": 2.4,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 73154,
@@ -4065,16 +2847,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 73066,
-    "flipSkillId": 73066,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 73066
   },
   {
     "id": 76552,
@@ -4090,16 +2863,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3,
-        "coefficientPerHit": 1,
-        "hits": 3,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76611,
@@ -4115,9 +2879,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 25,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76695,
@@ -4133,9 +2895,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76746,
@@ -4151,23 +2911,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Confusion",
-        "duration": 4,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 76850,
@@ -4183,9 +2927,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76931,
@@ -4201,16 +2943,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.25,
-        "coefficientPerHit": 2.25,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76960,
@@ -4226,9 +2959,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76971,
@@ -4244,9 +2975,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 77066,
@@ -4262,9 +2991,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 77077,
@@ -4280,9 +3007,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 77079,
@@ -4298,16 +3023,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2,
-        "coefficientPerHit": 2,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 77178,
@@ -4323,9 +3039,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 77306,
@@ -4341,15 +3055,6 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 12,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3,
-        "coefficientPerHit": 1,
-        "hits": 3,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   }
 ];
