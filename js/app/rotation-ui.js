@@ -376,6 +376,26 @@ export function continuumEndTimelineMarkers(result, rotationLength = 0) {
     );
 }
 
+export function shatterResourceSpends(result) {
+    const spends = new Map();
+    for (const event of result?.events || []) {
+        const rotationIndex = Number(event.rotationIndex);
+        if (
+            event.type !== 'resource'
+            || event.reason !== 'profession mechanic'
+            || !Number.isInteger(rotationIndex)
+        ) {
+            continue;
+        }
+        spends.set(rotationIndex, {
+            count: Math.abs(Number(event.amount || 0)),
+            resource: String(event.resource || 'resources'),
+            sourceSkill: String(event.sourceSkill || ''),
+        });
+    }
+    return spends;
+}
+
 export function renderStartResource(app) {
     const element = document.getElementById('start-att-selector');
     const professionState = professionEndState(app.results);
@@ -734,6 +754,7 @@ export function renderTimeline(app) {
     }
     element.classList.remove('is-empty');
     const steps = new Map((app.results?.steps || []).filter(step => step.ri >= 0).map(step => [step.ri, step]));
+    const resourceSpends = shatterResourceSpends(app.results);
     const rows = timelineWeaponRows(app.build.rotation);
     const formatTime = timeMs => formatResultTimelineTime(timeMs, app.results);
 
@@ -782,14 +803,35 @@ export function renderTimeline(app) {
                     ? COMBAT_START_ICON
                     : skill?.icon || ACTION_ICONS[skill?.name] || PLACEHOLDER_ICON;
             const time = step && !invalid ? formatTime(step.start) : '';
+            const resourceSpend = resourceSpends.get(index);
+            const resourceSingular = resourceSpend?.resource.endsWith('s')
+                ? resourceSpend.resource.slice(0, -1)
+                : resourceSpend?.resource;
+            const resourceLabel = resourceSpend
+                ? `${resourceSpend.count} ${
+                    resourceSpend.count === 1
+                        ? resourceSingular
+                        : resourceSpend.resource
+                } consumed at cast start`
+                : '';
+            const resourceShortLabel = resourceSpend
+                ? `${resourceSpend.count}${
+                    resourceSpend.resource === 'blades'
+                        ? 'B'
+                        : resourceSpend.resource === 'clones' ? 'C' : 'R'
+                }`
+                : '';
             const titleSuffix = invalid
                 ? `\n${step.invalidReason || 'Not valid here — will not be simulated'}`
                 : step ? `\n${formatTimelineCastDetails(step, formatTime)}` : '';
+            const resourceTitle = resourceLabel ? `\n${resourceLabel}` : '';
             rowItems.push(`<div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}" draggable="true"
-                    data-idx="${index}" title="${esc(display)}${titleSuffix}" style="--att-border:#9d7bd0">
+                    data-idx="${index}" title="${esc(display)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
+                    ${resourceSpend ? `<span class="rot-resource-spend-badge"
+                        title="${esc(resourceLabel)}" aria-label="${esc(resourceLabel)}">${esc(resourceShortLabel)}</span>` : ''}
                     ${time ? `<span class="rot-time">${time}</span>` : ''}
                     ${item.offset != null ? `<span class="rot-offset-badge" data-idx="${index}">⊙${item.offset}ms</span>` : ''}
                     ${item.interruptMs != null ? `<span class="rot-gapfill-badge rot-interrupt-badge" data-idx="${index}">✂${item.interruptMs}ms</span>` : ''}

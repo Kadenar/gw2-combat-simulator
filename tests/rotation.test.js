@@ -17,6 +17,7 @@ import {
     continuumEndTimelineMarkers,
     formatResultTimelineTime,
     resultSummaryMetrics,
+    shatterResourceSpends,
     simulationEventLogCsv,
     simulationEventLogRows,
     skillBreakdownRows,
@@ -82,6 +83,19 @@ test('Rewinder refunds three seconds per clone shattered without counting the me
         [0, 1, 2, 3].map(secondCastAt),
         [20000, 17000, 14000, 11000],
     );
+
+    const fullShatter = simulateMesmer(
+        ['Rewinder'],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            initialResource: 3,
+        }),
+    );
+    assert.deepEqual(shatterResourceSpends(fullShatter).get(0), {
+        count: 3,
+        resource: 'clones',
+        sourceSkill: 'Rewinder',
+    });
 });
 
 test('clone state remains capped at three when input or new summons exceed the cap', () => {
@@ -2933,11 +2947,26 @@ test('blades generated during a bladesong remain stocked afterward', () => {
         && event.reason === 'profession mechanic'
         && Math.abs(event.at - harmonyAction.at) < 0.00001
     );
+    const timelineSpends = shatterResourceSpends(result);
+    const duringHarmony = result.events.find(event =>
+        event.type === 'resource'
+        && event.amount > 0
+        && event.at > harmonyAction.at
+        && event.at < harmonyAction.endsAt
+    );
 
     assert.equal(result.warnings.length, 0);
     assert.equal(harmony.detail, '5 blades spent');
     assert.equal(sorrow.detail, '5 blades spent');
     assert.equal(harmonySpend.amount, -5);
+    assert.equal(harmonySpend.sourceSkill, 'Bladesong Harmony');
+    assert.equal(harmonySpend.rotationIndex, 15);
+    assert.equal(duringHarmony.amount, 1);
+    assert.deepEqual(timelineSpends.get(15), {
+        count: 5,
+        resource: 'blades',
+        sourceSkill: 'Bladesong Harmony',
+    });
 });
 
 test('Clarity makes only an empowered Mental Collapse a control skill', () => {

@@ -738,7 +738,10 @@ export function startMesmerCast(context, skill) {
   const runtime = runtimeFor(context);
   const shatterSpent =
     SHATTERS[skill.name] && SHATTERS[skill.name].kind !== "continuum"
-      ? runtime.actions.consumeResources(context.start)
+      ? runtime.actions.consumeResources(context.start, {
+          sourceSkill: skill.name,
+          rotationIndex: context.commandIndex,
+        })
       : null;
   runtime.castDetails.set(context.reservationId, { shatterSpent });
 }

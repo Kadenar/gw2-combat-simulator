@@ -30,7 +30,10 @@ export function createProfessionActionController({
       ? state.profession.clones.length
       : state.profession.numericResource;
 
-  const consumeResources = (at) => {
+  const consumeResources = (
+    at,
+    { sourceSkill = "", rotationIndex = null } = {},
+  ) => {
     const spent = currentResource();
     if (resourceDefinition.singular === "clone") {
       for (const clone of state.profession.clones) {
@@ -47,6 +50,8 @@ export function createProfessionActionController({
       value: 0,
       resource: resourceDefinition.plural,
       reason: "profession mechanic",
+      ...(sourceSkill ? { sourceSkill } : {}),
+      ...(Number.isInteger(rotationIndex) ? { rotationIndex } : {}),
     });
     return spent;
   };
