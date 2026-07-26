@@ -724,8 +724,12 @@ export function renderTimeline(app, {
             const pc = PROC_COLORS[s.type] || 'var(--border-light)';
             const typeLabel = s.type === 'relic_proc' ? 'Relic' : s.type === 'sigil_proc' ? 'Sigil' : s.type === 'trait_proc' ? 'Trait' : 'Skill';
             const detailLine = s.detail ? `\n${s.detail}` : '';
+            const stackLabel = s.skill === 'Relic of Aristocracy'
+                ? String(s.detail || '').match(/^(\d+\/\d+)\s+stacks$/)?.[1] || ''
+                : '';
             return `<div class="proc-icon" title="${esc(s.skill)}\n${typeLabel} proc @ ${ts}${esc(detailLine)}" style="--proc-color:${pc}">
                 <img src="${s.icon || PLACEHOLDER_ICON}" />
+                ${stackLabel ? `<span class="proc-stack">${esc(stackLabel)}</span>` : ''}
                 <span class="proc-time">${ts}</span>
             </div>`;
         }).join('');

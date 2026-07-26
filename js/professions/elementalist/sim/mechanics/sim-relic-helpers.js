@@ -131,10 +131,16 @@ export function checkRelicOnHit(ctx, ev) {
                         relicState.aristocracyLastTrigger = trigKey;
                         armRelicIcd(S, relic, ev.time, proc.icd);
                         if (relicState.aristocracyUntil <= ev.time) relicState.aristocracyStacks = 0;
-                        const wasZero = relicState.aristocracyStacks === 0;
                         relicState.aristocracyStacks = Math.min(relicState.aristocracyStacks + 1, proc.maxStacks);
                         relicState.aristocracyUntil = ev.time + proc.effectDuration;
-                        if (wasZero) logRelicProcCtx(ctx, relic, ev.time, proc.icon);
+                        logRelicProcCtx(
+                            ctx,
+                            relic,
+                            ev.time,
+                            proc.icon,
+                            `Relic of ${relic}`,
+                            `${relicState.aristocracyStacks}/${proc.maxStacks} stacks`,
+                        );
                     }
                 }
             }
