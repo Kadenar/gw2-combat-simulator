@@ -2433,7 +2433,7 @@ class App {
             // Can't reuse the same orb skill without Grand Finale in between
             if (isOrb && (es.hammerOrbsUsed || []).includes(skillName)) return false;
             if ((isGF || isOrb) && (es.hammerOrbLastCast ?? -Infinity) > -Infinity) {
-                if (t - es.hammerOrbLastCast < HAMMER_ORB_ICD_MS_UI) return false;
+                if (t - es.hammerOrbLastCast <= HAMMER_ORB_ICD_MS_UI) return false;
             }
         }
 

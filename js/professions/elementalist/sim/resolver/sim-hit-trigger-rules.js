@@ -1,5 +1,5 @@
 import { enqueueHitEvent } from '../shared/sim-events.js';
-import { getTraitIcd, setTraitIcd } from '../state/sim-icd-state.js';
+import { isTraitIcdReady, setTraitIcd } from '../state/sim-icd-state.js';
 import { effectStacksAt } from '../shared/sim-state-queries.js';
 import { isHammerOrbDamageActiveAt } from '../mechanics/sim-hammer.js';
 import { pushReportingLog } from '../state/sim-reporting-state.js';
@@ -10,7 +10,7 @@ export function canTriggerShatteringIceProc(S, ev) {
         && !ev.isField
         && ev.dmg > 0
         && ev.ws > 0
-        && ev.time >= getTraitIcd(S, 'ShatteringIce', 0);
+        && isTraitIcdReady(S, 'ShatteringIce', ev.time);
 }
 
 export function queueShatteringIceProc(S, ev, { queueHit = null } = {}) {

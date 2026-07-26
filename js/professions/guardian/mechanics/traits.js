@@ -6,6 +6,9 @@ import {
   SPECIALIZATIONS,
 } from "../data/guardian-api-metadata.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
+import {
+  isInternalCooldownReady,
+} from "../../../platform/engine/internal-cooldown.js";
 import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js";
 
 const TRAIT_BY_ID = new Map(
@@ -448,7 +451,7 @@ export function handleGuardianVirtueTraits(
   if (
     virtue === "justice"
     && hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS)
-    && at >= state.furiousFocusReadyAt - context.epsilon
+    && isInternalCooldownReady(at, state.furiousFocusReadyAt)
   ) {
     state.furiousFocusReadyAt = at + 10;
     emitLesserSymbolOfBlades(context, skill, at);
@@ -691,8 +694,10 @@ function reactToZealotsResolution(context, event) {
     || !(Number(event.coefficient || 0) > 0)
     || !(targetHealth > 0)
     || !(damageDone > targetHealth * 0.25)
-    || event.at < Number(state.zealotsResolutionReadyAt || 0)
-      - resolverEpsilon(context)
+    || !isInternalCooldownReady(
+      event.at,
+      Number(state.zealotsResolutionReadyAt || 0),
+    )
     || !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION)
     || event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION
   ) return;

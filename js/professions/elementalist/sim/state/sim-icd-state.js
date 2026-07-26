@@ -1,3 +1,7 @@
+import {
+    isInternalCooldownReady,
+} from '../../../../platform/engine/internal-cooldown.js';
+
 function ensureTraitIcdState(S) {
     if (!S.traitICD) S.traitICD = {};
     return S.traitICD;
@@ -23,7 +27,7 @@ export function setTraitIcd(S, key, readyAt) {
 }
 
 export function isTraitIcdReady(S, key, time) {
-    return time > getTraitIcd(S, key, 0);
+    return isInternalCooldownReady(time, getTraitIcd(S, key, 0));
 }
 
 export function armTraitIcd(S, key, time, icdMs) {
@@ -40,7 +44,7 @@ export function setRelicIcd(S, key, readyAt) {
 }
 
 export function isRelicIcdReady(S, key, time) {
-    return time > getRelicIcd(S, key, 0);
+    return isInternalCooldownReady(time, getRelicIcd(S, key, 0));
 }
 
 export function armRelicIcd(S, key, time, icdMs) {
@@ -57,7 +61,7 @@ export function setSigilIcd(S, key, readyAt) {
 }
 
 export function isSigilIcdReady(S, key, time) {
-    return time > getSigilIcd(S, key, 0);
+    return isInternalCooldownReady(time, getSigilIcd(S, key, 0));
 }
 
 export function armSigilIcd(S, key, time, icdMs) {

@@ -168,10 +168,16 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
         'Phantasmal Berserker': [0.56, 1.48, 2.56, 4.68, 5.92],
         'Phantasmal Defender': [0.77, 3.8, 4.51, 8.8, 9.52],
         'Phantasmal Disenchanter': [0.76, 1.15, 1.84, 4.04, 4.72],
-        'Phantasmal Duelist': [0.54, 2.4, 2.88, 6.44, 7.04],
+        'Phantasmal Duelist': [0.54, 2.751, 3.334, 6.44, 7.04],
         'Phantasmal Mage': [0.8, 2.27, 2.52, 5.32, 5.56],
         'Phantasmal Rogue': [0.61, 1.2, 2, 4.04, 4.76],
-        'Phantasmal Swordsman': [0.86, 2.48, 3.6, 7.12, 8.27],
+        'Phantasmal Swordsman': [
+            0.88,
+            3.159,
+            4.284,
+            7.12,
+            8.27,
+        ],
         'Phantasmal Warden': [0.46, 5.04, 7.24, 13.2, 15.32],
         'Phantasmal Warlock': [0.78, 2.96, 4.24, 8.56, 9.84],
     };
@@ -518,9 +524,11 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
 
     const flyingCutter = normalized('Flying Cutter');
     assert.equal(flyingCutter.damage[0].coefficient, 0.5);
+    assert.equal(flyingCutter.damage[0].castProgress, 0.72);
     assert.deepEqual(flyingCutter.trackedHitDamage, {
         hitsRequired: 3,
         duration: 5,
+        packetOffsets: [0.217, 0.25, 0.384],
         damage: {
             coefficient: 0.6,
             hits: 3,
@@ -532,9 +540,14 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
         normalized('Bladecall').damage.map(group => [
             group.coefficient,
             group.hits,
+            group.packetOffsets,
         ]),
-        [[0.75, 3], [0.75, 3]],
+        [
+            [0.75, 3, [0.199, 0.199, 0.199]],
+            [0.75, 3, [2.716, 2.716, 2.766]],
+        ],
     );
+    assert.equal(TRAIT_DAMAGE['Phantasmal Blade'].weaponStrength, 2553.5);
     assert.deepEqual(
         Object.fromEntries(
             Object.entries(TRAIT_DAMAGE).map(([name, data]) => [

@@ -64,7 +64,7 @@ import {
 } from './sim/shared/sim-stat-recharge-helpers.js';
 import { pushTimedStack } from './sim/state/sim-runtime-state.js';
 import { expectedCritMultiplier, strikeDamage } from '../../platform/gw2/damage.js';
-import { FOOD_DATA } from './data/gear-data.js';
+import { FOOD_DATA, SIGIL_DATA } from './data/gear-data.js';
 
 const DAMAGING_CONDITIONS = new Set([
     'Burning', 'Bleeding', 'Poisoned', 'Poison', 'Torment', 'Confusion',
@@ -85,41 +85,41 @@ const SIGIL_STAT_MAP = {
 const SIGIL_PROCS = {
     Air: {
         trigger: 'crit', icd: 3000, effect: 'strike', coeff: 1.1, ws: 690.5, canCrit: false,
-        icon: 'https://render.guildwars2.com/file/C337CC61DF2F5EE44B7D053EFF33059111024444/220676.png'
+        icon: SIGIL_DATA.Air.icon,
     },
     Torment: {
         trigger: 'crit', icd: 5000, effect: 'condition', cond: 'Torment', stacks: 2, dur: 5,
-        icon: 'https://render.guildwars2.com/file/E42EB6198022E5B4D71C5EE41465DD4EB84A0465/665778.png'
+        icon: SIGIL_DATA.Torment.icon,
     },
     Earth: {
         trigger: 'crit', icd: 2000, effect: 'condition', cond: 'Bleeding', stacks: 1, dur: 6,
-        icon: 'https://render.guildwars2.com/file/251EE3B8B5ADB8D7F7A35DBAEFABA35AEACDF51B/220677.png'
+        icon: SIGIL_DATA.Earth.icon,
     },
     Blight: {
         trigger: 'crit', icd: 8000, effect: 'condition', cond: 'Poisoned', stacks: 2, dur: 4,
-        icon: 'https://render.guildwars2.com/file/AE0A1C7816B56296FEA527E1D01376491374195A/941026.png'
+        icon: SIGIL_DATA.Blight.icon,
     },
     Doom: {
         trigger: 'swap', icd: 9000, effect: 'doom', cond: 'Poisoned', stacks: 3, dur: 8,
-        icon: 'https://render.guildwars2.com/file/6CE4D1D6E5392C4CC8BACA595E3393EBF208BEED/220686.png'
+        icon: SIGIL_DATA.Doom.icon,
     },
     Hydromancy: {
         trigger: 'swap', icd: 9000, effect: 'strike_cond', coeff: 1.0, ws: 690.5, canCrit: true,
         cond: 'Chilled', stacks: 1, dur: 2,
-        icon: 'https://render.guildwars2.com/file/B5F3E2021863079919299707290698504B5C7E90/220689.png'
+        icon: SIGIL_DATA.Hydromancy.icon,
     },
     Geomancy: {
         trigger: 'swap', icd: 9000, effect: 'condition', cond: 'Bleeding', stacks: 1, dur: 8,
-        icon: 'https://render.guildwars2.com/file/B79B430645DDF54E6792909A52F5CA40A4911407/220687.png'
+        icon: SIGIL_DATA.Geomancy.icon,
     },
     Energy: {
         trigger: 'swap', icd: 9000, effect: 'endurance', amount: 50,
-        icon: null,
+        icon: SIGIL_DATA.Energy.icon,
     },
     Severance: {
         trigger: 'cc', icd: 1000, effect: 'buff',
         precision: 250, ferocity: 250, dur: 4,
-        icon: 'https://wiki.guildwars2.com/images/c/c2/Superior_Sigil_of_Severance.png',
+        icon: SIGIL_DATA.Severance.icon,
     },
 };
 
@@ -207,7 +207,7 @@ function computeTranscendentTempestEffectContribution(results) {
 
     return total;
 }
-const RELIC_PROCS = {
+export const RELIC_PROCS = {
     Akeem: {
         trigger: 'cc_5torment_confusion', icd: 10000, strikeDmgM: 0, effectDuration: 0,
         conditions: { Confusion: { stacks: 2, dur: 10 }, Torment: { stacks: 2, dur: 10 } },
@@ -248,7 +248,7 @@ const RELIC_PROCS = {
         icon: 'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
     },
     Aristocracy: {
-        trigger: 'apply_weakness_vuln', icd: 0, strikeDmgM: 0, effectDuration: 8000,
+        trigger: 'apply_weakness_vuln', icd: 1000, strikeDmgM: 0, effectDuration: 8000,
         maxStacks: 5, condDurPerStack: 3,
         conditions: null,
         icon: 'https://render.guildwars2.com/file/BCC01F0B6616FE26ED4BE159532A6A6FBD0EA2D8/3122332.png',

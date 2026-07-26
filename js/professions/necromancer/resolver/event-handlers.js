@@ -1,4 +1,7 @@
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
+import {
+  isInternalCooldownReady,
+} from "../../../platform/engine/internal-cooldown.js";
 import { NECROMANCER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import {
   handleNecromancerChillEvent,
@@ -106,7 +109,10 @@ function reactToNecromancerDamage(context, event, details = {}) {
   }
   if (
     hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)
-    && event.at >= Number(context.profession.vampiricPresenceReadyAt || 0)
+    && isInternalCooldownReady(
+      event.at,
+      Number(context.profession.vampiricPresenceReadyAt || 0),
+    )
   ) {
     const proc = MECHANICS.traitProcs[TRAIT.VAMPIRIC_PRESENCE];
     context.profession.vampiricPresenceReadyAt = event.at + proc.interval;
@@ -118,7 +124,10 @@ function reactToNecromancerCondition(context, event, details = {}) {
   if (
     event.condition === "Torment"
     && hasTrait(context, TRAIT.DEMONIC_LORE)
-    && event.at >= Number(context.profession.demonicLoreReadyAt || 0)
+    && isInternalCooldownReady(
+      event.at,
+      Number(context.profession.demonicLoreReadyAt || 0),
+    )
   ) {
     const proc = MECHANICS.traitProcs[TRAIT.DEMONIC_LORE];
     context.profession.demonicLoreReadyAt = event.at + proc.interval;

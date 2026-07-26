@@ -202,34 +202,41 @@ export function createProfessionActionController({
       const ready = state.cooldowns.get(id) || at;
       state.cooldowns.set(id, Math.max(at, ready - 3 * spent));
     } else if (shatter.kind === "blade-power") {
-      addDamage(
-        skill,
-        at,
-        {
-          coefficient: shatter.coefficients[spent],
-          hits: spent,
-          source: "Player",
-          weaponStrength: 1000,
-        },
-        { shatter: true, blade: true },
-      );
+      const packetDelays = shatter.packetDelays || [];
+      for (let index = 0; index < spent; index += 1) {
+        addDamage(
+          skill,
+          at + Number(packetDelays[index] || 0),
+          {
+            coefficient: shatter.coefficients[spent] / spent,
+            hits: 1,
+            source: "Player",
+            weaponStrength: 1000,
+          },
+          { shatter: true, blade: true },
+        );
+      }
     } else if (shatter.kind === "blade-confusion") {
-      addDamage(
-        skill,
-        at,
-        {
-          coefficient: shatter.coefficients[spent],
-          hits: spent,
-          source: "Player",
-          weaponStrength: 1000,
-        },
-        { shatter: true, blade: true },
-      );
-      addCondition(skill.name, at, {
-        name: "Confusion",
-        duration: 3,
-        stacks: spent,
-      });
+      const packetDelays = shatter.packetDelays || [];
+      for (let index = 0; index < spent; index += 1) {
+        const packetAt = at + Number(packetDelays[index] || 0);
+        addDamage(
+          skill,
+          packetAt,
+          {
+            coefficient: shatter.coefficients[spent] / spent,
+            hits: 1,
+            source: "Player",
+            weaponStrength: 1000,
+          },
+          { shatter: true, blade: true },
+        );
+        addCondition(skill.name, packetAt, {
+          name: "Confusion",
+          duration: 3,
+          stacks: 1,
+        });
+      }
     } else if (shatter.kind === "blade-control") {
       addDamage(
         skill,

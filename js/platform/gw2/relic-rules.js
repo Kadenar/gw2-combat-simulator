@@ -3,6 +3,7 @@
  */
 
 import { EPSILON } from "../engine/clock.js";
+import { isInternalCooldownReady } from "../engine/internal-cooldown.js";
 import { isGw2PlayerActorEvent } from "./event-ownership.js";
 
 /**
@@ -156,7 +157,7 @@ function maybeTriggerAkeem(
 ) {
   if (
     ctx.config.relic !== "Akeem"
-    || event.at < ctx.relic.akeemReadyAt - EPSILON
+    || !isInternalCooldownReady(event.at, ctx.relic.akeemReadyAt)
   ) return;
   if (
     activeConditionStackCount(ctx, "Confusion", event.at) < 5
@@ -216,7 +217,7 @@ export function handleControlRelics(ctx, event, conditionHelpers) {
  */
 export function handlePeithaRelic(ctx, event, applyCondition) {
   if (ctx.config.relic !== "Peitha") return;
-  if (event.at < ctx.relic.peithaReadyAt - EPSILON) return;
+  if (!isInternalCooldownReady(event.at, ctx.relic.peithaReadyAt)) return;
   ctx.relic.peithaReadyAt = event.at + 4;
   ctx.relic.buffUntil = event.at + 4;
   ctx.recordProc("relic", "Relic of Peitha", event.at, event.skillName);
@@ -246,7 +247,7 @@ export function recordPassiveRelicTimeline(ctx, events, rotationEndTime) {
     for (const event of events) {
       if (
         event.type !== "weakness_vulnerability"
-        || event.at < readyAt - EPSILON
+        || !isInternalCooldownReady(event.at, readyAt)
       ) continue;
       if (event.at >= expiresAt - EPSILON) stacks = 0;
       stacks = Math.min(5, stacks + 1);

@@ -1,4 +1,7 @@
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import {
+  isInternalCooldownReady,
+} from "../../../platform/engine/internal-cooldown.js";
 
 const CLARITY_DURATION = 15;
 const CLARITY_ICON =
@@ -83,6 +86,11 @@ export function createSkillEffectController({
     const chronophantasmaDamageAt = phantasmEndpoint(
       phantasmTiming?.chronophantasmaDamage,
     );
+    const initialPhantasmalBladeAt =
+      phantasmTiming?.phantasmalBladeDelayAfterSpawn != null
+        ? phantasmSpawnAt
+          + Number(phantasmTiming.phantasmalBladeDelayAfterSpawn)
+        : phantasmDamageAt;
     const phantasmConversionAt = hasChronophantasma
       ? phantasmEndpoint(phantasmTiming?.chronophantasmaSpawn)
       : phantasmSpawnAt;
@@ -126,7 +134,7 @@ export function createSkillEffectController({
             weapon: skill.weapon,
             blade: true,
           },
-          phantasmDamageAt,
+          initialPhantasmalBladeAt,
           {
             coefficient: blade.coefficient * phantasmCount,
             hits: blade.hits * phantasmCount,
@@ -134,7 +142,7 @@ export function createSkillEffectController({
             weaponStrength: blade.weaponStrength,
           },
         );
-        addTraitProc("Phantasmal Blades", phantasmDamageAt, skill.name);
+        addTraitProc("Phantasmal Blades", initialPhantasmalBladeAt, skill.name);
       }
       if (hasChronophantasma) {
         if (traits.has(TRAIT.COMPOUNDING_POWER)) {
@@ -185,13 +193,16 @@ export function createSkillEffectController({
       }
     }
 
+    const playerHitTimes = [];
     for (const group of skill.damage || []) {
       if (group.requiredTrait && !traits.has(group.requiredTrait)) {
         continue;
       }
       const hitAt = group.source === "Phantasm"
         ? phantasmDamageAt
-        : at + Number(group.delay || 0);
+        : group.castProgress != null
+          ? castStart + (at - castStart) * Number(group.castProgress)
+          : at + Number(group.delay || 0);
       const selectedGroup =
         skill.boonlessCoefficient && config.target?.boonless
           ? { ...group, coefficient: skill.boonlessCoefficient }
@@ -207,8 +218,44 @@ export function createSkillEffectController({
               hits: Number(selectedGroup.hits || 1) * phantasmCount,
             }
           : selectedGroup;
+      const phantasmPacketOffsets =
+        group.source === "Phantasm"
+        && Array.isArray(phantasmTiming?.damagePackets?.[group.label])
+          ? phantasmTiming.damagePackets[group.label]
+          : null;
+      const fixedPacketOffsets = Array.isArray(group.packetOffsets)
+        ? group.packetOffsets
+        : null;
       const interval = Number(group.interval || 0);
+      const initialHitTimes = [];
       if (
+        phantasmPacketOffsets?.length > 0
+        || fixedPacketOffsets?.length > 0
+      ) {
+        const hits = Math.max(
+          1,
+          Math.trunc(Number(scaledGroup.hits || 1)),
+        );
+        const packetOffsets = phantasmPacketOffsets || fixedPacketOffsets;
+        const timingOrigin =
+          group.timingOrigin === "castStart" ? castStart : at;
+        for (let index = 0; index < hits; index += 1) {
+          const offset = packetOffsets[index % packetOffsets.length];
+          const packetAt = phantasmPacketOffsets
+            ? phantasmEndpoint(offset)
+            : timingOrigin + Number(offset);
+          initialHitTimes.push(packetAt);
+          addDamage(
+            skill,
+            packetAt,
+            {
+              ...scaledGroup,
+              coefficient: Number(scaledGroup.coefficient || 0) / hits,
+              hits: 1,
+            },
+          );
+        }
+      } else if (
         interval > 0
         && Number(scaledGroup.hits || 1) > 1
       ) {
@@ -216,10 +263,15 @@ export function createSkillEffectController({
           1,
           Math.trunc(Number(scaledGroup.hits || 1)),
         );
+        const timingOrigin =
+          group.timingOrigin === "castStart" ? castStart : at;
         for (let index = 0; index < hits; index += 1) {
+          const packetAt =
+            timingOrigin + Number(group.firstDelay || 0) + index * interval;
+          initialHitTimes.push(packetAt);
           addDamage(
             skill,
-            at + Number(group.firstDelay || 0) + index * interval,
+            packetAt,
             {
               ...scaledGroup,
               coefficient: Number(scaledGroup.coefficient || 0) / hits,
@@ -233,6 +285,7 @@ export function createSkillEffectController({
         && Number(scaledGroup.hits || 1) === pulseCount
       ) {
         for (const pulseAt of pulseTimes) {
+          initialHitTimes.push(pulseAt);
           addDamage(skill, pulseAt, {
             ...scaledGroup,
             coefficient: Number(scaledGroup.coefficient || 0) / pulseCount,
@@ -240,7 +293,11 @@ export function createSkillEffectController({
           });
         }
       } else {
+        initialHitTimes.push(hitAt);
         addDamage(skill, hitAt, scaledGroup);
+      }
+      if (group.source === "Player") {
+        playerHitTimes.push(...initialHitTimes);
       }
       if (group.source === "Phantasm" && hasChronophantasma) {
         addDamage(skill, chronophantasmaDamageAt, scaledGroup, {
@@ -257,13 +314,25 @@ export function createSkillEffectController({
         && skill.weapon === "Sword"
         && group.source === "Phantasm"
       ) {
-        addEvent({
-          type: "buff",
-          at: phantasmDamageAt + epsilon,
-          kind: "fencer",
-          stacks: Math.min(10, Number(scaledGroup.hits || 1)),
-          duration: 6,
-        });
+        if (phantasmPacketOffsets?.length > 0) {
+          for (const packetAt of initialHitTimes) {
+            addEvent({
+              type: "buff",
+              at: packetAt + epsilon,
+              kind: "fencer",
+              stacks: 1,
+              duration: 6,
+            });
+          }
+        } else {
+          addEvent({
+            type: "buff",
+            at: phantasmDamageAt + epsilon,
+            kind: "fencer",
+            stacks: Math.min(10, Number(scaledGroup.hits || 1)),
+            duration: 6,
+          });
+        }
         if (hasChronophantasma) {
           addEvent({
             type: "buff",
@@ -277,29 +346,49 @@ export function createSkillEffectController({
     }
     if (skill.trackedHitDamage) {
       const tracking = skill.trackedHitDamage;
-      const minimum = at - Number(tracking.duration || 0);
-      const recentHits = (state.profession.trackedSkillHits.get(skill.id) || [])
-        .filter((hitAt) => hitAt > minimum + epsilon);
-      const currentHits = (skill.damage || []).reduce(
-        (sum, group) =>
-          sum + (
-            group.source === "Player"
-              ? Math.max(1, Math.trunc(Number(group.hits || 1)))
-              : 0
-          ),
-        0,
-      );
-      recentHits.push(...Array(currentHits).fill(at));
+      const duration = Number(tracking.duration || 0);
+      let recentHits = [
+        ...(state.profession.trackedSkillHits.get(skill.id) || []),
+      ];
       const required = Math.max(
         1,
         Math.trunc(Number(tracking.hitsRequired || 1)),
       );
-      while (recentHits.length >= required) {
-        recentHits.splice(0, required);
-        addDamage(skill, at, tracking.damage, {
-          blade: skill.blade,
-          name: tracking.damage.label,
-        });
+      for (const currentHitAt of playerHitTimes.sort((a, b) => a - b)) {
+        const minimum = currentHitAt - duration;
+        recentHits = recentHits.filter(
+          hitAt => hitAt > minimum + epsilon,
+        );
+        recentHits.push(currentHitAt);
+        while (recentHits.length >= required) {
+          const triggerHits = recentHits.splice(0, required);
+          const triggerAt = triggerHits[triggerHits.length - 1];
+          const packetOffsets = tracking.packetOffsets;
+          if (Array.isArray(packetOffsets) && packetOffsets.length > 0) {
+            const hits = packetOffsets.length;
+            for (const offset of packetOffsets) {
+              addDamage(
+                skill,
+                triggerAt + Number(offset),
+                {
+                  ...tracking.damage,
+                  coefficient:
+                    Number(tracking.damage.coefficient || 0) / hits,
+                  hits: 1,
+                },
+                {
+                  blade: skill.blade,
+                  name: tracking.damage.label,
+                },
+              );
+            }
+          } else {
+            addDamage(skill, triggerAt, tracking.damage, {
+              blade: skill.blade,
+              name: tracking.damage.label,
+            });
+          }
+        }
       }
       state.profession.trackedSkillHits.set(skill.id, recentHits);
     }
@@ -314,9 +403,34 @@ export function createSkillEffectController({
           ? {
               ...condition,
               stacks: Number(condition.stacks || 1) * phantasmCount,
-            }
+          }
           : condition;
+      const conditionPacketOffsets =
+        isPhantasm
+        && condition.packetLabel
+        && Array.isArray(
+          phantasmTiming?.damagePackets?.[condition.packetLabel],
+        )
+          ? phantasmTiming.damagePackets[condition.packetLabel]
+          : null;
       if (
+        conditionPacketOffsets?.length > 0
+      ) {
+        const packetStacks =
+          Number(scaledCondition.stacks || 1)
+          / conditionPacketOffsets.length;
+        for (const offset of conditionPacketOffsets) {
+          addCondition(
+            skill.name,
+            phantasmEndpoint(offset),
+            {
+              ...scaledCondition,
+              stacks: packetStacks,
+            },
+            "Phantasm",
+          );
+        }
+      } else if (
         pulseTimes.length > 0
         && !isPhantasm
         && Number(scaledCondition.stacks || 1) === pulseCount
@@ -363,8 +477,12 @@ export function createSkillEffectController({
         skill.name,
       );
     } else if (skill.resource?.mode === "add" && !etherCloneAtMaximum) {
+      const resourceAt =
+        skill.resource.timingOrigin === "castStart"
+          ? castStart + Number(skill.resource.delay || 0)
+          : at + Number(skill.resource.delay || 0);
       queueResources(
-        at + epsilon,
+        resourceAt + epsilon,
         skill.resource.count,
         skill.weapon || activePrimaryWeapon(),
         skill.name,
@@ -450,7 +568,7 @@ export function createSkillEffectController({
       const storm = traitDamage["Lesser Chaos Storm"];
       const readyAt =
         state.profession.traitReadyAt.get("Method of Madness") || 0;
-      if (at >= readyAt - epsilon) {
+      if (isInternalCooldownReady(at, readyAt)) {
         const hits = Math.max(1, Math.trunc(Number(storm.hits || 1)));
         const interval = Math.max(0, Number(storm.interval || 0));
         for (let index = 0; index < hits; index += 1) {

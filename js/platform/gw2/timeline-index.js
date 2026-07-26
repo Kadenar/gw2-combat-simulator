@@ -1,4 +1,5 @@
 import { EPSILON } from "../engine/clock.js";
+import { isInternalCooldownReady } from "../engine/internal-cooldown.js";
 import { permanentTargetConditionStacks } from "./target-state.js";
 import { gw2SigilSet } from "./runtime-rules.js";
 
@@ -9,7 +10,10 @@ function qualifyingIcdEvents(events, type, cooldown) {
   const activations = [];
   let readyAt = 0;
   for (const event of events) {
-    if (event.type !== type || event.at < readyAt - EPSILON) continue;
+    if (
+      event.type !== type
+      || !isInternalCooldownReady(event.at, readyAt)
+    ) continue;
     activations.push(event);
     readyAt = event.at + cooldown;
   }

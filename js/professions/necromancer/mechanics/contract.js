@@ -10,6 +10,9 @@ import {
   finalizeNecromancerCast,
   gainNecromancerLifeForce,
 } from "./handlers.js";
+import {
+  isInternalCooldownReady,
+} from "../../../platform/engine/internal-cooldown.js";
 
 const ENTRY_SHROUD_BY_ID = Object.freeze({
   [ID.DEATH_SHROUD]: "death",
@@ -172,7 +175,10 @@ function updateNecromancerCastState(context, skill) {
   if (
     control?.metadata?.controlKind === "fear"
     && hasTrait(context, TRAIT.FEAR_OF_DEATH)
-    && context.effectiveEnd >= Number(state.fearOfDeathReadyAt || 0)
+    && isInternalCooldownReady(
+      context.effectiveEnd,
+      Number(state.fearOfDeathReadyAt || 0),
+    )
   ) {
     gainNecromancerLifeForce(
       context,
@@ -185,7 +191,10 @@ function updateNecromancerCastState(context, skill) {
   if (
     hasTrait(context, TRAIT.CHILLING_VICTORY)
     && requiredShroud(skill) === "reaper"
-    && context.effectiveEnd >= Number(state.traitProcReadyAt.chillingVictory || 0)
+    && isInternalCooldownReady(
+      context.effectiveEnd,
+      Number(state.traitProcReadyAt.chillingVictory || 0),
+    )
     && context.config?.target?.conditions?.Chilled
   ) {
     gainNecromancerLifeForce(

@@ -121,7 +121,7 @@ export function checkRelicOnHit(ctx, ev) {
             break;
 
         case 'apply_weakness_vuln':
-            if (ev.conds) {
+            if (ev.conds && isRelicIcdReady(S, relic, ev.time)) {
                 const hasWV = Object.keys(ev.conds).some(key =>
                     (key === 'Weakness' || key === 'Vulnerability') && ev.conds[key]?.stacks > 0 && ev.conds[key]?.duration > 0
                 );
@@ -129,6 +129,7 @@ export function checkRelicOnHit(ctx, ev) {
                     const trigKey = `${ev.skill}_${ev.time}`;
                     if (trigKey !== relicState.aristocracyLastTrigger) {
                         relicState.aristocracyLastTrigger = trigKey;
+                        armRelicIcd(S, relic, ev.time, proc.icd);
                         if (relicState.aristocracyUntil <= ev.time) relicState.aristocracyStacks = 0;
                         const wasZero = relicState.aristocracyStacks === 0;
                         relicState.aristocracyStacks = Math.min(relicState.aristocracyStacks + 1, proc.maxStacks);

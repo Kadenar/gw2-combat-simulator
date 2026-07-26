@@ -1,5 +1,8 @@
 import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
+import {
+  isInternalCooldownReady,
+} from "../../engine/internal-cooldown.js";
 import { conditionTickDamage } from "../damage.js";
 import { permanentTargetConditionStacks } from "../target-state.js";
 
@@ -88,7 +91,10 @@ export function createGw2ConditionResolution({
     if (
       ctx.config.relic !== "Fractal"
       || application.condition !== "Bleeding"
-      || application.at < ctx.relic.fractalReadyAt - EPSILON
+      || !isInternalCooldownReady(
+        application.at,
+        ctx.relic.fractalReadyAt,
+      )
       || activeConditionStackCount(ctx, "Bleeding", application.at) < 6
     ) return;
 

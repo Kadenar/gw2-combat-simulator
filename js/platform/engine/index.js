@@ -5,6 +5,7 @@ export * from "./cooldown-controller.js";
 export * from "./event-queue.js";
 export * from "./events.js";
 export * from "./handler-registry.js";
+export * from "./internal-cooldown.js";
 export * from "./profession.js";
 export * from "./prepare-config.js";
 export * from "./resolver.js";
