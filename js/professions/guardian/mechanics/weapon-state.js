@@ -47,7 +47,7 @@ export function updateWeaponCastState(context, skill) {
     && skill.flipSkillId !== skill.nextChainId
   ) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
-    if (flip && flip.name !== skill.name) {
+    if (flip?.flipParentId === skill.id) {
       const duration = skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME
         ? 3
         : Math.max(1, Number(skill.cooldown || skill.recharge || 5));

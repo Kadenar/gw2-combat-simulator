@@ -949,6 +949,35 @@ test("Luminary Radiant Forge enforces entry and radiant weapon flips", () => {
   assert.ok(result.totalDamage > 0);
 });
 
+test("Luminary UI excludes virtue aliases and lists the forge exit once", () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Radiant Justice",
+      "Enter Radiant Forge",
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const professionSkillIds = guardianProfession.ui.paletteGroups({
+    specialization: "Luminary",
+    professionState: result.endState.profession,
+  })[0].skillIds;
+  const professionSkillNames = professionSkillIds.map(id =>
+    guardianCatalog.skillsById.get(id)?.name);
+
+  assert.equal(
+    result.endState.profession.availableFlips[
+      GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE
+    ],
+    undefined,
+  );
+  assert.equal(professionSkillNames.includes("Spear of Justice"), false);
+  assert.equal(
+    professionSkillNames.filter(name => name === "Exit Radiant Forge").length,
+    1,
+  );
+});
+
 test("elite specializations expose their profession mechanics", () => {
   const spear = guardianCatalog.skillsByName.get("Spear of Justice");
   const verdict = guardianCatalog.skillsByName.get("Hunter's Verdict");

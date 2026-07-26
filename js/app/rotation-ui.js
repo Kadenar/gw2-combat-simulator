@@ -34,7 +34,7 @@ import {
     mountRotationResults,
     SKILL_COLS,
 } from '../platform/ui/rotation-results.js';
-import { escapeHtml as esc } from '../platform/ui/html.js';
+import { escapeHtml as esc, gw2ApiText } from '../platform/ui/html.js';
 import { RELIC_DATA } from '../platform/gw2/gear-data.js';
 
 const CONCURRENT_OFFSET_MS = 100;
@@ -214,7 +214,7 @@ function paletteSkillView(app, skill, contextAvailable = true, contextMessage = 
                 : cd.remaining
                 ? `Remaining: ${seconds(cd.remaining)} · available at ${seconds(cd.readyAt)}`
                 : 'Available now',
-        skill.description || '',
+        gw2ApiText(skill.description),
     ].filter(Boolean).join('\n');
     return {
         name: skill.name,

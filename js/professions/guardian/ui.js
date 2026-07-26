@@ -12,7 +12,7 @@ function guardianProfessionSkillIds(context = {}) {
     ...(GUARDIAN_VIRTUE_NAMES_BY_SPECIALIZATION[specialization] || []),
     ...(specialization === "Firebrand" ? ["Stow Tome"] : []),
     ...(specialization === "Luminary"
-      ? ["Enter Radiant Forge", "Exit Radiant Forge"]
+      ? ["Enter Radiant Forge"]
       : []),
   ];
   const skillIds = names
@@ -24,8 +24,9 @@ function guardianProfessionSkillIds(context = {}) {
   return skillIds.flatMap(id => {
     const skill = guardianCatalog.skillsById.get(id);
     const flipId = skill?.flipSkillId;
+    const flip = guardianCatalog.skillsById.get(flipId);
     return (
-      flipId != null
+      flip?.flipParentId === id
       && Number(activeFlips[flipId] || 0) > 0
     ) ? [id, flipId] : [id];
   });

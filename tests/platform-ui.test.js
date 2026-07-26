@@ -16,6 +16,10 @@ import {
   virtualPaletteSkillHtml,
 } from "../js/platform/ui/palette.js";
 import {
+  escapeHtml,
+  gw2ApiText,
+} from "../js/platform/ui/html.js";
+import {
   mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
@@ -38,6 +42,18 @@ function inertContainer() {
     querySelectorAll: () => [],
   };
 }
+
+test("GW2 API text removes presentation tags for native tooltips", () => {
+  const description = "<c=@abilitytype>Stances</c> grant protection.<br><c=@reminder>Once per interval.</c>";
+  assert.equal(
+    gw2ApiText(description),
+    "Stances grant protection.\nOnce per interval.",
+  );
+  assert.equal(
+    escapeHtml(gw2ApiText('<c=abilitytype>"Glamour" & allies</c>')),
+    "&quot;Glamour&quot; &amp; allies",
+  );
+});
 
 test("shared chart lookup and series cover damage timing and configurable effects", () => {
   assert.equal(chartValueAt([], 10), 0);
