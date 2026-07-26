@@ -122,6 +122,11 @@ function procFilterLabel(proc) {
     return `${proc.skill} (${type})`;
 }
 
+function procStackLabel(proc) {
+    if (proc.skill !== 'Relic of Aristocracy') return '';
+    return String(proc.detail || '').match(/^(\d+\/\d+)\s+stacks$/)?.[1] || '';
+}
+
 function syncProcVisibility(app, procSteps) {
     const procKeys = new Set(procSteps.map(procFilterKey));
     const current = app.procVisibility instanceof Set ? app.procVisibility : null;
@@ -884,6 +889,7 @@ export function renderTimeline(app) {
                 ? 'Relic'
                 : proc.type === 'skill_proc' ? 'Skill' : 'Trait';
             const time = formatTime(proc.start);
+            const stackLabel = procStackLabel(proc);
             const detail = [
                 proc.skill,
                 `${type} proc at ${time}`,
@@ -893,6 +899,7 @@ export function renderTimeline(app) {
             return `<div class="proc-icon" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'} title="${esc(detail)}"
                 style="--proc-color:${procColors[proc.type] || '#9d7bd0'}">
                 <img src="${esc(icon)}" alt="" />
+                ${stackLabel ? `<span class="proc-stack">${esc(stackLabel)}</span>` : ''}
                 <span class="proc-time">${time}</span>
             </div>`;
         }).join('');

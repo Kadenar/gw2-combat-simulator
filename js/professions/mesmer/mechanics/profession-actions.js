@@ -30,6 +30,24 @@ export function createProfessionActionController({
       ? state.profession.clones.length
       : state.profession.numericResource;
 
+  const addResourceSpendEvent = (
+    at,
+    spent,
+    { sourceSkill = "", rotationIndex = null } = {},
+  ) => {
+    addEvent({
+      type: "resource",
+      at,
+      amount: -spent,
+      value: currentResource(),
+      resource: resourceDefinition.plural,
+      reason: "profession mechanic",
+      ...(sourceSkill ? { sourceSkill } : {}),
+      ...(Number.isInteger(rotationIndex) ? { rotationIndex } : {}),
+    });
+    return spent;
+  };
+
   const consumeResources = (
     at,
     { sourceSkill = "", rotationIndex = null } = {},
@@ -43,17 +61,45 @@ export function createProfessionActionController({
     } else {
       state.profession.numericResource = 0;
     }
-    addEvent({
-      type: "resource",
-      at,
-      amount: -spent,
-      value: 0,
-      resource: resourceDefinition.plural,
-      reason: "profession mechanic",
-      ...(sourceSkill ? { sourceSkill } : {}),
-      ...(Number.isInteger(rotationIndex) ? { rotationIndex } : {}),
-    });
+    return addResourceSpendEvent(at, spent, { sourceSkill, rotationIndex });
+  };
+
+  const reserveResources = () => {
+    const spent = currentResource();
+    if (resourceDefinition.singular === "clone") {
+      throw new Error("Clone resources cannot be reserved.");
+    }
+    state.profession.numericResource = 0;
     return spent;
+  };
+
+  const commitReservedResources = (
+    at,
+    reserved,
+    { sourceSkill = "", rotationIndex = null } = {},
+  ) => {
+    const reservedCount = Math.min(
+      resourceDefinition.maximum,
+      Math.max(0, Number(reserved || 0)),
+    );
+    const additionalSpent = Math.min(
+      state.profession.numericResource,
+      resourceDefinition.maximum - reservedCount,
+    );
+    state.profession.numericResource -= additionalSpent;
+    return addResourceSpendEvent(
+      at,
+      reservedCount + additionalSpent,
+      { sourceSkill, rotationIndex },
+    );
+  };
+
+  const restoreReservedResources = (spent) => {
+    if (resourceDefinition.singular === "clone") return;
+    state.profession.numericResource = Math.min(
+      resourceDefinition.maximum,
+      state.profession.numericResource + Math.max(0, Number(spent || 0)),
+    );
   };
 
   const triggerShatterTraits = (
@@ -421,11 +467,14 @@ export function createProfessionActionController({
   };
 
   return {
+    commitReservedResources,
     consumeResources,
     currentResource,
     handleCrescendo,
     handleInstrument,
     handleShatter,
+    reserveResources,
+    restoreReservedResources,
     triggerShatterTraits,
   };
 }

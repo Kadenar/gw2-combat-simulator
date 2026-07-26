@@ -439,6 +439,13 @@ function completeMesmerSkill(context, skill) {
         }
       : null;
   try {
+    if (
+      details.reservedShatterResources
+      && context.effectiveEnd < context.fullEnd - EPSILON
+    ) {
+      runtime.actions.restoreReservedResources(details.shatterSpent);
+      return;
+    }
     updateAutoattackChains(runtime, skill);
     if (skill.id === -3) {
       state.activeWeaponSet = state.activeWeaponSet === 1 ? 2 : 1;
@@ -749,13 +756,19 @@ export function startMesmerCast(context, skill) {
     shatter?.kind.startsWith("blade")
     && Number.isFinite(spendProgress)
     && context.fullEnd > context.start + EPSILON;
-  if (shatter && shatter.kind !== "continuum" && !delayedBladeSpend) {
+  if (delayedBladeSpend) {
+    shatterSpent = runtime.actions.reserveResources();
+  } else if (shatter && shatter.kind !== "continuum") {
     shatterSpent = runtime.actions.consumeResources(context.start, {
       sourceSkill: skill.name,
       rotationIndex: context.commandIndex,
     });
   }
-  runtime.castDetails.set(context.reservationId, { shatterSpent });
+  runtime.castDetails.set(context.reservationId, {
+    reservedShatterResources: delayedBladeSpend,
+    shatterSpendCommitted: !delayedBladeSpend,
+    shatterSpent,
+  });
   if (delayedBladeSpend) {
     context.tasks.schedule({
       type: TASK.bladeSpend,
@@ -856,11 +869,16 @@ export function handleExpectedProcTask(context, task) {
 export function handleBladeSpendTask(context, task) {
   const runtime = runtimeFor(context);
   const details = runtime.castDetails.get(task.payload.reservationId);
-  if (!details || details.shatterSpent != null) return;
-  details.shatterSpent = runtime.actions.consumeResources(task.at, {
-    sourceSkill: task.payload.sourceSkill,
-    rotationIndex: task.payload.rotationIndex,
-  });
+  if (!details || details.shatterSpendCommitted) return;
+  details.shatterSpent = runtime.actions.commitReservedResources(
+    task.at,
+    details.shatterSpent,
+    {
+      sourceSkill: task.payload.sourceSkill,
+      rotationIndex: task.payload.rotationIndex,
+    },
+  );
+  details.shatterSpendCommitted = true;
 }
 
 export function handleContinuumExpiryTask(context, task) {

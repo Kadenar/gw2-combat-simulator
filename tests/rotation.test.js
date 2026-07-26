@@ -1357,6 +1357,30 @@ test('Bladeturn Requiem and Thousand Cuts retain their zero-second cast times', 
     }
 });
 
+test('interrupting a bladesong restores its reserved blades', () => {
+    const result = simulateMesmer(
+        [{ name: 'Bladesong Harmony', interruptMs: 100 }],
+        defaultSimulationConfig({ initialResource: 5 }),
+    );
+
+    assert.equal(result.endState.profession.resource, 5);
+    assert.equal(
+        result.events.some(event =>
+            event.type === 'resource'
+            && event.sourceSkill === 'Bladesong Harmony'
+            && event.amount < 0
+        ),
+        false,
+    );
+    assert.equal(
+        result.resolvedEvents.some(event =>
+            event.type === 'damage'
+            && event.skillName === 'Bladesong Harmony'
+        ),
+        false,
+    );
+});
+
 test('sigil and relic damage modifiers affect the queued rotation result', () => {
     const config = defaultSimulationConfig();
     const base = simulateMesmer(
@@ -1713,6 +1737,10 @@ test('Relic of Aristocracy requires more than its one-second ICD', () => {
     assert.equal(aristocracyProcs(479).length, 1);
     assert.equal(aristocracyProcs(480).length, 1);
     assert.equal(aristocracyProcs(481).length, 2);
+    assert.deepEqual(
+        aristocracyProcs(481).map(proc => proc.detail),
+        ['1/5 stacks', '2/5 stacks'],
+    );
 });
 
 test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
@@ -3045,7 +3073,7 @@ test('the supplied condition Virtuoso build tracks cast-end blade spends', () =>
 
     assert.deepEqual(
         [2, 9, 11, 13, 18, 21, 29].map(index => spends.get(index)?.count),
-        [5, 5, 5, 3, 5, 5, 4],
+        [5, 5, 5, 5, 5, 5, 5],
     );
     assert.deepEqual(
         [9, 11, 13, 18, 21, 29].map(index =>

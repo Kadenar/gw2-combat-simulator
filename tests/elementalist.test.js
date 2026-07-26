@@ -163,6 +163,7 @@ test("Elementalist Relic of the Claw displays activation and refresh procs", asy
 });
 
 test("Elementalist Aristocracy uses a strict one-second ICD", () => {
+  const procSteps = [];
   const state = {
     activeRelic: "Aristocracy",
     relicProc: RELIC_PROCS.Aristocracy,
@@ -171,7 +172,9 @@ test("Elementalist Aristocracy uses a strict one-second ICD", () => {
   const context = {
     S: state,
     log() {},
-    addStep() {},
+    addStep(step) {
+      procSteps.push(step);
+    },
   };
   const trigger = (skill, time) => checkRelicOnHit(context, {
     skill,
@@ -189,6 +192,13 @@ test("Elementalist Aristocracy uses a strict one-second ICD", () => {
   trigger("After boundary", 1101);
   assert.equal(getRelicState(state).aristocracyStacks, 2);
   assert.equal(state.relicICD.Aristocracy, 2101);
+  assert.deepEqual(
+    procSteps.map(({ skill, detail }) => ({ skill, detail })),
+    [
+      { skill: "Relic of Aristocracy", detail: "1/5 stacks" },
+      { skill: "Relic of Aristocracy", detail: "2/5 stacks" },
+    ],
+  );
 });
 
 test("every relative import in the Elementalist package resolves", async () => {
