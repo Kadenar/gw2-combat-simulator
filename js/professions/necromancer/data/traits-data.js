@@ -1,6 +1,6 @@
 import {
   SPECIALIZATIONS as CATALOG_SPECIALIZATIONS,
-} from "./necromancer-catalog.js";
+} from "./necromancer-api-metadata.js";
 
 export const SPECIALIZATIONS = CATALOG_SPECIALIZATIONS.map(
   specialization => specialization.name,

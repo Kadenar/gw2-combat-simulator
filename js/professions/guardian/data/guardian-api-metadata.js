@@ -1,6 +1,5 @@
-// Generated Guild Wars 2 API metadata and trait snapshot.
-// Snapshot: 2026-07-25. Run scripts/update-guardian-api-data.mjs to refresh.
-// Simulator mechanics are maintained under guardian/mechanics/.
+// Generated Guild Wars 2 API metadata for guardian.
+// Snapshot: 2026-07-25. This file is not a source of simulation mechanics.
 
 export const DATA_SNAPSHOT = "2026-07-25";
 export const SPECIALIZATIONS = [
@@ -19,14 +18,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Zeal",
         "tier": 1,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Health Threshold",
-            "type": "Percent",
-            "percent": 75
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 646,
@@ -36,21 +28,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Zeal",
         "tier": 2,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 5,
-            "status": "Vulnerability",
-            "apply_count": 2
-          },
-          {
-            "text": "Damage Increase",
-            "type": "Percent",
-            "percent": 5
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 649,
@@ -60,21 +38,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Zeal",
         "tier": 3,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 15,
-            "status": "Symbolic Avenger",
-            "apply_count": 1
-          },
-          {
-            "text": "Maximum Stacks",
-            "type": "Number",
-            "value": 5
-          }
-        ]
+        "slot": "Minor"
       }
     ],
     "majorTraits": [
@@ -87,23 +51,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Zeal",
           "tier": 1,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Resolution",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Fury",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 634,
@@ -113,14 +61,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Zeal",
           "tier": 1,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 5
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1925,
@@ -130,87 +71,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Zeal",
           "tier": 1,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 10,
-              "status": "Might",
-              "apply_count": 2,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/0E4C27902671FBCB33713E3677604B0880EF0D60/103034.png",
-                "status": "Virtue of Justice",
-                "description": "<c=@abilitytype>Virtue:</c> Burn foes every few attacks.<br><c=@abilitytype>Activate:</c> You and your allies inflict burning on the next attack."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 6,
-              "status": "Might",
-              "apply_count": 2,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/0E4C27902671FBCB33713E3677604B0880EF0D60/103034.png",
-                "status": "Virtue of Justice",
-                "description": "<c=@abilitytype>Virtue:</c> Burn foes every few attacks.<br><c=@abilitytype>Activate:</c> You and your allies inflict burning on the next attack."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 4,
-              "status": "Might",
-              "apply_count": 2,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/0E4C27902671FBCB33713E3677604B0880EF0D60/103034.png",
-                "status": "Virtue of Justice",
-                "description": "<c=@abilitytype>Virtue:</c> Burn foes every few attacks.<br><c=@abilitytype>Activate:</c> You and your allies inflict burning on the next attack."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 10,
-              "status": "Might",
-              "apply_count": 1,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/0E4C27902671FBCB33713E3677604B0880EF0D60/103034.png",
-                "status": "Virtue of Justice",
-                "description": "<c=@abilitytype>Virtue:</c> Burn foes every few attacks.<br><c=@abilitytype>Activate:</c> You and your allies inflict burning on the next attack."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 6,
-              "status": "Might",
-              "apply_count": 1,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/0E4C27902671FBCB33713E3677604B0880EF0D60/103034.png",
-                "status": "Virtue of Justice",
-                "description": "<c=@abilitytype>Virtue:</c> Burn foes every few attacks.<br><c=@abilitytype>Activate:</c> You and your allies inflict burning on the next attack."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 4,
-              "status": "Might",
-              "apply_count": 1,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/0E4C27902671FBCB33713E3677604B0880EF0D60/103034.png",
-                "status": "Virtue of Justice",
-                "description": "<c=@abilitytype>Virtue:</c> Burn foes every few attacks.<br><c=@abilitytype>Activate:</c> You and your allies inflict burning on the next attack."
-              }
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -222,20 +83,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Zeal",
           "tier": 2,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 620,
-              "target": "Healing"
-            },
-            {
-              "text": "Interval",
-              "type": "Time",
-              "duration": 3
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 653,
@@ -245,25 +93,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Zeal",
           "tier": 2,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "type": "AttributeAdjust",
-              "value": 120,
-              "target": "Power"
-            },
-            {
-              "text": "Power While Wielding Greatsword",
-              "type": "AttributeAdjust",
-              "value": 120,
-              "target": "Power"
-            },
-            {
-              "text": "Recharge Reduced",
-              "type": "Percent",
-              "percent": 20
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1556,
@@ -273,16 +103,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Zeal",
           "tier": 2,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Attribute Conversion",
-              "type": "BuffConversion",
-              "percent": 10,
-              "source": "Power",
-              "target": "ConditionDamage"
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -294,35 +115,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Zeal",
           "tier": 3,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 8,
-              "status": "Burning",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Burning",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 5,
-              "status": "Burning",
-              "apply_count": 1
-            },
-            {
-              "text": "Additional Casts",
-              "type": "Number",
-              "value": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 637,
@@ -332,8 +125,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Zeal",
           "tier": 3,
           "position": 2,
-          "slot": "Major",
-          "facts": []
+          "slot": "Major"
         },
         {
           "id": 2017,
@@ -343,28 +135,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Zeal",
           "tier": 3,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 10
-            },
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 7
-            },
-            {
-              "text": "Movement Speed Increase",
-              "type": "Percent",
-              "percent": 33
-            },
-            {
-              "text": "Combat Only",
-              "type": "NoData"
-            }
-          ]
+          "slot": "Major"
         }
       ]
     ]
@@ -384,33 +155,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Radiance",
         "tier": 1,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 3,
-            "status": "Blinded",
-            "apply_count": 1
-          },
-          {
-            "text": "Number of Targets",
-            "type": "Number",
-            "value": 5
-          },
-          {
-            "text": "Radius",
-            "type": "Distance",
-            "distance": 240
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 4,
-            "status": "Light Aura",
-            "apply_count": 1
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 571,
@@ -420,19 +165,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Radiance",
         "tier": 2,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Recharge",
-            "type": "Recharge",
-            "value": 1
-          },
-          {
-            "text": "Recharge Reduced",
-            "type": "Percent",
-            "percent": 100
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 568,
@@ -442,19 +175,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Radiance",
         "tier": 3,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "type": "AttributeAdjust",
-            "value": 150,
-            "target": "CritDamage"
-          },
-          {
-            "text": "Critical Chance Increase",
-            "type": "Percent",
-            "percent": 10
-          }
-        ]
+        "slot": "Minor"
       }
     ],
     "majorTraits": [
@@ -467,28 +188,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Radiance",
           "tier": 1,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 10
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 0,
-              "status": "Burning",
-              "apply_count": 3
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 8,
-              "status": "Fury",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 566,
@@ -498,19 +198,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Radiance",
           "tier": 1,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "type": "AttributeAdjust",
-              "value": 80,
-              "target": "Precision"
-            },
-            {
-              "type": "AttributeAdjust",
-              "value": 80,
-              "target": "Power"
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 574,
@@ -520,21 +208,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Radiance",
           "tier": 1,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 20
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 8,
-              "status": "Resolution",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -546,8 +220,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Radiance",
           "tier": 2,
           "position": 1,
-          "slot": "Major",
-          "facts": []
+          "slot": "Major"
         },
         {
           "id": 567,
@@ -557,34 +230,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Radiance",
           "tier": 2,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Maximum Count",
-              "type": "Number",
-              "value": 2
-            },
-            {
-              "text": "Zealot's Flame base burning duration increase",
-              "type": "Percent",
-              "percent": 50
-            },
-            {
-              "text": "Duration Increase",
-              "type": "Percent",
-              "percent": 20
-            },
-            {
-              "text": "Duration Increase",
-              "type": "Percent",
-              "percent": 7
-            },
-            {
-              "text": "Recharge Reduced",
-              "type": "Percent",
-              "percent": 20
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 565,
@@ -594,14 +240,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Radiance",
           "tier": 2,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 10
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -613,24 +252,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Radiance",
           "tier": 3,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 10
-            },
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 15
-            },
-            {
-              "text": "Duration Increase",
-              "type": "Percent",
-              "percent": 20
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 579,
@@ -640,14 +262,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Radiance",
           "tier": 3,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Effectiveness Increased",
-              "type": "Percent",
-              "percent": 20
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1683,
@@ -657,36 +272,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Radiance",
           "tier": 3,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 6,
-              "status": "Might",
-              "apply_count": 1
-            },
-            {
-              "text": "Boon Application Interval",
-              "type": "Time",
-              "duration": 1
-            },
-            {
-              "text": "Boon Application Interval",
-              "type": "Time",
-              "duration": 3
-            },
-            {
-              "text": "Critical Chance Increase",
-              "type": "Percent",
-              "percent": 25
-            },
-            {
-              "text": "Critical Chance Increase",
-              "type": "Percent",
-              "percent": 40
-            }
-          ]
+          "slot": "Major"
         }
       ]
     ]
@@ -706,26 +292,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Valor",
         "tier": 1,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Recharge",
-            "type": "Recharge",
-            "value": 30
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 5,
-            "status": "Aegis",
-            "apply_count": 1
-          },
-          {
-            "text": "Health Threshold",
-            "type": "Percent",
-            "percent": 50
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 594,
@@ -735,23 +302,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Valor",
         "tier": 2,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 3,
-            "status": "Protection",
-            "apply_count": 1
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 1,
-            "status": "Protection",
-            "apply_count": 1
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 583,
@@ -761,21 +312,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Valor",
         "tier": 3,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Recharge",
-            "type": "Recharge",
-            "value": 1
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 15,
-            "status": "Might",
-            "apply_count": 2
-          }
-        ]
+        "slot": "Minor"
       }
     ],
     "majorTraits": [
@@ -788,29 +325,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Valor",
           "tier": 1,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 10
-            },
-            {
-              "text": "Degeneration Decrease",
-              "type": "Percent",
-              "percent": 33
-            },
-            {
-              "text": "Conditions Removed",
-              "type": "Number",
-              "value": 1
-            },
-            {
-              "text": "Interval",
-              "type": "Time",
-              "duration": 10
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 581,
@@ -820,8 +335,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Valor",
           "tier": 1,
           "position": 2,
-          "slot": "Major",
-          "facts": []
+          "slot": "Major"
         },
         {
           "id": 633,
@@ -831,35 +345,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Valor",
           "tier": 1,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge Reduced",
-              "type": "Percent",
-              "percent": 20
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Protection",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Protection",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Resolution",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -871,19 +357,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Valor",
           "tier": 2,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "type": "AttributeAdjust",
-              "value": 240,
-              "target": "Toughness"
-            },
-            {
-              "text": "Recharge Reduced",
-              "type": "Percent",
-              "percent": 20
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 584,
@@ -893,8 +367,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Valor",
           "tier": 2,
           "position": 2,
-          "slot": "Major",
-          "facts": []
+          "slot": "Major"
         },
         {
           "id": 1684,
@@ -904,31 +377,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Valor",
           "tier": 2,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 15
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 5,
-              "status": "Aegis",
-              "apply_count": 1
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 360
-            },
-            {
-              "text": "Number of Allied Targets",
-              "type": "Number",
-              "value": 5
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -940,15 +389,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Valor",
           "tier": 3,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 69,
-              "target": "Healing"
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 586,
@@ -958,45 +399,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Valor",
           "tier": 3,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 1960,
-              "target": "Healing"
-            },
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 1720,
-              "target": "Healing"
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Fury",
-              "apply_count": 1
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 240
-            },
-            {
-              "text": "Number of Targets",
-              "type": "Number",
-              "value": 5
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Resolution",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 589,
@@ -1006,14 +409,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Valor",
           "tier": 3,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge Time Reduced",
-              "type": "Time",
-              "duration": 1
-            }
-          ]
+          "slot": "Major"
         }
       ]
     ]
@@ -1033,16 +429,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Honor",
         "tier": 1,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 3,
-            "status": "Vigor",
-            "apply_count": 1
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 551,
@@ -1052,25 +439,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Honor",
         "tier": 2,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Healing",
-            "type": "AttributeAdjust",
-            "value": 129,
-            "target": "Healing"
-          },
-          {
-            "text": "Number of Targets",
-            "type": "Number",
-            "value": 5
-          },
-          {
-            "text": "Radius",
-            "type": "Distance",
-            "distance": 240
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 1685,
@@ -1080,14 +449,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Honor",
         "tier": 3,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Endurance Regeneration Increase",
-            "type": "Percent",
-            "percent": 15
-          }
-        ]
+        "slot": "Minor"
       }
     ],
     "majorTraits": [
@@ -1100,31 +462,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Honor",
           "tier": 1,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 20,
-              "status": "Invigorated Bulwark",
-              "apply_count": 1
-            },
-            {
-              "text": "Maximum Stacks",
-              "type": "Number",
-              "value": 5
-            },
-            {
-              "text": "Recharge Reduced",
-              "type": "Percent",
-              "percent": 20
-            },
-            {
-              "text": "Duration Increase",
-              "type": "Percent",
-              "percent": 33
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 559,
@@ -1134,19 +472,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Honor",
           "tier": 1,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Revive Percentage",
-              "type": "Percent",
-              "percent": 15
-            },
-            {
-              "text": "Revive Percentage",
-              "type": "Percent",
-              "percent": 3
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 654,
@@ -1156,8 +482,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Honor",
           "tier": 1,
           "position": 3,
-          "slot": "Major",
-          "facts": []
+          "slot": "Major"
         }
       ],
       [
@@ -1169,31 +494,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Honor",
           "tier": 2,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge Reduced",
-              "type": "Percent",
-              "percent": 20
-            },
-            {
-              "text": "Concentration",
-              "type": "AttributeAdjust",
-              "value": 120,
-              "target": "BoonDuration"
-            },
-            {
-              "text": "Concentration",
-              "type": "AttributeAdjust",
-              "value": 60,
-              "target": "BoonDuration"
-            },
-            {
-              "text": "Endurance Gained",
-              "type": "Number",
-              "value": 50
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 549,
@@ -1203,27 +504,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Honor",
           "tier": 2,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 645,
-              "target": "Healing"
-            },
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 516,
-              "target": "Healing"
-            },
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 516,
-              "target": "Healing"
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 562,
@@ -1233,31 +514,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Honor",
           "tier": 2,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 8,
-              "status": "Might",
-              "apply_count": 1
-            },
-            {
-              "text": "Number of Targets",
-              "type": "Number",
-              "value": 5
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 600
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -1269,14 +526,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Honor",
           "tier": 3,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Conditions Converted to Boons",
-              "type": "Number",
-              "value": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 558,
@@ -1286,37 +536,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Honor",
           "tier": 3,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Duration Increase",
-              "type": "Time",
-              "duration": 2
-            },
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 107,
-              "target": "Healing"
-            },
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 102,
-              "target": "Healing"
-            },
-            {
-              "text": "Radius Increase",
-              "type": "Number",
-              "value": 60
-            },
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 102,
-              "target": "Healing"
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1682,
@@ -1326,26 +546,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Honor",
           "tier": 3,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Healing Increase to Others per 100 Vitality",
-              "type": "Percent",
-              "percent": 1
-            },
-            {
-              "text": "Healing Increase to Others per 100 Vitality",
-              "type": "Percent",
-              "percent": 0.5
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 0,
-              "status": "Force of Will",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         }
       ]
     ]
@@ -1365,68 +566,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Virtues",
         "tier": 1,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Bonus Damage per Boon",
-            "type": "Percent",
-            "percent": 0.5
-          },
-          {
-            "text": "Bonus Damage per Boon",
-            "type": "Percent",
-            "percent": 1
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "PrefixedBuff",
-            "duration": 5,
-            "status": "Might",
-            "apply_count": 3,
-            "prefix": {
-              "text": "Apply Buff/Condition",
-              "icon": "https://render.guildwars2.com/file/0E4C27902671FBCB33713E3677604B0880EF0D60/103034.png",
-              "status": "Virtue of Justice",
-              "description": "<c=@abilitytype>Virtue:</c> Burn foes every few attacks.<br><c=@abilitytype>Activate:</c> You and your allies inflict burning on the next attack."
-            }
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "PrefixedBuff",
-            "duration": 5,
-            "status": "Regeneration",
-            "apply_count": 1,
-            "prefix": {
-              "text": "Apply Buff/Condition",
-              "icon": "https://render.guildwars2.com/file/F12B07B5466A51AB2BFD2C0CB8F3994D3F9E610C/103652.png",
-              "status": "Virtue of Resolve",
-              "description": "<c=@abilitytype>Virtue:</c> Regenerates health.</c><br><c=@abilitytype>Activate:</c> Heal yourself and nearby allies."
-            }
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "PrefixedBuff",
-            "duration": 5,
-            "status": "Protection",
-            "apply_count": 1,
-            "prefix": {
-              "text": "Apply Buff/Condition",
-              "icon": "https://render.guildwars2.com/file/1B55CBCB3E1165FD5D0C7BC3CBEEB65C5BD9D07C/103258.png",
-              "status": "Virtue of Courage",
-              "description": "<c=@abilitytype>Virtue:</c> Gain aegis periodically.<br><c=@abilitytype>Activate:</c> Grant aegis to yourself and nearby allies."
-            }
-          },
-          {
-            "text": "Number of Targets",
-            "type": "Number",
-            "value": 5
-          },
-          {
-            "text": "Radius",
-            "type": "Distance",
-            "distance": 1200
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 604,
@@ -1436,21 +576,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Virtues",
         "tier": 2,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 3,
-            "status": "Resolution",
-            "apply_count": 1
-          },
-          {
-            "text": "Duration Increase",
-            "type": "Percent",
-            "percent": 25
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 620,
@@ -1460,28 +586,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Virtues",
         "tier": 3,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Attribute Conversion",
-            "type": "BuffConversion",
-            "percent": 13,
-            "source": "Vitality",
-            "target": "ConditionDamage"
-          },
-          {
-            "text": "Recharge Reduced",
-            "type": "Percent",
-            "percent": 15
-          },
-          {
-            "text": "Attribute Conversion",
-            "type": "BuffConversion",
-            "percent": 7,
-            "source": "Vitality",
-            "target": "ConditionDamage"
-          }
-        ]
+        "slot": "Minor"
       }
     ],
     "majorTraits": [
@@ -1494,34 +599,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Virtues",
           "tier": 1,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage Increase with Aegis",
-              "type": "Percent",
-              "percent": 5
-            },
-            {
-              "text": "Damage Increase above Health Threshold",
-              "type": "Percent",
-              "percent": 5
-            },
-            {
-              "text": "Damage Increase with Aegis",
-              "type": "Percent",
-              "percent": 7
-            },
-            {
-              "text": "Damage Increase above Health Threshold",
-              "type": "Percent",
-              "percent": 7
-            },
-            {
-              "text": "Health Threshold",
-              "type": "Percent",
-              "percent": 90
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 625,
@@ -1531,35 +609,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Virtues",
           "tier": 1,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 30
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Resolution",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Resolution",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Aegis",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 617,
@@ -1569,14 +619,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Virtues",
           "tier": 1,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Duration Increase",
-              "type": "Time",
-              "duration": 2
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -1588,16 +631,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Virtues",
           "tier": 2,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 6,
-              "status": "Inspiring Virtue",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 610,
@@ -1607,31 +641,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Virtues",
           "tier": 2,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Virtue of Resolve",
-              "apply_count": 1
-            },
-            {
-              "text": "Healing Increase",
-              "type": "Percent",
-              "percent": 25
-            },
-            {
-              "text": "Conditions Removed",
-              "type": "Number",
-              "value": 3
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 600
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 587,
@@ -1641,30 +651,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Virtues",
           "tier": 2,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 0.5
-            },
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 647,
-              "target": "Healing"
-            },
-            {
-              "text": "Number of Allied Targets",
-              "type": "Number",
-              "value": 5
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 300
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -1676,50 +663,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Virtues",
           "tier": 3,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Burning",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Burning",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Burning",
-              "apply_count": 1
-            },
-            {
-              "text": "Number of Attacks to Trigger",
-              "type": "Number",
-              "value": 3
-            },
-            {
-              "text": "Number of Targets",
-              "type": "Number",
-              "value": 5
-            },
-            {
-              "text": "Number of Targets",
-              "type": "Number",
-              "value": 3
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 240
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 554,
@@ -1729,21 +673,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Virtues",
           "tier": 3,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Virtue of Resolve",
-              "apply_count": 1
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 600
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 612,
@@ -1753,35 +683,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Virtues",
           "tier": 3,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Stability",
-              "apply_count": 3
-            },
-            {
-              "text": "Breaks Stun",
-              "type": "NoData"
-            },
-            {
-              "text": "Number of Targets",
-              "type": "Number",
-              "value": 5
-            },
-            {
-              "text": "Interval",
-              "type": "Time",
-              "duration": 30
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 600
-            }
-          ]
+          "slot": "Major"
         }
       ]
     ]
@@ -1801,8 +703,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Dragonhunter",
         "tier": 1,
         "position": 0,
-        "slot": "Minor",
-        "facts": []
+        "slot": "Minor"
       },
       {
         "id": 1896,
@@ -1812,24 +713,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Dragonhunter",
         "tier": 2,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Recharge",
-            "type": "Recharge",
-            "value": 1
-          },
-          {
-            "text": "Recharge Time Reduced",
-            "type": "Time",
-            "duration": 3
-          },
-          {
-            "type": "AttributeAdjust",
-            "value": 180,
-            "target": "Vitality"
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 1926,
@@ -1839,29 +723,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Dragonhunter",
         "tier": 3,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Minimum Bonus Damage",
-            "type": "Percent",
-            "percent": 5
-          },
-          {
-            "text": "Minimum Bonus Damage",
-            "type": "Percent",
-            "percent": 7
-          },
-          {
-            "text": "Minimum Bonus Damage",
-            "type": "Percent",
-            "percent": 10
-          },
-          {
-            "text": "Maximum Bonus Damage",
-            "type": "Percent",
-            "percent": 15
-          }
-        ]
+        "slot": "Minor"
       }
     ],
     "majorTraits": [
@@ -1874,16 +736,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Dragonhunter",
           "tier": 1,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Aegis",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1983,
@@ -1893,16 +746,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Dragonhunter",
           "tier": 1,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Crippled",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1911,
@@ -1912,33 +756,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Dragonhunter",
           "tier": 1,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage",
-              "type": "Damage",
-              "hit_count": 1,
-              "dmg_multiplier": 1.5
-            },
-            {
-              "text": "Damage",
-              "type": "Damage",
-              "hit_count": 1,
-              "dmg_multiplier": 0.5
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Immobile",
-              "apply_count": 1
-            },
-            {
-              "text": "Movement Speed Increase",
-              "type": "Percent",
-              "percent": 25
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -1950,14 +768,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Dragonhunter",
           "tier": 2,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Endurance Gained",
-              "type": "Number",
-              "value": 100
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1835,
@@ -1967,26 +778,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Dragonhunter",
           "tier": 2,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 10
-            },
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 10
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Crippled",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1943,
@@ -1996,24 +788,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Dragonhunter",
           "tier": 2,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Radius Increase",
-              "type": "Percent",
-              "percent": 33
-            },
-            {
-              "text": "Duration Increase",
-              "type": "Time",
-              "duration": 2
-            },
-            {
-              "text": "Duration Increase",
-              "type": "Time",
-              "duration": 1
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -2025,25 +800,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Dragonhunter",
           "tier": 3,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 1
-            },
-            {
-              "text": "Conditions Removed",
-              "type": "Number",
-              "value": 1
-            },
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 453,
-              "target": "Healing"
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1963,
@@ -2053,41 +810,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Dragonhunter",
           "tier": 3,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 6,
-              "status": "Stability",
-              "apply_count": 1
-            },
-            {
-              "text": "Damage Increase to Disabled or Exposed Foes",
-              "type": "Percent",
-              "percent": 20
-            },
-            {
-              "text": "Damage Increase to Defiant Foes",
-              "type": "Percent",
-              "percent": 15
-            },
-            {
-              "text": "Damage Increase to Disabled or Exposed Foes",
-              "type": "Percent",
-              "percent": 15
-            },
-            {
-              "text": "Damage Increase to Defiant Foes",
-              "type": "Percent",
-              "percent": 10
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 1955,
@@ -2097,36 +820,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Dragonhunter",
           "tier": 3,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 25
-            },
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 15
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 10,
-              "status": "Vulnerability",
-              "apply_count": 1
-            },
-            {
-              "text": "Duration Increase",
-              "type": "Percent",
-              "percent": 100
-            },
-            {
-              "text": "Duration Increase",
-              "type": "Percent",
-              "percent": 66
-            }
-          ]
+          "slot": "Major"
         }
       ]
     ]
@@ -2146,14 +840,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Firebrand",
         "tier": 1,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Interval",
-            "type": "Time",
-            "duration": 8
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 2062,
@@ -2163,28 +850,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Firebrand",
         "tier": 2,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 3,
-            "status": "Quickness",
-            "apply_count": 1
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 2,
-            "status": "Quickness",
-            "apply_count": 1
-          },
-          {
-            "text": "Pages",
-            "type": "Number",
-            "value": 1
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 2148,
@@ -2194,39 +860,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Firebrand",
         "tier": 3,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "type": "AttributeAdjust",
-            "value": 250,
-            "target": "ConditionDamage"
-          },
-          {
-            "type": "AttributeAdjust",
-            "value": 250,
-            "target": "Healing"
-          },
-          {
-            "type": "AttributeAdjust",
-            "value": 250,
-            "target": "Vitality"
-          },
-          {
-            "type": "AttributeAdjust",
-            "value": 150,
-            "target": "ConditionDamage"
-          },
-          {
-            "type": "AttributeAdjust",
-            "value": 150,
-            "target": "Healing"
-          },
-          {
-            "type": "AttributeAdjust",
-            "value": 150,
-            "target": "Vitality"
-          }
-        ]
+        "slot": "Minor"
       }
     ],
     "majorTraits": [
@@ -2239,28 +873,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Firebrand",
           "tier": 1,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Chance on Hit",
-              "type": "Percent",
-              "percent": 100
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 5,
-              "status": "Bleeding",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Bleeding",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2101,
@@ -2270,31 +883,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Firebrand",
           "tier": 1,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 7
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Quickness",
-              "apply_count": 1
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 360
-            },
-            {
-              "text": "Number of Allied Targets",
-              "type": "Number",
-              "value": 5
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2086,
@@ -2304,14 +893,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Firebrand",
           "tier": 1,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Additional Charges",
-              "type": "Number",
-              "value": 3
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -2323,21 +905,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Firebrand",
           "tier": 2,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Slow",
-              "apply_count": 1
-            },
-            {
-              "text": "Pages",
-              "type": "Number",
-              "value": 2
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2076,
@@ -2347,21 +915,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Firebrand",
           "tier": 2,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 7
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Quickness",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2116,
@@ -2371,113 +925,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Firebrand",
           "tier": 2,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 10,
-              "status": "Might",
-              "apply_count": 2,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/2710AF269B38A4A365089BC7B3C9389B354DE59D/1770472.png",
-                "status": "Tome of Justice",
-                "description": "<c=@abilitytype>Virtue: </c>Burn foes every few attacks.<br><c=@abilitytype>Activate: </c>Pull forth a magical tome on the dangers of the blazing heat in Kourna."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 8,
-              "status": "Might",
-              "apply_count": 2,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/2710AF269B38A4A365089BC7B3C9389B354DE59D/1770472.png",
-                "status": "Tome of Justice",
-                "description": "<c=@abilitytype>Virtue: </c>Burn foes every few attacks.<br><c=@abilitytype>Activate: </c>Pull forth a magical tome on the dangers of the blazing heat in Kourna."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 6,
-              "status": "Regeneration",
-              "apply_count": 1,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/E206770FD62BB63B71F56209F34BF99392BADF9E/1770478.png",
-                "status": "Tome of Resolve",
-                "description": "<c=@abilitytype>Virtue: </c>Regenerate health.<br><c=@abilitytype>Activate: </c>Draw forth an enchanted tome that recounts the trials undergone by the people of Vabbi."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 3,
-              "status": "Regeneration",
-              "apply_count": 1,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/E206770FD62BB63B71F56209F34BF99392BADF9E/1770478.png",
-                "status": "Tome of Resolve",
-                "description": "<c=@abilitytype>Virtue: </c>Regenerate health.<br><c=@abilitytype>Activate: </c>Draw forth an enchanted tome that recounts the trials undergone by the people of Vabbi."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 4,
-              "status": "Regeneration",
-              "apply_count": 1,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/E206770FD62BB63B71F56209F34BF99392BADF9E/1770478.png",
-                "status": "Tome of Resolve",
-                "description": "<c=@abilitytype>Virtue: </c>Regenerate health.<br><c=@abilitytype>Activate: </c>Draw forth an enchanted tome that recounts the trials undergone by the people of Vabbi."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 4,
-              "status": "Protection",
-              "apply_count": 1,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/49B3D2E829962602205B09619770E1650BF07108/1770466.png",
-                "status": "Tome of Courage",
-                "description": "<c=@abilitytype>Virtue: </c>Gain aegis periodically. <br><c=@abilitytype>Activate:</c> Conjure a mystic tome containing stories about the heroes of Istan."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 2,
-              "status": "Protection",
-              "apply_count": 1,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/49B3D2E829962602205B09619770E1650BF07108/1770466.png",
-                "status": "Tome of Courage",
-                "description": "<c=@abilitytype>Virtue: </c>Gain aegis periodically. <br><c=@abilitytype>Activate:</c> Conjure a mystic tome containing stories about the heroes of Istan."
-              }
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "PrefixedBuff",
-              "duration": 3,
-              "status": "Protection",
-              "apply_count": 1,
-              "prefix": {
-                "text": "Apply Buff/Condition",
-                "icon": "https://render.guildwars2.com/file/49B3D2E829962602205B09619770E1650BF07108/1770466.png",
-                "status": "Tome of Courage",
-                "description": "<c=@abilitytype>Virtue: </c>Gain aegis periodically. <br><c=@abilitytype>Activate:</c> Conjure a mystic tome containing stories about the heroes of Istan."
-              }
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -2489,33 +937,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Firebrand",
           "tier": 3,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Resistance",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 10,
-              "status": "Might",
-              "apply_count": 3
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 300
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2179,
@@ -2525,35 +947,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Firebrand",
           "tier": 3,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge",
-              "type": "Recharge",
-              "value": 7
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 10,
-              "status": "Ashes of the Just",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Burning",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Burning",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2159,
@@ -2563,19 +957,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Firebrand",
           "tier": 3,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Interval",
-              "type": "Time",
-              "duration": 6
-            },
-            {
-              "text": "Interval",
-              "type": "Time",
-              "duration": 5
-            }
-          ]
+          "slot": "Major"
         }
       ]
     ]
@@ -2595,8 +977,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Willbender",
         "tier": 1,
         "position": 0,
-        "slot": "Minor",
-        "facts": []
+        "slot": "Minor"
       },
       {
         "id": 2222,
@@ -2606,21 +987,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Willbender",
         "tier": 2,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 5,
-            "status": "Swiftness",
-            "apply_count": 1
-          },
-          {
-            "text": "Movement Speed Increase",
-            "type": "Percent",
-            "percent": 25
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 2189,
@@ -2630,21 +997,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Willbender",
         "tier": 3,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 6,
-            "status": "Lethal Tempo",
-            "apply_count": 1
-          },
-          {
-            "text": "Maximum Stacks",
-            "type": "Number",
-            "value": 5
-          }
-        ]
+        "slot": "Minor"
       }
     ],
     "majorTraits": [
@@ -2657,28 +1010,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Willbender",
           "tier": 1,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "type": "AttributeAdjust",
-              "value": 120,
-              "target": "ConditionDamage"
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 1,
-              "status": "Burning",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Burning",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2190,
@@ -2688,24 +1020,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Willbender",
           "tier": 1,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 100
-            },
-            {
-              "type": "AttributeAdjust",
-              "value": 120,
-              "target": "Power"
-            },
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 200
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2187,
@@ -2715,20 +1030,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Willbender",
           "tier": 1,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "type": "AttributeAdjust",
-              "value": 180,
-              "target": "Vitality"
-            },
-            {
-              "text": "Healing",
-              "type": "AttributeAdjust",
-              "value": 272,
-              "target": "Healing"
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -2740,21 +1042,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Willbender",
           "tier": 2,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Vigor",
-              "apply_count": 1
-            },
-            {
-              "text": "Recharge Time Reduced",
-              "type": "Time",
-              "duration": 0
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2210,
@@ -2764,47 +1052,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Willbender",
           "tier": 2,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 15,
-              "status": "Might",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 8,
-              "status": "Might",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Might",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Fury",
-              "apply_count": 1
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 360
-            },
-            {
-              "text": "Number of Targets",
-              "type": "Number",
-              "value": 5
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2199,
@@ -2814,30 +1062,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Willbender",
           "tier": 2,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Protection",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Resolution",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Resistance",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -2849,63 +1074,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Willbender",
           "tier": 3,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 1,
-              "status": "Alacrity",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Alacrity",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Regeneration",
-              "apply_count": 1
-            },
-            {
-              "text": "Resolve Duration Increase",
-              "type": "Time",
-              "duration": 2
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 5,
-              "status": "Alacrity",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Alacrity",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 2,
-              "status": "Resolution",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Resolution",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2201,
@@ -2915,41 +1084,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Willbender",
           "tier": 3,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 0,
-              "status": "Lethal Tempo",
-              "apply_count": 1
-            },
-            {
-              "text": "Strike Damage Increase",
-              "type": "Percent",
-              "percent": 3
-            },
-            {
-              "text": "Condition Damage Increase",
-              "type": "Percent",
-              "percent": 1
-            },
-            {
-              "text": "Damage Increase",
-              "type": "Percent",
-              "percent": 2
-            },
-            {
-              "text": "Lethal Tempo Duration Reduction",
-              "type": "Time",
-              "duration": 2
-            },
-            {
-              "text": "Justice Duration Increase",
-              "type": "Time",
-              "duration": 2
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2198,
@@ -2959,29 +1094,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Willbender",
           "tier": 3,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Damage Reduced",
-              "type": "Percent",
-              "percent": 20
-            },
-            {
-              "text": "Condition Damage Reduced",
-              "type": "Percent",
-              "percent": 20
-            },
-            {
-              "text": "Damage Reduced",
-              "type": "Percent",
-              "percent": 50
-            },
-            {
-              "text": "Condition Damage Reduced",
-              "type": "Percent",
-              "percent": 50
-            }
-          ]
+          "slot": "Major"
         }
       ]
     ]
@@ -3001,8 +1114,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Luminary",
         "tier": 1,
         "position": 0,
-        "slot": "Minor",
-        "facts": []
+        "slot": "Minor"
       },
       {
         "id": 2394,
@@ -3012,38 +1124,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Luminary",
         "tier": 2,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "type": "AttributeAdjust",
-            "value": 180,
-            "target": "Vitality"
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 6,
-            "status": "Luminary's Blessing",
-            "apply_count": 1
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 3,
-            "status": "Luminary's Blessing",
-            "apply_count": 1
-          },
-          {
-            "text": "Number of Targets",
-            "type": "Number",
-            "value": 5
-          },
-          {
-            "text": "Radius",
-            "type": "Distance",
-            "distance": 300
-          }
-        ]
+        "slot": "Minor"
       },
       {
         "id": 2435,
@@ -3053,42 +1134,7 @@ export const SPECIALIZATIONS = [
         "specialization": "Luminary",
         "tier": 3,
         "position": 0,
-        "slot": "Minor",
-        "facts": [
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 10,
-            "status": "Radiant Armaments",
-            "apply_count": 1
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 10,
-            "status": "Radiant Armaments",
-            "apply_count": 1
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 10,
-            "status": "Radiant Armaments",
-            "apply_count": 1
-          },
-          {
-            "text": "Apply Buff/Condition",
-            "type": "Buff",
-            "duration": 10,
-            "status": "Radiant Armaments",
-            "apply_count": 1
-          },
-          {
-            "text": "Damage Reduced",
-            "type": "Percent",
-            "percent": 10
-          }
-        ]
+        "slot": "Minor"
       }
     ],
     "majorTraits": [
@@ -3101,23 +1147,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Luminary",
           "tier": 1,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Protection",
-              "apply_count": 1
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 3,
-              "status": "Blinded",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2417,
@@ -3127,19 +1157,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Luminary",
           "tier": 1,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Condition Damage Reduced",
-              "type": "Percent",
-              "percent": 10
-            },
-            {
-              "text": "Condition Damage Reduced",
-              "type": "Percent",
-              "percent": 5
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2329,
@@ -3149,8 +1167,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Luminary",
           "tier": 1,
           "position": 3,
-          "slot": "Major",
-          "facts": []
+          "slot": "Major"
         }
       ],
       [
@@ -3162,22 +1179,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Luminary",
           "tier": 2,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "type": "BuffArray"
-            },
-            {
-              "text": "Number of Targets",
-              "type": "Number",
-              "value": 5
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 600
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2401,
@@ -3187,31 +1189,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Luminary",
           "tier": 2,
           "position": 2,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Conditions Removed",
-              "type": "Number",
-              "value": 1
-            },
-            {
-              "text": "Number of Targets",
-              "type": "Number",
-              "value": 5
-            },
-            {
-              "text": "Radius",
-              "type": "Distance",
-              "distance": 300
-            },
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 4,
-              "status": "Light Aura",
-              "apply_count": 1
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2419,
@@ -3221,21 +1199,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Luminary",
           "tier": 2,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Apply Buff/Condition",
-              "type": "Buff",
-              "duration": 6,
-              "status": "Empowered Armaments",
-              "apply_count": 1
-            },
-            {
-              "text": "Maximum Duration",
-              "type": "Time",
-              "duration": 20
-            }
-          ]
+          "slot": "Major"
         }
       ],
       [
@@ -3247,24 +1211,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Luminary",
           "tier": 3,
           "position": 1,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge Time Reduced",
-              "type": "Time",
-              "duration": 4
-            },
-            {
-              "text": "Recharge Time Reduced",
-              "type": "Time",
-              "duration": 3
-            },
-            {
-              "text": "Recharge Time Reduced",
-              "type": "Time",
-              "duration": 2
-            }
-          ]
+          "slot": "Major"
         },
         {
           "id": 2328,
@@ -3274,8 +1221,7 @@ export const SPECIALIZATIONS = [
           "specialization": "Luminary",
           "tier": 3,
           "position": 2,
-          "slot": "Major",
-          "facts": []
+          "slot": "Major"
         },
         {
           "id": 2388,
@@ -3285,23 +1231,12 @@ export const SPECIALIZATIONS = [
           "specialization": "Luminary",
           "tier": 3,
           "position": 3,
-          "slot": "Major",
-          "facts": [
-            {
-              "text": "Recharge Reduced",
-              "type": "Percent",
-              "percent": 100
-            }
-          ]
+          "slot": "Major"
         }
       ]
     ]
   }
 ];
-export const TRAITS = SPECIALIZATIONS.flatMap(specialization => [
-  ...specialization.minorTraits,
-  ...specialization.majorTraits.flat(),
-]);
 export const SKILLS = [
   {
     "id": 9080,
@@ -3317,16 +1252,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2,
-        "coefficientPerHit": 2,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9081,
@@ -3342,22 +1268,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.4499999999999997,
-        "coefficientPerHit": 0.35,
-        "hits": 7,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.275,
-        "coefficientPerHit": 0.275,
-        "hits": 1,
-        "text": "Projectile Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9082,
@@ -3373,16 +1284,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.5,
-        "coefficientPerHit": 2.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9083,
@@ -3400,9 +1302,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9084,
@@ -3420,9 +1320,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 24,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9085,
@@ -3440,9 +1338,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9086,
@@ -3458,16 +1354,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2,
-        "coefficientPerHit": 2,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9087,
@@ -3483,16 +1370,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9088,
@@ -3508,23 +1386,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 4,
-        "coefficientPerHit": 0.4,
-        "hits": 10,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 4,
-        "stacks": 2,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 9089,
@@ -3540,23 +1402,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.25,
-        "coefficientPerHit": 2.25,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 3,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 9090,
@@ -3574,34 +1420,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.2,
-        "coefficientPerHit": 0.2,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.33,
-        "coefficientPerHit": 0.33,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Symbol Damage"
-      },
-      {
-        "coefficient": 0.28,
-        "coefficientPerHit": 0.28,
-        "hits": 1,
-        "text": "Symbol Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9091,
@@ -3617,9 +1436,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 9224,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 9224
   },
   {
     "id": 9093,
@@ -3637,16 +1454,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9097,
@@ -3664,16 +1472,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3.25,
-        "coefficientPerHit": 0.65,
-        "hits": 5,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9098,
@@ -3689,22 +1488,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.666,
-        "coefficientPerHit": 0.666,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.6,
-        "coefficientPerHit": 0.6,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9099,
@@ -3720,16 +1504,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.25,
-        "coefficientPerHit": 0.25,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9102,
@@ -3745,9 +1520,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9104,
@@ -3763,16 +1536,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 9089,
-    "apiDamage": [],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 3,
-        "stacks": 4,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 9089
   },
   {
     "id": 9105,
@@ -3788,16 +1552,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 9106,
-    "flipSkillId": 9106,
-    "apiDamage": [
-      {
-        "coefficient": 0.75,
-        "coefficientPerHit": 0.75,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 9106
   },
   {
     "id": 9106,
@@ -3813,16 +1568,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 9227,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.8,
-        "coefficientPerHit": 0.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9107,
@@ -3838,22 +1584,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 4.8,
-        "coefficientPerHit": 0.6,
-        "hits": 8,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 2.64,
-        "coefficientPerHit": 0.33,
-        "hits": 8,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9108,
@@ -3869,16 +1600,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.55,
-        "coefficientPerHit": 1.55,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9109,
@@ -3894,16 +1616,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 9110,
-    "flipSkillId": 9110,
-    "apiDamage": [
-      {
-        "coefficient": 0.8,
-        "coefficientPerHit": 0.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 9110
   },
   {
     "id": 9110,
@@ -3919,16 +1632,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 9108,
-    "flipSkillId": 9108,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 9108
   },
   {
     "id": 9111,
@@ -3946,16 +1650,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3.25,
-        "coefficientPerHit": 0.65,
-        "hits": 5,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9112,
@@ -3971,16 +1666,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 4.050000000000001,
-        "coefficientPerHit": 0.675,
-        "hits": 6,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9115,
@@ -3998,28 +1684,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 29887,
-    "apiDamage": [],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 4,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 4,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 29887
   },
   {
     "id": 9118,
@@ -4037,9 +1702,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 9268,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 9268
   },
   {
     "id": 9120,
@@ -4057,9 +1720,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 9250,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 9250
   },
   {
     "id": 9122,
@@ -4075,16 +1736,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 51660,
-    "apiDamage": [
-      {
-        "coefficient": 0.65,
-        "coefficientPerHit": 0.65,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 51660
   },
   {
     "id": 9124,
@@ -4100,16 +1752,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3,
-        "coefficientPerHit": 3,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9125,
@@ -4127,22 +1770,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 20,
     "nextChainId": null,
-    "flipSkillId": 46170,
-    "apiDamage": [
-      {
-        "coefficient": 1.2,
-        "coefficientPerHit": 1.2,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.01,
-        "coefficientPerHit": 0.01,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 46170
   },
   {
     "id": 9128,
@@ -4160,9 +1788,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9137,
@@ -4178,16 +1804,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 9138,
-    "flipSkillId": 9138,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 9138
   },
   {
     "id": 9138,
@@ -4203,16 +1820,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 9139,
-    "flipSkillId": 9139,
-    "apiDamage": [
-      {
-        "coefficient": 1.1,
-        "coefficientPerHit": 1.1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 9139
   },
   {
     "id": 9139,
@@ -4228,22 +1836,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9140,
@@ -4259,16 +1852,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.8,
-        "coefficientPerHit": 1.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9143,
@@ -4286,16 +1870,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.5,
-        "coefficientPerHit": 0.5,
-        "hits": 5,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9144,
@@ -4313,9 +1888,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9146,
@@ -4333,22 +1906,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.8,
-        "coefficientPerHit": 0.8,
-        "hits": 1,
-        "text": "Initial Damage"
-      },
-      {
-        "coefficient": 2.6,
-        "coefficientPerHit": 0.65,
-        "hits": 4,
-        "text": "Symbol Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9147,
@@ -4364,16 +1922,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 9226,
-    "apiDamage": [
-      {
-        "coefficient": 2.5,
-        "coefficientPerHit": 2.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 9226
   },
   {
     "id": 9150,
@@ -4391,16 +1940,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9151,
@@ -4418,23 +1958,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.25,
-        "coefficientPerHit": 0.25,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 5,
-        "stacks": 3,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 9152,
@@ -4452,9 +1976,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 20,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9153,
@@ -4472,9 +1994,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9154,
@@ -4492,9 +2012,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 68666,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 68666
   },
   {
     "id": 9158,
@@ -4512,9 +2030,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9159,
@@ -4530,16 +2046,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 9160,
-    "flipSkillId": 9160,
-    "apiDamage": [
-      {
-        "coefficient": 0.8,
-        "coefficientPerHit": 0.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 9160
   },
   {
     "id": 9160,
@@ -4555,16 +2062,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 9161,
-    "flipSkillId": 9161,
-    "apiDamage": [
-      {
-        "coefficient": 0.8,
-        "coefficientPerHit": 0.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 9161
   },
   {
     "id": 9161,
@@ -4582,22 +2080,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Hammer Damage"
-      },
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 0.5,
-        "hits": 3,
-        "text": "Symbol Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9163,
@@ -4615,9 +2098,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9168,
@@ -4635,28 +2116,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 15,
     "nextChainId": null,
-    "flipSkillId": 44846,
-    "apiDamage": [
-      {
-        "coefficient": 2.88,
-        "coefficientPerHit": 0.72,
-        "hits": 4,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 3.2,
-        "coefficientPerHit": 0.8,
-        "hits": 4,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 1.8,
-        "coefficientPerHit": 0.45,
-        "hits": 4,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 44846
   },
   {
     "id": 9175,
@@ -4674,9 +2134,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 20,
     "nextChainId": null,
-    "flipSkillId": 43565,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 43565
   },
   {
     "id": 9182,
@@ -4694,16 +2152,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 25,
     "nextChainId": null,
-    "flipSkillId": 41571,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 41571
   },
   {
     "id": 9187,
@@ -4721,23 +2170,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.2000000000000002,
-        "coefficientPerHit": 0.2,
-        "hits": 6,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 6,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 9194,
@@ -4753,16 +2186,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 53482,
-    "apiDamage": [
-      {
-        "coefficient": 2.4,
-        "coefficientPerHit": 2.4,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 53482
   },
   {
     "id": 9195,
@@ -4780,9 +2204,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9224,
@@ -4798,9 +2220,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9226,
@@ -4816,9 +2236,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9227,
@@ -4834,16 +2252,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.6500000000000001,
-        "coefficientPerHit": 0.55,
-        "hits": 3,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9245,
@@ -4861,22 +2270,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.85,
-        "coefficientPerHit": 0.85,
-        "hits": 1,
-        "text": "Damage With No Conditions"
-      },
-      {
-        "coefficient": 1.9,
-        "coefficientPerHit": 1.9,
-        "hits": 1,
-        "text": "Damage With Condition"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9246,
@@ -4894,9 +2288,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9247,
@@ -4914,23 +2306,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 8,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 9248,
@@ -4948,9 +2324,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9250,
@@ -4968,9 +2342,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9251,
@@ -4988,9 +2360,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9253,
@@ -5008,9 +2378,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9260,
@@ -5026,16 +2394,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.25,
-        "coefficientPerHit": 2.25,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9265,
@@ -5051,9 +2410,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 9268,
@@ -5071,9 +2428,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 15834,
@@ -5089,16 +2444,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 21664,
@@ -5116,9 +2462,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 29630,
@@ -5134,16 +2478,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.8,
-        "coefficientPerHit": 1.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 29786,
@@ -5161,22 +2496,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.4,
-        "coefficientPerHit": 1.4,
-        "hits": 1,
-        "text": "Initial Damage"
-      },
-      {
-        "coefficient": 2.8,
-        "coefficientPerHit": 2.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 29789,
@@ -5194,29 +2514,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.38,
-        "coefficientPerHit": 1.38,
-        "hits": 1,
-        "text": "Initial Damage"
-      },
-      {
-        "coefficient": 0.5175,
-        "coefficientPerHit": 0.5175,
-        "hits": 1,
-        "text": "Symbol Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 12,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 29887,
@@ -5234,29 +2532,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 33134,
-    "apiDamage": [
-      {
-        "coefficient": 0.8,
-        "coefficientPerHit": 0.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 4,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 33134
   },
   {
     "id": 29965,
@@ -5274,9 +2550,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 68670,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 68670
   },
   {
     "id": 30025,
@@ -5294,16 +2568,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.1875,
-        "coefficientPerHit": 0.1875,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30229,
@@ -5319,16 +2584,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.8,
-        "coefficientPerHit": 2.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30273,
@@ -5346,16 +2602,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 68686,
-    "apiDamage": [
-      {
-        "coefficient": 3.6,
-        "coefficientPerHit": 3.6,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 68686
   },
   {
     "id": 30364,
@@ -5373,16 +2620,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 4.4,
-        "coefficientPerHit": 0.44,
-        "hits": 10,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30461,
@@ -5400,9 +2638,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 68676,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 68676
   },
   {
     "id": 30471,
@@ -5418,16 +2654,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30553,
@@ -5445,16 +2672,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30628,
@@ -5470,22 +2688,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.75,
-        "coefficientPerHit": 0.75,
-        "hits": 1,
-        "text": "Initial Damage"
-      },
-      {
-        "coefficient": 2.5,
-        "coefficientPerHit": 2.5,
-        "hits": 1,
-        "text": "Final Impact Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 30871,
@@ -5503,16 +2706,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.1875,
-        "coefficientPerHit": 0.1875,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 33134,
@@ -5528,9 +2722,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 40114,
@@ -5546,9 +2738,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 40624,
@@ -5566,23 +2756,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3,
-        "coefficientPerHit": 0.6,
-        "hits": 5,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Bleeding",
-        "duration": 3,
-        "stacks": 5,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 40915,
@@ -5600,9 +2774,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 42983,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 42983
   },
   {
     "id": 41380,
@@ -5618,9 +2790,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 41475,
@@ -5636,9 +2806,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 41571,
@@ -5656,16 +2824,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 25,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 41714,
@@ -5683,9 +2842,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 41475,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 41475
   },
   {
     "id": 41780,
@@ -5703,9 +2860,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 68648,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 68648
   },
   {
     "id": 41988,
@@ -5721,9 +2876,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 42259,
@@ -5741,9 +2894,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 68650,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 68650
   },
   {
     "id": 42360,
@@ -5759,16 +2910,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.7,
-        "coefficientPerHit": 0.7,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 42371,
@@ -5786,9 +2928,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 42864,
@@ -5804,9 +2944,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 44248,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 44248
   },
   {
     "id": 42983,
@@ -5822,9 +2960,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 41988,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 41988
   },
   {
     "id": 43357,
@@ -5842,9 +2978,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 40114,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 40114
   },
   {
     "id": 43565,
@@ -5862,9 +2996,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 43826,
@@ -5880,23 +3012,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.4,
-        "coefficientPerHit": 1.2,
-        "hits": 2,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 2,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 44080,
@@ -5914,9 +3030,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 42360,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 42360
   },
   {
     "id": 44248,
@@ -5932,9 +3046,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 44364,
@@ -5952,28 +3064,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 68647,
-    "apiDamage": [],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 4,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 1,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 68647
   },
   {
     "id": 44602,
@@ -5989,23 +3080,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 43826,
-    "flipSkillId": 43826,
-    "apiDamage": [
-      {
-        "coefficient": 0.72,
-        "coefficientPerHit": 0.36,
-        "hits": 2,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Bleeding",
-        "duration": 1,
-        "stacks": 2,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 43826
   },
   {
     "id": 44846,
@@ -6023,28 +3098,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 15,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.88,
-        "coefficientPerHit": 0.72,
-        "hits": 4,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 3.2,
-        "coefficientPerHit": 0.8,
-        "hits": 4,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 1.8,
-        "coefficientPerHit": 0.45,
-        "hits": 4,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 45047,
@@ -6060,23 +3114,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 44602,
-    "flipSkillId": 44602,
-    "apiDamage": [
-      {
-        "coefficient": 0.72,
-        "coefficientPerHit": 0.36,
-        "hits": 2,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Bleeding",
-        "duration": 1,
-        "stacks": 2,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 44602
   },
   {
     "id": 45082,
@@ -6092,29 +3130,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.7,
-        "coefficientPerHit": 0.7,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 12,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 45402,
@@ -6130,23 +3146,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.8,
-        "coefficientPerHit": 0.8,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 3,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 45460,
@@ -6164,9 +3164,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 42864,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 42864
   },
   {
     "id": 46148,
@@ -6184,9 +3182,7 @@ export const SKILLS = [
     "ammo": 3,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 45082,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 45082
   },
   {
     "id": 46170,
@@ -6204,22 +3200,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.2,
-        "coefficientPerHit": 1.2,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.01,
-        "coefficientPerHit": 0.01,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 51645,
@@ -6235,16 +3216,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.9,
-        "coefficientPerHit": 0.9,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 51660,
@@ -6260,16 +3232,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 51645,
-    "apiDamage": [
-      {
-        "coefficient": 0.75,
-        "coefficientPerHit": 0.75,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 51645
   },
   {
     "id": 53482,
@@ -6285,16 +3248,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.5,
-        "coefficientPerHit": 2.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62521,
@@ -6312,16 +3266,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62676,
-    "apiDamage": [
-      {
-        "coefficient": 0.33,
-        "coefficientPerHit": 0.33,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 62676
   },
   {
     "id": 62525,
@@ -6337,34 +3282,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.25,
-        "coefficientPerHit": 1.25,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 2.5,
-        "coefficientPerHit": 0.625,
-        "hits": 4,
-        "text": "Secondary Attacks"
-      },
-      {
-        "coefficient": 1.6,
-        "coefficientPerHit": 0.4,
-        "hits": 4,
-        "text": "Secondary Attacks"
-      },
-      {
-        "coefficient": 1.32,
-        "coefficientPerHit": 0.33,
-        "hits": 4,
-        "text": "Secondary Attacks"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62528,
@@ -6380,16 +3298,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.22,
-        "coefficientPerHit": 0.22,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62532,
@@ -6407,16 +3316,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Initial Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62549,
@@ -6434,16 +3334,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 15,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.75,
-        "coefficientPerHit": 0.75,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62561,
@@ -6461,16 +3352,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3,
-        "coefficientPerHit": 3,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62565,
@@ -6488,23 +3370,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 4,
-        "coefficientPerHit": 1,
-        "hits": 4,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 3,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 62603,
@@ -6522,9 +3388,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 20,
     "nextChainId": null,
-    "flipSkillId": 62528,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 62528
   },
   {
     "id": 62608,
@@ -6542,16 +3406,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62669,
-    "apiDamage": [
-      {
-        "coefficient": 4.5,
-        "coefficientPerHit": 0.9,
-        "hits": 5,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 62669
   },
   {
     "id": 62618,
@@ -6567,16 +3422,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.22,
-        "coefficientPerHit": 0.22,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62622,
@@ -6594,9 +3440,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 15,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62648,
@@ -6614,16 +3458,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62532,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Initial Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": 62532
   },
   {
     "id": 62650,
@@ -6639,16 +3474,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2.5,
-        "coefficientPerHit": 1.25,
-        "hits": 2,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62668,
@@ -6666,47 +3492,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62618,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Impact Damage"
-      },
-      {
-        "coefficient": 1.2,
-        "coefficientPerHit": 1.2,
-        "hits": 1,
-        "text": "Impact Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 4,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": 62618
   },
   {
     "id": 62669,
@@ -6722,9 +3508,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 62676,
@@ -6742,16 +3526,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1,
-        "coefficientPerHit": 1,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 68647,
@@ -6769,28 +3544,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 4,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 1,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 68648,
@@ -6808,9 +3562,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 68650,
@@ -6828,9 +3580,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 68666,
@@ -6848,9 +3598,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 68670,
@@ -6868,9 +3616,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 68676,
@@ -6888,9 +3634,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 68686,
@@ -6908,16 +3652,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3.6,
-        "coefficientPerHit": 3.6,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 71817,
@@ -6933,35 +3668,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3,
-        "coefficientPerHit": 3,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.01,
-        "coefficientPerHit": 0.01,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 6,
-        "stacks": 5,
-        "text": "Apply Buff/Condition"
-      },
-      {
-        "condition": "Burning",
-        "duration": 1,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 71918,
@@ -6977,23 +3684,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 10,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 0.3,
-        "hits": 5,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Bleeding",
-        "duration": 8,
-        "stacks": 5,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 71968,
@@ -7009,23 +3700,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.25,
-        "coefficientPerHit": 0.25,
-        "hits": 5,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 2,
-        "stacks": 5,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 71987,
@@ -7043,23 +3718,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2,
-        "coefficientPerHit": 0.4,
-        "hits": 5,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Burning",
-        "duration": 1,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 72031,
@@ -7075,23 +3734,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.6,
-        "coefficientPerHit": 0.6,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": [
-      {
-        "condition": "Bleeding",
-        "duration": 8,
-        "stacks": 1,
-        "text": "Apply Buff/Condition"
-      }
-    ]
+    "flipSkillId": null
   },
   {
     "id": 72940,
@@ -7107,16 +3750,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 8,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 72978,
@@ -7132,22 +3766,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Shock-Wave Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 73055,
@@ -7163,16 +3782,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.7,
-        "coefficientPerHit": 0.7,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 73094,
@@ -7188,22 +3798,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Damage"
-      },
-      {
-        "coefficient": 0.1,
-        "coefficientPerHit": 0.1,
-        "hits": 1,
-        "text": "Minimum Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 73132,
@@ -7219,22 +3814,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 1.5,
-        "coefficientPerHit": 1.5,
-        "hits": 1,
-        "text": "Initial Damage"
-      },
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Symbol Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76616,
@@ -7250,9 +3830,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76621,
@@ -7270,9 +3848,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76687,
@@ -7290,16 +3866,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 3,
-        "coefficientPerHit": 3,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 76813,
@@ -7317,28 +3884,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 0.5,
-        "coefficientPerHit": 0.5,
-        "hits": 1,
-        "text": "Minimum Damage"
-      },
-      {
-        "coefficient": 4,
-        "coefficientPerHit": 4,
-        "hits": 1,
-        "text": "Maximum Damage"
-      },
-      {
-        "coefficient": 2.1,
-        "coefficientPerHit": 2.1,
-        "hits": 1,
-        "text": "Maximum Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 77073,
@@ -7354,9 +3900,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 76616,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 76616
   },
   {
     "id": 77078,
@@ -7374,16 +3918,7 @@ export const SKILLS = [
     "ammo": 2,
     "ammoRecharge": 20,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [
-      {
-        "coefficient": 2,
-        "coefficientPerHit": 2,
-        "hits": 1,
-        "text": "Damage"
-      }
-    ],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 77300,
@@ -7401,9 +3936,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 77321,
@@ -7421,9 +3954,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 78358,
@@ -7441,9 +3972,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 78770,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 78770
   },
   {
     "id": 78514,
@@ -7461,9 +3990,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 78604,
@@ -7481,9 +4008,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 78514,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 78514
   },
   {
     "id": 78770,
@@ -7501,9 +4026,7 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": null
   },
   {
     "id": 78837,
@@ -7521,8 +4044,6 @@ export const SKILLS = [
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 29887,
-    "apiDamage": [],
-    "apiConditions": []
+    "flipSkillId": 29887
   }
 ];

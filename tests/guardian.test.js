@@ -13,7 +13,7 @@ import {
 } from "../js/professions/guardian/catalog.js";
 import {
   DATA_SNAPSHOT,
-} from "../js/professions/guardian/data/guardian-catalog.js";
+} from "../js/professions/guardian/data/guardian-api-metadata.js";
 import {
   guardianProfession,
 } from "../js/professions/guardian/definition.js";

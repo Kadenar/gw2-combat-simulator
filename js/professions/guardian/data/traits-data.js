@@ -1,6 +1,6 @@
 import {
   SPECIALIZATIONS as CATALOG_SPECIALIZATIONS,
-} from "./guardian-catalog.js";
+} from "./guardian-api-metadata.js";
 
 export const SPECIALIZATIONS = CATALOG_SPECIALIZATIONS.map(
   specialization => specialization.name,

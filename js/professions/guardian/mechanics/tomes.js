@@ -5,6 +5,7 @@ import {
   emitGuardianEvent,
   handleScheduledStateEvent,
 } from "./events.js";
+import { GUARDIAN_HANDLER_MECHANICS } from "./skill-mechanics.js";
 
 export function validateTomeCast(context, skill) {
   if (skill.tome) {
@@ -77,6 +78,7 @@ export function reactToAshesHit(
     applyCondition,
   } = {},
 ) {
+  const burn = GUARDIAN_HANDLER_MECHANICS.ashesBurn;
   if (
     !hitContext
     || typeof applyCondition !== "function"
@@ -100,12 +102,12 @@ export function reactToAshesHit(
     skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
     skillName: "Epilogue: Ashes of the Just",
     name: "Ashes of the Just — Burning",
-    condition: "Burning",
-    stacks: 1,
-    duration: 2,
+    condition: burn.condition,
+    stacks: burn.stacks,
+    duration: burn.duration,
   });
   state.ashesCharges -= 1;
-  state.ashesNextTriggerAt = event.at + 1;
+  state.ashesNextTriggerAt = event.at + burn.interval;
   context.recordProc(
     "profession",
     "Ashes of the Just",

@@ -1,4 +1,5 @@
 import { GUARDIAN_SKILL_IDS as ID } from "../data/ids.js";
+import { GUARDIAN_HANDLER_MECHANICS } from "./skill-mechanics.js";
 
 /**
  * Spear "Illuminated" mechanic (Janthir Wilds guardian spear).
@@ -21,22 +22,11 @@ import { GUARDIAN_SKILL_IDS as ID } from "../data/ids.js";
 //   Helio Rush     1.8  → 2.7   (×1.50)
 //   Gleaming Disc  1.5  → 1.875 (×1.25)
 //   Solar Storm    3.6  → 4.5   (+4th/5th shard ≈ ×1.25)
-const SPEAR_ILLUMINATED_MULT = Object.freeze({
-  [ID.HELIO_RUSH]: 1.5,
-  [ID.GLEAMING_DISC]: 1.25,
-  [ID.SOLAR_STORM]: 1.25,
-});
-
-// Skills whose strike arms Illuminated for the next spear attack.
-const SPEAR_ILLUMINATION_ARMERS = new Set([
-  ID.HELIO_RUSH,
-  ID.GLEAMING_DISC,
-  ID.SOLAR_STORM,
-]);
-
-// How long Symbol of Luminance keeps all spear skills illuminated (its field
-// pulses over ~4s; rounded to the symbol's active duration).
-const SYMBOL_LUMINANCE_DURATION_MS = 5000;
+const SPEAR_ILLUMINATED_MULT =
+  GUARDIAN_HANDLER_MECHANICS.spear.illuminatedMultiplierBySkillId;
+const SPEAR_ILLUMINATION_ARMERS = new Set(
+  GUARDIAN_HANDLER_MECHANICS.spear.illuminationArmers,
+);
 
 const ILLUMINATED_ICON = "https://wiki.guildwars2.com/images/7/7d/Illuminated.png";
 const SYMBOL_OF_LUMINANCE_ICON =
@@ -129,7 +119,8 @@ export function updateSpearIlluminationState(context, skill) {
 
   if (skill.id === ID.SYMBOL_OF_LUMINANCE) {
     state.spearLuminanceUntil =
-      context.effectiveEnd + SYMBOL_LUMINANCE_DURATION_MS / 1000;
+      context.effectiveEnd
+      + GUARDIAN_HANDLER_MECHANICS.spear.symbolLuminanceDurationMs / 1000;
     emitProc(
       context,
       context.effectiveEnd,

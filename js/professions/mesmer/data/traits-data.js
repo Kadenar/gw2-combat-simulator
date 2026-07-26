@@ -1,7 +1,7 @@
 // Trait data processing and lookup
 // Extracts traits from specialization catalog and provides active trait resolution
 
-import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from './mesmer-catalog.js';
+import { SPECIALIZATIONS as CATALOG_SPECIALIZATIONS } from "./mesmer-api-metadata.js";
 
 // List of all specialization names
 export const SPECIALIZATIONS = CATALOG_SPECIALIZATIONS.map(spec => spec.name);

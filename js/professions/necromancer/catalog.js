@@ -4,12 +4,13 @@ import {
 import {
   SKILLS,
   SPECIALIZATIONS,
-  TRAITS,
-} from "./data/necromancer-catalog.js";
+} from "./data/necromancer-api-metadata.js";
+import { TRAITS } from "./data/traits-data.js";
 import {
   NECROMANCER_SUPPLEMENTAL_SKILLS,
 } from "./data/necromancer-supplemental-skills.js";
 import {
+  NECROMANCER_EXTRA_SKILLS,
   NECROMANCER_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
 import {
@@ -104,39 +105,7 @@ const generated = allSkills.map(skill => {
 export const necromancerCatalog = createCanonicalCatalog({
   generated,
   mechanics: NECROMANCER_SKILL_MECHANICS,
-  extraSkills: [
-    {
-      id: NECROMANCER_SKILL_IDS.SWAP_WEAPONS,
-      name: "Swap Weapons",
-      description: "Swap between weapon sets. The swap has a 10-second recharge.",
-      icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
-      type: "Action",
-      slot: "Action",
-      castTimeMs: 0,
-      activation: 0,
-      cooldown: 10,
-      implemented: true,
-      handlerId: "necromancer.weapon-swap",
-      effects: [],
-    },
-    {
-      id: NECROMANCER_SKILL_IDS.EXIT_LICH_FORM,
-      name: "Exit Lich Form",
-      description: "Leave Lich Form and return to your normal skill bar.",
-      icon:
-        "https://render.guildwars2.com/file/A6CAF2146D9DF2EBEFD9285CB0E9E3617A659071/1770528.png",
-      type: "Profession",
-      slot: "Profession_1",
-      castTimeMs: 0,
-      activation: 0,
-      cooldown: 0,
-      implemented: true,
-      handlerId: "necromancer.lich",
-      flipParentId: NECROMANCER_SKILL_IDS.LICH_FORM,
-      flipParent: "Lich Form",
-      effects: [],
-    },
-  ],
+  extraSkills: NECROMANCER_EXTRA_SKILLS,
   skillHandlers: necromancerSkillHandlers,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,

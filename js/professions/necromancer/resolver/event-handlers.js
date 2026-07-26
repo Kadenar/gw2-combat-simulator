@@ -5,6 +5,9 @@ import {
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack,
 } from "../mechanics/handlers.js";
+import {
+  NECROMANCER_HANDLER_MECHANICS as MECHANICS,
+} from "../mechanics/skill-mechanics.js";
 
 function hasTrait(context, id) {
   if (context.traits?.has(id) || context.traits?.has(String(id))) return true;
@@ -80,37 +83,34 @@ function reactToNecromancerDamage(context, event, details = {}) {
     hasTrait(context, TRAIT.DHUUMFIRE)
     && skill?.shroudSlot === 1
   ) {
-    applyTraitCondition(details, context, event, {
-      name: "Dhuumfire",
-      traitId: TRAIT.DHUUMFIRE,
-      condition: "Burning",
-      duration: 3,
-    });
+    applyTraitCondition(
+      details,
+      context,
+      event,
+      MECHANICS.traitProcs[TRAIT.DHUUMFIRE],
+    );
   }
   if (hasTrait(context, TRAIT.BARBED_PRECISION)) {
     context.profession.barbedPrecisionProgress +=
-      Number(details.hitContext?.critical?.chance || 0) * 0.33;
+      Number(details.hitContext?.critical?.chance || 0)
+      * MECHANICS.traitProcs[TRAIT.BARBED_PRECISION].criticalProgress;
     while (context.profession.barbedPrecisionProgress >= 1) {
       context.profession.barbedPrecisionProgress -= 1;
-      applyTraitCondition(details, context, event, {
-        name: "Barbed Precision",
-        traitId: TRAIT.BARBED_PRECISION,
-        condition: "Bleeding",
-        duration: 2,
-      });
+      applyTraitCondition(
+        details,
+        context,
+        event,
+        MECHANICS.traitProcs[TRAIT.BARBED_PRECISION],
+      );
     }
   }
   if (
     hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)
     && event.at >= Number(context.profession.vampiricPresenceReadyAt || 0)
   ) {
-    context.profession.vampiricPresenceReadyAt = event.at + 1;
-    queueTraitDamage(context, event, {
-      name: "Vampiric Presence",
-      traitId: TRAIT.VAMPIRIC_PRESENCE,
-      flatStrikeBase: 80,
-      flatStrikePowerCoeff: 0.03,
-    });
+    const proc = MECHANICS.traitProcs[TRAIT.VAMPIRIC_PRESENCE];
+    context.profession.vampiricPresenceReadyAt = event.at + proc.interval;
+    queueTraitDamage(context, event, proc);
   }
 }
 
@@ -120,36 +120,31 @@ function reactToNecromancerCondition(context, event, details = {}) {
     && hasTrait(context, TRAIT.DEMONIC_LORE)
     && event.at >= Number(context.profession.demonicLoreReadyAt || 0)
   ) {
-    context.profession.demonicLoreReadyAt = event.at + 3;
-    applyTraitCondition(details, context, event, {
-      name: "Demonic Lore",
-      traitId: TRAIT.DEMONIC_LORE,
-      condition: "Burning",
-      duration: 3,
-    });
+    const proc = MECHANICS.traitProcs[TRAIT.DEMONIC_LORE];
+    context.profession.demonicLoreReadyAt = event.at + proc.interval;
+    applyTraitCondition(details, context, event, proc);
   }
   if (
     event.condition === "Chilled"
     && hasTrait(context, TRAIT.DEATHLY_CHILL)
   ) {
-    applyTraitCondition(details, context, event, {
-      name: "Deathly Chill",
-      traitId: TRAIT.DEATHLY_CHILL,
-      condition: "Bleeding",
-      stacks: 3,
-      duration: 8,
-    });
+    applyTraitCondition(
+      details,
+      context,
+      event,
+      MECHANICS.traitProcs[TRAIT.DEATHLY_CHILL],
+    );
   }
 }
 
 function reactToNecromancerBlind(context, event, details = {}) {
   if (!hasTrait(context, TRAIT.CHILLING_DARKNESS)) return;
-  applyTraitCondition(details, context, event, {
-    name: "Chilling Darkness",
-    traitId: TRAIT.CHILLING_DARKNESS,
-    condition: "Chilled",
-    duration: 2,
-  });
+  applyTraitCondition(
+    details,
+    context,
+    event,
+    MECHANICS.traitProcs[TRAIT.CHILLING_DARKNESS],
+  );
 }
 
 function reactToNecromancerControl(context, event, details = {}) {
@@ -163,12 +158,12 @@ function reactToNecromancerControl(context, event, details = {}) {
     );
   }
   if (hasTrait(context, TRAIT.INSIDIOUS_DISRUPTION)) {
-    applyTraitCondition(details, context, event, {
-      name: "Insidious Disruption",
-      traitId: TRAIT.INSIDIOUS_DISRUPTION,
-      condition: "Torment",
-      duration: 8,
-    });
+    applyTraitCondition(
+      details,
+      context,
+      event,
+      MECHANICS.traitProcs[TRAIT.INSIDIOUS_DISRUPTION],
+    );
   }
 }
 

@@ -88,6 +88,62 @@ export const MESMER_SKILL_IDS = Object.freeze({
   DEAFENING_DRUM: 77079,
   TALE_OF_THE_TORTURED_MASTERMIND: 77066,
   LIVELY_LUTE_ALTERNATE: 77306,
+
+  // Generated coverage for every skill in the API metadata snapshot.
+  ILLUSIONARY_LEAP: 10173, // Illusionary Leap
+  ETHER_FEAST: 10176, // Ether Feast
+  MIRROR: 10177, // Mirror
+  TEMPORAL_CURTAIN: 10186, // Temporal Curtain
+  PORTAL_ENTRE: 10197, // Portal Entre
+  BLINK: 10200, // Blink
+  DECOY: 10201, // Decoy
+  MIRROR_IMAGES: 10202, // Mirror Images
+  NULL_FIELD: 10203, // Null Field
+  MANTRA_OF_PAIN: 10211, // Mantra of Pain
+  MANTRA_OF_RECOVERY: 10213, // Mantra of Recovery
+  ILLUSIONARY_WAVE: 10220, // Illusionary Wave
+  SIGNET_OF_DOMINATION: 10232, // Signet of Domination
+  SIGNET_OF_MIDNIGHT: 10234, // Signet of Midnight
+  SIGNET_OF_INSPIRATION: 10236, // Signet of Inspiration
+  MASS_INVISIBILITY: 10245, // Mass Invisibility
+  SIGNET_OF_ILLUSIONS: 10247, // Signet of Illusions
+  SIRENS_CALL: 10258, // Siren's Call
+  BLINDING_TIDE: 10259, // Blinding Tide
+  ILLUSION_OF_DROWNING: 10260, // Illusion of Drowning
+  THE_PRESTIGE: 10285, // The Prestige
+  FEEDBACK: 10302, // Feedback
+  PHASE_RETREAT: 10310, // Phase Retreat
+  TIME_WARP: 10311, // Time Warp
+  IMMINENT_VOYAGE: 10327, // Imminent Voyage
+  CHAOS_ARMOR: 10331, // Chaos Armor
+  THOUSAND_CUTS: 24755, // Thousand Cuts
+  SIGNET_OF_HUMILITY: 29519, // Signet of Humility
+  WELL_OF_PRECOGNITION: 29526, // Well of Precognition
+  MIMIC: 29578, // Mimic
+  WELL_OF_ETERNITY: 30305, // Well of Eternity
+  TIDES_OF_TIME: 30643, // Tides of Time
+  SWORD_OF_DECIMATION: 35637, // Sword of Decimation
+  FALSE_OASIS: 40200, // False Oasis
+  CRYSTAL_SANDS: 41065, // Crystal Sands
+  MIRAGE_ADVANCE: 42851, // Mirage Advance
+  SAND_THROUGH_GLASS: 43064, // Sand through Glass
+  BLADE_RENEWAL: 43343, // Blade Renewal
+  ILLUSIONARY_AMBUSH: 45046, // Illusionary Ambush
+  JAUNT: 45449, // Jaunt
+  TWIN_BLADE_RESTORATION: 62522, // Twin Blade Restoration
+  BLADE_LEAP: 62568, // Blade Leap
+  PSYCHIC_FORCE: 62573, // Psychic Force
+  FRIENDLY_FIRE: 71892, // Friendly Fire
+  JOURNEY: 71897, // Journey
+  INSPIRING_IMAGERY: 72005, // Inspiring Imagery
+  SINGULARITY_SHOT: 72008, // Singularity Shot
+  MENTAL_COLLAPSE: 72957, // Mental Collapse
+  IMAGINARY_INVERSION: 73152, // Imaginary Inversion
+  TALE_OF_THE_HONORABLE_ROGUE: 76611, // Tale of the Honorable Rogue
+  TALE_OF_THE_SECOND_SCION: 76695, // Tale of the Second Scion
+  TALE_OF_THE_SOULKEEPER: 76850, // Tale of the Soulkeeper
+  TALE_OF_THE_AUGUST_QUEEN: 76971, // Tale of the August Queen
+  TALE_OF_THE_VALIANT_MARSHAL: 77178, // Tale of the Valiant Marshal
 });
 
 export const MESMER_TRAIT_IDS = Object.freeze({

@@ -90,6 +90,93 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   DEVOURING_DARKNESS: 51647,
   ENERVATION_BLADE: 71986,
   ENERVATION_ECHO: 71850,
+
+  // Generated coverage for every skill in the API metadata snapshot.
+  WELL_OF_BLOOD: 10527, // Well of Blood
+  GHASTLY_CLAWS: 10528, // Ghastly Claws
+  DARK_PACT: 10529, // Dark Pact
+  GRASPING_DEAD: 10532, // Grasping Dead
+  CONSUME_CONDITIONS: 10548, // Consume Conditions
+  PUTRID_CURSE: 10552, // Putrid Curse
+  SPINAL_SHIVERS: 10555, // Spinal Shivers
+  WAIL_OF_DOOM: 10556, // Wail of Doom
+  LOCUST_SWARM: 10557, // Locust Swarm
+  RENDING_CLAWS: 10561, // Rending Claws
+  PLAGUE_SIGNET: 10562, // Plague Signet
+  SPECTRAL_ARMOR: 10583, // Spectral Armor
+  NECROTIC_GRASP: 10596, // Necrotic Grasp
+  CORRUPT_BOON: 10602, // Corrupt Boon
+  CHILLBLAINS: 10605, // Chillblains
+  EPIDEMIC: 10606, // Epidemic
+  SPECTRAL_RING: 10608, // Spectral Ring
+  WELL_OF_POWER: 10609, // Well of Power
+  SIGNET_OF_THE_LOCUST: 10612, // Signet of the Locust
+  SPECTRAL_GRASP: 10620, // Spectral Grasp
+  SPECTRAL_WALK: 10685, // Spectral Walk
+  SPECTRAL_RECALL: 10687, // Spectral Recall
+  CORROSIVE_POISON_CLOUD: 10689, // Corrosive Poison Cloud
+  BLOOD_CURSE: 10698, // Blood Curse
+  RENDING_CURSE: 10699, // Rending Curse
+  UNHOLY_FEAST: 10701, // Unholy Feast
+  NECROTIC_SLASH: 10702, // Necrotic Slash
+  NECROTIC_STAB: 10703, // Necrotic Stab
+  NECROTIC_BITE: 10704, // Necrotic Bite
+  DEATHLY_SWARM: 10705, // Deathly Swarm
+  ENFEEBLING_BLOOD: 10706, // Enfeebling Blood
+  REAPERS_MARK: 19115, // Reaper's Mark
+  PUTRID_MARK: 19116, // Putrid Mark
+  MARK_OF_BLOOD: 19117, // Mark of Blood
+  YOU_ARE_ALL_WEAKLINGS: 29414, // "You Are All Weaklings!"
+  NOTHING_CAN_SAVE_YOU: 29666, // "Nothing Can Save You!"
+  DUSK_STRIKE: 29705, // Dusk Strike
+  GRASPING_DARKNESS: 29740, // Grasping Darkness
+  NIGHTFALL: 29855, // Nightfall
+  CHILLING_SCYTHE: 29867, // Chilling Scythe
+  CHILLED_TO_THE_BONE: 30105, // "Chilled to the Bone!"
+  GRAVEDIGGER: 30163, // Gravedigger
+  YOUR_SOUL_IS_MINE: 30488, // "Your Soul Is Mine!"
+  SUFFER: 30670, // "Suffer!"
+  RISE: 30772, // "Rise!"
+  FADING_TWILIGHT: 30799, // Fading Twilight
+  DEATH_SPIRAL: 30860, // Death Spiral
+  TRAIL_OF_ANGUISH: 40274, // Trail of Anguish
+  SERPENT_SIPHON: 41615, // Serpent Siphon
+  MANIFEST_SAND_SHADE_ID_42297: 42297, // Manifest Sand Shade
+  GHASTLY_BREACH: 42355, // Ghastly Breach
+  SAND_SWELL: 42917, // Sand Swell
+  DESICCATE: 42935, // Desiccate
+  SAND_FLARE: 43148, // Sand Flare
+  OPPRESSIVE_COLLAPSE: 44296, // Oppressive Collapse
+  HARROWING_WAVE: 45846, // Harrowing Wave
+  MANIFEST_SAND_SHADE_ID_46473: 46473, // Manifest Sand Shade
+  MANIFEST_SAND_SHADE_ID_46474: 46474, // Manifest Sand Shade
+  SOUL_GRASP: 55050, // Soul Grasp
+  VILE_BLAST: 62511, // Vile Blast
+  WEEPING_SHOTS: 62513, // Weeping Shots
+  VICIOUS_SHOT: 62517, // Vicious Shot
+  LIFE_SIPHON: 69302, // Life Siphon
+  PATH_OF_GLUTTONY: 71799, // Path of Gluttony
+  HUNGERING_MAELSTROM: 71813, // Hungering Maelstrom
+  GORGE: 71871, // Gorge
+  RAVENOUS_WAVE: 71883, // Ravenous Wave
+  SATIATE: 71914, // Satiate
+  CONSUME: 71926, // Consume
+  DEVOURING_VISAGE: 71998, // Devouring Visage
+  GORMANDIZE: 72068, // Gormandize
+  EXTIRPATE: 73007, // Extirpate
+  DARK_SLASH: 73012, // Dark Slash
+  ADDLE: 73013, // Addle
+  DEADLY_SLICE: 73040, // Deadly Slice
+  SINISTER_STAB: 73047, // Sinister Stab
+  PERFORATE: 73068, // Perforate
+  ISOLATE: 73107, // Isolate
+  DISTRESS: 73116, // Distress
+  NIGHTMARE_WEAPON: 76739, // Nightmare Weapon
+  WEAPON_OF_WARDING: 76752, // Weapon of Warding
+  XINRAES_WEAPON: 76941, // Xinrae's Weapon
+  SPLINTER_WEAPON: 76975, // Splinter Weapon
+  WEAPON_OF_REMEDY: 77022, // Weapon of Remedy
+  RESILIENT_WEAPON: 77259, // Resilient Weapon
 });
 
 export const NECROMANCER_TRAIT_IDS = Object.freeze({

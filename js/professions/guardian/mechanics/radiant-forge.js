@@ -1,5 +1,6 @@
 import { GUARDIAN_SKILL_IDS } from "../data/ids.js";
 import { selectedGuardianSpecialization } from "./availability.js";
+import { GUARDIAN_HANDLER_MECHANICS } from "./skill-mechanics.js";
 import {
   emitGuardianEvent,
   handleScheduledStateEvent,
@@ -37,10 +38,11 @@ function radiantForge(context, skill) {
 function radiantWeapon(context, skill) {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   if (skill.id === GUARDIAN_SKILL_IDS.GLARING_BURST) {
-    const coefficient = {
-      hammer: 1.25,
-      blade: 1,
-    }[context.state.profession.radiantWeapon] || 0;
+    const coefficient =
+      GUARDIAN_HANDLER_MECHANICS.radiantForge
+        .glaringBurstCoefficientByWeapon[
+          context.state.profession.radiantWeapon
+        ] || 0;
     if (coefficient > 0) {
       context.emit({
         type: "damage",

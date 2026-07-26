@@ -20,7 +20,7 @@ import {
 } from "../js/professions/necromancer/catalog.js";
 import {
   DATA_SNAPSHOT,
-} from "../js/professions/necromancer/data/necromancer-catalog.js";
+} from "../js/professions/necromancer/data/necromancer-api-metadata.js";
 import {
   necromancerProfession,
 } from "../js/professions/necromancer/definition.js";

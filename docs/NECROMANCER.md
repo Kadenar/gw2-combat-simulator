@@ -7,7 +7,7 @@ other declarative professions.
 
 ## Data
 
-`js/professions/necromancer/data/necromancer-catalog.js` is generated from the
+`js/professions/necromancer/data/necromancer-api-metadata.js` is generated from the
 [official Guild Wars 2 API](https://api.guildwars2.com/v2/professions/Necromancer).
 The July 25, 2026 snapshot contains 149 API skills, 108 traits, and all nine
 specialization lines. The canonical catalog contains 166 entries after adding
@@ -20,9 +20,9 @@ Refresh the snapshot with:
 npm run update:necromancer-data
 ```
 
-The generator owns API metadata only. Simulator timing and behavior stay under
-`mechanics/`, using the common defaults, overrides, final-mechanics, chains,
-and handlers boundaries. Missing-but-stable entries stay in
+The generator owns API metadata only. Simulator timing and behavior live in
+the single authoritative `mechanics/skill-mechanics.js` table, with chains and
+handlers supporting complex state. Missing-but-stable entries stay in
 `data/necromancer-supplemental-skills.js`, so refreshes do not overwrite them.
 Same-name API mode aliases resolve to one canonical selectable skill.
 
