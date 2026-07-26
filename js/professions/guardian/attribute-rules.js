@@ -1,5 +1,8 @@
 import { targetHasPermanentCondition } from "../../platform/gw2/target-state.js";
 import {
+  applyAdditiveDamageBucket,
+} from "../../platform/gw2/damage-modifier-buckets.js";
+import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
 } from "./data/ids.js";
@@ -31,13 +34,91 @@ function targetHasCondition(context, condition) {
     && application.weight > 0);
 }
 
+function isOneHandedWeapon(weapon) {
+  return Boolean(weapon) && ![
+    "Greatsword",
+    "Hammer",
+    "Longbow",
+    "Short Bow",
+    "Spear",
+    "Staff",
+  ].includes(weapon);
+}
+
+function boonActive(context, boon) {
+  if (context.config?.boons?.[boon]) return true;
+  if (context.timeline?.timedActive(boon, context.time)) return true;
+  if (
+    boon === "resolution"
+    && Number(context.runtime?.profession?.resolutionUntil || 0)
+      > context.time
+  ) return true;
+  return (context.runtime?.boons?.get(boon) || []).some(application =>
+    application.at <= context.time
+    && application.expiresAt > context.time);
+}
+
+function timedBuffActive(context, kind) {
+  return Boolean(context.timeline?.timedActive(kind, context.time));
+}
+
+function runtimeBuffActive(context, kind) {
+  return (context.runtime?.boons?.get(kind) || []).some(application =>
+    application.at <= context.time
+    && application.expiresAt > context.time);
+}
+
+function latestTimedBuff(context, kind) {
+  let latest = null;
+  for (const event of context.events || []) {
+    if (event.at > context.time) break;
+    if (event.type === "buff" && event.kind === kind) latest = event;
+  }
+  return latest;
+}
+
+function targetDisabled(context) {
+  if (
+    context.config?.target?.disabled
+    || context.config?.target?.defianceBroken
+  ) return true;
+  return (context.events || []).some(event =>
+    event.type === "control"
+    && event.at <= context.time
+    && event.at + Math.max(0, Number(event.duration || 0)) > context.time);
+}
+
 function modifyGuardianAttributes(context, attributes) {
   const result = { ...attributes };
+  const currentWeapon = activeWeapon(context);
+  const staticWeapon = context.config?.guardianStaticTraitWeapon;
+  const staticApplied = context.config?.guardianStaticTraitsApplied;
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
-    result.power += 120;
-    if (activeWeapon(context) === "Greatsword") result.power += 120;
+    if (staticApplied) {
+      result.power += (
+        Number(currentWeapon === "Greatsword")
+        - Number(staticWeapon === "Greatsword")
+      ) * 120;
+    } else {
+      result.power += 120;
+      if (currentWeapon === "Greatsword") result.power += 120;
+    }
   }
-  if (hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)) {
+  if (hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH)) {
+    if (staticApplied) {
+      result.power += (
+        Number(isOneHandedWeapon(currentWeapon))
+        - Number(isOneHandedWeapon(staticWeapon))
+      ) * 80;
+    } else {
+      result.precision += 80;
+      if (isOneHandedWeapon(currentWeapon)) result.power += 80;
+    }
+  }
+  if (
+    !context.config?.guardianStaticTraitsApplied
+    && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)
+  ) {
     result.ferocity += 150;
   }
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)) {
@@ -47,16 +128,65 @@ function modifyGuardianAttributes(context, attributes) {
 }
 
 function modifyGuardianCriticalChance(context, chance) {
-  return (
+  let result = chance;
+  if (
     hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)
     && targetHasCondition(context, "Burning")
-  )
-    ? chance + 0.1
-    : chance;
+  ) {
+    result += 0.1;
+  }
+  if (
+    hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS)
+    && boonActive(context, "resolution")
+  ) {
+    result += 0.25;
+  }
+  return result;
 }
 
 function modifyGuardianStrikeDamage(context, multiplier) {
-  let result = multiplier;
+  let additiveBonus = 0;
+  if (timedBuffActive(context, "guardian-empowered-armaments")) {
+    additiveBonus += 0.1;
+  }
+  const radiantArmament = latestTimedBuff(
+    context,
+    "guardian-radiant-armaments",
+  );
+  if (
+    radiantArmament?.radiantWeapon === "hammer"
+    && radiantArmament.at + radiantArmament.duration > context.time
+  ) {
+    additiveBonus += 0.07;
+  }
+  if (
+    hasTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS)
+    && context.timeline?.furyActiveAt(context.time)
+  ) {
+    additiveBonus += 0.1;
+  }
+  if (
+    hasTrait(context, GUARDIAN_TRAIT_IDS.RETRIBUTION)
+    && boonActive(context, "resolution")
+  ) {
+    additiveBonus += 0.1;
+  }
+  if (
+    hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)
+    && Number(context.runtime?.profession?.symbolicAvengerUntil || 0)
+      > context.time
+  ) {
+    additiveBonus += Math.min(
+      5,
+      Number(context.runtime.profession.symbolicAvengerStacks || 0),
+    ) / 100;
+  }
+  if (timedBuffActive(context, "guardian-piercing-stance")) {
+    additiveBonus += 0.1;
+  }
+  let result = applyAdditiveDamageBucket(context, multiplier, {
+    bonus: additiveBonus,
+  });
   if (
     hasTrait(context, GUARDIAN_TRAIT_IDS.FIERY_WRATH)
     && targetHasCondition(context, "Burning")
@@ -64,10 +194,28 @@ function modifyGuardianStrikeDamage(context, multiplier) {
     result *= 1.05;
   }
   if (
-    hasTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS)
-    && context.timeline?.furyActiveAt(context.time)
+    hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
+    && (
+      context.timeline?.vulnerabilityStacksAt(context.time) > 0
+      || runtimeBuffActive(context, "target-vulnerability")
+    )
   ) {
-    result *= 1.1;
+    result *= 1.05;
+  }
+  if (timedBuffActive(context, "guardian-daring-advance")) {
+    result *= 1.15;
+  }
+  if (
+    context.event?.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN
+    && targetDisabled(context)
+  ) {
+    result *= 1.2;
+  }
+  if (
+    context.event?.skillId === GUARDIAN_SKILL_IDS.GLEAMING_BLADE
+    && timedBuffActive(context, "guardian-radiant-courage-sword")
+  ) {
+    result *= 1.5;
   }
   return result;
 }

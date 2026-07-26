@@ -2101,6 +2101,7 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   [ID.SYMBOL_OF_LUMINANCE]: {
     "implemented": true,
     "castTimeMs": 440,
+    "quicknessCastTimeMs": 440,
     "cooldown": 15,
     "effects": [
       {
@@ -2134,54 +2135,39 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   [ID.DARING_ADVANCE]: {
     "implemented": true,
     "castTimeMs": 1000,
+    "quicknessCastTimeMs": 1000,
     "effects": [
       {
         "type": "strike",
         "coefficient": 3,
         "hits": 1
-      },
-      {
-        "type": "control",
-        "metadata": {
-          "controlKind": "control"
-        }
       }
     ]
   },
   [ID.LUMINOUS_STAFF]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 560,
     "handlerId": "guardian.radiant-weapon",
     "effects": [
       {
         "type": "strike",
         "coefficient": 1.2,
         "hits": 4,
+        "intervalMs": 1000,
         "name": "Luminous Staff — Symbol Damage"
       }
     ]
   },
   [ID.EFFULGENT_STANCE]: {
     "implemented": true,
-    "castTimeMs": 250,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 4,
-        "hits": 1,
-        "name": "Effulgent Stance — Maximum Damage"
-      },
-      {
-        "type": "control",
-        "metadata": {
-          "controlKind": "control"
-        }
-      }
-    ]
+    "castTimeMs": 0,
+    "effects": []
   },
   [ID.SHINING_SPIN]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "castTimeMs": 600,
+    "quicknessCastTimeMs": 480,
     "handlerId": "guardian.radiant-weapon",
     "effects": [
       {
@@ -2193,7 +2179,8 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   },
   [ID.GLEAMING_BLADE]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 840,
     "handlerId": "guardian.radiant-weapon",
     "effects": [
       {
@@ -2205,7 +2192,8 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   },
   [ID.BRILLIANT_SLAM]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "castTimeMs": 600,
+    "quicknessCastTimeMs": 480,
     "handlerId": "guardian.radiant-weapon",
     "effects": [
       {
@@ -2217,7 +2205,8 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   },
   [ID.GLARING_BURST]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 600,
     "handlerId": "guardian.radiant-weapon",
     "effects": [
       {
@@ -2236,6 +2225,7 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   [ID.PIERCING_STANCE]: {
     "implemented": true,
     "castTimeMs": 250,
+    "quicknessCastTimeMs": 200,
     "effects": [
       {
         "type": "strike",
@@ -2245,20 +2235,22 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
       {
         "type": "control",
         "metadata": {
-          "controlKind": "control"
+          "controlKind": "daze",
+          "duration": 0.5
         }
       }
     ]
   },
   [ID.RESTORATIVE_GLOW]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 560,
     "handlerId": "guardian.radiant-weapon",
     "effects": []
   },
   [ID.RADIANT_BULWARK]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "castTimeMs": 2000,
     "handlerId": "guardian.radiant-weapon",
     "effects": []
   },
@@ -2281,19 +2273,28 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   },
   [ID.DAZZLING_HAMMER]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "castTimeMs": 600,
+    "quicknessCastTimeMs": 470,
     "handlerId": "guardian.radiant-weapon",
     "effects": [
       {
         "type": "strike",
         "coefficient": 1.2,
         "hits": 1
+      },
+      {
+        "type": "control",
+        "metadata": {
+          "controlKind": "daze",
+          "duration": 2
+        }
       }
     ]
   },
   [ID.LUCENT_THRUST]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "castTimeMs": 600,
+    "quicknessCastTimeMs": 440,
     "handlerId": "guardian.radiant-weapon",
     "effects": [
       {

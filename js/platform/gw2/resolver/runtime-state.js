@@ -38,6 +38,7 @@ export function createGw2ResolverRuntimeState({
     firstHitTime: null,
     lastHitTime: null,
     deathTime: null,
+    combatActive: false,
     relic: {
       buffUntil: 0,
       thiefStacks: 0,

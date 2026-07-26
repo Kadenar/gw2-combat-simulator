@@ -3,6 +3,7 @@ import {
 } from "./availability.js";
 import {
   advanceRadiantForgeState,
+  clearRadiantForgeEntryCooldown,
   validateRadiantForgeCast,
 } from "./radiant-forge.js";
 import {
@@ -19,6 +20,10 @@ import {
   updateWeaponCastState,
   validateWeaponState,
 } from "./weapon-state.js";
+import {
+  observeGuardianScheduledEvent,
+  updateGuardianTraitCastState,
+} from "./traits.js";
 
 export const guardianCastRules = Object.freeze({
   validateCast: Object.freeze([
@@ -73,6 +78,25 @@ export const guardianSchedulerHooks = Object.freeze({
       id: "guardian.spear",
       order: 20,
       handler: updateSpearIlluminationState,
+    },
+    {
+      id: "guardian.traits",
+      order: 30,
+      handler: updateGuardianTraitCastState,
+    },
+  ]),
+  onCastComplete: Object.freeze([
+    {
+      id: "guardian.radiant-forge",
+      order: 10,
+      handler: clearRadiantForgeEntryCooldown,
+    },
+  ]),
+  onEventScheduled: Object.freeze([
+    {
+      id: "guardian.traits",
+      order: 10,
+      handler: observeGuardianScheduledEvent,
     },
   ]),
 });

@@ -28,7 +28,7 @@ export function relicStrikeMultiplier(ctx, event) {
     case "Claw":
     case "Peitha":
       if (relic.buffUntil <= at) return 1;
-      return config.relic === "Peitha" ? 1.1 : 1.07;
+      return config.relic === "Peitha" ? 1.10 : 1.07;
     case "Dragonhunter":
       return relic.buffUntil > at ? 1.1 : 1;
     case "Eagle": {

@@ -187,6 +187,31 @@ frame.addEventListener('load', async () => {
         assert(!procPanel.open, 'proc panel should be collapsed by default');
         procPanel.querySelector(':scope > summary').click();
         assert(procPanel.open, 'proc panel did not expand');
+        const procFilter = procPanel.querySelector('.proc-filter');
+        const procMenu = procFilter?.querySelector('.proc-filter-menu');
+        const procCheckbox = procMenu?.querySelector('input[data-proc-key]');
+        assert(procFilter && procMenu && procCheckbox, 'proc visibility controls are missing');
+        procFilter.querySelector(':scope > summary').click();
+        procMenu.style.height = '12px';
+        procMenu.style.overflowY = 'scroll';
+        procMenu.scrollTop = procMenu.scrollHeight;
+        const procMenuScrollTop = procMenu.scrollTop;
+        procCheckbox.checked = false;
+        procCheckbox.dispatchEvent(new window.Event('change', { bubbles: true }));
+        assert(
+            document.querySelector('.proc-filter-menu') === procMenu,
+            'changing proc visibility rebuilt the scrolling proc menu',
+        );
+        assert(
+            procMenu.scrollTop === procMenuScrollTop,
+            'changing proc visibility reset the proc menu scroll position',
+        );
+        assert(
+            [...document.querySelectorAll('.proc-icon[data-proc-key]')]
+                .filter(procIcon => procIcon.dataset.procKey === procCheckbox.dataset.procKey)
+                .every(procIcon => procIcon.hidden),
+            'disabled proc icons remain visible',
+        );
         assert(
             [...document.querySelectorAll('#rotation-results .res-label')]
                 .map(label => label.textContent)

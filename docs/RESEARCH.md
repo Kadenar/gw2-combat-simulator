@@ -25,10 +25,18 @@ explicit player, clone, phantasm, shatter, bladesong, and instrument rows they
 cover.
 
 Damage-relevant attribute conversions and modifier groupings were
-cross-checked against:
+cross-checked against the Discretize data at commit
+`ff1859762f10f3727a7514c52b05ac2cacc84304`:
 
 - `https://github.com/discretize/discretize-gear-optimizer`
 - `src/assets/modifierdata/mesmer.yaml` in that project
+- `src/assets/modifierdata/relics.yaml` in that project
+
+Nomad's Endurance, Compounding Power, Phantom Pain, Deadly Blades,
+Illusionary Membrane, Lively Lute, Shredding, and Altered Chord use the shared
+additive outgoing-damage bucket. Fragility, Egotism, Vicious Expression,
+Infinite Forge, condition-specific modifiers, and supported strike-damage
+relics use their documented multiplicative groups.
 
 The Wiki is used for individual skill coefficients because the optimizer models
 build modifiers and benchmark distributions rather than maintaining a complete
@@ -187,6 +195,13 @@ References:
 - Damage-affecting Air, Torment, Earth, Blight, Doom, Geomancy, Hydromancy,
   and Severance sigil procs are resolved with their trigger cooldowns. Energy
   remains outside the damage total because endurance is not simulated.
+- Entering or exiting Luminary's Radiant Forge triggers on-weapon-swap sigils
+  from the currently active weapon set. Automatic Forge expiry is also an exit.
+  Equipping hammer, staff, sword, or shield inside Forge is another swap
+  trigger internally for sigils only; it does not change the active weapon set
+  or activate unrelated swap mechanics. Their sequence follow-up skills are not
+  triggers. Swap sigils only activate in combat. Hydromancy includes both its
+  strike and Chill.
 - Competitive PvP and WvW splits are intentionally excluded.
 
 When live balance changes, regenerate the metadata-only

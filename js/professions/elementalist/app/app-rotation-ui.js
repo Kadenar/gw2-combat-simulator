@@ -1,6 +1,7 @@
 import { PLACEHOLDER_ICON } from './gw2-api.js';
 import {
     clearTimelineDropIndicators,
+    formatTimelineCastDetails,
     getSkillDropInsertionIndex,
     updateSkillDropIndicator,
 } from '../../../platform/ui/timeline.js';
@@ -672,7 +673,10 @@ export function renderTimeline(app, {
                 ? app._formatResultsTimeMs(pf.startMs, 2)
                 : step ? app._formatResultsTimeMs(step.start, 2) : '';
             const castInfo = step
-                ? `\nCast: ${app._formatResultsTimeMs(step.start, 2)} → ${app._formatResultsTimeMs(step.end, 2)}`
+                ? `\n${formatTimelineCastDetails(
+                    step,
+                    time => app._formatResultsTimeMs(time, 2),
+                )}`
                 : '';
             const isConcurrent = offset !== undefined;
             const offsetBadge = isConcurrent

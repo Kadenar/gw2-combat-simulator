@@ -131,6 +131,7 @@ export function createCommonEventHandlers() {
     control: reactingNoop,
     blind: reactingNoop,
     weapon_set: reactingNoop,
+    sigil_swap: reactingNoop,
     marker: reactingNoop,
     resource: reactingNoop,
     buff: commonBuffHandler,

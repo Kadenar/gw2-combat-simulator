@@ -18,6 +18,14 @@ export function clearTimelineDropIndicators(root) {
     ));
 }
 
+export function formatTimelineCastDetails(step, formatTime) {
+  const start = Number(step?.start);
+  const end = Number(step?.end);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return "";
+  const castSeconds = Math.max(0, end - start) / 1000;
+  return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(2)}s`;
+}
+
 export function getSkillDropInsertionIndex(skillElement, clientX) {
   const rawIndex = skillElement?.dataset?.idx;
   if (rawIndex == null || String(rawIndex).trim() === "") return null;

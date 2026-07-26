@@ -10,6 +10,7 @@ const CHAIN_POSITION_BY_SKILL_ID = indexAutoattackChains(
 );
 
 export function validateWeaponState(context, skill) {
+  if (skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE) return;
   if (
     skill.type === "Weapon"
     && (

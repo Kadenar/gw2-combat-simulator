@@ -17,7 +17,10 @@ import {
 import {
     calculateAttributes as calculateMesmerAttributes,
 } from '../js/professions/mesmer/core/calc-attributes.js';
-import { setWeaponSigil } from '../js/platform/gw2/weapon-sigils.js';
+import {
+    aggregateSigilSet,
+    setWeaponSigil,
+} from '../js/platform/gw2/weapon-sigils.js';
 
 const calcAttributes = calculateMesmerAttributes;
 
@@ -180,6 +183,13 @@ test('simulation config aggregates each weapon set sigils independently', () => 
     assert.equal(config.target.conditions.Bleeding, 1);
     assert.equal(config.target.conditions.Torment, 1);
     assert.equal(config.target.conditions.Confusion, 1);
+});
+
+test('additive damage sigils sum into one modifier bucket', () => {
+    const sigils = aggregateSigilSet(['Force', 'Impact']);
+
+    assert.equal(sigils.strikeAdd, 0.08);
+    assert.equal(sigils.strike, 1.08);
 });
 
 test('Mesmer browser simulations retain weaponmaster training', () => {

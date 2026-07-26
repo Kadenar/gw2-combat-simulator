@@ -10,6 +10,13 @@ import {
   handleVirtueRefresh,
   reactToJusticeHit,
 } from "../mechanics/virtues.js";
+import {
+  handleEffulgentActivated,
+  handleEffulgentDetonate,
+  handleRighteousInstinctsTick,
+  reactToGuardianBuffTraits,
+  reactToGuardianDamageTraits,
+} from "../mechanics/traits.js";
 
 /**
  * Guardian resolver-side event handlers and reactions. Timeline/state events
@@ -19,6 +26,9 @@ import {
 export const guardianResolverEventHandlers = Object.freeze({
   "guardian.virtue-activated": handleVirtueActivation,
   "guardian.virtues-refreshed": handleVirtueRefresh,
+  "guardian.effulgent-activated": handleEffulgentActivated,
+  "guardian.effulgent-detonate": handleEffulgentDetonate,
+  "guardian.righteous-instincts-tick": handleRighteousInstinctsTick,
   ...guardianTomeEventHandlers,
   ...guardianRadiantForgeEventHandlers,
 });
@@ -31,9 +41,21 @@ export const guardianResolverEventReactions = Object.freeze({
       handler: reactToAshesHit,
     },
     {
+      id: "guardian.traits",
+      order: 15,
+      handler: reactToGuardianDamageTraits,
+    },
+    {
       id: "guardian.justice",
       order: 20,
       handler: reactToJusticeHit,
+    },
+  ]),
+  buff: Object.freeze([
+    {
+      id: "guardian.traits",
+      order: 10,
+      handler: reactToGuardianBuffTraits,
     },
   ]),
 });

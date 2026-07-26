@@ -62,9 +62,23 @@ provide runtime coefficients, conditions, hit counts, intervals, or cast time.
 - Willbender physical skills and movement virtues
 - Luminary Radiant Forge entry/exit, duration, radiant-weapon flips, and
   weapon-dependent Glaring Burst
+- Radiant Forge's per-entry recharge reduction, radiant-weapon equip buffs,
+  virtue-to-radiant-weapon recharge links, and delayed empowered attacks
+- Light fields, leap/blast finishers, light aura replacement, and Sovereign of
+  Light detonations for Luminary virtues, stances, and forge sequences
+- Effulgent Stance's four-second, ten-stack charge and delayed variable
+  `0.5`-to-`4.0` strike
+- Zeal and Radiance symbol traits, including both lesser symbols, Symbolic
+  Avenger/Exposure, resolution damage bonuses, and interval-based Righteous
+  Instincts might
 - Spear (Janthir Wilds) with the Illuminated mechanic (see below)
 - Static and resolver-time Guardian damage, recharge, condition, signet, and
   attribute trait rules
+- Explicit strike-modifier grouping: Force/Impact, Empowered Armaments,
+  Radiant Armaments, Furious Focus, Retribution, Symbolic Avenger, and
+  Piercing Stance share one additive `1 + sum(bonuses)` bucket. Fiery Wrath,
+  Symbolic Exposure, skill-specific gates, vulnerability, and relic effects
+  remain separate multipliers.
 - Shared rotation-timeline cast steps, including cast timestamps and automatic
   advancement to cooldown expiry
 - A damage-focused skill selector that omits support-only skills which cannot
@@ -76,6 +90,11 @@ bundle facts. Skills without measured timing overrides use consistent
 type-based activation defaults. The simulator models deterministic PvE combat
 output; ally positioning, incoming damage, revival, and other encounter-side
 support effects remain outside its damage model.
+
+Uncompressed ArcDPS EVTC logs can be inspected with
+`node scripts/analyze-evtc.mjs <log.evtc> --summary`. Add
+`--window=<seconds>` to compare a rotation prefix without treating it as a
+full-benchmark DPS result.
 
 ## Spear Illuminated
 

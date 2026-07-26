@@ -6,7 +6,7 @@
 export const EVENT_SCHEMA_VERSION = 1;
 
 /**
- * @typedef {"action"|"damage"|"condition"|"condition_tick"|"control"|"blind"|"weapon_set"|"proc"|string} SimulationEventType
+ * @typedef {"action"|"damage"|"condition"|"condition_tick"|"control"|"blind"|"weapon_set"|"sigil_swap"|"proc"|string} SimulationEventType
  *
  * @typedef {object} SimulationEventBase
  * @property {SimulationEventType} type
@@ -31,7 +31,7 @@ export const EVENT_SCHEMA_VERSION = 1;
  *
  * @typedef {SimulationEventBase & {
  *   type: "action"|"combat_start"|"condition_tick"|"control"|"blind"|
- *     "weapon_set"|"proc"|"marker"|"resource"|"buff"|
+ *     "weapon_set"|"sigil_swap"|"proc"|"marker"|"resource"|"buff"|
  *     "weakness_vulnerability"|"peitha"
  * }} CommonEvent
  *
@@ -50,6 +50,7 @@ export const COMMON_EVENT_TYPES = Object.freeze([
   "control",
   "blind",
   "weapon_set",
+  "sigil_swap",
   "proc",
   "marker",
   "resource",

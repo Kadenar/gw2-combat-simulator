@@ -1,4 +1,7 @@
 import { MESMER_TRAIT_IDS as TRAIT } from "./data/ids.js";
+import {
+  applyAdditiveDamageBucket,
+} from "../../platform/gw2/damage-modifier-buckets.js";
 
 const EPSILON = 0.0001;
 
@@ -130,51 +133,44 @@ export function applyMesmerCriticalDamage(context, initialValue) {
   return value;
 }
 
-function commonDamageMultiplier(context, condition) {
-  let value = 1;
+function commonDamageModifiers(context, condition) {
+  let additive = 0;
+  let multiplicative = 1;
   if (
     hasTrait(context, TRAIT.NOMADS_ENDURANCE)
     && context.timeline?.vigorActiveAt(context.time)
-  ) value *= condition ? 1.05 : 1.1;
+  ) additive += condition ? 0.05 : 0.1;
   if (!illusionSource(context)) {
-    value *=
-      1
-      + timedStacks(context, "compounding", 8, 5)
-        * (condition ? 0.01 : 0.02);
+    additive += timedStacks(context, "compounding", 8, 5) * 0.01;
   }
-  value *=
-    1
-    + timedStacks(context, "phantom-pain", 10, 4)
-      * (condition ? 0.05 : 0.0625);
+  additive += timedStacks(context, "phantom-pain", 10, 4)
+    * (condition ? 0.05 : 0.0625);
   if (timedActive(context, "deadly-blades")) {
-    value *= condition ? 1.1 : 1.05;
+    additive += condition ? 0.1 : 0.05;
   }
-  if (!condition && timedActive(context, "time-bomb")) value *= 1.1;
+  if (!condition && timedActive(context, "time-bomb")) {
+    multiplicative *= 1.1;
+  }
   if (condition && timedActive(context, "illusionary-membrane")) {
-    value *= 1.07;
+    additive += 0.07;
   }
   const lute = instrumentsAt(context)
     .some(event => event.instrument === "Lute");
   if (lute) {
-    value *= 1.1;
-    if (hasTrait(context, TRAIT.SHREDDING)) value *= 1.15;
+    additive += 0.1;
+    if (hasTrait(context, TRAIT.SHREDDING)) additive += 0.15;
   }
-  if (!condition && timedActive(context, "altered-chord")) value *= 1.25;
-  return value;
+  if (!condition && timedActive(context, "altered-chord")) additive += 0.25;
+  return { additive, multiplicative };
 }
 
 export function applyMesmerStrikeDamage(context, initialValue) {
   const event = context.event || {};
-  let value = Number(initialValue || 1)
-    * commonDamageMultiplier(context, false);
-  if (illusionSource(context)) {
-    value /= Math.max(
-      Number(
-        context.timeline?.activeSigilSetAt(context.time)?.strike || 1,
-      ),
-      Number.EPSILON,
-    );
-  }
+  const modifiers = commonDamageModifiers(context, false);
+  let value = applyAdditiveDamageBucket(context, initialValue, {
+    bonus: modifiers.additive,
+    includeSigil: !illusionSource(context),
+  }) * modifiers.multiplicative;
   const vulnerability =
     context.timeline?.vulnerabilityStacksAt(context.time) || 0;
   if (event.skillName === "Mind Stab") {
@@ -183,10 +179,10 @@ export function applyMesmerStrikeDamage(context, initialValue) {
   if (hasTrait(context, TRAIT.FRAGILITY) && event.source !== "Phantasm") {
     value *= 1 + vulnerability * 0.005;
   }
-  if (
-    hasTrait(context, TRAIT.VICIOUS_EXPRESSION)
-    && context.config.target?.boonless
-  ) value *= 1.15;
+  if (hasTrait(context, TRAIT.VICIOUS_EXPRESSION)) {
+    value *= 1.1;
+    if (context.config.target?.boonless) value *= 1.15 / 1.1;
+  }
   if (event.source === "Phantasm") {
     if (hasTrait(context, TRAIT.EMPOWERED_ILLUSIONS)) value *= 1.15;
     if (hasTrait(context, TRAIT.PHANTASMAL_FORCE)) {
@@ -215,8 +211,11 @@ export function applyMesmerStrikeDamage(context, initialValue) {
 }
 
 export function applyMesmerConditionDamage(context, initialValue) {
-  let value = Number(initialValue || 1)
-    * commonDamageMultiplier(context, true);
+  const modifiers = commonDamageModifiers(context, true);
+  let value = applyAdditiveDamageBucket(context, initialValue, {
+    damageType: "condition",
+    bonus: modifiers.additive,
+  }) * modifiers.multiplicative;
   if (
     context.condition === "Bleeding"
     && hasTrait(context, TRAIT.BLOODSONG)
