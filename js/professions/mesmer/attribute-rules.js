@@ -136,7 +136,12 @@ function commonDamageMultiplier(context, condition) {
     hasTrait(context, TRAIT.NOMADS_ENDURANCE)
     && context.timeline?.vigorActiveAt(context.time)
   ) value *= condition ? 1.05 : 1.1;
-  value *= 1 + timedStacks(context, "compounding", 8, 5) * 0.01;
+  if (!illusionSource(context)) {
+    value *=
+      1
+      + timedStacks(context, "compounding", 8, 5)
+        * (condition ? 0.01 : 0.02);
+  }
   value *=
     1
     + timedStacks(context, "phantom-pain", 10, 4)

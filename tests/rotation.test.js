@@ -441,8 +441,9 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
             coefficient: normalDamage.reduce((sum, event) => sum + event.coefficient, 0),
             hits: normalDamage.reduce((sum, event) => sum + event.hits, 0),
         },
-        { coefficient: 2.266, hits: 6 },
+        { coefficient: 0.9, hits: 6 },
     );
+    assert.ok(normalDamage.every(event => event.weaponStrength === 2877));
     assert.equal(normalTorment.stacks, 12);
     assert.equal(normalTorment.source, 'Phantasm');
     assert.deepEqual(
@@ -450,8 +451,9 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
             coefficient: repeatedDamage.reduce((sum, event) => sum + event.coefficient, 0),
             hits: repeatedDamage.reduce((sum, event) => sum + event.hits, 0),
         },
-        { coefficient: 2.266, hits: 6 },
+        { coefficient: 0.9, hits: 6 },
     );
+    assert.ok(repeatedDamage.every(event => event.weaponStrength === 2877));
     assert.equal(repeatedTorment.stacks, 12);
     assert.equal(repeatedTorment.source, 'Phantasm');
 });
@@ -535,6 +537,54 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
         triggers.map(event => event.at),
         [0.7799999999999999, 4.24, 9.8401],
     );
+});
+
+test('Compounding Power does not increase illusion attack damage', () => {
+    const simulate = selectedTraits => simulateMesmer(
+        ['Phantasmal Warlock', { name: '__wait', waitMs: 4000 }],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            selectedTraits,
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
+            initialResource: 0,
+        }),
+    );
+    const warlockDamage = result => result.resolvedEvents
+        .filter(event =>
+            event.type === 'damage'
+            && event.name === 'Phantasmal Warlock')
+        .reduce((sum, event) => sum + event.damage, 0);
+
+    assert.equal(
+        warlockDamage(simulate(['Compounding Power'])),
+        warlockDamage(simulate([])),
+    );
+});
+
+test('Compounding Power increases player strike damage by two percent per stack', () => {
+    const simulate = selectedTraits => simulateMesmer(
+        ['Mirror Images', 'Winds of Chaos'],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            selectedTraits,
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
+            initialResource: 0,
+        }),
+    );
+    const playerDamage = result => result.resolvedEvents
+        .find(event =>
+            event.type === 'damage'
+            && event.name === 'Winds of Chaos'
+            && event.source === 'Player')
+        .damage;
+
+    assert.ok(Math.abs(
+        playerDamage(simulate(['Compounding Power']))
+        / playerDamage(simulate([]))
+        - 1.04,
+    ) < 1e-12);
 });
 
 test('Winds of Chaos uses its measured 760ms Quickness cast time', () => {
