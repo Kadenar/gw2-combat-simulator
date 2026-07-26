@@ -18,7 +18,7 @@ import {
 } from './composition.js';
 import { createDefaultBuild, loadBuild, replaceBuild, saveBuild } from './app-state.js';
 import { downloadJson, readJsonFile } from './app-io.js';
-import { escapeHtml as esc } from '../platform/ui/html.js';
+import { escapeHtml as esc, gw2ApiText } from '../platform/ui/html.js';
 import {
     DERIVED_ATTRIBUTES,
     groupedOptions,
@@ -361,11 +361,11 @@ export class ProfessionApp {
                         const minor = spec.minorTraits[tier];
                         return `${tier ? '<span class="spec-line"></span>' : ''}
                             <div class="spec-tier">
-                                <div class="spec-trait-minor" title="${esc(minor.name)}\n${esc(minor.description)}"><img src="${esc(minor.icon)}" alt=""></div>
+                                <div class="spec-trait-minor" title="${esc(minor.name)}\n${esc(gw2ApiText(minor.description))}"><img src="${esc(minor.icon)}" alt=""></div>
                                 <div class="spec-trait-majors">${spec.majorTraits[tier].map((trait, position) =>
                                     `<div class="spec-trait-major ${picks[tier] === position + 1 ? 'sel' : 'dim'}"
                                         data-line="${lineIndex}" data-tier="${tier}" data-pick="${position + 1}"
-                                        title="${esc(trait.name)}\n${esc(trait.description)}"><img src="${esc(trait.icon)}" alt=""></div>`
+                                        title="${esc(trait.name)}\n${esc(gw2ApiText(trait.description))}"><img src="${esc(trait.icon)}" alt=""></div>`
                                 ).join('')}</div>
                             </div>`;
                     }).join('')}</div>
@@ -463,7 +463,7 @@ export class ProfessionApp {
         };
         const set1Skills = skillsForSet(this.build.weapons);
         const set2Skills = skillsForSet(this.build.alternateWeapons);
-        const weaponIcon = skill => `<div class="wskill" title="${esc(skill.name)}\n${esc(skill.description)}">
+        const weaponIcon = skill => `<div class="wskill" title="${esc(skill.name)}\n${esc(gw2ApiText(skill.description))}">
             <img src="${esc(skill.icon)}" alt=""><span class="wslot-num">${esc(skill.slot.replace('Weapon_', ''))}</span>
         </div>`;
         document.getElementById('weapon-bar').innerHTML = `

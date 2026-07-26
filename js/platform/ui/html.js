@@ -5,3 +5,9 @@ export function escapeHtml(value) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
+
+export function gw2ApiText(value) {
+  return String(value ?? "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/?c(?:=[^>]*)?>/gi, "");
+}
