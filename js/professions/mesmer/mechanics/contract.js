@@ -63,10 +63,15 @@ const TASK = Object.freeze({
   cloneAttack: "mesmer.clone-attack",
   resourceGain: "mesmer.resource-gain",
   expectedProc: "mesmer.expected-proc",
+  bladeSpend: "mesmer.blade-spend",
   continuumExpire: "mesmer.continuum-expire",
   infiniteForge: "mesmer.infinite-forge",
 });
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set([-3]);
+const TRUE_ZERO_DURATION_SKILLS = new Set([
+  "Bladeturn Requiem",
+  "Thousand Cuts",
+]);
 const autoattackChainPositions = indexAutoattackChains(
   MESMER_AUTOATTACK_CHAINS,
 );
@@ -620,9 +625,10 @@ export function initializeMesmerScheduler(context) {
     config.primaryWeapon,
     "initial",
   );
-  for (const name of ["Split Second", "Dodge / Mirage Cloak"]) {
-    const skill = runtime.skillsByName.get(name);
-    if (skill) context.cooldownController.ensureAmmo(skill, 0);
+  for (const skill of context.catalog.skills) {
+    if (context.maximumAmmoFor(skill) > 0) {
+      context.cooldownController.ensureAmmo(skill, 0);
+    }
   }
   for (const skill of context.catalog.skills) {
     if (
@@ -736,14 +742,37 @@ export function mesmerAvailability(context, skill) {
 
 export function startMesmerCast(context, skill) {
   const runtime = runtimeFor(context);
-  const shatterSpent =
-    SHATTERS[skill.name] && SHATTERS[skill.name].kind !== "continuum"
-      ? runtime.actions.consumeResources(context.start, {
-          sourceSkill: skill.name,
-          rotationIndex: context.commandIndex,
-        })
-      : null;
+  const shatter = SHATTERS[skill.name];
+  let shatterSpent = null;
+  const spendProgress = Number(shatter?.resourceSpendProgress);
+  const delayedBladeSpend =
+    shatter?.kind.startsWith("blade")
+    && Number.isFinite(spendProgress)
+    && context.fullEnd > context.start + EPSILON;
+  if (shatter && shatter.kind !== "continuum" && !delayedBladeSpend) {
+    shatterSpent = runtime.actions.consumeResources(context.start, {
+      sourceSkill: skill.name,
+      rotationIndex: context.commandIndex,
+    });
+  }
   runtime.castDetails.set(context.reservationId, { shatterSpent });
+  if (delayedBladeSpend) {
+    context.tasks.schedule({
+      type: TASK.bladeSpend,
+      at: spendProgress === 1
+        ? context.fullEnd
+        : context.start + (context.fullEnd - context.start) * spendProgress,
+      // Run before the core cast-completion task (-100) when the spend is
+      // scheduled exactly at fullEnd, so completion receives the spent count.
+      priority: -110,
+      ownerId: context.reservationId,
+      payload: {
+        reservationId: context.reservationId,
+        sourceSkill: skill.name,
+        rotationIndex: context.commandIndex,
+      },
+    });
+  }
 }
 
 export function scheduleMesmerSkill() {
@@ -824,6 +853,16 @@ export function handleExpectedProcTask(context, task) {
   runtimeFor(context).expected.process(task.payload);
 }
 
+export function handleBladeSpendTask(context, task) {
+  const runtime = runtimeFor(context);
+  const details = runtime.castDetails.get(task.payload.reservationId);
+  if (!details || details.shatterSpent != null) return;
+  details.shatterSpent = runtime.actions.consumeResources(task.at, {
+    sourceSkill: task.payload.sourceSkill,
+    rotationIndex: task.payload.rotationIndex,
+  });
+}
+
 export function handleContinuumExpiryTask(context, task) {
   const active = context.state.profession.continuum;
   if (
@@ -879,6 +918,7 @@ export function modifyMesmerCastDuration(context) {
     0,
     Number(context.skill.activation ?? context.skill.castTime ?? 0),
   );
+  if (base === 0 && TRUE_ZERO_DURATION_SKILLS.has(context.skill.name)) return 0;
   const duration = context.config.boons?.quickness ? base / 1.5 : base;
   return duration > 0 ? duration : 0.05;
 }
@@ -988,6 +1028,7 @@ export const mesmerSchedulerHooks = Object.freeze({
     [TASK.cloneAttack]: handleCloneAttackTask,
     [TASK.resourceGain]: handleResourceGainTask,
     [TASK.expectedProc]: handleExpectedProcTask,
+    [TASK.bladeSpend]: handleBladeSpendTask,
     [TASK.continuumExpire]: handleContinuumExpiryTask,
     [TASK.infiniteForge]: handleInfiniteForgeTask,
   }),

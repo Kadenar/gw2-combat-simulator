@@ -4,6 +4,9 @@
  */
 
 import { EPSILON } from "../../../platform/engine/clock.js";
+import {
+  isInternalCooldownReady,
+} from "../../../platform/engine/internal-cooldown.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 
 /**
@@ -85,7 +88,10 @@ export function triggerIneptitude(
   const defiant = Boolean(ctx.config.target?.defiant);
   if (
     defiant
-    && event.at < ctx.profession.ineptitudeReadyAt - EPSILON
+    && !isInternalCooldownReady(
+      event.at,
+      ctx.profession.ineptitudeReadyAt,
+    )
   ) return;
   if (defiant) ctx.profession.ineptitudeReadyAt = event.at + 3;
   const count = defiant

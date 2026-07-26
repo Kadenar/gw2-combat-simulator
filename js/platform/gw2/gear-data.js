@@ -339,87 +339,58 @@ export const RUNE_GROUPS = [
 export const NOURISHMENT_ICON =
     'https://wiki.guildwars2.com/images/c/ca/Nourishment_food.png';
 
-export const FOOD_DATA = {
-    'Plate of Jerk Poultry': { isConverted: true, stats: { Power: 150 }, durations: {} },
-    'Plate of Truffle Steak': { isConverted: true, stats: { Power: 100, Precision: 70 }, durations: {} },
-    'Plate of Fire Flank Steak': { isConverted: true, stats: { Power: 100, 'Condition Damage': 70 }, durations: {} },
-    'Bowl of Sweet and Spicy Butternut Squash Soup': { isConverted: true, stats: { Power: 100, Ferocity: 70 }, durations: {} },
-    'Bowl of Sawgill Mushroom Risotto': { isConverted: true, stats: { Precision: 150 }, durations: {} },
-    'Bowl of Fancy Potato and Leek Soup': { isConverted: true, stats: { Precision: 100, 'Condition Damage': 70 }, durations: {} },
-    'Bowl of Curry Butternut Squash Soup': { isConverted: true, stats: { Ferocity: 70, Precision: 100 }, durations: {} },
-    'Soul Pastry': { isConverted: true, stats: { Power: 70, Concentration: 100 }, durations: {} },
-    'Plate of Eggs Benedict': { isConverted: true, stats: { Expertise: 70, Concentration: 100 }, durations: {} },
-    'Bowl of Truffle Risotto': { isConverted: true, stats: { Precision: 70, 'Condition Damage': 100 }, durations: {} },
-    'Plate of Beef Rendang': { isConverted: true, stats: { 'Condition Damage': 100, Expertise: 70 }, durations: {} },
-    'Bowl of Sweet and Spicy Beans': { isConverted: true, stats: { Power: 70, 'Condition Damage': 100 }, durations: {} },
-    'Rare Veggie Pizza': { isConverted: true, stats: { 'Condition Damage': 70, Expertise: 100 }, durations: {} },
-    'Fishy Rice Bowl': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Burning Duration': 15 } },
-    'Bowl of Kimchi Tofu Stew': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Poison Duration': 15 } },
-    'Meaty Asparagus Skewer': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Torment Duration': 15 } },
-    'Meaty Rice Bowl': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Bleeding Duration': 15 } },
-    'Plate of Kimchi Pancakes': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Confusion Duration': 15 } },
-    'Bowl of Fire Meat Chili': { isConverted: true, stats: { 'Precision': 70 }, durations: { 'Burning Duration': 15 } },
-    "Dragon's Revelry Starcake": { isConverted: false, stats: { Power: 45, Ferocity: 45, Precision: 45, 'Condition Damage': 45, Expertise: 45, Vitality: 45, Toughness: 45, Concentration: 45 }, durations: {} },
-    'Plate of Coq Au Vin with Salsa': { isConverted: true, stats: { Power: 100, Precision: 70 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
-    'Cilantro Lime Sous-Vide Steak': { isConverted: true, stats: { Power: 100, Ferocity: 70 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
-    'Plate of Beef Carpaccio with Salsa Garnish': { isConverted: true, stats: { Power: 70, Concentration: 100 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
-    'Salsa Eggs Benedict': { isConverted: true, stats: { Expertise: 70, Concentration: 100 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
-    'Cilantro and Cured Meat Flatbread': { isConverted: true, stats: { 'Condition Damage': 100, Expertise: 70 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
-    'Salsa-Topped Veggie Flatbread': { isConverted: true, stats: { 'Condition Damage': 70, Expertise: 100 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
-    'Spherified Cilantro Oyster Soup': { isConverted: true, stats: { Power: 45, Ferocity: 45, Precision: 45, 'Condition Damage': 45, Expertise: 45, Vitality: 45, Toughness: 45, Concentration: 45 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
+const FOOD_CATALOG = {
+    Power: {
+        'Plate of Jerk Poultry': { isConverted: true, stats: { Power: 150 }, durations: {} },
+        'Plate of Truffle Steak': { isConverted: true, stats: { Power: 100, Precision: 70 }, durations: {} },
+        'Bowl of Sweet and Spicy Butternut Squash Soup': { isConverted: true, stats: { Power: 100, Ferocity: 70 }, durations: {} },
+        'Bowl of Sawgill Mushroom Risotto': { isConverted: true, stats: { Precision: 150 }, durations: {} },
+        'Bowl of Curry Butternut Squash Soup': { isConverted: true, stats: { Ferocity: 70, Precision: 100 }, durations: {} },
+        'Plate of Coq Au Vin with Salsa': { isConverted: true, stats: { Power: 100, Precision: 70 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
+        'Cilantro Lime Sous-Vide Steak': { isConverted: true, stats: { Power: 100, Ferocity: 70 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
+    },
+    Condition: {
+        'Plate of Beef Rendang': { isConverted: true, stats: { 'Condition Damage': 100, Expertise: 70 }, durations: {} },
+        'Rare Veggie Pizza': { isConverted: true, stats: { 'Condition Damage': 70, Expertise: 100 }, durations: {} },
+        'Fishy Rice Bowl': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Burning Duration': 15 } },
+        'Bowl of Kimchi Tofu Stew': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Poison Duration': 15 } },
+        'Meaty Asparagus Skewer': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Torment Duration': 15 } },
+        'Meaty Rice Bowl': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Bleeding Duration': 15 } },
+        'Plate of Kimchi Pancakes': { isConverted: true, stats: { 'Condition Damage': 70 }, durations: { 'Confusion Duration': 15 } },
+        'Cilantro and Cured Meat Flatbread': { isConverted: true, stats: { 'Condition Damage': 100, Expertise: 70 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
+        'Salsa-Topped Veggie Flatbread': { isConverted: true, stats: { 'Condition Damage': 70, Expertise: 100 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
+    },
+    Hybrid: {
+        'Plate of Fire Flank Steak': { isConverted: true, stats: { Power: 100, 'Condition Damage': 70 }, durations: {} },
+        'Bowl of Fancy Potato and Leek Soup': { isConverted: true, stats: { Precision: 100, 'Condition Damage': 70 }, durations: {} },
+        'Bowl of Truffle Risotto': { isConverted: true, stats: { Precision: 70, 'Condition Damage': 100 }, durations: {} },
+        'Bowl of Sweet and Spicy Beans': { isConverted: true, stats: { Power: 70, 'Condition Damage': 100 }, durations: {} },
+        'Bowl of Fire Meat Chili': { isConverted: true, stats: { Precision: 70 }, durations: { 'Burning Duration': 15 } },
+    },
+    Concentration: {
+        'Soul Pastry': { isConverted: true, stats: { Power: 70, Concentration: 100 }, durations: {} },
+        'Plate of Eggs Benedict': { isConverted: true, stats: { Expertise: 70, Concentration: 100 }, durations: {} },
+        'Plate of Beef Carpaccio with Salsa Garnish': { isConverted: true, stats: { Power: 70, Concentration: 100 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
+        'Salsa Eggs Benedict': { isConverted: true, stats: { Expertise: 70, Concentration: 100 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
+    },
+    'All Stats': {
+        "Dragon's Revelry Starcake": { isConverted: false, stats: { Power: 45, Ferocity: 45, Precision: 45, 'Condition Damage': 45, Expertise: 45, Vitality: 45, Toughness: 45, Concentration: 45 }, durations: {} },
+        'Spherified Cilantro Oyster Soup': { isConverted: true, stats: { Power: 45, Ferocity: 45, Precision: 45, 'Condition Damage': 45, Expertise: 45, Vitality: 45, Toughness: 45, Concentration: 45 }, durations: {}, proc: { type: 'critStrike', chance: 0.66, icdMs: 2000, flatDamage: 325, name: 'Nourishment' } },
+    },
 };
+
+export const FOOD_DATA = Object.fromEntries(
+    Object.values(FOOD_CATALOG).flatMap(foods => Object.entries(foods)),
+);
 
 export const FOOD_NAMES = sortNames(Object.keys(FOOD_DATA));
 
-export const FOOD_GROUPS = [
-    {
-        label: 'Power', items: [
-            'Plate of Jerk Poultry',
-            'Plate of Truffle Steak',
-            'Bowl of Sweet and Spicy Butternut Squash Soup',
-            'Bowl of Sawgill Mushroom Risotto',
-            'Bowl of Curry Butternut Squash Soup',
-            'Plate of Coq Au Vin with Salsa',
-            'Cilantro Lime Sous-Vide Steak',
-        ]
-    },
-    {
-        label: 'Condition', items: [
-            'Plate of Beef Rendang',
-            'Rare Veggie Pizza',
-            'Fishy Rice Bowl',
-            'Bowl of Kimchi Tofu Stew',
-            'Meaty Asparagus Skewer',
-            'Meaty Rice Bowl',
-            'Plate of Kimchi Pancakes',
-            'Cilantro and Cured Meat Flatbread',
-            'Salsa-Topped Veggie Flatbread',
-        ]
-    },
-    {
-        label: 'Hybrid', items: [
-            'Plate of Fire Flank Steak',
-            'Bowl of Fancy Potato and Leek Soup',
-            'Bowl of Truffle Risotto',
-            'Bowl of Sweet and Spicy Beans',
-            'Bowl of Fire Meat Chili',
-        ]
-    },
-    {
-        label: 'Concentration', items: [
-            'Soul Pastry',
-            'Plate of Eggs Benedict',
-            'Plate of Beef Carpaccio with Salsa Garnish',
-            'Salsa Eggs Benedict',
-        ]
-    },
-    {
-        label: 'All Stats', items: [
-            "Dragon's Revelry Starcake",
-            'Spherified Cilantro Oyster Soup',
-        ]
-    },
-];
+export const FOOD_GROUPS = Object.entries(FOOD_CATALOG).map(
+    ([label, foods]) => ({
+        label,
+        items: Object.keys(foods),
+    }),
+);
 
 // ─── Utility Conversions ─────────────────────────────────────────────────────
 // Percentage of the source stat (from conversion base pool) added to target stat.
@@ -486,27 +457,75 @@ export const WEAPON_DATA = {
 // Stat values are percentages stored as numbers (e.g. 7 = 7%).
 // Only non-zero fields are listed; all others default to 0 when accessed with ||0.
 // Sigils with no stat effect (proc-only: Air, Blight, Earth, Torment, Doom,
-// Energy, Geomancy, Hydromancy, Severance) are included for the dropdown but have no fields.
+// Energy, Geomancy, Hydromancy, Severance) have icons but no numeric effect fields.
 export const SIGIL_DATA = {
-    Accuracy: { criticalChance: 7 },
-    Force: { strikeDamageA: 5 },
-    Bursting: { conditionDamageA: 5 },
-    Malice: { conditionDuration: 10 },
-    Agony: { bleedingDuration: 20 },
-    Smoldering: { burningDuration: 20 },
-    Venom: { poisonDuration: 20 },
-    Demons: { tormentDuration: 20 },
-    Impact: { strikeDamageA: 3 },
-    Air: {},
-    Blight: {},
-    Earth: {},
-    Torment: {},
-    Doom: {},
-    Energy: {},
-    Geomancy: {},
-    Hydromancy: {},
-    Severance: {},
-    Concentration: { boonDuration: 10 },
+    Accuracy: {
+        criticalChance: 7,
+        icon: 'https://render.guildwars2.com/file/4B0EFF29FD064E5E93E4F8616BE309A451450AED/220661.png',
+    },
+    Force: {
+        strikeDamageA: 5,
+        icon: 'https://render.guildwars2.com/file/D7420E430D002E07382035EF0D0F77370C4EE6B8/220662.png',
+    },
+    Bursting: {
+        conditionDamageA: 5,
+        icon: 'https://render.guildwars2.com/file/7ABFCEDF80329157F734FD56B293765D9B940FAD/619703.png',
+    },
+    Malice: {
+        conditionDuration: 10,
+        icon: 'https://render.guildwars2.com/file/797D052CB4EA63A61A3225962128D197ACB3ED17/619709.png',
+    },
+    Agony: {
+        bleedingDuration: 20,
+        icon: 'https://render.guildwars2.com/file/BAF34EB051D118F8A7C1645E0D940ED0660E6269/220658.png',
+    },
+    Smoldering: {
+        burningDuration: 20,
+        icon: 'https://render.guildwars2.com/file/60AAB7109E5D679901E00DC066774EE5FB3E6052/220659.png',
+    },
+    Venom: {
+        poisonDuration: 20,
+        icon: 'https://render.guildwars2.com/file/080B4F940A05E60A084AA4B1D230F923A1A47CEC/220664.png',
+    },
+    Demons: {
+        tormentDuration: 20,
+        icon: 'https://render.guildwars2.com/file/52D5D9FE5E0B9091415092A9E21DE830010D2E0E/220674.png',
+    },
+    Impact: {
+        strikeDamageA: 3,
+        icon: 'https://render.guildwars2.com/file/D9ACA0C94D90A76B1C500D5DE6D62B6820FEDAE2/221170.png',
+    },
+    Air: {
+        icon: 'https://render.guildwars2.com/file/C337CC61DF2F5EE44B7D053EFF33059111024444/220676.png',
+    },
+    Blight: {
+        icon: 'https://render.guildwars2.com/file/AE0A1C7816B56296FEA527E1D01376491374195A/941026.png',
+    },
+    Earth: {
+        icon: 'https://render.guildwars2.com/file/251EE3B8B5ADB8D7F7A35DBAEFABA35AEACDF51B/220677.png',
+    },
+    Torment: {
+        icon: 'https://render.guildwars2.com/file/E42EB6198022E5B4D71C5EE41465DD4EB84A0465/665778.png',
+    },
+    Doom: {
+        icon: 'https://render.guildwars2.com/file/6CE4D1D6E5392C4CC8BACA595E3393EBF208BEED/220686.png',
+    },
+    Energy: {
+        icon: 'https://render.guildwars2.com/file/3A064B97AB7D0E1F1250EFB5F06798A8FE623708/220688.png',
+    },
+    Geomancy: {
+        icon: 'https://render.guildwars2.com/file/B79B430645DDF54E6792909A52F5CA40A4911407/220687.png',
+    },
+    Hydromancy: {
+        icon: 'https://render.guildwars2.com/file/B5F3E2021863079919299707290698504B5C7E90/220689.png',
+    },
+    Severance: {
+        icon: 'https://render.guildwars2.com/file/396D7A5DBFA03BC49C12DAB532C4E34D342F0B51/1766396.png',
+    },
+    Concentration: {
+        boonDuration: 10,
+        icon: 'https://render.guildwars2.com/file/C501D2CCF95A7B59F15EEDEF9C7D42C2DECE48E7/1201533.png',
+    },
 };
 
 export const SIGIL_NAMES = sortNames(Object.keys(SIGIL_DATA));
@@ -519,6 +538,7 @@ export const SIGIL_PROCS = Object.freeze({
         coefficient: 1.1,
         weaponStrength: 690.5,
         canCrit: false,
+        icon: SIGIL_DATA.Air.icon,
     },
     Torment: {
         trigger: 'crit',
@@ -527,6 +547,7 @@ export const SIGIL_PROCS = Object.freeze({
         condition: 'Torment',
         stacks: 2,
         duration: 5,
+        icon: SIGIL_DATA.Torment.icon,
     },
     Earth: {
         trigger: 'crit',
@@ -535,6 +556,7 @@ export const SIGIL_PROCS = Object.freeze({
         condition: 'Bleeding',
         stacks: 1,
         duration: 6,
+        icon: SIGIL_DATA.Earth.icon,
     },
     Blight: {
         trigger: 'crit',
@@ -543,6 +565,7 @@ export const SIGIL_PROCS = Object.freeze({
         condition: 'Poisoned',
         stacks: 2,
         duration: 4,
+        icon: SIGIL_DATA.Blight.icon,
     },
     Doom: {
         trigger: 'swap',
@@ -551,6 +574,7 @@ export const SIGIL_PROCS = Object.freeze({
         condition: 'Poisoned',
         stacks: 3,
         duration: 8,
+        icon: SIGIL_DATA.Doom.icon,
     },
     Geomancy: {
         trigger: 'swap',
@@ -559,7 +583,7 @@ export const SIGIL_PROCS = Object.freeze({
         condition: 'Bleeding',
         stacks: 1,
         duration: 8,
-        icon: 'https://render.guildwars2.com/file/B79B430645DDF54E6792909A52F5CA40A4911407/220687.png',
+        icon: SIGIL_DATA.Geomancy.icon,
     },
     Hydromancy: {
         trigger: 'swap',
@@ -571,18 +595,20 @@ export const SIGIL_PROCS = Object.freeze({
         condition: 'Chilled',
         stacks: 1,
         duration: 2,
-        icon: 'https://render.guildwars2.com/file/B5F3E2021863079919299707290698504B5C7E90/220689.png',
+        icon: SIGIL_DATA.Hydromancy.icon,
     },
     Energy: {
         trigger: 'swap',
         cooldown: 9,
         effect: 'endurance',
+        icon: SIGIL_DATA.Energy.icon,
     },
     Severance: {
         trigger: 'control',
         cooldown: 1,
         effect: 'severance',
         duration: 4,
+        icon: SIGIL_DATA.Severance.icon,
     },
 });
 

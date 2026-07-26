@@ -1,6 +1,9 @@
 import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
 import {
+  isInternalCooldownReady,
+} from "../../engine/internal-cooldown.js";
+import {
   FOOD_DATA,
   NOURISHMENT_ICON,
   SIGIL_PROCS,
@@ -57,7 +60,10 @@ function activeSigilNames(ctx, at, weaponSet = null) {
 }
 
 function sigilReady(ctx, name, at) {
-  return at >= (ctx.sigil.readyAt.get(name) || 0) - EPSILON;
+  return isInternalCooldownReady(
+    at,
+    ctx.sigil.readyAt.get(name) || 0,
+  );
 }
 
 function armSigil(ctx, name, at, cooldown) {
@@ -137,7 +143,7 @@ function handleCriticalFood(ctx, event, hitContext) {
 
   ctx.food.criticalProgress += hitContext.critical.chance * proc.chance;
   if (ctx.food.criticalProgress < 1 - EPSILON) return;
-  if (event.at < ctx.food.readyAt - EPSILON) return;
+  if (!isInternalCooldownReady(event.at, ctx.food.readyAt)) return;
 
   ctx.food.criticalProgress -= 1;
   ctx.food.readyAt = event.at + Number(proc.icdMs || 0) / 1000;

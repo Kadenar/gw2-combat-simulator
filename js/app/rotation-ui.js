@@ -807,12 +807,15 @@ export function renderTimeline(app) {
             const resourceSingular = resourceSpend?.resource.endsWith('s')
                 ? resourceSpend.resource.slice(0, -1)
                 : resourceSpend?.resource;
+            const resourceSpendTiming = resourceSpend?.resource === 'blades'
+                ? 'cast end'
+                : 'cast start';
             const resourceLabel = resourceSpend
                 ? `${resourceSpend.count} ${
                     resourceSpend.count === 1
                         ? resourceSingular
                         : resourceSpend.resource
-                } consumed at cast start`
+                } consumed at ${resourceSpendTiming}`
                 : '';
             const resourceShortLabel = resourceSpend
                 ? `${resourceSpend.count}${

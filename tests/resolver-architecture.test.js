@@ -265,6 +265,180 @@ test("Bloodsong needs real bleeding and does not treat blade hits as bleeding", 
   assert.ok(withJaggedMind.conditionDamage > 0);
 });
 
+function assertEventTimes(actual, expected, message) {
+  assert.equal(actual.length, expected.length, `${message} event count`);
+  for (let index = 0; index < expected.length; index += 1) {
+    assert.ok(
+      Math.abs(actual[index] - expected[index]) < 1e-12,
+      `${message} event ${index + 1}: ${actual[index]} !== ${expected[index]}`,
+    );
+  }
+}
+
+test("Phantasmal Swordsman follows the EVTC packet, bleed, and blade timeline", () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    ["Phantasmal Swordsman", { name: "__wait", waitMs: 7000 }],
+    defaultSimulationConfig({
+      initialResource: 0,
+      selectedTraits: [
+        "Bloodsong",
+        "Jagged Mind",
+        "Sharper Images",
+        "Phantasmal Blades",
+      ],
+      stats: {
+        ...defaults.stats,
+        precision: 4000,
+      },
+    }),
+  );
+  const swordsmanDamage = result.resolvedEvents.filter(event =>
+    event.type === "damage"
+    && event.skillName === "Phantasmal Swordsman"
+  );
+  const phantasmDamage = swordsmanDamage
+    .filter(event => event.source === "Phantasm")
+    .map(event => event.at);
+  const bleeding = result.resolvedEvents
+    .filter(event =>
+      event.type === "condition" && event.condition === "Bleeding"
+    )
+    .map(event => event.at);
+  const phantasmalBlade = result.resolvedEvents.find(event =>
+    event.type === "damage" && event.skillName === "Phantasmal Blade"
+  );
+  const bladeGains = result.events.filter(event =>
+    event.type === "resource" && event.amount > 0
+  );
+
+  assert.equal(result.steps[0].fullCastMs, 880);
+  assert.ok(Math.abs(swordsmanDamage[0].at - 0.759) < 1e-12);
+  assertEventTimes(
+    phantasmDamage,
+    [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159],
+    "Phantasmal Swordsman damage",
+  );
+  assert.ok(Math.abs(phantasmalBlade.at - 4.367) < 1e-12);
+  assertEventTimes(
+    bleeding,
+    [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159, 4.367],
+    "Phantasmal Swordsman bleeding",
+  );
+  assertEventTimes(
+    bladeGains.map(event => event.at),
+    [2.5591, 4.2841, 4.3671],
+    "Phantasmal Swordsman blade gain",
+  );
+  assert.deepEqual(
+    bladeGains.map(event => event.reason),
+    [
+      "Bloodsong",
+      "Phantasmal Swordsman phantasm conversion",
+      "Bloodsong",
+    ],
+  );
+});
+
+test("Thousand Cuts spreads its ten EVTC packets and Bloodsong triggers", () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    ["Thousand Cuts", { name: "__wait", waitMs: 6000 }],
+    defaultSimulationConfig({
+      initialResource: 0,
+      selectedTraits: ["Bloodsong", "Jagged Mind"],
+      stats: {
+        ...defaults.stats,
+        precision: 4000,
+      },
+    }),
+  );
+  const damageTimes = result.resolvedEvents
+    .filter(event =>
+      event.type === "damage" && event.skillName === "Thousand Cuts"
+    )
+    .map(event => event.at);
+  const bleedTimes = result.resolvedEvents
+    .filter(event =>
+      event.type === "condition"
+      && event.condition === "Bleeding"
+      && event.skillName === "Thousand Cuts"
+    )
+    .map(event => event.at);
+  const expected = [
+    0.05,
+    0.567,
+    1.083,
+    1.6,
+    2.117,
+    2.65,
+    3.167,
+    3.683,
+    4.2,
+    4.717,
+  ];
+  const bloodsongTimes = result.events
+    .filter(event =>
+      event.type === "resource" && event.reason === "Bloodsong"
+    )
+    .map(event => event.at);
+
+  assertEventTimes(damageTimes, expected, "Thousand Cuts damage");
+  assertEventTimes(bleedTimes, expected, "Thousand Cuts bleeding");
+  assertEventTimes(
+    bloodsongTimes,
+    [expected[4] + 0.0001, expected[9] + 0.0001],
+    "Thousand Cuts Bloodsong",
+  );
+  assert.equal(result.endState.profession.resource, 2);
+});
+
+test("Unstable Bladestorm anchors its paired EVTC packets to cast start", () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    ["Unstable Bladestorm", { name: "__wait", waitMs: 6000 }],
+    defaultSimulationConfig({
+      initialResource: 0,
+      selectedTraits: ["Bloodsong", "Jagged Mind"],
+      stats: {
+        ...defaults.stats,
+        precision: 4000,
+      },
+    }),
+  );
+  const expected = [
+    1.156,
+    1.198,
+    2.156,
+    2.198,
+    3.156,
+    3.198,
+    4.156,
+    4.198,
+  ];
+  const damageTimes = result.resolvedEvents
+    .filter(event =>
+      event.type === "damage" && event.skillName === "Unstable Bladestorm"
+    )
+    .map(event => event.at);
+  const bleedTimes = result.resolvedEvents
+    .filter(event =>
+      event.type === "condition"
+      && event.condition === "Bleeding"
+      && event.skillName === "Unstable Bladestorm"
+    )
+    .map(event => event.at);
+  const bloodsong = result.events.find(event =>
+    event.type === "resource" && event.reason === "Bloodsong"
+  );
+
+  assert.equal(result.steps[0].fullCastMs, 440);
+  assertEventTimes(damageTimes, expected, "Unstable Bladestorm damage");
+  assertEventTimes(bleedTimes, expected, "Unstable Bladestorm bleeding");
+  assert.ok(Math.abs(bloodsong.at - 3.1561) < 1e-12);
+  assert.equal(result.endState.profession.resource, 1);
+});
+
 test("target death resolves its timestamp and stops future events", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
@@ -327,7 +501,7 @@ test("Egotism starts after the target falls below the Mesmer's health percentage
   );
 });
 
-test("explicit combat start excludes completed precombat damage", () => {
+test("explicit combat start keeps precombat projectiles that land afterward", () => {
   const result = simulateMesmer(
     [
       "Bladecall",
@@ -338,12 +512,15 @@ test("explicit combat start excludes completed precombat damage", () => {
     ],
     defaultSimulationConfig(),
   );
-  const damageSkills = result.resolvedEvents
-    .filter(event => event.type === "damage")
-    .map(event => event.skillName);
+  const bladecallHits = result.resolvedEvents.filter(event =>
+    event.type === "damage" && event.skillName === "Bladecall"
+  );
 
-  assert.equal(damageSkills.includes("Bladecall"), false);
-  assert.ok(damageSkills.includes("Unstable Bladestorm"));
+  assert.equal(bladecallHits.length, 3);
+  assert.ok(result.resolvedEvents.some(event =>
+    event.type === "damage"
+    && event.skillName === "Unstable Bladestorm"
+  ));
   assert.ok(result.dpsWindow < result.duration);
 });
 
@@ -381,9 +558,9 @@ test("DPS duration starts at the first hit in the supplied delayed-start rotatio
   );
 
   assert.equal(result.steps[1].start, 700);
-  assert.equal(result.firstHitTime, 0.86);
-  assert.equal(result.duration, 1.3);
-  assert.ok(Math.abs(result.dpsWindow - 0.44) < 1e-12);
+  assert.ok(Math.abs(result.firstHitTime - 0.759) < 1e-12);
+  assert.ok(Math.abs(result.duration - 1.32) < 1e-12);
+  assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
   assert.equal(result.dps, result.totalDamage / result.dpsWindow);
 });
 
@@ -398,10 +575,10 @@ test("standalone Combat Start uses the first subsequent hit like Elementalist", 
   );
 
   assert.equal(result.steps[0].start, 0);
-  assert.equal(result.firstHitTime, 0.86);
-  assert.equal(result.duration, 1.3);
+  assert.ok(Math.abs(result.firstHitTime - 0.759) < 1e-12);
+  assert.ok(Math.abs(result.duration - 1.32) < 1e-12);
   assert.equal(result.dpsStartTime, result.firstHitTime);
-  assert.ok(Math.abs(result.dpsWindow - 0.44) < 1e-12);
+  assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
   assert.equal(result.dps, result.totalDamage / result.dpsWindow);
 });
 

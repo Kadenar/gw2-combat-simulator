@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { defaultSimulationConfig } from './helpers/fixture-harness-core.js';
 import {
@@ -6,6 +7,7 @@ import {
 } from './helpers/mesmer-simulation.js';
 import { chartValueAt } from '../js/platform/ui/charts.js';
 import {
+    formatTimelineCastDetails,
     moveRotationEntry,
 } from '../js/platform/ui/timeline.js';
 import {
@@ -25,6 +27,11 @@ import {
 } from '../js/app/rotation-ui.js';
 import { RELIC_DATA } from '../js/platform/gw2/gear-data.js';
 import { MESMER_SKILL_IDS as ID } from '../js/professions/mesmer/data/ids.js';
+import { mesmerCatalog } from '../js/professions/mesmer/catalog.js';
+import {
+    recalculate,
+    simulationConfig,
+} from '../js/professions/mesmer/app/app-runtime.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {
     assert.equal(
@@ -847,8 +854,8 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
     );
 
     assert.equal(normalConversion.amount, 1);
-    assert.ok(Math.abs(normalConversion.at - 2.8801) < 0.00001);
-    assert.ok(Math.abs(resummon.at - 2.88) < 0.00001);
+    assert.ok(Math.abs(normalConversion.at - 3.3341) < 0.00001);
+    assert.ok(Math.abs(resummon.at - 3.334) < 0.00001);
     assert.ok(Math.abs(repeat.at - 6.44) < 0.00001);
     assert.equal(chronoConversion.amount, 1);
     assert.ok(Math.abs(chronoConversion.at - 7.0401) < 0.00001);
@@ -1287,21 +1294,67 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
         Math.abs(event.at - 0.54) < 0.00001
         && event.description === 'PHANTASM SUMMONED Phantasmal Duelist x1'));
     assert.ok(log.some(event =>
-        Math.abs(event.at - 2.4) < 0.00001
+        Math.abs(event.at - 2.751) < 0.00001
         && event.description === 'PHANTASM DAMAGE COMPLETE Phantasmal Duelist x1'));
     assert.ok(log.some(event =>
-        Math.abs(event.at - 2.8801) < 0.00001
+        Math.abs(event.at - 3.3341) < 0.00001
         && event.description.includes('CLONE SPAWNED x1')
         && event.description.includes('Phantasmal Duelist phantasm conversion')));
     assert.match(simulationEventLogCsv(log), /Phantasmal Duelist phantasm conversion/);
 });
 
-test('Virtuoso bladesongs spend the configured starting blades', () => {
-    const result = simulateMesmer(
-        ['Bladesong Harmony'],
-        defaultSimulationConfig({ initialResource: 5 }),
-    );
-    assert.equal(result.endState.profession.resource, 0);
+test('configured Virtuoso bladesongs spend blades at cast end', () => {
+    for (const skillName of [
+        'Bladesong Harmony',
+        'Bladesong Sorrow',
+        'Bladesong Dissonance',
+        'Bladeturn Requiem',
+    ]) {
+        const result = simulateMesmer(
+            [skillName],
+            defaultSimulationConfig({ initialResource: 5 }),
+        );
+        const action = result.events.find(event =>
+            event.type === 'action' && event.name === skillName
+        );
+        const spend = result.events.find(event =>
+            event.type === 'resource'
+            && event.sourceSkill === skillName
+        );
+
+        assert.equal(result.endState.profession.resource, 0);
+        assert.equal(spend.amount, -5);
+        assert.equal(spend.rotationIndex, 0);
+        assert.ok(
+            Math.abs(spend.at - action.fullEndsAt) < 0.00001,
+            `${skillName} spent blades before cast end`,
+        );
+    }
+});
+
+test('Bladeturn Requiem and Thousand Cuts retain their zero-second cast times', () => {
+    for (const skillName of ['Bladeturn Requiem', 'Thousand Cuts']) {
+        const result = simulateMesmer(
+            [skillName],
+            defaultSimulationConfig({ initialResource: 5 }),
+        );
+        const step = result.steps[0];
+        const action = result.events.find(event =>
+            event.type === 'action' && event.name === skillName
+        );
+
+        assert.equal(step.start, step.end);
+        assert.equal(step.fullCastMs, 0);
+        assert.equal(action.at, action.endsAt);
+        assert.equal(action.at, action.fullEndsAt);
+        assert.match(
+            formatTimelineCastDetails(
+                step,
+                time => `${(time / 1000).toFixed(2)}s`,
+            ),
+            /Cast time: 0\.00s$/,
+        );
+    }
 });
 
 test('sigil and relic damage modifiers affect the queued rotation result', () => {
@@ -1637,6 +1690,29 @@ test('Relic of Aristocracy extends conditions after weakness or vulnerability', 
         result.procSteps.filter(proc => proc.skill === 'Relic of Aristocracy').length,
         1,
     );
+});
+
+test('Relic of Aristocracy requires more than its one-second ICD', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        relic: 'Aristocracy',
+        initialResource: 0,
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Pistol',
+    });
+    const aristocracyProcs = waitMs => simulateMesmer(
+        [
+            'Mind Slash',
+            { name: '__wait', waitMs },
+            'Mind Gash',
+            { name: '__wait', waitMs: 2000 },
+        ],
+        config,
+    ).procSteps.filter(proc => proc.skill === 'Relic of Aristocracy');
+
+    assert.equal(aristocracyProcs(479).length, 1);
+    assert.equal(aristocracyProcs(480).length, 1);
+    assert.equal(aristocracyProcs(481).length, 2);
 });
 
 test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
@@ -2771,14 +2847,24 @@ test('Clarity makes Phantasmal Lancer summon and attack with a second phantasm',
 });
 
 test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six times', () => {
+    const defaults = defaultSimulationConfig();
     const config = defaultSimulationConfig({
         specialization: 'Virtuoso',
         primaryWeapon: 'Dagger',
         secondaryWeapon: 'Sword',
-        selectedTraits: [],
+        selectedTraits: ['Jagged Mind'],
+        stats: {
+            ...defaults.stats,
+            precision: 3100,
+        },
     });
     const consecutive = simulateMesmer(
-        ['Flying Cutter', 'Flying Cutter', 'Flying Cutter'],
+        [
+            'Flying Cutter',
+            'Flying Cutter',
+            'Flying Cutter',
+            { name: '__wait', waitMs: 1000 },
+        ],
         config,
     );
     const burst = consecutive.resolvedEvents.filter(event =>
@@ -2787,6 +2873,26 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
     assert.ok(Math.abs(
         burst.reduce((sum, event) => sum + event.coefficient, 0) - 0.6,
     ) < 1e-12);
+    const triggerAt = consecutive.resolvedEvents
+        .filter(event =>
+            event.type === 'damage'
+            && event.skillName === 'Flying Cutter'
+            && event.name !== 'Cutter Burst'
+        )
+        .at(-1).at;
+    assert.deepEqual(
+        burst.map(event => Number((event.at - triggerAt).toFixed(3))),
+        [0.217, 0.25, 0.384],
+    );
+    assert.deepEqual(
+        consecutive.resolvedEvents
+            .filter(event =>
+                event.type === 'condition'
+                && event.name === 'Cutter Burst — Jagged Mind'
+            )
+            .map(event => Number((event.at - triggerAt).toFixed(3))),
+        [0.217, 0.25, 0.384],
+    );
 
     const expired = simulateMesmer(
         [
@@ -2803,7 +2909,10 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
         0,
     );
 
-    const bladecall = simulateMesmer(['Bladecall'], config);
+    const bladecall = simulateMesmer(
+        ['Bladecall', { name: '__wait', waitMs: 3000 }],
+        config,
+    );
     const bladecallHits = bladecall.resolvedEvents.filter(event =>
         event.type === 'damage' && event.skillName === 'Bladecall');
     assert.equal(bladecallHits.length, 6);
@@ -2813,6 +2922,165 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
             0,
         ) - 1.5,
     ) < 1e-12);
+    assert.deepEqual(
+        bladecallHits.map(event => Number(event.at.toFixed(3))),
+        [0.199, 0.199, 0.199, 2.716, 2.716, 2.766],
+    );
+    assert.deepEqual(
+        bladecall.resolvedEvents
+            .filter(event =>
+                event.type === 'condition'
+                && event.name === 'Bladecall — Jagged Mind'
+            )
+            .map(event => Number(event.at.toFixed(3))),
+        [0.199, 0.199, 0.199, 2.716, 2.716, 2.766],
+    );
+});
+
+test('Virtuoso bladesongs use the EVTC projectile packet trains', () => {
+    const defaults = defaultSimulationConfig();
+    const config = defaultSimulationConfig({
+        selectedTraits: ['Jagged Mind'],
+        stats: {
+            ...defaults.stats,
+            precision: 3100,
+        },
+        initialResource: 5,
+    });
+    const packets = (result, skillName, type = 'damage') =>
+        result.resolvedEvents
+            .filter(event =>
+                event.type === type
+                && event.skillName === skillName
+                && (type !== 'condition' || event.condition === 'Bleeding')
+            )
+            .map(event => Number(event.at.toFixed(3)));
+
+    const harmony = simulateMesmer(
+        ['Bladesong Harmony', { name: '__wait', waitMs: 2000 }],
+        config,
+    );
+    assert.deepEqual(
+        packets(harmony, 'Bladesong Harmony'),
+        [0.69, 0.848, 1.007, 1.174, 1.324],
+    );
+    assert.deepEqual(
+        packets(harmony, 'Bladesong Harmony', 'condition'),
+        [0.69, 0.848, 1.007, 1.174, 1.324],
+    );
+
+    const sorrow = simulateMesmer(
+        ['Bladesong Sorrow', { name: '__wait', waitMs: 2000 }],
+        config,
+    );
+    assert.deepEqual(
+        packets(sorrow, 'Bladesong Sorrow'),
+        [0.922, 0.997, 1.081, 1.155, 1.155],
+    );
+    assert.deepEqual(
+        packets(sorrow, 'Bladesong Sorrow', 'condition'),
+        [0.922, 0.997, 1.081, 1.155, 1.155],
+    );
+    assert.deepEqual(
+        sorrow.resolvedEvents
+            .filter(event =>
+                event.type === 'condition'
+                && event.skillName === 'Bladesong Sorrow'
+                && event.condition === 'Confusion'
+            )
+            .map(event => Number(event.at.toFixed(3))),
+        [0.922, 0.997, 1.081, 1.155, 1.155],
+    );
+});
+
+test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
+    const result = simulateMesmer(
+        ['Phantasmal Duelist', { name: '__wait', waitMs: 4000 }],
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            selectedTraits: [],
+            primaryWeapon: 'Dagger',
+            secondaryWeapon: 'Pistol',
+            initialResource: 0,
+        }),
+    );
+    const times = source => result.resolvedEvents
+        .filter(event =>
+            event.type === 'damage'
+            && event.skillName === 'Phantasmal Duelist'
+            && event.source === source
+        )
+        .map(event => Number(event.at.toFixed(3)));
+
+    assert.deepEqual(times('Player'), [0.35, 0.35, 0.4]);
+    assert.deepEqual(
+        times('Phantasm'),
+        [1.351, 1.551, 1.75, 1.95, 2.151, 2.35, 2.55, 2.751],
+    );
+    assert.deepEqual(
+        result.resolvedEvents
+            .filter(event =>
+                event.type === 'condition'
+                && event.skillName === 'Phantasmal Duelist'
+                && event.condition === 'Bleeding'
+            )
+            .map(event => Number(event.at.toFixed(3))),
+        [1.351, 1.551, 1.75, 1.95, 2.151, 2.35, 2.55, 2.751],
+    );
+});
+
+test('the supplied condition Virtuoso build tracks cast-end blade spends', () => {
+    const build = JSON.parse(readFileSync(
+        new URL('./fixtures/cvirt-bench-build.json', import.meta.url),
+        'utf8',
+    ));
+    const app = {
+        build,
+        skillByName: mesmerCatalog.skillsByName,
+        attributeWeaponSet: 1,
+    };
+    recalculate(app);
+    const result = simulateMesmer(build.rotation, simulationConfig(app));
+    const spends = shatterResourceSpends(result);
+
+    assert.deepEqual(
+        [2, 9, 11, 13, 18, 21, 29].map(index => spends.get(index)?.count),
+        [5, 5, 5, 3, 5, 5, 4],
+    );
+    assert.deepEqual(
+        [9, 11, 13, 18, 21, 29].map(index =>
+            spends.get(index)?.sourceSkill
+        ),
+        [
+            'Bladesong Harmony',
+            'Bladesong Sorrow',
+            'Bladesong Harmony',
+            'Bladesong Sorrow',
+            'Bladesong Harmony',
+            'Bladeturn Requiem',
+        ],
+    );
+    const relativeStart = rotationIndex => {
+        const step = result.steps.find(candidate => candidate.ri === rotationIndex);
+        return Number((step.start / 1000 - result.dpsStartTime).toFixed(3));
+    };
+    assert.deepEqual(
+        [relativeStart(9), relativeStart(11), relativeStart(29)],
+        [2.15, 3.71, 12.94],
+    );
+    const firstHarmony = result.events.find(event =>
+        event.type === 'action' && event.name === 'Bladesong Harmony'
+    );
+    const firstHarmonySpend = result.events.find(event =>
+        event.type === 'resource'
+        && event.sourceSkill === 'Bladesong Harmony'
+    );
+    assert.ok(result.events.some(event =>
+        event.type === 'resource'
+        && event.amount > 0
+        && event.at > firstHarmony.at
+        && event.at < firstHarmonySpend.at
+    ));
 });
 
 test('supplied trait attacks execute with their exact coefficients', () => {
@@ -2847,6 +3115,31 @@ test('supplied trait attacks execute with their exact coefficients', () => {
         }),
     );
     assert.equal(coefficient(phantasmalBlade, 'Phantasmal Blade'), 0.7);
+    const phantasmalBladeHit = phantasmalBlade.resolvedEvents.find(event =>
+        event.type === 'damage' && event.skillName === 'Phantasmal Blade'
+    );
+    assert.equal(phantasmalBladeHit.source, 'Player');
+    assert.equal(phantasmalBladeHit.actorType, 'player');
+    assert.equal(phantasmalBladeHit.weaponStrength, 2553.5);
+    const modifiedPhantasmalBlade = simulateMesmer(
+        ['Phantasmal Lancer', { name: '__wait', waitMs: 3000 }],
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            primaryWeapon: 'Spear',
+            secondaryWeapon: '',
+            selectedTraits: ['Phantasmal Blades'],
+            initialResource: 0,
+            sigilSets: [
+                { strike: 1.1, condition: 1 },
+                { strike: 1, condition: 1 },
+            ],
+        }),
+    ).resolvedEvents.find(event =>
+        event.type === 'damage' && event.skillName === 'Phantasmal Blade'
+    );
+    assert.ok(Math.abs(
+        modifiedPhantasmalBlade.damage / phantasmalBladeHit.damage - 1.1
+    ) < 1e-12);
 
     const syncopate = simulateMesmer(
         ['Illusionary Wave'],
@@ -2891,7 +3184,7 @@ test('Bountiful Blades stocks each Berserker blade independently', () => {
     assert.ok(Math.abs(conversions[1].at - 3.4401) < 0.00001);
 });
 
-test('blades generated during a bladesong remain stocked afterward', () => {
+test('Virtuoso cast-end blade spends retain timeline metadata', () => {
     const rotation = [
         'Phantasmal Disenchanter',
         'Imaginary Inversion',
@@ -2936,32 +3229,21 @@ test('blades generated during a bladesong remain stocked afterward', () => {
     const harmony = result.events.find(event =>
         event.type === 'marker' && event.name === 'Bladesong Harmony'
     );
-    const sorrow = result.events.find(event =>
-        event.type === 'marker' && event.name === 'Bladesong Sorrow'
-    );
     const harmonyAction = result.events.find(event =>
         event.type === 'action' && event.name === 'Bladesong Harmony'
     );
     const harmonySpend = result.events.find(event =>
         event.type === 'resource'
         && event.reason === 'profession mechanic'
-        && Math.abs(event.at - harmonyAction.at) < 0.00001
+        && event.sourceSkill === 'Bladesong Harmony'
     );
     const timelineSpends = shatterResourceSpends(result);
-    const duringHarmony = result.events.find(event =>
-        event.type === 'resource'
-        && event.amount > 0
-        && event.at > harmonyAction.at
-        && event.at < harmonyAction.endsAt
-    );
-
     assert.equal(result.warnings.length, 0);
     assert.equal(harmony.detail, '5 blades spent');
-    assert.equal(sorrow.detail, '5 blades spent');
     assert.equal(harmonySpend.amount, -5);
     assert.equal(harmonySpend.sourceSkill, 'Bladesong Harmony');
     assert.equal(harmonySpend.rotationIndex, 15);
-    assert.equal(duringHarmony.amount, 1);
+    assert.ok(Math.abs(harmonySpend.at - harmonyAction.fullEndsAt) < 0.00001);
     assert.deepEqual(timelineSpends.get(15), {
         count: 5,
         resource: 'blades',
@@ -3111,10 +3393,10 @@ test('Combat Start timeline timestamps use the first subsequent hit like Element
         defaultSimulationConfig(),
     );
 
-    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.86s');
-    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '-0.16s');
-    assert.equal(formatResultTimelineTime(result.steps[2].start, result), '0.00s');
-    assert.equal(formatResultTimelineTime(result.steps[2].end, result), '0.44s');
+    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.76s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '-0.06s');
+    assert.equal(formatResultTimelineTime(result.steps[2].start, result), '0.12s');
+    assert.equal(formatResultTimelineTime(result.steps[2].end, result), '0.56s');
 });
 
 test('timeline and DPS retain simulation time without Combat Start', () => {
@@ -3127,9 +3409,9 @@ test('timeline and DPS retain simulation time without Combat Start', () => {
     );
 
     assert.equal(result.dpsStartTime, 0);
-    assert.equal(result.dpsWindow, 1.3);
+    assert.equal(result.dpsWindow, 1.32);
     assert.equal(formatResultTimelineTime(result.steps[0].start, result), '0.00s');
-    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.86s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.88s');
 });
 
 test('result summary includes kill time when target health is exhausted', () => {

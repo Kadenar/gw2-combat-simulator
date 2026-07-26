@@ -25,6 +25,15 @@ import {
   createSimulationEngine,
   runSimulationContributions,
 } from "../js/professions/elementalist/sim/run/sim-runner.js";
+import {
+  checkRelicOnHit,
+} from "../js/professions/elementalist/sim/mechanics/sim-relic-helpers.js";
+import {
+  getRelicState,
+} from "../js/professions/elementalist/sim/state/sim-relic-state.js";
+import {
+  RELIC_PROCS,
+} from "../js/professions/elementalist/simulation.js";
 
 const skillsCsv = new URL(
   "../csv input/Tool_Elementalist - Skills_data.csv",
@@ -151,6 +160,35 @@ test("Elementalist Relic of the Claw displays activation and refresh procs", asy
       icon: "https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png",
     },
   ]);
+});
+
+test("Elementalist Aristocracy uses a strict one-second ICD", () => {
+  const state = {
+    activeRelic: "Aristocracy",
+    relicProc: RELIC_PROCS.Aristocracy,
+    att: "Air",
+  };
+  const context = {
+    S: state,
+    log() {},
+    addStep() {},
+  };
+  const trigger = (skill, time) => checkRelicOnHit(context, {
+    skill,
+    time,
+    conds: {
+      Vulnerability: { stacks: 1, duration: 5 },
+    },
+  });
+
+  trigger("First", 100);
+  assert.equal(state.relicProc.icd, 1000);
+  trigger("Exact boundary", 1100);
+  assert.equal(getRelicState(state).aristocracyStacks, 1);
+
+  trigger("After boundary", 1101);
+  assert.equal(getRelicState(state).aristocracyStacks, 2);
+  assert.equal(state.relicICD.Aristocracy, 2101);
 });
 
 test("every relative import in the Elementalist package resolves", async () => {

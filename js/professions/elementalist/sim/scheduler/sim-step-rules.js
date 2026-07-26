@@ -223,7 +223,9 @@ export function applyHammerPreludeRules(ctx, sk, name) {
     const lastHammerOrbCast = getHammerOrbLastCast(S);
     if ((isGF || isOrbSkill) && lastHammerOrbCast > -Infinity) {
         const sinceLast = S.t - lastHammerOrbCast;
-        if (sinceLast < ctx.hammerOrbIcdMs) ctx.setTime(lastHammerOrbCast + ctx.hammerOrbIcdMs);
+        if (sinceLast <= ctx.hammerOrbIcdMs) {
+            ctx.setTime(lastHammerOrbCast + ctx.hammerOrbIcdMs + 1);
+        }
     }
 
     if (!isGF) return true;

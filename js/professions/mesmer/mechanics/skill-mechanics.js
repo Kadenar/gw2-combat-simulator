@@ -194,14 +194,15 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Swordsman",
     "effects": [],
-    "activation": 1.29,
+    "activation": 1.32,
     "damage": [
       {
         "coefficient": 0.5,
         "hits": 1,
         "label": "Mesmer strike",
         "source": "Player",
-        "weapon": "sword"
+        "weapon": "sword",
+        "castProgress": 0.8625
       },
       {
         "coefficient": 0.5,
@@ -230,7 +231,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
       {
         "name": "bleeding",
         "duration": 4,
-        "stacks": 8
+        "stacks": 8,
+        "packetLabel": "Illusion Damage"
       }
     ],
     "phantasm": true,
@@ -248,7 +250,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
         "hits": 3,
         "label": "Damage",
         "source": "Player",
-        "weapon": "pistol"
+        "weapon": "pistol",
+        "timingOrigin": "castStart",
+        "packetOffsets": [0.35, 0.35, 0.4]
       },
       {
         "coefficient": 0.92,
@@ -1356,7 +1360,19 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
         "hits": 10,
         "label": "Damage",
         "source": "Player",
-        "weapon": "unequipped"
+        "weapon": "unequipped",
+        "packetOffsets": [
+          0,
+          0.517,
+          1.033,
+          1.55,
+          2.067,
+          2.6,
+          3.117,
+          3.633,
+          4.15,
+          4.667
+        ]
       }
     ],
     "conditions": [],
@@ -2046,12 +2062,14 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 0.5,
         "hits": 1,
         "label": "Projectile",
-        "source": "Player"
+        "source": "Player",
+        "castProgress": 0.72
       }
     ],
     "trackedHitDamage": {
       "hitsRequired": 3,
       "duration": 5,
+      "packetOffsets": [0.217, 0.25, 0.384],
       "damage": {
         "coefficient": 0.6,
         "hits": 3,
@@ -2107,14 +2125,18 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
         "hits": 3,
         "label": "Outgoing damage",
         "source": "Player",
-        "weapon": "dagger"
+        "weapon": "dagger",
+        "timingOrigin": "castStart",
+        "packetOffsets": [0.199, 0.199, 0.199]
       },
       {
         "coefficient": 0.75,
         "hits": 3,
         "label": "Returning damage",
         "source": "Player",
-        "weapon": "dagger"
+        "weapon": "dagger",
+        "timingOrigin": "castStart",
+        "packetOffsets": [2.716, 2.716, 2.766]
       }
     ]
   },
@@ -2221,16 +2243,18 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
         "hits": 4,
         "label": "Storm pulses",
         "source": "Player",
-        "firstDelay": 1,
-        "interval": 1
+        "firstDelay": 1.156,
+        "interval": 1,
+        "timingOrigin": "castStart"
       },
       {
         "coefficient": 2,
         "hits": 4,
         "label": "Launched blades",
         "source": "Player",
-        "firstDelay": 1,
-        "interval": 1
+        "firstDelay": 1.198,
+        "interval": 1,
+        "timingOrigin": "castStart"
       }
     ]
   },
@@ -2293,9 +2317,11 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "phantasm": false,
     "resource": {
       "mode": "add",
-      "count": 1
+      "count": 1,
+      "timingOrigin": "castStart",
+      "delay": 0.199
     },
-    "blade": false,
+    "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Bladecall",
     "effects": [],
     "activation": 0.66,
@@ -2305,14 +2331,18 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
         "hits": 3,
         "label": "Outgoing damage",
         "source": "Player",
-        "weapon": "dagger"
+        "weapon": "dagger",
+        "timingOrigin": "castStart",
+        "packetOffsets": [0.199, 0.199, 0.199]
       },
       {
         "coefficient": 0.75,
         "hits": 3,
         "label": "Returning damage",
         "source": "Player",
-        "weapon": "dagger"
+        "weapon": "dagger",
+        "timingOrigin": "castStart",
+        "packetOffsets": [2.716, 2.716, 2.766]
       }
     ]
   },
@@ -3685,10 +3715,23 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
   },
   "Phantasmal Duelist": {
     castTime: 0.54,
-    damage: 2.4,
-    spawn: 2.88,
+    damage: 2.751,
+    spawn: 3.334,
     chronophantasmaDamage: 6.44,
     chronophantasmaSpawn: 7.04,
+    damagePackets: {
+      "Illusion Damage": [
+        1.351,
+        1.551,
+        1.75,
+        1.95,
+        2.151,
+        2.35,
+        2.55,
+        2.751,
+      ],
+    },
+    phantasmalBladeDelayAfterSpawn: 0.175,
   },
   "Phantasmal Mage": {
     castTime: 0.8,
@@ -3705,11 +3748,25 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     chronophantasmaSpawn: 4.76,
   },
   "Phantasmal Swordsman": {
-    castTime: 0.86,
-    damage: 2.48,
-    spawn: 3.6,
+    castTime: 0.88,
+    damage: 3.159,
+    spawn: 4.284,
     chronophantasmaDamage: 7.12,
     chronophantasmaSpawn: 8.27,
+    damagePackets: {
+      "Phantasm leap": [1.725],
+      "Phantasm Blurred Frenzy": [
+        2.201,
+        2.242,
+        2.525,
+        2.559,
+        2.8,
+        2.842,
+        3.126,
+        3.159,
+      ],
+    },
+    phantasmalBladeDelayAfterSpawn: 0.083,
   },
   "Phantasmal Warden": {
     castTime: 0.46,
@@ -3815,16 +3872,21 @@ export const SHATTERS = {
     slot: 1,
     kind: "blade-power",
     coefficients: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
+    resourceSpendProgress: 1,
+    packetDelays: [0.05, 0.208, 0.367, 0.534, 0.684],
   },
   "Bladesong Sorrow": {
     slot: 2,
     kind: "blade-confusion",
     coefficients: [0, 0.42, 0.84, 1.25, 1.67, 2.09],
+    resourceSpendProgress: 1,
+    packetDelays: [0.442, 0.517, 0.601, 0.675, 0.675],
   },
   "Bladesong Dissonance": {
     slot: 3,
     kind: "blade-control",
     coefficients: [0, 1, 1, 1, 1, 1],
+    resourceSpendProgress: 1,
   },
   "Bladesong Distortion": {
     slot: 4,
@@ -3835,6 +3897,7 @@ export const SHATTERS = {
     slot: 5,
     kind: "blade-requiem",
     coefficients: [0, 0.3, 0.6, 0.9, 1.2, 1.5],
+    resourceSpendProgress: 1,
   },
   "Continuum Split": {
     slot: 5,

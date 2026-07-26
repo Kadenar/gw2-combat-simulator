@@ -141,7 +141,7 @@ export function applyRuntimeAction(ctx, action) {
             ? proc.bossAuraHitInterval
             : proc.defaultHitInterval;
 
-        if (action.time >= (relicState.thornsReadyAt || 0)
+        if (action.time > (relicState.thornsReadyAt || 0)
             && (relicState.thornsStacks || 0) < proc.maxStacks) {
             const before = relicState.thornsStacks || 0;
             relicState.thornsStacks = Math.min(before + 1, proc.maxStacks);
