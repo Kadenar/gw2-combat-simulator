@@ -82,9 +82,25 @@ Static Guild Wars 2 game data and lookups live with their owning layer.
 Attribute calculations and damage formulas.
 
 ### [attributes.js](js/platform/gw2/attributes.js)
-Profession-neutral common attribute assembly.
-Profession traits and skill bonuses are applied by each profession's own
-calculator under `js/professions/<profession>/core/calc-attributes.js`.
+Profession-neutral common attribute assembly and shared build finalization.
+Profession calculators resolve their own ordered trait and skill deltas;
+Guardian, Mesmer, and Necromancer pass those deltas to
+`finalizeBuildAttributes()` to rebuild all derived critical and duration
+breakdowns.
+
+### [modifier-rules.js](js/platform/gw2/modifier-rules.js)
+Validates and compiles declarative profession scalar modifiers into the
+existing profession hook contract. It pre-indexes rules by target, applies
+ordered flat and multiplicative operations, and rebuilds the outgoing additive
+damage bucket once per strike or condition evaluation.
+
+### [damage-modifier-buckets.js](js/platform/gw2/damage-modifier-buckets.js)
+Low-level GW2 additive outgoing-damage bucket primitive used by the modifier
+rule evaluator, including active-sigil inclusion and exclusion.
+
+### [trait-state.js](js/platform/gw2/trait-state.js)
+Shared stable-ID trait lookup across resolver trait sets and application
+configuration shapes.
 
 ### [damage.js](js/platform/gw2/damage.js)
 Damage calculation formulas. Provides strike damage calculation, expected crit multiplier, condition tick damage, and full skill damage breakdowns including per-tick and per-stack effects.
@@ -154,6 +170,10 @@ critical traits, and Bloodsong.
 
 Mesmer, Guardian, and Necromancer use the same files for shared concepts:
 
+- `attribute-rules.js` — profession predicates, declarative scalar modifier
+  rules, and exceptional ordered attribute transforms.
+- `build-attributes.js` — profession-owned trait delta and conversion
+  calculation before shared finalization.
 - `data/<profession>-api-metadata.js` — generated identity and presentation
   metadata only.
 - `mechanics/skill-mechanics.js` — the sole authoritative skill mechanics map.

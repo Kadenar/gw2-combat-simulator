@@ -118,6 +118,10 @@ export class ProfessionApp {
         this.adapter.renderRotationBuilder(this);
     }
 
+    // Debounced async calculation of per-modifier damage contributions.
+    // Cancels any in-flight worker/timer before starting a new one.
+    // Uses Web Worker when available so main thread stays responsive;
+    // falls back to synchronous calculation in environments without Worker.
     scheduleModifierContributions() {
         const requestId = ++this.modifierContributionRequestId;
         clearTimeout(this.modifierContributionTimer);
@@ -196,6 +200,9 @@ export class ProfessionApp {
         }
     }
 
+    // Appends a skill to the rotation. If the skill defines a defaultInterruptMs
+    // and none is provided in options, the default is injected so the entry
+    // is stored as an object rather than a bare string.
     addRotation(name, options = {}) {
         const defaultInterruptMs = this.skillByName.get(name)?.defaultInterruptMs;
         const resolvedOptions = defaultInterruptMs != null && options.interruptMs == null
@@ -208,6 +215,9 @@ export class ProfessionApp {
         this.changed(false);
     }
 
+    // Renders and re-binds three sections: armor gear slots, weapon sets (MH/OH/sigils ×2),
+    // and equipment (rune/relic/food/utility/jade bot/infusions).
+    // Re-creating the HTML each call means event listeners must be reattached here.
     renderGear() {
         const b = this.build;
         const twoHanded = this.weaponData[b.weapons[0]]?.wielding === '2h';
@@ -339,6 +349,9 @@ export class ProfessionApp {
             <select class="gear-select" id="${id}">${optionsHtml}</select></div>`;
     }
 
+    // Renders three specialization rows with wiki banner backgrounds, minor/major trait icons,
+    // and spec dropdowns. Selecting an elite spec forces any other already-elite slot to fall
+    // back to specializationFallback. Also clamps initialResource to the new spec's maximum.
     renderTraits() {
         const container = document.getElementById('traits-panel');
         const selectedNames = this.build.specializations.map(spec => spec.name);
@@ -410,6 +423,9 @@ export class ProfessionApp {
         });
     }
 
+    // Renders Primary and Derived attribute rows. Percent attributes display with two decimals;
+    // others are rounded and locale-formatted. Hover tooltip shows the per-source breakdown.
+    // Specific condition duration attributes add global Condition Duration on top of their own value.
     renderAttributes() {
         document.getElementById('attribute-weapon-set').value =
             String(this.attributeWeaponSet);
@@ -444,6 +460,9 @@ export class ProfessionApp {
             }));
     }
 
+    // Renders weapon bar (set 1 + set 2 previews), skill bar (Heal/Utility×3/Elite dropdowns),
+    // and the skill-info table (cast time + cooldown for all skills in play).
+    // Uses Map dedup so the same skill name appearing in both weapon sets shows once in the table.
     renderSkills() {
         const spec = this.adapter.eliteSpecialization(this.build);
         const skillsForSet = ([mh, oh]) => {
@@ -523,6 +542,10 @@ export class ProfessionApp {
         ).join('')}</div>`;
     }
 
+    // Renders permanent boons/conditions and target-behavior assumptions.
+    // Might and stackable conditions (Bleeding, Burning, Torment, Confusion, Poisoned) use a
+    // numeric stack count; other boons/conditions use a boolean checkbox only.
+    // Checkbox toggles enable/disable the paired stack input and keep values in sync.
     renderAssumptions() {
         const a = this.build.assumptions;
         const conditions = a.targetConditions ||= {};
@@ -626,6 +649,9 @@ export class ProfessionApp {
         document.getElementById('target-armor').value = this.build.targetArmor;
     }
 
+    // Wires up page-level controls that live outside re-rendered panels:
+    // weapon-set attribute toggle, skill-bar click-away, rotation clear/rerun,
+    // build/rotation import-export, target armor/HP inputs, and build reset.
     bindPageControls() {
         document.getElementById('attribute-weapon-set').addEventListener('change', event => {
             this.attributeWeaponSet = Number(event.target.value) === 2 ? 2 : 1;
@@ -693,6 +719,8 @@ export class ProfessionApp {
     }
 }
 
+// Bootstrap: resolve the active profession adapter (from data-profession attr or default),
+// construct the app, expose it on window for console/debugging, then init.
 window.addEventListener('DOMContentLoaded', async () => {
     const professionId = document.body.dataset.profession
         || document.getElementById('profession-select')?.dataset.activeProfession

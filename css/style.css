@@ -858,12 +858,14 @@ header .accent {
 
 .spec-select {
     width: 100%;
-    background: rgba(12, 12, 20, 0.85);
+    background: rgba(12, 12, 20, 0.85)
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='4'%3E%3Cpath d='M0 0l3 4 3-4z' fill='%23c8a24c'/%3E%3C/svg%3E")
+        no-repeat right 2px center;
     color: var(--text-bright);
     border: 1px solid var(--border-light);
     border-radius: 3px;
     font-size: 9px;
-    padding: 1px 2px;
+    padding: 1px 10px 1px 2px;
     cursor: pointer;
     text-align: center;
     appearance: none;
@@ -961,7 +963,7 @@ header .accent {
 
 .spec-trait-major.dim:hover {
     opacity: 0.75;
-    filter: grayscale(0);
+    filter: grayscale(0) drop-shadow(0 0 2px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
 }
 
 .spec-trait-major.sel:hover {

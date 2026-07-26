@@ -10,6 +10,7 @@ import {
 } from '../js/professions/mesmer/app/app-runtime.js';
 import {
     calculateCommonAttributes,
+    finalizeBuildAttributes,
 } from '../js/platform/gw2/attributes.js';
 import {
     calculateContributionComparisons,
@@ -183,6 +184,51 @@ test('simulation config aggregates each weapon set sigils independently', () => 
     assert.equal(config.target.conditions.Bleeding, 1);
     assert.equal(config.target.conditions.Torment, 1);
     assert.equal(config.target.conditions.Confusion, 1);
+});
+
+test('shared build finalization applies deltas and rebuilds derived stats', () => {
+    const common = calculateCommonAttributes(createDefaultBuild());
+    const original = structuredClone(common.attributes);
+    const activeTraits = [{ id: 1, name: 'Test Trait' }];
+    const result = finalizeBuildAttributes(common, {
+        activeTraits,
+        traitStats: {
+            Power: 10,
+            Precision: 21,
+            Ferocity: 15,
+            Concentration: 15,
+            Expertise: 15,
+        },
+        traitDurations: {
+            'Boon Duration': 2,
+            'Condition Duration': 3,
+            'Burning Duration': 4,
+        },
+        traitCriticalChance: 5,
+    });
+
+    assert.equal(result.commonContext, undefined);
+    assert.equal(result.activeTraits, activeTraits);
+    assert.deepEqual(common.attributes, original);
+    assert.equal(result.attributes.Power.traits, 10);
+    assert.equal(result.attributes.Power.final, original.Power.final + 10);
+    assert.equal(
+        result.attributes['Critical Chance'].final,
+        original['Critical Chance'].final + 6,
+    );
+    assert.equal(
+        result.attributes['Critical Damage'].final,
+        original['Critical Damage'].final + 1,
+    );
+    assert.equal(
+        result.attributes['Boon Duration'].final,
+        original['Boon Duration'].final + 3,
+    );
+    assert.equal(
+        result.attributes['Condition Duration'].final,
+        original['Condition Duration'].final + 4,
+    );
+    assert.equal(result.attributes['Burning Duration'].traits, 4);
 });
 
 test('additive damage sigils sum into one modifier bucket', () => {

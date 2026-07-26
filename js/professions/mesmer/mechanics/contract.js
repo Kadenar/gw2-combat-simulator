@@ -372,6 +372,8 @@ function createMesmerRuntime(context) {
     addCondition,
     addDamage,
     traitDamage: TRAIT_DAMAGE,
+    shatters: SHATTERS,
+    instruments: INSTRUMENTS,
   });
   Object.assign(runtime, {
     activePrimaryWeapon,
@@ -885,8 +887,10 @@ export function modifyMesmerRechargeStart(context, effectiveEnd) {
 }
 
 export function modifyMesmerMaximumAmmo(context, maximum) {
+  const name = context.skill.name;
+  const isSlot1 = SHATTERS[name]?.slot === 1 || INSTRUMENTS[name]?.slot === 1;
   return (
-    context.skill.name === "Split Second"
+    isSlot1
     && runtimeFor(context).traits.has(TRAIT.SHATTER_STORM)
   )
     ? 2

@@ -1,20 +1,13 @@
 import { targetHasPermanentCondition } from "../../platform/gw2/target-state.js";
 import {
-  applyAdditiveDamageBucket,
-} from "../../platform/gw2/damage-modifier-buckets.js";
+  createModifierHooks,
+  MODIFIER_TARGET,
+} from "../../platform/gw2/modifier-rules.js";
+import { hasTrait } from "../../platform/gw2/trait-state.js";
 import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
 } from "./data/ids.js";
-
-function hasTrait(context, id) {
-  if (context.traits?.has(id) || context.traits?.has(String(id))) return true;
-  return [
-    ...(context.config?.traitIds || []),
-    ...(context.config?.selectedTraitIds || []),
-    ...(context.config?.selectedTraits || []),
-  ].some(value => value === id || String(value) === String(id));
-}
 
 function activeWeapon(context) {
   if (context.event?.skillWeapon) return context.event.skillWeapon;
@@ -127,122 +120,174 @@ function modifyGuardianAttributes(context, attributes) {
   return result;
 }
 
-function modifyGuardianCriticalChance(context, chance) {
-  let result = chance;
-  if (
-    hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)
-    && targetHasCondition(context, "Burning")
-  ) {
-    result += 0.1;
-  }
-  if (
-    hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS)
-    && boonActive(context, "resolution")
-  ) {
-    result += 0.25;
-  }
-  return result;
-}
+export const guardianModifierRules = Object.freeze([
+  {
+    id: "guardian.radiant-power-critical-chance",
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: "add",
+    amount: 0.1,
+    when: context =>
+      hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)
+      && targetHasCondition(context, "Burning"),
+  },
+  {
+    id: "guardian.righteous-instincts",
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: "add",
+    amount: 0.25,
+    when: context =>
+      hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS)
+      && boonActive(context, "resolution"),
+  },
+  {
+    id: "guardian.empowered-armaments",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.1,
+    when: context =>
+      timedBuffActive(context, "guardian-empowered-armaments"),
+  },
+  {
+    id: "guardian.radiant-armaments",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.07,
+    when: context => {
+      const armament = latestTimedBuff(
+        context,
+        "guardian-radiant-armaments",
+      );
+      return (
+        armament?.radiantWeapon === "hammer"
+        && armament.at + armament.duration > context.time
+      );
+    },
+  },
+  {
+    id: "guardian.furious-focus",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.1,
+    when: context =>
+      hasTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS)
+      && context.timeline?.furyActiveAt(context.time),
+  },
+  {
+    id: "guardian.retribution",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.1,
+    when: context =>
+      hasTrait(context, GUARDIAN_TRAIT_IDS.RETRIBUTION)
+      && boonActive(context, "resolution"),
+  },
+  {
+    id: "guardian.symbolic-avenger",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: context =>
+      Math.min(
+        5,
+        Number(context.runtime?.profession?.symbolicAvengerStacks || 0),
+      ) / 100,
+    when: context =>
+      hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)
+      && Number(context.runtime?.profession?.symbolicAvengerUntil || 0)
+        > context.time,
+  },
+  {
+    id: "guardian.piercing-stance",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.1,
+    when: context =>
+      timedBuffActive(context, "guardian-piercing-stance"),
+  },
+  {
+    id: "guardian.fiery-wrath",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.05,
+    order: 100,
+    when: context =>
+      hasTrait(context, GUARDIAN_TRAIT_IDS.FIERY_WRATH)
+      && targetHasCondition(context, "Burning"),
+  },
+  {
+    id: "guardian.symbolic-exposure",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.05,
+    order: 100,
+    when: context =>
+      hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
+      && (
+        context.timeline?.vulnerabilityStacksAt(context.time) > 0
+        || runtimeBuffActive(context, "target-vulnerability")
+      ),
+  },
+  {
+    id: "guardian.daring-advance",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.15,
+    order: 100,
+    when: context =>
+      timedBuffActive(context, "guardian-daring-advance"),
+  },
+  {
+    id: "guardian.shining-spin",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.2,
+    order: 100,
+    when: context =>
+      context.event?.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN
+      && targetDisabled(context),
+  },
+  {
+    id: "guardian.gleaming-blade",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.5,
+    order: 100,
+    when: context =>
+      context.event?.skillId === GUARDIAN_SKILL_IDS.GLEAMING_BLADE
+      && timedBuffActive(context, "guardian-radiant-courage-sword"),
+  },
+  {
+    id: "guardian.amplified-wrath-damage",
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: "multiply",
+    factor: 1.1,
+    when: context =>
+      context.condition === "Burning"
+      && hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH),
+  },
+  {
+    id: "guardian.radiant-fire-duration",
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: "multiply",
+    factor: 1.2,
+    when: context =>
+      context.condition === "Burning"
+      && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE),
+  },
+  {
+    id: "guardian.justice-passive-duration",
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: "multiply",
+    factor: 1.2,
+    when: context =>
+      context.condition === "Burning"
+      && context.sourceId === "guardian.justice-passive"
+      && hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH),
+  },
+]);
 
-function modifyGuardianStrikeDamage(context, multiplier) {
-  let additiveBonus = 0;
-  if (timedBuffActive(context, "guardian-empowered-armaments")) {
-    additiveBonus += 0.1;
-  }
-  const radiantArmament = latestTimedBuff(
-    context,
-    "guardian-radiant-armaments",
-  );
-  if (
-    radiantArmament?.radiantWeapon === "hammer"
-    && radiantArmament.at + radiantArmament.duration > context.time
-  ) {
-    additiveBonus += 0.07;
-  }
-  if (
-    hasTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS)
-    && context.timeline?.furyActiveAt(context.time)
-  ) {
-    additiveBonus += 0.1;
-  }
-  if (
-    hasTrait(context, GUARDIAN_TRAIT_IDS.RETRIBUTION)
-    && boonActive(context, "resolution")
-  ) {
-    additiveBonus += 0.1;
-  }
-  if (
-    hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)
-    && Number(context.runtime?.profession?.symbolicAvengerUntil || 0)
-      > context.time
-  ) {
-    additiveBonus += Math.min(
-      5,
-      Number(context.runtime.profession.symbolicAvengerStacks || 0),
-    ) / 100;
-  }
-  if (timedBuffActive(context, "guardian-piercing-stance")) {
-    additiveBonus += 0.1;
-  }
-  let result = applyAdditiveDamageBucket(context, multiplier, {
-    bonus: additiveBonus,
-  });
-  if (
-    hasTrait(context, GUARDIAN_TRAIT_IDS.FIERY_WRATH)
-    && targetHasCondition(context, "Burning")
-  ) {
-    result *= 1.05;
-  }
-  if (
-    hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
-    && (
-      context.timeline?.vulnerabilityStacksAt(context.time) > 0
-      || runtimeBuffActive(context, "target-vulnerability")
-    )
-  ) {
-    result *= 1.05;
-  }
-  if (timedBuffActive(context, "guardian-daring-advance")) {
-    result *= 1.15;
-  }
-  if (
-    context.event?.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN
-    && targetDisabled(context)
-  ) {
-    result *= 1.2;
-  }
-  if (
-    context.event?.skillId === GUARDIAN_SKILL_IDS.GLEAMING_BLADE
-    && timedBuffActive(context, "guardian-radiant-courage-sword")
-  ) {
-    result *= 1.5;
-  }
-  return result;
-}
-
-function modifyGuardianConditionDamage(context, multiplier) {
-  return (
-    context.condition === "Burning"
-    && hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH)
-  )
-    ? multiplier * 1.1
-    : multiplier;
-}
-
-function modifyGuardianConditionDuration(context, multiplier) {
-  if (context.condition !== "Burning") return multiplier;
-  let result = multiplier;
-  if (hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
-    result *= 1.2;
-  }
-  if (
-    context.sourceId === "guardian.justice-passive"
-    && hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH)
-  ) {
-    result *= 1.2;
-  }
-  return result;
-}
+const guardianModifierHooks = createModifierHooks({
+  rules: guardianModifierRules,
+});
 
 function modifyGuardianRechargeDuration(context, duration) {
   const skill = context.skill;
@@ -289,10 +334,7 @@ function modifyGuardianMaximumAmmo(context, maximum) {
 
 export const guardianAttributeRules = Object.freeze({
   modifyAttributes: modifyGuardianAttributes,
-  modifyCriticalChance: modifyGuardianCriticalChance,
-  modifyStrikeDamage: modifyGuardianStrikeDamage,
-  modifyConditionDamage: modifyGuardianConditionDamage,
-  modifyConditionDuration: modifyGuardianConditionDuration,
+  ...guardianModifierHooks,
 });
 
 export const guardianCastModifiers = Object.freeze({

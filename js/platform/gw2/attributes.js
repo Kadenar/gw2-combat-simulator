@@ -270,6 +270,89 @@ export function calculateCommonAttributes(
 }
 
 /**
+ * Applies already-resolved profession build deltas and rebuilds derived
+ * attributes without exposing the common calculator's internal context.
+ */
+export function finalizeBuildAttributes(
+  common,
+  {
+    activeTraits,
+    traitStats = {},
+    traitDurations = {},
+    traitCriticalChance = 0,
+  },
+) {
+  const attributes = structuredClone(common.attributes);
+  for (const [name, amount] of Object.entries(traitStats)) {
+    if (!attributes[name]) continue;
+    attributes[name].traits += amount;
+    attributes[name].final += amount;
+  }
+
+  const {
+    runeDurations,
+    foodDurations,
+    sigilDurations,
+    sigilCriticalChance,
+  } = common.commonContext;
+  const precision = attributes.Precision.final;
+  const ferocity = attributes.Ferocity.final;
+  const concentration = attributes.Concentration.final;
+  const expertise = attributes.Expertise.final;
+  attributes["Critical Chance"] = derivedAttribute(
+    (precision - 895) / 21
+      + Number(traitCriticalChance || 0)
+      + sigilCriticalChance,
+    Number(traitCriticalChance || 0),
+    sigilCriticalChance,
+  );
+  attributes["Critical Damage"] = derivedAttribute(150 + ferocity / 15);
+  attributes["Boon Duration"] = derivedAttribute(
+    concentration / 15
+      + (runeDurations["Boon Duration"] || 0)
+      + (traitDurations["Boon Duration"] || 0)
+      + (foodDurations["Boon Duration"] || 0)
+      + (sigilDurations["Boon Duration"] || 0),
+    traitDurations["Boon Duration"] || 0,
+    sigilDurations["Boon Duration"] || 0,
+    runeDurations["Boon Duration"] || 0,
+    foodDurations["Boon Duration"] || 0,
+  );
+  attributes["Condition Duration"] = derivedAttribute(
+    expertise / 15
+      + (runeDurations["Condition Duration"] || 0)
+      + (traitDurations["Condition Duration"] || 0)
+      + (foodDurations["Condition Duration"] || 0)
+      + (sigilDurations["Condition Duration"] || 0),
+    traitDurations["Condition Duration"] || 0,
+    sigilDurations["Condition Duration"] || 0,
+    runeDurations["Condition Duration"] || 0,
+    foodDurations["Condition Duration"] || 0,
+  );
+  for (const key of CONDITION_DURATION_ATTRIBUTES) {
+    const value =
+      (runeDurations[key] || 0)
+      + (traitDurations[key] || 0)
+      + (foodDurations[key] || 0)
+      + (sigilDurations[key] || 0);
+    if (!value) {
+      delete attributes[key];
+      continue;
+    }
+    attributes[key] = derivedAttribute(
+      value,
+      traitDurations[key] || 0,
+      sigilDurations[key] || 0,
+      runeDurations[key] || 0,
+      foodDurations[key] || 0,
+    );
+  }
+
+  const { commonContext, ...result } = common;
+  return { ...result, attributes, activeTraits };
+}
+
+/**
  * Builds a profession attribute calculator that assembles the shared common
  * attributes and then applies the profession's own trait/skill rules.
  *
