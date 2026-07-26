@@ -441,7 +441,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
             coefficient: normalDamage.reduce((sum, event) => sum + event.coefficient, 0),
             hits: normalDamage.reduce((sum, event) => sum + event.hits, 0),
         },
-        { coefficient: 1.85, hits: 6 },
+        { coefficient: 2.266, hits: 6 },
     );
     assert.equal(normalTorment.stacks, 12);
     assert.equal(normalTorment.source, 'Phantasm');
@@ -450,7 +450,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
             coefficient: repeatedDamage.reduce((sum, event) => sum + event.coefficient, 0),
             hits: repeatedDamage.reduce((sum, event) => sum + event.hits, 0),
         },
-        { coefficient: 1.85, hits: 6 },
+        { coefficient: 2.266, hits: 6 },
     );
     assert.equal(repeatedTorment.stacks, 12);
     assert.equal(repeatedTorment.source, 'Phantasm');

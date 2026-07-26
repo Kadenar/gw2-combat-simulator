@@ -81,6 +81,22 @@ export function createNecromancerState(config = {}) {
   });
 }
 
+// The Necromancer resolver starts from a fresh *full* state rather than a minimal
+// one. Although the resolver reactions only mutate barbedPrecisionProgress,
+// vampiricPresenceReadyAt, demonicLoreReadyAt and dreadUntil, the resolver also:
+//   - reads shroud/blight/spirits/shades/meltdown off the profession state in
+//     attribute-rules.js (e.g. Wicked Corruption scales with `blight`), which
+//     must reflect config.initialBlight etc. before the first state event, and
+//   - replays `necromancer.state` events that wipe and re-Object.assign the whole
+//     state shape (mechanics/handlers.js), preserving only the resolver-owned
+//     fields.
+// Recreating the full state is the cheapest correct way to guarantee every field
+// exists and starts clean; a minimal shape would zero `blight` (and friends)
+// before the first state replay and change DPS on builds that seed them.
+export function createNecromancerResolverState(config = {}) {
+  return createNecromancerState(config);
+}
+
 export function snapshotNecromancerState(state) {
   return structuredClone(syncNecromancerResources(state));
 }
