@@ -1,3 +1,5 @@
+import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+
 const CLARITY_DURATION = 15;
 const CLARITY_ICON =
   "https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png";
@@ -56,7 +58,7 @@ export function createSkillEffectController({
     const isPhantasm = skill.resource?.mode === "phantasm";
     const bountifulBerserker =
       skill.name === "Phantasmal Berserker"
-      && traits.has("Bountiful Blades");
+      && traits.has(TRAIT.BOUNTIFUL_BLADES);
     const bountifulBerserkerDamage = bountifulBerserker ? 0.66 : 1;
     const phantasmCount = isPhantasm
       ? Number(skill.resource?.count || 1)
@@ -66,8 +68,8 @@ export function createSkillEffectController({
     const phantasmName = phantasmNameBySkill[skill.name] || skill.name;
     const phantasmTiming = phantasmAttackTimings[phantasmName];
     const hasChronophantasma =
-      isPhantasm && traits.has("Chronophantasma");
-    const phantasmSpeed = traits.has("Phantasmal Haste") ? 1.5 : 1;
+      isPhantasm && traits.has(TRAIT.CHRONOPHANTASMA);
+    const phantasmSpeed = traits.has(TRAIT.PHANTASMAL_HASTE) ? 1.5 : 1;
     const phantasmEndpoint = (offset) => {
       const measuredCastTime = Number(phantasmTiming?.castTime || 0);
       const measuredPostCast = Number(offset) - measuredCastTime;
@@ -91,7 +93,7 @@ export function createSkillEffectController({
     let chronophantasmaProc = false;
 
     if (isPhantasm) {
-      if (traits.has("Compounding Power")) {
+      if (traits.has(TRAIT.COMPOUNDING_POWER)) {
         markCompounding(at, phantasmCount);
         addTraitProc(
           "Compounding Power",
@@ -114,7 +116,7 @@ export function createSkillEffectController({
         repeat: false,
         complete: true,
       });
-      if (traits.has("Phantasmal Blades")) {
+      if (traits.has(TRAIT.PHANTASMAL_BLADES)) {
         const blade = traitDamage["Phantasmal Blade"];
         addDamage(
           {
@@ -133,7 +135,7 @@ export function createSkillEffectController({
         addTraitProc("Phantasmal Blades", phantasmDamageAt, skill.name);
       }
       if (hasChronophantasma) {
-        if (traits.has("Compounding Power")) {
+        if (traits.has(TRAIT.COMPOUNDING_POWER)) {
           markCompounding(phantasmSpawnAt, phantasmCount);
           addTraitProc(
             "Compounding Power",
@@ -156,7 +158,7 @@ export function createSkillEffectController({
           repeat: true,
           complete: true,
         });
-        if (traits.has("Phantasmal Blades")) {
+        if (traits.has(TRAIT.PHANTASMAL_BLADES)) {
           const blade = traitDamage["Phantasmal Blade"];
           addDamage(
             {
@@ -249,7 +251,7 @@ export function createSkillEffectController({
         }
       }
       if (
-        traits.has("Fencer's Finesse")
+        traits.has(TRAIT.FENCERS_FINESSE)
         && skill.weapon === "Sword"
         && group.source === "Phantasm"
       ) {
@@ -422,7 +424,7 @@ export function createSkillEffectController({
         });
       }
     }
-    if (skill.type === "Heal" && traits.has("Method of Madness")) {
+    if (skill.type === "Heal" && traits.has(TRAIT.METHOD_OF_MADNESS)) {
       const storm = traitDamage["Lesser Chaos Storm"];
       const readyAt =
         state.profession.traitReadyAt.get("Method of Madness") || 0;
@@ -450,7 +452,7 @@ export function createSkillEffectController({
           "Method of Madness",
           at + storm.cooldown,
         );
-        if (traits.has("Syncopate")) {
+        if (traits.has(TRAIT.SYNCOPATE)) {
           const syncopate = traitDamage.Syncopate;
           addDamage(
             {
@@ -471,7 +473,7 @@ export function createSkillEffectController({
       }
     }
     if (
-      traits.has("Fencer's Finesse")
+      traits.has(TRAIT.FENCERS_FINESSE)
       && skill.weapon === "Sword"
       && (skill.damage || []).some((group) => group.source === "Player")
     ) {

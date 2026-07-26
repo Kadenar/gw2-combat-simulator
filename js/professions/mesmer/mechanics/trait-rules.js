@@ -4,6 +4,7 @@
  */
 
 import { EPSILON } from "../../../platform/engine/clock.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 
 /**
  * Handles critical trait procs: Sharper Images (clone/phantasm crit → Bleeding),
@@ -20,7 +21,7 @@ export function handleCriticalTraits(
   applyCondition,
 ) {
   if (
-    ctx.traits.has("Sharper Images")
+    ctx.traits.has(TRAIT.SHARPER_IMAGES)
     && (event.source === "Clone" || event.source === "Phantasm")
   ) {
     ctx.profession.sharperImagesProgress += hitContext.critical.chance;
@@ -51,7 +52,7 @@ export function handleCriticalTraits(
     }
   }
 
-  if (ctx.traits.has("Jagged Mind") && event.blade) {
+  if (ctx.traits.has(TRAIT.JAGGED_MIND) && event.blade) {
     applyCondition(ctx, {
       type: "condition",
       at: event.at,
@@ -80,7 +81,7 @@ export function triggerIneptitude(
   detail,
   applyCondition,
 ) {
-  if (!ctx.traits.has("Ineptitude")) return;
+  if (!ctx.traits.has(TRAIT.INEPTITUDE)) return;
   const defiant = Boolean(ctx.config.target?.defiant);
   if (
     defiant

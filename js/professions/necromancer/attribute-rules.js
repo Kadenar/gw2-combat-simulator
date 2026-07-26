@@ -119,7 +119,7 @@ function modifyNecromancerAttributes(context, attributes) {
     }
     if (
       context.config?.specialization === "Harbinger"
-      || hasTrait(context, 2186)
+      || hasTrait(context, TRAIT.ALCHEMIC_VIGOR)
     ) {
       result.vitality += 240;
     }

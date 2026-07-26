@@ -5,6 +5,8 @@
  * @param {Object} config - Scheduler config (state, traits, resourceDefinition, etc.)
  * @returns {Object} Profession action controller
  */
+import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+
 export function createProfessionActionController({
   state,
   traits,
@@ -58,7 +60,7 @@ export function createProfessionActionController({
   ) => {
     const shatter = shatters[skill.name];
     const sources = bladeSong ? 1 : spent + 1;
-    if (!skipMaim && traits.has("Maim the Disillusioned")) {
+    if (!skipMaim && traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
       addCondition(
         skill.name,
         at,
@@ -68,7 +70,7 @@ export function createProfessionActionController({
       );
       addTraitProc("Maim the Disillusioned", at, skill.name);
     }
-    if (traits.has("Phantom Pain")) {
+    if (traits.has(TRAIT.PHANTOM_PAIN)) {
       addEvent({
         type: "buff",
         at: at + epsilon,
@@ -78,7 +80,7 @@ export function createProfessionActionController({
       });
       addTraitProc("Phantom Pain", at + epsilon, skill.name);
     }
-    if (shatter?.slot === 2 && traits.has("Illusionary Membrane")) {
+    if (shatter?.slot === 2 && traits.has(TRAIT.ILLUSIONARY_MEMBRANE)) {
       addEvent({
         type: "buff",
         at: at + epsilon,
@@ -88,7 +90,7 @@ export function createProfessionActionController({
       });
       addTraitProc("Illusionary Membrane", at + epsilon, skill.name);
     }
-    if (bladeSong && traits.has("Deadly Blades")) {
+    if (bladeSong && traits.has(TRAIT.DEADLY_BLADES)) {
       addEvent({
         type: "buff",
         at: at + epsilon,
@@ -101,7 +103,7 @@ export function createProfessionActionController({
     if (
       resourceDefinition.singular === "clone"
       && spent === 3
-      && traits.has("Illusionary Reversion")
+      && traits.has(TRAIT.ILLUSIONARY_REVERSION)
     ) {
       queueResources(
         at + epsilon,
@@ -146,10 +148,10 @@ export function createProfessionActionController({
         },
         { shatter: true },
       );
-      const cryBonus = traits.has("Cry of Pain") ? 2 : 1;
+      const cryBonus = traits.has(TRAIT.CRY_OF_PAIN) ? 2 : 1;
       addCondition(skill.name, at, {
         name: "Confusion",
-        duration: traits.has("Cry of Pain") ? 4 : 3,
+        duration: traits.has(TRAIT.CRY_OF_PAIN) ? 4 : 3,
         stacks: sources * cryBonus,
       });
     } else if (shatter.kind === "chrono-power") {
@@ -176,13 +178,13 @@ export function createProfessionActionController({
         },
         { shatter: true },
       );
-      const cryBonus = traits.has("Cry of Pain") ? 2 : 1;
+      const cryBonus = traits.has(TRAIT.CRY_OF_PAIN) ? 2 : 1;
       addCondition(skill.name, at, {
         name: "Confusion",
-        duration: traits.has("Cry of Pain") ? 4 : 3,
+        duration: traits.has(TRAIT.CRY_OF_PAIN) ? 4 : 3,
         stacks: sources * cryBonus,
       });
-      if (traits.has("Blinding Dissipation")) {
+      if (traits.has(TRAIT.BLINDING_DISSIPATION)) {
         addEvent({
           type: "blind",
           at,
@@ -248,7 +250,7 @@ export function createProfessionActionController({
           },
           { shatter: true, blade: true },
         );
-        if (traits.has("Maim the Disillusioned")) {
+        if (traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
           addCondition(
             skill.name,
             at + index,
@@ -258,7 +260,7 @@ export function createProfessionActionController({
           );
         }
       }
-      if (traits.has("Maim the Disillusioned")) {
+      if (traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
         addTraitProc("Maim the Disillusioned", at, skill.name);
       }
     }
@@ -272,7 +274,7 @@ export function createProfessionActionController({
     );
     if (
       skill.name === "Time Sink"
-      && traits.has("Time Bomb")
+      && traits.has(TRAIT.TIME_BOMB)
       && at >= state.profession.timeBombUntil - epsilon
     ) {
       const timeBomb = traitDamage["Time Bomb"];
@@ -303,7 +305,7 @@ export function createProfessionActionController({
     }
     if (
       isBladeSong
-      && traits.has("Infinite Forge")
+      && traits.has(TRAIT.INFINITE_FORGE)
       && spent >= 5
     ) {
       queueResources(
@@ -328,7 +330,7 @@ export function createProfessionActionController({
     if (data.coefficient) {
       const coefficient =
         data.coefficient
-        + (skill.name === "Lively Lute" && traits.has("Shredding") ? 1 : 0);
+        + (skill.name === "Lively Lute" && traits.has(TRAIT.SHREDDING) ? 1 : 0);
       addDamage(skill, at, {
         coefficient,
         hits: data.hits + (coefficient > data.coefficient ? 1 : 0),
@@ -354,7 +356,7 @@ export function createProfessionActionController({
       detail: `${data.instrument} playing for ${(5 + spent * 5).toFixed(0)}s`,
     });
 
-    if (traits.has("Altered Chord") && spent > 0) {
+    if (traits.has(TRAIT.ALTERED_CHORD) && spent > 0) {
       const crescendo = byName("Crescendo");
       const ready = state.cooldowns.get(crescendo?.id);
       if (ready) state.cooldowns.set(crescendo.id, Math.max(at, ready - 2));
@@ -371,7 +373,7 @@ export function createProfessionActionController({
       source: "Player",
     });
 
-    if (traits.has("Altered Chord")) {
+    if (traits.has(TRAIT.ALTERED_CHORD)) {
       if (state.profession.lastInstrument === "Lute") {
         addEvent({
           type: "buff",
@@ -392,7 +394,7 @@ export function createProfessionActionController({
         addTraitProc("Altered Chord", at, skill.name, "Flute");
       }
     }
-    if (traits.has("Fortissimo")) {
+    if (traits.has(TRAIT.FORTISSIMO)) {
       for (let index = 1; index <= 5; index += 1) {
         queueResources(
           at + index,

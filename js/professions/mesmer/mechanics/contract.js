@@ -18,6 +18,7 @@ import {
   PHANTASM_NAME_BY_SKILL,
   WEAPON_STRENGTH,
 } from "../data/mesmer-illusion-data.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import {
   ARISTOCRACY_SKILLS,
   BLIND_SKILLS,
@@ -80,16 +81,30 @@ function conditionName(value) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-function traitNames(config, catalog) {
-  const names = new Set(config.selectedTraits || []);
-  const selectedIds = new Set([
-    ...(config.selectedTraitIds || []),
-    ...(config.traitIds || []),
-  ].map(Number));
+// Builds a mixed trait set carrying both numeric ids (used by MESMER_TRAIT_IDS
+// lookups in scheduler code) and names (used by data-driven references such as
+// RESOURCE_TRAITS and skill damage-group requiredTrait fields). Accepts config
+// traits supplied as ids, names, or both.
+function traitSet(config, catalog) {
+  const values = new Set([
+    ...(config.selectedTraits || []),
+    ...(config.selectedTraitIds || []).map(Number),
+    ...(config.traitIds || []).map(Number),
+  ]);
+  const byId = new Map();
+  const byName = new Map();
   for (const trait of catalog.traits || []) {
-    if (selectedIds.has(Number(trait.id))) names.add(trait.name);
+    byId.set(Number(trait.id), trait);
+    byName.set(trait.name, trait);
   }
-  return names;
+  for (const value of [...values]) {
+    const trait = byName.get(value) || byId.get(Number(value));
+    if (trait) {
+      values.add(Number(trait.id));
+      values.add(trait.name);
+    }
+  }
+  return values;
 }
 
 function skillAvailable(skill, config) {
@@ -139,14 +154,14 @@ function baseCriticalChance(
     && Number(config.boons?.might || 0) >= 10
   ) chance += 0.1;
   if (
-    traits.has("Flow of Time")
+    traits.has(TRAIT.FLOW_OF_TIME)
     && config.boons?.alacrity
     && ["Player", "Clone", "Phantasm"].includes(source)
   ) chance += 0.15;
-  if (!illusion && traits.has("Quiet Intensity") && config.boons?.fury) {
+  if (!illusion && traits.has(TRAIT.QUIET_INTENSITY) && config.boons?.fury) {
     chance += 0.15;
   }
-  if (source === "Phantasm" && traits.has("Phantasmal Fury")) {
+  if (source === "Phantasm" && traits.has(TRAIT.PHANTASMAL_FURY)) {
     chance += config.specialization === "Virtuoso" ? 0.4 : 0.25;
   }
   return clamp(chance, 0, 1);
@@ -165,7 +180,7 @@ function createMesmerRuntime(context) {
     catalog,
     cooldownController,
   } = context;
-  const traits = traitNames(config, catalog);
+  const traits = traitSet(config, catalog);
   const resourceDefinition = mesmerResourceDefinition(config.specialization);
   const skillsById = catalog.skillsById;
   const skillsByName = catalog.skillsByName;
@@ -436,7 +451,7 @@ function completeMesmerSkill(context, skill) {
     }
     if (skill.id === -1) {
       runtime.mirage.grantMirageCloak(context.effectiveEnd, skill.name);
-      if (runtime.traits.has("Deceptive Evasion")) {
+      if (runtime.traits.has(TRAIT.DECEPTIVE_EVASION)) {
         runtime.resources.queueResources(
           context.effectiveEnd + EPSILON,
           1,
@@ -527,10 +542,10 @@ function completeMesmerSkill(context, skill) {
     if (disabled) {
       runtime.addEvent({ type: "control", at, skillName: skill.name });
       if (
-        runtime.traits.has("Danger Time")
+        runtime.traits.has(TRAIT.DANGER_TIME)
         && (
           skill.name === "Time Sink"
-          || runtime.traits.has("Delayed Reactions")
+          || runtime.traits.has(TRAIT.DELAYED_REACTIONS)
         )
       ) {
         runtime.addEvent({
@@ -543,7 +558,7 @@ function completeMesmerSkill(context, skill) {
         });
         runtime.addTraitProc("Danger Time", at, skill.name);
       }
-      if (runtime.traits.has("Syncopate")) {
+      if (runtime.traits.has(TRAIT.SYNCOPATE)) {
         const damage = TRAIT_DAMAGE.Syncopate;
         runtime.addDamage(
           { name: "Syncopate", weapon: "Utility", blade: false },
@@ -563,7 +578,7 @@ function completeMesmerSkill(context, skill) {
     }
     if (
       ARISTOCRACY_SKILLS.has(skill.name)
-      || (CONTROL_SKILLS.has(skill.name) && runtime.traits.has("Dazzling"))
+      || (CONTROL_SKILLS.has(skill.name) && runtime.traits.has(TRAIT.DAZZLING))
     ) {
       runtime.addEvent({
         type: "weakness_vulnerability",
@@ -591,7 +606,7 @@ export function initializeMesmerScheduler(context) {
   const runtime = createMesmerRuntime(context);
   runtimes.set(context.state, runtime);
   const { state, config } = context;
-  state.profession.riddleOfSandReady = runtime.traits.has("Riddle of Sand");
+  state.profession.riddleOfSandReady = runtime.traits.has(TRAIT.RIDDLE_OF_SAND);
   const initial = clamp(
     Number(config.initialResource || 0),
     0,
@@ -620,7 +635,7 @@ export function initializeMesmerScheduler(context) {
       context.cooldownController.ensureAmmo(skill, 0);
     }
   }
-  if (runtime.traits.has("Infinite Forge")) {
+  if (runtime.traits.has(TRAIT.INFINITE_FORGE)) {
     context.tasks.schedule({
       type: TASK.infiniteForge,
       at: 3,
@@ -841,9 +856,9 @@ export function modifyMesmerRecharge(context, sharedDuration) {
   let multiplier = 1;
   if (
     SHATTERS[skill.name]
-    && traits.has("Master of Misdirection")
+    && traits.has(TRAIT.MASTER_OF_MISDIRECTION)
   ) multiplier *= 0.85;
-  if (skill.weapon === "Sword" && traits.has("Fencer's Finesse")) {
+  if (skill.weapon === "Sword" && traits.has(TRAIT.FENCERS_FINESSE)) {
     multiplier *= 0.8;
   }
   return gw2EffectiveCooldown(skill, config, {
@@ -872,7 +887,7 @@ export function modifyMesmerRechargeStart(context, effectiveEnd) {
 export function modifyMesmerMaximumAmmo(context, maximum) {
   return (
     context.skill.name === "Split Second"
-    && runtimeFor(context).traits.has("Shatter Storm")
+    && runtimeFor(context).traits.has(TRAIT.SHATTER_STORM)
   )
     ? 2
     : maximum;

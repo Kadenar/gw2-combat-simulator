@@ -1,3 +1,5 @@
+import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+
 const MIRAGE_CLOAK_SKILLS = new Set([
   "Illusionary Ambush",
   "Sand through Glass",
@@ -51,7 +53,7 @@ export function createMirageActionController({
   };
 
   const executeCloneAmbushes = (at, clones = state.profession.clones) => {
-    if (!traits.has("Infinite Horizon") || !clones.length) return;
+    if (!traits.has(TRAIT.INFINITE_HORIZON) || !clones.length) return;
     addTraitProc(
       "Infinite Horizon",
       at,
@@ -112,7 +114,7 @@ export function createMirageActionController({
   };
 
   const reduceDuneCloakShatters = (at, source) => {
-    if (!traits.has("Dune Cloak")) return;
+    if (!traits.has(TRAIT.DUNE_CLOAK)) return;
     for (const name of ["Mind Wrack", "Cry of Frustration"]) {
       const shatter = skillsByName.get(name);
       const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
@@ -143,15 +145,15 @@ export function createMirageActionController({
       duration,
       sourceSkill: source,
     });
-    if (traits.has("Renewing Oasis")) {
+    if (traits.has(TRAIT.RENEWING_OASIS)) {
       addBoon(at, { name: "Regeneration", duration: 4 }, source);
       addTraitProc("Renewing Oasis", at, source, "4s regeneration");
     }
-    if (traits.has("Elusive Mind")) {
+    if (traits.has(TRAIT.ELUSIVE_MIND)) {
       addTraitProc("Elusive Mind", at, source, "3 conditions removed");
     }
     reduceDuneCloakShatters(at, source);
-    if (grantCloneCloak && traits.has("Infinite Horizon")) {
+    if (grantCloneCloak && traits.has(TRAIT.INFINITE_HORIZON)) {
       state.profession.cloneAmbushUntil = at + duration;
       executeCloneAmbushes(at, state.profession.clones);
     }
@@ -172,7 +174,7 @@ export function createMirageActionController({
     }
     if (
       state.profession.riddleOfSandReady
-      && traits.has("Riddle of Sand")
+      && traits.has(TRAIT.RIDDLE_OF_SAND)
     ) {
       addCondition(
         ambush.name,
@@ -187,7 +189,7 @@ export function createMirageActionController({
     for (const boon of ambush.playerBoons || []) {
       addBoon(at, boon, ambush.name);
     }
-    if (traits.has("Mirage Mantle")) {
+    if (traits.has(TRAIT.MIRAGE_MANTLE)) {
       addBoon(at, { name: "Alacrity", duration: 4 }, ambush.name);
       addBoon(at, { name: "Vigor", duration: 3 }, ambush.name);
       addTraitProc("Mirage Mantle", at, ambush.name, "4s alacrity, 3s vigor");
@@ -202,15 +204,15 @@ export function createMirageActionController({
 
   const handleMirageShatter = (skill, at, spent) => {
     if (config.specialization !== "Mirage") return;
-    if (traits.has("Riddle of Sand")) {
+    if (traits.has(TRAIT.RIDDLE_OF_SAND)) {
       state.profession.riddleOfSandReady = true;
       addTraitProc("Riddle of Sand", at, skill.name, "ambush primed");
     }
-    if (traits.has("Nomad's Endurance")) {
+    if (traits.has(TRAIT.NOMADS_ENDURANCE)) {
       addBoon(at, { name: "Vigor", duration: 3 }, skill.name);
       addTraitProc("Nomad's Endurance", at, skill.name, "3s vigor");
     }
-    if (skill.name === "Distortion" && traits.has("Desert Distortion")) {
+    if (skill.name === "Distortion" && traits.has(TRAIT.DESERT_DISTORTION)) {
       grantAmbushWindow(at, "Desert Distortion");
       addTraitProc(
         "Desert Distortion",
@@ -219,7 +221,7 @@ export function createMirageActionController({
         `${spent} Mirage Mirror${spent === 1 ? "" : "s"} created`,
       );
     }
-    if (traits.has("Dune Cloak") && spent >= 3) {
+    if (traits.has(TRAIT.DUNE_CLOAK) && spent >= 3) {
       grantMirageCloak(at, "Dune Cloak", { duration: 1 });
     }
   };
@@ -229,7 +231,7 @@ export function createMirageActionController({
       grantMirageCloak(at, skill.name);
     }
     if (
-      traits.has("Self-Deception")
+      traits.has(TRAIT.SELF_DECEPTION)
       && String(skill.description || "").startsWith("Deception.")
       && currentResource() > 0
     ) {

@@ -10,6 +10,8 @@
  * @param {Function} queueResources - Resource queuing function
  * @returns {Object} Tracker with queue(candidate), nextAt(), processNext()
  */
+import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+
 export function createExpectedProcTracker({
   state,
   config,
@@ -37,13 +39,13 @@ export function createExpectedProcTracker({
   ) => {
     if (
       config.specialization !== "Virtuoso"
-      || !traits.has("Bloodsong")
+      || !traits.has(TRAIT.BLOODSONG)
     ) return;
 
     state.profession.bloodsongProgress +=
       Number(bleedingStacks || 0)
       + (
-        traits.has("Jagged Mind")
+        traits.has(TRAIT.JAGGED_MIND)
           ? Number(bladeHits || 0)
             * baseCriticalChance(
               config,
@@ -83,7 +85,7 @@ export function createExpectedProcTracker({
       candidate.source,
       candidate.weaponSet,
     );
-    if (candidate.blade && traits.has("Jagged Mind")) {
+    if (candidate.blade && traits.has(TRAIT.JAGGED_MIND)) {
       trackBloodsong(
         candidate.at,
         0,
@@ -93,7 +95,7 @@ export function createExpectedProcTracker({
       );
     }
     if (
-      traits.has("Sharper Images")
+      traits.has(TRAIT.SHARPER_IMAGES)
       && (candidate.source === "Clone" || candidate.source === "Phantasm")
     ) {
       state.profession.sharperImagesProgress += candidate.hits * criticalChance;

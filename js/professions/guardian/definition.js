@@ -11,9 +11,12 @@ import {
 import { guardianCatalog } from "./catalog.js";
 import {
   guardianCastRules,
-  guardianResolverHooks,
   guardianSchedulerHooks,
 } from "./mechanics/contract.js";
+import {
+  guardianResolverEventHandlers,
+  guardianResolverEventReactions,
+} from "./resolver/event-handlers.js";
 import {
   createGuardianState,
   snapshotGuardianState,
@@ -41,7 +44,10 @@ export const guardianProfession = defineProfession({
     ...guardianSchedulerHooks,
     snapshot: context => snapshotGuardianState(context.state.profession),
   },
-  resolverHooks: guardianResolverHooks,
+  resolverHooks: {
+    eventHandlers: guardianResolverEventHandlers,
+    eventReactions: guardianResolverEventReactions,
+  },
   ui: guardianUi,
 });
 
