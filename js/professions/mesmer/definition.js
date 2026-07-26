@@ -10,7 +10,11 @@ import {
   mesmerSchedulerHooks,
   projectMesmerEndState,
 } from "./mechanics/contract.js";
-import { createMesmerState, snapshotMesmerState } from "./state.js";
+import {
+  createMesmerResolverState,
+  createMesmerState,
+  snapshotMesmerState,
+} from "./state.js";
 import { mesmerAttributeRules } from "./attribute-rules.js";
 import {
   mesmerResolverEventHandlers,
@@ -29,11 +33,7 @@ export const mesmerProfession = defineProfession({
   },
   resources: {
     createProfessionState: createMesmerState,
-    createResolverState: () => ({
-      ineptitudeReadyAt: 0,
-      sharperImagesProgress: 0,
-      bloodsongProgress: 0,
-    }),
+    createResolverState: createMesmerResolverState,
     projectEndState: projectMesmerEndState,
   },
   attributeRules: mesmerAttributeRules,

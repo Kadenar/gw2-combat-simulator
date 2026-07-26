@@ -18,6 +18,7 @@ import {
   guardianResolverEventReactions,
 } from "./resolver/event-handlers.js";
 import {
+  createGuardianResolverState,
   createGuardianState,
   snapshotGuardianState,
 } from "./state.js";
@@ -34,6 +35,7 @@ export const guardianProfession = defineProfession({
   },
   resources: {
     createProfessionState: createGuardianState,
+    createResolverState: createGuardianResolverState,
   },
   attributeRules: guardianAttributeRules,
   castRules: {

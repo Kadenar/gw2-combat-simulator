@@ -536,7 +536,7 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "activation": 1.17,
     "damage": [
       {
-        "coefficient": 0.925,
+        "coefficient": 1.133,
         "hits": 3,
         "label": "One warlock",
         "source": "Phantasm",

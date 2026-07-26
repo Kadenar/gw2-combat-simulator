@@ -18,6 +18,7 @@ import {
   necromancerResolverEventReactions,
 } from "./resolver/event-handlers.js";
 import {
+  createNecromancerResolverState,
   createNecromancerState,
   snapshotNecromancerState,
 } from "./state.js";
@@ -34,7 +35,7 @@ export const necromancerProfession = defineProfession({
   },
   resources: {
     createProfessionState: createNecromancerState,
-    createResolverState: config => createNecromancerState(config),
+    createResolverState: createNecromancerResolverState,
   },
   attributeRules: necromancerAttributeRules,
   castRules: {

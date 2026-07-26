@@ -62,3 +62,21 @@ export function createGuardianState(config = {}) {
 export function snapshotGuardianState(state) {
   return structuredClone(state);
 }
+
+// The Guardian resolver *continues* from the scheduler's ending state rather than
+// starting clean: its virtue/tome/radiant-forge handlers replay transitions
+// computed during pass 1 (guardian.virtue-activated, guardian.tome-page-used,
+// guardian.radiant-forge-*) and its damage reactions read fields such as
+// tomePages, ashesCharges/ashesNextTriggerAt and justiceHitCount. Defining this
+// explicitly keeps the handoff dependency visible at the defineProfession call
+// instead of relying on the implicit resolverHandoff fallback in
+// simulateDeclarativeGw2.
+//
+// The inherited *ending* counters are safe to reuse (no reset needed): the
+// resolver reactions reactToJusticeHit/reactToAshesHit are the only mutators of
+// justiceHitCount, so the scheduler leaves it at 0; and ashesCharges /
+// ashesNextTriggerAt are set at cast time and time-gate the resolver reactions,
+// so carrying their post-cast values forward is exactly what resolution expects.
+export function createGuardianResolverState(_config, scheduled) {
+  return scheduled.stream.resolverHandoff.professionState;
+}
