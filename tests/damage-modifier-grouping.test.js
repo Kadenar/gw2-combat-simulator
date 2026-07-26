@@ -218,3 +218,13 @@ test("Vicious Expression always applies its base multiplicative modifier", () =>
     ) < 1e-12,
   );
 });
+
+test("Mesmer strike sigils apply to the player but not illusion sources", () => {
+  const player = modifierContext({ event: { source: "Player" } });
+  const clone = modifierContext({ event: { source: "Clone" } });
+  const phantasm = modifierContext({ event: { source: "Phantasm" } });
+
+  assert.equal(mesmerAttributeRules.modifyStrikeDamage(player, 1.08), 1.08);
+  assert.equal(mesmerAttributeRules.modifyStrikeDamage(clone, 1.08), 1);
+  assert.equal(mesmerAttributeRules.modifyStrikeDamage(phantasm, 1.08), 1);
+});

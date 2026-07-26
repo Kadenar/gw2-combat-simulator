@@ -3,24 +3,14 @@ import {
   targetHasPermanentCondition,
 } from "../../platform/gw2/target-state.js";
 import {
-  applyAdditiveDamageBucket,
-} from "../../platform/gw2/damage-modifier-buckets.js";
+  createModifierHooks,
+  MODIFIER_TARGET,
+} from "../../platform/gw2/modifier-rules.js";
+import { hasTrait } from "../../platform/gw2/trait-state.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "./data/ids.js";
-
-function hasTrait(context, traitId) {
-  if (
-    context.traits?.has(traitId)
-    || context.traits?.has(String(traitId))
-  ) return true;
-  return [
-    ...(context.config?.traitIds || []),
-    ...(context.config?.selectedTraitIds || []),
-    ...(context.config?.selectedTraits || []),
-  ].some(value => value === traitId || String(value) === String(traitId));
-}
 
 function eventSkill(context) {
   return context.profession?.catalog?.skillsById?.get(
@@ -159,191 +149,248 @@ function modifyNecromancerAttributes(context, attributes) {
   return result;
 }
 
-function modifyNecromancerCriticalChance(context, chance) {
-  let result = chance;
-  if (hasTrait(context, TRAIT.TARGET_THE_WEAK)) {
-    result += targetConditionCount(context) * 0.02;
-  }
-  if (hasTrait(context, TRAIT.DECIMATE_DEFENSES)) {
-    result += Math.min(
-      25,
-      permanentTargetConditionStacks(
-        context.config || {},
-        "Vulnerability",
-      ),
-    ) * 0.02;
-  }
-  if (
-    hasTrait(context, TRAIT.DEATH_PERCEPTION)
-    && isShroudSkill(context)
-  ) {
-    result += 0.15;
-  }
-  return result;
-}
-
-function modifyNecromancerCriticalDamage(context, multiplier) {
-  let result = multiplier;
-  if (
-    hasTrait(context, TRAIT.DEATH_PERCEPTION)
-    && isShroudSkill(context)
-  ) {
-    result += 0.1;
-  }
-  if (
-    hasTrait(context, TRAIT.WICKED_CORRUPTION)
-    && targetHasCondition(context, "Torment")
-  ) {
-    result += 0.1;
-  }
-  return result;
-}
-
-function modifyNecromancerStrikeDamage(context, multiplier) {
-  let additiveBonus = 0;
-  if (
-    hasTrait(context, TRAIT.SOUL_BARBS)
-    && context.timeline?.timedActive(
-      "necromancer-soul-barbs",
-      context.time,
-    )
-  ) {
-    additiveBonus += 0.1;
-  }
-  if (
-    hasTrait(context, TRAIT.DREAD)
-    && Number(context.runtime?.profession?.dreadUntil || 0) > context.time
-  ) {
-    additiveBonus += 0.2;
-  }
-  if (hasTrait(context, TRAIT.WICKED_CORRUPTION)) {
-    additiveBonus += activeBlight(context) * 0.01;
-  }
-  if (
-    hasTrait(context, TRAIT.CASCADING_CORRUPTION)
-    && Number(context.runtime?.profession?.meltdownUntil || 0) > context.time
-  ) {
-    additiveBonus += 0.1;
-  }
-  if (
-    hasTrait(context, TRAIT.LINGERING_SPIRITS)
-    && anguishSpiritActive(context)
-  ) {
-    additiveBonus += 0.05;
-  }
-  let result = applyAdditiveDamageBucket(context, multiplier, {
-    bonus: additiveBonus,
-  });
-  if (hasTrait(context, TRAIT.SPITEFUL_TALISMAN)) {
-    result *= 1.03;
-    if (context.config?.target?.boonless) result *= 1.05 / 1.03;
-  }
-  if (
-    hasTrait(context, TRAIT.CLOSE_TO_DEATH)
-    && targetHealthFraction(context) < 0.5
-  ) {
-    result *= 1.2;
-  }
-  if (
-    hasTrait(context, TRAIT.COLD_SHOULDER)
-    && targetChilled(context)
-  ) {
-    result *= 1.15;
-  }
-  if (
-    hasTrait(context, TRAIT.SOUL_EATER)
-    && context.config?.target?.nearby !== false
-  ) {
-    result *= 1.15;
-  }
-  if (
-    context.event?.summonKind === "minion"
-    && hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION)
-  ) {
-    result *= 1.25;
-  }
-  if (
-    context.event?.actorType === "summon"
-    && hasTrait(context, TRAIT.SPIRITS_STRENGTH)
-  ) {
-    result *= 1.2;
-  }
+function thresholdCoefficientFactor(context) {
   const thresholds = context.event?.thresholdCoefficients;
-  if (thresholds) {
-    const base = Number(context.event.coefficient || 0);
-    const fraction = targetHealthFraction(context);
-    const chosen = fraction < 0.25
-      ? Number(thresholds[25] || base)
-      : fraction < 0.5
-        ? Number(thresholds[50] || base)
-        : base;
-    if (base > 0) result *= chosen / base;
-  }
-  return result;
+  const base = Number(context.event?.coefficient || 0);
+  if (!thresholds || !(base > 0)) return 1;
+  const fraction = targetHealthFraction(context);
+  const chosen = fraction < 0.25
+    ? Number(thresholds[25] || base)
+    : fraction < 0.5
+      ? Number(thresholds[50] || base)
+      : base;
+  return chosen / base;
 }
 
-function modifyNecromancerConditionDamage(context, multiplier) {
-  let additiveBonus = 0;
-  if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION)) {
-    additiveBonus += activeBlight(context) * 0.0025;
-  }
-  if (
-    hasTrait(context, TRAIT.SOUL_BARBS)
-    && context.timeline?.timedActive(
-      "necromancer-soul-barbs",
-      context.time,
-    )
-  ) {
-    additiveBonus += 0.1;
-  }
-  if (
-    hasTrait(context, TRAIT.CASCADING_CORRUPTION)
-    && Number(context.runtime?.profession?.meltdownUntil || 0) > context.time
-  ) {
-    additiveBonus += 0.1;
-  }
-  let result = applyAdditiveDamageBucket(context, multiplier, {
-    damageType: "condition",
-    bonus: additiveBonus,
-  });
-  if (
-    context.condition === "Poisoned"
-    && hasTrait(context, TRAIT.PUTRID_DEFENSE)
-  ) {
-    result *= 1.15;
-  }
-  if (
-    context.condition === "Burning"
-    && hasTrait(context, TRAIT.FELL_BEACON)
-  ) {
-    result *= 1.1;
-  }
-  if (
-    context.condition === "Torment"
-    && hasTrait(context, TRAIT.DEMONIC_LORE)
-  ) {
-    result *= 1.33;
-  }
-  return result;
-}
+export const necromancerModifierRules = Object.freeze([
+  {
+    id: "necromancer.target-the-weak-critical-chance",
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: "add",
+    amount: context => targetConditionCount(context) * 0.02,
+    when: context => hasTrait(context, TRAIT.TARGET_THE_WEAK),
+  },
+  {
+    id: "necromancer.decimate-defenses",
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: "add",
+    amount: context =>
+      Math.min(
+        25,
+        permanentTargetConditionStacks(
+          context.config || {},
+          "Vulnerability",
+        ),
+      ) * 0.02,
+    when: context => hasTrait(context, TRAIT.DECIMATE_DEFENSES),
+  },
+  {
+    id: "necromancer.death-perception-critical-chance",
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: "add",
+    amount: 0.15,
+    when: context =>
+      hasTrait(context, TRAIT.DEATH_PERCEPTION)
+      && isShroudSkill(context),
+  },
+  {
+    id: "necromancer.death-perception-critical-damage",
+    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+    operation: "add",
+    amount: 0.1,
+    when: context =>
+      hasTrait(context, TRAIT.DEATH_PERCEPTION)
+      && isShroudSkill(context),
+  },
+  {
+    id: "necromancer.wicked-corruption-critical-damage",
+    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+    operation: "add",
+    amount: 0.1,
+    when: context =>
+      hasTrait(context, TRAIT.WICKED_CORRUPTION)
+      && targetHasCondition(context, "Torment"),
+  },
+  {
+    id: "necromancer.soul-barbs",
+    target: [
+      MODIFIER_TARGET.STRIKE_DAMAGE,
+      MODIFIER_TARGET.CONDITION_DAMAGE,
+    ],
+    operation: "damage-additive",
+    amount: 0.1,
+    when: context =>
+      hasTrait(context, TRAIT.SOUL_BARBS)
+      && context.timeline?.timedActive(
+        "necromancer-soul-barbs",
+        context.time,
+      ),
+  },
+  {
+    id: "necromancer.dread",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.2,
+    when: context =>
+      hasTrait(context, TRAIT.DREAD)
+      && Number(context.runtime?.profession?.dreadUntil || 0) > context.time,
+  },
+  {
+    id: "necromancer.wicked-corruption-blight",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: context => activeBlight(context) * 0.01,
+    when: context => hasTrait(context, TRAIT.WICKED_CORRUPTION),
+  },
+  {
+    id: "necromancer.septic-corruption-blight",
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: "damage-additive",
+    amount: context => activeBlight(context) * 0.0025,
+    when: context => hasTrait(context, TRAIT.SEPTIC_CORRUPTION),
+  },
+  {
+    id: "necromancer.cascading-corruption",
+    target: [
+      MODIFIER_TARGET.STRIKE_DAMAGE,
+      MODIFIER_TARGET.CONDITION_DAMAGE,
+    ],
+    operation: "damage-additive",
+    amount: 0.1,
+    when: context =>
+      hasTrait(context, TRAIT.CASCADING_CORRUPTION)
+      && Number(context.runtime?.profession?.meltdownUntil || 0)
+        > context.time,
+  },
+  {
+    id: "necromancer.lingering-spirits",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.05,
+    when: context =>
+      hasTrait(context, TRAIT.LINGERING_SPIRITS)
+      && anguishSpiritActive(context),
+  },
+  {
+    id: "necromancer.spiteful-talisman",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: context => context.config?.target?.boonless ? 1.05 : 1.03,
+    order: 100,
+    when: context => hasTrait(context, TRAIT.SPITEFUL_TALISMAN),
+  },
+  {
+    id: "necromancer.close-to-death",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.2,
+    order: 100,
+    when: context =>
+      hasTrait(context, TRAIT.CLOSE_TO_DEATH)
+      && targetHealthFraction(context) < 0.5,
+  },
+  {
+    id: "necromancer.cold-shoulder",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.15,
+    order: 100,
+    when: context =>
+      hasTrait(context, TRAIT.COLD_SHOULDER)
+      && targetChilled(context),
+  },
+  {
+    id: "necromancer.soul-eater",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.15,
+    order: 100,
+    when: context =>
+      hasTrait(context, TRAIT.SOUL_EATER)
+      && context.config?.target?.nearby !== false,
+  },
+  {
+    id: "necromancer.necromantic-corruption",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.25,
+    order: 100,
+    when: context =>
+      context.event?.summonKind === "minion"
+      && hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION),
+  },
+  {
+    id: "necromancer.spirits-strength",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.2,
+    order: 100,
+    when: context =>
+      context.event?.actorType === "summon"
+      && hasTrait(context, TRAIT.SPIRITS_STRENGTH),
+  },
+  {
+    id: "necromancer.threshold-coefficient",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: thresholdCoefficientFactor,
+    order: 1000,
+    when: context => Boolean(context.event?.thresholdCoefficients),
+  },
+  {
+    id: "necromancer.putrid-defense",
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: "multiply",
+    factor: 1.15,
+    order: 100,
+    when: context =>
+      context.condition === "Poisoned"
+      && hasTrait(context, TRAIT.PUTRID_DEFENSE),
+  },
+  {
+    id: "necromancer.fell-beacon",
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: "multiply",
+    factor: 1.1,
+    order: 100,
+    when: context =>
+      context.condition === "Burning"
+      && hasTrait(context, TRAIT.FELL_BEACON),
+  },
+  {
+    id: "necromancer.demonic-lore",
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: "multiply",
+    factor: 1.33,
+    order: 100,
+    when: context =>
+      context.condition === "Torment"
+      && hasTrait(context, TRAIT.DEMONIC_LORE),
+  },
+  {
+    id: "necromancer.barbed-precision-duration",
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: "multiply",
+    factor: 1.2,
+    when: context =>
+      context.condition === "Bleeding"
+      && hasTrait(context, TRAIT.BARBED_PRECISION)
+      && !context.config?.necromancerBuildAttributesApplied,
+  },
+  {
+    id: "necromancer.lingering-curse-duration",
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: "multiply",
+    factor: 1.5,
+    when: context =>
+      eventSkill(context)?.weapon === "Scepter"
+      && hasTrait(context, TRAIT.LINGERING_CURSE),
+  },
+]);
 
-function modifyNecromancerConditionDuration(context, multiplier) {
-  let result = multiplier;
-  if (
-    context.condition === "Bleeding"
-    && hasTrait(context, TRAIT.BARBED_PRECISION)
-    && !context.config?.necromancerBuildAttributesApplied
-  ) {
-    result *= 1.2;
-  }
-  if (
-    eventSkill(context)?.weapon === "Scepter"
-    && hasTrait(context, TRAIT.LINGERING_CURSE)
-  ) {
-    result *= 1.5;
-  }
-  return result;
-}
+const necromancerModifierHooks = createModifierHooks({
+  rules: necromancerModifierRules,
+});
 
 function modifyNecromancerRechargeDuration(context, duration) {
   let result = duration;
@@ -395,11 +442,7 @@ function modifyNecromancerCastDuration(context, duration) {
 
 export const necromancerAttributeRules = Object.freeze({
   modifyAttributes: modifyNecromancerAttributes,
-  modifyCriticalChance: modifyNecromancerCriticalChance,
-  modifyCriticalDamage: modifyNecromancerCriticalDamage,
-  modifyStrikeDamage: modifyNecromancerStrikeDamage,
-  modifyConditionDamage: modifyNecromancerConditionDamage,
-  modifyConditionDuration: modifyNecromancerConditionDuration,
+  ...necromancerModifierHooks,
 });
 
 export const necromancerCastModifiers = Object.freeze({

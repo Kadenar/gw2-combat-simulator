@@ -3902,22 +3902,26 @@ export const PEITHA_SKILLS = new Set([
 
 export const INSTRUMENTS = {
   "Lively Lute": {
+    slot: 1,
     instrument: "Lute",
     coefficient: 3,
     hits: 3,
   },
   "Flustering Flute": {
+    slot: 2,
     instrument: "Flute",
     coefficient: 1,
     hits: 1,
     conditions: [{ name: "Confusion", duration: 4, stacks: 3 }],
   },
   "Deafening Drum": {
+    slot: 3,
     instrument: "Drum",
     coefficient: 2,
     hits: 1,
   },
   "Harmonious Harp": {
+    slot: 4,
     instrument: "Harp",
     coefficient: 0,
     hits: 0,

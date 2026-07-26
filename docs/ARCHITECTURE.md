@@ -17,9 +17,10 @@ js/
 ```
 
 The obsolete `js/core`, `js/data`, and `js/sim` compatibility trees have been
-removed. Common GW2 attribute assembly lives in `js/platform/gw2/attributes.js`;
-profession rules live in each profession's own calculator. New code must import
-the owning platform or profession module directly.
+removed. Common GW2 attribute assembly and derived-stat finalization live in
+`js/platform/gw2/attributes.js`; profession calculators own only their resolved
+trait and skill deltas. New code must import the owning platform or profession
+module directly.
 
 The Elementalist scheduler, resolver, data loader, optimizer, and profession
 mechanics remain under its profession directory. Common damage formulas,
@@ -28,10 +29,13 @@ primitives use the platform or shared app layers. Its custom scheduled-stream
 handoff remains profession-owned because it carries Elementalist lookahead and
 runtime state that is not part of the generic event schema.
 
-Each profession owns its final build attribute calculation. The shared
+Each profession owns its build-specific trait calculations. The shared
 `calculateCommonAttributes()` function assembles equipment, consumables,
-infusions, sigils, and base derived stats; the Mesmer and Elementalist
-calculators then apply only their own trait and skill rules.
+infusions, sigils, and base derived stats. Guardian, Mesmer, and Necromancer
+pass their resolved deltas to `finalizeBuildAttributes()`, which applies the
+deltas and consistently rebuilds critical chance, critical damage, boon
+duration, and condition duration. Elementalist remains on its profession-owned
+attribute engine.
 
 Profession-specific browser rendering follows the same boundary. The shared
 shell receives a profession application adapter for its build codec, storage
@@ -117,6 +121,16 @@ hooks return their input, and other hooks are no-ops. Scheduler hooks and
 resolver event reactions accept
 `{ id, order, handler }`; lower order runs first and declaration order breaks
 ties deterministically.
+
+Guardian, Mesmer, and Necromancer scalar combat bonuses are declared as
+per-effect rules in their `attribute-rules.js` modules. The shared
+`platform/gw2/modifier-rules.js` adapter compiles those rules into the existing
+critical chance, critical damage, strike damage, condition damage, and
+condition duration hooks. It owns flat scalar sequencing and the single GW2
+outgoing additive-damage bucket rebuild; profession modules own predicates and
+runtime state. Ordered attribute conversions remain narrow imperative hooks.
+Elementalist is excluded until its resolver path adopts the shared GW2
+profession hooks.
 
 Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill
 uses, pending events, and `profession`. Profession resources and mechanic

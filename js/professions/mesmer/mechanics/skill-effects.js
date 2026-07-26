@@ -31,6 +31,8 @@ export function createSkillEffectController({
   addCondition,
   addDamage,
   traitDamage,
+  shatters = {},
+  instruments = {},
 }) {
   const handleGenericSkill = (skill, at, castStart = at) => {
     const clarityConsumed =
@@ -410,6 +412,26 @@ export function createSkillEffectController({
         at,
         name: "Signet of the Ether",
         detail: "Phantasm skill cooldowns reset",
+      });
+    }
+    if (skill.name === "Signet of Illusions") {
+      for (const target of allSkills.filter(s => shatters[s.name] || instruments[s.name])) {
+        const ammo = state.ammo.get(target.id);
+        if (ammo) {
+          ammo.charges = Math.min(ammo.maximum, ammo.charges + 1);
+          if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
+          // state.cooldowns may hold nextRechargeAt from when charges hit 0;
+          // that timer no longer blocks now that we have a charge, so clear it.
+          state.cooldowns.delete(target.id);
+        } else {
+          state.cooldowns.delete(target.id);
+        }
+      }
+      addEvent({
+        type: "marker",
+        at,
+        name: "Signet of Illusions",
+        detail: "Shatter/instrument cooldowns reset",
       });
     }
     if (skill.name === "Mental Collapse") {
