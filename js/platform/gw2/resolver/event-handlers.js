@@ -11,7 +11,11 @@ import {
   handlePeithaRelic,
   handleRelicsAfterHit,
 } from "../relic-rules.js";
-import { isGw2PlayerActorEvent } from "../event-ownership.js";
+import {
+  GW2_EVENT_ACTOR_TYPES,
+  gw2EventActorType,
+  isGw2PlayerActorEvent,
+} from "../event-ownership.js";
 
 const noop = () => {};
 
@@ -61,7 +65,14 @@ function armSigil(ctx, name, at, cooldown) {
 }
 
 function recordSigil(ctx, name, at, sourceSkill = "") {
-  ctx.recordProc("sigil", `Sigil of ${name}`, at, sourceSkill);
+  ctx.recordProc(
+    "sigil",
+    `Sigil of ${name}`,
+    at,
+    sourceSkill,
+    "",
+    SIGIL_PROCS[name]?.icon || "",
+  );
 }
 
 function queueSigilStrike(ctx, name, at, proc, sourceSkill) {
@@ -182,6 +193,16 @@ function reactionFor(reactions, eventType) {
   return reactions?.[eventType] || noop;
 }
 
+function markCombatActive(ctx, event) {
+  const actorType = gw2EventActorType(event);
+  if (
+    actorType === GW2_EVENT_ACTOR_TYPES.PLAYER
+    || actorType === GW2_EVENT_ACTOR_TYPES.SUMMON
+  ) {
+    ctx.combatActive = true;
+  }
+}
+
 /**
  * Builds the complete standard GW2 resolver handler set.
  *
@@ -215,9 +236,63 @@ export function createGw2ResolverEventHandlers({
     "conditions.tick",
   );
 
+  function handleSwapSigils(ctx, event) {
+    if (!ctx.combatActive) return;
+    const sourceSkill = event.skillName || "Swap Weapons";
+    for (const name of activeSigilNames(ctx, event.at, event.weaponSet)) {
+      const proc = SIGIL_PROCS[name];
+      if (
+        proc?.trigger !== "swap"
+        || !sigilReady(ctx, name, event.at)
+      ) continue;
+      armSigil(ctx, name, event.at, proc.cooldown);
+      if (proc.effect === "next-hit-condition") {
+        ctx.sigil.doomPending = true;
+        continue;
+      }
+      if (proc.effect === "condition") {
+        applyCondition(ctx, {
+          type: "condition",
+          at: event.at,
+          name: `Sigil of ${name} — ${proc.condition}`,
+          skillName: `Sigil of ${name}`,
+          condition: proc.condition,
+          duration: proc.duration,
+          stacks: proc.stacks,
+          source: "Sigil",
+          sourceId: `sigil.${name.toLowerCase()}`,
+        });
+        recordSigil(ctx, name, event.at, sourceSkill);
+        continue;
+      }
+      if (
+        proc.effect === "strike"
+        || proc.effect === "strike-condition"
+      ) {
+        queueSigilStrike(ctx, name, event.at, proc, sourceSkill);
+        if (proc.condition) {
+          applyCondition(ctx, {
+            type: "condition",
+            at: event.at,
+            name: `Sigil of ${name} — ${proc.condition}`,
+            skillName: `Sigil of ${name}`,
+            condition: proc.condition,
+            duration: proc.duration,
+            stacks: proc.stacks,
+            source: "Sigil",
+            sourceId: `sigil.${name.toLowerCase()}`,
+          });
+        }
+        recordSigil(ctx, name, event.at, sourceSkill);
+      }
+    }
+  }
+
   const handlers = {
     action: noop,
-    combat_start: noop,
+    combat_start(ctx) {
+      ctx.combatActive = true;
+    },
     marker: noop,
     proc: noop,
     resource: noop,
@@ -227,6 +302,7 @@ export function createGw2ResolverEventHandlers({
     weakness_vulnerability: noop,
 
     damage(ctx, event) {
+      markCombatActive(ctx, event);
       const hitContext = buildHitResolutionContext(ctx, event);
       applyResolvedHit(ctx, event, hitContext);
       applyMistStranger(ctx, event);
@@ -241,6 +317,7 @@ export function createGw2ResolverEventHandlers({
     },
 
     condition(ctx, event) {
+      markCombatActive(ctx, event);
       applyCondition(ctx, event);
     },
 
@@ -250,6 +327,7 @@ export function createGw2ResolverEventHandlers({
     },
 
     control(ctx, event) {
+      markCombatActive(ctx, event);
       handleControlRelics(ctx, event, {
         activeConditionStackCount,
         applyCondition,
@@ -273,6 +351,7 @@ export function createGw2ResolverEventHandlers({
     },
 
     blind(ctx, event) {
+      markCombatActive(ctx, event);
       reactionFor(eventReactions, "blind")(ctx, event, { applyCondition });
     },
 
@@ -282,38 +361,12 @@ export function createGw2ResolverEventHandlers({
     },
 
     weapon_set(ctx, event) {
-      for (const name of activeSigilNames(ctx, event.at, event.weaponSet)) {
-        const proc = SIGIL_PROCS[name];
-        if (
-          proc?.trigger !== "swap"
-          || !sigilReady(ctx, name, event.at)
-        ) continue;
-        armSigil(ctx, name, event.at, proc.cooldown);
-        if (proc.effect === "next-hit-condition") {
-          ctx.sigil.doomPending = true;
-          continue;
-        }
-        if (proc.effect === "condition") {
-          applyCondition(ctx, {
-            type: "condition",
-            at: event.at,
-            name: `Sigil of ${name} — ${proc.condition}`,
-            skillName: `Sigil of ${name}`,
-            condition: proc.condition,
-            duration: proc.duration,
-            stacks: proc.stacks,
-            source: "Sigil",
-            sourceId: `sigil.${name.toLowerCase()}`,
-          });
-          recordSigil(ctx, name, event.at, "Swap Weapons");
-          continue;
-        }
-        if (proc.effect === "strike") {
-          queueSigilStrike(ctx, name, event.at, proc, "Swap Weapons");
-          recordSigil(ctx, name, event.at, "Swap Weapons");
-        }
-      }
+      handleSwapSigils(ctx, event);
       reactionFor(eventReactions, "weapon_set")(ctx, event, { applyCondition });
+    },
+
+    sigil_swap(ctx, event) {
+      handleSwapSigils(ctx, event);
     },
   };
 

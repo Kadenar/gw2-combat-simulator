@@ -61,7 +61,9 @@ export function aggregateSigilSet(sigilNames) {
     const effects = {
         names: [...new Set(sigilNames || [])],
         criticalChanceBonus: 0,
+        strikeAdd: 0,
         strike: 1,
+        conditionAdd: 0,
         condition: 1,
         conditionDurationBonus: 0,
         conditionDurationBonuses: {},
@@ -78,8 +80,8 @@ export function aggregateSigilSet(sigilNames) {
         const sigil = SIGIL_DATA[name];
         if (!sigil) continue;
         effects.criticalChanceBonus += Number(sigil.criticalChance || 0);
-        effects.strike *= 1 + Number(sigil.strikeDamageA || 0) / 100;
-        effects.condition *= 1 + Number(sigil.conditionDamageA || 0) / 100;
+        effects.strikeAdd += Number(sigil.strikeDamageA || 0) / 100;
+        effects.conditionAdd += Number(sigil.conditionDamageA || 0) / 100;
         effects.conditionDurationBonus += Number(sigil.conditionDuration || 0);
         effects.boonDurationBonus += Number(sigil.boonDuration || 0);
         for (const [field, condition] of Object.entries(durationFields)) {
@@ -90,5 +92,7 @@ export function aggregateSigilSet(sigilNames) {
             }
         }
     }
+    effects.strike = 1 + effects.strikeAdd;
+    effects.condition = 1 + effects.conditionAdd;
     return effects;
 }

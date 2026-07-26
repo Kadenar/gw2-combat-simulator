@@ -3,6 +3,9 @@ import {
   targetHasPermanentCondition,
 } from "../../platform/gw2/target-state.js";
 import {
+  applyAdditiveDamageBucket,
+} from "../../platform/gw2/damage-modifier-buckets.js";
+import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "./data/ids.js";
@@ -81,10 +84,10 @@ function activeBlight(context) {
   );
 }
 
-function activeSpiritCount(context) {
-  return Object.keys(
-    context.runtime?.profession?.activeSpirits || {},
-  ).length;
+function anguishSpiritActive(context) {
+  return Boolean(
+    context.runtime?.profession?.activeSpirits?.anguish,
+  );
 }
 
 function targetChilled(context) {
@@ -197,10 +200,43 @@ function modifyNecromancerCriticalDamage(context, multiplier) {
 }
 
 function modifyNecromancerStrikeDamage(context, multiplier) {
-  let result = multiplier;
+  let additiveBonus = 0;
+  if (
+    hasTrait(context, TRAIT.SOUL_BARBS)
+    && context.timeline?.timedActive(
+      "necromancer-soul-barbs",
+      context.time,
+    )
+  ) {
+    additiveBonus += 0.1;
+  }
+  if (
+    hasTrait(context, TRAIT.DREAD)
+    && Number(context.runtime?.profession?.dreadUntil || 0) > context.time
+  ) {
+    additiveBonus += 0.2;
+  }
+  if (hasTrait(context, TRAIT.WICKED_CORRUPTION)) {
+    additiveBonus += activeBlight(context) * 0.01;
+  }
+  if (
+    hasTrait(context, TRAIT.CASCADING_CORRUPTION)
+    && Number(context.runtime?.profession?.meltdownUntil || 0) > context.time
+  ) {
+    additiveBonus += 0.1;
+  }
+  if (
+    hasTrait(context, TRAIT.LINGERING_SPIRITS)
+    && anguishSpiritActive(context)
+  ) {
+    additiveBonus += 0.05;
+  }
+  let result = applyAdditiveDamageBucket(context, multiplier, {
+    bonus: additiveBonus,
+  });
   if (hasTrait(context, TRAIT.SPITEFUL_TALISMAN)) {
     result *= 1.03;
-    if (context.config?.target?.boonless) result *= 1.05;
+    if (context.config?.target?.boonless) result *= 1.05 / 1.03;
   }
   if (
     hasTrait(context, TRAIT.CLOSE_TO_DEATH)
@@ -209,43 +245,16 @@ function modifyNecromancerStrikeDamage(context, multiplier) {
     result *= 1.2;
   }
   if (
-    hasTrait(context, TRAIT.SOUL_BARBS)
-    && context.timeline?.timedActive(
-      "necromancer-soul-barbs",
-      context.time,
-    )
-  ) {
-    result *= 1.1;
-  }
-  if (
-    hasTrait(context, TRAIT.DREAD)
-    && Number(context.runtime?.profession?.dreadUntil || 0) > context.time
-  ) {
-    result *= 1.15;
-  }
-  if (
     hasTrait(context, TRAIT.COLD_SHOULDER)
     && targetChilled(context)
   ) {
-    result *= 1.1;
+    result *= 1.15;
   }
   if (
     hasTrait(context, TRAIT.SOUL_EATER)
     && context.config?.target?.nearby !== false
   ) {
     result *= 1.15;
-  }
-  if (hasTrait(context, TRAIT.WICKED_CORRUPTION)) {
-    result *= 1 + activeBlight(context) * 0.01;
-  }
-  if (
-    hasTrait(context, TRAIT.CASCADING_CORRUPTION)
-    && Number(context.runtime?.profession?.meltdownUntil || 0) > context.time
-  ) {
-    result *= 1.1;
-  }
-  if (hasTrait(context, TRAIT.LINGERING_SPIRITS)) {
-    result *= 1 + activeSpiritCount(context) * 0.05;
   }
   if (
     context.event?.summonKind === "minion"
@@ -274,7 +283,29 @@ function modifyNecromancerStrikeDamage(context, multiplier) {
 }
 
 function modifyNecromancerConditionDamage(context, multiplier) {
-  let result = multiplier;
+  let additiveBonus = 0;
+  if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION)) {
+    additiveBonus += activeBlight(context) * 0.0025;
+  }
+  if (
+    hasTrait(context, TRAIT.SOUL_BARBS)
+    && context.timeline?.timedActive(
+      "necromancer-soul-barbs",
+      context.time,
+    )
+  ) {
+    additiveBonus += 0.1;
+  }
+  if (
+    hasTrait(context, TRAIT.CASCADING_CORRUPTION)
+    && Number(context.runtime?.profession?.meltdownUntil || 0) > context.time
+  ) {
+    additiveBonus += 0.1;
+  }
+  let result = applyAdditiveDamageBucket(context, multiplier, {
+    damageType: "condition",
+    bonus: additiveBonus,
+  });
   if (
     context.condition === "Poisoned"
     && hasTrait(context, TRAIT.PUTRID_DEFENSE)
@@ -292,27 +323,6 @@ function modifyNecromancerConditionDamage(context, multiplier) {
     && hasTrait(context, TRAIT.DEMONIC_LORE)
   ) {
     result *= 1.33;
-  }
-  if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION)) {
-    result *= 1 + activeBlight(context) * 0.0025;
-  }
-  if (
-    hasTrait(context, TRAIT.SOUL_BARBS)
-    && context.timeline?.timedActive(
-      "necromancer-soul-barbs",
-      context.time,
-    )
-  ) {
-    result *= 1.1;
-  }
-  if (
-    hasTrait(context, TRAIT.CASCADING_CORRUPTION)
-    && Number(context.runtime?.profession?.meltdownUntil || 0) > context.time
-  ) {
-    result *= 1.1;
-  }
-  if (hasTrait(context, TRAIT.LINGERING_SPIRITS)) {
-    result *= 1 + activeSpiritCount(context) * 0.05;
   }
   return result;
 }

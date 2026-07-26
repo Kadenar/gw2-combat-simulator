@@ -18,6 +18,9 @@ import {
   guardianProfession,
 } from "../js/professions/guardian/definition.js";
 import {
+  calculateAttributes as calculateGuardianAttributes,
+} from "../js/professions/guardian/core/calc-attributes.js";
+import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
 } from "../js/professions/guardian/data/ids.js";
@@ -95,6 +98,34 @@ test("Justice passive counts individual hits and respects its active cooldown", 
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH],
     },
   });
+  const radiantPassive = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Whirling Wrath"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      primaryWeapon: "Greatsword",
+    },
+  });
+  const radiantPermeating = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Whirling Wrath"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      primaryWeapon: "Greatsword",
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH],
+    },
+  });
+  const radiantActivated = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Radiant Justice", "Whirling Wrath"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      primaryWeapon: "Greatsword",
+    },
+  });
 
   assert.equal(passive.endState.profession.justicePassiveBurns, 2);
   assert.equal(passive.endState.profession.justiceHitCount, 4);
@@ -103,6 +134,11 @@ test("Justice passive counts individual hits and respects its active cooldown", 
   assert.equal(activated.endState.profession.virtueReadyAt.justice, 20);
   assert.equal(permeating.endState.profession.justicePassiveBurns, 4);
   assert.equal(permeating.endState.profession.justiceHitCount, 2);
+  assert.equal(radiantPassive.endState.profession.justicePassiveBurns, 2);
+  assert.equal(radiantPassive.endState.profession.justiceHitCount, 4);
+  assert.equal(radiantPermeating.endState.profession.justicePassiveBurns, 4);
+  assert.equal(radiantPermeating.endState.profession.justiceHitCount, 2);
+  assert.equal(radiantActivated.endState.profession.justicePassiveBurns, 0);
 });
 
 test("Guardian greatsword uses the reference cast and strike profiles", () => {
@@ -314,9 +350,13 @@ test("Spear Symbol of Luminance keeps all spear skills illuminated while active"
   const symbolThenHelio = simulateGw2({
     profession: guardianProfession,
     rotation: ["Symbol of Luminance", "Helio Rush"],
-    config: spearConfig,
+    config: {
+      ...spearConfig,
+      boons: { quickness: true },
+    },
   });
 
+  assert.equal(symbolThenHelio.steps[0].end, 440);
   // The window empowers Helio Rush even though nothing armed it beforehand.
   assert.ok(symbolThenHelio.endState.profession.spearLuminanceUntil > 0);
   assert.equal(
@@ -946,7 +986,876 @@ test("Luminary Radiant Forge enforces entry and radiant weapon flips", () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.radiantForge, true);
   assert.equal(result.endState.profession.radiantWeapon, "hammer");
+  assert.equal(
+    Object.hasOwn(result.endState.cooldowns, "Enter Radiant Forge"),
+    false,
+  );
   assert.ok(result.totalDamage > 0);
+});
+
+test("Radiant Forge recharge starts on exit and uses equipped weapons", () => {
+  const hammerOnly = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Enter Radiant Forge",
+      "Dazzling Hammer",
+      "Shining Spin",
+      "Exit Radiant Forge",
+      "Enter Radiant Forge",
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const allWeapons = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Enter Radiant Forge",
+      "Dazzling Hammer",
+      "Luminous Staff",
+      "Gleaming Blade",
+      "Radiant Bulwark",
+      "Exit Radiant Forge",
+      "Enter Radiant Forge",
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+
+  assert.equal(
+    hammerOnly.steps
+      .filter(step => step.skill === "Enter Radiant Forge")[1].start,
+    6200,
+  );
+  assert.equal(
+    allWeapons.steps
+      .filter(step => step.skill === "Enter Radiant Forge")[1].start,
+    14350,
+  );
+  assert.equal(allWeapons.endState.profession.radiantForgeEndsAt, 34.35);
+});
+
+test("Radiant Forge recharge starts when its automatic exit occurs", () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Enter Radiant Forge",
+      { type: "wait", durationMs: 21000 },
+      "Enter Radiant Forge",
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+
+  assert.equal(
+    result.steps
+      .filter(step => step.skill === "Enter Radiant Forge")[1].start,
+    25000,
+  );
+});
+
+test("Radiant Forge entry and exit trigger swap sigils with their shared ICD", () => {
+  const outOfCombat = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Enter Radiant Forge",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      sigilSets: [
+        {
+          names: ["Hydromancy", "Geomancy"],
+          strike: 1,
+          condition: 1,
+        },
+        { names: [], strike: 1, condition: 1 },
+      ],
+    },
+  });
+  assert.equal(outOfCombat.procSteps.some(step =>
+    step.type === "sigil_proc"
+  ), false);
+
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Daring Advance",
+      "Piercing Stance",
+      "Enter Radiant Forge",
+      "Exit Radiant Forge",
+      "Enter Radiant Forge",
+      "Exit Radiant Forge",
+      "Enter Radiant Forge",
+      { type: "wait", durationMs: 9000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      sigilSets: [
+        {
+          names: ["Hydromancy", "Geomancy"],
+          strike: 1,
+          condition: 1,
+        },
+        { names: [], strike: 1, condition: 1 },
+      ],
+    },
+  });
+  const procTimes = name => result.procSteps
+    .filter(step => step.skill === `Sigil of ${name}`)
+    .map(step => step.start);
+  const applications = condition => result.resolvedEvents.filter(event =>
+    event.skillName === `Sigil of ${
+      condition === "Chilled" ? "Hydromancy" : "Geomancy"
+    }`
+    && event.condition === condition
+  );
+
+  assert.deepEqual(procTimes("Hydromancy"), [1250, 11250]);
+  assert.deepEqual(procTimes("Geomancy"), [1250, 11250]);
+  assert.equal(result.events.some(event => event.type === "weapon_set"), false);
+  assert.ok(result.events.some(event => event.type === "sigil_swap"));
+  assert.ok(result.procSteps
+    .filter(step => ["Sigil of Hydromancy", "Sigil of Geomancy"]
+      .includes(step.skill))
+    .every(step =>
+      step.sourceSkill === "Enter Radiant Forge"
+      && step.icon.startsWith("https://render.guildwars2.com/file/")
+    ));
+  assert.equal(result.resolvedEvents.filter(event =>
+    event.skillName === "Sigil of Hydromancy"
+    && event.type === "damage"
+  ).length, 2);
+  assert.equal(applications("Chilled").length, 2);
+  assert.equal(applications("Bleeding").length, 2);
+  assert.ok(applications("Bleeding").every(application =>
+    application.damage > 0
+  ));
+
+  const manualExit = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Daring Advance",
+      "Piercing Stance",
+      "Enter Radiant Forge",
+      { type: "wait", durationMs: 10000 },
+      "Exit Radiant Forge",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      sigilSets: [
+        {
+          names: ["Hydromancy", "Geomancy"],
+          strike: 1,
+          condition: 1,
+        },
+        { names: [], strike: 1, condition: 1 },
+      ],
+    },
+  });
+  assert.deepEqual(
+    manualExit.procSteps
+      .filter(step => step.skill === "Sigil of Hydromancy")
+      .map(step => [step.start, step.sourceSkill]),
+    [
+      [1250, "Enter Radiant Forge"],
+      [11250, "Exit Radiant Forge"],
+    ],
+  );
+
+  const automaticExit = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Daring Advance",
+      "Piercing Stance",
+      "Enter Radiant Forge",
+      { type: "wait", durationMs: 21000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      sigilSets: [
+        {
+          names: ["Hydromancy", "Geomancy"],
+          strike: 1,
+          condition: 1,
+        },
+        { names: [], strike: 1, condition: 1 },
+      ],
+    },
+  });
+  assert.deepEqual(
+    automaticExit.procSteps
+      .filter(step => step.skill === "Sigil of Geomancy")
+      .map(step => [step.start, step.sourceSkill]),
+    [
+      [1250, "Enter Radiant Forge"],
+      [21250, "Exit Radiant Forge"],
+    ],
+  );
+
+  const radiantWeapon = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Daring Advance",
+      "Piercing Stance",
+      "Enter Radiant Forge",
+      { type: "wait", durationMs: 10000 },
+      "Dazzling Hammer",
+      "Shining Spin",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      sigilSets: [
+        {
+          names: ["Hydromancy", "Geomancy"],
+          strike: 1,
+          condition: 1,
+        },
+        { names: [], strike: 1, condition: 1 },
+      ],
+    },
+  });
+  assert.deepEqual(
+    radiantWeapon.procSteps
+      .filter(step => step.skill === "Sigil of Hydromancy")
+      .map(step => [step.start, step.sourceSkill]),
+    [
+      [1250, "Enter Radiant Forge"],
+      [11850, "Dazzling Hammer"],
+    ],
+  );
+  assert.equal(
+    radiantWeapon.procSteps.some(step =>
+      step.skill === "Sigil of Hydromancy"
+      && step.sourceSkill === "Shining Spin"
+    ),
+    false,
+  );
+});
+
+test("Luminary weapon coefficients, disables, and armament buffs resolve", () => {
+  const rotation = [
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Shining Spin",
+    "Luminous Staff",
+    { type: "wait", durationMs: 3500 },
+  ];
+  const empowered = simulateGw2({
+    profession: guardianProfession,
+    rotation,
+    config: {
+      ...config,
+      specialization: "Luminary",
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS],
+    },
+  });
+  const armaments = simulateGw2({
+    profession: guardianProfession,
+    rotation,
+    config: {
+      ...config,
+      specialization: "Luminary",
+      selectedTraitIds: [
+        GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS,
+        GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS,
+      ],
+    },
+  });
+  const damage = (result, name) =>
+    result.resolvedEvents.find(event => event.name === name);
+  const dazzling = damage(armaments, "Dazzling Hammer");
+  const shining = damage(armaments, "Shining Spin");
+
+  assert.equal(dazzling.coefficient, 1.2);
+  assert.equal(shining.coefficient, 1.25);
+  assert.ok(shining.damage > dazzling.damage);
+  assert.ok(
+    Math.abs(
+      dazzling.damage / damage(empowered, "Dazzling Hammer").damage - 1,
+    ) < 1e-9,
+  );
+  assert.ok(
+    Math.abs(
+      shining.damage / damage(empowered, "Shining Spin").damage
+      - 1.17 / 1.1,
+    ) < 1e-9,
+  );
+  const armamentStaff = armaments.resolvedEvents
+    .filter(event => event.name === "Luminous Staff — Symbol Damage");
+  const empoweredStaff = empowered.resolvedEvents
+    .filter(event => event.name === "Luminous Staff — Symbol Damage");
+  assert.ok(
+    Math.abs(
+      armamentStaff[0].damage / empoweredStaff[0].damage
+      - 1.17 / 1.1,
+    ) < 1e-9,
+  );
+  assert.equal(
+    armamentStaff.slice(1).every((event, index) =>
+      Math.abs(event.damage / empoweredStaff[index + 1].damage - 1)
+        < 1e-9),
+    true,
+  );
+  assert.equal(
+    armaments.resolvedEvents
+      .filter(event => event.name === "Luminous Staff — Symbol Damage")
+      .length,
+    4,
+  );
+  assert.deepEqual(
+    armaments.procSteps
+      .filter(step => step.skill === "Empowered Armaments")
+      .map(step => step.detail),
+    ["triggered", "refreshed"],
+  );
+  assert.equal(
+    armaments.procSteps
+      .filter(step => step.skill === "Radiant Armaments")[1].detail,
+    "staff: hammer bonus removed",
+  );
+
+  const justice = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Radiant Justice",
+      "Enter Radiant Forge",
+      "Dazzling Hammer",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const hammerPackets = justice.resolvedEvents
+    .filter(event => event.skillId === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
+  assert.deepEqual(
+    hammerPackets.map(event => event.coefficient),
+    [1.2, 1.5],
+  );
+  assert.ok(
+    Math.abs(hammerPackets[1].at - hammerPackets[0].at - 0.75) < 1e-9,
+  );
+
+  const gleaming = selectedTraitIds => simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      ...(selectedTraitIds ? ["Radiant Courage"] : []),
+      "Enter Radiant Forge",
+      "Gleaming Blade",
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const normalBlade = damage(gleaming(false), "Gleaming Blade");
+  const empoweredBlade = damage(gleaming(true), "Gleaming Blade");
+  assert.ok(
+    Math.abs(empoweredBlade.damage / normalBlade.damage - 1.5) < 1e-9,
+  );
+});
+
+test("Guardian armaments share the additive sigil bucket", () => {
+  const rotation = [
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Shining Spin",
+  ];
+  const run = ({
+    selectedTraitIds = [],
+    sigilSets = undefined,
+    burning = false,
+  } = {}) => simulateGw2({
+    profession: guardianProfession,
+    rotation,
+    config: {
+      ...config,
+      specialization: "Luminary",
+      selectedTraitIds,
+      sigilSets,
+      target: {
+        ...config.target,
+        conditions: burning ? { Burning: true } : {},
+      },
+    },
+  });
+  const shining = result => result.resolvedEvents
+    .find(event => event.name === "Shining Spin").damage;
+  const baseline = run();
+  const sigils = run({
+    sigilSets: [
+      { names: ["Force", "Impact"], strikeAdd: 0.08, strike: 1.08 },
+      {},
+    ],
+  });
+  const armaments = run({
+    selectedTraitIds: [
+      GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS,
+      GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS,
+    ],
+    sigilSets: [
+      { names: ["Force", "Impact"], strikeAdd: 0.08, strike: 1.08 },
+      {},
+    ],
+  });
+  const conditional = run({
+    selectedTraitIds: [
+      GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS,
+      GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS,
+      GUARDIAN_TRAIT_IDS.FIERY_WRATH,
+    ],
+    sigilSets: [
+      { names: ["Force", "Impact"], strikeAdd: 0.08, strike: 1.08 },
+      {},
+    ],
+    burning: true,
+  });
+
+  assert.ok(Math.abs(shining(sigils) / shining(baseline) - 1.08) < 1e-9);
+  assert.ok(
+    Math.abs(shining(armaments) / shining(baseline) - 1.25) < 1e-9,
+  );
+  assert.ok(
+    Math.abs(shining(conditional) / shining(armaments) - 1.05) < 1e-9,
+  );
+});
+
+test("Radiant virtues grant one-use hammer and sword empowerments", () => {
+  const armedHammer = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Radiant Justice"],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const hammer = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Radiant Justice",
+      "Enter Radiant Forge",
+      "Dazzling Hammer",
+      "Dazzling Hammer",
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const armedSword = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Radiant Courage"],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const sword = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Radiant Courage",
+      "Enter Radiant Forge",
+      "Gleaming Blade",
+      "Gleaming Blade",
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const bladeHits = sword.resolvedEvents
+    .filter(event => event.name === "Gleaming Blade");
+
+  assert.equal(armedHammer.endState.profession.radiantJusticeArmed, true);
+  assert.equal(
+    hammer.resolvedEvents
+      .filter(event =>
+        event.name === "Dazzling Hammer — Radiant Justice Impact").length,
+    1,
+  );
+  assert.equal(hammer.endState.profession.radiantJusticeArmed, false);
+  assert.ok(hammer.procSteps.some(step =>
+    step.type === "skill_proc"
+    && step.skill === "Empowered Hammer"
+    && step.sourceSkill === "Radiant Justice"));
+
+  assert.equal(armedSword.endState.profession.radiantCourageSwordArmed, true);
+  assert.equal(bladeHits.length, 2);
+  assert.ok(Math.abs(bladeHits[0].damage / bladeHits[1].damage - 1.5) < 1e-9);
+  assert.equal(sword.endState.profession.radiantCourageSwordArmed, false);
+  assert.ok(sword.procSteps.some(step =>
+    step.type === "skill_proc"
+    && step.skill === "Empowered Sword"
+    && step.sourceSkill === "Radiant Courage"));
+});
+
+test("Guardian strike modifiers use their tested additive and mult buckets", () => {
+  const run = selectedTraitIds => simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Symbol of Resolution",
+      { type: "wait", durationMs: 1500 },
+    ],
+    config: {
+      ...config,
+      boons: { fury: true },
+      primaryWeapon: "Greatsword",
+      selectedTraitIds,
+      sigilSets: [
+        { names: ["Force"], strikeAdd: 0.05, strike: 1.05 },
+        {},
+      ],
+      target: {
+        ...config.target,
+        conditions: {
+          Burning: true,
+          Vulnerability: 25,
+        },
+      },
+    },
+  });
+  const pulse = result => result.resolvedEvents
+    .filter(event => event.name === "Symbol of Resolution")[0].damage;
+  const baseline = run([]);
+  const conditional = run([
+    GUARDIAN_TRAIT_IDS.FIERY_WRATH,
+    GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
+    GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
+    GUARDIAN_TRAIT_IDS.RETRIBUTION,
+  ]);
+
+  assert.ok(
+    Math.abs(
+      pulse(conditional) / pulse(baseline)
+      - (1.25 / 1.05) * 1.05 * 1.05,
+    ) < 1e-9,
+  );
+});
+
+test("Luminary stances apply modifiers, combos, delayed damage, and control", () => {
+  const piercing = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Piercing Stance",
+      "Piercing Stance",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      relic: "Claw",
+    },
+  });
+  const daring = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Daring Advance",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const effulgent = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Effulgent Stance",
+      "Whirling Wrath",
+      { type: "wait", durationMs: 4000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      primaryWeapon: "Greatsword",
+      relic: "Claw",
+    },
+  });
+  const effulgentDamage = effulgent.resolvedEvents
+    .find(event => event.name === "Effulgent Stance");
+  const piercingBuffs = piercing.events
+    .filter(event => event.kind === "guardian-piercing-stance");
+
+  assert.equal(
+    piercing.events.find(event =>
+      event.type === "control"
+      && event.skillName === "Piercing Stance").controlKind,
+    "daze",
+  );
+  assert.equal(piercingBuffs[0].duration, 8);
+  assert.equal(piercingBuffs[1].at + piercingBuffs[1].duration, 16);
+  assert.ok(
+    piercing.procSteps.some(step => step.skill === "Relic of the Claw"),
+  );
+  assert.equal(
+    daring.events.some(event =>
+      event.type === "control"
+      && event.skillName === "Daring Advance"),
+    false,
+  );
+  assert.equal(
+    daring.events.find(event =>
+      event.kind === "guardian-daring-advance").duration,
+    8,
+  );
+  assert.equal(effulgentDamage.at, 4);
+  assert.equal(effulgentDamage.stackCount, 10);
+  assert.equal(effulgentDamage.coefficient, 4);
+  assert.deepEqual(
+    effulgent.procSteps
+      .filter(step =>
+        step.type === "skill_proc"
+        && step.skill === "Effulgent Stance")
+      .map(step => [step.start, step.sourceSkill, step.detail]),
+    [[4000, "Effulgent Stance", "10/10 stacks"]],
+  );
+  assert.ok(
+    effulgent.procSteps.some(step =>
+      step.skill === "Relic of the Claw"
+      && step.start === 4000),
+  );
+});
+
+test("Sovereign of Light consumes combo and trait-granted light auras", () => {
+  const combo = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Symbol of Resolution",
+      "Leap of Faith",
+      "Enter Radiant Forge",
+      "Dazzling Hammer",
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      primaryWeapon: "Greatsword",
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT],
+    },
+  });
+  const justice = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Radiant Justice", "Piercing Stance"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      selectedTraitIds: [
+        GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
+        GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT,
+      ],
+    },
+  });
+  const sovereignHits = combo.resolvedEvents
+    .filter(event => event.name === "Sovereign of Light");
+  const sovereignProcs = combo.procSteps
+    .filter(step => step.skill === "Sovereign of Light");
+
+  assert.equal(sovereignHits.length, 2);
+  assert.equal(
+    sovereignHits.every(event => event.coefficient === 1.5),
+    true,
+  );
+  assert.equal(sovereignProcs.length, 2);
+  assert.equal(sovereignProcs.every(step => Boolean(step.icon)), true);
+  assert.ok(justice.events.some(event =>
+    event.type === "blind"
+    && event.skillName === "Justice is Blind"));
+  assert.equal(
+    justice.resolvedEvents
+      .filter(event => event.name === "Sovereign of Light").length,
+    1,
+  );
+});
+
+test("Luminary recharge traits alter the intended cooldown families", () => {
+  const masterRotation = [
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Exit Radiant Forge",
+    "Radiant Justice",
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+  ];
+  const withMaster = simulateGw2({
+    profession: guardianProfession,
+    rotation: masterRotation,
+    config: {
+      ...config,
+      specialization: "Luminary",
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS],
+    },
+  });
+  const withoutMaster = simulateGw2({
+    profession: guardianProfession,
+    rotation: masterRotation,
+    config: { ...config, specialization: "Luminary" },
+  });
+  const inspirationRotation = [
+    "Radiant Justice",
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Exit Radiant Forge",
+    "Radiant Justice",
+  ];
+  const withInspiration = simulateGw2({
+    profession: guardianProfession,
+    rotation: inspirationRotation,
+    config: {
+      ...config,
+      specialization: "Luminary",
+      selectedTraitIds: [
+        GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION,
+      ],
+    },
+  });
+  const withoutInspiration = simulateGw2({
+    profession: guardianProfession,
+    rotation: inspirationRotation,
+    config: { ...config, specialization: "Luminary" },
+  });
+
+  assert.equal(
+    withMaster.steps.filter(step => step.skill === "Dazzling Hammer")[1].start,
+    5600,
+  );
+  assert.equal(
+    withoutMaster.steps
+      .filter(step => step.skill === "Dazzling Hammer")[1].start,
+    7600,
+  );
+  assert.equal(
+    withInspiration.steps
+      .filter(step => step.skill === "Radiant Justice")[1].start,
+    16000,
+  );
+  assert.equal(
+    withoutInspiration.steps
+      .filter(step => step.skill === "Radiant Justice")[1].start,
+    20000,
+  );
+});
+
+test("Zeal symbol traits emit their full profiles and stack damage", () => {
+  const symbols = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Virtue of Justice", { type: "wait", durationMs: 5000 }],
+    config: {
+      ...config,
+      boons: { fury: true },
+      selectedTraitIds: [
+        GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
+        GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER,
+        GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
+      ],
+    },
+  });
+  const zealotsResolution = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["True Strike", { type: "wait", durationMs: 5000 }],
+    config: {
+      ...config,
+      target: { ...config.target, health: 2500 },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION],
+    },
+  });
+  const blades = symbols.resolvedEvents
+    .filter(event => event.name === "Lesser Symbol of Blades");
+  const resolution = zealotsResolution.resolvedEvents
+    .filter(event => event.name === "Lesser Symbol of Resolution");
+
+  assert.equal(blades.length, 5);
+  assert.equal(blades.every(event => event.coefficient === 0.65), true);
+  assert.equal(symbols.endState.profession.symbolicAvengerStacks, 5);
+  assert.equal(
+    symbols.events.filter(event =>
+      event.kind === "target-vulnerability"
+      && event.skillName === "Symbolic Exposure").length,
+    5,
+  );
+  assert.equal(resolution.length, 5);
+  assert.equal(resolution.every(event => event.coefficient === 0.5), true);
+  assert.equal(
+    zealotsResolution.endState.profession.zealotsResolutionReadyAt,
+    resolution[0].at + 30,
+  );
+});
+
+test("resolution traits affect strike damage, critical chance, and might", () => {
+  const run = selectedTraitIds => simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Symbol of Resolution",
+      { type: "wait", durationMs: 6000 },
+    ],
+    config: {
+      ...config,
+      primaryWeapon: "Greatsword",
+      selectedTraitIds,
+    },
+  });
+  const righteous = run([GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS]);
+  const retribution = run([
+    GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS,
+    GUARDIAN_TRAIT_IDS.RETRIBUTION,
+  ]);
+  const first = result => result.resolvedEvents
+    .find(event => event.name === "Symbol of Resolution — Initial");
+  const pulses = retribution.resolvedEvents
+    .filter(event => event.name === "Symbol of Resolution");
+
+  assert.ok(
+    Math.abs(
+      first(retribution).damage / first(righteous).damage - 1.1,
+    ) < 1e-9,
+  );
+  assert.ok(
+    Math.abs(
+      first(retribution).criticalChance - 0.25
+      - (
+        config.stats.precision > 895
+          ? (config.stats.precision - 895) / 2100
+          : 0
+      ),
+    ) < 1e-9,
+  );
+  assert.equal(
+    pulses.every((event, index) =>
+      index === 0 || event.damage > pulses[index - 1].damage),
+    true,
+  );
+  assert.deepEqual(
+    retribution.procSteps
+      .filter(step => step.skill === "Righteous Instincts")
+      .map(step => step.start),
+    [280, 1280, 2280, 3280, 4280, 5280],
+  );
+});
+
+test("Guardian build attributes expose static Zeal and Radiance bonuses", () => {
+  const build = createGuardianBuildDefaults();
+  build.weapons = ["Greatsword", ""];
+  build.specializations = [
+    { name: "Zeal", traits: "2-2-3" },
+    { name: "Radiance", traits: "2-3-3" },
+    { name: "Luminary", traits: "3-3-2" },
+  ];
+  const all = calculateGuardianAttributes(build, []).attributes;
+  const withoutBlade = calculateGuardianAttributes(
+    build,
+    [],
+    1,
+    "Zealous Blade",
+  ).attributes;
+  const withoutPower = calculateGuardianAttributes(
+    build,
+    [],
+    1,
+    "Radiant Power",
+  ).attributes;
+  const withoutRightHand = calculateGuardianAttributes(
+    build,
+    [],
+    1,
+    "Right-Hand Strength",
+  ).attributes;
+
+  assert.equal(all.Power.final - withoutBlade.Power.final, 240);
+  assert.equal(all.Ferocity.final - withoutPower.Ferocity.final, 150);
+  assert.equal(all.Precision.final - withoutRightHand.Precision.final, 80);
+  assert.equal(all.Power.final - withoutRightHand.Power.final, 0);
+
+  build.weapons = ["Sword", "Focus"];
+  const oneHanded = calculateGuardianAttributes(build, []).attributes;
+  const oneHandedWithout = calculateGuardianAttributes(
+    build,
+    [],
+    1,
+    "Right-Hand Strength",
+  ).attributes;
+  assert.equal(oneHanded.Power.final - oneHandedWithout.Power.final, 80);
 });
 
 test("Luminary UI excludes virtue aliases and lists the forge exit once", () => {

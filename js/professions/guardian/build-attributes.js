@@ -38,6 +38,15 @@ export function applyGuardianBuildAttributeRules(
       addAttribute(traitStats, "Power", 80);
     }
   }
+  if (hasTrait("Zealous Blade")) {
+    addAttribute(traitStats, "Power", 120);
+    if (mainHand === "Greatsword") {
+      addAttribute(traitStats, "Power", 120);
+    }
+  }
+  if (hasTrait("Radiant Power")) {
+    addAttribute(traitStats, "Ferocity", 150);
+  }
   if (hasTrait("Kindled Zeal")) {
     addAttribute(
       traitStats,

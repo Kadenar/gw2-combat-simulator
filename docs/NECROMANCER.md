@@ -57,6 +57,10 @@ Same-name API mode aliases resolve to one canonical selectable skill.
   duration, recharge, resource, shroud, chill, fear, minion, spirit, and
   Blight modifiers. Deterministic expected-value procs are used where the game
   uses random critical-hit chances.
+- Additive outgoing-damage grouping for Soul Barbs, Dread, Wicked/Septic
+  Corruption, Cascading Corruption, and Lingering Spirits' Anguish bonus.
+  Spiteful Talisman, Close to Death, Cold Shoulder, Soul Eater, and
+  condition-specific damage bonuses remain multiplicative.
 - Schema-version-3 build defaults, migration, sanitization, validation,
   canonical ID rotations, independent browser storage, and Life Force/Blight
   start controls.

@@ -52,7 +52,24 @@ export function createGuardianState(config = {}) {
     ashesNextTriggerAt: 0,
     radiantForge: false,
     radiantForgeEndsAt: 0,
+    radiantForgeEnteredAt: 0,
     radiantWeapon: "",
+    radiantWeaponsUsed: {},
+    empoweredArmamentsUntil: 0,
+    piercingStanceUntil: 0,
+    lightAuraUntil: 0,
+    lightFields: [],
+    furiousFocusReadyAt: 0,
+    radiantJusticeArmed: false,
+    radiantCourageSwordArmed: false,
+    radiantCourageShieldArmed: false,
+    symbolicAvengerStacks: 0,
+    symbolicAvengerUntil: 0,
+    zealotsResolutionReadyAt: 0,
+    resolutionUntil: 0,
+    righteousNextMightAt: 0,
+    effulgentActiveUntil: 0,
+    effulgentStacks: 0,
     // Spear "Illuminated" mechanic.
     spearIlluminatedArmed: false,
     spearLuminanceUntil: 0,
@@ -78,5 +95,17 @@ export function snapshotGuardianState(state) {
 // ashesNextTriggerAt are set at cast time and time-gate the resolver reactions,
 // so carrying their post-cast values forward is exactly what resolution expects.
 export function createGuardianResolverState(_config, scheduled) {
-  return scheduled.stream.resolverHandoff.professionState;
+  const state = structuredClone(
+    scheduled.stream.resolverHandoff.professionState,
+  );
+  state.justiceHitCount = 0;
+  state.symbolicAvengerStacks = 0;
+  state.symbolicAvengerUntil = 0;
+  state.zealotsResolutionReadyAt = 0;
+  state.resolutionUntil = 0;
+  state.righteousNextMightAt = 0;
+  state.piercingStanceUntil = 0;
+  state.effulgentActiveUntil = 0;
+  state.effulgentStacks = 0;
+  return state;
 }

@@ -562,7 +562,7 @@ test('Compounding Power does not increase illusion attack damage', () => {
     );
 });
 
-test('Compounding Power increases player strike damage by two percent per stack', () => {
+test('Compounding Power increases player strike damage by one percent per stack', () => {
     const simulate = selectedTraits => simulateMesmer(
         ['Mirror Images', 'Winds of Chaos'],
         defaultSimulationConfig({
@@ -583,7 +583,7 @@ test('Compounding Power increases player strike damage by two percent per stack'
     assert.ok(Math.abs(
         playerDamage(simulate(['Compounding Power']))
         / playerDamage(simulate([]))
-        - 1.04,
+        - 1.02,
     ) < 1e-12);
 });
 
@@ -1644,7 +1644,7 @@ test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
     const damage = result =>
         result.breakdown.find(entry => entry.name === 'Mind Slash').strikeDamage;
 
-    assert.ok(Math.abs(damage(equipped) / damage(base) - 1.1) < 1e-12);
+    assert.ok(Math.abs(damage(equipped) / damage(base) - 1.10) < 1e-12);
     assert.ok(equipped.breakdown.some(entry =>
         entry.name === 'Relic of Peitha — Torment'
         && entry.conditionDamage > 0));

@@ -27,6 +27,7 @@ import {
 } from "../js/platform/ui/rotation-results.js";
 import {
   bindTimelineInteractions,
+  formatTimelineCastDetails,
   getSkillDropInsertionIndex,
   insertRotationEntry,
   moveRotationEntry,
@@ -42,6 +43,16 @@ function inertContainer() {
     querySelectorAll: () => [],
   };
 }
+
+test("timeline cast details include start, end, and elapsed cast time", () => {
+  assert.equal(
+    formatTimelineCastDetails(
+      { start: 1250, end: 2010 },
+      time => `${(time / 1000).toFixed(2)}s`,
+    ),
+    "Cast: 1.25s → 2.01s\nCast time: 0.76s",
+  );
+});
 
 test("GW2 API text removes presentation tags for native tooltips", () => {
   const description = "<c=@abilitytype>Stances</c> grant protection.<br><c=@reminder>Once per interval.</c>";

@@ -19,6 +19,7 @@ import {
     bindTimelineInteractions,
     clearTimelineDropIndicators,
     eventTimelineMarkers,
+    formatTimelineCastDetails,
     moveRotationEntry,
     updateRotationEntry,
     timelineRows,
@@ -783,7 +784,7 @@ export function renderTimeline(app) {
             const time = step && !invalid ? formatTime(step.start) : '';
             const titleSuffix = invalid
                 ? `\n${step.invalidReason || 'Not valid here — will not be simulated'}`
-                : step ? `\nCast: ${formatTime(step.start)} → ${formatTime(step.end)}` : '';
+                : step ? `\n${formatTimelineCastDetails(step, formatTime)}` : '';
             rowItems.push(`<div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}" draggable="true"
                     data-idx="${index}" title="${esc(display)}${titleSuffix}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
@@ -824,7 +825,8 @@ export function renderTimeline(app) {
         ).values()].sort((a, b) => procFilterLabel(a).localeCompare(procFilterLabel(b)));
         const visibleProcCount = procOptions.filter(proc => procVisibility.has(procFilterKey(proc))).length;
         const activeTraits = app.attributeData?.activeTraits || [];
-        const procs = procSteps.filter(proc => procVisibility.has(procFilterKey(proc))).map(proc => {
+        const procs = procSteps.map(proc => {
+            const key = procFilterKey(proc);
             const traitIcon = proc.type === 'trait_proc'
                 ? activeTraits.find(trait => trait.name === proc.skill)?.icon
                 : '';
@@ -843,7 +845,7 @@ export function renderTimeline(app) {
                 proc.sourceSkill ? `Triggered by ${proc.sourceSkill}` : '',
                 proc.detail || '',
             ].filter(Boolean).join('\n');
-            return `<div class="proc-icon" title="${esc(detail)}"
+            return `<div class="proc-icon" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'} title="${esc(detail)}"
                 style="--proc-color:${procColors[proc.type] || '#9d7bd0'}">
                 <img src="${esc(icon)}" alt="" />
                 <span class="proc-time">${time}</span>
@@ -881,7 +883,15 @@ export function renderTimeline(app) {
                 if (input.checked) app.procVisibility.add(key);
                 else app.procVisibility.delete(key);
                 app.procFilterOpen = true;
-                renderTimeline(app);
+                procElement.querySelectorAll('.proc-icon[data-proc-key]').forEach(procIcon => {
+                    procIcon.hidden = !app.procVisibility.has(procIcon.dataset.procKey);
+                });
+                const count = procFilter.querySelector('.proc-filter-count');
+                if (count) {
+                    const visible = procFilter.querySelectorAll('input[data-proc-key]:checked').length;
+                    const total = procFilter.querySelectorAll('input[data-proc-key]').length;
+                    count.textContent = `${visible}/${total}`;
+                }
             });
         });
     }

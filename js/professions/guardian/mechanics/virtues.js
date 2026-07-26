@@ -6,6 +6,7 @@ import {
 import { selectedGuardianSpecialization } from "./availability.js";
 import { emitGuardianEvent } from "./events.js";
 import { GUARDIAN_HANDLER_MECHANICS } from "./skill-mechanics.js";
+import { handleGuardianVirtueTraits } from "./traits.js";
 
 export const GUARDIAN_VIRTUE_NAMES_BY_SPECIALIZATION = Object.freeze({
   Core: Object.freeze([
@@ -67,6 +68,7 @@ function activateVirtue(context, skill) {
     passiveReadyAt:
       context.rechargeReadyAt ?? context.effectiveEnd,
   });
+  handleGuardianVirtueTraits(context, skill, virtue);
   return false;
 }
 

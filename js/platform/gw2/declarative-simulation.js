@@ -23,6 +23,7 @@ import {
 import { createGw2TimelineIndex } from "./timeline-index.js";
 import { createGw2SchedulerPolicy } from "./scheduler/policy.js";
 import { gw2EventActorType } from "./event-ownership.js";
+import { permanentTargetConditionStacks } from "./target-state.js";
 
 const WEAPON_STRENGTHS = Object.freeze(Object.fromEntries(
   Object.entries(WEAPON_DATA)
@@ -102,6 +103,50 @@ function createQuery(profession, config, events, traits) {
     },
   };
   let query;
+  const runtimeBuffStacks = (runtime, kind, time, maximum) => {
+    if (!runtime) return null;
+    return Math.max(
+      0,
+      Math.min(
+        maximum,
+        (runtime.boons?.get(kind) || [])
+          .filter(application =>
+            application.at <= time
+            && application.expiresAt > time)
+          .reduce(
+            (sum, application) =>
+              sum + Number(application.stacks || 1),
+            0,
+          ),
+      ),
+    );
+  };
+  const mightStacksAt = (time, runtime) => {
+    const dynamic = runtimeBuffStacks(runtime, "might", time, 25);
+    if (dynamic == null) return timeline.mightStacksAt(time);
+    return Math.min(25, Number(config.boons?.might || 0) + dynamic);
+  };
+  const furyActiveAt = (time, runtime) => {
+    if (config.boons?.fury) return true;
+    const dynamic = runtimeBuffStacks(runtime, "fury", time, 1);
+    return dynamic == null
+      ? timeline.furyActiveAt(time)
+      : dynamic > 0;
+  };
+  const vulnerabilityStacksAt = (time, runtime) => {
+    const dynamic = runtimeBuffStacks(
+      runtime,
+      "target-vulnerability",
+      time,
+      25,
+    );
+    if (dynamic == null) return timeline.vulnerabilityStacksAt(time);
+    const permanent = permanentTargetConditionStacks(
+      config,
+      "Vulnerability",
+    );
+    return Math.min(25, permanent + dynamic);
+  };
   const hookContext = (
     time,
     {
@@ -130,7 +175,7 @@ function createQuery(profession, config, events, traits) {
       hookContext(time, { event, runtime }),
       gw2StaticAttributes(
         configWithBaselineStats,
-        timeline.mightStacksAt(time),
+        mightStacksAt(time, runtime),
       ),
     );
 
@@ -142,7 +187,7 @@ function createQuery(profession, config, events, traits) {
       chance += Number(config.stats?.criticalChanceBonus || 0) / 100;
       chance +=
         Number(timeline.activeSigilSetAt(time).criticalChanceBonus || 0) / 100;
-      if (timeline.furyActiveAt(time)) chance += 0.25;
+      if (furyActiveAt(time, runtime)) chance += 0.25;
       chance = profession.modifyCriticalChance(
         hookContext(time, { event, runtime }),
         chance,
@@ -160,7 +205,7 @@ function createQuery(profession, config, events, traits) {
     },
     strikeMultiplier(event, time, runtime = null) {
       const base =
-        (1 + timeline.vulnerabilityStacksAt(time) / 100)
+        (1 + vulnerabilityStacksAt(time, runtime) / 100)
         * Number(timeline.activeSigilSetAt(time).strike || 1)
         * Number(config.modifiers?.strike || 1);
       return profession.modifyStrikeDamage(
@@ -170,7 +215,7 @@ function createQuery(profession, config, events, traits) {
     },
     conditionMultiplier(name, time, event = null, runtime = null) {
       const base =
-        (1 + timeline.vulnerabilityStacksAt(time) / 100)
+        (1 + vulnerabilityStacksAt(time, runtime) / 100)
         * Number(timeline.activeSigilSetAt(time).condition || 1)
         * Number(config.modifiers?.condition || 1);
       return profession.modifyConditionDamage(

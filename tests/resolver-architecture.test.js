@@ -513,7 +513,12 @@ test("Egotism does not increase condition damage", () => {
 
 test("weapon-swap sigils resolve locally on the destination weapon set", () => {
   const result = simulateMesmer(
-    ["Swap Weapons", "Psycut", { name: "__wait", waitMs: 2000 }],
+    [
+      "Bladecall",
+      "Swap Weapons",
+      "Psycut",
+      { name: "__wait", waitMs: 2000 },
+    ],
     defaultSimulationConfig({
       primaryWeapon: "Dagger",
       secondaryWeapon: "Sword",
