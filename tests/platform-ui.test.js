@@ -98,12 +98,29 @@ test("shared chart lookup and series cover damage timing and configurable effect
     stackCaps: { "Effect <burn>": 2 },
   });
 
-  assert.equal(series.durationMs, 2000);
+  assert.equal(series.durationMs, 1500);
   assert.equal(series.dps[0].v, 0);
-  assert.equal(series.dps[1].v, 300);
+  assert.equal(series.dps[1].v, 150);
   assert.equal(series.dps.at(-1).v, 400 / 1.5);
   assert.equal(series.effects["Effect <burn>"][1].v, 2);
   assert.equal(series.effects["Effect <power>"][0].v, 2);
+});
+
+test("shared DPS charts start their sample grid at the first hit", () => {
+  const series = buildChartSeries({
+    duration: 2,
+    dpsStartTime: 1.156,
+    resolvedEvents: [
+      { type: "damage", at: 1.156, damage: 3567 },
+      { type: "damage", at: 1.32, damage: 916 },
+    ],
+  });
+
+  assert.equal(series.durationMs, 844);
+  assert.deepEqual(series.dps.slice(0, 2), [
+    { t: 0, v: 0 },
+    { t: 250, v: 4483 / 0.25 },
+  ]);
 });
 
 test("shared chart markup escapes effect names and uses scoped roles without ids", () => {

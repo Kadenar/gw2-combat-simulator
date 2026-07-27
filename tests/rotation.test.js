@@ -3944,7 +3944,7 @@ test('condition breakdown reports damage, DPS, and average stacks', () => {
     assert.ok(confusion.averageStacks > 0);
 });
 
-test('chart series expose cumulative DPS and condition stacks over time', () => {
+test('chart series expose first-hit-anchored average DPS and condition stacks', () => {
     const result = simulateMesmer(
         ['Confusing Images', { name: '__wait', waitMs: 3000 }],
         defaultSimulationConfig({

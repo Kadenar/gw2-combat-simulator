@@ -1,4 +1,4 @@
-import { MECHANIC_SKILLS } from "./data/mesmer-profession-data.js";
+import { MECHANIC_SKILLS } from "./mechanics/skill-mechanics.js";
 
 export function mesmerResourceDefinition(specialization) {
   if (specialization === "Virtuoso") {
