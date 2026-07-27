@@ -214,7 +214,7 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
         "weapon": "phantasm medium"
       },
       {
-        "coefficient": 1.6,
+        "coefficient": 0.2,
         "hits": 8,
         "label": "Phantasm Blurred Frenzy",
         "source": "Phantasm",
