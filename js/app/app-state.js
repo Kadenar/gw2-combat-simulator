@@ -34,11 +34,7 @@ export function saveBuild(build, adapter) {
 
 export function replaceBuild(saved, adapter) {
   const resolved = resolveAdapter(adapter);
-  try {
-    return resolved.toApplicationBuild(saved);
-  } catch {
-    return createDefaultBuild(resolved);
-  }
+  return resolved.toApplicationBuild(saved);
 }
 
 export function replaceBuildConfiguration(saved, currentBuild, adapter) {

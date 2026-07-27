@@ -16,6 +16,8 @@ import {
 } from "../js/app/app-state.js";
 import {
   loadProfessionAppAdapter,
+  nativeProfessionRegistry,
+  PROFESSION_APPLICATION_KINDS,
   professionOptions,
   professionRegistry,
 } from "../js/app/profession-registry.js";
@@ -88,18 +90,18 @@ test("shared app runtime and platform rotation helpers are profession neutral", 
     ),
     readFile(new URL("../js/platform/ui/rotation-results.js", import.meta.url), "utf8"),
   ]);
-  const professionTerms = [
-    "Mesmer",
-    "Mirage",
-    "Continuum",
-    "Malicious Sorcery",
-    "phantasm",
-    "clone",
-  ];
+  const professionTerms = nativeProfessionRegistry.flatMap((entry) => [
+    entry.id,
+    entry.name,
+  ]);
 
   for (const source of sources) {
     for (const term of professionTerms) {
-      assert.equal(source.includes(term), false, term);
+      assert.equal(
+        source.toLowerCase().includes(term.toLowerCase()),
+        false,
+        term,
+      );
     }
   }
 });
@@ -123,38 +125,44 @@ test("Guardian is exposed by the profession selector and app composition", async
 });
 
 test("the generic landing page and profession simulators have separate entries", async () => {
-  const [landingPage, ...professionPages] = await Promise.all([
-    readFile(new URL("../index.html", import.meta.url), "utf8"),
-    readFile(new URL("../mesmer.html", import.meta.url), "utf8"),
-    readFile(new URL("../elementalist.html", import.meta.url), "utf8"),
-    readFile(new URL("../guardian.html", import.meta.url), "utf8"),
-    readFile(new URL("../necromancer.html", import.meta.url), "utf8"),
-  ]);
-  const [mesmerPage] = professionPages;
+  const landingPage = await readFile(
+    new URL("../index.html", import.meta.url),
+    "utf8",
+  );
+  const professionPages = await Promise.all(
+    professionRegistry.map(async (entry) => ({
+      entry,
+      source: await readFile(
+        new URL(`../${entry.route}`, import.meta.url),
+        "utf8",
+      ),
+    })),
+  );
 
   assert.match(landingPage, /<body class="landing-page">/);
   assert.match(landingPage, /data-profession-grid/);
   assert.doesNotMatch(landingPage, /profession-card-mesmer/);
   assert.deepEqual(
-    professionRegistry.map(entry => entry.route),
-    [
-      "mesmer.html",
-      "elementalist.html",
-      "guardian.html",
-      "necromancer.html",
-    ],
+    professionOptions,
+    professionRegistry.map(({ id, name }) => ({ id, name })),
+  );
+  assert.equal(
+    new Set(professionRegistry.map((entry) => entry.route)).size,
+    professionRegistry.length,
   );
   assert.doesNotMatch(landingPage, /js\/app\/app\.js/);
   assert.doesNotMatch(landingPage, /ARCHITECTURE\.md/);
-  for (const professionPage of professionPages) {
+  for (const { entry, source } of professionPages) {
     assert.match(
-      professionPage,
+      source,
       /<a class="home-link" href="index\.html">← All professions<\/a>/,
     );
+    assert.equal(professionRoute(entry.id), entry.route);
+    if (entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE) {
+      assert.match(source, new RegExp(`data-profession="${entry.id}"`));
+      assert.match(source, /js\/app\/app\.js/);
+    }
   }
-  assert.match(mesmerPage, /data-active-profession="mesmer"/);
-  assert.match(mesmerPage, /js\/app\/app\.js/);
-  assert.equal(professionRoute("mesmer"), "mesmer.html");
 });
 
 test("Mesmer default builds resolve without embedded rotations", async () => {

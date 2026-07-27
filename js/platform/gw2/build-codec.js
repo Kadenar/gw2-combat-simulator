@@ -3,11 +3,14 @@ import {
   toLegacyRotationEntry,
 } from "../engine/rotation-commands.js";
 import {
+  FOOD_NAMES,
   GEAR_SLOTS,
   GEAR_STATS,
   INFUSION_STATS,
   RELIC_NAMES,
+  RUNE_NAMES,
   SIGIL_NAMES,
+  UTILITY_NAMES,
 } from "./gear-data.js";
 import { normalizeWeaponSigils } from "./weapon-sigils.js";
 
@@ -108,6 +111,11 @@ export function createGw2BuildCodec({
       !Array.isArray(saved.weaponSigils) && Array.isArray(saved.sigils)
         ? [saved.sigils, saved.sigils]
         : saved.weaponSigils;
+    const specializations = normalizeSpecializations(
+      saved.specializations,
+      defaults.specializations,
+      catalog,
+    );
     let migrated = {
       ...defaults,
       ...saved,
@@ -121,12 +129,22 @@ export function createGw2BuildCodec({
         catalog,
       ),
       weaponSigils: normalizeWeaponSigils(legacySigils, defaults.weaponSigils),
-      specializations: normalizeSpecializations(
-        saved.specializations,
-        defaults.specializations,
+      rune: RUNE_NAMES.includes(saved.rune) ? saved.rune : defaults.rune,
+      food: FOOD_NAMES.includes(saved.food) ? saved.food : defaults.food,
+      utility: UTILITY_NAMES.includes(saved.utility)
+        ? saved.utility
+        : defaults.utility,
+      jadeBotCore:
+        typeof saved.jadeBotCore === "boolean"
+          ? saved.jadeBotCore
+          : Boolean(defaults.jadeBotCore),
+      specializations,
+      selectedSkills: normalizeSelectedSkills(
+        saved,
+        defaults,
         catalog,
+        specializations,
       ),
-      selectedSkills: normalizeSelectedSkills(saved, defaults, catalog),
       assumptions: {
         ...defaults.assumptions,
         ...assumptions,
@@ -293,28 +311,51 @@ function selectedSkillsFromLegacy(saved, catalog) {
   return result;
 }
 
-function selectableSlotSkill(skill, type) {
+function selectableSlotSkill(skill, type, selectedSpecializations = null) {
   return Boolean(
     skill?.implemented &&
-    !skill.simulatorExcluded &&
-    skill.type === type &&
-    skill.flipParentId == null,
+      !skill.simulatorExcluded &&
+      skill.type === type &&
+      skill.flipParentId == null &&
+      (!skill.specialization ||
+        selectedSpecializations?.has(skill.specialization)),
   );
 }
 
-function normalizeSelectedSkills(saved, defaults, catalog) {
+function normalizeSelectedSkills(
+  saved,
+  defaults,
+  catalog,
+  specializations,
+) {
   const source = {
     ...selectedSkillsFromLegacy(saved, catalog),
     ...plainObject(saved.selectedSkills),
   };
-  return Object.fromEntries(
-    Object.entries(SLOT_TYPES).map(([slot, type]) => {
-      const candidate = catalog.skillsByName.get(source[slot]);
-      const fallback = catalog.skillsByName.get(defaults.selectedSkills[slot]);
-      const skill = selectableSlotSkill(candidate, type) ? candidate : fallback;
-      return [slot, skill?.name || ""];
-    }),
+  const selectedSpecializations = new Set(
+    specializations.map((specialization) => specialization.name),
   );
+  const selectedUtilityIds = new Set();
+  const normalized = {};
+  for (const [slot, type] of Object.entries(SLOT_TYPES)) {
+    const requested = catalog.skillsByName.get(source[slot]);
+    const defaultSkill = catalog.skillsByName.get(
+      defaults.selectedSkills[slot],
+    );
+    const candidates = [
+      requested,
+      defaultSkill,
+      ...catalog.skills,
+    ];
+    const skill = candidates.find(
+      (candidate) =>
+        selectableSlotSkill(candidate, type, selectedSpecializations) &&
+        (type !== "Utility" || !selectedUtilityIds.has(candidate.id)),
+    );
+    normalized[slot] = skill?.name || "";
+    if (type === "Utility" && skill) selectedUtilityIds.add(skill.id);
+  }
+  return normalized;
 }
 
 function normalizeInfusions(value, fallback) {
@@ -434,6 +475,50 @@ function validateSpecializations(build, catalog, professionId, errors) {
   }
 }
 
+function validCanonicalMilliseconds(command, field) {
+  if (!Object.hasOwn(command, field)) return true;
+  const value = Number(command[field]);
+  return Number.isFinite(value) && value >= 0;
+}
+
+function validateRotationCommand(command, catalog, errors) {
+  if (
+    !command ||
+    typeof command !== "object" ||
+    Array.isArray(command) ||
+    !["cast", "wait", "combat-start"].includes(command.type)
+  ) {
+    errors.push("rotation contains an invalid canonical command.");
+    return;
+  }
+  if (
+    !validCanonicalMilliseconds(command, "concurrentOffsetMs") ||
+    !validCanonicalMilliseconds(command, "interruptAfterMs")
+  ) {
+    errors.push("rotation timing fields must be non-negative numbers.");
+  }
+  if (
+    command.type !== "cast" &&
+    Object.hasOwn(command, "interruptAfterMs")
+  ) {
+    errors.push("only cast commands may contain interruptAfterMs.");
+  }
+  if (command.type === "wait") {
+    if (
+      !Object.hasOwn(command, "durationMs") ||
+      !validCanonicalMilliseconds(command, "durationMs")
+    ) {
+      errors.push("wait commands require a non-negative durationMs.");
+    }
+    if (Object.hasOwn(command, "concurrentOffsetMs")) {
+      errors.push("wait commands cannot contain concurrentOffsetMs.");
+    }
+  }
+  if (command.type === "cast" && !catalog.skillsById.has(command.skillId)) {
+    errors.push(`rotation contains unknown skill ${command.skillId}.`);
+  }
+}
+
 function validateCommonBuild(build, { professionId, schemaVersion, catalog }) {
   const errors = [];
   if (!build || typeof build !== "object" || Array.isArray(build)) {
@@ -459,28 +544,28 @@ function validateCommonBuild(build, { professionId, schemaVersion, catalog }) {
     errors.push("rotation must be an array.");
   } else {
     for (const command of build.rotation) {
-      if (
-        !command ||
-        typeof command !== "object" ||
-        !["cast", "wait", "combat-start"].includes(command.type)
-      ) {
-        errors.push("rotation contains an invalid canonical command.");
-        continue;
-      }
-      if (command.type === "cast" && !catalog.skillsById.has(command.skillId)) {
-        errors.push(`rotation contains unknown skill ${command.skillId}.`);
-      }
+      validateRotationCommand(command, catalog, errors);
     }
   }
   validateSpecializations(build, catalog, professionId, errors);
   if (!isPlainObject(build.selectedSkills)) {
     errors.push("selectedSkills must be an object.");
   } else {
+    const selectedSpecializations = new Set(
+      (build.specializations || []).map(
+        (specialization) => specialization?.name,
+      ),
+    );
+    const selectedUtilityIds = new Set();
     for (const [slot, type] of Object.entries(SLOT_TYPES)) {
       const skill = catalog.skillsByName.get(build.selectedSkills[slot]);
-      if (!selectableSlotSkill(skill, type)) {
+      if (
+        !selectableSlotSkill(skill, type, selectedSpecializations) ||
+        (type === "Utility" && selectedUtilityIds.has(skill?.id))
+      ) {
         errors.push(`${slot} must contain an available ${type} skill.`);
       }
+      if (type === "Utility" && skill) selectedUtilityIds.add(skill.id);
     }
   }
   if (!isPlainObject(build.gear)) {
@@ -494,6 +579,18 @@ function validateCommonBuild(build, { professionId, schemaVersion, catalog }) {
   }
   if (!RELIC_NAMES.includes(build.relic)) {
     errors.push("relic must be a known relic.");
+  }
+  if (!RUNE_NAMES.includes(build.rune)) {
+    errors.push("rune must be a known rune.");
+  }
+  if (!FOOD_NAMES.includes(build.food)) {
+    errors.push("food must be a known food.");
+  }
+  if (!UTILITY_NAMES.includes(build.utility)) {
+    errors.push("utility must be a known utility consumable.");
+  }
+  if (typeof build.jadeBotCore !== "boolean") {
+    errors.push("jadeBotCore must be a boolean.");
   }
   if (
     !Array.isArray(build.weaponSigils) ||
