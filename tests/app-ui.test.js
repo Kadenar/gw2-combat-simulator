@@ -15,10 +15,8 @@ import {
   replaceBuildConfiguration,
 } from "../js/app/app-state.js";
 import {
-  getProfessionAppAdapter,
+  loadProfessionAppAdapter,
   professionOptions,
-} from "../js/app/composition.js";
-import {
   professionRegistry,
 } from "../js/app/profession-registry.js";
 import {
@@ -117,7 +115,7 @@ test("Guardian is exposed by the profession selector and app composition", async
   );
   assert.equal(professionRoute("guardian"), "guardian.html");
   assert.equal(
-    (await getProfessionAppAdapter("guardian"))?.id,
+    (await loadProfessionAppAdapter("guardian"))?.id,
     "guardian",
   );
   assert.match(guardianPage, /data-profession="guardian"/);
@@ -164,7 +162,7 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
     new URL("../Builds/mesmer-manifest.json", import.meta.url),
     "utf8",
   ));
-  const adapter = await getProfessionAppAdapter("mesmer");
+  const adapter = await loadProfessionAppAdapter("mesmer");
   const presets = manifest.flatMap(section => section.presets);
 
   assert.deepEqual(
@@ -185,7 +183,7 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
 });
 
 test("build import and export leave rotation state separate", async () => {
-  const adapter = await getProfessionAppAdapter("mesmer");
+  const adapter = await loadProfessionAppAdapter("mesmer");
   const current = createDefaultBuild(adapter);
   current.rotation = ["Keep this rotation"];
   const imported = {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getProfession } from "../js/app/composition.js";
+import { loadProfession } from "../js/app/profession-registry.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
   createGuardianBuildDefaults,
@@ -2014,5 +2014,5 @@ test("Guardian builds migrate and validate against real catalog metadata", () =>
 });
 
 test("Guardian is registered at the profession composition boundary", async () => {
-  assert.equal(await getProfession("guardian"), guardianProfession);
+  assert.equal(await loadProfession("guardian"), guardianProfession);
 });
