@@ -26,7 +26,22 @@ export function createGw2HitResolution({
         critical.damage * 100,
       );
     const outgoingMultiplier = flatStrike
-      ? 1
+      ? (() => {
+        let multiplier = Number(event.flatStrikeMultiplier ?? 1);
+        const maximum = Number(ctx.config.target?.health || 0);
+        const threshold = Number(event.flatStrikeHealthThreshold || 0);
+        const currentDamage =
+          Number(ctx.totals.strike || 0)
+          + Number(ctx.totals.condition || 0);
+        if (
+          maximum > 0
+          && threshold > 0
+          && currentDamage > maximum * (1 - threshold)
+        ) {
+          multiplier *= Number(event.flatStrikeThresholdMultiplier ?? 1);
+        }
+        return multiplier;
+      })()
       : (
         ctx.query.strikeMultiplier(event, event.at, ctx)
         * relicStrikeMultiplier(ctx, event)

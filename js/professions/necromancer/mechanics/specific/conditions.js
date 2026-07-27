@@ -44,14 +44,6 @@ const CORRUPTION_SELF_CONDITIONS = Object.freeze({
     base: Object.freeze([["Weakness", 1, 6]]),
     master: Object.freeze([["Crippled", 1, 2]]),
   }),
-  [ID.CORRUPT_BOON]: Object.freeze({
-    base: Object.freeze([["Poisoned", 1, 6]]),
-    master: Object.freeze([["Bleeding", 2, 12]]),
-  }),
-  [ID.EPIDEMIC]: Object.freeze({
-    base: Object.freeze([["Vulnerability", 3, 6]]),
-    master: Object.freeze([["Weakness", 1, 6]]),
-  }),
   [ID.PLAGUELANDS]: Object.freeze({
     base: Object.freeze([["Bleeding", 1, 10]]),
     master: Object.freeze([["Poisoned", 1, 6]]),

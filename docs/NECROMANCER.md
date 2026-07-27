@@ -10,9 +10,9 @@ other declarative professions.
 `js/professions/necromancer/data/necromancer-api-metadata.js` is generated from the
 [official Guild Wars 2 API](https://api.guildwars2.com/v2/professions/Necromancer).
 The July 25, 2026 snapshot contains 149 API skills, 108 traits, and all nine
-specialization lines. The canonical catalog contains 166 entries after adding
-API-omitted Death Shroud, Lich Form, Ritualist innervate, and simulator action
-entries.
+specialization lines. The canonical catalog contains 161 supported entries
+after adding API-omitted Death Shroud, Lich Form, Ritualist innervate, and
+simulator action entries.
 
 Refresh the snapshot with:
 
@@ -55,6 +55,14 @@ Same-name API mode aliases resolve to one canonical selectable skill.
 - Weapon swapping, equipped-set validation, all terrestrial Necromancer weapon
   families, active-set palette rows, ammo, recharge, flips, and autoattack
   chains.
+- Spear Soul Shards use a six-stack cap, shared 10-second refresh, 0.1 Power
+  coefficient, and 50%-health damage increase. Deadly Slice, Sinister Stab,
+  Addle, Extirpate, Isolate/Distress, and Perforate implement their current
+  shard, control, condition, life-force, follow-up, cooldown-reset, and
+  seven-hit mechanics.
+- Grasping Darkness applies chill and pull control for Relic of the Claw.
+  Nightfall resolves four one-second pulses of strike damage, blindness,
+  cripple, and life-force gain.
 - Signet of Undeath and Signet of Vampirism passives, Vampiric Mark, life
   siphons, Signets of Suffering, Plague Signet, corruption self-conditions,
   and duration-preserving condition transfers.
@@ -78,8 +86,9 @@ Same-name API mode aliases resolve to one canonical selectable skill.
   are used where the game uses random critical-hit chances.
 - Soul Battery increases maximum Life Force, Eternal Life gains Life Force
   each interval outside shroud up to its threshold, and Death Perception adds
-  critical chance and critical damage only while shroud is active. Soul Barbs
-  is a non-stacking 15-second active state refreshed on shroud entry and exit.
+  critical chance globally plus critical-hit damage while shroud is active.
+  Soul Barbs is a non-stacking 15-second active state refreshed on shroud
+  entry and exit.
 - Dhuumfire burns for three seconds on core/Reaper/Ritualist, two seconds on
   Scourge with a one-second internal cooldown, and one second per Tainted
   Bolts projectile on Harbinger. Septic Corruption applies poison per Dark
@@ -92,8 +101,8 @@ Same-name API mode aliases resolve to one canonical selectable skill.
   canonical ID rotations, independent browser storage, and Life Force/Blight
   start controls. Life Force values are rounded for display, and Blight is
   stacked below Life Force rather than extending the palette horizontally.
-- The Harbinger condition preset is loaded through
-  `Builds/necromancer-manifest.json` and intentionally contains no rotation.
+- The Harbinger Power and condition presets are loaded through
+  `Builds/necromancer-manifest.json` and intentionally contain no rotations.
   Meltdown uses its wiki effect icon in proc results and modifier
   contributions.
 

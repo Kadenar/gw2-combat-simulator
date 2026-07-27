@@ -20,6 +20,9 @@ import {
   isInternalCooldownReady,
 } from "../../../platform/engine/internal-cooldown.js";
 import {
+  necromancerWeaponTaskHandlers,
+} from "./specific/weapons.js";
+import {
   CHAIN_POSITION_BY_ID,
   EXIT_IDS,
   hasTrait,
@@ -50,7 +53,15 @@ function updateNecromancerCastState(context, skill) {
     if (flip && flip.name !== skill.name && flip.flipParentId === skill.id) {
       state.availableFlips[flip.id] =
         context.effectiveEnd
-        + Math.max(1, Number(skill.cooldown || skill.recharge || 5));
+        + Math.max(
+          1,
+          Number(
+            skill.flipDuration
+            ?? skill.cooldown
+            ?? skill.recharge
+            ?? 5,
+          ),
+        );
     }
   }
   if (skill.flipParentId != null && !EXIT_IDS.has(skill.id)) {
@@ -281,4 +292,5 @@ export const necromancerSchedulerHooks = Object.freeze({
   advance: advanceNecromancerState,
   afterCast,
   onEventScheduled,
+  taskHandlers: necromancerWeaponTaskHandlers,
 });

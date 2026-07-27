@@ -163,6 +163,9 @@ function blightSkill(context, skill) {
   const state = context.state.profession;
   const empowered = state.blight >= 5;
   const consumed = empowered ? consumeBlight(state, 5, at) : 0;
+  // The strike snapshots Blight after the five-stack activation cost. Blight
+  // generated during the cast is advanced afterward and affects later skills.
+  const damageBlight = state.blight;
   applyCascadingCorruption(context, skill, consumed, at);
   emitState(context, at, "blight-skill");
   const skillMechanics = MECHANICS.blightSkills[skill.id];
@@ -174,7 +177,10 @@ function blightSkill(context, skill) {
       ? skillMechanics.empoweredCoefficient
       : skillMechanics.coefficient,
     {
-      metadata: { blightEmpowered: empowered, necromancerBlight: state.blight },
+      metadata: {
+        blightEmpowered: empowered,
+        necromancerBlight: damageBlight,
+      },
     },
   );
   if (empowered) {

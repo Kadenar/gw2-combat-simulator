@@ -113,7 +113,7 @@ function targetBelowHalfHealth(context) {
   return (
     Number(context.totals.strike || 0) +
     Number(context.totals.condition || 0)
-  ) >= maximum * 0.5;
+  ) > maximum * 0.5;
 }
 
 function targetIsChilled(context, at) {
@@ -216,6 +216,15 @@ function reactToNecromancerDamage(context, event, details = {}) {
       event.at,
       event.skillName,
     );
+  }
+  if (
+    hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)
+    && event.actorType === "player"
+    && targetBelowHalfHealth(context)
+  ) {
+    context.profession.spitefulFortitudeLifeForce =
+      Number(context.profession.spitefulFortitudeLifeForce || 0)
+      + (hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1);
   }
   if (
     hasTrait(context, TRAIT.CHILL_OF_DEATH)

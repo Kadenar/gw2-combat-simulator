@@ -3,6 +3,10 @@
     "section": "Harbinger",
     "presets": [
       {
+        "label": "Power",
+        "build": "Builds/b-power-harbinger.json"
+      },
+      {
         "label": "Condition",
         "build": "Builds/b-condi-harbinger.json"
       }

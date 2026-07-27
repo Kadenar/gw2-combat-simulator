@@ -31,6 +31,10 @@ export function syncNecromancerResources(state) {
     .sort((left, right) => left - right)
     .slice(-25);
   state.blight = state.blightExpiries.length;
+  state.soulShardExpiries = (state.soulShardExpiries || [])
+    .sort((left, right) => left - right)
+    .slice(-6);
+  state.soulShards = state.soulShardExpiries.length;
   return state;
 }
 
@@ -62,6 +66,8 @@ export function createNecromancerState(config = {}) {
     nextBlightAt: Number.POSITIVE_INFINITY,
     blight: initialBlight,
     blightExpiries,
+    soulShards: 0,
+    soulShardExpiries: [],
     carapaceExpiries: [],
     shades: [],
     activeMinions: {},
@@ -83,13 +89,14 @@ export function createNecromancerState(config = {}) {
     barbedPrecisionProgress: 0,
     chillingNovaProgress: 0,
     demonicLoreReadyAt: 0,
+    spitefulFortitudeLifeForce: 0,
     traitProcReadyAt: {},
   });
 }
 
 // The Necromancer resolver starts from a fresh *full* state rather than a minimal
-// one. Although the resolver reactions only mutate barbedPrecisionProgress,
-// vampiricPresenceReadyAt, demonicLoreReadyAt and dreadUntil, the resolver also:
+// one. Although the resolver reactions only mutate proc counters, target state,
+// and Spiteful Fortitude's resolved life-force gain, the resolver also:
 //   - reads shroud/blight/spirits/shades/meltdown off the profession state in
 //     attribute-rules.js (e.g. Wicked Corruption scales with `blight`), which
 //     must reflect config.initialBlight etc. before the first state event, and
@@ -107,8 +114,20 @@ export function snapshotNecromancerState(state) {
   return structuredClone(syncNecromancerResources(state));
 }
 
-export function projectNecromancerEndState({ schedulerState }) {
+export function projectNecromancerEndState({
+  schedulerState,
+  resolverState,
+}) {
   const projected = snapshotNecromancerState(schedulerState.profession);
+  const resolverLifeForce = Math.max(
+    0,
+    Number(resolverState?.spitefulFortitudeLifeForce || 0),
+  );
+  projected.lifeForce = Math.min(
+    projected.maximumLifeForce,
+    projected.lifeForce + resolverLifeForce,
+  );
+  projected.resource = projected.lifeForce;
   // These fields are resolver/scheduler implementation counters rather than
   // public profession resources.
   for (const key of [
@@ -119,6 +138,7 @@ export function projectNecromancerEndState({ schedulerState }) {
     "barbedPrecisionProgress",
     "chillingNovaProgress",
     "demonicLoreReadyAt",
+    "spitefulFortitudeLifeForce",
     "traitProcReadyAt",
     "plagueSendingArmed",
   ]) {

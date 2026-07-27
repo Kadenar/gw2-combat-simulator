@@ -921,7 +921,9 @@ export function createScheduler({
     const snapshot =
       profession.snapshot(context) ?? structuredClone(state.profession);
     const persistentEffectEnd = events
-      .filter(event => event.persistsAfterInterrupt === true)
+      .filter(event =>
+        event.persistsAfterInterrupt === true
+        || event.extendsResolutionHorizon === true)
       .reduce((latest, event) => Math.max(latest, Number(event.at)), rotationEnd);
     return {
       context,

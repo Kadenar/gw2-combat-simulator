@@ -33,18 +33,24 @@ const STATIC_REPLACEMENT_PAIRS = new Set([
   `${NECROMANCER_SKILL_IDS.FEAST_OF_CORRUPTION}:${NECROMANCER_SKILL_IDS.DEVOURING_DARKNESS}`,
   `${NECROMANCER_SKILL_IDS.DESERT_SHROUD}:${NECROMANCER_SKILL_IDS.SANDSTORM_SHROUD}`,
 ]);
-const EXPLICIT_FLIP_PARENT_BY_ID = new Map([
-  [NECROMANCER_SKILL_IDS.NECROTIC_TRAVERSAL, 10543],
+const UNSUPPORTED_SKILL_IDS = new Set([
+  NECROMANCER_SKILL_IDS.SUMMON_FLESH_WURM,
+  NECROMANCER_SKILL_IDS.NECROTIC_TRAVERSAL,
+  NECROMANCER_SKILL_IDS.CORRUPT_BOON,
+  NECROMANCER_SKILL_IDS.EPIDEMIC,
+  NECROMANCER_SKILL_IDS.SPECTRAL_RING,
 ]);
 
 const allSkills = Object.freeze(
-  [...SKILLS, ...NECROMANCER_SUPPLEMENTAL_SKILLS].sort((left, right) => {
-    const leftCanonical =
-      CANONICAL_ALIAS_ID_BY_NAME[left.name] === left.id ? 0 : 1;
-    const rightCanonical =
-      CANONICAL_ALIAS_ID_BY_NAME[right.name] === right.id ? 0 : 1;
-    return leftCanonical - rightCanonical || left.id - right.id;
-  }),
+  [...SKILLS, ...NECROMANCER_SUPPLEMENTAL_SKILLS]
+    .filter(skill => !UNSUPPORTED_SKILL_IDS.has(skill.id))
+    .sort((left, right) => {
+      const leftCanonical =
+        CANONICAL_ALIAS_ID_BY_NAME[left.name] === left.id ? 0 : 1;
+      const rightCanonical =
+        CANONICAL_ALIAS_ID_BY_NAME[right.name] === right.id ? 0 : 1;
+      return leftCanonical - rightCanonical || left.id - right.id;
+    }),
 );
 const generatedById = new Map(allSkills.map((skill) => [skill.id, skill]));
 const chainRootById = new Map();
@@ -52,9 +58,6 @@ for (const chain of NECROMANCER_AUTOATTACK_CHAINS) {
   for (const skillId of chain) chainRootById.set(skillId, chain[0]);
 }
 const flipParentById = new Map();
-for (const [childId, parentId] of EXPLICIT_FLIP_PARENT_BY_ID) {
-  flipParentById.set(childId, parentId);
-}
 for (const skill of allSkills) {
   const child = generatedById.get(skill.flipSkillId);
   if (

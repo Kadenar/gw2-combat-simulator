@@ -123,6 +123,13 @@ function activateShroud(context, skill) {
     emitBuff(context, skill, "quickness", 4);
     emitBuff(context, skill, "fury", 4);
   }
+  if (
+    shroud === "harbinger"
+    && hasTrait(context, TRAIT.IMPLACABLE_FOE)
+  ) {
+    emitBuff(context, skill, "stability", 5, 3);
+    emitBuff(context, skill, "implacable-foe", 2);
+  }
   if (hasTrait(context, TRAIT.SPITEFUL_SPIRIT)) {
     emitDamage(context, skill, MECHANICS.traitStrikeCoefficient[
       TRAIT.SPITEFUL_SPIRIT

@@ -124,6 +124,9 @@ export function createGw2SimulationConfig({
     target: {
       armor: app.build.targetArmor,
       health: Math.max(0, Number(app.build.targetHealth) || 0),
+      // The configured benchmark target is the Special Forces Training Area
+      // golem, which is defiant.
+      defiant: true,
       conditions: targetConditions,
       moving: assumptions.targetMoving,
       boonless: assumptions.targetBoonless,

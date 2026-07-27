@@ -85,13 +85,6 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
     "effects": [],
     "handlerId": "necromancer.minion"
   },
-  [ID.SUMMON_FLESH_WURM]: {
-    "implemented": true,
-    "castTimeMs": 500,
-    "effects": [],
-    "handlerId": "necromancer.minion",
-    "flipSkillId": 10600
-  },
   [ID.BLOOD_IS_POWER]: {
     "implemented": true,
     "castTimeMs": 1000,
@@ -135,7 +128,10 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "hits": 6,
         "intervalMs": 1000,
         "timingAnchor": "castEnd",
-        "timingScale": "fixed"
+        "timingScale": "fixed",
+        "metadata": {
+          "extendsResolutionHorizon": true
+        }
       },
       {
         "type": "buff",
@@ -673,26 +669,6 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
     "lifeForceGain": 4,
     "handlerId": "necromancer.corruption",
   },
-  [ID.NECROTIC_TRAVERSAL]: {
-    "implemented": true,
-    "castTimeMs": 0,
-    "effects": [],
-    "handlerId": "necromancer.minion-command",
-    "lifeForceGain": 10
-  },
-  [ID.CORRUPT_BOON]: {
-    "implemented": true,
-    "castTimeMs": 500,
-    "effects": [
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 6
-      }
-    ],
-    "handlerId": "necromancer.corruption",
-  },
   [ID.DARK_PATH]: {
     "implemented": true,
     "castTimeMs": 750,
@@ -747,18 +723,6 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       }
     ],
   },
-  [ID.EPIDEMIC]: {
-    "implemented": true,
-    "castTimeMs": 500,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 0.1,
-        "hits": 1
-      }
-    ],
-    "handlerId": "necromancer.corruption",
-  },
   [ID.WELL_OF_DARKNESS]: {
     "implemented": true,
     "castTimeMs": 500,
@@ -769,7 +733,10 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "hits": 6,
         "intervalMs": 1000,
         "timingAnchor": "castEnd",
-        "timingScale": "fixed"
+        "timingScale": "fixed",
+        "metadata": {
+          "extendsResolutionHorizon": true
+        }
       },
       {
         "type": "blind"
@@ -782,19 +749,6 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-  },
-  [ID.SPECTRAL_RING]: {
-    "implemented": true,
-    "castTimeMs": 500,
-    "effects": [
-      {
-        "type": "control",
-        "metadata": {
-          "controlKind": "fear"
-        }
-      }
-    ],
-    "lifeForceGain": 4,
   },
   [ID.WELL_OF_POWER]: {
     "implemented": true,
@@ -1441,6 +1395,15 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "atMs": 180,
         "timingAnchor": "castStart",
         "timingScale": "cast"
+      },
+      {
+        "type": "control",
+        "atMs": 180,
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "metadata": {
+          "controlKind": "pull"
+        }
       }
     ],
     "lifeForceGain": 10,
@@ -1448,17 +1411,8 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.NIGHTFALL]: {
     "implemented": true,
     "castTimeMs": 750,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 1.15,
-        "hits": 1
-      },
-      {
-        "type": "blind"
-      }
-    ],
-    "lifeForceGain": 7,
+    "effects": [],
+    "handlerId": "necromancer.nightfall",
   },
   [ID.CHILLING_SCYTHE]: {
     "implemented": true,
@@ -2499,6 +2453,7 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 12,
+    "handlerId": "necromancer.extirpate",
   },
   [ID.DARK_SLASH]: {
     "implemented": true,
@@ -2519,15 +2474,10 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 1.9,
         "hits": 1
-      },
-      {
-        "type": "control",
-        "metadata": {
-          "controlKind": "control"
-        }
       }
     ],
     "lifeForceGain": 10,
+    "handlerId": "necromancer.addle",
   },
   [ID.DEADLY_SLICE]: {
     "implemented": true,
@@ -2539,6 +2489,7 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
+    "handlerId": "necromancer.deadly-slice",
   },
   [ID.SINISTER_STAB]: {
     "implemented": true,
@@ -2558,6 +2509,7 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 5,
+    "handlerId": "necromancer.sinister-stab",
   },
   [ID.PERFORATE]: {
     "implemented": true,
@@ -2569,6 +2521,7 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "hits": 7
       }
     ],
+    "handlerId": "necromancer.perforate",
   },
   [ID.ISOLATE]: {
     "implemented": true,
@@ -2593,11 +2546,13 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "stacks": 8
       }
     ],
+    "flipDuration": 3,
   },
   [ID.DISTRESS]: {
     "implemented": true,
-    "castTimeMs": 750,
+    "castTimeMs": 0,
     "effects": [],
+    "handlerId": "necromancer.distress",
   },
   [ID.INNERVATE_PRESERVATION]: {
     "implemented": true,
@@ -2773,6 +2728,7 @@ export const NECROMANCER_QUICKNESS_CAST_TIMES_MS = Object.freeze({
   [ID.PUTRID_CURSE]: 920,
   [ID.DEATHLY_SWARM]: 480,
   [ID.ENFEEBLING_BLOOD]: 840,
+  [ID.DEATH_SPIRAL]: 720,
   [ID.ELIXIR_OF_PROMISE]: 680,
   [ID.ELIXIR_OF_ANGUISH]: 680,
   [ID.WEEPING_SHOTS]: 840,
@@ -2782,7 +2738,8 @@ export const NECROMANCER_QUICKNESS_CAST_TIMES_MS = Object.freeze({
   [ID.DEVOURING_CUT]: 480,
   [ID.TAINTED_BOLTS]: 600,
   [ID.VILE_BLAST]: 600,
-  [ID.ELIXIR_OF_RISK]: 680,
+  [ID.PERFORATE]: 840,
+  [ID.ELIXIR_OF_RISK]: 540,
   [ID.LOCUST_SWARM]: 440,
   [ID.VITAL_DRAW]: 800,
   [ID.WAIL_OF_DOOM]: 1000,
@@ -3001,13 +2958,6 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
       interval: 1.5,
       commandId: ID.PUTRID_EXPLOSION,
     }),
-    [ID.SUMMON_FLESH_WURM]: Object.freeze({
-      key: "flesh-wurm",
-      count: 1,
-      coefficient: 0.6,
-      interval: 2.5,
-      commandId: ID.NECROTIC_TRAVERSAL,
-    }),
     [ID.SUMMON_SHADOW_FIEND]: Object.freeze({
       key: "shadow-fiend",
       count: 1,
@@ -3033,12 +2983,6 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
       minion: "bone-minion",
       coefficient: 1,
       condition: Object.freeze(["Poisoned", 1, 5]),
-      consumes: 1,
-    }),
-    [ID.NECROTIC_TRAVERSAL]: Object.freeze({
-      minion: "flesh-wurm",
-      coefficient: 0,
-      condition: Object.freeze(["Poisoned", 2, 9]),
       consumes: 1,
     }),
     [ID.TASTE_OF_DEATH]: Object.freeze({

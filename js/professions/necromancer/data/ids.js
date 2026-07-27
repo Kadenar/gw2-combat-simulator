@@ -170,6 +170,7 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   DEADLY_SLICE: 73040, // Deadly Slice
   SINISTER_STAB: 73047, // Sinister Stab
   PERFORATE: 73068, // Perforate
+  SOUL_SHARDS: 72975, // Soul Shards
   ISOLATE: 73107, // Isolate
   DISTRESS: 73116, // Distress
   NIGHTMARE_WEAPON: 76739, // Nightmare Weapon
