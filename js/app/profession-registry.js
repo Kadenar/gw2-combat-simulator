@@ -1,3 +1,23 @@
+/**
+ * Lazy application manifest for every simulator exposed by the shared UI.
+ *
+ * Registry entries contain only presentation metadata and explicit dynamic
+ * import functions. Reading this module therefore does not eagerly load any
+ * profession implementation. The full registry includes standalone legacy
+ * applications; `nativeProfessionRegistry` contains only applications that
+ * can be bootstrapped through the shared profession app adapter.
+ *
+ * @typedef {Object} ProfessionRegistryEntry
+ * @property {string} id Stable lowercase identifier used by builds and pages.
+ * @property {string} name Human-readable profession name.
+ * @property {string} route Browser route for the profession application.
+ * @property {string} themeClass Optional class applied to the document body.
+ * @property {string} specializationSummary Landing-card summary.
+ * @property {() => Promise<Object>} loadProfession Lazy profession loader.
+ * @property {(() => Promise<Object>) | null} loadAppAdapter Lazy shared-shell
+ *   adapter loader, or `null` for a standalone application.
+ */
+
 const entries = [
   {
     id: "mesmer",
@@ -96,6 +116,9 @@ export const professionRegistry = Object.freeze(
   entries.map(entry => Object.freeze({ ...entry })),
 );
 
+/**
+ * Registry subset that can run in the shared profession application shell.
+ */
 export const nativeProfessionRegistry = Object.freeze(
   professionRegistry.filter(entry =>
     typeof entry.loadAppAdapter === "function"),
@@ -113,19 +136,43 @@ export const PROFESSION_ROUTES = Object.freeze(
   ),
 );
 
+/**
+ * Returns the registered entry for a profession ID.
+ *
+ * @param {string} professionId
+ * @returns {ProfessionRegistryEntry | null} `null` for an unknown ID.
+ */
 export function getProfessionEntry(professionId) {
   return byId.get(professionId) || null;
 }
 
+/**
+ * Resolves a profession ID to its page, falling back to the landing page.
+ *
+ * @param {string} professionId
+ * @returns {string}
+ */
 export function professionRoute(professionId) {
   return getProfessionEntry(professionId)?.route || "index.html";
 }
 
+/**
+ * Lazily loads a profession contract.
+ *
+ * @param {string} professionId
+ * @returns {Promise<Object | null>} `null` for an unknown ID.
+ */
 export async function loadProfession(professionId) {
   const entry = getProfessionEntry(professionId);
   return entry ? entry.loadProfession() : null;
 }
 
+/**
+ * Lazily loads a shared-shell adapter when the profession provides one.
+ *
+ * @param {string} professionId
+ * @returns {Promise<Object | null>} `null` for unknown or standalone entries.
+ */
 export async function loadProfessionAppAdapter(professionId) {
   const load = getProfessionEntry(professionId)?.loadAppAdapter;
   return typeof load === "function" ? load() : null;

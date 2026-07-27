@@ -27,10 +27,42 @@ adapter plus async adapter lookup by profession id.
 Shared factories that build a profession's browser app adapter and its
 simulation runtime from the profession contract.
 
+### [profession-registry.js](js/app/profession-registry.js)
+Single lazy manifest for every profession exposed by the application. Each
+entry supplies a stable ID, display metadata, route, optional theme class, and
+explicit dynamic loaders for the profession contract and shared-shell app
+adapter. Registry entries are validated for stable unique IDs and routes when
+the module loads, then shallow-frozen.
+
+The main exports are:
+
+- `professionRegistry`: all routes, including standalone legacy applications.
+- `nativeProfessionRegistry`: entries with a shared-shell app adapter.
+- `professionOptions` and `PROFESSION_ROUTES`: frozen projections for UI and
+  compatibility consumers.
+- `getProfessionEntry()` and `professionRoute()`: synchronous metadata and
+  route lookup. Unknown IDs resolve to `null` and `index.html`, respectively.
+- `loadProfession()` and `loadProfessionAppAdapter()`: lazy loaders. The
+  adapter loader returns `null` for unknown or standalone applications.
+
+Loader paths are explicit so they remain statically discoverable. Importing
+the registry itself does not load profession implementations. To expose a new
+profession, add one entry with its page metadata and loader functions;
+standalone applications use `loadAppAdapter: null`.
+
 ### [profession-selector.js](js/app/profession-selector.js)
-Landing-page and header profession picker that routes between the four
-applications while preserving one visual system and independent persisted
-builds.
+Registry-driven landing-page and header navigation. `bindProfessionSelector()`
+renders cards into an optional `[data-profession-grid]`, rebuilds the optional
+`#profession-select`, applies the active entry's theme class, and navigates when
+the selection changes. The active ID is read first from
+`body[data-profession]`, then from the selector's
+`data-active-profession`; unknown or absent IDs produce a disabled placeholder.
+
+The module automatically binds in a browser and is inert when `document` is
+unavailable. Missing grid and selector elements are valid, allowing the same
+script on landing and simulator pages. `PROFESSION_ROUTES` and
+`professionRoute()` are re-exported for compatibility; their source of truth is
+the registry.
 
 ### [rotation-ui.js](js/app/rotation-ui.js)
 Shared rotation palette, timeline, and results renderer driven by profession
@@ -80,6 +112,33 @@ Static Guild Wars 2 game data and lookups live with their owning layer.
 ## Shared GW2 Mechanics (`js/platform/gw2/`)
 
 Attribute calculations and damage formulas.
+
+### [build-codec.js](js/platform/gw2/build-codec.js)
+Factory for the common native-profession build persistence contract.
+`createGw2BuildCodec()` receives a profession ID, current schema version,
+catalog, defaults factory, and optional migration/normalization/validation
+hooks. It returns a frozen object with three operations:
+
+- `migrateBuild(candidate)` rejects wrong-profession and future-version builds,
+  applies migrations in ascending version order, merges current defaults, and
+  sanitizes common fields against shared GW2 data and the profession catalog.
+- `validateBuild(build)` checks the current canonical build without mutating,
+  migrating, or sanitizing it and returns `{ valid, errors }`.
+- `toApplicationBuild(build)` migrates the build and converts canonical
+  stable-ID rotation commands to the legacy name-based entries used by the
+  browser shell.
+
+Common normalization covers gear and legacy prefix aliases, weapon handedness,
+sigils, relics, infusions, three unique specialization lines with at most one
+elite, selectable heal/utility/elite skills, assumptions, starting weapon set,
+target health and armor, and canonical rotation commands. It also removes the
+obsolete `selectedSkillIds` and global `sigils` fields.
+
+Profession modules retain ownership of defaults, ordered version transforms,
+and resource-specific fields. `normalizeExtra(build, { saved, defaults })`
+normalizes those fields after the common pass; `validateExtra(build)` adds
+profession-specific errors. Migrations are keyed by source version and each
+advances exactly one version.
 
 ### [attributes.js](js/platform/gw2/attributes.js)
 Profession-neutral common attribute assembly and shared build finalization.
