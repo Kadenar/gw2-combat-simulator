@@ -9,6 +9,11 @@ import {
   PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
 } from "../js/app/app-ui.js";
+import { getBuildExportPayload } from "../js/app/app-io.js";
+import {
+  createDefaultBuild,
+  replaceBuildConfiguration,
+} from "../js/app/app-state.js";
 import {
   getProfessionAppAdapter,
   professionOptions,
@@ -142,6 +147,50 @@ test("the generic landing page and profession simulators have separate entries",
   assert.match(mesmerPage, /data-active-profession="mesmer"/);
   assert.match(mesmerPage, /js\/app\/app\.js/);
   assert.equal(professionRoute("mesmer"), "mesmer.html");
+});
+
+test("Mesmer default builds resolve without embedded rotations", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/mesmer-manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await getProfessionAppAdapter("mesmer");
+  const presets = manifest.flatMap(section => section.presets);
+
+  assert.deepEqual(
+    presets.map(preset => preset.label),
+    ["Power", "Condition", "Condition"],
+  );
+  for (const preset of presets) {
+    const saved = JSON.parse(await readFile(
+      new URL(`../${preset.build}`, import.meta.url),
+      "utf8",
+    ));
+    const build = adapter.toApplicationBuild(saved);
+    assert.equal(Object.hasOwn(saved, "rotation"), false);
+    assert.equal(build.schemaVersion, 3);
+    assert.equal(build.profession, "mesmer");
+    assert.equal(build.specializations.length, 3);
+  }
+});
+
+test("build import and export leave rotation state separate", async () => {
+  const adapter = await getProfessionAppAdapter("mesmer");
+  const current = createDefaultBuild(adapter);
+  current.rotation = ["Keep this rotation"];
+  const imported = {
+    ...createDefaultBuild(adapter),
+    rune: "Krait",
+    rotation: ["Do not import this rotation"],
+  };
+
+  const loaded = replaceBuildConfiguration(imported, current, adapter);
+  const exported = getBuildExportPayload(loaded);
+
+  assert.deepEqual(loaded.rotation, ["Keep this rotation"]);
+  assert.equal(loaded.rune, "Krait");
+  assert.equal(Object.hasOwn(exported, "rotation"), false);
+  assert.deepEqual(current.rotation, ["Keep this rotation"]);
 });
 
 test("Mesmer and Guardian palettes retain both weapon-set rows", () => {

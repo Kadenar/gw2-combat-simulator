@@ -42,6 +42,11 @@ export function getRotationItems(payload) {
     return Array.isArray(payload) ? payload : payload?.rotation;
 }
 
+export function getBuildExportPayload(build) {
+    const { rotation: _rotation, ...payload } = build;
+    return payload;
+}
+
 export async function loadPresetBundle(preset) {
     const buildData = await fetchJsonAsset(preset.build);
     let rotationItems;

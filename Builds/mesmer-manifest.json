@@ -1,0 +1,24 @@
+[
+  {
+    "section": "Chronomancer",
+    "presets": [
+      {
+        "label": "Power",
+        "build": "Builds/b-power-chronomancer.json"
+      },
+      {
+        "label": "Condition",
+        "build": "Builds/b-condi-chronomancer.json"
+      }
+    ]
+  },
+  {
+    "section": "Virtuoso",
+    "presets": [
+      {
+        "label": "Condition",
+        "build": "Builds/b-condi-virtuoso.json"
+      }
+    ]
+  }
+]
