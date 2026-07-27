@@ -2334,7 +2334,8 @@ header .accent {
     width: 30px;
     position: relative;
     flex-shrink: 0;
-    cursor: default;
+    cursor: pointer;
+    transition: opacity 0.12s;
 }
 
 .proc-icon img {
@@ -2344,11 +2345,21 @@ header .accent {
     border-radius: 3px;
     border: 1px solid var(--proc-color, var(--border-light));
     opacity: 0.88;
-    transition: opacity 0.12s;
+    transition: opacity 0.12s, border-color 0.12s, box-shadow 0.12s;
 }
 
 .proc-icon:hover img {
     opacity: 1;
+}
+
+.proc-icon.proc-faded {
+    opacity: 0.25;
+}
+
+.proc-icon.proc-highlight img {
+    opacity: 1;
+    border-color: var(--proc-color, var(--border-light));
+    box-shadow: 0 0 0 2px var(--proc-color, var(--border-light));
 }
 
 .proc-stack {
@@ -3235,6 +3246,16 @@ header .accent {
 
 .contrib-name {
     color: var(--text-light);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.contrib-name img {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    object-fit: cover;
 }
 
 .contrib-val {
@@ -3377,6 +3398,17 @@ header .accent {
     gap: 8px;
     color: var(--text);
     font-size: 10px;
+}
+
+.active-resource-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.active-resource-stack .active-resource-group {
+    margin: 0;
 }
 
 .active-resource-pips {

@@ -52,6 +52,7 @@ const ACTION_ICONS = {
 };
 const RESULT_PROC_NAMES = {
     'Phantasmal Blade': 'Phantasmal Blades',
+    'Cascading Corruption': 'Meltdown',
 };
 const PALETTE_ACTION_ORDER = new Map([
     ['Dodge / Mirage Cloak', 0],
@@ -90,15 +91,23 @@ const EFFECT_NAMES = {
     fury: 'Fury',
     regeneration: 'Regeneration',
     'target-vulnerability': 'Vulnerability',
+    'necromancer-soul-barbs': 'Soul Barbs',
 };
 const EFFECT_STACK_CAPS = {
     'Compounding Power': 5,
+    'Soul Barbs': 1,
 };
 
 const seconds = ms => `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
 const professionEndState = result => result?.endState?.profession || {};
 const activeSpecialization = app =>
     app.adapter.eliteSpecialization(app.build);
+
+export function formatResourceValue(value) {
+    const numeric = Number(value || 0);
+    if (!Number.isFinite(numeric)) return '0';
+    return String(Math.round((numeric + Number.EPSILON) * 1000) / 1000);
+}
 
 function resolveRelicIcon(label) {
     const value = String(label || '');
@@ -353,12 +362,13 @@ function activeResourceGroup(app) {
         initialResource: app.build.initialResource,
         initialBlight: app.build.initialBlight,
     });
-    return definitions.map(definition => {
+    const groups = definitions.map(definition => {
         const value = Math.max(0, Math.min(
             definition.maximum,
             definition.value ?? app.build[definition.buildKey],
         ));
-        const title = `${definition.statusLabel} ${definition.plural}: ${value}/${definition.maximum}`;
+        const displayValue = formatResourceValue(value);
+        const title = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
         const indicator = definition.displayMode === 'bar'
             ? `<div class="active-resource-bar"><span style="width:${
                 definition.maximum ? value / definition.maximum * 100 : 0
@@ -373,10 +383,13 @@ function activeResourceGroup(app) {
                 data-resource-count="${value}" title="${esc(title)}"
                 aria-label="${esc(title)}">
                 ${indicator}
-                <strong>${value}/${definition.maximum}</strong>
+                <strong>${displayValue}/${definition.maximum}</strong>
             </div>
         </div>`;
     }).join('');
+    return definitions.length > 1
+        ? `<div class="active-resource-stack">${groups}</div>`
+        : groups;
 }
 
 export function timelineWeaponRows(rotation = []) {
@@ -477,7 +490,9 @@ export function renderStartResource(app) {
     }).join('');
     const currentResources = definitions.map(definition =>
         `${esc(definition.shortLabel)} ${
-            definition.value ?? Number(app.build[definition.buildKey] || 0)
+            formatResourceValue(
+                definition.value ?? Number(app.build[definition.buildKey] || 0),
+            )
         }/${definition.maximum}`
     ).join(' · ');
 
@@ -612,10 +627,14 @@ export function renderPalette(app) {
         return flip && availableFlips[flip.name] ? flip : null;
     };
     const utilitySkillAvailable = skill => {
+        if (!professionAllowsPaletteSkill(skill)) return false;
         if (skill.flipParent) return flipAvailable(skill);
         return !armedFlipFor(skill);
     };
     const utilitySkillUnavailableMessage = skill => {
+        if (!professionAllowsPaletteSkill(skill)) {
+            return professionPaletteUnavailableMessage(skill);
+        }
         if (skill.flipParent && !flipAvailable(skill)) {
             return `Unavailable until ${skill.flipParent} has been used`;
         }
@@ -966,6 +985,29 @@ export function renderTimeline(app) {
         });
     }
 
+    const procIconsRow = procElement?.querySelector('.proc-icons-row');
+    if (procIconsRow) {
+        const applyProcHighlight = () => {
+            const icons = [...procIconsRow.querySelectorAll('.proc-icon[data-proc-key]')];
+            const key = app.procHighlightKey;
+            const active = !!key && icons.some(icon => icon.dataset.procKey === key);
+            if (!active) app.procHighlightKey = null;
+            icons.forEach(icon => {
+                const match = active && icon.dataset.procKey === key;
+                icon.classList.toggle('proc-highlight', match);
+                icon.classList.toggle('proc-faded', active && !match);
+            });
+        };
+        procIconsRow.querySelectorAll('.proc-icon[data-proc-key]').forEach(icon => {
+            icon.addEventListener('click', () => {
+                const key = icon.dataset.procKey;
+                app.procHighlightKey = app.procHighlightKey === key ? null : key;
+                applyProcHighlight();
+            });
+        });
+        applyProcHighlight();
+    }
+
     bindTimelineInteractions(element, timelineInteractionOptions(app));
 }
 
@@ -1299,7 +1341,10 @@ export function renderResults(app) {
     const skillRows = skillBreakdownRows(result);
     const conditions = result.conditionBreakdown || [];
     const series = buildChartSeries(result);
-    const contributions = result.contributions || [];
+    const contributions = (result.contributions || []).map(contribution => ({
+        ...contribution,
+        icon: resultSkillIcon(app, { name: contribution.name }),
+    }));
     const breakpoints = targetHealthBreakpointSnapshots(
         result,
         app.build.targetHealth,
