@@ -20,6 +20,7 @@ import {
 import {
   createGuardianResolverState,
   createGuardianState,
+  projectGuardianEndState,
   snapshotGuardianState,
 } from "./state.js";
 import { guardianUi } from "./ui.js";
@@ -36,6 +37,7 @@ export const guardianProfession = defineProfession({
   resources: {
     createProfessionState: createGuardianState,
     createResolverState: createGuardianResolverState,
+    projectEndState: projectGuardianEndState,
   },
   attributeRules: guardianAttributeRules,
   castRules: {

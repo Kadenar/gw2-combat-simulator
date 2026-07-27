@@ -27,21 +27,7 @@ function conditionName(value) {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-function reactionContext(ctx) {
-  // Profession reactions historically read ctx.state. The shared resolver keeps
-  // those fields at the root, so expose a compatibility view without copying maps.
-  return {
-    ...ctx,
-    state: ctx.state || {
-      profession: ctx.profession,
-      totals: ctx.totals,
-      conditions: ctx.conditions,
-      warnings: ctx.warnings,
-    },
-  };
-}
-
-function endState(profession, scheduled, resolved) {
+function endState(profession, config, scheduled, resolved) {
   // Scheduler state owns clocks/cooldowns/ammo; resolver state owns profession
   // effects. The public end state deliberately joins both halves.
   const endTime = scheduled.state.time;
@@ -62,10 +48,12 @@ function endState(profession, scheduled, resolved) {
       structuredClone(value),
     ]),
   );
-  const projected = profession.projectEndState(
-    scheduled.context,
-    resolved.profession,
-  );
+  const projected = profession.projectEndState({
+    config,
+    schedulerContext: scheduled.context,
+    schedulerState: scheduled.state,
+    resolverState: resolved.profession,
+  });
   return {
     time: Math.round(endTime * 1000),
     cooldowns,
@@ -103,7 +91,7 @@ export function simulateDeclarativeGw2({
     onConditionApplied(ctx, application) {
       // Application reactions run after state insertion, allowing traits to
       // query the newly applied stack count.
-      profession.eventReactions.condition?.(reactionContext(ctx), application, {
+      profession.eventReactions.condition?.(ctx, application, {
         application,
       });
     },
@@ -118,14 +106,7 @@ export function simulateDeclarativeGw2({
       apply: conditionResolution.applyCondition,
       tick: conditionResolution.handleConditionTick,
     },
-    eventReactions: Object.fromEntries(
-      // Adapt profession callbacks to the legacy-compatible context view while
-      // leaving common resolver handlers on the native runtime state.
-      Object.entries(profession.eventReactions).map(([type, handler]) => [
-        type,
-        (ctx, event, details) => handler(reactionContext(ctx), event, details),
-      ]),
-    ),
+    eventReactions: profession.eventReactions,
   });
   const resolved = resolveGw2Timeline({
     stream: scheduled.stream,
@@ -142,31 +123,21 @@ export function simulateDeclarativeGw2({
         }),
     },
     createRuntimeState(options) {
-      const runtime = createGw2ResolverRuntimeState(options);
-      // The alias keeps older profession handlers working during migration to
-      // direct resolver fields.
-      runtime.state = {
-        profession: runtime.profession,
-        totals: runtime.totals,
-        conditions: runtime.conditions,
-        warnings: runtime.warnings,
-      };
-      return runtime;
+      return createGw2ResolverRuntimeState(options);
     },
     commonHandlers,
     professionHandlers: profession.eventHandlers,
     professionState:
-      // A resolver-specific factory can rebuild ephemeral state. Otherwise use
-      // the scheduler snapshot, falling back only for older professions.
+      // Resolver state is always time-zero state. Scheduler changes that matter
+      // during numeric resolution must be represented by chronological events.
       typeof profession.createResolverState === "function"
-        ? profession.createResolverState(config, scheduled)
-        : (scheduled.stream.resolverHandoff?.professionState ??
-          profession.createProfessionState(config)),
+        ? profession.createResolverState(config)
+        : profession.createProfessionState(config),
   });
   return {
     ...resolved,
     steps: scheduled.steps,
-    endState: endState(profession, scheduled, resolved),
+    endState: endState(profession, config, scheduled, resolved),
     schedulerState: scheduled.state,
     snapshot: scheduled.snapshot,
     // Preserve phase order so scheduling diagnostics appear before resolution

@@ -33,8 +33,3 @@ const GUARDIAN_STRIKE_DEFAULTS = Object.freeze({
 export function buildGuardianStrike(fields) {
   return { ...GUARDIAN_STRIKE_DEFAULTS, ...fields };
 }
-
-export function handleScheduledStateEvent() {
-  // The scheduler applies these state transitions. Resolver registrations keep
-  // the corresponding timeline events explicit and validated.
-}

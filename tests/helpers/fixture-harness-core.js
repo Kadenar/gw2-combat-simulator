@@ -1,5 +1,8 @@
 import { createDefaultBuild } from '../../js/app/app-state.js';
 import {
+    mesmerAppAdapter,
+} from '../../js/professions/mesmer/app/adapter.js';
+import {
   calculateAttributes as calcAttributes,
 } from "../../js/professions/mesmer/core/calc-attributes.js";
 import {
@@ -56,7 +59,7 @@ export function defaultSimulationConfig(overrides = {}) {
 }
 
 export function runCoreFixtures() {
-    const build = createDefaultBuild();
+    const build = createDefaultBuild(mesmerAppAdapter);
     const attributes = calcAttributes(build, []);
     const cooldown = simulateMesmer(
         ['Bladecall', 'Bladecall'],

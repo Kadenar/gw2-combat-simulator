@@ -51,7 +51,7 @@ frame.addEventListener('load', async () => {
         app = window.mesmerApp;
         assert(app, 'application did not initialize');
         originalBuild = structuredClone(app.build);
-        app.build = createDefaultBuild();
+        app.build = createDefaultBuild(app.adapter);
         app.changed();
 
         assert(

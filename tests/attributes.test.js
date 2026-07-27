@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createDefaultBuild, replaceBuild } from '../js/app/app-state.js';
+import {
+    createDefaultBuild as createDefaultBuildFor,
+    replaceBuild as replaceBuildFor,
+} from '../js/app/app-state.js';
+import {
+    mesmerAppAdapter,
+} from '../js/professions/mesmer/app/adapter.js';
 import {
     calculateModifierContributions,
     computeModifierContributions,
@@ -24,6 +30,8 @@ import {
 } from '../js/platform/gw2/weapon-sigils.js';
 
 const calcAttributes = calculateMesmerAttributes;
+const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);
+const replaceBuild = saved => replaceBuildFor(saved, mesmerAppAdapter);
 
 test('shared contribution comparisons accept a profession simulator', () => {
     const simulate = (_rotation, config) => ({ dps: config.dps });

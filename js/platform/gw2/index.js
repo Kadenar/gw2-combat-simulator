@@ -1,4 +1,5 @@
 export * from "./attributes.js";
+export * from "./build-codec.js";
 export * from "./condition-formulas.js";
 export * from "./damage.js";
 export * from "./declarative-simulation.js";

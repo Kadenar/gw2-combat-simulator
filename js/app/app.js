@@ -13,7 +13,6 @@ import {
 } from '../platform/gw2/gear-data.js';
 import { setWeaponSigil } from '../platform/gw2/weapon-sigils.js';
 import {
-    activeProfessionAppAdapter,
     getProfessionAppAdapter,
 } from './composition.js';
 import {
@@ -78,7 +77,10 @@ const EFFECT_COLORS = {
 // Maintains UI state, coordinates between UI and simulation engine
 export class ProfessionApp {
     // Constructor initializes build from storage, loads all skills, sets up data references
-    constructor(adapter = activeProfessionAppAdapter) {
+    constructor(adapter) {
+        if (!adapter?.profession) {
+            throw new TypeError("ProfessionApp requires an app adapter.");
+        }
         this.adapter = adapter;
         this.profession = adapter.profession;
         this.build = loadBuild(adapter);
@@ -807,14 +809,20 @@ export class ProfessionApp {
     }
 }
 
-// Bootstrap: resolve the active profession adapter (from data-profession attr or default),
+// Bootstrap: resolve the active profession adapter from the page manifest id,
 // construct the app, expose it on window for console/debugging, then init.
 window.addEventListener('DOMContentLoaded', async () => {
     const professionId = document.body.dataset.profession
-        || document.getElementById('profession-select')?.dataset.activeProfession
-        || activeProfessionAppAdapter.id;
-    const adapter = await getProfessionAppAdapter(professionId)
-        || activeProfessionAppAdapter;
+        || document.getElementById('profession-select')?.dataset.activeProfession;
+    if (!professionId) {
+        throw new Error("Profession page is missing data-profession.");
+    }
+    const adapter = await getProfessionAppAdapter(professionId);
+    if (!adapter) {
+        throw new Error(
+            `No native application adapter is registered for "${professionId}".`,
+        );
+    }
     const app = new ProfessionApp(adapter);
     window.professionApp = app;
     if (adapter.globalName) {

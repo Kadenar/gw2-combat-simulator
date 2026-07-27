@@ -89,19 +89,22 @@ export const guardianVirtueSkillHandlers = Object.freeze({
 });
 
 export function handleVirtueActivation(context, event) {
-  context.state.profession.virtueReadyAt[event.virtue] =
+  context.profession.virtueReadyAt[event.virtue] =
     Number(event.passiveReadyAt || event.at);
+  if (event.specialization === "Firebrand") {
+    context.profession.activeTome = event.virtue;
+  }
   if (
     event.virtue === "justice"
     && (event.specialization === "Core" || !event.specialization)
   ) {
-    context.state.profession.justiceActiveArmed = true;
-    context.state.profession.justiceArmed = true;
+    context.profession.justiceActiveArmed = true;
+    context.profession.justiceArmed = true;
   }
 }
 
 export function handleVirtueRefresh(context, event) {
-  context.state.profession.virtueReadyAt = {
+  context.profession.virtueReadyAt = {
     justice: event.at,
     resolve: event.at,
     courage: event.at,
@@ -133,9 +136,9 @@ function applyJusticeBurn(
     stacks: burn.stacks,
     duration: burn.duration,
   });
-  context.state.profession.justiceBurns += 1;
-  if (active) context.state.profession.justiceActiveBurns += 1;
-  else context.state.profession.justicePassiveBurns += 1;
+  context.profession.justiceBurns += 1;
+  if (active) context.profession.justiceActiveBurns += 1;
+  else context.profession.justicePassiveBurns += 1;
   context.recordProc(
     "profession",
     active ? "Justice Active" : "Justice Passive",
@@ -159,7 +162,7 @@ export function reactToJusticeHit(
     || !(Number(event.coefficient) > 0)
   ) return;
 
-  const state = context.state.profession;
+  const state = context.profession;
   if (state.justiceActiveArmed) {
     state.justiceActiveArmed = false;
     state.justiceArmed = false;
