@@ -1,6 +1,7 @@
 import { mountTimeSeriesCharts } from "./charts.js";
 import { escapeHtml } from "./html.js";
 
+// Default column schema shared by the renderer and profession adapters.
 export const SKILL_COLS = [
   { key: "name", label: "Skill", numeric: false },
   { key: "strike", label: "Strike", numeric: true },
@@ -14,6 +15,7 @@ export const SKILL_COLS = [
 ];
 
 export function nextResultSortState(currentColumn, currentDirection, column) {
+  // Repeated clicks cycle descending -> ascending -> default total ordering.
   if (currentColumn !== column) {
     return { column, direction: "desc" };
   }
@@ -27,8 +29,10 @@ export function nextResultSortState(currentColumn, currentDirection, column) {
 }
 
 export function sortResultRows(rows, columns, column, direction) {
+  // Never mutate the model supplied by the simulation/result transformer.
   const sorted = [...(rows || [])];
   if (!column || !direction) {
+    // "Unsorted" means the useful default of highest total damage first.
     return sorted.sort((left, right) =>
       Number(right.total || 0) - Number(left.total || 0));
   }
@@ -59,6 +63,7 @@ function skillCellHtml(row, column, options) {
   const formatted = column.format
     ? column.format(value, row)
     : value == null ? "&mdash;" : column.numeric ? number(value) : escapeHtml(value);
+  // Custom formatters return display text, not trusted HTML.
   return `<span${column.className ? ` class="${escapeHtml(column.className)}"` : ""}>${column.format ? escapeHtml(formatted) : formatted}</span>`;
 }
 
@@ -80,6 +85,7 @@ function skillHeaderHtml(columns, sortState) {
 export function mountRotationResults(container, model = {}, options = {}) {
   if (!container) return null;
   const metrics = model.metrics || [];
+  const breakpoints = model.breakpoints || [];
   const skillRows = model.skillRows || [];
   const skillColumns = model.skillColumns || [];
   const conditions = model.conditions || [];
@@ -97,12 +103,33 @@ export function mountRotationResults(container, model = {}, options = {}) {
     sortState.direction,
   );
 
+  // Replacing the subtree gives every mount a clean DOM/event-handler slate.
   container.innerHTML = `<div class="res-summary">
     ${metrics.map(metric => `<div class="res-stat">
       <span class="res-label">${escapeHtml(metric.label)}</span>
       <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ""}">${escapeHtml(metric.value)}</span>
     </div>`).join("")}
   </div>
+  ${breakpoints.length ? `<details class="res-breakpoints">
+    <summary>
+      <span class="res-breakpoints-heading">DPS snapshots</span>
+      <span class="res-breakpoints-description">Average DPS at 20% target-health intervals</span>
+    </summary>
+    <div class="res-breakpoint-grid">
+      ${breakpoints.map(breakpoint => `<div class="res-breakpoint">
+        <div class="res-breakpoint-meta">
+          <span class="res-breakpoint-label">
+            <b>${number(breakpoint.healthPercent)}%</b> target health
+          </span>
+          <span class="res-breakpoint-time">at ${Number(breakpoint.elapsed || 0).toFixed(2)}s</span>
+        </div>
+        <div class="res-breakpoint-value">
+          <strong>${number(breakpoint.dps)}</strong>
+          <span>DPS</span>
+        </div>
+      </div>`).join("")}
+    </div>
+  </details>` : ""}
   ${skillColumns.length ? `<div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
     <div class="res-hdr res-hdr-sortable" data-role="skill-header">
       ${skillHeaderHtml(skillColumns, sortState)}
@@ -161,6 +188,7 @@ export function mountRotationResults(container, model = {}, options = {}) {
     const header = container.querySelector?.('[data-role="skill-header"]');
     if (header) {
       header.innerHTML = skillHeaderHtml(skillColumns, sortState);
+      // Replacing header markup discards its handlers, so bind the new cells.
       bindSort();
     }
   };
@@ -182,6 +210,7 @@ export function mountRotationResults(container, model = {}, options = {}) {
   bindSort();
   const chartContainer = container.querySelector?.('[data-role="result-charts"]');
   if (chartContainer) {
+    // Charts mount only when the transformed model supplies sampled series.
     mountTimeSeriesCharts(
       chartContainer,
       model.chartSeries,

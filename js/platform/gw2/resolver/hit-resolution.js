@@ -18,10 +18,6 @@ export function createGw2HitResolution({
       || Number.isFinite(event.flatStrikeBase)
       || Number.isFinite(event.flatStrikePowerCoeff);
     const critical = ctx.query.critical(event, event.at, ctx);
-    if (ctx.sigil.severanceUntil > event.at) {
-      critical.chance = Math.min(1, critical.chance + 250 / 2100);
-      critical.damage += 250 / 1500;
-    }
     if (event.noCrit || flatStrike) critical.chance = 0;
     const criticalMultiplier = flatStrike
       ? 1
@@ -67,7 +63,7 @@ export function createGw2HitResolution({
       "strikeDamage",
       Number(event.hits || 1),
     );
-    ctx.markDamageTime(event.at);
+    if (damage > 0) ctx.markDamageTime(event.at);
 
     const resolved = {
       ...event,

@@ -6,6 +6,7 @@
  */
 
 import { GUARDIAN_SKILL_IDS as ID } from "../data/ids.js";
+import { strikePackets } from "../../../platform/engine/effect-factories.js";
 
 export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   [ID.LEAP_OF_FAITH]: {
@@ -27,11 +28,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 2200,
     "effects": [
-      {
-        "type": "strike",
-        "coefficient": 5.775,
-        "hits": 14,
-        "atMsList": [
+      strikePackets(
+        5.775,
+        [
           157,
           314,
           471,
@@ -46,8 +45,12 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
           1885,
           2042,
           2200
-        ]
-      }
+        ],
+        {
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
+        }
+      )
     ]
   },
   [ID.SHIELD_OF_WRATH]: {
@@ -58,7 +61,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 2.5,
         "hits": 1,
-        "atMs": 4000
+        "atMs": 4000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -108,14 +113,18 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 4,
         "hits": 10,
         "atMs": 400,
-        "intervalMs": 400
+        "intervalMs": 400,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 2,
         "duration": 4,
-        "atMs": 4000
+        "atMs": 4000,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ]
   },
@@ -146,7 +155,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 2.5,
         "hits": 5,
         "atMs": 250,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -182,7 +193,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 3.25,
         "hits": 5,
         "atMs": 250,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "blind"
@@ -271,7 +284,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 4.8,
         "hits": 8,
         "atMs": 375,
-        "intervalMs": 375
+        "intervalMs": 375,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ]
   },
@@ -317,7 +332,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 3.25,
         "hits": 5,
         "atMs": 750,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -330,7 +347,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 4.05,
         "hits": 6,
         "atMs": 750,
-        "intervalMs": 500
+        "intervalMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "blind"
@@ -436,7 +455,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 1.5,
         "hits": 1,
-        "atMs": 1000
+        "atMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ]
   },
@@ -482,8 +503,10 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 2.6,
         "hits": 4,
-        "atCastEndOffsetMs": 1000,
+        "atMs": 1000,
         "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
         "name": "Symbol of Resolution"
       }
     ]
@@ -497,7 +520,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 2.5,
         "hits": 1,
-        "atMs": 750
+        "atMs": 750,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "control",
@@ -618,7 +643,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 3.2,
         "hits": 4,
         "atMs": 650,
-        "intervalMs": 400
+        "intervalMs": 400,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -647,49 +674,63 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.2,
         "hits": 6,
         "atMs": 250,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 250
+        "atMs": 250,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 1250
+        "atMs": 1250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 2250
+        "atMs": 2250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 3250
+        "atMs": 3250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 4250
+        "atMs": 4250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 5250
+        "atMs": 5250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -855,7 +896,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 1.4,
         "hits": 1,
-        "atMs": 500
+        "atMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -874,7 +917,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 0.5175,
         "hits": 5,
         "intervalMs": 1000,
-        "name": "Symbol of Energy — Symbol Damage"
+        "name": "Symbol of Energy — Symbol Damage",
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
@@ -922,7 +967,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 0.1875,
         "hits": 1,
-        "atMs": 500
+        "atMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "blind"
@@ -960,7 +1007,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 3.6,
         "hits": 1,
-        "atMs": 500
+        "atMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "control",
@@ -979,7 +1028,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 4.4,
         "hits": 10,
         "atMs": 1280,
-        "intervalMs": 280
+        "intervalMs": 280,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -1067,77 +1118,99 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 3.2,
         "hits": 5,
         "atMs": 500,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 3,
-        "atMs": 500
+        "atMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 3,
-        "atMs": 1500
+        "atMs": 1500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 3,
-        "atMs": 2500
+        "atMs": 2500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 3,
-        "atMs": 3500
+        "atMs": 3500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 3,
-        "atMs": 4500
+        "atMs": 4500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 5,
-        "atMs": 500
+        "atMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 5,
-        "atMs": 1500
+        "atMs": 1500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 5,
-        "atMs": 2500
+        "atMs": 2500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 5,
-        "atMs": 3500
+        "atMs": 3500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 5,
-        "atMs": 4500
+        "atMs": 4500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -1906,42 +1979,54 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.5,
         "hits": 5,
         "atMs": 50,
-        "intervalMs": 50
+        "intervalMs": 50,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 8,
-        "atMs": 50
+        "atMs": 50,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 8,
-        "atMs": 100
+        "atMs": 100,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 8,
-        "atMs": 150
+        "atMs": 150,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 8,
-        "atMs": 200
+        "atMs": 200,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 8,
-        "atMs": 250
+        "atMs": 250,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ]
   },
@@ -1954,42 +2039,54 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.25,
         "hits": 5,
         "atMs": 100,
-        "intervalMs": 100
+        "intervalMs": 100,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 100
+        "atMs": 100,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 200
+        "atMs": 200,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 300
+        "atMs": 300,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 400
+        "atMs": 400,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "atMs": 500
+        "atMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ]
   },
@@ -2002,14 +2099,18 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 2,
         "hits": 5,
         "atMs": 250,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 1,
-        "atMs": 250
+        "atMs": 250,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ]
   },
@@ -2040,7 +2141,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 1.8,
         "hits": 1,
-        "atMs": 160
+        "atMs": 160,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -2055,7 +2158,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "hits": 2,
         "atMs": 480,
         "intervalMs": 680,
-        "name": "Gleaming Disc"
+        "name": "Gleaming Disc",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -2080,21 +2185,27 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.5,
         "hits": 1,
         "atMs": 560,
-        "name": "Solar Storm — 1st Strike"
+        "name": "Solar Storm — 1st Strike",
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "strike",
         "coefficient": 1.2,
         "hits": 1,
         "atMs": 760,
-        "name": "Solar Storm — 2nd Strike"
+        "name": "Solar Storm — 2nd Strike",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
         "coefficient": 0.9,
         "hits": 1,
         "atMs": 960,
-        "name": "Solar Storm — 3rd Strike"
+        "name": "Solar Storm — 3rd Strike",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -2109,7 +2220,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.5,
         "hits": 1,
         "atMs": 360,
-        "name": "Symbol of Luminance — Initial"
+        "name": "Symbol of Luminance — Initial",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -2117,7 +2230,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "hits": 5,
         "atMs": 360,
         "intervalMs": 1000,
-        "name": "Symbol of Luminance"
+        "name": "Symbol of Luminance",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -2155,7 +2270,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.2,
         "hits": 4,
         "intervalMs": 1000,
-        "name": "Luminous Staff — Symbol Damage"
+        "name": "Luminous Staff — Symbol Damage",
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -2362,7 +2479,9 @@ export const GUARDIAN_EXTRA_SKILLS = Object.freeze([Object.freeze({
   icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
   type: "Action",
   slot: "Action",
-  castTimeMs: 0,
+  castTimeMs: 50,
+  quicknessCastTimeMs: 50,
+  rechargeAnchor: "castStart",
   cooldown: 10,
   implemented: true,
   handlerId: "guardian.weapon-swap",

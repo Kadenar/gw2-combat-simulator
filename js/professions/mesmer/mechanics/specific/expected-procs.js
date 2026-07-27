@@ -1,62 +1,33 @@
-/**
- * Tracks deterministic expected procs for Bloodsong, Jagged Mind, and Sharper Images.
- * Candidates fire after a delay or are batched before resource gains.
- * @param {Object} config - Simulation config
- * @param {Set} traits - Selected traits
- * @param {Object} state - Scheduler state with expected-proc progress
- * @param {number} epsilon - Floating-point epsilon
- * @param {Function} baseCriticalChance - Critical hit chance calculator
- * @param {Function} activePrimaryWeapon - Current primary weapon getter
- * @param {Function} queueResources - Resource queuing function
- * @returns {Object} Tracker with queue(candidate), nextAt(), processNext()
- */
 import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 
+const PROC_PROGRESS_TOLERANCE = 1e-9;
+
+/**
+ * Materializes deterministic Mesmer critical bleeding and reduces all
+ * canonical bleeding events into the scheduler-authoritative Bloodsong state.
+ */
 export function createExpectedProcTracker({
   state,
   config,
   traits,
   epsilon,
-  baseCriticalChance,
+  criticalChance,
   activePrimaryWeapon,
   queueResources,
+  emitCondition,
+  addTraitProc,
 }) {
-  /**
-   * Advances Bloodsong progress by bleeding stacks + (Jagged Mind: blade hits × crit chance).
-   * Queues blade gain when progress ≥ 5.
-   * @param {number} at - Time of tracking
-   * @param {number} bleedingStacks - Bleeding stacks to add
-   * @param {number} bladeHits - Blade attack hits (for Jagged Mind calc)
-   * @param {string} source - Action source (Player/Clone/Phantasm)
-   * @param {number} weaponSet - Weapon set for crit calc
-   */
-  const trackBloodsong = (
-    at,
-    bleedingStacks,
-    bladeHits = 0,
-    source = "Player",
-    weaponSet = state.activeWeaponSet,
-  ) => {
+  const trackBloodsong = (at, bleedingStacks) => {
     if (
       config.specialization !== "Virtuoso"
       || !traits.has(TRAIT.BLOODSONG)
     ) return;
 
-    state.profession.bloodsongProgress +=
-      Number(bleedingStacks || 0)
-      + (
-        traits.has(TRAIT.JAGGED_MIND)
-          ? Number(bladeHits || 0)
-            * baseCriticalChance(
-              config,
-              traits,
-              source,
-              weaponSet,
-            )
-          : 0
-      );
-
-    while (state.profession.bloodsongProgress >= 5 - epsilon) {
+    state.profession.bloodsongProgress += Number(bleedingStacks || 0);
+    while (
+      state.profession.bloodsongProgress
+      >= 5 - PROC_PROGRESS_TOLERANCE
+    ) {
       state.profession.bloodsongProgress -= 5;
       queueResources(
         at + epsilon,
@@ -67,70 +38,65 @@ export function createExpectedProcTracker({
     }
   };
 
-  /**
-   * Processes one expected-proc candidate after verifying its source is active.
-   * Triggers: Bloodsong (bleeding), Jagged Mind (blade hits), Sharper Images (clone/phantasm hits).
-   * @param {Object} candidate - Bleeding or hit candidate
-   */
-  const process = (candidate) => {
-    if (candidate.type === "bleeding") {
-      trackBloodsong(candidate.at, candidate.stacks, 0);
-      return;
-    }
-    if (candidate.type !== "hit") return;
-
-    const criticalChance = baseCriticalChance(
-      config,
-      traits,
-      candidate.source,
-      candidate.weaponSet,
-    );
-    if (candidate.blade && traits.has(TRAIT.JAGGED_MIND)) {
-      trackBloodsong(
-        candidate.at,
-        0,
-        candidate.hits,
-        candidate.source,
-        candidate.weaponSet,
-      );
-    }
+  const materializeCriticalTraits = event => {
+    const chance = Number(criticalChance(event) || 0);
     if (
       traits.has(TRAIT.SHARPER_IMAGES)
-      && (candidate.source === "Clone" || candidate.source === "Phantasm")
+      && (event.source === "Clone" || event.source === "Phantasm")
     ) {
-      state.profession.sharperImagesProgress += candidate.hits * criticalChance;
-      const bleeding = Math.floor(state.profession.sharperImagesProgress + epsilon);
-      if (bleeding > 0) {
-        state.profession.sharperImagesProgress -= bleeding;
-        trackBloodsong(candidate.at, bleeding, 0);
+      state.profession.sharperImagesProgress += chance;
+      const procCount = Math.floor(
+        state.profession.sharperImagesProgress
+        + PROC_PROGRESS_TOLERANCE,
+      );
+      if (procCount > 0) {
+        state.profession.sharperImagesProgress -= procCount;
+        emitCondition(event, {
+          type: "condition",
+          at: event.at,
+          name: `${event.name} — Sharper Images`,
+          skillName: event.skillName,
+          condition: "Bleeding",
+          duration: 5,
+          stacks: procCount,
+          source: "Player",
+          sourceId: TRAIT.SHARPER_IMAGES,
+          actorType: "player",
+        });
+        addTraitProc(
+          "Sharper Images",
+          event.at,
+          event.skillName,
+          `${procCount} critical-hit proc${procCount === 1 ? "" : "s"}`,
+        );
       }
+    }
+
+    if (traits.has(TRAIT.JAGGED_MIND) && event.blade && chance > 0) {
+      emitCondition(event, {
+        type: "condition",
+        at: event.at,
+        name: `${event.name} — Jagged Mind`,
+        skillName: event.skillName,
+        parentSkillName: event.parentSkillName,
+        condition: "Bleeding",
+        duration: 4,
+        stacks: chance,
+        source: event.source,
+        sourceId: TRAIT.JAGGED_MIND,
+        actorType: event.actorType,
+      });
+      addTraitProc("Jagged Mind", event.at, event.skillName);
     }
   };
 
-  return {
-    process,
-    /**
-     * Queues a candidate to be processed later.
-     * @param {Object} candidate - Candidate with an `at` timestamp
-     */
-    queue(candidate) {
-      state.profession.pendingExpectedProcs.push(candidate);
-      state.profession.pendingExpectedProcs.sort((a, b) => a.at - b.at);
+  return Object.freeze({
+    process(candidate) {
+      if (candidate.type === "bleeding") {
+        trackBloodsong(candidate.at, candidate.stacks);
+      } else if (candidate.type === "hit" && candidate.event) {
+        materializeCriticalTraits(candidate.event);
+      }
     },
-
-    /**
-     * Returns the next candidate time or Infinity.
-     */
-    nextAt() {
-      return state.profession.pendingExpectedProcs[0]?.at ?? Infinity;
-    },
-
-    /**
-     * Removes and processes the next candidate.
-     */
-    processNext() {
-      const candidate = state.profession.pendingExpectedProcs.shift();
-      if (candidate) process(candidate);
-    },
-  };
+  });
 }

@@ -18,6 +18,7 @@ import {
   custom,
   repeatedCondition,
   strike,
+  strikePackets,
   strikeTimeline,
 } from "../js/platform/engine/effect-factories.js";
 import { COMMON_EVENT_TYPES } from "../js/platform/engine/events.js";
@@ -41,12 +42,55 @@ import {
 import { mesmerCatalog } from "../js/professions/mesmer/catalog.js";
 import { mesmerProfession } from "../js/professions/mesmer/definition.js";
 import { guardianCatalog } from "../js/professions/guardian/catalog.js";
+import { necromancerCatalog } from "../js/professions/necromancer/catalog.js";
 import {
   createDefaultConfig,
   simulateMesmer,
 } from "./helpers/mesmer-simulation.js";
 import { createMesmerState, snapshotMesmerState } from "../js/professions/mesmer/state.js";
 import { testProfession } from "./fixtures/test-profession.js";
+
+test("Mesmer, Necromancer, and Guardian share one skill timing contract", () => {
+  for (const catalog of [
+    mesmerCatalog,
+    necromancerCatalog,
+    guardianCatalog,
+  ]) {
+    for (const skill of catalog.skills) {
+      assert.equal("activation" in skill, false, skill.name);
+      assert.equal("castTime" in skill, false, skill.name);
+      assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
+      assert.ok(Array.isArray(skill.lockouts), skill.name);
+      for (const effect of skill.effects) {
+        assert.equal("atMsList" in effect, false, skill.name);
+        assert.equal("packetOffsets" in effect, false, skill.name);
+        assert.equal("atCastEndOffsetMs" in effect, false, skill.name);
+        const explicitlyTimed =
+          effect.atMs != null
+          || effect.intervalMs != null
+          || effect.ticks != null;
+        assert.equal(
+          explicitlyTimed,
+          effect.timingAnchor != null && effect.timingScale != null,
+          skill.name,
+        );
+      }
+    }
+  }
+});
+
+test("weapon swap has a fixed 50ms cast and recharges from activation", () => {
+  for (const catalog of [
+    mesmerCatalog,
+    necromancerCatalog,
+    guardianCatalog,
+  ]) {
+    const skill = catalog.skillsByName.get("Swap Weapons");
+    assert.equal(skill.castTimeMs, 50, catalog.id);
+    assert.equal(skill.quicknessCastTimeMs, 50, catalog.id);
+    assert.equal(skill.rechargeAnchor, "castStart", catalog.id);
+  }
+});
 
 test("profession contract supplies defaults and deterministic hook ordering", () => {
   const calls = [];
@@ -282,6 +326,7 @@ test("generic scheduler state contains no profession-specific fields", () => {
       "activeWeaponSet",
       "ammo",
       "cooldowns",
+      "lockouts",
       "pendingEvents",
       "profession",
       "skillUses",
@@ -524,10 +569,14 @@ test("declarative multi-hit and delayed effects preserve individual events", () 
         hits: 3,
         atMs: 100,
         intervalMs: 100,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       }, {
         type: "strike",
         coefficient: 1,
         atMs: 1000,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       }],
     }],
     weapons: ["Greatsword"],
@@ -586,7 +635,10 @@ test("declarative strike timelines preserve per-hit coefficients and shared time
       id: 930023,
       name: "Fixture Variable Hits",
       castTimeMs: 4000,
-      effects: [strikeTimeline(ticks)],
+      effects: [strikeTimeline(ticks, {
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      })],
     }],
   });
   const profession = defineProfession({
@@ -664,7 +716,10 @@ test("declarative condition timelines preserve each application", () => {
       id: 930025,
       name: "Fixture Variable Conditions",
       castTimeMs: 2000,
-      effects: [conditionTimeline(ticks)],
+      effects: [conditionTimeline(ticks, {
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      })],
     }],
   });
   const profession = defineProfession({
@@ -713,7 +768,12 @@ test("canonical strike timelines reject invalid or ambiguous hits", () => {
   const skillWithTicks = ticks => ({
     id: 930024,
     name: "Invalid Tick Fixture",
-    effects: [{ type: "strike", ticks }],
+    effects: [{
+      type: "strike",
+      ticks,
+      timingAnchor: "castStart",
+      timingScale: "fixed",
+    }],
   });
 
   assert.throws(
@@ -739,6 +799,8 @@ test("canonical strike timelines reject invalid or ambiguous hits", () => {
           type: "strike",
           coefficient: 0.2,
           ticks: [{ atMs: 0, coefficient: 0.2 }],
+          timingAnchor: "castStart",
+          timingScale: "fixed",
         }],
       }],
     }),
@@ -750,7 +812,12 @@ test("canonical condition timelines reject invalid or ambiguous applications", (
   const skillWithTicks = ticks => ({
     id: 930026,
     name: "Invalid Condition Timeline Fixture",
-    effects: [{ type: "condition", ticks }],
+    effects: [{
+      type: "condition",
+      ticks,
+      timingAnchor: "castStart",
+      timingScale: "fixed",
+    }],
   });
 
   assert.throws(
@@ -782,6 +849,8 @@ test("canonical condition timelines reject invalid or ambiguous applications", (
             stacks: 1,
             duration: 2,
           }],
+          timingAnchor: "castStart",
+          timingScale: "fixed",
         }],
       }],
     }),
@@ -789,18 +858,16 @@ test("canonical condition timelines reject invalid or ambiguous applications", (
   );
 });
 
-test("GW2 Quickness quantizes casts and derives cast-bound effect timing", () => {
+test("GW2 Quickness quantizes casts and scales explicit cast timing", () => {
   const catalog = createCanonicalCatalog({
     generated: [{
       id: 930020,
       name: "Fixture Timeline",
       castTimeMs: 2200,
-      effects: [{
-        type: "strike",
-        coefficient: 4,
-        hits: 4,
-        atMsList: [550, 1100, 1650, 2200],
-      }],
+      effects: [strikePackets(4, [550, 1100, 1650, 2200], {
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      })],
     }, {
       id: 930021,
       name: "Fixture Channel",
@@ -811,6 +878,8 @@ test("GW2 Quickness quantizes casts and derives cast-bound effect timing", () =>
         hits: 3,
         atMs: 200,
         intervalMs: 200,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       }],
     }, {
       id: 930022,
@@ -820,8 +889,10 @@ test("GW2 Quickness quantizes casts and derives cast-bound effect timing", () =>
         type: "strike",
         coefficient: 3,
         hits: 3,
-        atCastEndOffsetMs: 1000,
+        atMs: 1000,
         intervalMs: 1000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
       }],
     }],
   });
@@ -1094,6 +1165,47 @@ test("canonical catalogs carry validated traits and specializations", () => {
   );
 });
 
+test("canonical catalogs validate and freeze skill-group lockouts", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930030,
+      name: "Lockout Fixture",
+      lockouts: [{ group: "fixture.family", durationMs: 50 }],
+      effects: [],
+    }],
+  });
+  const skill = catalog.skillsById.get(930030);
+  assert.deepEqual(skill.lockouts, [{
+    group: "fixture.family",
+    durationMs: 50,
+  }]);
+  assert.equal(Object.isFrozen(skill.lockouts), true);
+  assert.equal(Object.isFrozen(skill.lockouts[0]), true);
+
+  for (const lockouts of [
+    {},
+    [{}],
+    [{ group: "", durationMs: 50 }],
+    [{ group: "fixture.family", durationMs: 0 }],
+    [
+      { group: "fixture.family", durationMs: 50 },
+      { group: "fixture.family", durationMs: 100 },
+    ],
+  ]) {
+    assert.throws(
+      () => createCanonicalCatalog({
+        generated: [{
+          id: 930031,
+          name: "Invalid Lockout Fixture",
+          lockouts,
+          effects: [],
+        }],
+      }),
+      /lockout/i,
+    );
+  }
+});
+
 test("catalog skill handlers receive calculated recharge timing", () => {
   let observedReadyAt = null;
   const catalog = createCanonicalCatalog({
@@ -1239,7 +1351,10 @@ test("Mesmer state creation and snapshots are profession owned", () => {
   assert.equal(snapshot.numericResource, 3);
   assert.equal(snapshot.cloneCount, 1);
   assert.equal(mesmerProfession.id, "mesmer");
-  assert.equal(typeof mesmerProfession.eventReactions.damage, "function");
+  assert.equal(
+    Object.hasOwn(mesmerProfession.eventReactions, "damage"),
+    false,
+  );
   assert.equal(typeof mesmerProfession.eventReactions.control, "function");
   assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "damage"), false);
   assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "control"), false);

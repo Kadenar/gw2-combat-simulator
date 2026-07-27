@@ -44,3 +44,15 @@ export function replaceBuild(saved, adapter = activeProfessionAppAdapter) {
     return createDefaultBuild(resolved);
   }
 }
+
+export function replaceBuildConfiguration(
+  saved,
+  currentBuild,
+  adapter = activeProfessionAppAdapter,
+) {
+  const build = replaceBuild(saved, adapter);
+  build.rotation = Array.isArray(currentBuild?.rotation)
+    ? currentBuild.rotation
+    : [];
+  return build;
+}

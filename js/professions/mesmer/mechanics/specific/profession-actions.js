@@ -339,7 +339,7 @@ export function createProfessionActionController({
       at,
       spent,
       isBladeSong,
-      { skipMaim: isBladeSong },
+      { skipMaim: maimTriggered },
     );
     if (
       skill.name === "Time Sink"
@@ -410,7 +410,7 @@ export function createProfessionActionController({
       addCondition(skill.name, at, condition);
     }
     const expiresAt = at + 5 + spent * 5;
-    state.profession.instruments.set(data.instrument, expiresAt);
+    state.profession.instruments[data.instrument] = expiresAt;
     state.profession.lastInstrument = data.instrument;
     addEvent({
       type: "mesmer.instrument",
@@ -433,9 +433,8 @@ export function createProfessionActionController({
   };
 
   const handleCrescendo = (skill, at) => {
-    const activeInstruments = [...state.profession.instruments.entries()].filter(
-      ([, expiresAt]) => expiresAt > at,
-    );
+    const activeInstruments = Object.entries(state.profession.instruments)
+      .filter(([, expiresAt]) => expiresAt > at);
     addDamage(skill, at, {
       coefficient:
         skill.baseCoefficient

@@ -1,48 +1,31 @@
+import {
+  createGw2TriggerMaterializer,
+  GW2_MATERIALIZE_EVENT_TASK,
+} from "./proc-materializer.js";
+
 const QUICKNESS_ACTION_RATE = 1.5;
 const ACTION_TICK_MS = 40;
 const ALACRITY_RECHARGE_RATE = 1.25;
 
 function quantizeUp(value, interval) {
   if (!(value > 0)) return 0;
+  // Casts complete on the first 40 ms action tick at or after their scaled
+  // duration. The epsilon avoids rounding an exact boundary into the next tick.
   return Math.ceil(value / interval - 1e-9) * interval;
 }
 
 function baseCastDurationMs(skill) {
-  if (skill.castTimeMs != null) {
-    return Math.max(0, Number(skill.castTimeMs));
-  }
-  return Math.max(
-    0,
-    Number(skill.activation ?? skill.castTime ?? 0) * 1000,
-  );
-}
-
-function castBoundTiming(effect, baseCastMs) {
-  if (!(baseCastMs > 0)) return false;
-  if (Array.isArray(effect.ticks) && effect.ticks.length) {
-    return Math.abs(
-      Number(effect.ticks.at(-1).atMs) - baseCastMs,
-    ) < 0.001;
-  }
-  if (Array.isArray(effect.atMsList) && effect.atMsList.length) {
-    return Math.abs(
-      Number(effect.atMsList.at(-1)) - baseCastMs,
-    ) < 0.001;
-  }
-  if (effect.atMs == null) return false;
-  const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
-  const lastAtMs =
-    Number(effect.atMs)
-    + (hits - 1) * Math.max(0, Number(effect.intervalMs || 0));
-  return Math.abs(lastAtMs - baseCastMs) < 0.001;
+  return Math.max(0, Number(skill.castTimeMs || 0));
 }
 
 function scaleCastBoundTiming(context, skill, effect) {
+  if (effect.timingScale !== "cast") return effect;
   const baseCastMs = baseCastDurationMs(skill);
-  if (!castBoundTiming(effect, baseCastMs)) return effect;
+  if (!(baseCastMs > 0)) return effect;
   const adjustedCastMs =
     Math.max(0, Number(context.fullEnd - context.start)) * 1000;
   const scale = adjustedCastMs / baseCastMs;
+  // Return a copy because skill metadata is shared by every simulation run.
   return {
     ...effect,
     ...(Array.isArray(effect.ticks)
@@ -56,9 +39,6 @@ function scaleCastBoundTiming(context, skill, effect) {
     ...(effect.atMs == null
       ? {}
       : { atMs: Number(effect.atMs) * scale }),
-    ...(Array.isArray(effect.atMsList)
-      ? { atMsList: effect.atMsList.map(value => Number(value) * scale) }
-      : {}),
     ...(effect.intervalMs == null
       ? {}
       : { intervalMs: Number(effect.intervalMs) * scale }),
@@ -89,14 +69,40 @@ export function isGw2WeaponSkillEquipped(context, skill) {
     context.config || {},
     context.state?.activeWeaponSet === 2 ? 2 : 1,
   );
+  // Empty weapon configuration is treated as an unrestricted sandbox build.
   return configured.length === 0 || configured.includes(skill.weapon);
 }
 
 /**
  * Supplies shared GW2 timing rules without coupling platform/engine to GW2.
  */
-export function createGw2SchedulerPolicy(config = {}) {
+export function createGw2SchedulerPolicy(
+  config = {},
+  { traits = null } = {},
+) {
+  const materializer = createGw2TriggerMaterializer(config, { traits });
   return Object.freeze({
+    taskHandlers: Object.freeze({
+      [GW2_MATERIALIZE_EVENT_TASK]:
+        (context, task) => materializer.handleTask(context, task),
+    }),
+
+    initialize(context) {
+      materializer.initialize(context);
+    },
+
+    onEventScheduled(context, event) {
+      materializer.onEventScheduled(context, event);
+    },
+
+    critical(_context, event) {
+      return materializer.critical(event);
+    },
+
+    requireCriticalFacts() {
+      materializer.requireCriticalFacts();
+    },
+
     initialWeaponSet() {
       return Number(config.startingWeaponSet) === 2 ? 2 : 1;
     },
@@ -117,11 +123,14 @@ export function createGw2SchedulerPolicy(config = {}) {
         + Number(config.stats?.boonDurationBonus || 0) / 100
         + Number(config.stats?.boonDurationBonuses?.[name] || 0) / 100
         + Number(sigils.boonDurationBonus || 0) / 100;
+      // GW2 boon duration cannot be reduced below base here and caps at +100%.
       return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
     },
 
     castDuration(context, skill, baseDuration) {
       if (!context.hasBuff("quickness", context.start)) return baseDuration;
+      // Explicit metadata wins for skills measured in-game; otherwise apply the
+      // standard action-rate multiplier and server-tick quantization.
       if (skill.quicknessCastTimeMs != null) {
         return Math.max(0, Number(skill.quicknessCastTimeMs)) / 1000;
       }
@@ -131,6 +140,7 @@ export function createGw2SchedulerPolicy(config = {}) {
 
     effectTiming(context, skill, effect) {
       if (!context.hasBuff("quickness", context.start)) return effect;
+      // Pulses attached to cast completion must move with the shortened cast.
       return scaleCastBoundTiming(context, skill, effect);
     },
 
@@ -139,6 +149,7 @@ export function createGw2SchedulerPolicy(config = {}) {
       const rate = context.hasBuff("alacrity", at)
         ? Number(config.alacrityRechargeRate || ALACRITY_RECHARGE_RATE)
         : 1;
+      // Recharge speed is a rate, so elapsed duration is divided by it.
       return baseDuration / Math.max(Number.EPSILON, rate);
     },
 

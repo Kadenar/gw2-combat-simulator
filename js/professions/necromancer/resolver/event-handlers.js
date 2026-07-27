@@ -11,15 +11,7 @@ import {
 import {
   NECROMANCER_HANDLER_MECHANICS as MECHANICS,
 } from "../mechanics/skill-mechanics.js";
-
-function hasTrait(context, id) {
-  if (context.traits?.has(id) || context.traits?.has(String(id))) return true;
-  return [
-    ...(context.config?.traitIds || []),
-    ...(context.config?.selectedTraitIds || []),
-    ...(context.config?.selectedTraits || []),
-  ].some(value => value === id || String(value) === String(id));
-}
+import { hasTrait } from "../../../platform/gw2/trait-state.js";
 
 function queueTraitDamage(context, event, {
   name,

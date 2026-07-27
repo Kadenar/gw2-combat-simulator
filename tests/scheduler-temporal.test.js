@@ -154,6 +154,76 @@ test("a concurrent instant waits until its finite cooldown expires", () => {
   assert.deepEqual(afterParent.warnings, []);
 });
 
+test("skill-group lockouts block only skills in the same group", () => {
+  const lockouts = [{ group: "fixture.shatter", durationMs: 50 }];
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 980010,
+        name: "Shatter One",
+        castTimeMs: 0,
+        lockouts,
+        effects: [],
+      },
+      {
+        id: 980011,
+        name: "Unrelated Instant",
+        castTimeMs: 0,
+        effects: [],
+      },
+      {
+        id: 980012,
+        name: "Shatter Two",
+        castTimeMs: 0,
+        lockouts,
+        effects: [],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "temporal-group-lockout",
+    name: "Temporal Group Lockout",
+    catalog,
+  });
+
+  const scheduled = createScheduler({ profession }).run([
+    "Shatter One",
+    "Unrelated Instant",
+    "Shatter Two",
+  ]);
+
+  assert.deepEqual(
+    scheduled.steps.map(step => ({
+      skill: step.skill,
+      start: step.start,
+      end: step.end,
+      fullCastMs: step.fullCastMs,
+    })),
+    [
+      {
+        skill: "Shatter One",
+        start: 0,
+        end: 0,
+        fullCastMs: 0,
+      },
+      {
+        skill: "Unrelated Instant",
+        start: 0,
+        end: 0,
+        fullCastMs: 0,
+      },
+      {
+        skill: "Shatter Two",
+        start: 50,
+        end: 50,
+        fullCastMs: 0,
+      },
+    ],
+  );
+  assert.equal(scheduled.state.lockouts.get("fixture.shatter"), 0.1);
+  assert.deepEqual(scheduled.warnings, []);
+});
+
 test("interrupted casts complete at their effective end", () => {
   const profession = defineProfession({
     id: "temporal-interrupt",
@@ -183,6 +253,78 @@ test("interrupted casts complete at their effective end", () => {
     clock: 0.25,
     effectiveEnd: 0.25,
   }]);
+});
+
+test("scheduler policies own chronological tasks and causal derivatives", () => {
+  const profession = defineProfession({
+    id: "temporal-policy",
+    name: "Temporal Policy",
+    catalog: temporalCatalog(),
+    resources: {
+      createProfessionState: () => ({ lifecycle: [] }),
+    },
+    schedulerHooks: {
+      initialize(context) {
+        context.state.profession.lifecycle.push("profession");
+      },
+      onCastStart(context) {
+        context.emit({
+          type: "marker",
+          at: context.start,
+          source: "fixture",
+          sourceId: "fixture.original",
+          name: "original-after-action",
+        });
+      },
+    },
+  });
+  const schedulerPolicy = {
+    initialize(context) {
+      context.state.profession.lifecycle.push("policy");
+    },
+    onEventScheduled(context, event) {
+      if (event.type !== "action") return;
+      context.tasks.schedule({
+        type: "fixture.policy-observation",
+        at: event.at,
+        priority: -10,
+        payload: { event },
+      });
+    },
+    taskHandlers: {
+      "fixture.policy-observation": (context, task) => {
+        for (const name of ["derived-one", "derived-two"]) {
+          context.emitDerived(task.payload.event, {
+            type: "marker",
+            at: task.at,
+            source: "fixture",
+            sourceId: `fixture.${name}`,
+            name,
+          });
+        }
+      },
+    },
+  };
+  const scheduled = createScheduler({
+    profession,
+    schedulerPolicy,
+  }).run(["Long Cast"]);
+
+  assert.deepEqual(
+    scheduled.state.profession.lifecycle,
+    ["policy", "profession"],
+  );
+  assert.deepEqual(
+    scheduled.events
+      .filter(event => event.at === 0)
+      .map(event => event.name),
+    [
+      "Long Cast",
+      "derived-one",
+      "derived-two",
+      "original-after-action",
+    ],
+  );
 });
 
 test("typed tasks order deterministically and reject zero-time loops", () => {

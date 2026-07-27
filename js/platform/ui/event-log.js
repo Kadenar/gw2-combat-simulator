@@ -9,6 +9,10 @@ const ORDER = {
   condition: 70,
 };
 
+/**
+ * Converts canonical events to display rows. Adapters opt event types into the
+ * log; actions and proc records have built-in fallback descriptions.
+ */
 export function eventLogRows(result, adapters = {}) {
   const rows = [];
   for (const event of result?.events || []) {
@@ -28,6 +32,7 @@ export function eventLogRows(result, adapters = {}) {
     });
   }
   return rows
+    // Type order makes same-timestamp rows read as cause before consequence.
     .sort((left, right) =>
       left.at - right.at
       || left.order - right.order
@@ -36,6 +41,8 @@ export function eventLogRows(result, adapters = {}) {
 }
 
 export function eventLogCsv(rows) {
+  // Quote every cell and use CRLF so spreadsheet programs parse the download
+  // consistently across platforms.
   const cell = value => `"${String(value ?? "").replaceAll('"', '""')}"`;
   return [
     ["Time (s)", "Type", "Event"].map(cell).join(","),
@@ -48,6 +55,7 @@ export function eventLogCsv(rows) {
 }
 
 function safeClassNames(value) {
+  // Class names are interpolated into markup, so allow identifiers only.
   return String(value || "")
     .split(/\s+/)
     .filter(name => /^[a-zA-Z0-9_-]+$/.test(name))
@@ -66,6 +74,7 @@ function eventLogLinesHtml(rows) {
 }
 
 function downloadCsv(rows, filename) {
+  // Stay safe in SSR/test environments where browser download APIs are absent.
   if (
     typeof Blob === "undefined"
     || !globalThis.URL?.createObjectURL
@@ -92,6 +101,7 @@ export function mountEventLog(container, rows, options = {}) {
     '[data-role="event-log-details"]',
   );
   const wasMounted = Boolean(previousDetails);
+  // Preserve disclosure and filter state when simulation results rerender.
   const open = wasMounted
     ? previousDetails.open
     : Boolean(options.initiallyOpen);
@@ -104,6 +114,8 @@ export function mountEventLog(container, rows, options = {}) {
   const filename = options.filename || "event-log.csv";
 
   const filteredRows = () => resolvedRows.filter(row =>
+    // A checked filter narrows rows to its predicate; unchecked filters impose
+    // no constraint. Multiple checked filters intersect.
     filters.every(filter =>
       !activeFilters.has(String(filter.id)) || filter.predicate?.(row)));
   const initialLines = open ? eventLogLinesHtml(filteredRows()) : "";
@@ -128,6 +140,7 @@ export function mountEventLog(container, rows, options = {}) {
   const details = container.querySelector?.('[data-role="event-log-details"]');
   const logElement = container.querySelector?.('[data-role="event-log-rows"]');
   const renderLogLines = (force = false) => {
+    // Large logs are rendered lazily the first time the details element opens.
     if (!logElement || (!force && logElement.dataset.rendered === "true")) return;
     logElement.innerHTML = eventLogLinesHtml(filteredRows());
     logElement.dataset.rendered = "true";
@@ -151,6 +164,7 @@ export function mountEventLog(container, rows, options = {}) {
   const download = container.querySelector?.(
     '[data-role="event-log-download"]',
   );
+  // Export the complete log, independent of temporary display filters.
   if (download) download.onclick = () => downloadCsv(resolvedRows, filename);
   return { activeFilters, render: () => renderLogLines(true) };
 }

@@ -15,6 +15,7 @@ export function createSchedulerState({
     time: Number(startingTime || 0),
     cooldowns: new Map(),
     ammo: new Map(),
+    lockouts: new Map(),
     activeWeaponSet: Math.max(1, Number(activeWeaponSet || 1)),
     skillUses: new Map(),
     pendingEvents: [],

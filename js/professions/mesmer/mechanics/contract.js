@@ -2,8 +2,6 @@ import { EPSILON } from "../../../platform/engine/clock.js";
 import {
   gw2EffectiveCooldown,
   gw2RechargeRate,
-  gw2SigilSet,
-  gw2StaticAttributes,
 } from "../../../platform/gw2/runtime-rules.js";
 import { createGw2SchedulerEventFactory } from "../../../platform/gw2/scheduler/event-factory.js";
 import {
@@ -50,14 +48,10 @@ const TASK = Object.freeze({
 });
 // Delay before Signet of the Ether's in-game bug re-applies its own cooldown
 // after the cast finishes.
-const SIGNET_ETHER_RELOCK_DELAY = 1;
+const SIGNET_ETHER_RELOCK_DELAY = 0.3;
 const SIGNET_ILLUSIONS_INTERVAL = 10;
 const SIGNET_ILLUSIONS_OWNER = "mesmer.signet-illusions-passive";
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set([-3]);
-const TRUE_ZERO_DURATION_SKILLS = new Set([
-  "Bladeturn Requiem",
-  "Thousand Cuts",
-]);
 const clamp = (value, minimum, maximum) =>
   Math.max(minimum, Math.min(maximum, value));
 
@@ -91,37 +85,6 @@ function traitSet(config, catalog) {
     }
   }
   return values;
-}
-
-function baseCriticalChance(config, traits, source = "Player", weaponSet = 1) {
-  const stats = gw2StaticAttributes(config);
-  const illusion = source === "Clone" || source === "Phantasm";
-  let chance = 0.05 + Math.max(0, stats.precision - 1000) / 2100;
-  if (!illusion) {
-    chance += Number(config.stats?.criticalChanceBonus || 0) / 100;
-    chance +=
-      Number(gw2SigilSet(config, weaponSet).criticalChanceBonus || 0) / 100;
-  }
-  if (!illusion && config.boons?.fury) chance += 0.25;
-  if (
-    !illusion &&
-    config.relic === "Mistburn" &&
-    Number(config.boons?.might || 0) >= 10
-  )
-    chance += 0.1;
-  if (
-    traits.has(TRAIT.FLOW_OF_TIME) &&
-    config.boons?.alacrity &&
-    ["Player", "Clone", "Phantasm"].includes(source)
-  )
-    chance += 0.15;
-  if (!illusion && traits.has(TRAIT.QUIET_INTENSITY) && config.boons?.fury) {
-    chance += 0.15;
-  }
-  if (source === "Phantasm" && traits.has(TRAIT.PHANTASMAL_FURY)) {
-    chance += config.specialization === "Virtuoso" ? 0.4 : 0.25;
-  }
-  return clamp(chance, 0, 1);
 }
 
 function selectedSkillValues(config) {
@@ -281,9 +244,12 @@ function createMesmerRuntime(context) {
     config,
     traits,
     epsilon: EPSILON,
-    baseCriticalChance,
+    criticalChance: event =>
+      context.schedulerPolicy.critical?.(context, event)?.chance || 0,
     activePrimaryWeapon,
     queueResources: resources.queueResources,
+    emitCondition: (cause, event) => context.emitDerived(cause, event),
+    addTraitProc,
   });
   const actions = createProfessionActionController({
     state,
@@ -380,27 +346,32 @@ function createMesmerRuntime(context) {
 
 function updateAutoattackChains(runtime, skill) {
   const { state } = runtime.context;
+  const chains = state.profession.autoattackChains;
   const position = mesmerAutoattackChainPosition(skill.id);
   if (position) {
-    for (const root of state.profession.autoattackChains.keys()) {
-      if (root !== position.root)
-        state.profession.autoattackChains.delete(root);
+    // Object.keys yields string keys; chain roots are numeric skill ids, so
+    // coerce before comparing against or passing to numeric-id consumers.
+    for (const root of Object.keys(chains).map(Number)) {
+      if (root !== position.root) delete chains[root];
     }
     if (position.next == null) {
-      state.profession.autoattackChains.delete(position.root);
+      delete chains[position.root];
     } else {
-      state.profession.autoattackChains.set(position.root, position.next);
+      chains[position.root] = position.next;
     }
     return;
   }
   if (skill.id === -3) {
-    state.profession.autoattackChains.clear();
+    state.profession.autoattackChains = {};
     return;
   }
-  if (Number(skill.activation || 0) > 0) {
-    for (const root of state.profession.autoattackChains.keys()) {
+  if (
+    Number(skill.castTimeMs || 0) > 0
+    && skill.rechargeAnchor !== "castStart"
+  ) {
+    for (const root of Object.keys(chains).map(Number)) {
       const preserve = mesmerPreservesAutoattackChain(root, skill);
-      if (!preserve) state.profession.autoattackChains.delete(root);
+      if (!preserve) delete chains[root];
     }
   }
 }
@@ -487,10 +458,10 @@ function completeMesmerSkill(context, skill) {
       runtime.mirage.handlePostSkill(skill, at);
       const armedFlip = runtime.flipSkillsByParent.get(skill.name);
       if (armedFlip && context.maximumAmmoFor(armedFlip)) {
-        state.profession.availableFlips.set(armedFlip.name, {
+        state.profession.availableFlips[armedFlip.name] = {
           availableAt: at,
           expiresAt: Infinity,
-        });
+        };
         state.ammo.delete(armedFlip.id);
         state.cooldowns.delete(armedFlip.id);
         context.cooldownController.ensureAmmo(armedFlip, at);
@@ -500,7 +471,7 @@ function completeMesmerSkill(context, skill) {
           expiresAt: context.start + Number(armedFlip.flipDuration || 0),
         };
         if (flip.expiresAt >= at - EPSILON) {
-          state.profession.availableFlips.set(armedFlip.name, flip);
+          state.profession.availableFlips[armedFlip.name] = flip;
           if (armedFlip.name === "Counterspell") {
             state.profession.counterspellAvailable = true;
           }
@@ -510,12 +481,12 @@ function completeMesmerSkill(context, skill) {
         const flipAmmo = state.ammo.get(skill.id);
         if (flipAmmo?.maximum) {
           if (flipAmmo.charges <= 0) {
-            state.profession.availableFlips.delete(skill.name);
+            delete state.profession.availableFlips[skill.name];
             state.ammo.delete(skill.id);
             state.cooldowns.delete(skill.id);
           }
         } else {
-          state.profession.availableFlips.delete(skill.name);
+          delete state.profession.availableFlips[skill.name];
         }
         if (skill.name === "Counterspell") {
           state.profession.counterspellAvailable = false;
@@ -535,8 +506,8 @@ function completeMesmerSkill(context, skill) {
       }
     }
     if (skill.name === "Signet of the Ether") {
-      // In-game bug: the signet re-applies its own cooldown ~1s after the cast
-      // completes, so it becomes ready one second later than the base recharge.
+      // In-game bug: the signet re-applies its own cooldown 300ms after the
+      // cast completes.
       context.tasks.schedule({
         type: TASK.signetEtherRelock,
         at: context.fullEnd + SIGNET_ETHER_RELOCK_DELAY,
@@ -614,6 +585,13 @@ export function initializeMesmerScheduler(context) {
   const runtime = createMesmerRuntime(context);
   runtimes.set(context.state, runtime);
   const { state, config } = context;
+  if (
+    runtime.traits.has(TRAIT.JAGGED_MIND)
+    || runtime.traits.has(TRAIT.SHARPER_IMAGES)
+    || runtime.traits.has(TRAIT.DEADLY_BLADES)
+  ) {
+    context.schedulerPolicy.requireCriticalFacts?.();
+  }
   state.profession.riddleOfSandReady = runtime.traits.has(TRAIT.RIDDLE_OF_SAND);
   const initial = clamp(
     Number(config.initialResource || 0),
@@ -632,10 +610,10 @@ export function initializeMesmerScheduler(context) {
       skill.flipParent &&
       context.maximumAmmoFor(skill)
     ) {
-      state.profession.availableFlips.set(skill.name, {
+      state.profession.availableFlips[skill.name] = {
         availableAt: 0,
         expiresAt: Infinity,
-      });
+      };
       context.cooldownController.ensureAmmo(skill, 0);
     }
   }
@@ -703,14 +681,14 @@ export function completeMesmerCast(context, skill) {
 
 export function advanceMesmerScheduler(context, target) {
   const profession = context.state.profession;
-  for (const [instrument, expiresAt] of profession.instruments) {
+  for (const [instrument, expiresAt] of Object.entries(profession.instruments)) {
     if (expiresAt <= target + EPSILON) {
-      profession.instruments.delete(instrument);
+      delete profession.instruments[instrument];
     }
   }
-  for (const [name, flip] of profession.availableFlips) {
+  for (const [name, flip] of Object.entries(profession.availableFlips)) {
     if (flip.expiresAt < target - EPSILON) {
-      profession.availableFlips.delete(name);
+      delete profession.availableFlips[name];
       if (name === "Counterspell") {
         profession.counterspellAvailable = false;
       }
@@ -737,47 +715,25 @@ export function observeMesmerEvent(context, event) {
       sourceSkill: event.skillName,
     };
   } else if (event.type === "damage") {
-    if (
-      event.blade &&
-      !event.noCrit &&
-      event.canCrit !== false &&
-      runtime.traits.has(TRAIT.DEADLY_BLADES)
-    ) {
-      const vulnerabilityStacks = baseCriticalChance(
-        context.config,
-        runtime.traits,
-        event.source,
-        context.state.activeWeaponSet,
-      );
-      if (vulnerabilityStacks > EPSILON) {
-        context.emit({
-          type: "buff",
-          at: event.at,
-          kind: "target-vulnerability",
-          stacks: vulnerabilityStacks,
-          duration: 5,
-          source: "Trait",
-          sourceId: TRAIT.DEADLY_BLADES,
-          sourceSkill: event.skillName,
-        });
-        context.emit({
-          type: "weakness_vulnerability",
-          at: event.at,
-          source: "Trait",
-          sourceId: TRAIT.DEADLY_BLADES,
-          skillName: event.skillName,
-        });
-      }
-    }
+    const tracksCriticalTrait = (
+      (
+        event.blade
+        && (
+          runtime.traits.has(TRAIT.JAGGED_MIND)
+          || runtime.traits.has(TRAIT.DEADLY_BLADES)
+        )
+      )
+      || (
+        runtime.traits.has(TRAIT.SHARPER_IMAGES)
+        && (event.source === "Clone" || event.source === "Phantasm")
+      )
+    );
+    if (!tracksCriticalTrait) return;
     candidate = {
       type: "hit",
       at: event.at,
-      hits: 1,
-      source: event.source,
-      blade: event.blade,
+      event,
       cloneId: event.cloneId,
-      sourceSkill: event.skillName,
-      weaponSet: context.state.activeWeaponSet,
     };
   }
   if (!candidate) return;
@@ -804,7 +760,39 @@ export function handleResourceGainTask(context, task) {
 }
 
 export function handleExpectedProcTask(context, task) {
-  runtimeFor(context).expected.process(task.payload);
+  const runtime = runtimeFor(context);
+  const event = task.payload.type === "hit"
+    ? task.payload.event
+    : null;
+  if (
+    event?.blade
+    && !event.noCrit
+    && event.canCrit !== false
+    && runtime.traits.has(TRAIT.DEADLY_BLADES)
+  ) {
+    const vulnerabilityStacks =
+      context.schedulerPolicy.critical?.(context, event)?.chance || 0;
+    if (vulnerabilityStacks > EPSILON) {
+      context.emitDerived(event, {
+        type: "buff",
+        at: event.at,
+        kind: "target-vulnerability",
+        stacks: vulnerabilityStacks,
+        duration: 5,
+        source: "Trait",
+        sourceId: TRAIT.DEADLY_BLADES,
+        sourceSkill: event.skillName,
+      });
+      context.emitDerived(event, {
+        type: "weakness_vulnerability",
+        at: event.at,
+        source: "Trait",
+        sourceId: TRAIT.DEADLY_BLADES,
+        skillName: event.skillName,
+      });
+    }
+  }
+  runtime.expected.process(task.payload);
 }
 
 export function handleBladeSpendTask(context, task) {
@@ -899,22 +887,6 @@ export function modifyMesmerRecharge(context, sharedDuration) {
   });
 }
 
-export function modifyMesmerCastDuration(context) {
-  const base = Math.max(
-    0,
-    Number(context.skill.activation ?? context.skill.castTime ?? 0),
-  );
-  if (base === 0 && TRUE_ZERO_DURATION_SKILLS.has(context.skill.name)) return 0;
-  const duration = context.config.boons?.quickness ? base / 1.5 : base;
-  return duration > 0 ? duration : 0.05;
-}
-
-export function modifyMesmerRechargeStart(context, effectiveEnd) {
-  return Number(context.skill.activation ?? context.skill.castTime ?? 0) > 0
-    ? effectiveEnd
-    : context.start;
-}
-
 export function modifyMesmerMaximumAmmo(context, maximum) {
   const name = context.skill.name;
   const isSlot1 = SHATTERS[name]?.slot === 1 || INSTRUMENTS[name]?.slot === 1;
@@ -929,7 +901,7 @@ export function projectMesmerEndState(context) {
   const endTime = state.time;
   const definition = runtime.resourceDefinition;
   const availableFlips = {};
-  for (const [name, flip] of state.profession.availableFlips) {
+  for (const [name, flip] of Object.entries(state.profession.availableFlips)) {
     if (flip.expiresAt < endTime - EPSILON) continue;
     const persistent = !Number.isFinite(flip.expiresAt);
     availableFlips[name] = {
@@ -973,7 +945,7 @@ export function projectMesmerEndState(context) {
     autoattackChains: Object.fromEntries(
       MESMER_AUTOATTACK_CHAINS.map((chain) => [
         chain[0],
-        state.profession.autoattackChains.get(chain[0]) || chain[0],
+        state.profession.autoattackChains[chain[0]] || chain[0],
       ]),
     ),
     continuumActive: Boolean(state.profession.continuum),
@@ -993,8 +965,6 @@ export const mesmerCastRules = Object.freeze({
     handler: mesmerAvailability,
   },
   modifyRechargeDuration: modifyMesmerRecharge,
-  modifyCastDuration: modifyMesmerCastDuration,
-  modifyRechargeStart: modifyMesmerRechargeStart,
   modifyMaximumAmmo: modifyMesmerMaximumAmmo,
   scheduleSkill: scheduleMesmerSkill,
 });

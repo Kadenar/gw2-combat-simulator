@@ -19,9 +19,11 @@
  * @property {number} [castTimeMs] Base cast duration in milliseconds.
  * @property {number} [quicknessCastTimeMs] Measured Quickness cast duration in
  * milliseconds; when omitted, the GW2 scheduler calculates it.
- * @property {number} [activation] Legacy base cast duration in seconds, used
- * only when `castTimeMs` is absent.
- * @property {number} [castTime] Legacy alias for `activation`.
+ * @property {readonly {group: string, durationMs: number}[]} [lockouts]
+ * Skill-family availability lockouts applied at activation. Only skills
+ * declaring the same group block one another.
+ * @property {"castStart"|"castEnd"} [rechargeAnchor] Point from which recharge
+ * begins. Defaults to cast completion.
  * @property {number} [cooldown] Recharge duration in seconds.
  * @property {number} [recharge] Legacy alias for `cooldown`.
  * @property {number} [ammo] Maximum charge count.
