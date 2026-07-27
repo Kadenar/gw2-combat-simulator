@@ -10,12 +10,42 @@ import { GUARDIAN_HANDLER_MECHANICS } from "../skill-mechanics.js";
 export function validateTomeCast(context, skill) {
   if (skill.tome) {
     return selectedGuardianSpecialization(context) === "Firebrand"
-      && context.state.profession.activeTome === skill.tome
-      && context.state.profession.tomePages >= Number(skill.pageCost || 1);
+      && context.state.profession.activeTome === skill.tome;
   }
   if (skill.name === "Stow Tome") {
     return Boolean(context.state.profession.activeTome);
   }
+}
+
+/**
+ * Tome page cost is a regenerating resource, so an insufficient balance is a
+ * wait rather than a permanent denial. Once the open tome and specialization
+ * match (handled as permanent gating by validateTomeCast), the scheduler can
+ * pause until the next page lands instead of discarding the cast.
+ */
+export function tomePageAvailability(context, skill) {
+  const state = context.state.profession;
+  if (
+    !skill.tome
+    || selectedGuardianSpecialization(context) !== "Firebrand"
+    || state.activeTome !== skill.tome
+  ) return true;
+  const pageCost = Math.max(1, Number(skill.pageCost || 1));
+  if (state.tomePages >= pageCost) return true;
+  // Pages only ever regenerate upward, so waiting for the scheduled page is a
+  // terminating condition. A non-finite next page (tome already at maximum)
+  // leaves retryAt null so the denial stays final rather than looping forever.
+  const retryAt = Number.isFinite(state.nextTomePageAt)
+    ? state.nextTomePageAt
+    : null;
+  return {
+    ready: false,
+    retryAt,
+    code: "guardian.tome-pages",
+    reason:
+      `${skill.name} is unavailable — requires ${pageCost} tome `
+      + `page${pageCost === 1 ? "" : "s"}.`,
+  };
 }
 
 function stowTome(context, skill) {

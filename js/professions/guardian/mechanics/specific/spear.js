@@ -1,5 +1,6 @@
 import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
 import { GUARDIAN_HANDLER_MECHANICS } from "../skill-mechanics.js";
+import { buildGuardianStrike } from "../events.js";
 
 /**
  * Spear "Illuminated" mechanic (Janthir Wilds guardian spear).
@@ -51,22 +52,17 @@ function emitIlluminatedBonus(context, skill, multiplier) {
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       const at = firstAt + (hitIndex - 1) * interval;
       if (interrupted && at > context.effectiveEnd + context.epsilon) break;
-      context.emit({
-        source: context.profession.id,
+      context.emit(buildGuardianStrike({
         sourceId: skill.id,
-        actorType: "player",
         skillId: skill.id,
         skillName: skill.name,
-        type: "damage",
         at,
         name: `${skill.name} (Illuminated)`,
         coefficient: perHit,
-        hits: 1,
         hitIndex,
         totalHits: hits,
         skillWeapon: "Spear",
-        canCrit: true,
-      });
+      }));
       if (emittedAt == null) emittedAt = at;
     }
   }

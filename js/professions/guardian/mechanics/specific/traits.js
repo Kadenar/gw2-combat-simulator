@@ -10,6 +10,7 @@ import {
   isInternalCooldownReady,
 } from "../../../../platform/engine/internal-cooldown.js";
 import { isGw2PlayerActorEvent } from "../../../../platform/gw2/event-ownership.js";
+import { buildGuardianStrike } from "../events.js";
 
 const TRAIT_BY_ID = new Map(
   SPECIALIZATIONS
@@ -142,23 +143,16 @@ function detonateLightAura(context, skill, at) {
   const state = context.state.profession;
   if (!lightAuraActive(state, at, context.epsilon)) return false;
   state.lightAuraUntil = 0;
-  context.emit({
-    type: "damage",
+  context.emit(buildGuardianStrike({
     at,
-    source: "guardian",
     sourceId: GUARDIAN_SKILL_IDS.SOVEREIGN_OF_LIGHT_DAMAGE,
     actorType: "effect",
     skillId: GUARDIAN_SKILL_IDS.SOVEREIGN_OF_LIGHT_DAMAGE,
     skillName: "Sovereign of Light",
     name: "Sovereign of Light",
     coefficient: 1.5,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    skillWeapon: "",
-    canCrit: true,
     triggeredBy: skill.name,
-  });
+  }));
   emitProc(context, {
     name: "Sovereign of Light",
     at,
@@ -412,24 +406,19 @@ function resetRadiantWeaponCooldowns(context, virtue) {
 
 function emitLesserSymbolOfBlades(context, skill, at) {
   for (let index = 0; index < 5; index += 1) {
-    context.emit({
-      type: "damage",
+    context.emit(buildGuardianStrike({
       at: at + index,
-      source: "guardian",
       sourceId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
       actorType: "effect",
       skillId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
       skillName: "Lesser Symbol of Blades",
       name: "Lesser Symbol of Blades",
       coefficient: 0.65,
-      hits: 1,
       hitIndex: index + 1,
       totalHits: 5,
-      skillWeapon: "",
-      canCrit: true,
       isSymbol: true,
       triggeredBy: skill.name,
-    });
+    }));
   }
   addLightField(context.state.profession, at, 4);
   emitProc(context, {
@@ -593,24 +582,18 @@ function queueResolverBuff(
 function queueLesserSymbolOfResolution(context, at, sourceSkill) {
   for (let index = 0; index < 5; index += 1) {
     const pulseAt = at + index;
-    enqueueOrdered(context.queue, {
-      type: "damage",
+    enqueueOrdered(context.queue, buildGuardianStrike({
       at: pulseAt,
-      source: "guardian",
       sourceId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION,
-      actorType: "player",
       skillId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION,
       skillName: "Lesser Symbol of Resolution",
       name: "Lesser Symbol of Resolution",
       coefficient: 0.5,
-      hits: 1,
       hitIndex: index + 1,
       totalHits: 5,
-      skillWeapon: "",
-      canCrit: true,
       isSymbol: true,
       triggeredBy: sourceSkill,
-    });
+    }));
     queueResolverBuff(context, {
       at: pulseAt,
       sourceId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION,
@@ -808,24 +791,17 @@ export function handleEffulgentDetonate(context, event) {
     "Effulgent Stance",
     `${stacks}/10 stacks`,
   );
-  enqueueOrdered(context.queue, {
-    type: "damage",
+  enqueueOrdered(context.queue, buildGuardianStrike({
     at: event.at,
     priority: 5,
-    source: "guardian",
     sourceId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
-    actorType: "player",
     skillId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
     skillName: "Effulgent Stance",
     name: "Effulgent Stance",
     coefficient: 0.5 + stacks * 0.35,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
     skillWeapon: "Utility",
-    canCrit: true,
     stackCount: stacks,
-  });
+  }));
   if (stacks === 10) {
     enqueueOrdered(context.queue, {
       type: "control",
