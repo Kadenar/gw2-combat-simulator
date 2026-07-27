@@ -244,7 +244,7 @@ function createMesmerRuntime(context) {
     config,
     traits,
     epsilon: EPSILON,
-    criticalChance: event =>
+    criticalChance: (event) =>
       context.schedulerPolicy.critical?.(context, event)?.chance || 0,
     activePrimaryWeapon,
     queueResources: resources.queueResources,
@@ -366,8 +366,8 @@ function updateAutoattackChains(runtime, skill) {
     return;
   }
   if (
-    Number(skill.castTimeMs || 0) > 0
-    && skill.rechargeAnchor !== "castStart"
+    Number(skill.castTimeMs || 0) > 0 &&
+    skill.rechargeAnchor !== "castStart"
   ) {
     for (const root of Object.keys(chains).map(Number)) {
       const preserve = mesmerPreservesAutoattackChain(root, skill);
@@ -586,9 +586,9 @@ export function initializeMesmerScheduler(context) {
   runtimes.set(context.state, runtime);
   const { state, config } = context;
   if (
-    runtime.traits.has(TRAIT.JAGGED_MIND)
-    || runtime.traits.has(TRAIT.SHARPER_IMAGES)
-    || runtime.traits.has(TRAIT.DEADLY_BLADES)
+    runtime.traits.has(TRAIT.JAGGED_MIND) ||
+    runtime.traits.has(TRAIT.SHARPER_IMAGES) ||
+    runtime.traits.has(TRAIT.DEADLY_BLADES)
   ) {
     context.schedulerPolicy.requireCriticalFacts?.();
   }
@@ -681,7 +681,9 @@ export function completeMesmerCast(context, skill) {
 
 export function advanceMesmerScheduler(context, target) {
   const profession = context.state.profession;
-  for (const [instrument, expiresAt] of Object.entries(profession.instruments)) {
+  for (const [instrument, expiresAt] of Object.entries(
+    profession.instruments,
+  )) {
     if (expiresAt <= target + EPSILON) {
       delete profession.instruments[instrument];
     }
@@ -715,19 +717,12 @@ export function observeMesmerEvent(context, event) {
       sourceSkill: event.skillName,
     };
   } else if (event.type === "damage") {
-    const tracksCriticalTrait = (
-      (
-        event.blade
-        && (
-          runtime.traits.has(TRAIT.JAGGED_MIND)
-          || runtime.traits.has(TRAIT.DEADLY_BLADES)
-        )
-      )
-      || (
-        runtime.traits.has(TRAIT.SHARPER_IMAGES)
-        && (event.source === "Clone" || event.source === "Phantasm")
-      )
-    );
+    const tracksCriticalTrait =
+      (event.blade &&
+        (runtime.traits.has(TRAIT.JAGGED_MIND) ||
+          runtime.traits.has(TRAIT.DEADLY_BLADES))) ||
+      (runtime.traits.has(TRAIT.SHARPER_IMAGES) &&
+        (event.source === "Clone" || event.source === "Phantasm"));
     if (!tracksCriticalTrait) return;
     candidate = {
       type: "hit",
@@ -761,14 +756,12 @@ export function handleResourceGainTask(context, task) {
 
 export function handleExpectedProcTask(context, task) {
   const runtime = runtimeFor(context);
-  const event = task.payload.type === "hit"
-    ? task.payload.event
-    : null;
+  const event = task.payload.type === "hit" ? task.payload.event : null;
   if (
-    event?.blade
-    && !event.noCrit
-    && event.canCrit !== false
-    && runtime.traits.has(TRAIT.DEADLY_BLADES)
+    event?.blade &&
+    !event.noCrit &&
+    event.canCrit !== false &&
+    runtime.traits.has(TRAIT.DEADLY_BLADES)
   ) {
     const vulnerabilityStacks =
       context.schedulerPolicy.critical?.(context, event)?.chance || 0;
