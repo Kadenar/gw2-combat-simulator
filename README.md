@@ -71,7 +71,8 @@ gw2-combat-simulator/
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the profession contract and
-import boundaries. Profession-specific documentation:
+import boundaries, and [docs/MODULES.md](docs/MODULES.md) for module
+responsibilities and public contracts. Profession-specific documentation:
 
 - Mesmer research and modeling assumptions: [docs/RESEARCH.md](docs/RESEARCH.md)
 - Elementalist implementation details: [docs/ELEMENTALIST.md](docs/ELEMENTALIST.md)

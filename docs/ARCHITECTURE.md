@@ -277,9 +277,13 @@ The current persisted schema is:
 }
 ```
 
-Each profession owns defaults, explicit version migrations, validation, and
-sanitization. The existing `gw2-mesmer-simulator-v2` localStorage key is kept
-so saved builds migrate in place. Browser state uses a compatibility view of
+Each profession owns defaults, explicit version migrations, and
+resource-specific normalization and validation. Native professions configure
+the shared `platform/gw2/build-codec.js` factory, which owns common schema
+migration, sanitization, and validation for gear, weapons, sigils, relics,
+infusions, specializations, selected skills, targets, and canonical
+rotations. The existing `gw2-mesmer-simulator-v2` localStorage key is kept so
+saved builds migrate in place. Browser state uses a compatibility view of
 rotation entries; storage and the simulator contract use normalized commands.
 
 ## Included professions
@@ -306,7 +310,9 @@ rotation entries; storage and the simulator contract use normalized commands.
    the standard event reactions the profession needs.
    Declare exact hand availability in `weaponHands` and register callable
    custom cast behavior in `skillHandlers`.
-3. Add the profession to `js/app/composition.js` or a future profession picker.
+3. Add the profession page and one lazy entry to
+   `js/app/profession-registry.js`; use `loadAppAdapter: null` only for a
+   standalone legacy application.
 4. Add an end-to-end fixture that imports no other profession.
 5. Run `npm test` and `npm run check`.
 
