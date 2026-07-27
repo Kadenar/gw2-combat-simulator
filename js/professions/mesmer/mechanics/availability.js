@@ -66,7 +66,7 @@ export function mesmerAvailability(context, skill) {
   const position = mesmerAutoattackChainPosition(skill.id);
   if (position) {
     const expected =
-      state.profession.autoattackChains.get(position.root) || position.root;
+      state.profession.autoattackChains[position.root] || position.root;
     if (skill.id !== expected) {
       return {
         ready: false,
@@ -79,7 +79,7 @@ export function mesmerAvailability(context, skill) {
     }
   }
   if (skill.flipParent) {
-    const flip = state.profession.availableFlips.get(skill.name);
+    const flip = state.profession.availableFlips[skill.name];
     if (!flip || flip.expiresAt < at - EPSILON) {
       const parent = runtime.skillsByName.get(skill.flipParent);
       if (parent && context.inFlight.get(parent.id)?.size) {

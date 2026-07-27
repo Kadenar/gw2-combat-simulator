@@ -391,7 +391,7 @@ export function createSkillEffectController({
       const tracking = skill.trackedHitDamage;
       const duration = Number(tracking.duration || 0);
       let recentHits = [
-        ...(state.profession.trackedSkillHits.get(skill.id) || []),
+        ...(state.profession.trackedSkillHits[skill.id] || []),
       ];
       const required = Math.max(
         1,
@@ -439,7 +439,7 @@ export function createSkillEffectController({
           }
         }
       }
-      state.profession.trackedSkillHits.set(skill.id, recentHits);
+      state.profession.trackedSkillHits[skill.id] = recentHits;
     }
 
     const appliedConditions = etherCloneAtMaximum
@@ -622,7 +622,7 @@ export function createSkillEffectController({
     if (skill.type === "Heal" && traits.has(TRAIT.METHOD_OF_MADNESS)) {
       const storm = traitDamage["Lesser Chaos Storm"];
       const readyAt =
-        state.profession.traitReadyAt.get("Method of Madness") || 0;
+        state.profession.traitReadyAt["Method of Madness"] || 0;
       if (isInternalCooldownReady(at, readyAt)) {
         const hits = Math.max(1, Math.trunc(Number(storm.hits || 1)));
         const interval = Math.max(0, Number(storm.interval || 0));
@@ -643,10 +643,8 @@ export function createSkillEffectController({
           );
         }
         addTraitProc("Method of Madness", at, skill.name);
-        state.profession.traitReadyAt.set(
-          "Method of Madness",
-          at + storm.cooldown,
-        );
+        state.profession.traitReadyAt["Method of Madness"] =
+          at + storm.cooldown;
         if (traits.has(TRAIT.SYNCOPATE)) {
           const syncopate = traitDamage.Syncopate;
           addDamage(

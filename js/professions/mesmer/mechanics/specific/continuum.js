@@ -36,9 +36,9 @@ export function createContinuumController({
         },
       ]),
     );
-    state.profession.autoattackChains = new Map(
-      state.profession.continuum.autoattackChains || [],
-    );
+    state.profession.autoattackChains = {
+      ...(state.profession.continuum.autoattackChains || {}),
+    };
     for (const [id] of state.ammo) {
       const ammoSkill = skillsById.get(id);
       if (ammoSkill) refreshAmmo(ammoSkill, at);
@@ -84,7 +84,7 @@ export function createContinuumController({
       splitReady: state.cooldowns.get(skill.id),
       remainingCooldowns,
       ammo,
-      autoattackChains: new Map(state.profession.autoattackChains),
+      autoattackChains: { ...state.profession.autoattackChains },
       expiresAt: at + 1.5 * (spent + 1),
     };
     scheduleExpiry?.(state.profession.continuum.expiresAt);
