@@ -313,10 +313,12 @@ export function createProfessionActionController({
       );
       addMaimOnHit(at);
     } else if (shatter.kind === "blade-requiem") {
+      const packetDelays = shatter.packetDelays || [];
       for (let index = 0; index < spent; index += 1) {
+        const packetAt = at + Number(packetDelays[index] ?? index + 1);
         addDamage(
           skill,
-          at + index,
+          packetAt,
           {
             coefficient: shatter.coefficients[spent] / spent,
             hits: 1,
@@ -325,7 +327,7 @@ export function createProfessionActionController({
           },
           { shatter: true, blade: true },
         );
-        addMaimOnHit(at + index);
+        addMaimOnHit(packetAt);
       }
     }
 

@@ -190,13 +190,29 @@ test("Mesmer trait and skill buffs share their additive damage buckets", () => {
   });
 
   const strike = mesmerAttributeRules.modifyStrikeDamage(context, 1.08);
-  assert.ok(Math.abs(strike - 1.905) < 1e-12);
+  assert.ok(Math.abs(strike - 1.955) < 1e-12);
 
   const condition = mesmerAttributeRules.modifyConditionDamage(
     { ...context, condition: "Torment" },
     1.05,
   );
   assert.ok(Math.abs(condition - 1.67) < 1e-12);
+});
+
+test("Mesmer Deadly Blades does not increase phantasm damage", () => {
+  const context = modifierContext({
+    event: { source: "Phantasm" },
+    active: ["deadly-blades"],
+  });
+
+  assert.equal(mesmerAttributeRules.modifyStrikeDamage(context, 1.08), 1);
+  assert.equal(
+    mesmerAttributeRules.modifyConditionDamage(
+      { ...context, condition: "Bleeding" },
+      1.05,
+    ),
+    1.05,
+  );
 });
 
 test("Mesmer instrument checks skip other specializations and index events once", () => {

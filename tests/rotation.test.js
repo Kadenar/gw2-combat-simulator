@@ -706,9 +706,14 @@ test('Compounding Power does not increase illusion attack damage', () => {
     );
 });
 
-test('Compounding Power increases player strike damage by one percent per stack', () => {
+test('Compounding Power gives player strikes two percent and conditions one percent per stack', () => {
     const simulate = selectedTraits => simulateMesmer(
-        ['Mirror Images', 'Winds of Chaos'],
+        [
+            'Mirror Images',
+            'Winds of Chaos',
+            'Cry of Frustration',
+            { name: '__wait', waitMs: 5000 },
+        ],
         defaultSimulationConfig({
             specialization: 'Core',
             selectedTraits,
@@ -717,17 +722,26 @@ test('Compounding Power increases player strike damage by one percent per stack'
             initialResource: 0,
         }),
     );
-    const playerDamage = result => result.resolvedEvents
+    const playerStrike = result => result.resolvedEvents
         .find(event =>
             event.type === 'damage'
             && event.name === 'Winds of Chaos'
             && event.source === 'Player')
         .damage;
+    const playerCondition = result => result.resolvedEvents
+        .find(event =>
+            event.type === 'condition'
+            && event.skillName === 'Cry of Frustration'
+            && event.source === 'Player')
+        .damage;
+    const withTrait = simulate(['Compounding Power']);
+    const withoutTrait = simulate([]);
 
     assert.ok(Math.abs(
-        playerDamage(simulate(['Compounding Power']))
-        / playerDamage(simulate([]))
-        - 1.02,
+        playerStrike(withTrait) / playerStrike(withoutTrait) - 1.04,
+    ) < 1e-12);
+    assert.ok(Math.abs(
+        playerCondition(withTrait) / playerCondition(withoutTrait) - 1.02,
     ) < 1e-12);
 });
 
@@ -3377,6 +3391,26 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
     }
 });
 
+test('Bladeturn Requiem starts one second later and scales by 0.5 per blade', () => {
+    const result = simulateMesmer(
+        ['Bladeturn Requiem', { name: '__wait', waitMs: 6000 }],
+        defaultSimulationConfig({ initialResource: 5 }),
+    );
+    const hits = result.resolvedEvents.filter(event =>
+        event.type === 'damage'
+        && event.skillName === 'Bladeturn Requiem'
+    );
+
+    assert.deepEqual(
+        hits.map(event => Number(event.at.toFixed(3))),
+        [1, 2, 3, 4, 5],
+    );
+    assert.deepEqual(
+        hits.map(event => event.coefficient),
+        [0.5, 0.5, 0.5, 0.5, 0.5],
+    );
+});
+
 test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
     const result = simulateMesmer(
         ['Phantasmal Duelist', { name: '__wait', waitMs: 4000 }],
@@ -3398,8 +3432,27 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
 
     assert.deepEqual(times('Player'), [0.35, 0.35, 0.4]);
     assert.deepEqual(
+        result.resolvedEvents
+            .filter(event =>
+                event.type === 'damage'
+                && event.skillName === 'Phantasmal Duelist'
+                && event.source === 'Player'
+            )
+            .map(event => event.coefficient),
+        [0.33, 0.33, 0.33],
+    );
+    assert.deepEqual(
         times('Phantasm'),
         [1.351, 1.551, 1.75, 1.95, 2.151, 2.35, 2.55, 2.751],
+    );
+    assert.ok(
+        result.resolvedEvents
+            .filter(event =>
+                event.type === 'damage'
+                && event.skillName === 'Phantasmal Duelist'
+                && event.source === 'Phantasm'
+            )
+            .every(event => Math.abs(event.coefficient - 0.115) < 1e-12),
     );
     assert.deepEqual(
         result.resolvedEvents
