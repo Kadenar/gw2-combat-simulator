@@ -11,6 +11,10 @@ const CLARITY_CONSUMERS = new Set([
   "Phantasmal Lancer",
   "Mental Collapse",
 ]);
+const SIGNET_ILLUSIONS_RESET_EXCLUSIONS = new Set([
+  "Continuum Split",
+  "Crescendo",
+]);
 
 /**
  * Applies Mesmer-owned ordinary and phantasm skill effects.
@@ -37,7 +41,15 @@ export function createSkillEffectController({
   shatters = {},
   instruments = {},
 }) {
-  const handleGenericSkill = (skill, at, castStart = at) => {
+  const handleGenericSkill = (
+    skill,
+    at,
+    castStart = at,
+    {
+      phantasmSummonAt = at,
+      playerEffectEnd = Infinity,
+    } = {},
+  ) => {
     const clarityConsumed =
       CLARITY_CONSUMERS.has(skill.name)
       && state.profession.clarityUntil > castStart;
@@ -78,7 +90,7 @@ export function createSkillEffectController({
     const phantasmEndpoint = (offset) => {
       const measuredCastTime = Number(phantasmTiming?.castTime || 0);
       const measuredPostCast = Number(offset) - measuredCastTime;
-      const actualCastTime = at - castStart;
+      const actualCastTime = phantasmSummonAt - castStart;
       return castStart + actualCastTime + measuredPostCast / phantasmSpeed;
     };
     const phantasmDamageAt = phantasmEndpoint(phantasmTiming?.damage);
@@ -101,20 +113,59 @@ export function createSkillEffectController({
         ? phantasmTiming.virtuosoBladeHits
         : null;
     let chronophantasmaProc = false;
+    let firstFencerTriggerAt = Infinity;
+
+    const addFencerStacks = (hitTimes, hits) => {
+      if (
+        !traits.has(TRAIT.FENCERS_FINESSE)
+        || skill.weapon !== "Sword"
+        || hitTimes.length === 0
+      ) {
+        return;
+      }
+      const hitCount = Math.max(1, Math.trunc(Number(hits || 1)));
+      if (hitTimes.length === hitCount) {
+        for (const hitAt of hitTimes) {
+          addEvent({
+            type: "buff",
+            at: hitAt + epsilon,
+            kind: "fencer",
+            stacks: 1,
+            duration: 6,
+          });
+          firstFencerTriggerAt = Math.min(
+            firstFencerTriggerAt,
+            hitAt + epsilon,
+          );
+        }
+        return;
+      }
+      addEvent({
+        type: "buff",
+        at: hitTimes[0] + epsilon,
+        kind: "fencer",
+        stacks: Math.min(10, hitCount),
+        duration: 6,
+      });
+      firstFencerTriggerAt = Math.min(
+        firstFencerTriggerAt,
+        hitTimes[0] + epsilon,
+      );
+    };
 
     if (isPhantasm) {
       if (traits.has(TRAIT.COMPOUNDING_POWER)) {
-        markCompounding(at, phantasmCount);
+        markCompounding(phantasmSummonAt, phantasmCount);
         addTraitProc(
           "Compounding Power",
-          at,
+          phantasmSummonAt,
           skill.name,
           `${phantasmCount} phantasm${phantasmCount === 1 ? "" : "s"}`,
         );
       }
       addEvent({
         type: "mesmer.phantasm-summoned",
-        at,
+        at: phantasmSummonAt,
         name: skill.name,
         count: phantasmCount,
       });
@@ -203,6 +254,12 @@ export function createSkillEffectController({
         : group.castProgress != null
           ? castStart + (at - castStart) * Number(group.castProgress)
           : at + Number(group.delay || 0);
+      if (
+        group.source !== "Phantasm"
+        && hitAt > playerEffectEnd + epsilon
+      ) {
+        continue;
+      }
       const selectedGroup =
         skill.boonlessCoefficient && config.target?.boonless
           ? { ...group, coefficient: skill.boonlessCoefficient }
@@ -309,39 +366,14 @@ export function createSkillEffectController({
           chronophantasmaProc = true;
         }
       }
-      if (
-        traits.has(TRAIT.FENCERS_FINESSE)
-        && skill.weapon === "Sword"
-        && group.source === "Phantasm"
-      ) {
-        if (phantasmPacketOffsets?.length > 0) {
-          for (const packetAt of initialHitTimes) {
-            addEvent({
-              type: "buff",
-              at: packetAt + epsilon,
-              kind: "fencer",
-              stacks: 1,
-              duration: 6,
-            });
-          }
-        } else {
-          addEvent({
-            type: "buff",
-            at: phantasmDamageAt + epsilon,
-            kind: "fencer",
-            stacks: Math.min(10, Number(scaledGroup.hits || 1)),
-            duration: 6,
-          });
-        }
-        if (hasChronophantasma) {
-          addEvent({
-            type: "buff",
-            at: chronophantasmaDamageAt + epsilon,
-            kind: "fencer",
-            stacks: Math.min(10, Number(scaledGroup.hits || 1)),
-            duration: 6,
-          });
-        }
+      if (group.source === "Player" || group.source === "Phantasm") {
+        addFencerStacks(initialHitTimes, scaledGroup.hits);
+      }
+      if (group.source === "Phantasm" && hasChronophantasma) {
+        addFencerStacks(
+          [chronophantasmaDamageAt],
+          scaledGroup.hits,
+        );
       }
     }
     if (skill.trackedHitDamage) {
@@ -533,7 +565,11 @@ export function createSkillEffectController({
       });
     }
     if (skill.name === "Signet of Illusions") {
-      for (const target of allSkills.filter(s => shatters[s.name] || instruments[s.name])) {
+      for (
+        const target of allSkills.filter(candidate =>
+          (shatters[candidate.name] || instruments[candidate.name])
+          && !SIGNET_ILLUSIONS_RESET_EXCLUSIONS.has(candidate.name))
+      ) {
         const ammo = state.ammo.get(target.id);
         if (ammo) {
           ammo.charges = Math.min(ammo.maximum, ammo.charges + 1);
@@ -549,7 +585,7 @@ export function createSkillEffectController({
         type: "marker",
         at,
         name: "Signet of Illusions",
-        detail: "Shatter/instrument cooldowns reset",
+        detail: "Shatter/instrument cooldowns reset (excluding Continuum Split and Crescendo)",
       });
     }
     if (skill.name === "Mental Collapse") {
@@ -612,27 +648,8 @@ export function createSkillEffectController({
         }
       }
     }
-    if (
-      traits.has(TRAIT.FENCERS_FINESSE)
-      && skill.weapon === "Sword"
-      && (skill.damage || []).some((group) => group.source === "Player")
-    ) {
-      addEvent({
-        type: "buff",
-        at: at + epsilon,
-        kind: "fencer",
-        stacks: Math.min(
-          10,
-          skill.damage.reduce(
-            (sum, group) =>
-              sum
-              + (group.source === "Player" ? Number(group.hits || 1) : 0),
-            0,
-          ),
-        ),
-        duration: 6,
-      });
-      addTraitProc("Fencer's Finesse", at + epsilon, skill.name);
+    if (Number.isFinite(firstFencerTriggerAt)) {
+      addTraitProc("Fencer's Finesse", firstFencerTriggerAt, skill.name);
     }
     return clarityConsumed;
   };

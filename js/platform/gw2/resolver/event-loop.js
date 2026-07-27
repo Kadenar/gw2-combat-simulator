@@ -54,6 +54,10 @@ export function runGw2ResolverEventLoop(
         event.type === "damage"
         || event.type === "condition"
         || event.type === "condition_tick"
+        || (
+          event.type === "buff"
+          && event.kind === "target-vulnerability"
+        )
       )
     ) continue;
 

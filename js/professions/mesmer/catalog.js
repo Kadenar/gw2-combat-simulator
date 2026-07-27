@@ -16,9 +16,27 @@ const generated = SKILLS.map(skill => ({
   implemented: false,
   effects: [],
 }));
+
+// Ammo-flip mantras (e.g. Mantra of Pain) store their charges on the armed
+// flip child (Power Spike), which we model with armedAtStart + ammo. The GW2
+// API metadata instead puts ammo on the parent container, so strip it from any
+// parent whose modeled flip child carries ammo — otherwise both the scheduler
+// (maximumAmmoFor) and palette treat the parent as a phantom charge skill.
+const flipParentsWithAmmoChild = new Set(
+  [...Object.values(MESMER_SKILL_MECHANICS), ...MESMER_EXTRA_SKILLS]
+    .filter(skill => skill.flipParent && Number(skill.ammo || 0) > 0)
+    .map(skill => skill.flipParent),
+);
+const overrides = Object.fromEntries(
+  generated
+    .filter(skill => flipParentsWithAmmoChild.has(skill.name))
+    .map(skill => [skill.id, { ammo: 0, ammoRecharge: 0 }]),
+);
+
 export const mesmerCatalog = createCanonicalCatalog({
   generated,
   mechanics: MESMER_SKILL_MECHANICS,
+  overrides,
   extraSkills: MESMER_EXTRA_SKILLS,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,

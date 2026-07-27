@@ -255,6 +255,8 @@ export function createScheduler({
     epsilon,
     schedulerPolicy,
     inFlight,
+    hasExplicitCombatStart: false,
+    combatStartTime: null,
     tasks: null,
     emit(event) {
       const normalized = createEvent({ ...event, __order: eventOrder++ });
@@ -739,6 +741,10 @@ export function createScheduler({
 
   function run(rotation) {
     const commands = normalizeRotation(rotation, catalog, { strict: true });
+    context.hasExplicitCombatStart = commands.some(
+      command => command.type === "combat-start",
+    );
+    context.combatStartTime = null;
     if (commands.length > ACTION_SAFETY_LIMIT) {
       throw new Error("Rotation action safety limit exceeded.");
     }
@@ -778,6 +784,7 @@ export function createScheduler({
           ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
           : Math.max(state.time, serialReadyAt, latestReservedEnd);
         advanceTo(combatStartTime);
+        context.combatStartTime = combatStartTime;
         context.emit({
           type: "combat_start",
           at: combatStartTime,

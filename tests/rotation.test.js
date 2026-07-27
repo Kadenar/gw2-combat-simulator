@@ -26,7 +26,10 @@ import {
     timelineWeaponRows,
 } from '../js/app/rotation-ui.js';
 import { RELIC_DATA } from '../js/platform/gw2/gear-data.js';
-import { MESMER_SKILL_IDS as ID } from '../js/professions/mesmer/data/ids.js';
+import {
+    MESMER_SKILL_IDS as ID,
+    MESMER_TRAIT_IDS as TRAIT,
+} from '../js/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '../js/professions/mesmer/catalog.js';
 import {
     recalculate,
@@ -397,6 +400,126 @@ test('Spatial Surge keeps channel packets completed before an interrupt', () => 
     assert.ok(partial[1].at > partial[0].at);
 });
 
+test('Phantasmal Swordsman independently gates its summon and player hit', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Sword',
+        secondaryWeapon: '',
+        initialResource: 0,
+    });
+    const interruptedAt = interruptMs => simulateMesmer(
+        [
+            { name: 'Phantasmal Swordsman', interruptMs },
+            { name: '__wait', waitMs: 5000 },
+        ],
+        config,
+    );
+    const summonedAt = result => result.events.find(event =>
+        event.type === 'mesmer.phantasm-summoned'
+        && event.name === 'Phantasmal Swordsman'
+    )?.at;
+    const playerHitAt = result => result.events.find(event =>
+        event.type === 'damage'
+        && event.skillName === 'Phantasmal Swordsman'
+        && event.source === 'Player'
+    )?.at;
+
+    const beforeSummon = interruptedAt(719);
+    const summonOnly = interruptedAt(720);
+    const beforePlayerHit = interruptedAt(750);
+    const withPlayerHit = interruptedAt(760);
+
+    assert.equal(summonedAt(beforeSummon), undefined);
+    assert.equal(summonedAt(summonOnly), 0.72);
+    assert.equal(summonedAt(beforePlayerHit), 0.75);
+    assert.equal(summonedAt(withPlayerHit), 0.76);
+    assert.equal(playerHitAt(summonOnly), undefined);
+    assert.equal(playerHitAt(beforePlayerHit), undefined);
+    assert.ok(Math.abs(playerHitAt(withPlayerHit) - 0.759) < 1e-12);
+    assert.equal(
+        summonOnly.endState.cooldowns['Phantasmal Swordsman'].readyAt,
+        12720,
+    );
+    assert.ok(summonOnly.events.some(event =>
+        event.type === 'damage'
+        && event.skillName === 'Phantasmal Swordsman'
+        && event.source === 'Phantasm'
+    ));
+});
+
+test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Core',
+        primaryWeapon: 'Sword',
+        secondaryWeapon: '',
+        initialResource: 0,
+        selectedTraits: ["Fencer's Finesse"],
+    });
+    const simulate = interruptMs => simulateMesmer(
+        [
+            interruptMs == null
+                ? 'Phantasmal Swordsman'
+                : { name: 'Phantasmal Swordsman', interruptMs },
+            { name: '__wait', waitMs: 5000 },
+        ],
+        config,
+    );
+    const applications = result => result.events
+        .filter(event =>
+            event.type === 'buff'
+            && event.kind === 'fencer'
+        )
+        .map(event => ({
+            at: Math.round(event.at * 10000),
+            stacks: event.stacks,
+        }));
+
+    assert.deepEqual(
+        applications(simulate(null)),
+        [
+            7591,
+            17251,
+            22011,
+            22421,
+            25251,
+            25591,
+            28001,
+            28421,
+            31261,
+            31591,
+        ].map(at => ({ at, stacks: 1 })),
+    );
+    assert.deepEqual(
+        applications(simulate(720)),
+        [
+            15651,
+            20411,
+            20821,
+            23651,
+            23991,
+            26401,
+            26821,
+            29661,
+            29991,
+        ].map(at => ({ at, stacks: 1 })),
+    );
+    assert.deepEqual(
+        applications(simulate(760)).map(event => event.at),
+        [
+            7591,
+            16051,
+            20811,
+            21221,
+            24051,
+            24391,
+            26801,
+            27221,
+            30061,
+            30391,
+        ],
+    );
+});
+
 test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it first', () => {
     const rotation = [
         'Phantasmal Warlock',
@@ -701,7 +824,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
     );
     assert.deepEqual(
         pistolSkills.steps.map(step => step.end - step.start),
-        [540, 440],
+        [560, 440],
     );
 
     const axeSkills = simulateMesmer(
@@ -1291,7 +1414,7 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
     const log = simulationEventLogRows(result);
 
     assert.ok(log.some(event =>
-        Math.abs(event.at - 0.54) < 0.00001
+        Math.abs(event.at - 0.56) < 0.00001
         && event.description === 'PHANTASM SUMMONED Phantasmal Duelist x1'));
     assert.ok(log.some(event =>
         Math.abs(event.at - 2.751) < 0.00001
@@ -1740,6 +1863,41 @@ test('Relic of Aristocracy requires more than its one-second ICD', () => {
     assert.deepEqual(
         aristocracyProcs(481).map(proc => proc.detail),
         ['1/5 stacks', '2/5 stacks'],
+    );
+});
+
+test('Virtuoso Deadly Blades vulnerability triggers Relic of Aristocracy', () => {
+    const defaults = defaultSimulationConfig();
+    const result = simulateMesmer(
+        ['Bladecall', { name: '__wait', waitMs: 2000 }],
+        defaultSimulationConfig({
+            specialization: 'Virtuoso',
+            selectedTraits: ['Deadly Blades'],
+            relic: 'Aristocracy',
+            initialResource: 0,
+            stats: {
+                ...defaults.stats,
+                precision: 4000,
+            },
+        }),
+    );
+    const vulnerability = result.events.filter(event =>
+        event.type === 'buff'
+        && event.kind === 'target-vulnerability'
+        && event.sourceId === TRAIT.DEADLY_BLADES
+    );
+    const aristocracy = result.procSteps.filter(proc =>
+        proc.skill === 'Relic of Aristocracy'
+    );
+
+    assert.equal(vulnerability.length, 3);
+    assert.equal(vulnerability.every(event => event.stacks === 1), true);
+    assert.deepEqual(
+        aristocracy.map(proc => ({
+            sourceSkill: proc.sourceSkill,
+            detail: proc.detail,
+        })),
+        [{ sourceSkill: 'Bladecall', detail: '1/5 stacks' }],
     );
 });
 
@@ -2746,6 +2904,118 @@ test('Signet of the Ether resets every phantasm skill cooldown', () => {
     assert.ok(Math.abs(result.steps[4].start - result.steps[3].end) <= 1);
 });
 
+test('Signet of Illusions passively generates one resource every ten combat seconds', () => {
+    const passiveEvents = specialization => simulateMesmer(
+        [{ name: '__wait', waitMs: 20001 }],
+        defaultSimulationConfig({
+            specialization,
+            selectedSkills: ['Signet of Illusions'],
+            initialResource: 0,
+        }),
+    ).events.filter(event =>
+        event.type === 'resource'
+        && event.reason === 'Signet of Illusions'
+    );
+
+    assert.deepEqual(
+        passiveEvents('Core').map(event => [event.at, event.resource]),
+        [[10, 'clones'], [20, 'clones']],
+    );
+    assert.deepEqual(
+        passiveEvents('Virtuoso').map(event => [event.at, event.resource]),
+        [[10, 'blades'], [20, 'blades']],
+    );
+    assert.equal(
+        simulateMesmer(
+            [{ name: '__wait', waitMs: 20001 }],
+            defaultSimulationConfig({
+                specialization: 'Core',
+                selectedSkills: [],
+                initialResource: 0,
+            }),
+        ).events.some(event => event.reason === 'Signet of Illusions'),
+        false,
+    );
+});
+
+test('Signet of Illusions starts its passive cycle at combat start', () => {
+    const result = simulateMesmer(
+        [
+            { name: '__wait', waitMs: 5000 },
+            '__combat_start',
+            { name: '__wait', waitMs: 10001 },
+        ],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            selectedSkills: ['Signet of Illusions'],
+            initialResource: 0,
+        }),
+    );
+    const passiveEvents = result.events.filter(event =>
+        event.type === 'resource'
+        && event.reason === 'Signet of Illusions'
+    );
+
+    assert.deepEqual(passiveEvents.map(event => event.at), [15]);
+});
+
+test('Signet of Illusions restarts its ten-second cycle after recharge', () => {
+    const result = simulateMesmer(
+        [
+            'Signet of Illusions',
+            { name: '__wait', waitMs: 70001 },
+        ],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            selectedSkills: ['Signet of Illusions'],
+            initialResource: 0,
+            boons: {
+                quickness: false,
+                alacrity: false,
+            },
+        }),
+    );
+    const passiveEvents = result.events.filter(event =>
+        event.type === 'resource'
+        && event.reason === 'Signet of Illusions'
+    );
+
+    assert.deepEqual(passiveEvents.map(event => event.at), [71.68]);
+});
+
+test('Signet of Illusions does not recharge Continuum Split or Crescendo', () => {
+    const chronomancer = simulateMesmer(
+        [
+            'Continuum Split',
+            { name: '__wait', waitMs: 2000 },
+            'Split Second',
+            'Signet of Illusions',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            selectedSkills: ['Signet of Illusions'],
+            initialResource: 0,
+        }),
+    );
+    assert.ok(chronomancer.endState.cooldowns['Continuum Split']);
+    assert.equal(chronomancer.endState.cooldowns['Split Second'], undefined);
+
+    const troubadour = simulateMesmer(
+        [
+            'Lively Lute',
+            'Crescendo',
+            'Signet of Illusions',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            selectedSkills: ['Signet of Illusions'],
+            initialResource: 1,
+        }),
+    );
+    assert.ok(troubadour.endState.cooldowns.Crescendo);
+    assert.equal(troubadour.endState.cooldowns['Lively Lute'], undefined);
+});
+
 test('Mental Collapse resets Mind the Gap cooldown', () => {
     const result = simulateMesmer(
         ['Mind the Gap', 'Mental Collapse', 'Mind the Gap'],
@@ -3094,7 +3364,7 @@ test('the supplied condition Virtuoso build tracks cast-end blade spends', () =>
     };
     assert.deepEqual(
         [relativeStart(9), relativeStart(11), relativeStart(29)],
-        [2.15, 3.71, 12.94],
+        [2.17, 3.73, 12.98],
     );
     const firstHarmony = result.events.find(event =>
         event.type === 'action' && event.name === 'Bladesong Harmony'
