@@ -15,27 +15,18 @@ import { createTaskQueue } from "./task-queue.js";
  * Reads a skill's base cast duration from canonical metadata.
  */
 function baseDurationSeconds(skill) {
-  if (skill.castTimeMs != null) return Math.max(0, Number(skill.castTimeMs)) / 1000;
-  return Math.max(0, Number(skill.activation ?? skill.castTime ?? 0));
+  return Math.max(0, Number(skill.castTimeMs || 0)) / 1000;
 }
 
 /**
  * Resolves the first timestamp at which an effect should fire.
  */
 function effectAt(start, fullEnd, effect) {
-  // Timing declarations are mutually exclusive in canonical data. The
-  // precedence here makes malformed mixed declarations deterministic.
+  const origin = effect.timingAnchor === "castEnd" ? fullEnd : start;
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
-    return start + Number(effect.ticks[0].atMs) / 1000;
+    return origin + Number(effect.ticks[0].atMs) / 1000;
   }
-  if (Array.isArray(effect.atMsList) && effect.atMsList.length) {
-    return start + Number(effect.atMsList[0]) / 1000;
-  }
-  if (effect.atCastEndOffsetMs != null) {
-    return fullEnd + Number(effect.atCastEndOffsetMs) / 1000;
-  }
-  if (effect.atMs != null) return start + Number(effect.atMs) / 1000;
-  if (effect.at != null) return start + Number(effect.at);
+  if (effect.atMs != null) return origin + Number(effect.atMs) / 1000;
   return fullEnd;
 }
 
@@ -75,11 +66,7 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
       const ticks = Array.isArray(timing.ticks)
         ? timing.ticks
         : null;
-      const atMsList = Array.isArray(timing.atMsList)
-        ? timing.atMsList.map(Number)
-        : null;
       const hits = ticks?.length
-        || atMsList?.length
         || Math.max(1, Math.trunc(Number(effect.hits || 1)));
       // A strike effect stores its total coefficient. Unless per-tick
       // coefficients are supplied, divide it evenly across emitted hits.
@@ -88,11 +75,10 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
         Math.max(0, Number(timing.intervalMs || 0)) / 1000;
       for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
         const tick = ticks?.[hitIndex - 1];
+        const origin = timing.timingAnchor === "castEnd" ? fullEnd : start;
         const at = tick
-          ? start + Number(tick.atMs) / 1000
-          : atMsList
-            ? start + atMsList[hitIndex - 1] / 1000
-            : firstAt + (hitIndex - 1) * interval;
+          ? origin + Number(tick.atMs) / 1000
+          : firstAt + (hitIndex - 1) * interval;
         if (interrupted && at > effectiveEnd + context.epsilon) break;
         context.emit({
           ...base,
@@ -112,13 +98,14 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
       }
     } else if (effect.type === "condition") {
       if (Array.isArray(timing.ticks)) {
+        const origin = timing.timingAnchor === "castEnd" ? fullEnd : start;
         for (
           let applicationIndex = 1;
           applicationIndex <= timing.ticks.length;
           applicationIndex += 1
         ) {
           const tick = timing.ticks[applicationIndex - 1];
-          const at = start + Number(tick.atMs) / 1000;
+          const at = origin + Number(tick.atMs) / 1000;
           if (interrupted && at > effectiveEnd + context.epsilon) break;
           context.emit({
             ...base,
@@ -699,6 +686,8 @@ export function createScheduler({
           ammoCastLockout: true,
         })
       : 0;
+    const canonicalRechargeStart =
+      skill.rechargeAnchor === "castStart" ? start : effectiveEnd;
     const rechargeStart = Math.max(
       start,
       Number(
@@ -709,7 +698,7 @@ export function createScheduler({
             effectiveEnd,
             rechargeDuration,
           },
-          effectiveEnd,
+          canonicalRechargeStart,
         ),
       ),
     );

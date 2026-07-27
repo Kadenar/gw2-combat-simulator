@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { defaultSimulationConfig } from './helpers/fixture-harness-core.js';
 import {
+    createDefaultConfig,
     simulateMesmer,
 } from './helpers/mesmer-simulation.js';
 import { chartValueAt } from '../js/platform/ui/charts.js';
@@ -255,7 +256,7 @@ test('Shift+click timeline form casts an instant skill 100ms into the prior cast
         defaultSimulationConfig(),
     );
     assert.equal(result.steps[1].start, 100);
-    assert.equal(result.steps[1].end, 150);
+    assert.equal(result.steps[1].end, 100);
     assert.equal(result.endState.time, 440);
     assert.equal(result.endState.cooldowns['Bladesong Distortion'].readyAt, 40100);
 });
@@ -274,7 +275,7 @@ test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () 
         }),
     );
 
-    assert.equal(result.steps[2].end, 10490);
+    assert.equal(result.steps[2].end, 10440);
     assert.equal(result.steps[3].start, 11000);
     assert.deepEqual(result.warnings, []);
 });
@@ -398,6 +399,115 @@ test('Spatial Surge keeps channel packets completed before an interrupt', () => 
     assert.equal(partial.length, 2);
     assert.equal(beforeFirstPacket.length, 0);
     assert.ok(partial[1].at > partial[0].at);
+});
+
+test('the supplied condition Virtuoso build retains its 39k parity baseline', () => {
+    const rotation = [
+        'Unstable Bladestorm',
+        'Phantasmal Swordsman',
+        { name: 'Bladeturn Requiem', offset: 100 },
+        { name: '__combat_start', offset: 100 },
+        { name: 'Thousand Cuts', offset: 100 },
+        'Swap Weapons',
+        'Flying Cutter',
+        'Bladecall',
+        'Phantasmal Duelist',
+        'Bladesong Harmony',
+        'Signet of the Ether',
+        'Bladesong Sorrow',
+        'Flying Cutter',
+        'Bladesong Harmony',
+        'Flying Cutter',
+        'Bladecall',
+        'Phantasmal Duelist',
+        'Signet of Illusions',
+        'Bladesong Sorrow',
+        'Flying Cutter',
+        'Flying Cutter',
+        'Bladesong Harmony',
+        'Unstable Bladestorm',
+        'Flying Cutter',
+        'Bladecall',
+        'Swap Weapons',
+        'Phantasmal Swordsman',
+        'Flying Cutter',
+        'Flying Cutter',
+        'Bladeturn Requiem',
+    ];
+    const config = createDefaultConfig();
+    const result = simulateMesmer(rotation, {
+        ...config,
+        specialization: 'Virtuoso',
+        selectedTraits: [
+            'Critical Infusion',
+            'Sharper Images',
+            'Master Fencer',
+            'Phantasmal Fury',
+            "Fencer's Finesse",
+            'Superiority Complex',
+            'Cry of Pain',
+            'Compounding Power',
+            'Master of Misdirection',
+            'Shatter Storm',
+            'Maim the Disillusioned',
+            'Phantasmal Force',
+            'Psychic Blades',
+            'Deadly Blades',
+            'Quiet Intensity',
+            'Jagged Mind',
+            'Phantasmal Blades',
+            'Bloodsong',
+        ],
+        selectedSkills: [
+            'Signet of the Ether',
+            'Signet of Illusions',
+            'Signet of Midnight',
+            'Signet of Domination',
+            'Thousand Cuts',
+        ],
+        primaryWeapon: 'Dagger',
+        secondaryWeapon: 'Pistol',
+        weaponSet2Primary: 'Dagger',
+        weaponSet2Secondary: 'Sword',
+        startingWeaponSet: 2,
+        initialResource: 5,
+        stats: {
+            power: 2006,
+            precision: 2155,
+            ferocity: 173,
+            conditionDamage: 1847,
+            expertise: 225,
+            concentration: 45,
+            vitality: 1280,
+            conditionDurationBonuses: { Bleeding: 50 },
+        },
+        sigilSets: [
+            {
+                names: ['Agony', 'Earth'],
+                strike: 1,
+                condition: 1,
+                conditionDurationBonuses: { Bleeding: 20 },
+            },
+            {
+                names: ['Agony', 'Earth'],
+                strike: 1,
+                condition: 1,
+                conditionDurationBonuses: { Bleeding: 20 },
+            },
+        ],
+        relic: 'Aristocracy',
+        food: 'Spherified Cilantro Oyster Soup',
+        target: {
+            ...config.target,
+            armor: 2597,
+            health: 3970000,
+            boonless: true,
+            moving: false,
+        },
+    });
+
+    assert.equal(result.warnings.length, 0);
+    assert.ok(Math.abs(result.dps - 39763.11948986904) < 1e-6);
 });
 
 test('Phantasmal Swordsman independently gates its summon and player hit', () => {
@@ -678,8 +788,8 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
         && event.sourceSkill.includes('Phantasmal Warlock'));
 
     assert.deepEqual(
-        triggers.map(event => event.at),
-        [0.7799999999999999, 4.24, 9.8401],
+        triggers.map(event => Number(event.at.toFixed(4))),
+        [0.78, 4.24, 9.8401],
     );
 });
 
@@ -2037,7 +2147,7 @@ test('shift-queued Mirror Images after an instant action still grants clones', (
         ['Blink', { name: 'Mirror Images', offset: 100 }],
         config,
     );
-    assert.equal(result.endState.time, 150);
+    assert.equal(result.endState.time, 100);
     assert.equal(result.endState.profession.resource, 2);
 });
 
@@ -2072,7 +2182,7 @@ test('clones from shift-queued Mirror Images are available to the next shatter',
         config,
     );
     assert.equal(result.steps.length, 3);
-    assert.equal(result.steps[2].start, 150);
+    assert.equal(result.steps[2].start, 100);
     assert.equal(result.endState.profession.resource, 0);
 });
 
@@ -2496,7 +2606,7 @@ test('Shatter Storm gives Split Second two ammo charges', () => {
         }),
     );
     assert.equal(result.steps[0].start, 0);
-    assert.equal(result.steps[1].start, 50);
+    assert.equal(result.steps[1].start, 0);
     assert.equal(result.steps[2].start, 8000);
     assert.deepEqual(
         {
@@ -2518,7 +2628,7 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
         ['Power Spike', 'Power Spike'],
     );
     assert.equal(result.steps[0].start, 0);
-    assert.equal(result.steps[1].start, 50);
+    assert.equal(result.steps[1].start, 0);
     assert.equal(result.endState.profession.availableFlips['Power Spike'], undefined);
     assert.equal(result.endState.ammo['Power Spike'], undefined);
     assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
@@ -2541,7 +2651,7 @@ test('dodge uses two endurance charges and recharges one charge every ten second
         }),
     );
 
-    assert.deepEqual(result.steps.map(step => step.start), [0, 50, 10000]);
+    assert.deepEqual(result.steps.map(step => step.start), [0, 0, 10000]);
     assert.deepEqual(
         {
             charges: result.endState.ammo['Dodge / Mirage Cloak'].charges,
@@ -2916,6 +3026,24 @@ test('Signet of the Ether resets every phantasm skill cooldown', () => {
     assert.equal(result.steps.length, 5);
     assert.ok(Math.abs(result.steps[3].start - result.steps[2].end) <= 1);
     assert.ok(Math.abs(result.steps[4].start - result.steps[3].end) <= 1);
+});
+
+test('Signet of the Ether re-locks 300ms after its cast completes', () => {
+    const result = simulateMesmer(
+        ['Signet of the Ether', { name: '__wait', waitMs: 500 }],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            boons: {
+                ...defaultSimulationConfig().boons,
+                alacrity: false,
+                quickness: false,
+            },
+        }),
+    );
+    const cast = result.steps[0];
+    const cooldown = result.endState.cooldowns['Signet of the Ether'];
+
+    assert.equal(cooldown.readyAt - cast.end, 30300);
 });
 
 test('Signet of Illusions passively generates one resource every ten combat seconds', () => {
@@ -3353,7 +3481,6 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
         'Bladesong Harmony',
         'Bladesong Sorrow',
         'Bladesong Dissonance',
-        'Bladesong Distortion',
         'Bladeturn Requiem',
     ];
 
@@ -3377,6 +3504,7 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
             && event.condition === 'Torment'
         );
 
+        assert.ok(hitTimes.length > 0, skillName);
         assert.deepEqual(
             torment.map(event => Number(event.at.toFixed(3))),
             hitTimes,
@@ -3388,6 +3516,57 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
             ),
             skillName,
         );
+    }
+});
+
+test('Maim the Disillusioned applies torment for defensive shatters', () => {
+    const cases = [
+        {
+            specialization: 'Virtuoso',
+            skill: 'Bladesong Distortion',
+            initialResource: 5,
+            expectedStacks: 1,
+        },
+        {
+            specialization: 'Core',
+            skill: 'Distortion',
+            initialResource: 3,
+            expectedStacks: 4,
+        },
+        {
+            specialization: 'Chronomancer',
+            skill: 'Distortion',
+            initialResource: 3,
+            expectedStacks: 4,
+        },
+        {
+            specialization: 'Mirage',
+            skill: 'Distortion',
+            initialResource: 3,
+            expectedStacks: 4,
+        },
+    ];
+
+    for (const testCase of cases) {
+        const result = simulateMesmer(
+            [testCase.skill],
+            defaultSimulationConfig({
+                specialization: testCase.specialization,
+                selectedTraits: ['Maim the Disillusioned'],
+                initialResource: testCase.initialResource,
+            }),
+        );
+        const torment = result.resolvedEvents.filter(event =>
+            event.type === 'condition'
+            && event.skillName === testCase.skill
+            && event.condition === 'Torment'
+        );
+
+        assert.equal(result.steps[0].start, result.steps[0].end);
+        assert.equal(result.endState.profession.resource, 0);
+        assert.equal(torment.length, 1);
+        assert.equal(torment[0].stacks, testCase.expectedStacks);
+        assert.equal(torment[0].duration, 6);
     }
 });
 
@@ -3503,7 +3682,7 @@ test('the supplied condition Virtuoso build tracks cast-end blade spends', () =>
     };
     assert.deepEqual(
         [relativeStart(9), relativeStart(11), relativeStart(29)],
-        [2.17, 3.73, 12.98],
+        [2.12, 3.68, 12.88],
     );
     const firstHarmony = result.events.find(event =>
         event.type === 'action' && event.name === 'Bladesong Harmony'
@@ -4025,7 +4204,7 @@ test('expired Continuum Split is injected before the next rotation action', () =
         [{
             insertionIndex: 3,
             skill: 'Continuum Shift',
-            start: 6050,
+            start: 6000,
             detail: 'split expired',
         }],
     );
@@ -4066,8 +4245,8 @@ test('Continuum Split does not restore weapon-swap cooldown', () => {
         ],
         config,
     );
-    assert.equal(result.steps[1].start, 50);
-    assert.equal(result.steps[4].start, 10050);
+    assert.equal(result.steps[1].start, 0);
+    assert.equal(result.steps[4].start, 10000);
 });
 
 test('Continuum Split does not extend an existing weapon-swap cooldown', () => {

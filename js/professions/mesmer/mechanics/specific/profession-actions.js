@@ -339,7 +339,7 @@ export function createProfessionActionController({
       at,
       spent,
       isBladeSong,
-      { skipMaim: isBladeSong },
+      { skipMaim: maimTriggered },
     );
     if (
       skill.name === "Time Sink"

@@ -15,40 +15,13 @@ function quantizeUp(value, interval) {
 }
 
 function baseCastDurationMs(skill) {
-  if (skill.castTimeMs != null) {
-    return Math.max(0, Number(skill.castTimeMs));
-  }
-  return Math.max(
-    0,
-    Number(skill.activation ?? skill.castTime ?? 0) * 1000,
-  );
-}
-
-function castBoundTiming(effect, baseCastMs) {
-  // Only timings whose final pulse exactly tracks cast completion are quickness
-  // candidates. Independent aftercasts and delayed fields keep wall-clock time.
-  if (!(baseCastMs > 0)) return false;
-  if (Array.isArray(effect.ticks) && effect.ticks.length) {
-    return Math.abs(
-      Number(effect.ticks.at(-1).atMs) - baseCastMs,
-    ) < 0.001;
-  }
-  if (Array.isArray(effect.atMsList) && effect.atMsList.length) {
-    return Math.abs(
-      Number(effect.atMsList.at(-1)) - baseCastMs,
-    ) < 0.001;
-  }
-  if (effect.atMs == null) return false;
-  const hits = Math.max(1, Math.trunc(Number(effect.hits || 1)));
-  const lastAtMs =
-    Number(effect.atMs)
-    + (hits - 1) * Math.max(0, Number(effect.intervalMs || 0));
-  return Math.abs(lastAtMs - baseCastMs) < 0.001;
+  return Math.max(0, Number(skill.castTimeMs || 0));
 }
 
 function scaleCastBoundTiming(context, skill, effect) {
+  if (effect.timingScale !== "cast") return effect;
   const baseCastMs = baseCastDurationMs(skill);
-  if (!castBoundTiming(effect, baseCastMs)) return effect;
+  if (!(baseCastMs > 0)) return effect;
   const adjustedCastMs =
     Math.max(0, Number(context.fullEnd - context.start)) * 1000;
   const scale = adjustedCastMs / baseCastMs;
@@ -66,9 +39,6 @@ function scaleCastBoundTiming(context, skill, effect) {
     ...(effect.atMs == null
       ? {}
       : { atMs: Number(effect.atMs) * scale }),
-    ...(Array.isArray(effect.atMsList)
-      ? { atMsList: effect.atMsList.map(value => Number(value) * scale) }
-      : {}),
     ...(effect.intervalMs == null
       ? {}
       : { intervalMs: Number(effect.intervalMs) * scale }),

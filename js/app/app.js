@@ -536,7 +536,7 @@ export class ProfessionApp {
                 <span class="skill-info-skill" role="cell">
                     <img src="${esc(skill.icon || '')}" alt=""><span class="skill-info-name">${esc(skill.name)}</span>
                 </span>
-                <span class="skill-info-value" role="cell">${Number(skill.activation || 0).toFixed(2)}s</span>
+                <span class="skill-info-value" role="cell">${(Number(skill.castTimeMs || 0) / 1000).toFixed(2)}s</span>
                 <span class="skill-info-value" role="cell">${Number(skill.cooldown || 0)}s CD</span>
             </div>`
         ).join('')}</div>`;

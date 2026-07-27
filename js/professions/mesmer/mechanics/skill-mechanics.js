@@ -15,28 +15,28 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 9,
-    "damage": [
-      {
-        "coefficient": 5.32,
-        "hits": 7,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "scepter"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "confusion",
-        "duration": 7,
-        "stacks": 7
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Confusing_Images",
-    "effects": [],
-    "activation": 2.775,
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 5.32,
+        "hits": 7,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "scepter"
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 7,
+        "stacks": 7
+    }
+],
+    "castTimeMs": 2775,
+    "quicknessCastTimeMs": 1850,
     "pulseCount": 7
   },
   [ID.CHAOS_STORM]: {
@@ -50,24 +50,25 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Chaos_Storm",
-    "effects": [],
-    "activation": 0.72,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 1.98,
         "hits": 6,
-        "label": "Six pulses",
-        "source": "Player",
-        "interval": 1
-      }
-    ],
-    "conditions": [
-      {
-        "name": "Poisoned",
+        "name": "Six pulses",
+        "actorType": "player",
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+    },
+    {
+        "type": "condition",
+        "condition": "Poisoned",
         "duration": 4,
         "stacks": 2
-      }
-    ]
+    }
+],
+    "castTimeMs": 720,
   },
   [ID.MIND_SLASH]: {
     "implemented": true,
@@ -76,16 +77,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 1,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "sword"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -93,8 +84,17 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 10170,
     "chainStep": 1,
     "nextChainId": 10171,
-    "effects": [],
-    "activation": 0.54
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+    }
+],
+    "castTimeMs": 540
   },
   [ID.MIND_GASH]: {
     "implemented": true,
@@ -102,18 +102,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Sword",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.78,
+    "castTimeMs": 780,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 1,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "sword"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -121,7 +111,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 10170,
     "chainStep": 2,
     "nextChainId": 10172,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+    }
+]
   },
   [ID.MIND_SPIKE]: {
     "implemented": true,
@@ -129,18 +128,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Sword",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.26,
+    "castTimeMs": 1260,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 1.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "sword"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -149,7 +138,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 10170,
     "chainStep": 3,
     "nextChainId": null,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+    }
+]
   },
   [ID.ILLUSIONARY_LEAP]: {
     "implemented": true,
@@ -157,18 +155,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Sword",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.6,
+    "castTimeMs": 600,
     "cooldown": 12,
-    "damage": [
-      {
-        "coefficient": 0.003,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "sword"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -176,7 +164,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusionary_Leap",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.003,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+    }
+]
   },
   [ID.PHANTASMAL_SWORDSMAN]: {
     "implemented": true,
@@ -185,7 +182,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 15,
-    "conditions": [],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
@@ -195,32 +191,34 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "phantasmSummonProgress": 0.8181818181818182,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Swordsman",
-    "effects": [],
-    "activation": 1.32,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 0.5,
         "hits": 1,
-        "label": "Mesmer strike",
-        "source": "Player",
+        "name": "Mesmer strike",
+        "actorType": "player",
         "weapon": "sword",
         "castProgress": 0.8625
-      },
-      {
+    },
+    {
+        "type": "strike",
         "coefficient": 0.5,
         "hits": 1,
-        "label": "Phantasm leap",
-        "source": "Phantasm",
+        "name": "Phantasm leap",
+        "actorType": "phantasm",
         "weapon": "phantasm medium"
-      },
-      {
+    },
+    {
+        "type": "strike",
         "coefficient": 1.6,
         "hits": 8,
-        "label": "Phantasm Blurred Frenzy",
-        "source": "Phantasm",
+        "name": "Phantasm Blurred Frenzy",
+        "actorType": "phantasm",
         "weapon": "phantasm medium"
-      }
-    ]
+    }
+],
+    "castTimeMs": 1320,
   },
   [ID.PHANTASMAL_DUELIST]: {
     "implemented": true,
@@ -229,14 +227,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 16,
-    "conditions": [
-      {
-        "name": "bleeding",
-        "duration": 4,
-        "stacks": 8,
-        "packetLabel": "Illusion Damage"
-      }
-    ],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
@@ -244,26 +234,46 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Duelist",
-    "effects": [],
-    "activation": 0.84,
-    "damage": [
-      {
-        "coefficient": 0.99,
-        "hits": 3,
-        "label": "Damage",
-        "source": "Player",
+    "effects": [
+    {
+        "type": "strike",
+        "ticks": [
+            {
+                "atMs": 350,
+                "coefficient": 0.33
+            },
+            {
+                "atMs": 350,
+                "coefficient": 0.33
+            },
+            {
+                "atMs": 400,
+                "coefficient": 0.33
+            }
+        ],
+        "name": "Damage",
+        "actorType": "player",
         "weapon": "pistol",
-        "timingOrigin": "castStart",
-        "packetOffsets": [0.35, 0.35, 0.4]
-      },
-      {
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+    },
+    {
+        "type": "strike",
         "coefficient": 0.92,
         "hits": 8,
-        "label": "Illusion Damage",
-        "source": "Phantasm",
+        "name": "Illusion Damage",
+        "actorType": "phantasm",
         "weapon": "phantasm medium"
-      }
-    ]
+    },
+    {
+        "type": "condition",
+        "condition": "bleeding",
+        "duration": 4,
+        "stacks": 8,
+        "packetLabel": "Illusion Damage"
+    }
+],
+    "castTimeMs": 840,
   },
   [ID.ETHER_FEAST]: {
     "implemented": true,
@@ -271,10 +281,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1,
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 666.666666667,
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -287,10 +296,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.25,
+    "castTimeMs": 1250,
+    "quicknessCastTimeMs": 833.333333333,
     "cooldown": 12,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -303,10 +311,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Focus",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.11,
+    "castTimeMs": 1110,
+    "quicknessCastTimeMs": 740,
     "cooldown": 25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -320,18 +327,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 20,
-    "conditions": [
-      {
-        "name": "burning",
-        "duration": 9,
-        "stacks": 1
-      },
-      {
-        "name": "confusion",
-        "duration": 3,
-        "stacks": 3
-      }
-    ],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
@@ -339,24 +334,37 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Mage",
-    "effects": [],
-    "activation": 1.2,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 0.19,
         "hits": 1,
-        "label": "Mesmer attack",
-        "source": "Player",
+        "name": "Mesmer attack",
+        "actorType": "player",
         "weapon": "torch"
-      },
-      {
+    },
+    {
+        "type": "strike",
         "coefficient": 0.5,
         "hits": 1,
-        "label": "Phantasm attack",
-        "source": "Phantasm",
+        "name": "Phantasm attack",
+        "actorType": "phantasm",
         "weapon": "torch"
-      }
-    ]
+    },
+    {
+        "type": "condition",
+        "condition": "burning",
+        "duration": 9,
+        "stacks": 1
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 3,
+        "stacks": 3
+    }
+],
+    "castTimeMs": 1200,
   },
   [ID.CRY_OF_FRUSTRATION]: {
     "implemented": true,
@@ -364,10 +372,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -380,10 +387,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 12,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -396,10 +402,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 50,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -412,10 +417,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 72,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -428,10 +432,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -444,10 +447,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -463,10 +465,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -482,10 +483,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.25,
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
     "cooldown": 25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -498,10 +498,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 2.25,
+    "castTimeMs": 2250,
+    "quicknessCastTimeMs": 1500,
     "cooldown": 1,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -514,10 +513,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 2.25,
+    "castTimeMs": 2250,
+    "quicknessCastTimeMs": 1500,
     "cooldown": 10,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -538,24 +536,24 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Warlock",
-    "effects": [],
-    "activation": 1.17,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 0.45,
         "hits": 3,
-        "label": "One warlock",
-        "source": "Phantasm",
+        "name": "One warlock",
+        "actorType": "phantasm",
         "weapon": "Phantasm high"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "Torment",
+    },
+    {
+        "type": "condition",
+        "condition": "Torment",
         "duration": 4,
         "stacks": 6
-      }
-    ]
+    }
+],
+    "castTimeMs": 1170,
+    "quicknessCastTimeMs": 780,
   },
   [ID.MIND_STAB]: {
     "implemented": true,
@@ -564,22 +562,21 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 10,
-    "damage": [
-      {
-        "coefficient": 1.8,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "greatsword"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Stab",
-    "effects": [],
-    "activation": 0.54
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.8,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "greatsword"
+    }
+],
+    "castTimeMs": 540
   },
   [ID.SPATIAL_SURGE]: {
     "implemented": true,
@@ -587,23 +584,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Greatsword",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.125,
+    "castTimeMs": 1125,
+    "quicknessCastTimeMs": 750,
     "cooldown": 0,
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Spatial_Surge",
-    "effects": [],
-    "pulseCount": 3,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 1.1,
         "hits": 3,
-        "label": "Maximum-range damage",
-        "source": "Player"
-      }
-    ]
+        "name": "Maximum-range damage",
+        "actorType": "player"
+    }
+],
+    "pulseCount": 3,
   },
   [ID.ILLUSIONARY_WAVE]: {
     "implemented": true,
@@ -611,23 +608,22 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Greatsword",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.96,
+    "castTimeMs": 960,
     "cooldown": 20,
-    "damage": [
-      {
-        "coefficient": 0.3,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "greatsword"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusionary_Wave",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.3,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "greatsword"
+    }
+]
   },
   [ID.PHANTASMAL_BERSERKER]: {
     "implemented": true,
@@ -636,7 +632,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 12,
-    "conditions": [],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
@@ -644,24 +639,25 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Berserker",
-    "effects": [],
-    "activation": 0.84,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 1.2,
         "hits": 4,
-        "label": "One berserker",
-        "source": "Phantasm",
+        "name": "One berserker",
+        "actorType": "phantasm",
         "weapon": "phantasm high"
-      },
-      {
+    },
+    {
+        "type": "strike",
         "coefficient": 1.2,
         "hits": 1,
-        "label": "Greatsword damage",
-        "source": "Player",
+        "name": "Greatsword damage",
+        "actorType": "player",
         "weapon": "greatsword"
-      }
-    ]
+    }
+],
+    "castTimeMs": 840,
   },
   [ID.MAGIC_BULLET]: {
     "implemented": true,
@@ -670,28 +666,27 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 20,
-    "damage": [
-      {
-        "coefficient": 0.2,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "pistol"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "confusion",
-        "duration": 5,
-        "stacks": 3
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Magic_Bullet",
-    "effects": [],
-    "activation": 0.66
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.2,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "pistol"
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 5,
+        "stacks": 3
+    }
+],
+    "castTimeMs": 660
   },
   [ID.SIGNET_OF_DOMINATION]: {
     "implemented": true,
@@ -699,10 +694,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.25,
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
     "cooldown": 25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -715,10 +709,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -731,10 +724,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -747,10 +739,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.25,
+    "castTimeMs": 1250,
+    "quicknessCastTimeMs": 833.333333333,
     "cooldown": 35,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -763,10 +754,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.68,
+    "castTimeMs": 1680,
     "cooldown": 60,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -779,29 +768,29 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Trident",
     "specialization": "",
     "environment": "Aquatic",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.3,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "trident"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "bleeding",
-        "duration": 1,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Siren's_Call",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.3,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "trident"
+    },
+    {
+        "type": "condition",
+        "condition": "bleeding",
+        "duration": 1,
+        "stacks": 1
+    }
+]
   },
   [ID.BLINDING_TIDE]: {
     "implemented": true,
@@ -809,23 +798,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Trident",
     "specialization": "",
     "environment": "Aquatic",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 8,
-    "damage": [
-      {
-        "coefficient": 0.8,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "trident"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Blinding_Tide",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.8,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "trident"
+    }
+]
   },
   [ID.ILLUSION_OF_DROWNING]: {
     "implemented": true,
@@ -833,23 +822,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Trident",
     "specialization": "",
     "environment": "Aquatic",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 25,
-    "damage": [
-      {
-        "coefficient": 1.28,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "trident"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusion_of_Drowning",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.28,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "trident"
+    }
+]
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
     "implemented": true,
@@ -858,7 +847,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 20,
-    "conditions": [],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
@@ -866,17 +854,17 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Disenchanter",
-    "effects": [],
-    "activation": 1.14,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 1,
         "hits": 1,
-        "label": "Target without boons",
-        "source": "Phantasm",
+        "name": "Target without boons",
+        "actorType": "phantasm",
         "weapon": "phantasm medium"
-      }
-    ]
+    }
+],
+    "castTimeMs": 1140,
   },
   [ID.WINDS_OF_CHAOS]: {
     "implemented": true,
@@ -885,33 +873,33 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.6,
-        "hits": 2,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "staff"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "torment",
-        "duration": 5,
-        "stacks": 1
-      },
-      {
-        "name": "confusion",
-        "duration": 5,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Winds_of_Chaos",
-    "effects": [],
-    "activation": 1.14
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.6,
+        "hits": 2,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "staff"
+    },
+    {
+        "type": "condition",
+        "condition": "torment",
+        "duration": 5,
+        "stacks": 1
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 5,
+        "stacks": 1
+    }
+],
+    "castTimeMs": 1140
   },
   [ID.ILLUSIONARY_COUNTER]: {
     "implemented": true,
@@ -919,14 +907,13 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Scepter",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 2,
+    "castTimeMs": 2000,
+    "quicknessCastTimeMs": 1333.333333333,
     "cooldown": 6,
     "phantasm": false,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusionary_Counter",
     "effects": [],
-    "damage": [],
-    "conditions": [],
     "resource": null,
     "defaultInterruptMs": 120
   },
@@ -936,18 +923,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Sword",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 2.25,
+    "castTimeMs": 2250,
+    "quicknessCastTimeMs": 1500,
     "cooldown": 12,
-    "damage": [
-      {
-        "coefficient": 2,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "sword"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -955,7 +933,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusionary_Riposte",
-    "effects": [],
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 2,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+    }
+],
     "defaultInterruptMs": 120
   },
   [ID.PHANTASMAL_WARDEN]: {
@@ -965,7 +952,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 20,
-    "conditions": [],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
@@ -973,17 +959,18 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Warden",
-    "effects": [],
-    "activation": 0.69,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 1.656,
         "hits": 12,
-        "label": "Damage",
-        "source": "Phantasm",
+        "name": "Damage",
+        "actorType": "phantasm",
         "weapon": "phantasm medium"
-      }
-    ]
+    }
+],
+    "castTimeMs": 690,
+    "quicknessCastTimeMs": 460,
   },
   [ID.THE_PRESTIGE]: {
     "implemented": true,
@@ -991,29 +978,29 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Torch",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 20,
-    "damage": [
-      {
-        "coefficient": 1,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "torch"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "burning",
-        "duration": 9,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/The_Prestige",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "torch"
+    },
+    {
+        "type": "condition",
+        "condition": "burning",
+        "duration": 9,
+        "stacks": 1
+    }
+]
   },
   [ID.DIVERSION]: {
     "implemented": true,
@@ -1021,10 +1008,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 38,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1038,22 +1024,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "scepter"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "torment",
-        "duration": 4,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1061,8 +1031,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 10289,
     "chainStep": 1,
     "nextChainId": 10290,
-    "effects": [],
-    "activation": 0.66
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "scepter"
+    },
+    {
+        "type": "condition",
+        "condition": "torment",
+        "duration": 4,
+        "stacks": 1
+    }
+],
+    "castTimeMs": 660
   },
   [ID.ETHER_BLAST]: {
     "implemented": true,
@@ -1070,24 +1055,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Scepter",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.78,
+    "castTimeMs": 780,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "scepter"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "Torment",
-        "duration": 6,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1095,7 +1064,22 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 10289,
     "chainStep": 2,
     "nextChainId": 10291,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "scepter"
+    },
+    {
+        "type": "condition",
+        "condition": "Torment",
+        "duration": 6,
+        "stacks": 1
+    }
+]
   },
   [ID.ETHER_CLONE]: {
     "implemented": true,
@@ -1103,26 +1087,17 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Scepter",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.26,
+    "castTimeMs": 1260,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.75,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "scepter"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
       "count": 1
     },
-    "maxCloneConditions": [
+    "maxCloneEffects": [
       {
-        "name": "Torment",
+        "type": "condition",
+        "condition": "Torment",
         "duration": 9,
         "stacks": 1
       }
@@ -1132,7 +1107,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 10289,
     "chainStep": 3,
     "nextChainId": null,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.75,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "scepter"
+    }
+]
   },
   [ID.FEEDBACK]: {
     "implemented": true,
@@ -1140,10 +1124,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 32,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1156,10 +1139,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Staff",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 8,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -1175,10 +1157,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.96,
+    "castTimeMs": 960,
     "cooldown": 120,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1191,10 +1171,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Trident",
     "specialization": "",
     "environment": "Aquatic",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 12,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -1210,21 +1189,21 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Staff",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 16,
-    "damage": [],
-    "conditions": [
-      {
-        "name": "confusion",
-        "duration": 5,
-        "stacks": 3
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Chaos_Armor",
-    "effects": []
+    "effects": [
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 5,
+        "stacks": 3
+    }
+]
   },
   [ID.MIRROR_BLADE]: {
     "implemented": true,
@@ -1232,9 +1211,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Greatsword",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.08,
+    "castTimeMs": 1080,
     "cooldown": 5,
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -1242,41 +1220,50 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Mirror_Blade",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 2.5,
         "hits": 1,
-        "label": "Initial target hit",
-        "source": "Player",
+        "name": "Initial target hit",
+        "actorType": "player",
         "weapon": "greatsword"
-      },
-      {
+    },
+    {
+        "type": "strike",
         "coefficient": 0.1,
         "hits": 1,
-        "label": "Second target hit after one ally bounce",
-        "source": "Player",
+        "name": "Second target hit after one ally bounce",
+        "actorType": "player",
         "weapon": "greatsword",
-        "delay": 0.3
-      },
-      {
+        "atMs": 300,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+    },
+    {
+        "type": "strike",
         "coefficient": 0.004,
         "hits": 1,
-        "label": "Third target hit after two ally bounces",
-        "source": "Player",
+        "name": "Third target hit after two ally bounces",
+        "actorType": "player",
         "weapon": "greatsword",
-        "delay": 0.6
-      },
-      {
+        "atMs": 600,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+    },
+    {
+        "type": "strike",
         "coefficient": 0.00016,
         "hits": 1,
-        "label": "Fourth target hit after three ally bounces",
+        "name": "Fourth target hit after three ally bounces",
         "requiredTrait": "Bountiful Blades",
-        "source": "Player",
+        "actorType": "player",
         "weapon": "greatsword",
-        "delay": 0.9
-      }
-    ]
+        "atMs": 900,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+    }
+],
   },
   [ID.BLURRED_FRENZY]: {
     "implemented": true,
@@ -1284,23 +1271,22 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Sword",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.44,
+    "castTimeMs": 1440,
     "cooldown": 10,
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Blurred_Frenzy",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 3.6,
         "hits": 8,
-        "label": "Damage",
-        "source": "Player",
+        "name": "Damage",
+        "actorType": "player",
         "weapon": "sword"
-      }
-    ]
+    }
+],
   },
   [ID.PHANTASMAL_DEFENDER]: {
     "implemented": true,
@@ -1309,7 +1295,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 40,
-    "conditions": [],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
@@ -1317,17 +1302,18 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Defender",
-    "effects": [],
-    "activation": 1.155,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 0.4,
         "hits": 1,
-        "label": "Damage",
-        "source": "Phantasm",
+        "name": "Damage",
+        "actorType": "phantasm",
         "weapon": "phantasm defender"
-      }
-    ]
+    }
+],
+    "castTimeMs": 1155,
+    "quicknessCastTimeMs": 770,
   },
   [ID.SIGNET_OF_THE_ETHER]: {
     "implemented": true,
@@ -1336,14 +1322,12 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 30,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Signet_of_the_Ether",
     "effects": [],
     "resource": null,
-    "activation": 1.38
+    "castTimeMs": 1380
   },
   [ID.THOUSAND_CUTS]: {
     "implemented": true,
@@ -1351,35 +1335,64 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
     "cooldown": 60,
-    "damage": [
-      {
-        "coefficient": 5,
-        "hits": 10,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "unequipped",
-        "packetOffsets": [
-          0,
-          0.517,
-          1.033,
-          1.55,
-          2.067,
-          2.6,
-          3.117,
-          3.633,
-          4.15,
-          4.667
-        ]
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Thousand_Cuts",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "ticks": [
+            {
+                "atMs": 0,
+                "coefficient": 0.5
+            },
+            {
+                "atMs": 517,
+                "coefficient": 0.5
+            },
+            {
+                "atMs": 1033,
+                "coefficient": 0.5
+            },
+            {
+                "atMs": 1550,
+                "coefficient": 0.5
+            },
+            {
+                "atMs": 2067,
+                "coefficient": 0.5
+            },
+            {
+                "atMs": 2600,
+                "coefficient": 0.5
+            },
+            {
+                "atMs": 3117,
+                "coefficient": 0.5
+            },
+            {
+                "atMs": 3633,
+                "coefficient": 0.5
+            },
+            {
+                "atMs": 4150,
+                "coefficient": 0.5
+            },
+            {
+                "atMs": 4667,
+                "coefficient": 0.5
+            }
+        ],
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "unequipped",
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+    }
+]
   },
   [ID.SIGNET_OF_HUMILITY]: {
     "implemented": true,
@@ -1387,10 +1400,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1,
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 666.666666667,
     "cooldown": 45,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1403,10 +1415,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 60,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1419,10 +1430,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.25,
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1435,10 +1445,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 105,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1451,23 +1460,22 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 1.14,
+    "castTimeMs": 1140,
     "cooldown": 20,
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Senility",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 4.5,
         "hits": 3,
-        "label": "Pulse damage",
-        "source": "Player",
+        "name": "Pulse damage",
+        "actorType": "player",
         "weapon": "utility"
-      }
-    ]
+    }
+],
   },
   [ID.WELL_OF_ETERNITY]: {
     "implemented": true,
@@ -1475,10 +1483,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 0.25,
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
     "cooldown": 30,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1491,32 +1498,36 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 1.56,
+    "castTimeMs": 1560,
     "cooldown": 60,
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Gravity_Well",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 3.3,
         "hits": 3,
-        "label": "Pulse damage",
-        "source": "Player",
+        "name": "Pulse damage",
+        "actorType": "player",
         "weapon": "utility",
-        "interval": 1
-      },
-      {
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+    },
+    {
+        "type": "strike",
         "coefficient": 2.1,
         "hits": 1,
-        "label": "Final damage",
-        "source": "Player",
+        "name": "Final damage",
+        "actorType": "player",
         "weapon": "utility",
-        "delay": 3
-      }
-    ]
+        "atMs": 3000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+    }
+],
   },
   [ID.WELL_OF_CALAMITY]: {
     "implemented": true,
@@ -1524,32 +1535,36 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 1.2,
+    "castTimeMs": 1200,
     "cooldown": 20,
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Calamity",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 3.9,
         "hits": 3,
-        "label": "Pulse damage",
-        "source": "Player",
+        "name": "Pulse damage",
+        "actorType": "player",
         "weapon": "utility",
-        "interval": 1
-      },
-      {
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+    },
+    {
+        "type": "strike",
         "coefficient": 2.1,
         "hits": 1,
-        "label": "Final damage",
-        "source": "Player",
+        "name": "Final damage",
+        "actorType": "player",
         "weapon": "utility",
-        "delay": 3
-      }
-    ]
+        "atMs": 3000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+    }
+],
   },
   [ID.TIDES_OF_TIME]: {
     "implemented": true,
@@ -1557,23 +1572,22 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Shield",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 1.02,
+    "castTimeMs": 1020,
     "cooldown": 35,
-    "damage": [
-      {
-        "coefficient": 1.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "shield"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Tides_of_Time",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "shield"
+    }
+]
   },
   [ID.ECHO_OF_MEMORY]: {
     "implemented": true,
@@ -1582,7 +1596,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
     "cooldown": 30,
-    "conditions": [],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
@@ -1590,17 +1603,17 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Echo_of_Memory",
-    "effects": [],
-    "activation": 2.46,
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 0.9,
         "hits": 1,
-        "label": "Damage",
-        "source": "Phantasm",
+        "name": "Damage",
+        "actorType": "phantasm",
         "weapon": "phantasm medium"
-      }
-    ]
+    }
+],
+    "castTimeMs": 2460,
   },
   [ID.WELL_OF_ACTION]: {
     "implemented": true,
@@ -1608,23 +1621,22 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 1.2,
+    "castTimeMs": 1200,
     "cooldown": 20,
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Action",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 4.5,
         "hits": 3,
-        "label": "Pulse damage",
-        "source": "Player",
+        "name": "Pulse damage",
+        "actorType": "player",
         "weapon": "utility"
-      }
-    ]
+    }
+],
   },
   [ID.SWORD_OF_DECIMATION]: {
     "implemented": true,
@@ -1632,23 +1644,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 25,
-    "damage": [
-      {
-        "coefficient": 1.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "utility"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Sword_of_Decimation",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "utility"
+    }
+]
   },
   [ID.FALSE_OASIS]: {
     "implemented": true,
@@ -1656,10 +1668,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 1.44,
+    "castTimeMs": 1440,
     "cooldown": 25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1672,29 +1682,28 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0.6,
+    "castTimeMs": 600,
     "cooldown": 20,
-    "damage": [
-      {
-        "coefficient": 2.4,
-        "hits": 6,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "utility"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "confusion",
-        "duration": 4,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Crystal_Sands",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 2.4,
+        "hits": 6,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "utility"
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 4,
+        "stacks": 1
+    }
+]
   },
   [ID.MIRROR_STRIKES]: {
     "implemented": true,
@@ -1702,29 +1711,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Axe",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 1.08,
+    "castTimeMs": 1080,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 1.1,
-        "hits": 2,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "axe"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "Bleeding",
-        "duration": 6,
-        "stacks": 1
-      },
-      {
-        "name": "Torment",
-        "duration": 6,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1732,7 +1720,28 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 44791,
     "chainStep": 3,
     "nextChainId": null,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.1,
+        "hits": 2,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+    },
+    {
+        "type": "condition",
+        "condition": "Bleeding",
+        "duration": 6,
+        "stacks": 1
+    },
+    {
+        "type": "condition",
+        "condition": "Torment",
+        "duration": 6,
+        "stacks": 1
+    }
+]
   },
   [ID.MIRAGE_ADVANCE]: {
     "implemented": true,
@@ -1740,23 +1749,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 25,
-    "damage": [
-      {
-        "coefficient": 1.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "utility"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Mirage_Advance",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "utility"
+    }
+]
   },
   [ID.SAND_THROUGH_GLASS]: {
     "implemented": true,
@@ -1764,10 +1773,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1780,10 +1788,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 2,
+    "castTimeMs": 2000,
+    "quicknessCastTimeMs": 1333.333333333,
     "cooldown": 35,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "fill",
@@ -1800,33 +1807,34 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "Mirage",
     "environment": "Terrestrial",
     "cooldown": 8,
-    "damage": [
-      {
-        "coefficient": 1.75,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "axe"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "confusion",
-        "duration": 6,
-        "stacks": 5
-      },
-      {
-        "name": "confusion",
-        "duration": 6,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Axes_of_Symmetry",
-    "effects": [],
-    "activation": 1.53
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.75,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 6,
+        "stacks": 5
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 6,
+        "stacks": 1
+    }
+],
+    "castTimeMs": 1530,
+    "quicknessCastTimeMs": 1020
   },
   [ID.LACERATING_CHOP]: {
     "implemented": true,
@@ -1835,15 +1843,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "Mirage",
     "environment": "Terrestrial",
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.55,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "axe"
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1851,15 +1850,24 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 44791,
     "chainStep": 1,
     "nextChainId": 44840,
-    "effects": [],
-    "activation": 0.645,
-    "conditions": [
-      {
-        "name": "Bleeding",
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.55,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+    },
+    {
+        "type": "condition",
+        "condition": "Bleeding",
         "duration": 2,
         "stacks": 1
-      }
-    ]
+    }
+],
+    "castTimeMs": 645,
+    "quicknessCastTimeMs": 430,
   },
   [ID.ETHEREAL_CHOP]: {
     "implemented": true,
@@ -1867,24 +1875,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Axe",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0.795,
+    "castTimeMs": 795,
+    "quicknessCastTimeMs": 530,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.55,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "axe"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "Torment",
-        "duration": 2,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1892,7 +1885,22 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 44791,
     "chainStep": 2,
     "nextChainId": 41164,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.55,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+    },
+    {
+        "type": "condition",
+        "condition": "Torment",
+        "duration": 2,
+        "stacks": 1
+    }
+]
   },
   [ID.ILLUSIONARY_AMBUSH]: {
     "implemented": true,
@@ -1900,10 +1908,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -1917,28 +1924,28 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "Mirage",
     "environment": "Terrestrial",
     "cooldown": 0.25,
-    "damage": [
-      {
-        "coefficient": 1.2,
-        "hits": 3,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "axe"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "torment",
-        "duration": 4,
-        "stacks": 3
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Lingering_Thoughts",
-    "effects": [],
-    "activation": 1.395
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.2,
+        "hits": 3,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+    },
+    {
+        "type": "condition",
+        "condition": "torment",
+        "duration": 4,
+        "stacks": 3
+    }
+],
+    "castTimeMs": 1395,
+    "quicknessCastTimeMs": 930
   },
   [ID.RAIN_OF_SWORDS]: {
     "implemented": true,
@@ -1946,23 +1953,22 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 1.02,
+    "castTimeMs": 1020,
     "cooldown": 25,
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Rain_of_Swords",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 6,
         "hits": 5,
-        "label": "Damage",
-        "source": "Player",
+        "name": "Damage",
+        "actorType": "player",
         "weapon": "utility"
-      }
-    ]
+    }
+],
   },
   [ID.JAUNT]: {
     "implemented": true,
@@ -1970,29 +1976,29 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 0.5,
-    "damage": [
-      {
-        "coefficient": 1,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "utility"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "confusion",
-        "duration": 6,
-        "stacks": 3
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Jaunt",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "utility"
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 6,
+        "stacks": 3
+    }
+]
   },
   [ID.TIME_SINK]: {
     "implemented": true,
@@ -2000,10 +2006,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 38,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2016,10 +2021,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 30,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2032,10 +2036,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 12,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2048,35 +2051,34 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Dagger",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0.66,
+    "castTimeMs": 660,
     "cooldown": 0,
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Flying_Cutter",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 0.5,
         "hits": 1,
-        "label": "Projectile",
-        "source": "Player",
+        "name": "Projectile",
+        "actorType": "player",
         "castProgress": 0.72
-      }
-    ],
+    }
+],
     "trackedHitDamage": {
       "hitsRequired": 3,
       "duration": 5,
       "skillId": ID.CUTTER_BURST,
       "wikiUrl": "https://wiki.guildwars2.com/wiki/Cutter_Burst",
-      "packetOffsets": [0.217, 0.25, 0.384],
-      "damage": {
-        "coefficient": 0.6,
-        "hits": 3,
-        "label": "Cutter Burst",
-        "source": "Player"
-      }
+      "name": "Cutter Burst",
+      "actorType": "player",
+      "ticks": [
+        { "atMs": 217, "coefficient": 0.2 },
+        { "atMs": 250, "coefficient": 0.2 },
+        { "atMs": 384, "coefficient": 0.2 }
+      ]
     }
   },
   [ID.TWIN_BLADE_RESTORATION]: {
@@ -2085,23 +2087,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 1,
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 666.666666667,
     "cooldown": 20,
-    "damage": [
-      {
-        "coefficient": 0.7,
-        "hits": 2,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "unequipped"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Twin_Blade_Restoration",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.7,
+        "hits": 2,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "unequipped"
+    }
+]
   },
   [ID.TROUBADOUR_BLADECALL]: {
     "implemented": true,
@@ -2110,7 +2112,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "Troubadour",
     "environment": "Terrestrial",
     "cooldown": 5,
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -2118,28 +2119,53 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Bladecall",
-    "effects": [],
-    "activation": 0.66,
-    "damage": [
-      {
-        "coefficient": 0.75,
-        "hits": 3,
-        "label": "Outgoing damage",
-        "source": "Player",
+    "effects": [
+    {
+        "type": "strike",
+        "ticks": [
+            {
+                "atMs": 199,
+                "coefficient": 0.25
+            },
+            {
+                "atMs": 199,
+                "coefficient": 0.25
+            },
+            {
+                "atMs": 199,
+                "coefficient": 0.25
+            }
+        ],
+        "name": "Outgoing damage",
+        "actorType": "player",
         "weapon": "dagger",
-        "timingOrigin": "castStart",
-        "packetOffsets": [0.199, 0.199, 0.199]
-      },
-      {
-        "coefficient": 0.75,
-        "hits": 3,
-        "label": "Returning damage",
-        "source": "Player",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+    },
+    {
+        "type": "strike",
+        "ticks": [
+            {
+                "atMs": 2716,
+                "coefficient": 0.25
+            },
+            {
+                "atMs": 2716,
+                "coefficient": 0.25
+            },
+            {
+                "atMs": 2766,
+                "coefficient": 0.25
+            }
+        ],
+        "name": "Returning damage",
+        "actorType": "player",
         "weapon": "dagger",
-        "timingOrigin": "castStart",
-        "packetOffsets": [2.716, 2.716, 2.766]
-      }
-    ]
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+    }
+],
+    "castTimeMs": 660,
   },
   [ID.BLADE_LEAP]: {
     "implemented": true,
@@ -2147,18 +2173,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Sword",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 12,
-    "damage": [
-      {
-        "coefficient": 1.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "sword"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -2166,7 +2183,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Blade_Leap",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+    }
+]
   },
   [ID.PSYCHIC_FORCE]: {
     "implemented": true,
@@ -2174,23 +2200,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 3,
-    "damage": [
-      {
-        "coefficient": 1.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "utility"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Psychic_Force",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "utility"
+    }
+]
   },
   [ID.BLADETURN_REQUIEM]: {
     "implemented": true,
@@ -2198,10 +2224,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
     "cooldown": 30,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
@@ -2214,10 +2238,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0.72,
+    "castTimeMs": 720,
     "cooldown": 30,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
@@ -2230,34 +2252,36 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Dagger",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0.66,
+    "castTimeMs": 660,
     "cooldown": 12,
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Unstable_Bladestorm",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 1,
         "hits": 4,
-        "label": "Storm pulses",
-        "source": "Player",
-        "firstDelay": 1.156,
-        "interval": 1,
-        "timingOrigin": "castStart"
-      },
-      {
+        "name": "Storm pulses",
+        "actorType": "player",
+        "atMs": 1156,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+    },
+    {
+        "type": "strike",
         "coefficient": 2,
         "hits": 4,
-        "label": "Launched blades",
-        "source": "Player",
-        "firstDelay": 1.198,
-        "interval": 1,
-        "timingOrigin": "castStart"
-      }
-    ]
+        "name": "Launched blades",
+        "actorType": "player",
+        "atMs": 1198,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+    }
+],
   },
   [ID.BLADESONG_SORROW]: {
     "implemented": true,
@@ -2265,10 +2289,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0.72,
+    "castTimeMs": 720,
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
@@ -2281,10 +2303,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0.96,
+    "castTimeMs": 960,
     "cooldown": 12,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
@@ -2297,10 +2317,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Virtuoso",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 50,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": true,
@@ -2314,38 +2333,62 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 5,
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
       "count": 1,
-      "timingOrigin": "castStart",
-      "delay": 0.199
+      "timingAnchor": "castStart",
+      "atMs": 199
     },
     "blade": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Bladecall",
-    "effects": [],
-    "activation": 0.66,
-    "damage": [
-      {
-        "coefficient": 0.75,
-        "hits": 3,
-        "label": "Outgoing damage",
-        "source": "Player",
+    "effects": [
+    {
+        "type": "strike",
+        "ticks": [
+            {
+                "atMs": 199,
+                "coefficient": 0.25
+            },
+            {
+                "atMs": 199,
+                "coefficient": 0.25
+            },
+            {
+                "atMs": 199,
+                "coefficient": 0.25
+            }
+        ],
+        "name": "Outgoing damage",
+        "actorType": "player",
         "weapon": "dagger",
-        "timingOrigin": "castStart",
-        "packetOffsets": [0.199, 0.199, 0.199]
-      },
-      {
-        "coefficient": 0.75,
-        "hits": 3,
-        "label": "Returning damage",
-        "source": "Player",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+    },
+    {
+        "type": "strike",
+        "ticks": [
+            {
+                "atMs": 2716,
+                "coefficient": 0.25
+            },
+            {
+                "atMs": 2716,
+                "coefficient": 0.25
+            },
+            {
+                "atMs": 2766,
+                "coefficient": 0.25
+            }
+        ],
+        "name": "Returning damage",
+        "actorType": "player",
         "weapon": "dagger",
-        "timingOrigin": "castStart",
-        "packetOffsets": [2.716, 2.716, 2.766]
-      }
-    ]
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+    }
+],
+    "castTimeMs": 660,
   },
   [ID.TROUBADOUR_LINGERING_THOUGHTS]: {
     "implemented": true,
@@ -2354,22 +2397,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "Troubadour",
     "environment": "Terrestrial",
     "cooldown": 0.25,
-    "damage": [
-      {
-        "coefficient": 1.2,
-        "hits": 3,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "axe"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "torment",
-        "duration": 4,
-        "stacks": 3
-      }
-    ],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -2377,8 +2404,24 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Lingering_Thoughts",
-    "effects": [],
-    "activation": 1.395
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.2,
+        "hits": 3,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+    },
+    {
+        "type": "condition",
+        "condition": "torment",
+        "duration": 4,
+        "stacks": 3
+    }
+],
+    "castTimeMs": 1395,
+    "quicknessCastTimeMs": 930
   },
   [ID.TROUBADOUR_AXES_OF_SYMMETRY]: {
     "implemented": true,
@@ -2387,33 +2430,34 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "Troubadour",
     "environment": "Terrestrial",
     "cooldown": 8,
-    "damage": [
-      {
-        "coefficient": 1.75,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "axe"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "confusion",
-        "duration": 6,
-        "stacks": 5
-      },
-      {
-        "name": "confusion",
-        "duration": 6,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Axes_of_Symmetry",
-    "effects": [],
-    "activation": 1.53
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.75,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 6,
+        "stacks": 5
+    },
+    {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 6,
+        "stacks": 1
+    }
+],
+    "castTimeMs": 1530,
+    "quicknessCastTimeMs": 1020
   },
   [ID.FRIENDLY_FIRE]: {
     "implemented": true,
@@ -2421,23 +2465,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Rifle",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "rifle"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Friendly_Fire",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "rifle"
+    }
+]
   },
   [ID.JOURNEY]: {
     "implemented": true,
@@ -2445,18 +2489,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Rifle",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 5,
-    "damage": [
-      {
-        "coefficient": 1.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "rifle"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -2464,7 +2499,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Journey",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "rifle"
+    }
+]
   },
   [ID.INSPIRING_IMAGERY]: {
     "implemented": true,
@@ -2472,10 +2516,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Rifle",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 12,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2488,9 +2531,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Rifle",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 20,
-    "conditions": [],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
@@ -2498,16 +2541,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Sharpshooter",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 2.28,
         "hits": 1,
-        "label": "Phantasm shot",
-        "source": "Phantasm",
+        "name": "Phantasm shot",
+        "actorType": "phantasm",
         "weapon": "rifle"
-      }
-    ]
+    }
+],
   },
   [ID.SINGULARITY_SHOT]: {
     "implemented": true,
@@ -2515,10 +2558,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Rifle",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2531,33 +2573,34 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Spear",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 12,
-    "conditions": [],
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Lancer",
-    "effects": [],
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Mesmer attack",
+        "actorType": "player",
+        "weapon": "spear"
+    },
+    {
+        "type": "strike",
+        "coefficient": 1.23,
+        "hits": 1,
+        "name": "One lancer",
+        "actorType": "phantasm",
+        "weapon": "spear"
+    }
+],
     "phantasm": true,
     "resource": {
       "mode": "phantasm",
       "count": 1
     },
-    "damage": [
-      {
-        "coefficient": 1,
-        "hits": 1,
-        "label": "Mesmer attack",
-        "source": "Player",
-        "weapon": "spear"
-      },
-      {
-        "coefficient": 1.23,
-        "hits": 1,
-        "label": "One lancer",
-        "source": "Phantasm",
-        "weapon": "spear"
-      }
-    ]
   },
   [ID.MENTAL_COLLAPSE]: {
     "implemented": true,
@@ -2565,23 +2608,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Spear",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 20,
-    "damage": [
-      {
-        "coefficient": 3,
-        "hits": 3,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "spear"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Mental_Collapse",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 3,
+        "hits": 3,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+    }
+]
   },
   [ID.PSYSTRIKE]: {
     "implemented": true,
@@ -2589,18 +2632,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Spear",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 1,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "spear"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2608,7 +2642,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 73154,
     "chainStep": 2,
     "nextChainId": 73095,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+    }
+]
   },
   [ID.MIND_THE_GAP]: {
     "implemented": true,
@@ -2616,9 +2659,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Spear",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 5,
-    "conditions": [],
     "phantasm": false,
     "resource": {
       "mode": "add",
@@ -2626,16 +2669,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     },
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_the_Gap",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 1.92,
         "hits": 1,
-        "label": "Outer-edge damage",
-        "source": "Player",
+        "name": "Outer-edge damage",
+        "actorType": "player",
         "weapon": "spear"
-      }
-    ]
+    }
+],
   },
   [ID.MIND_PIERCE]: {
     "implemented": true,
@@ -2643,18 +2686,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Spear",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 1.5,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "spear"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2662,7 +2696,16 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 73154,
     "chainStep": 3,
     "nextChainId": null,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+    }
+]
   },
   [ID.IMAGINARY_INVERSION]: {
     "implemented": true,
@@ -2670,23 +2713,23 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "Spear",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 10,
-    "damage": [
-      {
-        "coefficient": 2.4,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "spear"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Imaginary_Inversion",
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 2.4,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+    }
+]
   },
   [ID.PSYCUT]: {
     "implemented": true,
@@ -2695,16 +2738,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "specialization": "",
     "environment": "Terrestrial",
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 1,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "spear"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2712,8 +2745,18 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "chainRoot": 73154,
     "chainStep": 1,
     "nextChainId": 73066,
-    "effects": [],
-    "activation": 0.93
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+    }
+],
+    "castTimeMs": 930,
+    "quicknessCastTimeMs": 620
   },
   [ID.LIVELY_LUTE]: {
     "implemented": true,
@@ -2721,10 +2764,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 12,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2737,10 +2779,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 4,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2753,10 +2794,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 1,
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 666.666666667,
     "cooldown": 15,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2769,10 +2809,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2785,10 +2824,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 20,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2801,12 +2839,11 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 1.25,
+    "castTimeMs": 1250,
+    "quicknessCastTimeMs": 833.333333333,
     "cooldown": 35,
     "baseCoefficient": 2.25,
     "instrumentDamageIncrease": 0.25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2819,10 +2856,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 2,
+    "castTimeMs": 2000,
+    "quicknessCastTimeMs": 1333.333333333,
     "cooldown": 25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2835,10 +2871,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 1,
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 666.666666667,
     "cooldown": 75,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2851,29 +2886,29 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 20,
-    "conditions": [
-      {
-        "name": "torment",
-        "duration": 8,
-        "stacks": 1
-      }
-    ],
     "phantasm": false,
     "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Tale_of_the_Tortured_Mastermind",
-    "effects": [],
-    "damage": [
-      {
+    "effects": [
+    {
+        "type": "strike",
         "coefficient": 4,
         "hits": 4,
-        "label": "Damage",
-        "source": "Player",
+        "name": "Damage",
+        "actorType": "player",
         "weapon": "utility"
-      }
-    ]
+    },
+    {
+        "type": "condition",
+        "condition": "torment",
+        "duration": 8,
+        "stacks": 1
+    }
+],
   },
   [ID.HARMONIOUS_HARP_ALTERNATE]: {
     "implemented": true,
@@ -2881,10 +2916,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 2,
+    "castTimeMs": 2000,
+    "quicknessCastTimeMs": 1333.333333333,
     "cooldown": 25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2897,10 +2931,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 0.25,
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
     "cooldown": 25,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2913,10 +2946,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 30,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2929,10 +2961,9 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "weapon": "",
     "specialization": "Troubadour",
     "environment": "Terrestrial",
-    "activation": 0.5,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
     "cooldown": 12,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2955,10 +2986,8 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_1",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0.78,
+    "castTimeMs": 780,
     "cooldown": 1,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2976,10 +3005,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_1",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 1,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -2997,10 +3025,8 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_1",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 1.5,
+    "castTimeMs": 1500,
     "cooldown": 0.5,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3018,10 +3044,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_1",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0.25,
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
     "cooldown": 1,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3039,10 +3064,8 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_1",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 1.5,
+    "castTimeMs": 1500,
     "cooldown": 1,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3060,10 +3083,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_1",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 1,
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 666.666666667,
     "cooldown": 1,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3081,10 +3103,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_1",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 1,
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 666.666666667,
     "cooldown": 1,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3102,10 +3123,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_1",
     "specialization": "Mirage",
     "environment": "Terrestrial",
-    "activation": 0.75,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
     "cooldown": 1,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3122,24 +3142,8 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "weapon": "Scepter",
     "slot": "Weapon_2",
     "environment": "Terrestrial",
-    "activation": 0.9,
+    "castTimeMs": 900,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.1,
-        "hits": 1,
-        "label": "Projectile",
-        "source": "Player",
-        "weapon": "scepter"
-      }
-    ],
-    "conditions": [
-      {
-        "name": "Confusion",
-        "duration": 7,
-        "stacks": 5
-      }
-    ],
     "resource": {
       "mode": "add",
       "count": 1
@@ -3149,7 +3153,22 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "flipDuration": 2,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Counterspell",
     "implemented": true,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.1,
+        "hits": 1,
+        "name": "Projectile",
+        "actorType": "player",
+        "weapon": "scepter"
+    },
+    {
+        "type": "condition",
+        "condition": "Confusion",
+        "duration": 7,
+        "stacks": 5
+    }
+]
   } }),
   Object.freeze({ id: ID.POWER_SPIKE, ...{
     "name": "Power Spike",
@@ -3160,17 +3179,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Utility",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 10,
-    "damage": [
-      {
-        "coefficient": 1.33,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player"
-      }
-    ],
-    "conditions": [],
     "resource": null,
     "blade": false,
     "flipParent": "Mantra of Pain",
@@ -3178,7 +3189,15 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "armedAtStart": true,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Power_Spike",
     "implemented": true,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 1.33,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player"
+    }
+]
   } }),
   Object.freeze({ id: ID.DIMENSIONAL_APERTURE, ...{
     "name": "Dimensional Aperture",
@@ -3189,10 +3208,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_5",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 0,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3213,18 +3231,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_3",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 2.5,
-        "hits": 1,
-        "label": "Detonation",
-        "source": "Player",
-        "weapon": "rifle"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3233,7 +3242,16 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "flipDelay": 0,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Abstraction",
     "implemented": true,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 2.5,
+        "hits": 1,
+        "name": "Detonation",
+        "actorType": "player",
+        "weapon": "rifle"
+    }
+]
   } }),
   Object.freeze({ id: ID.INTO_THE_VOID, ...{
     "name": "Into the Void",
@@ -3244,10 +3262,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_4",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 0,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3267,18 +3284,8 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_4",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 1.02,
+    "castTimeMs": 1020,
     "cooldown": 0,
-    "damage": [
-      {
-        "coefficient": 0.1,
-        "hits": 1,
-        "label": "Damage",
-        "source": "Player",
-        "weapon": "sword"
-      }
-    ],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3287,7 +3294,16 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "flipDelay": 0,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Counter_Blade",
     "implemented": true,
-    "effects": []
+    "effects": [
+    {
+        "type": "strike",
+        "coefficient": 0.1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+    }
+]
   } }),
   Object.freeze({ id: ID.SWAP, ...{
     "name": "Swap",
@@ -3298,10 +3314,9 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "slot": "Weapon_3",
     "specialization": "",
     "environment": "Terrestrial",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 0,
-    "damage": [],
-    "conditions": [],
     "phantasm": false,
     "resource": null,
     "blade": false,
@@ -3318,7 +3333,8 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "icon": "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
     "type": "Action",
     "slot": "Action",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 10,
     "ammo": 2,
     "implemented": true,
@@ -3330,7 +3346,8 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "icon": "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
     "type": "Action",
     "slot": "Action",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 10,
     "implemented": true,
     "effects": []
@@ -3341,7 +3358,8 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
     "icon": "https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png",
     "type": "Action",
     "slot": "Action",
-    "activation": 0,
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
     "cooldown": 0,
     "specialization": "Chronomancer",
     "implemented": true,
@@ -3517,7 +3535,7 @@ export const AMBUSH_ATTACKS = {
       "https://render.guildwars2.com/file/38ED6AA595AEF00C0F704D0565DB7DD24B623850/1770513.png",
     description:
       "Ambush. Release phantasmal axes that seek out the nearest target after a short delay.",
-    activation: 0.78,
+    castTimeMs: 780,
     cooldown: 1,
     player: {
       coefficient: 1,
@@ -3527,7 +3545,7 @@ export const AMBUSH_ATTACKS = {
     clone: {
       coefficient: 3.7,
       hits: 2,
-      activation: 1.11,
+      castTimeMs: 1110,
       conditions: [{ name: "Torment", duration: 4, stacks: 1 }],
     },
   },
@@ -3538,7 +3556,7 @@ export const AMBUSH_ATTACKS = {
       "https://render.guildwars2.com/file/45D4ADDEDD740AFDD1AF1EB9632BFCB3FFACE75F/3098873.png",
     description:
       "Ambush. Slice your foe with a flurry of blades. Each blade inflicts different conditions.",
-    activation: 0.75,
+    castTimeMs: 750,
     cooldown: 1,
     player: {
       coefficient: 3,
@@ -3551,7 +3569,7 @@ export const AMBUSH_ATTACKS = {
     clone: {
       coefficient: 3,
       hits: 3,
-      activation: 0,
+      castTimeMs: 0,
       conditions: [
         { name: "Bleeding", duration: 7, stacks: 1 },
         { name: "Torment", duration: 7, stacks: 1 },
@@ -3565,7 +3583,7 @@ export const AMBUSH_ATTACKS = {
       "https://render.guildwars2.com/file/66067CFD182ED01761DC5992E679BFA2057B5954/1770507.png",
     description:
       "Ambush. Shoot a beam at a targeted foe, and secondary beams at foes near your target.",
-    activation: 1.5,
+    castTimeMs: 1500,
     cooldown: 0.5,
     player: { coefficient: 3.19, hits: 3 },
     clone: { coefficient: 3.1875, hits: 3 },
@@ -3579,7 +3597,7 @@ export const AMBUSH_ATTACKS = {
       "https://render.guildwars2.com/file/4F0FBD163F2F996D1292B90193C356402BF7554D/3256357.png",
     description:
       "Ambush. Spray invigorating magic, damaging enemies and healing allies.",
-    activation: 0.25,
+    castTimeMs: 250,
     cooldown: 1,
     player: { coefficient: 2.6, hits: 4 },
     clone: { coefficient: 1.2, hits: 4 },
@@ -3592,7 +3610,7 @@ export const AMBUSH_ATTACKS = {
       "https://render.guildwars2.com/file/26CCD4729A4E32E75704E50F6B35DB70040680B8/1770508.png",
     description:
       "Ambush. Launch a barrage of chaos orbs at your foe, inflicting confusion and torment. Condition duration is halved for clones.",
-    activation: 1.5,
+    castTimeMs: 1500,
     cooldown: 1,
     player: {
       coefficient: 1.25,
@@ -3618,7 +3636,7 @@ export const AMBUSH_ATTACKS = {
       "https://render.guildwars2.com/file/5169DEF67A777AA8023122EDCFCEE9A548DCF599/3379151.png",
     description:
       "Ambush. Pierce targets in front of you in a flurry of blows, leaving them vulnerable.",
-    activation: 1,
+    castTimeMs: 1000,
     cooldown: 1,
     player: { coefficient: 3.15, hits: 7 },
     clone: { coefficient: 3.15, hits: 7 },
@@ -3631,7 +3649,7 @@ export const AMBUSH_ATTACKS = {
       "https://render.guildwars2.com/file/0E2D7DB6FB4C0A9F681759099DE5D794A04914BF/1770510.png",
     description:
       "Ambush. Release a vortex of chaos energy that inflicts damaging conditions on foes and grants boons to allies.",
-    activation: 1,
+    castTimeMs: 1000,
     cooldown: 1,
     player: {
       coefficient: 0.6,
@@ -3667,7 +3685,7 @@ export const AMBUSH_ATTACKS = {
       "https://render.guildwars2.com/file/609505304F1D0AB548710E92335E5F550D7E396E/1770511.png",
     description:
       "Ambush. Lunge at your foe, briefly daze them, and leave behind a clone.",
-    activation: 0.75,
+    castTimeMs: 750,
     cooldown: 1,
     player: { coefficient: 3, hits: 1 },
     clone: { coefficient: 3, hits: 1 },
@@ -3682,121 +3700,126 @@ export const AMBUSH_ATTACKS = {
 // the phantasm named Phantasmal Avenger.
 export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
   "Phantasmal Avenger": {
-    castTime: 1.64,
-    damage: 1.44,
-    spawn: 2.16,
-    chronophantasmaDamage: 4.2,
-    chronophantasmaSpawn: 4.96,
+    castTimeMs: 1640,
+    damageAtMs: 1440,
+    spawnAtMs: 2160,
+    chronophantasmaDamageAtMs: 4200,
+    chronophantasmaSpawnAtMs: 4960,
   },
   "Phantasmal Berserker": {
-    castTime: 0.56,
-    damage: 1.48,
-    spawn: 2.56,
-    chronophantasmaDamage: 4.68,
-    chronophantasmaSpawn: 5.92,
+    castTimeMs: 560,
+    damageAtMs: 1480,
+    spawnAtMs: 2560,
+    chronophantasmaDamageAtMs: 4680,
+    chronophantasmaSpawnAtMs: 5920,
     // Virtuoso stocks Bountiful Blades' two blades independently when each
     // Phantasmal Blade projectile arrives, rather than batching both at the
     // clone-conversion endpoint.
-    virtuosoBladeHits: [3.12, 3.44],
+    virtuosoBladeTicks: [
+    { atMs: 3120 },
+    { atMs: 3440 }
+],
   },
   "Phantasmal Defender": {
-    castTime: 0.77,
-    damage: 3.8,
-    spawn: 4.51,
-    chronophantasmaDamage: 8.8,
-    chronophantasmaSpawn: 9.52,
+    castTimeMs: 770,
+    damageAtMs: 3800,
+    spawnAtMs: 4510,
+    chronophantasmaDamageAtMs: 8800,
+    chronophantasmaSpawnAtMs: 9520,
   },
   "Phantasmal Disenchanter": {
-    castTime: 0.76,
-    damage: 1.15,
-    spawn: 1.84,
-    chronophantasmaDamage: 4.04,
-    chronophantasmaSpawn: 4.72,
+    castTimeMs: 760,
+    damageAtMs: 1150,
+    spawnAtMs: 1840,
+    chronophantasmaDamageAtMs: 4040,
+    chronophantasmaSpawnAtMs: 4720,
   },
   "Phantasmal Duelist": {
-    castTime: 0.56,
-    damage: 2.751,
-    spawn: 3.334,
-    chronophantasmaDamage: 6.44,
-    chronophantasmaSpawn: 7.04,
-    damagePackets: {
+    castTimeMs: 560,
+    damageAtMs: 2751,
+    spawnAtMs: 3334,
+    chronophantasmaDamageAtMs: 6440,
+    chronophantasmaSpawnAtMs: 7040,
+    damageTicks: {
       "Illusion Damage": [
-        1.351,
-        1.551,
-        1.75,
-        1.95,
-        2.151,
-        2.35,
-        2.55,
-        2.751,
-      ],
+    { atMs: 1351 },
+    { atMs: 1551 },
+    { atMs: 1750 },
+    { atMs: 1950 },
+    { atMs: 2151 },
+    { atMs: 2350 },
+    { atMs: 2550 },
+    { atMs: 2751 }
+],
     },
-    phantasmalBladeDelayAfterSpawn: 0.175,
+    phantasmalBladeDelayAfterSpawnMs: 175,
   },
   "Phantasmal Mage": {
-    castTime: 0.8,
-    damage: 2.27,
-    spawn: 2.52,
-    chronophantasmaDamage: 5.32,
-    chronophantasmaSpawn: 5.56,
+    castTimeMs: 800,
+    damageAtMs: 2270,
+    spawnAtMs: 2520,
+    chronophantasmaDamageAtMs: 5320,
+    chronophantasmaSpawnAtMs: 5560,
   },
   "Phantasmal Rogue": {
-    castTime: 0.61,
-    damage: 1.2,
-    spawn: 2,
-    chronophantasmaDamage: 4.04,
-    chronophantasmaSpawn: 4.76,
+    castTimeMs: 610,
+    damageAtMs: 1200,
+    spawnAtMs: 2000,
+    chronophantasmaDamageAtMs: 4040,
+    chronophantasmaSpawnAtMs: 4760,
   },
   "Phantasmal Swordsman": {
-    castTime: 0.88,
-    damage: 3.159,
-    spawn: 4.284,
-    chronophantasmaDamage: 7.12,
-    chronophantasmaSpawn: 8.27,
-    damagePackets: {
-      "Phantasm leap": [1.725],
+    castTimeMs: 880,
+    damageAtMs: 3159,
+    spawnAtMs: 4284,
+    chronophantasmaDamageAtMs: 7120,
+    chronophantasmaSpawnAtMs: 8270,
+    damageTicks: {
+      "Phantasm leap": [
+    { atMs: 1725 }
+],
       "Phantasm Blurred Frenzy": [
-        2.201,
-        2.242,
-        2.525,
-        2.559,
-        2.8,
-        2.842,
-        3.126,
-        3.159,
-      ],
+    { atMs: 2201 },
+    { atMs: 2242 },
+    { atMs: 2525 },
+    { atMs: 2559 },
+    { atMs: 2800 },
+    { atMs: 2842 },
+    { atMs: 3126 },
+    { atMs: 3159 }
+],
     },
-    phantasmalBladeDelayAfterSpawn: 0.083,
+    phantasmalBladeDelayAfterSpawnMs: 83,
   },
   "Phantasmal Warden": {
-    castTime: 0.46,
-    damage: 5.04,
-    spawn: 7.24,
-    chronophantasmaDamage: 13.2,
-    chronophantasmaSpawn: 15.32,
+    castTimeMs: 460,
+    damageAtMs: 5040,
+    spawnAtMs: 7240,
+    chronophantasmaDamageAtMs: 13200,
+    chronophantasmaSpawnAtMs: 15320,
   },
   "Phantasmal Warlock": {
-    castTime: 0.78,
-    damage: 2.96,
-    spawn: 4.24,
-    chronophantasmaDamage: 8.56,
-    chronophantasmaSpawn: 9.84,
+    castTimeMs: 780,
+    damageAtMs: 2960,
+    spawnAtMs: 4240,
+    chronophantasmaDamageAtMs: 8560,
+    chronophantasmaSpawnAtMs: 9840,
   },
   // These post-table weapon phantasms retain explicit estimates.
   "Phantasmal Sharpshooter": {
-    castTime: 0.5,
-    damage: 1.55,
-    spawn: 1.55,
-    chronophantasmaDamage: 2.6,
-    chronophantasmaSpawn: 2.6,
+    castTimeMs: 500,
+    damageAtMs: 1550,
+    spawnAtMs: 1550,
+    chronophantasmaDamageAtMs: 2600,
+    chronophantasmaSpawnAtMs: 2600,
     estimated: true,
   },
   "Phantasmal Lancer": {
-    castTime: 1 / 3,
-    damage: 1.0833333333,
-    spawn: 1.0833333333,
-    chronophantasmaDamage: 1.8333333333,
-    chronophantasmaSpawn: 1.8333333333,
+    castTimeMs: 333.333333333,
+    damageAtMs: 1083.3333333,
+    spawnAtMs: 1083.3333333,
+    chronophantasmaDamageAtMs: 1833.3333333,
+    chronophantasmaSpawnAtMs: 1833.3333333,
     estimated: true,
   },
 });
