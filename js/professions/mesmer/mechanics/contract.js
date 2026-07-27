@@ -2,8 +2,6 @@ import { EPSILON } from "../../../platform/engine/clock.js";
 import {
   gw2EffectiveCooldown,
   gw2RechargeRate,
-  gw2SigilSet,
-  gw2StaticAttributes,
 } from "../../../platform/gw2/runtime-rules.js";
 import { createGw2SchedulerEventFactory } from "../../../platform/gw2/scheduler/event-factory.js";
 import {
@@ -91,37 +89,6 @@ function traitSet(config, catalog) {
     }
   }
   return values;
-}
-
-function baseCriticalChance(config, traits, source = "Player", weaponSet = 1) {
-  const stats = gw2StaticAttributes(config);
-  const illusion = source === "Clone" || source === "Phantasm";
-  let chance = 0.05 + Math.max(0, stats.precision - 1000) / 2100;
-  if (!illusion) {
-    chance += Number(config.stats?.criticalChanceBonus || 0) / 100;
-    chance +=
-      Number(gw2SigilSet(config, weaponSet).criticalChanceBonus || 0) / 100;
-  }
-  if (!illusion && config.boons?.fury) chance += 0.25;
-  if (
-    !illusion &&
-    config.relic === "Mistburn" &&
-    Number(config.boons?.might || 0) >= 10
-  )
-    chance += 0.1;
-  if (
-    traits.has(TRAIT.FLOW_OF_TIME) &&
-    config.boons?.alacrity &&
-    ["Player", "Clone", "Phantasm"].includes(source)
-  )
-    chance += 0.15;
-  if (!illusion && traits.has(TRAIT.QUIET_INTENSITY) && config.boons?.fury) {
-    chance += 0.15;
-  }
-  if (source === "Phantasm" && traits.has(TRAIT.PHANTASMAL_FURY)) {
-    chance += config.specialization === "Virtuoso" ? 0.4 : 0.25;
-  }
-  return clamp(chance, 0, 1);
 }
 
 function selectedSkillValues(config) {
@@ -281,9 +248,12 @@ function createMesmerRuntime(context) {
     config,
     traits,
     epsilon: EPSILON,
-    baseCriticalChance,
+    criticalChance: event =>
+      context.schedulerPolicy.critical?.(context, event)?.chance || 0,
     activePrimaryWeapon,
     queueResources: resources.queueResources,
+    emitCondition: (cause, event) => context.emitDerived(cause, event),
+    addTraitProc,
   });
   const actions = createProfessionActionController({
     state,
@@ -614,6 +584,13 @@ export function initializeMesmerScheduler(context) {
   const runtime = createMesmerRuntime(context);
   runtimes.set(context.state, runtime);
   const { state, config } = context;
+  if (
+    runtime.traits.has(TRAIT.JAGGED_MIND)
+    || runtime.traits.has(TRAIT.SHARPER_IMAGES)
+    || runtime.traits.has(TRAIT.DEADLY_BLADES)
+  ) {
+    context.schedulerPolicy.requireCriticalFacts?.();
+  }
   state.profession.riddleOfSandReady = runtime.traits.has(TRAIT.RIDDLE_OF_SAND);
   const initial = clamp(
     Number(config.initialResource || 0),
@@ -737,47 +714,25 @@ export function observeMesmerEvent(context, event) {
       sourceSkill: event.skillName,
     };
   } else if (event.type === "damage") {
-    if (
-      event.blade &&
-      !event.noCrit &&
-      event.canCrit !== false &&
-      runtime.traits.has(TRAIT.DEADLY_BLADES)
-    ) {
-      const vulnerabilityStacks = baseCriticalChance(
-        context.config,
-        runtime.traits,
-        event.source,
-        context.state.activeWeaponSet,
-      );
-      if (vulnerabilityStacks > EPSILON) {
-        context.emit({
-          type: "buff",
-          at: event.at,
-          kind: "target-vulnerability",
-          stacks: vulnerabilityStacks,
-          duration: 5,
-          source: "Trait",
-          sourceId: TRAIT.DEADLY_BLADES,
-          sourceSkill: event.skillName,
-        });
-        context.emit({
-          type: "weakness_vulnerability",
-          at: event.at,
-          source: "Trait",
-          sourceId: TRAIT.DEADLY_BLADES,
-          skillName: event.skillName,
-        });
-      }
-    }
+    const tracksCriticalTrait = (
+      (
+        event.blade
+        && (
+          runtime.traits.has(TRAIT.JAGGED_MIND)
+          || runtime.traits.has(TRAIT.DEADLY_BLADES)
+        )
+      )
+      || (
+        runtime.traits.has(TRAIT.SHARPER_IMAGES)
+        && (event.source === "Clone" || event.source === "Phantasm")
+      )
+    );
+    if (!tracksCriticalTrait) return;
     candidate = {
       type: "hit",
       at: event.at,
-      hits: 1,
-      source: event.source,
-      blade: event.blade,
+      event,
       cloneId: event.cloneId,
-      sourceSkill: event.skillName,
-      weaponSet: context.state.activeWeaponSet,
     };
   }
   if (!candidate) return;
@@ -804,7 +759,39 @@ export function handleResourceGainTask(context, task) {
 }
 
 export function handleExpectedProcTask(context, task) {
-  runtimeFor(context).expected.process(task.payload);
+  const runtime = runtimeFor(context);
+  const event = task.payload.type === "hit"
+    ? task.payload.event
+    : null;
+  if (
+    event?.blade
+    && !event.noCrit
+    && event.canCrit !== false
+    && runtime.traits.has(TRAIT.DEADLY_BLADES)
+  ) {
+    const vulnerabilityStacks =
+      context.schedulerPolicy.critical?.(context, event)?.chance || 0;
+    if (vulnerabilityStacks > EPSILON) {
+      context.emitDerived(event, {
+        type: "buff",
+        at: event.at,
+        kind: "target-vulnerability",
+        stacks: vulnerabilityStacks,
+        duration: 5,
+        source: "Trait",
+        sourceId: TRAIT.DEADLY_BLADES,
+        sourceSkill: event.skillName,
+      });
+      context.emitDerived(event, {
+        type: "weakness_vulnerability",
+        at: event.at,
+        source: "Trait",
+        sourceId: TRAIT.DEADLY_BLADES,
+        skillName: event.skillName,
+      });
+    }
+  }
+  runtime.expected.process(task.payload);
 }
 
 export function handleBladeSpendTask(context, task) {

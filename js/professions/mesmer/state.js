@@ -3,7 +3,6 @@ export function createMesmerState(config = {}) {
     clones: [],
     numericResource: 0,
     pendingResources: [],
-    pendingExpectedProcs: [],
     trackedSkillHits: new Map(),
     traitReadyAt: new Map(),
     instruments: new Map(),
@@ -27,15 +26,11 @@ export function createMesmerState(config = {}) {
   };
 }
 
-// Fields the Mesmer resolver pass accumulates. The rich scheduler state (clones,
-// blades, continuum, flips) is already consumed producing events, so the resolver
-// starts clean with only these three accumulators. Keep in sync with
-// resolver/event-handlers.js and mechanics/trait-rules.js.
+// Resolver-only profession state. Scheduler-gated blades and their bleeding
+// triggers are fully materialized before this state is created.
 export function createMesmerResolverState() {
   return {
-    ineptitudeReadyAt: 0,      // trait-rules: triggerIneptitude cooldown
-    sharperImagesProgress: 0,  // trait-rules: Sharper Images bleed accumulation
-    bloodsongProgress: 0,      // event-handlers: Bloodsong bleed accumulation
+    ineptitudeReadyAt: 0,
   };
 }
 

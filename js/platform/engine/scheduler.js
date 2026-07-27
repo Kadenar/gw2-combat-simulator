@@ -233,6 +233,7 @@ export function createScheduler({
   let observingEvents = false;
   let observationCount = 0;
   let eventOrder = 0;
+  const derivedEventCounts = new Map();
   let reservationOrder = 0;
   let previousCastStart = state.time;
   let serialReadyAt = state.time;
@@ -270,13 +271,34 @@ export function createScheduler({
             if (++observationCount > ACTION_SAFETY_LIMIT) {
               throw new Error("Scheduled-event observation safety limit exceeded.");
             }
-            profession.onEventScheduled(context, observationQueue.shift());
+            const observed = observationQueue.shift();
+            schedulerPolicy.onEventScheduled?.(context, observed);
+            profession.onEventScheduled(context, observed);
           }
         } finally {
           observingEvents = false;
         }
       }
       return normalized;
+    },
+    emitDerived(cause, event) {
+      const rootOrder = Math.floor(
+        Number(cause?.causalOrder ?? cause?.__order),
+      );
+      if (!Number.isFinite(rootOrder)) {
+        throw new TypeError("Derived events require a scheduled cause.");
+      }
+      const count = (derivedEventCounts.get(rootOrder) || 0) + 1;
+      derivedEventCounts.set(rootOrder, count);
+      return context.emit({
+        ...event,
+        causalOrder: rootOrder + count / 1_000_000,
+        triggeredBy:
+          event.triggeredBy
+          ?? cause.skillName
+          ?? cause.name
+          ?? "",
+      });
     },
     buffStacks(kind, at = state.time) {
       const normalized = String(kind || "").toLowerCase();
@@ -417,6 +439,7 @@ export function createScheduler({
   };
   const taskHandlers = {
     [CORE_CAST_COMPLETE]: completeReservation,
+    ...(schedulerPolicy.taskHandlers || {}),
     ...profession.taskHandlers,
   };
   taskQueue = createTaskQueue({
@@ -451,11 +474,13 @@ export function createScheduler({
     while (taskQueue.nextAt() <= target + epsilon) {
       const next = Math.max(state.time, taskQueue.nextAt());
       refreshSharedState(next);
+      schedulerPolicy.advance?.(context, next);
       profession.advance(context, next);
       state.time = next;
       taskQueue.drainThrough(next, context);
     }
     refreshSharedState(target);
+    schedulerPolicy.advance?.(context, target);
     profession.advance(context, target);
     state.time = target;
     state.pendingEvents = state.pendingEvents
@@ -737,6 +762,7 @@ export function createScheduler({
     return true;
   }
 
+  schedulerPolicy.initialize?.(context);
   profession.initialize(context);
 
   function run(rotation) {

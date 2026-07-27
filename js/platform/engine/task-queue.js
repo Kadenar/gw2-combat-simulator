@@ -23,10 +23,23 @@ export function createTaskQueue({
   let sequence = 0;
   let processed = 0;
 
-  const sort = () => queue.sort((left, right) =>
+  const compareTasks = (left, right) =>
     left.at - right.at
     || left.priority - right.priority
-    || left.order - right.order);
+    || left.order - right.order;
+  const insertTask = task => {
+    let low = 0;
+    let high = queue.length;
+    while (low < high) {
+      const middle = (low + high) >>> 1;
+      if (compareTasks(queue[middle], task) <= 0) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    queue.splice(low, 0, task);
+  };
 
   const schedule = ({
     id,
@@ -58,8 +71,7 @@ export function createTaskQueue({
       payload: structuredClone(payload),
       order: sequence++,
     });
-    queue.push(task);
-    sort();
+    insertTask(task);
     return task.id;
   };
 

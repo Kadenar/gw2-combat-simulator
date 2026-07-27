@@ -6,6 +6,7 @@ export * from "./event-ownership.js";
 export * from "./event-handlers.js";
 export * from "./gear-data.js";
 export * from "./modifier-rules.js";
+export * from "./query.js";
 export * from "./relic-rules.js";
 export * from "./runtime-rules.js";
 export * from "./resolver/index.js";

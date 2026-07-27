@@ -627,6 +627,103 @@ test("critical sigils enqueue and resolve their own proc event", () => {
   ));
 });
 
+test("Earth bleeding grants a scheduler-visible Bloodsong blade", () => {
+  const defaults = defaultSimulationConfig();
+  const flyingCutters = [];
+  for (let index = 0; index < 5; index += 1) {
+    flyingCutters.push("Flying Cutter");
+    if (index < 4) {
+      flyingCutters.push({ name: "__wait", waitMs: 2100 });
+    }
+  }
+  const run = selectedTraits => simulateMesmer(
+    [...flyingCutters, "Bladesong Harmony"],
+    defaultSimulationConfig({
+      initialResource: 0,
+      selectedTraits,
+      stats: {
+        ...defaults.stats,
+        precision: 4000,
+      },
+      sigilSets: [
+        { names: ["Earth"], strike: 1, condition: 1 },
+        { names: [], strike: 1, condition: 1 },
+      ],
+    }),
+  );
+  const result = run(["Bloodsong"]);
+  const earth = result.events.filter(event =>
+    event.type === "condition"
+    && event.skillName === "Sigil of Earth"
+  );
+  const bloodsong = result.events.find(event =>
+    event.type === "resource"
+    && event.reason === "Bloodsong"
+  );
+  const harmony = result.steps.find(step =>
+    step.skill === "Bladesong Harmony"
+  );
+
+  assert.equal(earth.length, 5);
+  assert.ok(bloodsong);
+  assert.equal(harmony.invalid, undefined);
+  assert.ok(bloodsong.at <= harmony.start / 1000);
+
+  const withoutBloodsong = run([]);
+  assert.equal(
+    withoutBloodsong.events.some(event =>
+      event.type === "resource"
+      && event.reason === "Bloodsong"),
+    false,
+  );
+  assert.equal(
+    withoutBloodsong.steps.find(step =>
+      step.skill === "Bladesong Harmony")?.invalid,
+    true,
+  );
+});
+
+test("Geomancy crosses Bloodsong after four canonical trait bleeds", () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    [
+      "Twin Blade Restoration",
+      { name: "__wait", waitMs: 21000 },
+      "Twin Blade Restoration",
+      "Swap Weapons",
+      "Bladesong Harmony",
+    ],
+    defaultSimulationConfig({
+      initialResource: 0,
+      selectedTraits: ["Bloodsong", "Jagged Mind"],
+      stats: {
+        ...defaults.stats,
+        precision: 4000,
+      },
+      sigilSets: [
+        { names: [], strike: 1, condition: 1 },
+        { names: ["Geomancy"], strike: 1, condition: 1 },
+      ],
+    }),
+  );
+  const geomancy = result.events.find(event =>
+    event.type === "condition"
+    && event.skillName === "Sigil of Geomancy"
+  );
+  const bloodsong = result.events.find(event =>
+    event.type === "resource"
+    && event.reason === "Bloodsong"
+  );
+  const harmony = result.steps.find(step =>
+    step.skill === "Bladesong Harmony"
+  );
+
+  assert.ok(geomancy);
+  assert.ok(bloodsong);
+  assert.ok(Math.abs(bloodsong.at - geomancy.at - 0.0001) < 1e-12);
+  assert.equal(harmony.invalid, undefined);
+});
+
 test("critical-strike food procs resolve as unmodified flat damage", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
