@@ -156,7 +156,6 @@ export function createGw2CombatQuery({
     timeline,
     events,
     runtime,
-    state: runtime?.state ?? null,
   });
   const statsAt = (time, event = null, runtime = null) =>
     profession.modifyAttributes(

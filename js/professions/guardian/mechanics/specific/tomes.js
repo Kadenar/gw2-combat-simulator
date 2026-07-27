@@ -3,7 +3,6 @@ import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
 import { selectedGuardianSpecialization } from "../availability.js";
 import {
   emitGuardianEvent,
-  handleScheduledStateEvent,
 } from "../events.js";
 import { GUARDIAN_HANDLER_MECHANICS } from "../skill-mechanics.js";
 
@@ -50,7 +49,9 @@ export function tomePageAvailability(context, skill) {
 
 function stowTome(context, skill) {
   context.state.profession.activeTome = "";
-  emitGuardianEvent(context, skill, "guardian.tome-stowed");
+  emitGuardianEvent(context, skill, "guardian.tome-stowed", {
+    activeTome: "",
+  });
   return true;
 }
 
@@ -72,6 +73,10 @@ function useTomePage(context, skill) {
     tome: skill.tome,
     pageCost,
     pagesRemaining: state.tomePages,
+    activeTome: state.activeTome,
+    nextTomePageAt: state.nextTomePageAt,
+    ashesCharges: state.ashesCharges,
+    ashesNextTriggerAt: state.ashesNextTriggerAt,
   });
   return false;
 }
@@ -81,9 +86,27 @@ export const guardianTomeSkillHandlers = Object.freeze({
   "guardian.tome-page": useTomePage,
 });
 
+function handleTomeStowed(context) {
+  context.profession.activeTome = "";
+}
+
+function handleTomePageUsed(context, event) {
+  context.profession.tomePages = Number(event.pagesRemaining || 0);
+  context.profession.activeTome = String(event.activeTome || "");
+  context.profession.nextTomePageAt = Number(
+    event.nextTomePageAt ?? context.profession.nextTomePageAt,
+  );
+  context.profession.ashesCharges = Number(
+    event.ashesCharges ?? context.profession.ashesCharges,
+  );
+  context.profession.ashesNextTriggerAt = Number(
+    event.ashesNextTriggerAt ?? context.profession.ashesNextTriggerAt,
+  );
+}
+
 export const guardianTomeEventHandlers = Object.freeze({
-  "guardian.tome-stowed": handleScheduledStateEvent,
-  "guardian.tome-page-used": handleScheduledStateEvent,
+  "guardian.tome-stowed": handleTomeStowed,
+  "guardian.tome-page-used": handleTomePageUsed,
 });
 
 export function advanceTomeState(context, target) {
@@ -116,7 +139,7 @@ export function reactToAshesHit(
     || !(Number(event.coefficient) > 0)
   ) return;
 
-  const state = context.state.profession;
+  const state = context.profession;
   if (
     state.ashesCharges <= 0
     || event.at + Number(context.epsilon || 0.0001)

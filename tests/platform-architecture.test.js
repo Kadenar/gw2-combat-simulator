@@ -31,6 +31,9 @@ import { createScheduler } from "../js/platform/engine/scheduler.js";
 import { buildScheduledEventStream } from "../js/platform/engine/scheduled-event-stream.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
+  nativeProfessionRegistry,
+} from "../js/app/profession-registry.js";
+import {
   createProfessionWeaponData,
   WEAPON_DATA,
 } from "../js/platform/gw2/gear-data.js";
@@ -50,12 +53,9 @@ import {
 import { createMesmerState, snapshotMesmerState } from "../js/professions/mesmer/state.js";
 import { testProfession } from "./fixtures/test-profession.js";
 
-test("Mesmer, Necromancer, and Guardian share one skill timing contract", () => {
-  for (const catalog of [
-    mesmerCatalog,
-    necromancerCatalog,
-    guardianCatalog,
-  ]) {
+test("native professions share one skill timing contract", async () => {
+  for (const entry of nativeProfessionRegistry) {
+    const catalog = (await entry.loadProfession()).catalog;
     for (const skill of catalog.skills) {
       assert.equal("activation" in skill, false, skill.name);
       assert.equal("castTime" in skill, false, skill.name);
@@ -79,12 +79,9 @@ test("Mesmer, Necromancer, and Guardian share one skill timing contract", () => 
   }
 });
 
-test("weapon swap has a fixed 50ms cast and recharges from activation", () => {
-  for (const catalog of [
-    mesmerCatalog,
-    necromancerCatalog,
-    guardianCatalog,
-  ]) {
+test("native profession weapon swaps share timing policy", async () => {
+  for (const entry of nativeProfessionRegistry) {
+    const catalog = (await entry.loadProfession()).catalog;
     const skill = catalog.skillsByName.get("Swap Weapons");
     assert.equal(skill.castTimeMs, 50, catalog.id);
     assert.equal(skill.quicknessCastTimeMs, 50, catalog.id);
@@ -592,7 +589,7 @@ test("declarative multi-hit and delayed effects preserve individual events", () 
     resolverHooks: {
       eventReactions: {
         damage: context => {
-          context.state.profession.hits += 1;
+          context.profession.hits += 1;
         },
       },
     },
@@ -1038,7 +1035,7 @@ test("resolver modifiers receive stable trait, event, and runtime context", () =
       modifyStrikeDamage(context, multiplier) {
         observed = {
           actorType: context.actorType,
-          hasState: Boolean(context.state),
+          hasRuntimeProfession: Boolean(context.runtime?.profession),
           skillId: context.skillId,
           trait: context.traits.has("context-fixture.damage"),
         };
@@ -1064,7 +1061,7 @@ test("resolver modifiers receive stable trait, event, and runtime context", () =
   assert.equal(modified.strikeDamage / base.strikeDamage, 2);
   assert.deepEqual(observed, {
     actorType: "player",
-    hasState: true,
+    hasRuntimeProfession: true,
     skillId: 930002,
     trait: true,
   });
@@ -1416,7 +1413,7 @@ test("declarative professions use the standard mechanics module roles", async ()
     path.dirname(fileURLToPath(import.meta.url)),
     "../js/professions",
   );
-  for (const profession of ["mesmer", "guardian", "necromancer"]) {
+  for (const profession of nativeProfessionRegistry.map(entry => entry.id)) {
     const mechanicsRoot = path.join(root, profession, "mechanics");
     const prefix = profession.toUpperCase();
     const mechanics = await readFile(

@@ -534,7 +534,7 @@ export function observeGuardianScheduledEvent(context, event) {
 }
 
 function resolverState(context) {
-  return context.state?.profession || context.profession;
+  return context.profession;
 }
 
 function resolverEpsilon(context) {
