@@ -255,9 +255,6 @@ export function createProfessionActionController({
         });
         addTraitProc("Blinding Dissipation", at, skill.name);
       }
-      const id = skill.id;
-      const ready = state.cooldowns.get(id) || at;
-      state.cooldowns.set(id, Math.max(at, ready - 3 * spent));
     } else if (shatter.kind === "blade-power") {
       const packetDelays = shatter.packetDelays || [];
       for (let index = 0; index < spent; index += 1) {
