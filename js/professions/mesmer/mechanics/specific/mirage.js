@@ -173,8 +173,8 @@ export function createMirageActionController({
       addCondition(ambush.name, at, condition);
     }
     if (
-      state.profession.riddleOfSandReady
-      && traits.has(TRAIT.RIDDLE_OF_SAND)
+      state.profession.riddleOfSandReady &&
+      traits.has(TRAIT.RIDDLE_OF_SAND)
     ) {
       addCondition(
         ambush.name,
@@ -231,9 +231,9 @@ export function createMirageActionController({
       grantMirageCloak(at, skill.name);
     }
     if (
-      traits.has(TRAIT.SELF_DECEPTION)
-      && String(skill.description || "").startsWith("Deception.")
-      && currentResource() > 0
+      traits.has(TRAIT.SELF_DECEPTION) &&
+      String(skill.description || "").startsWith("Deception.") &&
+      currentResource() > 0
     ) {
       queueResources(
         at + epsilon,
