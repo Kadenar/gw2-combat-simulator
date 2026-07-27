@@ -85,6 +85,8 @@ test("shared chart lookup and series cover damage timing and configurable effect
         at: 1,
         condition: "burn",
         duration: 2,
+        expiresAt: 2,
+        naturalExpiresAt: 3,
         stacks: 3,
         damage: 0,
         damageTicks: [
@@ -106,6 +108,7 @@ test("shared chart lookup and series cover damage timing and configurable effect
   assert.equal(series.dps[1].v, 150);
   assert.equal(series.dps.at(-1).v, 400 / 1.5);
   assert.equal(series.effects["Effect <burn>"][1].v, 2);
+  assert.equal(series.effects["Effect <burn>"].at(-1).v, 2);
   assert.equal(series.effects["Effect <power>"][0].v, 2);
 });
 

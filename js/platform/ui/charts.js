@@ -66,7 +66,8 @@ export function buildChartSeries(
     if (event.type !== "condition") continue;
     const start = Number(event.at || 0) * 1000 - dpsStartMs;
     const end = Number(
-      event.expiresAt
+      event.naturalExpiresAt
+      ?? event.expiresAt
       ?? (Number(event.at || 0) + Number(event.effectiveDuration ?? event.duration ?? 0)),
     ) * 1000 - dpsStartMs;
     if (end > start) {
