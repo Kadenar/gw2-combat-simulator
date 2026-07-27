@@ -1,9 +1,9 @@
-import { getProfessionAppAdapter } from './composition.js';
+import { loadProfessionAppAdapter } from './profession-registry.js';
 
 self.addEventListener('message', async ({ data }) => {
     const { requestId, request } = data;
     try {
-        const adapter = await getProfessionAppAdapter(request.professionId);
+        const adapter = await loadProfessionAppAdapter(request.professionId);
         if (!adapter) {
             throw new Error(`No application adapter for ${request.professionId}.`);
         }

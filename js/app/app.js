@@ -13,8 +13,8 @@ import {
 } from '../platform/gw2/gear-data.js';
 import { setWeaponSigil } from '../platform/gw2/weapon-sigils.js';
 import {
-    getProfessionAppAdapter,
-} from './composition.js';
+    loadProfessionAppAdapter,
+} from './profession-registry.js';
 import {
     createDefaultBuild,
     loadBuild,
@@ -817,7 +817,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (!professionId) {
         throw new Error("Profession page is missing data-profession.");
     }
-    const adapter = await getProfessionAppAdapter(professionId);
+    const adapter = await loadProfessionAppAdapter(professionId);
     if (!adapter) {
         throw new Error(
             `No native application adapter is registered for "${professionId}".`,

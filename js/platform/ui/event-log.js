@@ -110,20 +110,31 @@ export function mountEventLog(container, rows, options = {}) {
       '[data-role="event-log-filter"]:checked',
     ) || [])].map(input => input.dataset.filterId),
   );
+  // Preserve the free-text search across result rerenders, mirroring filters.
+  let searchQuery = container.querySelector?.(
+    '[data-role="event-log-search"]',
+  )?.value || "";
   const title = options.title || "Event Log";
   const filename = options.filename || "event-log.csv";
 
-  const filteredRows = () => resolvedRows.filter(row =>
-    // A checked filter narrows rows to its predicate; unchecked filters impose
-    // no constraint. Multiple checked filters intersect.
-    filters.every(filter =>
-      !activeFilters.has(String(filter.id)) || filter.predicate?.(row)));
+  const filteredRows = () => {
+    const query = searchQuery.trim().toLowerCase();
+    return resolvedRows.filter(row =>
+      // A checked filter narrows rows to its predicate; unchecked filters impose
+      // no constraint. Multiple checked filters intersect. The text query further
+      // narrows to rows whose description contains it (case-insensitive).
+      (!query || String(row.description).toLowerCase().includes(query))
+      && filters.every(filter =>
+        !activeFilters.has(String(filter.id)) || filter.predicate?.(row)));
+  };
   const initialLines = open ? eventLogLinesHtml(filteredRows()) : "";
   container.innerHTML = `<details class="res-log-wrap" data-role="event-log-details"${open ? " open" : ""}>
     <summary>${escapeHtml(title)} (${resolvedRows.length} events)</summary>
     <div class="log-controls">
       <button type="button" class="btn-csv-export" data-role="event-log-download"
         data-filename="${escapeHtml(filename)}">Download CSV Log</button>
+      <input type="search" class="log-search" data-role="event-log-search"
+        placeholder="Filter events…" value="${escapeHtml(searchQuery)}" />
       ${filters.map(filter => {
         const id = String(filter.id);
         const checked = activeFilters.has(id);
@@ -159,6 +170,18 @@ export function mountEventLog(container, rows, options = {}) {
       if (input.checked) activeFilters.add(id);
       else activeFilters.delete(id);
       if (details?.open) renderLogLines(true);
+    };
+  }
+  const search = container.querySelector?.('[data-role="event-log-search"]');
+  if (search) {
+    let debounceTimer = null;
+    search.oninput = () => {
+      searchQuery = search.value;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      // Debounce so large logs aren't re-rendered on every keystroke.
+      debounceTimer = setTimeout(() => {
+        if (details?.open) renderLogLines(true);
+      }, 200);
     };
   }
   const download = container.querySelector?.(

@@ -54,6 +54,19 @@ export function sortResultRows(rows, columns, column, direction) {
 
 const number = value => Math.round(Number(value || 0)).toLocaleString();
 
+function signedInteger(value) {
+  const rounded = Math.round(Number(value || 0));
+  const normalized = Object.is(rounded, -0) ? 0 : rounded;
+  return `${normalized > 0 ? "+" : ""}${normalized.toLocaleString()}`;
+}
+
+function signedFixed(value, digits = 2) {
+  const numeric = Number(value || 0);
+  const threshold = 0.5 / (10 ** digits);
+  const normalized = Math.abs(numeric) < threshold ? 0 : numeric;
+  return `${normalized > 0 ? "+" : ""}${normalized.toFixed(digits)}`;
+}
+
 function skillCellHtml(row, column, options) {
   const value = row[column.key];
   if (column.key === "name") {
@@ -162,11 +175,14 @@ export function mountRotationResults(container, model = {}, options = {}) {
         <span>Modifier</span><span>DPS Increase</span><span>% Increase</span>
       </div>
       ${contributions.map(contribution => {
-        const sign = Number(contribution.dpsIncrease) >= 0 ? "+" : "";
         return `<div class="contrib-row">
-          <span class="contrib-name">${escapeHtml(contribution.name)}</span>
-          <span class="contrib-val">${sign}${number(contribution.dpsIncrease)}</span>
-          <span class="contrib-pct">${sign}${Number(contribution.pctIncrease).toFixed(2)}%</span>
+          <span class="contrib-name">${
+            contribution.icon
+              ? `<img src="${escapeHtml(contribution.icon)}" alt="" />`
+              : ""
+          }${escapeHtml(contribution.name)}</span>
+          <span class="contrib-val">${signedInteger(contribution.dpsIncrease)}</span>
+          <span class="contrib-pct">${signedFixed(contribution.pctIncrease)}%</span>
         </div>`;
       }).join("")}
     </div>

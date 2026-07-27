@@ -32,6 +32,7 @@ import { buildScheduledEventStream } from "../js/platform/engine/scheduled-event
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
   nativeProfessionRegistry,
+  professionRegistry,
 } from "../js/app/profession-registry.js";
 import {
   createProfessionWeaponData,
@@ -1388,7 +1389,15 @@ test("platform import boundaries are profession neutral", async () => {
   for (const file of await javascriptFiles(root)) {
     const source = await readFile(file, "utf8");
     const relative = path.relative(root, file).replaceAll("\\", "/");
-    assert.doesNotMatch(source, /mesmer/i, `${relative} mentions Mesmer`);
+    for (const entry of nativeProfessionRegistry) {
+      for (const term of [entry.id, entry.name]) {
+        assert.equal(
+          source.toLowerCase().includes(term.toLowerCase()),
+          false,
+          `${relative} mentions ${term}`,
+        );
+      }
+    }
     if (relative.startsWith("engine/")) {
       assert.doesNotMatch(source, /(?:\.\.\/)+gw2\//, `${relative} imports GW2`);
       assert.doesNotMatch(source, /(?:\.\.\/)+ui\//, `${relative} imports UI`);
@@ -1400,12 +1409,66 @@ test("platform import boundaries are profession neutral", async () => {
   }
 });
 
-test("test profession fixture has no Mesmer dependency", async () => {
+test("test profession fixture has no native profession dependency", async () => {
   const source = await readFile(
     fileURLToPath(new URL("./fixtures/test-profession.js", import.meta.url)),
     "utf8",
   );
-  assert.doesNotMatch(source, /mesmer/i);
+  for (const entry of nativeProfessionRegistry) {
+    assert.equal(
+      source.toLowerCase().includes(entry.id),
+      false,
+      entry.id,
+    );
+  }
+});
+
+async function relativeModuleGraph(entryFiles) {
+  const visited = new Set();
+  const pending = [...entryFiles];
+  while (pending.length) {
+    const file = path.resolve(pending.pop());
+    if (visited.has(file)) continue;
+    visited.add(file);
+    const source = await readFile(file, "utf8");
+    const specifiers = [
+      ...source.matchAll(
+        /(?:import|export)\s+(?:[^"'()]*?\s+from\s+)?["'](\.[^"']+)["']/g,
+      ),
+      ...source.matchAll(/import\(\s*["'](\.[^"']+)["']\s*\)/g),
+    ].map((match) => match[1]);
+    for (const specifier of specifiers) {
+      const dependency = path.resolve(path.dirname(file), specifier);
+      if (dependency.endsWith(".js") || dependency.endsWith(".mjs")) {
+        pending.push(dependency);
+      }
+    }
+  }
+  return visited;
+}
+
+test("native registry loaders do not pull another profession module graph", async () => {
+  const root = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js",
+  );
+  for (const entry of nativeProfessionRegistry) {
+    const graph = await relativeModuleGraph([
+      path.join(root, "professions", entry.id, "definition.js"),
+      path.join(root, "professions", entry.id, "app", "adapter.js"),
+    ]);
+    for (const file of graph) {
+      const relative = path.relative(root, file).replaceAll("\\", "/");
+      for (const other of professionRegistry) {
+        if (other.id === entry.id) continue;
+        assert.equal(
+          relative.startsWith(`professions/${other.id}/`),
+          false,
+          `${entry.id} imports ${relative}`,
+        );
+      }
+    }
+  }
 });
 
 test("declarative professions use the standard mechanics module roles", async () => {

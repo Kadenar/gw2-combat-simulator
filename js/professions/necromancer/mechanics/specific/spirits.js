@@ -1,3 +1,13 @@
+/**
+ * Ritualist spirit handlers.
+ *
+ * Summoning a spirit (Anguish, Wanderlust) records it in `state.activeSpirits`,
+ * fires its summon burst, and queues recurring `necromancer.summon-attack`
+ * events (materialized in events.js) for the rest of the sim. Essence Blast
+ * scales with the number of active spirits; Summon Spirits detonates them.
+ * Innervate skills consume/enhance spirits for life force. Soul Twisting arms a
+ * pending free recast. Exports `necromancerSpiritSkillHandlers`.
+ */
 import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
 import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
 import {
@@ -9,6 +19,12 @@ import {
 } from "./shared.js";
 
 const SPIRITS = MECHANICS.spirits;
+
+function activePrimaryWeapon(context) {
+  return context.state.activeWeaponSet === 2
+    ? context.config.weaponSet2Primary || context.config.primaryWeapon || ""
+    : context.config.primaryWeapon || "";
+}
 
 function queueSpiritAutoattacks(context, skill, spirit, at) {
   if (!(spirit.attackCoefficient > 0)) return;
@@ -45,7 +61,8 @@ function ritualist(context, skill) {
       skill,
       essence.coefficient * (1 + spirits * essence.coefficientPerSpirit),
       {
-      metadata: { activeSpirits: spirits },
+        skillWeapon: activePrimaryWeapon(context),
+        metadata: { activeSpirits: spirits },
       },
     );
     return true;
@@ -60,6 +77,7 @@ function ritualist(context, skill) {
           source: "Spirit",
           sourceId: `ritualist.${key}`,
           actorType: "summon",
+          skillWeapon: "Hammer",
           metadata: { summonKind: "spirit" },
         });
       }

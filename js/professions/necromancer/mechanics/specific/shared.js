@@ -1,3 +1,18 @@
+/**
+ * Shared primitives for every necromancer skill handler.
+ *
+ * Three groups of helpers:
+ *   - Shroud id maps (entry/exit skill id <-> shroud name) used to route
+ *     shroud enter/leave logic.
+ *   - Event emitters (`emitState`, `emitDamage`, `emitCondition`,
+ *     `emitControl`, `emitBuff`) that stamp the common necromancer fields onto
+ *     canonical events before pushing them through `context.emit`.
+ *   - Timed-resource mutators for blight/carapace/shades and life force
+ *     (`purgeTimedState`, `addCarapace`, `addBlight`, `consumeBlight`,
+ *     `gainNecromancerLifeForce`), plus creature-summon trait procs.
+ *
+ * Handlers depend on this module; it must not depend on them.
+ */
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -72,7 +87,11 @@ export function emitDamage(
     source = "necromancer",
     sourceId = skill.id,
     actorType = "player",
-    skillWeapon = skill.weapon || "",
+    skillWeapon = skill.skillWeapon ?? (
+      skill.type === "Weapon"
+        ? skill.weapon || ""
+        : "Unequipped"
+    ),
     metadata = {},
   } = {},
 ) {
@@ -128,7 +147,13 @@ export function emitCondition(
   });
 }
 
-export function emitControl(context, skill, kind = "control", at = context.effectiveEnd) {
+export function emitControl(
+  context,
+  skill,
+  kind = "control",
+  at = context.effectiveEnd,
+  duration = 0,
+) {
   context.emit({
     type: "control",
     at,
@@ -138,6 +163,7 @@ export function emitControl(context, skill, kind = "control", at = context.effec
     skillId: skill.id,
     skillName: skill.name,
     controlKind: kind,
+    ...(duration > 0 ? { duration } : {}),
   });
 }
 
@@ -159,9 +185,23 @@ export function emitBuff(context, skill, kind, duration, stacks = 1) {
 export function purgeTimedState(state, at) {
   state.blightExpiries = (state.blightExpiries || [])
     .filter(expiresAt => expiresAt > at);
+  state.carapaceExpiries = (state.carapaceExpiries || [])
+    .filter(expiresAt => expiresAt > at);
   state.shades = (state.shades || [])
     .filter(expiresAt => expiresAt > at);
   syncNecromancerResources(state);
+}
+
+export function addCarapace(state, stacks, at, duration = 10) {
+  purgeTimedState(state, at);
+  const count = Math.min(
+    Math.max(0, Math.trunc(Number(stacks || 0))),
+    30 - state.carapaceExpiries.length,
+  );
+  state.carapaceExpiries.push(
+    ...Array.from({ length: count }, () => at + duration),
+  );
+  return count;
 }
 
 export function addBlight(state, stacks, at) {

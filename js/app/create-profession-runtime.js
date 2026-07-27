@@ -23,12 +23,15 @@ import { simulateGw2 } from "../platform/gw2/simulate.js";
  *   `adjustConditionDurationBonus`).
  * - `buildConfigExtras(app)` returns extra fields merged *onto* the resulting
  *   config (e.g. Guardian's `initialTomePages`, Necromancer's `initialBlight`).
+ * - `isContributionTrait(trait, app)` can exclude structural traits whose
+ *   removal is not a valid simulation counterfactual.
  *
  * @param {Object} options
  * @param {Object} options.profession - Frozen `defineProfession` contract.
  * @param {Function} options.calculateAttributes - Profession attribute calculator.
  * @param {Function} [options.buildConfigInputs] - Extra `createGw2SimulationConfig` inputs.
  * @param {Function} [options.buildConfigExtras] - Extra fields merged onto the config.
+ * @param {Function} [options.isContributionTrait] - Whether to compare an active trait.
  * @returns {Object} Runtime functions shared by the profession app adapter.
  */
 export function createProfessionRuntime({
@@ -36,6 +39,7 @@ export function createProfessionRuntime({
   calculateAttributes,
   buildConfigInputs,
   buildConfigExtras,
+  isContributionTrait = () => true,
 }) {
   const simulateBuild = (rotation, config) => simulateGw2({
     profession,
@@ -168,6 +172,7 @@ export function createProfessionRuntime({
       });
     }
     for (const trait of app.attributeData.activeTraits || []) {
+      if (!isContributionTrait(trait, app)) continue;
       candidates.push({
         id: `Trait:${trait.name}`,
         type: "Trait",

@@ -3,7 +3,11 @@ import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 
-import { getProfession, professionOptions } from "../js/app/composition.js";
+import {
+  loadProfession,
+  professionOptions,
+  professionRegistry,
+} from "../js/app/profession-registry.js";
 import {
   PROFESSION_ROUTES,
   professionRoute,
@@ -59,22 +63,22 @@ async function javascriptFiles(directory) {
 }
 
 test("profession selector exposes every ready application route", () => {
-  assert.deepEqual(PROFESSION_ROUTES, {
-    mesmer: "mesmer.html",
-    elementalist: "elementalist.html",
-    guardian: "guardian.html",
-    necromancer: "necromancer.html",
-  });
+  assert.deepEqual(
+    PROFESSION_ROUTES,
+    Object.fromEntries(
+      professionRegistry.map(({ id, route }) => [id, route]),
+    ),
+  );
   assert.equal(professionRoute("elementalist"), "elementalist.html");
   assert.equal(professionRoute("unknown"), "index.html");
   assert.deepEqual(
-    professionOptions.map(({ id }) => id),
-    ["mesmer", "elementalist", "guardian", "necromancer"],
+    professionOptions,
+    professionRegistry.map(({ id, name }) => ({ id, name })),
   );
 });
 
 test("Elementalist is registered through the generic profession contract", async () => {
-  const profession = await getProfession("elementalist");
+  const profession = await loadProfession("elementalist");
   assert.equal(profession.id, "elementalist");
   assert.equal(profession.name, "Elementalist");
   assert.ok(profession.catalog.specializations.length >= 9);

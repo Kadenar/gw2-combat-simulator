@@ -1,20 +1,72 @@
 import fs from "node:fs";
+import { inflateRawSync } from "node:zlib";
 
 const input = process.argv[2];
 if (!input) {
   console.error(
-    "Usage: node scripts/analyze-evtc.mjs <uncompressed.evtc> [--summary]",
+    "Usage: node scripts/analyze-evtc.mjs <fight.evtc|fight.zevtc> "
+      + "[--summary] [--condition-events] [--window=<seconds>]",
   );
   process.exit(1);
 }
 const summaryOnly = process.argv.includes("--summary");
+const includeConditionEvents = process.argv.includes("--condition-events");
+const CONDITION_NAMES = new Set([
+  "Bleeding",
+  "Blindness",
+  "Burning",
+  "Chilled",
+  "Confusion",
+  "Crippled",
+  "Fear",
+  "Immobilized",
+  "Poisoned",
+  "Slow",
+  "Torment",
+  "Vulnerability",
+  "Weakness",
+]);
 const windowSeconds = Number(
   process.argv
     .find(argument => argument.startsWith("--window="))
     ?.slice("--window=".length),
 );
 
-const data = fs.readFileSync(input);
+function readEvtc(path) {
+  const inputData = fs.readFileSync(path);
+  if (inputData.toString("ascii", 0, 4) !== "PK\u0003\u0004") {
+    return inputData;
+  }
+
+  const compressionMethod = inputData.readUInt16LE(8);
+  const compressedSize = inputData.readUInt32LE(18);
+  const uncompressedSize = inputData.readUInt32LE(22);
+  const nameLength = inputData.readUInt16LE(26);
+  const extraLength = inputData.readUInt16LE(28);
+  const payloadStart = 30 + nameLength + extraLength;
+  const payload = inputData.subarray(
+    payloadStart,
+    payloadStart + compressedSize,
+  );
+  const result = compressionMethod === 0
+    ? Buffer.from(payload)
+    : compressionMethod === 8
+      ? inflateRawSync(payload)
+      : null;
+  if (!result) {
+    throw new Error(
+      `${path} uses unsupported ZIP compression method ${compressionMethod}.`,
+    );
+  }
+  if (uncompressedSize && result.length !== uncompressedSize) {
+    throw new Error(
+      `${path} expanded to ${result.length} bytes; expected ${uncompressedSize}.`,
+    );
+  }
+  return result;
+}
+
+const data = readEvtc(input);
 const magic = data.toString("ascii", 0, 12);
 if (!magic.startsWith("EVTC")) {
   throw new Error(`${input} is not an uncompressed EVTC file.`);
@@ -177,6 +229,53 @@ for (const event of events) {
   buffs.set(event.skillId, current);
 }
 
+function collectConditionApplications({ self }) {
+  const applications = new Map();
+  for (const event of events) {
+    const playerSource = playerAddresses.has(event.source);
+    const playerTarget = playerAddresses.has(event.target);
+    if (
+      !playerSource
+      || playerTarget !== self
+      || event.buff !== 1
+      || event.stateChange !== 69
+      || event.activation !== 0
+      || event.buffRemove !== 0
+      || event.value <= 0
+      || event.buffDamage !== 0
+      || !CONDITION_NAMES.has(skillName(event.skillId))
+    ) continue;
+    const current = applications.get(event.skillId) || {
+      skillId: event.skillId,
+      skill: skillName(event.skillId),
+      applications: 0,
+      totalDurationMs: 0,
+      firstAt: relative(event.time),
+      lastAt: relative(event.time),
+      samples: [],
+    };
+    current.applications += 1;
+    current.totalDurationMs += event.value;
+    current.lastAt = relative(event.time);
+    if (current.samples.length < 12) {
+      current.samples.push({
+        at: relative(event.time),
+        durationMs: event.value,
+        overstack: event.overstack,
+        target: `0x${event.target.toString(16)}`,
+      });
+    }
+    applications.set(event.skillId, current);
+  }
+  return [...applications.values()]
+    .sort((left, right) => right.applications - left.applications);
+}
+
+const outgoingConditionApplications =
+  collectConditionApplications({ self: false });
+const selfConditionApplications =
+  collectConditionApplications({ self: true });
+
 const damage = [...outgoing.values()]
   .sort((left, right) =>
     right.strikeDamage + right.conditionDamage
@@ -224,6 +323,32 @@ const report = {
   damage,
   buffs: [...buffs.values()]
     .sort((left, right) => right.applications - left.applications),
+  outgoingConditionApplications,
+  selfConditionApplications,
+  ...(includeConditionEvents
+    ? {
+        conditionEvents: events
+          .filter(event =>
+            ["Bleeding", "Burning", "Poisoned", "Torment", "Confusion"]
+              .includes(skillName(event.skillId)))
+          .map(event => ({
+            at: relative(event.time),
+            skillId: event.skillId,
+            skill: skillName(event.skillId),
+            source: `0x${event.source.toString(16)}`,
+            target: `0x${event.target.toString(16)}`,
+            value: event.value,
+            buffDamage: event.buffDamage,
+            overstack: event.overstack,
+            iff: event.iff,
+            buff: event.buff,
+            result: event.result,
+            activation: event.activation,
+            buffRemove: event.buffRemove,
+            stateChange: event.stateChange,
+          })),
+      }
+    : {}),
 };
 
 const summary = {
@@ -250,6 +375,11 @@ const summary = {
     totalDamage: entry.strikeDamage + entry.conditionDamage,
   })),
   buffs: report.buffs,
+  outgoingConditionApplications,
+  selfConditionApplications,
+  ...(includeConditionEvents
+    ? { conditionEvents: report.conditionEvents }
+    : {}),
   ...(windowSeconds > 0
     ? {
         window: {
