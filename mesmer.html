@@ -7,7 +7,7 @@
     <title>GW2 Combat Simulator — Mesmer</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body data-profession="mesmer" class="mesmer-theme">
     <div id="loading-overlay">
         <div class="loader-content"><div class="spinner"></div><div>Loading Mesmer data…</div></div>
     </div>
@@ -18,12 +18,7 @@
             <h1>GW2 <span class="accent">Mesmer</span> Rotation Simulator</h1>
             <label class="profession-picker" for="profession-select">
                 <span>Profession</span>
-                <select id="profession-select" data-active-profession="mesmer">
-                    <option value="mesmer">Mesmer</option>
-                    <option value="elementalist">Elementalist</option>
-                    <option value="guardian">Guardian</option>
-                    <option value="necromancer">Necromancer</option>
-                </select>
+                <select id="profession-select" data-active-profession="mesmer"></select>
             </label>
         </header>
         <div class="update-info"><strong>Mesmer PvE data snapshot: July 23, 2026</strong></div>

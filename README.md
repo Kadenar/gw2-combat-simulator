@@ -70,9 +70,10 @@ gw2-combat-simulator/
   necromancer.html             Necromancer application
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the profession contract and import
-boundaries. Mesmer implementation assumptions remain in
-[docs/RESEARCH.md](docs/RESEARCH.md); Elementalist implementation details are in
-[docs/ELEMENTALIST.md](docs/ELEMENTALIST.md); Guardian status is in
-[docs/GUARDIAN.md](docs/GUARDIAN.md); Necromancer status is in
-[docs/NECROMANCER.md](docs/NECROMANCER.md).
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the profession contract and
+import boundaries. Profession-specific documentation:
+
+- Mesmer research and modeling assumptions: [docs/RESEARCH.md](docs/RESEARCH.md)
+- Elementalist implementation details: [docs/ELEMENTALIST.md](docs/ELEMENTALIST.md)
+- Guardian status: [docs/GUARDIAN.md](docs/GUARDIAN.md)
+- Necromancer status: [docs/NECROMANCER.md](docs/NECROMANCER.md)

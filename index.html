@@ -16,13 +16,7 @@
                 timing, cooldowns, conditions, and profession resources event by event.</p>
             <label class="profession-picker landing-picker" for="profession-select">
                 <span>Choose a profession</span>
-                <select id="profession-select">
-                    <option value="" selected disabled>Select a simulator…</option>
-                    <option value="mesmer">Mesmer</option>
-                    <option value="elementalist">Elementalist</option>
-                    <option value="guardian">Guardian</option>
-                    <option value="necromancer">Necromancer</option>
-                </select>
+                <select id="profession-select"></select>
             </label>
         </header>
 
@@ -31,40 +25,7 @@
                 <p class="landing-eyebrow">Available simulators</p>
                 <h2 id="profession-heading">Choose your profession</h2>
             </div>
-            <div class="profession-grid">
-                <a class="profession-card profession-card-mesmer" href="mesmer.html">
-                    <span class="profession-mark" aria-hidden="true">M</span>
-                    <span class="profession-card-copy">
-                        <strong>Mesmer</strong>
-                        <small>Core · Chronomancer · Mirage · Virtuoso · Troubadour</small>
-                    </span>
-                    <span class="profession-card-action">Open simulator <span aria-hidden="true">→</span></span>
-                </a>
-                <a class="profession-card profession-card-elementalist" href="elementalist.html">
-                    <span class="profession-mark" aria-hidden="true">E</span>
-                    <span class="profession-card-copy">
-                        <strong>Elementalist</strong>
-                        <small>Core · Tempest · Weaver · Catalyst · Evoker</small>
-                    </span>
-                    <span class="profession-card-action">Open simulator <span aria-hidden="true">→</span></span>
-                </a>
-                <a class="profession-card profession-card-guardian" href="guardian.html">
-                    <span class="profession-mark" aria-hidden="true">G</span>
-                    <span class="profession-card-copy">
-                        <strong>Guardian</strong>
-                        <small>Core · Dragonhunter · Firebrand · Willbender · Luminary</small>
-                    </span>
-                    <span class="profession-card-action">Open simulator <span aria-hidden="true">→</span></span>
-                </a>
-                <a class="profession-card profession-card-necromancer" href="necromancer.html">
-                    <span class="profession-mark" aria-hidden="true">N</span>
-                    <span class="profession-card-copy">
-                        <strong>Necromancer</strong>
-                        <small>Core · Reaper · Scourge · Harbinger · Ritualist</small>
-                    </span>
-                    <span class="profession-card-action">Open simulator <span aria-hidden="true">→</span></span>
-                </a>
-            </div>
+            <div class="profession-grid" data-profession-grid></div>
         </section>
 
         <section class="landing-section landing-info-grid" aria-label="Tool information">

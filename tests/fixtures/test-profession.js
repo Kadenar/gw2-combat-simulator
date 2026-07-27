@@ -66,15 +66,15 @@ export const testProfession = defineProfession({
   resolverHooks: {
     eventHandlers: {
       "fixture.resource": (context, event) => {
-        context.state.profession.charge = Math.min(
+        context.profession.charge = Math.min(
           5,
-          context.state.profession.charge + Number(event.amount || 0),
+          context.profession.charge + Number(event.amount || 0),
         );
       },
     },
     eventReactions: {
       control: context => {
-        context.state.profession.controlEvents += 1;
+        context.profession.controlEvents += 1;
       },
     },
   },

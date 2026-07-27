@@ -5,7 +5,6 @@ import { handleRadiantWeaponEquipped } from "./traits.js";
 import {
   buildGuardianStrike,
   emitGuardianEvent,
-  handleScheduledStateEvent,
 } from "../events.js";
 
 function emitForgeWeaponSwap(context, skill, event = {}) {
@@ -32,23 +31,30 @@ export function validateRadiantForgeCast(context, skill) {
 
 function radiantForge(context, skill) {
   const entering = skill.name === "Enter Radiant Forge";
+  const state = context.state.profession;
   if (!entering) {
     finalizeRadiantForgeCooldown(context, context.effectiveEnd);
   }
-  context.state.profession.radiantForge = entering;
-  context.state.profession.radiantForgeEndsAt =
+  state.radiantForge = entering;
+  state.radiantForgeEndsAt =
     entering ? context.effectiveEnd + 20 : 0;
-  context.state.profession.radiantForgeEnteredAt =
+  state.radiantForgeEnteredAt =
     entering ? context.effectiveEnd : 0;
-  context.state.profession.radiantWeapon = "";
+  state.radiantWeapon = "";
   if (entering) {
-    context.state.profession.radiantWeaponsUsed = {};
+    state.radiantWeaponsUsed = {};
   }
-  if (!entering) context.state.profession.availableFlips = {};
+  if (!entering) state.availableFlips = {};
   emitGuardianEvent(
     context,
     skill,
     entering ? "guardian.radiant-forge-entered" : "guardian.radiant-forge-exited",
+    {
+      radiantForge: state.radiantForge,
+      radiantForgeEndsAt: state.radiantForgeEndsAt,
+      radiantForgeEnteredAt: state.radiantForgeEnteredAt,
+      radiantWeapon: state.radiantWeapon,
+    },
   );
   emitForgeWeaponSwap(context, skill);
   return true;
@@ -172,9 +178,23 @@ export const guardianRadiantForgeSkillHandlers = Object.freeze({
   "guardian.radiant-weapon": radiantWeapon,
 });
 
+function handleRadiantForgeTransition(context, event) {
+  context.profession.radiantForge = Boolean(event.radiantForge);
+  context.profession.radiantForgeEndsAt = Number(
+    event.radiantForgeEndsAt || 0,
+  );
+  context.profession.radiantForgeEnteredAt = Number(
+    event.radiantForgeEnteredAt || 0,
+  );
+  context.profession.radiantWeapon = String(event.radiantWeapon || "");
+  if (!context.profession.radiantForge) {
+    context.profession.availableFlips = {};
+  }
+}
+
 export const guardianRadiantForgeEventHandlers = Object.freeze({
-  "guardian.radiant-forge-entered": handleScheduledStateEvent,
-  "guardian.radiant-forge-exited": handleScheduledStateEvent,
+  "guardian.radiant-forge-entered": handleRadiantForgeTransition,
+  "guardian.radiant-forge-exited": handleRadiantForgeTransition,
 });
 
 export function advanceRadiantForgeState(context, target) {
@@ -189,6 +209,19 @@ export function advanceRadiantForgeState(context, target) {
       GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE,
     );
     if (exit) {
+      emitGuardianEvent(
+        context,
+        exit,
+        "guardian.radiant-forge-exited",
+        {
+          at: expiredAt,
+          automatic: true,
+          radiantForge: false,
+          radiantForgeEndsAt: 0,
+          radiantForgeEnteredAt: 0,
+          radiantWeapon: "",
+        },
+      );
       emitForgeWeaponSwap(context, exit, {
         at: expiredAt,
         automatic: true,

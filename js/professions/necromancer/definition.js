@@ -20,6 +20,7 @@ import {
 import {
   createNecromancerResolverState,
   createNecromancerState,
+  projectNecromancerEndState,
   snapshotNecromancerState,
 } from "./state.js";
 import { necromancerUi } from "./ui.js";
@@ -36,6 +37,7 @@ export const necromancerProfession = defineProfession({
   resources: {
     createProfessionState: createNecromancerState,
     createResolverState: createNecromancerResolverState,
+    projectEndState: projectNecromancerEndState,
   },
   attributeRules: necromancerAttributeRules,
   castRules: {

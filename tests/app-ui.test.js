@@ -19,6 +19,9 @@ import {
   professionOptions,
 } from "../js/app/composition.js";
 import {
+  professionRegistry,
+} from "../js/app/profession-registry.js";
+import {
   professionRoute,
 } from "../js/app/profession-selector.js";
 import {
@@ -132,10 +135,17 @@ test("the generic landing page and profession simulators have separate entries",
   const [mesmerPage] = professionPages;
 
   assert.match(landingPage, /<body class="landing-page">/);
-  assert.match(landingPage, /href="mesmer\.html"/);
-  assert.match(landingPage, /href="elementalist\.html"/);
-  assert.match(landingPage, /href="guardian\.html"/);
-  assert.match(landingPage, /href="necromancer\.html"/);
+  assert.match(landingPage, /data-profession-grid/);
+  assert.doesNotMatch(landingPage, /profession-card-mesmer/);
+  assert.deepEqual(
+    professionRegistry.map(entry => entry.route),
+    [
+      "mesmer.html",
+      "elementalist.html",
+      "guardian.html",
+      "necromancer.html",
+    ],
+  );
   assert.doesNotMatch(landingPage, /js\/app\/app\.js/);
   assert.doesNotMatch(landingPage, /ARCHITECTURE\.md/);
   for (const professionPage of professionPages) {

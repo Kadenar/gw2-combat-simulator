@@ -923,6 +923,36 @@ test("Firebrand tomes consume shared pages and execute tome damage", () => {
   );
 });
 
+test("Ashes of the Just cannot trigger before its application event", () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "True Strike",
+      "Tome of Justice",
+      "Epilogue: Ashes of the Just",
+      "Stow Tome",
+      "Symbol of Faith",
+      { type: "wait", durationMs: 2000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      primaryWeapon: "Mace",
+      initialTomePages: 5,
+    },
+  });
+  const ashesAppliedAt = result.events.find(event =>
+    event.type === "guardian.tome-page-used"
+    && event.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST
+  ).at;
+  const ashes = result.resolvedEvents.filter(event =>
+    event.type === "condition"
+    && event.sourceId === "guardian.ashes-of-the-just"
+  );
+  assert.ok(ashes.length > 0);
+  assert.ok(ashes.every(event => event.at >= ashesAppliedAt));
+});
+
 test("Firebrand page exhaustion stows the tome and pages regenerate", () => {
   const exhausted = simulateGw2({
     profession: guardianProfession,

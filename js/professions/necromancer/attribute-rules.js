@@ -413,7 +413,7 @@ function modifyNecromancerMaximumAmmo(context, maximum) {
 function modifyNecromancerCastDuration(context, duration) {
   if (
     hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) &&
-    context.state?.profession?.activeShroud === "reaper" &&
+    context.runtime?.profession?.activeShroud === "reaper" &&
     !context.hasBuff?.("quickness", context.start)
   ) {
     return duration / 1.5;
