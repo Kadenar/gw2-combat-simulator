@@ -13,8 +13,9 @@ import {
   CHAIN_POSITION_BY_ID,
   EXIT_IDS,
   hasTrait,
+  necromancerCastAvailability,
   requiredShroud,
-  validateNecromancerCast,
+  validateNecromancerBuild,
 } from "./availability.js";
 
 function updateNecromancerCastState(context, skill) {
@@ -89,7 +90,16 @@ function afterCast(context, skill) {
 }
 
 export const necromancerCastRules = Object.freeze({
-  validateCast: validateNecromancerCast,
+  availability: {
+    id: "necromancer.cast-state",
+    order: 10,
+    handler: necromancerCastAvailability,
+  },
+  validateCast: {
+    id: "necromancer.build",
+    order: 10,
+    handler: validateNecromancerBuild,
+  },
 });
 
 export const necromancerSchedulerHooks = Object.freeze({

@@ -3,6 +3,7 @@ import { selectedGuardianSpecialization } from "../availability.js";
 import { GUARDIAN_HANDLER_MECHANICS } from "../skill-mechanics.js";
 import { handleRadiantWeaponEquipped } from "./traits.js";
 import {
+  buildGuardianStrike,
   emitGuardianEvent,
   handleScheduledStateEvent,
 } from "../events.js";
@@ -62,22 +63,14 @@ function radiantWeapon(context, skill) {
           context.state.profession.radiantWeapon
         ] || 0;
     if (coefficient > 0) {
-      context.emit({
-        type: "damage",
+      context.emit(buildGuardianStrike({
         at: context.effectiveEnd,
-        source: "guardian",
         sourceId: skill.id,
-        actorType: "player",
         skillId: skill.id,
         skillName: skill.name,
         name: skill.name,
         coefficient,
-        hits: 1,
-        hitIndex: 1,
-        totalHits: 1,
-        skillWeapon: "",
-        canCrit: true,
-      });
+      }));
     }
     return true;
   }
@@ -91,22 +84,14 @@ function radiantWeapon(context, skill) {
     && context.state.profession.radiantJusticeArmed
   ) {
     context.state.profession.radiantJusticeArmed = false;
-    context.emit({
-      type: "damage",
+    context.emit(buildGuardianStrike({
       at: context.effectiveEnd + 0.75,
-      source: "guardian",
       sourceId: skill.id,
-      actorType: "player",
       skillId: skill.id,
       skillName: skill.name,
       name: "Dazzling Hammer — Radiant Justice Impact",
       coefficient: 1.5,
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      skillWeapon: "",
-      canCrit: true,
-    });
+    }));
     context.emit({
       type: "buff",
       at: context.effectiveEnd + 0.75,

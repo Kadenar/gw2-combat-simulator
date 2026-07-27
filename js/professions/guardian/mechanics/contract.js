@@ -4,7 +4,11 @@ import {
   clearRadiantForgeEntryCooldown,
   validateRadiantForgeCast,
 } from "./specific/radiant-forge.js";
-import { advanceTomeState, validateTomeCast } from "./specific/tomes.js";
+import {
+  advanceTomeState,
+  tomePageAvailability,
+  validateTomeCast,
+} from "./specific/tomes.js";
 import { validateVirtueCast } from "./specific/virtues.js";
 import { updateSpearIlluminationState } from "./specific/spear.js";
 import {
@@ -17,6 +21,13 @@ import {
 } from "./specific/traits.js";
 
 export const guardianCastRules = Object.freeze({
+  availability: Object.freeze([
+    {
+      id: "guardian.tome-pages",
+      order: 30,
+      handler: tomePageAvailability,
+    },
+  ]),
   validateCast: Object.freeze([
     {
       id: "guardian.availability",
