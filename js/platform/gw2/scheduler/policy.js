@@ -1,3 +1,8 @@
+import {
+  createGw2TriggerMaterializer,
+  GW2_MATERIALIZE_EVENT_TASK,
+} from "./proc-materializer.js";
+
 const QUICKNESS_ACTION_RATE = 1.5;
 const ACTION_TICK_MS = 40;
 const ALACRITY_RECHARGE_RATE = 1.25;
@@ -95,8 +100,33 @@ export function isGw2WeaponSkillEquipped(context, skill) {
 /**
  * Supplies shared GW2 timing rules without coupling platform/engine to GW2.
  */
-export function createGw2SchedulerPolicy(config = {}) {
+export function createGw2SchedulerPolicy(
+  config = {},
+  { traits = null } = {},
+) {
+  const materializer = createGw2TriggerMaterializer(config, { traits });
   return Object.freeze({
+    taskHandlers: Object.freeze({
+      [GW2_MATERIALIZE_EVENT_TASK]:
+        (context, task) => materializer.handleTask(context, task),
+    }),
+
+    initialize(context) {
+      materializer.initialize(context);
+    },
+
+    onEventScheduled(context, event) {
+      materializer.onEventScheduled(context, event);
+    },
+
+    critical(_context, event) {
+      return materializer.critical(event);
+    },
+
+    requireCriticalFacts() {
+      materializer.requireCriticalFacts();
+    },
+
     initialWeaponSet() {
       return Number(config.startingWeaponSet) === 2 ? 2 : 1;
     },

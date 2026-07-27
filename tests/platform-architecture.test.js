@@ -1239,7 +1239,10 @@ test("Mesmer state creation and snapshots are profession owned", () => {
   assert.equal(snapshot.numericResource, 3);
   assert.equal(snapshot.cloneCount, 1);
   assert.equal(mesmerProfession.id, "mesmer");
-  assert.equal(typeof mesmerProfession.eventReactions.damage, "function");
+  assert.equal(
+    Object.hasOwn(mesmerProfession.eventReactions, "damage"),
+    false,
+  );
   assert.equal(typeof mesmerProfession.eventReactions.control, "function");
   assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "damage"), false);
   assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "control"), false);
