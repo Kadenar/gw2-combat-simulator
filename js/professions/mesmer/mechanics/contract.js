@@ -888,7 +888,7 @@ export function modifyMesmerMaximumAmmo(context, maximum) {
     : maximum;
 }
 
-export function projectMesmerEndState(context) {
+export function projectMesmerEndState({ schedulerContext: context }) {
   const runtime = runtimeFor(context);
   const { state, config } = context;
   const endTime = state.time;

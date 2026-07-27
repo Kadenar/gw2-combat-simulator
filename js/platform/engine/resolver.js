@@ -17,8 +17,9 @@ export function createResolverState({
     time: 0,
     config,
     profession: structuredClone(
-      stream?.resolverHandoff?.professionState
-      ?? profession.createProfessionState(config),
+      typeof profession.createResolverState === "function"
+        ? profession.createResolverState(config)
+        : profession.createProfessionState(config),
     ),
     totals: { strike: 0, condition: 0 },
     breakdown: new Map(),

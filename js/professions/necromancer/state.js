@@ -102,3 +102,21 @@ export function createNecromancerResolverState(config = {}) {
 export function snapshotNecromancerState(state) {
   return structuredClone(syncNecromancerResources(state));
 }
+
+export function projectNecromancerEndState({ schedulerState }) {
+  const projected = snapshotNecromancerState(schedulerState.profession);
+  // These fields are resolver/scheduler implementation counters rather than
+  // public profession resources.
+  for (const key of [
+    "targetChilledUntil",
+    "dreadUntil",
+    "fearOfDeathReadyAt",
+    "vampiricPresenceReadyAt",
+    "barbedPrecisionProgress",
+    "demonicLoreReadyAt",
+    "traitProcReadyAt",
+  ]) {
+    delete projected[key];
+  }
+  return projected;
+}

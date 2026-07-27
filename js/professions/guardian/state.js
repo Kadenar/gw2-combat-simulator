@@ -80,32 +80,41 @@ export function snapshotGuardianState(state) {
   return structuredClone(state);
 }
 
-// The Guardian resolver *continues* from the scheduler's ending state rather than
-// starting clean: its virtue/tome/radiant-forge handlers replay transitions
-// computed during pass 1 (guardian.virtue-activated, guardian.tome-page-used,
-// guardian.radiant-forge-*) and its damage reactions read fields such as
-// tomePages, ashesCharges/ashesNextTriggerAt and justiceHitCount. Defining this
-// explicitly keeps the handoff dependency visible at the defineProfession call
-// instead of relying on the implicit resolverHandoff fallback in
-// simulateDeclarativeGw2.
-//
-// The inherited *ending* counters are safe to reuse (no reset needed): the
-// resolver reactions reactToJusticeHit/reactToAshesHit are the only mutators of
-// justiceHitCount, so the scheduler leaves it at 0; and ashesCharges /
-// ashesNextTriggerAt are set at cast time and time-gate the resolver reactions,
-// so carrying their post-cast values forward is exactly what resolution expects.
-export function createGuardianResolverState(_config, scheduled) {
-  const state = structuredClone(
-    scheduled.stream.resolverHandoff.professionState,
-  );
-  state.justiceHitCount = 0;
-  state.symbolicAvengerStacks = 0;
-  state.symbolicAvengerUntil = 0;
-  state.zealotsResolutionReadyAt = 0;
-  state.resolutionUntil = 0;
-  state.righteousNextMightAt = 0;
-  state.piercingStanceUntil = 0;
-  state.effulgentActiveUntil = 0;
-  state.effulgentStacks = 0;
-  return state;
+// Resolver state must begin at time zero. Scheduler-side Guardian transitions
+// that affect damage are replayed through namespaced timeline events.
+export function createGuardianResolverState(config = {}) {
+  return createGuardianState(config);
+}
+
+export function projectGuardianEndState({
+  schedulerState,
+  resolverState,
+}) {
+  const scheduler = structuredClone(schedulerState.profession);
+  const resolver = resolverState || {};
+  // Scheduler state owns castability and resources. These values are produced
+  // only while resolving chronological damage and condition events.
+  for (const key of [
+    "justiceArmed",
+    "justiceActiveArmed",
+    "justiceHitCount",
+    "justiceBurns",
+    "justiceActiveBurns",
+    "justicePassiveBurns",
+    "virtueReadyAt",
+    "ashesCharges",
+    "ashesNextTriggerAt",
+    "symbolicAvengerStacks",
+    "symbolicAvengerUntil",
+    "zealotsResolutionReadyAt",
+    "resolutionUntil",
+    "righteousNextMightAt",
+    "effulgentActiveUntil",
+    "effulgentStacks",
+  ]) {
+    if (Object.hasOwn(resolver, key)) scheduler[key] = structuredClone(
+      resolver[key],
+    );
+  }
+  return scheduler;
 }
