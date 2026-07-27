@@ -10,7 +10,7 @@
  * @param {Function} queueResources - Resource queuing function
  * @returns {Object} Tracker with queue(candidate), nextAt(), processNext()
  */
-import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 
 export function createExpectedProcTracker({
   state,

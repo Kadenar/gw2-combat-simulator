@@ -7,7 +7,7 @@ import {
   handleNecromancerChillEvent,
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack,
-} from "../mechanics/handlers.js";
+} from "../mechanics/specific/handlers.js";
 import {
   NECROMANCER_HANDLER_MECHANICS as MECHANICS,
 } from "../mechanics/skill-mechanics.js";

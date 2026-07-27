@@ -1,15 +1,15 @@
 import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
-} from "../data/ids.js";
+} from "../../data/ids.js";
 import {
   SPECIALIZATIONS,
-} from "../data/guardian-api-metadata.js";
-import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
+} from "../../data/guardian-api-metadata.js";
+import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import {
   isInternalCooldownReady,
-} from "../../../platform/engine/internal-cooldown.js";
-import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js";
+} from "../../../../platform/engine/internal-cooldown.js";
+import { isGw2PlayerActorEvent } from "../../../../platform/gw2/event-ownership.js";
 
 const TRAIT_BY_ID = new Map(
   SPECIALIZATIONS

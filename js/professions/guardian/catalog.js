@@ -10,7 +10,7 @@ import { GUARDIAN_BUNDLE_SKILLS } from "./data/guardian-bundle-skills.js";
 import {
   GUARDIAN_AUTOATTACK_CHAINS,
 } from "./mechanics/autoattack-chains.js";
-import { guardianSkillHandlers } from "./mechanics/handlers.js";
+import { guardianSkillHandlers } from "./mechanics/specific/handlers.js";
 import {
   GUARDIAN_EXTRA_SKILLS,
   GUARDIAN_SKILL_MECHANICS,

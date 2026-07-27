@@ -13,7 +13,7 @@ import {
 } from "../js/platform/engine/scheduled-event-stream.js";
 import {
   createCloneAttackScheduler,
-} from "../js/professions/mesmer/mechanics/illusions.js";
+} from "../js/professions/mesmer/mechanics/specific/illusions.js";
 
 test("clone attacks are scheduled lazily as the timeline advances", () => {
   const state = { clones: [] };

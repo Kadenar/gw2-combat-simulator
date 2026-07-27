@@ -1,11 +1,11 @@
-import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js";
-import { GUARDIAN_SKILL_IDS } from "../data/ids.js";
-import { selectedGuardianSpecialization } from "./availability.js";
+import { isGw2PlayerActorEvent } from "../../../../platform/gw2/event-ownership.js";
+import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
+import { selectedGuardianSpecialization } from "../availability.js";
 import {
   emitGuardianEvent,
   handleScheduledStateEvent,
-} from "./events.js";
-import { GUARDIAN_HANDLER_MECHANICS } from "./skill-mechanics.js";
+} from "../events.js";
+import { GUARDIAN_HANDLER_MECHANICS } from "../skill-mechanics.js";
 
 export function validateTomeCast(context, skill) {
   if (skill.tome) {

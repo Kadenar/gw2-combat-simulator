@@ -1,4 +1,4 @@
-import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 
 const MIRAGE_CLOAK_SKILLS = new Set([
   "Illusionary Ambush",

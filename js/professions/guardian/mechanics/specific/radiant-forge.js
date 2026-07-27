@@ -1,11 +1,11 @@
-import { GUARDIAN_SKILL_IDS } from "../data/ids.js";
-import { selectedGuardianSpecialization } from "./availability.js";
-import { GUARDIAN_HANDLER_MECHANICS } from "./skill-mechanics.js";
+import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
+import { selectedGuardianSpecialization } from "../availability.js";
+import { GUARDIAN_HANDLER_MECHANICS } from "../skill-mechanics.js";
 import { handleRadiantWeaponEquipped } from "./traits.js";
 import {
   emitGuardianEvent,
   handleScheduledStateEvent,
-} from "./events.js";
+} from "../events.js";
 
 function emitForgeWeaponSwap(context, skill, event = {}) {
   emitGuardianEvent(context, skill, "sigil_swap", {

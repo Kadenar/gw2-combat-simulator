@@ -5,25 +5,25 @@ import {
   advanceRadiantForgeState,
   clearRadiantForgeEntryCooldown,
   validateRadiantForgeCast,
-} from "./radiant-forge.js";
+} from "./specific/radiant-forge.js";
 import {
   advanceTomeState,
   validateTomeCast,
-} from "./tomes.js";
+} from "./specific/tomes.js";
 import {
   validateVirtueCast,
-} from "./virtues.js";
+} from "./specific/virtues.js";
 import {
   updateSpearIlluminationState,
-} from "./spear.js";
+} from "./specific/spear.js";
 import {
   updateWeaponCastState,
   validateWeaponState,
-} from "./weapon-state.js";
+} from "./specific/weapon-state.js";
 import {
   observeGuardianScheduledEvent,
   updateGuardianTraitCastState,
-} from "./traits.js";
+} from "./specific/traits.js";
 
 export const guardianCastRules = Object.freeze({
   validateCast: Object.freeze([

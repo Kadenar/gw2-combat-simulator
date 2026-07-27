@@ -17,7 +17,7 @@ import {
   NECROMANCER_AUTOATTACK_CHAINS,
 } from "./mechanics/autoattack-chains.js";
 import { NECROMANCER_SKILL_IDS } from "./data/ids.js";
-import { necromancerSkillHandlers } from "./mechanics/handlers.js";
+import { necromancerSkillHandlers } from "./mechanics/specific/handlers.js";
 
 export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(new Set([
   "Well of Blood",

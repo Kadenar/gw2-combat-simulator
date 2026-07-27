@@ -1,22 +1,22 @@
 import {
   guardianRadiantForgeEventHandlers,
-} from "../mechanics/radiant-forge.js";
+} from "../mechanics/specific/radiant-forge.js";
 import {
   guardianTomeEventHandlers,
   reactToAshesHit,
-} from "../mechanics/tomes.js";
+} from "../mechanics/specific/tomes.js";
 import {
   handleVirtueActivation,
   handleVirtueRefresh,
   reactToJusticeHit,
-} from "../mechanics/virtues.js";
+} from "../mechanics/specific/virtues.js";
 import {
   handleEffulgentActivated,
   handleEffulgentDetonate,
   handleRighteousInstinctsTick,
   reactToGuardianBuffTraits,
   reactToGuardianDamageTraits,
-} from "../mechanics/traits.js";
+} from "../mechanics/specific/traits.js";
 
 /**
  * Guardian resolver-side event handlers and reactions. Timeline/state events
