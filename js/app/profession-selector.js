@@ -1,3 +1,13 @@
+/**
+ * Registry-driven profession navigation for the landing page and simulator
+ * headers.
+ *
+ * Binding renders an optional landing-page card grid, rebuilds an optional
+ * profession select, applies the active profession's theme, and navigates on
+ * selection changes. Importing this module in a browser binds the current
+ * document automatically; importing it outside a browser has no side effect.
+ */
+
 import {
   getProfessionEntry,
   professionRegistry,
@@ -6,6 +16,7 @@ import {
 } from "./profession-registry.js";
 
 export {
+  // Kept here as compatibility exports for existing selector consumers.
   PROFESSION_ROUTES,
   professionRoute,
 };
@@ -66,6 +77,16 @@ function renderProfessionCards(root) {
   }
 }
 
+/**
+ * Binds profession navigation within a document-like root.
+ *
+ * The active profession comes from `body[data-profession]`, then from the
+ * selector's `data-active-profession`. Missing selector and card-grid elements
+ * are allowed so the same entry point can run on landing and simulator pages.
+ *
+ * @param {Document | Object} root Document-like root containing the UI.
+ * @returns {void}
+ */
 export function bindProfessionSelector(root = document) {
   const select = root.getElementById("profession-select");
   renderProfessionCards(root);

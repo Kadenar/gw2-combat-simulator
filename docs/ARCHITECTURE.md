@@ -277,10 +277,17 @@ The current persisted schema is:
 }
 ```
 
-Each profession owns defaults, explicit version migrations, validation, and
-sanitization. The existing `gw2-mesmer-simulator-v2` localStorage key is kept
-so saved builds migrate in place. Browser state uses a compatibility view of
-rotation entries; storage and the simulator contract use normalized commands.
+Each profession owns defaults, explicit version migrations, and
+resource-specific normalization and validation. Native professions configure
+the shared `platform/gw2/build-codec.js` factory, which owns common schema
+migration, sanitization, and validation for gear, weapons, sigils, relics,
+infusions, runes, consumables, specializations, specialization-available slot
+skills, targets, and canonical rotation timing. The existing
+`gw2-mesmer-simulator-v2` localStorage key is kept so saved builds migrate in
+place. Browser state uses a compatibility view of rotation entries; storage
+and the simulator contract use normalized commands. Stored local data may fall
+back to defaults when unreadable, while explicit user imports preserve
+wrong-profession and future-version errors.
 
 ## Included professions
 
@@ -306,7 +313,11 @@ rotation entries; storage and the simulator contract use normalized commands.
    the standard event reactions the profession needs.
    Declare exact hand availability in `weaponHands` and register callable
    custom cast behavior in `skillHandlers`.
-3. Add the profession to `js/app/composition.js` or a future profession picker.
+3. Add the profession page and one lazy entry to
+   `js/app/profession-registry.js`. Shared-engine applications use
+   `applicationKind: "native"` and must provide `loadAppAdapter`; legacy
+   applications use `applicationKind: "standalone"` and
+   `loadAppAdapter: null`.
 4. Add an end-to-end fixture that imports no other profession.
 5. Run `npm test` and `npm run check`.
 
@@ -315,3 +326,7 @@ use `platform/engine` scheduler state/cooldowns and the `platform/gw2`
 scheduler event factory and resolver. If a new rule is truly shared by
 multiple professions, add it to `platform/gw2`; otherwise keep it in the
 profession module as a scheduler mechanic or resolver reaction.
+
+Elementalist currently remains `standalone`. Its eventual shared-engine
+migration only requires changing its registry kind to `native` once its app
+adapter exists; the registry contract does not need another redesign.

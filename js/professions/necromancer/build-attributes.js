@@ -50,7 +50,7 @@ export function applyNecromancerBuildAttributeRules(
     addAttribute(traitStats, "Concentration", vitality * 0.13);
   }
   if (hasTrait("Dark Gunslinger")) {
-    addAttribute(traitStats, "Expertise", vitality * 0.13);
+    addAttribute(traitStats, "Expertise", vitality * 0.1);
   }
   if (hasTrait("Boon of Creation")) {
     addAttribute(traitStats, "Concentration", 180);

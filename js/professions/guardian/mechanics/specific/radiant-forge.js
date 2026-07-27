@@ -15,6 +15,14 @@ function emitForgeWeaponSwap(context, skill, event = {}) {
   });
 }
 
+function emitForgeTransition(context, skill, event = {}) {
+  emitGuardianEvent(context, skill, "weapon_set", {
+    weaponSet: context.state.activeWeaponSet,
+    mechanicSwap: true,
+    ...event,
+  });
+}
+
 export function validateRadiantForgeCast(context, skill) {
   if (skill.radiantForgeSkill) {
     return Boolean(context.state.profession.radiantForge);
@@ -56,7 +64,7 @@ function radiantForge(context, skill) {
       radiantWeapon: state.radiantWeapon,
     },
   );
-  emitForgeWeaponSwap(context, skill);
+  emitForgeTransition(context, skill);
   return true;
 }
 
@@ -222,7 +230,7 @@ export function advanceRadiantForgeState(context, target) {
           radiantWeapon: "",
         },
       );
-      emitForgeWeaponSwap(context, exit, {
+      emitForgeTransition(context, exit, {
         at: expiredAt,
         automatic: true,
       });

@@ -36,15 +36,18 @@ npm test
 npm run check
 ```
 
-Refresh the checked-in Guardian API snapshot with:
+Refresh any native profession API snapshot with:
 
 ```powershell
-npm run update:guardian-data
+npm run update:profession-data -- --profession Guardian
 ```
 
-Refresh the checked-in Necromancer API snapshot with:
+The generic command accepts new Guild Wars 2 profession names without a
+central allowlist. Existing compatibility wrappers remain available:
 
 ```powershell
+npm run update:mesmer-data
+npm run update:guardian-data
 npm run update:necromancer-data
 ```
 
@@ -71,7 +74,8 @@ gw2-combat-simulator/
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the profession contract and
-import boundaries. Profession-specific documentation:
+import boundaries, and [docs/MODULES.md](docs/MODULES.md) for module
+responsibilities and public contracts. Profession-specific documentation:
 
 - Mesmer research and modeling assumptions: [docs/RESEARCH.md](docs/RESEARCH.md)
 - Elementalist implementation details: [docs/ELEMENTALIST.md](docs/ELEMENTALIST.md)

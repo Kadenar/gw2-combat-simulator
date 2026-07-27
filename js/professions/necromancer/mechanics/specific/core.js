@@ -1,3 +1,11 @@
+/**
+ * Core (profession-agnostic) necromancer skill handlers.
+ *
+ * Covers mechanics that aren't tied to an elite specialization: weapon swap,
+ * flip-skill arming/expiry (`availableFlips`), the Signet of Vampirism active
+ * life-steal strikes, and the (no-op on cast) Signet of Undeath. Exposed as the
+ * `necromancerCoreSkillHandlers` map.
+ */
 import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
 import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
 import { emitDamage, emitState } from "./shared.js";

@@ -23,4 +23,5 @@ export const {
     initialBlight: app.build.initialBlight,
     necromancerBuildAttributesApplied: true,
   }),
+  isContributionTrait: trait => trait.name !== "Dark Disciple",
 });

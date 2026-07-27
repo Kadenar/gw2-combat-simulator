@@ -1,4 +1,5 @@
 import {
+  NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
 import {
@@ -6,6 +7,15 @@ import {
   finalizeNecromancerCast,
   gainNecromancerLifeForce,
 } from "./specific/handlers.js";
+import {
+  transferNecromancerSelfConditions,
+} from "./specific/conditions.js";
+import {
+  addCarapace,
+  emitBuff,
+  emitCondition,
+  emitDamage,
+} from "./specific/shared.js";
 import {
   isInternalCooldownReady,
 } from "../../../platform/engine/internal-cooldown.js";
@@ -86,7 +96,172 @@ function updateNecromancerCastState(context, skill) {
 
 function afterCast(context, skill) {
   updateNecromancerCastState(context, skill);
+  if (
+    skill.id === ID.DARK_BARRAGE &&
+    hasTrait(context, TRAIT.DEATHLY_HASTE)
+  ) {
+    context.emit({
+      type: "buff",
+      at: context.effectiveEnd,
+      source: "Trait",
+      sourceId: TRAIT.DEATHLY_HASTE,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      kind: "quickness",
+      duration: 4,
+      stacks: 1,
+    });
+    context.emit({
+      type: "buff",
+      at: context.effectiveEnd,
+      source: "Trait",
+      sourceId: TRAIT.DEATHLY_HASTE,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      kind: "fury",
+      duration: 4,
+      stacks: 1,
+    });
+  }
+  const state = context.state.profession;
+  if (
+    skill.type === "Heal" &&
+    hasTrait(context, TRAIT.DARK_DEFENSE) &&
+    context.effectiveEnd >=
+      Number(state.traitProcReadyAt.darkDefense || 0)
+  ) {
+    state.traitProcReadyAt.darkDefense = context.effectiveEnd + 5;
+    addCarapace(state, 10, context.effectiveEnd);
+    emitBuff(context, skill, "protection", 3);
+  }
+  if (
+    skill.categories?.includes("Signet") &&
+    hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING)
+  ) {
+    emitDamage(context, skill, 0, {
+      name: "Signets of Suffering",
+      source: "Trait",
+      sourceId: TRAIT.SIGNETS_OF_SUFFERING,
+      actorType: "effect",
+      skillWeapon: "Unequipped",
+      metadata: {
+        flatStrikeBase: 1413,
+        noCrit: true,
+        damageKind: "life-steal",
+      },
+    });
+  }
+  if (
+    skill.categories?.includes("Shout") &&
+    hasTrait(context, TRAIT.AUGURY_OF_DEATH)
+  ) {
+    emitDamage(context, skill, 0, {
+      name: "Augury of Death",
+      source: "Trait",
+      sourceId: TRAIT.AUGURY_OF_DEATH,
+      actorType: "effect",
+      skillWeapon: "Unequipped",
+      metadata: {
+        flatStrikeBase: 276,
+        flatStrikePowerCoeff: 0.02,
+        noCrit: true,
+        damageKind: "life-steal",
+      },
+    });
+  }
+  if (
+    skill.type === "Weapon" &&
+    skill.weapon === "Dagger" &&
+    hasTrait(context, TRAIT.OVERFLOWING_THIRST)
+  ) {
+    emitBuff(context, skill, "taste-for-blood", 10);
+  }
+  if (
+    skill.type === "Heal" &&
+    hasTrait(context, TRAIT.MALICIOUS_SWARM) &&
+    context.effectiveEnd >=
+      Number(state.traitProcReadyAt.maliciousSwarm || 0)
+  ) {
+    state.traitProcReadyAt.maliciousSwarm = context.effectiveEnd + 15;
+    emitDamage(context, skill, 1, {
+      name: "Lesser Signet of the Locust",
+      source: "Trait",
+      sourceId: TRAIT.MALICIOUS_SWARM,
+      actorType: "effect",
+      skillWeapon: "Unequipped",
+    });
+  }
+  if (
+    skill.shroudSlot === 4 &&
+    hasTrait(context, TRAIT.TRANSFUSION)
+  ) {
+    emitDamage(context, skill, 1.8, {
+      name: "Lesser Chilblains",
+      source: "Trait",
+      sourceId: TRAIT.TRANSFUSION,
+      actorType: "effect",
+      skillWeapon: "Unequipped",
+    });
+    emitCondition(context, skill, "Poisoned", 2, 4, {
+      source: "Trait",
+      sourceId: TRAIT.TRANSFUSION,
+      actorType: "effect",
+    });
+    context.emit({
+      type: "necromancer.chill",
+      at: context.effectiveEnd,
+      source: "Trait",
+      sourceId: TRAIT.TRANSFUSION,
+      actorType: "effect",
+      skillId: skill.id,
+      skillName: "Lesser Chilblains",
+      duration: 2,
+    });
+  }
   finalizeNecromancerCast(context, skill);
+}
+
+function onEventScheduled(context, event) {
+  const state = context.state.profession;
+  if (
+    event.type === "condition" &&
+    event.condition === "Burning" &&
+    hasTrait(context, TRAIT.NOURISHING_ASHES) &&
+    event.at >= Number(state.traitProcReadyAt.nourishingAshes || 0)
+  ) {
+    state.traitProcReadyAt.nourishingAshes = event.at + 3;
+    gainNecromancerLifeForce(
+      context,
+      5,
+      event.at,
+      "nourishing-ashes",
+    );
+  }
+  if (
+    event.type === "buff" &&
+    event.actorType === "player" &&
+    event.kind !== "target-vulnerability" &&
+    hasTrait(context, TRAIT.BLIGHTERS_BOON)
+  ) {
+    gainNecromancerLifeForce(
+      context,
+      1,
+      event.at,
+      "blighters-boon",
+    );
+  }
+  if (
+    !state.plagueSendingArmed ||
+    event.type !== "damage" ||
+    event.actorType !== "player" ||
+    !(Number(event.coefficient) > 0)
+  ) return;
+  const skill = context.catalog.skillsById.get(event.skillId);
+  if (!skill) return;
+  state.plagueSendingArmed = false;
+  transferNecromancerSelfConditions(context, skill, 2, event.at);
 }
 
 export const necromancerCastRules = Object.freeze({
@@ -105,4 +280,5 @@ export const necromancerCastRules = Object.freeze({
 export const necromancerSchedulerHooks = Object.freeze({
   advance: advanceNecromancerState,
   afterCast,
+  onEventScheduled,
 });

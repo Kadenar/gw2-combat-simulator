@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getProfession } from "../js/app/composition.js";
+import { loadProfession } from "../js/app/profession-registry.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
   createGuardianBuildDefaults,
@@ -1106,7 +1106,7 @@ test("Radiant Forge recharge starts when its automatic exit occurs", () => {
   );
 });
 
-test("Radiant Forge entry and exit trigger swap sigils with their shared ICD", () => {
+test("Radiant Forge transitions emit the current set and trigger swap sigils", () => {
   const outOfCombat = simulateGw2({
     profession: guardianProfession,
     rotation: [
@@ -1167,8 +1167,18 @@ test("Radiant Forge entry and exit trigger swap sigils with their shared ICD", (
 
   assert.deepEqual(procTimes("Hydromancy"), [1250, 11250]);
   assert.deepEqual(procTimes("Geomancy"), [1250, 11250]);
-  assert.equal(result.events.some(event => event.type === "weapon_set"), false);
-  assert.ok(result.events.some(event => event.type === "sigil_swap"));
+  assert.deepEqual(
+    result.events
+      .filter(event => event.type === "weapon_set")
+      .map(event => [event.skillName, event.weaponSet]),
+    [
+      ["Enter Radiant Forge", 1],
+      ["Exit Radiant Forge", 1],
+      ["Enter Radiant Forge", 1],
+      ["Exit Radiant Forge", 1],
+      ["Enter Radiant Forge", 1],
+    ],
+  );
   assert.ok(result.procSteps
     .filter(step => ["Sigil of Hydromancy", "Sigil of Geomancy"]
       .includes(step.skill))
@@ -1247,6 +1257,19 @@ test("Radiant Forge entry and exit trigger swap sigils with their shared ICD", (
     [
       [1250, "Enter Radiant Forge"],
       [21250, "Exit Radiant Forge"],
+    ],
+  );
+  assert.deepEqual(
+    automaticExit.events
+      .filter(event => event.type === "weapon_set")
+      .map(event => [
+        event.skillName,
+        event.weaponSet,
+        Boolean(event.automatic),
+      ]),
+    [
+      ["Enter Radiant Forge", 1, false],
+      ["Exit Radiant Forge", 1, true],
     ],
   );
 
@@ -2014,5 +2037,5 @@ test("Guardian builds migrate and validate against real catalog metadata", () =>
 });
 
 test("Guardian is registered at the profession composition boundary", async () => {
-  assert.equal(await getProfession("guardian"), guardianProfession);
+  assert.equal(await loadProfession("guardian"), guardianProfession);
 });

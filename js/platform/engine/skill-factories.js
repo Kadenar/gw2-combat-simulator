@@ -65,14 +65,14 @@
  * });
  * // => { implemented: true, castTimeMs: 750, cooldown: 8, effects: [...] }
  *
- * @example A handler-only skill with a Necromancer-specific resource cost
- * const shroudSkill = implemented({
+ * @example A handler-only skill with a profession-specific resource cost
+ * const resourceSkill = implemented({
  *   castTimeMs: 0,
- *   handlerId: "necromancer.shade",
- *   lifeForceCost: 21,
+ *   handlerId: "example.resource",
+ *   resourceCost: 21,
  *   effects: [],
  * });
- * // `lifeForceCost` is retained for the Necromancer handler.
+ * // `resourceCost` is retained for the profession handler.
  *
  * @example Layering a correction over generated/default mechanics
  * const corrected = implemented({

@@ -15,10 +15,10 @@ import {
   replaceBuildConfiguration,
 } from "../js/app/app-state.js";
 import {
-  getProfessionAppAdapter,
+  loadProfessionAppAdapter,
+  nativeProfessionRegistry,
+  PROFESSION_APPLICATION_KINDS,
   professionOptions,
-} from "../js/app/composition.js";
-import {
   professionRegistry,
 } from "../js/app/profession-registry.js";
 import {
@@ -90,18 +90,18 @@ test("shared app runtime and platform rotation helpers are profession neutral", 
     ),
     readFile(new URL("../js/platform/ui/rotation-results.js", import.meta.url), "utf8"),
   ]);
-  const professionTerms = [
-    "Mesmer",
-    "Mirage",
-    "Continuum",
-    "Malicious Sorcery",
-    "phantasm",
-    "clone",
-  ];
+  const professionTerms = nativeProfessionRegistry.flatMap((entry) => [
+    entry.id,
+    entry.name,
+  ]);
 
   for (const source of sources) {
     for (const term of professionTerms) {
-      assert.equal(source.includes(term), false, term);
+      assert.equal(
+        source.toLowerCase().includes(term.toLowerCase()),
+        false,
+        term,
+      );
     }
   }
 });
@@ -117,7 +117,7 @@ test("Guardian is exposed by the profession selector and app composition", async
   );
   assert.equal(professionRoute("guardian"), "guardian.html");
   assert.equal(
-    (await getProfessionAppAdapter("guardian"))?.id,
+    (await loadProfessionAppAdapter("guardian"))?.id,
     "guardian",
   );
   assert.match(guardianPage, /data-profession="guardian"/);
@@ -125,38 +125,44 @@ test("Guardian is exposed by the profession selector and app composition", async
 });
 
 test("the generic landing page and profession simulators have separate entries", async () => {
-  const [landingPage, ...professionPages] = await Promise.all([
-    readFile(new URL("../index.html", import.meta.url), "utf8"),
-    readFile(new URL("../mesmer.html", import.meta.url), "utf8"),
-    readFile(new URL("../elementalist.html", import.meta.url), "utf8"),
-    readFile(new URL("../guardian.html", import.meta.url), "utf8"),
-    readFile(new URL("../necromancer.html", import.meta.url), "utf8"),
-  ]);
-  const [mesmerPage] = professionPages;
+  const landingPage = await readFile(
+    new URL("../index.html", import.meta.url),
+    "utf8",
+  );
+  const professionPages = await Promise.all(
+    professionRegistry.map(async (entry) => ({
+      entry,
+      source: await readFile(
+        new URL(`../${entry.route}`, import.meta.url),
+        "utf8",
+      ),
+    })),
+  );
 
   assert.match(landingPage, /<body class="landing-page">/);
   assert.match(landingPage, /data-profession-grid/);
   assert.doesNotMatch(landingPage, /profession-card-mesmer/);
   assert.deepEqual(
-    professionRegistry.map(entry => entry.route),
-    [
-      "mesmer.html",
-      "elementalist.html",
-      "guardian.html",
-      "necromancer.html",
-    ],
+    professionOptions,
+    professionRegistry.map(({ id, name }) => ({ id, name })),
+  );
+  assert.equal(
+    new Set(professionRegistry.map((entry) => entry.route)).size,
+    professionRegistry.length,
   );
   assert.doesNotMatch(landingPage, /js\/app\/app\.js/);
   assert.doesNotMatch(landingPage, /ARCHITECTURE\.md/);
-  for (const professionPage of professionPages) {
+  for (const { entry, source } of professionPages) {
     assert.match(
-      professionPage,
+      source,
       /<a class="home-link" href="index\.html">← All professions<\/a>/,
     );
+    assert.equal(professionRoute(entry.id), entry.route);
+    if (entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE) {
+      assert.match(source, new RegExp(`data-profession="${entry.id}"`));
+      assert.match(source, /js\/app\/app\.js/);
+    }
   }
-  assert.match(mesmerPage, /data-active-profession="mesmer"/);
-  assert.match(mesmerPage, /js\/app\/app\.js/);
-  assert.equal(professionRoute("mesmer"), "mesmer.html");
 });
 
 test("Mesmer default builds resolve without embedded rotations", async () => {
@@ -164,7 +170,7 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
     new URL("../Builds/mesmer-manifest.json", import.meta.url),
     "utf8",
   ));
-  const adapter = await getProfessionAppAdapter("mesmer");
+  const adapter = await loadProfessionAppAdapter("mesmer");
   const presets = manifest.flatMap(section => section.presets);
 
   assert.deepEqual(
@@ -184,8 +190,29 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
   }
 });
 
+test("Necromancer Harbinger default build resolves without a rotation", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/necromancer-manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("necromancer");
+  const presets = manifest.flatMap(section => section.presets);
+
+  assert.deepEqual(manifest.map(section => section.section), ["Harbinger"]);
+  assert.deepEqual(presets.map(preset => preset.label), ["Condition"]);
+  const saved = JSON.parse(await readFile(
+    new URL(`../${presets[0].build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "necromancer");
+  assert.equal(build.specializations[2].name, "Harbinger");
+  assert.equal(build.selectedSkills.Utility2, "Plague Signet");
+});
+
 test("build import and export leave rotation state separate", async () => {
-  const adapter = await getProfessionAppAdapter("mesmer");
+  const adapter = await loadProfessionAppAdapter("mesmer");
   const current = createDefaultBuild(adapter);
   current.rotation = ["Keep this rotation"];
   const imported = {
@@ -258,6 +285,7 @@ test("damage result rows reuse the icons shown for generated procs", () => {
   const earthIcon = "earth.png";
   const nourishmentIcon = "nourishment.png";
   const phantasmalBladesIcon = "phantasmal-blades.png";
+  const meltdownIcon = "meltdown.png";
   const app = {
     attributeData: {
       activeTraits: [{
@@ -284,6 +312,12 @@ test("damage result rows reuse the icons shown for generated procs", () => {
           skill: "Phantasmal Blades",
           sourceSkill: "Phantasmal Lancer",
         },
+        {
+          type: "trait_proc",
+          skill: "Meltdown",
+          sourceSkill: "Devouring Cut",
+          icon: meltdownIcon,
+        },
       ],
     },
     skillByName: new Map(),
@@ -301,6 +335,10 @@ test("damage result rows reuse the icons shown for generated procs", () => {
   assert.equal(
     resultSkillIcon(app, { name: "Phantasmal Blade" }),
     phantasmalBladesIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Cascading Corruption" }),
+    meltdownIcon,
   );
 });
 

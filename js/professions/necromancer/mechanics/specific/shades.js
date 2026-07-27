@@ -1,3 +1,13 @@
+/**
+ * Scourge sand shade handlers.
+ *
+ * A single `shade` handler covers Manifest Sand Shade (which spawns a timed
+ * shade, capped by Sand Savant) and every shade-triggered F-skill (Nefarious
+ * Favor, Sand Cascade, Garish Pillar, Desert Shroud, Sandstorm Shroud). Each
+ * emits the base sand-shade strike/condition plus its skill-specific payload;
+ * non-Manifest casts pay the shade's life-force cost. Exports
+ * `necromancerShadeSkillHandlers`.
+ */
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -22,6 +32,10 @@ function shade(context, skill) {
     state.shades = [...state.shades, at + 15]
       .sort((left, right) => left - right)
       .slice(-maximum);
+    if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
+      emitBuff(context, skill, "alacrity", 2);
+      emitBuff(context, skill, "vigor", 2);
+    }
   } else {
     state.lifeForce = Math.max(
       0,
