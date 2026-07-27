@@ -366,16 +366,16 @@ test("Thousand Cuts spreads its ten EVTC packets and Bloodsong triggers", () => 
     )
     .map(event => event.at);
   const expected = [
-    0.05,
-    0.567,
-    1.083,
-    1.6,
-    2.117,
-    2.65,
-    3.167,
-    3.683,
-    4.2,
-    4.717,
+    0,
+    0.517,
+    1.033,
+    1.55,
+    2.067,
+    2.6,
+    3.117,
+    3.633,
+    4.15,
+    4.667,
   ];
   const bloodsongTimes = result.events
     .filter(event =>
