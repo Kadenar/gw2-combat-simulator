@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   loadProfession,
   professionOptions,
+  professionRegistry,
 } from "../js/app/profession-registry.js";
 import {
   PROFESSION_ROUTES,
@@ -62,17 +63,17 @@ async function javascriptFiles(directory) {
 }
 
 test("profession selector exposes every ready application route", () => {
-  assert.deepEqual(PROFESSION_ROUTES, {
-    mesmer: "mesmer.html",
-    elementalist: "elementalist.html",
-    guardian: "guardian.html",
-    necromancer: "necromancer.html",
-  });
+  assert.deepEqual(
+    PROFESSION_ROUTES,
+    Object.fromEntries(
+      professionRegistry.map(({ id, route }) => [id, route]),
+    ),
+  );
   assert.equal(professionRoute("elementalist"), "elementalist.html");
   assert.equal(professionRoute("unknown"), "index.html");
   assert.deepEqual(
-    professionOptions.map(({ id }) => id),
-    ["mesmer", "elementalist", "guardian", "necromancer"],
+    professionOptions,
+    professionRegistry.map(({ id, name }) => ({ id, name })),
   );
 });
 

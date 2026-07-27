@@ -19,25 +19,24 @@ with the active profession app adapter, manages UI rendering for
 gear/traits/skills/attributes, and orchestrates the simulation lifecycle. Entry
 point for DOMContentLoaded resolves the adapter for the current page.
 
-### [composition.js](js/app/composition.js)
-Registers the available profession app adapters and exposes the active/default
-adapter plus async adapter lookup by profession id.
-
 ### [create-app-adapter.js](js/app/create-app-adapter.js) / [create-profession-runtime.js](js/app/create-profession-runtime.js)
 Shared factories that build a profession's browser app adapter and its
 simulation runtime from the profession contract.
 
 ### [profession-registry.js](js/app/profession-registry.js)
 Single lazy manifest for every profession exposed by the application. Each
-entry supplies a stable ID, display metadata, route, optional theme class, and
-explicit dynamic loaders for the profession contract and shared-shell app
-adapter. Registry entries are validated for stable unique IDs and routes when
-the module loads, then shallow-frozen.
+entry supplies a stable ID, display metadata, route, optional theme class,
+explicit application kind, and dynamic loaders for the profession contract
+and shared-shell app adapter. Registry entries are validated for stable unique
+IDs and routes when the module loads, then shallow-frozen.
 
 The main exports are:
 
 - `professionRegistry`: all routes, including standalone legacy applications.
-- `nativeProfessionRegistry`: entries with a shared-shell app adapter.
+- `nativeProfessionRegistry`: entries declared with
+  `applicationKind: "native"`; these must have a shared-shell app adapter.
+- `standaloneProfessionRegistry`: legacy applications declared with
+  `applicationKind: "standalone"` and no shared-shell adapter.
 - `professionOptions` and `PROFESSION_ROUTES`: frozen projections for UI and
   compatibility consumers.
 - `getProfessionEntry()` and `professionRoute()`: synchronous metadata and
@@ -48,7 +47,9 @@ The main exports are:
 Loader paths are explicit so they remain statically discoverable. Importing
 the registry itself does not load profession implementations. To expose a new
 profession, add one entry with its page metadata and loader functions;
-standalone applications use `loadAppAdapter: null`.
+native applications use `applicationKind: "native"` and standalone
+applications use `applicationKind: "standalone"`. Elementalist can move from
+standalone to native later by changing that field and supplying its adapter.
 
 ### [profession-selector.js](js/app/profession-selector.js)
 Registry-driven landing-page and header navigation. `bindProfessionSelector()`
@@ -71,7 +72,9 @@ palette/resource view models and canonical result state.
 ### [app-state.js](js/app/app-state.js)
 Build persistence and initialization. Creates default builds, loads/saves builds
 from localStorage, and merges saved builds with defaults through the active
-adapter while maintaining backward compatibility.
+adapter while maintaining backward compatibility. Local-storage loading is
+forgiving, but explicit build replacement/import is strict so wrong-profession
+and future-version errors reach the user.
 
 ### [app-runtime.js](js/app/app-runtime.js)
 Profession-neutral modifier comparison orchestration. Per-profession
@@ -129,10 +132,11 @@ hooks. It returns a frozen object with three operations:
   browser shell.
 
 Common normalization covers gear and legacy prefix aliases, weapon handedness,
-sigils, relics, infusions, three unique specialization lines with at most one
-elite, selectable heal/utility/elite skills, assumptions, starting weapon set,
-target health and armor, and canonical rotation commands. It also removes the
-obsolete `selectedSkillIds` and global `sigils` fields.
+sigils, relics, runes, food, utility consumables, infusions, three unique
+specialization lines with at most one elite, specialization-available and
+unique heal/utility/elite skills, assumptions, starting weapon set, target
+health and armor, and canonical rotation commands and timing. It also removes
+the obsolete `selectedSkillIds` and global `sigils` fields.
 
 Profession modules retain ownership of defaults, ordered version transforms,
 and resource-specific fields. `normalizeExtra(build, { saved, defaults })`

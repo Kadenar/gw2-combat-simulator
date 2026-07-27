@@ -13,14 +13,22 @@
  * @property {string} route Browser route for the profession application.
  * @property {string} themeClass Optional class applied to the document body.
  * @property {string} specializationSummary Landing-card summary.
+ * @property {"native" | "standalone"} applicationKind Whether the route uses
+ *   the shared application/engine boundary or owns a legacy application.
  * @property {() => Promise<Object>} loadProfession Lazy profession loader.
  * @property {(() => Promise<Object>) | null} loadAppAdapter Lazy shared-shell
  *   adapter loader, or `null` for a standalone application.
  */
 
+export const PROFESSION_APPLICATION_KINDS = Object.freeze({
+  NATIVE: "native",
+  STANDALONE: "standalone",
+});
+
 const entries = [
   {
     id: "mesmer",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Mesmer",
     route: "mesmer.html",
     themeClass: "mesmer-theme",
@@ -37,6 +45,7 @@ const entries = [
   },
   {
     id: "elementalist",
+    applicationKind: PROFESSION_APPLICATION_KINDS.STANDALONE,
     name: "Elementalist",
     route: "elementalist.html",
     themeClass: "",
@@ -50,6 +59,7 @@ const entries = [
   },
   {
     id: "guardian",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Guardian",
     route: "guardian.html",
     themeClass: "guardian-theme",
@@ -66,11 +76,11 @@ const entries = [
   },
   {
     id: "necromancer",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Necromancer",
     route: "necromancer.html",
     themeClass: "necromancer-theme",
-    specializationSummary:
-      "Core · Reaper · Scourge · Harbinger · Ritualist",
+    specializationSummary: "Core · Reaper · Scourge · Harbinger · Ritualist",
     loadProfession: async () => {
       const module = await import("../professions/necromancer/definition.js");
       return module.necromancerProfession;
@@ -84,7 +94,9 @@ const entries = [
 
 function validateEntry(entry, ids, routes) {
   if (!/^[a-z][a-z0-9-]*$/.test(String(entry.id || ""))) {
-    throw new TypeError("Profession registry ids must be stable and lowercase.");
+    throw new TypeError(
+      "Profession registry ids must be stable and lowercase.",
+    );
   }
   if (ids.has(entry.id)) {
     throw new TypeError(`Duplicate profession registry id: ${entry.id}.`);
@@ -99,41 +111,71 @@ function validateEntry(entry, ids, routes) {
     throw new TypeError(`${entry.id} requires a profession loader.`);
   }
   if (
-    entry.loadAppAdapter !== null
-    && typeof entry.loadAppAdapter !== "function"
+    !Object.values(PROFESSION_APPLICATION_KINDS).includes(
+      entry.applicationKind,
+    )
   ) {
-    throw new TypeError(`${entry.id} has an invalid app-adapter loader.`);
+    throw new TypeError(`${entry.id} has an invalid application kind.`);
+  }
+  if (
+    entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE &&
+    typeof entry.loadAppAdapter !== "function"
+  ) {
+    throw new TypeError(`${entry.id} native applications require an adapter.`);
+  }
+  if (
+    entry.applicationKind === PROFESSION_APPLICATION_KINDS.STANDALONE &&
+    entry.loadAppAdapter !== null
+  ) {
+    throw new TypeError(
+      `${entry.id} standalone applications cannot register an adapter.`,
+    );
   }
   ids.add(entry.id);
   routes.add(entry.route);
 }
 
-const ids = new Set();
-const routes = new Set();
-for (const entry of entries) validateEntry(entry, ids, routes);
+export function validateProfessionRegistryEntries(candidateEntries) {
+  if (!Array.isArray(candidateEntries)) {
+    throw new TypeError("Profession registry entries must be an array.");
+  }
+  const ids = new Set();
+  const routes = new Set();
+  for (const entry of candidateEntries) validateEntry(entry, ids, routes);
+  return true;
+}
+
+validateProfessionRegistryEntries(entries);
 
 export const professionRegistry = Object.freeze(
-  entries.map(entry => Object.freeze({ ...entry })),
+  entries.map((entry) => Object.freeze({ ...entry })),
 );
 
 /**
  * Registry subset that can run in the shared profession application shell.
  */
 export const nativeProfessionRegistry = Object.freeze(
-  professionRegistry.filter(entry =>
-    typeof entry.loadAppAdapter === "function"),
+  professionRegistry.filter(
+    (entry) =>
+      entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE,
+  ),
 );
 
-const byId = new Map(professionRegistry.map(entry => [entry.id, entry]));
+export const standaloneProfessionRegistry = Object.freeze(
+  professionRegistry.filter(
+    (entry) =>
+      entry.applicationKind === PROFESSION_APPLICATION_KINDS.STANDALONE,
+  ),
+);
+
+const byId = new Map(professionRegistry.map((entry) => [entry.id, entry]));
 
 export const professionOptions = Object.freeze(
   professionRegistry.map(({ id, name }) => Object.freeze({ id, name })),
 );
 
 export const PROFESSION_ROUTES = Object.freeze(
-  Object.fromEntries(
-    professionRegistry.map(({ id, route }) => [id, route]),
-  ),
+  Object.fromEntries(professionRegistry.map(({ id, route }) => [id, route])),
 );
 
 /**
@@ -174,6 +216,10 @@ export async function loadProfession(professionId) {
  * @returns {Promise<Object | null>} `null` for unknown or standalone entries.
  */
 export async function loadProfessionAppAdapter(professionId) {
-  const load = getProfessionEntry(professionId)?.loadAppAdapter;
+  const entry = getProfessionEntry(professionId);
+  if (entry?.applicationKind !== PROFESSION_APPLICATION_KINDS.NATIVE) {
+    return null;
+  }
+  const load = entry.loadAppAdapter;
   return typeof load === "function" ? load() : null;
 }

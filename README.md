@@ -36,15 +36,18 @@ npm test
 npm run check
 ```
 
-Refresh the checked-in Guardian API snapshot with:
+Refresh any native profession API snapshot with:
 
 ```powershell
-npm run update:guardian-data
+npm run update:profession-data -- --profession Guardian
 ```
 
-Refresh the checked-in Necromancer API snapshot with:
+The generic command accepts new Guild Wars 2 profession names without a
+central allowlist. Existing compatibility wrappers remain available:
 
 ```powershell
+npm run update:mesmer-data
+npm run update:guardian-data
 npm run update:necromancer-data
 ```
 
