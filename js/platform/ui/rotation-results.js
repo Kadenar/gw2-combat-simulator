@@ -85,6 +85,7 @@ function skillHeaderHtml(columns, sortState) {
 export function mountRotationResults(container, model = {}, options = {}) {
   if (!container) return null;
   const metrics = model.metrics || [];
+  const breakpoints = model.breakpoints || [];
   const skillRows = model.skillRows || [];
   const skillColumns = model.skillColumns || [];
   const conditions = model.conditions || [];
@@ -109,6 +110,26 @@ export function mountRotationResults(container, model = {}, options = {}) {
       <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ""}">${escapeHtml(metric.value)}</span>
     </div>`).join("")}
   </div>
+  ${breakpoints.length ? `<details class="res-breakpoints">
+    <summary>
+      <span class="res-breakpoints-heading">DPS snapshots</span>
+      <span class="res-breakpoints-description">Average DPS at 20% target-health intervals</span>
+    </summary>
+    <div class="res-breakpoint-grid">
+      ${breakpoints.map(breakpoint => `<div class="res-breakpoint">
+        <div class="res-breakpoint-meta">
+          <span class="res-breakpoint-label">
+            <b>${number(breakpoint.healthPercent)}%</b> target health
+          </span>
+          <span class="res-breakpoint-time">at ${Number(breakpoint.elapsed || 0).toFixed(2)}s</span>
+        </div>
+        <div class="res-breakpoint-value">
+          <strong>${number(breakpoint.dps)}</strong>
+          <span>DPS</span>
+        </div>
+      </div>`).join("")}
+    </div>
+  </details>` : ""}
   ${skillColumns.length ? `<div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
     <div class="res-hdr res-hdr-sortable" data-role="skill-header">
       ${skillHeaderHtml(skillColumns, sortState)}

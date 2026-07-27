@@ -541,6 +541,17 @@ export function createScheduler({
         reservedUntil,
       ));
     }
+    for (const lockout of skill.lockouts || []) {
+      const lockoutReadyAt = Number(state.lockouts.get(lockout.group) || 0);
+      if (lockoutReadyAt > at + epsilon) {
+        result.push(unavailable(
+          `${skill.name} is locked by ${lockout.group} until `
+            + `${lockoutReadyAt.toFixed(3)}.`,
+          "platform.skill-group-lockout",
+          lockoutReadyAt,
+        ));
+      }
+    }
     return { ammo, result: combineAvailability(result) };
   }
 
@@ -666,6 +677,15 @@ export function createScheduler({
     }
 
     const castContext = { ...checked.castContext, start };
+    for (const lockout of skill.lockouts || []) {
+      state.lockouts.set(
+        lockout.group,
+        Math.max(
+          Number(state.lockouts.get(lockout.group) || 0),
+          start + Number(lockout.durationMs) / 1000,
+        ),
+      );
+    }
     const fullEnd = start + castDurationFor(castContext, skill);
     const interruptAfterMs =
       command.interruptAfterMs ?? skill.defaultInterruptMs;

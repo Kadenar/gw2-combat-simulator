@@ -8,6 +8,8 @@ import {
 } from './helpers/mesmer-simulation.js';
 import { chartValueAt } from '../js/platform/ui/charts.js';
 import {
+    formatConcurrentTimelineBadge,
+    formatInterruptTimelineBadge,
     formatTimelineCastDetails,
     moveRotationEntry,
 } from '../js/platform/ui/timeline.js';
@@ -41,6 +43,20 @@ test('Relic of the Claw uses its relic icon in the proc timeline', () => {
     assert.equal(
         RELIC_DATA.Claw.icon,
         'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
+    );
+});
+
+test('concurrent timeline badges show both delay and cast timestamp', () => {
+    assert.equal(
+        formatConcurrentTimelineBadge(100, '2.23s'),
+        '⊙100ms\n2.23s',
+    );
+});
+
+test('interrupt timeline badges show both interrupt delay and cast timestamp', () => {
+    assert.equal(
+        formatInterruptTimelineBadge(120, '4.56s'),
+        '✂120ms\n4.56s',
     );
 });
 
@@ -507,7 +523,7 @@ test('the supplied condition Virtuoso build retains its 39k parity baseline', ()
     });
 
     assert.equal(result.warnings.length, 0);
-    assert.ok(Math.abs(result.dps - 39763.11948986904) < 1e-6);
+    assert.ok(Math.abs(result.dps - 39582.94377751716) < 1e-6);
 });
 
 test('Phantasmal Swordsman independently gates its summon and player hit', () => {
@@ -2606,7 +2622,7 @@ test('Shatter Storm gives Split Second two ammo charges', () => {
         }),
     );
     assert.equal(result.steps[0].start, 0);
-    assert.equal(result.steps[1].start, 0);
+    assert.equal(result.steps[1].start, 50);
     assert.equal(result.steps[2].start, 8000);
     assert.deepEqual(
         {
@@ -3682,7 +3698,7 @@ test('the supplied condition Virtuoso build tracks cast-end blade spends', () =>
     };
     assert.deepEqual(
         [relativeStart(9), relativeStart(11), relativeStart(29)],
-        [2.12, 3.68, 12.88],
+        [2.17, 3.73, 12.98],
     );
     const firstHarmony = result.events.find(event =>
         event.type === 'action' && event.name === 'Bladesong Harmony'
@@ -3999,7 +4015,7 @@ test('Duration and Kill Time account for an explicit Combat Start reference', ()
     assert.equal(metrics[1].value, '91.83s');
 });
 
-test('Combat Start timeline timestamps use the first subsequent hit like Elementalist', () => {
+test('Combat Start is timeline zero while DPS waits for the first subsequent hit', () => {
     const result = simulateMesmer(
         [
             'Phantasmal Swordsman',
@@ -4009,13 +4025,14 @@ test('Combat Start timeline timestamps use the first subsequent hit like Element
         defaultSimulationConfig(),
     );
 
-    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.76s');
-    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '-0.06s');
-    assert.equal(formatResultTimelineTime(result.steps[2].start, result), '0.12s');
-    assert.equal(formatResultTimelineTime(result.steps[2].end, result), '0.56s');
+    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.70s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.00s');
+    assert.equal(formatResultTimelineTime(result.steps[2].start, result), '0.18s');
+    assert.equal(formatResultTimelineTime(result.steps[2].end, result), '0.62s');
+    assert.equal(result.dpsStartTime, result.firstHitTime);
 });
 
-test('timeline and DPS retain simulation time without Combat Start', () => {
+test('timeline retains simulation time while DPS starts on first damage without Combat Start', () => {
     const result = simulateMesmer(
         [
             'Phantasmal Swordsman',
@@ -4024,10 +4041,65 @@ test('timeline and DPS retain simulation time without Combat Start', () => {
         defaultSimulationConfig(),
     );
 
-    assert.equal(result.dpsStartTime, 0);
-    assert.equal(result.dpsWindow, 1.32);
+    assert.equal(result.dpsStartTime, 0.759);
+    assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
     assert.equal(formatResultTimelineTime(result.steps[0].start, result), '0.00s');
     assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.88s');
+});
+
+test('a delayed Combat Start suppresses earlier damage without moving display zero', () => {
+    const result = simulateMesmer(
+        [
+            'Phantasmal Duelist',
+            { name: '__combat_start', offset: 500 },
+            'Illusionary Counter',
+            'Counterspell',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            primaryWeapon: 'Scepter',
+            secondaryWeapon: 'Pistol',
+            initialResource: 0,
+        }),
+    );
+
+    assert.equal(result.steps[1].start, 500);
+    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.50s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.00s');
+    assert.ok(result.resolvedEvents
+        .filter(event => event.type === 'damage')
+        .every(event => event.at >= 0.5));
+    assert.ok(Math.abs(result.dpsStartTime - 1.28) < 1e-12);
+});
+
+test('event log timestamps use the same explicit Combat Start origin as rotation tiles', () => {
+    const result = simulateMesmer(
+        [
+            'Phantasmal Duelist',
+            { name: '__combat_start', offset: 500 },
+            'Illusionary Counter',
+            'Counterspell',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            primaryWeapon: 'Scepter',
+            secondaryWeapon: 'Pistol',
+            initialResource: 0,
+        }),
+    );
+    const log = simulationEventLogRows(result);
+    const duelistStart = log.find(event =>
+        event.description.startsWith('CAST Phantasmal Duelist'));
+    const combatStart = log.find(event =>
+        event.description === 'COMBAT START');
+    const counterspellStart = log.find(event =>
+        event.description.startsWith('CAST Counterspell'));
+
+    assert.equal(duelistStart.at, -0.5);
+    assert.equal(combatStart.at, 0);
+    assert.ok(Math.abs(counterspellStart.at - 0.18) < 1e-12);
+    assert.match(simulationEventLogCsv(log), /"-0\.500","cast"/);
+    assert.match(simulationEventLogCsv(log), /"0\.000","combat_start","COMBAT START"/);
 });
 
 test('result summary includes kill time when target health is exhausted', () => {
@@ -4046,7 +4118,10 @@ test('result summary includes kill time when target health is exhausted', () => 
         resultSummaryMetrics(result).map(metric => metric.label),
         ['Duration', 'Kill Time', 'Total Damage', 'DPS', 'Strike', 'Condition'],
     );
-    assert.equal(buildChartSeries(result).durationMs, result.deathTime * 1000);
+    assert.equal(
+        buildChartSeries(result).durationMs,
+        Math.max(1, result.dpsWindow * 1000),
+    );
 });
 
 test('result table sorting cycles consistently across profession views', () => {

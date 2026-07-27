@@ -245,6 +245,29 @@ test("damage result rows reuse the icons shown for generated procs", () => {
   );
 });
 
+test("clone attack damage rows use their weapon skill icons", () => {
+  const windsIcon = "winds-of-chaos.png";
+  const etherBoltIcon = "ether-bolt.png";
+  const app = {
+    attributeData: { activeTraits: [] },
+    results: { procSteps: [] },
+    skillByName: new Map([
+      ["Winds of Chaos", { icon: windsIcon }],
+      ["Ether Bolt", { icon: etherBoltIcon }],
+    ]),
+    skills: [],
+  };
+
+  assert.equal(
+    resultSkillIcon(app, { name: "Clone: Winds of Chaos" }),
+    windsIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Clone: Ether Bolt" }),
+    etherBoltIcon,
+  );
+});
+
 test("Mesmer weapon palette orders autoattack chains by chain step", () => {
   const build = createMesmerBuildDefaults();
   build.specializations[2] = { name: "Mirage", traits: "1-1-1" };

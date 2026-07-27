@@ -220,6 +220,10 @@ Mesmer, Guardian, and Necromancer skill mechanics use one timing contract:
   scaling and 40 ms quantization.
 - `rechargeAnchor` is optional and defaults to `castEnd`; `castStart` supports
   actions whose recharge begins before a modeled aftercast ends.
+- `lockouts` optionally declares skill-family availability windows as
+  `{ group, durationMs }`. Activating the skill blocks only other skills that
+  declare the same group; unrelated actions, cast timing, effects, and
+  cooldowns are unchanged.
 - explicitly timed effects declare `timingAnchor: "castStart" | "castEnd"`
   and `timingScale: "cast" | "fixed"`;
 - evenly spaced effects use `atMs` plus optional `intervalMs`; irregular exact

@@ -267,7 +267,6 @@ test('Mesmer instant-cast skills have zero cast time', () => {
         'Into the Void',
         'Swap',
         'Dodge / Mirage Cloak',
-        'Swap Weapons',
         'Continuum Shift',
     ];
 
@@ -276,6 +275,18 @@ test('Mesmer instant-cast skills have zero cast time', () => {
         assert.equal(skill.castTimeMs, 0, name);
         assert.equal(skill.quicknessCastTimeMs ?? 0, 0, name);
     }
+});
+
+test('Mesmer shatters share only the shatter-family lockout', () => {
+    for (const name of Object.keys(SHATTERS)) {
+        assert.deepEqual(
+            catalogSkill(name).lockouts,
+            [{ group: 'mesmer.shatter', durationMs: 50 }],
+            name,
+        );
+    }
+    assert.deepEqual(catalogSkill('Power Spike').lockouts, []);
+    assert.deepEqual(catalogSkill('Mirror Images').lockouts, []);
 });
 
 test('Mesmer weapon autoattacks are cataloged as individual chain skills', () => {

@@ -63,7 +63,7 @@ export function createGw2HitResolution({
       "strikeDamage",
       Number(event.hits || 1),
     );
-    ctx.markDamageTime(event.at);
+    if (damage > 0) ctx.markDamageTime(event.at);
 
     const resolved = {
       ...event,

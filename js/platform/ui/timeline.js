@@ -29,6 +29,16 @@ export function formatTimelineCastDetails(step, formatTime) {
   return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(2)}s`;
 }
 
+export function formatConcurrentTimelineBadge(offsetMs, timestamp = "") {
+  const time = String(timestamp || "").trim();
+  return `⊙${Number(offsetMs)}ms${time ? `\n${time}` : ""}`;
+}
+
+export function formatInterruptTimelineBadge(interruptMs, timestamp = "") {
+  const time = String(timestamp || "").trim();
+  return `✂${Number(interruptMs)}ms${time ? `\n${time}` : ""}`;
+}
+
 export function getSkillDropInsertionIndex(skillElement, clientX) {
   const rawIndex = skillElement?.dataset?.idx;
   if (rawIndex == null || String(rawIndex).trim() === "") return null;

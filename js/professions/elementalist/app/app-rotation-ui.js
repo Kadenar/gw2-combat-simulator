@@ -1,6 +1,8 @@
 import { PLACEHOLDER_ICON } from './gw2-api.js';
 import {
     clearTimelineDropIndicators,
+    formatConcurrentTimelineBadge,
+    formatInterruptTimelineBadge,
     formatTimelineCastDetails,
     getSkillDropInsertionIndex,
     updateSkillDropIndicator,
@@ -680,10 +682,10 @@ export function renderTimeline(app, {
                 : '';
             const isConcurrent = offset !== undefined;
             const offsetBadge = isConcurrent
-                ? `<span class="rot-offset-badge" data-idx="${idx}" title="Fires ${offset}ms into previous cast (click to edit)">⊙${offset}ms</span>`
+                ? `<span class="rot-offset-badge rot-timed-action-badge" data-idx="${idx}" title="Fires ${offset}ms into previous cast at ${esc(ts)} (click to edit)">${esc(formatConcurrentTimelineBadge(offset, ts))}</span>`
                 : '';
             const interruptBadge = interruptMs !== undefined
-                ? `<span class="rot-gapfill-badge rot-interrupt-badge" data-idx="${idx}" title="Interrupt at ${interruptMs}ms from cast start (click to edit)">✂${interruptMs}ms</span>`
+                ? `<span class="rot-gapfill-badge rot-interrupt-badge rot-timed-action-badge" data-idx="${idx}" title="Interrupt at ${interruptMs}ms from cast start at ${esc(ts)} (click to edit)">${esc(formatInterruptTimelineBadge(interruptMs, ts))}</span>`
                 : '';
             const waitBadge = waitMs !== undefined
                 ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${idx}" title="Wait ${waitMs}ms (click to edit)">⌛${waitMs}ms</span>`
@@ -703,7 +705,7 @@ export function renderTimeline(app, {
                 `<div class="rot-skill${concurClass}${gapFillClass}" draggable="true" data-idx="${idx}" title="${esc(displayName)}${castInfo}${concurInfo}${interruptInfo}${waitInfo}${gapFillInfo}" style="--att-border:${c}">
                     <img src="${icon || PLACEHOLDER_ICON}" />
                     <span class="rot-x">\u00d7</span>
-                    ${ts ? `<span class="rot-time">${ts}</span>` : ''}
+                    ${ts && !isConcurrent && interruptMs === undefined ? `<span class="rot-time">${ts}</span>` : ''}
                     ${offsetBadge}${interruptBadge}${waitBadge}${gapFillBadge}
                 </div>`;
         }).join('');
