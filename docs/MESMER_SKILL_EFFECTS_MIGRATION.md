@@ -26,6 +26,8 @@ At the end of the migration:
   a separate, explicitly reviewed behavior correction is made.
 
 This is an architecture migration, not a balance or mechanics correction.
+The Bloodsong/sigil defect documented in the 2026-07-26 amendment is a separate
+behavior-correction workstream with its own pull request boundaries.
 
 ## Current state
 
@@ -164,6 +166,11 @@ handler:
   resolver reactions;
 - delayed scheduler state transitions belong in typed Mesmer tasks;
 - availability remains in Mesmer cast rules.
+
+The resolver-reaction rule has one important exception: if a triggered effect
+can change later resource availability or cast scheduling, its causal decision
+must occur on the scheduler clock. See
+`Amendment: Bloodsong and sigil proc ownership (2026-07-26)`.
 
 Preserve current semantics before improving them. For example, Fencer's
 Finesse currently derives stacks from completed skill damage groups. Moving it
@@ -563,3 +570,317 @@ The migration is complete when:
 - `npm run check` and `npm test` pass;
 - architecture documentation describes Mesmer as declarative-with-explicit-
   handlers rather than as a compatibility exception.
+
+## Amendment: Bloodsong and sigil proc ownership (2026-07-26)
+
+This amendment records a mechanics defect discovered while auditing Virtuoso
+Bloodsong and clarifies the scheduler/resolver ownership rule that the migration
+must preserve. It is a separate behavior-correction workstream. Do not combine
+it with a batch of legacy-to-declarative skill conversions.
+
+### Executive decision
+
+The current two-pass model cannot correctly grant a scheduler-owned resource
+from a proc first created during resolution. Sigil proc **selection and event
+production** must move early enough for the scheduler to observe their effects.
+Strike and condition **damage resolution** should remain in the resolver.
+
+This does not authorize a direct copy of `handleCriticalSigils()` into
+`scheduler/policy.js`. The resolver currently supplies timestamp-aware critical
+chance and runtime state that the scheduler's Mesmer-specific
+`baseCriticalChance()` helper does not reproduce. Moving the handler without
+first closing that gap would fix Bloodsong while changing sigil proc counts in
+other builds.
+
+The amended ownership rule is:
+
+> A mechanic that can change later cast availability, resource spending, or
+> scheduler state must be decided on the scheduler clock, even when its trigger
+> is a hit, critical hit, condition, control effect, or weapon swap. The
+> resolver consumes the resulting canonical events and calculates their damage.
+
+Resolver reactions remain the correct owner for effects that depend on resolved
+damage or target state and cannot affect scheduling.
+
+### Verified defect
+
+The audit was reproduced against the current worktree:
+
+| Scenario | Sigil applications | Scheduler Bloodsong gains | Result |
+| --- | ---: | ---: | --- |
+| Six Thousand Cuts casts, no proc sigil | 0 bleeding stacks | 0 | Correct |
+| Six Thousand Cuts casts, Sigil of Earth | 18 bleeding stacks | 0 | Broken; expected 3 gains and remainder 3 |
+| Five qualifying swaps, Sigil of Geomancy | 5 bleeding stacks | 0 | Broken; expected 1 gain |
+
+The practical failure is larger than the final resource display. Two Thousand
+Cuts casts produced six Earth bleeding applications, but a later Bladesong was
+still rejected with `requires at least one blade`. Granting a blade during the
+resolver pass would not repair that rotation because cast availability was
+already decided.
+
+The existing scheduler accumulator in
+`professions/mesmer/mechanics/expected-procs.js` is correct:
+
+- it adds new bleeding stacks to existing progress;
+- it subtracts five instead of resetting to zero;
+- its `while` loop supports multiple gains from one application; and
+- scheduler tasks make the resulting blade visible to later cast checks.
+
+The missing input is sigil-created bleeding. Mesmer's scheduler observer sees
+ordinary scheduled Bleeding events, but critical and swap sigil conditions are
+currently synthesized only by
+`platform/gw2/resolver/event-handlers.js`.
+
+`handleMesmerConditionEvent()` does not close the gap. It mutates the fresh
+Mesmer resolver state created by `createMesmerResolverState()`, subtracts each
+completed group of five, and emits no resource event. In the Earth reproduction
+the resolver ended with a remainder of three while the scheduler remained at
+zero. `projectMesmerEndState()` projects scheduler resources and does not
+consume this resolver accumulator.
+
+### Additional audit findings
+
+The following findings should be handled with, or immediately after, the sigil
+ownership change:
+
+1. Remove `handleMesmerConditionEvent()` and the resolver
+   `bloodsongProgress` field once scheduler-emitted sigil conditions are live.
+   Leaving them in place is misleading even though they do not currently alter
+   the public end state.
+2. Keep the Virtuoso specialization guard in the one authoritative Bloodsong
+   path. The resolver copy currently checks only whether the trait was selected.
+3. Stop using the timeline `EPSILON` value as a stack-progress tolerance.
+   Bloodsong and expected critical accumulators should use a small,
+   domain-specific numeric tolerance.
+4. Eliminate, or enforce parity between, the independent scheduler and resolver
+   expected-critical models used by Jagged Mind and Sharper Images. The same
+   divergence that threatens sigil migration can already make scheduler blade
+   progress disagree with resolved bleeding.
+
+### Why a wholesale handler move is unsafe
+
+`handleCriticalSigils()` currently advances its deterministic critical
+accumulator using `hitContext.critical.chance`. That value is constructed during
+resolution and can include:
+
+- dynamic Fury and Might-derived effects at the hit timestamp;
+- active weapon-set sigil bonuses;
+- profession attribute and critical-chance modifiers;
+- resolver-owned target condition state;
+- control-sigil state such as Severance; and
+- per-event `canCrit` and `noCrit` behavior.
+
+The issue is platform-wide, not Mesmer-only. For example, Necromancer's Target
+the Weak critical-chance rule reads the resolver's current condition state.
+The Mesmer scheduler's `baseCriticalChance()` is a static approximation and is
+not a suitable common replacement.
+
+There is also a timing distinction:
+
+- `onEventScheduled` observes an event when a cast or handler emits it;
+- the event may represent a projectile or pulse that lands later;
+- buffs, conditions, explicit combat start, and weapon swaps can occur between
+  emission and impact; and
+- same-timestamp event ordering affects which state is visible to a proc.
+
+Therefore the GW2 scheduler must process sigil candidates chronologically at
+their impact timestamp. It must not decide a delayed hit's sigil proc
+immediately when that future hit is first emitted.
+
+### Target event flow
+
+The intended flow is:
+
+```text
+player damage or swap event is emitted
+  -> GW2 scheduler policy queues a chronological sigil candidate
+  -> at the candidate timestamp:
+       derive the canonical expected critical chance, when required
+       advance sigil critical progress and ICD state
+       emit a canonical proc marker and damage/condition event
+  -> Mesmer observes Sigil of Earth/Geomancy Bleeding
+       and queues its existing Bloodsong expected-proc task
+  -> Bloodsong resource gain becomes visible to later cast availability
+
+resolver replays the scheduled stream
+  -> resolves sigil strike or condition damage
+  -> records proc reporting
+  -> does not synthesize the sigil effect a second time
+```
+
+Sigil events must retain `source: "Sigil"`, an effect actor type, stable
+`sourceId`, the triggering skill, and the canonical sigil icon. These fields
+prevent player-only and illusion-only reactions from treating a sigil strike as
+an ordinary player hit.
+
+### Recommended implementation sequence
+
+#### Sigil phase 0: lock the current parity surface
+
+Before moving production ownership, capture the current correct outputs for:
+
+- Air, Earth, Torment, and Blight critical procs;
+- Doom, Geomancy, and Hydromancy swap procs;
+- the strict ICD boundary and progress carried across weapon sets;
+- two simultaneously equipped proc sigils;
+- destination-set selection on weapon swap;
+- explicit combat start and precombat events;
+- delayed hits that land after a weapon swap; and
+- proc-step names, source skills, timestamps, and icons.
+
+These are behavior baselines, not tests that preserve the Bloodsong bug.
+
+The focused audit suite currently has a separate baseline failure:
+`Thousand Cuts spreads its ten EVTC packets and Bloodsong triggers` expects the
+first packet at `0.05`, while the current worktree emits it at `0`. Resolve or
+explicitly rebaseline that discrepancy before treating the suite as a clean
+migration oracle.
+
+#### Sigil phase 1: create one critical-context calculation
+
+Extract the common critical-chance construction from
+`declarative-simulation.js` into a platform GW2 service that accepts an explicit
+timestamp, event, active weapon set, buff view, profession state view, and
+target state view.
+
+The scheduler and resolver may adapt different runtime objects into that
+service, but the arithmetic and profession modifier hooks must be shared.
+Add differential tests requiring the two adapters to return the same chance
+for every currently supported profession rule.
+
+The parity matrix must include:
+
+- permanent and timed Fury;
+- Mistburn with timed Might;
+- Quiet Intensity and Flow of Time;
+- active weapon-set critical bonuses;
+- Severance;
+- Necromancer condition-count modifiers;
+- delayed hits across buff and weapon-set changes; and
+- non-critical and effect-owned events.
+
+If a resolver-only rule cannot be represented at scheduler time, stop here and
+move the required causal state or event production earlier. Do not add a second
+approximation merely to make the Earth test pass.
+
+#### Sigil phase 2: add shared chronological scheduler-policy tasks
+
+Extend the neutral scheduler policy contract with ordered event observation and
+typed task handlers, or add an equivalent profession-neutral seam. The GW2
+policy should own namespaced tasks such as a sigil hit candidate rather than
+placing GW2 state in a profession's scheduler state.
+
+Specify and test ordering among:
+
+- the originating hit or swap;
+- profession expected-proc tasks;
+- the emitted sigil effect;
+- Bloodsong's observation of sigil bleeding; and
+- the resource gain at the scheduler epsilon after the application.
+
+The policy must also honor explicit combat start and the simulation horizon.
+
+#### Sigil phase 3: move swap-triggered sigils
+
+Move swap-trigger selection and ICD state first because it does not require a
+critical-chance calculation. Preserve:
+
+- destination weapon-set selection;
+- in-combat gating;
+- the strict nine-second boundary;
+- Doom's pending next-hit state;
+- Geomancy's Bleeding event;
+- Hydromancy's strike and Chilled events; and
+- proc reporting.
+
+Delete the matching resolver-side event synthesis in the same change. This
+phase should make Geomancy contribute to Bloodsong without changing its
+condition damage.
+
+#### Sigil phase 4: move critical-triggered sigils
+
+After critical-context parity is proven, move the shared deterministic
+critical-progress accumulator and per-sigil ICD state to the GW2 scheduler
+policy. Emit canonical events for Air, Earth, Torment, and Blight.
+
+Delete `handleCriticalSigils()` from the resolver in the same change. Retaining
+both paths would double strike or condition applications.
+
+This phase should make Earth contribute to Bloodsong while leaving sigil proc
+timestamps and damage unchanged.
+
+#### Sigil phase 5: remove obsolete Mesmer resolver state
+
+Remove:
+
+- `handleMesmerConditionEvent()`;
+- its `condition` reaction registration if no other behavior uses it; and
+- `bloodsongProgress` from `createMesmerResolverState()`.
+
+Introduce a Bloodsong-specific numeric tolerance and keep the specialization
+guard in the scheduler tracker. Audit Jagged Mind and Sharper Images against the
+new shared critical context and consolidate their duplicate expected-progress
+logic where practical.
+
+### Rejected alternatives
+
+#### Grant blades from the resolver
+
+Rejected. It can alter a displayed final count but cannot reopen a Bladesong
+that the scheduler already rejected.
+
+#### Add a permanent non-damaging Earth accounting marker
+
+Rejected as the target architecture. It duplicates critical chance, expected
+proc progress, ICDs, and weapon-set selection while the resolver continues to
+own the damaging application. The two models will drift.
+
+A marker is acceptable only as a short-lived, explicitly tracked stopgap when
+its removal is part of the same planned workstream and parity limitations are
+documented.
+
+#### Move sigil damage calculations into the scheduler
+
+Rejected. Scheduler ownership is required for causal proc selection and event
+production, not for strike formulas, condition duration, ticks, or damage
+totals.
+
+### Required acceptance tests
+
+The workstream is complete only when all of the following pass:
+
+1. Eighteen Earth bleeding applications produce three Bloodsong gains and
+   leave scheduler progress at three.
+2. Five Geomancy applications produce one Bloodsong gain with no remainder.
+3. Earth- or Geomancy-generated progress can make a later Bladesong castable.
+   A final end-state count alone is not sufficient.
+4. Existing direct-bleeding carryover still handles `4 + 2` as one gain with
+   remainder one, and one application of eleven stacks produces two gains with
+   remainder one.
+5. Sigil strike damage, condition damage, application count, duration, and proc
+   timestamps match the phase-0 baseline.
+6. No sigil effect is emitted by both scheduler and resolver.
+7. Critical-proc counts match across dynamic Fury, Severance, target-condition
+   modifiers, delayed hits, and weapon swaps.
+8. Precombat hits filtered by explicit combat start do not advance sigil or
+   Bloodsong state.
+9. Exact ICD-boundary, multiple-sigil, source ownership, and proc-icon tests
+   pass.
+10. The focused Mesmer, resolver architecture, scheduler temporal, internal
+    cooldown, Guardian sigil, and full validation suites pass.
+
+### Pull request boundaries
+
+Keep this correction separate from the skill-effects routing migration:
+
+1. Critical-context extraction and parity tests, with no result changes.
+2. Scheduler-policy observation/task seam plus swap sigil migration.
+3. Critical sigil migration and deletion of resolver synthesis.
+4. Mesmer Bloodsong cleanup, duplicate expected-proc consolidation, and final
+   architecture documentation.
+
+Each pull request must state whether any scheduled event, resolved event,
+damage total, proc timestamp, or cast-availability result intentionally
+changes. The only intended functional changes in this workstream are that
+sigil-created Bleeding contributes to scheduler-owned Bloodsong progress and
+rotations can spend the resulting blades.

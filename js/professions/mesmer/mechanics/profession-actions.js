@@ -168,6 +168,18 @@ export function createProfessionActionController({
   const handleShatter = (skill, at, resourcesSpent = null) => {
     const shatter = shatters[skill.name];
     const isBladeSong = shatter.kind.startsWith("blade");
+    let maimTriggered = false;
+    const addMaimOnHit = (hitAt) => {
+      if (!traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) return;
+      addCondition(
+        skill.name,
+        hitAt,
+        { name: "Torment", duration: 6, stacks: 1 },
+        "Player",
+        `${skill.name} — Maim the Disillusioned`,
+      );
+      maimTriggered = true;
+    };
     if (isBladeSong && resourcesSpent == null && currentResource() < 1) {
       warnings.push(`${skill.name} skipped at ${at.toFixed(2)}s: no blades.`);
       return false;
@@ -250,9 +262,10 @@ export function createProfessionActionController({
     } else if (shatter.kind === "blade-power") {
       const packetDelays = shatter.packetDelays || [];
       for (let index = 0; index < spent; index += 1) {
+        const packetAt = at + Number(packetDelays[index] || 0);
         addDamage(
           skill,
-          at + Number(packetDelays[index] || 0),
+          packetAt,
           {
             coefficient: shatter.coefficients[spent] / spent,
             hits: 1,
@@ -261,9 +274,11 @@ export function createProfessionActionController({
           },
           { shatter: true, blade: true },
         );
+        addMaimOnHit(packetAt);
       }
     } else if (shatter.kind === "blade-confusion") {
       const packetDelays = shatter.packetDelays || [];
+      const hasCryOfPain = traits.has(TRAIT.CRY_OF_PAIN);
       for (let index = 0; index < spent; index += 1) {
         const packetAt = at + Number(packetDelays[index] || 0);
         addDamage(
@@ -279,9 +294,10 @@ export function createProfessionActionController({
         );
         addCondition(skill.name, packetAt, {
           name: "Confusion",
-          duration: 3,
-          stacks: 1,
+          duration: hasCryOfPain ? 4 : 3,
+          stacks: hasCryOfPain ? 2 : 1,
         });
+        addMaimOnHit(packetAt);
       }
     } else if (shatter.kind === "blade-control") {
       addDamage(
@@ -295,6 +311,7 @@ export function createProfessionActionController({
         },
         { shatter: true, blade: true },
       );
+      addMaimOnHit(at);
     } else if (shatter.kind === "blade-requiem") {
       for (let index = 0; index < spent; index += 1) {
         addDamage(
@@ -308,27 +325,19 @@ export function createProfessionActionController({
           },
           { shatter: true, blade: true },
         );
-        if (traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
-          addCondition(
-            skill.name,
-            at + index,
-            { name: "Torment", duration: 6, stacks: 1 },
-            "Player",
-            `${skill.name} — Maim the Disillusioned`,
-          );
-        }
-      }
-      if (traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
-        addTraitProc("Maim the Disillusioned", at, skill.name);
+        addMaimOnHit(at + index);
       }
     }
 
+    if (maimTriggered) {
+      addTraitProc("Maim the Disillusioned", at, skill.name);
+    }
     triggerShatterTraits(
       skill,
       at,
       spent,
       isBladeSong,
-      { skipMaim: shatter.kind === "blade-requiem" },
+      { skipMaim: isBladeSong },
     );
     if (
       skill.name === "Time Sink"

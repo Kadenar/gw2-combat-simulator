@@ -3291,6 +3291,72 @@ test('Virtuoso bladesongs use the EVTC projectile packet trains', () => {
     );
 });
 
+test('Cry of Pain improves every Bladesong Sorrow confusion packet', () => {
+    const result = simulateMesmer(
+        ['Bladesong Sorrow', { name: '__wait', waitMs: 2000 }],
+        defaultSimulationConfig({
+            selectedTraits: ['Cry of Pain'],
+            initialResource: 5,
+        }),
+    );
+    const confusion = result.resolvedEvents.filter(event =>
+        event.type === 'condition'
+        && event.skillName === 'Bladesong Sorrow'
+        && event.condition === 'Confusion'
+    );
+
+    assert.deepEqual(
+        confusion.map(event => Number(event.at.toFixed(3))),
+        [0.922, 0.997, 1.081, 1.155, 1.155],
+    );
+    assert.ok(confusion.every(event =>
+        event.stacks === 2 && event.duration === 4
+    ));
+});
+
+test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () => {
+    const skills = [
+        'Bladesong Harmony',
+        'Bladesong Sorrow',
+        'Bladesong Dissonance',
+        'Bladesong Distortion',
+        'Bladeturn Requiem',
+    ];
+
+    for (const skillName of skills) {
+        const result = simulateMesmer(
+            [skillName, { name: '__wait', waitMs: 5000 }],
+            defaultSimulationConfig({
+                selectedTraits: ['Maim the Disillusioned'],
+                initialResource: 5,
+            }),
+        );
+        const hitTimes = result.resolvedEvents
+            .filter(event =>
+                event.type === 'damage'
+                && event.skillName === skillName
+            )
+            .map(event => Number(event.at.toFixed(3)));
+        const torment = result.resolvedEvents.filter(event =>
+            event.type === 'condition'
+            && event.skillName === skillName
+            && event.condition === 'Torment'
+        );
+
+        assert.deepEqual(
+            torment.map(event => Number(event.at.toFixed(3))),
+            hitTimes,
+            skillName,
+        );
+        assert.ok(
+            torment.every(event =>
+                event.stacks === 1 && event.duration === 6
+            ),
+            skillName,
+        );
+    }
+});
+
 test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
     const result = simulateMesmer(
         ['Phantasmal Duelist', { name: '__wait', waitMs: 4000 }],
