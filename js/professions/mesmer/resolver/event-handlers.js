@@ -2,7 +2,7 @@ import { EPSILON } from "../../../platform/engine/clock.js";
 import {
   handleCriticalTraits,
   triggerIneptitude,
-} from "../mechanics/trait-rules.js";
+} from "../mechanics/specific/trait-rules.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 
 const noop = () => {};

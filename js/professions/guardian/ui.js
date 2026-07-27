@@ -1,7 +1,7 @@
 import { guardianCatalog } from "./catalog.js";
 import {
   GUARDIAN_VIRTUE_NAMES_BY_SPECIALIZATION,
-} from "./mechanics/virtues.js";
+} from "./mechanics/specific/virtues.js";
 
 function guardianProfessionSkillIds(context = {}) {
   const specialization =

@@ -5,7 +5,7 @@ import {
   advanceNecromancerState,
   finalizeNecromancerCast,
   gainNecromancerLifeForce,
-} from "./handlers.js";
+} from "./specific/handlers.js";
 import {
   isInternalCooldownReady,
 } from "../../../platform/engine/internal-cooldown.js";

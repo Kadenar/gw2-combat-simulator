@@ -3,11 +3,11 @@
  * interrupt triggers (Ineptitude).
  */
 
-import { EPSILON } from "../../../platform/engine/clock.js";
+import { EPSILON } from "../../../../platform/engine/clock.js";
 import {
   isInternalCooldownReady,
-} from "../../../platform/engine/internal-cooldown.js";
-import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+} from "../../../../platform/engine/internal-cooldown.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 
 /**
  * Handles critical trait procs: Sharper Images (clone/phantasm crit → Bleeding),

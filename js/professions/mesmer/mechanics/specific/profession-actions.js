@@ -5,7 +5,7 @@
  * @param {Object} config - Scheduler config (state, traits, resourceDefinition, etc.)
  * @returns {Object} Profession action controller
  */
-import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 
 export function createProfessionActionController({
   state,

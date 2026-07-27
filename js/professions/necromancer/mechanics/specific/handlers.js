@@ -1,14 +1,14 @@
-import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
+import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
+} from "../../data/ids.js";
 import {
   hasNecromancerTrait,
   snapshotNecromancerState,
   syncNecromancerResources,
-} from "../state.js";
-import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "./skill-mechanics.js";
+} from "../../state.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
 
 const SHROUD_ENTRY = Object.freeze({
   [ID.DEATH_SHROUD]: "death",

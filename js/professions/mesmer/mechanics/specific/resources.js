@@ -1,4 +1,4 @@
-import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 
 // Names (not ids) — matched against proc `reason` strings via startsWith below.
 const RESOURCE_TRAITS = [

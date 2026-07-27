@@ -1,9 +1,9 @@
-import { GUARDIAN_SKILL_IDS } from "../data/ids.js";
-import { GUARDIAN_AUTOATTACK_CHAINS } from "./autoattack-chains.js";
-import { emitGuardianEvent } from "./events.js";
+import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
+import { GUARDIAN_AUTOATTACK_CHAINS } from "../autoattack-chains.js";
+import { emitGuardianEvent } from "../events.js";
 import {
   indexAutoattackChains,
-} from "../../../platform/engine/autoattack-chains.js";
+} from "../../../../platform/engine/autoattack-chains.js";
 
 const CHAIN_POSITION_BY_SKILL_ID = indexAutoattackChains(
   GUARDIAN_AUTOATTACK_CHAINS,

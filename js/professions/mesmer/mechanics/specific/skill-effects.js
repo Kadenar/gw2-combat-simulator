@@ -1,7 +1,7 @@
-import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import {
   isInternalCooldownReady,
-} from "../../../platform/engine/internal-cooldown.js";
+} from "../../../../platform/engine/internal-cooldown.js";
 
 const CLARITY_DURATION = 15;
 const CLARITY_ICON =
