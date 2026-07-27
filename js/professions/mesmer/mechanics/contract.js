@@ -346,30 +346,32 @@ function createMesmerRuntime(context) {
 
 function updateAutoattackChains(runtime, skill) {
   const { state } = runtime.context;
+  const chains = state.profession.autoattackChains;
   const position = mesmerAutoattackChainPosition(skill.id);
   if (position) {
-    for (const root of state.profession.autoattackChains.keys()) {
-      if (root !== position.root)
-        state.profession.autoattackChains.delete(root);
+    // Object.keys yields string keys; chain roots are numeric skill ids, so
+    // coerce before comparing against or passing to numeric-id consumers.
+    for (const root of Object.keys(chains).map(Number)) {
+      if (root !== position.root) delete chains[root];
     }
     if (position.next == null) {
-      state.profession.autoattackChains.delete(position.root);
+      delete chains[position.root];
     } else {
-      state.profession.autoattackChains.set(position.root, position.next);
+      chains[position.root] = position.next;
     }
     return;
   }
   if (skill.id === -3) {
-    state.profession.autoattackChains.clear();
+    state.profession.autoattackChains = {};
     return;
   }
   if (
     Number(skill.castTimeMs || 0) > 0
     && skill.rechargeAnchor !== "castStart"
   ) {
-    for (const root of state.profession.autoattackChains.keys()) {
+    for (const root of Object.keys(chains).map(Number)) {
       const preserve = mesmerPreservesAutoattackChain(root, skill);
-      if (!preserve) state.profession.autoattackChains.delete(root);
+      if (!preserve) delete chains[root];
     }
   }
 }
@@ -456,10 +458,10 @@ function completeMesmerSkill(context, skill) {
       runtime.mirage.handlePostSkill(skill, at);
       const armedFlip = runtime.flipSkillsByParent.get(skill.name);
       if (armedFlip && context.maximumAmmoFor(armedFlip)) {
-        state.profession.availableFlips.set(armedFlip.name, {
+        state.profession.availableFlips[armedFlip.name] = {
           availableAt: at,
           expiresAt: Infinity,
-        });
+        };
         state.ammo.delete(armedFlip.id);
         state.cooldowns.delete(armedFlip.id);
         context.cooldownController.ensureAmmo(armedFlip, at);
@@ -469,7 +471,7 @@ function completeMesmerSkill(context, skill) {
           expiresAt: context.start + Number(armedFlip.flipDuration || 0),
         };
         if (flip.expiresAt >= at - EPSILON) {
-          state.profession.availableFlips.set(armedFlip.name, flip);
+          state.profession.availableFlips[armedFlip.name] = flip;
           if (armedFlip.name === "Counterspell") {
             state.profession.counterspellAvailable = true;
           }
@@ -479,12 +481,12 @@ function completeMesmerSkill(context, skill) {
         const flipAmmo = state.ammo.get(skill.id);
         if (flipAmmo?.maximum) {
           if (flipAmmo.charges <= 0) {
-            state.profession.availableFlips.delete(skill.name);
+            delete state.profession.availableFlips[skill.name];
             state.ammo.delete(skill.id);
             state.cooldowns.delete(skill.id);
           }
         } else {
-          state.profession.availableFlips.delete(skill.name);
+          delete state.profession.availableFlips[skill.name];
         }
         if (skill.name === "Counterspell") {
           state.profession.counterspellAvailable = false;
@@ -608,10 +610,10 @@ export function initializeMesmerScheduler(context) {
       skill.flipParent &&
       context.maximumAmmoFor(skill)
     ) {
-      state.profession.availableFlips.set(skill.name, {
+      state.profession.availableFlips[skill.name] = {
         availableAt: 0,
         expiresAt: Infinity,
-      });
+      };
       context.cooldownController.ensureAmmo(skill, 0);
     }
   }
@@ -679,14 +681,14 @@ export function completeMesmerCast(context, skill) {
 
 export function advanceMesmerScheduler(context, target) {
   const profession = context.state.profession;
-  for (const [instrument, expiresAt] of profession.instruments) {
+  for (const [instrument, expiresAt] of Object.entries(profession.instruments)) {
     if (expiresAt <= target + EPSILON) {
-      profession.instruments.delete(instrument);
+      delete profession.instruments[instrument];
     }
   }
-  for (const [name, flip] of profession.availableFlips) {
+  for (const [name, flip] of Object.entries(profession.availableFlips)) {
     if (flip.expiresAt < target - EPSILON) {
-      profession.availableFlips.delete(name);
+      delete profession.availableFlips[name];
       if (name === "Counterspell") {
         profession.counterspellAvailable = false;
       }
@@ -899,7 +901,7 @@ export function projectMesmerEndState(context) {
   const endTime = state.time;
   const definition = runtime.resourceDefinition;
   const availableFlips = {};
-  for (const [name, flip] of state.profession.availableFlips) {
+  for (const [name, flip] of Object.entries(state.profession.availableFlips)) {
     if (flip.expiresAt < endTime - EPSILON) continue;
     const persistent = !Number.isFinite(flip.expiresAt);
     availableFlips[name] = {
@@ -943,7 +945,7 @@ export function projectMesmerEndState(context) {
     autoattackChains: Object.fromEntries(
       MESMER_AUTOATTACK_CHAINS.map((chain) => [
         chain[0],
-        state.profession.autoattackChains.get(chain[0]) || chain[0],
+        state.profession.autoattackChains[chain[0]] || chain[0],
       ]),
     ),
     continuumActive: Boolean(state.profession.continuum),
