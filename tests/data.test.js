@@ -578,7 +578,7 @@ test('supplied shatter and instrument coefficient tables are preserved', () => {
         'Bladesong Harmony': [0, 0.7, 1.4, 2.1, 2.8, 3.5],
         'Bladesong Sorrow': [0, 0.42, 0.84, 1.25, 1.67, 2.09],
         'Bladesong Dissonance': [0, 1, 1, 1, 1, 1],
-        'Bladeturn Requiem': [0, 0.3, 0.6, 0.9, 1.2, 1.5],
+        'Bladeturn Requiem': [0, 0.5, 1, 1.5, 2, 2.5],
         'Continuum Split': [0, 0, 0, 0],
     };
     for (const [name, coefficients] of Object.entries(expectedShatters)) {

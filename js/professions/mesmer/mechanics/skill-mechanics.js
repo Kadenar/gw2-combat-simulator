@@ -214,7 +214,7 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
         "weapon": "phantasm medium"
       },
       {
-        "coefficient": 0.2,
+        "coefficient": 1.6,
         "hits": 8,
         "label": "Phantasm Blurred Frenzy",
         "source": "Phantasm",
@@ -248,7 +248,7 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "activation": 0.84,
     "damage": [
       {
-        "coefficient": 0.33,
+        "coefficient": 0.99,
         "hits": 3,
         "label": "Damage",
         "source": "Player",
@@ -3896,8 +3896,9 @@ export const SHATTERS = {
   "Bladeturn Requiem": {
     slot: 5,
     kind: "blade-requiem",
-    coefficients: [0, 0.3, 0.6, 0.9, 1.2, 1.5],
+    coefficients: [0, 0.5, 1, 1.5, 2, 2.5],
     resourceSpendProgress: 1,
+    packetDelays: [1, 2, 3, 4, 5],
   },
   "Continuum Split": {
     slot: 5,

@@ -223,8 +223,9 @@ export const mesmerModifierRules = Object.freeze([
       MODIFIER_TARGET.CONDITION_DAMAGE,
     ],
     operation: "damage-additive",
-    amount: context =>
-      timedStacks(context, "compounding", 8, 5) * 0.01,
+    amount: (context, target) =>
+      timedStacks(context, "compounding", 8, 5)
+      * (target === MODIFIER_TARGET.STRIKE_DAMAGE ? 0.02 : 0.01),
     when: context => !illusionSource(context),
   },
   {
@@ -247,7 +248,9 @@ export const mesmerModifierRules = Object.freeze([
     operation: "damage-additive",
     amount: (_context, target) =>
       target === MODIFIER_TARGET.CONDITION_DAMAGE ? 0.1 : 0.05,
-    when: context => timedActive(context, "deadly-blades"),
+    when: context =>
+      !illusionSource(context)
+      && timedActive(context, "deadly-blades"),
   },
   {
     id: "mesmer.time-bomb",
