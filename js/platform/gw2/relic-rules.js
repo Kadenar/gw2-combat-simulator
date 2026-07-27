@@ -108,6 +108,7 @@ export function handleRelicsAfterHit(ctx, event, skill) {
   if (
     ctx.config.relic === "Fireworks"
     && isGw2PlayerActorEvent(event)
+    && skill?.type === "Weapon"
     && Number(skill?.cooldown || 0) >= 20
   ) {
     const wasActive = ctx.relic.buffUntil > event.at;

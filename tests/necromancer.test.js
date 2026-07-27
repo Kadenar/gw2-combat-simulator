@@ -713,7 +713,7 @@ test("Spear skills generate, refresh, consume, and damage with Soul Shards", () 
       event.type === "condition"
       && event.skillId === ID.ADDLE
       && event.condition === "Immobilized"),
-    true,
+    false,
   );
 
   const perforate = damageEvents(utility, ID.PERFORATE)
@@ -831,8 +831,12 @@ test("Isolate and Distress expose the follow-up and reset Perforate", () => {
   );
 });
 
-test("Addle gains its bonus effects against the defiant benchmark golem", () => {
-  const result = simulate("Harbinger", ["Addle"], {
+test("Addle gains life force and checks Soul Shards on activation", () => {
+  const normal = simulate("Harbinger", ["Addle"], {
+    initialResource: 0,
+    primaryWeapon: "Spear",
+  });
+  const defiant = simulate("Harbinger", ["Addle"], {
     initialResource: 0,
     primaryWeapon: "Spear",
     target: {
@@ -840,15 +844,40 @@ test("Addle gains its bonus effects against the defiant benchmark golem", () => 
       defiant: true,
     },
   });
+  const threshold = simulate("Harbinger", [
+    "Dark Slash",
+    "Deadly Slice",
+    "Extirpate",
+    "Addle",
+  ], {
+    initialResource: 0,
+    primaryWeapon: "Spear",
+  });
+  const immobilizes = result => result.events.filter(event =>
+    event.type === "condition"
+    && event.skillId === ID.ADDLE
+    && event.condition === "Immobilized");
 
-  assert.equal(result.endState.profession.soulShards, 4);
-  assert.equal(result.endState.profession.lifeForce, 20);
+  assert.equal(normal.endState.profession.soulShards, 2);
+  assert.equal(normal.endState.profession.lifeForce, 10);
+  assert.equal(immobilizes(normal).length, 0);
   assert.equal(
-    result.events.find(event =>
+    normal.events.find(event =>
       event.type === "control"
       && event.skillId === ID.ADDLE)?.duration,
-    1.5,
+    0.25,
   );
+  assert.equal(defiant.endState.profession.soulShards, 2);
+  assert.equal(defiant.endState.profession.lifeForce, 10);
+  assert.equal(immobilizes(defiant).length, 0);
+  assert.equal(
+    defiant.events.find(event =>
+      event.type === "control"
+      && event.skillId === ID.ADDLE)?.duration,
+    0.25,
+  );
+  assert.equal(threshold.endState.profession.soulShards, 5);
+  assert.equal(immobilizes(threshold).length, 1);
 });
 
 test("necromancer wells finish their pulses after the final rotation action", () => {

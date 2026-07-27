@@ -1821,6 +1821,21 @@ test('Relic of Fireworks records activation and refresh procs', () => {
     );
 });
 
+test('Relic of Fireworks ignores non-weapon skills with qualifying cooldowns', () => {
+    const fireworks = simulateMesmer(
+        ['Well of Calamity'],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            relic: 'Fireworks',
+        }),
+    );
+
+    assert.equal(
+        fireworks.procSteps.some(proc => proc.skill === 'Relic of Fireworks'),
+        false,
+    );
+});
+
 test('Relic of Akeem triggers on control against five confusion stacks', () => {
     const result = simulateMesmer(
         [

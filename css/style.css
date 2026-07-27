@@ -2362,21 +2362,36 @@ header .accent {
     box-shadow: 0 0 0 2px var(--proc-color, var(--border-light));
 }
 
+.proc-count,
 .proc-stack {
     position: absolute;
     top: -3px;
-    right: -3px;
     min-width: 17px;
     padding: 1px 2px;
     border-radius: 5px;
     background: #171820;
-    color: #f4cf69;
     font-size: 7px;
     font-weight: 700;
     line-height: 10px;
     text-align: center;
     box-shadow: 0 0 0 1px var(--proc-color, var(--border-light));
     pointer-events: none;
+}
+
+.proc-count {
+    left: -4px;
+    min-width: 20px;
+    padding: 1px 3px;
+    background: #08080d;
+    color: var(--text-bright);
+    font-size: 9px;
+    line-height: 12px;
+    z-index: 2;
+}
+
+.proc-stack {
+    right: -3px;
+    color: #f4cf69;
 }
 
 .proc-time {

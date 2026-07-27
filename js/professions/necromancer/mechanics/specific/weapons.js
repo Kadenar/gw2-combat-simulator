@@ -1,3 +1,13 @@
+/**
+ * Weapon-specific necromancer skill and scheduled-task handlers.
+ *
+ * Spear attacks build timed Soul Shards, while Perforate consumes them to add
+ * life-steal hits and Distress refills the resource and resets Perforate.
+ * Nightfall emits its four damage/blind/cripple pulses from the committed hit
+ * point and schedules each pulse's life-force gain on the simulation clock.
+ * Exports `necromancerWeaponSkillHandlers` and
+ * `necromancerWeaponTaskHandlers`.
+ */
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -47,26 +57,21 @@ function sinisterStab(context, skill) {
 }
 
 function addle(context, skill) {
-  const defiant = Boolean(context.config?.target?.defiant);
+  // Immobilize checks the resource at activation, before Addle grants shards.
+  const soulShardsAtActivation =
+    Number(context.state.profession.soulShards || 0);
   emitDamage(context, skill, 1.9);
   emitControl(
     context,
     skill,
     "daze",
     context.effectiveEnd,
-    defiant ? 1.5 : 0.25,
+    0.25,
   );
-  emitCondition(context, skill, "Immobilized", 1, 1);
-  addShards(context, skill, defiant ? 4 : 2, "addle");
-  if (defiant) {
-    // The skill's normal 10% is applied from skill metadata after the cast.
-    gainNecromancerLifeForce(
-      context,
-      10,
-      context.effectiveEnd,
-      "addle-defiant",
-    );
+  if (soulShardsAtActivation >= 3) {
+    emitCondition(context, skill, "Immobilized", 1, 1);
   }
+  addShards(context, skill, 2, "addle");
   return true;
 }
 
