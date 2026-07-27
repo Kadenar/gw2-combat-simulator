@@ -1,5 +1,14 @@
 # Mesmer skill-effects migration
 
+> Status (2026-07-27): the shared data-contract portion is complete. Mesmer,
+> Necromancer, and Guardian catalog skills now use `castTimeMs`; fixed and
+> irregular packets use canonical `effects` with millisecond `ticks`; and
+> explicit timing uses `timingAnchor` plus `timingScale`. The remaining work in
+> this document concerns routing Mesmer's runtime-dependent effects from its
+> completion controller into focused handlers. It must not reintroduce
+> `activation`, top-level `damage`/`conditions`, `packetOffsets`, `atMsList`, or
+> inferred timing.
+
 This document defines the transition from Mesmer's legacy
 `createSkillEffectController()` / `handleGenericSkill()` path to the same
 declarative-effect and explicit-handler model used by Guardian and
@@ -93,7 +102,7 @@ canonical effects and no handler:
 ```js
 [ID.BLADECALL]: {
   implemented: true,
-  activation: 0.75,
+  castTimeMs: 750,
   cooldown: 5,
   effects: [
     strike(1.5, {
@@ -104,8 +113,7 @@ canonical effects and no handler:
 },
 ```
 
-The existing `activation` field can remain during this migration. Converting
-all activation times to `castTimeMs` is a separate cleanup.
+Cast timing is already canonical and must remain in milliseconds.
 
 ### Declarative effects plus an exceptional handler
 
@@ -230,7 +238,7 @@ This distinction matters for interrupted and concurrent casts.
 | Legacy Mesmer field or behavior | Canonical destination |
 | --- | --- |
 | `damage[].coefficient`, `hits` | `strike()` or `strikeTimeline()` |
-| `damage[].interval` | `intervalMs`, `atMsList`, or explicit strike ticks |
+| `damage[].interval` | `intervalMs` or explicit strike ticks |
 | `packetOffsets` | explicit strike ticks or several fixed effects |
 | `conditions[]` | `condition()`, `conditionTimeline()`, or `repeatedCondition()` |
 | `pulseCount` interpolation | explicit effect timeline ending at the base cast duration |
@@ -249,10 +257,11 @@ Timing translations require care:
 - legacy default damage occurs at cast completion;
 - legacy `delay` is relative to cast completion;
 - legacy `timingOrigin: "castStart"` is relative to cast start;
-- canonical `atMs` and tick times are relative to cast start;
-- canonical `atCastEndOffsetMs` is relative to full cast completion;
-- the GW2 scheduler scales cast-bound timings under Quickness only when the
-  effect timeline is recognized as ending at the base cast duration.
+- canonical `atMs` and tick times are relative to the declared
+  `timingAnchor` (`castStart` or `castEnd`);
+- `timingScale: "cast"` explicitly follows Quickness-adjusted cast duration;
+- `timingScale: "fixed"` preserves wall-clock offsets;
+- `atCastEndOffsetMs`, `atMsList`, and inferred scaling are not canonical.
 
 Do not mechanically convert seconds to milliseconds without first identifying
 the timing origin.

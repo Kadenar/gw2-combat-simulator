@@ -48,14 +48,10 @@ const TASK = Object.freeze({
 });
 // Delay before Signet of the Ether's in-game bug re-applies its own cooldown
 // after the cast finishes.
-const SIGNET_ETHER_RELOCK_DELAY = 1;
+const SIGNET_ETHER_RELOCK_DELAY = 0.3;
 const SIGNET_ILLUSIONS_INTERVAL = 10;
 const SIGNET_ILLUSIONS_OWNER = "mesmer.signet-illusions-passive";
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set([-3]);
-const TRUE_ZERO_DURATION_SKILLS = new Set([
-  "Bladeturn Requiem",
-  "Thousand Cuts",
-]);
 const clamp = (value, minimum, maximum) =>
   Math.max(minimum, Math.min(maximum, value));
 
@@ -367,7 +363,10 @@ function updateAutoattackChains(runtime, skill) {
     state.profession.autoattackChains.clear();
     return;
   }
-  if (Number(skill.activation || 0) > 0) {
+  if (
+    Number(skill.castTimeMs || 0) > 0
+    && skill.rechargeAnchor !== "castStart"
+  ) {
     for (const root of state.profession.autoattackChains.keys()) {
       const preserve = mesmerPreservesAutoattackChain(root, skill);
       if (!preserve) state.profession.autoattackChains.delete(root);
@@ -505,8 +504,8 @@ function completeMesmerSkill(context, skill) {
       }
     }
     if (skill.name === "Signet of the Ether") {
-      // In-game bug: the signet re-applies its own cooldown ~1s after the cast
-      // completes, so it becomes ready one second later than the base recharge.
+      // In-game bug: the signet re-applies its own cooldown 300ms after the
+      // cast completes.
       context.tasks.schedule({
         type: TASK.signetEtherRelock,
         at: context.fullEnd + SIGNET_ETHER_RELOCK_DELAY,
@@ -886,22 +885,6 @@ export function modifyMesmerRecharge(context, sharedDuration) {
   });
 }
 
-export function modifyMesmerCastDuration(context) {
-  const base = Math.max(
-    0,
-    Number(context.skill.activation ?? context.skill.castTime ?? 0),
-  );
-  if (base === 0 && TRUE_ZERO_DURATION_SKILLS.has(context.skill.name)) return 0;
-  const duration = context.config.boons?.quickness ? base / 1.5 : base;
-  return duration > 0 ? duration : 0.05;
-}
-
-export function modifyMesmerRechargeStart(context, effectiveEnd) {
-  return Number(context.skill.activation ?? context.skill.castTime ?? 0) > 0
-    ? effectiveEnd
-    : context.start;
-}
-
 export function modifyMesmerMaximumAmmo(context, maximum) {
   const name = context.skill.name;
   const isSlot1 = SHATTERS[name]?.slot === 1 || INSTRUMENTS[name]?.slot === 1;
@@ -980,8 +963,6 @@ export const mesmerCastRules = Object.freeze({
     handler: mesmerAvailability,
   },
   modifyRechargeDuration: modifyMesmerRecharge,
-  modifyCastDuration: modifyMesmerCastDuration,
-  modifyRechargeStart: modifyMesmerRechargeStart,
   modifyMaximumAmmo: modifyMesmerMaximumAmmo,
   scheduleSkill: scheduleMesmerSkill,
 });

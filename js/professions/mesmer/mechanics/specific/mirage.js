@@ -66,7 +66,7 @@ export function createMirageActionController({
       if (!ambush) continue;
       const attack = cloneAttacks[weapon] || cloneAttacks.Sword;
       const pseudo = { name: ambush.name, weapon, blade: false };
-      const impactAt = at + Number(ambush.clone.activation || 0);
+      const impactAt = at + Number(ambush.clone.castTimeMs || 0) / 1000;
       addDamage(
         pseudo,
         impactAt,

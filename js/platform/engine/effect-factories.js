@@ -61,6 +61,25 @@ export const strikeTimeline = (ticks, options = {}) => ({
 });
 
 /**
+ * Describes an irregular exact strike timeline with an aggregate coefficient.
+ *
+ * The canonical catalog stores per-packet coefficients in `ticks`; this helper
+ * keeps hand-authored equal-packet timelines concise without introducing a
+ * second parallel-array representation such as `atMsList`.
+ */
+export const strikePackets = (coefficient, offsetsMs, options = {}) => {
+  const count = Array.isArray(offsetsMs) ? offsetsMs.length : 0;
+  if (count === 0) {
+    throw new TypeError("Strike packet timelines require at least one offset.");
+  }
+  const perPacket = Number(coefficient) / count;
+  return strikeTimeline(
+    offsetsMs.map(atMs => ({ atMs, coefficient: perPacket })),
+    options,
+  );
+};
+
+/**
  * Describes a condition application, optionally with explicit timing metadata.
  */
 export const condition = (

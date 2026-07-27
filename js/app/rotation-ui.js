@@ -219,10 +219,10 @@ function paletteSkillView(app, skill, contextAvailable = true, contextMessage = 
     );
     const unavailable = cd.remaining > 0 || !contextAvailable;
     const highlighted = Boolean(skill.ambush) && !unavailable;
-    const activation = Number(skill.activation || 0);
+    const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
     const title = [
         skill.name,
-        activation ? `Cast: ${activation.toFixed(2)}s` : 'Instant cast',
+        castTimeSeconds ? `Cast: ${castTimeSeconds.toFixed(2)}s` : 'Instant cast',
         recharge
             ? `${maximumAmmo ? 'Count recharge' : 'Cooldown'}: ${recharge}s`
             : '',
@@ -690,11 +690,11 @@ export function renderPalette(app) {
                 return;
             }
             const skill = app.skillByName.get(name);
-            const instant = name === '__combat_start' || Number(skill?.activation || 0) === 0;
+            const instant = name === '__combat_start' || Number(skill?.castTimeMs || 0) === 0;
             if (event.shiftKey && instant && app.build.rotation.length) {
                 app.addRotation(name, { offset: CONCURRENT_OFFSET_MS });
             } else if (event.ctrlKey && !instant) {
-                const full = Math.round(Number(skill?.activation || 0) * 1000);
+                const full = Math.round(Number(skill?.castTimeMs || 0));
                 const raw = prompt(`Interrupt ${name} after how many ms?`, String(Math.max(1, full - 1)));
                 if (raw == null || Number(raw) < 1) return;
                 app.addRotation(name, { interruptMs: Math.round(Number(raw)) });

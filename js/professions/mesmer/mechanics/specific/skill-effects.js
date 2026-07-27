@@ -87,30 +87,31 @@ export function createSkillEffectController({
     const hasChronophantasma =
       isPhantasm && traits.has(TRAIT.CHRONOPHANTASMA);
     const phantasmSpeed = traits.has(TRAIT.PHANTASMAL_HASTE) ? 1.5 : 1;
-    const phantasmEndpoint = (offset) => {
-      const measuredCastTime = Number(phantasmTiming?.castTime || 0);
-      const measuredPostCast = Number(offset) - measuredCastTime;
+    const phantasmEndpoint = (atMs) => {
+      const measuredCastTimeMs = Number(phantasmTiming?.castTimeMs || 0);
+      const measuredPostCast =
+        (Number(atMs) - measuredCastTimeMs) / 1000;
       const actualCastTime = phantasmSummonAt - castStart;
       return castStart + actualCastTime + measuredPostCast / phantasmSpeed;
     };
-    const phantasmDamageAt = phantasmEndpoint(phantasmTiming?.damage);
-    const phantasmSpawnAt = phantasmEndpoint(phantasmTiming?.spawn);
+    const phantasmDamageAt = phantasmEndpoint(phantasmTiming?.damageAtMs);
+    const phantasmSpawnAt = phantasmEndpoint(phantasmTiming?.spawnAtMs);
     const chronophantasmaDamageAt = phantasmEndpoint(
-      phantasmTiming?.chronophantasmaDamage,
+      phantasmTiming?.chronophantasmaDamageAtMs,
     );
     const initialPhantasmalBladeAt =
-      phantasmTiming?.phantasmalBladeDelayAfterSpawn != null
+      phantasmTiming?.phantasmalBladeDelayAfterSpawnMs != null
         ? phantasmSpawnAt
-          + Number(phantasmTiming.phantasmalBladeDelayAfterSpawn)
+          + Number(phantasmTiming.phantasmalBladeDelayAfterSpawnMs) / 1000
         : phantasmDamageAt;
     const phantasmConversionAt = hasChronophantasma
-      ? phantasmEndpoint(phantasmTiming?.chronophantasmaSpawn)
+      ? phantasmEndpoint(phantasmTiming?.chronophantasmaSpawnAtMs)
       : phantasmSpawnAt;
     const virtuosoBladeHits =
       resourceDefinition.singular === "blade"
       && !hasChronophantasma
-      && Array.isArray(phantasmTiming?.virtuosoBladeHits)
-        ? phantasmTiming.virtuosoBladeHits
+      && Array.isArray(phantasmTiming?.virtuosoBladeTicks)
+        ? phantasmTiming.virtuosoBladeTicks
         : null;
     let chronophantasmaProc = false;
     let firstFencerTriggerAt = Infinity;
@@ -245,17 +246,21 @@ export function createSkillEffectController({
     }
 
     const playerHitTimes = [];
-    for (const group of skill.damage || []) {
+    const strikeEffects = (skill.effects || []).filter(
+      effect => effect.type === "strike",
+    );
+    for (const group of strikeEffects) {
       if (group.requiredTrait && !traits.has(group.requiredTrait)) {
         continue;
       }
-      const hitAt = group.source === "Phantasm"
+      const isPhantasmStrike = group.actorType === "phantasm";
+      const hitAt = isPhantasmStrike
         ? phantasmDamageAt
         : group.castProgress != null
           ? castStart + (at - castStart) * Number(group.castProgress)
-          : at + Number(group.delay || 0);
+          : at + Number(group.atMs || 0) / 1000;
       if (
-        group.source !== "Phantasm"
+        !isPhantasmStrike
         && hitAt > playerEffectEnd + epsilon
       ) {
         continue;
@@ -264,50 +269,56 @@ export function createSkillEffectController({
         skill.boonlessCoefficient && config.target?.boonless
           ? { ...group, coefficient: skill.boonlessCoefficient }
           : group;
+      const sourcedGroup = {
+        ...selectedGroup,
+        source: isPhantasmStrike ? "Phantasm" : "Player",
+      };
       const scaledGroup =
-        group.source === "Phantasm" && phantasmCount > 1
+        isPhantasmStrike && phantasmCount > 1
           ? {
-              ...selectedGroup,
+              ...sourcedGroup,
               coefficient:
-                Number(selectedGroup.coefficient || 0)
+                Number(sourcedGroup.coefficient || 0)
                 * phantasmCount
                 * bountifulBerserkerDamage,
-              hits: Number(selectedGroup.hits || 1) * phantasmCount,
+              hits: Number(sourcedGroup.hits || 1) * phantasmCount,
             }
-          : selectedGroup;
-      const phantasmPacketOffsets =
-        group.source === "Phantasm"
-        && Array.isArray(phantasmTiming?.damagePackets?.[group.label])
-          ? phantasmTiming.damagePackets[group.label]
+          : sourcedGroup;
+      const phantasmTicks =
+        isPhantasmStrike
+        && Array.isArray(phantasmTiming?.damageTicks?.[group.name])
+          ? phantasmTiming.damageTicks[group.name]
           : null;
-      const fixedPacketOffsets = Array.isArray(group.packetOffsets)
-        ? group.packetOffsets
+      const fixedTicks = Array.isArray(group.ticks)
+        ? group.ticks
         : null;
-      const interval = Number(group.interval || 0);
+      const interval = Number(group.intervalMs || 0) / 1000;
       const initialHitTimes = [];
       if (
-        phantasmPacketOffsets?.length > 0
-        || fixedPacketOffsets?.length > 0
+        phantasmTicks?.length > 0
+        || fixedTicks?.length > 0
       ) {
         const hits = Math.max(
           1,
-          Math.trunc(Number(scaledGroup.hits || 1)),
+          Math.trunc(Number(scaledGroup.hits || fixedTicks?.length || 1)),
         );
-        const packetOffsets = phantasmPacketOffsets || fixedPacketOffsets;
-        const timingOrigin =
-          group.timingOrigin === "castStart" ? castStart : at;
+        const packets = phantasmTicks || fixedTicks;
+        const timingAnchorAt =
+          group.timingAnchor === "castStart" ? castStart : at;
         for (let index = 0; index < hits; index += 1) {
-          const offset = packetOffsets[index % packetOffsets.length];
-          const packetAt = phantasmPacketOffsets
-            ? phantasmEndpoint(offset)
-            : timingOrigin + Number(offset);
+          const packet = packets[index % packets.length];
+          const packetAt = phantasmTicks
+            ? phantasmEndpoint(packet.atMs)
+            : timingAnchorAt + Number(packet.atMs) / 1000;
           initialHitTimes.push(packetAt);
           addDamage(
             skill,
             packetAt,
             {
               ...scaledGroup,
-              coefficient: Number(scaledGroup.coefficient || 0) / hits,
+              coefficient: fixedTicks
+                ? Number(packet.coefficient)
+                : Number(scaledGroup.coefficient || 0) / hits,
               hits: 1,
             },
           );
@@ -320,11 +331,11 @@ export function createSkillEffectController({
           1,
           Math.trunc(Number(scaledGroup.hits || 1)),
         );
-        const timingOrigin =
-          group.timingOrigin === "castStart" ? castStart : at;
+        const timingAnchorAt =
+          group.timingAnchor === "castStart" ? castStart : at;
         for (let index = 0; index < hits; index += 1) {
           const packetAt =
-            timingOrigin + Number(group.firstDelay || 0) + index * interval;
+            timingAnchorAt + Number(group.atMs || 0) / 1000 + index * interval;
           initialHitTimes.push(packetAt);
           addDamage(
             skill,
@@ -338,7 +349,7 @@ export function createSkillEffectController({
         }
       } else if (
         pulseTimes.length > 0
-        && group.source !== "Phantasm"
+        && !isPhantasmStrike
         && Number(scaledGroup.hits || 1) === pulseCount
       ) {
         for (const pulseAt of pulseTimes) {
@@ -353,10 +364,10 @@ export function createSkillEffectController({
         initialHitTimes.push(hitAt);
         addDamage(skill, hitAt, scaledGroup);
       }
-      if (group.source === "Player") {
+      if (group.actorType === "player") {
         playerHitTimes.push(...initialHitTimes);
       }
-      if (group.source === "Phantasm" && hasChronophantasma) {
+      if (isPhantasmStrike && hasChronophantasma) {
         addDamage(skill, chronophantasmaDamageAt, scaledGroup, {
           name: `${skill.name} — Chronophantasma`,
           multiplier: 1.05,
@@ -366,10 +377,10 @@ export function createSkillEffectController({
           chronophantasmaProc = true;
         }
       }
-      if (group.source === "Player" || group.source === "Phantasm") {
+      if (group.actorType === "player" || isPhantasmStrike) {
         addFencerStacks(initialHitTimes, scaledGroup.hits);
       }
-      if (group.source === "Phantasm" && hasChronophantasma) {
+      if (isPhantasmStrike && hasChronophantasma) {
         addFencerStacks(
           [chronophantasmaDamageAt],
           scaledGroup.hits,
@@ -395,23 +406,21 @@ export function createSkillEffectController({
         while (recentHits.length >= required) {
           const triggerHits = recentHits.splice(0, required);
           const triggerAt = triggerHits[triggerHits.length - 1];
-          const packetOffsets = tracking.packetOffsets;
-          if (Array.isArray(packetOffsets) && packetOffsets.length > 0) {
-            const hits = packetOffsets.length;
-            for (const offset of packetOffsets) {
+          const ticks = tracking.ticks;
+          if (Array.isArray(ticks) && ticks.length > 0) {
+            for (const tick of ticks) {
               addDamage(
                 skill,
-                triggerAt + Number(offset),
+                triggerAt + Number(tick.atMs) / 1000,
                 {
-                  ...tracking.damage,
-                  coefficient:
-                    Number(tracking.damage.coefficient || 0) / hits,
+                  ...tracking,
+                  coefficient: Number(tick.coefficient),
                   hits: 1,
                 },
                 {
                   blade: skill.blade,
-                  name: tracking.damage.label,
-                  skillName: tracking.damage.label,
+                  name: tracking.name,
+                  skillName: tracking.name,
                   parentSkillName: skill.name,
                   sourceId: tracking.skillId ?? skill.id,
                   skillId: tracking.skillId ?? skill.id,
@@ -419,10 +428,10 @@ export function createSkillEffectController({
               );
             }
           } else {
-            addDamage(skill, triggerAt, tracking.damage, {
+            addDamage(skill, triggerAt, tracking, {
               blade: skill.blade,
-              name: tracking.damage.label,
-              skillName: tracking.damage.label,
+              name: tracking.name,
+              skillName: tracking.name,
               parentSkillName: skill.name,
               sourceId: tracking.skillId ?? skill.id,
               skillId: tracking.skillId ?? skill.id,
@@ -434,10 +443,11 @@ export function createSkillEffectController({
     }
 
     const appliedConditions = etherCloneAtMaximum
-      ? skill.maxCloneConditions || []
-      : skill.conditions || [];
+      ? skill.maxCloneEffects || []
+      : (skill.effects || []).filter(effect => effect.type === "condition");
     const conditionAt = isPhantasm ? phantasmDamageAt : at;
-    for (const condition of appliedConditions) {
+    for (const effect of appliedConditions) {
+      const condition = { ...effect, name: effect.condition };
       const scaledCondition =
         isPhantasm && phantasmCount > 1
           ? {
@@ -445,24 +455,24 @@ export function createSkillEffectController({
               stacks: Number(condition.stacks || 1) * phantasmCount,
           }
           : condition;
-      const conditionPacketOffsets =
+      const conditionTicks =
         isPhantasm
         && condition.packetLabel
         && Array.isArray(
-          phantasmTiming?.damagePackets?.[condition.packetLabel],
+          phantasmTiming?.damageTicks?.[condition.packetLabel],
         )
-          ? phantasmTiming.damagePackets[condition.packetLabel]
+          ? phantasmTiming.damageTicks[condition.packetLabel]
           : null;
       if (
-        conditionPacketOffsets?.length > 0
+        conditionTicks?.length > 0
       ) {
         const packetStacks =
           Number(scaledCondition.stacks || 1)
-          / conditionPacketOffsets.length;
-        for (const offset of conditionPacketOffsets) {
+          / conditionTicks.length;
+        for (const tick of conditionTicks) {
           addCondition(
             skill.name,
-            phantasmEndpoint(offset),
+            phantasmEndpoint(tick.atMs),
             {
               ...scaledCondition,
               stacks: packetStacks,
@@ -491,7 +501,8 @@ export function createSkillEffectController({
       }
     }
     if (isPhantasm && hasChronophantasma && appliedConditions.length > 0) {
-      for (const condition of appliedConditions) {
+      for (const effect of appliedConditions) {
+        const condition = { ...effect, name: effect.condition };
         const scaledCondition =
           phantasmCount > 1
             ? {
@@ -518,9 +529,9 @@ export function createSkillEffectController({
       );
     } else if (skill.resource?.mode === "add" && !etherCloneAtMaximum) {
       const resourceAt =
-        skill.resource.timingOrigin === "castStart"
-          ? castStart + Number(skill.resource.delay || 0)
-          : at + Number(skill.resource.delay || 0);
+        skill.resource.timingAnchor === "castStart"
+          ? castStart + Number(skill.resource.atMs || 0) / 1000
+          : at + Number(skill.resource.atMs || 0) / 1000;
       queueResources(
         resourceAt + epsilon,
         skill.resource.count,
@@ -529,10 +540,10 @@ export function createSkillEffectController({
       );
     } else if (skill.resource?.mode === "phantasm" && virtuosoBladeHits) {
       for (let index = 0; index < phantasmCount; index += 1) {
-        const measuredOffset =
+        const measuredTick =
           virtuosoBladeHits[Math.min(index, virtuosoBladeHits.length - 1)];
         queueResources(
-          phantasmEndpoint(measuredOffset) + epsilon,
+          phantasmEndpoint(measuredTick.atMs) + epsilon,
           1,
           null,
           `${skill.name} phantasm conversion`,
