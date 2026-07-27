@@ -26,6 +26,7 @@ import {
 } from "../js/app/profession-selector.js";
 import {
   autoattackChainSkillAvailable,
+  groupConsecutiveProcSteps,
   paletteActionSkills,
   resultSkillIcon,
   weaponPaletteSectionHtml,
@@ -52,6 +53,37 @@ import {
   createDefaultConfig,
   simulateMesmer,
 } from "./helpers/mesmer-simulation.js";
+
+test("proc display groups only consecutive occurrences of the same proc", () => {
+  const proc = (type, skill, start) => ({ type, skill, start });
+  const groups = groupConsecutiveProcSteps([
+    proc("relic_proc", "Relic of Fireworks", 480),
+    proc("relic_proc", "Relic of Fireworks", 1280),
+    proc("trait_proc", "Sharper Images", 1400),
+    proc("relic_proc", "Relic of Fireworks", 2200),
+  ]);
+
+  assert.deepEqual(
+    groups.map(group => ({
+      key: group.key,
+      starts: group.steps.map(step => step.start),
+    })),
+    [
+      {
+        key: "relic_proc:Relic of Fireworks",
+        starts: [480, 1280],
+      },
+      {
+        key: "trait_proc:Sharper Images",
+        starts: [1400],
+      },
+      {
+        key: "relic_proc:Relic of Fireworks",
+        starts: [2200],
+      },
+    ],
+  );
+});
 
 test("shared app options escape labels and preserve selection state", () => {
   assert.equal(

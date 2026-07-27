@@ -188,6 +188,20 @@ function procStackLabel(proc) {
     return String(proc.detail || '').match(/^(\d+\/\d+)\s+stacks$/)?.[1] || '';
 }
 
+export function groupConsecutiveProcSteps(procSteps = []) {
+    const groups = [];
+    for (const proc of procSteps) {
+        const key = procFilterKey(proc);
+        const previous = groups.at(-1);
+        if (previous?.key === key) {
+            previous.steps.push(proc);
+        } else {
+            groups.push({ key, steps: [proc] });
+        }
+    }
+    return groups;
+}
+
 function syncProcVisibility(app, procSteps) {
     const procKeys = new Set(procSteps.map(procFilterKey));
     const current = app.procVisibility instanceof Set ? app.procVisibility : null;
@@ -963,23 +977,36 @@ export function renderTimeline(app) {
             procSteps.map(proc => [procFilterKey(proc), proc]),
         ).values()].sort((a, b) => procFilterLabel(a).localeCompare(procFilterLabel(b)));
         const visibleProcCount = procOptions.filter(proc => procVisibility.has(procFilterKey(proc))).length;
-        const procs = procSteps.map(proc => {
-            const key = procFilterKey(proc);
+        const procs = groupConsecutiveProcSteps(procSteps).map(group => {
+            const proc = group.steps[0];
+            const { key } = group;
             const icon = resolveProcIcon(app, proc) || PLACEHOLDER_ICON;
             const type = proc.type === 'relic_proc'
                 ? 'Relic'
                 : proc.type === 'skill_proc' ? 'Skill' : 'Trait';
             const time = formatTime(proc.start);
-            const stackLabel = procStackLabel(proc);
-            const detail = [
-                proc.skill,
-                `${type} proc at ${time}`,
-                proc.sourceSkill ? `Triggered by ${proc.sourceSkill}` : '',
-                proc.detail || '',
-            ].filter(Boolean).join('\n');
+            const count = group.steps.length;
+            const stackLabel = procStackLabel(group.steps.at(-1));
+            const detail = count === 1
+                ? [
+                    proc.skill,
+                    `${type} proc at ${time}`,
+                    proc.sourceSkill ? `Triggered by ${proc.sourceSkill}` : '',
+                    proc.detail || '',
+                ].filter(Boolean).join('\n')
+                : [
+                    proc.skill,
+                    `${type} proc x${count}`,
+                    ...group.steps.map((step, index) => [
+                        `${index + 1}. ${formatTime(step.start)}`,
+                        step.sourceSkill ? `Triggered by ${step.sourceSkill}` : '',
+                        step.detail || '',
+                    ].filter(Boolean).join(' - ')),
+                ].join('\n');
             return `<div class="proc-icon" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'} title="${esc(detail)}"
                 style="--proc-color:${procColors[proc.type] || '#9d7bd0'}">
                 <img src="${esc(icon)}" alt="" />
+                ${count > 1 ? `<span class="proc-count">&times;${count}</span>` : ''}
                 ${stackLabel ? `<span class="proc-stack">${esc(stackLabel)}</span>` : ''}
                 <span class="proc-time">${time}</span>
             </div>`;
