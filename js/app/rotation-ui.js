@@ -1292,7 +1292,7 @@ export function renderResults(app) {
         skillBreakdownClassName: `${app.adapter.id}-skill-breakdown`,
         chartOptions: {
             title: 'DPS & Effects Over Time',
-            dpsLabel: 'DPS',
+            dpsLabel: 'Average DPS',
             dpsColor: '#54c96b',
             colors: EFFECT_COLORS,
             defaultVisibleEffectLimit: 8,

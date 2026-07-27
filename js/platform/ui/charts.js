@@ -15,9 +15,17 @@ export function buildChartSeries(
   sampleStepMs = 250,
   { effectName = value => String(value || ""), stackCaps = {} } = {},
 ) {
+  const dpsStartMs = Math.max(
+    0,
+    Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000,
+  );
+  const endMs = Math.max(
+    dpsStartMs,
+    Math.round(Number(result.deathTime ?? result.duration ?? 0) * 1000),
+  );
   const durationMs = Math.max(
     1,
-    Math.round(Number(result.deathTime ?? result.duration ?? 0) * 1000),
+    endMs - dpsStartMs,
   );
   const interval = Math.max(50, Math.min(1000, Number(sampleStepMs) || 250));
   const times = [];
@@ -30,17 +38,17 @@ export function buildChartSeries(
       Number(event.damage || 0) > 0
       || event.damageTicks?.some(tick => Number(tick.damage || 0) > 0)
     ));
-  const dpsStartMs = Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000;
   const dps = times.map(time => {
-    const elapsed = (time - dpsStartMs) / 1000;
+    const elapsed = time / 1000;
     if (elapsed <= 0) return { t: time, v: 0 };
+    const absoluteTime = dpsStartMs + time;
     let damage = 0;
     for (const event of damageEvents) {
       if (Array.isArray(event.damageTicks)) {
         damage += event.damageTicks
-          .filter(tick => Number(tick.at || 0) * 1000 <= time)
+          .filter(tick => Number(tick.at || 0) * 1000 <= absoluteTime)
           .reduce((sum, tick) => sum + Number(tick.damage || 0), 0);
-      } else if (Number(event.at || 0) * 1000 <= time) {
+      } else if (Number(event.at || 0) * 1000 <= absoluteTime) {
         damage += Number(event.damage || 0);
       }
     }
@@ -49,11 +57,11 @@ export function buildChartSeries(
   const applications = [];
   for (const event of resolved) {
     if (event.type !== "condition") continue;
-    const start = Number(event.at || 0) * 1000;
+    const start = Number(event.at || 0) * 1000 - dpsStartMs;
     const end = Number(
       event.expiresAt
       ?? (Number(event.at || 0) + Number(event.effectiveDuration ?? event.duration ?? 0)),
-    ) * 1000;
+    ) * 1000 - dpsStartMs;
     if (end > start) {
       applications.push({
         name: effectName(event.condition),
@@ -65,7 +73,7 @@ export function buildChartSeries(
   }
   for (const event of result.events || []) {
     if (event.type !== "buff" || !Number(event.duration || 0)) continue;
-    const start = Number(event.at || 0) * 1000;
+    const start = Number(event.at || 0) * 1000 - dpsStartMs;
     applications.push({
       name: effectName(event.kind),
       start,

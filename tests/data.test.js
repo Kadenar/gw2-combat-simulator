@@ -11,20 +11,16 @@ import { RELIC_NAMES } from '../js/platform/gw2/gear-data.js';
 import { TRAITS } from '../js/professions/mesmer/data/traits-data.js';
 import {
     AMBUSH_ATTACKS,
+    AMBUSH_SKILLS,
     CLONE_ATTACKS,
-    PHANTASM_ATTACK_TIMINGS,
-    PHANTASM_NAME_BY_SKILL,
-} from '../js/professions/mesmer/data/mesmer-illusion-data.js';
-import {
     INSTRUMENTS,
     MECHANIC_SKILLS,
-    SHATTERS,
-    TRAIT_DAMAGE,
-} from '../js/professions/mesmer/data/mesmer-profession-data.js';
-import {
-    AMBUSH_SKILLS,
+    PHANTASM_ATTACK_TIMINGS,
+    PHANTASM_NAME_BY_SKILL,
     PSEUDO_SKILLS,
     MESMER_SKILL_MECHANICS,
+    SHATTERS,
+    TRAIT_DAMAGE,
 } from "../js/professions/mesmer/mechanics/skill-mechanics.js";
 import {
     MESMER_AUTOATTACK_CHAINS,

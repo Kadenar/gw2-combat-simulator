@@ -13,23 +13,21 @@ import {
 } from "../../../platform/gw2/scheduler/event-factory.js";
 import {
   AMBUSH_ATTACKS,
-  CLONE_ATTACKS,
-  PHANTASM_ATTACK_TIMINGS,
-  PHANTASM_NAME_BY_SKILL,
-  WEAPON_STRENGTH,
-} from "../data/mesmer-illusion-data.js";
-import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
-import {
   ARISTOCRACY_SKILLS,
   BLIND_SKILLS,
+  CLONE_ATTACKS,
   CONDITION_FORMULAS,
   CONTROL_SKILLS,
   INSTRUMENTS,
   MECHANIC_SKILLS,
   PEITHA_SKILLS,
+  PHANTASM_ATTACK_TIMINGS,
+  PHANTASM_NAME_BY_SKILL,
   SHATTERS,
   TRAIT_DAMAGE,
-} from "../data/mesmer-profession-data.js";
+  WEAPON_STRENGTH,
+} from "./skill-mechanics.js";
+import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import {
   createCloneAttackScheduler,
 } from "./illusions.js";
