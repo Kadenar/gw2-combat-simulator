@@ -4,17 +4,14 @@ import {
   MECHANIC_SKILLS,
   SHATTERS,
 } from "./skill-mechanics.js";
-import {
-  mesmerAutoattackChainPosition,
-} from "./autoattack-chains.js";
+import { mesmerAutoattackChainPosition } from "./autoattack-chains.js";
 import { runtimeFor } from "./runtime.js";
 
 function skillAvailable(skill, config) {
   if (skill.ambush) return config.specialization === "Mirage";
   if (skill.id < 0) {
     return (
-      !skill.specialization
-      || skill.specialization === config.specialization
+      !skill.specialization || skill.specialization === config.specialization
     );
   }
   if (skill.environment !== "Terrestrial") return false;
@@ -22,16 +19,18 @@ function skillAvailable(skill, config) {
     return (MECHANIC_SKILLS[config.specialization] || []).includes(skill.name);
   }
   if (
-    skill.specialization
-    && skill.type !== "Weapon"
-    && skill.specialization !== config.specialization
-  ) return false;
+    skill.specialization &&
+    skill.type !== "Weapon" &&
+    skill.specialization !== config.specialization
+  )
+    return false;
   if (
-    skill.specialization
-    && skill.type === "Weapon"
-    && !config.weaponmasterTraining
-    && skill.specialization !== config.specialization
-  ) return false;
+    skill.specialization &&
+    skill.type === "Weapon" &&
+    !config.weaponmasterTraining &&
+    skill.specialization !== config.specialization
+  )
+    return false;
   return true;
 }
 
@@ -50,10 +49,10 @@ export function mesmerAvailability(context, skill) {
   if (skill.ambush) {
     const activeAmbush = AMBUSH_ATTACKS[runtime.activePrimaryWeapon()];
     if (
-      !activeAmbush
-      || activeAmbush.name !== skill.name
-      || !state.profession.ambushSource
-      || state.profession.ambushUntil <= at + EPSILON
+      !activeAmbush ||
+      activeAmbush.name !== skill.name ||
+      !state.profession.ambushSource ||
+      state.profession.ambushUntil <= at + EPSILON
     ) {
       return {
         ready: false,
@@ -102,14 +101,13 @@ export function mesmerAvailability(context, skill) {
         ready: false,
         retryAt: flip.availableAt,
         code: "mesmer.flip-not-ready",
-        reason:
-          `${skill.name} is not armed until ${flip.availableAt.toFixed(3)}.`,
+        reason: `${skill.name} is not armed until ${flip.availableAt.toFixed(3)}.`,
       };
     }
   }
   if (
-    SHATTERS[skill.name]?.kind.startsWith("blade")
-    && runtime.actions.currentResource() < 1
+    SHATTERS[skill.name]?.kind.startsWith("blade") &&
+    runtime.actions.currentResource() < 1
   ) {
     return {
       ready: false,

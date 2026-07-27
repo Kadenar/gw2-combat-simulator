@@ -44,8 +44,7 @@ export const necromancerProfession = defineProfession({
   },
   schedulerHooks: {
     ...necromancerSchedulerHooks,
-    snapshot: context =>
-      snapshotNecromancerState(context.state.profession),
+    snapshot: (context) => snapshotNecromancerState(context.state.profession),
   },
   resolverHooks: {
     eventHandlers: necromancerResolverEventHandlers,

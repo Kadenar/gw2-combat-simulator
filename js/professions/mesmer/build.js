@@ -45,7 +45,7 @@ export function createMesmerBuildDefaults() {
   return {
     schemaVersion: BUILD_SCHEMA_VERSION,
     profession: PROFESSION_ID,
-    gear: Object.fromEntries(GEAR_SLOTS.map(slot => [slot, "Berserker's"])),
+    gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
     weapons: ["Dagger", "Sword"],
     alternateWeapons: ["Spear", ""],
     rune: "Scholar",
@@ -109,8 +109,8 @@ function migrateV1ToV2(saved) {
   const migrated = { ...saved, schemaVersion: 2 };
   const assumptions = plainObject(migrated.assumptions);
   if (
-    assumptions.targetConditions == null
-    && assumptions.vulnerability != null
+    assumptions.targetConditions == null &&
+    assumptions.vulnerability != null
   ) {
     assumptions.targetConditions = {
       ...createDefaultTargetConditions(),
@@ -151,13 +151,13 @@ function applyDefaults(saved) {
       targetConditions: { ...savedConditions },
     },
     selectedSkills: { ...defaults.selectedSkills, ...selectedSkills },
-    weapons: [0, 1].map(index => {
+    weapons: [0, 1].map((index) => {
       const value = Array.isArray(saved.weapons) ? saved.weapons[index] : null;
       return typeof value === "string" && (value === "" || WEAPON_DATA[value])
         ? value
         : defaults.weapons[index];
     }),
-    alternateWeapons: [0, 1].map(index => {
+    alternateWeapons: [0, 1].map((index) => {
       const value = Array.isArray(saved.alternateWeapons)
         ? saved.alternateWeapons[index]
         : null;
@@ -168,23 +168,32 @@ function applyDefaults(saved) {
     weaponSigils: normalizeWeaponSigils(saved.weaponSigils),
     infusions: Array.isArray(saved.infusions)
       ? saved.infusions
-        .filter(value =>
-          value
-          && typeof value === "object"
-          && INFUSION_STATS.includes(value.stat))
-        .map(value => ({
-          stat: value.stat,
-          count: Math.max(0, Math.min(18, Math.trunc(Number(value.count) || 0))),
-        }))
+          .filter(
+            (value) =>
+              value &&
+              typeof value === "object" &&
+              INFUSION_STATS.includes(value.stat),
+          )
+          .map((value) => ({
+            stat: value.stat,
+            count: Math.max(
+              0,
+              Math.min(18, Math.trunc(Number(value.count) || 0)),
+            ),
+          }))
       : defaults.infusions,
     specializations: Array.isArray(saved.specializations)
       ? saved.specializations
-        .filter(value =>
-          value
-          && typeof value === "object"
-          && mesmerCatalog.specializations.some(spec => spec.name === value.name)
-          && /^[1-3]-[1-3]-[1-3]$/.test(String(value.traits || "")))
-        .slice(0, 3)
+          .filter(
+            (value) =>
+              value &&
+              typeof value === "object" &&
+              mesmerCatalog.specializations.some(
+                (spec) => spec.name === value.name,
+              ) &&
+              /^[1-3]-[1-3]-[1-3]$/.test(String(value.traits || "")),
+          )
+          .slice(0, 3)
       : defaults.specializations,
     rotation: normalizeRotation(saved.rotation, mesmerCatalog),
   };
@@ -204,11 +213,11 @@ function applyDefaults(saved) {
     const selected = merged.selectedSkills[slot];
     const candidate = mesmerCatalog.skillsByName.get(selected);
     if (
-      typeof selected !== "string"
-      || !candidate?.implemented
-      || candidate.simulatorExcluded
-      || candidate.type !== SLOT_TYPES[slot]
-      || candidate.flipParentId != null
+      typeof selected !== "string" ||
+      !candidate?.implemented ||
+      candidate.simulatorExcluded ||
+      candidate.type !== SLOT_TYPES[slot] ||
+      candidate.flipParentId != null
     ) {
       merged.selectedSkills[slot] = fallback;
     }
@@ -227,7 +236,11 @@ export function migrateMesmerBuild(candidate) {
   }
   let saved = structuredClone(candidate);
   let version = Number(saved.schemaVersion || 0);
-  if (!Number.isInteger(version) || version < 0 || version > BUILD_SCHEMA_VERSION) {
+  if (
+    !Number.isInteger(version) ||
+    version < 0 ||
+    version > BUILD_SCHEMA_VERSION
+  ) {
     throw new Error(`Unsupported build schema version: ${saved.schemaVersion}`);
   }
   if (version === 0) {
@@ -253,7 +266,8 @@ export function validateMesmerBuild(build) {
     if (build.profession !== PROFESSION_ID) {
       errors.push("profession must be mesmer.");
     }
-    if (!Array.isArray(build.rotation)) errors.push("rotation must be an array.");
+    if (!Array.isArray(build.rotation))
+      errors.push("rotation must be an array.");
     if (!Array.isArray(build.specializations)) {
       errors.push("specializations must be an array.");
     }
@@ -261,9 +275,9 @@ export function validateMesmerBuild(build) {
       errors.push("gear must be an object.");
     }
     if (
-      !build.selectedSkills
-      || typeof build.selectedSkills !== "object"
-      || Array.isArray(build.selectedSkills)
+      !build.selectedSkills ||
+      typeof build.selectedSkills !== "object" ||
+      Array.isArray(build.selectedSkills)
     ) {
       errors.push("selectedSkills must be an object.");
     } else {
@@ -272,9 +286,9 @@ export function validateMesmerBuild(build) {
           build.selectedSkills[slot],
         );
         if (
-          !skill?.implemented
-          || skill.simulatorExcluded
-          || skill.type !== type
+          !skill?.implemented ||
+          skill.simulatorExcluded ||
+          skill.type !== type
         ) {
           errors.push(`${slot} must contain an available ${type} skill.`);
         }
@@ -288,7 +302,8 @@ export function toApplicationBuild(build) {
   const migrated = migrateMesmerBuild(build);
   return {
     ...migrated,
-    rotation: migrated.rotation.map(command =>
-      toLegacyRotationEntry(command, mesmerCatalog)),
+    rotation: migrated.rotation.map((command) =>
+      toLegacyRotationEntry(command, mesmerCatalog),
+    ),
   };
 }

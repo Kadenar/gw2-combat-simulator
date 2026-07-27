@@ -44,7 +44,7 @@ export function createNecromancerBuildDefaults() {
   return {
     schemaVersion: NECROMANCER_BUILD_SCHEMA_VERSION,
     profession: NECROMANCER_PROFESSION_ID,
-    gear: Object.fromEntries(GEAR_SLOTS.map(slot => [slot, "Viper's"])),
+    gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
     weapons: ["Scepter", "Dagger"],
     alternateWeapons: ["Pistol", "Torch"],
     rune: "Trapper",
@@ -109,9 +109,8 @@ function normalizeWeaponPair(value, fallback) {
   const offHand = knownWeapon(value[1]);
   return [
     mainHand,
-    offHand && ["oh", "mh+oh"].includes(
-      necromancerCatalog.weaponHands.get(offHand),
-    )
+    offHand &&
+    ["oh", "mh+oh"].includes(necromancerCatalog.weaponHands.get(offHand))
       ? offHand
       : fallback[1],
   ];
@@ -122,27 +121,34 @@ function normalizeSpecializations(value, fallback) {
     return structuredClone(fallback);
   }
   const known = new Set(
-    necromancerCatalog.specializations.map(specialization =>
-      specialization.name),
+    necromancerCatalog.specializations.map(
+      (specialization) => specialization.name,
+    ),
   );
   const selected = value
     .slice(0, 3)
-    .map(entry => typeof entry === "string"
-      ? { name: entry, traits: "1-1-1" }
-      : {
-          name: String(entry?.name || ""),
-          traits: /^[1-3]-[1-3]-[1-3]$/.test(
-            String(entry?.traits || ""),
-          )
-            ? String(entry.traits)
-            : "1-1-1",
-        })
-    .filter(entry => known.has(entry.name));
-  const unique = selected.filter((entry, index) =>
-    selected.findIndex(candidate => candidate.name === entry.name) === index);
-  const eliteCount = unique.filter(entry =>
-    necromancerCatalog.specializations.find(candidate =>
-      candidate.name === entry.name)?.elite).length;
+    .map((entry) =>
+      typeof entry === "string"
+        ? { name: entry, traits: "1-1-1" }
+        : {
+            name: String(entry?.name || ""),
+            traits: /^[1-3]-[1-3]-[1-3]$/.test(String(entry?.traits || ""))
+              ? String(entry.traits)
+              : "1-1-1",
+          },
+    )
+    .filter((entry) => known.has(entry.name));
+  const unique = selected.filter(
+    (entry, index) =>
+      selected.findIndex((candidate) => candidate.name === entry.name) ===
+      index,
+  );
+  const eliteCount = unique.filter(
+    (entry) =>
+      necromancerCatalog.specializations.find(
+        (candidate) => candidate.name === entry.name,
+      )?.elite,
+  ).length;
   return unique.length === 3 && eliteCount <= 1
     ? unique
     : structuredClone(fallback);
@@ -150,14 +156,14 @@ function normalizeSpecializations(value, fallback) {
 
 function selectedSkillsFromLegacy(saved) {
   const result = {};
-  const skills = (Array.isArray(saved.selectedSkillIds)
-    ? saved.selectedSkillIds
-    : [])
-    .map(id => necromancerCatalog.skillsById.get(id))
+  const skills = (
+    Array.isArray(saved.selectedSkillIds) ? saved.selectedSkillIds : []
+  )
+    .map((id) => necromancerCatalog.skillsById.get(id))
     .filter(Boolean);
-  result.Heal = skills.find(skill => skill.type === "Heal")?.name;
-  result.Elite = skills.find(skill => skill.type === "Elite")?.name;
-  const utilities = skills.filter(skill => skill.type === "Utility");
+  result.Heal = skills.find((skill) => skill.type === "Heal")?.name;
+  result.Elite = skills.find((skill) => skill.type === "Elite")?.name;
+  const utilities = skills.filter((skill) => skill.type === "Utility");
   for (let index = 0; index < 3; index += 1) {
     result[`Utility${index + 1}`] = utilities[index]?.name;
   }
@@ -175,12 +181,13 @@ function normalizeSelectedSkills(saved, defaults) {
       const fallback = necromancerCatalog.skillsByName.get(
         defaults.selectedSkills[slot],
       );
-      const skill = (
-        candidate?.implemented
-        && !candidate.simulatorExcluded
-        && candidate.type === type
-        && candidate.flipParentId == null
-      ) ? candidate : fallback;
+      const skill =
+        candidate?.implemented &&
+        !candidate.simulatorExcluded &&
+        candidate.type === type &&
+        candidate.flipParentId == null
+          ? candidate
+          : fallback;
       return [slot, skill?.name || ""];
     }),
   );
@@ -189,35 +196,35 @@ function normalizeSelectedSkills(saved, defaults) {
 function normalizeInfusions(value, fallback) {
   if (!Array.isArray(value)) return structuredClone(fallback);
   const infusions = value
-    .filter(entry =>
-      entry
-      && typeof entry === "object"
-      && INFUSION_STATS.includes(entry.stat))
-    .map(entry => ({
+    .filter(
+      (entry) =>
+        entry &&
+        typeof entry === "object" &&
+        INFUSION_STATS.includes(entry.stat),
+    )
+    .map((entry) => ({
       stat: entry.stat,
-      count: Math.max(
-        0,
-        Math.min(18, Math.trunc(Number(entry.count) || 0)),
-      ),
+      count: Math.max(0, Math.min(18, Math.trunc(Number(entry.count) || 0))),
     }));
   return infusions.length ? infusions : structuredClone(fallback);
 }
 
 export function migrateNecromancerBuild(candidate) {
   if (
-    candidate
-    && typeof candidate === "object"
-    && candidate.profession
-    && candidate.profession !== NECROMANCER_PROFESSION_ID
+    candidate &&
+    typeof candidate === "object" &&
+    candidate.profession &&
+    candidate.profession !== NECROMANCER_PROFESSION_ID
   ) {
     throw new Error(
       `Cannot load ${candidate.profession} build as Necromancer.`,
     );
   }
   const defaults = createNecromancerBuildDefaults();
-  const saved = candidate && typeof candidate === "object"
-    ? structuredClone(candidate)
-    : {};
+  const saved =
+    candidate && typeof candidate === "object"
+      ? structuredClone(candidate)
+      : {};
   const assumptions = plainObject(saved.assumptions);
   const conditions = Object.hasOwn(assumptions, "targetConditions")
     ? plainObject(assumptions.targetConditions)
@@ -306,19 +313,23 @@ export function validateNecromancerBuild(build) {
     errors.push("profession must be necromancer.");
   }
   if (build.schemaVersion !== NECROMANCER_BUILD_SCHEMA_VERSION) {
-    errors.push(
-      `schemaVersion must be ${NECROMANCER_BUILD_SCHEMA_VERSION}.`,
-    );
+    errors.push(`schemaVersion must be ${NECROMANCER_BUILD_SCHEMA_VERSION}.`);
   }
   validateWeaponPair(build.weapons, "weapons", errors);
   validateWeaponPair(build.alternateWeapons, "alternateWeapons", errors);
   if (![1, 2].includes(build.startingWeaponSet)) {
     errors.push("startingWeaponSet must be 1 or 2.");
   }
-  if (!(Number(build.initialResource) >= 0 && Number(build.initialResource) <= 120)) {
+  if (
+    !(
+      Number(build.initialResource) >= 0 && Number(build.initialResource) <= 120
+    )
+  ) {
     errors.push("initialResource must be between 0 and 120.");
   }
-  if (!(Number(build.initialBlight) >= 0 && Number(build.initialBlight) <= 25)) {
+  if (
+    !(Number(build.initialBlight) >= 0 && Number(build.initialBlight) <= 25)
+  ) {
     errors.push("initialBlight must be between 0 and 25.");
   }
   if (!Array.isArray(build.rotation)) {
@@ -326,8 +337,8 @@ export function validateNecromancerBuild(build) {
   } else {
     for (const command of build.rotation) {
       if (
-        command?.type === "cast"
-        && !necromancerCatalog.skillsById.has(command.skillId)
+        command?.type === "cast" &&
+        !necromancerCatalog.skillsById.has(command.skillId)
       ) {
         errors.push(`rotation contains unknown skill ${command.skillId}.`);
       }
@@ -337,35 +348,33 @@ export function validateNecromancerBuild(build) {
     errors.push("specializations must be an array.");
   } else {
     const known = new Map(
-      necromancerCatalog.specializations.map(specialization => [
+      necromancerCatalog.specializations.map((specialization) => [
         specialization.name,
         specialization,
       ]),
     );
     const selected = build.specializations
-      .map(specialization => known.get(specialization?.name))
+      .map((specialization) => known.get(specialization?.name))
       .filter(Boolean);
     if (selected.length !== build.specializations.length) {
       errors.push("specializations contain an unknown Necromancer line.");
     }
-    if (selected.filter(specialization => specialization.elite).length > 1) {
+    if (selected.filter((specialization) => specialization.elite).length > 1) {
       errors.push("only one elite specialization can be selected.");
     }
     if (
-      new Set(selected.map(specialization => specialization.name)).size
-      !== selected.length
+      new Set(selected.map((specialization) => specialization.name)).size !==
+      selected.length
     ) {
       errors.push("specializations cannot contain duplicates.");
     }
     if (
-      build.specializations.some(specialization =>
-        !/^[1-3]-[1-3]-[1-3]$/.test(
-          String(specialization?.traits || ""),
-        ))
+      build.specializations.some(
+        (specialization) =>
+          !/^[1-3]-[1-3]-[1-3]$/.test(String(specialization?.traits || "")),
+      )
     ) {
-      errors.push(
-        "specialization traits must use the 1-1-1 selection format.",
-      );
+      errors.push("specialization traits must use the 1-1-1 selection format.");
     }
     if (build.specializations.length !== 3) {
       errors.push("exactly three specializations must be selected.");
@@ -379,9 +388,9 @@ export function validateNecromancerBuild(build) {
         build.selectedSkills[slot],
       );
       if (
-        !skill?.implemented
-        || skill.simulatorExcluded
-        || skill.type !== type
+        !skill?.implemented ||
+        skill.simulatorExcluded ||
+        skill.type !== type
       ) {
         errors.push(`${slot} must contain an available ${type} skill.`);
       }
@@ -395,7 +404,8 @@ export function toApplicationBuild(build) {
   const migrated = migrateNecromancerBuild(build);
   return {
     ...migrated,
-    rotation: migrated.rotation.map(command =>
-      toLegacyRotationEntry(command, necromancerCatalog)),
+    rotation: migrated.rotation.map((command) =>
+      toLegacyRotationEntry(command, necromancerCatalog),
+    ),
   };
 }

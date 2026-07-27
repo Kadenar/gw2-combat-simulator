@@ -40,7 +40,7 @@ export const mesmerProfession = defineProfession({
   castRules: mesmerCastRules,
   schedulerHooks: {
     ...mesmerSchedulerHooks,
-    snapshot: context => snapshotMesmerState(context.state.profession),
+    snapshot: (context) => snapshotMesmerState(context.state.profession),
   },
   resolverHooks: {
     eventHandlers: mesmerResolverEventHandlers,
