@@ -2130,6 +2130,35 @@ test('weapon swaps start new weapon-set rows in the rotation timeline', () => {
     ]);
 });
 
+test('shroud and forge transitions start a new row on the current weapon set', () => {
+    for (const [enter, exit] of [
+        ["Reaper's Shroud", "Exit Reaper's Shroud"],
+        ['Harbinger Shroud', 'Exit Harbinger Shroud'],
+        ['Enter Radiant Forge', 'Exit Radiant Forge'],
+    ]) {
+        const rows = timelineWeaponRows([
+            'Before',
+            enter,
+            'During',
+            exit,
+            'After',
+            'Swap Weapons',
+            'Other set',
+        ], { startingWeaponSet: 2 });
+
+        assert.deepEqual(
+            rows.map(row => row.weaponSet),
+            [2, 2, 2, 1],
+            enter,
+        );
+        assert.deepEqual(
+            rows.map(row => row.skills.map(skill => skill.index)),
+            [[0, 1], [2, 3], [4, 5], [6]],
+            enter,
+        );
+    }
+});
+
 test('a final weapon swap remains on its originating weapon-set row', () => {
     const rows = timelineWeaponRows(['Bladecall', 'Swap Weapons']);
     assert.deepEqual(rows.map(row => row.weaponSet), [1]);

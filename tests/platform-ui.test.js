@@ -247,7 +247,24 @@ test("shared results render summaries, totals, contributions, warnings, and icon
     ],
     conditions: [{ name: "Burn <hot>", damage: 25, dps: 5, averageStacks: 1.25 }],
     conditionTotal: { label: "Total Conditions", damage: 25, dps: 5 },
-    contributions: [{ name: "Bonus", dpsIncrease: 12, pctIncrease: 1.5 }],
+    contributions: [
+      {
+        name: "Bonus",
+        dpsIncrease: 12,
+        pctIncrease: 1.5,
+        icon: "bonus.png",
+      },
+      {
+        name: "Noise",
+        dpsIncrease: -0.1,
+        pctIncrease: -0.001,
+      },
+      {
+        name: "Penalty",
+        dpsIncrease: -12,
+        pctIncrease: -1.5,
+      },
+    ],
     warnings: ["Unsafe <script>"],
   }, {
     resolveSkillIcon: row => {
@@ -265,6 +282,16 @@ test("shared results render summaries, totals, contributions, warnings, and icon
   assert.match(container.innerHTML, /Total Conditions/);
   assert.match(container.innerHTML, /\+12/);
   assert.match(container.innerHTML, /\+1\.50%/);
+  assert.match(
+    container.innerHTML,
+    /Noise<\/span>\s*<span class="contrib-val">0<\/span>\s*<span class="contrib-pct">0\.00%/,
+  );
+  assert.match(
+    container.innerHTML,
+    /Penalty<\/span>\s*<span class="contrib-val">-12<\/span>\s*<span class="contrib-pct">-1\.50%/,
+  );
+  assert.doesNotMatch(container.innerHTML, /-0(?:\.00)?%?/);
+  assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/>Bonus/);
   assert.match(container.innerHTML, /Unsafe &lt;script&gt;/);
   assert.doesNotMatch(container.innerHTML, /Unsafe <script>/);
   assert.deepEqual(resolved, ["High", "Low"]);

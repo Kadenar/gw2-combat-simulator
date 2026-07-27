@@ -39,45 +39,54 @@ function specializationFrom(context = {}) {
   return context.specialization || context.config?.specialization || "Core";
 }
 
+function shroudForSpecialization(specialization) {
+  return String(specialization || "Core").toLowerCase() === "core"
+    ? "death"
+    : String(specialization).toLowerCase();
+}
+
+function shroudSkillIds(context = {}) {
+  const specialization = specializationFrom(context);
+  if (specialization === "Scourge") return [];
+  const shroud = shroudForSpecialization(specialization);
+  const skills = necromancerCatalog.skills
+    .filter(
+      (skill) =>
+        skill.shroud === shroud &&
+        skill.implemented &&
+        !skill.simulatorExcluded,
+    )
+    .sort(
+      (left, right) =>
+        Number(left.shroudSlot || 0) - Number(right.shroudSlot || 0) ||
+        left.id - right.id,
+    )
+    .map((skill) => skill.id);
+  const innervates =
+    shroud === "ritualist"
+      ? Object.values(INNERVATE_BY_SPIRIT)
+      : [];
+  return [...new Set([...skills, ...innervates])];
+}
+
 function professionSkillIds(context = {}) {
   const state = stateFrom(context);
   const specialization = specializationFrom(context);
-  if (state.activeShroud === "lich") return [...LICH_SKILLS];
-  if (state.activeShroud) {
-    const shroudSkills = necromancerCatalog.skills
-      .filter(
-        (skill) =>
-          skill.shroud === state.activeShroud &&
-          skill.implemented &&
-          !skill.simulatorExcluded,
-      )
-      .sort(
-        (left, right) =>
-          Number(left.shroudSlot || 0) - Number(right.shroudSlot || 0) ||
-          left.id - right.id,
-      )
-      .map((skill) => skill.id);
-    const exit = Object.entries(state.availableFlips || {})
-      .filter(([, expiresAt]) => Number(expiresAt) > 0)
-      .map(([id]) => Number(id))
-      .filter((id) =>
-        [
-          ID.END_DEATH_SHROUD,
-          ID.EXIT_REAPERS_SHROUD,
-          ID.EXIT_HARBINGER_SHROUD,
-          ID.EXIT_RITUALISTS_SHROUD,
-        ].includes(id),
-      );
-    const innervates =
-      state.activeShroud === "ritualist"
-        ? Object.keys(state.activeSpirits || {})
-            .map((key) => INNERVATE_BY_SPIRIT[key])
-            .filter(Boolean)
-        : [];
-    return [...new Set([...shroudSkills, ...innervates, ...exit])];
-  }
   if (specialization === "Scourge") return [...SCOURGE_SKILLS];
-  return [ENTRY_ID_BY_SPECIALIZATION[specialization] || ID.DEATH_SHROUD];
+  const entry =
+    ENTRY_ID_BY_SPECIALIZATION[specialization] || ID.DEATH_SHROUD;
+  const exit = Object.entries(state.availableFlips || {})
+    .filter(([, expiresAt]) => Number(expiresAt) > 0)
+    .map(([id]) => Number(id))
+    .filter((id) =>
+      [
+        ID.END_DEATH_SHROUD,
+        ID.EXIT_REAPERS_SHROUD,
+        ID.EXIT_HARBINGER_SHROUD,
+        ID.EXIT_RITUALISTS_SHROUD,
+      ].includes(id),
+    );
+  return [entry, ...exit];
 }
 
 function rotationSkillAvailability(skill, context = {}) {
@@ -128,6 +137,19 @@ function rotationSkillAvailability(skill, context = {}) {
       message: available ? "" : "Unavailable while Lich Form is active",
     };
   }
+  if (Object.values(INNERVATE_BY_SPIRIT).includes(skill.id)) {
+    const spirit = Object.entries(INNERVATE_BY_SPIRIT)
+      .find(([, id]) => id === skill.id)?.[0];
+    const available =
+      active === "ritualist" &&
+      Boolean(state.activeSpirits?.[spirit]);
+    return {
+      available,
+      message: available
+        ? ""
+        : `Requires the active ${spirit || "matching"} spirit in Ritualist Shroud`,
+    };
+  }
   if (skill.shroud) {
     const available = active === skill.shroud;
     return {
@@ -141,6 +163,15 @@ function rotationSkillAvailability(skill, context = {}) {
     return {
       available: false,
       message: "Weapon skills are unavailable while shrouded",
+    };
+  }
+  if (
+    active &&
+    ["Heal", "Utility", "Elite"].includes(skill.type)
+  ) {
+    return {
+      available: false,
+      message: "Slot skills are unavailable while shrouded",
     };
   }
   if (
@@ -162,20 +193,38 @@ function rotationSkillAvailability(skill, context = {}) {
 }
 
 export const necromancerUi = Object.freeze({
-  paletteGroups: (context) => [
-    {
+  paletteGroups: (context) => {
+    const groups = [{
       id: "profession",
       label: "F",
       skillIds: professionSkillIds(context),
       color: "#57a86b",
-    },
-    {
+    }];
+    const shroudSkills = shroudSkillIds(context);
+    if (shroudSkills.length) {
+      groups.push({
+        id: "shroud",
+        label: "Sh",
+        skillIds: shroudSkills,
+        color: "#4d9560",
+      });
+    }
+    if (stateFrom(context).activeShroud === "lich") {
+      groups.push({
+        id: "lich",
+        label: "Lch",
+        skillIds: [...LICH_SKILLS],
+        color: "#78b886",
+      });
+    }
+    groups.push({
       id: "necromancer-actions",
       label: "Act",
       skillIds: [ID.SWAP_WEAPONS],
       color: "#7fbd8b",
-    },
-  ],
+    });
+    return groups;
+  },
   resourceViews: (context) => {
     const state = stateFrom(context);
     const specialization = specializationFrom(context);

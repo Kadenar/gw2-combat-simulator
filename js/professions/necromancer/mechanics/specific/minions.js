@@ -1,3 +1,13 @@
+/**
+ * Minion summon and command handlers.
+ *
+ * `summonMinion` records the minion in `state.activeMinions`, arms its command
+ * flip skill, and queues recurring `necromancer.summon-attack` events for the
+ * minion's autoattack. `minionCommand` fires the active (damage/condition/
+ * control), optionally consuming the minion. `summonMadness` spawns the timed
+ * Unstable Horrors (attack + explosion per summon). Exports
+ * `necromancerMinionSkillHandlers`.
+ */
 import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
 import {
   emitCondition,

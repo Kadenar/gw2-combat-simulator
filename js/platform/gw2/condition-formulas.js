@@ -10,6 +10,9 @@ export const CONDITION_FORMULAS = Object.freeze({
     activationBase: 16.24,
     activationScaling: 0.0325,
   }),
+  // Fear enters this formula only when a profession explicitly schedules it
+  // as damaging; ordinary control-only fear events never enter this table.
+  Fear: Object.freeze({ base: 444, scaling: 0.4 }),
   // Both names are accepted because older skill data used "Poison".
   Poisoned: Object.freeze({ base: 33.5, scaling: 0.06 }),
   Poison: Object.freeze({ base: 33.5, scaling: 0.06 }),

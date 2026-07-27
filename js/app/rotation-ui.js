@@ -50,6 +50,14 @@ const ACTION_ICONS = {
     'Swap Weapons': 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
     'Continuum Shift': 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png',
 };
+const WEAPON_SET_REFRESH_SKILLS = new Set([
+    "Reaper's Shroud",
+    "Exit Reaper's Shroud",
+    'Harbinger Shroud',
+    'Exit Harbinger Shroud',
+    'Enter Radiant Forge',
+    'Exit Radiant Forge',
+]);
 const RESULT_PROC_NAMES = {
     'Phantasmal Blade': 'Phantasmal Blades',
     'Cascading Corruption': 'Meltdown',
@@ -110,20 +118,18 @@ export function formatResourceValue(value) {
 }
 
 function resolveRelicIcon(label) {
-    const value = String(label || '');
-    for (const [name, relic] of Object.entries(RELIC_DATA)) {
-        if (
-            relic.icon
-            && (
-                value === name
-                || value.startsWith(`Relic of ${name}`)
-                || value.startsWith(`Relic of the ${name}`)
-            )
-        ) {
-            return relic.icon;
-        }
+  const value = String(label || "");
+  for (const [name, relic] of Object.entries(RELIC_DATA)) {
+    if (
+      relic.icon &&
+      (value === name ||
+        value.startsWith(`Relic of ${name}`) ||
+        value.startsWith(`Relic of the ${name}`))
+    ) {
+      return relic.icon;
     }
-    return '';
+  }
+  return "";
 }
 
 function resolveProcIcon(app, proc) {
@@ -392,11 +398,19 @@ function activeResourceGroup(app) {
         : groups;
 }
 
-export function timelineWeaponRows(rotation = []) {
+export function timelineWeaponRows(
+    rotation = [],
+    { startingWeaponSet = 1 } = {},
+) {
     return timelineRows(rotation, {
+        startingWeaponSet,
         isWeaponSwap(entry) {
             const item = typeof entry === 'string' ? { name: entry } : entry;
             return item.name === 'Swap Weapons';
+        },
+        isWeaponSetRefresh(entry) {
+            const item = typeof entry === 'string' ? { name: entry } : entry;
+            return WEAPON_SET_REFRESH_SKILLS.has(item.name);
         },
     });
 }
@@ -797,7 +811,9 @@ export function renderTimeline(app) {
     element.classList.remove('is-empty');
     const steps = new Map((app.results?.steps || []).filter(step => step.ri >= 0).map(step => [step.ri, step]));
     const resourceSpends = shatterResourceSpends(app.results);
-    const rows = timelineWeaponRows(app.build.rotation);
+    const rows = timelineWeaponRows(app.build.rotation, {
+        startingWeaponSet: app.build.startingWeaponSet,
+    });
     const formatTime = timeMs => formatResultTimelineTime(timeMs, app.results);
 
     const continuumEnds = continuumEndTimelineMarkers(

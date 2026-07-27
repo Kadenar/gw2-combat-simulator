@@ -36,6 +36,11 @@ function effectAt(start, fullEnd, effect) {
  */
 function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd) {
   const interrupted = effectiveEnd < fullEnd - context.epsilon;
+  const slotSkill = (
+    skill.type === "Heal"
+    || skill.type === "Utility"
+    || skill.type === "Elite"
+  );
   for (let index = 0; index < (skill.effects || []).length; index += 1) {
     const effect = skill.effects[index];
     const timing =
@@ -52,15 +57,24 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
       )
       ?? effect;
     const firstAt = effectAt(start, fullEnd, timing);
+    const cancelPendingEffects =
+      interrupted && effect.persistsAfterInterrupt !== true;
     // An interrupt only suppresses effects that have not fired yet. Earlier
     // ticks remain in the stream even when the full cast never completes.
-    if (interrupted && firstAt > effectiveEnd + context.epsilon) continue;
+    // A committed channel can explicitly keep its remaining packets.
+    if (
+      cancelPendingEffects
+      && firstAt > effectiveEnd + context.epsilon
+    ) continue;
     const base = {
       source: effect.source || context.profession.id,
       sourceId: effect.sourceId ?? skill.id,
       actorType: effect.actorType || "player",
       skillId: skill.id,
       skillName: skill.name,
+      ...(effect.persistsAfterInterrupt === true
+        ? { persistsAfterInterrupt: true }
+        : {}),
     };
     if (effect.type === "strike") {
       const ticks = Array.isArray(timing.ticks)
@@ -79,7 +93,10 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
         const at = tick
           ? origin + Number(tick.atMs) / 1000
           : firstAt + (hitIndex - 1) * interval;
-        if (interrupted && at > effectiveEnd + context.epsilon) break;
+        if (
+          cancelPendingEffects
+          && at > effectiveEnd + context.epsilon
+        ) break;
         context.emit({
           ...base,
           type: "damage",
@@ -91,7 +108,11 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
           hits: 1,
           hitIndex,
           totalHits: hits,
-          skillWeapon: effect.weapon || skill.weapon || "",
+          skillWeapon:
+            effect.weapon
+            || skill.weapon
+            || skill.skillWeapon
+            || (slotSkill ? "Unequipped" : ""),
           canCrit: effect.canCrit !== false,
           ...(effect.metadata || {}),
         });
@@ -106,7 +127,10 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
         ) {
           const tick = timing.ticks[applicationIndex - 1];
           const at = origin + Number(tick.atMs) / 1000;
-          if (interrupted && at > effectiveEnd + context.epsilon) break;
+          if (
+            cancelPendingEffects
+            && at > effectiveEnd + context.epsilon
+          ) break;
           context.emit({
             ...base,
             at,
@@ -896,6 +920,9 @@ export function createScheduler({
     sortQueuedEvents(events);
     const snapshot =
       profession.snapshot(context) ?? structuredClone(state.profession);
+    const persistentEffectEnd = events
+      .filter(event => event.persistsAfterInterrupt === true)
+      .reduce((latest, event) => Math.max(latest, Number(event.at)), rotationEnd);
     return {
       context,
       state,
@@ -905,7 +932,7 @@ export function createScheduler({
       snapshot,
       stream: buildScheduledEventStream({
         events,
-        rotationEndTime: Math.max(state.time, 0.001),
+        rotationEndTime: Math.max(state.time, persistentEffectEnd, 0.001),
         resolverHandoff: {
           profession: profession.id,
           professionState: snapshot,

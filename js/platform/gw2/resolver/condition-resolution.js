@@ -144,14 +144,17 @@ export function createGw2ConditionResolution({
     // Duration is snapshotted at application time. Damage stats and multipliers
     // are deliberately queried later at each tick.
     const stats = ctx.query.statsAt(event.at, event, ctx);
-    const duration = Math.max(0, Number(event.duration || 0))
-      * ctx.query.conditionDurationMultiplier(
-        name,
-        event.at,
-        stats,
-        event,
-        ctx,
-      );
+    const durationMultiplier = event.fixedDuration
+      ? 1
+      : ctx.query.conditionDurationMultiplier(
+          name,
+          event.at,
+          stats,
+          event,
+          ctx,
+        );
+    const duration =
+      Math.max(0, Number(event.duration || 0)) * durationMultiplier;
     const expiresAt = event.at + duration;
     const stacks = Math.max(0, Number(event.stacks || 0));
     if (!stacks || !duration) return null;

@@ -1,3 +1,14 @@
+/**
+ * Life-force resource clock and cast finalization.
+ *
+ * `advanceNecromancerState` integrates everything that happens between two
+ * points in time: shroud life-force drain (and auto-exit on depletion),
+ * Harbinger blight accrual, Signet of Undeath/Vampirism passives, Eternal Life
+ * regen, Lingering Spirits upkeep, and Lich Form expiry. `leaveShroud` performs
+ * the shroud-exit bookkeeping (recharge, Soul Barbs, weapon swap). `finalize-
+ * NecromancerCast` runs after each cast to advance the clock and apply skill
+ * life-force gain. Called on a tight loop, so it stays allocation-light.
+ */
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
