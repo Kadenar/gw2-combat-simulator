@@ -2159,6 +2159,17 @@ header .accent {
     color: #fff;
 }
 
+.rot-skill .rot-timed-action-badge {
+    position: static;
+    display: block;
+    transform: none;
+    width: max-content;
+    margin: 1px auto 0;
+    line-height: 9px;
+    text-align: center;
+    white-space: pre-line;
+}
+
 /* Results */
 .rotation-results {
     margin-top: 12px;

@@ -269,6 +269,43 @@ function normalizeEffect(effect) {
 }
 
 /**
+ * Validates the skill-family lockouts applied when a skill activates.
+ */
+function normalizeLockouts(lockouts, skillId) {
+  if (lockouts == null) return Object.freeze([]);
+  if (!Array.isArray(lockouts)) {
+    throw new TypeError(`Skill ${skillId} lockouts must be an array.`);
+  }
+  const groups = new Set();
+  return Object.freeze(lockouts.map((lockout, index) => {
+    if (!lockout || typeof lockout !== "object" || Array.isArray(lockout)) {
+      throw new TypeError(
+        `Skill ${skillId} lockout ${index + 1} must be an object.`,
+      );
+    }
+    const group = String(lockout.group || "").trim();
+    const durationMs = Number(lockout.durationMs);
+    if (!group) {
+      throw new TypeError(
+        `Skill ${skillId} lockout ${index + 1} requires a group.`,
+      );
+    }
+    if (!(durationMs > 0) || !Number.isFinite(durationMs)) {
+      throw new TypeError(
+        `Skill ${skillId} lockout ${group} requires a positive durationMs.`,
+      );
+    }
+    if (groups.has(group)) {
+      throw new TypeError(
+        `Skill ${skillId} declares duplicate lockout group ${group}.`,
+      );
+    }
+    groups.add(group);
+    return Object.freeze({ group, durationMs });
+  }));
+}
+
+/**
  * Builds the immutable catalog consumed by the shared scheduler, resolver, and
  * app adapters.
  */
@@ -346,6 +383,7 @@ export function createCanonicalCatalog({
       ...merged,
       castTimeMs,
       ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
+      lockouts: normalizeLockouts(merged.lockouts, id),
     };
     skill.effects = Object.freeze((skill.effects || []).map(normalizeEffect));
     skill.tags = Object.freeze([...(skill.tags || [])]);

@@ -189,7 +189,6 @@ export function createGw2ConditionResolution({
       application,
     });
     scheduleApplicationTicks(ctx, application);
-    ctx.markDamageTime(event.at);
 
     onConditionApplied(ctx, application);
     maybeTriggerFractal(ctx, application);
@@ -234,7 +233,7 @@ export function createGw2ConditionResolution({
     conditionEntry.damage += damage;
     conditionEntry.stackSeconds += stackSeconds;
     ctx.conditions.set(event.condition, conditionEntry);
-    ctx.markDamageTime(event.at);
+    if (damage > 0) ctx.markDamageTime(event.at);
     return { application, damage, fraction, perStack, stackSeconds };
   }
 

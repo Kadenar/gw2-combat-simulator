@@ -60,6 +60,7 @@ test("Mesmer, Necromancer, and Guardian share one skill timing contract", () => 
       assert.equal("activation" in skill, false, skill.name);
       assert.equal("castTime" in skill, false, skill.name);
       assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
+      assert.ok(Array.isArray(skill.lockouts), skill.name);
       for (const effect of skill.effects) {
         assert.equal("atMsList" in effect, false, skill.name);
         assert.equal("packetOffsets" in effect, false, skill.name);
@@ -75,6 +76,19 @@ test("Mesmer, Necromancer, and Guardian share one skill timing contract", () => 
         );
       }
     }
+  }
+});
+
+test("weapon swap has a fixed 50ms cast and recharges from activation", () => {
+  for (const catalog of [
+    mesmerCatalog,
+    necromancerCatalog,
+    guardianCatalog,
+  ]) {
+    const skill = catalog.skillsByName.get("Swap Weapons");
+    assert.equal(skill.castTimeMs, 50, catalog.id);
+    assert.equal(skill.quicknessCastTimeMs, 50, catalog.id);
+    assert.equal(skill.rechargeAnchor, "castStart", catalog.id);
   }
 });
 
@@ -312,6 +326,7 @@ test("generic scheduler state contains no profession-specific fields", () => {
       "activeWeaponSet",
       "ammo",
       "cooldowns",
+      "lockouts",
       "pendingEvents",
       "profession",
       "skillUses",
@@ -1148,6 +1163,47 @@ test("canonical catalogs carry validated traits and specializations", () => {
     }),
     /Duplicate or missing trait/,
   );
+});
+
+test("canonical catalogs validate and freeze skill-group lockouts", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930030,
+      name: "Lockout Fixture",
+      lockouts: [{ group: "fixture.family", durationMs: 50 }],
+      effects: [],
+    }],
+  });
+  const skill = catalog.skillsById.get(930030);
+  assert.deepEqual(skill.lockouts, [{
+    group: "fixture.family",
+    durationMs: 50,
+  }]);
+  assert.equal(Object.isFrozen(skill.lockouts), true);
+  assert.equal(Object.isFrozen(skill.lockouts[0]), true);
+
+  for (const lockouts of [
+    {},
+    [{}],
+    [{ group: "", durationMs: 50 }],
+    [{ group: "fixture.family", durationMs: 0 }],
+    [
+      { group: "fixture.family", durationMs: 50 },
+      { group: "fixture.family", durationMs: 100 },
+    ],
+  ]) {
+    assert.throws(
+      () => createCanonicalCatalog({
+        generated: [{
+          id: 930031,
+          name: "Invalid Lockout Fixture",
+          lockouts,
+          effects: [],
+        }],
+      }),
+      /lockout/i,
+    );
+  }
 });
 
 test("catalog skill handlers receive calculated recharge timing", () => {

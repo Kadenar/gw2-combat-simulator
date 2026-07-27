@@ -20,6 +20,9 @@ import {
   gw2ApiText,
 } from "../js/platform/ui/html.js";
 import {
+  targetHealthBreakpointSnapshots,
+} from "../js/platform/ui/result-transform.js";
+import {
   mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
@@ -123,6 +126,44 @@ test("shared DPS charts start their sample grid at the first hit", () => {
   ]);
 });
 
+test("target health breakpoints use cumulative damage and individual condition ticks", () => {
+  const snapshots = targetHealthBreakpointSnapshots({
+    dpsStartTime: 0.5,
+    resolvedEvents: [
+      { type: "damage", at: 0.5, damage: 100 },
+      {
+        type: "condition",
+        at: 0.75,
+        damage: 350,
+        damageTicks: [
+          { at: 1, damage: 150 },
+          { at: 1.5, damage: 200 },
+        ],
+      },
+      { type: "damage", at: 1.5, damage: 200 },
+      { type: "damage", at: 2, damage: 200 },
+    ],
+  }, 1000);
+
+  assert.deepEqual(
+    snapshots.map(snapshot => snapshot.healthPercent),
+    [80, 60, 40, 20],
+  );
+  assert.deepEqual(
+    snapshots.map(snapshot => snapshot.elapsed),
+    [0.5, 1, 1, 1.5],
+  );
+  assert.deepEqual(
+    snapshots.map(snapshot => snapshot.damage),
+    [250, 650, 650, 850],
+  );
+  assert.deepEqual(
+    snapshots.map(snapshot => snapshot.dps),
+    [500, 650, 650, 850 / 1.5],
+  );
+  assert.deepEqual(targetHealthBreakpointSnapshots({}, 0), []);
+});
+
 test("shared chart markup escapes effect names and uses scoped roles without ids", () => {
   const container = inertContainer();
   mountTimeSeriesCharts(container, {
@@ -190,6 +231,9 @@ test("shared results render summaries, totals, contributions, warnings, and icon
   const resolved = [];
   mountRotationResults(container, {
     metrics: [{ label: "DPS", value: "1,234", className: "dps" }],
+    breakpoints: [
+      { healthPercent: 80, dps: 1234, elapsed: 3.25 },
+    ],
     skillColumns: [
       { key: "name", label: "Skill", numeric: false },
       { key: "total", label: "Total", numeric: true },
@@ -210,6 +254,10 @@ test("shared results render summaries, totals, contributions, warnings, and icon
   });
 
   assert.match(container.innerHTML, /res-summary/);
+  assert.match(container.innerHTML, /DPS snapshots/);
+  assert.match(container.innerHTML, /80%<\/b> target health/);
+  assert.match(container.innerHTML, />1,234</);
+  assert.match(container.innerHTML, /at 3\.25s/);
   assert.ok(container.innerHTML.indexOf("High") < container.innerHTML.indexOf("Low"));
   assert.match(container.innerHTML, /Total Conditions/);
   assert.match(container.innerHTML, /\+12/);

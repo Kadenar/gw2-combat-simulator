@@ -134,7 +134,7 @@ test("condition applications shorter than one second deal fractional damage", ()
   });
 
   assert.ok(result.conditionDamage > 0);
-  assert.equal(result.firstHitTime, 0);
+  assert.equal(result.firstHitTime, 0.5);
   assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
   assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.5);
   assert.deepEqual(result.warnings, ["resolver handoff warning"]);
@@ -159,11 +159,12 @@ test("permanent damaging target conditions are assumptions, not player damage", 
   assert.deepEqual(result.conditionBreakdown, []);
 });
 
-test("DPS includes elapsed time before the first hit", () => {
+test("DPS excludes elapsed time before the first hit", () => {
   const result = simulateMesmer(
     [
       { name: "__wait", waitMs: 1000 },
       "Mind Slash",
+      { name: "__wait", waitMs: 1000 },
     ],
     defaultSimulationConfig({
       specialization: "Core",
@@ -173,10 +174,10 @@ test("DPS includes elapsed time before the first hit", () => {
     }),
   );
 
-  assert.equal(result.firstHitTime, result.duration);
-  assert.equal(result.dpsStartTime, 0);
-  assert.equal(result.dpsWindow, result.duration);
-  assert.equal(result.dps, result.totalDamage / result.duration);
+  assert.ok(Math.abs(result.firstHitTime - 1.36) < 1e-12);
+  assert.equal(result.dpsStartTime, result.firstHitTime);
+  assert.ok(Math.abs(result.dpsWindow - 1) < 1e-12);
+  assert.equal(result.dps, result.totalDamage / result.dpsWindow);
 });
 
 test("an explicit empty target condition map does not restore default conditions", () => {

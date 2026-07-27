@@ -19,6 +19,8 @@ import {
     bindTimelineInteractions,
     clearTimelineDropIndicators,
     eventTimelineMarkers,
+    formatConcurrentTimelineBadge,
+    formatInterruptTimelineBadge,
     formatTimelineCastDetails,
     moveRotationEntry,
     updateRotationEntry,
@@ -26,6 +28,7 @@ import {
 } from '../platform/ui/timeline.js';
 import {
     resultSummaryMetrics as transformResultSummaryMetrics,
+    targetHealthBreakpointSnapshots,
 } from '../platform/ui/result-transform.js';
 import {
     buildChartSeries as buildSharedChartSeries,
@@ -848,6 +851,12 @@ export function renderTimeline(app) {
                 ? `\n${step.invalidReason || 'Not valid here — will not be simulated'}`
                 : step ? `\n${formatTimelineCastDetails(step, formatTime)}` : '';
             const resourceTitle = resourceLabel ? `\n${resourceLabel}` : '';
+            const concurrentLabel = item.offset != null
+                ? formatConcurrentTimelineBadge(item.offset, time)
+                : '';
+            const interruptLabel = item.interruptMs != null
+                ? formatInterruptTimelineBadge(item.interruptMs, time)
+                : '';
             rowItems.push(`<div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}" draggable="true"
                     data-idx="${index}" title="${esc(display)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
@@ -855,9 +864,11 @@ export function renderTimeline(app) {
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
                     ${resourceSpend ? `<span class="rot-resource-spend-badge"
                         title="${esc(resourceLabel)}" aria-label="${esc(resourceLabel)}">${esc(resourceShortLabel)}</span>` : ''}
-                    ${time ? `<span class="rot-time">${time}</span>` : ''}
-                    ${item.offset != null ? `<span class="rot-offset-badge" data-idx="${index}">⊙${item.offset}ms</span>` : ''}
-                    ${item.interruptMs != null ? `<span class="rot-gapfill-badge rot-interrupt-badge" data-idx="${index}">✂${item.interruptMs}ms</span>` : ''}
+                    ${time && item.offset == null && item.interruptMs == null ? `<span class="rot-time">${time}</span>` : ''}
+                    ${item.offset != null ? `<span class="rot-offset-badge rot-timed-action-badge" data-idx="${index}"
+                        title="Delay ${item.offset}ms; cast at ${esc(time)}">${esc(concurrentLabel)}</span>` : ''}
+                    ${item.interruptMs != null ? `<span class="rot-gapfill-badge rot-interrupt-badge rot-timed-action-badge"
+                        data-idx="${index}" title="Interrupt after ${item.interruptMs}ms; cast at ${esc(time)}">${esc(interruptLabel)}</span>` : ''}
                     ${item.waitMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.waitMs}ms</span>` : ''}
                 </div>`);
         });
@@ -959,7 +970,12 @@ export function renderTimeline(app) {
 }
 
 export function resultSummaryMetrics(result) {
-    const referenceSeconds = resultCombatReferenceMs(result) / 1000;
+    // Metric duration follows the resolver's DPS clock. This is intentionally
+    // independent from the explicit marker used as timeline display zero.
+    const referenceSeconds = Math.max(
+        0,
+        Number(result?.dpsStartTime ?? result?.firstHitTime ?? 0),
+    );
     if (referenceSeconds <= 0) {
         return transformResultSummaryMetrics(result);
     }
@@ -975,10 +991,7 @@ export function resultSummaryMetrics(result) {
 export function resultCombatReferenceMs(result) {
     const marker = result?.events?.find(event => event.type === 'combat_start');
     if (!marker) return 0;
-    const firstHitTime = result?.firstHitTime;
-    return firstHitTime != null && Number.isFinite(Number(firstHitTime))
-        ? Number(firstHitTime) * 1000
-        : Number(marker.at || 0) * 1000;
+    return Number(marker.at || 0) * 1000;
 }
 
 export function formatResultTimelineTime(timeMs, result, digits = 2) {
@@ -991,6 +1004,7 @@ export function formatResultTimelineTime(timeMs, result, digits = 2) {
 const baseBreakdownName = name => String(name || '').split('—')[0].trim();
 
 const eventLogOrder = {
+    combat_start: 5,
     cast: 10,
     'mesmer.phantasm-summoned': 20,
     'mesmer.phantasm-resummoned': 21,
@@ -1006,12 +1020,14 @@ const eventLogOrder = {
 
 export function simulationEventLogRows(result, build = null) {
     const rows = [];
+    const displayReferenceSeconds = resultCombatReferenceMs(result) / 1000;
     const maximumResource = Number(
         professionEndState(result).resourceDefinition?.maximum || 0,
     );
     const push = (at, type, description, className = '', phantasmClone = false) => {
+        const displayAt = Number(at || 0) - displayReferenceSeconds;
         rows.push({
-            at: Number(at || 0),
+            at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
             type,
             description,
             className,
@@ -1023,6 +1039,14 @@ export function simulationEventLogRows(result, build = null) {
     for (const event of result?.events || []) {
         if (event.type === 'damage' || event.type === 'condition') continue;
         switch (event.type) {
+            case 'combat_start':
+                push(
+                    event.at,
+                    event.type,
+                    'COMBAT START',
+                    'trigger',
+                );
+                break;
             case 'action': {
                 const durationMs = Math.max(
                     0,
@@ -1214,6 +1238,9 @@ export function buildChartSeries(result, sampleStepMs = 250) {
 
 export function resultSkillIcon(app, row) {
     const breakdownName = baseBreakdownName(row.name);
+    const cloneAttackName = breakdownName.startsWith('Clone: ')
+        ? breakdownName.slice('Clone: '.length)
+        : '';
     const procNames = new Set([
         row.name,
         row.sourceSkill,
@@ -1242,6 +1269,7 @@ export function resultSkillIcon(app, row) {
         row.sourceSkill,
         row.parentSkill,
         breakdownName,
+        cloneAttackName,
     ]) {
         const icon = app.skillByName.get(name)?.icon;
         if (icon) return icon;
@@ -1272,16 +1300,24 @@ export function renderResults(app) {
     const conditions = result.conditionBreakdown || [];
     const series = buildChartSeries(result);
     const contributions = result.contributions || [];
+    const breakpoints = targetHealthBreakpointSnapshots(
+        result,
+        app.build.targetHealth,
+    );
     app._skillBreakdownState = { skillRows };
     mountRotationResults(element, {
         metrics,
+        breakpoints,
         skillRows,
         skillColumns: SKILL_COLS,
         conditions,
         conditionTotal: conditions.length ? {
             label: 'Total Conditions',
             damage: result.conditionDamage,
-            dps: result.conditionDamage / Math.max(0.001, result.duration),
+            dps: result.conditionDamage / Math.max(
+                0.001,
+                Number(result.dpsWindow ?? result.duration ?? 0),
+            ),
         } : null,
         contributions,
         warnings: result.warnings || [],
