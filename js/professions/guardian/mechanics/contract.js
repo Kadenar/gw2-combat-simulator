@@ -1,6 +1,4 @@
-import {
-  validateGuardianAvailability,
-} from "./availability.js";
+import { validateGuardianAvailability } from "./availability.js";
 import {
   advanceRadiantForgeState,
   clearRadiantForgeEntryCooldown,
@@ -8,14 +6,11 @@ import {
 } from "./specific/radiant-forge.js";
 import {
   advanceTomeState,
+  tomePageAvailability,
   validateTomeCast,
 } from "./specific/tomes.js";
-import {
-  validateVirtueCast,
-} from "./specific/virtues.js";
-import {
-  updateSpearIlluminationState,
-} from "./specific/spear.js";
+import { validateVirtueCast } from "./specific/virtues.js";
+import { updateSpearIlluminationState } from "./specific/spear.js";
 import {
   updateWeaponCastState,
   validateWeaponState,
@@ -26,6 +21,13 @@ import {
 } from "./specific/traits.js";
 
 export const guardianCastRules = Object.freeze({
+  availability: Object.freeze([
+    {
+      id: "guardian.tome-pages",
+      order: 30,
+      handler: tomePageAvailability,
+    },
+  ]),
   validateCast: Object.freeze([
     {
       id: "guardian.availability",

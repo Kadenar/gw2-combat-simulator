@@ -3,10 +3,13 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { defaultSimulationConfig } from './helpers/fixture-harness-core.js';
 import {
+    createDefaultConfig,
     simulateMesmer,
 } from './helpers/mesmer-simulation.js';
 import { chartValueAt } from '../js/platform/ui/charts.js';
 import {
+    formatConcurrentTimelineBadge,
+    formatInterruptTimelineBadge,
     formatTimelineCastDetails,
     moveRotationEntry,
 } from '../js/platform/ui/timeline.js';
@@ -40,6 +43,20 @@ test('Relic of the Claw uses its relic icon in the proc timeline', () => {
     assert.equal(
         RELIC_DATA.Claw.icon,
         'https://render.guildwars2.com/file/19B5DB56E495C70754A8BE3621CADC0FD7402845/3375220.png',
+    );
+});
+
+test('concurrent timeline badges show both delay and cast timestamp', () => {
+    assert.equal(
+        formatConcurrentTimelineBadge(100, '2.23s'),
+        '⊙100ms\n2.23s',
+    );
+});
+
+test('interrupt timeline badges show both interrupt delay and cast timestamp', () => {
+    assert.equal(
+        formatInterruptTimelineBadge(120, '4.56s'),
+        '✂120ms\n4.56s',
     );
 });
 
@@ -255,7 +272,7 @@ test('Shift+click timeline form casts an instant skill 100ms into the prior cast
         defaultSimulationConfig(),
     );
     assert.equal(result.steps[1].start, 100);
-    assert.equal(result.steps[1].end, 150);
+    assert.equal(result.steps[1].end, 100);
     assert.equal(result.endState.time, 440);
     assert.equal(result.endState.cooldowns['Bladesong Distortion'].readyAt, 40100);
 });
@@ -274,7 +291,7 @@ test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () 
         }),
     );
 
-    assert.equal(result.steps[2].end, 10490);
+    assert.equal(result.steps[2].end, 10440);
     assert.equal(result.steps[3].start, 11000);
     assert.deepEqual(result.warnings, []);
 });
@@ -398,6 +415,115 @@ test('Spatial Surge keeps channel packets completed before an interrupt', () => 
     assert.equal(partial.length, 2);
     assert.equal(beforeFirstPacket.length, 0);
     assert.ok(partial[1].at > partial[0].at);
+});
+
+test('the supplied condition Virtuoso build retains its 39k parity baseline', () => {
+    const rotation = [
+        'Unstable Bladestorm',
+        'Phantasmal Swordsman',
+        { name: 'Bladeturn Requiem', offset: 100 },
+        { name: '__combat_start', offset: 100 },
+        { name: 'Thousand Cuts', offset: 100 },
+        'Swap Weapons',
+        'Flying Cutter',
+        'Bladecall',
+        'Phantasmal Duelist',
+        'Bladesong Harmony',
+        'Signet of the Ether',
+        'Bladesong Sorrow',
+        'Flying Cutter',
+        'Bladesong Harmony',
+        'Flying Cutter',
+        'Bladecall',
+        'Phantasmal Duelist',
+        'Signet of Illusions',
+        'Bladesong Sorrow',
+        'Flying Cutter',
+        'Flying Cutter',
+        'Bladesong Harmony',
+        'Unstable Bladestorm',
+        'Flying Cutter',
+        'Bladecall',
+        'Swap Weapons',
+        'Phantasmal Swordsman',
+        'Flying Cutter',
+        'Flying Cutter',
+        'Bladeturn Requiem',
+    ];
+    const config = createDefaultConfig();
+    const result = simulateMesmer(rotation, {
+        ...config,
+        specialization: 'Virtuoso',
+        selectedTraits: [
+            'Critical Infusion',
+            'Sharper Images',
+            'Master Fencer',
+            'Phantasmal Fury',
+            "Fencer's Finesse",
+            'Superiority Complex',
+            'Cry of Pain',
+            'Compounding Power',
+            'Master of Misdirection',
+            'Shatter Storm',
+            'Maim the Disillusioned',
+            'Phantasmal Force',
+            'Psychic Blades',
+            'Deadly Blades',
+            'Quiet Intensity',
+            'Jagged Mind',
+            'Phantasmal Blades',
+            'Bloodsong',
+        ],
+        selectedSkills: [
+            'Signet of the Ether',
+            'Signet of Illusions',
+            'Signet of Midnight',
+            'Signet of Domination',
+            'Thousand Cuts',
+        ],
+        primaryWeapon: 'Dagger',
+        secondaryWeapon: 'Pistol',
+        weaponSet2Primary: 'Dagger',
+        weaponSet2Secondary: 'Sword',
+        startingWeaponSet: 2,
+        initialResource: 5,
+        stats: {
+            power: 2006,
+            precision: 2155,
+            ferocity: 173,
+            conditionDamage: 1847,
+            expertise: 225,
+            concentration: 45,
+            vitality: 1280,
+            conditionDurationBonuses: { Bleeding: 50 },
+        },
+        sigilSets: [
+            {
+                names: ['Agony', 'Earth'],
+                strike: 1,
+                condition: 1,
+                conditionDurationBonuses: { Bleeding: 20 },
+            },
+            {
+                names: ['Agony', 'Earth'],
+                strike: 1,
+                condition: 1,
+                conditionDurationBonuses: { Bleeding: 20 },
+            },
+        ],
+        relic: 'Aristocracy',
+        food: 'Spherified Cilantro Oyster Soup',
+        target: {
+            ...config.target,
+            armor: 2597,
+            health: 3970000,
+            boonless: true,
+            moving: false,
+        },
+    });
+
+    assert.equal(result.warnings.length, 0);
+    assert.ok(Math.abs(result.dps - 39582.94377751716) < 1e-6);
 });
 
 test('Phantasmal Swordsman independently gates its summon and player hit', () => {
@@ -678,8 +804,8 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
         && event.sourceSkill.includes('Phantasmal Warlock'));
 
     assert.deepEqual(
-        triggers.map(event => event.at),
-        [0.7799999999999999, 4.24, 9.8401],
+        triggers.map(event => Number(event.at.toFixed(4))),
+        [0.78, 4.24, 9.8401],
     );
 });
 
@@ -2037,7 +2163,7 @@ test('shift-queued Mirror Images after an instant action still grants clones', (
         ['Blink', { name: 'Mirror Images', offset: 100 }],
         config,
     );
-    assert.equal(result.endState.time, 150);
+    assert.equal(result.endState.time, 100);
     assert.equal(result.endState.profession.resource, 2);
 });
 
@@ -2072,7 +2198,7 @@ test('clones from shift-queued Mirror Images are available to the next shatter',
         config,
     );
     assert.equal(result.steps.length, 3);
-    assert.equal(result.steps[2].start, 150);
+    assert.equal(result.steps[2].start, 100);
     assert.equal(result.endState.profession.resource, 0);
 });
 
@@ -2518,7 +2644,7 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
         ['Power Spike', 'Power Spike'],
     );
     assert.equal(result.steps[0].start, 0);
-    assert.equal(result.steps[1].start, 50);
+    assert.equal(result.steps[1].start, 0);
     assert.equal(result.endState.profession.availableFlips['Power Spike'], undefined);
     assert.equal(result.endState.ammo['Power Spike'], undefined);
     assert.match(result.warnings.at(-1), /Mantra of Pain is not active/);
@@ -2541,7 +2667,7 @@ test('dodge uses two endurance charges and recharges one charge every ten second
         }),
     );
 
-    assert.deepEqual(result.steps.map(step => step.start), [0, 50, 10000]);
+    assert.deepEqual(result.steps.map(step => step.start), [0, 0, 10000]);
     assert.deepEqual(
         {
             charges: result.endState.ammo['Dodge / Mirage Cloak'].charges,
@@ -2916,6 +3042,24 @@ test('Signet of the Ether resets every phantasm skill cooldown', () => {
     assert.equal(result.steps.length, 5);
     assert.ok(Math.abs(result.steps[3].start - result.steps[2].end) <= 1);
     assert.ok(Math.abs(result.steps[4].start - result.steps[3].end) <= 1);
+});
+
+test('Signet of the Ether re-locks 300ms after its cast completes', () => {
+    const result = simulateMesmer(
+        ['Signet of the Ether', { name: '__wait', waitMs: 500 }],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            boons: {
+                ...defaultSimulationConfig().boons,
+                alacrity: false,
+                quickness: false,
+            },
+        }),
+    );
+    const cast = result.steps[0];
+    const cooldown = result.endState.cooldowns['Signet of the Ether'];
+
+    assert.equal(cooldown.readyAt - cast.end, 30300);
 });
 
 test('Signet of Illusions passively generates one resource every ten combat seconds', () => {
@@ -3353,7 +3497,6 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
         'Bladesong Harmony',
         'Bladesong Sorrow',
         'Bladesong Dissonance',
-        'Bladesong Distortion',
         'Bladeturn Requiem',
     ];
 
@@ -3377,6 +3520,7 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
             && event.condition === 'Torment'
         );
 
+        assert.ok(hitTimes.length > 0, skillName);
         assert.deepEqual(
             torment.map(event => Number(event.at.toFixed(3))),
             hitTimes,
@@ -3388,6 +3532,57 @@ test('Maim the Disillusioned follows each damaging Virtuoso bladesong hit', () =
             ),
             skillName,
         );
+    }
+});
+
+test('Maim the Disillusioned applies torment for defensive shatters', () => {
+    const cases = [
+        {
+            specialization: 'Virtuoso',
+            skill: 'Bladesong Distortion',
+            initialResource: 5,
+            expectedStacks: 1,
+        },
+        {
+            specialization: 'Core',
+            skill: 'Distortion',
+            initialResource: 3,
+            expectedStacks: 4,
+        },
+        {
+            specialization: 'Chronomancer',
+            skill: 'Distortion',
+            initialResource: 3,
+            expectedStacks: 4,
+        },
+        {
+            specialization: 'Mirage',
+            skill: 'Distortion',
+            initialResource: 3,
+            expectedStacks: 4,
+        },
+    ];
+
+    for (const testCase of cases) {
+        const result = simulateMesmer(
+            [testCase.skill],
+            defaultSimulationConfig({
+                specialization: testCase.specialization,
+                selectedTraits: ['Maim the Disillusioned'],
+                initialResource: testCase.initialResource,
+            }),
+        );
+        const torment = result.resolvedEvents.filter(event =>
+            event.type === 'condition'
+            && event.skillName === testCase.skill
+            && event.condition === 'Torment'
+        );
+
+        assert.equal(result.steps[0].start, result.steps[0].end);
+        assert.equal(result.endState.profession.resource, 0);
+        assert.equal(torment.length, 1);
+        assert.equal(torment[0].stacks, testCase.expectedStacks);
+        assert.equal(torment[0].duration, 6);
     }
 });
 
@@ -3820,7 +4015,7 @@ test('Duration and Kill Time account for an explicit Combat Start reference', ()
     assert.equal(metrics[1].value, '91.83s');
 });
 
-test('Combat Start timeline timestamps use the first subsequent hit like Elementalist', () => {
+test('Combat Start is timeline zero while DPS waits for the first subsequent hit', () => {
     const result = simulateMesmer(
         [
             'Phantasmal Swordsman',
@@ -3830,13 +4025,14 @@ test('Combat Start timeline timestamps use the first subsequent hit like Element
         defaultSimulationConfig(),
     );
 
-    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.76s');
-    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '-0.06s');
-    assert.equal(formatResultTimelineTime(result.steps[2].start, result), '0.12s');
-    assert.equal(formatResultTimelineTime(result.steps[2].end, result), '0.56s');
+    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.70s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.00s');
+    assert.equal(formatResultTimelineTime(result.steps[2].start, result), '0.18s');
+    assert.equal(formatResultTimelineTime(result.steps[2].end, result), '0.62s');
+    assert.equal(result.dpsStartTime, result.firstHitTime);
 });
 
-test('timeline and DPS retain simulation time without Combat Start', () => {
+test('timeline retains simulation time while DPS starts on first damage without Combat Start', () => {
     const result = simulateMesmer(
         [
             'Phantasmal Swordsman',
@@ -3845,10 +4041,65 @@ test('timeline and DPS retain simulation time without Combat Start', () => {
         defaultSimulationConfig(),
     );
 
-    assert.equal(result.dpsStartTime, 0);
-    assert.equal(result.dpsWindow, 1.32);
+    assert.equal(result.dpsStartTime, 0.759);
+    assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
     assert.equal(formatResultTimelineTime(result.steps[0].start, result), '0.00s');
     assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.88s');
+});
+
+test('a delayed Combat Start suppresses earlier damage without moving display zero', () => {
+    const result = simulateMesmer(
+        [
+            'Phantasmal Duelist',
+            { name: '__combat_start', offset: 500 },
+            'Illusionary Counter',
+            'Counterspell',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            primaryWeapon: 'Scepter',
+            secondaryWeapon: 'Pistol',
+            initialResource: 0,
+        }),
+    );
+
+    assert.equal(result.steps[1].start, 500);
+    assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.50s');
+    assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.00s');
+    assert.ok(result.resolvedEvents
+        .filter(event => event.type === 'damage')
+        .every(event => event.at >= 0.5));
+    assert.ok(Math.abs(result.dpsStartTime - 1.28) < 1e-12);
+});
+
+test('event log timestamps use the same explicit Combat Start origin as rotation tiles', () => {
+    const result = simulateMesmer(
+        [
+            'Phantasmal Duelist',
+            { name: '__combat_start', offset: 500 },
+            'Illusionary Counter',
+            'Counterspell',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            primaryWeapon: 'Scepter',
+            secondaryWeapon: 'Pistol',
+            initialResource: 0,
+        }),
+    );
+    const log = simulationEventLogRows(result);
+    const duelistStart = log.find(event =>
+        event.description.startsWith('CAST Phantasmal Duelist'));
+    const combatStart = log.find(event =>
+        event.description === 'COMBAT START');
+    const counterspellStart = log.find(event =>
+        event.description.startsWith('CAST Counterspell'));
+
+    assert.equal(duelistStart.at, -0.5);
+    assert.equal(combatStart.at, 0);
+    assert.ok(Math.abs(counterspellStart.at - 0.18) < 1e-12);
+    assert.match(simulationEventLogCsv(log), /"-0\.500","cast"/);
+    assert.match(simulationEventLogCsv(log), /"0\.000","combat_start","COMBAT START"/);
 });
 
 test('result summary includes kill time when target health is exhausted', () => {
@@ -3867,7 +4118,10 @@ test('result summary includes kill time when target health is exhausted', () => 
         resultSummaryMetrics(result).map(metric => metric.label),
         ['Duration', 'Kill Time', 'Total Damage', 'DPS', 'Strike', 'Condition'],
     );
-    assert.equal(buildChartSeries(result).durationMs, result.deathTime * 1000);
+    assert.equal(
+        buildChartSeries(result).durationMs,
+        Math.max(1, result.dpsWindow * 1000),
+    );
 });
 
 test('result table sorting cycles consistently across profession views', () => {
@@ -4025,7 +4279,7 @@ test('expired Continuum Split is injected before the next rotation action', () =
         [{
             insertionIndex: 3,
             skill: 'Continuum Shift',
-            start: 6050,
+            start: 6000,
             detail: 'split expired',
         }],
     );
@@ -4066,8 +4320,8 @@ test('Continuum Split does not restore weapon-swap cooldown', () => {
         ],
         config,
     );
-    assert.equal(result.steps[1].start, 50);
-    assert.equal(result.steps[4].start, 10050);
+    assert.equal(result.steps[1].start, 0);
+    assert.equal(result.steps[4].start, 10000);
 });
 
 test('Continuum Split does not extend an existing weapon-swap cooldown', () => {

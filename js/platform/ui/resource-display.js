@@ -9,6 +9,7 @@ function normalizeResourceView(view) {
     canStart: view.canStart !== false,
     buildKey: String(view.buildKey || "initialResource"),
     step: Math.max(0.01, Number(view.step || 1)),
+    // Dense resources default to a bar; small discrete resources use pips.
     displayMode: ["bar", "pips"].includes(view.displayMode)
       ? view.displayMode
       : maximum > 20 ? "bar" : "pips",
@@ -18,6 +19,8 @@ function normalizeResourceView(view) {
 }
 
 export function resourceDisplayViews(profession, context) {
+  // resourceViews is the multi-resource contract. resourceView is retained as a
+  // compatibility fallback for professions exposing a single mechanic.
   const views = profession.ui.resourceViews
     ? profession.ui.resourceViews(context)
     : [profession.ui.resourceView(context)].filter(Boolean);
@@ -28,5 +31,6 @@ export function resourceDisplayViews(profession, context) {
 }
 
 export function resourceDisplayView(profession, context) {
+  // Singular callers intentionally receive the first declared resource.
   return resourceDisplayViews(profession, context)[0] || null;
 }

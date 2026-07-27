@@ -12,6 +12,9 @@ const EFFECT_TYPES = new Set([
   "buff",
   "custom",
 ]);
+const TIMING_ANCHORS = new Set(["castStart", "castEnd"]);
+const TIMING_SCALES = new Set(["cast", "fixed"]);
+const RECHARGE_ANCHORS = new Set(["castStart", "castEnd"]);
 
 /**
  * Normalizes handler maps so catalog lookup is always string-keyed regardless
@@ -107,6 +110,21 @@ function normalizeEffect(effect) {
   if (!effect || typeof effect !== "object" || !EFFECT_TYPES.has(effect.type)) {
     throw new TypeError(`Invalid skill effect type: ${effect?.type}`);
   }
+  if (effect.atMsList != null) {
+    throw new TypeError(
+      "Exact effect packets must use ticks; atMsList is not canonical.",
+    );
+  }
+  if (effect.atCastEndOffsetMs != null) {
+    throw new TypeError(
+      "Cast-end offsets must use atMs with timingAnchor \"castEnd\".",
+    );
+  }
+  if (effect.at != null) {
+    throw new TypeError(
+      "Effect offsets must use millisecond fields; legacy at is not canonical.",
+    );
+  }
   if (
     effect.ticks != null
     && effect.type !== "strike"
@@ -122,14 +140,60 @@ function normalizeEffect(effect) {
   const conditionTicks = effect.type === "condition" && effect.ticks != null
     ? normalizeConditionTicks(effect.ticks)
     : null;
+  const hasTicks = Boolean(strikeTicks || conditionTicks);
+  const hasAtMs = effect.atMs != null;
+  const hasInterval = effect.intervalMs != null;
+  const hasExplicitTiming = hasTicks || hasAtMs || hasInterval;
+  if (hasExplicitTiming) {
+    if (!TIMING_ANCHORS.has(effect.timingAnchor)) {
+      throw new TypeError(
+        "Explicit effect timing requires timingAnchor castStart or castEnd.",
+      );
+    }
+    if (!TIMING_SCALES.has(effect.timingScale)) {
+      throw new TypeError(
+        "Explicit effect timing requires timingScale cast or fixed.",
+      );
+    }
+    if (effect.timingScale === "cast" && effect.timingAnchor !== "castStart") {
+      throw new TypeError(
+        "Cast-scaled effect timing must be anchored to castStart.",
+      );
+    }
+    if (
+      !hasTicks
+      && !hasAtMs
+      && effect.timingAnchor !== "castEnd"
+    ) {
+      throw new TypeError(
+        "An interval without atMs must be anchored to castEnd.",
+      );
+    }
+    if (hasAtMs) {
+      const atMs = Number(effect.atMs);
+      if (!(atMs >= 0) || !Number.isFinite(atMs)) {
+        throw new TypeError("Effect atMs must be a non-negative finite number.");
+      }
+    }
+    if (hasInterval) {
+      const intervalMs = Number(effect.intervalMs);
+      if (!(intervalMs >= 0) || !Number.isFinite(intervalMs)) {
+        throw new TypeError(
+          "Effect intervalMs must be a non-negative finite number.",
+        );
+      }
+    }
+  } else if (effect.timingAnchor != null || effect.timingScale != null) {
+    throw new TypeError(
+      "Timing metadata is only valid for explicitly timed effects.",
+    );
+  }
   if (
     strikeTicks
     && (
       effect.coefficient != null
       || effect.hits != null
       || effect.atMs != null
-      || effect.atMsList != null
-      || effect.atCastEndOffsetMs != null
       || effect.intervalMs != null
       || effect.flatDamage != null
       || effect.flatStrikeBase != null
@@ -147,8 +211,6 @@ function normalizeEffect(effect) {
       || effect.stacks != null
       || effect.duration != null
       || effect.atMs != null
-      || effect.atMsList != null
-      || effect.atCastEndOffsetMs != null
       || effect.intervalMs != null
     )
   ) {
@@ -167,6 +229,16 @@ function normalizeEffect(effect) {
     throw new TypeError(
       "Strike effects require a non-negative coefficient or flat strike data.",
     );
+  }
+  if (
+    effect.type === "strike"
+    && !strikeTicks
+    && (
+      !Number.isInteger(Number(effect.hits ?? 1))
+      || !(Number(effect.hits ?? 1) > 0)
+    )
+  ) {
+    throw new TypeError("Strike effects require a positive integer hit count.");
   }
   if (effect.type === "condition") {
     if (!conditionTicks && !String(effect.condition || "")) {
@@ -189,9 +261,48 @@ function normalizeEffect(effect) {
   }
   return Object.freeze({
     ...effect,
+    ...(hasAtMs ? { atMs: Number(effect.atMs) } : {}),
+    ...(hasInterval ? { intervalMs: Number(effect.intervalMs) } : {}),
     ...(strikeTicks ? { ticks: strikeTicks } : {}),
     ...(conditionTicks ? { ticks: conditionTicks } : {}),
   });
+}
+
+/**
+ * Validates the skill-family lockouts applied when a skill activates.
+ */
+function normalizeLockouts(lockouts, skillId) {
+  if (lockouts == null) return Object.freeze([]);
+  if (!Array.isArray(lockouts)) {
+    throw new TypeError(`Skill ${skillId} lockouts must be an array.`);
+  }
+  const groups = new Set();
+  return Object.freeze(lockouts.map((lockout, index) => {
+    if (!lockout || typeof lockout !== "object" || Array.isArray(lockout)) {
+      throw new TypeError(
+        `Skill ${skillId} lockout ${index + 1} must be an object.`,
+      );
+    }
+    const group = String(lockout.group || "").trim();
+    const durationMs = Number(lockout.durationMs);
+    if (!group) {
+      throw new TypeError(
+        `Skill ${skillId} lockout ${index + 1} requires a group.`,
+      );
+    }
+    if (!(durationMs > 0) || !Number.isFinite(durationMs)) {
+      throw new TypeError(
+        `Skill ${skillId} lockout ${group} requires a positive durationMs.`,
+      );
+    }
+    if (groups.has(group)) {
+      throw new TypeError(
+        `Skill ${skillId} declares duplicate lockout group ${group}.`,
+      );
+    }
+    groups.add(group);
+    return Object.freeze({ group, durationMs });
+  }));
 }
 
 /**
@@ -231,11 +342,48 @@ export function createCanonicalCatalog({
     ...extraSkills.map(skill => skill.id),
   ]);
   const skills = [...allIds].map(id => {
-    const skill = {
+    const merged = {
       ...(generatedById.get(id) || {}),
       ...(mechanics[id] || {}),
       ...(overrides[id] || {}),
       ...(extraSkills.find(candidate => candidate.id === id) || {}),
+    };
+    if (merged.activation != null || merged.castTime != null) {
+      throw new TypeError(
+        `Skill ${id} uses legacy cast timing; use castTimeMs.`,
+      );
+    }
+    const castTimeMs = Number(merged.castTimeMs ?? 0);
+    if (!(castTimeMs >= 0) || !Number.isFinite(castTimeMs)) {
+      throw new TypeError(
+        `Skill ${id} requires a non-negative finite castTimeMs.`,
+      );
+    }
+    const quicknessCastTimeMs = merged.quicknessCastTimeMs == null
+      ? null
+      : Number(merged.quicknessCastTimeMs);
+    if (
+      quicknessCastTimeMs != null
+      && (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))
+    ) {
+      throw new TypeError(
+        `Skill ${id} has an invalid quicknessCastTimeMs.`,
+      );
+    }
+    if (
+      merged.rechargeAnchor != null
+      && !RECHARGE_ANCHORS.has(merged.rechargeAnchor)
+    ) {
+      throw new TypeError(
+        `Skill ${id} has invalid rechargeAnchor `
+        + `"${merged.rechargeAnchor}".`,
+      );
+    }
+    const skill = {
+      ...merged,
+      castTimeMs,
+      ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
+      lockouts: normalizeLockouts(merged.lockouts, id),
     };
     skill.effects = Object.freeze((skill.effects || []).map(normalizeEffect));
     skill.tags = Object.freeze([...(skill.tags || [])]);

@@ -3,15 +3,17 @@ export function createMesmerState(config = {}) {
     clones: [],
     numericResource: 0,
     pendingResources: [],
-    pendingExpectedProcs: [],
-    trackedSkillHits: new Map(),
-    traitReadyAt: new Map(),
-    instruments: new Map(),
+    // Profession-state collections are plain objects (keyed by skill id or name) 
+    // to serialize without custom Map handling.
+    // Only engine-level state.cooldowns/state.ammo stay Maps.
+    trackedSkillHits: {},
+    traitReadyAt: {},
+    instruments: {},
     lastInstrument: "",
     continuum: null,
     counterspellAvailable: false,
-    availableFlips: new Map(),
-    autoattackChains: new Map(),
+    availableFlips: {},
+    autoattackChains: {},
     nextForgeAt: config.infiniteForge ? 3 : Infinity,
     bloodsongProgress: 0,
     sharperImagesProgress: 0,
@@ -27,15 +29,11 @@ export function createMesmerState(config = {}) {
   };
 }
 
-// Fields the Mesmer resolver pass accumulates. The rich scheduler state (clones,
-// blades, continuum, flips) is already consumed producing events, so the resolver
-// starts clean with only these three accumulators. Keep in sync with
-// resolver/event-handlers.js and mechanics/trait-rules.js.
+// Resolver-only profession state. Scheduler-gated blades and their bleeding
+// triggers are fully materialized before this state is created.
 export function createMesmerResolverState() {
   return {
-    ineptitudeReadyAt: 0,      // trait-rules: triggerIneptitude cooldown
-    sharperImagesProgress: 0,  // trait-rules: Sharper Images bleed accumulation
-    bloodsongProgress: 0,      // event-handlers: Bloodsong bleed accumulation
+    ineptitudeReadyAt: 0,
   };
 }
 
@@ -53,11 +51,11 @@ export function snapshotMesmerState(state) {
   return {
     cloneCount: state.clones.length,
     numericResource: state.numericResource,
-    instruments: [...state.instruments.entries()],
+    instruments: Object.entries(state.instruments),
     continuumActive: Boolean(state.continuum),
     counterspellAvailable: state.counterspellAvailable,
-    availableFlips: [...state.availableFlips.entries()],
-    autoattackChains: [...state.autoattackChains.entries()],
+    availableFlips: Object.entries(state.availableFlips),
+    autoattackChains: Object.entries(state.autoattackChains),
     nextForgeAt: state.nextForgeAt,
     bloodsongProgress: state.bloodsongProgress,
     sharperImagesProgress: state.sharperImagesProgress,

@@ -213,6 +213,26 @@ Canonical catalogs may also carry validated trait and specialization metadata.
 Resolver behavior looks skills up by `skillId`; display-name lookup is retained
 only for legacy streams and application-boundary rotation migration.
 
+Mesmer, Guardian, and Necromancer skill mechanics use one timing contract:
+
+- `castTimeMs` is the base action duration. `quicknessCastTimeMs` is optional
+  measured compatibility data; otherwise the GW2 policy applies action-rate
+  scaling and 40 ms quantization.
+- `rechargeAnchor` is optional and defaults to `castEnd`; `castStart` supports
+  actions whose recharge begins before a modeled aftercast ends.
+- `lockouts` optionally declares skill-family availability windows as
+  `{ group, durationMs }`. Activating the skill blocks only other skills that
+  declare the same group; unrelated actions, cast timing, effects, and
+  cooldowns are unchanged.
+- explicitly timed effects declare `timingAnchor: "castStart" | "castEnd"`
+  and `timingScale: "cast" | "fixed"`;
+- evenly spaced effects use `atMs` plus optional `intervalMs`; irregular exact
+  packets use chronological `ticks`, with coefficient data on each strike
+  tick;
+- all `*Ms` values are milliseconds. Legacy `activation`, `castTime`,
+  `packetOffsets`, `atMsList`, inferred cast scaling, and special cast-end
+  offset fields are rejected at catalog assembly.
+
 Shared weapon data owns family strength and broad capabilities. Each canonical
 profession catalog owns exact `weaponHands` metadata. Application adapters
 derive their weapon selector data by combining those two sources.

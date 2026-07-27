@@ -23,8 +23,8 @@ function ensureMetadata(event) {
 export function compareQueuedEvents(left, right) {
   return Number(left.at ?? left.time ?? 0) - Number(right.at ?? right.time ?? 0)
     || Number(left.priority || 0) - Number(right.priority || 0)
-    || Number(left.__order ?? left._queueSeq ?? 0)
-      - Number(right.__order ?? right._queueSeq ?? 0);
+    || Number(left.causalOrder ?? left.__order ?? left._queueSeq ?? 0)
+      - Number(right.causalOrder ?? right.__order ?? right._queueSeq ?? 0);
 }
 
 /**

@@ -1,6 +1,9 @@
+// Generated breakdown names commonly append "— Effect"; the prefix is the
+// final attribution fallback when no explicit source skill survives resolution.
 const baseName = name => String(name || "").split("—")[0].trim();
 
 export function skillBreakdownRows(result) {
+  // Canonical action events are the authoritative source for cast count/time.
   const actionDurations = new Map();
   const actionCounts = new Map();
   for (const event of result.events || []) {
@@ -15,6 +18,7 @@ export function skillBreakdownRows(result) {
   }
   const resolvedByName = new Map();
   for (const event of result.resolvedEvents || []) {
+    // One representative event is enough to recover source/parent attribution.
     if (!resolvedByName.has(event.name)) resolvedByName.set(event.name, event);
   }
   const grouped = new Map();
@@ -42,6 +46,8 @@ export function skillBreakdownRows(result) {
     grouped.set(sourceSkill, current);
   }
   return [...grouped.values()].map(entry => {
+    // Older breakdown producers supplied casts directly; use that only when no
+    // canonical action count is available.
     const casts = Number(actionCounts.get(entry.sourceSkill) ?? entry.fallbackCasts);
     const total = entry.strike + entry.condition;
     const castTime = Number(actionDurations.get(entry.sourceSkill) || 0);
@@ -50,6 +56,7 @@ export function skillBreakdownRows(result) {
       total,
       dps: total / Math.max(0.001, Number(result.dpsWindow ?? result.duration ?? 0)),
       average: casts > 0 ? total / casts : null,
+      // DCT is damage divided by occupied cast time, not encounter duration.
       dct: castTime > 0 ? total / castTime : null,
       casts,
     };

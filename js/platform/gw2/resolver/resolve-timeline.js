@@ -94,9 +94,12 @@ export function resolveGw2Timeline({
   );
   const casts = addCastsToBreakdown(ctx, effectiveEvents, effectiveEnd);
   const explicitCombatStart = Number(handoff.combatStartTime || 0);
-  const dpsStart = handoff.hasExplicitCombatStart
-    ? (ctx.firstHitTime ?? explicitCombatStart)
-    : 0;
+  // DPS always begins with the first surviving positive damage event. An
+  // explicit Combat Start only filters earlier combat events and provides the
+  // fallback for a damage-free encounter; it is not itself damage.
+  const dpsStart =
+    ctx.firstHitTime
+    ?? (handoff.hasExplicitCombatStart ? explicitCombatStart : 0);
   const dpsWindow = Math.max(0, effectiveEnd - dpsStart);
   const damagePerSecond = damage =>
     dpsWindow > 0 ? damage / dpsWindow : 0;

@@ -197,6 +197,37 @@ header .accent {
 }
 
 /* ─── Presets bar ─── */
+.default-builds {
+    max-width: 860px;
+    margin: 0 auto 12px;
+}
+
+.default-builds-panel {
+    padding: 12px 16px;
+}
+
+.default-builds-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.default-builds-header h3 {
+    margin: 0;
+}
+
+.default-builds-header span {
+    color: var(--text-dim);
+    font-size: 0.72rem;
+}
+
+.default-build-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .presets-bar {
     max-width: 860px;
     margin: 0 auto 12px;
@@ -2447,6 +2478,17 @@ header .accent {
     color: #fff;
 }
 
+.rot-skill .rot-timed-action-badge {
+    position: static;
+    display: block;
+    transform: none;
+    width: max-content;
+    margin: 1px auto 0;
+    line-height: 9px;
+    text-align: center;
+    white-space: pre-line;
+}
+
 /* Results */
 .rotation-results {
     margin-top: 12px;
@@ -2521,6 +2563,132 @@ header .accent {
 
 .res-val.kill-time {
     color: #ff9955;
+}
+
+.res-breakpoints {
+    margin: -1px 0 10px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.res-breakpoints summary {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: baseline;
+    gap: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: background 0.15s ease;
+}
+
+.res-breakpoints summary::-webkit-details-marker {
+    display: none;
+}
+
+.res-breakpoints summary::before {
+    content: '›';
+    color: var(--health);
+    font-size: 16px;
+    line-height: 10px;
+    transform-origin: center;
+    transition: transform 0.15s ease;
+}
+
+.res-breakpoints summary:hover {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.res-breakpoints[open] summary {
+    border-bottom: 1px solid var(--border);
+}
+
+.res-breakpoints[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.res-breakpoints-heading {
+    color: var(--text-bright);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.res-breakpoints-description {
+    color: var(--text-dim);
+    font-size: 10px;
+}
+
+.res-breakpoint-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    padding: 12px;
+}
+
+.res-breakpoint {
+    min-width: 0;
+    padding: 10px 11px 9px;
+    background:
+        linear-gradient(145deg, color-mix(in srgb, var(--health) 6%, transparent), transparent 58%),
+        var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-variant-numeric: tabular-nums;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.res-breakpoint:hover {
+    border-color: color-mix(in srgb, var(--health) 40%, var(--border));
+    transform: translateY(-1px);
+}
+
+.res-breakpoint-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.res-breakpoint-label {
+    color: var(--text-dim);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.45px;
+}
+
+.res-breakpoint-label b {
+    color: var(--text-bright);
+    font-size: 11px;
+}
+
+.res-breakpoint-time {
+    font-size: 9px;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.res-breakpoint-value {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    margin: 8px 0 9px;
+}
+
+.res-breakpoint-value strong {
+    color: var(--health);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.res-breakpoint-value span {
+    color: color-mix(in srgb, var(--health) 70%, var(--text-dim));
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.55px;
 }
 
 .res-breakdown {

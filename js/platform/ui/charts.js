@@ -2,6 +2,8 @@ import { escapeHtml } from "./html.js";
 
 export function chartValueAt(points, time) {
   if (!points?.length) return 0;
+  // Series are step functions: use the latest sample at or before the pointer.
+  // Callers provide points in ascending timestamp order.
   let value = Number(points[0].v || 0);
   for (const point of points) {
     if (Number(point.t || 0) > time) break;
@@ -15,6 +17,8 @@ export function buildChartSeries(
   sampleStepMs = 250,
   { effectName = value => String(value || ""), stackCaps = {} } = {},
 ) {
+  // Chart time is relative to the DPS window, while simulation events use
+  // absolute seconds. Keep the conversion at this boundary.
   const dpsStartMs = Math.max(
     0,
     Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000,
@@ -45,6 +49,8 @@ export function buildChartSeries(
     let damage = 0;
     for (const event of damageEvents) {
       if (Array.isArray(event.damageTicks)) {
+        // Condition applications store aggregate damage plus individual ticks;
+        // use ticks to avoid showing future condition damage too early.
         damage += event.damageTicks
           .filter(tick => Number(tick.at || 0) * 1000 <= absoluteTime)
           .reduce((sum, tick) => sum + Number(tick.damage || 0), 0);
@@ -55,6 +61,7 @@ export function buildChartSeries(
     return { t: time, v: damage / elapsed };
   });
   const applications = [];
+  // Convert conditions and buffs to half-open [start, end) stack intervals.
   for (const event of resolved) {
     if (event.type !== "condition") continue;
     const start = Number(event.at || 0) * 1000 - dpsStartMs;
@@ -88,6 +95,7 @@ export function buildChartSeries(
       t: time,
       v: Math.min(
         stackCaps[name] ?? Infinity,
+        // Overlapping applications add their stacks at each sample.
         matching.reduce(
           (sum, entry) =>
             sum + (entry.start <= time && entry.end > time ? entry.stacks : 0),
@@ -120,6 +128,7 @@ const chartNumber = value => {
 
 function niceAxisMaximum(value) {
   if (!(value > 0)) return 1;
+  // Use familiar 1/2/5/10 axis bounds instead of arbitrary maxima.
   const magnitude = 10 ** Math.floor(Math.log10(value));
   const normalized = value / magnitude;
   const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
@@ -146,6 +155,7 @@ function drawLineChart(
     ),
   );
   const dpr = globalThis.window?.devicePixelRatio || 1;
+  // Separate backing-store pixels from CSS dimensions for sharp HiDPI lines.
   canvas.width = Math.round(cssWidth * dpr);
   canvas.height = Math.round(height * dpr);
   canvas.style.height = `${height}px`;
@@ -260,6 +270,7 @@ function chartHtml(series, options) {
  */
 export function mountTimeSeriesCharts(container, series, options = {}) {
   if (!container) return null;
+  // A token makes a queued animation-frame redraw from an older mount harmless.
   const mountToken = {};
   container[ACTIVE_MOUNT] = mountToken;
   const resolvedSeries = {
@@ -330,6 +341,8 @@ export function mountTimeSeriesCharts(container, series, options = {}) {
       if (!layout) return;
 
       const rect = canvas.getBoundingClientRect();
+      // Canvas CSS size can differ from its logical drawing size; translate
+      // pointer coordinates before hit-testing the plot.
       const scaleX = layout.cssWidth / Math.max(1, rect.width);
       const scaleY = layout.height / Math.max(1, rect.height);
       const pointerX = event.clientX - rect.left;

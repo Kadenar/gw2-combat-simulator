@@ -39,6 +39,7 @@ export function createGw2ResolverRuntimeState({
     lastHitTime: null,
     deathTime: null,
     combatActive: false,
+    activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
     relic: {
       buffUntil: 0,
       thiefStacks: 0,
@@ -53,9 +54,6 @@ export function createGw2ResolverRuntimeState({
     },
     profession: professionState,
     sigil: {
-      readyAt: new Map(),
-      criticalProgress: 0,
-      doomPending: false,
       severanceUntil: 0,
     },
     food: {

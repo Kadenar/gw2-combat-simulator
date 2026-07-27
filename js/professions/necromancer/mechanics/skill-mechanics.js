@@ -15,7 +15,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 1000,
     "effects": [],
-    "activation": 1
   },
   [ID.GHASTLY_CLAWS]: {
     "implemented": true,
@@ -28,7 +27,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 12,
-    "activation": 0.75
   },
   [ID.DARK_PACT]: {
     "implemented": true,
@@ -47,7 +45,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 5,
-    "activation": 0.75
   },
   [ID.GRASPING_DEAD]: {
     "implemented": true,
@@ -65,34 +62,29 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 10
       }
     ],
-    "activation": 0.75
   },
   [ID.SUMMON_BONE_FIEND]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.minion"
   },
   [ID.PUTRID_EXPLOSION]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.minion-command"
   },
   [ID.SUMMON_BONE_MINIONS]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.minion"
   },
   [ID.SUMMON_FLESH_WURM]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.minion",
     "flipSkillId": 10600
   },
@@ -112,7 +104,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 15
       }
     ],
-    "activation": 0.5
   },
   [ID.WELL_OF_CORRUPTION]: {
     "implemented": true,
@@ -122,11 +113,12 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 3,
         "hits": 6,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       }
     ],
     "lifeForceGain": 1,
-    "activation": 0.5
   },
   [ID.WELL_OF_SUFFERING]: {
     "implemented": true,
@@ -136,7 +128,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 6,
         "hits": 6,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       },
       {
         "type": "buff",
@@ -145,13 +139,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 2
       }
     ],
-    "activation": 0.5
   },
   [ID.SUMMON_BLOOD_FIEND]: {
     "implemented": true,
     "castTimeMs": 1000,
     "effects": [],
-    "activation": 1,
     "handlerId": "necromancer.minion"
   },
   [ID.CONSUME_CONDITIONS]: {
@@ -165,7 +157,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 5
       }
     ],
-    "activation": 1
   },
   [ID.PLAGUELANDS]: {
     "implemented": true,
@@ -217,14 +208,12 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 1
       }
     ],
-    "activation": 1
   },
   [ID.LICH_FORM]: {
     "implemented": true,
     "castTimeMs": 1000,
     "effects": [],
     "lifeForceGain": 15,
-    "activation": 1,
     "cooldown": 120,
     "handlerId": "necromancer.lich"
   },
@@ -250,7 +239,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 6
       }
     ],
-    "activation": 0.5
   },
   [ID.LIFE_BLAST]: {
     "implemented": true,
@@ -267,7 +255,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "death",
     "shroudSlot": 1,
     "specialization": "",
-    "activation": 1,
     "flipSkillId": null
   },
   [ID.SPINAL_SHIVERS]: {
@@ -306,7 +293,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.75
   },
   [ID.WAIL_OF_DOOM]: {
     "implemented": true,
@@ -319,7 +305,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.75
   },
   [ID.LOCUST_SWARM]: {
     "implemented": true,
@@ -336,7 +321,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -349,7 +336,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -362,7 +351,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -375,7 +366,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -388,7 +381,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -401,7 +396,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -414,7 +411,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -427,7 +426,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -440,7 +441,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -453,11 +456,12 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.012,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ],
     "lifeForceGain": 1.5,
-    "activation": 0.75
   },
   [ID.RENDING_CLAWS]: {
     "implemented": true,
@@ -475,7 +479,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 2
       }
     ],
-    "activation": 0.5
   },
   [ID.PLAGUE_SIGNET]: {
     "implemented": true,
@@ -488,20 +491,17 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.5
   },
   [ID.RIGOR_MORTIS]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.minion-command"
   },
   [ID.DEATH_SHROUD]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "cooldown": 10,
     "handlerId": "necromancer.shroud"
   },
@@ -509,7 +509,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 1000,
     "effects": [],
-    "activation": 1,
     "handlerId": "necromancer.minion-command"
   },
   [ID.SPECTRAL_ARMOR]: {
@@ -523,13 +522,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.5
   },
   [ID.END_DEATH_SHROUD]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "cooldown": 0,
     "handlerId": "necromancer.shroud"
   },
@@ -554,13 +551,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "death",
     "shroudSlot": 3,
     "specialization": "",
-    "activation": 0.75
   },
   [ID.SUMMON_SHADOW_FIEND]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.minion"
   },
   [ID.HAUNT]: {
@@ -568,7 +563,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "castTimeMs": 500,
     "effects": [],
     "lifeForceGain": 10,
-    "activation": 0.5,
     "handlerId": "necromancer.minion-command"
   },
   [ID.LIFE_TRANSFER]: {
@@ -580,70 +574,90 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 3.825,
         "hits": 9,
         "atMs": 222,
-        "intervalMs": 222
+        "intervalMs": 222,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 3,
-        "atMs": 222
+        "atMs": 222,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 3,
-        "atMs": 444
+        "atMs": 444,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 3,
-        "atMs": 666
+        "atMs": 666,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 3,
-        "atMs": 888
+        "atMs": 888,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 3,
-        "atMs": 1110
+        "atMs": 1110,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 3,
-        "atMs": 1332
+        "atMs": 1332,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 3,
-        "atMs": 1554
+        "atMs": 1554,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 3,
-        "atMs": 1776
+        "atMs": 1776,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 3,
-        "atMs": 1998
+        "atMs": 1998,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ],
     "type": "Profession",
@@ -651,7 +665,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "death",
     "shroudSlot": 4,
     "specialization": "",
-    "activation": 2,
     "lifeForceGain": 9
   },
   [ID.NECROTIC_GRASP]: {
@@ -665,13 +678,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 4,
-    "activation": 0.5
   },
   [ID.NECROTIC_TRAVERSAL]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "handlerId": "necromancer.minion-command",
     "lifeForceGain": 10
   },
@@ -686,7 +697,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 6
       }
     ],
-    "activation": 0.5
   },
   [ID.DARK_PATH]: {
     "implemented": true,
@@ -716,7 +726,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "death",
     "shroudSlot": 2,
     "specialization": "",
-    "activation": 0.75,
     "handlerId": "necromancer.flip"
   },
   [ID.CHILLBLAINS]: {
@@ -742,7 +751,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.75
   },
   [ID.EPIDEMIC]: {
     "implemented": true,
@@ -760,7 +768,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 3
       }
     ],
-    "activation": 0.5
   },
   [ID.WELL_OF_DARKNESS]: {
     "implemented": true,
@@ -770,7 +777,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 4.800000000000001,
         "hits": 6,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       },
       {
         "type": "blind"
@@ -783,7 +792,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.5
   },
   [ID.SPECTRAL_RING]: {
     "implemented": true,
@@ -797,7 +805,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 4,
-    "activation": 0.5
   },
   [ID.WELL_OF_POWER]: {
     "implemented": true,
@@ -810,14 +817,12 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.5
   },
   [ID.SIGNET_OF_UNDEATH]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
     "lifeForceGain": 0,
-    "activation": 0.5,
     "handlerId": "necromancer.signet-undeath"
   },
   [ID.SIGNET_OF_THE_LOCUST]: {
@@ -830,7 +835,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.5
   },
   [ID.SPECTRAL_GRASP]: {
     "implemented": true,
@@ -845,7 +849,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 15,
-    "activation": 0.5
   },
   [ID.SIGNET_OF_SPITE]: {
     "implemented": true,
@@ -884,7 +887,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 5
       }
     ],
-    "activation": 0.5
   },
   [ID.GRIM_SPECTER]: {
     "implemented": true,
@@ -901,7 +903,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.2,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "strike",
@@ -914,7 +918,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.2,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -927,7 +933,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.2,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -940,7 +948,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.2,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
@@ -953,10 +963,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
           "flatStrikePowerCoeff": 0.2,
           "noCrit": true,
           "damageKind": "life-steal"
-        }
+        },
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ],
-    "activation": 0.75
   },
   [ID.RIPPLE_OF_HORROR]: {
     "implemented": true,
@@ -974,7 +985,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.5,
     "handlerId": "necromancer.flip"
   },
   [ID.DEATHLY_CLAWS]: {
@@ -993,7 +1003,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 3
       }
     ],
-    "activation": 1.1
   },
   [ID.LICHS_GAZE]: {
     "implemented": true,
@@ -1012,28 +1021,24 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0,
     "cooldown": 8
   },
   [ID.SUMMON_MADNESS]: {
     "implemented": true,
     "castTimeMs": 1500,
     "effects": [],
-    "activation": 1.5,
     "handlerId": "necromancer.summon-madness"
   },
   [ID.SUMMON_FLESH_GOLEM]: {
     "implemented": true,
     "castTimeMs": 1000,
     "effects": [],
-    "activation": 1,
     "handlerId": "necromancer.minion"
   },
   [ID.CHARGE]: {
     "implemented": true,
     "castTimeMs": 1000,
     "effects": [],
-    "activation": 1,
     "handlerId": "necromancer.minion-command"
   },
   [ID.SPECTRAL_WALK]: {
@@ -1048,13 +1053,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 4,
-    "activation": 0.5
   },
   [ID.SPECTRAL_RECALL]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
     "implemented": true,
@@ -1067,7 +1070,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 2
       }
     ],
-    "activation": 0.5
   },
   [ID.BLOOD_CURSE]: {
     "implemented": true,
@@ -1085,7 +1087,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 5
       }
     ],
-    "activation": 0.5
   },
   [ID.RENDING_CURSE]: {
     "implemented": true,
@@ -1103,7 +1104,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 5
       }
     ],
-    "activation": 0.5
   },
   [ID.UNHOLY_FEAST]: {
     "implemented": true,
@@ -1115,7 +1115,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.75
   },
   [ID.NECROTIC_SLASH]: {
     "implemented": true,
@@ -1127,7 +1126,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 2
       }
     ],
-    "activation": 0.5
   },
   [ID.NECROTIC_STAB]: {
     "implemented": true,
@@ -1140,7 +1138,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 4,
-    "activation": 0.5
   },
   [ID.NECROTIC_BITE]: {
     "implemented": true,
@@ -1153,7 +1150,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 8,
-    "activation": 0.5
   },
   [ID.DEATHLY_SWARM]: {
     "implemented": true,
@@ -1168,7 +1164,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "type": "blind"
       }
     ],
-    "activation": 0.75
   },
   [ID.ENFEEBLING_BLOOD]: {
     "implemented": true,
@@ -1186,7 +1181,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 10
       }
     ],
-    "activation": 0.75
   },
   [ID.FEAST_OF_CORRUPTION]: {
     "implemented": true,
@@ -1205,7 +1199,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 8,
-    "activation": 0.75,
     "flipSkillId": null
   },
   [ID.DHUUMFIRE_BLAST]: {
@@ -1229,7 +1222,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "death",
     "shroudSlot": 1,
     "specialization": "",
-    "activation": 1,
     "flipParentId": null,
     "simulatorExcluded": true
   },
@@ -1249,7 +1241,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.75
   },
   [ID.PUTRID_MARK]: {
     "implemented": true,
@@ -1261,7 +1252,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.75
   },
   [ID.MARK_OF_BLOOD]: {
     "implemented": true,
@@ -1279,7 +1269,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 8
       }
     ],
-    "activation": 0.75
   },
   [ID.TAINTED_SHACKLES]: {
     "implemented": true,
@@ -1290,34 +1279,44 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "condition": "Torment",
         "stacks": 2,
         "duration": 12,
-        "atMs": 250
+        "atMs": 250,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 2,
         "duration": 12,
-        "atMs": 1250
+        "atMs": 1250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 2,
         "duration": 12,
-        "atMs": 2250
+        "atMs": 2250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 2,
         "duration": 12,
-        "atMs": 3250
+        "atMs": 3250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
         "coefficient": 1.25,
         "hits": 1,
-        "atMs": 4250
+        "atMs": 4250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ],
     "type": "Profession",
@@ -1325,13 +1324,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "death",
     "shroudSlot": 5,
     "specialization": "",
-    "activation": 0.25
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
     "implemented": true,
     "castTimeMs": 1000,
     "effects": [],
-    "activation": 1,
     "handlerId": "necromancer.signet-vampirism"
   },
   [ID.YOU_ARE_ALL_WEAKLINGS]: {
@@ -1350,7 +1347,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.5
   },
   [ID.LIFE_REND]: {
     "implemented": true,
@@ -1367,7 +1363,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 1,
     "specialization": "Reaper",
-    "activation": 0.5
   },
   [ID.LIFE_SLASH]: {
     "implemented": true,
@@ -1384,7 +1379,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 1,
     "specialization": "Reaper",
-    "activation": 0.5
   },
   [ID.NOTHING_CAN_SAVE_YOU]: {
     "implemented": true,
@@ -1402,7 +1396,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 6
       }
     ],
-    "activation": 0.5
   },
   [ID.DUSK_STRIKE]: {
     "implemented": true,
@@ -1415,7 +1408,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 2,
-    "activation": 0.5
   },
   [ID.TERRIFY]: {
     "implemented": true,
@@ -1433,7 +1425,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 3,
     "specialization": "Reaper",
-    "activation": 0.5,
     "cooldown": 0
   },
   [ID.GRASPING_DARKNESS]: {
@@ -1454,7 +1445,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 10,
-    "activation": 0.75
   },
   [ID.NIGHTFALL]: {
     "implemented": true,
@@ -1470,7 +1460,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 7,
-    "activation": 0.75
   },
   [ID.CHILLING_SCYTHE]: {
     "implemented": true,
@@ -1490,7 +1479,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 5,
-    "activation": 0.5
   },
   [ID.INFUSING_TERROR]: {
     "implemented": true,
@@ -1501,7 +1489,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 3,
     "specialization": "Reaper",
-    "activation": 0,
     "handlerId": "necromancer.flip"
   },
   [ID.CHILLED_TO_THE_BONE]: {
@@ -1527,7 +1514,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 1
   },
   [ID.GRAVEDIGGER]: {
     "implemented": true,
@@ -1539,7 +1525,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.75
   },
   [ID.LIFE_REAP]: {
     "implemented": true,
@@ -1557,7 +1542,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 1,
     "specialization": "Reaper",
-    "activation": 0.5
   },
   [ID.YOUR_SOUL_IS_MINE]: {
     "implemented": true,
@@ -1570,7 +1554,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 15,
-    "activation": 1
   },
   [ID.SOUL_SPIRAL]: {
     "implemented": true,
@@ -1581,91 +1564,117 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 8.4,
         "hits": 12,
         "atMs": 229,
-        "intervalMs": 229
+        "intervalMs": 229,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 229
+        "atMs": 229,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 458
+        "atMs": 458,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 687
+        "atMs": 687,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 916
+        "atMs": 916,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 1145
+        "atMs": 1145,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 1374
+        "atMs": 1374,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 1603
+        "atMs": 1603,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 1832
+        "atMs": 1832,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 2061
+        "atMs": 2061,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 2290
+        "atMs": 2290,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 2519
+        "atMs": 2519,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
         "duration": 2,
-        "atMs": 2748
+        "atMs": 2748,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ],
     "type": "Profession",
@@ -1673,7 +1682,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 4,
     "specialization": "Reaper",
-    "activation": 2.75
   },
   [ID.EXECUTIONERS_SCYTHE]: {
     "implemented": true,
@@ -1709,7 +1717,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 5,
     "specialization": "Reaper",
-    "activation": 1.25
   },
   [ID.SUFFER]: {
     "implemented": true,
@@ -1728,7 +1735,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.5
   },
   [ID.RISE]: {
     "implemented": true,
@@ -1740,13 +1746,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.5
   },
   [ID.REAPERS_SHROUD]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "cooldown": 10,
     "specialization": "Reaper",
     "handlerId": "necromancer.shroud"
@@ -1762,7 +1766,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 2,
-    "activation": 0.5
   },
   [ID.DEATHS_CHARGE]: {
     "implemented": true,
@@ -1773,14 +1776,18 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 2.25,
         "hits": 9,
         "atMs": 100,
-        "intervalMs": 100
+        "intervalMs": 100,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "strike",
         "coefficient": 1.625,
         "hits": 1,
         "atMs": 1250,
-        "name": "Death's Charge â€” Final Strike"
+        "name": "Death's Charge â€” Final Strike",
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "blind"
@@ -1791,7 +1798,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 2,
     "specialization": "Reaper",
-    "activation": 1.25
   },
   [ID.DEATH_SPIRAL]: {
     "implemented": true,
@@ -1809,13 +1815,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 12
       }
     ],
-    "activation": 0.75
   },
   [ID.EXIT_REAPERS_SHROUD]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "cooldown": 0,
     "specialization": "Reaper",
     "handlerId": "necromancer.shroud"
@@ -1848,13 +1852,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.5
   },
   [ID.NEFARIOUS_FAVOR]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "specialization": "Scourge",
     "lifeForceCost": 21,
     "handlerId": "necromancer.shade"
@@ -1876,7 +1878,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 8
       }
     ],
-    "activation": 0.5
   },
   [ID.MANIFEST_SAND_SHADE_ID_42297]: {
     "implemented": true,
@@ -1894,7 +1895,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 2
       }
     ],
-    "activation": 0,
     "simulatorAliasOfId": 44946,
     "simulatorExcluded": true,
     "flipSkillId": null
@@ -1907,7 +1907,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 3.5,
         "hits": 5,
-        "intervalMs": 1000
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
@@ -1922,7 +1924,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 2
       }
     ],
-    "activation": 1
   },
   [ID.SAND_SWELL]: {
     "implemented": true,
@@ -1940,7 +1941,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 8
       }
     ],
-    "activation": 0.5
   },
   [ID.DESICCATE]: {
     "implemented": true,
@@ -1959,7 +1959,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 12,
-    "activation": 0.5
   },
   [ID.SAND_FLARE]: {
     "implemented": true,
@@ -1972,13 +1971,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 8
       }
     ],
-    "activation": 1
   },
   [ID.SAND_CASCADE]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "specialization": "Scourge",
     "lifeForceCost": 27,
     "handlerId": "necromancer.shade"
@@ -2005,13 +2002,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.75
   },
   [ID.GARISH_PILLAR]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "specialization": "Scourge",
     "lifeForceCost": 40,
     "handlerId": "necromancer.shade"
@@ -2020,7 +2015,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "specialization": "Scourge",
     "lifeForceCost": 50,
     "handlerId": "necromancer.shade",
@@ -2030,7 +2024,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "cooldown": 15,
     "ammo": 3,
     "ammoRecharge": 15,
@@ -2041,7 +2034,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0
   },
   [ID.HARROWING_WAVE]: {
     "implemented": true,
@@ -2066,7 +2058,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 5,
-    "activation": 0.75
   },
   [ID.MANIFEST_SAND_SHADE_ID_46473]: {
     "implemented": true,
@@ -2084,7 +2075,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 2
       }
     ],
-    "activation": 0,
     "simulatorAliasOfId": 44946,
     "simulatorExcluded": true,
     "flipSkillId": null
@@ -2105,7 +2095,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 2
       }
     ],
-    "activation": 0,
     "simulatorAliasOfId": 44946,
     "simulatorExcluded": true,
     "flipSkillId": null
@@ -2127,14 +2116,12 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 8,
-    "activation": 0.75,
     "flipParentId": null
   },
   [ID.SANDSTORM_SHROUD]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "specialization": "Scourge",
     "lifeForceCost": 35,
     "handlerId": "necromancer.shade",
@@ -2152,7 +2139,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 11,
-    "activation": 0.75
   },
   [ID.DARK_PURSUIT]: {
     "implemented": true,
@@ -2163,7 +2149,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "death",
     "shroudSlot": 2,
     "specialization": "",
-    "activation": 0,
     "cooldown": 0
   },
   [ID.VILE_BLAST]: {
@@ -2189,7 +2174,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 4,
-    "activation": 0.75
   },
   [ID.WEEPING_SHOTS]: {
     "implemented": true,
@@ -2214,13 +2198,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 9,
-    "activation": 0.75
   },
   [ID.ELIXIR_OF_BLISS]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.elixir"
   },
   [ID.VICIOUS_SHOT]: {
@@ -2239,13 +2221,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 4
       }
     ],
-    "activation": 0.5
   },
   [ID.ELIXIR_OF_RISK]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "cooldown": 20,
     "handlerId": "necromancer.elixir"
   },
@@ -2258,14 +2238,12 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "harbinger",
     "shroudSlot": 4,
     "specialization": "Harbinger",
-    "activation": 0.75,
     "handlerId": "necromancer.blight-skill"
   },
   [ID.EXIT_HARBINGER_SHROUD]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "cooldown": 0,
     "specialization": "Harbinger",
     "handlerId": "necromancer.shroud"
@@ -2279,7 +2257,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.2,
         "hits": 3,
         "atMs": 333,
-        "intervalMs": 333
+        "intervalMs": 333,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "control",
@@ -2294,13 +2274,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "harbinger",
     "shroudSlot": 5,
     "specialization": "Harbinger",
-    "activation": 1
   },
   [ID.HARBINGER_SHROUD]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "cooldown": 10,
     "specialization": "Harbinger",
     "handlerId": "necromancer.shroud"
@@ -2314,7 +2292,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.2,
         "hits": 2,
         "atMs": 250,
-        "intervalMs": 250
+        "intervalMs": 250,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "condition",
@@ -2328,7 +2308,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "harbinger",
     "shroudSlot": 1,
     "specialization": "Harbinger",
-    "activation": 0.5
   },
   [ID.DARK_BARRAGE]: {
     "implemented": true,
@@ -2339,49 +2318,63 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 3.6,
         "hits": 6,
         "atMs": 125,
-        "intervalMs": 125
+        "intervalMs": 125,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 1,
         "duration": 3,
-        "atMs": 125
+        "atMs": 125,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 1,
         "duration": 3,
-        "atMs": 250
+        "atMs": 250,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 1,
         "duration": 3,
-        "atMs": 375
+        "atMs": 375,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 1,
         "duration": 3,
-        "atMs": 500
+        "atMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 1,
         "duration": 3,
-        "atMs": 625
+        "atMs": 625,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 1,
         "duration": 3,
-        "atMs": 750
+        "atMs": 750,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ],
     "type": "Profession",
@@ -2389,34 +2382,29 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "harbinger",
     "shroudSlot": 2,
     "specialization": "Harbinger",
-    "activation": 0.75
   },
   [ID.ELIXIR_OF_IGNORANCE]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.elixir"
   },
   [ID.ELIXIR_OF_AMBITION]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.elixir"
   },
   [ID.ELIXIR_OF_ANGUISH]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.elixir"
   },
   [ID.ELIXIR_OF_PROMISE]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5,
     "handlerId": "necromancer.elixir"
   },
   [ID.DEVOURING_CUT]: {
@@ -2428,7 +2416,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "harbinger",
     "shroudSlot": 3,
     "specialization": "Harbinger",
-    "activation": 1,
     "handlerId": "necromancer.blight-skill"
   },
   [ID.LIFE_SIPHON]: {
@@ -2447,7 +2434,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 8
       }
     ],
-    "activation": 0.75
   },
   [ID.PATH_OF_GLUTTONY]: {
     "implemented": true,
@@ -2459,7 +2445,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.75
   },
   [ID.HUNGERING_MAELSTROM]: {
     "implemented": true,
@@ -2477,7 +2462,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 5
       }
     ],
-    "activation": 0.75
   },
   [ID.ENERVATION_ECHO]: {
     "implemented": true,
@@ -2489,7 +2473,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.5
   },
   [ID.GORGE]: {
     "implemented": true,
@@ -2501,7 +2484,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.75
   },
   [ID.RAVENOUS_WAVE]: {
     "implemented": true,
@@ -2514,7 +2496,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 12,
-    "activation": 0.75
   },
   [ID.SATIATE]: {
     "implemented": true,
@@ -2526,7 +2507,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.75
   },
   [ID.CONSUME]: {
     "implemented": true,
@@ -2538,7 +2518,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 5
       }
     ],
-    "activation": 0.75
   },
   [ID.ENERVATION_BLADE]: {
     "implemented": true,
@@ -2550,7 +2529,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.5
   },
   [ID.DEVOURING_VISAGE]: {
     "implemented": true,
@@ -2569,7 +2547,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 10,
-    "activation": 0.75
   },
   [ID.GORMANDIZE]: {
     "implemented": true,
@@ -2594,7 +2571,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 5
       }
     ],
-    "activation": 0.75
   },
   [ID.EXTIRPATE]: {
     "implemented": true,
@@ -2607,7 +2583,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 12,
-    "activation": 0.75
   },
   [ID.DARK_SLASH]: {
     "implemented": true,
@@ -2619,7 +2594,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.5
   },
   [ID.ADDLE]: {
     "implemented": true,
@@ -2638,7 +2612,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 10,
-    "activation": 0.75
   },
   [ID.DEADLY_SLICE]: {
     "implemented": true,
@@ -2650,7 +2623,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.5
   },
   [ID.SINISTER_STAB]: {
     "implemented": true,
@@ -2670,7 +2642,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 5,
-    "activation": 0.5
   },
   [ID.PERFORATE]: {
     "implemented": true,
@@ -2682,7 +2653,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 7
       }
     ],
-    "activation": 0.75
   },
   [ID.ISOLATE]: {
     "implemented": true,
@@ -2707,19 +2677,16 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 8
       }
     ],
-    "activation": 0.75
   },
   [ID.DISTRESS]: {
     "implemented": true,
     "castTimeMs": 750,
     "effects": [],
-    "activation": 0.75
   },
   [ID.INNERVATE_PRESERVATION]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "handlerId": "necromancer.innervate"
   },
   [ID.SUMMON_SPIRITS]: {
@@ -2731,7 +2698,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "ritualist",
     "shroudSlot": 5,
     "specialization": "Ritualist",
-    "activation": 0,
     "handlerId": "necromancer.ritualist"
   },
   [ID.PRESERVATION]: {
@@ -2743,14 +2709,12 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "ritualist",
     "shroudSlot": 4,
     "specialization": "Ritualist",
-    "activation": 0.5,
     "handlerId": "necromancer.ritualist"
   },
   [ID.INNERVATE_WANDERLUST]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "handlerId": "necromancer.innervate"
   },
   [ID.NIGHTMARE_WEAPON]: {
@@ -2764,7 +2728,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "stacks": 2
       }
     ],
-    "activation": 0.5
   },
   [ID.WEAPON_OF_WARDING]: {
     "implemented": true,
@@ -2777,7 +2740,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 0.5
   },
   [ID.ANGUISH]: {
     "implemented": true,
@@ -2788,14 +2750,12 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "ritualist",
     "shroudSlot": 2,
     "specialization": "Ritualist",
-    "activation": 0.5,
     "handlerId": "necromancer.ritualist"
   },
   [ID.EXIT_RITUALISTS_SHROUD]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "cooldown": 0,
     "specialization": "Ritualist",
     "handlerId": "necromancer.shroud"
@@ -2811,7 +2771,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
-    "activation": 1
   },
   [ID.WANDERLUST]: {
     "implemented": true,
@@ -2822,7 +2781,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "ritualist",
     "shroudSlot": 3,
     "specialization": "Ritualist",
-    "activation": 1,
     "handlerId": "necromancer.ritualist"
   },
   [ID.SPLINTER_WEAPON]: {
@@ -2835,20 +2793,17 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
-    "activation": 0.5
   },
   [ID.INNERVATE_ANGUISH]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "handlerId": "necromancer.innervate"
   },
   [ID.WEAPON_OF_REMEDY]: {
     "implemented": true,
     "castTimeMs": 500,
     "effects": [],
-    "activation": 0.5
   },
   [ID.ESSENCE_BLAST]: {
     "implemented": true,
@@ -2859,14 +2814,12 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "ritualist",
     "shroudSlot": 1,
     "specialization": "Ritualist",
-    "activation": 0.75,
     "handlerId": "necromancer.ritualist"
   },
   [ID.RITUALISTS_SHROUD]: {
     "implemented": true,
     "castTimeMs": 0,
     "effects": [],
-    "activation": 0,
     "cooldown": 10,
     "specialization": "Ritualist",
     "handlerId": "necromancer.shroud"
@@ -2875,7 +2828,6 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 1000,
     "effects": [],
-    "activation": 1
   },
 });
 
@@ -2891,8 +2843,9 @@ export const NECROMANCER_EXTRA_SKILLS = Object.freeze([
     icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
     type: "Action",
     slot: "Action",
-    castTimeMs: 0,
-    activation: 0,
+    castTimeMs: 50,
+    quicknessCastTimeMs: 50,
+    rechargeAnchor: "castStart",
     cooldown: 10,
     implemented: true,
     handlerId: "necromancer.weapon-swap",
@@ -2907,7 +2860,6 @@ export const NECROMANCER_EXTRA_SKILLS = Object.freeze([
     type: "Profession",
     slot: "Profession_1",
     castTimeMs: 0,
-    activation: 0,
     cooldown: 0,
     implemented: true,
     handlerId: "necromancer.lich",

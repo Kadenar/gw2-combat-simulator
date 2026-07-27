@@ -134,7 +134,7 @@ test("condition applications shorter than one second deal fractional damage", ()
   });
 
   assert.ok(result.conditionDamage > 0);
-  assert.equal(result.firstHitTime, 0);
+  assert.equal(result.firstHitTime, 0.5);
   assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
   assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.5);
   assert.deepEqual(result.warnings, ["resolver handoff warning"]);
@@ -159,11 +159,12 @@ test("permanent damaging target conditions are assumptions, not player damage", 
   assert.deepEqual(result.conditionBreakdown, []);
 });
 
-test("DPS includes elapsed time before the first hit", () => {
+test("DPS excludes elapsed time before the first hit", () => {
   const result = simulateMesmer(
     [
       { name: "__wait", waitMs: 1000 },
       "Mind Slash",
+      { name: "__wait", waitMs: 1000 },
     ],
     defaultSimulationConfig({
       specialization: "Core",
@@ -173,10 +174,10 @@ test("DPS includes elapsed time before the first hit", () => {
     }),
   );
 
-  assert.equal(result.firstHitTime, result.duration);
-  assert.equal(result.dpsStartTime, 0);
-  assert.equal(result.dpsWindow, result.duration);
-  assert.equal(result.dps, result.totalDamage / result.duration);
+  assert.ok(Math.abs(result.firstHitTime - 1.36) < 1e-12);
+  assert.equal(result.dpsStartTime, result.firstHitTime);
+  assert.ok(Math.abs(result.dpsWindow - 1) < 1e-12);
+  assert.equal(result.dps, result.totalDamage / result.dpsWindow);
 });
 
 test("an explicit empty target condition map does not restore default conditions", () => {
@@ -542,7 +543,7 @@ test("delayed combat start uses its offset instead of the preceding cast end", (
   assert.equal(result.steps[1].start, 100);
   assert.ok(Math.abs(result.firstHitTime - 0.36) < 1e-12);
   assert.equal(result.dpsStartTime, result.firstHitTime);
-  assert.equal(result.dpsWindow, 1);
+  assert.ok(Math.abs(result.dpsWindow - 1) < 1e-12);
   assert.equal(result.dps, result.totalDamage / result.dpsWindow);
   assert.ok(result.dps < 100_000);
 });
@@ -625,6 +626,103 @@ test("critical sigils enqueue and resolve their own proc event", () => {
   assert.ok(result.breakdown.some(entry =>
     entry.name === "Sigil of Air" && entry.strikeDamage > 0
   ));
+});
+
+test("Earth bleeding grants a scheduler-visible Bloodsong blade", () => {
+  const defaults = defaultSimulationConfig();
+  const flyingCutters = [];
+  for (let index = 0; index < 5; index += 1) {
+    flyingCutters.push("Flying Cutter");
+    if (index < 4) {
+      flyingCutters.push({ name: "__wait", waitMs: 2100 });
+    }
+  }
+  const run = selectedTraits => simulateMesmer(
+    [...flyingCutters, "Bladesong Harmony"],
+    defaultSimulationConfig({
+      initialResource: 0,
+      selectedTraits,
+      stats: {
+        ...defaults.stats,
+        precision: 4000,
+      },
+      sigilSets: [
+        { names: ["Earth"], strike: 1, condition: 1 },
+        { names: [], strike: 1, condition: 1 },
+      ],
+    }),
+  );
+  const result = run(["Bloodsong"]);
+  const earth = result.events.filter(event =>
+    event.type === "condition"
+    && event.skillName === "Sigil of Earth"
+  );
+  const bloodsong = result.events.find(event =>
+    event.type === "resource"
+    && event.reason === "Bloodsong"
+  );
+  const harmony = result.steps.find(step =>
+    step.skill === "Bladesong Harmony"
+  );
+
+  assert.equal(earth.length, 5);
+  assert.ok(bloodsong);
+  assert.equal(harmony.invalid, undefined);
+  assert.ok(bloodsong.at <= harmony.start / 1000);
+
+  const withoutBloodsong = run([]);
+  assert.equal(
+    withoutBloodsong.events.some(event =>
+      event.type === "resource"
+      && event.reason === "Bloodsong"),
+    false,
+  );
+  assert.equal(
+    withoutBloodsong.steps.find(step =>
+      step.skill === "Bladesong Harmony")?.invalid,
+    true,
+  );
+});
+
+test("Geomancy crosses Bloodsong after four canonical trait bleeds", () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    [
+      "Twin Blade Restoration",
+      { name: "__wait", waitMs: 21000 },
+      "Twin Blade Restoration",
+      "Swap Weapons",
+      "Bladesong Harmony",
+    ],
+    defaultSimulationConfig({
+      initialResource: 0,
+      selectedTraits: ["Bloodsong", "Jagged Mind"],
+      stats: {
+        ...defaults.stats,
+        precision: 4000,
+      },
+      sigilSets: [
+        { names: [], strike: 1, condition: 1 },
+        { names: ["Geomancy"], strike: 1, condition: 1 },
+      ],
+    }),
+  );
+  const geomancy = result.events.find(event =>
+    event.type === "condition"
+    && event.skillName === "Sigil of Geomancy"
+  );
+  const bloodsong = result.events.find(event =>
+    event.type === "resource"
+    && event.reason === "Bloodsong"
+  );
+  const harmony = result.steps.find(step =>
+    step.skill === "Bladesong Harmony"
+  );
+
+  assert.ok(geomancy);
+  assert.ok(bloodsong);
+  assert.ok(Math.abs(bloodsong.at - geomancy.at - 0.0001) < 1e-12);
+  assert.equal(harmony.invalid, undefined);
 });
 
 test("critical-strike food procs resolve as unmodified flat damage", () => {

@@ -1,3 +1,6 @@
+// Rotation entries use a compact string when only a skill name is needed and
+// an object when timing/options are attached. Helpers preserve that convention.
+
 export function clearTimelineDropIndicators(root) {
   if (!root) return;
   root.classList.remove(
@@ -26,12 +29,23 @@ export function formatTimelineCastDetails(step, formatTime) {
   return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(2)}s`;
 }
 
+export function formatConcurrentTimelineBadge(offsetMs, timestamp = "") {
+  const time = String(timestamp || "").trim();
+  return `⊙${Number(offsetMs)}ms${time ? `\n${time}` : ""}`;
+}
+
+export function formatInterruptTimelineBadge(interruptMs, timestamp = "") {
+  const time = String(timestamp || "").trim();
+  return `✂${Number(interruptMs)}ms${time ? `\n${time}` : ""}`;
+}
+
 export function getSkillDropInsertionIndex(skillElement, clientX) {
   const rawIndex = skillElement?.dataset?.idx;
   if (rawIndex == null || String(rawIndex).trim() === "") return null;
   const index = Number(rawIndex);
   if (!Number.isInteger(index)) return null;
   const rect = skillElement.getBoundingClientRect();
+  // Dropping on the left/right half inserts before/after the hovered entry.
   return clientX < rect.left + rect.width / 2 ? index : index + 1;
 }
 
@@ -57,6 +71,7 @@ export function moveRotationEntry(rotation, fromIndex, toIndex) {
   }
 
   const boundedTarget = Math.max(0, Math.min(toIndex, rotation.length));
+  // Removing an earlier entry shifts a forward insertion target left by one.
   const insertAt = fromIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
   if (insertAt === fromIndex) return false;
 
@@ -70,6 +85,7 @@ export function rotationEntryName(entry) {
 }
 
 export function updateRotationEntry(entry, changes = {}) {
+  // Promote a string to an object only while it carries additional options.
   const updated = typeof entry === "string"
     ? { name: entry }
     : { ...(entry || {}) };
@@ -83,6 +99,7 @@ export function updateRotationEntry(entry, changes = {}) {
     }
   }
   const keys = Object.keys(updated);
+  // Compact back to a string after the last option is removed.
   return keys.length === 1 && keys[0] === "name" ? updated.name : updated;
 }
 
@@ -115,6 +132,8 @@ export function timelineRows(
   rotation.forEach((entry, index) => {
     rows.at(-1).skills.push({ entry, index });
     if (!isWeaponSwap(entry)) return;
+    // The swap command appears at the end of the old-set row; subsequent skills
+    // begin a row labeled with the newly active set.
     weaponSet = weaponSet === 1 ? 2 : 1;
     if (index < rotation.length - 1) rows.push({ weaponSet, skills: [] });
   });
@@ -133,6 +152,8 @@ export function eventTimelineMarkers(
     .filter(predicate)
     .map(event => {
       const start = Math.round(Number(event.at || 0) * 1000);
+      // Inject the marker immediately before the first rotation step that has
+      // not started; events after all steps append to the timeline.
       const next = steps.find(step => step.start >= start);
       return {
         insertionIndex: next?.ri ?? rotationLength,
@@ -155,6 +176,8 @@ export function eventTimelineMarkers(
  */
 export function bindTimelineInteractions(root, options = {}) {
   if (!root) return;
+  // Interaction helpers mutate the caller-owned rotation in place, then use
+  // onChanged as the single rerender/persistence notification.
   const rotation = options.rotation || [];
   const getDragState = options.getDragState || (() => null);
   const setDragState = options.setDragState || (() => {});
@@ -173,6 +196,7 @@ export function bindTimelineInteractions(root, options = {}) {
     if (drag.source === "palette") {
       const name = drag.name ?? drag.skillName;
       const entry = options.resolvePaletteEntry?.(name);
+      // Palette drops copy a newly resolved entry; timeline drops move one.
       if (!insertRotationEntry(rotation, entry, insertAt)) return false;
       changed();
       return true;
@@ -206,6 +230,7 @@ export function bindTimelineInteractions(root, options = {}) {
         event.stopPropagation();
         if (!Number.isInteger(index)) return;
         if (event.shiftKey) {
+          // Shift-remove is the fast "truncate rotation here" gesture.
           if (options.onTruncate) options.onTruncate(index);
           else rotation.splice(index);
         } else if (options.onRemove) {
@@ -250,6 +275,8 @@ export function bindTimelineInteractions(root, options = {}) {
     ".rot-row:not(.rot-procs-row) > .rot-row-skills",
   ) || []) {
     row.ondragover = event => {
+      // Skill elements own midpoint insertion. Row background drops use the
+      // row's precomputed insertion boundary.
       if (!getDragState() || event.target.closest?.(".rot-skill")) return;
       event.preventDefault();
       clearTimelineDropIndicators(root);
@@ -269,6 +296,7 @@ export function bindTimelineInteractions(root, options = {}) {
   }
 
   root.ondragover = event => {
+    // The root is the empty-space fallback and always appends.
     if (!getDragState() || event.target.closest?.(".rot-row-skills")) return;
     event.preventDefault();
     clearTimelineDropIndicators(root);
@@ -290,6 +318,7 @@ export function bindTimelineInteractions(root, options = {}) {
         event.stopPropagation();
         const index = Number(badge.dataset.idx);
         if (!Number.isInteger(index)) return;
+        // Returning false means the editor cancelled and no rerender is needed.
         if (callback?.(index, event) !== false) changed();
       };
     }

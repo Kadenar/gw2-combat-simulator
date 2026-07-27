@@ -268,6 +268,24 @@ frame.addEventListener('load', async () => {
         }));
         assert(app.build.rotation[1].offset === 100, 'Shift+click did not create concurrent command');
         assert(app.results.steps[1].start === 100, 'concurrent command did not start at 100ms');
+        const concurrentBadge = document.querySelector(
+            '#rotation-timeline .rot-skill[data-idx="1"] .rot-offset-badge',
+        );
+        assert(
+            concurrentBadge?.textContent.includes('100ms')
+                && /-?\d+\.\d+s/.test(concurrentBadge.textContent),
+            'concurrent skill badge does not show both delay and cast timestamp',
+        );
+        app.build.rotation = [{ name: 'Bladecall', interruptMs: 120 }];
+        app.changed(false);
+        const interruptBadge = document.querySelector(
+            '#rotation-timeline .rot-skill[data-idx="0"] .rot-interrupt-badge',
+        );
+        assert(
+            interruptBadge?.textContent.includes('120ms')
+                && /-?\d+\.\d+s/.test(interruptBadge.textContent),
+            'interrupt skill badge does not show both delay and cast timestamp',
+        );
 
         const originalPower = app.attributeData.attributes.Power.final;
         const helm = document.querySelector('[data-slot="Helm"]');

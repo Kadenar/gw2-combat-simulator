@@ -29,6 +29,17 @@ import { mesmerCatalog } from '../js/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '../js/professions/mesmer/data/ids.js';
 
 const catalogSkill = name => mesmerCatalog.skillsByName.get(name);
+const strikeEffects = skill =>
+    skill.effects.filter(effect => effect.type === 'strike');
+const strikeCoefficient = effect =>
+    effect.ticks
+        ? effect.ticks.reduce((sum, tick) => sum + tick.coefficient, 0)
+        : Number(effect.coefficient || 0);
+const totalStrikeCoefficient = skill =>
+    strikeEffects(skill).reduce(
+        (sum, effect) => sum + strikeCoefficient(effect),
+        0,
+    );
 
 test('catalog contains every Mesmer specialization and trait', () => {
     assert.deepEqual(
@@ -68,15 +79,15 @@ test("Mesmer mechanics are the sole simulation source and use stable skill ids",
             skill.name,
         );
     }
-    assert.equal(MESMER_SKILL_MECHANICS[ID.WINDS_OF_CHAOS].activation, 1.14);
+    assert.equal(MESMER_SKILL_MECHANICS[ID.WINDS_OF_CHAOS].castTimeMs, 1140);
     assert.equal(MESMER_SKILL_MECHANICS["Winds of Chaos"], undefined);
     assert.deepEqual(
-        MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].damage,
-        MESMER_SKILL_MECHANICS[ID.BLADECALL].damage,
+        MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].effects,
+        MESMER_SKILL_MECHANICS[ID.BLADECALL].effects,
     );
     assert.equal(
-        MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].activation,
-        MESMER_SKILL_MECHANICS[ID.BLADECALL].activation,
+        MESMER_SKILL_MECHANICS[ID.TROUBADOUR_BLADECALL].castTimeMs,
+        MESMER_SKILL_MECHANICS[ID.BLADECALL].castTimeMs,
     );
 });
 
@@ -144,15 +155,15 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
         const phantasmName = PHANTASM_NAME_BY_SKILL[skill.name] || skill.name;
         const timing = PHANTASM_ATTACK_TIMINGS[phantasmName];
         assert.ok(timing, `${skill.name} is missing a phantasm attack timing`);
-        assert.ok(timing.castTime > 0, `${skill.name} has an invalid cast time`);
-        assert.ok(timing.damage > 0, `${skill.name} has an invalid damage time`);
-        assert.ok(timing.spawn >= timing.damage, `${skill.name} converts before damage ends`);
+        assert.ok(timing.castTimeMs > 0, `${skill.name} has an invalid cast time`);
+        assert.ok(timing.damageAtMs > 0, `${skill.name} has an invalid damage time`);
+        assert.ok(timing.spawnAtMs >= timing.damageAtMs, `${skill.name} converts before damage ends`);
         assert.ok(
-            timing.chronophantasmaDamage >= timing.damage,
+            timing.chronophantasmaDamageAtMs >= timing.damageAtMs,
             `${skill.name} has an invalid Chronophantasma damage time`,
         );
         assert.ok(
-            timing.chronophantasmaSpawn >= timing.chronophantasmaDamage,
+            timing.chronophantasmaSpawnAtMs >= timing.chronophantasmaDamageAtMs,
             `${skill.name} converts before its repeat ends`,
         );
     }
@@ -160,33 +171,33 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
 
 test('measured phantasm endpoints match the supplied cast, damage, and spawn table', () => {
     const expected = {
-        'Phantasmal Avenger': [1.64, 1.44, 2.16, 4.2, 4.96],
-        'Phantasmal Berserker': [0.56, 1.48, 2.56, 4.68, 5.92],
-        'Phantasmal Defender': [0.77, 3.8, 4.51, 8.8, 9.52],
-        'Phantasmal Disenchanter': [0.76, 1.15, 1.84, 4.04, 4.72],
-        'Phantasmal Duelist': [0.56, 2.751, 3.334, 6.44, 7.04],
-        'Phantasmal Mage': [0.8, 2.27, 2.52, 5.32, 5.56],
-        'Phantasmal Rogue': [0.61, 1.2, 2, 4.04, 4.76],
+        'Phantasmal Avenger': [1640, 1440, 2160, 4200, 4960],
+        'Phantasmal Berserker': [560, 1480, 2560, 4680, 5920],
+        'Phantasmal Defender': [770, 3800, 4510, 8800, 9520],
+        'Phantasmal Disenchanter': [760, 1150, 1840, 4040, 4720],
+        'Phantasmal Duelist': [560, 2751, 3334, 6440, 7040],
+        'Phantasmal Mage': [800, 2270, 2520, 5320, 5560],
+        'Phantasmal Rogue': [610, 1200, 2000, 4040, 4760],
         'Phantasmal Swordsman': [
-            0.88,
-            3.159,
-            4.284,
-            7.12,
-            8.27,
+            880,
+            3159,
+            4284,
+            7120,
+            8270,
         ],
-        'Phantasmal Warden': [0.46, 5.04, 7.24, 13.2, 15.32],
-        'Phantasmal Warlock': [0.78, 2.96, 4.24, 8.56, 9.84],
+        'Phantasmal Warden': [460, 5040, 7240, 13200, 15320],
+        'Phantasmal Warlock': [780, 2960, 4240, 8560, 9840],
     };
 
     for (const [skillName, values] of Object.entries(expected)) {
         const timing = PHANTASM_ATTACK_TIMINGS[skillName];
         assert.deepEqual(
             [
-                timing.castTime,
-                timing.damage,
-                timing.spawn,
-                timing.chronophantasmaDamage,
-                timing.chronophantasmaSpawn,
+                timing.castTimeMs,
+                timing.damageAtMs,
+                timing.spawnAtMs,
+                timing.chronophantasmaDamageAtMs,
+                timing.chronophantasmaSpawnAtMs,
             ],
             values,
         );
@@ -195,7 +206,7 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
         if (catalogSkill) {
             assert.ok(
                 Math.abs(
-                    mesmerCatalog.skillsById.get(catalogSkill.id).activation
+                    mesmerCatalog.skillsById.get(catalogSkill.id).castTimeMs
                     / 1.5
                     - values[0],
                 ) < 1e-12,
@@ -222,6 +233,62 @@ test('Signet of the Ether does not generate a clone on activation', () => {
     assert.equal(signet.resource, null);
 });
 
+test('Mesmer instant-cast skills have zero cast time', () => {
+    const instantSkills = [
+        'Cry of Frustration',
+        'Mind Wrack',
+        'Distortion',
+        'Portal Entre',
+        'Blink',
+        'Decoy',
+        'Mirror Images',
+        'Signet of Midnight',
+        'The Prestige',
+        'Diversion',
+        'Feedback',
+        'Phase Retreat',
+        'Chaos Armor',
+        'Thousand Cuts',
+        'Continuum Split',
+        'Sand through Glass',
+        'Illusionary Ambush',
+        'Jaunt',
+        'Time Sink',
+        'Rewinder',
+        'Split Second',
+        'Bladeturn Requiem',
+        'Bladesong Distortion',
+        'Tale of the Honorable Rogue',
+        'Tale of the Soulkeeper',
+        'Tale of the Valiant Marshal',
+        'Power Spike',
+        'Dimensional Aperture',
+        'Abstraction',
+        'Into the Void',
+        'Swap',
+        'Dodge / Mirage Cloak',
+        'Continuum Shift',
+    ];
+
+    for (const name of instantSkills) {
+        const skill = catalogSkill(name);
+        assert.equal(skill.castTimeMs, 0, name);
+        assert.equal(skill.quicknessCastTimeMs ?? 0, 0, name);
+    }
+});
+
+test('Mesmer shatters share only the shatter-family lockout', () => {
+    for (const name of Object.keys(SHATTERS)) {
+        assert.deepEqual(
+            catalogSkill(name).lockouts,
+            [{ group: 'mesmer.shatter', durationMs: 50 }],
+            name,
+        );
+    }
+    assert.deepEqual(catalogSkill('Power Spike').lockouts, []);
+    assert.deepEqual(catalogSkill('Mirror Images').lockouts, []);
+});
+
 test('Mesmer weapon autoattacks are cataloged as individual chain skills', () => {
     const expectedChains = [
         [ID.MIND_SLASH, ID.MIND_GASH, ID.MIND_SPIKE],
@@ -233,8 +300,8 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
     for (const chain of expectedChains) {
         const [rootId, ...childIds] = chain;
         const rootSkill = mesmerCatalog.skillsById.get(rootId);
-        assert.equal(rootSkill.damage[0].hits, 1);
-        assert.notEqual(rootSkill.damage[0].label, 'Full autoattack chain');
+        assert.equal(strikeEffects(rootSkill)[0].hits, 1);
+        assert.notEqual(strikeEffects(rootSkill)[0].name, 'Full autoattack chain');
         assert.equal(rootSkill.chainRoot, rootId);
         assert.equal(rootSkill.chainStep, 1);
         assert.equal(rootSkill.nextChainId, childIds[0]);
@@ -324,8 +391,7 @@ test('Mirage ambush data uses current player and clone variants', () => {
 
 test('supplied player and clone coefficient table is preserved', () => {
     const normalized = catalogSkill;
-    const totalCoefficient = skill =>
-        skill.damage.reduce((sum, group) => sum + group.coefficient, 0);
+    const totalCoefficient = totalStrikeCoefficient;
     const playerSkills = [
         ['Lacerating Chop', 0.55, 0.43],
         ['Ethereal Chop', 0.55, 0.53],
@@ -341,11 +407,11 @@ test('supplied player and clone coefficient table is preserved', () => {
     for (const [name, coefficient, quicknessCast] of playerSkills) {
         const skill = normalized(name);
         assert.ok(Math.abs(totalCoefficient(skill) - coefficient) < 1e-12, name);
-        assert.ok(Math.abs(skill.activation / 1.5 - quicknessCast) < 1e-12, name);
+        assert.ok(Math.abs(skill.castTimeMs / 1500 - quicknessCast) < 1e-12, name);
     }
 
     assert.equal(AMBUSH_ATTACKS.Axe.player.coefficient, 1);
-    assert.equal(AMBUSH_ATTACKS.Axe.activation / 1.5, 0.52);
+    assert.equal(AMBUSH_ATTACKS.Axe.castTimeMs / 1500, 0.52);
     assert.deepEqual(
         CLONE_ATTACKS.Axe.sequence.map(step => [
             step.name,
@@ -362,7 +428,7 @@ test('supplied player and clone coefficient table is preserved', () => {
     assert.deepEqual(
         [
             AMBUSH_ATTACKS.Axe.clone.coefficient,
-            AMBUSH_ATTACKS.Axe.clone.activation,
+            AMBUSH_ATTACKS.Axe.clone.castTimeMs / 1000,
         ],
         [3.7, 1.11],
     );
@@ -384,10 +450,10 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
     const normalized = catalogSkill;
     const effectiveCoefficient = skill => {
         const phantasmCount = Number(skill.resource?.count || 1);
-        return skill.damage.reduce(
-            (sum, group) =>
-                sum + group.coefficient
-                * (group.source === 'Phantasm' ? phantasmCount : 1),
+        return strikeEffects(skill).reduce(
+            (sum, effect) =>
+                sum + strikeCoefficient(effect)
+                * (effect.actorType === 'phantasm' ? phantasmCount : 1),
             0,
         );
     };
@@ -442,12 +508,14 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
 
     const lancer = normalized('Phantasmal Lancer');
     assert.equal(
-        lancer.damage.find(group => group.source === 'Phantasm').coefficient,
+        strikeEffects(lancer)
+            .find(effect => effect.actorType === 'phantasm').coefficient,
         1.23,
     );
     const swordsman = normalized('Phantasmal Swordsman');
     assert.deepEqual(
-        swordsman.damage.map(group => [group.label, group.coefficient]),
+        strikeEffects(swordsman)
+            .map(effect => [effect.name, effect.coefficient]),
         [
             ['Mesmer strike', 0.5],
             ['Phantasm leap', 0.5],
@@ -456,21 +524,18 @@ test('supplied utility, spear, staff, and phantasm coefficients are preserved', 
     );
     const mage = normalized('Phantasmal Mage');
     assert.deepEqual(
-        mage.damage.map(group => [group.source, group.coefficient]),
+        strikeEffects(mage)
+            .map(effect => [effect.actorType, effect.coefficient]),
         [
-            ['Player', 0.19],
-            ['Phantasm', 0.5],
+            ['player', 0.19],
+            ['phantasm', 0.5],
         ],
     );
 });
 
 test('latest supplied weapon, clone, ambush, and trait coefficients are preserved', () => {
     const normalized = catalogSkill;
-    const totalCoefficient = name =>
-        normalized(name).damage.reduce(
-            (sum, group) => sum + group.coefficient,
-            0,
-        );
+    const totalCoefficient = name => totalStrikeCoefficient(normalized(name));
     const expectedSkills = {
         'Ether Bolt': 0.5,
         'Ether Blast': 0.5,
@@ -519,30 +584,30 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
     assert.equal(AMBUSH_ATTACKS.Rifle.player.coefficient, 2.6);
 
     const flyingCutter = normalized('Flying Cutter');
-    assert.equal(flyingCutter.damage[0].coefficient, 0.5);
-    assert.equal(flyingCutter.damage[0].castProgress, 0.72);
+    assert.equal(strikeEffects(flyingCutter)[0].coefficient, 0.5);
+    assert.equal(strikeEffects(flyingCutter)[0].castProgress, 0.72);
     assert.deepEqual(flyingCutter.trackedHitDamage, {
         hitsRequired: 3,
         duration: 5,
         skillId: ID.CUTTER_BURST,
         wikiUrl: 'https://wiki.guildwars2.com/wiki/Cutter_Burst',
-        packetOffsets: [0.217, 0.25, 0.384],
-        damage: {
-            coefficient: 0.6,
-            hits: 3,
-            label: 'Cutter Burst',
-            source: 'Player',
-        },
+        name: 'Cutter Burst',
+        actorType: 'player',
+        ticks: [
+            { atMs: 217, coefficient: 0.2 },
+            { atMs: 250, coefficient: 0.2 },
+            { atMs: 384, coefficient: 0.2 },
+        ],
     });
     assert.deepEqual(
-        normalized('Bladecall').damage.map(group => [
-            group.coefficient,
-            group.hits,
-            group.packetOffsets,
+        strikeEffects(normalized('Bladecall')).map(effect => [
+            strikeCoefficient(effect),
+            effect.ticks.length,
+            effect.ticks.map(tick => tick.atMs),
         ]),
         [
-            [0.75, 3, [0.199, 0.199, 0.199]],
-            [0.75, 3, [2.716, 2.716, 2.766]],
+            [0.75, 3, [199, 199, 199]],
+            [0.75, 3, [2716, 2716, 2766]],
         ],
     );
     assert.equal(TRAIT_DAMAGE['Phantasmal Blade'].weaponStrength, 2553.5);
@@ -599,5 +664,6 @@ test('dodge models two endurance charges with a ten-second base recharge', () =>
     const dodge = PSEUDO_SKILLS.find(skill => skill.name === 'Dodge / Mirage Cloak');
     assert.equal(dodge.cooldown, 10);
     assert.equal(dodge.ammo, 2);
-    assert.equal(dodge.activation, 0);
+    assert.equal(dodge.castTimeMs, 0);
+    assert.equal(dodge.rechargeAnchor, 'castStart');
 });

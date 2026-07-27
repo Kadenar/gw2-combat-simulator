@@ -962,6 +962,32 @@ test("Firebrand page exhaustion stows the tome and pages regenerate", () => {
   assert.equal(traited.endState.profession.tomePageInterval, 6);
 });
 
+test("Firebrand tome page cost waits for a regenerating page", () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Resolve",
+      // Epilogue: Eternal Oasis costs two pages; starting at one page it must
+      // wait for the next scheduled page rather than being discarded.
+      "Epilogue: Eternal Oasis",
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      initialTomePages: 1,
+    },
+  });
+
+  const epilogue = result.steps.find(
+    step => step.skill === "Epilogue: Eternal Oasis",
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(epilogue && !epilogue.invalid);
+  // The first page lands at the 8s interval, so the cast is delayed to it.
+  assert.ok(epilogue.start >= 8000);
+  assert.equal(result.endState.profession.activeTome, "");
+});
+
 test("Luminary Radiant Forge enforces entry and radiant weapon flips", () => {
   const unavailable = simulateGw2({
     profession: guardianProfession,
