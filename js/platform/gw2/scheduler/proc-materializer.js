@@ -158,15 +158,17 @@ export function createGw2TriggerMaterializer(
   const recordCondition = (event) => {
     const name = conditionName(event.condition);
     const stats = state.query.statsAt(event.at, event, state);
+    const durationMultiplier = event.fixedDuration
+      ? 1
+      : state.query.conditionDurationMultiplier(
+          name,
+          event.at,
+          stats,
+          event,
+          state,
+        );
     const duration =
-      Math.max(0, Number(event.duration || 0)) *
-      state.query.conditionDurationMultiplier(
-        name,
-        event.at,
-        stats,
-        event,
-        state,
-      );
+      Math.max(0, Number(event.duration || 0)) * durationMultiplier;
     const stacks = Math.max(0, Number(event.stacks || 0));
     if (!(duration > 0) || !(stacks > 0)) return;
     const entry = state.conditionState.get(name) || { stacks: [] };
@@ -350,8 +352,8 @@ export function createGw2TriggerMaterializer(
         (event.type === "condition" && (needsCriticalFacts || hasProcSigils)) ||
         (event.type === "control" && hasProcSigils) ||
         (event.type === "blind" && hasProcSigils) ||
-        ((event.type === "weapon_set" || event.type === "sigil_swap") &&
-          hasSwapSigils);
+        (event.type === "weapon_set" && hasProcSigils) ||
+        (event.type === "sigil_swap" && hasSwapSigils);
       if (!relevant) return;
       // Deferring to the task queue avoids recursive mutation inside the
       // scheduler's event-observation callback and preserves chronology.

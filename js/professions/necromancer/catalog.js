@@ -14,7 +14,6 @@ export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
   new Set([
     "Well of Blood",
     "Consume Conditions",
-    "Plague Signet",
     "Spectral Armor",
     "Spectral Walk",
     "Spectral Recall",

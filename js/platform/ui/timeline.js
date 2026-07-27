@@ -125,16 +125,21 @@ export function insertRotationEntry(rotation, entry, index) {
 
 export function timelineRows(
   rotation = [],
-  { startingWeaponSet = 1, isWeaponSwap = () => false } = {},
+  {
+    startingWeaponSet = 1,
+    isWeaponSwap = () => false,
+    isWeaponSetRefresh = () => false,
+  } = {},
 ) {
   const rows = [{ weaponSet: startingWeaponSet, skills: [] }];
   let weaponSet = startingWeaponSet;
   rotation.forEach((entry, index) => {
     rows.at(-1).skills.push({ entry, index });
-    if (!isWeaponSwap(entry)) return;
-    // The swap command appears at the end of the old-set row; subsequent skills
-    // begin a row labeled with the newly active set.
-    weaponSet = weaponSet === 1 ? 2 : 1;
+    const swapsWeaponSet = isWeaponSwap(entry);
+    if (!swapsWeaponSet && !isWeaponSetRefresh(entry)) return;
+    // A real swap changes the next row's set. Transform transitions start a
+    // fresh row for the same equipped set.
+    if (swapsWeaponSet) weaponSet = weaponSet === 1 ? 2 : 1;
     if (index < rotation.length - 1) rows.push({ weaponSet, skills: [] });
   });
   return rows;

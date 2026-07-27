@@ -39,8 +39,12 @@ Same-name API mode aliases resolve to one canonical selectable skill.
   PvE life-force costs, Sand Savant, Desert Shroud, and Sandstorm Shroud.
 - Harbinger Shroud, zero-resource entry, five-percent-per-second drain,
   two Blight per second, 25-stack cap, 25-second expiration, elixir Blight,
-  empowered consumption thresholds, Cascading Corruption, and
-  Doom Approaches.
+  empowered consumption thresholds, Cascading Corruption, Deathly Haste,
+  Doom Approaches, and the complete always-visible transformed skill bar.
+  Devouring Cut and Voracious Arc consume five Blight at threshold, double
+  their 1.0/1.4 coefficients, and apply five Torment for five/seven seconds.
+  Dark Barrage is six hits totaling 3.6, while Vital Draw is three hits
+  totaling 1.2.
 - Ritualist Shroud, Anguish/Wanderlust/Preservation spirits, spirit attacks,
   Painful Bond, Essence Blast scaling, innervates, Soul Twisting, Boon of
   Creation, Explosive Growth, Spirits' Strength, and Lingering Spirits.
@@ -52,18 +56,51 @@ Same-name API mode aliases resolve to one canonical selectable skill.
   families, active-set palette rows, ammo, recharge, flips, and autoattack
   chains.
 - Signet of Undeath and Signet of Vampirism passives, Vampiric Mark, life
-  siphons, and Signets of Suffering interaction.
+  siphons, Signets of Suffering, Plague Signet, corruption self-conditions,
+  and duration-preserving condition transfers.
+- Weaponmaster Training presentation and validation, including Harbinger torch
+  skills. Lingering Curse exposes Devouring Darkness in place of Feast of
+  Corruption instead of displaying both skills.
+- Exact measured Quickness cast durations for the supplied core, Reaper,
+  Scourge, and Harbinger skill set. Ghastly Claws and Soul Spiral resolve as
+  individual packets; Soul Spiral packets persist after an early interrupt,
+  Grasping Darkness commits at 120 ms under Quickness, and a manually
+  interrupted Dark Barrage retains all six projectiles at 800 ms.
+- Death, Reaper, and Harbinger shroud strikes use ascended-hammer weapon
+  strength; Scourge shade strikes use unarmed strength. Ritualist Essence
+  Blast uses the active equipped weapon, Anguish/Wanderlust use fixed minion
+  strength, and Summon Spirits uses ascended-hammer strength.
 - Static build traits and resolver-time strike, critical, condition,
   duration, recharge, resource, shroud, chill, fear, minion, spirit, and
-  Blight modifiers. Deterministic expected-value procs are used where the game
-  uses random critical-hit chances.
+  Blight modifiers. This includes Death's Carapace/Deadly Strength,
+  Corrupter's Fervor, Dark Defense, Overflowing Thirst, Augury of Death,
+  Desert Empowerment, and Bolstering Brew. Deterministic expected-value procs
+  are used where the game uses random critical-hit chances.
+- Soul Battery increases maximum Life Force, Eternal Life gains Life Force
+  each interval outside shroud up to its threshold, and Death Perception adds
+  critical chance and critical damage only while shroud is active. Soul Barbs
+  is a non-stacking 15-second active state refreshed on shroud entry and exit.
+- Dhuumfire burns for three seconds on core/Reaper/Ritualist, two seconds on
+  Scourge with a one-second internal cooldown, and one second per Tainted
+  Bolts projectile on Harbinger. Septic Corruption applies poison per Dark
+  Barrage projectile; Dark Gunslinger converts 10% of Vitality to Expertise.
 - Additive outgoing-damage grouping for Soul Barbs, Dread, Wicked/Septic
   Corruption, Cascading Corruption, and Lingering Spirits' Anguish bonus.
   Spiteful Talisman, Close to Death, Cold Shoulder, Soul Eater, and
   condition-specific damage bonuses remain multiplicative.
 - Schema-version-3 build defaults, migration, sanitization, validation,
   canonical ID rotations, independent browser storage, and Life Force/Blight
-  start controls.
+  start controls. Life Force values are rounded for display, and Blight is
+  stacked below Life Force rather than extending the palette horizontally.
+- The Harbinger condition preset is loaded through
+  `Builds/necromancer-manifest.json` and intentionally contains no rotation.
+  Meltdown uses its wiki effect icon in proc results and modifier
+  contributions.
+
+Core, Reaper, Harbinger, and Ritualist shroud skills remain visible while the
+matching shroud is inactive, but are disabled until entry. Weapon and slot
+skills are disabled while those transformed bars are active. Scourge remains
+the non-transform exception.
 
 Relevant live mechanic references include
 [Death Shroud](https://wiki.guildwars2.com/wiki/Death_Shroud),
@@ -77,8 +114,8 @@ Relevant live mechanic references include
 
 The official API does not publish activation time for every skill and omits
 some bundle skills and mode-specific facts. Measured/current PvE overrides are
-used for important chains, channels, profession bars, persistent attacks, and
-resource mechanics. Remaining skills use deterministic type-based cast
+used for the audited chains, channels, profession bars, persistent attacks,
+and resource mechanics. Remaining skills use deterministic type-based cast
 defaults and API coefficients.
 
 This is a single-target damage simulator. Ally healing, revival, barrier,

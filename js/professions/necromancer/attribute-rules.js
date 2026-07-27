@@ -93,6 +93,18 @@ function targetChilled(context) {
 
 function modifyNecromancerAttributes(context, attributes) {
   const result = { ...attributes };
+  const timedCarapace = (
+    context.runtime?.profession?.carapaceExpiries || []
+  ).filter(expiresAt => expiresAt > context.time).length;
+  const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
+    ? Object.values(context.runtime?.profession?.activeMinions || {})
+        .reduce((total, count) => total + Number(count || 0) * 2, 0)
+    : 0;
+  const carapace = Math.min(30, timedCarapace + minionCarapace);
+  if (hasTrait(context, TRAIT.DEADLY_STRENGTH) && carapace > 0) {
+    result.power += carapace * 10;
+    result.conditionDamage += carapace * 10;
+  }
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
     result.power +=
       Number(context.timeline?.mightStacksAt(context.time) || 0) * 10;
@@ -126,7 +138,7 @@ function modifyNecromancerAttributes(context, attributes) {
       result.concentration += Number(result.vitality || 0) * 0.13;
     }
     if (hasTrait(context, TRAIT.DARK_GUNSLINGER)) {
-      result.expertise += Number(result.vitality || 0) * 0.13;
+      result.expertise += Number(result.vitality || 0) * 0.1;
     }
     if (hasTrait(context, TRAIT.BOON_OF_CREATION)) {
       result.concentration += 180;
@@ -192,7 +204,8 @@ export const necromancerModifierRules = Object.freeze([
     operation: "add",
     amount: 0.15,
     when: (context) =>
-      hasTrait(context, TRAIT.DEATH_PERCEPTION) && isShroudSkill(context),
+      hasTrait(context, TRAIT.DEATH_PERCEPTION) &&
+      Boolean(activeShroud(context)),
   },
   {
     id: "necromancer.death-perception-critical-damage",
@@ -200,7 +213,8 @@ export const necromancerModifierRules = Object.freeze([
     operation: "add",
     amount: 0.1,
     when: (context) =>
-      hasTrait(context, TRAIT.DEATH_PERCEPTION) && isShroudSkill(context),
+      hasTrait(context, TRAIT.DEATH_PERCEPTION) &&
+      Boolean(activeShroud(context)),
   },
   {
     id: "necromancer.wicked-corruption-critical-damage",

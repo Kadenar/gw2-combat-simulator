@@ -62,11 +62,14 @@ export function createNecromancerState(config = {}) {
     nextBlightAt: Number.POSITIVE_INFINITY,
     blight: initialBlight,
     blightExpiries,
+    carapaceExpiries: [],
     shades: [],
     activeMinions: {},
     activeSpirits: {},
     availableFlips: {},
     autoattackChains: {},
+    selfConditions: [],
+    plagueSendingArmed: false,
     lichEndsAt: 0,
     soulTwistingAvailable: false,
     signetNextLifeForceAt: 3,
@@ -78,6 +81,7 @@ export function createNecromancerState(config = {}) {
     fearOfDeathReadyAt: 0,
     vampiricPresenceReadyAt: 0,
     barbedPrecisionProgress: 0,
+    chillingNovaProgress: 0,
     demonicLoreReadyAt: 0,
     traitProcReadyAt: {},
   });
@@ -113,8 +117,10 @@ export function projectNecromancerEndState({ schedulerState }) {
     "fearOfDeathReadyAt",
     "vampiricPresenceReadyAt",
     "barbedPrecisionProgress",
+    "chillingNovaProgress",
     "demonicLoreReadyAt",
     "traitProcReadyAt",
+    "plagueSendingArmed",
   ]) {
     delete projected[key];
   }

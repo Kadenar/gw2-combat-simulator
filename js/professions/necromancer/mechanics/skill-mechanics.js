@@ -10,7 +10,7 @@ import {
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
 
-export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
+const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.WELL_OF_BLOOD]: {
     "implemented": true,
     "castTimeMs": 1000,
@@ -23,7 +23,11 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       {
         "type": "strike",
         "coefficient": 4.6,
-        "hits": 8
+        "hits": 8,
+        "atMs": 270,
+        "intervalMs": 270,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ],
     "lifeForceGain": 12,
@@ -90,7 +94,7 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.BLOOD_IS_POWER]: {
     "implemented": true,
-    "castTimeMs": 500,
+    "castTimeMs": 1000,
     "effects": [
       {
         "type": "strike",
@@ -104,6 +108,7 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 15
       }
     ],
+    "handlerId": "necromancer.corruption",
   },
   [ID.WELL_OF_CORRUPTION]: {
     "implemented": true,
@@ -149,14 +154,8 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
   [ID.CONSUME_CONDITIONS]: {
     "implemented": true,
     "castTimeMs": 1000,
-    "effects": [
-      {
-        "type": "buff",
-        "kind": "target-vulnerability",
-        "duration": 4,
-        "stacks": 5
-      }
-    ],
+    "effects": [],
+    "handlerId": "necromancer.corruption",
   },
   [ID.PLAGUELANDS]: {
     "implemented": true,
@@ -482,15 +481,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.PLAGUE_SIGNET]: {
     "implemented": true,
-    "castTimeMs": 500,
-    "effects": [
-      {
-        "type": "control",
-        "metadata": {
-          "controlKind": "control"
-        }
-      }
-    ],
+    "castTimeMs": 0,
+    "effects": [],
+    "handlerId": "necromancer.condition-transfer",
   },
   [ID.RIGOR_MORTIS]: {
     "implemented": true,
@@ -678,6 +671,7 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       }
     ],
     "lifeForceGain": 4,
+    "handlerId": "necromancer.corruption",
   },
   [ID.NECROTIC_TRAVERSAL]: {
     "implemented": true,
@@ -697,6 +691,7 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 6
       }
     ],
+    "handlerId": "necromancer.corruption",
   },
   [ID.DARK_PATH]: {
     "implemented": true,
@@ -760,14 +755,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 0.1,
         "hits": 1
-      },
-      {
-        "type": "buff",
-        "kind": "target-vulnerability",
-        "duration": 6,
-        "stacks": 3
       }
     ],
+    "handlerId": "necromancer.corruption",
   },
   [ID.WELL_OF_DARKNESS]: {
     "implemented": true,
@@ -1070,6 +1060,7 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "duration": 2
       }
     ],
+    "handlerId": "necromancer.corruption",
   },
   [ID.BLOOD_CURSE]: {
     "implemented": true,
@@ -1164,6 +1155,7 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "type": "blind"
       }
     ],
+    "handlerId": "necromancer.condition-transfer",
   },
   [ID.ENFEEBLING_BLOOD]: {
     "implemented": true,
@@ -1252,6 +1244,7 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "hits": 1
       }
     ],
+    "handlerId": "necromancer.condition-transfer",
   },
   [ID.MARK_OF_BLOOD]: {
     "implemented": true,
@@ -1434,14 +1427,20 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       {
         "type": "strike",
         "coefficient": 1.3,
-        "hits": 1
+        "hits": 1,
+        "atMs": 180,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "custom",
         "eventType": "necromancer.chill",
         "event": {
           "duration": 4
-        }
+        },
+        "atMs": 180,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ],
     "lifeForceGain": 10,
@@ -1563,118 +1562,31 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 8.4,
         "hits": 12,
-        "atMs": 229,
-        "intervalMs": 229,
+        "atMs": 270,
+        "intervalMs": 270,
         "timingAnchor": "castStart",
-        "timingScale": "fixed"
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 229,
+        "ticks": [
+          { "atMs": 270, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 540, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 810, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 1080, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 1350, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 1620, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 1890, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 2160, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 2430, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 2700, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 2970, "condition": "Poisoned", "stacks": 1, "duration": 2 },
+          { "atMs": 3240, "condition": "Poisoned", "stacks": 1, "duration": 2 }
+        ],
         "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 458,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 687,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 916,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 1145,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 1374,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 1603,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 1832,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 2061,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 2290,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 2519,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 2,
-        "atMs": 2748,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed"
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true
       }
     ],
     "type": "Profession",
@@ -1735,6 +1647,7 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
         }
       }
     ],
+    "handlerId": "necromancer.condition-transfer",
   },
   [ID.RISE]: {
     "implemented": true,
@@ -2102,20 +2015,9 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
   [ID.DEVOURING_DARKNESS]: {
     "implemented": true,
     "castTimeMs": 750,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 0.928,
-        "hits": 1
-      },
-      {
-        "type": "condition",
-        "condition": "Torment",
-        "stacks": 1,
-        "duration": 4
-      }
-    ],
+    "effects": [],
     "lifeForceGain": 8,
+    "handlerId": "necromancer.devouring-darkness",
     "flipParentId": null
   },
   [ID.SANDSTORM_SHROUD]: {
@@ -2298,9 +2200,22 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
       },
       {
         "type": "condition",
-        "condition": "Torment",
-        "stacks": 1,
-        "duration": 3
+        "ticks": [
+          {
+            "atMs": 250,
+            "condition": "Torment",
+            "stacks": 1,
+            "duration": 3
+          },
+          {
+            "atMs": 500,
+            "condition": "Torment",
+            "stacks": 1,
+            "duration": 3
+          }
+        ],
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ],
     "type": "Profession",
@@ -2382,6 +2297,7 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
     "shroud": "harbinger",
     "shroudSlot": 2,
     "specialization": "Harbinger",
+    "handlerId": "necromancer.dark-barrage",
   },
   [ID.ELIXIR_OF_IGNORANCE]: {
     "implemented": true,
@@ -2831,6 +2747,116 @@ export const NECROMANCER_SKILL_MECHANICS = Object.freeze({
   },
 });
 
+/**
+ * In-game cast durations measured with Quickness active. Keeping the measured
+ * duration alongside its 1.5x base equivalent avoids action-tick rounding
+ * changing an observed cast by up to 40 ms.
+ */
+export const NECROMANCER_QUICKNESS_CAST_TIMES_MS = Object.freeze({
+  [ID.LIFE_SIPHON]: 1520,
+  [ID.DARK_PACT]: 680,
+  [ID.NECROTIC_STAB]: 400,
+  [ID.NECROTIC_BITE]: 640,
+  [ID.NECROTIC_SLASH]: 360,
+  [ID.LIFE_BLAST]: 920,
+  [ID.DARK_PATH]: 880,
+  [ID.LIFE_TRANSFER]: 2920,
+  [ID.DHUUMFIRE_BLAST]: 920,
+  [ID.DOOM]: 600,
+  [ID.CORROSIVE_POISON_CLOUD]: 600,
+  [ID.DEVOURING_DARKNESS]: 600,
+  [ID.GRASPING_DEAD]: 880,
+  [ID.BLOOD_CURSE]: 440,
+  [ID.RENDING_CURSE]: 600,
+  [ID.BLOOD_IS_POWER]: 880,
+  [ID.PLAGUELANDS]: 920,
+  [ID.PUTRID_CURSE]: 920,
+  [ID.DEATHLY_SWARM]: 480,
+  [ID.ENFEEBLING_BLOOD]: 840,
+  [ID.ELIXIR_OF_PROMISE]: 680,
+  [ID.ELIXIR_OF_ANGUISH]: 680,
+  [ID.WEEPING_SHOTS]: 840,
+  [ID.VICIOUS_SHOT]: 560,
+  [ID.DARK_BARRAGE]: 920,
+  [ID.VORACIOUS_ARC]: 840,
+  [ID.DEVOURING_CUT]: 480,
+  [ID.TAINTED_BOLTS]: 600,
+  [ID.VILE_BLAST]: 600,
+  [ID.ELIXIR_OF_RISK]: 680,
+  [ID.LOCUST_SWARM]: 440,
+  [ID.VITAL_DRAW]: 800,
+  [ID.WAIL_OF_DOOM]: 1000,
+  [ID.ELIXIR_OF_AMBITION]: 680,
+  [ID.WELL_OF_DARKNESS]: 480,
+  [ID.WELL_OF_SUFFERING]: 480,
+  [ID.NIGHTFALL]: 480,
+  [ID.GRASPING_DARKNESS]: 520,
+  [ID.LIFE_REND]: 400,
+  [ID.SOUL_SPIRAL]: 2160,
+  [ID.LIFE_SLASH]: 600,
+  [ID.LIFE_REAP]: 560,
+  [ID.GRAVEDIGGER]: 1080,
+  [ID.DUSK_STRIKE]: 480,
+  [ID.FADING_TWILIGHT]: 640,
+  [ID.CHILLING_SCYTHE]: 920,
+  [ID.DEATHS_CHARGE]: 1200,
+  [ID.GHASTLY_CLAWS]: 1440,
+  [ID.RENDING_CLAWS]: 620,
+  [ID.REAPERS_MARK]: 520,
+  [ID.CHILLBLAINS]: 480,
+  [ID.MARK_OF_BLOOD]: 480,
+  [ID.EXECUTIONERS_SCYTHE]: 1320,
+  [ID.NECROTIC_GRASP]: 880,
+  [ID.PUTRID_MARK]: 480,
+  [ID.TERRIFY]: 320,
+  [ID.SUFFER]: 0,
+  [ID.SIGNET_OF_SPITE]: 880,
+  [ID.SPINAL_SHIVERS]: 800,
+  [ID.MANIFEST_SAND_SHADE]: 480,
+  [ID.HARROWING_WAVE]: 440,
+  [ID.OPPRESSIVE_COLLAPSE]: 600,
+  [ID.SOUL_GRASP]: 520,
+  [ID.SIGNET_OF_VAMPIRISM]: 880,
+  [ID.SPECTRAL_GRASP]: 600,
+  [ID.FEAST_OF_CORRUPTION]: 600,
+});
+
+export const NECROMANCER_SKILL_MECHANICS = Object.freeze(
+  Object.fromEntries(
+    Object.entries(NECROMANCER_BASE_SKILL_MECHANICS).map(
+      ([skillId, mechanics]) => {
+        const quicknessCastTimeMs =
+          NECROMANCER_QUICKNESS_CAST_TIMES_MS[skillId];
+        const shroudSkillWeapon = [
+          "death",
+          "reaper",
+          "harbinger",
+        ].includes(mechanics.shroud)
+          ? "Hammer"
+          : null;
+        if (quicknessCastTimeMs == null && !shroudSkillWeapon) {
+          return [skillId, mechanics];
+        }
+        return [
+          skillId,
+          Object.freeze({
+            ...mechanics,
+            ...(shroudSkillWeapon
+              ? { skillWeapon: shroudSkillWeapon }
+              : {}),
+            ...(quicknessCastTimeMs == null
+              ? {}
+              : {
+                  castTimeMs: quicknessCastTimeMs * 1.5,
+                  quicknessCastTimeMs,
+                }),
+          }),
+        ];
+      },
+    ),
+  ),
+);
+
 export const NECROMANCER_IMPLEMENTED_SKILL_IDS = Object.freeze(
   Object.keys(NECROMANCER_SKILL_MECHANICS).map(Number),
 );
@@ -2888,7 +2914,7 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
   traitStrikeCoefficient: Object.freeze({
     [TRAIT.SPITEFUL_SPIRIT]: 1,
     [TRAIT.EXPLOSIVE_GROWTH]: 1.2,
-    [TRAIT.CASCADING_CORRUPTION]: 1,
+    [TRAIT.CASCADING_CORRUPTION]: 4.5,
   }),
   traitProcs: Object.freeze({
     [TRAIT.DHUUMFIRE]: Object.freeze({
@@ -2896,12 +2922,27 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
       traitId: TRAIT.DHUUMFIRE,
       condition: "Burning",
       duration: 3,
+      scourgeDuration: 2,
+      harbingerDuration: 1,
+      scourgeInterval: 1,
+    }),
+    [TRAIT.UNYIELDING_BLAST]: Object.freeze({
+      name: "Unyielding Blast",
+      traitId: TRAIT.UNYIELDING_BLAST,
+      stacks: 2,
+      duration: 10,
+    }),
+    [TRAIT.SEPTIC_CORRUPTION]: Object.freeze({
+      name: "Septic Corruption",
+      traitId: TRAIT.SEPTIC_CORRUPTION,
+      condition: "Poisoned",
+      duration: 3,
     }),
     [TRAIT.BARBED_PRECISION]: Object.freeze({
       name: "Barbed Precision",
       traitId: TRAIT.BARBED_PRECISION,
       condition: "Bleeding",
-      duration: 2,
+      duration: 3,
       criticalProgress: 0.33,
     }),
     [TRAIT.VAMPIRIC_PRESENCE]: Object.freeze({

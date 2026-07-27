@@ -52,6 +52,32 @@ test('shared contribution comparisons accept a profession simulator', () => {
     }]);
 });
 
+test('shared contribution comparisons omit deltas that render as zero', () => {
+    const simulate = (_rotation, config) => ({ dps: config.dps });
+    const comparisons = [
+        ['tiny-positive', 'Tiny positive', 99.6],
+        ['tiny-negative', 'Tiny negative', 100.4],
+        ['positive', 'Positive', 99.4],
+        ['negative', 'Negative', 100.6],
+    ].map(([id, label, dps]) => ({
+        modifier: { id, label },
+        config: { dps },
+    }));
+
+    const contributions = calculateContributionComparisons({
+        rotation: [],
+        baseConfig: { dps: 100 },
+        comparisons,
+    }, simulate);
+
+    assert.deepEqual(
+        contributions.map(contribution => contribution.id),
+        ['positive', 'negative'],
+    );
+    assert.ok(contributions[0].dpsIncrease > 0.5);
+    assert.ok(contributions[1].dpsIncrease < -0.5);
+});
+
 test('core attribute calculation does not apply Mesmer build rules', () => {
     const build = createDefaultBuild();
     const common = calculateCommonAttributes(build);

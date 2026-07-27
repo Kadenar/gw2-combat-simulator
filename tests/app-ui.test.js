@@ -190,6 +190,27 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
   }
 });
 
+test("Necromancer Harbinger default build resolves without a rotation", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/necromancer-manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("necromancer");
+  const presets = manifest.flatMap(section => section.presets);
+
+  assert.deepEqual(manifest.map(section => section.section), ["Harbinger"]);
+  assert.deepEqual(presets.map(preset => preset.label), ["Condition"]);
+  const saved = JSON.parse(await readFile(
+    new URL(`../${presets[0].build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "necromancer");
+  assert.equal(build.specializations[2].name, "Harbinger");
+  assert.equal(build.selectedSkills.Utility2, "Plague Signet");
+});
+
 test("build import and export leave rotation state separate", async () => {
   const adapter = await loadProfessionAppAdapter("mesmer");
   const current = createDefaultBuild(adapter);
@@ -264,6 +285,7 @@ test("damage result rows reuse the icons shown for generated procs", () => {
   const earthIcon = "earth.png";
   const nourishmentIcon = "nourishment.png";
   const phantasmalBladesIcon = "phantasmal-blades.png";
+  const meltdownIcon = "meltdown.png";
   const app = {
     attributeData: {
       activeTraits: [{
@@ -290,6 +312,12 @@ test("damage result rows reuse the icons shown for generated procs", () => {
           skill: "Phantasmal Blades",
           sourceSkill: "Phantasmal Lancer",
         },
+        {
+          type: "trait_proc",
+          skill: "Meltdown",
+          sourceSkill: "Devouring Cut",
+          icon: meltdownIcon,
+        },
       ],
     },
     skillByName: new Map(),
@@ -307,6 +335,10 @@ test("damage result rows reuse the icons shown for generated procs", () => {
   assert.equal(
     resultSkillIcon(app, { name: "Phantasmal Blade" }),
     phantasmalBladesIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Cascading Corruption" }),
+    meltdownIcon,
   );
 });
 

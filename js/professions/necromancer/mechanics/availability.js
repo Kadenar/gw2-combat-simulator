@@ -128,9 +128,9 @@ function shroudEntryGate(_context, skill, { state, activeShroud, spec }) {
 
 function shroudExitGate(context, skill, { state, activeShroud }) {
   if (!EXIT_IDS.has(skill.id)) return null;
-  const parentShroud = requiredShroud(
-    context.catalog.skillsById.get(skill.flipParentId),
-  );
+  const parent = context.catalog.skillsById.get(skill.flipParentId);
+  const parentShroud =
+    ENTRY_SHROUD_BY_ID[parent?.id] || requiredShroud(parent);
   const available =
     activeShroud === parentShroud
     || Number(state.availableFlips[skill.id] || 0) > context.start;
@@ -218,7 +218,11 @@ const CAST_STATE_GATES = Object.freeze([
  */
 export function validateNecromancerBuild(context, skill) {
   if (!skill.implemented || skill.simulatorExcluded) return false;
-  if (skill.specialization && skill.specialization !== specialization(context)) {
+  if (
+    skill.type !== "Weapon" &&
+    skill.specialization &&
+    skill.specialization !== specialization(context)
+  ) {
     return false;
   }
   if (

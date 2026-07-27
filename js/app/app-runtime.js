@@ -15,7 +15,9 @@ export function calculateContributionComparisons(
   for (const { modifier, config } of comparisons) {
     const without = simulateBuild(rotation, config);
     const dpsIncrease = baseline.dps - without.dps;
-    if (Math.abs(dpsIncrease) < 0.005) continue;
+    // Contributions are displayed as whole DPS. Do not retain numerical noise
+    // that can only render as 0 or -0 in the report.
+    if (Math.round(dpsIncrease) === 0) continue;
     contributions.push({
       id: modifier.id,
       name: modifier.label,
