@@ -1,5 +1,15 @@
 [
   {
+    "section": "Reaper",
+    "presets": [
+      {
+        "label": "Power",
+        "build": "Builds/b-power-reaper.json",
+        "rotation": "Rotations/r-power-reaper-bench.json"
+      }
+    ]
+  },
+  {
     "section": "Harbinger",
     "presets": [
       {

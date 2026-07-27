@@ -152,7 +152,12 @@ function distress(context, skill) {
 }
 
 function nightfall(context, skill) {
-  const firstAt = context.effectiveEnd;
+  // EVTC packets land five-sixths of the way through the activation. The
+  // remaining animation is aftercast, so anchoring pulses to effectiveEnd
+  // makes every packet late and loses a committed field when the aftercast is
+  // cancelled.
+  const firstAt =
+    context.start + (context.fullEnd - context.start) * (5 / 6);
   for (let index = 0; index < 4; index += 1) {
     const at = firstAt + index;
     emitDamage(context, skill, 1.15, {

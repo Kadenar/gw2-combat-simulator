@@ -39,7 +39,7 @@ function scaleCastBoundTiming(context, skill, effect) {
     ...(effect.atMs == null
       ? {}
       : { atMs: Number(effect.atMs) * scale }),
-    ...(effect.intervalMs == null
+    ...(effect.intervalMs == null || effect.intervalTimingScale === "fixed"
       ? {}
       : { intervalMs: Number(effect.intervalMs) * scale }),
   };

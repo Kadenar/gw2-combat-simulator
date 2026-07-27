@@ -1798,21 +1798,26 @@ test('Relic of the Claw records activation and refresh procs', () => {
     );
 });
 
-test('timed relic buffs only add a proc when the buff was not already active', () => {
+test('Relic of Fireworks records activation and refresh procs', () => {
     const fireworks = simulateMesmer(
-        ['Chaos Storm', { name: '__wait', waitMs: 14000 }, 'Chaos Storm'],
+        ['Chaos Storm', 'Phantasmal Mage'],
         defaultSimulationConfig({
             specialization: 'Core',
             relic: 'Fireworks',
             primaryWeapon: 'Staff',
-            secondaryWeapon: '',
+            secondaryWeapon: 'Torch',
             weaponSet2Primary: 'Staff',
-            weaponSet2Secondary: '',
+            weaponSet2Secondary: 'Torch',
         }),
     );
-    assert.equal(
-        fireworks.procSteps.filter(proc => proc.skill === 'Relic of Fireworks').length,
-        2,
+    assert.deepEqual(
+        fireworks.procSteps
+            .filter(proc => proc.skill === 'Relic of Fireworks')
+            .map(proc => ({ sourceSkill: proc.sourceSkill, detail: proc.detail })),
+        [
+            { sourceSkill: 'Chaos Storm', detail: 'activated' },
+            { sourceSkill: 'Phantasmal Mage', detail: 'refreshed' },
+        ],
     );
 });
 

@@ -39,7 +39,11 @@ import {
     SKILL_COLS,
 } from '../platform/ui/rotation-results.js';
 import { escapeHtml as esc, gw2ApiText } from '../platform/ui/html.js';
-import { RELIC_DATA } from '../platform/gw2/gear-data.js';
+import {
+    NOURISHMENT_ICON,
+    RELIC_DATA,
+    SIGIL_DATA,
+} from '../platform/gw2/gear-data.js';
 
 const CONCURRENT_OFFSET_MS = 100;
 const PLACEHOLDER_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
@@ -61,6 +65,11 @@ const WEAPON_SET_REFRESH_SKILLS = new Set([
 const RESULT_PROC_NAMES = {
     'Phantasmal Blade': 'Phantasmal Blades',
     'Cascading Corruption': 'Meltdown',
+};
+const MODIFIER_EFFECT_ICONS = {
+    Might: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Might.png',
+    Fury: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fury.png',
+    Vulnerability: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vulnerability.png',
 };
 const PALETTE_ACTION_ORDER = new Map([
     ['Dodge / Mirage Cloak', 0],
@@ -130,6 +139,25 @@ function resolveRelicIcon(label) {
     }
   }
   return "";
+}
+
+function resolveModifierIcon(row) {
+    const id = String(row.id || '');
+    const label = String(row.name || '');
+    const effectIcon = MODIFIER_EFFECT_ICONS[label];
+    if (effectIcon) return effectIcon;
+
+    const sigilName = id.startsWith('Sigil:')
+        ? id.slice('Sigil:'.length)
+        : label.match(/^Sigil of (.+)$/)?.[1];
+    if (sigilName && SIGIL_DATA[sigilName]?.icon) {
+        return SIGIL_DATA[sigilName].icon;
+    }
+
+    if (label === 'Nourishment' || label === 'Food: Nourishment') {
+        return NOURISHMENT_ICON;
+    }
+    return '';
 }
 
 function resolveProcIcon(app, proc) {
@@ -1313,6 +1341,9 @@ export function resultSkillIcon(app, row) {
     const procIcon = matchingProc && resolveProcIcon(app, matchingProc);
     if (procIcon) return procIcon;
 
+    const modifierIcon = resolveModifierIcon(row);
+    if (modifierIcon) return modifierIcon;
+
     const traits = app.attributeData?.activeTraits || [];
     const trait = traits.find(candidate =>
         candidate.name === row.name
@@ -1360,7 +1391,7 @@ export function renderResults(app) {
     const series = buildChartSeries(result);
     const contributions = (result.contributions || []).map(contribution => ({
         ...contribution,
-        icon: resultSkillIcon(app, { name: contribution.name }),
+        icon: resultSkillIcon(app, contribution),
     }));
     const breakpoints = targetHealthBreakpointSnapshots(
         result,

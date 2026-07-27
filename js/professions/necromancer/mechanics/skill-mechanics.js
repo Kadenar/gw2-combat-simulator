@@ -126,9 +126,12 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 6,
         "hits": 6,
+        "atMs": 420,
         "intervalMs": 1000,
-        "timingAnchor": "castEnd",
-        "timingScale": "fixed",
+        "intervalTimingScale": "fixed",
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true,
         "metadata": {
           "extendsResolutionHorizon": true
         }
@@ -731,9 +734,11 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 4.800000000000001,
         "hits": 6,
+        "atMs": 420,
         "intervalMs": 1000,
-        "timingAnchor": "castEnd",
-        "timingScale": "fixed",
+        "intervalTimingScale": "fixed",
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
         "metadata": {
           "extendsResolutionHorizon": true
         }
@@ -1280,7 +1285,7 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.YOU_ARE_ALL_WEAKLINGS]: {
     "implemented": true,
-    "castTimeMs": 500,
+    "castTimeMs": 0,
     "effects": [
       {
         "type": "strike",
@@ -1486,7 +1491,10 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       {
         "type": "strike",
         "coefficient": 1.8,
-        "hits": 1
+        "hits": 1,
+        "atMs": 420,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ],
     "lifeForceGain": 1.5,
@@ -1557,6 +1565,9 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 4,
         "hits": 1,
+        "atMs": 1260,
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
         "metadata": {
           "thresholdCoefficients": {
             "25": 8,
@@ -1566,12 +1577,18 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       },
       {
         "type": "control",
+        "atMs": 1260,
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
         "metadata": {
           "controlKind": "stun"
         }
       },
       {
         "type": "custom",
+        "atMs": 1260,
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
         "eventType": "necromancer.chill",
         "event": {
           "duration": 1
@@ -2738,6 +2755,10 @@ export const NECROMANCER_QUICKNESS_CAST_TIMES_MS = Object.freeze({
   [ID.DEVOURING_CUT]: 480,
   [ID.TAINTED_BOLTS]: 600,
   [ID.VILE_BLAST]: 600,
+  [ID.ADDLE]: 360,
+  [ID.EXTIRPATE]: 920,
+  [ID.DARK_SLASH]: 600,
+  [ID.ISOLATE]: 480,
   [ID.PERFORATE]: 840,
   [ID.ELIXIR_OF_RISK]: 540,
   [ID.LOCUST_SWARM]: 440,
