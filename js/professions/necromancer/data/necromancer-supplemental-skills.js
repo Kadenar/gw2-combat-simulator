@@ -3,28 +3,6 @@
 
 export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
   {
-    "id": 10600,
-    "name": "Necrotic Traversal",
-    "description": "Sacrifice your flesh wurm, teleport to it, and poison nearby foes.",
-    "icon": "https://render.guildwars2.com/file/BBAA911903B9E640DD6D02B14A6F6D58F2ADFE0C/103308.png",
-    "type": "Utility",
-    "weapon": "",
-    "slot": "Utility",
-    "specialization": "",
-    "categories": [
-      "Minion"
-    ],
-    "flags": [
-      "NoUnderwater"
-    ],
-    "recharge": 0,
-    "ammo": 0,
-    "ammoRecharge": 0,
-    "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
-  },
-  {
     "id": 10604,
     "name": "Dark Path",
     "description": "Shroud. Send out a claw that damages, bleeds, and chills the target.",

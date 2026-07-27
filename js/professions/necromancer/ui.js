@@ -268,6 +268,29 @@ export const necromancerUi = Object.freeze({
         statusLabel: "Current",
       });
     }
+    const equippedWeapons = [
+      ...(context.build?.weapons || []),
+      ...(context.build?.alternateWeapons || []),
+      context.config?.primaryWeapon,
+      context.config?.weaponSet2Primary,
+    ];
+    if (
+      equippedWeapons.includes("Spear")
+      || Number(state.soulShards || 0) > 0
+    ) {
+      views.push({
+        id: "soul-shards",
+        singular: "soul shard",
+        plural: "soul shards",
+        maximum: 6,
+        value: Number(state.soulShards || 0),
+        canStart: false,
+        step: 1,
+        displayMode: "bar",
+        shortLabel: "Shrd",
+        statusLabel: "Current",
+      });
+    }
     return views;
   },
   rotationSkillAvailability,

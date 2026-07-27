@@ -9,7 +9,8 @@
  *     canonical events before pushing them through `context.emit`.
  *   - Timed-resource mutators for blight/carapace/shades and life force
  *     (`purgeTimedState`, `addCarapace`, `addBlight`, `consumeBlight`,
- *     `gainNecromancerLifeForce`), plus creature-summon trait procs.
+ *     `addSoulShards`, `consumeSoulShards`, `gainNecromancerLifeForce`),
+ *     plus creature-summon trait procs.
  *
  * Handlers depend on this module; it must not depend on them.
  */
@@ -189,6 +190,8 @@ export function purgeTimedState(state, at) {
     .filter(expiresAt => expiresAt > at);
   state.shades = (state.shades || [])
     .filter(expiresAt => expiresAt > at);
+  state.soulShardExpiries = (state.soulShardExpiries || [])
+    .filter(expiresAt => expiresAt > at);
   syncNecromancerResources(state);
 }
 
@@ -224,6 +227,33 @@ export function consumeBlight(state, stacks, at) {
     state.blightExpiries.length,
   );
   state.blightExpiries.splice(0, count);
+  syncNecromancerResources(state);
+  return count;
+}
+
+export function addSoulShards(state, stacks, at, duration = 10) {
+  purgeTimedState(state, at);
+  const expiresAt = at + duration;
+  state.soulShardExpiries =
+    state.soulShardExpiries.map(() => expiresAt);
+  const count = Math.min(
+    Math.max(0, Math.trunc(Number(stacks || 0))),
+    6 - state.soulShardExpiries.length,
+  );
+  state.soulShardExpiries.push(
+    ...Array.from({ length: count }, () => expiresAt),
+  );
+  syncNecromancerResources(state);
+  return count;
+}
+
+export function consumeSoulShards(state, stacks, at) {
+  purgeTimedState(state, at);
+  const count = Math.min(
+    Math.max(0, Math.trunc(Number(stacks || 0))),
+    state.soulShardExpiries.length,
+  );
+  state.soulShardExpiries.splice(0, count);
   syncNecromancerResources(state);
   return count;
 }

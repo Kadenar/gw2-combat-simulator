@@ -77,6 +77,7 @@ export function leaveShroud(context, at, reason = "shroud-exit") {
     delete state.availableFlips[String(exitId)];
   }
   if (shroud === "ritualist") clearSpiritsUnlessLingering(context);
+  context.state.cooldowns.delete(ID.ISOLATE);
   setShroudRecharge(context, shroud, at);
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
     context.emit({

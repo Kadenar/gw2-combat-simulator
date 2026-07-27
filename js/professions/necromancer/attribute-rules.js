@@ -172,11 +172,39 @@ function thresholdCoefficientFactor(context) {
   const fraction = targetHealthFraction(context);
   const chosen =
     fraction < 0.25
-      ? Number(thresholds[25] || base)
+      ? Number(thresholds[25] ?? thresholds[50] ?? base)
       : fraction < 0.5
-        ? Number(thresholds[50] || base)
+        ? Number(thresholds[50] ?? base)
         : base;
   return chosen / base;
+}
+
+function criticalStrikeTraitFactor(context) {
+  let criticalHitFactor = 1;
+  if (
+    hasTrait(context, TRAIT.DEATH_PERCEPTION)
+    && Boolean(activeShroud(context))
+  ) {
+    criticalHitFactor *= 1.1;
+  }
+  if (
+    hasTrait(context, TRAIT.WICKED_CORRUPTION)
+    && targetHasCondition(context, "Torment")
+  ) {
+    criticalHitFactor *= 1.1;
+  }
+  if (criticalHitFactor === 1) return 1;
+  const critical = context.query.critical(
+    context.event,
+    context.time,
+    context.runtime,
+  );
+  const normalExpected =
+    1 + critical.chance * (critical.damage - 1);
+  const modifiedExpected =
+    (1 - critical.chance)
+    + critical.chance * critical.damage * criticalHitFactor;
+  return modifiedExpected / normalExpected;
 }
 
 export const necromancerModifierRules = Object.freeze([
@@ -203,27 +231,7 @@ export const necromancerModifierRules = Object.freeze([
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: "add",
     amount: 0.15,
-    when: (context) =>
-      hasTrait(context, TRAIT.DEATH_PERCEPTION) &&
-      Boolean(activeShroud(context)),
-  },
-  {
-    id: "necromancer.death-perception-critical-damage",
-    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-    operation: "add",
-    amount: 0.1,
-    when: (context) =>
-      hasTrait(context, TRAIT.DEATH_PERCEPTION) &&
-      Boolean(activeShroud(context)),
-  },
-  {
-    id: "necromancer.wicked-corruption-critical-damage",
-    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-    operation: "add",
-    amount: 0.1,
-    when: (context) =>
-      hasTrait(context, TRAIT.WICKED_CORRUPTION) &&
-      targetHasCondition(context, "Torment"),
+    when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION),
   },
   {
     id: "necromancer.soul-barbs",
@@ -249,6 +257,22 @@ export const necromancerModifierRules = Object.freeze([
     operation: "damage-additive",
     amount: (context) => activeBlight(context) * 0.01,
     when: (context) => hasTrait(context, TRAIT.WICKED_CORRUPTION),
+  },
+  {
+    id: "necromancer.critical-hit-trait-damage",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: criticalStrikeTraitFactor,
+    order: 100,
+    when: (context) =>
+      (
+        hasTrait(context, TRAIT.DEATH_PERCEPTION)
+        && Boolean(activeShroud(context))
+      )
+      || (
+        hasTrait(context, TRAIT.WICKED_CORRUPTION)
+        && targetHasCondition(context, "Torment")
+      ),
   },
   {
     id: "necromancer.septic-corruption-blight",

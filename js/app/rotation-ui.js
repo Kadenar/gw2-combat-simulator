@@ -1295,6 +1295,7 @@ export function buildChartSeries(result, sampleStepMs = 250) {
 }
 
 export function resultSkillIcon(app, row) {
+    if (row.icon) return row.icon;
     const breakdownName = baseBreakdownName(row.name);
     const cloneAttackName = breakdownName.startsWith('Clone: ')
         ? breakdownName.slice('Clone: '.length)

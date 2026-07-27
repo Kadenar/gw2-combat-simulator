@@ -190,7 +190,7 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
   }
 });
 
-test("Necromancer Harbinger default build resolves without a rotation", async () => {
+test("Necromancer Harbinger default builds resolve without rotations", async () => {
   const manifest = JSON.parse(await readFile(
     new URL("../Builds/necromancer-manifest.json", import.meta.url),
     "utf8",
@@ -199,16 +199,35 @@ test("Necromancer Harbinger default build resolves without a rotation", async ()
   const presets = manifest.flatMap(section => section.presets);
 
   assert.deepEqual(manifest.map(section => section.section), ["Harbinger"]);
-  assert.deepEqual(presets.map(preset => preset.label), ["Condition"]);
-  const saved = JSON.parse(await readFile(
+  assert.deepEqual(
+    presets.map(preset => preset.label),
+    ["Power", "Condition"],
+  );
+  for (const preset of presets) {
+    const saved = JSON.parse(await readFile(
+      new URL(`../${preset.build}`, import.meta.url),
+      "utf8",
+    ));
+    const build = adapter.toApplicationBuild(saved);
+    assert.equal(Object.hasOwn(saved, "rotation"), false);
+    assert.equal(build.profession, "necromancer");
+    assert.equal(build.specializations[2].name, "Harbinger");
+    assert.equal(build.weapons.length, 2);
+    assert.equal(build.alternateWeapons.length, 2);
+  }
+  const power = JSON.parse(await readFile(
     new URL(`../${presets[0].build}`, import.meta.url),
     "utf8",
   ));
-  const build = adapter.toApplicationBuild(saved);
-  assert.equal(Object.hasOwn(saved, "rotation"), false);
-  assert.equal(build.profession, "necromancer");
-  assert.equal(build.specializations[2].name, "Harbinger");
-  assert.equal(build.selectedSkills.Utility2, "Plague Signet");
+  assert.deepEqual(power.weapons, ["Greatsword", ""]);
+  assert.deepEqual(power.alternateWeapons, ["Spear", ""]);
+  assert.equal(power.rune, "Dragonhunter");
+  assert.deepEqual(power.weaponSigils, [
+    ["Force", "Accuracy"],
+    ["Force", "Accuracy"],
+  ]);
+  assert.equal(power.selectedSkills.Utility1, "Well of Suffering");
+  assert.equal(power.selectedSkills.Utility2, "Well of Darkness");
 });
 
 test("build import and export leave rotation state separate", async () => {
@@ -286,6 +305,7 @@ test("damage result rows reuse the icons shown for generated procs", () => {
   const nourishmentIcon = "nourishment.png";
   const phantasmalBladesIcon = "phantasmal-blades.png";
   const meltdownIcon = "meltdown.png";
+  const explicitIcon = "soul-shards.png";
   const app = {
     attributeData: {
       activeTraits: [{
@@ -339,6 +359,10 @@ test("damage result rows reuse the icons shown for generated procs", () => {
   assert.equal(
     resultSkillIcon(app, { name: "Cascading Corruption" }),
     meltdownIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Soul Shards", icon: explicitIcon }),
+    explicitIcon,
   );
 });
 

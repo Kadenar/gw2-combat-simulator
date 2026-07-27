@@ -41,6 +41,8 @@ export function handleNecromancerStateEvent(context, event) {
     barbedPrecisionProgress: context.profession.barbedPrecisionProgress,
     chillingNovaProgress: context.profession.chillingNovaProgress,
     demonicLoreReadyAt: context.profession.demonicLoreReadyAt,
+    spitefulFortitudeLifeForce:
+      context.profession.spitefulFortitudeLifeForce,
     traitProcReadyAt: context.profession.traitProcReadyAt,
   };
   for (const key of Object.keys(context.profession)) {

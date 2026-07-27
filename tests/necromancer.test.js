@@ -84,6 +84,15 @@ test("Necromancer uses the current API catalog and all nine trait lines", () => 
     necromancerCatalog.skillsById.get(ID.LIFE_BLAST).name,
     "Life Blast",
   );
+  for (const name of [
+    "Corrupt Boon",
+    "Spectral Ring",
+    "Epidemic",
+    "Summon Flesh Wurm",
+    "Necrotic Traversal",
+  ]) {
+    assert.equal(necromancerCatalog.skillsByName.has(name), false, name);
+  }
   assert.deepEqual(
     necromancerCatalog.specializations
       .filter(specialization => specialization.elite)
@@ -114,6 +123,7 @@ test("measured Quickness cast times remain exact", () => {
     [ID.PUTRID_CURSE, 920],
     [ID.DEATHLY_SWARM, 480],
     [ID.ENFEEBLING_BLOOD, 840],
+    [ID.DEATH_SPIRAL, 720],
     [ID.ELIXIR_OF_PROMISE, 680],
     [ID.ELIXIR_OF_ANGUISH, 680],
     [ID.WEEPING_SHOTS, 840],
@@ -123,7 +133,8 @@ test("measured Quickness cast times remain exact", () => {
     [ID.DEVOURING_CUT, 480],
     [ID.TAINTED_BOLTS, 600],
     [ID.VILE_BLAST, 600],
-    [ID.ELIXIR_OF_RISK, 680],
+    [ID.PERFORATE, 840],
+    [ID.ELIXIR_OF_RISK, 540],
     [ID.LOCUST_SWARM, 440],
     [ID.VITAL_DRAW, 800],
     [ID.WAIL_OF_DOOM, 1000],
@@ -526,6 +537,376 @@ test("Harbinger shroud attacks use their Blight thresholds and coefficients", ()
   );
 });
 
+test("Blight skills pay their cost before Wicked Corruption and elixirs", () => {
+  const run = (skill, selectedTraitIds = []) => simulate("Harbinger", [
+    "Harbinger Shroud",
+    skill,
+    "Exit Harbinger Shroud",
+    "Elixir of Risk",
+  ], {
+    initialBlight: 25,
+    selectedSkills: ["Elixir of Risk"],
+    selectedTraitIds,
+    stats: { precision: 4000 },
+    target: {
+      ...baseConfig.target,
+      health: 1_000_000_000,
+      conditions: { Vulnerability: 25 },
+    },
+  });
+  for (const [skill, skillId, elixirConsumption] of [
+    ["Devouring Cut", ID.DEVOURING_CUT, 15],
+    ["Voracious Arc", ID.VORACIOUS_ARC, 17],
+  ]) {
+    const baseline = run(skill);
+    const wicked = run(skill, [TRAIT.WICKED_CORRUPTION]);
+    const skillDamage = result => result.resolvedEvents.find(event =>
+      event.type === "damage" && event.skillId === skillId);
+    const wickedStrike = skillDamage(wicked);
+
+    assert.equal(wickedStrike.necromancerBlight, 20, skill);
+    assert.ok(
+      Math.abs(
+        wickedStrike.damage / skillDamage(baseline).damage - 1.2,
+      ) < 1e-12,
+      skill,
+    );
+    assert.equal(
+      wicked.events.find(event =>
+        event.type === "necromancer.state"
+        && event.reason === "blight-skill")?.state.blight,
+      20,
+      skill,
+    );
+    assert.equal(
+      wicked.events.find(event =>
+        event.type === "necromancer.state"
+        && event.reason === "blight-consumed")?.state.blight,
+      elixirConsumption,
+      skill,
+    );
+    assert.equal(wicked.endState.profession.blight, 25, skill);
+  }
+});
+
+test("Spear skills generate, refresh, consume, and damage with Soul Shards", () => {
+  const chain = simulate("Harbinger", [
+    "Dark Slash",
+    "Deadly Slice",
+    "Sinister Stab",
+  ], {
+    initialResource: 0,
+    primaryWeapon: "Spear",
+  });
+  const utility = simulate("Harbinger", [
+    "Extirpate",
+    "Addle",
+    "Perforate",
+  ], {
+    initialResource: 0,
+    primaryWeapon: "Spear",
+    target: {
+      ...baseConfig.target,
+      health: 1_000_000_000,
+    },
+  });
+  const belowHalf = simulate("Harbinger", [
+    "Extirpate",
+    "Addle",
+    "Perforate",
+  ], {
+    initialResource: 0,
+    primaryWeapon: "Spear",
+    target: {
+      ...baseConfig.target,
+      health: 20_000,
+    },
+  });
+  const expired = simulate("Harbinger", [
+    "Dark Slash",
+    "Deadly Slice",
+    { type: "wait", durationMs: 10_100 },
+  ], {
+    primaryWeapon: "Spear",
+  });
+  const damageEvents = (result, skillId) => result.events.filter(event =>
+    event.type === "damage" && event.skillId === skillId);
+
+  assert.deepEqual(
+    damageEvents(chain, ID.DARK_SLASH).map(event => event.coefficient),
+    [1.2],
+  );
+  assert.deepEqual(
+    damageEvents(chain, ID.DEADLY_SLICE).map(event => event.coefficient),
+    [1.4],
+  );
+  assert.deepEqual(
+    damageEvents(chain, ID.SINISTER_STAB).map(event => event.coefficient),
+    [1.8],
+  );
+  assert.equal(chain.endState.profession.soulShards, 2);
+  assert.equal(chain.endState.profession.lifeForce, 5);
+  assert.equal(
+    chain.events.some(event =>
+      event.type === "necromancer.chill"
+      && event.skillId === ID.SINISTER_STAB),
+    true,
+  );
+  assert.equal(expired.endState.profession.soulShards, 0);
+
+  assert.equal(utility.endState.profession.lifeForce, 22);
+  assert.equal(utility.endState.profession.soulShards, 0);
+  assert.equal(
+    utility.events.some(event =>
+      event.type === "buff"
+      && event.skillId === ID.EXTIRPATE
+      && event.kind === "might"
+      && event.stacks === 5),
+    true,
+  );
+  assert.equal(
+    utility.events.some(event =>
+      event.type === "condition"
+      && event.skillId === ID.EXTIRPATE
+      && event.condition === "Weakness"),
+    true,
+  );
+  assert.equal(
+    utility.events.some(event =>
+      event.type === "control"
+      && event.skillId === ID.ADDLE
+      && event.controlKind === "daze"),
+    true,
+  );
+  assert.equal(
+    utility.events.some(event =>
+      event.type === "condition"
+      && event.skillId === ID.ADDLE
+      && event.condition === "Immobilized"),
+    true,
+  );
+
+  const perforate = damageEvents(utility, ID.PERFORATE)
+    .filter(event => event.name === "Perforate");
+  const shards = damageEvents(utility, ID.SOUL_SHARDS)
+    .filter(event => event.name === "Soul Shards");
+  const lowShards = damageEvents(belowHalf, ID.SOUL_SHARDS)
+    .filter(event => event.name === "Soul Shards");
+  assert.equal(perforate.length, 7);
+  assert.deepEqual(
+    perforate.map(event => event.coefficient),
+    Array(7).fill(0.5),
+  );
+  assert.deepEqual(
+    perforate.map(event => event.thresholdCoefficients),
+    Array(7).fill(null).map(() => ({ 50: 0.6 })),
+  );
+  assert.equal(shards.length, 4);
+  assert.equal(shards.every(event =>
+    event.parentSkillName === "Perforate"), true);
+  assert.equal(shards.every(event =>
+    event.flatStrikePowerCoeff === 0.1), true);
+  const normalShardDamage = utility.resolvedEvents.find(event =>
+    event.type === "damage" && event.name === "Soul Shards")?.damage;
+  const lowShardDamage = Math.max(
+    ...belowHalf.resolvedEvents
+      .filter(event =>
+        event.type === "damage" && event.name === "Soul Shards")
+      .map(event => event.damage),
+  );
+  assert.ok(Math.abs(lowShardDamage / normalShardDamage - 1.5) < 1e-12);
+  const normalPerforateDamage = utility.resolvedEvents.find(event =>
+    event.type === "damage" && event.name === "Perforate")?.damage;
+  const lowPerforateDamage = Math.max(
+    ...belowHalf.resolvedEvents
+      .filter(event =>
+        event.type === "damage" && event.name === "Perforate")
+      .map(event => event.damage),
+  );
+  assert.ok(
+    Math.abs(lowPerforateDamage / normalPerforateDamage - 1.2) < 1e-12,
+  );
+});
+
+test("Isolate and Distress expose the follow-up and reset Perforate", () => {
+  const result = simulate("Harbinger", [
+    "Perforate",
+    "Isolate",
+    "Distress",
+    "Perforate",
+  ], {
+    initialResource: 0,
+    primaryWeapon: "Spear",
+  });
+  const expiredFollowUp = simulate("Harbinger", [
+    "Isolate",
+    { type: "wait", durationMs: 3100 },
+    "Distress",
+  ], {
+    primaryWeapon: "Spear",
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.steps[3].start < 8000, true);
+  assert.equal(
+    result.events.filter(event =>
+      event.type === "damage"
+      && event.skillId === ID.PERFORATE
+      && event.name === "Perforate").length,
+    14,
+  );
+  assert.equal(
+    result.events.filter(event =>
+      event.type === "damage"
+      && event.name === "Soul Shards").length,
+    6,
+  );
+  assert.equal(
+    result.events.some(event =>
+      event.type === "necromancer.state"
+      && event.reason === "distress"
+      && event.state.soulShards === 6),
+    true,
+  );
+  const rows = skillBreakdownRows(result);
+  assert.equal(
+    rows.find(row => row.name === "Perforate")?.hits,
+    14,
+  );
+  assert.equal(
+    rows.find(row => row.name === "Soul Shards")?.hits,
+    6,
+  );
+  assert.equal(
+    rows.find(row => row.name === "Soul Shards")?.icon,
+    "https://wiki.guildwars2.com/wiki/Special:FilePath/Soul_Shards.png",
+  );
+  assert.equal(
+    result.events.some(event =>
+      event.type === "necromancer.chill"
+      && event.skillId === ID.ISOLATE),
+    true,
+  );
+  assert.equal(
+    result.events.some(event =>
+      event.type === "buff"
+      && event.skillId === ID.ISOLATE
+      && event.kind === "target-vulnerability"
+      && event.stacks === 8),
+    true,
+  );
+  assert.match(
+    expiredFollowUp.warnings.join(" "),
+    /Distress is unavailable/,
+  );
+});
+
+test("Addle gains its bonus effects against the defiant benchmark golem", () => {
+  const result = simulate("Harbinger", ["Addle"], {
+    initialResource: 0,
+    primaryWeapon: "Spear",
+    target: {
+      ...baseConfig.target,
+      defiant: true,
+    },
+  });
+
+  assert.equal(result.endState.profession.soulShards, 4);
+  assert.equal(result.endState.profession.lifeForce, 20);
+  assert.equal(
+    result.events.find(event =>
+      event.type === "control"
+      && event.skillId === ID.ADDLE)?.duration,
+    1.5,
+  );
+});
+
+test("necromancer wells finish their pulses after the final rotation action", () => {
+  for (const skill of ["Well of Darkness", "Well of Suffering"]) {
+    const result = simulate("Harbinger", [skill], {
+      target: {
+        ...baseConfig.target,
+        health: 1_000_000_000,
+      },
+    });
+    assert.equal(
+      result.resolvedEvents.filter(event =>
+        event.type === "damage" && event.name === skill).length,
+      6,
+      skill,
+    );
+  }
+});
+
+test("Greatsword control and Nightfall pulses use their live mechanics", () => {
+  const grasp = simulate("Harbinger", ["Grasping Darkness"], {
+    initialResource: 0,
+    primaryWeapon: "Greatsword",
+    relic: "Claw",
+  });
+  const nightfall = simulate("Harbinger", [
+    "Nightfall",
+    { type: "wait", durationMs: 4000 },
+  ], {
+    initialResource: 0,
+    primaryWeapon: "Greatsword",
+  });
+  const nightfallHits = nightfall.events.filter(event =>
+    event.type === "damage" && event.skillId === ID.NIGHTFALL);
+
+  assert.deepEqual(
+    grasp.events
+      .filter(event =>
+        event.type === "damage"
+        && event.skillId === ID.GRASPING_DARKNESS)
+      .map(event => event.coefficient),
+    [1.3],
+  );
+  assert.equal(grasp.endState.profession.lifeForce, 10);
+  assert.equal(
+    grasp.events.some(event =>
+      event.type === "necromancer.chill"
+      && event.skillId === ID.GRASPING_DARKNESS),
+    true,
+  );
+  assert.equal(
+    grasp.events.some(event =>
+      event.type === "control"
+      && event.controlKind === "pull"),
+    true,
+  );
+  assert.equal(
+    grasp.procSteps.some(step => step.skill === "Relic of the Claw"),
+    true,
+  );
+
+  assert.equal(nightfallHits.length, 4);
+  assert.deepEqual(
+    nightfallHits.map(event => event.coefficient),
+    [1.15, 1.15, 1.15, 1.15],
+  );
+  assert.deepEqual(
+    nightfallHits.map((event, index) =>
+      Math.round((event.at - nightfallHits[0].at) * 1000)
+        - index * 1000),
+    [0, 0, 0, 0],
+  );
+  assert.equal(
+    nightfall.events.filter(event =>
+      event.type === "blind"
+      && event.skillId === ID.NIGHTFALL).length,
+    4,
+  );
+  assert.equal(
+    nightfall.events.filter(event =>
+      event.type === "condition"
+      && event.skillId === ID.NIGHTFALL
+      && event.condition === "Crippled").length,
+    4,
+  );
+  assert.equal(nightfall.endState.profession.lifeForce, 28);
+});
+
 test("Lich Form swaps its bar and grants life force on exit", () => {
   const result = simulate("Core", [
     "Lich Form",
@@ -556,11 +937,6 @@ test("minion summons persist, attack, and unlock their command", () => {
     "Rigor Mortis",
   ]);
   const invalid = simulate("Core", ["Rigor Mortis"]);
-  const wurm = simulate("Core", [
-    "Summon Flesh Wurm",
-    "Necrotic Traversal",
-    { type: "wait", durationMs: 1000 },
-  ], { initialResource: 0 });
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.activeMinions["bone-fiend"], 1);
@@ -570,13 +946,6 @@ test("minion summons persist, attack, and unlock their command", () => {
   );
   assert.ok(result.breakdown.some(entry => entry.name === "Rigor Mortis"));
   assert.match(invalid.warnings.join(" "), /Rigor Mortis is unavailable/);
-  assert.deepEqual(wurm.warnings, []);
-  assert.equal(wurm.endState.profession.activeMinions["flesh-wurm"], undefined);
-  assert.equal(wurm.endState.profession.lifeForce, 10);
-  assert.ok(
-    wurm.resolvedEvents.some(event =>
-      event.condition === "Poisoned" && event.stacks === 2),
-  );
 });
 
 test("Ritualist spirits attack, empower Essence Blast, and innervate", () => {
@@ -1250,9 +1619,77 @@ test("signet passives and Soul Battery are profession-owned resources", () => {
   const bloodCurse = perception.resolvedEvents.find(event =>
     event.type === "damage" && event.skillId === ID.BLOOD_CURSE);
   assert.ok(Math.abs(lifeBlast.criticalChance - 0.6761904761904762) < 1e-12);
-  assert.ok(Math.abs(lifeBlast.criticalDamage - 1.9333333333333333) < 1e-12);
-  assert.ok(Math.abs(bloodCurse.criticalChance - 0.5261904761904762) < 1e-12);
+  assert.ok(Math.abs(lifeBlast.criticalDamage - 1.8333333333333333) < 1e-12);
+  assert.ok(Math.abs(bloodCurse.criticalChance - 0.6761904761904762) < 1e-12);
   assert.ok(Math.abs(bloodCurse.criticalDamage - 1.8333333333333333) < 1e-12);
+});
+
+test("the Power Harbinger trait set uses current critical and resource rules", () => {
+  const runShroudStrike = (selectedTraitIds) => simulate("Harbinger", [
+    "Harbinger Shroud",
+    "Tainted Bolts",
+  ], {
+    stats: { precision: 4000 },
+    selectedTraitIds,
+    target: {
+      ...baseConfig.target,
+      health: 1_000_000_000,
+      conditions: {
+        ...baseConfig.target.conditions,
+        Torment: true,
+      },
+    },
+  });
+  const base = runShroudStrike([]);
+  const deathPerception = runShroudStrike([TRAIT.DEATH_PERCEPTION]);
+  const wickedCorruption = runShroudStrike([TRAIT.WICKED_CORRUPTION]);
+  const both = runShroudStrike([
+    TRAIT.DEATH_PERCEPTION,
+    TRAIT.WICKED_CORRUPTION,
+  ]);
+  const strikeDamage = result => result.resolvedEvents
+    .filter(event =>
+      event.type === "damage"
+      && event.skillId === ID.TAINTED_BOLTS)
+    .reduce((sum, event) => sum + event.damage, 0);
+  assert.ok(
+    Math.abs(strikeDamage(deathPerception) / strikeDamage(base) - 1.1)
+      < 1e-12,
+  );
+  assert.ok(
+    Math.abs(strikeDamage(wickedCorruption) / strikeDamage(base) - 1.1)
+      < 1e-12,
+  );
+  assert.ok(
+    Math.abs(strikeDamage(both) / strikeDamage(base) - 1.21)
+      < 1e-12,
+  );
+
+  const implacable = simulate("Harbinger", ["Harbinger Shroud"], {
+    selectedTraitIds: [TRAIT.IMPLACABLE_FOE],
+  });
+  assert.equal(
+    implacable.events.some(event =>
+      event.type === "buff"
+      && event.kind === "stability"
+      && event.stacks === 3
+      && event.duration === 5),
+    true,
+  );
+
+  const fortitude = simulate("Harbinger", ["Perforate"], {
+    initialResource: 0,
+    primaryWeapon: "Spear",
+    selectedTraitIds: [
+      TRAIT.SPITEFUL_FORTITUDE,
+      TRAIT.GLUTTONY,
+    ],
+    target: {
+      ...baseConfig.target,
+      health: 8000,
+    },
+  });
+  assert.equal(fortitude.endState.profession.lifeForce, 2.2);
 });
 
 test("critical sigils follow the active weapon set", () => {
@@ -1307,6 +1744,22 @@ test("Necromancer resources and palette change with specialization state", () =>
   assert.deepEqual(
     harbingerResources.map(resource => resource.id),
     ["life-force", "blight"],
+  );
+  assert.deepEqual(
+    necromancerProfession.ui.resourceViews({
+      specialization: "Harbinger",
+      build: {
+        weapons: ["Greatsword", ""],
+        alternateWeapons: ["Spear", ""],
+      },
+      professionState: {
+        lifeForce: 80,
+        maximumLifeForce: 100,
+        blight: 12,
+        soulShards: 4,
+      },
+    }).map(resource => resource.id),
+    ["life-force", "blight", "soul-shards"],
   );
   assert.deepEqual(reaperEntry, [ID.REAPERS_SHROUD]);
   assert.equal(reaperBar[0].skillIds.includes(ID.EXIT_REAPERS_SHROUD), true);

@@ -95,20 +95,20 @@ test('Lingering Thoughts recharges one ammo count every six seconds', () => {
     );
 });
 
-test('Rewinder refunds three seconds per clone shattered without counting the mesmer', () => {
+test('Rewinder cooldown applies shatter CDR, source refunds, then Alacrity', () => {
     const secondCastAt = initialResource => simulateMesmer(
         ['Rewinder', 'Rewinder'],
         defaultSimulationConfig({
             specialization: 'Chronomancer',
+            selectedTraits: ['Master of Misdirection'],
             initialResource,
         }),
     ).steps[1].start;
 
-    // Time Marches On makes Alacrity reduce the 30-second recharge to 20
-    // seconds. Rewinder then refunds three seconds for each actual clone.
+    // (base cooldown * 0.85 - 3 - 3C) * 2/3, where C is the clone count.
     assert.deepEqual(
         [0, 1, 2, 3].map(secondCastAt),
-        [20000, 17000, 14000, 11000],
+        [15000, 13000, 11000, 9000],
     );
 
     const fullShatter = simulateMesmer(
@@ -292,7 +292,7 @@ test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () 
     );
 
     assert.equal(result.steps[2].end, 10440);
-    assert.equal(result.steps[3].start, 11000);
+    assert.equal(result.steps[3].start, 12000);
     assert.deepEqual(result.warnings, []);
 });
 

@@ -27,6 +27,7 @@ import { gainNecromancerLifeForce } from "./shared.js";
 import { necromancerShadeSkillHandlers } from "./shades.js";
 import { necromancerShroudSkillHandlers } from "./shroud.js";
 import { necromancerSpiritSkillHandlers } from "./spirits.js";
+import { necromancerWeaponSkillHandlers } from "./weapons.js";
 
 export {
   advanceNecromancerState,
@@ -46,4 +47,5 @@ export const necromancerSkillHandlers = Object.freeze({
   ...necromancerSpiritSkillHandlers,
   ...necromancerShadeSkillHandlers,
   ...necromancerBlightSkillHandlers,
+  ...necromancerWeaponSkillHandlers,
 });
