@@ -528,6 +528,8 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
     assert.deepEqual(flyingCutter.trackedHitDamage, {
         hitsRequired: 3,
         duration: 5,
+        skillId: ID.CUTTER_BURST,
+        wikiUrl: 'https://wiki.guildwars2.com/wiki/Cutter_Burst',
         packetOffsets: [0.217, 0.25, 0.384],
         damage: {
             coefficient: 0.6,

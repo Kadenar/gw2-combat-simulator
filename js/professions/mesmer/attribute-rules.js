@@ -6,6 +6,8 @@ import {
 import { hasTrait } from "../../platform/gw2/trait-state.js";
 
 const EPSILON = 0.0001;
+const EMPTY_EVENTS = Object.freeze([]);
+const instrumentEventIndex = new WeakMap();
 
 function illusionSource(context) {
   return (
@@ -22,11 +24,34 @@ function timedActive(context, kind) {
   return Boolean(context.timeline?.timedActive(kind, context.time));
 }
 
-function instrumentsAt(context) {
-  return (context.events || []).filter(event =>
-    event.type === "mesmer.instrument"
-    && event.at <= context.time + EPSILON
-    && event.expiresAt > context.time);
+function instrumentEvents(context) {
+  const events = context.events;
+  if (!Array.isArray(events)) return EMPTY_EVENTS;
+  let indexed = instrumentEventIndex.get(events);
+  if (!indexed) {
+    indexed = events.filter(event => event.type === "mesmer.instrument");
+    instrumentEventIndex.set(events, indexed);
+  }
+  return indexed;
+}
+
+function instrumentChecksEnabled(context) {
+  const specialization = context.config?.specialization;
+  return !specialization || specialization === "Troubadour";
+}
+
+function activeInstrumentCount(context) {
+  if (!instrumentChecksEnabled(context)) return 0;
+  let count = 0;
+  for (const event of instrumentEvents(context)) {
+    if (
+      event.at <= context.time + EPSILON
+      && event.expiresAt > context.time
+    ) {
+      count += 1;
+    }
+  }
+  return count;
 }
 
 function thornsStacksAt(time) {
@@ -35,10 +60,12 @@ function thornsStacksAt(time) {
 }
 
 export function applyMesmerAttributes(context, attributes) {
-  const instruments = instrumentsAt(context);
+  const instrumentCount = hasTrait(context, TRAIT.FORTISSIMO)
+    ? activeInstrumentCount(context)
+    : 0;
   const fortissimo =
-    hasTrait(context, TRAIT.FORTISSIMO) && instruments.length
-      ? 1 + instruments.length * 0.04
+    instrumentCount
+      ? 1 + instrumentCount * 0.04
       : 1;
   const thorns =
     context.config.relic === "Thorns"
@@ -70,8 +97,11 @@ export function applyMesmerAttributes(context, attributes) {
 }
 
 function hasLute(context) {
-  return instrumentsAt(context)
-    .some(event => event.instrument === "Lute");
+  if (!instrumentChecksEnabled(context)) return false;
+  return instrumentEvents(context).some(event =>
+    event.instrument === "Lute"
+    && event.at <= context.time + EPSILON
+    && event.expiresAt > context.time);
 }
 
 function superiorityComplexFactor(context) {
@@ -253,7 +283,7 @@ export const mesmerModifierRules = Object.freeze([
     operation: "damage-additive",
     amount: 0.15,
     when: context =>
-      hasLute(context) && hasTrait(context, TRAIT.SHREDDING),
+      hasTrait(context, TRAIT.SHREDDING) && hasLute(context),
   },
   {
     id: "mesmer.altered-chord",

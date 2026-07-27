@@ -24,14 +24,17 @@ export function skillBreakdownRows(result) {
       entry.sourceSkill
       || sourceEvent?.skillName
       || baseName(entry.name);
+    const parentSkill = entry.parentSkill || sourceEvent?.parentSkillName || "";
     const current = grouped.get(sourceSkill) || {
       name: sourceSkill,
       sourceSkill,
+      parentSkill,
       strike: 0,
       condition: 0,
       hits: 0,
       fallbackCasts: 0,
     };
+    if (!current.parentSkill && parentSkill) current.parentSkill = parentSkill;
     current.strike += Number(entry.strikeDamage || 0);
     current.condition += Number(entry.conditionDamage || 0);
     current.hits += Number(entry.hits || 0);

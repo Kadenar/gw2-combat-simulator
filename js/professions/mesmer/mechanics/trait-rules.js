@@ -61,6 +61,7 @@ export function handleCriticalTraits(
       at: event.at,
       name: `${event.name} — Jagged Mind`,
       skillName: event.skillName,
+      parentSkillName: event.parentSkillName,
       condition: "Bleeding",
       duration: 4,
       stacks: hitContext.critical.chance,

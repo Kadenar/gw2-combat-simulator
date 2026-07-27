@@ -2068,6 +2068,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "trackedHitDamage": {
       "hitsRequired": 3,
       "duration": 5,
+      "skillId": ID.CUTTER_BURST,
+      "wikiUrl": "https://wiki.guildwars2.com/wiki/Cutter_Burst",
       "packetOffsets": [0.217, 0.25, 0.384],
       "damage": {
         "coefficient": 0.6,
@@ -3380,7 +3382,6 @@ export const WEAPON_STRENGTH = {
   Unequipped: 690.5,
   "Phantasm high": 2877,
   "Phantasm medium": 2615.5,
-  "Phantasm mariner": 2556.0,
   "Phantasm defender": 2362.5,
 };
 
