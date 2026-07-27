@@ -168,7 +168,7 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
         'Phantasmal Berserker': [0.56, 1.48, 2.56, 4.68, 5.92],
         'Phantasmal Defender': [0.77, 3.8, 4.51, 8.8, 9.52],
         'Phantasmal Disenchanter': [0.76, 1.15, 1.84, 4.04, 4.72],
-        'Phantasmal Duelist': [0.54, 2.751, 3.334, 6.44, 7.04],
+        'Phantasmal Duelist': [0.56, 2.751, 3.334, 6.44, 7.04],
         'Phantasmal Mage': [0.8, 2.27, 2.52, 5.32, 5.56],
         'Phantasmal Rogue': [0.61, 1.2, 2, 4.04, 4.76],
         'Phantasmal Swordsman': [

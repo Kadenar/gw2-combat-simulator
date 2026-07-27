@@ -191,6 +191,8 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
       "mode": "phantasm",
       "count": 1
     },
+    // 720ms of the measured 880ms Quickness cast.
+    "phantasmSummonProgress": 0.8181818181818182,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Swordsman",
     "effects": [],
@@ -243,7 +245,7 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Duelist",
     "effects": [],
-    "activation": 0.81,
+    "activation": 0.84,
     "damage": [
       {
         "coefficient": 0.33,
@@ -766,10 +768,7 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     "damage": [],
     "conditions": [],
     "phantasm": false,
-    "resource": {
-      "mode": "add",
-      "count": 1
-    },
+    "resource": null,
     "blade": false,
     "wikiUrl": "https://wiki.guildwars2.com/wiki/Signet_of_Illusions",
     "effects": []
@@ -3714,7 +3713,7 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     chronophantasmaSpawn: 4.72,
   },
   "Phantasmal Duelist": {
-    castTime: 0.54,
+    castTime: 0.56,
     damage: 2.751,
     spawn: 3.334,
     chronophantasmaDamage: 6.44,

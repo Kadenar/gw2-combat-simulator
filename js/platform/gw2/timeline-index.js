@@ -6,12 +6,18 @@ import { gw2SigilSet } from "./runtime-rules.js";
 const clamp = (value, minimum, maximum) =>
   Math.max(minimum, Math.min(maximum, value));
 
-function qualifyingIcdEvents(events, type, cooldown) {
+function qualifyingIcdEvents(
+  events,
+  type,
+  cooldown,
+  earliestAt = -Infinity,
+) {
   const activations = [];
   let readyAt = 0;
   for (const event of events) {
     if (
       event.type !== type
+      || event.at < earliestAt - EPSILON
       || !isInternalCooldownReady(event.at, readyAt)
     ) continue;
     activations.push(event);
@@ -33,10 +39,13 @@ export function createGw2TimelineIndex({
   const cooldownEvents = events.filter(
     event => event.type === "action" || event.type === "cooldown_snapshot",
   );
+  const combatStartAt =
+    events.find(event => event.type === "combat_start")?.at ?? -Infinity;
   const aristocracyTriggers = qualifyingIcdEvents(
     events,
     "weakness_vulnerability",
     1,
+    combatStartAt,
   );
 
   const aristocracyStacksAt = time => {

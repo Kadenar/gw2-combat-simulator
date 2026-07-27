@@ -66,7 +66,14 @@ const TASK = Object.freeze({
   bladeSpend: "mesmer.blade-spend",
   continuumExpire: "mesmer.continuum-expire",
   infiniteForge: "mesmer.infinite-forge",
+  signetEtherRelock: "mesmer.signet-ether-relock",
+  signetIllusionsPassive: "mesmer.signet-illusions-passive",
 });
+// Delay before Signet of the Ether's in-game bug re-applies its own cooldown
+// after the cast finishes.
+const SIGNET_ETHER_RELOCK_DELAY = 1;
+const SIGNET_ILLUSIONS_INTERVAL = 10;
+const SIGNET_ILLUSIONS_OWNER = "mesmer.signet-illusions-passive";
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set([-3]);
 const TRUE_ZERO_DURATION_SKILLS = new Set([
   "Bladeturn Requiem",
@@ -176,6 +183,44 @@ function runtimeFor(context) {
   const runtime = runtimes.get(context.state);
   if (!runtime) throw new Error("Mesmer scheduler runtime is not initialized.");
   return runtime;
+}
+
+function selectedSkillValues(config) {
+  const selected = config.selectedSkills || [];
+  return Array.isArray(selected) ? selected : Object.values(selected);
+}
+
+function equippedSignetOfIllusions(context) {
+  const skill = context.catalog.skillsByName.get("Signet of Illusions");
+  if (!skill) return null;
+  const equipped = selectedSkillValues(context.config).some(candidate =>
+    candidate === skill.name
+    || Number(candidate) === skill.id
+    || candidate?.name === skill.name
+    || Number(candidate?.id) === skill.id);
+  return equipped ? skill : null;
+}
+
+function scheduleSignetIllusionsPassive(context, at) {
+  if (!equippedSignetOfIllusions(context)) return;
+  context.tasks.cancelOwner(SIGNET_ILLUSIONS_OWNER);
+  context.tasks.schedule({
+    type: TASK.signetIllusionsPassive,
+    at: Math.max(context.state.time, Number(at)),
+    priority: -20,
+    ownerId: SIGNET_ILLUSIONS_OWNER,
+    payload: {},
+  });
+}
+
+function restartSignetIllusionsPassive(context, activeAt) {
+  const skill = equippedSignetOfIllusions(context);
+  if (!skill) return;
+  const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
+  scheduleSignetIllusionsPassive(
+    context,
+    Math.max(Number(activeAt), readyAt) + SIGNET_ILLUSIONS_INTERVAL,
+  );
 }
 
 function createMesmerRuntime(context) {
@@ -431,8 +476,17 @@ function completeMesmerSkill(context, skill) {
     state,
   } = context;
   const at = context.fullEnd;
+  const interrupted = context.effectiveEnd < context.fullEnd - EPSILON;
+  const phantasmSummonProgress = Number(skill.phantasmSummonProgress);
+  const phantasmSummonThreshold =
+    context.start
+    + (context.fullEnd - context.start) * phantasmSummonProgress;
+  const completedInterruptedPhantasm =
+    interrupted
+    && Number.isFinite(phantasmSummonProgress)
+    && context.effectiveEnd >= phantasmSummonThreshold - EPSILON;
   runtime.activeEmission =
-    context.effectiveEnd < context.fullEnd - EPSILON
+    interrupted && !completedInterruptedPhantasm
       ? {
           skill,
           effectiveEnd: context.effectiveEnd,
@@ -497,6 +551,12 @@ function completeMesmerSkill(context, skill) {
         skill,
         at,
         context.start,
+        completedInterruptedPhantasm
+          ? {
+              phantasmSummonAt: context.effectiveEnd,
+              playerEffectEnd: context.effectiveEnd,
+            }
+          : undefined,
       );
       runtime.mirage.handlePostSkill(skill, at);
       const armedFlip = runtime.flipSkillsByParent.get(skill.name);
@@ -549,6 +609,18 @@ function completeMesmerSkill(context, skill) {
           }
         }
       }
+    }
+    if (skill.name === "Signet of the Ether") {
+      // In-game bug: the signet re-applies its own cooldown ~1s after the cast
+      // completes, so it becomes ready one second later than the base recharge.
+      context.tasks.schedule({
+        type: TASK.signetEtherRelock,
+        at: context.fullEnd + SIGNET_ETHER_RELOCK_DELAY,
+        payload: { skillId: skill.id },
+      });
+    }
+    if (skill.name === "Signet of Illusions") {
+      restartSignetIllusionsPassive(context, context.fullEnd);
     }
     const disabled =
       CONTROL_SKILLS.has(skill.name)
@@ -659,6 +731,7 @@ export function initializeMesmerScheduler(context) {
       payload: {},
     });
   }
+  restartSignetIllusionsPassive(context, 0);
 }
 
 export function mesmerAvailability(context, skill) {
@@ -816,6 +889,11 @@ export function advanceMesmerScheduler(context, target) {
 export function observeMesmerEvent(context, event) {
   const runtime = runtimes.get(context.state);
   if (!runtime) return;
+  if (event.type === "combat_start") {
+    context.state.profession.hasExplicitCombatStart = true;
+    context.state.profession.combatStartTime = event.at;
+    restartSignetIllusionsPassive(context, event.at);
+  }
   let candidate = null;
   if (event.type === "condition" && event.condition === "Bleeding") {
     candidate = {
@@ -827,6 +905,38 @@ export function observeMesmerEvent(context, event) {
       sourceSkill: event.skillName,
     };
   } else if (event.type === "damage") {
+    if (
+      event.blade
+      && !event.noCrit
+      && event.canCrit !== false
+      && runtime.traits.has(TRAIT.DEADLY_BLADES)
+    ) {
+      const vulnerabilityStacks = baseCriticalChance(
+        context.config,
+        runtime.traits,
+        event.source,
+        context.state.activeWeaponSet,
+      );
+      if (vulnerabilityStacks > EPSILON) {
+        context.emit({
+          type: "buff",
+          at: event.at,
+          kind: "target-vulnerability",
+          stacks: vulnerabilityStacks,
+          duration: 5,
+          source: "Trait",
+          sourceId: TRAIT.DEADLY_BLADES,
+          sourceSkill: event.skillName,
+        });
+        context.emit({
+          type: "weakness_vulnerability",
+          at: event.at,
+          source: "Trait",
+          sourceId: TRAIT.DEADLY_BLADES,
+          skillName: event.skillName,
+        });
+      }
+    }
     candidate = {
       type: "hit",
       at: event.at,
@@ -905,6 +1015,43 @@ export function handleInfiniteForgeTask(context, task) {
     ownerId: "mesmer.infinite-forge",
     payload: {},
   });
+}
+
+export function handleSignetEtherRelockTask(context, task) {
+  const skill = context.catalog.skillsById.get(task.payload.skillId);
+  if (!skill) return;
+  // Restart the full recharge from the re-lock moment, mirroring the in-game
+  // bug. Guard against ever shortening a longer cooldown already in place.
+  const readyAt = task.at + context.rechargeDurationFor(skill, task.at);
+  context.state.cooldowns.set(
+    skill.id,
+    Math.max(Number(context.state.cooldowns.get(skill.id) || 0), readyAt),
+  );
+}
+
+export function handleSignetIllusionsPassiveTask(context, task) {
+  const runtime = runtimeFor(context);
+  const skill = equippedSignetOfIllusions(context);
+  if (!skill) return;
+  if (
+    context.hasExplicitCombatStart
+    && context.combatStartTime == null
+  ) return;
+  const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
+  if (readyAt > task.at + EPSILON) {
+    restartSignetIllusionsPassive(context, readyAt);
+    return;
+  }
+  runtime.resources.gainResources(
+    task.at,
+    1,
+    runtime.activePrimaryWeapon(),
+    skill.name,
+  );
+  scheduleSignetIllusionsPassive(
+    context,
+    task.at + SIGNET_ILLUSIONS_INTERVAL,
+  );
 }
 
 export function modifyMesmerRecharge(context, sharedDuration) {
@@ -1049,5 +1196,7 @@ export const mesmerSchedulerHooks = Object.freeze({
     [TASK.bladeSpend]: handleBladeSpendTask,
     [TASK.continuumExpire]: handleContinuumExpiryTask,
     [TASK.infiniteForge]: handleInfiniteForgeTask,
+    [TASK.signetEtherRelock]: handleSignetEtherRelockTask,
+    [TASK.signetIllusionsPassive]: handleSignetIllusionsPassiveTask,
   }),
 });

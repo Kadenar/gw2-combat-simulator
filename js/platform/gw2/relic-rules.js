@@ -247,6 +247,10 @@ export function recordPassiveRelicTimeline(ctx, events, rotationEndTime) {
     for (const event of events) {
       if (
         event.type !== "weakness_vulnerability"
+        || (
+          ctx.combatStartTime != null
+          && event.at < ctx.combatStartTime - EPSILON
+        )
         || !isInternalCooldownReady(event.at, readyAt)
       ) continue;
       if (event.at >= expiresAt - EPSILON) stacks = 0;
