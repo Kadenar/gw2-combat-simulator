@@ -3964,6 +3964,7 @@ export const SHATTERS = {
     slot: 2,
     kind: "chrono-confusion",
     coefficients: [0.42, 0.84, 1.25, 1.67],
+    rechargeReductionPerSource: 3,
   },
   "Time Sink": { slot: 3, kind: "control", coefficients: [0, 0, 0, 0] },
   "Bladesong Harmony": {

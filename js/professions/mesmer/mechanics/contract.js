@@ -872,11 +872,20 @@ export function modifyMesmerRecharge(context, sharedDuration) {
   if (skill.weapon === "Sword" && traits.has(TRAIT.FENCERS_FINESSE)) {
     multiplier *= 0.8;
   }
+  const rechargeRate = gw2RechargeRate(config, {
+    alacrityRate: config.specialization === "Chronomancer" ? 1.5 : 1.25,
+  });
+  const shatter = SHATTERS[skill.name];
+  if (shatter?.rechargeReductionPerSource) {
+    const clones = runtimeFor(context).actions.currentResource();
+    const reduction =
+      Number(shatter.rechargeReductionPerSource) * (clones + 1);
+    const baseCooldown = Number(skill.cooldown ?? skill.recharge ?? 0);
+    return Math.max(0, baseCooldown * multiplier - reduction) / rechargeRate;
+  }
   return gw2EffectiveCooldown(skill, config, {
     cooldownMultiplier: multiplier,
-    rechargeRate: gw2RechargeRate(config, {
-      alacrityRate: config.specialization === "Chronomancer" ? 1.5 : 1.25,
-    }),
+    rechargeRate,
   });
 }
 
