@@ -31,7 +31,32 @@ import {
   validateNecromancerBuild,
 } from "./availability.js";
 
+function reduceReaperShroudCooldowns(context, at) {
+  for (const candidate of context.catalog.skills || []) {
+    if (candidate.shroud !== "reaper") continue;
+    const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
+    if (!(readyAt > at + context.epsilon)) continue;
+    const reduced = Math.max(at, readyAt - 1);
+    if (reduced <= at + context.epsilon) {
+      context.state.cooldowns.delete(candidate.id);
+    } else {
+      context.state.cooldowns.set(candidate.id, reduced);
+    }
+  }
+}
+
 function updateNecromancerCastState(context, skill) {
+  if (
+    skill.id === ID.LIFE_REAP
+    && hasTrait(context, TRAIT.REAPERS_ONSLAUGHT)
+  ) {
+    // Life Reap lands halfway through its activation. Its hit still commits
+    // when the trailing aftercast is cancelled, as in the benchmark rotation.
+    const hitAt = context.start + (context.fullEnd - context.start) / 2;
+    if (context.effectiveEnd >= hitAt - context.epsilon) {
+      reduceReaperShroudCooldowns(context, hitAt);
+    }
+  }
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = context.state.profession;
   const chain = CHAIN_POSITION_BY_ID.get(skill.id);

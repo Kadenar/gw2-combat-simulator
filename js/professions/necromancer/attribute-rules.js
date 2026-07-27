@@ -209,6 +209,17 @@ function criticalStrikeTraitFactor(context) {
 
 export const necromancerModifierRules = Object.freeze([
   {
+    id: "necromancer.reaper-shout-melee",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 2,
+    order: 100,
+    when: (context) =>
+      context.event?.actorType === "player" &&
+      eventSkill(context)?.categories?.includes("Shout") &&
+      context.config?.target?.nearby !== false,
+  },
+  {
     id: "necromancer.target-the-weak-critical-chance",
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: "add",

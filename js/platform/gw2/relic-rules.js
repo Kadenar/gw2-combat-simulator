@@ -112,14 +112,13 @@ export function handleRelicsAfterHit(ctx, event, skill) {
   ) {
     const wasActive = ctx.relic.buffUntil > event.at;
     ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 6);
-    if (!wasActive) {
-      ctx.recordProc(
-        "relic",
-        "Relic of Fireworks",
-        event.at,
-        event.skillName,
-      );
-    }
+    ctx.recordProc(
+      "relic",
+      "Relic of Fireworks",
+      event.at,
+      event.skillName,
+      wasActive ? "refreshed" : "activated",
+    );
   }
   if (
     ctx.config.relic === "Dragonhunter"

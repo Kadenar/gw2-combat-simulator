@@ -190,18 +190,27 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
   }
 });
 
-test("Necromancer Harbinger default builds resolve without rotations", async () => {
+test("Necromancer presets resolve benchmark rotations separately", async () => {
   const manifest = JSON.parse(await readFile(
     new URL("../Builds/necromancer-manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("necromancer");
-  const presets = manifest.flatMap(section => section.presets);
+  const presets = manifest.flatMap(section =>
+    section.presets.map(preset => ({
+      ...preset,
+      section: section.section,
+    })));
+  const harbingerPresets =
+    manifest.find(section => section.section === "Harbinger").presets;
 
-  assert.deepEqual(manifest.map(section => section.section), ["Harbinger"]);
+  assert.deepEqual(
+    manifest.map(section => section.section),
+    ["Reaper", "Harbinger"],
+  );
   assert.deepEqual(
     presets.map(preset => preset.label),
-    ["Power", "Condition"],
+    ["Power", "Power", "Condition"],
   );
   for (const preset of presets) {
     const saved = JSON.parse(await readFile(
@@ -211,12 +220,15 @@ test("Necromancer Harbinger default builds resolve without rotations", async () 
     const build = adapter.toApplicationBuild(saved);
     assert.equal(Object.hasOwn(saved, "rotation"), false);
     assert.equal(build.profession, "necromancer");
-    assert.equal(build.specializations[2].name, "Harbinger");
+    assert.equal(
+      build.specializations[2].name,
+      preset.section,
+    );
     assert.equal(build.weapons.length, 2);
     assert.equal(build.alternateWeapons.length, 2);
   }
   const power = JSON.parse(await readFile(
-    new URL(`../${presets[0].build}`, import.meta.url),
+    new URL(`../${harbingerPresets[0].build}`, import.meta.url),
     "utf8",
   ));
   assert.deepEqual(power.weapons, ["Greatsword", ""]);
@@ -228,6 +240,16 @@ test("Necromancer Harbinger default builds resolve without rotations", async () 
   ]);
   assert.equal(power.selectedSkills.Utility1, "Well of Suffering");
   assert.equal(power.selectedSkills.Utility2, "Well of Darkness");
+  const reaperRotation = JSON.parse(await readFile(
+    new URL(`../${presets[0].rotation}`, import.meta.url),
+    "utf8",
+  )).rotation;
+  assert.equal(reaperRotation[0], "Summon Flesh Golem");
+  assert.deepEqual(reaperRotation[1], { name: "__wait", waitMs: 2000 });
+  assert.deepEqual(reaperRotation[4], {
+    name: "__combat_start",
+    offset: 400,
+  });
 });
 
 test("build import and export leave rotation state separate", async () => {

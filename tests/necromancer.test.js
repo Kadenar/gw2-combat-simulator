@@ -40,6 +40,7 @@ import {
 import {
   modifierCandidates,
   recalculate,
+  simulationConfig,
 } from "../js/professions/necromancer/app/app-runtime.js";
 
 const baseConfig = Object.freeze({
@@ -133,6 +134,10 @@ test("measured Quickness cast times remain exact", () => {
     [ID.DEVOURING_CUT, 480],
     [ID.TAINTED_BOLTS, 600],
     [ID.VILE_BLAST, 600],
+    [ID.ADDLE, 360],
+    [ID.EXTIRPATE, 920],
+    [ID.DARK_SLASH, 600],
+    [ID.ISOLATE, 480],
     [ID.PERFORATE, 840],
     [ID.ELIXIR_OF_RISK, 540],
     [ID.LOCUST_SWARM, 440],
@@ -216,6 +221,20 @@ test("interrupt-safe Necromancer attacks retain their committed packets", () => 
     boons: { quickness: true },
     primaryWeapon: "Axe",
   });
+  const executionersScythe = simulate("Reaper", [
+    "Reaper's Shroud",
+    { name: "Executioner's Scythe", interruptAfterMs: 920 },
+  ], {
+    boons: { quickness: true },
+  });
+  const lifeReap = simulate("Reaper", [
+    "Reaper's Shroud",
+    "Life Rend",
+    "Life Slash",
+    { name: "Life Reap", interruptAfterMs: 360 },
+  ], {
+    boons: { quickness: true },
+  });
 
   assert.equal(soulSpiral.steps[1].fullCastMs, 2160);
   assert.equal(
@@ -259,6 +278,17 @@ test("interrupt-safe Necromancer attacks retain their committed packets", () => 
   assert.equal(ghastlyClaws.steps[0].fullCastMs, 1440);
   assert.equal(ghastlyPackets.length, 8);
   assert.equal(new Set(ghastlyPackets.map(event => event.at)).size, 8);
+  assert.equal(
+    executionersScythe.events.filter(event =>
+      event.type === "damage" &&
+      event.skillId === ID.EXECUTIONERS_SCYTHE).length,
+    1,
+  );
+  assert.equal(
+    lifeReap.events.filter(event =>
+      event.type === "damage" && event.skillId === ID.LIFE_REAP).length,
+    1,
+  );
 });
 
 test("every catalog skill has mechanics and API aliases are excluded", () => {
@@ -946,6 +976,65 @@ test("minion summons persist, attack, and unlock their command", () => {
   );
   assert.ok(result.breakdown.some(entry => entry.name === "Rigor Mortis"));
   assert.match(invalid.warnings.join(" "), /Rigor Mortis is unavailable/);
+});
+
+test("Reaper traits reduce shroud cooldowns and ignore minion critical hits", () => {
+  const rotation = [
+    "Reaper's Shroud",
+    "Death's Charge",
+    "Life Rend",
+    "Life Slash",
+    "Life Reap",
+    "Death's Charge",
+  ];
+  const base = simulate("Reaper", rotation, {
+    boons: { quickness: true, alacrity: true },
+  });
+  const onslaught = simulate("Reaper", rotation, {
+    boons: { quickness: true, alacrity: true },
+    selectedTraitIds: [TRAIT.REAPERS_ONSLAUGHT],
+  });
+  const secondChargeStart = result =>
+    result.steps.filter(step => step.skill === "Death's Charge")[1].start;
+
+  assert.equal(secondChargeStart(base) - secondChargeStart(onslaught), 1000);
+
+  const nova = simulate("Reaper", [
+    "Summon Flesh Golem",
+    "Reaper's Shroud",
+    "Soul Spiral",
+    { type: "wait", durationMs: 20_000 },
+  ], {
+    boons: { quickness: true },
+    selectedSkills: ["Summon Flesh Golem"],
+    selectedTraitIds: [TRAIT.CHILLING_NOVA],
+  });
+  const novaProcs = nova.procSteps.filter(step =>
+    step.skill === "Chilling Nova");
+
+  assert.ok(novaProcs.length > 0);
+  assert.equal(
+    novaProcs.some(step =>
+      step.sourceSkill === "Summon Flesh Golem â€” Minion Attack"),
+    false,
+  );
+});
+
+test("Reaper shouts apply their PvE melee damage bonus", () => {
+  const melee = simulate("Reaper", ["\"You Are All Weaklings!\""], {
+    selectedSkills: ["\"You Are All Weaklings!\""],
+  });
+  const ranged = simulate("Reaper", ["\"You Are All Weaklings!\""], {
+    selectedSkills: ["\"You Are All Weaklings!\""],
+    target: {
+      ...baseConfig.target,
+      nearby: false,
+    },
+  });
+
+  assert.ok(
+    Math.abs(melee.strikeDamage - ranged.strikeDamage * 2) < 1e-9,
+  );
 });
 
 test("Ritualist spirits attack, empower Essence Blast, and innervate", () => {
@@ -1951,4 +2040,52 @@ test("Necromancer is wired through the selector and application adapter", async 
   );
   assert.match(page, /data-profession="necromancer"/);
   assert.match(page, /data-active-profession="necromancer"/);
+});
+
+test("the supplied Power Reaper benchmark rotation retains its audited setup", async () => {
+  const build = JSON.parse(await readFile(
+    new URL("../Builds/b-power-reaper.json", import.meta.url),
+    "utf8",
+  ));
+  build.rotation = JSON.parse(await readFile(
+    new URL("../Rotations/r-power-reaper-bench.json", import.meta.url),
+    "utf8",
+  )).rotation;
+  const app = {
+    build,
+    skillByName: necromancerCatalog.skillsByName,
+    attributeWeaponSet: build.startingWeaponSet,
+  };
+  recalculate(app);
+  const result = simulateGw2({
+    profession: necromancerProfession,
+    rotation: build.rotation,
+    config: simulationConfig(app),
+  });
+  const hits = name =>
+    result.breakdown.find(entry => entry.name === name)?.hits || 0;
+
+  assert.equal(build.rotation[0], "Summon Flesh Golem");
+  assert.deepEqual(build.rotation[1], { name: "__wait", waitMs: 2000 });
+  assert.deepEqual(build.rotation[4], {
+    name: "__combat_start",
+    offset: 400,
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(hits("Chilling Nova"), 29);
+  assert.equal(hits("Perforate"), 63);
+  assert.equal(hits("Soul Shards"), 54);
+  assert.equal(hits("Well of Darkness"), 30);
+  assert.equal(hits("Well of Suffering"), 30);
+  assert.equal(hits("Life Reap"), 17);
+  assert.equal(hits("Nightfall"), 20);
+  assert.equal(hits("Gravedigger"), 6);
+  assert.ok(result.totalDamage >= build.targetHealth);
+
+  const relativeShroudTimes = result.steps
+    .filter(step => step.skill === "Reaper's Shroud")
+    .slice(0, 3)
+    .map(step =>
+      Number((step.start / 1000 - result.dpsStartTime).toFixed(3)));
+  assert.deepEqual(relativeShroudTimes, [2.399, 23.356, 44.313]);
 });

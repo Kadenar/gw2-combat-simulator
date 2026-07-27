@@ -34,7 +34,8 @@ Same-name API mode aliases resolve to one canonical selectable skill.
 - Core Death Shroud, its five-skill bar, minimum entry resource, continuous
   life-force drain, manual exit, forced exit, and entry recharge.
 - Reaper Shroud, four-percent-per-second drain, its complete bar, autoattack
-  chain, flips, channels, control, chill, and Reaper trait modifiers.
+  chain, flips, channels, control, chill, Reaper's Onslaught one-second
+  shroud-skill recharge reductions, and Reaper trait modifiers.
 - Scourge F1–F5, three-charge Manifest Sand Shade, shade duration/cap, current
   PvE life-force costs, Sand Savant, Desert Shroud, and Sandstorm Shroud.
 - Harbinger Shroud, zero-resource entry, five-percent-per-second drain,
@@ -72,8 +73,13 @@ Same-name API mode aliases resolve to one canonical selectable skill.
 - Exact measured Quickness cast durations for the supplied core, Reaper,
   Scourge, and Harbinger skill set. Ghastly Claws and Soul Spiral resolve as
   individual packets; Soul Spiral packets persist after an early interrupt,
-  Grasping Darkness commits at 120 ms under Quickness, and a manually
-  interrupted Dark Barrage retains all six projectiles at 800 ms.
+  Grasping Darkness commits at 120 ms under Quickness, Life Reap and
+  Executioner's Scythe commit before their cancellable aftercasts, and a
+  manually interrupted Dark Barrage retains all six projectiles at 800 ms.
+- Reaper wells use their measured pre-aftercast impact time and retain all
+  committed pulses after cancellation. Reaper shouts are instant and apply
+  their doubled PvE melee damage. Chilling Nova only reacts to player critical
+  hits, never minion attacks.
 - Death, Reaper, and Harbinger shroud strikes use ascended-hammer weapon
   strength; Scourge shade strikes use unarmed strength. Ritualist Essence
   Blast uses the active equipped weapon, Anguish/Wanderlust use fixed minion
@@ -101,10 +107,11 @@ Same-name API mode aliases resolve to one canonical selectable skill.
   canonical ID rotations, independent browser storage, and Life Force/Blight
   start controls. Life Force values are rounded for display, and Blight is
   stacked below Life Force rather than extending the palette horizontally.
-- The Harbinger Power and condition presets are loaded through
-  `Builds/necromancer-manifest.json` and intentionally contain no rotations.
-  Meltdown uses its wiki effect icon in proc results and modifier
-  contributions.
+- The Harbinger Power and condition presets and supplied Power Reaper benchmark
+  preset are loaded through `Builds/necromancer-manifest.json`. Build files
+  remain rotation-free; the Reaper preset loads
+  `Rotations/r-power-reaper-bench.json` separately. Meltdown uses its wiki
+  effect icon in proc results and modifier contributions.
 
 Core, Reaper, Harbinger, and Ritualist shroud skills remain visible while the
 matching shroud is inactive, but are disabled until entry. Weapon and slot
@@ -132,3 +139,9 @@ boon removal, projectile interaction, pathing, incoming attacks, enemy
 positioning, secondary targets, and competitive-mode splits are outside its
 result model. Skills whose only effects are in those categories are excluded
 instead of being shown as fake zero-damage implementations.
+
+The scheduler currently cannot change a weapon recharge from damage-resolved
+target health during the same pass. Gravedigger therefore retains its normal
+recharge after the benchmark crosses 50% health instead of using its accelerated
+low-health recharge. The supplied rotation still preserves both casts; the
+automatic cooldown waits make the simulated kill slower than the EVTC log.

@@ -267,6 +267,7 @@ function reactToNecromancerDamage(context, event, details = {}) {
   }
   if (
     hasTrait(context, TRAIT.CHILLING_NOVA)
+    && event.actorType === "player"
     && targetIsChilled(context, event.at)
   ) {
     context.profession.chillingNovaProgress +=
