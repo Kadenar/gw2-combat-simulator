@@ -47,6 +47,9 @@ const ACTION_ICONS = {
     'Swap Weapons': 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
     'Continuum Shift': 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png',
 };
+const RESULT_PROC_NAMES = {
+    'Phantasmal Blade': 'Phantasmal Blades',
+};
 const PALETTE_ACTION_ORDER = new Map([
     ['Dodge / Mirage Cloak', 0],
     ['Swap Weapons', 1],
@@ -109,6 +112,18 @@ function resolveRelicIcon(label) {
         }
     }
     return '';
+}
+
+function resolveProcIcon(app, proc) {
+    const traits = app.attributeData?.activeTraits || [];
+    const traitIcon = proc.type === 'trait_proc'
+        ? traits.find(trait => trait.name === proc.skill)?.icon
+        : '';
+    const relicIcon = proc.type === 'relic_proc'
+        ? resolveRelicIcon(proc.skill)
+        : '';
+    const sourceIcon = app.skillByName.get(proc.sourceSkill)?.icon;
+    return proc.icon || traitIcon || relicIcon || sourceIcon || '';
 }
 
 function procFilterKey(proc) {
@@ -874,17 +889,9 @@ export function renderTimeline(app) {
             procSteps.map(proc => [procFilterKey(proc), proc]),
         ).values()].sort((a, b) => procFilterLabel(a).localeCompare(procFilterLabel(b)));
         const visibleProcCount = procOptions.filter(proc => procVisibility.has(procFilterKey(proc))).length;
-        const activeTraits = app.attributeData?.activeTraits || [];
         const procs = procSteps.map(proc => {
             const key = procFilterKey(proc);
-            const traitIcon = proc.type === 'trait_proc'
-                ? activeTraits.find(trait => trait.name === proc.skill)?.icon
-                : '';
-            const relicIcon = proc.type === 'relic_proc'
-                ? resolveRelicIcon(proc.skill)
-                : '';
-            const sourceIcon = app.skillByName.get(proc.sourceSkill)?.icon;
-            const icon = proc.icon || traitIcon || relicIcon || sourceIcon || PLACEHOLDER_ICON;
+            const icon = resolveProcIcon(app, proc) || PLACEHOLDER_ICON;
             const type = proc.type === 'relic_proc'
                 ? 'Relic'
                 : proc.type === 'skill_proc' ? 'Skill' : 'Trait';
@@ -1205,18 +1212,37 @@ export function buildChartSeries(result, sampleStepMs = 250) {
     });
 }
 
-function resultIcon(app, row) {
+export function resultSkillIcon(app, row) {
+    const breakdownName = baseBreakdownName(row.name);
+    const procNames = new Set([
+        row.name,
+        row.sourceSkill,
+        breakdownName,
+        RESULT_PROC_NAMES[row.name],
+        RESULT_PROC_NAMES[row.sourceSkill],
+        RESULT_PROC_NAMES[breakdownName],
+    ].filter(Boolean));
+    const matchingProc = (app.results?.procSteps || []).find(proc =>
+        procNames.has(proc.skill));
+    const procIcon = matchingProc && resolveProcIcon(app, matchingProc);
+    if (procIcon) return procIcon;
+
     const traits = app.attributeData?.activeTraits || [];
     const trait = traits.find(candidate =>
         candidate.name === row.name
-        || candidate.name === baseBreakdownName(row.name)
+        || candidate.name === breakdownName
         || row.name.includes(candidate.name));
     if (trait?.icon) return trait.icon;
 
     const relicIcon = resolveRelicIcon(row.name);
     if (relicIcon) return relicIcon;
 
-    for (const name of [row.name, row.sourceSkill, baseBreakdownName(row.name)]) {
+    for (const name of [
+        row.name,
+        row.sourceSkill,
+        row.parentSkill,
+        breakdownName,
+    ]) {
         const icon = app.skillByName.get(name)?.icon;
         if (icon) return icon;
     }
@@ -1261,7 +1287,7 @@ export function renderResults(app) {
         warnings: result.warnings || [],
         chartSeries: series,
     }, {
-        resolveSkillIcon: row => resultIcon(app, row),
+        resolveSkillIcon: row => resultSkillIcon(app, row),
         placeholderIcon: PLACEHOLDER_ICON,
         skillBreakdownClassName: `${app.adapter.id}-skill-breakdown`,
         chartOptions: {

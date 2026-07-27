@@ -3168,9 +3168,29 @@ test('Flying Cutter tracks three hits for five seconds and Bladecall strikes six
     const burst = consecutive.resolvedEvents.filter(event =>
         event.type === 'damage' && event.name === 'Cutter Burst');
     assert.equal(burst.length, 3);
+    assert.ok(burst.every(event =>
+        event.skillName === 'Cutter Burst'
+        && event.parentSkillName === 'Flying Cutter'
+        && event.sourceId === ID.CUTTER_BURST
+        && event.skillId === ID.CUTTER_BURST
+    ));
     assert.ok(Math.abs(
         burst.reduce((sum, event) => sum + event.coefficient, 0) - 0.6,
     ) < 1e-12);
+    const skillRows = skillBreakdownRows(consecutive);
+    const flyingCutterRow = skillRows.find(row =>
+        row.name === 'Flying Cutter');
+    const cutterBurstRow = skillRows.find(row =>
+        row.name === 'Cutter Burst');
+    assert.ok(flyingCutterRow.strike > 0);
+    assert.ok(cutterBurstRow.strike > 0);
+    assert.ok(flyingCutterRow.condition > 0);
+    assert.ok(cutterBurstRow.condition > 0);
+    assert.equal(flyingCutterRow.hits, 3);
+    assert.equal(cutterBurstRow.hits, 3);
+    assert.equal(flyingCutterRow.casts, 3);
+    assert.equal(cutterBurstRow.casts, 0);
+    assert.equal(cutterBurstRow.parentSkill, 'Flying Cutter');
     const triggerAt = consecutive.resolvedEvents
         .filter(event =>
             event.type === 'damage'

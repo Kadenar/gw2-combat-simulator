@@ -19,6 +19,7 @@ import {
 import {
   autoattackChainSkillAvailable,
   paletteActionSkills,
+  resultSkillIcon,
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
   weaponPaletteRows,
@@ -191,6 +192,56 @@ test("Mesmer palette advances through autoattack chain skills", () => {
   assert.deepEqual(
     availabilityAfter(["Mind Slash", "Mind Gash"]),
     [false, false, true],
+  );
+});
+
+test("damage result rows reuse the icons shown for generated procs", () => {
+  const earthIcon = "earth.png";
+  const nourishmentIcon = "nourishment.png";
+  const phantasmalBladesIcon = "phantasmal-blades.png";
+  const app = {
+    attributeData: {
+      activeTraits: [{
+        name: "Phantasmal Blades",
+        icon: phantasmalBladesIcon,
+      }],
+    },
+    results: {
+      procSteps: [
+        {
+          type: "sigil_proc",
+          skill: "Sigil of Earth",
+          sourceSkill: "Bladecall",
+          icon: earthIcon,
+        },
+        {
+          type: "food_proc",
+          skill: "Nourishment",
+          sourceSkill: "Bladecall",
+          icon: nourishmentIcon,
+        },
+        {
+          type: "trait_proc",
+          skill: "Phantasmal Blades",
+          sourceSkill: "Phantasmal Lancer",
+        },
+      ],
+    },
+    skillByName: new Map(),
+    skills: [],
+  };
+
+  assert.equal(
+    resultSkillIcon(app, { name: "Sigil of Earth" }),
+    earthIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Nourishment" }),
+    nourishmentIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Phantasmal Blade" }),
+    phantasmalBladesIcon,
   );
 });
 

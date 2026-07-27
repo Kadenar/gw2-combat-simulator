@@ -411,6 +411,10 @@ export function createSkillEffectController({
                 {
                   blade: skill.blade,
                   name: tracking.damage.label,
+                  skillName: tracking.damage.label,
+                  parentSkillName: skill.name,
+                  sourceId: tracking.skillId ?? skill.id,
+                  skillId: tracking.skillId ?? skill.id,
                 },
               );
             }
@@ -418,6 +422,10 @@ export function createSkillEffectController({
             addDamage(skill, triggerAt, tracking.damage, {
               blade: skill.blade,
               name: tracking.damage.label,
+              skillName: tracking.damage.label,
+              parentSkillName: skill.name,
+              sourceId: tracking.skillId ?? skill.id,
+              skillId: tracking.skillId ?? skill.id,
             });
           }
         }

@@ -199,6 +199,58 @@ test("Mesmer trait and skill buffs share their additive damage buckets", () => {
   assert.ok(Math.abs(condition - 1.67) < 1e-12);
 });
 
+test("Mesmer instrument checks skip other specializations and index events once", () => {
+  const countedEvents = () => {
+    let reads = 0;
+    const events = new Proxy([
+      ...Array.from({ length: 100 }, (_, index) => ({
+        type: "action",
+        at: index,
+      })),
+      {
+        type: "mesmer.instrument",
+        instrument: "Lute",
+        at: 0,
+        expiresAt: 10,
+      },
+    ], {
+      get(target, property, receiver) {
+        if (typeof property === "string" && /^\d+$/.test(property)) {
+          reads += 1;
+        }
+        return Reflect.get(target, property, receiver);
+      },
+    });
+    return { events, reads: () => reads };
+  };
+
+  const irrelevant = countedEvents();
+  const virtuoso = modifierContext({
+    config: { specialization: "Virtuoso" },
+    events: irrelevant.events,
+  });
+  mesmerAttributeRules.modifyAttributes(virtuoso, { power: 100 });
+  mesmerAttributeRules.modifyStrikeDamage(virtuoso, 1.08);
+  assert.equal(irrelevant.reads(), 0);
+
+  const relevant = countedEvents();
+  const troubadour = modifierContext({
+    traits: [MESMER.FORTISSIMO, MESMER.SHREDDING],
+    config: { specialization: "Troubadour" },
+    events: relevant.events,
+  });
+  const attributes = mesmerAttributeRules.modifyAttributes(
+    troubadour,
+    { power: 100 },
+  );
+  const first = mesmerAttributeRules.modifyStrikeDamage(troubadour, 1.08);
+  const second = mesmerAttributeRules.modifyStrikeDamage(troubadour, 1.08);
+
+  assert.equal(attributes.power, 104);
+  assert.equal(first, second);
+  assert.equal(relevant.reads(), relevant.events.length);
+});
+
 test("Vicious Expression always applies its base multiplicative modifier", () => {
   const base = modifierContext({
     traits: [MESMER.VICIOUS_EXPRESSION],
