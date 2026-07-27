@@ -3,6 +3,8 @@ import { escapeHtml } from "./html.js";
 export function paletteView(profession, context) {
   const groups = profession.ui.paletteGroups(context);
   if (!Array.isArray(groups)) throw new TypeError("paletteGroups must return an array.");
+  // Copy and normalize the profession boundary so renderers never mutate
+  // catalog-owned group definitions.
   return groups.map(group => ({
     id: String(group.id),
     label: String(group.label || group.id),
@@ -16,6 +18,8 @@ function ammoView(ammo) {
   const maximum = Math.max(0, Number(ammo.maximum || 0));
   const current = Math.max(0, Math.min(maximum, Number(ammo.current || 0)));
   const pips = Array.isArray(ammo.pips)
+    // A caller may provide nonstandard pip availability; otherwise derive the
+    // usual left-to-right filled state from current charges.
     ? ammo.pips
     : Array.from({ length: maximum }, (_, index) => index < current);
   return { current, maximum, pips };
@@ -25,6 +29,8 @@ export function paletteSkillHtml(view = {}) {
   const ammo = ammoView(view.ammo);
   const disabled = Boolean(view.disabled);
   const contextDisabled = Boolean(view.contextDisabled);
+  // Permanent and context-sensitive disablement have distinct CSS, but either
+  // one must suppress native drag behavior.
   const draggable = Boolean(view.draggable) && !disabled && !contextDisabled;
   const classes = [
     "pal-skill",
@@ -54,6 +60,7 @@ export function paletteSkillHtml(view = {}) {
 }
 
 export function virtualPaletteSkillHtml(view = {}) {
+  // Virtual actions get neutral defaults while retaining full caller override.
   return paletteSkillHtml({
     color: "#8d7a57",
     draggable: true,
@@ -63,6 +70,7 @@ export function virtualPaletteSkillHtml(view = {}) {
 
 export function paletteGroupHtml(view = {}) {
   const skills = view.skills || [];
+  // Empty groups occupy no layout space.
   if (!skills.length) return "";
   return `<div class="pal-group${view.className ? ` ${escapeHtml(view.className)}` : ""}">
     <div class="pal-label" style="color:${escapeHtml(view.color || "#a88be8")}">${escapeHtml(view.label)}</div>
@@ -74,6 +82,8 @@ export function paletteGroupHtml(view = {}) {
 
 export function bindPaletteInteractions(root, handlers = {}) {
   if (!root) return;
+  // Assign DOM handler properties rather than accumulating listeners, making
+  // rebinding the same rendered palette idempotent.
   for (const icon of root.querySelectorAll?.(".pal-skill[data-skill]") || []) {
     const name = icon.dataset.skill;
     const draggable = icon.getAttribute("draggable") === "true";

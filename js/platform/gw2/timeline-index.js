@@ -12,6 +12,8 @@ function qualifyingIcdEvents(
   cooldown,
   earliestAt = -Infinity,
 ) {
+  // Input is chronological; accepting an event advances the shared ICD window
+  // before later candidates are considered.
   const activations = [];
   let readyAt = 0;
   for (const event of events) {
@@ -34,6 +36,8 @@ export function createGw2TimelineIndex({
   events = [],
   sigilSet = gw2SigilSet,
 } = {}) {
+  // Timestamp ties follow scheduler causal order so derived events are queried
+  // in the same order the resolver consumes them.
   const compareEvents = (left, right) =>
     left.at - right.at
     || Number(left.causalOrder ?? left.__order ?? 0)
@@ -48,6 +52,8 @@ export function createGw2TimelineIndex({
     }
     let low = 0;
     let high = target.length;
+    // Events are usually appended chronologically. Binary insertion handles
+    // late-derived events without re-sorting every indexed collection.
     while (low < high) {
       const middle = (low + high) >>> 1;
       if (compareEvents(target[middle], event) <= 0) {
@@ -74,6 +80,8 @@ export function createGw2TimelineIndex({
     indexedLength = 0;
   };
   const refreshIndex = () => {
+    // The source array is append-oriented. Shrinking it signals replacement and
+    // rebuilds the index; same-length in-place mutation is outside the contract.
     if (events.length < indexedLength) resetIndex();
     if (events.length === indexedLength) return;
     while (indexedLength < events.length) {
@@ -104,6 +112,8 @@ export function createGw2TimelineIndex({
     if (aristocracyRevision === revision) {
       return cachedAristocracyTriggers;
     }
+    // Pre-combat weakness/vulnerability events cannot arm Aristocracy once an
+    // explicit combat-start marker exists.
     const combatStartAt =
       indexed.combatStart[0]?.at
       ?? -Infinity;
@@ -121,8 +131,11 @@ export function createGw2TimelineIndex({
     let stacks = 0;
     let expiresAt = -Infinity;
     for (const trigger of aristocracyTriggers()) {
+      // Use state strictly before time. This prevents an event from benefiting
+      // from a stack it is itself in the process of triggering.
       if (trigger.at >= time - EPSILON) break;
       if (trigger.at >= expiresAt - EPSILON) stacks = 0;
+      // Each proc refreshes the eight-second window and caps at five stacks.
       stacks = Math.min(5, stacks + 1);
       expiresAt = trigger.at + 8;
     }
@@ -136,6 +149,7 @@ export function createGw2TimelineIndex({
       if (event.at > time + EPSILON) break;
       if (
         event.kind === kind
+        // Event duration wins; duration is a fallback for compact buff records.
         && event.at + (event.duration || duration) > time
       ) {
         stacks += Number(event.stacks || 1);
@@ -176,6 +190,7 @@ export function createGw2TimelineIndex({
     let activeSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
     for (const event of indexed.weaponSet) {
       if (event.at > time + EPSILON) break;
+      // Same-timestamp swaps are visible to effects emitted after the swap.
       activeSet = event.weaponSet;
     }
     return activeSet;
@@ -190,9 +205,12 @@ export function createGw2TimelineIndex({
     for (const event of indexed.cooldown) {
       if (event.at > time + EPSILON) break;
       if (event.type === "action" && event.skillId === skillId) {
+        // Query the state before an action at this exact timestamp; otherwise
+        // the action would see the cooldown it is about to create.
         if (event.at >= time - EPSILON) continue;
         readyAt = Number(event.rechargeReadyAt || 0);
       } else if (event.type === "cooldown_snapshot") {
+        // A snapshot replaces prior knowledge for the requested skill.
         readyAt = Number(event.cooldowns?.[skillId] || 0);
       }
     }

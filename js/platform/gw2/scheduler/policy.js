@@ -9,6 +9,8 @@ const ALACRITY_RECHARGE_RATE = 1.25;
 
 function quantizeUp(value, interval) {
   if (!(value > 0)) return 0;
+  // Casts complete on the first 40 ms action tick at or after their scaled
+  // duration. The epsilon avoids rounding an exact boundary into the next tick.
   return Math.ceil(value / interval - 1e-9) * interval;
 }
 
@@ -23,6 +25,8 @@ function baseCastDurationMs(skill) {
 }
 
 function castBoundTiming(effect, baseCastMs) {
+  // Only timings whose final pulse exactly tracks cast completion are quickness
+  // candidates. Independent aftercasts and delayed fields keep wall-clock time.
   if (!(baseCastMs > 0)) return false;
   if (Array.isArray(effect.ticks) && effect.ticks.length) {
     return Math.abs(
@@ -48,6 +52,7 @@ function scaleCastBoundTiming(context, skill, effect) {
   const adjustedCastMs =
     Math.max(0, Number(context.fullEnd - context.start)) * 1000;
   const scale = adjustedCastMs / baseCastMs;
+  // Return a copy because skill metadata is shared by every simulation run.
   return {
     ...effect,
     ...(Array.isArray(effect.ticks)
@@ -94,6 +99,7 @@ export function isGw2WeaponSkillEquipped(context, skill) {
     context.config || {},
     context.state?.activeWeaponSet === 2 ? 2 : 1,
   );
+  // Empty weapon configuration is treated as an unrestricted sandbox build.
   return configured.length === 0 || configured.includes(skill.weapon);
 }
 
@@ -147,11 +153,14 @@ export function createGw2SchedulerPolicy(
         + Number(config.stats?.boonDurationBonus || 0) / 100
         + Number(config.stats?.boonDurationBonuses?.[name] || 0) / 100
         + Number(sigils.boonDurationBonus || 0) / 100;
+      // GW2 boon duration cannot be reduced below base here and caps at +100%.
       return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
     },
 
     castDuration(context, skill, baseDuration) {
       if (!context.hasBuff("quickness", context.start)) return baseDuration;
+      // Explicit metadata wins for skills measured in-game; otherwise apply the
+      // standard action-rate multiplier and server-tick quantization.
       if (skill.quicknessCastTimeMs != null) {
         return Math.max(0, Number(skill.quicknessCastTimeMs)) / 1000;
       }
@@ -161,6 +170,7 @@ export function createGw2SchedulerPolicy(
 
     effectTiming(context, skill, effect) {
       if (!context.hasBuff("quickness", context.start)) return effect;
+      // Pulses attached to cast completion must move with the shortened cast.
       return scaleCastBoundTiming(context, skill, effect);
     },
 
@@ -169,6 +179,7 @@ export function createGw2SchedulerPolicy(
       const rate = context.hasBuff("alacrity", at)
         ? Number(config.alacrityRechargeRate || ALACRITY_RECHARGE_RATE)
         : 1;
+      // Recharge speed is a rate, so elapsed duration is divided by it.
       return baseDuration / Math.max(Number.EPSILON, rate);
     },
 

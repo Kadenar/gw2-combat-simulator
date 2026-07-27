@@ -21,6 +21,7 @@ export function createGw2ConditionResolution({
   function activeStacks(ctx, name, at) {
     const state = ctx.conditionState.get(name);
     if (!state) return [];
+    // Expiry is half-open: a stack is active before expiresAt, not at it.
     return state.stacks.filter(stack =>
       stack.appliedAt <= at + EPSILON
       && stack.expiresAt > at + EPSILON
@@ -28,12 +29,16 @@ export function createGw2ConditionResolution({
   }
 
   function activeConditionStackCount(ctx, name, at) {
+    // Target configuration represents ambient stacks that have no application
+    // event, so it is added separately from player-created stack state.
     return permanentTargetConditionStacks(ctx.config, name)
       + activeStacks(ctx, name, at)
         .reduce((total, stack) => total + stack.weight, 0);
   }
 
   function conditionRate(ctx, name, conditionDamage) {
+    // Torment switches formula entirely for a moving target. Confusion keeps
+    // its passive tick and adds configured activation damage as an average rate.
     if (name === "Torment" && ctx.config.target?.moving) {
       return MOVING_TORMENT.base + MOVING_TORMENT.scaling * conditionDamage;
     }
@@ -57,6 +62,8 @@ export function createGw2ConditionResolution({
 
   function scheduleApplicationTicks(ctx, application) {
     const activeDuration = application.activeDuration;
+    // Schedule one event per damaging stack-second. A horizon-clipped remainder
+    // becomes a fractional final tick so short applications retain their share.
     const fullTicks = Math.floor(activeDuration + EPSILON);
     for (let index = 1; index <= fullTicks; index += 1) {
       enqueueOrdered(ctx.queue, {
@@ -98,6 +105,9 @@ export function createGw2ConditionResolution({
       || activeConditionStackCount(ctx, "Bleeding", application.at) < 6
     ) return;
 
+    // The triggering bleed is already in conditionState, so reaching six stacks
+    // on this application is sufficient. The generated conditions cannot
+    // recursively retrigger the relic because neither is Bleeding.
     ctx.relic.fractalReadyAt = application.at + 20;
     ctx.recordProc(
       "relic",
@@ -131,6 +141,8 @@ export function createGw2ConditionResolution({
 
   function applyCondition(ctx, event) {
     const name = ctx.helpers.conditionName(event.condition);
+    // Duration is snapshotted at application time. Damage stats and multipliers
+    // are deliberately queried later at each tick.
     const stats = ctx.query.statsAt(event.at, event, ctx);
     const duration = Math.max(0, Number(event.duration || 0))
       * ctx.query.conditionDurationMultiplier(
@@ -152,6 +164,8 @@ export function createGw2ConditionResolution({
       condition: name,
       stacks,
       effectiveDuration: duration,
+      // activeDuration/expiresAt describe the simulated portion; naturalExpiresAt
+      // preserves the unclipped lifetime for diagnostics and downstream views.
       activeDuration: Math.max(
         0,
         Math.min(ctx.horizon, expiresAt) - event.at,
@@ -168,6 +182,8 @@ export function createGw2ConditionResolution({
     const state = ensureConditionState(ctx, name);
     state.stacks.push({
       appliedAt: event.at,
+      // Stack queries use natural expiry. The resolver horizon only limits
+      // scheduled damage, not the semantic duration of the application.
       expiresAt,
       weight: stacks,
       application,
@@ -186,6 +202,8 @@ export function createGw2ConditionResolution({
     if (!application || !fraction) return null;
 
     const stats = ctx.query.statsAt(event.at, application, ctx);
+    // Dynamic effects (boons, target health, profession modifiers) are sampled
+    // at tick time rather than frozen with the application.
     const perStack = conditionRate(ctx, event.condition, stats.conditionDamage)
       * ctx.query.conditionMultiplier(
         event.condition,
@@ -198,6 +216,8 @@ export function createGw2ConditionResolution({
     const damage = perStack * stackSeconds;
     application.damage += damage;
     application.damagingStackSeconds += stackSeconds;
+    // damagingStackSeconds is the integral used by result tables to report
+    // average stacks, including fractional ticks at the horizon.
     application.damageTicks.push({
       at: event.at,
       damage,

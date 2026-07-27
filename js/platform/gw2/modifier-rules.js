@@ -2,6 +2,8 @@ import {
   applyAdditiveDamageBucket,
 } from "./damage-modifier-buckets.js";
 
+// Public target names map directly to the profession hook contract compiled at
+// the bottom of this module.
 export const MODIFIER_TARGET = Object.freeze({
   CRITICAL_CHANCE: "criticalChance",
   CRITICAL_DAMAGE: "criticalDamage",
@@ -35,6 +37,8 @@ function normalizeResolver(rule, field, {
     throw ruleError(rule.id, `${field} is required.`);
   }
   const resolver = rule[field];
+  // Numeric callbacks are retained and validated again when invoked because
+  // their result can depend on timestamp-specific combat context.
   if (typeof resolver === "function") return resolver;
   if (
     typeof resolver !== "number"
@@ -91,6 +95,8 @@ function normalizeRule(rule, declarationIndex) {
   }
   for (const target of targets) {
     const damageTarget = DAMAGE_TARGETS.has(target);
+    // Damage additions use GW2's shared additive bucket. Plain scalar addition
+    // is reserved for chance, multiplier, and duration values.
     if (operation === "add" && damageTarget) {
       throw ruleError(id, `add is not supported for ${target}.`);
     }
@@ -147,6 +153,8 @@ function normalizeBucketPolicies(damageBuckets) {
   const policies = {};
   for (const target of DAMAGE_TARGETS) {
     if (!Object.hasOwn(damageBuckets, target)) {
+      // Sigil bonuses participate in the common bucket unless a profession
+      // explicitly opts out for that damage type.
       policies[target] = Object.freeze({ includeSigil: true });
       continue;
     }
@@ -204,6 +212,8 @@ function resolveNumeric(rule, field, context, target) {
 function createScalarHook(rules, target) {
   return Object.freeze((context, initialValue) => {
     let result = initialValue;
+    // Scalar operations are sequential, so explicit rule order can make
+    // add-then-multiply differ from multiply-then-add.
     for (const rule of rules) {
       if (rule.when && !rule.when(context)) continue;
       if (rule.operation === "add") {
@@ -223,6 +233,8 @@ function createDamageHook(rules, target, policy) {
   return Object.freeze((context, initialValue) => {
     let additiveBonus = 0;
     let multiplicativeFactor = 1;
+    // All damage-additive rules share one GW2 bucket; true multipliers are
+    // combined separately and applied after that bucket.
     for (const rule of rules) {
       if (rule.when && !rule.when(context)) continue;
       if (rule.operation === "damage-additive") {
@@ -239,6 +251,7 @@ function createDamageHook(rules, target, policy) {
     const includeSigil = typeof policy.includeSigil === "function"
       ? policy.includeSigil(context)
       : policy.includeSigil;
+    // Dynamic policies support weapon-set or event-specific sigil inclusion.
     if (typeof includeSigil !== "boolean") {
       throw new TypeError(
         `Modifier bucket policy "${target}" includeSigil must resolve to a boolean.`,
@@ -255,6 +268,10 @@ function createDamageHook(rules, target, policy) {
 /**
  * Compiles declarative profession scalar modifiers into the existing
  * profession hook contract.
+ *
+ * Rules declare a unique id, one or more targets, an operation, and either an
+ * amount or factor. Optional `when(context)` gates a rule; `order` controls
+ * deterministic execution before declaration order breaks ties.
  */
 export function createModifierHooks({
   rules = [],
@@ -269,6 +286,7 @@ export function createModifierHooks({
     for (const target of rule.targets) rulesByTarget[target].push(rule);
   }
   for (const target of TARGETS) {
+    // Stable declaration order is the final tie-breaker for equal rule order.
     rulesByTarget[target].sort((left, right) =>
       left.order - right.order
       || left.declarationIndex - right.declarationIndex);

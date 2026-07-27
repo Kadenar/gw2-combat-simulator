@@ -1,21 +1,12 @@
-import {
-  validateGuardianAvailability,
-} from "./availability.js";
+import { validateGuardianAvailability } from "./availability.js";
 import {
   advanceRadiantForgeState,
   clearRadiantForgeEntryCooldown,
   validateRadiantForgeCast,
 } from "./specific/radiant-forge.js";
-import {
-  advanceTomeState,
-  validateTomeCast,
-} from "./specific/tomes.js";
-import {
-  validateVirtueCast,
-} from "./specific/virtues.js";
-import {
-  updateSpearIlluminationState,
-} from "./specific/spear.js";
+import { advanceTomeState, validateTomeCast } from "./specific/tomes.js";
+import { validateVirtueCast } from "./specific/virtues.js";
+import { updateSpearIlluminationState } from "./specific/spear.js";
 import {
   updateWeaponCastState,
   validateWeaponState,

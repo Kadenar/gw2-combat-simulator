@@ -1,5 +1,5 @@
-// Damage calculation formulas and utilities
-// Provides strike damage, crit multipliers, condition tick/total damage, and full skill damage breakdowns
+// Stateless GW2 damage formulas plus the legacy skill-preview calculator.
+// Runtime resolution uses the same primitives but applies timestamp-aware rules.
 
 import {
     CONDITION_FORMULAS,
@@ -17,12 +17,12 @@ const CONDITION_DURATION_KEYS = {
     Confusion: 'Confusion Duration',
 };
 
-// GW2 strike damage formula: coefficient * weapon_strength * power / target_armor
+// GW2 strike damage formula before critical hits and outgoing modifiers.
 export function strikeDamage(coefficient, weaponStrength, power, armor = TARGET_ARMOR) {
     return coefficient * weaponStrength * power / armor;
 }
 
-// Calculate expected damage multiplier including crit chance and crit damage
+// Percentage-form API used by attribute tables (e.g. 50 chance, 200 damage).
 export function expectedCritMultiplier(critChancePct, critDamagePct) {
     const cc = Math.min(critChancePct / 100, 1);
     const cd = critDamagePct / 100;
@@ -35,26 +35,30 @@ export function conditionTickDamage(conditionType, conditionDamage) {
 }
 
 export function criticalChance(precision) {
+    // Fraction-form API used by the resolver. Precision below the level-80
+    // baseline is clamped rather than producing a negative chance.
     return Math.max(0, Math.min(1, 0.05 + (Number(precision) - 1000) / 2100));
 }
 
 export function criticalDamageMultiplier(ferocity) {
+    // Returns a factor (1.5 means 150%), unlike the percentage-form helper above.
     return 1.5 + Math.max(0, Number(ferocity)) / 1500;
 }
 
 export function expectedCriticalMultiplier(chance, multiplier) {
+    // Fraction-form companion to expectedCritMultiplier.
     const normalizedChance = Math.max(0, Math.min(1, Number(chance)));
     return 1 + normalizedChance * (Number(multiplier) - 1);
 }
 
-// Total condition damage over duration accounting for condition duration bonuses
+// Preview total. GW2 caps positive condition-duration extension at +100%.
 export function conditionTotalDamage(conditionType, stacks, baseDurationSec, conditionDamage, durationBonusPct) {
     const tickDmg = conditionTickDamage(conditionType, conditionDamage);
     const adjustedDuration = baseDurationSec * (1 + Math.min(durationBonusPct / 100, 1));
     return stacks * tickDmg * adjustedDuration;
 }
 
-// Lookup condition duration bonus from attributes (base + condition-specific bonuses)
+// Attribute tables store both duration components as percentage points.
 export function getConditionDurationBonus(conditionType, attributes) {
     const base = attributes['Condition Duration']?.final ?? 0;
     const key = CONDITION_DURATION_KEYS[conditionType];
@@ -76,8 +80,8 @@ export function getBoonDurationBonus(boonType, attributes) {
     return base + specific;
 }
 
-// Full skill damage breakdown: iterates hit definitions, applies crit multipliers, calculates condition damage over duration
-// Returns detailed breakdown with per-hit and per-condition details for UI inspection
+// Builds an isolated skill tooltip/preview, not a chronological combat result.
+// Duration hits repeat both their strike and condition application per interval.
 export function calculateSkillDamage(skill, skillHits, weaponStrength, attributes, { maxHit = Infinity, infernoBurningTick = 0 } = {}) {
     const power = attributes['Power']?.final ?? 1000;
     const condDmg = attributes['Condition Damage']?.final ?? 0;
@@ -99,6 +103,7 @@ export function calculateSkillDamage(skill, skillHits, weaponStrength, attribute
         let tickCount = 1;
         let isPerTick = false;
         if (hit.numberOfImpacts === 'Duration') {
+            // Duration entries describe a repeating pulse rather than one hit.
             isPerTick = true;
             const interval = hit.interval || 1;
             tickCount = Math.floor(hit.duration / interval);
@@ -133,6 +138,7 @@ export function calculateSkillDamage(skill, skillHits, weaponStrength, attribute
 
             const durationBonus = getConditionDurationBonus(condType, attributes);
             const effectiveStacks = isPerTick ? stacks * tickCount : stacks;
+            // Inferno can supply a precomputed Burning tick with its own rules.
             const tickDmg = (infernoBurningTick > 0 && condType === 'Burning')
                 ? infernoBurningTick
                 : conditionTickDamage(condType, condDmg);
@@ -153,6 +159,8 @@ export function calculateSkillDamage(skill, skillHits, weaponStrength, attribute
 
     const totalDamage = totalStrike + totalCondition;
     const castTime = skill.castTime || 0;
+    // Instant skills use total damage as their ranking value to avoid division
+    // by zero; callers should not interpret that case as literal sustained DPS.
     const dps = castTime > 0 ? totalDamage / castTime : totalDamage;
 
     return {

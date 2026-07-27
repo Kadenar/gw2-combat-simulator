@@ -1,3 +1,8 @@
+/**
+ * Produces the ordered, preformatted metric cards consumed by result renderers.
+ * Kill time is optional because fixed-horizon simulations may never reach the
+ * configured target health.
+ */
 export function resultSummaryMetrics(result, locale = undefined) {
   const format = value => Math.round(Number(value || 0)).toLocaleString(locale);
   const metrics = [

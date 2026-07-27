@@ -6,7 +6,11 @@ import {
   strikeDamage,
 } from "./damage.js";
 
+// Direct-resolution handlers for callers that do not use resolver event
+// queues. In this model a condition's whole duration is charged immediately.
+
 function react(context, event, details = {}) {
+  // Common numeric work completes before the profession observes the event.
   return context.profession.eventReactions?.[event.type]?.(
     context,
     event,
@@ -15,6 +19,7 @@ function react(context, event, details = {}) {
 }
 
 function attributes(context) {
+  // Accept both current stats and the older attributes config shape.
   return {
     power: Number(context.config.attributes?.power ?? context.config.stats?.power ?? 1000),
     precision: Number(
@@ -37,6 +42,7 @@ function attributes(context) {
 
 export function commonDamageHandler(context, event) {
   const stats = context.profession.modifyAttributes(context, attributes(context));
+  // Critical chance/damage are fractional multipliers in this direct path.
   let chance = event.canCrit === false ? 0 : criticalChance(stats.precision);
   chance = context.profession.modifyCriticalChance(context, chance);
   let critical = criticalDamageMultiplier(stats.ferocity);
@@ -53,6 +59,7 @@ export function commonDamageHandler(context, event) {
     stats.power,
     context.config.target?.armor ?? context.config.targetArmor ?? 2597,
   ) * hits * expectedCriticalMultiplier(chance, critical);
+  // Profession modifiers receive the fully assembled expected strike.
   damage = context.profession.modifyStrikeDamage(context, damage);
   context.state.totals.strike += damage;
   context.addBreakdown(
@@ -64,6 +71,8 @@ export function commonDamageHandler(context, event) {
   );
   const applyCondition = (_reactionContext, conditionEvent) =>
     commonConditionHandler(context, conditionEvent);
+  // Reactions can apply a condition through the same common accounting path
+  // without needing to know which context wrapper invoked them.
   react(context, event, {
     damage,
     hitContext: {
@@ -83,6 +92,8 @@ export function commonDamageHandler(context, event) {
 
 export function commonConditionHandler(context, event) {
   const stats = context.profession.modifyAttributes(context, attributes(context));
+  // This handler is intentionally aggregate: stacks * seconds * tick damage.
+  // Timestamp-aware partial ticks belong to resolver/condition-resolution.js.
   let damage = conditionTickDamage(
     event.condition,
     stats.conditionDamage,
@@ -113,6 +124,7 @@ function commonBuffHandler(context, event) {
     expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
     stacks: Math.max(1, Number(event.stacks || 1)),
   });
+  // Retain expired applications for consumers that inspect historical state.
   context.state.boons.set(kind, applications);
   react(context, event, {
     activeStacks: applications
@@ -122,6 +134,8 @@ function commonBuffHandler(context, event) {
 }
 
 export function createCommonEventHandlers() {
+  // Non-numeric events still react so profession behavior is consistent across
+  // the direct and chronological resolver paths.
   return {
     action: reactingNoop,
     combat_start: reactingNoop,
@@ -138,6 +152,8 @@ export function createCommonEventHandlers() {
     weakness_vulnerability: reactingNoop,
     peitha: reactingNoop,
     proc: (context, event) => {
+      // Proc events are reporting records; their damage is represented by
+      // separate damage/condition events.
       context.state.procs.push(event);
       react(context, event);
     },
