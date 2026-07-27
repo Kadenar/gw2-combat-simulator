@@ -5,30 +5,23 @@ import {
 import { getActiveTraits } from "./data/traits-data.js";
 
 function selectedSkill(skills, name) {
-  return (skills || []).some(skill => skill?.name === name);
+  return (skills || []).some((skill) => skill?.name === name);
 }
 
 export function applyNecromancerBuildAttributeRules(
   common,
-  {
-    build,
-    selectedSkills = [],
-    disabledTrait = null,
-  },
+  { build, selectedSkills = [], disabledTrait = null },
 ) {
   const attributes = common.attributes;
-  const activeTraits = getActiveTraits(build.specializations || [])
-    .filter(trait => trait.name !== disabledTrait);
-  const hasTrait = name => activeTraits.some(trait => trait.name === name);
+  const activeTraits = getActiveTraits(build.specializations || []).filter(
+    (trait) => trait.name !== disabledTrait,
+  );
+  const hasTrait = (name) => activeTraits.some((trait) => trait.name === name);
   const traitStats = {};
   const traitDurations = {};
 
   if (hasTrait("Spiteful Fortitude")) {
-    addAttribute(
-      traitStats,
-      "Vitality",
-      attributes.Power.final * 0.1,
-    );
+    addAttribute(traitStats, "Vitality", attributes.Power.final * 0.1);
   }
   if (hasTrait("Furious Demise")) {
     addAttribute(traitStats, "Precision", 180);
@@ -49,8 +42,7 @@ export function applyNecromancerBuildAttributeRules(
   if (hasTrait("Alchemic Vigor")) {
     addAttribute(traitStats, "Vitality", 240);
   }
-  const vitality =
-    attributes.Vitality.final + Number(traitStats.Vitality || 0);
+  const vitality = attributes.Vitality.final + Number(traitStats.Vitality || 0);
   if (hasTrait("Implacable Foe")) {
     addAttribute(traitStats, "Ferocity", vitality * 0.13);
   }
@@ -67,10 +59,9 @@ export function applyNecromancerBuildAttributeRules(
     addAttribute(
       traitStats,
       "Expertise",
-      (
-        attributes["Condition Damage"].final
-        + Number(traitStats["Condition Damage"] || 0)
-      ) * 0.07,
+      (attributes["Condition Damage"].final +
+        Number(traitStats["Condition Damage"] || 0)) *
+        0.07,
     );
   }
   if (selectedSkill(selectedSkills, "Signet of Spite")) {

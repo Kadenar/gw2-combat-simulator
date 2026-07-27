@@ -87,11 +87,10 @@ export function createProfessionActionController({
       resourceDefinition.maximum - reservedCount,
     );
     state.profession.numericResource -= additionalSpent;
-    return addResourceSpendEvent(
-      at,
-      reservedCount + additionalSpent,
-      { sourceSkill, rotationIndex },
-    );
+    return addResourceSpendEvent(at, reservedCount + additionalSpent, {
+      sourceSkill,
+      rotationIndex,
+    });
   };
 
   const restoreReservedResources = (spent) => {
@@ -152,9 +151,9 @@ export function createProfessionActionController({
       addTraitProc("Deadly Blades", at + epsilon, skill.name);
     }
     if (
-      resourceDefinition.singular === "clone"
-      && spent === 3
-      && traits.has(TRAIT.ILLUSIONARY_REVERSION)
+      resourceDefinition.singular === "clone" &&
+      spent === 3 &&
+      traits.has(TRAIT.ILLUSIONARY_REVERSION)
     ) {
       queueResources(
         at + epsilon,
@@ -334,17 +333,13 @@ export function createProfessionActionController({
     if (maimTriggered) {
       addTraitProc("Maim the Disillusioned", at, skill.name);
     }
-    triggerShatterTraits(
-      skill,
-      at,
-      spent,
-      isBladeSong,
-      { skipMaim: maimTriggered },
-    );
+    triggerShatterTraits(skill, at, spent, isBladeSong, {
+      skipMaim: maimTriggered,
+    });
     if (
-      skill.name === "Time Sink"
-      && traits.has(TRAIT.TIME_BOMB)
-      && at >= state.profession.timeBombUntil - epsilon
+      skill.name === "Time Sink" &&
+      traits.has(TRAIT.TIME_BOMB) &&
+      at >= state.profession.timeBombUntil - epsilon
     ) {
       const timeBomb = traitDamage["Time Bomb"];
       state.profession.timeBombUntil = at + timeBomb.duration;
@@ -372,11 +367,7 @@ export function createProfessionActionController({
       );
       addTraitProc("Time Bomb", at, skill.name, "explodes after 5s");
     }
-    if (
-      isBladeSong
-      && traits.has(TRAIT.INFINITE_FORGE)
-      && spent >= 5
-    ) {
+    if (isBladeSong && traits.has(TRAIT.INFINITE_FORGE) && spent >= 5) {
       queueResources(
         at + epsilon * 2,
         2,
@@ -398,8 +389,8 @@ export function createProfessionActionController({
     const spent = consumeResources(at);
     if (data.coefficient) {
       const coefficient =
-        data.coefficient
-        + (skill.name === "Lively Lute" && traits.has(TRAIT.SHREDDING) ? 1 : 0);
+        data.coefficient +
+        (skill.name === "Lively Lute" && traits.has(TRAIT.SHREDDING) ? 1 : 0);
       addDamage(skill, at, {
         coefficient,
         hits: data.hits + (coefficient > data.coefficient ? 1 : 0),
@@ -433,12 +424,13 @@ export function createProfessionActionController({
   };
 
   const handleCrescendo = (skill, at) => {
-    const activeInstruments = Object.entries(state.profession.instruments)
-      .filter(([, expiresAt]) => expiresAt > at);
+    const activeInstruments = Object.entries(
+      state.profession.instruments,
+    ).filter(([, expiresAt]) => expiresAt > at);
     addDamage(skill, at, {
       coefficient:
-        skill.baseCoefficient
-        * (1 + activeInstruments.length * skill.instrumentDamageIncrease),
+        skill.baseCoefficient *
+        (1 + activeInstruments.length * skill.instrumentDamageIncrease),
       hits: 1,
       source: "Player",
     });
@@ -466,12 +458,7 @@ export function createProfessionActionController({
     }
     if (traits.has(TRAIT.FORTISSIMO)) {
       for (let index = 1; index <= 5; index += 1) {
-        queueResources(
-          at + index,
-          1,
-          activePrimaryWeapon(),
-          "Fortissimo",
-        );
+        queueResources(at + index, 1, activePrimaryWeapon(), "Fortissimo");
       }
     }
   };

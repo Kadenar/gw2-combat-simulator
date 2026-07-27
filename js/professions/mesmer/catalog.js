@@ -1,17 +1,12 @@
-import {
-  SKILLS,
-  SPECIALIZATIONS,
-} from "./data/mesmer-api-metadata.js";
+import { SKILLS, SPECIALIZATIONS } from "./data/mesmer-api-metadata.js";
 import { TRAITS } from "./data/traits-data.js";
 import {
   MESMER_EXTRA_SKILLS,
   MESMER_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
-import {
-  createCanonicalCatalog,
-} from "../../platform/engine/catalog.js";
+import { createCanonicalCatalog } from "../../platform/engine/catalog.js";
 
-const generated = SKILLS.map(skill => ({
+const generated = SKILLS.map((skill) => ({
   ...skill,
   implemented: false,
   effects: [],
@@ -24,13 +19,13 @@ const generated = SKILLS.map(skill => ({
 // (maximumAmmoFor) and palette treat the parent as a phantom charge skill.
 const flipParentsWithAmmoChild = new Set(
   [...Object.values(MESMER_SKILL_MECHANICS), ...MESMER_EXTRA_SKILLS]
-    .filter(skill => skill.flipParent && Number(skill.ammo || 0) > 0)
-    .map(skill => skill.flipParent),
+    .filter((skill) => skill.flipParent && Number(skill.ammo || 0) > 0)
+    .map((skill) => skill.flipParent),
 );
 const overrides = Object.fromEntries(
   generated
-    .filter(skill => flipParentsWithAmmoChild.has(skill.name))
-    .map(skill => [skill.id, { ammo: 0, ammoRecharge: 0 }]),
+    .filter((skill) => flipParentsWithAmmoChild.has(skill.name))
+    .map((skill) => [skill.id, { ammo: 0, ammoRecharge: 0 }]),
 );
 
 export const mesmerCatalog = createCanonicalCatalog({

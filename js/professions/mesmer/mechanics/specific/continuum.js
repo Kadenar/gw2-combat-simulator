@@ -15,15 +15,17 @@ export function createContinuumController({
   const restoreContinuum = (at, reason) => {
     if (!state.profession.continuum) return;
     const splitReady = state.profession.continuum.splitReady;
-    const unaffectedCooldowns = [...state.cooldowns]
-      .filter(([id]) => unaffectedCooldownIds.has(id));
+    const unaffectedCooldowns = [...state.cooldowns].filter(([id]) =>
+      unaffectedCooldownIds.has(id),
+    );
     state.cooldowns = new Map([
       ...unaffectedCooldowns,
       ...[...state.profession.continuum.remainingCooldowns]
         .filter(([, remaining]) => remaining > epsilon)
         .map(([id, remaining]) => [id, at + remaining]),
     ]);
-    if (splitReady) state.cooldowns.set(state.profession.continuum.splitId, at + splitReady);
+    if (splitReady)
+      state.cooldowns.set(state.profession.continuum.splitId, at + splitReady);
     state.ammo = new Map(
       [...state.profession.continuum.ammo].map(([id, ammo]) => [
         id,
@@ -61,8 +63,7 @@ export function createContinuumController({
     const spent = consumeResources(at);
     const remainingCooldowns = new Map(
       [...state.cooldowns]
-        .filter(([id]) =>
-          id !== skill.id && !unaffectedCooldownIds.has(id))
+        .filter(([id]) => id !== skill.id && !unaffectedCooldownIds.has(id))
         .map(([id, ready]) => [id, ready - at]),
     );
     const ammo = new Map(

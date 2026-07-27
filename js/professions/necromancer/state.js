@@ -1,17 +1,20 @@
 import { NECROMANCER_TRAIT_IDS } from "./data/ids.js";
 
 export function selectedNecromancerTraits(config = {}) {
-  return new Set([
-    ...(config.traitIds || []),
-    ...(config.selectedTraitIds || []),
-    ...(config.selectedTraits || []),
-  ].map(value => Number.isFinite(Number(value)) ? Number(value) : value));
+  return new Set(
+    [
+      ...(config.traitIds || []),
+      ...(config.selectedTraitIds || []),
+      ...(config.selectedTraits || []),
+    ].map((value) => (Number.isFinite(Number(value)) ? Number(value) : value)),
+  );
 }
 
 export function hasNecromancerTrait(configOrTraits, traitId) {
-  const traits = configOrTraits instanceof Set
-    ? configOrTraits
-    : selectedNecromancerTraits(configOrTraits);
+  const traits =
+    configOrTraits instanceof Set
+      ? configOrTraits
+      : selectedNecromancerTraits(configOrTraits);
   return traits.has(traitId) || traits.has(String(traitId));
 }
 
@@ -36,20 +39,19 @@ export function createNecromancerState(config = {}) {
   const maximumLifeForce = hasNecromancerTrait(
     traits,
     NECROMANCER_TRAIT_IDS.SOUL_BATTERY,
-  ) ? 120 : 100;
+  )
+    ? 120
+    : 100;
   const configuredLifeForce = Number(config.initialResource ?? 100);
-  const lifeForce = (
-    maximumLifeForce === 120
-    && configuredLifeForce === 100
-  ) ? 120 : configuredLifeForce;
+  const lifeForce =
+    maximumLifeForce === 120 && configuredLifeForce === 100
+      ? 120
+      : configuredLifeForce;
   const initialBlight = Math.max(
     0,
     Math.min(25, Math.trunc(Number(config.initialBlight || 0))),
   );
-  const blightExpiries = Array.from(
-    { length: initialBlight },
-    () => 25,
-  );
+  const blightExpiries = Array.from({ length: initialBlight }, () => 25);
   return syncNecromancerResources({
     lifeForce,
     resource: lifeForce,

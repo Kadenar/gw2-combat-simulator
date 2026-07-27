@@ -18,36 +18,25 @@ export function createExpectedProcTracker({
   addTraitProc,
 }) {
   const trackBloodsong = (at, bleedingStacks) => {
-    if (
-      config.specialization !== "Virtuoso"
-      || !traits.has(TRAIT.BLOODSONG)
-    ) return;
+    if (config.specialization !== "Virtuoso" || !traits.has(TRAIT.BLOODSONG))
+      return;
 
     state.profession.bloodsongProgress += Number(bleedingStacks || 0);
-    while (
-      state.profession.bloodsongProgress
-      >= 5 - PROC_PROGRESS_TOLERANCE
-    ) {
+    while (state.profession.bloodsongProgress >= 5 - PROC_PROGRESS_TOLERANCE) {
       state.profession.bloodsongProgress -= 5;
-      queueResources(
-        at + epsilon,
-        1,
-        activePrimaryWeapon(),
-        "Bloodsong",
-      );
+      queueResources(at + epsilon, 1, activePrimaryWeapon(), "Bloodsong");
     }
   };
 
-  const materializeCriticalTraits = event => {
+  const materializeCriticalTraits = (event) => {
     const chance = Number(criticalChance(event) || 0);
     if (
-      traits.has(TRAIT.SHARPER_IMAGES)
-      && (event.source === "Clone" || event.source === "Phantasm")
+      traits.has(TRAIT.SHARPER_IMAGES) &&
+      (event.source === "Clone" || event.source === "Phantasm")
     ) {
       state.profession.sharperImagesProgress += chance;
       const procCount = Math.floor(
-        state.profession.sharperImagesProgress
-        + PROC_PROGRESS_TOLERANCE,
+        state.profession.sharperImagesProgress + PROC_PROGRESS_TOLERANCE,
       );
       if (procCount > 0) {
         state.profession.sharperImagesProgress -= procCount;

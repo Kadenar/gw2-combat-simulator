@@ -98,7 +98,8 @@ export function createResourceController({
       );
     }
     const resourceTrait = RESOURCE_TRAITS.find((name) =>
-      reason.startsWith(name));
+      reason.startsWith(name),
+    );
     if (resourceTrait && traits.has(resourceTrait)) {
       addTraitProc(
         resourceTrait,
@@ -108,12 +109,10 @@ export function createResourceController({
       );
     }
     if (
-      (
-        reason === "Deceptive Evasion"
-        || reason === "Self-Deception: Illusionary Ambush"
-      )
-      && traits.has(TRAIT.INFINITE_HORIZON)
-      && state.profession.cloneAmbushUntil >= at - epsilon
+      (reason === "Deceptive Evasion" ||
+        reason === "Self-Deception: Illusionary Ambush") &&
+      traits.has(TRAIT.INFINITE_HORIZON) &&
+      state.profession.cloneAmbushUntil >= at - epsilon
     ) {
       onAmbushCreatedClones(at, createdClones);
     }
