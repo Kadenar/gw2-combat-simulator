@@ -2826,6 +2826,23 @@ header .accent {
     padding: 2px 0;
 }
 
+.log-search {
+    flex: 1 1 140px;
+    min-width: 100px;
+    max-width: 260px;
+    padding: 3px 7px;
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-bright);
+    font-size: 11px;
+}
+
+.log-search:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
 .log-filter-label {
     display: flex;
     align-items: center;
