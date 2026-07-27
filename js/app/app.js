@@ -16,8 +16,18 @@ import {
     activeProfessionAppAdapter,
     getProfessionAppAdapter,
 } from './composition.js';
-import { createDefaultBuild, loadBuild, replaceBuild, saveBuild } from './app-state.js';
-import { downloadJson, readJsonFile } from './app-io.js';
+import {
+    createDefaultBuild,
+    loadBuild,
+    replaceBuildConfiguration,
+    saveBuild,
+} from './app-state.js';
+import {
+    downloadJson,
+    fetchJsonAsset,
+    getBuildExportPayload,
+    readJsonFile,
+} from './app-io.js';
 import { escapeHtml as esc, gw2ApiText } from '../platform/ui/html.js';
 import {
     DERIVED_ATTRIBUTES,
@@ -89,12 +99,14 @@ export class ProfessionApp {
         this.modifierContributionTimer = null;
         this.modifierContributionWorker = null;
         this.modifierContributionRequestId = 0;
+        this.defaultBuildPresets = [];
     }
 
     // Initialization hook: bind event listeners, trigger initial render, hide loading overlay
     init() {
         this.bindPageControls();
         this.changed();
+        this.initDefaultBuilds();
         document.getElementById('loading-overlay')?.classList.add('hidden');
     }
 
@@ -649,6 +661,78 @@ export class ProfessionApp {
         document.getElementById('target-armor').value = this.build.targetArmor;
     }
 
+    async initDefaultBuilds() {
+        try {
+            const manifest = await fetchJsonAsset(
+                `Builds/${this.adapter.id}-manifest.json`,
+                { optional: true },
+            );
+            if (!Array.isArray(manifest) || manifest.length === 0) return;
+
+            const sections = manifest[0]?.presets !== undefined
+                ? manifest
+                : [{ section: null, presets: manifest }];
+            const groups = sections.map(section => {
+                const buttons = (section.presets || []).map(preset => {
+                    const index = this.defaultBuildPresets.push(preset) - 1;
+                    return `<button type="button" class="btn preset-btn" data-preset-index="${index}">${esc(preset.label)}</button>`;
+                }).join('');
+                if (!buttons) return '';
+                const label = section.section
+                    ? `<span class="presets-group-label">${esc(section.section)}</span>`
+                    : '';
+                return `<div class="presets-group">${label}<div class="presets-group-btns">${buttons}</div></div>`;
+            }).join('');
+            if (!groups) return;
+
+            const container = document.createElement('section');
+            container.className = 'default-builds';
+            container.setAttribute('aria-labelledby', 'default-builds-title');
+            container.innerHTML = `
+                <div class="panel default-builds-panel">
+                    <div class="default-builds-header">
+                        <h3 id="default-builds-title">Default builds</h3>
+                        <span>Load gearing, traits, skills, and assumptions</span>
+                    </div>
+                    <div class="default-build-groups">${groups}</div>
+                </div>`;
+            document.querySelector('.build-section')?.before(container);
+            container.addEventListener('click', event => {
+                const button = event.target.closest('.preset-btn');
+                if (!button) return;
+                const preset = this.defaultBuildPresets[
+                    Number(button.dataset.presetIndex)
+                ];
+                if (preset) this.loadDefaultBuild(preset, button);
+            });
+        } catch {
+            // Default builds are optional; import/export remains available without them.
+        }
+    }
+
+    async loadDefaultBuild(preset, button) {
+        const originalLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Loading…';
+        try {
+            const buildData = await fetchJsonAsset(preset.build);
+            if (buildData?.profession && buildData.profession !== this.adapter.id) {
+                throw new Error(`This is a ${buildData.profession} build.`);
+            }
+            this.build = replaceBuildConfiguration(
+                buildData,
+                this.build,
+                this.adapter,
+            );
+            this.changed();
+        } catch (error) {
+            alert(`Failed to load default build: ${error.message}`);
+        } finally {
+            button.disabled = false;
+            button.textContent = originalLabel;
+        }
+    }
+
     // Wires up page-level controls that live outside re-rendered panels:
     // weapon-set attribute toggle, skill-bar click-away, rotation clear/rerun,
     // build/rotation import-export, target armor/HP inputs, and build reset.
@@ -669,14 +753,18 @@ export class ProfessionApp {
         });
         document.getElementById('btn-sim-rerun').addEventListener('click', () => this.changed(false));
         document.getElementById('btn-export-build').addEventListener('click', () =>
-            downloadJson(this.adapter.filenames.build, this.build));
+            downloadJson(
+                this.adapter.filenames.build,
+                getBuildExportPayload(this.build),
+            ));
         document.getElementById('btn-import-build').addEventListener('click', () =>
             document.getElementById('import-file-input').click());
         document.getElementById('import-file-input').addEventListener('change', async event => {
             if (!event.target.files[0]) return;
             try {
-                this.build = replaceBuild(
+                this.build = replaceBuildConfiguration(
                     await readJsonFile(event.target.files[0]),
+                    this.build,
                     this.adapter,
                 );
                 this.changed();

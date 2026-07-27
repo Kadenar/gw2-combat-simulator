@@ -197,6 +197,37 @@ header .accent {
 }
 
 /* ─── Presets bar ─── */
+.default-builds {
+    max-width: 860px;
+    margin: 0 auto 12px;
+}
+
+.default-builds-panel {
+    padding: 12px 16px;
+}
+
+.default-builds-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.default-builds-header h3 {
+    margin: 0;
+}
+
+.default-builds-header span {
+    color: var(--text-dim);
+    font-size: 0.72rem;
+}
+
+.default-build-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .presets-bar {
     max-width: 860px;
     margin: 0 auto 12px;
