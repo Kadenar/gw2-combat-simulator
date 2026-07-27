@@ -3,7 +3,10 @@ import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 
-import { getProfession, professionOptions } from "../js/app/composition.js";
+import {
+  loadProfession,
+  professionOptions,
+} from "../js/app/profession-registry.js";
 import {
   PROFESSION_ROUTES,
   professionRoute,
@@ -74,7 +77,7 @@ test("profession selector exposes every ready application route", () => {
 });
 
 test("Elementalist is registered through the generic profession contract", async () => {
-  const profession = await getProfession("elementalist");
+  const profession = await loadProfession("elementalist");
   assert.equal(profession.id, "elementalist");
   assert.equal(profession.name, "Elementalist");
   assert.ok(profession.catalog.specializations.length >= 9);

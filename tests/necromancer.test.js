@@ -3,10 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
-  getProfession,
-  getProfessionAppAdapter,
+  loadProfession,
+  loadProfessionAppAdapter,
   professionOptions,
-} from "../js/app/composition.js";
+} from "../js/app/profession-registry.js";
 import { professionRoute } from "../js/app/profession-selector.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
@@ -455,9 +455,9 @@ test("Necromancer is wired through the selector and application adapter", async 
     true,
   );
   assert.equal(professionRoute("necromancer"), "necromancer.html");
-  assert.equal((await getProfession("necromancer"))?.id, "necromancer");
+  assert.equal((await loadProfession("necromancer"))?.id, "necromancer");
   assert.equal(
-    (await getProfessionAppAdapter("necromancer"))?.id,
+    (await loadProfessionAppAdapter("necromancer"))?.id,
     "necromancer",
   );
   assert.match(page, /data-profession="necromancer"/);
