@@ -22,6 +22,8 @@ import {
 const noop = () => {};
 
 function reactionFor(reactions, eventType) {
+  // Missing profession reactions are intentionally valid; the shared handler
+  // still performs the numeric/state work for that event.
   return reactions?.[eventType] || noop;
 }
 
@@ -34,6 +36,8 @@ function handleBuff(ctx, event, eventReactions) {
     stacks: Math.max(1, Number(event.stacks || 1)),
   });
   ctx.boons.set(kind, applications);
+  // Keep expired applications for historical timestamp queries, but report
+  // only stacks active immediately after this application.
   const activeStacks = applications
     .filter(application => application.expiresAt > event.at)
     .reduce((sum, application) => sum + application.stacks, 0);
@@ -57,6 +61,8 @@ function requireFunction(value, name) {
 }
 
 function triggeringSkill(ctx, event) {
+  // Scheduled events normally carry an id; name lookup supports older streams
+  // and generated events whose source id is not a catalog skill id.
   return (
     ctx.helpers.skillsById?.get(event.skillId ?? event.sourceId)
     ?? ctx.helpers.skillsByName?.get(event.skillName)
@@ -71,8 +77,12 @@ function handleCriticalFood(ctx, event, hitContext) {
     || hitContext.critical.chance <= 0
   ) return;
 
+  // Expected-value procs use a deterministic accumulator. A 25% expected proc
+  // contributes 0.25 per eligible hit and fires whenever progress reaches one.
   ctx.food.criticalProgress += hitContext.critical.chance * proc.chance;
   if (ctx.food.criticalProgress < 1 - EPSILON) return;
+  // Progress is retained while the ICD is closed, so the next eligible hit can
+  // consume the proc instead of discarding accumulated expected probability.
   if (!isInternalCooldownReady(event.at, ctx.food.readyAt)) return;
 
   ctx.food.criticalProgress -= 1;
@@ -105,6 +115,8 @@ function handleCriticalFood(ctx, event, hitContext) {
 
 function markCombatActive(ctx, event) {
   const actorType = gw2EventActorType(event);
+  // Player and summon output starts combat. Passive equipment/food effects do
+  // not bootstrap combat by themselves.
   if (
     actorType === GW2_EVENT_ACTOR_TYPES.PLAYER
     || actorType === GW2_EVENT_ACTOR_TYPES.SUMMON
@@ -146,6 +158,9 @@ export function createGw2ResolverEventHandlers({
   );
 
   return Object.freeze({
+    // These event types are canonical timeline/reporting records with no shared
+    // numeric effect. Keeping explicit handlers prevents them being mistaken
+    // for unsupported required events by the resolver loop.
     action: noop,
     combat_start(ctx) {
       ctx.combatActive = true;
@@ -161,6 +176,8 @@ export function createGw2ResolverEventHandlers({
     damage(ctx, event) {
       markCombatActive(ctx, event);
       const hitContext = buildHitResolutionContext(ctx, event);
+      // Ordering matters: apply the base hit first, then profession reactions,
+      // expected food procs, and finally relic after-hit rules.
       applyResolvedHit(ctx, event, hitContext);
       applyMistStranger(ctx, event);
       reactionFor(eventReactions, "damage")(ctx, event, {
@@ -173,6 +190,8 @@ export function createGw2ResolverEventHandlers({
 
     condition(ctx, event) {
       markCombatActive(ctx, event);
+      // applyCondition schedules future tick events; it does not charge the
+      // condition's full damage at application time.
       applyCondition(ctx, event);
     },
 
@@ -201,6 +220,8 @@ export function createGw2ResolverEventHandlers({
     },
 
     weapon_set(ctx, event) {
+      // Invalid/missing values normalize to set one so later sigil and weapon
+      // queries always have a valid one-based set number.
       ctx.activeWeaponSet = Number(event.weaponSet) === 2 ? 2 : 1;
       reactionFor(eventReactions, "weapon_set")(ctx, event, { applyCondition });
     },

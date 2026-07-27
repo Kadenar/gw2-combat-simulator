@@ -1,8 +1,13 @@
+// Small, side-effect-free GW2 rules shared by schedulers, resolvers, and
+// profession adapters.
+
 export function gw2SigilSet(config, weaponSet = 1) {
+  // Public weapon sets are one-based; storage is a zero-based array.
   return config.sigilSets?.[Math.max(1, Number(weaponSet || 1)) - 1] || {};
 }
 
 export function gw2StaticAttributes(config, mightStacks = config.boons?.might) {
+  // Each Might stack adds 30 to both Power and Condition Damage.
   const mightBonus = 30 * Number(mightStacks || 0);
   return {
     power: Number(config.stats?.power || 0) + mightBonus,
@@ -23,6 +28,7 @@ export function gw2StaticAttributes(config, mightStacks = config.boons?.might) {
 }
 
 export function gw2RechargeRate(config, { alacrityRate = 1.25 } = {}) {
+  // The returned value is a speed, not a duration multiplier.
   return config.boons?.alacrity ? alacrityRate : 1;
 }
 
@@ -35,6 +41,8 @@ export function gw2EffectiveCooldown(
   } = {},
 ) {
   const ammoRecharge = Number(skill.ammoRecharge || 0);
+  // Ammo skills report time per restored charge; non-ammo skills use their
+  // cooldown/recharge field. Cast lockouts are handled by the scheduler.
   const baseRecharge =
     Number(skill.ammo || 0) > 0 && ammoRecharge > 0
       ? ammoRecharge
@@ -54,12 +62,17 @@ export function gw2WeaponStrength(
     aliases = {},
   } = {},
 ) {
+  // Explicit event data is authoritative for bundle and proc attacks.
   if (event.weaponStrength != null) return Number(event.weaponStrength);
   const explicit = String(event.weapon || "");
+  // Alias keys are regular-expression patterns, allowing variant weapon labels
+  // to share a strength entry.
   const alias = Object.entries(aliases)
     .find(([pattern]) => new RegExp(pattern, "i").test(explicit))?.[1];
   const normalized =
     explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
+  // Precedence moves from event-specific metadata to build defaults, then the
+  // generic Utility entry and caller fallback.
   return Number(
     strengths[alias]
     ?? strengths[normalized]
@@ -80,5 +93,6 @@ export function gw2ConditionDurationMultiplier(
     + Number(stats.conditionDurationBonus || 0) / 100
     + Number(stats.conditionDurationBonuses?.[condition] || 0) / 100
     + Number(extraBonus || 0);
+  // This helper models duration extensions only and enforces GW2's +100% cap.
   return Math.max(1, Math.min(2, 1 + bonus));
 }

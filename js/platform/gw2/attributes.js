@@ -16,6 +16,8 @@ import {
   weaponSigilsForSet,
 } from "./weapon-sigils.js";
 
+// Attribute calculators preserve a source breakdown because the build UI and
+// contribution analysis need more than the final numeric value.
 export const PRIMARY_ATTRIBUTES = Object.freeze([
   "Power",
   "Precision",
@@ -48,6 +50,7 @@ export const SPECIFIC_DURATION_ATTRIBUTES = Object.freeze([
 ]);
 
 export function addAttribute(target, key, value) {
+  // Zero values do not need entries; negative deltas remain valid.
   if (value) target[key] = (target[key] || 0) + value;
 }
 
@@ -64,6 +67,8 @@ export function derivedAttribute(
   runeBonus = 0,
   foodBonus = 0,
 ) {
+  // Derived percentages use the same shape as primary stats so renderers can
+  // consume either without branching on attribute kind.
   return {
     final,
     base: 0,
@@ -87,6 +92,8 @@ export function calculateCommonAttributes(
     dedupeSigils = true,
   } = {},
 ) {
+  // Data injection keeps this common pipeline reusable in tests and by
+  // professions with supplemental gear tables.
   const baseStats = data.BASE_STATS || BASE_STATS;
   const foodData = data.FOOD_DATA || FOOD_DATA;
   const gearSlots = data.GEAR_SLOTS || GEAR_SLOTS;
@@ -115,6 +122,8 @@ export function calculateCommonAttributes(
   const mainHand = selectedWeapons?.[0] || "";
   const isTwoHanded = weaponData[mainHand]?.wielding === "2h";
   for (const slot of gearSlots) {
+    // A two-handed weapon occupies both weapon stat budgets: skip Weapon2 and
+    // read the main-hand selection from the Weapon2H coefficient table.
     if (isTwoHanded && slot === "Weapon2") continue;
     const statSlot = isTwoHanded && slot === "Weapon1" ? "Weapon2H" : slot;
     addAttributes(gear, gearStats[build.gear?.[slot]]?.[statSlot]);
@@ -128,6 +137,8 @@ export function calculateCommonAttributes(
 
   const conversionPool = {};
   const conversionPoolNoFood = {};
+  // "Converted" food participates in utility/trait conversions; ordinary
+  // food buffs are applied later and must not feed another conversion.
   for (const stat of PRIMARY_ATTRIBUTES) {
     conversionPool[stat] =
       (baseStats[stat] || 0)
@@ -143,6 +154,7 @@ export function calculateCommonAttributes(
   }
   for (const conversion of utilityData[build.utility] || []) {
     const rate = (utilityRates[conversion.from] || 0) / 100;
+    // GW2 stat conversions round each declared conversion independently.
     addAttribute(
       utility,
       conversion.to,
@@ -152,6 +164,8 @@ export function calculateCommonAttributes(
 
   let sigilCriticalChance = 0;
   const selectedSigils = sigilNames || weaponSigilsForSet(build, weaponSet);
+  // Duplicate named sigils do not stack by default. Tests and specialized
+  // callers may opt out when modeling a rule with different stacking behavior.
   const effectiveSigils = dedupeSigils
     ? new Set(selectedSigils)
     : selectedSigils;
@@ -185,6 +199,7 @@ export function calculateCommonAttributes(
   }
 
   const attributes = {};
+  // First build primary attributes and their complete source attribution.
   for (const stat of PRIMARY_ATTRIBUTES) {
     const breakdown = {
       base: baseStats[stat] || 0,
@@ -205,6 +220,8 @@ export function calculateCommonAttributes(
   const ferocity = attributes.Ferocity.final;
   const concentration = attributes.Concentration.final;
   const expertise = attributes.Expertise.final;
+  // Derived values are percentages. Trait bonuses are added in finalize after
+  // profession rules have resolved their active selections.
   attributes["Critical Chance"] = derivedAttribute(
     (precision - 895) / 21 + sigilCriticalChance,
     0,
@@ -259,6 +276,7 @@ export function calculateCommonAttributes(
     jadeBotCore: Boolean(build.jadeBotCore),
     specializations: [...(build.specializations || [])],
     commonContext: {
+      // Kept only between common calculation and profession finalization.
       conversionPool,
       conversionPoolNoFood,
       runeDurations,
@@ -282,6 +300,8 @@ export function finalizeBuildAttributes(
     traitCriticalChance = 0,
   },
 ) {
+  // Clone before applying profession deltas so a common result can be reused
+  // for disabled-trait comparisons without cross-run mutation.
   const attributes = structuredClone(common.attributes);
   for (const [name, amount] of Object.entries(traitStats)) {
     if (!attributes[name]) continue;
@@ -299,6 +319,8 @@ export function finalizeBuildAttributes(
   const ferocity = attributes.Ferocity.final;
   const concentration = attributes.Concentration.final;
   const expertise = attributes.Expertise.final;
+  // Trait stat changes can affect every derived percentage, so recompute them
+  // from finalized primaries instead of incrementally patching prior results.
   attributes["Critical Chance"] = derivedAttribute(
     (precision - 895) / 21
       + Number(traitCriticalChance || 0)
@@ -336,6 +358,7 @@ export function finalizeBuildAttributes(
       + (foodDurations[key] || 0)
       + (sigilDurations[key] || 0);
     if (!value) {
+      // Remove zero-valued provisional entries to keep the public result sparse.
       delete attributes[key];
       continue;
     }
@@ -349,6 +372,7 @@ export function finalizeBuildAttributes(
   }
 
   const { commonContext, ...result } = common;
+  // commonContext is an implementation handoff, not part of the public build.
   return { ...result, attributes, activeTraits };
 }
 
