@@ -29,6 +29,55 @@ export function formatTimelineCastDetails(step, formatTime) {
   return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(2)}s`;
 }
 
+const NON_SKILL_STEP_NAMES = new Set(["Wait", "Combat Start"]);
+
+export function timelineSkillCastOrdinals(steps = []) {
+  const casts = (steps || [])
+    .filter(step =>
+      Number.isInteger(Number(step?.ri))
+      && !step.invalid
+      && !NON_SKILL_STEP_NAMES.has(String(step.skill || "")))
+    .sort((left, right) =>
+      Number(left.start || 0) - Number(right.start || 0)
+      || Number(left.ri) - Number(right.ri));
+  const totalsBySkill = new Map();
+  for (const cast of casts) {
+    totalsBySkill.set(
+      cast.skill,
+      (totalsBySkill.get(cast.skill) || 0) + 1,
+    );
+  }
+  const seenBySkill = new Map();
+  return new Map(casts.map((cast, index) => {
+    const matchingIndex = (seenBySkill.get(cast.skill) || 0) + 1;
+    seenBySkill.set(cast.skill, matchingIndex);
+    return [Number(cast.ri), {
+      matchingIndex,
+      matchingTotal: totalsBySkill.get(cast.skill),
+      skillIndex: index + 1,
+      skillTotal: casts.length,
+    }];
+  }));
+}
+
+export function formatTimelineSkillTooltip(
+  name,
+  step,
+  ordinal,
+  formatTime,
+) {
+  if (!step || step.invalid || !ordinal) return String(name || "");
+  const duration = Math.max(
+    0,
+    Math.round(Number(step.end || 0) - Number(step.start || 0)),
+  );
+  return [
+    `${name} at ${formatTime(step.start)} for ${duration}ms`,
+    `${name} cast ${ordinal.matchingIndex} of ${ordinal.matchingTotal}`,
+    `Skill cast ${ordinal.skillIndex} of ${ordinal.skillTotal}`,
+  ].join("\n");
+}
+
 export function formatConcurrentTimelineBadge(offsetMs, timestamp = "") {
   const time = String(timestamp || "").trim();
   return `⊙${Number(offsetMs)}ms${time ? `\n${time}` : ""}`;
