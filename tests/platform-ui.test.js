@@ -31,11 +31,13 @@ import {
 import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
+  formatTimelineSkillTooltip,
   getSkillDropInsertionIndex,
   insertRotationEntry,
   moveRotationEntry,
   removeRotationEntryOptions,
   rotationEntryName,
+  timelineSkillCastOrdinals,
   updateRotationEntry,
 } from "../js/platform/ui/timeline.js";
 
@@ -55,6 +57,44 @@ test("timeline cast details include start, end, and elapsed cast time", () => {
     ),
     "Cast: 1.25s → 2.01s\nCast time: 0.76s",
   );
+});
+
+test("timeline skill tooltips include matching and global cast ordinals", () => {
+  const steps = [
+    { ri: 0, skill: "Well of Darkness", start: 1000, end: 1481 },
+    { ri: 1, skill: "Wait", start: 1481, end: 2000 },
+    { ri: 2, skill: "Nightfall", start: 2000, end: 2750 },
+    { ri: 3, skill: "Well of Darkness", start: 3000, end: 3481 },
+    { ri: 4, skill: "Well of Darkness", start: 2500, end: 2981 },
+    {
+      ri: 5,
+      skill: "Well of Darkness",
+      start: 4000,
+      end: 4481,
+      invalid: true,
+    },
+  ];
+  const ordinals = timelineSkillCastOrdinals(steps);
+
+  assert.deepEqual(ordinals.get(4), {
+    matchingIndex: 2,
+    matchingTotal: 3,
+    skillIndex: 3,
+    skillTotal: 4,
+  });
+  assert.equal(
+    formatTimelineSkillTooltip(
+      "Well of Darkness",
+      steps[4],
+      ordinals.get(4),
+      time => `${(time / 1000).toFixed(3)}s`,
+    ),
+    "Well of Darkness at 2.500s for 481ms\n"
+      + "Well of Darkness cast 2 of 3\n"
+      + "Skill cast 3 of 4",
+  );
+  assert.equal(ordinals.has(1), false);
+  assert.equal(ordinals.has(5), false);
 });
 
 test("GW2 API text removes presentation tags for native tooltips", () => {

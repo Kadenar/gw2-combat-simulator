@@ -22,7 +22,9 @@ import {
     formatConcurrentTimelineBadge,
     formatInterruptTimelineBadge,
     formatTimelineCastDetails,
+    formatTimelineSkillTooltip,
     moveRotationEntry,
+    timelineSkillCastOrdinals,
     updateRotationEntry,
     timelineRows,
 } from '../platform/ui/timeline.js';
@@ -878,7 +880,11 @@ export function renderTimeline(app) {
         return;
     }
     element.classList.remove('is-empty');
-    const steps = new Map((app.results?.steps || []).filter(step => step.ri >= 0).map(step => [step.ri, step]));
+    const resultSteps = app.results?.steps || [];
+    const steps = new Map(resultSteps
+        .filter(step => step.ri >= 0)
+        .map(step => [step.ri, step]));
+    const castOrdinals = timelineSkillCastOrdinals(resultSteps);
     const resourceSpends = shatterResourceSpends(app.results);
     const rows = timelineWeaponRows(app.build.rotation, {
         startingWeaponSet: app.build.startingWeaponSet,
@@ -986,9 +992,27 @@ export function renderTimeline(app) {
                         : resourceSpend.resource === 'clones' ? 'C' : 'R'
                 }`
                 : '';
+            const skillTooltip = (
+                step
+                && !invalid
+                && item.name !== '__wait'
+                && item.name !== '__combat_start'
+            )
+                ? formatTimelineSkillTooltip(
+                    display,
+                    step,
+                    castOrdinals.get(index),
+                    formatTime,
+                )
+                : display;
             const titleSuffix = invalid
                 ? `\n${step.invalidReason || 'Not valid here — will not be simulated'}`
-                : step ? `\n${formatTimelineCastDetails(step, formatTime)}` : '';
+                : step && (
+                    item.name === '__wait'
+                    || item.name === '__combat_start'
+                )
+                    ? `\n${formatTimelineCastDetails(step, formatTime)}`
+                    : '';
             const resourceTitle = resourceLabel ? `\n${resourceLabel}` : '';
             const concurrentLabel = item.offset != null
                 ? formatConcurrentTimelineBadge(item.offset, time)
@@ -997,7 +1021,7 @@ export function renderTimeline(app) {
                 ? formatInterruptTimelineBadge(item.interruptMs, time)
                 : '';
             rowItems.push(`<div class="rot-skill${item.offset != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}" draggable="true"
-                    data-idx="${index}" title="${esc(display)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
+                    data-idx="${index}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
