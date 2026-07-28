@@ -40,6 +40,7 @@ import {
 import {
   modifierCandidates,
   recalculate,
+  runSimulation,
 } from "../js/professions/necromancer/app/app-runtime.js";
 
 const baseConfig = Object.freeze({
@@ -103,7 +104,7 @@ test("Necromancer uses the current API catalog and all nine trait lines", () => 
 
 test("measured Quickness cast times remain exact", () => {
   const expected = new Map([
-    [ID.LIFE_SIPHON, 1520],
+    [ID.LIFE_SIPHON, 560],
     [ID.DARK_PACT, 680],
     [ID.NECROTIC_STAB, 400],
     [ID.NECROTIC_BITE, 640],
@@ -134,10 +135,16 @@ test("measured Quickness cast times remain exact", () => {
     [ID.TAINTED_BOLTS, 600],
     [ID.VILE_BLAST, 600],
     [ID.ADDLE, 360],
-    [ID.EXTIRPATE, 920],
+    [ID.EXTIRPATE, 840],
     [ID.DARK_SLASH, 600],
     [ID.ISOLATE, 480],
     [ID.PERFORATE, 840],
+    [ID.HUNGERING_MAELSTROM, 640],
+    [ID.GORMANDIZE, 440],
+    [ID.DEVOURING_VISAGE, 680],
+    [ID.CONSUME, 520],
+    [ID.DEADLY_SLICE, 520],
+    [ID.SINISTER_STAB, 560],
     [ID.ELIXIR_OF_RISK, 540],
     [ID.LOCUST_SWARM, 440],
     [ID.VITAL_DRAW, 800],
@@ -200,6 +207,7 @@ test("interrupt-safe Necromancer attacks retain their committed packets", () => 
   });
   const graspingDarkness = simulate("Reaper", [
     { name: "Grasping Darkness", interruptAfterMs: 120 },
+    { type: "wait", durationMs: 2000 },
   ], {
     boons: { quickness: true },
     primaryWeapon: "Greatsword",
@@ -249,6 +257,16 @@ test("interrupt-safe Necromancer attacks retain their committed packets", () => 
     12,
   );
   assert.equal(graspingDarkness.steps[0].fullCastMs, 520);
+  const graspingDarknessHit = graspingDarkness.events.find(event =>
+    event.type === "damage"
+    && event.skillId === ID.GRASPING_DARKNESS);
+  assert.equal(
+    Math.round(
+      graspingDarknessHit.at * 1000
+      - graspingDarkness.steps[0].start,
+    ),
+    1440,
+  );
   assert.equal(
     graspingDarkness.events.filter(event =>
       event.type === "damage" &&
@@ -288,6 +306,53 @@ test("interrupt-safe Necromancer attacks retain their committed packets", () => 
       event.type === "damage" && event.skillId === ID.LIFE_REAP).length,
     1,
   );
+});
+
+test("Grasping Darkness commits at 120 ms and lands after combat starts", () => {
+  const beforeCommit = simulate("Reaper", [
+    { name: "Grasping Darkness", interruptAfterMs: 119 },
+    { type: "wait", durationMs: 2000 },
+  ], {
+    boons: { quickness: true },
+    initialResource: 0,
+    primaryWeapon: "Greatsword",
+  });
+  const committed = simulate("Reaper", [
+    { name: "Grasping Darkness", interruptAfterMs: 120 },
+    { type: "wait", durationMs: 2000 },
+  ], {
+    boons: { quickness: true },
+    initialResource: 0,
+    primaryWeapon: "Greatsword",
+  });
+  const opener = simulate("Reaper", [
+    { name: "Grasping Darkness", interruptAfterMs: 120 },
+    "Nightfall",
+    { name: "__combat_start", offset: 400 },
+    { type: "wait", durationMs: 2000 },
+  ], {
+    boons: { quickness: true },
+    initialResource: 0,
+    primaryWeapon: "Greatsword",
+  });
+  const graspingEvents = result => result.events.filter(event =>
+    event.skillId === ID.GRASPING_DARKNESS
+    && ["damage", "necromancer.chill", "control"].includes(event.type));
+  const openerHit = opener.resolvedEvents.find(event =>
+    event.type === "damage"
+    && event.skillId === ID.GRASPING_DARKNESS);
+  const combatStart = opener.events.find(event =>
+    event.type === "combat_start");
+
+  assert.deepEqual(graspingEvents(beforeCommit), []);
+  assert.deepEqual(
+    graspingEvents(committed).map(event => Math.round(event.at * 1000)),
+    [1440, 1440, 1440],
+  );
+  assert.equal(committed.endState.profession.lifeForce, 10);
+  assert.equal(Math.round(combatStart.at * 1000), 520);
+  assert.equal(Math.round(openerHit.at * 1000), 1440);
+  assert.ok(openerHit.at > combatStart.at);
 });
 
 test("every catalog skill has mechanics and API aliases are excluded", () => {
@@ -975,7 +1040,7 @@ test("Isolate and Distress expose the follow-up and reset Perforate", () => {
   );
 });
 
-test("Addle gains life force and checks Soul Shards on activation", () => {
+test("Addle grants four shards to defiant foes and checks activation shards", () => {
   const normal = simulate("Harbinger", ["Addle"], {
     initialResource: 0,
     primaryWeapon: "Spear",
@@ -986,6 +1051,7 @@ test("Addle gains life force and checks Soul Shards on activation", () => {
     target: {
       ...baseConfig.target,
       defiant: true,
+      activatingSkills: false,
     },
   });
   const threshold = simulate("Harbinger", [
@@ -1011,14 +1077,14 @@ test("Addle gains life force and checks Soul Shards on activation", () => {
       && event.skillId === ID.ADDLE)?.duration,
     0.25,
   );
-  assert.equal(defiant.endState.profession.soulShards, 2);
-  assert.equal(defiant.endState.profession.lifeForce, 10);
+  assert.equal(defiant.endState.profession.soulShards, 4);
+  assert.equal(defiant.endState.profession.lifeForce, 20);
   assert.equal(immobilizes(defiant).length, 0);
   assert.equal(
     defiant.events.find(event =>
       event.type === "control"
       && event.skillId === ID.ADDLE)?.duration,
-    0.25,
+    1.5,
   );
   assert.equal(threshold.endState.profession.soulShards, 5);
   assert.equal(immobilizes(threshold).length, 1);
@@ -1041,9 +1107,209 @@ test("necromancer wells finish their pulses after the final rotation action", ()
   }
 });
 
+test("dagger skills use their current PvE strike and bleeding mechanics", () => {
+  const darkPact = simulate("Core", ["Dark Pact"], {
+    initialResource: 0,
+    primaryWeapon: "Dagger",
+  });
+  const lifeSiphon = targetBleeding => simulate("Core", ["Life Siphon"], {
+    primaryWeapon: "Dagger",
+    target: {
+      ...baseConfig.target,
+      conditions: {
+        ...baseConfig.target.conditions,
+        Bleeding: targetBleeding,
+      },
+    },
+  });
+  const plain = lifeSiphon(false);
+  const bleeding = lifeSiphon(true);
+  const siphonDamage = result => result.resolvedEvents
+    .filter(event =>
+      event.type === "damage" && event.skillId === ID.LIFE_SIPHON)
+    .reduce((sum, event) => sum + event.damage, 0);
+
+  assert.equal(
+    darkPact.events.find(event =>
+      event.type === "damage" && event.skillId === ID.DARK_PACT)?.coefficient,
+    2.4,
+  );
+  assert.equal(
+    darkPact.events.find(event =>
+      event.type === "condition"
+      && event.skillId === ID.DARK_PACT
+      && event.condition === "Bleeding")?.stacks,
+    2,
+  );
+  assert.equal(
+    darkPact.events.find(event =>
+      event.type === "condition"
+      && event.skillId === ID.DARK_PACT
+      && event.condition === "Immobilized")?.duration,
+    6,
+  );
+  assert.deepEqual(
+    darkPact.events
+      .filter(event => event.type === "self_condition")
+      .map(event => [event.condition, event.stacks, event.duration]),
+    [["Bleeding", 2, 10]],
+  );
+  assert.equal(
+    plain.events.filter(event =>
+      event.type === "damage" && event.skillId === ID.LIFE_SIPHON).length,
+    9,
+  );
+  assert.ok(Math.abs(siphonDamage(bleeding) / siphonDamage(plain) - 1.5) < 1e-12);
+});
+
+test("off-hand sword follow-ups use their complete PvE effects", () => {
+  const result = simulate("Core", [
+    "Hungering Maelstrom",
+    "Devouring Visage",
+    "Gormandize",
+    "Consume",
+  ], {
+    boons: { quickness: true },
+    primaryWeapon: "Dagger",
+    secondaryWeapon: "Sword",
+    target: {
+      ...baseConfig.target,
+      health: 1_000_000_000,
+    },
+  });
+  const damage = skillId => result.events.filter(event =>
+    event.type === "damage" && event.skillId === skillId);
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    damage(ID.HUNGERING_MAELSTROM).map(event => event.coefficient),
+    [2.75],
+  );
+  assert.deepEqual(
+    damage(ID.DEVOURING_VISAGE).map(event => event.coefficient),
+    [1.5],
+  );
+  assert.deepEqual(
+    damage(ID.GORMANDIZE).map(event => event.coefficient),
+    [2.5],
+  );
+  assert.deepEqual(
+    damage(ID.CONSUME).map(event => event.coefficient),
+    Array(5).fill(0.5),
+  );
+  assert.equal(
+    result.events.some(event =>
+      event.type === "control"
+      && event.skillId === ID.DEVOURING_VISAGE
+      && event.controlKind === "fear"
+      && event.duration === 1.5),
+    true,
+  );
+  assert.equal(
+    result.events.some(event =>
+      event.type === "condition"
+      && event.skillId === ID.CONSUME
+      && event.condition === "Weakness"
+      && event.duration === 4),
+    true,
+  );
+  assert.equal(
+    result.events.some(event =>
+      event.type === "buff"
+      && event.skillId === ID.CONSUME
+      && event.kind === "might"
+      && event.stacks === 5
+      && event.duration === 8),
+    true,
+  );
+});
+
+test("Plaguelands, chill fields, and the benchmark reset retain live behavior", () => {
+  const plague = simulate("Reaper", [
+    "Plaguelands",
+    "__cooldown_reset",
+    "Plaguelands",
+  ], {
+    stats: { expertise: 1500 },
+    selectedSkills: ["Plaguelands"],
+    selectedTraitIds: [TRAIT.MASTER_OF_CORRUPTION],
+    target: {
+      ...baseConfig.target,
+      health: 1_000_000_000,
+    },
+  });
+  const field = simulate("Reaper", [
+    "Reaper's Shroud",
+    "Executioner's Scythe",
+    "Soul Spiral",
+  ], {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.DEATHLY_CHILL],
+    target: {
+      ...baseConfig.target,
+      health: 1_000_000_000,
+    },
+  });
+  const plagueEvents = (type, condition) => plague.events.filter(event =>
+    event.type === type
+    && event.skillId === ID.PLAGUELANDS
+    && (condition == null || event.condition === condition));
+
+  assert.deepEqual(plague.warnings, []);
+  assert.equal(plague.steps.filter(step => step.skill === "Plaguelands").length, 2);
+  assert.equal(plagueEvents("damage").length, 18);
+  assert.equal(plagueEvents("condition", "Bleeding").length, 18);
+  assert.equal(plagueEvents("condition", "Poisoned").length, 16);
+  assert.equal(plagueEvents("condition", "Torment").length, 14);
+  assert.deepEqual(
+    plague.events
+      .filter(event => event.type === "self_condition")
+      .slice(0, 2)
+      .map(event => [event.condition, event.duration]),
+    [["Bleeding", 10], ["Poisoned", 4]],
+  );
+  assert.equal(
+    plague.events.some(event =>
+      event.type === "marker" && event.action === "cooldown-reset"),
+    true,
+  );
+  assert.equal(
+    field.resolvedEvents.filter(event =>
+      event.type === "condition"
+      && event.sourceId === TRAIT.DEATHLY_CHILL).length,
+    12,
+  );
+});
+
+test("Death Spiral includes its life-siphon damage packet", () => {
+  const result = simulate("Reaper", ["Death Spiral"], {
+    primaryWeapon: "Greatsword",
+  });
+  const packets = result.events.filter(event =>
+    event.type === "damage" && event.skillId === ID.DEATH_SPIRAL);
+  const siphon = packets.find(event => event.damageKind === "life-steal");
+  const resolvedSiphon = result.resolvedEvents.find(event =>
+    event.type === "damage"
+    && event.skillId === ID.DEATH_SPIRAL
+    && event.damageKind === "life-steal");
+
+  assert.deepEqual(
+    packets.map(event => event.name),
+    ["Death Spiral", "Death Spiral — Life Siphon"],
+  );
+  assert.equal(siphon?.flatStrikeBase, 3517);
+  assert.equal(siphon?.flatStrikePowerCoeff, 0.01);
+  assert.equal(siphon?.noCrit, true);
+  assert.equal(resolvedSiphon?.criticalChance, 0);
+  assert.equal(resolvedSiphon?.damage, 3537);
+});
+
 test("Greatsword control and Nightfall pulses use their live mechanics", () => {
   const nightfallSkill = necromancerCatalog.skillsById.get(ID.NIGHTFALL);
-  const grasp = simulate("Harbinger", ["Grasping Darkness"], {
+  const grasp = simulate("Harbinger", [
+    "Grasping Darkness",
+    { type: "wait", durationMs: 2000 },
+  ], {
     initialResource: 0,
     primaryWeapon: "Greatsword",
     relic: "Claw",
@@ -1445,7 +1711,7 @@ test("requested Harbinger damage traits apply at their per-hit triggers", () => 
   );
 });
 
-test("Barbed Precision uses a three-second base bleed", () => {
+test("Barbed Precision uses centered deterministic expected procs", () => {
   const result = simulate("Harbinger", [
     "Weeping Shots",
     { type: "wait", durationMs: 4100 },
@@ -1454,12 +1720,16 @@ test("Barbed Precision uses a three-second base bleed", () => {
     stats: { precision: 4000 },
     selectedTraitIds: [TRAIT.BARBED_PRECISION],
   });
-  const application = result.resolvedEvents.find(event =>
+  const applications = result.resolvedEvents.filter(event =>
     event.sourceId === TRAIT.BARBED_PRECISION
     && event.condition === "Bleeding");
 
-  assert.equal(application.duration, 3);
-  assert.ok(Math.abs(application.effectiveDuration - 3.6) < 1e-12);
+  // Six guaranteed critical hits have 1.98 expected procs. Centered cumulative
+  // rounding materializes two whole applications instead of flooring to one.
+  assert.equal(applications.length, 2);
+  assert.ok(applications.every(application => application.duration === 3));
+  assert.ok(applications.every(application =>
+    Math.abs(application.effectiveDuration - 3.6) < 1e-12));
 });
 
 test("Devouring Darkness scales torment with distinct target conditions", () => {
@@ -2266,6 +2536,81 @@ test("Necromancer builds migrate and validate against canonical metadata", () =>
     () => migrateNecromancerBuild({ profession: "guardian" }),
     /Cannot load guardian build as Necromancer/,
   );
+});
+
+test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", async () => {
+  const savedBuild = JSON.parse(await readFile(
+    new URL("../Builds/b-condi-reaper.json", import.meta.url),
+    "utf8",
+  ));
+  const savedRotation = JSON.parse(await readFile(
+    new URL("../Rotations/r-condi-reaper-bench.json", import.meta.url),
+    "utf8",
+  ));
+  const build = migrateNecromancerBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: necromancerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const eventCount = (type, name) => result.resolvedEvents.filter(event =>
+    event.type === type && event.name === name).length;
+  const conditionStacks = condition => result.resolvedEvents
+    .filter(event => event.type === "condition" && event.condition === condition)
+    .reduce((sum, event) => sum + Number(event.stacks || 0), 0);
+  const activeTraits = app.attributeData.activeTraits
+    .map(trait => trait.name)
+    .sort();
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(savedBuild.gear.Weapon2, "Grieving");
+  assert.deepEqual(activeTraits, [
+    "Barbed Precision",
+    "Chilling Darkness",
+    "Chilling Nova",
+    "Cold Shoulder",
+    "Death Perception",
+    "Deathly Chill",
+    "Furious Demise",
+    "Gluttony",
+    "Lingering Curse",
+    "Master of Corruption",
+    "Shivers of Dread",
+    "Shroud Knight",
+    "Sinister Shroud",
+    "Soul Barbs",
+    "Soul Battery",
+    "Soul Eater",
+    "Target the Weak",
+    "Unyielding Blast",
+  ].sort());
+  assert.equal(eventCount("damage", "Perforate"), 105);
+  assert.equal(eventCount("damage", "Soul Shards"), 90);
+  assert.equal(eventCount("damage", "Soul Spiral"), 48);
+  assert.equal(eventCount("damage", "\"Suffer!\""), 7);
+  assert.equal(
+    result.resolvedEvents.filter(event =>
+      event.type === "condition"
+      && event.sourceId === TRAIT.DEATHLY_CHILL).length,
+    159,
+  );
+  assert.equal(
+    result.procSteps.filter(step => step.skill === "Sigil of Geomancy").length,
+    7,
+  );
+  assert.equal(conditionStacks("Torment"), 43);
+  assert.equal(conditionStacks("Burning"), 12);
+  const bleedingDamage = result.conditionBreakdown.find(
+    entry => entry.name === "Bleeding",
+  )?.damage || 0;
+  assert.ok(Math.abs(bleedingDamage - 2_105_095) / 2_105_095 < 0.02);
+  assert.ok(Math.abs(result.dps - 44_355.31) / 44_355.31 < 0.02);
+  assert.ok(Math.abs(result.totalDamage - 3_984_571) / 3_984_571 < 0.02);
 });
 
 test("Necromancer is wired through the selector and application adapter", async () => {

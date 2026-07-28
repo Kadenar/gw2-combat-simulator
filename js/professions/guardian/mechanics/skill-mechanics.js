@@ -494,15 +494,6 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
     "quicknessCastTimeMs": 280,
     "effects": [
       {
-        "type": "boon",
-        "boon": "Resolution",
-        "duration": 1,
-        "applications": 5,
-        "intervalMs": 1000,
-        "timingAnchor": "castEnd",
-        "timingScale": "fixed"
-      },
-      {
         "type": "strike",
         "coefficient": 0.8,
         "hits": 1,
@@ -2302,15 +2293,6 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
     "handlerId": "guardian.radiant-weapon",
     "effects": [
       {
-        "type": "boon",
-        "boon": "Resolution",
-        "duration": 1,
-        "applications": 4,
-        "intervalMs": 1000,
-        "timingAnchor": "castEnd",
-        "timingScale": "fixed"
-      },
-      {
         "type": "strike",
         "coefficient": 1.2,
         "hits": 4,
@@ -2336,7 +2318,7 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 1.25,
         "hits": 1,
-        "atMs": 0,
+        "atMs": 1,
         "timingAnchor": "castStart",
         "timingScale": "fixed"
       }

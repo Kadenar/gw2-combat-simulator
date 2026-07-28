@@ -139,6 +139,11 @@ test('the default build persists a complete alternate weapon set', () => {
     ]);
     assert.equal(Object.hasOwn(build, 'sigils'), false);
     assert.equal(build.assumptions.targetSkillActivationsPerSecond, 0);
+    assert.equal(build.assumptions.protection, true);
+    assert.equal(build.assumptions.resolution, true);
+    assert.equal(build.assumptions.regeneration, true);
+    assert.equal(build.assumptions.swiftness, true);
+    assert.equal(build.assumptions.aegis, false);
 });
 
 test('legacy global sigils migrate onto both weapon sets', () => {
@@ -218,6 +223,11 @@ test('simulation config aggregates each weapon set sigils independently', () => 
     assert.equal(config.target.conditions.Bleeding, 1);
     assert.equal(config.target.conditions.Torment, 1);
     assert.equal(config.target.conditions.Confusion, 1);
+    assert.equal(config.boons.protection, true);
+    assert.equal(config.boons.resolution, true);
+    assert.equal(config.boons.regeneration, true);
+    assert.equal(config.boons.swiftness, true);
+    assert.equal(config.boons.aegis, false);
 });
 
 test('shared build finalization applies deltas and rebuilds derived stats', () => {

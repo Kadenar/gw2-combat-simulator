@@ -73,7 +73,8 @@ Same-name API mode aliases resolve to one canonical selectable skill.
 - Exact measured Quickness cast durations for the supplied core, Reaper,
   Scourge, and Harbinger skill set. Ghastly Claws and Soul Spiral resolve as
   individual packets; Soul Spiral packets persist after an early interrupt,
-  Grasping Darkness commits at 120 ms under Quickness, Life Reap and
+  Grasping Darkness commits at 120 ms under Quickness and lands about 1.44
+  seconds after activation, Life Reap and
   Executioner's Scythe commit before their cancellable aftercasts, and a
   manually interrupted Dark Barrage retains all six projectiles at 800 ms.
 - Reaper wells use their measured pre-aftercast impact time and retain all

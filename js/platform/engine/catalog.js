@@ -237,8 +237,6 @@ function normalizeEffect(effect) {
       effect.type !== "condition"
       && effect.type !== "control"
       && effect.type !== "blind"
-      && effect.type !== "boon"
-      && effect.type !== "buff"
     ) {
       throw new TypeError(
         `Effect type ${effect.type} does not support repeated applications.`,

@@ -46,7 +46,7 @@ const CORRUPTION_SELF_CONDITIONS = Object.freeze({
   }),
   [ID.PLAGUELANDS]: Object.freeze({
     base: Object.freeze([["Bleeding", 1, 10]]),
-    master: Object.freeze([["Poisoned", 1, 6]]),
+    master: Object.freeze([["Poisoned", 1, 4]]),
   }),
 });
 
@@ -72,7 +72,12 @@ function conditionDurationMultiplier(context, skill, condition, at) {
     events: context.events,
     traits,
   });
-  const stats = query.statsAt(at, event, context.state);
+  // Expertise does not extend Necromancer self-inflicted conditions. Other
+  // duration bonuses still apply, matching the in-game corruption behavior.
+  const stats = {
+    ...query.statsAt(at, event, context.state),
+    expertise: 0,
+  };
   return query.conditionDurationMultiplier(
     condition,
     at,
@@ -210,6 +215,39 @@ function transfer(context, skill) {
   return false;
 }
 
+function lifeSiphonSelfBleed(context, skill, event) {
+  if (
+    event?.type !== "damage"
+    || Number(event.hitIndex || 1) !== 1
+  ) return;
+  applyNecromancerSelfCondition(
+    context,
+    skill,
+    "Bleeding",
+    1,
+    8,
+    event.at,
+  );
+}
+
+function darkPactOnHit(context, skill, event) {
+  if (
+    event?.type !== "damage"
+    || Number(event.hitIndex || 1) !== 1
+  ) return;
+  applyNecromancerSelfCondition(
+    context,
+    skill,
+    "Bleeding",
+    2,
+    10,
+    event.at,
+  );
+  emitCondition(context, skill, "Immobilized", 1, 6, {
+    at: event.at,
+  });
+}
+
 function devouringDarkness(context, skill) {
   const count = Math.min(
     5,
@@ -245,6 +283,8 @@ function darkBarrage(context, skill) {
 export const necromancerConditionSkillHandlers = Object.freeze({
   "necromancer.corruption": corruption,
   "necromancer.condition-transfer": transfer,
+  "necromancer.life-siphon": lifeSiphonSelfBleed,
+  "necromancer.dark-pact": darkPactOnHit,
   "necromancer.devouring-darkness": devouringDarkness,
   "necromancer.dark-barrage": darkBarrage,
 });

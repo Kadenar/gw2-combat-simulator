@@ -345,6 +345,7 @@ test("normalized commands migrate legacy casts, waits, concurrency, and interrup
     "Fixture Slash",
     { name: "__wait", waitMs: 250 },
     { name: "Fixture Charge", offset: 100, interruptMs: 50 },
+    "__cooldown_reset",
     "__combat_start",
   ], testProfession.catalog), [
     { type: "cast", skillId: 900001 },
@@ -355,6 +356,7 @@ test("normalized commands migrate legacy casts, waits, concurrency, and interrup
       concurrentOffsetMs: 100,
       interruptAfterMs: 50,
     },
+    { type: "cooldown-reset" },
     { type: "combat-start" },
   ]);
 });

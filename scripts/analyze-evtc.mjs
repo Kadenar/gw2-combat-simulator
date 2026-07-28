@@ -174,6 +174,8 @@ const outgoing = new Map();
 for (const event of events) {
   if (
     !playerAddresses.has(event.source)
+    || playerAddresses.has(event.target)
+    || event.iff !== 1
     || event.stateChange !== 0
     || event.activation !== 0
   ) continue;
@@ -284,7 +286,6 @@ const totalDamage = damage.reduce(
   (sum, entry) => sum + entry.strikeDamage + entry.conditionDamage,
   0,
 );
-
 const report = {
   header: {
     magic,

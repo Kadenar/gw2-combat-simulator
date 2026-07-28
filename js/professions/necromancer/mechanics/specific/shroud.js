@@ -182,7 +182,38 @@ function lich(context, skill) {
   return true;
 }
 
+function executionersScythe(context, _skill, event) {
+  if (
+    event?.type !== "damage"
+    || Number(event.hitIndex || 1) !== 1
+  ) return;
+  context.state.profession.executionersIceFieldUntil = event.at + 4;
+}
+
+const SOUL_SPIRAL_ICE_COMBO_HITS = new Set([2, 4, 6, 8, 10, 11, 12]);
+
+function soulSpiral(context, skill, event) {
+  if (
+    event?.type !== "damage"
+    || !SOUL_SPIRAL_ICE_COMBO_HITS.has(Number(event.hitIndex || 1))
+    || Number(context.state.profession.executionersIceFieldUntil || 0)
+      < event.at - context.epsilon
+  ) return;
+  context.emit({
+    type: "necromancer.chill",
+    at: event.at,
+    source: "necromancer",
+    sourceId: skill.id,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: `${skill.name} — Chilling Bolts`,
+    duration: 1,
+  });
+}
+
 export const necromancerShroudSkillHandlers = Object.freeze({
   "necromancer.shroud": shroud,
   "necromancer.lich": lich,
+  "necromancer.executioners-scythe": executionersScythe,
+  "necromancer.soul-spiral": soulSpiral,
 });

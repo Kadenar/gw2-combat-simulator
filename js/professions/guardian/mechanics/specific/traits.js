@@ -326,7 +326,7 @@ export function handleRadiantWeaponEquipped(context, skill) {
   ) return;
   // The initial radiant-weapon attack resolves before that weapon is
   // considered equipped. Apply equip traits immediately after the impact.
-  const at = context.effectiveEnd;
+  const at = context.effectiveEnd + 0.001;
   const state = context.state.profession;
   const weapon = skill.radiantWeapon;
   state.radiantWeaponsUsed[weapon] = true;
@@ -653,8 +653,15 @@ function reactToSymbolTraits(context, event) {
 
 function reactToEffulgentStrike(context, event) {
   const state = resolverState(context);
+  const guardianOwnedStrike = (
+    isGw2PlayerActorEvent(event)
+    || (
+      event.source === "guardian"
+      && event.actorType === "effect"
+    )
+  );
   if (
-    !isGw2PlayerActorEvent(event)
+    !guardianOwnedStrike
     || !(Number(event.coefficient || 0) > 0)
     || !(event.at < Number(state.effulgentActiveUntil || 0)
       - resolverEpsilon(context))
