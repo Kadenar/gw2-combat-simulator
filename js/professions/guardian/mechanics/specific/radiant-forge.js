@@ -135,6 +135,7 @@ function glaringBurst(context, skill) {
       .glaringBurstCoefficientByWeapon[
         context.state.profession.radiantWeapon
       ] || 0;
+  const radiantWeapon = context.state.profession.radiantWeapon;
   if (coefficient <= 0) return;
   context.emit(buildGuardianStrike({
     at: context.effectiveEnd,
@@ -143,6 +144,7 @@ function glaringBurst(context, skill) {
     skillName: skill.name,
     name: skill.name,
     coefficient,
+    radiantWeapon,
   }));
 }
 

@@ -118,8 +118,15 @@ export function createGw2SimulationConfig({
           : assumptions.fury,
       quickness: assumptions.quickness,
       alacrity: assumptions.alacrity,
+      protection: assumptions.protection,
+      resolution:
+        disabled?.type === "Boon" && disabled.name === "Resolution"
+          ? false
+          : assumptions.resolution,
       regeneration: assumptions.regeneration,
+      swiftness: assumptions.swiftness,
       vigor: assumptions.vigor,
+      aegis: assumptions.aegis,
     },
     target: {
       armor: app.build.targetArmor,

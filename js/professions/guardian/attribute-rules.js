@@ -238,12 +238,22 @@ export const guardianModifierRules = Object.freeze([
   {
     id: "guardian.shining-spin",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
-    amount: 0.2,
+    operation: "multiply",
+    factor: 1.2,
     order: 100,
     when: context =>
       context.event?.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN
       && targetDisabled(context),
+  },
+  {
+    id: "guardian.glaring-burst-hammer",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.25,
+    order: 100,
+    when: context =>
+      context.event?.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST
+      && context.event?.radiantWeapon === "hammer",
   },
   {
     id: "guardian.gleaming-blade",

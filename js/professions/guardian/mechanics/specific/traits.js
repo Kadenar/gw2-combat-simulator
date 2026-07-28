@@ -326,7 +326,7 @@ export function handleRadiantWeaponEquipped(context, skill) {
   ) return;
   // The initial radiant-weapon attack resolves before that weapon is
   // considered equipped. Apply equip traits immediately after the impact.
-  const at = context.effectiveEnd + 0.001;
+  const at = context.effectiveEnd;
   const state = context.state.profession;
   const weapon = skill.radiantWeapon;
   state.radiantWeaponsUsed[weapon] = true;
