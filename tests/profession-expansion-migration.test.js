@@ -17,6 +17,7 @@ import {
 } from "../js/platform/engine/effect-factories.js";
 import { COMMON_EVENT_TYPES } from "../js/platform/engine/events.js";
 import { defineProfession } from "../js/platform/engine/profession.js";
+import { SKILL_HANDLER_MODES } from "../js/platform/engine/skill-handlers.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
   nativeProfessionRegistry,
@@ -200,10 +201,22 @@ test("native profession registry entries conform to the shared contracts", async
         assert.equal(skill.implemented, true, skill.name);
       }
       if (skill.handlerId) {
+        const handler = profession.catalog.skillHandlers.get(skill.handlerId);
         assert.equal(
-          typeof profession.catalog.skillHandlers.get(skill.handlerId),
-          "function",
+          typeof handler,
+          "object",
           skill.handlerId,
+        );
+        assert.equal(
+          Object.values(SKILL_HANDLER_MODES).includes(handler.mode),
+          true,
+          `${skill.handlerId} mode`,
+        );
+        assert.equal(
+          ["beforeEffects", "afterEffect", "afterEffects"]
+            .some((phase) => typeof handler[phase] === "function"),
+          true,
+          `${skill.handlerId} phases`,
         );
       }
       for (const effect of skill.effects) {

@@ -21,7 +21,7 @@ npm run update:necromancer-data
 ```
 
 The generator owns API metadata only. Simulator timing and behavior live in
-the single authoritative `mechanics/skill-mechanics.js` table, with chains and
+the shared-schema `mechanics/skill-mechanics.js` table, with chains and
 handlers supporting complex state. Missing-but-stable entries stay in
 `data/necromancer-supplemental-skills.js`, so refreshes do not overwrite them.
 Same-name API mode aliases resolve to one canonical selectable skill.
@@ -140,8 +140,11 @@ positioning, secondary targets, and competitive-mode splits are outside its
 result model. Skills whose only effects are in those categories are excluded
 instead of being shown as fake zero-damage implementations.
 
-The scheduler currently cannot change a weapon recharge from damage-resolved
-target health during the same pass. Gravedigger therefore retains its normal
-recharge after the benchmark crosses 50% health instead of using its accelerated
-low-health recharge. The supplied rotation still preserves both casts; the
-automatic cooldown waits make the simulated kill slower than the EVTC log.
+Damage-resolved target-health feedback is passed back to the scheduler.
+Gravedigger fully recharges when its hit lands after the configured target has
+dropped below 50% health.
+
+Life-force capacity is 69% of the Necromancer's maximum health and therefore
+scales with Vitality. Soul Battery increases that capacity by 20%. Skill gains,
+costs, and shroud upkeep are percentages of the resulting pool; Death Shroud
+drains 3% per second and Reaper's Shroud drains 4% per second.

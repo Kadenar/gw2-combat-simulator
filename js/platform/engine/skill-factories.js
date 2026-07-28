@@ -33,7 +33,8 @@
  * @property {readonly object[]} [effects] Declarative effects created by
  * `effect-factories.js`. An empty array is valid for handler-only skills.
  * @property {string} [handlerId] Id of a handler registered in the canonical
- * catalog. A handler may replace declarative effect scheduling.
+ * catalog. The registered strategy explicitly augments or replaces declarative
+ * effect scheduling; replacing strategies require an empty effects list.
  * @property {number} [parentId] Id of an existing parent skill.
  * @property {number | null} [flipParentId] Id of an existing flip parent.
  * @property {number | null} [flipSkillId] Id exposed after this skill is used.

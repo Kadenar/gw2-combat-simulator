@@ -11,6 +11,29 @@ import { relicStrikeMultiplier } from "../relic-rules.js";
 export function createGw2HitResolution({
   targetHealthMultiplier = () => 1,
 } = {}) {
+  function coefficientMultiplier(ctx, event) {
+    const modifiers = Array.isArray(event.coefficientModifiers)
+      ? event.coefficientModifiers
+      : [];
+    if (!modifiers.length) return 1;
+    const maximum = Number(ctx.config.target?.health || 0);
+    if (!(maximum > 0)) return 1;
+    const currentDamage =
+      Number(ctx.totals.strike || 0)
+      + Number(ctx.totals.condition || 0);
+    const healthFraction = Math.max(
+      0,
+      1 - currentDamage / maximum,
+    );
+    const selected = modifiers
+      .filter(modifier =>
+        modifier?.kind === "target-health-below"
+        && healthFraction < Number(modifier.threshold))
+      .sort((left, right) =>
+        Number(left.threshold) - Number(right.threshold))[0];
+    return selected ? Number(selected.multiplier) : 1;
+  }
+
   function buildHitResolutionContext(ctx, event) {
     const stats = ctx.query.statsAt(event.at, event, ctx);
     const flatStrike =
@@ -53,7 +76,7 @@ export function createGw2HitResolution({
         + Number(event.flatStrikePowerCoeff || 0) * stats.power
       )
       : strikeDamage(
-        Number(event.coefficient || 0),
+        Number(event.coefficient || 0) * coefficientMultiplier(ctx, event),
         ctx.helpers.weaponStrength(event, ctx.config),
         stats.power,
         Math.max(1, Number(ctx.config.target?.armor || 2597)),

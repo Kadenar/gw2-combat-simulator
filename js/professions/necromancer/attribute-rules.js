@@ -165,20 +165,6 @@ function modifyNecromancerAttributes(context, attributes) {
   return result;
 }
 
-function thresholdCoefficientFactor(context) {
-  const thresholds = context.event?.thresholdCoefficients;
-  const base = Number(context.event?.coefficient || 0);
-  if (!thresholds || !(base > 0)) return 1;
-  const fraction = targetHealthFraction(context);
-  const chosen =
-    fraction < 0.25
-      ? Number(thresholds[25] ?? thresholds[50] ?? base)
-      : fraction < 0.5
-        ? Number(thresholds[50] ?? base)
-        : base;
-  return chosen / base;
-}
-
 function criticalStrikeTraitFactor(context) {
   let criticalHitFactor = 1;
   if (
@@ -368,14 +354,6 @@ export const necromancerModifierRules = Object.freeze([
       hasTrait(context, TRAIT.SPIRITS_STRENGTH),
   },
   {
-    id: "necromancer.threshold-coefficient",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: thresholdCoefficientFactor,
-    order: 1000,
-    when: (context) => Boolean(context.event?.thresholdCoefficients),
-  },
-  {
     id: "necromancer.putrid-defense",
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: "multiply",
@@ -470,6 +448,19 @@ function modifyNecromancerCastDuration(context, duration) {
   return duration;
 }
 
+function modifyNecromancerRechargeStart(context, rechargeStart) {
+  if (
+    context.skill?.id === ID.ISOLATE
+    && context.skill.flipActivationAtMs != null
+  ) {
+    return (
+      context.start
+      + Number(context.skill.flipActivationAtMs) / 1000
+    );
+  }
+  return rechargeStart;
+}
+
 export const necromancerAttributeRules = Object.freeze({
   modifyAttributes: modifyNecromancerAttributes,
   ...necromancerModifierHooks,
@@ -478,5 +469,6 @@ export const necromancerAttributeRules = Object.freeze({
 export const necromancerCastModifiers = Object.freeze({
   modifyCastDuration: modifyNecromancerCastDuration,
   modifyRechargeDuration: modifyNecromancerRechargeDuration,
+  modifyRechargeStart: modifyNecromancerRechargeStart,
   modifyMaximumAmmo: modifyNecromancerMaximumAmmo,
 });

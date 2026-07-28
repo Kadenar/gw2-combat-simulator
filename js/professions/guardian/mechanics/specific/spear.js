@@ -1,5 +1,5 @@
 import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
-import { GUARDIAN_HANDLER_MECHANICS } from "../skill-mechanics.js";
+import { GUARDIAN_HANDLER_MECHANICS } from "../handler-mechanics.js";
 import { buildGuardianStrike } from "../events.js";
 
 /**

@@ -3,6 +3,11 @@
  * boundary where generated API data, hand-authored mechanics, explicit
  * overrides, and resolver handlers become one validated immutable lookup.
  */
+import {
+  normalizeSkillHandler,
+  SKILL_HANDLER_MODES,
+} from "./skill-handlers.js";
+
 const EFFECT_TYPES = new Set([
   "strike",
   "condition",
@@ -15,6 +20,56 @@ const EFFECT_TYPES = new Set([
 const TIMING_ANCHORS = new Set(["castStart", "castEnd"]);
 const TIMING_SCALES = new Set(["cast", "fixed"]);
 const RECHARGE_ANCHORS = new Set(["castStart", "castEnd"]);
+const EFFECT_FIELDS = new Set([
+  "type",
+  "coefficient",
+  "coefficientModifiers",
+  "hits",
+  "applications",
+  "ticks",
+  "condition",
+  "stacks",
+  "duration",
+  "boon",
+  "kind",
+  "name",
+  "atMs",
+  "intervalMs",
+  "intervalTimingScale",
+  "timingAnchor",
+  "timingScale",
+  "castProgress",
+  "packetLabel",
+  "requiredTrait",
+  "source",
+  "sourceId",
+  "actorType",
+  "weapon",
+  "weaponStrength",
+  "skillWeapon",
+  "canCrit",
+  "flatDamage",
+  "flatStrikeBase",
+  "flatStrikePowerCoeff",
+  "persistsAfterInterrupt",
+  "metadata",
+  "eventType",
+  "event",
+]);
+const EFFECT_METADATA_FIELDS = new Set([
+  "controlKind",
+  "duration",
+  "damageKind",
+  "extendsResolutionHorizon",
+  "flatDamage",
+  "flatStrikeBase",
+  "flatStrikePowerCoeff",
+  "flatStrikeMultiplier",
+  "flatStrikeHealthThreshold",
+  "flatStrikeThresholdMultiplier",
+  "noCrit",
+  "summonKind",
+]);
 
 /**
  * Normalizes handler maps so catalog lookup is always string-keyed regardless
@@ -24,7 +79,13 @@ function normalizeSkillHandlers(value) {
   const entries = value instanceof Map
     ? [...value.entries()]
     : Object.entries(value || {});
-  return new Map(entries.map(([id, handler]) => [String(id), handler]));
+  return new Map(entries.map(([id, handler]) => {
+    const normalizedId = String(id);
+    return [
+      normalizedId,
+      normalizeSkillHandler(normalizedId, handler),
+    ];
+  }));
 }
 
 /**
@@ -110,6 +171,32 @@ function normalizeEffect(effect) {
   if (!effect || typeof effect !== "object" || !EFFECT_TYPES.has(effect.type)) {
     throw new TypeError(`Invalid skill effect type: ${effect?.type}`);
   }
+  const unknownFields = Object.keys(effect)
+    .filter(field => !EFFECT_FIELDS.has(field));
+  if (unknownFields.length) {
+    throw new TypeError(
+      `Skill effect has unsupported field${unknownFields.length === 1 ? "" : "s"}: `
+      + unknownFields.join(", "),
+    );
+  }
+  if (
+    effect.metadata != null
+    && (
+      typeof effect.metadata !== "object"
+      || Array.isArray(effect.metadata)
+    )
+  ) {
+    throw new TypeError("Skill effect metadata must be an object.");
+  }
+  const unknownMetadata = Object.keys(effect.metadata || {})
+    .filter(field => !EFFECT_METADATA_FIELDS.has(field));
+  if (unknownMetadata.length) {
+    throw new TypeError(
+      "Skill effect metadata has unsupported field"
+      + `${unknownMetadata.length === 1 ? "" : "s"}: `
+      + unknownMetadata.join(", "),
+    );
+  }
   if (effect.atMsList != null) {
     throw new TypeError(
       "Exact effect packets must use ticks; atMsList is not canonical.",
@@ -144,6 +231,62 @@ function normalizeEffect(effect) {
   const hasAtMs = effect.atMs != null;
   const hasInterval = effect.intervalMs != null;
   const hasExplicitTiming = hasTicks || hasAtMs || hasInterval;
+  let applications = null;
+  if (effect.applications != null) {
+    if (
+      effect.type !== "condition"
+      && effect.type !== "control"
+      && effect.type !== "blind"
+    ) {
+      throw new TypeError(
+        `Effect type ${effect.type} does not support repeated applications.`,
+      );
+    }
+    applications = Number(effect.applications);
+    if (!Number.isInteger(applications) || !(applications > 0)) {
+      throw new TypeError(
+        "Repeated effects require a positive integer application count.",
+      );
+    }
+    if (hasTicks) {
+      throw new TypeError(
+        "Repeated applications cannot be combined with a tick timeline.",
+      );
+    }
+    if (applications > 1 && !hasInterval) {
+      throw new TypeError(
+        "Repeated effects require an intervalMs value.",
+      );
+    }
+  }
+  let coefficientModifiers = null;
+  if (effect.coefficientModifiers != null) {
+    if (effect.type !== "strike" || !Array.isArray(effect.coefficientModifiers)) {
+      throw new TypeError(
+        "Coefficient modifiers are only valid on strike effects.",
+      );
+    }
+    coefficientModifiers = Object.freeze(
+      effect.coefficientModifiers.map((modifier, index) => {
+        if (
+          !modifier
+          || modifier.kind !== "target-health-below"
+          || !(Number(modifier.threshold) > 0)
+          || !(Number(modifier.threshold) < 1)
+          || !(Number(modifier.multiplier) > 0)
+        ) {
+          throw new TypeError(
+            `Invalid strike coefficient modifier ${index + 1}.`,
+          );
+        }
+        return Object.freeze({
+          kind: modifier.kind,
+          threshold: Number(modifier.threshold),
+          multiplier: Number(modifier.multiplier),
+        });
+      }),
+    );
+  }
   if (hasExplicitTiming) {
     if (!TIMING_ANCHORS.has(effect.timingAnchor)) {
       throw new TypeError(
@@ -263,8 +406,10 @@ function normalizeEffect(effect) {
     ...effect,
     ...(hasAtMs ? { atMs: Number(effect.atMs) } : {}),
     ...(hasInterval ? { intervalMs: Number(effect.intervalMs) } : {}),
+    ...(applications ? { applications } : {}),
     ...(strikeTicks ? { ticks: strikeTicks } : {}),
     ...(conditionTicks ? { ticks: conditionTicks } : {}),
+    ...(coefficientModifiers ? { coefficientModifiers } : {}),
   });
 }
 
@@ -441,9 +586,20 @@ export function validateCanonicalCatalog(catalog) {
     if (!String(skill.name || "")) throw new Error(`Skill ${skill.id} has no name.`);
     if (
       skill.handlerId
-      && typeof catalog.skillHandlers?.get(String(skill.handlerId)) !== "function"
+      && !catalog.skillHandlers?.has(String(skill.handlerId))
     ) {
       throw new Error(`Skill ${skill.id} references missing handler ${skill.handlerId}.`);
+    }
+    const handler = catalog.skillHandlers?.get(String(skill.handlerId || ""));
+    if (
+      handler?.mode === SKILL_HANDLER_MODES.REPLACE
+      && !handler.resolveMode
+      && skill.effects.length > 0
+    ) {
+      throw new Error(
+        `Skill ${skill.id} uses replacing handler ${skill.handlerId} `
+        + "and must declare an empty effects list.",
+      );
     }
     for (const reference of [skill.parentId, skill.flipParentId]) {
       if (reference != null && !catalog.skillsById.has(reference)) {

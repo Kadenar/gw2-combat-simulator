@@ -3,8 +3,8 @@
  *
  * Spear attacks build timed Soul Shards, while Perforate consumes them to add
  * life-steal hits and Distress refills the resource and resets Perforate.
- * Nightfall emits its four damage/blind/cripple pulses from the committed hit
- * point and schedules each pulse's life-force gain on the simulation clock.
+ * Nightfall's declarative damage packets schedule their corresponding
+ * life-force gains on the simulation clock after the field commits.
  * Exports `necromancerWeaponSkillHandlers` and
  * `necromancerWeaponTaskHandlers`.
  */
@@ -12,13 +12,13 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
   addSoulShards,
   consumeSoulShards,
   emitBuff,
   emitCondition,
   emitControl,
-  emitDamage,
   emitState,
   gainNecromancerLifeForce,
   hasTrait,
@@ -35,13 +35,10 @@ function addShards(context, skill, stacks, reason) {
 }
 
 function deadlySlice(context, skill) {
-  emitDamage(context, skill, 1.4);
   addShards(context, skill, 1, "deadly-slice");
-  return true;
 }
 
 function sinisterStab(context, skill) {
-  emitDamage(context, skill, 1.8);
   context.emit({
     type: "necromancer.chill",
     at: context.effectiveEnd,
@@ -53,37 +50,33 @@ function sinisterStab(context, skill) {
     duration: 2,
   });
   addShards(context, skill, 1, "sinister-stab");
-  return true;
+}
+
+function chillingScythe(context, _skill, event) {
+  if (event?.type !== "damage") return;
+  context.state.cooldowns.delete(ID.GRAVEDIGGER);
 }
 
 function addle(context, skill) {
   // Immobilize checks the resource at activation, before Addle grants shards.
-  const soulShardsAtActivation =
-    Number(context.state.profession.soulShards || 0);
-  emitDamage(context, skill, 1.9);
-  emitControl(
-    context,
-    skill,
-    "daze",
-    context.effectiveEnd,
-    0.25,
+  const soulShardsAtActivation = Number(
+    context.state.profession.soulShards || 0,
   );
+  emitControl(context, skill, "daze", context.effectiveEnd, 0.25);
   if (soulShardsAtActivation >= 3) {
     emitCondition(context, skill, "Immobilized", 1, 1);
   }
   addShards(context, skill, 2, "addle");
-  return true;
 }
 
 function extirpate(context, skill) {
-  emitDamage(context, skill, 3.8);
   emitBuff(context, skill, "might", 8, 5);
   emitCondition(context, skill, "Weakness", 1, 3);
   addShards(context, skill, 2, "extirpate");
-  return true;
 }
 
 function soulShardDamage(context, skill, at, index, total) {
+  const profile = MECHANICS.soulShards;
   context.emit({
     type: "damage",
     at,
@@ -100,50 +93,47 @@ function soulShardDamage(context, skill, at, index, total) {
     hitIndex: index,
     totalHits: total,
     skillWeapon: "Unequipped",
-    flatStrikeBase: 1504,
-    flatStrikePowerCoeff: 0.1,
-    flatStrikeMultiplier: hasTrait(context, TRAIT.SOUL_BARBS)
-      && context.hasBuff("necromancer-soul-barbs", at)
-      ? 1.1
-      : 1,
-    flatStrikeHealthThreshold: 0.5,
-    flatStrikeThresholdMultiplier: 1.5,
-    noCrit: true,
-    damageKind: "life-steal",
+    flatStrikeBase: profile.flatStrikeBase,
+    flatStrikePowerCoeff: profile.flatStrikePowerCoeff,
+    flatStrikeMultiplier:
+      hasTrait(context, TRAIT.SOUL_BARBS) &&
+      context.hasBuff("necromancer-soul-barbs", at)
+        ? 1.1
+        : 1,
+    flatStrikeHealthThreshold: profile.flatStrikeHealthThreshold,
+    flatStrikeThresholdMultiplier: profile.flatStrikeThresholdMultiplier,
+    noCrit: profile.noCrit,
+    damageKind: profile.damageKind,
   });
 }
 
-function perforate(context, skill) {
+function preparePerforate(context) {
   const at = context.effectiveEnd;
-  const shardCount = consumeSoulShards(
-    context.state.profession,
-    6,
-    at,
-  );
-  for (let index = 1; index <= 7; index += 1) {
-    context.emit({
-      type: "damage",
-      at,
-      source: "necromancer",
-      sourceId: skill.id,
-      actorType: "player",
-      skillId: skill.id,
-      skillName: skill.name,
-      name: skill.name,
-      coefficient: 0.5,
-      hits: 1,
-      hitIndex: index,
-      totalHits: 7,
-      skillWeapon: skill.weapon,
-      canCrit: true,
-      thresholdCoefficients: { 50: 0.6 },
-    });
-    if (index <= shardCount) {
-      soulShardDamage(context, skill, at, index, shardCount);
-    }
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) {
+    return { at, shardCount: 0, interrupted: true };
   }
-  emitState(context, at, "perforate");
-  return true;
+  const shardCount = consumeSoulShards(context.state.profession, 6, at);
+  return { at, shardCount };
+}
+
+function afterPerforateEffect(context, skill, event, state) {
+  if (
+    event?.type === "damage" &&
+    Number(event.hitIndex || 1) <= Number(state?.shardCount || 0)
+  ) {
+    soulShardDamage(
+      context,
+      skill,
+      event.at,
+      Number(event.hitIndex || 1),
+      state.shardCount,
+    );
+  }
+}
+
+function completePerforate(context, _skill, state) {
+  if (state?.interrupted) return;
+  emitState(context, state?.at ?? context.effectiveEnd, "perforate");
 }
 
 function distress(context, skill) {
@@ -156,47 +146,33 @@ function distress(context, skill) {
   return true;
 }
 
-function nightfall(context, skill) {
-  // EVTC packets land five-sixths of the way through the activation. The
-  // remaining animation is aftercast, so anchoring pulses to effectiveEnd
-  // makes every packet late and loses a committed field when the aftercast is
-  // cancelled.
-  const firstAt =
-    context.start + (context.fullEnd - context.start) * (5 / 6);
-  for (let index = 0; index < 4; index += 1) {
-    const at = firstAt + index;
-    emitDamage(context, skill, 1.15, {
-      at,
-      metadata: {
-        hitIndex: index + 1,
-        totalHits: 4,
-      },
-    });
-    context.emit({
-      type: "blind",
-      at,
-      source: "necromancer",
-      sourceId: skill.id,
-      actorType: "player",
-      skillId: skill.id,
-      skillName: skill.name,
-    });
-    emitCondition(context, skill, "Crippled", 1, 2, { at });
-    context.tasks.schedule({
-      id: `${context.reservationId}:nightfall-life-force:${index + 1}`,
-      type: NIGHTFALL_LIFE_FORCE_TASK,
-      at,
-      ownerId: context.reservationId,
-      payload: {},
-    });
-  }
-  return true;
+function nightfallCommitted(context, skill) {
+  const firstPacket = skill.effects.find((effect) => effect.type === "strike");
+  const baseCastMs = Number(skill.castTimeMs || 0);
+  const commitProgress =
+    baseCastMs > 0 ? Number(firstPacket?.atMs || baseCastMs) / baseCastMs : 1;
+  const commitAt =
+    context.start + (context.fullEnd - context.start) * commitProgress;
+  return context.effectiveEnd + context.epsilon >= commitAt;
+}
+
+function afterNightfallEffect(context, _skill, event) {
+  if (event?.type !== "damage") return;
+  context.tasks.schedule({
+    id:
+      `${context.reservationId}:nightfall-life-force:` +
+      `${Number(event.hitIndex || 1)}`,
+    type: NIGHTFALL_LIFE_FORCE_TASK,
+    at: event.at,
+    ownerId: context.reservationId,
+    payload: {},
+  });
 }
 
 function handleNightfallLifeForce(context, task) {
   gainNecromancerLifeForce(
     context,
-    7,
+    MECHANICS.nightfall.lifeForcePerPulse,
     task.at,
     "nightfall-pulse",
   );
@@ -205,11 +181,19 @@ function handleNightfallLifeForce(context, task) {
 export const necromancerWeaponSkillHandlers = Object.freeze({
   "necromancer.deadly-slice": deadlySlice,
   "necromancer.sinister-stab": sinisterStab,
+  "necromancer.chilling-scythe": chillingScythe,
   "necromancer.addle": addle,
   "necromancer.extirpate": extirpate,
-  "necromancer.perforate": perforate,
+  "necromancer.perforate": Object.freeze({
+    prepare: preparePerforate,
+    afterEffect: afterPerforateEffect,
+    complete: completePerforate,
+  }),
   "necromancer.distress": distress,
-  "necromancer.nightfall": nightfall,
+  "necromancer.nightfall": Object.freeze({
+    committed: nightfallCommitted,
+    afterEffect: afterNightfallEffect,
+  }),
 });
 
 export const necromancerWeaponTaskHandlers = Object.freeze({

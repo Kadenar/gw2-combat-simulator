@@ -210,12 +210,6 @@ export function defineProfession(definition) {
     definition.catalog?.skillHandlers instanceof Map
       ? definition.catalog.skillHandlers
       : new Map();
-  const dispatchCatalogSkill = catalogSkillHandlers.size
-    ? (context, skill) => {
-        const handler = catalogSkillHandlers.get(String(skill.handlerId || ""));
-        return handler ? handler(context, skill) : undefined;
-      }
-    : null;
   const legacyResourceView = ui.resourceView || (() => null);
   const resourceViews = ui.resourceViews || (context => {
     const view = legacyResourceView(context);
@@ -225,10 +219,7 @@ export function defineProfession(definition) {
     initialize: schedulerHooks.initialize,
     availability: castRules.availability ?? schedulerHooks.availability,
     validateCast: castRules.validateCast ?? schedulerHooks.validateCast,
-    scheduleSkill: combineHookSources(
-      dispatchCatalogSkill,
-      castRules.scheduleSkill ?? schedulerHooks.scheduleSkill,
-    ),
+    scheduleSkill: castRules.scheduleSkill ?? schedulerHooks.scheduleSkill,
     afterCast: schedulerHooks.afterCast,
     advance: schedulerHooks.advance,
     snapshot: schedulerHooks.snapshot,
@@ -273,6 +264,8 @@ export function defineProfession(definition) {
     id: definition.id,
     name: definition.name,
     catalog: definition.catalog || { skills: [], traits: [], specializations: [] },
+    skillHandlerFor: skill =>
+      catalogSkillHandlers.get(String(skill?.handlerId || "")) || null,
     createBuildDefaults: build.createBuildDefaults || (() => ({
       schemaVersion: 3,
       profession: definition.id,

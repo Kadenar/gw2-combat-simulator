@@ -9,7 +9,7 @@
  * pending free recast. Exports `necromancerSpiritSkillHandlers`.
  */
 import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
-import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
   emitControl,
   emitCreatureSummonTraits,

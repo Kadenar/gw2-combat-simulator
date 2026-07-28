@@ -6,6 +6,14 @@ function normalizeResourceView(view) {
     plural: String(view.plural || `${view.singular || "resource"}s`),
     maximum,
     value: Math.max(0, Math.min(maximum, Number(view.value || 0))),
+    startMaximum: Math.max(
+      0,
+      Number(view.startMaximum ?? maximum),
+    ),
+    startValue: Math.max(
+      0,
+      Number(view.startValue ?? view.value ?? 0),
+    ),
     canStart: view.canStart !== false,
     buildKey: String(view.buildKey || "initialResource"),
     step: Math.max(0.01, Number(view.step || 1)),

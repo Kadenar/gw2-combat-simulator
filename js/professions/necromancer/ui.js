@@ -30,6 +30,12 @@ const INNERVATE_BY_SPIRIT = Object.freeze({
   wanderlust: ID.INNERVATE_WANDERLUST,
   preservation: ID.INNERVATE_PRESERVATION,
 });
+const HALF_HEALTH_TRAITS = Object.freeze(new Set([
+  "Siphoned Power",
+  "Spiteful Fortitude",
+  "Chill of Death",
+  "Close to Death",
+]));
 
 function stateFrom(context = {}) {
   return context.state?.profession || context.professionState || {};
@@ -193,6 +199,28 @@ function rotationSkillAvailability(skill, context = {}) {
 }
 
 export const necromancerUi = Object.freeze({
+  targetHealthThresholds: (context = {}) => {
+    const specialization = specializationFrom(context);
+    const build = context.build || {};
+    const traits = getActiveTraits(build.specializations || []);
+    const hasHalfHealthTrait = traits.some(
+      trait => HALF_HEALTH_TRAITS.has(trait.name),
+    );
+    const weapons = [
+      ...(build.weapons || []),
+      ...(build.alternateWeapons || []),
+    ];
+    const hasThresholdWeapon = weapons.some(
+      weapon => weapon === "Greatsword" || weapon === "Spear",
+    );
+    return (
+      hasHalfHealthTrait
+      || hasThresholdWeapon
+      || specialization === "Reaper"
+    )
+      ? [0.5]
+      : [];
+  },
   paletteGroups: (context) => {
     const groups = [{
       id: "profession",
@@ -228,9 +256,24 @@ export const necromancerUi = Object.freeze({
   resourceViews: (context) => {
     const state = stateFrom(context);
     const specialization = specializationFrom(context);
-    const maximum = Math.max(
+    const normalizedMaximum = Math.max(
       100,
-      Number(state.maximumLifeForce || context.maximumLifeForce || 100),
+      Number(state.maximumLifeForce || 100),
+    );
+    const maximum = Math.round(Math.max(
+      1,
+      Number(
+        state.lifeForcePoolCapacity
+        || context.lifeForcePoolCapacity
+        || normalizedMaximum,
+      ),
+    ));
+    const normalizedValue = Number(
+      state.lifeForce
+      ?? state.resource
+      ?? context.value
+      ?? context.initialResource
+      ?? 100,
     );
     const views = [
       {
@@ -238,13 +281,9 @@ export const necromancerUi = Object.freeze({
         singular: "life force",
         plural: "life force",
         maximum,
-        value: Number(
-          state.lifeForce ??
-            state.resource ??
-            context.value ??
-            context.initialResource ??
-            100,
-        ),
+        value: normalizedValue / normalizedMaximum * maximum,
+        startMaximum: 100,
+        startValue: Number(context.initialResource ?? 100),
         canStart: true,
         buildKey: "initialResource",
         step: 1,

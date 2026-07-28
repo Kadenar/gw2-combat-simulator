@@ -54,8 +54,12 @@ const allSkills = Object.freeze(
 );
 const generatedById = new Map(allSkills.map((skill) => [skill.id, skill]));
 const chainRootById = new Map();
+const chainStepById = new Map();
 for (const chain of NECROMANCER_AUTOATTACK_CHAINS) {
-  for (const skillId of chain) chainRootById.set(skillId, chain[0]);
+  chain.forEach((skillId, index) => {
+    chainRootById.set(skillId, chain[0]);
+    chainStepById.set(skillId, index + 1);
+  });
 }
 const flipParentById = new Map();
 for (const skill of allSkills) {
@@ -78,6 +82,7 @@ const generated = allSkills.map((skill) => {
     cooldown:
       skill.ammo > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
     chainRoot: chainRootById.get(skill.id) ?? null,
+    chainStep: chainStepById.get(skill.id) ?? null,
     flipParentId: flipParentId ?? null,
     flipParent:
       flipParentId == null ? "" : generatedById.get(flipParentId)?.name || "",

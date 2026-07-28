@@ -1,0 +1,11 @@
+[
+  {
+    "section": "Luminary",
+    "presets": [
+      {
+        "label": "Power",
+        "build": "Builds/b-power-luminary.json"
+      }
+    ]
+  }
+]

@@ -8,7 +8,7 @@
  * Unstable Horrors (attack + explosion per summon). Exports
  * `necromancerMinionSkillHandlers`.
  */
-import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
   emitCondition,
   emitControl,
@@ -99,8 +99,8 @@ function minionCommand(context, skill) {
   if (definition.consumes) {
     const remaining = Math.max(
       0,
-      Number(context.state.profession.activeMinions[definition.minion] || 0)
-        - definition.consumes,
+      Number(context.state.profession.activeMinions[definition.minion] || 0) -
+        definition.consumes,
     );
     if (remaining) {
       context.state.profession.activeMinions[definition.minion] = remaining;

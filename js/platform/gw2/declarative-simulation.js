@@ -68,7 +68,7 @@ function endState(profession, config, scheduled, resolved) {
  * Runs the two-phase declarative pipeline: schedule canonical events first,
  * then resolve their timestamp-dependent numeric effects.
  */
-export function simulateDeclarativeGw2({
+function simulateDeclarativeGw2Pass({
   profession,
   rotation,
   config = {},
@@ -144,4 +144,24 @@ export function simulateDeclarativeGw2({
     // diagnostics in the UI.
     warnings: [...scheduled.warnings, ...resolved.warnings],
   };
+}
+
+/**
+ * Runs optional profession feedback passes when a scheduler decision depends
+ * on damage-resolved state such as the target's current health.
+ */
+export function simulateDeclarativeGw2(options = {}) {
+  let config = options.config || {};
+  let result = simulateDeclarativeGw2Pass({ ...options, config });
+  const refineConfig =
+    options.profession?.simulation?.refineSchedulerConfig;
+  if (typeof refineConfig !== "function") return result;
+
+  for (let pass = 0; pass < 5; pass += 1) {
+    const refined = refineConfig(config, result);
+    if (!refined) break;
+    config = refined;
+    result = simulateDeclarativeGw2Pass({ ...options, config });
+  }
+  return result;
 }

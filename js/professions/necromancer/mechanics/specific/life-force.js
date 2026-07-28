@@ -14,7 +14,7 @@ import {
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { syncNecromancerResources } from "../../state.js";
-import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
   ENTRY_ID_BY_SHROUD,
   EXIT_ID_BY_SHROUD,
@@ -26,7 +26,7 @@ import {
   purgeTimedState,
 } from "./shared.js";
 
-const SHROUD_DRAIN_PER_SECOND = Object.freeze({
+const SHROUD_DRAIN_PERCENT_PER_SECOND = Object.freeze({
   death: 3,
   reaper: 4,
   harbinger: 5,
@@ -173,13 +173,17 @@ export function advanceNecromancerState(context, target) {
     const threshold = state.maximumLifeForce * 0.66;
     state.lifeForce = Math.min(
       threshold,
-      state.lifeForce + seconds * 3,
+      state.lifeForce
+        + seconds * state.maximumLifeForce * 0.03,
     );
   }
 
   if (state.activeShroud && state.activeShroud !== "lich") {
     const shroud = state.activeShroud;
-    const rate = SHROUD_DRAIN_PER_SECOND[shroud] || 0;
+    const rate =
+      Number(state.maximumLifeForce || 100)
+      * Number(SHROUD_DRAIN_PERCENT_PER_SECOND[shroud] || 0)
+      / 100;
     const elapsed = end - start;
     const potentialDrain = rate * elapsed;
     const exitAt = potentialDrain >= state.lifeForce && rate > 0
@@ -207,7 +211,11 @@ export function advanceNecromancerState(context, target) {
     && Object.keys(state.activeSpirits || {}).length
     && hasTrait(context, TRAIT.LINGERING_SPIRITS)
   ) {
-    state.lifeForce = Math.max(0, state.lifeForce - 3 * (end - start));
+    state.lifeForce = Math.max(
+      0,
+      state.lifeForce
+        - state.maximumLifeForce * 0.03 * (end - start),
+    );
     if (state.lifeForce <= context.epsilon) {
       state.lifeForce = 0;
       state.activeSpirits = {};
