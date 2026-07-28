@@ -7,6 +7,51 @@ const LEGACY_TARGET_FIELDS = {
   Slow: "slowed",
 };
 
+const CONDITION_ALIASES = Object.freeze({
+  bleed: "Bleeding",
+  bleeding: "Bleeding",
+  blind: "Blinded",
+  blinded: "Blinded",
+  burn: "Burning",
+  burning: "Burning",
+  chill: "Chilled",
+  chilled: "Chilled",
+  confusion: "Confusion",
+  cripple: "Crippled",
+  crippled: "Crippled",
+  fear: "Fear",
+  feared: "Fear",
+  immobilize: "Immobilized",
+  immobilized: "Immobilized",
+  poison: "Poisoned",
+  poisoned: "Poisoned",
+  slow: "Slow",
+  slowed: "Slow",
+  taunt: "Taunt",
+  taunted: "Taunt",
+  torment: "Torment",
+  vulnerability: "Vulnerability",
+  weakness: "Weakness",
+  weakened: "Weakness",
+});
+
+export const CANONICAL_TARGET_CONDITIONS = Object.freeze(
+  [...new Set(Object.values(CONDITION_ALIASES))].sort(),
+);
+
+/**
+ * Normalizes simulator and wiki condition spellings to the canonical runtime
+ * vocabulary. Unknown values retain a stable title-cased form so supplemental
+ * profession data remains queryable without inventing per-condition flags.
+ */
+export function canonicalTargetConditionName(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  const normalized = text.toLowerCase();
+  return CONDITION_ALIASES[normalized]
+    || normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
 /**
  * Resolves condition value from config, checking legacy fields first,
  * then modern conditions object with case-insensitive matching.
@@ -16,17 +61,19 @@ const LEGACY_TARGET_FIELDS = {
  * @private
  */
 function configuredConditionValue(config, name) {
-  const legacyField = LEGACY_TARGET_FIELDS[name];
+  const canonicalName = canonicalTargetConditionName(name);
+  const legacyField = LEGACY_TARGET_FIELDS[canonicalName];
   if (legacyField && Object.hasOwn(config.target || {}, legacyField)) {
     return config.target[legacyField];
   }
 
   const conditions = config.target?.conditions || {};
-  if (Object.hasOwn(conditions, name)) return conditions[name];
-
-  const normalized = String(name).toLowerCase();
+  if (Object.hasOwn(conditions, canonicalName)) {
+    return conditions[canonicalName];
+  }
   const entry = Object.entries(conditions)
-    .find(([condition]) => condition.toLowerCase() === normalized);
+    .find(([condition]) =>
+      canonicalTargetConditionName(condition) === canonicalName);
   if (entry) return entry[1];
 
   return 0;
@@ -57,4 +104,52 @@ export function permanentTargetConditionStacks(config, name) {
  */
 export function targetHasPermanentCondition(config, name) {
   return permanentTargetConditionStacks(config, name) > 0;
+}
+
+function activeRuntimeStackWeight(stack, at) {
+  const appliedAt = Number(stack?.appliedAt ?? -Infinity);
+  const expiresAt = Number(stack?.expiresAt ?? Infinity);
+  const removedAt = Number(stack?.removedAt ?? Infinity);
+  return (
+    appliedAt <= at
+    && expiresAt > at
+    && removedAt > at
+  )
+    ? Math.max(0, Number(stack?.weight ?? stack?.stacks ?? 0))
+    : 0;
+}
+
+/**
+ * Gets the active player-applied stacks recorded by scheduler or resolver
+ * runtime state. Half-open expiry/removal boundaries preserve chronological
+ * same-time behavior: a stack is visible only after its application has been
+ * inserted into runtime state and is inactive at its expiry/removal timestamp.
+ */
+export function runtimeTargetConditionStacks(runtime, name, at) {
+  if (!(runtime?.conditionState instanceof Map)) return 0;
+  const canonicalName = canonicalTargetConditionName(name);
+  let total = 0;
+  for (const [condition, entry] of runtime.conditionState) {
+    if (canonicalTargetConditionName(condition) !== canonicalName) continue;
+    total += (entry?.stacks || []).reduce(
+      (sum, stack) => sum + activeRuntimeStackWeight(stack, at),
+      0,
+    );
+  }
+  return total;
+}
+
+/**
+ * Gets target-condition stacks from permanent scenario assumptions plus
+ * chronological runtime applications.
+ */
+export function targetConditionStacks(config, name, at, runtime = null) {
+  return (
+    permanentTargetConditionStacks(config, name)
+    + runtimeTargetConditionStacks(runtime, name, Number(at || 0))
+  );
+}
+
+export function targetHasCondition(config, name, at, runtime = null) {
+  return targetConditionStacks(config, name, at, runtime) > 0;
 }

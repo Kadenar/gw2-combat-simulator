@@ -90,6 +90,57 @@ const entries = [
       return module.necromancerAppAdapter;
     },
   },
+  {
+    id: "engineer",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    name: "Engineer",
+    route: "engineer.html",
+    themeClass: "engineer-theme",
+    specializationSummary:
+      "Core · Scrapper · Holosmith · Mechanist · Amalgam",
+    loadProfession: async () => {
+      const module = await import("../professions/engineer/definition.js");
+      return module.engineerProfession;
+    },
+    loadAppAdapter: async () => {
+      const module = await import("../professions/engineer/app/adapter.js");
+      return module.engineerAppAdapter;
+    },
+  },
+  {
+    id: "revenant",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    name: "Revenant",
+    route: "revenant.html",
+    themeClass: "revenant-theme",
+    specializationSummary:
+      "Core · Herald · Renegade · Vindicator · Conduit",
+    loadProfession: async () => {
+      const module = await import("../professions/revenant/definition.js");
+      return module.revenantProfession;
+    },
+    loadAppAdapter: async () => {
+      const module = await import("../professions/revenant/app/adapter.js");
+      return module.revenantAppAdapter;
+    },
+  },
+  {
+    id: "thief",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    name: "Thief",
+    route: "thief.html",
+    themeClass: "thief-theme",
+    specializationSummary:
+      "Core · Daredevil · Deadeye · Specter · Antiquary",
+    loadProfession: async () => {
+      const module = await import("../professions/thief/definition.js");
+      return module.thiefProfession;
+    },
+    loadAppAdapter: async () => {
+      const module = await import("../professions/thief/app/adapter.js");
+      return module.thiefAppAdapter;
+    },
+  },
 ];
 
 function validateEntry(entry, ids, routes) {

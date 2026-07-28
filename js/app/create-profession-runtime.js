@@ -61,6 +61,17 @@ export function createProfessionRuntime({
   }
 
   function selectedSkills(app) {
+    const loadout = profession.ui.slotLoadout;
+    if (loadout) {
+      return loadout.selectedSkillIds({
+        build: app.build,
+        specialization: eliteSpecialization(app.build),
+        professionState: app.results?.endState?.profession,
+        catalog: profession.catalog,
+      })
+        .map(id => profession.catalog.skillsById.get(Number(id)))
+        .filter(Boolean);
+    }
     return Object.values(app.build.selectedSkills)
       .map(name => app.skillByName.get(name))
       .filter(Boolean);

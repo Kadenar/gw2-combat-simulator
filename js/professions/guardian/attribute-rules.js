@@ -1,8 +1,10 @@
-import { targetHasPermanentCondition } from "../../platform/gw2/target-state.js";
 import {
   createModifierHooks,
   MODIFIER_TARGET,
 } from "../../platform/gw2/modifier-rules.js";
+import {
+  targetHasCondition as targetHasConfiguredCondition,
+} from "../../platform/gw2/target-state.js";
 import { hasTrait } from "../../platform/gw2/trait-state.js";
 import {
   GUARDIAN_SKILL_IDS,
@@ -18,13 +20,19 @@ function activeWeapon(context) {
 }
 
 function targetHasCondition(context, condition) {
-  if (targetHasPermanentCondition(context.config || {}, condition)) return true;
-  const applications =
-    context.runtime?.conditionState?.get(condition)?.stacks || [];
-  return applications.some(application =>
-    application.appliedAt <= context.time
-    && application.expiresAt > context.time
-    && application.weight > 0);
+  if (context.query?.targetHasCondition) {
+    return Boolean(context.query.targetHasCondition(
+      condition,
+      context.time,
+      context.runtime,
+    ));
+  }
+  return targetHasConfiguredCondition(
+    context.config || {},
+    condition,
+    context.time,
+    context.runtime,
+  );
 }
 
 function isOneHandedWeapon(weapon) {
@@ -53,12 +61,6 @@ function boonActive(context, boon) {
 
 function timedBuffActive(context, kind) {
   return Boolean(context.timeline?.timedActive(kind, context.time));
-}
-
-function runtimeBuffActive(context, kind) {
-  return (context.runtime?.boons?.get(kind) || []).some(application =>
-    application.at <= context.time
-    && application.expiresAt > context.time);
 }
 
 function latestTimedBuff(context, kind) {
@@ -221,10 +223,7 @@ export const guardianModifierRules = Object.freeze([
     order: 100,
     when: context =>
       hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
-      && (
-        context.timeline?.vulnerabilityStacksAt(context.time) > 0
-        || runtimeBuffActive(context, "target-vulnerability")
-      ),
+      && targetHasCondition(context, "Vulnerability"),
   },
   {
     id: "guardian.daring-advance",

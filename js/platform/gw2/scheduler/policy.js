@@ -2,6 +2,10 @@ import {
   createGw2TriggerMaterializer,
   GW2_MATERIALIZE_EVENT_TASK,
 } from "./proc-materializer.js";
+import {
+  defaultWeaponSkillMatchesSet,
+  weaponSkillMatchesSet,
+} from "../weapon-skill-matcher.js";
 
 const QUICKNESS_ACTION_RATE = 1.5;
 const ACTION_TICK_MS = 40;
@@ -55,22 +59,34 @@ function configuredWeaponSet(config, weaponSet) {
     return [
       config.weaponSet2Primary,
       config.weaponSet2Secondary,
-    ].filter(Boolean);
+    ];
   }
   return [
     config.primaryWeapon,
     config.secondaryWeapon,
-  ].filter(Boolean);
+  ];
 }
 
-export function isGw2WeaponSkillEquipped(context, skill) {
+export function isGw2WeaponSkillEquipped(
+  context,
+  skill,
+  matcher = defaultWeaponSkillMatchesSet,
+  catalog = null,
+) {
   if (skill.type !== "Weapon" || !skill.weapon) return true;
   const configured = configuredWeaponSet(
     context.config || {},
     context.state?.activeWeaponSet === 2 ? 2 : 1,
   );
   // Empty weapon configuration is treated as an unrestricted sandbox build.
-  return configured.length === 0 || configured.includes(skill.weapon);
+  return (
+    configured.every(value => !value)
+    || weaponSkillMatchesSet(matcher, skill, configured, {
+      catalog,
+      config: context.config,
+      state: context.state,
+    })
+  );
 }
 
 /**
@@ -78,7 +94,11 @@ export function isGw2WeaponSkillEquipped(context, skill) {
  */
 export function createGw2SchedulerPolicy(
   config = {},
-  { traits = null } = {},
+  {
+    traits = null,
+    catalog = null,
+    weaponSkillMatchesSet: matcher = defaultWeaponSkillMatchesSet,
+  } = {},
 ) {
   const materializer = createGw2TriggerMaterializer(config, { traits });
   return Object.freeze({
@@ -108,7 +128,7 @@ export function createGw2SchedulerPolicy(
     },
 
     validateCast(context, skill) {
-      return isGw2WeaponSkillEquipped(context, skill);
+      return isGw2WeaponSkillEquipped(context, skill, matcher, catalog);
     },
 
     effectDuration(_context, _skill, effect, baseDuration) {

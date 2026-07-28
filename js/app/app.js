@@ -190,6 +190,18 @@ export class ProfessionApp {
     // Swaps skill if it's unavailable (e.g., switching specs invalidates spec-locked skills)
     normalizeSelectedSkills() {
         const spec = this.adapter.eliteSpecialization(this.build);
+        if (this.adapter.slotLoadout) {
+            Object.assign(
+                this.build,
+                this.adapter.slotLoadout.normalizeBuild(this.build, {
+                    build: this.build,
+                    specialization: spec,
+                    professionState: this.results?.endState?.profession,
+                    catalog: this.profession.catalog,
+                }),
+            );
+            return;
+        }
         const slotTypes = {
             Heal: 'Heal',
             Utility1: 'Utility',
@@ -491,17 +503,22 @@ export class ProfessionApp {
     renderSkills() {
         const spec = this.adapter.eliteSpecialization(this.build);
         const skillsForSet = ([mh, oh]) => {
-            const twoHanded = this.weaponData[mh]?.wielding === '2h';
             return [...new Map(this.skills.filter(skill => {
                 if (skill.type !== 'Weapon') return false;
                 if (!this.adapter.isSkillAvailable(skill, {
                     build: this.build,
                     specialization: spec,
                 })) return false;
-                const slot = Number(String(skill.slot).match(/(\d)$/)?.[1] || 0);
-                return twoHanded
-                    ? skill.weapon === mh
-                    : (slot <= 3 ? skill.weapon === mh : skill.weapon === oh);
+                return this.adapter.weaponSkillMatchesSet(
+                    skill,
+                    [mh, oh],
+                    {
+                        build: this.build,
+                        specialization: spec,
+                        catalog: this.profession.catalog,
+                        weaponData: this.weaponData,
+                    },
+                );
             }).map(skill => [skill.name, skill])).values()]
                 .sort((a, b) => a.slot.localeCompare(b.slot));
         };
@@ -514,6 +531,10 @@ export class ProfessionApp {
             <div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 1</span>${set1Skills.map(weaponIcon).join('')}</div>
             <div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 2</span>${set2Skills.map(weaponIcon).join('')}</div>`;
 
+        if (this.adapter.slotLoadout) {
+            this.renderFixedSlotLoadout(spec, set1Skills, set2Skills);
+            return;
+        }
         const slots = [
             ['Heal', 'Heal'], ['Utility1', 'Utility'], ['Utility2', 'Utility'], ['Utility3', 'Utility'], ['Elite', 'Elite'],
         ];
@@ -567,6 +588,64 @@ export class ProfessionApp {
         ).join('')}</div>`;
     }
 
+    renderFixedSlotLoadout(spec, set1Skills, set2Skills) {
+        const context = {
+            build: this.build,
+            specialization: spec,
+            professionState: this.results?.endState?.profession,
+            catalog: this.profession.catalog,
+        };
+        const view = this.adapter.slotLoadout.view(context);
+        const skillBar = document.getElementById('skill-bar');
+        const barHtml = bar => `<div class="fixed-loadout-bar${bar.active ? ' active' : ''}">
+            <span class="skill-bar-label">${esc(bar.label)}</span>
+            ${bar.skillIds.map(id => this.skillById.get(Number(id))).filter(Boolean).map(skill =>
+                `<div class="skill-bar-slot"><div class="sbar-icon" title="${esc(skill.name)}"><img src="${esc(skill.icon || '')}" alt=""></div></div>`
+            ).join('')}
+        </div>`;
+        skillBar.innerHTML = `<div class="fixed-loadout-selectors">
+            ${view.selectors.map(selector =>
+                `<label><span>${esc(selector.label)}</span><select class="gear-select" data-loadout-key="${esc(selector.key)}">
+                    ${selector.options.map(entry =>
+                        `<option value="${esc(entry.value)}"${entry.value === selector.value ? ' selected' : ''}${entry.disabled ? ' disabled' : ''}>${esc(entry.label)}</option>`
+                    ).join('')}
+                </select></label>`
+            ).join('')}
+        </div>${view.bars.map(barHtml).join('')}`;
+        skillBar.querySelectorAll('[data-loadout-key]').forEach(select => {
+            select.addEventListener('change', () => {
+                this.adapter.slotLoadout.updateBuild(
+                    this.build,
+                    select.dataset.loadoutKey,
+                    select.value,
+                    context,
+                );
+                this.changed();
+            });
+        });
+
+        const rows = [...new Map([
+            ...set1Skills,
+            ...set2Skills,
+            ...view.bars.flatMap(bar =>
+                bar.skillIds.map(id => this.skillById.get(Number(id))).filter(Boolean)),
+        ].map(skill => [skill.id, skill])).values()];
+        document.getElementById('skill-info-table').innerHTML = `<div class="skill-info-grid">
+            <div class="skill-info-header" role="row">
+                <span role="columnheader">Skill</span>
+                <span role="columnheader">Cast Time</span>
+                <span role="columnheader">Base Cooldown</span>
+            </div>
+            ${rows.map(skill => `<div class="skill-info-row" role="row">
+                <span class="skill-info-skill" role="cell">
+                    <img src="${esc(skill.icon || '')}" alt=""><span class="skill-info-name">${esc(skill.name)}</span>
+                </span>
+                <span class="skill-info-value" role="cell">${(Number(skill.castTimeMs || 0) / 1000).toFixed(2)}s</span>
+                <span class="skill-info-value" role="cell">${Number(skill.cooldown || 0)}s CD</span>
+            </div>`).join('')}
+        </div>`;
+    }
+
     // Renders permanent boons/conditions and target-behavior assumptions.
     // Might and stackable conditions (Bleeding, Burning, Torment, Confusion, Poisoned) use a
     // numeric stack count; other boons/conditions use a boolean checkbox only.
@@ -612,6 +691,25 @@ export class ProfessionApp {
                     : null,
             });
         }).join('');
+        const professionAssumptionItems = this.adapter.assumptionControls.map(control => {
+            const value = a[control.key] ?? control.defaultValue;
+            if (control.type === 'boolean') {
+                return `<label class="boon-control"><input data-assumption-key="${esc(control.key)}" data-assumption-type="boolean" type="checkbox"${value ? ' checked' : ''}> ${esc(control.label)}</label>`;
+            }
+            if (control.type === 'select') {
+                return `<label class="boon-control">${esc(control.label)}
+                    <select class="gear-select" data-assumption-key="${esc(control.key)}" data-assumption-type="select">
+                        ${control.options.map(option =>
+                            `<option value="${esc(option.value)}"${String(value) === option.value ? ' selected' : ''}>${esc(option.label)}</option>`
+                        ).join('')}
+                    </select>
+                </label>`;
+            }
+            return `<label class="boon-control">${esc(control.label)}
+                <input data-assumption-key="${esc(control.key)}" data-assumption-type="number" type="number"
+                    min="${control.minimum}" max="${control.maximum}" step="${control.step}" value="${Number(value)}">
+            </label>`;
+        }).join('');
         const container = document.getElementById('perma-boons');
         container.innerHTML = `
             <div class="perma-group"><span class="perma-group-label">Boons</span>${boonItems}</div>
@@ -619,6 +717,7 @@ export class ProfessionApp {
             <div class="perma-group"><span class="perma-group-label">Target</span>
                 <label class="boon-control">Skill activations/s <input id="target-skill-activations" type="number" min="0" max="10" step="0.1" value="${a.targetSkillActivationsPerSecond}"></label>
                 <label class="boon-control"><input id="target-moving" type="checkbox"${a.targetMoving ? ' checked' : ''}> Moving</label>
+                ${professionAssumptionItems}
             </div>`;
 
         container.querySelectorAll('input[type="checkbox"][data-effect-type]')
@@ -669,6 +768,24 @@ export class ProfessionApp {
         document.getElementById('target-moving').addEventListener('change', event => {
             a.targetMoving = event.target.checked;
             this.changed();
+        });
+        container.querySelectorAll('[data-assumption-key]').forEach(control => {
+            control.addEventListener('change', () => {
+                const definition = this.adapter.assumptionControls.find(candidate =>
+                    candidate.key === control.dataset.assumptionKey);
+                if (!definition) return;
+                if (definition.type === 'boolean') {
+                    a[definition.key] = control.checked;
+                } else if (definition.type === 'number') {
+                    a[definition.key] = Math.max(
+                        definition.minimum,
+                        Math.min(definition.maximum, Number(control.value) || 0),
+                    );
+                } else {
+                    a[definition.key] = control.value;
+                }
+                this.changed();
+            });
         });
         document.getElementById('target-hp').value = this.build.targetHealth;
         document.getElementById('target-armor').value = this.build.targetArmor;

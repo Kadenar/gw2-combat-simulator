@@ -42,7 +42,53 @@ export function mesmerResourceView(context = {}) {
   };
 }
 
+const MESMER_EVENT_ROWS = Object.freeze({
+  "mesmer.phantasm-summoned": event => ({
+    type: event.type,
+    description: `PHANTASM SUMMONED ${event.name} x${event.count}`,
+    className: "phantasm",
+    order: 20,
+    flags: ["phantasm-clone"],
+  }),
+  "mesmer.phantasm-resummoned": event => ({
+    type: event.type,
+    description:
+      `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
+    className: "phantasm",
+    order: 21,
+    flags: ["phantasm-clone"],
+  }),
+  "mesmer.phantasm-attack": event => ({
+    type: event.type,
+    description:
+      `PHANTASM DAMAGE COMPLETE ${event.name} x${event.count}`
+      + `${event.repeat ? " [repeat]" : ""}`,
+    className: "phantasm",
+    order: 22,
+    flags: ["phantasm-clone"],
+  }),
+  "mesmer.instrument": event => ({
+    type: "trigger",
+    description:
+      `INSTRUMENT ${event.instrument}`
+      + `${
+        event.expiresAt
+          ? ` until ${Number(event.expiresAt).toFixed(3)}s`
+          : ""
+      }`,
+    className: "trigger",
+    order: 55,
+    flags: [],
+  }),
+});
+
+export function mesmerEventLogRow(_context, event) {
+  const present = MESMER_EVENT_ROWS[event?.type];
+  return present ? present(event) : undefined;
+}
+
 export const mesmerUi = Object.freeze({
+  eventLogRow: mesmerEventLogRow,
   paletteGroups: mesmerPaletteGroups,
   resourceView: mesmerResourceView,
   resourceViews: context => [mesmerResourceView(context)],

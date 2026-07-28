@@ -76,6 +76,7 @@ export function createGw2BuildCodec({
   normalizeExtra = (build) => build,
   validateExtra = () => [],
   legacyGearAliases = {},
+  slotLoadout = null,
 } = {}) {
   if (!/^[a-z][a-z0-9-]*$/.test(String(professionId || ""))) {
     throw new TypeError("Build codec requires a stable professionId.");
@@ -94,6 +95,7 @@ export function createGw2BuildCodec({
     professionId,
     schemaVersion,
     catalog,
+    slotLoadout,
   };
 
   function migrateBuild(candidate) {
@@ -139,12 +141,17 @@ export function createGw2BuildCodec({
           ? saved.jadeBotCore
           : Boolean(defaults.jadeBotCore),
       specializations,
-      selectedSkills: normalizeSelectedSkills(
-        saved,
-        defaults,
-        catalog,
-        specializations,
-      ),
+      selectedSkills: slotLoadout
+        ? {
+            ...plainObject(defaults.selectedSkills),
+            ...plainObject(saved.selectedSkills),
+          }
+        : normalizeSelectedSkills(
+            saved,
+            defaults,
+            catalog,
+            specializations,
+          ),
       assumptions: {
         ...defaults.assumptions,
         ...assumptions,
@@ -177,6 +184,23 @@ export function createGw2BuildCodec({
     }
     migrated.schemaVersion = schemaVersion;
     migrated.profession = professionId;
+    if (slotLoadout) {
+      const eliteNames = new Set(
+        catalog.specializations
+          .filter(specialization => specialization.elite)
+          .map(specialization => specialization.name),
+      );
+      const specialization = migrated.specializations
+        .find(selection => eliteNames.has(selection.name))?.name || "Core";
+      Object.assign(
+        migrated,
+        slotLoadout.normalizeBuild(migrated, {
+          build: migrated,
+          specialization,
+          catalog,
+        }),
+      );
+    }
     delete migrated.selectedSkillIds;
     delete migrated.sigils;
     return migrated;
@@ -519,7 +543,10 @@ function validateRotationCommand(command, catalog, errors) {
   }
 }
 
-function validateCommonBuild(build, { professionId, schemaVersion, catalog }) {
+function validateCommonBuild(
+  build,
+  { professionId, schemaVersion, catalog, slotLoadout = null },
+) {
   const errors = [];
   if (!build || typeof build !== "object" || Array.isArray(build)) {
     return { valid: false, errors: ["Build must be an object."] };
@@ -548,7 +575,20 @@ function validateCommonBuild(build, { professionId, schemaVersion, catalog }) {
     }
   }
   validateSpecializations(build, catalog, professionId, errors);
-  if (!isPlainObject(build.selectedSkills)) {
+  if (slotLoadout) {
+    const eliteNames = new Set(
+      catalog.specializations
+        .filter(specialization => specialization.elite)
+        .map(specialization => specialization.name),
+    );
+    const specialization = (build.specializations || [])
+      .find(selection => eliteNames.has(selection?.name))?.name || "Core";
+    errors.push(...slotLoadout.validateBuild(build, {
+      build,
+      specialization,
+      catalog,
+    }));
+  } else if (!isPlainObject(build.selectedSkills)) {
     errors.push("selectedSkills must be an object.");
   } else {
     const selectedSpecializations = new Set(

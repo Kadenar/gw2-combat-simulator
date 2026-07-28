@@ -1,0 +1,4960 @@
+// Generated Guild Wars 2 API metadata for thief.
+// Snapshot: 2026-07-28. Run scripts/update-profession-api-data.mjs --profession Thief to refresh.
+// Simulator mechanics are maintained under thief/mechanics/.
+
+export const DATA_SNAPSHOT = "2026-07-28";
+export const SPECIALIZATIONS = [
+  {
+    "id": 7,
+    "name": "Daredevil",
+    "elite": true,
+    "icon": "https://render.guildwars2.com/file/F1985D4E1CE043D7145E030C0AC4CFDABED73A59/1012025.png",
+    "background": "https://render.guildwars2.com/file/B969F9B27EE82CBF0E4651FD0F760F702CB5FCED/1012101.png",
+    "minorTraits": [
+      {
+        "id": 1994,
+        "name": "Physical Supremacy",
+        "description": "Gain access to physical skills. Your maximum endurance threshold is increased.",
+        "icon": "https://render.guildwars2.com/file/0CDF226340671D9E0BAA3BBD6904CAD9DB6780C2/1058555.png",
+        "specialization": "Daredevil",
+        "tier": 1,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1887,
+        "name": "Weakening Strikes",
+        "description": "Your next attack after dodging causes weakness to foes struck. Weakened enemies deal less damage to you, and you deal increased strike damage to them.",
+        "icon": "https://render.guildwars2.com/file/140F77BB56B93C32BFDAC30CB332FCBAAF0921A5/1058547.png",
+        "specialization": "Daredevil",
+        "tier": 2,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1837,
+        "name": "Endurance Thief",
+        "description": "Gain endurance when you successfully steal from an enemy.",
+        "icon": "https://render.guildwars2.com/file/FC48D05C3260AB41A0D4A6D7807495C7B60CBE76/1058557.png",
+        "specialization": "Daredevil",
+        "tier": 3,
+        "position": 0,
+        "slot": "Minor"
+      }
+    ],
+    "majorTraits": [
+      [
+        {
+          "id": 1933,
+          "name": "Marauder's Resilience",
+          "description": "Gain vitality based on a portion of your power. Damage is decreased from foes within the range threshold.",
+          "icon": "https://render.guildwars2.com/file/6EADF7BD91FA0F02C3CF954A131E4DE7A7174A4D/2128018.png",
+          "specialization": "Daredevil",
+          "tier": 1,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2023,
+          "name": "Escapist's Fortitude",
+          "description": "Gain health and remove a condition whenever you evade an attack.",
+          "icon": "https://render.guildwars2.com/file/997ABE456858707D663FAD58BFA809BAB83455C1/1058556.png",
+          "specialization": "Daredevil",
+          "tier": 1,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1949,
+          "name": "Brawler's Tenacity",
+          "description": "<c=@abilitytype>Physical</c> skills grant endurance when activated.",
+          "icon": "https://render.guildwars2.com/file/EBE8476C463D73783639F51D7B7ED451F24107E1/1058548.png",
+          "specialization": "Daredevil",
+          "tier": 1,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1884,
+          "name": "Staff Master",
+          "description": "While wielding a staff, gain endurance for each initiative point spent. Gain bonus power, which is increased when wielding a staff.",
+          "icon": "https://render.guildwars2.com/file/5A6DC148221020B0E616EC77507CCAE9E026BDBD/1058549.png",
+          "specialization": "Daredevil",
+          "tier": 2,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1893,
+          "name": "Havoc Specialist",
+          "description": "Strike damage dealt is increased when your endurance is not full.",
+          "icon": "https://render.guildwars2.com/file/B15E2425525CF5A3E4EAD67C4BE6B13A1B931875/1058546.png",
+          "specialization": "Daredevil",
+          "tier": 2,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1975,
+          "name": "Impacting Disruption",
+          "description": "Recharge steal and inflict a pulmonary impact when you interrupt an enemy.<br><c=@reminder>This trait can only affect enemies with defiance bars once per interval.</c>",
+          "icon": "https://render.guildwars2.com/file/BED87F28D907FE0CE59346786D0345749A2E6DDC/1058551.png",
+          "specialization": "Daredevil",
+          "tier": 2,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1833,
+          "name": "Lotus Training",
+          "description": "Your dodge ability now uses Impaling Lotus, firing daggers at nearby enemies. Gain increased condition damage for a period of time when dodging.",
+          "icon": "https://render.guildwars2.com/file/E5724D46CEE62333E00CE26905C5FDD5439F6667/1058552.png",
+          "specialization": "Daredevil",
+          "tier": 3,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1964,
+          "name": "Unhindered Combatant",
+          "description": "Your dodge ability is replaced by a long-range dash that removes inhibiting conditions and grants swiftness and damage reduction. Removing certain conditions in this way temporarily reduces endurance gain.",
+          "icon": "https://render.guildwars2.com/file/0D7324A22F580F3DA3F244C466770FB69292C307/1058553.png",
+          "specialization": "Daredevil",
+          "tier": 3,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2047,
+          "name": "Bounding Dodger",
+          "description": "Your dodge ability is replaced by Bound, dealing damage to the area after you evade. Gain increased strike damage for a period of time after you dodge.",
+          "icon": "https://render.guildwars2.com/file/F3E22D0FDFDB436780BD4ACBA5D135EE40507FFD/1058554.png",
+          "specialization": "Daredevil",
+          "tier": 3,
+          "position": 3,
+          "slot": "Major"
+        }
+      ]
+    ]
+  },
+  {
+    "id": 20,
+    "name": "Shadow Arts",
+    "elite": false,
+    "icon": "https://render.guildwars2.com/file/B62E5512754BEB1D0116B1DB3B6FA0ECA4DD630C/1012027.png",
+    "background": "https://render.guildwars2.com/file/6943976957615E2337BE6B38292BAEB23C2BAAB9/1012103.png",
+    "minorTraits": [
+      {
+        "id": 1294,
+        "name": "Merciful Ambush",
+        "description": "Heal when you enter or exit stealth. Stealth yourself and your target when reviving an ally. <c=@reminder>This effect also applies to stealth you grant to allies.</c>",
+        "icon": "https://render.guildwars2.com/file/475E47AC729BC71FB80E503311CBA503B7A033D8/2175054.png",
+        "specialization": "Shadow Arts",
+        "tier": 1,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1136,
+        "name": "Meld with Shadows",
+        "description": "Gain superspeed when you enter or exit stealth.",
+        "icon": "https://render.guildwars2.com/file/75543C6D39236CF562B56A95A6B3A8066CB53360/1012760.png",
+        "specialization": "Shadow Arts",
+        "tier": 2,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1705,
+        "name": "Shadow Siphoning",
+        "description": "<c=@abilitytype>Stealth attacks<c/> siphon health if they hit.<br><c=@reminder>Cannot siphon the same target more than once per interval.</c>",
+        "icon": "https://render.guildwars2.com/file/C5D70A53661C1250D24A12977D5A10C9057F632C/2175056.png",
+        "specialization": "Shadow Arts",
+        "tier": 3,
+        "position": 0,
+        "slot": "Minor"
+      }
+    ],
+    "majorTraits": [
+      [
+        {
+          "id": 1160,
+          "name": "Shielding Restoration",
+          "description": "Grant barrier and dark aura to nearby allies when you use a healing skill.",
+          "icon": "https://render.guildwars2.com/file/3B7C573FBF124EC43F4102D530DE5E333F31014F/1012750.png",
+          "specialization": "Shadow Arts",
+          "tier": 1,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1293,
+          "name": "Shadow's Embrace",
+          "description": "Remove conditions when you enter or exit stealth. <c=@reminder>This effect also applies to stealth you grant to allies.</c>",
+          "icon": "https://render.guildwars2.com/file/96B9AE530DE47F930813E12EB224606B1BEAF303/1012752.png",
+          "specialization": "Shadow Arts",
+          "tier": 1,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1284,
+          "name": "Hidden Thief",
+          "description": "Stealing inflicts blindness. <c=@abilitytype>Stealth Attacks</c> inflict weakness. <c=@reminder>Cannot affect the same target more than once per interval.</c>",
+          "icon": "https://render.guildwars2.com/file/7DFEDA0FEFF2CBCF0F7A6F71B333A758B2B0F90F/1012754.png",
+          "specialization": "Shadow Arts",
+          "tier": 1,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1297,
+          "name": "Shadow Savior",
+          "description": "Gain dark aura when you steal. Granting yourself dark aura heals nearby allies.",
+          "icon": "https://render.guildwars2.com/file/D3070EE4956FF44628AD3ED06FD60C7D94F20296/2175055.png",
+          "specialization": "Shadow Arts",
+          "tier": 2,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1130,
+          "name": "Leeching Venoms",
+          "description": "<c=@abilitytype>Venom</c> utility skills siphon life from struck foes. Gain stacks of Spider Venom when you enter or exit stealth.<br><c=@reminder>Siphoning can only occur once per strike.</c>",
+          "icon": "https://render.guildwars2.com/file/09B09DBDA3B81470A27514925DAD37DE0D6121FB/1012755.png",
+          "specialization": "Shadow Arts",
+          "tier": 2,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1300,
+          "name": "Cloaked in Shadow",
+          "description": "Gaining stealth blinds nearby foes. Blinding a foe siphons health from them.",
+          "icon": "https://render.guildwars2.com/file/9D72C40FF99627FDF9FD0C46F4C3B33527BA4814/1012753.png",
+          "specialization": "Shadow Arts",
+          "tier": 2,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1134,
+          "name": "Cover of Shadow",
+          "description": "When you steal, create a field around yourself that grants allies protection. Granting dark aura to yourself removes a condition from nearby allies.</c>",
+          "icon": "https://render.guildwars2.com/file/5DD2D1EEAD47B80C375190F9183D0C010FF714EA/1012756.png",
+          "specialization": "Shadow Arts",
+          "tier": 3,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1135,
+          "name": "Shadow's Rejuvenation",
+          "description": "Gain initiative when you enter or exit stealth.",
+          "icon": "https://render.guildwars2.com/file/E4742848370F4876CFEFFB63BD7D3FF9495EA43A/1012757.png",
+          "specialization": "Shadow Arts",
+          "tier": 3,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1162,
+          "name": "Rending Shade",
+          "description": "Steal boons from enemies you strike with <c=@abilitytype>stealth attacks</c>. Striking a boonless foe with a stealth attack breaks their barrier instead.",
+          "icon": "https://render.guildwars2.com/file/672F123A490A0505DCC29DEEDD4C609FD9C32F40/1012758.png",
+          "specialization": "Shadow Arts",
+          "tier": 3,
+          "position": 3,
+          "slot": "Major"
+        }
+      ]
+    ]
+  },
+  {
+    "id": 28,
+    "name": "Deadly Arts",
+    "elite": false,
+    "icon": "https://render.guildwars2.com/file/38F6FA9A5D04CEC605AF6E5D994119281A38A9FA/1012026.png",
+    "background": "https://render.guildwars2.com/file/2AA7FB65630AD540E204982978DA9601023B540E/1012102.png",
+    "minorTraits": [
+      {
+        "id": 1279,
+        "name": "Serpent's Touch",
+        "description": "Stealing inflicts poison. While in the downed state, your attacks apply poison.",
+        "icon": "https://render.guildwars2.com/file/0FEE00DFE899386F321C0F719EC70FED03AB03E7/1012747.png",
+        "specialization": "Deadly Arts",
+        "tier": 1,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1280,
+        "name": "Lotus Poison",
+        "description": "Gain might and weaken targets when you poison them.",
+        "icon": "https://render.guildwars2.com/file/F1441E7BBAA8502E50B6105C246B0ED9AF110154/1012748.png",
+        "specialization": "Deadly Arts",
+        "tier": 2,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1257,
+        "name": "Exposed Weakness",
+        "description": "Deal increased strike damage to your target for each unique condition on them.",
+        "icon": "https://render.guildwars2.com/file/B6765208D0266538000932E40ED202D95701276B/1012749.png",
+        "specialization": "Deadly Arts",
+        "tier": 3,
+        "position": 0,
+        "slot": "Minor"
+      }
+    ],
+    "majorTraits": [
+      [
+        {
+          "id": 1245,
+          "name": "Dagger Training",
+          "description": "Gain bonus power, which is increased when wielding a dagger.",
+          "icon": "https://render.guildwars2.com/file/16A01B18FBA9F8AE4878CD00DC422827A5344F75/1012738.png",
+          "specialization": "Deadly Arts",
+          "tier": 1,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1276,
+          "name": "Mug",
+          "description": "Deal damage and gain life when stealing. This attack cannot critically hit enemies.",
+          "icon": "https://render.guildwars2.com/file/CF71C3B0EF58A1A4D7E5EC11B6EB10FB990F3C16/1012739.png",
+          "specialization": "Deadly Arts",
+          "tier": 1,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1164,
+          "name": "Deadly Ambition",
+          "description": "Inflict poison when striking a foe with a dual wield attack. Gain increased condition damage.<br><c=@reminder>Applies poison once per attack use.</c>",
+          "icon": "https://render.guildwars2.com/file/27C24EB60E92A72709149FBB42F6FBC8185D3B45/2175052.png",
+          "specialization": "Deadly Arts",
+          "tier": 1,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1169,
+          "name": "Even the Odds",
+          "description": "Apply vulnerability when you steal. Apply conditions when you hit with a stealth attack.",
+          "icon": "https://render.guildwars2.com/file/3413B9D6B5E63209751F98319C09F81413D8CF0C/2175053.png",
+          "specialization": "Deadly Arts",
+          "tier": 2,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1292,
+          "name": "Panic Strike",
+          "description": "Immobilizing a foe poisons them. Striking a foe with unique conditions equal to or more than the threshold immobilizes them.",
+          "icon": "https://render.guildwars2.com/file/B3C6616D917A63B55B140E1835B709CE95631593/1012742.png",
+          "specialization": "Deadly Arts",
+          "tier": 2,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1704,
+          "name": "Revealed Training",
+          "description": "Gain power, then gain extra power while you are revealed.",
+          "icon": "https://render.guildwars2.com/file/774712F5EDE9F5D4105E7D75241CB15505269304/1012743.png",
+          "specialization": "Deadly Arts",
+          "tier": 2,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1291,
+          "name": "Potent Poison",
+          "description": "Poison you inflict has increased damage and duration. Other Deadly Arts traits apply additional stacks of poison.",
+          "icon": "https://render.guildwars2.com/file/2678F1C70CB07E090FC7F4ACCCDCA9750AA0040F/1012744.png",
+          "specialization": "Deadly Arts",
+          "tier": 3,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1167,
+          "name": "Improvisation",
+          "description": "Use stolen skills twice. Reduce the cooldown of all equipped utility skills when you steal. If you are a Specter, gain additional shadow force while using Siphon on an enemy. <br><c=@reminder>Cooldown effect will only trigger if all utility slots are filled and if at least one of your active utility skills is on cooldown. Does not affect inactive sequence skills.</c>",
+          "icon": "https://render.guildwars2.com/file/B5A5D6B7FEA7CE96C56675D0FE1C40AD15E5B013/1012745.png",
+          "specialization": "Deadly Arts",
+          "tier": 3,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1269,
+          "name": "Executioner",
+          "description": "Deal increased strike damage when your target is below the health threshold.",
+          "icon": "https://render.guildwars2.com/file/C44E0FC7EC5B1870214E24AD4144C55E110AD9C2/1012746.png",
+          "specialization": "Deadly Arts",
+          "tier": 3,
+          "position": 3,
+          "slot": "Major"
+        }
+      ]
+    ]
+  },
+  {
+    "id": 35,
+    "name": "Critical Strikes",
+    "elite": false,
+    "icon": "https://render.guildwars2.com/file/1CDB2736E6CAF79A1B549B06CDED717B3418F7B1/1012024.png",
+    "background": "https://render.guildwars2.com/file/29C9C0E8F16ADC18F745CA93CB58BA0C164B5CE1/1012100.png",
+    "minorTraits": [
+      {
+        "id": 1281,
+        "name": "Keen Observer",
+        "description": "Critical-hit chance is increased, and it is further increased while your health is above the threshold.",
+        "icon": "https://render.guildwars2.com/file/B809D24257F305F97259FE7C141D7CAF04431F0D/1012735.png",
+        "specialization": "Critical Strikes",
+        "tier": 1,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1210,
+        "name": "Unrelenting Strikes",
+        "description": "Grant fury to yourself and nearby allies when you critically strike an enemy.",
+        "icon": "https://render.guildwars2.com/file/B0D09233CBA4CD0835194B6422C30901ADC65EA6/1012736.png",
+        "specialization": "Critical Strikes",
+        "tier": 2,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1282,
+        "name": "Ferocious Strikes",
+        "description": "Gain increased critical damage against foes whose health is above the threshold.",
+        "icon": "https://render.guildwars2.com/file/519532119E92CFFF9375E2E3CFC4326B46659F63/1012737.png",
+        "specialization": "Critical Strikes",
+        "tier": 3,
+        "position": 0,
+        "slot": "Minor"
+      }
+    ],
+    "majorTraits": [
+      [
+        {
+          "id": 1209,
+          "name": "Assassin's Fury",
+          "description": "Gain might when you gain fury.",
+          "icon": "https://render.guildwars2.com/file/0BD04FC849006C57DA6C42C00F03C00D5DD70C72/1012726.png",
+          "specialization": "Critical Strikes",
+          "tier": 1,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1267,
+          "name": "Signets of Power",
+          "description": "<c=@abilitytype>Signets</c> grant initiative.",
+          "icon": "https://render.guildwars2.com/file/5F00410B6CFCF73BEB725DECCFE77A040AF1C5FA/1012727.png",
+          "specialization": "Critical Strikes",
+          "tier": 1,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1268,
+          "name": "Twin Fangs",
+          "description": "Deal increased critical damage, which is further increased while your health is above the threshold. Gain bonus critical-hit chance when hitting a foe from behind or the side or when they are defiant.",
+          "icon": "https://render.guildwars2.com/file/02B7C80EE8BECD4CA7935FD980D9D555BF776001/1012728.png",
+          "specialization": "Critical Strikes",
+          "tier": 1,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1170,
+          "name": "Sundering Shade",
+          "description": "<c=@abilitytype>Stealth Attack</c> skills inflict vulnerability and grant fury upon successfully hitting foes.",
+          "icon": "https://render.guildwars2.com/file/1AD6FE275DC1B2AAA51A010D7907BF91B5DFBC55/1012729.png",
+          "specialization": "Critical Strikes",
+          "tier": 2,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1272,
+          "name": "Practiced Tolerance",
+          "description": "Gain ferocity based on your precision.",
+          "icon": "https://render.guildwars2.com/file/1B7D0D46BBD9CEB13AE1DD294BDE30E417A432E4/1012730.png",
+          "specialization": "Critical Strikes",
+          "tier": 2,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1299,
+          "name": "Deadly Aim",
+          "description": "Your pistol and harpoon gun attacks now pierce and have increased strike damage.",
+          "icon": "https://render.guildwars2.com/file/C401C322D2F5174B37E646C2380692F467FD5012/1012731.png",
+          "specialization": "Critical Strikes",
+          "tier": 2,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1904,
+          "name": "No Quarter",
+          "description": "Landing a critical hit while under the effects of fury increases the duration of fury. Gain increased ferocity while under the effects of fury.",
+          "icon": "https://render.guildwars2.com/file/B25D2C7A39F5E8EEEA384ABD41C017DA1CED72A8/1012732.png",
+          "specialization": "Critical Strikes",
+          "tier": 3,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1215,
+          "name": "Hidden Killer",
+          "description": "Gain bonus critical-hit chance while stealthed. This bonus lingers for a short duration after you've been revealed.",
+          "icon": "https://render.guildwars2.com/file/03E22FDC6642C0F4BFD197DA5470A97910EB1877/1012733.png",
+          "specialization": "Critical Strikes",
+          "tier": 3,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1702,
+          "name": "Invigorating Precision",
+          "description": "You are healed for a percentage of outgoing critical-hit damage. This healing is increased while you are under the effects of fury.",
+          "icon": "https://render.guildwars2.com/file/B858D55DB13298D4AD42ECD808B2D94FE80BF9AD/1012734.png",
+          "specialization": "Critical Strikes",
+          "tier": 3,
+          "position": 3,
+          "slot": "Major"
+        }
+      ]
+    ]
+  },
+  {
+    "id": 44,
+    "name": "Trickery",
+    "elite": false,
+    "icon": "https://render.guildwars2.com/file/06BF06CDA7150617C5E075265C1E2F15E84B3D64/1012028.png",
+    "background": "https://render.guildwars2.com/file/00CDEB242E93EA19125E48B556D2069639D03DBF/1012104.png",
+    "minorTraits": [
+      {
+        "id": 1137,
+        "name": "Kleptomaniac",
+        "description": "Stealing gives you initiative.",
+        "icon": "https://render.guildwars2.com/file/B0D5E5DF57F45ED6C39BCCC5D467A4CCABEA130C/1012771.png",
+        "specialization": "Trickery",
+        "tier": 1,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1232,
+        "name": "Preparedness",
+        "description": "Increases maximum initiative by 3. Gain increased expertise.",
+        "icon": "https://render.guildwars2.com/file/6B47FB123522D290119FE8936D990D1C9CED2F60/1012772.png",
+        "specialization": "Trickery",
+        "tier": 2,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1157,
+        "name": "Lead Attacks",
+        "description": "Increases all damage dealt per initiative spent. Steal gains reduced recharge time.",
+        "icon": "https://render.guildwars2.com/file/0E204D3ECBE43544E2366F250C3AEDDFC3A051FA/1012773.png",
+        "specialization": "Trickery",
+        "tier": 3,
+        "position": 0,
+        "slot": "Minor"
+      }
+    ],
+    "majorTraits": [
+      [
+        {
+          "id": 1159,
+          "name": "Uncatchable",
+          "description": "Leave behind lesser caltrops when you dodge.",
+          "icon": "https://render.guildwars2.com/file/EC22A2BBEB08C71E270EA29FE6E5C80BC192BBEB/1012762.png",
+          "specialization": "Trickery",
+          "tier": 1,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1252,
+          "name": "Burst of Agility",
+          "description": "Use Lesser Haste when attacking a foe from behind or from the side or when they are defiant.",
+          "icon": "https://render.guildwars2.com/file/4B0201023C2E4B06BFE3EED499B2382D1F98FCB4/1012763.png",
+          "specialization": "Trickery",
+          "tier": 1,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1163,
+          "name": "Thrill of the Crime",
+          "description": "When you Steal, you and all nearby allies gain fury, might, and swiftness for 10 seconds.",
+          "icon": "https://render.guildwars2.com/file/74C7DDBF73251A15033273763B352B50C8E659A4/1012764.png",
+          "specialization": "Trickery",
+          "tier": 1,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1277,
+          "name": "Bountiful Theft",
+          "description": "Stealing grants you and all nearby allies vigor. You rip boons from your target and grant them to nearby allies. Grant additional boons to allies if your target has no boons.",
+          "icon": "https://render.guildwars2.com/file/C1D1E47EA4F66866ECE25FAF5359F54DBC2140B3/1012765.png",
+          "specialization": "Trickery",
+          "tier": 2,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1286,
+          "name": "Trickster",
+          "description": "<c=@abilitytype>Tricks</c> remove conditions.",
+          "icon": "https://render.guildwars2.com/file/F2DAE84AE2A6D6C7F336F1C6076962F50FA6AA0A/1012766.png",
+          "specialization": "Trickery",
+          "tier": 2,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1190,
+          "name": "Pressure Striking",
+          "description": "Enemies you interrupt are inflicted with torment.<br><c=@reminder>This trait can only affect enemies with defiance bars once per interval.</c>",
+          "icon": "https://render.guildwars2.com/file/22BAF280A66B3FD257B9FA2E911264AE1DC234EF/1012767.png",
+          "specialization": "Trickery",
+          "tier": 2,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1187,
+          "name": "Quick Pockets",
+          "description": "Gain initiative on swapping weapons while in combat.",
+          "icon": "https://render.guildwars2.com/file/EE970B0E607C51D8490C6D2CF4403E0BF9E8DD4C/1012721.png",
+          "specialization": "Trickery",
+          "tier": 3,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1158,
+          "name": "Sleight of Hand",
+          "description": "Stealing also dazes the target. Reduces the recharge of Steal.",
+          "icon": "https://render.guildwars2.com/file/46240F185E216A1B2375E832F3B1B413FAF303C7/1012769.png",
+          "specialization": "Trickery",
+          "tier": 3,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1706,
+          "name": "Deadly Ambush",
+          "description": "Stealing also applies bleeding. Bleeding you inflict deals more damage.",
+          "icon": "https://render.guildwars2.com/file/55FB4EE6F25EEFB23CB0F8317FC16968EF3A5791/1012770.png",
+          "specialization": "Trickery",
+          "tier": 3,
+          "position": 3,
+          "slot": "Major"
+        }
+      ]
+    ]
+  },
+  {
+    "id": 54,
+    "name": "Acrobatics",
+    "elite": false,
+    "icon": "https://render.guildwars2.com/file/E109FF4E65CD3FA4AAC20E9D219C4D5207E1E461/1012023.png",
+    "background": "https://render.guildwars2.com/file/0CACB74F6E36F80921C6D6F2F0786B6C1CCCDCA4/1012099.png",
+    "minorTraits": [
+      {
+        "id": 1240,
+        "name": "Expeditious Dodger",
+        "description": "Gain swiftness upon dodging.",
+        "icon": "https://render.guildwars2.com/file/46E42E0D330FA8C60B6477BF6E206FDA98E114D6/1012723.png",
+        "specialization": "Acrobatics",
+        "tier": 1,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1234,
+        "name": "Feline Grace",
+        "description": "Gain vigor upon successfully evading an attack.",
+        "icon": "https://render.guildwars2.com/file/7C2022C101DCE37874391DEAB44A4A66E2929472/1012724.png",
+        "specialization": "Acrobatics",
+        "tier": 2,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 1242,
+        "name": "Fluid Strikes",
+        "description": "Gain increased strike damage for a period of time when you shadowstep or use a movement skill.",
+        "icon": "https://render.guildwars2.com/file/64A151F4F69F7F6E36986108224DA606660EDD64/1012725.png",
+        "specialization": "Acrobatics",
+        "tier": 3,
+        "position": 0,
+        "slot": "Minor"
+      }
+    ],
+    "majorTraits": [
+      [
+        {
+          "id": 1112,
+          "name": "Instant Reflexes",
+          "description": "Gain evasion when you use an elite skill.",
+          "icon": "https://render.guildwars2.com/file/E80BD3449E33470B1ECA0FF242CC6B031B459514/1012714.png",
+          "specialization": "Acrobatics",
+          "tier": 1,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1289,
+          "name": "Pumping Up",
+          "description": "Gain might when you dodge.",
+          "icon": "https://render.guildwars2.com/file/F6031E3A99700AD327760C9D276F1A21A2EAF8BD/1012715.png",
+          "specialization": "Acrobatics",
+          "tier": 1,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1237,
+          "name": "Pain Response",
+          "description": "Dodging removes a damaging condition from you.",
+          "icon": "https://render.guildwars2.com/file/E6D3C67F5EF7DCBCF09C40D1529393CEDD9ABFCC/1012716.png",
+          "specialization": "Acrobatics",
+          "tier": 1,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1241,
+          "name": "Guarded Initiation",
+          "description": "Movement skills grant resistance.",
+          "icon": "https://render.guildwars2.com/file/DA7CF19FEA207C0809BEAF31B0F722EC32EC27B2/1012717.png",
+          "specialization": "Acrobatics",
+          "tier": 2,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1192,
+          "name": "Swindler's Equilibrium",
+          "description": "Gain power and additional power while wielding a sword or underwater spear. Successfully evading an attack while wielding a sword or underwater spear recharges Steal.",
+          "icon": "https://render.guildwars2.com/file/E00D420461F4C04AB601FB0EB3BEFE3903E8CE1A/1012718.png",
+          "specialization": "Acrobatics",
+          "tier": 2,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1290,
+          "name": "Hard to Catch",
+          "description": "Gain endurance when you shadowstep.",
+          "icon": "https://render.guildwars2.com/file/091B2B7A2BD14657D06D2127B097D9321D175903/1012719.png",
+          "specialization": "Acrobatics",
+          "tier": 2,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 1238,
+          "name": "Assassin's Reward",
+          "description": "Heal yourself whenever you use a skill that uses initiative. Heal yourself for each point of initiative spent.",
+          "icon": "https://render.guildwars2.com/file/319EE2C0AC583CDBD7741BB23051FA026022F20A/1012720.png",
+          "specialization": "Acrobatics",
+          "tier": 3,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 1295,
+          "name": "Upper Hand",
+          "description": "Gain initiative when you dodge, and gain initiative and regeneration when you evade an attack.<br><c=@reminder>Evading can only trigger this trait once per interval.</c>",
+          "icon": "https://render.guildwars2.com/file/B6017A7603085677A0A5DD7F670C769E597A3309/1012768.png",
+          "specialization": "Acrobatics",
+          "tier": 3,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 1703,
+          "name": "Don't Stop",
+          "description": "While you have swiftness, movement-impairing conditions have reduced duration. When you gain swiftness, lose a movement-impairing condition.",
+          "icon": "https://render.guildwars2.com/file/B152120F945398A4380B09371C0F6F253A44AA4C/1012722.png",
+          "specialization": "Acrobatics",
+          "tier": 3,
+          "position": 3,
+          "slot": "Major"
+        }
+      ]
+    ]
+  },
+  {
+    "id": 58,
+    "name": "Deadeye",
+    "elite": true,
+    "icon": "https://render.guildwars2.com/file/F93EF1717238E9ACC1CA330D4416D324AE08585D/1769895.png",
+    "background": "https://render.guildwars2.com/file/09B7D10707C7095C050B34ED68E3E3BB06626C7A/1769904.png",
+    "minorTraits": [
+      {
+        "id": 2171,
+        "name": "Deadeye's Gaze",
+        "description": "Steal is replaced with Deadeye's Mark, which unlocks new Stolen skills and malice generation. Stealth attacks consume malice for bonus effects. Gain access to rifles and cantrips.",
+        "icon": "https://render.guildwars2.com/file/0AD214FC6FC10814E5397A1FC573D303B4A06EEC/1770009.png",
+        "specialization": "Deadeye",
+        "tier": 1,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 2172,
+        "name": "Renewing Gaze",
+        "description": "Deadeye's Mark recharges if your mark is defeated. Gain regeneration when this recharge occurs.",
+        "icon": "https://render.guildwars2.com/file/94445580FABDA4724ED3DA3DF9B126C29004614D/1770010.png",
+        "specialization": "Deadeye",
+        "tier": 2,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 2084,
+        "name": "Iron Sight",
+        "description": "Strike damage dealt to your marked target is increased, and strike damage taken from your marked target is reduced.",
+        "icon": "https://render.guildwars2.com/file/3402AD187DDB42150AB5DE35143DBA0F80048015/1983627.png",
+        "specialization": "Deadeye",
+        "tier": 3,
+        "position": 0,
+        "slot": "Minor"
+      }
+    ],
+    "majorTraits": [
+      [
+        {
+          "id": 2145,
+          "name": "Malicious Intent",
+          "description": "Marking a target or striking your mark with a stealth attack will immediately grant malice.",
+          "icon": "https://render.guildwars2.com/file/A36DB29059090F04E4565724E3673CFD189E6177/1770000.png",
+          "specialization": "Deadeye",
+          "tier": 1,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2173,
+          "name": "Collateral Damage",
+          "description": "Trigger Burst of Shadows at your target's location if it dies while marked.",
+          "icon": "https://render.guildwars2.com/file/1E6104F9F36395A3A175649DE6232BD0DDC61180/1983625.png",
+          "specialization": "Deadeye",
+          "tier": 1,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2136,
+          "name": "One in the Chamber",
+          "description": "When you cast a cantrip, gain a random new stolen skill. Stolen skills deal more damage.<br><c=@reminder>(Requires a marked target. Overwrites existing stolen skills.)</c>",
+          "icon": "https://render.guildwars2.com/file/72377B6191DEF64EA87DEEA70BFB7699937D6207/1770002.png",
+          "specialization": "Deadeye",
+          "tier": 1,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 2118,
+          "name": "Silent Scope",
+          "description": "Gain precision. When you dodge roll, gain access to your stealth attack if your malice is above the threshold.",
+          "icon": "https://render.guildwars2.com/file/589A60502EB2EE62CABC78F43321045FE037ABD1/1770003.png",
+          "specialization": "Deadeye",
+          "tier": 2,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2078,
+          "name": "Payback",
+          "description": "When Renewing Gaze triggers, this trait restores a portion of the recharge time needed by your healing, utility, and elite skills.<br><c=@reminder>Excludes racial skills.</c>",
+          "icon": "https://render.guildwars2.com/file/961C4A2F1458FB0AEAF80AF938390096DC4BFF6E/1770004.png",
+          "specialization": "Deadeye",
+          "tier": 2,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2160,
+          "name": "Premeditation",
+          "description": "Deal increased strike damage for each unique boon you have; concentration is increased.",
+          "icon": "https://render.guildwars2.com/file/C72B4CD0151A0C4C5074D105649D9306C3284896/1983626.png",
+          "specialization": "Deadeye",
+          "tier": 2,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 2111,
+          "name": "Maleficent Seven",
+          "description": "Increase the maximum malice-stack count. Restore initiative and gain boons upon reaching the maximum number of malice stacks.",
+          "icon": "https://render.guildwars2.com/file/2602433ECE52C0CBAD52626061C1E5C97E195E9A/1770006.png",
+          "specialization": "Deadeye",
+          "tier": 3,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2093,
+          "name": "Be Quick or Be Killed",
+          "description": "Gain quickness when marking a foe. Your power and precision are increased while under this effect.",
+          "icon": "https://render.guildwars2.com/file/073DDC6D4D1319EB2B039373FD5C7173009DBFA7/1770007.png",
+          "specialization": "Deadeye",
+          "tier": 3,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2146,
+          "name": "Fire for Effect",
+          "description": "Using a stolen skill grants additional boons to allies around you. Stolen skills will always be Steal Time, regardless of the target's profession. <br>",
+          "icon": "https://render.guildwars2.com/file/C50DB05A985BE0B8ADB2164DC8D671AC61049C4B/1770008.png",
+          "specialization": "Deadeye",
+          "tier": 3,
+          "position": 3,
+          "slot": "Major"
+        }
+      ]
+    ]
+  },
+  {
+    "id": 71,
+    "name": "Specter",
+    "elite": true,
+    "icon": "https://render.guildwars2.com/file/E915E494C64037C93AB53FB6F2D414B468DBCA48/2503610.png",
+    "background": "https://render.guildwars2.com/file/BF7507EF23027CA6CAD12C586D7D7EAA05962249/2503613.png",
+    "minorTraits": [
+      {
+        "id": 2184,
+        "name": "Specter",
+        "description": "Unlock scepter. <c=@abilitytype>Steal</c> becomes <c=@abilitytype>Siphon</c>. Gain access to shadow force through spending initiative, and gain access to the Shadow Shroud ability.",
+        "icon": "https://render.guildwars2.com/file/A610A7B4D00D5BAE0FDBDE0BF64EAF063C96B308/2503653.png",
+        "specialization": "Specter",
+        "tier": 1,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 2272,
+        "name": "Dark Sentry",
+        "description": "Apply <c=@abilitytype>Rot Wallow Venom</c> to allies that you grant barrier to. Outgoing healing to allies is increased.\n<c=@reminder>Rot Wallow Venom effect cannot apply to yourself.</c>",
+        "icon": "https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png",
+        "specialization": "Specter",
+        "tier": 2,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 2280,
+        "name": "Panaku's Ambition",
+        "description": "Gain barrier when you strike foes with a stealth attack. When you apply stealth to allies, you also grant them barrier.<br><c=@reminder>This effect can only be received once and will reset when stealth is removed.</c>",
+        "icon": "https://render.guildwars2.com/file/630D6100268010ED04B2ABE529BD4AE9110BF65F/2503655.png",
+        "specialization": "Specter",
+        "tier": 3,
+        "position": 0,
+        "slot": "Minor"
+      }
+    ],
+    "majorTraits": [
+      [
+        {
+          "id": 2284,
+          "name": "Second Opinion",
+          "description": "A portion of condition damage is converted to healing power. Gain condition damage, which is increased when wielding a scepter.",
+          "icon": "https://render.guildwars2.com/file/91D1F2C2D65D18F2F5CB02B43F6CF253F4E12043/2503644.png",
+          "specialization": "Specter",
+          "tier": 1,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2299,
+          "name": "Shallow Grave",
+          "description": "Transfer conditions to an enemy when targeting them with Siphon. Remove conditions from nearby allies and your targeted ally when targeting them with Siphon.",
+          "icon": "https://render.guildwars2.com/file/D31FC1BD407E28B2F4F967FCA76CB3347AE8C9A7/2503645.png",
+          "specialization": "Specter",
+          "tier": 1,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2275,
+          "name": "Consume Shadows",
+          "description": "Gain stacks of Consume Shadows at regular intervals while in Shadow Shroud. Exiting Shadow Shroud consumes your remaining shadow force and heals allies based on the number of stacks you have gained. Allies that are fully healed receive the rest of the value in barrier.",
+          "icon": "https://render.guildwars2.com/file/0DE6EECA322FE219A7DF6FFA9EE04B975FA2E06B/2503646.png",
+          "specialization": "Specter",
+          "tier": 1,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 2290,
+          "name": "Larcenous Torment",
+          "description": "Steal health and gain shadow force when you torment a foe.<br>\n<c=@warning>Does not grant shadow force while in shroud.</c>",
+          "icon": "https://render.guildwars2.com/file/2E41AD9FAC08F79333EAC791C4B9967EE60E98AA/2503647.png",
+          "specialization": "Specter",
+          "tier": 2,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2288,
+          "name": "Amplified Siphoning",
+          "description": "Gain increased shadow force when hitting a foe with <c=@abilitytype>Siphon</c>. Grant increased barrier when targeting an ally.",
+          "icon": "https://render.guildwars2.com/file/D87B7B5603FCC14BC2F8B239C0522006F45ACBC1/2503648.png",
+          "specialization": "Specter",
+          "tier": 2,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2285,
+          "name": "Traversing Dusk",
+          "description": "Heal allies in the area around you when you shadowstep. Gain shadow force for each ally in the radius. Wells grant resistance on their initial impact.",
+          "icon": "https://render.guildwars2.com/file/DCA50F003BB8C0C5AC302A990BEEFF4D380E5071/2503649.png",
+          "specialization": "Specter",
+          "tier": 2,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 2264,
+          "name": "Strength of Shadows",
+          "description": "Gain expertise based on a percentage of your vitality. Torment you inflict deals increased damage.",
+          "icon": "https://render.guildwars2.com/file/BAF9A03EB934BFBA801461A5CCE0FD0B7E461506/2503650.png",
+          "specialization": "Specter",
+          "tier": 3,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2300,
+          "name": "Hungering Darkness",
+          "description": "While in shroud, transfer conditions from your tethered ally and cleanse conditions from yourself. Each condition removed in this fashion heals a percentage of your base health and grants your tethered ally barrier.",
+          "icon": "https://render.guildwars2.com/file/2D14F85E2F069B20BD06F3DBC91B5453B0BB49F0/2503651.png",
+          "specialization": "Specter",
+          "tier": 3,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2289,
+          "name": "Shadestep",
+          "description": "Shadow Shroud skills provide additional supportive effects to nearby allies and your tethered ally.",
+          "icon": "https://render.guildwars2.com/file/5C3F020C08045735BAA12A92A3FF9674EEAE4672/2503652.png",
+          "specialization": "Specter",
+          "tier": 3,
+          "position": 3,
+          "slot": "Major"
+        }
+      ]
+    ]
+  },
+  {
+    "id": 77,
+    "name": "Antiquary",
+    "elite": true,
+    "icon": "https://render.guildwars2.com/file/569D3C9A9E7121939844809F0D05E81480C8F6F8/3679903.png",
+    "background": "https://render.guildwars2.com/file/32E896AC6766E272C8910B6170394A3575C0D335/3679912.png",
+    "minorTraits": [
+      {
+        "id": 2403,
+        "name": "Trinket Collector",
+        "description": "Steal is replaced with Skritt Swipe, allowing you to pilfer from enemies. Successfully pilfering grants one offensive and one defensive artifact. Only one artifact may be used each time you pilfer, and pilfering overrides any artifacts you already have.",
+        "icon": "https://render.guildwars2.com/file/359CC672C30816395DE613909DAC17791A2B5609/3680024.png",
+        "specialization": "Antiquary",
+        "tier": 1,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 2337,
+        "name": "Magpie's Defense",
+        "description": "Grant yourself barrier when you use a healing or elite skill. <c=@reminder>The cooldowns for this trait are separate for healing and elite skills.</c>",
+        "icon": "https://render.guildwars2.com/file/3A4DAC71019B64EA1893E06638234E1BE4DB6251/3680025.png",
+        "specialization": "Antiquary",
+        "tier": 2,
+        "position": 0,
+        "slot": "Minor"
+      },
+      {
+        "id": 2362,
+        "name": "Enterprising Aristocrat",
+        "description": "Gain initiative and barrier whenever you use an artifact skill. You take reduced strike and condition damage whenever you have barrier.",
+        "icon": "https://render.guildwars2.com/file/CEED9A51F13AD702C52A015C26B5AD3880260169/3680026.png",
+        "specialization": "Antiquary",
+        "tier": 3,
+        "position": 0,
+        "slot": "Minor"
+      }
+    ],
+    "majorTraits": [
+      [
+        {
+          "id": 2423,
+          "name": "Card Swap",
+          "description": "Gain access to Reshuffle. Remove conditions from yourself whenever you reshuffle your artifacts or use an artifact skill.",
+          "icon": "https://render.guildwars2.com/file/5662430D23996FB7B0042B22A205557C50B8C2A9/3680015.png",
+          "specialization": "Antiquary",
+          "tier": 1,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2365,
+          "name": "Repeat Ransacker",
+          "description": "Reduce the recharge of Skritt Swipe whenever you use an artifact.",
+          "icon": "https://render.guildwars2.com/file/6AEAF7E01D590A0DB654B1B3B591919819DFB296/3680016.png",
+          "specialization": "Antiquary",
+          "tier": 1,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2346,
+          "name": "Prolific Plunderer",
+          "description": "Gain an additional artifact slot. Whenever you pilfer, you gain an additional, random artifact. You can use one additional artifact when you pilfer with Skritt Swipe.",
+          "icon": "https://render.guildwars2.com/file/5DE6C298930CBD77DE940F471F4B789A6CD5B1C3/3680017.png",
+          "specialization": "Antiquary",
+          "tier": 1,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 2400,
+          "name": "Scoundrel's Luck",
+          "description": "Gain Scoundrel's Luck whenever you use Skritt Swipe. Scoundrel's Luck allows you to use double-edge skills on cooldown without backfiring.",
+          "icon": "https://render.guildwars2.com/file/4AAA71A143C45B000A10AF5D0F75060CF72144A7/3680018.png",
+          "specialization": "Antiquary",
+          "tier": 2,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2431,
+          "name": "Meticulous Custodian",
+          "description": "Your artifacts have increased effectiveness. Beneficial artifact effects last longer.",
+          "icon": "https://render.guildwars2.com/file/F918D37414AFFAE66AB79141430302CA3380FF80/3680019.png",
+          "specialization": "Antiquary",
+          "tier": 2,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2350,
+          "name": "Exhilarating Ephemera",
+          "description": "Gain increased damage for a period of time after using an artifact.",
+          "icon": "https://render.guildwars2.com/file/08475BFD2DA578D96933C0D42FB33770AF68A454/3680020.png",
+          "specialization": "Antiquary",
+          "tier": 2,
+          "position": 3,
+          "slot": "Major"
+        }
+      ],
+      [
+        {
+          "id": 2409,
+          "name": "Prodigious Pincher",
+          "description": "You pilfer after using a certain amount of initiative. This trait will override any existing artifacts when triggered.",
+          "icon": "https://render.guildwars2.com/file/E6727CC4670FCA6FE2CC79302ABCBF99D14D05DA/3680021.png",
+          "specialization": "Antiquary",
+          "tier": 3,
+          "position": 1,
+          "slot": "Major"
+        },
+        {
+          "id": 2393,
+          "name": "Possessive Hoarder",
+          "description": "Artifacts grant boons to allies when used. Offensive and defensive artifacts grant different boons. Barrier granted through Magpie's Defense and Enterprising Aristocrat is now also granted to allies as well.",
+          "icon": "https://render.guildwars2.com/file/14EE00EF0E792D7DE9C8A03CB0404C72ECF128B7/3680022.png",
+          "specialization": "Antiquary",
+          "tier": 3,
+          "position": 2,
+          "slot": "Major"
+        },
+        {
+          "id": 2348,
+          "name": "Combat High",
+          "description": "Gain Combat High when you use Skritt Swipe, increasing your outgoing strike and condition damage. Lose stacks of Combat High every interval.",
+          "icon": "https://render.guildwars2.com/file/EDF09834A4A650256C98A3680C2DF4A4C5339BAC/3680023.png",
+          "specialization": "Antiquary",
+          "tier": 3,
+          "position": 3,
+          "slot": "Major"
+        }
+      ]
+    ]
+  }
+];
+export const SKILLS = [
+  {
+    "id": 1110,
+    "name": "Throw Gunk",
+    "description": "Throw gunk at target area to inflict a random condition.",
+    "icon": "https://render.guildwars2.com/file/3A487770D4A0E006D0A0E57C68A639BF7003A5BC/102940.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 1110,
+    "modeAliasIds": [
+      45094
+    ]
+  },
+  {
+    "id": 1115,
+    "name": "Branch Leap",
+    "description": "Use the branch to leap at your foe.",
+    "icon": "https://render.guildwars2.com/file/15E0A1080FE0AE70ABD305F4DD045139F1216C37/102945.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1118,
+    "name": "Throw Chain",
+    "description": "Throw a chain to cripple and immobilize your foe.",
+    "icon": "https://render.guildwars2.com/file/07364259014FCB3F01C7F31808C140720DACC70A/102946.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1123,
+    "name": "Consume Plasma",
+    "description": "Gain all boons.",
+    "icon": "https://render.guildwars2.com/file/BED8F4C37CA1D040CEA5381E082E155DB5D295F7/102949.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1125,
+    "name": "Eat Egg",
+    "description": "Restore health and initiative.",
+    "icon": "https://render.guildwars2.com/file/23A3644A7C25F9ACCD64C00AE90858C2C2F2A61C/102934.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1129,
+    "name": "Ice Shard Stab",
+    "description": "Stab and chill your foe.",
+    "icon": "https://render.guildwars2.com/file/53CFF0A54AD6FC3C6959722DCF2B9AB2C1ADF754/102953.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1131,
+    "name": "Mace Head Crack",
+    "description": "Daze your foe.",
+    "icon": "https://render.guildwars2.com/file/EA28344BCD136298D5011EF553763C097C0A09E0/102955.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1139,
+    "name": "Healing Seed",
+    "description": "Periodically grants regeneration and removes conditions from you and your allies.",
+    "icon": "https://render.guildwars2.com/file/C9052DC9C2AF805EC14C903D5EA0536E0A1A243F/102961.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 15,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1141,
+    "name": "Skull Fear",
+    "description": "Strike fear into nearby foes.",
+    "icon": "https://render.guildwars2.com/file/44B30CD10A3AA30A80A7A64CE2EF0B942CFF9BFF/102963.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1148,
+    "name": "Blinding Tuft",
+    "description": "Throw a handful of hair, vanishing in stealth and blinding nearby foes.",
+    "icon": "https://render.guildwars2.com/file/08956AFCA1FECE4E5F28A17CA068A2A134A697E5/102970.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1162,
+    "name": "Whirling Axe",
+    "description": "Spin and attack nearby foes. You can move while spinning.",
+    "icon": "https://render.guildwars2.com/file/ACBF2C0EE9B64FCF12BBA443D16A08256C07B7E0/102941.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 1167,
+    "name": "Whirling Strike",
+    "description": "Strike nearby foes, pushing them back.",
+    "icon": "https://render.guildwars2.com/file/3B72CF3E16A70F730DF1F897565A50147A4FCF7A/103490.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13002,
+    "name": "Shadowstep",
+    "description": "Deception. Shadowstep to target area. Becomes Shadow Return, which returns you to your starting area and cures three conditions.",
+    "icon": "https://render.guildwars2.com/file/09C411D598E942F21FD64D1353B3725DFDFEF5CF/103286.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Deception"
+    ],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 30,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13004,
+    "name": "Double Strike",
+    "description": "Chain. Strike your foe twice.",
+    "icon": "https://render.guildwars2.com/file/3BC8295208902CAB3046C27A6C46A4E1CC6EFAFA/104065.png",
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": 13087,
+    "flipSkillId": 13087,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13006,
+    "name": "Death Blossom",
+    "description": "Dual Wield. Do an evasive attack over your target, striking nearby foes three times. Each hit causes bleeding.",
+    "icon": "https://render.guildwars2.com/file/61EB7B59609FF6FBD36523D6E47B04E59D90C27D/103072.png",
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13007,
+    "name": "Larcenous Strike",
+    "description": "Dual Wield. Stab your foe and steal boons from them. Deals increased damage if it hits a foe with no boons.",
+    "icon": "https://render.guildwars2.com/file/01E5F13EA2E13B0A01540BFF9837299FEF20CF2C/575653.png",
+    "type": "Weapon",
+    "weapon": "Sword",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13008,
+    "name": "Bola Shot",
+    "description": "Fire a set of immobilizing bolas at your foe.",
+    "icon": "https://render.guildwars2.com/file/C203DEA0472BEEA173A60DF41C66F75E7FC0D80A/2261529.png",
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "slot": "Weapon_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13009,
+    "name": "Slice",
+    "description": "Chain. Slice your foe.",
+    "icon": "https://render.guildwars2.com/file/0524570223F6D37E2A6634E19CEB315135E9560A/104066.png",
+    "type": "Weapon",
+    "weapon": "Sword",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": 13088,
+    "flipSkillId": 13088,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13010,
+    "name": "Shadow Strike",
+    "description": "Dual Wield. Stab your foe, then shadowstep away and shoot them. Unlock Repeater at reduced initiative cost for a short time.",
+    "icon": "https://render.guildwars2.com/file/0E056D0AC615A63656BD4E994756AB1CA9DB13ED/103922.png",
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 13111,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13011,
+    "name": "Unload",
+    "description": "Dual Wield. Blast your foe repeatedly with both pistols. Gain initiative if all attacks hit.",
+    "icon": "https://render.guildwars2.com/file/BB0B5FF8F7191B0BB39B0C0406EFB52161A6DB47/103129.png",
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13012,
+    "name": "Head Shot",
+    "description": "Daze your foe with a head shot.",
+    "icon": "https://render.guildwars2.com/file/01FB72EDB4F0E6B67CE0672B1A960FEBC96FC11A/103119.png",
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "slot": "Weapon_4",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13014,
+    "name": "Steal",
+    "description": "Shadowstep to your foe and steal from them.",
+    "icon": "https://render.guildwars2.com/file/A9ED689FE901E12467497F3FE79A04D300ADE3BB/103876.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 43390,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13015,
+    "name": "Infiltrator's Strike",
+    "description": "Shadowstep to a foe and strike them. Use Shadow Return to shadowstep back and cure one condition.",
+    "icon": "https://render.guildwars2.com/file/2A5C30A8FE579C0169BE3B6FEC05C7E4AFE7FB1D/104067.png",
+    "type": "Weapon",
+    "weapon": "Sword",
+    "slot": "Weapon_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13016,
+    "name": "Flanking Strike",
+    "description": "Dual Wield. Evade and stab your foe.",
+    "icon": "https://render.guildwars2.com/file/CEE3C39A075B0363FE04370BDDB0BDDBF8AD0712/103112.png",
+    "type": "Weapon",
+    "weapon": "Sword",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 13007,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13019,
+    "name": "Dancing Dagger",
+    "description": "Throw a dagger that cripples nearby foes and returns to you.",
+    "icon": "https://render.guildwars2.com/file/C2CB376B5702FB2EB3677C62BEB0207123D409A8/103098.png",
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "slot": "Weapon_4",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13020,
+    "name": "Scorpion Wire",
+    "description": "Trick. Throw a scorpion wire and pull your foe to you.",
+    "icon": "https://render.guildwars2.com/file/D8E53BEF29C7BB9A9657017761126929EA0BCCAB/103235.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Trick"
+    ],
+    "flags": [],
+    "recharge": 1,
+    "ammo": 2,
+    "ammoRecharge": 20,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13021,
+    "name": "Withdraw",
+    "description": "Trick. Cure conditions, then roll backward while healing and evading attacks.",
+    "icon": "https://render.guildwars2.com/file/C546789E0BBB6F91666B92066DEF18AA0F146B79/104068.png",
+    "type": "Heal",
+    "weapon": "",
+    "slot": "Heal",
+    "specialization": "",
+    "categories": [
+      "Trick"
+    ],
+    "flags": [],
+    "recharge": 18,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13022,
+    "name": "Trick Shot",
+    "description": "Fire an arrow that bounces between nearby foes and inflicts bleeding when striking poisoned enemies.",
+    "icon": "https://render.guildwars2.com/file/714625F60FDF0850FAA644B641D90867C1D37B74/103561.png",
+    "type": "Weapon",
+    "weapon": "Shortbow",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 13129,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13024,
+    "name": "Choking Gas",
+    "description": "Fire an arrow that dazes enemies on impact and poisons the target area.",
+    "icon": "https://render.guildwars2.com/file/EB3BACBB2F3B7C67CB14076964EDB13CA85174E2/103540.png",
+    "type": "Weapon",
+    "weapon": "Shortbow",
+    "slot": "Weapon_4",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13025,
+    "name": "Infiltrator's Arrow",
+    "description": "Fire an arrow and shadowstep to the target area, blinding nearby foes.",
+    "icon": "https://render.guildwars2.com/file/1C076C7774EA3FDCA7BB473D0FB6A50A685A5A28/103890.png",
+    "type": "Weapon",
+    "weapon": "Shortbow",
+    "slot": "Weapon_5",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13026,
+    "name": "Prepare Thousand Needles",
+    "description": "Preparation. Mark your current area with inhibiting magic, readying the location to poison enemies.",
+    "icon": "https://render.guildwars2.com/file/F0A856B0596935DC9BF4FBCA95069D75264B5570/2175070.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 30,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 56898,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13027,
+    "name": "Hide in Shadows",
+    "description": "Deception. Vanish in stealth and cure conditions. Then gain regeneration and heal yourself.",
+    "icon": "https://render.guildwars2.com/file/C90D2FF2084A207F9C974C90049AF1A3F8B4B548/104070.png",
+    "type": "Heal",
+    "weapon": "",
+    "slot": "Heal",
+    "specialization": "",
+    "categories": [
+      "Deception"
+    ],
+    "flags": [],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13028,
+    "name": "Caltrops",
+    "description": "Trick. Scatter caltrops that bleed and cripple foes.",
+    "icon": "https://render.guildwars2.com/file/A85F59D91114D0702C3AB54A0AA81EC1CAE66CF5/103073.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Trick"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 24,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13035,
+    "name": "Roll for Initiative",
+    "description": "Trick. Evade backward to regenerate initiative and recover from crippled, chilled, and immobilized.",
+    "icon": "https://render.guildwars2.com/file/FD592C06013BE57465909F062937D6B6FC5DD407/104072.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Trick"
+    ],
+    "flags": [],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13037,
+    "name": "Spider Venom",
+    "description": "Venom. Poison foes with your next few attacks.",
+    "icon": "https://render.guildwars2.com/file/39320C2D4AED963861F4540F59AEBB5E05AD2E1C/103513.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Venom"
+    ],
+    "flags": [],
+    "recharge": 30,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13038,
+    "name": "Prepare Shadow Portal",
+    "description": "Preparation. Mark your current area with shadow magic, which can be detonated.",
+    "icon": "https://render.guildwars2.com/file/D62F215C68C77A2F069238A39FD8A6A135B438C1/2175068.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 60,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 16435,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13040,
+    "name": "Shadow Shot",
+    "description": "Dual Wield. Fire an unblockable shot at your foe, which blinds them, and then shadowstep to them for a dagger strike.",
+    "icon": "https://render.guildwars2.com/file/C76C05F10629244C6337F24E913D0C45A315ED4F/103209.png",
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13041,
+    "name": "Cluster Bomb",
+    "description": "Fire a cluster bomb at the target area. Detonate in midair for multiple explosions.",
+    "icon": "https://render.guildwars2.com/file/A0B95CCA2D42FA9E6D59930B0BF9122031C5E153/104074.png",
+    "type": "Weapon",
+    "weapon": "Shortbow",
+    "slot": "Weapon_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 13043,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13043,
+    "name": "Detonate Cluster",
+    "description": "Detonate your cluster bomb in midair.",
+    "icon": "https://render.guildwars2.com/file/4C047ECABFFD7DC2D40E76734B552DED1BCC19BE/104075.png",
+    "type": "Weapon",
+    "weapon": "Shortbow",
+    "slot": "Weapon_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 1,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13044,
+    "name": "Blinding Powder",
+    "description": "Deception. Blind nearby foes and grant stealth to nearby allies.",
+    "icon": "https://render.guildwars2.com/file/A50FF4564443B9C436E2354762D6077AB0C63746/103113.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Deception"
+    ],
+    "flags": [],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13046,
+    "name": "Assassin's Signet",
+    "description": "Signet Passive: Grants increased power.\nSignet Active: Power is massively increased for a short duration.",
+    "icon": "https://render.guildwars2.com/file/16BAE223E268B19ABFE66040F11706B7BC00EF79/104076.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Signet"
+    ],
+    "flags": [],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13050,
+    "name": "Signet of Malice",
+    "description": "Signet Passive: Heals when you attack.\nSignet Active: Gain health.",
+    "icon": "https://render.guildwars2.com/file/D6640348CA7573A86818B9B4B00F0C0CC2FF5FDF/104077.png",
+    "type": "Heal",
+    "weapon": "",
+    "slot": "Heal",
+    "specialization": "",
+    "categories": [
+      "Signet"
+    ],
+    "flags": [],
+    "recharge": 12,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13055,
+    "name": "Skale Venom",
+    "description": "Venom. Apply vulnerability and torment with your next few attacks.",
+    "icon": "https://render.guildwars2.com/file/A71B05C116B677EF620780B3D5BC58287EBC6D4B/104078.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Venom"
+    ],
+    "flags": [],
+    "recharge": 30,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13056,
+    "name": "Prepare Seal Area",
+    "description": "Preparation. Mark your current area with stifling magic, readying the location to seal enemies in.",
+    "icon": "https://render.guildwars2.com/file/DEE50AA5E450230E22011C0E769DD1C9BE1ADCAD/2175066.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 35,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 13099,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13057,
+    "name": "Prepare Pitfall",
+    "description": "Preparation. Mark your current area with controlling magic, readying the location to crush enemies when Pitfall is released.",
+    "icon": "https://render.guildwars2.com/file/7A6E5D360EC09AB9FCCA4098A9EB9A80DC33C7BE/2175064.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 56880,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13060,
+    "name": "Signet of Shadows",
+    "description": "Signet Passive: Grants a 25% increase in movement speed.\nSignet Active: Gain stealth and swiftness. Remove all movement-impairing conditions from yourself.",
+    "icon": "https://render.guildwars2.com/file/EEB01E570A64D061E3CDD76BD802DA02B1B3970A/104080.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Signet"
+    ],
+    "flags": [],
+    "recharge": 16,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13062,
+    "name": "Signet of Agility",
+    "description": "Signet Passive: Grants increased precision.\nSignet Active: Refill endurance and cleanse conditions from nearby allies.",
+    "icon": "https://render.guildwars2.com/file/EBE194955CE4A25AD7B9D85EA6260CF8FD54ED0C/104081.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Signet"
+    ],
+    "flags": [],
+    "recharge": 30,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13064,
+    "name": "Infiltrator's Signet",
+    "description": "Signet Passive: Regenerates one extra initiative every ten seconds.\nSignet Active: Shadowstep to your foe.",
+    "icon": "https://render.guildwars2.com/file/1348ADE06365503C356713C2C9A3E61BB17CCFD0/103712.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Signet"
+    ],
+    "flags": [],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13065,
+    "name": "Smoke Screen",
+    "description": "Deception. Create a smoke screen that blocks missiles and debilitates foes that pass through. Gain stealth when you leave the smoke screen.",
+    "icon": "https://render.guildwars2.com/file/074E2F086D3E313BEDBCCB681E07E22A76E87548/104082.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Deception"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13066,
+    "name": "Haste",
+    "description": "Trick. Gain quickness, fury, and swiftness.",
+    "icon": "https://render.guildwars2.com/file/1C7719C3046D06161D071C0A6B33D3C8179E3F67/103459.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Trick"
+    ],
+    "flags": [],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13082,
+    "name": "Thieves Guild",
+    "description": "Deception. Call more thieves to support you in combat.",
+    "icon": "https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png",
+    "type": "Elite",
+    "weapon": "",
+    "slot": "Elite",
+    "specialization": "",
+    "categories": [
+      "Deception"
+    ],
+    "flags": [],
+    "recharge": 120,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13083,
+    "name": "Disabling Shot",
+    "description": "Leap away from your foe while firing a crippling shot.",
+    "icon": "https://render.guildwars2.com/file/96DBA91D4F719ED32F65B0E7AE1F01AD63C2FC02/104094.png",
+    "type": "Weapon",
+    "weapon": "Shortbow",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13084,
+    "name": "Vital Shot",
+    "description": "Bleed your foe with a shot to the vitals.",
+    "icon": "https://render.guildwars2.com/file/DF44613E8041055BFB17D5F0E93C67F23EA4320D/103252.png",
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 13115,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13085,
+    "name": "Dagger Storm",
+    "description": "Trick. Spin around, reflecting projectiles and throwing daggers that cripple and bleed nearby foes. You can move while spinning.",
+    "icon": "https://render.guildwars2.com/file/A3EDB565CBE71208A3F5B2A26063A4DC80389DF6/103120.png",
+    "type": "Elite",
+    "weapon": "",
+    "slot": "Elite",
+    "specialization": "",
+    "categories": [
+      "Trick"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 60,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13087,
+    "name": "Wild Strike",
+    "description": "Chain. Strike your foe again, bleeding them. Gain endurance with a successful strike.",
+    "icon": "https://render.guildwars2.com/file/6CA8D360E77E37AE42ACB8610EA0E2744E3BF87B/104095.png",
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": 13108,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13088,
+    "name": "Slash",
+    "description": "Chain. Slash your foe again.",
+    "icon": "https://render.guildwars2.com/file/E093DCAAD0F35BB0A2C1369ABB40242A0E42DB70/104096.png",
+    "type": "Weapon",
+    "weapon": "Sword",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": 13116,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13093,
+    "name": "Devourer Venom",
+    "description": "Venom. Your next few attacks immobilize foes.",
+    "icon": "https://render.guildwars2.com/file/C9A1784C4333E851F69AC53BC6E1EE1FF5FEB577/104097.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Venom"
+    ],
+    "flags": [],
+    "recharge": 40,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13096,
+    "name": "Ice Drake Venom",
+    "description": "Venom. Chill foes with your next few attacks.",
+    "icon": "https://render.guildwars2.com/file/77F6B7A22D4BD264C108A2083F0637D0DC520C0D/104098.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Venom"
+    ],
+    "flags": [],
+    "recharge": 36,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13097,
+    "name": "Heartseeker",
+    "description": "Leap and strike your foe. The less health your target has, the more damage you cause.",
+    "icon": "https://render.guildwars2.com/file/7F30CC1709A64346280859937A281DF863E7CD0E/103169.png",
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "slot": "Weapon_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13099,
+    "name": "Seal Area",
+    "description": "Create an area that blocks projectiles and prevents enemies from entering or leaving.",
+    "icon": "https://render.guildwars2.com/file/6173996EA5E244D82C40B99B49F7BEEE482D446B/2175065.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 3,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13108,
+    "name": "Lotus Strike",
+    "description": "Strike your foe and inflict Poison.",
+    "icon": "https://render.guildwars2.com/file/A7F45F6D0FC06FB3609E7BCBD207D5950E78FAD0/104099.png",
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13110,
+    "name": "Twisting Fangs",
+    "description": "Spin in place, hitting nearby foes. Each hit causes bleeding.",
+    "icon": "https://render.guildwars2.com/file/C62E1323CF1E0626CE9D6FEA27FA1EA7B5B13E55/103071.png",
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13111,
+    "name": "Repeater",
+    "description": "Blast your foe with rapid fire from your pistol.",
+    "icon": "https://render.guildwars2.com/file/9B4E1B72A86C0F3FCB0B9E272E2A2AEC45669E92/103878.png",
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 13111,
+    "modeAliasIds": [
+      59526
+    ]
+  },
+  {
+    "id": 13112,
+    "name": "Stab",
+    "description": "Stab your foe.",
+    "icon": "https://render.guildwars2.com/file/6FF6A961A44C091A4E0347D52CCFC2711B0DDC57/104100.png",
+    "type": "Weapon",
+    "weapon": "Sword",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13113,
+    "name": "Black Powder",
+    "description": "Fire a black-powder shot, blinding your target and nearby foes with smoke.",
+    "icon": "https://render.guildwars2.com/file/0CE1DF4033D2FA0406E4B8430B270BC99A28D0C2/103236.png",
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "slot": "Weapon_5",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13115,
+    "name": "Sneak Attack",
+    "description": "Stealth Attack. Sneak attack with rapid fire from your pistol and make your foe bleed.",
+    "icon": "https://render.guildwars2.com/file/98BEBF73285E355BED016D221EA32D41AFF59F01/104102.png",
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [
+      "StealthAttack"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 1,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13116,
+    "name": "Crippling Strike",
+    "description": "Cripple your foe with a final strike.",
+    "icon": "https://render.guildwars2.com/file/6598D9F0150FDF9F77A24CCC060C07C15B7B060D/103168.png",
+    "type": "Weapon",
+    "weapon": "Sword",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13117,
+    "name": "Shadow Refuge",
+    "description": "Deception. Create a pulsing refuge at the target area that heals allies, cloaks allies in stealth, and reduces damage taken.",
+    "icon": "https://render.guildwars2.com/file/FAF0369AED6357D7C95407ECBEC8E7959B95FB29/103911.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [
+      "Deception"
+    ],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 35,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13129,
+    "name": "Surprise Shot",
+    "description": "Stealth Attack. Shoot an arrow that bleeds and immobilizes your foe.",
+    "icon": "https://render.guildwars2.com/file/732FBB350FE66CD97A0F4E1A38214B413D0EA3CA/103618.png",
+    "type": "Weapon",
+    "weapon": "Shortbow",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [
+      "StealthAttack"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 1,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 13132,
+    "name": "Basilisk Venom",
+    "description": "Venom. Your attacks are unblockable and turn foes to stone.",
+    "icon": "https://render.guildwars2.com/file/535F5CFC1D9C09F437A3B05F39CFD044434CDDBC/104109.png",
+    "type": "Elite",
+    "weapon": "",
+    "slot": "Elite",
+    "specialization": "",
+    "categories": [
+      "Venom"
+    ],
+    "flags": [],
+    "recharge": 40,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 16432,
+    "name": "Cloak and Dagger",
+    "description": "Stab your foe and vanish in stealth, leaving them vulnerable.",
+    "icon": "https://render.guildwars2.com/file/7293472129D2636CC9F0DEE8D9AA7954E504F557/103617.png",
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "slot": "Weapon_5",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 16435,
+    "name": "Shadow Portal",
+    "description": "Unleash shadow magic at your prepared location, creating a one-way portal for you and your allies. Allies traveling through the portal gain stealth. Weakens foes around the portal's exit.",
+    "icon": "https://render.guildwars2.com/file/FB736BC8FAD70108239874ED05F2EFBFE3920993/2175067.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 3,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 21778,
+    "name": "Skelk Venom",
+    "description": "Venom. Heal yourself. Your next few attacks heal you.",
+    "icon": "https://render.guildwars2.com/file/076DD1A71BE0B3474FC6516CC0ECE439BEAF9059/699532.png",
+    "type": "Heal",
+    "weapon": "",
+    "slot": "Heal",
+    "specialization": "",
+    "categories": [
+      "Venom"
+    ],
+    "flags": [],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 29516,
+    "name": "Impact Strike",
+    "description": "Physical. Strike your enemy and stun them.",
+    "icon": "https://render.guildwars2.com/file/E4D3BD70B351F2BE48E43CF0605B449221E6FE06/1058619.png",
+    "type": "Elite",
+    "weapon": "",
+    "slot": "Elite",
+    "specialization": "Daredevil",
+    "categories": [
+      "Physical"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": 30077,
+    "flipSkillId": 30077,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 29639,
+    "name": "Finishing Blow",
+    "description": "Deal a downward strike on your foe. Downed enemies struck with this ability are finished.",
+    "icon": "https://render.guildwars2.com/file/C24115D6EAA402EA1DFB7326047AE2B54FDF1600/1058618.png",
+    "type": "Elite",
+    "weapon": "",
+    "slot": "Elite",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 29911,
+    "name": "Weakening Whirl",
+    "description": "Deliver multiple strikes, weakening foes.",
+    "icon": "https://render.guildwars2.com/file/EDBECD6ACE170F25312C15C3056006FA1170F654/1058625.png",
+    "type": "Weapon",
+    "weapon": "Staff",
+    "slot": "Weapon_2",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30077,
+    "name": "Uppercut",
+    "description": "Deal a heavy blow with your fist, sending enemies flying.",
+    "icon": "https://render.guildwars2.com/file/50C80B47284B618039B173A1EC5EA81AA6B577D4/1058617.png",
+    "type": "Elite",
+    "weapon": "",
+    "slot": "Elite",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": 29639,
+    "flipSkillId": 29639,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30135,
+    "name": "Staff Bash",
+    "description": "Swing your staff a second time, striking multiple enemies.",
+    "icon": "https://render.guildwars2.com/file/BD05C8AE68016991E7611C9407CF4B945BC431DA/1058621.png",
+    "type": "Weapon",
+    "weapon": "Staff",
+    "slot": "Weapon_1",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": 30434,
+    "flipSkillId": 30434,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30210,
+    "name": "Hook Strike",
+    "description": "Stealth Attack. Attack your foes with stealth, knocking enemies down.",
+    "icon": "https://render.guildwars2.com/file/24CD7E636FADCB6F0CFE07F0B0CA21010FD223E6/1058623.png",
+    "type": "Weapon",
+    "weapon": "Staff",
+    "slot": "Weapon_1",
+    "specialization": "Daredevil",
+    "categories": [
+      "StealthAttack"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 1,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30369,
+    "name": "Impairing Daggers",
+    "description": "Physical. Fling multiple daggers at a single enemy, inflicting conditions.",
+    "icon": "https://render.guildwars2.com/file/265D095168000FA9A20BC11E43A3BB63B90C349B/1058635.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Daredevil",
+    "categories": [
+      "Physical"
+    ],
+    "flags": [],
+    "recharge": 15,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30400,
+    "name": "Channeled Vigor",
+    "description": "Physical. Channel your energy to gain endurance and health per pulse. Heal for more if your endurance is full.",
+    "icon": "https://render.guildwars2.com/file/AA5F2B2C68423A9A2CACFD6DFB74F05228E0A2B2/1058620.png",
+    "type": "Heal",
+    "weapon": "",
+    "slot": "Heal",
+    "specialization": "Daredevil",
+    "categories": [
+      "Physical"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30434,
+    "name": "Punishing Strikes",
+    "description": "Whirl your staff around, striking nearby enemies.",
+    "icon": "https://render.guildwars2.com/file/0A76E8D24BFC37B724150C071C5ABB44A553806C/1058622.png",
+    "type": "Weapon",
+    "weapon": "Staff",
+    "slot": "Weapon_1",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 30210,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30519,
+    "name": "Reflexive Strike",
+    "description": "Physical. Deliver a massive kick that knocks enemies down.",
+    "icon": "https://render.guildwars2.com/file/CB2B0F40CE0A51C2C91A24751FEBF7F26305292C/1058632.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Daredevil",
+    "categories": [
+      "Physical"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30520,
+    "name": "Debilitating Arc",
+    "description": "Strike enemies in front of you and roll backward, breaking immobilizing effects. Gain access to Helmet Breaker.",
+    "icon": "https://render.guildwars2.com/file/5AC578E641FC79E9B2F11F43EAF857140F937CF3/1058626.png",
+    "type": "Weapon",
+    "weapon": "Staff",
+    "slot": "Weapon_3",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 71802,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30568,
+    "name": "Distracting Daggers",
+    "description": "Physical. Fire a dazing dagger at your enemy. If this ability interrupts a skill, gain initiative and a temporary damage increase.",
+    "icon": "https://render.guildwars2.com/file/F3F3FD0EFBEE58CDE70B290C380C1D4102E9600B/1058630.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Daredevil",
+    "categories": [
+      "Physical"
+    ],
+    "flags": [],
+    "recharge": 1,
+    "ammo": 3,
+    "ammoRecharge": 20,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30597,
+    "name": "Vault",
+    "description": "Leap toward your destination, damaging foes upon impact.",
+    "icon": "https://render.guildwars2.com/file/C0BF3D5A0CE30631EF8034597794C053696790EB/1058627.png",
+    "type": "Weapon",
+    "weapon": "Staff",
+    "slot": "Weapon_5",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30614,
+    "name": "Staff Strike",
+    "description": "Strike your enemies with your staff.",
+    "icon": "https://render.guildwars2.com/file/3BBEF12B9DA30A070D6D09B3946E279FC9505407/1058624.png",
+    "type": "Weapon",
+    "weapon": "Staff",
+    "slot": "Weapon_1",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": 30135,
+    "flipSkillId": 30135,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30661,
+    "name": "Bandit's Defense",
+    "description": "Physical. Briefly block incoming attacks. Blocking an attack grants access to a retaliatory attack.",
+    "icon": "https://render.guildwars2.com/file/4EF0035DE5239258469E5348F1BF4CD031619573/1058629.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Daredevil",
+    "categories": [
+      "Physical"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 16,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 30519,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30775,
+    "name": "Dust Strike",
+    "description": "Spin your staff in the air, creating a vortex of dust around you that blinds enemies and reflects projectiles.",
+    "icon": "https://render.guildwars2.com/file/9F6C490726B9ED26C4CEC20A1825DC9A2C13E5A0/1058628.png",
+    "type": "Weapon",
+    "weapon": "Staff",
+    "slot": "Weapon_4",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 30868,
+    "name": "Fist Flurry",
+    "description": "Physical. Strike your enemy multiple times. If all attacks hit, gain access to Palm Strike.",
+    "icon": "https://render.guildwars2.com/file/3B267195CECDF50705092272D0190CA9A391B507/1058631.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Daredevil",
+    "categories": [
+      "Physical"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 16,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 31438,
+    "name": "Essence Sap",
+    "description": "Throw energy at your target, slowing them.",
+    "icon": "https://render.guildwars2.com/file/6DB27A68383B91A6E34ABA04BDF2402342B95EF8/961414.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 40436,
+    "name": "Death's Advance",
+    "description": "Kneel. Shadowstep forward while granting yourself stealth. While standing within Sniper's Cover, shadowstep to any position within range instead.",
+    "icon": "https://render.guildwars2.com/file/F66C0938F052950905AE804BB4C495CBF6AD36AF/2779165.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_4",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 40436,
+    "modeAliasIds": [
+      80278
+    ]
+  },
+  {
+    "id": 40600,
+    "name": "Kneel",
+    "description": "Your base and maximum movement speed is reduced. Gain access to kneel skills, which have increased projectile velocity. You can still dodge roll while kneeling. Kneeling is canceled if you swap weapons or use Free Action.",
+    "icon": "https://render.guildwars2.com/file/B872B96AC8ED04DE1F1FAE0EA93D71270A6B2DF1/1770631.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_5",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0.5,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 41158,
+    "name": "Shadow Flare",
+    "description": "Cantrip. Throw an orb of shadow magic that damages nearby foes at your targeted location. You may reactivate this skill to swap places with the orb. Deals increased damage to your marked target.",
+    "icon": "https://render.guildwars2.com/file/007CF2CAA795DC259DD538C0CB7D9C36FE3AE423/1770636.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Deadeye",
+    "categories": [
+      "Cantrip"
+    ],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 45672,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 41205,
+    "name": "Binding Shadow",
+    "description": "Cantrip. Reveal yourself if you are stealthed and remove boons from your target after a short delay. If the foe is your marked target, they are also immobilized.",
+    "icon": "https://render.guildwars2.com/file/7A5BD448F1522426E745A539F6200918145AF1A0/1770633.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Deadeye",
+    "categories": [
+      "Cantrip"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 41372,
+    "name": "Mercy",
+    "description": "Cantrip. Lose all malice, instantly refresh Deadeye's Mark, and gain initiative. Gain additional initiative for each stack of malice you had prior to using this skill.",
+    "icon": "https://render.guildwars2.com/file/120BA65D429AC57ECAED3BEAAFCF7C9E3D356DDD/1770635.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Deadeye",
+    "categories": [
+      "Cantrip"
+    ],
+    "flags": [],
+    "recharge": 1,
+    "ammo": 0,
+    "ammoRecharge": 30,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 41422,
+    "name": "Brutal Aim",
+    "description": "Fire a shot that inflicts vulnerability on your target. Applies additional vulnerability when used against your marked target.",
+    "icon": "https://render.guildwars2.com/file/03A49460B608436CF3B0072F2E4129F11ABB3DE8/1770622.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_1",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 44087,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 41494,
+    "name": "Skirmisher's Shot",
+    "description": "Fire a bullet that inflicts conditions on your target and grants you a boon.",
+    "icon": "https://render.guildwars2.com/file/C4CB4C106624CE97BDDB0F44E1C2B2E1E1DA3337/1770625.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_2",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 44591,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 41937,
+    "name": "Death's Retreat",
+    "description": "Shadowstep away from your target and lose conditions. Poisons foes at your starting location.",
+    "icon": "https://render.guildwars2.com/file/BBAD4B7DA7187A9A09E01E6A11D74962A7050B44/1770629.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_4",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 68600,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 43390,
+    "name": "Deadeye's Mark",
+    "description": "Mark a target, causing your initiative attacks to generate malice when they hit or critically hit your mark. Shadowstep to your target if you are wielding a dagger, sword, spear, or staff in your main hand. Lose malice when the mark ends or when this skill is recast on a new target.\nMalice is only gained once per skill use.",
+    "icon": "https://render.guildwars2.com/file/3ECEA70D0DCDAF65E0069263D005507ADBF95A62/1770609.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 43916,
+    "name": "Double Tap",
+    "description": "Fire two bullets that grant might if they hit your target.",
+    "icon": "https://render.guildwars2.com/file/3DAF4EF37FE4D5966596545D2A1B445564090E66/1770627.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_3",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 44695,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 44087,
+    "name": "Malicious Death's Judgment",
+    "description": "Stealth Attack. Reveal yourself and fire a powerful shot at your target that pierces but deals less damage to untargeted foes. If this attack targets and hits your mark, it consumes all malice and deals increased damage for each malice consumed.",
+    "icon": "https://render.guildwars2.com/file/7228E29372F37958FEB8684E91F7060D71D3D6E2/1770628.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_1",
+    "specialization": "Deadeye",
+    "categories": [
+      "StealthAttack"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 1,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 69316,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 44591,
+    "name": "Spotter's Shot",
+    "description": "Kneel. Fire a bullet that grants you boons and inflicts conditions on your target.",
+    "icon": "https://render.guildwars2.com/file/0CFD156D4CF5F17EA13952B6083CAE04E1601B5E/1770624.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_2",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 44695,
+    "name": "Three Round Burst",
+    "description": "Kneel. Fire three bullets that grant might if they hit your target.",
+    "icon": "https://render.guildwars2.com/file/55013868E7A03E437305D7B706EB042A35172450/1770626.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_3",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 45088,
+    "name": "Malicious Restoration",
+    "description": "Cantrip. Transfer your conditions to your marked target and then heal yourself.",
+    "icon": "https://render.guildwars2.com/file/C1E7E96F22330A9AF3DBDAF5245430CBA17FB0A3/1770611.png",
+    "type": "Heal",
+    "weapon": "",
+    "slot": "Heal",
+    "specialization": "Deadeye",
+    "categories": [
+      "Cantrip"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 45094,
+    "name": "Throw Gunk",
+    "description": "Throw gunk at target area to inflict a random condition.",
+    "icon": "https://render.guildwars2.com/file/3A487770D4A0E006D0A0E57C68A639BF7003A5BC/102940.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 1110,
+    "modeAliasIds": [
+      1110
+    ]
+  },
+  {
+    "id": 45508,
+    "name": "Shadow Meld",
+    "description": "Cantrip. Vanish into stealth.",
+    "icon": "https://render.guildwars2.com/file/380609B742C9C59C9EC5B4A428070039787A61C9/1770610.png",
+    "type": "Elite",
+    "weapon": "",
+    "slot": "Elite",
+    "specialization": "Deadeye",
+    "categories": [
+      "Cantrip"
+    ],
+    "flags": [],
+    "recharge": 5,
+    "ammo": 2,
+    "ammoRecharge": 45,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 45672,
+    "name": "Shadow Swap",
+    "description": "Swap places with your shadow flare, causing it to detonate and deal damage to enemies at your original location. Deals increased damage to your marked target.",
+    "icon": "https://render.guildwars2.com/file/399C0ED664165E4E53C6F909CB150BE35A5B6C2D/1770634.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 46335,
+    "name": "Shadow Gust",
+    "description": "Cantrip. Knock away nearby foes with a burst of shadow magic, then stealth yourself. If this skill hits your marked target, they'll be launched instead.",
+    "icon": "https://render.guildwars2.com/file/972D59E7299266512B04BDD9DB04BFF6AC383F61/1770637.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Deadeye",
+    "categories": [
+      "Cantrip"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 30,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 56880,
+    "name": "Pitfall",
+    "description": "Unleash your pitfall on the area, knocking down foes and delivering constant damage over time.",
+    "icon": "https://render.guildwars2.com/file/0C389DB2BC595179D1BBB2C05BBF460753913567/2175063.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 3,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 56898,
+    "name": "Thousand Needles",
+    "description": "Unleash a hail of needles that immobilizes enemies on impact and poisons the ground, inflicting conditions over time.",
+    "icon": "https://render.guildwars2.com/file/2E9B1FD2687F76E4CDF00ADF04B6AB07CE7CD880/2175069.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 3,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 59526,
+    "name": "Repeater",
+    "description": "Dual Wield. Blast your foe with rapid fire from your pistol.",
+    "icon": "https://render.guildwars2.com/file/9B4E1B72A86C0F3FCB0B9E272E2A2AEC45669E92/103878.png",
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 13111,
+    "modeAliasIds": [
+      13111
+    ]
+  },
+  {
+    "id": 63066,
+    "name": "Shadow Bolt",
+    "description": "Fire a projectile that hinders foes and helps allies.",
+    "icon": "https://render.guildwars2.com/file/D6D1A6997E0E07ECC3A2CF61C0AC054B2102A369/2503744.png",
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "slot": "Weapon_1",
+    "specialization": "Specter",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 63314,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63128,
+    "name": "Endless Night",
+    "description": "Dual Wield. Fire a beam that hinders foes and helps allies.",
+    "icon": "https://render.guildwars2.com/file/15BE9504ACEED3C462F7173D63E44836BFA2F934/2503736.png",
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "slot": "Weapon_3",
+    "specialization": "Specter",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63154,
+    "name": "Triple Threat",
+    "description": "Fire three missiles that hinder foes and help allies.",
+    "icon": "https://render.guildwars2.com/file/A9905B250CDB0820D4A51C623A6ED6024B33D897/2503750.png",
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "slot": "Weapon_3",
+    "specialization": "Specter",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 63267,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63230,
+    "name": "Well of Silence",
+    "description": "Well. Shadowstep to the target area and lay down a well that removes conditions from allies. Gain shadow force for each condition removed. The first strike of the well dazes foes.",
+    "icon": "https://render.guildwars2.com/file/6B22FFB6CE4764F31FF7B7300E5C694E296CC1AD/2503754.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Specter",
+    "categories": [
+      "Well"
+    ],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63254,
+    "name": "Twilight Combo",
+    "description": "Dual Wield. Fire a slow-moving projectile, then fire a quick shot that accelerates the first.",
+    "icon": "https://render.guildwars2.com/file/FB0F9FF5A67F57F8E8B0D8B20F0F53D0CEBDF317/2503751.png",
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "slot": "Weapon_3",
+    "specialization": "Specter",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63267,
+    "name": "Measured Shot",
+    "description": "Dual Wield. Shadowstep and fire a shot that hinders foes and helps allies.",
+    "icon": "https://render.guildwars2.com/file/F70A335A50480D68FCCDCE447EED16A25C3CAD01/2503742.png",
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "slot": "Weapon_3",
+    "specialization": "Specter",
+    "categories": [
+      "DualWield"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 63128,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63275,
+    "name": "Shadowfall",
+    "description": "Well. Shadowstep to your target location and drop a well that continuously pulls foes to its center, increasing intensity with each hit.",
+    "icon": "https://render.guildwars2.com/file/0F27940ECADC0A47D809E5EBCBD1E80607417403/2503745.png",
+    "type": "Elite",
+    "weapon": "",
+    "slot": "Elite",
+    "specialization": "Specter",
+    "categories": [
+      "Well"
+    ],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 75,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63276,
+    "name": "Well of Sorrow",
+    "description": "Well. Shadowstep to your target location and create a well that inflicts foes with conditions.",
+    "icon": "https://render.guildwars2.com/file/494191F4140194C74A1AC0CCF137710290364CA7/2503755.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Specter",
+    "categories": [
+      "Well"
+    ],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63292,
+    "name": "Well of Gloom",
+    "description": "Well. Shadowstep to your target location and drop a well that cripples foes and heals allies.",
+    "icon": "https://render.guildwars2.com/file/BE0101D159F09B45F1CA58F5E4E7562E05B40E37/2503753.png",
+    "type": "Heal",
+    "weapon": "",
+    "slot": "Heal",
+    "specialization": "Specter",
+    "categories": [
+      "Well"
+    ],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63294,
+    "name": "Well of Tears",
+    "description": "Well. Shadowstep to the target location and drop a well that repeatedly strikes foes.",
+    "icon": "https://render.guildwars2.com/file/347CEB77023C76989211D59EBFC6970EEA7354E1/2503756.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Specter",
+    "categories": [
+      "Well"
+    ],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63314,
+    "name": "Shadowsquall",
+    "description": "Stealth Attack. Unleash a barrage from the shadows toward your target.",
+    "icon": "https://render.guildwars2.com/file/02C8462294CFA9AFAB36A5364CA2C0E0AE13129F/2503747.png",
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "slot": "Weapon_1",
+    "specialization": "Specter",
+    "categories": [
+      "StealthAttack"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63323,
+    "name": "Well of Bounty",
+    "description": "Well. Shadowstep to a targeted point and create a well that grants boons to allies.",
+    "icon": "https://render.guildwars2.com/file/CF17E53430D9055B599FD751994370106143077D/2503752.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Specter",
+    "categories": [
+      "Well"
+    ],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 63351,
+    "name": "Shadow Sap",
+    "description": "Hurl a bolt of unfurling shadows to bolster allies.",
+    "icon": "https://render.guildwars2.com/file/C7F90ED7C6D2944A3258CFF1B75CC2D4EE36384A/2503746.png",
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "slot": "Weapon_2",
+    "specialization": "Specter",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 68600,
+    "name": "Sniper's Cover",
+    "description": "Kneel. Create a barrier of shadows that blocks incoming missiles. For a short period of time, gain access to Death's Advance while kneeling.",
+    "icon": "https://render.guildwars2.com/file/21A0A255EA0126D30453CAE6CC40DF0B0B70B2ED/1770632.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_4",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 40436,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 69316,
+    "name": "Death's Judgment",
+    "description": "Stealth Attack. Reveal yourself and fire a powerful shot at your target that pierces but deals less damage to untargeted foes.",
+    "icon": "https://render.guildwars2.com/file/C7FDA946603F56590400096DB95FF366090E740B/3098876.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_1",
+    "specialization": "Deadeye",
+    "categories": [
+      "StealthAttack"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 1,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 71802,
+    "name": "Helmet Breaker",
+    "description": "Leap at your target with an overhead strike that dazes them.",
+    "icon": "https://render.guildwars2.com/file/682C0FBF776E555D24162043AE229FDC915DDD01/3199672.png",
+    "type": "Weapon",
+    "weapon": "Staff",
+    "slot": "Weapon_3",
+    "specialization": "Daredevil",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 71852,
+    "name": "Venomous Volley",
+    "description": "Throw a fan of poisonous axes that leaves spinning axes on the ground.",
+    "icon": "https://render.guildwars2.com/file/9F1A55D17C0CDD42675FC758B797BBCFE610D4A7/3256394.png",
+    "type": "Weapon",
+    "weapon": "Axe",
+    "slot": "Weapon_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 71854,
+    "name": "Spinning Axe",
+    "description": "Throw an axe that bleeds enemies and leaves a spinning axe on the ground.",
+    "icon": "https://render.guildwars2.com/file/A00600C596C0A71A3776DF1D9E2AC2BE5F2E1229/3256391.png",
+    "type": "Weapon",
+    "weapon": "Axe",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 71854,
+    "modeAliasIds": [
+      71967
+    ]
+  },
+  {
+    "id": 71864,
+    "name": "Harrowing Storm",
+    "description": "Teleport behind your target and drag any spinning axes back at your target. Returning axes also inflict torment, and enemies struck by a number of axes will be immobilized.",
+    "icon": "https://render.guildwars2.com/file/7D952046DA4101E9C5B21F5FCC19040B2B08AD3B/3256389.png",
+    "type": "Weapon",
+    "weapon": "Axe",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 71895,
+    "name": "Recall Axes",
+    "description": "Pull spinning axes to your target. Axes deal increased strike damage, and enemies struck by a number of axes will be immobilized.",
+    "icon": "https://render.guildwars2.com/file/36E32348F31BDE22EF2DB81209D204A81976C2F1/3256395.png",
+    "type": "Weapon",
+    "weapon": "Axe",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 71864,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 71965,
+    "name": "Orchestrated Assault",
+    "description": "Pull spinning axes to your target. Axes deal increased strike damage, and enemies struck by a number of axes will be immobilized.",
+    "icon": "https://render.guildwars2.com/file/EDAA6A645279109A6FD7064A4439ECE3DDBE05F4/3256390.png",
+    "type": "Weapon",
+    "weapon": "Axe",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 71967,
+    "name": "Spinning Axe",
+    "description": "Throw an axe that bleeds enemies and leaves a spinning axe on the ground.",
+    "icon": "https://render.guildwars2.com/file/A00600C596C0A71A3776DF1D9E2AC2BE5F2E1229/3256391.png",
+    "type": "Weapon",
+    "weapon": "Axe",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 71854,
+    "modeAliasIds": [
+      71854
+    ]
+  },
+  {
+    "id": 72896,
+    "name": "Entangling Asp",
+    "description": "Follow Up. Poison your foe with a sweeping strike. Movement-impaired foes are immobilized.\nStriking an enemy with a follow-up attack enables finisher attacks.",
+    "icon": "https://render.guildwars2.com/file/0A5EE17BC8F00A9F10349C72C4D5B7366C37FF04/3379190.png",
+    "type": "Weapon",
+    "weapon": "Spear",
+    "slot": "Weapon_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 72924,
+    "name": "Malicious Ashen Assault",
+    "description": "Stealth Attack. Attack foes in front of you with a series of strikes, inflicting damaging conditions. The final strike makes them vulnerable. If this skill follows a Finisher skill, it grants initiative. Consumes all malice when striking your mark to inflict torment and increase the damage dealt.",
+    "icon": "https://render.guildwars2.com/file/D3EB04ABC0B56CEF0F29F10A61B4B64F073E213C/3379198.png",
+    "type": "Weapon",
+    "weapon": "Spear",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [
+      "StealthAttack"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 72927,
+    "name": "Distracting Throw",
+    "description": "Throw a spear that inflicts conditions on your target. If this strikes a movement-impaired foe, it also inflicts daze. If this skill follows a Finisher skill, it counts as a lead attack and grants a bonus to outgoing damage for a duration.",
+    "icon": "https://render.guildwars2.com/file/D778C3EF460E2F960DA2153F7A3326C13DAD18E7/3379195.png",
+    "type": "Weapon",
+    "weapon": "Spear",
+    "slot": "Weapon_4",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 72986,
+    "name": "Unsuspecting Strike",
+    "description": "Lead Attack. Leap at your foe and inflict conditions. Inflict additional stacks against foes above the health threshold.\nStriking an enemy with a lead attack enables follow-up attacks.",
+    "icon": "https://render.guildwars2.com/file/805A252809DD3DA83ECACC630803A21B904158AA/3379192.png",
+    "type": "Weapon",
+    "weapon": "Spear",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 73063,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 72991,
+    "name": "Shadow Veil",
+    "description": "Block the next incoming attack. If you block an attack, heal yourself. If this skill follows a Finisher skill, it blocks additional attacks.",
+    "icon": "https://render.guildwars2.com/file/97B9B5EC330C0780DB7DE0AA0FE4B0713F3F92D2/3379196.png",
+    "type": "Weapon",
+    "weapon": "Spear",
+    "slot": "Weapon_5",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 73005,
+    "name": "Ashen Assault",
+    "description": "Stealth Attack. Attack foes in front of you with a series of strikes, inflicting damaging conditions. The final strike makes them vulnerable. If this skill follows a Finisher skill, it grants initiative.",
+    "icon": "https://render.guildwars2.com/file/07F4055E57F1E82EE1BFBAA11AE1F59145070617/3379197.png",
+    "type": "Weapon",
+    "weapon": "Spear",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [
+      "StealthAttack"
+    ],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 72924,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 73041,
+    "name": "Mantis Sting",
+    "description": "Lead Attack. Cripple your foe with a quick strike.\nStriking an enemy with a lead attack enables follow-up attacks.",
+    "icon": "https://render.guildwars2.com/file/195C9FD6753501224702FE4EA7480E2CD7437B29/3379189.png",
+    "type": "Weapon",
+    "weapon": "Spear",
+    "slot": "Weapon_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 72896,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 73063,
+    "name": "Vampiric Slash",
+    "description": "Follow Up. Strike your foes and siphon health from them. Siphon additional health from vulnerable foes.\nStriking an enemy with a follow-up attack enables finisher attacks.",
+    "icon": "https://render.guildwars2.com/file/60071334EC9B38397C03A5290B372D6FF3E831B0/3379193.png",
+    "type": "Weapon",
+    "weapon": "Spear",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 73145,
+    "name": "Barbed Spear",
+    "description": "Swing your spear. If your enemy is far away, throw your spear instead.",
+    "icon": "https://render.guildwars2.com/file/3A5C3F7697DAE8C90B450B92323937A396EDC4EC/3379188.png",
+    "type": "Weapon",
+    "weapon": "Spear",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 73005,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 76550,
+    "name": "Forged Surfer Dash",
+    "description": "Offensive Artifact. Dash to the targeted location while dropping bombs along your path that detonate after a short period of time, dealing damage and burning enemies. More bombs are dropped the farther you travel. \n\nFor a short time after using this skill, you continue to drop additional bombs at your location. \n",
+    "icon": "https://render.guildwars2.com/file/696501BA136CA660BD22D0D0A3B19741D4A77529/3680211.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76550,
+    "modeAliasIds": [
+      76633
+    ]
+  },
+  {
+    "id": 76601,
+    "name": "Exalted Hammer",
+    "description": "Defensive Artifact. Leap to the targeted area and slam down with an enchanted exalted hammer, damaging enemies while healing and granting boons to allies in the area.\n\nFor a short time after using this skill, activating any weapon skill that costs initiative creates an additional healing burst at your location.",
+    "icon": "https://render.guildwars2.com/file/57A193E75618661CE3F51DC44AC59F7BA72E6169/3680210.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76601,
+    "modeAliasIds": [
+      76702
+    ]
+  },
+  {
+    "id": 76633,
+    "name": "Forged Surfer Dash",
+    "description": "Offensive Artifact. Dash to the targeted location while dropping bombs along your path that detonate after a short period of time, dealing damage and burning enemies. More bombs are dropped the farther you travel. \n\nFor a short time after using this skill, you continue to drop additional bombs at your location. \n",
+    "icon": "https://render.guildwars2.com/file/696501BA136CA660BD22D0D0A3B19741D4A77529/3680211.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76550,
+    "modeAliasIds": [
+      76550
+    ]
+  },
+  {
+    "id": 76674,
+    "name": "Holo-Dancer Decoy",
+    "description": "Defensive Artifact. Summon a holo-dancer decoy that taunts enemies and grants boons to nearby allies. It self-destructs if it is not destroyed, dealing damage to enemies in a large area and granting additional boons to allies.\n\nFor a short time after using this skill, the next utility skill you use has reduced cooldown.",
+    "icon": "https://render.guildwars2.com/file/CEE6340604724A060D7C570709C4B05DFAD56617/3680212.png",
+    "type": "Weapon",
+    "weapon": "",
+    "slot": "Weapon_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76674,
+    "modeAliasIds": [
+      76800
+    ]
+  },
+  {
+    "id": 76702,
+    "name": "Exalted Hammer",
+    "description": "Defensive Artifact. Leap to the targeted area and slam down with an enchanted exalted hammer, damaging enemies while healing and granting boons to allies in the area.\n\nFor a short time after using this skill, activating any weapon skill that costs initiative creates an additional healing burst at your location.",
+    "icon": "https://render.guildwars2.com/file/57A193E75618661CE3F51DC44AC59F7BA72E6169/3680210.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76601,
+    "modeAliasIds": [
+      76601
+    ]
+  },
+  {
+    "id": 76725,
+    "name": "Stone Summit Cannon",
+    "description": "",
+    "icon": "https://render.guildwars2.com/file/2B551306FBED061EFF9D56E49EE1CEB57309B22C/3680219.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 15,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76725,
+    "modeAliasIds": [
+      77092
+    ]
+  },
+  {
+    "id": 76744,
+    "name": "Canach-Coin Toss",
+    "description": "This skill has backfired and cannot be used again until fully recharged.",
+    "icon": "https://render.guildwars2.com/file/CA51F09750F4C7C70A546E9F040EEF2977370DFF/3680220.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [],
+    "recharge": 15,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76744,
+    "modeAliasIds": [
+      77230
+    ]
+  },
+  {
+    "id": 76784,
+    "name": "Emergency Jade Shield",
+    "description": "This skill has backfired and cannot be used again until fully recharged.",
+    "icon": "https://render.guildwars2.com/file/B719629A506EBA0444060E2D56A1DDB4183FCAD3/3680222.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [],
+    "recharge": 15,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76784,
+    "modeAliasIds": [
+      76879
+    ]
+  },
+  {
+    "id": 76800,
+    "name": "Holo-Dancer Decoy",
+    "description": "Defensive Artifact. Summon a holo-dancer decoy that taunts enemies and grants boons to nearby allies. It self-destructs if it is not destroyed, dealing damage to enemies in a large area and granting additional boons to allies.\n\nFor a short time after using this skill, the next utility skill you use has reduced cooldown.",
+    "icon": "https://render.guildwars2.com/file/CEE6340604724A060D7C570709C4B05DFAD56617/3680212.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76674,
+    "modeAliasIds": [
+      76674
+    ]
+  },
+  {
+    "id": 76808,
+    "name": "Inquest Portal Device",
+    "description": "",
+    "icon": "https://render.guildwars2.com/file/99210D96EB449F7A975920410C4EAEEECB41BC06/3680221.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 77361,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 76816,
+    "name": "Chak Shield",
+    "description": "Defensive Artifact. Place an electrified shield at your position that blocks projectiles, dealing damage to enemies and granting barrier to allies within it.\n\nFor a short time after using this skill, your weapon skills that cost initiative refund initiative.",
+    "icon": "https://render.guildwars2.com/file/4506224EB1921800602CAD52B6B209960FE51153/3680209.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 76879,
+    "name": "Emergency Jade Shield",
+    "description": "",
+    "icon": "https://render.guildwars2.com/file/B719629A506EBA0444060E2D56A1DDB4183FCAD3/3680222.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [],
+    "recharge": 15,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76784,
+    "modeAliasIds": [
+      76784
+    ]
+  },
+  {
+    "id": 76881,
+    "name": "Antivenom Draught: Backfired",
+    "description": "This skill has backfired and cannot be used again until fully recharged.",
+    "icon": "https://render.guildwars2.com/file/51322CD33E32D80B7B341167E6C8A294143264A2/3680207.png",
+    "type": "Heal",
+    "weapon": "",
+    "slot": "Heal",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [],
+    "recharge": 10,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 76886,
+    "name": "Antivenom Draught",
+    "description": "",
+    "icon": "https://render.guildwars2.com/file/51322CD33E32D80B7B341167E6C8A294143264A2/3680207.png",
+    "type": "Heal",
+    "weapon": "",
+    "slot": "Heal",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [],
+    "recharge": 10,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 76881,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 76895,
+    "name": "Zephyrite Sun Crystal",
+    "description": "Defensive Artifact. Dash toward your target, damaging and inflicting conditions on enemies and removing conditions from allies around you when you reach your destination. You evade attacks as long as you are still traveling.\n\nFor a short time after using this skill, whenever you use a weapon skill that costs initiative, remove conditions from yourself.",
+    "icon": "https://render.guildwars2.com/file/3C1B2075B7B164EB2ABE4F6650F553D40F689E53/3680218.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 1,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76895,
+    "modeAliasIds": [
+      78309
+    ]
+  },
+  {
+    "id": 76900,
+    "name": "Summon Kryptis Turret",
+    "description": "Offensive Artifact. Summons a Kryptis turret at your targeted location and fires at the closest foe in range.\n\nFor a short time after using this skill, you deal increased damage to enemies that were struck by the turret.",
+    "icon": "https://render.guildwars2.com/file/2DC92035E3A36CBCDB62C84E65BEF69BFA0BDD02/3680213.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76900,
+    "modeAliasIds": [
+      77192
+    ]
+  },
+  {
+    "id": 76909,
+    "name": "Unstable Skritt Bomb",
+    "description": "Backfire. The bomb explodes in your hands, damaging you and damaging and knocking down enemies around you. \n\nFor a short time after using this skill, you take increased strike and condition damage.",
+    "icon": "https://render.guildwars2.com/file/0FBFB6FA27C9BEBD1872DAACDB040AEA71A616A9/3680208.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 76966,
+    "name": "Reshuffle",
+    "description": "Redraw any artifacts you currently have in your skill slots.",
+    "icon": "https://render.guildwars2.com/file/EAD4D329B407462E114B30800D02E25598C8C3A1/3680216.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_4",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 5,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 77092,
+    "name": "Stone Summit Cannon",
+    "description": "This skill has backfired and cannot be used again until fully recharged.",
+    "icon": "https://render.guildwars2.com/file/2B551306FBED061EFF9D56E49EE1CEB57309B22C/3680219.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 15,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76725,
+    "modeAliasIds": [
+      76725
+    ]
+  },
+  {
+    "id": 77192,
+    "name": "Summon Kryptis Turret",
+    "description": "Offensive Artifact. Summons a Kryptis turret at your targeted location and fires at the closest foe in range.\n\nFor a short time after using this skill, you deal increased damage to enemies that were struck by the turret.",
+    "icon": "https://render.guildwars2.com/file/2DC92035E3A36CBCDB62C84E65BEF69BFA0BDD02/3680213.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76900,
+    "modeAliasIds": [
+      76900
+    ]
+  },
+  {
+    "id": 77230,
+    "name": "Canach-Coin Toss",
+    "description": "",
+    "icon": "https://render.guildwars2.com/file/CA51F09750F4C7C70A546E9F040EEF2977370DFF/3680220.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [],
+    "recharge": 15,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76744,
+    "modeAliasIds": [
+      76744
+    ]
+  },
+  {
+    "id": 77255,
+    "name": "Skritt Scuffle",
+    "description": "",
+    "icon": "https://render.guildwars2.com/file/697095D59F91E5085007FE240105CAFF64BD0B2A/3680206.png",
+    "type": "Elite",
+    "weapon": "",
+    "slot": "Elite",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 50,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 77277,
+    "name": "Mistburn Mortar",
+    "description": "Offensive Artifact. Shoot an orb that explodes upon impact with the ground, creating a corrupted area that deals damage and applies conditions to enemies. \n\nFor a short time after using this skill, your strikes additionally inflict burning on enemies.",
+    "icon": "https://render.guildwars2.com/file/4519AE3A9032E03F2F14AAA1B5EEE10F1AF1EEAE/3680215.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 77277,
+    "modeAliasIds": [
+      77288
+    ]
+  },
+  {
+    "id": 77288,
+    "name": "Mistburn Mortar",
+    "description": "Offensive Artifact. Shoot an orb that explodes upon impact with the ground, creating a corrupted area that deals damage and applies conditions to enemies. \n\nFor a short time after using this skill, your strikes additionally inflict burning on enemies.",
+    "icon": "https://render.guildwars2.com/file/4519AE3A9032E03F2F14AAA1B5EEE10F1AF1EEAE/3680215.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_2",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 77277,
+    "modeAliasIds": [
+      77277
+    ]
+  },
+  {
+    "id": 77361,
+    "name": "Inquest Portal Device: Backfired",
+    "description": "This skill has backfired and cannot be used again until fully recharged.",
+    "icon": "https://render.guildwars2.com/file/99210D96EB449F7A975920410C4EAEEECB41BC06/3680221.png",
+    "type": "Utility",
+    "weapon": "",
+    "slot": "Utility",
+    "specialization": "Antiquary",
+    "categories": [],
+    "flags": [],
+    "recharge": 20,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 77397,
+    "name": "Skritt Swipe",
+    "description": "Summon a skritt to pilfer artifacts.",
+    "icon": "https://render.guildwars2.com/file/291DAF077409087C5905700A785E4EDDC9DBC47A/3680217.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_1",
+    "specialization": "",
+    "categories": [],
+    "flags": [],
+    "recharge": 25,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": 43390,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 78309,
+    "name": "Zephyrite Sun Crystal",
+    "description": "Break stuns and dash toward your target, damaging and burning enemies around you when you reach your destination. You evade attacks as long as you are still traveling.",
+    "icon": "https://render.guildwars2.com/file/3C1B2075B7B164EB2ABE4F6650F553D40F689E53/3680218.png",
+    "type": "Profession",
+    "weapon": "",
+    "slot": "Profession_3",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 1,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 76895,
+    "modeAliasIds": [
+      76895
+    ]
+  },
+  {
+    "id": 80244,
+    "name": "Flawless Execution",
+    "description": "Shoot nearby enemies as you spin, slashing with your sword.",
+    "icon": "https://render.guildwars2.com/file/699690FE99AEF7BABBF4789800EC31CCC74C78AC/3790491.png",
+    "type": "Weapon",
+    "weapon": "Sword",
+    "slot": "Weapon_3",
+    "specialization": "",
+    "categories": [],
+    "flags": [
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": null,
+    "modeAliasIds": []
+  },
+  {
+    "id": 80278,
+    "name": "Death's Advance",
+    "description": "Kneel. Shadowstep forward while granting yourself stealth. While standing within Sniper's Cover, shadowstep to any position within range instead.",
+    "icon": "https://render.guildwars2.com/file/F66C0938F052950905AE804BB4C495CBF6AD36AF/2779165.png",
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "slot": "Weapon_4",
+    "specialization": "Deadeye",
+    "categories": [],
+    "flags": [
+      "GroundTargeted",
+      "NoUnderwater"
+    ],
+    "recharge": 0,
+    "ammo": 0,
+    "ammoRecharge": 0,
+    "nextChainId": null,
+    "flipSkillId": null,
+    "canonicalAliasId": 40436,
+    "modeAliasIds": [
+      40436
+    ]
+  }
+];

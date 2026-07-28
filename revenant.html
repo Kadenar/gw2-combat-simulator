@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>GW2 Combat Simulator — Revenant</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-profession="revenant" class="revenant-theme">
+    <div id="loading-overlay">
+        <div class="loader-content"><div class="spinner"></div><div>Loading Revenant data…</div></div>
+    </div>
+    <div id="app">
+        <header>
+            <a class="home-link" href="index.html">← All professions</a>
+            <h1>GW2 <span class="accent">Revenant</span> Rotation Simulator</h1>
+            <label class="profession-picker" for="profession-select">
+                <span>Profession</span>
+                <select id="profession-select" data-active-profession="revenant"></select>
+            </label>
+        </header>
+        <div class="update-info"><strong>Revenant PvE API snapshot: July 28, 2026</strong></div>
+        <details class="about-box">
+            <summary class="about-toggle">About this tool</summary>
+            <div class="about-body">
+                <p>Select Revenant gear, weapons, traits, and two legends, then
+                    construct an energy-, upkeep-, and legend-aware rotation.</p>
+                <ul>
+                    <li>Core Revenant, Herald, Renegade, Vindicator, and Conduit.</li>
+                    <li>Fixed legend bars replace independent slot-skill selectors.</li>
+                    <li>Legend swaps, upkeep starvation, facets, alliance sides,
+                        affinity, and persistent actors.</li>
+                </ul>
+                <p>Implementation details are documented in <code>REVENANT.md</code>.</p>
+            </div>
+        </details>
+        <section class="build-section">
+            <div class="build-left">
+                <div class="panel gear-panel">
+                    <div class="panel-hdr">
+                        <h3>Gear</h3>
+                        <div class="build-io-btns">
+                            <button id="btn-export-build" class="btn btn-io">⬆ Export</button>
+                            <button id="btn-import-build" class="btn btn-io">⬇ Import</button>
+                            <button id="btn-reset-build" class="btn btn-clear">Reset</button>
+                            <input type="file" id="import-file-input" accept=".json" hidden>
+                        </div>
+                    </div>
+                    <div class="gear-columns">
+                        <div id="gear-slots" class="gear-col"></div>
+                        <div class="gear-col-right">
+                            <div id="equipment-info"></div>
+                            <div id="weapon-select" class="weapon-select"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="traits-panel" class="traits-panel-inline"></div>
+            </div>
+            <div class="panel attributes-panel">
+                <div class="attributes-header">
+                    <h3>Attributes</h3>
+                    <label for="attribute-weapon-set"><span>Weapon set</span>
+                        <select id="attribute-weapon-set" class="gear-select">
+                            <option value="1">1</option><option value="2">2</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="attributes-list"></div>
+                <p class="attribute-note">Dynamic Revenant modifiers resolve during simulation.</p>
+            </div>
+        </section>
+        <section class="skills-section">
+            <div class="panel skills-panel-left">
+                <div class="skill-bar-label">Weapon Bar</div>
+                <div id="weapon-bar" class="weapon-bar"></div>
+                <div class="skill-bar-label">Legend Loadout</div>
+                <div id="skill-bar" class="skill-bar"></div>
+            </div>
+            <details class="panel skills-panel-right selected-skills-panel">
+                <summary class="selected-skills-summary">
+                    <span>Selected Skills <span class="subtext">(cast and base cooldown)</span></span>
+                    <span class="selected-skills-chevron" aria-hidden="true">▼</span>
+                </summary>
+                <div id="skill-info-table"></div>
+            </details>
+        </section>
+        <section class="perma-section"><div class="panel perma-panel">
+            <h3>Permanent Boons &amp; Target Conditions</h3>
+            <div id="perma-boons"></div>
+        </div></section>
+        <section class="rotation-section">
+            <div class="panel rotation-panel">
+                <h3>Rotation Builder</h3>
+                <div id="rotation-palette" class="rotation-palette"></div>
+                <p class="palette-hint">Click to queue · <b>Shift+click</b> an
+                    instant-cast skill to fire it during the previous cast ·
+                    <b>Ctrl+click</b> a non-instant skill to interrupt it</p>
+                <div class="rotation-mid">
+                    <div class="rotation-tl-label">Rotation</div>
+                    <div id="start-att-selector" class="start-att-selector"></div>
+                    <div class="rotation-btns">
+                        <button id="btn-sim-clear" class="btn btn-clear">✕ Clear</button>
+                        <button id="btn-sim-rerun" class="btn btn-rerun">↳ Re-run</button>
+                        <button id="btn-export-rotation" class="btn btn-io">↓ Save Rotation</button>
+                        <button id="btn-import-rotation" class="btn btn-io">↑ Load Rotation</button>
+                        <input type="file" id="rotation-file-input" accept=".json" hidden>
+                        <div class="target-hp-wrap"><label for="target-hp">Target HP</label>
+                            <input id="target-hp" type="number" min="0" step="100000" value="3970000">
+                        </div>
+                        <div class="target-hp-wrap"><label for="target-armor">Target armor</label>
+                            <input id="target-armor" type="number" min="1" value="2597">
+                        </div>
+                    </div>
+                </div>
+                <div id="rotation-timeline" class="rotation-timeline"></div>
+                <div id="rotation-procs" class="rotation-procs"></div>
+                <div id="rotation-event-log" class="rotation-event-log"></div>
+            </div>
+            <div id="rotation-results" class="rotation-results"></div>
+        </section>
+    </div>
+    <script type="module" src="js/app/profession-selector.js"></script>
+    <script type="module" src="js/app/app.js"></script>
+</body>
+</html>

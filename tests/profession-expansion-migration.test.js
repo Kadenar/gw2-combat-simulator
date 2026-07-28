@@ -29,6 +29,7 @@ import {
 } from "../js/app/profession-registry.js";
 import {
   createProfessionSnapshot,
+  DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
   fetchProfessionSnapshot,
   isTerrestrialSkill,
   serializeProfessionSnapshot,
@@ -444,7 +445,7 @@ test("native build codecs share version, schema, and sanitization behavior", asy
         skill.specialization &&
         !selectedSpecializations.has(skill.specialization),
     );
-    if (lockedSlotSkill) {
+    if (lockedSlotSkill && !adapter.slotLoadout) {
       const slot =
         lockedSlotSkill.type === "Heal"
           ? "Heal"
@@ -464,23 +465,25 @@ test("native build codecs share version, schema, and sanitization behavior", asy
       assert.equal(profession.validateBuild(migrated).valid, true);
     }
 
-    const duplicateUtility = {
-      ...defaults,
-      selectedSkills: {
-        ...defaults.selectedSkills,
-        Utility2: defaults.selectedSkills.Utility1,
-      },
-    };
-    assert.equal(profession.validateBuild(duplicateUtility).valid, false);
-    const normalizedUtilities = profession.migrateBuild(duplicateUtility);
-    assert.equal(
-      new Set([
-        normalizedUtilities.selectedSkills.Utility1,
-        normalizedUtilities.selectedSkills.Utility2,
-        normalizedUtilities.selectedSkills.Utility3,
-      ]).size,
-      3,
-    );
+    if (!adapter.slotLoadout) {
+      const duplicateUtility = {
+        ...defaults,
+        selectedSkills: {
+          ...defaults.selectedSkills,
+          Utility2: defaults.selectedSkills.Utility1,
+        },
+      };
+      assert.equal(profession.validateBuild(duplicateUtility).valid, false);
+      const normalizedUtilities = profession.migrateBuild(duplicateUtility);
+      assert.equal(
+        new Set([
+          normalizedUtilities.selectedSkills.Utility1,
+          normalizedUtilities.selectedSkills.Utility2,
+          normalizedUtilities.selectedSkills.Utility3,
+        ]).size,
+        3,
+      );
+    }
 
     const twoHanded = [...profession.catalog.weaponHands]
       .find(([, hand]) => hand === "2h")?.[0];
@@ -712,6 +715,46 @@ test("API snapshot transforms chains, aliases, filtering, and ordering", () => {
       "Spear",
     ),
     false,
+  );
+  assert.deepEqual(
+    DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
+    ["Trident", "Speargun"],
+  );
+  assert.equal(
+    isTerrestrialSkill(
+      {
+        id: 61,
+        name: "Trident Attack",
+        slot: "Weapon_1",
+        flags: ["NoUnderwater"],
+      },
+      "Trident",
+    ),
+    false,
+  );
+  assert.equal(
+    isTerrestrialSkill(
+      {
+        id: 62,
+        name: "Speargun Attack",
+        slot: "Weapon_1",
+        flags: ["NoUnderwater"],
+      },
+      "Speargun",
+    ),
+    false,
+  );
+  assert.equal(
+    isTerrestrialSkill(
+      {
+        id: 63,
+        name: "Land Spear",
+        slot: "Weapon_1",
+        flags: ["NoUnderwater"],
+      },
+      "Spear",
+    ),
+    true,
   );
   assert.equal(
     serializeProfessionSnapshot({

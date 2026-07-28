@@ -8,6 +8,7 @@
     "test": "node --test --test-isolation=none",
     "check": "tsc -p jsconfig.events.json && node scripts/check-js.mjs",
     "update:profession-data": "node scripts/update-profession-api-data.mjs",
+    "update:profession-wiki-data": "node scripts/update-profession-wiki-data.mjs",
     "update:mesmer-data": "node scripts/update-mesmer-api-data.mjs",
     "update:guardian-data": "node scripts/update-guardian-api-data.mjs",
     "update:necromancer-data": "node scripts/update-necromancer-api-data.mjs"

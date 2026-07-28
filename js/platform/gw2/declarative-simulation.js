@@ -8,6 +8,7 @@ import { WEAPON_DATA } from "./gear-data.js";
 import { createGw2CombatQuery, selectedGw2TraitValues } from "./query.js";
 import { gw2WeaponStrength } from "./runtime-rules.js";
 import { createGw2SchedulerPolicy } from "./scheduler/policy.js";
+import { canonicalTargetConditionName } from "./target-state.js";
 
 // Flatten gear data once so resolver events can select a weapon strength without
 // depending on the UI-facing gear schema.
@@ -21,10 +22,7 @@ const WEAPON_STRENGTHS = Object.freeze(
 );
 
 function conditionName(value) {
-  const name = String(value || "");
-  const normalized = name.toLowerCase();
-  if (normalized === "poison" || normalized === "poisoned") return "Poisoned";
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  return canonicalTargetConditionName(value);
 }
 
 function endState(profession, config, scheduled, resolved) {
@@ -78,7 +76,11 @@ function simulateDeclarativeGw2Pass({
   const scheduled = createScheduler({
     profession,
     config,
-    schedulerPolicy: createGw2SchedulerPolicy(config, { traits }),
+    schedulerPolicy: createGw2SchedulerPolicy(config, {
+      traits,
+      catalog: profession.catalog,
+      weaponSkillMatchesSet: profession.ui.weaponSkillMatchesSet,
+    }),
   }).run(rotation);
   const query = createGw2CombatQuery({
     profession,

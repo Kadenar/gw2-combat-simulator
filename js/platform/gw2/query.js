@@ -9,7 +9,11 @@ import {
   gw2SigilSet,
   gw2StaticAttributes,
 } from "./runtime-rules.js";
-import { permanentTargetConditionStacks } from "./target-state.js";
+import {
+  canonicalTargetConditionName,
+  permanentTargetConditionStacks,
+  runtimeTargetConditionStacks,
+} from "./target-state.js";
 import { createGw2TimelineIndex } from "./timeline-index.js";
 
 /**
@@ -114,18 +118,51 @@ export function createGw2CombatQuery({
       : dynamic > 0;
   };
   const vulnerabilityStacksAt = (time, runtime) => {
-    const dynamic = runtimeBuffStacks(
+    const buffStacks = runtimeBuffStacks(
       runtime,
       "target-vulnerability",
       time,
       25,
     );
-    if (dynamic == null) return timeline.vulnerabilityStacksAt(time);
-    const permanent = permanentTargetConditionStacks(
-      config,
-      "Vulnerability",
+    if (buffStacks == null) {
+      return Math.min(
+        25,
+        timeline.vulnerabilityStacksAt(time)
+          + runtimeTargetConditionStacks(
+            runtime,
+            "Vulnerability",
+            time,
+          ),
+      );
+    }
+    return Math.min(
+      25,
+      permanentTargetConditionStacks(config, "Vulnerability")
+        + runtimeTargetConditionStacks(
+          runtime,
+          "Vulnerability",
+          time,
+        )
+        + buffStacks,
     );
-    return Math.min(25, permanent + dynamic);
+  };
+  const targetConditionStacksAt = (condition, time, runtime = null) => {
+    const name = canonicalTargetConditionName(condition);
+    const permanent = permanentTargetConditionStacks(config, name);
+    const runtimeStacks = runtimeTargetConditionStacks(runtime, name, time);
+    if (name === "Vulnerability") {
+      const dynamic = runtimeBuffStacks(
+        runtime,
+        "target-vulnerability",
+        time,
+        25,
+      );
+      const buffStacks = dynamic == null
+        ? timeline.timedStacks("target-vulnerability", time, 1, 25)
+        : dynamic;
+      return Math.min(25, permanent + runtimeStacks + buffStacks);
+    }
+    return permanent + runtimeStacks;
   };
   const activeWeaponSetAt = (time, runtime) => {
     const runtimeSet = Number(runtime?.activeWeaponSet);
@@ -252,6 +289,10 @@ export function createGw2CombatQuery({
         base,
       );
       return Math.max(1, Math.min(2, Number(modified || 1)));
+    },
+    targetConditionStacks: targetConditionStacksAt,
+    targetHasCondition(condition, time, runtime = null) {
+      return targetConditionStacksAt(condition, time, runtime) > 0;
     },
     activeWeaponSetAt: timeline.activeWeaponSetAt,
     activeSigilSetAt: timeline.activeSigilSetAt,
