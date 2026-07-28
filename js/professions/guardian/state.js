@@ -72,7 +72,9 @@ export function createGuardianState(config = {}) {
     effulgentStacks: 0,
     // Spear "Illuminated" mechanic.
     spearIlluminatedArmed: false,
+    spearIlluminatedUntil: 0,
     spearLuminanceUntil: 0,
+    daybreakingSlashChainStep: 0,
   };
 }
 

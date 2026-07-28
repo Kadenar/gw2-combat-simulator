@@ -238,8 +238,8 @@ export const guardianModifierRules = Object.freeze([
   {
     id: "guardian.shining-spin",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: 1.2,
+    operation: "damage-additive",
+    amount: 0.2,
     order: 100,
     when: context =>
       context.event?.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN
@@ -332,12 +332,27 @@ function modifyGuardianMaximumAmmo(context, maximum) {
     : maximum;
 }
 
+function modifyGuardianCastDuration(context, duration) {
+  if (
+    context.skill?.id !== GUARDIAN_SKILL_IDS.DAYBREAKING_SLASH
+    || !context.hasBuff?.("quickness", context.start)
+  ) {
+    return duration;
+  }
+  return Number(
+    context.state?.profession?.daybreakingSlashChainStep || 0,
+  ) === 0
+    ? 0.52
+    : 0.44;
+}
+
 export const guardianAttributeRules = Object.freeze({
   modifyAttributes: modifyGuardianAttributes,
   ...guardianModifierHooks,
 });
 
 export const guardianCastModifiers = Object.freeze({
+  modifyCastDuration: modifyGuardianCastDuration,
   modifyRechargeDuration: modifyGuardianRechargeDuration,
   modifyMaximumAmmo: modifyGuardianMaximumAmmo,
 });

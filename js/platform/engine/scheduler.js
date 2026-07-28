@@ -367,6 +367,17 @@ export function createScheduler({
       }
       return normalized;
     },
+    replaceEvent(event, updates) {
+      const replacement = createEvent({ ...event, ...updates });
+      const replaceReference = collection => {
+        const index = collection.indexOf(event);
+        if (index >= 0) collection[index] = replacement;
+      };
+      replaceReference(events);
+      replaceReference(state.pendingEvents);
+      replaceReference(observationQueue);
+      return replacement;
+    },
     emitDerived(cause, event) {
       const rootOrder = Math.floor(
         Number(cause?.causalOrder ?? cause?.__order),

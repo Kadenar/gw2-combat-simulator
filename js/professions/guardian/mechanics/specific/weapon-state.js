@@ -1,9 +1,7 @@
 import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
 import { GUARDIAN_AUTOATTACK_CHAINS } from "../autoattack-chains.js";
 import { emitGuardianEvent } from "../events.js";
-import {
-  indexAutoattackChains,
-} from "../../../../platform/engine/autoattack-chains.js";
+import { indexAutoattackChains } from "../../../../platform/engine/autoattack-chains.js";
 
 /**
  * Guardian weapon-slot bookkeeping: autoattack-chain progression, weapon swap,
@@ -41,16 +39,16 @@ const CHAIN_POSITION_BY_SKILL_ID = indexAutoattackChains(
 export function validateWeaponState(context, skill) {
   if (skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE) return;
   if (
-    skill.type === "Weapon"
-    && (
-      context.state.profession.activeTome
-      || context.state.profession.radiantForge
-    )
-  ) return false;
+    skill.type === "Weapon" &&
+    (context.state.profession.activeTome ||
+      context.state.profession.radiantForge)
+  )
+    return false;
   if (skill.flipParentId != null) {
-    return Number(
-      context.state.profession.availableFlips[skill.id] || 0,
-    ) > context.start + context.epsilon;
+    return (
+      Number(context.state.profession.availableFlips[skill.id] || 0) >
+      context.start + context.epsilon
+    );
   }
   const chain = CHAIN_POSITION_BY_SKILL_ID.get(skill.id);
   if (!chain) return;
@@ -86,15 +84,13 @@ export function updateWeaponCastState(context, skill) {
     context.state.profession.autoattackChains = {};
   }
 
-  if (
-    skill.flipSkillId != null
-    && skill.flipSkillId !== skill.nextChainId
-  ) {
+  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
     if (flip?.flipParentId === skill.id) {
-      const duration = skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME
-        ? 3
-        : Math.max(1, Number(skill.cooldown || skill.recharge || 5));
+      const duration =
+        skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME
+          ? 3
+          : Math.max(1, Number(skill.cooldown || skill.recharge || 5));
       context.state.profession.availableFlips[flip.id] =
         context.effectiveEnd + duration;
     }

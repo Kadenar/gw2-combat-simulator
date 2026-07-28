@@ -7,7 +7,7 @@
  */
 
 import { GUARDIAN_SKILL_IDS as ID } from "../data/ids.js";
-import { strikePackets } from "../../../platform/engine/effect-factories.js";
+import { strikeTimeline } from "../../../platform/engine/effect-factories.js";
 
 export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   [ID.LEAP_OF_FAITH]: {
@@ -29,23 +29,22 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 2200,
     "effects": [
-      strikePackets(
-        5.775,
+      strikeTimeline(
         [
-          157,
-          314,
-          471,
-          628,
-          785,
-          942,
-          1099,
-          1257,
-          1414,
-          1571,
-          1728,
-          1885,
-          2042,
-          2200
+          { atMs: 157, coefficient: 0.35 },
+          { atMs: 314, coefficient: 0.275 },
+          { atMs: 471, coefficient: 0.35 },
+          { atMs: 628, coefficient: 0.275 },
+          { atMs: 785, coefficient: 0.35 },
+          { atMs: 942, coefficient: 0.275 },
+          { atMs: 1099, coefficient: 0.35 },
+          { atMs: 1257, coefficient: 0.275 },
+          { atMs: 1414, coefficient: 0.35 },
+          { atMs: 1571, coefficient: 0.275 },
+          { atMs: 1728, coefficient: 0.35 },
+          { atMs: 1885, coefficient: 0.275 },
+          { atMs: 2042, coefficient: 0.35 },
+          { atMs: 2200, coefficient: 0.275 }
         ],
         {
           "timingAnchor": "castStart",
@@ -524,6 +523,22 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
         "atMs": 750,
         "timingAnchor": "castStart",
         "timingScale": "cast"
+      },
+      {
+        "type": "strike",
+        "coefficient": 0,
+        "hits": 10,
+        "atMs": 1000,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "name": "Binding Blade — Tether",
+        "canCrit": false,
+        "sourceId": 9148,
+        "metadata": {
+          "flatStrikeBase": 160,
+          "flatStrikePowerCoeff": 0.3
+        }
       },
       {
         "type": "control",
@@ -2141,7 +2156,7 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 1.8,
+        "coefficient": 1.5,
         "hits": 1,
         "atMs": 160,
         "timingAnchor": "castStart",
@@ -2157,9 +2172,9 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 1.5,
+        "coefficient": 3,
         "hits": 2,
-        "atMs": 480,
+        "atMs": 0,
         "intervalMs": 680,
         "name": "Gleaming Disc",
         "timingAnchor": "castStart",
@@ -2181,6 +2196,7 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   [ID.SOLAR_STORM]: {
     "implemented": true,
     "castTimeMs": 560,
+    "quicknessCastTimeMs": 560,
     "cooldown": 15,
     "effects": [
       {
@@ -2229,7 +2245,7 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
       },
       {
         "type": "strike",
-        "coefficient": 0.5,
+        "coefficient": 2.5,
         "hits": 5,
         "atMs": 360,
         "intervalMs": 1000,
@@ -2293,7 +2309,10 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
       {
         "type": "strike",
         "coefficient": 1.25,
-        "hits": 1
+        "hits": 1,
+        "atMs": 0,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ]
   },
