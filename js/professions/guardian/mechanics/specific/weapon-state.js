@@ -5,10 +5,39 @@ import {
   indexAutoattackChains,
 } from "../../../../platform/engine/autoattack-chains.js";
 
+/**
+ * Guardian weapon-slot bookkeeping: autoattack-chain progression, weapon swap,
+ * and flip-skill (over/under) availability windows.
+ *
+ * The three pieces of per-weapon state all live on `context.state.profession`:
+ * - `autoattackChains` — map of chain-root skill id → the id of the next step
+ *   the slot-1 autoattack should fire. Absent means "start from the root".
+ * - `availableFlips` — map of flip-skill id → the sim time the flip stays
+ *   castable until (armed by casting its parent, e.g. Zealot's Flame → Fire).
+ * - `activeWeaponSet` — 1 or 2, toggled by weapon swap.
+ *
+ * Chain positions are indexed once from the derived guardian chains so lookups
+ * during validation/afterCast are O(1). See `platform/engine/autoattack-chains`.
+ */
 const CHAIN_POSITION_BY_SKILL_ID = indexAutoattackChains(
   GUARDIAN_AUTOATTACK_CHAINS,
 );
 
+/**
+ * validateCast hook (order 50): decides whether a weapon skill may cast now.
+ * Combined with `!== false`, so `undefined` = no opinion (allow) and only an
+ * explicit `false` blocks the cast.
+ *
+ * - Exit Radiant Forge is always allowed — the tome/forge guard below would
+ *   otherwise trap the player inside the forge.
+ * - Any other weapon skill is blocked while a tome is open or Radiant Forge is
+ *   active, since those replace the normal weapon bar.
+ * - A flip skill (has `flipParentId`) is castable only while its armed window
+ *   in `availableFlips` is still ahead of the cast start.
+ * - A chain skill is castable only when it is the currently-expected step of
+ *   its chain (the root when nothing is pending). Non-chain, non-flip weapon
+ *   skills fall through to `undefined` (allowed).
+ */
 export function validateWeaponState(context, skill) {
   if (skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE) return;
   if (
@@ -30,6 +59,20 @@ export function validateWeaponState(context, skill) {
   return expected === skill.id;
 }
 
+/**
+ * afterCast hook (order 10): advances the stored per-weapon state once a cast
+ * resolves.
+ *
+ * - Interrupted casts (effective end short of the full cast) leave everything
+ *   untouched — the chain does not step and flips are not armed.
+ * - A chain skill advances `autoattackChains[root]` to the next step, or clears
+ *   the entry when the chain loops back to its root.
+ * - Any other completed weapon skill resets all pending chains.
+ * - When a skill's flip differs from its chain successor and the flip points
+ *   back at it, arm that flip: Zealot's Flame gets a fixed 3s window, otherwise
+ *   the flip stays castable for the skill's cooldown/recharge (min 1, default 5).
+ * - Casting a flip skill consumes its `availableFlips` entry.
+ */
 export function updateWeaponCastState(context, skill) {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const chain = CHAIN_POSITION_BY_SKILL_ID.get(skill.id);
@@ -61,6 +104,10 @@ export function updateWeaponCastState(context, skill) {
   }
 }
 
+/**
+ * "guardian.weapon-swap" skill handler: toggles the active weapon set (1↔2),
+ * drops any pending autoattack chains, and emits a `weapon_set` event.
+ */
 function swapWeapons(context, skill) {
   const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
   context.state.activeWeaponSet = weaponSet;

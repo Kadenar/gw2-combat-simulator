@@ -1,15 +1,15 @@
 import { isGw2PlayerActorEvent } from "../../../../platform/gw2/event-ownership.js";
 import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
 import { selectedGuardianSpecialization } from "../availability.js";
-import {
-  emitGuardianEvent,
-} from "../events.js";
-import { GUARDIAN_HANDLER_MECHANICS } from "../skill-mechanics.js";
+import { emitGuardianEvent } from "../events.js";
+import { GUARDIAN_HANDLER_MECHANICS } from "../handler-mechanics.js";
 
 export function validateTomeCast(context, skill) {
   if (skill.tome) {
-    return selectedGuardianSpecialization(context) === "Firebrand"
-      && context.state.profession.activeTome === skill.tome;
+    return (
+      selectedGuardianSpecialization(context) === "Firebrand" &&
+      context.state.profession.activeTome === skill.tome
+    );
   }
   if (skill.name === "Stow Tome") {
     return Boolean(context.state.profession.activeTome);
@@ -25,10 +25,11 @@ export function validateTomeCast(context, skill) {
 export function tomePageAvailability(context, skill) {
   const state = context.state.profession;
   if (
-    !skill.tome
-    || selectedGuardianSpecialization(context) !== "Firebrand"
-    || state.activeTome !== skill.tome
-  ) return true;
+    !skill.tome ||
+    selectedGuardianSpecialization(context) !== "Firebrand" ||
+    state.activeTome !== skill.tome
+  )
+    return true;
   const pageCost = Math.max(1, Number(skill.pageCost || 1));
   if (state.tomePages >= pageCost) return true;
   // Pages only ever regenerate upward, so waiting for the scheduled page is a
@@ -42,8 +43,8 @@ export function tomePageAvailability(context, skill) {
     retryAt,
     code: "guardian.tome-pages",
     reason:
-      `${skill.name} is unavailable — requires ${pageCost} tome `
-      + `page${pageCost === 1 ? "" : "s"}.`,
+      `${skill.name} is unavailable — requires ${pageCost} tome ` +
+      `page${pageCost === 1 ? "" : "s"}.`,
   };
 }
 
@@ -60,8 +61,7 @@ function useTomePage(context, skill) {
   const state = context.state.profession;
   const pageCost = Math.max(1, Number(skill.pageCost || 1));
   if (state.tomePages >= state.maximumTomePages) {
-    state.nextTomePageAt =
-      context.effectiveEnd + state.tomePageInterval;
+    state.nextTomePageAt = context.effectiveEnd + state.tomePageInterval;
   }
   state.tomePages = Math.max(0, state.tomePages - pageCost);
   if (skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST) {
@@ -112,8 +112,8 @@ export const guardianTomeEventHandlers = Object.freeze({
 export function advanceTomeState(context, target) {
   const state = context.state.profession;
   while (
-    state.tomePages < state.maximumTomePages
-    && state.nextTomePageAt <= target + context.epsilon
+    state.tomePages < state.maximumTomePages &&
+    state.nextTomePageAt <= target + context.epsilon
   ) {
     state.tomePages += 1;
     state.nextTomePageAt += state.tomePageInterval;
@@ -126,25 +126,23 @@ export function advanceTomeState(context, target) {
 export function reactToAshesHit(
   context,
   event,
-  {
-    hitContext,
-    applyCondition,
-  } = {},
+  { hitContext, applyCondition } = {},
 ) {
   const burn = GUARDIAN_HANDLER_MECHANICS.ashesBurn;
   if (
-    !hitContext
-    || typeof applyCondition !== "function"
-    || !isGw2PlayerActorEvent(event)
-    || !(Number(event.coefficient) > 0)
-  ) return;
+    !hitContext ||
+    typeof applyCondition !== "function" ||
+    !isGw2PlayerActorEvent(event) ||
+    !(Number(event.coefficient) > 0)
+  )
+    return;
 
   const state = context.profession;
   if (
-    state.ashesCharges <= 0
-    || event.at + Number(context.epsilon || 0.0001)
-      < state.ashesNextTriggerAt
-  ) return;
+    state.ashesCharges <= 0 ||
+    event.at + Number(context.epsilon || 0.0001) < state.ashesNextTriggerAt
+  )
+    return;
 
   applyCondition(context, {
     type: "condition",

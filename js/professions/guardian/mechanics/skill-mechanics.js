@@ -1,8 +1,9 @@
 /**
- * Authoritative guardian simulation mechanics.
+ * Guardian skill declarations using the shared canonical skill/effect schema.
  *
- * Generated API metadata supplies identity and presentation only. Every
- * field that can affect simulation results is defined in this file.
+ * Generated API metadata supplies identity and presentation. Profession state
+ * machines and triggered-effect formulas live in handler-mechanics.js and the
+ * explicit strategies under specific/.
  */
 
 import { GUARDIAN_SKILL_IDS as ID } from "../data/ids.js";
@@ -2133,7 +2134,8 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   },
   [ID.HELIO_RUSH]: {
     "implemented": true,
-    "castTimeMs": 320,
+    "castTimeMs": 480,
+    "quicknessCastTimeMs": 320,
     "cooldown": 6.4,
     "ammo": 2,
     "effects": [
@@ -2149,7 +2151,8 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   },
   [ID.GLEAMING_DISC]: {
     "implemented": true,
-    "castTimeMs": 560,
+    "castTimeMs": 840,
+    "quicknessCastTimeMs": 560,
     "cooldown": 9.6,
     "effects": [
       {
@@ -2324,14 +2327,8 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 750,
     "quicknessCastTimeMs": 600,
-    "handlerId": "guardian.radiant-weapon",
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 1,
-        "hits": 1
-      }
-    ]
+    "handlerId": "guardian.glaring-burst",
+    "effects": []
   },
   [ID.ENTER_RADIANT_FORGE]: {
     "implemented": true,
@@ -2391,7 +2388,7 @@ export const GUARDIAN_SKILL_MECHANICS = Object.freeze({
   [ID.DAZZLING_HAMMER]: {
     "implemented": true,
     "castTimeMs": 600,
-    "quicknessCastTimeMs": 470,
+    "quicknessCastTimeMs": 480,
     "handlerId": "guardian.radiant-weapon",
     "effects": [
       {
@@ -2487,36 +2484,3 @@ export const GUARDIAN_EXTRA_SKILLS = Object.freeze([Object.freeze({
   handlerId: "guardian.weapon-swap",
   effects: [],
 })]);
-
-export const GUARDIAN_HANDLER_MECHANICS = Object.freeze({
-  spear: Object.freeze({
-    illuminatedMultiplierBySkillId: Object.freeze({
-      [ID.HELIO_RUSH]: 1.5,
-      [ID.GLEAMING_DISC]: 1.25,
-      [ID.SOLAR_STORM]: 1.25,
-    }),
-    illuminationArmers: Object.freeze([
-      ID.HELIO_RUSH,
-      ID.GLEAMING_DISC,
-      ID.SOLAR_STORM,
-    ]),
-    symbolLuminanceDurationMs: 5000,
-  }),
-  radiantForge: Object.freeze({
-    glaringBurstCoefficientByWeapon: Object.freeze({
-      hammer: 1.25,
-      blade: 1,
-    }),
-  }),
-  justiceBurn: Object.freeze({
-    condition: "Burning",
-    stacks: 1,
-    duration: 2,
-  }),
-  ashesBurn: Object.freeze({
-    condition: "Burning",
-    stacks: 1,
-    duration: 2,
-    interval: 1,
-  }),
-});

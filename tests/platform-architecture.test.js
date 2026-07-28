@@ -29,6 +29,10 @@ import { normalizeRotation } from "../js/platform/engine/rotation-commands.js";
 import { createSchedulerState } from "../js/platform/engine/scheduler-state.js";
 import { createScheduler } from "../js/platform/engine/scheduler.js";
 import { buildScheduledEventStream } from "../js/platform/engine/scheduled-event-stream.js";
+import {
+  augmentSkillHandler,
+  replaceSkillHandler,
+} from "../js/platform/engine/skill-handlers.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
   nativeProfessionRegistry,
@@ -611,6 +615,53 @@ test("declarative multi-hit and delayed effects preserve individual events", () 
   );
   assert.deepEqual(events.map(event => event.hitIndex), [1, 2, 3, 1]);
   assert.equal(result.endState.profession.hits, 4);
+});
+
+test("declarative repeated statuses keep fixed pulse intervals", () => {
+  const timing = {
+    applications: 3,
+    atMs: 300,
+    intervalMs: 1000,
+    intervalTimingScale: "fixed",
+    timingAnchor: "castStart",
+    timingScale: "cast",
+  };
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930037,
+      name: "Fixture Pulses",
+      castTimeMs: 600,
+      effects: [{
+        type: "blind",
+        ...timing,
+      }, {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 2,
+        ...timing,
+      }],
+    }],
+  });
+  const profession = defineProfession({
+    id: "pulse-fixture",
+    name: "Pulse Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Fixture Pulses",
+      { type: "wait", durationMs: 2500 },
+    ],
+    config: { boons: { quickness: true } },
+  });
+  const timestamps = type => result.events
+    .filter(event => event.type === type)
+    .map(event => Math.round(event.at * 1000));
+
+  assert.deepEqual(timestamps("blind"), [200, 1200, 2200]);
+  assert.deepEqual(timestamps("condition"), [200, 1200, 2200]);
 });
 
 test("declarative strike timelines preserve per-hit coefficients and shared timestamps", () => {
@@ -1216,10 +1267,9 @@ test("catalog skill handlers receive calculated recharge timing", () => {
       effects: [],
     }],
     skillHandlers: {
-      "fixture.timed": context => {
+      "fixture.timed": replaceSkillHandler(context => {
         observedReadyAt = context.rechargeReadyAt;
-        return true;
-      },
+      }),
     },
   });
   const profession = defineProfession({
@@ -1236,7 +1286,7 @@ test("catalog skill handlers receive calculated recharge timing", () => {
   assert.equal(observedReadyAt, 17);
 });
 
-test("canonical skill handlers are callable and dispatched by handler id", () => {
+test("canonical augmenting skill handlers observe declarative effects", () => {
   let handled = 0;
   const catalog = createCanonicalCatalog({
     generated: [{
@@ -1247,10 +1297,12 @@ test("canonical skill handlers are callable and dispatched by handler id", () =>
       effects: [{ type: "strike", coefficient: 10 }],
     }],
     skillHandlers: {
-      "fixture.handled": () => {
-        handled += 1;
-        return true;
-      },
+      "fixture.handled": augmentSkillHandler(null, {
+        afterEffect: (_context, _skill, event) => {
+          assert.equal(event.coefficient, 10);
+          handled += 1;
+        },
+      }),
     },
   });
   const profession = defineProfession({
@@ -1264,7 +1316,147 @@ test("canonical skill handlers are callable and dispatched by handler id", () =>
   });
 
   assert.equal(handled, 1);
-  assert.equal(result.totalDamage, 0);
+  assert.ok(result.totalDamage > 0);
+});
+
+test("replacing skill handlers require empty declarative effects", () => {
+  assert.throws(
+    () => createCanonicalCatalog({
+      generated: [{
+        id: 930032,
+        name: "Invalid Replacing Skill",
+        handlerId: "fixture.replacing",
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 10 }],
+      }],
+      skillHandlers: {
+        "fixture.replacing": replaceSkillHandler(() => {}),
+      },
+    }),
+    /empty effects list/,
+  );
+});
+
+test("the shared handler contract rejects undeclared strategy fields", () => {
+  assert.throws(
+    () => createCanonicalCatalog({
+      generated: [{
+        id: 930036,
+        name: "Drifting Handler",
+        handlerId: "fixture.drifting-handler",
+        castTimeMs: 0,
+        effects: [],
+      }],
+      skillHandlers: {
+        "fixture.drifting-handler": {
+          mode: "replace",
+          beforeEffects: () => {},
+          necromancerState: true,
+        },
+      },
+    }),
+    /unsupported field.*necromancerState/,
+  );
+});
+
+test("the shared effect contract rejects undeclared simulation fields", () => {
+  assert.throws(
+    () => createCanonicalCatalog({
+      generated: [{
+        id: 930033,
+        name: "Drifting Effect",
+        effects: [{
+          type: "strike",
+          coefficient: 1,
+          necromancerOnlyCoefficient: 2,
+        }],
+      }],
+    }),
+    /unsupported field.*necromancerOnlyCoefficient/,
+  );
+});
+
+test("target-health coefficient modifiers are shared and resolve per hit", () => {
+  const thresholdModifier = Object.freeze([{
+    kind: "target-health-below",
+    threshold: 0.5,
+    multiplier: 2,
+  }]);
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930034,
+        name: "Opening Strike",
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+      {
+        id: 930035,
+        name: "Threshold Strike",
+        castTimeMs: 0,
+        effects: [{
+          type: "strike",
+          coefficient: 1,
+          coefficientModifiers: thresholdModifier,
+        }],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "threshold-fixture",
+    name: "Threshold Fixture",
+    catalog,
+  });
+  const opening = simulateGw2({
+    profession,
+    rotation: ["Opening Strike"],
+  });
+  const openingDamage = opening.resolvedEvents.find(event =>
+    event.type === "damage")?.damage;
+  const result = simulateGw2({
+    profession,
+    rotation: ["Opening Strike", "Threshold Strike"],
+    config: {
+      target: {
+        health: openingDamage * 1.5,
+        armor: 2597,
+      },
+    },
+  });
+  const thresholdDamage = result.resolvedEvents.find(event =>
+    event.skillId === 930035)?.damage;
+
+  assert.ok(Math.abs(thresholdDamage / openingDamage - 2) < 1e-12);
+});
+
+test("the handler strategy contract accepts canonical Mesmer skill data", () => {
+  const source = mesmerCatalog.skillsByName.get("Mind Stab");
+  let observed = 0;
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      ...source,
+      handlerId: "mesmer.fixture-augment",
+    }],
+    skillHandlers: {
+      "mesmer.fixture-augment": augmentSkillHandler(null, {
+        afterEffect: () => {
+          observed += 1;
+        },
+      }),
+    },
+  });
+  const profession = defineProfession({
+    id: "mesmer-handler-fixture",
+    name: "Mesmer Handler Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: ["Mind Stab"],
+  });
+
+  assert.equal(observed, source.effects.length);
+  assert.ok(result.totalDamage > 0);
 });
 
 test("shared relic behavior resolves triggering skills by stable id", () => {
@@ -1492,6 +1684,20 @@ test("declarative professions use the standard mechanics module roles", async ()
       `export const ${prefix}_SKILL_MECHANICS\\b`,
     ));
     assert.doesNotMatch(mechanics, /apiDamage|apiConditions/);
+    if (profession === "guardian" || profession === "necromancer") {
+      const handlerMechanics = await readFile(
+        path.join(mechanicsRoot, "handler-mechanics.js"),
+        "utf8",
+      );
+      const handlers = await readFile(
+        path.join(mechanicsRoot, "specific", "handlers.js"),
+        "utf8",
+      );
+      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
+      assert.match(handlerMechanics, /export const \w+_HANDLER_MECHANICS\b/);
+      assert.match(handlers, /augmentSkillHandler/);
+      assert.match(handlers, /replaceSkillHandler/);
+    }
 
     const catalog = await readFile(
       path.join(root, profession, "catalog.js"),

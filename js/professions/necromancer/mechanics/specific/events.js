@@ -41,8 +41,7 @@ export function handleNecromancerStateEvent(context, event) {
     barbedPrecisionProgress: context.profession.barbedPrecisionProgress,
     chillingNovaProgress: context.profession.chillingNovaProgress,
     demonicLoreReadyAt: context.profession.demonicLoreReadyAt,
-    spitefulFortitudeLifeForce:
-      context.profession.spitefulFortitudeLifeForce,
+    spitefulFortitudeLifeForce: context.profession.spitefulFortitudeLifeForce,
     traitProcReadyAt: context.profession.traitProcReadyAt,
   };
   for (const key of Object.keys(context.profession)) {
@@ -77,12 +76,7 @@ export function handleNecromancerChillEvent(context, event) {
       actorType: "effect",
       triggeredBy: event.skillName,
     });
-    context.recordProc?.(
-      "trait",
-      "Bitter Chill",
-      event.at,
-      event.skillName,
-    );
+    context.recordProc?.("trait", "Bitter Chill", event.at, event.skillName);
   }
   if (hasTrait(context, TRAIT.DEATHLY_CHILL)) {
     enqueueOrdered(context.queue, {
@@ -98,24 +92,21 @@ export function handleNecromancerChillEvent(context, event) {
       actorType: "effect",
       triggeredBy: event.skillName,
     });
-    context.recordProc?.(
-      "trait",
-      "Deathly Chill",
-      event.at,
-      event.skillName,
-    );
+    context.recordProc?.("trait", "Deathly Chill", event.at, event.skillName);
   }
 }
 
 export function handleNecromancerSummonAttack(context, event) {
   if (
-    event.requiresMinion
-    && !(Number(context.profession.activeMinions?.[event.requiresMinion]) > 0)
-  ) return;
+    event.requiresMinion &&
+    !(Number(context.profession.activeMinions?.[event.requiresMinion]) > 0)
+  )
+    return;
   if (
-    event.requiresSpirit
-    && !context.profession.activeSpirits?.[event.requiresSpirit]
-  ) return;
+    event.requiresSpirit &&
+    !context.profession.activeSpirits?.[event.requiresSpirit]
+  )
+    return;
   enqueueOrdered(context.queue, {
     type: "damage",
     at: event.at,

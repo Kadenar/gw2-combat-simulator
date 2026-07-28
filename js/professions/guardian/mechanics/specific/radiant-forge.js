@@ -1,6 +1,6 @@
 import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
 import { selectedGuardianSpecialization } from "../availability.js";
-import { GUARDIAN_HANDLER_MECHANICS } from "../skill-mechanics.js";
+import { GUARDIAN_HANDLER_MECHANICS } from "../handler-mechanics.js";
 import { handleRadiantWeaponEquipped } from "./traits.js";
 import {
   buildGuardianStrike,
@@ -70,24 +70,6 @@ function radiantForge(context, skill) {
 
 function radiantWeapon(context, skill) {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
-  if (skill.id === GUARDIAN_SKILL_IDS.GLARING_BURST) {
-    const coefficient =
-      GUARDIAN_HANDLER_MECHANICS.radiantForge
-        .glaringBurstCoefficientByWeapon[
-          context.state.profession.radiantWeapon
-        ] || 0;
-    if (coefficient > 0) {
-      context.emit(buildGuardianStrike({
-        at: context.effectiveEnd,
-        sourceId: skill.id,
-        skillId: skill.id,
-        skillName: skill.name,
-        name: skill.name,
-        coefficient,
-      }));
-    }
-    return true;
-  }
   if (skill.radiantWeapon && skill.flipParentId == null) {
     context.state.profession.radiantWeapon = skill.radiantWeapon;
     handleRadiantWeaponEquipped(context, skill);
@@ -146,6 +128,24 @@ function radiantWeapon(context, skill) {
   return false;
 }
 
+function glaringBurst(context, skill) {
+  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
+  const coefficient =
+    GUARDIAN_HANDLER_MECHANICS.radiantForge
+      .glaringBurstCoefficientByWeapon[
+        context.state.profession.radiantWeapon
+      ] || 0;
+  if (coefficient <= 0) return;
+  context.emit(buildGuardianStrike({
+    at: context.effectiveEnd,
+    sourceId: skill.id,
+    skillId: skill.id,
+    skillName: skill.name,
+    name: skill.name,
+    coefficient,
+  }));
+}
+
 function finalizeRadiantForgeCooldown(context, at) {
   const state = context.state.profession;
   const enter = context.catalog.skillsById.get(
@@ -184,6 +184,7 @@ export function clearRadiantForgeEntryCooldown(context, skill) {
 export const guardianRadiantForgeSkillHandlers = Object.freeze({
   "guardian.radiant-forge": radiantForge,
   "guardian.radiant-weapon": radiantWeapon,
+  "guardian.glaring-burst": glaringBurst,
 });
 
 function handleRadiantForgeTransition(context, event) {

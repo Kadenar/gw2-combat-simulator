@@ -72,11 +72,14 @@ Mesmer, Guardian, and Necromancer use the same module roles:
   metadata. It is never a source of coefficients or damaging conditions.
 - `data/traits-data.js` is the only module that exports the flattened runtime
   `TRAITS` collection; it derives that view from specialization metadata.
-- `mechanics/skill-mechanics.js` is the single authoritative ID-keyed source
-  for every field that can affect simulation results.
+- `mechanics/skill-mechanics.js` is the authoritative ID-keyed source for
+  shared declarative skill and effect fields.
+- `mechanics/handler-mechanics.js`, when needed, owns profession-specific
+  formulas for triggered effects and state machines without widening the
+  shared skill schema.
 - `autoattack-chains.js` owns autoattack-chain declarations and derivation.
-- `handlers.js`, when needed, registers imperative skill behavior that cannot
-  be represented by declarative effects.
+- `handlers.js`, when needed, registers explicit `augment` or `replace`
+  strategies for behavior that cannot be represented by declarative effects.
 
 Profession-specific state machines remain in named feature modules beside
 these boundaries. Skill entries reference those handlers explicitly.
@@ -150,7 +153,12 @@ sequence results keep time, cooldowns, ammo, and active weapon set under
 `endState.profession`.
 
 The platform scheduler handles ordinary declarative skills and invokes
-profession hooks for complex behavior. Mesmer clone attacks, resource gains,
+profession hooks for complex behavior. Catalog skill handlers use a shared
+strategy contract: augmenting handlers may prepare state, observe each emitted
+declarative effect, and finalize the cast; replacing handlers own the complete
+profile and must declare an empty `effects` list. The catalog rejects ambiguous
+replacing-handler/nonempty-effect combinations and undeclared effect fields.
+Mesmer clone attacks, resource gains,
 expected procs, and Continuum expiry are profession-owned typed tasks on that
 clock. Phantasms are finite skill handlers. Mesmer does not own a scheduler,
 resolver wrapper, or result builder.

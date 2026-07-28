@@ -89,7 +89,7 @@ const necromancerBuildCodec = createGw2BuildCodec({
       ...build,
       initialResource: Math.max(
         0,
-        Math.min(120, Number(saved.initialResource ?? 100) || 0),
+        Math.min(100, Number(saved.initialResource ?? 100) || 0),
       ),
       initialBlight: Math.max(
         0,
@@ -102,10 +102,10 @@ const necromancerBuildCodec = createGw2BuildCodec({
     if (
       !(
         Number(build.initialResource) >= 0
-        && Number(build.initialResource) <= 120
+        && Number(build.initialResource) <= 100
       )
     ) {
-      errors.push("initialResource must be between 0 and 120.");
+      errors.push("initialResource must be between 0 and 100.");
     }
     if (
       !(

@@ -468,6 +468,32 @@ export function continuumEndTimelineMarkers(result, rotationLength = 0) {
     );
 }
 
+export function targetHealthTimelineMarkers(
+    result,
+    targetHealth,
+    thresholds = [],
+    rotationLength = 0,
+) {
+    const percents = [...new Set(thresholds)]
+        .map(threshold => Number(threshold) * 100)
+        .filter(percent => percent > 0 && percent < 100);
+    if (!percents.length) return [];
+    const steps = (result?.steps || [])
+        .filter(step => step.ri >= 0 && !step.invalid)
+        .sort((left, right) => left.start - right.start || left.ri - right.ri);
+    return targetHealthBreakpointSnapshots(result, targetHealth, percents)
+        .map(snapshot => {
+            const start = Math.round(snapshot.at * 1000);
+            const next = steps.find(step => step.start >= start);
+            return {
+                insertionIndex: next?.ri ?? rotationLength,
+                healthPercent: snapshot.healthPercent,
+                start,
+                damage: snapshot.damage,
+            };
+        });
+}
+
 export function shatterResourceSpends(result) {
     const spends = new Map();
     for (const event of result?.events || []) {
@@ -523,14 +549,15 @@ export function renderStartResource(app) {
     const resourceControls = definitions.map(definition => {
         if (definition.canStart === false) return '';
         const key = definition.buildKey;
+        const startMaximum = definition.startMaximum;
         const value = Math.max(
             0,
-            Math.min(definition.maximum, Number(app.build[key] || 0)),
+            Math.min(startMaximum, Number(app.build[key] || 0)),
         );
         if (definition.displayMode === 'bar') {
             return `<label class="start-att-label start-resource-number">
                 Start ${esc(definition.plural)}:
-                <input type="number" min="0" max="${definition.maximum}"
+                <input type="number" min="0" max="${startMaximum}"
                     step="${definition.step}" value="${value}"
                     data-resource-key="${esc(key)}">
             </label>`;
@@ -868,6 +895,23 @@ export function renderTimeline(app) {
         markers.push(marker);
         continuumEndsByIndex.set(marker.insertionIndex, markers);
     }
+    const targetThresholds = app.profession.ui.targetHealthThresholds?.({
+        specialization: activeSpecialization(app),
+        build: app.build,
+        professionState: professionEndState(app.results),
+    }) || [];
+    const healthMarkers = targetHealthTimelineMarkers(
+        app.results,
+        app.build.targetHealth,
+        targetThresholds,
+        app.build.rotation.length,
+    );
+    const healthMarkersByIndex = new Map();
+    for (const marker of healthMarkers) {
+        const markers = healthMarkersByIndex.get(marker.insertionIndex) || [];
+        markers.push(marker);
+        healthMarkersByIndex.set(marker.insertionIndex, markers);
+    }
     const renderContinuumEnd = marker => {
         const time = formatTime(marker.start);
         const detail = [
@@ -882,12 +926,30 @@ export function renderTimeline(app) {
             <span class="rot-time">${time}</span>
         </div>`;
     };
+    const renderHealthMarker = marker => {
+        const time = formatTime(marker.start);
+        const label = `${marker.healthPercent}%`;
+        const detail = [
+            `Target reached ${label} health`,
+            `At ${time}`,
+            `${Math.round(marker.damage).toLocaleString()} cumulative damage`,
+        ].join('\n');
+        return `<div class="rot-skill rot-injected rot-health-marker"
+            title="${esc(detail)}" style="--att-border:#d96b6b">
+            <img src="${esc(COMBAT_START_ICON)}" alt="" />
+            <span class="rot-injected-badge">${esc(label)}</span>
+            <span class="rot-time">${time}</span>
+        </div>`;
+    };
 
     let timelineHtml = rows.map((row, rowNumber) => {
         const weapons = row.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
         const weaponLabel = weapons.filter(Boolean).join('/') || 'Unequipped';
         const rowItems = [];
         row.skills.forEach(({ entry, index }) => {
+            for (const marker of healthMarkersByIndex.get(index) || []) {
+                rowItems.push(renderHealthMarker(marker));
+            }
             for (const marker of continuumEndsByIndex.get(index) || []) {
                 rowItems.push(renderContinuumEnd(marker));
             }
@@ -950,6 +1012,11 @@ export function renderTimeline(app) {
                 </div>`);
         });
         if (rowNumber === rows.length - 1) {
+            for (const marker of healthMarkersByIndex.get(
+                app.build.rotation.length,
+            ) || []) {
+                rowItems.push(renderHealthMarker(marker));
+            }
             for (const marker of continuumEndsByIndex.get(app.build.rotation.length) || []) {
                 rowItems.push(renderContinuumEnd(marker));
             }

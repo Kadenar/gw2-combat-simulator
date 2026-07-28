@@ -77,7 +77,7 @@ function updateNecromancerCastState(context, skill) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
     if (flip && flip.name !== skill.name && flip.flipParentId === skill.id) {
       state.availableFlips[flip.id] =
-        context.effectiveEnd
+        context.rechargeStart
         + Math.max(
           1,
           Number(
@@ -300,6 +300,21 @@ function onEventScheduled(context, event) {
   transferNecromancerSelfConditions(context, skill, 2, event.at);
 }
 
+function onCastComplete(context, skill) {
+  if (skill.id !== ID.GRAVEDIGGER) return;
+  const targetBelowHalfAt = Number(
+    context.config._schedulerFeedback?.targetBelowHalfAt,
+  );
+  // The threshold timestamp is the packet that pushed the target below 50%.
+  // Gravedigger must land after it, because its own hit checks pre-hit health.
+  if (
+    Number.isFinite(targetBelowHalfAt)
+    && context.effectiveEnd > targetBelowHalfAt + context.epsilon
+  ) {
+    context.state.cooldowns.delete(ID.GRAVEDIGGER);
+  }
+}
+
 export const necromancerCastRules = Object.freeze({
   availability: {
     id: "necromancer.cast-state",
@@ -316,6 +331,7 @@ export const necromancerCastRules = Object.freeze({
 export const necromancerSchedulerHooks = Object.freeze({
   advance: advanceNecromancerState,
   afterCast,
+  onCastComplete,
   onEventScheduled,
   taskHandlers: necromancerWeaponTaskHandlers,
 });

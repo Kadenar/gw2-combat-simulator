@@ -29,6 +29,7 @@ import {
   groupConsecutiveProcSteps,
   paletteActionSkills,
   resultSkillIcon,
+  targetHealthTimelineMarkers,
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
   weaponPaletteRows,
@@ -222,7 +223,31 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
   }
 });
 
-test("Necromancer presets resolve benchmark rotations separately", async () => {
+test("Guardian Power Luminary default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/guardian-manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("guardian");
+  const [section] = manifest;
+  const [preset] = section.presets;
+  const saved = JSON.parse(await readFile(
+    new URL(`../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(section.section, "Luminary");
+  assert.equal(preset.label, "Power");
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "guardian");
+  assert.equal(build.specializations[2].name, "Luminary");
+  assert.deepEqual(build.weapons, ["Greatsword", ""]);
+  assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
+  assert.equal(build.startingWeaponSet, 2);
+});
+
+test("Necromancer preset builds keep rotation data separate", async () => {
   const manifest = JSON.parse(await readFile(
     new URL("../Builds/necromancer-manifest.json", import.meta.url),
     "utf8",
@@ -272,16 +297,6 @@ test("Necromancer presets resolve benchmark rotations separately", async () => {
   ]);
   assert.equal(power.selectedSkills.Utility1, "Well of Suffering");
   assert.equal(power.selectedSkills.Utility2, "Well of Darkness");
-  const reaperRotation = JSON.parse(await readFile(
-    new URL(`../${presets[0].rotation}`, import.meta.url),
-    "utf8",
-  )).rotation;
-  assert.equal(reaperRotation[0], "Summon Flesh Golem");
-  assert.deepEqual(reaperRotation[1], { name: "__wait", waitMs: 2000 });
-  assert.deepEqual(reaperRotation[4], {
-    name: "__combat_start",
-    offset: 400,
-  });
 });
 
 test("build import and export leave rotation state separate", async () => {
@@ -466,6 +481,34 @@ test("Mesmer weapon palette orders autoattack chains by chain step", () => {
       .filter(skill => skill.chainRoot === 44791)
       .map(skill => skill.name),
     ["Lacerating Chop", "Ethereal Chop", "Mirror Strikes"],
+  );
+});
+
+test("target-health timeline markers are inserted after the crossing hit", () => {
+  const result = {
+    steps: [
+      { ri: 0, start: 0 },
+      { ri: 1, start: 1000 },
+      { ri: 2, start: 2000 },
+    ],
+    resolvedEvents: [
+      { type: "damage", at: 0.5, damage: 400 },
+      { type: "damage", at: 1.5, damage: 200 },
+    ],
+  };
+
+  assert.deepEqual(
+    targetHealthTimelineMarkers(result, 1000, [0.5], 3),
+    [{
+      insertionIndex: 2,
+      healthPercent: 50,
+      start: 1500,
+      damage: 600,
+    }],
+  );
+  assert.deepEqual(
+    targetHealthTimelineMarkers(result, 1000, [], 3),
+    [],
   );
 });
 

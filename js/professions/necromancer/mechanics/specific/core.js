@@ -7,7 +7,7 @@
  * `necromancerCoreSkillHandlers` map.
  */
 import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
-import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import { emitDamage, emitState } from "./shared.js";
 
 function swapWeapons(context, skill) {
@@ -30,13 +30,13 @@ function swapWeapons(context, skill) {
 function flip(context, skill) {
   const state = context.state.profession;
   if (skill.flipSkillId != null) {
-    const duration = {
-      [ID.DARK_PATH]: 3,
-      [ID.INFUSING_TERROR]: 6,
-      [ID.RIPPLE_OF_HORROR]: 12,
-    }[skill.id] || 5;
-    state.availableFlips[skill.flipSkillId] =
-      context.effectiveEnd + duration;
+    const duration =
+      {
+        [ID.DARK_PATH]: 3,
+        [ID.INFUSING_TERROR]: 6,
+        [ID.RIPPLE_OF_HORROR]: 12,
+      }[skill.id] || 5;
+    state.availableFlips[skill.flipSkillId] = context.effectiveEnd + duration;
   }
   if (skill.flipParentId != null) {
     delete state.availableFlips[skill.id];

@@ -13,7 +13,7 @@ import {
 } from "../mechanics/specific/handlers.js";
 import {
   NECROMANCER_HANDLER_MECHANICS as MECHANICS,
-} from "../mechanics/skill-mechanics.js";
+} from "../mechanics/handler-mechanics.js";
 import { addCarapace } from "../mechanics/specific/shared.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 

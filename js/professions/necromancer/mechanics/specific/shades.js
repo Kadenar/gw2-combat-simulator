@@ -13,7 +13,7 @@ import {
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { syncNecromancerResources } from "../../state.js";
-import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
   emitBuff,
   emitCondition,
@@ -39,7 +39,9 @@ function shade(context, skill) {
   } else {
     state.lifeForce = Math.max(
       0,
-      state.lifeForce - Number(skill.lifeForceCost || 0),
+      state.lifeForce
+        - Number(skill.lifeForceCost || 0)
+          * Number(state.maximumLifeForce || 100) / 100,
     );
   }
   syncNecromancerResources(state);
@@ -55,8 +57,8 @@ function shade(context, skill) {
   });
 
   if (
-    skill.id === ID.NEFARIOUS_FAVOR
-    && hasTrait(context, TRAIT.SADISTIC_SEARING)
+    skill.id === ID.NEFARIOUS_FAVOR &&
+    hasTrait(context, TRAIT.SADISTIC_SEARING)
   ) {
     emitCondition(context, skill, ...shadeMechanics.sadisticSearing.condition, {
       source: "Trait",
@@ -74,11 +76,7 @@ function shade(context, skill) {
       hits: shadeMechanics.desertShroud.hits,
       interval: shadeMechanics.desertShroud.interval,
     });
-    for (
-      let index = 0;
-      index < shadeMechanics.desertShroud.hits;
-      index += 1
-    ) {
+    for (let index = 0; index < shadeMechanics.desertShroud.hits; index += 1) {
       emitCondition(context, skill, ...shadeMechanics.desertShroud.condition, {
         at: at + index * shadeMechanics.desertShroud.interval,
       });

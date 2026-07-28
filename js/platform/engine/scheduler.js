@@ -5,6 +5,10 @@ import { createSchedulerState } from "./scheduler-state.js";
 import { buildScheduledEventStream } from "./scheduled-event-stream.js";
 import { sortQueuedEvents } from "./event-queue.js";
 import { createTaskQueue } from "./task-queue.js";
+import {
+  resolveSkillHandlerMode,
+  SKILL_HANDLER_MODES,
+} from "./skill-handlers.js";
 
 // Shared declarative scheduler. It owns canonical command execution, cooldown
 // and ammo bookkeeping, event emission, and the scheduler-to-resolver handoff.
@@ -34,7 +38,14 @@ function effectAt(start, fullEnd, effect) {
  * Expands declarative skill effects into canonical scheduled events. This is
  * only used when a profession hook does not fully handle the cast itself.
  */
-function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd) {
+function scheduleDeclarativeEffects(
+  context,
+  skill,
+  start,
+  fullEnd,
+  effectiveEnd,
+  observeEffect = () => {},
+) {
   const interrupted = effectiveEnd < fullEnd - context.epsilon;
   const slotSkill = (
     skill.type === "Heal"
@@ -97,7 +108,7 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
           cancelPendingEffects
           && at > effectiveEnd + context.epsilon
         ) break;
-        context.emit({
+        const emitted = context.emit({
           ...base,
           type: "damage",
           at,
@@ -114,8 +125,12 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
             || skill.skillWeapon
             || (slotSkill ? "Unequipped" : ""),
           canCrit: effect.canCrit !== false,
+          ...(effect.coefficientModifiers
+            ? { coefficientModifiers: effect.coefficientModifiers }
+            : {}),
           ...(effect.metadata || {}),
         });
+        observeEffect(emitted, effect, index);
       }
     } else if (effect.type === "condition") {
       if (Array.isArray(timing.ticks)) {
@@ -131,7 +146,7 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
             cancelPendingEffects
             && at > effectiveEnd + context.epsilon
           ) break;
-          context.emit({
+          const emitted = context.emit({
             ...base,
             at,
             type: "condition",
@@ -143,26 +158,67 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
             totalApplications: timing.ticks.length,
             ...(effect.metadata || {}),
           });
+          observeEffect(emitted, effect, index);
         }
         continue;
       }
-      context.emit({
-        ...base,
-        at: firstAt,
-        type: "condition",
-        name: `${skill.name} — ${effect.condition}`,
-        condition: effect.condition,
-        stacks: Number(effect.stacks),
-        duration: Number(effect.duration),
-        ...(effect.metadata || {}),
-      });
+      const applications = Math.max(
+        1,
+        Math.trunc(Number(effect.applications || 1)),
+      );
+      const interval =
+        Math.max(0, Number(timing.intervalMs || 0)) / 1000;
+      for (
+        let applicationIndex = 1;
+        applicationIndex <= applications;
+        applicationIndex += 1
+      ) {
+        const at = firstAt + (applicationIndex - 1) * interval;
+        if (
+          cancelPendingEffects
+          && at > effectiveEnd + context.epsilon
+        ) break;
+        const emitted = context.emit({
+          ...base,
+          at,
+          type: "condition",
+          name: `${skill.name} — ${effect.condition}`,
+          condition: effect.condition,
+          stacks: Number(effect.stacks),
+          duration: Number(effect.duration),
+          applicationIndex,
+          totalApplications: applications,
+          ...(effect.metadata || {}),
+        });
+        observeEffect(emitted, effect, index);
+      }
     } else if (effect.type === "control" || effect.type === "blind") {
-      context.emit({
-        ...base,
-        at: firstAt,
-        type: effect.type,
-        ...(effect.metadata || {}),
-      });
+      const applications = Math.max(
+        1,
+        Math.trunc(Number(effect.applications || 1)),
+      );
+      const interval =
+        Math.max(0, Number(timing.intervalMs || 0)) / 1000;
+      for (
+        let applicationIndex = 1;
+        applicationIndex <= applications;
+        applicationIndex += 1
+      ) {
+        const at = firstAt + (applicationIndex - 1) * interval;
+        if (
+          cancelPendingEffects
+          && at > effectiveEnd + context.epsilon
+        ) break;
+        const emitted = context.emit({
+          ...base,
+          at,
+          type: effect.type,
+          applicationIndex,
+          totalApplications: applications,
+          ...(effect.metadata || {}),
+        });
+        observeEffect(emitted, effect, index);
+      }
     } else if (effect.type === "boon" || effect.type === "buff") {
       const baseDuration = Math.max(0, Number(effect.duration || 0));
       const duration =
@@ -173,7 +229,7 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
           baseDuration,
         )
         ?? baseDuration;
-      context.emit({
+      const emitted = context.emit({
         ...base,
         at: firstAt,
         type: "buff",
@@ -181,13 +237,15 @@ function scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd
         stacks: Math.max(1, Number(effect.stacks || 1)),
         duration: Math.max(0, Number(duration || 0)),
       });
+      observeEffect(emitted, effect, index);
     } else if (effect.type === "custom") {
-      context.emit({
+      const emitted = context.emit({
         ...base,
         at: firstAt,
         ...effect.event,
         type: effect.eventType,
       });
+      observeEffect(emitted, effect, index);
     }
   }
 }
@@ -806,12 +864,37 @@ export function createScheduler({
       reservationId,
     };
     profession.onCastStart(lifecycleContext, skill);
-    const handled = profession.scheduleSkill(lifecycleContext, skill);
-    // Returning true transfers full event-scheduling ownership to the
-    // profession; every other return value falls back to declarative effects.
-    if (handled !== true) {
-      scheduleDeclarativeEffects(context, skill, start, fullEnd, effectiveEnd);
+    const handler = profession.skillHandlerFor?.(skill);
+    const handlerMode = resolveSkillHandlerMode(
+      handler,
+      lifecycleContext,
+      skill,
+    );
+    const handlerState = handler?.beforeEffects?.(lifecycleContext, skill);
+    // The profession-level hook remains for schedulers that still own their
+    // complete event materialization; catalog handlers use explicit strategies.
+    const professionHandled =
+      profession.scheduleSkill(lifecycleContext, skill) === true;
+    if (
+      handlerMode !== SKILL_HANDLER_MODES.REPLACE
+      && !professionHandled
+    ) {
+      scheduleDeclarativeEffects(
+        context,
+        skill,
+        start,
+        fullEnd,
+        effectiveEnd,
+        (event, effect, effectIndex) => handler?.afterEffect?.(
+          lifecycleContext,
+          skill,
+          event,
+          handlerState,
+          { effect, effectIndex },
+        ),
+      );
     }
+    handler?.afterEffects?.(lifecycleContext, skill, handlerState);
     state.skillUses.set(skill.id, (state.skillUses.get(skill.id) || 0) + 1);
     profession.afterCast(lifecycleContext, skill);
     context.tasks.schedule({

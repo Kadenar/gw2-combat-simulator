@@ -9,9 +9,7 @@
  */
 import { necromancerBlightSkillHandlers } from "./blight.js";
 import { necromancerCoreSkillHandlers } from "./core.js";
-import {
-  necromancerConditionSkillHandlers,
-} from "./conditions.js";
+import { necromancerConditionSkillHandlers } from "./conditions.js";
 import {
   handleNecromancerChillEvent,
   handleNecromancerStateEvent,
@@ -23,11 +21,18 @@ import {
   finalizeNecromancerCast,
 } from "./life-force.js";
 import { necromancerMinionSkillHandlers } from "./minions.js";
-import { gainNecromancerLifeForce } from "./shared.js";
+import { gainNecromancerLifeForce, hasTrait } from "./shared.js";
 import { necromancerShadeSkillHandlers } from "./shades.js";
 import { necromancerShroudSkillHandlers } from "./shroud.js";
 import { necromancerSpiritSkillHandlers } from "./spirits.js";
 import { necromancerWeaponSkillHandlers } from "./weapons.js";
+import { NECROMANCER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import {
+  augmentSkillHandler,
+  replaceSkillHandler,
+  skillHandler,
+  SKILL_HANDLER_MODES,
+} from "../../../../platform/engine/skill-handlers.js";
 
 export {
   advanceNecromancerState,
@@ -40,12 +45,103 @@ export {
 };
 
 export const necromancerSkillHandlers = Object.freeze({
-  ...necromancerShroudSkillHandlers,
-  ...necromancerCoreSkillHandlers,
-  ...necromancerConditionSkillHandlers,
-  ...necromancerMinionSkillHandlers,
-  ...necromancerSpiritSkillHandlers,
-  ...necromancerShadeSkillHandlers,
-  ...necromancerBlightSkillHandlers,
-  ...necromancerWeaponSkillHandlers,
+  "necromancer.shroud": replaceSkillHandler(
+    necromancerShroudSkillHandlers["necromancer.shroud"],
+  ),
+  "necromancer.lich": replaceSkillHandler(
+    necromancerShroudSkillHandlers["necromancer.lich"],
+  ),
+  "necromancer.weapon-swap": replaceSkillHandler(
+    necromancerCoreSkillHandlers["necromancer.weapon-swap"],
+  ),
+  "necromancer.flip": augmentSkillHandler(
+    necromancerCoreSkillHandlers["necromancer.flip"],
+  ),
+  "necromancer.signet-vampirism": replaceSkillHandler(
+    necromancerCoreSkillHandlers["necromancer.signet-vampirism"],
+  ),
+  "necromancer.signet-undeath": replaceSkillHandler(
+    necromancerCoreSkillHandlers["necromancer.signet-undeath"],
+  ),
+  "necromancer.corruption": augmentSkillHandler(
+    necromancerConditionSkillHandlers["necromancer.corruption"],
+  ),
+  "necromancer.condition-transfer": augmentSkillHandler(
+    necromancerConditionSkillHandlers["necromancer.condition-transfer"],
+  ),
+  "necromancer.devouring-darkness": replaceSkillHandler(
+    necromancerConditionSkillHandlers["necromancer.devouring-darkness"],
+  ),
+  "necromancer.dark-barrage": skillHandler({
+    mode: SKILL_HANDLER_MODES.AUGMENT,
+    resolveMode: (context) =>
+      hasTrait(context, TRAIT.DOOM_APPROACHES)
+        ? SKILL_HANDLER_MODES.REPLACE
+        : SKILL_HANDLER_MODES.AUGMENT,
+    beforeEffects:
+      necromancerConditionSkillHandlers["necromancer.dark-barrage"],
+  }),
+  "necromancer.minion": replaceSkillHandler(
+    necromancerMinionSkillHandlers["necromancer.minion"],
+  ),
+  "necromancer.minion-command": replaceSkillHandler(
+    necromancerMinionSkillHandlers["necromancer.minion-command"],
+  ),
+  "necromancer.summon-madness": replaceSkillHandler(
+    necromancerMinionSkillHandlers["necromancer.summon-madness"],
+  ),
+  "necromancer.ritualist": replaceSkillHandler(
+    necromancerSpiritSkillHandlers["necromancer.ritualist"],
+  ),
+  "necromancer.innervate": replaceSkillHandler(
+    necromancerSpiritSkillHandlers["necromancer.innervate"],
+  ),
+  "necromancer.shade": replaceSkillHandler(
+    necromancerShadeSkillHandlers["necromancer.shade"],
+  ),
+  "necromancer.elixir": replaceSkillHandler(
+    necromancerBlightSkillHandlers["necromancer.elixir"],
+  ),
+  "necromancer.blight-skill": replaceSkillHandler(
+    necromancerBlightSkillHandlers["necromancer.blight-skill"],
+  ),
+  "necromancer.deadly-slice": augmentSkillHandler(null, {
+    afterEffects: necromancerWeaponSkillHandlers["necromancer.deadly-slice"],
+  }),
+  "necromancer.sinister-stab": augmentSkillHandler(null, {
+    afterEffects: necromancerWeaponSkillHandlers["necromancer.sinister-stab"],
+  }),
+  "necromancer.chilling-scythe": augmentSkillHandler(null, {
+    afterEffect:
+      necromancerWeaponSkillHandlers["necromancer.chilling-scythe"],
+  }),
+  "necromancer.addle": augmentSkillHandler(null, {
+    afterEffects: necromancerWeaponSkillHandlers["necromancer.addle"],
+  }),
+  "necromancer.extirpate": augmentSkillHandler(null, {
+    afterEffects: necromancerWeaponSkillHandlers["necromancer.extirpate"],
+  }),
+  "necromancer.perforate": augmentSkillHandler(
+    necromancerWeaponSkillHandlers["necromancer.perforate"].prepare,
+    {
+      afterEffect:
+        necromancerWeaponSkillHandlers["necromancer.perforate"].afterEffect,
+      afterEffects:
+        necromancerWeaponSkillHandlers["necromancer.perforate"].complete,
+    },
+  ),
+  "necromancer.distress": replaceSkillHandler(
+    necromancerWeaponSkillHandlers["necromancer.distress"],
+  ),
+  "necromancer.nightfall": skillHandler({
+    mode: SKILL_HANDLER_MODES.AUGMENT,
+    resolveMode: (context, skill) => (
+      necromancerWeaponSkillHandlers["necromancer.nightfall"]
+        .committed(context, skill)
+        ? SKILL_HANDLER_MODES.AUGMENT
+        : SKILL_HANDLER_MODES.REPLACE
+    ),
+    afterEffect:
+      necromancerWeaponSkillHandlers["necromancer.nightfall"].afterEffect,
+  }),
 });

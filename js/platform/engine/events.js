@@ -18,6 +18,11 @@ export const EVENT_SCHEMA_VERSION = 1;
  * @typedef {SimulationEventBase & {
  *   type: "damage",
  *   coefficient: number,
+ *   coefficientModifiers?: ReadonlyArray<{
+ *     kind: "target-health-below",
+ *     threshold: number,
+ *     multiplier: number
+ *   }>,
  *   hits?: number,
  *   canCrit?: boolean
  * }} DamageEvent

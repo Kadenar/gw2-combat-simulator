@@ -12,7 +12,7 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
-import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import { advanceNecromancerState, leaveShroud } from "./life-force.js";
 import {
   EXIT_ID_BY_SHROUD,
@@ -32,17 +32,19 @@ function activateShroud(context, skill) {
   const shroud = SHROUD_ENTRY[skill.id];
   const at = context.effectiveEnd;
   const specialization = context.config.specialization || "Core";
-  const timedCarapace = (state.carapaceExpiries || [])
-    .filter(expiresAt => expiresAt > at).length;
+  const timedCarapace = (state.carapaceExpiries || []).filter(
+    (expiresAt) => expiresAt > at,
+  ).length;
   const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
-    ? Object.values(state.activeMinions || {})
-        .reduce((total, count) => total + Number(count || 0) * 2, 0)
+    ? Object.values(state.activeMinions || {}).reduce(
+        (total, count) => total + Number(count || 0) * 2,
+        0,
+      )
     : 0;
   if (hasTrait(context, TRAIT.SOUL_COMPREHENSION)) {
     gainNecromancerLifeForce(
       context,
-      Math.min(30, timedCarapace + minionCarapace)
-        * state.maximumLifeForce * 0.005,
+      Math.min(30, timedCarapace + minionCarapace) * 0.5,
       at,
     );
   }
@@ -50,37 +52,36 @@ function activateShroud(context, skill) {
     addCarapace(state, 5, at);
   }
   if (hasTrait(context, TRAIT.SHROUDED_REMOVAL)) {
-    const activeCondition = (state.selfConditions || [])
-      .find(application =>
-        application.appliedAt <= at && application.expiresAt > at);
+    const activeCondition = (state.selfConditions || []).find(
+      (application) =>
+        application.appliedAt <= at && application.expiresAt > at,
+    );
     if (activeCondition) {
-      state.selfConditions = state.selfConditions
-        .filter(application => application !== activeCondition);
+      state.selfConditions = state.selfConditions.filter(
+        (application) => application !== activeCondition,
+      );
       addCarapace(state, 3, at);
     }
   }
-  if (
-    shroud === "harbinger" &&
-    hasTrait(context, TRAIT.CORRUPTED_TALENT)
-  ) {
+  if (shroud === "harbinger" && hasTrait(context, TRAIT.CORRUPTED_TALENT)) {
     gainNecromancerLifeForce(context, 15, at);
   }
   state.activeShroud = shroud;
   state.shroudEnteredAt = at;
   state.lastResourceAt = at;
-  state.nextBlightAt = shroud === "harbinger"
-    ? Math.floor(at) + 1
-    : Number.POSITIVE_INFINITY;
+  state.nextBlightAt =
+    shroud === "harbinger" ? Math.floor(at) + 1 : Number.POSITIVE_INFINITY;
   state.soulTwistingAvailable =
-    shroud === "ritualist"
-    && hasTrait(context, TRAIT.SOUL_TWISTING);
+    shroud === "ritualist" && hasTrait(context, TRAIT.SOUL_TWISTING);
   const exitId = EXIT_ID_BY_SHROUD[shroud];
   state.availableFlips[exitId] = Number.POSITIVE_INFINITY;
   state.pendingShroudEntryId = skill.id;
   state.plagueSendingArmed =
     hasTrait(context, TRAIT.PLAGUE_SENDING) &&
-    (state.selfConditions || []).some(application =>
-      application.appliedAt <= at && application.expiresAt > at);
+    (state.selfConditions || []).some(
+      (application) =>
+        application.appliedAt <= at && application.expiresAt > at,
+    );
 
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
     emitBuff(context, skill, "necromancer-soul-barbs", 15);
@@ -116,30 +117,27 @@ function activateShroud(context, skill) {
       actorType: "effect",
     });
   }
-  if (
-    shroud === "harbinger" &&
-    hasTrait(context, TRAIT.DEATHLY_HASTE)
-  ) {
+  if (shroud === "harbinger" && hasTrait(context, TRAIT.DEATHLY_HASTE)) {
     emitBuff(context, skill, "quickness", 4);
     emitBuff(context, skill, "fury", 4);
   }
-  if (
-    shroud === "harbinger"
-    && hasTrait(context, TRAIT.IMPLACABLE_FOE)
-  ) {
+  if (shroud === "harbinger" && hasTrait(context, TRAIT.IMPLACABLE_FOE)) {
     emitBuff(context, skill, "stability", 5, 3);
     emitBuff(context, skill, "implacable-foe", 2);
   }
   if (hasTrait(context, TRAIT.SPITEFUL_SPIRIT)) {
-    emitDamage(context, skill, MECHANICS.traitStrikeCoefficient[
-      TRAIT.SPITEFUL_SPIRIT
-    ], {
-      name: "Spiteful Spirit",
-      source: "Trait",
-      sourceId: TRAIT.SPITEFUL_SPIRIT,
-      actorType: "effect",
-      skillWeapon: "Unequipped",
-    });
+    emitDamage(
+      context,
+      skill,
+      MECHANICS.traitStrikeCoefficient[TRAIT.SPITEFUL_SPIRIT],
+      {
+        name: "Spiteful Spirit",
+        source: "Trait",
+        sourceId: TRAIT.SPITEFUL_SPIRIT,
+        actorType: "effect",
+        skillWeapon: "Unequipped",
+      },
+    );
   }
   context.emit({
     type: "weapon_set",

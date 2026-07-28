@@ -23,7 +23,7 @@ import {
   snapshotNecromancerState,
   syncNecromancerResources,
 } from "../../state.js";
-import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../skill-mechanics.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 
 export const SHROUD_ENTRY = Object.freeze({
   [ID.DEATH_SHROUD]: "death",
@@ -265,7 +265,9 @@ export function gainNecromancerLifeForce(context, amount, at, reason = "") {
   const before = state.lifeForce;
   state.lifeForce = Math.min(
     state.maximumLifeForce,
-    state.lifeForce + Number(amount) * multiplier,
+    state.lifeForce
+      + Number(amount) * Number(state.maximumLifeForce || 100) / 100
+        * multiplier,
   );
   syncNecromancerResources(state);
   if (state.lifeForce !== before && reason) emitState(context, at, reason);

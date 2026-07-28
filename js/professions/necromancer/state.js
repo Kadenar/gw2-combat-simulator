@@ -18,6 +18,33 @@ export function hasNecromancerTrait(configOrTraits, traitId) {
   return traits.has(traitId) || traits.has(String(traitId));
 }
 
+function necromancerMaximumHealth(config, traits) {
+  let vitality = Number(
+    config.stats?.vitality
+    ?? config.attributes?.vitality
+    ?? 1000,
+  );
+  if (!config.necromancerBuildAttributesApplied) {
+    if (hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
+      vitality += Number(
+        config.stats?.power
+        ?? config.attributes?.power
+        ?? 1000,
+      ) * 0.1;
+    }
+    if (hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE)) {
+      vitality += 180;
+    }
+    if (
+      config.specialization === "Harbinger"
+      || hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.ALCHEMIC_VIGOR)
+    ) {
+      vitality += 240;
+    }
+  }
+  return 9212 + Math.max(0, vitality) * 10;
+}
+
 export function syncNecromancerResources(state) {
   state.lifeForce = Math.max(
     0,
@@ -40,17 +67,19 @@ export function syncNecromancerResources(state) {
 
 export function createNecromancerState(config = {}) {
   const traits = selectedNecromancerTraits(config);
-  const maximumLifeForce = hasNecromancerTrait(
+  const soulBattery = hasNecromancerTrait(
     traits,
     NECROMANCER_TRAIT_IDS.SOUL_BATTERY,
-  )
-    ? 120
-    : 100;
+  );
+  const maximumLifeForce = soulBattery ? 120 : 100;
+  const maximumHealth = necromancerMaximumHealth(config, traits);
+  const lifeForcePoolCapacity =
+    maximumHealth * 0.69 * (soulBattery ? 1.2 : 1);
   const configuredLifeForce = Number(config.initialResource ?? 100);
   const lifeForce =
-    maximumLifeForce === 120 && configuredLifeForce === 100
-      ? 120
-      : configuredLifeForce;
+    maximumLifeForce
+    * Math.max(0, Math.min(100, configuredLifeForce))
+    / 100;
   const initialBlight = Math.max(
     0,
     Math.min(25, Math.trunc(Number(config.initialBlight || 0))),
@@ -60,6 +89,8 @@ export function createNecromancerState(config = {}) {
     lifeForce,
     resource: lifeForce,
     maximumLifeForce,
+    maximumHealth,
+    lifeForcePoolCapacity,
     activeShroud: "",
     shroudEnteredAt: 0,
     lastResourceAt: 0,

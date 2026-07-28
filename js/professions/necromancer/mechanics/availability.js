@@ -116,7 +116,11 @@ function shroudEntryGate(_context, skill, { state, activeShroud, spec }) {
       `not available for the ${spec} specialization.`,
     );
   }
-  if (spec !== "Harbinger" && Number(state.lifeForce || 0) < 10) {
+  if (
+    spec !== "Harbinger"
+    && Number(state.lifeForce || 0)
+      < Number(state.maximumLifeForce || 100) * 0.1
+  ) {
     return deny(
       skill,
       "necromancer.insufficient-life-force",
@@ -181,7 +185,9 @@ function baselineGate(context, skill, { state, activeShroud }) {
   }
   if (
     skill.lifeForceCost
-    && Number(state.lifeForce || 0) < Number(skill.lifeForceCost)
+    && Number(state.lifeForce || 0)
+      < Number(skill.lifeForceCost)
+        * Number(state.maximumLifeForce || 100) / 100
   ) {
     return deny(
       skill,

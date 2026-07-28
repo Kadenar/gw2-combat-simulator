@@ -239,9 +239,11 @@ Mesmer, Guardian, and Necromancer use the same files for shared concepts:
   calculation before shared finalization.
 - `data/<profession>-api-metadata.js` — generated identity and presentation
   metadata only.
-- `mechanics/skill-mechanics.js` — the sole authoritative skill mechanics map.
+- `mechanics/skill-mechanics.js` — shared-schema declarative skill mechanics.
+- `mechanics/handler-mechanics.js` — optional profession-specific triggered
+  effect and state-machine formulas.
 - `mechanics/autoattack-chains.js` — autoattack-chain declarations.
-- `mechanics/handlers.js` — imperative runtime handlers, when needed.
+- `mechanics/handlers.js` — explicit augment/replace runtime strategies.
 
 ### Mesmer-Specific Mechanics
 

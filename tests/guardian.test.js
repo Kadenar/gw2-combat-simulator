@@ -625,6 +625,35 @@ test("Guardian timing applies Quickness, Alacrity, ammo, and trait recharge", ()
   assert.deepEqual(ammo.warnings, []);
 });
 
+test("Guardian measured Quickness cast times remain exact", () => {
+  const quicknessConfig = {
+    ...config,
+    boons: { quickness: true },
+    specialization: "Luminary",
+    primaryWeapon: "Spear",
+  };
+  const castDuration = (rotation, skillName) => {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation,
+      config: quicknessConfig,
+    });
+    const action = result.events.find(event =>
+      event.type === "action" && event.skillName === skillName);
+    return Math.round((action.endsAt - action.at) * 1000);
+  };
+
+  assert.equal(castDuration(["Helio Rush"], "Helio Rush"), 320);
+  assert.equal(castDuration(["Gleaming Disc"], "Gleaming Disc"), 560);
+  assert.equal(
+    castDuration(
+      ["Enter Radiant Forge", "Dazzling Hammer"],
+      "Dazzling Hammer",
+    ),
+    480,
+  );
+});
+
 test("Guardian symbols and persistent attacks resolve after their casts", () => {
   const symbol = simulateGw2({
     profession: guardianProfession,

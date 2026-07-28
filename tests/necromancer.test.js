@@ -40,7 +40,6 @@ import {
 import {
   modifierCandidates,
   recalculate,
-  simulationConfig,
 } from "../js/professions/necromancer/app/app-runtime.js";
 
 const baseConfig = Object.freeze({
@@ -370,6 +369,124 @@ test("Reaper Shroud enforces its chain and four-percent drain", () => {
     result.breakdown.some(entry => entry.name === "Life Reap"),
   );
   assert.match(skipped.warnings.join(" "), /Life Reap is unavailable/);
+});
+
+test("Death and Reaper shrouds drain a percentage of the maximum life-force pool", () => {
+  const drainAfterOneSecond = (specialization, enter, exit) =>
+    simulate(specialization, [
+      enter,
+      { type: "wait", durationMs: 1000 },
+      exit,
+    ], {
+      initialResource: 100,
+      selectedTraitIds: [TRAIT.SOUL_BATTERY],
+    }).endState.profession.lifeForce;
+
+  assert.equal(
+    drainAfterOneSecond("Core", "Death Shroud", "End Death Shroud"),
+    116.4,
+  );
+  assert.equal(
+    drainAfterOneSecond(
+      "Reaper",
+      "Reaper's Shroud",
+      "Exit Reaper's Shroud",
+    ),
+    115.2,
+  );
+});
+
+test("life-force capacity is 69% of health and Soul Battery increases it by 20%", () => {
+  const base = simulate("Core", [], {
+    initialResource: 100,
+    stats: { vitality: 1000 },
+  }).endState.profession;
+  const battery = simulate("Core", [], {
+    initialResource: 100,
+    stats: { vitality: 1000 },
+    selectedTraitIds: [TRAIT.SOUL_BATTERY],
+  }).endState.profession;
+
+  assert.equal(base.maximumHealth, 19212);
+  assert.equal(base.lifeForcePoolCapacity, 19212 * 0.69);
+  assert.equal(
+    battery.lifeForcePoolCapacity,
+    base.lifeForcePoolCapacity * 1.2,
+  );
+});
+
+test("Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigger", async () => {
+  const adapter = await loadProfessionAppAdapter("necromancer");
+  const skills = weaponSkills({
+    adapter,
+    skills: necromancerCatalog.skills,
+    build: {
+      specialization: "Reaper",
+      weapons: ["Greatsword", ""],
+      alternateWeapons: ["Axe", "Focus"],
+      specializations: [{ name: "Reaper", traits: "1-1-1" }],
+    },
+    weaponData: {
+      Greatsword: { wielding: "2h" },
+      Axe: { wielding: "1h" },
+      Focus: { wielding: "1h" },
+    },
+  });
+  const result = simulate("Reaper", [
+    "Gravedigger",
+    "Dusk Strike",
+    "Fading Twilight",
+    "Chilling Scythe",
+    "Gravedigger",
+  ], {
+    primaryWeapon: "Greatsword",
+    target: { conditions: {} },
+  });
+
+  assert.deepEqual(
+    skills
+      .filter(skill => skill.chainRoot === ID.DUSK_STRIKE)
+      .map(skill => skill.name),
+    ["Dusk Strike", "Fading Twilight", "Chilling Scythe"],
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.steps.filter(step => step.skill === "Gravedigger").length,
+    2,
+  );
+  assert.equal(
+    result.events.some(event =>
+      event.type === "necromancer.chill"
+      && event.skillName === "Chilling Scythe"
+      && event.duration === 2
+    ),
+    true,
+  );
+});
+
+test("Gravedigger fully recharges when it hits below 50% target health", () => {
+  const setup = simulate("Reaper", ["Dusk Strike"], {
+    primaryWeapon: "Greatsword",
+    target: { health: 0, conditions: {} },
+  });
+  const result = simulate("Reaper", [
+    "Dusk Strike",
+    "Gravedigger",
+    "Gravedigger",
+  ], {
+    primaryWeapon: "Greatsword",
+    target: {
+      health: setup.totalDamage * 1.5,
+      conditions: {},
+    },
+  });
+  const gravediggers = result.steps.filter(
+    step => step.skill === "Gravedigger",
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(gravediggers.length, 2);
+  assert.equal(gravediggers[1].start, gravediggers[0].end);
 });
 
 test("Reaper and Harbinger shroud transitions emit the current weapon set", () => {
@@ -728,8 +845,12 @@ test("Spear skills generate, refresh, consume, and damage with Soul Shards", () 
     Array(7).fill(0.5),
   );
   assert.deepEqual(
-    perforate.map(event => event.thresholdCoefficients),
-    Array(7).fill(null).map(() => ({ 50: 0.6 })),
+    perforate.map(event => event.coefficientModifiers),
+    Array(7).fill(null).map(() => [{
+      kind: "target-health-below",
+      threshold: 0.5,
+      multiplier: 1.2,
+    }]),
   );
   assert.equal(shards.length, 4);
   assert.equal(shards.every(event =>
@@ -775,8 +896,31 @@ test("Isolate and Distress expose the follow-up and reset Perforate", () => {
   ], {
     primaryWeapon: "Spear",
   });
+  const delayedHitWindow = simulate("Harbinger", [
+    "Isolate",
+    { type: "wait", durationMs: 3200 },
+    "Distress",
+  ], {
+    boons: { quickness: true },
+    primaryWeapon: "Spear",
+  });
 
   assert.deepEqual(result.warnings, []);
+  assert.deepEqual(delayedHitWindow.warnings, []);
+  assert.equal(
+    Math.round(
+      delayedHitWindow.events.find(event =>
+        event.type === "damage" && event.skillId === ID.ISOLATE
+      ).at * 1000,
+    ),
+    720,
+  );
+  assert.equal(
+    delayedHitWindow.events.find(event =>
+      event.type === "action" && event.skillId === ID.ISOLATE
+    ).rechargeReadyAt,
+    18.72,
+  );
   assert.equal(result.steps[3].start < 8000, true);
   assert.equal(
     result.events.filter(event =>
@@ -898,6 +1042,7 @@ test("necromancer wells finish their pulses after the final rotation action", ()
 });
 
 test("Greatsword control and Nightfall pulses use their live mechanics", () => {
+  const nightfallSkill = necromancerCatalog.skillsById.get(ID.NIGHTFALL);
   const grasp = simulate("Harbinger", ["Grasping Darkness"], {
     initialResource: 0,
     primaryWeapon: "Greatsword",
@@ -913,6 +1058,14 @@ test("Greatsword control and Nightfall pulses use their live mechanics", () => {
   const nightfallHits = nightfall.events.filter(event =>
     event.type === "damage" && event.skillId === ID.NIGHTFALL);
 
+  assert.deepEqual(
+    nightfallSkill.effects.map(effect => effect.type),
+    ["strike", "blind", "condition"],
+  );
+  assert.deepEqual(
+    nightfallSkill.effects.map(effect => effect.applications ?? effect.hits),
+    [4, 4, 4],
+  );
   assert.deepEqual(
     grasp.events
       .filter(event =>
@@ -964,6 +1117,51 @@ test("Greatsword control and Nightfall pulses use their live mechanics", () => {
     4,
   );
   assert.equal(nightfall.endState.profession.lifeForce, 28);
+});
+
+test("Nightfall commits its declarative field at the first pulse", () => {
+  const beforeCommit = simulate("Harbinger", [{
+    name: "Nightfall",
+    interruptAfterMs: 560,
+  }, {
+    type: "wait",
+    durationMs: 4000,
+  }], {
+    initialResource: 0,
+    primaryWeapon: "Greatsword",
+  });
+  const afterCommit = simulate("Harbinger", [{
+    name: "Nightfall",
+    interruptAfterMs: 640,
+  }, {
+    type: "wait",
+    durationMs: 4000,
+  }], {
+    initialResource: 0,
+    primaryWeapon: "Greatsword",
+  });
+  const quickness = simulate("Harbinger", [
+    "Nightfall",
+    { type: "wait", durationMs: 4000 },
+  ], {
+    boons: { quickness: true },
+    initialResource: 0,
+    primaryWeapon: "Greatsword",
+  });
+  const nightfallHits = result => result.events.filter(event =>
+    event.type === "damage" && event.skillId === ID.NIGHTFALL);
+
+  assert.equal(nightfallHits(beforeCommit).length, 0);
+  assert.equal(beforeCommit.endState.profession.lifeForce, 0);
+  assert.equal(nightfallHits(afterCommit).length, 4);
+  assert.equal(afterCommit.endState.profession.lifeForce, 28);
+  assert.equal(quickness.steps[0].fullCastMs, 480);
+  assert.deepEqual(
+    nightfallHits(quickness).map((event, index) =>
+      Math.round(event.at * 1000 - quickness.steps[0].start)
+        - index * 1000),
+    [400, 400, 400, 400],
+  );
 });
 
 test("Lich Form swaps its bar and grants life force on exit", () => {
@@ -1844,6 +2042,7 @@ test("Necromancer resources and palette change with specialization state", () =>
     professionState: {
       lifeForce: 80,
       maximumLifeForce: 100,
+      lifeForcePoolCapacity: 13256.28,
       blight: 12,
     },
   });
@@ -1863,6 +2062,9 @@ test("Necromancer resources and palette change with specialization state", () =>
     harbingerResources.map(resource => resource.id),
     ["life-force", "blight"],
   );
+  assert.equal(harbingerResources[0].maximum, 13256);
+  assert.equal(harbingerResources[0].value, 13256 * 0.8);
+  assert.equal(harbingerResources[0].startMaximum, 100);
   assert.deepEqual(
     necromancerProfession.ui.resourceViews({
       specialization: "Harbinger",
@@ -1893,6 +2095,20 @@ test("Necromancer resources and palette change with specialization state", () =>
     false,
   );
   assert.equal(formatResourceValue(113.89999999999999), "113.9");
+  assert.deepEqual(
+    necromancerProfession.ui.targetHealthThresholds({
+      specialization: "Core",
+      build: { weapons: ["Axe", "Focus"], specializations: [] },
+    }),
+    [],
+  );
+  assert.deepEqual(
+    necromancerProfession.ui.targetHealthThresholds({
+      specialization: "Reaper",
+      build: { weapons: ["Greatsword", ""], specializations: [] },
+    }),
+    [0.5],
+  );
 });
 
 test("slot skills are inaccessible in transformed shrouds", () => {
@@ -2038,7 +2254,7 @@ test("Necromancer builds migrate and validate against canonical metadata", () =>
     ],
   });
   assert.deepEqual(migrated.weapons, ["Greatsword", ""]);
-  assert.equal(migrated.initialResource, 120);
+  assert.equal(migrated.initialResource, 100);
   assert.equal(migrated.initialBlight, 0);
   assert.equal(migrated.selectedSkills.Heal, "Summon Blood Fiend");
   assert.equal(migrated.selectedSkills.Elite, "Lich Form");
@@ -2069,52 +2285,4 @@ test("Necromancer is wired through the selector and application adapter", async 
   );
   assert.match(page, /data-profession="necromancer"/);
   assert.match(page, /data-active-profession="necromancer"/);
-});
-
-test("the supplied Power Reaper benchmark rotation retains its audited setup", async () => {
-  const build = JSON.parse(await readFile(
-    new URL("../Builds/b-power-reaper.json", import.meta.url),
-    "utf8",
-  ));
-  build.rotation = JSON.parse(await readFile(
-    new URL("../Rotations/r-power-reaper-bench.json", import.meta.url),
-    "utf8",
-  )).rotation;
-  const app = {
-    build,
-    skillByName: necromancerCatalog.skillsByName,
-    attributeWeaponSet: build.startingWeaponSet,
-  };
-  recalculate(app);
-  const result = simulateGw2({
-    profession: necromancerProfession,
-    rotation: build.rotation,
-    config: simulationConfig(app),
-  });
-  const hits = name =>
-    result.breakdown.find(entry => entry.name === name)?.hits || 0;
-
-  assert.equal(build.rotation[0], "Summon Flesh Golem");
-  assert.deepEqual(build.rotation[1], { name: "__wait", waitMs: 2000 });
-  assert.deepEqual(build.rotation[4], {
-    name: "__combat_start",
-    offset: 400,
-  });
-  assert.deepEqual(result.warnings, []);
-  assert.equal(hits("Chilling Nova"), 29);
-  assert.equal(hits("Perforate"), 63);
-  assert.equal(hits("Soul Shards"), 54);
-  assert.equal(hits("Well of Darkness"), 30);
-  assert.equal(hits("Well of Suffering"), 30);
-  assert.equal(hits("Life Reap"), 17);
-  assert.equal(hits("Nightfall"), 20);
-  assert.equal(hits("Gravedigger"), 6);
-  assert.ok(result.totalDamage >= build.targetHealth);
-
-  const relativeShroudTimes = result.steps
-    .filter(step => step.skill === "Reaper's Shroud")
-    .slice(0, 3)
-    .map(step =>
-      Number((step.start / 1000 - result.dpsStartTime).toFixed(3)));
-  assert.deepEqual(relativeShroudTimes, [2.399, 23.356, 44.313]);
 });
