@@ -54,10 +54,16 @@ export function groupedOptions(
   groups,
   selected,
   labelFor = value => value,
+  disabledFor = () => false,
 ) {
   return groups.map(group =>
     `<optgroup label="${esc(group.label)}">${group.items
-      .map(item => option(item, selected, labelFor(item)))
+      .map(item => option(
+        item,
+        selected,
+        labelFor(item),
+        disabledFor(item),
+      ))
       .join("")}</optgroup>`
   ).join("");
 }
