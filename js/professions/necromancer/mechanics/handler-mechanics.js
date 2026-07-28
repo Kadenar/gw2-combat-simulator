@@ -19,6 +19,10 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
     noCrit: true,
     damageKind: "life-steal",
   }),
+  graspingDarkness: Object.freeze({
+    baseCommitAtMs: 180,
+    lifeForceOnHit: 10,
+  }),
   nightfall: Object.freeze({
     lifeForcePerPulse: 7,
   }),
@@ -67,7 +71,7 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
       traitId: TRAIT.BARBED_PRECISION,
       condition: "Bleeding",
       duration: 3,
-      criticalProgress: 0.33,
+      chanceOnCriticalHit: 0.33,
     }),
     [TRAIT.VAMPIRIC_PRESENCE]: Object.freeze({
       name: "Vampiric Presence",
@@ -87,8 +91,8 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
       name: "Deathly Chill",
       traitId: TRAIT.DEATHLY_CHILL,
       condition: "Bleeding",
-      stacks: 3,
-      duration: 8,
+      stacks: 4,
+      duration: 4,
     }),
     [TRAIT.CHILLING_DARKNESS]: Object.freeze({
       name: "Chilling Darkness",

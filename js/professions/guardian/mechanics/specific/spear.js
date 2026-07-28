@@ -175,12 +175,12 @@ export function updateSpearIlluminationState(context, skill) {
         `${skill.name} illuminated (×${multiplier})`,
       );
     }
-    // Only the enhanced-damage spear skills consume the armed buff, so filler
-    // autoattacks never waste it. Symbol of Luminance keeps it up for free.
-    if (!luminanceActive) {
-      state.spearIlluminatedArmed = false;
-      state.spearIlluminatedUntil = 0;
-    }
+  }
+  // Any spear attack consumes the armed effect. Symbol of Luminance supplies
+  // illumination independently and therefore leaves the armed effect intact.
+  if (illuminatedArmed && !luminanceActive) {
+    state.spearIlluminatedArmed = false;
+    state.spearIlluminatedUntil = 0;
   }
 
   if (skill.id === ID.SYMBOL_OF_LUMINANCE) {
@@ -213,5 +213,6 @@ export function advanceSpearIlluminationState(context, target) {
     && Number(state.spearIlluminatedUntil || 0) <= target + context.epsilon
   ) {
     state.spearIlluminatedArmed = false;
+    state.spearIlluminatedUntil = 0;
   }
 }

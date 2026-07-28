@@ -14,6 +14,7 @@ const HOOK_NAMES = Object.freeze([
   "projectEndState",
   "onCastStart",
   "onCastComplete",
+  "onCooldownReset",
   "onEventScheduled",
   "modifyCastDuration",
   "modifyRechargeDuration",
@@ -228,6 +229,7 @@ export function defineProfession(definition) {
       ?? schedulerHooks.projectEndState,
     onCastStart: schedulerHooks.onCastStart,
     onCastComplete: schedulerHooks.onCastComplete,
+    onCooldownReset: schedulerHooks.onCooldownReset,
     onEventScheduled: schedulerHooks.onEventScheduled,
     modifyCastDuration:
       castRules.modifyCastDuration

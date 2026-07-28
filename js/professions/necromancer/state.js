@@ -117,7 +117,11 @@ export function createNecromancerState(config = {}) {
     dreadUntil: 0,
     fearOfDeathReadyAt: 0,
     vampiricPresenceReadyAt: 0,
-    barbedPrecisionProgress: 0,
+    // Center expected-proc rounding so discrete Barbed Precision applications
+    // stay within half a proc of the cumulative expectation instead of always
+    // flooring it. Keeping whole applications preserves downstream on-apply
+    // behavior for relics and traits.
+    barbedPrecisionProgress: 0.5,
     chillingNovaProgress: 0,
     demonicLoreReadyAt: 0,
     spitefulFortitudeLifeForce: 0,

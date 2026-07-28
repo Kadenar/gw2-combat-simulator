@@ -343,6 +343,13 @@ test("Spear Helio Rush arms Illuminated and enhances the next spear skill", () =
     false,
   );
   assert.equal(
+    helioAlone.events.some(event =>
+      event.type === "buff"
+      && event.kind === "resolution"
+      && event.duration === 4),
+    true,
+  );
+  assert.equal(
     gleamingAlone.procSteps.some(step => step.skill === "Illuminated"),
     false,
   );
@@ -355,6 +362,40 @@ test("Spear Helio Rush arms Illuminated and enhances the next spear skill", () =
   assert.ok(
     combo.strikeDamage
       > helioAlone.strikeDamage + gleamingAlone.strikeDamage + 1,
+  );
+
+  const expired = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Helio Rush",
+      { type: "wait", durationMs: 5001 },
+      "Gleaming Disc",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: spearConfig,
+  });
+  assert.deepEqual(
+    expired.resolvedEvents
+      .filter(event => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
+      .map(event => event.coefficient),
+    [1.5, 1.5],
+  );
+
+  const consumedByFiller = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Helio Rush",
+      "Daybreaking Slash",
+      "Gleaming Disc",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: spearConfig,
+  });
+  assert.deepEqual(
+    consumedByFiller.resolvedEvents
+      .filter(event => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
+      .map(event => event.coefficient),
+    [1.5, 1.5],
   );
 });
 
@@ -418,6 +459,16 @@ test("Guardian spear benchmark coefficients and repeated pulses stay per-hit", (
       event.type === "damage" && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC
     ).length,
     2,
+  );
+  const gleamingAction = result.events.find(event =>
+    event.type === "action"
+    && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC
+  );
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter(event => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
+      .map(event => Math.round((event.at - gleamingAction.at) * 1000)),
+    [0, 680],
   );
   assert.deepEqual(coefficients("Symbol of Luminance — Initial"), [1.5]);
   assert.deepEqual(
@@ -1162,6 +1213,11 @@ test("Luminary Radiant Forge enforces entry and radiant weapon flips", () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.radiantForge, true);
   assert.equal(result.endState.profession.radiantWeapon, "hammer");
+  const glaring = result.resolvedEvents.find(event =>
+    event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST
+  );
+  assert.equal(glaring.coefficient, 1);
+  assert.equal(glaring.radiantWeapon, "hammer");
   assert.equal(
     Object.hasOwn(result.endState.cooldowns, "Enter Radiant Forge"),
     false,
@@ -1778,7 +1834,23 @@ test("Luminary stances apply modifiers, combos, delayed damage, and control", ()
       relic: "Claw",
     },
   });
+  const effulgentWithGuardianProcs = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Effulgent Stance",
+      "Enter Radiant Forge",
+      "Dazzling Hammer",
+      { type: "wait", durationMs: 4000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT],
+    },
+  });
   const effulgentDamage = effulgent.resolvedEvents
+    .find(event => event.name === "Effulgent Stance");
+  const procChargedEffulgent = effulgentWithGuardianProcs.resolvedEvents
     .find(event => event.name === "Effulgent Stance");
   const piercingBuffs = piercing.events
     .filter(event => event.kind === "guardian-piercing-stance");
@@ -1809,6 +1881,8 @@ test("Luminary stances apply modifiers, combos, delayed damage, and control", ()
   assert.equal(effulgentDamage.stackCount, 10);
   assert.equal(effulgentDamage.coefficient, 4);
   assert.equal(effulgentDamage.weaponStrength, 690.5);
+  assert.equal(procChargedEffulgent.stackCount, 3);
+  assert.ok(Math.abs(procChargedEffulgent.coefficient - 1.55) < 1e-9);
   assert.deepEqual(
     effulgent.procSteps
       .filter(step =>

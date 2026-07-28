@@ -267,7 +267,7 @@ test("Necromancer preset builds keep rotation data separate", async () => {
   );
   assert.deepEqual(
     presets.map(preset => preset.label),
-    ["Power", "Power", "Condition"],
+    ["Power", "Condition", "Power", "Condition"],
   );
   for (const preset of presets) {
     const saved = JSON.parse(await readFile(

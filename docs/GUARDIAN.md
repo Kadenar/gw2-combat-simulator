@@ -74,6 +74,8 @@ provide runtime coefficients, conditions, hit counts, intervals, or cast time.
 - Spear (Janthir Wilds) with the Illuminated mechanic (see below)
 - Static and resolver-time Guardian damage, recharge, condition, signet, and
   attribute trait rules
+- Permanent Protection, Resolution, Regeneration, and Swiftness assumptions
+  enabled by default, with Aegis exposed as an off-by-default toggle
 - Explicit strike-modifier grouping: Force/Impact, Empowered Armaments,
   Radiant Armaments, Furious Focus, Retribution, Symbolic Avenger, and
   Piercing Stance share one additive `1 + sum(bonuses)` bucket. Fiery Wrath,
@@ -104,15 +106,15 @@ hook, registered in `contract.js`) plus its authoritative entries in
 
 | Slot | Skill | Illuminated role |
 | --- | --- | --- |
-| Spear 1 | Daybreaking Slash | filler; never consumes the buff |
+| Spear 1 | Daybreaking Slash | consumes an armed Illuminated charge |
 | Spear 2 | Helio Rush | **arms** Illuminated for the next spear attack |
 | Spear 3 | Gleaming Disc | arms Illuminated |
 | Spear 4 | Solar Storm | arms Illuminated |
 | Spear 5 | Symbol of Luminance | opens a 5s window that keeps **all** spear skills illuminated |
 
-An illuminated cast of an enhanced-damage spear skill re-emits its strike ticks
-scaled by a per-skill multiplier, taken from the reference build's
-base→illuminated coefficients:
+An illuminated cast modifies the affected strike packet or adds Solar Storm's
+documented extra shards. The reference build's aggregate
+base→illuminated coefficients are:
 
 - Helio Rush `1.5 → 2.25` (×1.50)
 - Gleaming Disc `3.0 → 3.75` (×1.25 aggregate; shock-wave bonus)
@@ -120,6 +122,10 @@ base→illuminated coefficients:
 
 Each illuminated cast records an `Illuminated` proc (icon from the wiki) for the
 rotation timeline; Symbol of Luminance records its own empowerment proc.
+The armed effect lasts 5 seconds and is consumed by the next spear attack.
+Gleaming Disc emits its two packets 680ms apart; Illuminated changes only the
+shock packet. Solar Storm emits exactly five illuminated packets with
+coefficients `1.5`, `1.2`, `0.9`, `0.6`, and `0.3`.
 
 ### Key differences from the reference build JSON
 
@@ -131,12 +137,11 @@ guardian effects declaratively; the simulator reproduces them differently:
   Illuminated`, `Gleaming Disc Illuminated`) that the author swaps in manually
   and links with `skills_to_put_on_cooldown`. The simulator tracks the
   Illuminated state itself (armed by spear 2/3/4, held open by spear 5) and
-  applies the enhanced coefficients as an on-cast damage bonus — the rotation
-  only lists the base skill.
-- **Filler autoattacks never waste the buff.** Only the enhanced-damage spear
-  skills consume Illuminated, so a Daybreaking Slash between an armer and its
-  payoff does not eat the buff. In-game any spear attack consumes it; this is a
-  deliberate DPS-sim simplification and is documented here.
+  applies the enhanced packet profile automatically — the rotation only lists
+  the base skill.
+- **Any spear attack consumes the armed effect.** This includes Daybreaking
+  Slash. A charge-generating skill can consume an old charge and then arm a
+  fresh 5-second charge after its cast.
 - **Symbol of Luminance is a time window.** "While the symbol is active all
   spear skills are illuminated" is modeled as a 5s window
   (`spearLuminanceUntil`) rather than a positional in-symbol check; while the

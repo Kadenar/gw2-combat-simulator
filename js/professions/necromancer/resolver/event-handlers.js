@@ -1,7 +1,5 @@
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
-import {
-  isInternalCooldownReady,
-} from "../../../platform/engine/internal-cooldown.js";
+import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -11,9 +9,7 @@ import {
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack,
 } from "../mechanics/specific/handlers.js";
-import {
-  NECROMANCER_HANDLER_MECHANICS as MECHANICS,
-} from "../mechanics/handler-mechanics.js";
+import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../mechanics/handler-mechanics.js";
 import { addCarapace } from "../mechanics/specific/shared.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 
@@ -26,12 +22,11 @@ const SCOURGE_SHROUD_SKILL_IDS = new Set([
   ID.SANDSTORM_SHROUD,
 ]);
 
-function queueTraitDamage(context, event, {
-  name,
-  traitId,
-  flatStrikeBase,
-  flatStrikePowerCoeff,
-}) {
+function queueTraitDamage(
+  context,
+  event,
+  { name, traitId, flatStrikeBase, flatStrikePowerCoeff },
+) {
   enqueueOrdered(context.queue, {
     type: "damage",
     at: event.at,
@@ -54,13 +49,12 @@ function queueTraitDamage(context, event, {
   context.recordProc?.("trait", name, event.at, event.skillName);
 }
 
-function applyTraitCondition(details, context, event, {
-  name,
-  traitId,
-  condition,
-  stacks = 1,
-  duration,
-}) {
+function applyTraitCondition(
+  details,
+  context,
+  event,
+  { name, traitId, condition, stacks = 1, duration },
+) {
   const application = {
     type: "condition",
     at: event.at,
@@ -82,12 +76,11 @@ function applyTraitCondition(details, context, event, {
   context.recordProc?.("trait", name, event.at, event.skillName);
 }
 
-function queueTraitCoefficientDamage(context, event, {
-  name,
-  traitId,
-  coefficient,
-  noCrit = true,
-}) {
+function queueTraitCoefficientDamage(
+  context,
+  event,
+  { name, traitId, coefficient, noCrit = true },
+) {
   enqueueOrdered(context.queue, {
     type: "damage",
     at: event.at,
@@ -111,34 +104,34 @@ function targetBelowHalfHealth(context) {
   const maximum = Number(context.config.target?.health || 0);
   if (!(maximum > 0)) return false;
   return (
-    Number(context.totals.strike || 0) +
-    Number(context.totals.condition || 0)
-  ) > maximum * 0.5;
+    Number(context.totals.strike || 0) + Number(context.totals.condition || 0) >
+    maximum * 0.5
+  );
 }
 
 function targetIsChilled(context, at) {
   if (
     context.config.target?.conditions?.Chilled === true ||
     Number(context.config.target?.conditions?.Chilled || 0) > 0
-  ) return true;
+  )
+    return true;
   return Number(context.profession.targetChilledUntil || 0) > at;
 }
 
 function hasActiveBuff(context, kind, at) {
   return (context.boons.get(kind) || []).some(
-    application =>
+    (application) =>
       application.at <= at &&
       application.expiresAt > at &&
       application.stacks > 0,
   );
 }
 
-function applyTraitVulnerability(context, event, {
-  name,
-  traitId,
-  stacks,
-  duration,
-}) {
+function applyTraitVulnerability(
+  context,
+  event,
+  { name, traitId, stacks, duration },
+) {
   enqueueOrdered(context.queue, {
     type: "buff",
     at: event.at,
@@ -163,11 +156,7 @@ function reactToNecromancerDamage(context, event, details = {}) {
   const firstHit = Number(event.hitIndex || 1) === 1;
   const scourgeShroudSkill = SCOURGE_SHROUD_SKILL_IDS.has(skill?.id);
   const shroudSkillOne = skill?.shroudSlot === 1 || scourgeShroudSkill;
-  if (
-    hasTrait(context, TRAIT.REAPERS_MIGHT)
-    && firstHit
-    && shroudSkillOne
-  ) {
+  if (hasTrait(context, TRAIT.REAPERS_MIGHT) && firstHit && shroudSkillOne) {
     enqueueOrdered(context.queue, {
       type: "buff",
       at: event.at,
@@ -181,17 +170,12 @@ function reactToNecromancerDamage(context, event, details = {}) {
       actorType: "effect",
       triggeredBy: event.skillName,
     });
-    context.recordProc?.(
-      "trait",
-      "Reaper's Might",
-      event.at,
-      event.skillName,
-    );
+    context.recordProc?.("trait", "Reaper's Might", event.at, event.skillName);
   }
   if (
-    hasTrait(context, TRAIT.SIPHONED_POWER)
-    && targetBelowHalfHealth(context)
-    && isInternalCooldownReady(
+    hasTrait(context, TRAIT.SIPHONED_POWER) &&
+    targetBelowHalfHealth(context) &&
+    isInternalCooldownReady(
       event.at,
       Number(context.profession.traitProcReadyAt.siphonedPower || 0),
     )
@@ -210,26 +194,21 @@ function reactToNecromancerDamage(context, event, details = {}) {
       actorType: "effect",
       triggeredBy: event.skillName,
     });
-    context.recordProc?.(
-      "trait",
-      "Siphoned Power",
-      event.at,
-      event.skillName,
-    );
+    context.recordProc?.("trait", "Siphoned Power", event.at, event.skillName);
   }
   if (
-    hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)
-    && event.actorType === "player"
-    && targetBelowHalfHealth(context)
+    hasTrait(context, TRAIT.SPITEFUL_FORTITUDE) &&
+    event.actorType === "player" &&
+    targetBelowHalfHealth(context)
   ) {
     context.profession.spitefulFortitudeLifeForce =
-      Number(context.profession.spitefulFortitudeLifeForce || 0)
-      + (hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1);
+      Number(context.profession.spitefulFortitudeLifeForce || 0) +
+      (hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1);
   }
   if (
-    hasTrait(context, TRAIT.CHILL_OF_DEATH)
-    && targetBelowHalfHealth(context)
-    && isInternalCooldownReady(
+    hasTrait(context, TRAIT.CHILL_OF_DEATH) &&
+    targetBelowHalfHealth(context) &&
+    isInternalCooldownReady(
       event.at,
       Number(context.profession.traitProcReadyAt.chillOfDeath || 0),
     )
@@ -242,9 +221,9 @@ function reactToNecromancerDamage(context, event, details = {}) {
           Math.max(
             0,
             Number(
-              context.config.target?.boonCount
-              ?? context.config.target?.boons?.length
-              ?? 1,
+              context.config.target?.boonCount ??
+                context.config.target?.boons?.length ??
+                1,
             ),
           ),
         );
@@ -266,12 +245,13 @@ function reactToNecromancerDamage(context, event, details = {}) {
     });
   }
   if (
-    hasTrait(context, TRAIT.CHILLING_NOVA)
-    && event.actorType === "player"
-    && targetIsChilled(context, event.at)
+    hasTrait(context, TRAIT.CHILLING_NOVA) &&
+    event.actorType === "player" &&
+    targetIsChilled(context, event.at)
   ) {
-    context.profession.chillingNovaProgress +=
-      Number(details.hitContext?.critical?.chance || 0);
+    context.profession.chillingNovaProgress += Number(
+      details.hitContext?.critical?.chance || 0,
+    );
     if (
       context.profession.chillingNovaProgress >= 1 &&
       isInternalCooldownReady(
@@ -297,17 +277,14 @@ function reactToNecromancerDamage(context, event, details = {}) {
       });
     }
   }
-  if (
-    hasTrait(context, TRAIT.DHUUMFIRE)
-    && shroudSkillOne
-  ) {
+  if (hasTrait(context, TRAIT.DHUUMFIRE) && shroudSkillOne) {
     const proc = MECHANICS.traitProcs[TRAIT.DHUUMFIRE];
     const harbingerShroudSkill =
       context.config?.specialization === "Harbinger" &&
       skill?.shroud === "harbinger";
     if (
-      scourgeShroudSkill
-      && !isInternalCooldownReady(
+      scourgeShroudSkill &&
+      !isInternalCooldownReady(
         event.at,
         Number(context.profession.traitProcReadyAt?.dhuumfire || 0),
       )
@@ -318,26 +295,17 @@ function reactToNecromancerDamage(context, event, details = {}) {
         context.profession.traitProcReadyAt.dhuumfire =
           event.at + proc.scourgeInterval;
       }
-      applyTraitCondition(
-        details,
-        context,
-        event,
-        {
-          ...proc,
-          duration: scourgeShroudSkill
-            ? proc.scourgeDuration
-            : harbingerShroudSkill
-              ? proc.harbingerDuration
-              : proc.duration,
-        },
-      );
+      applyTraitCondition(details, context, event, {
+        ...proc,
+        duration: scourgeShroudSkill
+          ? proc.scourgeDuration
+          : harbingerShroudSkill
+            ? proc.harbingerDuration
+            : proc.duration,
+      });
     }
   }
-  if (
-    hasTrait(context, TRAIT.UNYIELDING_BLAST)
-    && firstHit
-    && shroudSkillOne
-  ) {
+  if (hasTrait(context, TRAIT.UNYIELDING_BLAST) && firstHit && shroudSkillOne) {
     applyTraitVulnerability(
       context,
       event,
@@ -345,9 +313,9 @@ function reactToNecromancerDamage(context, event, details = {}) {
     );
   }
   if (
-    hasTrait(context, TRAIT.DOOM_APPROACHES)
-    && firstHit
-    && skill?.id === ID.TAINTED_BOLTS
+    hasTrait(context, TRAIT.DOOM_APPROACHES) &&
+    firstHit &&
+    skill?.id === ID.TAINTED_BOLTS
   ) {
     applyTraitVulnerability(context, event, {
       name: "Doom Approaches",
@@ -356,10 +324,7 @@ function reactToNecromancerDamage(context, event, details = {}) {
       duration: 6,
     });
   }
-  if (
-    hasTrait(context, TRAIT.SEPTIC_CORRUPTION)
-    && skill?.shroudSlot === 2
-  ) {
+  if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION) && skill?.shroudSlot === 2) {
     applyTraitCondition(
       details,
       context,
@@ -368,22 +333,18 @@ function reactToNecromancerDamage(context, event, details = {}) {
     );
   }
   if (hasTrait(context, TRAIT.BARBED_PRECISION)) {
+    const proc = MECHANICS.traitProcs[TRAIT.BARBED_PRECISION];
     context.profession.barbedPrecisionProgress +=
-      Number(details.hitContext?.critical?.chance || 0)
-      * MECHANICS.traitProcs[TRAIT.BARBED_PRECISION].criticalProgress;
+      Number(details.hitContext?.critical?.chance || 0) *
+      proc.chanceOnCriticalHit;
     while (context.profession.barbedPrecisionProgress >= 1) {
       context.profession.barbedPrecisionProgress -= 1;
-      applyTraitCondition(
-        details,
-        context,
-        event,
-        MECHANICS.traitProcs[TRAIT.BARBED_PRECISION],
-      );
+      applyTraitCondition(details, context, event, proc);
     }
   }
   if (
-    hasTrait(context, TRAIT.VAMPIRIC_PRESENCE)
-    && isInternalCooldownReady(
+    hasTrait(context, TRAIT.VAMPIRIC_PRESENCE) &&
+    isInternalCooldownReady(
       event.at,
       Number(context.profession.vampiricPresenceReadyAt || 0),
     )
@@ -406,6 +367,12 @@ function reactToNecromancerDamage(context, event, details = {}) {
 }
 
 function reactToNecromancerCondition(context, event, details = {}) {
+  if (event.condition === "Chilled") {
+    context.profession.targetChilledUntil = Math.max(
+      Number(context.profession.targetChilledUntil || 0),
+      event.at + Number(event.effectiveDuration ?? event.duration ?? 0),
+    );
+  }
   if (
     event.actorType !== "summon" &&
     hasTrait(context, TRAIT.CORRUPTERS_FERVOR)
@@ -413,9 +380,9 @@ function reactToNecromancerCondition(context, event, details = {}) {
     addCarapace(context.profession, 1, event.at);
   }
   if (
-    event.condition === "Torment"
-    && hasTrait(context, TRAIT.DEMONIC_LORE)
-    && isInternalCooldownReady(
+    event.condition === "Torment" &&
+    hasTrait(context, TRAIT.DEMONIC_LORE) &&
+    isInternalCooldownReady(
       event.at,
       Number(context.profession.demonicLoreReadyAt || 0),
     )
@@ -424,10 +391,7 @@ function reactToNecromancerCondition(context, event, details = {}) {
     context.profession.demonicLoreReadyAt = event.at + proc.interval;
     applyTraitCondition(details, context, event, proc);
   }
-  if (
-    event.condition === "Chilled"
-    && hasTrait(context, TRAIT.DEATHLY_CHILL)
-  ) {
+  if (event.condition === "Chilled" && hasTrait(context, TRAIT.DEATHLY_CHILL)) {
     applyTraitCondition(
       details,
       context,
@@ -438,7 +402,15 @@ function reactToNecromancerCondition(context, event, details = {}) {
 }
 
 function reactToNecromancerBlind(context, event, details = {}) {
-  if (!hasTrait(context, TRAIT.CHILLING_DARKNESS)) return;
+  if (
+    !hasTrait(context, TRAIT.CHILLING_DARKNESS) ||
+    !isInternalCooldownReady(
+      event.at,
+      Number(context.profession.traitProcReadyAt.chillingDarkness || 0),
+    )
+  )
+    return;
+  context.profession.traitProcReadyAt.chillingDarkness = event.at + 3;
   applyTraitCondition(
     details,
     context,
@@ -448,10 +420,7 @@ function reactToNecromancerBlind(context, event, details = {}) {
 }
 
 function reactToNecromancerControl(context, event, details = {}) {
-  if (
-    event.controlKind === "fear"
-    || event.kind === "fear"
-  ) {
+  if (event.controlKind === "fear" || event.kind === "fear") {
     context.profession.dreadUntil = Math.max(
       Number(context.profession.dreadUntil || 0),
       event.at + 3,

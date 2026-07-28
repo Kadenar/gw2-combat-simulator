@@ -332,6 +332,9 @@ export const necromancerSchedulerHooks = Object.freeze({
   advance: advanceNecromancerState,
   afterCast,
   onCastComplete,
+  onCooldownReset: context => {
+    context.state.profession.selfConditions = [];
+  },
   onEventScheduled,
   taskHandlers: necromancerWeaponTaskHandlers,
 });

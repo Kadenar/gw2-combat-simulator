@@ -229,36 +229,15 @@ function scheduleDeclarativeEffects(
           baseDuration,
         )
         ?? baseDuration;
-      const applications = Math.max(
-        1,
-        Math.trunc(Number(effect.applications || 1)),
-      );
-      const interval =
-        Math.max(0, Number(timing.intervalMs || 0)) / 1000;
-      for (
-        let applicationIndex = 1;
-        applicationIndex <= applications;
-        applicationIndex += 1
-      ) {
-        const at = firstAt + (applicationIndex - 1) * interval;
-        if (
-          cancelPendingEffects
-          && at > effectiveEnd + context.epsilon
-        ) break;
-        const emitted = context.emit({
-          ...base,
-          at,
-          type: "buff",
-          kind: String(
-            effect.boon || effect.kind || effect.name || "",
-          ).toLowerCase(),
-          stacks: Math.max(1, Number(effect.stacks || 1)),
-          duration: Math.max(0, Number(duration || 0)),
-          applicationIndex,
-          totalApplications: applications,
-        });
-        observeEffect(emitted, effect, index);
-      }
+      const emitted = context.emit({
+        ...base,
+        at: firstAt,
+        type: "buff",
+        kind: String(effect.boon || effect.kind || effect.name || "").toLowerCase(),
+        stacks: Math.max(1, Number(effect.stacks || 1)),
+        duration: Math.max(0, Number(duration || 0)),
+      });
+      observeEffect(emitted, effect, index);
     } else if (effect.type === "custom") {
       const emitted = context.emit({
         ...base,
@@ -981,6 +960,29 @@ export function createScheduler({
           skill: "Wait",
           start: Math.round(start * 1000),
           end: Math.round(end * 1000),
+        });
+      } else if (command.type === "cooldown-reset") {
+        // Benchmark logs can include a pre-cast followed by the training-area
+        // cooldown reset. The field remains active while skill recharges reset.
+        const at = Math.max(state.time, serialReadyAt, latestReservedEnd);
+        advanceTo(at);
+        state.cooldowns.clear();
+        state.ammo.clear();
+        state.lockouts.clear();
+        profession.onCooldownReset(context);
+        context.emit({
+          type: "marker",
+          at,
+          source: "platform",
+          sourceId: "cooldown-reset",
+          action: "cooldown-reset",
+          name: "Cooldown Reset",
+        });
+        steps.push({
+          ri: index,
+          skill: "Cooldown Reset",
+          start: Math.round(at * 1000),
+          end: Math.round(at * 1000),
         });
       } else if (command.type === "combat-start") {
         if (combatStartTime != null) {

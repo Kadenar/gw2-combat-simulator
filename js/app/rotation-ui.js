@@ -50,6 +50,7 @@ import {
 const CONCURRENT_OFFSET_MS = 100;
 const PLACEHOLDER_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
 const COMBAT_START_ICON = 'https://wiki.guildwars2.com/images/e/e9/Call_Target.png';
+const COOLDOWN_RESET_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mistlock_Singularity.png';
 const WAIT_ICON = 'https://wiki.guildwars2.com/images/8/83/%22sipcoffee%22_Emote_Tome.png';
 const ACTION_ICONS = {
     'Dodge / Mirage Cloak': 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
@@ -786,6 +787,13 @@ export function renderPalette(app) {
                 disabled: app.build.rotation.some(item => (item.name || item) === '__combat_start'),
             })}</div>
         </div>
+        <div class="pal-group"><div class="pal-label" style="color:#7e9ac7">Rst</div>
+            <div class="pal-row">${virtualPaletteSkillHtml({
+                name: '__cooldown_reset',
+                title: 'Cooldown Reset',
+                icon: COOLDOWN_RESET_ICON,
+            })}</div>
+        </div>
         <div class="pal-group"><div class="pal-label" style="color:#8d7a57">W8</div>
             <div class="pal-row">${virtualPaletteSkillHtml({
                 name: '__wait',
@@ -805,7 +813,9 @@ export function renderPalette(app) {
                 return;
             }
             const skill = app.skillByName.get(name);
-            const instant = name === '__combat_start' || Number(skill?.castTimeMs || 0) === 0;
+            const instant = name === '__combat_start'
+                || name === '__cooldown_reset'
+                || Number(skill?.castTimeMs || 0) === 0;
             if (event.shiftKey && instant && app.build.rotation.length) {
                 app.addRotation(name, { offset: CONCURRENT_OFFSET_MS });
             } else if (event.ctrlKey && !instant) {
@@ -972,12 +982,16 @@ export function renderTimeline(app) {
             const step = steps.get(index);
             const invalid = Boolean(step?.invalid);
             const display = item.name === '__wait' ? 'Wait'
-                : item.name === '__combat_start' ? 'Combat Start' : item.name;
+                : item.name === '__combat_start' ? 'Combat Start'
+                    : item.name === '__cooldown_reset' ? 'Cooldown Reset'
+                        : item.name;
             const icon = item.name === '__wait'
                 ? WAIT_ICON
                 : item.name === '__combat_start'
                     ? COMBAT_START_ICON
-                    : skill?.icon || ACTION_ICONS[skill?.name] || PLACEHOLDER_ICON;
+                    : item.name === '__cooldown_reset'
+                        ? COOLDOWN_RESET_ICON
+                        : skill?.icon || ACTION_ICONS[skill?.name] || PLACEHOLDER_ICON;
             const time = step && !invalid ? formatTime(step.start) : '';
             const resourceSpend = resourceSpends.get(index);
             const resourceSingular = resourceSpend?.resource.endsWith('s')
@@ -1005,6 +1019,7 @@ export function renderTimeline(app) {
                 && !invalid
                 && item.name !== '__wait'
                 && item.name !== '__combat_start'
+                && item.name !== '__cooldown_reset'
             )
                 ? formatTimelineSkillTooltip(
                     display,
@@ -1018,6 +1033,7 @@ export function renderTimeline(app) {
                 : step && (
                     item.name === '__wait'
                     || item.name === '__combat_start'
+                    || item.name === '__cooldown_reset'
                 )
                     ? `\n${formatTimelineCastDetails(step, formatTime)}`
                     : '';

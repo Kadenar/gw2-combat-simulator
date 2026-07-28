@@ -4050,7 +4050,7 @@ test('result summary uses the expected metric order', () => {
     );
 });
 
-test('Duration and Kill Time account for an explicit Combat Start reference', () => {
+test('Kill Time accounts for an explicit Combat Start reference', () => {
     const metrics = resultSummaryMetrics({
         duration: 93.89,
         deathTime: 93.89,
@@ -4058,10 +4058,19 @@ test('Duration and Kill Time account for an explicit Combat Start reference', ()
         events: [{ type: 'combat_start', at: 2.06 }],
     });
 
-    assert.equal(metrics[0].label, 'Duration');
+    assert.equal(metrics[0].label, 'Kill Time');
     assert.equal(metrics[0].value, '91.83s');
-    assert.equal(metrics[1].label, 'Kill Time');
-    assert.equal(metrics[1].value, '91.83s');
+});
+
+test('result summary hides the internal effect horizon after the target dies', () => {
+    const metrics = resultSummaryMetrics({
+        duration: 97.1,
+        deathTime: 93.1,
+    });
+
+    assert.equal(metrics[0].label, 'Kill Time');
+    assert.equal(metrics[0].value, '93.10s');
+    assert.equal(metrics.some(metric => metric.value === '97.10s'), false);
 });
 
 test('Combat Start is timeline zero while DPS waits for the first subsequent hit', () => {
@@ -4165,7 +4174,13 @@ test('result summary includes kill time when target health is exhausted', () => 
 
     assert.deepEqual(
         resultSummaryMetrics(result).map(metric => metric.label),
-        ['Duration', 'Kill Time', 'Total Damage', 'DPS', 'Strike', 'Condition'],
+        [
+            'Kill Time',
+            'Total Damage',
+            'DPS',
+            'Strike',
+            'Condition',
+        ],
     );
     assert.equal(
         buildChartSeries(result).durationMs,

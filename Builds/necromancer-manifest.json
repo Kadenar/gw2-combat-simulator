@@ -6,6 +6,13 @@
         "label": "Power",
         "build": "Builds/b-power-reaper.json",
         "rotation": "Rotations/r-power-reaper-bench.json"
+      },
+      {
+        "label": "Condition",
+        "build": "Builds/b-condi-reaper.json",
+        "rotation": "Rotations/r-condi-reaper-bench.json",
+        "benchmarkDps": 44355,
+        "upToDate": true
       }
     ]
   },

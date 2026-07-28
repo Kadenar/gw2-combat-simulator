@@ -20,6 +20,7 @@ export function normalizeRotationCommand(entry, catalog = null) {
   if (typeof entry === "number") return { type: "cast", skillId: entry };
   if (typeof entry === "string") {
     if (entry === "__combat_start") return { type: "combat-start" };
+    if (entry === "__cooldown_reset") return { type: "cooldown-reset" };
     if (entry === "__wait") return { type: "wait", durationMs: 0 };
     const skill = catalog?.skillsByName?.get(entry);
     return skill
@@ -27,9 +28,15 @@ export function normalizeRotationCommand(entry, catalog = null) {
       : { type: "cast", skillId: entry };
   }
   if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
-    throw new TypeError("Rotation command must be a skill, wait, or combat-start entry.");
+    throw new TypeError(
+      "Rotation command must be a skill, wait, cooldown-reset, "
+      + "or combat-start entry.",
+    );
   }
 
+  if (entry.type === "cooldown-reset" || entry.name === "__cooldown_reset") {
+    return { type: "cooldown-reset" };
+  }
   if (entry.type === "combat-start" || entry.name === "__combat_start") {
     const command = { type: "combat-start" };
     const concurrent = entry.concurrentOffsetMs ?? entry.offset;
@@ -93,6 +100,9 @@ export function normalizeRotation(rotation, catalog = null, { strict = false } =
  * Converts a canonical command back into the app's legacy persisted shape.
  */
 export function toLegacyRotationEntry(command, catalog) {
+  if (command.type === "cooldown-reset") {
+    return { name: "__cooldown_reset" };
+  }
   if (command.type === "combat-start") {
     const entry = { name: "__combat_start" };
     if (command.concurrentOffsetMs != null) {

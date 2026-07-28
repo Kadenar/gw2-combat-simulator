@@ -5,16 +5,21 @@
  */
 export function resultSummaryMetrics(result, locale = undefined) {
   const format = value => Math.round(Number(value || 0)).toLocaleString(locale);
-  const metrics = [
-    { label: "Duration", value: `${Number(result.duration).toFixed(2)}s`, className: "" },
-  ];
-  if (result.deathTime != null) {
-    metrics.push({
+  const duration = Number(result.duration);
+  const deathTime = result.deathTime == null
+    ? null
+    : Number(result.deathTime);
+  const metrics = deathTime == null
+    ? [{
+      label: "Duration",
+      value: `${duration.toFixed(2)}s`,
+      className: "",
+    }]
+    : [{
       label: "Kill Time",
-      value: `${Number(result.deathTime).toFixed(2)}s`,
+      value: `${deathTime.toFixed(2)}s`,
       className: "kill-time",
-    });
-  }
+    }];
   metrics.push(
     { label: "Total Damage", value: format(result.totalDamage), className: "" },
     { label: "DPS", value: format(result.dps), className: "dps" },

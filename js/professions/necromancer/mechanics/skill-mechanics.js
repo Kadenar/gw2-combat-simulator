@@ -48,7 +48,7 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "duration": 10
       }
     ],
-    "lifeForceGain": 5,
+    "handlerId": "necromancer.dark-pact",
   },
   [ID.GRASPING_DEAD]: {
     "implemented": true,
@@ -162,50 +162,173 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 0.39,
-        "hits": 1
+        "coefficient": 3.51,
+        "hits": 9,
+        "atMs": 1000,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "extendsResolutionHorizon": true
+        }
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
-        "duration": 8
+        "duration": 8,
+        "applications": 9,
+        "atMs": 1000,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "condition",
         "condition": "Poisoned",
         "stacks": 1,
-        "duration": 5
+        "duration": 5,
+        "applications": 8,
+        "atMs": 2000,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 1,
-        "duration": 5
-      },
-      {
-        "type": "condition",
-        "condition": "Burning",
-        "stacks": 1,
-        "duration": 10
-      },
-      {
-        "type": "blind"
-      },
-      {
-        "type": "custom",
-        "eventType": "necromancer.chill",
-        "event": {
-          "duration": 2
-        }
+        "duration": 5,
+        "applications": 7,
+        "atMs": 3000,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "buff",
         "kind": "target-vulnerability",
         "duration": 8,
-        "stacks": 1
+        "stacks": 1,
+        "atMs": 4000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "buff",
+        "kind": "target-vulnerability",
+        "duration": 8,
+        "stacks": 1,
+        "atMs": 5000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "buff",
+        "kind": "target-vulnerability",
+        "duration": 8,
+        "stacks": 1,
+        "atMs": 6000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "buff",
+        "kind": "target-vulnerability",
+        "duration": 8,
+        "stacks": 1,
+        "atMs": 7000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "buff",
+        "kind": "target-vulnerability",
+        "duration": 8,
+        "stacks": 1,
+        "atMs": 8000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "buff",
+        "kind": "target-vulnerability",
+        "duration": 8,
+        "stacks": 1,
+        "atMs": 9000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "condition",
+        "condition": "Crippled",
+        "stacks": 1,
+        "duration": 2,
+        "applications": 5,
+        "atMs": 5000,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "condition",
+        "condition": "Weakness",
+        "stacks": 1,
+        "duration": 3,
+        "applications": 4,
+        "atMs": 6000,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "blind",
+        "applications": 3,
+        "atMs": 7000,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "duration": 3
+        }
+      },
+      {
+        "type": "condition",
+        "condition": "Chilled",
+        "stacks": 1,
+        "duration": 2,
+        "applications": 2,
+        "atMs": 8000,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "condition",
+        "condition": "Burning",
+        "stacks": 1,
+        "duration": 10,
+        "atMs": 9000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
       }
     ],
+    "handlerId": "necromancer.corruption",
   },
   [ID.LICH_FORM]: {
     "implemented": true,
@@ -739,19 +862,36 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "intervalTimingScale": "fixed",
         "timingAnchor": "castStart",
         "timingScale": "cast",
+        "persistsAfterInterrupt": true,
         "metadata": {
           "extendsResolutionHorizon": true
         }
       },
       {
-        "type": "blind"
+        "type": "blind",
+        "applications": 6,
+        "atMs": 420,
+        "intervalMs": 1000,
+        "intervalTimingScale": "fixed",
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "duration": 3
+        }
       },
       {
-        "type": "custom",
-        "eventType": "necromancer.chill",
-        "event": {
-          "duration": 2
-        }
+        "type": "condition",
+        "condition": "Chilled",
+        "stacks": 1,
+        "duration": 2,
+        "applications": 6,
+        "atMs": 420,
+        "intervalMs": 1000,
+        "intervalTimingScale": "fixed",
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true
       }
     ],
   },
@@ -1387,9 +1527,10 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 1.3,
         "hits": 1,
-        "atMs": 180,
+        "atMs": 1440,
         "timingAnchor": "castStart",
-        "timingScale": "cast"
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "custom",
@@ -1397,21 +1538,23 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "event": {
           "duration": 4
         },
-        "atMs": 180,
+        "atMs": 1440,
         "timingAnchor": "castStart",
-        "timingScale": "cast"
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "control",
-        "atMs": 180,
+        "atMs": 1440,
         "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true,
         "metadata": {
           "controlKind": "pull"
         }
       }
     ],
-    "lifeForceGain": 10,
+    "handlerId": "necromancer.grasping-darkness",
   },
   [ID.NIGHTFALL]: {
     "implemented": true,
@@ -1592,6 +1735,7 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 4,
     "specialization": "Reaper",
+    "handlerId": "necromancer.soul-spiral",
   },
   [ID.EXECUTIONERS_SCYTHE]: {
     "implemented": true,
@@ -1627,13 +1771,19 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         }
       },
       {
-        "type": "custom",
+        "type": "condition",
+        "condition": "Chilled",
+        "stacks": 1,
+        "duration": 1,
+        "applications": 5,
         "atMs": 1260,
+        "intervalMs": 1000,
+        "intervalTimingScale": "fixed",
         "timingAnchor": "castStart",
         "timingScale": "cast",
-        "eventType": "necromancer.chill",
-        "event": {
-          "duration": 1
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "extendsResolutionHorizon": true
         }
       }
     ],
@@ -1642,6 +1792,7 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
     "shroud": "reaper",
     "shroudSlot": 5,
     "specialization": "Reaper",
+    "handlerId": "necromancer.executioners-scythe",
   },
   [ID.SUFFER]: {
     "implemented": true,
@@ -1733,6 +1884,18 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 3,
         "hits": 1
+      },
+      {
+        "type": "strike",
+        "coefficient": 0,
+        "hits": 1,
+        "name": "Death Spiral — Life Siphon",
+        "metadata": {
+          "flatStrikeBase": 3517,
+          "flatStrikePowerCoeff": 0.01,
+          "noCrit": true,
+          "damageKind": "life-steal"
+        }
       },
       {
         "type": "buff",
@@ -2354,15 +2517,19 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       {
         "type": "strike",
         "coefficient": 2.6999999999999997,
-        "hits": 9
-      },
-      {
-        "type": "condition",
-        "condition": "Bleeding",
-        "stacks": 1,
-        "duration": 8
+        "hits": 9,
+        "atMs": 720,
+        "intervalMs": 160,
+        "intervalTimingScale": "fixed",
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "extendsResolutionHorizon": true
+        }
       }
     ],
+    "handlerId": "necromancer.life-siphon",
   },
   [ID.PATH_OF_GLUTTONY]: {
     "implemented": true,
@@ -2382,13 +2549,21 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       {
         "type": "strike",
         "coefficient": 2.75,
-        "hits": 1
+        "hits": 1,
+        "atMs": 1080,
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "buff",
         "kind": "target-vulnerability",
         "duration": 8,
-        "stacks": 5
+        "stacks": 5,
+        "atMs": 1080,
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true
       }
     ],
   },
@@ -2444,7 +2619,36 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       {
         "type": "strike",
         "coefficient": 2.5,
-        "hits": 5
+        "hits": 5,
+        "atMs": 720,
+        "intervalMs": 280,
+        "intervalTimingScale": "fixed",
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "extendsResolutionHorizon": true
+        }
+      },
+      {
+        "type": "condition",
+        "condition": "Weakness",
+        "stacks": 1,
+        "duration": 4,
+        "atMs": 720,
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "boon",
+        "boon": "Might",
+        "duration": 8,
+        "stacks": 5,
+        "atMs": 720,
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "persistsAfterInterrupt": true
       }
     ],
   },
@@ -2471,7 +2675,8 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       {
         "type": "control",
         "metadata": {
-          "controlKind": "fear"
+          "controlKind": "fear",
+          "duration": 1.5
         }
       }
     ],
@@ -2484,20 +2689,29 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       {
         "type": "strike",
         "coefficient": 2.5,
-        "hits": 1
+        "hits": 1,
+        "atMs": 540,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "custom",
         "eventType": "necromancer.chill",
         "event": {
           "duration": 5
-        }
+        },
+        "atMs": 540,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       },
       {
         "type": "buff",
         "kind": "target-vulnerability",
         "duration": 8,
-        "stacks": 5
+        "stacks": 5,
+        "atMs": 540,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ],
   },
@@ -2508,7 +2722,37 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
       {
         "type": "strike",
         "coefficient": 3.8,
-        "hits": 1
+        "hits": 1,
+        "atMs": 1140,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
+      },
+      {
+        "type": "boon",
+        "boon": "Might",
+        "duration": 8,
+        "stacks": 5,
+        "atMs": 1140,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
+      },
+      {
+        "type": "condition",
+        "condition": "Weakness",
+        "stacks": 1,
+        "duration": 3,
+        "atMs": 1140,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
+      },
+      {
+        "type": "buff",
+        "kind": "extirpation",
+        "duration": 4,
+        "stacks": 3,
+        "atMs": 1140,
+        "timingAnchor": "castStart",
+        "timingScale": "cast"
       }
     ],
     "lifeForceGain": 12,
@@ -2576,8 +2820,38 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 3.5,
-        "hits": 7,
+        "ticks": [
+          {
+            "atMs": 600,
+            "coefficient": 0.5
+          },
+          {
+            "atMs": 720,
+            "coefficient": 0.5
+          },
+          {
+            "atMs": 780,
+            "coefficient": 0.5
+          },
+          {
+            "atMs": 840,
+            "coefficient": 0.5
+          },
+          {
+            "atMs": 960,
+            "coefficient": 0.5
+          },
+          {
+            "atMs": 1080,
+            "coefficient": 0.5
+          },
+          {
+            "atMs": 1140,
+            "coefficient": 0.5
+          }
+        ],
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
         "coefficientModifiers": [
           {
             "kind": "target-health-below",
@@ -2784,7 +3058,7 @@ const NECROMANCER_BASE_SKILL_MECHANICS = Object.freeze({
  * changing an observed cast by up to 40 ms.
  */
 export const NECROMANCER_QUICKNESS_CAST_TIMES_MS = Object.freeze({
-  [ID.LIFE_SIPHON]: 1520,
+  [ID.LIFE_SIPHON]: 560,
   [ID.DARK_PACT]: 680,
   [ID.NECROTIC_STAB]: 400,
   [ID.NECROTIC_BITE]: 640,
@@ -2815,10 +3089,16 @@ export const NECROMANCER_QUICKNESS_CAST_TIMES_MS = Object.freeze({
   [ID.TAINTED_BOLTS]: 600,
   [ID.VILE_BLAST]: 600,
   [ID.ADDLE]: 360,
-  [ID.EXTIRPATE]: 920,
+  [ID.EXTIRPATE]: 840,
   [ID.DARK_SLASH]: 600,
   [ID.ISOLATE]: 480,
   [ID.PERFORATE]: 840,
+  [ID.HUNGERING_MAELSTROM]: 640,
+  [ID.GORMANDIZE]: 440,
+  [ID.DEVOURING_VISAGE]: 680,
+  [ID.CONSUME]: 520,
+  [ID.DEADLY_SLICE]: 520,
+  [ID.SINISTER_STAB]: 560,
   [ID.ELIXIR_OF_RISK]: 540,
   [ID.LOCUST_SWARM]: 440,
   [ID.VITAL_DRAW]: 800,

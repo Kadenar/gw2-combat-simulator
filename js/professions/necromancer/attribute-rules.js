@@ -206,6 +206,16 @@ export const necromancerModifierRules = Object.freeze([
       context.config?.target?.nearby !== false,
   },
   {
+    id: "necromancer.life-siphon-bleeding-target",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.5,
+    order: 100,
+    when: (context) =>
+      eventSkill(context)?.id === ID.LIFE_SIPHON
+      && targetHasCondition(context, "Bleeding"),
+  },
+  {
     id: "necromancer.target-the-weak-critical-chance",
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: "add",

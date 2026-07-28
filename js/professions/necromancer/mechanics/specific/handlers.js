@@ -51,6 +51,14 @@ export const necromancerSkillHandlers = Object.freeze({
   "necromancer.lich": replaceSkillHandler(
     necromancerShroudSkillHandlers["necromancer.lich"],
   ),
+  "necromancer.executioners-scythe": augmentSkillHandler(null, {
+    afterEffect:
+      necromancerShroudSkillHandlers["necromancer.executioners-scythe"],
+  }),
+  "necromancer.soul-spiral": augmentSkillHandler(null, {
+    afterEffect:
+      necromancerShroudSkillHandlers["necromancer.soul-spiral"],
+  }),
   "necromancer.weapon-swap": replaceSkillHandler(
     necromancerCoreSkillHandlers["necromancer.weapon-swap"],
   ),
@@ -69,6 +77,14 @@ export const necromancerSkillHandlers = Object.freeze({
   "necromancer.condition-transfer": augmentSkillHandler(
     necromancerConditionSkillHandlers["necromancer.condition-transfer"],
   ),
+  "necromancer.life-siphon": augmentSkillHandler(null, {
+    afterEffect:
+      necromancerConditionSkillHandlers["necromancer.life-siphon"],
+  }),
+  "necromancer.dark-pact": augmentSkillHandler(null, {
+    afterEffect:
+      necromancerConditionSkillHandlers["necromancer.dark-pact"],
+  }),
   "necromancer.devouring-darkness": replaceSkillHandler(
     necromancerConditionSkillHandlers["necromancer.devouring-darkness"],
   ),
@@ -119,7 +135,7 @@ export const necromancerSkillHandlers = Object.freeze({
     afterEffects: necromancerWeaponSkillHandlers["necromancer.addle"],
   }),
   "necromancer.extirpate": augmentSkillHandler(null, {
-    afterEffects: necromancerWeaponSkillHandlers["necromancer.extirpate"],
+    afterEffect: necromancerWeaponSkillHandlers["necromancer.extirpate"],
   }),
   "necromancer.perforate": augmentSkillHandler(
     necromancerWeaponSkillHandlers["necromancer.perforate"].prepare,
@@ -133,6 +149,18 @@ export const necromancerSkillHandlers = Object.freeze({
   "necromancer.distress": replaceSkillHandler(
     necromancerWeaponSkillHandlers["necromancer.distress"],
   ),
+  "necromancer.grasping-darkness": skillHandler({
+    mode: SKILL_HANDLER_MODES.AUGMENT,
+    resolveMode: (context, skill) => (
+      necromancerWeaponSkillHandlers["necromancer.grasping-darkness"]
+        .committed(context, skill)
+        ? SKILL_HANDLER_MODES.AUGMENT
+        : SKILL_HANDLER_MODES.REPLACE
+    ),
+    afterEffect:
+      necromancerWeaponSkillHandlers["necromancer.grasping-darkness"]
+        .afterEffect,
+  }),
   "necromancer.nightfall": skillHandler({
     mode: SKILL_HANDLER_MODES.AUGMENT,
     resolveMode: (context, skill) => (
