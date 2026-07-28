@@ -34,6 +34,7 @@ import {
     MESMER_TRAIT_IDS as TRAIT,
 } from '../js/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '../js/professions/mesmer/catalog.js';
+import { mesmerProfession } from '../js/professions/mesmer/definition.js';
 import {
     recalculate,
     simulationConfig,
@@ -530,7 +531,7 @@ test('Phantasmal Swordsman independently gates its summon and player hit', () =>
     const config = defaultSimulationConfig({
         specialization: 'Core',
         primaryWeapon: 'Sword',
-        secondaryWeapon: '',
+        secondaryWeapon: 'Sword',
         initialResource: 0,
     });
     const interruptedAt = interruptMs => simulateMesmer(
@@ -577,7 +578,7 @@ test("Phantasmal Swordsman grants Fencer's Finesse per sword hit", () => {
     const config = defaultSimulationConfig({
         specialization: 'Core',
         primaryWeapon: 'Sword',
-        secondaryWeapon: '',
+        secondaryWeapon: 'Sword',
         initialResource: 0,
         selectedTraits: ["Fencer's Finesse"],
     });
@@ -1551,7 +1552,7 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
             initialResource: 0,
         }),
     );
-    const log = simulationEventLogRows(result);
+    const log = simulationEventLogRows(result, null, mesmerProfession);
 
     assert.ok(log.some(event =>
         Math.abs(event.at - 0.56) < 0.00001
@@ -1759,6 +1760,8 @@ test('Relic of the Claw can trigger from a non-damaging control skill and expire
         specialization: 'Core',
         initialResource: 0,
         relic: 'Claw',
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Sword',
         modifiers: { strike: 1, condition: 1 },
     });
     const active = simulateMesmer(
@@ -1800,13 +1803,13 @@ test('Relic of the Claw records activation and refresh procs', () => {
 
 test('Relic of Fireworks records activation and refresh procs', () => {
     const fireworks = simulateMesmer(
-        ['Chaos Storm', 'Phantasmal Mage'],
+        ['Chaos Storm', 'Swap Weapons', 'Phantasmal Mage'],
         defaultSimulationConfig({
             specialization: 'Core',
             relic: 'Fireworks',
             primaryWeapon: 'Staff',
-            secondaryWeapon: 'Torch',
-            weaponSet2Primary: 'Staff',
+            secondaryWeapon: '',
+            weaponSet2Primary: 'Sword',
             weaponSet2Secondary: 'Torch',
         }),
     );
@@ -4145,7 +4148,7 @@ test('event log timestamps use the same explicit Combat Start origin as rotation
             initialResource: 0,
         }),
     );
-    const log = simulationEventLogRows(result);
+    const log = simulationEventLogRows(result, null, mesmerProfession);
     const duelistStart = log.find(event =>
         event.description.startsWith('CAST Phantasmal Duelist'));
     const combatStart = log.find(event =>

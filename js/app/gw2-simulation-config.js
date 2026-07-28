@@ -83,13 +83,29 @@ export function createGw2SimulationConfig({
     specialization,
     selectedTraits,
     selectedTraitIds,
-    selectedSkills: Object.values(app.build.selectedSkills),
+    selectedSkills: app.adapter?.slotLoadout
+      ? app.adapter.slotLoadout.selectedSkillIds({
+          build: app.build,
+          specialization,
+          professionState: app.results?.endState?.profession,
+          catalog: app.profession.catalog,
+        }).map(id => app.skillById.get(Number(id))?.name).filter(Boolean)
+      : Object.values(app.build.selectedSkills),
     primaryWeapon: app.build.weapons[0],
     secondaryWeapon: app.build.weapons[1],
     weaponSet2Primary: app.build.alternateWeapons[0],
     weaponSet2Secondary: app.build.alternateWeapons[1],
     startingWeaponSet: app.build.startingWeaponSet === 2 ? 2 : 1,
     initialResource,
+    playerHealthFraction: Math.max(
+      0,
+      Math.min(1, Number(assumptions.playerHealthPercent ?? 100) / 100),
+    ),
+    deterministicChoices: Object.fromEntries(
+      (app.adapter?.assumptionControls || [])
+        .filter(control => control.type === "select")
+        .map(control => [control.key, assumptions[control.key]]),
+    ),
     stats: {
       power: attr("Power"),
       precision: attr("Precision"),
@@ -131,9 +147,11 @@ export function createGw2SimulationConfig({
     target: {
       armor: app.build.targetArmor,
       health: Math.max(0, Number(app.build.targetHealth) || 0),
-      // The configured benchmark target is the Special Forces Training Area
-      // golem, which is defiant.
-      defiant: true,
+      // Existing professions retain the historical defiant-golem default.
+      defiant: assumptions.targetDefiant ?? true,
+      flanking: Boolean(assumptions.flanking),
+      behind: Boolean(assumptions.behind),
+      distance: Math.max(0, Number(assumptions.targetDistance ?? 130)),
       conditions: targetConditions,
       moving: assumptions.targetMoving,
       boonless: assumptions.targetBoonless,

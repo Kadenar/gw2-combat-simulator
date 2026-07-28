@@ -6,6 +6,7 @@ import {
   isGw2PlayerActorEvent,
 } from "../event-ownership.js";
 import { createGw2CombatQuery, selectedGw2TraitValues } from "../query.js";
+import { canonicalTargetConditionName } from "../target-state.js";
 
 export const GW2_MATERIALIZE_EVENT_TASK = "platform.gw2.materialize-event";
 
@@ -25,11 +26,7 @@ const OBSERVED_EVENT_TYPES = new Set([
 ]);
 
 function conditionName(value) {
-  const normalized = String(value || "").toLowerCase();
-  if (normalized === "poison" || normalized === "poisoned") {
-    return "Poisoned";
-  }
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  return canonicalTargetConditionName(value);
 }
 
 function activeSigilNames(config, weaponSet) {

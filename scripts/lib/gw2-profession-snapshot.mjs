@@ -2,6 +2,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export const GW2_API_ROOT = "https://api.guildwars2.com/v2";
+export const DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS = Object.freeze([
+  "Trident",
+  "Speargun",
+]);
 
 function englishPath(pathname) {
   return `${pathname}${pathname.includes("?") ? "&" : "?"}lang=en`;
@@ -114,7 +118,7 @@ export function skillSnapshot(skill, {
 
 export function isTerrestrialSkill(skill, weapon = "", {
   excludedIds = [],
-  weaponExclusions = ["Trident"],
+  weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
   filterSkill = null,
 } = {}) {
   const excludesId = excludedIds instanceof Set
@@ -145,7 +149,7 @@ export function professionSkillAssociations(
   profession,
   specializationData,
   {
-    weaponExclusions = ["Trident"],
+    weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
   } = {},
 ) {
   const specializationById = new Map(

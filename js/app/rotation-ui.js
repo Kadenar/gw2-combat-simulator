@@ -33,6 +33,9 @@ import {
     targetHealthBreakpointSnapshots,
 } from '../platform/ui/result-transform.js';
 import {
+    defaultWeaponSkillMatchesSet,
+} from '../platform/gw2/weapon-skill-matcher.js';
+import {
     buildChartSeries as buildSharedChartSeries,
     chartValueAt,
 } from '../platform/ui/charts.js';
@@ -326,16 +329,25 @@ export function weaponSkills(app, weaponSet = 1) {
     const [mh, oh] = weaponSet === 2
         ? app.build.alternateWeapons
         : app.build.weapons;
-    const twoHanded = app.weaponData[mh]?.wielding === '2h';
     return uniqueByName(app.skills.filter(skill => {
         if (skill.type !== 'Weapon') return false;
         if (!app.adapter.isSkillAvailable(skill, {
             build: app.build,
             specialization: activeSpecialization(app),
         })) return false;
-        const number = Number(String(skill.slot || '').match(/(\d)$/)?.[1] || 0);
-        if (twoHanded) return skill.weapon === mh;
-        return (number <= 3 && skill.weapon === mh) || (number >= 4 && skill.weapon === oh);
+        return (
+            app.adapter.weaponSkillMatchesSet
+            || defaultWeaponSkillMatchesSet
+        )(skill, [mh, oh], {
+            build: app.build,
+            specialization: activeSpecialization(app),
+            catalog:
+                app.profession?.catalog
+                || app.adapter?.profession?.catalog
+                || null,
+            weaponData: app.weaponData,
+            weaponSet,
+        });
     })).sort((a, b) => {
         const slotOrder = String(a.slot).localeCompare(String(b.slot));
         if (slotOrder) return slotOrder;
@@ -628,7 +640,10 @@ export function renderPalette(app) {
         professionState: professionEndState(app.results),
         build: app.build,
     };
-    const professionGroups = paletteView(app.profession, paletteContext);
+    const professionGroups = [
+        ...paletteView(app.profession, paletteContext),
+        ...(app.adapter.slotLoadout?.paletteGroups(paletteContext) || []),
+    ];
     const renderedProfessionGroups = professionGroups.map(group => ({
         ...group,
         skills: group.skillIds
@@ -642,9 +657,13 @@ export function renderPalette(app) {
         const splitIndex = mechanics.findIndex(skill => skill.name === 'Continuum Split');
         if (shift) mechanics.splice(splitIndex + 1, 0, shift);
     }
-    const selected = Object.values(app.build.selectedSkills)
-        .map(name => app.skillByName.get(name))
-        .filter(Boolean);
+    const selected = app.adapter.slotLoadout
+        ? app.adapter.slotLoadout.selectedSkillIds(paletteContext)
+            .map(id => app.skillById.get(Number(id)))
+            .filter(Boolean)
+        : Object.values(app.build.selectedSkills)
+            .map(name => app.skillByName.get(name))
+            .filter(Boolean);
     // Non-weapon flips (Mantra of Pain → Power Spike) ride alongside their
     // selected parent so the palette can offer the flip while it is armed.
     const utilityFlipByParent = new Map(
@@ -662,13 +681,17 @@ export function renderPalette(app) {
     const availableFlips = professionState.availableFlips || {};
     const availableAmbush = professionState.availableAmbush || null;
     const autoattackChains = professionState.autoattackChains || {};
+    const loadoutUnavailableMessage = skill =>
+        app.adapter.slotLoadout?.unavailableReason(skill, paletteContext) || '';
     const professionAllowsPaletteSkill = skill =>
-        app.profession.ui.isPaletteSkillAvailable?.(
+        !loadoutUnavailableMessage(skill)
+        && app.profession.ui.isPaletteSkillAvailable?.(
             paletteContext,
             skill,
         ) !== false;
     const professionPaletteUnavailableMessage = skill =>
-        app.profession.ui.paletteSkillUnavailableMessage?.(
+        loadoutUnavailableMessage(skill)
+        || app.profession.ui.paletteSkillUnavailableMessage?.(
             paletteContext,
             skill,
         ) || '';
@@ -1234,9 +1257,6 @@ const baseBreakdownName = name => String(name || '').split('—')[0].trim();
 const eventLogOrder = {
     combat_start: 5,
     cast: 10,
-    'mesmer.phantasm-summoned': 20,
-    'mesmer.phantasm-resummoned': 21,
-    'mesmer.phantasm-attack': 22,
     resource: 30,
     marker: 40,
     proc: 50,
@@ -1246,8 +1266,33 @@ const eventLogOrder = {
     cast_end: 90,
 };
 
-export function simulationEventLogRows(result, build = null) {
+function normalizedProfessionEventRow(descriptor) {
+    if (descriptor === null) return null;
+    if (!descriptor || typeof descriptor !== 'object') return undefined;
+    const type = String(descriptor.type || '').trim();
+    const description = String(descriptor.description || '').trim();
+    if (!type || !description) return undefined;
+    const flags = Array.isArray(descriptor.flags)
+        ? descriptor.flags.map(String)
+        : [];
+    return {
+        type,
+        description,
+        className: String(descriptor.className || ''),
+        order: Number.isFinite(Number(descriptor.order))
+            ? Number(descriptor.order)
+            : eventLogOrder[type] ?? 80,
+        phantasmClone: flags.includes('phantasm-clone'),
+    };
+}
+
+export function simulationEventLogRows(
+    result,
+    build = null,
+    profession = null,
+) {
     const rows = [];
+    const professionUi = profession?.ui || profession || {};
     const displayReferenceSeconds = resultCombatReferenceMs(result) / 1000;
     const maximumResource = Number(
         professionEndState(result).resourceDefinition?.maximum || 0,
@@ -1262,6 +1307,32 @@ export function simulationEventLogRows(result, build = null) {
             phantasmClone,
             order: eventLogOrder[type] ?? 80,
         });
+    };
+    const pushProfessionRow = (event) => {
+        const descriptor = normalizedProfessionEventRow(
+            professionUi.eventLogRow?.(
+                {
+                    result,
+                    build,
+                    profession,
+                    displayReferenceSeconds,
+                    maximumResource,
+                },
+                event,
+            ),
+        );
+        if (descriptor === null) return;
+        if (descriptor) {
+            const displayAt = Number(event.at || 0) - displayReferenceSeconds;
+            rows.push({
+                at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
+                ...descriptor,
+            });
+            return;
+        }
+        const message = `UNPRESENTED CUSTOM EVENT ${event.type}`;
+        globalThis.console?.warn?.(message, event);
+        push(event.at, 'diagnostic', message, 'diagnostic');
     };
 
     for (const event of result?.events || []) {
@@ -1284,33 +1355,6 @@ export function simulationEventLogRows(result, build = null) {
                 push(event.endsAt, 'cast_end', `END ${event.name}`);
                 break;
             }
-            case 'mesmer.phantasm-summoned':
-                push(
-                    event.at,
-                    event.type,
-                    `PHANTASM SUMMONED ${event.name} x${event.count}`,
-                    'phantasm',
-                    true,
-                );
-                break;
-            case 'mesmer.phantasm-resummoned':
-                push(
-                    event.at,
-                    event.type,
-                    `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
-                    'phantasm',
-                    true,
-                );
-                break;
-            case 'mesmer.phantasm-attack':
-                push(
-                    event.at,
-                    event.type,
-                    `PHANTASM DAMAGE COMPLETE ${event.name} x${event.count}${event.repeat ? ' [repeat]' : ''}`,
-                    'phantasm',
-                    true,
-                );
-                break;
             case 'resource': {
                 const amount = Number(event.amount || 0);
                 const resource = String(event.resource || 'resource');
@@ -1378,15 +1422,10 @@ export function simulationEventLogRows(result, build = null) {
                     'trigger',
                 );
                 break;
-            case 'mesmer.instrument':
-                push(
-                    event.at,
-                    'trigger',
-                    `INSTRUMENT ${event.instrument}${event.expiresAt ? ` until ${Number(event.expiresAt).toFixed(3)}s` : ''}`,
-                    'trigger',
-                );
-                break;
             default:
+                if (String(event.type || '').includes('.')) {
+                    pushProfessionRow(event);
+                }
                 break;
         }
     }
@@ -1428,7 +1467,11 @@ export function renderEventLog(app) {
         if (element) element.innerHTML = '';
         return;
     }
-    const eventLog = simulationEventLogRows(result, app.build);
+    const eventLog = simulationEventLogRows(
+        result,
+        app.build,
+        app.profession,
+    );
     const hasPhantasmClone = eventLog.some(event => event.phantasmClone);
     mountEventLog(element, eventLog.map(event => ({
         ...event,

@@ -7,6 +7,9 @@ import {
   renderResults,
   renderRotationBuilder,
 } from "./rotation-ui.js";
+import {
+  defaultWeaponSkillMatchesSet,
+} from "../platform/gw2/weapon-skill-matcher.js";
 
 /**
  * Builds the browser application adapter for a GW2 profession.
@@ -63,6 +66,11 @@ export function createGw2AppAdapter({
     calculateModifierContributions,
     renderResults,
     renderRotationBuilder,
+    slotLoadout: profession.ui.slotLoadout || null,
+    assumptionControls: profession.ui.assumptionControls || Object.freeze([]),
+    weaponSkillMatchesSet:
+      profession.ui.weaponSkillMatchesSet
+      || defaultWeaponSkillMatchesSet,
     isSkillAvailable,
     defaultOffhand,
   });

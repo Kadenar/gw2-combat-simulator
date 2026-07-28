@@ -26,6 +26,16 @@
         "skills": [
           { "id": 30 }
         ]
+      },
+      "Trident": {
+        "skills": [
+          { "id": 31 }
+        ]
+      },
+      "Speargun": {
+        "skills": [
+          { "id": 32 }
+        ]
       }
     }
   },
@@ -99,6 +109,22 @@
     {
       "id": 30,
       "name": "Land Spear",
+      "type": "Weapon",
+      "slot": "Weapon_1",
+      "flags": ["NoUnderwater"],
+      "facts": []
+    },
+    {
+      "id": 31,
+      "name": "Trident Attack",
+      "type": "Weapon",
+      "slot": "Weapon_1",
+      "flags": ["NoUnderwater"],
+      "facts": []
+    },
+    {
+      "id": 32,
+      "name": "Speargun Attack",
       "type": "Weapon",
       "slot": "Weapon_1",
       "flags": ["NoUnderwater"],

@@ -3398,6 +3398,50 @@ header .accent {
     --accent-dim: #3c7549;
 }
 
+.engineer-theme {
+    --accent: #d29b3d;
+    --accent-dim: #8b6122;
+}
+
+.revenant-theme {
+    --accent: #c4565d;
+    --accent-dim: #84343a;
+}
+
+.thief-theme {
+    --accent: #c65d68;
+    --accent-dim: #813a43;
+}
+
+.fixed-loadout-selectors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.fixed-loadout-selectors label {
+    display: grid;
+    gap: 3px;
+    color: var(--text-dim);
+    font-size: 11px;
+}
+
+.fixed-loadout-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px;
+    border: 1px solid var(--border-light);
+    opacity: .55;
+}
+
+.fixed-loadout-bar.active {
+    border-color: var(--accent);
+    opacity: 1;
+}
+
 #loading-overlay.hidden {
     display: none;
 }

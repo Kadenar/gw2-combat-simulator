@@ -16,8 +16,8 @@ official Guild Wars 2 API. It currently contains:
 
 The API profession feed does not expose Firebrand tome pages, Luminary
 Radiant Forge weapons, or two current Dragonhunter virtue variants.
-`guardian-bundle-skills.js` supplies those 26 stable-ID entries, bringing the
-canonical simulator catalog to 190 skills.
+`guardian-bundle-skills.js` supplies the stable-ID supplemental entries,
+bringing the canonical simulator catalog to 191 skills.
 
 Refresh it with `npm run update:guardian-data`. Generated API metadata is kept
 separate from simulator-owned timing and effect definitions in

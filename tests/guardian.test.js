@@ -730,7 +730,11 @@ test("Guardian timing applies Quickness, Alacrity, ammo, and trait recharge", ()
   const ammo = simulateGw2({
     profession: guardianProfession,
     rotation: ["Hail of Justice", "Hail of Justice", "Hail of Justice"],
-    config: { ...config, primaryWeapon: "Pistol" },
+    config: {
+      ...config,
+      primaryWeapon: "Sword",
+      secondaryWeapon: "Pistol",
+    },
   });
 
   assert.equal(quick.endState.time, 360);

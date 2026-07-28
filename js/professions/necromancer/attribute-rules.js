@@ -1,6 +1,8 @@
 import {
-  permanentTargetConditionStacks,
-  targetHasPermanentCondition,
+  CANONICAL_TARGET_CONDITIONS,
+  canonicalTargetConditionName,
+  targetConditionStacks as configuredTargetConditionStacks,
+  targetHasCondition as targetHasConfiguredCondition,
 } from "../../platform/gw2/target-state.js";
 import {
   createModifierHooks,
@@ -19,37 +21,31 @@ function eventSkill(context) {
 }
 
 function targetHasCondition(context, condition) {
-  if (targetHasPermanentCondition(context.config || {}, condition)) return true;
-  const applications =
-    context.runtime?.conditionState?.get(condition)?.stacks || [];
-  return applications.some(
-    (application) =>
-      application.appliedAt <= context.time &&
-      application.expiresAt > context.time &&
-      application.weight > 0,
+  if (context.query?.targetHasCondition) {
+    return Boolean(context.query.targetHasCondition(
+      condition,
+      context.time,
+      context.runtime,
+    ));
+  }
+  return targetHasConfiguredCondition(
+    context.config || {},
+    condition,
+    context.time,
+    context.runtime,
   );
 }
 
 function targetConditionCount(context) {
-  const names = new Set();
-  for (const [name, value] of Object.entries(
-    context.config?.target?.conditions || {},
-  )) {
-    if (value === true || Number(value) > 0) names.add(name);
-  }
-  for (const [name, entry] of context.runtime?.conditionState || []) {
-    if (
-      (entry.stacks || []).some(
-        (stack) =>
-          stack.appliedAt <= context.time &&
-          stack.expiresAt > context.time &&
-          stack.weight > 0,
-      )
-    ) {
-      names.add(name);
-    }
-  }
-  return names.size;
+  const names = new Set([
+    ...CANONICAL_TARGET_CONDITIONS,
+    ...Object.keys(context.config?.target?.conditions || {})
+      .map(canonicalTargetConditionName),
+    ...[...(context.runtime?.conditionState?.keys?.() || [])]
+      .map(canonicalTargetConditionName),
+  ]);
+  return [...names].filter(condition =>
+    targetHasCondition(context, condition)).length;
 }
 
 function targetHealthFraction(context) {
@@ -229,7 +225,18 @@ export const necromancerModifierRules = Object.freeze([
     amount: (context) =>
       Math.min(
         25,
-        permanentTargetConditionStacks(context.config || {}, "Vulnerability"),
+        Number(context.query?.targetConditionStacks
+          ? context.query.targetConditionStacks(
+            "Vulnerability",
+            context.time,
+            context.runtime,
+          )
+          : configuredTargetConditionStacks(
+            context.config || {},
+            "Vulnerability",
+            context.time,
+            context.runtime,
+          )),
       ) * 0.02,
     when: (context) => hasTrait(context, TRAIT.DECIMATE_DEFENSES),
   },
