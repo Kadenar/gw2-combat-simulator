@@ -151,6 +151,7 @@ function detonateLightAura(context, skill, at) {
     skillName: "Sovereign of Light",
     name: "Sovereign of Light",
     coefficient: 1.5,
+    skillWeapon: "Unequipped",
     triggeredBy: skill.name,
   }));
   emitProc(context, {
@@ -414,6 +415,7 @@ function emitLesserSymbolOfBlades(context, skill, at) {
       skillName: "Lesser Symbol of Blades",
       name: "Lesser Symbol of Blades",
       coefficient: 0.65,
+      skillWeapon: "Unequipped",
       hitIndex: index + 1,
       totalHits: 5,
       isSymbol: true,
@@ -589,6 +591,7 @@ function queueLesserSymbolOfResolution(context, at, sourceSkill) {
       skillName: "Lesser Symbol of Resolution",
       name: "Lesser Symbol of Resolution",
       coefficient: 0.5,
+      skillWeapon: "Unequipped",
       hitIndex: index + 1,
       totalHits: 5,
       isSymbol: true,
@@ -799,7 +802,7 @@ export function handleEffulgentDetonate(context, event) {
     skillName: "Effulgent Stance",
     name: "Effulgent Stance",
     coefficient: 0.5 + stacks * 0.35,
-    skillWeapon: "Utility",
+    weaponStrength: 690.5,
     stackCount: stacks,
   }));
   if (stacks === 10) {

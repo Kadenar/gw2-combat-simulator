@@ -10,7 +10,10 @@ import {
   validateTomeCast,
 } from "./specific/tomes.js";
 import { validateVirtueCast } from "./specific/virtues.js";
-import { updateSpearIlluminationState } from "./specific/spear.js";
+import {
+  advanceSpearIlluminationState,
+  updateSpearIlluminationState,
+} from "./specific/spear.js";
 import {
   updateWeaponCastState,
   validateWeaponState,
@@ -68,6 +71,11 @@ export const guardianSchedulerHooks = Object.freeze({
       id: "guardian.radiant-forge",
       order: 20,
       handler: advanceRadiantForgeState,
+    },
+    {
+      id: "guardian.spear",
+      order: 30,
+      handler: advanceSpearIlluminationState,
     },
   ]),
   afterCast: Object.freeze([

@@ -114,8 +114,8 @@ An illuminated cast of an enhanced-damage spear skill re-emits its strike ticks
 scaled by a per-skill multiplier, taken from the reference build's
 base→illuminated coefficients:
 
-- Helio Rush `1.8 → 2.7` (×1.50)
-- Gleaming Disc `1.5 → 1.875` (×1.25)
+- Helio Rush `1.5 → 2.25` (×1.50)
+- Gleaming Disc `3.0 → 3.75` (×1.25 aggregate; shock-wave bonus)
 - Solar Storm `3.6 → 4.5` (extra 4th/5th shard ≈ ×1.25)
 
 Each illuminated cast records an `Illuminated` proc (icon from the wiki) for the

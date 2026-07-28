@@ -152,7 +152,7 @@ test("Guardian greatsword uses the reference cast and strike profiles", () => {
       "Leap of Faith",
       "Symbol of Resolution",
       "Binding Blade",
-      { type: "wait", durationMs: 5000 },
+      { type: "wait", durationMs: 15000 },
     ],
     config: {
       ...config,
@@ -195,7 +195,7 @@ test("Guardian greatsword uses the reference cast and strike profiles", () => {
       157, 314, 471, 628, 785, 942, 1099,
       1257, 1414, 1571, 1728, 1885, 2042, 2200,
     ],
-    coefficient: 5.775,
+    coefficient: 4.375,
   });
   assert.deepEqual(profile(quick, "Whirling Wrath"), {
     cast: 1480,
@@ -203,7 +203,7 @@ test("Guardian greatsword uses the reference cast and strike profiles", () => {
       106, 211, 317, 422, 528, 634, 739,
       846, 951, 1057, 1162, 1268, 1374, 1480,
     ],
-    coefficient: 5.775,
+    coefficient: 4.375,
   });
   assert.deepEqual(profile(quick, "Leap of Faith"), {
     cast: 720,
@@ -217,9 +217,19 @@ test("Guardian greatsword uses the reference cast and strike profiles", () => {
   });
   assert.deepEqual(profile(quick, "Binding Blade"), {
     cast: 480,
-    ticks: [480],
+    ticks: [
+      480, 1480, 2480, 3480, 4480, 5480,
+      6480, 7480, 8480, 9480, 10480,
+    ],
     coefficient: 2.5,
   });
+  const tether = quick.resolvedEvents.filter(event =>
+    event.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER
+  );
+  assert.equal(tether.length, 10);
+  assert.equal(tether.every(event => event.canCrit === false), true);
+  assert.equal(tether.every(event =>
+    event.flatStrikeBase === 160 && event.flatStrikePowerCoeff === 0.3), true);
 });
 
 test("Guardian utilities and traps use the reference damage timelines", () => {
@@ -313,12 +323,16 @@ test("Spear Helio Rush arms Illuminated and enhances the next spear skill", () =
   });
   const gleamingAlone = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Gleaming Disc"],
+    rotation: ["Gleaming Disc", { type: "wait", durationMs: 1000 }],
     config: spearConfig,
   });
   const combo = simulateGw2({
     profession: guardianProfession,
-    rotation: ["Helio Rush", "Gleaming Disc"],
+    rotation: [
+      "Helio Rush",
+      "Gleaming Disc",
+      { type: "wait", durationMs: 1000 },
+    ],
     config: spearConfig,
   });
 
@@ -364,6 +378,63 @@ test("Spear Symbol of Luminance keeps all spear skills illuminated while active"
       step => step.skill === "Illuminated" && step.sourceSkill === "Helio Rush",
     ),
     true,
+  );
+  assert.deepEqual(
+    symbolThenHelio.resolvedEvents
+      .filter(event =>
+        event.type === "damage"
+        && event.skillId === GUARDIAN_SKILL_IDS.HELIO_RUSH)
+      .map(event => event.coefficient),
+    [2.25],
+  );
+});
+
+test("Guardian spear benchmark coefficients and repeated pulses stay per-hit", () => {
+  const spearConfig = {
+    ...config,
+    boons: { quickness: true },
+    primaryWeapon: "Spear",
+  };
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Helio Rush",
+      "Gleaming Disc",
+      "Symbol of Luminance",
+      "Solar Storm",
+      { type: "wait", durationMs: 5000 },
+    ],
+    config: spearConfig,
+  });
+  const coefficients = name => result.resolvedEvents
+    .filter(event => event.name === name)
+    .map(event => event.coefficient);
+
+  assert.deepEqual(coefficients("Helio Rush"), [1.5]);
+  assert.deepEqual(coefficients("Gleaming Disc"), [1.5, 2.25]);
+  assert.deepEqual(coefficients("Gleaming Disc (Illuminated)"), []);
+  assert.equal(
+    result.resolvedEvents.filter(event =>
+      event.type === "damage" && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC
+    ).length,
+    2,
+  );
+  assert.deepEqual(coefficients("Symbol of Luminance — Initial"), [1.5]);
+  assert.deepEqual(
+    coefficients("Symbol of Luminance"),
+    [0.5, 0.5, 0.5, 0.5, 0.5],
+  );
+  assert.deepEqual(coefficients("Solar Storm — 1st Strike"), [1.5]);
+  assert.deepEqual(coefficients("Solar Storm — 2nd Strike"), [1.2]);
+  assert.deepEqual(coefficients("Solar Storm — 3rd Strike"), [0.9]);
+  assert.deepEqual(coefficients("Solar Storm — 4th Strike"), [0.6]);
+  assert.deepEqual(coefficients("Solar Storm — 5th Strike"), [0.3]);
+  assert.deepEqual(coefficients("Solar Storm (Illuminated)"), []);
+  assert.equal(
+    result.resolvedEvents.filter(event =>
+      event.type === "damage" && event.skillId === GUARDIAN_SKILL_IDS.SOLAR_STORM
+    ).length,
+    5,
   );
 });
 
@@ -645,12 +716,32 @@ test("Guardian measured Quickness cast times remain exact", () => {
 
   assert.equal(castDuration(["Helio Rush"], "Helio Rush"), 320);
   assert.equal(castDuration(["Gleaming Disc"], "Gleaming Disc"), 560);
+  assert.equal(castDuration(["Solar Storm"], "Solar Storm"), 560);
   assert.equal(
     castDuration(
       ["Enter Radiant Forge", "Dazzling Hammer"],
       "Dazzling Hammer",
     ),
     480,
+  );
+
+  const chain = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Daybreaking Slash",
+      "Daybreaking Slash",
+      "Helio Rush",
+      "Daybreaking Slash",
+    ],
+    config: quicknessConfig,
+  });
+  assert.deepEqual(
+    chain.events
+      .filter(event =>
+        event.type === "action"
+        && event.skillName === "Daybreaking Slash")
+      .map(event => Math.round((event.endsAt - event.at) * 1000)),
+    [520, 440, 520],
   );
 });
 
@@ -1377,10 +1468,34 @@ test("Luminary weapon coefficients, disables, and armament buffs resolve", () =>
     result.resolvedEvents.find(event => event.name === name);
   const dazzling = damage(armaments, "Dazzling Hammer");
   const shining = damage(armaments, "Shining Spin");
+  const defiantAfterDaze = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Enter Radiant Forge", "Dazzling Hammer", "Shining Spin"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      target: { ...config.target, defiant: true },
+    },
+  });
+  const ordinaryAfterDaze = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Enter Radiant Forge", "Dazzling Hammer", "Shining Spin"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+    },
+  });
 
   assert.equal(dazzling.coefficient, 1.2);
   assert.equal(shining.coefficient, 1.25);
   assert.ok(shining.damage > dazzling.damage);
+  assert.ok(
+    Math.abs(
+      damage(defiantAfterDaze, "Shining Spin").damage
+      / damage(ordinaryAfterDaze, "Shining Spin").damage
+      - 1,
+    ) < 1e-9,
+  );
   assert.ok(
     Math.abs(
       dazzling.damage / damage(empowered, "Dazzling Hammer").damage - 1,
@@ -1693,6 +1808,7 @@ test("Luminary stances apply modifiers, combos, delayed damage, and control", ()
   assert.equal(effulgentDamage.at, 4);
   assert.equal(effulgentDamage.stackCount, 10);
   assert.equal(effulgentDamage.coefficient, 4);
+  assert.equal(effulgentDamage.weaponStrength, 690.5);
   assert.deepEqual(
     effulgent.procSteps
       .filter(step =>
@@ -1744,6 +1860,10 @@ test("Sovereign of Light consumes combo and trait-granted light auras", () => {
   assert.equal(sovereignHits.length, 2);
   assert.equal(
     sovereignHits.every(event => event.coefficient === 1.5),
+    true,
+  );
+  assert.equal(
+    sovereignHits.every(event => event.skillWeapon === "Unequipped"),
     true,
   );
   assert.equal(sovereignProcs.length, 2);
@@ -1856,6 +1976,10 @@ test("Zeal symbol traits emit their full profiles and stack damage", () => {
 
   assert.equal(blades.length, 5);
   assert.equal(blades.every(event => event.coefficient === 0.65), true);
+  assert.equal(
+    blades.every(event => event.skillWeapon === "Unequipped"),
+    true,
+  );
   assert.equal(symbols.endState.profession.symbolicAvengerStacks, 5);
   assert.equal(
     symbols.events.filter(event =>
@@ -1865,6 +1989,10 @@ test("Zeal symbol traits emit their full profiles and stack damage", () => {
   );
   assert.equal(resolution.length, 5);
   assert.equal(resolution.every(event => event.coefficient === 0.5), true);
+  assert.equal(
+    resolution.every(event => event.skillWeapon === "Unequipped"),
+    true,
+  );
   assert.equal(
     zealotsResolution.endState.profession.zealotsResolutionReadyAt,
     resolution[0].at + 30,
