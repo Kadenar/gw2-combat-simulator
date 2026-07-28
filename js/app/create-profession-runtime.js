@@ -138,6 +138,14 @@ export function createProfessionRuntime({
         label: "Fury",
       });
     }
+    if (assumptions.resolution) {
+      candidates.push({
+        id: "Boon:Resolution",
+        type: "Boon",
+        name: "Resolution",
+        label: "Resolution",
+      });
+    }
     if (Number(assumptions.targetConditions?.Vulnerability) > 0) {
       candidates.push({
         id: "Target:Vulnerability",

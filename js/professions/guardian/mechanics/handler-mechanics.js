@@ -23,7 +23,7 @@ export const GUARDIAN_HANDLER_MECHANICS = Object.freeze({
   }),
   radiantForge: Object.freeze({
     glaringBurstCoefficientByWeapon: Object.freeze({
-      hammer: 1.25,
+      hammer: 1,
       blade: 1,
     }),
   }),

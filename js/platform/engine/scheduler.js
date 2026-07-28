@@ -229,15 +229,36 @@ function scheduleDeclarativeEffects(
           baseDuration,
         )
         ?? baseDuration;
-      const emitted = context.emit({
-        ...base,
-        at: firstAt,
-        type: "buff",
-        kind: String(effect.boon || effect.kind || effect.name || "").toLowerCase(),
-        stacks: Math.max(1, Number(effect.stacks || 1)),
-        duration: Math.max(0, Number(duration || 0)),
-      });
-      observeEffect(emitted, effect, index);
+      const applications = Math.max(
+        1,
+        Math.trunc(Number(effect.applications || 1)),
+      );
+      const interval =
+        Math.max(0, Number(timing.intervalMs || 0)) / 1000;
+      for (
+        let applicationIndex = 1;
+        applicationIndex <= applications;
+        applicationIndex += 1
+      ) {
+        const at = firstAt + (applicationIndex - 1) * interval;
+        if (
+          cancelPendingEffects
+          && at > effectiveEnd + context.epsilon
+        ) break;
+        const emitted = context.emit({
+          ...base,
+          at,
+          type: "buff",
+          kind: String(
+            effect.boon || effect.kind || effect.name || "",
+          ).toLowerCase(),
+          stacks: Math.max(1, Number(effect.stacks || 1)),
+          duration: Math.max(0, Number(duration || 0)),
+          applicationIndex,
+          totalApplications: applications,
+        });
+        observeEffect(emitted, effect, index);
+      }
     } else if (effect.type === "custom") {
       const emitted = context.emit({
         ...base,
