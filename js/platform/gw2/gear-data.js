@@ -242,6 +242,21 @@ function sortNames(names) {
 
 export const PREFIXES = sortNames(Object.keys(GEAR_STATS));
 
+export const PREFIX_GROUPS = [
+    {
+        label: 'Power',
+        items: PREFIXES.filter(prefix =>
+            !Object.values(GEAR_STATS[prefix]).some(stats =>
+                Object.hasOwn(stats, 'Condition Damage'))),
+    },
+    {
+        label: 'Condition',
+        items: PREFIXES.filter(prefix =>
+            Object.values(GEAR_STATS[prefix]).some(stats =>
+                Object.hasOwn(stats, 'Condition Damage'))),
+    },
+];
+
 // Returns the list of effective gear slots for attribute calculation.
 // For 2H weapons: Weapon1 is replaced by Weapon2H, Weapon2 is removed.
 // `weapons` is the build.weapons array, e.g. ['Staff'] or ['Sword','Dagger'].
@@ -529,6 +544,31 @@ export const SIGIL_DATA = {
 };
 
 export const SIGIL_NAMES = sortNames(Object.keys(SIGIL_DATA));
+
+const CONDITION_SIGILS = new Set([
+    'Agony',
+    'Blight',
+    'Bursting',
+    'Demons',
+    'Doom',
+    'Earth',
+    'Geomancy',
+    'Malice',
+    'Smoldering',
+    'Torment',
+    'Venom',
+]);
+
+export const SIGIL_GROUPS = [
+    {
+        label: 'Power',
+        items: SIGIL_NAMES.filter(name => !CONDITION_SIGILS.has(name)),
+    },
+    {
+        label: 'Condition',
+        items: SIGIL_NAMES.filter(name => CONDITION_SIGILS.has(name)),
+    },
+];
 
 export const SIGIL_PROCS = Object.freeze({
     Air: {

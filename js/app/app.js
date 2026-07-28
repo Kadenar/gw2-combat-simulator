@@ -5,10 +5,10 @@ import {
     FOOD_GROUPS,
     GEAR_SLOTS,
     INFUSION_STATS,
-    PREFIXES,
+    PREFIX_GROUPS,
     RELIC_NAMES as SHARED_RELIC_NAMES,
     RUNE_GROUPS,
-    SIGIL_NAMES,
+    SIGIL_GROUPS,
     UTILITY_NAMES,
 } from '../platform/gw2/gear-data.js';
 import { setWeaponSigil } from '../platform/gw2/weapon-sigils.js';
@@ -251,7 +251,7 @@ export class ProfessionApp {
             return `<div class="gear-row"${hidden ? ' style="display:none"' : ''}>
                 <span class="gear-label">${label}</span>
                 <select class="gear-select gear-prefix" data-slot="${slot}">
-                    ${PREFIXES.map(prefix => option(prefix, this.build.gear[slot])).join('')}
+                    ${groupedOptions(PREFIX_GROUPS, this.build.gear[slot])}
                 </select>
             </div>`;
         }).join('');
@@ -283,9 +283,12 @@ export class ProfessionApp {
                 ${[0, 1].map(slot => this.selectRow(
                     `Sigil ${slot + 1}`,
                     `sel-sig${setNumber}-${slot + 1}`,
-                    SIGIL_NAMES.map(name =>
-                        option(name, sigils[slot], name, name === sigils[slot === 0 ? 1 : 0])
-                    ).join(''),
+                    groupedOptions(
+                        SIGIL_GROUPS,
+                        sigils[slot],
+                        name => name,
+                        name => name === sigils[slot === 0 ? 1 : 0],
+                    ),
                 )).join('')}`;
         };
         document.getElementById('weapon-select').innerHTML = `

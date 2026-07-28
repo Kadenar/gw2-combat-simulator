@@ -35,6 +35,10 @@ import {
   weaponPaletteRows,
 } from "../js/app/rotation-ui.js";
 import {
+  PREFIXES,
+  PREFIX_GROUPS,
+  SIGIL_GROUPS,
+  SIGIL_NAMES,
   WEAPON_DATA,
   createProfessionWeaponData,
 } from "../js/platform/gw2/gear-data.js";
@@ -98,6 +102,80 @@ test("shared app options escape labels and preserve selection state", () => {
       value => `${value} <stat>`,
     ),
     '<optgroup label="Damage &amp; support"><option value="Power" selected>Power &lt;stat&gt;</option></optgroup>',
+  );
+});
+
+test("gear prefixes and sigils are sorted into Power and Condition groups", () => {
+  assert.deepEqual(PREFIX_GROUPS, [
+    {
+      label: "Power",
+      items: ["Assassin's", "Berserker's", "Diviner's", "Dragon's"],
+    },
+    {
+      label: "Condition",
+      items: [
+        "Celestial",
+        "Dire",
+        "Grieving",
+        "Rabid",
+        "Rampager's",
+        "Ritualist's",
+        "Sinister",
+        "Trailblazer's",
+        "Viper's",
+      ],
+    },
+  ]);
+  assert.deepEqual(SIGIL_GROUPS, [
+    {
+      label: "Power",
+      items: [
+        "Accuracy",
+        "Air",
+        "Concentration",
+        "Energy",
+        "Force",
+        "Hydromancy",
+        "Impact",
+        "Severance",
+      ],
+    },
+    {
+      label: "Condition",
+      items: [
+        "Agony",
+        "Blight",
+        "Bursting",
+        "Demons",
+        "Doom",
+        "Earth",
+        "Geomancy",
+        "Malice",
+        "Smoldering",
+        "Torment",
+        "Venom",
+      ],
+    },
+  ]);
+  assert.deepEqual(
+    PREFIX_GROUPS.flatMap(group => group.items).sort(),
+    PREFIXES,
+  );
+  assert.deepEqual(
+    SIGIL_GROUPS.flatMap(group => group.items).sort(),
+    SIGIL_NAMES,
+  );
+});
+
+test("grouped options can disable items without losing the selection", () => {
+  assert.equal(
+    groupedOptions(
+      [{ label: "Power", items: ["Force", "Impact"] }],
+      "Force",
+      value => value,
+      value => value === "Impact",
+    ),
+    '<optgroup label="Power"><option value="Force" selected>Force</option><option value="Impact" disabled>Impact</option></optgroup>',
   );
 });
 
