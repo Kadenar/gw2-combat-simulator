@@ -1,3 +1,11 @@
+/**
+ * Scheduler-side Revenant trait lifecycle and event observation.
+ *
+ * Initializes trait-owned state, modifies cast/recharge durations, applies
+ * after-cast boons and resource effects, and reacts to newly scheduled damage,
+ * condition, control, buff, and swap events. Resolver-time Impossible Odds and
+ * Soulcleave reactions remain in resolver/event-reactions.js.
+ */
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -6,9 +14,7 @@ import {
 import { hasRevenantTrait } from "../../state.js";
 import { emitRevenantBoon } from "./conduit.js";
 import { revenantCombatActive } from "./legend.js";
-import {
-  REVENANT_HANDLER_MECHANICS as MECHANICS,
-} from "../handler-mechanics.js";
+import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
   activeKallasFervorStacks,
   grantKallasFervor,
@@ -45,17 +51,15 @@ function emitTraitCondition(
 }
 
 function pruneBattleScars(state, at) {
-  state.battleScars = (state.battleScars || [])
-    .filter(stack => stack.expiresAt > at);
+  state.battleScars = (state.battleScars || []).filter(
+    (stack) => stack.expiresAt > at,
+  );
 }
 
-function grantBattleScars(context, {
-  at,
-  stacks,
-  sourceId,
-  sourceName,
-  cause = null,
-}) {
+function grantBattleScars(
+  context,
+  { at, stacks, sourceId, sourceName, cause = null },
+) {
   const profile = MECHANICS.battleScars;
   const state = context.state.profession;
   pruneBattleScars(state, at);
@@ -98,16 +102,9 @@ function materializeThrillOfCombat(context, event) {
   const next = Number(state.nextThrillOfCombatAt);
   if (!Number.isFinite(next) || next > event.at + context.epsilon) return;
   const elapsedGrants =
-    Math.floor(
-      (event.at - next + context.epsilon) / profile.interval,
-    ) + 1;
-  const maximumActiveGrants = Math.ceil(
-    profile.duration / profile.interval,
-  );
-  const firstActiveIndex = Math.max(
-    0,
-    elapsedGrants - maximumActiveGrants,
-  );
+    Math.floor((event.at - next + context.epsilon) / profile.interval) + 1;
+  const maximumActiveGrants = Math.ceil(profile.duration / profile.interval);
+  const firstActiveIndex = Math.max(0, elapsedGrants - maximumActiveGrants);
   let activeGrants = 0;
   for (let index = firstActiveIndex; index < elapsedGrants; index += 1) {
     const grantedAt = next + index * profile.interval;
@@ -119,8 +116,7 @@ function materializeThrillOfCombat(context, event) {
     });
     activeGrants += 1;
   }
-  state.nextThrillOfCombatAt =
-    next + elapsedGrants * profile.interval;
+  state.nextThrillOfCombatAt = next + elapsedGrants * profile.interval;
   if (activeGrants) {
     context.emitDerived(event, {
       type: "buff",
@@ -168,17 +164,18 @@ function isLegendaryStanceSkill(skill) {
   if (["Heal", "Utility", "Elite"].includes(skill?.slot) && skill.legendId) {
     return true;
   }
-  return MECHANICS.traitProcs.notoriety.professionSkillIds
-    .includes(skill?.id);
+  return MECHANICS.traitProcs.notoriety.professionSkillIds.includes(skill?.id);
 }
 
 function scaledBoonDuration(context, boon, duration) {
-  return context.schedulerPolicy.effectDuration?.(
-    context,
-    context.skill,
-    { type: "boon", boon },
-    duration,
-  ) ?? duration;
+  return (
+    context.schedulerPolicy.effectDuration?.(
+      context,
+      context.skill,
+      { type: "boon", boon },
+      duration,
+    ) ?? duration
+  );
 }
 
 function expectedRenegadeCriticals(context, event) {
@@ -199,9 +196,9 @@ function applyRenegadeCriticalTraits(context, event) {
   if (!ambush && !enmity) return;
   const criticals = expectedRenegadeCriticals(context, event);
   const positionalTrigger = Boolean(
-    context.config.target?.flanking
-    || context.config.target?.behind
-    || context.config.target?.defiant,
+    context.config.target?.flanking ||
+    context.config.target?.behind ||
+    context.config.target?.defiant,
   );
   if (ambush && (positionalTrigger || criticals > 0)) {
     grantKallasFervor(context, event, {
@@ -211,11 +208,12 @@ function applyRenegadeCriticalTraits(context, event) {
   }
   const state = context.state.profession;
   if (
-    !enmity
-    || criticals <= 0
-    || event.at + context.epsilon
-      < Number(state.traitProcReadyAt.endlessEnmity || 0)
-  ) return;
+    !enmity ||
+    criticals <= 0 ||
+    event.at + context.epsilon <
+      Number(state.traitProcReadyAt.endlessEnmity || 0)
+  )
+    return;
   const profile = MECHANICS.renegade.endlessEnmity;
   state.traitProcReadyAt.endlessEnmity = event.at + profile.interval;
   context.emitDerived(event, {
@@ -236,10 +234,11 @@ function applyRenegadeCriticalTraits(context, event) {
 
 function applyVindication(context, event) {
   if (
-    event.skillId !== ID.CITADEL_BOMBARDMENT
-    || Number(event.hitIndex || 1) !== 1
-    || !hasRevenantTrait(context.config, TRAIT.VINDICATION)
-  ) return;
+    event.skillId !== ID.CITADEL_BOMBARDMENT ||
+    Number(event.hitIndex || 1) !== 1 ||
+    !hasRevenantTrait(context.config, TRAIT.VINDICATION)
+  )
+    return;
   const duration = MECHANICS.renegade.vindication.dazeDuration;
   context.emitDerived(event, {
     type: "control",
@@ -258,14 +257,12 @@ function applyVindication(context, event) {
 
 function applyKallasFervorLifeSiphon(context, event) {
   if (
-    !Number.isFinite(event.flatStrikeBase)
-    && !Number.isFinite(event.flatStrikePowerCoeff)
-  ) return;
+    !Number.isFinite(event.flatStrikeBase) &&
+    !Number.isFinite(event.flatStrikePowerCoeff)
+  )
+    return;
   if (!/siphon/i.test(`${event.name || ""} ${event.skillName || ""}`)) return;
-  const stacks = activeKallasFervorStacks(
-    context.state.profession,
-    event.at,
-  );
+  const stacks = activeKallasFervorStacks(context.state.profession, event.at);
   if (!stacks) return;
   const profile = MECHANICS.renegade.kallasFervor;
   const perStack = hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
@@ -277,23 +274,24 @@ function applyKallasFervorLifeSiphon(context, event) {
   });
 }
 
+/** Seeds trait-owned proc state that depends on the selected build. */
 export function initializeRevenantTraits(context) {
   if (
-    hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER)
-    || hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY)
+    hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER) ||
+    hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY)
   ) {
     context.schedulerPolicy.requireCriticalFacts?.();
   }
 }
 
+/** Applies active trait/state cast-speed changes to a base duration. */
 export function modifyRevenantCastDuration(context, duration) {
   if (
-    context.skill?.handlerId === "revenant.band-together"
-    && isBandTogetherReady(context.state.profession, context.start)
-  ) return 0;
-  if (
-    context.skill?.handlerId === "revenant.beguiling-haze"
-  ) {
+    context.skill?.handlerId === "revenant.band-together" &&
+    isBandTogetherReady(context.state.profession, context.start)
+  )
+    return 0;
+  if (context.skill?.handlerId === "revenant.beguiling-haze") {
     const quickness = context.hasBuff?.("quickness", context.start);
     if (Number(context.state.profession.beguilingHazeCharges || 0) > 0) {
       return quickness ? 0.24 : 0.25;
@@ -303,31 +301,35 @@ export function modifyRevenantCastDuration(context, duration) {
   return duration;
 }
 
+/** Applies trait-specific recharge multipliers after shared Alacrity policy. */
 export function modifyRevenantRechargeDuration(context, duration) {
   const skill = context.skill;
   if (
-    skill?.handlerId === "revenant.band-together"
-    && isBandTogetherReady(context.state.profession, context.start)
-    && hasRevenantTrait(context.config, TRAIT.ALL_FOR_ONE)
+    skill?.handlerId === "revenant.band-together" &&
+    isBandTogetherReady(context.state.profession, context.start) &&
+    hasRevenantTrait(context.config, TRAIT.ALL_FOR_ONE)
   ) {
     return duration * MECHANICS.renegade.allForOne.enhancedRechargeMultiplier;
   }
   if (
-    skill?.handlerId === "revenant.release-potential"
-    && hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
-  ) return duration * 0.8;
+    skill?.handlerId === "revenant.release-potential" &&
+    hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
+  )
+    return duration * 0.8;
   if (
-    skill?.id === ID.SWAP_LEGENDS
-    && revenantCombatActive(context, context.at)
-    && hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
-  ) return duration * 0.6;
+    skill?.id === ID.SWAP_LEGENDS &&
+    revenantCombatActive(context, context.at) &&
+    hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
+  )
+    return duration * 0.6;
   return duration;
 }
 
+/** Commits trait effects that trigger once a cast's packet handling finishes. */
 export function afterRevenantCast(context, skill) {
   if (
-    skill?.slot === "Heal"
-    && hasRevenantTrait(context.config, TRAIT.BATTLE_SCARRED)
+    skill?.slot === "Heal" &&
+    hasRevenantTrait(context.config, TRAIT.BATTLE_SCARRED)
   ) {
     grantBattleScars(context, {
       at: context.effectiveEnd,
@@ -337,9 +339,9 @@ export function afterRevenantCast(context, skill) {
     });
   }
   if (
-    isLegendaryStanceSkill(skill)
-    && revenantCombatActive(context, context.effectiveEnd)
-    && hasRevenantTrait(context.config, TRAIT.NOTORIETY)
+    isLegendaryStanceSkill(skill) &&
+    revenantCombatActive(context, context.effectiveEnd) &&
+    hasRevenantTrait(context.config, TRAIT.NOTORIETY)
   ) {
     const profile = MECHANICS.traitProcs.notoriety;
     emitRevenantBoon(
@@ -349,15 +351,15 @@ export function afterRevenantCast(context, skill) {
       profile.mightDuration,
       profile.mightStacks,
       {
-      at: context.effectiveEnd,
-      sourceId: TRAIT.NOTORIETY,
-      name: "Notoriety — might",
+        at: context.effectiveEnd,
+        sourceId: TRAIT.NOTORIETY,
+        name: "Notoriety — might",
       },
     );
   }
   if (
-    skill.legendId === LEGEND.ENTITY
-    && hasRevenantTrait(context.config, TRAIT.SHARED_WISDOM)
+    skill.legendId === LEGEND.ENTITY &&
+    hasRevenantTrait(context.config, TRAIT.SHARED_WISDOM)
   ) {
     emitRevenantBoon(
       context,
@@ -367,18 +369,23 @@ export function afterRevenantCast(context, skill) {
     );
   }
   if (![ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS].includes(skill.id)) {
-    const embrace = context.state.profession.activeUpkeeps.find(upkeep =>
-      upkeep.skillId === ID.EMBRACE_THE_DARKNESS);
+    const embrace = context.state.profession.activeUpkeeps.find(
+      (upkeep) => upkeep.skillId === ID.EMBRACE_THE_DARKNESS,
+    );
     if (embrace) embrace.empoweredNextPulse = true;
   }
 }
 
+/**
+ * Observes each scheduler event once and materializes causally derived trait,
+ * Enchanted Dagger, Razorclaw, upkeep, and affinity effects.
+ */
 export function observeRevenantEvent(context, event) {
   const state = context.state.profession;
   if (
-    context.config.specialization === "Conduit"
-    && event.type === "damage"
-    && event.affinityOnHit === true
+    context.config.specialization === "Conduit" &&
+    event.type === "damage" &&
+    event.affinityOnHit === true
   ) {
     const skill = context.catalog.skillsById.get(event.skillId);
     const cost = Number(skill?.energyCost || 0);
@@ -387,26 +394,26 @@ export function observeRevenantEvent(context, event) {
       type: "revenant.affinity-hit",
       at: event.at,
       payload: {
-        amount: cost >= MECHANICS.energy.highCostThreshold
-          ? MECHANICS.energy.highCostAffinity
-          : MECHANICS.energy.standardAffinity,
+        amount:
+          cost >= MECHANICS.energy.highCostThreshold
+            ? MECHANICS.energy.highCostAffinity
+            : MECHANICS.energy.standardAffinity,
       },
     });
   }
   if (
-    context.config.relic === "Peitha"
-    && event.type === "damage"
-    && (
-      (event.skillName === "Deathstrike" && event.name === "Initial Damage")
-      || event.skillName === "Beguiling Haze"
-      || event.skillName === "Phantom's Onslaught"
-    )
+    context.config.relic === "Peitha" &&
+    event.type === "damage" &&
+    ((event.skillName === "Deathstrike" && event.name === "Initial Damage") ||
+      event.skillName === "Beguiling Haze" ||
+      event.skillName === "Phantom's Onslaught")
   ) {
-    const delay = event.skillName === "Deathstrike"
-      ? 0.24
-      : event.skillName === "Beguiling Haze"
-        ? 0.32
-        : 0.68;
+    const delay =
+      event.skillName === "Deathstrike"
+        ? 0.24
+        : event.skillName === "Beguiling Haze"
+          ? 0.32
+          : 0.68;
     context.emitDerived(event, {
       type: "peitha",
       at: event.at + delay,
@@ -419,11 +426,10 @@ export function observeRevenantEvent(context, event) {
     });
   }
   if (
-    event.type === "buff"
-    && String(event.kind || "").toLowerCase() === "fury"
-    && hasRevenantTrait(context.config, TRAIT.BLOOD_FURY)
-    && event.at + context.epsilon
-      >= Number(state.traitProcReadyAt.bloodFury || 0)
+    event.type === "buff" &&
+    String(event.kind || "").toLowerCase() === "fury" &&
+    hasRevenantTrait(context.config, TRAIT.BLOOD_FURY) &&
+    event.at + context.epsilon >= Number(state.traitProcReadyAt.bloodFury || 0)
   ) {
     state.traitProcReadyAt.bloodFury =
       event.at + MECHANICS.renegade.bloodFury.interval;
@@ -437,16 +443,15 @@ export function observeRevenantEvent(context, event) {
     applyKallasFervorLifeSiphon(context, event);
   }
   if (
-    ["action", "sigil_swap"].includes(event.type)
-    && event.skillId === ID.SWAP_WEAPONS
-    && hasRevenantTrait(context.config, TRAIT.BRUTALITY)
-    && Number(event.endsAt ?? event.at) + context.epsilon
-      >= Number(context.state.profession.traitProcReadyAt.brutality || 0)
+    ["action", "sigil_swap"].includes(event.type) &&
+    event.skillId === ID.SWAP_WEAPONS &&
+    hasRevenantTrait(context.config, TRAIT.BRUTALITY) &&
+    Number(event.endsAt ?? event.at) + context.epsilon >=
+      Number(context.state.profession.traitProcReadyAt.brutality || 0)
   ) {
     const profile = MECHANICS.traitProcs.brutality;
     const at = Number(event.endsAt ?? event.at);
-    context.state.profession.traitProcReadyAt.brutality =
-      at + profile.interval;
+    context.state.profession.traitProcReadyAt.brutality = at + profile.interval;
     context.emitDerived(event, {
       type: "buff",
       at,
@@ -462,8 +467,8 @@ export function observeRevenantEvent(context, event) {
     });
   }
   if (
-    event.type === "control"
-    && hasRevenantTrait(context.config, TRAIT.DWARVEN_BATTLE_TRAINING)
+    event.type === "control" &&
+    hasRevenantTrait(context.config, TRAIT.DWARVEN_BATTLE_TRAINING)
   ) {
     const profile = MECHANICS.traitProcs.dwarvenBattleTraining;
     emitTraitCondition(
@@ -478,8 +483,8 @@ export function observeRevenantEvent(context, event) {
   }
   if (event.type === "condition") {
     if (
-      event.condition === "Chilled"
-      && hasRevenantTrait(context.config, TRAIT.ABYSSAL_CHILL)
+      event.condition === "Chilled" &&
+      hasRevenantTrait(context.config, TRAIT.ABYSSAL_CHILL)
     ) {
       const profile = MECHANICS.traitProcs.abyssalChill;
       emitTraitCondition(
@@ -493,8 +498,8 @@ export function observeRevenantEvent(context, event) {
       );
     }
     if (
-      event.condition === "Vulnerability"
-      && hasRevenantTrait(context.config, TRAIT.DANCE_OF_DEATH)
+      event.condition === "Vulnerability" &&
+      hasRevenantTrait(context.config, TRAIT.DANCE_OF_DEATH)
     ) {
       grantBattleScars(context, {
         at: event.at,
@@ -506,21 +511,20 @@ export function observeRevenantEvent(context, event) {
     }
   }
   if (
-    event.type === "damage"
-    && event.actorType === "player"
-    && Number(event.coefficient || 0) > 0
+    event.type === "damage" &&
+    event.actorType === "player" &&
+    Number(event.coefficient || 0) > 0
   ) {
     applyRenegadeCriticalTraits(context, event);
     materializeThrillOfCombat(context, event);
     consumeBattleScar(context, event);
     if (
-      hasRevenantTrait(context.config, TRAIT.ASSASSINS_PRESENCE)
-      && event.at + context.epsilon
-        >= Number(state.traitProcReadyAt.assassinsPresence || 0)
+      hasRevenantTrait(context.config, TRAIT.ASSASSINS_PRESENCE) &&
+      event.at + context.epsilon >=
+        Number(state.traitProcReadyAt.assassinsPresence || 0)
     ) {
       const profile = MECHANICS.traitProcs.assassinsPresence;
-      state.traitProcReadyAt.assassinsPresence =
-        event.at + profile.interval;
+      state.traitProcReadyAt.assassinsPresence = event.at + profile.interval;
       context.emitDerived(event, {
         type: "buff",
         at: event.at,
@@ -536,14 +540,13 @@ export function observeRevenantEvent(context, event) {
       });
     }
     if (
-      hasRevenantTrait(context.config, TRAIT.VICIOUS_REPRISAL)
-      && context.hasBuff("resolution", event.at)
-      && event.at + context.epsilon
-        >= Number(state.traitProcReadyAt.viciousReprisal || 0)
+      hasRevenantTrait(context.config, TRAIT.VICIOUS_REPRISAL) &&
+      context.hasBuff("resolution", event.at) &&
+      event.at + context.epsilon >=
+        Number(state.traitProcReadyAt.viciousReprisal || 0)
     ) {
       const profile = MECHANICS.traitProcs.viciousReprisal;
-      state.traitProcReadyAt.viciousReprisal =
-        event.at + profile.interval;
+      state.traitProcReadyAt.viciousReprisal = event.at + profile.interval;
       context.emitDerived(event, {
         type: "buff",
         at: event.at,
@@ -559,9 +562,9 @@ export function observeRevenantEvent(context, event) {
       });
     }
     if (
-      !state.exposeDefensesUsed
-      && hasRevenantTrait(context.config, TRAIT.EXPOSE_DEFENSES)
-      && revenantCombatActive(context, event.at)
+      !state.exposeDefensesUsed &&
+      hasRevenantTrait(context.config, TRAIT.EXPOSE_DEFENSES) &&
+      revenantCombatActive(context, event.at)
     ) {
       const profile = MECHANICS.traitProcs.exposeDefenses;
       state.exposeDefensesUsed = true;
@@ -577,10 +580,10 @@ export function observeRevenantEvent(context, event) {
     }
     const daggers = state.enchantedDaggers;
     if (
-      event.skillId !== ID.ENCHANTED_DAGGERS
-      && Number(daggers?.charges || 0) > 0
-      && event.at < Number(daggers.expiresAt || 0)
-      && event.at + context.epsilon >= Number(daggers.readyAt || 0)
+      event.skillId !== ID.ENCHANTED_DAGGERS &&
+      Number(daggers?.charges || 0) > 0 &&
+      event.at < Number(daggers.expiresAt || 0) &&
+      event.at + context.epsilon >= Number(daggers.readyAt || 0)
     ) {
       const profile = MECHANICS.enchantedDaggers;
       daggers.charges -= 1;
@@ -606,10 +609,10 @@ export function observeRevenantEvent(context, event) {
     }
     const razorclaw = state.razorclawsRage;
     if (
-      event.skillId !== ID.RAZORCLAWS_RAGE
-      && Number(razorclaw?.charges || 0) > 0
-      && event.at < Number(razorclaw.expiresAt || 0)
-      && event.at + context.epsilon >= Number(razorclaw.readyAt || 0)
+      event.skillId !== ID.RAZORCLAWS_RAGE &&
+      Number(razorclaw?.charges || 0) > 0 &&
+      event.at < Number(razorclaw.expiresAt || 0) &&
+      event.at + context.epsilon >= Number(razorclaw.readyAt || 0)
     ) {
       const profile = MECHANICS.bandTogether.razorclaw;
       razorclaw.charges -= 1;
@@ -630,10 +633,11 @@ export function observeRevenantEvent(context, event) {
     }
   }
   if (
-    event.type !== "control"
-    || TWIN_MOON_SKILL_IDS.has(event.skillId)
-    || !hasRevenantTrait(context.config, TRAIT.MISTFIRE)
-  ) return;
+    event.type !== "control" ||
+    TWIN_MOON_SKILL_IDS.has(event.skillId) ||
+    !hasRevenantTrait(context.config, TRAIT.MISTFIRE)
+  )
+    return;
   const profile = MECHANICS.traitProcs.mistfire;
   if (Number(state.cosmicWisdomUntil || 0) <= event.at) return;
   const readyAt = Number(state.traitProcReadyAt.mistfire || 0);

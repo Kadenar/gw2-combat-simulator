@@ -1,8 +1,10 @@
 /**
  * Explicit simulator mechanics keyed by stable GW2 skill ID.
  *
- * This file is authoritative for coefficients, packets, timing, cooldowns,
- * resource costs, and state requirements.
+ * Generated API metadata supplies identity and presentation. Direct cast
+ * packets, timing, resource costs, and state requirements live here; triggered
+ * effects and profession state machines live in handler-mechanics.js and the
+ * explicit strategies under specific/.
  */
 
 import { REVENANT_SKILL_IDS as ID } from "../data/ids.js";
@@ -16,15 +18,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 5,
     "upkeepCost": 6,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "strike",
-        "coefficient": 0.2,
-        "hits": 1,
-        "name": "Vengeful Hammers",
-        "actorType": "player"
-      }
-    ],
     "legendId": "LegendaryDwarf",
   },
   [ID.FACET_OF_STRENGTH]: {
@@ -35,14 +28,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 0,
     "upkeepCost": 2,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "boon",
-        "boon": "might",
-        "duration": 12,
-        "stacks": 1
-      }
-    ],
     "legendId": "LegendaryDragon",
     "facet": true,
   },
@@ -177,14 +162,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 5,
     "upkeepCost": 8,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "boon",
-        "boon": "protection",
-        "duration": 4,
-        "stacks": 1
-      }
-    ],
     "legendId": "LegendaryCentaur",
   },
   [ID.ENCHANTED_DAGGERS]: {
@@ -213,14 +190,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 0,
     "upkeepCost": 1,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "boon",
-        "boon": "swiftness",
-        "duration": 3,
-        "stacks": 1
-      }
-    ],
     "legendId": "LegendaryDragon",
     "facet": true,
   },
@@ -336,15 +305,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "manualReleaseCooldown": 1,
     "starvationCooldown": 4,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "strike",
-        "coefficient": 0.65,
-        "hits": 1,
-        "name": "Impossible Odds",
-        "actorType": "player"
-      }
-    ],
     "legendId": "LegendaryAssassin",
   },
   [ID.ELEMENTAL_BLAST]: {
@@ -380,14 +340,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 0,
     "upkeepCost": 1,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "boon",
-        "boon": "regeneration",
-        "duration": 4,
-        "stacks": 1
-      }
-    ],
     "legendId": "LegendaryDragon",
     "facet": true,
   },
@@ -561,14 +513,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 0,
     "upkeepCost": 4,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "boon",
-        "boon": "protection",
-        "duration": 3,
-        "stacks": 1
-      }
-    ],
     "legendId": "LegendaryDragon",
     "facet": true,
   },
@@ -883,29 +827,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 5,
     "upkeepCost": 6,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "strike",
-        "coefficient": 0.3,
-        "hits": 1,
-        "name": "Embrace the Darkness",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Torment",
-        "stacks": 1,
-        "duration": 5,
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Torment",
-        "stacks": 1,
-        "duration": 5,
-        "actorType": "player"
-      }
-    ],
     "legendId": "LegendaryDemon",
   },
   [ID.SEARING_FISSURE]: {
@@ -959,14 +880,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 0,
     "upkeepCost": 2,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "boon",
-        "boon": "fury",
-        "duration": 3,
-        "stacks": 1
-      }
-    ],
     "legendId": "LegendaryDragon",
     "facet": true,
   },
@@ -1597,14 +1510,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 5,
     "upkeepCost": 8,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "boon",
-        "boon": "protection",
-        "duration": 4,
-        "stacks": 1
-      }
-    ],
     "legendId": "LegendaryCentaur",
   },
   [ID.RENEWING_WAVE]: {
@@ -1637,7 +1542,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 0,
     "upkeepCost": 2,
     "effects": [],
-    "upkeepEffects": [],
     "legendId": "LegendaryDragon",
     "facet": true,
   },
@@ -1754,7 +1658,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
         "hits": 3,
         "name": "Icerazor's Ire",
         "actorType": "player",
-        "atMs": 0,
+        "atMs": 500,
         "intervalMs": 161,
         "intervalTimingScale": "fixed",
         "timingAnchor": "castEnd",
@@ -1769,7 +1673,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
         "stacks": 10,
         "duration": 8,
         "actorType": "player",
-        "atMs": 0,
+        "atMs": 500,
         "timingAnchor": "castEnd",
         "timingScale": "fixed"
       },
@@ -1779,7 +1683,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
         "stacks": 3,
         "duration": 6,
         "actorType": "player",
-        "atMs": 0,
+        "atMs": 500,
         "timingAnchor": "castEnd",
         "timingScale": "fixed"
       },
@@ -1789,7 +1693,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
         "stacks": 5,
         "duration": 8,
         "actorType": "player",
-        "atMs": 0,
+        "atMs": 500,
         "timingAnchor": "castEnd",
         "timingScale": "fixed"
       },
@@ -1799,7 +1703,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
         "stacks": 1,
         "duration": 2,
         "actorType": "player",
-        "atMs": 322,
+        "atMs": 822,
         "timingAnchor": "castEnd",
         "timingScale": "fixed"
       }
@@ -2125,22 +2029,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "manualReleaseCooldown": 3,
     "flipSkillId": ID.DISMISS_LIEUTENANT_SOULCLEAVE,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "strike",
-        "coefficient": 0.8,
-        "hits": 1,
-        "name": "Additional Strike Damage",
-        "actorType": "summon"
-      },
-      {
-        "type": "strike",
-        "coefficient": 0.1,
-        "hits": 1,
-        "name": "Soulcleave's Summit — Packet 2",
-        "actorType": "summon"
-      }
-    ],
     "legendId": "LegendaryRenegade",
   },
   [ID.LEGENDARY_RENEGADE_STANCE_ID_46409]: {
@@ -2702,15 +2590,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 5,
     "upkeepCost": 6,
     "effects": [],
-    "upkeepEffects": [
-      {
-        "type": "strike",
-        "coefficient": 0.2,
-        "hits": 1,
-        "name": "Vengeful Hammers",
-        "actorType": "player"
-      }
-    ],
     "legendId": "LegendaryDwarf",
   },
   [ID.RITE_OF_THE_GREAT_DWARF_ID_56773]: {
@@ -2800,7 +2679,6 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     "energyCost": 0,
     "upkeepCost": 5,
     "effects": [],
-    "upkeepEffects": [],
     "legendId": "LegendaryAlliance",
     "allianceSide": "kurzick"
   },
@@ -4209,17 +4087,7 @@ const extraSkills = [
     "castTimeMs": 0,
     "cooldown": 0,
     "implemented": true,
-    "effects": [],
-    "dodgeEffects": {
-      "Death Drop": {
-        "coefficient": 3,
-        "hits": 1
-      },
-      "Imperial Impact": {
-        "coefficient": 1,
-        "hits": 1
-      }
-    }
+    "effects": []
   }
 ];
 

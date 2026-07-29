@@ -1,12 +1,18 @@
+/**
+ * Revenant weapon-chain and temporary flip state.
+ *
+ * Advances canonical autoattack chains after casts and resets them on other
+ * weapon actions. It also owns Imperial Guard's blocking window, the temporary
+ * True Strike flip, and the typed task that expires that follow-up.
+ */
 import { REVENANT_AUTOATTACK_CHAINS } from "../../catalog.js";
-import {
-  indexAutoattackChains,
-} from "../../../../platform/engine/autoattack-chains.js";
+import { indexAutoattackChains } from "../../../../platform/engine/autoattack-chains.js";
 import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
 import { emitRevenantState } from "./shared.js";
 
 const CHAIN_BY_ID = indexAutoattackChains(REVENANT_AUTOATTACK_CHAINS);
 
+/** Advances or resets the active weapon autoattack chain after a cast. */
 export function updateRevenantWeaponState(context, skill) {
   const state = context.state.profession;
   const chain = CHAIN_BY_ID.get(skill.id);
@@ -20,6 +26,7 @@ export function updateRevenantWeaponState(context, skill) {
 
 const IMPERIAL_GUARD_OWNER = "revenant.imperial-guard";
 
+/** Arms True Strike and emits Imperial Guard's blocking window at cast start. */
 export function beginRevenantWeaponCast(context, skill) {
   if (skill.id !== ID.IMPERIAL_GUARD) return;
   context.state.profession.availableFlips[ID.TRUE_STRIKE] = true;
@@ -39,6 +46,7 @@ export function beginRevenantWeaponCast(context, skill) {
   emitRevenantState(context, context.start, "imperial-guard");
 }
 
+/** Commits or consumes the Imperial Guard/True Strike temporary flip. */
 export function completeRevenantWeaponCast(context, skill) {
   const state = context.state.profession;
   if (skill.id === ID.IMPERIAL_GUARD) {
@@ -57,6 +65,7 @@ export function completeRevenantWeaponCast(context, skill) {
   }
 }
 
+/** Removes True Strike when the scheduled Imperial Guard window expires. */
 export function expireImperialGuard(context, task) {
   delete context.state.profession.availableFlips[ID.TRUE_STRIKE];
   emitRevenantState(context, task.at, "imperial-guard-expired");

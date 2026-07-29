@@ -1,5 +1,13 @@
+/**
+ * Shared Revenant mechanic primitives.
+ *
+ * Provides the ordinary weapon-set transition and the canonical scheduler-to-
+ * resolver state handoff. State events always contain a detached snapshot so
+ * later scheduler mutations cannot rewrite earlier timeline state.
+ */
 import { snapshotRevenantState } from "../../state.js";
 
+/** Switches equipped weapon sets and emits the shared weapon-set event. */
 export function swapRevenantWeapons(context, skill) {
   const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
   context.state.activeWeaponSet = weaponSet;
@@ -16,6 +24,7 @@ export function swapRevenantWeapons(context, skill) {
   });
 }
 
+/** Emits a point-in-time profession snapshot for resolver synchronization. */
 export function emitRevenantState(context, at, reason) {
   context.emit({
     type: "revenant.state",

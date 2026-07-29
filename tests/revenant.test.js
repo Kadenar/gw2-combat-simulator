@@ -142,6 +142,19 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
   );
   assert.equal(REVENANT_HANDLER_MECHANICS.energy.legendSwap, 50);
   assert.equal(Object.isFrozen(REVENANT_HANDLER_MECHANICS), true);
+  assert.ok(Object.values(REVENANT_SKILL_MECHANICS).every(skill =>
+    !Object.hasOwn(skill, "upkeepEffects")
+    && !Object.hasOwn(skill, "dodgeEffects")));
+  assert.deepEqual(
+    REVENANT_HANDLER_MECHANICS.endurance.dodgeByName["Death Drop"],
+    { coefficient: 3, hits: 1 },
+  );
+  assert.deepEqual(
+    REVENANT_HANDLER_MECHANICS.upkeep.facetPulseBySkillId[
+      SKILL.FACET_OF_STRENGTH
+    ],
+    { kind: "might", duration: 12, stacks: 1 },
+  );
 });
 
 test("Revenant mechanics modules preserve the declarative contract", async () => {
@@ -1315,7 +1328,7 @@ test("Icerazor packets use player ownership and trigger player equipment", () =>
     && event.skillName === "Icerazor's Ire");
   assert.deepEqual(
     hits.map(event => Math.round((event.at - actionStart) * 1000)),
-    [520, 681, 842],
+    [1020, 1181, 1342],
   );
   assert.equal(result.events.find(event =>
     event.skillName === "Icerazor's Ire"
@@ -1323,6 +1336,32 @@ test("Icerazor packets use player ownership and trigger player equipment", () =>
   assert.equal(result.events.find(event =>
     event.skillName === "Icerazor's Ire"
     && event.condition === "Immobilized").at, hits[2].at);
+});
+
+test("enhanced Icerazor hit traits use its replaced packet timestamps", () => {
+  const result = simulate("Renegade", [
+    "Breakrazor's Bastion",
+    "Icerazor's Ire",
+    { type: "wait", durationMs: 1000 },
+  ], {
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.RENEGADE,
+    selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.LASTING_LEGACY],
+    target: { defiant: true },
+    initialEnergy: 100,
+  });
+  const hitTimes = result.events
+    .filter(event =>
+      event.type === "damage"
+      && event.skillName === "Icerazor's Ire")
+    .map(event => event.at);
+  const fervorTimes = result.events
+    .filter(event =>
+      event.type === "buff"
+      && event.skillName === "Ambush Commander"
+      && event.kind === "kallas-fervor")
+    .map(event => event.at);
+  assert.deepEqual(fervorTimes, hitTimes);
 });
 
 test("Citadel Orders preserve their packet, pulse, cost, and recharge profiles", () => {

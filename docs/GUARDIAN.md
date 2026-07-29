@@ -27,10 +27,11 @@ preserved by that refresh.
 ## Architecture
 
 `definition.js` is the Guardian composition root. Gameplay behavior is grouped
-by feature under `js/professions/guardian/mechanics/`: virtues, Firebrand
-tomes, Radiant Forge, and weapon state each own their cast validation,
-scheduler hooks, named skill handlers, and resolver reactions. `contract.js`
-combines those feature hooks in deterministic order.
+by feature under `js/professions/guardian/mechanics/specific/`: virtues,
+Firebrand tomes, Radiant Forge, and weapon state each own their cast
+validation, scheduler hooks, named skill handlers, and resolver reactions. See
+that directory's `README.md` for the file map and lifecycle wiring.
+`mechanics/contract.js` combines those feature hooks in deterministic order.
 
 Ordinary timing, cooldowns, effects, and damage resolution continue to use the
 shared platform scheduler and GW2 resolver. Guardian does not maintain a
@@ -100,9 +101,9 @@ full-benchmark DPS result.
 
 ## Spear Illuminated
 
-Guardian spear is modeled in `mechanics/spear.js` (a scheduler `afterCast`
-hook, registered in `contract.js`) plus its authoritative entries in
-`mechanics/skill-mechanics.js`. Skill slots follow the API metadata:
+Guardian spear is modeled in `mechanics/specific/spear.js` (a scheduler
+`afterCast` hook, registered in `mechanics/contract.js`) plus its authoritative
+entries in `mechanics/skill-mechanics.js`. Skill slots follow the API metadata:
 
 | Slot | Skill | Illuminated role |
 | --- | --- | --- |

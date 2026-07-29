@@ -1,16 +1,20 @@
+/**
+ * Conduit and Legendary Entity runtime mechanics.
+ *
+ * Owns affinity gain, Entity skill packets, legend resonances, Numinous Gift,
+ * Shared Wisdom additions, Release Potential variants, and Cosmic Wisdom
+ * state. It also handles delayed affinity-hit tasks and exports the feature's
+ * raw skill callbacks for composition by handlers.js.
+ */
 import { emitRevenantState } from "./shared.js";
-import {
-  REVENANT_RELEASE_POTENTIAL_BY_LEGEND,
-} from "../../legend-rules.js";
+import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from "../../legend-rules.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { hasRevenantTrait } from "../../state.js";
-import {
-  REVENANT_HANDLER_MECHANICS as MECHANICS,
-} from "../handler-mechanics.js";
+import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 
 function hasLegend(context, legendId) {
   return context.state.profession.selectedLegendIds.includes(legendId);
@@ -33,12 +37,14 @@ function targetsHit(context, maximum = 5) {
     1,
     Math.min(
       maximum,
-      Math.trunc(Number(
-        context.command?.targetsHit
-        ?? context.config.targetsHit
-        ?? context.config.targetCount
-        ?? 1,
-      )),
+      Math.trunc(
+        Number(
+          context.command?.targetsHit ??
+            context.config.targetsHit ??
+            context.config.targetCount ??
+            1,
+        ),
+      ),
     ),
   );
 }
@@ -75,19 +81,20 @@ function emitDamage(context, skill, options = {}) {
     ...(affinityOnHit ? { affinityOnHit: true } : {}),
     // Utility, elite, and triggered attacks use GW2's standard level-based
     // strength. Profession mechanic attacks use the active weapon.
-    skillWeapon: skill.weapon || (
-      skill.type === "Profession" ? activeWeapon(context) : "Unequipped"
-    ),
+    skillWeapon:
+      skill.weapon ||
+      (skill.type === "Profession" ? activeWeapon(context) : "Unequipped"),
   });
 }
 
 function emitDervishFormAttack(context, skill, { elite = false } = {}) {
   const state = context.state.profession;
   if (
-    context.config.specialization !== "Conduit"
-    || state.conduitForm !== "Dervish"
-    || Number(state.cosmicWisdomUntil || 0) <= context.start
-  ) return;
+    context.config.specialization !== "Conduit" ||
+    state.conduitForm !== "Dervish" ||
+    Number(state.cosmicWisdomUntil || 0) <= context.start
+  )
+    return;
   const skillId = elite
     ? ID.FORM_OF_THE_DERVISH_ATTACK_ELITE
     : ID.FORM_OF_THE_DERVISH_ATTACK;
@@ -136,6 +143,7 @@ function emitCondition(context, skill, options = {}) {
   });
 }
 
+/** Emits a Revenant-owned boon with optional recipient/horizon metadata. */
 export function emitRevenantBoon(
   context,
   skill,
@@ -177,6 +185,7 @@ function emitControl(context, skill, controlKind, duration) {
   });
 }
 
+/** Adds capped Conduit affinity and snapshots the resource change. */
 export function gainConduitAffinity(context, amount, reason) {
   if (context.config.specialization !== "Conduit") return 0;
   const state = context.state.profession;
@@ -186,9 +195,9 @@ export function gainConduitAffinity(context, amount, reason) {
     previous + Math.max(0, Number(amount || 0)),
   );
   if (
-    previous < MECHANICS.conduit.affinityMaximum
-    && state.affinity === MECHANICS.conduit.affinityMaximum
-    && hasTrait(context, TRAIT.EXPANDED_CONSCIOUSNESS)
+    previous < MECHANICS.conduit.affinityMaximum &&
+    state.affinity === MECHANICS.conduit.affinityMaximum &&
+    hasTrait(context, TRAIT.EXPANDED_CONSCIOUSNESS)
   ) {
     state.energy = Math.min(
       state.maximumEnergy,
@@ -201,14 +210,12 @@ export function gainConduitAffinity(context, amount, reason) {
   return state.affinity - previous;
 }
 
+/** Resolves a delayed affinity gain scheduled for a qualifying hit. */
 export function handleConduitAffinityHit(context, task) {
-  gainConduitAffinity(
-    context,
-    task.payload.amount,
-    "enigmatic-connection-hit",
-  );
+  gainConduitAffinity(context, task.payload.amount, "enigmatic-connection-hit");
 }
 
+/** Emits Numinous Gift's base and equipped-legend boon profile. */
 export function emitNuminousGift(context, skill, options = {}) {
   if (context.config.specialization !== "Conduit") return;
   const profile = MECHANICS.conduit.numinousGift;
@@ -229,6 +236,7 @@ export function emitNuminousGift(context, skill, options = {}) {
   }
 }
 
+/** Emits Beguiling Haze or consumes one of its follow-up charges. */
 export function castBeguilingHaze(context, skill) {
   const profile = MECHANICS.conduit.beguilingHaze;
   const state = context.state.profession;
@@ -253,6 +261,7 @@ export function castBeguilingHaze(context, skill) {
   emitRevenantState(context, context.effectiveEnd, "beguiling-haze");
 }
 
+/** Arms Beguiling Haze follow-up charges after the primary cast completes. */
 export function completeBeguilingHaze(context, skill) {
   if (skill.handlerId !== "revenant.beguiling-haze") return;
   const state = context.state.profession;
@@ -264,8 +273,9 @@ export function completeBeguilingHaze(context, skill) {
     state.beguilingHazeMainReservations.splice(index, 1);
     state.beguilingHazeCharges =
       MECHANICS.conduit.beguilingHaze.followUpCharges;
-    state.beguilingHazeReadyAt = context.effectiveEnd
-      + (context.hasBuff?.("alacrity", context.effectiveEnd) ? 8 : 10);
+    state.beguilingHazeReadyAt =
+      context.effectiveEnd +
+      (context.hasBuff?.("alacrity", context.effectiveEnd) ? 8 : 10);
   }
   const ammo = context.state.ammo.get(skill.id);
   if (ammo) {
@@ -292,22 +302,21 @@ export function completeBeguilingHaze(context, skill) {
 
 function activeSelfConditions(context, at) {
   const state = context.state.profession;
-  state.selfConditions = (state.selfConditions || [])
-    .filter(application => Number(application.expiresAt || 0) > at);
+  state.selfConditions = (state.selfConditions || []).filter(
+    (application) => Number(application.expiresAt || 0) > at,
+  );
   const configured = Math.max(0, Number(state.selfConditionCount || 0));
   return configured + state.selfConditions.length;
 }
 
+/** Resolves projectile-count-scaled Hex Eater Vortex effects. */
 export function castHexEaterVortex(context, skill) {
   const profile = MECHANICS.conduit.hexEaterVortex;
   const state = context.state.profession;
   const at = context.effectiveEnd;
   const projectileCount = hasLegend(context, LEGEND.DEMON)
     ? profile.maximumProjectiles
-    : Math.min(
-        profile.maximumProjectiles,
-        activeSelfConditions(context, at),
-      );
+    : Math.min(profile.maximumProjectiles, activeSelfConditions(context, at));
   const conditionsRemoved = Math.min(
     profile.maximumProjectiles,
     activeSelfConditions(context, at),
@@ -339,6 +348,7 @@ export function castHexEaterVortex(context, skill) {
   emitRevenantState(context, at, "hex-eater-vortex");
 }
 
+/** Resolves Gladiator's Defense and its legend/trait-dependent boons. */
 export function castGladiatorsDefense(context, skill) {
   const profile = MECHANICS.conduit.gladiatorsDefense;
   emitDamage(context, skill, { coefficient: profile.coefficient });
@@ -347,18 +357,8 @@ export function castGladiatorsDefense(context, skill) {
     stacks: 1,
     duration: profile.weaknessDuration,
   });
-  emitRevenantBoon(
-    context,
-    skill,
-    "resolution",
-    profile.resolutionDuration,
-  );
-  emitRevenantBoon(
-    context,
-    skill,
-    "resistance",
-    profile.resistanceDuration,
-  );
+  emitRevenantBoon(context, skill, "resolution", profile.resolutionDuration);
+  emitRevenantBoon(context, skill, "resistance", profile.resistanceDuration);
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     emitRevenantBoon(
       context,
@@ -370,6 +370,7 @@ export function castGladiatorsDefense(context, skill) {
   emitDervishFormAttack(context, skill);
 }
 
+/** Emits both Twin Moon attackers and every equipped-legend resonance. */
 export function castTwinMoonSweep(context, skill) {
   const profile = MECHANICS.conduit.twinMoonSweep;
   const at = context.effectiveEnd;
@@ -404,8 +405,8 @@ export function castTwinMoonSweep(context, skill) {
       profile.mightDuration,
       profile.mightStacks,
       {
-      at,
-      name: `Twin Moon Sweep — Might ${index + 1}`,
+        at,
+        name: `Twin Moon Sweep — Might ${index + 1}`,
       },
     );
   }
@@ -443,8 +444,8 @@ export function castTwinMoonSweep(context, skill) {
         profile.sharedWisdomMightDuration,
         profile.sharedWisdomMightStacks,
         {
-        at,
-        name: `Shared Wisdom — Might ${index + 1}`,
+          at,
+          name: `Shared Wisdom — Might ${index + 1}`,
         },
       );
     }
@@ -453,6 +454,7 @@ export function castTwinMoonSweep(context, skill) {
   emitDervishFormAttack(context, skill, { elite: true });
 }
 
+/** Resolves the active Release Potential variant from affinity and legends. */
 export function castReleasePotential(context, skill) {
   const affinity = effectiveAffinity(context);
   const allLegendEffects =
@@ -490,12 +492,7 @@ export function castReleasePotential(context, skill) {
           profile.centaurMightDuration,
           profile.centaurMightStacks,
         );
-        emitRevenantBoon(
-          context,
-          skill,
-          "fury",
-          profile.centaurFuryDuration,
-        );
+        emitRevenantBoon(context, skill, "fury", profile.centaurFuryDuration);
       }
       break;
     case ID.RELEASE_POTENTIAL_MESMER: {
@@ -503,14 +500,13 @@ export function castReleasePotential(context, skill) {
       emitCondition(context, skill, {
         condition: "Torment",
         stacks: profile.tormentStacks,
-        duration: profile.tormentBaseDuration
-          * (1 + affinity * profile.tormentDurationPerAffinity),
+        duration:
+          profile.tormentBaseDuration *
+          (1 + affinity * profile.tormentDurationPerAffinity),
       });
-      const selfDuration = profile.selfTormentBaseDuration
-        * Math.max(
-          0,
-          1 - affinity * profile.selfDurationReductionPerAffinity,
-        );
+      const selfDuration =
+        profile.selfTormentBaseDuration *
+        Math.max(0, 1 - affinity * profile.selfDurationReductionPerAffinity);
       const count = targetsHit(context);
       for (let index = 0; index < count; index += 1) {
         context.state.profession.selfConditions.push({
@@ -528,9 +524,10 @@ export function castReleasePotential(context, skill) {
     case ID.RELEASE_POTENTIAL_ASSASSIN:
       for (let index = 0; index < profile.hits; index += 1) {
         emitDamage(context, skill, {
-          at: context.start
-            + (context.effectiveEnd - context.start)
-              * (index + 1) / profile.hits,
+          at:
+            context.start +
+            ((context.effectiveEnd - context.start) * (index + 1)) /
+              profile.hits,
           coefficient: profile.coefficientPerHit,
           hitIndex: index + 1,
           totalHits: profile.hits,
@@ -538,13 +535,15 @@ export function castReleasePotential(context, skill) {
       }
       emitCondition(context, skill, {
         condition: "Crippled",
-        duration: profile.conditionBaseDuration
-          * (1 + affinity * profile.conditionDurationPerAffinity),
+        duration:
+          profile.conditionBaseDuration *
+          (1 + affinity * profile.conditionDurationPerAffinity),
       });
       emitCondition(context, skill, {
         condition: "Immobilized",
-        duration: profile.conditionBaseDuration
-          * (1 + affinity * profile.conditionDurationPerAffinity),
+        duration:
+          profile.conditionBaseDuration *
+          (1 + affinity * profile.conditionDurationPerAffinity),
       });
       break;
     case ID.RELEASE_POTENTIAL_WARRIOR:
@@ -555,6 +554,7 @@ export function castReleasePotential(context, skill) {
   }
 }
 
+/** Grants Ancient Echo's fixed Energy refund. */
 export function gainAncientEchoEnergy(context) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
@@ -565,6 +565,7 @@ export function gainAncientEchoEnergy(context) {
   emitRevenantState(context, at, "ancient-echo");
 }
 
+/** Toggles the active Luxon/Kurzick Alliance skill side. */
 export function switchAllianceTactics(context) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
@@ -572,12 +573,28 @@ export function switchAllianceTactics(context) {
   emitRevenantState(context, at, "alliance-tactics");
 }
 
+/** Starts Cosmic Wisdom and selects the current legend-derived form. */
 export function activateCosmicWisdom(context) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
   state.cosmicWisdomUntil = at + MECHANICS.conduit.cosmicWisdomDuration;
-  state.conduitForm = REVENANT_RELEASE_POTENTIAL_BY_LEGEND[state.activeLegendId]
-    ?.replace("Release Potential: ", "") || "";
+  state.conduitForm =
+    REVENANT_RELEASE_POTENTIAL_BY_LEGEND[state.activeLegendId]?.replace(
+      "Release Potential: ",
+      "",
+    ) || "";
   emitRevenantState(context, at, "cosmic-wisdom");
   emitNuminousGift(context, context.skill);
 }
+
+/** Raw Conduit callbacks consumed by the central handler registry. */
+export const revenantConduitSkillHandlers = Object.freeze({
+  "revenant.ancient-echo": gainAncientEchoEnergy,
+  "revenant.alliance-tactics": switchAllianceTactics,
+  "revenant.beguiling-haze": castBeguilingHaze,
+  "revenant.gladiators-defense": castGladiatorsDefense,
+  "revenant.hex-eater-vortex": castHexEaterVortex,
+  "revenant.twin-moon-sweep": castTwinMoonSweep,
+  "revenant.release-potential": castReleasePotential,
+  "revenant.cosmic-wisdom": activateCosmicWisdom,
+});

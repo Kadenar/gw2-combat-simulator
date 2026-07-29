@@ -1,12 +1,19 @@
+/**
+ * Assassin and Renegade runtime mechanics.
+ *
+ * Owns Enchanted Daggers, Kalla's Fervor, Citadel Orders, Razorclaw's
+ * allied-player model, and the Band Together state machine. The exported
+ * handler map exposes raw phase callbacks; handlers.js assigns their shared
+ * augment/replace strategies. Enhanced Icerazor is emitted as a replacement
+ * profile so event observers receive its accelerated timestamps immediately.
+ */
 import {
   gw2AlliedPlayerAssumptions,
   gw2AlliedPlayerProcTimeline,
 } from "../../../../platform/gw2/allied-players.js";
 import { emitRevenantState } from "./shared.js";
 import { emitRevenantBoon } from "./conduit.js";
-import {
-  REVENANT_HANDLER_MECHANICS as MECHANICS,
-} from "../handler-mechanics.js";
+import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
@@ -17,9 +24,19 @@ function hasTrait(context, traitId) {
   return hasRevenantTrait(context.config, traitId);
 }
 
+/** Returns whether the one-use Band Together enhancement is active at `at`. */
 export function isBandTogetherReady(state, at) {
-  return Boolean(state.bandTogetherReady)
-    && Number(state.bandTogetherExpiresAt || 0) > at;
+  return (
+    Boolean(state.bandTogetherReady) &&
+    Number(state.bandTogetherExpiresAt || 0) > at
+  );
+}
+
+function replacesBandTogetherEffects(context, skill) {
+  return (
+    skill.id === ID.ICERAZORS_IRE &&
+    isBandTogetherReady(context.state.profession, context.start)
+  );
 }
 
 function fervorDuration(context) {
@@ -29,30 +46,43 @@ function fervorDuration(context) {
     : profile.duration;
 }
 
+/** Counts unexpired Kalla's Fervor applications, capped by the live maximum. */
 export function activeKallasFervorStacks(state, at) {
   const maximum = MECHANICS.renegade.kallasFervor.maximumStacks;
   return Math.min(
     maximum,
-    (state.kallasFervor || []).filter(application =>
-      Number(application.at || 0) <= at
-      && Number(application.expiresAt || 0) > at).length,
+    (state.kallasFervor || []).filter(
+      (application) =>
+        Number(application.at || 0) <= at &&
+        Number(application.expiresAt || 0) > at,
+    ).length,
   );
 }
 
 function pruneKallasFervor(state, at) {
-  state.kallasFervor = (state.kallasFervor || [])
-    .filter(application => Number(application.expiresAt || 0) > at);
+  state.kallasFervor = (state.kallasFervor || []).filter(
+    (application) => Number(application.expiresAt || 0) > at,
+  );
 }
 
-export function grantKallasFervor(context, cause, {
-  at = cause.at,
-  sourceId = cause.sourceId,
-  sourceName = cause.skillName || cause.name || "Kalla's Fervor",
-} = {}) {
+/**
+ * Adds one Kalla's Fervor application and emits its causal buff/state events.
+ * Returns false when the stack cap has already been reached.
+ */
+export function grantKallasFervor(
+  context,
+  cause,
+  {
+    at = cause.at,
+    sourceId = cause.sourceId,
+    sourceName = cause.skillName || cause.name || "Kalla's Fervor",
+  } = {},
+) {
   const state = context.state.profession;
   const profile = MECHANICS.renegade.kallasFervor;
   pruneKallasFervor(state, at);
-  if (activeKallasFervorStacks(state, at) >= profile.maximumStacks) return false;
+  if (activeKallasFervorStacks(state, at) >= profile.maximumStacks)
+    return false;
   const duration = fervorDuration(context);
   state.kallasFervor.push({ at, expiresAt: at + duration });
   context.emitDerived(cause, {
@@ -88,14 +118,17 @@ function refreshKallasFervor(context, at) {
 }
 
 function scaledBoonDuration(context, skill, boon, duration) {
-  return context.schedulerPolicy.effectDuration?.(
-    context,
-    skill,
-    { type: "boon", boon },
-    duration,
-  ) ?? duration;
+  return (
+    context.schedulerPolicy.effectDuration?.(
+      context,
+      skill,
+      { type: "boon", boon },
+      duration,
+    ) ?? duration
+  );
 }
 
+/** Refreshes current fervor and converts its stack count into Might. */
 export function castHeroicCommand(context, skill) {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const at = context.effectiveEnd;
@@ -115,6 +148,7 @@ export function castHeroicCommand(context, skill) {
   );
 }
 
+/** Emits the trait-adjusted Orders from Above Alacrity pulse train. */
 export function castOrdersFromAbove(context, skill) {
   const profile = MECHANICS.renegade.ordersFromAbove;
   const pulses = hasTrait(context, TRAIT.RIGHTEOUS_REBEL)
@@ -127,29 +161,26 @@ export function castOrdersFromAbove(context, skill) {
     profile.alacrityDuration,
   );
   for (let index = 0; index < pulses; index += 1) {
-    emitRevenantBoon(
-      context,
-      skill,
-      "alacrity",
-      duration,
-      1,
-      {
-        at: context.effectiveEnd + index * profile.interval,
-        extendsResolutionHorizon: index === pulses - 1,
-      },
-    );
+    emitRevenantBoon(context, skill, "alacrity", duration, 1, {
+      at: context.effectiveEnd + index * profile.interval,
+      extendsResolutionHorizon: index === pulses - 1,
+    });
   }
 }
 
-function emitCondition(context, skill, {
-  at = context.effectiveEnd,
-  condition,
-  stacks,
-  duration,
-  actorType = "summon",
-  name = `${skill.name} â€” ${condition}`,
-  ...metadata
-}) {
+function emitCondition(
+  context,
+  skill,
+  {
+    at = context.effectiveEnd,
+    condition,
+    stacks,
+    duration,
+    actorType = "summon",
+    name = `${skill.name} â€” ${condition}`,
+    ...metadata
+  },
+) {
   context.emit({
     type: "condition",
     at,
@@ -166,6 +197,7 @@ function emitCondition(context, skill, {
   });
 }
 
+/** Arms the finite Enchanted Daggers charge/expiry state. */
 export function activateEnchantedDaggers(context, skill) {
   const profile = MECHANICS.enchantedDaggers;
   const at = context.effectiveEnd;
@@ -190,6 +222,10 @@ export function activateEnchantedDaggers(context, skill) {
   emitRevenantState(context, at, "enchanted-daggers");
 }
 
+/**
+ * Band Together `beforeEffects` phase: consumes any prior enhancement, applies
+ * All for One, and emits enhanced Icerazor's replacement packets when needed.
+ */
 export function beginBandTogether(context, skill) {
   const profession = context.state.profession;
   const enhanced = isBandTogetherReady(profession, context.start);
@@ -203,31 +239,62 @@ export function beginBandTogether(context, skill) {
     );
     emitRevenantState(context, context.start, "all-for-one");
   }
+  if (enhanced && skill.id === ID.ICERAZORS_IRE) {
+    const profile = MECHANICS.bandTogether.icerazor;
+    const strike = skill.effects.find((effect) => effect.type === "strike");
+    const hits = Math.max(1, Math.trunc(Number(strike?.hits || 1)));
+    for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
+      context.emit({
+        type: "damage",
+        at: context.start + (hitIndex - 1) * profile.packetInterval,
+        source: "revenant",
+        sourceId: skill.id,
+        actorType: "player",
+        skillId: skill.id,
+        skillName: skill.name,
+        name: strike?.name || skill.name,
+        coefficient: Number(strike?.coefficient || 0) / hits,
+        hits: 1,
+        hitIndex,
+        totalHits: hits,
+        skillWeapon: "Unequipped",
+        canCrit: strike?.canCrit !== false,
+        ...(strike?.metadata || {}),
+      });
+    }
+    for (const effect of skill.effects.filter(
+      (candidate) => candidate.type === "condition",
+    )) {
+      emitCondition(context, skill, {
+        at:
+          context.start +
+          (effect.condition === "Immobilized"
+            ? profile.enhancedImpactDelay
+            : 0),
+        condition: effect.condition,
+        stacks: effect.stacks,
+        duration: effect.duration,
+        actorType: "player",
+        ...(effect.metadata || {}),
+      });
+    }
+  }
   return { enhanced };
 }
 
-export function observeBandTogetherEffect(
-  context,
-  skill,
-  event,
-  state,
-) {
-  if (
-    skill.id === ID.ICERAZORS_IRE
-    && state.enhanced
-  ) {
+/** Band Together `afterEffect` phase for ownership, timing, and control edits. */
+export function observeBandTogetherEffect(context, skill, event, state) {
+  if (skill.id === ID.ICERAZORS_IRE && state.enhanced) {
     const profile = MECHANICS.bandTogether.icerazor;
     context.replaceEvent(event, {
       at:
-        context.start
-        + (
-          event.type === "damage"
-            ? Math.max(0, Number(event.hitIndex || 1) - 1)
-              * profile.packetInterval
-            : event.condition === "Immobilized"
-              ? profile.enhancedImpactDelay
-              : 0
-        ),
+        context.start +
+        (event.type === "damage"
+          ? Math.max(0, Number(event.hitIndex || 1) - 1) *
+            profile.packetInterval
+          : event.condition === "Immobilized"
+            ? profile.enhancedImpactDelay
+            : 0),
     });
     return;
   }
@@ -236,9 +303,7 @@ export function observeBandTogetherEffect(
     const profile = MECHANICS.bandTogether.darkrazor;
     context.replaceEvent(event, {
       recipients:
-        event.duration === profile.casterStabilityDuration
-          ? "self"
-          : "allies",
+        event.duration === profile.casterStabilityDuration ? "self" : "allies",
       ...(event.duration === profile.alliedStabilityDuration
         ? { extendsResolutionHorizon: true }
         : {}),
@@ -300,6 +365,10 @@ function grantRazorclawsRage(context, skill) {
   }
 }
 
+/**
+ * Band Together `afterEffects` phase: commits summon-specific enhancements or
+ * arms the next-summon window after a normal Renegade summon.
+ */
 export function completeBandTogether(context, skill, state) {
   if (skill.id === ID.RAZORCLAWS_RAGE) {
     grantRazorclawsRage(context, skill);
@@ -325,22 +394,12 @@ export function completeBandTogether(context, skill, state) {
       }
     } else if (skill.id === ID.DARKRAZORS_DARING) {
       const profile = MECHANICS.bandTogether.darkrazor;
-      emitRevenantBoon(
-        context,
-        skill,
-        "resistance",
-        profile.resistance,
-        1,
-        { recipients: "allies" },
-      );
-      emitRevenantBoon(
-        context,
-        skill,
-        "protection",
-        profile.protection,
-        1,
-        { recipients: "allies" },
-      );
+      emitRevenantBoon(context, skill, "resistance", profile.resistance, 1, {
+        recipients: "allies",
+      });
+      emitRevenantBoon(context, skill, "protection", profile.protection, 1, {
+        recipients: "allies",
+      });
     }
   }
   if (!state.enhanced) {
@@ -350,3 +409,16 @@ export function completeBandTogether(context, skill, state) {
     emitRevenantState(context, context.effectiveEnd, "band-together");
   }
 }
+
+/** Raw Assassin/Renegade callbacks consumed by the central handler registry. */
+export const revenantAssassinRenegadeSkillHandlers = Object.freeze({
+  "revenant.enchanted-daggers": activateEnchantedDaggers,
+  "revenant.heroic-command": castHeroicCommand,
+  "revenant.orders-from-above": castOrdersFromAbove,
+  "revenant.band-together": Object.freeze({
+    beforeEffects: beginBandTogether,
+    replacesEffects: replacesBandTogetherEffects,
+    afterEffect: observeBandTogetherEffect,
+    afterEffects: completeBandTogether,
+  }),
+});

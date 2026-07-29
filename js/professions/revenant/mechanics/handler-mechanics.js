@@ -10,7 +10,7 @@ import {
   REVENANT_SKILL_IDS as ID,
 } from "../data/ids.js";
 
-const freeze = value => Object.freeze(value);
+const freeze = (value) => Object.freeze(value);
 
 export const REVENANT_HANDLER_MECHANICS = freeze({
   energy: freeze({
@@ -27,6 +27,16 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
     dodgeCost: 50,
     vindicatorDodgeCost: 100,
     dodgeStrikeDelay: 0.8,
+    dodgeByName: freeze({
+      "Death Drop": freeze({
+        coefficient: 3,
+        hits: 1,
+      }),
+      "Imperial Impact": freeze({
+        coefficient: 1,
+        hits: 1,
+      }),
+    }),
   }),
   enchantedDaggers: freeze({
     charges: 6,
@@ -63,7 +73,7 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
     icerazor: freeze({
       enhancedChill: 1.5,
       packetInterval: 0.161,
-      normalImpactDelay: 0,
+      normalImpactDelay: 0.5,
       enhancedImpactDelay: 0.322,
     }),
     razorclaw: freeze({
@@ -221,9 +231,7 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
       [LEGEND.ASSASSIN]: freeze({
         name: "Call of the Assassin",
         coefficient: 0.93,
-        conditions: freeze([
-          freeze(["Vulnerability", 8, 5]),
-        ]),
+        conditions: freeze([freeze(["Vulnerability", 8, 5])]),
         boons: freeze([freeze(["quickness", 2, 1])]),
       }),
       [LEGEND.DWARF]: freeze({
@@ -235,10 +243,7 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
       [LEGEND.DEMON]: freeze({
         name: "Call of the Demon",
         coefficient: 0.9,
-        conditions: freeze([
-          freeze(["Slow", 1, 3]),
-          freeze(["Torment", 2, 8]),
-        ]),
+        conditions: freeze([freeze(["Slow", 1, 3]), freeze(["Torment", 2, 8])]),
         boons: freeze([]),
       }),
       [LEGEND.DRAGON]: freeze({
@@ -358,6 +363,33 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
     defaultPulseInterval: 1,
     facetPulseInterval: 3,
     vengefulHammersPulseInterval: 1 / 3,
+    facetPulseBySkillId: freeze({
+      [ID.FACET_OF_LIGHT]: freeze({
+        kind: "regeneration",
+        duration: 4,
+        stacks: 1,
+      }),
+      [ID.FACET_OF_STRENGTH]: freeze({
+        kind: "might",
+        duration: 12,
+        stacks: 1,
+      }),
+      [ID.FACET_OF_ELEMENTS]: freeze({
+        kind: "swiftness",
+        duration: 3,
+        stacks: 1,
+      }),
+      [ID.FACET_OF_DARKNESS]: freeze({
+        kind: "fury",
+        duration: 3,
+        stacks: 1,
+      }),
+      [ID.FACET_OF_CHAOS]: freeze({
+        kind: "protection",
+        duration: 3,
+        stacks: 1,
+      }),
+    }),
     facetConsumeBySkillId: freeze({
       [ID.FACET_OF_LIGHT]: ID.INFUSE_LIGHT,
       [ID.FACET_OF_STRENGTH]: ID.BURST_OF_STRENGTH,
