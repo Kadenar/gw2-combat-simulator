@@ -14,10 +14,7 @@ import {
   toApplicationBuild,
   validateEngineerBuild,
 } from "../js/professions/engineer/build.js";
-import {
-  ENGINEER_AUTOATTACK_CHAINS,
-  engineerCatalog,
-} from "../js/professions/engineer/catalog.js";
+import { engineerCatalog } from "../js/professions/engineer/catalog.js";
 import {
   DATA_SNAPSHOT,
 } from "../js/professions/engineer/data/engineer-api-metadata.js";
@@ -474,7 +471,7 @@ test("Engineer contextual weapon follow-ups are not standalone selections", () =
   );
   assert.equal(rifleGrenade.simulatorExcluded, true);
   assert.equal(
-    ENGINEER_AUTOATTACK_CHAINS.some(chain =>
+    engineerCatalog.autoattackChains.some(chain =>
       chain.includes(rifleGrenade.id)),
     false,
   );

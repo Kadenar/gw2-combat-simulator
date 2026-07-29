@@ -1,15 +1,9 @@
-import { THIEF_AUTOATTACK_CHAINS } from "../../catalog.js";
 import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { hasThiefTrait } from "../../state.js";
-import {
-  indexAutoattackChains,
-} from "../../../../platform/engine/autoattack-chains.js";
 import {
   emitThiefState,
   gainThiefInitiative,
 } from "./shared.js";
-
-const CHAIN_BY_ID = indexAutoattackChains(THIEF_AUTOATTACK_CHAINS);
 
 function enterStealthFromSkill(context, skill, at) {
   const duration = (skill.effects || [])
@@ -36,7 +30,7 @@ function enterStealthFromSkill(context, skill, at) {
 export function updateThiefWeaponState(context, skill) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
-  const chain = CHAIN_BY_ID.get(skill.id);
+  const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];
     else state.autoattackChains[chain.root] = chain.next;

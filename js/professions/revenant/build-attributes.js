@@ -9,9 +9,10 @@ export function applyRevenantBuildAttributeRules(
   { build, disabledTrait = null },
 ) {
   const attributes = common.attributes;
-  const activeTraits = getActiveTraits(build.specializations || [])
-    .filter(trait => trait.name !== disabledTrait);
-  const hasTrait = name => activeTraits.some(trait => trait.name === name);
+  const activeTraits = getActiveTraits(build.specializations || []).filter(
+    (trait) => trait.name !== disabledTrait,
+  );
+  const hasTrait = (name) => activeTraits.some((trait) => trait.name === name);
   const traitStats = {};
   const traitDurations = {};
   if (hasTrait("Seething Malice")) {
@@ -38,7 +39,11 @@ export function applyRevenantBuildAttributeRules(
     addAttribute(traitStats, "Toughness", 120);
   }
   if (hasTrait("Elevated Compassion")) {
-    addAttribute(traitStats, "Healing Power", attributes.Concentration.final * 0.13);
+    addAttribute(
+      traitStats,
+      "Healing Power",
+      attributes.Concentration.final * 0.13,
+    );
   }
   return finalizeBuildAttributes(common, {
     activeTraits,

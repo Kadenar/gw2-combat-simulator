@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Composes Guardian cast validation and scheduler lifecycle
+ * callbacks in deterministic feature order for the shared profession engine.
+ */
+
 import { validateGuardianAvailability } from "./availability.js";
 import {
   advanceRadiantForgeState,
@@ -23,6 +28,13 @@ import {
   updateGuardianTraitCastState,
 } from "./specific/traits.js";
 
+/**
+ * Ordered Guardian availability and cast-validation rules.
+ *
+ * Page availability can return a retry time, while validation progressively
+ * checks profession selection, virtue variants, tome state, Radiant Forge,
+ * and the normal weapon bar.
+ */
 export const guardianCastRules = Object.freeze({
   availability: Object.freeze([
     {
@@ -60,6 +72,10 @@ export const guardianCastRules = Object.freeze({
   ]),
 });
 
+/**
+ * Ordered Guardian time-advancement, cast-lifecycle, and event-observation
+ * hooks.
+ */
 export const guardianSchedulerHooks = Object.freeze({
   advance: Object.freeze([
     {

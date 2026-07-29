@@ -2,16 +2,19 @@ import { REVENANT_TRAIT_IDS as TRAIT } from "./data/ids.js";
 import { normalizeRevenantLegendIds } from "./legend-rules.js";
 
 export function selectedRevenantTraits(config = {}) {
-  return new Set([
-    ...(config.traitIds || []),
-    ...(config.selectedTraitIds || []),
-    ...(config.selectedTraits || []),
-  ].map(value => Number.isFinite(Number(value)) ? Number(value) : value));
+  return new Set(
+    [
+      ...(config.traitIds || []),
+      ...(config.selectedTraitIds || []),
+      ...(config.selectedTraits || []),
+    ].map((value) => (Number.isFinite(Number(value)) ? Number(value) : value)),
+  );
 }
 export function hasRevenantTrait(configOrTraits, traitId) {
-  const traits = configOrTraits instanceof Set
-    ? configOrTraits
-    : selectedRevenantTraits(configOrTraits);
+  const traits =
+    configOrTraits instanceof Set
+      ? configOrTraits
+      : selectedRevenantTraits(configOrTraits);
   return traits.has(traitId) || traits.has(String(traitId));
 }
 export function createRevenantState(config = {}) {
@@ -65,7 +68,9 @@ export function createRevenantState(config = {}) {
     selfConditionDurationMultiplier: hasRevenantTrait(
       config,
       TRAIT.PACT_OF_PAIN,
-    ) ? 1.1 : 1,
+    )
+      ? 1.1
+      : 1,
     selfConditions: [],
     selfConditionCount: Math.max(
       0,

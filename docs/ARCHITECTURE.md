@@ -77,7 +77,8 @@ Mesmer, Guardian, and Necromancer use the same module roles:
 - `mechanics/handler-mechanics.js`, when needed, owns profession-specific
   formulas for triggered effects and state machines without widening the
   shared skill schema.
-- `autoattack-chains.js` owns autoattack-chain declarations and derivation.
+- `catalog.js` derives and indexes autoattack chains, with profession-specific
+  additions or exclusions supplied as catalog options.
 - `handlers.js`, when needed, registers explicit `augment` or `replace`
   strategies for behavior that cannot be represented by declarative effects.
 

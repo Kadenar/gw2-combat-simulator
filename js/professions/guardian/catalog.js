@@ -7,9 +7,6 @@ import {
 } from "./data/guardian-api-metadata.js";
 import { TRAITS } from "./data/traits-data.js";
 import { GUARDIAN_BUNDLE_SKILLS } from "./data/guardian-bundle-skills.js";
-import {
-  GUARDIAN_AUTOATTACK_CHAINS,
-} from "./mechanics/autoattack-chains.js";
 import { guardianSkillHandlers } from "./mechanics/specific/handlers.js";
 import {
   GUARDIAN_EXTRA_SKILLS,
@@ -33,10 +30,6 @@ export const GUARDIAN_NON_DPS_SKILL_NAMES = Object.freeze(new Set([
 
 const allSkills = Object.freeze([...SKILLS, ...GUARDIAN_BUNDLE_SKILLS]);
 const generatedById = new Map(allSkills.map(skill => [skill.id, skill]));
-const chainRootById = new Map();
-for (const chain of GUARDIAN_AUTOATTACK_CHAINS) {
-  for (const skillId of chain) chainRootById.set(skillId, chain[0]);
-}
 const flipParentById = new Map();
 for (const skill of allSkills) {
   if (
@@ -59,7 +52,6 @@ const generated = allSkills.map(skill => {
       skill.ammo > 0
         ? skill.ammoRecharge || skill.recharge
         : skill.recharge,
-    chainRoot: chainRootById.get(skill.id) ?? null,
     flipParentId: flipParentId ?? null,
     flipParent: flipParentId == null
       ? ""

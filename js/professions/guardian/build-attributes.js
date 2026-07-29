@@ -5,35 +5,34 @@ import {
 import { getActiveTraits } from "./data/traits-data.js";
 
 function selectedSkill(skills, name) {
-  return (skills || []).some(skill => skill?.name === name);
+  return (skills || []).some((skill) => skill?.name === name);
 }
 
 export function applyGuardianBuildAttributeRules(
   common,
-  {
-    build,
-    selectedSkills = [],
-    weaponSet = 1,
-    disabledTrait = null,
-  },
+  { build, selectedSkills = [], weaponSet = 1, disabledTrait = null },
 ) {
   const attributes = common.attributes;
-  const activeTraits = getActiveTraits(build.specializations || [])
-    .filter(trait => trait.name !== disabledTrait);
-  const hasTrait = name => activeTraits.some(trait => trait.name === name);
+  const activeTraits = getActiveTraits(build.specializations || []).filter(
+    (trait) => trait.name !== disabledTrait,
+  );
+  const hasTrait = (name) => activeTraits.some((trait) => trait.name === name);
   const traitStats = {};
   const traitDurations = {};
-  const weapons = weaponSet === 2
-    ? build.alternateWeapons
-    : build.weapons;
+  const weapons = weaponSet === 2 ? build.alternateWeapons : build.weapons;
   const mainHand = weapons?.[0] || "";
   const offHand = weapons?.[1] || "";
 
   if (hasTrait("Right-Hand Strength")) {
     addAttribute(traitStats, "Precision", 80);
-    if (mainHand && mainHand !== "Greatsword" && mainHand !== "Hammer"
-      && mainHand !== "Longbow" && mainHand !== "Spear"
-      && mainHand !== "Staff") {
+    if (
+      mainHand &&
+      mainHand !== "Greatsword" &&
+      mainHand !== "Hammer" &&
+      mainHand !== "Longbow" &&
+      mainHand !== "Spear" &&
+      mainHand !== "Staff"
+    ) {
       addAttribute(traitStats, "Power", 80);
     }
   }
@@ -81,11 +80,7 @@ export function applyGuardianBuildAttributeRules(
     addAttribute(traitStats, "Power", 180 * signetMultiplier);
   }
   if (selectedSkill(selectedSkills, "Signet of Wrath")) {
-    addAttribute(
-      traitStats,
-      "Condition Damage",
-      180 * signetMultiplier,
-    );
+    addAttribute(traitStats, "Condition Damage", 180 * signetMultiplier);
   }
 
   return finalizeBuildAttributes(common, {

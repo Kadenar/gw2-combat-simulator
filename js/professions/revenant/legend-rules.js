@@ -19,8 +19,9 @@ export const REVENANT_ELITE_LEGEND_BY_SPECIALIZATION = Object.freeze({
 
 export const REVENANT_LEGEND_SPECIALIZATIONS = Object.freeze(
   Object.fromEntries(
-    Object.entries(REVENANT_ELITE_LEGEND_BY_SPECIALIZATION)
-      .map(([specialization, legendId]) => [legendId, specialization]),
+    Object.entries(REVENANT_ELITE_LEGEND_BY_SPECIALIZATION).map(
+      ([specialization, legendId]) => [legendId, specialization],
+    ),
   ),
 );
 
@@ -41,8 +42,7 @@ export const REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND = Object.freeze({
 });
 
 export function legalRevenantLegendIds(specialization = "Core") {
-  const eliteLegend =
-    REVENANT_ELITE_LEGEND_BY_SPECIALIZATION[specialization];
+  const eliteLegend = REVENANT_ELITE_LEGEND_BY_SPECIALIZATION[specialization];
   return eliteLegend
     ? [...REVENANT_CORE_LEGEND_IDS, eliteLegend]
     : [...REVENANT_CORE_LEGEND_IDS];
@@ -61,10 +61,11 @@ export function normalizeRevenantLegendIds(
   const selected = [];
   for (const legendId of [...(selectedLegends || []), ...legal]) {
     if (
-      legalIds.has(legendId)
-      && !selected.includes(legendId)
-      && selected.length < 2
-    ) selected.push(legendId);
+      legalIds.has(legendId) &&
+      !selected.includes(legendId) &&
+      selected.length < 2
+    )
+      selected.push(legendId);
   }
   return selected;
 }

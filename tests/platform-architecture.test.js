@@ -175,6 +175,44 @@ test("shared autoattack helpers derive and index ID-based chains", () => {
   });
 });
 
+test("canonical catalogs own derived and exceptional autoattack chains", () => {
+  const skill = (id, nextChainId = null, type = "Weapon") => ({
+    id,
+    name: `Skill ${id}`,
+    type,
+    slot: type === "Weapon" ? "Weapon_1" : "Profession_1",
+    nextChainId,
+  });
+  const catalog = createCanonicalCatalog({
+    generated: [
+      skill(1, 2),
+      skill(2, 3),
+      skill(3),
+      skill(4, 5),
+      skill(5),
+      skill(6, null, "Profession"),
+      skill(7, null, "Profession"),
+    ],
+    autoattackChains: {
+      excludeSkillIds: [5],
+      additional: [[6, 7]],
+    },
+  });
+
+  assert.deepEqual(catalog.autoattackChains, [[1, 2, 3], [6, 7]]);
+  assert.deepEqual(catalog.autoattackChainPositions.get(2), {
+    root: 1,
+    index: 1,
+    step: 2,
+    next: 3,
+  });
+  assert.equal(catalog.skillsById.get(2).chainRoot, 1);
+  assert.equal(catalog.skillsById.get(2).chainStep, 2);
+  assert.equal(catalog.skillsById.get(4).chainRoot, null);
+  assert.equal(catalog.skillsById.get(5).chainStep, null);
+  assert.equal(catalog.skillsById.get(7).chainRoot, 6);
+});
+
 test("shared declarative factories preserve generic effect options", () => {
   assert.deepEqual(
     strike(2, {
@@ -1821,11 +1859,6 @@ test("declarative professions use the standard mechanics module roles", async ()
       path.join(mechanicsRoot, "skill-mechanics.js"),
       "utf8",
     );
-    await readFile(
-      path.join(mechanicsRoot, "autoattack-chains.js"),
-      "utf8",
-    );
-
     assert.match(mechanics, new RegExp(
       `export const ${prefix}_SKILL_MECHANICS\\b`,
     ));

@@ -11,7 +11,6 @@ import {
   THIEF_EXTRA_SKILLS,
   THIEF_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
-import { thiefAutoattackChains } from "./mechanics/autoattack-chains.js";
 import {
   thiefSkillHandlers,
 } from "./mechanics/specific/handlers.js";
@@ -68,15 +67,6 @@ const terrestrialMechanics = Object.fromEntries(
     .filter(([id]) => declaredIds.has(Number(id))),
 );
 const byId = new Map(allDeclared.map(skill => [skill.id, skill]));
-const chains = thiefAutoattackChains(allDeclared);
-const chainRootById = new Map();
-const chainStepById = new Map();
-for (const chain of chains) {
-  chain.forEach((id, index) => {
-    chainRootById.set(id, chain[0]);
-    chainStepById.set(id, index + 1);
-  });
-}
 const flipParentById = new Map();
 for (const skill of allDeclared) {
   if (
@@ -95,8 +85,6 @@ const normalize = skill => ({
           skill.ammo > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
       }
   ),
-  chainRoot: chainRootById.get(skill.id) ?? null,
-  chainStep: chainStepById.get(skill.id) ?? null,
   flipParentId: flipParentById.get(skill.id) ?? null,
   dualWieldOpener: Object.hasOwn(DUAL_FOLLOWUP_BY_PARENT, skill.id),
   dualWieldFollowup: DUAL_FOLLOWUP_IDS.has(skill.id),
@@ -139,7 +127,6 @@ export const thiefCatalog = createCanonicalCatalog({
   },
 });
 export const THIEF_SKILLS = thiefCatalog.skills;
-export const THIEF_AUTOATTACK_CHAINS = chains;
 
 export function thiefWeaponSkillMatchesSet(skill, pair, context = {}) {
   const specialization =

@@ -12,9 +12,6 @@ import {
   REVENANT_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
 import {
-  revenantAutoattackChains,
-} from "./mechanics/autoattack-chains.js";
-import {
   revenantSkillHandlers,
 } from "./mechanics/specific/handlers.js";
 
@@ -25,15 +22,6 @@ const generatedSource = SKILLS
   }));
 const allDeclared = [...generatedSource, ...REVENANT_SUPPLEMENTAL_SKILLS];
 const byId = new Map(allDeclared.map(skill => [skill.id, skill]));
-const chains = revenantAutoattackChains(allDeclared);
-const chainRootById = new Map();
-const chainStepById = new Map();
-for (const chain of chains) {
-  chain.forEach((id, index) => {
-    chainRootById.set(id, chain[0]);
-    chainStepById.set(id, index + 1);
-  });
-}
 const flipParentById = new Map();
 for (const skill of allDeclared) {
   if (
@@ -53,8 +41,6 @@ const normalize = skill => ({
           skill.ammo > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
       }
   ),
-  chainRoot: chainRootById.get(skill.id) ?? null,
-  chainStep: chainStepById.get(skill.id) ?? null,
   flipParentId: flipParentById.get(skill.id) ?? skill.flipParentId ?? null,
 });
 const generated = generatedSource.map(skill => ({
@@ -98,4 +84,3 @@ export const revenantCatalog = createCanonicalCatalog({
 });
 
 export const REVENANT_SKILLS = revenantCatalog.skills;
-export const REVENANT_AUTOATTACK_CHAINS = chains;

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Composes Thief resource, weapon, trait, and delayed-action
+ * callbacks into the cast and scheduler contracts used by the shared engine.
+ */
+
 import { thiefCastAvailability } from "./availability.js";
 import {
   handleSkrittScuffle,
@@ -16,6 +21,9 @@ import {
   updateThiefWeaponState,
 } from "./specific/weapon-state.js";
 
+/**
+ * Thief resource and profession-state availability rule.
+ */
 export const thiefCastRules = Object.freeze({
   availability: {
     id: "thief.availability",
@@ -24,6 +32,12 @@ export const thiefCastRules = Object.freeze({
   },
 });
 
+/**
+ * Thief scheduler lifecycle hooks and typed task dispatch table.
+ *
+ * Weapon state updates before trait state after each cast so trait reactions
+ * observe the completed weapon transition.
+ */
 export const thiefSchedulerHooks = Object.freeze({
   advance: advanceThiefResources,
   onCastStart: spendThiefResources,

@@ -1,13 +1,3 @@
-import { ENGINEER_AUTOATTACK_CHAINS } from "../catalog.js";
-
-const CHAIN_BY_ID = new Map();
-for (const chain of ENGINEER_AUTOATTACK_CHAINS) {
-  chain.forEach((id, index) => CHAIN_BY_ID.set(id, {
-    root: chain[0],
-    next: chain[index + 1] ?? null,
-  }));
-}
-
 function selectedSkillNames(config) {
   const source = config.selectedSkills || [];
   return new Set(Array.isArray(source) ? source : Object.values(source));
@@ -22,8 +12,8 @@ function deny(skill, code, cause, retryAt = null) {
   };
 }
 
-function expectedChainSkill(skill, state) {
-  const chain = CHAIN_BY_ID.get(skill.id);
+function expectedChainSkill(context, skill, state) {
+  const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (!chain) return true;
   return (state.autoattackChains[chain.root] || chain.root) === skill.id;
 }
@@ -222,7 +212,7 @@ export function engineerCastAvailability(context, skill) {
       );
     }
   }
-  if (!expectedChainSkill(skill, state)) {
+  if (!expectedChainSkill(context, skill, state)) {
     return deny(
       skill,
       "engineer.autoattack-chain",
