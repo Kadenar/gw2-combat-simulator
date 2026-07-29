@@ -132,7 +132,7 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
   for (const [skillId, castTimeMs, quicknessCastTimeMs] of [
     [SKILL.HEX_EATER_VORTEX, 520, 526],
     [SKILL.FRIGID_BLITZ, 500, 681],
-    [SKILL.SEARING_FISSURE, 750, 650],
+    [SKILL.SEARING_FISSURE, 750, 600],
     [SKILL.TEMPORAL_RIFT, 500, 560],
     [SKILL.ECHOING_ERUPTION, 750, 960],
     [SKILL.MISERY_SWIPE, 250, 440],

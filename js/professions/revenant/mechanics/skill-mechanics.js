@@ -841,7 +841,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.SEARING_FISSURE]: {
     implemented: true,
     castTimeMs: 750,
-    quicknessCastTimeMs: 650,
+    quicknessCastTimeMs: 600,
     cooldown: 3,
     energyCost: 5,
     comboField: "Fire",
