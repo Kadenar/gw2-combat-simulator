@@ -1,5 +1,6 @@
 // Generated Guild Wars 2 API metadata for mesmer.
-// Snapshot: 2026-07-25. This file is not a source of simulation mechanics.
+// Snapshot: 2026-07-25. Run scripts/update-profession-api-data.mjs --profession Mesmer to refresh.
+// Simulator mechanics are maintained under mesmer/mechanics/.
 
 export const DATA_SNAPSHOT = "2026-07-25";
 export const SPECIALIZATIONS = [
@@ -1562,54 +1563,6 @@ export const SKILLS = [
     "flipSkillId": null
   },
   {
-    "id": 10258,
-    "name": "Siren's Call",
-    "description": "Unleash sonic energy that bounces between multiple foes, damaging and bleeding them. When it hits allies, it applies might, vigor, or swiftness.",
-    "icon": "https://render.guildwars2.com/file/B406DBF83ABDA0C21E4FE76201D66324C84402E5/103759.png",
-    "type": "Weapon",
-    "weapon": "Trident",
-    "slot": "Weapon_1",
-    "specialization": "",
-    "categories": [],
-    "recharge": 0,
-    "ammo": 0,
-    "ammoRecharge": 0,
-    "nextChainId": null,
-    "flipSkillId": 39959
-  },
-  {
-    "id": 10259,
-    "name": "Blinding Tide",
-    "description": "Expose your enemies, inflicting vulnerability in an area.",
-    "icon": "https://render.guildwars2.com/file/16056467A7C59537B85B3DD2699E104D09A5B536/103760.png",
-    "type": "Weapon",
-    "weapon": "Trident",
-    "slot": "Weapon_2",
-    "specialization": "",
-    "categories": [],
-    "recharge": 8,
-    "ammo": 0,
-    "ammoRecharge": 0,
-    "nextChainId": null,
-    "flipSkillId": null
-  },
-  {
-    "id": 10260,
-    "name": "Illusion of Drowning",
-    "description": "Sink enemies around your target with an illusionary anchor.",
-    "icon": "https://render.guildwars2.com/file/68FFCCE3D09FEC026758B8699FE42D0E2B28EE9A/103761.png",
-    "type": "Weapon",
-    "weapon": "Trident",
-    "slot": "Weapon_5",
-    "specialization": "",
-    "categories": [],
-    "recharge": 25,
-    "ammo": 0,
-    "ammoRecharge": 0,
-    "nextChainId": null,
-    "flipSkillId": null
-  },
-  {
     "id": 10267,
     "name": "Phantasmal Disenchanter",
     "description": "Phantasm. Summon an illusion that removes boons from targets it hits. This attack deals increased damage against foes without boons.",
@@ -1828,24 +1781,6 @@ export const SKILLS = [
       "Glamour"
     ],
     "recharge": 120,
-    "ammo": 0,
-    "ammoRecharge": 0,
-    "nextChainId": null,
-    "flipSkillId": null
-  },
-  {
-    "id": 10327,
-    "name": "Imminent Voyage",
-    "description": "Clone. Retreat back, summoning a clone to attack your foe while granting chaos armor to nearby allies.",
-    "icon": "https://render.guildwars2.com/file/D0AD055640295427DF09CC4FDFD75DD33DAEBDAC/103786.png",
-    "type": "Weapon",
-    "weapon": "Trident",
-    "slot": "Weapon_3",
-    "specialization": "",
-    "categories": [
-      "Clone"
-    ],
-    "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,

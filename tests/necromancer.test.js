@@ -41,7 +41,7 @@ import {
   modifierCandidates,
   recalculate,
   runSimulation,
-} from "../js/professions/necromancer/app/app-runtime.js";
+} from "../js/professions/necromancer/app/app-definition.js";
 
 const baseConfig = Object.freeze({
   stats: {

@@ -8,11 +8,7 @@ import { sortQueuedEvents } from "./event-queue.js";
 /**
  * Creates the base mutable state consumed by stream resolution.
  */
-export function createResolverState({
-  profession,
-  config = {},
-  stream,
-} = {}) {
+export function createResolverState({ profession, config = {}, stream } = {}) {
   return {
     time: 0,
     config,
@@ -60,10 +56,11 @@ export function resolveScheduledStream({
   config = {},
 } = {}) {
   const scheduled = assertScheduledEventStream(stream);
-  if (!handlerRegistry) throw new TypeError("Resolver requires a handler registry.");
-  handlerRegistry.require(scheduled.events.map(event => event.type));
+  if (!handlerRegistry)
+    throw new TypeError("Resolver requires a handler registry.");
+  handlerRegistry.require(scheduled.events.map((event) => event.type));
   const state = createResolverState({ profession, config, stream: scheduled });
-  const queue = scheduled.events.map(event => ({ ...event }));
+  const queue = scheduled.events.map((event) => ({ ...event }));
   sortQueuedEvents(queue);
   const context = {
     profession,
@@ -86,8 +83,9 @@ export function resolveScheduledStream({
     dps: totalDamage / duration,
     strikeDamage: state.totals.strike,
     conditionDamage: state.totals.condition,
-    breakdown: [...state.breakdown.values()]
-      .sort((left, right) => right.damage - left.damage),
+    breakdown: [...state.breakdown.values()].sort(
+      (left, right) => right.damage - left.damage,
+    ),
     events: scheduled.events,
     resolvedEvents: state.resolvedEvents,
     profession: state.profession,

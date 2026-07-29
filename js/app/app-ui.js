@@ -24,20 +24,34 @@ export const SPECIFIC_CONDITION_DURATION_ATTRIBUTES = new Set([
   ...CONDITION_DURATION_ATTRIBUTES,
 ]);
 
-export const PERMANENT_TARGET_CONDITIONS = Object.freeze([
-  "Vulnerability",
-  "Weakness",
-  "Blindness",
-  "Slow",
-  "Chilled",
-  "Cripple",
-  "Immobilize",
-  "Burning",
-  "Bleeding",
-  "Torment",
-  "Confusion",
-  "Poisoned",
+export const TARGET_CONDITION_GROUPS = Object.freeze([
+  Object.freeze({
+    label: "Damaging",
+    conditions: Object.freeze([
+      "Burning",
+      "Bleeding",
+      "Torment",
+      "Confusion",
+      "Poisoned",
+    ]),
+  }),
+  Object.freeze({
+    label: "Control",
+    conditions: Object.freeze([
+      "Vulnerability",
+      "Weakness",
+      "Blindness",
+      "Slow",
+      "Chilled",
+      "Cripple",
+      "Immobilize",
+    ]),
+  }),
 ]);
+
+export const PERMANENT_TARGET_CONDITIONS = Object.freeze(
+  TARGET_CONDITION_GROUPS.flatMap(group => group.conditions),
+);
 
 export const STACKING_TARGET_CONDITIONS = new Set([
   "Vulnerability",

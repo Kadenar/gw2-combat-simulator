@@ -1,3 +1,6 @@
+// Engine-facing Revenant contract. Keep browser persistence, rendering, and
+// build-to-simulation orchestration in app/app-definition.js.
+
 import { defineProfession } from "../../platform/engine/profession.js";
 import {
   createRevenantBuildDefaults,
@@ -10,12 +13,8 @@ import {
   revenantCastRules,
   revenantSchedulerHooks,
 } from "./mechanics/contract.js";
-import {
-  revenantResolverEventHandlers,
-} from "./resolver/event-handlers.js";
-import {
-  revenantResolverEventReactions,
-} from "./resolver/event-reactions.js";
+import { revenantResolverEventHandlers } from "./resolver/event-handlers.js";
+import { revenantResolverEventReactions } from "./resolver/event-reactions.js";
 import {
   createRevenantState,
   projectRevenantEndState,
@@ -42,7 +41,7 @@ export const revenantProfession = defineProfession({
   castRules: revenantCastRules,
   schedulerHooks: {
     ...revenantSchedulerHooks,
-    snapshot: context => snapshotRevenantState(context.state.profession),
+    snapshot: (context) => snapshotRevenantState(context.state.profession),
   },
   resolverHooks: {
     eventHandlers: revenantResolverEventHandlers,

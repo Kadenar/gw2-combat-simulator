@@ -31,12 +31,57 @@ function expectedChainSkill(skill, state) {
 export function engineerCastAvailability(context, skill) {
   const state = context.state.profession;
   const specialization = String(context.config.specialization || "Core");
-  if (skill.id === -3) {
+  if (Number(state.plasmaticLockoutUntil || 0) > context.start) {
     return deny(
       skill,
-      "engineer.weapon-swap-disabled",
-      "engineers cannot swap equipped weapon sets in combat.",
+      "engineer.plasmatic-aftercast",
+      "Plasmatic State is completing its second packet.",
+      state.plasmaticLockoutUntil,
     );
+  }
+  if (
+    skill.name === "Electric Artillery"
+    && !state.electricArtilleryAvailable
+  ) {
+    const retryAt = Number(state.electricArtilleryReadyAt || 0);
+    return deny(
+      skill,
+      "engineer.electric-artillery-inactive",
+      "Lightning Rod has not finished charging.",
+      retryAt > context.start ? retryAt : null,
+    );
+  }
+  if (
+    skill.name === "Lightning Rod"
+    && (
+      state.electricArtilleryAvailable
+      || Number(state.electricArtilleryReadyAt || 0) > context.start
+    )
+  ) {
+    return deny(
+      skill,
+      "engineer.lightning-rod-active",
+      "Electric Artillery currently replaces this skill.",
+      Number(state.electricArtilleryExpiresAt || 0) > context.start
+        ? state.electricArtilleryExpiresAt
+        : null,
+    );
+  }
+  if (skill.simulatorExcluded) {
+    return deny(
+      skill,
+      "engineer.contextual-skill",
+      "this skill activates automatically from its parent skill.",
+    );
+  }
+  if (skill.id === -3) {
+    return state.activeKit
+      ? { ready: true }
+      : deny(
+        skill,
+        "engineer.weapon-swap-disabled",
+        "engineers can use weapon swap only to leave an active kit.",
+      );
   }
   if (
     skill.specialization
@@ -95,7 +140,7 @@ export function engineerCastAvailability(context, skill) {
       ? { ready: true }
       : deny(skill, "engineer.forge-inactive", "Photon Forge is not active.");
   }
-  if (skill.kitEquip) {
+  if (skill.handlerId === "engineer.kit-equip") {
     if (!selectedSkillNames(context.config).has(skill.kitName || skill.name)) {
       return deny(
         skill,
@@ -111,6 +156,23 @@ export function engineerCastAvailability(context, skill) {
         state.kitLockoutUntil,
       );
     }
+    if (state.activeKit === (skill.kitName || skill.name)) {
+      return deny(
+        skill,
+        "engineer.kit-active",
+        `use Stow ${skill.kitName || skill.name} to leave this kit.`,
+      );
+    }
+  }
+  if (
+    skill.handlerId === "engineer.consume-flip"
+    && !state.availableFlips?.[skill.id]
+  ) {
+    return deny(
+      skill,
+      "engineer.flip-inactive",
+      `use ${skill.flipParentName || "its parent skill"} first.`,
+    );
   }
   if (
     skill.toolbeltParentName

@@ -5,25 +5,21 @@ import {
     replaceBuild as replaceBuildFor,
 } from '../js/app/app-state.js';
 import {
-    mesmerAppAdapter,
-} from '../js/professions/mesmer/app/adapter.js';
-import {
+    calculateAttributes as calculateMesmerAttributes,
     calculateModifierContributions,
     computeModifierContributions,
+    mesmerAppAdapter,
     modifierContributionRequest,
     runSimulation,
     simulationConfig,
-} from '../js/professions/mesmer/app/app-runtime.js';
+} from '../js/professions/mesmer/app/app-definition.js';
 import {
     calculateCommonAttributes,
     finalizeBuildAttributes,
 } from '../js/platform/gw2/attributes.js';
 import {
     calculateContributionComparisons,
-} from '../js/app/app-runtime.js';
-import {
-    calculateAttributes as calculateMesmerAttributes,
-} from '../js/professions/mesmer/core/calc-attributes.js';
+} from '../js/app/modifier-contributions.js';
 import {
     aggregateSigilSet,
     setWeaponSigil,
@@ -403,7 +399,8 @@ test('interactive simulation leaves contribution passes to the background worker
 });
 
 test('saved builds fall back when their relic is no longer available', () => {
-    assert.equal(replaceBuild({ relic: 'Brawler' }).relic, 'Thief');
+    assert.equal(replaceBuild({ relic: 'Krait' }).relic, 'Thief');
+    assert.equal(replaceBuild({ relic: 'Brawler' }).relic, 'Brawler');
     assert.equal(replaceBuild({ relic: 'Claw' }).relic, 'Claw');
 });
 

@@ -1,0 +1,13 @@
+[
+  {
+    "section": "Amalgam",
+    "presets": [
+      {
+        "label": "Condition Alacrity (2 Kit)",
+        "build": "Builds/b-condi-alac-amalgam-2kit.json",
+        "benchmarkDps": 34975,
+        "upToDate": true
+      }
+    ]
+  }
+]

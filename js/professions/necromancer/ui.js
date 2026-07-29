@@ -2,6 +2,15 @@ import { necromancerCatalog } from "./catalog.js";
 import { NECROMANCER_SKILL_IDS as ID } from "./data/ids.js";
 import { getActiveTraits } from "./data/traits-data.js";
 
+/**
+ * Necromancer adapter for the shared simulator UI.
+ *
+ * This module presents shroud, Scourge, Ritualist, and Lich actions; describes
+ * life force, blight, and soul-shard resources; explains transformation-based
+ * skill availability; and declares relevant target-health thresholds. It
+ * reflects combat state but does not resolve combat mechanics.
+ */
+
 const ENTRY_ID_BY_SPECIALIZATION = Object.freeze({
   Core: ID.DEATH_SHROUD,
   Reaper: ID.REAPERS_SHROUD,
@@ -227,6 +236,7 @@ export const necromancerUi = Object.freeze({
       label: "F",
       skillIds: professionSkillIds(context),
       color: "#57a86b",
+      resourceAnchor: true,
     }];
     const shroudSkills = shroudSkillIds(context);
     if (shroudSkills.length) {

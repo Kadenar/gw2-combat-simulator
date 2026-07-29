@@ -8,25 +8,24 @@ import {
 import {
   createGw2BuildCodec,
 } from "../../platform/gw2/build-codec.js";
+import {
+  createDefaultTargetConditions,
+} from "../../platform/gw2/default-target-conditions.js";
 import { mesmerCatalog } from "./catalog.js";
+
+/**
+ * Mesmer persisted-build definition.
+ *
+ * This module supplies Mesmer defaults and configures the shared GW2 build
+ * codec for migration, normalization, validation, and app-facing conversion.
+ * It includes the explicit legacy migrations for sigils and target-condition
+ * assumptions and constrains the initial clone, blade, or note resource.
+ */
 
 export const BUILD_SCHEMA_VERSION = 3;
 export const PROFESSION_ID = "mesmer";
 
-export function createDefaultTargetConditions() {
-  return {
-    Bleeding: 1,
-    Burning: true,
-    Torment: 1,
-    Confusion: 1,
-    Poisoned: true,
-    Chilled: true,
-    Cripple: true,
-    Slow: true,
-    Weakness: true,
-    Vulnerability: 25,
-  };
-}
+export { createDefaultTargetConditions };
 
 export function createMesmerBuildDefaults() {
   return {

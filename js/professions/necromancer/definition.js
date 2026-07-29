@@ -1,3 +1,6 @@
+// Engine-facing Necromancer contract. Keep browser persistence, rendering,
+// and build-to-simulation orchestration in app/app-definition.js.
+
 import { defineProfession } from "../../platform/engine/profession.js";
 import {
   createNecromancerBuildDefaults,

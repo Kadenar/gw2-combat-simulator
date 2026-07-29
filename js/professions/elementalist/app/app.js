@@ -37,10 +37,10 @@ import {
     DERIVED_ATTRIBUTES,
     groupedOptions,
     option,
-    PERMANENT_TARGET_CONDITIONS,
     PRIMARY_ATTRIBUTES,
     SPECIFIC_CONDITION_DURATION_ATTRIBUTES,
     STACKING_TARGET_CONDITIONS,
+    TARGET_CONDITION_GROUPS,
 } from '../../../app/app-ui.js';
 import {
     convertEIRotation,
@@ -2200,7 +2200,9 @@ class App {
 
         el.innerHTML =
             renderGroup('Boons', PERMA_BOONS)
-            + renderGroup('Conditions', PERMANENT_TARGET_CONDITIONS);
+            + TARGET_CONDITION_GROUPS
+                .map(group => renderGroup(group.label, group.conditions))
+                .join('');
 
         el.querySelectorAll('input[type="checkbox"]').forEach(cb => {
             cb.addEventListener('change', () => {

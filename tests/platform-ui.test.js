@@ -342,6 +342,7 @@ test("shared results render summaries, totals, contributions, warnings, and icon
 test("palette primitives escape values and render state, ammo, cooldowns, and groups", () => {
   const html = paletteSkillHtml({
     name: 'Skill"><bad>',
+    skillId: 12345,
     title: 'Title"><bad>',
     icon: 'icon" onerror="bad',
     color: "#abc",
@@ -355,8 +356,14 @@ test("palette primitives escape values and render state, ammo, cooldowns, and gr
   assert.match(html, /1\/2/);
   assert.equal((html.match(/pal-ammo-pip filled/g) || []).length, 1);
   assert.match(html, /&lt;5s/);
+  assert.match(html, /data-fallback-icon="data:image\/svg\+xml/);
+  assert.match(html, /data-skill-id="12345"/);
   assert.doesNotMatch(html, /<bad>/);
   assert.doesNotMatch(html, /onerror="bad"/);
+  assert.match(
+    paletteSkillHtml({ name: "Reserved", concealed: true }),
+    /pal-concealed/,
+  );
 
   const virtualView = {
     name: "Wait",
@@ -371,6 +378,14 @@ test("palette primitives escape values and render state, ammo, cooldowns, and gr
       skills: [{ ...virtualView, virtual: true }],
     }),
     /&lt;Group&gt;/,
+  );
+  assert.match(
+    paletteGroupHtml({
+      label: "Reserved",
+      className: "pal-group-concealed",
+      skills: [virtualView],
+    }),
+    /pal-group pal-group-concealed/,
   );
 });
 
@@ -397,7 +412,7 @@ test("timeline canonical entries update, simplify, insert, and reject invalid mo
 });
 
 test("timeline binding inserts palette entries and drop positions use tile halves", () => {
-  let dragState = { source: "palette", name: "New" };
+  let dragState = { source: "palette", name: "New", skillId: 12345 };
   let changes = 0;
   const rotation = ["A"];
   const root = {
@@ -410,13 +425,20 @@ test("timeline binding inserts palette entries and drop positions use tile halve
     setDragState: value => {
       dragState = value;
     },
-    resolvePaletteEntry: name => ({ name, waitMs: 100 }),
+    resolvePaletteEntry: (name, drag) => ({
+      name,
+      skillId: drag.skillId,
+      waitMs: 100,
+    }),
     onChanged: () => {
       changes += 1;
     },
   });
   assert.equal(binding.applyDrop(1), true);
-  assert.deepEqual(rotation, ["A", { name: "New", waitMs: 100 }]);
+  assert.deepEqual(rotation, [
+    "A",
+    { name: "New", skillId: 12345, waitMs: 100 },
+  ]);
   assert.equal(dragState, null);
   assert.equal(changes, 1);
 

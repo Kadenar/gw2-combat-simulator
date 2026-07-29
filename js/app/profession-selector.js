@@ -22,9 +22,7 @@ export {
 };
 
 function activeProfessionId(root, select) {
-  return root.body?.dataset.profession
-    || select.dataset.activeProfession
-    || "";
+  return root.body?.dataset.profession || select.dataset.activeProfession || "";
 }
 
 function populateProfessionSelector(select, active) {

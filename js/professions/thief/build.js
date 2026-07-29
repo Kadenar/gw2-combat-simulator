@@ -5,6 +5,9 @@ import {
 } from "../../platform/gw2/weapon-sigils.js";
 import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
 import {
+  createDefaultTargetConditions,
+} from "../../platform/gw2/default-target-conditions.js";
+import {
   normalizeProfessionAssumptions,
   validateProfessionAssumptions,
 } from "../../app/profession-assumptions.js";
@@ -14,17 +17,19 @@ import {
   thiefWeaponSkillMatchesSet,
 } from "./catalog.js";
 
+/**
+ * Thief persisted-build definition.
+ *
+ * This module supplies Thief defaults and configures the shared GW2 build
+ * codec for migration, normalization, validation, and app-facing conversion.
+ * It normalizes Thief assumptions, initiative, shadow force, and dodge choice,
+ * and rejects weapon sets that cannot supply a legal dual-wield slot-3 skill.
+ */
+
 export const THIEF_BUILD_SCHEMA_VERSION = 3;
 export const THIEF_PROFESSION_ID = "thief";
 
-export function createDefaultTargetConditions() {
-  return {
-    Bleeding: 1,
-    Poisoned: true,
-    Vulnerability: 25,
-    Weakness: true,
-  };
-}
+export { createDefaultTargetConditions };
 export function createThiefBuildDefaults() {
   return {
     schemaVersion: THIEF_BUILD_SCHEMA_VERSION,
@@ -87,12 +92,16 @@ const thiefBuildCodec = createGw2BuildCodec({
   catalog: thiefCatalog,
   createDefaults: createThiefBuildDefaults,
   normalizeExtra(build, { saved }) {
+    const assumptions = normalizeProfessionAssumptions(
+      build.assumptions,
+      THIEF_ASSUMPTION_CONTROLS,
+    );
+    delete assumptions.markedTargetChoice;
+    delete assumptions.playerHealthPercent;
+    delete assumptions.targetDistance;
     return {
       ...build,
-      assumptions: normalizeProfessionAssumptions(
-        build.assumptions,
-        THIEF_ASSUMPTION_CONTROLS,
-      ),
+      assumptions,
       initialInitiative: Math.max(
         0,
         Math.min(15, Number(saved.initialInitiative ?? 12) || 0),

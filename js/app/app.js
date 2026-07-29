@@ -22,6 +22,9 @@ import {
     saveBuild,
 } from './app-state.js';
 import {
+    assumptionControlsForSpecialization,
+} from './profession-assumptions.js';
+import {
     downloadJson,
     fetchJsonAsset,
     getBuildExportPayload,
@@ -33,10 +36,10 @@ import {
     groupedOptions,
     option,
     PERCENT_ATTRIBUTES,
-    PERMANENT_TARGET_CONDITIONS,
     PRIMARY_ATTRIBUTES,
     SPECIFIC_CONDITION_DURATION_ATTRIBUTES,
     STACKING_TARGET_CONDITIONS,
+    TARGET_CONDITION_GROUPS,
 } from './app-ui.js';
 
 // Wiki specialization banners are exactly 647×136 px — matching the trait panel width,
@@ -188,6 +191,25 @@ export class ProfessionApp {
 
     // Ensures selected skills are valid for current elite specialization
     // Swaps skill if it's unavailable (e.g., switching specs invalidates spec-locked skills)
+    isSlotSkillSelectable(skill, specialization) {
+        if (
+            !skill
+            || skill.flipParent
+            || skill.flipParentId != null
+            || skill.slotSelectable === false
+        ) {
+            return false;
+        }
+        return this.profession.ui.isSlotSkillSelectable?.(
+            {
+                build: this.build,
+                specialization,
+                catalog: this.profession.catalog,
+            },
+            skill,
+        ) !== false;
+    }
+
     normalizeSelectedSkills() {
         const spec = this.adapter.eliteSpecialization(this.build);
         if (this.adapter.slotLoadout) {
@@ -214,6 +236,7 @@ export class ProfessionApp {
             const allowed = current
                 && current.implemented !== false
                 && current.type === type
+                && this.isSlotSkillSelectable(current, spec)
                 && (!current.specialization || current.specialization === spec)
                 && this.adapter.isSkillAvailable(current, {
                     build: this.build,
@@ -223,7 +246,7 @@ export class ProfessionApp {
                 this.build.selectedSkills[slot] = this.skills.find(skill =>
                     skill.implemented !== false
                     && skill.type === type
-                    && !skill.flipParent
+                    && this.isSlotSkillSelectable(skill, spec)
                     && (!skill.specialization || skill.specialization === spec)
                     && this.adapter.isSkillAvailable(skill, {
                         build: this.build,
@@ -238,7 +261,11 @@ export class ProfessionApp {
     // and none is provided in options, the default is injected so the entry
     // is stored as an object rather than a bare string.
     addRotation(name, options = {}) {
-        const defaultInterruptMs = this.skillByName.get(name)?.defaultInterruptMs;
+        const skillId = options.skillId == null ? null : Number(options.skillId);
+        const skill = Number.isFinite(skillId)
+            ? this.skillById.get(skillId)
+            : this.skillByName.get(name);
+        const defaultInterruptMs = skill?.defaultInterruptMs;
         const resolvedOptions = defaultInterruptMs != null && options.interruptMs == null
             ? { interruptMs: defaultInterruptMs, ...options }
             : options;
@@ -282,16 +309,23 @@ export class ProfessionApp {
         const offHands = Object.entries(this.weaponData)
             .filter(([, data]) => ['oh', 'mh+oh'].includes(data.wielding))
             .map(([name]) => name);
-        const weaponSetRows = (setNumber, weapons, sigils) => {
+        const weaponSetRows = (setNumber, weapons, sigils, allowEmpty = false) => {
             const setTwoHanded = this.weaponData[weapons[0]]?.wielding === '2h';
+            const setUnequipped = allowEmpty && !weapons[0];
+            const disabledStyle = setUnequipped
+                ? 'display:none'
+                : setTwoHanded ? 'opacity:.4;pointer-events:none' : '';
             return `<div class="weapon-set-heading">Weapon set ${setNumber}</div>
                 <div class="gear-row"><span class="gear-label">Main hand</span>
-                    <select id="sel-mh${setNumber}" class="gear-select">${mainHands.map(name => option(name, weapons[0])).join('')}</select>
+                    <select id="sel-mh${setNumber}" class="gear-select">${
+                        allowEmpty ? option('', weapons[0], 'None') : ''
+                    }${mainHands.map(name => option(name, weapons[0])).join('')}</select>
                 </div>
-                <div class="gear-row" style="${setTwoHanded ? 'opacity:.4;pointer-events:none' : ''}">
+                <div class="gear-row" style="${disabledStyle}">
                     <span class="gear-label">Off hand</span>
                     <select id="sel-oh${setNumber}" class="gear-select">${offHands.map(name => option(name, weapons[1])).join('')}</select>
                 </div>
+                <div style="${setUnequipped ? 'display:none' : ''}">
                 ${[0, 1].map(slot => this.selectRow(
                     `Sigil ${slot + 1}`,
                     `sel-sig${setNumber}-${slot + 1}`,
@@ -301,15 +335,19 @@ export class ProfessionApp {
                         name => name,
                         name => name === sigils[slot === 0 ? 1 : 0],
                     ),
-                )).join('')}`;
+                )).join('')}</div>`;
         };
         document.getElementById('weapon-select').innerHTML = `
             ${weaponSetRows(1, b.weapons, b.weaponSigils[0])}
-            ${weaponSetRows(2, b.alternateWeapons, b.weaponSigils[1])}`;
+            ${weaponSetRows(2, b.alternateWeapons, b.weaponSigils[1], true)}`;
         const bindWeaponSet = (setNumber, weapons, sigils) => {
             document.getElementById(`sel-mh${setNumber}`).addEventListener('change', event => {
                 weapons[0] = event.target.value;
-                if (this.weaponData[event.target.value].wielding === '2h') weapons[1] = '';
+                if (!event.target.value) {
+                    weapons[1] = '';
+                    b.startingWeaponSet = 1;
+                    this.attributeWeaponSet = 1;
+                } else if (this.weaponData[event.target.value].wielding === '2h') weapons[1] = '';
                 else if (!weapons[1]) {
                     weapons[1] = this.adapter.defaultOffhand({
                         mainHand: event.target.value,
@@ -486,15 +524,16 @@ export class ProfessionApp {
 
     availableSlotSkills(type) {
         const spec = this.adapter.eliteSpecialization(this.build);
-        return this.skills.filter(skill =>
+        return [...new Map(this.skills.filter(skill =>
             skill.implemented !== false
             && skill.type === type
-            && !skill.flipParent
+            && this.isSlotSkillSelectable(skill, spec)
             && (!skill.specialization || skill.specialization === spec)
             && this.adapter.isSkillAvailable(skill, {
                 build: this.build,
                 specialization: spec,
-            }));
+            })
+        ).map(skill => [skill.name, skill])).values()];
     }
 
     // Renders weapon bar (set 1 + set 2 previews), skill bar (Heal/Utility×3/Elite dropdowns),
@@ -504,7 +543,7 @@ export class ProfessionApp {
         const spec = this.adapter.eliteSpecialization(this.build);
         const skillsForSet = ([mh, oh]) => {
             return [...new Map(this.skills.filter(skill => {
-                if (skill.type !== 'Weapon') return false;
+                if (skill.type !== 'Weapon' || !skill.weapon) return false;
                 if (!this.adapter.isSkillAvailable(skill, {
                     build: this.build,
                     specialization: spec,
@@ -517,6 +556,7 @@ export class ProfessionApp {
                         specialization: spec,
                         catalog: this.profession.catalog,
                         weaponData: this.weaponData,
+                        professionState: this.results?.endState?.profession,
                     },
                 );
             }).map(skill => [skill.name, skill])).values()]
@@ -529,7 +569,9 @@ export class ProfessionApp {
         </div>`;
         document.getElementById('weapon-bar').innerHTML = `
             <div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 1</span>${set1Skills.map(weaponIcon).join('')}</div>
-            <div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 2</span>${set2Skills.map(weaponIcon).join('')}</div>`;
+            ${this.build.alternateWeapons[0]
+                ? `<div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 2</span>${set2Skills.map(weaponIcon).join('')}</div>`
+                : ''}`;
 
         if (this.adapter.slotLoadout) {
             this.renderFixedSlotLoadout(spec, set1Skills, set2Skills);
@@ -538,7 +580,7 @@ export class ProfessionApp {
         const slots = [
             ['Heal', 'Heal'], ['Utility1', 'Utility'], ['Utility2', 'Utility'], ['Utility3', 'Utility'], ['Elite', 'Elite'],
         ];
-        document.getElementById('skill-bar').innerHTML = slots.map(([key, type]) => {
+        const selectedSkillBarHtml = slots.map(([key, type]) => {
             const current = this.skillByName.get(this.build.selectedSkills[key]);
             return `<div class="skill-bar-slot ${type === 'Heal' ? 'heal-border' : type === 'Elite' ? 'elite-border' : ''}" data-key="${key}">
                 <div class="sbar-icon" title="${esc(current?.name || 'Choose skill')}"><img src="${esc(current?.icon || '')}" alt=""></div>
@@ -548,7 +590,54 @@ export class ProfessionApp {
                 ).join('')}</div>
             </div>`;
         }).join('');
-        document.querySelectorAll('.skill-bar-slot').forEach(slot => {
+        const inspectionGroups = this.profession.ui.skillBarGroups?.({
+            build: this.build,
+            specialization: spec,
+            catalog: this.profession.catalog,
+            professionState: this.results?.endState?.profession,
+        }) || [];
+        const inspectionSkills = inspectionGroups.flatMap(group =>
+            group.skillIds.map(id => this.skillById.get(Number(id))).filter(Boolean));
+        const skillBar = document.getElementById('skill-bar');
+        skillBar.classList.toggle('has-inspection', inspectionGroups.length > 0);
+        skillBar.innerHTML = inspectionGroups.length
+            ? `<div class="skill-bar-selected">${selectedSkillBarHtml}</div>
+                <div class="skill-bar-inspection">${inspectionGroups.map(group => {
+                    const optionSkills = (group.optionSkillIds || [])
+                        .map(id => this.skillById.get(Number(id)))
+                        .filter(Boolean);
+                    const selectable =
+                        group.selectionKey
+                        && Number.isInteger(Number(group.selectionIndex))
+                        && optionSkills.length > 0;
+                    return `<div class="skill-bar-inspection-group"
+                        style="--inspection-color:${esc(group.color || 'var(--accent)')}">
+                        <span class="skill-bar-inspection-label">${esc(group.label)}</span>
+                        <div class="skill-bar-inspection-skills">${group.skillIds
+                            .map(id => this.skillById.get(Number(id)))
+                            .filter(Boolean)
+                            .map(skill => `<div class="skill-bar-inspection-slot${
+                                selectable ? ' selectable' : ''
+                            }"${selectable
+                                ? ` data-selection-key="${esc(group.selectionKey)}"
+                                    data-selection-index="${Number(group.selectionIndex)}"`
+                                : ''}>
+                                <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}">
+                                    <img src="${esc(skill.icon || '')}" alt="">
+                                </div>
+                                ${selectable ? `<div class="sbar-arrow">▼</div>
+                                    <div class="sbar-dropdown">${optionSkills.map(optionSkill =>
+                                        `<div class="dd-item" data-skill-id="${optionSkill.id}">
+                                            <img src="${esc(optionSkill.icon || '')}" alt="">
+                                            <span>${esc(optionSkill.name)}</span>
+                                        </div>`
+                                    ).join('')}</div>` : ''}
+                            </div>`).join('')}
+                        </div>
+                    </div>`;
+                }).join('')}</div>`
+            : selectedSkillBarHtml;
+        skillBar.querySelectorAll('.skill-bar-slot').forEach(slot => {
             slot.querySelector('.sbar-icon').addEventListener('click', event => {
                 event.stopPropagation();
                 document.querySelectorAll('.sbar-dropdown.open').forEach(drop => {
@@ -563,12 +652,53 @@ export class ProfessionApp {
                 });
             });
         });
+        skillBar.querySelectorAll(
+            '.skill-bar-inspection-slot[data-selection-key]',
+        ).forEach(slot => {
+            slot.querySelector('.sbar-icon').addEventListener('click', event => {
+                event.stopPropagation();
+                document.querySelectorAll('.sbar-dropdown.open').forEach(drop => {
+                    if (drop !== slot.querySelector('.sbar-dropdown')) {
+                        drop.classList.remove('open');
+                    }
+                });
+                slot.querySelector('.sbar-dropdown').classList.toggle('open');
+            });
+            slot.querySelectorAll('.dd-item').forEach(item => {
+                item.addEventListener('click', event => {
+                    event.stopPropagation();
+                    const key = slot.dataset.selectionKey;
+                    const index = Number(slot.dataset.selectionIndex);
+                    const skillId = Number(item.dataset.skillId);
+                    if (this.profession.ui.updateSkillBarSelection) {
+                        this.profession.ui.updateSkillBarSelection(
+                            {
+                                build: this.build,
+                                specialization: spec,
+                                professionState:
+                                    this.results?.endState?.profession,
+                                catalog: this.profession.catalog,
+                            },
+                            { key, index, skillId },
+                        );
+                    } else {
+                        const values = Array.isArray(this.build[key])
+                            ? [...this.build[key]]
+                            : [];
+                        values[index] = skillId;
+                        this.build[key] = values;
+                    }
+                    this.changed();
+                });
+            });
+        });
 
         const rows = [...new Map(
             [
                 ...set1Skills,
                 ...set2Skills,
                 ...slots.map(([key]) => this.skillByName.get(this.build.selectedSkills[key])).filter(Boolean),
+                ...inspectionSkills,
             ].map(skill => [skill.name, skill]),
         ).values()];
         document.getElementById('skill-info-table').innerHTML = `<div class="skill-info-grid">
@@ -597,27 +727,56 @@ export class ProfessionApp {
         };
         const view = this.adapter.slotLoadout.view(context);
         const skillBar = document.getElementById('skill-bar');
-        const barHtml = bar => `<div class="fixed-loadout-bar${bar.active ? ' active' : ''}">
+        const barHtml = bar => `<div class="fixed-loadout-bar${
+            view.formatActiveBar
+                ? bar.active ? ' active' : ' inactive'
+                : ' static'
+        }">
             <span class="skill-bar-label">${esc(bar.label)}</span>
             ${bar.skillIds.map(id => this.skillById.get(Number(id))).filter(Boolean).map(skill =>
                 `<div class="skill-bar-slot"><div class="sbar-icon" title="${esc(skill.name)}"><img src="${esc(skill.icon || '')}" alt=""></div></div>`
             ).join('')}
         </div>`;
-        skillBar.innerHTML = `<div class="fixed-loadout-selectors">
-            ${view.selectors.map(selector =>
-                `<label><span>${esc(selector.label)}</span><select class="gear-select" data-loadout-key="${esc(selector.key)}">
+        const selectorHtml = selector => view.selectionControl === 'icons'
+            ? `<div class="fixed-loadout-icon-selector">
+                <span>${esc(selector.label)}</span>
+                <div class="fixed-loadout-icon-options">${selector.options.map(entry =>
+                    `<button type="button" class="fixed-loadout-icon${
+                        entry.value === selector.value ? ' selected' : ''
+                    }" data-loadout-key="${esc(selector.key)}"
+                        data-loadout-value="${esc(entry.value)}"
+                        title="${esc(entry.label)}"${entry.disabled ? ' disabled' : ''}>
+                        <img src="${esc(entry.icon || '')}" alt="">
+                    </button>`
+                ).join('')}</div>
+            </div>`
+            : `<label><span>${esc(selector.label)}</span>
+                <select class="gear-select" data-loadout-key="${esc(selector.key)}">
                     ${selector.options.map(entry =>
                         `<option value="${esc(entry.value)}"${entry.value === selector.value ? ' selected' : ''}${entry.disabled ? ' disabled' : ''}>${esc(entry.label)}</option>`
                     ).join('')}
-                </select></label>`
-            ).join('')}
+                </select>
+            </label>`;
+        skillBar.innerHTML = `<div class="fixed-loadout-selectors">
+            ${view.selectors.map(selectorHtml).join('')}
         </div>${view.bars.map(barHtml).join('')}`;
-        skillBar.querySelectorAll('[data-loadout-key]').forEach(select => {
+        skillBar.querySelectorAll('select[data-loadout-key]').forEach(select => {
             select.addEventListener('change', () => {
                 this.adapter.slotLoadout.updateBuild(
                     this.build,
                     select.dataset.loadoutKey,
                     select.value,
+                    context,
+                );
+                this.changed();
+            });
+        });
+        skillBar.querySelectorAll('button[data-loadout-key]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.adapter.slotLoadout.updateBuild(
+                    this.build,
+                    button.dataset.loadoutKey,
+                    button.dataset.loadoutValue,
                     context,
                 );
                 this.changed();
@@ -652,6 +811,10 @@ export class ProfessionApp {
     // Checkbox toggles enable/disable the paired stack input and keep values in sync.
     renderAssumptions() {
         const a = this.build.assumptions;
+        const assumptionControls = assumptionControlsForSpecialization(
+            this.adapter.assumptionControls,
+            this.adapter.eliteSpecialization(this.build),
+        );
         const conditions = a.targetConditions ||= {};
         const item = ({
             name,
@@ -679,24 +842,60 @@ export class ProfessionApp {
                 key,
             })),
         ].join('');
-        const conditionItems = PERMANENT_TARGET_CONDITIONS.map(name => {
-            const stackable = STACKING_TARGET_CONDITIONS.has(name);
-            const value = conditions[name];
-            return item({
-                name,
-                checked: stackable ? Number(value) > 0 : !!value,
-                type: 'condition',
-                stacks: stackable
-                    ? Math.max(0, Math.min(25, Number(value) || 0))
-                    : null,
-            });
+        const conditionGroups = TARGET_CONDITION_GROUPS.map(group => {
+            const conditionItems = group.conditions.map(name => {
+                const stackable = STACKING_TARGET_CONDITIONS.has(name);
+                const value = conditions[name];
+                return item({
+                    name,
+                    checked: stackable ? Number(value) > 0 : !!value,
+                    type: 'condition',
+                    stacks: stackable
+                        ? Math.max(0, Math.min(25, Number(value) || 0))
+                        : null,
+                });
+            }).join('');
+            return `<div class="perma-group">
+                <span class="perma-group-label">${esc(group.label)}</span>
+                ${conditionItems}
+            </div>`;
         }).join('');
-        const professionAssumptionItems = this.adapter.assumptionControls.map(control => {
+        const assumptionOptionIcon = option =>
+            option.icon
+            || this.skillById.get(Number(option.skillId))?.icon
+            || '';
+        const professionAssumptionItems = assumptionControls.map(control => {
             const value = a[control.key] ?? control.defaultValue;
             if (control.type === 'boolean') {
                 return `<label class="boon-control"><input data-assumption-key="${esc(control.key)}" data-assumption-type="boolean" type="checkbox"${value ? ' checked' : ''}> ${esc(control.label)}</label>`;
             }
             if (control.type === 'select') {
+                const hasIcons = control.options.some(assumptionOptionIcon);
+                if (hasIcons) {
+                    const selected = control.options.find(option =>
+                        option.value === String(value)) || control.options[0];
+                    return `<div class="boon-control assumption-icon-control">
+                        <span>${esc(control.label)}</span>
+                        <details class="assumption-icon-select">
+                            <summary>
+                                <img src="${esc(assumptionOptionIcon(selected))}" alt="">
+                                <span>${esc(selected.label)}</span>
+                            </summary>
+                            <div class="assumption-icon-options" role="listbox"
+                                aria-label="${esc(control.label)}">
+                                ${control.options.map(option =>
+                                    `<button type="button" role="option"
+                                        aria-selected="${option.value === String(value)}"
+                                        data-assumption-option-key="${esc(control.key)}"
+                                        data-assumption-option-value="${esc(option.value)}">
+                                        <img src="${esc(assumptionOptionIcon(option))}" alt="">
+                                        <span>${esc(option.label)}</span>
+                                    </button>`
+                                ).join('')}
+                            </div>
+                        </details>
+                    </div>`;
+                }
                 return `<label class="boon-control">${esc(control.label)}
                     <select class="gear-select" data-assumption-key="${esc(control.key)}" data-assumption-type="select">
                         ${control.options.map(option =>
@@ -713,11 +912,14 @@ export class ProfessionApp {
         const container = document.getElementById('perma-boons');
         container.innerHTML = `
             <div class="perma-group"><span class="perma-group-label">Boons</span>${boonItems}</div>
-            <div class="perma-group"><span class="perma-group-label">Conditions</span>${conditionItems}</div>
+            ${conditionGroups}
             <div class="perma-group"><span class="perma-group-label">Target</span>
                 <label class="boon-control">Skill activations/s <input id="target-skill-activations" type="number" min="0" max="10" step="0.1" value="${a.targetSkillActivationsPerSecond}"></label>
                 <label class="boon-control"><input id="target-moving" type="checkbox"${a.targetMoving ? ' checked' : ''}> Moving</label>
                 ${professionAssumptionItems}
+            </div>
+            <div class="perma-group"><span class="perma-group-label">Party</span>
+                <label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>
             </div>`;
 
         container.querySelectorAll('input[type="checkbox"][data-effect-type]')
@@ -769,9 +971,16 @@ export class ProfessionApp {
             a.targetMoving = event.target.checked;
             this.changed();
         });
+        document.getElementById('allied-player-count').addEventListener('change', event => {
+            a.alliedPlayerCount = Math.max(
+                0,
+                Math.min(4, Math.trunc(Number(event.target.value) || 0)),
+            );
+            this.changed();
+        });
         container.querySelectorAll('[data-assumption-key]').forEach(control => {
             control.addEventListener('change', () => {
-                const definition = this.adapter.assumptionControls.find(candidate =>
+                const definition = assumptionControls.find(candidate =>
                     candidate.key === control.dataset.assumptionKey);
                 if (!definition) return;
                 if (definition.type === 'boolean') {
@@ -784,6 +993,19 @@ export class ProfessionApp {
                 } else {
                     a[definition.key] = control.value;
                 }
+                this.changed();
+            });
+        });
+        container.querySelectorAll('[data-assumption-option-key]').forEach(option => {
+            option.addEventListener('click', () => {
+                const definition = assumptionControls.find(candidate =>
+                    candidate.key === option.dataset.assumptionOptionKey);
+                const value = option.dataset.assumptionOptionValue;
+                if (
+                    !definition
+                    || !definition.options.some(candidate => candidate.value === value)
+                ) return;
+                a[definition.key] = value;
                 this.changed();
             });
         });
@@ -873,7 +1095,9 @@ export class ProfessionApp {
             this.renderAttributes();
         });
         document.addEventListener('click', event => {
-            if (!event.target.closest('.skill-bar-slot')) {
+            if (!event.target.closest(
+                '.skill-bar-slot, .skill-bar-inspection-slot',
+            )) {
                 document.querySelectorAll('.sbar-dropdown.open').forEach(drop => drop.classList.remove('open'));
             }
         });

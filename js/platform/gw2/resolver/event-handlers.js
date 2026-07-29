@@ -9,6 +9,8 @@ import {
 } from "../gear-data.js";
 import {
   applyMistStranger,
+  handleBoonRelics,
+  handleConditionRelics,
   handleControlRelics,
   handlePeithaRelic,
   handleRelicsAfterHit,
@@ -47,6 +49,7 @@ function handleBuff(ctx, event, eventReactions) {
       event.at + Math.max(0, Number(event.duration || 0)),
     );
   }
+  handleBoonRelics(ctx, event);
   reactionFor(eventReactions, "buff")(ctx, event, {
     activeStacks,
     applications,
@@ -69,7 +72,7 @@ function triggeringSkill(ctx, event) {
   );
 }
 
-function handleCriticalFood(ctx, event, hitContext) {
+function handleCriticalFood(ctx, event, hitContext, eventReactions) {
   if (!isGw2PlayerActorEvent(event) || !(event.coefficient > 0)) return;
   const proc = FOOD_DATA[ctx.config.food]?.proc;
   if (
@@ -87,13 +90,14 @@ function handleCriticalFood(ctx, event, hitContext) {
 
   ctx.food.criticalProgress -= 1;
   ctx.food.readyAt = event.at + Number(proc.icdMs || 0) / 1000;
-  enqueueOrdered(ctx.queue, {
+  const foodEvent = {
     type: "damage",
     at: event.at,
     name: proc.name,
     skillName: proc.name,
     coefficient: 0,
     flatDamage: proc.flatDamage,
+    lifeSiphon: true,
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
@@ -102,6 +106,14 @@ function handleCriticalFood(ctx, event, hitContext) {
     actorType: "effect",
     noCrit: true,
     triggeredBy: event.skillName,
+  };
+  const professionUpdates = reactionFor(
+    eventReactions,
+    "food_proc",
+  )(ctx, foodEvent, { proc, triggeringEvent: event }) || {};
+  enqueueOrdered(ctx.queue, {
+    ...foodEvent,
+    ...professionUpdates,
   });
   ctx.recordProc(
     "food",
@@ -184,7 +196,7 @@ export function createGw2ResolverEventHandlers({
         hitContext,
         applyCondition,
       });
-      handleCriticalFood(ctx, event, hitContext);
+      handleCriticalFood(ctx, event, hitContext, eventReactions);
       handleRelicsAfterHit(ctx, event, triggeringSkill(ctx, event));
     },
 
@@ -192,7 +204,8 @@ export function createGw2ResolverEventHandlers({
       markCombatActive(ctx, event);
       // applyCondition schedules future tick events; it does not charge the
       // condition's full damage at application time.
-      applyCondition(ctx, event);
+      const application = applyCondition(ctx, event);
+      handleConditionRelics(ctx, application);
     },
 
     condition_tick(ctx, event) {

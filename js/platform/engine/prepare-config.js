@@ -10,8 +10,7 @@ export function prepareSimulationConfig(
   { duration = userConfig.duration } = {},
 ) {
   const hasTargetConditions =
-    userConfig.target
-    && Object.hasOwn(userConfig.target, "conditions");
+    userConfig.target && Object.hasOwn(userConfig.target, "conditions");
 
   return {
     ...defaults,

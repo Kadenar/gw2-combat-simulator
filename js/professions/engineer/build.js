@@ -4,7 +4,17 @@ import {
   normalizeWeaponSigils,
 } from "../../platform/gw2/weapon-sigils.js";
 import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
+import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
 import { engineerCatalog } from "./catalog.js";
+
+/**
+ * Engineer persisted-build definition.
+ *
+ * This module supplies Engineer defaults and configures the shared GW2 build
+ * codec for migration, normalization, validation, and app-facing conversion.
+ * Its profession-specific rules constrain starting Heat and ensure Amalgam has
+ * one legal, uniquely named morph in each of F2, F3, and F4.
+ */
 
 export const ENGINEER_BUILD_SCHEMA_VERSION = 3;
 export const ENGINEER_PROFESSION_ID = "engineer";
@@ -12,29 +22,22 @@ export const ENGINEER_PROFESSION_ID = "engineer";
 const DEFAULT_MORPHS = Object.freeze([77103, 77203, 76954]);
 const AMALGAM_MORPHS = new Set(
   engineerCatalog.skills
-    .filter(skill =>
-      skill.specialization === "Amalgam"
-      && [2, 3, 4].includes(Number(skill.mechanicSlot))
-      && skill.categories?.includes("Morph"))
-    .map(skill => skill.id),
+    .filter(
+      (skill) =>
+        skill.specialization === "Amalgam" &&
+        [2, 3, 4].includes(Number(skill.mechanicSlot)) &&
+        skill.categories?.includes("Morph"),
+    )
+    .map((skill) => skill.id),
 );
 
-export function createDefaultTargetConditions() {
-  return {
-    Bleeding: 1,
-    Burning: true,
-    Confusion: 1,
-    Poisoned: true,
-    Crippled: true,
-    Vulnerability: 25,
-  };
-}
+export { createDefaultTargetConditions };
 
 export function createEngineerBuildDefaults() {
   return {
     schemaVersion: ENGINEER_BUILD_SCHEMA_VERSION,
     profession: ENGINEER_PROFESSION_ID,
-    gear: Object.fromEntries(GEAR_SLOTS.map(slot => [slot, "Viper's"])),
+    gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
     weapons: ["Rifle", ""],
     alternateWeapons: ["Pistol", "Shield"],
     rune: "Trapper",
@@ -74,6 +77,7 @@ export function createEngineerBuildDefaults() {
       aegis: false,
       targetMoving: false,
       targetBoonless: true,
+      inDamagingField: false,
       targetConditions: createDefaultTargetConditions(),
     },
     initialHeat: 0,
@@ -87,18 +91,59 @@ export function createEngineerBuildDefaults() {
 function normalizeMorphs(value) {
   const source = Array.isArray(value) ? value : DEFAULT_MORPHS;
   const selected = new Map();
+  const selectedNames = new Set();
   for (const rawId of source) {
     const id = Number(rawId);
     const skill = engineerCatalog.skillsById.get(id);
     const slot = Number(skill?.mechanicSlot);
     if (!AMALGAM_MORPHS.has(id) || ![2, 3, 4].includes(slot)) continue;
-    if (!selected.has(slot)) selected.set(slot, id);
+    if (selectedNames.has(skill.name)) continue;
+    if (selected.has(slot)) continue;
+    selected.set(slot, id);
+    selectedNames.add(skill.name);
   }
-  for (const id of DEFAULT_MORPHS) {
-    const slot = Number(engineerCatalog.skillsById.get(id)?.mechanicSlot);
-    if (!selected.has(slot)) selected.set(slot, id);
+  for (const slot of [2, 3, 4]) {
+    if (selected.has(slot)) continue;
+    const defaultId = DEFAULT_MORPHS[slot - 2];
+    const candidates = [
+      engineerCatalog.skillsById.get(defaultId),
+      ...engineerCatalog.skills.filter(
+        (skill) =>
+          AMALGAM_MORPHS.has(skill.id) && Number(skill.mechanicSlot) === slot,
+      ),
+    ].filter(Boolean);
+    const replacement = candidates.find(
+      (skill) => !selectedNames.has(skill.name),
+    );
+    if (!replacement) continue;
+    selected.set(slot, replacement.id);
+    selectedNames.add(replacement.name);
   }
-  return [2, 3, 4].map(slot => selected.get(slot));
+  return [2, 3, 4].map((slot) => selected.get(slot));
+}
+
+function normalizeMorphRotation(rotation, savedRotation, morphIds) {
+  const selectedByName = new Map(morphIds.map((skillId) => {
+    const skill = engineerCatalog.skillsById.get(Number(skillId));
+    return [skill?.name, skill];
+  }).filter(([name, skill]) => name && skill));
+  const rawRotation = Array.isArray(savedRotation) ? savedRotation : [];
+  return rotation.map((command, index) => {
+    const raw = rawRotation[index];
+    const legacyName = typeof raw === "string"
+      ? raw
+      : raw
+        && typeof raw === "object"
+        && raw.skillId == null
+        && raw.id == null
+        && typeof raw.name === "string"
+          ? raw.name
+          : null;
+    const selected = selectedByName.get(legacyName);
+    return command.type === "cast" && selected
+      ? { ...command, skillId: selected.id }
+      : command;
+  });
 }
 
 const engineerBuildCodec = createGw2BuildCodec({
@@ -107,13 +152,19 @@ const engineerBuildCodec = createGw2BuildCodec({
   catalog: engineerCatalog,
   createDefaults: createEngineerBuildDefaults,
   normalizeExtra(build, { saved }) {
+    const selectedMorphSkillIds = normalizeMorphs(saved.selectedMorphSkillIds);
     return {
       ...build,
       initialHeat: Math.max(
         0,
         Math.min(150, Number(saved.initialHeat ?? 0) || 0),
       ),
-      selectedMorphSkillIds: normalizeMorphs(saved.selectedMorphSkillIds),
+      selectedMorphSkillIds,
+      rotation: normalizeMorphRotation(
+        build.rotation,
+        saved.rotation,
+        selectedMorphSkillIds,
+      ),
     };
   },
   validateExtra(build) {
@@ -124,16 +175,21 @@ const engineerBuildCodec = createGw2BuildCodec({
     const morphs = Array.isArray(build.selectedMorphSkillIds)
       ? build.selectedMorphSkillIds
       : [];
-    const slots = morphs.map(id =>
-      Number(engineerCatalog.skillsById.get(Number(id))?.mechanicSlot));
+    const slots = morphs.map((id) =>
+      Number(engineerCatalog.skillsById.get(Number(id))?.mechanicSlot),
+    );
+    const names = morphs.map(
+      (id) => engineerCatalog.skillsById.get(Number(id))?.name,
+    );
     if (
-      morphs.length !== 3
-      || morphs.some(id => !AMALGAM_MORPHS.has(Number(id)))
-      || new Set(slots).size !== 3
-      || slots.some(slot => ![2, 3, 4].includes(slot))
+      morphs.length !== 3 ||
+      morphs.some((id) => !AMALGAM_MORPHS.has(Number(id))) ||
+      new Set(slots).size !== 3 ||
+      new Set(names).size !== 3 ||
+      slots.some((slot) => ![2, 3, 4].includes(slot))
     ) {
       errors.push(
-        "selectedMorphSkillIds must contain one legal Amalgam morph for F2, F3, and F4.",
+        "selectedMorphSkillIds must contain one unique legal Amalgam morph for F2, F3, and F4.",
       );
     }
     return errors;

@@ -1,9 +1,9 @@
 # Simulator Modules Documentation
 
 Overview of the JavaScript modules in the combat simulator, organized by
-functionality. The shared shell is profession-neutral; Mesmer, Elementalist,
-Guardian, and Necromancer each supply their own catalog, mechanics, and app
-adapter.
+functionality. The shared shell is profession-neutral; each profession supplies
+its own catalog and mechanics. Native professions also supply an application
+definition for the shared browser shell.
 
 ---
 
@@ -22,6 +22,23 @@ point for DOMContentLoaded resolves the adapter for the current page.
 ### [create-app-adapter.js](js/app/create-app-adapter.js) / [create-profession-runtime.js](js/app/create-profession-runtime.js)
 Shared factories that build a profession's browser app adapter and its
 simulation runtime from the profession contract.
+
+### Profession `definition.js` and `app/app-definition.js`
+
+Each native profession has two deliberately separate composition boundaries:
+
+- `definition.js` exports the engine-facing profession contract: catalog,
+  build migration and validation, resources, mechanics, scheduler/resolver
+  hooks, and engine attribute rules. Engine-only consumers use this module.
+- `app/app-definition.js` composes that contract for the shared browser shell.
+  It constructs the build attribute calculator and application runtime, then
+  supplies persistence metadata, import/export filenames, selector behavior,
+  build-to-simulation mapping, and the application adapter.
+
+Keeping browser composition out of `definition.js` lets simulations and other
+engine consumers load a profession without pulling in application rendering,
+storage, and modifier-contribution dependencies. Elementalist remains a
+standalone legacy application and does not use this native composition pattern.
 
 ### [profession-registry.js](js/app/profession-registry.js)
 Single lazy manifest for every profession exposed by the application. Each
@@ -76,10 +93,11 @@ adapter while maintaining backward compatibility. Local-storage loading is
 forgiving, but explicit build replacement/import is strict so wrong-profession
 and future-version errors reach the user.
 
-### [app-runtime.js](js/app/app-runtime.js)
-Profession-neutral modifier comparison orchestration. Per-profession
+### [modifier-contributions.js](js/app/modifier-contributions.js)
+Profession-neutral modifier contribution calculations. Per-profession
 build-to-simulation mapping and modifier candidate rules live under each
-profession's `app/` directory (e.g. `js/professions/mesmer/app/app-runtime.js`).
+profession's `app/` directory (e.g.
+`js/professions/mesmer/app/app-definition.js`).
 
 ### [modifier-contributions-worker.js](js/app/modifier-contributions-worker.js)
 Background worker that runs the per-modifier contribution comparison off the

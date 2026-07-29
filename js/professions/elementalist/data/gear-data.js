@@ -69,6 +69,11 @@ export const RELIC_DATA = Object.freeze({
     cooldown: 0,
   },
   Peitha: { trigger: "Shadowstep or deception skill", cooldown: 4 },
+  Shackles: {
+    trigger: "Immobilize an enemy (5s tether, 3.0 strike on expiry)",
+    cooldown: 10,
+    icon: "https://render.guildwars2.com/file/7946A50DBDC2E45E004AAA801904015C50CC22B3/3745069.png",
+  },
   Aristocracy: {
     trigger: "Apply weakness or vulnerability",
     cooldown: 1,

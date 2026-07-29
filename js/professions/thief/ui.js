@@ -3,7 +3,19 @@ import {
   thiefCatalog,
   thiefWeaponSkillMatchesSet,
 } from "./catalog.js";
-import { THIEF_SKILL_IDS as ID } from "./data/ids.js";
+import {
+  THIEF_ARTIFACT_IDS,
+  THIEF_SKILL_IDS as ID,
+} from "./data/ids.js";
+
+/**
+ * Thief adapter for the shared simulator UI.
+ *
+ * This module presents initiative, malice, shadow force, artifacts, stolen
+ * skills, and Shadow Shroud; supplies Thief-specific assumptions and weapon
+ * matching; explains contextual skill availability; and formats Thief state
+ * events. It describes mechanic state for the UI rather than resolving it.
+ */
 
 function stateFrom(context = {}) {
   return context.state?.profession || context.professionState || {};
@@ -11,18 +23,65 @@ function stateFrom(context = {}) {
 function specializationFrom(context = {}) {
   return context.specialization || context.config?.specialization || "Core";
 }
-function ids(names) {
-  return names.flatMap(name =>
-    thiefCatalog.skills
-      .filter(skill => skill.name === name)
-      .map(skill => skill.id));
+function choosesAllArtifacts(context) {
+  return (
+    context.build?.assumptions?.artifactDrawSequence
+    ?? context.config?.deterministicChoices?.artifactDrawSequence
+  ) === "choose";
 }
-function activeWeapons(context) {
-  const build = context.build || {};
-  const set = Number(context.activeWeaponSet || 1);
-  return set === 2
-    ? build.alternateWeapons || ["", ""]
-    : build.weapons || ["", ""];
+function shadowShroudSkillIds() {
+  return thiefCatalog.skills
+    .filter(skill =>
+      skill.shadowShroudSkill
+      && skill.implemented
+      && !skill.simulatorExcluded)
+    .sort((left, right) =>
+      Number(String(left.slot).split("_").at(-1) || 0)
+      - Number(String(right.slot).split("_").at(-1) || 0)
+      || left.id - right.id)
+    .map(skill => skill.id);
+}
+function assumptionSkillIds(controlKey) {
+  return THIEF_ASSUMPTION_CONTROLS
+    .find(control => control.key === controlKey)
+    ?.options.map(option => Number(option.skillId))
+    .filter(Number.isFinite) || [];
+}
+function skillBarGroups(context) {
+  const specialization = specializationFrom(context);
+  if (["Core", "Daredevil"].includes(specialization)) {
+    return [{
+      id: "thief-stolen-skills",
+      label: "Stolen Skills",
+      skillIds: assumptionSkillIds("stolenSkillChoice"),
+      color: "#9a535c",
+    }];
+  }
+  if (specialization === "Deadeye") {
+    return [{
+      id: "deadeye-stolen-skills",
+      label: "Deadeye Stolen Skills",
+      skillIds: assumptionSkillIds("deadeyeStolenSkillChoice"),
+      color: "#9a535c",
+    }];
+  }
+  if (specialization === "Antiquary") {
+    return [
+      {
+        id: "thief-artifacts-offensive",
+        label: "Offensive Artifacts",
+        skillIds: [...THIEF_ARTIFACT_IDS.OFFENSIVE],
+        color: "#c65d68",
+      },
+      {
+        id: "thief-artifacts-defensive",
+        label: "Defensive Artifacts",
+        skillIds: [...THIEF_ARTIFACT_IDS.DEFENSIVE],
+        color: "#6f9cb8",
+      },
+    ];
+  }
+  return [];
 }
 function professionIds(context) {
   const state = stateFrom(context);
@@ -37,75 +96,70 @@ function professionIds(context) {
   const result = [mechanic];
   if (state.storedStolenSkillId) result.push(state.storedStolenSkillId);
   if (specialization === "Specter") {
-    result.push(
-      state.shadowShroudActive
-        ? ID.EXIT_SHADOW_SHROUD
-        : ID.ENTER_SHADOW_SHROUD,
-    );
+    result.push(ID.ENTER_SHADOW_SHROUD);
+    if (state.shadowShroudActive) result.push(ID.EXIT_SHADOW_SHROUD);
   }
-  if (specialization === "Antiquary") {
-    result.push(
-      ...state.artifactSlots?.map(slot => slot.skillId) || [],
-      ID.RESHUFFLE,
-    );
-  }
+  if (
+    specialization === "Antiquary"
+    && !choosesAllArtifacts(context)
+  ) result.push(ID.RESHUFFLE);
   return [...new Set(result.filter(Number.isFinite))];
 }
 function contextualGroups(context) {
   const state = stateFrom(context);
   const specialization = specializationFrom(context);
   const groups = [];
-  if (specialization === "Specter" && state.shadowShroudActive) {
+  if (specialization === "Specter") {
     groups.push({
       id: "thief-shadow-shroud",
       label: "Shroud",
-      skillIds: thiefCatalog.skills
-        .filter(skill => skill.shadowShroudSkill)
-        .map(skill => skill.id),
+      skillIds: shadowShroudSkillIds(),
       color: "#6b9988",
     });
   }
-  const [mainHand] = activeWeapons(context);
-  const stealthed =
-    Number(state.stealthUntil || 0) > Number(context.time || 0)
-    && Number(state.revealedUntil || 0) <= Number(context.time || 0);
-  if (stealthed) {
-    groups.push({
-      id: "thief-stealth-attacks",
-      label: "Stealth",
-      skillIds: thiefCatalog.skills
-        .filter(skill =>
-          skill.stealthAttack
-          && skill.requiredMainHand === mainHand
-          && (
-            specialization === "Deadeye"
-              ? skill.malicious
-              : !skill.malicious
-          ))
-        .map(skill => skill.id),
-      color: "#7f434d",
-    });
-  }
-  if (specialization === "Deadeye" && mainHand === "Rifle") {
-    groups.push({
-      id: "thief-rifle-stance",
-      label: state.kneeling ? "Kneel" : "Stand",
-      skillIds: [
-        state.kneeling ? ID.FREE_ACTION : ID.KNEEL,
-        ...thiefCatalog.skills
-          .filter(skill =>
-            skill.weapon === "Rifle"
-            && !skill.stealthAttack
-            && Boolean(skill.kneelSkill) === Boolean(state.kneeling))
-          .map(skill => skill.id),
-      ].filter(Number.isFinite),
-      color: "#9a535c",
-    });
+  if (specialization === "Antiquary") {
+    const hasArtifactUse = Number(state.artifactUsesRemaining || 0) > 0;
+    const availableArtifactIds = new Set(
+      state.artifactSlots?.map(slot => Number(slot.skillId)) || [],
+    );
+    for (const [id, label, artifactIds, color] of [
+      [
+        "thief-artifacts-offensive",
+        "Offensive",
+        THIEF_ARTIFACT_IDS.OFFENSIVE,
+        "#c65d68",
+      ],
+      [
+        "thief-artifacts-defensive",
+        "Defensive",
+        THIEF_ARTIFACT_IDS.DEFENSIVE,
+        "#6f9cb8",
+      ],
+    ]) {
+      const skillIds = hasArtifactUse
+        ? artifactIds.filter(skillId => availableArtifactIds.has(skillId))
+        : [];
+      groups.push({
+        id,
+        label,
+        skillIds,
+        reservedSkillIds: [...artifactIds],
+        color,
+        stackId: "thief-artifacts",
+        className: [
+          "antiquary-artifact-group",
+          skillIds.length ? "" : "pal-group-concealed",
+        ].filter(Boolean).join(" "),
+      });
+    }
   }
   return groups;
 }
 function availability(skill, context = {}) {
   const state = stateFrom(context);
+  const stealthed =
+    Number(state.stealthUntil || 0) > Number(context.time || 0)
+    && Number(state.revealedUntil || 0) <= Number(context.time || 0);
   if (
     skill.dualWieldFollowup
     && !state.availableFlips?.[skill.id]
@@ -123,19 +177,68 @@ function availability(skill, context = {}) {
       message: available ? "" : "Pilfer this artifact before using it",
     };
   }
+  if (skill.id === ID.RESHUFFLE) {
+    const available = !choosesAllArtifacts(context)
+      && Boolean(state.artifactSlots?.length);
+    return {
+      available,
+      message: available ? "" : "Pilfer artifacts before reshuffling",
+    };
+  }
+  if (skill.id === ID.ENTER_SHADOW_SHROUD) {
+    const available =
+      !state.shadowShroudActive
+      && Number(state.shadowForce || 0) > 0;
+    return {
+      available,
+      message: available
+        ? ""
+        : state.shadowShroudActive
+          ? "Shadow Shroud is already active"
+          : "Use Siphon or spend initiative to gain shadow force",
+    };
+  }
+  if (skill.id === ID.EXIT_SHADOW_SHROUD) {
+    return {
+      available: Boolean(state.shadowShroudActive),
+      message: state.shadowShroudActive
+        ? ""
+        : "Enter Shadow Shroud first",
+    };
+  }
   if (skill.shadowShroudSkill && !state.shadowShroudActive) {
     return {
       available: false,
       message: "Enter Shadow Shroud first",
     };
   }
+  if (
+    state.shadowShroudActive
+    && !skill.shadowShroudSkill
+    && (
+      skill.type === "Weapon"
+      || ["Heal", "Utility", "Elite"].includes(skill.type)
+    )
+  ) {
+    return {
+      available: false,
+      message: "Shadow Shroud replaces weapon and slot skills",
+    };
+  }
   if (skill.stealthAttack) {
-    const stealthed =
-      Number(state.stealthUntil || 0) > Number(context.time || 0)
-      && Number(state.revealedUntil || 0) <= Number(context.time || 0);
     return {
       available: stealthed,
       message: stealthed ? "" : "Gain stealth first",
+    };
+  }
+  if (
+    stealthed
+    && skill.type === "Weapon"
+    && skill.slot === "Weapon_1"
+  ) {
+    return {
+      available: false,
+      message: "The active weapon's stealth attack replaces skill 1",
     };
   }
   return { available: true, message: "" };
@@ -171,7 +274,9 @@ export const thiefUi = Object.freeze({
     label: "F",
     skillIds: professionIds(context),
     color: "#9a535c",
+    resourceAnchor: true,
   }, ...contextualGroups(context)],
+  skillBarGroups,
   resourceViews: context => {
     const state = stateFrom(context);
     const specialization = specializationFrom(context);
@@ -186,7 +291,9 @@ export const thiefUi = Object.freeze({
       canStart: true,
       buildKey: "initialInitiative",
       step: 1,
-      displayMode: "bar",
+      displayMode: "pips",
+      pipStyle: "thief-initiative",
+      pipRows: specialization === "Antiquary" ? 3 : 2,
       shortLabel: "Init",
       statusLabel: "Current",
     }];
@@ -200,6 +307,7 @@ export const thiefUi = Object.freeze({
         canStart: false,
         step: 1,
         displayMode: "pips",
+        pipStyle: "thief-malice",
         shortLabel: "Mal",
         statusLabel: "Current",
       });

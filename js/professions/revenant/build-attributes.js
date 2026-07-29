@@ -14,24 +14,22 @@ export function applyRevenantBuildAttributeRules(
   const hasTrait = name => activeTraits.some(trait => trait.name === name);
   const traitStats = {};
   const traitDurations = {};
-  if (hasTrait("Notoriety")) {
-    addAttribute(
-      traitStats,
-      "Power",
-      Math.max(0, Number(build.assumptions?.might || 0)) * 10,
-    );
-  }
-  if (hasTrait("Pact of Pain")) {
+  if (hasTrait("Seething Malice")) {
     addAttribute(traitStats, "Condition Damage", 120);
   }
-  if (hasTrait("Righteous Rebel")) {
-    addAttribute(traitStats, "Concentration", 120);
+  if (hasTrait("Pact of Pain")) {
+    traitDurations["Condition Duration"] = 15;
   }
-  if (hasTrait("Abyssal Chill")) {
-    traitDurations["Torment Duration"] = 20;
-  }
-  if (hasTrait("Swift Termination")) {
-    addAttribute(traitStats, "Ferocity", 180);
+  if (hasTrait("Yearning Empowerment")) {
+    for (const condition of [
+      "Bleeding",
+      "Burning",
+      "Confusion",
+      "Poison",
+      "Torment",
+    ]) {
+      traitDurations[`${condition} Duration`] = 10;
+    }
   }
   if (hasTrait("Replenishing Despair")) {
     addAttribute(traitStats, "Vitality", 120);
@@ -48,4 +46,3 @@ export function applyRevenantBuildAttributeRules(
     traitDurations,
   });
 }
-

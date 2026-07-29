@@ -1,0 +1,129 @@
+import {
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
+import { hasRevenantTrait } from "../../state.js";
+import { gainConduitAffinity } from "./conduit.js";
+import { emitRevenantState } from "./shared.js";
+import {
+  REVENANT_HANDLER_MECHANICS as MECHANICS,
+} from "../handler-mechanics.js";
+
+function syncRevenantCombatState(context, state) {
+  const sharedAt = context.schedulerPolicy.combatBeganAt?.();
+  if (sharedAt == null) return;
+  const at = Number(sharedAt);
+  if (Number.isFinite(at)) state.combatBeganAt = at;
+}
+
+function regenerateRevenantEnergy(context, state, from, target, rate) {
+  const combatActive = context.schedulerPolicy.isCombatActive?.()
+    ?? state.combatBeganAt != null;
+  const maximum = combatActive
+    ? state.maximumEnergy
+    : Math.max(50, state.energy);
+  // Out-of-combat regeneration stops at 50 without removing energy that was
+  // already above 50.
+  return Math.min(maximum, state.energy + (target - from) * rate);
+}
+
+export function advanceRevenantEnergy(context, target) {
+  const state = context.state.profession;
+  syncRevenantCombatState(context, state);
+  const from = Number(state.energyUpdatedAt || 0);
+  const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
+  if (target > enduranceFrom) {
+    state.endurance = Math.min(
+      state.maximumEndurance,
+      state.endurance
+        + (target - enduranceFrom)
+          * MECHANICS.endurance.regenerationPerSecond,
+    );
+    state.enduranceUpdatedAt = target;
+  }
+  if (state.cosmicWisdomUntil > 0 && target >= state.cosmicWisdomUntil) {
+    state.cosmicWisdomUntil = 0;
+    state.conduitForm = "";
+  }
+  if (target <= from) return;
+  const upkeep = state.activeUpkeeps.reduce(
+    (sum, active) => sum + Number(active.upkeepCost || 0),
+    0,
+  );
+  const rate = MECHANICS.energy.regenerationPerSecond - upkeep;
+  const elapsed = target - from;
+  if (rate < 0 && state.energy + rate * elapsed < 0) {
+    const starvedAt = from + state.energy / -rate;
+    state.energy = 0;
+    for (const active of state.activeUpkeeps) {
+      const skill = context.catalog.skillsById.get(active.skillId);
+      const cooldown = Math.max(
+        0,
+        Number(skill?.starvationCooldown || 0),
+      );
+      if (cooldown > 0) {
+        context.state.cooldowns.set(active.skillId, starvedAt + cooldown);
+      }
+      context.tasks.cancelOwner(`revenant.upkeep:${active.skillId}`);
+    }
+    state.activeUpkeeps = [];
+    state.availableFlips = {};
+    state.energyUpdatedAt = starvedAt;
+    emitRevenantState(context, starvedAt, "upkeep-starved");
+    state.energy = regenerateRevenantEnergy(
+      context,
+      state,
+      starvedAt,
+      target,
+      MECHANICS.energy.regenerationPerSecond,
+    );
+    state.energyUpdatedAt = target;
+    emitRevenantState(context, target, "energy");
+    return;
+  }
+  state.energy = rate > 0
+    ? regenerateRevenantEnergy(context, state, from, target, rate)
+    : Math.max(
+        0,
+        Math.min(state.maximumEnergy, state.energy + elapsed * rate),
+      );
+  state.energyUpdatedAt = target;
+  emitRevenantState(context, target, "energy");
+}
+
+export function spendRevenantEnergy(context, skill) {
+  if ([ID.SWAP_LEGENDS, ID.DODGE].includes(skill.id)) return;
+  const state = context.state.profession;
+  const active = state.activeUpkeeps.some(upkeep =>
+    upkeep.skillId === skill.id);
+  if (active) return;
+  const beguilingFollowUp = (
+    skill.handlerId === "revenant.beguiling-haze"
+    && Number(state.beguilingHazeCharges || 0) > 0
+  );
+  const cost = beguilingFollowUp ? 0 : Number(skill.energyCost || 0);
+  state.energy = Math.max(0, state.energy - cost);
+  if (context.config.specialization === "Conduit" && cost > 0) {
+    if (skill.legendId && !skill.affinityOnHit) {
+      gainConduitAffinity(
+        context,
+        cost >= MECHANICS.energy.highCostThreshold
+          ? MECHANICS.energy.highCostAffinity
+          : MECHANICS.energy.standardAffinity,
+        "enigmatic-connection",
+      );
+    } else if (
+      skill.type === "Weapon"
+      && hasRevenantTrait(context.config, TRAIT.CONDUCTIVE_ARMAMENTS)
+    ) {
+      gainConduitAffinity(
+        context,
+        MECHANICS.energy.standardAffinity,
+        "conductive-armaments",
+      );
+    }
+  }
+  if (cost > 0) {
+    emitRevenantState(context, context.start, "energy-spent");
+  }
+}

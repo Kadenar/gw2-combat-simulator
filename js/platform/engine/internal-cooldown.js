@@ -6,7 +6,5 @@ export function isInternalCooldownReady(at, readyAt = 0) {
   const triggerAt = Number(at);
   const blockedThrough = Number(readyAt);
   // Existing state models use 0 to mean that the ICD has never been armed.
-  return blockedThrough === 0
-    ? triggerAt >= 0
-    : triggerAt > blockedThrough;
+  return blockedThrough === 0 ? triggerAt >= 0 : triggerAt > blockedThrough;
 }

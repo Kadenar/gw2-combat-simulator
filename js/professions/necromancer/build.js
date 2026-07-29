@@ -8,25 +8,24 @@ import {
 import {
   createGw2BuildCodec,
 } from "../../platform/gw2/build-codec.js";
+import {
+  createDefaultTargetConditions,
+} from "../../platform/gw2/default-target-conditions.js";
 import { necromancerCatalog } from "./catalog.js";
+
+/**
+ * Necromancer persisted-build definition.
+ *
+ * This module supplies Necromancer defaults and configures the shared GW2
+ * build codec for migration, normalization, validation, and app-facing
+ * conversion. Its profession-specific rules constrain starting life force and
+ * Harbinger blight.
+ */
 
 export const NECROMANCER_BUILD_SCHEMA_VERSION = 3;
 export const NECROMANCER_PROFESSION_ID = "necromancer";
 
-export function createDefaultTargetConditions() {
-  return {
-    Bleeding: 1,
-    Burning: true,
-    Torment: 1,
-    Confusion: 1,
-    Poisoned: true,
-    Chilled: true,
-    Cripple: true,
-    Slow: true,
-    Weakness: true,
-    Vulnerability: 25,
-  };
-}
+export { createDefaultTargetConditions };
 
 export function createNecromancerBuildDefaults() {
   return {

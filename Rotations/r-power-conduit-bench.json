@@ -1,0 +1,333 @@
+{
+  "rotation": [
+    "Swap Weapons",
+    "Swap Legends",
+    "Impossible Odds",
+    "Eternity's Requiem",
+    {
+      "name": "Cosmic Wisdom",
+      "offset": 560
+    },
+    "__cooldown_reset",
+    "Swap Weapons",
+    "Deathstrike",
+    {
+      "name": "__combat_start",
+      "offset": 0
+    },
+    "Shackling Wave",
+    "Chilling Isolation",
+    {
+      "name": "Swap Legends",
+      "offset": 563
+    },
+    "Twin Moon Sweep",
+    "Beguiling Haze",
+    "Release Potential: Dervish",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Beguiling Haze",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Chilling Isolation",
+    {
+      "name": "Gladiator's Defense",
+      "offset": 451
+    },
+    "Beguiling Haze",
+    "Twin Moon Sweep",
+    {
+      "name": "Swap Legends",
+      "offset": 639
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 117
+    },
+    "Release Potential: Assassin",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Deathstrike",
+    "Chilling Isolation",
+    "Shackling Wave",
+    {
+      "name": "__wait",
+      "waitMs": 231
+    },
+    "Swap Weapons",
+    "Eternity's Requiem",
+    "Phantom's Onslaught",
+    "Mist Unleashed",
+    {
+      "name": "Cosmic Wisdom",
+      "offset": 160
+    },
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    {
+      "name": "Swap Legends",
+      "offset": 126
+    },
+    "Beguiling Haze",
+    "Twin Moon Sweep",
+    "Release Potential: Dervish",
+    {
+      "name": "Gladiator's Defense",
+      "offset": 559
+    },
+    "Beguiling Haze",
+    "Mist Unleashed",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    "Phantom's Onslaught",
+    "Beguiling Haze",
+    "Twin Moon Sweep",
+    {
+      "name": "Swap Legends",
+      "offset": 242
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 483
+    },
+    "Mist Unleashed",
+    "Release Potential: Assassin",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    "Mist Unleashed",
+    "Eternity's Requiem",
+    {
+      "name": "__wait",
+      "waitMs": 1112
+    },
+    "Swap Weapons",
+    {
+      "name": "__wait",
+      "waitMs": 118
+    },
+    "Deathstrike",
+    "Shackling Wave",
+    "Chilling Isolation",
+    {
+      "name": "Swap Legends",
+      "offset": 521
+    },
+    "Twin Moon Sweep",
+    "Beguiling Haze",
+    "Release Potential: Dervish",
+    {
+      "name": "Cosmic Wisdom",
+      "offset": 122
+    },
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Beguiling Haze",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Chilling Isolation",
+    {
+      "name": "Gladiator's Defense",
+      "offset": 479
+    },
+    "Beguiling Haze",
+    "Twin Moon Sweep",
+    {
+      "name": "Swap Legends",
+      "offset": 484
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 315
+    },
+    "Release Potential: Assassin",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Deathstrike",
+    "Chilling Isolation",
+    "Shackling Wave",
+    {
+      "name": "__wait",
+      "waitMs": 34
+    },
+    "Swap Weapons",
+    "Eternity's Requiem",
+    "Phantom's Onslaught",
+    "Mist Unleashed",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    {
+      "name": "Swap Legends",
+      "offset": 161
+    },
+    "Beguiling Haze",
+    "Twin Moon Sweep",
+    "Release Potential: Dervish",
+    {
+      "name": "Cosmic Wisdom",
+      "offset": 360
+    },
+    {
+      "name": "Gladiator's Defense",
+      "offset": 283
+    },
+    "Beguiling Haze",
+    "Mist Unleashed",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    "Phantom's Onslaught",
+    "Beguiling Haze",
+    "Twin Moon Sweep",
+    {
+      "name": "Swap Legends",
+      "offset": 322
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 439
+    },
+    "Mist Unleashed",
+    "Release Potential: Assassin",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    "Mist Unleashed",
+    "Eternity's Requiem",
+    {
+      "name": "__wait",
+      "waitMs": 1137
+    },
+    "Swap Weapons",
+    {
+      "name": "__wait",
+      "waitMs": 89
+    },
+    "Deathstrike",
+    "Shackling Wave",
+    "Chilling Isolation",
+    {
+      "name": "Swap Legends",
+      "offset": 526
+    },
+    "Twin Moon Sweep",
+    "Beguiling Haze",
+    "Release Potential: Dervish",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Beguiling Haze",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    {
+      "name": "Cosmic Wisdom",
+      "offset": 401
+    },
+    "Chilling Isolation",
+    {
+      "name": "Gladiator's Defense",
+      "offset": 522
+    },
+    "Beguiling Haze",
+    "Twin Moon Sweep",
+    {
+      "name": "Swap Legends",
+      "offset": 364
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 399
+    },
+    "Release Potential: Assassin",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Deathstrike",
+    "Chilling Isolation",
+    "Shackling Wave",
+    {
+      "name": "__wait",
+      "waitMs": 106
+    },
+    "Swap Weapons",
+    "Eternity's Requiem",
+    "Phantom's Onslaught",
+    "Mist Unleashed",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    {
+      "name": "Swap Legends",
+      "offset": 163
+    },
+    "Beguiling Haze",
+    "Twin Moon Sweep",
+    "Release Potential: Dervish",
+    {
+      "name": "Gladiator's Defense",
+      "offset": 638
+    },
+    "Beguiling Haze",
+    "Mist Unleashed",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    "Phantom's Onslaught",
+    {
+      "name": "Cosmic Wisdom",
+      "offset": 41
+    },
+    "Beguiling Haze",
+    "Twin Moon Sweep",
+    {
+      "name": "Swap Legends",
+      "offset": 356
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 321
+    },
+    "Mist Unleashed",
+    "Release Potential: Assassin",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    "Mist Unleashed",
+    "Eternity's Requiem",
+    {
+      "name": "__wait",
+      "waitMs": 1116
+    },
+    "Swap Weapons",
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    "Deathstrike",
+    "Shackling Wave",
+    "Chilling Isolation",
+    {
+      "name": "Swap Legends",
+      "offset": 506
+    },
+    "Twin Moon Sweep",
+    "Beguiling Haze",
+    "Release Potential: Dervish"
+  ]
+}

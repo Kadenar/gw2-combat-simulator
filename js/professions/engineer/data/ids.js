@@ -3,8 +3,8 @@ import {
   SPECIALIZATIONS,
 } from "./engineer-api-metadata.js";
 import {
-  WIKI_SKILL_RESEARCH,
-} from "./engineer-wiki-skill-research.js";
+  ENGINEER_SUPPLEMENTAL_SKILLS,
+} from "./engineer-supplemental-skills.js";
 
 function constantName(value) {
   return String(value || "")
@@ -28,10 +28,10 @@ function stableNameIndex(entries) {
 
 export const ENGINEER_SKILL_IDS = Object.freeze({
   SWAP_WEAPONS: -3,
+  STOW_ELITE_MORTAR_KIT: -301,
   ...stableNameIndex([
     ...SKILLS.map(skill => [skill.name, skill.id]),
-    ...WIKI_SKILL_RESEARCH.flatMap(skill =>
-      skill.ids.map(id => [skill.page, id])),
+    ...ENGINEER_SUPPLEMENTAL_SKILLS.map(skill => [skill.name, skill.id]),
   ]),
 });
 

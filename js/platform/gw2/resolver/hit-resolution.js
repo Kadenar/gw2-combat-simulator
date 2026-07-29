@@ -100,6 +100,7 @@ export function createGw2HitResolution({
       damage,
       "strikeDamage",
       Number(event.hits || 1),
+      event,
     );
     if (damage > 0) ctx.markDamageTime(event.at);
 

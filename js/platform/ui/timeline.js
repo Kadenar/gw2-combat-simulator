@@ -13,12 +13,14 @@ export function clearTimelineDropIndicators(root) {
     .querySelectorAll(
       ".drag-over, .drag-over-empty, .drag-insert-before, .drag-insert-after",
     )
-    .forEach(element => element.classList.remove(
-      "drag-over",
-      "drag-over-empty",
-      "drag-insert-before",
-      "drag-insert-after",
-    ));
+    .forEach((element) =>
+      element.classList.remove(
+        "drag-over",
+        "drag-over-empty",
+        "drag-insert-before",
+        "drag-insert-after",
+      ),
+    );
 }
 
 export function formatTimelineCastDetails(step, formatTime) {
@@ -33,39 +35,40 @@ const NON_SKILL_STEP_NAMES = new Set(["Wait", "Combat Start"]);
 
 export function timelineSkillCastOrdinals(steps = []) {
   const casts = (steps || [])
-    .filter(step =>
-      Number.isInteger(Number(step?.ri))
-      && !step.invalid
-      && !NON_SKILL_STEP_NAMES.has(String(step.skill || "")))
-    .sort((left, right) =>
-      Number(left.start || 0) - Number(right.start || 0)
-      || Number(left.ri) - Number(right.ri));
+    .filter(
+      (step) =>
+        Number.isInteger(Number(step?.ri)) &&
+        !step.invalid &&
+        !NON_SKILL_STEP_NAMES.has(String(step.skill || "")),
+    )
+    .sort(
+      (left, right) =>
+        Number(left.start || 0) - Number(right.start || 0) ||
+        Number(left.ri) - Number(right.ri),
+    );
   const totalsBySkill = new Map();
   for (const cast of casts) {
-    totalsBySkill.set(
-      cast.skill,
-      (totalsBySkill.get(cast.skill) || 0) + 1,
-    );
+    totalsBySkill.set(cast.skill, (totalsBySkill.get(cast.skill) || 0) + 1);
   }
   const seenBySkill = new Map();
-  return new Map(casts.map((cast, index) => {
-    const matchingIndex = (seenBySkill.get(cast.skill) || 0) + 1;
-    seenBySkill.set(cast.skill, matchingIndex);
-    return [Number(cast.ri), {
-      matchingIndex,
-      matchingTotal: totalsBySkill.get(cast.skill),
-      skillIndex: index + 1,
-      skillTotal: casts.length,
-    }];
-  }));
+  return new Map(
+    casts.map((cast, index) => {
+      const matchingIndex = (seenBySkill.get(cast.skill) || 0) + 1;
+      seenBySkill.set(cast.skill, matchingIndex);
+      return [
+        Number(cast.ri),
+        {
+          matchingIndex,
+          matchingTotal: totalsBySkill.get(cast.skill),
+          skillIndex: index + 1,
+          skillTotal: casts.length,
+        },
+      ];
+    }),
+  );
 }
 
-export function formatTimelineSkillTooltip(
-  name,
-  step,
-  ordinal,
-  formatTime,
-) {
+export function formatTimelineSkillTooltip(name, step, ordinal, formatTime) {
   if (!step || step.invalid || !ordinal) return String(name || "");
   const duration = Math.max(
     0,
@@ -110,18 +113,19 @@ export function updateSkillDropIndicator(skillElement, clientX) {
 
 export function moveRotationEntry(rotation, fromIndex, toIndex) {
   if (
-    !Array.isArray(rotation)
-    || !Number.isInteger(fromIndex)
-    || !Number.isInteger(toIndex)
-    || fromIndex < 0
-    || fromIndex >= rotation.length
+    !Array.isArray(rotation) ||
+    !Number.isInteger(fromIndex) ||
+    !Number.isInteger(toIndex) ||
+    fromIndex < 0 ||
+    fromIndex >= rotation.length
   ) {
     return false;
   }
 
   const boundedTarget = Math.max(0, Math.min(toIndex, rotation.length));
   // Removing an earlier entry shifts a forward insertion target left by one.
-  const insertAt = fromIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
+  const insertAt =
+    fromIndex < boundedTarget ? boundedTarget - 1 : boundedTarget;
   if (insertAt === fromIndex) return false;
 
   const [entry] = rotation.splice(fromIndex, 1);
@@ -135,9 +139,8 @@ export function rotationEntryName(entry) {
 
 export function updateRotationEntry(entry, changes = {}) {
   // Promote a string to an object only while it carries additional options.
-  const updated = typeof entry === "string"
-    ? { name: entry }
-    : { ...(entry || {}) };
+  const updated =
+    typeof entry === "string" ? { name: entry } : { ...(entry || {}) };
   for (const [key, value] of Object.entries(changes || {})) {
     if (key === "name") {
       updated.name = String(value || "");
@@ -155,16 +158,12 @@ export function updateRotationEntry(entry, changes = {}) {
 export function removeRotationEntryOptions(entry, keys = []) {
   return updateRotationEntry(
     entry,
-    Object.fromEntries((keys || []).map(key => [key, undefined])),
+    Object.fromEntries((keys || []).map((key) => [key, undefined])),
   );
 }
 
 export function insertRotationEntry(rotation, entry, index) {
-  if (
-    !Array.isArray(rotation)
-    || entry == null
-    || !Number.isInteger(index)
-  ) {
+  if (!Array.isArray(rotation) || entry == null || !Number.isInteger(index)) {
     return false;
   }
   const boundedIndex = Math.max(0, Math.min(index, rotation.length));
@@ -197,18 +196,18 @@ export function timelineRows(
 export function eventTimelineMarkers(
   result,
   rotationLength,
-  predicate = event => event.type === "marker",
+  predicate = (event) => event.type === "marker",
 ) {
   const steps = (result?.steps || [])
-    .filter(step => step.ri >= 0 && !step.invalid)
+    .filter((step) => step.ri >= 0 && !step.invalid)
     .sort((left, right) => left.start - right.start || left.ri - right.ri);
   return (result?.events || [])
     .filter(predicate)
-    .map(event => {
+    .map((event) => {
       const start = Math.round(Number(event.at || 0) * 1000);
       // Inject the marker immediately before the first rotation step that has
       // not started; events after all steps append to the timeline.
-      const next = steps.find(step => step.start >= start);
+      const next = steps.find((step) => step.start >= start);
       return {
         insertionIndex: next?.ri ?? rotationLength,
         skill: event.name,
@@ -237,7 +236,7 @@ export function bindTimelineInteractions(root, options = {}) {
   const setDragState = options.setDragState || (() => {});
   const changed = () => options.onChanged?.();
 
-  const applyDrop = insertAt => {
+  const applyDrop = (insertAt) => {
     const drag = getDragState();
     if (!drag) return false;
     setDragState(null);
@@ -249,7 +248,7 @@ export function bindTimelineInteractions(root, options = {}) {
     }
     if (drag.source === "palette") {
       const name = drag.name ?? drag.skillName;
-      const entry = options.resolvePaletteEntry?.(name);
+      const entry = options.resolvePaletteEntry?.(name, drag);
       // Palette drops copy a newly resolved entry; timeline drops move one.
       if (!insertRotationEntry(rotation, entry, insertAt)) return false;
       changed();
@@ -258,7 +257,7 @@ export function bindTimelineInteractions(root, options = {}) {
     return false;
   };
 
-  const cleanup = element => {
+  const cleanup = (element) => {
     element?.classList?.remove("dragging");
     setDragState(null);
     clearTimelineDropIndicators(root);
@@ -271,15 +270,15 @@ export function bindTimelineInteractions(root, options = {}) {
     const remove = item.querySelector?.(".rot-x");
     if (remove) {
       remove.setAttribute("draggable", "false");
-      remove.onmousedown = event => {
+      remove.onmousedown = (event) => {
         event.preventDefault();
         event.stopPropagation();
       };
-      remove.ondragstart = event => {
+      remove.ondragstart = (event) => {
         event.preventDefault();
         event.stopPropagation();
       };
-      remove.onclick = event => {
+      remove.onclick = (event) => {
         event.preventDefault();
         event.stopPropagation();
         if (!Number.isInteger(index)) return;
@@ -295,7 +294,7 @@ export function bindTimelineInteractions(root, options = {}) {
         changed();
       };
     }
-    item.ondragstart = event => {
+    item.ondragstart = (event) => {
       if (!Number.isInteger(index)) {
         event.preventDefault();
         return;
@@ -306,7 +305,7 @@ export function bindTimelineInteractions(root, options = {}) {
       if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
     };
     item.ondragend = () => cleanup(item);
-    item.ondragover = event => {
+    item.ondragover = (event) => {
       if (!getDragState()) return;
       event.preventDefault();
       clearTimelineDropIndicators(root);
@@ -315,7 +314,7 @@ export function bindTimelineInteractions(root, options = {}) {
     item.ondragleave = () => {
       item.classList.remove("drag-insert-before", "drag-insert-after");
     };
-    item.ondrop = event => {
+    item.ondrop = (event) => {
       if (!getDragState()) return;
       event.preventDefault();
       event.stopPropagation();
@@ -328,7 +327,7 @@ export function bindTimelineInteractions(root, options = {}) {
   for (const row of root.querySelectorAll?.(
     ".rot-row:not(.rot-procs-row) > .rot-row-skills",
   ) || []) {
-    row.ondragover = event => {
+    row.ondragover = (event) => {
       // Skill elements own midpoint insertion. Row background drops use the
       // row's precomputed insertion boundary.
       if (!getDragState() || event.target.closest?.(".rot-skill")) return;
@@ -336,10 +335,10 @@ export function bindTimelineInteractions(root, options = {}) {
       clearTimelineDropIndicators(root);
       row.classList.add("drag-over");
     };
-    row.ondragleave = event => {
+    row.ondragleave = (event) => {
       if (event.target === row) row.classList.remove("drag-over");
     };
-    row.ondrop = event => {
+    row.ondrop = (event) => {
       if (!getDragState() || event.target.closest?.(".rot-skill")) return;
       event.preventDefault();
       event.stopPropagation();
@@ -349,17 +348,17 @@ export function bindTimelineInteractions(root, options = {}) {
     };
   }
 
-  root.ondragover = event => {
+  root.ondragover = (event) => {
     // The root is the empty-space fallback and always appends.
     if (!getDragState() || event.target.closest?.(".rot-row-skills")) return;
     event.preventDefault();
     clearTimelineDropIndicators(root);
     root.classList.add("drag-over-empty");
   };
-  root.ondragleave = event => {
+  root.ondragleave = (event) => {
     if (event.target === root) root.classList.remove("drag-over-empty");
   };
-  root.ondrop = event => {
+  root.ondrop = (event) => {
     if (!getDragState() || event.target.closest?.(".rot-row-skills")) return;
     event.preventDefault();
     clearTimelineDropIndicators(root);
@@ -368,7 +367,7 @@ export function bindTimelineInteractions(root, options = {}) {
 
   const bindEdit = (selector, callback) => {
     for (const badge of root.querySelectorAll?.(selector) || []) {
-      badge.onclick = event => {
+      badge.onclick = (event) => {
         event.stopPropagation();
         const index = Number(badge.dataset.idx);
         if (!Number.isInteger(index)) return;

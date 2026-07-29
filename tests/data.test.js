@@ -41,13 +41,13 @@ const totalStrikeCoefficient = skill =>
         0,
     );
 
-test('catalog contains every Mesmer specialization and trait', () => {
+test('catalog contains every terrestrial Mesmer skill and trait line', () => {
     assert.deepEqual(
         SPECIALIZATIONS.map(spec => spec.name),
         ['Domination', 'Dueling', 'Chaos', 'Inspiration', 'Illusions', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'],
     );
     assert.equal(TRAITS.length, 108);
-    assert.equal(SKILLS.length, 123);
+    assert.equal(SKILLS.length, 119);
     assert.deepEqual(
         SKILLS.filter(skill =>
             ['Arcane Thievery', 'Veil'].includes(skill.name)),
@@ -108,7 +108,6 @@ test('every Mesmer catalog skill is explicitly implemented', () => {
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
     const excluded = [
-        'Brawler',
         'Krait',
         'Weaver',
         'Bloodstone',

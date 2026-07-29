@@ -144,6 +144,8 @@ The rotation engine models these damage relics:
 - Relic of Aristocracy: applying Weakness or Vulnerability grants 3% condition
   duration per stack, up to 5 stacks; qualifying applications have a 1-second
   internal cooldown and refresh the 8-second window.
+- Relic of the Brawler: granting yourself Protection or Resolution grants 10%
+  strike damage for 4 seconds, with an 8-second internal cooldown.
 - Relic of the Eagle: 10% strike damage after accumulated runtime damage drops
   the configured target below 50% health.
 - Relic of the Thief: 1% strike damage per stack, maximum 5, refreshed for 6

@@ -37,11 +37,7 @@ const READY_CAST = () => ({ ready: true });
  * Normalizes one hook or hook list into an order-stable array.
  */
 function orderedHooks(value, hookName) {
-  const entries = value == null
-    ? []
-    : Array.isArray(value)
-      ? value
-      : [value];
+  const entries = value == null ? [] : Array.isArray(value) ? value : [value];
   return entries
     .map((entry, index) => {
       if (typeof entry === "function") {
@@ -57,10 +53,12 @@ function orderedHooks(value, hookName) {
         index,
       };
     })
-    .sort((left, right) =>
-      left.order - right.order
-      || left.index - right.index
-      || left.id.localeCompare(right.id));
+    .sort(
+      (left, right) =>
+        left.order - right.order ||
+        left.index - right.index ||
+        left.id.localeCompare(right.id),
+    );
 }
 
 /**
@@ -77,23 +75,25 @@ function composeHooks(value, hookName, fallback) {
       for (const hook of hooks) {
         const next = hook.handler(context, skill);
         if (next == null || next === true) continue;
-        const availability = next === false
-          ? {
-              ready: false,
-              retryAt: null,
-              code: `${hook.id}.unavailable`,
-              reason: `${skill.name} is unavailable.`,
-            }
-          : next;
+        const availability =
+          next === false
+            ? {
+                ready: false,
+                retryAt: null,
+                code: `${hook.id}.unavailable`,
+                reason: `${skill.name} is unavailable.`,
+              }
+            : next;
         if (availability.ready !== false) continue;
-        if (availability.retryAt == null) return {
-          ready: false,
-          retryAt: null,
-          code: String(availability.code || `${hook.id}.unavailable`),
-          reason: String(
-            availability.reason || `${skill.name} is unavailable.`,
-          ),
-        };
+        if (availability.retryAt == null)
+          return {
+            ready: false,
+            retryAt: null,
+            code: String(availability.code || `${hook.id}.unavailable`),
+            reason: String(
+              availability.reason || `${skill.name} is unavailable.`,
+            ),
+          };
         const retryAt = Number(availability.retryAt);
         if (!Number.isFinite(retryAt)) {
           throw new TypeError(
@@ -106,8 +106,8 @@ function composeHooks(value, hookName, fallback) {
             retryAt,
             code: String(availability.code || `${hook.id}.not-ready`),
             reason: String(
-              availability.reason
-              || `${skill.name} is not ready until ${retryAt.toFixed(3)}.`,
+              availability.reason ||
+                `${skill.name} is not ready until ${retryAt.toFixed(3)}.`,
             ),
           };
         }
@@ -117,7 +117,7 @@ function composeHooks(value, hookName, fallback) {
   }
   if (hookName === "validateCast") {
     return (context, skill) =>
-      hooks.every(hook => hook.handler(context, skill) !== false);
+      hooks.every((hook) => hook.handler(context, skill) !== false);
   }
   if (hookName === "scheduleSkill") {
     return (context, skill) => {
@@ -212,10 +212,12 @@ export function defineProfession(definition) {
       ? definition.catalog.skillHandlers
       : new Map();
   const legacyResourceView = ui.resourceView || (() => null);
-  const resourceViews = ui.resourceViews || (context => {
-    const view = legacyResourceView(context);
-    return view ? [view] : [];
-  });
+  const resourceViews =
+    ui.resourceViews ||
+    ((context) => {
+      const view = legacyResourceView(context);
+      return view ? [view] : [];
+    });
   const sources = {
     initialize: schedulerHooks.initialize,
     availability: castRules.availability ?? schedulerHooks.availability,
@@ -225,24 +227,19 @@ export function defineProfession(definition) {
     advance: schedulerHooks.advance,
     snapshot: schedulerHooks.snapshot,
     projectEndState:
-      resources.projectEndState
-      ?? schedulerHooks.projectEndState,
+      resources.projectEndState ?? schedulerHooks.projectEndState,
     onCastStart: schedulerHooks.onCastStart,
     onCastComplete: schedulerHooks.onCastComplete,
     onCooldownReset: schedulerHooks.onCooldownReset,
     onEventScheduled: schedulerHooks.onEventScheduled,
     modifyCastDuration:
-      castRules.modifyCastDuration
-      ?? schedulerHooks.modifyCastDuration,
+      castRules.modifyCastDuration ?? schedulerHooks.modifyCastDuration,
     modifyRechargeDuration:
-      castRules.modifyRechargeDuration
-      ?? schedulerHooks.modifyRechargeDuration,
+      castRules.modifyRechargeDuration ?? schedulerHooks.modifyRechargeDuration,
     modifyRechargeStart:
-      castRules.modifyRechargeStart
-      ?? schedulerHooks.modifyRechargeStart,
+      castRules.modifyRechargeStart ?? schedulerHooks.modifyRechargeStart,
     modifyMaximumAmmo:
-      castRules.modifyMaximumAmmo
-      ?? schedulerHooks.modifyMaximumAmmo,
+      castRules.modifyMaximumAmmo ?? schedulerHooks.modifyMaximumAmmo,
     modifyAttributes: attributeRules.modifyAttributes,
     modifyCriticalChance: attributeRules.modifyCriticalChance,
     modifyCriticalDamage: attributeRules.modifyCriticalDamage,
@@ -252,36 +249,41 @@ export function defineProfession(definition) {
   };
   const hooks = {};
   for (const name of HOOK_NAMES) {
-    const fallback = name === "availability"
-      ? READY_CAST
-      : name === "validateCast"
-        ? VALID_CAST
-      : name.startsWith("modify")
-        ? IDENTITY_SECOND_ARGUMENT
-        : NOOP;
+    const fallback =
+      name === "availability"
+        ? READY_CAST
+        : name === "validateCast"
+          ? VALID_CAST
+          : name.startsWith("modify")
+            ? IDENTITY_SECOND_ARGUMENT
+            : NOOP;
     hooks[name] = composeHooks(sources[name], name, fallback);
   }
 
   const profession = {
     id: definition.id,
     name: definition.name,
-    catalog: definition.catalog || { skills: [], traits: [], specializations: [] },
-    skillHandlerFor: skill =>
+    catalog: definition.catalog || {
+      skills: [],
+      traits: [],
+      specializations: [],
+    },
+    skillHandlerFor: (skill) =>
       catalogSkillHandlers.get(String(skill?.handlerId || "")) || null,
-    createBuildDefaults: build.createBuildDefaults || (() => ({
-      schemaVersion: 3,
-      profession: definition.id,
-    })),
-    migrateBuild: build.migrateBuild || (saved => saved),
+    createBuildDefaults:
+      build.createBuildDefaults ||
+      (() => ({
+        schemaVersion: 3,
+        profession: definition.id,
+      })),
+    migrateBuild: build.migrateBuild || ((saved) => saved),
     validateBuild: build.validateBuild || (() => ({ valid: true, errors: [] })),
     createProfessionState:
-      resources.createProfessionState
-      || definition.createProfessionState
-      || (() => ({})),
+      resources.createProfessionState ||
+      definition.createProfessionState ||
+      (() => ({})),
     createResolverState:
-      resources.createResolverState
-      || definition.createResolverState
-      || null,
+      resources.createResolverState || definition.createResolverState || null,
     taskHandlers: Object.freeze({
       ...(schedulerHooks.taskHandlers || {}),
     }),
@@ -293,12 +295,12 @@ export function defineProfession(definition) {
       resolverHooks.eventReactions || definition.eventReactions,
     ),
     paletteGroups: ui.paletteGroups || (() => []),
-    resourceView: context => resourceViews(context)[0] || null,
+    resourceView: (context) => resourceViews(context)[0] || null,
     resourceViews,
     ui: Object.freeze({
       ...ui,
       paletteGroups: ui.paletteGroups || (() => []),
-      resourceView: context => resourceViews(context)[0] || null,
+      resourceView: (context) => resourceViews(context)[0] || null,
       resourceViews,
     }),
     simulation: definition.simulation || null,

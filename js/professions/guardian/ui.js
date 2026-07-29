@@ -3,6 +3,15 @@ import {
   GUARDIAN_VIRTUE_NAMES_BY_SPECIALIZATION,
 } from "./mechanics/specific/virtues.js";
 
+/**
+ * Guardian adapter for the shared simulator UI.
+ *
+ * This module presents virtues, Firebrand tomes, and Luminary Radiant Forge
+ * without implementing their combat behavior. It supplies contextual skill
+ * groups, exposes tome pages, and explains why skills are unavailable while
+ * a tome or Radiant Forge is active.
+ */
+
 function guardianProfessionSkillIds(context = {}) {
   const specialization =
     context.specialization
@@ -112,6 +121,7 @@ export const guardianUi = Object.freeze({
       label: "F",
       skillIds: guardianProfessionSkillIds(context),
       color: "#2f7eb8",
+      resourceAnchor: true,
     }];
     if (specialization === "Firebrand") {
       groups.push(

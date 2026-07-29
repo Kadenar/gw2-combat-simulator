@@ -129,6 +129,7 @@ export function createGw2BuildCodec({
         saved.alternateWeapons,
         defaults.alternateWeapons,
         catalog,
+        true,
       ),
       weaponSigils: normalizeWeaponSigils(legacySigils, defaults.weaponSigils),
       rune: RUNE_NAMES.includes(saved.rune) ? saved.rune : defaults.rune,
@@ -184,6 +185,9 @@ export function createGw2BuildCodec({
     }
     migrated.schemaVersion = schemaVersion;
     migrated.profession = professionId;
+    if (!migrated.alternateWeapons[0]) {
+      migrated.startingWeaponSet = 1;
+    }
     if (slotLoadout) {
       const eliteNames = new Set(
         catalog.specializations
@@ -267,8 +271,9 @@ function normalizeGear(value, defaults, aliases) {
   return gear;
 }
 
-function normalizeWeaponPair(value, fallback, catalog) {
+function normalizeWeaponPair(value, fallback, catalog, allowEmpty = false) {
   if (!Array.isArray(value)) return [...fallback];
+  if (allowEmpty && !value[0]) return ["", ""];
   const requestedMain = catalog.weapons.has(value[0]) ? value[0] : "";
   const mainHand = ["mh", "mh+oh", "2h"].includes(
     catalog.weaponHands.get(requestedMain),
@@ -338,6 +343,7 @@ function selectedSkillsFromLegacy(saved, catalog) {
 function selectableSlotSkill(skill, type, selectedSpecializations = null) {
   return Boolean(
     skill?.implemented &&
+      skill.slotSelectable !== false &&
       !skill.simulatorExcluded &&
       skill.type === type &&
       skill.flipParentId == null &&
@@ -433,12 +439,13 @@ function migrateVersionedBuild(
   return saved;
 }
 
-function validateWeaponPair(pair, label, catalog, errors) {
+function validateWeaponPair(pair, label, catalog, errors, allowEmpty = false) {
   if (!Array.isArray(pair) || pair.length !== 2) {
     errors.push(`${label} must contain a main-hand and off-hand slot.`);
     return;
   }
   const [mainHand, offHand] = pair;
+  if (allowEmpty && !mainHand && !offHand) return;
   const mainWielding = catalog.weaponHands.get(mainHand);
   const offWielding = offHand ? catalog.weaponHands.get(offHand) : null;
   if (
@@ -563,9 +570,12 @@ function validateCommonBuild(
     "alternateWeapons",
     catalog,
     errors,
+    true,
   );
   if (![1, 2].includes(build.startingWeaponSet)) {
     errors.push("startingWeaponSet must be 1 or 2.");
+  } else if (build.startingWeaponSet === 2 && !build.alternateWeapons?.[0]) {
+    errors.push("startingWeaponSet cannot be 2 without a second weapon set.");
   }
   if (!Array.isArray(build.rotation)) {
     errors.push("rotation must be an array.");

@@ -15,7 +15,7 @@ export function chartValueAt(points, time) {
 export function buildChartSeries(
   result,
   sampleStepMs = 250,
-  { effectName = value => String(value || ""), stackCaps = {} } = {},
+  { effectName = (value) => String(value || ""), stackCaps = {} } = {},
 ) {
   // Chart time is relative to the DPS window, while simulation events use
   // absolute seconds. Keep the conversion at this boundary.
@@ -27,22 +27,19 @@ export function buildChartSeries(
     dpsStartMs,
     Math.round(Number(result.deathTime ?? result.duration ?? 0) * 1000),
   );
-  const durationMs = Math.max(
-    1,
-    endMs - dpsStartMs,
-  );
+  const durationMs = Math.max(1, endMs - dpsStartMs);
   const interval = Math.max(50, Math.min(1000, Number(sampleStepMs) || 250));
   const times = [];
   for (let time = 0; time < durationMs; time += interval) times.push(time);
   times.push(durationMs);
   const resolved = result.resolvedEvents || [];
-  const damageEvents = resolved.filter(event =>
-    (event.type === "damage" || event.type === "condition")
-    && (
-      Number(event.damage || 0) > 0
-      || event.damageTicks?.some(tick => Number(tick.damage || 0) > 0)
-    ));
-  const dps = times.map(time => {
+  const damageEvents = resolved.filter(
+    (event) =>
+      (event.type === "damage" || event.type === "condition") &&
+      (Number(event.damage || 0) > 0 ||
+        event.damageTicks?.some((tick) => Number(tick.damage || 0) > 0)),
+  );
+  const dps = times.map((time) => {
     const elapsed = time / 1000;
     if (elapsed <= 0) return { t: time, v: 0 };
     const absoluteTime = dpsStartMs + time;
@@ -52,7 +49,7 @@ export function buildChartSeries(
         // Condition applications store aggregate damage plus individual ticks;
         // use ticks to avoid showing future condition damage too early.
         damage += event.damageTicks
-          .filter(tick => Number(tick.at || 0) * 1000 <= absoluteTime)
+          .filter((tick) => Number(tick.at || 0) * 1000 <= absoluteTime)
           .reduce((sum, tick) => sum + Number(tick.damage || 0), 0);
       } else if (Number(event.at || 0) * 1000 <= absoluteTime) {
         damage += Number(event.damage || 0);
@@ -65,11 +62,15 @@ export function buildChartSeries(
   for (const event of resolved) {
     if (event.type !== "condition") continue;
     const start = Number(event.at || 0) * 1000 - dpsStartMs;
-    const end = Number(
-      event.naturalExpiresAt
-      ?? event.expiresAt
-      ?? (Number(event.at || 0) + Number(event.effectiveDuration ?? event.duration ?? 0)),
-    ) * 1000 - dpsStartMs;
+    const end =
+      Number(
+        event.naturalExpiresAt ??
+          event.expiresAt ??
+          Number(event.at || 0) +
+            Number(event.effectiveDuration ?? event.duration ?? 0),
+      ) *
+        1000 -
+      dpsStartMs;
     if (end > start) {
       applications.push({
         name: effectName(event.condition),
@@ -90,9 +91,9 @@ export function buildChartSeries(
     });
   }
   const effects = {};
-  for (const name of new Set(applications.map(entry => entry.name))) {
-    const matching = applications.filter(entry => entry.name === name);
-    effects[name] = times.map(time => ({
+  for (const name of new Set(applications.map((entry) => entry.name))) {
+    const matching = applications.filter((entry) => entry.name === name);
+    effects[name] = times.map((time) => ({
       t: time,
       v: Math.min(
         stackCaps[name] ?? Infinity,
@@ -118,7 +119,7 @@ const DEFAULT_OPTIONS = {
 };
 const ACTIVE_MOUNT = Symbol("activeTimeSeriesChartMount");
 
-const chartNumber = value => {
+const chartNumber = (value) => {
   const number = Number(value || 0);
   if (number >= 1_000_000) return `${(number / 1_000_000).toFixed(1)}m`;
   if (number >= 1000) {
@@ -132,7 +133,8 @@ function niceAxisMaximum(value) {
   // Use familiar 1/2/5/10 axis bounds instead of arbitrary maxima.
   const magnitude = 10 ** Math.floor(Math.log10(value));
   const normalized = value / magnitude;
-  const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  const rounded =
+    normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
   return rounded * magnitude;
 }
 
@@ -150,9 +152,9 @@ function drawLineChart(
   const cssWidth = Math.max(
     360,
     Math.floor(
-      canvas.parentElement?.clientWidth
-      || canvas.closest?.(".chart-wrap")?.clientWidth
-      || 760,
+      canvas.parentElement?.clientWidth ||
+        canvas.closest?.(".chart-wrap")?.clientWidth ||
+        760,
     ),
   );
   const dpr = globalThis.window?.devicePixelRatio || 1;
@@ -168,11 +170,14 @@ function drawLineChart(
   const pad = { top: 16, right: 16, bottom: 28, left: 54 };
   const plotWidth = cssWidth - pad.left - pad.right;
   const plotHeight = height - pad.top - pad.bottom;
-  const maxValue = niceAxisMaximum(Math.max(
-    0,
-    ...lines.flatMap(line =>
-      (line.points || []).map(point => Number(point.v || 0))),
-  ));
+  const maxValue = niceAxisMaximum(
+    Math.max(
+      0,
+      ...lines.flatMap((line) =>
+        (line.points || []).map((point) => Number(point.v || 0)),
+      ),
+    ),
+  );
   context.font = "10px sans-serif";
   context.lineWidth = 1;
   context.textBaseline = "middle";
@@ -240,11 +245,15 @@ function chartHtml(series, options) {
     <div class="chart-toggles" data-role="chart-toggles">
       <label><input type="checkbox" data-series="dps" checked />
         <span class="swatch" style="background:${escapeHtml(options.dpsColor)}"></span>${escapeHtml(options.dpsLabel)}</label>
-      ${effects.map((name, index) => `<label>
+      ${effects
+        .map(
+          (name, index) => `<label>
         <input type="checkbox" data-series="${escapeHtml(name)}" ${index < options.defaultVisibleEffectLimit ? "checked" : ""} />
         <span class="swatch" style="background:${escapeHtml(options.colors[name] || fallbackColor(index))}"></span>
         ${escapeHtml(name)}
-      </label>`).join("")}
+      </label>`,
+        )
+        .join("")}
     </div>
     <div class="chart-panels">
       <div class="chart-panel">
@@ -296,18 +305,22 @@ export function mountTimeSeriesCharts(container, series, options = {}) {
   const redraw = () => {
     if (container[ACTIVE_MOUNT] !== mountToken) return;
     const selected = new Set(
-      [...(container.querySelectorAll?.(
-        '[data-role="chart-toggles"] input:checked',
-      ) || [])].map(input => input.dataset.series),
+      [
+        ...(container.querySelectorAll?.(
+          '[data-role="chart-toggles"] input:checked',
+        ) || []),
+      ].map((input) => input.dataset.series),
     );
     chartState.dpsLayout = drawLineChart(
       container.querySelector?.('[data-role="dps-canvas"]'),
       selected.has("dps")
-        ? [{
-          name: resolvedOptions.dpsLabel,
-          color: resolvedOptions.dpsColor,
-          points: resolvedSeries.dps,
-        }]
+        ? [
+            {
+              name: resolvedOptions.dpsLabel,
+              color: resolvedOptions.dpsColor,
+              points: resolvedSeries.dps,
+            },
+          ]
         : [],
       resolvedSeries.durationMs,
       { height: 280, emptyText: resolvedOptions.emptyEffectsText },
@@ -335,10 +348,9 @@ export function mountTimeSeriesCharts(container, series, options = {}) {
     canvas.onmouseleave = () => {
       tooltip.style.display = "none";
     };
-    canvas.onmousemove = event => {
-      const layout = kind === "dps"
-        ? chartState.dpsLayout
-        : chartState.effectsLayout;
+    canvas.onmousemove = (event) => {
+      const layout =
+        kind === "dps" ? chartState.dpsLayout : chartState.effectsLayout;
       if (!layout) return;
 
       const rect = canvas.getBoundingClientRect();
@@ -374,14 +386,18 @@ export function mountTimeSeriesCharts(container, series, options = {}) {
         body = `<div>${escapeHtml(resolvedOptions.dpsLabel)}: ${dps.toLocaleString()}</div>`;
       } else {
         const entries = chartState.effectLines
-          .map(line => ({
+          .map((line) => ({
             name: line.name,
             value: Math.round(chartValueAt(line.points, time)),
           }))
-          .filter(entry => entry.value > 0);
+          .filter((entry) => entry.value > 0);
         body = entries.length
-          ? entries.map(entry =>
-            `<div>${escapeHtml(entry.name)}: ${entry.value}</div>`).join("")
+          ? entries
+              .map(
+                (entry) =>
+                  `<div>${escapeHtml(entry.name)}: ${entry.value}</div>`,
+              )
+              .join("")
           : "<div>No visible stack effects</div>";
       }
 

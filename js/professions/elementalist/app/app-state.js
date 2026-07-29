@@ -1,3 +1,7 @@
+import {
+    createDefaultTargetConditions,
+} from '../../../platform/gw2/default-target-conditions.js';
+
 export function createEmptySelectedSkills() {
     return { heal: null, util1: null, util2: null, util3: null, elite: null };
 }
@@ -13,16 +17,7 @@ export function createDefaultPermaBoons() {
         Regeneration: true,
         Vigor: true,
         Swiftness: true,
-        Bleeding: 5,
-        Burning: true,
-        Torment: 5,
-        Confusion: 5,
-        Poisoned: true,
-        Chilled: true,
-        Cripple: true,
-        Slow: true,
-        Weakness: true,
-        Vulnerability: 25,
+        ...createDefaultTargetConditions(),
     };
 }
 

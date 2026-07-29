@@ -11,11 +11,13 @@ from July 28, 2026 and checked-in PvE Wiki mechanics research.
   swap preservation, Preparedness, and initiative-gain traits.
 - Stealth stacking, Revealed, active-weapon stealth attacks, and Deadeye
   malicious stealth attacks.
-- Steal, deterministic raid-golem stolen-skill storage, Daredevil endurance and
-  dodge replacements, Deadeye Mark/malice/Kneel, and Specter Shadow Force and
-  Shadow Shroud transitions.
-- Antiquary artifact slots, deterministic artifact draws and Double Edge
-  outcomes, Reshuffle, backfire state, and persistent Antiquary summons.
+- Core/Daredevil stolen skills, Deadeye-specific stolen skills and
+  Mark/malice/Kneel, Daredevil endurance and dodge replacements, and Specter
+  Shadow Force and Shadow Shroud transitions. The maximum Shadow Force pool is
+  69% of maximum health and drains by 2% of that pool per second in shroud.
+- Antiquary artifact slots, deterministic or player-choice artifact draws,
+  Double Edge outcomes, Reshuffle, backfire state, and persistent Antiquary
+  summons.
 - Current researched damage, condition, control, boon, cooldown, ammo, and
   chain packets, plus a validated coverage disposition for all 108 traits.
 

@@ -16,38 +16,22 @@ export function defaultWeaponSkillMatchesSet(
   const requiredOff = skill.requiredOffHand ?? skill.weaponSet?.offHand;
   if (requiredMain != null || requiredOff != null) {
     return (
-      (requiredMain == null || String(requiredMain) === String(mainHand))
-      && (
-        requiredOff == null
-        || (
-          requiredOff === false
-            ? !offHand
-            : String(requiredOff) === String(offHand)
-        )
-      )
+      (requiredMain == null || String(requiredMain) === String(mainHand)) &&
+      (requiredOff == null ||
+        (requiredOff === false
+          ? !offHand
+          : String(requiredOff) === String(offHand)))
     );
   }
   if (skill.requiresEmptyOffhand && offHand) return false;
   const wielding =
-    context.weaponData?.[mainHand]?.wielding
-    || context.catalog?.weaponHands?.get?.(mainHand);
+    context.weaponData?.[mainHand]?.wielding ||
+    context.catalog?.weaponHands?.get?.(mainHand);
   if (wielding === "2h") return skill.weapon === mainHand;
   const slot = slotNumber(skill);
-  return slot <= 3
-    ? skill.weapon === mainHand
-    : skill.weapon === offHand;
+  return slot <= 3 ? skill.weapon === mainHand : skill.weapon === offHand;
 }
 
-export function weaponSkillMatchesSet(
-  matcher,
-  skill,
-  weaponSet,
-  context = {},
-) {
-  return (matcher || defaultWeaponSkillMatchesSet)(
-    skill,
-    weaponSet,
-    context,
-  );
+export function weaponSkillMatchesSet(matcher, skill, weaponSet, context = {}) {
+  return (matcher || defaultWeaponSkillMatchesSet)(skill, weaponSet, context);
 }
-

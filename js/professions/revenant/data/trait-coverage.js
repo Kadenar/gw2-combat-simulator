@@ -7,20 +7,46 @@ import { revenantCatalog } from "../catalog.js";
 const IMPLEMENTED = new Set([
   "Ferocious Aggression",
   "Rising Tide",
+  "Spirit Boon",
+  "Song of the Mists",
   "Notoriety",
   "Roiling Mists",
   "Charged Mists",
+  "Invoking Torment",
+  "Seething Malice",
+  "Yearning Empowerment",
+  "Acolyte of Torment",
   "Pact of Pain",
   "Abyssal Chill",
+  "Diabolic Inferno",
+  "Dwarven Battle Training",
+  "Vicious Reprisal",
+  "Expose Defenses",
+  "Destructive Impulses",
+  "Targeted Destruction",
+  "Unsuspecting Strikes",
+  "Battle Scarred",
+  "Assassin's Presence",
+  "Thrill of Combat",
+  "Brutality",
+  "Dance of Death",
   "Replenishing Despair",
   "Hardening Persistence",
+  "Ambush Commander",
+  "Endless Enmity",
+  "Brutal Momentum",
+  "Blood Fury",
+  "Heartpiercer",
+  "All for One",
+  "Vindication",
+  "Lasting Legacy",
   "Righteous Rebel",
   "Swift Termination",
   "Elevated Compassion",
 ]);
 const reason =
   "This defensive, support, movement, healing, incoming-hit, or competitive-only effect does not change the deterministic single-target damage model.";
-const manifest = revenantCatalog.traits.map(trait => {
+const manifest = revenantCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
     ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED
@@ -28,12 +54,15 @@ const manifest = revenantCatalog.traits.map(trait => {
   return {
     traitId: trait.id,
     status,
-    effects: [{
-      description: String(trait.description || "").trim()
-        || `Reviewed combat behavior for ${trait.name}.`,
-      status,
-      ...(implemented ? {} : { reason }),
-    }],
+    effects: [
+      {
+        description:
+          String(trait.description || "").trim() ||
+          `Reviewed combat behavior for ${trait.name}.`,
+        status,
+        ...(implemented ? {} : { reason }),
+      },
+    ],
     ...(implemented
       ? { tests: ["tests/revenant.test.js#trait-coverage"] }
       : { reason }),
@@ -44,4 +73,3 @@ export const REVENANT_TRAIT_COVERAGE = validateTraitCoverageManifest(
   manifest,
   { professionId: "revenant" },
 );
-

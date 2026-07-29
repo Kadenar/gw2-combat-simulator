@@ -4,22 +4,26 @@ import {
   normalizeWeaponSigils,
 } from "../../platform/gw2/weapon-sigils.js";
 import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
+import {
+  createDefaultTargetConditions,
+} from "../../platform/gw2/default-target-conditions.js";
 import { revenantCatalog } from "./catalog.js";
 import { REVENANT_LEGEND_IDS as LEGEND } from "./data/ids.js";
 import { revenantLegendLoadout } from "./legend-loadout.js";
 
+/**
+ * Revenant persisted-build definition.
+ *
+ * This module supplies Revenant defaults and configures the shared GW2 build
+ * codec for migration, normalization, validation, and app-facing conversion.
+ * It delegates slot-skill structure to the legend loadout and constrains
+ * starting Energy, Vindicator dodge choice, and Alliance starting side.
+ */
+
 export const REVENANT_BUILD_SCHEMA_VERSION = 3;
 export const REVENANT_PROFESSION_ID = "revenant";
 
-export function createDefaultTargetConditions() {
-  return {
-    Bleeding: 1,
-    Burning: true,
-    Torment: 1,
-    Vulnerability: 25,
-    Weakness: true,
-  };
-}
+export { createDefaultTargetConditions };
 
 export function createRevenantBuildDefaults() {
   return {
@@ -110,4 +114,3 @@ const revenantBuildCodec = createGw2BuildCodec({
 export const migrateRevenantBuild = revenantBuildCodec.migrateBuild;
 export const validateRevenantBuild = revenantBuildCodec.validateBuild;
 export const toApplicationBuild = revenantBuildCodec.toApplicationBuild;
-
