@@ -7,6 +7,7 @@ import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "./data/ids.js";
+import { bolsteredBondsBonuses } from "./bolstered-bonds.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "./mechanics/handler-mechanics.js";
 
 function player(context) {
@@ -88,7 +89,7 @@ const DAMAGING_CONDITIONS = new Set([
   "Bleeding",
   "Burning",
   "Confusion",
-  "Poison",
+  "Poisoned",
   "Torment",
 ]);
 const rules = [
@@ -319,7 +320,12 @@ function modifyConditionDuration(context, duration) {
     DAMAGING_CONDITIONS.has(context.condition) &&
     hasTrait(context, TRAIT.YEARNING_EMPOWERMENT)
   ) {
-    modified += 0.1;
+    // Browser build attributes contain both static duration bonuses. Direct
+    // simulator configs still need them applied at runtime.
+    if (!context.config?.revenantBuildAttributesApplied) {
+      modified += 0.1;
+      if (hasTrait(context, TRAIT.NUMINOUS_GIFT)) modified += 0.05;
+    }
   }
   if (
     context.condition === "Bleeding" &&
@@ -356,48 +362,18 @@ function modifyAttributes(context, attributes) {
   }
   if (context.config.specialization !== "Conduit") return modified;
   const state = professionState(context);
-  const multiplier =
+  const cosmicMultiplier =
     Number(state.cosmicWisdomUntil || 0) > context.time ? 2 : 1;
-  const bonuses = {};
-  const add = (attribute, amount) => {
-    bonuses[attribute] = Number(bonuses[attribute] || 0) + amount * multiplier;
-  };
-  for (const legendId of state.selectedLegendIds || []) {
-    if (legendId === LEGEND.ASSASSIN) {
-      add("power", 75);
-      add("ferocity", 75);
-    } else if (legendId === LEGEND.CENTAUR) {
-      add("healingPower", 150);
-      add("concentration", 150);
-    } else if (legendId === LEGEND.DEMON) {
-      add("conditionDamage", 75);
-      add("expertise", 75);
-    } else if (legendId === LEGEND.DWARF) {
-      add("toughness", 150);
-      add("vitality", 150);
-    } else if (legendId === LEGEND.ENTITY) {
-      for (const attribute of [
-        "power",
-        "precision",
-        "toughness",
-        "vitality",
-        "ferocity",
-        "conditionDamage",
-        "expertise",
-        "concentration",
-        "healingPower",
-      ])
-        add(attribute, 75);
-    }
-  }
-  modified = Object.fromEntries(
-    [...new Set([...Object.keys(modified), ...Object.keys(bonuses)])].map(
-      (attribute) => [
-        attribute,
-        Number(modified[attribute] || 0) + Number(bonuses[attribute] || 0),
-      ],
-    ),
+  const buildMultiplier = context.config?.revenantBuildAttributesApplied
+    ? 1
+    : 0;
+  const bonuses = bolsteredBondsBonuses(
+    state.selectedLegendIds,
+    cosmicMultiplier - buildMultiplier,
   );
+  for (const [attribute, bonus] of Object.entries(bonuses)) {
+    modified[attribute] = Number(modified[attribute] || 0) + Number(bonus || 0);
+  }
   if (hasTrait(context, TRAIT.DETERMINED_RESOLUTION)) {
     modified.strikeDamageReduction =
       Number(modified.strikeDamageReduction || 0) + 0.05;

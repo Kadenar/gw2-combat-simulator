@@ -79,6 +79,7 @@ export function resolveGw2Timeline({
         event.sourceSkill,
         event.detail,
         event.icon,
+        event.cooldownReduction,
       );
     }
   }

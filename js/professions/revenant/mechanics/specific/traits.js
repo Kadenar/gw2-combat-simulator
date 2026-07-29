@@ -678,25 +678,9 @@ export function observeRevenantEvent(context, event) {
   )
     return;
   const profile = MECHANICS.traitProcs.mistfire;
-  if (Number(state.cosmicWisdomUntil || 0) <= event.at) return;
   const readyAt = Number(state.traitProcReadyAt.mistfire || 0);
   if (event.at + context.epsilon < readyAt) return;
   state.traitProcReadyAt.mistfire = event.at + profile.interval;
-  context.emitDerived(event, {
-    type: "damage",
-    at: event.at,
-    source: "revenant",
-    sourceId: TRAIT.MISTFIRE,
-    actorType: "effect",
-    skillId: TRAIT.MISTFIRE,
-    skillName: "Mistfire",
-    name: "Mistfire",
-    coefficient: profile.coefficient,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    skillWeapon: "Unequipped",
-  });
   context.emitDerived(event, {
     type: "condition",
     at: event.at,

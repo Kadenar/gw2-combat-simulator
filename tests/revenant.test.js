@@ -121,6 +121,14 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
   assert.equal(echoingEruption.cooldown, 8);
   assert.equal(echoingEruption.ammo, 0);
   assert.equal(echoingEruption.ammoRecharge, 0);
+  assert.equal(echoingEruption.finisherType, "Blast");
+  assert.equal(echoingEruption.finisherValue, 1);
+  assert.deepEqual(
+    echoingEruption.effects
+      .filter(effect => effect.type === "strike")
+      .map(effect => [effect.coefficient, effect.hits]),
+    [[1, 1]],
+  );
   for (const [skillId, castTimeMs] of [
     [SKILL.HEX_EATER_VORTEX, 520],
   ]) {
@@ -130,7 +138,7 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
     );
   }
   for (const [skillId, castTimeMs, quicknessCastTimeMs] of [
-    [SKILL.SEARING_FISSURE, 750, 600],
+    [SKILL.SEARING_FISSURE, 750, 650],
     [SKILL.TEMPORAL_RIFT, 500, 560],
     [SKILL.ECHOING_ERUPTION, 750, 960],
     [SKILL.MISERY_SWIPE, 250, 440],
@@ -162,6 +170,28 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
     revenantCatalog.skillsById.get(SKILL.ABYSSAL_BLITZ).cooldown,
     10,
   );
+  const searingFissure =
+    revenantCatalog.skillsById.get(SKILL.SEARING_FISSURE);
+  assert.equal(searingFissure.comboField, "Fire");
+  assert.equal(searingFissure.duration, 3);
+  assert.deepEqual(
+    searingFissure.effects
+      .filter(effect => effect.name === "Pulsing Strikes")
+      .map(effect => [effect.coefficient, effect.hits, effect.intervalMs]),
+    [[0.75, 3, 1000]],
+  );
+  const manifestToxin =
+    revenantCatalog.skillsById.get(SKILL.MANIFEST_TOXIN);
+  assert.deepEqual(
+    manifestToxin.effects
+      .filter(effect => effect.type === "strike")
+      .map(effect => [effect.coefficient, effect.hits]),
+    [[0.6, 1]],
+  );
+  const twinMoonSweep =
+    revenantCatalog.skillsById.get(SKILL.TWIN_MOON_SWEEP);
+  assert.equal(twinMoonSweep.finisherType, "Whirl");
+  assert.equal(twinMoonSweep.finisherValue, 1);
   assert.equal(
     revenantCatalog.skillsById.get(SKILL.ABYSSAL_FIRE).simulatorExcluded,
     true,
@@ -462,6 +492,74 @@ test("Abyssal Strike owns both spear autoattack timings", () => {
   assert.match(hidden.warnings[0], /use Abyssal Strike/);
 });
 
+test("Searing Fissure resolves its initial packet and three field pulses", () => {
+  const result = simulate("Core", [
+    "Searing Fissure",
+    { type: "wait", durationMs: 3500 },
+  ], {
+    primaryWeapon: "Mace",
+    secondaryWeapon: "Axe",
+    initialEnergy: 100,
+  });
+
+  assert.equal(result.warnings.length, 0);
+  assert.deepEqual(
+    result.events
+      .filter(event =>
+        event.type === "damage"
+        && event.skillName === "Searing Fissure")
+      .map(event => [event.at, event.coefficient]),
+    [[0.75, 0.5], [1.75, 0.25], [2.75, 0.25], [3.75, 0.25]],
+  );
+  assert.deepEqual(
+    result.events
+      .filter(event =>
+        event.type === "condition"
+        && event.skillName === "Searing Fissure"
+        && event.condition === "Burning")
+      .map(event => [event.at, event.stacks, event.duration]),
+    [
+      [0.75, 3, 3],
+      [1.75, 1, 1],
+      [2.75, 1, 1],
+      [3.75, 1, 1],
+    ],
+  );
+
+  const combo = simulate("Conduit", [
+    "Searing Fissure",
+    "Twin Moon Sweep",
+  ], {
+    selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
+    startingLegend: LEGEND.ENTITY,
+    primaryWeapon: "Mace",
+    secondaryWeapon: "Axe",
+    initialEnergy: 100,
+  });
+  assert.deepEqual(
+    combo.events
+      .filter(event =>
+        event.type === "condition"
+        && event.skillName === "Twin Moon Sweep"
+        && event.condition === "Burning")
+      .map(event => [event.at, event.stacks, event.duration]),
+    [[2.04, 1, 1], [2.04, 1, 1]],
+  );
+
+  const noField = simulate("Conduit", ["Twin Moon Sweep"], {
+    selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
+    startingLegend: LEGEND.ENTITY,
+    initialEnergy: 100,
+  });
+  assert.equal(
+    noField.events.filter(event =>
+      event.type === "condition"
+      && event.skillName === "Twin Moon Sweep"
+      && event.condition === "Burning").length,
+    0,
+  );
+});
+
 test("Revenant spear packets reduce Abyssal Raze count recharge on hit", () => {
   const result = simulate("Core", [
     "Abyssal Raze",
@@ -483,6 +581,10 @@ test("Revenant spear packets reduce Abyssal Raze count recharge on hit", () => {
   assert.deepEqual(
     rechargeProcs.map(proc => proc.detail),
     ["1s", "1s", "5s", "3s", "2s"],
+  );
+  assert.deepEqual(
+    rechargeProcs.map(proc => proc.cooldownReduction),
+    [1, 1, 5, 3, 2],
   );
   assert.deepEqual(
     rechargeProcs.map(proc => [proc.sourceSkill, proc.icon]),
@@ -535,11 +637,11 @@ test("Revenant spear packets reduce Abyssal Raze count recharge on hit", () => {
     && event.skillName === "Abyssal Blot");
   assert.equal(blotHits.length, 5);
   assert.ok(blotHits.every(event => event.coefficient === 0.4));
-  assert.ok(result.events.some(event =>
+  assert.equal(result.events.filter(event =>
     event.type === "condition"
     && event.skillName === "Abyssal Blot"
     && event.condition === "Poisoned"
-    && event.duration === 6));
+    && event.duration === 6).length, 5);
   assert.ok(result.events.some(event =>
     event.type === "condition"
     && event.skillName === "Abyssal Blot"
@@ -585,6 +687,31 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   });
 });
 
+test("Abyssal Raze recharge reduction carries overflow into the next count", () => {
+  const result = simulate("Core", [
+    "Abyssal Raze",
+    "Abyssal Raze",
+    "Abyssal Raze",
+    { type: "wait", durationMs: 10300 },
+    "Abyssal Strike",
+  ], {
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+    initialEnergy: 100,
+  });
+
+  const rechargeProc = result.procSteps.find(proc =>
+    proc.skill.endsWith("Abyssal Raze recharge"));
+  assert.equal(rechargeProc.cooldownReduction, 1);
+  assert.deepEqual(result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE), {
+    charges: 1,
+    maximum: 3,
+    rechargeDuration: 15,
+    nextRechargeAt: 29.75,
+  });
+  assert.equal(result.endState.cooldowns["Abyssal Raze"], undefined);
+});
+
 test("Crushing Abyss scales Raze and triggers at three stacks on weapon swap", () => {
   const result = simulate("Core", [
     "Abyssal Raze",
@@ -612,8 +739,14 @@ test("Crushing Abyss scales Raze and triggers at three stacks on weapon swap", (
     && event.skillName === "Abyssal Raze");
   assert.deepEqual(
     razes.map(event => event.coefficient),
-    [1, 1.33, 1.6600000000000001, 1.99],
+    [1, 1.33, 1.6600000000000001, 1],
   );
+  assert.ok(result.events
+    .filter(event =>
+      event.type === "condition"
+      && event.skillName === "Abyssal Raze"
+      && event.condition === "Torment")
+    .every(event => event.duration === 5));
   assert.equal(razes.at(-1).triggeredBy, "Swap Weapons");
   assert.equal(
     result.events.filter(event =>
@@ -1033,8 +1166,8 @@ test("Notoriety applies its Might conversion at runtime without negative UI attr
   const attributes = calculateRevenantAttributes(
     migrateRevenantBuild(saved),
   ).attributes;
-  assert.equal(attributes["Condition Damage"].traits, 0);
-  assert.equal(attributes["Condition Damage"].final, 0);
+  assert.equal(attributes["Condition Damage"].traits, 75);
+  assert.equal(attributes["Condition Damage"].final, 75);
 
   const runtime = revenantAttributeRules.modifyAttributes({
     config: {
@@ -1582,12 +1715,9 @@ test("Demon skills use their current projectile and condition packets", () => {
   });
   const banishEvents = banish.events.filter(event =>
     event.skillName === "Banish Enchantment");
-  assert.deepEqual(
-    banishEvents
-      .filter(event => event.type === "damage")
-      .map(event => event.coefficient),
-    [1.2, 1.2, 1.2],
-  );
+  assert.ok(banishEvents
+    .filter(event => event.type === "damage")
+    .every(event => Math.abs(event.coefficient - 0.4) < 1e-9));
   assert.equal(
     banishEvents.filter(event =>
       event.type === "condition"
@@ -1614,11 +1744,17 @@ test("Demon skills use their current projectile and condition packets", () => {
   assert.ok(anguish.events.some(event =>
     event.type === "damage"
     && event.skillName === "Call to Anguish"
-    && event.coefficient === 1.2));
+    && event.coefficient === 1.2
+    && event.at === 0));
   assert.ok(anguish.events.some(event =>
     event.skillName === "Call to Anguish"
     && event.condition === "Chilled"
-    && event.duration === 2));
+    && event.duration === 2
+    && event.at === 0));
+  assert.ok(anguish.events.some(event =>
+    event.type === "control"
+    && event.skillName === "Call to Anguish"
+    && event.at === 0));
   assert.ok(anguish.events.some(event =>
     event.type === "damage"
     && event.skillName === "Unyielding Impact"
@@ -1669,11 +1805,11 @@ test("Embrace the Darkness empowers only the next pulse and releases", () => {
     startingLegend: LEGEND.DEMON,
     initialEnergy: 100,
   });
-  const empoweredPulse = empowered.events.find(event =>
+  const empoweredPulses = empowered.events.filter(event =>
     event.type === "condition"
     && event.skillName === "Embrace the Darkness"
     && event.condition === "Torment");
-  assert.equal(empoweredPulse.stacks, 2);
+  assert.deepEqual(empoweredPulses.map(event => event.stacks), [1, 2]);
   assert.equal(empowered.endState.profession.activeUpkeeps.length, 0);
 });
 
@@ -3162,6 +3298,14 @@ test("Conduit entity skills apply follow-ups and Shared Wisdom effects", () => {
       && event.condition === "Torment").length,
     6,
   );
+  assert.deepEqual(
+    vortex.events
+      .filter(event =>
+        event.type === "damage"
+        && event.skillName === "Hex-Eater Vortex")
+      .map(event => event.coefficient),
+    Array(6).fill(0.2),
+  );
   assert.ok(vortex.events.some(event =>
     event.type === "buff"
     && event.kind === "resolution"
@@ -3201,7 +3345,7 @@ test("Twin Moon Sweep resolves both attackers and legend resonance", () => {
         event.type === "damage"
         && /Shatter/.test(event.name))
       .map(event => event.coefficient),
-    [0.4, 0.4],
+    [0.2, 0.2],
   );
   assert.equal(
     demon.events
@@ -3524,6 +3668,31 @@ test("Conduit grandmasters alter release, invocation, and Cosmic Wisdom", () => 
       && event.recipients === "allies").length,
     3,
   );
+
+  const disable = simulate("Conduit", [
+    "Abyssal Blot",
+    { name: "Call to Anguish", offset: 100 },
+  ], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+    startingLegend: LEGEND.DEMON,
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+    initialEnergy: 100,
+    traitIds: [TRAIT.MISTFIRE],
+  });
+  const disableProcs = disable.events.filter(event =>
+    event.skillName === "Mistfire");
+  assert.equal(
+    disableProcs.filter(event =>
+      event.type === "condition"
+      && event.condition === "Burning"
+      && event.stacks === 1).length,
+    1,
+  );
+  assert.equal(
+    disableProcs.filter(event => event.type === "damage").length,
+    0,
+  );
 });
 
 test("Bolstered Bonds and Kinetic Insight modify runtime attributes and damage", () => {
@@ -3566,17 +3735,35 @@ test("Bolstered Bonds and Kinetic Insight modify runtime attributes and damage",
     ...context,
     config: {
       specialization: "Conduit",
+      revenantBuildAttributesApplied: true,
       traitIds: [
         TRAIT.DETERMINED_RESOLUTION,
         TRAIT.SERENE_REJUVENATION,
         TRAIT.CONTAINED_TEMPER,
         TRAIT.YEARNING_EMPOWERMENT,
+        TRAIT.NUMINOUS_GIFT,
       ],
     },
   };
   const numinousAttributes = revenantAttributeRules.modifyAttributes(
     numinousContext,
-    {},
+    {
+      conditionDurationBonuses: {
+        Poisoned: 10,
+        Torment: 10,
+      },
+    },
+  );
+  assert.deepEqual(numinousAttributes.conditionDurationBonuses, {
+    Poisoned: 10,
+    Torment: 10,
+  });
+  assert.equal(
+    revenantAttributeRules.modifyConditionDuration({
+      ...numinousContext,
+      condition: "Poisoned",
+    }, 0.6),
+    0.6,
   );
   assert.equal(numinousAttributes.strikeDamageReduction, 0.05);
   assert.equal(numinousAttributes.healingEffectiveness, 0.05);

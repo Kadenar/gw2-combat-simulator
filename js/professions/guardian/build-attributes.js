@@ -61,6 +61,9 @@ export function applyGuardianBuildAttributeRules(
   if (hasTrait("Defender's Dogma")) {
     addAttribute(traitStats, "Vitality", 180);
   }
+  if (hasTrait("Force of Will")) {
+    addAttribute(traitStats, "Vitality", 300);
+  }
   if (hasTrait("Imbued Haste") && build.assumptions?.quickness !== false) {
     addAttribute(traitStats, "Condition Damage", 250);
     addAttribute(traitStats, "Healing Power", 250);
@@ -81,6 +84,15 @@ export function applyGuardianBuildAttributeRules(
   }
   if (selectedSkill(selectedSkills, "Signet of Wrath")) {
     addAttribute(traitStats, "Condition Damage", 180 * signetMultiplier);
+  }
+  if (hasTrait("Power of the Virtuous")) {
+    addAttribute(
+      traitStats,
+      "Condition Damage",
+      Math.round(
+        (attributes.Vitality.final + Number(traitStats.Vitality || 0)) * 0.07,
+      ),
+    );
   }
 
   return finalizeBuildAttributes(common, {

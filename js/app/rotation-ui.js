@@ -52,6 +52,7 @@ import {
 
 const CONCURRENT_OFFSET_MS = 100;
 const PLACEHOLDER_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
+const REFRESH_ARROW_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="6" fill="%23232632"/%3E%3Cpath d="M49 21A20 20 0 1 0 52 39" fill="none" stroke="%23d8c7ff" stroke-width="7" stroke-linecap="round"/%3E%3Cpath d="M49 9v13H36" fill="none" stroke="%23d8c7ff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E';
 const COMBAT_START_ICON = 'https://wiki.guildwars2.com/images/e/e9/Call_Target.png';
 const COOLDOWN_RESET_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mistlock_Singularity.png';
 const WAIT_ICON = 'https://wiki.guildwars2.com/images/8/83/%22sipcoffee%22_Emote_Tome.png';
@@ -182,7 +183,8 @@ function resolveModifierIcon(row) {
     return '';
 }
 
-function resolveProcIcon(app, proc) {
+export function resolveProcIcon(app, proc) {
+    if (Number(proc.cooldownReduction) > 0) return REFRESH_ARROW_ICON;
     const traits = app.attributeData?.activeTraits || [];
     const traitIcon = proc.type === 'trait_proc'
         ? traits.find(trait => trait.name === proc.skill)?.icon
@@ -208,6 +210,18 @@ function procFilterLabel(proc) {
 function procStackLabel(proc) {
     if (proc.skill !== 'Relic of Aristocracy') return '';
     return String(proc.detail || '').match(/^(\d+\/\d+)\s+stacks$/)?.[1] || '';
+}
+
+export function procBadgeLabel(procSteps = []) {
+    const reductions = procSteps.map(proc => Number(proc.cooldownReduction));
+    if (reductions.length && reductions.every(reduction =>
+        Number.isFinite(reduction) && reduction > 0
+    )) {
+        const total = reductions.reduce((sum, reduction) => sum + reduction, 0);
+        const rounded = Math.round((total + Number.EPSILON) * 1000) / 1000;
+        return `-${rounded}s`;
+    }
+    return procSteps.length > 1 ? `×${procSteps.length}` : '';
 }
 
 export function groupConsecutiveProcSteps(procSteps = []) {
@@ -1393,6 +1407,7 @@ export function renderTimeline(app) {
                 : proc.type === 'skill_proc' ? 'Skill' : 'Trait';
             const time = formatTime(proc.start);
             const count = group.steps.length;
+            const badgeLabel = procBadgeLabel(group.steps);
             const stackLabel = procStackLabel(group.steps.at(-1));
             const detail = count === 1
                 ? [
@@ -1413,7 +1428,7 @@ export function renderTimeline(app) {
             return `<div class="proc-icon" data-proc-key="${esc(key)}"${procVisibility.has(key) ? '' : ' hidden'} title="${esc(detail)}"
                 style="--proc-color:${procColors[proc.type] || '#9d7bd0'}">
                 <img src="${esc(icon)}" alt="" />
-                ${count > 1 ? `<span class="proc-count">&times;${count}</span>` : ''}
+                ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ''}
                 ${stackLabel ? `<span class="proc-stack">${esc(stackLabel)}</span>` : ''}
                 <span class="proc-time">${time}</span>
             </div>`;

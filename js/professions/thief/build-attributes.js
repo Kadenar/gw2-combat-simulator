@@ -4,10 +4,10 @@ import {
 } from "../../platform/gw2/attributes.js";
 import { getActiveTraits } from "./data/traits-data.js";
 
-function wields(build, weapon) {
-  return [build.weapons, build.alternateWeapons]
-    .flatMap(pair => pair || [])
-    .includes(weapon);
+function wields(build, weapon, weaponSet) {
+  const weapons =
+    weaponSet === 2 ? build.alternateWeapons : build.weapons;
+  return (weapons || []).includes(weapon);
 }
 function selectedSkill(skills, name) {
   return (skills || []).some(skill => skill?.name === name);
@@ -15,7 +15,7 @@ function selectedSkill(skills, name) {
 
 export function applyThiefBuildAttributeRules(
   common,
-  { build, selectedSkills = [], disabledTrait = null },
+  { build, selectedSkills = [], weaponSet = 1, disabledTrait = null },
 ) {
   const attributes = common.attributes;
   const activeTraits = getActiveTraits(build.specializations || [])
@@ -25,17 +25,21 @@ export function applyThiefBuildAttributeRules(
   const traitDurations = {};
 
   if (hasTrait("Dagger Training")) {
-    addAttribute(traitStats, "Power", wields(build, "Dagger") ? 240 : 120);
+    addAttribute(
+      traitStats,
+      "Power",
+      wields(build, "Dagger", weaponSet) ? 160 : 80,
+    );
   }
   if (hasTrait("Deadly Ambition")) {
-    addAttribute(traitStats, "Condition Damage", 120);
+    addAttribute(traitStats, "Condition Damage", 180);
   }
-  if (hasTrait("Revealed Training")) addAttribute(traitStats, "Power", 120);
+  if (hasTrait("Revealed Training")) addAttribute(traitStats, "Power", 80);
   if (hasTrait("Practiced Tolerance")) {
     addAttribute(
       traitStats,
       "Ferocity",
-      Math.round(Number(attributes.Precision?.final || 0) * 0.07),
+      Math.round(Number(attributes.Precision?.final || 0) * 0.1),
     );
   }
   if (hasTrait("No Quarter") && build.assumptions?.fury) {
@@ -43,7 +47,11 @@ export function applyThiefBuildAttributeRules(
   }
   if (hasTrait("Preparedness")) addAttribute(traitStats, "Expertise", 150);
   if (hasTrait("Staff Master")) {
-    addAttribute(traitStats, "Power", wields(build, "Staff") ? 240 : 120);
+    addAttribute(
+      traitStats,
+      "Power",
+      wields(build, "Staff", weaponSet) ? 240 : 120,
+    );
   }
   if (hasTrait("Marauder's Resilience")) {
     addAttribute(
@@ -53,7 +61,11 @@ export function applyThiefBuildAttributeRules(
     );
   }
   if (hasTrait("Swindler's Equilibrium")) {
-    addAttribute(traitStats, "Power", wields(build, "Sword") ? 240 : 120);
+    addAttribute(
+      traitStats,
+      "Power",
+      wields(build, "Sword", weaponSet) ? 240 : 120,
+    );
   }
   if (hasTrait("Silent Scope")) addAttribute(traitStats, "Precision", 120);
   if (hasTrait("Premeditation")) {
@@ -63,7 +75,7 @@ export function applyThiefBuildAttributeRules(
     addAttribute(
       traitStats,
       "Condition Damage",
-      wields(build, "Scepter") ? 240 : 120,
+      wields(build, "Scepter", weaponSet) ? 180 : 90,
     );
     addAttribute(
       traitStats,
@@ -75,7 +87,7 @@ export function applyThiefBuildAttributeRules(
     addAttribute(
       traitStats,
       "Expertise",
-      Math.round(Number(attributes.Vitality?.final || 0) * 0.07),
+      Math.round(Number(attributes.Vitality?.final || 0) * 0.13),
     );
   }
   if (selectedSkill(selectedSkills, "Assassin's Signet")) {

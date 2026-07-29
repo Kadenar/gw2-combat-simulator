@@ -45,9 +45,10 @@ function emitAbyssalRazePackets(
   triggeredBy = "",
 ) {
   const profile = MECHANICS.spear.abyssalRaze;
-  const coefficient =
-    profile.coefficient *
-    (1 + profile.damageIncreasePerStack * crushingAbyssStacks);
+  const coefficient = triggeredBy
+    ? profile.coefficient
+    : profile.coefficient *
+      (1 + profile.damageIncreasePerStack * crushingAbyssStacks);
   const common = {
     at,
     source: "revenant",
@@ -143,26 +144,16 @@ export function handleAbyssalRazeRechargeReduction(context, task) {
   const sourceSkill = context.catalog.skillsById.get(
     task.payload.sourceSkillId,
   );
-  const ammo = context.cooldownController.refreshAmmo(skill, task.at);
-  if (!ammo || ammo.nextRechargeAt == null) return;
-  const previous = ammo.nextRechargeAt;
-  ammo.nextRechargeAt = Math.max(
-    task.at,
-    previous - Number(task.payload.seconds || 0),
-  );
-  if (ammo.charges === 0) {
-    // Empty ammo mirrors its next count recharge into the cooldown map. Replace
-    // that mirrored value as well, or cast availability keeps waiting on the
-    // unreduced timestamp even though the ammo timer was reduced.
-    const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-    const independentLockout =
-      readyAt > previous + context.epsilon ? readyAt : 0;
-    context.state.cooldowns.set(
-      skill.id,
-      Math.max(independentLockout, ammo.nextRechargeAt),
+  const { ammo, reducedBy } =
+    context.cooldownController.reduceAmmoRecharge(
+      skill,
+      task.payload.seconds,
+      task.at,
     );
-  }
-  context.cooldownController.refreshAmmo(skill, task.at);
+  if (!ammo || reducedBy <= 0) return;
+  const cooldownReduction = Number(
+    reducedBy.toFixed(3),
+  );
   context.emit({
     type: "proc",
     procType: "skill",
@@ -175,7 +166,8 @@ export function handleAbyssalRazeRechargeReduction(context, task) {
     sourceSkill: sourceSkill?.name || task.payload.sourceSkillName,
     icon: sourceSkill?.icon || "",
     name: `${task.payload.sourceSkillName} — Abyssal Raze recharge`,
-    detail: `${task.payload.seconds}s`,
+    detail: `${cooldownReduction}s`,
+    cooldownReduction,
   });
 }
 
