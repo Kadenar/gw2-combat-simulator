@@ -9,6 +9,10 @@
       {
         "label": "Power Renegade (Hammer / SwSw)",
         "build": "Builds/b-power-renegade-hammer.json"
+      },
+      {
+        "label": "Condition (Shortbow / Mace-Axe)",
+        "build": "Builds/b-condi-renegade-shortbow-mace-axe.json"
       }
     ]
   },

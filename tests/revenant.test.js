@@ -129,15 +129,9 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
       .map(effect => [effect.coefficient, effect.hits]),
     [[1, 1]],
   );
-  for (const [skillId, castTimeMs] of [
-    [SKILL.HEX_EATER_VORTEX, 520],
-  ]) {
-    assert.equal(
-      revenantCatalog.skillsById.get(skillId).castTimeMs,
-      castTimeMs,
-    );
-  }
   for (const [skillId, castTimeMs, quicknessCastTimeMs] of [
+    [SKILL.HEX_EATER_VORTEX, 520, 526],
+    [SKILL.FRIGID_BLITZ, 500, 681],
     [SKILL.SEARING_FISSURE, 750, 650],
     [SKILL.TEMPORAL_RIFT, 500, 560],
     [SKILL.ECHOING_ERUPTION, 750, 960],
@@ -383,6 +377,16 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
     assert.equal(skill.effects[0].coefficient, coefficient);
     assert.equal(skill.effects[0].hits, hits);
   }
+  for (const [skillId, quicknessCastTimeMs] of [
+    [SKILL.SHATTERSHOT, 440],
+    [SKILL.SEVENSHOT, 440],
+    [SKILL.SPIRITCRUSH, 400],
+  ]) {
+    assert.equal(
+      revenantCatalog.skillsById.get(skillId).quicknessCastTimeMs,
+      quicknessCastTimeMs,
+    );
+  }
 
   for (const skillId of [SKILL.SHATTERSHOT, SKILL.SEVENSHOT]) {
     const skill = revenantCatalog.skillsById.get(skillId);
@@ -394,6 +398,25 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
   assert.equal(spiritcrush.duration, 3);
   assert.equal(spiritcrush.effects[1].coefficient, 0.75);
   assert.equal(spiritcrush.effects[1].hits, 3);
+
+  const quicknessResult = simulate("Renegade", [
+    "Shattershot",
+    "Sevenshot",
+    "Spiritcrush",
+  ], {
+    primaryWeapon: "Shortbow",
+    secondaryWeapon: "",
+    initialEnergy: 100,
+    boons: { quickness: true },
+  });
+  assert.deepEqual(
+    quicknessResult.steps.map(step => [step.skill, step.fullCastMs]),
+    [
+      ["Shattershot", 440],
+      ["Sevenshot", 440],
+      ["Spiritcrush", 400],
+    ],
+  );
 
   const result = simulate("Renegade", [
     "Shattershot",

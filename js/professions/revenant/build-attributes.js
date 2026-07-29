@@ -28,6 +28,7 @@ export function applyRevenantBuildAttributeRules(
   const hasTrait = (name) => activeTraits.some((trait) => trait.name === name);
   const traitStats = {};
   const traitDurations = {};
+  const traitCriticalChance = hasTrait("Brutal Momentum") ? 10 : 0;
   if (hasTrait("Seething Malice")) {
     addAttribute(traitStats, "Condition Damage", 120);
   }
@@ -92,5 +93,6 @@ export function applyRevenantBuildAttributeRules(
     activeTraits,
     traitStats,
     traitDurations,
+    traitCriticalChance,
   });
 }

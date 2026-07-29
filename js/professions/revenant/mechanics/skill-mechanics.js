@@ -627,6 +627,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.FRIGID_BLITZ]: {
     implemented: true,
     castTimeMs: 500,
+    quicknessCastTimeMs: 681,
     cooldown: 10,
     energyCost: 10,
     effects: [
@@ -1737,6 +1738,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.SHATTERSHOT]: {
     implemented: true,
     castTimeMs: 480,
+    quicknessCastTimeMs: 440,
     cooldown: 0,
     energyCost: 0,
     finisherType: "Projectile",
@@ -1832,6 +1834,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.SEVENSHOT]: {
     implemented: true,
     castTimeMs: 440,
+    quicknessCastTimeMs: 440,
     cooldown: 7,
     energyCost: 7,
     finisherType: "Projectile",
@@ -1950,6 +1953,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.SPIRITCRUSH]: {
     implemented: true,
     castTimeMs: 400,
+    quicknessCastTimeMs: 400,
     cooldown: 9,
     energyCost: 12,
     comboField: "Fire",
@@ -4024,6 +4028,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     implemented: true,
     handlerId: "revenant.hex-eater-vortex",
     castTimeMs: 520,
+    quicknessCastTimeMs: 526,
     cooldown: 5,
     energyCost: 15,
     effects: [],

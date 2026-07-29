@@ -27,6 +27,7 @@ import {
 } from "../js/professions/revenant/attribute-rules.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT,
 } from "../js/professions/revenant/data/ids.js";
 import { createThiefBuildDefaults } from "../js/professions/thief/build.js";
 import {
@@ -318,6 +319,33 @@ test("Revenant exposes static minor attributes and conversions", () => {
       calculateRevenantAttributes(herald).attributes.Power.final * 0.13,
     ),
   );
+});
+
+test("Brutal Momentum exposes its unconditional critical chance", () => {
+  const build = createRevenantBuildDefaults();
+  build.specializations = [{ name: "Renegade", traits: "1-1-1" }];
+
+  assert.equal(
+    traitDelta(
+      calculateRevenantAttributes,
+      build,
+      "Brutal Momentum",
+      "Critical Chance",
+    ),
+    10,
+  );
+
+  const runtime = revenantAttributeRules.modifyCriticalChance({
+    config: {
+      specialization: "Renegade",
+      revenantBuildAttributesApplied: true,
+      traitIds: [TRAIT.BRUTAL_MOMENTUM],
+    },
+    runtime: {
+      profession: { endurance: 50, maximumEndurance: 100 },
+    },
+  }, 0.2);
+  assert.ok(Math.abs(runtime - 0.3) < 1e-9);
 });
 
 test("Numinous Gift's static duration improvement appears in build stats", () => {
