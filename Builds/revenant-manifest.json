@@ -21,6 +21,10 @@
         "rotation": "Rotations/r-power-conduit-bench.json",
         "benchmarkDps": 41990,
         "upToDate": true
+      },
+      {
+        "label": "Condition (Mistfire)",
+        "build": "Builds/b-condi-conduit-mistfire.json"
       }
     ]
   }

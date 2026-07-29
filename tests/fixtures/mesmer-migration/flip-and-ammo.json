@@ -1,0 +1,301 @@
+{
+  "name": "flip and ammo mantra",
+  "rotation": [
+    {
+      "type": "cast",
+      "skillId": 10186
+    },
+    {
+      "type": "cast",
+      "skillId": 10363
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    }
+  ],
+  "config": {
+    "specialization": "Core",
+    "primaryWeapon": "",
+    "secondaryWeapon": ""
+  },
+  "expected": {
+    "exact": {
+      "activeWeaponSet": 1,
+      "ammo": {
+        "Dodge / Mirage Cloak": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 6.666666666666667
+        },
+        "Jaunt": {
+          "charges": 3,
+          "maximum": 3,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Lingering Thoughts": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 4.8
+        },
+        "Lively Lute": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 9.6
+        },
+        "Mantra of Recovery": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Power Spike": {
+          "charges": 1,
+          "maximum": 2,
+          "nextRechargeAt": 9,
+          "rechargeDuration": 8
+        },
+        "Psychic Force": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Tale of the Honorable Rogue": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 20
+        }
+      },
+      "cooldowns": {
+        "Temporal Curtain": {
+          "readyAt": 20740,
+          "remaining": 19740
+        }
+      },
+      "dpsWindow": 0,
+      "duration": 1,
+      "events": [
+        {
+          "__order": 0,
+          "amount": 3,
+          "at": 0,
+          "created": [
+            {
+              "id": 1,
+              "weapon": ""
+            },
+            {
+              "id": 2,
+              "weapon": ""
+            },
+            {
+              "id": 3,
+              "weapon": ""
+            }
+          ],
+          "reason": "initial",
+          "resource": "clones",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "resource",
+          "type": "resource",
+          "value": 3
+        },
+        {
+          "__order": 1,
+          "actorType": "player",
+          "at": 0,
+          "endsAt": 0.74,
+          "fullEndsAt": 0.74,
+          "interrupted": false,
+          "name": "Temporal Curtain",
+          "rechargeReadyAt": 20.74,
+          "schemaVersion": 1,
+          "skillId": 10186,
+          "skillName": "Temporal Curtain",
+          "source": "mesmer",
+          "sourceId": 10186,
+          "type": "action"
+        },
+        {
+          "__order": 2,
+          "actorType": "player",
+          "at": 1,
+          "endsAt": 1,
+          "fullEndsAt": 1,
+          "interrupted": false,
+          "name": "Into the Void",
+          "rechargeReadyAt": null,
+          "schemaVersion": 1,
+          "skillId": 10363,
+          "skillName": "Into the Void",
+          "source": "mesmer",
+          "sourceId": 10363,
+          "type": "action"
+        },
+        {
+          "__order": 3,
+          "at": 1,
+          "schemaVersion": 1,
+          "skillName": "Into the Void",
+          "source": "Mesmer",
+          "sourceId": "Into the Void",
+          "type": "control"
+        },
+        {
+          "__order": 4,
+          "actorType": "player",
+          "at": 1,
+          "endsAt": 1,
+          "fullEndsAt": 1,
+          "interrupted": false,
+          "name": "Power Spike",
+          "rechargeReadyAt": null,
+          "schemaVersion": 1,
+          "skillId": 10212,
+          "skillName": "Power Spike",
+          "source": "mesmer",
+          "sourceId": 10212,
+          "type": "action"
+        },
+        {
+          "__order": 5,
+          "actorType": "player",
+          "at": 1,
+          "blade": false,
+          "coefficient": 1.33,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Power Spike",
+          "schemaVersion": 1,
+          "skillId": 10212,
+          "skillName": "Power Spike",
+          "skillWeapon": "Utility",
+          "source": "Player",
+          "sourceId": 10212,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 690.5
+        }
+      ],
+      "profession": {
+        "autoattackChains": {
+          "10170": 10170,
+          "10289": 10289,
+          "44791": 44791,
+          "73154": 73154
+        },
+        "availableAmbush": null,
+        "availableFlips": {
+          "Power Spike": {
+            "availableAt": 0,
+            "expiresAt": null,
+            "persistent": true,
+            "remaining": null
+          }
+        },
+        "clarityRemaining": 0,
+        "continuumActive": false,
+        "continuumRemaining": 0,
+        "counterspellAvailable": false,
+        "resource": 3,
+        "resourceDefinition": {
+          "maximum": 3,
+          "plural": "clones",
+          "singular": "clone"
+        }
+      },
+      "resolvedEvents": [
+        {
+          "__order": 5,
+          "actorType": "player",
+          "at": 1,
+          "blade": false,
+          "coefficient": 1.33,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Power Spike",
+          "schemaVersion": 1,
+          "skillId": 10212,
+          "skillName": "Power Spike",
+          "skillWeapon": "Utility",
+          "source": "Player",
+          "sourceId": 10212,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 690.5
+        }
+      ],
+      "steps": [
+        {
+          "actualStart": 0,
+          "end": 740,
+          "fullCastMs": 740,
+          "interrupted": false,
+          "ri": 0,
+          "skill": "Temporal Curtain",
+          "start": 0
+        },
+        {
+          "actualStart": 1000,
+          "end": 1000,
+          "fullCastMs": 0,
+          "interrupted": false,
+          "ri": 1,
+          "skill": "Into the Void",
+          "start": 1000
+        },
+        {
+          "actualStart": 1000,
+          "end": 1000,
+          "fullCastMs": 0,
+          "interrupted": false,
+          "ri": 2,
+          "skill": "Power Spike",
+          "start": 1000
+        }
+      ],
+      "warnings": []
+    },
+    "damage": {
+      "conditionDamage": 0,
+      "dps": 0,
+      "events": [
+        {
+          "created": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      "resolvedEvents": [
+        {
+          "damage": 3728.06354086446
+        }
+      ],
+      "steps": [
+        {},
+        {},
+        {}
+      ],
+      "strikeDamage": 3728.06354086446,
+      "totalDamage": 3728.06354086446
+    }
+  }
+}

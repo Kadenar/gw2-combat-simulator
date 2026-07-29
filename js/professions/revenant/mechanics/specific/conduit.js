@@ -13,7 +13,10 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
-import { hasRevenantTrait } from "../../state.js";
+import {
+  hasRevenantTrait,
+  revenantConduitFormIsActive,
+} from "../../state.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 
 function hasLegend(context, legendId) {
@@ -87,7 +90,11 @@ function emitDamage(context, skill, options = {}) {
   });
 }
 
-function emitDervishFormAttack(context, skill, { elite = false } = {}) {
+export function emitDervishFormAttack(
+  context,
+  skill,
+  { elite = false } = {},
+) {
   const state = context.state.profession;
   if (
     context.config.specialization !== "Conduit" ||
@@ -118,6 +125,64 @@ function emitDervishFormAttack(context, skill, { elite = false } = {}) {
     skillWeapon: "Unequipped",
     triggeredBy: skill.name,
   });
+}
+
+/** Emits Form of the Assassin's one-second/legend-skill dagger strike. */
+export function emitLesserEnchantedDaggers(context, sourceSkill, at) {
+  if (
+    !revenantConduitFormIsActive(
+      context.state.profession,
+      "Assassin",
+      at,
+    )
+  ) return;
+  const skill = context.catalog.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS);
+  context.emit({
+    type: "damage",
+    at,
+    source: "revenant",
+    sourceId: skill.id,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: skill.name,
+    icon: skill.icon || "",
+    name: "Lesser Enchanted Daggers",
+    coefficient:
+      MECHANICS.conduit.formOfTheAssassin
+        .lesserEnchantedDaggersCoefficient,
+    hits: 1,
+    hitIndex: 1,
+    totalHits: 1,
+    skillWeapon: "Unequipped",
+    triggeredBy: sourceSkill.name,
+  });
+}
+
+/** Applies the active Assassin or Dervish form after a legend skill cast. */
+export function applyCosmicWisdomAfterCast(context, skill) {
+  const at = context.effectiveEnd;
+  if (
+    skill.legendId === LEGEND.ASSASSIN &&
+    revenantConduitFormIsActive(
+      context.state.profession,
+      "Assassin",
+      at,
+    )
+  ) {
+    emitLesserEnchantedDaggers(context, skill, at);
+  }
+  if (
+    skill.legendId !== LEGEND.ENTITY ||
+    !revenantConduitFormIsActive(
+      context.state.profession,
+      "Dervish",
+      at,
+    )
+  ) return;
+  emitDervishFormAttack(context, skill);
+  if ([ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001].includes(skill.id)) {
+    emitDervishFormAttack(context, skill, { elite: true });
+  }
 }
 
 function emitCondition(context, skill, options = {}) {
@@ -257,7 +322,6 @@ export function castBeguilingHaze(context, skill) {
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
     emitRevenantBoon(context, skill, "fury", profile.sharedWisdomFury);
   }
-  emitDervishFormAttack(context, skill);
   emitRevenantState(context, context.effectiveEnd, "beguiling-haze");
 }
 
@@ -367,7 +431,6 @@ export function castGladiatorsDefense(context, skill) {
       profile.sharedWisdomStability,
     );
   }
-  emitDervishFormAttack(context, skill);
 }
 
 /** Emits both Twin Moon attackers and every equipped-legend resonance. */
@@ -450,8 +513,6 @@ export function castTwinMoonSweep(context, skill) {
       );
     }
   }
-  emitDervishFormAttack(context, skill);
-  emitDervishFormAttack(context, skill, { elite: true });
 }
 
 /** Resolves the active Release Potential variant from affinity and legends. */

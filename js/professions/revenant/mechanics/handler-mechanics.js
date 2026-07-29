@@ -132,6 +132,31 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
     flatStrikeBase: 117,
     flatStrikePowerCoeff: 0.006,
   }),
+  spear: freeze({
+    abyssalRaze: freeze({
+      coefficient: 1,
+      damageIncreasePerStack: 0.33,
+      baseTormentStacks: 1,
+      baseTormentDuration: 6,
+      tormentStacksPerCrushingAbyss: 2,
+      empoweredTormentDuration: 5,
+      crushingAbyssDuration: 10,
+      crushingAbyssMaximum: 3,
+      crushingAbyssEffect: freeze({
+        id: 72962,
+        name: "Crushing Abyss",
+        icon:
+          "https://wiki.guildwars2.com/images/5/52/Abyssal_Raze.png",
+      }),
+    }),
+    rechargeReductionBySkillId: freeze({
+      [ID.ABYSSAL_FIRE]: 1,
+      [ID.ABYSSAL_STRIKE]: 1,
+      [ID.ABYSSAL_FORCE]: 5,
+      [ID.ABYSSAL_BLITZ]: 3,
+      [ID.ABYSSAL_BLOT]: 2,
+    }),
+  }),
   traitProcs: freeze({
     abyssalChill: freeze({
       tormentDuration: 3,
@@ -357,6 +382,17 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
     }),
     ancientEchoEnergy: 25,
     cosmicWisdomDuration: 7,
+    formOfTheMesmer: freeze({
+      banishEnchantmentEnergyCost: 5,
+      banishEnchantmentCooldown: 5,
+      callToAnguishEnergyCost: 10,
+      unyieldingImpactEnergyCost: 0,
+      embraceTheDarknessEnergyCost: 0,
+    }),
+    formOfTheAssassin: freeze({
+      lesserEnchantedDaggersCoefficient: 0.06,
+      impossibleOddsInterval: 1,
+    }),
     formOfTheDervishCoefficient: 0.8,
   }),
   upkeep: freeze({

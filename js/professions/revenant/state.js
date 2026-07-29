@@ -17,6 +17,12 @@ export function hasRevenantTrait(configOrTraits, traitId) {
       : selectedRevenantTraits(configOrTraits);
   return traits.has(traitId) || traits.has(String(traitId));
 }
+export function revenantConduitFormIsActive(state, form, at = 0) {
+  return (
+    state?.conduitForm === form &&
+    Number(state.cosmicWisdomUntil || 0) > Number(at || 0)
+  );
+}
 export function createRevenantState(config = {}) {
   const selectedLegendIds = normalizeRevenantLegendIds(
     config.selectedLegends,
@@ -36,6 +42,7 @@ export function createRevenantState(config = {}) {
     activeUpkeeps: [],
     availableFlips: {},
     autoattackChains: {},
+    abyssalStrikeSecondCast: false,
     allianceSide: config.allianceSide === "kurzick" ? "kurzick" : "luxon",
     endurance: config.specialization === "Vindicator" ? 100 : 100,
     maximumEndurance: 100,
@@ -62,6 +69,7 @@ export function createRevenantState(config = {}) {
       readyAt: 0,
     },
     battleScars: [],
+    crushingAbyss: [],
     combatBeganAt: null,
     nextThrillOfCombatAt: null,
     exposeDefensesUsed: false,

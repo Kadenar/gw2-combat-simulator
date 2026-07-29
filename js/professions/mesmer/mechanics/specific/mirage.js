@@ -1,8 +1,19 @@
-import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import {
+  MESMER_SKILL_IDS as ID,
+  MESMER_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
 
 const MIRAGE_CLOAK_SKILLS = new Set([
-  "Illusionary Ambush",
-  "Sand through Glass",
+  ID.ILLUSIONARY_AMBUSH,
+  ID.SAND_THROUGH_GLASS,
+]);
+const DECEPTION_SKILLS = new Set([
+  ID.FALSE_OASIS,
+  ID.CRYSTAL_SANDS,
+  ID.MIRAGE_ADVANCE,
+  ID.SAND_THROUGH_GLASS,
+  ID.ILLUSIONARY_AMBUSH,
+  ID.JAUNT,
 ]);
 
 /**
@@ -14,7 +25,7 @@ export function createMirageActionController({
   traits,
   ambushAttacks,
   cloneAttacks,
-  skillsByName,
+  skillsById,
   epsilon,
   addEvent,
   addTraitProc,
@@ -115,8 +126,8 @@ export function createMirageActionController({
 
   const reduceDuneCloakShatters = (at, source) => {
     if (!traits.has(TRAIT.DUNE_CLOAK)) return;
-    for (const name of ["Mind Wrack", "Cry of Frustration"]) {
-      const shatter = skillsByName.get(name);
+    for (const id of [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION]) {
+      const shatter = skillsById.get(id);
       const readyAt = shatter ? state.cooldowns.get(shatter.id) : null;
       if (readyAt != null) {
         state.cooldowns.set(shatter.id, Math.max(at, readyAt - 1));
@@ -162,7 +173,7 @@ export function createMirageActionController({
   const executePlayerAmbush = (skill, at) => {
     const weapon = activePrimaryWeapon();
     const ambush = ambushAttacks[weapon];
-    if (!ambush || skill.name !== ambush.name) return;
+    if (!ambush || skill.id !== ambush.id) return;
     const pseudo = { name: ambush.name, weapon, blade: false };
     addDamage(pseudo, at, {
       coefficient: ambush.player.coefficient,
@@ -196,7 +207,9 @@ export function createMirageActionController({
     }
     addAmbushVulnerability(at, ambush);
     if (ambush.createsClone) {
-      queueResources(at + epsilon, 1, weapon, ambush.name);
+      queueResources(at + epsilon, 1, weapon, ambush.name, {
+        sourceSkillId: skill.id,
+      });
     }
     state.profession.ambushUntil = 0;
     state.profession.ambushSource = "";
@@ -212,7 +225,7 @@ export function createMirageActionController({
       addBoon(at, { name: "Vigor", duration: 3 }, skill.name);
       addTraitProc("Nomad's Endurance", at, skill.name, "3s vigor");
     }
-    if (skill.name === "Distortion" && traits.has(TRAIT.DESERT_DISTORTION)) {
+    if (skill.id === ID.DISTORTION && traits.has(TRAIT.DESERT_DISTORTION)) {
       grantAmbushWindow(at, "Desert Distortion");
       addTraitProc(
         "Desert Distortion",
@@ -227,12 +240,12 @@ export function createMirageActionController({
   };
 
   const handlePostSkill = (skill, at) => {
-    if (MIRAGE_CLOAK_SKILLS.has(skill.name)) {
+    if (MIRAGE_CLOAK_SKILLS.has(skill.id)) {
       grantMirageCloak(at, skill.name);
     }
     if (
       traits.has(TRAIT.SELF_DECEPTION) &&
-      String(skill.description || "").startsWith("Deception.") &&
+      DECEPTION_SKILLS.has(skill.id) &&
       currentResource() > 0
     ) {
       queueResources(
@@ -240,6 +253,11 @@ export function createMirageActionController({
         1,
         activePrimaryWeapon(),
         `Self-Deception: ${skill.name}`,
+        {
+          traitId: TRAIT.SELF_DECEPTION,
+          traitName: "Self-Deception",
+          sourceSkillId: skill.id,
+        },
       );
     }
   };

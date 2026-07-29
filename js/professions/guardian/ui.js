@@ -122,6 +122,9 @@ export const guardianUi = Object.freeze({
       skillIds: guardianProfessionSkillIds(context),
       color: "#2f7eb8",
       resourceAnchor: true,
+      stackId: specialization === "Luminary"
+        ? "luminary-profession"
+        : "",
     }];
     if (specialization === "Firebrand") {
       groups.push(
@@ -151,6 +154,7 @@ export const guardianUi = Object.freeze({
         label: "RF",
         skillIds: skillsByMode("radiantForgeSkill"),
         color: "#d6b85c",
+        stackId: "luminary-profession",
       });
     }
     return groups;

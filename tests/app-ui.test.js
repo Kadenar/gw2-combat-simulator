@@ -420,6 +420,40 @@ test("Revenant Power Renegade Hammer default build resolves", async () => {
   assert.equal(build.startingLegend, "LegendaryRenegade");
 });
 
+test("Revenant Condition Conduit Mistfire default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const conduit = manifest.find(section => section.section === "Conduit");
+  const preset = conduit.presets.find(
+    candidate => candidate.label === "Condition (Mistfire)",
+  );
+  const saved = JSON.parse(await readFile(
+    new URL(`../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(preset.build, "Builds/b-condi-conduit-mistfire.json");
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "revenant");
+  assert.deepEqual(build.specializations, [
+    { name: "Corruption", traits: "1-1-1" },
+    { name: "Invocation", traits: "2-2-2" },
+    { name: "Conduit", traits: "3-2-1" },
+  ]);
+  assert.deepEqual(build.weapons, ["Spear", ""]);
+  assert.deepEqual(build.alternateWeapons, ["Mace", "Axe"]);
+  assert.deepEqual(build.selectedLegends, [
+    "LegendaryDemon",
+    "LegendaryEntity",
+  ]);
+  assert.equal(build.startingLegend, "LegendaryEntity");
+  assert.equal(build.startingWeaponSet, 2);
+});
+
 test("Necromancer preset builds keep rotation data separate", async () => {
   const manifest = JSON.parse(await readFile(
     new URL("../Builds/necromancer-manifest.json", import.meta.url),
@@ -740,9 +774,14 @@ test("weapon actions stay ordered beside the stacked weapon sets", () => {
     ["Swap Weapons"],
   );
 
-  const html = weaponPaletteSectionHtml(["<div>W1</div>", "<div>W2</div>"], "<div>Act</div>");
+  const html = weaponPaletteSectionHtml(
+    ["<div>W1</div>", "<div>W2</div>"],
+    "<div>Act</div>",
+    "<div>Legends</div>",
+  );
   assert.match(html, /data-role="weapon-palette-section"/);
   assert.equal(html.indexOf("weapon-set-stack") < html.indexOf("Act"), true);
+  assert.equal(html.indexOf("Act") < html.indexOf("Legends"), true);
 });
 
 test("Engineer weapon swap stays visible as a state-gated kit exit", async () => {

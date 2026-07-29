@@ -1,0 +1,877 @@
+{
+  "name": "wait combat start interrupt and instant",
+  "rotation": [
+    {
+      "type": "cast",
+      "skillId": 10168
+    },
+    {
+      "type": "cast",
+      "skillId": 10200,
+      "concurrentOffsetMs": 100
+    },
+    {
+      "type": "combat-start"
+    },
+    {
+      "type": "wait",
+      "durationMs": 250
+    }
+  ],
+  "config": {
+    "specialization": "Core",
+    "primaryWeapon": "Scepter"
+  },
+  "expected": {
+    "exact": {
+      "activeWeaponSet": 1,
+      "ammo": {
+        "Dodge / Mirage Cloak": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 6.666666666666667
+        },
+        "Jaunt": {
+          "charges": 3,
+          "maximum": 3,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Lingering Thoughts": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 4.8
+        },
+        "Lively Lute": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 9.6
+        },
+        "Mantra of Recovery": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Power Spike": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Psychic Force": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Tale of the Honorable Rogue": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 20
+        }
+      },
+      "cooldowns": {
+        "Blink": {
+          "readyAt": 16100,
+          "remaining": 14000
+        },
+        "Confusing Images": {
+          "readyAt": 9050,
+          "remaining": 6950
+        }
+      },
+      "dpsWindow": 0.25,
+      "duration": 2.1,
+      "events": [
+        {
+          "__order": 0,
+          "amount": 3,
+          "at": 0,
+          "created": [
+            {
+              "id": 1,
+              "weapon": "Scepter"
+            },
+            {
+              "id": 2,
+              "weapon": "Scepter"
+            },
+            {
+              "id": 3,
+              "weapon": "Scepter"
+            }
+          ],
+          "reason": "initial",
+          "resource": "clones",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "resource",
+          "type": "resource",
+          "value": 3
+        },
+        {
+          "__order": 1,
+          "actorType": "player",
+          "at": 0,
+          "endsAt": 1.85,
+          "fullEndsAt": 1.85,
+          "interrupted": false,
+          "name": "Confusing Images",
+          "rechargeReadyAt": 9.05,
+          "schemaVersion": 1,
+          "skillId": 10168,
+          "skillName": "Confusing Images",
+          "source": "mesmer",
+          "sourceId": 10168,
+          "type": "action"
+        },
+        {
+          "__order": 2,
+          "actorType": "player",
+          "at": 0.1,
+          "endsAt": 0.1,
+          "fullEndsAt": 0.1,
+          "interrupted": false,
+          "name": "Blink",
+          "rechargeReadyAt": 16.1,
+          "schemaVersion": 1,
+          "skillId": 10200,
+          "skillName": "Blink",
+          "source": "mesmer",
+          "sourceId": 10200,
+          "type": "action"
+        },
+        {
+          "__order": 3,
+          "at": 0.1,
+          "schemaVersion": 1,
+          "skillName": "Blink",
+          "source": "Mesmer",
+          "sourceId": "Blink",
+          "type": "peitha"
+        },
+        {
+          "__order": 4,
+          "actorType": "player",
+          "at": 0.2642857142857143,
+          "blade": false,
+          "coefficient": 0.76,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Confusing Images",
+          "schemaVersion": 1,
+          "skillId": 10168,
+          "skillName": "Confusing Images",
+          "skillWeapon": "Scepter",
+          "source": "Player",
+          "sourceId": 10168,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "scepter",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 11,
+          "actorType": "player",
+          "at": 0.2642857142857143,
+          "condition": "Confusion",
+          "duration": 7,
+          "name": "Confusing Images — Confusion",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 5,
+          "actorType": "player",
+          "at": 0.5285714285714286,
+          "blade": false,
+          "coefficient": 0.76,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Confusing Images",
+          "schemaVersion": 1,
+          "skillId": 10168,
+          "skillName": "Confusing Images",
+          "skillWeapon": "Scepter",
+          "source": "Player",
+          "sourceId": 10168,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "scepter",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 12,
+          "actorType": "player",
+          "at": 0.5285714285714286,
+          "condition": "Confusion",
+          "duration": 7,
+          "name": "Confusing Images — Confusion",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 6,
+          "actorType": "player",
+          "at": 0.7928571428571429,
+          "blade": false,
+          "coefficient": 0.76,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Confusing Images",
+          "schemaVersion": 1,
+          "skillId": 10168,
+          "skillName": "Confusing Images",
+          "skillWeapon": "Scepter",
+          "source": "Player",
+          "sourceId": 10168,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "scepter",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 13,
+          "actorType": "player",
+          "at": 0.7928571428571429,
+          "condition": "Confusion",
+          "duration": 7,
+          "name": "Confusing Images — Confusion",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 7,
+          "actorType": "player",
+          "at": 1.0571428571428572,
+          "blade": false,
+          "coefficient": 0.76,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Confusing Images",
+          "schemaVersion": 1,
+          "skillId": 10168,
+          "skillName": "Confusing Images",
+          "skillWeapon": "Scepter",
+          "source": "Player",
+          "sourceId": 10168,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "scepter",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 14,
+          "actorType": "player",
+          "at": 1.0571428571428572,
+          "condition": "Confusion",
+          "duration": 7,
+          "name": "Confusing Images — Confusion",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 8,
+          "actorType": "player",
+          "at": 1.3214285714285714,
+          "blade": false,
+          "coefficient": 0.76,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Confusing Images",
+          "schemaVersion": 1,
+          "skillId": 10168,
+          "skillName": "Confusing Images",
+          "skillWeapon": "Scepter",
+          "source": "Player",
+          "sourceId": 10168,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "scepter",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 15,
+          "actorType": "player",
+          "at": 1.3214285714285714,
+          "condition": "Confusion",
+          "duration": 7,
+          "name": "Confusing Images — Confusion",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 9,
+          "actorType": "player",
+          "at": 1.5857142857142859,
+          "blade": false,
+          "coefficient": 0.76,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Confusing Images",
+          "schemaVersion": 1,
+          "skillId": 10168,
+          "skillName": "Confusing Images",
+          "skillWeapon": "Scepter",
+          "source": "Player",
+          "sourceId": 10168,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "scepter",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 16,
+          "actorType": "player",
+          "at": 1.5857142857142859,
+          "condition": "Confusion",
+          "duration": 7,
+          "name": "Confusing Images — Confusion",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 10,
+          "actorType": "player",
+          "at": 1.85,
+          "blade": false,
+          "coefficient": 0.76,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Confusing Images",
+          "schemaVersion": 1,
+          "skillId": 10168,
+          "skillName": "Confusing Images",
+          "skillWeapon": "Scepter",
+          "source": "Player",
+          "sourceId": 10168,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "scepter",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 17,
+          "actorType": "player",
+          "at": 1.85,
+          "condition": "Confusion",
+          "duration": 7,
+          "name": "Confusing Images — Confusion",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 18,
+          "action": "combat-start",
+          "at": 1.85,
+          "schemaVersion": 1,
+          "source": "platform",
+          "sourceId": "combat-start",
+          "type": "combat_start"
+        },
+        {
+          "__order": 19,
+          "actorType": "summon",
+          "at": 2,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.3,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Ether Bolt",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "skillWeapon": "Scepter",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 34
+        },
+        {
+          "__order": 20,
+          "actorType": "summon",
+          "at": 2,
+          "cloneId": 1,
+          "condition": "Torment",
+          "duration": 4,
+          "name": "Clone: Ether Bolt — Torment",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 21,
+          "actorType": "summon",
+          "at": 2.0001,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.3,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Ether Bolt",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "skillWeapon": "Scepter",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 34
+        },
+        {
+          "__order": 22,
+          "actorType": "summon",
+          "at": 2.0001,
+          "cloneId": 2,
+          "condition": "Torment",
+          "duration": 4,
+          "name": "Clone: Ether Bolt — Torment",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 23,
+          "actorType": "summon",
+          "at": 2.0002,
+          "blade": false,
+          "cloneId": 3,
+          "coefficient": 0.3,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Ether Bolt",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "skillWeapon": "Scepter",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 34
+        },
+        {
+          "__order": 24,
+          "actorType": "summon",
+          "at": 2.0002,
+          "cloneId": 3,
+          "condition": "Torment",
+          "duration": 4,
+          "name": "Clone: Ether Bolt — Torment",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "stacks": 1,
+          "type": "condition"
+        }
+      ],
+      "profession": {
+        "autoattackChains": {
+          "10170": 10170,
+          "10289": 10289,
+          "44791": 44791,
+          "73154": 73154
+        },
+        "availableAmbush": null,
+        "availableFlips": {
+          "Power Spike": {
+            "availableAt": 0,
+            "expiresAt": null,
+            "persistent": true,
+            "remaining": null
+          }
+        },
+        "clarityRemaining": 0,
+        "continuumActive": false,
+        "continuumRemaining": 0,
+        "counterspellAvailable": false,
+        "resource": 3,
+        "resourceDefinition": {
+          "maximum": 3,
+          "plural": "clones",
+          "singular": "clone"
+        }
+      },
+      "resolvedEvents": [
+        {
+          "__order": 10,
+          "actorType": "player",
+          "at": 1.85,
+          "blade": false,
+          "coefficient": 0.76,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Confusing Images",
+          "schemaVersion": 1,
+          "skillId": 10168,
+          "skillName": "Confusing Images",
+          "skillWeapon": "Scepter",
+          "source": "Player",
+          "sourceId": 10168,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "scepter",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 17,
+          "activeDuration": 0.25,
+          "actorType": "player",
+          "at": 1.85,
+          "condition": "Confusion",
+          "damageTicks": [
+            {
+              "at": 2.1,
+              "fraction": 0.25
+            }
+          ],
+          "damagingStackSeconds": 0.25,
+          "duration": 7,
+          "effectiveDuration": 9.333333333333332,
+          "expiresAt": 2.1,
+          "name": "Confusing Images — Confusion",
+          "naturalExpiresAt": 11.183333333333332,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Confusing Images",
+          "source": "Player",
+          "sourceId": "Confusing Images",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 19,
+          "actorType": "summon",
+          "at": 2,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.3,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Ether Bolt",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "skillWeapon": "Scepter",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 34
+        },
+        {
+          "__order": 20,
+          "activeDuration": 0.10000000000000009,
+          "actorType": "summon",
+          "at": 2,
+          "cloneId": 1,
+          "condition": "Torment",
+          "damageTicks": [
+            {
+              "at": 2.1,
+              "fraction": 0.10000000000000009
+            }
+          ],
+          "damagingStackSeconds": 0.10000000000000009,
+          "duration": 4,
+          "effectiveDuration": 5.333333333333333,
+          "expiresAt": 2.1,
+          "name": "Clone: Ether Bolt — Torment",
+          "naturalExpiresAt": 7.333333333333333,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 21,
+          "actorType": "summon",
+          "at": 2.0001,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.3,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Ether Bolt",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "skillWeapon": "Scepter",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 34
+        },
+        {
+          "__order": 22,
+          "activeDuration": 0.09989999999999988,
+          "actorType": "summon",
+          "at": 2.0001,
+          "cloneId": 2,
+          "condition": "Torment",
+          "damageTicks": [
+            {
+              "at": 2.1,
+              "fraction": 0.09989999999999988
+            }
+          ],
+          "damagingStackSeconds": 0.09989999999999988,
+          "duration": 4,
+          "effectiveDuration": 5.333333333333333,
+          "expiresAt": 2.1,
+          "name": "Clone: Ether Bolt — Torment",
+          "naturalExpiresAt": 7.333433333333334,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "stacks": 1,
+          "type": "condition"
+        },
+        {
+          "__order": 23,
+          "actorType": "summon",
+          "at": 2.0002,
+          "blade": false,
+          "cloneId": 3,
+          "coefficient": 0.3,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Ether Bolt",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "skillWeapon": "Scepter",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 34
+        },
+        {
+          "__order": 24,
+          "activeDuration": 0.09980000000000011,
+          "actorType": "summon",
+          "at": 2.0002,
+          "cloneId": 3,
+          "condition": "Torment",
+          "damageTicks": [
+            {
+              "at": 2.1,
+              "fraction": 0.09980000000000011
+            }
+          ],
+          "damagingStackSeconds": 0.09980000000000011,
+          "duration": 4,
+          "effectiveDuration": 5.333333333333333,
+          "expiresAt": 2.1,
+          "name": "Clone: Ether Bolt — Torment",
+          "naturalExpiresAt": 7.3335333333333335,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Ether Bolt",
+          "source": "Clone",
+          "sourceId": "Clone: Ether Bolt",
+          "stacks": 1,
+          "type": "condition"
+        }
+      ],
+      "steps": [
+        {
+          "actualStart": 0,
+          "end": 1850,
+          "fullCastMs": 1850,
+          "interrupted": false,
+          "ri": 0,
+          "skill": "Confusing Images",
+          "start": 0
+        },
+        {
+          "actualStart": 100,
+          "end": 100,
+          "fullCastMs": 0,
+          "interrupted": false,
+          "ri": 1,
+          "skill": "Blink",
+          "start": 100
+        },
+        {
+          "end": 1850,
+          "ri": 2,
+          "skill": "Combat Start",
+          "start": 1850
+        },
+        {
+          "end": 2100,
+          "ri": 3,
+          "skill": "Wait",
+          "start": 1850
+        }
+      ],
+      "warnings": []
+    },
+    "damage": {
+      "conditionDamage": 115.38760625,
+      "dps": 13220.012455364707,
+      "events": [
+        {
+          "created": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      "resolvedEvents": [
+        {
+          "damage": 3085.187579074757
+        },
+        {
+          "damage": 44.47109375,
+          "damageTicks": [
+            {
+              "damage": 44.47109375
+            }
+          ]
+        },
+        {
+          "damage": 34.80930950547335
+        },
+        {
+          "damage": 23.662500000000023,
+          "damageTicks": [
+            {
+              "damage": 23.662500000000023
+            }
+          ]
+        },
+        {
+          "damage": 34.80930950547335
+        },
+        {
+          "damage": 23.638837499999973,
+          "damageTicks": [
+            {
+              "damage": 23.638837499999973
+            }
+          ]
+        },
+        {
+          "damage": 34.80930950547335
+        },
+        {
+          "damage": 23.615175000000026,
+          "damageTicks": [
+            {
+              "damage": 23.615175000000026
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {},
+        {},
+        {},
+        {}
+      ],
+      "strikeDamage": 3189.615507591177,
+      "totalDamage": 3305.003113841177
+    }
+  }
+}

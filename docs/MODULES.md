@@ -266,25 +266,31 @@ Mesmer, Guardian, and Necromancer use the same files for shared concepts:
 
 ### Mesmer-Specific Mechanics
 
+- [mesmer-supplemental-skills.js](js/professions/mesmer/data/mesmer-supplemental-skills.js) — positive-ID ambush and flip identity omitted from the API snapshot.
+- [trait-coverage.js](js/professions/mesmer/data/trait-coverage.js) — validated disposition for every catalog trait.
 - [contract.js](js/professions/mesmer/mechanics/contract.js) — standard
-  profession contract composition, task registration, and Mesmer-specific
+  profession hooks, scheduler-local runtime construction, typed tasks, and
   chain-preservation policy.
-- [illusions.js](js/professions/mesmer/mechanics/illusions.js) — task-driven
+- [handler-mechanics.js](js/professions/mesmer/mechanics/handler-mechanics.js) — stable-ID handler classification and flip relationships.
+- [handlers.js](js/professions/mesmer/mechanics/specific/handlers.js) — registered augment/replace cast strategies.
+- [availability.js](js/professions/mesmer/mechanics/availability.js) — pure scheduler and palette availability predicates.
+- [illusions.js](js/professions/mesmer/mechanics/specific/illusions.js) — task-driven
   clone attack scheduling.
-- [resources.js](js/professions/mesmer/mechanics/resources.js) — clone, blade,
+- [resources.js](js/professions/mesmer/mechanics/specific/resources.js) — clone, blade,
   and note gains.
-- [continuum.js](js/professions/mesmer/mechanics/continuum.js) — Continuum
+- [continuum.js](js/professions/mesmer/mechanics/specific/continuum.js) — Continuum
   checkpoint and restoration behavior.
-- [expected-procs.js](js/professions/mesmer/mechanics/expected-procs.js) —
+- [expected-procs.js](js/professions/mesmer/mechanics/specific/expected-procs.js) —
   deterministic scheduling-relevant proc progress.
-- [profession-actions.js](js/professions/mesmer/mechanics/profession-actions.js) — shatters, phantasms, instruments, and specialization resources.
-- [skill-effects.js](js/professions/mesmer/mechanics/skill-effects.js) — Mesmer-specific declarative effect and handler helpers used by the mechanics map.
-- [mirage.js](js/professions/mesmer/mechanics/mirage.js) — Mirage Cloak and ambush behavior.
-- [trait-rules.js](js/professions/mesmer/mechanics/trait-rules.js) — Mesmer resolver reactions.
+- [profession-actions.js](js/professions/mesmer/mechanics/specific/profession-actions.js) — shatters, phantasms, instruments, and specialization resources.
+- [skill-effects.js](js/professions/mesmer/mechanics/specific/skill-effects.js) — exceptional cast profiles selected by registered handler metadata.
+- [mirage.js](js/professions/mesmer/mechanics/specific/mirage.js) — Mirage Cloak and ambush behavior.
+- [trait-rules.js](js/professions/mesmer/mechanics/specific/trait-rules.js) — Mesmer resolver reactions.
 
-Mesmer expresses its complex cast behavior through these feature modules rather
-than a single `handlers.js`; the shared `handlers.js` role is used by Guardian
-and Necromancer where an imperative handler file is needed.
+Ordinary effects remain in the canonical `effects` array and use shared
+scheduling. Replacing handlers have empty canonical effects and retain their
+profession-owned profile as `mesmerEffects`. Completion and future state
+changes remain chronological through lifecycle hooks and `mesmer.*` tasks.
 
 ## Test fixtures
 

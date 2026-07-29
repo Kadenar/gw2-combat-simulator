@@ -570,6 +570,10 @@ test("Guardian palettes keep inactive tome and forge skills visible", () => {
     professionState: { radiantForge: true },
   });
   assert.deepEqual(
+    inactiveForgeGroups.map(group => group.stackId),
+    ["luminary-profession", "luminary-profession"],
+  );
+  assert.deepEqual(
     activeForgeGroups.map(group => group.skillIds),
     inactiveForgeGroups.map(group => group.skillIds),
   );

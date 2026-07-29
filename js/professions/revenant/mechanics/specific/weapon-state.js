@@ -11,6 +11,11 @@ import { emitRevenantState } from "./shared.js";
 /** Advances or resets the active weapon autoattack chain after a cast. */
 export function updateRevenantWeaponState(context, skill) {
   const state = context.state.profession;
+  if (skill.id === ID.ABYSSAL_STRIKE) {
+    state.abyssalStrikeSecondCast = !state.abyssalStrikeSecondCast;
+  } else if (skill.type === "Weapon" || Number(skill.castTimeMs || 0) > 0) {
+    state.abyssalStrikeSecondCast = false;
+  }
   const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];

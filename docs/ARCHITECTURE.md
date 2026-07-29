@@ -70,6 +70,10 @@ Mesmer, Guardian, and Necromancer use the same module roles:
 
 - `data/<profession>-api-metadata.js` is generated presentation and identity
   metadata. It is never a source of coefficients or damaging conditions.
+- `data/<profession>-supplemental-skills.js`, when present, owns identity and
+  presentation for positive-ID skills missing from the generated snapshot.
+- `data/trait-coverage.js` classifies every catalog trait with validated
+  behavioral evidence or an explicit out-of-model reason.
 - `data/traits-data.js` is the only module that exports the flattened runtime
   `TRAITS` collection; it derives that view from specialization metadata.
 - `mechanics/skill-mechanics.js` is the authoritative ID-keyed source for
@@ -161,8 +165,11 @@ profile and must declare an empty `effects` list. The catalog rejects ambiguous
 replacing-handler/nonempty-effect combinations and undeclared effect fields.
 Mesmer clone attacks, resource gains,
 expected procs, and Continuum expiry are profession-owned typed tasks on that
-clock. Phantasms are finite skill handlers. Mesmer does not own a scheduler,
-resolver wrapper, or result builder.
+clock. Mesmer selects every exceptional cast through a stable-ID handler and
+stores scheduler-local controllers explicitly on its context; it has no
+all-skills scheduling hook or module-level runtime registry. Scheduler and UI
+availability share pure profession predicates. Mesmer does not own a
+scheduler, resolver wrapper, or result builder.
 
 ## Events
 
@@ -301,8 +308,10 @@ wrong-profession and future-version errors.
 ## Included professions
 
 - `mesmer`: native profession-contract implementation using the shared
-  canonical generated/mechanics/override catalog pipeline, with specialized
-  clone, phantasm, shatter, Continuum Split, and Mirage scheduling.
+  canonical generated/supplemental/mechanics catalog pipeline. Shared
+  declarative scheduling owns ordinary effects; stable-ID handlers and
+  namespaced tasks own clones, phantasms, shatters, instruments, Continuum
+  Split, and Mirage behavior.
 - `elementalist`: direct reference-engine port exposed through an
   `elementalistProfession` contract adapter.
 - `guardian`: declarative shared-engine implementation with a reproducible

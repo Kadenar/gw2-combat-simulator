@@ -32,6 +32,7 @@ import { buildScheduledEventStream } from "../js/platform/engine/scheduled-event
 import {
   augmentSkillHandler,
   replaceSkillHandler,
+  SKILL_HANDLER_MODES,
 } from "../js/platform/engine/skill-handlers.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
@@ -52,6 +53,12 @@ import {
 } from "../js/professions/mesmer/build.js";
 import { mesmerCatalog } from "../js/professions/mesmer/catalog.js";
 import { mesmerProfession } from "../js/professions/mesmer/definition.js";
+import {
+  MESMER_TRAIT_COVERAGE,
+} from "../js/professions/mesmer/data/trait-coverage.js";
+import {
+  MECHANIC_SKILLS,
+} from "../js/professions/mesmer/mechanics/skill-mechanics.js";
 import { guardianCatalog } from "../js/professions/guardian/catalog.js";
 import { necromancerCatalog } from "../js/professions/necromancer/catalog.js";
 import {
@@ -1647,8 +1654,35 @@ test("Relic of the Shackles strikes five seconds after immobilize with a strict 
       && event.skillName === "Relic of the Shackles",
   );
 
-  assert.deepEqual(procs.map(step => step.start), [0, 10001]);
-  assert.equal(procs.every(step => step.detail === "tethered"), true);
+  assert.deepEqual(
+    procs.map(step => ({
+      start: step.start,
+      detail: step.detail,
+      sourceSkill: step.sourceSkill,
+    })),
+    [
+      {
+        start: 0,
+        detail: "tethered",
+        sourceSkill: "Fixture Immobilize",
+      },
+      {
+        start: 5000,
+        detail: "damage",
+        sourceSkill: "Fixture Immobilize",
+      },
+      {
+        start: 10001,
+        detail: "tethered",
+        sourceSkill: "Fixture Immobilize",
+      },
+      {
+        start: 15001,
+        detail: "damage",
+        sourceSkill: "Fixture Immobilize",
+      },
+    ],
+  );
   assert.deepEqual(
     strikes.map(event => ({
       at: event.at,
@@ -1748,6 +1782,70 @@ async function javascriptFiles(root) {
   }));
   return nested.flat();
 }
+
+test("Mesmer conforms to native handler, identity, and state boundaries", async () => {
+  for (const [handlerId, strategy] of mesmerCatalog.skillHandlers) {
+    assert.ok(handlerId.startsWith("mesmer."));
+    assert.ok(
+      strategy.mode === SKILL_HANDLER_MODES.AUGMENT
+      || strategy.mode === SKILL_HANDLER_MODES.REPLACE,
+    );
+  }
+  for (const skill of mesmerCatalog.skills) {
+    if (!skill.handlerId) continue;
+    const strategy = mesmerCatalog.skillHandlers.get(skill.handlerId);
+    assert.ok(strategy, `${skill.name} has an unresolved handler`);
+    if (strategy.mode === SKILL_HANDLER_MODES.REPLACE) {
+      assert.deepEqual(skill.effects, [], skill.name);
+    }
+  }
+  assert.ok(
+    Object.values(MECHANIC_SKILLS)
+      .flat()
+      .every(skillId => mesmerCatalog.skillsById.has(skillId)),
+  );
+  assert.equal(MESMER_TRAIT_COVERAGE.length, mesmerCatalog.traits.length);
+  assert.ok(
+    Object.keys(mesmerProfession.taskHandlers)
+      .every(type => type.startsWith("mesmer.")),
+  );
+
+  const projected = simulateMesmer(
+    ["Mind Stab"],
+    createDefaultConfig({ specialization: "Core" }),
+  ).endState.profession;
+  assert.deepEqual(JSON.parse(JSON.stringify(projected)), projected);
+
+  const mesmerRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js/professions/mesmer",
+  );
+  const contract = await readFile(
+    path.join(mesmerRoot, "mechanics", "contract.js"),
+    "utf8",
+  );
+  assert.doesNotMatch(contract, /\bscheduleSkill\b/);
+  assert.doesNotMatch(contract, /\bWeakMap\b|mechanics\/runtime\.js/);
+  await assert.rejects(
+    readFile(path.join(mesmerRoot, "mechanics", "runtime.js"), "utf8"),
+    error => error?.code === "ENOENT",
+  );
+
+  const behavioralRoots = [
+    path.join(mesmerRoot, "mechanics"),
+    path.join(mesmerRoot, "resolver"),
+  ];
+  for (const root of behavioralRoots) {
+    for (const file of await javascriptFiles(root)) {
+      const source = await readFile(file, "utf8");
+      assert.doesNotMatch(
+        source,
+        /skill\.name\s*(?:===|!==)|\.has\(skill\.name\)|\[skill\.name\]|skill\.description/,
+        path.relative(mesmerRoot, file),
+      );
+    }
+  }
+});
 
 test("platform import boundaries are profession neutral", async () => {
   const root = path.resolve(
@@ -1865,6 +1963,7 @@ test("declarative professions use the standard mechanics module roles", async ()
     assert.doesNotMatch(mechanics, /apiDamage|apiConditions/);
     if (
       profession === "guardian"
+      || profession === "mesmer"
       || profession === "necromancer"
       || profession === "revenant"
     ) {
@@ -1877,7 +1976,11 @@ test("declarative professions use the standard mechanics module roles", async ()
         "utf8",
       );
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
-      assert.match(handlerMechanics, /export const \w+_HANDLER_MECHANICS\b/);
+      if (profession === "mesmer") {
+        assert.match(handlerMechanics, /export function mesmerHandlerIdFor\b/);
+      } else {
+        assert.match(handlerMechanics, /export const \w+_HANDLER_MECHANICS\b/);
+      }
       assert.match(handlers, /augmentSkillHandler/);
       assert.match(handlers, /replaceSkillHandler/);
     }

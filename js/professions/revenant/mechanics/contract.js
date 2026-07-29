@@ -26,6 +26,14 @@ import {
   completeBeguilingHaze,
   handleConduitAffinityHit,
 } from "./specific/conduit.js";
+import { completeRevenantFollowup } from "./specific/followups.js";
+import {
+  advanceRevenantSpearState,
+  handleAbyssalRazeRechargeReduction,
+  handleCrushingAbyssGain,
+  handleCrushingAbyssWeaponSwap,
+  observeRevenantSpearEvent,
+} from "./specific/spear.js";
 
 /**
  * Pays the skill's Energy cost and captures weapon state at cast start.
@@ -48,6 +56,7 @@ function onCastStart(context, skill) {
  */
 function onCastComplete(context, skill) {
   completeBeguilingHaze(context, skill);
+  completeRevenantFollowup(context, skill);
   completeRevenantWeaponCast(context, skill);
 }
 
@@ -62,6 +71,16 @@ function onCastComplete(context, skill) {
 function afterCast(context, skill) {
   updateRevenantWeaponState(context, skill);
   afterRevenantCast(context, skill);
+}
+
+function advance(context, time) {
+  advanceRevenantEnergy(context, time);
+  advanceRevenantSpearState(context, time);
+}
+
+function onEventScheduled(context, event) {
+  observeRevenantSpearEvent(context, event);
+  observeRevenantEvent(context, event);
 }
 
 /**
@@ -82,7 +101,7 @@ export const revenantCastRules = Object.freeze({
  */
 export const revenantSchedulerHooks = Object.freeze({
   initialize: initializeRevenantTraits,
-  advance: advanceRevenantEnergy,
+  advance,
   onCastStart,
   onCastComplete,
   afterCast,
@@ -97,9 +116,14 @@ export const revenantSchedulerHooks = Object.freeze({
     context.state.profession.legendSwapReadyAt = context.state.time;
     context.state.profession.beguilingHazeReadyAt = context.state.time;
   },
-  onEventScheduled: observeRevenantEvent,
+  onEventScheduled,
   taskHandlers: Object.freeze({
     "revenant.affinity-hit": handleConduitAffinityHit,
+    "revenant.abyssal-raze-recharge":
+      handleAbyssalRazeRechargeReduction,
+    "revenant.crushing-abyss-gain": handleCrushingAbyssGain,
+    "revenant.crushing-abyss-weapon-swap":
+      handleCrushingAbyssWeaponSwap,
     "revenant.upkeep-pulse": handleRevenantUpkeepPulse,
     "revenant.imperial-guard-expire": expireImperialGuard,
   }),
