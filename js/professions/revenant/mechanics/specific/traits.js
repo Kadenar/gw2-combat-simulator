@@ -3,8 +3,8 @@
  *
  * Initializes trait-owned state, modifies cast/recharge durations, applies
  * after-cast boons and resource effects, and reacts to newly scheduled damage,
- * condition, control, buff, and swap events. Resolver-time Impossible Odds and
- * Soulcleave reactions remain in resolver/event-reactions.js.
+ * condition, control, buff, and swap events. Soulcleave reactions remain in
+ * resolver/event-reactions.js.
  */
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -25,6 +25,50 @@ const TWIN_MOON_SKILL_IDS = new Set([
   ID.TWIN_MOON_SWEEP,
   ID.TWIN_MOON_SWEEP_ID_77001,
 ]);
+const IMPOSSIBLE_ODDS_TASK = "revenant.impossible-odds-strike";
+
+function canTriggerImpossibleOdds(event) {
+  return (
+    event.type === "damage" &&
+    Number(event.coefficient || 0) > 0 &&
+    event.skillId !== ID.IMPOSSIBLE_ODDS &&
+    (event.actorType === "player" || event.source === "Sigil")
+  );
+}
+
+/** Emits a delayed Impossible Odds strike when its upkeep and ICD are active. */
+export function handleImpossibleOddsStrike(context, task) {
+  const cause = task.payload.event;
+  const state = context.state.profession;
+  const impossible = context.catalog.skillsById.get(ID.IMPOSSIBLE_ODDS);
+  if (
+    !impossible ||
+    !(state.activeUpkeeps || []).some(
+      (upkeep) => upkeep.skillId === impossible.id,
+    ) ||
+    task.at + context.epsilon <
+      Number(state.traitProcReadyAt.impossibleOdds || 0)
+  )
+    return;
+  const profile = MECHANICS.impossibleOdds;
+  state.traitProcReadyAt.impossibleOdds = task.at + profile.interval;
+  context.emitDerived(cause, {
+    type: "damage",
+    at: task.at + profile.delay,
+    name: "Impossible Odds",
+    skillName: "Impossible Odds",
+    coefficient: profile.coefficient,
+    hits: 1,
+    hitIndex: 1,
+    totalHits: 1,
+    source: "revenant",
+    sourceId: impossible.id,
+    actorType: "effect",
+    skillId: impossible.id,
+    skillWeapon: "Unequipped",
+    canTriggerCriticalSigils: true,
+  });
+}
 
 function emitTraitCondition(
   context,
@@ -423,6 +467,14 @@ export function afterRevenantCast(context, skill) {
  */
 export function observeRevenantEvent(context, event) {
   const state = context.state.profession;
+  if (canTriggerImpossibleOdds(event)) {
+    context.tasks.schedule({
+      id: `${IMPOSSIBLE_ODDS_TASK}:${event.__order}`,
+      type: IMPOSSIBLE_ODDS_TASK,
+      at: event.at,
+      payload: { event },
+    });
+  }
   if (
     context.config.specialization === "Conduit" &&
     event.type === "damage" &&

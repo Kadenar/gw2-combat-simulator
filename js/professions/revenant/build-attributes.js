@@ -59,8 +59,8 @@ export function applyRevenantBuildAttributeRules(
       "Power",
       Number(
         build.assumptions?.playerHealthFraction ??
-        build.playerHealthFraction ??
-        1,
+          build.playerHealthFraction ??
+          1,
       ) > 0.5
         ? 240
         : 0,

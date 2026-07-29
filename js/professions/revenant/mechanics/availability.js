@@ -63,11 +63,7 @@ export function revenantCastAvailability(context, skill) {
   const state = context.state.profession;
   const specialization = String(context.config.specialization || "Core");
   if (skill.id === ID.ABYSSAL_FIRE) {
-    return deny(
-      skill,
-      "revenant.abyssal-fire-hidden",
-      "use Abyssal Strike.",
-    );
+    return deny(skill, "revenant.abyssal-fire-hidden", "use Abyssal Strike.");
   }
   if (
     skill.id === ID.UNYIELDING_IMPACT &&
@@ -240,9 +236,7 @@ export function revenantCastAvailability(context, skill) {
   }
   const cost = effectiveRevenantEnergyCost(context, skill);
   if (state.energy + context.epsilon < cost) {
-    const cooldownReadyAt = Number(
-      context.state.cooldowns.get(skill.id) || 0,
-    );
+    const cooldownReadyAt = Number(context.state.cooldowns.get(skill.id) || 0);
     return deny(
       skill,
       "revenant.insufficient-energy",

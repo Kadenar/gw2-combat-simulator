@@ -49,7 +49,7 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
       }),
     }),
     leviathanStrengthStrikeMultiplier: 1.1,
-    forerunnerOfDeathStrikeMultiplier: 1.25,
+    forerunnerOfDeathStrikeBonus: 0.25,
     forerunnerOfDeathDuration: 10,
     empireDividedPower: 240,
     empireDividedHealthThreshold: 0.5,
@@ -161,8 +161,7 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
       crushingAbyssEffect: freeze({
         id: 72962,
         name: "Crushing Abyss",
-        icon:
-          "https://wiki.guildwars2.com/images/5/52/Abyssal_Raze.png",
+        icon: "https://wiki.guildwars2.com/images/5/52/Abyssal_Raze.png",
       }),
     }),
     rechargeReductionBySkillId: freeze({

@@ -17,6 +17,7 @@ import {
 } from "./specific/weapon-state.js";
 import {
   afterRevenantCast,
+  handleImpossibleOddsStrike,
   initializeRevenantTraits,
   modifyRevenantCastDuration,
   modifyRevenantRechargeDuration,
@@ -126,5 +127,6 @@ export const revenantSchedulerHooks = Object.freeze({
       handleCrushingAbyssWeaponSwap,
     "revenant.upkeep-pulse": handleRevenantUpkeepPulse,
     "revenant.imperial-guard-expire": expireImperialGuard,
+    "revenant.impossible-odds-strike": handleImpossibleOddsStrike,
   }),
 });

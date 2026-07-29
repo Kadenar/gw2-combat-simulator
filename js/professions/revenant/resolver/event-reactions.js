@@ -30,33 +30,6 @@ function kallasFervorLifeSiphonMultiplier(context, at) {
 function reactToDamage(context, event) {
   if (event.actorType !== "player" || !(Number(event.coefficient) > 0)) return;
   const active = activeSkillIds(context);
-  const impossible = skillById(context, ID.IMPOSSIBLE_ODDS);
-  if (
-    impossible &&
-    active.has(impossible.id) &&
-    event.skillId !== impossible.id &&
-    event.at >= Number(context.profession.traitProcReadyAt.impossibleOdds || 0)
-  ) {
-    const profile = MECHANICS.impossibleOdds;
-    context.profession.traitProcReadyAt.impossibleOdds =
-      event.at + profile.interval;
-    enqueueOrdered(context.queue, {
-      type: "damage",
-      at: event.at + profile.delay,
-      name: "Impossible Odds",
-      skillName: "Impossible Odds",
-      coefficient: profile.coefficient,
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      source: "revenant",
-      sourceId: impossible.id,
-      actorType: "effect",
-      skillId: impossible.id,
-      skillWeapon: "Unequipped",
-      triggeredBy: event.skillName,
-    });
-  }
   const soulcleave = skillById(context, ID.SOULCLEAVES_SUMMIT);
   if (
     soulcleave &&

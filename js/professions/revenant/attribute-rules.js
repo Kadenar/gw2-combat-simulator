@@ -110,7 +110,8 @@ function activeBoonCount(context) {
   const active = new Set(
     Object.entries(context.config?.boons || {})
       .filter(([, value]) =>
-        typeof value === "number" ? value > 0 : Boolean(value))
+        typeof value === "number" ? value > 0 : Boolean(value),
+      )
       .map(([kind]) => kind.toLowerCase())
       .filter((kind) => BOONS.has(kind)),
   );
@@ -118,8 +119,11 @@ function activeBoonCount(context) {
     const normalized = String(kind).toLowerCase();
     if (
       BOONS.has(normalized) &&
-      applications.some((application) =>
-        application.at <= context.time && application.expiresAt > context.time)
+      applications.some(
+        (application) =>
+          application.at <= context.time &&
+          application.expiresAt > context.time,
+      )
     ) {
       active.add(normalized);
     }
@@ -138,8 +142,9 @@ function forerunnerOfDeathIsActive(context) {
   if (context.event?.forerunnerOfDeathActive != null) {
     return Boolean(context.event.forerunnerOfDeathActive);
   }
-  return Number(professionState(context).forerunnerOfDeathUntil || 0) >
-    context.time;
+  return (
+    Number(professionState(context).forerunnerOfDeathUntil || 0) > context.time
+  );
 }
 const rules = [
   {
@@ -182,8 +187,7 @@ const rules = [
     operation: "damage-additive",
     amount: (context) => activeBoonCount(context) * 0.01,
     when: (context) =>
-      player(context) &&
-      hasTrait(context, TRAIT.REINFORCED_POTENCY),
+      player(context) && hasTrait(context, TRAIT.REINFORCED_POTENCY),
   },
   {
     id: "revenant.leviathan-strength",
@@ -198,8 +202,8 @@ const rules = [
   {
     id: "revenant.forerunner-of-death",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: MECHANICS.endurance.forerunnerOfDeathStrikeMultiplier,
+    operation: "damage-additive",
+    amount: MECHANICS.endurance.forerunnerOfDeathStrikeBonus,
     when: (context) =>
       player(context) &&
       hasTrait(context, TRAIT.FORERUNNER_OF_DEATH) &&
@@ -391,8 +395,8 @@ function modifyCriticalChance(context, chance) {
 function modifyConditionDuration(context, duration) {
   let modified = duration;
   if (
-    hasTrait(context, TRAIT.PACT_OF_PAIN)
-    && !context.config?.revenantBuildAttributesApplied
+    hasTrait(context, TRAIT.PACT_OF_PAIN) &&
+    !context.config?.revenantBuildAttributesApplied
   ) {
     modified += 0.15;
   }
@@ -412,8 +416,7 @@ function modifyConditionDuration(context, duration) {
     hasTrait(context, TRAIT.BLOOD_FURY) &&
     timedBuff(context, "fury")
   ) {
-    modified +=
-      MECHANICS.renegade.bloodFury.bleedingDurationMultiplier - 1;
+    modified += MECHANICS.renegade.bloodFury.bleedingDurationMultiplier - 1;
   }
   return modified;
 }
@@ -427,8 +430,7 @@ function modifyAttributes(context, attributes) {
       MECHANICS.endurance.empireDividedHealthThreshold
   ) {
     modified.power =
-      Number(modified.power || 0) +
-      MECHANICS.endurance.empireDividedPower;
+      Number(modified.power || 0) + MECHANICS.endurance.empireDividedPower;
   }
   if (hasTrait(context, TRAIT.NOTORIETY)) {
     const baseMight = Math.max(
