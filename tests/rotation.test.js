@@ -35,6 +35,7 @@ import {
 } from '../js/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '../js/professions/mesmer/catalog.js';
 import { mesmerProfession } from '../js/professions/mesmer/definition.js';
+import { toApplicationBuild } from '../js/professions/mesmer/build.js';
 import {
     recalculate,
     simulationConfig,
@@ -1228,7 +1229,7 @@ test('Ineptitude applies confusion for each direct blind on a normal target', ()
     assert.equal(ineptitude[1].skillName, 'Signet of Midnight');
 });
 
-test('Ineptitude uses its three-second interval on defiant targets', () => {
+test('Ineptitude direct blinds ignore the defiant-target interval', () => {
     const defaults = defaultSimulationConfig();
     const result = simulateMesmer(
         ['Chaos Armor', 'Signet of Midnight', { name: '__wait', waitMs: 100 }],
@@ -1248,7 +1249,60 @@ test('Ineptitude uses its three-second interval on defiant targets', () => {
     const ineptitude = result.resolvedEvents.filter(event =>
         event.type === 'condition' && event.name.includes('Ineptitude'));
 
-    assert.equal(ineptitude.length, 1);
+    assert.equal(ineptitude.length, 2);
+});
+
+test('Ineptitude intervals only interrupt-generated blinds on defiant targets', () => {
+    const defaults = defaultSimulationConfig();
+    const result = simulateMesmer(
+        ['Magic Bullet', 'Signet of Humility'],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            selectedTraits: ['Ineptitude'],
+            selectedSkills: ['Signet of Humility'],
+            primaryWeapon: 'Scepter',
+            secondaryWeapon: 'Pistol',
+            initialResource: 0,
+            target: {
+                ...defaults.target,
+                defiant: true,
+                activatingSkills: true,
+            },
+        }),
+    );
+    const ineptitude = result.resolvedEvents.filter(event =>
+        event.type === 'condition' && event.name.includes('Ineptitude'));
+
+    assert.deepEqual(
+        ineptitude.map(event => event.skillName),
+        ['Magic Bullet'],
+    );
+});
+
+test('condition Chronomancer preset retains multi-hit Ineptitude', () => {
+    const saved = JSON.parse(readFileSync(
+        new URL('../Builds/b-condi-chronomancer.json', import.meta.url),
+        'utf8',
+    ));
+    const build = toApplicationBuild({
+        ...saved,
+        rotation: ['Mirror Images', 'Rewinder'],
+    });
+    const app = {
+        build,
+        skillByName: mesmerCatalog.skillsByName,
+        attributeWeaponSet: 1,
+    };
+    recalculate(app);
+    const config = simulationConfig(app);
+    const result = simulateMesmer(build.rotation, config);
+    const ineptitude = result.resolvedEvents.find(event =>
+        event.type === 'condition'
+        && event.skillName === 'Rewinder'
+        && event.name.includes('Ineptitude'));
+
+    assert.equal(config.target.defiant, true);
+    assert.equal(ineptitude?.stacks, 6);
 });
 
 test('Chaos Armor applies three base confusion plus two from Ineptitude', () => {
@@ -4310,6 +4364,44 @@ test('Compounding Power chart series caps at five stacks', () => {
 
     assert.equal(
         Math.max(...series.effects['Compounding Power'].map(point => point.v)),
+        5,
+    );
+});
+
+test('Vulnerability chart series caps at 25 stacks', () => {
+    const series = buildChartSeries({
+        duration: 10,
+        resolvedEvents: [],
+        events: Array.from({ length: 30 }, (_, index) => ({
+            type: 'buff',
+            at: index * 0.01,
+            kind: 'target-vulnerability',
+            duration: 8,
+            stacks: 1,
+        })),
+    }, 100);
+
+    assert.equal(
+        Math.max(...series.effects.Vulnerability.map(point => point.v)),
+        25,
+    );
+});
+
+test("Kalla's Fervor chart series caps at five stacks", () => {
+    const series = buildChartSeries({
+        duration: 10,
+        resolvedEvents: [],
+        events: Array.from({ length: 7 }, (_, index) => ({
+            type: 'buff',
+            at: index * 0.01,
+            kind: 'kallas-fervor',
+            duration: 8,
+            stacks: 1,
+        })),
+    }, 100);
+
+    assert.equal(
+        Math.max(...series.effects["Kalla's Fervor"].map(point => point.v)),
         5,
     );
 });

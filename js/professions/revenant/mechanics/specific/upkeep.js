@@ -8,7 +8,11 @@
  */
 import { emitRevenantState } from "./shared.js";
 import { gw2AlliedPlayerAssumptions } from "../../../../platform/gw2/allied-players.js";
-import { emitRevenantBoon, gainConduitAffinity } from "./conduit.js";
+import {
+  emitLesserEnchantedDaggers,
+  emitRevenantBoon,
+  gainConduitAffinity,
+} from "./conduit.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
 
@@ -275,6 +279,9 @@ export function handleRevenantUpkeepPulse(context, task) {
         1 / allies.strikesPerSecond,
       );
     }
+  }
+  if (skill?.id === ID.IMPOSSIBLE_ODDS) {
+    emitLesserEnchantedDaggers(context, skill, task.at);
   }
   if (
     context.config.specialization === "Conduit" &&

@@ -11,8 +11,14 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
-import { hasRevenantTrait } from "../../state.js";
-import { emitRevenantBoon } from "./conduit.js";
+import {
+  hasRevenantTrait,
+  revenantConduitFormIsActive,
+} from "../../state.js";
+import {
+  applyCosmicWisdomAfterCast,
+  emitRevenantBoon,
+} from "./conduit.js";
 import { revenantCombatActive } from "./legend.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
@@ -287,6 +293,11 @@ export function initializeRevenantTraits(context) {
 /** Applies active trait/state cast-speed changes to a base duration. */
 export function modifyRevenantCastDuration(context, duration) {
   if (
+    context.skill?.id === ID.ABYSSAL_STRIKE &&
+    context.state.profession.abyssalStrikeSecondCast &&
+    context.hasBuff?.("quickness", context.start)
+  ) return 0.46;
+  if (
     context.skill?.handlerId === "revenant.band-together" &&
     isBandTogetherReady(context.state.profession, context.start)
   )
@@ -304,6 +315,39 @@ export function modifyRevenantCastDuration(context, duration) {
 /** Applies trait-specific recharge multipliers after shared Alacrity policy. */
 export function modifyRevenantRechargeDuration(context, duration) {
   const skill = context.skill;
+  if ([ID.SWAP_LEGENDS, ID.SWAP_WEAPONS].includes(skill?.id)) {
+    const base = Math.max(
+      0,
+      Number(skill.cooldown ?? skill.recharge ?? duration),
+    );
+    if (
+      skill.id === ID.SWAP_LEGENDS &&
+      revenantCombatActive(context, context.at) &&
+      hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
+    ) {
+      return base * 0.6;
+    }
+    return base;
+  }
+  if (
+    [ID.BANISH_ENCHANTMENT, ID.BANISH_ENCHANTMENT_ID_78587]
+      .includes(skill?.id) &&
+    revenantConduitFormIsActive(
+      context.state.profession,
+      "Mesmer",
+      // Form-based skill overrides snapshot when the cast begins. A cast
+      // started during Cosmic Wisdom keeps its modified recharge even when
+      // the form expires before the animation finishes.
+      context.start ?? context.at,
+    )
+  ) {
+    const base = MECHANICS.conduit.formOfTheMesmer
+      .banishEnchantmentCooldown;
+    const rate = context.hasBuff?.("alacrity", context.at)
+      ? Number(context.config.alacrityRechargeRate || 1.25)
+      : 1;
+    return base / rate;
+  }
   if (
     skill?.handlerId === "revenant.band-together" &&
     isBandTogetherReady(context.state.profession, context.start) &&
@@ -316,17 +360,12 @@ export function modifyRevenantRechargeDuration(context, duration) {
     hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
   )
     return duration * 0.8;
-  if (
-    skill?.id === ID.SWAP_LEGENDS &&
-    revenantCombatActive(context, context.at) &&
-    hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
-  )
-    return duration * 0.6;
   return duration;
 }
 
 /** Commits trait effects that trigger once a cast's packet handling finishes. */
 export function afterRevenantCast(context, skill) {
+  applyCosmicWisdomAfterCast(context, skill);
   if (
     skill?.slot === "Heal" &&
     hasRevenantTrait(context.config, TRAIT.BATTLE_SCARRED)

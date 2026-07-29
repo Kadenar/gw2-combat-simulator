@@ -1,0 +1,777 @@
+{
+  "name": "clone creation attacks and shatter",
+  "rotation": [
+    {
+      "type": "cast",
+      "skillId": 10202
+    },
+    {
+      "type": "wait",
+      "durationMs": 3000
+    },
+    {
+      "type": "cast",
+      "skillId": 10191
+    }
+  ],
+  "config": {
+    "specialization": "Core",
+    "initialResource": 0
+  },
+  "expected": {
+    "exact": {
+      "activeWeaponSet": 1,
+      "ammo": {
+        "Dodge / Mirage Cloak": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 6.666666666666667
+        },
+        "Jaunt": {
+          "charges": 3,
+          "maximum": 3,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Lingering Thoughts": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 4.8
+        },
+        "Lively Lute": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 9.6
+        },
+        "Mantra of Recovery": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Power Spike": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Psychic Force": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Tale of the Honorable Rogue": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 20
+        }
+      },
+      "cooldowns": {
+        "Mind Wrack": {
+          "readyAt": 12600,
+          "remaining": 9600
+        },
+        "Mirror Images": {
+          "readyAt": 20000,
+          "remaining": 17000
+        }
+      },
+      "dpsWindow": 2.3199,
+      "duration": 3,
+      "events": [
+        {
+          "__order": 0,
+          "actorType": "player",
+          "at": 0,
+          "endsAt": 0,
+          "fullEndsAt": 0,
+          "interrupted": false,
+          "name": "Mirror Images",
+          "rechargeReadyAt": 20,
+          "schemaVersion": 1,
+          "skillId": 10202,
+          "skillName": "Mirror Images",
+          "source": "mesmer",
+          "sourceId": 10202,
+          "type": "action"
+        },
+        {
+          "__order": 1,
+          "amount": 2,
+          "at": 0.0001,
+          "created": [
+            {
+              "id": 1,
+              "weapon": "Dagger"
+            },
+            {
+              "id": 2,
+              "weapon": "Dagger"
+            }
+          ],
+          "reason": "Mirror Images",
+          "resource": "clones",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "resource",
+          "type": "resource",
+          "value": 2
+        },
+        {
+          "__order": 2,
+          "actorType": "summon",
+          "at": 0.6801,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.7,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 3,
+          "actorType": "summon",
+          "at": 0.6802,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.7,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 4,
+          "actorType": "summon",
+          "at": 1.3601,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.7,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 5,
+          "actorType": "summon",
+          "at": 1.3602,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.7,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 6,
+          "actorType": "summon",
+          "at": 2.0401000000000002,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.7,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 7,
+          "actorType": "summon",
+          "at": 2.0402,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.7,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 8,
+          "actorType": "summon",
+          "at": 2.7201000000000004,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.7,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 9,
+          "actorType": "summon",
+          "at": 2.7202,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.7,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 10,
+          "actorType": "player",
+          "at": 3,
+          "endsAt": 3,
+          "fullEndsAt": 3,
+          "interrupted": false,
+          "name": "Mind Wrack",
+          "rechargeReadyAt": 12.6,
+          "schemaVersion": 1,
+          "skillId": 10191,
+          "skillName": "Mind Wrack",
+          "source": "mesmer",
+          "sourceId": 10191,
+          "type": "action"
+        },
+        {
+          "__order": 11,
+          "amount": -2,
+          "at": 3,
+          "reason": "profession mechanic",
+          "resource": "clones",
+          "rotationIndex": 2,
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "resource",
+          "sourceSkill": "Mind Wrack",
+          "type": "resource",
+          "value": 0
+        },
+        {
+          "__order": 12,
+          "actorType": "player",
+          "at": 3,
+          "blade": false,
+          "coefficient": 0.8066666666666666,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Mind Wrack",
+          "schemaVersion": 1,
+          "shatter": true,
+          "skillId": 10191,
+          "skillName": "Mind Wrack",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 10191,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 13,
+          "actorType": "player",
+          "at": 3,
+          "blade": false,
+          "coefficient": 0.8066666666666666,
+          "hitIndex": 2,
+          "hits": 1,
+          "name": "Mind Wrack",
+          "schemaVersion": 1,
+          "shatter": true,
+          "skillId": 10191,
+          "skillName": "Mind Wrack",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 10191,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 14,
+          "actorType": "player",
+          "at": 3,
+          "blade": false,
+          "coefficient": 0.8066666666666666,
+          "hitIndex": 3,
+          "hits": 1,
+          "name": "Mind Wrack",
+          "schemaVersion": 1,
+          "shatter": true,
+          "skillId": 10191,
+          "skillName": "Mind Wrack",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 10191,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 15,
+          "at": 3,
+          "detail": "2 clones spent",
+          "name": "Mind Wrack",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "Mind Wrack",
+          "type": "marker"
+        }
+      ],
+      "profession": {
+        "autoattackChains": {
+          "10170": 10170,
+          "10289": 10289,
+          "44791": 44791,
+          "73154": 73154
+        },
+        "availableAmbush": null,
+        "availableFlips": {
+          "Power Spike": {
+            "availableAt": 0,
+            "expiresAt": null,
+            "persistent": true,
+            "remaining": null
+          }
+        },
+        "clarityRemaining": 0,
+        "continuumActive": false,
+        "continuumRemaining": 0,
+        "counterspellAvailable": false,
+        "resource": 0,
+        "resourceDefinition": {
+          "maximum": 3,
+          "plural": "clones",
+          "singular": "clone"
+        }
+      },
+      "resolvedEvents": [
+        {
+          "__order": 2,
+          "actorType": "summon",
+          "at": 0.6801,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.7,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 3,
+          "actorType": "summon",
+          "at": 0.6802,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.7,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 4,
+          "actorType": "summon",
+          "at": 1.3601,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.7,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 5,
+          "actorType": "summon",
+          "at": 1.3602,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.7,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 6,
+          "actorType": "summon",
+          "at": 2.0401000000000002,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.7,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 7,
+          "actorType": "summon",
+          "at": 2.0402,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.7,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 8,
+          "actorType": "summon",
+          "at": 2.7201000000000004,
+          "blade": false,
+          "cloneId": 1,
+          "coefficient": 0.7,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 9,
+          "actorType": "summon",
+          "at": 2.7202,
+          "blade": false,
+          "cloneId": 2,
+          "coefficient": 0.7,
+          "criticalChance": 0.6214285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Clone: Flying Cutter",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Clone: Flying Cutter",
+          "skillWeapon": "Dagger",
+          "source": "Clone",
+          "sourceId": "Clone: Flying Cutter",
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 26.5
+        },
+        {
+          "__order": 12,
+          "actorType": "player",
+          "at": 3,
+          "blade": false,
+          "coefficient": 0.8066666666666666,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Mind Wrack",
+          "schemaVersion": 1,
+          "shatter": true,
+          "skillId": 10191,
+          "skillName": "Mind Wrack",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 10191,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 13,
+          "actorType": "player",
+          "at": 3,
+          "blade": false,
+          "coefficient": 0.8066666666666666,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 2,
+          "hits": 1,
+          "name": "Mind Wrack",
+          "schemaVersion": 1,
+          "shatter": true,
+          "skillId": 10191,
+          "skillName": "Mind Wrack",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 10191,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 14,
+          "actorType": "player",
+          "at": 3,
+          "blade": false,
+          "coefficient": 0.8066666666666666,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 3,
+          "hits": 1,
+          "name": "Mind Wrack",
+          "schemaVersion": 1,
+          "shatter": true,
+          "skillId": 10191,
+          "skillName": "Mind Wrack",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 10191,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        }
+      ],
+      "steps": [
+        {
+          "actualStart": 0,
+          "end": 0,
+          "fullCastMs": 0,
+          "interrupted": false,
+          "ri": 0,
+          "skill": "Mirror Images",
+          "start": 0
+        },
+        {
+          "end": 3000,
+          "ri": 1,
+          "skill": "Wait",
+          "start": 0
+        },
+        {
+          "actualStart": 3000,
+          "end": 3000,
+          "fullCastMs": 0,
+          "interrupted": false,
+          "ri": 2,
+          "skill": "Mind Wrack",
+          "start": 3000
+        }
+      ],
+      "warnings": []
+    },
+    "damage": {
+      "conditionDamage": 0,
+      "dps": 4452.919561825588,
+      "events": [
+        {},
+        {
+          "created": [
+            {},
+            {}
+          ]
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      "resolvedEvents": [
+        {
+          "damage": 63.305165816326536
+        },
+        {
+          "damage": 63.305165816326536
+        },
+        {
+          "damage": 63.305165816326536
+        },
+        {
+          "damage": 63.305165816326536
+        },
+        {
+          "damage": 63.305165816326536
+        },
+        {
+          "damage": 63.305165816326536
+        },
+        {
+          "damage": 63.305165816326536
+        },
+        {
+          "damage": 63.305165816326536
+        },
+        {
+          "damage": 3274.628921649523
+        },
+        {
+          "damage": 3274.628921649523
+        },
+        {
+          "damage": 3274.628921649523
+        }
+      ],
+      "steps": [
+        {},
+        {},
+        {}
+      ],
+      "strikeDamage": 10330.328091479181,
+      "totalDamage": 10330.328091479181
+    }
+  }
+}

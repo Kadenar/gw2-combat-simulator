@@ -18,6 +18,7 @@ import { revenantConduitSkillHandlers } from "./conduit.js";
 import { revenantAssassinRenegadeSkillHandlers } from "./assassin-renegade.js";
 import { revenantUpkeepSkillHandlers } from "./upkeep.js";
 import { revenantCoreSkillHandlers } from "./core.js";
+import { revenantSpearSkillHandlers } from "./spear.js";
 
 function augmentAfter(handler) {
   return augmentSkillHandler(null, { afterEffects: handler });
@@ -83,6 +84,13 @@ export const revenantSkillHandlers = Object.freeze({
   ),
   "revenant.facet-consume": augmentAfter(
     revenantUpkeepSkillHandlers["revenant.facet-consume"],
+  ),
+  "revenant.spear-recharge": augmentSkillHandler(null, {
+    afterEffect:
+      revenantSpearSkillHandlers["revenant.spear-recharge"],
+  }),
+  "revenant.abyssal-raze": replaceBefore(
+    revenantSpearSkillHandlers["revenant.abyssal-raze"],
   ),
   "revenant.ancient-echo": augmentAfter(
     revenantConduitSkillHandlers["revenant.ancient-echo"],

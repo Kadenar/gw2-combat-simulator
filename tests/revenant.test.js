@@ -115,6 +115,57 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
   );
   assert.equal(REVENANT_SKILL_MECHANICS[28406].castTimeMs, 1000);
   assert.equal(REVENANT_SKILL_MECHANICS[28406].effects[1].condition, "Vulnerability");
+  const echoingEruption = revenantCatalog.skillsById.get(
+    SKILL.ECHOING_ERUPTION,
+  );
+  assert.equal(echoingEruption.cooldown, 8);
+  assert.equal(echoingEruption.ammo, 0);
+  assert.equal(echoingEruption.ammoRecharge, 0);
+  for (const [skillId, castTimeMs] of [
+    [SKILL.HEX_EATER_VORTEX, 520],
+  ]) {
+    assert.equal(
+      revenantCatalog.skillsById.get(skillId).castTimeMs,
+      castTimeMs,
+    );
+  }
+  for (const [skillId, castTimeMs, quicknessCastTimeMs] of [
+    [SKILL.SEARING_FISSURE, 750, 600],
+    [SKILL.TEMPORAL_RIFT, 500, 560],
+    [SKILL.ECHOING_ERUPTION, 750, 960],
+    [SKILL.MISERY_SWIPE, 250, 440],
+    [SKILL.ANGUISH_SWIPE, 500, 360],
+    [SKILL.MANIFEST_TOXIN, 500, 560],
+    [SKILL.ABYSSAL_RAZE, 750, 600],
+    [SKILL.ABYSSAL_BLOT, 1000, 800],
+    [SKILL.CALL_TO_ANGUISH, 750, 820],
+    [SKILL.RELEASE_POTENTIAL_MESMER, 500, 440],
+    [SKILL.EMBRACE_THE_DARKNESS, 500, 440],
+    [SKILL.BANISH_ENCHANTMENT, 500, 440],
+    [SKILL.UNYIELDING_IMPACT, 1000, 920],
+    [SKILL.ABYSSAL_STRIKE, 500, 480],
+    [SKILL.ABYSSAL_BLITZ, 500, 520],
+    [SKILL.ABYSSAL_FORCE, 500, 520],
+  ]) {
+    const skill = revenantCatalog.skillsById.get(skillId);
+    assert.equal(skill.castTimeMs, castTimeMs, `${skill.name} base timing`);
+    assert.equal(
+      skill.quicknessCastTimeMs,
+      quicknessCastTimeMs,
+      `${skill.name} Quickness timing`,
+    );
+  }
+  const abyssalRaze = revenantCatalog.skillsById.get(SKILL.ABYSSAL_RAZE);
+  assert.equal(abyssalRaze.ammo, 3);
+  assert.equal(abyssalRaze.ammoRecharge, 15);
+  assert.equal(
+    revenantCatalog.skillsById.get(SKILL.ABYSSAL_BLITZ).cooldown,
+    10,
+  );
+  assert.equal(
+    revenantCatalog.skillsById.get(SKILL.ABYSSAL_FIRE).simulatorExcluded,
+    true,
+  );
   assert.ok(REVENANT_SUPPLEMENTAL_SKILLS.every(skill =>
     !Object.hasOwn(skill, "effects")
     && !Object.hasOwn(skill, "cooldown")
@@ -228,11 +279,15 @@ test("legend palette renders both selected legends through shared swap cooldown"
   );
   assert.ok(revenantLegendLoadout.paletteGroups(context).every(group =>
     Array.isArray(group.reservedSkillIds)));
+  const rotationGroups = rotationPaletteGroups(
+    { profession: revenantProfession },
+    context,
+  );
   assert.deepEqual(
-    rotationPaletteGroups({ profession: revenantProfession }, context)
-      .map(group => group.id),
+    rotationGroups.map(group => group.id),
     ["revenant-profession"],
   );
+  assert.equal(revenantLegendLoadout.palettePlacement, "after-actions");
   const rotationApp = {
     profession: revenantProfession,
     adapter: { slotLoadout: revenantLegendLoadout },
@@ -282,6 +337,312 @@ test("weapon swap changes the active Revenant weapon set", () => {
   assert.ok(result.events.some(event =>
     event.type === "weapon_set"
     && event.weaponSet === 2));
+});
+
+test("Renegade shortbow skills use supplied casts, packets, and combo data", () => {
+  const expectedSkills = [
+    [SKILL.SHATTERSHOT, 480, 0.65, 1],
+    [SKILL.BLOODBANE_PATH, 760, 1.2, 3],
+    [SKILL.SEVENSHOT, 440, 2.17, 7],
+    [SKILL.SPIRITCRUSH, 400, 1.25, 1],
+    [SKILL.SCORCHRAZOR, 520, 0.03, 1],
+  ];
+  for (const [skillId, castTimeMs, coefficient, hits] of expectedSkills) {
+    const skill = revenantCatalog.skillsById.get(skillId);
+    assert.equal(skill.castTimeMs, castTimeMs);
+    assert.equal(skill.effects[0].coefficient, coefficient);
+    assert.equal(skill.effects[0].hits, hits);
+  }
+
+  for (const skillId of [SKILL.SHATTERSHOT, SKILL.SEVENSHOT]) {
+    const skill = revenantCatalog.skillsById.get(skillId);
+    assert.equal(skill.finisherType, "Projectile");
+    assert.equal(skill.finisherValue, 0.2);
+  }
+  const spiritcrush = revenantCatalog.skillsById.get(SKILL.SPIRITCRUSH);
+  assert.equal(spiritcrush.comboField, "Fire");
+  assert.equal(spiritcrush.duration, 3);
+  assert.equal(spiritcrush.effects[1].coefficient, 0.75);
+  assert.equal(spiritcrush.effects[1].hits, 3);
+
+  const result = simulate("Renegade", [
+    "Shattershot",
+    "Bloodbane Path",
+    "Sevenshot",
+    "Spiritcrush",
+    "Scorchrazor",
+  ], {
+    primaryWeapon: "Shortbow",
+    secondaryWeapon: "",
+    initialEnergy: 100,
+  });
+  assert.equal(result.warnings.length, 0);
+
+  const fieldDamage = result.events.filter(event =>
+    event.type === "damage"
+    && event.skillName === "Spiritcrush"
+    && event.name.includes("Fire Field"));
+  assert.deepEqual(
+    fieldDamage.map(event => [event.at, event.coefficient]),
+    [[3.08, 0.25], [4.08, 0.25], [5.08, 0.25]],
+  );
+  for (const [condition, duration] of [
+    ["Burning", 3],
+    ["Slow", 1.5],
+  ]) {
+    assert.deepEqual(
+      result.events
+        .filter(event =>
+          event.type === "condition"
+          && event.skillName === "Spiritcrush"
+          && event.condition === condition)
+        .map(event => [event.at, event.stacks, event.duration]),
+      [
+        [3.08, 1, duration],
+        [4.08, 1, duration],
+        [5.08, 1, duration],
+      ],
+    );
+  }
+  assert.ok(result.events.some(event =>
+    event.type === "control"
+    && event.skillName === "Scorchrazor"
+    && event.controlKind === "knockdown"));
+});
+
+test("Abyssal Strike owns both spear autoattack timings", () => {
+  const result = simulate("Core", [
+    "Abyssal Strike",
+    "Abyssal Strike",
+    "Abyssal Strike",
+    "Abyssal Strike",
+  ], {
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+    boons: { quickness: true },
+  });
+
+  assert.equal(result.warnings.length, 0);
+  assert.deepEqual(
+    result.steps.map(step => [step.skill, step.start, step.fullCastMs]),
+    [
+      ["Abyssal Strike", 0, 480],
+      ["Abyssal Strike", 480, 460],
+      ["Abyssal Strike", 940, 480],
+      ["Abyssal Strike", 1420, 460],
+    ],
+  );
+  assert.ok(result.events
+    .filter(event => event.type === "damage")
+    .every(event => event.skillName === "Abyssal Strike"));
+
+  const paletteApp = {
+    profession: revenantProfession,
+    skills: revenantCatalog.skills,
+    build: {
+      weapons: ["Spear", ""],
+      alternateWeapons: ["Sword", "Sword"],
+    },
+    adapter: {
+      eliteSpecialization: () => "Core",
+      isSkillAvailable: skill => !skill.simulatorExcluded,
+    },
+  };
+  assert.deepEqual(
+    weaponSkills(paletteApp)
+      .filter(skill => skill.slot === "Weapon_1")
+      .map(skill => skill.name),
+    ["Abyssal Strike"],
+  );
+
+  const hidden = simulate("Core", ["Abyssal Fire"], {
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+  });
+  assert.match(hidden.warnings[0], /use Abyssal Strike/);
+});
+
+test("Revenant spear packets reduce Abyssal Raze count recharge on hit", () => {
+  const result = simulate("Core", [
+    "Abyssal Raze",
+    "Abyssal Strike",
+    "Abyssal Strike",
+    "Abyssal Force",
+    "Abyssal Blitz",
+    "Abyssal Blot",
+  ], {
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+    initialEnergy: 100,
+    boons: { quickness: true },
+  });
+
+  assert.equal(result.warnings.length, 0);
+  const rechargeProcs = result.procSteps
+    .filter(proc => proc.skill.endsWith("Abyssal Raze recharge"));
+  assert.deepEqual(
+    rechargeProcs.map(proc => proc.detail),
+    ["1s", "1s", "5s", "3s", "2s"],
+  );
+  assert.deepEqual(
+    rechargeProcs.map(proc => [proc.sourceSkill, proc.icon]),
+    [
+      SKILL.ABYSSAL_STRIKE,
+      SKILL.ABYSSAL_STRIKE,
+      SKILL.ABYSSAL_FORCE,
+      SKILL.ABYSSAL_BLITZ,
+      SKILL.ABYSSAL_BLOT,
+    ].map(skillId => {
+      const skill = revenantCatalog.skillsById.get(skillId);
+      return [skill.name, skill.icon];
+    }),
+  );
+  const ammo = result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE);
+  assert.equal(ammo.charges, 2);
+  assert.ok(Math.abs(ammo.nextRechargeAt - 3.6) < 1e-9);
+
+  const blitzMines = result.events.filter(event =>
+    event.type === "damage"
+    && event.skillName === "Abyssal Blitz");
+  assert.deepEqual(
+    blitzMines.map(event => event.coefficient),
+    [0.5, 0.5, 0.5],
+  );
+  for (const condition of ["Slow", "Chilled", "Weakness"]) {
+    assert.equal(
+      result.events.filter(event =>
+        event.type === "condition"
+        && event.skillName === "Abyssal Blitz"
+        && event.condition === condition
+        && event.duration === 3).length,
+      3,
+    );
+  }
+
+  assert.ok(result.events.some(event =>
+    event.type === "condition"
+    && event.skillName === "Abyssal Force"
+    && event.condition === "Burning"
+    && event.duration === 8));
+  assert.ok(result.events.some(event =>
+    event.type === "condition"
+    && event.skillName === "Abyssal Force"
+    && event.condition === "Chilled"
+    && event.duration === 2));
+
+  const blotHits = result.events.filter(event =>
+    event.type === "damage"
+    && event.skillName === "Abyssal Blot");
+  assert.equal(blotHits.length, 5);
+  assert.ok(blotHits.every(event => event.coefficient === 0.4));
+  assert.ok(result.events.some(event =>
+    event.type === "condition"
+    && event.skillName === "Abyssal Blot"
+    && event.condition === "Poisoned"
+    && event.duration === 6));
+  assert.ok(result.events.some(event =>
+    event.type === "condition"
+    && event.skillName === "Abyssal Blot"
+    && event.condition === "Chilled"
+    && event.duration === 2));
+  assert.ok(result.events.some(event =>
+    event.type === "control"
+    && event.skillName === "Abyssal Blot"
+    && event.controlKind === "pull"));
+});
+
+test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
+  const result = simulate("Core", [
+    "Abyssal Raze",
+    "Abyssal Raze",
+    "Abyssal Raze",
+    { type: "wait", durationMs: 9100 },
+    "Abyssal Strike",
+  ], {
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+    initialEnergy: 100,
+  });
+
+  assert.equal(result.warnings.length, 0);
+  assert.deepEqual(
+    result.steps.map(step => [step.skill, step.start, step.end]),
+    [
+      ["Abyssal Raze", 0, 750],
+      ["Abyssal Raze", 1750, 2500],
+      ["Abyssal Raze", 3500, 4250],
+      ["Wait", 4250, 13350],
+      ["Abyssal Strike", 13350, 13850],
+    ],
+  );
+  assert.equal(
+    result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt,
+    14.75,
+  );
+  assert.deepEqual(result.endState.cooldowns["Abyssal Raze"], {
+    readyAt: 14750,
+    remaining: 900,
+  });
+});
+
+test("Crushing Abyss scales Raze and triggers at three stacks on weapon swap", () => {
+  const result = simulate("Core", [
+    "Abyssal Raze",
+    "Abyssal Raze",
+    "Abyssal Raze",
+    "Swap Weapons",
+  ], {
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+    weaponSet2Primary: "Sword",
+    weaponSet2Secondary: "Sword",
+    initialEnergy: 100,
+    boons: { quickness: true },
+  });
+
+  assert.equal(result.warnings.length, 0);
+  assert.deepEqual(
+    result.steps
+      .filter(step => step.skill === "Abyssal Raze")
+      .map(step => step.start),
+    [0, 1600, 3200],
+  );
+  const razes = result.events.filter(event =>
+    event.type === "damage"
+    && event.skillName === "Abyssal Raze");
+  assert.deepEqual(
+    razes.map(event => event.coefficient),
+    [1, 1.33, 1.6600000000000001, 1.99],
+  );
+  assert.equal(razes.at(-1).triggeredBy, "Swap Weapons");
+  assert.equal(
+    result.events.filter(event =>
+      event.type === "buff"
+      && event.kind === "crushing-abyss"
+      && event.duration === 10).length,
+    3,
+  );
+  const crushingAbyssEffect =
+    REVENANT_HANDLER_MECHANICS.spear.abyssalRaze.crushingAbyssEffect;
+  assert.deepEqual(
+    result.procSteps
+      .filter(proc => proc.skill === "Crushing Abyss")
+      .map(proc => [proc.sourceSkill, proc.detail, proc.icon]),
+    ["1/3 stacks", "2/3 stacks", "3/3 stacks"].map(detail => [
+      "Abyssal Raze",
+      detail,
+      crushingAbyssEffect.icon,
+    ]),
+  );
+  assert.deepEqual(
+    result.events
+      .filter(event =>
+        event.type === "condition"
+        && event.name === "Abyssal Raze — Crushing Abyss Torment")
+      .map(event => [event.stacks, event.duration]),
+    [[2, 5], [4, 5], [6, 5]],
+  );
+  assert.deepEqual(result.endState.profession.crushingAbyss, []);
 });
 
 test("legend loadout validation requires two legal distinct legends", () => {
@@ -421,6 +782,22 @@ test("energy regenerates continuously and every skill pays its explicit cost", (
     startingLegend: LEGEND.ENTITY,
   });
   assert.match(weaponDenied.warnings[0], /requires 5 energy/);
+});
+
+test("a cooldown-queued Revenant skill recovers Energy before its next cast", () => {
+  const result = simulate("Core", [
+    "Phase Traversal",
+    "Phase Traversal",
+  ]);
+
+  assert.equal(result.warnings.length, 0);
+  assert.deepEqual(
+    result.steps.map((step) => [step.skill, step.start]),
+    [
+      ["Phase Traversal", 0],
+      ["Phase Traversal", 5500],
+    ],
+  );
 });
 
 test("Revenant energy regeneration stops at 50 while out of combat", () => {
@@ -960,6 +1337,15 @@ test("Revenant palette exposes upkeep releases and enforces Energy costs", () =>
     revenantProfession.ui.isPaletteSkillAvailable(lowEnergyContext, phase),
     false,
   );
+  assert.equal(
+    revenantProfession.ui.isPaletteSkillAvailable({
+      ...lowEnergyContext,
+      cooldowns: {
+        "Phase Traversal": { readyAt: 5500, remaining: 5000 },
+      },
+    }, phase),
+    true,
+  );
   assert.match(
     revenantProfession.ui.paletteSkillUnavailableMessage(
       lowEnergyContext,
@@ -975,6 +1361,60 @@ test("Revenant palette exposes upkeep releases and enforces Energy costs", () =>
     paletteSkillView({ results: null }, relinquish).title,
     /Energy cost: 0/,
   );
+});
+
+test("Call to Anguish arms Unyielding Impact in the rotation palette", () => {
+  const config = {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 100,
+    boons: { quickness: true },
+  };
+  const armed = simulate("Core", ["Call to Anguish"], config);
+  assert.equal(armed.steps[0].fullCastMs, 820);
+  const context = {
+    specialization: "Core",
+    build: { ...baseConfig, ...config },
+    professionState: armed.endState.profession,
+  };
+  const demon = revenantLegendLoadout.paletteGroups(context)
+    .find(group => group.label === "Demon");
+  assert.ok(demon.skillIds.includes(SKILL.UNYIELDING_IMPACT));
+  assert.equal(
+    revenantProfession.ui.isPaletteSkillAvailable(
+      context,
+      revenantCatalog.skillsById.get(SKILL.CALL_TO_ANGUISH),
+    ),
+    false,
+  );
+  assert.equal(
+    revenantProfession.ui.isPaletteSkillAvailable(
+      context,
+      revenantCatalog.skillsById.get(SKILL.UNYIELDING_IMPACT),
+    ),
+    true,
+  );
+
+  const consumed = simulate(
+    "Core",
+    ["Call to Anguish", "Unyielding Impact"],
+    config,
+  );
+  assert.deepEqual(consumed.warnings, []);
+  assert.equal(
+    consumed.endState.profession.availableFlips[SKILL.UNYIELDING_IMPACT],
+    undefined,
+  );
+
+  const unavailable = simulate("Core", ["Unyielding Impact"], config);
+  assert.match(unavailable.warnings[0], /cast Call to Anguish first/);
+
+  const insufficient = simulate(
+    "Core",
+    ["Call to Anguish", "Unyielding Impact"],
+    { ...config, initialEnergy: 30, boons: {} },
+  );
+  assert.match(insufficient.warnings[0], /requires 5 energy/);
 });
 
 test("Herald facets expose and consume their active flips", () => {
@@ -1316,9 +1756,10 @@ test("Icerazor packets use player ownership and trigger player equipment", () =>
   assert.ok(result.resolvedEvents
     .filter(event => event.skillName === "Icerazor's Ire")
     .every(event => event.actorType === "player"));
-  assert.equal(result.procSteps.filter(proc =>
+  assert.deepEqual(result.procSteps.filter(proc =>
     proc.type === "relic_proc"
-    && proc.skill === "Relic of the Shackles").length, 1);
+    && proc.skill === "Relic of the Shackles")
+    .map(proc => proc.detail), ["tethered", "damage"]);
   assert.equal(result.resolvedEvents.filter(event =>
     event.type === "damage"
     && event.skillName === "Relic of the Shackles").length, 1);
@@ -2467,6 +2908,166 @@ test("Conduit affinity scales Release Potential and Cosmic Wisdom state", () => 
   }
 });
 
+test("Form of the Mesmer modifies Demon skill costs and Banish cooldown", () => {
+  const blocked = simulate("Conduit", [
+    "Cosmic Wisdom",
+    "Banish Enchantment",
+  ], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 4,
+  });
+  assert.match(blocked.warnings[0], /requires 5 energy/);
+
+  const result = simulate("Conduit", [
+    "Cosmic Wisdom",
+    "Banish Enchantment",
+    "Banish Enchantment",
+  ], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 5,
+  });
+  assert.equal(result.warnings.length, 0);
+  assert.deepEqual(
+    result.steps
+      .filter(step => step.skill === "Banish Enchantment")
+      .map(step => step.start),
+    [0, 5440],
+  );
+  assert.deepEqual(
+    result.events
+      .filter(event =>
+        event.type === "action"
+        && event.skillName === "Banish Enchantment")
+      .map(event => Number((event.rechargeReadyAt - event.fullEndsAt).toFixed(6))),
+    [5, 5],
+  );
+
+  const expiringDuringCast = simulate("Conduit", [
+    "Cosmic Wisdom",
+    "Banish Enchantment",
+    { type: "wait", durationMs: 6300 },
+    "Banish Enchantment",
+    "Banish Enchantment",
+  ], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 100,
+    boons: { quickness: true },
+  });
+  assert.equal(expiringDuringCast.warnings.length, 0);
+  assert.deepEqual(
+    expiringDuringCast.steps
+      .filter(step => step.skill === "Banish Enchantment")
+      .map(step => step.start),
+    [0, 6740, 12180],
+  );
+  assert.deepEqual(
+    expiringDuringCast.events
+      .filter(event =>
+        event.type === "action"
+        && event.skillName === "Banish Enchantment")
+      .map(event => event.rechargeReadyAt),
+    [5.44, 12.18, null],
+  );
+
+  const blockedAnguish = simulate("Conduit", [
+    "Cosmic Wisdom",
+    "Call to Anguish",
+  ], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 9,
+  });
+  assert.match(blockedAnguish.warnings[0], /requires 10 energy/);
+
+  const anguish = simulate("Conduit", [
+    "Cosmic Wisdom",
+    "Call to Anguish",
+    "Unyielding Impact",
+  ], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 10,
+  });
+  assert.equal(anguish.warnings.length, 0);
+  assert.deepEqual(
+    anguish.steps
+      .filter(step =>
+        ["Call to Anguish", "Unyielding Impact"].includes(step.skill))
+      .map(step => step.start),
+    [0, 820],
+  );
+
+  const normalEmbrace = simulate("Core", ["Embrace the Darkness"], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 0,
+  });
+  assert.match(normalEmbrace.warnings[0], /requires 5 energy/);
+
+  const cosmicEmbrace = simulate("Conduit", [
+    "Cosmic Wisdom",
+    "Embrace the Darkness",
+  ], {
+    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+    startingLegend: LEGEND.DEMON,
+    initialEnergy: 0,
+  });
+  assert.equal(cosmicEmbrace.warnings.length, 0);
+  assert.equal(cosmicEmbrace.steps.at(-1).skill, "Embrace the Darkness");
+});
+
+test("Form of the Assassin fires daggers on skills and Impossible Odds pulses", () => {
+  const result = simulate("Conduit", [
+    "Cosmic Wisdom",
+    "Impossible Odds",
+    { type: "wait", durationMs: 3100 },
+  ], {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+    startingLegend: LEGEND.ASSASSIN,
+    initialEnergy: 100,
+  });
+
+  assert.equal(result.warnings.length, 0);
+  const daggers = result.events.filter(event =>
+    event.type === "damage"
+    && event.skillName === "Lesser Enchanted Daggers");
+  assert.deepEqual(daggers.map(event => event.at), [0, 1, 2, 3]);
+  assert.ok(daggers.every(event => event.coefficient === 0.06));
+  assert.ok(daggers.every(event =>
+    event.triggeredBy === "Impossible Odds"));
+});
+
+test("Form of the Dervish follows every Entity skill and doubles Twin Moon", () => {
+  const result = simulate("Conduit", [
+    "Cosmic Wisdom",
+    "Shielding Hands",
+    "Hex-Eater Vortex",
+    "Twin Moon Sweep",
+  ], {
+    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.ENTITY,
+    initialEnergy: 100,
+  });
+
+  assert.equal(result.warnings.length, 0);
+  const scythes = result.events.filter(event =>
+    event.type === "damage"
+    && event.skillName === "Form of the Dervish");
+  assert.deepEqual(
+    scythes.map(event => event.triggeredBy),
+    [
+      "Shielding Hands",
+      "Hex-Eater Vortex",
+      "Twin Moon Sweep",
+      "Twin Moon Sweep",
+    ],
+  );
+  assert.ok(scythes.every(event => event.coefficient === 0.8));
+});
+
 test("Conduit entity skills apply follow-ups and Shared Wisdom effects", () => {
   const beguiling = simulate("Conduit", [
     "Beguiling Haze",
@@ -3006,6 +3607,37 @@ test("Alacrity changes cooldowns but never passive energy regeneration", () => {
   });
   assert.equal(without.endState.profession.energy, 25);
   assert.equal(withAlacrity.endState.profession.energy, 25);
+});
+
+test("Alacrity does not reduce Revenant legend or weapon swap cooldowns", () => {
+  const config = {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
+    startingLegend: LEGEND.ASSASSIN,
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Sword",
+    weaponSet2Primary: "Mace",
+    weaponSet2Secondary: "Axe",
+    boons: { alacrity: true },
+  };
+  const legends = simulate(
+    "Core",
+    ["Swap Legends", "Swap Legends"],
+    config,
+  );
+  assert.deepEqual(
+    legends.steps.map(step => step.start),
+    [0, 10000],
+  );
+
+  const weapons = simulate(
+    "Core",
+    ["Swap Weapons", "Swap Weapons"],
+    config,
+  );
+  assert.deepEqual(
+    weapons.steps.map(step => step.start),
+    [0, 10000],
+  );
 });
 
 test("trait-coverage manifest covers all Revenant traits", () => {

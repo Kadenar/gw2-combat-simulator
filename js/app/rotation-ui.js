@@ -127,9 +127,12 @@ const EFFECT_NAMES = {
     swiftness: 'Swiftness',
     aegis: 'Aegis',
     'target-vulnerability': 'Vulnerability',
+    'kallas-fervor': "Kalla's Fervor",
     'necromancer-soul-barbs': 'Soul Barbs',
 };
 const EFFECT_STACK_CAPS = {
+    Vulnerability: 25,
+    "Kalla's Fervor": 5,
     'Compounding Power': 5,
     'Soul Barbs': 1,
 };
@@ -401,11 +404,16 @@ export function weaponPaletteStackHtml(groups = []) {
         + `style="display:flex;flex-direction:column;align-items:stretch;gap:6px">${content}</div>`;
 }
 
-export function weaponPaletteSectionHtml(weaponGroups = [], actionGroup = '') {
+export function weaponPaletteSectionHtml(
+    weaponGroups = [],
+    actionGroup = '',
+    trailingGroup = '',
+) {
     const weapons = weaponPaletteStackHtml(weaponGroups);
-    if (!weapons && !actionGroup) return '';
+    if (!weapons && !actionGroup && !trailingGroup) return '';
     return `<div class="weapon-palette-section" data-role="weapon-palette-section" `
-        + `style="display:flex;align-items:flex-start;gap:6px">${weapons}${actionGroup}</div>`;
+        + `style="display:flex;align-items:flex-start;gap:6px">`
+        + `${weapons}${actionGroup}${trailingGroup}</div>`;
 }
 
 export function autoattackChainSkillAvailable(skill, chainState = {}) {
@@ -773,6 +781,7 @@ export function renderPalette(app) {
         specialization: spec,
         catalog: app.profession.catalog,
         professionState: professionEndState(app.results),
+        cooldowns: app.results?.endState?.cooldowns || {},
         activeWeaponSet: app.results?.endState?.activeWeaponSet
             || app.build.startingWeaponSet
             || 1,
@@ -828,7 +837,6 @@ export function renderPalette(app) {
     const actions = paletteActionSkills(app, spec);
     const activeWeaponSet = app.results?.endState?.activeWeaponSet || 1;
     const professionState = professionEndState(app.results);
-    const continuumActive = Boolean(professionState.continuumActive);
     const availableFlips = professionState.availableFlips || {};
     const availableAmbush = professionState.availableAmbush || null;
     const autoattackChains = professionState.autoattackChains || {};
@@ -920,7 +928,6 @@ export function renderPalette(app) {
 
     const professionSkillAvailable = skill => {
         if (!professionAllowsPaletteSkill(skill)) return false;
-        if (skill.name === 'Continuum Shift') return continuumActive;
         if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
             return false;
         }
@@ -930,7 +937,6 @@ export function renderPalette(app) {
         if (!professionAllowsPaletteSkill(skill)) {
             return professionPaletteUnavailableMessage(skill);
         }
-        if (skill.name === 'Continuum Shift') return 'Unavailable until Continuum Split is active';
         if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
             return `Unavailable until ${flipParentName(skill)} has been used`;
         }
@@ -950,6 +956,10 @@ export function renderPalette(app) {
                 )).join('')
             }</div>`
         : '';
+    const loadoutAfterActions =
+        app.adapter.slotLoadout?.palettePlacement === 'after-actions';
+    const loadoutBeforeWeapons = loadoutAfterActions ? '' : loadoutStack;
+    const loadoutBesideActions = loadoutAfterActions ? loadoutStack : '';
     const resourceGroupsHtml = activeResourceGroup(app);
     let resourceAnchorRendered = false;
     const stackWithResources = (groupHtml, anchored) => {
@@ -973,7 +983,10 @@ export function renderPalette(app) {
             candidate.className,
         );
         if (!group.stackId) {
-            return stackWithResources(renderGroup(group), group.resourceAnchor);
+            return stackWithResources(
+                renderGroup(group),
+                group.resourceAnchor,
+            );
         }
         if (renderedStackIds.has(group.stackId)) return '';
         renderedStackIds.add(group.stackId);
@@ -996,7 +1009,7 @@ export function renderPalette(app) {
     element.innerHTML =
         professionGroupsHtml +
         unanchoredResourceGroupsHtml +
-        loadoutStack +
+        loadoutBeforeWeapons +
         weaponPaletteSectionHtml(
             weaponPaletteRows(app, activeWeaponSet).map(row => addGroup(
                 app,
@@ -1014,6 +1027,7 @@ export function renderPalette(app) {
                 professionSkillAvailable,
                 professionSkillUnavailableMessage,
             ),
+            loadoutBesideActions,
         ) +
         addGroup(app, 'Skill', selectedWithFlips, '#cbb8ea', utilitySkillAvailable, utilitySkillUnavailableMessage) +
         // Timeline-only controls stay on their own row.

@@ -1,6 +1,27 @@
-# Mesmer data and modeling notes
+# Mesmer implementation and modeling notes
 
 Data snapshot: **2026-07-25**
+
+## Architecture
+
+Mesmer is a native shared-engine profession. `catalog.js` merges generated API
+identity, positive-ID supplemental identity, ID-keyed mechanics, and the three
+negative-ID simulator actions. Ordinary effects use shared declarative
+scheduling. Exceptional shatters, bladesongs, instruments, phantasms,
+ambushes, flips, resources, and Continuum actions select registered
+`mesmer.*` handler strategies by stable ID.
+
+The shared scheduler owns casts, cooldowns, ammo, weapon sets, and canonical
+events. Mesmer state machines remain in `mechanics/specific/` and publish
+future changes through `mesmer.*` typed tasks. Each simulation receives its
+controllers explicitly through scheduler context; there is no module-level
+runtime registry. The shared resolver owns standard damage and conditions,
+while Mesmer resolver reactions only add profession-specific reactions.
+
+Display names are labels. Runtime routing, resource causes, flip
+relationships, trait decisions, palette mechanics, and timing tables use skill
+or trait IDs. Legacy name rotations are resolved at the build migration
+boundary, including specialization-aware handling for duplicate names.
 
 ## Sources
 
@@ -46,7 +67,10 @@ per-skill rotation table.
 
 | Area | Count |
 | --- | ---: |
-| Mesmer skills from the official API | 123 |
+| Mesmer skills from the checked-in official API snapshot | 119 |
+| Positive-ID supplemental skills | 15 |
+| Negative-ID simulator actions | 3 |
+| Canonical catalog skills | 137 |
 | Skills with modeled strike coefficients | 78 |
 | Skills with modeled damaging conditions | 25 |
 | Core trait lines | 5 |
@@ -91,8 +115,8 @@ one PvE scenario rather than adding mutually exclusive values:
 - Spatial Surge uses maximum-range damage.
 - Mirror Blade uses the maximum single-target coefficient.
 - Phantasmal Disenchanter assumes a boonless target.
-- Mind Slash, Ether Bolt, Lacerating Chop, and Psycut represent their complete
-  autoattack chains.
+- Sword, scepter, axe, and spear autoattack steps are separate catalog skills
+  connected by stable chain IDs.
 - Chaos Storm is represented as six strike pulses and one expected poison
   application.
 - Flying Cutter adds Cutter Burst every third cast.
@@ -115,15 +139,14 @@ Shatter Storm gives Split Second two serially recharging ammo charges, and
 Illusionary Reversion refunds one clone after a shatter consumes three.
 Signet of the Ether clears the cooldown of every cataloged phantasm skill.
 
-Phantasm timing uses measured endpoints rather than a generic startup,
+Phantasm timing uses ID-keyed measured endpoints rather than a generic startup,
 attack-duration, and recovery estimate. Every timing is measured from the
 start of the player cast: `damage` is when all phantasm damage is complete and
 `spawn` is when the phantasm becomes a clone. Chronophantasma has separate
 damage-complete and clone-spawn endpoints for its repeated attack. Echo of
-Memory uses the Phantasmal Avenger row. Phantasmal Rogue is retained in the
-timing data but is not attached to a current catalog skill. Phantasmal
-Sharpshooter and Phantasmal Lancer remain marked estimates because they were
-not present in the supplied timing table.
+Memory uses the Phantasmal Avenger measurements. Phantasmal Sharpshooter and
+Phantasmal Lancer remain marked estimates because they were not present in the
+supplied timing table.
 
 ## Gear, sigils, and relics
 
@@ -197,18 +220,11 @@ References:
 - Damage-affecting Air, Torment, Earth, Blight, Doom, Geomancy, Hydromancy,
   and Severance sigil procs are resolved with their trigger cooldowns. Energy
   remains outside the damage total because endurance is not simulated.
-- Entering or exiting Luminary's Radiant Forge triggers on-weapon-swap sigils
-  from the currently active weapon set. Automatic Forge expiry is also an exit.
-  Equipping hammer, staff, sword, or shield inside Forge is another swap
-  trigger internally for sigils only; it does not change the active weapon set
-  or activate unrelated swap mechanics. Their sequence follow-up skills are not
-  triggers. Swap sigils only activate in combat. Hydromancy includes both its
-  strike and Chill.
 - Competitive PvP and WvW splits are intentionally excluded.
 
 When live balance changes, regenerate the metadata-only
 `js/professions/mesmer/data/mesmer-api-metadata.js` from the current API,
 update all simulation-affecting skill fields in
 `js/professions/mesmer/mechanics/skill-mechanics.js`, update supporting
-profession or illusion logic when needed, update the snapshot date, and rerun
-the test suite and `tests/browser/browser.html`.
+supplemental identity, profession or illusion logic when needed, update the
+snapshot date, and rerun the test suite and browser fixtures.

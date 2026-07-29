@@ -89,5 +89,11 @@ export function assertSimulationEvent(candidate) {
  * @param {SimulationEvent} event
  */
 export function createEvent(event) {
-  return Object.freeze({ schemaVersion: EVENT_SCHEMA_VERSION, ...assertSimulationEvent(event) });
+  const normalized = Object.fromEntries(
+    Object.entries({
+      schemaVersion: EVENT_SCHEMA_VERSION,
+      ...assertSimulationEvent(event),
+    }).filter(([, value]) => value !== undefined),
+  );
+  return Object.freeze(normalized);
 }

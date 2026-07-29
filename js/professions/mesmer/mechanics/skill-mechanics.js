@@ -5,7 +5,13 @@
  * field that can affect simulation results is defined in this file.
  */
 
-import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
+import {
+  MESMER_SKILL_IDS as ID,
+  MESMER_TRAIT_IDS as TRAIT,
+} from "../data/ids.js";
+import {
+  MESMER_SUPPLEMENTAL_SKILLS,
+} from "../data/mesmer-supplemental-skills.js";
 
 const MESMER_SHATTER_LOCKOUTS = Object.freeze([
   Object.freeze({ group: "mesmer.shatter", durationMs: 50 }),
@@ -1156,7 +1162,7 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
         coefficient: 0.00016,
         hits: 1,
         name: "Fourth target hit after three ally bounces",
-        requiredTrait: "Bountiful Blades",
+        requiredTrait: TRAIT.BOUNTIFUL_BLADES,
         actorType: "player",
         weapon: "greatsword",
         atMs: 900,
@@ -2873,7 +2879,7 @@ export const MESMER_IMPLEMENTED_SKILL_IDS = Object.freeze(
   Object.keys(MESMER_SKILL_MECHANICS).map(Number),
 );
 
-export const MESMER_EXTRA_SKILLS = Object.freeze([
+const MESMER_NON_API_SKILLS = Object.freeze([
   Object.freeze({
     id: ID.IMAGINARY_AXES,
     ...{
@@ -3335,8 +3341,41 @@ export const MESMER_EXTRA_SKILLS = Object.freeze([
   }),
 ]);
 
-export const AMBUSH_SKILLS = Object.freeze(MESMER_EXTRA_SKILLS.slice(0, 8));
-export const PSEUDO_SKILLS = Object.freeze(MESMER_EXTRA_SKILLS.slice(8));
+const IDENTITY_FIELDS = new Set([
+  "name",
+  "description",
+  "icon",
+  "type",
+  "slot",
+  "weapon",
+  "specialization",
+  "environment",
+  "wikiUrl",
+  "flipParent",
+]);
+
+export const MESMER_SUPPLEMENTAL_SKILL_MECHANICS = Object.freeze(
+  Object.fromEntries(
+    MESMER_NON_API_SKILLS
+      .filter((skill) => skill.id > 0)
+      .map((skill) => [
+        skill.id,
+        Object.fromEntries(
+          Object.entries(skill).filter(
+            ([field]) => field !== "id" && !IDENTITY_FIELDS.has(field),
+          ),
+        ),
+      ]),
+  ),
+);
+
+export const MESMER_EXTRA_SKILLS = Object.freeze(
+  MESMER_NON_API_SKILLS.filter((skill) => skill.id < 0),
+);
+export const AMBUSH_SKILLS = Object.freeze(
+  MESMER_SUPPLEMENTAL_SKILLS.filter((skill) => skill.ambush),
+);
+export const PSEUDO_SKILLS = MESMER_EXTRA_SKILLS;
 
 // Illusion, ambush, phantasm, shatter, trait, and instrument formulas.
 /**
@@ -3658,14 +3697,14 @@ export const AMBUSH_ATTACKS = {
 // Chronophantasma values include the repeated attack. Echo of Memory summons
 // the phantasm named Phantasmal Avenger.
 export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
-  "Phantasmal Avenger": {
+  [ID.ECHO_OF_MEMORY]: {
     castTimeMs: 1640,
     damageAtMs: 1440,
     spawnAtMs: 2160,
     chronophantasmaDamageAtMs: 4200,
     chronophantasmaSpawnAtMs: 4960,
   },
-  "Phantasmal Berserker": {
+  [ID.PHANTASMAL_BERSERKER]: {
     castTimeMs: 560,
     damageAtMs: 1480,
     spawnAtMs: 2560,
@@ -3676,21 +3715,21 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     // clone-conversion endpoint.
     virtuosoBladeTicks: [{ atMs: 3120 }, { atMs: 3440 }],
   },
-  "Phantasmal Defender": {
+  [ID.PHANTASMAL_DEFENDER]: {
     castTimeMs: 770,
     damageAtMs: 3800,
     spawnAtMs: 4510,
     chronophantasmaDamageAtMs: 8800,
     chronophantasmaSpawnAtMs: 9520,
   },
-  "Phantasmal Disenchanter": {
+  [ID.PHANTASMAL_DISENCHANTER]: {
     castTimeMs: 760,
     damageAtMs: 1150,
     spawnAtMs: 1840,
     chronophantasmaDamageAtMs: 4040,
     chronophantasmaSpawnAtMs: 4720,
   },
-  "Phantasmal Duelist": {
+  [ID.PHANTASMAL_DUELIST]: {
     castTimeMs: 560,
     damageAtMs: 2751,
     spawnAtMs: 3334,
@@ -3710,21 +3749,14 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     },
     phantasmalBladeDelayAfterSpawnMs: 175,
   },
-  "Phantasmal Mage": {
+  [ID.PHANTASMAL_MAGE]: {
     castTimeMs: 800,
     damageAtMs: 2270,
     spawnAtMs: 2520,
     chronophantasmaDamageAtMs: 5320,
     chronophantasmaSpawnAtMs: 5560,
   },
-  "Phantasmal Rogue": {
-    castTimeMs: 610,
-    damageAtMs: 1200,
-    spawnAtMs: 2000,
-    chronophantasmaDamageAtMs: 4040,
-    chronophantasmaSpawnAtMs: 4760,
-  },
-  "Phantasmal Swordsman": {
+  [ID.PHANTASMAL_SWORDSMAN]: {
     castTimeMs: 880,
     damageAtMs: 3159,
     spawnAtMs: 4284,
@@ -3745,14 +3777,14 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     },
     phantasmalBladeDelayAfterSpawnMs: 83,
   },
-  "Phantasmal Warden": {
+  [ID.PHANTASMAL_WARDEN]: {
     castTimeMs: 460,
     damageAtMs: 5040,
     spawnAtMs: 7240,
     chronophantasmaDamageAtMs: 13200,
     chronophantasmaSpawnAtMs: 15320,
   },
-  "Phantasmal Warlock": {
+  [ID.PHANTASMAL_WARLOCK]: {
     castTimeMs: 780,
     damageAtMs: 2960,
     spawnAtMs: 4240,
@@ -3760,7 +3792,7 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     chronophantasmaSpawnAtMs: 9840,
   },
   // These post-table weapon phantasms retain explicit estimates.
-  "Phantasmal Sharpshooter": {
+  [ID.PHANTASMAL_SHARPSHOOTER]: {
     castTimeMs: 500,
     damageAtMs: 1550,
     spawnAtMs: 1550,
@@ -3768,7 +3800,7 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     chronophantasmaSpawnAtMs: 2600,
     estimated: true,
   },
-  "Phantasmal Lancer": {
+  [ID.PHANTASMAL_LANCER]: {
     castTimeMs: 333.333333333,
     damageAtMs: 1083.3333333,
     spawnAtMs: 1083.3333333,
@@ -3776,10 +3808,6 @@ export const PHANTASM_ATTACK_TIMINGS = Object.freeze({
     chronophantasmaSpawnAtMs: 1833.3333333,
     estimated: true,
   },
-});
-
-export const PHANTASM_NAME_BY_SKILL = Object.freeze({
-  "Echo of Memory": "Phantasmal Avenger",
 });
 
 /**
@@ -3822,63 +3850,75 @@ export const TRAIT_DAMAGE = Object.freeze({
 });
 
 export const SHATTERS = {
-  "Mind Wrack": {
+  [ID.MIND_WRACK]: {
     slot: 1,
     kind: "core-power",
     coefficients: [0.81, 1.61, 2.42, 3.22],
   },
-  "Cry of Frustration": {
+  [ID.CRY_OF_FRUSTRATION]: {
     slot: 2,
     kind: "core-confusion",
     coefficients: [0.42, 0.84, 1.25, 1.67],
   },
-  Diversion: { slot: 3, kind: "control", coefficients: [0, 0, 0, 0] },
-  Distortion: { slot: 4, kind: "defense", coefficients: [0, 0, 0, 0] },
-  "Split Second": {
+  [ID.DIVERSION]: {
+    slot: 3,
+    kind: "control",
+    coefficients: [0, 0, 0, 0],
+  },
+  [ID.DISTORTION]: {
+    slot: 4,
+    kind: "defense",
+    coefficients: [0, 0, 0, 0],
+  },
+  [ID.SPLIT_SECOND]: {
     slot: 1,
     kind: "chrono-power",
     coefficients: [1.534, 3.22, 3.86, 4.51],
   },
-  Rewinder: {
+  [ID.REWINDER]: {
     slot: 2,
     kind: "chrono-confusion",
     coefficients: [0.42, 0.84, 1.25, 1.67],
     rechargeReductionPerSource: 3,
   },
-  "Time Sink": { slot: 3, kind: "control", coefficients: [0, 0, 0, 0] },
-  "Bladesong Harmony": {
+  [ID.TIME_SINK]: {
+    slot: 3,
+    kind: "control",
+    coefficients: [0, 0, 0, 0],
+  },
+  [ID.BLADESONG_HARMONY]: {
     slot: 1,
     kind: "blade-power",
     coefficients: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
     resourceSpendProgress: 1,
     packetDelays: [0.05, 0.208, 0.367, 0.534, 0.684],
   },
-  "Bladesong Sorrow": {
+  [ID.BLADESONG_SORROW]: {
     slot: 2,
     kind: "blade-confusion",
     coefficients: [0, 0.42, 0.84, 1.25, 1.67, 2.09],
     resourceSpendProgress: 1,
     packetDelays: [0.442, 0.517, 0.601, 0.675, 0.675],
   },
-  "Bladesong Dissonance": {
+  [ID.BLADESONG_DISSONANCE]: {
     slot: 3,
     kind: "blade-control",
     coefficients: [0, 1, 1, 1, 1, 1],
     resourceSpendProgress: 1,
   },
-  "Bladesong Distortion": {
+  [ID.BLADESONG_DISTORTION]: {
     slot: 4,
     kind: "blade-defense",
     coefficients: [0, 0, 0, 0, 0, 0],
   },
-  "Bladeturn Requiem": {
+  [ID.BLADETURN_REQUIEM]: {
     slot: 5,
     kind: "blade-requiem",
     coefficients: [0, 0.5, 1, 1.5, 2, 2.5],
     resourceSpendProgress: 1,
     packetDelays: [1, 2, 3, 4, 5],
   },
-  "Continuum Split": {
+  [ID.CONTINUUM_SPLIT]: {
     slot: 5,
     kind: "continuum",
     coefficients: [0, 0, 0, 0],
@@ -3889,80 +3929,88 @@ export const SHATTERS = {
 // descriptions also mention incoming disables and conditional defiance damage,
 // neither of which should activate Relic of the Claw.
 export const CONTROL_SKILLS = new Set([
-  "Chaos Storm",
-  "Illusionary Wave",
-  "Magic Bullet",
-  "Signet of Domination",
-  "Vortex",
-  "Illusion of Drowning",
-  "Phantasmal Defender",
-  "Signet of Humility",
-  "Tides of Time",
-  "Gravity Well",
-  "Mirage Advance",
-  "Phantasmal Sharpshooter",
-  "Flustering Flute",
-  "Deafening Drum",
-  "Diversion",
-  "Time Sink",
-  "Bladesong Dissonance",
-  "Into the Void",
-  "Counter Blade",
-  "Mirage Thrust",
+  ID.CHAOS_STORM,
+  ID.ILLUSIONARY_WAVE,
+  ID.MAGIC_BULLET,
+  ID.SIGNET_OF_DOMINATION,
+  ID.PHANTASMAL_DEFENDER,
+  ID.SIGNET_OF_HUMILITY,
+  ID.TIDES_OF_TIME,
+  ID.GRAVITY_WELL,
+  ID.MIRAGE_ADVANCE,
+  ID.PHANTASMAL_SHARPSHOOTER,
+  ID.FLUSTERING_FLUTE,
+  ID.DEAFENING_DRUM,
+  ID.DIVERSION,
+  ID.TIME_SINK,
+  ID.BLADESONG_DISSONANCE,
+  ID.INTO_THE_VOID,
+  ID.COUNTER_BLADE,
+  ID.MIRAGE_THRUST,
 ]);
 
 // These skills blind the primary benchmark target directly. Magic Bullet is
 // excluded because its blind applies only to the third target in the bounce.
 export const BLIND_SKILLS = new Set([
-  "Counterspell",
-  "Signet of Midnight",
-  "Blinding Tide",
-  "The Prestige",
-  "Chaos Armor",
-  "Mirage Advance",
+  ID.COUNTERSPELL,
+  ID.SIGNET_OF_MIDNIGHT,
+  ID.THE_PRESTIGE,
+  ID.CHAOS_ARMOR,
+  ID.MIRAGE_ADVANCE,
 ]);
 
 export const ARISTOCRACY_SKILLS = new Set([
-  "Mind Slash",
-  "Mind Gash",
-  "Mind Pierce",
-  "Blinding Tide",
-  "Rain of Swords",
+  ID.MIND_SLASH,
+  ID.MIND_GASH,
+  ID.MIND_PIERCE,
+  ID.RAIN_OF_SWORDS,
 ]);
 
 export const PEITHA_SKILLS = new Set([
-  "Blink",
-  "Phase Retreat",
-  "False Oasis",
-  "Crystal Sands",
-  "Mirage Advance",
-  "Sand through Glass",
-  "Illusionary Ambush",
-  "Jaunt",
-  "Axes of Symmetry",
+  ID.BLINK,
+  ID.PHASE_RETREAT,
+  ID.FALSE_OASIS,
+  ID.CRYSTAL_SANDS,
+  ID.MIRAGE_ADVANCE,
+  ID.SAND_THROUGH_GLASS,
+  ID.ILLUSIONARY_AMBUSH,
+  ID.JAUNT,
+  ID.AXES_OF_SYMMETRY,
 ]);
 
 export const INSTRUMENTS = {
-  "Lively Lute": {
+  [ID.LIVELY_LUTE]: {
     slot: 1,
     instrument: "Lute",
     coefficient: 3,
     hits: 3,
   },
-  "Flustering Flute": {
+  [ID.LIVELY_LUTE_ALTERNATE]: {
+    slot: 1,
+    instrument: "Lute",
+    coefficient: 3,
+    hits: 3,
+  },
+  [ID.FLUSTERING_FLUTE]: {
     slot: 2,
     instrument: "Flute",
     coefficient: 1,
     hits: 1,
     conditions: [{ name: "Confusion", duration: 4, stacks: 3 }],
   },
-  "Deafening Drum": {
+  [ID.DEAFENING_DRUM]: {
     slot: 3,
     instrument: "Drum",
     coefficient: 2,
     hits: 1,
   },
-  "Harmonious Harp": {
+  [ID.HARMONIOUS_HARP]: {
+    slot: 4,
+    instrument: "Harp",
+    coefficient: 0,
+    hits: 0,
+  },
+  [ID.HARMONIOUS_HARP_ALTERNATE]: {
     slot: 4,
     instrument: "Harp",
     coefficient: 0,
@@ -3971,27 +4019,27 @@ export const INSTRUMENTS = {
 };
 
 export const MECHANIC_SKILLS = {
-  Core: ["Mind Wrack", "Cry of Frustration", "Diversion", "Distortion"],
+  Core: [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION],
   Chronomancer: [
-    "Split Second",
-    "Rewinder",
-    "Time Sink",
-    "Distortion",
-    "Continuum Split",
+    ID.SPLIT_SECOND,
+    ID.REWINDER,
+    ID.TIME_SINK,
+    ID.DISTORTION,
+    ID.CONTINUUM_SPLIT,
   ],
-  Mirage: ["Mind Wrack", "Cry of Frustration", "Diversion", "Distortion"],
+  Mirage: [ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION],
   Virtuoso: [
-    "Bladesong Harmony",
-    "Bladesong Sorrow",
-    "Bladesong Dissonance",
-    "Bladesong Distortion",
-    "Bladeturn Requiem",
+    ID.BLADESONG_HARMONY,
+    ID.BLADESONG_SORROW,
+    ID.BLADESONG_DISSONANCE,
+    ID.BLADESONG_DISTORTION,
+    ID.BLADETURN_REQUIEM,
   ],
   Troubadour: [
-    "Lively Lute",
-    "Flustering Flute",
-    "Deafening Drum",
-    "Harmonious Harp",
-    "Crescendo",
+    ID.LIVELY_LUTE_ALTERNATE,
+    ID.FLUSTERING_FLUTE,
+    ID.DEAFENING_DRUM,
+    ID.HARMONIOUS_HARP_ALTERNATE,
+    ID.CRESCENDO,
   ],
 };

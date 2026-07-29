@@ -24,7 +24,13 @@ export function createExpectedProcTracker({
     state.profession.bloodsongProgress += Number(bleedingStacks || 0);
     while (state.profession.bloodsongProgress >= 5 - PROC_PROGRESS_TOLERANCE) {
       state.profession.bloodsongProgress -= 5;
-      queueResources(at + epsilon, 1, activePrimaryWeapon(), "Bloodsong");
+      queueResources(
+        at + epsilon,
+        1,
+        activePrimaryWeapon(),
+        "Bloodsong",
+        { traitId: TRAIT.BLOODSONG, traitName: "Bloodsong" },
+      );
     }
   };
 

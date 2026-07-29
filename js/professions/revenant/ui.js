@@ -1,8 +1,14 @@
 import { revenantCatalog } from "./catalog.js";
-import { REVENANT_LEGEND_IDS as LEGEND } from "./data/ids.js";
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_SKILL_IDS as SKILL,
+} from "./data/ids.js";
 import { revenantLegend, revenantLegendLoadout } from "./legend-loadout.js";
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from "./legend-rules.js";
 import { getActiveTraits } from "./data/traits-data.js";
+import {
+  effectiveRevenantEnergyCost,
+} from "./mechanics/specific/energy.js";
 
 /**
  * Revenant adapter for the shared simulator UI.
@@ -25,24 +31,19 @@ function activeLegendFrom(context = {}) {
   );
 }
 function effectiveEnergyCost(context, skill) {
-  const state = stateFrom(context);
-  if (
-    skill.handlerId === "revenant.beguiling-haze" &&
-    Number(state.beguilingHazeCharges || 0) > 0
-  )
-    return 0;
-  if (
-    skill.handlerId === "revenant.upkeep" &&
-    (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id)
-  )
-    return 0;
-  return Math.max(0, Number(skill.energyCost || 0));
+  return effectiveRevenantEnergyCost({
+    ...context,
+    professionState: stateFrom(context),
+  }, skill);
 }
 function hasEnoughEnergy(context, skill) {
   const energy = Number(stateFrom(context).energy);
   return (
     !Number.isFinite(energy) || energy >= effectiveEnergyCost(context, skill)
   );
+}
+function isOnCooldown(context, skill) {
+  return Number(context.cooldowns?.[skill.name]?.remaining || 0) > 0;
 }
 function upkeepIsActive(context, skill) {
   return (
@@ -177,18 +178,38 @@ export const revenantUi = Object.freeze({
     return groups;
   },
   isPaletteSkillAvailable: (context, skill) => {
+    const state = stateFrom(context);
     if (
       skill.paletteLegendId &&
       skill.paletteLegendId === activeLegendFrom(context)
     )
       return false;
+    if (
+      skill.id === SKILL.UNYIELDING_IMPACT &&
+      !state.availableFlips?.[SKILL.UNYIELDING_IMPACT]
+    ) return false;
+    if (
+      skill.id === SKILL.CALL_TO_ANGUISH &&
+      state.availableFlips?.[SKILL.UNYIELDING_IMPACT]
+    ) return false;
     if (upkeepIsActive(context, skill)) return false;
-    return hasEnoughEnergy(context, skill);
+    // A queued cast can recover Energy while its existing cooldown elapses.
+    // Keep it clickable so the scheduler can advance to that ready time.
+    return hasEnoughEnergy(context, skill) || isOnCooldown(context, skill);
   },
   paletteSkillUnavailableMessage: (context, skill) => {
+    const state = stateFrom(context);
     if (skill.paletteLegendId === activeLegendFrom(context)) {
       return `${skill.displayName || "Legend"} is already active`;
     }
+    if (
+      skill.id === SKILL.UNYIELDING_IMPACT &&
+      !state.availableFlips?.[SKILL.UNYIELDING_IMPACT]
+    ) return "Cast Call to Anguish first";
+    if (
+      skill.id === SKILL.CALL_TO_ANGUISH &&
+      state.availableFlips?.[SKILL.UNYIELDING_IMPACT]
+    ) return "Use Unyielding Impact first";
     if (upkeepIsActive(context, skill)) {
       return `Use ${
         skill.flipSkillId

@@ -13,6 +13,7 @@ import {
   handleConditionRelics,
   handleControlRelics,
   handlePeithaRelic,
+  handleRelicDamageResolved,
   handleRelicsAfterHit,
 } from "../relic-rules.js";
 import {
@@ -191,6 +192,7 @@ export function createGw2ResolverEventHandlers({
       // Ordering matters: apply the base hit first, then profession reactions,
       // expected food procs, and finally relic after-hit rules.
       applyResolvedHit(ctx, event, hitContext);
+      handleRelicDamageResolved(ctx, event);
       applyMistStranger(ctx, event);
       reactionFor(eventReactions, "damage")(ctx, event, {
         hitContext,

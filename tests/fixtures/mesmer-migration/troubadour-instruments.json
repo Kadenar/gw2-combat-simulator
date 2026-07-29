@@ -1,0 +1,399 @@
+{
+  "name": "troubadour instruments",
+  "rotation": [
+    {
+      "type": "cast",
+      "skillId": 77306
+    },
+    {
+      "type": "cast",
+      "skillId": 76931
+    }
+  ],
+  "config": {
+    "specialization": "Troubadour",
+    "initialResource": 0
+  },
+  "expected": {
+    "exact": {
+      "activeWeaponSet": 1,
+      "ammo": {
+        "Dodge / Mirage Cloak": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 6.666666666666667
+        },
+        "Jaunt": {
+          "charges": 3,
+          "maximum": 3,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Lingering Thoughts": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 4.8
+        },
+        "Lively Lute": {
+          "charges": 1,
+          "maximum": 2,
+          "nextRechargeAt": 9.933333333333,
+          "rechargeDuration": 9.6
+        },
+        "Mantra of Recovery": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Power Spike": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Psychic Force": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Tale of the Honorable Rogue": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 20
+        }
+      },
+      "cooldowns": {
+        "Crescendo": {
+          "readyAt": 29167,
+          "remaining": 28000
+        }
+      },
+      "dpsWindow": 0.833333333333,
+      "duration": 1.166666666666,
+      "events": [
+        {
+          "__order": 0,
+          "actorType": "player",
+          "at": 0,
+          "endsAt": 0.33333333333299997,
+          "fullEndsAt": 0.33333333333299997,
+          "interrupted": false,
+          "name": "Lively Lute",
+          "rechargeReadyAt": 1.133333333333,
+          "schemaVersion": 1,
+          "skillId": 77306,
+          "skillName": "Lively Lute",
+          "source": "mesmer",
+          "sourceId": 77306,
+          "type": "action"
+        },
+        {
+          "__order": 1,
+          "amount": 0,
+          "at": 0.33333333333299997,
+          "reason": "profession mechanic",
+          "resource": "notes",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "resource",
+          "type": "resource",
+          "value": 0
+        },
+        {
+          "__order": 2,
+          "actorType": "player",
+          "at": 0.33333333333299997,
+          "blade": false,
+          "coefficient": 1,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Lively Lute",
+          "schemaVersion": 1,
+          "skillId": 77306,
+          "skillName": "Lively Lute",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 77306,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 3,
+          "actorType": "player",
+          "at": 0.33333333333299997,
+          "blade": false,
+          "coefficient": 1,
+          "hitIndex": 2,
+          "hits": 1,
+          "name": "Lively Lute",
+          "schemaVersion": 1,
+          "skillId": 77306,
+          "skillName": "Lively Lute",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 77306,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 4,
+          "actorType": "player",
+          "at": 0.33333333333299997,
+          "blade": false,
+          "coefficient": 1,
+          "hitIndex": 3,
+          "hits": 1,
+          "name": "Lively Lute",
+          "schemaVersion": 1,
+          "skillId": 77306,
+          "skillName": "Lively Lute",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 77306,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 6,
+          "at": 0.33333333333299997,
+          "detail": "Lute playing for 5s",
+          "name": "Lively Lute",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "Lively Lute",
+          "type": "marker"
+        },
+        {
+          "__order": 7,
+          "actorType": "player",
+          "at": 0.33333333333299997,
+          "endsAt": 1.166666666666,
+          "fullEndsAt": 1.166666666666,
+          "interrupted": false,
+          "name": "Crescendo",
+          "rechargeReadyAt": 29.166666666666,
+          "schemaVersion": 1,
+          "skillId": 76931,
+          "skillName": "Crescendo",
+          "source": "mesmer",
+          "sourceId": 76931,
+          "type": "action"
+        },
+        {
+          "__order": 5,
+          "at": 0.33343333333299996,
+          "expiresAt": 5.333333333333,
+          "instrument": "Lute",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "mesmer.instrument",
+          "type": "mesmer.instrument"
+        },
+        {
+          "__order": 8,
+          "actorType": "player",
+          "at": 1.166666666666,
+          "blade": false,
+          "coefficient": 2.8125,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Crescendo",
+          "schemaVersion": 1,
+          "skillId": 76931,
+          "skillName": "Crescendo",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 76931,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        }
+      ],
+      "profession": {
+        "autoattackChains": {
+          "10170": 10170,
+          "10289": 10289,
+          "44791": 44791,
+          "73154": 73154
+        },
+        "availableAmbush": null,
+        "availableFlips": {
+          "Power Spike": {
+            "availableAt": 0,
+            "expiresAt": null,
+            "persistent": true,
+            "remaining": null
+          }
+        },
+        "clarityRemaining": 0,
+        "continuumActive": false,
+        "continuumRemaining": 0,
+        "counterspellAvailable": false,
+        "resource": 0,
+        "resourceDefinition": {
+          "maximum": 3,
+          "plural": "notes",
+          "singular": "note"
+        }
+      },
+      "resolvedEvents": [
+        {
+          "__order": 2,
+          "actorType": "player",
+          "at": 0.33333333333299997,
+          "blade": false,
+          "coefficient": 1,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Lively Lute",
+          "schemaVersion": 1,
+          "skillId": 77306,
+          "skillName": "Lively Lute",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 77306,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 3,
+          "actorType": "player",
+          "at": 0.33333333333299997,
+          "blade": false,
+          "coefficient": 1,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 2,
+          "hits": 1,
+          "name": "Lively Lute",
+          "schemaVersion": 1,
+          "skillId": 77306,
+          "skillName": "Lively Lute",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 77306,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 4,
+          "actorType": "player",
+          "at": 0.33333333333299997,
+          "blade": false,
+          "coefficient": 1,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 3,
+          "hits": 1,
+          "name": "Lively Lute",
+          "schemaVersion": 1,
+          "skillId": 77306,
+          "skillName": "Lively Lute",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 77306,
+          "totalHits": 3,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 8,
+          "actorType": "player",
+          "at": 1.166666666666,
+          "blade": false,
+          "coefficient": 2.8125,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Crescendo",
+          "schemaVersion": 1,
+          "skillId": 76931,
+          "skillName": "Crescendo",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 76931,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        }
+      ],
+      "steps": [
+        {
+          "actualStart": 0,
+          "end": 333,
+          "fullCastMs": 333,
+          "interrupted": false,
+          "ri": 0,
+          "skill": "Lively Lute",
+          "start": 0
+        },
+        {
+          "actualStart": 333,
+          "end": 1167,
+          "fullCastMs": 833,
+          "interrupted": false,
+          "ri": 1,
+          "skill": "Crescendo",
+          "start": 333
+        }
+      ],
+      "warnings": []
+    },
+    "damage": {
+      "conditionDamage": 0,
+      "dps": 31146.186447974404,
+      "events": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      "resolvedEvents": [
+        {
+          "damage": 4465.4030749766225
+        },
+        {
+          "damage": 4465.4030749766225
+        },
+        {
+          "damage": 4465.4030749766225
+        },
+        {
+          "damage": 12558.94614837175
+        }
+      ],
+      "steps": [
+        {},
+        {}
+      ],
+      "strikeDamage": 25955.15537330162,
+      "totalDamage": 25955.15537330162
+    }
+  }
+}

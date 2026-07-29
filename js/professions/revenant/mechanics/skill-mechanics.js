@@ -41,6 +41,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.MANIFEST_TOXIN]: {
     implemented: true,
     castTimeMs: 500,
+    quicknessCastTimeMs: 560,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -135,6 +136,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.ANGUISH_SWIPE]: {
     implemented: true,
     castTimeMs: 500,
+    quicknessCastTimeMs: 360,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -204,6 +206,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.MISERY_SWIPE]: {
     implemented: true,
     castTimeMs: 250,
+    quicknessCastTimeMs: 440,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -421,6 +424,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.BANISH_ENCHANTMENT]: {
     implemented: true,
     castTimeMs: 500,
+    quicknessCastTimeMs: 440,
     cooldown: 0,
     energyCost: 20,
     effects: [
@@ -519,6 +523,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.CALL_TO_ANGUISH]: {
     implemented: true,
     castTimeMs: 750,
+    quicknessCastTimeMs: 820,
     cooldown: 3,
     energyCost: 30,
     effects: [
@@ -550,8 +555,10 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.ECHOING_ERUPTION]: {
     implemented: true,
     castTimeMs: 750,
+    quicknessCastTimeMs: 960,
     cooldown: 8,
-    ammo: 2,
+    ammo: 0,
+    ammoRecharge: 0,
     energyCost: 5,
     effects: [
       {
@@ -823,6 +830,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     implemented: true,
     handlerId: "revenant.upkeep",
     castTimeMs: 500,
+    quicknessCastTimeMs: 440,
     cooldown: 3,
     energyCost: 5,
     upkeepCost: 6,
@@ -832,6 +840,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.SEARING_FISSURE]: {
     implemented: true,
     castTimeMs: 750,
+    quicknessCastTimeMs: 600,
     cooldown: 3,
     energyCost: 5,
     effects: [
@@ -918,6 +927,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.TEMPORAL_RIFT]: {
     implemented: true,
     castTimeMs: 500,
+    quicknessCastTimeMs: 560,
     cooldown: 15,
     energyCost: 10,
     effects: [
@@ -1620,18 +1630,18 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.BLOODBANE_PATH]: {
     implemented: true,
-    castTimeMs: 1000,
+    castTimeMs: 760,
     cooldown: 3,
     energyCost: 4,
     effects: [
       {
         type: "strike",
-        coefficient: 3.5999999999999996,
+        coefficient: 1.2,
         hits: 3,
         name: "Bloodbane Path",
         actorType: "player",
-        atMs: 333,
-        intervalMs: 333,
+        atMs: 760 / 3,
+        intervalMs: 760 / 3,
         timingAnchor: "castStart",
         timingScale: "cast",
       },
@@ -1712,9 +1722,11 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.SHATTERSHOT]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 480,
     cooldown: 0,
     energyCost: 0,
+    finisherType: "Projectile",
+    finisherValue: 0.2,
     effects: [
       {
         type: "strike",
@@ -1775,27 +1787,27 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.SCORCHRAZOR]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 520,
     cooldown: 12,
     energyCost: 16,
     effects: [
       {
         type: "strike",
-        coefficient: 0.3,
+        coefficient: 0.03,
         hits: 1,
         name: "Scorchrazor",
-        actorType: "summon",
+        actorType: "player",
       },
       {
         type: "condition",
         condition: "Burning",
         stacks: 1,
         duration: 4,
-        actorType: "summon",
+        actorType: "player",
       },
       {
         type: "control",
-        actorType: "summon",
+        actorType: "player",
         metadata: {
           controlKind: "knockdown",
           duration: 2,
@@ -1805,18 +1817,20 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.SEVENSHOT]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 440,
     cooldown: 7,
     energyCost: 7,
+    finisherType: "Projectile",
+    finisherValue: 0.2,
     effects: [
       {
         type: "strike",
-        coefficient: 15.19,
+        coefficient: 2.17,
         hits: 7,
         name: "Sevenshot",
         actorType: "player",
-        atMs: 71,
-        intervalMs: 71,
+        atMs: 440 / 7,
+        intervalMs: 440 / 7,
         timingAnchor: "castStart",
         timingScale: "cast",
       },
@@ -1921,9 +1935,11 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.SPIRITCRUSH]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 400,
     cooldown: 9,
     energyCost: 12,
+    comboField: "Fire",
+    duration: 3,
     effects: [
       {
         type: "strike",
@@ -1934,27 +1950,40 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
       },
       {
         type: "strike",
-        coefficient: 2.25,
+        coefficient: 0.75,
         hits: 3,
-        name: "Spiritcrush — Packet 2",
+        name: "Spiritcrush — Fire Field",
         actorType: "player",
-        atMs: 167,
-        intervalMs: 167,
-        timingAnchor: "castStart",
-        timingScale: "cast",
+        atMs: 1000,
+        intervalMs: 1000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        metadata: {
+          extendsResolutionHorizon: true,
+        },
       },
       {
         type: "condition",
         condition: "Burning",
-        stacks: 4,
+        stacks: 1,
         duration: 3,
+        applications: 3,
+        atMs: 1000,
+        intervalMs: 1000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
         actorType: "player",
       },
       {
         type: "condition",
         condition: "Slow",
-        stacks: 4,
+        stacks: 1,
         duration: 1.5,
+        applications: 3,
+        atMs: 1000,
+        intervalMs: 1000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
         actorType: "player",
       },
     ],
@@ -3566,9 +3595,13 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.ABYSSAL_FIRE]: {
     implemented: true,
+    handlerId: "revenant.spear-recharge",
+    simulatorExcluded: true,
     castTimeMs: 750,
+    quicknessCastTimeMs: 460,
     cooldown: 0,
     energyCost: 0,
+    flipParentId: null,
     effects: [
       {
         type: "strike",
@@ -3595,25 +3628,70 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.ABYSSAL_BLITZ]: {
     implemented: true,
+    handlerId: "revenant.spear-recharge",
     castTimeMs: 500,
-    cooldown: 0,
+    quicknessCastTimeMs: 520,
+    cooldown: 10,
     energyCost: 10,
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.5,
+        hits: 3,
+        name: "Abyssal Blitz — Mine",
+        actorType: "player",
+      },
+      {
+        type: "condition",
+        condition: "Slow",
+        stacks: 1,
+        duration: 3,
+        applications: 3,
+        intervalMs: 0,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        actorType: "player",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 3,
+        applications: 3,
+        intervalMs: 0,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        actorType: "player",
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 3,
+        applications: 3,
+        intervalMs: 0,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        actorType: "player",
+      },
+    ],
   },
   [ID.ABYSSAL_BLOT]: {
     implemented: true,
+    handlerId: "revenant.spear-recharge",
     castTimeMs: 1000,
+    quicknessCastTimeMs: 800,
     cooldown: 15,
     energyCost: 12,
     effects: [
       {
         type: "strike",
-        coefficient: 10,
+        coefficient: 2,
         hits: 5,
         name: "Abyssal Blot",
         actorType: "player",
-        atMs: 200,
-        intervalMs: 200,
+        atMs: 160,
+        intervalMs: 160,
         timingAnchor: "castStart",
         timingScale: "cast",
       },
@@ -3625,8 +3703,21 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
         actorType: "player",
       },
       {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 2,
+        atMs: 160,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        actorType: "player",
+      },
+      {
         type: "control",
         actorType: "player",
+        atMs: 160,
+        timingAnchor: "castStart",
+        timingScale: "cast",
         metadata: {
           controlKind: "pull",
           duration: 180,
@@ -3636,7 +3727,9 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.ABYSSAL_FORCE]: {
     implemented: true,
+    handlerId: "revenant.spear-recharge",
     castTimeMs: 500,
+    quicknessCastTimeMs: 520,
     cooldown: 6,
     energyCost: 4,
     effects: [
@@ -3654,13 +3747,23 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
         duration: 8,
         actorType: "player",
       },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 2,
+        actorType: "player",
+      },
     ],
   },
   [ID.ABYSSAL_STRIKE]: {
     implemented: true,
+    handlerId: "revenant.spear-recharge",
     castTimeMs: 500,
+    quicknessCastTimeMs: 480,
     cooldown: 0,
     energyCost: 0,
+    nextChainId: null,
     effects: [
       {
         type: "strike",
@@ -3687,32 +3790,15 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.ABYSSAL_RAZE]: {
     implemented: true,
+    handlerId: "revenant.abyssal-raze",
     castTimeMs: 750,
+    quicknessCastTimeMs: 600,
     cooldown: 1,
+    recharge: 1,
+    ammo: 3,
+    ammoRecharge: 15,
     energyCost: 8,
-    effects: [
-      {
-        type: "strike",
-        coefficient: 1,
-        hits: 1,
-        name: "Abyssal Raze",
-        actorType: "player",
-      },
-      {
-        type: "condition",
-        condition: "Torment",
-        stacks: 1,
-        duration: 6,
-        actorType: "player",
-      },
-      {
-        type: "condition",
-        condition: "Torment",
-        stacks: 2,
-        duration: 5,
-        actorType: "player",
-      },
-    ],
+    effects: [],
   },
   [ID.BLITZ_MINES]: {
     implemented: true,
@@ -3760,9 +3846,10 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   },
   [ID.UNYIELDING_IMPACT]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 1000,
+    quicknessCastTimeMs: 920,
     cooldown: 0,
-    energyCost: 0,
+    energyCost: 5,
     effects: [
       {
         type: "strike",
@@ -3913,7 +4000,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
   [ID.HEX_EATER_VORTEX]: {
     implemented: true,
     handlerId: "revenant.hex-eater-vortex",
-    castTimeMs: 500,
+    castTimeMs: 520,
     cooldown: 5,
     energyCost: 15,
     effects: [],
@@ -3978,6 +4065,7 @@ const REVENANT_BASE_SKILL_MECHANICS = Object.freeze({
     implemented: true,
     handlerId: "revenant.release-potential",
     castTimeMs: 500,
+    quicknessCastTimeMs: 440,
     cooldown: 10,
     energyCost: 0,
     effects: [],

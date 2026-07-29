@@ -1,4 +1,9 @@
 import { MECHANIC_SKILLS } from "./mechanics/skill-mechanics.js";
+import {
+  isMesmerBuildSkillAvailable,
+  isMesmerContinuumSkillAvailable,
+  mesmerMinimumResource,
+} from "./mechanics/availability.js";
 
 /**
  * Mesmer adapter for the shared simulator UI.
@@ -22,14 +27,12 @@ export function mesmerResourceDefinition(specialization) {
 export function mesmerPaletteGroups(context = {}) {
   const specialization =
     context.specialization || context.config?.specialization || "Core";
-  const names = [...(MECHANIC_SKILLS[specialization] || [])];
+  const skillIds = [...(MECHANIC_SKILLS[specialization] || [])];
   return [
     {
       id: "profession",
       label: "Profession",
-      skillIds: names
-        .map((name) => context.catalog?.skillsByName?.get(name)?.id)
-        .filter((id) => id != null),
+      skillIds: skillIds.filter((id) => context.catalog?.skillsById?.has(id)),
       resourceAnchor: true,
     },
   ];
@@ -96,9 +99,53 @@ export function mesmerEventLogRow(_context, event) {
   return present ? present(event) : undefined;
 }
 
+export function isMesmerPaletteSkillAvailable(context = {}, skill) {
+  const specialization =
+    context.specialization || context.config?.specialization || "Core";
+  const config = {
+    specialization,
+    weaponmasterTraining:
+      context.build?.weaponmasterTraining ??
+      context.config?.weaponmasterTraining ??
+      true,
+  };
+  if (!isMesmerBuildSkillAvailable(skill, config)) return false;
+  const state = context.state?.profession || context.professionState || {};
+  if (!isMesmerContinuumSkillAvailable(skill, state.continuumActive)) {
+    return false;
+  }
+  return Number(state.resource ?? Infinity) >= mesmerMinimumResource(skill);
+}
+
+export function mesmerPaletteSkillUnavailableMessage(context = {}, skill) {
+  const specialization =
+    context.specialization || context.config?.specialization || "Core";
+  const state = context.state?.profession || context.professionState || {};
+  if (
+    !isMesmerBuildSkillAvailable(skill, {
+      specialization,
+      weaponmasterTraining:
+        context.build?.weaponmasterTraining ??
+        context.config?.weaponmasterTraining ??
+        true,
+    })
+  ) {
+    return `${skill.name} is unavailable for ${specialization}.`;
+  }
+  if (!isMesmerContinuumSkillAvailable(skill, state.continuumActive)) {
+    return "Unavailable until Continuum Split is active";
+  }
+  const minimum = mesmerMinimumResource(skill);
+  return Number(state.resource ?? Infinity) < minimum
+    ? `Requires at least ${minimum} blade`
+    : "";
+}
+
 export const mesmerUi = Object.freeze({
   eventLogRow: mesmerEventLogRow,
   paletteGroups: mesmerPaletteGroups,
+  isPaletteSkillAvailable: isMesmerPaletteSkillAvailable,
+  paletteSkillUnavailableMessage: mesmerPaletteSkillUnavailableMessage,
   resourceView: mesmerResourceView,
   resourceViews: (context) => [mesmerResourceView(context)],
 });

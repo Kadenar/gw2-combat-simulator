@@ -1,0 +1,309 @@
+{
+  "name": "simple strike and condition",
+  "rotation": [
+    {
+      "type": "cast",
+      "skillId": 69311
+    },
+    {
+      "type": "wait",
+      "durationMs": 1000
+    }
+  ],
+  "config": {},
+  "expected": {
+    "exact": {
+      "activeWeaponSet": 1,
+      "ammo": {
+        "Dodge / Mirage Cloak": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 6.666666666666667
+        },
+        "Jaunt": {
+          "charges": 3,
+          "maximum": 3,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Lingering Thoughts": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 4.8
+        },
+        "Lively Lute": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 9.6
+        },
+        "Mantra of Recovery": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Power Spike": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Psychic Force": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Tale of the Honorable Rogue": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 20
+        }
+      },
+      "cooldowns": {
+        "Bladecall": {
+          "readyAt": 4440,
+          "remaining": 3000
+        }
+      },
+      "dpsWindow": 1.2409999999999999,
+      "duration": 1.44,
+      "events": [
+        {
+          "__order": 0,
+          "amount": 5,
+          "at": 0,
+          "created": [],
+          "reason": "initial",
+          "resource": "blades",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "resource",
+          "type": "resource",
+          "value": 5
+        },
+        {
+          "__order": 1,
+          "actorType": "player",
+          "at": 0,
+          "endsAt": 0.44,
+          "fullEndsAt": 0.44,
+          "interrupted": false,
+          "name": "Bladecall",
+          "rechargeReadyAt": 4.44,
+          "schemaVersion": 1,
+          "skillId": 69311,
+          "skillName": "Bladecall",
+          "source": "mesmer",
+          "sourceId": 69311,
+          "type": "action"
+        },
+        {
+          "__order": 2,
+          "actorType": "player",
+          "at": 0.199,
+          "blade": true,
+          "coefficient": 0.25,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Bladecall",
+          "schemaVersion": 1,
+          "skillId": 69311,
+          "skillName": "Bladecall",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 69311,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "dagger",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 3,
+          "actorType": "player",
+          "at": 0.199,
+          "blade": true,
+          "coefficient": 0.25,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Bladecall",
+          "schemaVersion": 1,
+          "skillId": 69311,
+          "skillName": "Bladecall",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 69311,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "dagger",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 4,
+          "actorType": "player",
+          "at": 0.199,
+          "blade": true,
+          "coefficient": 0.25,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Bladecall",
+          "schemaVersion": 1,
+          "skillId": 69311,
+          "skillName": "Bladecall",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 69311,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "dagger",
+          "weaponStrength": 1000
+        }
+      ],
+      "profession": {
+        "autoattackChains": {
+          "10170": 10170,
+          "10289": 10289,
+          "44791": 44791,
+          "73154": 73154
+        },
+        "availableAmbush": null,
+        "availableFlips": {
+          "Power Spike": {
+            "availableAt": 0,
+            "expiresAt": null,
+            "persistent": true,
+            "remaining": null
+          }
+        },
+        "clarityRemaining": 0,
+        "continuumActive": false,
+        "continuumRemaining": 0,
+        "counterspellAvailable": false,
+        "resource": 5,
+        "resourceDefinition": {
+          "maximum": 5,
+          "plural": "blades",
+          "singular": "blade"
+        }
+      },
+      "resolvedEvents": [
+        {
+          "__order": 2,
+          "actorType": "player",
+          "at": 0.199,
+          "blade": true,
+          "coefficient": 0.25,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Bladecall",
+          "schemaVersion": 1,
+          "skillId": 69311,
+          "skillName": "Bladecall",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 69311,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "dagger",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 3,
+          "actorType": "player",
+          "at": 0.199,
+          "blade": true,
+          "coefficient": 0.25,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Bladecall",
+          "schemaVersion": 1,
+          "skillId": 69311,
+          "skillName": "Bladecall",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 69311,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "dagger",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 4,
+          "actorType": "player",
+          "at": 0.199,
+          "blade": true,
+          "coefficient": 0.25,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Bladecall",
+          "schemaVersion": 1,
+          "skillId": 69311,
+          "skillName": "Bladecall",
+          "skillWeapon": "Dagger",
+          "source": "Player",
+          "sourceId": 69311,
+          "totalHits": 1,
+          "type": "damage",
+          "weapon": "dagger",
+          "weaponStrength": 1000
+        }
+      ],
+      "steps": [
+        {
+          "actualStart": 0,
+          "end": 440,
+          "fullCastMs": 440,
+          "interrupted": false,
+          "ri": 0,
+          "skill": "Bladecall",
+          "start": 0
+        },
+        {
+          "end": 1440,
+          "ri": 1,
+          "skill": "Wait",
+          "start": 440
+        }
+      ],
+      "warnings": []
+    },
+    "damage": {
+      "conditionDamage": 0,
+      "dps": 2453.338441310136,
+      "events": [
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      "resolvedEvents": [
+        {
+          "damage": 1014.8643352219597
+        },
+        {
+          "damage": 1014.8643352219597
+        },
+        {
+          "damage": 1014.8643352219597
+        }
+      ],
+      "steps": [
+        {},
+        {}
+      ],
+      "strikeDamage": 3044.593005665879,
+      "totalDamage": 3044.593005665879
+    }
+  }
+}

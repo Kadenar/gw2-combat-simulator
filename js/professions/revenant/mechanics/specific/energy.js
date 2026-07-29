@@ -10,7 +10,10 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
-import { hasRevenantTrait } from "../../state.js";
+import {
+  hasRevenantTrait,
+  revenantConduitFormIsActive,
+} from "../../state.js";
 import { gainConduitAffinity } from "./conduit.js";
 import { emitRevenantState } from "./shared.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
@@ -98,18 +101,44 @@ export function advanceRevenantEnergy(context, target) {
   emitRevenantState(context, target, "energy");
 }
 
+/** Resolves state-dependent Energy overrides shared by UI and scheduling. */
+export function effectiveRevenantEnergyCost(context, skill) {
+  const state =
+    context.state?.profession || context.professionState || context.state || {};
+  const active = (state.activeUpkeeps || []).some(
+    upkeep => upkeep.skillId === skill.id,
+  );
+  if (active) return 0;
+  if (
+    skill.handlerId === "revenant.beguiling-haze" &&
+    Number(state.beguilingHazeCharges || 0) > 0
+  ) return 0;
+  const at =
+    context.start ?? context.time ?? context.state?.time ?? 0;
+  if (revenantConduitFormIsActive(state, "Mesmer", at)) {
+    const profile = MECHANICS.conduit.formOfTheMesmer;
+    if (
+      [ID.BANISH_ENCHANTMENT, ID.BANISH_ENCHANTMENT_ID_78587]
+        .includes(skill.id)
+    ) return profile.banishEnchantmentEnergyCost;
+    if (skill.id === ID.CALL_TO_ANGUISH) {
+      return profile.callToAnguishEnergyCost;
+    }
+    if (skill.id === ID.UNYIELDING_IMPACT) {
+      return profile.unyieldingImpactEnergyCost;
+    }
+    if (skill.id === ID.EMBRACE_THE_DARKNESS) {
+      return profile.embraceTheDarknessEnergyCost;
+    }
+  }
+  return Math.max(0, Number(skill.energyCost || 0));
+}
+
 /** Pays a cast's Energy cost and applies affinity gained from that payment. */
 export function spendRevenantEnergy(context, skill) {
   if ([ID.SWAP_LEGENDS, ID.DODGE].includes(skill.id)) return;
   const state = context.state.profession;
-  const active = state.activeUpkeeps.some(
-    (upkeep) => upkeep.skillId === skill.id,
-  );
-  if (active) return;
-  const beguilingFollowUp =
-    skill.handlerId === "revenant.beguiling-haze" &&
-    Number(state.beguilingHazeCharges || 0) > 0;
-  const cost = beguilingFollowUp ? 0 : Number(skill.energyCost || 0);
+  const cost = effectiveRevenantEnergyCost(context, skill);
   state.energy = Math.max(0, state.energy - cost);
   if (context.config.specialization === "Conduit" && cost > 0) {
     if (skill.legendId && !skill.affinityOnHit) {

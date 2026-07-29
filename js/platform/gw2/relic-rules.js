@@ -211,6 +211,29 @@ export function handleConditionRelics(ctx, application) {
 }
 
 /**
+ * Records the delayed Shackles strike when it actually resolves. Keeping this
+ * separate from the tether proc avoids reporting damage if the queued strike
+ * falls outside the encounter or occurs after the target has died.
+ * @param {Object} ctx - Resolver context
+ * @param {Object} event - Resolved damage event
+ */
+export function handleRelicDamageResolved(ctx, event) {
+  if (
+    event?.type !== "damage"
+    || event.sourceId !== "relic.shackles"
+    || event.skillName !== "Relic of the Shackles"
+  ) return;
+
+  ctx.recordProc(
+    "relic",
+    "Relic of the Shackles",
+    event.at,
+    event.triggeredBy,
+    "damage",
+  );
+}
+
+/**
  * Condition-duration bonus from active relics (fraction, e.g. 0.1 = +10%).
  * - Dragonhunter: +10% while the trap buff is active (5s after a trap hit).
  * @param {Object} ctx - Resolver context

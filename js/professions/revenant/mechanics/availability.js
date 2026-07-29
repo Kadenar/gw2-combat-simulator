@@ -7,6 +7,7 @@ import {
   REVENANT_SKILL_IDS as ID,
 } from "../data/ids.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "./handler-mechanics.js";
+import { effectiveRevenantEnergyCost } from "./specific/energy.js";
 
 const LUXON = new Set([
   ID.SELFISH_SPIRIT,
@@ -58,6 +59,33 @@ function deny(skill, code, cause, retryAt = null) {
 export function revenantCastAvailability(context, skill) {
   const state = context.state.profession;
   const specialization = String(context.config.specialization || "Core");
+  if (skill.id === ID.ABYSSAL_FIRE) {
+    return deny(
+      skill,
+      "revenant.abyssal-fire-hidden",
+      "use Abyssal Strike.",
+    );
+  }
+  if (
+    skill.id === ID.UNYIELDING_IMPACT &&
+    !state.availableFlips[ID.UNYIELDING_IMPACT]
+  ) {
+    return deny(
+      skill,
+      "revenant.unyielding-impact-inactive",
+      "cast Call to Anguish first.",
+    );
+  }
+  if (
+    skill.id === ID.CALL_TO_ANGUISH &&
+    state.availableFlips[ID.UNYIELDING_IMPACT]
+  ) {
+    return deny(
+      skill,
+      "revenant.unyielding-impact-ready",
+      "use Unyielding Impact first.",
+    );
+  }
   if (skill.id === ID.TRUE_STRIKE && !state.availableFlips[ID.TRUE_STRIKE]) {
     return deny(
       skill,
@@ -206,19 +234,18 @@ export function revenantCastAvailability(context, skill) {
       "the facet is already active; consume it instead.",
     );
   }
-  const upkeepActive = state.activeUpkeeps.some(
-    (upkeep) => upkeep.skillId === skill.id,
-  );
-  const beguilingFollowUp =
-    skill.handlerId === "revenant.beguiling-haze" &&
-    Number(state.beguilingHazeCharges || 0) > 0;
-  const cost =
-    upkeepActive || beguilingFollowUp ? 0 : Number(skill.energyCost || 0);
+  const cost = effectiveRevenantEnergyCost(context, skill);
   if (state.energy + context.epsilon < cost) {
+    const cooldownReadyAt = Number(
+      context.state.cooldowns.get(skill.id) || 0,
+    );
     return deny(
       skill,
       "revenant.insufficient-energy",
       `requires ${cost} energy.`,
+      cooldownReadyAt > context.start + context.epsilon
+        ? cooldownReadyAt
+        : null,
     );
   }
   const chain = context.catalog.autoattackChainPositions.get(skill.id);

@@ -158,6 +158,7 @@ const baseRevenantLegendLoadout = createFixedSlotLoadout({
 
 export const revenantLegendLoadout = Object.freeze({
   ...baseRevenantLegendLoadout,
+  palettePlacement: "after-actions",
   paletteGroups(context = {}) {
     const availableFlips =
       context.professionState?.availableFlips ||
@@ -169,7 +170,10 @@ export const revenantLegendLoadout = Object.freeze({
         skillId === SKILL.IMPOSSIBLE_ODDS &&
         availableFlips[SKILL.RELINQUISH_POWER]
           ? [skillId, SKILL.RELINQUISH_POWER]
-          : [skillId],
+          : skillId === SKILL.CALL_TO_ANGUISH &&
+              availableFlips[SKILL.UNYIELDING_IMPACT]
+            ? [skillId, SKILL.UNYIELDING_IMPACT]
+            : [skillId],
       ),
     }));
   },
