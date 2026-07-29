@@ -16,21 +16,31 @@ import {
     INSTRUMENTS,
     MECHANIC_SKILLS,
     PHANTASM_ATTACK_TIMINGS,
-    PHANTASM_NAME_BY_SKILL,
     PSEUDO_SKILLS,
     MESMER_SKILL_MECHANICS,
+    MESMER_SUPPLEMENTAL_SKILL_MECHANICS,
     SHATTERS,
     TRAIT_DAMAGE,
 } from "../js/professions/mesmer/mechanics/skill-mechanics.js";
-import {
-    MESMER_AUTOATTACK_CHAINS,
-} from '../js/professions/mesmer/mechanics/autoattack-chains.js';
 import { mesmerCatalog } from '../js/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '../js/professions/mesmer/data/ids.js';
+import {
+    MESMER_SUPPLEMENTAL_SKILLS,
+} from '../js/professions/mesmer/data/mesmer-supplemental-skills.js';
+import {
+    MESMER_TRAIT_COVERAGE,
+} from '../js/professions/mesmer/data/trait-coverage.js';
+import {
+    defaultMesmerLegacySkillId,
+    MESMER_DUPLICATE_SKILL_NAMES,
+    resolveMesmerLegacySkillId,
+} from '../js/professions/mesmer/data/legacy-skill-resolver.js';
 
 const catalogSkill = name => mesmerCatalog.skillsByName.get(name);
+const profileEffects = skill =>
+    skill.effects.length > 0 ? skill.effects : skill.mesmerEffects || [];
 const strikeEffects = skill =>
-    skill.effects.filter(effect => effect.type === 'strike');
+    profileEffects(skill).filter(effect => effect.type === 'strike');
 const strikeCoefficient = effect =>
     effect.ticks
         ? effect.ticks.reduce((sum, tick) => sum + tick.coefficient, 0)
@@ -41,13 +51,13 @@ const totalStrikeCoefficient = skill =>
         0,
     );
 
-test('catalog contains every Mesmer specialization and trait', () => {
+test('catalog contains every terrestrial Mesmer skill and trait line', () => {
     assert.deepEqual(
         SPECIALIZATIONS.map(spec => spec.name),
         ['Domination', 'Dueling', 'Chaos', 'Inspiration', 'Illusions', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'],
     );
     assert.equal(TRAITS.length, 108);
-    assert.equal(SKILLS.length, 123);
+    assert.equal(SKILLS.length, 119);
     assert.deepEqual(
         SKILLS.filter(skill =>
             ['Arcane Thievery', 'Veil'].includes(skill.name)),
@@ -108,7 +118,6 @@ test('every Mesmer catalog skill is explicitly implemented', () => {
 
 test('Mesmer relic options exclude profession-inapplicable relics', () => {
     const excluded = [
-        'Brawler',
         'Krait',
         'Weaver',
         'Bloodstone',
@@ -152,8 +161,7 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
         ],
     );
     for (const skill of phantasms) {
-        const phantasmName = PHANTASM_NAME_BY_SKILL[skill.name] || skill.name;
-        const timing = PHANTASM_ATTACK_TIMINGS[phantasmName];
+        const timing = PHANTASM_ATTACK_TIMINGS[skill.id];
         assert.ok(timing, `${skill.name} is missing a phantasm attack timing`);
         assert.ok(timing.castTimeMs > 0, `${skill.name} has an invalid cast time`);
         assert.ok(timing.damageAtMs > 0, `${skill.name} has an invalid damage time`);
@@ -171,26 +179,25 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
 
 test('measured phantasm endpoints match the supplied cast, damage, and spawn table', () => {
     const expected = {
-        'Phantasmal Avenger': [1640, 1440, 2160, 4200, 4960],
-        'Phantasmal Berserker': [560, 1480, 2560, 4680, 5920],
-        'Phantasmal Defender': [770, 3800, 4510, 8800, 9520],
-        'Phantasmal Disenchanter': [760, 1150, 1840, 4040, 4720],
-        'Phantasmal Duelist': [560, 2751, 3334, 6440, 7040],
-        'Phantasmal Mage': [800, 2270, 2520, 5320, 5560],
-        'Phantasmal Rogue': [610, 1200, 2000, 4040, 4760],
-        'Phantasmal Swordsman': [
+        [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 4200, 4960],
+        [ID.PHANTASMAL_BERSERKER]: [560, 1480, 2560, 4680, 5920],
+        [ID.PHANTASMAL_DEFENDER]: [770, 3800, 4510, 8800, 9520],
+        [ID.PHANTASMAL_DISENCHANTER]: [760, 1150, 1840, 4040, 4720],
+        [ID.PHANTASMAL_DUELIST]: [560, 2751, 3334, 6440, 7040],
+        [ID.PHANTASMAL_MAGE]: [800, 2270, 2520, 5320, 5560],
+        [ID.PHANTASMAL_SWORDSMAN]: [
             880,
             3159,
             4284,
             7120,
             8270,
         ],
-        'Phantasmal Warden': [460, 5040, 7240, 13200, 15320],
-        'Phantasmal Warlock': [780, 2960, 4240, 8560, 9840],
+        [ID.PHANTASMAL_WARDEN]: [460, 5040, 7240, 13200, 15320],
+        [ID.PHANTASMAL_WARLOCK]: [780, 2960, 4240, 8560, 9840],
     };
 
-    for (const [skillName, values] of Object.entries(expected)) {
-        const timing = PHANTASM_ATTACK_TIMINGS[skillName];
+    for (const [skillId, values] of Object.entries(expected)) {
+        const timing = PHANTASM_ATTACK_TIMINGS[skillId];
         assert.deepEqual(
             [
                 timing.castTimeMs,
@@ -201,23 +208,16 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
             ],
             values,
         );
-        const catalogName = skillName === 'Phantasmal Avenger' ? 'Echo of Memory' : skillName;
-        const catalogSkill = SKILLS.find(skill => skill.name === catalogName);
-        if (catalogSkill) {
-            assert.ok(
-                Math.abs(
-                    mesmerCatalog.skillsById.get(catalogSkill.id).castTimeMs
-                    / 1.5
-                    - values[0],
-                ) < 1e-12,
-                `${skillName} has the wrong measured cast time`,
-            );
-        }
+        const skill = mesmerCatalog.skillsById.get(Number(skillId));
+        assert.ok(
+            Math.abs(skill.castTimeMs / 1.5 - values[0]) < 1e-12,
+            `${skill.name} has the wrong measured cast time`,
+        );
     }
 });
 
 test('Counterspell is cataloged as Illusionary Counter’s clone-generating flip skill', () => {
-    const counterspell = PSEUDO_SKILLS.find(skill => skill.name === 'Counterspell');
+    const counterspell = mesmerCatalog.skillsById.get(ID.COUNTERSPELL);
     assert.equal(counterspell.id, 10314);
     assert.equal(counterspell.weapon, 'Scepter');
     assert.deepEqual(counterspell.resource, { mode: 'add', count: 1 });
@@ -278,11 +278,12 @@ test('Mesmer instant-cast skills have zero cast time', () => {
 });
 
 test('Mesmer shatters share only the shatter-family lockout', () => {
-    for (const name of Object.keys(SHATTERS)) {
+    for (const id of Object.keys(SHATTERS).map(Number)) {
+        const skill = mesmerCatalog.skillsById.get(id);
         assert.deepEqual(
-            catalogSkill(name).lockouts,
+            skill.lockouts,
             [{ group: 'mesmer.shatter', durationMs: 50 }],
-            name,
+            skill.name,
         );
     }
     assert.deepEqual(catalogSkill('Power Spike').lockouts, []);
@@ -296,7 +297,7 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
         [ID.LACERATING_CHOP, ID.ETHEREAL_CHOP, ID.MIRROR_STRIKES],
         [ID.PSYCUT, ID.PSYSTRIKE, ID.MIND_PIERCE],
     ];
-    assert.deepEqual(MESMER_AUTOATTACK_CHAINS, expectedChains);
+    assert.deepEqual(mesmerCatalog.autoattackChains, expectedChains);
     for (const chain of expectedChains) {
         const [rootId, ...childIds] = chain;
         const rootSkill = mesmerCatalog.skillsById.get(rootId);
@@ -321,9 +322,12 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
 
 test('requested rifle, focus, and sword sequence flips are cataloged', () => {
     assert.deepEqual(
-        PSEUDO_SKILLS
-            .filter(skill => skill.flipParent)
-            .map(skill => [skill.name, skill.flipParent]),
+        MESMER_SUPPLEMENTAL_SKILLS
+            .filter(skill => skill.flipParentId)
+            .map(skill => [
+                skill.name,
+                mesmerCatalog.skillsById.get(skill.flipParentId).name,
+            ]),
         [
             ['Counterspell', 'Illusionary Counter'],
             ['Power Spike', 'Mantra of Pain'],
@@ -629,27 +633,36 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
 
 test('supplied shatter and instrument coefficient tables are preserved', () => {
     const expectedShatters = {
-        'Mind Wrack': [0.81, 1.61, 2.42, 3.22],
-        'Cry of Frustration': [0.42, 0.84, 1.25, 1.67],
-        Diversion: [0, 0, 0, 0],
-        Distortion: [0, 0, 0, 0],
-        'Split Second': [1.534, 3.22, 3.86, 4.51],
-        Rewinder: [0.42, 0.84, 1.25, 1.67],
-        'Time Sink': [0, 0, 0, 0],
-        'Bladesong Harmony': [0, 0.7, 1.4, 2.1, 2.8, 3.5],
-        'Bladesong Sorrow': [0, 0.42, 0.84, 1.25, 1.67, 2.09],
-        'Bladesong Dissonance': [0, 1, 1, 1, 1, 1],
-        'Bladeturn Requiem': [0, 0.5, 1, 1.5, 2, 2.5],
-        'Continuum Split': [0, 0, 0, 0],
+        [ID.MIND_WRACK]: [0.81, 1.61, 2.42, 3.22],
+        [ID.CRY_OF_FRUSTRATION]: [0.42, 0.84, 1.25, 1.67],
+        [ID.DIVERSION]: [0, 0, 0, 0],
+        [ID.DISTORTION]: [0, 0, 0, 0],
+        [ID.SPLIT_SECOND]: [1.534, 3.22, 3.86, 4.51],
+        [ID.REWINDER]: [0.42, 0.84, 1.25, 1.67],
+        [ID.TIME_SINK]: [0, 0, 0, 0],
+        [ID.BLADESONG_HARMONY]: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
+        [ID.BLADESONG_SORROW]: [0, 0.42, 0.84, 1.25, 1.67, 2.09],
+        [ID.BLADESONG_DISSONANCE]: [0, 1, 1, 1, 1, 1],
+        [ID.BLADETURN_REQUIEM]: [0, 0.5, 1, 1.5, 2, 2.5],
+        [ID.CONTINUUM_SPLIT]: [0, 0, 0, 0],
     };
-    for (const [name, coefficients] of Object.entries(expectedShatters)) {
-        assert.deepEqual(SHATTERS[name].coefficients, coefficients, name);
+    for (const [id, coefficients] of Object.entries(expectedShatters)) {
+        assert.deepEqual(
+            SHATTERS[id].coefficients,
+            coefficients,
+            mesmerCatalog.skillsById.get(Number(id)).name,
+        );
     }
 
     assert.deepEqual(
-        Object.fromEntries(Object.entries(INSTRUMENTS).map(([name, data]) => [
-            name,
-            data.coefficient,
+        Object.fromEntries([
+            ID.LIVELY_LUTE,
+            ID.FLUSTERING_FLUTE,
+            ID.DEAFENING_DRUM,
+            ID.HARMONIOUS_HARP,
+        ].map(id => [
+            mesmerCatalog.skillsById.get(id).name,
+            INSTRUMENTS[id].coefficient,
         ])),
         {
             'Lively Lute': 3,
@@ -666,4 +679,97 @@ test('dodge models two endurance charges with a ten-second base recharge', () =>
     assert.equal(dodge.ammo, 2);
     assert.equal(dodge.castTimeMs, 0);
     assert.equal(dodge.rechargeAnchor, 'castStart');
+});
+
+test('Mesmer supplemental identities, handler profiles, and trait coverage are explicit', () => {
+    assert.equal(MESMER_SUPPLEMENTAL_SKILLS.length, 15);
+    assert.ok(MESMER_SUPPLEMENTAL_SKILLS.every(skill => skill.id > 0));
+    assert.ok(PSEUDO_SKILLS.every(skill => skill.id < 0));
+    const identityFields = [
+        'name',
+        'description',
+        'icon',
+        'type',
+        'slot',
+        'weapon',
+        'specialization',
+        'environment',
+        'wikiUrl',
+        'flipParent',
+    ];
+    assert.ok(
+        Object.values(MESMER_SUPPLEMENTAL_SKILL_MECHANICS)
+            .every(mechanics =>
+                identityFields.every(field => !Object.hasOwn(mechanics, field))),
+    );
+    assert.equal(MESMER_TRAIT_COVERAGE.length, mesmerCatalog.traits.length);
+    assert.ok(MESMER_TRAIT_COVERAGE.every(entry => entry.effects.length > 0));
+
+    const shared = mesmerCatalog.skillsByName.get('Mind Stab');
+    assert.equal(shared.handlerId, 'mesmer.declarative');
+    assert.ok(shared.effects.length > 0);
+    const replacing = mesmerCatalog.skillsByName.get('Phantasmal Swordsman');
+    assert.equal(replacing.handlerId, 'mesmer.phantasm');
+    assert.deepEqual(replacing.effects, []);
+    assert.ok(replacing.mesmerEffects.length > 0);
+});
+
+test('legacy duplicate Mesmer names resolve explicitly by specialization', () => {
+    assert.deepEqual(MESMER_DUPLICATE_SKILL_NAMES, [
+        'Axes of Symmetry',
+        'Lingering Thoughts',
+        'Bladecall',
+        'Lively Lute',
+        'Harmonious Harp',
+    ]);
+    const specializationCases = [
+        ['Axes of Symmetry', 'Mirage', ID.AXES_OF_SYMMETRY],
+        [
+            'Axes of Symmetry',
+            'Troubadour',
+            ID.TROUBADOUR_AXES_OF_SYMMETRY,
+        ],
+        ['Lingering Thoughts', 'Mirage', ID.LINGERING_THOUGHTS],
+        [
+            'Lingering Thoughts',
+            'Troubadour',
+            ID.TROUBADOUR_LINGERING_THOUGHTS,
+        ],
+        ['Bladecall', 'Virtuoso', ID.BLADECALL],
+        ['Bladecall', 'Troubadour', ID.TROUBADOUR_BLADECALL],
+        ['Lively Lute', 'Troubadour', ID.LIVELY_LUTE_ALTERNATE],
+        ['Harmonious Harp', 'Troubadour', ID.HARMONIOUS_HARP_ALTERNATE],
+    ];
+    for (const [name, specialization, expectedId] of specializationCases) {
+        assert.equal(
+            resolveMesmerLegacySkillId(name, { specialization }),
+            expectedId,
+            `${specialization} ${name}`,
+        );
+    }
+    for (const name of [
+        'Axes of Symmetry',
+        'Lingering Thoughts',
+        'Lively Lute',
+        'Harmonious Harp',
+    ]) {
+        assert.equal(resolveMesmerLegacySkillId(name), null, name);
+        assert.equal(
+            resolveMesmerLegacySkillId(name, {
+                specialization: 'Chronomancer',
+            }),
+            null,
+            name,
+        );
+    }
+    assert.equal(resolveMesmerLegacySkillId('Bladecall'), ID.BLADECALL);
+    assert.equal(
+        resolveMesmerLegacySkillId('Mind Stab', {
+            specialization: 'Mirage',
+        }),
+        undefined,
+    );
+    for (const name of MESMER_DUPLICATE_SKILL_NAMES) {
+        assert.ok(Number.isInteger(defaultMesmerLegacySkillId(name)), name);
+    }
 });

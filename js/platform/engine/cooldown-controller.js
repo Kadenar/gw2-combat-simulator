@@ -91,6 +91,41 @@ export function createCooldownController({
   };
 
   /**
+   * Reduces serial count recharge, carrying overflow into later missing
+   * charges. Reduction is capped only when the skill reaches maximum ammo.
+   */
+  const reduceAmmoRecharge = (skill, reduction, at = state.time) => {
+    const ammo = refreshAmmo(skill, at);
+    const requested = Math.max(0, Number(reduction) || 0);
+    if (!ammo || ammo.nextRechargeAt == null || requested <= 0) {
+      return { ammo, reducedBy: 0 };
+    }
+
+    const previous = ammo.nextRechargeAt;
+    const missingCharges = Math.max(0, ammo.maximum - ammo.charges);
+    const remainingUntilFull =
+      Math.max(0, previous - at)
+      + Math.max(0, missingCharges - 1) * ammo.rechargeDuration;
+    const reducedBy = Math.min(requested, remainingUntilFull);
+
+    // A depleted ammo skill mirrors its next count recharge into the shared
+    // cooldown map. Remove that mirrored value before refreshing so it is not
+    // mistaken for an independent between-cast lockout.
+    if (ammo.charges === 0) {
+      const readyAt = Number(state.cooldowns.get(skill.id) || 0);
+      if (readyAt > previous + epsilon) {
+        state.cooldowns.set(skill.id, readyAt);
+      } else {
+        state.cooldowns.delete(skill.id);
+      }
+    }
+
+    ammo.nextRechargeAt = previous - reducedBy;
+    refreshAmmo(skill, at);
+    return { ammo, reducedBy };
+  };
+
+  /**
    * Applies the short between-cast recharge independently from count recharge.
    */
   const setAmmoLockout = (skill, readyAt, at = state.time) => {
@@ -110,6 +145,7 @@ export function createCooldownController({
   return Object.freeze({
     ammoMaximum,
     ensureAmmo,
+    reduceAmmoRecharge,
     refreshAmmo,
     setAmmoLockout,
     spendAmmo,

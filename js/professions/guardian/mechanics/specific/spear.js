@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Implements Guardian spear's Illuminated state machine and
+ * applies its conditional damage changes to scheduler events.
+ */
+
 import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
 import { GUARDIAN_HANDLER_MECHANICS } from "../handler-mechanics.js";
 import { buildGuardianStrike } from "../events.js";
@@ -33,12 +38,29 @@ const ILLUMINATED_ICON = "https://wiki.guildwars2.com/images/7/7d/Illuminated.pn
 const SYMBOL_OF_LUMINANCE_ICON =
   "https://render.guildwars2.com/file/0E1E2D69CBC3C0E36217506C6CCB710138035373/3379129.png";
 
+/**
+ * Resolves a declarative effect's first strike time in simulation seconds.
+ *
+ * @param {object} context Active cast context.
+ * @param {object} effect Declarative skill effect.
+ * @returns {number} Absolute simulation timestamp for the first strike.
+ */
 function strikeStartSeconds(context, effect) {
   if (effect.atMs != null) return context.start + Number(effect.atMs) / 1000;
   if (effect.at != null) return context.start + Number(effect.at);
   return context.fullEnd;
 }
 
+/**
+ * Applies the illuminated strike profile to a spear skill by replacing
+ * existing packets or emitting the additional packets defined by the skill.
+ *
+ * @param {object} context Active cast context.
+ * @param {object} skill Cast spear skill.
+ * @param {number} multiplier Illuminated aggregate damage multiplier.
+ * @returns {number|null} Timestamp used for the Illuminated proc, or null when
+ * no bonus packet could be applied.
+ */
 function emitIlluminatedBonus(context, skill, multiplier) {
   const interrupted = context.effectiveEnd < context.fullEnd - context.epsilon;
   const bonusFraction = multiplier - 1;
@@ -128,6 +150,17 @@ function emitIlluminatedBonus(context, skill, multiplier) {
   return emittedAt;
 }
 
+/**
+ * Emits a skill proc entry for the rotation timeline.
+ *
+ * @param {object} context Active cast context.
+ * @param {number} at Proc timestamp.
+ * @param {string} name Proc name.
+ * @param {string} sourceSkill Skill that caused the proc.
+ * @param {string} icon Icon URL.
+ * @param {string} detail Human-readable proc detail.
+ * @returns {void}
+ */
 function emitProc(context, at, name, sourceSkill, icon, detail) {
   context.emit({
     type: "proc",
@@ -143,8 +176,13 @@ function emitProc(context, at, name, sourceSkill, icon, detail) {
 }
 
 /**
- * afterCast hook: applies the Illuminated bonus for the current spear cast, then
- * consumes/arms the buff and refreshes the Symbol of Luminance window.
+ * Applies the Illuminated bonus after a spear cast, consumes any prior armed
+ * charge, arms a new charge where applicable, and refreshes Symbol of
+ * Luminance's persistent window.
+ *
+ * @param {object} context Scheduler after-cast context.
+ * @param {object} skill Completed skill.
+ * @returns {void}
  */
 export function updateSpearIlluminationState(context, skill) {
   const state = context.state.profession;
@@ -206,6 +244,13 @@ export function updateSpearIlluminationState(context, skill) {
   }
 }
 
+/**
+ * Removes an armed Illuminated charge once scheduler time reaches its expiry.
+ *
+ * @param {object} context Scheduler advancement context.
+ * @param {number} target Target simulation time.
+ * @returns {void}
+ */
 export function advanceSpearIlluminationState(context, target) {
   const state = context.state.profession;
   if (

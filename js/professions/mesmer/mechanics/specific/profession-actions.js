@@ -5,7 +5,10 @@
  * @param {Object} config - Scheduler config (state, traits, resourceDefinition, etc.)
  * @returns {Object} Profession action controller
  */
-import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import {
+  MESMER_SKILL_IDS as ID,
+  MESMER_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
 
 export function createProfessionActionController({
   state,
@@ -22,7 +25,7 @@ export function createProfessionActionController({
   addDamage,
   activePrimaryWeapon,
   queueResources,
-  byName,
+  byId,
   traitDamage,
 }) {
   const currentResource = () =>
@@ -108,7 +111,7 @@ export function createProfessionActionController({
     bladeSong = false,
     { skipMaim = false } = {},
   ) => {
-    const shatter = shatters[skill.name];
+    const shatter = shatters[skill.id];
     const sources = bladeSong ? 1 : spent + 1;
     if (!skipMaim && traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) {
       addCondition(
@@ -160,12 +163,16 @@ export function createProfessionActionController({
         1,
         activePrimaryWeapon(),
         "Illusionary Reversion",
+        {
+          traitId: TRAIT.ILLUSIONARY_REVERSION,
+          traitName: "Illusionary Reversion",
+        },
       );
     }
   };
 
   const handleShatter = (skill, at, resourcesSpent = null) => {
-    const shatter = shatters[skill.name];
+    const shatter = shatters[skill.id];
     const isBladeSong = shatter.kind.startsWith("blade");
     let maimTriggered = false;
     const addMaimOnHit = (hitAt) => {
@@ -334,7 +341,7 @@ export function createProfessionActionController({
       skipMaim: maimTriggered,
     });
     if (
-      skill.name === "Time Sink" &&
+      skill.id === ID.TIME_SINK &&
       traits.has(TRAIT.TIME_BOMB) &&
       at >= state.profession.timeBombUntil - epsilon
     ) {
@@ -370,6 +377,10 @@ export function createProfessionActionController({
         2,
         activePrimaryWeapon(),
         "Infinite Forge refund",
+        {
+          traitId: TRAIT.INFINITE_FORGE,
+          traitName: "Infinite Forge",
+        },
       );
     }
     addEvent({
@@ -382,12 +393,12 @@ export function createProfessionActionController({
   };
 
   const handleInstrument = (skill, at) => {
-    const data = instruments[skill.name];
+    const data = instruments[skill.id];
     const spent = consumeResources(at);
     if (data.coefficient) {
       const coefficient =
         data.coefficient +
-        (skill.name === "Lively Lute" && traits.has(TRAIT.SHREDDING) ? 1 : 0);
+        (data.instrument === "Lute" && traits.has(TRAIT.SHREDDING) ? 1 : 0);
       addDamage(skill, at, {
         coefficient,
         hits: data.hits + (coefficient > data.coefficient ? 1 : 0),
@@ -414,7 +425,7 @@ export function createProfessionActionController({
     });
 
     if (traits.has(TRAIT.ALTERED_CHORD) && spent > 0) {
-      const crescendo = byName("Crescendo");
+      const crescendo = byId(ID.CRESCENDO);
       const ready = state.cooldowns.get(crescendo?.id);
       if (ready) state.cooldowns.set(crescendo.id, Math.max(at, ready - 2));
     }
@@ -455,7 +466,10 @@ export function createProfessionActionController({
     }
     if (traits.has(TRAIT.FORTISSIMO)) {
       for (let index = 1; index <= 5; index += 1) {
-        queueResources(at + index, 1, activePrimaryWeapon(), "Fortissimo");
+        queueResources(at + index, 1, activePrimaryWeapon(), "Fortissimo", {
+          traitId: TRAIT.FORTISSIMO,
+          traitName: "Fortissimo",
+        });
       }
     }
   };

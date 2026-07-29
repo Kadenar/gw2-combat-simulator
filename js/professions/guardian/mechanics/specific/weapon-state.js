@@ -1,7 +1,10 @@
+/**
+ * @fileoverview Tracks Guardian weapon autoattack chains, temporary flip
+ * availability, normal weapon-bar gating, and weapon-set swaps.
+ */
+
 import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
-import { GUARDIAN_AUTOATTACK_CHAINS } from "../autoattack-chains.js";
 import { emitGuardianEvent } from "../events.js";
-import { indexAutoattackChains } from "../../../../platform/engine/autoattack-chains.js";
 
 /**
  * Guardian weapon-slot bookkeeping: autoattack-chain progression, weapon swap,
@@ -14,13 +17,9 @@ import { indexAutoattackChains } from "../../../../platform/engine/autoattack-ch
  *   castable until (armed by casting its parent, e.g. Zealot's Flame → Fire).
  * - `activeWeaponSet` — 1 or 2, toggled by weapon swap.
  *
- * Chain positions are indexed once from the derived guardian chains so lookups
- * during validation/afterCast are O(1). See `platform/engine/autoattack-chains`.
+ * Chain positions are indexed once by the canonical catalog so lookups during
+ * validation/afterCast are O(1).
  */
-const CHAIN_POSITION_BY_SKILL_ID = indexAutoattackChains(
-  GUARDIAN_AUTOATTACK_CHAINS,
-);
-
 /**
  * validateCast hook (order 50): decides whether a weapon skill may cast now.
  * Combined with `!== false`, so `undefined` = no opinion (allow) and only an
@@ -35,6 +34,10 @@ const CHAIN_POSITION_BY_SKILL_ID = indexAutoattackChains(
  * - A chain skill is castable only when it is the currently-expected step of
  *   its chain (the root when nothing is pending). Non-chain, non-flip weapon
  *   skills fall through to `undefined` (allowed).
+ *
+ * @param {object} context Cast-validation context.
+ * @param {object} skill Candidate skill.
+ * @returns {boolean|undefined} Whether a relevant weapon skill is castable.
  */
 export function validateWeaponState(context, skill) {
   if (skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE) return;
@@ -50,7 +53,7 @@ export function validateWeaponState(context, skill) {
       context.start + context.epsilon
     );
   }
-  const chain = CHAIN_POSITION_BY_SKILL_ID.get(skill.id);
+  const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (!chain) return;
   const expected =
     context.state.profession.autoattackChains[chain.root] || chain.root;
@@ -70,10 +73,14 @@ export function validateWeaponState(context, skill) {
  *   back at it, arm that flip: Zealot's Flame gets a fixed 3s window, otherwise
  *   the flip stays castable for the skill's cooldown/recharge (min 1, default 5).
  * - Casting a flip skill consumes its `availableFlips` entry.
+ *
+ * @param {object} context Scheduler after-cast context.
+ * @param {object} skill Completed skill.
+ * @returns {void}
  */
 export function updateWeaponCastState(context, skill) {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-  const chain = CHAIN_POSITION_BY_SKILL_ID.get(skill.id);
+  const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (chain) {
     if (chain.next == null) {
       delete context.state.profession.autoattackChains[chain.root];
@@ -103,6 +110,10 @@ export function updateWeaponCastState(context, skill) {
 /**
  * "guardian.weapon-swap" skill handler: toggles the active weapon set (1↔2),
  * drops any pending autoattack chains, and emits a `weapon_set` event.
+ *
+ * @param {object} context Skill-handler context.
+ * @param {object} skill Synthetic weapon-swap skill.
+ * @returns {boolean} Always true because this replacing handler owns the cast.
  */
 function swapWeapons(context, skill) {
   const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
@@ -112,6 +123,9 @@ function swapWeapons(context, skill) {
   return true;
 }
 
+/**
+ * Raw weapon-state callbacks consumed by the central handler registry.
+ */
 export const guardianWeaponSkillHandlers = Object.freeze({
   "guardian.weapon-swap": swapWeapons,
 });

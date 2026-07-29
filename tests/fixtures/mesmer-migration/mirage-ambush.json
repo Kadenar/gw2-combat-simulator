@@ -1,0 +1,338 @@
+{
+  "name": "mirage cloak and ambush",
+  "rotation": [
+    {
+      "type": "cast",
+      "skillId": -1
+    },
+    {
+      "type": "cast",
+      "skillId": 44321
+    }
+  ],
+  "config": {
+    "specialization": "Mirage",
+    "primaryWeapon": "Axe",
+    "secondaryWeapon": "Pistol",
+    "initialResource": 0
+  },
+  "expected": {
+    "exact": {
+      "activeWeaponSet": 1,
+      "ammo": {
+        "Dodge / Mirage Cloak": {
+          "charges": 1,
+          "maximum": 2,
+          "nextRechargeAt": 6.666666666666667,
+          "rechargeDuration": 6.666666666666667
+        },
+        "Jaunt": {
+          "charges": 3,
+          "maximum": 3,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Lingering Thoughts": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 4.8
+        },
+        "Lively Lute": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 9.6
+        },
+        "Mantra of Recovery": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Power Spike": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 8
+        },
+        "Psychic Force": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 16
+        },
+        "Tale of the Honorable Rogue": {
+          "charges": 2,
+          "maximum": 2,
+          "nextRechargeAt": null,
+          "rechargeDuration": 20
+        }
+      },
+      "cooldowns": {
+        "Imaginary Axes": {
+          "readyAt": 1320,
+          "remaining": 800
+        }
+      },
+      "dpsWindow": 0,
+      "duration": 0.52,
+      "events": [
+        {
+          "__order": 0,
+          "actorType": "player",
+          "at": 0,
+          "endsAt": 0,
+          "fullEndsAt": 0,
+          "interrupted": false,
+          "name": "Dodge / Mirage Cloak",
+          "rechargeReadyAt": null,
+          "schemaVersion": 1,
+          "skillId": -1,
+          "skillName": "Dodge / Mirage Cloak",
+          "source": "mesmer",
+          "sourceId": -1,
+          "type": "action"
+        },
+        {
+          "__order": 1,
+          "at": 0,
+          "detail": "Dodge / Mirage Cloak (1.5s)",
+          "name": "Ambush Window",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "Ambush Window",
+          "type": "marker"
+        },
+        {
+          "__order": 2,
+          "at": 0,
+          "duration": 0.75,
+          "kind": "mirage-cloak",
+          "schemaVersion": 1,
+          "source": "Mesmer",
+          "sourceId": "buff",
+          "sourceSkill": "Dodge / Mirage Cloak",
+          "stacks": 1,
+          "type": "buff"
+        },
+        {
+          "__order": 3,
+          "actorType": "player",
+          "at": 0,
+          "endsAt": 0.52,
+          "fullEndsAt": 0.52,
+          "interrupted": false,
+          "name": "Imaginary Axes",
+          "rechargeReadyAt": 1.32,
+          "schemaVersion": 1,
+          "skillId": 44321,
+          "skillName": "Imaginary Axes",
+          "source": "mesmer",
+          "sourceId": 44321,
+          "type": "action"
+        },
+        {
+          "__order": 4,
+          "actorType": "player",
+          "at": 0.52,
+          "blade": false,
+          "coefficient": 0.5,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Imaginary Axes",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Imaginary Axes",
+          "skillWeapon": "Axe",
+          "source": "Player",
+          "sourceId": "Imaginary Axes",
+          "totalHits": 2,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 5,
+          "actorType": "player",
+          "at": 0.52,
+          "blade": false,
+          "coefficient": 0.5,
+          "hitIndex": 2,
+          "hits": 1,
+          "name": "Imaginary Axes",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Imaginary Axes",
+          "skillWeapon": "Axe",
+          "source": "Player",
+          "sourceId": "Imaginary Axes",
+          "totalHits": 2,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 6,
+          "actorType": "player",
+          "at": 0.52,
+          "condition": "Torment",
+          "duration": 3.5,
+          "name": "Imaginary Axes — Torment",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Imaginary Axes",
+          "source": "Player",
+          "sourceId": "Imaginary Axes",
+          "stacks": 3,
+          "type": "condition"
+        }
+      ],
+      "profession": {
+        "autoattackChains": {
+          "10170": 10170,
+          "10289": 10289,
+          "44791": 44791,
+          "73154": 73154
+        },
+        "availableAmbush": null,
+        "availableFlips": {
+          "Power Spike": {
+            "availableAt": 0,
+            "expiresAt": null,
+            "persistent": true,
+            "remaining": null
+          }
+        },
+        "clarityRemaining": 0,
+        "continuumActive": false,
+        "continuumRemaining": 0,
+        "counterspellAvailable": false,
+        "resource": 0,
+        "resourceDefinition": {
+          "maximum": 3,
+          "plural": "clones",
+          "singular": "clone"
+        }
+      },
+      "resolvedEvents": [
+        {
+          "__order": 4,
+          "actorType": "player",
+          "at": 0.52,
+          "blade": false,
+          "coefficient": 0.5,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 1,
+          "hits": 1,
+          "name": "Imaginary Axes",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Imaginary Axes",
+          "skillWeapon": "Axe",
+          "source": "Player",
+          "sourceId": "Imaginary Axes",
+          "totalHits": 2,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 5,
+          "actorType": "player",
+          "at": 0.52,
+          "blade": false,
+          "coefficient": 0.5,
+          "criticalChance": 0.8714285714285714,
+          "criticalDamage": 2.4333333333333336,
+          "hitIndex": 2,
+          "hits": 1,
+          "name": "Imaginary Axes",
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Imaginary Axes",
+          "skillWeapon": "Axe",
+          "source": "Player",
+          "sourceId": "Imaginary Axes",
+          "totalHits": 2,
+          "type": "damage",
+          "weapon": "",
+          "weaponStrength": 1000
+        },
+        {
+          "__order": 6,
+          "activeDuration": 0,
+          "actorType": "player",
+          "at": 0.52,
+          "condition": "Torment",
+          "damageTicks": [],
+          "damagingStackSeconds": 0,
+          "duration": 3.5,
+          "effectiveDuration": 4.666666666666666,
+          "expiresAt": 0.52,
+          "name": "Imaginary Axes — Torment",
+          "naturalExpiresAt": 5.186666666666666,
+          "schemaVersion": 1,
+          "skillId": null,
+          "skillName": "Imaginary Axes",
+          "source": "Player",
+          "sourceId": "Imaginary Axes",
+          "stacks": 3,
+          "type": "condition"
+        }
+      ],
+      "steps": [
+        {
+          "actualStart": 0,
+          "end": 0,
+          "fullCastMs": 0,
+          "interrupted": false,
+          "ri": 0,
+          "skill": "Dodge / Mirage Cloak",
+          "start": 0
+        },
+        {
+          "actualStart": 0,
+          "end": 520,
+          "fullCastMs": 520,
+          "interrupted": false,
+          "ri": 1,
+          "skill": "Imaginary Axes",
+          "start": 0
+        }
+      ],
+      "warnings": []
+    },
+    "damage": {
+      "conditionDamage": 0,
+      "dps": 0,
+      "events": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      "resolvedEvents": [
+        {
+          "damage": 2029.7286704439193
+        },
+        {
+          "damage": 2029.7286704439193
+        },
+        {
+          "damage": 0
+        }
+      ],
+      "steps": [
+        {},
+        {}
+      ],
+      "strikeDamage": 4059.4573408878387,
+      "totalDamage": 4059.4573408878387
+    }
+  }
+}

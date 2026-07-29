@@ -4,10 +4,10 @@ import {
   MECHANIC_SKILLS,
   SHATTERS,
 } from "./skill-mechanics.js";
-import { mesmerAutoattackChainPosition } from "./autoattack-chains.js";
-import { runtimeFor } from "./runtime.js";
+import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
+import { mesmerRuntimeFor } from "./handler-mechanics.js";
 
-function skillAvailable(skill, config) {
+export function isMesmerBuildSkillAvailable(skill, config) {
   if (skill.ambush) return config.specialization === "Mirage";
   if (skill.id < 0) {
     return (
@@ -16,7 +16,7 @@ function skillAvailable(skill, config) {
   }
   if (skill.environment !== "Terrestrial") return false;
   if (skill.type === "Profession") {
-    return (MECHANIC_SKILLS[config.specialization] || []).includes(skill.name);
+    return (MECHANIC_SKILLS[config.specialization] || []).includes(skill.id);
   }
   if (
     skill.specialization &&
@@ -34,16 +34,37 @@ function skillAvailable(skill, config) {
   return true;
 }
 
+export function mesmerMinimumResource(skill) {
+  return SHATTERS[skill.id]?.kind.startsWith("blade") ? 1 : 0;
+}
+
+export function isMesmerContinuumSkillAvailable(skill, continuumActive) {
+  return skill.id !== ID.CONTINUUM_SHIFT || Boolean(continuumActive);
+}
+
 export function mesmerAvailability(context, skill) {
-  const runtime = runtimeFor(context);
+  const runtime = mesmerRuntimeFor(context);
   const { state } = context;
   const at = context.start;
-  if (!skillAvailable(skill, context.config)) {
+  if (!isMesmerBuildSkillAvailable(skill, context.config)) {
     return {
       ready: false,
       retryAt: null,
       code: "mesmer.build",
       reason: `${skill.name} is unavailable for this build.`,
+    };
+  }
+  if (
+    !isMesmerContinuumSkillAvailable(
+      skill,
+      Boolean(state.profession.continuum),
+    )
+  ) {
+    return {
+      ready: false,
+      retryAt: null,
+      code: "mesmer.continuum-inactive",
+      reason: `${skill.name} requires an active Continuum Split.`,
     };
   }
   if (skill.ambush) {
@@ -62,7 +83,7 @@ export function mesmerAvailability(context, skill) {
       };
     }
   }
-  const position = mesmerAutoattackChainPosition(skill.id);
+  const position = context.catalog.autoattackChainPositions.get(skill.id);
   if (position) {
     const expected =
       state.profession.autoattackChains[position.root] || position.root;
@@ -77,23 +98,25 @@ export function mesmerAvailability(context, skill) {
       };
     }
   }
-  if (skill.flipParent) {
-    const flip = state.profession.availableFlips[skill.name];
+  if (skill.mesmerMechanic?.flipParentId) {
+    const flip = state.profession.availableFlips[skill.id];
     if (!flip || flip.expiresAt < at - EPSILON) {
-      const parent = runtime.skillsByName.get(skill.flipParent);
+      const parent = runtime.skillsById.get(
+        skill.mesmerMechanic?.flipParentId,
+      );
       if (parent && context.inFlight.get(parent.id)?.size) {
         return {
           ready: false,
           retryAt: null,
           code: "mesmer.flip-parent-in-flight",
-          reason: `${skill.flipParent} is still channeling.`,
+          reason: `${parent.name} is still channeling.`,
         };
       }
       return {
         ready: false,
         retryAt: null,
         code: "mesmer.flip-not-armed",
-        reason: `${skill.flipParent} is not active.`,
+        reason: `${parent?.name || "The parent skill"} is not active.`,
       };
     }
     if (flip.availableAt > at + EPSILON) {
@@ -106,8 +129,7 @@ export function mesmerAvailability(context, skill) {
     }
   }
   if (
-    SHATTERS[skill.name]?.kind.startsWith("blade") &&
-    runtime.actions.currentResource() < 1
+    runtime.actions.currentResource() < mesmerMinimumResource(skill)
   ) {
     return {
       ready: false,

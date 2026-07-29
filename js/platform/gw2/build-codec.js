@@ -76,6 +76,7 @@ export function createGw2BuildCodec({
   normalizeExtra = (build) => build,
   validateExtra = () => [],
   legacyGearAliases = {},
+  slotLoadout = null,
 } = {}) {
   if (!/^[a-z][a-z0-9-]*$/.test(String(professionId || ""))) {
     throw new TypeError("Build codec requires a stable professionId.");
@@ -94,6 +95,7 @@ export function createGw2BuildCodec({
     professionId,
     schemaVersion,
     catalog,
+    slotLoadout,
   };
 
   function migrateBuild(candidate) {
@@ -127,6 +129,7 @@ export function createGw2BuildCodec({
         saved.alternateWeapons,
         defaults.alternateWeapons,
         catalog,
+        true,
       ),
       weaponSigils: normalizeWeaponSigils(legacySigils, defaults.weaponSigils),
       rune: RUNE_NAMES.includes(saved.rune) ? saved.rune : defaults.rune,
@@ -139,12 +142,17 @@ export function createGw2BuildCodec({
           ? saved.jadeBotCore
           : Boolean(defaults.jadeBotCore),
       specializations,
-      selectedSkills: normalizeSelectedSkills(
-        saved,
-        defaults,
-        catalog,
-        specializations,
-      ),
+      selectedSkills: slotLoadout
+        ? {
+            ...plainObject(defaults.selectedSkills),
+            ...plainObject(saved.selectedSkills),
+          }
+        : normalizeSelectedSkills(
+            saved,
+            defaults,
+            catalog,
+            specializations,
+          ),
       assumptions: {
         ...defaults.assumptions,
         ...assumptions,
@@ -177,6 +185,26 @@ export function createGw2BuildCodec({
     }
     migrated.schemaVersion = schemaVersion;
     migrated.profession = professionId;
+    if (!migrated.alternateWeapons[0]) {
+      migrated.startingWeaponSet = 1;
+    }
+    if (slotLoadout) {
+      const eliteNames = new Set(
+        catalog.specializations
+          .filter(specialization => specialization.elite)
+          .map(specialization => specialization.name),
+      );
+      const specialization = migrated.specializations
+        .find(selection => eliteNames.has(selection.name))?.name || "Core";
+      Object.assign(
+        migrated,
+        slotLoadout.normalizeBuild(migrated, {
+          build: migrated,
+          specialization,
+          catalog,
+        }),
+      );
+    }
     delete migrated.selectedSkillIds;
     delete migrated.sigils;
     return migrated;
@@ -243,8 +271,9 @@ function normalizeGear(value, defaults, aliases) {
   return gear;
 }
 
-function normalizeWeaponPair(value, fallback, catalog) {
+function normalizeWeaponPair(value, fallback, catalog, allowEmpty = false) {
   if (!Array.isArray(value)) return [...fallback];
+  if (allowEmpty && !value[0]) return ["", ""];
   const requestedMain = catalog.weapons.has(value[0]) ? value[0] : "";
   const mainHand = ["mh", "mh+oh", "2h"].includes(
     catalog.weaponHands.get(requestedMain),
@@ -314,6 +343,7 @@ function selectedSkillsFromLegacy(saved, catalog) {
 function selectableSlotSkill(skill, type, selectedSpecializations = null) {
   return Boolean(
     skill?.implemented &&
+      skill.slotSelectable !== false &&
       !skill.simulatorExcluded &&
       skill.type === type &&
       skill.flipParentId == null &&
@@ -409,12 +439,13 @@ function migrateVersionedBuild(
   return saved;
 }
 
-function validateWeaponPair(pair, label, catalog, errors) {
+function validateWeaponPair(pair, label, catalog, errors, allowEmpty = false) {
   if (!Array.isArray(pair) || pair.length !== 2) {
     errors.push(`${label} must contain a main-hand and off-hand slot.`);
     return;
   }
   const [mainHand, offHand] = pair;
+  if (allowEmpty && !mainHand && !offHand) return;
   const mainWielding = catalog.weaponHands.get(mainHand);
   const offWielding = offHand ? catalog.weaponHands.get(offHand) : null;
   if (
@@ -519,7 +550,10 @@ function validateRotationCommand(command, catalog, errors) {
   }
 }
 
-function validateCommonBuild(build, { professionId, schemaVersion, catalog }) {
+function validateCommonBuild(
+  build,
+  { professionId, schemaVersion, catalog, slotLoadout = null },
+) {
   const errors = [];
   if (!build || typeof build !== "object" || Array.isArray(build)) {
     return { valid: false, errors: ["Build must be an object."] };
@@ -536,9 +570,12 @@ function validateCommonBuild(build, { professionId, schemaVersion, catalog }) {
     "alternateWeapons",
     catalog,
     errors,
+    true,
   );
   if (![1, 2].includes(build.startingWeaponSet)) {
     errors.push("startingWeaponSet must be 1 or 2.");
+  } else if (build.startingWeaponSet === 2 && !build.alternateWeapons?.[0]) {
+    errors.push("startingWeaponSet cannot be 2 without a second weapon set.");
   }
   if (!Array.isArray(build.rotation)) {
     errors.push("rotation must be an array.");
@@ -548,7 +585,20 @@ function validateCommonBuild(build, { professionId, schemaVersion, catalog }) {
     }
   }
   validateSpecializations(build, catalog, professionId, errors);
-  if (!isPlainObject(build.selectedSkills)) {
+  if (slotLoadout) {
+    const eliteNames = new Set(
+      catalog.specializations
+        .filter(specialization => specialization.elite)
+        .map(specialization => specialization.name),
+    );
+    const specialization = (build.specializations || [])
+      .find(selection => eliteNames.has(selection?.name))?.name || "Core";
+    errors.push(...slotLoadout.validateBuild(build, {
+      build,
+      specialization,
+      catalog,
+    }));
+  } else if (!isPlainObject(build.selectedSkills)) {
     errors.push("selectedSkills must be an object.");
   } else {
     const selectedSpecializations = new Set(

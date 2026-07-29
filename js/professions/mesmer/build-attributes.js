@@ -6,23 +6,24 @@ import {
 
 export function applyMesmerBuildAttributeRules(
   common,
-  {
-    build,
-    selectedSkills = [],
-    disabledTrait = null,
-  },
+  { build, selectedSkills = [], disabledTrait = null },
 ) {
   const attributes = common.attributes;
   const traitStats = {};
   const traitDurations = {};
-  const activeTraits = getActiveTraits(build.specializations || [])
-    .filter(trait => trait.name !== disabledTrait);
-  const hasTrait = name => activeTraits.some(trait => trait.name === name);
+  const activeTraits = getActiveTraits(build.specializations || []).filter(
+    (trait) => trait.name !== disabledTrait,
+  );
+  const hasTrait = (name) => activeTraits.some((trait) => trait.name === name);
   const assumptions = build.assumptions || {};
   const conversionPool = common.commonContext.conversionPool;
 
   if (hasTrait("Quiet Intensity")) {
-    addAttribute(traitStats, "Ferocity", Math.round((conversionPool.Vitality || 0) * 0.1));
+    addAttribute(
+      traitStats,
+      "Ferocity",
+      Math.round((conversionPool.Vitality || 0) * 0.1),
+    );
   }
   if (hasTrait("Chaotic Persistence") && assumptions.regeneration !== false) {
     addAttribute(traitStats, "Expertise", 100);
@@ -31,10 +32,18 @@ export function applyMesmerBuildAttributeRules(
   if (hasTrait("Sharpening Sorrow") && assumptions.fury !== false) {
     addAttribute(traitStats, "Expertise", 150);
   }
-  if (selectedSkills.some(skill => skill.id === 10232 || skill.name === "Signet of Domination")) {
+  if (
+    selectedSkills.some(
+      (skill) => skill.id === 10232 || skill.name === "Signet of Domination",
+    )
+  ) {
     addAttribute(traitStats, "Condition Damage", 180);
   }
-  if (selectedSkills.some(skill => skill.id === 10234 || skill.name === "Signet of Midnight")) {
+  if (
+    selectedSkills.some(
+      (skill) => skill.id === 10234 || skill.name === "Signet of Midnight",
+    )
+  ) {
     addAttribute(traitStats, "Expertise", 180);
   }
 

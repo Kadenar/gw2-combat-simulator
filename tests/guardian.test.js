@@ -19,7 +19,7 @@ import {
 } from "../js/professions/guardian/definition.js";
 import {
   calculateAttributes as calculateGuardianAttributes,
-} from "../js/professions/guardian/core/calc-attributes.js";
+} from "../js/professions/guardian/app/app-definition.js";
 import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
@@ -570,6 +570,10 @@ test("Guardian palettes keep inactive tome and forge skills visible", () => {
     professionState: { radiantForge: true },
   });
   assert.deepEqual(
+    inactiveForgeGroups.map(group => group.stackId),
+    ["luminary-profession", "luminary-profession"],
+  );
+  assert.deepEqual(
     activeForgeGroups.map(group => group.skillIds),
     inactiveForgeGroups.map(group => group.skillIds),
   );
@@ -730,7 +734,11 @@ test("Guardian timing applies Quickness, Alacrity, ammo, and trait recharge", ()
   const ammo = simulateGw2({
     profession: guardianProfession,
     rotation: ["Hail of Justice", "Hail of Justice", "Hail of Justice"],
-    config: { ...config, primaryWeapon: "Pistol" },
+    config: {
+      ...config,
+      primaryWeapon: "Sword",
+      secondaryWeapon: "Pistol",
+    },
   });
 
   assert.equal(quick.endState.time, 360);

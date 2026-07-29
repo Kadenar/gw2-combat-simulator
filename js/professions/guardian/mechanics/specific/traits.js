@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Implements Guardian trait mechanics that require mutable
+ * scheduler state, event observation, or chronological resolver reactions.
+ * This includes Luminary light/radiant interactions, symbols, stances, lesser
+ * symbols, Resolution triggers, and delayed trait effects.
+ */
+
 import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
@@ -41,6 +48,12 @@ const RESOLUTION_SYMBOL_DURATIONS = Object.freeze({
   [GUARDIAN_SKILL_IDS.LUMINOUS_STAFF]: 1,
 });
 
+/**
+ * Collects trait selections from every supported build configuration field.
+ *
+ * @param {object} context Scheduler or resolver context.
+ * @returns {Array<number|string>} Configured trait identifiers or names.
+ */
 function configuredTraitValues(context) {
   return [
     ...(context.config?.traitIds || []),
@@ -49,6 +62,14 @@ function configuredTraitValues(context) {
   ];
 }
 
+/**
+ * Checks normalized runtime traits and legacy configuration fields for a
+ * selected Guardian trait.
+ *
+ * @param {object} context Scheduler or resolver context.
+ * @param {number|string} traitId Trait ID to find.
+ * @returns {boolean} Whether the trait is selected.
+ */
 export function hasGuardianTrait(context, traitId) {
   if (
     context.traits?.has(traitId)
@@ -61,10 +82,30 @@ export function hasGuardianTrait(context, traitId) {
     || (traitName && value === traitName));
 }
 
+/**
+ * Resolves a Guardian trait's render icon.
+ *
+ * @param {number|string} traitId Trait ID.
+ * @returns {string} Trait icon URL, or an empty string when unavailable.
+ */
 function traitIcon(traitId) {
   return TRAIT_BY_ID.get(Number(traitId))?.icon || "";
 }
 
+/**
+ * Emits a scheduler-side proc event for a Guardian trait or skill mechanic.
+ *
+ * @param {object} context Scheduler context.
+ * @param {object} options Proc event fields.
+ * @param {string} options.name Display name.
+ * @param {number} options.at Proc timestamp.
+ * @param {string} options.sourceSkill Triggering skill name.
+ * @param {string} [options.detail] Display detail.
+ * @param {string} [options.icon] Icon URL.
+ * @param {string} [options.procType] Proc category.
+ * @param {string} [options.source] Display source.
+ * @returns {void}
+ */
 function emitProc(
   context,
   {
@@ -91,6 +132,17 @@ function emitProc(
   });
 }
 
+/**
+ * Emits a scheduler-side Guardian buff event with consistent ownership.
+ *
+ * @param {object} context Scheduler context.
+ * @param {object} skill Skill producing the buff.
+ * @param {number} at Buff application timestamp.
+ * @param {string} kind Internal buff kind.
+ * @param {number} duration Duration in seconds.
+ * @param {object} [extra] Additional event fields.
+ * @returns {void}
+ */
 function emitBuff(context, skill, at, kind, duration, extra = {}) {
   context.emit({
     type: "buff",
@@ -107,6 +159,14 @@ function emitBuff(context, skill, at, kind, duration, extra = {}) {
   });
 }
 
+/**
+ * Identifies symbol skills from explicit names, descriptions, or synthetic
+ * fallback event names.
+ *
+ * @param {object|undefined} skill Catalog skill, when available.
+ * @param {string} [fallbackName] Event name used for synthetic skills.
+ * @returns {boolean} Whether the skill or event represents a symbol.
+ */
 export function isGuardianSymbolSkill(skill, fallbackName = "") {
   const name = skill?.name || fallbackName;
   const description = String(skill?.description || "");
@@ -119,10 +179,26 @@ export function isGuardianSymbolSkill(skill, fallbackName = "") {
   );
 }
 
+/**
+ * Tests whether Light Aura is active at a timestamp.
+ *
+ * @param {object} state Guardian profession state.
+ * @param {number} at Simulation timestamp.
+ * @param {number} epsilon Floating-point comparison tolerance.
+ * @returns {boolean} Whether Light Aura remains active.
+ */
 function lightAuraActive(state, at, epsilon) {
   return Number(state.lightAuraUntil || 0) > at + epsilon;
 }
 
+/**
+ * Prunes expired light fields and tests whether one covers the timestamp.
+ *
+ * @param {object} state Guardian profession state.
+ * @param {number} at Simulation timestamp.
+ * @param {number} epsilon Floating-point comparison tolerance.
+ * @returns {boolean} Whether a light field is active.
+ */
 function activeLightField(state, at, epsilon) {
   state.lightFields = (state.lightFields || []).filter(field =>
     field.endsAt > at + epsilon);
@@ -131,6 +207,14 @@ function activeLightField(state, at, epsilon) {
     && field.endsAt > at + epsilon);
 }
 
+/**
+ * Adds a timed light field to Guardian scheduler state.
+ *
+ * @param {object} state Guardian profession state.
+ * @param {number} startsAt Field start timestamp.
+ * @param {number} duration Duration in seconds.
+ * @returns {void}
+ */
 function addLightField(state, startsAt, duration) {
   state.lightFields ||= [];
   state.lightFields.push({
@@ -139,6 +223,14 @@ function addLightField(state, startsAt, duration) {
   });
 }
 
+/**
+ * Consumes an active Light Aura and emits Sovereign of Light's strike and proc.
+ *
+ * @param {object} context Scheduler context.
+ * @param {object} skill Skill causing the detonation.
+ * @param {number} at Detonation timestamp.
+ * @returns {boolean} Whether an active aura was detonated.
+ */
 function detonateLightAura(context, skill, at) {
   const state = context.state.profession;
   if (!lightAuraActive(state, at, context.epsilon)) return false;
@@ -164,6 +256,15 @@ function detonateLightAura(context, skill, at) {
   return true;
 }
 
+/**
+ * Grants Light Aura, detonating an existing aura first when Sovereign of Light
+ * is selected.
+ *
+ * @param {object} context Scheduler context.
+ * @param {object} skill Skill granting the aura.
+ * @param {number} at Aura application timestamp.
+ * @returns {void}
+ */
 function grantLightAura(context, skill, at) {
   const state = context.state.profession;
   if (
@@ -175,6 +276,12 @@ function grantLightAura(context, skill, at) {
   state.lightAuraUntil = at + 4;
 }
 
+/**
+ * Identifies Luminary actions that detonate Light Aura.
+ *
+ * @param {object} skill Candidate skill.
+ * @returns {boolean} Whether the skill is an aura detonator.
+ */
 function isLuminaryDetonator(skill) {
   if (skill.id === GUARDIAN_SKILL_IDS.GLARING_BURST) return false;
   return (
@@ -188,6 +295,12 @@ function isLuminaryDetonator(skill) {
   );
 }
 
+/**
+ * Identifies Guardian leap finishers used by the light-field model.
+ *
+ * @param {object} skill Candidate skill.
+ * @returns {boolean} Whether the skill is a modeled leap finisher.
+ */
 function isLightLeap(skill) {
   return [
     GUARDIAN_SKILL_IDS.LEAP_OF_FAITH,
@@ -196,6 +309,14 @@ function isLightLeap(skill) {
   ].includes(skill.id);
 }
 
+/**
+ * Applies cast-time Light Aura, light-field, finisher, and Justice is Blind
+ * interactions for one completed skill.
+ *
+ * @param {object} context Scheduler after-cast context.
+ * @param {object} skill Completed skill.
+ * @returns {void}
+ */
 function processLightAuraAndFields(context, skill) {
   const state = context.state.profession;
   const activationAt = context.start;
@@ -258,6 +379,14 @@ function processLightAuraAndFields(context, skill) {
   if (finishesLightCombo) grantLightAura(context, skill, impactAt);
 }
 
+/**
+ * Applies stance-specific damage buffs and emits Effulgent Stance lifecycle
+ * events.
+ *
+ * @param {object} context Scheduler after-cast context.
+ * @param {object} skill Completed skill.
+ * @returns {void}
+ */
 function processStanceDamageBuffs(context, skill) {
   if (skill.id === GUARDIAN_SKILL_IDS.PIERCING_STANCE) {
     const state = context.state.profession;
@@ -301,11 +430,26 @@ function processStanceDamageBuffs(context, skill) {
   }
 }
 
+/**
+ * Runs all scheduler-side Guardian trait updates after a cast.
+ *
+ * @param {object} context Scheduler after-cast context.
+ * @param {object} skill Completed skill.
+ * @returns {void}
+ */
 export function updateGuardianTraitCastState(context, skill) {
   processStanceDamageBuffs(context, skill);
   processLightAuraAndFields(context, skill);
 }
 
+/**
+ * Reduces active Luminary virtue cooldowns by four seconds without moving a
+ * cooldown before the triggering timestamp.
+ *
+ * @param {object} context Scheduler context.
+ * @param {number} at Reduction timestamp.
+ * @returns {void}
+ */
 function reduceVirtueCooldowns(context, at) {
   for (const skillId of RADIANT_VIRTUE_IDS) {
     const readyAt = Number(context.state.cooldowns.get(skillId) || 0);
@@ -319,6 +463,14 @@ function reduceVirtueCooldowns(context, at) {
   }
 }
 
+/**
+ * Records a newly equipped radiant weapon and applies Radiant Armaments,
+ * Empowered Armaments, and Illuminating Inspiration.
+ *
+ * @param {object} context Skill-handler context.
+ * @param {object} skill Completed radiant weapon skill.
+ * @returns {void}
+ */
 export function handleRadiantWeaponEquipped(context, skill) {
   if (
     !skill.radiantWeapon
@@ -390,6 +542,13 @@ export function handleRadiantWeaponEquipped(context, skill) {
   }
 }
 
+/**
+ * Clears radiant-weapon cooldowns associated with an activated virtue.
+ *
+ * @param {object} context Scheduler context.
+ * @param {string} virtue Normalized virtue name.
+ * @returns {boolean} Whether the virtue maps to any radiant weapon skills.
+ */
 function resetRadiantWeaponCooldowns(context, virtue) {
   const ids = virtue === "justice"
     ? [RADIANT_WEAPON_SKILLS.hammer]
@@ -405,6 +564,15 @@ function resetRadiantWeaponCooldowns(context, virtue) {
   return ids.length > 0;
 }
 
+/**
+ * Emits the five-pulse Lesser Symbol of Blades, registers its light field, and
+ * records the Furious Focus proc.
+ *
+ * @param {object} context Scheduler context.
+ * @param {object} skill Virtue that triggered the symbol.
+ * @param {number} at First pulse timestamp.
+ * @returns {void}
+ */
 function emitLesserSymbolOfBlades(context, skill, at) {
   for (let index = 0; index < 5; index += 1) {
     context.emit(buildGuardianStrike({
@@ -432,6 +600,15 @@ function emitLesserSymbolOfBlades(context, skill, at) {
   });
 }
 
+/**
+ * Applies scheduler-side traits triggered by a virtue activation, including
+ * Furious Focus, Master-at-Arms, and Luminary weapon empowerment.
+ *
+ * @param {object} context Skill-handler context.
+ * @param {object} skill Activated virtue skill.
+ * @param {string} virtue Normalized virtue name.
+ * @returns {void}
+ */
 export function handleGuardianVirtueTraits(
   context,
   skill,
@@ -492,6 +669,14 @@ export function handleGuardianVirtueTraits(
   }
 }
 
+/**
+ * Observes newly scheduled symbol strikes and emits Symbolic Exposure or
+ * Resolution events that must share the strike timestamp.
+ *
+ * @param {object} context Scheduler event-observer context.
+ * @param {object} event Newly scheduled event.
+ * @returns {void}
+ */
 export function observeGuardianScheduledEvent(context, event) {
   if (event.type !== "damage") return;
   const skill = context.catalog.skillsById.get(event.skillId);
@@ -535,14 +720,37 @@ export function observeGuardianScheduledEvent(context, event) {
   }
 }
 
+/**
+ * Returns the chronological Guardian state owned by the resolver.
+ *
+ * @param {object} context Resolver context.
+ * @returns {object} Mutable Guardian resolver state.
+ */
 function resolverState(context) {
   return context.profession;
 }
 
+/**
+ * Normalizes the resolver's floating-point comparison tolerance.
+ *
+ * @param {object} context Resolver context.
+ * @returns {number} Configured epsilon or the Guardian fallback.
+ */
 function resolverEpsilon(context) {
   return Number(context.epsilon || 0.0001);
 }
 
+/**
+ * Records a resolver-side Guardian trait proc with its catalog icon.
+ *
+ * @param {object} context Resolver context.
+ * @param {number|string} traitId Triggering trait ID.
+ * @param {string} name Display name.
+ * @param {number} at Proc timestamp.
+ * @param {string} sourceSkill Triggering skill name.
+ * @param {string} detail Human-readable proc detail.
+ * @returns {void}
+ */
 function recordTraitProc(context, traitId, name, at, sourceSkill, detail) {
   context.recordProc(
     "trait",
@@ -554,6 +762,20 @@ function recordTraitProc(context, traitId, name, at, sourceSkill, detail) {
   );
 }
 
+/**
+ * Inserts a Guardian-owned buff into the resolver's ordered event queue.
+ *
+ * @param {object} context Resolver context.
+ * @param {object} options Buff event fields.
+ * @param {number} options.at Application timestamp.
+ * @param {number|string} options.sourceId Source skill or trait ID.
+ * @param {string} options.skillName Display source name.
+ * @param {string} options.kind Internal buff kind.
+ * @param {number} options.duration Duration in seconds.
+ * @param {number} [options.stacks] Stack count.
+ * @param {number} [options.priority] Event ordering priority.
+ * @returns {void}
+ */
 function queueResolverBuff(
   context,
   {
@@ -581,6 +803,14 @@ function queueResolverBuff(
   });
 }
 
+/**
+ * Queues all Lesser Symbol of Resolution strike and Resolution pulses.
+ *
+ * @param {object} context Resolver context.
+ * @param {number} at First pulse timestamp.
+ * @param {string} sourceSkill Skill that triggered the trait.
+ * @returns {void}
+ */
 function queueLesserSymbolOfResolution(context, at, sourceSkill) {
   for (let index = 0; index < 5; index += 1) {
     const pulseAt = at + index;
@@ -608,6 +838,14 @@ function queueLesserSymbolOfResolution(context, at, sourceSkill) {
   }
 }
 
+/**
+ * Applies resolver-time Symbolic Avenger and Symbolic Exposure effects for one
+ * symbol strike.
+ *
+ * @param {object} context Resolver reaction context.
+ * @param {object} event Resolved damage event.
+ * @returns {void}
+ */
 function reactToSymbolTraits(context, event) {
   const skill = context.helpers.skillsById?.get(event.skillId);
   const symbol = event.isSymbol
@@ -651,6 +889,14 @@ function reactToSymbolTraits(context, event) {
 
 }
 
+/**
+ * Adds an Effulgent Stance charge for an eligible Guardian-owned strike during
+ * the active collection window.
+ *
+ * @param {object} context Resolver reaction context.
+ * @param {object} event Resolved damage event.
+ * @returns {void}
+ */
 function reactToEffulgentStrike(context, event) {
   const state = resolverState(context);
   const guardianOwnedStrike = (
@@ -672,6 +918,14 @@ function reactToEffulgentStrike(context, event) {
   );
 }
 
+/**
+ * Triggers Lesser Symbol of Resolution after an eligible player strike below
+ * the target-health threshold and starts its internal cooldown.
+ *
+ * @param {object} context Resolver reaction context.
+ * @param {object} event Resolved damage event.
+ * @returns {void}
+ */
 function reactToZealotsResolution(context, event) {
   const state = resolverState(context);
   const targetHealth = Number(
@@ -706,12 +960,27 @@ function reactToZealotsResolution(context, event) {
   );
 }
 
+/**
+ * Runs every Guardian trait reaction attached to resolved damage events.
+ *
+ * @param {object} context Resolver reaction context.
+ * @param {object} event Resolved damage event.
+ * @returns {void}
+ */
 export function reactToGuardianDamageTraits(context, event) {
   reactToEffulgentStrike(context, event);
   reactToSymbolTraits(context, event);
   reactToZealotsResolution(context, event);
 }
 
+/**
+ * Queues one Righteous Instincts Might application and records its proc.
+ *
+ * @param {object} context Resolver context.
+ * @param {number} at Application timestamp.
+ * @param {string} detail Proc detail.
+ * @returns {void}
+ */
 function queueRighteousMight(context, at, detail) {
   queueResolverBuff(context, {
     at,
@@ -731,6 +1000,14 @@ function queueRighteousMight(context, at, detail) {
   );
 }
 
+/**
+ * Tracks Resolution duration and starts Righteous Instincts' immediate and
+ * interval-based Might generation.
+ *
+ * @param {object} context Resolver reaction context.
+ * @param {object} event Resolved buff event.
+ * @returns {void}
+ */
 export function reactToGuardianBuffTraits(context, event) {
   if (
     String(event.kind || "").toLowerCase() !== "resolution"
@@ -757,6 +1034,14 @@ export function reactToGuardianBuffTraits(context, event) {
   }
 }
 
+/**
+ * Processes a scheduled Righteous Instincts interval tick and queues the next
+ * tick while Resolution remains active.
+ *
+ * @param {object} context Resolver event-handler context.
+ * @param {object} event Righteous Instincts tick event.
+ * @returns {void}
+ */
 export function handleRighteousInstinctsTick(context, event) {
   const state = resolverState(context);
   if (
@@ -780,12 +1065,28 @@ export function handleRighteousInstinctsTick(context, event) {
   }
 }
 
+/**
+ * Opens Effulgent Stance's four-second resolver collection window and resets
+ * its strike counter.
+ *
+ * @param {object} context Resolver event-handler context.
+ * @param {object} event Effulgent activation event.
+ * @returns {void}
+ */
 export function handleEffulgentActivated(context, event) {
   const state = resolverState(context);
   state.effulgentActiveUntil = event.at + 4;
   state.effulgentStacks = 0;
 }
 
+/**
+ * Closes Effulgent Stance's collection window and queues its stack-scaled
+ * strike plus the ten-stack daze.
+ *
+ * @param {object} context Resolver event-handler context.
+ * @param {object} event Effulgent detonation event.
+ * @returns {void}
+ */
 export function handleEffulgentDetonate(context, event) {
   const state = resolverState(context);
   const stacks = Math.max(

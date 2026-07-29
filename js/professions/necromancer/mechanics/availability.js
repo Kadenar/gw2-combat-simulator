@@ -1,7 +1,4 @@
 import {
-  NECROMANCER_AUTOATTACK_CHAINS,
-} from "./autoattack-chains.js";
-import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
@@ -41,16 +38,6 @@ const INNERVATE_SPIRIT = new Map([
   [ID.INNERVATE_WANDERLUST, "wanderlust"],
   [ID.INNERVATE_PRESERVATION, "preservation"],
 ]);
-export const CHAIN_POSITION_BY_ID = new Map();
-for (const chain of NECROMANCER_AUTOATTACK_CHAINS) {
-  chain.forEach((skillId, index) => {
-    CHAIN_POSITION_BY_ID.set(skillId, {
-      root: chain[0],
-      next: chain[index + 1] ?? null,
-    });
-  });
-}
-
 function specialization(context) {
   return context.config?.specialization || "Core";
 }
@@ -77,8 +64,8 @@ function deny(skill, code, cause) {
 
 // Autoattack-chain position gate shared by in-shroud and baseline skills: a
 // chain link is castable only when it is the expected next link.
-function chainVerdict(skill, state) {
-  const chain = CHAIN_POSITION_BY_ID.get(skill.id);
+function chainVerdict(context, skill, state) {
+  const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (!chain) return READY;
   const expected = state.autoattackChains[chain.root] || chain.root;
   return expected === skill.id
@@ -99,14 +86,22 @@ function devouringGate(context, skill, { activeShroud }) {
     return deny(skill, "necromancer.trait-locked", "requires Lingering Curse.");
   }
   return activeShroud
-    ? deny(skill, "necromancer.in-shroud", `cannot cast in ${activeShroud} shroud.`)
+    ? deny(
+        skill,
+        "necromancer.in-shroud",
+        `cannot cast in ${activeShroud} shroud.`,
+      )
     : READY;
 }
 
 function shroudEntryGate(_context, skill, { state, activeShroud, spec }) {
   if (!ENTRY_SHROUD_BY_ID[skill.id]) return null;
   if (activeShroud) {
-    return deny(skill, "necromancer.in-shroud", `already in ${activeShroud} shroud.`);
+    return deny(
+      skill,
+      "necromancer.in-shroud",
+      `already in ${activeShroud} shroud.`,
+    );
   }
   const expected = SHROUD_FOR_SPECIALIZATION[spec] || "death";
   if (ENTRY_SHROUD_BY_ID[skill.id] !== expected) {
@@ -117,9 +112,8 @@ function shroudEntryGate(_context, skill, { state, activeShroud, spec }) {
     );
   }
   if (
-    spec !== "Harbinger"
-    && Number(state.lifeForce || 0)
-      < Number(state.maximumLifeForce || 100) * 0.1
+    spec !== "Harbinger" &&
+    Number(state.lifeForce || 0) < Number(state.maximumLifeForce || 100) * 0.1
   ) {
     return deny(
       skill,
@@ -133,20 +127,27 @@ function shroudEntryGate(_context, skill, { state, activeShroud, spec }) {
 function shroudExitGate(context, skill, { state, activeShroud }) {
   if (!EXIT_IDS.has(skill.id)) return null;
   const parent = context.catalog.skillsById.get(skill.flipParentId);
-  const parentShroud =
-    ENTRY_SHROUD_BY_ID[parent?.id] || requiredShroud(parent);
+  const parentShroud = ENTRY_SHROUD_BY_ID[parent?.id] || requiredShroud(parent);
   const available =
-    activeShroud === parentShroud
-    || Number(state.availableFlips[skill.id] || 0) > context.start;
+    activeShroud === parentShroud ||
+    Number(state.availableFlips[skill.id] || 0) > context.start;
   return available
     ? READY
-    : deny(skill, "necromancer.not-in-shroud", "the matching shroud is not active.");
+    : deny(
+        skill,
+        "necromancer.not-in-shroud",
+        "the matching shroud is not active.",
+      );
 }
 
 function lichFormGate(_context, skill, { activeShroud }) {
   if (skill.id !== ID.LICH_FORM) return null;
   return activeShroud
-    ? deny(skill, "necromancer.in-shroud", `cannot cast in ${activeShroud} shroud.`)
+    ? deny(
+        skill,
+        "necromancer.in-shroud",
+        `cannot cast in ${activeShroud} shroud.`,
+      )
     : READY;
 }
 
@@ -157,13 +158,17 @@ function lichSkillGate(_context, skill, { activeShroud }) {
     : deny(skill, "necromancer.requires-lich", "requires Lich Form.");
 }
 
-function inShroudGate(_context, skill, { state, activeShroud }) {
+function inShroudGate(context, skill, { state, activeShroud }) {
   const shroud = requiredShroud(skill);
   if (!shroud) return null;
   if (activeShroud !== shroud) {
-    return deny(skill, "necromancer.wrong-shroud", `requires ${shroud} shroud.`);
+    return deny(
+      skill,
+      "necromancer.wrong-shroud",
+      `requires ${shroud} shroud.`,
+    );
   }
-  return chainVerdict(skill, state);
+  return chainVerdict(context, skill, state);
 }
 
 function spiritGate(_context, skill, { state, activeShroud }) {
@@ -181,13 +186,17 @@ function spiritGate(_context, skill, { state, activeShroud }) {
 // Terminal gate for ordinary out-of-shroud skills. Always yields a verdict.
 function baselineGate(context, skill, { state, activeShroud }) {
   if (activeShroud) {
-    return deny(skill, "necromancer.in-shroud", `cannot cast in ${activeShroud} shroud.`);
+    return deny(
+      skill,
+      "necromancer.in-shroud",
+      `cannot cast in ${activeShroud} shroud.`,
+    );
   }
   if (
-    skill.lifeForceCost
-    && Number(state.lifeForce || 0)
-      < Number(skill.lifeForceCost)
-        * Number(state.maximumLifeForce || 100) / 100
+    skill.lifeForceCost &&
+    Number(state.lifeForce || 0) <
+      (Number(skill.lifeForceCost) * Number(state.maximumLifeForce || 100)) /
+        100
   ) {
     return deny(
       skill,
@@ -196,12 +205,12 @@ function baselineGate(context, skill, { state, activeShroud }) {
     );
   }
   if (
-    skill.flipParentId != null
-    && !(Number(state.availableFlips[skill.id] || 0) > context.start)
+    skill.flipParentId != null &&
+    !(Number(state.availableFlips[skill.id] || 0) > context.start)
   ) {
     return deny(skill, "necromancer.flip-not-armed", "not currently armed.");
   }
-  return chainVerdict(skill, state);
+  return chainVerdict(context, skill, state);
 }
 
 // First-match dispatch: each gate returns a verdict for skills in its domain or
@@ -232,17 +241,20 @@ export function validateNecromancerBuild(context, skill) {
     return false;
   }
   if (
-    skill.id === ID.FEAST_OF_CORRUPTION
-    && hasTrait(context, TRAIT.LINGERING_CURSE)
-  ) return false;
+    skill.id === ID.FEAST_OF_CORRUPTION &&
+    hasTrait(context, TRAIT.LINGERING_CURSE)
+  )
+    return false;
   if (
-    skill.id === ID.SANDSTORM_SHROUD
-    && !hasTrait(context, TRAIT.HERALD_OF_SORROW)
-  ) return false;
+    skill.id === ID.SANDSTORM_SHROUD &&
+    !hasTrait(context, TRAIT.HERALD_OF_SORROW)
+  )
+    return false;
   if (
-    skill.id === ID.DESERT_SHROUD
-    && hasTrait(context, TRAIT.HERALD_OF_SORROW)
-  ) return false;
+    skill.id === ID.DESERT_SHROUD &&
+    hasTrait(context, TRAIT.HERALD_OF_SORROW)
+  )
+    return false;
   return true;
 }
 

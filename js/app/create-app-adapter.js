@@ -3,10 +3,8 @@ import {
   createProfessionWeaponData,
   RELIC_NAMES,
 } from "../platform/gw2/gear-data.js";
-import {
-  renderResults,
-  renderRotationBuilder,
-} from "./rotation-ui.js";
+import { renderResults, renderRotationBuilder } from "./rotation-ui.js";
+import { defaultWeaponSkillMatchesSet } from "../platform/gw2/weapon-skill-matcher.js";
 
 /**
  * Builds the browser application adapter for a GW2 profession.
@@ -37,10 +35,9 @@ export function createGw2AppAdapter({
   isSkillAvailable,
   defaultOffhand,
 }) {
-  const weaponData = createProfessionWeaponData(
-    profession.catalog,
-    { weaponData: WEAPON_DATA },
-  );
+  const weaponData = createProfessionWeaponData(profession.catalog, {
+    weaponData: WEAPON_DATA,
+  });
 
   return Object.freeze({
     id: profession.id,
@@ -63,6 +60,10 @@ export function createGw2AppAdapter({
     calculateModifierContributions,
     renderResults,
     renderRotationBuilder,
+    slotLoadout: profession.ui.slotLoadout || null,
+    assumptionControls: profession.ui.assumptionControls || Object.freeze([]),
+    weaponSkillMatchesSet:
+      profession.ui.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,
     isSkillAvailable,
     defaultOffhand,
   });

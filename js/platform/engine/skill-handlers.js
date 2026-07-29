@@ -18,20 +18,17 @@ const HANDLER_PHASES = Object.freeze([
   "afterEffect",
   "afterEffects",
 ]);
-const HANDLER_FIELDS = new Set([
-  "mode",
-  "resolveMode",
-  ...HANDLER_PHASES,
-]);
+const HANDLER_FIELDS = new Set(["mode", "resolveMode", ...HANDLER_PHASES]);
 
 function assertFields(value, handlerId) {
-  const unknownFields = Object.keys(value)
-    .filter(field => !HANDLER_FIELDS.has(field));
+  const unknownFields = Object.keys(value).filter(
+    (field) => !HANDLER_FIELDS.has(field),
+  );
   if (unknownFields.length) {
     throw new TypeError(
-      `Skill handler ${handlerId} has unsupported field`
-      + `${unknownFields.length === 1 ? "" : "s"}: `
-      + unknownFields.join(", "),
+      `Skill handler ${handlerId} has unsupported field` +
+        `${unknownFields.length === 1 ? "" : "s"}: ` +
+        unknownFields.join(", "),
     );
   }
 }
@@ -101,10 +98,7 @@ export function normalizeSkillHandler(handlerId, value) {
   }
   assertFields(value, handlerId);
   const mode = assertMode(value.mode, handlerId);
-  if (
-    value.resolveMode != null
-    && typeof value.resolveMode !== "function"
-  ) {
+  if (value.resolveMode != null && typeof value.resolveMode !== "function") {
     throw new TypeError(
       `Skill handler ${handlerId} resolveMode must be a function.`,
     );
@@ -123,11 +117,7 @@ export function normalizeSkillHandler(handlerId, value) {
   return Object.freeze(normalized);
 }
 
-export function resolveSkillHandlerMode(
-  strategy,
-  context,
-  skill,
-) {
+export function resolveSkillHandlerMode(strategy, context, skill) {
   if (!strategy) return SKILL_HANDLER_MODES.AUGMENT;
   const selected = strategy.resolveMode
     ? strategy.resolveMode(context, skill)

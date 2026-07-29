@@ -108,14 +108,10 @@ export const MESMER_SKILL_IDS = Object.freeze({
   SIGNET_OF_INSPIRATION: 10236, // Signet of Inspiration
   MASS_INVISIBILITY: 10245, // Mass Invisibility
   SIGNET_OF_ILLUSIONS: 10247, // Signet of Illusions
-  SIRENS_CALL: 10258, // Siren's Call
-  BLINDING_TIDE: 10259, // Blinding Tide
-  ILLUSION_OF_DROWNING: 10260, // Illusion of Drowning
   THE_PRESTIGE: 10285, // The Prestige
   FEEDBACK: 10302, // Feedback
   PHASE_RETREAT: 10310, // Phase Retreat
   TIME_WARP: 10311, // Time Warp
-  IMMINENT_VOYAGE: 10327, // Imminent Voyage
   CHAOS_ARMOR: 10331, // Chaos Armor
   THOUSAND_CUTS: 24755, // Thousand Cuts
   SIGNET_OF_HUMILITY: 29519, // Signet of Humility

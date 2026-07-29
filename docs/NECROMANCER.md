@@ -133,7 +133,8 @@ The official API does not publish activation time for every skill and omits
 some bundle skills and mode-specific facts. Measured/current PvE overrides are
 used for the audited chains, channels, profession bars, persistent attacks,
 and resource mechanics. Remaining skills use deterministic type-based cast
-defaults and API coefficients.
+defaults and current PvE wiki coefficients recorded in profession mechanics
+data; generated API metadata is never coefficient authority.
 
 This is a single-target damage simulator. Ally healing, revival, barrier,
 boon removal, projectile interaction, pathing, incoming attacks, enemy

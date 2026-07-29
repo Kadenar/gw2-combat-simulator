@@ -1,8 +1,8 @@
 import { loadAllData } from '../data/csv-loader.js';
 import {
-    PREFIXES, GEAR_SLOTS, RUNE_NAMES, RUNE_GROUPS, FOOD_NAMES, FOOD_DATA, FOOD_GROUPS,
+    PREFIXES, PREFIX_GROUPS, GEAR_SLOTS, RUNE_NAMES, RUNE_GROUPS, FOOD_NAMES, FOOD_DATA, FOOD_GROUPS,
     UTILITY_NAMES, UTILITY_DATA, UTILITY_CONVERSION_RATES, INFUSION_STATS,
-    WEAPON_DATA, SIGIL_DATA, SIGIL_NAMES, RELIC_DATA, RELIC_NAMES,
+    WEAPON_DATA, SIGIL_DATA, SIGIL_NAMES, SIGIL_GROUPS, RELIC_DATA, RELIC_NAMES,
     getActiveGearSlots,
 } from '../data/gear-data.js';
 import { TRAITS, SPECIALIZATIONS } from '../data/traits-data.js';
@@ -37,10 +37,10 @@ import {
     DERIVED_ATTRIBUTES,
     groupedOptions,
     option,
-    PERMANENT_TARGET_CONDITIONS,
     PRIMARY_ATTRIBUTES,
     SPECIFIC_CONDITION_DURATION_ATTRIBUTES,
     STACKING_TARGET_CONDITIONS,
+    TARGET_CONDITION_GROUPS,
 } from '../../../app/app-ui.js';
 import {
     convertEIRotation,
@@ -473,7 +473,7 @@ class App {
             const hidden = is2H && slot === 'Weapon2';
             const label = is2H && slot === 'Weapon1' ? 'Weapon (2H)' : slot;
             const cur = this.build.gear[slot] || PREFIXES[0];
-            const opts = PREFIXES.map(prefix => option(prefix, cur)).join('');
+            const opts = groupedOptions(PREFIX_GROUPS, cur);
             return `<div class="gear-row"${hidden ? ' style="display:none"' : ''}>
                 <span class="gear-label">${label}</span>
                 <select class="gear-select" data-slot="${slot}">${opts}</select>
@@ -561,8 +561,8 @@ class App {
 
         eq.innerHTML = `
             ${selRow('Rune', 'sel-rune', RUNE_NAMES, b.rune, '', RUNE_GROUPS)}
-            ${selRow('Sigil 1', 'sel-sig1', sigilNames, b.sigils[0])}
-            ${selRow('Sigil 2', 'sel-sig2', sigilNames, b.sigils[1])}
+            ${selRow('Sigil 1', 'sel-sig1', sigilNames, b.sigils[0], '', SIGIL_GROUPS)}
+            ${selRow('Sigil 2', 'sel-sig2', sigilNames, b.sigils[1], '', SIGIL_GROUPS)}
             ${selRow('Relic', 'sel-relic', relicNames, b.relic)}
             ${consumableRow('Food', 'sel-food', FOOD_NAMES, b.food, _foodDesc, 'small-select', _foodOptionLabel, FOOD_GROUPS)}
             ${consumableRow('Utility', 'sel-utility', UTILITY_NAMES, b.utility, _utilityDesc)}
@@ -2200,7 +2200,9 @@ class App {
 
         el.innerHTML =
             renderGroup('Boons', PERMA_BOONS)
-            + renderGroup('Conditions', PERMANENT_TARGET_CONDITIONS);
+            + TARGET_CONDITION_GROUPS
+                .map(group => renderGroup(group.label, group.conditions))
+                .join('');
 
         el.querySelectorAll('input[type="checkbox"]').forEach(cb => {
             cb.addEventListener('change', () => {

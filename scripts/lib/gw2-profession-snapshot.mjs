@@ -2,6 +2,14 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export const GW2_API_ROOT = "https://api.guildwars2.com/v2";
+export const DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS = Object.freeze([
+  "Trident",
+  "Speargun",
+]);
+export const GW2_SKILL_FLAGS = Object.freeze({
+  TERRESTRIAL_ONLY: "NoUnderwater",
+  UNDERWATER_ONLY: "Underwater",
+});
 
 function englishPath(pathname) {
   return `${pathname}${pathname.includes("?") ? "&" : "?"}lang=en`;
@@ -103,7 +111,6 @@ export function skillSnapshot(skill, {
     slot: skill.slot,
     specialization,
     categories: skill.categories || [],
-    flags: skill.flags || [],
     recharge: Number(recharge?.value || recharge?.duration || 0),
     ammo: Number(casts?.value || 0),
     ammoRecharge: Number(countRecharge?.duration || countRecharge?.value || 0),
@@ -114,7 +121,7 @@ export function skillSnapshot(skill, {
 
 export function isTerrestrialSkill(skill, weapon = "", {
   excludedIds = [],
-  weaponExclusions = ["Trident"],
+  weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
   filterSkill = null,
 } = {}) {
   const excludesId = excludedIds instanceof Set
@@ -125,15 +132,18 @@ export function isTerrestrialSkill(skill, weapon = "", {
     : weaponExclusions.includes(weapon);
   if (!skill || excludesId) return false;
   if (excludesWeapon) return false;
-  if (skill.flags?.includes("Underwater")) return false;
+  if (skill.flags?.includes(GW2_SKILL_FLAGS.UNDERWATER_ONLY)) return false;
   if (
     String(skill.slot || "").startsWith("Downed_")
     && Number(skill.id) < 29_000
-    && !skill.flags?.includes("NoUnderwater")
+    && !skill.flags?.includes(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY)
   ) {
     return false;
   }
-  if (weapon === "Spear" && !skill.flags?.includes("NoUnderwater")) {
+  if (
+    weapon === "Spear"
+    && !skill.flags?.includes(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY)
+  ) {
     return false;
   }
   return typeof filterSkill === "function"
@@ -145,7 +155,7 @@ export function professionSkillAssociations(
   profession,
   specializationData,
   {
-    weaponExclusions = ["Trident"],
+    weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
   } = {},
 ) {
   const specializationById = new Map(
@@ -251,44 +261,13 @@ export function buildSkillSnapshots({
     }))
     .sort((left, right) => left.id - right.id);
   const byId = new Map(snapshots.map(skill => [skill.id, skill]));
-  const aliasesByName = new Map();
-  for (const skill of snapshots) {
-    const aliases = aliasesByName.get(skill.name) || [];
-    aliases.push(skill.id);
-    aliasesByName.set(skill.name, aliases);
-  }
-  const configuredCanonicalId = (name, aliasIds) => {
-    const configured = config.canonicalSameNameAliasIds;
-    const selected = configured instanceof Map
-      ? configured.get(name)
-      : Array.isArray(configured)
-        ? configured.find(id => aliasIds.includes(id))
-        : configured?.[name];
-    return aliasIds.includes(Number(selected))
-      ? Number(selected)
-      : aliasIds[0];
-  };
   return snapshots.map(skill => {
     const next = byId.get(skill.nextChainId);
     const flip = byId.get(skill.flipSkillId);
-    const aliasIds = aliasesByName.get(skill.name) || [skill.id];
-    const declaredAliases =
-      config.modeAliases?.[skill.id]
-      || config.modeAliases?.[skill.name]
-      || [];
-    const modeAliasIds = [...new Set([
-      ...aliasIds.filter(id => id !== skill.id),
-      ...declaredAliases.filter(id => id !== skill.id && byId.has(id)),
-    ])].sort((left, right) => left - right);
     return {
       ...skill,
       nextChainId: next?.name === skill.name ? null : skill.nextChainId,
       flipSkillId: flip?.name === skill.name ? null : skill.flipSkillId,
-      canonicalAliasId:
-        aliasIds.length > 1
-          ? configuredCanonicalId(skill.name, aliasIds)
-          : null,
-      modeAliasIds,
     };
   });
 }

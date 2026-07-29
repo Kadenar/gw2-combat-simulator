@@ -41,6 +41,40 @@ function activateTimedRelicBuff(S, proc, time) {
     return !wasActive;
 }
 
+export function triggerShackles(ctx, time, sourceSkill = 'Immobilize') {
+    const { S } = ctx;
+    const relic = S.activeRelic;
+    const proc = S.relicProc;
+    if (relic !== 'Shackles' || proc?.trigger !== 'immobilize_tether') return false;
+    if (!isRelicIcdReady(S, relic, time)) return false;
+
+    armRelicIcd(S, relic, time, proc.icd);
+    ctx.queueHitEvent({
+        time: time + proc.effectDuration,
+        skill: 'Relic of the Shackles',
+        hitIdx: 1,
+        sub: 1,
+        totalSubs: 1,
+        dmg: proc.strikeCoeff,
+        ws: proc.strikeWs,
+        isField: false,
+        cc: false,
+        conds: null,
+        isRelicProc: true,
+        noCrit: false,
+        att: S.att,
+    });
+    logRelicProcCtx(
+        ctx,
+        relic,
+        time,
+        proc.icon,
+        'Relic of the Shackles',
+        `tethered by ${sourceSkill}`,
+    );
+    return true;
+}
+
 export function getRelicStrikeMultiplier(engine, S, ev, tgtHP) {
     const relicState = getRelicState(S);
     const proc = S.relicProc;
@@ -119,6 +153,14 @@ export function checkRelicOnHit(ctx, ev) {
                 }
             }
             break;
+
+        case 'immobilize_tether': {
+            const immobilize = ev.conds?.Immobilize || ev.conds?.Immobilized;
+            if (immobilize?.stacks > 0 && immobilize?.duration > 0) {
+                triggerShackles(ctx, ev.time, ev.skill);
+            }
+            break;
+        }
 
         case 'apply_weakness_vuln':
             if (ev.conds && isRelicIcdReady(S, relic, ev.time)) {

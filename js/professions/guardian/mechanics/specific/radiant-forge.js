@@ -1,12 +1,23 @@
+/**
+ * @fileoverview Implements Luminary Radiant Forge cast validation, mode
+ * transitions, radiant-weapon effects, forge expiry, and resolver state
+ * replay.
+ */
+
 import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
 import { selectedGuardianSpecialization } from "../availability.js";
 import { GUARDIAN_HANDLER_MECHANICS } from "../handler-mechanics.js";
 import { handleRadiantWeaponEquipped } from "./traits.js";
-import {
-  buildGuardianStrike,
-  emitGuardianEvent,
-} from "../events.js";
+import { buildGuardianStrike, emitGuardianEvent } from "../events.js";
 
+/**
+ * Emits the sigil-swap trigger caused by equipping a radiant weapon.
+ *
+ * @param {object} context Scheduler callback context.
+ * @param {object} skill Radiant weapon skill being equipped.
+ * @param {object} [event] Additional event fields.
+ * @returns {void}
+ */
 function emitForgeWeaponSwap(context, skill, event = {}) {
   emitGuardianEvent(context, skill, "sigil_swap", {
     weaponSet: context.state.activeWeaponSet,
@@ -15,6 +26,14 @@ function emitForgeWeaponSwap(context, skill, event = {}) {
   });
 }
 
+/**
+ * Emits a weapon-bar transition for entering or leaving Radiant Forge.
+ *
+ * @param {object} context Scheduler callback context.
+ * @param {object} skill Forge transition skill.
+ * @param {object} [event] Additional event fields.
+ * @returns {void}
+ */
 function emitForgeTransition(context, skill, event = {}) {
   emitGuardianEvent(context, skill, "weapon_set", {
     weaponSet: context.state.activeWeaponSet,
@@ -23,20 +42,40 @@ function emitForgeTransition(context, skill, event = {}) {
   });
 }
 
+/**
+ * Determines whether a forge transition or forge-only skill is currently
+ * castable. Unrelated skills return no opinion.
+ *
+ * @param {object} context Cast-validation context.
+ * @param {object} skill Candidate skill.
+ * @returns {boolean|undefined} Whether the relevant forge skill is castable.
+ */
 export function validateRadiantForgeCast(context, skill) {
   if (skill.radiantForgeSkill) {
     return Boolean(context.state.profession.radiantForge);
   }
   if (skill.name === "Enter Radiant Forge") {
-    return selectedGuardianSpecialization(context) === "Luminary"
-      && !context.state.profession.radiantForge;
+    return (
+      selectedGuardianSpecialization(context) === "Luminary" &&
+      !context.state.profession.radiantForge
+    );
   }
   if (skill.name === "Exit Radiant Forge") {
-    return selectedGuardianSpecialization(context) === "Luminary"
-      && context.state.profession.radiantForge;
+    return (
+      selectedGuardianSpecialization(context) === "Luminary" &&
+      context.state.profession.radiantForge
+    );
   }
 }
 
+/**
+ * Enters or exits Radiant Forge and emits the corresponding state and
+ * weapon-bar transition events.
+ *
+ * @param {object} context Skill-handler context.
+ * @param {object} skill Enter or Exit Radiant Forge.
+ * @returns {boolean} Always true because this replacing handler owns the cast.
+ */
 function radiantForge(context, skill) {
   const entering = skill.name === "Enter Radiant Forge";
   const state = context.state.profession;
@@ -44,10 +83,8 @@ function radiantForge(context, skill) {
     finalizeRadiantForgeCooldown(context, context.effectiveEnd);
   }
   state.radiantForge = entering;
-  state.radiantForgeEndsAt =
-    entering ? context.effectiveEnd + 20 : 0;
-  state.radiantForgeEnteredAt =
-    entering ? context.effectiveEnd : 0;
+  state.radiantForgeEndsAt = entering ? context.effectiveEnd + 20 : 0;
+  state.radiantForgeEnteredAt = entering ? context.effectiveEnd : 0;
   state.radiantWeapon = "";
   if (entering) {
     state.radiantWeaponsUsed = {};
@@ -56,7 +93,9 @@ function radiantForge(context, skill) {
   emitGuardianEvent(
     context,
     skill,
-    entering ? "guardian.radiant-forge-entered" : "guardian.radiant-forge-exited",
+    entering
+      ? "guardian.radiant-forge-entered"
+      : "guardian.radiant-forge-exited",
     {
       radiantForge: state.radiantForge,
       radiantForgeEndsAt: state.radiantForgeEndsAt,
@@ -68,6 +107,15 @@ function radiantForge(context, skill) {
   return true;
 }
 
+/**
+ * Applies state changes and conditional virtue bonuses after a radiant weapon
+ * finishes casting.
+ *
+ * @param {object} context Skill-handler context.
+ * @param {object} skill Radiant weapon or radiant weapon flip skill.
+ * @returns {boolean} True for interrupted casts; otherwise false so declared
+ * effects remain authoritative.
+ */
 function radiantWeapon(context, skill) {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   if (skill.radiantWeapon && skill.flipParentId == null) {
@@ -76,18 +124,20 @@ function radiantWeapon(context, skill) {
     emitForgeWeaponSwap(context, skill);
   }
   if (
-    skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER
-    && context.state.profession.radiantJusticeArmed
+    skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER &&
+    context.state.profession.radiantJusticeArmed
   ) {
     context.state.profession.radiantJusticeArmed = false;
-    context.emit(buildGuardianStrike({
-      at: context.effectiveEnd + 0.75,
-      sourceId: skill.id,
-      skillId: skill.id,
-      skillName: skill.name,
-      name: "Dazzling Hammer — Radiant Justice Impact",
-      coefficient: 1.5,
-    }));
+    context.emit(
+      buildGuardianStrike({
+        at: context.effectiveEnd + 0.75,
+        sourceId: skill.id,
+        skillId: skill.id,
+        skillName: skill.name,
+        name: "Dazzling Hammer — Radiant Justice Impact",
+        coefficient: 1.5,
+      }),
+    );
     context.emit({
       type: "buff",
       at: context.effectiveEnd + 0.75,
@@ -102,8 +152,8 @@ function radiantWeapon(context, skill) {
     });
   }
   if (
-    skill.id === GUARDIAN_SKILL_IDS.GLEAMING_BLADE
-    && context.state.profession.radiantCourageSwordArmed
+    skill.id === GUARDIAN_SKILL_IDS.GLEAMING_BLADE &&
+    context.state.profession.radiantCourageSwordArmed
   ) {
     context.state.profession.radiantCourageSwordArmed = false;
     context.emit({
@@ -120,80 +170,103 @@ function radiantWeapon(context, skill) {
     });
   }
   if (
-    skill.id === GUARDIAN_SKILL_IDS.RADIANT_BULWARK
-    && context.state.profession.radiantCourageShieldArmed
+    skill.id === GUARDIAN_SKILL_IDS.RADIANT_BULWARK &&
+    context.state.profession.radiantCourageShieldArmed
   ) {
     context.state.profession.radiantCourageShieldArmed = false;
   }
   return false;
 }
 
+/**
+ * Emits Glaring Burst's weapon-dependent replacement strike.
+ *
+ * @param {object} context Skill-handler context.
+ * @param {object} skill Glaring Burst skill definition.
+ * @returns {void}
+ */
 function glaringBurst(context, skill) {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const coefficient =
-    GUARDIAN_HANDLER_MECHANICS.radiantForge
-      .glaringBurstCoefficientByWeapon[
-        context.state.profession.radiantWeapon
-      ] || 0;
+    GUARDIAN_HANDLER_MECHANICS.radiantForge.glaringBurstCoefficientByWeapon[
+      context.state.profession.radiantWeapon
+    ] || 0;
   const radiantWeapon = context.state.profession.radiantWeapon;
   if (coefficient <= 0) return;
-  context.emit(buildGuardianStrike({
-    at: context.effectiveEnd,
-    sourceId: skill.id,
-    skillId: skill.id,
-    skillName: skill.name,
-    name: skill.name,
-    coefficient,
-    radiantWeapon,
-  }));
+  context.emit(
+    buildGuardianStrike({
+      at: context.effectiveEnd,
+      sourceId: skill.id,
+      skillId: skill.id,
+      skillName: skill.name,
+      name: skill.name,
+      coefficient,
+      radiantWeapon,
+    }),
+  );
 }
 
+/**
+ * Replaces Radiant Forge's provisional recharge with the final recharge based
+ * on how many distinct radiant weapons were used during the entry.
+ *
+ * @param {object} context Scheduler context.
+ * @param {number} at Simulation time when the forge ends.
+ * @returns {void}
+ */
 function finalizeRadiantForgeCooldown(context, at) {
   const state = context.state.profession;
   const enter = context.catalog.skillsById.get(
     GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE,
   );
   if (!enter || !state.radiantForge) return;
-  const used = Object.keys(state.radiantWeaponsUsed || {})
-    .filter(weapon =>
-      ["hammer", "staff", "blade", "bulwark"].includes(weapon))
-    .length;
+  const used = Object.keys(state.radiantWeaponsUsed || {}).filter((weapon) =>
+    ["hammer", "staff", "blade", "bulwark"].includes(weapon),
+  ).length;
   const unused = Math.max(0, 4 - used);
   const baseRecharge = Math.max(
     0,
     Number(enter.cooldown ?? enter.recharge ?? 10),
   );
   const adjustedBase = Math.max(5, baseRecharge - unused * 5);
-  const fullEffective = context.rechargeDurationFor(
-    enter,
-    at,
-  );
-  const rechargeScale = baseRecharge > 0
-    ? fullEffective / baseRecharge
-    : 1;
-  context.state.cooldowns.set(
-    enter.id,
-    at + adjustedBase * rechargeScale,
-  );
+  const fullEffective = context.rechargeDurationFor(enter, at);
+  const rechargeScale = baseRecharge > 0 ? fullEffective / baseRecharge : 1;
+  context.state.cooldowns.set(enter.id, at + adjustedBase * rechargeScale);
 }
 
+/**
+ * Clears the cooldown created at forge entry so it can begin when the forge
+ * actually ends.
+ *
+ * @param {object} context Cast-completion hook context.
+ * @param {object} skill Completed skill.
+ * @returns {void}
+ */
 export function clearRadiantForgeEntryCooldown(context, skill) {
   if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
     context.state.cooldowns.delete(skill.id);
   }
 }
 
+/**
+ * Raw Radiant Forge callbacks consumed by the central handler registry.
+ */
 export const guardianRadiantForgeSkillHandlers = Object.freeze({
   "guardian.radiant-forge": radiantForge,
   "guardian.radiant-weapon": radiantWeapon,
   "guardian.glaring-burst": glaringBurst,
 });
 
+/**
+ * Replays a scheduler forge transition into chronological resolver state.
+ *
+ * @param {object} context Resolver event-handler context.
+ * @param {object} event Forge-entered or forge-exited timeline event.
+ * @returns {void}
+ */
 function handleRadiantForgeTransition(context, event) {
   context.profession.radiantForge = Boolean(event.radiantForge);
-  context.profession.radiantForgeEndsAt = Number(
-    event.radiantForgeEndsAt || 0,
-  );
+  context.profession.radiantForgeEndsAt = Number(event.radiantForgeEndsAt || 0);
   context.profession.radiantForgeEnteredAt = Number(
     event.radiantForgeEnteredAt || 0,
   );
@@ -203,16 +276,27 @@ function handleRadiantForgeTransition(context, event) {
   }
 }
 
+/**
+ * Resolver handlers for Radiant Forge timeline events.
+ */
 export const guardianRadiantForgeEventHandlers = Object.freeze({
   "guardian.radiant-forge-entered": handleRadiantForgeTransition,
   "guardian.radiant-forge-exited": handleRadiantForgeTransition,
 });
 
+/**
+ * Expires Radiant Forge when scheduler time advances past its end, finalizes
+ * its cooldown, and emits the automatic exit transition.
+ *
+ * @param {object} context Scheduler advancement context.
+ * @param {number} target Target simulation time.
+ * @returns {void}
+ */
 export function advanceRadiantForgeState(context, target) {
   const state = context.state.profession;
   if (
-    state.radiantForge
-    && state.radiantForgeEndsAt <= target + context.epsilon
+    state.radiantForge &&
+    state.radiantForgeEndsAt <= target + context.epsilon
   ) {
     const expiredAt = state.radiantForgeEndsAt;
     finalizeRadiantForgeCooldown(context, expiredAt);
@@ -220,19 +304,14 @@ export function advanceRadiantForgeState(context, target) {
       GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE,
     );
     if (exit) {
-      emitGuardianEvent(
-        context,
-        exit,
-        "guardian.radiant-forge-exited",
-        {
-          at: expiredAt,
-          automatic: true,
-          radiantForge: false,
-          radiantForgeEndsAt: 0,
-          radiantForgeEnteredAt: 0,
-          radiantWeapon: "",
-        },
-      );
+      emitGuardianEvent(context, exit, "guardian.radiant-forge-exited", {
+        at: expiredAt,
+        automatic: true,
+        radiantForge: false,
+        radiantForgeEndsAt: 0,
+        radiantForgeEnteredAt: 0,
+        radiantWeapon: "",
+      });
       emitForgeTransition(context, exit, {
         at: expiredAt,
         automatic: true,

@@ -32,6 +32,7 @@ import { buildScheduledEventStream } from "../js/platform/engine/scheduled-event
 import {
   augmentSkillHandler,
   replaceSkillHandler,
+  SKILL_HANDLER_MODES,
 } from "../js/platform/engine/skill-handlers.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
@@ -43,12 +44,21 @@ import {
   WEAPON_DATA,
 } from "../js/platform/gw2/gear-data.js";
 import {
+  GW2_SKILL_FLAGS,
+} from "../scripts/lib/gw2-profession-snapshot.mjs";
+import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
   validateMesmerBuild,
 } from "../js/professions/mesmer/build.js";
 import { mesmerCatalog } from "../js/professions/mesmer/catalog.js";
 import { mesmerProfession } from "../js/professions/mesmer/definition.js";
+import {
+  MESMER_TRAIT_COVERAGE,
+} from "../js/professions/mesmer/data/trait-coverage.js";
+import {
+  MECHANIC_SKILLS,
+} from "../js/professions/mesmer/mechanics/skill-mechanics.js";
 import { guardianCatalog } from "../js/professions/guardian/catalog.js";
 import { necromancerCatalog } from "../js/professions/necromancer/catalog.js";
 import {
@@ -170,6 +180,44 @@ test("shared autoattack helpers derive and index ID-based chains", () => {
     step: 2,
     next: 3,
   });
+});
+
+test("canonical catalogs own derived and exceptional autoattack chains", () => {
+  const skill = (id, nextChainId = null, type = "Weapon") => ({
+    id,
+    name: `Skill ${id}`,
+    type,
+    slot: type === "Weapon" ? "Weapon_1" : "Profession_1",
+    nextChainId,
+  });
+  const catalog = createCanonicalCatalog({
+    generated: [
+      skill(1, 2),
+      skill(2, 3),
+      skill(3),
+      skill(4, 5),
+      skill(5),
+      skill(6, null, "Profession"),
+      skill(7, null, "Profession"),
+    ],
+    autoattackChains: {
+      excludeSkillIds: [5],
+      additional: [[6, 7]],
+    },
+  });
+
+  assert.deepEqual(catalog.autoattackChains, [[1, 2, 3], [6, 7]]);
+  assert.deepEqual(catalog.autoattackChainPositions.get(2), {
+    root: 1,
+    index: 1,
+    step: 2,
+    next: 3,
+  });
+  assert.equal(catalog.skillsById.get(2).chainRoot, 1);
+  assert.equal(catalog.skillsById.get(2).chainStep, 2);
+  assert.equal(catalog.skillsById.get(4).chainRoot, null);
+  assert.equal(catalog.skillsById.get(5).chainStep, null);
+  assert.equal(catalog.skillsById.get(7).chainRoot, 6);
 });
 
 test("shared declarative factories preserve generic effect options", () => {
@@ -1499,6 +1547,166 @@ test("shared relic behavior resolves triggering skills by stable id", () => {
   );
 });
 
+test("Relic of the Brawler grants four seconds of strike damage with a strict eight-second ICD", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930006,
+        name: "Grant Protection",
+        type: "Utility",
+        castTimeMs: 0,
+        effects: [boon("Protection", 2)],
+      },
+      {
+        id: 930007,
+        name: "Grant Resolution",
+        type: "Utility",
+        castTimeMs: 0,
+        effects: [boon("Resolution", 2)],
+      },
+      {
+        id: 930008,
+        name: "Brawler Fixture Strike",
+        type: "Weapon",
+        castTimeMs: 0,
+        effects: [strike(1)],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "brawler-fixture",
+    name: "Brawler Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Grant Protection",
+      { type: "wait", durationMs: 1000 },
+      "Brawler Fixture Strike",
+      { type: "wait", durationMs: 3001 },
+      "Brawler Fixture Strike",
+      { type: "wait", durationMs: 3999 },
+      "Grant Resolution",
+      { type: "wait", durationMs: 1 },
+      "Brawler Fixture Strike",
+      { type: "wait", durationMs: 1 },
+      "Grant Protection",
+      { type: "wait", durationMs: 1 },
+      "Brawler Fixture Strike",
+    ],
+    config: { relic: "Brawler" },
+  });
+  const procs = result.procSteps.filter(
+    step => step.skill === "Relic of the Brawler",
+  );
+  const strikes = result.resolvedEvents.filter(
+    event => event.skillName === "Brawler Fixture Strike",
+  );
+
+  assert.deepEqual(procs.map(step => step.start), [0, 8002]);
+  assert.deepEqual(
+    procs.map(step => step.sourceSkill),
+    ["Grant Protection", "Grant Protection"],
+  );
+  assert.deepEqual(
+    strikes.map(event => Math.round(event.at * 1000)),
+    [1000, 4001, 8001, 8003],
+  );
+  assert.ok(Math.abs(strikes[0].damage / strikes[1].damage - 1.1) < 1e-12);
+  assert.equal(strikes[2].damage, strikes[1].damage);
+  assert.ok(Math.abs(strikes[3].damage / strikes[1].damage - 1.1) < 1e-12);
+});
+
+test("Relic of the Shackles strikes five seconds after immobilize with a strict ten-second ICD", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930009,
+      name: "Fixture Immobilize",
+      type: "Utility",
+      castTimeMs: 0,
+      effects: [condition("Immobilized", 1, 1)],
+    }],
+  });
+  const profession = defineProfession({
+    id: "shackles-fixture",
+    name: "Shackles Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Fixture Immobilize",
+      { type: "wait", durationMs: 10000 },
+      "Fixture Immobilize",
+      { type: "wait", durationMs: 1 },
+      "Fixture Immobilize",
+      { type: "wait", durationMs: 5000 },
+    ],
+    config: { relic: "Shackles" },
+  });
+  const procs = result.procSteps.filter(
+    step => step.skill === "Relic of the Shackles",
+  );
+  const strikes = result.resolvedEvents.filter(
+    event =>
+      event.type === "damage"
+      && event.skillName === "Relic of the Shackles",
+  );
+
+  assert.deepEqual(
+    procs.map(step => ({
+      start: step.start,
+      detail: step.detail,
+      sourceSkill: step.sourceSkill,
+    })),
+    [
+      {
+        start: 0,
+        detail: "tethered",
+        sourceSkill: "Fixture Immobilize",
+      },
+      {
+        start: 5000,
+        detail: "damage",
+        sourceSkill: "Fixture Immobilize",
+      },
+      {
+        start: 10001,
+        detail: "tethered",
+        sourceSkill: "Fixture Immobilize",
+      },
+      {
+        start: 15001,
+        detail: "damage",
+        sourceSkill: "Fixture Immobilize",
+      },
+    ],
+  );
+  assert.deepEqual(
+    strikes.map(event => ({
+      at: event.at,
+      coefficient: event.coefficient,
+      source: event.source,
+      triggeredBy: event.triggeredBy,
+    })),
+    [
+      {
+        at: 5,
+        coefficient: 3,
+        source: "Relic",
+        triggeredBy: "Fixture Immobilize",
+      },
+      {
+        at: 15.001,
+        coefficient: 3,
+        source: "Relic",
+        triggeredBy: "Fixture Immobilize",
+      },
+    ],
+  );
+});
+
 test("Mesmer build migrations produce validated schema version 3 data", () => {
   const migrated = migrateMesmerBuild({
     sigils: ["Force", "Impact"],
@@ -1575,6 +1783,70 @@ async function javascriptFiles(root) {
   return nested.flat();
 }
 
+test("Mesmer conforms to native handler, identity, and state boundaries", async () => {
+  for (const [handlerId, strategy] of mesmerCatalog.skillHandlers) {
+    assert.ok(handlerId.startsWith("mesmer."));
+    assert.ok(
+      strategy.mode === SKILL_HANDLER_MODES.AUGMENT
+      || strategy.mode === SKILL_HANDLER_MODES.REPLACE,
+    );
+  }
+  for (const skill of mesmerCatalog.skills) {
+    if (!skill.handlerId) continue;
+    const strategy = mesmerCatalog.skillHandlers.get(skill.handlerId);
+    assert.ok(strategy, `${skill.name} has an unresolved handler`);
+    if (strategy.mode === SKILL_HANDLER_MODES.REPLACE) {
+      assert.deepEqual(skill.effects, [], skill.name);
+    }
+  }
+  assert.ok(
+    Object.values(MECHANIC_SKILLS)
+      .flat()
+      .every(skillId => mesmerCatalog.skillsById.has(skillId)),
+  );
+  assert.equal(MESMER_TRAIT_COVERAGE.length, mesmerCatalog.traits.length);
+  assert.ok(
+    Object.keys(mesmerProfession.taskHandlers)
+      .every(type => type.startsWith("mesmer.")),
+  );
+
+  const projected = simulateMesmer(
+    ["Mind Stab"],
+    createDefaultConfig({ specialization: "Core" }),
+  ).endState.profession;
+  assert.deepEqual(JSON.parse(JSON.stringify(projected)), projected);
+
+  const mesmerRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js/professions/mesmer",
+  );
+  const contract = await readFile(
+    path.join(mesmerRoot, "mechanics", "contract.js"),
+    "utf8",
+  );
+  assert.doesNotMatch(contract, /\bscheduleSkill\b/);
+  assert.doesNotMatch(contract, /\bWeakMap\b|mechanics\/runtime\.js/);
+  await assert.rejects(
+    readFile(path.join(mesmerRoot, "mechanics", "runtime.js"), "utf8"),
+    error => error?.code === "ENOENT",
+  );
+
+  const behavioralRoots = [
+    path.join(mesmerRoot, "mechanics"),
+    path.join(mesmerRoot, "resolver"),
+  ];
+  for (const root of behavioralRoots) {
+    for (const file of await javascriptFiles(root)) {
+      const source = await readFile(file, "utf8");
+      assert.doesNotMatch(
+        source,
+        /skill\.name\s*(?:===|!==)|\.has\(skill\.name\)|\[skill\.name\]|skill\.description/,
+        path.relative(mesmerRoot, file),
+      );
+    }
+  }
+});
+
 test("platform import boundaries are profession neutral", async () => {
   const root = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
@@ -1585,6 +1857,14 @@ test("platform import boundaries are profession neutral", async () => {
     const relative = path.relative(root, file).replaceAll("\\", "/");
     for (const entry of nativeProfessionRegistry) {
       for (const term of [entry.id, entry.name]) {
+        if (
+          entry.id === "thief"
+          && [
+            "gw2/gear-data.js",
+            "gw2/relic-rules.js",
+            "gw2/resolver/runtime-state.js",
+          ].includes(relative)
+        ) continue;
         assert.equal(
           source.toLowerCase().includes(term.toLowerCase()),
           false,
@@ -1649,7 +1929,7 @@ test("native registry loaders do not pull another profession module graph", asyn
   for (const entry of nativeProfessionRegistry) {
     const graph = await relativeModuleGraph([
       path.join(root, "professions", entry.id, "definition.js"),
-      path.join(root, "professions", entry.id, "app", "adapter.js"),
+      path.join(root, "professions", entry.id, "app", "app-definition.js"),
     ]);
     for (const file of graph) {
       const relative = path.relative(root, file).replaceAll("\\", "/");
@@ -1677,16 +1957,16 @@ test("declarative professions use the standard mechanics module roles", async ()
       path.join(mechanicsRoot, "skill-mechanics.js"),
       "utf8",
     );
-    await readFile(
-      path.join(mechanicsRoot, "autoattack-chains.js"),
-      "utf8",
-    );
-
     assert.match(mechanics, new RegExp(
       `export const ${prefix}_SKILL_MECHANICS\\b`,
     ));
     assert.doesNotMatch(mechanics, /apiDamage|apiConditions/);
-    if (profession === "guardian" || profession === "necromancer") {
+    if (
+      profession === "guardian"
+      || profession === "mesmer"
+      || profession === "necromancer"
+      || profession === "revenant"
+    ) {
       const handlerMechanics = await readFile(
         path.join(mechanicsRoot, "handler-mechanics.js"),
         "utf8",
@@ -1696,7 +1976,11 @@ test("declarative professions use the standard mechanics module roles", async ()
         "utf8",
       );
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
-      assert.match(handlerMechanics, /export const \w+_HANDLER_MECHANICS\b/);
+      if (profession === "mesmer") {
+        assert.match(handlerMechanics, /export function mesmerHandlerIdFor\b/);
+      } else {
+        assert.match(handlerMechanics, /export const \w+_HANDLER_MECHANICS\b/);
+      }
       assert.match(handlers, /augmentSkillHandler/);
       assert.match(handlers, /replaceSkillHandler/);
     }
@@ -1741,4 +2025,26 @@ test("obsolete compatibility trees are removed", async () => {
     ),
     error => error?.code === "ENOENT",
   );
+});
+
+test("profession sources persist terrestrial skill data only", async () => {
+  const root = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js/professions",
+  );
+  const forbiddenPersistedMetadata = new RegExp([
+    JSON.stringify(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY),
+    '"weapon": "(?:Trident|Speargun)"',
+    'weapon:\\s*"(?:Trident|Speargun)"',
+    'environment:\\s*"Aquatic"',
+    '"name": "Use Trident"',
+  ].join("|"));
+  for (const file of await javascriptFiles(root)) {
+    const source = await readFile(file, "utf8");
+    assert.doesNotMatch(
+      source,
+      forbiddenPersistedMetadata,
+      path.relative(root, file),
+    );
+  }
 });

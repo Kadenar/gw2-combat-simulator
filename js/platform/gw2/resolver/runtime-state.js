@@ -50,6 +50,8 @@ export function createGw2ResolverRuntimeState({
       fractalReadyAt: 0,
       akeemReadyAt: 0,
       peithaReadyAt: 0,
+      brawlerReadyAt: 0,
+      shacklesReadyAt: 0,
       thornsStacks: 0,
     },
     profession: professionState,
@@ -61,11 +63,20 @@ export function createGw2ResolverRuntimeState({
       readyAt: 0,
     },
 
-    recordProc(type, name, at, sourceSkill = "", detail = "", icon = "") {
+    recordProc(
+      type,
+      name,
+      at,
+      sourceSkill = "",
+      detail = "",
+      icon = "",
+      cooldownReduction = null,
+    ) {
       const start = Math.round(at * 1000);
       const key = `${type}|${name}|${start}|${sourceSkill}`;
       if (this.procKeys.has(key)) return;
       this.procKeys.add(key);
+      const reducedBy = Number(cooldownReduction);
       this.procSteps.push({
         ri: -1,
         type: `${type}_proc`,
@@ -73,14 +84,29 @@ export function createGw2ResolverRuntimeState({
         sourceSkill,
         detail,
         icon,
+        ...(Number.isFinite(reducedBy) && reducedBy > 0
+          ? { cooldownReduction: reducedBy }
+          : {}),
         start,
         end: start,
       });
     },
 
-    addBreakdown(name, damage, type, hits = 0) {
-      const current = this.breakdown.get(name) || {
+    addBreakdown(name, damage, type, hits = 0, source = null) {
+      const sourceSkill =
+        source?.skillName
+        || source?.name
+        || name;
+      const parentSkill = source?.parentSkillName || "";
+      const sourceId = source?.skillId ?? source?.sourceId ?? sourceSkill;
+      const key = source
+        ? `${String(sourceId)}|${parentSkill}|${name}`
+        : name;
+      const current = this.breakdown.get(key) || {
         name,
+        sourceSkill,
+        parentSkill,
+        icon: source?.icon || "",
         damage: 0,
         strikeDamage: 0,
         conditionDamage: 0,
@@ -89,7 +115,7 @@ export function createGw2ResolverRuntimeState({
       current.damage += damage;
       current[type] += damage;
       current.hits += hits;
-      this.breakdown.set(name, current);
+      this.breakdown.set(key, current);
     },
 
     markDamageTime(at) {

@@ -5,12 +5,36 @@ const input = process.argv[2];
 if (!input) {
   console.error(
     "Usage: node scripts/analyze-evtc.mjs <fight.evtc|fight.zevtc> "
-      + "[--summary] [--condition-events] [--window=<seconds>]",
+      + "[--summary] [--condition-events] [--window=<seconds>] "
+      + "[--debug-skill=<ids>] [--debug-name=<fragment>] "
+      + "[--debug-state=<ids>]",
   );
   process.exit(1);
 }
 const summaryOnly = process.argv.includes("--summary");
 const includeConditionEvents = process.argv.includes("--condition-events");
+const debugSkillIds = new Set(
+  process.argv
+    .filter(argument => argument.startsWith("--debug-skill="))
+    .flatMap(argument => argument
+      .slice("--debug-skill=".length)
+      .split(",")
+      .map(Number)
+      .filter(Number.isFinite)),
+);
+const debugSkillNames = process.argv
+  .filter(argument => argument.startsWith("--debug-name="))
+  .map(argument => argument.slice("--debug-name=".length).toLowerCase())
+  .filter(Boolean);
+const debugStateChanges = new Set(
+  process.argv
+    .filter(argument => argument.startsWith("--debug-state="))
+    .flatMap(argument => argument
+      .slice("--debug-state=".length)
+      .split(",")
+      .map(Number)
+      .filter(Number.isFinite)),
+);
 const CONDITION_NAMES = new Set([
   "Bleeding",
   "Blindness",
@@ -25,6 +49,12 @@ const CONDITION_NAMES = new Set([
   "Torment",
   "Vulnerability",
   "Weakness",
+]);
+// Some chained skills record a second activation record for the follow-up
+// stage. Keep it available to debug output, but do not count it as another
+// player-initiated cast.
+const SECONDARY_CAST_ACTIVATIONS = new Set([
+  77307, // Plasmatic State, second strike/stage
 ]);
 const windowSeconds = Number(
   process.argv
@@ -159,7 +189,8 @@ const agentByAddress = new Map(agents.map(agent => [agent.address, agent]));
 const casts = events
   .filter(event =>
     playerAddresses.has(event.source)
-    && event.stateChange === 68
+    && (event.stateChange === 0 || event.stateChange === 68)
+    && !SECONDARY_CAST_ACTIVATIONS.has(event.skillId)
     && event.value > 0
     && event.activation === 3)
   .map(event => ({
@@ -178,6 +209,7 @@ for (const event of events) {
     || event.iff !== 1
     || event.stateChange !== 0
     || event.activation !== 0
+    || (event.buff === 1 && event.buffRemove !== 0)
   ) continue;
   const strike = event.buff === 0 ? Math.max(0, event.value) : 0;
   const condition = event.buff === 1 ? Math.max(0, event.buffDamage) : 0;
@@ -240,7 +272,7 @@ function collectConditionApplications({ self }) {
       !playerSource
       || playerTarget !== self
       || event.buff !== 1
-      || event.stateChange !== 69
+      || (event.stateChange !== 0 && event.stateChange !== 69)
       || event.activation !== 0
       || event.buffRemove !== 0
       || event.value <= 0
@@ -326,6 +358,39 @@ const report = {
     .sort((left, right) => right.applications - left.applications),
   outgoingConditionApplications,
   selfConditionApplications,
+  ...(debugSkillIds.size || debugSkillNames.length || debugStateChanges.size
+    ? {
+        debugSkills: [...skills]
+          .filter(([id, name]) =>
+            debugSkillIds.has(id)
+            || debugSkillNames.some(fragment =>
+              name.toLowerCase().includes(fragment)))
+          .map(([id, name]) => ({ id, name })),
+        debugSkillEvents: events
+          .filter(event =>
+            debugSkillIds.has(event.skillId)
+            || debugStateChanges.has(event.stateChange)
+            || debugSkillNames.some(fragment =>
+              skillName(event.skillId).toLowerCase().includes(fragment)))
+          .map(event => ({
+            at: relative(event.time),
+            source: `0x${event.source.toString(16)}`,
+            target: `0x${event.target.toString(16)}`,
+            value: event.value,
+            buffDamage: event.buffDamage,
+            overstack: event.overstack,
+            skillId: event.skillId,
+            skill: skillName(event.skillId),
+            iff: event.iff,
+            buff: event.buff,
+            result: event.result,
+            activation: event.activation,
+            buffRemove: event.buffRemove,
+            stateChange: event.stateChange,
+            rawFlags: event.rawFlags.join(" "),
+          })),
+      }
+    : {}),
   ...(includeConditionEvents
     ? {
         conditionEvents: events

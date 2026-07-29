@@ -1,5 +1,10 @@
 import { escapeHtml } from "./html.js";
 
+const PALETTE_PLACEHOLDER_ICON =
+  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" '
+  + 'height="64"%3E%3Crect width="64" height="64" fill="%23232632"/%3E'
+  + '%3Cpath d="M17 46L32 13l15 33z" fill="%23a38ad5"/%3E%3C/svg%3E';
+
 export function paletteView(profession, context) {
   const groups = profession.ui.paletteGroups(context);
   if (!Array.isArray(groups)) throw new TypeError("paletteGroups must return an array.");
@@ -9,7 +14,12 @@ export function paletteView(profession, context) {
     id: String(group.id),
     label: String(group.label || group.id),
     skillIds: [...(group.skillIds || [])],
+    reservedSkillIds: [...(group.reservedSkillIds || [])],
+    skillEntries: (group.skillEntries || []).map(entry => ({ ...entry })),
     color: String(group.color || ""),
+    className: String(group.className || ""),
+    stackId: String(group.stackId || ""),
+    resourceAnchor: Boolean(group.resourceAnchor),
   }));
 }
 
@@ -27,6 +37,7 @@ function ammoView(ammo) {
 
 export function paletteSkillHtml(view = {}) {
   const ammo = ammoView(view.ammo);
+  const skillId = view.skillId == null ? "" : String(view.skillId);
   const disabled = Boolean(view.disabled);
   const contextDisabled = Boolean(view.contextDisabled);
   // Permanent and context-sensitive disablement have distinct CSS, but either
@@ -36,6 +47,7 @@ export function paletteSkillHtml(view = {}) {
     "pal-skill",
     disabled ? "pal-disabled" : "",
     contextDisabled ? "pal-context-disabled" : "",
+    view.concealed ? "pal-concealed" : "",
     view.highlighted ? "pal-ambush-active" : "",
     ammo ? "pal-has-ammo" : "",
     ammo && ammo.current > 0 ? "pal-ammo-available" : "",
@@ -50,10 +62,12 @@ export function paletteSkillHtml(view = {}) {
     ? `${view.name || ""}: ${ammo.current}/${ammo.maximum} charges`
     : "";
   return `<div class="${classes}" data-skill="${escapeHtml(view.name)}"
+    ${skillId ? `data-skill-id="${escapeHtml(skillId)}"` : ""}
     title="${escapeHtml(view.title || view.name)}" draggable="${draggable ? "true" : "false"}"
     ${ariaLabel ? `aria-label="${escapeHtml(ariaLabel)}"` : ""}
     style="--att-border:${escapeHtml(view.color || "#a88be8")}">
-    <img src="${escapeHtml(view.icon)}" alt="" />
+    <img src="${escapeHtml(view.icon || PALETTE_PLACEHOLDER_ICON)}" alt=""
+      data-fallback-icon="${escapeHtml(PALETTE_PLACEHOLDER_ICON)}" />
     ${view.cooldownLabel ? `<span class="pal-cd">${escapeHtml(view.cooldownLabel)}</span>` : ""}
     ${ammoIndicator}
   </div>`;
@@ -87,6 +101,15 @@ export function bindPaletteInteractions(root, handlers = {}) {
   for (const icon of root.querySelectorAll?.(".pal-skill[data-skill]") || []) {
     const name = icon.dataset.skill;
     const draggable = icon.getAttribute("draggable") === "true";
+    const image = icon.querySelector?.("img[data-fallback-icon]");
+    if (image) {
+      const useFallback = () => {
+        image.onerror = null;
+        image.src = image.dataset.fallbackIcon;
+      };
+      image.onerror = useFallback;
+      if (image.complete && image.naturalWidth === 0) useFallback();
+    }
     icon.onclick = event => {
       if (icon.classList.contains("pal-context-disabled")) return;
       handlers.onActivate?.(name, event);

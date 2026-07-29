@@ -77,7 +77,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the profession contract and
 import boundaries, and [docs/MODULES.md](docs/MODULES.md) for module
 responsibilities and public contracts. Profession-specific documentation:
 
-- Mesmer research and modeling assumptions: [docs/RESEARCH.md](docs/RESEARCH.md)
+- Mesmer architecture and modeling assumptions: [docs/MESMER.md](docs/MESMER.md)
 - Elementalist implementation details: [docs/ELEMENTALIST.md](docs/ELEMENTALIST.md)
 - Guardian status: [docs/GUARDIAN.md](docs/GUARDIAN.md)
 - Necromancer status: [docs/NECROMANCER.md](docs/NECROMANCER.md)

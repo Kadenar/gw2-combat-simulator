@@ -10,7 +10,8 @@
     "update:profession-data": "node scripts/update-profession-api-data.mjs",
     "update:mesmer-data": "node scripts/update-mesmer-api-data.mjs",
     "update:guardian-data": "node scripts/update-guardian-api-data.mjs",
-    "update:necromancer-data": "node scripts/update-necromancer-api-data.mjs"
+    "update:necromancer-data": "node scripts/update-necromancer-api-data.mjs",
+    "generate:revenant-ids": "node scripts/generate-revenant-ids.mjs"
   },
   "engines": {
     "node": ">=20"
