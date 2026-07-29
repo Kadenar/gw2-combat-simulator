@@ -567,6 +567,17 @@ export function createCanonicalCatalog({
         `Skill ${id} has an invalid quicknessCastTimeMs.`,
       );
     }
+    const interruptCommitMs = merged.interruptCommitMs == null
+      ? null
+      : Number(merged.interruptCommitMs);
+    if (
+      interruptCommitMs != null
+      && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))
+    ) {
+      throw new TypeError(
+        `Skill ${id} has an invalid interruptCommitMs.`,
+      );
+    }
     if (
       merged.rechargeAnchor != null
       && !RECHARGE_ANCHORS.has(merged.rechargeAnchor)
@@ -587,6 +598,7 @@ export function createCanonicalCatalog({
       castTimeMs,
       ...(rechargeOffsetMs ? { rechargeOffsetMs } : {}),
       ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
+      ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
       lockouts: normalizeLockouts(merged.lockouts, id),
     };
     skill.effects = Object.freeze((skill.effects || []).map(normalizeEffect));

@@ -13,6 +13,10 @@
       {
         "label": "Condition (Shortbow / Mace-Axe)",
         "build": "Builds/b-condi-renegade-shortbow-mace-axe.json"
+      },
+      {
+        "label": "Condition (Mace-Axe / Spear)",
+        "build": "Builds/b-condi-renegade-spear-mace-axe.json"
       }
     ]
   },

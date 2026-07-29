@@ -486,6 +486,47 @@ test("Revenant Condition Renegade Shortbow default build resolves", async () => 
   assert.equal(build.startingWeaponSet, 2);
 });
 
+test("Revenant Condition Renegade Spear default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const renegade = manifest.find(section => section.section === "Renegade");
+  const preset = renegade.presets.find(
+    candidate => candidate.label === "Condition (Mace-Axe / Spear)",
+  );
+  const saved = JSON.parse(await readFile(
+    new URL(`../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(
+    preset.build,
+    "Builds/b-condi-renegade-spear-mace-axe.json",
+  );
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "revenant");
+  assert.deepEqual(build.specializations, [
+    { name: "Corruption", traits: "1-3-1" },
+    { name: "Invocation", traits: "2-1-2" },
+    { name: "Renegade", traits: "2-2-2" },
+  ]);
+  assert.deepEqual(build.weapons, ["Mace", "Axe"]);
+  assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
+  assert.deepEqual(build.weaponSigils, [
+    ["Geomancy", "Torment"],
+    ["Doom", "Earth"],
+  ]);
+  assert.deepEqual(build.selectedLegends, [
+    "LegendaryRenegade",
+    "LegendaryDemon",
+  ]);
+  assert.equal(build.startingLegend, "LegendaryRenegade");
+  assert.equal(build.startingWeaponSet, 1);
+});
+
 test("Revenant Condition Conduit Mistfire default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
     new URL("../Builds/revenant-manifest.json", import.meta.url),

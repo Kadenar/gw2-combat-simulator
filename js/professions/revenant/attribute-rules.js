@@ -111,8 +111,7 @@ const rules = [
     id: "revenant.ferocious-aggression",
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: "damage-additive",
-    amount: (_context, target) =>
-      target === MODIFIER_TARGET.CONDITION_DAMAGE ? 0.07 : 0.1,
+    amount: 0.1,
     when: (context) =>
       player(context) &&
       hasTrait(context, TRAIT.FEROCIOUS_AGGRESSION) &&
@@ -313,7 +312,10 @@ function modifyCriticalChance(context, chance) {
 
 function modifyConditionDuration(context, duration) {
   let modified = duration;
-  if (hasTrait(context, TRAIT.PACT_OF_PAIN)) {
+  if (
+    hasTrait(context, TRAIT.PACT_OF_PAIN)
+    && !context.config?.revenantBuildAttributesApplied
+  ) {
     modified += 0.15;
   }
   if (

@@ -9,6 +9,9 @@ import { getActiveTraits } from "./data/traits-data.js";
 import {
   effectiveRevenantEnergyCost,
 } from "./mechanics/specific/energy.js";
+import {
+  isBandTogetherReady,
+} from "./mechanics/specific/assassin-renegade.js";
 
 /**
  * Revenant adapter for the shared simulator UI.
@@ -102,14 +105,27 @@ function ids(names) {
     ),
   ];
 }
-export function revenantEventLogRow(event) {
-  if (event.type !== "revenant.state") return undefined;
+export function revenantEventLogRow(_context, event) {
+  if (event?.type !== "revenant.state") return undefined;
   return {
-    at: event.at,
-    type: "Revenant",
-    name: event.reason || "State",
-    detail: `Energy ${Number(event.state?.energy || 0).toFixed(1)}`,
+    type: event.type,
+    description:
+      `${event.reason || "State"} - `
+      + `Energy ${Number(event.state?.energy || 0).toFixed(1)}`,
+    className: "resource",
+    order: 30,
+    flags: [],
   };
+}
+
+export function revenantPaletteSkillIsInstant(context = {}, skill) {
+  return (
+    skill?.handlerId === "revenant.band-together"
+    && isBandTogetherReady(
+      stateFrom(context),
+      Number(context.time || 0),
+    )
+  );
 }
 
 export const revenantUi = Object.freeze({
@@ -177,6 +193,7 @@ export const revenantUi = Object.freeze({
     }
     return groups;
   },
+  isPaletteSkillInstant: revenantPaletteSkillIsInstant,
   isPaletteSkillAvailable: (context, skill) => {
     const state = stateFrom(context);
     if (

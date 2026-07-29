@@ -76,11 +76,11 @@
       "cooldowns": {
         "Swap Weapons": {
           "readyAt": 10960,
-          "remaining": 9950
+          "remaining": 10000
         }
       },
-      "dpsWindow": 0.5700000000000001,
-      "duration": 1.01,
+      "dpsWindow": 0.52,
+      "duration": 0.96,
       "events": [
         {
           "__order": 0,
@@ -188,8 +188,8 @@
           "__order": 6,
           "actorType": "player",
           "at": 0.96,
-          "endsAt": 1.01,
-          "fullEndsAt": 1.01,
+          "endsAt": 0.96,
+          "fullEndsAt": 0.96,
           "interrupted": false,
           "name": "Swap Weapons",
           "rechargeReadyAt": 10.96,
@@ -202,7 +202,7 @@
         },
         {
           "__order": 7,
-          "at": 1.01,
+          "at": 0.96,
           "schemaVersion": 1,
           "source": "Mesmer",
           "sourceId": "weapon_set",
@@ -262,20 +262,20 @@
         },
         {
           "__order": 2,
-          "activeDuration": 0.5700000000000001,
+          "activeDuration": 0.52,
           "actorType": "player",
           "at": 0.44,
           "condition": "Torment",
           "damageTicks": [
             {
-              "at": 1.01,
-              "fraction": 0.5700000000000001
+              "at": 0.96,
+              "fraction": 0.52
             }
           ],
-          "damagingStackSeconds": 0.5700000000000001,
+          "damagingStackSeconds": 0.52,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
-          "expiresAt": 1.01,
+          "expiresAt": 0.96,
           "name": "Ether Bolt — Torment",
           "naturalExpiresAt": 5.773333333333333,
           "schemaVersion": 1,
@@ -310,20 +310,15 @@
         },
         {
           "__order": 5,
-          "activeDuration": 0.050000000000000044,
+          "activeDuration": 0,
           "actorType": "player",
           "at": 0.96,
           "condition": "Torment",
-          "damageTicks": [
-            {
-              "at": 1.01,
-              "fraction": 0.050000000000000044
-            }
-          ],
-          "damagingStackSeconds": 0.050000000000000044,
+          "damageTicks": [],
+          "damagingStackSeconds": 0,
           "duration": 6,
           "effectiveDuration": 8,
-          "expiresAt": 1.01,
+          "expiresAt": 0.96,
           "name": "Ether Blast — Torment",
           "naturalExpiresAt": 8.96,
           "schemaVersion": 1,
@@ -356,8 +351,8 @@
         },
         {
           "actualStart": 960,
-          "end": 1010,
-          "fullCastMs": 50,
+          "end": 960,
+          "fullCastMs": 0,
           "interrupted": false,
           "ri": 2,
           "skill": "Swap Weapons",
@@ -367,8 +362,8 @@
       "warnings": []
     },
     "damage": {
-      "conditionDamage": 146.70750000000004,
-      "dps": 7379.23656296112,
+      "conditionDamage": 123.045,
+      "dps": 8043.273732476613,
       "events": [
         {},
         {},
@@ -384,10 +379,10 @@
           "damage": 2029.7286704439193
         },
         {
-          "damage": 134.87625000000003,
+          "damage": 123.045,
           "damageTicks": [
             {
-              "damage": 134.87625000000003
+              "damage": 123.045
             }
           ]
         },
@@ -395,12 +390,7 @@
           "damage": 2029.7286704439193
         },
         {
-          "damage": 11.831250000000011,
-          "damageTicks": [
-            {
-              "damage": 11.831250000000011
-            }
-          ]
+          "damage": 0
         }
       ],
       "steps": [
@@ -409,7 +399,7 @@
         {}
       ],
       "strikeDamage": 4059.4573408878387,
-      "totalDamage": 4206.164840887839
+      "totalDamage": 4182.502340887839
     }
   }
 }

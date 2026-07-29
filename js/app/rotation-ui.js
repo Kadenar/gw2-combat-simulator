@@ -788,6 +788,13 @@ export function rotationUtilityFlipByParent(app) {
     );
 }
 
+export function paletteSkillIsInstant(app, context, skill, name = skill?.name) {
+    return name === '__combat_start'
+        || name === '__cooldown_reset'
+        || Number(skill?.castTimeMs || 0) === 0
+        || app.profession.ui.isPaletteSkillInstant?.(context, skill) === true;
+}
+
 export function renderPalette(app) {
     const element = document.getElementById('rotation-palette');
     const spec = activeSpecialization(app);
@@ -799,7 +806,7 @@ export function renderPalette(app) {
         activeWeaponSet: app.results?.endState?.activeWeaponSet
             || app.build.startingWeaponSet
             || 1,
-        time: Number(app.results?.duration || 0),
+        time: Number(app.results?.endState?.time || 0) / 1000,
         build: app.build,
     };
     const professionGroups = rotationPaletteGroups(app, paletteContext);
@@ -1088,9 +1095,12 @@ export function renderPalette(app) {
             const skill = skillId == null
                 ? app.skillByName.get(name)
                 : app.skillById.get(skillId);
-            const instant = name === '__combat_start'
-                || name === '__cooldown_reset'
-                || Number(skill?.castTimeMs || 0) === 0;
+            const instant = paletteSkillIsInstant(
+                app,
+                paletteContext,
+                skill,
+                name,
+            );
             if (event.shiftKey && instant && app.build.rotation.length) {
                 app.addRotation(name, {
                     ...identity,

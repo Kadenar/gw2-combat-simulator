@@ -9,9 +9,11 @@ import {
 } from "../js/app/profession-registry.js";
 import {
   paletteSkillView,
+  paletteSkillIsInstant,
   rotationLoadoutPaletteGroups,
   rotationPaletteGroups,
   rotationSelectedSlotSkills,
+  simulationEventLogRows,
   weaponSkills,
 } from "../js/app/rotation-ui.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
@@ -145,7 +147,7 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
     [SKILL.EMBRACE_THE_DARKNESS, 500, 440],
     [SKILL.BANISH_ENCHANTMENT, 500, 440],
     [SKILL.UNYIELDING_IMPACT, 1000, 920],
-    [SKILL.ABYSSAL_STRIKE, 500, 480],
+    [SKILL.ABYSSAL_STRIKE, 500, 520],
     [SKILL.ABYSSAL_BLITZ, 500, 520],
     [SKILL.ABYSSAL_FORCE, 500, 520],
   ]) {
@@ -357,6 +359,7 @@ test("weapon swap changes the active Revenant weapon set", () => {
     weaponSet2Secondary: "Axe",
   });
   assert.equal(result.warnings.length, 0);
+  assert.equal(result.steps[0].fullCastMs, 0);
   assert.equal(result.endState.activeWeaponSet, 2);
   assert.ok(result.events.some(event =>
     event.type === "weapon_set"
@@ -378,7 +381,8 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
     assert.equal(skill.effects[0].hits, hits);
   }
   for (const [skillId, quicknessCastTimeMs] of [
-    [SKILL.SHATTERSHOT, 440],
+    [SKILL.SHATTERSHOT, 480],
+    [SKILL.BLOODBANE_PATH, 760],
     [SKILL.SEVENSHOT, 440],
     [SKILL.SPIRITCRUSH, 400],
   ]) {
@@ -398,9 +402,14 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
   assert.equal(spiritcrush.duration, 3);
   assert.equal(spiritcrush.effects[1].coefficient, 0.75);
   assert.equal(spiritcrush.effects[1].hits, 3);
+  assert.equal(spiritcrush.effects[2].applications, 4);
+  assert.equal(spiritcrush.effects[2].atMs, 0);
+  assert.equal(spiritcrush.effects[3].applications, 4);
+  assert.equal(spiritcrush.effects[3].atMs, 0);
 
   const quicknessResult = simulate("Renegade", [
     "Shattershot",
+    "Bloodbane Path",
     "Sevenshot",
     "Spiritcrush",
   ], {
@@ -412,7 +421,8 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
   assert.deepEqual(
     quicknessResult.steps.map(step => [step.skill, step.fullCastMs]),
     [
-      ["Shattershot", 440],
+      ["Shattershot", 480],
+      ["Bloodbane Path", 760],
       ["Sevenshot", 440],
       ["Spiritcrush", 400],
     ],
@@ -449,8 +459,9 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
           event.type === "condition"
           && event.skillName === "Spiritcrush"
           && event.condition === condition)
-        .map(event => [event.at, event.stacks, event.duration]),
+      .map(event => [event.at, event.stacks, event.duration]),
       [
+        [2.08, 1, duration],
         [3.08, 1, duration],
         [4.08, 1, duration],
         [5.08, 1, duration],
@@ -463,7 +474,7 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
     && event.controlKind === "knockdown"));
 });
 
-test("Abyssal Strike owns both spear autoattack timings", () => {
+test("Abyssal Strike uses 520ms Quickness timing for both spear swings", () => {
   const result = simulate("Core", [
     "Abyssal Strike",
     "Abyssal Strike",
@@ -479,10 +490,10 @@ test("Abyssal Strike owns both spear autoattack timings", () => {
   assert.deepEqual(
     result.steps.map(step => [step.skill, step.start, step.fullCastMs]),
     [
-      ["Abyssal Strike", 0, 480],
-      ["Abyssal Strike", 480, 460],
-      ["Abyssal Strike", 940, 480],
-      ["Abyssal Strike", 1420, 460],
+      ["Abyssal Strike", 0, 520],
+      ["Abyssal Strike", 520, 520],
+      ["Abyssal Strike", 1040, 520],
+      ["Abyssal Strike", 1560, 520],
     ],
   );
   assert.ok(result.events
@@ -513,6 +524,41 @@ test("Abyssal Strike owns both spear autoattack timings", () => {
     secondaryWeapon: "",
   });
   assert.match(hidden.warnings[0], /use Abyssal Strike/);
+});
+
+test("Abyssal Strike commits at 420ms without advancing on an earlier cancel", () => {
+  const config = {
+    primaryWeapon: "Spear",
+    secondaryWeapon: "",
+    boons: { quickness: true },
+  };
+  const interruptAt = interruptMs => simulate("Core", [{
+    name: "Abyssal Strike",
+    interruptMs,
+  }], config);
+  const packets = result => result.events.filter(event =>
+    event.skillName === "Abyssal Strike"
+    && (event.type === "damage" || event.type === "condition"));
+
+  const cancelled = interruptAt(419);
+  const committed = interruptAt(420);
+
+  assert.equal(cancelled.steps[0].fullCastMs, 520);
+  assert.equal(cancelled.steps[0].end, 419);
+  assert.deepEqual(packets(cancelled), []);
+  assert.equal(cancelled.endState.profession.abyssalStrikeSecondCast, false);
+
+  assert.equal(committed.steps[0].fullCastMs, 520);
+  assert.equal(committed.steps[0].end, 420);
+  assert.equal(packets(committed).length, 3);
+  assert.ok(packets(committed).every(event => event.at === 0.52));
+  assert.equal(committed.endState.profession.abyssalStrikeSecondCast, true);
+
+  const afterCancel = simulate("Core", [
+    { name: "Abyssal Strike", interruptMs: 419 },
+    "Abyssal Strike",
+  ], config);
+  assert.equal(afterCancel.steps[1].fullCastMs, 520);
 });
 
 test("Searing Fissure resolves its initial packet and three field pulses", () => {
@@ -581,6 +627,80 @@ test("Searing Fissure resolves its initial packet and three field pulses", () =>
       && event.condition === "Burning").length,
     0,
   );
+});
+
+test("Searing Fissure commits at 540ms and an earlier cancel only starts cooldown", () => {
+  const config = {
+    primaryWeapon: "Mace",
+    secondaryWeapon: "Axe",
+    initialEnergy: 100,
+    boons: { quickness: true },
+  };
+  const interruptAt = interruptMs => simulate("Core", [{
+    name: "Searing Fissure",
+    interruptMs,
+  }], config);
+  const fissurePackets = result => result.events.filter(event =>
+    event.skillName === "Searing Fissure"
+    && (event.type === "damage" || event.type === "condition"));
+
+  const cancelled = interruptAt(539);
+  const committed = interruptAt(540);
+
+  assert.equal(cancelled.steps[0].end, 539);
+  assert.equal(cancelled.steps[0].interrupted, true);
+  assert.deepEqual(fissurePackets(cancelled), []);
+  assert.equal(
+    cancelled.events.find(event =>
+      event.type === "action"
+      && event.skillName === "Searing Fissure").cancelled,
+    true,
+  );
+  assert.deepEqual(cancelled.endState.cooldowns["Searing Fissure"], {
+    readyAt: 3539,
+    remaining: 3000,
+  });
+
+  assert.equal(committed.steps[0].end, 540);
+  assert.equal(committed.steps[0].interrupted, true);
+  assert.deepEqual(
+    fissurePackets(committed)
+      .filter(event => event.type === "damage")
+      .map(event => [event.at, event.coefficient]),
+    [[0.6, 0.5], [1.6, 0.25], [2.6, 0.25], [3.6, 0.25]],
+  );
+  assert.deepEqual(
+    fissurePackets(committed)
+      .filter(event => event.type === "condition")
+      .map(event => [event.at, event.stacks, event.duration]),
+    [
+      [0.6, 3, 3],
+      [1.6, 1, 1],
+      [2.6, 1, 1],
+      [3.6, 1, 1],
+    ],
+  );
+  assert.deepEqual(committed.endState.cooldowns["Searing Fissure"], {
+    readyAt: 3540,
+    remaining: 3000,
+  });
+
+  const comboConfig = {
+    ...config,
+    selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
+    startingLegend: LEGEND.ENTITY,
+  };
+  const comboAt = interruptMs => simulate("Conduit", [
+    { name: "Searing Fissure", interruptMs },
+    "Twin Moon Sweep",
+  ], comboConfig);
+  const burningBolts = result => result.events.filter(event =>
+    event.type === "condition"
+    && event.skillName === "Twin Moon Sweep"
+    && event.condition === "Burning");
+
+  assert.equal(burningBolts(comboAt(539)).length, 0);
+  assert.equal(burningBolts(comboAt(540)).length, 2);
 });
 
 test("Revenant spear packets reduce Abyssal Raze count recharge on hit", () => {
@@ -2219,7 +2339,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   additiveContext.condition = "Burning";
   assert.ok(Math.abs(
     revenantAttributeRules.modifyConditionDamage(additiveContext, 1.05)
-      - 1.345,
+      - 1.375,
   ) < 1e-12);
 });
 
@@ -2271,6 +2391,18 @@ test("Renegade critical traits and Blood Fury use their supplied intervals", () 
       runtime: { boons: new Map() },
     }, 1.2),
     1.7,
+  );
+  assert.equal(
+    revenantAttributeRules.modifyConditionDuration({
+      config: {
+        traitIds: [TRAIT.PACT_OF_PAIN],
+        revenantBuildAttributesApplied: true,
+      },
+      condition: "Torment",
+      time: 1,
+      runtime: { boons: new Map() },
+    }, 1.15),
+    1.15,
   );
 });
 
@@ -2452,6 +2584,37 @@ test("Band Together makes the next Renegade summon instant and enhanced", () => 
       ["stability", 6, 3, "allies"],
     ],
   );
+
+  const concurrent = simulate("Renegade", [
+    "Icerazor's Ire",
+    { name: "Razorclaw's Rage", offset: 100 },
+  ], {
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.RENEGADE,
+    initialEnergy: 100,
+  });
+  assert.deepEqual(
+    concurrent.steps.map(step => [step.start, step.fullCastMs]),
+    [[0, 520], [100, 0]],
+  );
+
+  const primed = simulate("Renegade", ["Icerazor's Ire"], {
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.RENEGADE,
+    initialEnergy: 100,
+  });
+  const razorclaw = revenantCatalog.skillsByName.get("Razorclaw's Rage");
+  assert.equal(
+    paletteSkillIsInstant(
+      { profession: revenantProfession },
+      {
+        professionState: primed.endState.profession,
+        time: primed.endState.time / 1000,
+      },
+      razorclaw,
+    ),
+    true,
+  );
 });
 
 test("enhanced Renegade summons do not rearm Band Together", () => {
@@ -2525,6 +2688,12 @@ test("Razorclaw models party procs with the Revenant's condition stats", () => {
   assert.equal(partyBuff.stacks, 4);
   assert.equal(partyBuff.duration, 5);
   assert.equal(partyBuff.recipientCount, 5);
+  const personalPackets = result.resolvedEvents.filter(event =>
+    event.skillName === "Razorclaw's Rage"
+    && !event.triggeredByAlly
+    && (event.type === "damage" || event.type === "condition"));
+  assert.ok(personalPackets.length > 0);
+  assert.ok(personalPackets.every(event => event.actorType === "player"));
   const allyBleeds = result.resolvedEvents.filter(event =>
     event.type === "condition"
     && event.skillName === "Razorclaw's Rage"
@@ -3853,6 +4022,27 @@ test("Alacrity does not reduce Revenant legend or weapon swap cooldowns", () => 
 test("trait-coverage manifest covers all Revenant traits", () => {
   assert.equal(REVENANT_TRAIT_COVERAGE.length, revenantCatalog.traits.length);
   assert.ok(REVENANT_TRAIT_COVERAGE.every(entry => entry.effects.length > 0));
+});
+
+test("Revenant state events use the shared event-log row contract", () => {
+  const rows = simulationEventLogRows({
+    events: [{
+      type: "revenant.state",
+      at: 1.02,
+      reason: "kallas-fervor",
+      state: { energy: 30 },
+    }],
+    resolvedEvents: [],
+    endState: { profession: {} },
+  }, null, revenantProfession);
+
+  assert.deepEqual(rows, [{
+    at: 1.02,
+    type: "revenant.state",
+    description: "kallas-fervor - Energy 30.0",
+    className: "resource",
+    phantasmClone: false,
+  }]);
 });
 
 test("Revenant is a loadable native fixed-bar application", async () => {
