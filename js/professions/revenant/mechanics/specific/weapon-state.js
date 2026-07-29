@@ -23,10 +23,7 @@ export function updateRevenantWeaponState(context, skill) {
     else state.autoattackChains[chain.root] = chain.next;
   } else if (skill.id === ID.DODGE) {
     state.autoattackChains = {};
-  } else if (
-    skill.id !== ID.TEMPORAL_RIFT
-    && skill.type === "Weapon"
-  ) {
+  } else if (skill.id !== ID.TEMPORAL_RIFT && skill.type === "Weapon") {
     state.autoattackChains = {};
   }
 }

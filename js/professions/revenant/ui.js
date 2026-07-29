@@ -6,15 +6,9 @@ import {
 import { revenantLegend, revenantLegendLoadout } from "./legend-loadout.js";
 import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from "./legend-rules.js";
 import { getActiveTraits } from "./data/traits-data.js";
-import {
-  effectiveRevenantEnergyCost,
-} from "./mechanics/specific/energy.js";
-import {
-  isBandTogetherReady,
-} from "./mechanics/specific/assassin-renegade.js";
-import {
-  REVENANT_HANDLER_MECHANICS,
-} from "./mechanics/handler-mechanics.js";
+import { effectiveRevenantEnergyCost } from "./mechanics/specific/energy.js";
+import { isBandTogetherReady } from "./mechanics/specific/assassin-renegade.js";
+import { REVENANT_HANDLER_MECHANICS } from "./mechanics/handler-mechanics.js";
 
 /**
  * Revenant adapter for the shared simulator UI.
@@ -37,10 +31,13 @@ function activeLegendFrom(context = {}) {
   );
 }
 function effectiveEnergyCost(context, skill) {
-  return effectiveRevenantEnergyCost({
-    ...context,
-    professionState: stateFrom(context),
-  }, skill);
+  return effectiveRevenantEnergyCost(
+    {
+      ...context,
+      professionState: stateFrom(context),
+    },
+    skill,
+  );
 }
 function hasEnoughEnergy(context, skill) {
   const energy = Number(stateFrom(context).energy);
@@ -105,8 +102,8 @@ export function revenantEventLogRow(_context, event) {
   return {
     type: event.type,
     description:
-      `${event.reason || "State"} - `
-      + `Energy ${Number(event.state?.energy || 0).toFixed(1)}`,
+      `${event.reason || "State"} - ` +
+      `Energy ${Number(event.state?.energy || 0).toFixed(1)}`,
     className: "resource",
     order: 30,
     flags: [],
@@ -115,11 +112,8 @@ export function revenantEventLogRow(_context, event) {
 
 export function revenantPaletteSkillIsInstant(context = {}, skill) {
   return (
-    skill?.handlerId === "revenant.band-together"
-    && isBandTogetherReady(
-      stateFrom(context),
-      Number(context.time || 0),
-    )
+    skill?.handlerId === "revenant.band-together" &&
+    isBandTogetherReady(stateFrom(context), Number(context.time || 0))
   );
 }
 
@@ -156,7 +150,7 @@ export const revenantUi = Object.freeze({
           skillId === SKILL.FACET_OF_NATURE &&
           state.availableFlips?.[trueNatureId]
             ? trueNatureId
-            : skillId
+            : skillId,
         ),
         skillEntries: legendBars.map((bar) => ({
           skillId: -4,
@@ -193,11 +187,13 @@ export const revenantUi = Object.freeze({
     if (
       skill.id === SKILL.UNYIELDING_IMPACT &&
       !state.availableFlips?.[SKILL.UNYIELDING_IMPACT]
-    ) return false;
+    )
+      return false;
     if (
       skill.id === SKILL.CALL_TO_ANGUISH &&
       state.availableFlips?.[SKILL.UNYIELDING_IMPACT]
-    ) return false;
+    )
+      return false;
     if (upkeepIsActive(context, skill)) return false;
     // A queued cast can recover Energy while its existing cooldown elapses.
     // Keep it clickable so the scheduler can advance to that ready time.
@@ -211,11 +207,13 @@ export const revenantUi = Object.freeze({
     if (
       skill.id === SKILL.UNYIELDING_IMPACT &&
       !state.availableFlips?.[SKILL.UNYIELDING_IMPACT]
-    ) return "Cast Call to Anguish first";
+    )
+      return "Cast Call to Anguish first";
     if (
       skill.id === SKILL.CALL_TO_ANGUISH &&
       state.availableFlips?.[SKILL.UNYIELDING_IMPACT]
-    ) return "Use Unyielding Impact first";
+    )
+      return "Use Unyielding Impact first";
     if (upkeepIsActive(context, skill)) {
       return `Use ${
         skill.flipSkillId

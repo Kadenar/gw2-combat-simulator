@@ -5,9 +5,7 @@ import {
   REVENANT_SKILL_IDS as SKILL,
 } from "./data/ids.js";
 import { REVENANT_LEGEND_SPECIALIZATIONS } from "./legend-rules.js";
-import {
-  REVENANT_HANDLER_MECHANICS,
-} from "./mechanics/handler-mechanics.js";
+import { REVENANT_HANDLER_MECHANICS } from "./mechanics/handler-mechanics.js";
 
 function id(name, legendId, preferredId = null) {
   const matches = revenantCatalog.skills.filter(
@@ -171,12 +169,8 @@ export const revenantLegendLoadout = Object.freeze({
       ...group,
       skillIds: group.skillIds.flatMap((skillId) => {
         const heraldFlipId =
-          REVENANT_HANDLER_MECHANICS.upkeep
-            .facetConsumeBySkillId[skillId];
-        if (
-          Number.isFinite(heraldFlipId) &&
-          availableFlips[heraldFlipId]
-        ) {
+          REVENANT_HANDLER_MECHANICS.upkeep.facetConsumeBySkillId[skillId];
+        if (Number.isFinite(heraldFlipId) && availableFlips[heraldFlipId]) {
           return [heraldFlipId];
         }
         if (

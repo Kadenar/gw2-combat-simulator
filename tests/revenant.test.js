@@ -2913,6 +2913,36 @@ test("Assassin buffs trigger on hit and upkeep releases own their cooldowns", ()
     && event.coefficient === 0.65
     && event.at === 0.75));
 
+  const oddsWithAir = simulate("Core", [
+    "Impossible Odds",
+    "Phase Traversal",
+    { type: "wait", durationMs: 1000 },
+  ], {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
+    startingLegend: LEGEND.ASSASSIN,
+    initialEnergy: 100,
+    stats: {
+      precision: 1000,
+      criticalChanceBonus: 45,
+    },
+    sigilSets: [
+      { names: ["Air"], strike: 1, condition: 1 },
+      { names: [], strike: 1, condition: 1 },
+    ],
+  });
+  assert.deepEqual(
+    oddsWithAir.resolvedEvents
+      .filter(event => event.skillName === "Impossible Odds")
+      .map(event => [event.at, event.triggeredBy]),
+    [
+      [0.75, "Phase Traversal"],
+      [1, "Sigil of Air"],
+    ],
+  );
+  assert.ok(oddsWithAir.resolvedEvents.some(event =>
+    event.skillName === "Sigil of Air"
+    && event.triggeredBy === "Impossible Odds"));
+
   const starved = simulate("Core", [
     "Impossible Odds",
     { type: "wait", durationMs: 1100 },
@@ -3051,6 +3081,24 @@ test("Vindicator dodge traits apply current endurance and damage behavior", () =
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(dodges.map(event => event.coefficient), [3.3, 6.6]);
   assert.deepEqual(dodges.map(event => event.at), [0.16, 0.8]);
+  assert.equal(
+    revenantAttributeRules.modifyStrikeDamage({
+      config: {
+        traitIds: [
+          TRAIT.FEROCIOUS_AGGRESSION,
+          TRAIT.FORERUNNER_OF_DEATH,
+        ],
+        boons: { fury: true },
+      },
+      event: {
+        actorType: "player",
+        forerunnerOfDeathActive: true,
+      },
+      time: 1,
+      runtime: { profession: {} },
+    }, 1),
+    1.35,
+  );
   assert.equal(result.steps[0].fullCastMs, 200);
   assert.equal(meld.fullCastMs, 440);
   assert.equal(

@@ -24,7 +24,8 @@ export const EVENT_SCHEMA_VERSION = 1;
  *     multiplier: number
  *   }>,
  *   hits?: number,
- *   canCrit?: boolean
+ *   canCrit?: boolean,
+ *   canTriggerCriticalSigils?: boolean
  * }} DamageEvent
  *
  * @typedef {SimulationEventBase & {

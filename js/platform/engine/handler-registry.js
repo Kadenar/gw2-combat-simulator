@@ -12,7 +12,9 @@ export class HandlerRegistry {
   register(type, handler, { required = false } = {}) {
     const eventType = String(type || "");
     if (!eventType || typeof handler !== "function") {
-      throw new TypeError("Event handler registration requires a type and function.");
+      throw new TypeError(
+        "Event handler registration requires a type and function.",
+      );
     }
     if (this.#handlers.has(eventType)) {
       throw new Error(`Duplicate event handler registration: ${eventType}`);
@@ -56,7 +58,9 @@ export class HandlerRegistry {
   dispatch(event, context) {
     const registration = this.#handlers.get(event?.type);
     if (!registration) {
-      throw new Error(`No event handler registered for required type: ${event?.type}`);
+      throw new Error(
+        `No event handler registered for required type: ${event?.type}`,
+      );
     }
     return registration.handler(context, event);
   }
@@ -65,8 +69,10 @@ export class HandlerRegistry {
    * Returns the registered handler map as `[type, handler]` tuples.
    */
   entries() {
-    return [...this.#handlers.entries()]
-      .map(([type, registration]) => [type, registration.handler]);
+    return [...this.#handlers.entries()].map(([type, registration]) => [
+      type,
+      registration.handler,
+    ]);
   }
 }
 

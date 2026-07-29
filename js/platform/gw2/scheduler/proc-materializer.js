@@ -204,7 +204,12 @@ export function createGw2TriggerMaterializer(
   };
 
   const materializeCriticalSigils = (context, event) => {
-    if (!isGw2PlayerActorEvent(event) || !(event.coefficient > 0)) return;
+    if (
+      (!isGw2PlayerActorEvent(event) &&
+        event.canTriggerCriticalSigils !== true) ||
+      !(event.coefficient > 0)
+    )
+      return;
     const names = activeSigilNames(config, state.activeWeaponSet).filter(
       (name) => SIGIL_PROCS[name]?.trigger === "crit",
     );
