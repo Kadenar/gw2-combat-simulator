@@ -1,18 +1,24 @@
+/**
+ * Trait effects triggered by invoking a legend.
+ *
+ * Materializes Spirit Boon, Song of the Mists, Invoking Torment, Diabolic
+ * Inferno, and Renegade Kalla's Fervor at legend-swap completion. Legend
+ * selection accounts for Conduit's Entity bar by resolving the paired legend.
+ */
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { hasRevenantTrait } from "../../state.js";
-import {
-  REVENANT_HANDLER_MECHANICS as MECHANICS,
-} from "../handler-mechanics.js";
+import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import { emitRevenantBoon } from "./conduit.js";
 import { grantKallasFervor } from "./assassin-renegade.js";
 
 function invokedLegend(state) {
   if (state.activeLegendId !== LEGEND.ENTITY) return state.activeLegendId;
-  return state.selectedLegendIds.find(id => id !== LEGEND.ENTITY)
-    || LEGEND.ENTITY;
+  return (
+    state.selectedLegendIds.find((id) => id !== LEGEND.ENTITY) || LEGEND.ENTITY
+  );
 }
 
 function emitDamage(context, name, coefficient, at, options = {}) {
@@ -63,18 +69,11 @@ function emitCondition(
 function emitSpiritBoon(context, swapSkill, legendId, at) {
   const boon = MECHANICS.legendInvocation.spiritBoons[legendId];
   if (!boon) return;
-  emitRevenantBoon(
-    context,
-    swapSkill,
-    boon.kind,
-    boon.duration,
-    boon.stacks,
-    {
-      at,
-      sourceId: TRAIT.SPIRIT_BOON,
-      name: `Spirit Boon — ${boon.kind}`,
-    },
-  );
+  emitRevenantBoon(context, swapSkill, boon.kind, boon.duration, boon.stacks, {
+    at,
+    sourceId: TRAIT.SPIRIT_BOON,
+    name: `Spirit Boon — ${boon.kind}`,
+  });
 }
 
 function emitSongOfTheMists(context, swapSkill, legendId, at) {
@@ -104,11 +103,12 @@ function emitSongOfTheMists(context, swapSkill, legendId, at) {
       }
       continue;
     }
-    const label = boon === "kallas-fervor"
-      ? "Kalla's Fervor"
-      : boon === "kallas-fervor-hit"
-        ? "Kalla's Fervor for Hit"
-        : boon;
+    const label =
+      boon === "kallas-fervor"
+        ? "Kalla's Fervor"
+        : boon === "kallas-fervor-hit"
+          ? "Kalla's Fervor for Hit"
+          : boon;
     emitRevenantBoon(context, swapSkill, boon, duration, stacks, {
       at,
       sourceId,
@@ -164,6 +164,7 @@ function emitInvokingTorment(context, at) {
   }
 }
 
+/** Applies every selected trait that triggers from the newly invoked legend. */
 export function applyLegendInvocationTraits(context, swapSkill) {
   const at = context.effectiveEnd;
   const legendId = invokedLegend(context.state.profession);

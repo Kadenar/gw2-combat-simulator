@@ -1,3 +1,11 @@
+/**
+ * Revenant Energy and endurance lifecycle.
+ *
+ * The scheduler calls advanceRevenantEnergy whenever its clock advances and
+ * spendRevenantEnergy at cast start. This module applies passive regeneration,
+ * aggregate upkeep drain, exact starvation timing, out-of-combat Energy
+ * capping, endurance regeneration, and Conduit affinity from paid costs.
+ */
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
@@ -5,9 +13,7 @@ import {
 import { hasRevenantTrait } from "../../state.js";
 import { gainConduitAffinity } from "./conduit.js";
 import { emitRevenantState } from "./shared.js";
-import {
-  REVENANT_HANDLER_MECHANICS as MECHANICS,
-} from "../handler-mechanics.js";
+import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 
 function syncRevenantCombatState(context, state) {
   const sharedAt = context.schedulerPolicy.combatBeganAt?.();
@@ -17,8 +23,8 @@ function syncRevenantCombatState(context, state) {
 }
 
 function regenerateRevenantEnergy(context, state, from, target, rate) {
-  const combatActive = context.schedulerPolicy.isCombatActive?.()
-    ?? state.combatBeganAt != null;
+  const combatActive =
+    context.schedulerPolicy.isCombatActive?.() ?? state.combatBeganAt != null;
   const maximum = combatActive
     ? state.maximumEnergy
     : Math.max(50, state.energy);
@@ -27,6 +33,10 @@ function regenerateRevenantEnergy(context, state, from, target, rate) {
   return Math.min(maximum, state.energy + (target - from) * rate);
 }
 
+/**
+ * Advances Energy, endurance, upkeep drain, starvation, and timed Conduit
+ * state to the scheduler's target timestamp.
+ */
 export function advanceRevenantEnergy(context, target) {
   const state = context.state.profession;
   syncRevenantCombatState(context, state);
@@ -35,9 +45,8 @@ export function advanceRevenantEnergy(context, target) {
   if (target > enduranceFrom) {
     state.endurance = Math.min(
       state.maximumEndurance,
-      state.endurance
-        + (target - enduranceFrom)
-          * MECHANICS.endurance.regenerationPerSecond,
+      state.endurance +
+        (target - enduranceFrom) * MECHANICS.endurance.regenerationPerSecond,
     );
     state.enduranceUpdatedAt = target;
   }
@@ -57,10 +66,7 @@ export function advanceRevenantEnergy(context, target) {
     state.energy = 0;
     for (const active of state.activeUpkeeps) {
       const skill = context.catalog.skillsById.get(active.skillId);
-      const cooldown = Math.max(
-        0,
-        Number(skill?.starvationCooldown || 0),
-      );
+      const cooldown = Math.max(0, Number(skill?.starvationCooldown || 0));
       if (cooldown > 0) {
         context.state.cooldowns.set(active.skillId, starvedAt + cooldown);
       }
@@ -81,26 +87,28 @@ export function advanceRevenantEnergy(context, target) {
     emitRevenantState(context, target, "energy");
     return;
   }
-  state.energy = rate > 0
-    ? regenerateRevenantEnergy(context, state, from, target, rate)
-    : Math.max(
-        0,
-        Math.min(state.maximumEnergy, state.energy + elapsed * rate),
-      );
+  state.energy =
+    rate > 0
+      ? regenerateRevenantEnergy(context, state, from, target, rate)
+      : Math.max(
+          0,
+          Math.min(state.maximumEnergy, state.energy + elapsed * rate),
+        );
   state.energyUpdatedAt = target;
   emitRevenantState(context, target, "energy");
 }
 
+/** Pays a cast's Energy cost and applies affinity gained from that payment. */
 export function spendRevenantEnergy(context, skill) {
   if ([ID.SWAP_LEGENDS, ID.DODGE].includes(skill.id)) return;
   const state = context.state.profession;
-  const active = state.activeUpkeeps.some(upkeep =>
-    upkeep.skillId === skill.id);
-  if (active) return;
-  const beguilingFollowUp = (
-    skill.handlerId === "revenant.beguiling-haze"
-    && Number(state.beguilingHazeCharges || 0) > 0
+  const active = state.activeUpkeeps.some(
+    (upkeep) => upkeep.skillId === skill.id,
   );
+  if (active) return;
+  const beguilingFollowUp =
+    skill.handlerId === "revenant.beguiling-haze" &&
+    Number(state.beguilingHazeCharges || 0) > 0;
   const cost = beguilingFollowUp ? 0 : Number(skill.energyCost || 0);
   state.energy = Math.max(0, state.energy - cost);
   if (context.config.specialization === "Conduit" && cost > 0) {
@@ -113,8 +121,8 @@ export function spendRevenantEnergy(context, skill) {
         "enigmatic-connection",
       );
     } else if (
-      skill.type === "Weapon"
-      && hasRevenantTrait(context.config, TRAIT.CONDUCTIVE_ARMAMENTS)
+      skill.type === "Weapon" &&
+      hasRevenantTrait(context.config, TRAIT.CONDUCTIVE_ARMAMENTS)
     ) {
       gainConduitAffinity(
         context,

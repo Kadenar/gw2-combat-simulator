@@ -7,9 +7,7 @@ import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
 } from "../data/ids.js";
-import {
-  REVENANT_HANDLER_MECHANICS as MECHANICS,
-} from "./handler-mechanics.js";
+import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "./handler-mechanics.js";
 
 const CHAIN_BY_ID = new Map();
 for (const chain of REVENANT_AUTOATTACK_CHAINS) {
@@ -70,20 +68,14 @@ function deny(skill, code, cause, retryAt = null) {
 export function revenantCastAvailability(context, skill) {
   const state = context.state.profession;
   const specialization = String(context.config.specialization || "Core");
-  if (
-    skill.id === ID.TRUE_STRIKE
-    && !state.availableFlips[ID.TRUE_STRIKE]
-  ) {
+  if (skill.id === ID.TRUE_STRIKE && !state.availableFlips[ID.TRUE_STRIKE]) {
     return deny(
       skill,
       "revenant.imperial-guard-inactive",
       "channel Imperial Guard first.",
     );
   }
-  if (
-    skill.id === ID.IMPERIAL_GUARD
-    && state.availableFlips[ID.TRUE_STRIKE]
-  ) {
+  if (skill.id === ID.IMPERIAL_GUARD && state.availableFlips[ID.TRUE_STRIKE]) {
     return deny(
       skill,
       "revenant.true-strike-ready",
@@ -91,9 +83,9 @@ export function revenantCastAvailability(context, skill) {
     );
   }
   if (
-    skill.handlerId === "revenant.beguiling-haze"
-    && Number(state.beguilingHazeCharges || 0) <= 0
-    && context.start < Number(state.beguilingHazeReadyAt || 0)
+    skill.handlerId === "revenant.beguiling-haze" &&
+    Number(state.beguilingHazeCharges || 0) <= 0 &&
+    context.start < Number(state.beguilingHazeReadyAt || 0)
   ) {
     return deny(
       skill,
@@ -104,9 +96,9 @@ export function revenantCastAvailability(context, skill) {
   }
   if (skill.id === -4) {
     if (
-      state.selectedLegendIds.length !== 2
-      || state.selectedLegendIds.some(
-        legendId => !isLegalRevenantLegendId(legendId, specialization),
+      state.selectedLegendIds.length !== 2 ||
+      state.selectedLegendIds.some(
+        (legendId) => !isLegalRevenantLegendId(legendId, specialization),
       )
     ) {
       return deny(skill, "revenant.legend-pair", "select two legal legends.");
@@ -122,9 +114,10 @@ export function revenantCastAvailability(context, skill) {
     return { ready: true };
   }
   if (skill.id === -5) {
-    const cost = specialization === "Vindicator"
-      ? MECHANICS.endurance.vindicatorDodgeCost
-      : MECHANICS.endurance.dodgeCost;
+    const cost =
+      specialization === "Vindicator"
+        ? MECHANICS.endurance.vindicatorDodgeCost
+        : MECHANICS.endurance.dodgeCost;
     return state.endurance >= cost
       ? { ready: true }
       : deny(
@@ -150,15 +143,11 @@ export function revenantCastAvailability(context, skill) {
   }
   if (RELEASE_POTENTIAL_IDS.has(skill.id)) {
     if (specialization !== "Conduit") {
-      return deny(
-        skill,
-        "revenant.wrong-specialization",
-        "requires Conduit.",
-      );
+      return deny(skill, "revenant.wrong-specialization", "requires Conduit.");
     }
     if (
-      REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[state.activeLegendId]
-        !== skill.id
+      REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[state.activeLegendId] !==
+      skill.id
     ) {
       return deny(
         skill,
@@ -207,9 +196,9 @@ export function revenantCastAvailability(context, skill) {
     );
   }
   if (
-    skill.handlerId === "revenant.upkeep"
-    && !skill.facet
-    && state.activeUpkeeps.some(upkeep => upkeep.skillId === skill.id)
+    skill.handlerId === "revenant.upkeep" &&
+    !skill.facet &&
+    state.activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id)
   ) {
     return deny(
       skill,
@@ -230,13 +219,11 @@ export function revenantCastAvailability(context, skill) {
   const upkeepActive = state.activeUpkeeps.some(
     (upkeep) => upkeep.skillId === skill.id,
   );
-  const beguilingFollowUp = (
-    skill.handlerId === "revenant.beguiling-haze"
-    && Number(state.beguilingHazeCharges || 0) > 0
-  );
-  const cost = upkeepActive || beguilingFollowUp
-    ? 0
-    : Number(skill.energyCost || 0);
+  const beguilingFollowUp =
+    skill.handlerId === "revenant.beguiling-haze" &&
+    Number(state.beguilingHazeCharges || 0) > 0;
+  const cost =
+    upkeepActive || beguilingFollowUp ? 0 : Number(skill.energyCost || 0);
   if (state.energy + context.epsilon < cost) {
     return deny(
       skill,

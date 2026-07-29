@@ -1,14 +1,15 @@
+/**
+ * Revenant upkeep, facet, and pulse state machines.
+ *
+ * Toggles and releases upkeep skills, manages facet consume flips, materializes
+ * dynamic replacement casts, and handles the recurring revenant.upkeep-pulse
+ * task. Pulse profiles come from handler-mechanics.js; active instances and
+ * their next allied/affinity proc times live in profession state.
+ */
 import { emitRevenantState } from "./shared.js";
-import {
-  gw2AlliedPlayerAssumptions,
-} from "../../../../platform/gw2/allied-players.js";
-import {
-  emitRevenantBoon,
-  gainConduitAffinity,
-} from "./conduit.js";
-import {
-  REVENANT_HANDLER_MECHANICS as MECHANICS,
-} from "../handler-mechanics.js";
+import { gw2AlliedPlayerAssumptions } from "../../../../platform/gw2/allied-players.js";
+import { emitRevenantBoon, gainConduitAffinity } from "./conduit.js";
+import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
 
 function emitDamage(context, skill, at, coefficient, options = {}) {
@@ -32,14 +33,7 @@ function emitDamage(context, skill, at, coefficient, options = {}) {
   });
 }
 
-function emitCondition(
-  context,
-  skill,
-  at,
-  condition,
-  stacks,
-  duration,
-) {
+function emitCondition(context, skill, at, condition, stacks, duration) {
   context.emit({
     type: "condition",
     at,
@@ -64,11 +58,13 @@ function upkeepPulseInterval(skill) {
   return profile.defaultPulseInterval;
 }
 
+/** Toggles an upkeep instance and schedules/cancels its recurring pulse task. */
 export function toggleRevenantUpkeep(context, skill) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
-  const index = state.activeUpkeeps.findIndex(upkeep =>
-    upkeep.skillId === skill.id);
+  const index = state.activeUpkeeps.findIndex(
+    (upkeep) => upkeep.skillId === skill.id,
+  );
   if (index >= 0) {
     state.activeUpkeeps.splice(index, 1);
     const consumeId = MECHANICS.upkeep.facetConsumeBySkillId[skill.id];
@@ -96,9 +92,10 @@ export function toggleRevenantUpkeep(context, skill) {
   const consumeId = MECHANICS.upkeep.facetConsumeBySkillId[skill.id];
   const consume = context.catalog.skillsById.get(consumeId);
   if (consume) state.availableFlips[consume.id] = true;
-  const release = skill.flipSkillId == null
-    ? null
-    : context.catalog.skillsById.get(skill.flipSkillId);
+  const release =
+    skill.flipSkillId == null
+      ? null
+      : context.catalog.skillsById.get(skill.flipSkillId);
   if (release) state.availableFlips[release.id] = true;
   context.tasks.schedule({
     type: "revenant.upkeep-pulse",
@@ -109,15 +106,18 @@ export function toggleRevenantUpkeep(context, skill) {
   emitRevenantState(context, at, "upkeep-enabled");
 }
 
+/** Releases an upkeep parent and applies its manual-release cooldown. */
 export function releaseRevenantUpkeep(context, skill) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
-  const parent = skill.flipParentId == null
-    ? null
-    : context.catalog.skillsById.get(skill.flipParentId);
+  const parent =
+    skill.flipParentId == null
+      ? null
+      : context.catalog.skillsById.get(skill.flipParentId);
   if (!parent) return;
-  state.activeUpkeeps = state.activeUpkeeps.filter(upkeep =>
-    upkeep.skillId !== parent.id);
+  state.activeUpkeeps = state.activeUpkeeps.filter(
+    (upkeep) => upkeep.skillId !== parent.id,
+  );
   delete state.availableFlips[skill.id];
   context.tasks.cancelOwner(`revenant.upkeep:${parent.id}`);
   const cooldown = Math.max(0, Number(parent.manualReleaseCooldown || 0));
@@ -127,6 +127,7 @@ export function releaseRevenantUpkeep(context, skill) {
   emitRevenantState(context, at, "upkeep-released");
 }
 
+/** Emits Inspiring Reinforcement's dynamic strike, condition, and boon field. */
 export function castInspiringReinforcement(context, skill) {
   const profile = MECHANICS.upkeep.inspiringReinforcement;
   const at = context.effectiveEnd;
@@ -155,16 +156,15 @@ export function castInspiringReinforcement(context, skill) {
       profile.stabilityDuration,
       profile.stabilityStacks,
       {
-      at:
-        at + profile.firstPulseDelay + index * profile.pulseInterval,
-      name: `Inspiring Reinforcement — Stability ${index + 1}`,
-      extendsResolutionHorizon:
-        index === profile.pulses - 1,
+        at: at + profile.firstPulseDelay + index * profile.pulseInterval,
+        name: `Inspiring Reinforcement — Stability ${index + 1}`,
+        extendsResolutionHorizon: index === profile.pulses - 1,
       },
     );
   }
 }
 
+/** Emits Elemental Blast's ordered damage/condition pulse sequence. */
 export function castElementalBlast(context, skill) {
   const profile = MECHANICS.upkeep.elementalBlast;
   const firstAt = context.effectiveEnd;
@@ -182,60 +182,25 @@ export function castElementalBlast(context, skill) {
   }
 }
 
+/** Removes the active facet and consumes its temporary flip. */
 export function consumeRevenantFacet(context, skill) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
   const facetId = MECHANICS.upkeep.facetSkillByConsumeId[skill.id];
   const facet = context.catalog.skillsById.get(facetId);
-  state.activeUpkeeps = state.activeUpkeeps.filter(upkeep =>
-    upkeep.skillId !== facet?.id);
+  state.activeUpkeeps = state.activeUpkeeps.filter(
+    (upkeep) => upkeep.skillId !== facet?.id,
+  );
   delete state.availableFlips[skill.id];
   if (facet) context.tasks.cancelOwner(`revenant.upkeep:${facet.id}`);
   emitRevenantState(context, at, "facet-consumed");
 }
 
-function emitUpkeepEffects(context, skill, at) {
-  for (const effect of skill.upkeepEffects || []) {
-    if (effect.type === "strike") {
-      const hits = Math.max(1, Number(effect.hits || 1));
-      for (let index = 0; index < hits; index += 1) {
-        context.emit({
-          type: "damage",
-          at,
-          source: "revenant",
-          sourceId: skill.id,
-          actorType: effect.actorType || "player",
-          skillId: skill.id,
-          skillName: skill.name,
-          name: effect.name || skill.name,
-          coefficient: Number(effect.coefficient || 0) / hits,
-          hits: 1,
-          hitIndex: index + 1,
-          totalHits: hits,
-          skillWeapon: "Unequipped",
-        });
-      }
-    } else if (effect.type === "condition") {
-      context.emit({
-        type: "condition",
-        at,
-        source: "revenant",
-        sourceId: skill.id,
-        actorType: effect.actorType || "player",
-        skillId: skill.id,
-        skillName: skill.name,
-        name: `${skill.name} — ${effect.condition}`,
-        condition: effect.condition,
-        stacks: effect.stacks,
-        duration: effect.duration,
-      });
-    }
-  }
-}
-
+/** Resolves one recurring upkeep pulse and schedules the next occurrence. */
 export function handleRevenantUpkeepPulse(context, task) {
-  const active = context.state.profession.activeUpkeeps.find(upkeep =>
-    upkeep.skillId === task.payload.skillId);
+  const active = context.state.profession.activeUpkeeps.find(
+    (upkeep) => upkeep.skillId === task.payload.skillId,
+  );
   if (!active) return;
   const skill = context.catalog.skillsById.get(task.payload.skillId);
   if (skill?.id === ID.EMBRACE_THE_DARKNESS) {
@@ -262,14 +227,14 @@ export function handleRevenantUpkeepPulse(context, task) {
       });
     }
   } else if (skill?.facet) {
-    for (const effect of skill.upkeepEffects || []) {
-      if (effect.type !== "boon") continue;
+    const pulse = MECHANICS.upkeep.facetPulseBySkillId[skill.id];
+    if (pulse) {
       emitRevenantBoon(
         context,
         skill,
-        effect.boon,
-        effect.duration,
-        effect.stacks,
+        pulse.kind,
+        pulse.duration,
+        pulse.stacks,
         { at: task.at },
       );
     }
@@ -277,8 +242,8 @@ export function handleRevenantUpkeepPulse(context, task) {
     const profile = MECHANICS.soulcleave;
     const allies = gw2AlliedPlayerAssumptions(context.config);
     if (
-      active.nextAlliedProcAt != null
-      && task.at + context.epsilon >= active.nextAlliedProcAt
+      active.nextAlliedProcAt != null &&
+      task.at + context.epsilon >= active.nextAlliedProcAt
     ) {
       for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
         emitDamage(context, skill, task.at, profile.coefficient, {
@@ -312,9 +277,9 @@ export function handleRevenantUpkeepPulse(context, task) {
     }
   }
   if (
-    context.config.specialization === "Conduit"
-    && active.nextAffinityAt != null
-    && task.at + context.epsilon >= active.nextAffinityAt
+    context.config.specialization === "Conduit" &&
+    active.nextAffinityAt != null &&
+    task.at + context.epsilon >= active.nextAffinityAt
   ) {
     const profile = MECHANICS.upkeep.enigmaticUpkeep;
     gainConduitAffinity(context, profile.affinity, "enigmatic-upkeep");
@@ -327,3 +292,12 @@ export function handleRevenantUpkeepPulse(context, task) {
     payload: task.payload,
   });
 }
+
+/** Raw upkeep/facet callbacks consumed by the central handler registry. */
+export const revenantUpkeepSkillHandlers = Object.freeze({
+  "revenant.upkeep": toggleRevenantUpkeep,
+  "revenant.upkeep-release": releaseRevenantUpkeep,
+  "revenant.inspiring-reinforcement": castInspiringReinforcement,
+  "revenant.elemental-blast": castElementalBlast,
+  "revenant.facet-consume": consumeRevenantFacet,
+});

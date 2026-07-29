@@ -3,9 +3,7 @@ import {
   advanceRevenantEnergy,
   spendRevenantEnergy,
 } from "./specific/energy.js";
-import {
-  handleRevenantUpkeepPulse,
-} from "./specific/upkeep.js";
+import { handleRevenantUpkeepPulse } from "./specific/upkeep.js";
 import {
   beginRevenantWeaponCast,
   completeRevenantWeaponCast,
@@ -55,7 +53,7 @@ export const revenantSchedulerHooks = Object.freeze({
   onCastStart,
   onCastComplete,
   afterCast,
-  onCooldownReset: context => {
+  onCooldownReset: (context) => {
     context.state.profession.legendSwapReadyAt = context.state.time;
     context.state.profession.beguilingHazeReadyAt = context.state.time;
   },
