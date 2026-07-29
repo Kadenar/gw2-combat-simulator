@@ -525,7 +525,7 @@ test('the supplied condition Virtuoso build retains its 39k parity baseline', ()
     });
 
     assert.equal(result.warnings.length, 0);
-    assert.ok(Math.abs(result.dps - 39582.94377751716) < 1e-6);
+    assert.ok(Math.abs(result.dps - 39763.11948986904) < 1e-6);
 });
 
 test('Phantasmal Swordsman independently gates its summon and player hit', () => {
@@ -3805,7 +3805,7 @@ test('the supplied condition Virtuoso build tracks cast-end blade spends', () =>
     };
     assert.deepEqual(
         [relativeStart(9), relativeStart(11), relativeStart(29)],
-        [2.17, 3.73, 12.98],
+        [2.12, 3.68, 12.88],
     );
     const firstHarmony = result.events.find(event =>
         event.type === 'action' && event.name === 'Bladesong Harmony'

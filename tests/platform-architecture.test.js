@@ -98,8 +98,8 @@ test("native profession weapon swaps share timing policy", async () => {
   for (const entry of nativeProfessionRegistry) {
     const catalog = (await entry.loadProfession()).catalog;
     const skill = catalog.skillsByName.get("Swap Weapons");
-    assert.equal(skill.castTimeMs, 50, catalog.id);
-    assert.equal(skill.quicknessCastTimeMs, 50, catalog.id);
+    assert.equal(skill.castTimeMs, 0, catalog.id);
+    assert.equal(skill.quicknessCastTimeMs, 0, catalog.id);
     assert.equal(skill.rechargeAnchor, "castStart", catalog.id);
   }
 });

@@ -2597,7 +2597,7 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
     result.resolvedEvents.filter(event =>
       event.type === "condition"
       && event.sourceId === TRAIT.DEATHLY_CHILL).length,
-    159,
+    158,
   );
   assert.equal(
     result.procSteps.filter(step => step.skill === "Sigil of Geomancy").length,

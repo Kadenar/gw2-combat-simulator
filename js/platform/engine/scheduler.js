@@ -34,6 +34,24 @@ function effectAt(start, fullEnd, effect) {
   return fullEnd;
 }
 
+function cancelledBeforeInterruptCommit(
+  context,
+  skill,
+  start,
+  fullEnd,
+  effectiveEnd,
+) {
+  if (
+    skill.interruptCommitMs == null
+    || effectiveEnd >= fullEnd - context.epsilon
+  ) return false;
+  const elapsedMs = (effectiveEnd - start) * 1000;
+  return (
+    elapsedMs + context.epsilon * 1000
+    < Number(skill.interruptCommitMs)
+  );
+}
+
 /**
  * Expands declarative skill effects into canonical scheduled events. This is
  * only used when a profession hook does not fully handle the cast itself.
@@ -44,6 +62,7 @@ function scheduleDeclarativeEffects(
   start,
   fullEnd,
   effectiveEnd,
+  cancelledBeforeCommit,
   observeEffect = () => {},
 ) {
   const interrupted = effectiveEnd < fullEnd - context.epsilon;
@@ -65,7 +84,11 @@ function scheduleDeclarativeEffects(
       ) ?? effect;
     const firstAt = effectAt(start, fullEnd, timing);
     const cancelPendingEffects =
-      interrupted && effect.persistsAfterInterrupt !== true;
+      interrupted
+      && (
+        cancelledBeforeCommit
+        || effect.persistsAfterInterrupt !== true
+      );
     // An interrupt only suppresses effects that have not fired yet. Earlier
     // ticks remain in the stream even when the full cast never completes.
     // A committed channel can explicitly keep its remaining packets.
@@ -767,6 +790,13 @@ export function createScheduler({
       interruptAfterMs == null
         ? fullEnd
         : Math.min(fullEnd, start + Number(interruptAfterMs) / 1000);
+    const cancelledBeforeCommit = cancelledBeforeInterruptCommit(
+      context,
+      skill,
+      start,
+      fullEnd,
+      effectiveEnd,
+    );
     const rechargeDuration = rechargeDurationFor(skill, effectiveEnd, {
       ...castContext,
       fullEnd,
@@ -845,6 +875,7 @@ export function createScheduler({
       fullEndsAt: fullEnd,
       rechargeReadyAt,
       interrupted: effectiveEnd < fullEnd - epsilon,
+      ...(cancelledBeforeCommit ? { cancelled: true } : {}),
     });
     reservation.action = action;
     const lifecycleContext = {
@@ -877,6 +908,7 @@ export function createScheduler({
         start,
         fullEnd,
         effectiveEnd,
+        cancelledBeforeCommit,
         (event, effect, effectIndex) =>
           handler?.afterEffect?.(lifecycleContext, skill, event, handlerState, {
             effect,

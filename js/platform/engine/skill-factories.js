@@ -32,6 +32,8 @@
  * @property {number} [ammoRecharge] Per-charge recharge duration in seconds.
  * @property {number} [defaultInterruptMs] Default interruption point in
  * milliseconds.
+ * @property {number} [interruptCommitMs] Minimum interrupted-cast duration
+ * required for persistent effects to resolve.
  * @property {readonly object[]} [effects] Declarative effects created by
  * `effect-factories.js`. An empty array is valid for handler-only skills.
  * @property {string} [handlerId] Id of a handler registered in the canonical

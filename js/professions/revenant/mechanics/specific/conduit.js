@@ -31,6 +31,7 @@ function activeComboField(context, type, at) {
   return context.events.some(event => {
     if (
       event.type !== "action" ||
+      event.cancelled === true ||
       Number(event.endsAt) > at + context.epsilon
     ) return false;
     const field = context.catalog.skillsById.get(event.skillId);

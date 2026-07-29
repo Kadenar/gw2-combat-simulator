@@ -293,11 +293,6 @@ export function initializeRevenantTraits(context) {
 /** Applies active trait/state cast-speed changes to a base duration. */
 export function modifyRevenantCastDuration(context, duration) {
   if (
-    context.skill?.id === ID.ABYSSAL_STRIKE &&
-    context.state.profession.abyssalStrikeSecondCast &&
-    context.hasBuff?.("quickness", context.start)
-  ) return 0.46;
-  if (
     context.skill?.handlerId === "revenant.band-together" &&
     isBandTogetherReady(context.state.profession, context.start)
   )
