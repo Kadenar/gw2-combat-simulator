@@ -19,7 +19,7 @@ import {
 } from "../js/professions/guardian/definition.js";
 import {
   calculateAttributes as calculateGuardianAttributes,
-} from "../js/professions/guardian/core/calc-attributes.js";
+} from "../js/professions/guardian/app/app-definition.js";
 import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,

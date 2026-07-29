@@ -94,8 +94,7 @@ const rules = [
     id: "thief.twin-fangs-critical-damage",
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: "add",
-    amount: context =>
-      Number(context.config?.playerHealthFraction ?? 1) >= 0.9 ? 0.14 : 0.07,
+    amount: 0.14,
     when: context => player(context) && hasTrait(context, TRAIT.TWIN_FANGS),
   },
   {

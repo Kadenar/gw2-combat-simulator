@@ -1,3 +1,6 @@
+// Engine-facing Thief contract. Keep browser persistence, rendering, and
+// build-to-simulation orchestration in app/app-definition.js.
+
 import { defineProfession } from "../../platform/engine/profession.js";
 import {
   createThiefBuildDefaults,
@@ -6,13 +9,8 @@ import {
 } from "./build.js";
 import { thiefAttributeRules } from "./attribute-rules.js";
 import { thiefCatalog } from "./catalog.js";
-import {
-  thiefCastRules,
-  thiefSchedulerHooks,
-} from "./mechanics/contract.js";
-import {
-  thiefResolverEventHandlers,
-} from "./resolver/event-handlers.js";
+import { thiefCastRules, thiefSchedulerHooks } from "./mechanics/contract.js";
+import { thiefResolverEventHandlers } from "./resolver/event-handlers.js";
 import {
   createThiefState,
   projectThiefEndState,
@@ -39,7 +37,7 @@ export const thiefProfession = defineProfession({
   castRules: thiefCastRules,
   schedulerHooks: {
     ...thiefSchedulerHooks,
-    snapshot: context => snapshotThiefState(context.state.profession),
+    snapshot: (context) => snapshotThiefState(context.state.profession),
   },
   resolverHooks: {
     eventHandlers: thiefResolverEventHandlers,

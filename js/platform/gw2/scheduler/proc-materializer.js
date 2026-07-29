@@ -63,6 +63,7 @@ export function createGw2TriggerMaterializer(
     profession: null,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
     combatActive: false,
+    combatBeganAt: null,
     criticalFactsRequired: hasCriticalSigils,
     boons: new Map(),
     conditionState: new Map(),
@@ -127,6 +128,12 @@ export function createGw2TriggerMaterializer(
   const beforeExplicitCombatStart = (context, event) =>
     context.hasExplicitCombatStart &&
     (context.combatStartTime == null || event.at < context.combatStartTime);
+  const activateCombat = (at) => {
+    if (!state.combatActive) {
+      state.combatBeganAt = Number(at);
+    }
+    state.combatActive = true;
+  };
   const markCombatActive = (context, event) => {
     // An explicit marker creates a hard pre-combat boundary. Without one, the
     // first player/summon combat event starts combat implicitly.
@@ -136,7 +143,7 @@ export function createGw2TriggerMaterializer(
       actorType === GW2_EVENT_ACTOR_TYPES.PLAYER ||
       actorType === GW2_EVENT_ACTOR_TYPES.SUMMON
     ) {
-      state.combatActive = true;
+      activateCombat(event.at);
     }
     return state.combatActive;
   };
@@ -282,7 +289,7 @@ export function createGw2TriggerMaterializer(
     // proc output is emitted as a derived event and re-enters observation later.
     switch (event.type) {
       case "combat_start":
-        state.combatActive = true;
+        activateCombat(event.at);
         break;
       case "buff":
         if (
@@ -342,8 +349,15 @@ export function createGw2TriggerMaterializer(
     onEventScheduled(context, event) {
       if (!OBSERVED_EVENT_TYPES.has(event.type)) return;
       const needsCriticalFacts = state.criticalFactsRequired;
+      const tracksCombat = [
+        "combat_start",
+        "damage",
+        "condition",
+        "control",
+        "blind",
+      ].includes(event.type);
       const relevant =
-        (event.type === "combat_start" && hasProcSigils) ||
+        tracksCombat ||
         (event.type === "buff" && needsCriticalFacts) ||
         (event.type === "damage" && (needsCriticalFacts || hasProcSigils)) ||
         (event.type === "condition" && (needsCriticalFacts || hasProcSigils)) ||
@@ -366,6 +380,12 @@ export function createGw2TriggerMaterializer(
     },
     critical(event) {
       return state.query.critical(event, event.at, state);
+    },
+    isCombatActive() {
+      return state.combatActive;
+    },
+    combatBeganAt() {
+      return state.combatBeganAt;
     },
     requireCriticalFacts() {
       // Professions can request critical-state tracking even when the build has

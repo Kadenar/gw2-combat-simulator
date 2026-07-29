@@ -1,7 +1,4 @@
-import {
-  criticalChance,
-  criticalDamageMultiplier,
-} from "./damage.js";
+import { criticalChance, criticalDamageMultiplier } from "./damage.js";
 import { gw2EventActorType } from "./event-ownership.js";
 import { relicConditionDurationBonus } from "./relic-rules.js";
 import {
@@ -22,9 +19,7 @@ import { createGw2TimelineIndex } from "./timeline-index.js";
 export function selectedGw2TraitValues(config = {}, catalog = {}) {
   const values = new Set([
     ...(Array.isArray(config.traitIds) ? config.traitIds : []),
-    ...(Array.isArray(config.selectedTraitIds)
-      ? config.selectedTraitIds
-      : []),
+    ...(Array.isArray(config.selectedTraitIds) ? config.selectedTraitIds : []),
     ...(Array.isArray(config.selectedTraits) ? config.selectedTraits : []),
   ]);
   const byId = new Map();
@@ -63,22 +58,18 @@ export function createGw2CombatQuery({
     ...config,
     stats: {
       ...config.stats,
-      power:
-        config.stats?.power ?? config.attributes?.power ?? 1000,
+      power: config.stats?.power ?? config.attributes?.power ?? 1000,
       precision:
         config.stats?.precision ?? config.attributes?.precision ?? 1000,
       toughness:
         config.stats?.toughness ?? config.attributes?.toughness ?? 1000,
-      vitality:
-        config.stats?.vitality ?? config.attributes?.vitality ?? 1000,
-      ferocity:
-        config.stats?.ferocity ?? config.attributes?.ferocity ?? 0,
+      vitality: config.stats?.vitality ?? config.attributes?.vitality ?? 1000,
+      ferocity: config.stats?.ferocity ?? config.attributes?.ferocity ?? 0,
       conditionDamage:
-        config.stats?.conditionDamage
-        ?? config.attributes?.conditionDamage
-        ?? 0,
-      expertise:
-        config.stats?.expertise ?? config.attributes?.expertise ?? 0,
+        config.stats?.conditionDamage ??
+        config.attributes?.conditionDamage ??
+        0,
+      expertise: config.stats?.expertise ?? config.attributes?.expertise ?? 0,
       concentration:
         config.stats?.concentration ?? config.attributes?.concentration ?? 0,
       healingPower:
@@ -94,12 +85,12 @@ export function createGw2CombatQuery({
       Math.min(
         maximum,
         (runtime.boons?.get(kind) || [])
-          .filter(application =>
-            application.at <= time
-            && application.expiresAt > time)
+          .filter(
+            (application) =>
+              application.at <= time && application.expiresAt > time,
+          )
           .reduce(
-            (sum, application) =>
-              sum + Number(application.stacks || 1),
+            (sum, application) => sum + Number(application.stacks || 1),
             0,
           ),
       ),
@@ -113,9 +104,7 @@ export function createGw2CombatQuery({
   const furyActiveAt = (time, runtime) => {
     if (config.boons?.fury) return true;
     const dynamic = runtimeBuffStacks(runtime, "fury", time, 1);
-    return dynamic == null
-      ? timeline.furyActiveAt(time)
-      : dynamic > 0;
+    return dynamic == null ? timeline.furyActiveAt(time) : dynamic > 0;
   };
   const vulnerabilityStacksAt = (time, runtime) => {
     const buffStacks = runtimeBuffStacks(
@@ -127,23 +116,15 @@ export function createGw2CombatQuery({
     if (buffStacks == null) {
       return Math.min(
         25,
-        timeline.vulnerabilityStacksAt(time)
-          + runtimeTargetConditionStacks(
-            runtime,
-            "Vulnerability",
-            time,
-          ),
+        timeline.vulnerabilityStacksAt(time) +
+          runtimeTargetConditionStacks(runtime, "Vulnerability", time),
       );
     }
     return Math.min(
       25,
-      permanentTargetConditionStacks(config, "Vulnerability")
-        + runtimeTargetConditionStacks(
-          runtime,
-          "Vulnerability",
-          time,
-        )
-        + buffStacks,
+      permanentTargetConditionStacks(config, "Vulnerability") +
+        runtimeTargetConditionStacks(runtime, "Vulnerability", time) +
+        buffStacks,
     );
   };
   const targetConditionStacksAt = (condition, time, runtime = null) => {
@@ -157,9 +138,10 @@ export function createGw2CombatQuery({
         time,
         25,
       );
-      const buffStacks = dynamic == null
-        ? timeline.timedStacks("target-vulnerability", time, 1, 25)
-        : dynamic;
+      const buffStacks =
+        dynamic == null
+          ? timeline.timedStacks("target-vulnerability", time, 1, 25)
+          : dynamic;
       return Math.min(25, permanent + runtimeStacks + buffStacks);
     }
     return permanent + runtimeStacks;
@@ -174,11 +156,7 @@ export function createGw2CombatQuery({
     gw2SigilSet(config, activeWeaponSetAt(time, runtime));
   const hookContext = (
     time,
-    {
-      event = null,
-      condition = null,
-      runtime = null,
-    } = {},
+    { event = null, condition = null, runtime = null } = {},
   ) => ({
     profession,
     config,
@@ -210,8 +188,7 @@ export function createGw2CombatQuery({
       let chance = criticalChance(stats.precision);
       chance += Number(config.stats?.criticalChanceBonus || 0) / 100;
       chance +=
-        Number(activeSigilSetAt(time, runtime).criticalChanceBonus || 0)
-        / 100;
+        Number(activeSigilSetAt(time, runtime).criticalChanceBonus || 0) / 100;
       if (furyActiveAt(time, runtime)) chance += 0.25;
       chance = profession.modifyCriticalChance(
         hookContext(time, { event, runtime }),
@@ -234,9 +211,9 @@ export function createGw2CombatQuery({
     },
     strikeMultiplier(event, time, runtime = null) {
       const base =
-        (1 + vulnerabilityStacksAt(time, runtime) / 100)
-        * Number(activeSigilSetAt(time, runtime).strike || 1)
-        * Number(config.modifiers?.strike || 1);
+        (1 + vulnerabilityStacksAt(time, runtime) / 100) *
+        Number(activeSigilSetAt(time, runtime).strike || 1) *
+        Number(config.modifiers?.strike || 1);
       return profession.modifyStrikeDamage(
         hookContext(time, { event, runtime }),
         base,
@@ -244,9 +221,9 @@ export function createGw2CombatQuery({
     },
     conditionMultiplier(name, time, event = null, runtime = null) {
       const base =
-        (1 + vulnerabilityStacksAt(time, runtime) / 100)
-        * Number(activeSigilSetAt(time, runtime).condition || 1)
-        * Number(config.modifiers?.condition || 1);
+        (1 + vulnerabilityStacksAt(time, runtime) / 100) *
+        Number(activeSigilSetAt(time, runtime).condition || 1) *
+        Number(config.modifiers?.condition || 1);
       return profession.modifyConditionDamage(
         hookContext(time, {
           event,
@@ -264,17 +241,15 @@ export function createGw2CombatQuery({
       runtime = null,
     ) {
       const sigils = activeSigilSetAt(time, runtime);
-      const sigilBonus = (
-        Number(sigils.conditionDurationBonus || 0)
-        + Number(sigils.conditionDurationBonuses?.[name] || 0)
-      ) / 100;
+      const sigilBonus =
+        (Number(sigils.conditionDurationBonus || 0) +
+          Number(sigils.conditionDurationBonuses?.[name] || 0)) /
+        100;
       const relicBonus =
-        relicConditionDurationBonus(runtime, time)
-        + (
-          config.relic === "Aristocracy"
-            ? timeline.aristocracyStacksAt(time) * 0.03
-            : 0
-        );
+        relicConditionDurationBonus(runtime, time) +
+        (config.relic === "Aristocracy"
+          ? timeline.aristocracyStacksAt(time) * 0.03
+          : 0);
       const base = gw2ConditionDurationMultiplier(
         name,
         stats,

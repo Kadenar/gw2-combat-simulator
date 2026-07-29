@@ -35,7 +35,7 @@ export function applyEngineerBuildAttributeRules(
     addAttribute(traitStats, "Power", attributes.Concentration.final * 0.1);
   }
   if (hasTrait("Thermal Vision")) {
-    traitDurations["Burning Duration"] = 20;
+    addAttribute(traitStats, "Expertise", 150);
   }
   if (selectedSkill(selectedSkills, "Force Signet")) {
     addAttribute(traitStats, "Power", 180);
@@ -50,4 +50,3 @@ export function applyEngineerBuildAttributeRules(
     traitDurations,
   });
 }
-

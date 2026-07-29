@@ -158,11 +158,11 @@ export function thiefCastAvailability(context, skill) {
     if (skill.malicious && specialization !== "Deadeye") {
       return deny(skill, "thief.malicious", "requires Deadeye.");
     }
-    if (!skill.malicious && specialization === "Deadeye" && state.markedTargetId) {
+    if (!skill.malicious && specialization === "Deadeye") {
       return deny(
         skill,
         "thief.malicious-replacement",
-        "the marked-target version replaces this stealth attack.",
+        "the malicious version replaces this stealth attack.",
       );
     }
   } else if (

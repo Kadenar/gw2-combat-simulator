@@ -15,12 +15,7 @@ const SUMMON_SOURCES = new Set([
   "Turret",
 ]);
 
-const EFFECT_SOURCES = new Set([
-  "Food",
-  "Relic",
-  "Sigil",
-  "Trait",
-]);
+const EFFECT_SOURCES = new Set(["Food", "Relic", "Sigil", "Trait"]);
 
 /**
  * Classifies legacy source labels while new events migrate to actorType.

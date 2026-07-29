@@ -1,3 +1,12 @@
+/**
+ * Elementalist persisted-build definition.
+ *
+ * This module owns the default Elementalist build, upgrades saved build data
+ * into the current shape, and validates its profession, weapons, and
+ * specialization lines. It describes configuration data consumed by the app;
+ * it does not calculate attributes or execute the simulation.
+ */
+
 export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 1;
 
 const DEFAULT_BUILD = Object.freeze({

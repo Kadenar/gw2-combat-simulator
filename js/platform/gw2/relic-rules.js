@@ -3,6 +3,7 @@
  */
 
 import { EPSILON } from "../engine/clock.js";
+import { enqueueOrdered } from "../engine/event-queue.js";
 import { isInternalCooldownReady } from "../engine/internal-cooldown.js";
 import { isGw2PlayerActorEvent } from "./event-ownership.js";
 
@@ -12,6 +13,7 @@ import { isGw2PlayerActorEvent } from "./event-ownership.js";
  * - Fireworks: +7% while active (6s after weapon cooldown ≥20).
  * - Claw: +7% while active (8s after control).
  * - Peitha: +10% while active (4s after Peitha event).
+ * - Brawler: +10% while active (4s after self-granted Protection/Resolution).
  * - Eagle: +10% when target > 50% health.
  * @param {Object} ctx - Resolver context
  * @param {Object} event - Damage event
@@ -29,13 +31,15 @@ export function relicStrikeMultiplier(ctx, event) {
     case "Claw":
     case "Peitha":
       if (relic.buffUntil <= at) return 1;
-      return config.relic === "Peitha" ? 1.10 : 1.07;
+      return config.relic === "Peitha" ? 1.1 : 1.07;
     case "Dragonhunter":
+      return relic.buffUntil > at ? 1.1 : 1;
+    case "Brawler":
       return relic.buffUntil > at ? 1.1 : 1;
     case "Eagle": {
       const targetHealth = Number(config.target?.health || 0);
-      return targetHealth > 0
-        && totals.strike + totals.condition >= targetHealth * 0.5
+      return targetHealth > 0 &&
+        totals.strike + totals.condition >= targetHealth * 0.5
         ? 1.1
         : 1;
     }
@@ -45,15 +49,40 @@ export function relicStrikeMultiplier(ctx, event) {
 }
 
 /**
+ * Activates Brawler when the player grants themselves Protection or Resolution.
+ * @param {Object} ctx - Resolver context
+ * @param {Object} event - Resolved buff application
+ */
+export function handleBoonRelics(ctx, event) {
+  const kind = String(event?.kind || "").toLowerCase();
+  if (
+    ctx.config.relic !== "Brawler" ||
+    (kind !== "protection" && kind !== "resolution") ||
+    !isGw2PlayerActorEvent(event) ||
+    !(Number(event.duration) > 0) ||
+    !(Number(event.stacks ?? 1) > 0) ||
+    !isInternalCooldownReady(event.at, ctx.relic.brawlerReadyAt)
+  ) return;
+
+  ctx.relic.brawlerReadyAt = event.at + 8;
+  ctx.relic.buffUntil = event.at + 4;
+  ctx.recordProc(
+    "relic",
+    "Relic of the Brawler",
+    event.at,
+    event.skillName,
+    "activated",
+  );
+}
+
+/**
  * Applies Mist Stranger siphon damage: 105 flat per player hit.
  * @param {Object} ctx - Resolver context
  * @param {Object} event - Damage event
  */
 export function applyMistStranger(ctx, event) {
-  if (
-    ctx.config.relic !== "Mist Stranger"
-    || !isGw2PlayerActorEvent(event)
-  ) return;
+  if (ctx.config.relic !== "Mist Stranger" || !isGw2PlayerActorEvent(event))
+    return;
   const siphon = 105 * Number(event.hits || 1);
   ctx.totals.strike += siphon;
   ctx.addBreakdown(
@@ -89,10 +118,10 @@ export function applyMistStranger(ctx, event) {
  */
 export function handleRelicsAfterHit(ctx, event, skill) {
   if (
-    ctx.config.relic === "Thief"
-    && isGw2PlayerActorEvent(event)
-    && skill?.type === "Weapon"
-    && (Number(skill.cooldown || 0) > 0 || skill.resource)
+    ctx.config.relic === "Thief" &&
+    isGw2PlayerActorEvent(event) &&
+    skill?.type === "Weapon" &&
+    (Number(skill.cooldown || 0) > 0 || skill.resource)
   ) {
     if (ctx.relic.thiefUntil <= event.at) ctx.relic.thiefStacks = 0;
     ctx.relic.thiefStacks = Math.min(5, ctx.relic.thiefStacks + 1);
@@ -106,10 +135,10 @@ export function handleRelicsAfterHit(ctx, event, skill) {
     );
   }
   if (
-    ctx.config.relic === "Fireworks"
-    && isGw2PlayerActorEvent(event)
-    && skill?.type === "Weapon"
-    && Number(skill?.cooldown || 0) >= 20
+    ctx.config.relic === "Fireworks" &&
+    isGw2PlayerActorEvent(event) &&
+    skill?.type === "Weapon" &&
+    Number(skill?.cooldown || 0) >= 20
   ) {
     const wasActive = ctx.relic.buffUntil > event.at;
     ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 6);
@@ -122,9 +151,9 @@ export function handleRelicsAfterHit(ctx, event, skill) {
     );
   }
   if (
-    ctx.config.relic === "Dragonhunter"
-    && isGw2PlayerActorEvent(event)
-    && skill?.categories?.includes("Trap")
+    ctx.config.relic === "Dragonhunter" &&
+    isGw2PlayerActorEvent(event) &&
+    skill?.categories?.includes("Trap")
   ) {
     const wasActive = ctx.relic.buffUntil > event.at;
     ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 5);
@@ -136,6 +165,49 @@ export function handleRelicsAfterHit(ctx, event, skill) {
       wasActive ? "refreshed" : "activated",
     );
   }
+}
+
+/**
+ * Tethers the target when the player applies Immobilized. The tether expires
+ * after five seconds and resolves as a single 3.0-coefficient strike.
+ * @param {Object} ctx - Resolver context
+ * @param {Object|null} application - Resolved condition application
+ */
+export function handleConditionRelics(ctx, application) {
+  if (
+    ctx.config.relic !== "Shackles" ||
+    application?.condition !== "Immobilized" ||
+    !isGw2PlayerActorEvent(application) ||
+    !isInternalCooldownReady(
+      application.at,
+      ctx.relic.shacklesReadyAt,
+    )
+  ) return;
+
+  ctx.relic.shacklesReadyAt = application.at + 10;
+  ctx.recordProc(
+    "relic",
+    "Relic of the Shackles",
+    application.at,
+    application.skillName,
+    "tethered",
+  );
+  enqueueOrdered(ctx.queue, {
+    type: "damage",
+    at: application.at + 5,
+    name: "Relic of the Shackles",
+    skillName: "Relic of the Shackles",
+    coefficient: 3,
+    hits: 1,
+    hitIndex: 1,
+    totalHits: 1,
+    source: "Relic",
+    sourceId: "relic.shackles",
+    actorType: "effect",
+    skillWeapon: "Unequipped",
+    canCrit: true,
+    triggeredBy: application.skillName,
+  });
 }
 
 /**
@@ -156,13 +228,15 @@ function maybeTriggerAkeem(
   { activeConditionStackCount, applyCondition },
 ) {
   if (
-    ctx.config.relic !== "Akeem"
-    || !isInternalCooldownReady(event.at, ctx.relic.akeemReadyAt)
-  ) return;
+    ctx.config.relic !== "Akeem" ||
+    !isInternalCooldownReady(event.at, ctx.relic.akeemReadyAt)
+  )
+    return;
   if (
-    activeConditionStackCount(ctx, "Confusion", event.at) < 5
-    && activeConditionStackCount(ctx, "Torment", event.at) < 5
-  ) return;
+    activeConditionStackCount(ctx, "Confusion", event.at) < 5 &&
+    activeConditionStackCount(ctx, "Torment", event.at) < 5
+  )
+    return;
 
   ctx.relic.akeemReadyAt = event.at + 10;
   ctx.recordProc("relic", "Relic of Akeem", event.at, event.skillName);
@@ -246,13 +320,12 @@ export function recordPassiveRelicTimeline(ctx, events, rotationEndTime) {
     let expiresAt = -Infinity;
     for (const event of events) {
       if (
-        event.type !== "weakness_vulnerability"
-        || (
-          ctx.combatStartTime != null
-          && event.at < ctx.combatStartTime - EPSILON
-        )
-        || !isInternalCooldownReady(event.at, readyAt)
-      ) continue;
+        event.type !== "weakness_vulnerability" ||
+        (ctx.combatStartTime != null &&
+          event.at < ctx.combatStartTime - EPSILON) ||
+        !isInternalCooldownReady(event.at, readyAt)
+      )
+        continue;
       if (event.at >= expiresAt - EPSILON) stacks = 0;
       stacks = Math.min(5, stacks + 1);
       expiresAt = event.at + 8;

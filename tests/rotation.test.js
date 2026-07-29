@@ -38,7 +38,7 @@ import { mesmerProfession } from '../js/professions/mesmer/definition.js';
 import {
     recalculate,
     simulationConfig,
-} from '../js/professions/mesmer/app/app-runtime.js';
+} from '../js/professions/mesmer/app/app-definition.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {
     assert.equal(
@@ -2155,6 +2155,7 @@ test('weapon swaps start new weapon-set rows in the rotation timeline', () => {
 
 test('shroud and forge transitions start a new row on the current weapon set', () => {
     for (const [enter, exit] of [
+        ['Swap Legends', 'Swap Legends'],
         ["Reaper's Shroud", "Exit Reaper's Shroud"],
         ['Harbinger Shroud', 'Exit Harbinger Shroud'],
         ['Enter Radiant Forge', 'Exit Radiant Forge'],

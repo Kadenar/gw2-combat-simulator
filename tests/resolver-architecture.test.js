@@ -725,7 +725,7 @@ test("Geomancy crosses Bloodsong after four canonical trait bleeds", () => {
   assert.equal(harmony.invalid, undefined);
 });
 
-test("critical-strike food procs resolve as unmodified flat damage", () => {
+test("critical-strike food procs remain unmodified without profession effects", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
     ["Flying Cutter", { name: "__wait", waitMs: 2000 }, "Flying Cutter"],
@@ -743,6 +743,27 @@ test("critical-strike food procs resolve as unmodified flat damage", () => {
 
   assert.equal(nourishment.length, 1);
   assert.equal(nourishment[0].damage, 325);
+  const withoutVulnerability = simulateMesmer(
+    ["Flying Cutter", { name: "__wait", waitMs: 2000 }, "Flying Cutter"],
+    defaultSimulationConfig({
+      food: "Cilantro Lime Sous-Vide Steak",
+      stats: {
+        ...defaults.stats,
+        precision: 3100,
+      },
+      target: {
+        ...defaults.target,
+        conditions: {
+          ...defaults.target.conditions,
+          Vulnerability: 0,
+        },
+      },
+    }),
+  ).resolvedEvents.filter(event =>
+    event.type === "damage" && event.skillName === "Nourishment"
+  );
+  assert.equal(withoutVulnerability.length, 1);
+  assert.equal(withoutVulnerability[0].damage, 325);
   const nourishmentProc = result.procSteps.find(proc =>
     proc.type === "food_proc" && proc.skill === "Nourishment"
   );

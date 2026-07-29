@@ -54,6 +54,18 @@ frame.addEventListener('load', async () => {
         app.build = createDefaultBuild(app.adapter);
         app.changed();
 
+        const professionResourceStack = document.querySelector(
+            '[data-role="profession-resource-stack"]',
+        );
+        assert(
+            professionResourceStack
+            && professionResourceStack.firstElementChild?.classList.contains('pal-group')
+            && professionResourceStack.lastElementChild?.classList.contains(
+                'active-resource-group',
+            ),
+            'profession resources are not displayed under profession skills',
+        );
+
         assert(
             !document.querySelector('#weapon-bar .wskill[title^="Phantom Razor"]'),
             'Dagger ambush is visible for a non-Mirage build',

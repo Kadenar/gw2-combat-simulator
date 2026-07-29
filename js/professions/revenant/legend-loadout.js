@@ -2,7 +2,13 @@ import {
   createFixedSlotLoadout,
 } from "../../app/profession-slot-loadout.js";
 import { revenantCatalog } from "./catalog.js";
-import { REVENANT_LEGEND_IDS as LEGEND } from "./data/ids.js";
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_SKILL_IDS as SKILL,
+} from "./data/ids.js";
+import {
+  REVENANT_LEGEND_SPECIALIZATIONS,
+} from "./legend-rules.js";
 
 function id(name, legendId, preferredId = null) {
   const matches = revenantCatalog.skills.filter(skill =>
@@ -14,10 +20,22 @@ function id(name, legendId, preferredId = null) {
   )?.id;
 }
 
+function icon(name) {
+  return revenantCatalog.skills.find(skill =>
+    skill.name === name && skill.icon)?.icon || "";
+}
+
+function compactLegendName(name) {
+  return String(name)
+    .replace(/^Legendary\s+/, "")
+    .replace(/\s+Stance$/, "");
+}
+
 export const REVENANT_LEGENDS = Object.freeze([
   {
     id: LEGEND.ASSASSIN,
     name: "Legendary Assassin Stance",
+    icon: icon("Legendary Assassin Stance"),
     skillIds: [
       id("Enchanted Daggers", LEGEND.ASSASSIN),
       id("Impossible Odds", LEGEND.ASSASSIN),
@@ -29,6 +47,7 @@ export const REVENANT_LEGENDS = Object.freeze([
   {
     id: LEGEND.DEMON,
     name: "Legendary Demon Stance",
+    icon: icon("Legendary Demon Stance"),
     skillIds: [
       id("Empowering Misery", LEGEND.DEMON, 28219),
       id("Pain Absorption", LEGEND.DEMON, 27322),
@@ -40,6 +59,7 @@ export const REVENANT_LEGENDS = Object.freeze([
   {
     id: LEGEND.DWARF,
     name: "Legendary Dwarf Stance",
+    icon: icon("Legendary Dwarf Stance"),
     skillIds: [
       id("Soothing Stone", LEGEND.DWARF, 27372),
       id("Inspiring Reinforcement", LEGEND.DWARF),
@@ -51,6 +71,7 @@ export const REVENANT_LEGENDS = Object.freeze([
   {
     id: LEGEND.CENTAUR,
     name: "Legendary Centaur Stance",
+    icon: icon("Legendary Centaur Stance"),
     skillIds: [
       id("Project Tranquility", LEGEND.CENTAUR, 29148),
       id("Natural Harmony", LEGEND.CENTAUR, 27025),
@@ -62,7 +83,8 @@ export const REVENANT_LEGENDS = Object.freeze([
   {
     id: LEGEND.DRAGON,
     name: "Legendary Dragon Stance",
-    specialization: "Herald",
+    icon: icon("Legendary Dragon Stance"),
+    specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.DRAGON],
     skillIds: [
       id("Facet of Light", LEGEND.DRAGON),
       id("Facet of Strength", LEGEND.DRAGON),
@@ -74,7 +96,8 @@ export const REVENANT_LEGENDS = Object.freeze([
   {
     id: LEGEND.RENEGADE,
     name: "Legendary Renegade Stance",
-    specialization: "Renegade",
+    icon: icon("Legendary Renegade Stance"),
+    specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.RENEGADE],
     skillIds: [
       id("Breakrazor's Bastion", LEGEND.RENEGADE, 45686),
       id("Razorclaw's Rage", LEGEND.RENEGADE, 42949),
@@ -86,7 +109,8 @@ export const REVENANT_LEGENDS = Object.freeze([
   {
     id: LEGEND.ALLIANCE,
     name: "Legendary Alliance Stance",
-    specialization: "Vindicator",
+    icon: icon("Legendary Alliance Stance"),
+    specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.ALLIANCE],
     skillIds: [
       id("Selfish Spirit", LEGEND.ALLIANCE),
       id("Nomad's Advance", LEGEND.ALLIANCE),
@@ -98,7 +122,8 @@ export const REVENANT_LEGENDS = Object.freeze([
   {
     id: LEGEND.ENTITY,
     name: "Legendary Entity Stance",
-    specialization: "Conduit",
+    icon: icon("Legendary Entity Stance"),
+    specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.ENTITY],
     skillIds: [
       id("Shielding Hands", LEGEND.ENTITY),
       id("Beguiling Haze", LEGEND.ENTITY, 77141),
@@ -109,21 +134,43 @@ export const REVENANT_LEGENDS = Object.freeze([
   },
 ].map(entry => Object.freeze({
   ...entry,
+  compactName: compactLegendName(entry.name),
   skillIds: Object.freeze(entry.skillIds.filter(Number.isFinite)),
 })));
 
-export const revenantLegendLoadout = createFixedSlotLoadout({
+const baseRevenantLegendLoadout = createFixedSlotLoadout({
   id: "revenant-legends",
   label: "Legends",
   entryLabel: "Legend",
   selectionKey: "selectedLegends",
   startingKey: "startingLegend",
   selectionCount: 2,
+  selectionControl: "icons",
+  includeStartingSelector: false,
+  formatActiveBar: false,
   entries: REVENANT_LEGENDS,
   defaults: [LEGEND.ASSASSIN, LEGEND.DEMON],
+});
+
+export const revenantLegendLoadout = Object.freeze({
+  ...baseRevenantLegendLoadout,
+  paletteGroups(context = {}) {
+    const availableFlips =
+      context.professionState?.availableFlips
+      || context.state?.profession?.availableFlips
+      || {};
+    return baseRevenantLegendLoadout.paletteGroups(context).map(group => ({
+      ...group,
+      skillIds: group.skillIds.flatMap(skillId => (
+        skillId === SKILL.IMPOSSIBLE_ODDS
+        && availableFlips[SKILL.RELINQUISH_POWER]
+          ? [skillId, SKILL.RELINQUISH_POWER]
+          : [skillId]
+      )),
+    }));
+  },
 });
 
 export function revenantLegend(legendId) {
   return REVENANT_LEGENDS.find(legend => legend.id === legendId) || null;
 }
-

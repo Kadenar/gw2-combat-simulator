@@ -119,6 +119,14 @@ export function createGw2SchedulerPolicy(
       return materializer.critical(event);
     },
 
+    isCombatActive() {
+      return materializer.isCombatActive();
+    },
+
+    combatBeganAt() {
+      return materializer.combatBeganAt();
+    },
+
     requireCriticalFacts() {
       materializer.requireCriticalFacts();
     },

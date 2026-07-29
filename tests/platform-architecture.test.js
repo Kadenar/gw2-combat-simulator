@@ -43,6 +43,9 @@ import {
   WEAPON_DATA,
 } from "../js/platform/gw2/gear-data.js";
 import {
+  GW2_SKILL_FLAGS,
+} from "../scripts/lib/gw2-profession-snapshot.mjs";
+import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
   validateMesmerBuild,
@@ -1499,6 +1502,139 @@ test("shared relic behavior resolves triggering skills by stable id", () => {
   );
 });
 
+test("Relic of the Brawler grants four seconds of strike damage with a strict eight-second ICD", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930006,
+        name: "Grant Protection",
+        type: "Utility",
+        castTimeMs: 0,
+        effects: [boon("Protection", 2)],
+      },
+      {
+        id: 930007,
+        name: "Grant Resolution",
+        type: "Utility",
+        castTimeMs: 0,
+        effects: [boon("Resolution", 2)],
+      },
+      {
+        id: 930008,
+        name: "Brawler Fixture Strike",
+        type: "Weapon",
+        castTimeMs: 0,
+        effects: [strike(1)],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "brawler-fixture",
+    name: "Brawler Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Grant Protection",
+      { type: "wait", durationMs: 1000 },
+      "Brawler Fixture Strike",
+      { type: "wait", durationMs: 3001 },
+      "Brawler Fixture Strike",
+      { type: "wait", durationMs: 3999 },
+      "Grant Resolution",
+      { type: "wait", durationMs: 1 },
+      "Brawler Fixture Strike",
+      { type: "wait", durationMs: 1 },
+      "Grant Protection",
+      { type: "wait", durationMs: 1 },
+      "Brawler Fixture Strike",
+    ],
+    config: { relic: "Brawler" },
+  });
+  const procs = result.procSteps.filter(
+    step => step.skill === "Relic of the Brawler",
+  );
+  const strikes = result.resolvedEvents.filter(
+    event => event.skillName === "Brawler Fixture Strike",
+  );
+
+  assert.deepEqual(procs.map(step => step.start), [0, 8002]);
+  assert.deepEqual(
+    procs.map(step => step.sourceSkill),
+    ["Grant Protection", "Grant Protection"],
+  );
+  assert.deepEqual(
+    strikes.map(event => Math.round(event.at * 1000)),
+    [1000, 4001, 8001, 8003],
+  );
+  assert.ok(Math.abs(strikes[0].damage / strikes[1].damage - 1.1) < 1e-12);
+  assert.equal(strikes[2].damage, strikes[1].damage);
+  assert.ok(Math.abs(strikes[3].damage / strikes[1].damage - 1.1) < 1e-12);
+});
+
+test("Relic of the Shackles strikes five seconds after immobilize with a strict ten-second ICD", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [{
+      id: 930009,
+      name: "Fixture Immobilize",
+      type: "Utility",
+      castTimeMs: 0,
+      effects: [condition("Immobilized", 1, 1)],
+    }],
+  });
+  const profession = defineProfession({
+    id: "shackles-fixture",
+    name: "Shackles Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Fixture Immobilize",
+      { type: "wait", durationMs: 10000 },
+      "Fixture Immobilize",
+      { type: "wait", durationMs: 1 },
+      "Fixture Immobilize",
+      { type: "wait", durationMs: 5000 },
+    ],
+    config: { relic: "Shackles" },
+  });
+  const procs = result.procSteps.filter(
+    step => step.skill === "Relic of the Shackles",
+  );
+  const strikes = result.resolvedEvents.filter(
+    event =>
+      event.type === "damage"
+      && event.skillName === "Relic of the Shackles",
+  );
+
+  assert.deepEqual(procs.map(step => step.start), [0, 10001]);
+  assert.equal(procs.every(step => step.detail === "tethered"), true);
+  assert.deepEqual(
+    strikes.map(event => ({
+      at: event.at,
+      coefficient: event.coefficient,
+      source: event.source,
+      triggeredBy: event.triggeredBy,
+    })),
+    [
+      {
+        at: 5,
+        coefficient: 3,
+        source: "Relic",
+        triggeredBy: "Fixture Immobilize",
+      },
+      {
+        at: 15.001,
+        coefficient: 3,
+        source: "Relic",
+        triggeredBy: "Fixture Immobilize",
+      },
+    ],
+  );
+});
+
 test("Mesmer build migrations produce validated schema version 3 data", () => {
   const migrated = migrateMesmerBuild({
     sigils: ["Force", "Impact"],
@@ -1657,7 +1793,7 @@ test("native registry loaders do not pull another profession module graph", asyn
   for (const entry of nativeProfessionRegistry) {
     const graph = await relativeModuleGraph([
       path.join(root, "professions", entry.id, "definition.js"),
-      path.join(root, "professions", entry.id, "app", "adapter.js"),
+      path.join(root, "professions", entry.id, "app", "app-definition.js"),
     ]);
     for (const file of graph) {
       const relative = path.relative(root, file).replaceAll("\\", "/");
@@ -1694,7 +1830,11 @@ test("declarative professions use the standard mechanics module roles", async ()
       `export const ${prefix}_SKILL_MECHANICS\\b`,
     ));
     assert.doesNotMatch(mechanics, /apiDamage|apiConditions/);
-    if (profession === "guardian" || profession === "necromancer") {
+    if (
+      profession === "guardian"
+      || profession === "necromancer"
+      || profession === "revenant"
+    ) {
       const handlerMechanics = await readFile(
         path.join(mechanicsRoot, "handler-mechanics.js"),
         "utf8",
@@ -1749,4 +1889,26 @@ test("obsolete compatibility trees are removed", async () => {
     ),
     error => error?.code === "ENOENT",
   );
+});
+
+test("profession sources persist terrestrial skill data only", async () => {
+  const root = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js/professions",
+  );
+  const forbiddenPersistedMetadata = new RegExp([
+    JSON.stringify(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY),
+    '"weapon": "(?:Trident|Speargun)"',
+    'weapon:\\s*"(?:Trident|Speargun)"',
+    'environment:\\s*"Aquatic"',
+    '"name": "Use Trident"',
+  ].join("|"));
+  for (const file of await javascriptFiles(root)) {
+    const source = await readFile(file, "utf8");
+    assert.doesNotMatch(
+      source,
+      forbiddenPersistedMetadata,
+      path.relative(root, file),
+    );
+  }
 });

@@ -51,7 +51,6 @@ export const mesmerCatalog = createCanonicalCatalog({
     "Staff",
     "Sword",
     "Torch",
-    "Trident",
   ],
   weaponHands: {
     Axe: "mh",
@@ -66,7 +65,6 @@ export const mesmerCatalog = createCanonicalCatalog({
     Staff: "2h",
     Sword: "mh+oh",
     Torch: "oh",
-    Trident: "2h",
   },
 });
 

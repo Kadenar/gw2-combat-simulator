@@ -5,15 +5,22 @@ import {
 import { engineerCatalog } from "../catalog.js";
 
 const IMPLEMENTED = new Set([
+  "Explosive Entrance",
+  "Steel-Packed Powder",
   "Glass Cannon",
   "Shaped Charge",
+  "Aim-Assisted Rocket",
+  "Shrapnel",
   "Blast Shield",
   "Excessive Energy",
   "Gadgeteer",
+  "Serrated Steel",
+  "Hematic Focus",
   "Chemical Rounds",
   "High Caliber",
   "Thermal Vision",
   "Modified Ammunition",
+  "Incendiary Powder",
   "Mass Momentum",
   "Applied Force",
   "Mechanized Deployment",
@@ -28,15 +35,21 @@ const IMPLEMENTED = new Set([
   "Mech Core: J-Drive",
   "Laser's Edge",
   "Enhanced Capacity Storage Unit",
+  "Willing Host",
+  "Hardened Chrome",
+  "Carbolic Composition",
+  "New Genes",
 ]);
 
 const manifest = engineerCatalog.traits.map(trait => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
     ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED
-    : TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL;
+    : TRAIT_COVERAGE_STATUSES.PENDING;
   const description = String(trait.description || "").trim()
     || `Reviewed passive or utility behavior for ${trait.name}.`;
+  const pendingReason =
+    "This behavior has not yet been implemented and verified against a behavioral simulation test.";
   return {
     traitId: trait.id,
     status,
@@ -44,15 +57,13 @@ const manifest = engineerCatalog.traits.map(trait => {
       description,
       status,
       ...(implemented ? {} : {
-        reason:
-          "This defensive, support, movement, healing, or competitive-only effect does not change the simulator's target damage model.",
+        reason: pendingReason,
       }),
     }],
     ...(implemented ? {
       tests: ["tests/engineer.test.js#trait-coverage"],
     } : {
-      reason:
-        "This defensive, support, movement, healing, or competitive-only effect does not change the simulator's target damage model.",
+      reason: pendingReason,
     }),
   };
 });
@@ -62,4 +73,3 @@ export const ENGINEER_TRAIT_COVERAGE = validateTraitCoverageManifest(
   manifest,
   { professionId: "engineer" },
 );
-

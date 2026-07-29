@@ -24,10 +24,10 @@ export function createTaskQueue({
   let processed = 0;
 
   const compareTasks = (left, right) =>
-    left.at - right.at
-    || left.priority - right.priority
-    || left.order - right.order;
-  const insertTask = task => {
+    left.at - right.at ||
+    left.priority - right.priority ||
+    left.order - right.order;
+  const insertTask = (task) => {
     let low = 0;
     let high = queue.length;
     while (low < high) {
@@ -75,18 +75,18 @@ export function createTaskQueue({
     return task.id;
   };
 
-  const cancel = id => {
+  const cancel = (id) => {
     cancelledIds.add(String(id));
   };
 
-  const cancelOwner = ownerId => {
+  const cancelOwner = (ownerId) => {
     const normalizedOwner = String(ownerId);
     for (const task of queue) {
       if (task.ownerId === normalizedOwner) cancelledIds.add(task.id);
     }
   };
 
-  const isCancelled = task => cancelledIds.has(task.id);
+  const isCancelled = (task) => cancelledIds.has(task.id);
 
   const discardCancelledHead = () => {
     while (queue.length && isCancelled(queue[0])) queue.shift();
@@ -134,6 +134,7 @@ export function createTaskQueue({
     cancelOwner,
     nextAt,
     drainThrough,
-    has: id => queue.some(task => task.id === String(id) && !isCancelled(task)),
+    has: (id) =>
+      queue.some((task) => task.id === String(id) && !isCancelled(task)),
   });
 }

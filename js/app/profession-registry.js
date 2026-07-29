@@ -39,7 +39,9 @@ const entries = [
       return module.mesmerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import("../professions/mesmer/app/adapter.js");
+      const module = await import(
+        "../professions/mesmer/app/app-definition.js"
+      );
       return module.mesmerAppAdapter;
     },
   },
@@ -70,7 +72,9 @@ const entries = [
       return module.guardianProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import("../professions/guardian/app/adapter.js");
+      const module = await import(
+        "../professions/guardian/app/app-definition.js"
+      );
       return module.guardianAppAdapter;
     },
   },
@@ -86,7 +90,9 @@ const entries = [
       return module.necromancerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import("../professions/necromancer/app/adapter.js");
+      const module = await import(
+        "../professions/necromancer/app/app-definition.js"
+      );
       return module.necromancerAppAdapter;
     },
   },
@@ -96,14 +102,15 @@ const entries = [
     name: "Engineer",
     route: "engineer.html",
     themeClass: "engineer-theme",
-    specializationSummary:
-      "Core · Scrapper · Holosmith · Mechanist · Amalgam",
+    specializationSummary: "Core · Scrapper · Holosmith · Mechanist · Amalgam",
     loadProfession: async () => {
       const module = await import("../professions/engineer/definition.js");
       return module.engineerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import("../professions/engineer/app/adapter.js");
+      const module = await import(
+        "../professions/engineer/app/app-definition.js"
+      );
       return module.engineerAppAdapter;
     },
   },
@@ -113,14 +120,15 @@ const entries = [
     name: "Revenant",
     route: "revenant.html",
     themeClass: "revenant-theme",
-    specializationSummary:
-      "Core · Herald · Renegade · Vindicator · Conduit",
+    specializationSummary: "Core · Herald · Renegade · Vindicator · Conduit",
     loadProfession: async () => {
       const module = await import("../professions/revenant/definition.js");
       return module.revenantProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import("../professions/revenant/app/adapter.js");
+      const module = await import(
+        "../professions/revenant/app/app-definition.js"
+      );
       return module.revenantAppAdapter;
     },
   },
@@ -130,14 +138,15 @@ const entries = [
     name: "Thief",
     route: "thief.html",
     themeClass: "thief-theme",
-    specializationSummary:
-      "Core · Daredevil · Deadeye · Specter · Antiquary",
+    specializationSummary: "Core · Daredevil · Deadeye · Specter · Antiquary",
     loadProfession: async () => {
       const module = await import("../professions/thief/definition.js");
       return module.thiefProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import("../professions/thief/app/adapter.js");
+      const module = await import(
+        "../professions/thief/app/app-definition.js"
+      );
       return module.thiefAppAdapter;
     },
   },
@@ -162,9 +171,7 @@ function validateEntry(entry, ids, routes) {
     throw new TypeError(`${entry.id} requires a profession loader.`);
   }
   if (
-    !Object.values(PROFESSION_APPLICATION_KINDS).includes(
-      entry.applicationKind,
-    )
+    !Object.values(PROFESSION_APPLICATION_KINDS).includes(entry.applicationKind)
   ) {
     throw new TypeError(`${entry.id} has an invalid application kind.`);
   }
@@ -207,8 +214,7 @@ export const professionRegistry = Object.freeze(
  */
 export const nativeProfessionRegistry = Object.freeze(
   professionRegistry.filter(
-    (entry) =>
-      entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE,
+    (entry) => entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE,
   ),
 );
 

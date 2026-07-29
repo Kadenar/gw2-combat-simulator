@@ -20,7 +20,7 @@ function skillId(name) {
   return engineerCatalog.skillsByName.get(name)?.id ?? null;
 }
 
-function selectedMechCommands(traits) {
+export function selectedMechCommands(traits) {
   const pick = groups => {
     for (const [traitId, name] of groups) {
       if (hasEngineerTrait(traits, traitId)) return skillId(name);
@@ -72,6 +72,20 @@ export function createEngineerState(config = {}) {
     },
     selectedMorphSkillIds: [...(config.selectedMorphSkillIds || [])],
     evolvedUntil: 0,
+    focusedUntil: 0,
+    lightningRodActivationId: "",
+    lightningRodChargeExpiries: [],
+    electricArtilleryAvailable: false,
+    electricArtilleryReadyAt: 0,
+    electricArtilleryExpiresAt: 0,
+    willingHostUntil: 0,
+    plasmaticStateUntil: 0,
+    plasmaticLockoutUntil: 0,
+    thornsUntil: 0,
+    rapaciousUntil: 0,
+    predatorUntil: 0,
+    titanicUntil: 0,
+    berserkerUntil: 0,
     activeStances: {},
     traitProcReadyAt: {},
   };
@@ -86,4 +100,3 @@ export function projectEngineerEndState({ schedulerState }) {
   delete projected.traitProcReadyAt;
   return projected;
 }
-

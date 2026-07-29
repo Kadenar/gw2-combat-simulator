@@ -1251,14 +1251,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDwarf"
     ],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 26956,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 26956
   },
   {
     "id": 26644,
@@ -1270,14 +1267,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Herald",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 28113,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 28113
   },
   {
     "id": 26666,
@@ -1289,16 +1283,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 26679,
@@ -1312,14 +1301,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDwarf"
     ],
-    "flags": [],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 26693,
@@ -1333,14 +1319,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDemon"
     ],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 26699,
@@ -1352,16 +1335,11 @@ export const SKILLS = [
     "slot": "Weapon_3",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 26730,
@@ -1373,16 +1351,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 26666,
-    "flipSkillId": 26666,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 26666
   },
   {
     "id": 26821,
@@ -1394,16 +1367,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 27628,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 27628
   },
   {
     "id": 26937,
@@ -1417,14 +1385,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryAssassin"
     ],
-    "flags": [],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 26956,
@@ -1438,14 +1403,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDwarf"
     ],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 27014,
@@ -1457,14 +1419,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Herald",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 27025,
@@ -1476,18 +1435,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 2,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27025,
-    "modeAliasIds": [
-      29082
-    ]
+    "flipSkillId": null
   },
   {
     "id": 27066,
@@ -1499,16 +1451,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 26730,
-    "flipSkillId": 26730,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 26730
   },
   {
     "id": 27074,
@@ -1520,18 +1467,11 @@ export const SKILLS = [
     "slot": "Weapon_5",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27074,
-    "modeAliasIds": [
-      28625
-    ]
+    "flipSkillId": null
   },
   {
     "id": 27080,
@@ -1543,14 +1483,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Herald",
     "categories": [],
-    "flags": [],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 27107,
@@ -1564,14 +1501,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryAssassin"
     ],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 28382,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 28382
   },
   {
     "id": 27220,
@@ -1583,14 +1517,11 @@ export const SKILLS = [
     "slot": "Heal",
     "specialization": "Herald",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 27228,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 27228
   },
   {
     "id": 27228,
@@ -1602,14 +1533,11 @@ export const SKILLS = [
     "slot": "Heal",
     "specialization": "Herald",
     "categories": [],
-    "flags": [],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 27322,
@@ -1623,16 +1551,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDemon"
     ],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27322,
-    "modeAliasIds": [
-      78505
-    ]
+    "flipSkillId": null
   },
   {
     "id": 27356,
@@ -1644,18 +1567,11 @@ export const SKILLS = [
     "slot": "Elite",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 2,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27356,
-    "modeAliasIds": [
-      29114
-    ]
+    "flipSkillId": null
   },
   {
     "id": 27372,
@@ -1669,14 +1585,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDwarf"
     ],
-    "flags": [],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 27505,
@@ -1690,16 +1603,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDemon"
     ],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27505,
-    "modeAliasIds": [
-      78587
-    ]
+    "flipSkillId": null
   },
   {
     "id": 27628,
@@ -1711,16 +1619,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 27665,
@@ -1732,16 +1635,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 27715,
@@ -1753,18 +1651,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27715,
-    "modeAliasIds": [
-      29197
-    ]
+    "flipSkillId": null
   },
   {
     "id": 27760,
@@ -1776,14 +1667,11 @@ export const SKILLS = [
     "slot": "Elite",
     "specialization": "Herald",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 28075,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 28075
   },
   {
     "id": 27917,
@@ -1797,16 +1685,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDemon"
     ],
-    "flags": [
-      "GroundTargeted"
-    ],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 76503,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 76503
   },
   {
     "id": 27964,
@@ -1818,16 +1701,11 @@ export const SKILLS = [
     "slot": "Weapon_3",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 8,
     "ammo": 2,
     "ammoRecharge": 8,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 27975,
@@ -1841,14 +1719,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDwarf"
     ],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 27976,
@@ -1860,17 +1735,11 @@ export const SKILLS = [
     "slot": "Weapon_3",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 8,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28029,
@@ -1882,16 +1751,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28075,
@@ -1903,14 +1767,11 @@ export const SKILLS = [
     "slot": "Elite",
     "specialization": "Herald",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28085,
@@ -1922,14 +1783,11 @@ export const SKILLS = [
     "slot": "Profession_1",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28110,
@@ -1941,17 +1799,11 @@ export const SKILLS = [
     "slot": "Weapon_5",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28113,
@@ -1963,14 +1815,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Herald",
     "categories": [],
-    "flags": [],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28134,
@@ -1982,14 +1831,11 @@ export const SKILLS = [
     "slot": "Profession_1",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28195,
@@ -2001,16 +1847,11 @@ export const SKILLS = [
     "slot": "Profession_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28219,
@@ -2024,16 +1865,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDemon"
     ],
-    "flags": [],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 28219,
-    "modeAliasIds": [
-      78681
-    ]
+    "flipSkillId": null
   },
   {
     "id": 28231,
@@ -2047,14 +1883,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryAssassin"
     ],
-    "flags": [],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28253,
@@ -2066,17 +1899,11 @@ export const SKILLS = [
     "slot": "Weapon_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 4,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28262,
@@ -2088,16 +1915,11 @@ export const SKILLS = [
     "slot": "Weapon_5",
     "specialization": "Herald",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 25,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28287,
@@ -2111,14 +1933,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDemon"
     ],
-    "flags": [],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 26693,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 26693
   },
   {
     "id": 28357,
@@ -2130,16 +1949,11 @@ export const SKILLS = [
     "slot": "Weapon_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28379,
@@ -2151,14 +1965,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Herald",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 27080,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 27080
   },
   {
     "id": 28382,
@@ -2172,14 +1983,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryAssassin"
     ],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28406,
@@ -2193,14 +2001,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryAssassin"
     ],
-    "flags": [],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28409,
@@ -2212,16 +2017,11 @@ export const SKILLS = [
     "slot": "Weapon_5",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28419,
@@ -2233,14 +2033,11 @@ export const SKILLS = [
     "slot": "Profession_1",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28427,
@@ -2252,17 +2049,11 @@ export const SKILLS = [
     "slot": "Heal",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 0.25,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28472,
@@ -2274,16 +2065,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28494,
@@ -2295,14 +2081,11 @@ export const SKILLS = [
     "slot": "Profession_1",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28516,
@@ -2316,17 +2099,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDwarf"
     ],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28549,
@@ -2338,16 +2115,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28571,
@@ -2359,16 +2131,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 28472,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 28472
   },
   {
     "id": 28625,
@@ -2380,18 +2147,11 @@ export const SKILLS = [
     "slot": "Weapon_5",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27074,
-    "modeAliasIds": [
-      27074
-    ]
+    "flipSkillId": null
   },
   {
     "id": 28964,
@@ -2403,16 +2163,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 28978,
@@ -2424,16 +2179,11 @@ export const SKILLS = [
     "slot": "Weapon_5",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 29002,
@@ -2445,16 +2195,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 29057,
@@ -2466,16 +2211,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 29256,
-    "flipSkillId": 29256,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 29256
   },
   {
     "id": 29082,
@@ -2487,18 +2227,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 2,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27025,
-    "modeAliasIds": [
-      27025
-    ]
+    "flipSkillId": null
   },
   {
     "id": 29114,
@@ -2510,18 +2243,11 @@ export const SKILLS = [
     "slot": "Elite",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 2,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27356,
-    "modeAliasIds": [
-      27356
-    ]
+    "flipSkillId": null
   },
   {
     "id": 29145,
@@ -2533,16 +2259,11 @@ export const SKILLS = [
     "slot": "Weapon_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 29148,
@@ -2554,16 +2275,11 @@ export const SKILLS = [
     "slot": "Heal",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 2,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 28427,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 28427
   },
   {
     "id": 29180,
@@ -2575,16 +2291,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 29331,
-    "flipSkillId": 29331,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 29331
   },
   {
     "id": 29197,
@@ -2596,18 +2307,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27715,
-    "modeAliasIds": [
-      27715
-    ]
+    "flipSkillId": null
   },
   {
     "id": 29209,
@@ -2621,14 +2325,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryAssassin"
     ],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 29233,
@@ -2640,16 +2341,11 @@ export const SKILLS = [
     "slot": "Weapon_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 29256,
@@ -2661,16 +2357,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 28964,
-    "flipSkillId": 28964,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 28964
   },
   {
     "id": 29288,
@@ -2682,16 +2373,11 @@ export const SKILLS = [
     "slot": "Weapon_3",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 29321,
@@ -2703,16 +2389,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 29331,
@@ -2724,16 +2405,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 29002,
-    "flipSkillId": 29002,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 29002
   },
   {
     "id": 29371,
@@ -2745,14 +2421,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 29386,
@@ -2764,17 +2437,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "Herald",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 40175,
@@ -2786,16 +2453,11 @@ export const SKILLS = [
     "slot": "Weapon_2",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 40485,
@@ -2807,19 +2469,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 40485,
-    "modeAliasIds": [
-      72359
-    ]
+    "flipSkillId": null
   },
   {
     "id": 40497,
@@ -2831,16 +2485,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 41220,
@@ -2852,19 +2501,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 41220,
-    "modeAliasIds": [
-      72366
-    ]
+    "flipSkillId": null
   },
   {
     "id": 41820,
@@ -2876,16 +2517,11 @@ export const SKILLS = [
     "slot": "Weapon_5",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 41829,
@@ -2897,16 +2533,11 @@ export const SKILLS = [
     "slot": "Weapon_3",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 7,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 41858,
@@ -2918,18 +2549,11 @@ export const SKILLS = [
     "slot": "Profession_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 41858,
-    "modeAliasIds": [
-      46409
-    ]
+    "flipSkillId": null
   },
   {
     "id": 42836,
@@ -2941,17 +2565,11 @@ export const SKILLS = [
     "slot": "Profession_3",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 42949,
@@ -2963,19 +2581,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 42949,
-    "modeAliasIds": [
-      72363
-    ]
+    "flipSkillId": null
   },
   {
     "id": 43993,
@@ -2987,17 +2597,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 9,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 44076,
@@ -3009,14 +2613,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 45537,
@@ -3028,14 +2629,11 @@ export const SKILLS = [
     "slot": "Profession_4",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 45686,
@@ -3047,19 +2645,11 @@ export const SKILLS = [
     "slot": "Heal",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 45686,
-    "modeAliasIds": [
-      72389
-    ]
+    "flipSkillId": null
   },
   {
     "id": 45773,
@@ -3071,17 +2661,11 @@ export const SKILLS = [
     "slot": "Elite",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 46409,
@@ -3093,18 +2677,11 @@ export const SKILLS = [
     "slot": "Profession_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 41858,
-    "modeAliasIds": [
-      41858
-    ]
+    "flipSkillId": null
   },
   {
     "id": 51667,
@@ -3116,19 +2693,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 51667,
-    "modeAliasIds": [
-      51675,
-      51696,
-      51713,
-      51714
-    ]
+    "flipSkillId": null
   },
   {
     "id": 51675,
@@ -3140,19 +2709,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 51667,
-    "modeAliasIds": [
-      51667,
-      51696,
-      51713,
-      51714
-    ]
+    "flipSkillId": null
   },
   {
     "id": 51696,
@@ -3164,19 +2725,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 51667,
-    "modeAliasIds": [
-      51667,
-      51675,
-      51713,
-      51714
-    ]
+    "flipSkillId": null
   },
   {
     "id": 51713,
@@ -3188,21 +2741,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 51667,
-    "modeAliasIds": [
-      51667,
-      51675,
-      51696,
-      51714
-    ]
+    "flipSkillId": null
   },
   {
     "id": 51714,
@@ -3214,19 +2757,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 51667,
-    "modeAliasIds": [
-      51667,
-      51675,
-      51696,
-      51713
-    ]
+    "flipSkillId": null
   },
   {
     "id": 55029,
@@ -3238,14 +2773,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62680,
@@ -3257,14 +2789,11 @@ export const SKILLS = [
     "slot": "Heal",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [],
     "recharge": 10,
     "ammo": 5,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62687,
@@ -3276,14 +2805,11 @@ export const SKILLS = [
     "slot": "Elite",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [],
     "recharge": 2,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62738,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 62738
   },
   {
     "id": 62688,
@@ -3295,16 +2821,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 62752,
-    "flipSkillId": 62752,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 62752
   },
   {
     "id": 62692,
@@ -3316,16 +2837,11 @@ export const SKILLS = [
     "slot": "Weapon_2",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62702,
@@ -3337,14 +2853,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62719,
@@ -3356,14 +2869,11 @@ export const SKILLS = [
     "slot": "Heal",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [],
     "recharge": 10,
     "ammo": 4,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62680,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 62680
   },
   {
     "id": 62729,
@@ -3375,14 +2885,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62738,
@@ -3394,14 +2901,11 @@ export const SKILLS = [
     "slot": "Elite",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [],
     "recharge": 1,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62752,
@@ -3413,16 +2917,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62757,
@@ -3434,16 +2933,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62729,
-    "canonicalAliasId": 62757,
-    "modeAliasIds": [
-      72058
-    ]
+    "flipSkillId": 62729
   },
   {
     "id": 62796,
@@ -3455,14 +2949,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62828,
@@ -3474,16 +2965,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62832,
@@ -3495,14 +2981,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62702,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 62702
   },
   {
     "id": 62878,
@@ -3514,14 +2997,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62796,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 62796
   },
   {
     "id": 62891,
@@ -3533,14 +3013,11 @@ export const SKILLS = [
     "slot": "Profession_1",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62895,
@@ -3552,16 +3029,11 @@ export const SKILLS = [
     "slot": "Weapon_3",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 8,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62913,
@@ -3573,16 +3045,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 62688,
-    "flipSkillId": 62688,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 62688
   },
   {
     "id": 62921,
@@ -3594,16 +3061,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62828,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 62828
   },
   {
     "id": 62929,
@@ -3615,16 +3077,11 @@ export const SKILLS = [
     "slot": "Weapon_5",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62941,
@@ -3636,17 +3093,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 62942,
@@ -3658,14 +3109,11 @@ export const SKILLS = [
     "slot": "Elite",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62687,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 62687
   },
   {
     "id": 62962,
@@ -3677,17 +3125,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Vindicator",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 62941,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 62941
   },
   {
     "id": 71816,
@@ -3699,16 +3141,11 @@ export const SKILLS = [
     "slot": "Weapon_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 8,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 72109,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 72109
   },
   {
     "id": 71858,
@@ -3720,16 +3157,11 @@ export const SKILLS = [
     "slot": "Weapon_3",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 71930,
@@ -3741,16 +3173,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 71942,
-    "flipSkillId": 71942,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 71942
   },
   {
     "id": 71933,
@@ -3762,16 +3189,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": 71930,
-    "flipSkillId": 71930,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 71930
   },
   {
     "id": 71942,
@@ -3783,16 +3205,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 71952,
@@ -3804,16 +3221,11 @@ export const SKILLS = [
     "slot": "Weapon_3",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 8,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 71858,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 71858
   },
   {
     "id": 72058,
@@ -3825,16 +3237,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 62757,
-    "modeAliasIds": [
-      62757
-    ]
+    "flipSkillId": null
   },
   {
     "id": 72109,
@@ -3846,16 +3253,11 @@ export const SKILLS = [
     "slot": "Weapon_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 72359,
@@ -3867,19 +3269,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 40485,
-    "modeAliasIds": [
-      40485
-    ]
+    "flipSkillId": null
   },
   {
     "id": 72363,
@@ -3891,19 +3285,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 42949,
-    "modeAliasIds": [
-      42949
-    ]
+    "flipSkillId": null
   },
   {
     "id": 72366,
@@ -3915,19 +3301,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 41220,
-    "modeAliasIds": [
-      41220
-    ]
+    "flipSkillId": null
   },
   {
     "id": 72389,
@@ -3939,19 +3317,11 @@ export const SKILLS = [
     "slot": "Heal",
     "specialization": "Renegade",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 45686,
-    "modeAliasIds": [
-      45686
-    ]
+    "flipSkillId": null
   },
   {
     "id": 72931,
@@ -3963,16 +3333,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 72938,
@@ -3984,17 +3349,11 @@ export const SKILLS = [
     "slot": "Weapon_3",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 72954,
@@ -4006,17 +3365,11 @@ export const SKILLS = [
     "slot": "Weapon_4",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 72972,
@@ -4028,16 +3381,11 @@ export const SKILLS = [
     "slot": "Weapon_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 6,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 73015,
@@ -4049,16 +3397,11 @@ export const SKILLS = [
     "slot": "Weapon_1",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 72931,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": 72931
   },
   {
     "id": 73059,
@@ -4070,17 +3413,11 @@ export const SKILLS = [
     "slot": "Weapon_5",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 0.75,
     "ammo": 0,
     "ammoRecharge": 15,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 76503,
@@ -4092,14 +3429,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 76610,
@@ -4111,14 +3445,11 @@ export const SKILLS = [
     "slot": "Profession_1",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 76968,
@@ -4130,17 +3461,11 @@ export const SKILLS = [
     "slot": "Elite",
     "specialization": "Conduit",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 3,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 77043,
@@ -4152,14 +3477,11 @@ export const SKILLS = [
     "slot": "Heal",
     "specialization": "Conduit",
     "categories": [],
-    "flags": [],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 77141,
@@ -4171,19 +3493,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Conduit",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 77141,
-    "modeAliasIds": [
-      77159
-    ]
+    "flipSkillId": null
   },
   {
     "id": 77159,
@@ -4195,19 +3509,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Conduit",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 1,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 77141,
-    "modeAliasIds": [
-      77141
-    ]
+    "flipSkillId": null
   },
   {
     "id": 77243,
@@ -4219,14 +3525,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Conduit",
     "categories": [],
-    "flags": [],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 77291,
@@ -4238,14 +3541,11 @@ export const SKILLS = [
     "slot": "Utility",
     "specialization": "Conduit",
     "categories": [],
-    "flags": [],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 77371,
@@ -4257,14 +3557,11 @@ export const SKILLS = [
     "slot": "Profession_3",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 78501,
@@ -4276,16 +3573,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 78505,
@@ -4299,16 +3591,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDemon"
     ],
-    "flags": [],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27322,
-    "modeAliasIds": [
-      27322
-    ]
+    "flipSkillId": null
   },
   {
     "id": 78587,
@@ -4322,16 +3609,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDemon"
     ],
-    "flags": [],
     "recharge": 5,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 27505,
-    "modeAliasIds": [
-      27505
-    ]
+    "flipSkillId": null
   },
   {
     "id": 78615,
@@ -4343,14 +3625,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 78661,
@@ -4362,14 +3641,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 78681,
@@ -4383,16 +3659,11 @@ export const SKILLS = [
     "categories": [
       "LegendaryDemon"
     ],
-    "flags": [],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": 28219,
-    "modeAliasIds": [
-      28219
-    ]
+    "flipSkillId": null
   },
   {
     "id": 78845,
@@ -4404,14 +3675,11 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 78895,
@@ -4423,16 +3691,10 @@ export const SKILLS = [
     "slot": "Profession_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "GroundTargeted",
-      "NoUnderwater"
-    ],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "canonicalAliasId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   }
 ];

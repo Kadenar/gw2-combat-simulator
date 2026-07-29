@@ -1,4 +1,5 @@
 import { REVENANT_TRAIT_IDS as TRAIT } from "./data/ids.js";
+import { normalizeRevenantLegendIds } from "./legend-rules.js";
 
 export function selectedRevenantTraits(config = {}) {
   return new Set([
@@ -14,7 +15,10 @@ export function hasRevenantTrait(configOrTraits, traitId) {
   return traits.has(traitId) || traits.has(String(traitId));
 }
 export function createRevenantState(config = {}) {
-  const selectedLegendIds = [...(config.selectedLegends || [])];
+  const selectedLegendIds = normalizeRevenantLegendIds(
+    config.selectedLegends,
+    config.specialization,
+  );
   const activeLegendId = selectedLegendIds.includes(config.startingLegend)
     ? config.startingLegend
     : selectedLegendIds[0];
@@ -37,6 +41,36 @@ export function createRevenantState(config = {}) {
     affinity: 0,
     cosmicWisdomUntil: 0,
     conduitForm: "",
+    beguilingHazeCharges: 0,
+    beguilingHazeReadyAt: 0,
+    beguilingHazeMainReservations: [],
+    bandTogetherReady: false,
+    bandTogetherExpiresAt: 0,
+    kallasFervor: [],
+    renegadeCriticalProgress: 0,
+    enchantedDaggers: {
+      charges: 0,
+      expiresAt: 0,
+      readyAt: 0,
+    },
+    razorclawsRage: {
+      charges: 0,
+      expiresAt: 0,
+      readyAt: 0,
+    },
+    battleScars: [],
+    combatBeganAt: null,
+    nextThrillOfCombatAt: null,
+    exposeDefensesUsed: false,
+    selfConditionDurationMultiplier: hasRevenantTrait(
+      config,
+      TRAIT.PACT_OF_PAIN,
+    ) ? 1.1 : 1,
+    selfConditions: [],
+    selfConditionCount: Math.max(
+      0,
+      Math.trunc(Number(config.selfConditionCount || 0)),
+    ),
     activeLegendSummons: {},
     traitProcReadyAt: {},
   };

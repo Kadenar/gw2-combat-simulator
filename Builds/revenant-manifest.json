@@ -1,0 +1,27 @@
+[
+  {
+    "section": "Renegade",
+    "presets": [
+      {
+        "label": "Power (Greatsword / SwSw)",
+        "build": "Builds/b-power-renegade-greatsword.json"
+      },
+      {
+        "label": "Power Renegade (Hammer / SwSw)",
+        "build": "Builds/b-power-renegade-hammer.json"
+      }
+    ]
+  },
+  {
+    "section": "Conduit",
+    "presets": [
+      {
+        "label": "Power (Greatsword / SwSw)",
+        "build": "Builds/b-power-conduit.json",
+        "rotation": "Rotations/r-power-conduit-bench.json",
+        "benchmarkDps": 41990,
+        "upToDate": true
+      }
+    ]
+  }
+]

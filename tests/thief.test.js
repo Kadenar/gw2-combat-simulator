@@ -7,7 +7,11 @@ import {
   loadProfessionAppAdapter,
   professionRoute,
 } from "../js/app/profession-registry.js";
+import {
+  assumptionControlsForSpecialization,
+} from "../js/app/profession-assumptions.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
+import { resourceDisplayViews } from "../js/platform/ui/resource-display.js";
 import {
   createThiefBuildDefaults,
   migrateThiefBuild,
@@ -21,14 +25,19 @@ import {
   DATA_SNAPSHOT,
 } from "../js/professions/thief/data/thief-api-metadata.js";
 import {
+  THIEF_SUPPLEMENTAL_SKILLS,
+} from "../js/professions/thief/data/thief-supplemental-skills.js";
+import {
   THIEF_TRAIT_COVERAGE,
 } from "../js/professions/thief/data/trait-coverage.js";
 import {
+  THIEF_ARTIFACT_IDS,
+  THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
 } from "../js/professions/thief/data/ids.js";
 import {
-  WIKI_SKILL_RESEARCH,
-} from "../js/professions/thief/data/thief-wiki-skill-research.js";
+  THIEF_SKILL_MECHANICS,
+} from "../js/professions/thief/mechanics/skill-mechanics.js";
 import {
   thiefProfession,
 } from "../js/professions/thief/definition.js";
@@ -49,7 +58,7 @@ const baseConfig = Object.freeze({
   weaponSet2Secondary: "Pistol",
   deterministicChoices: {
     stolenSkillChoice: "throw-gunk",
-    markedTargetChoice: "primary-target",
+    deadeyeStolenSkillChoice: "steal-time",
     artifactDrawSequence: "balanced",
     doubleEdgeOutcomeSequence: "alternate",
   },
@@ -86,16 +95,42 @@ function simulate(specialization, rotation, config = {}) {
   });
 }
 
-test("Thief catalog pins current API identity and terrestrial Wiki mechanics", () => {
+test("Thief catalog pins API identity and explicit terrestrial mechanics", () => {
   assert.equal(DATA_SNAPSHOT, "2026-07-28");
   assert.equal(thiefCatalog.specializations.length, 9);
   assert.equal(thiefCatalog.traits.length, 108);
-  assert.ok(thiefCatalog.skills.length >= 270);
-  assert.ok(WIKI_SKILL_RESEARCH.length >= 270);
-  assert.ok(WIKI_SKILL_RESEARCH.every(record =>
-    record.sourceUrl && record.revisionId && record.revisionTimestamp));
+  assert.ok(thiefCatalog.skills.length >= 260);
   assert.equal(thiefCatalog.skillsById.has(76550), false);
+  assert.equal(thiefCatalog.skillsById.has(40436), true);
+  assert.equal(thiefCatalog.skillsById.has(80278), false);
   assert.equal(thiefCatalog.skillsByName.get("Death Blossom").initiativeCost, 4);
+  assert.equal(THIEF_SKILL_MECHANICS[13006].castTimeMs, 500);
+  assert.equal(THIEF_SKILL_MECHANICS[13006].effects[0].hits, 3);
+  assert.equal(THIEF_SKILL_MECHANICS[13006].effects[1].condition, "Bleeding");
+  for (const excludedName of [
+    "Prepare Seal Area",
+    "Prepare Shadow Portal",
+    "Seal Area",
+    "Shadow Portal",
+    "Shadow Refuge",
+    "Shadow Return",
+    "Shadowstep",
+    "Smoke Screen",
+  ]) {
+    assert.equal(
+      thiefCatalog.skillsByName.has(excludedName),
+      false,
+      excludedName,
+    );
+  }
+  assert.ok(THIEF_SUPPLEMENTAL_SKILLS.every(skill =>
+    !Object.hasOwn(skill, "effects")
+    && !Object.hasOwn(skill, "cooldown")
+    && !Object.hasOwn(skill, "recharge")));
+  assert.match(
+    thiefCatalog.skillsById.get(41068).icon,
+    /Special:Redirect\/file\/Free_Action\.png$/,
+  );
   assert.ok(
     thiefCatalog.skills
       .filter(skill => skill.type === "Weapon")
@@ -113,16 +148,113 @@ test("Thief defaults migrate deterministic assumptions and validate bars", () =>
     ...defaults,
     assumptions: {
       ...defaults.assumptions,
+      markedTargetChoice: "unmarked",
+      playerHealthPercent: 20,
+      targetDistance: 1200,
       artifactDrawSequence: "reverse",
       doubleEdgeOutcomeSequence: "success",
     },
   });
   assert.equal(migrated.assumptions.artifactDrawSequence, "reverse");
   assert.equal(migrated.assumptions.doubleEdgeOutcomeSequence, "success");
+  assert.equal(Object.hasOwn(migrated.assumptions, "markedTargetChoice"), false);
+  assert.equal(Object.hasOwn(migrated.assumptions, "playerHealthPercent"), false);
+  assert.equal(Object.hasOwn(migrated.assumptions, "targetDistance"), false);
+  const artifactDrawControl = thiefProfession.ui.assumptionControls
+    .find(control => control.key === "artifactDrawSequence");
+  assert.ok(artifactDrawControl.options.some(option => option.value === "choose"));
+  assert.equal(
+    thiefProfession.ui.assumptionControls
+      .some(control => control.key === "markedTargetChoice"),
+    false,
+  );
+  const keysFor = specialization => new Set(
+    assumptionControlsForSpecialization(
+      thiefProfession.ui.assumptionControls,
+      specialization,
+    ).map(control => control.key),
+  );
+  assert.equal(keysFor("Core").has("stolenSkillChoice"), true);
+  assert.equal(keysFor("Daredevil").has("stolenSkillChoice"), true);
+  assert.equal(keysFor("Deadeye").has("deadeyeStolenSkillChoice"), true);
+  assert.equal(keysFor("Deadeye").has("stolenSkillChoice"), false);
+  for (const controlKey of [
+    "stolenSkillChoice",
+    "deadeyeStolenSkillChoice",
+  ]) {
+    const control = thiefProfession.ui.assumptionControls
+      .find(candidate => candidate.key === controlKey);
+    assert.ok(control.options.every(option =>
+      Number.isFinite(option.skillId)
+      && Boolean(thiefCatalog.skillsById.get(option.skillId)?.icon)));
+  }
+  assert.equal(keysFor("Antiquary").has("artifactDrawSequence"), true);
+  assert.equal(keysFor("Antiquary").has("doubleEdgeOutcomeSequence"), true);
+  for (const specialization of [
+    "Core",
+    "Daredevil",
+    "Deadeye",
+    "Specter",
+  ]) {
+    assert.equal(keysFor(specialization).has("artifactDrawSequence"), false);
+    assert.equal(keysFor(specialization).has("doubleEdgeOutcomeSequence"), false);
+  }
+  for (const specialization of [
+    "Core",
+    "Daredevil",
+    "Deadeye",
+    "Specter",
+    "Antiquary",
+  ]) {
+    assert.equal(keysFor(specialization).has("playerHealthPercent"), false);
+    assert.equal(keysFor(specialization).has("targetDistance"), false);
+  }
   assert.equal(validateThiefBuild({
     ...defaults,
     weapons: ["Sword", "Sword"],
   }).valid, false);
+});
+
+test("Thief resources use profession-specific initiative and malice pips", () => {
+  const resourceViews = (specialization, config = {}) =>
+    thiefProfession.ui.resourceViews({
+      specialization,
+      config: { specialization, ...config },
+      professionState: thiefProfession.createProfessionState({
+        specialization,
+        ...config,
+      }),
+    });
+
+  const coreInitiative = resourceViews("Core")[0];
+  assert.equal(coreInitiative.displayMode, "pips");
+  assert.equal(coreInitiative.pipStyle, "thief-initiative");
+  assert.equal(coreInitiative.pipRows, 2);
+  assert.equal(coreInitiative.maximum, 12);
+
+  const preparedInitiative = resourceViews("Core", {
+    traitIds: [TRAIT.PREPAREDNESS],
+  })[0];
+  assert.equal(preparedInitiative.maximum, 15);
+  assert.equal(preparedInitiative.pipRows, 2);
+
+  const antiquaryInitiative = resourceViews("Antiquary")[0];
+  assert.equal(antiquaryInitiative.pipStyle, "thief-initiative");
+  assert.equal(antiquaryInitiative.pipRows, 3);
+
+  const deadeyeMalice = resourceViews("Deadeye")
+    .find(view => view.id === "malice");
+  assert.equal(deadeyeMalice.displayMode, "pips");
+  assert.equal(deadeyeMalice.pipStyle, "thief-malice");
+
+  const displayedInitiative = resourceDisplayViews(thiefProfession, {
+    specialization: "Core",
+    professionState: {
+      initiative: 4.9,
+      maximumInitiative: 12,
+    },
+  })[0];
+  assert.equal(displayedInitiative.value, 4);
 });
 
 test("every legal one-hand combination resolves one exact opening slot 3", () => {
@@ -251,6 +383,93 @@ test("stealth attacks remove stealth, apply Revealed, and block replacement", ()
   assert.equal(result.endState.profession.stealthUntil <= result.duration, true);
 });
 
+test("stealth replaces weapon skill 1 without a separate palette group", () => {
+  const context = {
+    specialization: "Core",
+    time: 1,
+    activeWeaponSet: 1,
+    build: {
+      weapons: ["Dagger", "Dagger"],
+      alternateWeapons: ["Pistol", "Pistol"],
+    },
+    professionState: {
+      stealthUntil: 4,
+      revealedUntil: 0,
+    },
+  };
+  const groups = thiefProfession.ui.paletteGroups(context);
+  assert.equal(
+    groups.some(group => group.id === "thief-stealth-attacks"),
+    false,
+  );
+  assert.equal(
+    thiefProfession.ui.isPaletteSkillAvailable(
+      context,
+      thiefCatalog.skillsByName.get("Backstab"),
+    ),
+    true,
+  );
+  assert.equal(
+    thiefProfession.ui.isPaletteSkillAvailable(
+      context,
+      thiefCatalog.skillsByName.get("Double Strike"),
+    ),
+    false,
+  );
+});
+
+test("Deadeye palette uses malicious stealth attacks and one stateful rifle bar", () => {
+  const deadeyesMark = thiefCatalog.skillsByName.get("Deadeye's Mark");
+  assert.equal(deadeyesMark.flipParentId, null);
+
+  const matchingNames = (pair, kneeling) => thiefCatalog.skills
+    .filter(skill =>
+      skill.type === "Weapon"
+      && thiefWeaponSkillMatchesSet(skill, pair, {
+        catalog: thiefCatalog,
+        specialization: "Deadeye",
+        professionState: { kneeling },
+      }))
+    .map(skill => skill.name);
+
+  const dagger = matchingNames(["Dagger", "Dagger"], false);
+  assert.ok(dagger.includes("Malicious Backstab"));
+  assert.equal(dagger.includes("Backstab"), false);
+
+  const standing = matchingNames(["Rifle", ""], false);
+  assert.ok(standing.includes("Brutal Aim"));
+  assert.ok(standing.includes("Double Tap"));
+  assert.ok(standing.includes("Skirmisher's Shot"));
+  assert.ok(standing.includes("Kneel"));
+  assert.ok(standing.includes("Malicious Death's Judgment"));
+  assert.equal(standing.includes("Deadly Aim"), false);
+  assert.equal(standing.includes("Three Round Burst"), false);
+  assert.equal(standing.includes("Spotter's Shot"), false);
+  assert.equal(standing.includes("Free Action"), false);
+  assert.equal(standing.includes("Death's Judgment"), false);
+
+  const kneeling = matchingNames(["Rifle", ""], true);
+  assert.ok(kneeling.includes("Deadly Aim"));
+  assert.ok(kneeling.includes("Three Round Burst"));
+  assert.ok(kneeling.includes("Spotter's Shot"));
+  assert.ok(kneeling.includes("Free Action"));
+  assert.equal(kneeling.includes("Brutal Aim"), false);
+  assert.equal(kneeling.includes("Double Tap"), false);
+  assert.equal(kneeling.includes("Skirmisher's Shot"), false);
+  assert.equal(kneeling.includes("Kneel"), false);
+
+  const paletteGroups = thiefProfession.ui.paletteGroups({
+    specialization: "Deadeye",
+    build: { weapons: ["Rifle", ""], alternateWeapons: ["Dagger", "Dagger"] },
+    activeWeaponSet: 1,
+    professionState: { kneeling: false },
+  });
+  assert.equal(
+    paletteGroups.some(group => group.id === "thief-rifle-stance"),
+    false,
+  );
+});
+
 test("Steal stores and consumes the deterministic raid-golem stolen skill", () => {
   const stored = simulate("Core", ["Steal"]);
   assert.equal(
@@ -289,6 +508,7 @@ test("Deadeye Mark grants malice once per initiative skill use", () => {
   ]);
   assert.equal(result.warnings.length, 0);
   assert.equal(result.endState.profession.markedTargetId, "primary-target");
+  assert.equal(result.endState.profession.storedStolenSkillId, ID.STEAL_TIME);
   assert.equal(result.endState.profession.malice, 1);
   assert.ok(result.resolvedEvents.filter(event =>
     event.skillName === "Death Blossom" && event.type === "damage").length > 1);
@@ -301,6 +521,17 @@ test("Deadeye Mark grants malice once per initiative skill use", () => {
   ]);
   assert.equal(consumed.warnings.length, 0);
   assert.equal(consumed.endState.profession.malice, 0);
+
+  const stolen = simulate("Deadeye", [
+    "Deadeye's Mark",
+    "Steal Defenses",
+  ], {
+    deterministicChoices: {
+      deadeyeStolenSkillChoice: "steal-defenses",
+    },
+  });
+  assert.equal(stolen.warnings.length, 0);
+  assert.equal(stolen.endState.profession.storedStolenSkillId, null);
 });
 
 test("Kneel replaces the rifle bar until Free Action or weapon swap", () => {
@@ -318,7 +549,64 @@ test("Kneel replaces the rifle bar until Free Action or weapon swap", () => {
   assert.ok(result.totalDamage > 0);
 });
 
+test("Deadeye rifle stance rejects every inactive replacement", () => {
+  const rifle = {
+    primaryWeapon: "Rifle",
+    secondaryWeapon: "",
+  };
+  for (const skill of [
+    "Deadly Aim",
+    "Three Round Burst",
+    "Spotter's Shot",
+    "Free Action",
+  ]) {
+    const result = simulate("Deadeye", [skill], rifle);
+    assert.match(result.warnings[0], /kneel/i, skill);
+  }
+  for (const skill of [
+    "Brutal Aim",
+    "Double Tap",
+    "Skirmisher's Shot",
+    "Kneel",
+  ]) {
+    const result = simulate("Deadeye", ["Kneel", skill], rifle);
+    assert.match(result.warnings[0], /kneel|rifle skill/i, skill);
+  }
+});
+
 test("Specter Siphon, initiative spending, and Shadow Shroud share force", () => {
+  const inactiveGroups = thiefProfession.ui.paletteGroups({
+    specialization: "Specter",
+    professionState: {
+      shadowForce: 0,
+      shadowShroudActive: false,
+    },
+  });
+  assert.deepEqual(
+    inactiveGroups.find(group => group.id === "thief-shadow-shroud")
+      .skillIds.map(id => thiefCatalog.skillsById.get(id)?.name),
+    [
+      "Haunt Shot",
+      "Grasping Shadows",
+      "Dawn's Repose",
+      "Eternal Night",
+      "Mind Shock",
+    ],
+  );
+  assert.equal(
+    thiefProfession.ui.isPaletteSkillAvailable(
+      {
+        specialization: "Specter",
+        professionState: {
+          shadowForce: 0,
+          shadowShroudActive: false,
+        },
+      },
+      thiefCatalog.skillsByName.get("Enter Shadow Shroud"),
+    ),
+    false,
+  );
+
   const result = simulate("Specter", [
     "Siphon",
     "Enter Shadow Shroud",
@@ -330,11 +618,51 @@ test("Specter Siphon, initiative spending, and Shadow Shroud share force", () =>
   });
   assert.equal(result.warnings.length, 0);
   assert.equal(result.endState.profession.shadowShroudActive, false);
+  assert.equal(result.endState.profession.storedStolenSkillId, null);
   assert.ok(result.endState.profession.shadowForce > 0);
   assert.equal(
     result.events.filter(event => event.type === "sigil_swap").length,
+    0,
+  );
+  assert.equal(
+    result.events.filter(event =>
+      event.type === "weapon_set" && event.shroudSwap).length,
     2,
   );
+});
+
+test("Specter automatically leaves Shadow Shroud when shadow force depletes", () => {
+  const result = simulate("Specter", [
+    "Enter Shadow Shroud",
+    { type: "wait", durationMs: 1000 },
+  ], {
+    initialShadowForce: 1,
+  });
+  assert.equal(result.endState.profession.shadowShroudActive, false);
+  assert.equal(result.endState.profession.shadowForce, 0);
+  assert.equal(
+    result.events.filter(event =>
+      event.type === "weapon_set" && event.shroudSwap).length,
+    2,
+  );
+});
+
+test("Specter shadow force is 69% of health and drains 2% per second", () => {
+  const capacity = simulate("Specter", [], {
+    stats: { vitality: 1000 },
+  }).endState.profession;
+  const drained = simulate("Specter", [
+    "Enter Shadow Shroud",
+    { type: "wait", durationMs: 1000 },
+    "Exit Shadow Shroud",
+  ], {
+    initialShadowForce: 100,
+    stats: { vitality: 1000 },
+  }).endState.profession;
+
+  assert.equal(capacity.maximumHealth, 11645);
+  assert.equal(capacity.shadowForcePoolCapacity, 11645 * 0.69);
+  assert.equal(drained.shadowForce, 98);
 });
 
 test("Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic", () => {
@@ -381,6 +709,149 @@ test("Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic
   assert.ok(guild.resolvedEvents.some(event =>
     event.actorType === "summon"
     && event.skillName === "Thieves Guild — Skritt"));
+});
+
+test("Antiquary choice mode exposes every artifact from Swipe and Scuffle", () => {
+  const expectedArtifactIds = [
+    ...THIEF_ARTIFACT_IDS.OFFENSIVE,
+    ...THIEF_ARTIFACT_IDS.DEFENSIVE,
+  ];
+  const config = {
+    primaryWeapon: "Axe",
+    secondaryWeapon: "Dagger",
+    deterministicChoices: {
+      artifactDrawSequence: "choose",
+      doubleEdgeOutcomeSequence: "success",
+    },
+  };
+
+  const swipe = simulate("Antiquary", ["Skritt Swipe"], config);
+  assert.deepEqual(
+    swipe.endState.profession.artifactSlots.map(slot => slot.skillId),
+    expectedArtifactIds,
+  );
+  const paletteGroups = thiefProfession.ui.paletteGroups({
+    specialization: "Antiquary",
+    professionState: swipe.endState.profession,
+    build: {
+      assumptions: {
+        artifactDrawSequence: "choose",
+      },
+    },
+  });
+  assert.deepEqual(
+    paletteGroups.find(group =>
+      group.id === "thief-artifacts-offensive").skillIds,
+    THIEF_ARTIFACT_IDS.OFFENSIVE,
+  );
+  assert.deepEqual(
+    paletteGroups.find(group =>
+      group.id === "thief-artifacts-defensive").skillIds,
+    THIEF_ARTIFACT_IDS.DEFENSIVE,
+  );
+  assert.deepEqual(
+    paletteGroups
+      .filter(group => group.id.startsWith("thief-artifacts-"))
+      .map(group => group.stackId),
+    ["thief-artifacts", "thief-artifacts"],
+  );
+  assert.equal(
+    paletteGroups.find(group => group.id === "thief-profession")
+      .skillIds.includes(ID.RESHUFFLE),
+    false,
+  );
+
+  const picked = simulate("Antiquary", [
+    "Skritt Swipe",
+    "Mistburn Mortar",
+  ], config);
+  assert.equal(picked.warnings.length, 0);
+  assert.equal(picked.endState.profession.artifactUsesRemaining, 0);
+  assert.equal(
+    thiefProfession.ui.paletteGroups({
+      specialization: "Antiquary",
+      professionState: picked.endState.profession,
+      build: {
+        assumptions: {
+          artifactDrawSequence: "choose",
+        },
+      },
+    }).filter(group => group.id.startsWith("thief-artifacts-"))
+      .every(group =>
+        group.skillIds.length === 0
+        && group.className.includes("pal-group-concealed")),
+    true,
+  );
+
+  const scuffle = simulate("Antiquary", [
+    "Skritt Scuffle",
+    { type: "wait", durationMs: 5200 },
+  ], config);
+  assert.deepEqual(
+    scuffle.endState.profession.artifactSlots.map(slot => slot.skillId),
+    expectedArtifactIds,
+  );
+});
+
+test("Antiquary skill bar previews wiki-categorized artifacts", () => {
+  const groups = thiefProfession.ui.skillBarGroups({
+    specialization: "Antiquary",
+  });
+  assert.deepEqual(
+    groups.map(group => ({
+      label: group.label,
+      names: group.skillIds.map(id => thiefCatalog.skillsById.get(id)?.name),
+    })),
+    [
+      {
+        label: "Offensive Artifacts",
+        names: [
+          "Forged Surfer Dash",
+          "Metal Legion Guitar",
+          "Mistburn Mortar",
+          "Summon Kryptis Turret",
+        ],
+      },
+      {
+        label: "Defensive Artifacts",
+        names: [
+          "Chak Shield",
+          "Exalted Hammer",
+          "Holo-Dancer Decoy",
+          "Zephyrite Sun Crystal",
+        ],
+      },
+    ],
+  );
+  assert.deepEqual(
+    thiefProfession.ui.skillBarGroups({ specialization: "Specter" }),
+    [],
+  );
+});
+
+test("Thief skill bar previews specialization-specific stolen skills", () => {
+  const namesFor = specialization =>
+    thiefProfession.ui.skillBarGroups({ specialization })
+      .flatMap(group => group.skillIds)
+      .map(id => thiefCatalog.skillsById.get(id)?.name);
+
+  assert.deepEqual(namesFor("Core"), [
+    "Throw Gunk",
+    "Consume Plasma",
+    "Whirling Axe",
+  ]);
+  assert.deepEqual(namesFor("Daredevil"), namesFor("Core"));
+  assert.deepEqual(namesFor("Deadeye"), [
+    "Steal Time",
+    "Steal Warmth",
+    "Steal Resistance",
+    "Steal Precision",
+    "Steal Health",
+    "Steal Strength",
+    "Steal Durability",
+    "Steal Defenses",
+    "Steal Mobility",
+  ]);
 });
 
 test("trait-coverage manifest covers all Thief traits", () => {

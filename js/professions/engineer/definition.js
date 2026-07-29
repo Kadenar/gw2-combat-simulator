@@ -1,3 +1,6 @@
+// Engine-facing Engineer contract. Keep browser persistence, rendering, and
+// build-to-simulation orchestration in app/app-definition.js.
+
 import { defineProfession } from "../../platform/engine/profession.js";
 import {
   createEngineerBuildDefaults,
@@ -14,6 +17,7 @@ import {
 } from "./mechanics/contract.js";
 import {
   engineerResolverEventHandlers,
+  engineerResolverEventReactions,
 } from "./resolver/event-handlers.js";
 import {
   createEngineerState,
@@ -45,9 +49,9 @@ export const engineerProfession = defineProfession({
   },
   resolverHooks: {
     eventHandlers: engineerResolverEventHandlers,
+    eventReactions: engineerResolverEventReactions,
   },
   ui: engineerUi,
 });
 
 export default engineerProfession;
-

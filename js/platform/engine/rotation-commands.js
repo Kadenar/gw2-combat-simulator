@@ -29,8 +29,8 @@ export function normalizeRotationCommand(entry, catalog = null) {
   }
   if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
     throw new TypeError(
-      "Rotation command must be a skill, wait, cooldown-reset, "
-      + "or combat-start entry.",
+      "Rotation command must be a skill, wait, cooldown-reset, " +
+        "or combat-start entry.",
     );
   }
 
@@ -57,10 +57,11 @@ export function normalizeRotationCommand(entry, catalog = null) {
       ),
     };
   }
-  const skillId = entry.skillId
-    ?? entry.id
-    ?? catalog?.skillsByName?.get(entry.name)?.id
-    ?? entry.name;
+  const skillId =
+    entry.skillId ??
+    entry.id ??
+    catalog?.skillsByName?.get(entry.name)?.id ??
+    entry.name;
   if (skillId === undefined || skillId === null || skillId === "") {
     throw new TypeError("Cast command requires skillId.");
   }
@@ -68,10 +69,16 @@ export function normalizeRotationCommand(entry, catalog = null) {
   const concurrent = entry.concurrentOffsetMs ?? entry.offset;
   const interrupt = entry.interruptAfterMs ?? entry.interruptMs;
   if (concurrent != null) {
-    command.concurrentOffsetMs = finiteMilliseconds(concurrent, "Concurrent offset");
+    command.concurrentOffsetMs = finiteMilliseconds(
+      concurrent,
+      "Concurrent offset",
+    );
   }
   if (interrupt != null) {
-    command.interruptAfterMs = finiteMilliseconds(interrupt, "Interrupt duration");
+    command.interruptAfterMs = finiteMilliseconds(
+      interrupt,
+      "Interrupt duration",
+    );
   }
   return command;
 }
@@ -80,7 +87,11 @@ export function normalizeRotationCommand(entry, catalog = null) {
  * Normalizes an entire rotation, optionally dropping malformed entries when the
  * caller is doing best-effort migration instead of strict scheduling.
  */
-export function normalizeRotation(rotation, catalog = null, { strict = false } = {}) {
+export function normalizeRotation(
+  rotation,
+  catalog = null,
+  { strict = false } = {},
+) {
   if (!Array.isArray(rotation)) {
     if (strict) throw new TypeError("Rotation must be an array.");
     return [];
@@ -115,7 +126,16 @@ export function toLegacyRotationEntry(command, catalog) {
   }
   const skill = catalog?.skillsById?.get(command.skillId);
   const entry = { name: skill?.name ?? command.skillId };
-  if (command.concurrentOffsetMs != null) entry.offset = command.concurrentOffsetMs;
-  if (command.interruptAfterMs != null) entry.interruptMs = command.interruptAfterMs;
+  if (
+    skill
+    && catalog.skills?.some(candidate =>
+      candidate.id !== skill.id && candidate.name === skill.name)
+  ) {
+    entry.skillId = command.skillId;
+  }
+  if (command.concurrentOffsetMs != null)
+    entry.offset = command.concurrentOffsetMs;
+  if (command.interruptAfterMs != null)
+    entry.interruptMs = command.interruptAfterMs;
   return entry;
 }

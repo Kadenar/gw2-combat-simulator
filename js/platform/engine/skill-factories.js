@@ -24,6 +24,8 @@
  * declaring the same group block one another.
  * @property {"castStart"|"castEnd"} [rechargeAnchor] Point from which recharge
  * begins. Defaults to cast completion.
+ * @property {number} [rechargeOffsetMs] Fixed delay from the recharge anchor
+ * before recharge begins.
  * @property {number} [cooldown] Recharge duration in seconds.
  * @property {number} [recharge] Legacy alias for `cooldown`.
  * @property {number} [ammo] Maximum charge count.

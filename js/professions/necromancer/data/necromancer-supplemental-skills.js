@@ -12,15 +12,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "slot": "Weapon_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 8,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 56916,
-    "modeAliasIds": []
+    "flipSkillId": 56916
   },
   {
     "id": 56916,
@@ -32,15 +28,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "slot": "Weapon_2",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 10588,
@@ -52,15 +44,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "slot": "Weapon_3",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 10594,
@@ -72,15 +60,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "slot": "Weapon_4",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 20,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 19504,
@@ -92,15 +76,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "slot": "Weapon_5",
     "specialization": "",
     "categories": [],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 25,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 10634,
@@ -114,15 +94,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "categories": [
       "Lich"
     ],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 0,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 10635,
@@ -136,15 +112,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "categories": [
       "Lich"
     ],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 8,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 10633,
@@ -158,15 +130,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "categories": [
       "Lich"
     ],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": 45780,
-    "modeAliasIds": []
+    "flipSkillId": 45780
   },
   {
     "id": 45780,
@@ -180,15 +148,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "categories": [
       "Lich"
     ],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 12,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 10636,
@@ -203,15 +167,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
       "Lich",
       "Minion"
     ],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 10632,
@@ -225,15 +185,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
     "categories": [
       "Lich"
     ],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 30,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 77003,
@@ -248,15 +204,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
       "Innervate",
       "Spirit"
     ],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 10,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 76732,
@@ -271,15 +223,11 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
       "Innervate",
       "Spirit"
     ],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 15,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   },
   {
     "id": 76602,
@@ -294,14 +242,10 @@ export const NECROMANCER_SUPPLEMENTAL_SKILLS = Object.freeze([
       "Innervate",
       "Spirit"
     ],
-    "flags": [
-      "NoUnderwater"
-    ],
     "recharge": 25,
     "ammo": 0,
     "ammoRecharge": 0,
     "nextChainId": null,
-    "flipSkillId": null,
-    "modeAliasIds": []
+    "flipSkillId": null
   }
 ]);

@@ -2,16 +2,24 @@
   "profession": {
     "id": "Fixture",
     "skills": [
-      { "id": 20 },
-      { "id": 40 },
-      { "id": 50 }
+      {
+        "id": 20
+      },
+      {
+        "id": 40
+      }
     ],
-    "specializations": [2],
+    "specializations": [
+      2
+    ],
     "training": [
       {
         "name": "Elite",
         "track": [
-          { "type": "Skill", "skill_id": 40 }
+          {
+            "type": "Skill",
+            "skill_id": 40
+          }
         ]
       }
     ],
@@ -19,22 +27,16 @@
       "Sword": {
         "specialization": 2,
         "skills": [
-          { "id": 10 }
+          {
+            "id": 10
+          }
         ]
       },
       "Spear": {
         "skills": [
-          { "id": 30 }
-        ]
-      },
-      "Trident": {
-        "skills": [
-          { "id": 31 }
-        ]
-      },
-      "Speargun": {
-        "skills": [
-          { "id": 32 }
+          {
+            "id": 30
+          }
         ]
       }
     }
@@ -46,21 +48,93 @@
       "elite": true,
       "icon": "elite.png",
       "background": "elite-bg.png",
-      "minor_traits": [2],
-      "major_traits": [3, 4, 5, 6, 7, 8, 9, 10, 11]
+      "minor_traits": [
+        2
+      ],
+      "major_traits": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
     }
   ],
   "traits": [
-    { "id": 2, "name": "Trait 2", "slot": "Minor", "tier": 1, "order": 0 },
-    { "id": 3, "name": "Trait 3", "slot": "Major", "tier": 1, "order": 0 },
-    { "id": 4, "name": "Trait 4", "slot": "Major", "tier": 1, "order": 1 },
-    { "id": 5, "name": "Trait 5", "slot": "Major", "tier": 1, "order": 2 },
-    { "id": 6, "name": "Trait 6", "slot": "Major", "tier": 2, "order": 0 },
-    { "id": 7, "name": "Trait 7", "slot": "Major", "tier": 2, "order": 1 },
-    { "id": 8, "name": "Trait 8", "slot": "Major", "tier": 2, "order": 2 },
-    { "id": 9, "name": "Trait 9", "slot": "Major", "tier": 3, "order": 0 },
-    { "id": 10, "name": "Trait 10", "slot": "Major", "tier": 3, "order": 1 },
-    { "id": 11, "name": "Trait 11", "slot": "Major", "tier": 3, "order": 2 }
+    {
+      "id": 2,
+      "name": "Trait 2",
+      "slot": "Minor",
+      "tier": 1,
+      "order": 0
+    },
+    {
+      "id": 3,
+      "name": "Trait 3",
+      "slot": "Major",
+      "tier": 1,
+      "order": 0
+    },
+    {
+      "id": 4,
+      "name": "Trait 4",
+      "slot": "Major",
+      "tier": 1,
+      "order": 1
+    },
+    {
+      "id": 5,
+      "name": "Trait 5",
+      "slot": "Major",
+      "tier": 1,
+      "order": 2
+    },
+    {
+      "id": 6,
+      "name": "Trait 6",
+      "slot": "Major",
+      "tier": 2,
+      "order": 0
+    },
+    {
+      "id": 7,
+      "name": "Trait 7",
+      "slot": "Major",
+      "tier": 2,
+      "order": 1
+    },
+    {
+      "id": 8,
+      "name": "Trait 8",
+      "slot": "Major",
+      "tier": 2,
+      "order": 2
+    },
+    {
+      "id": 9,
+      "name": "Trait 9",
+      "slot": "Major",
+      "tier": 3,
+      "order": 0
+    },
+    {
+      "id": 10,
+      "name": "Trait 10",
+      "slot": "Major",
+      "tier": 3,
+      "order": 1
+    },
+    {
+      "id": 11,
+      "name": "Trait 11",
+      "slot": "Major",
+      "tier": 3,
+      "order": 2
+    }
   ],
   "skills": [
     {
@@ -68,7 +142,6 @@
       "name": "Chain",
       "type": "Weapon",
       "slot": "Weapon_1",
-      "flags": ["NoUnderwater"],
       "facts": [],
       "next_chain": 11
     },
@@ -77,7 +150,6 @@
       "name": "Chain Two",
       "type": "Weapon",
       "slot": "Weapon_1",
-      "flags": ["NoUnderwater"],
       "facts": [],
       "flip_skill": 12
     },
@@ -86,7 +158,6 @@
       "name": "Flip",
       "type": "Weapon",
       "slot": "Weapon_1",
-      "flags": ["NoUnderwater"],
       "facts": []
     },
     {
@@ -94,7 +165,6 @@
       "name": "Alias",
       "type": "Weapon",
       "slot": "Weapon_1",
-      "flags": ["NoUnderwater"],
       "facts": [],
       "flip_skill": 21
     },
@@ -103,7 +173,6 @@
       "name": "Alias",
       "type": "Weapon",
       "slot": "Weapon_1",
-      "flags": ["NoUnderwater"],
       "facts": []
     },
     {
@@ -111,23 +180,6 @@
       "name": "Land Spear",
       "type": "Weapon",
       "slot": "Weapon_1",
-      "flags": ["NoUnderwater"],
-      "facts": []
-    },
-    {
-      "id": 31,
-      "name": "Trident Attack",
-      "type": "Weapon",
-      "slot": "Weapon_1",
-      "flags": ["NoUnderwater"],
-      "facts": []
-    },
-    {
-      "id": 32,
-      "name": "Speargun Attack",
-      "type": "Weapon",
-      "slot": "Weapon_1",
-      "flags": ["NoUnderwater"],
       "facts": []
     },
     {
@@ -135,19 +187,15 @@
       "name": "Elite Skill",
       "type": "Utility",
       "slot": "Utility",
-      "flags": ["NoUnderwater"],
-      "categories": ["Fixture"],
+      "categories": [
+        "Fixture"
+      ],
       "facts": [
-        { "type": "Recharge", "value": 20 }
+        {
+          "type": "Recharge",
+          "value": 20
+        }
       ]
-    },
-    {
-      "id": 50,
-      "name": "Underwater",
-      "type": "Weapon",
-      "slot": "Weapon_1",
-      "flags": ["Underwater"],
-      "facts": []
     }
   ]
 }

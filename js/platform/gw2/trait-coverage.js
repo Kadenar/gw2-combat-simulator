@@ -1,6 +1,7 @@
 export const TRAIT_COVERAGE_STATUSES = Object.freeze({
   IMPLEMENTED: "implemented",
   OUT_OF_MODEL: "out-of-model",
+  PENDING: "pending",
 });
 
 const VALID_STATUSES = new Set(Object.values(TRAIT_COVERAGE_STATUSES));
@@ -10,7 +11,9 @@ function normalizedText(value) {
 }
 
 function comparableText(value) {
-  return normalizedText(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
+  return normalizedText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
 }
 
 function concreteReason(value) {
@@ -25,9 +28,10 @@ function concreteReason(value) {
 }
 
 function normalizeEffect(effect, entry, trait, index) {
-  const value = typeof effect === "string"
-    ? { description: effect, status: entry.status }
-    : { ...effect };
+  const value =
+    typeof effect === "string"
+      ? { description: effect, status: entry.status }
+      : { ...effect };
   const description = normalizedText(value.description);
   if (!description) {
     throw new TypeError(
@@ -47,11 +51,14 @@ function normalizeEffect(effect, entry, trait, index) {
   }
   const reason = normalizedText(value.reason || entry.reason);
   if (
-    status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL
-    && !concreteReason(reason)
+    (
+      status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL
+      || status === TRAIT_COVERAGE_STATUSES.PENDING
+    ) &&
+    !concreteReason(reason)
   ) {
     throw new TypeError(
-      `Trait ${trait.id} out-of-model effect ${index + 1} needs a concrete reason.`,
+      `Trait ${trait.id} ${status} effect ${index + 1} needs a concrete reason.`,
     );
   }
   return Object.freeze({
@@ -76,14 +83,14 @@ export function validateTraitCoverageManifest(
   if (!Array.isArray(manifest)) {
     throw new TypeError(`${professionId} trait coverage must be an array.`);
   }
-  const traitsById = new Map(
-    traits.map(trait => [Number(trait.id), trait]),
-  );
+  const traitsById = new Map(traits.map((trait) => [Number(trait.id), trait]));
   const coverageById = new Map();
 
   for (const rawEntry of manifest) {
     if (!rawEntry || typeof rawEntry !== "object") {
-      throw new TypeError(`${professionId} trait coverage entries must be objects.`);
+      throw new TypeError(
+        `${professionId} trait coverage entries must be objects.`,
+      );
     }
     const traitId = Number(rawEntry.traitId);
     const trait = traitsById.get(traitId);
@@ -111,14 +118,14 @@ export function validateTraitCoverageManifest(
       ? rawEntry.tests.map(normalizedText).filter(Boolean)
       : [];
     const effects = rawEntry.effects.map((effect, index) =>
-      normalizeEffect(effect, rawEntry, trait, index));
+      normalizeEffect(effect, rawEntry, trait, index),
+    );
     if (
-      (
-        rawEntry.status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED
-        || effects.some(effect =>
-          effect.status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED)
-      )
-      && tests.length === 0
+      (rawEntry.status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED ||
+        effects.some(
+          (effect) => effect.status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED,
+        )) &&
+      tests.length === 0
     ) {
       throw new TypeError(
         `${professionId} implemented trait ${traitId} needs a behavioral test reference.`,
@@ -126,25 +133,31 @@ export function validateTraitCoverageManifest(
     }
     const reason = normalizedText(rawEntry.reason);
     if (
-      rawEntry.status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL
-      && !concreteReason(reason)
+      (
+        rawEntry.status === TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL
+        || rawEntry.status === TRAIT_COVERAGE_STATUSES.PENDING
+      ) &&
+      !concreteReason(reason)
     ) {
       throw new TypeError(
-        `${professionId} out-of-model trait ${traitId} needs a concrete reason.`,
+        `${professionId} ${rawEntry.status} trait ${traitId} needs a concrete reason.`,
       );
     }
-    coverageById.set(traitId, Object.freeze({
+    coverageById.set(
       traitId,
-      status: rawEntry.status,
-      effects: Object.freeze(effects),
-      tests: Object.freeze(tests),
-      reason: reason || null,
-    }));
+      Object.freeze({
+        traitId,
+        status: rawEntry.status,
+        effects: Object.freeze(effects),
+        tests: Object.freeze(tests),
+        reason: reason || null,
+      }),
+    );
   }
 
   const missing = traits
-    .filter(trait => !coverageById.has(Number(trait.id)))
-    .map(trait => `${trait.id} (${trait.name})`);
+    .filter((trait) => !coverageById.has(Number(trait.id)))
+    .map((trait) => `${trait.id} (${trait.name})`);
   if (missing.length) {
     throw new TypeError(
       `${professionId} trait coverage is missing: ${missing.join(", ")}.`,

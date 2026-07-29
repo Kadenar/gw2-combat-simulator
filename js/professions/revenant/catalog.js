@@ -12,31 +12,17 @@ import {
   REVENANT_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
 import {
-  REVENANT_WIKI_RESEARCH_BY_ID,
-  revenantSupplementalSkill,
-} from "./mechanics/wiki-mechanics.js";
-import {
   revenantAutoattackChains,
 } from "./mechanics/autoattack-chains.js";
+import {
+  revenantSkillHandlers,
+} from "./mechanics/specific/handlers.js";
 
-const researchMetadata = id => {
-  const research = REVENANT_WIKI_RESEARCH_BY_ID.get(id);
-  return research ? revenantSupplementalSkill(research, id) : {};
-};
-const generatedSource = SKILLS.map(skill => ({
-  ...skill,
-  ...researchMetadata(skill.id),
-  id: skill.id,
-  name: skill.name,
-  description: skill.description,
-  icon: skill.icon,
-  type: skill.type,
-  slot: skill.slot,
-  weapon: skill.weapon,
-  specialization: skill.specialization,
-  categories: skill.categories,
-  flags: skill.flags,
-}));
+const generatedSource = SKILLS
+  .filter(skill => skill.name !== "Duelist's Preparation")
+  .map(skill => ({
+    ...skill,
+  }));
 const allDeclared = [...generatedSource, ...REVENANT_SUPPLEMENTAL_SKILLS];
 const byId = new Map(allDeclared.map(skill => [skill.id, skill]));
 const chains = revenantAutoattackChains(allDeclared);
@@ -58,11 +44,18 @@ for (const skill of allDeclared) {
 }
 const normalize = skill => ({
   ...skill,
-  cooldown:
-    skill.ammo > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
+  simulatorExcluded: false,
+  ...(
+    skill.recharge == null && skill.ammoRecharge == null
+      ? {}
+      : {
+        cooldown:
+          skill.ammo > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
+      }
+  ),
   chainRoot: chainRootById.get(skill.id) ?? null,
   chainStep: chainStepById.get(skill.id) ?? null,
-  flipParentId: flipParentById.get(skill.id) ?? null,
+  flipParentId: flipParentById.get(skill.id) ?? skill.flipParentId ?? null,
 });
 const generated = generatedSource.map(skill => ({
   ...normalize(skill),
@@ -75,6 +68,7 @@ export const revenantCatalog = createCanonicalCatalog({
   generated,
   mechanics: REVENANT_SKILL_MECHANICS,
   extraSkills: [...supplemental, ...REVENANT_EXTRA_SKILLS],
+  skillHandlers: revenantSkillHandlers,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,
   weapons: [
@@ -105,4 +99,3 @@ export const revenantCatalog = createCanonicalCatalog({
 
 export const REVENANT_SKILLS = revenantCatalog.skills;
 export const REVENANT_AUTOATTACK_CHAINS = chains;
-

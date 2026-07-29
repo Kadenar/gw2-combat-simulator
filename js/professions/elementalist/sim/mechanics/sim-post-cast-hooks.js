@@ -68,7 +68,10 @@ export function applyGenericPostCastHooks(ctx, sk, { key, end }) {
     if (S._hasArcaneLightning && sk.type === 'Arcane') {
         ctx.refreshArcaneLightningBuff(end);
         if (sk.name === 'Arcane Brilliance') ctx.trackEffect('Protection', 1, 3.5, end);
-        else if (sk.name === 'Arcane Wave') ctx.trackEffect('Immobilize', 1, 2, end);
+        else if (sk.name === 'Arcane Wave') {
+            ctx.trackEffect('Immobilize', 1, 2, end);
+            ctx.triggerShackles(end, sk.name);
+        }
         else if (sk.name === 'Arcane Blast') ctx.trackEffect('Blindness', 1, 5, end);
         else if (sk.name === 'Arcane Echo') ctx.trackEffect('Quickness', 1, 4, end);
     }

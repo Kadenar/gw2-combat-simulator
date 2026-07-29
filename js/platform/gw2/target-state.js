@@ -48,8 +48,10 @@ export function canonicalTargetConditionName(value) {
   const text = String(value || "").trim();
   if (!text) return "";
   const normalized = text.toLowerCase();
-  return CONDITION_ALIASES[normalized]
-    || normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  return (
+    CONDITION_ALIASES[normalized] ||
+    normalized.charAt(0).toUpperCase() + normalized.slice(1)
+  );
 }
 
 /**
@@ -71,9 +73,9 @@ function configuredConditionValue(config, name) {
   if (Object.hasOwn(conditions, canonicalName)) {
     return conditions[canonicalName];
   }
-  const entry = Object.entries(conditions)
-    .find(([condition]) =>
-      canonicalTargetConditionName(condition) === canonicalName);
+  const entry = Object.entries(conditions).find(
+    ([condition]) => canonicalTargetConditionName(condition) === canonicalName,
+  );
   if (entry) return entry[1];
 
   return 0;
@@ -110,11 +112,7 @@ function activeRuntimeStackWeight(stack, at) {
   const appliedAt = Number(stack?.appliedAt ?? -Infinity);
   const expiresAt = Number(stack?.expiresAt ?? Infinity);
   const removedAt = Number(stack?.removedAt ?? Infinity);
-  return (
-    appliedAt <= at
-    && expiresAt > at
-    && removedAt > at
-  )
+  return appliedAt <= at && expiresAt > at && removedAt > at
     ? Math.max(0, Number(stack?.weight ?? stack?.stacks ?? 0))
     : 0;
 }
@@ -145,8 +143,8 @@ export function runtimeTargetConditionStacks(runtime, name, at) {
  */
 export function targetConditionStacks(config, name, at, runtime = null) {
   return (
-    permanentTargetConditionStacks(config, name)
-    + runtimeTargetConditionStacks(runtime, name, Number(at || 0))
+    permanentTargetConditionStacks(config, name) +
+    runtimeTargetConditionStacks(runtime, name, Number(at || 0))
   );
 }
 

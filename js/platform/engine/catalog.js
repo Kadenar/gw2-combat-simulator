@@ -59,6 +59,8 @@ const EFFECT_FIELDS = new Set([
 const EFFECT_METADATA_FIELDS = new Set([
   "controlKind",
   "duration",
+  "breakbar",
+  "bonusDefianceBreak",
   "damageKind",
   "extendsResolutionHorizon",
   "flatDamage",
@@ -524,9 +526,16 @@ export function createCanonicalCatalog({
         + `"${merged.rechargeAnchor}".`,
       );
     }
+    const rechargeOffsetMs = Number(merged.rechargeOffsetMs ?? 0);
+    if (!(rechargeOffsetMs >= 0) || !Number.isFinite(rechargeOffsetMs)) {
+      throw new TypeError(
+        `Skill ${id} requires a non-negative finite rechargeOffsetMs.`,
+      );
+    }
     const skill = {
       ...merged,
       castTimeMs,
+      ...(rechargeOffsetMs ? { rechargeOffsetMs } : {}),
       ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
       lockouts: normalizeLockouts(merged.lockouts, id),
     };
