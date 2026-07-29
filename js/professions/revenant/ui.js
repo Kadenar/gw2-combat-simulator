@@ -12,6 +12,9 @@ import {
 import {
   isBandTogetherReady,
 } from "./mechanics/specific/assassin-renegade.js";
+import {
+  REVENANT_HANDLER_MECHANICS,
+} from "./mechanics/handler-mechanics.js";
 
 /**
  * Revenant adapter for the shared simulator UI.
@@ -80,14 +83,6 @@ const PROFESSION_NAMES = Object.freeze({
   Vindicator: ["Alliance Tactics", "Energy Meld"],
   Conduit: ["Cosmic Wisdom"],
 });
-const CONSUMES = [
-  "Infuse Light",
-  "Burst of Strength",
-  "Elemental Blast",
-  "Gaze of Darkness",
-  "Chaotic Release",
-  "True Nature",
-];
 const KURZICK = [
   "Selfless Spirit",
   "Battle Dance",
@@ -149,11 +144,20 @@ export const revenantUi = Object.freeze({
         REVENANT_RELEASE_POTENTIAL_BY_LEGEND[activeLegendFrom(context)];
       if (releasePotential) professionNames.unshift(releasePotential);
     }
+    const trueNatureId =
+      REVENANT_HANDLER_MECHANICS.upkeep.trueNatureConsumeByLegendId[
+        activeLegendFrom(context)
+      ];
     const groups = [
       {
         id: "revenant-profession",
         label: "F",
-        skillIds: ids(professionNames),
+        skillIds: ids(professionNames).map((skillId) =>
+          skillId === SKILL.FACET_OF_NATURE &&
+          state.availableFlips?.[trueNatureId]
+            ? trueNatureId
+            : skillId
+        ),
         skillEntries: legendBars.map((bar) => ({
           skillId: -4,
           displayName: bar.compactLabel,
@@ -165,21 +169,6 @@ export const revenantUi = Object.freeze({
         resourceAnchor: true,
       },
     ];
-    const availableConsumes = CONSUMES.flatMap((name) =>
-      revenantCatalog.skills
-        .filter(
-          (skill) => skill.name === name && state.availableFlips?.[skill.id],
-        )
-        .map((skill) => skill.id),
-    );
-    if (availableConsumes.length) {
-      groups.push({
-        id: "revenant-facet-consumes",
-        label: "Flip",
-        skillIds: availableConsumes,
-        color: "#d06c72",
-      });
-    }
     if (
       state.activeLegendId === LEGEND.ALLIANCE &&
       state.allianceSide === "kurzick"
@@ -243,6 +232,7 @@ export const revenantUi = Object.freeze({
   },
   resourceViews: (context) => {
     const state = stateFrom(context);
+    const specialization = specializationFrom(context);
     const views = [
       {
         id: "energy",
@@ -260,7 +250,22 @@ export const revenantUi = Object.freeze({
         statusLabel: "Current",
       },
     ];
-    if (specializationFrom(context) === "Conduit") {
+    if (specialization === "Vindicator") {
+      views.push({
+        id: "endurance",
+        singular: "endurance",
+        plural: "endurance",
+        maximum: Number(state.maximumEndurance || 100),
+        value: Number(state.endurance ?? 100),
+        canStart: false,
+        step: 1,
+        displayMode: "bar",
+        pipStyle: "endurance",
+        shortLabel: "End",
+        statusLabel: "Current",
+      });
+    }
+    if (specialization === "Conduit") {
       views.push({
         id: "affinity",
         singular: "affinity",

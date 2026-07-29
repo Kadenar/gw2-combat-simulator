@@ -42,7 +42,16 @@ const IMPLEMENTED = new Set([
   "Lasting Legacy",
   "Righteous Rebel",
   "Swift Termination",
+  "Reinforced Potency",
   "Elevated Compassion",
+  "Tenacious Ruin",
+  "Empire Divided",
+  "Leviathan Strength",
+  "Reaver's Curse",
+  "Angsiyan's Trust",
+  "Song of Arboreum",
+  "Forerunner of Death",
+  "Vassals of the Empire",
 ]);
 const reason =
   "This defensive, support, movement, healing, incoming-hit, or competitive-only effect does not change the deterministic single-target damage model.";

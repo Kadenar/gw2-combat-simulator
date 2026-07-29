@@ -5,6 +5,9 @@ import {
   REVENANT_SKILL_IDS as SKILL,
 } from "./data/ids.js";
 import { REVENANT_LEGEND_SPECIALIZATIONS } from "./legend-rules.js";
+import {
+  REVENANT_HANDLER_MECHANICS,
+} from "./mechanics/handler-mechanics.js";
 
 function id(name, legendId, preferredId = null) {
   const matches = revenantCatalog.skills.filter(
@@ -166,15 +169,30 @@ export const revenantLegendLoadout = Object.freeze({
       {};
     return baseRevenantLegendLoadout.paletteGroups(context).map((group) => ({
       ...group,
-      skillIds: group.skillIds.flatMap((skillId) =>
-        skillId === SKILL.IMPOSSIBLE_ODDS &&
-        availableFlips[SKILL.RELINQUISH_POWER]
-          ? [skillId, SKILL.RELINQUISH_POWER]
-          : skillId === SKILL.CALL_TO_ANGUISH &&
-              availableFlips[SKILL.UNYIELDING_IMPACT]
-            ? [skillId, SKILL.UNYIELDING_IMPACT]
-            : [skillId],
-      ),
+      skillIds: group.skillIds.flatMap((skillId) => {
+        const heraldFlipId =
+          REVENANT_HANDLER_MECHANICS.upkeep
+            .facetConsumeBySkillId[skillId];
+        if (
+          Number.isFinite(heraldFlipId) &&
+          availableFlips[heraldFlipId]
+        ) {
+          return [heraldFlipId];
+        }
+        if (
+          skillId === SKILL.IMPOSSIBLE_ODDS &&
+          availableFlips[SKILL.RELINQUISH_POWER]
+        ) {
+          return [skillId, SKILL.RELINQUISH_POWER];
+        }
+        if (
+          skillId === SKILL.CALL_TO_ANGUISH &&
+          availableFlips[SKILL.UNYIELDING_IMPACT]
+        ) {
+          return [skillId, SKILL.UNYIELDING_IMPACT];
+        }
+        return [skillId];
+      }),
     }));
   },
 });

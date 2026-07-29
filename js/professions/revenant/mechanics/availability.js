@@ -7,7 +7,10 @@ import {
   REVENANT_SKILL_IDS as ID,
 } from "../data/ids.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "./handler-mechanics.js";
-import { effectiveRevenantEnergyCost } from "./specific/energy.js";
+import {
+  effectiveRevenantEnergyCost,
+  revenantEnduranceReadyAt,
+} from "./specific/energy.js";
 
 const LUXON = new Set([
   ID.SELFISH_SPIRIT,
@@ -136,12 +139,13 @@ export function revenantCastAvailability(context, skill) {
       specialization === "Vindicator"
         ? MECHANICS.endurance.vindicatorDodgeCost
         : MECHANICS.endurance.dodgeCost;
-    return state.endurance >= cost
+    return state.endurance + Number(context.epsilon || 0.0001) >= cost
       ? { ready: true }
       : deny(
           skill,
           "revenant.insufficient-endurance",
           `requires ${cost} endurance.`,
+          revenantEnduranceReadyAt(context, cost),
         );
   }
   if (skill.legendId && skill.legendId !== state.activeLegendId) {

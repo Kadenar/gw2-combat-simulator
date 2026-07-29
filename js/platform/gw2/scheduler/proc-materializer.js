@@ -124,6 +124,25 @@ export function createGw2TriggerMaterializer(
       skillWeapon: "Unequipped",
       noCrit: !proc.canCrit,
     });
+  const restoreEndurance = (context, cause, name, proc) => {
+    const profession = state.profession;
+    const maximum = Number(profession?.maximumEndurance);
+    const current = Number(profession?.endurance);
+    if (!Number.isFinite(maximum) || !Number.isFinite(current)) return;
+    const amount = Math.max(0, Number(proc.amount || 0));
+    profession.endurance = Math.min(maximum, current + amount);
+    profession.enduranceUpdatedAt = cause.at;
+    context.emitDerived(cause, {
+      type: "resource",
+      at: cause.at,
+      name: `Sigil of ${name} — endurance`,
+      resource: "endurance",
+      amount,
+      source: "Sigil",
+      sourceId: `sigil.${name.toLowerCase()}`,
+      actorType: "effect",
+    });
+  };
 
   const beforeExplicitCombatStart = (context, event) =>
     context.hasExplicitCombatStart &&
@@ -254,6 +273,8 @@ export function createGw2TriggerMaterializer(
       ) {
         emitStrike(context, event, name, proc);
         if (proc.condition) emitCondition(context, event, name, proc);
+      } else if (proc.effect === "endurance") {
+        restoreEndurance(context, event, name, proc);
       }
       emitProc(context, event, name, sourceSkill);
     }

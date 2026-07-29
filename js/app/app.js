@@ -25,6 +25,11 @@ import {
     assumptionControlsForSpecialization,
 } from './profession-assumptions.js';
 import {
+    mergeModifierContributions,
+    modifierContributionWorkerCount,
+    partitionModifierComparisons,
+} from './modifier-contributions.js';
+import {
     downloadJson,
     fetchJsonAsset,
     getBuildExportPayload,
@@ -83,6 +88,7 @@ const EFFECT_COLORS = {
     Confusion: '#b65db0',
     Poisoned: '#70a33e',
 };
+const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
 
 // Main application controller class
 // Maintains UI state, coordinates between UI and simulation engine
@@ -110,7 +116,7 @@ export class ProfessionApp {
         this.results = null;
         this.dragState = null;
         this.modifierContributionTimer = null;
-        this.modifierContributionWorker = null;
+        this.modifierContributionWorkers = new Set();
         this.modifierContributionRequestId = 0;
         this.defaultBuildPresets = [];
     }
@@ -128,9 +134,13 @@ export class ProfessionApp {
     // rebuildStatic: whether to rebuild trait/skill/attribute panels (false for gear rapid changes)
     // rebuildGear: whether to rebuild gear panel (false for rapid gear changes with autocomplete)
     changed(rebuildStatic = true, rebuildGear = rebuildStatic) {
+        const previousContributions = this.results?.contributions;
         this.normalizeSelectedSkills();
         this.adapter.recalculate(this);
         this.adapter.runSimulation(this);
+        if (Array.isArray(previousContributions)) {
+            this.results.contributions = previousContributions;
+        }
         this.scheduleModifierContributions();
         saveBuild(this.build, this.adapter);
         if (rebuildStatic) {
@@ -144,22 +154,38 @@ export class ProfessionApp {
     }
 
     // Debounced async calculation of per-modifier damage contributions.
-    // Cancels any in-flight worker/timer before starting a new one.
-    // Uses Web Worker when available so main thread stays responsive;
+    // Cancels any in-flight worker pool/timer before starting a new one.
+    // Uses pooled Web Workers when available so main thread stays responsive;
     // falls back to synchronous calculation in environments without Worker.
     scheduleModifierContributions() {
         const requestId = ++this.modifierContributionRequestId;
         clearTimeout(this.modifierContributionTimer);
         this.modifierContributionTimer = null;
-        this.modifierContributionWorker?.terminate();
-        this.modifierContributionWorker = null;
+        for (const worker of this.modifierContributionWorkers) {
+            worker.terminate();
+        }
+        this.modifierContributionWorkers.clear();
 
-        if (!this.build.rotation.length || !this.results) return;
+        if (!this.build.rotation.length || !this.results) {
+            if (this.results) this.results.modifierContributionsStale = false;
+            return;
+        }
 
+        this.results.modifierContributionsStale = true;
         const request = this.adapter.modifierContributionRequest(this);
         const applyContributions = contributions => {
             if (requestId !== this.modifierContributionRequestId || !this.results) return;
             this.results.contributions = contributions;
+            this.results.modifierContributionsStale = false;
+            this.adapter.renderResults(this);
+        };
+        const failContributions = () => {
+            if (requestId !== this.modifierContributionRequestId || !this.results) return;
+            for (const worker of this.modifierContributionWorkers) {
+                worker.terminate();
+            }
+            this.modifierContributionWorkers.clear();
+            this.results.modifierContributionsStale = false;
             this.adapter.renderResults(this);
         };
 
@@ -168,25 +194,65 @@ export class ProfessionApp {
             if (requestId !== this.modifierContributionRequestId) return;
 
             if (typeof Worker === 'function') {
-                const worker = new Worker(
-                    new URL('./modifier-contributions-worker.js', import.meta.url),
-                    { type: 'module' },
+                const workerCount = modifierContributionWorkerCount(
+                    request.comparisons.length,
+                    globalThis.navigator?.hardwareConcurrency,
                 );
-                this.modifierContributionWorker = worker;
-                worker.addEventListener('message', ({ data }) => {
-                    if (data.requestId !== requestId) return;
-                    worker.terminate();
-                    if (this.modifierContributionWorker === worker) {
-                        this.modifierContributionWorker = null;
-                    }
-                    if (!data.error) applyContributions(data.contributions);
-                });
-                worker.postMessage({ requestId, request });
+                const batches = partitionModifierComparisons(
+                    request.comparisons,
+                    workerCount,
+                );
+                if (!batches.length) {
+                    applyContributions([]);
+                    return;
+                }
+                const completed = [];
+                let failed = false;
+                for (const comparisons of batches) {
+                    const worker = new Worker(
+                        new URL('./modifier-contributions-worker.js', import.meta.url),
+                        { type: 'module' },
+                    );
+                    this.modifierContributionWorkers.add(worker);
+                    const finishWorker = () => {
+                        worker.terminate();
+                        this.modifierContributionWorkers.delete(worker);
+                    };
+                    worker.addEventListener('message', ({ data }) => {
+                        if (
+                            failed
+                            || data.requestId !== requestId
+                            || requestId !== this.modifierContributionRequestId
+                        ) return;
+                        finishWorker();
+                        if (data.error) {
+                            failed = true;
+                            failContributions();
+                            return;
+                        }
+                        completed.push(data.contributions || []);
+                        if (completed.length === batches.length) {
+                            applyContributions(
+                                mergeModifierContributions(completed),
+                            );
+                        }
+                    });
+                    worker.addEventListener('error', () => {
+                        if (failed) return;
+                        failed = true;
+                        finishWorker();
+                        failContributions();
+                    }, { once: true });
+                    worker.postMessage({
+                        requestId,
+                        request: { ...request, comparisons },
+                    });
+                }
                 return;
             }
 
             applyContributions(this.adapter.calculateModifierContributions(request));
-        }, 100);
+        }, MODIFIER_CONTRIBUTION_DEBOUNCE_MS);
     }
 
     // Ensures selected skills are valid for current elite specialization

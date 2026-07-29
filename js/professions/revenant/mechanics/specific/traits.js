@@ -11,14 +11,8 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
-import {
-  hasRevenantTrait,
-  revenantConduitFormIsActive,
-} from "../../state.js";
-import {
-  applyCosmicWisdomAfterCast,
-  emitRevenantBoon,
-} from "./conduit.js";
+import { hasRevenantTrait, revenantConduitFormIsActive } from "../../state.js";
+import { applyCosmicWisdomAfterCast, emitRevenantBoon } from "./conduit.js";
 import { revenantCombatActive } from "./legend.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
@@ -293,6 +287,12 @@ export function initializeRevenantTraits(context) {
 /** Applies active trait/state cast-speed changes to a base duration. */
 export function modifyRevenantCastDuration(context, duration) {
   if (
+    context.skill?.id === ID.DODGE &&
+    context.config.specialization === "Vindicator"
+  ) {
+    return MECHANICS.endurance.vindicatorDodgeCastTime;
+  }
+  if (
     context.skill?.handlerId === "revenant.band-together" &&
     isBandTogetherReady(context.state.profession, context.start)
   )
@@ -310,6 +310,13 @@ export function modifyRevenantCastDuration(context, duration) {
 /** Applies trait-specific recharge multipliers after shared Alacrity policy. */
 export function modifyRevenantRechargeDuration(context, duration) {
   const skill = context.skill;
+  if (
+    [ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058].includes(skill?.id) &&
+    hasRevenantTrait(context.config, TRAIT.REAVERS_CURSE)
+  ) {
+    return duration *
+      MECHANICS.endurance.energyMeld.reaversCurseRechargeMultiplier;
+  }
   if ([ID.SWAP_LEGENDS, ID.SWAP_WEAPONS].includes(skill?.id)) {
     const base = Math.max(
       0,
@@ -325,8 +332,9 @@ export function modifyRevenantRechargeDuration(context, duration) {
     return base;
   }
   if (
-    [ID.BANISH_ENCHANTMENT, ID.BANISH_ENCHANTMENT_ID_78587]
-      .includes(skill?.id) &&
+    [ID.BANISH_ENCHANTMENT, ID.BANISH_ENCHANTMENT_ID_78587].includes(
+      skill?.id,
+    ) &&
     revenantConduitFormIsActive(
       context.state.profession,
       "Mesmer",
@@ -336,8 +344,7 @@ export function modifyRevenantRechargeDuration(context, duration) {
       context.start ?? context.at,
     )
   ) {
-    const base = MECHANICS.conduit.formOfTheMesmer
-      .banishEnchantmentCooldown;
+    const base = MECHANICS.conduit.formOfTheMesmer.banishEnchantmentCooldown;
     const rate = context.hasBuff?.("alacrity", context.at)
       ? Number(context.config.alacrityRechargeRate || 1.25)
       : 1;

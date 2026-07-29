@@ -115,11 +115,15 @@ function emitSongOfTheMists(context, swapSkill, legendId, at) {
       name: `${profile.name} — ${label}`,
     });
   }
-  if (profile.endurance) {
+  const endurance =
+    Number(profile.enduranceOnCast || 0) +
+    Number(profile.endurancePerHit || 0) *
+      Math.max(0, Number(profile.hits || 1));
+  if (endurance > 0) {
     const state = context.state.profession;
     state.endurance = Math.min(
       state.maximumEndurance,
-      Number(state.endurance || 0) + profile.endurance,
+      Number(state.endurance || 0) + endurance,
     );
     state.enduranceUpdatedAt = at;
   }

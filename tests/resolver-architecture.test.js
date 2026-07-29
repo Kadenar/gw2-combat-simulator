@@ -7,7 +7,11 @@ import {
 import {
   resolveTestGw2Stream,
 } from "./helpers/gw2-resolver.js";
-import { enqueueOrdered } from "../js/platform/engine/event-queue.js";
+import {
+  createEventQueue,
+  enqueueOrdered,
+  takeNextEvent,
+} from "../js/platform/engine/event-queue.js";
 import {
   buildScheduledEventStream,
 } from "../js/platform/engine/scheduled-event-stream.js";
@@ -212,6 +216,31 @@ test("same-time queued events retain stable insertion order", () => {
     "priority",
     "first",
     "second",
+  ]);
+});
+
+test("heap event queues preserve priority and stable insertion order", () => {
+  const queue = createEventQueue([
+    { type: "damage", at: 2, name: "later" },
+    { type: "damage", at: 1, name: "first" },
+    { type: "damage", at: 1, name: "second" },
+  ]);
+  enqueueOrdered(queue, {
+    type: "damage",
+    at: 1,
+    priority: -1,
+    name: "priority",
+  });
+  enqueueOrdered(queue, { type: "damage", at: 1, name: "third" });
+
+  const names = [];
+  while (queue.length) names.push(takeNextEvent(queue).name);
+  assert.deepEqual(names, [
+    "priority",
+    "first",
+    "second",
+    "third",
+    "later",
   ]);
 });
 

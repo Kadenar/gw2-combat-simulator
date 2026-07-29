@@ -10,10 +10,7 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
-import {
-  hasRevenantTrait,
-  revenantConduitFormIsActive,
-} from "../../state.js";
+import { hasRevenantTrait, revenantConduitFormIsActive } from "../../state.js";
 import { gainConduitAffinity } from "./conduit.js";
 import { emitRevenantState } from "./shared.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
@@ -36,6 +33,30 @@ function regenerateRevenantEnergy(context, state, from, target, rate) {
   return Math.min(maximum, state.energy + (target - from) * rate);
 }
 
+export function revenantEnduranceRegenerationRate(
+  context,
+  at = Number(context.start ?? context.state?.time ?? 0),
+) {
+  const vigorActive = Boolean(
+    context.config?.boons?.vigor ||
+    context.hasBuff?.("vigor", at),
+  );
+  return Math.min(
+    10,
+    MECHANICS.endurance.regenerationPerSecond *
+      (vigorActive ? MECHANICS.endurance.vigorRegenerationMultiplier : 1),
+  );
+}
+
+export function revenantEnduranceReadyAt(context, cost) {
+  const current = Number(context.state.profession.endurance || 0);
+  const required = Math.max(0, Number(cost || 0));
+  const missing = required - current;
+  if (missing <= Number(context.epsilon || 0.0001)) return context.start;
+  const rate = revenantEnduranceRegenerationRate(context, context.start);
+  return rate > 0 ? context.start + missing / rate : null;
+}
+
 /**
  * Advances Energy, endurance, upkeep drain, starvation, and timed Conduit
  * state to the scheduler's target timestamp.
@@ -46,10 +67,13 @@ export function advanceRevenantEnergy(context, target) {
   const from = Number(state.energyUpdatedAt || 0);
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   if (target > enduranceFrom) {
+    const enduranceRate = revenantEnduranceRegenerationRate(
+      context,
+      (enduranceFrom + target) / 2,
+    );
     state.endurance = Math.min(
       state.maximumEndurance,
-      state.endurance +
-        (target - enduranceFrom) * MECHANICS.endurance.regenerationPerSecond,
+      state.endurance + (target - enduranceFrom) * enduranceRate,
     );
     state.enduranceUpdatedAt = target;
   }
@@ -106,21 +130,27 @@ export function effectiveRevenantEnergyCost(context, skill) {
   const state =
     context.state?.profession || context.professionState || context.state || {};
   const active = (state.activeUpkeeps || []).some(
-    upkeep => upkeep.skillId === skill.id,
+    (upkeep) => upkeep.skillId === skill.id,
   );
   if (active) return 0;
   if (
+    [ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058].includes(skill.id) &&
+    hasRevenantTrait(context.config, TRAIT.ANGSIYANS_TRUST)
+  ) {
+    return 0;
+  }
+  if (
     skill.handlerId === "revenant.beguiling-haze" &&
     Number(state.beguilingHazeCharges || 0) > 0
-  ) return 0;
-  const at =
-    context.start ?? context.time ?? context.state?.time ?? 0;
+  )
+    return 0;
+  const at = context.start ?? context.time ?? context.state?.time ?? 0;
   if (revenantConduitFormIsActive(state, "Mesmer", at)) {
     const profile = MECHANICS.conduit.formOfTheMesmer;
     if (
-      [ID.BANISH_ENCHANTMENT, ID.BANISH_ENCHANTMENT_ID_78587]
-        .includes(skill.id)
-    ) return profile.banishEnchantmentEnergyCost;
+      [ID.BANISH_ENCHANTMENT, ID.BANISH_ENCHANTMENT_ID_78587].includes(skill.id)
+    )
+      return profile.banishEnchantmentEnergyCost;
     if (skill.id === ID.CALL_TO_ANGUISH) {
       return profile.callToAnguishEnergyCost;
     }

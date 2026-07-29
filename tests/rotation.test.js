@@ -22,6 +22,7 @@ import {
     continuumEndTimelineMarkers,
     formatResultTimelineTime,
     resultSummaryMetrics,
+    rotationWarningItems,
     shatterResourceSpends,
     simulationEventLogCsv,
     simulationEventLogRows,
@@ -4161,6 +4162,27 @@ test('timeline retains simulation time while DPS starts on first damage without 
     assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);
     assert.equal(formatResultTimelineTime(result.steps[0].start, result), '0.00s');
     assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.88s');
+});
+
+test('rotation warnings use timeline-relative timestamps', () => {
+    const invalidReason = 'Skill is unavailable.';
+    const result = {
+        events: [{ type: 'combat_start', at: 2 }],
+        steps: [{
+            invalid: true,
+            invalidReason,
+            start: 3500,
+        }],
+        warnings: [
+            invalidReason,
+            'Bladesong skipped at 4.25s: no blades.',
+        ],
+    };
+
+    assert.deepEqual(rotationWarningItems(result), [
+        { message: invalidReason, time: '1.50s' },
+        { message: 'Bladesong skipped: no blades.', time: '2.25s' },
+    ]);
 });
 
 test('a delayed Combat Start suppresses earlier damage without moving display zero', () => {

@@ -52,6 +52,38 @@ export function sortResultRows(rows, columns, column, direction) {
     : String(right[column] ?? "").localeCompare(String(left[column] ?? "")));
 }
 
+export function mountRotationWarnings(
+  container,
+  warnings = [],
+  { open = false } = {},
+) {
+  if (!container) return null;
+  const items = (warnings || [])
+    .filter(warning => warning != null)
+    .map(warning => typeof warning === "object"
+      ? {
+          message: String(warning.message ?? warning.text ?? ""),
+          time: warning.time == null ? "" : String(warning.time),
+        }
+      : { message: String(warning), time: "" });
+  if (!items.length) {
+    container.innerHTML = "";
+    return null;
+  }
+
+  container.innerHTML = `<details class="rotation-warnings-wrap"${open ? " open" : ""}>
+    <summary>Warnings (${items.length})</summary>
+    <ul class="rotation-warnings-content">
+      ${items.map(warning => `<li>${
+        warning.time
+          ? `<span class="rotation-warning-time">${escapeHtml(warning.time)}</span>`
+          : ""
+      }<span class="rotation-warning-message">${escapeHtml(warning.message)}</span></li>`).join("")}
+    </ul>
+  </details>`;
+  return container.querySelector?.(".rotation-warnings-wrap") || null;
+}
+
 const number = value => Math.round(Number(value || 0)).toLocaleString();
 
 function signedInteger(value) {
@@ -103,7 +135,7 @@ export function mountRotationResults(container, model = {}, options = {}) {
   const skillColumns = model.skillColumns || [];
   const conditions = model.conditions || [];
   const contributions = model.contributions || [];
-  const warnings = model.warnings || [];
+  const contributionsStale = model.contributionsStale === true;
   let sortState = {
     column: options.sortState?.column || null,
     direction: options.sortState?.direction || null,
@@ -168,9 +200,14 @@ export function mountRotationResults(container, model = {}, options = {}) {
     </div>` : ""}
   </div>` : ""}
   ${model.chartSeries ? '<div data-role="result-charts"></div>' : ""}
-  ${contributions.length ? `<div class="res-contributions">
-    <h4>Modifier Contributions</h4>
-    <div class="contrib-table">
+  ${contributions.length || contributionsStale ? `<div class="res-contributions">
+    <h4>
+      <span>Modifier Contributions</span>
+      ${contributionsStale
+        ? '<span class="contrib-status">Recalculating</span>'
+        : ""}
+    </h4>
+    ${contributions.length ? `<div class="contrib-table">
       <div class="contrib-hdr">
         <span>Modifier</span><span>DPS Increase</span><span>% Increase</span>
       </div>
@@ -185,9 +222,8 @@ export function mountRotationResults(container, model = {}, options = {}) {
           <span class="contrib-pct">${signedFixed(contribution.pctIncrease)}%</span>
         </div>`;
       }).join("")}
-    </div>
-  </div>` : ""}
-  ${warnings.length ? `<div class="sim-warnings">${warnings.map(escapeHtml).join("<br>")}</div>` : ""}`;
+    </div>` : '<div class="contrib-pending">Calculating modifier contributions…</div>'}
+  </div>` : ""}`;
 
   const renderSortedRows = () => {
     const sorted = sortResultRows(

@@ -15,14 +15,14 @@ const CRUSHING_SWAP_TASK = "revenant.crushing-abyss-weapon-swap";
 
 function activeCrushingAbyss(state, at) {
   state.crushingAbyss = (state.crushingAbyss || []).filter(
-    expiresAt => Number(expiresAt) > at,
+    (expiresAt) => Number(expiresAt) > at,
   );
   return state.crushingAbyss;
 }
 
 function crushingAbyssStacksAt(state, at) {
   return (state.crushingAbyss || []).filter(
-    expiresAt => Number(expiresAt) > at,
+    (expiresAt) => Number(expiresAt) > at,
   ).length;
 }
 
@@ -33,8 +33,10 @@ function weaponSet(config, set) {
 }
 
 function sameWeaponSet(config, first, second) {
-  return JSON.stringify(weaponSet(config, first)) ===
-    JSON.stringify(weaponSet(config, second));
+  return (
+    JSON.stringify(weaponSet(config, first)) ===
+    JSON.stringify(weaponSet(config, second))
+  );
 }
 
 function emitAbyssalRazePackets(
@@ -62,9 +64,7 @@ function emitAbyssalRazePackets(
   context.emit({
     ...common,
     type: "damage",
-    name: triggeredBy
-      ? "Abyssal Raze — Crushing Abyss"
-      : "Abyssal Raze",
+    name: triggeredBy ? "Abyssal Raze — Crushing Abyss" : "Abyssal Raze",
     coefficient,
     hits: 1,
     hitIndex: 1,
@@ -85,8 +85,7 @@ function emitAbyssalRazePackets(
       type: "condition",
       name: "Abyssal Raze — Crushing Abyss Torment",
       condition: "Torment",
-      stacks:
-        profile.tormentStacksPerCrushingAbyss * crushingAbyssStacks,
+      stacks: profile.tormentStacksPerCrushingAbyss * crushingAbyssStacks,
       duration: profile.empoweredTormentDuration,
       crushingAbyssStacks,
     });
@@ -96,10 +95,7 @@ function emitAbyssalRazePackets(
 /** Replaces Abyssal Raze's packets with its current stack-scaled profile. */
 export function castAbyssalRaze(context, skill) {
   const at = context.effectiveEnd;
-  const stacks = crushingAbyssStacksAt(
-    context.state.profession,
-    at,
-  );
+  const stacks = crushingAbyssStacksAt(context.state.profession, at);
   emitAbyssalRazePackets(context, skill, at, stacks);
   context.tasks.schedule({
     id: `${CRUSHING_GAIN_TASK}:${context.reservationId}`,
@@ -114,18 +110,10 @@ export function castAbyssalRaze(context, skill) {
  * skill. Scheduling at impact preserves recharge behavior for interrupted
  * casts and delayed pulses.
  */
-export function scheduleAbyssalRazeRechargeReduction(
-  context,
-  skill,
-  event,
-) {
-  const seconds =
-    MECHANICS.spear.rechargeReductionBySkillId[skill.id] || 0;
-  if (
-    !seconds ||
-    event.type !== "damage" ||
-    Number(event.hitIndex || 1) !== 1
-  ) return;
+export function scheduleAbyssalRazeRechargeReduction(context, skill, event) {
+  const seconds = MECHANICS.spear.rechargeReductionBySkillId[skill.id] || 0;
+  if (!seconds || event.type !== "damage" || Number(event.hitIndex || 1) !== 1)
+    return;
   context.tasks.schedule({
     id: `${RECHARGE_TASK}:${event.__order}`,
     type: RECHARGE_TASK,
@@ -144,16 +132,13 @@ export function handleAbyssalRazeRechargeReduction(context, task) {
   const sourceSkill = context.catalog.skillsById.get(
     task.payload.sourceSkillId,
   );
-  const { ammo, reducedBy } =
-    context.cooldownController.reduceAmmoRecharge(
-      skill,
-      task.payload.seconds,
-      task.at,
-    );
-  if (!ammo || reducedBy <= 0) return;
-  const cooldownReduction = Number(
-    reducedBy.toFixed(3),
+  const { ammo, reducedBy } = context.cooldownController.reduceAmmoRecharge(
+    skill,
+    task.payload.seconds,
+    task.at,
   );
+  if (!ammo || reducedBy <= 0) return;
+  const cooldownReduction = Number(reducedBy.toFixed(3));
   context.emit({
     type: "proc",
     procType: "skill",
