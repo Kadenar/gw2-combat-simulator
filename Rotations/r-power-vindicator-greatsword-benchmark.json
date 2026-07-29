@@ -1,0 +1,447 @@
+{
+  "rotation": [
+    "Swap Weapons",
+    "Spear of Archemorus",
+    "Eternity's Requiem",
+    "Mist Unleashed",
+    {
+      "name": "__combat_start",
+      "offset": 320
+    },
+    "__cooldown_reset",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Dodge",
+    {
+      "name": "Mist Swing",
+      "skillId": 62913,
+      "offset": 41
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 397
+    },
+    "Swap Weapons",
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    "Preparation Thrust",
+    "Dodge",
+    "Preparation Thrust",
+    {
+      "name": "Impossible Odds",
+      "offset": 201
+    },
+    "Shackling Wave",
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    "Preparation Thrust",
+    "Dodge",
+    "Energy Meld",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    "Preparation Thrust",
+    "Dodge",
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    "Swap Weapons",
+    {
+      "name": "Swap Legends",
+      "offset": 78
+    },
+    "Eternity's Requiem",
+    "Spear of Archemorus",
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    "Mist Swing",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 123
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    "Mist Unleashed",
+    "Mist Swing",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 39
+    },
+    "Energy Meld",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    "Nomad's Advance",
+    "Mist Unleashed",
+    "Mist Swing",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 38
+    },
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    "Mist Unleashed",
+    "Mist Swing",
+    "Mist Slash",
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    "Spear of Archemorus",
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    "Arcing Mists",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 121
+    },
+    "Energy Meld",
+    "Eternity's Requiem",
+    {
+      "name": "Swap Legends",
+      "offset": 600
+    },
+    "Swap Weapons",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    "Preparation Thrust",
+    "Dodge",
+    "Shackling Wave",
+    {
+      "name": "Impossible Odds",
+      "offset": 641
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    "Preparation Thrust",
+    "Dodge",
+    "Energy Meld",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    "Preparation Thrust",
+    "Dodge",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Swap Weapons",
+    {
+      "name": "Swap Legends",
+      "offset": 165
+    },
+    "Eternity's Requiem",
+    "Spear of Archemorus",
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    "Mist Swing",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 117
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    "Mist Unleashed",
+    "Mist Swing",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 38
+    },
+    "Energy Meld",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    "Nomad's Advance",
+    "Mist Unleashed",
+    "Mist Swing",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 38
+    },
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    "Mist Unleashed",
+    "Mist Swing",
+    "Mist Slash",
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    "Spear of Archemorus",
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    "Arcing Mists",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 160
+    },
+    "Energy Meld",
+    "Eternity's Requiem",
+    "Mist Unleashed",
+    {
+      "name": "Swap Legends",
+      "offset": 485
+    },
+    "Swap Weapons",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    "Preparation Thrust",
+    "Dodge",
+    "Shackling Wave",
+    {
+      "name": "Impossible Odds",
+      "offset": 684
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    "Preparation Thrust",
+    "Dodge",
+    "Energy Meld",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    "Preparation Thrust",
+    "Dodge",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Swap Weapons",
+    {
+      "name": "Swap Legends",
+      "offset": 81
+    },
+    "Eternity's Requiem",
+    "Spear of Archemorus",
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    "Mist Swing",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 122
+    },
+    {
+      "name": "Phantom's Onslaught",
+      "skillId": 62895
+    },
+    "Mist Unleashed",
+    "Mist Swing",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 42
+    },
+    "Energy Meld",
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    "Nomad's Advance",
+    "Mist Unleashed",
+    "Mist Swing",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 42
+    },
+    "Mist Swing",
+    "Mist Slash",
+    "Arcing Mists",
+    "Mist Unleashed",
+    "Mist Swing",
+    "Mist Slash",
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    "Spear of Archemorus",
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    "Arcing Mists",
+    {
+      "name": "Dodge",
+      "skillId": -5,
+      "offset": 118
+    },
+    "Energy Meld",
+    "Eternity's Requiem",
+    "Mist Unleashed",
+    {
+      "name": "Swap Legends",
+      "offset": 440
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 479
+    },
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    "Preparation Thrust",
+    "Dodge",
+    "Shackling Wave",
+    {
+      "name": "Impossible Odds",
+      "offset": 682
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    "Preparation Thrust",
+    "Dodge",
+    "Energy Meld",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Rift Slash",
+    "Chilling Isolation",
+    {
+      "name": "__wait",
+      "waitMs": 240
+    },
+    "Preparation Thrust",
+    "Dodge"
+  ]
+}

@@ -19,6 +19,7 @@ import { revenantAssassinRenegadeSkillHandlers } from "./assassin-renegade.js";
 import { revenantUpkeepSkillHandlers } from "./upkeep.js";
 import { revenantCoreSkillHandlers } from "./core.js";
 import { revenantSpearSkillHandlers } from "./spear.js";
+import { performEnergyMeld } from "./dodge.js";
 
 function augmentAfter(handler) {
   return augmentSkillHandler(null, { afterEffects: handler });
@@ -55,6 +56,7 @@ export const revenantSkillHandlers = Object.freeze({
   "revenant.dodge": replaceSkillHandler(
     revenantCoreSkillHandlers["revenant.dodge"],
   ),
+  "revenant.energy-meld": augmentAfter(performEnergyMeld),
   "revenant.enchanted-daggers": replaceAfter(
     revenantAssassinRenegadeSkillHandlers["revenant.enchanted-daggers"],
   ),
@@ -86,8 +88,7 @@ export const revenantSkillHandlers = Object.freeze({
     revenantUpkeepSkillHandlers["revenant.facet-consume"],
   ),
   "revenant.spear-recharge": augmentSkillHandler(null, {
-    afterEffect:
-      revenantSpearSkillHandlers["revenant.spear-recharge"],
+    afterEffect: revenantSpearSkillHandlers["revenant.spear-recharge"],
   }),
   "revenant.abyssal-raze": replaceBefore(
     revenantSpearSkillHandlers["revenant.abyssal-raze"],

@@ -2376,6 +2376,55 @@ header .accent {
     display: none;
 }
 
+.rotation-warnings {
+    flex: 0 0 auto;
+    margin-top: 8px;
+}
+
+.rotation-warnings:empty {
+    display: none;
+}
+
+.rotation-warnings-wrap {
+    background: rgba(160, 95, 35, .12);
+    border: 1px solid rgba(160, 95, 35, .35);
+    border-radius: var(--radius);
+}
+
+.rotation-warnings-wrap > summary {
+    padding: 8px 10px;
+    color: #e5b36e;
+    cursor: pointer;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    user-select: none;
+}
+
+.rotation-warnings-wrap > summary:hover {
+    background: rgba(160, 95, 35, .08);
+}
+
+.rotation-warnings-content {
+    margin: 0;
+    padding: 8px 10px 10px 30px;
+    color: #e5b36e;
+    border-top: 1px solid rgba(160, 95, 35, .35);
+}
+
+.rotation-warnings-content li + li {
+    margin-top: 5px;
+}
+
+.rotation-warning-time {
+    display: inline-block;
+    min-width: 6ch;
+    margin-right: 8px;
+    color: #f0c98f;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+}
+
 .rotation-procs-wrap {
     background: var(--bg-dark);
     border: 1px solid var(--border);
@@ -3332,6 +3381,26 @@ header .accent {
     margin: 0 0 8px;
     font-size: 0.95rem;
     color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contrib-status {
+    padding: 2px 7px;
+    border: 1px solid rgba(217, 164, 65, 0.45);
+    border-radius: 999px;
+    color: #e4bd66;
+    background: rgba(217, 164, 65, 0.09);
+    font-size: 0.67rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.contrib-pending {
+    color: var(--text-dim);
+    font-size: 0.82rem;
 }
 
 .contrib-table {
@@ -3644,6 +3713,16 @@ header .accent {
     height: 100%;
     background: var(--accent);
     box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.active-resource-bar.endurance {
+    border-color: #c7a343;
+    background: #292412;
+}
+
+.active-resource-bar.endurance span {
+    background: #e5c35a;
+    box-shadow: 0 0 6px rgba(229, 195, 90, .75);
 }
 
 .active-resource-pip {
@@ -4039,15 +4118,6 @@ header .accent {
     color: var(--text-dim);
     font-size: 9px;
     text-transform: uppercase;
-}
-
-.sim-warnings {
-    margin-top: 7px;
-    padding: 8px 10px;
-    color: #e5b36e;
-    background: rgba(160, 95, 35, .12);
-    border: 1px solid rgba(160, 95, 35, .35);
-    border-radius: var(--radius);
 }
 
 /* Generic simulator landing page */

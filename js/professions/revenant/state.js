@@ -48,6 +48,8 @@ export function createRevenantState(config = {}) {
     maximumEndurance: 100,
     enduranceUpdatedAt: 0,
     selectedDodge: config.selectedDodge || "Death Drop",
+    reaversCurseUntil: 0,
+    forerunnerOfDeathUntil: 0,
     affinity: 0,
     cosmicWisdomUntil: 0,
     conduitForm: "",

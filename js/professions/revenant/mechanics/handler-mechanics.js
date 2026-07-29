@@ -25,18 +25,34 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
   endurance: freeze({
     regenerationPerSecond: 5,
     dodgeCost: 50,
-    vindicatorDodgeCost: 100,
-    dodgeStrikeDelay: 0.8,
+    vigorRegenerationMultiplier: 1.5,
+    vindicatorDodgeCost: 50,
+    vindicatorDodgeCastTime: 0.2,
+    dodgeStrikeDelay: 0.16,
+    energyMeld: freeze({
+      endurance: 25,
+      songOfArboreumEndurance: 40,
+      songOfArboreumVigorDuration: 9,
+      angsiyansTrustEnergy: 25,
+      reaversCurseDuration: 6,
+      reaversCurseRechargeMultiplier: 0.5,
+      reaversCurseDodgeDamageMultiplier: 2,
+    }),
     dodgeByName: freeze({
       "Death Drop": freeze({
-        coefficient: 3,
+        coefficient: 3.3,
         hits: 1,
       }),
       "Imperial Impact": freeze({
-        coefficient: 1,
+        coefficient: 2,
         hits: 1,
       }),
     }),
+    leviathanStrengthStrikeMultiplier: 1.1,
+    forerunnerOfDeathStrikeMultiplier: 1.25,
+    forerunnerOfDeathDuration: 10,
+    empireDividedPower: 240,
+    empireDividedHealthThreshold: 0.5,
   }),
   enchantedDaggers: freeze({
     charges: 6,
@@ -294,7 +310,8 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
         coefficient: 0.93,
         conditions: freeze([]),
         boons: freeze([]),
-        endurance: 8,
+        enduranceOnCast: 5,
+        endurancePerHit: 3,
       }),
     }),
   }),
@@ -438,6 +455,13 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
       [ID.FACET_OF_CHAOS]: ID.CHAOTIC_RELEASE,
       [ID.FACET_OF_NATURE]: ID.TRUE_NATURE,
     }),
+    trueNatureConsumeByLegendId: freeze({
+      [LEGEND.ASSASSIN]: ID.TRUE_NATURE,
+      [LEGEND.DWARF]: ID.TRUE_NATURE_ID_51675,
+      [LEGEND.DRAGON]: ID.TRUE_NATURE_ID_51696,
+      [LEGEND.CENTAUR]: ID.TRUE_NATURE_ID_51713,
+      [LEGEND.DEMON]: ID.TRUE_NATURE_ID_51714,
+    }),
     facetSkillByConsumeId: freeze({
       [ID.INFUSE_LIGHT]: ID.FACET_OF_LIGHT,
       [ID.BURST_OF_STRENGTH]: ID.FACET_OF_STRENGTH,
@@ -461,7 +485,8 @@ export const REVENANT_HANDLER_MECHANICS = freeze({
       pulseInterval: 1,
     }),
     elementalBlast: freeze({
-      coefficientPerPulse: 0.5,
+      coefficientPerPulse: 1.5,
+      firstImpactDelay: 0.28,
       pulseInterval: 1,
       conditions: freeze([
         freeze(["Weakness", 1, 5]),

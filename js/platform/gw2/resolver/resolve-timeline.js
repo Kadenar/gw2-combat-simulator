@@ -1,4 +1,5 @@
 import { EPSILON } from "../../engine/clock.js";
+import { createEventQueue } from "../../engine/event-queue.js";
 import {
   assertScheduledEventStream as assertPlatformStream,
 } from "../../engine/scheduled-event-stream.js";
@@ -47,7 +48,9 @@ export function resolveGw2Timeline({
     throw new TypeError("GW2 timeline resolver requires createRuntimeState.");
   }
   const scheduled = assertPlatformStream(stream);
-  const queue = scheduled.events.map(event => ({ ...event }));
+  const queue = createEventQueue(
+    scheduled.events.map(event => ({ ...event })),
+  );
   const handoff = scheduled.resolverHandoff || {};
   const ctx = createRuntimeState({
     config,

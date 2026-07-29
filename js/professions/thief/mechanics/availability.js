@@ -1,4 +1,5 @@
 import { THIEF_SKILL_IDS as ID } from "../data/ids.js";
+import { thiefEnduranceReadyAt } from "./specific/resources.js";
 
 const PROFESSION_SKILL_BY_SPEC = Object.freeze({
   Core: ID.STEAL,
@@ -34,9 +35,14 @@ export function thiefCastAvailability(context, skill) {
   const state = context.state.profession;
   const specialization = String(context.config.specialization || "Core");
   if (skill.id === -5) {
-    return state.endurance >= 50
+    return state.endurance + Number(context.epsilon || 0.0001) >= 50
       ? { ready: true }
-      : deny(skill, "thief.endurance", "requires 50 endurance.");
+      : deny(
+          skill,
+          "thief.endurance",
+          "requires 50 endurance.",
+          thiefEnduranceReadyAt(context, 50),
+        );
   }
   if (
     skill.dualWieldFollowup

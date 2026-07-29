@@ -296,6 +296,20 @@ export const thiefUi = Object.freeze({
       pipRows: specialization === "Antiquary" ? 3 : 2,
       shortLabel: "Init",
       statusLabel: "Current",
+    }, {
+      id: "endurance",
+      singular: "endurance",
+      plural: "endurance",
+      maximum: Number(
+        state.maximumEndurance || (specialization === "Daredevil" ? 150 : 100),
+      ),
+      value: Number(state.endurance ?? 100),
+      canStart: false,
+      step: 1,
+      displayMode: "bar",
+      pipStyle: "endurance",
+      shortLabel: "End",
+      statusLabel: "Current",
     }];
     if (specialization === "Deadeye") {
       views.push({

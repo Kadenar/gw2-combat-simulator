@@ -40,6 +40,7 @@ import {
     chartValueAt,
 } from '../platform/ui/charts.js';
 import {
+    mountRotationWarnings,
     mountRotationResults,
     SKILL_COLS,
 } from '../platform/ui/rotation-results.js';
@@ -56,6 +57,8 @@ const REFRESH_ARROW_ICON = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2
 const COMBAT_START_ICON = 'https://wiki.guildwars2.com/images/e/e9/Call_Target.png';
 const COOLDOWN_RESET_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Mistlock_Singularity.png';
 const WAIT_ICON = 'https://wiki.guildwars2.com/images/8/83/%22sipcoffee%22_Emote_Tome.png';
+const VINDICATOR_DODGE_AUTO_ICON = 'https://render.guildwars2.com/file/2864D963D3FC9156E6F52FA95DD34C2DE30306BE/2491537.png';
+export const VINDICATOR_DODGE_AUTO_ACTION = '__vindicator_dodge_auto';
 const ACTION_ICONS = {
     'Dodge': 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
     'Dodge / Mirage Cloak': 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
@@ -266,6 +269,9 @@ function rotationItem(app, name, options = {}) {
 
 function resolvePaletteDropItem(app, name, skillId = null) {
     if (!name) return null;
+    if (name === VINDICATOR_DODGE_AUTO_ACTION) {
+        return vindicatorDodgeAutoRotationEntries(app);
+    }
     if (name === '__combat_start'
         && app.build.rotation.some(entry => (entry.name || entry) === '__combat_start')) {
         return null;
@@ -436,6 +442,61 @@ export function autoattackChainSkillAvailable(skill, chainState = {}) {
     return skill.name === expected || skill.id === Number(expected);
 }
 
+export function currentAutoattackSkill(app) {
+    const activeWeaponSet = Number(
+        app.results?.endState?.activeWeaponSet
+        || app.build.startingWeaponSet
+        || 1,
+    );
+    const chainState =
+        app.results?.endState?.profession?.autoattackChains || {};
+    return weaponSkills(app, activeWeaponSet).find(skill =>
+        skill.slot === 'Weapon_1'
+        && !skill.ambush
+        && autoattackChainSkillAvailable(skill, chainState)
+    ) || null;
+}
+
+export function vindicatorDodgeAutoRotationEntries(app, offsetMs = 0) {
+    const autoattack = currentAutoattackSkill(app);
+    if (!autoattack) return [];
+    return [
+        {
+            name: autoattack.name,
+            skillId: autoattack.id,
+        },
+        {
+            name: 'Dodge',
+            skillId: app.skillByName.get('Dodge')?.id,
+            offset: Math.max(0, Math.round(Number(offsetMs) || 0)),
+        },
+    ];
+}
+
+export function appendVindicatorDodgeAuto(app, offsetMs = 0) {
+    const entries = vindicatorDodgeAutoRotationEntries(app, offsetMs);
+    if (!entries.length) return false;
+    app.build.rotation.push(...entries);
+    app.changed(false);
+    return true;
+}
+
+export function vindicatorDodgeAutoPaletteSkill(app, specialization) {
+    if (specialization !== 'Vindicator' || !currentAutoattackSkill(app)) {
+        return null;
+    }
+    return {
+        name: VINDICATOR_DODGE_AUTO_ACTION,
+        displayName: 'Dodge + Auto',
+        description:
+            'Cast the current auto-chain step and one Dodge at the same time.',
+        icon: VINDICATOR_DODGE_AUTO_ICON,
+        type: 'Action',
+        slot: 'Action',
+        castTimeMs: 0,
+    };
+}
+
 export function paletteActionSkills(app, specialization = activeSpecialization(app)) {
     return uniqueByName(app.skills.filter(skill =>
         skill.type === 'Action'
@@ -536,7 +597,9 @@ function activeResourceGroup(app) {
         const displayValue = formatResourceValue(value);
         const title = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
         const indicator = definition.displayMode === 'bar'
-            ? `<div class="active-resource-bar"><span style="width:${
+            ? `<div class="active-resource-bar${
+                definition.pipStyle ? ` ${esc(definition.pipStyle)}` : ''
+            }"><span style="width:${
                 definition.maximum ? value / definition.maximum * 100 : 0
             }%"></span></div>`
             : resourcePipsHtml(definition, value);
@@ -856,6 +919,11 @@ export function renderPalette(app) {
         return flip ? [skill, flip] : [skill];
     });
     const actions = paletteActionSkills(app, spec);
+    const dodgeAuto = vindicatorDodgeAutoPaletteSkill(app, spec);
+    if (dodgeAuto) {
+        const dodgeIndex = actions.findIndex(skill => skill.name === 'Dodge');
+        actions.splice(dodgeIndex < 0 ? 0 : dodgeIndex + 1, 0, dodgeAuto);
+    }
     const activeWeaponSet = app.results?.endState?.activeWeaponSet || 1;
     const professionState = professionEndState(app.results);
     const availableFlips = professionState.availableFlips || {};
@@ -1079,6 +1147,10 @@ export function renderPalette(app) {
     bindPaletteInteractions(element, {
         onActivate(name, event) {
             const icon = event.currentTarget;
+            if (name === VINDICATOR_DODGE_AUTO_ACTION) {
+                appendVindicatorDodgeAuto(app);
+                return;
+            }
             const parsedSkillId = Number(icon.dataset.skillId);
             const skillId = icon.dataset.skillId != null
                 && Number.isFinite(parsedSkillId)
@@ -1548,6 +1620,44 @@ export function formatResultTimelineTime(timeMs, result, digits = 2) {
 
 const baseBreakdownName = name => String(name || '').split('—')[0].trim();
 
+export function rotationWarningItems(result) {
+    const invalidSteps = new Map();
+    for (const step of result?.steps || []) {
+        if (!step.invalid || !step.invalidReason) continue;
+        const matches = invalidSteps.get(step.invalidReason) || [];
+        matches.push(step);
+        invalidSteps.set(step.invalidReason, matches);
+    }
+
+    return (result?.warnings || []).map(rawWarning => {
+        const message = String(rawWarning);
+        const step = invalidSteps.get(message)?.shift();
+        if (step && Number.isFinite(Number(step.start))) {
+            return {
+                message,
+                time: formatResultTimelineTime(step.start, result),
+            };
+        }
+
+        // Resolver diagnostics carry their absolute simulation time in the
+        // message instead of an invalid rotation step.
+        const embeddedTime = message.match(
+            /(?:^|\s)at\s+(-?\d+(?:\.\d+)?)s(?=[:.,\s]|$)/i,
+        );
+        if (!embeddedTime) return { message, time: '' };
+        const cleanedMessage = `${
+            message.slice(0, embeddedTime.index)
+        }${message.slice(embeddedTime.index + embeddedTime[0].length)}`.trim();
+        return {
+            message: cleanedMessage,
+            time: formatResultTimelineTime(
+                Number(embeddedTime[1]) * 1000,
+                result,
+            ),
+        };
+    });
+}
+
 const eventLogOrder = {
     combat_start: 5,
     cast: 10,
@@ -1781,6 +1891,16 @@ export function renderEventLog(app) {
     });
 }
 
+export function renderWarnings(app) {
+    const element = document.getElementById('rotation-warnings');
+    if (!element) return;
+    const wasOpen = element.querySelector('.rotation-warnings-wrap')?.open ?? false;
+    const warnings = app.build.rotation.length && app.results
+        ? rotationWarningItems(app.results)
+        : [];
+    mountRotationWarnings(element, warnings, { open: wasOpen });
+}
+
 export function skillBreakdownRows(result) {
     return transformSkillBreakdownRows(result);
 }
@@ -1892,7 +2012,7 @@ export function renderResults(app) {
             ),
         } : null,
         contributions,
-        warnings: result.warnings || [],
+        contributionsStale: result.modifierContributionsStale === true,
         chartSeries: series,
     }, {
         resolveSkillIcon: row => resultSkillIcon(app, row),
@@ -1921,6 +2041,7 @@ export function renderRotationBuilder(app) {
     renderStartResource(app);
     renderPalette(app);
     renderTimeline(app);
+    renderWarnings(app);
     renderEventLog(app);
     renderResults(app);
 }

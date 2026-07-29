@@ -92,6 +92,55 @@ const DAMAGING_CONDITIONS = new Set([
   "Poisoned",
   "Torment",
 ]);
+const BOONS = new Set([
+  "aegis",
+  "alacrity",
+  "fury",
+  "might",
+  "protection",
+  "quickness",
+  "regeneration",
+  "resistance",
+  "resolution",
+  "stability",
+  "swiftness",
+  "vigor",
+]);
+function activeBoonCount(context) {
+  const active = new Set(
+    Object.entries(context.config?.boons || {})
+      .filter(([, value]) =>
+        typeof value === "number" ? value > 0 : Boolean(value))
+      .map(([kind]) => kind.toLowerCase())
+      .filter((kind) => BOONS.has(kind)),
+  );
+  for (const [kind, applications] of context.runtime?.boons || []) {
+    const normalized = String(kind).toLowerCase();
+    if (
+      BOONS.has(normalized) &&
+      applications.some((application) =>
+        application.at <= context.time && application.expiresAt > context.time)
+    ) {
+      active.add(normalized);
+    }
+  }
+  return active.size;
+}
+function playerHealthFraction(context) {
+  return Number(context.config?.playerHealthFraction ?? 1);
+}
+function vindicatorEnduranceIsNotFull(context) {
+  const state = professionState(context);
+  const maximum = Number(state.maximumEndurance || 0);
+  return maximum > 0 && Number(state.endurance || 0) < maximum - 1e-9;
+}
+function forerunnerOfDeathIsActive(context) {
+  if (context.event?.forerunnerOfDeathActive != null) {
+    return Boolean(context.event.forerunnerOfDeathActive);
+  }
+  return Number(professionState(context).forerunnerOfDeathUntil || 0) >
+    context.time;
+}
 const rules = [
   {
     id: "revenant.burst-of-strength-strike",
@@ -126,6 +175,35 @@ const rules = [
       player(context) &&
       hasTrait(context, TRAIT.RISING_TIDE) &&
       Number(context.config?.playerHealthFraction ?? 1) > 0.75,
+  },
+  {
+    id: "revenant.reinforced-potency",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: (context) => activeBoonCount(context) * 0.01,
+    when: (context) =>
+      player(context) &&
+      hasTrait(context, TRAIT.REINFORCED_POTENCY),
+  },
+  {
+    id: "revenant.leviathan-strength",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: MECHANICS.endurance.leviathanStrengthStrikeMultiplier,
+    when: (context) =>
+      player(context) &&
+      hasTrait(context, TRAIT.LEVIATHAN_STRENGTH) &&
+      vindicatorEnduranceIsNotFull(context),
+  },
+  {
+    id: "revenant.forerunner-of-death",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: MECHANICS.endurance.forerunnerOfDeathStrikeMultiplier,
+    when: (context) =>
+      player(context) &&
+      hasTrait(context, TRAIT.FORERUNNER_OF_DEATH) &&
+      forerunnerOfDeathIsActive(context),
   },
   {
     id: "revenant.acolyte-of-torment",
@@ -342,6 +420,16 @@ function modifyConditionDuration(context, duration) {
 
 function modifyAttributes(context, attributes) {
   let modified = { ...attributes };
+  if (
+    hasTrait(context, TRAIT.EMPIRE_DIVIDED) &&
+    !context.config?.revenantBuildAttributesApplied &&
+    playerHealthFraction(context) >
+      MECHANICS.endurance.empireDividedHealthThreshold
+  ) {
+    modified.power =
+      Number(modified.power || 0) +
+      MECHANICS.endurance.empireDividedPower;
+  }
   if (hasTrait(context, TRAIT.NOTORIETY)) {
     const baseMight = Math.max(
       0,

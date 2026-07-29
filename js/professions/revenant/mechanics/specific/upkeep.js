@@ -62,6 +62,15 @@ function upkeepPulseInterval(skill) {
   return profile.defaultPulseInterval;
 }
 
+function facetConsumeId(skill, state) {
+  if (skill?.id === ID.FACET_OF_NATURE) {
+    return MECHANICS.upkeep.trueNatureConsumeByLegendId[
+      state.activeLegendId
+    ];
+  }
+  return MECHANICS.upkeep.facetConsumeBySkillId[skill?.id];
+}
+
 function emitEmbraceTheDarknessPulse(context, skill, active, at) {
   const profile = MECHANICS.upkeep.embraceTheDarkness;
   emitDamage(context, skill, at, profile.coefficient);
@@ -87,7 +96,7 @@ export function toggleRevenantUpkeep(context, skill) {
   );
   if (index >= 0) {
     state.activeUpkeeps.splice(index, 1);
-    const consumeId = MECHANICS.upkeep.facetConsumeBySkillId[skill.id];
+    const consumeId = facetConsumeId(skill, state);
     const consume = context.catalog.skillsById.get(consumeId);
     if (consume) delete state.availableFlips[consume.id];
     context.tasks.cancelOwner(`revenant.upkeep:${skill.id}`);
@@ -110,7 +119,7 @@ export function toggleRevenantUpkeep(context, skill) {
         : null,
   };
   state.activeUpkeeps.push(active);
-  const consumeId = MECHANICS.upkeep.facetConsumeBySkillId[skill.id];
+  const consumeId = facetConsumeId(skill, state);
   const consume = context.catalog.skillsById.get(consumeId);
   if (consume) state.availableFlips[consume.id] = true;
   const release =
@@ -193,7 +202,9 @@ export function castInspiringReinforcement(context, skill) {
 /** Emits Elemental Blast's ordered damage/condition pulse sequence. */
 export function castElementalBlast(context, skill) {
   const profile = MECHANICS.upkeep.elementalBlast;
-  const firstAt = context.effectiveEnd;
+  // The activation includes roughly 200 ms of aftercast under Quickness.
+  // EVTC consistently places the first packet 280 ms after cast start.
+  const firstAt = context.start + profile.firstImpactDelay;
   const pulses = profile.conditions.length;
   for (let pulse = 1; pulse <= pulses; pulse += 1) {
     const at = firstAt + (pulse - 1) * profile.pulseInterval;
@@ -218,7 +229,13 @@ export function consumeRevenantFacet(context, skill) {
     (upkeep) => upkeep.skillId !== facet?.id,
   );
   delete state.availableFlips[skill.id];
-  if (facet) context.tasks.cancelOwner(`revenant.upkeep:${facet.id}`);
+  if (facet) {
+    const cooldown = Math.max(0, Number(context.rechargeDuration || 0));
+    if (cooldown > 0) {
+      context.state.cooldowns.set(facet.id, at + cooldown);
+    }
+    context.tasks.cancelOwner(`revenant.upkeep:${facet.id}`);
+  }
   emitRevenantState(context, at, "facet-consumed");
 }
 

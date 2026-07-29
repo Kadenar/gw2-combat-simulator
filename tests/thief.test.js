@@ -247,6 +247,18 @@ test("Thief resources use profession-specific initiative and malice pips", () =>
   assert.equal(deadeyeMalice.displayMode, "pips");
   assert.equal(deadeyeMalice.pipStyle, "thief-malice");
 
+  const coreEndurance = resourceViews("Core")
+    .find(view => view.id === "endurance");
+  assert.equal(coreEndurance.maximum, 100);
+  assert.equal(coreEndurance.value, 100);
+  assert.equal(coreEndurance.displayMode, "bar");
+  assert.equal(coreEndurance.pipStyle, "endurance");
+  assert.equal(coreEndurance.canStart, false);
+
+  const daredevilEndurance = resourceViews("Daredevil")
+    .find(view => view.id === "endurance");
+  assert.equal(daredevilEndurance.maximum, 150);
+
   const displayedInitiative = resourceDisplayViews(thiefProfession, {
     specialization: "Core",
     professionState: {
@@ -255,6 +267,26 @@ test("Thief resources use profession-specific initiative and malice pips", () =>
     },
   })[0];
   assert.equal(displayedInitiative.value, 4);
+});
+
+test("Thief Dodge waits for endurance and Vigor accelerates the queue", () => {
+  const withoutVigor = simulate("Core", ["Dodge", "Dodge", "Dodge"], {
+    boons: { vigor: false },
+  });
+  const withVigor = simulate("Core", ["Dodge", "Dodge", "Dodge"], {
+    boons: { vigor: true },
+  });
+
+  assert.deepEqual(withoutVigor.warnings, []);
+  assert.deepEqual(
+    withoutVigor.steps.map(step => step.start),
+    [0, 800, 10000],
+  );
+  assert.deepEqual(withVigor.warnings, []);
+  assert.deepEqual(
+    withVigor.steps.map(step => step.start),
+    [0, 800, 6667],
+  );
 });
 
 test("every legal one-hand combination resolves one exact opening slot 3", () => {

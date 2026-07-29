@@ -171,6 +171,21 @@ export function insertRotationEntry(rotation, entry, index) {
   return true;
 }
 
+export function insertRotationEntries(rotation, entries, index) {
+  if (
+    !Array.isArray(rotation) ||
+    !Array.isArray(entries) ||
+    !entries.length ||
+    entries.some(entry => entry == null) ||
+    !Number.isInteger(index)
+  ) {
+    return false;
+  }
+  const boundedIndex = Math.max(0, Math.min(index, rotation.length));
+  rotation.splice(boundedIndex, 0, ...entries);
+  return true;
+}
+
 export function timelineRows(
   rotation = [],
   {
@@ -248,9 +263,13 @@ export function bindTimelineInteractions(root, options = {}) {
     }
     if (drag.source === "palette") {
       const name = drag.name ?? drag.skillName;
-      const entry = options.resolvePaletteEntry?.(name, drag);
-      // Palette drops copy a newly resolved entry; timeline drops move one.
-      if (!insertRotationEntry(rotation, entry, insertAt)) return false;
+      const resolved = options.resolvePaletteEntry?.(name, drag);
+      // Palette macros may resolve to multiple adjacent entries. Regular
+      // palette skills still resolve to one entry.
+      const inserted = Array.isArray(resolved)
+        ? insertRotationEntries(rotation, resolved, insertAt)
+        : insertRotationEntry(rotation, resolved, insertAt);
+      if (!inserted) return false;
       changed();
       return true;
     }

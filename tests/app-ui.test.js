@@ -339,6 +339,7 @@ test("the generic landing page and profession simulators have separate entries",
     if (entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE) {
       assert.match(source, new RegExp(`data-profession="${entry.id}"`));
       assert.match(source, /js\/app\/app\.js/);
+      assert.match(source, /id="rotation-warnings"/);
     }
   }
 });
@@ -449,6 +450,99 @@ test("Revenant Power Renegade Hammer default build resolves", async () => {
   assert.equal(build.startingLegend, "LegendaryRenegade");
 });
 
+test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const vindicator = manifest.find(
+    section => section.section === "Vindicator",
+  );
+  const energyPreset = vindicator.presets.find(
+    candidate => candidate.label === "Power (Greatsword / SwSw - Energy)",
+  );
+  const hydroPreset = vindicator.presets.find(
+    candidate => candidate.label === "Power (Greatsword / SwSw - Hydro)",
+  );
+  const [energySaved, hydroSaved, replay] = await Promise.all([
+    readFile(new URL(`../${energyPreset.build}`, import.meta.url), "utf8")
+      .then(JSON.parse),
+    readFile(new URL(`../${hydroPreset.build}`, import.meta.url), "utf8")
+      .then(JSON.parse),
+    readFile(new URL(`../${energyPreset.rotation}`, import.meta.url), "utf8")
+      .then(JSON.parse),
+  ]);
+  const energyBuild = adapter.toApplicationBuild(energySaved);
+  const hydroBuild = adapter.toApplicationBuild(hydroSaved);
+  const dodgeCount = replay.rotation.filter(
+    entry => (entry.name || entry) === "Dodge",
+  ).length;
+
+  assert.equal(
+    energyPreset.build,
+    "Builds/b-power-vindicator-greatsword-energy.json",
+  );
+  assert.equal(
+    hydroPreset.build,
+    "Builds/b-power-vindicator-greatsword-hydro.json",
+  );
+  assert.equal(
+    energyPreset.rotation,
+    "Rotations/r-power-vindicator-greatsword-benchmark.json",
+  );
+  assert.equal(Object.hasOwn(hydroPreset, "rotation"), false);
+  assert.equal(Object.hasOwn(energySaved, "rotation"), false);
+  assert.equal(Object.hasOwn(hydroSaved, "rotation"), false);
+  assert.equal(energyBuild.profession, "revenant");
+  assert.deepEqual(energyBuild.specializations, [
+    { name: "Devastation", traits: "2-2-2" },
+    { name: "Invocation", traits: "2-1-3" },
+    { name: "Vindicator", traits: "1-1-1" },
+  ]);
+  assert.deepEqual(energyBuild.weapons, ["Sword", "Sword"]);
+  assert.deepEqual(energyBuild.alternateWeapons, ["Greatsword", ""]);
+  assert.deepEqual(energyBuild.weaponSigils, [
+    ["Force", "Air"],
+    ["Force", "Energy"],
+  ]);
+  assert.deepEqual(hydroBuild.weaponSigils, [
+    ["Force", "Air"],
+    ["Force", "Hydromancy"],
+  ]);
+  assert.deepEqual(energySaved.gear, hydroSaved.gear);
+  assert.deepEqual(energySaved.gear, {
+    Helm: "Berserker's",
+    Shoulders: "Berserker's",
+    Chest: "Berserker's",
+    Gloves: "Berserker's",
+    Leggins: "Berserker's",
+    Boots: "Berserker's",
+    Amulet: "Berserker's",
+    Ring1: "Berserker's",
+    Ring2: "Berserker's",
+    Accessory1: "Berserker's",
+    Accessory2: "Berserker's",
+    Back: "Dragon's",
+    Weapon1: "Berserker's",
+    Weapon2: "Berserker's",
+  });
+  assert.equal(energyBuild.relic, "Thief");
+  assert.equal(hydroBuild.relic, "Thief");
+  assert.deepEqual(energyBuild.selectedLegends, [
+    "LegendaryAlliance",
+    "LegendaryAssassin",
+  ]);
+  assert.equal(energyBuild.startingLegend, "LegendaryAlliance");
+  assert.equal(energyBuild.startingWeaponSet, 1);
+  assert.equal(dodgeCount, 25);
+  assert.deepEqual(replay.rotation.slice(6, 9), [
+    { name: "__wait", waitMs: 40 },
+    "Dodge",
+    { name: "Mist Swing", skillId: 62913, offset: 41 },
+  ]);
+});
+
 test("Revenant Condition Renegade Shortbow default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
     new URL("../Builds/revenant-manifest.json", import.meta.url),
@@ -525,6 +619,75 @@ test("Revenant Condition Renegade Spear default build resolves", async () => {
   ]);
   assert.equal(build.startingLegend, "LegendaryRenegade");
   assert.equal(build.startingWeaponSet, 1);
+});
+
+test("Revenant Condition Quickness Herald default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const herald = manifest.find(section => section.section === "Herald");
+  const preset = herald.presets.find(
+    candidate =>
+      candidate.label === "Condition Quickness (Shortbow / Mace-Axe)",
+  );
+  const saved = JSON.parse(await readFile(
+    new URL(`../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(
+    preset.build,
+    "Builds/b-condi-quick-herald-shortbow-mace-axe.json",
+  );
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "revenant");
+  assert.deepEqual(build.specializations, [
+    { name: "Corruption", traits: "1-3-1" },
+    { name: "Invocation", traits: "2-1-1" },
+    { name: "Herald", traits: "2-1-1" },
+  ]);
+  assert.deepEqual(build.weapons, ["Shortbow", ""]);
+  assert.deepEqual(build.alternateWeapons, ["Mace", "Axe"]);
+  assert.deepEqual(build.weaponSigils, [
+    ["Geomancy", "Doom"],
+    ["Torment", "Earth"],
+  ]);
+  assert.deepEqual(build.selectedLegends, [
+    "LegendaryDragon",
+    "LegendaryDemon",
+  ]);
+  assert.equal(build.startingLegend, "LegendaryDragon");
+  assert.equal(build.startingWeaponSet, 1);
+
+  const contributionApp = {
+    build,
+    profession: adapter.profession,
+    skillByName: adapter.profession.catalog.skillsByName,
+    attributeWeaponSet: 1,
+    results: null,
+  };
+  adapter.recalculate(contributionApp);
+  assert.deepEqual(
+    adapter.modifierContributionRequest(contributionApp).comparisons
+      .filter(({ modifier }) => modifier.type === "Trait")
+      .map(({ modifier }) => modifier.name),
+    [
+      "Invoking Torment",
+      "Seething Malice",
+      "Yearning Empowerment",
+      "Acolyte of Torment",
+      "Pact of Pain",
+      "Diabolic Inferno",
+      "Ferocious Aggression",
+      "Rising Tide",
+      "Spirit Boon",
+      "Song of the Mists",
+      "Reinforced Potency",
+    ],
+  );
 });
 
 test("Revenant Condition Conduit Mistfire default build resolves", async () => {

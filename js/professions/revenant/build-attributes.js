@@ -53,6 +53,19 @@ export function applyRevenantBuildAttributeRules(
   if (hasTrait("Reinforced Potency")) {
     addAttribute(traitStats, "Concentration", 240);
   }
+  if (hasTrait("Empire Divided")) {
+    addAttribute(
+      traitStats,
+      "Power",
+      Number(
+        build.assumptions?.playerHealthFraction ??
+        build.playerHealthFraction ??
+        1,
+      ) > 0.5
+        ? 240
+        : 0,
+    );
+  }
   if (hasTrait("Bolstered Bonds")) {
     for (const [attribute, amount] of Object.entries(
       bolsteredBondsBonuses(build.selectedLegends),

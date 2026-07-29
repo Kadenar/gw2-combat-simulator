@@ -19,6 +19,9 @@ import {
 } from '../js/platform/gw2/attributes.js';
 import {
     calculateContributionComparisons,
+    mergeModifierContributions,
+    modifierContributionWorkerCount,
+    partitionModifierComparisons,
 } from '../js/app/modifier-contributions.js';
 import {
     aggregateSigilSet,
@@ -46,6 +49,25 @@ test('shared contribution comparisons accept a profession simulator', () => {
         dpsIncrease: 20,
         pctIncrease: 25,
     }]);
+});
+
+test('modifier comparisons partition across a capped worker pool', () => {
+    const comparisons = Array.from({ length: 8 }, (_, index) => ({ index }));
+    assert.equal(modifierContributionWorkerCount(comparisons.length, 8), 3);
+    assert.equal(modifierContributionWorkerCount(comparisons.length, 2), 1);
+    assert.equal(modifierContributionWorkerCount(0, 8), 0);
+    assert.deepEqual(
+        partitionModifierComparisons(comparisons, 3)
+            .map(batch => batch.map(({ index }) => index)),
+        [[0, 3, 6], [1, 4, 7], [2, 5]],
+    );
+    assert.deepEqual(
+        mergeModifierContributions([
+            [{ id: 'low', dpsIncrease: 2 }],
+            [{ id: 'high', dpsIncrease: 8 }],
+        ]).map(({ id }) => id),
+        ['high', 'low'],
+    );
 });
 
 test('shared contribution comparisons omit deltas that render as zero', () => {

@@ -1,0 +1,678 @@
+{
+  "source": {
+    "log": "condi herald sb bench.zevtc",
+    "benchmarkDurationSeconds": 125.932,
+    "notes": "Pre-combat Spiritcrush; Facet heal/utilities and Facet of Nature begin active."
+  },
+  "rotation": [
+    "Facet of Light",
+    "Facet of Darkness",
+    "Facet of Elements",
+    "Facet of Strength",
+    "Facet of Chaos",
+    "Facet of Nature",
+    "Spiritcrush",
+    "Sevenshot",
+    {
+      "name": "__combat_start",
+      "offset": 440
+    },
+    "Elemental Blast",
+    "Burst of Strength",
+    {
+      "name": "Swap Legends",
+      "offset": 200
+    },
+    "Embrace the Darkness",
+    {
+      "name": "Swap Weapons",
+      "offset": 440
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Searing Fissure",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Misery Swipe",
+      "interruptMs": 360
+    },
+    "Temporal Rift",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    "Manifest Toxin",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Swap Legends",
+      "offset": 840
+    },
+    "Facet of Elements",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 120
+    },
+    "Burst of Strength",
+    {
+      "name": "Searing Fissure",
+      "interruptMs": 520
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 520
+    },
+    "Spiritcrush",
+    "Bloodbane Path",
+    "Sevenshot",
+    "Scorchrazor",
+    {
+      "name": "Facet of Chaos",
+      "offset": 120
+    },
+    "Shattershot",
+    {
+      "name": "Facet of Nature",
+      "offset": 200
+    },
+    "Shattershot",
+    "Shattershot",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Bloodbane Path",
+    "Shattershot",
+    "Shattershot",
+    "Shattershot",
+    "Chaotic Release",
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    "Bloodbane Path",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Spiritcrush",
+    "Sevenshot",
+    {
+      "name": "Facet of Elements",
+      "offset": 280
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 240
+    },
+    "Burst of Strength",
+    {
+      "name": "Swap Legends",
+      "offset": 240
+    },
+    "Embrace the Darkness",
+    {
+      "name": "Swap Weapons",
+      "offset": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Searing Fissure",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Misery Swipe",
+      "interruptMs": 360
+    },
+    "Temporal Rift",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    "Manifest Toxin",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Swap Legends",
+      "offset": 840
+    },
+    "Facet of Elements",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 120
+    },
+    "Burst of Strength",
+    {
+      "name": "Searing Fissure",
+      "interruptMs": 520
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 520
+    },
+    "Spiritcrush",
+    "Bloodbane Path",
+    "Sevenshot",
+    "Scorchrazor",
+    {
+      "name": "Facet of Chaos",
+      "offset": 120
+    },
+    "Shattershot",
+    {
+      "name": "Facet of Nature",
+      "offset": 200
+    },
+    "Shattershot",
+    "Shattershot",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Bloodbane Path",
+    "Shattershot",
+    "Shattershot",
+    "Shattershot",
+    "Chaotic Release",
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    "Bloodbane Path",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Spiritcrush",
+    "Sevenshot",
+    {
+      "name": "Facet of Elements",
+      "offset": 280
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 240
+    },
+    "Burst of Strength",
+    {
+      "name": "Swap Legends",
+      "offset": 240
+    },
+    "Embrace the Darkness",
+    {
+      "name": "Swap Weapons",
+      "offset": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Searing Fissure",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Misery Swipe",
+      "interruptMs": 360
+    },
+    "Temporal Rift",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    "Manifest Toxin",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Swap Legends",
+      "offset": 840
+    },
+    "Facet of Elements",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 120
+    },
+    "Burst of Strength",
+    {
+      "name": "Searing Fissure",
+      "interruptMs": 520
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 520
+    },
+    "Spiritcrush",
+    "Bloodbane Path",
+    "Sevenshot",
+    "Scorchrazor",
+    {
+      "name": "Facet of Chaos",
+      "offset": 120
+    },
+    "Shattershot",
+    {
+      "name": "Facet of Nature",
+      "offset": 200
+    },
+    "Shattershot",
+    "Shattershot",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Bloodbane Path",
+    "Shattershot",
+    "Shattershot",
+    "Shattershot",
+    "Chaotic Release",
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    "Bloodbane Path",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Spiritcrush",
+    "Sevenshot",
+    {
+      "name": "Facet of Elements",
+      "offset": 280
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 240
+    },
+    "Burst of Strength",
+    {
+      "name": "Swap Legends",
+      "offset": 240
+    },
+    "Embrace the Darkness",
+    {
+      "name": "Swap Weapons",
+      "offset": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Searing Fissure",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Misery Swipe",
+      "interruptMs": 360
+    },
+    "Temporal Rift",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    "Manifest Toxin",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Swap Legends",
+      "offset": 840
+    },
+    "Facet of Elements",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 120
+    },
+    "Burst of Strength",
+    {
+      "name": "Searing Fissure",
+      "interruptMs": 520
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 520
+    },
+    "Spiritcrush",
+    "Bloodbane Path",
+    "Sevenshot",
+    "Scorchrazor",
+    {
+      "name": "Facet of Chaos",
+      "offset": 120
+    },
+    "Shattershot",
+    {
+      "name": "Facet of Nature",
+      "offset": 200
+    },
+    "Shattershot",
+    "Shattershot",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Bloodbane Path",
+    "Shattershot",
+    "Shattershot",
+    "Shattershot",
+    "Chaotic Release",
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    "Bloodbane Path",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Spiritcrush",
+    "Sevenshot",
+    {
+      "name": "Facet of Elements",
+      "offset": 280
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 240
+    },
+    "Burst of Strength",
+    {
+      "name": "Swap Legends",
+      "offset": 240
+    },
+    "Embrace the Darkness",
+    {
+      "name": "Swap Weapons",
+      "offset": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Searing Fissure",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Misery Swipe",
+      "interruptMs": 360
+    },
+    "Temporal Rift",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    "Manifest Toxin",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Swap Legends",
+      "offset": 840
+    },
+    "Facet of Elements",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 120
+    },
+    "Burst of Strength",
+    {
+      "name": "Searing Fissure",
+      "interruptMs": 520
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 520
+    },
+    "Spiritcrush",
+    "Bloodbane Path",
+    "Sevenshot",
+    "Scorchrazor",
+    {
+      "name": "Facet of Chaos",
+      "offset": 120
+    },
+    "Shattershot",
+    {
+      "name": "Facet of Nature",
+      "offset": 200
+    },
+    "Shattershot",
+    "Shattershot",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Bloodbane Path",
+    "Shattershot",
+    "Shattershot",
+    "Shattershot",
+    "Chaotic Release",
+    {
+      "name": "True Nature",
+      "skillId": 51696
+    },
+    "Bloodbane Path",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Spiritcrush",
+    "Sevenshot",
+    {
+      "name": "Facet of Elements",
+      "offset": 280
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 240
+    },
+    "Burst of Strength",
+    {
+      "name": "Swap Legends",
+      "offset": 240
+    },
+    "Embrace the Darkness",
+    {
+      "name": "Swap Weapons",
+      "offset": 400
+    },
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Searing Fissure",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Misery Swipe",
+      "interruptMs": 360
+    },
+    "Temporal Rift",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    "Manifest Toxin",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "Manifest Toxin",
+      "interruptMs": 520
+    },
+    "Searing Fissure",
+    "Misery Swipe",
+    "Anguish Swipe",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Echoing Eruption",
+    {
+      "name": "Swap Legends",
+      "offset": 840
+    },
+    "Facet of Elements",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Elemental Blast",
+    {
+      "name": "Facet of Strength",
+      "offset": 120
+    },
+    "Burst of Strength",
+    {
+      "name": "Searing Fissure",
+      "interruptMs": 520
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 520
+    },
+    "Spiritcrush",
+    "Sevenshot",
+    {
+      "name": "Facet of Chaos",
+      "offset": 440
+    },
+    "Chaotic Release",
+    "Shattershot",
+    "Shattershot",
+    "Shattershot"
+  ]
+}

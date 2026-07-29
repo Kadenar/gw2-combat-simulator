@@ -3,16 +3,10 @@ import path from "node:path";
 
 import { mesmerCatalog } from "../js/professions/mesmer/catalog.js";
 import { defaultSimulationConfig } from "../tests/helpers/fixture-harness-core.js";
-import {
-  normalizeMesmerResult,
-} from "../tests/helpers/mesmer-simulation-oracle.js";
+import { normalizeMesmerResult } from "../tests/helpers/mesmer-simulation-oracle.js";
 import { simulateMesmer } from "../tests/helpers/mesmer-simulation.js";
 
-const FIXTURE_DIRECTORY = path.resolve(
-  "tests",
-  "fixtures",
-  "mesmer-migration",
-);
+const FIXTURE_DIRECTORY = path.resolve("tests", "fixtures", "mesmer-migration");
 
 const wait = (durationMs) => ({ type: "wait", durationMs });
 const combatStart = () => ({ type: "combat-start" });

@@ -23,6 +23,7 @@ import {
   targetHealthBreakpointSnapshots,
 } from "../js/platform/ui/result-transform.js";
 import {
+  mountRotationWarnings,
   mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
@@ -34,6 +35,7 @@ import {
   formatTimelineSkillTooltip,
   getSkillDropInsertionIndex,
   insertRotationEntry,
+  insertRotationEntries,
   moveRotationEntry,
   removeRotationEntryOptions,
   rotationEntryName,
@@ -269,7 +271,7 @@ test("result sorting handles defaults, numeric directions, strings, and cycling"
   });
 });
 
-test("shared results render summaries, totals, contributions, warnings, and icons", () => {
+test("shared results render summaries, totals, contributions, and icons", () => {
   const container = inertContainer();
   const resolved = [];
   mountRotationResults(container, {
@@ -305,7 +307,7 @@ test("shared results render summaries, totals, contributions, warnings, and icon
         pctIncrease: -1.5,
       },
     ],
-    warnings: ["Unsafe <script>"],
+    contributionsStale: true,
   }, {
     resolveSkillIcon: row => {
       resolved.push(row.name);
@@ -332,11 +334,37 @@ test("shared results render summaries, totals, contributions, warnings, and icon
   );
   assert.doesNotMatch(container.innerHTML, /-0(?:\.00)?%?/);
   assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/>Bonus/);
-  assert.match(container.innerHTML, /Unsafe &lt;script&gt;/);
-  assert.doesNotMatch(container.innerHTML, /Unsafe <script>/);
+  assert.match(container.innerHTML, /contrib-status/);
+  assert.match(container.innerHTML, /Recalculating/);
   assert.deepEqual(resolved, ["High", "Low"]);
 
   assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
+});
+
+test("rotation warnings render a collapsed count and escaped details", () => {
+  const container = inertContainer();
+  mountRotationWarnings(container, [
+    { time: "1.25s", message: "Unsafe <script>" },
+    { time: "2.50s", message: "Missing resource" },
+  ]);
+
+  assert.match(
+    container.innerHTML,
+    /<details class="rotation-warnings-wrap">/,
+  );
+  assert.doesNotMatch(container.innerHTML, /rotation-warnings-wrap" open/);
+  assert.match(container.innerHTML, /Warnings \(2\)/);
+  assert.match(container.innerHTML, /rotation-warning-time">1\.25s/);
+  assert.match(container.innerHTML, /rotation-warning-time">2\.50s/);
+  assert.match(container.innerHTML, /Unsafe &lt;script&gt;/);
+  assert.doesNotMatch(container.innerHTML, /Unsafe <script>/);
+  assert.match(container.innerHTML, /Missing resource/);
+
+  mountRotationWarnings(container, ["Still unsafe"], { open: true });
+  assert.match(container.innerHTML, /rotation-warnings-wrap" open/);
+
+  mountRotationWarnings(container, []);
+  assert.equal(container.innerHTML, "");
 });
 
 test("palette primitives escape values and render state, ammo, cooldowns, and groups", () => {
@@ -409,6 +437,15 @@ test("timeline canonical entries update, simplify, insert, and reject invalid mo
   assert.equal(moveRotationEntry(rotation, 0, 1.5), false);
   assert.equal(insertRotationEntry(rotation, "D", 1), true);
   assert.deepEqual(rotation, ["B", "D", "C", "A"]);
+  assert.equal(
+    insertRotationEntries(rotation, ["Macro A", "Macro B"], 2),
+    true,
+  );
+  assert.deepEqual(
+    rotation,
+    ["B", "D", "Macro A", "Macro B", "C", "A"],
+  );
+  assert.equal(insertRotationEntries(rotation, [], 0), false);
 });
 
 test("timeline binding inserts palette entries and drop positions use tile halves", () => {
@@ -441,6 +478,31 @@ test("timeline binding inserts palette entries and drop positions use tile halve
   ]);
   assert.equal(dragState, null);
   assert.equal(changes, 1);
+
+  dragState = { source: "palette", name: "Macro" };
+  const macroBinding = bindTimelineInteractions(root, {
+    rotation,
+    getDragState: () => dragState,
+    setDragState: value => {
+      dragState = value;
+    },
+    resolvePaletteEntry: () => [
+      { name: "Auto", skillId: 10 },
+      { name: "Dodge", skillId: -5, offset: 0 },
+    ],
+    onChanged: () => {
+      changes += 1;
+    },
+  });
+  assert.equal(macroBinding.applyDrop(1), true);
+  assert.deepEqual(rotation, [
+    "A",
+    { name: "Auto", skillId: 10 },
+    { name: "Dodge", skillId: -5, offset: 0 },
+    { name: "New", skillId: 12345, waitMs: 100 },
+  ]);
+  assert.equal(dragState, null);
+  assert.equal(changes, 2);
 
   const tile = {
     dataset: { idx: "3" },

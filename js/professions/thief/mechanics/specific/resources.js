@@ -9,6 +9,33 @@ import {
 } from "./shared.js";
 
 const SHADOW_FORCE_DRAIN_FRACTION_PER_SECOND = 0.02;
+const ENDURANCE_REGENERATION_PER_SECOND = 5;
+const VIGOR_ENDURANCE_REGENERATION_MULTIPLIER = 1.5;
+const MAXIMUM_ENDURANCE_REGENERATION_PER_SECOND = 10;
+
+export function thiefEnduranceRegenerationRate(
+  context,
+  at = Number(context.start ?? context.state?.time ?? 0),
+) {
+  const vigorActive = Boolean(
+    context.config?.boons?.vigor ||
+    context.hasBuff?.("vigor", at),
+  );
+  return Math.min(
+    MAXIMUM_ENDURANCE_REGENERATION_PER_SECOND,
+    ENDURANCE_REGENERATION_PER_SECOND *
+      (vigorActive ? VIGOR_ENDURANCE_REGENERATION_MULTIPLIER : 1),
+  );
+}
+
+export function thiefEnduranceReadyAt(context, cost) {
+  const current = Number(context.state.profession.endurance || 0);
+  const required = Math.max(0, Number(cost || 0));
+  const missing = required - current;
+  if (missing <= Number(context.epsilon || 0.0001)) return context.start;
+  const rate = thiefEnduranceRegenerationRate(context, context.start);
+  return rate > 0 ? context.start + missing / rate : null;
+}
 
 export function advanceThiefResources(context, target) {
   const state = context.state.profession;
@@ -45,7 +72,12 @@ export function advanceThiefResources(context, target) {
   if (target > enduranceFrom) {
     state.endurance = Math.min(
       state.maximumEndurance,
-      state.endurance + (target - enduranceFrom) * 5,
+      state.endurance +
+        (target - enduranceFrom) *
+          thiefEnduranceRegenerationRate(
+            context,
+            (enduranceFrom + target) / 2,
+          ),
     );
     state.enduranceUpdatedAt = target;
   }

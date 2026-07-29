@@ -1375,6 +1375,7 @@ export const SIGIL_PROCS = Object.freeze({
     trigger: "swap",
     cooldown: 9,
     effect: "endurance",
+    amount: 50,
     icon: SIGIL_DATA.Energy.icon,
   },
   Severance: {

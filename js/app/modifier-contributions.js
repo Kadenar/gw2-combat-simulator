@@ -6,6 +6,45 @@
  * @property {*} config Simulation configuration without the modifier.
  */
 
+export const MAX_MODIFIER_CONTRIBUTION_WORKERS = 3;
+
+export function modifierContributionWorkerCount(
+  comparisonCount,
+  hardwareConcurrency = 0,
+) {
+  const comparisons = Math.max(0, Math.trunc(Number(comparisonCount) || 0));
+  if (!comparisons) return 0;
+  const hardware = Math.trunc(Number(hardwareConcurrency) || 0);
+  const availableWorkers = hardware > 0
+    ? Math.max(1, hardware - 1)
+    : MAX_MODIFIER_CONTRIBUTION_WORKERS;
+  return Math.min(
+    comparisons,
+    MAX_MODIFIER_CONTRIBUTION_WORKERS,
+    availableWorkers,
+  );
+}
+
+export function partitionModifierComparisons(comparisons, workerCount) {
+  const values = Array.isArray(comparisons) ? comparisons : [];
+  const count = Math.min(
+    values.length,
+    Math.max(0, Math.trunc(Number(workerCount) || 0)),
+  );
+  if (!count) return [];
+  const batches = Array.from({ length: count }, () => []);
+  values.forEach((comparison, index) => {
+    batches[index % count].push(comparison);
+  });
+  return batches;
+}
+
+export function mergeModifierContributions(groups) {
+  return (Array.isArray(groups) ? groups : [])
+    .flat()
+    .sort((left, right) => right.dpsIncrease - left.dpsIncrease);
+}
+
 /**
  * A modifier's calculated contribution to baseline DPS.
  *

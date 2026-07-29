@@ -15,10 +15,10 @@ function englishPath(pathname) {
   return `${pathname}${pathname.includes("?") ? "&" : "?"}lang=en`;
 }
 
-export async function fetchGw2Api(pathname, {
-  fetchImpl = fetch,
-  apiRoot = GW2_API_ROOT,
-} = {}) {
+export async function fetchGw2Api(
+  pathname,
+  { fetchImpl = fetch, apiRoot = GW2_API_ROOT } = {},
+) {
   const response = await fetchImpl(`${apiRoot}${englishPath(pathname)}`);
   if (!response.ok) {
     throw new Error(
@@ -36,7 +36,7 @@ export async function fetchManyGw2(endpoint, ids, options = {}) {
   for (let index = 0; index < unique.length; index += 100) {
     const batch = unique.slice(index, index + 100);
     values.push(
-      ...await fetchGw2Api(`/${endpoint}?ids=${batch.join(",")}`, options),
+      ...(await fetchGw2Api(`/${endpoint}?ids=${batch.join(",")}`, options)),
     );
   }
   return values;
@@ -55,29 +55,27 @@ export function traitSnapshot(trait, specialization) {
   };
 }
 
-export function buildSpecializationSnapshots(
-  specializationData,
-  traitData,
-) {
-  const traitsById = new Map(traitData.map(trait => [trait.id, trait]));
+export function buildSpecializationSnapshots(specializationData, traitData) {
+  const traitsById = new Map(traitData.map((trait) => [trait.id, trait]));
   return [...specializationData]
     .sort((left, right) => left.id - right.id)
-    .map(specialization => ({
+    .map((specialization) => ({
       id: specialization.id,
       name: specialization.name,
       elite: Boolean(specialization.elite),
       icon: specialization.icon || "",
       background: specialization.background || "",
       minorTraits: specialization.minor_traits
-        .map(id => traitsById.get(id))
+        .map((id) => traitsById.get(id))
         .filter(Boolean)
-        .map(trait => traitSnapshot(trait, specialization.name)),
-      majorTraits: [0, 1, 2].map(tier =>
+        .map((trait) => traitSnapshot(trait, specialization.name)),
+      majorTraits: [0, 1, 2].map((tier) =>
         specialization.major_traits
           .slice(tier * 3, tier * 3 + 3)
-          .map(id => traitsById.get(id))
+          .map((id) => traitsById.get(id))
           .filter(Boolean)
-          .map(trait => traitSnapshot(trait, specialization.name))),
+          .map((trait) => traitSnapshot(trait, specialization.name)),
+      ),
     }));
 }
 
@@ -85,21 +83,21 @@ function firstFact(skill, predicate) {
   return (skill.facts || []).find(predicate);
 }
 
-export function skillSnapshot(skill, {
-  weapon = "",
-  specialization = "",
-} = {}) {
-  const recharge = firstFact(skill, fact => fact.type === "Recharge");
+export function skillSnapshot(
+  skill,
+  { weapon = "", specialization = "" } = {},
+) {
+  const recharge = firstFact(skill, (fact) => fact.type === "Recharge");
   const countRecharge = firstFact(
     skill,
-    fact => fact.text === "Count Recharge",
+    (fact) => fact.text === "Count Recharge",
   );
   const casts = firstFact(
     skill,
-    fact =>
-      fact.text === "Number of Casts"
-      || fact.text === "Maximum Count"
-      || fact.text === "Casts",
+    (fact) =>
+      fact.text === "Number of Casts" ||
+      fact.text === "Maximum Count" ||
+      fact.text === "Casts",
   );
   return {
     id: skill.id,
@@ -119,30 +117,36 @@ export function skillSnapshot(skill, {
   };
 }
 
-export function isTerrestrialSkill(skill, weapon = "", {
-  excludedIds = [],
-  weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
-  filterSkill = null,
-} = {}) {
-  const excludesId = excludedIds instanceof Set
-    ? excludedIds.has(skill?.id)
-    : excludedIds.includes(skill?.id);
-  const excludesWeapon = weaponExclusions instanceof Set
-    ? weaponExclusions.has(weapon)
-    : weaponExclusions.includes(weapon);
+export function isTerrestrialSkill(
+  skill,
+  weapon = "",
+  {
+    excludedIds = [],
+    weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
+    filterSkill = null,
+  } = {},
+) {
+  const excludesId =
+    excludedIds instanceof Set
+      ? excludedIds.has(skill?.id)
+      : excludedIds.includes(skill?.id);
+  const excludesWeapon =
+    weaponExclusions instanceof Set
+      ? weaponExclusions.has(weapon)
+      : weaponExclusions.includes(weapon);
   if (!skill || excludesId) return false;
   if (excludesWeapon) return false;
   if (skill.flags?.includes(GW2_SKILL_FLAGS.UNDERWATER_ONLY)) return false;
   if (
-    String(skill.slot || "").startsWith("Downed_")
-    && Number(skill.id) < 29_000
-    && !skill.flags?.includes(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY)
+    String(skill.slot || "").startsWith("Downed_") &&
+    Number(skill.id) < 29_000 &&
+    !skill.flags?.includes(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY)
   ) {
     return false;
   }
   if (
-    weapon === "Spear"
-    && !skill.flags?.includes(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY)
+    weapon === "Spear" &&
+    !skill.flags?.includes(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY)
   ) {
     return false;
   }
@@ -154,12 +158,10 @@ export function isTerrestrialSkill(skill, weapon = "", {
 export function professionSkillAssociations(
   profession,
   specializationData,
-  {
-    weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
-  } = {},
+  { weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS } = {},
 ) {
   const specializationById = new Map(
-    specializationData.map(specialization => [
+    specializationData.map((specialization) => [
       specialization.id,
       specialization.name,
     ]),
@@ -167,8 +169,8 @@ export function professionSkillAssociations(
   const specializationBySkillId = new Map();
   const eliteSpecializations = new Set(
     specializationData
-      .filter(specialization => specialization.elite)
-      .map(specialization => specialization.name),
+      .filter((specialization) => specialization.elite)
+      .map((specialization) => specialization.name),
   );
   for (const training of profession.training || []) {
     if (!eliteSpecializations.has(training.name)) continue;
@@ -185,7 +187,8 @@ export function professionSkillAssociations(
       weaponExclusions instanceof Set
         ? weaponExclusions.has(weapon)
         : weaponExclusions.includes(weapon)
-    ) continue;
+    )
+      continue;
     for (const skill of definition.skills || []) {
       weaponBySkillId.set(skill.id, weapon);
       if (definition.specialization) {
@@ -197,7 +200,7 @@ export function professionSkillAssociations(
     }
   }
   const seedIds = [
-    ...(profession.skills || []).map(skill => skill.id),
+    ...(profession.skills || []).map((skill) => skill.id),
     ...weaponBySkillId.keys(),
   ];
   return {
@@ -217,20 +220,17 @@ export function buildSkillSnapshots({
   skillData,
   config = {},
 }) {
-  const normalizedSkillData = skillData.map(skill => {
+  const normalizedSkillData = skillData.map((skill) => {
     const override = config.skillOverrides?.[skill.id] || {};
     const normalized = { ...skill, ...override };
     return typeof config.repairSkill === "function"
       ? config.repairSkill(normalized) || normalized
       : normalized;
   });
-  const {
-    seedIds,
-    weaponBySkillId,
-    specializationBySkillId,
-  } = professionSkillAssociations(profession, specializationData, config);
+  const { seedIds, weaponBySkillId, specializationBySkillId } =
+    professionSkillAssociations(profession, specializationData, config);
   const skillDataById = new Map(
-    normalizedSkillData.map(skill => [skill.id, skill]),
+    normalizedSkillData.map((skill) => [skill.id, skill]),
   );
   const includedIds = new Set();
   const queue = [...seedIds];
@@ -255,13 +255,15 @@ export function buildSkillSnapshots({
   }
 
   const snapshots = [...includedIds]
-    .map(id => skillSnapshot(skillDataById.get(id), {
-      weapon: weaponBySkillId.get(id) || "",
-      specialization: specializationBySkillId.get(id) || "",
-    }))
+    .map((id) =>
+      skillSnapshot(skillDataById.get(id), {
+        weapon: weaponBySkillId.get(id) || "",
+        specialization: specializationBySkillId.get(id) || "",
+      }),
+    )
     .sort((left, right) => left.id - right.id);
-  const byId = new Map(snapshots.map(skill => [skill.id, skill]));
-  return snapshots.map(skill => {
+  const byId = new Map(snapshots.map((skill) => [skill.id, skill]));
+  return snapshots.map((skill) => {
     const next = byId.get(skill.nextChainId);
     const flip = byId.get(skill.flipSkillId);
     return {
@@ -311,7 +313,7 @@ export async function fetchProfessionSnapshot({
   );
   const traitData = await fetchManyGw2(
     "traits",
-    specializationData.flatMap(specialization => [
+    specializationData.flatMap((specialization) => [
       ...specialization.minor_traits,
       ...specialization.major_traits,
     ]),
@@ -323,19 +325,21 @@ export async function fetchProfessionSnapshot({
     config,
   );
   const skillDataById = new Map(
-    (
-      await fetchManyGw2("skills", associations.seedIds, options)
-    ).map(skill => [skill.id, skill]),
+    (await fetchManyGw2("skills", associations.seedIds, options)).map(
+      (skill) => [skill.id, skill],
+    ),
   );
   let frontier = [...associations.seedIds];
   while (frontier.length) {
-    const references = [...new Set(
-      frontier.flatMap(id => linkedSkillIds(skillDataById.get(id))),
-    )].filter(id => !skillDataById.has(id));
+    const references = [
+      ...new Set(
+        frontier.flatMap((id) => linkedSkillIds(skillDataById.get(id))),
+      ),
+    ].filter((id) => !skillDataById.has(id));
     if (!references.length) break;
     const fetched = await fetchManyGw2("skills", references, options);
     for (const skill of fetched) skillDataById.set(skill.id, skill);
-    frontier = fetched.map(skill => skill.id);
+    frontier = fetched.map((skill) => skill.id);
   }
   return createProfessionSnapshot({
     profession,
