@@ -62,6 +62,22 @@ function upkeepPulseInterval(skill) {
   return profile.defaultPulseInterval;
 }
 
+function emitEmbraceTheDarknessPulse(context, skill, active, at) {
+  const profile = MECHANICS.upkeep.embraceTheDarkness;
+  emitDamage(context, skill, at, profile.coefficient);
+  emitCondition(
+    context,
+    skill,
+    at,
+    "Torment",
+    active.empoweredNextPulse
+      ? profile.empoweredTormentStacks
+      : profile.tormentStacks,
+    profile.tormentDuration,
+  );
+  active.empoweredNextPulse = false;
+}
+
 /** Toggles an upkeep instance and schedules/cancels its recurring pulse task. */
 export function toggleRevenantUpkeep(context, skill) {
   const state = context.state.profession;
@@ -78,7 +94,7 @@ export function toggleRevenantUpkeep(context, skill) {
     emitRevenantState(context, at, "upkeep-disabled");
     return;
   }
-  state.activeUpkeeps.push({
+  const active = {
     skillId: skill.id,
     upkeepCost: Number(skill.upkeepCost || 0),
     empoweredNextPulse: false,
@@ -92,7 +108,8 @@ export function toggleRevenantUpkeep(context, skill) {
       context.config.specialization === "Conduit"
         ? at + MECHANICS.upkeep.enigmaticUpkeep.interval
         : null,
-  });
+  };
+  state.activeUpkeeps.push(active);
   const consumeId = MECHANICS.upkeep.facetConsumeBySkillId[skill.id];
   const consume = context.catalog.skillsById.get(consumeId);
   if (consume) state.availableFlips[consume.id] = true;
@@ -101,9 +118,14 @@ export function toggleRevenantUpkeep(context, skill) {
       ? null
       : context.catalog.skillsById.get(skill.flipSkillId);
   if (release) state.availableFlips[release.id] = true;
+  if (skill.id === ID.EMBRACE_THE_DARKNESS) {
+    emitEmbraceTheDarknessPulse(context, skill, active, at);
+  }
   context.tasks.schedule({
     type: "revenant.upkeep-pulse",
-    at: at + upkeepPulseInterval(skill),
+    at: skill.id === ID.EMBRACE_THE_DARKNESS
+      ? Math.floor(at + context.epsilon) + 1
+      : at + upkeepPulseInterval(skill),
     ownerId: `revenant.upkeep:${skill.id}`,
     payload: { skillId: skill.id },
   });
@@ -208,19 +230,7 @@ export function handleRevenantUpkeepPulse(context, task) {
   if (!active) return;
   const skill = context.catalog.skillsById.get(task.payload.skillId);
   if (skill?.id === ID.EMBRACE_THE_DARKNESS) {
-    const profile = MECHANICS.upkeep.embraceTheDarkness;
-    emitDamage(context, skill, task.at, profile.coefficient);
-    emitCondition(
-      context,
-      skill,
-      task.at,
-      "Torment",
-      active.empoweredNextPulse
-        ? profile.empoweredTormentStacks
-        : profile.tormentStacks,
-      profile.tormentDuration,
-    );
-    active.empoweredNextPulse = false;
+    emitEmbraceTheDarknessPulse(context, skill, active, task.at);
   } else if (skill?.id === ID.VENGEFUL_HAMMERS) {
     const profile = MECHANICS.upkeep.vengefulHammers;
     for (let hammer = 1; hammer <= profile.hammers; hammer += 1) {

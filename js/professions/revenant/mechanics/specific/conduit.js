@@ -27,6 +27,21 @@ function hasTrait(context, traitId) {
   return hasRevenantTrait(context.config, traitId);
 }
 
+function activeComboField(context, type, at) {
+  return context.events.some(event => {
+    if (
+      event.type !== "action" ||
+      Number(event.endsAt) > at + context.epsilon
+    ) return false;
+    const field = context.catalog.skillsById.get(event.skillId);
+    return (
+      field?.comboField === type &&
+      Number(event.endsAt) + Number(field.duration || 0) >=
+        at - context.epsilon
+    );
+  });
+}
+
 function effectiveAffinity(context) {
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
   return Math.min(
@@ -394,7 +409,15 @@ export function castHexEaterVortex(context, skill) {
     state.selfConditions.splice(0, conditionsRemoved - configuredRemoved);
   }
   for (let index = 0; index < projectileCount; index += 1) {
+    emitDamage(context, skill, {
+      at,
+      coefficient: profile.projectileCoefficient,
+      name: `Hex-Eater Vortex — Projectile ${index + 1}`,
+      hitIndex: index + 1,
+      totalHits: projectileCount,
+    });
     emitCondition(context, skill, {
+      at,
       condition: "Torment",
       stacks: profile.tormentStacks,
       duration: profile.tormentDuration,
@@ -495,6 +518,17 @@ export function castTwinMoonSweep(context, skill) {
         stacks: profile.demonConfusionStacks,
         duration: profile.demonConfusionDuration,
         name: `Twin Moon Sweep — Confusion ${index + 1}`,
+      });
+    }
+  }
+  if (activeComboField(context, "Fire", at)) {
+    for (let index = 0; index < profile.burningBolts; index += 1) {
+      emitCondition(context, skill, {
+        at: at + profile.burningBoltDelay,
+        condition: "Burning",
+        stacks: 1,
+        duration: profile.burningBoltDuration,
+        name: `Twin Moon Sweep — Burning Bolts ${index + 1}`,
       });
     }
   }
@@ -638,6 +672,39 @@ export function switchAllianceTactics(context) {
 export function activateCosmicWisdom(context) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
+  // Mistfire resolves as part of the activation, before Cosmic Wisdom's
+  // doubled Bolstered Bonds attributes become active.
+  if (hasTrait(context, TRAIT.MISTFIRE)) {
+    const profile = MECHANICS.traitProcs.mistfire;
+    context.emit({
+      type: "damage",
+      at,
+      source: "revenant",
+      sourceId: TRAIT.MISTFIRE,
+      actorType: "effect",
+      skillId: TRAIT.MISTFIRE,
+      skillName: "Mistfire",
+      name: "Mistfire",
+      coefficient: profile.coefficient,
+      hits: 1,
+      hitIndex: 1,
+      totalHits: 1,
+      skillWeapon: "Unequipped",
+    });
+    context.emit({
+      type: "condition",
+      at,
+      source: "revenant",
+      sourceId: TRAIT.MISTFIRE,
+      actorType: "effect",
+      skillId: TRAIT.MISTFIRE,
+      skillName: "Mistfire",
+      name: "Mistfire — Burning",
+      condition: "Burning",
+      stacks: profile.burningStacks,
+      duration: profile.burningDuration,
+    });
+  }
   state.cosmicWisdomUntil = at + MECHANICS.conduit.cosmicWisdomDuration;
   state.conduitForm =
     REVENANT_RELEASE_POTENTIAL_BY_LEGEND[state.activeLegendId]?.replace(

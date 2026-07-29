@@ -29,6 +29,8 @@ import {
   autoattackChainSkillAvailable,
   groupConsecutiveProcSteps,
   paletteActionSkills,
+  procBadgeLabel,
+  resolveProcIcon,
   resultSkillIcon,
   rotationUtilityFlipByParent,
   targetHealthTimelineMarkers,
@@ -94,6 +96,33 @@ test("proc display groups only consecutive occurrences of the same proc", () => 
         starts: [2200],
       },
     ],
+  );
+});
+
+test("cooldown-reduction procs use a refresh icon and reduction badge", () => {
+  const sourceIcon = "https://example.com/source-skill.png";
+  const app = {
+    attributeData: { activeTraits: [] },
+    skillByName: new Map([["Abyssal Strike", { icon: sourceIcon }]]),
+  };
+  const proc = {
+    type: "skill_proc",
+    skill: "Abyssal Strike — Abyssal Raze recharge",
+    sourceSkill: "Abyssal Strike",
+    icon: sourceIcon,
+    cooldownReduction: 1,
+  };
+
+  assert.match(resolveProcIcon(app, proc), /^data:image\/svg\+xml/);
+  assert.notEqual(resolveProcIcon(app, proc), sourceIcon);
+  assert.equal(procBadgeLabel([proc]), "-1s");
+  assert.equal(procBadgeLabel([proc, proc]), "-2s");
+  assert.equal(
+    procBadgeLabel([
+      { type: "trait_proc", skill: "Sharper Images" },
+      { type: "trait_proc", skill: "Sharper Images" },
+    ]),
+    "×2",
   );
 });
 

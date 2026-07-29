@@ -63,11 +63,20 @@ export function createGw2ResolverRuntimeState({
       readyAt: 0,
     },
 
-    recordProc(type, name, at, sourceSkill = "", detail = "", icon = "") {
+    recordProc(
+      type,
+      name,
+      at,
+      sourceSkill = "",
+      detail = "",
+      icon = "",
+      cooldownReduction = null,
+    ) {
       const start = Math.round(at * 1000);
       const key = `${type}|${name}|${start}|${sourceSkill}`;
       if (this.procKeys.has(key)) return;
       this.procKeys.add(key);
+      const reducedBy = Number(cooldownReduction);
       this.procSteps.push({
         ri: -1,
         type: `${type}_proc`,
@@ -75,6 +84,9 @@ export function createGw2ResolverRuntimeState({
         sourceSkill,
         detail,
         icon,
+        ...(Number.isFinite(reducedBy) && reducedBy > 0
+          ? { cooldownReduction: reducedBy }
+          : {}),
         start,
         end: start,
       });
