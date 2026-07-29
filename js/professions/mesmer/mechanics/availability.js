@@ -4,7 +4,6 @@ import {
   MECHANIC_SKILLS,
   SHATTERS,
 } from "./skill-mechanics.js";
-import { mesmerAutoattackChainPosition } from "./autoattack-chains.js";
 import { runtimeFor } from "./runtime.js";
 
 function skillAvailable(skill, config) {
@@ -62,7 +61,7 @@ export function mesmerAvailability(context, skill) {
       };
     }
   }
-  const position = mesmerAutoattackChainPosition(skill.id);
+  const position = context.catalog.autoattackChainPositions.get(skill.id);
   if (position) {
     const expected =
       state.profession.autoattackChains[position.root] || position.root;

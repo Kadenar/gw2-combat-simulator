@@ -5,17 +5,13 @@
  * weapon actions. It also owns Imperial Guard's blocking window, the temporary
  * True Strike flip, and the typed task that expires that follow-up.
  */
-import { REVENANT_AUTOATTACK_CHAINS } from "../../catalog.js";
-import { indexAutoattackChains } from "../../../../platform/engine/autoattack-chains.js";
 import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
 import { emitRevenantState } from "./shared.js";
-
-const CHAIN_BY_ID = indexAutoattackChains(REVENANT_AUTOATTACK_CHAINS);
 
 /** Advances or resets the active weapon autoattack chain after a cast. */
 export function updateRevenantWeaponState(context, skill) {
   const state = context.state.profession;
-  const chain = CHAIN_BY_ID.get(skill.id);
+  const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];
     else state.autoattackChains[chain.root] = chain.next;

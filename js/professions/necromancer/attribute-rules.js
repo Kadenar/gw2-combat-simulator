@@ -22,11 +22,13 @@ function eventSkill(context) {
 
 function targetHasCondition(context, condition) {
   if (context.query?.targetHasCondition) {
-    return Boolean(context.query.targetHasCondition(
-      condition,
-      context.time,
-      context.runtime,
-    ));
+    return Boolean(
+      context.query.targetHasCondition(
+        condition,
+        context.time,
+        context.runtime,
+      ),
+    );
   }
   return targetHasConfiguredCondition(
     context.config || {},
@@ -39,13 +41,16 @@ function targetHasCondition(context, condition) {
 function targetConditionCount(context) {
   const names = new Set([
     ...CANONICAL_TARGET_CONDITIONS,
-    ...Object.keys(context.config?.target?.conditions || {})
-      .map(canonicalTargetConditionName),
-    ...[...(context.runtime?.conditionState?.keys?.() || [])]
-      .map(canonicalTargetConditionName),
+    ...Object.keys(context.config?.target?.conditions || {}).map(
+      canonicalTargetConditionName,
+    ),
+    ...[...(context.runtime?.conditionState?.keys?.() || [])].map(
+      canonicalTargetConditionName,
+    ),
   ]);
-  return [...names].filter(condition =>
-    targetHasCondition(context, condition)).length;
+  return [...names].filter((condition) =>
+    targetHasCondition(context, condition),
+  ).length;
 }
 
 function targetHealthFraction(context) {
@@ -91,10 +96,12 @@ function modifyNecromancerAttributes(context, attributes) {
   const result = { ...attributes };
   const timedCarapace = (
     context.runtime?.profession?.carapaceExpiries || []
-  ).filter(expiresAt => expiresAt > context.time).length;
+  ).filter((expiresAt) => expiresAt > context.time).length;
   const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
-    ? Object.values(context.runtime?.profession?.activeMinions || {})
-        .reduce((total, count) => total + Number(count || 0) * 2, 0)
+    ? Object.values(context.runtime?.profession?.activeMinions || {}).reduce(
+        (total, count) => total + Number(count || 0) * 2,
+        0,
+      )
     : 0;
   const carapace = Math.min(30, timedCarapace + minionCarapace);
   if (hasTrait(context, TRAIT.DEADLY_STRENGTH) && carapace > 0) {
@@ -164,14 +171,14 @@ function modifyNecromancerAttributes(context, attributes) {
 function criticalStrikeTraitFactor(context) {
   let criticalHitFactor = 1;
   if (
-    hasTrait(context, TRAIT.DEATH_PERCEPTION)
-    && Boolean(activeShroud(context))
+    hasTrait(context, TRAIT.DEATH_PERCEPTION) &&
+    Boolean(activeShroud(context))
   ) {
     criticalHitFactor *= 1.1;
   }
   if (
-    hasTrait(context, TRAIT.WICKED_CORRUPTION)
-    && targetHasCondition(context, "Torment")
+    hasTrait(context, TRAIT.WICKED_CORRUPTION) &&
+    targetHasCondition(context, "Torment")
   ) {
     criticalHitFactor *= 1.1;
   }
@@ -181,11 +188,9 @@ function criticalStrikeTraitFactor(context) {
     context.time,
     context.runtime,
   );
-  const normalExpected =
-    1 + critical.chance * (critical.damage - 1);
+  const normalExpected = 1 + critical.chance * (critical.damage - 1);
   const modifiedExpected =
-    (1 - critical.chance)
-    + critical.chance * critical.damage * criticalHitFactor;
+    1 - critical.chance + critical.chance * critical.damage * criticalHitFactor;
   return modifiedExpected / normalExpected;
 }
 
@@ -208,8 +213,8 @@ export const necromancerModifierRules = Object.freeze([
     factor: 1.5,
     order: 100,
     when: (context) =>
-      eventSkill(context)?.id === ID.LIFE_SIPHON
-      && targetHasCondition(context, "Bleeding"),
+      eventSkill(context)?.id === ID.LIFE_SIPHON &&
+      targetHasCondition(context, "Bleeding"),
   },
   {
     id: "necromancer.target-the-weak-critical-chance",
@@ -225,18 +230,20 @@ export const necromancerModifierRules = Object.freeze([
     amount: (context) =>
       Math.min(
         25,
-        Number(context.query?.targetConditionStacks
-          ? context.query.targetConditionStacks(
-            "Vulnerability",
-            context.time,
-            context.runtime,
-          )
-          : configuredTargetConditionStacks(
-            context.config || {},
-            "Vulnerability",
-            context.time,
-            context.runtime,
-          )),
+        Number(
+          context.query?.targetConditionStacks
+            ? context.query.targetConditionStacks(
+                "Vulnerability",
+                context.time,
+                context.runtime,
+              )
+            : configuredTargetConditionStacks(
+                context.config || {},
+                "Vulnerability",
+                context.time,
+                context.runtime,
+              ),
+        ),
       ) * 0.02,
     when: (context) => hasTrait(context, TRAIT.DECIMATE_DEFENSES),
   },
@@ -279,14 +286,10 @@ export const necromancerModifierRules = Object.freeze([
     factor: criticalStrikeTraitFactor,
     order: 100,
     when: (context) =>
-      (
-        hasTrait(context, TRAIT.DEATH_PERCEPTION)
-        && Boolean(activeShroud(context))
-      )
-      || (
-        hasTrait(context, TRAIT.WICKED_CORRUPTION)
-        && targetHasCondition(context, "Torment")
-      ),
+      (hasTrait(context, TRAIT.DEATH_PERCEPTION) &&
+        Boolean(activeShroud(context))) ||
+      (hasTrait(context, TRAIT.WICKED_CORRUPTION) &&
+        targetHasCondition(context, "Torment")),
   },
   {
     id: "necromancer.septic-corruption-blight",
@@ -467,13 +470,10 @@ function modifyNecromancerCastDuration(context, duration) {
 
 function modifyNecromancerRechargeStart(context, rechargeStart) {
   if (
-    context.skill?.id === ID.ISOLATE
-    && context.skill.flipActivationAtMs != null
+    context.skill?.id === ID.ISOLATE &&
+    context.skill.flipActivationAtMs != null
   ) {
-    return (
-      context.start
-      + Number(context.skill.flipActivationAtMs) / 1000
-    );
+    return context.start + Number(context.skill.flipActivationAtMs) / 1000;
   }
   return rechargeStart;
 }

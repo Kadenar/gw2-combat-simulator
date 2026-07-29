@@ -4,9 +4,7 @@ import {
   normalizeWeaponSigils,
 } from "../../platform/gw2/weapon-sigils.js";
 import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
-import {
-  createDefaultTargetConditions,
-} from "../../platform/gw2/default-target-conditions.js";
+import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
 import { revenantCatalog } from "./catalog.js";
 import { REVENANT_LEGEND_IDS as LEGEND } from "./data/ids.js";
 import { revenantLegendLoadout } from "./legend-loadout.js";
@@ -29,7 +27,7 @@ export function createRevenantBuildDefaults() {
   return {
     schemaVersion: REVENANT_BUILD_SCHEMA_VERSION,
     profession: REVENANT_PROFESSION_ID,
-    gear: Object.fromEntries(GEAR_SLOTS.map(slot => [slot, "Viper's"])),
+    gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
     weapons: ["Sword", "Sword"],
     alternateWeapons: ["Mace", "Axe"],
     rune: "Trapper",
@@ -101,7 +99,9 @@ const revenantBuildCodec = createGw2BuildCodec({
   },
   validateExtra(build) {
     const errors = [];
-    if (!(Number(build.initialEnergy) >= 0 && Number(build.initialEnergy) <= 100)) {
+    if (
+      !(Number(build.initialEnergy) >= 0 && Number(build.initialEnergy) <= 100)
+    ) {
       errors.push("initialEnergy must be between 0 and 100.");
     }
     if (!["luxon", "kurzick"].includes(build.allianceSide)) {

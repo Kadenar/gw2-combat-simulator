@@ -1,8 +1,6 @@
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
-import {
-  ENGINEER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
+import { ENGINEER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 
 function handleEngineerState(context, event) {
   const preserved = {
@@ -15,15 +13,19 @@ function handleEngineerState(context, event) {
   );
 }
 
-function queueDamage(context, event, {
-  name,
-  coefficient,
-  sourceId = event.skillId,
-  actorType = "player",
-  at = event.at,
-  noCrit = false,
-  explosion = false,
-}) {
+function queueDamage(
+  context,
+  event,
+  {
+    name,
+    coefficient,
+    sourceId = event.skillId,
+    actorType = "player",
+    at = event.at,
+    noCrit = false,
+    explosion = false,
+  },
+) {
   enqueueOrdered(context.queue, {
     type: "damage",
     at,
@@ -44,14 +46,18 @@ function queueDamage(context, event, {
   });
 }
 
-function queueBuff(context, event, {
-  name,
-  kind,
-  stacks,
-  duration,
-  sourceId = event.skillId,
-  actorType = "player",
-}) {
+function queueBuff(
+  context,
+  event,
+  {
+    name,
+    kind,
+    stacks,
+    duration,
+    sourceId = event.skillId,
+    actorType = "player",
+  },
+) {
   enqueueOrdered(context.queue, {
     type: "buff",
     at: event.at,
@@ -67,14 +73,19 @@ function queueBuff(context, event, {
   });
 }
 
-function applyCondition(details, context, event, {
-  name,
-  condition,
-  stacks,
-  duration,
-  sourceId = event.skillId,
-  actorType = "player",
-}) {
+function applyCondition(
+  details,
+  context,
+  event,
+  {
+    name,
+    condition,
+    stacks,
+    duration,
+    sourceId = event.skillId,
+    actorType = "player",
+  },
+) {
   const application = {
     type: "condition",
     at: event.at,
@@ -177,10 +188,11 @@ function isExplosion(context, event) {
     event.skillId ?? event.sourceId,
   );
   return (
-    skill?.categories?.some(category =>
-      String(category).toLowerCase() === "explosion")
-    || skill?.kit === "Grenade Kit"
-    || skill?.name === "Devastator"
+    skill?.categories?.some(
+      (category) => String(category).toLowerCase() === "explosion",
+    ) ||
+    skill?.kit === "Grenade Kit" ||
+    skill?.name === "Devastator"
   );
 }
 
@@ -188,9 +200,10 @@ function isAimAssistedProjectile(context, event) {
   if (event.actorType !== "player") return false;
   const skill = context.helpers.skillsById?.get(event.skillId);
   return (
-    skill?.kit === "Grenade Kit"
-    || skill?.categories?.some(category =>
-      String(category).toLowerCase() === "projectile")
+    skill?.kit === "Grenade Kit" ||
+    skill?.categories?.some(
+      (category) => String(category).toLowerCase() === "projectile",
+    )
   );
 }
 
@@ -202,14 +215,12 @@ function reactToEngineerDamage(context, event, details = {}) {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
   const criticalChance = Number(
-    details.hitContext?.critical?.chance
-      ?? details.criticalChance
-      ?? 0,
+    details.hitContext?.critical?.chance ?? details.criticalChance ?? 0,
   );
 
   if (
-    hasTrait(context, TRAIT.CARBOLIC_COMPOSITION)
-    && event.actorType !== "summon"
+    hasTrait(context, TRAIT.CARBOLIC_COMPOSITION) &&
+    event.actorType !== "summon"
   ) {
     applyCondition(details, context, event, {
       name: "Carbolic Composition",
@@ -222,9 +233,9 @@ function reactToEngineerDamage(context, event, details = {}) {
   }
 
   if (
-    event.actorType !== "summon"
-    && Number(engineerState(context).rapaciousUntil || 0) > event.at
-    && Number(state.rapacious || 0) <= event.at
+    event.actorType !== "summon" &&
+    Number(engineerState(context).rapaciousUntil || 0) > event.at &&
+    Number(state.rapacious || 0) <= event.at
   ) {
     state.rapacious = event.at + 0.5;
     queueDamage(context, event, {
@@ -238,9 +249,9 @@ function reactToEngineerDamage(context, event, details = {}) {
   }
 
   if (
-    event.actorType === "player"
-    && hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE)
-    && !state.explosiveEntranceFired
+    event.actorType === "player" &&
+    hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) &&
+    !state.explosiveEntranceFired
   ) {
     state.explosiveEntranceFired = true;
     queueDamage(context, event, {
@@ -254,10 +265,7 @@ function reactToEngineerDamage(context, event, details = {}) {
   }
 
   const explosion = isExplosion(context, event);
-  if (
-    explosion
-    && hasTrait(context, TRAIT.STEEL_PACKED_POWDER)
-  ) {
+  if (explosion && hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) {
     queueBuff(context, event, {
       name: "Steel-Packed Powder",
       kind: "target-vulnerability",
@@ -292,9 +300,9 @@ function reactToEngineerDamage(context, event, details = {}) {
   }
 
   if (
-    event.actorType === "player"
-    && hasTrait(context, TRAIT.SERRATED_STEEL)
-    && criticalChance > 0
+    event.actorType === "player" &&
+    hasTrait(context, TRAIT.SERRATED_STEEL) &&
+    criticalChance > 0
   ) {
     state.serratedSteelProgress =
       Number(state.serratedSteelProgress || 0) + criticalChance * 0.33;
@@ -313,15 +321,15 @@ function reactToEngineerDamage(context, event, details = {}) {
   }
 
   if (
-    event.actorType === "player"
-    && hasTrait(context, TRAIT.INCENDIARY_POWDER)
-    && criticalChance > 0
+    event.actorType === "player" &&
+    hasTrait(context, TRAIT.INCENDIARY_POWDER) &&
+    criticalChance > 0
   ) {
     state.incendiaryProgress =
       Number(state.incendiaryProgress || 0) + criticalChance;
     if (
-      state.incendiaryProgress >= 1
-      && Number(state.incendiaryPowder || 0) <= event.at
+      state.incendiaryProgress >= 1 &&
+      Number(state.incendiaryPowder || 0) <= event.at
     ) {
       state.incendiaryProgress -= 1;
       state.incendiaryPowder = event.at + 10;
@@ -338,9 +346,9 @@ function reactToEngineerDamage(context, event, details = {}) {
   }
 
   if (
-    hasTrait(context, TRAIT.AIM_ASSISTED_ROCKET)
-    && isAimAssistedProjectile(context, event)
-    && Number(state.aimAssistedRocket || 0) <= event.at
+    hasTrait(context, TRAIT.AIM_ASSISTED_ROCKET) &&
+    isAimAssistedProjectile(context, event) &&
+    Number(state.aimAssistedRocket || 0) <= event.at
   ) {
     state.aimAssistedRocket = event.at + 3;
     state.aimAssistedRocketCount =
@@ -366,20 +374,18 @@ function reactToEngineerDamage(context, event, details = {}) {
 
 function reactToEngineerCondition(context, event) {
   if (
-    event.condition === "Burning"
-    && hasTrait(context, TRAIT.THERMAL_VISION)
+    event.condition === "Burning" &&
+    hasTrait(context, TRAIT.THERMAL_VISION)
   ) {
     const state = engineerState(context);
     state.traitProcReadyAt.thermalVisionUntil = Math.max(
-      Number(
-        state.traitProcReadyAt.thermalVisionUntil || 0,
-      ),
+      Number(state.traitProcReadyAt.thermalVisionUntil || 0),
       event.at + 4,
     );
   }
   if (
-    event.condition === "Bleeding"
-    && hasTrait(context, TRAIT.HEMATIC_FOCUS)
+    event.condition === "Bleeding" &&
+    hasTrait(context, TRAIT.HEMATIC_FOCUS)
   ) {
     queueBuff(context, event, {
       name: "Hematic Focus",

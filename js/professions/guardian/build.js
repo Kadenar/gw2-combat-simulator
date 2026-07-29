@@ -1,12 +1,6 @@
-import {
-  normalizeWeaponSigils,
-} from "../../platform/gw2/weapon-sigils.js";
-import {
-  createGw2BuildCodec,
-} from "../../platform/gw2/build-codec.js";
-import {
-  createDefaultTargetConditions,
-} from "../../platform/gw2/default-target-conditions.js";
+import { normalizeWeaponSigils } from "../../platform/gw2/weapon-sigils.js";
+import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
+import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
 import { guardianCatalog } from "./catalog.js";
 
 /**
@@ -107,18 +101,13 @@ const guardianBuildCodec = createGw2BuildCodec({
       ...build,
       initialTomePages: Math.max(
         0,
-        Math.min(
-          8,
-          Math.trunc(Number.isFinite(configured) ? configured : 5),
-        ),
+        Math.min(8, Math.trunc(Number.isFinite(configured) ? configured : 5)),
       ),
     };
   },
   validateExtra(build) {
-    return (
-      Number(build.initialTomePages) >= 0
-      && Number(build.initialTomePages) <= 8
-    )
+    return Number(build.initialTomePages) >= 0 &&
+      Number(build.initialTomePages) <= 8
       ? []
       : ["initialTomePages must be between 0 and 8."];
   },

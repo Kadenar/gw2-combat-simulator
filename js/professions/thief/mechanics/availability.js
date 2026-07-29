@@ -1,13 +1,5 @@
-import { THIEF_AUTOATTACK_CHAINS } from "../catalog.js";
 import { THIEF_SKILL_IDS as ID } from "../data/ids.js";
 
-const CHAIN_BY_ID = new Map();
-for (const chain of THIEF_AUTOATTACK_CHAINS) {
-  chain.forEach((id, index) => CHAIN_BY_ID.set(id, {
-    root: chain[0],
-    next: chain[index + 1] ?? null,
-  }));
-}
 const PROFESSION_SKILL_BY_SPEC = Object.freeze({
   Core: ID.STEAL,
   Daredevil: ID.STEAL,
@@ -217,7 +209,7 @@ export function thiefCastAvailability(context, skill) {
       context.start + Math.max(0, missing),
     );
   }
-  const chain = CHAIN_BY_ID.get(skill.id);
+  const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (
     chain
     && (state.autoattackChains[chain.root] || chain.root) !== skill.id

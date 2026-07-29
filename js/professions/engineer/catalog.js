@@ -13,9 +13,6 @@ import {
   ENGINEER_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
 import {
-  engineerAutoattackChains,
-} from "./mechanics/autoattack-chains.js";
-import {
   engineerSkillHandlers,
 } from "./mechanics/specific/handlers.js";
 
@@ -44,15 +41,6 @@ const generatedSource = SKILLS.map(skill => ({
 }));
 const allDeclared = [...generatedSource, ...ENGINEER_SUPPLEMENTAL_SKILLS];
 const byId = new Map(allDeclared.map(skill => [skill.id, skill]));
-const chains = engineerAutoattackChains(allDeclared);
-const chainRootById = new Map();
-const chainStepById = new Map();
-for (const chain of chains) {
-  chain.forEach((id, index) => {
-    chainRootById.set(id, chain[0]);
-    chainStepById.set(id, index + 1);
-  });
-}
 const flipParentById = new Map();
 for (const skill of allDeclared) {
   if (
@@ -83,8 +71,6 @@ const generated = generatedSource.map(skill => ({
   ...skill,
   cooldown:
     skill.ammo > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
-  chainRoot: chainRootById.get(skill.id) ?? null,
-  chainStep: chainStepById.get(skill.id) ?? null,
   flipParentId: resolvedFlipParentId(skill.id),
   implemented: false,
   effects: [],
@@ -95,8 +81,6 @@ const generated = generatedSource.map(skill => ({
 const supplemental = ENGINEER_SUPPLEMENTAL_SKILLS.map(skill => ({
   ...skill,
   icon: AMALGAM_PROTOCOL_ICONS.get(skill.name) || skill.icon,
-  chainRoot: chainRootById.get(skill.id) ?? null,
-  chainStep: chainStepById.get(skill.id) ?? null,
   flipParentId: resolvedFlipParentId(skill.id),
   slotSelectable: false,
 }));
@@ -131,6 +115,10 @@ export const engineerCatalog = createCanonicalCatalog({
   generated,
   mechanics,
   extraSkills: [...supplemental, ...ENGINEER_EXTRA_SKILLS],
+  autoattackChains: {
+    // The API exposes this automatic Rifle Burst damage packet as a chain.
+    excludeSkillIds: [ID.RIFLE_BURST_GRENADE],
+  },
   skillHandlers: engineerSkillHandlers,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,
@@ -157,5 +145,4 @@ export const engineerCatalog = createCanonicalCatalog({
 });
 
 export const ENGINEER_SKILLS = engineerCatalog.skills;
-export const ENGINEER_AUTOATTACK_CHAINS = chains;
 export const ENGINEER_GENERATED_SKILL_IDS = Object.freeze([...generatedIds]);

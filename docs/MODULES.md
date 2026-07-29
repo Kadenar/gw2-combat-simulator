@@ -220,7 +220,7 @@ critical traits, and Bloodsong.
 - [skill-factories.js](js/platform/engine/skill-factories.js) — shared
   canonical skill-mechanic constructors.
 - [autoattack-chains.js](js/platform/engine/autoattack-chains.js) — shared
-  ID-based autoattack-chain discovery and indexing.
+  ID-based autoattack-chain discovery and indexing used by canonical catalogs.
 - [scheduler-state.js](js/platform/engine/scheduler-state.js) — profession-neutral mutable state.
 - [cooldown-controller.js](js/platform/engine/cooldown-controller.js) — shared cooldown and ammo state machine.
 - [GW2 scheduler policy](js/platform/gw2/scheduler/policy.js) — Quickness,
@@ -260,14 +260,15 @@ Mesmer, Guardian, and Necromancer use the same files for shared concepts:
 - `mechanics/skill-mechanics.js` — shared-schema declarative skill mechanics.
 - `mechanics/handler-mechanics.js` — optional profession-specific triggered
   effect and state-machine formulas.
-- `mechanics/autoattack-chains.js` — autoattack-chain declarations.
+- `catalog.js` — canonical autoattack-chain derivation plus any profession
+  additions or exclusions.
 - `mechanics/handlers.js` — explicit augment/replace runtime strategies.
 
 ### Mesmer-Specific Mechanics
 
-- [autoattack-chains.js](js/professions/mesmer/mechanics/autoattack-chains.js) — shared chain derivation plus Mesmer-specific chain-preservation policy.
 - [contract.js](js/professions/mesmer/mechanics/contract.js) — standard
-  profession contract composition and task registration.
+  profession contract composition, task registration, and Mesmer-specific
+  chain-preservation policy.
 - [illusions.js](js/professions/mesmer/mechanics/illusions.js) — task-driven
   clone attack scheduling.
 - [resources.js](js/professions/mesmer/mechanics/resources.js) — clone, blade,

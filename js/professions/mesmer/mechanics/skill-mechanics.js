@@ -85,8 +85,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Slash",
-    chainRoot: 10170,
-    chainStep: 1,
     nextChainId: 10171,
     effects: [
       {
@@ -112,8 +110,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Gash",
-    chainRoot: 10170,
-    chainStep: 2,
     nextChainId: 10172,
     effects: [
       {
@@ -139,8 +135,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     blade: false,
     boonlessCoefficient: 2,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Spike",
-    chainRoot: 10170,
-    chainStep: 3,
     nextChainId: null,
     effects: [
       {
@@ -958,8 +952,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Ether_Bolt",
-    chainRoot: 10289,
-    chainStep: 1,
     nextChainId: 10290,
     effects: [
       {
@@ -991,8 +983,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Ether_Blast",
-    chainRoot: 10289,
-    chainStep: 2,
     nextChainId: 10291,
     effects: [
       {
@@ -1034,8 +1024,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     ],
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Ether_Clone",
-    chainRoot: 10289,
-    chainStep: 3,
     nextChainId: null,
     effects: [
       {
@@ -1630,8 +1618,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Mirror_Strikes",
-    chainRoot: 44791,
-    chainStep: 3,
     nextChainId: null,
     effects: [
       {
@@ -1760,8 +1746,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Lacerating_Chop",
-    chainRoot: 44791,
-    chainStep: 1,
     nextChainId: 44840,
     effects: [
       {
@@ -1795,8 +1779,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Ethereal_Chop",
-    chainRoot: 44791,
-    chainStep: 2,
     nextChainId: 41164,
     effects: [
       {
@@ -2560,8 +2542,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Psystrike",
-    chainRoot: 73154,
-    chainStep: 2,
     nextChainId: 73095,
     effects: [
       {
@@ -2614,8 +2594,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Pierce",
-    chainRoot: 73154,
-    chainStep: 3,
     nextChainId: null,
     effects: [
       {
@@ -2663,8 +2641,6 @@ export const MESMER_SKILL_MECHANICS = Object.freeze({
     resource: null,
     blade: false,
     wikiUrl: "https://wiki.guildwars2.com/wiki/Psycut",
-    chainRoot: 73154,
-    chainStep: 1,
     nextChainId: 73066,
     effects: [
       {

@@ -1,16 +1,10 @@
-import {
-  GEAR_SLOTS,
-} from "../../platform/gw2/gear-data.js";
+import { GEAR_SLOTS } from "../../platform/gw2/gear-data.js";
 import {
   DEFAULT_WEAPON_SIGILS,
   normalizeWeaponSigils,
 } from "../../platform/gw2/weapon-sigils.js";
-import {
-  createGw2BuildCodec,
-} from "../../platform/gw2/build-codec.js";
-import {
-  createDefaultTargetConditions,
-} from "../../platform/gw2/default-target-conditions.js";
+import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
+import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
 import { necromancerCatalog } from "./catalog.js";
 
 /**
@@ -31,7 +25,7 @@ export function createNecromancerBuildDefaults() {
   return {
     schemaVersion: NECROMANCER_BUILD_SCHEMA_VERSION,
     profession: NECROMANCER_PROFESSION_ID,
-    gear: Object.fromEntries(GEAR_SLOTS.map(slot => [slot, "Viper's"])),
+    gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
     weapons: ["Scepter", "Dagger"],
     alternateWeapons: ["Pistol", "Torch"],
     rune: "Trapper",
@@ -104,17 +98,14 @@ const necromancerBuildCodec = createGw2BuildCodec({
     const errors = [];
     if (
       !(
-        Number(build.initialResource) >= 0
-        && Number(build.initialResource) <= 100
+        Number(build.initialResource) >= 0 &&
+        Number(build.initialResource) <= 100
       )
     ) {
       errors.push("initialResource must be between 0 and 100.");
     }
     if (
-      !(
-        Number(build.initialBlight) >= 0
-        && Number(build.initialBlight) <= 25
-      )
+      !(Number(build.initialBlight) >= 0 && Number(build.initialBlight) <= 25)
     ) {
       errors.push("initialBlight must be between 0 and 25.");
     }

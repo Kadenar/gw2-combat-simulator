@@ -2,18 +2,11 @@
 // config mapping, persistence metadata, and shared-shell adapter behavior to
 // the engine contract exported by ../definition.js.
 
-import {
-  defineProfessionApp,
-} from "../../../app/define-profession-app.js";
+import { defineProfessionApp } from "../../../app/define-profession-app.js";
 import { applyMesmerBuildAttributeRules } from "../build-attributes.js";
-import {
-  createDefaultTargetConditions,
-  toApplicationBuild,
-} from "../build.js";
+import { createDefaultTargetConditions, toApplicationBuild } from "../build.js";
 import { mesmerProfession } from "../definition.js";
-import {
-  mesmerResourceDefinition as getResourceDefinition,
-} from "../ui.js";
+import { mesmerResourceDefinition as getResourceDefinition } from "../ui.js";
 
 export const mesmerApp = defineProfessionApp({
   profession: mesmerProfession,

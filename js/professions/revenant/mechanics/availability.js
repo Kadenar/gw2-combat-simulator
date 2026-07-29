@@ -1,4 +1,3 @@
-import { REVENANT_AUTOATTACK_CHAINS } from "../catalog.js";
 import {
   isLegalRevenantLegendId,
   REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND,
@@ -9,15 +8,6 @@ import {
 } from "../data/ids.js";
 import { REVENANT_HANDLER_MECHANICS as MECHANICS } from "./handler-mechanics.js";
 
-const CHAIN_BY_ID = new Map();
-for (const chain of REVENANT_AUTOATTACK_CHAINS) {
-  chain.forEach((id, index) =>
-    CHAIN_BY_ID.set(id, {
-      root: chain[0],
-      next: chain[index + 1] ?? null,
-    }),
-  );
-}
 const LUXON = new Set([
   ID.SELFISH_SPIRIT,
   ID.NOMADS_ADVANCE,
@@ -231,7 +221,7 @@ export function revenantCastAvailability(context, skill) {
       `requires ${cost} energy.`,
     );
   }
-  const chain = CHAIN_BY_ID.get(skill.id);
+  const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (
     chain &&
     (state.autoattackChains[chain.root] || chain.root) !== skill.id

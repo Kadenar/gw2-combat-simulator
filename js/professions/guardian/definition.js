@@ -49,7 +49,7 @@ export const guardianProfession = defineProfession({
   },
   schedulerHooks: {
     ...guardianSchedulerHooks,
-    snapshot: context => snapshotGuardianState(context.state.profession),
+    snapshot: (context) => snapshotGuardianState(context.state.profession),
   },
   resolverHooks: {
     eventHandlers: guardianResolverEventHandlers,

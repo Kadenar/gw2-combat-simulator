@@ -22,9 +22,6 @@ import {
     SHATTERS,
     TRAIT_DAMAGE,
 } from "../js/professions/mesmer/mechanics/skill-mechanics.js";
-import {
-    MESMER_AUTOATTACK_CHAINS,
-} from '../js/professions/mesmer/mechanics/autoattack-chains.js';
 import { mesmerCatalog } from '../js/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '../js/professions/mesmer/data/ids.js';
 
@@ -295,7 +292,7 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
         [ID.LACERATING_CHOP, ID.ETHEREAL_CHOP, ID.MIRROR_STRIKES],
         [ID.PSYCUT, ID.PSYSTRIKE, ID.MIND_PIERCE],
     ];
-    assert.deepEqual(MESMER_AUTOATTACK_CHAINS, expectedChains);
+    assert.deepEqual(mesmerCatalog.autoattackChains, expectedChains);
     for (const chain of expectedChains) {
         const [rootId, ...childIds] = chain;
         const rootSkill = mesmerCatalog.skillsById.get(rootId);
