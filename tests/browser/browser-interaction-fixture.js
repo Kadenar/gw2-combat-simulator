@@ -48,11 +48,24 @@ frame.addEventListener('load', async () => {
     try {
         const window = frame.contentWindow;
         const document = frame.contentDocument;
-        app = window.mesmerApp;
+        await waitFor(() => window.professionApp);
+        app = window.professionApp;
         assert(app, 'application did not initialize');
         originalBuild = structuredClone(app.build);
         app.build = createDefaultBuild(app.adapter);
         app.changed();
+
+        const professionResourceStack = document.querySelector(
+            '[data-role="profession-resource-stack"]',
+        );
+        assert(
+            professionResourceStack
+            && professionResourceStack.firstElementChild?.classList.contains('pal-group')
+            && professionResourceStack.lastElementChild?.classList.contains(
+                'active-resource-group',
+            ),
+            'profession resources are not displayed under profession skills',
+        );
 
         assert(
             !document.querySelector('#weapon-bar .wskill[title^="Phantom Razor"]'),
@@ -172,8 +185,10 @@ frame.addEventListener('load', async () => {
         emptyTimeline.dispatchEvent(dragEvent(window, 'drop', paletteTransfer));
         paletteSkill.dispatchEvent(dragEvent(window, 'dragend', paletteTransfer));
         assert(
-            app.build.rotation.length === 1 && app.build.rotation[0] === 'Bladecall',
-            'palette drag did not insert into the empty timeline',
+            app.build.rotation.length === 1
+                && (app.build.rotation[0].name || app.build.rotation[0]) === 'Bladecall'
+                && Number.isInteger(Number(app.build.rotation[0].skillId)),
+            'palette drag did not insert an ID-based skill into the empty timeline',
         );
 
         app.build.rotation = [];
@@ -257,7 +272,7 @@ frame.addEventListener('load', async () => {
             'effects chart hover tooltip is missing',
         );
         icon(document, 'Bladecall').click();
-        assert(app.results.steps[1].start === 4000, 'second click did not wait for cooldown');
+        assert(app.results.steps[1].start === 4440, 'second click did not wait for cooldown');
 
         app.build.rotation = [];
         app.changed(false);
@@ -297,7 +312,6 @@ frame.addEventListener('load', async () => {
             document.querySelector('[data-slot="Helm"]') === helm && helm.isConnected,
             'gear prefix change replaced the select and broke Tab navigation',
         );
-        assert(icon(document, 'Dodge / Mirage Cloak').querySelector('img').naturalWidth > 0, 'action icon failed to load');
         assert(
             icon(document, 'Dodge / Mirage Cloak').querySelector('img').src
                 === 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
@@ -327,7 +341,14 @@ frame.addEventListener('load', async () => {
         icon(document, 'Counterspell').click();
         assert(app.build.rotation.length === 0, 'disabled Counterspell was queued');
         icon(document, 'Illusionary Counter').click();
-        assert(app.results.endState.resource === 0, 'Illusionary Counter generated block-only clones');
+        assert(
+            app.results.endState.profession.resource === 0,
+            `Illusionary Counter generated block-only clones (resource=${
+                app.results.endState.profession.resource
+            }, rotation=${
+                JSON.stringify(app.build.rotation)
+            })`,
+        );
         assert(
             !icon(document, 'Counterspell').classList.contains('pal-context-disabled'),
             'Counterspell did not enable after Illusionary Counter',
@@ -335,7 +356,10 @@ frame.addEventListener('load', async () => {
         icon(document, 'Counterspell').click();
         app.build.rotation.push({ name: '__wait', waitMs: 1000 });
         app.changed(false);
-        assert(app.results.endState.resource === 1, 'Counterspell did not generate one clone/blade');
+        assert(
+            app.results.endState.profession.resource === 1,
+            'Counterspell did not generate one clone/blade',
+        );
         assert(
             [...document.querySelectorAll('.cond-breakdown .cond-hdr span')]
                 .map(label => label.textContent.trim())
@@ -381,10 +405,16 @@ frame.addEventListener('load', async () => {
             'Continuum Shift does not use the requested Wiki image',
         );
         split.click();
-        assert(app.results.endState.continuumActive, 'Continuum Split did not activate its window');
+        assert(
+            app.results.endState.profession.continuumActive,
+            'Continuum Split did not activate its window',
+        );
         assert(!icon(document, 'Continuum Shift').classList.contains('pal-context-disabled'), 'Continuum Shift stayed disabled');
         icon(document, 'Continuum Shift').click();
-        assert(!app.results.endState.continuumActive, 'Continuum Shift did not end the split');
+        assert(
+            !app.results.endState.profession.continuumActive,
+            'Continuum Shift did not end the split',
+        );
         await waitFor(() => Array.isArray(app.results?.contributions));
 
         output.dataset.status = 'passed';

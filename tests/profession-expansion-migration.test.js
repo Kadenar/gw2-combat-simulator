@@ -29,12 +29,13 @@ import {
 } from "../js/app/profession-registry.js";
 import {
   createProfessionSnapshot,
+  DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
   fetchProfessionSnapshot,
+  GW2_SKILL_FLAGS,
   isTerrestrialSkill,
   serializeProfessionSnapshot,
 } from "../scripts/lib/gw2-profession-snapshot.mjs";
 import {
-  professionSnapshotConfig,
   updateProfessionApiData,
 } from "../scripts/update-profession-api-data.mjs";
 
@@ -136,6 +137,11 @@ function assertUiContracts(entry, profession, specialization) {
   assert.equal(
     new Set(groups.map((group) => group.id)).size,
     groups.length,
+  );
+  assert.equal(
+    groups.filter((group) => group.resourceAnchor).length,
+    1,
+    `${entry.id} profession resource anchor`,
   );
   for (const group of groups) {
     assert.match(String(group.id || ""), /^[a-z][a-z0-9-]*$/);
@@ -246,6 +252,14 @@ test("native profession registry entries conform to the shared contracts", async
     assert.equal(profession.validateBuild(migrated).valid, true);
     assert.equal(migrated.profession, entry.id);
     assert.deepEqual(profession.migrateBuild(migrated), migrated);
+    const oneWeaponSet = profession.migrateBuild({
+      ...defaults,
+      alternateWeapons: ["", ""],
+      startingWeaponSet: 2,
+    });
+    assert.deepEqual(oneWeaponSet.alternateWeapons, ["", ""]);
+    assert.equal(oneWeaponSet.startingWeaponSet, 1);
+    assert.equal(profession.validateBuild(oneWeaponSet).valid, true);
     assert.throws(
       () => profession.migrateBuild({
         ...defaults,
@@ -444,7 +458,7 @@ test("native build codecs share version, schema, and sanitization behavior", asy
         skill.specialization &&
         !selectedSpecializations.has(skill.specialization),
     );
-    if (lockedSlotSkill) {
+    if (lockedSlotSkill && !adapter.slotLoadout) {
       const slot =
         lockedSlotSkill.type === "Heal"
           ? "Heal"
@@ -464,23 +478,25 @@ test("native build codecs share version, schema, and sanitization behavior", asy
       assert.equal(profession.validateBuild(migrated).valid, true);
     }
 
-    const duplicateUtility = {
-      ...defaults,
-      selectedSkills: {
-        ...defaults.selectedSkills,
-        Utility2: defaults.selectedSkills.Utility1,
-      },
-    };
-    assert.equal(profession.validateBuild(duplicateUtility).valid, false);
-    const normalizedUtilities = profession.migrateBuild(duplicateUtility);
-    assert.equal(
-      new Set([
-        normalizedUtilities.selectedSkills.Utility1,
-        normalizedUtilities.selectedSkills.Utility2,
-        normalizedUtilities.selectedSkills.Utility3,
-      ]).size,
-      3,
-    );
+    if (!adapter.slotLoadout) {
+      const duplicateUtility = {
+        ...defaults,
+        selectedSkills: {
+          ...defaults.selectedSkills,
+          Utility2: defaults.selectedSkills.Utility1,
+        },
+      };
+      assert.equal(profession.validateBuild(duplicateUtility).valid, false);
+      const normalizedUtilities = profession.migrateBuild(duplicateUtility);
+      assert.equal(
+        new Set([
+          normalizedUtilities.selectedSkills.Utility1,
+          normalizedUtilities.selectedSkills.Utility2,
+          normalizedUtilities.selectedSkills.Utility3,
+        ]).size,
+        3,
+      );
+    }
 
     const twoHanded = [...profession.catalog.weaponHands]
       .find(([, hand]) => hand === "2h")?.[0];
@@ -521,7 +537,7 @@ test("native build codecs share version, schema, and sanitization behavior", asy
       skill.flipParentId != null
       && ["Heal", "Utility", "Elite"].includes(skill.type)
     );
-    if (flip) {
+    if (flip && !adapter.slotLoadout) {
       const slot = flip.type === "Heal"
         ? "Heal"
         : flip.type === "Elite"
@@ -650,7 +666,7 @@ test("resolver profession state changes are chronological and preserve counters"
   );
 });
 
-test("API snapshot transforms chains, aliases, filtering, and ordering", () => {
+test("API snapshot transforms chains, filtering, and ordering", () => {
   const snapshot = createProfessionSnapshot({
     profession: apiFixture.profession,
     specializationData: apiFixture.specializations,
@@ -669,7 +685,7 @@ test("API snapshot transforms chains, aliases, filtering, and ordering", () => {
   assert.deepEqual(reordered, snapshot);
   assert.deepEqual(
     snapshot.skills.map((value) => value.id),
-    [10, 11, 12, 20, 21, 30, 40],
+    [10, 11, 12, 20, 21, 40],
   );
   assert.equal(
     snapshot.skills.find((value) => value.id === 10).nextChainId,
@@ -684,12 +700,11 @@ test("API snapshot transforms chains, aliases, filtering, and ordering", () => {
     null,
   );
   assert.equal(
-    snapshot.skills.find((value) => value.id === 20).canonicalAliasId,
-    20,
-  );
-  assert.deepEqual(
-    snapshot.skills.find((value) => value.id === 20).modeAliasIds,
-    [21],
+    snapshot.skills.some((value) =>
+      "canonicalAliasId" in value
+      || "modeAliasIds" in value
+      || "flags" in value),
+    false,
   );
   assert.equal(
     snapshot.skills.find((value) => value.id === 40).specialization,
@@ -698,6 +713,13 @@ test("API snapshot transforms chains, aliases, filtering, and ordering", () => {
   assert.equal(
     snapshot.skills.some(
       (value) => "facts" in value || "coefficient" in value,
+    ),
+    false,
+  );
+  assert.equal(
+    snapshot.skills.some(
+      (value) =>
+        value.flags?.includes(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY),
     ),
     false,
   );
@@ -712,6 +734,58 @@ test("API snapshot transforms chains, aliases, filtering, and ordering", () => {
       "Spear",
     ),
     false,
+  );
+  assert.deepEqual(
+    DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
+    ["Trident", "Speargun"],
+  );
+  assert.equal(
+    isTerrestrialSkill(
+      {
+        id: 61,
+        name: "Trident Attack",
+        slot: "Weapon_1",
+        flags: [GW2_SKILL_FLAGS.TERRESTRIAL_ONLY],
+      },
+      "Trident",
+    ),
+    false,
+  );
+  assert.equal(
+    isTerrestrialSkill(
+      {
+        id: 64,
+        name: "Aquatic Skill",
+        slot: "Weapon_1",
+        flags: [GW2_SKILL_FLAGS.UNDERWATER_ONLY],
+      },
+      "",
+    ),
+    false,
+  );
+  assert.equal(
+    isTerrestrialSkill(
+      {
+        id: 62,
+        name: "Speargun Attack",
+        slot: "Weapon_1",
+        flags: [GW2_SKILL_FLAGS.TERRESTRIAL_ONLY],
+      },
+      "Speargun",
+    ),
+    false,
+  );
+  assert.equal(
+    isTerrestrialSkill(
+      {
+        id: 63,
+        name: "Land Spear",
+        slot: "Weapon_1",
+        flags: [GW2_SKILL_FLAGS.TERRESTRIAL_ONLY],
+      },
+      "Spear",
+    ),
+    true,
   );
   assert.equal(
     serializeProfessionSnapshot({
@@ -736,20 +810,13 @@ test("API snapshot fetches are English, fixture-backed, and profession-generic",
   });
   assert.deepEqual(
     snapshot.skills.map((skill) => skill.id),
-    [10, 11, 12, 20, 21, 30, 40],
+    [10, 11, 12, 20, 21, 40],
   );
   assert.ok(requests.length > 0);
   assert.equal(
     requests.every((request) => request.searchParams.get("lang") === "en"),
     true,
   );
-  assert.deepEqual(professionSnapshotConfig("Warrior"), {});
-  assert.equal(
-    professionSnapshotConfig("Necromancer")
-      .canonicalSameNameAliasIds["Manifest Sand Shade"],
-    44946,
-  );
-
   const directory = await mkdtemp(
     path.join(tmpdir(), "gw2-profession-snapshot-"),
   );

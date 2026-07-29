@@ -5,6 +5,9 @@ import {
   createCanonicalCatalog,
 } from "../js/platform/engine/catalog.js";
 import {
+  createCooldownController,
+} from "../js/platform/engine/cooldown-controller.js";
+import {
   defineProfession,
 } from "../js/platform/engine/profession.js";
 import {
@@ -13,6 +16,51 @@ import {
 import {
   createTaskQueue,
 } from "../js/platform/engine/task-queue.js";
+
+test("ammo recharge reductions carry overflow until maximum charges", () => {
+  const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };
+  const state = {
+    time: 0,
+    ammo: new Map(),
+    cooldowns: new Map(),
+  };
+  const controller = createCooldownController({
+    state,
+    rechargeDuration: () => 12,
+  });
+
+  controller.spendAmmo(skill, 0);
+  controller.spendAmmo(skill, 0);
+  controller.spendAmmo(skill, 0);
+
+  const zeroToOne = controller.reduceAmmoRecharge(skill, 1, 11.3);
+  assert.equal(zeroToOne.reducedBy, 1);
+  assert.deepEqual(state.ammo.get(skill.id), {
+    charges: 1,
+    maximum: 3,
+    rechargeDuration: 12,
+    nextRechargeAt: 23,
+  });
+  assert.equal(state.cooldowns.has(skill.id), false);
+
+  const oneToTwo = controller.reduceAmmoRecharge(skill, 5, 20);
+  assert.equal(oneToTwo.reducedBy, 5);
+  assert.deepEqual(state.ammo.get(skill.id), {
+    charges: 2,
+    maximum: 3,
+    rechargeDuration: 12,
+    nextRechargeAt: 30,
+  });
+
+  const twoToThree = controller.reduceAmmoRecharge(skill, 5, 29);
+  assert.equal(twoToThree.reducedBy, 1);
+  assert.deepEqual(state.ammo.get(skill.id), {
+    charges: 3,
+    maximum: 3,
+    rechargeDuration: 12,
+    nextRechargeAt: null,
+  });
+});
 
 function temporalCatalog() {
   return createCanonicalCatalog({

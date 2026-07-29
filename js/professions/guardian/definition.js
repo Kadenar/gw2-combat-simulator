@@ -1,3 +1,6 @@
+// Engine-facing Guardian contract. Keep browser persistence, rendering, and
+// build-to-simulation orchestration in app/app-definition.js.
+
 import { defineProfession } from "../../platform/engine/profession.js";
 import {
   createGuardianBuildDefaults,
@@ -46,7 +49,7 @@ export const guardianProfession = defineProfession({
   },
   schedulerHooks: {
     ...guardianSchedulerHooks,
-    snapshot: context => snapshotGuardianState(context.state.profession),
+    snapshot: (context) => snapshotGuardianState(context.state.profession),
   },
   resolverHooks: {
     eventHandlers: guardianResolverEventHandlers,

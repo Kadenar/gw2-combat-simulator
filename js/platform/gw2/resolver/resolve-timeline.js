@@ -16,8 +16,10 @@ function addCastsToBreakdown(ctx, events, effectiveEnd) {
     casts.set(name, (casts.get(name) || 0) + 1);
   }
   for (const entry of ctx.breakdown.values()) {
+    const sourceSkill = entry.sourceSkill || entry.name;
     entry.casts =
-      casts.get(entry.name)
+      casts.get(sourceSkill)
+      || casts.get(entry.name)
       || casts.get(entry.name.split(" — ")[0])
       || 0;
   }
@@ -77,6 +79,7 @@ export function resolveGw2Timeline({
         event.sourceSkill,
         event.detail,
         event.icon,
+        event.cooldownReduction,
       );
     }
   }

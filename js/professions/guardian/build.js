@@ -1,28 +1,21 @@
-import {
-  normalizeWeaponSigils,
-} from "../../platform/gw2/weapon-sigils.js";
-import {
-  createGw2BuildCodec,
-} from "../../platform/gw2/build-codec.js";
+import { normalizeWeaponSigils } from "../../platform/gw2/weapon-sigils.js";
+import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
+import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
 import { guardianCatalog } from "./catalog.js";
+
+/**
+ * Guardian persisted-build definition.
+ *
+ * This module supplies Guardian defaults and configures the shared GW2 build
+ * codec for migration, normalization, validation, and app-facing conversion.
+ * Its profession-specific rule normalizes and validates the initial number of
+ * Firebrand tome pages.
+ */
 
 export const GUARDIAN_BUILD_SCHEMA_VERSION = 3;
 export const GUARDIAN_PROFESSION_ID = "guardian";
 
-export function createDefaultTargetConditions() {
-  return {
-    Bleeding: 1,
-    Burning: true,
-    Torment: 1,
-    Confusion: 1,
-    Poisoned: true,
-    Chilled: true,
-    Cripple: true,
-    Slow: true,
-    Weakness: true,
-    Vulnerability: 25,
-  };
-}
+export { createDefaultTargetConditions };
 
 export function createGuardianBuildDefaults() {
   return {
@@ -108,18 +101,13 @@ const guardianBuildCodec = createGw2BuildCodec({
       ...build,
       initialTomePages: Math.max(
         0,
-        Math.min(
-          8,
-          Math.trunc(Number.isFinite(configured) ? configured : 5),
-        ),
+        Math.min(8, Math.trunc(Number.isFinite(configured) ? configured : 5)),
       ),
     };
   },
   validateExtra(build) {
-    return (
-      Number(build.initialTomePages) >= 0
-      && Number(build.initialTomePages) <= 8
-    )
+    return Number(build.initialTomePages) >= 0 &&
+      Number(build.initialTomePages) <= 8
       ? []
       : ["initialTomePages must be between 0 and 8."];
   },

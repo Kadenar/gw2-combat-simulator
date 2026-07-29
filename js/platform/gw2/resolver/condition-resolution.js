@@ -226,7 +226,13 @@ export function createGw2ConditionResolution({
       fraction,
     });
     ctx.totals.condition += damage;
-    ctx.addBreakdown(application.name, damage, "conditionDamage");
+    ctx.addBreakdown(
+      application.name,
+      damage,
+      "conditionDamage",
+      0,
+      application,
+    );
 
     const conditionEntry = ctx.conditions.get(event.condition) || {
       name: event.condition,

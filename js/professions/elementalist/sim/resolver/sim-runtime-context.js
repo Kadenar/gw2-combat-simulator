@@ -15,7 +15,7 @@ import {
 import { applyAura } from '../mechanics/sim-field-aura-combo.js';
 import { grantEmpoweringAuras, applyOnAuraGainEffects as runAuraGainEffects } from '../mechanics/sim-aura-effects.js';
 import { checkCombo } from '../mechanics/sim-combo-resolution.js';
-import { getRelicStrikeMultiplier, checkRelicOnHit, trackBlightbringerPoison, checkBloodstoneBlast } from '../mechanics/sim-relic-helpers.js';
+import { getRelicStrikeMultiplier, checkRelicOnHit, trackBlightbringerPoison, checkBloodstoneBlast, triggerShackles } from '../mechanics/sim-relic-helpers.js';
 import { pushTimedStack } from '../state/sim-runtime-state.js';
 import { gainEndurance } from '../state/sim-endurance-state.js';
 import { attunementAt, secondaryAttunementAt, mightStacksAt, vulnerabilityStacksAt, hasFuryAt, effectStacksAt } from '../shared/sim-state-queries.js';
@@ -238,6 +238,10 @@ export function createRuntimeContext(engine, S, config = {}) {
 
         checkRelicOnHit(ev) {
             return checkRelicOnHit(this, ev);
+        },
+
+        triggerShackles(time, sourceSkill) {
+            return triggerShackles(this, time, sourceSkill);
         },
 
         checkBloodstoneBlast(time) {

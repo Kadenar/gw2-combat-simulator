@@ -1,11 +1,21 @@
 function normalizeResourceView(view) {
   const maximum = Math.max(0, Number(view.maximum || 0));
+  const displayMode = ["bar", "pips"].includes(view.displayMode)
+    ? view.displayMode
+    : maximum > 20 ? "bar" : "pips";
+  const value = Math.max(
+    0,
+    Math.min(maximum, Number(view.value || 0)),
+  );
+  const pipStyle = String(view.pipStyle || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "");
   return {
     id: String(view.id || "resource"),
     singular: String(view.singular || "resource"),
     plural: String(view.plural || `${view.singular || "resource"}s`),
     maximum,
-    value: Math.max(0, Math.min(maximum, Number(view.value || 0))),
+    value: displayMode === "pips" ? Math.floor(value) : value,
     startMaximum: Math.max(
       0,
       Number(view.startMaximum ?? maximum),
@@ -18,9 +28,12 @@ function normalizeResourceView(view) {
     buildKey: String(view.buildKey || "initialResource"),
     step: Math.max(0.01, Number(view.step || 1)),
     // Dense resources default to a bar; small discrete resources use pips.
-    displayMode: ["bar", "pips"].includes(view.displayMode)
-      ? view.displayMode
-      : maximum > 20 ? "bar" : "pips",
+    displayMode,
+    pipStyle,
+    pipRows: Math.max(
+      1,
+      Math.min(maximum || 1, Math.round(Number(view.pipRows || 1))),
+    ),
     shortLabel: String(view.shortLabel || view.singular || "Res"),
     statusLabel: String(view.statusLabel || "Current"),
   };

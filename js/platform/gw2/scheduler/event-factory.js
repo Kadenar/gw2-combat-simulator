@@ -1,6 +1,4 @@
-import {
-  gw2ActorTypeForSource,
-} from "../event-ownership.js";
+import { gw2ActorTypeForSource } from "../event-ownership.js";
 
 /**
  * Creates the standard damage, condition, proc, and timeline events emitted by
@@ -19,17 +17,17 @@ export function createGw2SchedulerEventFactory({
   defaultSource = "System",
   onConditionScheduled = () => {},
   onDamageScheduled = () => {},
-  decorateDamageEvent = event => event,
+  decorateDamageEvent = (event) => event,
 }) {
-  const addEvent = event => {
+  const addEvent = (event) => {
     const normalized = {
       source: event.source || defaultSource,
       sourceId:
-        event.sourceId
-        ?? event.skillId
-        ?? event.skillName
-        ?? event.name
-        ?? event.type,
+        event.sourceId ??
+        event.skillId ??
+        event.skillName ??
+        event.name ??
+        event.type,
       ...event,
     };
     if (normalized.at <= horizon + epsilon) {
@@ -39,21 +37,17 @@ export function createGw2SchedulerEventFactory({
     return normalized;
   };
 
-  const addTraitProc = (
-    name,
-    at,
-    sourceSkill = "",
-    detail = "",
-  ) => addEvent({
-    type: "proc",
-    procType: "trait",
-    at,
-    name,
-    sourceSkill,
-    source: "Trait",
-    sourceId: name,
-    detail,
-  });
+  const addTraitProc = (name, at, sourceSkill = "", detail = "") =>
+    addEvent({
+      type: "proc",
+      procType: "trait",
+      at,
+      name,
+      sourceSkill,
+      source: "Trait",
+      sourceId: name,
+      detail,
+    });
 
   const addCondition = (
     skillName,
@@ -65,9 +59,7 @@ export function createGw2SchedulerEventFactory({
   ) => {
     const name = conditionName(condition.name);
     if (!conditionFormulas[name] || !condition.duration) return null;
-    const actorType =
-      extra.actorType
-      || gw2ActorTypeForSource(source);
+    const actorType = extra.actorType || gw2ActorTypeForSource(source);
     const event = addEvent({
       type: "condition",
       at,
@@ -94,35 +86,36 @@ export function createGw2SchedulerEventFactory({
     const coefficient = Number(group.coefficient || 0) / hits;
     const source = group.source || extra.source || "Player";
     const actorType =
-      group.actorType
-      || extra.actorType
-      || gw2ActorTypeForSource(source);
-    const slotSkill = (
-      skill.type === "Heal"
-      || skill.type === "Utility"
-      || skill.type === "Elite"
-    );
+      group.actorType || extra.actorType || gw2ActorTypeForSource(source);
+    const slotSkill =
+      skill.type === "Heal" ||
+      skill.type === "Utility" ||
+      skill.type === "Elite";
     for (let index = 0; index < hits; index += 1) {
-      const event = addEvent(decorateDamageEvent({
-        type: "damage",
-        at,
-        name: extra.name || skill.name,
-        skillName: skill.name,
-        coefficient,
-        hits: 1,
-        hitIndex: index + 1,
-        totalHits: hits,
-        source,
-        sourceId: extra.sourceId ?? skill.id ?? skill.name,
-        actorType,
-        skillId: extra.skillId ?? skill.id ?? null,
-        weapon: group.weapon || "",
-        weaponStrength: group.weaponStrength,
-        skillWeapon:
-          skill.weapon
-          || (slotSkill ? "Utility" : activePrimaryWeapon()),
-        ...extra,
-      }, { skill, group, extra }));
+      const event = addEvent(
+        decorateDamageEvent(
+          {
+            type: "damage",
+            at,
+            name: extra.name || skill.name,
+            skillName: skill.name,
+            coefficient,
+            hits: 1,
+            hitIndex: index + 1,
+            totalHits: hits,
+            source,
+            sourceId: extra.sourceId ?? skill.id ?? skill.name,
+            actorType,
+            skillId: extra.skillId ?? skill.id ?? null,
+            weapon: group.weapon || "",
+            weaponStrength: group.weaponStrength,
+            skillWeapon:
+              skill.weapon || (slotSkill ? "Utility" : activePrimaryWeapon()),
+            ...extra,
+          },
+          { skill, group, extra },
+        ),
+      );
       if (!event) continue;
       onDamageScheduled(event, {
         activeWeaponSet: activeWeaponSet(),

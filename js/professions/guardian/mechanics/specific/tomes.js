@@ -1,9 +1,23 @@
+/**
+ * @fileoverview Implements Firebrand tome cast gating, shared page
+ * regeneration and spending, tome state replay, and Ashes of the Just damage
+ * reactions.
+ */
+
 import { isGw2PlayerActorEvent } from "../../../../platform/gw2/event-ownership.js";
 import { GUARDIAN_SKILL_IDS } from "../../data/ids.js";
 import { selectedGuardianSpecialization } from "../availability.js";
 import { emitGuardianEvent } from "../events.js";
 import { GUARDIAN_HANDLER_MECHANICS } from "../handler-mechanics.js";
 
+/**
+ * Determines whether a tome page or Stow Tome is compatible with the currently
+ * active Firebrand tome. Unrelated skills return no opinion.
+ *
+ * @param {object} context Cast-validation context.
+ * @param {object} skill Candidate skill.
+ * @returns {boolean|undefined} Whether the relevant tome skill is castable.
+ */
 export function validateTomeCast(context, skill) {
   if (skill.tome) {
     return (
@@ -21,6 +35,11 @@ export function validateTomeCast(context, skill) {
  * wait rather than a permanent denial. Once the open tome and specialization
  * match (handled as permanent gating by validateTomeCast), the scheduler can
  * pause until the next page lands instead of discarding the cast.
+ *
+ * @param {object} context Cast-availability context.
+ * @param {object} skill Candidate tome skill.
+ * @returns {boolean|object} True when ready, or a retry descriptor when pages
+ * are insufficient.
  */
 export function tomePageAvailability(context, skill) {
   const state = context.state.profession;
@@ -48,6 +67,14 @@ export function tomePageAvailability(context, skill) {
   };
 }
 
+/**
+ * Closes the active tome and emits the state transition consumed by the
+ * resolver.
+ *
+ * @param {object} context Skill-handler context.
+ * @param {object} skill Stow Tome skill.
+ * @returns {boolean} Always true to indicate the state-only action completed.
+ */
 function stowTome(context, skill) {
   context.state.profession.activeTome = "";
   emitGuardianEvent(context, skill, "guardian.tome-stowed", {
@@ -56,6 +83,14 @@ function stowTome(context, skill) {
   return true;
 }
 
+/**
+ * Pays a completed tome skill's page cost, arms Ashes when appropriate, closes
+ * an exhausted tome, and emits the resulting resource snapshot.
+ *
+ * @param {object} context Skill-handler context.
+ * @param {object} skill Tome page skill.
+ * @returns {boolean} True when interrupted; false after a completed page use.
+ */
 function useTomePage(context, skill) {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   const state = context.state.profession;
@@ -81,15 +116,31 @@ function useTomePage(context, skill) {
   return false;
 }
 
+/**
+ * Raw Firebrand tome callbacks consumed by the central handler registry.
+ */
 export const guardianTomeSkillHandlers = Object.freeze({
   "guardian.stow-tome": stowTome,
   "guardian.tome-page": useTomePage,
 });
 
+/**
+ * Replays a tome-stowed event into resolver state.
+ *
+ * @param {object} context Resolver event-handler context.
+ * @returns {void}
+ */
 function handleTomeStowed(context) {
   context.profession.activeTome = "";
 }
 
+/**
+ * Replays a tome page resource snapshot into resolver state.
+ *
+ * @param {object} context Resolver event-handler context.
+ * @param {object} event Tome-page-used timeline event.
+ * @returns {void}
+ */
 function handleTomePageUsed(context, event) {
   context.profession.tomePages = Number(event.pagesRemaining || 0);
   context.profession.activeTome = String(event.activeTome || "");
@@ -104,11 +155,22 @@ function handleTomePageUsed(context, event) {
   );
 }
 
+/**
+ * Resolver handlers for Firebrand tome timeline events.
+ */
 export const guardianTomeEventHandlers = Object.freeze({
   "guardian.tome-stowed": handleTomeStowed,
   "guardian.tome-page-used": handleTomePageUsed,
 });
 
+/**
+ * Regenerates all tome pages due by the target scheduler time and disables the
+ * next-page timer when the resource reaches its maximum.
+ *
+ * @param {object} context Scheduler advancement context.
+ * @param {number} target Target simulation time.
+ * @returns {void}
+ */
 export function advanceTomeState(context, target) {
   const state = context.state.profession;
   while (
@@ -123,6 +185,18 @@ export function advanceTomeState(context, target) {
   }
 }
 
+/**
+ * Consumes an available Ashes of the Just charge on an eligible player strike
+ * and applies its burning packet subject to the trigger interval.
+ *
+ * @param {object} context Resolver reaction context.
+ * @param {object} event Resolved damage event.
+ * @param {object} dependencies Resolver helpers.
+ * @param {object} dependencies.hitContext Hit metadata proving this is an
+ * eligible resolved strike.
+ * @param {Function} dependencies.applyCondition Condition application helper.
+ * @returns {void}
+ */
 export function reactToAshesHit(
   context,
   event,

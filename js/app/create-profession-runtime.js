@@ -1,12 +1,6 @@
-import {
-  createGw2SimulationConfig,
-} from "./gw2-simulation-config.js";
-import {
-  calculateContributionComparisons,
-} from "./app-runtime.js";
-import {
-  FOOD_DATA,
-} from "../platform/gw2/gear-data.js";
+import { createGw2SimulationConfig } from "./gw2-simulation-config.js";
+import { calculateContributionComparisons } from "./modifier-contributions.js";
+import { FOOD_DATA } from "../platform/gw2/gear-data.js";
 import { simulateGw2 } from "../platform/gw2/simulate.js";
 
 /**
@@ -41,28 +35,43 @@ export function createProfessionRuntime({
   buildConfigExtras,
   isContributionTrait = () => true,
 }) {
-  const simulateBuild = (rotation, config) => simulateGw2({
-    profession,
-    rotation,
-    config,
-    execution: { mode: "sequence" },
-  });
+  const simulateBuild = (rotation, config) =>
+    simulateGw2({
+      profession,
+      rotation,
+      config,
+      execution: { mode: "sequence" },
+    });
 
   const eliteNames = new Set(
     profession.catalog.specializations
-      .filter(specialization => specialization.elite)
-      .map(specialization => specialization.name),
+      .filter((specialization) => specialization.elite)
+      .map((specialization) => specialization.name),
   );
 
   function eliteSpecialization(build) {
-    return build.specializations
-      .find(specialization => eliteNames.has(specialization.name))
-      ?.name || "Core";
+    return (
+      build.specializations.find((specialization) =>
+        eliteNames.has(specialization.name),
+      )?.name || "Core"
+    );
   }
 
   function selectedSkills(app) {
+    const loadout = profession.ui.slotLoadout;
+    if (loadout) {
+      return loadout
+        .selectedSkillIds({
+          build: app.build,
+          specialization: eliteSpecialization(app.build),
+          professionState: app.results?.endState?.profession,
+          catalog: profession.catalog,
+        })
+        .map((id) => profession.catalog.skillsById.get(Number(id)))
+        .filter(Boolean);
+    }
     return Object.values(app.build.selectedSkills)
-      .map(name => app.skillByName.get(name))
+      .map((name) => app.skillByName.get(name))
       .filter(Boolean);
   }
 
@@ -106,12 +115,16 @@ export function createProfessionRuntime({
       attributeData,
       specialization,
       disabled,
-      selectedTraits: activeTraits.map(trait => trait.name),
+      selectedTraits: activeTraits.map((trait) => trait.name),
       selectedTraitIds: activeTraits
-        .map(trait => trait.id)
-        .filter(id => id != null),
+        .map((trait) => trait.id)
+        .filter((id) => id != null),
       ...(buildConfigInputs
-        ? buildConfigInputs(app, { attributeData, specialization, activeTraits })
+        ? buildConfigInputs(app, {
+            attributeData,
+            specialization,
+            activeTraits,
+          })
         : null),
     });
     return buildConfigExtras
@@ -196,7 +209,7 @@ export function createProfessionRuntime({
     if (app.build.relic !== "Eagle") {
       baseConfig.target = { ...baseConfig.target, health: 0 };
     }
-    const comparisons = modifierCandidates(app).map(modifier => {
+    const comparisons = modifierCandidates(app).map((modifier) => {
       const config = simulationConfig(app, modifier);
       if (app.build.relic !== "Eagle") {
         config.target = { ...config.target, health: 0 };
@@ -227,10 +240,7 @@ export function createProfessionRuntime({
   }
 
   function runSimulation(app) {
-    app.results = simulateBuild(
-      app.build.rotation,
-      simulationConfig(app),
-    );
+    app.results = simulateBuild(app.build.rotation, simulationConfig(app));
     return app.results;
   }
 

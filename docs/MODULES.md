@@ -1,9 +1,9 @@
 # Simulator Modules Documentation
 
 Overview of the JavaScript modules in the combat simulator, organized by
-functionality. The shared shell is profession-neutral; Mesmer, Elementalist,
-Guardian, and Necromancer each supply their own catalog, mechanics, and app
-adapter.
+functionality. The shared shell is profession-neutral; each profession supplies
+its own catalog and mechanics. Native professions also supply an application
+definition for the shared browser shell.
 
 ---
 
@@ -22,6 +22,23 @@ point for DOMContentLoaded resolves the adapter for the current page.
 ### [create-app-adapter.js](js/app/create-app-adapter.js) / [create-profession-runtime.js](js/app/create-profession-runtime.js)
 Shared factories that build a profession's browser app adapter and its
 simulation runtime from the profession contract.
+
+### Profession `definition.js` and `app/app-definition.js`
+
+Each native profession has two deliberately separate composition boundaries:
+
+- `definition.js` exports the engine-facing profession contract: catalog,
+  build migration and validation, resources, mechanics, scheduler/resolver
+  hooks, and engine attribute rules. Engine-only consumers use this module.
+- `app/app-definition.js` composes that contract for the shared browser shell.
+  It constructs the build attribute calculator and application runtime, then
+  supplies persistence metadata, import/export filenames, selector behavior,
+  build-to-simulation mapping, and the application adapter.
+
+Keeping browser composition out of `definition.js` lets simulations and other
+engine consumers load a profession without pulling in application rendering,
+storage, and modifier-contribution dependencies. Elementalist remains a
+standalone legacy application and does not use this native composition pattern.
 
 ### [profession-registry.js](js/app/profession-registry.js)
 Single lazy manifest for every profession exposed by the application. Each
@@ -76,10 +93,11 @@ adapter while maintaining backward compatibility. Local-storage loading is
 forgiving, but explicit build replacement/import is strict so wrong-profession
 and future-version errors reach the user.
 
-### [app-runtime.js](js/app/app-runtime.js)
-Profession-neutral modifier comparison orchestration. Per-profession
+### [modifier-contributions.js](js/app/modifier-contributions.js)
+Profession-neutral modifier contribution calculations. Per-profession
 build-to-simulation mapping and modifier candidate rules live under each
-profession's `app/` directory (e.g. `js/professions/mesmer/app/app-runtime.js`).
+profession's `app/` directory (e.g.
+`js/professions/mesmer/app/app-definition.js`).
 
 ### [modifier-contributions-worker.js](js/app/modifier-contributions-worker.js)
 Background worker that runs the per-modifier contribution comparison off the
@@ -202,7 +220,7 @@ critical traits, and Bloodsong.
 - [skill-factories.js](js/platform/engine/skill-factories.js) — shared
   canonical skill-mechanic constructors.
 - [autoattack-chains.js](js/platform/engine/autoattack-chains.js) — shared
-  ID-based autoattack-chain discovery and indexing.
+  ID-based autoattack-chain discovery and indexing used by canonical catalogs.
 - [scheduler-state.js](js/platform/engine/scheduler-state.js) — profession-neutral mutable state.
 - [cooldown-controller.js](js/platform/engine/cooldown-controller.js) — shared cooldown and ammo state machine.
 - [GW2 scheduler policy](js/platform/gw2/scheduler/policy.js) — Quickness,
@@ -242,30 +260,37 @@ Mesmer, Guardian, and Necromancer use the same files for shared concepts:
 - `mechanics/skill-mechanics.js` — shared-schema declarative skill mechanics.
 - `mechanics/handler-mechanics.js` — optional profession-specific triggered
   effect and state-machine formulas.
-- `mechanics/autoattack-chains.js` — autoattack-chain declarations.
+- `catalog.js` — canonical autoattack-chain derivation plus any profession
+  additions or exclusions.
 - `mechanics/handlers.js` — explicit augment/replace runtime strategies.
 
 ### Mesmer-Specific Mechanics
 
-- [autoattack-chains.js](js/professions/mesmer/mechanics/autoattack-chains.js) — shared chain derivation plus Mesmer-specific chain-preservation policy.
+- [mesmer-supplemental-skills.js](js/professions/mesmer/data/mesmer-supplemental-skills.js) — positive-ID ambush and flip identity omitted from the API snapshot.
+- [trait-coverage.js](js/professions/mesmer/data/trait-coverage.js) — validated disposition for every catalog trait.
 - [contract.js](js/professions/mesmer/mechanics/contract.js) — standard
-  profession contract composition and task registration.
-- [illusions.js](js/professions/mesmer/mechanics/illusions.js) — task-driven
+  profession hooks, scheduler-local runtime construction, typed tasks, and
+  chain-preservation policy.
+- [handler-mechanics.js](js/professions/mesmer/mechanics/handler-mechanics.js) — stable-ID handler classification and flip relationships.
+- [handlers.js](js/professions/mesmer/mechanics/specific/handlers.js) — registered augment/replace cast strategies.
+- [availability.js](js/professions/mesmer/mechanics/availability.js) — pure scheduler and palette availability predicates.
+- [illusions.js](js/professions/mesmer/mechanics/specific/illusions.js) — task-driven
   clone attack scheduling.
-- [resources.js](js/professions/mesmer/mechanics/resources.js) — clone, blade,
+- [resources.js](js/professions/mesmer/mechanics/specific/resources.js) — clone, blade,
   and note gains.
-- [continuum.js](js/professions/mesmer/mechanics/continuum.js) — Continuum
+- [continuum.js](js/professions/mesmer/mechanics/specific/continuum.js) — Continuum
   checkpoint and restoration behavior.
-- [expected-procs.js](js/professions/mesmer/mechanics/expected-procs.js) —
+- [expected-procs.js](js/professions/mesmer/mechanics/specific/expected-procs.js) —
   deterministic scheduling-relevant proc progress.
-- [profession-actions.js](js/professions/mesmer/mechanics/profession-actions.js) — shatters, phantasms, instruments, and specialization resources.
-- [skill-effects.js](js/professions/mesmer/mechanics/skill-effects.js) — Mesmer-specific declarative effect and handler helpers used by the mechanics map.
-- [mirage.js](js/professions/mesmer/mechanics/mirage.js) — Mirage Cloak and ambush behavior.
-- [trait-rules.js](js/professions/mesmer/mechanics/trait-rules.js) — Mesmer resolver reactions.
+- [profession-actions.js](js/professions/mesmer/mechanics/specific/profession-actions.js) — shatters, phantasms, instruments, and specialization resources.
+- [skill-effects.js](js/professions/mesmer/mechanics/specific/skill-effects.js) — exceptional cast profiles selected by registered handler metadata.
+- [mirage.js](js/professions/mesmer/mechanics/specific/mirage.js) — Mirage Cloak and ambush behavior.
+- [trait-rules.js](js/professions/mesmer/mechanics/specific/trait-rules.js) — Mesmer resolver reactions.
 
-Mesmer expresses its complex cast behavior through these feature modules rather
-than a single `handlers.js`; the shared `handlers.js` role is used by Guardian
-and Necromancer where an imperative handler file is needed.
+Ordinary effects remain in the canonical `effects` array and use shared
+scheduling. Replacing handlers have empty canonical effects and retain their
+profession-owned profile as `mesmerEffects`. Completion and future state
+changes remain chronological through lifecycle hooks and `mesmer.*` tasks.
 
 ## Test fixtures
 

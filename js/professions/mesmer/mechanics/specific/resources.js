@@ -1,14 +1,17 @@
-import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import {
+  MESMER_SKILL_IDS as ID,
+  MESMER_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
 
 // Names (not ids) — matched against proc `reason` strings via startsWith below.
-const RESOURCE_TRAITS = [
-  "Bloodsong",
-  "Deceptive Evasion",
-  "Fortissimo",
-  "Illusionary Reversion",
-  "Infinite Forge",
-  "Self-Deception",
-];
+const RESOURCE_TRAIT_IDS = new Set([
+  TRAIT.BLOODSONG,
+  TRAIT.DECEPTIVE_EVASION,
+  TRAIT.FORTISSIMO,
+  TRAIT.ILLUSIONARY_REVERSION,
+  TRAIT.INFINITE_FORGE,
+  TRAIT.SELF_DECEPTION,
+]);
 
 /**
  * Owns clone/blade/note gains and their typed-task reactions.
@@ -41,7 +44,13 @@ export function createResourceController({
     }
   };
 
-  const gainResources = (at, count, weapon, reason = "") => {
+  const gainResources = (
+    at,
+    count,
+    weapon,
+    reason = "",
+    cause = {},
+  ) => {
     const amount = Math.max(0, Number(count || 0));
     if (!amount) return;
     let gained = 0;
@@ -88,7 +97,10 @@ export function createResourceController({
       reason,
       created,
     });
-    if (traits.has(TRAIT.COMPOUNDING_POWER) && reason !== "initial") {
+    if (
+      traits.has(TRAIT.COMPOUNDING_POWER) &&
+      cause.kind !== "initial"
+    ) {
       markCompounding(at, gained);
       addTraitProc(
         "Compounding Power",
@@ -97,20 +109,22 @@ export function createResourceController({
         `${gained} stack${gained === 1 ? "" : "s"}`,
       );
     }
-    const resourceTrait = RESOURCE_TRAITS.find((name) =>
-      reason.startsWith(name),
-    );
-    if (resourceTrait && traits.has(resourceTrait)) {
+    const resourceTraitId = Number(cause.traitId);
+    if (
+      RESOURCE_TRAIT_IDS.has(resourceTraitId) &&
+      traits.has(resourceTraitId)
+    ) {
       addTraitProc(
-        resourceTrait,
+        cause.traitName || reason,
         at,
         reason,
         `+${gained} ${resourceDefinition.singular}`,
       );
     }
     if (
-      (reason === "Deceptive Evasion" ||
-        reason === "Self-Deception: Illusionary Ambush") &&
+      (resourceTraitId === TRAIT.DECEPTIVE_EVASION ||
+        (resourceTraitId === TRAIT.SELF_DECEPTION &&
+          cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH)) &&
       traits.has(TRAIT.INFINITE_HORIZON) &&
       state.profession.cloneAmbushUntil >= at - epsilon
     ) {
@@ -118,12 +132,18 @@ export function createResourceController({
     }
   };
 
-  const queueResources = (at, count, weapon, reason) => {
+  const queueResources = (at, count, weapon, reason, cause = {}) => {
     if (scheduleResourceTask) {
-      scheduleResourceTask({ at, count, weapon, reason });
+      scheduleResourceTask({ at, count, weapon, reason, cause });
       return;
     }
-    state.profession.pendingResources.push({ at, count, weapon, reason });
+    state.profession.pendingResources.push({
+      at,
+      count,
+      weapon,
+      reason,
+      cause,
+    });
     state.profession.pendingResources.sort((a, b) => a.at - b.at);
   };
 

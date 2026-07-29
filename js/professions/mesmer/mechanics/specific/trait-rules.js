@@ -8,28 +8,14 @@ import {
 } from "../../../../platform/engine/internal-cooldown.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 
-/**
- * Triggers Ineptitude on control/blind events.
- */
-export function triggerIneptitude(
+function applyIneptitudeConfusion(
   ctx,
   event,
   detail,
   applyCondition,
 ) {
   if (!ctx.traits.has(TRAIT.INEPTITUDE)) return;
-  const defiant = Boolean(ctx.config.target?.defiant);
-  if (
-    defiant
-    && !isInternalCooldownReady(
-      event.at,
-      ctx.profession.ineptitudeReadyAt,
-    )
-  ) return;
-  if (defiant) ctx.profession.ineptitudeReadyAt = event.at + 3;
-  const count = defiant
-    ? 1
-    : Math.max(1, Math.trunc(Number(event.count || 1)));
+  const count = Math.max(1, Math.trunc(Number(event.count || 1)));
   ctx.recordProc(
     "trait",
     "Ineptitude",
@@ -47,4 +33,45 @@ export function triggerIneptitude(
     stacks: 2 * count,
     source: "Player",
   });
+}
+
+/**
+ * Interrupting a foe inflicts blind. Only this half of Ineptitude observes the
+ * three-second interval against defiant targets.
+ */
+export function triggerIneptitudeFromInterrupt(
+  ctx,
+  event,
+  applyCondition,
+) {
+  if (!ctx.traits.has(TRAIT.INEPTITUDE)) return;
+  const defiant = Boolean(ctx.config.target?.defiant);
+  if (
+    defiant &&
+    !isInternalCooldownReady(
+      event.at,
+      ctx.profession.ineptitudeReadyAt,
+    )
+  )
+    return;
+  if (defiant) ctx.profession.ineptitudeReadyAt = event.at + 3;
+  applyIneptitudeConfusion(
+    ctx,
+    { ...event, count: defiant ? 1 : event.count },
+    "interrupt → blind → confusion",
+    applyCondition,
+  );
+}
+
+/**
+ * Blinding a foe inflicts confusion without an internal cooldown, including
+ * against defiant targets.
+ */
+export function triggerIneptitudeFromBlind(ctx, event, applyCondition) {
+  applyIneptitudeConfusion(
+    ctx,
+    event,
+    "blind → confusion",
+    applyCondition,
+  );
 }

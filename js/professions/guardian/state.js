@@ -1,33 +1,28 @@
 import { GUARDIAN_TRAIT_IDS } from "./data/ids.js";
 
 export function createGuardianState(config = {}) {
-  const selectedTraits = new Set(
-    (config.selectedTraitIds || []).map(Number),
-  );
+  const selectedTraits = new Set((config.selectedTraitIds || []).map(Number));
   const traitMaximum = selectedTraits.has(
     GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS,
-  ) ? 8 : 5;
+  )
+    ? 8
+    : 5;
   const maximumTomePages = Math.max(
     traitMaximum,
     Number(config.maximumTomePages || traitMaximum),
   );
-  const tomePageInterval = selectedTraits.has(
-    GUARDIAN_TRAIT_IDS.LOREMASTER,
-  ) ? 6 : 8;
+  const tomePageInterval = selectedTraits.has(GUARDIAN_TRAIT_IDS.LOREMASTER)
+    ? 6
+    : 8;
   const configuredInitialPages = Number(
     config.initialTomePages ?? traitMaximum,
   );
-  const initialPages = (
-    selectedTraits.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
-    && configuredInitialPages === 5
-  ) ? traitMaximum : configuredInitialPages;
-  const tomePages = Math.max(
-    0,
-    Math.min(
-      maximumTomePages,
-      initialPages,
-    ),
-  );
+  const initialPages =
+    selectedTraits.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) &&
+    configuredInitialPages === 5
+      ? traitMaximum
+      : configuredInitialPages;
+  const tomePages = Math.max(0, Math.min(maximumTomePages, initialPages));
   return {
     justiceArmed: false,
     justiceActiveArmed: false,
@@ -47,7 +42,9 @@ export function createGuardianState(config = {}) {
     maximumTomePages,
     tomePageInterval,
     nextTomePageAt:
-      tomePages < maximumTomePages ? tomePageInterval : Number.POSITIVE_INFINITY,
+      tomePages < maximumTomePages
+        ? tomePageInterval
+        : Number.POSITIVE_INFINITY,
     ashesCharges: 0,
     ashesNextTriggerAt: 0,
     radiantForge: false,
@@ -88,10 +85,7 @@ export function createGuardianResolverState(config = {}) {
   return createGuardianState(config);
 }
 
-export function projectGuardianEndState({
-  schedulerState,
-  resolverState,
-}) {
+export function projectGuardianEndState({ schedulerState, resolverState }) {
   const scheduler = structuredClone(schedulerState.profession);
   const resolver = resolverState || {};
   // Scheduler state owns castability and resources. These values are produced
@@ -114,9 +108,8 @@ export function projectGuardianEndState({
     "effulgentActiveUntil",
     "effulgentStacks",
   ]) {
-    if (Object.hasOwn(resolver, key)) scheduler[key] = structuredClone(
-      resolver[key],
-    );
+    if (Object.hasOwn(resolver, key))
+      scheduler[key] = structuredClone(resolver[key]);
   }
   return scheduler;
 }

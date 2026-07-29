@@ -47,11 +47,8 @@ function scheduleDeclarativeEffects(
   observeEffect = () => {},
 ) {
   const interrupted = effectiveEnd < fullEnd - context.epsilon;
-  const slotSkill = (
-    skill.type === "Heal"
-    || skill.type === "Utility"
-    || skill.type === "Elite"
-  );
+  const slotSkill =
+    skill.type === "Heal" || skill.type === "Utility" || skill.type === "Elite";
   for (let index = 0; index < (skill.effects || []).length; index += 1) {
     const effect = skill.effects[index];
     const timing =
@@ -65,18 +62,15 @@ function scheduleDeclarativeEffects(
         },
         skill,
         effect,
-      )
-      ?? effect;
+      ) ?? effect;
     const firstAt = effectAt(start, fullEnd, timing);
     const cancelPendingEffects =
       interrupted && effect.persistsAfterInterrupt !== true;
     // An interrupt only suppresses effects that have not fired yet. Earlier
     // ticks remain in the stream even when the full cast never completes.
     // A committed channel can explicitly keep its remaining packets.
-    if (
-      cancelPendingEffects
-      && firstAt > effectiveEnd + context.epsilon
-    ) continue;
+    if (cancelPendingEffects && firstAt > effectiveEnd + context.epsilon)
+      continue;
     const base = {
       source: effect.source || context.profession.id,
       sourceId: effect.sourceId ?? skill.id,
@@ -88,42 +82,34 @@ function scheduleDeclarativeEffects(
         : {}),
     };
     if (effect.type === "strike") {
-      const ticks = Array.isArray(timing.ticks)
-        ? timing.ticks
-        : null;
-      const hits = ticks?.length
-        || Math.max(1, Math.trunc(Number(effect.hits || 1)));
+      const ticks = Array.isArray(timing.ticks) ? timing.ticks : null;
+      const hits =
+        ticks?.length || Math.max(1, Math.trunc(Number(effect.hits || 1)));
       // A strike effect stores its total coefficient. Unless per-tick
       // coefficients are supplied, divide it evenly across emitted hits.
       const equalCoefficient = Number(effect.coefficient || 0) / hits;
-      const interval =
-        Math.max(0, Number(timing.intervalMs || 0)) / 1000;
+      const interval = Math.max(0, Number(timing.intervalMs || 0)) / 1000;
       for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
         const tick = ticks?.[hitIndex - 1];
         const origin = timing.timingAnchor === "castEnd" ? fullEnd : start;
         const at = tick
           ? origin + Number(tick.atMs) / 1000
           : firstAt + (hitIndex - 1) * interval;
-        if (
-          cancelPendingEffects
-          && at > effectiveEnd + context.epsilon
-        ) break;
+        if (cancelPendingEffects && at > effectiveEnd + context.epsilon) break;
         const emitted = context.emit({
           ...base,
           type: "damage",
           at,
           name: effect.name || skill.name,
-          coefficient: tick
-            ? Number(tick.coefficient)
-            : equalCoefficient,
+          coefficient: tick ? Number(tick.coefficient) : equalCoefficient,
           hits: 1,
           hitIndex,
           totalHits: hits,
           skillWeapon:
-            effect.weapon
-            || skill.weapon
-            || skill.skillWeapon
-            || (slotSkill ? "Unequipped" : ""),
+            effect.weapon ||
+            skill.weapon ||
+            skill.skillWeapon ||
+            (slotSkill ? "Unequipped" : ""),
           canCrit: effect.canCrit !== false,
           ...(effect.coefficientModifiers
             ? { coefficientModifiers: effect.coefficientModifiers }
@@ -142,10 +128,8 @@ function scheduleDeclarativeEffects(
         ) {
           const tick = timing.ticks[applicationIndex - 1];
           const at = origin + Number(tick.atMs) / 1000;
-          if (
-            cancelPendingEffects
-            && at > effectiveEnd + context.epsilon
-          ) break;
+          if (cancelPendingEffects && at > effectiveEnd + context.epsilon)
+            break;
           const emitted = context.emit({
             ...base,
             at,
@@ -166,18 +150,14 @@ function scheduleDeclarativeEffects(
         1,
         Math.trunc(Number(effect.applications || 1)),
       );
-      const interval =
-        Math.max(0, Number(timing.intervalMs || 0)) / 1000;
+      const interval = Math.max(0, Number(timing.intervalMs || 0)) / 1000;
       for (
         let applicationIndex = 1;
         applicationIndex <= applications;
         applicationIndex += 1
       ) {
         const at = firstAt + (applicationIndex - 1) * interval;
-        if (
-          cancelPendingEffects
-          && at > effectiveEnd + context.epsilon
-        ) break;
+        if (cancelPendingEffects && at > effectiveEnd + context.epsilon) break;
         const emitted = context.emit({
           ...base,
           at,
@@ -197,18 +177,14 @@ function scheduleDeclarativeEffects(
         1,
         Math.trunc(Number(effect.applications || 1)),
       );
-      const interval =
-        Math.max(0, Number(timing.intervalMs || 0)) / 1000;
+      const interval = Math.max(0, Number(timing.intervalMs || 0)) / 1000;
       for (
         let applicationIndex = 1;
         applicationIndex <= applications;
         applicationIndex += 1
       ) {
         const at = firstAt + (applicationIndex - 1) * interval;
-        if (
-          cancelPendingEffects
-          && at > effectiveEnd + context.epsilon
-        ) break;
+        if (cancelPendingEffects && at > effectiveEnd + context.epsilon) break;
         const emitted = context.emit({
           ...base,
           at,
@@ -227,13 +203,14 @@ function scheduleDeclarativeEffects(
           skill,
           effect,
           baseDuration,
-        )
-        ?? baseDuration;
+        ) ?? baseDuration;
       const emitted = context.emit({
         ...base,
         at: firstAt,
         type: "buff",
-        kind: String(effect.boon || effect.kind || effect.name || "").toLowerCase(),
+        kind: String(
+          effect.boon || effect.kind || effect.name || "",
+        ).toLowerCase(),
         stacks: Math.max(1, Number(effect.stacks || 1)),
         duration: Math.max(0, Number(duration || 0)),
       });
@@ -291,10 +268,11 @@ export function createScheduler({
   schedulerPolicy = {},
 } = {}) {
   if (!profession?.id) throw new TypeError("Scheduler requires a profession.");
-  const initialWeaponSet = schedulerPolicy.initialWeaponSet?.({
-    profession,
-    config,
-  }) ?? 1;
+  const initialWeaponSet =
+    schedulerPolicy.initialWeaponSet?.({
+      profession,
+      config,
+    }) ?? 1;
   const state = createSchedulerState({
     profession,
     config,
@@ -328,9 +306,9 @@ export function createScheduler({
   let combatStartTime = null;
   let taskQueue;
 
-  const skillFor = skillId =>
-    catalog?.skillsById?.get(skillId)
-    || catalog?.skills?.find(skill => skill.id === skillId);
+  const skillFor = (skillId) =>
+    catalog?.skillsById?.get(skillId) ||
+    catalog?.skills?.find((skill) => skill.id === skillId);
 
   const context = {
     profession,
@@ -355,7 +333,9 @@ export function createScheduler({
         try {
           while (observationQueue.length) {
             if (++observationCount > ACTION_SAFETY_LIMIT) {
-              throw new Error("Scheduled-event observation safety limit exceeded.");
+              throw new Error(
+                "Scheduled-event observation safety limit exceeded.",
+              );
             }
             const observed = observationQueue.shift();
             schedulerPolicy.onEventScheduled?.(context, observed);
@@ -369,7 +349,7 @@ export function createScheduler({
     },
     replaceEvent(event, updates) {
       const replacement = createEvent({ ...event, ...updates });
-      const replaceReference = collection => {
+      const replaceReference = (collection) => {
         const index = collection.indexOf(event);
         if (index >= 0) collection[index] = replacement;
       };
@@ -390,11 +370,7 @@ export function createScheduler({
       return context.emit({
         ...event,
         causalOrder: rootOrder + count / 1_000_000,
-        triggeredBy:
-          event.triggeredBy
-          ?? cause.skillName
-          ?? cause.name
-          ?? "",
+        triggeredBy: event.triggeredBy ?? cause.skillName ?? cause.name ?? "",
       });
     },
     buffStacks(kind, at = state.time) {
@@ -404,11 +380,13 @@ export function createScheduler({
       // Scheduled buff events are already known even if the scheduler clock has
       // not reached them, so both their start and half-open expiry are checked.
       return events
-        .filter(event =>
-          event.type === "buff"
-          && String(event.kind || "").toLowerCase() === normalized
-          && event.at <= at + epsilon
-          && event.at + Number(event.duration || 0) > at + epsilon)
+        .filter(
+          (event) =>
+            event.type === "buff" &&
+            String(event.kind || "").toLowerCase() === normalized &&
+            event.at <= at + epsilon &&
+            event.at + Number(event.duration || 0) > at + epsilon,
+        )
         .reduce((sum, event) => sum + Number(event.stacks || 1), base);
     },
     hasBuff(kind, at = state.time) {
@@ -420,11 +398,9 @@ export function createScheduler({
     const baseDuration = baseDurationSeconds(skill);
     // Shared game rules run before profession-specific modifiers. The same
     // ordering is used for recharge and maximum-ammo calculations below.
-    const sharedDuration = schedulerPolicy.castDuration?.(
-      castContext,
-      skill,
-      baseDuration,
-    ) ?? baseDuration;
+    const sharedDuration =
+      schedulerPolicy.castDuration?.(castContext, skill, baseDuration) ??
+      baseDuration;
     return Math.max(
       0,
       Number(profession.modifyCastDuration(castContext, sharedDuration) || 0),
@@ -446,43 +422,39 @@ export function createScheduler({
       Number(
         details.ammoCastLockout
           ? Number(skill.ammo || 0) > 0
-            ? skill.recharge ?? 0
+            ? (skill.recharge ?? 0)
             : 0
           : Number(skill.ammo || 0) > 0 && ammoRecharge > 0
-          ? ammoRecharge
-          : skill.cooldown ?? skill.recharge ?? 0,
+            ? ammoRecharge
+            : (skill.cooldown ?? skill.recharge ?? 0),
       ),
     );
-    const sharedDuration = schedulerPolicy.rechargeDuration?.(
-      rechargeContext,
-      skill,
-      baseDuration,
-    ) ?? baseDuration;
+    const sharedDuration =
+      schedulerPolicy.rechargeDuration?.(
+        rechargeContext,
+        skill,
+        baseDuration,
+      ) ?? baseDuration;
     return Math.max(
       0,
       Number(
-        profession.modifyRechargeDuration(
-          rechargeContext,
-          sharedDuration,
-        ) || 0,
+        profession.modifyRechargeDuration(rechargeContext, sharedDuration) || 0,
       ),
     );
   }
 
   function maximumAmmoFor(skill) {
     const baseMaximum = Math.max(0, Number(skill.ammo || 0));
-    const sharedMaximum = schedulerPolicy.maximumAmmo?.(
-      { ...context, skill },
-      skill,
-      baseMaximum,
-    ) ?? baseMaximum;
+    const sharedMaximum =
+      schedulerPolicy.maximumAmmo?.(
+        { ...context, skill },
+        skill,
+        baseMaximum,
+      ) ?? baseMaximum;
     return Math.max(
       0,
       Number(
-        profession.modifyMaximumAmmo(
-          { ...context, skill },
-          sharedMaximum,
-        ) || 0,
+        profession.modifyMaximumAmmo({ ...context, skill }, sharedMaximum) || 0,
       ),
     );
   }
@@ -529,17 +501,20 @@ export function createScheduler({
     }
     // Cooldown/ammo commitment precedes the profession completion hook so the
     // hook observes the state players would have immediately after the cast.
-    profession.onCastComplete({
-      ...castContext,
-      action,
-      fullEnd,
-      effectiveEnd,
-      rechargeDuration,
-      ammoLockoutDuration,
-      rechargeStart,
-      rechargeReadyAt,
-      reservationId: reservation.id,
-    }, skill);
+    profession.onCastComplete(
+      {
+        ...castContext,
+        action,
+        fullEnd,
+        effectiveEnd,
+        rechargeDuration,
+        ammoLockoutDuration,
+        rechargeStart,
+        rechargeReadyAt,
+        reservationId: reservation.id,
+      },
+      skill,
+    );
     reservations.delete(reservation.id);
   };
   const taskHandlers = {
@@ -557,7 +532,9 @@ export function createScheduler({
   context.tasks = Object.freeze({
     schedule(task) {
       if (Number(task?.at) < state.time - epsilon) {
-        throw new RangeError("Scheduled tasks cannot be placed before the clock.");
+        throw new RangeError(
+          "Scheduled tasks cannot be placed before the clock.",
+        );
       }
       return taskQueue.schedule(task);
     },
@@ -594,8 +571,9 @@ export function createScheduler({
     state.time = target;
     // pendingEvents is only a scheduler-side view of future work; the complete
     // canonical event list remains in events for the resolver handoff.
-    state.pendingEvents = state.pendingEvents
-      .filter(event => event.at > target + epsilon);
+    state.pendingEvents = state.pendingEvents.filter(
+      (event) => event.at > target + epsilon,
+    );
   }
   context.advanceTo = advanceTo;
 
@@ -604,45 +582,48 @@ export function createScheduler({
     const readyAt = state.cooldowns.get(skill.id) || 0;
     const active = inFlight.get(skill.id);
     const activeReservations = active?.size
-      ? [...active]
-          .map(id => reservations.get(id))
-          .filter(Boolean)
+      ? [...active].map((id) => reservations.get(id)).filter(Boolean)
       : [];
     const reservedUntil = activeReservations.length
-      ? Math.max(...activeReservations.map(reservation =>
-          reservation.rechargeReadyAt
-          ?? reservation.effectiveEnd
-          ?? at))
+      ? Math.max(
+          ...activeReservations.map(
+            (reservation) =>
+              reservation.rechargeReadyAt ?? reservation.effectiveEnd ?? at,
+          ),
+        )
       : 0;
     // rechargeReadyAt is preferred to effectiveEnd because a concurrent cast
     // cannot reuse the same skill while its reservation still owns recharge.
     const result = [];
-    if (
-      readyAt > at + epsilon
-      || (ammo && ammo.charges <= 0)
-    ) {
-      result.push(unavailable(
-        `${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`,
-        "platform.cooldown",
-        readyAt,
-      ));
+    if (readyAt > at + epsilon || (ammo && ammo.charges <= 0)) {
+      result.push(
+        unavailable(
+          `${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`,
+          "platform.cooldown",
+          readyAt,
+        ),
+      );
     }
     if (reservedUntil > at + epsilon) {
-      result.push(unavailable(
-        `${skill.name} is already being cast until ${reservedUntil.toFixed(3)}.`,
-        "platform.in-flight",
-        reservedUntil,
-      ));
+      result.push(
+        unavailable(
+          `${skill.name} is already being cast until ${reservedUntil.toFixed(3)}.`,
+          "platform.in-flight",
+          reservedUntil,
+        ),
+      );
     }
     for (const lockout of skill.lockouts || []) {
       const lockoutReadyAt = Number(state.lockouts.get(lockout.group) || 0);
       if (lockoutReadyAt > at + epsilon) {
-        result.push(unavailable(
-          `${skill.name} is locked by ${lockout.group} until `
-            + `${lockoutReadyAt.toFixed(3)}.`,
-          "platform.skill-group-lockout",
-          lockoutReadyAt,
-        ));
+        result.push(
+          unavailable(
+            `${skill.name} is locked by ${lockout.group} until ` +
+              `${lockoutReadyAt.toFixed(3)}.`,
+            "platform.skill-group-lockout",
+            lockoutReadyAt,
+          ),
+        );
       }
     }
     return { ammo, result: combineAvailability(result) };
@@ -657,12 +638,16 @@ export function createScheduler({
       start,
       ammo: state.ammo.get(skill.id) || null,
     };
-    const professionAvailability =
-      profession.availability(preliminaryContext, skill);
+    const professionAvailability = profession.availability(
+      preliminaryContext,
+      skill,
+    );
     // A permanent profession denial cannot become valid after shared state is
     // refreshed, so return it before running policy/legacy validation.
-    if (professionAvailability?.ready === false
-      && professionAvailability.retryAt == null) {
+    if (
+      professionAvailability?.ready === false &&
+      professionAvailability.retryAt == null
+    ) {
       return {
         result: professionAvailability,
         castContext: preliminaryContext,
@@ -670,11 +655,13 @@ export function createScheduler({
     }
     const shared = engineAvailability(skill, start);
     const castContext = { ...preliminaryContext, ammo: shared.ammo };
-    const policyAvailability =
-      schedulerPolicy.availability?.(castContext, skill);
+    const policyAvailability = schedulerPolicy.availability?.(
+      castContext,
+      skill,
+    );
     const legacyReady =
-      schedulerPolicy.validateCast?.(castContext, skill) !== false
-      && profession.validateCast(castContext, skill);
+      schedulerPolicy.validateCast?.(castContext, skill) !== false &&
+      profession.validateCast(castContext, skill);
     const result = combineAvailability([
       shared.result,
       policyAvailability,
@@ -737,20 +724,14 @@ export function createScheduler({
     let guard = 0;
     // Retryable availability automatically advances through whichever happens
     // first: the declared retry time or a state-changing scheduled task.
-    while (
-      checked.result.ready === false
-      && checked.result.retryAt != null
-    ) {
+    while (checked.result.ready === false && checked.result.retryAt != null) {
       if (++guard > ACTION_SAFETY_LIMIT) {
         throw new Error("Cast availability wait safety limit exceeded.");
       }
       const retryAt = Math.max(state.time, Number(checked.result.retryAt));
       const nextTaskAt = taskQueue.nextAt();
       const next = Math.min(retryAt, nextTaskAt);
-      if (
-        !Number.isFinite(next)
-        || next <= state.time
-      ) {
+      if (!Number.isFinite(next) || next <= state.time) {
         throw new Error(
           `Cast availability for ${skill.name} did not make progress.`,
         );
@@ -782,9 +763,10 @@ export function createScheduler({
     const fullEnd = start + castDurationFor(castContext, skill);
     const interruptAfterMs =
       command.interruptAfterMs ?? skill.defaultInterruptMs;
-    const effectiveEnd = interruptAfterMs == null
-      ? fullEnd
-      : Math.min(fullEnd, start + Number(interruptAfterMs) / 1000);
+    const effectiveEnd =
+      interruptAfterMs == null
+        ? fullEnd
+        : Math.min(fullEnd, start + Number(interruptAfterMs) / 1000);
     const rechargeDuration = rechargeDurationFor(skill, effectiveEnd, {
       ...castContext,
       fullEnd,
@@ -792,15 +774,17 @@ export function createScheduler({
     });
     const ammoLockoutDuration =
       castContext.ammo && Number(skill.ammo || 0) > 0
-      ? rechargeDurationFor(skill, effectiveEnd, {
-          ...castContext,
-          fullEnd,
-          effectiveEnd,
-          ammoCastLockout: true,
-        })
-      : 0;
-    const canonicalRechargeStart =
+        ? rechargeDurationFor(skill, effectiveEnd, {
+            ...castContext,
+            fullEnd,
+            effectiveEnd,
+            ammoCastLockout: true,
+          })
+        : 0;
+    const rechargeAnchor =
       skill.rechargeAnchor === "castStart" ? start : effectiveEnd;
+    const canonicalRechargeStart =
+      rechargeAnchor + Number(skill.rechargeOffsetMs || 0) / 1000;
     const rechargeStart = Math.max(
       start,
       Number(
@@ -817,12 +801,12 @@ export function createScheduler({
     );
     const ammoChargeReadyAt =
       castContext.ammo && castContext.ammo.charges <= 1
-        ? castContext.ammo.nextRechargeAt
-          ?? rechargeStart + rechargeDuration
+        ? (castContext.ammo.nextRechargeAt ?? rechargeStart + rechargeDuration)
         : 0;
-    const ammoLockoutReadyAt = castContext.ammo && ammoLockoutDuration > 0
-      ? rechargeStart + ammoLockoutDuration
-      : 0;
+    const ammoLockoutReadyAt =
+      castContext.ammo && ammoLockoutDuration > 0
+        ? rechargeStart + ammoLockoutDuration
+        : 0;
     const rechargeReadyAt = castContext.ammo
       ? Math.max(ammoChargeReadyAt, ammoLockoutReadyAt) || null
       : rechargeDuration > 0
@@ -886,23 +870,18 @@ export function createScheduler({
     // complete event materialization; catalog handlers use explicit strategies.
     const professionHandled =
       profession.scheduleSkill(lifecycleContext, skill) === true;
-    if (
-      handlerMode !== SKILL_HANDLER_MODES.REPLACE
-      && !professionHandled
-    ) {
+    if (handlerMode !== SKILL_HANDLER_MODES.REPLACE && !professionHandled) {
       scheduleDeclarativeEffects(
         context,
         skill,
         start,
         fullEnd,
         effectiveEnd,
-        (event, effect, effectIndex) => handler?.afterEffect?.(
-          lifecycleContext,
-          skill,
-          event,
-          handlerState,
-          { effect, effectIndex },
-        ),
+        (event, effect, effectIndex) =>
+          handler?.afterEffect?.(lifecycleContext, skill, event, handlerState, {
+            effect,
+            effectIndex,
+          }),
       );
     }
     handler?.afterEffects?.(lifecycleContext, skill, handlerState);
@@ -940,7 +919,7 @@ export function createScheduler({
   function run(rotation) {
     const commands = normalizeRotation(rotation, catalog, { strict: true });
     context.hasExplicitCombatStart = commands.some(
-      command => command.type === "combat-start",
+      (command) => command.type === "combat-start",
     );
     context.combatStartTime = null;
     if (commands.length > ACTION_SAFETY_LIMIT) {
@@ -998,10 +977,8 @@ export function createScheduler({
           });
           continue;
         }
-        const concurrent = (
-          command.concurrentOffsetMs != null
-          && hasPreviousCast
-        );
+        const concurrent =
+          command.concurrentOffsetMs != null && hasPreviousCast;
         combatStartTime = concurrent
           ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
           : Math.max(state.time, serialReadyAt, latestReservedEnd);
@@ -1038,10 +1015,15 @@ export function createScheduler({
     const snapshot =
       profession.snapshot(context) ?? structuredClone(state.profession);
     const persistentEffectEnd = events
-      .filter(event =>
-        event.persistsAfterInterrupt === true
-        || event.extendsResolutionHorizon === true)
-      .reduce((latest, event) => Math.max(latest, Number(event.at)), rotationEnd);
+      .filter(
+        (event) =>
+          event.persistsAfterInterrupt === true ||
+          event.extendsResolutionHorizon === true,
+      )
+      .reduce(
+        (latest, event) => Math.max(latest, Number(event.at)),
+        rotationEnd,
+      );
     return {
       context,
       state,

@@ -6,22 +6,18 @@ import { gw2SigilSet } from "./runtime-rules.js";
 const clamp = (value, minimum, maximum) =>
   Math.max(minimum, Math.min(maximum, value));
 
-function qualifyingIcdEvents(
-  events,
-  type,
-  cooldown,
-  earliestAt = -Infinity,
-) {
+function qualifyingIcdEvents(events, type, cooldown, earliestAt = -Infinity) {
   // Input is chronological; accepting an event advances the shared ICD window
   // before later candidates are considered.
   const activations = [];
   let readyAt = 0;
   for (const event of events) {
     if (
-      event.type !== type
-      || event.at < earliestAt - EPSILON
-      || !isInternalCooldownReady(event.at, readyAt)
-    ) continue;
+      event.type !== type ||
+      event.at < earliestAt - EPSILON ||
+      !isInternalCooldownReady(event.at, readyAt)
+    )
+      continue;
     activations.push(event);
     readyAt = event.at + cooldown;
   }
@@ -39,13 +35,13 @@ export function createGw2TimelineIndex({
   // Timestamp ties follow scheduler causal order so derived events are queried
   // in the same order the resolver consumes them.
   const compareEvents = (left, right) =>
-    left.at - right.at
-    || Number(left.causalOrder ?? left.__order ?? 0)
-      - Number(right.causalOrder ?? right.__order ?? 0);
+    left.at - right.at ||
+    Number(left.causalOrder ?? left.__order ?? 0) -
+      Number(right.causalOrder ?? right.__order ?? 0);
   const insertOrdered = (target, event) => {
     if (
-      target.length === 0
-      || compareEvents(target[target.length - 1], event) <= 0
+      target.length === 0 ||
+      compareEvents(target[target.length - 1], event) <= 0
     ) {
       target.push(event);
       return;
@@ -92,10 +88,7 @@ export function createGw2TimelineIndex({
       if (event.type === "weapon_set") {
         insertOrdered(indexed.weaponSet, event);
       }
-      if (
-        event.type === "action"
-        || event.type === "cooldown_snapshot"
-      ) {
+      if (event.type === "action" || event.type === "cooldown_snapshot") {
         insertOrdered(indexed.cooldown, event);
       }
       if (event.type === "combat_start") {
@@ -114,9 +107,7 @@ export function createGw2TimelineIndex({
     }
     // Pre-combat weakness/vulnerability events cannot arm Aristocracy once an
     // explicit combat-start marker exists.
-    const combatStartAt =
-      indexed.combatStart[0]?.at
-      ?? -Infinity;
+    const combatStartAt = indexed.combatStart[0]?.at ?? -Infinity;
     cachedAristocracyTriggers = qualifyingIcdEvents(
       indexed.weaknessVulnerability,
       "weakness_vulnerability",
@@ -127,7 +118,7 @@ export function createGw2TimelineIndex({
     return cachedAristocracyTriggers;
   };
 
-  const aristocracyStacksAt = time => {
+  const aristocracyStacksAt = (time) => {
     let stacks = 0;
     let expiresAt = -Infinity;
     for (const trigger of aristocracyTriggers()) {
@@ -148,9 +139,9 @@ export function createGw2TimelineIndex({
     for (const event of indexed.buff) {
       if (event.at > time + EPSILON) break;
       if (
-        event.kind === kind
+        event.kind === kind &&
         // Event duration wins; duration is a fallback for compact buff records.
-        && event.at + (event.duration || duration) > time
+        event.at + (event.duration || duration) > time
       ) {
         stacks += Number(event.stacks || 1);
       }
@@ -169,23 +160,25 @@ export function createGw2TimelineIndex({
     return false;
   };
 
-  const mightStacksAt = time => clamp(
-    Number(config.boons?.might || 0) + timedStacks("might", time, 1, 25),
-    0,
-    25,
-  );
-  const furyActiveAt = time =>
+  const mightStacksAt = (time) =>
+    clamp(
+      Number(config.boons?.might || 0) + timedStacks("might", time, 1, 25),
+      0,
+      25,
+    );
+  const furyActiveAt = (time) =>
     Boolean(config.boons?.fury) || timedActive("fury", time);
-  const vigorActiveAt = time =>
+  const vigorActiveAt = (time) =>
     Boolean(config.boons?.vigor) || timedActive("vigor", time);
-  const vulnerabilityStacksAt = time => clamp(
-    permanentTargetConditionStacks(config, "Vulnerability")
-      + timedStacks("target-vulnerability", time, 1, 25),
-    0,
-    25,
-  );
+  const vulnerabilityStacksAt = (time) =>
+    clamp(
+      permanentTargetConditionStacks(config, "Vulnerability") +
+        timedStacks("target-vulnerability", time, 1, 25),
+      0,
+      25,
+    );
 
-  const activeWeaponSetAt = time => {
+  const activeWeaponSetAt = (time) => {
     refreshIndex();
     let activeSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
     for (const event of indexed.weaponSet) {
@@ -196,8 +189,7 @@ export function createGw2TimelineIndex({
     return activeSet;
   };
 
-  const activeSigilSetAt = time =>
-    sigilSet(config, activeWeaponSetAt(time));
+  const activeSigilSetAt = (time) => sigilSet(config, activeWeaponSetAt(time));
 
   const skillOnCooldownAt = (skillId, time) => {
     refreshIndex();

@@ -1,10 +1,8 @@
 import { createDefaultBuild } from '../../js/app/app-state.js';
 import {
+    calculateAttributes as calcAttributes,
     mesmerAppAdapter,
-} from '../../js/professions/mesmer/app/adapter.js';
-import {
-  calculateAttributes as calcAttributes,
-} from "../../js/professions/mesmer/core/calc-attributes.js";
+} from '../../js/professions/mesmer/app/app-definition.js';
 import {
     simulateMesmer,
 } from './mesmer-simulation.js';

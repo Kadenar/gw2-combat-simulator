@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Composes Necromancer cast validation, shroud and weapon state,
+ * trait reactions, cooldown feedback, and typed tasks into the shared
+ * scheduler contract.
+ */
+
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -7,23 +13,16 @@ import {
   finalizeNecromancerCast,
   gainNecromancerLifeForce,
 } from "./specific/handlers.js";
-import {
-  transferNecromancerSelfConditions,
-} from "./specific/conditions.js";
+import { transferNecromancerSelfConditions } from "./specific/conditions.js";
 import {
   addCarapace,
   emitBuff,
   emitCondition,
   emitDamage,
 } from "./specific/shared.js";
+import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
+import { necromancerWeaponTaskHandlers } from "./specific/weapons.js";
 import {
-  isInternalCooldownReady,
-} from "../../../platform/engine/internal-cooldown.js";
-import {
-  necromancerWeaponTaskHandlers,
-} from "./specific/weapons.js";
-import {
-  CHAIN_POSITION_BY_ID,
   EXIT_IDS,
   hasTrait,
   necromancerCastAvailability,
@@ -31,6 +30,14 @@ import {
   validateNecromancerBuild,
 } from "./availability.js";
 
+/**
+ * Reduces every active Reaper shroud-skill cooldown by one second without
+ * moving a cooldown before the triggering hit.
+ *
+ * @param {object} context Scheduler context.
+ * @param {number} at Life Reap hit timestamp.
+ * @returns {void}
+ */
 function reduceReaperShroudCooldowns(context, at) {
   for (const candidate of context.catalog.skills || []) {
     if (candidate.shroud !== "reaper") continue;
@@ -45,11 +52,16 @@ function reduceReaperShroudCooldowns(context, at) {
   }
 }
 
+/**
+ * Updates Reaper cooldown traits, autoattack chains, flip availability, and
+ * completion-gated life-force traits for one cast.
+ *
+ * @param {object} context Scheduler after-cast context.
+ * @param {object} skill Completed or interrupted skill.
+ * @returns {void}
+ */
 function updateNecromancerCastState(context, skill) {
-  if (
-    skill.id === ID.LIFE_REAP
-    && hasTrait(context, TRAIT.REAPERS_ONSLAUGHT)
-  ) {
+  if (skill.id === ID.LIFE_REAP && hasTrait(context, TRAIT.REAPERS_ONSLAUGHT)) {
     // Life Reap lands halfway through its activation. Its hit still commits
     // when the trailing aftercast is cancelled, as in the benchmark rotation.
     const hitAt = context.start + (context.fullEnd - context.start) / 2;
@@ -59,7 +71,7 @@ function updateNecromancerCastState(context, skill) {
   }
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = context.state.profession;
-  const chain = CHAIN_POSITION_BY_ID.get(skill.id);
+  const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (chain) {
     if (chain.next == null) {
       delete state.autoattackChains[chain.root];
@@ -70,22 +82,14 @@ function updateNecromancerCastState(context, skill) {
     state.autoattackChains = {};
   }
 
-  if (
-    skill.flipSkillId != null
-    && skill.flipSkillId !== skill.nextChainId
-  ) {
+  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
     if (flip && flip.name !== skill.name && flip.flipParentId === skill.id) {
       state.availableFlips[flip.id] =
-        context.rechargeStart
-        + Math.max(
+        context.rechargeStart +
+        Math.max(
           1,
-          Number(
-            skill.flipDuration
-            ?? skill.cooldown
-            ?? skill.recharge
-            ?? 5,
-          ),
+          Number(skill.flipDuration ?? skill.cooldown ?? skill.recharge ?? 5),
         );
     }
   }
@@ -93,12 +97,13 @@ function updateNecromancerCastState(context, skill) {
     delete state.availableFlips[skill.id];
   }
 
-  const control = (skill.effects || []).find(effect =>
-    effect.type === "control");
+  const control = (skill.effects || []).find(
+    (effect) => effect.type === "control",
+  );
   if (
-    control?.metadata?.controlKind === "fear"
-    && hasTrait(context, TRAIT.FEAR_OF_DEATH)
-    && isInternalCooldownReady(
+    control?.metadata?.controlKind === "fear" &&
+    hasTrait(context, TRAIT.FEAR_OF_DEATH) &&
+    isInternalCooldownReady(
       context.effectiveEnd,
       Number(state.fearOfDeathReadyAt || 0),
     )
@@ -112,13 +117,13 @@ function updateNecromancerCastState(context, skill) {
     state.fearOfDeathReadyAt = context.effectiveEnd + 4;
   }
   if (
-    hasTrait(context, TRAIT.CHILLING_VICTORY)
-    && requiredShroud(skill) === "reaper"
-    && isInternalCooldownReady(
+    hasTrait(context, TRAIT.CHILLING_VICTORY) &&
+    requiredShroud(skill) === "reaper" &&
+    isInternalCooldownReady(
       context.effectiveEnd,
       Number(state.traitProcReadyAt.chillingVictory || 0),
-    )
-    && context.config?.target?.conditions?.Chilled
+    ) &&
+    context.config?.target?.conditions?.Chilled
   ) {
     gainNecromancerLifeForce(
       context,
@@ -130,12 +135,17 @@ function updateNecromancerCastState(context, skill) {
   }
 }
 
+/**
+ * Applies all Necromancer after-cast state transitions and trait effects, then
+ * lets the profession handler finalize the skill.
+ *
+ * @param {object} context Scheduler after-cast context.
+ * @param {object} skill Completed or interrupted skill.
+ * @returns {void}
+ */
 function afterCast(context, skill) {
   updateNecromancerCastState(context, skill);
-  if (
-    skill.id === ID.DARK_BARRAGE &&
-    hasTrait(context, TRAIT.DEATHLY_HASTE)
-  ) {
+  if (skill.id === ID.DARK_BARRAGE && hasTrait(context, TRAIT.DEATHLY_HASTE)) {
     context.emit({
       type: "buff",
       at: context.effectiveEnd,
@@ -165,8 +175,7 @@ function afterCast(context, skill) {
   if (
     skill.type === "Heal" &&
     hasTrait(context, TRAIT.DARK_DEFENSE) &&
-    context.effectiveEnd >=
-      Number(state.traitProcReadyAt.darkDefense || 0)
+    context.effectiveEnd >= Number(state.traitProcReadyAt.darkDefense || 0)
   ) {
     state.traitProcReadyAt.darkDefense = context.effectiveEnd + 5;
     addCarapace(state, 10, context.effectiveEnd);
@@ -217,8 +226,7 @@ function afterCast(context, skill) {
   if (
     skill.type === "Heal" &&
     hasTrait(context, TRAIT.MALICIOUS_SWARM) &&
-    context.effectiveEnd >=
-      Number(state.traitProcReadyAt.maliciousSwarm || 0)
+    context.effectiveEnd >= Number(state.traitProcReadyAt.maliciousSwarm || 0)
   ) {
     state.traitProcReadyAt.maliciousSwarm = context.effectiveEnd + 15;
     emitDamage(context, skill, 1, {
@@ -229,10 +237,7 @@ function afterCast(context, skill) {
       skillWeapon: "Unequipped",
     });
   }
-  if (
-    skill.shroudSlot === 4 &&
-    hasTrait(context, TRAIT.TRANSFUSION)
-  ) {
+  if (skill.shroudSlot === 4 && hasTrait(context, TRAIT.TRANSFUSION)) {
     emitDamage(context, skill, 1.8, {
       name: "Lesser Chilblains",
       source: "Trait",
@@ -259,6 +264,14 @@ function afterCast(context, skill) {
   finalizeNecromancerCast(context, skill);
 }
 
+/**
+ * Reacts to newly scheduled Burning, boon, and player-damage events for
+ * Nourishing Ashes, Blighter's Boon, and Plague Sending.
+ *
+ * @param {object} context Scheduler event-observer context.
+ * @param {object} event Newly scheduled event.
+ * @returns {void}
+ */
 function onEventScheduled(context, event) {
   const state = context.state.profession;
   if (
@@ -268,12 +281,7 @@ function onEventScheduled(context, event) {
     event.at >= Number(state.traitProcReadyAt.nourishingAshes || 0)
   ) {
     state.traitProcReadyAt.nourishingAshes = event.at + 3;
-    gainNecromancerLifeForce(
-      context,
-      5,
-      event.at,
-      "nourishing-ashes",
-    );
+    gainNecromancerLifeForce(context, 5, event.at, "nourishing-ashes");
   }
   if (
     event.type === "buff" &&
@@ -281,25 +289,29 @@ function onEventScheduled(context, event) {
     event.kind !== "target-vulnerability" &&
     hasTrait(context, TRAIT.BLIGHTERS_BOON)
   ) {
-    gainNecromancerLifeForce(
-      context,
-      1,
-      event.at,
-      "blighters-boon",
-    );
+    gainNecromancerLifeForce(context, 1, event.at, "blighters-boon");
   }
   if (
     !state.plagueSendingArmed ||
     event.type !== "damage" ||
     event.actorType !== "player" ||
     !(Number(event.coefficient) > 0)
-  ) return;
+  )
+    return;
   const skill = context.catalog.skillsById.get(event.skillId);
   if (!skill) return;
   state.plagueSendingArmed = false;
   transferNecromancerSelfConditions(context, skill, 2, event.at);
 }
 
+/**
+ * Resets Gravedigger when its completed strike lands after the target crossed
+ * the below-half-health threshold.
+ *
+ * @param {object} context Scheduler cast-completion context.
+ * @param {object} skill Completed skill.
+ * @returns {void}
+ */
 function onCastComplete(context, skill) {
   if (skill.id !== ID.GRAVEDIGGER) return;
   const targetBelowHalfAt = Number(
@@ -308,13 +320,16 @@ function onCastComplete(context, skill) {
   // The threshold timestamp is the packet that pushed the target below 50%.
   // Gravedigger must land after it, because its own hit checks pre-hit health.
   if (
-    Number.isFinite(targetBelowHalfAt)
-    && context.effectiveEnd > targetBelowHalfAt + context.epsilon
+    Number.isFinite(targetBelowHalfAt) &&
+    context.effectiveEnd > targetBelowHalfAt + context.epsilon
   ) {
     context.state.cooldowns.delete(ID.GRAVEDIGGER);
   }
 }
 
+/**
+ * Necromancer resource/form availability and build-validation rules.
+ */
 export const necromancerCastRules = Object.freeze({
   availability: {
     id: "necromancer.cast-state",
@@ -328,11 +343,20 @@ export const necromancerCastRules = Object.freeze({
   },
 });
 
+/**
+ * Necromancer scheduler lifecycle hooks and weapon task dispatch table.
+ */
 export const necromancerSchedulerHooks = Object.freeze({
   advance: advanceNecromancerState,
   afterCast,
   onCastComplete,
-  onCooldownReset: context => {
+  /**
+   * Clears simulated self-conditions after a global cooldown reset.
+   *
+   * @param {object} context Scheduler cooldown-reset context.
+   * @returns {void}
+   */
+  onCooldownReset: (context) => {
     context.state.profession.selfConditions = [];
   },
   onEventScheduled,

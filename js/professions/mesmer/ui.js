@@ -1,4 +1,18 @@
 import { MECHANIC_SKILLS } from "./mechanics/skill-mechanics.js";
+import {
+  isMesmerBuildSkillAvailable,
+  isMesmerContinuumSkillAvailable,
+  mesmerMinimumResource,
+} from "./mechanics/availability.js";
+
+/**
+ * Mesmer adapter for the shared simulator UI.
+ *
+ * This module maps specialization mechanics into profession skill groups,
+ * describes clones, blades, or notes as UI resources, and formats
+ * Mesmer-specific phantasm and instrument events. Combat behavior remains in
+ * the Mesmer mechanics and resolver modules.
+ */
 
 export function mesmerResourceDefinition(specialization) {
   if (specialization === "Virtuoso") {
@@ -11,39 +25,127 @@ export function mesmerResourceDefinition(specialization) {
 }
 
 export function mesmerPaletteGroups(context = {}) {
-  const specialization = context.specialization || context.config?.specialization || "Core";
-  const names = [...(MECHANIC_SKILLS[specialization] || [])];
+  const specialization =
+    context.specialization || context.config?.specialization || "Core";
+  const skillIds = [...(MECHANIC_SKILLS[specialization] || [])];
   return [
     {
       id: "profession",
       label: "Profession",
-      skillIds: names
-        .map(name => context.catalog?.skillsByName?.get(name)?.id)
-        .filter(id => id != null),
+      skillIds: skillIds.filter((id) => context.catalog?.skillsById?.has(id)),
+      resourceAnchor: true,
     },
   ];
 }
 
 export function mesmerResourceView(context = {}) {
-  const specialization = context.specialization || context.config?.specialization || "Core";
+  const specialization =
+    context.specialization || context.config?.specialization || "Core";
   const definition = mesmerResourceDefinition(specialization);
   const state = context.state?.profession || context.professionState || {};
-  const value = definition.id === "clones"
-    ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
-    : Number(state.numericResource || context.value || 0);
+  const value =
+    definition.id === "clones"
+      ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
+      : Number(state.numericResource || context.value || 0);
   return {
     ...definition,
     value: Math.max(0, Math.min(definition.maximum, value)),
     canStart: definition.id !== "clones",
-    shortLabel: definition.id === "clones"
-      ? "Cln"
-      : definition.singular.slice(0, 3),
+    shortLabel:
+      definition.id === "clones" ? "Cln" : definition.singular.slice(0, 3),
     statusLabel: definition.id === "clones" ? "Active" : "Current",
   };
 }
 
+const MESMER_EVENT_ROWS = Object.freeze({
+  "mesmer.phantasm-summoned": (event) => ({
+    type: event.type,
+    description: `PHANTASM SUMMONED ${event.name} x${event.count}`,
+    className: "phantasm",
+    order: 20,
+    flags: ["phantasm-clone"],
+  }),
+  "mesmer.phantasm-resummoned": (event) => ({
+    type: event.type,
+    description: `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
+    className: "phantasm",
+    order: 21,
+    flags: ["phantasm-clone"],
+  }),
+  "mesmer.phantasm-attack": (event) => ({
+    type: event.type,
+    description:
+      `PHANTASM DAMAGE COMPLETE ${event.name} x${event.count}` +
+      `${event.repeat ? " [repeat]" : ""}`,
+    className: "phantasm",
+    order: 22,
+    flags: ["phantasm-clone"],
+  }),
+  "mesmer.instrument": (event) => ({
+    type: "trigger",
+    description:
+      `INSTRUMENT ${event.instrument}` +
+      `${
+        event.expiresAt ? ` until ${Number(event.expiresAt).toFixed(3)}s` : ""
+      }`,
+    className: "trigger",
+    order: 55,
+    flags: [],
+  }),
+});
+
+export function mesmerEventLogRow(_context, event) {
+  const present = MESMER_EVENT_ROWS[event?.type];
+  return present ? present(event) : undefined;
+}
+
+export function isMesmerPaletteSkillAvailable(context = {}, skill) {
+  const specialization =
+    context.specialization || context.config?.specialization || "Core";
+  const config = {
+    specialization,
+    weaponmasterTraining:
+      context.build?.weaponmasterTraining ??
+      context.config?.weaponmasterTraining ??
+      true,
+  };
+  if (!isMesmerBuildSkillAvailable(skill, config)) return false;
+  const state = context.state?.profession || context.professionState || {};
+  if (!isMesmerContinuumSkillAvailable(skill, state.continuumActive)) {
+    return false;
+  }
+  return Number(state.resource ?? Infinity) >= mesmerMinimumResource(skill);
+}
+
+export function mesmerPaletteSkillUnavailableMessage(context = {}, skill) {
+  const specialization =
+    context.specialization || context.config?.specialization || "Core";
+  const state = context.state?.profession || context.professionState || {};
+  if (
+    !isMesmerBuildSkillAvailable(skill, {
+      specialization,
+      weaponmasterTraining:
+        context.build?.weaponmasterTraining ??
+        context.config?.weaponmasterTraining ??
+        true,
+    })
+  ) {
+    return `${skill.name} is unavailable for ${specialization}.`;
+  }
+  if (!isMesmerContinuumSkillAvailable(skill, state.continuumActive)) {
+    return "Unavailable until Continuum Split is active";
+  }
+  const minimum = mesmerMinimumResource(skill);
+  return Number(state.resource ?? Infinity) < minimum
+    ? `Requires at least ${minimum} blade`
+    : "";
+}
+
 export const mesmerUi = Object.freeze({
+  eventLogRow: mesmerEventLogRow,
   paletteGroups: mesmerPaletteGroups,
+  isPaletteSkillAvailable: isMesmerPaletteSkillAvailable,
+  paletteSkillUnavailableMessage: mesmerPaletteSkillUnavailableMessage,
   resourceView: mesmerResourceView,
-  resourceViews: context => [mesmerResourceView(context)],
+  resourceViews: (context) => [mesmerResourceView(context)],
 });

@@ -9,6 +9,7 @@ const DAMAGE_FIELDS = new Set([
 ]);
 
 function canonical(value) {
+  if (Object.is(value, -0)) return 0;
   if (value instanceof Map) {
     return canonical(Object.fromEntries(value));
   }
@@ -114,7 +115,10 @@ export function assertMesmerResultParity(
   actualResult,
   { damageTolerance = 1e-9 } = {},
 ) {
-  const expected = normalizeMesmerResult(expectedResult);
+  const expected =
+    expectedResult?.exact && expectedResult?.damage
+      ? expectedResult
+      : normalizeMesmerResult(expectedResult);
   const actual = normalizeMesmerResult(actualResult);
   assert.deepEqual(actual.exact, expected.exact, `${name}: exact result`);
   assertDamageClose(

@@ -6,7 +6,6 @@ import {
   NECROMANCER_EXTRA_SKILLS,
   NECROMANCER_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
-import { NECROMANCER_AUTOATTACK_CHAINS } from "./mechanics/autoattack-chains.js";
 import { NECROMANCER_SKILL_IDS } from "./data/ids.js";
 import { necromancerSkillHandlers } from "./mechanics/specific/handlers.js";
 
@@ -53,14 +52,6 @@ const allSkills = Object.freeze(
     }),
 );
 const generatedById = new Map(allSkills.map((skill) => [skill.id, skill]));
-const chainRootById = new Map();
-const chainStepById = new Map();
-for (const chain of NECROMANCER_AUTOATTACK_CHAINS) {
-  chain.forEach((skillId, index) => {
-    chainRootById.set(skillId, chain[0]);
-    chainStepById.set(skillId, index + 1);
-  });
-}
 const flipParentById = new Map();
 for (const skill of allSkills) {
   const child = generatedById.get(skill.flipSkillId);
@@ -81,8 +72,6 @@ const generated = allSkills.map((skill) => {
     ...skill,
     cooldown:
       skill.ammo > 0 ? skill.ammoRecharge || skill.recharge : skill.recharge,
-    chainRoot: chainRootById.get(skill.id) ?? null,
-    chainStep: chainStepById.get(skill.id) ?? null,
     flipParentId: flipParentId ?? null,
     flipParent:
       flipParentId == null ? "" : generatedById.get(flipParentId)?.name || "",
@@ -102,6 +91,20 @@ export const necromancerCatalog = createCanonicalCatalog({
   generated,
   mechanics: NECROMANCER_SKILL_MECHANICS,
   extraSkills: NECROMANCER_EXTRA_SKILLS,
+  autoattackChains: {
+    // The API omits or does not classify these nonstandard chain links.
+    additional: [
+      [
+        NECROMANCER_SKILL_IDS.ENERVATION_BLADE,
+        NECROMANCER_SKILL_IDS.ENERVATION_ECHO,
+      ],
+      [
+        NECROMANCER_SKILL_IDS.LIFE_REND,
+        NECROMANCER_SKILL_IDS.LIFE_SLASH,
+        NECROMANCER_SKILL_IDS.LIFE_REAP,
+      ],
+    ],
+  },
   skillHandlers: necromancerSkillHandlers,
   traits: TRAITS,
   specializations: SPECIALIZATIONS,

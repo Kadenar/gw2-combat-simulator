@@ -1,9 +1,30 @@
-import {
-  applyAdditiveDamageBucket,
-} from "./damage-modifier-buckets.js";
+import { applyAdditiveDamageBucket } from "./damage-modifier-buckets.js";
 
-// Public target names map directly to the profession hook contract compiled at
-// the bottom of this module.
+/**
+ * Compiles declarative GW2 combat modifiers into profession hooks.
+ *
+ * Rule declarations are validated and indexed once when
+ * `createModifierHooks` is called. Predicates and functional numeric values
+ * are evaluated later for each hook invocation because they may depend on the
+ * current event, timeline, weapon set, or profession state.
+ *
+ * Scalar targets apply `add` and `multiply` sequentially. Strike and condition
+ * damage instead collect `damage-additive` rules into GW2's shared outgoing
+ * damage bucket, then apply true `multiply` rules after that bucket.
+ *
+ * @module platform/gw2/modifier-rules
+ */
+
+/**
+ * Supported rule targets. Each value maps to one hook on the profession
+ * contract returned by `createModifierHooks`.
+ *
+ * - `criticalChance` → `modifyCriticalChance`
+ * - `criticalDamage` → `modifyCriticalDamage`
+ * - `strikeDamage` → `modifyStrikeDamage`
+ * - `conditionDamage` → `modifyConditionDamage`
+ * - `conditionDuration` → `modifyConditionDuration`
+ */
 export const MODIFIER_TARGET = Object.freeze({
   CRITICAL_CHANCE: "criticalChance",
   CRITICAL_DAMAGE: "criticalDamage",
@@ -26,13 +47,28 @@ const HOOK_BY_TARGET = Object.freeze({
   [MODIFIER_TARGET.CONDITION_DURATION]: "modifyConditionDuration",
 });
 
+/**
+ * Creates an error tied to a declaration's stable id so invalid profession
+ * data identifies the responsible rule.
+ *
+ * @param {string} id Rule id, or a generated missing-id description.
+ * @param {string} message Validation failure.
+ * @returns {TypeError}
+ */
 function ruleError(id, message) {
   return new TypeError(`Modifier rule "${id}": ${message}`);
 }
 
-function normalizeResolver(rule, field, {
-  positive = false,
-} = {}) {
+/**
+ * Validates a static numeric value or retains a dynamic value resolver.
+ * Dynamic results are validated by `resolveNumeric` when the hook runs.
+ *
+ * @param {object} rule Rule being normalized.
+ * @param {"amount"|"factor"} field Numeric field required by the operation.
+ * @param {{positive?: boolean}} [options] Whether the value must be above zero.
+ * @returns {number|Function}
+ */
+function normalizeResolver(rule, field, { positive = false } = {}) {
   if (!(field in rule)) {
     throw ruleError(rule.id, `${field} is required.`);
   }
@@ -41,9 +77,9 @@ function normalizeResolver(rule, field, {
   // their result can depend on timestamp-specific combat context.
   if (typeof resolver === "function") return resolver;
   if (
-    typeof resolver !== "number"
-    || !Number.isFinite(resolver)
-    || (positive && !(resolver > 0))
+    typeof resolver !== "number" ||
+    !Number.isFinite(resolver) ||
+    (positive && !(resolver > 0))
   ) {
     throw ruleError(
       rule.id,
@@ -53,10 +89,15 @@ function normalizeResolver(rule, field, {
   return resolver;
 }
 
+/**
+ * Converts a scalar or array target declaration into a validated, deduplicated
+ * frozen array. Original target order is preserved.
+ *
+ * @param {object} rule Rule with a normalized id.
+ * @returns {ReadonlyArray<string>}
+ */
 function normalizeTargets(rule) {
-  const declared = Array.isArray(rule.target)
-    ? rule.target
-    : [rule.target];
+  const declared = Array.isArray(rule.target) ? rule.target : [rule.target];
   if (!declared.length) {
     throw ruleError(rule.id, "target must not be an empty array.");
   }
@@ -70,23 +111,37 @@ function normalizeTargets(rule) {
   return Object.freeze(targets);
 }
 
+/**
+ * Validates and freezes one rule declaration.
+ *
+ * `add` is restricted to scalar targets. `damage-additive` is restricted to
+ * strike and condition damage so those bonuses cannot bypass GW2's shared
+ * additive damage bucket. `multiply` is valid for every target.
+ *
+ * @param {object} rule Raw profession rule.
+ * @param {number} declarationIndex Original position used as the final sort tie-breaker.
+ * @returns {Readonly<object>}
+ */
 function normalizeRule(rule, declarationIndex) {
   if (!rule || typeof rule !== "object" || Array.isArray(rule)) {
-    throw ruleError(`<missing at index ${declarationIndex}>`, "must be an object.");
+    throw ruleError(
+      `<missing at index ${declarationIndex}>`,
+      "must be an object.",
+    );
   }
   const id = typeof rule.id === "string" ? rule.id.trim() : "";
   if (!id) {
-    throw ruleError(`<missing at index ${declarationIndex}>`, "id is required.");
+    throw ruleError(
+      `<missing at index ${declarationIndex}>`,
+      "id is required.",
+    );
   }
   const operation = rule.operation;
   if (typeof operation !== "string" || !OPERATIONS.has(operation)) {
     throw ruleError(id, `unknown operation "${String(operation || "")}".`);
   }
   const targets = normalizeTargets({ ...rule, id });
-  if (
-    Object.hasOwn(rule, "when")
-    && typeof rule.when !== "function"
-  ) {
+  if (Object.hasOwn(rule, "when") && typeof rule.when !== "function") {
     throw ruleError(id, "when must be a function.");
   }
   const order = Object.hasOwn(rule, "order") ? rule.order : 0;
@@ -101,10 +156,7 @@ function normalizeRule(rule, declarationIndex) {
       throw ruleError(id, `add is not supported for ${target}.`);
     }
     if (operation === "damage-additive" && !damageTarget) {
-      throw ruleError(
-        id,
-        `damage-additive is not supported for ${target}.`,
-      );
+      throw ruleError(id, `damage-additive is not supported for ${target}.`);
     }
   }
 
@@ -126,6 +178,12 @@ function normalizeRule(rule, declarationIndex) {
   return Object.freeze(normalized);
 }
 
+/**
+ * Normalizes a complete rule list and enforces globally unique rule ids.
+ *
+ * @param {Array<object>} rules Raw rule declarations.
+ * @returns {ReadonlyArray<Readonly<object>>}
+ */
 function normalizeRules(rules) {
   if (!Array.isArray(rules)) {
     throw new TypeError("Modifier rules must be an array.");
@@ -142,11 +200,21 @@ function normalizeRules(rules) {
   return Object.freeze(normalized);
 }
 
+/**
+ * Normalizes per-damage-target sigil participation policies.
+ *
+ * Both damage targets include the active sigil in the additive bucket by
+ * default. A boolean disables it permanently; a callback can decide from the
+ * current hook context, such as excluding player sigils from summon damage.
+ *
+ * @param {object} damageBuckets Policies keyed by strikeDamage or conditionDamage.
+ * @returns {Readonly<object>}
+ */
 function normalizeBucketPolicies(damageBuckets) {
   if (
-    damageBuckets == null
-    || typeof damageBuckets !== "object"
-    || Array.isArray(damageBuckets)
+    damageBuckets == null ||
+    typeof damageBuckets !== "object" ||
+    Array.isArray(damageBuckets)
   ) {
     throw new TypeError("Modifier damageBuckets must be an object.");
   }
@@ -160,9 +228,9 @@ function normalizeBucketPolicies(damageBuckets) {
     }
     const declared = damageBuckets[target];
     if (
-      declared == null
-      || typeof declared !== "object"
-      || Array.isArray(declared)
+      declared == null ||
+      typeof declared !== "object" ||
+      Array.isArray(declared)
     ) {
       throw new TypeError(
         `Modifier bucket policy "${target}" must be an object.`,
@@ -172,8 +240,8 @@ function normalizeBucketPolicies(damageBuckets) {
       ? declared.includeSigil
       : true;
     if (
-      typeof includeSigil !== "boolean"
-      && typeof includeSigil !== "function"
+      typeof includeSigil !== "boolean" &&
+      typeof includeSigil !== "function"
     ) {
       throw new TypeError(
         `Modifier bucket policy "${target}" has an unsupported includeSigil value.`,
@@ -191,15 +259,24 @@ function normalizeBucketPolicies(damageBuckets) {
   return Object.freeze(policies);
 }
 
+/**
+ * Resolves and validates an amount or factor at hook-execution time.
+ * Functional values receive both the current context and active rule target.
+ *
+ * @param {object} rule Normalized rule.
+ * @param {"amount"|"factor"} field Field to resolve.
+ * @param {object} context Current profession-hook context.
+ * @param {string} target Target whose hook is running.
+ * @returns {number}
+ */
 function resolveNumeric(rule, field, context, target) {
   const declared = rule[field];
-  const value = typeof declared === "function"
-    ? declared(context, target)
-    : declared;
+  const value =
+    typeof declared === "function" ? declared(context, target) : declared;
   if (
-    typeof value !== "number"
-    || !Number.isFinite(value)
-    || (field === "factor" && !(value > 0))
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    (field === "factor" && !(value > 0))
   ) {
     throw ruleError(
       rule.id,
@@ -209,6 +286,15 @@ function resolveNumeric(rule, field, context, target) {
   return value;
 }
 
+/**
+ * Builds an ordered hook for chance, critical multiplier, or duration values.
+ * Operations run sequentially, so order matters: add-then-multiply can differ
+ * from multiply-then-add. This layer does not clamp the final value.
+ *
+ * @param {ReadonlyArray<object>} rules Rules already sorted for this target.
+ * @param {string} target Active scalar target.
+ * @returns {Function}
+ */
 function createScalarHook(rules, target) {
   return Object.freeze((context, initialValue) => {
     let result = initialValue;
@@ -226,10 +312,21 @@ function createScalarHook(rules, target) {
   });
 }
 
+/**
+ * Builds a strike- or condition-damage hook.
+ *
+ * Every active `damage-additive` amount is summed into one outgoing-damage
+ * bucket. Every active `multiply` factor is multiplied separately and applied
+ * after the rebuilt bucket, regardless of rule order.
+ *
+ * @param {ReadonlyArray<object>} rules Rules already sorted for this target.
+ * @param {string} target Strike- or condition-damage target.
+ * @param {{includeSigil: boolean|Function}} policy Active-sigil bucket policy.
+ * @returns {Function}
+ */
 function createDamageHook(rules, target, policy) {
-  const damageType = target === MODIFIER_TARGET.CONDITION_DAMAGE
-    ? "condition"
-    : "strike";
+  const damageType =
+    target === MODIFIER_TARGET.CONDITION_DAMAGE ? "condition" : "strike";
   return Object.freeze((context, initialValue) => {
     let additiveBonus = 0;
     let multiplicativeFactor = 1;
@@ -240,28 +337,26 @@ function createDamageHook(rules, target, policy) {
       if (rule.operation === "damage-additive") {
         additiveBonus += resolveNumeric(rule, "amount", context, target);
       } else {
-        multiplicativeFactor *= resolveNumeric(
-          rule,
-          "factor",
-          context,
-          target,
-        );
+        multiplicativeFactor *= resolveNumeric(rule, "factor", context, target);
       }
     }
-    const includeSigil = typeof policy.includeSigil === "function"
-      ? policy.includeSigil(context)
-      : policy.includeSigil;
+    const includeSigil =
+      typeof policy.includeSigil === "function"
+        ? policy.includeSigil(context)
+        : policy.includeSigil;
     // Dynamic policies support weapon-set or event-specific sigil inclusion.
     if (typeof includeSigil !== "boolean") {
       throw new TypeError(
         `Modifier bucket policy "${target}" includeSigil must resolve to a boolean.`,
       );
     }
-    return applyAdditiveDamageBucket(context, initialValue, {
-      damageType,
-      bonus: additiveBonus,
-      includeSigil,
-    }) * multiplicativeFactor;
+    return (
+      applyAdditiveDamageBucket(context, initialValue, {
+        damageType,
+        bonus: additiveBonus,
+        includeSigil,
+      }) * multiplicativeFactor
+    );
   });
 }
 
@@ -272,24 +367,43 @@ function createDamageHook(rules, target, policy) {
  * Rules declare a unique id, one or more targets, an operation, and either an
  * amount or factor. Optional `when(context)` gates a rule; `order` controls
  * deterministic execution before declaration order breaks ties.
+ *
+ * Rule schema:
+ * - `id`: required unique, non-empty string.
+ * - `target`: one `MODIFIER_TARGET` value or an array of values.
+ * - `operation`: `add`, `damage-additive`, or `multiply`.
+ * - `amount`: finite number or `(context, target) => number` for additive rules.
+ * - `factor`: positive finite number or resolver for multiplicative rules.
+ * - `when`: optional `(context) => boolean` predicate.
+ * - `order`: optional finite number; defaults to zero.
+ *
+ * `damageBuckets` accepts `strikeDamage` and `conditionDamage` entries. Their
+ * `includeSigil` value may be a boolean or `(context) => boolean` and defaults
+ * to true.
+ *
+ * @param {object} [options] Compiler options.
+ * @param {Array<object>} [options.rules=[]] Declarative profession rules.
+ * @param {object} [options.damageBuckets={}] Per-damage-target sigil policies.
+ * @returns {Readonly<object>} Frozen implementations of all five modifier hooks.
+ * @throws {TypeError} If declarations are malformed or a dynamic value resolves
+ * to an unsupported value.
  */
-export function createModifierHooks({
-  rules = [],
-  damageBuckets = {},
-} = {}) {
+export function createModifierHooks({ rules = [], damageBuckets = {} } = {}) {
   const normalizedRules = normalizeRules(rules);
   const policies = normalizeBucketPolicies(damageBuckets);
   const rulesByTarget = Object.fromEntries(
-    [...TARGETS].map(target => [target, []]),
+    [...TARGETS].map((target) => [target, []]),
   );
   for (const rule of normalizedRules) {
     for (const target of rule.targets) rulesByTarget[target].push(rule);
   }
   for (const target of TARGETS) {
     // Stable declaration order is the final tie-breaker for equal rule order.
-    rulesByTarget[target].sort((left, right) =>
-      left.order - right.order
-      || left.declarationIndex - right.declarationIndex);
+    rulesByTarget[target].sort(
+      (left, right) =>
+        left.order - right.order ||
+        left.declarationIndex - right.declarationIndex,
+    );
     Object.freeze(rulesByTarget[target]);
   }
   Object.freeze(rulesByTarget);

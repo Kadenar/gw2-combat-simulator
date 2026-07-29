@@ -7,6 +7,10 @@ import {
   normalizeSkillHandler,
   SKILL_HANDLER_MODES,
 } from "./skill-handlers.js";
+import {
+  deriveAutoattackChains,
+  indexAutoattackChains,
+} from "./autoattack-chains.js";
 
 const EFFECT_TYPES = new Set([
   "strike",
@@ -59,6 +63,8 @@ const EFFECT_FIELDS = new Set([
 const EFFECT_METADATA_FIELDS = new Set([
   "controlKind",
   "duration",
+  "breakbar",
+  "bonusDefianceBreak",
   "damageKind",
   "extendsResolutionHorizon",
   "flatDamage",
@@ -86,6 +92,51 @@ function normalizeSkillHandlers(value) {
       normalizeSkillHandler(normalizedId, handler),
     ];
   }));
+}
+
+/**
+ * Discovers the catalog's normal weapon chains, applies the small number of
+ * API-data corrections supplied by a profession, and creates the shared
+ * per-skill position index used by runtime rules.
+ */
+function normalizeAutoattackChains(skills, options = {}) {
+  if (
+    options == null
+    || typeof options !== "object"
+    || Array.isArray(options)
+  ) {
+    throw new TypeError("Autoattack-chain options must be an object.");
+  }
+  const additional = options.additional ?? [];
+  const excluded = options.excludeSkillIds ?? [];
+  if (!Array.isArray(additional) || !Array.isArray(excluded)) {
+    throw new TypeError(
+      "Autoattack-chain additions and exclusions must be arrays.",
+    );
+  }
+
+  const excludedIds = new Set(excluded.map(Number));
+  const chains = Object.freeze([
+    ...deriveAutoattackChains(skills),
+    ...additional,
+  ]
+    .filter(chain =>
+      !chain.some(skillId => excludedIds.has(Number(skillId))))
+    .map(chain => Object.freeze(chain.map(Number))));
+  const skillIds = new Set(skills.map(skill => skill.id));
+  for (const chain of chains) {
+    for (const skillId of chain) {
+      if (!skillIds.has(skillId)) {
+        throw new TypeError(
+          `Autoattack chain references missing skill ${skillId}.`,
+        );
+      }
+    }
+  }
+  return {
+    chains,
+    positions: indexAutoattackChains(chains),
+  };
 }
 
 /**
@@ -459,6 +510,7 @@ export function createCanonicalCatalog({
   mechanics = {},
   overrides = {},
   extraSkills = [],
+  autoattackChains = {},
   skillHandlers = {},
   traits = [],
   specializations = [],
@@ -486,7 +538,7 @@ export function createCanonicalCatalog({
     ...Object.keys(overrides).map(Number),
     ...extraSkills.map(skill => skill.id),
   ]);
-  const skills = [...allIds].map(id => {
+  const normalizedSkills = [...allIds].map(id => {
     const merged = {
       ...(generatedById.get(id) || {}),
       ...(mechanics[id] || {}),
@@ -524,15 +576,34 @@ export function createCanonicalCatalog({
         + `"${merged.rechargeAnchor}".`,
       );
     }
+    const rechargeOffsetMs = Number(merged.rechargeOffsetMs ?? 0);
+    if (!(rechargeOffsetMs >= 0) || !Number.isFinite(rechargeOffsetMs)) {
+      throw new TypeError(
+        `Skill ${id} requires a non-negative finite rechargeOffsetMs.`,
+      );
+    }
     const skill = {
       ...merged,
       castTimeMs,
+      ...(rechargeOffsetMs ? { rechargeOffsetMs } : {}),
       ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
       lockouts: normalizeLockouts(merged.lockouts, id),
     };
     skill.effects = Object.freeze((skill.effects || []).map(normalizeEffect));
     skill.tags = Object.freeze([...(skill.tags || [])]);
-    return Object.freeze(skill);
+    return skill;
+  });
+  const normalizedAutoattacks = normalizeAutoattackChains(
+    normalizedSkills,
+    autoattackChains,
+  );
+  const skills = normalizedSkills.map((skill) => {
+    const position = normalizedAutoattacks.positions.get(skill.id);
+    return Object.freeze({
+      ...skill,
+      chainRoot: position?.root ?? null,
+      chainStep: position?.step ?? null,
+    });
   });
   const skillsByName = new Map();
   for (const skill of skills) {
@@ -547,6 +618,8 @@ export function createCanonicalCatalog({
     skills: Object.freeze(skills),
     skillsById: new Map(skills.map(skill => [skill.id, skill])),
     skillsByName,
+    autoattackChains: normalizedAutoattacks.chains,
+    autoattackChainPositions: normalizedAutoattacks.positions,
     skillHandlers: normalizeSkillHandlers(skillHandlers),
     traits: Object.freeze(traits.map(trait => Object.freeze({ ...trait }))),
     specializations: Object.freeze(

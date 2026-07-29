@@ -5,15 +5,6 @@ import {
   writeProfessionSnapshot,
 } from "./lib/gw2-profession-snapshot.mjs";
 
-const EMPTY_PROFESSION_CONFIG = Object.freeze({});
-const PROFESSION_CONFIG = Object.freeze({
-  Necromancer: Object.freeze({
-    canonicalSameNameAliasIds: Object.freeze({
-      "Manifest Sand Shade": 44946,
-    }),
-  }),
-});
-
 export function normalizeProfessionName(value) {
   const normalized = String(value || "").trim();
   if (!/^[a-z][a-z0-9]*$/i.test(normalized)) {
@@ -22,11 +13,6 @@ export function normalizeProfessionName(value) {
     );
   }
   return normalized.charAt(0).toUpperCase() + normalized.slice(1).toLowerCase();
-}
-
-export function professionSnapshotConfig(professionName) {
-  return PROFESSION_CONFIG[normalizeProfessionName(professionName)]
-    || EMPTY_PROFESSION_CONFIG;
 }
 
 export function parseProfession(args) {
@@ -46,8 +32,7 @@ export async function updateProfessionApiData(
   } = {},
 ) {
   const normalizedProfession = normalizeProfessionName(professionName);
-  const config = snapshotConfig
-    || professionSnapshotConfig(normalizedProfession);
+  const config = snapshotConfig || {};
   const id = normalizedProfession.toLowerCase();
   const output = requestedOutput
     ? path.resolve(requestedOutput)
@@ -68,14 +53,14 @@ export async function updateProfessionApiData(
   });
   const traitCount = snapshot.specializations.reduce(
     (sum, specialization) =>
-      sum
-      + specialization.minorTraits.length
-      + specialization.majorTraits.flat().length,
+      sum +
+      specialization.minorTraits.length +
+      specialization.majorTraits.flat().length,
     0,
   );
   log(
-    `Wrote ${snapshot.skills.length} skills, ${traitCount} traits, `
-    + `${snapshot.specializations.length} specializations to ${output}.`,
+    `Wrote ${snapshot.skills.length} skills, ${traitCount} traits, ` +
+      `${snapshot.specializations.length} specializations to ${output}.`,
   );
   return { output, ...snapshot };
 }

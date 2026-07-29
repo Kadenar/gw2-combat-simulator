@@ -205,6 +205,86 @@ test("Elementalist Aristocracy uses a strict one-second ICD", () => {
   );
 });
 
+test("Elementalist Shackles queues its expiry strike and observes its ICD", () => {
+  const queuedHits = [];
+  const procSteps = [];
+  const state = {
+    activeRelic: "Shackles",
+    relicProc: RELIC_PROCS.Shackles,
+    att: "Earth",
+  };
+  const context = {
+    S: state,
+    log() {},
+    addStep(step) {
+      procSteps.push(step);
+    },
+    queueHitEvent(event) {
+      queuedHits.push(event);
+    },
+  };
+  const trigger = (skill, time) => checkRelicOnHit(context, {
+    skill,
+    time,
+    conds: {
+      Immobilize: { stacks: 1, duration: 2 },
+    },
+  });
+
+  trigger("First Immobilize", 100);
+  trigger("Exact ICD Boundary", 10100);
+  trigger("After ICD Boundary", 10101);
+
+  assert.equal(state.relicICD.Shackles, 20101);
+  assert.deepEqual(
+    queuedHits.map(event => ({
+      time: event.time,
+      skill: event.skill,
+      coefficient: event.dmg,
+      weaponStrength: event.ws,
+      isRelicProc: event.isRelicProc,
+    })),
+    [
+      {
+        time: 5100,
+        skill: "Relic of the Shackles",
+        coefficient: 3,
+        weaponStrength: 690.5,
+        isRelicProc: true,
+      },
+      {
+        time: 15101,
+        skill: "Relic of the Shackles",
+        coefficient: 3,
+        weaponStrength: 690.5,
+        isRelicProc: true,
+      },
+    ],
+  );
+  assert.deepEqual(
+    procSteps.map(({ skill, start, detail, icon }) => ({
+      skill,
+      start,
+      detail,
+      icon,
+    })),
+    [
+      {
+        skill: "Relic of the Shackles",
+        start: 100,
+        detail: "tethered by First Immobilize",
+        icon: "https://render.guildwars2.com/file/7946A50DBDC2E45E004AAA801904015C50CC22B3/3745069.png",
+      },
+      {
+        skill: "Relic of the Shackles",
+        start: 10101,
+        detail: "tethered by After ICD Boundary",
+        icon: "https://render.guildwars2.com/file/7946A50DBDC2E45E004AAA801904015C50CC22B3/3745069.png",
+      },
+    ],
+  );
+});
+
 test("every relative import in the Elementalist package resolves", async () => {
   const files = await javascriptFiles(professionRoot);
   assert.ok(files.length > 50);

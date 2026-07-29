@@ -242,6 +242,12 @@ export const RELIC_PROCS = {
         conditions: { Torment: { stacks: 2, dur: 7 } },
         icon: 'https://render.guildwars2.com/file/949A6A4179F514FCDEF3AC3D9C292B38D5E0047D/3122365.png',
     },
+    Shackles: {
+        trigger: 'immobilize_tether', icd: 10000, effectDuration: 5000,
+        strikeCoeff: 3.0, strikeWs: 690.5,
+        conditions: null,
+        icon: 'https://render.guildwars2.com/file/7946A50DBDC2E45E004AAA801904015C50CC22B3/3745069.png',
+    },
     Claw: {
         trigger: 'cc_any', icd: 0, strikeDmgM: 0.07, effectDuration: 8000,
         conditions: null,

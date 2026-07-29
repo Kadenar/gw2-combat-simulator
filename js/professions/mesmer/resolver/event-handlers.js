@@ -1,5 +1,6 @@
 import {
-  triggerIneptitude,
+  triggerIneptitudeFromBlind,
+  triggerIneptitudeFromInterrupt,
 } from "../mechanics/specific/trait-rules.js";
 
 const noop = () => {};
@@ -8,30 +9,18 @@ const noop = () => {};
  * Mesmer reactions left in numeric resolution. Critical bleeding and
  * Bloodsong are scheduler-owned because they can change later castability.
  */
-export function handleMesmerControlEvent(
-  ctx,
-  event,
-  { applyCondition } = {},
-) {
+export function handleMesmerControlEvent(ctx, event, { applyCondition } = {}) {
   if (
-    !ctx.config.target?.activatingSkills
-    || typeof applyCondition !== "function"
-  ) return;
-  triggerIneptitude(
-    ctx,
-    event,
-    "interrupt → blind → confusion",
-    applyCondition,
-  );
+    !ctx.config.target?.activatingSkills ||
+    typeof applyCondition !== "function"
+  )
+    return;
+  triggerIneptitudeFromInterrupt(ctx, event, applyCondition);
 }
 
-export function handleMesmerBlindEvent(
-  ctx,
-  event,
-  { applyCondition } = {},
-) {
+export function handleMesmerBlindEvent(ctx, event, { applyCondition } = {}) {
   if (typeof applyCondition !== "function") return;
-  triggerIneptitude(ctx, event, "blind → confusion", applyCondition);
+  triggerIneptitudeFromBlind(ctx, event, applyCondition);
 }
 
 export const mesmerResolverEventReactions = Object.freeze({
