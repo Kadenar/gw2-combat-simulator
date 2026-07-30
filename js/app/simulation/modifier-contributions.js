@@ -15,9 +15,10 @@ export function modifierContributionWorkerCount(
   const comparisons = Math.max(0, Math.trunc(Number(comparisonCount) || 0));
   if (!comparisons) return 0;
   const hardware = Math.trunc(Number(hardwareConcurrency) || 0);
-  const availableWorkers = hardware > 0
-    ? Math.max(1, hardware - 1)
-    : MAX_MODIFIER_CONTRIBUTION_WORKERS;
+  const availableWorkers =
+    hardware > 0
+      ? Math.max(1, hardware - 1)
+      : MAX_MODIFIER_CONTRIBUTION_WORKERS;
   return Math.min(
     comparisons,
     MAX_MODIFIER_CONTRIBUTION_WORKERS,

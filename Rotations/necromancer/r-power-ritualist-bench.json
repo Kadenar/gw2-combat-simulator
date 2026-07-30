@@ -1,0 +1,607 @@
+{
+  "rotation": [
+    {
+      "name": "Summon Blood Fiend"
+    },
+    {
+      "name": "Summon Flesh Golem"
+    },
+    {
+      "name": "Summon Bone Minions"
+    },
+    {
+      "name": "Nightmare Weapon"
+    },
+    {
+      "name": "Splinter Weapon"
+    },
+    {
+      "name": "Grasping Darkness",
+      "interruptMs": 120
+    },
+    {
+      "name": "Ritualist's Shroud"
+    },
+    {
+      "name": "__combat_start",
+      "offset": 100
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Wanderlust"
+    },
+    {
+      "name": "Preservation"
+    },
+    {
+      "name": "Innervate Preservation"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Summon Spirits",
+      "offset": 200
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Exit Ritualist's Shroud"
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Dusk Strike"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Fading Twilight"
+    },
+    {
+      "name": "Chilling Scythe"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Extirpate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Nightmare Weapon"
+    },
+    {
+      "name": "Splinter Weapon"
+    },
+    {
+      "name": "Ritualist's Shroud"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Innervate Wanderlust"
+    },
+    {
+      "name": "Wanderlust"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Preservation"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Summon Spirits",
+      "offset": 200
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Exit Ritualist's Shroud"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Grasping Darkness",
+      "interruptMs": 200
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Dusk Strike"
+    },
+    {
+      "name": "Fading Twilight"
+    },
+    {
+      "name": "Chilling Scythe"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Dusk Strike"
+    },
+    {
+      "name": "Fading Twilight"
+    },
+    {
+      "name": "Nightmare Weapon"
+    },
+    {
+      "name": "Splinter Weapon"
+    },
+    {
+      "name": "Ritualist's Shroud"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Innervate Wanderlust"
+    },
+    {
+      "name": "Wanderlust"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Preservation"
+    },
+    {
+      "name": "Innervate Preservation"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Summon Spirits",
+      "offset": 200
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Exit Ritualist's Shroud"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Dusk Strike"
+    },
+    {
+      "name": "Fading Twilight"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Chilling Scythe"
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Extirpate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Dark Slash"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Nightmare Weapon"
+    },
+    {
+      "name": "Splinter Weapon"
+    },
+    {
+      "name": "Ritualist's Shroud"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Innervate Wanderlust"
+    },
+    {
+      "name": "Wanderlust"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Preservation"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Summon Spirits",
+      "offset": 200
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Exit Ritualist's Shroud"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Grasping Darkness",
+      "interruptMs": 200
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Nightmare Weapon"
+    },
+    {
+      "name": "Splinter Weapon"
+    },
+    {
+      "name": "Ritualist's Shroud"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Innervate Wanderlust"
+    },
+    {
+      "name": "Wanderlust"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Preservation"
+    },
+    {
+      "name": "Innervate Preservation"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Summon Spirits",
+      "offset": 200
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Exit Ritualist's Shroud"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Extirpate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Nightmare Weapon"
+    },
+    {
+      "name": "Dark Slash"
+    },
+    {
+      "name": "Splinter Weapon"
+    },
+    {
+      "name": "Ritualist's Shroud"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Innervate Wanderlust"
+    },
+    {
+      "name": "Wanderlust"
+    },
+    {
+      "name": "Innervate Anguish"
+    },
+    {
+      "name": "Preservation"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Summon Spirits",
+      "offset": 200
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Essence Blast"
+    },
+    {
+      "name": "Anguish"
+    },
+    {
+      "name": "Exit Ritualist's Shroud"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Death Spiral",
+      "skillId": 30860
+    },
+    {
+      "name": "Innervate Anguish",
+      "skillId": 77003,
+      "offset": 100
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 import {
   aggregateSigilSet,
   weaponSigilsForSet,
-} from "../platform/gw2/weapon-sigils.js";
-import { createAttributeProvenance } from "../platform/gw2/attribute-provenance.js";
-import { assumptionControlsForSpecialization } from "./profession-assumptions.js";
+} from "../../platform/gw2/weapon-sigils.js";
+import { createAttributeProvenance } from "../../platform/gw2/attribute-provenance.js";
+import { assumptionControlsForSpecialization } from "../profession/assumptions.js";
 import {
   isSimulationRandomnessControl,
   simulationRandomnessFromAssumptions,
-} from "./simulation-randomness.js";
+} from "./randomness.js";
 
 /**
  * Assembles common equipment, boon, target, weapon, and stat simulation input.

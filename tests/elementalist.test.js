@@ -7,11 +7,11 @@ import {
   loadProfession,
   professionOptions,
   professionRegistry,
-} from "../js/app/profession-registry.js";
+} from "../js/app/profession/registry.js";
 import {
   PROFESSION_ROUTES,
   professionRoute,
-} from "../js/app/profession-selector.js";
+} from "../js/app/profession/selector.js";
 import {
   createElementalistBuildDefaults,
   migrateElementalistBuild,

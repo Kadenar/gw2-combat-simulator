@@ -6,21 +6,23 @@ import {
   loadProfession,
   loadProfessionAppAdapter,
   professionRoute,
-} from "../js/app/profession-registry.js";
+} from "../js/app/profession/registry.js";
 import {
   appendVindicatorDodgeAuto,
   currentAutoattackSkill,
-  paletteSkillView,
   paletteSkillIsInstant,
   rotationLoadoutPaletteGroups,
   rotationPaletteGroups,
   rotationSelectedSlotSkills,
-  simulationEventLogRows,
   VINDICATOR_DODGE_AUTO_ACTION,
   vindicatorDodgeAutoPaletteSkill,
   vindicatorDodgeAutoRotationEntries,
   weaponSkills,
-} from "../js/app/rotation-ui.js";
+} from "../js/app/rotation/palette-model.js";
+import { paletteSkillView } from "../js/app/rotation/palette-view.js";
+import {
+  simulationEventLogRows,
+} from "../js/app/rotation/event-log.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import { skillBreakdownRows } from "../js/platform/ui/result-tables.js";
 import {

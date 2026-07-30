@@ -13,7 +13,7 @@ import {
   professionRegistry,
   PROFESSION_ROUTES,
   professionRoute,
-} from "./profession-registry.js";
+} from "./registry.js";
 
 export {
   // Kept here as compatibility exports for existing selector consumers.

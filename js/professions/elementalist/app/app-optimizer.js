@@ -4,7 +4,7 @@ import {
     WEAPON_DATA, SIGIL_DATA, SIGIL_NAMES, RELIC_DATA, RELIC_NAMES, getActiveGearSlots,
 } from '../data/gear-data.js';
 import { GearOptimizer } from '../optimizer/optimizer.js';
-import { downloadJson } from '../../../app/app-io.js';
+import { downloadJson } from '../../../app/build/files.js';
 import { escapeHtml as esc } from '../../../platform/ui/html.js';
 
 function clampInt(value, min, max, fallback) {

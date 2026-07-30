@@ -10,7 +10,7 @@ import {
 import {
   normalizeProfessionAssumptions,
   validateProfessionAssumptions,
-} from "../../app/profession-assumptions.js";
+} from "../../app/profession/assumptions.js";
 import { THIEF_ASSUMPTION_CONTROLS } from "./assumptions.js";
 import {
   thiefCatalog,

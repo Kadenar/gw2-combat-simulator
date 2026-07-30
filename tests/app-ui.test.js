@@ -9,37 +9,41 @@ import {
   PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
   TARGET_CONDITION_GROUPS,
-} from "../js/app/app-ui.js";
-import { getBuildExportPayload } from "../js/app/app-io.js";
+} from "../js/app/build/options.js";
+import { getBuildExportPayload } from "../js/app/build/files.js";
 import {
   createDefaultBuild,
   replaceBuildConfiguration,
-} from "../js/app/app-state.js";
+} from "../js/app/build/persistence.js";
 import {
   loadProfessionAppAdapter,
   nativeProfessionRegistry,
   PROFESSION_APPLICATION_KINDS,
   professionOptions,
   professionRegistry,
-} from "../js/app/profession-registry.js";
+} from "../js/app/profession/registry.js";
 import {
   professionRoute,
-} from "../js/app/profession-selector.js";
+} from "../js/app/profession/selector.js";
 import {
   autoattackChainSkillAvailable,
-  groupConsecutiveProcSteps,
   paletteActionSkills,
-  procBadgeLabel,
-  resolveProcIcon,
-  resultSkillIcon,
   rotationUtilityFlipByParent,
-  targetHealthTimelineMarkers,
-  timelineWeaponRows,
   weaponSkills,
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
   weaponPaletteRows,
-} from "../js/app/rotation-ui.js";
+} from "../js/app/rotation/palette-model.js";
+import {
+  groupConsecutiveProcSteps,
+  procBadgeLabel,
+  targetHealthTimelineMarkers,
+  timelineWeaponRows,
+} from "../js/app/rotation/timeline-model.js";
+import {
+  resolveProcIcon,
+  resultSkillIcon,
+} from "../js/app/rotation/icons.js";
 import {
   PREFIXES,
   PREFIX_GROUPS,
@@ -253,17 +257,17 @@ test("shared app metadata owns common attributes and target conditions", () => {
 test("shared app and platform helpers are profession neutral", async () => {
   const sources = await Promise.all([
     readFile(
-      new URL("../js/app/modifier-contributions.js", import.meta.url),
+      new URL("../js/app/simulation/modifier-contributions.js", import.meta.url),
       "utf8",
     ),
-    readFile(new URL("../js/app/app-state.js", import.meta.url), "utf8"),
+    readFile(new URL("../js/app/build/persistence.js", import.meta.url), "utf8"),
     readFile(new URL("../js/app/app.js", import.meta.url), "utf8"),
     readFile(
-      new URL("../js/app/gw2-simulation-config.js", import.meta.url),
+      new URL("../js/app/simulation/config.js", import.meta.url),
       "utf8",
     ),
     readFile(
-      new URL("../js/app/modifier-contributions-worker.js", import.meta.url),
+      new URL("../js/app/simulation/modifier-contribution-worker.js", import.meta.url),
       "utf8",
     ),
     readFile(new URL("../js/platform/ui/rotation-results.js", import.meta.url), "utf8"),
@@ -489,7 +493,7 @@ test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
   );
   assert.equal(
     energyPreset.rotation,
-    "Rotations/r-power-vindicator-greatsword-benchmark.json",
+    "Rotations/revenant/r-power-vindicator-greatsword-benchmark.json",
   );
   assert.equal(Object.hasOwn(hydroPreset, "rotation"), false);
   assert.equal(Object.hasOwn(energySaved, "rotation"), false);

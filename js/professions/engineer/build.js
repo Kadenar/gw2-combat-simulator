@@ -9,7 +9,7 @@ import {
   DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions,
-} from "../../app/simulation-randomness.js";
+} from "../../app/simulation/randomness.js";
 import { engineerCatalog } from "./catalog.js";
 
 /**

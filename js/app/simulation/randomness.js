@@ -2,12 +2,12 @@ import {
   createProfessionAssumptionControls,
   normalizeProfessionAssumptions,
   validateProfessionAssumptions,
-} from "./profession-assumptions.js";
+} from "../profession/assumptions.js";
 import {
   DEFAULT_SIMULATION_RANDOMNESS,
   SIMULATION_RANDOMNESS_MODES,
   normalizeSimulationRandomness,
-} from "../platform/engine/simulation-random.js";
+} from "../../platform/engine/simulation-random.js";
 
 /**
  * Persisted assumptions used to select simulation randomness behavior.
@@ -23,7 +23,7 @@ export const SIMULATION_RANDOMNESS_ASSUMPTION_KEYS = Object.freeze({
 /**
  * Shared assumption controls for professions that model random trait procs.
  *
- * @type {ReadonlyArray<import("./profession-assumptions.js").ProfessionAssumptionControl>}
+ * @type {ReadonlyArray<import("../profession/assumptions.js").ProfessionAssumptionControl>}
  */
 export const SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS =
   createProfessionAssumptionControls([

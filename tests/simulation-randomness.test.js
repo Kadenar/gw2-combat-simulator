@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createGw2SimulationConfig } from "../js/app/gw2-simulation-config.js";
+import { createGw2SimulationConfig } from "../js/app/simulation/config.js";
 import {
   createSimulationRandom,
 } from "../js/platform/engine/simulation-random.js";
@@ -10,7 +10,7 @@ import {
   partitionRandomDistributionTrials,
   randomDistributionWorkerCount,
   summarizeRandomDistribution,
-} from "../js/app/random-distribution.js";
+} from "../js/app/simulation/random-distribution.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
   createEngineerBuildDefaults,

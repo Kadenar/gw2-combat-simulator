@@ -1,0 +1,475 @@
+{
+  "rotation": [
+    {
+      "name": "Summon Flesh Golem"
+    },
+    {
+      "name": "Grasping Darkness",
+      "interruptMs": 120
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Well of Darkness"
+    },
+    {
+      "name": "Well of Suffering",
+      "interruptMs": 322
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "\"You Are All Weaklings!\"",
+      "offset": 38
+    },
+    {
+      "name": "Reaper's Shroud"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Soul Spiral"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Executioner's Scythe",
+      "interruptMs": 918
+    },
+    {
+      "name": "Exit Reaper's Shroud"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Extirpate"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "\"You Are All Weaklings!\"",
+      "offset": 361
+    },
+    {
+      "name": "Dark Slash"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Grasping Darkness",
+      "interruptMs": 122
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Well of Darkness"
+    },
+    {
+      "name": "Well of Suffering"
+    },
+    {
+      "name": "Reaper's Shroud"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Soul Spiral"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Executioner's Scythe",
+      "interruptMs": 957
+    },
+    {
+      "name": "Exit Reaper's Shroud"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "\"You Are All Weaklings!\"",
+      "offset": 240
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Extirpate"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Dark Slash"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Well of Darkness"
+    },
+    {
+      "name": "Well of Suffering"
+    },
+    {
+      "name": "Reaper's Shroud"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Soul Spiral"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Executioner's Scythe",
+      "interruptMs": 997
+    },
+    {
+      "name": "Exit Reaper's Shroud"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Extirpate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "\"You Are All Weaklings!\"",
+      "offset": 197
+    },
+    {
+      "name": "Dark Slash"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Grasping Darkness",
+      "interruptMs": 120
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Well of Darkness"
+    },
+    {
+      "name": "Well of Suffering",
+      "interruptMs": 362
+    },
+    {
+      "name": "Reaper's Shroud"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Soul Spiral"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Executioner's Scythe"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap",
+      "interruptMs": 361
+    },
+    {
+      "name": "Exit Reaper's Shroud"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "\"You Are All Weaklings!\"",
+      "offset": 197
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Nightfall"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Addle"
+    },
+    {
+      "name": "Isolate"
+    },
+    {
+      "name": "Extirpate"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Distress"
+    },
+    {
+      "name": "Perforate"
+    },
+    {
+      "name": "Well of Darkness"
+    },
+    {
+      "name": "Well of Suffering"
+    },
+    {
+      "name": "Reaper's Shroud"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Life Rend"
+    },
+    {
+      "name": "Life Slash"
+    },
+    {
+      "name": "Life Reap"
+    },
+    {
+      "name": "Soul Spiral",
+      "interruptMs": 1912
+    },
+    {
+      "name": "Executioner's Scythe"
+    }
+  ]
+}

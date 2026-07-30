@@ -3,7 +3,7 @@ import test from "node:test";
 
 import {
   resultSkillIcon,
-} from "../js/app/rotation-ui.js";
+} from "../js/app/rotation/icons.js";
 import {
   NOURISHMENT_ICON,
   SIGIL_DATA,

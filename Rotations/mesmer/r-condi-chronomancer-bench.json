@@ -1,0 +1,518 @@
+{
+  "rotation": [
+    {
+      "name": "Phantasmal Duelist"
+    },
+    {
+      "name": "__combat_start",
+      "offset": 500
+    },
+    {
+      "name": "Illusionary Counter"
+    },
+    {
+      "name": "Counterspell"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Warlock"
+    },
+    {
+      "name": "Continuum Split",
+      "offset": 700
+    },
+    {
+      "name": "Mirror Images",
+      "offset": 100
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Phantasmal Warlock"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Time Sink",
+      "offset": 100
+    },
+    {
+      "name": "Distortion",
+      "offset": 100
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Chaos Armor",
+      "offset": 100
+    },
+    {
+      "name": "Chaos Storm"
+    },
+    {
+      "name": "Signet of Midnight",
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat"
+    },
+    {
+      "name": "Continuum Shift",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Warlock"
+    },
+    {
+      "name": "Mirror Images",
+      "offset": 600
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Phantasmal Warlock"
+    },
+    {
+      "name": "Chaos Armor",
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat",
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Chaos Storm"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Duelist"
+    },
+    {
+      "name": "Time Sink",
+      "offset": 100
+    },
+    {
+      "name": "Confusing Images"
+    },
+    {
+      "name": "Distortion",
+      "offset": 1200
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    {
+      "name": "Counterspell"
+    },
+    {
+      "name": "Magic Bullet"
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    {
+      "name": "Ether Bolt"
+    },
+    {
+      "name": "Ether Blast"
+    },
+    {
+      "name": "Ether Clone"
+    },
+    {
+      "name": "Ether Bolt"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Ether Blast"
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    {
+      "name": "Counterspell"
+    },
+    {
+      "name": "Ether Clone"
+    },
+    {
+      "name": "Ether Bolt"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Confusing Images"
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    {
+      "name": "Counterspell"
+    },
+    {
+      "name": "Phantasmal Duelist"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Warlock"
+    },
+    {
+      "name": "Chaos Armor",
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat",
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Rewinder"
+    },
+    {
+      "name": "Mirror Images",
+      "offset": 100
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Chaos Storm"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Phase Retreat",
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Winds of Chaos"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Warlock"
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Warlock"
+    },
+    {
+      "name": "Chaos Armor",
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat",
+      "offset": 100
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Duelist"
+    },
+    {
+      "name": "Confusing Images"
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    {
+      "name": "Counterspell"
+    },
+    {
+      "name": "Magic Bullet"
+    },
+    {
+      "name": "Time Sink",
+      "offset": 100
+    },
+    {
+      "name": "Ether Bolt"
+    },
+    {
+      "name": "Ether Blast"
+    },
+    {
+      "name": "Ether Clone"
+    },
+    {
+      "name": "Ether Bolt"
+    },
+    {
+      "name": "Ether Blast"
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    "Counterspell",
+    "Split Second",
+    "Ether Clone",
+    "Rewinder",
+    "Ether Bolt",
+    "Confusing Images",
+    "Distortion",
+    {
+      "name": "Mirror Images",
+      "offset": 100
+    },
+    "Split Second",
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    "Counterspell",
+    "Phantasmal Duelist",
+    "Swap Weapons",
+    "Phantasmal Warlock",
+    {
+      "name": "Chaos Armor",
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat",
+      "offset": 100
+    },
+    "Winds of Chaos",
+    "Winds of Chaos",
+    "Winds of Chaos",
+    "Chaos Storm",
+    "Winds of Chaos",
+    "Winds of Chaos",
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    "Winds of Chaos",
+    "Phase Retreat",
+    "Winds of Chaos",
+    "Winds of Chaos",
+    "Winds of Chaos",
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    "Winds of Chaos",
+    "Phantasmal Warlock",
+    "Winds of Chaos",
+    "Swap Weapons",
+    "Phantasmal Duelist",
+    "Confusing Images",
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    "Counterspell",
+    "Magic Bullet",
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    "Ether Bolt",
+    "Ether Blast",
+    "Ether Clone",
+    "Ether Bolt",
+    "Ether Blast",
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    "Counterspell",
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    "Ether Clone",
+    "Ether Bolt",
+    "Confusing Images",
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    "Counterspell",
+    "Phantasmal Duelist",
+    "Swap Weapons",
+    "Phantasmal Warlock",
+    {
+      "name": "Continuum Split",
+      "offset": 100
+    },
+    {
+      "name": "Mirror Images",
+      "offset": 100
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    "Signet of the Ether",
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    "Phantasmal Warlock",
+    {
+      "name": "Chaos Armor",
+      "offset": 100
+    },
+    "Chaos Storm",
+    {
+      "name": "Time Sink",
+      "offset": 100
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat",
+      "offset": 100
+    },
+    {
+      "name": "Continuum Shift",
+      "offset": 200
+    },
+    "Phantasmal Warlock",
+    {
+      "name": "Mirror Images",
+      "offset": 100
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    "Signet of the Ether",
+    "Phantasmal Warlock",
+    {
+      "name": "Chaos Armor",
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat",
+      "offset": 100
+    },
+    "Winds of Chaos",
+    "Winds of Chaos",
+    "Chaos Storm",
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    "Winds of Chaos",
+    "Winds of Chaos",
+    "Winds of Chaos",
+    "Swap Weapons",
+    "Phantasmal Duelist",
+    {
+      "name": "Distortion",
+      "offset": 100
+    },
+    "Confusing Images",
+    "Rewinder",
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    "Counterspell",
+    "Magic Bullet",
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    "Ether Bolt",
+    "Ether Blast",
+    "Time Sink",
+    "Ether Clone",
+    "Ether Bolt",
+    "Split Second",
+    "Ether Blast",
+    "Ether Clone",
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120
+    },
+    "Counterspell"
+  ]
+}

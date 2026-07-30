@@ -1,16 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { simulationEventLogRows } from "../js/app/rotation-ui.js";
+import {
+  simulationEventLogRows,
+} from "../js/app/rotation/event-log.js";
 import {
   createFixedSlotLoadout,
-} from "../js/app/profession-slot-loadout.js";
+} from "../js/app/profession/slot-loadout.js";
 import {
   createProfessionAssumptionControls,
   normalizeProfessionAssumptions,
   STANDARD_POSITION_ASSUMPTION_CONTROLS,
   validateProfessionAssumptions,
-} from "../js/app/profession-assumptions.js";
+} from "../js/app/profession/assumptions.js";
 import { defineProfession } from "../js/platform/engine/profession.js";
 import { createGw2CombatQuery } from "../js/platform/gw2/query.js";
 import {

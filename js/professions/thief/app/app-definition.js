@@ -4,7 +4,7 @@
 
 import {
   defineProfessionApp,
-} from "../../../app/define-profession-app.js";
+} from "../../../app/profession/define-app.js";
 import { applyThiefBuildAttributeRules } from "../build-attributes.js";
 import {
   createDefaultTargetConditions,

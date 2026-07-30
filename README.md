@@ -2,7 +2,7 @@
 
 A standalone deterministic PvE build and rotation simulator with browser
 applications for every profession registered in
-`js/app/profession-registry.js`.
+`js/app/profession/registry.js`.
 
 Choose a profession from the landing page or the shared simulator header:
 

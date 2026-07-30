@@ -1,7 +1,7 @@
 import {
   createProfessionAssumptionControls,
   STANDARD_POSITION_ASSUMPTION_CONTROLS,
-} from "../../app/profession-assumptions.js";
+} from "../../app/profession/assumptions.js";
 import { THIEF_SKILL_IDS as ID } from "./data/ids.js";
 
 const THIEF_SHARED_ASSUMPTION_CONTROLS =

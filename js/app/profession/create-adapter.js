@@ -2,9 +2,10 @@ import {
   WEAPON_DATA,
   createProfessionWeaponData,
   RELIC_NAMES,
-} from "../platform/gw2/gear-data.js";
-import { renderResults, renderRotationBuilder } from "./rotation-ui.js";
-import { defaultWeaponSkillMatchesSet } from "../platform/gw2/weapon-skill-matcher.js";
+} from "../../platform/gw2/gear-data.js";
+import { renderResults } from "../rotation/result-view.js";
+import { renderRotationBuilder } from "../rotation/index.js";
+import { defaultWeaponSkillMatchesSet } from "../../platform/gw2/weapon-skill-matcher.js";
 
 /**
  * Builds the browser application adapter for a GW2 profession.

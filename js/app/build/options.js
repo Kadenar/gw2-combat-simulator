@@ -1,8 +1,8 @@
-import { escapeHtml as esc } from "../platform/ui/html.js";
+import { escapeHtml as esc } from "../../platform/ui/html.js";
 import {
   CONDITION_DURATION_ATTRIBUTES,
   PRIMARY_ATTRIBUTES,
-} from "../platform/gw2/attributes.js";
+} from "../../platform/gw2/attributes.js";
 
 export { PRIMARY_ATTRIBUTES };
 

@@ -196,30 +196,37 @@ header .accent {
     opacity: 0.75;
 }
 
-/* ─── Presets bar ─── */
-.default-builds {
+/* ─── Build templates ─── */
+.build-templates {
     max-width: 860px;
     margin: 0 auto 12px;
 }
 
-.default-builds-panel {
+.build-templates-panel {
     padding: 12px 16px;
 }
 
-.default-builds-header {
+.build-templates-header {
     display: flex;
+    justify-content: space-between;
     align-items: baseline;
     gap: 10px;
     margin-bottom: 8px;
 }
 
-.default-builds-header h3 {
+.build-templates-panel .build-templates-header h3 {
     margin: 0;
+    padding: 0;
+    border: 0;
 }
 
-.default-builds-header span {
+.build-templates-header span {
     color: var(--text-dim);
     font-size: 0.72rem;
+}
+
+.build-templates-header .template-actions-hint {
+    flex-shrink: 0;
 }
 
 .default-build-groups {
@@ -228,6 +235,200 @@ header .accent {
     gap: 4px;
 }
 
+.build-templates .presets-group-label {
+    min-width: 92px;
+}
+
+.template-preset-list {
+    gap: 7px;
+}
+
+.template-preset {
+    display: flex;
+    align-items: stretch;
+    min-width: 178px;
+}
+
+.template-load-btn {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    min-width: 0;
+    padding: 5px 10px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-right: 0;
+    border-radius: 6px 0 0 6px;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+}
+
+.template-load-btn:hover,
+.template-load-btn:focus-visible {
+    background: var(--bg-panel-alt);
+    border-color: var(--accent);
+    color: var(--accent);
+    outline: none;
+}
+
+.template-preset-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.template-preset-summary {
+    color: var(--text-dim);
+    font-size: 0.65rem;
+    font-weight: 400;
+}
+
+.template-load-btn--current {
+    background: #151f1a;
+    border-color: #4a9c6d;
+    color: #a0e8be;
+}
+
+.template-load-btn--current .template-preset-summary {
+    color: #78b892;
+}
+
+.template-load-btn--modified::after {
+    color: var(--accent);
+    content: "Modified";
+    font-size: 0.61rem;
+    margin-top: 1px;
+    text-transform: uppercase;
+}
+
+.template-load-btn:disabled {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.template-actions {
+    position: relative;
+}
+
+.template-actions>summary {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 8px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: 0 6px 6px 0;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.7rem;
+    letter-spacing: -0.08em;
+    list-style: none;
+}
+
+.template-actions>summary::-webkit-details-marker {
+    display: none;
+}
+
+.template-actions>summary:hover,
+.template-actions>summary:focus-visible,
+.template-actions[open]>summary {
+    background: var(--bg-panel-alt);
+    border-color: var(--accent);
+    color: var(--accent);
+    outline: none;
+}
+
+.template-actions-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+    padding: 4px;
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+.template-actions-menu button {
+    padding: 6px 8px;
+    background: transparent;
+    border: 0;
+    border-radius: 4px;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+}
+
+.template-actions-menu button:hover,
+.template-actions-menu button:focus-visible {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
+    outline: none;
+}
+
+.template-toast {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+    color: var(--text-dim);
+    font-size: 0.72rem;
+}
+
+.template-toast[hidden] {
+    display: none;
+}
+
+.template-toast button {
+    padding: 2px 7px;
+    background: transparent;
+    border: 1px solid var(--accent-dim);
+    border-radius: 4px;
+    color: var(--accent);
+    cursor: pointer;
+}
+
+.template-toast button:hover,
+.template-toast button:focus-visible {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    outline: none;
+}
+
+@media (max-width: 640px) {
+    .build-templates-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .build-templates-header .template-actions-hint {
+        display: none;
+    }
+
+    .build-templates .presets-group {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .build-templates .presets-group-label {
+        min-width: 0;
+        text-align: left;
+    }
+
+    .template-preset-list,
+    .template-preset {
+        width: 100%;
+    }
+}
+
+/* ─── Legacy Elementalist presets bar ─── */
 .presets-bar {
     max-width: 860px;
     margin: 0 auto 12px;

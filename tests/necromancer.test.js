@@ -6,16 +6,22 @@ import {
   loadProfession,
   loadProfessionAppAdapter,
   professionOptions,
-} from "../js/app/profession-registry.js";
-import { professionRoute } from "../js/app/profession-selector.js";
+} from "../js/app/profession/registry.js";
+import { professionRoute } from "../js/app/profession/selector.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import { skillBreakdownRows } from "../js/platform/ui/result-tables.js";
 import {
   buildChartSeries,
+} from "../js/app/rotation/result-model.js";
+import {
   formatResourceValue,
+} from "../js/app/rotation/resource-view.js";
+import {
   simulationEventLogRows,
+} from "../js/app/rotation/event-log.js";
+import {
   weaponSkills,
-} from "../js/app/rotation-ui.js";
+} from "../js/app/rotation/palette-model.js";
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
@@ -3267,7 +3273,10 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
-    new URL("../Rotations/r-power-ritualist-bench.json", import.meta.url),
+    new URL(
+      "../Rotations/necromancer/r-power-ritualist-bench.json",
+      import.meta.url,
+    ),
     "utf8",
   ));
   const build = migrateNecromancerBuild({
@@ -3390,7 +3399,10 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
-    new URL("../Rotations/r-condi-reaper-bench.json", import.meta.url),
+    new URL(
+      "../Rotations/necromancer/r-condi-reaper-bench.json",
+      import.meta.url,
+    ),
     "utf8",
   ));
   const build = migrateNecromancerBuild({
@@ -3465,7 +3477,10 @@ test("Condition Scourge benchmark preset reconstructs hidden shade casts", async
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
-    new URL("../Rotations/r-condi-scourge-bench.json", import.meta.url),
+    new URL(
+      "../Rotations/necromancer/r-condi-scourge-bench.json",
+      import.meta.url,
+    ),
     "utf8",
   ));
   const build = migrateNecromancerBuild({

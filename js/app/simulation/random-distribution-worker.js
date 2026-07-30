@@ -1,4 +1,4 @@
-import { loadProfessionAppAdapter } from "./profession-registry.js";
+import { loadProfessionAppAdapter } from "../profession/registry.js";
 
 /**
  * Calculates one distribution batch through the profession's app adapter.

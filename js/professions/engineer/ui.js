@@ -1,9 +1,9 @@
 import {
   createProfessionAssumptionControls,
-} from "../../app/profession-assumptions.js";
+} from "../../app/profession/assumptions.js";
 import {
   SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-} from "../../app/simulation-randomness.js";
+} from "../../app/simulation/randomness.js";
 import { engineerCatalog } from "./catalog.js";
 import { getActiveTraits } from "./data/traits-data.js";
 import { selectedMechCommands } from "./state.js";

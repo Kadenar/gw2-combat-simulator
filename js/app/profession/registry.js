@@ -35,12 +35,12 @@ const entries = [
     specializationSummary:
       "Core · Chronomancer · Mirage · Virtuoso · Troubadour",
     loadProfession: async () => {
-      const module = await import("../professions/mesmer/definition.js");
+      const module = await import("../../professions/mesmer/definition.js");
       return module.mesmerProfession;
     },
     loadAppAdapter: async () => {
       const module = await import(
-        "../professions/mesmer/app/app-definition.js"
+        "../../professions/mesmer/app/app-definition.js"
       );
       return module.mesmerAppAdapter;
     },
@@ -53,7 +53,7 @@ const entries = [
     themeClass: "",
     specializationSummary: "Core · Tempest · Weaver · Catalyst · Evoker",
     loadProfession: async () => {
-      const module = await import("../professions/elementalist/definition.js");
+      const module = await import("../../professions/elementalist/definition.js");
       return module.elementalistProfession;
     },
     // Elementalist remains a standalone legacy application.
@@ -68,12 +68,12 @@ const entries = [
     specializationSummary:
       "Core · Dragonhunter · Firebrand · Willbender · Luminary",
     loadProfession: async () => {
-      const module = await import("../professions/guardian/definition.js");
+      const module = await import("../../professions/guardian/definition.js");
       return module.guardianProfession;
     },
     loadAppAdapter: async () => {
       const module = await import(
-        "../professions/guardian/app/app-definition.js"
+        "../../professions/guardian/app/app-definition.js"
       );
       return module.guardianAppAdapter;
     },
@@ -86,12 +86,12 @@ const entries = [
     themeClass: "necromancer-theme",
     specializationSummary: "Core · Reaper · Scourge · Harbinger · Ritualist",
     loadProfession: async () => {
-      const module = await import("../professions/necromancer/definition.js");
+      const module = await import("../../professions/necromancer/definition.js");
       return module.necromancerProfession;
     },
     loadAppAdapter: async () => {
       const module = await import(
-        "../professions/necromancer/app/app-definition.js"
+        "../../professions/necromancer/app/app-definition.js"
       );
       return module.necromancerAppAdapter;
     },
@@ -104,12 +104,12 @@ const entries = [
     themeClass: "engineer-theme",
     specializationSummary: "Core · Scrapper · Holosmith · Mechanist · Amalgam",
     loadProfession: async () => {
-      const module = await import("../professions/engineer/definition.js");
+      const module = await import("../../professions/engineer/definition.js");
       return module.engineerProfession;
     },
     loadAppAdapter: async () => {
       const module = await import(
-        "../professions/engineer/app/app-definition.js"
+        "../../professions/engineer/app/app-definition.js"
       );
       return module.engineerAppAdapter;
     },
@@ -122,12 +122,12 @@ const entries = [
     themeClass: "revenant-theme",
     specializationSummary: "Core · Herald · Renegade · Vindicator · Conduit",
     loadProfession: async () => {
-      const module = await import("../professions/revenant/definition.js");
+      const module = await import("../../professions/revenant/definition.js");
       return module.revenantProfession;
     },
     loadAppAdapter: async () => {
       const module = await import(
-        "../professions/revenant/app/app-definition.js"
+        "../../professions/revenant/app/app-definition.js"
       );
       return module.revenantAppAdapter;
     },
@@ -140,12 +140,12 @@ const entries = [
     themeClass: "thief-theme",
     specializationSummary: "Core · Daredevil · Deadeye · Specter · Antiquary",
     loadProfession: async () => {
-      const module = await import("../professions/thief/definition.js");
+      const module = await import("../../professions/thief/definition.js");
       return module.thiefProfession;
     },
     loadAppAdapter: async () => {
       const module = await import(
-        "../professions/thief/app/app-definition.js"
+        "../../professions/thief/app/app-definition.js"
       );
       return module.thiefAppAdapter;
     },

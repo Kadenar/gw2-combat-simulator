@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
     createDefaultBuild as createDefaultBuildFor,
     replaceBuild as replaceBuildFor,
-} from '../js/app/app-state.js';
+} from '../js/app/build/persistence.js';
 import {
     calculateAttributes as calculateMesmerAttributes,
     calculateModifierContributions,
@@ -22,7 +22,7 @@ import {
     mergeModifierContributions,
     modifierContributionWorkerCount,
     partitionModifierComparisons,
-} from '../js/app/modifier-contributions.js';
+} from '../js/app/simulation/modifier-contributions.js';
 import {
     aggregateSigilSet,
     setWeaponSigil,
