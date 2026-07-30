@@ -33,12 +33,7 @@ const STATUS_RESERVED_OPTIONS = new Set([
   "duration",
   "stacks",
 ]);
-const CUSTOM_RESERVED_OPTIONS = new Set([
-  "type",
-  "eventType",
-  "atMs",
-  "event",
-]);
+const CUSTOM_RESERVED_OPTIONS = new Set(["type", "eventType", "atMs", "event"]);
 
 /**
  * Describes one or more strike hits that share a total coefficient.
@@ -74,7 +69,7 @@ export const strikePackets = (coefficient, offsetsMs, options = {}) => {
   }
   const perPacket = Number(coefficient) / count;
   return strikeTimeline(
-    offsetsMs.map(atMs => ({ atMs, coefficient: perPacket })),
+    offsetsMs.map((atMs) => ({ atMs, coefficient: perPacket })),
     options,
   );
 };
@@ -90,9 +85,9 @@ export const condition = (
   metadata,
 ) => {
   const options =
-    atMsOrOptions
-    && typeof atMsOrOptions === "object"
-    && !Array.isArray(atMsOrOptions)
+    atMsOrOptions &&
+    typeof atMsOrOptions === "object" &&
+    !Array.isArray(atMsOrOptions)
       ? atMsOrOptions
       : {
           ...(atMsOrOptions == null ? {} : { atMs: atMsOrOptions }),
@@ -123,26 +118,14 @@ export const conditionTimeline = (ticks, options = {}) => ({
  */
 export const repeatedCondition = (
   conditionName,
-  {
-    count,
-    duration,
-    firstAtMs = 0,
-    intervalMs = 1000,
-    stacks = 1,
-    ...options
-  },
-) => Array.from(
-  { length: count },
-  (_, index) => condition(
-    conditionName,
-    stacks,
-    duration,
-    {
+  { count, duration, firstAtMs = 0, intervalMs = 1000, stacks = 1, ...options },
+) =>
+  Array.from({ length: count }, (_, index) =>
+    condition(conditionName, stacks, duration, {
       ...options,
       atMs: firstAtMs + index * intervalMs,
-    },
-  ),
-);
+    }),
+  );
 
 /**
  * Schedules a control event and carries the specific control kind in metadata.

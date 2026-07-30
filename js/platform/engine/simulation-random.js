@@ -13,10 +13,7 @@ export const DEFAULT_SIMULATION_RANDOMNESS = Object.freeze({
 function normalizedSeed(value) {
   const seed = Number(value);
   if (!Number.isFinite(seed)) return DEFAULT_SIMULATION_RANDOMNESS.seed;
-  return Math.max(
-    0,
-    Math.min(MAX_SIMULATION_SEED, Math.trunc(seed)),
-  );
+  return Math.max(0, Math.min(MAX_SIMULATION_SEED, Math.trunc(seed)));
 }
 
 export function normalizeSimulationRandomness(value = {}) {

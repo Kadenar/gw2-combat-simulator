@@ -91,7 +91,7 @@
  * @param {Definition} definition Skill metadata/mechanics to mark implemented.
  * @returns {Definition & {implemented: true}}
  */
-export const implemented = definition => ({
+export const implemented = (definition) => ({
   ...definition,
   implemented: true,
 });

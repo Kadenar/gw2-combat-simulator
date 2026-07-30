@@ -82,16 +82,14 @@ const EFFECT_METADATA_FIELDS = new Set([
  * of whether the source used a plain object or Map.
  */
 function normalizeSkillHandlers(value) {
-  const entries = value instanceof Map
-    ? [...value.entries()]
-    : Object.entries(value || {});
-  return new Map(entries.map(([id, handler]) => {
-    const normalizedId = String(id);
-    return [
-      normalizedId,
-      normalizeSkillHandler(normalizedId, handler),
-    ];
-  }));
+  const entries =
+    value instanceof Map ? [...value.entries()] : Object.entries(value || {});
+  return new Map(
+    entries.map(([id, handler]) => {
+      const normalizedId = String(id);
+      return [normalizedId, normalizeSkillHandler(normalizedId, handler)];
+    }),
+  );
 }
 
 /**
@@ -101,9 +99,9 @@ function normalizeSkillHandlers(value) {
  */
 function normalizeAutoattackChains(skills, options = {}) {
   if (
-    options == null
-    || typeof options !== "object"
-    || Array.isArray(options)
+    options == null ||
+    typeof options !== "object" ||
+    Array.isArray(options)
   ) {
     throw new TypeError("Autoattack-chain options must be an object.");
   }
@@ -116,14 +114,14 @@ function normalizeAutoattackChains(skills, options = {}) {
   }
 
   const excludedIds = new Set(excluded.map(Number));
-  const chains = Object.freeze([
-    ...deriveAutoattackChains(skills),
-    ...additional,
-  ]
-    .filter(chain =>
-      !chain.some(skillId => excludedIds.has(Number(skillId))))
-    .map(chain => Object.freeze(chain.map(Number))));
-  const skillIds = new Set(skills.map(skill => skill.id));
+  const chains = Object.freeze(
+    [...deriveAutoattackChains(skills), ...additional]
+      .filter(
+        (chain) => !chain.some((skillId) => excludedIds.has(Number(skillId))),
+      )
+      .map((chain) => Object.freeze(chain.map(Number))),
+  );
+  const skillIds = new Set(skills.map((skill) => skill.id));
   for (const chain of chains) {
     for (const skillId of chain) {
       if (!skillIds.has(skillId)) {
@@ -147,23 +145,25 @@ function normalizeStrikeTicks(value) {
     throw new TypeError("Strike tick timelines require at least one hit.");
   }
   let previousAtMs = -Infinity;
-  return Object.freeze(value.map((tick, index) => {
-    const atMs = Number(tick?.atMs);
-    const coefficient = Number(tick?.coefficient);
-    if (!(atMs >= 0) || !Number.isFinite(atMs)) {
-      throw new TypeError(`Strike tick ${index + 1} requires a valid atMs.`);
-    }
-    if (!(coefficient >= 0) || !Number.isFinite(coefficient)) {
-      throw new TypeError(
-        `Strike tick ${index + 1} requires a non-negative coefficient.`,
-      );
-    }
-    if (atMs < previousAtMs) {
-      throw new TypeError("Strike tick timelines must be chronological.");
-    }
-    previousAtMs = atMs;
-    return Object.freeze({ ...tick, atMs, coefficient });
-  }));
+  return Object.freeze(
+    value.map((tick, index) => {
+      const atMs = Number(tick?.atMs);
+      const coefficient = Number(tick?.coefficient);
+      if (!(atMs >= 0) || !Number.isFinite(atMs)) {
+        throw new TypeError(`Strike tick ${index + 1} requires a valid atMs.`);
+      }
+      if (!(coefficient >= 0) || !Number.isFinite(coefficient)) {
+        throw new TypeError(
+          `Strike tick ${index + 1} requires a non-negative coefficient.`,
+        );
+      }
+      if (atMs < previousAtMs) {
+        throw new TypeError("Strike tick timelines must be chronological.");
+      }
+      previousAtMs = atMs;
+      return Object.freeze({ ...tick, atMs, coefficient });
+    }),
+  );
 }
 
 /**
@@ -176,43 +176,45 @@ function normalizeConditionTicks(value) {
     );
   }
   let previousAtMs = -Infinity;
-  return Object.freeze(value.map((tick, index) => {
-    const atMs = Number(tick?.atMs);
-    const condition = String(tick?.condition || "");
-    const stacks = Number(tick?.stacks);
-    const duration = Number(tick?.duration);
-    if (!(atMs >= 0) || !Number.isFinite(atMs)) {
-      throw new TypeError(
-        `Condition application ${index + 1} requires a valid atMs.`,
-      );
-    }
-    if (atMs < previousAtMs) {
-      throw new TypeError("Condition tick timelines must be chronological.");
-    }
-    if (!condition) {
-      throw new TypeError(
-        `Condition application ${index + 1} requires a condition id.`,
-      );
-    }
-    if (!(stacks > 0) || !Number.isFinite(stacks)) {
-      throw new TypeError(
-        `Condition application ${index + 1} requires positive stacks.`,
-      );
-    }
-    if (!(duration > 0) || !Number.isFinite(duration)) {
-      throw new TypeError(
-        `Condition application ${index + 1} requires a positive duration.`,
-      );
-    }
-    previousAtMs = atMs;
-    return Object.freeze({
-      ...tick,
-      atMs,
-      condition,
-      stacks,
-      duration,
-    });
-  }));
+  return Object.freeze(
+    value.map((tick, index) => {
+      const atMs = Number(tick?.atMs);
+      const condition = String(tick?.condition || "");
+      const stacks = Number(tick?.stacks);
+      const duration = Number(tick?.duration);
+      if (!(atMs >= 0) || !Number.isFinite(atMs)) {
+        throw new TypeError(
+          `Condition application ${index + 1} requires a valid atMs.`,
+        );
+      }
+      if (atMs < previousAtMs) {
+        throw new TypeError("Condition tick timelines must be chronological.");
+      }
+      if (!condition) {
+        throw new TypeError(
+          `Condition application ${index + 1} requires a condition id.`,
+        );
+      }
+      if (!(stacks > 0) || !Number.isFinite(stacks)) {
+        throw new TypeError(
+          `Condition application ${index + 1} requires positive stacks.`,
+        );
+      }
+      if (!(duration > 0) || !Number.isFinite(duration)) {
+        throw new TypeError(
+          `Condition application ${index + 1} requires a positive duration.`,
+        );
+      }
+      previousAtMs = atMs;
+      return Object.freeze({
+        ...tick,
+        atMs,
+        condition,
+        stacks,
+        duration,
+      });
+    }),
+  );
 }
 
 /**
@@ -222,30 +224,29 @@ function normalizeEffect(effect) {
   if (!effect || typeof effect !== "object" || !EFFECT_TYPES.has(effect.type)) {
     throw new TypeError(`Invalid skill effect type: ${effect?.type}`);
   }
-  const unknownFields = Object.keys(effect)
-    .filter(field => !EFFECT_FIELDS.has(field));
+  const unknownFields = Object.keys(effect).filter(
+    (field) => !EFFECT_FIELDS.has(field),
+  );
   if (unknownFields.length) {
     throw new TypeError(
-      `Skill effect has unsupported field${unknownFields.length === 1 ? "" : "s"}: `
-      + unknownFields.join(", "),
+      `Skill effect has unsupported field${unknownFields.length === 1 ? "" : "s"}: ` +
+        unknownFields.join(", "),
     );
   }
   if (
-    effect.metadata != null
-    && (
-      typeof effect.metadata !== "object"
-      || Array.isArray(effect.metadata)
-    )
+    effect.metadata != null &&
+    (typeof effect.metadata !== "object" || Array.isArray(effect.metadata))
   ) {
     throw new TypeError("Skill effect metadata must be an object.");
   }
-  const unknownMetadata = Object.keys(effect.metadata || {})
-    .filter(field => !EFFECT_METADATA_FIELDS.has(field));
+  const unknownMetadata = Object.keys(effect.metadata || {}).filter(
+    (field) => !EFFECT_METADATA_FIELDS.has(field),
+  );
   if (unknownMetadata.length) {
     throw new TypeError(
-      "Skill effect metadata has unsupported field"
-      + `${unknownMetadata.length === 1 ? "" : "s"}: `
-      + unknownMetadata.join(", "),
+      "Skill effect metadata has unsupported field" +
+        `${unknownMetadata.length === 1 ? "" : "s"}: ` +
+        unknownMetadata.join(", "),
     );
   }
   if (effect.atMsList != null) {
@@ -255,7 +256,7 @@ function normalizeEffect(effect) {
   }
   if (effect.atCastEndOffsetMs != null) {
     throw new TypeError(
-      "Cast-end offsets must use atMs with timingAnchor \"castEnd\".",
+      'Cast-end offsets must use atMs with timingAnchor "castEnd".',
     );
   }
   if (effect.at != null) {
@@ -264,20 +265,22 @@ function normalizeEffect(effect) {
     );
   }
   if (
-    effect.ticks != null
-    && effect.type !== "strike"
-    && effect.type !== "condition"
+    effect.ticks != null &&
+    effect.type !== "strike" &&
+    effect.type !== "condition"
   ) {
     throw new TypeError(
       `Effect type ${effect.type} does not support tick timelines.`,
     );
   }
-  const strikeTicks = effect.type === "strike" && effect.ticks != null
-    ? normalizeStrikeTicks(effect.ticks)
-    : null;
-  const conditionTicks = effect.type === "condition" && effect.ticks != null
-    ? normalizeConditionTicks(effect.ticks)
-    : null;
+  const strikeTicks =
+    effect.type === "strike" && effect.ticks != null
+      ? normalizeStrikeTicks(effect.ticks)
+      : null;
+  const conditionTicks =
+    effect.type === "condition" && effect.ticks != null
+      ? normalizeConditionTicks(effect.ticks)
+      : null;
   const hasTicks = Boolean(strikeTicks || conditionTicks);
   const hasAtMs = effect.atMs != null;
   const hasInterval = effect.intervalMs != null;
@@ -285,9 +288,9 @@ function normalizeEffect(effect) {
   let applications = null;
   if (effect.applications != null) {
     if (
-      effect.type !== "condition"
-      && effect.type !== "control"
-      && effect.type !== "blind"
+      effect.type !== "condition" &&
+      effect.type !== "control" &&
+      effect.type !== "blind"
     ) {
       throw new TypeError(
         `Effect type ${effect.type} does not support repeated applications.`,
@@ -305,14 +308,15 @@ function normalizeEffect(effect) {
       );
     }
     if (applications > 1 && !hasInterval) {
-      throw new TypeError(
-        "Repeated effects require an intervalMs value.",
-      );
+      throw new TypeError("Repeated effects require an intervalMs value.");
     }
   }
   let coefficientModifiers = null;
   if (effect.coefficientModifiers != null) {
-    if (effect.type !== "strike" || !Array.isArray(effect.coefficientModifiers)) {
+    if (
+      effect.type !== "strike" ||
+      !Array.isArray(effect.coefficientModifiers)
+    ) {
       throw new TypeError(
         "Coefficient modifiers are only valid on strike effects.",
       );
@@ -320,11 +324,11 @@ function normalizeEffect(effect) {
     coefficientModifiers = Object.freeze(
       effect.coefficientModifiers.map((modifier, index) => {
         if (
-          !modifier
-          || modifier.kind !== "target-health-below"
-          || !(Number(modifier.threshold) > 0)
-          || !(Number(modifier.threshold) < 1)
-          || !(Number(modifier.multiplier) > 0)
+          !modifier ||
+          modifier.kind !== "target-health-below" ||
+          !(Number(modifier.threshold) > 0) ||
+          !(Number(modifier.threshold) < 1) ||
+          !(Number(modifier.multiplier) > 0)
         ) {
           throw new TypeError(
             `Invalid strike coefficient modifier ${index + 1}.`,
@@ -354,11 +358,7 @@ function normalizeEffect(effect) {
         "Cast-scaled effect timing must be anchored to castStart.",
       );
     }
-    if (
-      !hasTicks
-      && !hasAtMs
-      && effect.timingAnchor !== "castEnd"
-    ) {
+    if (!hasTicks && !hasAtMs && effect.timingAnchor !== "castEnd") {
       throw new TypeError(
         "An interval without atMs must be anchored to castEnd.",
       );
@@ -366,7 +366,9 @@ function normalizeEffect(effect) {
     if (hasAtMs) {
       const atMs = Number(effect.atMs);
       if (!(atMs >= 0) || !Number.isFinite(atMs)) {
-        throw new TypeError("Effect atMs must be a non-negative finite number.");
+        throw new TypeError(
+          "Effect atMs must be a non-negative finite number.",
+        );
       }
     }
     if (hasInterval) {
@@ -383,54 +385,48 @@ function normalizeEffect(effect) {
     );
   }
   if (
-    strikeTicks
-    && (
-      effect.coefficient != null
-      || effect.hits != null
-      || effect.atMs != null
-      || effect.intervalMs != null
-      || effect.flatDamage != null
-      || effect.flatStrikeBase != null
-      || effect.flatStrikePowerCoeff != null
-    )
+    strikeTicks &&
+    (effect.coefficient != null ||
+      effect.hits != null ||
+      effect.atMs != null ||
+      effect.intervalMs != null ||
+      effect.flatDamage != null ||
+      effect.flatStrikeBase != null ||
+      effect.flatStrikePowerCoeff != null)
   ) {
     throw new TypeError(
       "Strike tick timelines cannot use aggregate coefficient or timing fields.",
     );
   }
   if (
-    conditionTicks
-    && (
-      effect.condition != null
-      || effect.stacks != null
-      || effect.duration != null
-      || effect.atMs != null
-      || effect.intervalMs != null
-    )
+    conditionTicks &&
+    (effect.condition != null ||
+      effect.stacks != null ||
+      effect.duration != null ||
+      effect.atMs != null ||
+      effect.intervalMs != null)
   ) {
     throw new TypeError(
       "Condition tick timelines cannot use aggregate application or timing fields.",
     );
   }
   if (
-    effect.type === "strike"
-    && !strikeTicks
-    && !(Number(effect.coefficient) >= 0)
-    && !Number.isFinite(Number(effect.flatDamage))
-    && !Number.isFinite(Number(effect.flatStrikeBase))
-    && !Number.isFinite(Number(effect.flatStrikePowerCoeff))
+    effect.type === "strike" &&
+    !strikeTicks &&
+    !(Number(effect.coefficient) >= 0) &&
+    !Number.isFinite(Number(effect.flatDamage)) &&
+    !Number.isFinite(Number(effect.flatStrikeBase)) &&
+    !Number.isFinite(Number(effect.flatStrikePowerCoeff))
   ) {
     throw new TypeError(
       "Strike effects require a non-negative coefficient or flat strike data.",
     );
   }
   if (
-    effect.type === "strike"
-    && !strikeTicks
-    && (
-      !Number.isInteger(Number(effect.hits ?? 1))
-      || !(Number(effect.hits ?? 1) > 0)
-    )
+    effect.type === "strike" &&
+    !strikeTicks &&
+    (!Number.isInteger(Number(effect.hits ?? 1)) ||
+      !(Number(effect.hits ?? 1) > 0))
   ) {
     throw new TypeError("Strike effects require a positive integer hit count.");
   }
@@ -439,10 +435,12 @@ function normalizeEffect(effect) {
       throw new TypeError("Condition effects require a condition id.");
     }
     if (
-      !conditionTicks
-      && (!(Number(effect.stacks) > 0) || !(Number(effect.duration) > 0))
+      !conditionTicks &&
+      (!(Number(effect.stacks) > 0) || !(Number(effect.duration) > 0))
     ) {
-      throw new TypeError("Condition effects require positive stacks and duration.");
+      throw new TypeError(
+        "Condition effects require positive stacks and duration.",
+      );
     }
   }
   if (effect.type === "boon" || effect.type === "buff") {
@@ -473,32 +471,34 @@ function normalizeLockouts(lockouts, skillId) {
     throw new TypeError(`Skill ${skillId} lockouts must be an array.`);
   }
   const groups = new Set();
-  return Object.freeze(lockouts.map((lockout, index) => {
-    if (!lockout || typeof lockout !== "object" || Array.isArray(lockout)) {
-      throw new TypeError(
-        `Skill ${skillId} lockout ${index + 1} must be an object.`,
-      );
-    }
-    const group = String(lockout.group || "").trim();
-    const durationMs = Number(lockout.durationMs);
-    if (!group) {
-      throw new TypeError(
-        `Skill ${skillId} lockout ${index + 1} requires a group.`,
-      );
-    }
-    if (!(durationMs > 0) || !Number.isFinite(durationMs)) {
-      throw new TypeError(
-        `Skill ${skillId} lockout ${group} requires a positive durationMs.`,
-      );
-    }
-    if (groups.has(group)) {
-      throw new TypeError(
-        `Skill ${skillId} declares duplicate lockout group ${group}.`,
-      );
-    }
-    groups.add(group);
-    return Object.freeze({ group, durationMs });
-  }));
+  return Object.freeze(
+    lockouts.map((lockout, index) => {
+      if (!lockout || typeof lockout !== "object" || Array.isArray(lockout)) {
+        throw new TypeError(
+          `Skill ${skillId} lockout ${index + 1} must be an object.`,
+        );
+      }
+      const group = String(lockout.group || "").trim();
+      const durationMs = Number(lockout.durationMs);
+      if (!group) {
+        throw new TypeError(
+          `Skill ${skillId} lockout ${index + 1} requires a group.`,
+        );
+      }
+      if (!(durationMs > 0) || !Number.isFinite(durationMs)) {
+        throw new TypeError(
+          `Skill ${skillId} lockout ${group} requires a positive durationMs.`,
+        );
+      }
+      if (groups.has(group)) {
+        throw new TypeError(
+          `Skill ${skillId} declares duplicate lockout group ${group}.`,
+        );
+      }
+      groups.add(group);
+      return Object.freeze({ group, durationMs });
+    }),
+  );
 }
 
 /**
@@ -531,19 +531,19 @@ export function createCanonicalCatalog({
     }
     declaredIds.add(skill.id);
   }
-  const generatedById = new Map(generated.map(skill => [skill.id, skill]));
+  const generatedById = new Map(generated.map((skill) => [skill.id, skill]));
   const allIds = new Set([
     ...generatedById.keys(),
     ...Object.keys(mechanics).map(Number),
     ...Object.keys(overrides).map(Number),
-    ...extraSkills.map(skill => skill.id),
+    ...extraSkills.map((skill) => skill.id),
   ]);
-  const normalizedSkills = [...allIds].map(id => {
+  const normalizedSkills = [...allIds].map((id) => {
     const merged = {
       ...(generatedById.get(id) || {}),
       ...(mechanics[id] || {}),
       ...(overrides[id] || {}),
-      ...(extraSkills.find(candidate => candidate.id === id) || {}),
+      ...(extraSkills.find((candidate) => candidate.id === id) || {}),
     };
     if (merged.activation != null || merged.castTime != null) {
       throw new TypeError(
@@ -556,35 +556,33 @@ export function createCanonicalCatalog({
         `Skill ${id} requires a non-negative finite castTimeMs.`,
       );
     }
-    const quicknessCastTimeMs = merged.quicknessCastTimeMs == null
-      ? null
-      : Number(merged.quicknessCastTimeMs);
+    const quicknessCastTimeMs =
+      merged.quicknessCastTimeMs == null
+        ? null
+        : Number(merged.quicknessCastTimeMs);
     if (
-      quicknessCastTimeMs != null
-      && (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))
+      quicknessCastTimeMs != null &&
+      (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))
     ) {
-      throw new TypeError(
-        `Skill ${id} has an invalid quicknessCastTimeMs.`,
-      );
+      throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);
     }
-    const interruptCommitMs = merged.interruptCommitMs == null
-      ? null
-      : Number(merged.interruptCommitMs);
+    const interruptCommitMs =
+      merged.interruptCommitMs == null
+        ? null
+        : Number(merged.interruptCommitMs);
     if (
-      interruptCommitMs != null
-      && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))
+      interruptCommitMs != null &&
+      (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))
     ) {
-      throw new TypeError(
-        `Skill ${id} has an invalid interruptCommitMs.`,
-      );
+      throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
     }
     if (
-      merged.rechargeAnchor != null
-      && !RECHARGE_ANCHORS.has(merged.rechargeAnchor)
+      merged.rechargeAnchor != null &&
+      !RECHARGE_ANCHORS.has(merged.rechargeAnchor)
     ) {
       throw new TypeError(
-        `Skill ${id} has invalid rechargeAnchor `
-        + `"${merged.rechargeAnchor}".`,
+        `Skill ${id} has invalid rechargeAnchor ` +
+          `"${merged.rechargeAnchor}".`,
       );
     }
     const rechargeOffsetMs = Number(merged.rechargeOffsetMs ?? 0);
@@ -619,24 +617,22 @@ export function createCanonicalCatalog({
   });
   const skillsByName = new Map();
   for (const skill of skills) {
-    if (
-      skillNameCollision === "last"
-      || !skillsByName.has(skill.name)
-    ) {
+    if (skillNameCollision === "last" || !skillsByName.has(skill.name)) {
       skillsByName.set(skill.name, skill);
     }
   }
   const catalog = {
     skills: Object.freeze(skills),
-    skillsById: new Map(skills.map(skill => [skill.id, skill])),
+    skillsById: new Map(skills.map((skill) => [skill.id, skill])),
     skillsByName,
     autoattackChains: normalizedAutoattacks.chains,
     autoattackChainPositions: normalizedAutoattacks.positions,
     skillHandlers: normalizeSkillHandlers(skillHandlers),
-    traits: Object.freeze(traits.map(trait => Object.freeze({ ...trait }))),
+    traits: Object.freeze(traits.map((trait) => Object.freeze({ ...trait }))),
     specializations: Object.freeze(
-      specializations.map(specialization =>
-        Object.freeze({ ...specialization })),
+      specializations.map((specialization) =>
+        Object.freeze({ ...specialization }),
+      ),
     ),
     weapons: new Set(weapons),
     weaponHands: new Map(
@@ -656,10 +652,14 @@ export function validateCanonicalCatalog(catalog) {
   const validWeaponHands = new Set(["mh", "oh", "mh+oh", "2h", "-"]);
   for (const [weapon, wielding] of catalog?.weaponHands || []) {
     if (!catalog.weapons?.has(weapon)) {
-      throw new Error(`Weapon hand metadata references unknown weapon ${weapon}.`);
+      throw new Error(
+        `Weapon hand metadata references unknown weapon ${weapon}.`,
+      );
     }
     if (!validWeaponHands.has(wielding)) {
-      throw new Error(`Weapon ${weapon} has invalid wielding metadata ${wielding}.`);
+      throw new Error(
+        `Weapon ${weapon} has invalid wielding metadata ${wielding}.`,
+      );
     }
   }
   const ids = new Set();
@@ -668,37 +668,47 @@ export function validateCanonicalCatalog(catalog) {
       throw new Error(`Duplicate or missing skill id: ${skill.id}`);
     }
     ids.add(skill.id);
-    if (!String(skill.name || "")) throw new Error(`Skill ${skill.id} has no name.`);
+    if (!String(skill.name || ""))
+      throw new Error(`Skill ${skill.id} has no name.`);
     if (
-      skill.handlerId
-      && !catalog.skillHandlers?.has(String(skill.handlerId))
+      skill.handlerId &&
+      !catalog.skillHandlers?.has(String(skill.handlerId))
     ) {
-      throw new Error(`Skill ${skill.id} references missing handler ${skill.handlerId}.`);
+      throw new Error(
+        `Skill ${skill.id} references missing handler ${skill.handlerId}.`,
+      );
     }
     const handler = catalog.skillHandlers?.get(String(skill.handlerId || ""));
     if (
-      handler?.mode === SKILL_HANDLER_MODES.REPLACE
-      && !handler.resolveMode
-      && skill.effects.length > 0
+      handler?.mode === SKILL_HANDLER_MODES.REPLACE &&
+      !handler.resolveMode &&
+      skill.effects.length > 0
     ) {
       throw new Error(
-        `Skill ${skill.id} uses replacing handler ${skill.handlerId} `
-        + "and must declare an empty effects list.",
+        `Skill ${skill.id} uses replacing handler ${skill.handlerId} ` +
+          "and must declare an empty effects list.",
       );
     }
     for (const reference of [skill.parentId, skill.flipParentId]) {
       if (reference != null && !catalog.skillsById.has(reference)) {
-        throw new Error(`Skill ${skill.id} references missing parent ${reference}.`);
+        throw new Error(
+          `Skill ${skill.id} references missing parent ${reference}.`,
+        );
       }
     }
-    if (skill.weapon && catalog.weapons.size && !catalog.weapons.has(skill.weapon)) {
+    if (
+      skill.weapon &&
+      catalog.weapons.size &&
+      !catalog.weapons.has(skill.weapon)
+    ) {
       throw new Error(`Skill ${skill.id} uses invalid weapon ${skill.weapon}.`);
     }
     if (
-      skill.slot != null
-      && !Number.isInteger(Number(skill.slot))
-      && !/^(?:Weapon_[1-5]|Profession_[1-5]|Heal|Utility|Elite|Action)$/
-        .test(String(skill.slot))
+      skill.slot != null &&
+      !Number.isInteger(Number(skill.slot)) &&
+      !/^(?:Weapon_[1-5]|Profession_[1-5]|Heal|Utility|Elite|Action)$/.test(
+        String(skill.slot),
+      )
     ) {
       throw new Error(`Skill ${skill.id} has invalid slot metadata.`);
     }
@@ -716,9 +726,9 @@ export function validateCanonicalCatalog(catalog) {
   const specializationIds = new Set();
   for (const specialization of catalog?.specializations || []) {
     if (
-      specialization.id === undefined
-      || specialization.id === null
-      || specializationIds.has(specialization.id)
+      specialization.id === undefined ||
+      specialization.id === null ||
+      specializationIds.has(specialization.id)
     ) {
       throw new Error(
         `Duplicate or missing specialization id: ${specialization.id}`,
