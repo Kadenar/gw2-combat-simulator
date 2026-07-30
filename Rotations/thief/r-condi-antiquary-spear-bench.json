@@ -55,7 +55,7 @@
     "Falling Spider",
     {
       "name": "__wait",
-      "waitMs": 250
+      "waitMs": 1090
     },
     "Skritt Swipe",
     "Distracting Throw",

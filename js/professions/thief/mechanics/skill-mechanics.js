@@ -5111,7 +5111,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   [ID.MALICIOUS_ASHEN_ASSAULT]: {
     "implemented": true,
     "handlerId": "thief.spear-stealth-attack",
-    "castTimeMs": 1500,
+    "castTimeMs": 575,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
@@ -5237,7 +5237,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   [ID.ASHEN_ASSAULT]: {
     "implemented": true,
     "handlerId": "thief.spear-stealth-attack",
-    "castTimeMs": 1500,
+    "castTimeMs": 575,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
