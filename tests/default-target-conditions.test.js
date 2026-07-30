@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createGw2SimulationConfig } from "../js/app/gw2-simulation-config.js";
+import { createGw2SimulationConfig } from "../js/app/simulation/config.js";
 import {
   DEFAULT_TARGET_CONDITIONS,
 } from "../js/platform/gw2/default-target-conditions.js";

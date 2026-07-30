@@ -6,10 +6,10 @@ import {
   loadProfession,
   loadProfessionAppAdapter,
   professionRoute,
-} from "../js/app/profession-registry.js";
+} from "../js/app/profession/registry.js";
 import {
   assumptionControlsForSpecialization,
-} from "../js/app/profession-assumptions.js";
+} from "../js/app/profession/assumptions.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import { resourceDisplayViews } from "../js/platform/ui/resource-display.js";
 import {

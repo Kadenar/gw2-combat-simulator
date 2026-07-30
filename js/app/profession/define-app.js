@@ -1,6 +1,6 @@
-import { createCalculateAttributes } from "../platform/gw2/attributes.js";
-import { createGw2AppAdapter } from "./create-app-adapter.js";
-import { createProfessionRuntime } from "./create-profession-runtime.js";
+import { createCalculateAttributes } from "../../platform/gw2/attributes.js";
+import { createGw2AppAdapter } from "./create-adapter.js";
+import { createProfessionRuntime } from "./create-runtime.js";
 
 /**
  * Default availability rule for shared-shell profession skill selectors.

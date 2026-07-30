@@ -383,7 +383,7 @@ wrong-profession and future-version errors.
   revealed state, stolen skills, malice, Shadow Shroud, and Antiquary
   artifacts.
 
-`js/app/profession-registry.js` is the application roster source of truth;
+`js/app/profession/registry.js` is the application roster source of truth;
 documentation must not maintain a separate profession count.
 
 ## Adding another profession
@@ -395,7 +395,7 @@ documentation must not maintain a separate profession count.
    Declare exact hand availability in `weaponHands` and register callable
    custom cast behavior in `skillHandlers`.
 3. Add the profession page and one lazy entry to
-   `js/app/profession-registry.js`. Shared-engine applications use
+   `js/app/profession/registry.js`. Shared-engine applications use
    `applicationKind: "native"` and must provide `loadAppAdapter`; legacy
    applications use `applicationKind: "standalone"` and
    `loadAppAdapter: null`.

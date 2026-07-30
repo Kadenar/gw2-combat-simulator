@@ -1,6 +1,6 @@
 import {
   SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-} from "../../app/simulation-randomness.js";
+} from "../../app/simulation/randomness.js";
 import { necromancerCatalog } from "./catalog.js";
 import { NECROMANCER_SKILL_IDS as ID } from "./data/ids.js";
 import { getActiveTraits } from "./data/traits-data.js";

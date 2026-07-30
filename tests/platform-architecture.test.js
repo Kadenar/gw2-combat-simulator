@@ -38,7 +38,7 @@ import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
   nativeProfessionRegistry,
   professionRegistry,
-} from "../js/app/profession-registry.js";
+} from "../js/app/profession/registry.js";
 import {
   createProfessionWeaponData,
   WEAPON_DATA,
@@ -2046,6 +2046,35 @@ test("obsolete compatibility trees are removed", async () => {
     ),
     error => error?.code === "ENOENT",
   );
+});
+
+test("application shell uses feature-owned modules without legacy facades", async () => {
+  const appRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js/app",
+  );
+  const entries = await readdir(appRoot, { withFileTypes: true });
+  const topLevelFiles = entries
+    .filter(entry => entry.isFile())
+    .map(entry => entry.name)
+    .sort();
+  assert.deepEqual(topLevelFiles, [
+    "app.js",
+    "bootstrap.js",
+    "profession-app.js",
+  ]);
+
+  const directories = new Set(
+    entries.filter(entry => entry.isDirectory()).map(entry => entry.name),
+  );
+  assert.deepEqual(
+    [...directories].sort(),
+    ["build", "profession", "rotation", "simulation"],
+  );
+
+  const appEntry = await readFile(path.join(appRoot, "app.js"), "utf8");
+  assert.match(appEntry, /bootstrapProfessionApp/);
+  assert.doesNotMatch(appEntry, /class ProfessionApp|renderPalette|renderGear/);
 });
 
 test("profession sources persist terrestrial skill data only", async () => {

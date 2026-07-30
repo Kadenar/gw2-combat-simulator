@@ -1,12 +1,12 @@
-import { createGw2SimulationConfig } from "./gw2-simulation-config.js";
-import { calculateContributionComparisons } from "./modifier-contributions.js";
+import { createGw2SimulationConfig } from "../simulation/config.js";
+import { calculateContributionComparisons } from "../simulation/modifier-contributions.js";
 import {
   DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
   calculateRandomDistribution as calculateDistribution,
-} from "./random-distribution.js";
-import { FOOD_DATA } from "../platform/gw2/gear-data.js";
-import { SIMULATION_RANDOMNESS_MODES } from "../platform/engine/simulation-random.js";
-import { simulateGw2 } from "../platform/gw2/simulate.js";
+} from "../simulation/random-distribution.js";
+import { FOOD_DATA } from "../../platform/gw2/gear-data.js";
+import { SIMULATION_RANDOMNESS_MODES } from "../../platform/engine/simulation-random.js";
+import { simulateGw2 } from "../../platform/gw2/simulate.js";
 
 /**
  * Builds the shared browser runtime orchestration for a GW2 profession.

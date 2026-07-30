@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { loadProfession } from "../js/app/profession-registry.js";
+import { loadProfession } from "../js/app/profession/registry.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
   createGuardianBuildDefaults,

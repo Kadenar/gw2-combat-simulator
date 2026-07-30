@@ -5,7 +5,7 @@
 import {
   defineProfessionApp,
   preferOffhand,
-} from "../../../app/define-profession-app.js";
+} from "../../../app/profession/define-app.js";
 import { TRAIT_COVERAGE_STATUSES } from "../../../platform/gw2/trait-coverage.js";
 import { applyRevenantBuildAttributeRules } from "../build-attributes.js";
 import { createDefaultTargetConditions, toApplicationBuild } from "../build.js";

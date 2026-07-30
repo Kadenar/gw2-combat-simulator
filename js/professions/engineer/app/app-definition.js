@@ -6,7 +6,7 @@ import {
   defaultIsSkillAvailable,
   defineProfessionApp,
   preferOffhand,
-} from "../../../app/define-profession-app.js";
+} from "../../../app/profession/define-app.js";
 import { applyEngineerBuildAttributeRules } from "../build-attributes.js";
 import {
   createDefaultTargetConditions,

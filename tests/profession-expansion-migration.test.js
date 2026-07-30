@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { replaceBuild } from "../js/app/app-state.js";
+import { replaceBuild } from "../js/app/build/persistence.js";
 import { createCanonicalCatalog } from "../js/platform/engine/catalog.js";
 import {
   custom,
@@ -62,7 +62,7 @@ import {
   PROFESSION_ROUTES,
   standaloneProfessionRegistry,
   validateProfessionRegistryEntries,
-} from "../js/app/profession-registry.js";
+} from "../js/app/profession/registry.js";
 import {
   createProfessionSnapshot,
   DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,

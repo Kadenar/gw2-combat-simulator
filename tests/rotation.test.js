@@ -19,16 +19,20 @@ import {
 } from '../js/platform/ui/rotation-results.js';
 import {
     buildChartSeries,
-    continuumEndTimelineMarkers,
     formatResultTimelineTime,
     resultSummaryMetrics,
-    rotationWarningItems,
+    skillBreakdownRows,
+} from '../js/app/rotation/result-model.js';
+import {
+    continuumEndTimelineMarkers,
     shatterResourceSpends,
+    timelineWeaponRows,
+} from '../js/app/rotation/timeline-model.js';
+import {
     simulationEventLogCsv,
     simulationEventLogRows,
-    skillBreakdownRows,
-    timelineWeaponRows,
-} from '../js/app/rotation-ui.js';
+} from '../js/app/rotation/event-log.js';
+import { rotationWarningItems } from '../js/app/rotation/warnings.js';
 import { RELIC_DATA } from '../js/platform/gw2/gear-data.js';
 import {
     MESMER_SKILL_IDS as ID,

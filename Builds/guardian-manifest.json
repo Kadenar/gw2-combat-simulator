@@ -4,7 +4,8 @@
     "presets": [
       {
         "label": "Power",
-        "build": "Builds/b-power-luminary.json"
+        "build": "Builds/b-power-luminary.json",
+        "rotation": "Rotations/guardian/r-power-luminary-bench.json"
       }
     ]
   }

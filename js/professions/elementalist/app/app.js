@@ -23,7 +23,7 @@ import {
     getRotationItems,
     loadPresetBundle,
     readJsonFile,
-} from '../../../app/app-io.js';
+} from '../../../app/build/files.js';
 import { chartValueAt } from '../../../platform/ui/charts.js';
 import { ammoDisplayView } from '../../../platform/ui/ammo-display.js';
 import {
@@ -41,7 +41,7 @@ import {
     SPECIFIC_CONDITION_DURATION_ATTRIBUTES,
     STACKING_TARGET_CONDITIONS,
     TARGET_CONDITION_GROUPS,
-} from '../../../app/app-ui.js';
+} from '../../../app/build/options.js';
 import {
     convertEIRotation,
     extractLogId,

@@ -6,7 +6,7 @@ import {
   defaultIsSkillAvailable,
   defineProfessionApp,
   preferOffhand,
-} from "../../../app/define-profession-app.js";
+} from "../../../app/profession/define-app.js";
 import { applyNecromancerBuildAttributeRules } from "../build-attributes.js";
 import { createDefaultTargetConditions, toApplicationBuild } from "../build.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../data/ids.js";

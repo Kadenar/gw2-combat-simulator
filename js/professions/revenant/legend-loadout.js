@@ -1,4 +1,4 @@
-import { createFixedSlotLoadout } from "../../app/profession-slot-loadout.js";
+import { createFixedSlotLoadout } from "../../app/profession/slot-loadout.js";
 import { revenantCatalog } from "./catalog.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,

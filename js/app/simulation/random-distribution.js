@@ -1,4 +1,4 @@
-import { SIMULATION_RANDOMNESS_MODES } from "../platform/engine/simulation-random.js";
+import { SIMULATION_RANDOMNESS_MODES } from "../../platform/engine/simulation-random.js";
 
 /** Default number of stochastic trials used by the application. */
 export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;

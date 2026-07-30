@@ -1,0 +1,468 @@
+{
+  "rotation": [
+    {
+      "name": "Elixir of Promise"
+    },
+    {
+      "name": "Harbinger Shroud"
+    },
+    {
+      "name": "Exit Harbinger Shroud"
+    },
+    {
+      "name": "__wait",
+      "waitMs": 9000
+    },
+    {
+      "name": "Blood Is Power"
+    },
+    {
+      "name": "__combat_start",
+      "offset": 700
+    },
+    {
+      "name": "Elixir of Risk"
+    },
+    {
+      "name": "Blood Is Power"
+    },
+    {
+      "name": "Plague Signet"
+    },
+    {
+      "name": "Harrowing Wave"
+    },
+    {
+      "name": "Oppressive Collapse"
+    },
+    {
+      "name": "Vile Blast"
+    },
+    {
+      "name": "Elixir of Ambition"
+    },
+    {
+      "name": "Harbinger Shroud"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    {
+      "name": "Vital Draw"
+    },
+    {
+      "name": "Voracious Arc"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Voracious Arc"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 840
+    },
+    {
+      "name": "Exit Harbinger Shroud"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Elixir of Risk"
+    },
+    {
+      "name": "Blood Is Power"
+    },
+    {
+      "name": "Elixir of Promise"
+    },
+    {
+      "name": "Plague Signet"
+    },
+    {
+      "name": "Vile Blast"
+    },
+    {
+      "name": "Harrowing Wave"
+    },
+    {
+      "name": "Oppressive Collapse"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Enfeebling Blood"
+    },
+    {
+      "name": "Devouring Darkness"
+    },
+    {
+      "name": "Grasping Dead"
+    },
+    {
+      "name": "Harbinger Shroud"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    {
+      "name": "Vital Draw"
+    },
+    {
+      "name": "Voracious Arc"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Voracious Arc"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 840
+    },
+    {
+      "name": "Exit Harbinger Shroud"
+    },
+    {
+      "name": "Devouring Darkness"
+    },
+    {
+      "name": "Grasping Dead"
+    },
+    {
+      "name": "Enfeebling Blood"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Elixir of Risk"
+    },
+    {
+      "name": "Blood Is Power"
+    },
+    {
+      "name": "Elixir of Promise"
+    },
+    {
+      "name": "Plague Signet"
+    },
+    {
+      "name": "Vile Blast"
+    },
+    {
+      "name": "Harrowing Wave"
+    },
+    {
+      "name": "Oppressive Collapse"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Harbinger Shroud"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage"
+    },
+    {
+      "name": "Vital Draw"
+    },
+    {
+      "name": "Voracious Arc"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Voracious Arc"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage"
+    },
+    {
+      "name": "Exit Harbinger Shroud"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Elixir of Risk"
+    },
+    {
+      "name": "Elixir of Ambition"
+    },
+    {
+      "name": "Vile Blast"
+    },
+    {
+      "name": "Harrowing Wave"
+    },
+    {
+      "name": "Blood Is Power"
+    },
+    {
+      "name": "Elixir of Promise"
+    },
+    {
+      "name": "Blood Is Power"
+    },
+    {
+      "name": "Plague Signet"
+    },
+    {
+      "name": "Oppressive Collapse"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Devouring Darkness"
+    },
+    {
+      "name": "Grasping Dead"
+    },
+    {
+      "name": "Harbinger Shroud"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 800
+    },
+    {
+      "name": "Vital Draw"
+    },
+    {
+      "name": "Voracious Arc"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Tainted Bolts"
+    },
+    {
+      "name": "Voracious Arc"
+    },
+    {
+      "name": "Devouring Cut"
+    },
+    {
+      "name": "Dark Barrage",
+      "interruptMs": 840
+    },
+    {
+      "name": "Exit Harbinger Shroud"
+    },
+    {
+      "name": "Elixir of Risk"
+    },
+    {
+      "name": "Devouring Darkness"
+    },
+    {
+      "name": "Grasping Dead"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Vile Blast"
+    },
+    {
+      "name": "Blood Is Power"
+    },
+    {
+      "name": "Plague Signet"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Harrowing Wave"
+    },
+    {
+      "name": "Oppressive Collapse"
+    },
+    {
+      "name": "Elixir of Promise"
+    }
+  ]
+}

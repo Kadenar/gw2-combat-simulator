@@ -1,0 +1,666 @@
+{
+  "rotation": [
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Unstable Bladestorm"
+    },
+    {
+      "name": "Phantasmal Swordsman"
+    },
+    {
+      "name": "__combat_start"
+    },
+    {
+      "name": "Time Sink",
+      "offset": 200
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Continuum Split",
+      "offset": 300
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Well of Calamity"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Illusionary Wave"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Well of Calamity"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Swordsman"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Unstable Bladestorm"
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Gravity Well"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter",
+      "interruptMs": 210
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Illusionary Riposte",
+      "interruptMs": 120
+    },
+    {
+      "name": "Counter Blade"
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Phantasmal Swordsman"
+    },
+    {
+      "name": "Unstable Bladestorm"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Well of Calamity"
+    },
+    {
+      "name": "Rewinder"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Power Spike"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge",
+      "interruptMs": 600
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Illusionary Wave"
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Time Sink",
+      "offset": 100
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Swordsman"
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Unstable Bladestorm"
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Well of Calamity"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Illusionary Riposte",
+      "interruptMs": 120
+    },
+    {
+      "name": "Counter Blade"
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Phantasmal Swordsman"
+    },
+    {
+      "name": "Unstable Bladestorm"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge",
+      "interruptMs": 700
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    {
+      "name": "Illusionary Wave"
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Spatial Surge",
+      "interruptMs": 200
+    },
+    {
+      "name": "Well of Calamity"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Swordsman"
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Unstable Bladestorm"
+    },
+    {
+      "name": "Gravity Well"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Rewinder"
+    },
+    {
+      "name": "Illusionary Riposte",
+      "interruptMs": 120
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Counter Blade"
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Phantasmal Swordsman"
+    },
+    {
+      "name": "Unstable Bladestorm"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Well of Calamity"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge",
+      "interruptMs": 700
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Illusionary Wave"
+    },
+    {
+      "name": "Spatial Surge",
+      "interruptMs": 500
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge",
+      "interruptMs": 300
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Signet of the Ether"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Rewinder",
+      "offset": 100
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Swordsman"
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Unstable Bladestorm"
+    },
+    {
+      "name": "Time Sink",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Disenchanter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Well of Calamity"
+    },
+    {
+      "name": "Power Spike",
+      "offset": 100
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Flying Cutter"
+    },
+    {
+      "name": "Illusionary Riposte",
+      "interruptMs": 120
+    },
+    {
+      "name": "Counter Blade"
+    },
+    {
+      "name": "Bladecall"
+    },
+    {
+      "name": "Phantasmal Swordsman"
+    },
+    {
+      "name": "Unstable Bladestorm"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Phantasmal Berserker"
+    },
+    {
+      "name": "Mirror Blade"
+    },
+    {
+      "name": "Mind Stab"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Spatial Surge"
+    },
+    {
+      "name": "Split Second",
+      "offset": 100
+    },
+    "Spatial Surge"
+  ]
+}

@@ -13,15 +13,15 @@ Profession-neutral browser shell: UI rendering, state management, and user
 interaction orchestration. A profession application adapter injects its catalog,
 codec, storage key, renderer hooks, and worker.
 
-### [app.js](js/app/app.js)
-Main application shell. Exports the `ProfessionApp` class, which is constructed
-with the active profession app adapter, manages UI rendering for
-gear/traits/skills/attributes, and orchestrates the simulation lifecycle. Entry
-point for DOMContentLoaded resolves the adapter for the current page.
+### Entry and controller
 
-### [create-app-adapter.js](js/app/create-app-adapter.js) / [create-profession-runtime.js](js/app/create-profession-runtime.js)
-Shared factories that build a profession's browser app adapter and its
-simulation runtime from the profession contract.
+- [app.js](js/app/app.js) is the browser entry point and only registers the
+  `DOMContentLoaded` bootstrap.
+- [bootstrap.js](js/app/bootstrap.js) resolves the page's profession adapter
+  and initializes the application.
+- [profession-app.js](js/app/profession-app.js) exports the thin
+  `ProfessionApp` lifecycle coordinator. Rendering and background analysis are
+  delegated to their owning feature modules.
 
 ### Profession `definition.js` and `app/app-definition.js`
 
@@ -40,8 +40,10 @@ engine consumers load a profession without pulling in application rendering,
 storage, and modifier-contribution dependencies. Elementalist remains a
 standalone legacy application and does not use this native composition pattern.
 
-### [profession-registry.js](js/app/profession-registry.js)
-Single lazy manifest for every profession exposed by the application. Each
+### Profession composition (`js/app/profession/`)
+
+[registry.js](js/app/profession/registry.js) is the single lazy manifest for
+every profession exposed by the application. Each
 entry supplies a stable ID, display metadata, route, optional theme class,
 explicit application kind, and dynamic loaders for the profession contract
 and shared-shell app adapter. Registry entries are validated for stable unique
@@ -68,8 +70,8 @@ native applications use `applicationKind: "native"` and standalone
 applications use `applicationKind: "standalone"`. Elementalist can move from
 standalone to native later by changing that field and supplying its adapter.
 
-### [profession-selector.js](js/app/profession-selector.js)
-Registry-driven landing-page and header navigation. `bindProfessionSelector()`
+[selector.js](js/app/profession/selector.js) provides registry-driven
+landing-page and header navigation. `bindProfessionSelector()`
 renders cards into an optional `[data-profession-grid]`, rebuilds the optional
 `#profession-select`, applies the active entry's theme class, and navigates when
 the selection changes. The active ID is read first from
@@ -82,37 +84,60 @@ script on landing and simulator pages. `PROFESSION_ROUTES` and
 `professionRoute()` are re-exported for compatibility; their source of truth is
 the registry.
 
-### [rotation-ui.js](js/app/rotation-ui.js)
-Shared rotation palette, timeline, and results renderer driven by profession
-palette/resource view models and canonical result state.
+The remaining profession modules define the shared application composition
+surface:
 
-### [app-state.js](js/app/app-state.js)
-Build persistence and initialization. Creates default builds, loads/saves builds
-from localStorage, and merges saved builds with defaults through the active
-adapter while maintaining backward compatibility. Local-storage loading is
-forgiving, but explicit build replacement/import is strict so wrong-profession
-and future-version errors reach the user.
+- `create-adapter.js` and `create-runtime.js` build a profession's browser
+  adapter and simulation runtime.
+- `define-app.js` composes native profession application definitions.
+- `assumptions.js` and `slot-loadout.js` own shared profession-facing UI
+  contracts.
 
-### [modifier-contributions.js](js/app/modifier-contributions.js)
-Profession-neutral modifier contribution calculations. Per-profession
-build-to-simulation mapping and modifier candidate rules live under each
-profession's `app/` directory (e.g.
-`js/professions/mesmer/app/app-definition.js`).
+### Build UI (`js/app/build/`)
 
-### [modifier-contributions-worker.js](js/app/modifier-contributions-worker.js)
-Background worker that runs the per-modifier contribution comparison off the
-main thread.
+Build configuration is grouped by feature:
 
-### [gw2-simulation-config.js](js/app/gw2-simulation-config.js)
-Shared default GW2 simulation config used by applications and fixtures.
+- `persistence.js` creates, loads, saves, and replaces application builds.
+- `files.js` handles build and rotation JSON import/export.
+- `options.js` owns shared option metadata and HTML option generation.
+- `selection.js` normalizes selectable slot skills.
+- `gear-panel.js`, `traits-panel.js`, `attributes-panel.js`,
+  `skills-panel.js`, and `assumptions-panel.js` render and bind their own DOM
+  panels.
+- `presets.js` owns profession build templates, paired build/rotation loading,
+  partial-load actions, and undo; `page-controls.js` owns persistent page
+  controls.
 
-### [app-io.js](js/app/app-io.js)
-File I/O utilities. Exports builds/rotations as JSON files and imports them from
-user-selected files.
+### Rotation UI (`js/app/rotation/`)
 
-### [app-ui.js](js/app/app-ui.js)
-Shared application metadata and HTML option rendering for gear, attributes, and
-target-condition controls.
+Rotation-builder behavior is split into explicit models and views:
+
+- `index.js` orchestrates the complete rotation builder.
+- `actions.js` mutates rotation entries.
+- `palette-model.js` and `palette-view.js` own palette state and rendering.
+- `resource-view.js` renders starting-resource controls.
+- `timeline-model.js` builds rows, markers, and proc groups;
+  `timeline-view.js` renders and binds the timeline.
+- `event-log.js` and `warnings.js` transform and mount diagnostics.
+- `result-model.js` creates metrics, chart series, and breakdown rows;
+  `result-view.js` mounts results.
+- `icons.js` resolves palette, proc, and result icons.
+
+These modules compose the generic widgets in `js/platform/ui/`; platform UI
+does not depend on the application layer.
+
+### Simulation application services (`js/app/simulation/`)
+
+- `config.js` builds the shared GW2 simulation configuration.
+- `randomness.js` owns persisted randomness assumptions.
+- `random-distribution.js` and `modifier-contributions.js` contain pure
+  partitioning and analysis functions.
+- Their `*-runner.js` modules own timers, request IDs, and worker pools instead
+  of storing background-job state on `ProfessionApp`.
+- Their `*-worker.js` modules are the browser worker entry points.
+
+Per-profession build-to-simulation mapping and modifier candidates remain under
+each profession's `app/` directory.
 
 ---
 

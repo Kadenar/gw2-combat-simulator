@@ -1,0 +1,432 @@
+{
+  "rotation": [
+    {
+      "name": "Radiant Courage",
+      "offset": 100
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Daring Advance"
+    },
+    {
+      "name": "__combat_start",
+      "offset": 900
+    },
+    {
+      "name": "Piercing Stance"
+    },
+    {
+      "name": "Luminous Staff"
+    },
+    {
+      "name": "Radiant Justice"
+    },
+    {
+      "name": "Effulgent Stance",
+      "offset": 100
+    },
+    {
+      "name": "Gleaming Blade"
+    },
+    {
+      "name": "Radiant Resolve",
+      "offset": 100
+    },
+    {
+      "name": "Lucent Thrust"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "Symbol of Luminance"
+    },
+    {
+      "name": "Helio Rush"
+    },
+    {
+      "name": "Solar Storm"
+    },
+    {
+      "name": "Gleaming Disc"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Piercing Stance"
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "Binding Blade"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Gleaming Disc"
+    },
+    {
+      "name": "Helio Rush"
+    },
+    {
+      "name": "Daybreaking Slash"
+    },
+    {
+      "name": "Daybreaking Slash"
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Radiant Justice",
+      "offset": 100
+    },
+    {
+      "name": "Effulgent Stance",
+      "offset": 100
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Glaring Burst"
+    },
+    {
+      "name": "Luminous Staff"
+    },
+    {
+      "name": "Piercing Stance"
+    },
+    {
+      "name": "Gleaming Blade"
+    },
+    {
+      "name": "Lucent Thrust"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "Symbol of Luminance"
+    },
+    {
+      "name": "Helio Rush"
+    },
+    {
+      "name": "Solar Storm"
+    },
+    {
+      "name": "Gleaming Disc"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Binding Blade"
+    },
+    {
+      "name": "Radiant Resolve",
+      "offset": 100
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Strike"
+    },
+    {
+      "name": "Vengeful Strike"
+    },
+    {
+      "name": "Wrathful Strike"
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    {
+      "name": "Dazzling Hammer"
+    },
+    {
+      "name": "Shining Spin"
+    },
+    {
+      "name": "Exit Radiant Forge"
+    },
+    {
+      "name": "Whirling Wrath"
+    },
+    {
+      "name": "Symbol of Resolution"
+    },
+    {
+      "name": "Leap of Faith"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Gleaming Disc"
+    },
+    {
+      "name": "Helio Rush"
+    },
+    {
+      "name": "Radiant Justice",
+      "offset": 100
+    },
+    {
+      "name": "Effulgent Stance",
+      "offset": 100
+    },
+    {
+      "name": "Radiant Courage",
+      "offset": 100
+    },
+    {
+      "name": "Daybreaking Slash"
+    },
+    {
+      "name": "Daybreaking Slash"
+    },
+    {
+      "name": "Enter Radiant Forge"
+    },
+    "Dazzling Hammer",
+    "Shining Spin",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Luminous Staff",
+    "Piercing Stance",
+    "Gleaming Blade",
+    "Lucent Thrust",
+    "Dazzling Hammer",
+    "Shining Spin",
+    "Exit Radiant Forge",
+    "Symbol of Luminance",
+    "Helio Rush",
+    "Solar Storm",
+    "Gleaming Disc",
+    "Swap Weapons",
+    "Symbol of Resolution",
+    "Whirling Wrath",
+    "Leap of Faith",
+    "Strike",
+    "Vengeful Strike",
+    "Wrathful Strike",
+    "Strike",
+    "Vengeful Strike",
+    "Wrathful Strike",
+    {
+      "name": "Radiant Justice",
+      "offset": 100
+    },
+    {
+      "name": "Effulgent Stance",
+      "offset": 100
+    },
+    {
+      "name": "Radiant Resolve",
+      "offset": 100
+    },
+    "Piercing Stance",
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Shining Spin",
+    "Exit Radiant Forge",
+    "Binding Blade",
+    "Whirling Wrath",
+    "Symbol of Resolution",
+    "Leap of Faith",
+    "Swap Weapons",
+    "Gleaming Disc",
+    "Helio Rush",
+    "Daybreaking Slash",
+    "Daybreaking Slash",
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Shining Spin",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Luminous Staff",
+    "Gleaming Blade",
+    "Lucent Thrust",
+    "Daring Advance",
+    "Piercing Stance",
+    "Dazzling Hammer",
+    "Shining Spin",
+    "Exit Radiant Forge",
+    "Symbol of Luminance",
+    "Helio Rush",
+    "Gleaming Disc",
+    "Solar Storm",
+    "Swap Weapons",
+    "Symbol of Resolution",
+    "Whirling Wrath",
+    "Leap of Faith",
+    "Binding Blade",
+    {
+      "name": "Radiant Justice",
+      "offset": 100
+    },
+    {
+      "name": "Effulgent Stance",
+      "offset": 100
+    },
+    "Strike",
+    "Vengeful Strike",
+    "Wrathful Strike",
+    "Strike",
+    "Vengeful Strike",
+    "Wrathful Strike",
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Shining Spin",
+    "Exit Radiant Forge",
+    "Strike",
+    "Whirling Wrath",
+    "Symbol of Resolution",
+    "Leap of Faith",
+    "Swap Weapons",
+    "Gleaming Disc",
+    "Helio Rush",
+    {
+      "name": "Radiant Resolve",
+      "offset": 100
+    },
+    {
+      "name": "Radiant Courage",
+      "offset": 100
+    },
+    "Daybreaking Slash",
+    "Daybreaking Slash",
+    "Enter Radiant Forge",
+    "Dazzling Hammer",
+    "Shining Spin",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Glaring Burst",
+    "Luminous Staff",
+    "Piercing Stance",
+    "Gleaming Blade",
+    "Lucent Thrust",
+    "Dazzling Hammer",
+    "Shining Spin",
+    {
+      "name": "Radiant Justice",
+      "offset": 100
+    },
+    {
+      "name": "Effulgent Stance",
+      "offset": 100
+    },
+    "Exit Radiant Forge",
+    "Symbol of Luminance",
+    "Solar Storm",
+    "Helio Rush",
+    "Gleaming Disc",
+    "Swap Weapons",
+    "Symbol of Resolution",
+    "Whirling Wrath",
+    "Leap of Faith",
+    "Binding Blade"
+  ]
+}
