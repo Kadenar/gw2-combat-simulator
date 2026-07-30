@@ -1,2 +1,8 @@
 node_modules/
 .lavish/
+dist/
+_site/
+coverage/
+*.tsbuildinfo
+.DS_Store
+Thumbs.db

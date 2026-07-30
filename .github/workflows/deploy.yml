@@ -31,6 +31,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build and validate static assets
+        run: npm run check
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Build revision-consistent static site
@@ -38,6 +47,7 @@ jobs:
         run: |
           mkdir _site
           git archive HEAD | tar -x -C _site
+          cp -a dist/js/. _site/js/
           node scripts/version-pages-assets.mjs _site "$GITHUB_SHA"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
