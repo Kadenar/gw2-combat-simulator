@@ -14,27 +14,26 @@ function freezeChain(chain) {
  * metadata.
  */
 export function deriveAutoattackChains(skills) {
-  const byId = new Map(skills.map(skill => [skill.id, skill]));
+  const byId = new Map(skills.map((skill) => [skill.id, skill]));
   const chainedIds = new Set(
-    skills.map(skill => skill.nextChainId).filter(id => id != null),
+    skills.map((skill) => skill.nextChainId).filter((id) => id != null),
   );
   const chains = [];
   for (const root of skills) {
     if (
-      root.type !== "Weapon"
-      || root.slot !== "Weapon_1"
-      || root.nextChainId == null
-      || chainedIds.has(root.id)
-    ) continue;
+      root.type !== "Weapon" ||
+      root.slot !== "Weapon_1" ||
+      root.nextChainId == null ||
+      chainedIds.has(root.id)
+    )
+      continue;
     const chain = [];
     const visited = new Set();
     let skill = root;
     while (skill && !visited.has(skill.id)) {
       visited.add(skill.id);
       chain.push(skill.id);
-      skill = skill.nextChainId == null
-        ? null
-        : byId.get(skill.nextChainId);
+      skill = skill.nextChainId == null ? null : byId.get(skill.nextChainId);
     }
     if (chain.length > 1) chains.push(freezeChain(chain));
   }
@@ -58,12 +57,15 @@ export function indexAutoattackChains(chains) {
           `Skill ${skillId} belongs to multiple autoattack chains.`,
         );
       }
-      positions.set(skillId, Object.freeze({
-        root: chain[0],
-        index,
-        step: index + 1,
-        next: chain[index + 1] ?? null,
-      }));
+      positions.set(
+        skillId,
+        Object.freeze({
+          root: chain[0],
+          index,
+          step: index + 1,
+          next: chain[index + 1] ?? null,
+        }),
+      );
     });
   }
   return positions;

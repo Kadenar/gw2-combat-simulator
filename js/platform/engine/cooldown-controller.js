@@ -6,7 +6,7 @@ export function createCooldownController({
   state,
   epsilon = 0.0001,
   rechargeDuration,
-  maximumAmmo = skill => Number(skill.ammo || 0),
+  maximumAmmo = (skill) => Number(skill.ammo || 0),
 }) {
   if (!state?.ammo || !state?.cooldowns) {
     throw new TypeError("Cooldown controller requires scheduler state.");
@@ -15,8 +15,7 @@ export function createCooldownController({
     throw new TypeError("Cooldown controller requires rechargeDuration.");
   }
 
-  const ammoMaximum = skill =>
-    Math.max(0, Number(maximumAmmo(skill) || 0));
+  const ammoMaximum = (skill) => Math.max(0, Number(maximumAmmo(skill) || 0));
 
   const syncAmmoCooldown = (skill, ammo, at) => {
     const activeLockout = Number(state.cooldowns.get(skill.id) || 0);
@@ -41,10 +40,7 @@ export function createCooldownController({
       state.ammo.set(skill.id, {
         charges: maximum,
         maximum,
-        rechargeDuration: Math.max(
-          0,
-          Number(rechargeDuration(skill, at) || 0),
-        ),
+        rechargeDuration: Math.max(0, Number(rechargeDuration(skill, at) || 0)),
         nextRechargeAt: null,
       });
     }
@@ -58,10 +54,7 @@ export function createCooldownController({
   const refreshAmmo = (skill, at) => {
     const ammo = ensureAmmo(skill, at);
     if (!ammo) return null;
-    while (
-      ammo.nextRechargeAt != null
-      && ammo.nextRechargeAt <= at + epsilon
-    ) {
+    while (ammo.nextRechargeAt != null && ammo.nextRechargeAt <= at + epsilon) {
       ammo.charges = Math.min(ammo.maximum, ammo.charges + 1);
       ammo.nextRechargeAt =
         ammo.charges < ammo.maximum
@@ -104,8 +97,8 @@ export function createCooldownController({
     const previous = ammo.nextRechargeAt;
     const missingCharges = Math.max(0, ammo.maximum - ammo.charges);
     const remainingUntilFull =
-      Math.max(0, previous - at)
-      + Math.max(0, missingCharges - 1) * ammo.rechargeDuration;
+      Math.max(0, previous - at) +
+      Math.max(0, missingCharges - 1) * ammo.rechargeDuration;
     const reducedBy = Math.min(requested, remainingUntilFull);
 
     // A depleted ammo skill mirrors its next count recharge into the shared
