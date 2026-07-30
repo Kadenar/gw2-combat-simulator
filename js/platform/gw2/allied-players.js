@@ -6,10 +6,7 @@
 export function gw2AlliedPlayerAssumptions(config = {}) {
   const allies = config.allies || {};
   return Object.freeze({
-    count: Math.max(
-      0,
-      Math.min(4, Math.trunc(Number(allies.count || 0))),
-    ),
+    count: Math.max(0, Math.min(4, Math.trunc(Number(allies.count || 0)))),
     strikesPerSecond: Math.max(
       0,
       Math.min(10, Number(allies.strikesPerSecond || 0)),
@@ -48,6 +45,7 @@ export function gw2AlliedPlayerProcTimeline(
       events.push({ allyIndex, procIndex, at });
     }
   }
-  return events.sort((left, right) =>
-    left.at - right.at || left.allyIndex - right.allyIndex);
+  return events.sort(
+    (left, right) => left.at - right.at || left.allyIndex - right.allyIndex,
+  );
 }

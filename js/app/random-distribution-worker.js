@@ -1,27 +1,6 @@
 import { loadProfessionAppAdapter } from "./profession-registry.js";
 
 /**
- * Inputs for one worker-owned random-distribution batch.
- *
- * @typedef {Object} RandomDistributionWorkerRequest
- * @property {string} professionId Registry ID used to load the app adapter.
- * @property {*[]} rotation Rotation passed to each simulation.
- * @property {Object} baseConfig Base stochastic simulation configuration.
- * @property {number} trials Number of trials assigned to this worker.
- * @property {number} seedStart First seed in this worker's contiguous range.
- */
-
-/**
- * Message accepted from the application shell.
- *
- * @typedef {Object} RandomDistributionWorkerMessage
- * @property {number} requestId Correlation ID used to reject stale responses.
- * @property {RandomDistributionWorkerRequest} request Distribution batch.
- * @property {boolean} [includeSamples=false] Include raw samples for
- * cross-worker aggregation.
- */
-
-/**
  * Calculates one distribution batch through the profession's app adapter.
  *
  * Progress responses have `{ requestId, progress }`. The terminal response has
