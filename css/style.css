@@ -2809,6 +2809,38 @@ header .accent {
     border-radius: 6px;
 }
 
+.rng-distribution-manual {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px;
+    background: var(--bg-card);
+    border-radius: 6px;
+}
+
+.rng-distribution-manual > span {
+    color: var(--text-dim);
+    font-size: 10px;
+}
+
+.rng-distribution-manual button {
+    flex: none;
+    padding: 6px 10px;
+    color: var(--text-bright);
+    font: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    background: color-mix(in srgb, var(--health) 18%, var(--bg-card));
+    border: 1px solid color-mix(in srgb, var(--health) 55%, var(--border));
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.rng-distribution-manual button:hover {
+    background: color-mix(in srgb, var(--health) 28%, var(--bg-card));
+}
+
 .rng-distribution-progress {
     display: grid;
     grid-template-columns: minmax(120px, 1fr) auto;

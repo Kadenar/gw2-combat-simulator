@@ -2030,6 +2030,9 @@ export function renderResults(app) {
             app._skillSortCol = nextState.column;
             app._skillSortDir = nextState.direction;
         },
+        onRunRandomDistribution() {
+            app.runRandomDistribution();
+        },
     });
 }
 

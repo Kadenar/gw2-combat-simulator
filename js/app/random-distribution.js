@@ -1,11 +1,71 @@
-import {
-  SIMULATION_RANDOMNESS_MODES,
-} from "../platform/engine/simulation-random.js";
+import { SIMULATION_RANDOMNESS_MODES } from "../platform/engine/simulation-random.js";
 
+/**
+ * Aggregate DPS statistics for a set of stochastic simulation trials.
+ *
+ * Percentiles use linear interpolation between adjacent sorted samples.
+ *
+ * @typedef {Object} RandomDistributionSummary
+ * @property {number} trials Number of finite DPS samples included.
+ * @property {number} mean Arithmetic mean DPS.
+ * @property {number} p01 First-percentile DPS.
+ * @property {number} p10 Tenth-percentile DPS.
+ * @property {number} p50 Median DPS.
+ * @property {number} p90 Ninetieth-percentile DPS.
+ * @property {number} p99 Ninety-ninth-percentile DPS.
+ * @property {number[]} [samples] Raw DPS samples when explicitly requested.
+ */
+
+/**
+ * Progress reported while calculating a random distribution.
+ *
+ * @typedef {Object} RandomDistributionProgress
+ * @property {number} completed Completed trial count.
+ * @property {number} total Normalized total trial count.
+ * @property {number} percent Completion percentage from 0 through 100.
+ */
+
+/**
+ * Inputs shared by synchronous and worker-backed distribution calculations.
+ *
+ * @typedef {Object} RandomDistributionRequest
+ * @property {*[]} rotation Rotation passed to every simulation.
+ * @property {Object} baseConfig Base simulation configuration.
+ * @property {number} [trials] Requested number of trials.
+ * @property {number} [seedStart] Seed assigned to the first trial.
+ */
+
+/**
+ * Optional distribution output and progress behavior.
+ *
+ * @typedef {Object} RandomDistributionOptions
+ * @property {boolean} [includeSamples=false] Include raw DPS values for
+ * cross-worker aggregation.
+ * @property {(progress: RandomDistributionProgress) => void} [onProgress]
+ * Receives an initial, periodic, and final progress update.
+ */
+
+/** Default number of stochastic trials used by the application. */
 export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;
+
+/** Maximum accepted trial count for one complete distribution. */
 export const MAX_RANDOM_DISTRIBUTION_TRIALS = 10_000;
+
+/** Maximum number of distribution workers used by the application shell. */
 export const MAX_RANDOM_DISTRIBUTION_WORKERS = 4;
 
+/**
+ * Chooses the worker-pool size for a requested trial count.
+ *
+ * The result is capped by the normalized trial count and the application
+ * maximum. When hardware concurrency is known, one thread is left available
+ * for the browser whenever possible.
+ *
+ * @param {number} trialCount Requested number of trials.
+ * @param {number} [hardwareConcurrency=0] Reported logical processor count, or
+ * zero when unavailable.
+ * @returns {number} Worker count, or zero when there are no trials.
+ */
 export function randomDistributionWorkerCount(
   trialCount,
   hardwareConcurrency = 0,
@@ -19,16 +79,22 @@ export function randomDistributionWorkerCount(
   );
   if (!trials) return 0;
   const hardware = Math.trunc(Number(hardwareConcurrency) || 0);
-  const availableWorkers = hardware > 0
-    ? Math.max(1, hardware - 1)
-    : MAX_RANDOM_DISTRIBUTION_WORKERS;
-  return Math.min(
-    trials,
-    MAX_RANDOM_DISTRIBUTION_WORKERS,
-    availableWorkers,
-  );
+  const availableWorkers =
+    hardware > 0 ? Math.max(1, hardware - 1) : MAX_RANDOM_DISTRIBUTION_WORKERS;
+  return Math.min(trials, MAX_RANDOM_DISTRIBUTION_WORKERS, availableWorkers);
 }
 
+/**
+ * Splits trials into balanced batches with contiguous seed ranges.
+ *
+ * Earlier batches receive one extra trial when the work does not divide
+ * evenly. Contiguous seeds keep the sampled outcomes independent of worker
+ * count.
+ *
+ * @param {number} trialCount Requested number of trials.
+ * @param {number} workerCount Requested number of worker batches.
+ * @returns {Array<{trials: number, seedStart: number}>} Ordered worker batches.
+ */
 export function partitionRandomDistributionTrials(trialCount, workerCount) {
   const trials = Math.max(
     0,
@@ -53,6 +119,13 @@ export function partitionRandomDistributionTrials(trialCount, workerCount) {
   });
 }
 
+/**
+ * Clamps a trial count to the supported non-empty distribution range.
+ *
+ * @param {*} value Requested trial count.
+ * @returns {number} Integer from 1 through
+ * `MAX_RANDOM_DISTRIBUTION_TRIALS`.
+ */
 function normalizedTrialCount(value) {
   return Math.max(
     1,
@@ -63,12 +136,18 @@ function normalizedTrialCount(value) {
   );
 }
 
+/**
+ * Calculates a linearly interpolated percentile from sorted samples.
+ *
+ * @param {number[]} sortedValues Finite values sorted in ascending order.
+ * @param {number} probability Quantile probability, clamped from 0 through 1.
+ * @returns {number} Interpolated percentile, or zero for no samples.
+ */
 function percentile(sortedValues, probability) {
   if (!sortedValues.length) return 0;
-  const position = Math.max(
-    0,
-    Math.min(1, Number(probability) || 0),
-  ) * (sortedValues.length - 1);
+  const position =
+    Math.max(0, Math.min(1, Number(probability) || 0)) *
+    (sortedValues.length - 1);
   const lowerIndex = Math.floor(position);
   const upperIndex = Math.ceil(position);
   const lower = sortedValues[lowerIndex];
@@ -76,6 +155,15 @@ function percentile(sortedValues, probability) {
   return lower + (upper - lower) * (position - lowerIndex);
 }
 
+/**
+ * Summarizes finite DPS samples.
+ *
+ * Non-numeric and non-finite values are discarded. An empty input produces a
+ * summary whose counts and statistics are all zero.
+ *
+ * @param {*[]} [values=[]] Candidate DPS samples.
+ * @returns {RandomDistributionSummary} Aggregate distribution statistics.
+ */
 export function summarizeRandomDistribution(values = []) {
   const sorted = values
     .map(Number)
@@ -96,13 +184,27 @@ export function summarizeRandomDistribution(values = []) {
     trials: sorted.length,
     mean: sorted.reduce((sum, value) => sum + value, 0) / sorted.length,
     p01: percentile(sorted, 0.01),
-    p10: percentile(sorted, 0.10),
-    p50: percentile(sorted, 0.50),
-    p90: percentile(sorted, 0.90),
+    p10: percentile(sorted, 0.1),
+    p50: percentile(sorted, 0.5),
+    p90: percentile(sorted, 0.9),
     p99: percentile(sorted, 0.99),
   };
 }
 
+/**
+ * Runs reproducible stochastic simulations and summarizes their DPS.
+ *
+ * Each trial receives stochastic mode and a consecutive internal seed starting
+ * at `seedStart`. Progress is reported at the start, at approximately
+ * two-percent intervals, and after the final trial.
+ *
+ * @param {RandomDistributionRequest} request Distribution inputs.
+ * @param {(rotation: *[], config: Object) => {dps: number}} simulateBuild
+ * Simulation function supplied by the profession runtime.
+ * @param {RandomDistributionOptions} [options={}] Output and progress options.
+ * @returns {RandomDistributionSummary} Summary, optionally including samples.
+ * @throws {TypeError} When `simulateBuild` is not a function.
+ */
 export function calculateRandomDistribution(
   {
     rotation,
@@ -119,11 +221,12 @@ export function calculateRandomDistribution(
   const count = normalizedTrialCount(trials);
   const dpsValues = [];
   const progressInterval = Math.max(1, Math.ceil(count / 50));
-  const reportProgress = completed => onProgress?.({
-    completed,
-    total: count,
-    percent: (completed / count) * 100,
-  });
+  const reportProgress = (completed) =>
+    onProgress?.({
+      completed,
+      total: count,
+      percent: (completed / count) * 100,
+    });
   reportProgress(0);
   for (let index = 0; index < count; index += 1) {
     const result = simulateBuild(rotation, {

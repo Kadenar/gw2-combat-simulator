@@ -29,9 +29,7 @@ function resolveAdapter(adapter) {
  */
 export function createDefaultBuild(adapter) {
   const resolved = resolveAdapter(adapter);
-  return resolved.toApplicationBuild(
-    resolved.profession.createBuildDefaults(),
-  );
+  return resolved.toApplicationBuild(resolved.profession.createBuildDefaults());
 }
 
 /**

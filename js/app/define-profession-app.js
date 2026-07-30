@@ -54,8 +54,7 @@ export function defineProfessionApp({
     rotation: `${profession.id}-rotation.json`,
     eventLog: `${profession.id}-event-log.csv`,
   },
-  resetPrompt =
-    `Reset the ${profession.name} build, skills, and rotation?`,
+  resetPrompt = `Reset the ${profession.name} build, skills, and rotation?`,
   runtime = {},
   isSkillAvailable = defaultIsSkillAvailable,
   defaultOffhand = ({ offHands = [] } = {}) => offHands[0] || "",
@@ -81,8 +80,7 @@ export function defineProfessionApp({
     recalculate: runtimeApi.recalculate,
     runSimulation: runtimeApi.runSimulation,
     modifierContributionRequest: runtimeApi.modifierContributionRequest,
-    calculateModifierContributions:
-      runtimeApi.calculateModifierContributions,
+    calculateModifierContributions: runtimeApi.calculateModifierContributions,
     randomDistributionRequest: runtimeApi.randomDistributionRequest,
     calculateRandomDistribution: runtimeApi.calculateRandomDistribution,
     isSkillAvailable,

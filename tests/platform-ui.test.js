@@ -347,7 +347,7 @@ test("shared results render summaries, totals, contributions, and icons", () => 
   assert.match(container.innerHTML, /contrib-status/);
   assert.match(container.innerHTML, /Recalculating/);
   assert.match(container.innerHTML, /Trait-proc RNG distribution/);
-  assert.match(container.innerHTML, /500 simulated rotations/);
+  assert.match(container.innerHTML, /500 outcomes per run/);
   assert.match(container.innerHTML, /Very unlucky/);
   assert.match(container.innerHTML, /P1 DPS/);
   assert.match(container.innerHTML, /Very lucky/);
@@ -360,6 +360,31 @@ test("shared results render summaries, totals, contributions, and icons", () => 
   assert.deepEqual(resolved, ["High", "Low"]);
 
   assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
+});
+
+test("RNG distribution waits for its manual run button", () => {
+  const runButton = {};
+  const container = {
+    ...inertContainer(),
+    querySelector: selector =>
+      selector === '[data-role="rng-run"]' ? runButton : null,
+  };
+  let runCount = 0;
+  mountRotationResults(container, {
+    metrics: [],
+    randomDistributionRequested: true,
+    randomDistributionTrials: 500,
+  }, {
+    onRunRandomDistribution() {
+      runCount += 1;
+    },
+  });
+
+  assert.match(container.innerHTML, /Run the distribution when the rotation is ready/);
+  assert.match(container.innerHTML, /Run 500 outcomes/);
+  assert.equal(typeof runButton.onclick, "function");
+  runButton.onclick();
+  assert.equal(runCount, 1);
 });
 
 test("RNG distribution renders completed outcomes and percentage progress", () => {
