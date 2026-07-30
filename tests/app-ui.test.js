@@ -257,20 +257,20 @@ test("shared app metadata owns common attributes and target conditions", () => {
 test("shared app and platform helpers are profession neutral", async () => {
   const sources = await Promise.all([
     readFile(
-      new URL("../js/app/simulation/modifier-contributions.js", import.meta.url),
+      new URL("../js/app/simulation/modifier-contributions.ts", import.meta.url),
       "utf8",
     ),
-    readFile(new URL("../js/app/build/persistence.js", import.meta.url), "utf8"),
-    readFile(new URL("../js/app/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../js/app/build/persistence.ts", import.meta.url), "utf8"),
+    readFile(new URL("../js/app/app.ts", import.meta.url), "utf8"),
     readFile(
-      new URL("../js/app/simulation/config.js", import.meta.url),
+      new URL("../js/app/simulation/config.ts", import.meta.url),
       "utf8",
     ),
     readFile(
-      new URL("../js/app/simulation/modifier-contribution-worker.js", import.meta.url),
+      new URL("../js/app/simulation/modifier-contribution-worker.ts", import.meta.url),
       "utf8",
     ),
-    readFile(new URL("../js/platform/ui/rotation-results.js", import.meta.url), "utf8"),
+    readFile(new URL("../js/platform/ui/rotation-results.ts", import.meta.url), "utf8"),
   ]);
   const professionTerms = nativeProfessionRegistry.flatMap((entry) => [
     entry.id,
@@ -344,6 +344,8 @@ test("the generic landing page and profession simulators have separate entries",
       assert.match(source, new RegExp(`data-profession="${entry.id}"`));
       assert.match(source, /js\/app\/app\.js/);
       assert.match(source, /id="rotation-warnings"/);
+      assert.doesNotMatch(source, /id="skill-info-table"/);
+      assert.doesNotMatch(source, /selected-skills-panel/);
     }
   }
 });
@@ -793,6 +795,56 @@ test("Necromancer preset builds keep rotation data separate", async () => {
   assert.equal(power.selectedSkills.Utility2, "Well of Darkness");
 });
 
+test("template preview DPS matches each deterministic saved rotation", async () => {
+  for (const professionId of [
+    "guardian",
+    "mesmer",
+    "necromancer",
+    "revenant",
+  ]) {
+    const manifest = JSON.parse(await readFile(
+      new URL(`../Builds/${professionId}/manifest.json`, import.meta.url),
+      "utf8",
+    ));
+    const adapter = await loadProfessionAppAdapter(professionId);
+
+    for (const section of manifest) {
+      for (const preset of section.presets) {
+        assert.ok(
+          Number.isFinite(preset.benchmarkDps) && preset.benchmarkDps > 0,
+          `${professionId}: ${section.section} ${preset.label}`,
+        );
+        if (!preset.rotation) continue;
+        const savedBuild = JSON.parse(await readFile(
+          new URL(`../${preset.build}`, import.meta.url),
+          "utf8",
+        ));
+        const savedRotation = JSON.parse(await readFile(
+          new URL(`../${preset.rotation}`, import.meta.url),
+          "utf8",
+        ));
+        const build = adapter.toApplicationBuild({
+          ...savedBuild,
+          rotation: savedRotation.rotation ?? savedRotation,
+        });
+        const app = {
+          build,
+          skillByName: adapter.profession.catalog.skillsByName,
+          attributeWeaponSet: 1,
+        };
+
+        adapter.recalculate(app);
+        const result = adapter.runSimulation(app);
+        assert.equal(
+          preset.benchmarkDps,
+          Math.round(result.dps),
+          `${professionId}: ${section.section} ${preset.label}`,
+        );
+      }
+    }
+  }
+});
+
 test("build import and export leave rotation state separate", async () => {
   const adapter = await loadProfessionAppAdapter("mesmer");
   const current = createDefaultBuild(adapter);
@@ -1121,6 +1173,49 @@ test("Engineer weapon swap stays visible as a state-gated kit exit", async () =>
     "https://render.guildwars2.com/file/"
       + "73600241FA662501C5D617719A7B4792F30B2846/2503622.png",
   );
+  assert.equal(
+    resultSkillIcon(engineer, {
+      name: "Mech trait strike",
+      skillId: 63185,
+    }),
+    "https://render.guildwars2.com/file/"
+      + "02DA2C9899B63DE522020824C67D05951F40CA4A/2503679.png",
+  );
+  assert.equal(
+    resultSkillIcon(engineer, {
+      name: "Bloodstone Explosion",
+      sourceId: "relic.bloodstone",
+    }),
+    "https://render.guildwars2.com/file/"
+      + "A7327A7EDB4705EA05261110526D72AFEAF7DAB4/3629397.png",
+  );
+  engineer.results = {
+    ...engineer.results,
+    procSteps: [{
+      type: "trait_proc",
+      skill: "Orbital Command Strike",
+      sourceSkill: "Shrapnel Grenade",
+    }],
+  };
+  assert.equal(
+    resultSkillIcon(engineer, { name: "Orbital Command Strike" }),
+    engineer.skillByName.get("Orbital Command Strike").icon,
+  );
+  assert.notEqual(
+    resultSkillIcon(engineer, { name: "Orbital Command Strike" }),
+    engineer.skillByName.get("Shrapnel Grenade").icon,
+  );
+  assert.equal(
+    resolveProcIcon(engineer, {
+      type: "trait_proc",
+      skill: "Rapacious Strain",
+      sourceSkill: "Flux State",
+      icon: "https://render.guildwars2.com/file/"
+        + "5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png",
+    }),
+    "https://render.guildwars2.com/file/"
+      + "5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png",
+  );
   assert.deepEqual(
     timelineWeaponRows(
       ["Grenade Kit", "Swap Weapons", "Blunderbuss"],
@@ -1141,6 +1236,43 @@ test("Engineer weapon swap stays visible as a state-gated kit exit", async () =>
     assert.equal(flips.get(parent)?.name, flip, parent);
   }
   assert.equal(flips.has("Grenade Kit"), false);
+});
+
+test("Engineer kits register distinct weapon lines in the timeline", async () => {
+  const adapter = await loadProfessionAppAdapter("engineer");
+  const build = createEngineerBuildDefaults();
+  const skillByName = adapter.profession.catalog.skillsByName;
+  const rotation = [
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Flamethrower",
+    "Flame Blast",
+    "Stow Flamethrower",
+    "Blunderbuss",
+  ];
+  const rows = timelineWeaponRows(rotation, {
+    startingWeaponSet: 1,
+    weaponSwapChangesSet: false,
+    weaponLineTransition(entry, current) {
+      const name = typeof entry === "string" ? entry : entry.name;
+      return adapter.profession.ui.timelineWeaponLineTransition({
+        entry: { name },
+        skill: skillByName.get(name),
+        build,
+        ...current,
+      });
+    },
+  });
+
+  assert.deepEqual(
+    rows.map(row => row.weaponLine),
+    [null, "Grenade Kit", "Flamethrower", null],
+  );
+  assert.deepEqual(
+    rows.map(row => row.skills.map(skill => skill.index)),
+    [[0], [1, 2], [3, 4], [5]],
+  );
+  assert.ok(rows.every(row => row.weaponSet === 1));
 });
 
 test("shared palettes reject supplemental effects from weapon and action rows", () => {

@@ -1,0 +1,705 @@
+{
+  "rotation": [
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Embrace the Darkness"
+    },
+    {
+      "name": "Temporal Rift"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Spiritcrush"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Sevenshot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Sevenshot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Spiritcrush"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Temporal Rift"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Embrace the Darkness"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Spiritcrush"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Sevenshot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Sevenshot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Spiritcrush"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Temporal Rift"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Embrace the Darkness"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Spiritcrush"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Sevenshot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Bloodbane Path"
+    },
+    {
+      "name": "Shattershot"
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Sevenshot",
+      "skillId": 41829
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Spiritcrush",
+      "skillId": 43993
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4
+    },
+    {
+      "name": "Bloodbane Path",
+      "skillId": 40175
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Citadel Bombardment",
+      "skillId": 42836
+    },
+    {
+      "name": "Temporal Rift",
+      "skillId": 28409
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4
+    },
+    {
+      "name": "Embrace the Darkness",
+      "skillId": 28287
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Bloodbane Path",
+      "skillId": 40175
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Spiritcrush",
+      "skillId": 43993
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Sevenshot",
+      "skillId": 41829
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Bloodbane Path",
+      "skillId": 40175
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Bloodbane Path",
+      "skillId": 40175
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Sevenshot",
+      "skillId": 41829
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Spiritcrush",
+      "skillId": 43993
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4
+    },
+    {
+      "name": "Bloodbane Path",
+      "skillId": 40175
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Citadel Bombardment",
+      "skillId": 42836
+    },
+    {
+      "name": "Temporal Rift",
+      "skillId": 28409
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Anguish Swipe",
+      "skillId": 26730
+    },
+    {
+      "name": "Manifest Toxin",
+      "skillId": 26666
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Misery Swipe",
+      "skillId": 27066
+    },
+    {
+      "name": "Echoing Eruption",
+      "skillId": 27964
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4
+    },
+    {
+      "name": "Embrace the Darkness",
+      "skillId": 28287
+    },
+    {
+      "name": "Searing Fissure",
+      "skillId": 28357
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Bloodbane Path",
+      "skillId": 40175
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Spiritcrush",
+      "skillId": 43993
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Sevenshot",
+      "skillId": 41829
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Bloodbane Path",
+      "skillId": 40175
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Bloodbane Path",
+      "skillId": 40175
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Sevenshot",
+      "skillId": 41829
+    },
+    {
+      "name": "Spiritcrush",
+      "skillId": 43993
+    },
+    {
+      "name": "Swap Legends",
+      "skillId": -4
+    },
+    {
+      "name": "Citadel Bombardment",
+      "skillId": 42836
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Bloodbane Path",
+      "skillId": 40175
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
+      "name": "Shattershot",
+      "skillId": 40497
+    }
+  ]
+}

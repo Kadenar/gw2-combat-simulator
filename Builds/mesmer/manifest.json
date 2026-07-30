@@ -5,12 +5,14 @@
       {
         "label": "Power",
         "build": "Builds/mesmer/b-power-chronomancer.json",
-        "rotation": "Rotations/mesmer/r-power-chronomancer-bench.json"
+        "rotation": "Rotations/mesmer/r-power-chronomancer-bench.json",
+        "benchmarkDps": 39979
       },
       {
         "label": "Condition",
         "build": "Builds/mesmer/b-condi-chronomancer.json",
-        "rotation": "Rotations/mesmer/r-condi-chronomancer-bench.json"
+        "rotation": "Rotations/mesmer/r-condi-chronomancer-bench.json",
+        "benchmarkDps": 46397
       }
     ]
   },
@@ -20,7 +22,8 @@
       {
         "label": "Condition",
         "build": "Builds/mesmer/b-condi-virtuoso.json",
-        "rotation": "Rotations/mesmer/r-condi-virtuoso-bench.json"
+        "rotation": "Rotations/mesmer/r-condi-virtuoso-bench.json",
+        "benchmarkDps": 39902
       }
     ]
   }

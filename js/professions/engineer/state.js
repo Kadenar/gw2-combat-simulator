@@ -46,6 +46,73 @@ export function selectedMechCommands(traits) {
   ].filter(id => id != null);
 }
 
+export const ENGINEER_MECH_BASE_ATTRIBUTES = Object.freeze({
+  power: 1000,
+  precision: 1,
+  toughness: 1000,
+  vitality: 1000,
+  ferocity: 0,
+  conditionDamage: 0,
+  expertise: 0,
+  concentration: 0,
+  healingPower: 0,
+});
+
+function playerAttribute(stats, key, fallback = 0) {
+  return Math.max(0, Number(stats?.[key] ?? fallback));
+}
+
+/**
+ * Resolves the Jade Mech's independent level-80 attributes from the
+ * mechanist's current attributes and selected frame trait.
+ */
+export function engineerMechAttributes(config = {}, playerStats = {}) {
+  const traits = selectedEngineerTraits(config);
+  const conductive = hasEngineerTrait(
+    traits,
+    TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
+  );
+  const channeling = hasEngineerTrait(
+    traits,
+    TRAIT.MECH_FRAME_CHANNELING_CONDUITS,
+  );
+  const variable = hasEngineerTrait(
+    traits,
+    TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+  );
+  const secondary = (key, improved = false) => Math.min(
+    improved ? 1500 : 750,
+    playerAttribute(playerStats, key) * (improved ? 1 : 0.5),
+  );
+
+  return {
+    power: Math.min(
+      2250,
+      ENGINEER_MECH_BASE_ATTRIBUTES.power
+        + playerAttribute(playerStats, "power", 1000) * 0.5,
+    ),
+    precision: variable
+      ? Math.min(
+        2500,
+        ENGINEER_MECH_BASE_ATTRIBUTES.precision
+          + playerAttribute(playerStats, "precision", 1000),
+      )
+      : ENGINEER_MECH_BASE_ATTRIBUTES.precision,
+    // Mech Fighter is a mandatory Mechanist minor trait.
+    toughness:
+      ENGINEER_MECH_BASE_ATTRIBUTES.toughness
+      + playerAttribute(playerStats, "toughness", 1000),
+    vitality:
+      ENGINEER_MECH_BASE_ATTRIBUTES.vitality
+      + playerAttribute(playerStats, "vitality", 1000),
+    ferocity: secondary("ferocity"),
+    conditionDamage: secondary("conditionDamage", conductive),
+    expertise: secondary("expertise", conductive),
+    concentration: secondary("concentration", channeling),
+    healingPower: secondary("healingPower", channeling),
+  };
+}
+
 export function createEngineerState(config = {}) {
   const traits = selectedEngineerTraits(config);
   const maximumHeat = hasEngineerTrait(
@@ -53,15 +120,29 @@ export function createEngineerState(config = {}) {
     TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
   ) ? 150 : 100;
   const specialization = String(config.specialization || "Core");
+  const initialHeat = Math.min(
+    maximumHeat,
+    Math.max(0, Number(config.initialHeat || 0)),
+  );
   return {
-    heat: Math.min(maximumHeat, Math.max(0, Number(config.initialHeat || 0))),
+    endurance: 100,
+    maximumEndurance: 100,
+    enduranceUpdatedAt: 0,
+    heat: initialHeat,
     maximumHeat,
     heatUpdatedAt: 0,
     photonForgeActive: false,
-    forgeExitedAt: null,
+    forgeExitedAt: initialHeat > 0 ? 0 : null,
     overheated: false,
+    solarFocusingLensStacks: 0,
+    solarFocusingLensReadyAt: 0,
+    solarFocusingLensUntil: 0,
+    enhancedCapacityMightReadyAt: null,
     kitLockoutUntil: 0,
     activeKit: "",
+    fireProjectileFinisherProgress: 0,
+    completedBlastFinisherActivations: {},
+    activeComboFields: [],
     availableFlips: {},
     autoattackChains: {},
     mech: {
@@ -69,6 +150,10 @@ export function createEngineerState(config = {}) {
       active: specialization === "Mechanist",
       commandSkillIds: selectedMechCommands(traits),
       nextAttackAt: specialization === "Mechanist" ? 1 : null,
+      busyUntil: 0,
+      attributes: specialization === "Mechanist"
+        ? engineerMechAttributes(config, config.stats)
+        : null,
     },
     selectedMorphSkillIds: [...(config.selectedMorphSkillIds || [])],
     evolvedUntil: 0,
@@ -87,6 +172,7 @@ export function createEngineerState(config = {}) {
     titanicUntil: 0,
     berserkerUntil: 0,
     activeStances: {},
+    kineticCharges: 0,
     traitProcReadyAt: {},
   };
 }
@@ -96,11 +182,16 @@ export function snapshotEngineerState(state) {
 }
 
 export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
+  "endurance",
+  "maximumEndurance",
   "heat",
   "maximumHeat",
   "photonForgeActive",
   "forgeExitedAt",
   "overheated",
+  "solarFocusingLensStacks",
+  "solarFocusingLensReadyAt",
+  "solarFocusingLensUntil",
   "activeKit",
   "availableFlips",
   "autoattackChains",
@@ -121,6 +212,7 @@ export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
   "titanicUntil",
   "berserkerUntil",
   "activeStances",
+  "kineticCharges",
 ]);
 
 export function projectEngineerEndState({ schedulerState }) {

@@ -1,0 +1,64 @@
+// Engine-facing Guardian contract. Keep browser persistence, rendering, and
+// build-to-simulation orchestration in app/app-definition.js.
+
+import { defineProfession } from "../../platform/engine/profession.js";
+import {
+  createGuardianBuildDefaults,
+  migrateGuardianBuild,
+  validateGuardianBuild,
+} from "./build.js";
+import {
+  guardianAttributeRules,
+  guardianCastModifiers,
+} from "./attribute-rules.js";
+import { guardianCatalog } from "./catalog.js";
+import {
+  guardianCastRules,
+  guardianSchedulerHooks,
+} from "./mechanics/contract.js";
+import {
+  guardianResolverEventHandlers,
+  guardianResolverEventReactions,
+} from "./resolver/event-handlers.js";
+import {
+  createGuardianResolverState,
+  createGuardianState,
+  projectGuardianEndState,
+  snapshotGuardianState,
+} from "./state.js";
+import { guardianUi } from "./ui.js";
+import "./data/trait-coverage.js";
+import type { GuardianSchedulerContext } from "./types.js";
+
+export const guardianProfession = defineProfession({
+  id: "guardian",
+  name: "Guardian",
+  catalog: guardianCatalog,
+  build: {
+    createBuildDefaults: createGuardianBuildDefaults,
+    migrateBuild: migrateGuardianBuild,
+    validateBuild: validateGuardianBuild,
+  },
+  resources: {
+    createProfessionState: createGuardianState,
+    createResolverState: createGuardianResolverState,
+    projectEndState: projectGuardianEndState,
+  },
+  attributeRules: guardianAttributeRules,
+  castRules: {
+    ...guardianCastRules,
+    ...guardianCastModifiers,
+  },
+  schedulerHooks: {
+    ...guardianSchedulerHooks,
+    snapshot: (context: GuardianSchedulerContext) =>
+      snapshotGuardianState(context.state.profession),
+  },
+  resolverHooks: {
+    eventHandlers: guardianResolverEventHandlers,
+    eventReactions: guardianResolverEventReactions,
+  },
+  ui: guardianUi,
+});
+
+export default guardianProfession;

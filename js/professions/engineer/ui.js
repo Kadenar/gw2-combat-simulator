@@ -4,7 +4,11 @@ import {
 import {
   SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
 } from "../../app/simulation/randomness.js";
+import {
+  defaultWeaponSkillMatchesSet,
+} from "../../platform/gw2/weapon-skill-matcher.js";
 import { engineerCatalog } from "./catalog.js";
+import { ENGINEER_SKILL_IDS as ID } from "./data/ids.js";
 import { getActiveTraits } from "./data/traits-data.js";
 import { selectedMechCommands } from "./state.js";
 
@@ -25,6 +29,15 @@ const KIT_ORDER = new Map([
   ["Tool Kit", 4],
   ["Elixir Gun", 5],
   ["Elite Mortar Kit", 6],
+]);
+
+const HEAT_STATE_REASONS = new Set([
+  "enter-forge",
+  "exit-forge",
+  "heat",
+  "overheat",
+  "passive-heat",
+  "thermal-release-valve",
 ]);
 
 const SKILL_SLOT_ORDER = Object.freeze([
@@ -53,6 +66,21 @@ const UNSELECTABLE_SLOT_SKILLS = new Set([
   "Elixir R",
   "Utility Goggles",
   "Rocket Boots",
+]);
+
+const HOLOSMITH_SWORD_SKILL_IDS = new Set([
+  ID.RADIANT_ARC,
+  ID.SUN_RIPPER,
+  ID.SUN_EDGE,
+  ID.GLEAM_SABER,
+  ID.REFRACTION_CUTTER,
+]);
+const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set([
+  ID.RADIANT_ARC_ID_69565,
+  ID.SUN_RIPPER_ID_69906,
+  ID.SUN_EDGE_ID_70514,
+  ID.GLEAM_SABER_ID_70771,
+  ID.REFRACTION_CUTTER_ID_71121,
 ]);
 
 const ENGINEER_ASSUMPTION_CONTROLS = createProfessionAssumptionControls([
@@ -120,6 +148,35 @@ function uniqueSkillsByName(skills) {
 function hasActiveTrait(context, name) {
   return getActiveTraits(context.build?.specializations || [])
     .some(trait => trait.name === name);
+}
+
+export function engineerWeaponSkillMatchesSet(skill, weapons, context = {}) {
+  const holosmith = specializationFrom(context) === "Holosmith";
+  if (
+    (holosmith && NON_HOLOSMITH_SWORD_SKILL_IDS.has(skill?.id))
+    || (!holosmith && HOLOSMITH_SWORD_SKILL_IDS.has(skill?.id))
+  ) {
+    return false;
+  }
+  return defaultWeaponSkillMatchesSet(skill, weapons, context);
+}
+
+function usesToolsTraitline(context) {
+  if (
+    (context.build?.specializations || [])
+      .some(selection => selection?.name === "Tools")
+  ) return true;
+  const selected = new Set([
+    ...(context.config?.traitIds || []),
+    ...(context.config?.selectedTraitIds || []),
+    ...(context.config?.selectedTraits || []),
+  ].map(value => String(value)));
+  return engineerCatalog.traits.some(trait =>
+    trait.specialization === "Tools"
+    && (
+      selected.has(String(trait.id))
+      || selected.has(trait.name)
+    ));
 }
 
 function toolbeltSkillId(parentName) {
@@ -329,17 +386,29 @@ function engineerPaletteSkillAvailability(context = {}, skill) {
   return { available: true, message: "" };
 }
 
-export function engineerEventLogRow(_context, event) {
+export function engineerEventLogRow(context, event) {
   if ([
+    "engineer.combo-field",
+    "engineer.dodge",
+    "engineer.mass-momentum-pulse",
     "engineer.lightning-rod-pulse",
     "engineer.conduit-surge",
     "engineer.electric-artillery",
+    "engineer.radiant-arc-quickness",
+    "engineer.prime-light-beam-field",
   ].includes(event?.type)) {
     // These resolver events materialize skill packets. The ordinary action,
     // damage, and condition rows already present their user-visible effects.
     return null;
   }
   if (event?.type !== "engineer.state") return undefined;
+  const buildSpecializations = Array.isArray(context?.build?.specializations)
+    ? context.build.specializations
+    : [];
+  const isHolosmith = buildSpecializations.some(specialization =>
+    String(specialization?.name || specialization) === "Holosmith")
+    || String(context?.build?.specialization || "") === "Holosmith";
+  if (!isHolosmith || !HEAT_STATE_REASONS.has(event.reason)) return null;
   return {
     type: event.type,
     description:
@@ -353,6 +422,7 @@ export function engineerEventLogRow(_context, event) {
 
 export const engineerUi = Object.freeze({
   assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
+  weaponSkillMatchesSet: engineerWeaponSkillMatchesSet,
   skillBarGroups: engineerSkillBarGroups,
   updateSkillBarSelection: updateEngineerSkillBarSelection,
   paletteGroups: context => {
@@ -397,11 +467,46 @@ export const engineerUi = Object.freeze({
     }
     return groups;
   },
+  timelineWeaponLineTransition: context => {
+    const skill = context.skill;
+    if (skill?.handlerId === "engineer.kit-equip") {
+      return skill.kitName || skill.name;
+    }
+    if (skill?.handlerId === "engineer.photon-forge-enter") {
+      return "Photon Forge";
+    }
+    if (
+      skill?.handlerId === "engineer.kit-stow"
+      || skill?.handlerId === "engineer.photon-forge-exit"
+      || (
+        context.weaponLine
+        && context.entry?.name === "Swap Weapons"
+      )
+    ) {
+      return null;
+    }
+    return undefined;
+  },
   resourceViews: context => {
-    if (specializationFrom(context) !== "Holosmith") return [];
     const state = stateFrom(context);
+    const views = [];
+    const endurance = {
+      id: "endurance",
+      singular: "endurance",
+      plural: "endurance",
+      maximum: Number(state.maximumEndurance || 100),
+      value: Number(state.endurance ?? 100),
+      startMaximum: 100,
+      startValue: 100,
+      canStart: false,
+      displayMode: "bar",
+      shortLabel: "End",
+      statusLabel: "Current",
+    };
+    if (usesToolsTraitline(context)) views.push(endurance);
+    if (specializationFrom(context) !== "Holosmith") return views;
     const maximum = Number(state.maximumHeat || 100);
-    return [{
+    views.push({
       id: "heat",
       singular: "heat",
       plural: "heat",
@@ -415,7 +520,8 @@ export const engineerUi = Object.freeze({
       displayMode: "bar",
       shortLabel: "Heat",
       statusLabel: state.overheated ? "Overheated" : "Current",
-    }];
+    });
+    return views;
   },
   paletteSkillAvailability: engineerPaletteSkillAvailability,
   isSlotSkillSelectable(_context, skill) {

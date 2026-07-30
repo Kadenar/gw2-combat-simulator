@@ -1,0 +1,316 @@
+{
+  "metadata": {
+    "log": "condi holo pp bench.zevtc",
+    "benchmarkDurationSeconds": 91.997,
+    "benchmarkDamage": 3950966,
+    "benchmarkDps": 42946.6830440123
+  },
+  "rotation": [
+    "Bomb Kit",
+    "Big Ol' Bomb",
+    "Fire Bomb",
+    "Grenade Kit",
+    {
+      "name": "Poison Grenade",
+      "interruptMs": 480
+    },
+    {
+      "name": "__combat_start",
+      "offset": 400
+    },
+    "Engage Photon Forge",
+    "Corona Burst",
+    "Photon Blitz",
+    "Prime Light Beam",
+    "Poison Dart Volley",
+    "Static Shot",
+    "Blowtorch",
+    "Fragmentation Shot",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Flamethrower",
+    {
+      "name": "Flame Blast",
+      "interruptMs": 480
+    },
+    "Stoke the Flames",
+    "Air Blast",
+    "Bomb Kit",
+    "Fire Bomb",
+    "Galvanic Bomb",
+    "Grenade Kit",
+    "Freeze Grenade",
+    "Grenade Barrage",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 480
+    },
+    "Stow Grenade Kit",
+    "Poison Dart Volley",
+    "Flamethrower",
+    "Flame Blast",
+    "Napalm",
+    "Grenade Kit",
+    {
+      "name": "Grenade",
+      "interruptMs": 480
+    },
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 480
+    },
+    "Stow Grenade Kit",
+    "Static Shot",
+    "Blowtorch",
+    "Grenade Kit",
+    "Poison Grenade",
+    "Bomb Kit",
+    {
+      "name": "Fire Bomb",
+      "interruptMs": 520
+    },
+    "Flamethrower",
+    {
+      "name": "Flame Blast",
+      "interruptMs": 480
+    },
+    "Stow Flamethrower",
+    "Poison Dart Volley",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Engage Photon Forge",
+    "Corona Burst",
+    "Photon Blitz",
+    "Light Strike—Storm",
+    "Bright Slash—Storm",
+    "Flash Cutter—Storm",
+    "Light Strike—Storm",
+    "Bright Slash—Storm",
+    "Flash Cutter—Storm",
+    "Light Strike—Storm",
+    {
+      "name": "Bright Slash—Storm",
+      "interruptMs": 320
+    },
+    "Corona Burst",
+    "Deactivate Photon Forge",
+    "Static Shot",
+    "Blowtorch",
+    "Poison Dart Volley",
+    "Flamethrower",
+    "Stoke the Flames",
+    {
+      "name": "Flame Blast",
+      "interruptMs": 480
+    },
+    "Bomb Kit",
+    "Fire Bomb",
+    "Galvanic Bomb",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Engage Photon Forge",
+    "Corona Burst",
+    "Photon Blitz",
+    "Grenade Barrage",
+    "Glue Shot",
+    {
+      "name": "Fragmentation Shot",
+      "interruptMs": 320
+    },
+    "Poison Dart Volley",
+    "Fragmentation Shot",
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 480
+    },
+    "Bomb Kit",
+    {
+      "name": "Fire Bomb",
+      "interruptMs": 480
+    },
+    "Flamethrower",
+    {
+      "name": "Flame Blast",
+      "interruptMs": 480
+    },
+    "Stow Flamethrower",
+    "Static Shot",
+    "Blowtorch",
+    "Flamethrower",
+    "Napalm",
+    "Grenade Kit",
+    "Poison Grenade",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 480
+    },
+    "Stow Grenade Kit",
+    "Poison Dart Volley",
+    "Flamethrower",
+    {
+      "name": "Flame Blast",
+      "interruptMs": 480
+    },
+    "Bomb Kit",
+    "Galvanic Bomb",
+    {
+      "name": "Fire Bomb",
+      "interruptMs": 480
+    },
+    "Flamethrower",
+    "Stoke the Flames",
+    "Grenade Kit",
+    "Freeze Grenade",
+    "Shrapnel Grenade",
+    "Bomb Kit",
+    "Big Ol' Bomb",
+    "Stow Bomb Kit",
+    "Fragmentation Shot",
+    "Static Shot",
+    "Blowtorch",
+    "Flamethrower",
+    {
+      "name": "Flame Blast",
+      "interruptMs": 480
+    },
+    "Stow Flamethrower",
+    "Poison Dart Volley",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Bomb Kit",
+    {
+      "name": "Fire Bomb",
+      "interruptMs": 520
+    },
+    "Engage Photon Forge",
+    {
+      "name": "Light Strike—Storm",
+      "interruptMs": 80
+    },
+    "Corona Burst",
+    "Photon Blitz",
+    "Light Strike—Storm",
+    "Bright Slash—Storm",
+    "Flash Cutter—Storm",
+    "Light Strike—Storm",
+    "Bright Slash—Storm",
+    "Flash Cutter—Storm",
+    "Prime Light Beam",
+    {
+      "name": "Corona Burst",
+      "interruptMs": 400
+    },
+    "Deactivate Photon Forge",
+    "Static Shot",
+    "Blowtorch",
+    "Poison Dart Volley",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Poison Grenade",
+    "Bomb Kit",
+    "Fire Bomb",
+    "Galvanic Bomb",
+    "Flamethrower",
+    "Stoke the Flames",
+    "Engage Photon Forge",
+    {
+      "name": "Light Strike—Storm",
+      "interruptMs": 200
+    },
+    "Corona Burst",
+    "Photon Blitz",
+    "Light Strike—Storm",
+    "Bright Slash—Storm",
+    "Grenade Barrage",
+    "Poison Dart Volley",
+    {
+      "name": "Fragmentation Shot",
+      "interruptMs": 520
+    },
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 480
+    },
+    "Bomb Kit",
+    {
+      "name": "Fire Bomb",
+      "interruptMs": 480
+    },
+    "Flamethrower",
+    {
+      "name": "Flame Blast",
+      "interruptMs": 480
+    },
+    "Stow Flamethrower",
+    "Static Shot",
+    "Blowtorch",
+    "Flamethrower",
+    "Napalm",
+    "Grenade Kit",
+    "Freeze Grenade",
+    "Shrapnel Grenade",
+    "Stow Grenade Kit",
+    "Poison Dart Volley",
+    "Flamethrower",
+    {
+      "name": "Flame Blast",
+      "interruptMs": 480
+    },
+    "Bomb Kit",
+    "Galvanic Bomb",
+    {
+      "name": "Fire Bomb",
+      "interruptMs": 480
+    },
+    "Big Ol' Bomb",
+    "Grenade Kit",
+    "Poison Grenade",
+    "Shrapnel Grenade",
+    "Flamethrower",
+    "Stoke the Flames",
+    "Stow Flamethrower",
+    "Fragmentation Shot",
+    "Static Shot",
+    "Blowtorch",
+    "Flamethrower",
+    {
+      "name": "Flame Blast",
+      "interruptMs": 480
+    },
+    "Stow Flamethrower",
+    "Poison Dart Volley",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Bomb Kit",
+    {
+      "name": "Fire Bomb",
+      "interruptMs": 520
+    },
+    "Engage Photon Forge",
+    {
+      "name": "Light Strike—Storm",
+      "interruptMs": 80
+    },
+    "Corona Burst",
+    "Photon Blitz",
+    "Light Strike—Storm",
+    "Bright Slash—Storm",
+    "Flash Cutter—Storm",
+    "Light Strike—Storm",
+    "Bright Slash—Storm",
+    "Flash Cutter—Storm",
+    "Light Strike—Storm",
+    {
+      "name": "Bright Slash—Storm",
+      "interruptMs": 400
+    },
+    "Corona Burst",
+    {
+      "name": "Light Strike—Storm",
+      "interruptMs": 200
+    },
+    "Grenade Barrage"
+  ]
+}

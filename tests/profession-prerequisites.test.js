@@ -309,7 +309,7 @@ test("Engineer and Thief contracts present state and suppress known packet event
       {
         type: "engineer.state",
         at: 1,
-        reason: "forge-entered",
+        reason: "enter-forge",
         state: { heat: 25 },
       },
       { type: "engineer.lightning-rod-pulse", at: 1.1 },
@@ -318,10 +318,12 @@ test("Engineer and Thief contracts present state and suppress known packet event
     ],
     resolvedEvents: [],
     endState: { profession: {} },
-  }, null, engineerProfession);
+  }, {
+    specializations: [{ name: "Holosmith" }],
+  }, engineerProfession);
   assert.equal(engineerRows.length, 1);
   assert.equal(engineerRows[0].type, "engineer.state");
-  assert.match(engineerRows[0].description, /forge-entered.*Heat 25\.0/);
+  assert.match(engineerRows[0].description, /enter-forge.*Heat 25\.0/);
   assert.notEqual(engineerRows[0].type, "diagnostic");
 
   const thiefRows = simulationEventLogRows({

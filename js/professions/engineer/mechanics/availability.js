@@ -1,3 +1,10 @@
+import {
+  ENGINEER_SKILL_IDS as ID,
+  ENGINEER_TRAIT_IDS as TRAIT,
+} from "../data/ids.js";
+import { hasEngineerTrait } from "../state.js";
+import { engineerEnduranceReadyAt } from "./specific/resources.js";
+
 function selectedSkillNames(config) {
   const source = config.selectedSkills || [];
   return new Set(Array.isArray(source) ? source : Object.values(source));
@@ -21,6 +28,17 @@ function expectedChainSkill(context, skill, state) {
 export function engineerCastAvailability(context, skill) {
   const state = context.state.profession;
   const specialization = String(context.config.specialization || "Core");
+  if (skill.id === ID.DODGE) {
+    return Number(state.endurance || 0) + Number(context.epsilon || 0.0001)
+      >= 50
+      ? { ready: true }
+      : deny(
+        skill,
+        "engineer.insufficient-endurance",
+        "requires 50 endurance.",
+        engineerEnduranceReadyAt(context, 50),
+      );
+  }
   if (Number(state.plasmaticLockoutUntil || 0) > context.start) {
     return deny(
       skill,
@@ -76,12 +94,36 @@ export function engineerCastAvailability(context, skill) {
   if (
     skill.specialization
     && skill.type !== "Weapon"
-    && skill.specialization !== specialization
+    && String(skill.specialization).toLowerCase()
+      !== specialization.toLowerCase()
   ) {
     return deny(
       skill,
       "engineer.wrong-specialization",
       `requires ${skill.specialization}.`,
+    );
+  }
+  if (skill.forgeSkill && skill.slot === "Weapon_1") {
+    const stormSelected = hasEngineerTrait(
+      context.config,
+      TRAIT.CRYSTAL_CONFIGURATION_STORM,
+    );
+    const stormSkill = skill.name.endsWith("—Storm");
+    if (stormSelected !== stormSkill) {
+      return deny(
+        skill,
+        "engineer.forge-auto-replaced",
+        stormSelected
+          ? "Crystal Configuration: Storm replaces this attack."
+          : "requires Crystal Configuration: Storm.",
+      );
+    }
+  }
+  if (skill.name === "Function Gyro" && specialization !== "Scrapper") {
+    return deny(
+      skill,
+      "engineer.wrong-specialization",
+      "requires Scrapper.",
     );
   }
   if (skill.kit) {
@@ -93,7 +135,14 @@ export function engineerCastAvailability(context, skill) {
       );
     }
   } else if (skill.forgeSkill) {
-    if (!state.photonForgeActive) {
+    const queuedChainAfterOverheat =
+      skill.slot === "Weapon_1"
+      && state.overheated
+      && Math.abs(
+        context.start - Number(state.forgeExitedAt || 0),
+      ) <= Number(context.epsilon || 0.0001)
+      && expectedChainSkill(context, skill, state);
+    if (!state.photonForgeActive && !queuedChainAfterOverheat) {
       return deny(
         skill,
         "engineer.forge-inactive",

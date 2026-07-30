@@ -4,12 +4,12 @@ import { emitEngineerState } from "./shared.js";
 
 const NEW_GENES_BOONS = Object.freeze({
   "Defensive Protocol: Cleanse": {
-    kind: "protection",
+    kind: "aegis",
     duration: 4,
     stacks: 1,
   },
   "Defensive Protocol: Protect": {
-    kind: "aegis",
+    kind: "protection",
     duration: 4,
     stacks: 1,
   },
@@ -19,8 +19,8 @@ const NEW_GENES_BOONS = Object.freeze({
     stacks: 2,
   },
   "Offensive Protocol: Demolish": {
-    kind: "vigor",
-    duration: 4,
+    kind: "swiftness",
+    duration: 6,
     stacks: 1,
   },
   "Offensive Protocol: Obliterate": {
@@ -29,12 +29,12 @@ const NEW_GENES_BOONS = Object.freeze({
     stacks: 5,
   },
   "Offensive Protocol: Pierce": {
-    kind: "fury",
-    duration: 6,
+    kind: "vigor",
+    duration: 4,
     stacks: 1,
   },
   "Offensive Protocol: Shred": {
-    kind: "swiftness",
+    kind: "fury",
     duration: 6,
     stacks: 1,
   },
@@ -61,12 +61,103 @@ function emitBuff(context, at, {
   });
 }
 
+function emitControl(context, at, {
+  name,
+  controlKind,
+  duration,
+  sourceId,
+}) {
+  context.emit({
+    type: "control",
+    at,
+    source: "engineer",
+    sourceId,
+    actorType: "player",
+    skillName: name,
+    name,
+    controlKind,
+    duration,
+  });
+}
+
 function selectedMorphNames(context) {
   return new Set(
     context.state.profession.selectedMorphSkillIds
       .map(id => context.catalog.skillsById.get(Number(id))?.name)
       .filter(Boolean),
   );
+}
+
+function applyAmalgamStrain(context, morphName, at) {
+  const state = context.state.profession;
+  if (morphName === "Defensive Protocol: Protect") {
+    emitBuff(context, at, {
+      kind: "resistance",
+      duration: 8,
+      sourceId: "engineer.resiliant-strain",
+      name: "Resiliant Strain",
+    });
+  } else if (morphName === "Defensive Protocol: Cleanse") {
+    emitBuff(context, at, {
+      kind: "alacrity",
+      duration: 8,
+      sourceId: "engineer.replicating-strain",
+      name: "Replicating Strain",
+    });
+  } else if (morphName === "Defensive Protocol: Thorns") {
+    state.rapaciousUntil = Math.max(
+      Number(state.rapaciousUntil || 0),
+      at + 8,
+    );
+  } else if (morphName === "Offensive Protocol: Pierce") {
+    emitControl(context, at, {
+      name: "Volatile Strain",
+      controlKind: "stun",
+      duration: 2,
+      sourceId: "engineer.volatile-strain",
+    });
+  } else if (morphName === "Offensive Protocol: Obliterate") {
+    state.titanicUntil = Math.max(
+      Number(state.titanicUntil || 0),
+      at + 8,
+    );
+    emitBuff(context, at, {
+      kind: "might",
+      duration: 8,
+      stacks: 10,
+      sourceId: "engineer.titanic-strain",
+      name: "Titanic Strain",
+    });
+  } else if (morphName === "Offensive Protocol: Shred") {
+    state.predatorUntil = Math.max(
+      Number(state.predatorUntil || 0),
+      at + 8,
+    );
+    emitBuff(context, at, {
+      kind: "quickness",
+      duration: 8,
+      sourceId: "engineer.predator-strain",
+      name: "Predator Strain",
+    });
+    emitBuff(context, at, {
+      kind: "superspeed",
+      duration: 8,
+      sourceId: "engineer.predator-strain",
+      name: "Predator Strain",
+    });
+  } else if (morphName === "Offensive Protocol: Demolish") {
+    state.berserkerUntil = Math.max(
+      Number(state.berserkerUntil || 0),
+      at + 8,
+    );
+    emitBuff(context, at, {
+      kind: "stability",
+      duration: 8,
+      stacks: 5,
+      sourceId: "engineer.berserker-strain",
+      name: "Berserker Strain",
+    });
+  }
 }
 
 function assumesDamagingField(context) {
@@ -118,10 +209,20 @@ export function activateAmalgamMorph(context, skill) {
       name: "Hardened Chrome",
     });
   }
+  if (hasEngineerTrait(context.config, TRAIT.SILVER_LINING)) {
+    applyAmalgamStrain(context, skill.name, at);
+  }
   if (hasEngineerTrait(context.config, TRAIT.NEW_GENES)) {
     emitBuff(context, at, {
       kind: "alacrity",
       duration: 5,
+      sourceId: TRAIT.NEW_GENES,
+      name: "New Genes",
+    });
+    emitBuff(context, at, {
+      kind: "might",
+      duration: 12,
+      stacks: 4,
       sourceId: TRAIT.NEW_GENES,
       name: "New Genes",
     });
@@ -153,54 +254,42 @@ export function activatePlasmaticState(context, skill) {
 }
 
 export function evolveAmalgam(context) {
-  const at = context.effectiveEnd;
+  const castDuration = Math.max(0, context.fullEnd - context.start);
+  // EVTC applies Evolved and all three strain buffs roughly 520 ms into the
+  // measured 640 ms Quickness animation.
+  const at = context.start + castDuration * (520 / 640);
   const state = context.state.profession;
   const selected = selectedMorphNames(context);
   state.evolvedUntil = at + 8;
-  state.rapaciousUntil = selected.has("Defensive Protocol: Thorns")
-    ? at + 8
-    : 0;
-  state.predatorUntil = selected.has("Offensive Protocol: Shred")
-    ? at + 8
-    : 0;
-  state.titanicUntil = selected.has("Offensive Protocol: Obliterate")
-    ? at + 8
-    : 0;
-  state.berserkerUntil = selected.has("Offensive Protocol: Demolish")
-    ? at + 8
-    : 0;
 
-  if (state.predatorUntil > at) {
-    emitBuff(context, at, {
-      kind: "quickness",
-      duration: 8,
-      sourceId: "engineer.predator-strain",
-      name: "Predator Strain",
-    });
-    emitBuff(context, at, {
-      kind: "superspeed",
-      duration: 8,
-      sourceId: "engineer.predator-strain",
-      name: "Predator Strain",
-    });
+  if (!hasEngineerTrait(context.config, TRAIT.SILVER_LINING)) {
+    for (const morphName of selected) {
+      applyAmalgamStrain(context, morphName, at);
+    }
   }
-  if (state.titanicUntil > at) {
-    emitBuff(context, at, {
-      kind: "might",
-      duration: 8,
-      stacks: 10,
-      sourceId: "engineer.titanic-strain",
-      name: "Titanic Strain",
-    });
-  }
-  if (state.berserkerUntil > at) {
-    emitBuff(context, at, {
-      kind: "stability",
-      duration: 8,
-      stacks: 5,
-      sourceId: "engineer.berserker-strain",
-      name: "Berserker Strain",
-    });
+  if (hasEngineerTrait(context.config, TRAIT.SYMBIOTIC_SYNERGY)) {
+    let cooldownReduction = 0;
+    for (const skillId of state.selectedMorphSkillIds) {
+      const id = Number(skillId);
+      const readyAt = Number(context.state.cooldowns.get(id) || 0);
+      if (readyAt > at + context.epsilon) {
+        cooldownReduction += readyAt - at;
+      }
+      context.state.cooldowns.delete(id);
+    }
+    if (cooldownReduction > 0) {
+      context.emit({
+        type: "proc",
+        at,
+        source: "Trait",
+        sourceId: TRAIT.SYMBIOTIC_SYNERGY,
+        actorType: "effect",
+        name: "Symbiotic Synergy",
+        procType: "trait",
+        sourceSkill: "Evolve",
+        cooldownReduction,
+      });
+    }
   }
   if (hasEngineerTrait(context.config, TRAIT.HARDENED_CHROME)) {
     emitBuff(context, at, {
@@ -211,4 +300,67 @@ export function evolveAmalgam(context) {
     });
   }
   emitEngineerState(context, at, "evolve");
+}
+
+export function observeAmalgamScheduledEvent(context, event) {
+  if (
+    context.config.specialization !== "Amalgam"
+    || !hasEngineerTrait(context.config, TRAIT.MERCURIAL_TENDENCIES)
+    || event.type !== "control"
+    || event.actorType === "summon"
+  ) return;
+  context.tasks.schedule({
+    type: "engineer.mercurial-tendencies",
+    at: event.at,
+    ownerId: "engineer.mercurial-tendencies",
+    payload: {
+      sourceSkill: event.skillName || event.name || "",
+    },
+  });
+}
+
+export function handleMercurialTendencies(context, task) {
+  const at = task.at;
+  const state = context.state.profession;
+  const readyAt = Number(
+    state.traitProcReadyAt.mercurialTendencies || 0,
+  );
+  if (readyAt > at + context.epsilon) return;
+
+  let reducedBy = 0;
+  const trackedIds = new Set([
+    ...context.state.cooldowns.keys(),
+    ...context.state.ammo.keys(),
+  ]);
+  for (const skillId of trackedIds) {
+    const skill = context.catalog.skillsById.get(skillId);
+    if (skill?.name !== "Evolve") continue;
+    if (context.state.ammo.has(skillId)) {
+      reducedBy += context.cooldownController.reduceAmmoRecharge(
+        skill,
+        2.5,
+        at,
+      ).reducedBy;
+      continue;
+    }
+    const cooldown = Number(context.state.cooldowns.get(skillId) || 0);
+    if (cooldown <= at + context.epsilon) continue;
+    const reduction = Math.min(2.5, cooldown - at);
+    context.state.cooldowns.set(skillId, cooldown - reduction);
+    reducedBy += reduction;
+  }
+  if (!(reducedBy > 0)) return;
+
+  state.traitProcReadyAt.mercurialTendencies = at + 0.25;
+  context.emit({
+    type: "proc",
+    at,
+    source: "Trait",
+    sourceId: TRAIT.MERCURIAL_TENDENCIES,
+    actorType: "effect",
+    name: "Mercurial Tendencies",
+    procType: "trait",
+    sourceSkill: task.payload?.sourceSkill || "",
+    cooldownReduction: reducedBy,
+  });
 }

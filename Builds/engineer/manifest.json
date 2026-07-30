@@ -5,7 +5,53 @@
       {
         "label": "Condition Alacrity (2 Kit)",
         "build": "Builds/engineer/b-condi-alac-amalgam-2kit.json",
-        "benchmarkDps": 34975,
+        "rotation": "Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
+        "benchmarkDps": 35609,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (3 Kit)",
+        "build": "Builds/engineer/b-condi-amalgam-3kit.json",
+        "rotation": "Rotations/engineer/r-condi-amalgam-3kit-bench.json",
+        "benchmarkDps": 43593,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Holosmith",
+    "presets": [
+      {
+        "label": "Condition (Pistol / Pistol)",
+        "build": "Builds/engineer/b-condi-holosmith-pistol-pistol.json",
+        "rotation": "Rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
+        "benchmarkDps": 42947,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Sword / Pistol)",
+        "build": "Builds/engineer/b-power-holosmith-sword-pistol.json",
+        "rotation": "Rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
+        "benchmarkDps": 41628,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Mechanist",
+    "presets": [
+      {
+        "label": "Power (Sword / Pistol)",
+        "build": "Builds/engineer/b-power-mechanist-sword-pistol.json",
+        "rotation": "Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
+        "benchmarkDps": 41140,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Rifle)",
+        "build": "Builds/engineer/b-power-mechanist-rifle.json",
+        "rotation": "Rotations/engineer/r-power-mechanist-rifle-bench.json",
+        "benchmarkDps": 38474,
         "upToDate": true
       }
     ]

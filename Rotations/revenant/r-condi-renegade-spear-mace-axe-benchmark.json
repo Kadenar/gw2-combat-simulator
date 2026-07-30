@@ -1,0 +1,630 @@
+{
+  "rotation": [
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Embrace the Darkness"
+    },
+    {
+      "name": "Temporal Rift"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Blot"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Temporal Rift"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Darkrazor's Daring",
+      "skillId": 41220
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Embrace the Darkness"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Blot"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Temporal Rift"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Darkrazor's Daring",
+      "skillId": 41220
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Embrace the Darkness"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Blot"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Blitz"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Temporal Rift"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Darkrazor's Daring",
+      "skillId": 41220
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Embrace the Darkness"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Blot"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949
+    },
+    {
+      "name": "Temporal Rift"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Anguish Swipe"
+    },
+    {
+      "name": "Manifest Toxin"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Misery Swipe"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Echoing Eruption"
+    },
+    {
+      "name": "Darkrazor's Daring",
+      "skillId": 41220
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Embrace the Darkness"
+    },
+    {
+      "name": "Searing Fissure"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Blot"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Blitz"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Force"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Raze"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Abyssal Strike"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Weapons"
+    }
+  ]
+}

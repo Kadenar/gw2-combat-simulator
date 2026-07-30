@@ -248,6 +248,7 @@ function assertUiContracts(entry, profession, specialization) {
     "resourceViews",
     "skillBarGroups",
     "targetHealthThresholds",
+    "timelineWeaponLineTransition",
     "timelineSkillIcon",
     "updateSkillBarSelection",
   ]) {

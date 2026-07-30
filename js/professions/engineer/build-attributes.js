@@ -24,6 +24,16 @@ export function applyEngineerBuildAttributeRules(
   if (hasTrait("Thermal Vision")) {
     addAttribute(traitStats, "Expertise", 150);
   }
+  if (
+    hasTrait("Energy Amplifier")
+    && build.assumptions?.regeneration !== false
+  ) {
+    addAttribute(traitStats, "Power", 250);
+    addAttribute(traitStats, "Healing Power", 250);
+  }
+  if (hasTrait("No Scope") && build.assumptions?.fury !== false) {
+    addAttribute(traitStats, "Ferocity", 150);
+  }
   if (hasTrait("Kinetic Accelerators")) {
     addAttribute(
       traitStats,

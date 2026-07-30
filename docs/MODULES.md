@@ -129,7 +129,8 @@ does not depend on the application layer.
 ### Simulation application services (`js/app/simulation/`)
 
 - `config.js` builds the shared GW2 simulation configuration.
-- `randomness.js` owns persisted randomness assumptions.
+- `randomness.js` owns the persisted deterministic/distribution mode shared by
+  every native profession.
 - `random-distribution.js` and `modifier-contributions.js` contain pure
   partitioning and analysis functions.
 - Their `*-runner.js` modules own timers, request IDs, and worker pools instead
@@ -150,6 +151,8 @@ Static Guild Wars 2 game data and lookups live with their owning layer.
   `mechanics/skill-mechanics.js`.
 - [Shared gear data](js/platform/gw2/gear-data.js) contains equipment,
   consumable, infusion, weapon, sigil, rune, and relic lookups.
+- [weapon-strength.js](js/platform/gw2/weapon-strength.js) owns canonical
+  min/max weapon, non-weapon, bundle, transform, and shroud strength profiles.
 - Elementalist-owned data and CSV loading live under
   `js/professions/elementalist/data/`.
 
@@ -261,6 +264,9 @@ critical traits, and Bloodsong.
 - [event-loop.js](js/platform/gw2/resolver/event-loop.js) — ordered dispatch, combat bounds, and target death.
 - [event-handlers.js](js/platform/gw2/resolver/event-handlers.js) — common damage, condition, control, sigil, relic, and weapon-swap behavior.
 - [hit-resolution.js](js/platform/gw2/resolver/hit-resolution.js) — shared strike resolution with injected profession modifiers.
+- [weapon-strength-resolution.js](js/platform/gw2/resolver/weapon-strength-resolution.js)
+  — deterministic midpoint or cached per-activation stochastic strength
+  resolution and diagnostics.
 - [condition-resolution.js](js/platform/gw2/resolver/condition-resolution.js) — shared condition applications and ticks.
 - [Mesmer reactions](js/professions/mesmer/resolver/event-handlers.js) — Ineptitude, critical traits, Bloodsong, and Mesmer custom timeline events.
 

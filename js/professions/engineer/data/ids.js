@@ -28,6 +28,7 @@ function stableNameIndex(entries) {
 
 export const ENGINEER_SKILL_IDS = Object.freeze({
   SWAP_WEAPONS: -3,
+  DODGE: -5,
   STOW_ELITE_MORTAR_KIT: -301,
   ...stableNameIndex([
     ...SKILLS.map(skill => [skill.name, skill.id]),

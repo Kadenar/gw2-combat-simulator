@@ -26,6 +26,13 @@ import {
 } from "../js/professions/engineer/data/ids.js";
 import { guardianProfession } from "../js/professions/guardian/definition.js";
 import {
+  createGuardianBuildDefaults,
+} from "../js/professions/guardian/build.js";
+import { mesmerProfession } from "../js/professions/mesmer/definition.js";
+import {
+  createMesmerBuildDefaults,
+} from "../js/professions/mesmer/build.js";
+import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild,
@@ -34,6 +41,14 @@ import { necromancerProfession } from "../js/professions/necromancer/definition.
 import {
   NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT,
 } from "../js/professions/necromancer/data/ids.js";
+import { revenantProfession } from "../js/professions/revenant/definition.js";
+import {
+  createRevenantBuildDefaults,
+} from "../js/professions/revenant/build.js";
+import { thiefProfession } from "../js/professions/thief/definition.js";
+import {
+  createThiefBuildDefaults,
+} from "../js/professions/thief/build.js";
 
 function minimalAttributeData() {
   return { attributes: {}, activeTraits: [] };
@@ -84,25 +99,39 @@ test("seeded simulation random streams are reproducible and independent", () => 
   );
 });
 
-test("Engineer and Necromancer expose persisted trait proc modes", () => {
-  for (const profession of [engineerProfession, necromancerProfession]) {
+test("every native profession exposes persisted simulation randomness", () => {
+  const professions = [
+    mesmerProfession,
+    guardianProfession,
+    necromancerProfession,
+    engineerProfession,
+    revenantProfession,
+    thiefProfession,
+  ];
+  for (const profession of professions) {
     assert.deepEqual(
       profession.ui.assumptionControls
         .filter((control) => control.section === "simulation")
         .map((control) => control.key),
       ["simulationMode"],
     );
+    assert.equal(
+      profession.ui.assumptionControls.find(
+        control => control.key === "simulationMode",
+      )?.label,
+      "Simulation randomness",
+    );
   }
-  assert.equal(
-    guardianProfession.ui.assumptionControls.some(
-      (control) => control.key === "simulationMode",
-    ),
-    false,
-  );
 
-  const engineer = createEngineerBuildDefaults();
-  const necromancer = createNecromancerBuildDefaults();
-  for (const build of [engineer, necromancer]) {
+  const builds = [
+    createMesmerBuildDefaults(),
+    createGuardianBuildDefaults(),
+    createNecromancerBuildDefaults(),
+    createEngineerBuildDefaults(),
+    createRevenantBuildDefaults(),
+    createThiefBuildDefaults(),
+  ];
+  for (const build of builds) {
     assert.equal(build.assumptions.simulationMode, "deterministic");
     assert.equal(
       Object.hasOwn(build.assumptions, "simulationSeed"),
@@ -110,6 +139,8 @@ test("Engineer and Necromancer expose persisted trait proc modes", () => {
     );
   }
 
+  const engineer = createEngineerBuildDefaults();
+  const necromancer = createNecromancerBuildDefaults();
   const migratedEngineer = migrateEngineerBuild({
     ...engineer,
     assumptions: {

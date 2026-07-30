@@ -31,7 +31,13 @@ npm start
 
 Open `http://127.0.0.1:4173`.
 
-No build step is required.
+`npm start`, `npm test`, and `npm run check` compile the migrated TypeScript
+modules automatically. Run `npm run build` directly when only the browser
+JavaScript output needs to be refreshed. TypeScript is emitted into the ignored
+`dist/js/` tree after a clean build. The development server serves compiled
+modules from there and falls back to `js/` only for JavaScript-only or generated
+modules. Do not commit compiled output or add `.js` siblings beside `.ts`
+sources.
 
 ## Test
 

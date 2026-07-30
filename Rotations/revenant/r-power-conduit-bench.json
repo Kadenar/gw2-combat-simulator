@@ -294,6 +294,10 @@
       "offset": 41
     },
     "Beguiling Haze",
+    {
+      "name": "__wait",
+      "waitMs": 5
+    },
     "Twin Moon Sweep",
     {
       "name": "Swap Legends",

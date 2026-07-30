@@ -12,6 +12,16 @@ import {
   recalculate,
   runSimulation,
 } from "../js/professions/necromancer/app/app-definition.js";
+import {
+  recalculate as recalculateRevenant,
+  runSimulation as runRevenantSimulation,
+} from "../js/professions/revenant/app/app-definition.js";
+import {
+  migrateRevenantBuild,
+} from "../js/professions/revenant/build.js";
+import {
+  revenantCatalog,
+} from "../js/professions/revenant/catalog.js";
 
 test("native build manifests and assets stay profession-scoped", async () => {
   const professions = [
@@ -41,6 +51,18 @@ test("native build manifests and assets stay profession-scoped", async () => {
       ));
       if (build.profession) {
         assert.equal(build.profession, profession);
+      }
+      if (preset.rotation) {
+        assert.match(
+          preset.rotation,
+          new RegExp(`^Rotations/${profession}/[^/]+\\.json$`),
+        );
+        const rotation = JSON.parse(await readFile(
+          new URL(`../${preset.rotation}`, import.meta.url),
+          "utf8",
+        ));
+        assert.ok(Array.isArray(rotation.rotation));
+        assert.ok(rotation.rotation.length > 0);
       }
     }
   }
@@ -179,6 +201,18 @@ test("all Revenant default rotations are surfaced from its own directory", async
 
   assert.deepEqual(presets, [
     {
+      section: "Renegade",
+      label: "Condition (Shortbow / Mace-Axe)",
+      rotation:
+        "Rotations/revenant/r-condi-renegade-shortbow-mace-axe-benchmark.json",
+    },
+    {
+      section: "Renegade",
+      label: "Condition (Mace-Axe / Spear)",
+      rotation:
+        "Rotations/revenant/r-condi-renegade-spear-mace-axe-benchmark.json",
+    },
+    {
       section: "Herald",
       label: "Condition Quickness (Shortbow / Mace-Axe)",
       rotation:
@@ -195,6 +229,12 @@ test("all Revenant default rotations are surfaced from its own directory", async
       label: "Power (Greatsword / SwSw)",
       rotation: "Rotations/revenant/r-power-conduit-bench.json",
     },
+    {
+      section: "Conduit",
+      label: "Condition (Mistfire)",
+      rotation:
+        "Rotations/revenant/r-condi-conduit-mistfire-benchmark.json",
+    },
   ]);
 
   for (const preset of presets) {
@@ -205,6 +245,40 @@ test("all Revenant default rotations are surfaced from its own directory", async
     assert.ok(Array.isArray(savedRotation.rotation));
     assert.ok(savedRotation.rotation.length > 0);
   }
+});
+
+test("Power Conduit preset executes without warnings", async () => {
+  const [savedBuild, savedRotation] = await Promise.all([
+    readFile(
+      new URL(
+        "../Builds/revenant/b-power-conduit.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../Rotations/revenant/r-power-conduit-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+  const build = migrateRevenantBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: revenantCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+
+  recalculateRevenant(app);
+  const result = runRevenantSimulation(app);
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.dps > 0);
 });
 
 test("Guardian and Mesmer rotations are paired with their build templates", async () => {
