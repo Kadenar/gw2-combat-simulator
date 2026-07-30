@@ -22,12 +22,6 @@ export const guardianApp = defineProfessionApp({
   runtime: {
     buildConfigExtras: app => ({
       initialTomePages: app.build.initialTomePages,
-      guardianStaticTraitsApplied: true,
-      guardianStaticTraitWeapon: (
-        Number(app.attributeWeaponSet || 1) === 2
-          ? app.build.alternateWeapons
-          : app.build.weapons
-      )?.[0] || "",
     }),
   },
   defaultOffhand: preferOffhand("Focus"),

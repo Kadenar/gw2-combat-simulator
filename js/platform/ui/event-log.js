@@ -1,13 +1,56 @@
 import { escapeHtml } from "./html.js";
 
-const ORDER = {
+export const EVENT_LOG_ORDER = Object.freeze({
+  combat_start: 5,
   action: 10,
+  cast: 10,
   resource: 30,
   marker: 40,
   proc: 50,
+  trigger: 55,
   damage: 60,
   condition: 70,
-};
+  cast_end: 90,
+});
+
+/**
+ * @typedef {Object} ProfessionEventLogDescriptor
+ * @property {string} type
+ * @property {string} description
+ * @property {string} [className]
+ * @property {number} [order]
+ * @property {string[]} [flags]
+ */
+
+/**
+ * Converts a profession presenter result into the one canonical descriptor
+ * shape used by both platform and application event logs.
+ *
+ * `null` is an explicit suppression. `undefined` means no presenter exists.
+ *
+ * @param {unknown} descriptor
+ * @returns {ProfessionEventLogDescriptor|null|undefined}
+ */
+export function normalizeEventLogDescriptor(descriptor) {
+  if (descriptor === null) return null;
+  if (!descriptor || typeof descriptor !== "object") return undefined;
+  const value = /** @type {Record<string, unknown>} */ (descriptor);
+  const type = String(value.type || "").trim();
+  const description = String(value.description || "").trim();
+  if (!type || !description) return undefined;
+  const flags = Array.isArray(value.flags)
+    ? value.flags.map(String)
+    : [];
+  return {
+    type,
+    description,
+    className: String(value.className || ""),
+    order: Number.isFinite(Number(value.order))
+      ? Number(value.order)
+      : EVENT_LOG_ORDER[type] ?? 80,
+    flags,
+  };
+}
 
 /**
  * Converts canonical events to display rows. Adapters opt event types into the
@@ -17,18 +60,31 @@ export function eventLogRows(result, adapters = {}) {
   const rows = [];
   for (const event of result?.events || []) {
     const adapter = adapters[event.type];
-    const description = adapter?.(event, result)
-      ?? (event.type === "action"
+    const presented = adapter?.(event, result);
+    const fallbackDescription =
+      event.type === "action"
         ? `CAST ${event.skillName || event.name || event.sourceId}`
         : event.type === "proc"
           ? `PROC ${event.name || event.sourceId}`
-          : null);
-    if (!description) continue;
+          : null;
+    const descriptor =
+      typeof presented === "string"
+        ? normalizeEventLogDescriptor({
+            type: event.type,
+            description: presented,
+          })
+        : normalizeEventLogDescriptor(
+            presented === undefined && fallbackDescription
+              ? {
+                  type: event.type,
+                  description: fallbackDescription,
+                }
+              : presented,
+          );
+    if (!descriptor) continue;
     rows.push({
       at: Number(event.at || 0),
-      type: event.type,
-      description,
-      order: ORDER[event.type] ?? 80,
+      ...descriptor,
     });
   }
   return rows
@@ -37,7 +93,7 @@ export function eventLogRows(result, adapters = {}) {
       left.at - right.at
       || left.order - right.order
       || left.description.localeCompare(right.description))
-    .map(({ order, ...row }) => row);
+    .map(({ order, flags, ...row }) => row);
 }
 
 export function eventLogCsv(rows) {

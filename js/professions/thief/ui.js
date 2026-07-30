@@ -155,7 +155,7 @@ function contextualGroups(context) {
   }
   return groups;
 }
-function availability(skill, context = {}) {
+function thiefPaletteSkillAvailability(context = {}, skill) {
   const state = stateFrom(context);
   const stealthed =
     Number(state.stealthUntil || 0) > Number(context.time || 0)
@@ -244,8 +244,8 @@ function availability(skill, context = {}) {
   return { available: true, message: "" };
 }
 
-export function thiefEventLogRow(event) {
-  if (event.type !== "thief.state") return undefined;
+export function thiefEventLogRow(_context, event) {
+  if (event?.type !== "thief.state") return undefined;
   const state = event.state || {};
   const extras = [];
   if (state.malice) extras.push(`Malice ${state.malice}`);
@@ -256,13 +256,15 @@ export function thiefEventLogRow(event) {
     extras.push(`Artifacts ${state.artifactUsesRemaining}`);
   }
   return {
-    at: event.at,
-    type: "Thief",
-    name: event.reason || "State",
-    detail: [
+    type: event.type,
+    description: [
+      event.reason || "State",
       `Initiative ${Number(state.initiative || 0).toFixed(1)}`,
       ...extras,
     ].join(" · "),
+    className: "resource",
+    order: 30,
+    flags: [],
   };
 }
 
@@ -361,11 +363,6 @@ export const thiefUi = Object.freeze({
     }
     return views;
   },
-  isPaletteSkillAvailable(context, skill) {
-    return availability(skill, context).available;
-  },
-  paletteSkillUnavailableMessage(context, skill) {
-    return availability(skill, context).message;
-  },
+  paletteSkillAvailability: thiefPaletteSkillAvailability,
   eventLogRow: thiefEventLogRow,
 });

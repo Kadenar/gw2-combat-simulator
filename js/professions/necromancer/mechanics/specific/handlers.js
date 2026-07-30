@@ -12,8 +12,10 @@ import { necromancerCoreSkillHandlers } from "./core.js";
 import { necromancerConditionSkillHandlers } from "./conditions.js";
 import {
   handleNecromancerChillEvent,
+  handleNecromancerPainfulBond,
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack,
+  handleNecromancerWeaponSpell,
 } from "./events.js";
 import {
   advanceNecromancerState,
@@ -26,6 +28,9 @@ import { necromancerShadeSkillHandlers } from "./shades.js";
 import { necromancerShroudSkillHandlers } from "./shroud.js";
 import { necromancerSpiritSkillHandlers } from "./spirits.js";
 import { necromancerWeaponSkillHandlers } from "./weapons.js";
+import {
+  necromancerWeaponSpellSkillHandlers,
+} from "./weapon-spells.js";
 import { NECROMANCER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import {
   augmentSkillHandler,
@@ -40,8 +45,10 @@ export {
   finalizeNecromancerCast,
   gainNecromancerLifeForce,
   handleNecromancerChillEvent,
+  handleNecromancerPainfulBond,
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack,
+  handleNecromancerWeaponSpell,
 };
 
 export const necromancerSkillHandlers = Object.freeze({
@@ -112,9 +119,16 @@ export const necromancerSkillHandlers = Object.freeze({
   "necromancer.innervate": replaceSkillHandler(
     necromancerSpiritSkillHandlers["necromancer.innervate"],
   ),
+  "necromancer.weapon-spell": replaceSkillHandler(
+    necromancerWeaponSpellSkillHandlers["necromancer.weapon-spell"],
+  ),
   "necromancer.shade": replaceSkillHandler(
     necromancerShadeSkillHandlers["necromancer.shade"],
   ),
+  "necromancer.barrier": augmentSkillHandler(null, {
+    afterEffects:
+      necromancerShadeSkillHandlers["necromancer.barrier"],
+  }),
   "necromancer.elixir": replaceSkillHandler(
     necromancerBlightSkillHandlers["necromancer.elixir"],
   ),
@@ -136,6 +150,10 @@ export const necromancerSkillHandlers = Object.freeze({
   }),
   "necromancer.extirpate": augmentSkillHandler(null, {
     afterEffect: necromancerWeaponSkillHandlers["necromancer.extirpate"],
+  }),
+  "necromancer.oppressive-collapse": augmentSkillHandler(null, {
+    afterEffects:
+      necromancerWeaponSkillHandlers["necromancer.oppressive-collapse"],
   }),
   "necromancer.perforate": augmentSkillHandler(
     necromancerWeaponSkillHandlers["necromancer.perforate"].prepare,

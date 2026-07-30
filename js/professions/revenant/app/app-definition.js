@@ -45,7 +45,6 @@ export const revenantApp = defineProfessionApp({
       startingLegend: app.build.startingLegend,
       selectedDodge: app.build.selectedDodge,
       allianceSide: app.build.allianceSide,
-      revenantBuildAttributesApplied: true,
     }),
   },
   defaultOffhand: preferOffhand("Sword"),

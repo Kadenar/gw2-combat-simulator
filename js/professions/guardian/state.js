@@ -85,8 +85,45 @@ export function createGuardianResolverState(config = {}) {
   return createGuardianState(config);
 }
 
+export const GUARDIAN_PUBLIC_END_STATE_KEYS = Object.freeze([
+  "justiceArmed",
+  "justiceActiveArmed",
+  "justiceHitCount",
+  "justiceBurns",
+  "justiceActiveBurns",
+  "justicePassiveBurns",
+  "virtueReadyAt",
+  "autoattackChains",
+  "availableFlips",
+  "activeTome",
+  "tomePages",
+  "maximumTomePages",
+  "tomePageInterval",
+  "nextTomePageAt",
+  "ashesCharges",
+  "radiantForge",
+  "radiantForgeEndsAt",
+  "radiantWeapon",
+  "radiantWeaponsUsed",
+  "empoweredArmamentsUntil",
+  "piercingStanceUntil",
+  "lightAuraUntil",
+  "radiantJusticeArmed",
+  "radiantCourageSwordArmed",
+  "radiantCourageShieldArmed",
+  "symbolicAvengerStacks",
+  "symbolicAvengerUntil",
+  "zealotsResolutionReadyAt",
+  "resolutionUntil",
+  "effulgentActiveUntil",
+  "effulgentStacks",
+  "spearIlluminatedArmed",
+  "spearIlluminatedUntil",
+  "spearLuminanceUntil",
+]);
+
 export function projectGuardianEndState({ schedulerState, resolverState }) {
-  const scheduler = structuredClone(schedulerState.profession);
+  const state = { ...schedulerState.profession };
   const resolver = resolverState || {};
   // Scheduler state owns castability and resources. These values are produced
   // only while resolving chronological damage and condition events.
@@ -109,7 +146,12 @@ export function projectGuardianEndState({ schedulerState, resolverState }) {
     "effulgentStacks",
   ]) {
     if (Object.hasOwn(resolver, key))
-      scheduler[key] = structuredClone(resolver[key]);
+      state[key] = resolver[key];
   }
-  return scheduler;
+  return Object.fromEntries(
+    GUARDIAN_PUBLIC_END_STATE_KEYS.map((key) => [
+      key,
+      structuredClone(state[key]),
+    ]),
+  );
 }

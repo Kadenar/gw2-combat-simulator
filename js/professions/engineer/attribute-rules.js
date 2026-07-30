@@ -5,6 +5,9 @@ import {
   createModifierHooks,
   MODIFIER_TARGET,
 } from "../../platform/gw2/modifier-rules.js";
+import {
+  professionStaticRulesApplied,
+} from "../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../platform/gw2/trait-state.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "./data/ids.js";
 
@@ -232,8 +235,9 @@ const engineerModifierHooks = createModifierHooks({
 
 function modifyEngineerAttributes(context, attributes) {
   const modified = { ...attributes };
-  const buildAttributesApplied =
-    context.config?.engineerBuildAttributesApplied === true;
+  const buildAttributesApplied = professionStaticRulesApplied(
+    context.config,
+  );
   if (
     hasTrait(context, TRAIT.CHEMICAL_ROUNDS)
     && !buildAttributesApplied

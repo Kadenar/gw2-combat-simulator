@@ -13,6 +13,7 @@ import { skillBreakdownRows } from "../js/platform/ui/result-tables.js";
 import {
   buildChartSeries,
   formatResourceValue,
+  simulationEventLogRows,
   weaponSkills,
 } from "../js/app/rotation-ui.js";
 import {
@@ -34,11 +35,20 @@ import {
   NECROMANCER_QUICKNESS_CAST_TIMES_MS,
 } from "../js/professions/necromancer/mechanics/skill-mechanics.js";
 import {
+  NECROMANCER_HANDLER_MECHANICS,
+} from "../js/professions/necromancer/mechanics/handler-mechanics.js";
+import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../js/professions/necromancer/data/ids.js";
 import {
+  actualNecromancerLifeForceCost,
+  normalizedNecromancerLifeForceCost,
+} from "../js/professions/necromancer/state.js";
+import {
+  calculateModifierContributions,
   modifierCandidates,
+  modifierContributionRequest,
   recalculate,
   runSimulation,
 } from "../js/professions/necromancer/app/app-definition.js";
@@ -121,14 +131,14 @@ test("measured Quickness cast times remain exact", () => {
     [ID.RENDING_CURSE, 600],
     [ID.BLOOD_IS_POWER, 880],
     [ID.PLAGUELANDS, 920],
-    [ID.PUTRID_CURSE, 920],
+    [ID.PUTRID_CURSE, 600],
     [ID.DEATHLY_SWARM, 480],
     [ID.ENFEEBLING_BLOOD, 840],
     [ID.DEATH_SPIRAL, 720],
     [ID.ELIXIR_OF_PROMISE, 680],
     [ID.ELIXIR_OF_ANGUISH, 680],
     [ID.WEEPING_SHOTS, 840],
-    [ID.VICIOUS_SHOT, 560],
+    [ID.VICIOUS_SHOT, 600],
     [ID.DARK_BARRAGE, 920],
     [ID.VORACIOUS_ARC, 840],
     [ID.DEVOURING_CUT, 480],
@@ -182,6 +192,12 @@ test("measured Quickness cast times remain exact", () => {
     [ID.SIGNET_OF_VAMPIRISM, 880],
     [ID.SPECTRAL_GRASP, 600],
     [ID.FEAST_OF_CORRUPTION, 600],
+    [ID.PRESERVATION, 480],
+    [ID.NIGHTMARE_WEAPON, 240],
+    [ID.ANGUISH, 560],
+    [ID.WANDERLUST, 760],
+    [ID.SPLINTER_WEAPON, 240],
+    [ID.ESSENCE_BLAST, 600],
   ]);
 
   assert.deepEqual(
@@ -196,6 +212,86 @@ test("measured Quickness cast times remain exact", () => {
     assert.equal(skill.quicknessCastTimeMs, quicknessCastTimeMs, skill.name);
     assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5, skill.name);
   }
+});
+
+test("Signet of Spite follows its live passive and active profile", () => {
+  const withSignet = simulate("Core", [
+    "Rending Claws",
+    "Death Shroud",
+    "Life Blast",
+  ], {
+    initialResource: 100,
+    primaryWeapon: "Axe",
+    selectedSkills: ["Signet of Spite"],
+  });
+  const withoutSignet = simulate("Core", [
+    "Rending Claws",
+    "Death Shroud",
+    "Life Blast",
+  ], {
+    initialResource: 100,
+    primaryWeapon: "Axe",
+    selectedSkills: ["Blood Is Power"],
+  });
+  const active = simulate("Core", [
+    "Signet of Spite",
+    "Rending Claws",
+  ], {
+    boons: { quickness: true },
+    primaryWeapon: "Axe",
+    selectedSkills: ["Signet of Spite"],
+  });
+  const damage = (result, name) =>
+    result.resolvedEvents.find(event =>
+      event.type === "damage" && event.name === name)?.damage;
+  const signetEvents = active.events.filter(event =>
+    event.skillId === ID.SIGNET_OF_SPITE);
+  const conditions = signetEvents
+    .filter(event => event.type === "condition")
+    .map(event => [
+      event.condition,
+      event.stacks,
+      event.duration,
+    ]);
+
+  assert.ok(
+    damage(withSignet, "Rending Claws")
+      > damage(withoutSignet, "Rending Claws"),
+  );
+  assert.equal(
+    damage(withSignet, "Life Blast"),
+    damage(withoutSignet, "Life Blast"),
+  );
+  assert.equal(
+    damage(active, "Rending Claws"),
+    damage(withoutSignet, "Rending Claws"),
+  );
+  assert.equal(active.steps[0].fullCastMs, 880);
+  assert.equal(
+    necromancerCatalog.skillsById.get(ID.SIGNET_OF_SPITE).cooldown,
+    40,
+  );
+  assert.equal(
+    signetEvents.find(event => event.type === "damage")?.coefficient,
+    1,
+  );
+  assert.deepEqual(conditions, [
+    ["Bleeding", 2, 10],
+    ["Poisoned", 2, 10],
+    ["Torment", 2, 6],
+    ["Crippled", 1, 10],
+    ["Weakness", 1, 10],
+  ]);
+  assert.equal(
+    signetEvents.find(event => event.type === "blind")?.duration,
+    5,
+  );
+  assert.deepEqual(
+    signetEvents
+      .filter(event => event.kind === "target-vulnerability")
+      .map(event => [event.stacks, event.duration]),
+    [[5, 10]],
+  );
 });
 
 test("interrupt-safe Necromancer attacks retain their committed packets", () => {
@@ -592,8 +688,153 @@ test("Scourge shades use ammo and shade skills spend life force", () => {
   assert.equal(ammo.endState.profession.lifeForce, 100);
   assert.equal(ammo.steps[3].start, 15720);
   assert.deepEqual(ammo.warnings, []);
-  assert.equal(cost.endState.profession.lifeForce, 9);
+  assert.ok(
+    Math.abs(
+      cost.endState.profession.lifeForce
+      - (
+        30
+        - normalizedNecromancerLifeForceCost(
+          cost.endState.profession,
+          21,
+        )
+      ),
+    ) < 1e-12,
+  );
   assert.ok(cost.conditionDamage > 0);
+});
+
+test("Scourge shade costs and packets use their fixed PvE values", () => {
+  const shade = simulate("Scourge", [
+    "Manifest Sand Shade",
+    "Desert Shroud",
+    { type: "wait", durationMs: 6100 },
+  ], { initialResource: 100 });
+  const manifest = necromancerCatalog.skillsById.get(ID.MANIFEST_SAND_SHADE);
+  const strikes = shade.resolvedEvents.filter(event =>
+    event.type === "damage"
+    && event.skillId === ID.DESERT_SHROUD
+    && event.name === "Desert Shroud");
+  const torment = shade.resolvedEvents.filter(event =>
+    event.type === "condition"
+    && event.skillId === ID.DESERT_SHROUD
+    && event.duration === 5);
+
+  assert.deepEqual(
+    [
+      ID.NEFARIOUS_FAVOR,
+      ID.SAND_CASCADE,
+      ID.GARISH_PILLAR,
+      ID.DESERT_SHROUD,
+      ID.SANDSTORM_SHROUD,
+    ].map(skillId => Math.round(actualNecromancerLifeForceCost(
+      necromancerCatalog.skillsById.get(skillId).lifeForceCost,
+    ))),
+    [1935, 2487, 3685, 4606, 3224],
+  );
+  assert.equal(manifest.ammo, 3);
+  assert.equal(manifest.ammoRecharge, 15);
+  assert.ok(
+    Math.abs(
+      strikes.reduce((sum, event) => sum + event.coefficient, 0) - 3.15,
+    ) < 1e-12,
+  );
+  assert.equal(strikes.length, 7);
+  assert.equal(torment.length, 7);
+  assert.equal(torment.every(event =>
+    event.stacks === 1 && event.duration === 5), true);
+  assert.equal(
+    NECROMANCER_HANDLER_MECHANICS.shade.manifest.coefficient,
+    0.666,
+  );
+  assert.deepEqual(
+    NECROMANCER_HANDLER_MECHANICS.shade.manifest.condition,
+    ["Torment", 1, 2],
+  );
+});
+
+test("Scourge barrier, shroud, and greater-shade traits trigger precisely", () => {
+  const barrier = simulate("Scourge", [
+    "Manifest Sand Shade",
+    "Sand Cascade",
+    "Sand Flare",
+  ], {
+    initialResource: 100,
+    selectedSkills: ["Sand Flare"],
+    selectedTraitIds: [
+      TRAIT.ABRASIVE_GRIT,
+      TRAIT.DESERT_EMPOWERMENT,
+    ],
+  });
+  const greaterShade = simulate("Scourge", [
+    "Manifest Sand Shade",
+    "Manifest Sand Shade",
+    { type: "wait", durationMs: 8100 },
+  ], {
+    selectedTraitIds: [TRAIT.SAND_SAVANT],
+  });
+  const sandstorm = simulate("Scourge", [
+    "Sandstorm Shroud",
+    { type: "wait", durationMs: 4100 },
+  ], {
+    initialResource: 100,
+    selectedTraitIds: [
+      TRAIT.HERALD_OF_SORROW,
+      TRAIT.SOUL_BARBS,
+    ],
+  });
+  const buffs = (result, kind) =>
+    result.events.filter(event => event.type === "buff" && event.kind === kind);
+  const sandstormTorment = sandstorm.resolvedEvents.find(event =>
+    event.type === "condition"
+    && event.skillId === ID.SANDSTORM_SHROUD
+    && event.condition === "Torment"
+    && event.stacks === 6);
+
+  assert.equal(buffs(barrier, "might").length, 3);
+  assert.equal(buffs(barrier, "might").every(event =>
+    event.stacks === 2 && event.duration === 6), true);
+  assert.equal(buffs(barrier, "alacrity").length, 3);
+  assert.equal(buffs(barrier, "alacrity").every(event =>
+    event.duration === 1.5), true);
+  assert.equal(greaterShade.endState.profession.shades.length, 0);
+  assert.equal(greaterShade.steps[1].start, 19_470);
+  assert.equal(sandstormTorment?.duration, 5);
+  assert.equal(sandstormTorment?.at, 3.5);
+  assert.equal(
+    sandstorm.resolvedEvents.find(event =>
+      event.type === "damage"
+      && event.skillId === ID.SANDSTORM_SHROUD
+      && event.name === "Sandstorm Shroud")?.coefficient,
+    3,
+  );
+  assert.deepEqual(
+    buffs(sandstorm, "protection").map(event => [event.at, event.duration]),
+    [[0, 1.5], [1, 1.5], [2, 1.5], [3.5, 3]],
+  );
+  assert.deepEqual(
+    buffs(sandstorm, "necromancer-soul-barbs")
+      .map(event => event.duration),
+    [15],
+  );
+});
+
+test("Lingering Curse increases scepter base duration beyond the stat cap", () => {
+  const config = {
+    primaryWeapon: "Scepter",
+    stats: { expertise: 1500 },
+  };
+  const base = simulate("Core", ["Blood Curse"], config);
+  const lingering = simulate("Core", ["Blood Curse"], {
+    ...config,
+    selectedTraitIds: [TRAIT.LINGERING_CURSE],
+  });
+  const bleedingDuration = result => result.resolvedEvents.find(event =>
+    event.type === "condition"
+    && event.skillId === ID.BLOOD_CURSE
+    && event.condition === "Bleeding")?.effectiveDuration;
+
+  assert.equal(bleedingDuration(base), 9);
+  assert.equal(bleedingDuration(lingering), 13.5);
 });
 
 test("Harbinger Shroud generates and consumes expiring blight", () => {
@@ -655,7 +896,9 @@ test("shroud strikes use their fixed or equipped weapon strengths", () => {
     "Ritualist's Shroud",
     "Essence Blast",
     "Anguish",
+    { type: "wait", durationMs: 1200 },
     "Summon Spirits",
+    { type: "wait", durationMs: 2000 },
   ], {
     initialResource: 100,
     primaryWeapon: "Pistol",
@@ -676,7 +919,10 @@ test("shroud strikes use their fixed or equipped weapon strengths", () => {
   );
   assert.equal(damage(ritualist, "Essence Blast").skillWeapon, "Scepter");
   assert.equal(damage(ritualist, "Anguish").skillWeapon, "Unequipped");
-  assert.equal(damage(ritualist, "Summon Spirits").skillWeapon, "Hammer");
+  assert.equal(
+    damage(ritualist, "Summon Spirits").skillWeapon,
+    "Unequipped",
+  );
 });
 
 test("Harbinger shroud attacks use their Blight thresholds and coefficients", () => {
@@ -1471,6 +1717,210 @@ test("minion summons persist, attack, and unlock their command", () => {
   assert.match(invalid.warnings.join(" "), /Rigor Mortis is unavailable/);
 });
 
+test("unequipped Necromancer slot skills cannot execute", () => {
+  const denied = simulate("Core", ["Summon Bone Minions"], {
+    selectedSkills: ["Signet of Spite"],
+  });
+  const equipped = simulate("Core", ["Summon Bone Minions"], {
+    selectedSkills: ["Summon Bone Minions"],
+  });
+
+  assert.match(denied.warnings.join(" "), /skill is not equipped/);
+  assert.equal(
+    denied.resolvedEvents.some(event =>
+      event.skillName === "Summon Bone Minions — Minion Attack"),
+    false,
+  );
+  assert.equal(equipped.warnings.length, 0);
+  assert.equal(
+    equipped.endState.profession.activeMinions["bone-minion"],
+    2,
+  );
+});
+
+test("persistent minion summons cannot recharge until their minions die", () => {
+  for (const summon of [
+    "Summon Bone Fiend",
+    "Summon Shadow Fiend",
+    "Summon Flesh Golem",
+  ]) {
+    const result = simulate("Core", [
+      summon,
+      { type: "wait", durationMs: 60_000 },
+      summon,
+    ], {
+      selectedSkills: [summon],
+    });
+
+    assert.equal(
+      result.steps.filter(step => step.skill === summon && !step.invalid)
+        .length,
+      1,
+      summon,
+    );
+    assert.match(
+      result.warnings.join(" "),
+      /summoned minion is still alive/,
+      summon,
+    );
+    assert.equal(result.endState.cooldowns[summon], undefined, summon);
+    assert.equal(
+      necromancerProfession.ui.isPaletteSkillAvailable(
+        { professionState: result.endState.profession },
+        necromancerCatalog.skillsByName.get(summon),
+      ),
+      false,
+      summon,
+    );
+  }
+});
+
+test("bone minion recharge starts after both minions are destroyed", () => {
+  const result = simulate("Core", [
+    "Summon Bone Minions",
+    "Putrid Explosion",
+    "Putrid Explosion",
+    "Summon Bone Minions",
+  ], {
+    selectedSkills: ["Summon Bone Minions"],
+  });
+  const summons = result.steps.filter(step =>
+    step.skill === "Summon Bone Minions" && !step.invalid);
+  const explosions = result.steps.filter(step =>
+    step.skill === "Putrid Explosion" && !step.invalid);
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(explosions.length, 2);
+  assert.equal(summons.length, 2);
+  assert.equal(explosions[1].start, 2000);
+  assert.equal(summons[1].start, 18_500);
+  assert.equal(
+    result.endState.profession.activeMinions["bone-minion"],
+    2,
+  );
+});
+
+test("minion attacks use their canonical cadence, coefficients, and icons", () => {
+  const bloodFiend = simulate("Core", [
+    "Summon Blood Fiend",
+    { type: "wait", durationMs: 6500 },
+  ], {
+    selectedSkills: ["Summon Blood Fiend"],
+  });
+  const fleshGolem = simulate("Core", [
+    "Summon Flesh Golem",
+    { type: "wait", durationMs: 6500 },
+  ], {
+    selectedSkills: ["Summon Flesh Golem"],
+  });
+  const bloodAttacks = bloodFiend.resolvedEvents.filter(event =>
+    event.type === "damage"
+    && event.skillName === "Summon Blood Fiend — Minion Attack");
+  const golemAttacks = fleshGolem.resolvedEvents.filter(event =>
+    event.type === "damage"
+    && event.parentSkillName === "Summon Flesh Golem");
+  const golemIcon =
+    "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png";
+
+  assert.ok(bloodAttacks.length >= 2);
+  assert.equal(bloodAttacks.every(event => event.coefficient === 0.065), true);
+  assert.ok(Math.abs(bloodAttacks[1].at - bloodAttacks[0].at - 3.1) < 1e-12);
+  assert.deepEqual(
+    golemAttacks.slice(0, 3).map(event => [
+      event.skillId,
+      event.skillName,
+      event.coefficient,
+      event.weaponStrength,
+      event.icon,
+    ]),
+    [
+      [3653, "Slash", 0.18, 900, golemIcon],
+      [3654, "Slash", 0.18, 900, golemIcon],
+      [3655, "Fist", 0.29, 931, golemIcon],
+    ],
+  );
+});
+
+test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
+  const summonOnly = simulate("Core", ["Summon Shadow Fiend"], {
+    initialResource: 0,
+    selectedSkills: ["Summon Shadow Fiend"],
+  });
+  const result = simulate("Core", [
+    "Summon Shadow Fiend",
+    "Haunt",
+    { type: "wait", durationMs: 4500 },
+  ], {
+    initialResource: 0,
+    selectedSkills: ["Summon Shadow Fiend"],
+  });
+  const haunt = result.resolvedEvents.find(event =>
+    event.type === "damage" && event.skillId === ID.HAUNT);
+  const slash = result.resolvedEvents.find(event =>
+    event.type === "damage" && event.skillId === 3642);
+  const blind = result.events.find(event =>
+    event.type === "blind" && event.skillId === ID.HAUNT);
+  const conditionDuration = condition =>
+    result.resolvedEvents.find(event =>
+      event.type === "condition"
+      && event.skillId === ID.HAUNT
+      && event.condition === condition)?.duration;
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(haunt.coefficient, 0.4);
+  assert.equal(haunt.summonDamagePerCoefficient, 1750);
+  assert.equal(haunt.summonBasePower, 1700);
+  assert.equal(haunt.summonCriticalChance, 0.05);
+  assert.equal(haunt.summonCriticalDamage, 1.5);
+  assert.equal(slash.skillName, "Slash");
+  assert.equal(slash.parentSkillName, "Summon Shadow Fiend");
+  assert.equal(slash.coefficient, 0.3);
+  assert.equal(slash.summonDamagePerCoefficient, 1750);
+  assert.equal(slash.summonBasePower, 1700);
+  assert.equal(slash.weaponStrength, undefined);
+  assert.equal(
+    haunt.at - result.events.find(event =>
+      event.type === "action" && event.skillId === ID.HAUNT)?.at,
+    2,
+  );
+  assert.equal(blind.duration, 5);
+  assert.equal(conditionDuration("Chilled"), 3);
+  assert.equal(conditionDuration("Weakness"), 5);
+  assert.equal(
+    result.endState.profession.lifeForce
+      - summonOnly.endState.profession.lifeForce,
+    10,
+  );
+});
+
+test("Sinister Shroud reduces shroud-skill recharge by fifteen percent", () => {
+  const rotation = [
+    "Ritualist's Shroud",
+    "Anguish",
+    "Anguish",
+  ];
+  const base = simulate("Ritualist", rotation);
+  const sinister = simulate("Ritualist", rotation, {
+    selectedTraitIds: [TRAIT.SINISTER_SHROUD],
+  });
+  const anguishActions = result => result.events.filter(event =>
+    event.type === "action" && event.skillName === "Anguish");
+
+  assert.deepEqual(
+    anguishActions(base).map(event => event.rechargeReadyAt),
+    [7.84, 15.68],
+  );
+  assert.deepEqual(
+    anguishActions(sinister).map(event => event.rechargeReadyAt),
+    [6.79, 13.58],
+  );
+  assert.equal(
+    base.steps.filter(step => step.skill === "Anguish")[1].start
+      - sinister.steps.filter(step => step.skill === "Anguish")[1].start,
+    1050,
+  );
+});
+
 test("Reaper traits reduce shroud cooldowns and ignore minion critical hits", () => {
   const rotation = [
     "Reaper's Shroud",
@@ -1508,7 +1958,7 @@ test("Reaper traits reduce shroud cooldowns and ignore minion critical hits", ()
   assert.ok(novaProcs.length > 0);
   assert.equal(
     novaProcs.some(step =>
-      step.sourceSkill === "Summon Flesh Golem â€” Minion Attack"),
+      step.sourceSkill === "Summon Flesh Golem — Minion Attack"),
     false,
   );
 });
@@ -1542,7 +1992,7 @@ test("Ritualist spirits attack, empower Essence Blast, and innervate", () => {
     "Ritualist's Shroud",
     "Anguish",
     "Exit Ritualist's Shroud",
-    { type: "wait", durationMs: 4000 },
+    { type: "wait", durationMs: 8000 },
   ], {
     initialResource: 100,
     selectedTraitIds: [TRAIT.LINGERING_SPIRITS],
@@ -1556,7 +2006,173 @@ test("Ritualist spirits attack, empower Essence Blast, and innervate", () => {
   assert.ok(lingering.endState.profession.lifeForce < 90);
   assert.ok(
     lingering.breakdown.some(entry =>
-      entry.name === "Anguish — Spirit Attack"),
+      entry.name === "Anguish Autoattack"),
+  );
+});
+
+test("Ritualist autoattacks and Painful Bond carry their source icons", () => {
+  const anguish = simulate("Ritualist", [
+    "Ritualist's Shroud",
+    "Anguish",
+    { type: "wait", durationMs: 8000 },
+  ], {
+    initialResource: 100,
+  });
+  const wanderlust = simulate("Ritualist", [
+    "Ritualist's Shroud",
+    "Wanderlust",
+    { type: "wait", durationMs: 8000 },
+  ], {
+    initialResource: 100,
+  });
+  const anguishIcon = necromancerCatalog.skillsById.get(ID.ANGUISH).icon;
+  const wanderlustIcon =
+    necromancerCatalog.skillsById.get(ID.WANDERLUST).icon;
+  const anguishRows = skillBreakdownRows(anguish);
+  const wanderlustRows = skillBreakdownRows(wanderlust);
+
+  assert.equal(
+    anguishRows.find(row => row.name === "Anguish Autoattack")?.icon,
+    anguishIcon,
+  );
+  assert.equal(
+    anguishRows.find(row => row.name === "Painful Bond")?.icon,
+    anguishIcon,
+  );
+  assert.equal(
+    wanderlustRows.find(row => row.name === "Wanderlust Autoattack")?.icon,
+    wanderlustIcon,
+  );
+});
+
+test("Ritualist live spirit packets retain independent ownership and cadence", () => {
+  const packets = simulate("Ritualist", [
+    "Ritualist's Shroud",
+    "Anguish",
+    "Wanderlust",
+    "Preservation",
+    "Essence Blast",
+    { type: "wait", durationMs: 6000 },
+  ], {
+    initialResource: 100,
+    selectedTraitIds: [
+      TRAIT.EXPLOSIVE_GROWTH,
+      TRAIT.SPIRITS_STRENGTH,
+    ],
+  });
+  const detachedBond = simulate("Ritualist", [
+    "Ritualist's Shroud",
+    "Anguish",
+    "Exit Ritualist's Shroud",
+    { type: "wait", durationMs: 8000 },
+  ], {
+    initialResource: 100,
+  });
+  const damageEvents = packets.resolvedEvents.filter(event =>
+    event.type === "damage");
+  const anguish = damageEvents.filter(event =>
+    event.skillName === "Anguish");
+  const wanderlust = damageEvents.filter(event =>
+    event.skillName === "Wanderlust");
+  const preservationAutos = damageEvents.filter(event =>
+    event.skillName === "Preservation Autoattack");
+  const lingering = wanderlust.filter(event =>
+    event.actorType === "summon");
+  const essence = damageEvents.find(event =>
+    event.skillName === "Essence Blast");
+  const growth = damageEvents.filter(event =>
+    event.skillName === "Explosive Growth");
+  const growthRow = skillBreakdownRows(packets).find(row =>
+    row.name === "Explosive Growth");
+  const bond = detachedBond.resolvedEvents.filter(event =>
+    event.type === "damage" && event.skillName === "Painful Bond");
+  const detachedAutos = detachedBond.resolvedEvents.filter(event =>
+    event.type === "damage" && event.skillName === "Anguish Autoattack");
+
+  assert.equal(anguish.length, 7);
+  assert.equal(anguish.every(event =>
+    event.coefficient === 0.5 && event.weaponStrength === 805), true);
+  assert.equal(lingering.length, 4);
+  assert.equal(lingering.every(event => event.coefficient === 0.45), true);
+  assert.ok(preservationAutos.length > 0);
+  assert.equal(
+    preservationAutos.every(event => event.coefficient === 0.3),
+    true,
+  );
+  assert.equal(essence.coefficient, 0.75);
+  assert.equal(essence.activeSpirits, 3);
+  assert.equal(essence.essenceBlastDamagePerSpirit, 0.15);
+  assert.equal(growth.length, 3);
+  assert.equal(growthRow.hits, 3);
+  assert.equal(growthRow.parentSkill, "Anguish");
+  assert.equal(detachedAutos.length, 0);
+  assert.ok(bond.length >= 8);
+  assert.equal(
+    bond.slice(1).every((event, index) =>
+      Math.abs(event.at - bond[index].at - 1) < 1e-9),
+    true,
+  );
+});
+
+test("Ritualist weapon spells consume stacks and Resilient Weapon is usable", () => {
+  const weaponSpells = simulate("Ritualist", [
+    "Nightmare Weapon",
+    "Splinter Weapon",
+    "Ritualist's Shroud",
+    "Essence Blast",
+    "Essence Blast",
+    "Essence Blast",
+    "Essence Blast",
+    "Essence Blast",
+  ], {
+    initialResource: 100,
+    selectedSkills: ["Nightmare Weapon", "Splinter Weapon"],
+  });
+  const resilient = simulate("Ritualist", ["Resilient Weapon"], {
+    selectedSkills: ["Resilient Weapon"],
+  });
+  const nightmare = weaponSpells.resolvedEvents.filter(event =>
+    event.type === "damage" && event.name === "Nightmare Weapon");
+  const splinter = weaponSpells.resolvedEvents.filter(event =>
+    event.type === "damage" && event.name === "Splinter Weapon");
+  const nightmareIcon =
+    necromancerCatalog.skillsById.get(ID.NIGHTMARE_WEAPON).icon;
+  const splinterIcon =
+    necromancerCatalog.skillsById.get(ID.SPLINTER_WEAPON).icon;
+  const nightmareProcs = weaponSpells.procSteps.filter(step =>
+    step.skill === "Nightmare Weapon");
+  const splinterProcs = weaponSpells.procSteps.filter(step =>
+    step.skill === "Splinter Weapon");
+  assert.deepEqual(weaponSpells.warnings, []);
+  assert.equal(nightmare.length, 5);
+  assert.equal(splinter.length, 5);
+  assert.equal(splinter.every(event => event.coefficient === 0.4), true);
+  assert.equal(
+    nightmareProcs.every(step => step.icon === nightmareIcon),
+    true,
+  );
+  assert.equal(
+    splinterProcs.every(step => step.icon === splinterIcon),
+    true,
+  );
+  assert.equal(
+    NECROMANCER_HANDLER_MECHANICS.weaponSpells.nightmare
+      .vulnerabilityStacks,
+    2,
+  );
+  assert.equal(
+    NECROMANCER_HANDLER_MECHANICS.weaponSpells.nightmare
+      .vulnerabilityDuration,
+    8,
+  );
+  assert.deepEqual(resilient.warnings, []);
+  assert.equal(resilient.events.some(event =>
+    event.type === "necromancer.weapon-spell"
+    && event.spell === "resilient"
+    && event.playerStacks === 5), true);
+  assert.equal(
+    NECROMANCER_NON_DPS_SKILL_NAMES.has("Resilient Weapon"),
+    false,
   );
 });
 
@@ -1623,6 +2239,30 @@ test("Blood Is Power and Plague Signet preserve transferred conditions", () => {
   );
 });
 
+test("Plague Sending treats Scourge F5 as entering shroud", () => {
+  const result = simulate("Scourge", [
+    "Desert Shroud",
+    "Blood Is Power",
+    { type: "wait", durationMs: 10_100 },
+  ], {
+    initialResource: 100,
+    selectedSkills: ["Blood Is Power"],
+    selectedTraitIds: [
+      TRAIT.MASTER_OF_CORRUPTION,
+      TRAIT.PLAGUE_SENDING,
+    ],
+  });
+  const transferred = result.resolvedEvents.filter(event =>
+    event.transferredCondition);
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    transferred.map(event => [event.condition, event.stacks]),
+    [["Bleeding", 2], ["Torment", 2]],
+  );
+  assert.deepEqual(result.endState.profession.selfConditions, []);
+});
+
 test("Dhuumfire uses the specialization duration split and Scourge ICD", () => {
   const core = simulate("Core", [
     "Death Shroud",
@@ -1658,6 +2298,21 @@ test("Dhuumfire uses the specialization duration split and Scourge ICD", () => {
     [2, 2],
   );
   assert.ok(applications(scourge)[1].at - applications(scourge)[0].at >= 1);
+});
+
+test("Desert Shroud pulses do not retrigger shroud skill-one traits", () => {
+  const result = simulate("Scourge", [
+    "Desert Shroud",
+    { type: "wait", durationMs: 6100 },
+  ], {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.DHUUMFIRE],
+  });
+  const applications = result.resolvedEvents.filter(event =>
+    event.sourceId === TRAIT.DHUUMFIRE
+    && event.condition === "Burning");
+
+  assert.equal(applications.length, 1);
 });
 
 test("requested Harbinger damage traits apply at their per-hit triggers", () => {
@@ -1756,7 +2411,7 @@ test("Devouring Darkness scales torment with distinct target conditions", () => 
 
   assert.deepEqual(result.warnings, []);
   assert.equal(application?.stacks, 5);
-  assert.equal(application?.effectiveDuration, 6);
+  assert.equal(application?.effectiveDuration, 4);
 });
 
 test("current Harbinger grandmaster traits use their live PvE mechanics", () => {
@@ -2327,6 +2982,13 @@ test("Necromancer resources and palette change with specialization state", () =>
       availableFlips: { [ID.EXIT_REAPERS_SHROUD]: Infinity },
     },
   });
+  const ritualistPalette = necromancerProfession.ui.paletteGroups({
+    specialization: "Ritualist",
+    professionState: {
+      activeShroud: "",
+      activeSpirits: {},
+    },
+  });
 
   assert.deepEqual(
     harbingerResources.map(resource => resource.id),
@@ -2355,12 +3017,47 @@ test("Necromancer resources and palette change with specialization state", () =>
   assert.equal(reaperBar[0].skillIds.includes(ID.EXIT_REAPERS_SHROUD), true);
   assert.equal(reaperBar[1].skillIds.includes(ID.LIFE_REND), true);
   assert.equal(
-    necromancerProfession.ui.isPaletteSkillAvailable(
+    ritualistPalette[0].stackId,
+    "ritualist-profession",
+  );
+  assert.deepEqual(
+    ritualistPalette[0].skillIds,
+    [
+      ID.RITUALISTS_SHROUD,
+      ID.INNERVATE_ANGUISH,
+      ID.INNERVATE_WANDERLUST,
+      ID.INNERVATE_PRESERVATION,
+    ],
+  );
+  assert.equal(
+    ritualistPalette[1].stackId,
+    "ritualist-profession",
+  );
+  assert.equal(
+    ritualistPalette[1].skillIds.includes(ID.SUMMON_SPIRITS),
+    true,
+  );
+  assert.equal(
+    ritualistPalette[1].skillIds.includes(ID.INNERVATE_ANGUISH),
+    false,
+  );
+  assert.deepEqual(
+    necromancerProfession.ui.paletteSkillAvailability(
       {
         specialization: "Reaper",
         professionState: {},
       },
       necromancerCatalog.skillsById.get(ID.LIFE_REND),
+    ),
+    {
+      available: false,
+      message: "Enter Reaper Shroud first",
+    },
+  );
+  assert.equal(
+    Object.hasOwn(
+      necromancerProfession.ui,
+      "rotationSkillAvailability",
     ),
     false,
   );
@@ -2379,6 +3076,32 @@ test("Necromancer resources and palette change with specialization state", () =>
     }),
     [0.5],
   );
+});
+
+test("Necromancer state events have a real event-log presentation", () => {
+  const rows = simulationEventLogRows({
+    events: [{
+      type: "necromancer.state",
+      at: 1,
+      reason: "shroud-enter",
+      state: {
+        lifeForce: 82.5,
+        activeShroud: "reaper",
+        blight: 3,
+        soulShards: 2,
+      },
+    }],
+    resolvedEvents: [],
+    endState: { profession: {} },
+  }, null, necromancerProfession);
+
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].type, "necromancer.state");
+  assert.match(
+    rows[0].description,
+    /shroud-enter.*Life force 82\.5.*Shroud reaper.*Blight 3.*Soul shards 2/,
+  );
+  assert.doesNotMatch(rows[0].description, /UNPRESENTED CUSTOM EVENT/);
 });
 
 test("slot skills are inaccessible in transformed shrouds", () => {
@@ -2538,6 +3261,129 @@ test("Necromancer builds migrate and validate against canonical metadata", () =>
   );
 });
 
+test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
+  const savedBuild = JSON.parse(await readFile(
+    new URL("../Builds/b-power-ritualist.json", import.meta.url),
+    "utf8",
+  ));
+  const savedRotation = JSON.parse(await readFile(
+    new URL("../Rotations/r-power-ritualist-bench.json", import.meta.url),
+    "utf8",
+  ));
+  const build = migrateNecromancerBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: necromancerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const castCount = name =>
+    result.casts.find(cast => cast.name === name)?.count || 0;
+  const rotationCount = name => savedRotation.rotation.filter(step =>
+    (typeof step === "string" ? step : step.name) === name).length;
+  const activeTraits = new Set(
+    app.attributeData.activeTraits.map(trait => trait.name),
+  );
+  const logDps = 3_939_426 / 92.116;
+  const rows = new Map(
+    skillBreakdownRows(result).map(row => [row.name, row]),
+  );
+  const packetError = (name, logDamage) =>
+    Math.abs(rows.get(name).total - logDamage) / logDamage;
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(savedBuild.weapons, ["Greatsword", ""]);
+  assert.deepEqual(savedBuild.alternateWeapons, ["Spear", ""]);
+  assert.equal(savedBuild.selectedSkills.Heal, "Summon Blood Fiend");
+  assert.equal(savedBuild.selectedSkills.Utility1, "Summon Bone Minions");
+  assert.equal(activeTraits.has("Explosive Growth"), true);
+  assert.equal(activeTraits.has("Spirit's Strength"), true);
+  assert.equal(activeTraits.has("Lingering Spirits"), true);
+  assert.equal(castCount("Essence Blast"), 36);
+  assert.equal(castCount("Anguish"), 12);
+  assert.equal(castCount("Summon Spirits"), 6);
+  assert.equal(castCount("Perforate"), 12);
+  assert.equal(castCount("Nightmare Weapon"), 6);
+  assert.equal(castCount("Summon Bone Minions"), 1);
+  assert.equal(rotationCount("Innervate Anguish"), 12);
+  assert.equal(rows.get("Anguish").hits, 84);
+  assert.equal(rows.get("Painful Bond").hits >= 90, true);
+  assert.equal(rows.get("Explosive Growth").hits, 24);
+  assert.equal(rows.get("Essence Blast").hits, 36);
+  assert.equal(rows.get("Wanderlust").hits, 30);
+  assert.equal(rows.get("Preservation Autoattack").hits >= 21, true);
+  assert.ok(packetError("Anguish", 391_867) < 0.01);
+  assert.ok(packetError("Painful Bond", 156_679) < 0.04);
+  assert.ok(packetError("Explosive Growth", 132_893) < 0.08);
+  assert.ok(packetError("Essence Blast", 264_353) < 0.09);
+  assert.ok(packetError("Wanderlust", 158_654) < 0.03);
+  assert.ok(packetError("Preservation Autoattack", 67_436) < 0.01);
+  assert.ok(packetError("Slash", 75_770) < 0.03);
+  assert.ok(packetError("Fist", 60_795) < 0.03);
+  assert.ok(packetError("Perforate", 299_894) < 0.01);
+  assert.ok(packetError("Summon Spirits", 441_885) < 0.01);
+  assert.equal(
+    savedRotation.rotation.some(step =>
+      step?.type === "wait" || step?.name === "Wait"),
+    false,
+  );
+  assert.ok(
+    Math.abs(result.dps - logDps) / logDps < 0.035,
+    `${result.dps} vs ${logDps}`,
+  );
+
+  const contributionRequest = modifierContributionRequest(app);
+  const repeatContributionBaseline = () => simulateGw2({
+    profession: necromancerProfession,
+    rotation: contributionRequest.rotation,
+    config: structuredClone(contributionRequest.baseConfig),
+    execution: { mode: "sequence" },
+  });
+  const contributionBaselines = Array.from(
+    { length: 3 },
+    repeatContributionBaseline,
+  );
+  const contributionSignature = simulation => ({
+    dps: simulation.dps,
+    totalDamage: simulation.totalDamage,
+    dpsWindow: simulation.dpsWindow,
+    breakdown: simulation.breakdown.map(entry => ({
+      name: entry.name,
+      damage: entry.damage,
+      hits: entry.hits,
+    })),
+  });
+  const expectedContributionBaseline =
+    contributionSignature(contributionBaselines[0]);
+  for (const repeated of contributionBaselines.slice(1)) {
+    assert.deepEqual(
+      contributionSignature(repeated),
+      expectedContributionBaseline,
+    );
+  }
+
+  const neutralTraitNames = new Set([
+    "Reaper's Might",
+    "Spiteful Fortitude",
+    "Gluttony",
+    "Unyielding Blast",
+    "Spawning Power",
+    "Charged Souls",
+  ]);
+  assert.deepEqual(
+    calculateModifierContributions({
+      ...contributionRequest,
+      comparisons: contributionRequest.comparisons.filter(({ modifier }) =>
+        neutralTraitNames.has(modifier.name)),
+    }),
+    [],
+  );
+});
+
 test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", async () => {
   const savedBuild = JSON.parse(await readFile(
     new URL("../Builds/b-condi-reaper.json", import.meta.url),
@@ -2611,6 +3457,70 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
   assert.ok(Math.abs(bleedingDamage - 2_105_095) / 2_105_095 < 0.02);
   assert.ok(Math.abs(result.dps - 44_355.31) / 44_355.31 < 0.02);
   assert.ok(Math.abs(result.totalDamage - 3_984_571) / 3_984_571 < 0.02);
+});
+
+test("Condition Scourge benchmark preset reconstructs hidden shade casts", async () => {
+  const savedBuild = JSON.parse(await readFile(
+    new URL("../Builds/b-condi-scourge.json", import.meta.url),
+    "utf8",
+  ));
+  const savedRotation = JSON.parse(await readFile(
+    new URL("../Rotations/r-condi-scourge-bench.json", import.meta.url),
+    "utf8",
+  ));
+  const build = migrateNecromancerBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: necromancerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const castCount = name =>
+    result.casts.find(cast => cast.name === name)?.count || 0;
+  const conditionStacks = condition => result.resolvedEvents
+    .filter(event => event.type === "condition" && event.condition === condition)
+    .reduce((sum, event) => sum + Number(event.stacks || 0), 0);
+  const logDamage = 3_954_240;
+  const logDps = 39_829.5712;
+  const damageRows = new Map(
+    skillBreakdownRows(result).map(row => [row.name, row]),
+  );
+  const strikeError = (name, expected) =>
+    Math.abs(damageRows.get(name)?.strike - expected) / expected;
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(castCount("Manifest Sand Shade"), 11);
+  assert.equal(castCount("Nefarious Favor"), 27);
+  assert.equal(castCount("Desert Shroud"), 7);
+  assert.equal(castCount("Haunt"), 7);
+  assert.equal(castCount("Swap Weapons"), 9);
+  assert.equal(castCount("Vicious Shot"), 46);
+  assert.equal(castCount("Weeping Shots"), 13);
+  assert.equal(conditionStacks("Poisoned"), 78);
+  assert.ok(Math.abs(conditionStacks("Torment") - 375) / 375 < 0.04);
+  // The EVTC rolled 114 Barbed Precision applications from 289 critical
+  // hits (39.4%), above the trait's 33% chance. The deterministic simulator
+  // materializes the 95 expected applications instead of copying that RNG.
+  assert.equal(
+    result.resolvedEvents.filter(event =>
+      event.sourceId === TRAIT.BARBED_PRECISION
+      && event.condition === "Bleeding").length,
+    95,
+  );
+  assert.equal(conditionStacks("Bleeding"), 225);
+  assert.ok(strikeError("Manifest Sand Shade", 28_886) < 0.04);
+  assert.ok(strikeError("Manifest Sand Shade (F1/F5)", 17_633) < 0.02);
+  assert.ok(strikeError("Desert Shroud", 34_552) < 0.01);
+  assert.equal(damageRows.get("Haunt").hits, 7);
+  assert.equal(damageRows.get("Slash").hits, 48);
+  assert.ok(strikeError("Haunt", 7_615) < 0.02);
+  assert.ok(strikeError("Slash", 41_176) < 0.01);
+  assert.ok(Math.abs(result.totalDamage - logDamage) / logDamage < 0.02);
+  assert.ok(Math.abs(result.dps - logDps) / logDps < 0.025);
 });
 
 test("Necromancer is wired through the selector and application adapter", async () => {

@@ -32,6 +32,8 @@ export function createGw2AppAdapter({
   runSimulation,
   modifierContributionRequest,
   calculateModifierContributions,
+  randomDistributionRequest,
+  calculateRandomDistribution,
   isSkillAvailable,
   defaultOffhand,
 }) {
@@ -58,6 +60,8 @@ export function createGw2AppAdapter({
     runSimulation,
     modifierContributionRequest,
     calculateModifierContributions,
+    randomDistributionRequest,
+    calculateRandomDistribution,
     renderResults,
     renderRotationBuilder,
     slotLoadout: profession.ui.slotLoadout || null,

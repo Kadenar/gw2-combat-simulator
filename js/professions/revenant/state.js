@@ -93,8 +93,47 @@ export function createRevenantState(config = {}) {
 export function snapshotRevenantState(state) {
   return structuredClone(state);
 }
+export const REVENANT_PUBLIC_END_STATE_KEYS = Object.freeze([
+  "energy",
+  "maximumEnergy",
+  "activeLegendId",
+  "activeLoadoutId",
+  "selectedLegendIds",
+  "legendSwapReadyAt",
+  "activeUpkeeps",
+  "availableFlips",
+  "autoattackChains",
+  "abyssalStrikeSecondCast",
+  "allianceSide",
+  "endurance",
+  "maximumEndurance",
+  "selectedDodge",
+  "reaversCurseUntil",
+  "forerunnerOfDeathUntil",
+  "affinity",
+  "cosmicWisdomUntil",
+  "conduitForm",
+  "beguilingHazeCharges",
+  "beguilingHazeReadyAt",
+  "bandTogetherReady",
+  "bandTogetherExpiresAt",
+  "kallasFervor",
+  "enchantedDaggers",
+  "razorclawsRage",
+  "battleScars",
+  "crushingAbyss",
+  "combatBeganAt",
+  "selfConditionDurationMultiplier",
+  "selfConditions",
+  "selfConditionCount",
+  "activeLegendSummons",
+]);
 export function projectRevenantEndState({ schedulerState }) {
-  const projected = snapshotRevenantState(schedulerState.profession);
-  delete projected.traitProcReadyAt;
-  return projected;
+  const state = schedulerState.profession;
+  return Object.fromEntries(
+    REVENANT_PUBLIC_END_STATE_KEYS.map((key) => [
+      key,
+      structuredClone(state[key]),
+    ]),
+  );
 }

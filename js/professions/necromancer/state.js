@@ -1,4 +1,9 @@
+import {
+  professionStaticRulesApplied,
+} from "../../platform/gw2/attribute-provenance.js";
 import { NECROMANCER_TRAIT_IDS } from "./data/ids.js";
+
+export const NECROMANCER_BASE_HEALTH = 9212;
 
 export function selectedNecromancerTraits(config = {}) {
   return new Set(
@@ -24,7 +29,7 @@ function necromancerMaximumHealth(config, traits) {
     ?? config.attributes?.vitality
     ?? 1000,
   );
-  if (!config.necromancerBuildAttributesApplied) {
+  if (!professionStaticRulesApplied(config)) {
     if (hasNecromancerTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
       vitality += Number(
         config.stats?.power
@@ -42,7 +47,30 @@ function necromancerMaximumHealth(config, traits) {
       vitality += 240;
     }
   }
-  return 9212 + Math.max(0, vitality) * 10;
+  return NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10;
+}
+
+export function normalizedNecromancerLifeForceCost(
+  state,
+  baseHealthPercent,
+) {
+  const actualCost =
+    NECROMANCER_BASE_HEALTH * Math.max(0, Number(baseHealthPercent || 0)) / 100;
+  const actualCapacity = Math.max(
+    1,
+    Number(state?.lifeForcePoolCapacity || 1),
+  );
+  const normalizedCapacity = Math.max(
+    1,
+    Number(state?.maximumLifeForce || 100),
+  );
+  return actualCost * normalizedCapacity / actualCapacity;
+}
+
+export function actualNecromancerLifeForceCost(baseHealthPercent) {
+  return NECROMANCER_BASE_HEALTH
+    * Math.max(0, Number(baseHealthPercent || 0))
+    / 100;
 }
 
 export function syncNecromancerResources(state) {
@@ -102,11 +130,19 @@ export function createNecromancerState(config = {}) {
     carapaceExpiries: [],
     shades: [],
     activeMinions: {},
+    minionGenerations: {},
+    minionAttackGenerations: {},
     activeSpirits: {},
+    spiritGenerations: {},
+    spiritInitialUntil: {},
+    spiritBusyUntil: {},
+    spiritAutoAnchorAt: Number.NaN,
+    weaponSpells: {},
     availableFlips: {},
     autoattackChains: {},
     selfConditions: [],
     plagueSendingArmed: false,
+    plagueSendingEntrySkillId: null,
     lichEndsAt: 0,
     soulTwistingAvailable: false,
     signetNextLifeForceAt: 3,
@@ -114,6 +150,9 @@ export function createNecromancerState(config = {}) {
     cascadingCorruptionStacks: 0,
     meltdownUntil: 0,
     targetChilledUntil: 0,
+    targetControlledUntil: 0,
+    painfulBondUntil: 0,
+    painfulBondPulseAnchorAt: Number.NaN,
     dreadUntil: 0,
     fearOfDeathReadyAt: 0,
     vampiricPresenceReadyAt: 0,
@@ -149,11 +188,42 @@ export function snapshotNecromancerState(state) {
   return structuredClone(syncNecromancerResources(state));
 }
 
+export const NECROMANCER_PUBLIC_END_STATE_KEYS = Object.freeze([
+  "lifeForce",
+  "resource",
+  "maximumLifeForce",
+  "maximumHealth",
+  "lifeForcePoolCapacity",
+  "activeShroud",
+  "shroudEnteredAt",
+  "blight",
+  "blightExpiries",
+  "soulShards",
+  "soulShardExpiries",
+  "carapaceExpiries",
+  "shades",
+  "activeMinions",
+  "activeSpirits",
+  "availableFlips",
+  "autoattackChains",
+  "selfConditions",
+  "lichEndsAt",
+  "soulTwistingAvailable",
+  "meltdownUntil",
+  "dreadUntil",
+]);
+
 export function projectNecromancerEndState({
   schedulerState,
   resolverState,
 }) {
-  const projected = snapshotNecromancerState(schedulerState.profession);
+  const state = snapshotNecromancerState(schedulerState.profession);
+  const projected = Object.fromEntries(
+    NECROMANCER_PUBLIC_END_STATE_KEYS.map((key) => [
+      key,
+      structuredClone(state[key]),
+    ]),
+  );
   const resolverLifeForce = Math.max(
     0,
     Number(resolverState?.spitefulFortitudeLifeForce || 0),
@@ -163,21 +233,5 @@ export function projectNecromancerEndState({
     projected.lifeForce + resolverLifeForce,
   );
   projected.resource = projected.lifeForce;
-  // These fields are resolver/scheduler implementation counters rather than
-  // public profession resources.
-  for (const key of [
-    "targetChilledUntil",
-    "dreadUntil",
-    "fearOfDeathReadyAt",
-    "vampiricPresenceReadyAt",
-    "barbedPrecisionProgress",
-    "chillingNovaProgress",
-    "demonicLoreReadyAt",
-    "spitefulFortitudeLifeForce",
-    "traitProcReadyAt",
-    "plagueSendingArmed",
-  ]) {
-    delete projected[key];
-  }
   return projected;
 }

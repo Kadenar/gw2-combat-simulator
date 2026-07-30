@@ -93,7 +93,7 @@ export function grantKallasFervor(
     actorType: "player",
     skillId: sourceId,
     skillName: sourceName,
-    name: `${sourceName} â€” Kalla's Fervor`,
+    name: `${sourceName} — Kalla's Fervor`,
     kind: "kallas-fervor",
     duration,
     stacks: 1,
@@ -177,7 +177,7 @@ function emitCondition(
     stacks,
     duration,
     actorType = "summon",
-    name = `${skill.name} â€” ${condition}`,
+    name = `${skill.name} — ${condition}`,
     ...metadata
   },
 ) {
@@ -356,7 +356,7 @@ function grantRazorclawsRage(context, skill) {
       stacks: 1,
       duration: profile.bleedDuration,
       actorType: "player",
-      name: `Razorclaw's Rage â€” Ally ${proc.allyIndex} Bleeding`,
+      name: `Razorclaw's Rage — Ally ${proc.allyIndex} Bleeding`,
       triggeredByAlly: proc.allyIndex,
       ...(index === alliedProcs.length - 1
         ? { extendsResolutionHorizon: true }

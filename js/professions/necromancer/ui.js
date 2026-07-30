@@ -1,3 +1,6 @@
+import {
+  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+} from "../../app/simulation-randomness.js";
 import { necromancerCatalog } from "./catalog.js";
 import { NECROMANCER_SKILL_IDS as ID } from "./data/ids.js";
 import { getActiveTraits } from "./data/traits-data.js";
@@ -77,11 +80,7 @@ function shroudSkillIds(context = {}) {
         left.id - right.id,
     )
     .map((skill) => skill.id);
-  const innervates =
-    shroud === "ritualist"
-      ? Object.values(INNERVATE_BY_SPIRIT)
-      : [];
-  return [...new Set([...skills, ...innervates])];
+  return [...new Set(skills)];
 }
 
 function professionSkillIds(context = {}) {
@@ -101,10 +100,13 @@ function professionSkillIds(context = {}) {
         ID.EXIT_RITUALISTS_SHROUD,
       ].includes(id),
     );
-  return [entry, ...exit];
+  const innervates = specialization === "Ritualist"
+    ? Object.values(INNERVATE_BY_SPIRIT)
+    : [];
+  return [entry, ...exit, ...innervates];
 }
 
-function rotationSkillAvailability(skill, context = {}) {
+function paletteSkillAvailability(context = {}, skill) {
   const state = stateFrom(context);
   const active = String(state.activeShroud || "");
   const selectedTraits = new Set(
@@ -145,6 +147,15 @@ function rotationSkillAvailability(skill, context = {}) {
       message: "Replaced by Sandstorm Shroud",
     };
   }
+  if (
+    skill.rechargeOnMinionDeath &&
+    Number(state.availableFlips?.[skill.flipSkillId] || 0) > 0
+  ) {
+    return {
+      available: false,
+      message: "Summoned minion is still alive",
+    };
+  }
   if (active === "lich") {
     const available = LICH_SKILLS.includes(skill.id);
     return {
@@ -155,14 +166,12 @@ function rotationSkillAvailability(skill, context = {}) {
   if (Object.values(INNERVATE_BY_SPIRIT).includes(skill.id)) {
     const spirit = Object.entries(INNERVATE_BY_SPIRIT)
       .find(([, id]) => id === skill.id)?.[0];
-    const available =
-      active === "ritualist" &&
-      Boolean(state.activeSpirits?.[spirit]);
+    const available = Boolean(state.activeSpirits?.[spirit]);
     return {
       available,
       message: available
         ? ""
-        : `Requires the active ${spirit || "matching"} spirit in Ritualist Shroud`,
+        : `Requires the active ${spirit || "matching"} spirit`,
     };
   }
   if (skill.shroud) {
@@ -207,7 +216,52 @@ function rotationSkillAvailability(skill, context = {}) {
   return { available: true, message: "" };
 }
 
+export function necromancerEventLogRow(_context, event) {
+  if (event?.type === "necromancer.chill") {
+    const duration = Math.max(0, Number(event.duration || 0));
+    return {
+      type: event.type,
+      description:
+        `CHILLED ${event.skillName || event.name || "Target"}` +
+        `${duration > 0 ? ` (${duration.toFixed(1)}s)` : ""}`,
+      className: "condition",
+      order: 70,
+      flags: [],
+    };
+  }
+  if ([
+    "necromancer.painful-bond",
+    "necromancer.summon-attack",
+    "necromancer.weapon-spell",
+  ].includes(event?.type)) {
+    // These are resolver state or packet-materialization events. Their action,
+    // buff, proc, and resolved-damage rows carry the user-visible information.
+    return null;
+  }
+  if (event?.type !== "necromancer.state") return undefined;
+  const state = event.state || {};
+  const details = [
+    `Life force ${Number(state.lifeForce || 0).toFixed(1)}`,
+  ];
+  if (state.activeShroud) details.push(`Shroud ${state.activeShroud}`);
+  if (Number(state.blight || 0) > 0) {
+    details.push(`Blight ${Number(state.blight)}`);
+  }
+  if (Number(state.soulShards || 0) > 0) {
+    details.push(`Soul shards ${Number(state.soulShards)}`);
+  }
+  return {
+    type: event.type,
+    description: [event.reason || "State", ...details].join(" · "),
+    className: "resource",
+    order: 30,
+    flags: [],
+  };
+}
+
 export const necromancerUi = Object.freeze({
+  assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  eventLogRow: necromancerEventLogRow,
   targetHealthThresholds: (context = {}) => {
     const specialization = specializationFrom(context);
     const build = context.build || {};
@@ -231,12 +285,14 @@ export const necromancerUi = Object.freeze({
       : [];
   },
   paletteGroups: (context) => {
+    const ritualist = specializationFrom(context) === "Ritualist";
     const groups = [{
       id: "profession",
       label: "F",
       skillIds: professionSkillIds(context),
       color: "#57a86b",
       resourceAnchor: true,
+      stackId: ritualist ? "ritualist-profession" : "",
     }];
     const shroudSkills = shroudSkillIds(context);
     if (shroudSkills.length) {
@@ -245,6 +301,7 @@ export const necromancerUi = Object.freeze({
         label: "Sh",
         skillIds: shroudSkills,
         color: "#4d9560",
+        stackId: ritualist ? "ritualist-profession" : "",
       });
     }
     if (stateFrom(context).activeShroud === "lich") {
@@ -342,11 +399,5 @@ export const necromancerUi = Object.freeze({
     }
     return views;
   },
-  rotationSkillAvailability,
-  isPaletteSkillAvailable(context, skill) {
-    return rotationSkillAvailability(skill, context).available;
-  },
-  paletteSkillUnavailableMessage(context, skill) {
-    return rotationSkillAvailability(skill, context).message;
-  },
+  paletteSkillAvailability,
 });

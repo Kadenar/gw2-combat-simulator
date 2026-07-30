@@ -1,5 +1,17 @@
 [
   {
+    "section": "Scourge",
+    "presets": [
+      {
+        "label": "Condition",
+        "build": "Builds/b-condi-scourge.json",
+        "rotation": "Rotations/r-condi-scourge-bench.json",
+        "benchmarkDps": 39830,
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Reaper",
     "presets": [
       {
@@ -12,6 +24,18 @@
         "build": "Builds/b-condi-reaper.json",
         "rotation": "Rotations/r-condi-reaper-bench.json",
         "benchmarkDps": 44355,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Ritualist",
+    "presets": [
+      {
+        "label": "Power (Greatsword / Spear)",
+        "build": "Builds/b-power-ritualist.json",
+        "rotation": "Rotations/r-power-ritualist-bench.json",
+        "benchmarkDps": 42762,
         "upToDate": true
       }
     ]

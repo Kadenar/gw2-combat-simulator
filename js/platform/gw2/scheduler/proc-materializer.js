@@ -190,8 +190,18 @@ export function createGw2TriggerMaterializer(
           event,
           state,
         );
+    const baseDurationMultiplier = event.fixedDuration
+      ? 1
+      : (state.query.conditionBaseDurationMultiplier?.(
+          name,
+          event.at,
+          event,
+          state,
+        ) ?? 1);
     const duration =
-      Math.max(0, Number(event.duration || 0)) * durationMultiplier;
+      Math.max(0, Number(event.duration || 0)) *
+      baseDurationMultiplier *
+      durationMultiplier;
     const stacks = Math.max(0, Number(event.stacks || 0));
     if (!(duration > 0) || !(stacks > 0)) return;
     const entry = state.conditionState.get(name) || { stacks: [] };

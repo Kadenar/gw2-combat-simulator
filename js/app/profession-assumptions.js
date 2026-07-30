@@ -23,6 +23,8 @@
  * for select inputs.
  * @property {ReadonlyArray<string>} [specializations] Specializations for which
  * the control is visible.
+ * @property {string} [section] Optional UI section. Defaults to the target
+ * assumptions section.
  */
 
 /**
@@ -97,6 +99,7 @@ function normalizedControl(control) {
     type,
     defaultValue: control.defaultValue,
   };
+  if (control.section) result.section = String(control.section);
   if (type === "number") {
     result.minimum = Number.isFinite(Number(control.minimum))
       ? Number(control.minimum)

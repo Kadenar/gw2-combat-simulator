@@ -6,8 +6,10 @@ import {
 } from "../data/ids.js";
 import {
   handleNecromancerChillEvent,
+  handleNecromancerPainfulBond,
   handleNecromancerStateEvent,
   handleNecromancerSummonAttack,
+  handleNecromancerWeaponSpell,
 } from "../mechanics/specific/handlers.js";
 import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../mechanics/handler-mechanics.js";
 import { addCarapace } from "../mechanics/specific/shared.js";
@@ -118,6 +120,14 @@ function targetIsChilled(context, at) {
   return Number(context.profession.targetChilledUntil || 0) > at;
 }
 
+function usesRandomTraitProcs(context) {
+  return context.random?.stochastic === true;
+}
+
+function rolledCritical(details) {
+  return details.hitContext?.critical?.didCrit === true;
+}
+
 function hasActiveBuff(context, kind, at) {
   return (context.boons.get(kind) || []).some(
     (application) =>
@@ -125,6 +135,115 @@ function hasActiveBuff(context, kind, at) {
       application.expiresAt > at &&
       application.stacks > 0,
   );
+}
+
+function weaponSpellRecipientKeys(event) {
+  if (event.actorType === "player") return ["player"];
+  if (event.actorType !== "summon") return [];
+  if (event.summonOwnerBase && Number(event.summonCount || 0) > 1) {
+    return Array.from(
+      { length: Number(event.summonCount) },
+      (_, index) => `${event.summonOwnerBase}:${index}`,
+    );
+  }
+  return event.summonOwner ? [event.summonOwner] : [];
+}
+
+function weaponSpellIcon(context, skillId) {
+  return context.helpers.skillsById?.get(skillId)?.icon || "";
+}
+
+function queueNightmareWeapon(context, event, definition) {
+  enqueueOrdered(context.queue, {
+    type: "damage",
+    at: event.at,
+    name: "Nightmare Weapon",
+    skillName: "Nightmare Weapon",
+    coefficient: 0,
+    flatStrikeBase: definition.flatStrikeBase,
+    flatStrikePowerCoeff: definition.flatStrikePowerCoeff,
+    hits: 1,
+    hitIndex: 1,
+    totalHits: 1,
+    source: "Weapon Spell",
+    sourceId: ID.NIGHTMARE_WEAPON,
+    actorType: "effect",
+    skillId: ID.NIGHTMARE_WEAPON,
+    skillWeapon: "Unequipped",
+    noCrit: true,
+    damageKind: "life-steal",
+    triggeredBy: event.skillName,
+  });
+  enqueueOrdered(context.queue, {
+    type: "buff",
+    at: event.at,
+    name: "Nightmare Weapon",
+    skillName: "Nightmare Weapon",
+    kind: "target-vulnerability",
+    stacks: definition.vulnerabilityStacks,
+    duration: definition.vulnerabilityDuration,
+    source: "Weapon Spell",
+    sourceId: ID.NIGHTMARE_WEAPON,
+    actorType: "effect",
+    triggeredBy: event.skillName,
+  });
+  context.recordProc?.(
+    "skill",
+    "Nightmare Weapon",
+    event.at,
+    event.skillName,
+    "",
+    weaponSpellIcon(context, ID.NIGHTMARE_WEAPON),
+  );
+}
+
+function queueSplinterWeapon(context, event, definition) {
+  enqueueOrdered(context.queue, {
+    type: "damage",
+    at: event.at,
+    name: "Splinter Weapon",
+    skillName: "Splinter Weapon",
+    coefficient: definition.coefficient,
+    hits: 1,
+    hitIndex: 1,
+    totalHits: 1,
+    source: "Weapon Spell",
+    sourceId: ID.SPLINTER_WEAPON,
+    actorType: "effect",
+    skillId: ID.SPLINTER_WEAPON,
+    skillWeapon: "Unequipped",
+    triggeredBy: event.skillName,
+  });
+  context.recordProc?.(
+    "skill",
+    "Splinter Weapon",
+    event.at,
+    event.skillName,
+    "",
+    weaponSpellIcon(context, ID.SPLINTER_WEAPON),
+  );
+}
+
+function reactToWeaponSpells(context, event) {
+  const keys = weaponSpellRecipientKeys(event);
+  if (!keys.length) return;
+  for (const spell of ["nightmare", "splinter"]) {
+    const active = context.profession.weaponSpells?.[spell];
+    if (!active || active.expiresAt <= event.at) continue;
+    const definition = MECHANICS.weaponSpells[spell];
+    for (const key of keys) {
+      const recipient = active.recipients?.[key];
+      if (!recipient || recipient.stacks <= 0 || recipient.nextAt > event.at)
+        continue;
+      recipient.stacks -= 1;
+      recipient.nextAt = event.at + Number(definition.internalCooldown || 0);
+      if (spell === "nightmare") {
+        queueNightmareWeapon(context, event, definition);
+      } else {
+        queueSplinterWeapon(context, event, definition);
+      }
+    }
+  }
 }
 
 function applyTraitVulnerability(
@@ -152,10 +271,13 @@ function reactToNecromancerDamage(context, event, details = {}) {
   if (event.actorType === "effect" || !(Number(event.coefficient) > 0)) {
     return;
   }
+  reactToWeaponSpells(context, event);
   const skill = context.helpers.skillsById?.get(event.skillId);
   const firstHit = Number(event.hitIndex || 1) === 1;
-  const scourgeShroudSkill = SCOURGE_SHROUD_SKILL_IDS.has(skill?.id);
-  const shroudSkillOne = skill?.shroudSlot === 1 || scourgeShroudSkill;
+  const scourgeShadeStrike =
+    SCOURGE_SHROUD_SKILL_IDS.has(skill?.id) &&
+    Number(event.sourceId) === ID.MANIFEST_SAND_SHADE;
+  const shroudSkillOne = skill?.shroudSlot === 1 || scourgeShadeStrike;
   if (hasTrait(context, TRAIT.REAPERS_MIGHT) && firstHit && shroudSkillOne) {
     enqueueOrdered(context.queue, {
       type: "buff",
@@ -249,17 +371,25 @@ function reactToNecromancerDamage(context, event, details = {}) {
     event.actorType === "player" &&
     targetIsChilled(context, event.at)
   ) {
-    context.profession.chillingNovaProgress += Number(
-      details.hitContext?.critical?.chance || 0,
-    );
+    if (!usesRandomTraitProcs(context)) {
+      context.profession.chillingNovaProgress += Number(
+        details.hitContext?.critical?.chance || 0,
+      );
+    }
     if (
-      context.profession.chillingNovaProgress >= 1 &&
+      (
+        usesRandomTraitProcs(context)
+          ? rolledCritical(details)
+          : context.profession.chillingNovaProgress >= 1
+      ) &&
       isInternalCooldownReady(
         event.at,
         Number(context.profession.traitProcReadyAt.chillingNova || 0),
       )
     ) {
-      context.profession.chillingNovaProgress -= 1;
+      if (!usesRandomTraitProcs(context)) {
+        context.profession.chillingNovaProgress -= 1;
+      }
       context.profession.traitProcReadyAt.chillingNova = event.at + 3;
       queueTraitCoefficientDamage(context, event, {
         name: "Chilling Nova",
@@ -283,7 +413,7 @@ function reactToNecromancerDamage(context, event, details = {}) {
       context.config?.specialization === "Harbinger" &&
       skill?.shroud === "harbinger";
     if (
-      scourgeShroudSkill &&
+      scourgeShadeStrike &&
       !isInternalCooldownReady(
         event.at,
         Number(context.profession.traitProcReadyAt?.dhuumfire || 0),
@@ -291,13 +421,13 @@ function reactToNecromancerDamage(context, event, details = {}) {
     ) {
       // Scourge's shade variant has a one-second internal cooldown.
     } else {
-      if (scourgeShroudSkill) {
+      if (scourgeShadeStrike) {
         context.profession.traitProcReadyAt.dhuumfire =
           event.at + proc.scourgeInterval;
       }
       applyTraitCondition(details, context, event, {
         ...proc,
-        duration: scourgeShroudSkill
+        duration: scourgeShadeStrike
           ? proc.scourgeDuration
           : harbingerShroudSkill
             ? proc.harbingerDuration
@@ -334,12 +464,24 @@ function reactToNecromancerDamage(context, event, details = {}) {
   }
   if (hasTrait(context, TRAIT.BARBED_PRECISION)) {
     const proc = MECHANICS.traitProcs[TRAIT.BARBED_PRECISION];
-    context.profession.barbedPrecisionProgress +=
-      Number(details.hitContext?.critical?.chance || 0) *
-      proc.chanceOnCriticalHit;
-    while (context.profession.barbedPrecisionProgress >= 1) {
-      context.profession.barbedPrecisionProgress -= 1;
-      applyTraitCondition(details, context, event, proc);
+    if (usesRandomTraitProcs(context)) {
+      if (
+        rolledCritical(details) &&
+        context.random.roll(
+          proc.chanceOnCriticalHit,
+          "necromancer.barbed-precision",
+        )
+      ) {
+        applyTraitCondition(details, context, event, proc);
+      }
+    } else {
+      context.profession.barbedPrecisionProgress +=
+        Number(details.hitContext?.critical?.chance || 0) *
+        proc.chanceOnCriticalHit;
+      while (context.profession.barbedPrecisionProgress >= 1) {
+        context.profession.barbedPrecisionProgress -= 1;
+        applyTraitCondition(details, context, event, proc);
+      }
     }
   }
   if (
@@ -420,6 +562,10 @@ function reactToNecromancerBlind(context, event, details = {}) {
 }
 
 function reactToNecromancerControl(context, event, details = {}) {
+  context.profession.targetControlledUntil = Math.max(
+    Number(context.profession.targetControlledUntil || 0),
+    event.at + Math.max(0.001, Number(event.duration || 0)),
+  );
   if (event.controlKind === "fear" || event.kind === "fear") {
     context.profession.dreadUntil = Math.max(
       Number(context.profession.dreadUntil || 0),
@@ -462,7 +608,9 @@ function reactToNecromancerControl(context, event, details = {}) {
 export const necromancerResolverEventHandlers = Object.freeze({
   "necromancer.state": handleNecromancerStateEvent,
   "necromancer.chill": handleNecromancerChillEvent,
+  "necromancer.painful-bond": handleNecromancerPainfulBond,
   "necromancer.summon-attack": handleNecromancerSummonAttack,
+  "necromancer.weapon-spell": handleNecromancerWeaponSpell,
 });
 
 export const necromancerResolverEventReactions = Object.freeze({

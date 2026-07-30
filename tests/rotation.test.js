@@ -2213,6 +2213,7 @@ test('shroud and forge transitions start a new row on the current weapon set', (
         ['Swap Legends', 'Swap Legends'],
         ["Reaper's Shroud", "Exit Reaper's Shroud"],
         ['Harbinger Shroud', 'Exit Harbinger Shroud'],
+        ["Ritualist's Shroud", "Exit Ritualist's Shroud"],
         ['Enter Radiant Forge', 'Exit Radiant Forge'],
     ]) {
         const rows = timelineWeaponRows([
@@ -4405,6 +4406,25 @@ test('Vulnerability chart series caps at 25 stacks', () => {
 
     assert.equal(
         Math.max(...series.effects.Vulnerability.map(point => point.v)),
+        25,
+    );
+});
+
+test('Might chart series caps at 25 stacks', () => {
+    const series = buildChartSeries({
+        duration: 10,
+        resolvedEvents: [],
+        events: Array.from({ length: 30 }, (_, index) => ({
+            type: 'buff',
+            at: index * 0.01,
+            kind: 'might',
+            duration: 8,
+            stacks: 1,
+        })),
+    }, 100);
+
+    assert.equal(
+        Math.max(...series.effects.Might.map(point => point.v)),
         25,
     );
 });

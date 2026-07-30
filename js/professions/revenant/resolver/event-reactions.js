@@ -43,7 +43,7 @@ function reactToDamage(context, event) {
     enqueueOrdered(context.queue, {
       type: "damage",
       at: event.at,
-      name: "Soulcleave's Summit â€” Additional Strike",
+      name: "Soulcleave's Summit — Additional Strike",
       skillName: "Soulcleave's Summit",
       coefficient: profile.coefficient,
       hits: 1,
@@ -59,7 +59,7 @@ function reactToDamage(context, event) {
     enqueueOrdered(context.queue, {
       type: "damage",
       at: event.at,
-      name: "Soulcleave's Summit â€” Life Siphon",
+      name: "Soulcleave's Summit — Life Siphon",
       skillName: "Soulcleave's Summit",
       coefficient: 0,
       flatStrikeBase: profile.siphon.flatStrikeBase,

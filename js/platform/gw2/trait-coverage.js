@@ -68,6 +68,27 @@ function normalizeEffect(effect, entry, trait, index) {
   });
 }
 
+function normalizeTestEvidence(value, trait, index) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new TypeError(
+      `Trait ${trait.id} test evidence ${index + 1} must be an object.`,
+    );
+  }
+  const file = normalizedText(value.file);
+  const name = normalizedText(value.name);
+  if (!/^tests\/.+\.test\.js$/.test(file)) {
+    throw new TypeError(
+      `Trait ${trait.id} test evidence ${index + 1} needs a tests/*.test.js file.`,
+    );
+  }
+  if (!name) {
+    throw new TypeError(
+      `Trait ${trait.id} test evidence ${index + 1} needs a test name.`,
+    );
+  }
+  return Object.freeze({ file, name });
+}
+
 /**
  * Validates behavioral coverage for every trait in a profession catalog.
  *
@@ -115,7 +136,8 @@ export function validateTraitCoverageManifest(
       );
     }
     const tests = Array.isArray(rawEntry.tests)
-      ? rawEntry.tests.map(normalizedText).filter(Boolean)
+      ? rawEntry.tests.map((value, index) =>
+          normalizeTestEvidence(value, trait, index))
       : [];
     const effects = rawEntry.effects.map((effect, index) =>
       normalizeEffect(effect, rawEntry, trait, index),

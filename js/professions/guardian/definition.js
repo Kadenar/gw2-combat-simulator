@@ -27,6 +27,7 @@ import {
   snapshotGuardianState,
 } from "./state.js";
 import { guardianUi } from "./ui.js";
+import "./data/trait-coverage.js";
 
 export const guardianProfession = defineProfession({
   id: "guardian",

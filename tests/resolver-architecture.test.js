@@ -244,6 +244,45 @@ test("heap event queues preserve priority and stable insertion order", () => {
   ]);
 });
 
+test("heap event queues keep derived causal order local to each queue", () => {
+  // Consume enough fallback insertions to expose implementations that share
+  // an ordering counter across otherwise independent simulations.
+  const warmup = createEventQueue([
+    { type: "damage", at: 0, name: "warmup", __order: 0 },
+  ]);
+  takeNextEvent(warmup);
+  for (let index = 0; index < 20; index += 1) {
+    enqueueOrdered(warmup, {
+      type: "damage",
+      at: 0,
+      name: `warmup-derived-${index}`,
+    });
+  }
+
+  const queue = createEventQueue([
+    { type: "damage", at: 1, name: "cause", __order: 10 },
+    { type: "damage", at: 1, name: "unrelated", __order: 11 },
+  ]);
+  assert.equal(takeNextEvent(queue).name, "cause");
+
+  enqueueOrdered(queue, {
+    type: "damage",
+    at: 1,
+    name: "derived",
+  });
+  assert.equal(takeNextEvent(queue).name, "derived");
+
+  enqueueOrdered(queue, {
+    type: "damage",
+    at: 1,
+    name: "nested-derived",
+  });
+  assert.deepEqual(
+    [takeNextEvent(queue).name, takeNextEvent(queue).name],
+    ["nested-derived", "unrelated"],
+  );
+});
+
 test("Thief relic progresses on individual hits instead of an aggregate hit", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(

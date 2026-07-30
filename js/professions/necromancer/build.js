@@ -5,6 +5,11 @@ import {
 } from "../../platform/gw2/weapon-sigils.js";
 import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
 import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
+import {
+  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
+  normalizeSimulationRandomnessAssumptions,
+  validateSimulationRandomnessAssumptions,
+} from "../../app/simulation-randomness.js";
 import { necromancerCatalog } from "./catalog.js";
 
 /**
@@ -52,6 +57,7 @@ export function createNecromancerBuildDefaults() {
       Elite: "Elixir of Ambition",
     },
     assumptions: {
+      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
       might: 25,
       fury: true,
       quickness: true,
@@ -84,6 +90,9 @@ const necromancerBuildCodec = createGw2BuildCodec({
   normalizeExtra(build, { saved }) {
     return {
       ...build,
+      assumptions: normalizeSimulationRandomnessAssumptions(
+        build.assumptions,
+      ),
       initialResource: Math.max(
         0,
         Math.min(100, Number(saved.initialResource ?? 100) || 0),
@@ -95,7 +104,9 @@ const necromancerBuildCodec = createGw2BuildCodec({
     };
   },
   validateExtra(build) {
-    const errors = [];
+    const errors = validateSimulationRandomnessAssumptions(
+      build.assumptions,
+    );
     if (
       !(
         Number(build.initialResource) >= 0 &&

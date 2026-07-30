@@ -2,6 +2,9 @@ import {
   createModifierHooks,
   MODIFIER_TARGET,
 } from "../../platform/gw2/modifier-rules.js";
+import {
+  professionStaticRulesApplied,
+} from "../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../platform/gw2/trait-state.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -396,7 +399,7 @@ function modifyConditionDuration(context, duration) {
   let modified = duration;
   if (
     hasTrait(context, TRAIT.PACT_OF_PAIN) &&
-    !context.config?.revenantBuildAttributesApplied
+    !professionStaticRulesApplied(context.config)
   ) {
     modified += 0.15;
   }
@@ -406,7 +409,7 @@ function modifyConditionDuration(context, duration) {
   ) {
     // Browser build attributes contain both static duration bonuses. Direct
     // simulator configs still need them applied at runtime.
-    if (!context.config?.revenantBuildAttributesApplied) {
+    if (!professionStaticRulesApplied(context.config)) {
       modified += 0.1;
       if (hasTrait(context, TRAIT.NUMINOUS_GIFT)) modified += 0.05;
     }
@@ -425,7 +428,7 @@ function modifyAttributes(context, attributes) {
   let modified = { ...attributes };
   if (
     hasTrait(context, TRAIT.EMPIRE_DIVIDED) &&
-    !context.config?.revenantBuildAttributesApplied &&
+    !professionStaticRulesApplied(context.config) &&
     playerHealthFraction(context) >
       MECHANICS.endurance.empireDividedHealthThreshold
   ) {
@@ -456,7 +459,7 @@ function modifyAttributes(context, attributes) {
   const state = professionState(context);
   const cosmicMultiplier =
     Number(state.cosmicWisdomUntil || 0) > context.time ? 2 : 1;
-  const buildMultiplier = context.config?.revenantBuildAttributesApplied
+  const buildMultiplier = professionStaticRulesApplied(context.config)
     ? 1
     : 0;
   const bonuses = bolsteredBondsBonuses(

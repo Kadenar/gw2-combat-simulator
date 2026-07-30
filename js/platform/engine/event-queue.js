@@ -4,45 +4,56 @@
  */
 export { EPSILON } from "./clock.js";
 
-let nextQueueSequence = 1;
-
-function compareHeapEntries(left, right) {
-  return compareQueuedEvents(left.event, right.event)
-    || left.sequence - right.sequence;
+function explicitCausalOrder(event) {
+  const order = Number(event?.causalOrder ?? event?.__order);
+  return Number.isFinite(order) ? order : null;
 }
 
-/**
- * Adds deterministic insertion metadata for events that were not created
- * through the scheduler's normal event factory path.
- */
-function ensureMetadata(event) {
-  if (event.__order == null && event._queueSeq == null) {
-    event._queueSeq = nextQueueSequence++;
+function compareHeapEntries(left, right) {
+  const eventOrder = compareQueuedEvents(left.event, right.event);
+  if (eventOrder) return eventOrder;
+  if (
+    left.causalOrder != null
+    && right.causalOrder != null
+    && left.causalOrder !== right.causalOrder
+  ) {
+    return left.causalOrder - right.causalOrder;
   }
-  return event;
+  return left.sequence - right.sequence;
 }
 
 /**
  * Sort comparator for queued events.
  */
 export function compareQueuedEvents(left, right) {
-  return Number(left.at ?? left.time ?? 0) - Number(right.at ?? right.time ?? 0)
-    || Number(left.priority || 0) - Number(right.priority || 0)
-    || Number(left.causalOrder ?? left.__order ?? left._queueSeq ?? 0)
-      - Number(right.causalOrder ?? right.__order ?? right._queueSeq ?? 0);
+  const time =
+    Number(left.at ?? left.time ?? 0) - Number(right.at ?? right.time ?? 0);
+  if (time) return time;
+  const priority = Number(left.priority || 0) - Number(right.priority || 0);
+  if (priority) return priority;
+  const leftOrder = explicitCausalOrder(left);
+  const rightOrder = explicitCausalOrder(right);
+  return leftOrder != null && rightOrder != null
+    ? leftOrder - rightOrder
+    : 0;
 }
 
 /**
  * Stable min-heap for resolver event queues. Equal events retain insertion
  * order independently of any causal metadata already present on the event.
+ * Resolver-created events inherit the causal order of the event currently
+ * being handled, keeping derived effects adjacent to their cause without
+ * leaking ordering state between simulations.
  */
 export class StableEventQueue {
   constructor(events = []) {
     this.heap = [...events].map((event, sequence) => ({
-      event: ensureMetadata(event),
+      event,
+      causalOrder: explicitCausalOrder(event),
       sequence,
     }));
     this.nextSequence = this.heap.length;
+    this.currentCausalOrder = null;
     for (
       let index = Math.floor(this.heap.length / 2) - 1;
       index >= 0;
@@ -58,7 +69,9 @@ export class StableEventQueue {
 
   enqueue(event) {
     const entry = {
-      event: ensureMetadata(event),
+      event,
+      causalOrder:
+        explicitCausalOrder(event) ?? this.currentCausalOrder,
       sequence: this.nextSequence,
     };
     this.nextSequence += 1;
@@ -76,13 +89,14 @@ export class StableEventQueue {
 
   dequeue() {
     if (this.heap.length === 0) return undefined;
-    const first = this.heap[0].event;
+    const first = this.heap[0];
     const last = this.heap.pop();
     if (this.heap.length > 0) {
       this.heap[0] = last;
       this.siftDown(0);
     }
-    return first;
+    this.currentCausalOrder = first.causalOrder;
+    return first.event;
   }
 
   siftDown(start) {
@@ -122,7 +136,6 @@ export function createEventQueue(events = []) {
  */
 export function enqueueOrdered(queue, event) {
   if (queue instanceof StableEventQueue) return queue.enqueue(event);
-  ensureMetadata(event);
   queue.push(event);
   let index = queue.length - 1;
   while (index > 0 && compareQueuedEvents(queue[index], queue[index - 1]) < 0) {
@@ -137,7 +150,6 @@ export function enqueueOrdered(queue, event) {
  */
 export function sortQueuedEvents(queue) {
   if (queue instanceof StableEventQueue) return queue;
-  for (const event of queue) ensureMetadata(event);
   return queue.sort(compareQueuedEvents);
 }
 

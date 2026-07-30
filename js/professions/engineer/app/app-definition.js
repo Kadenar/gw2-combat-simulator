@@ -27,7 +27,6 @@ export const engineerApp = defineProfessionApp({
     buildConfigExtras: app => ({
       initialHeat: app.build.initialHeat,
       selectedMorphSkillIds: [...app.build.selectedMorphSkillIds],
-      engineerBuildAttributesApplied: true,
     }),
   },
   isSkillAvailable(skill, context) {

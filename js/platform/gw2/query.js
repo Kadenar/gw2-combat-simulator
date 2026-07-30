@@ -106,6 +106,17 @@ export function createGw2CombatQuery({
     const dynamic = runtimeBuffStacks(runtime, "fury", time, 1);
     return dynamic == null ? timeline.furyActiveAt(time) : dynamic > 0;
   };
+  const summonMightStacksAt = (time) => Math.min(
+    25,
+    events
+      .filter(event =>
+        event.type === "buff"
+        && String(event.kind || "").toLowerCase() === "might"
+        && event.affectsSummons === true
+        && event.at <= time
+        && event.at + Number(event.duration || 0) > time)
+      .reduce((sum, event) => sum + Number(event.stacks || 1), 0),
+  );
   const vulnerabilityStacksAt = (time, runtime) => {
     const buffStacks = runtimeBuffStacks(
       runtime,
@@ -172,18 +183,45 @@ export function createGw2CombatQuery({
     events,
     runtime,
   });
-  const statsAt = (time, event = null, runtime = null) =>
-    profession.modifyAttributes(
+  const statsAt = (time, event = null, runtime = null) => {
+    const stats = profession.modifyAttributes(
       hookContext(time, { event, runtime }),
       gw2StaticAttributes(
         configWithBaselineStats,
         mightStacksAt(time, runtime),
       ),
     );
+    if (
+      event?.independentSummonStrike === true
+      && Number.isFinite(Number(event.summonBasePower))
+    ) {
+      return {
+        ...stats,
+        power:
+          Number(event.summonBasePower)
+          + summonMightStacksAt(time) * 30,
+        precision: 1000,
+        ferocity: 0,
+      };
+    }
+    return stats;
+  };
 
   query = Object.freeze({
     statsAt,
     critical(event, time, runtime = null) {
+      if (event?.independentSummonStrike === true) {
+        return {
+          chance:
+            event.canCrit === false || event.noCrit
+              ? 0
+              : Math.max(
+                0,
+                Math.min(1, Number(event.summonCriticalChance ?? 0.05)),
+              ),
+          damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5)),
+        };
+      }
       const stats = statsAt(time, event, runtime);
       let chance = criticalChance(stats.precision);
       chance += Number(config.stats?.criticalChanceBonus || 0) / 100;
@@ -210,6 +248,9 @@ export function createGw2CombatQuery({
       };
     },
     strikeMultiplier(event, time, runtime = null) {
+      if (event?.independentSummonStrike === true) {
+        return 1 + vulnerabilityStacksAt(time, runtime) / 100;
+      }
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
         Number(activeSigilSetAt(time, runtime).strike || 1) *
@@ -264,6 +305,26 @@ export function createGw2CombatQuery({
         base,
       );
       return Math.max(1, Math.min(2, Number(modified || 1)));
+    },
+    conditionBaseDurationMultiplier(
+      name,
+      time,
+      event = null,
+      runtime = null,
+    ) {
+      return Math.max(
+        0,
+        Number(
+          profession.modifyConditionBaseDuration(
+            hookContext(time, {
+              event,
+              condition: name,
+              runtime,
+            }),
+            1,
+          ) || 0,
+        ),
+      );
     },
     targetConditionStacks: targetConditionStacksAt,
     targetHasCondition(condition, time, runtime = null) {

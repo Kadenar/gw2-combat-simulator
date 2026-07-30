@@ -1,0 +1,372 @@
+{
+  "rotation": [
+    "Summon Shadow Fiend",
+    "Manifest Sand Shade",
+    {
+      "name": "__wait",
+      "waitMs": 520
+    },
+    "Blood Is Power",
+    {
+      "name": "__combat_start",
+      "offset": 561
+    },
+    {
+      "name": "Haunt",
+      "offset": 603
+    },
+    {
+      "name": "Desert Shroud",
+      "offset": 71
+    },
+    "Vile Blast",
+    "Weeping Shots",
+    {
+      "name": "Nefarious Favor",
+      "offset": 362
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 602
+    },
+    "Devouring Darkness",
+    "Grasping Dead",
+    "Oppressive Collapse",
+    "Harrowing Wave",
+    "Signet of Spite",
+    {
+      "name": "Nefarious Favor",
+      "offset": 321
+    },
+    "Plaguelands",
+    "Blood Curse",
+    "Rending Curse",
+    "Putrid Curse",
+    "Blood Curse",
+    {
+      "name": "Nefarious Favor",
+      "offset": 365
+    },
+    "Rending Curse",
+    "Putrid Curse",
+    "Blood Curse",
+    "Rending Curse",
+    "Putrid Curse",
+    "Manifest Sand Shade",
+    "Devouring Darkness",
+    {
+      "name": "Nefarious Favor",
+      "offset": 125
+    },
+    "Grasping Dead",
+    {
+      "name": "Swap Weapons",
+      "offset": 756
+    },
+    "Weeping Shots",
+    {
+      "name": "Desert Shroud",
+      "offset": 795
+    },
+    "Vile Blast",
+    "Blood Is Power",
+    {
+      "name": "Nefarious Favor",
+      "offset": 880
+    },
+    "Vicious Shot",
+    "Vicious Shot",
+    {
+      "name": "Haunt",
+      "offset": 162
+    },
+    "Vicious Shot",
+    "Vicious Shot",
+    "Harrowing Wave",
+    "Vicious Shot",
+    "Vicious Shot",
+    {
+      "name": "Nefarious Favor",
+      "offset": 236
+    },
+    "Weeping Shots",
+    "Oppressive Collapse",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Manifest Sand Shade",
+    {
+      "name": "Nefarious Favor",
+      "offset": 78
+    },
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vile Blast",
+    "Weeping Shots",
+    {
+      "name": "Nefarious Favor",
+      "offset": 716
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 278
+    },
+    "Devouring Darkness",
+    "Grasping Dead",
+    {
+      "name": "Desert Shroud",
+      "offset": 599
+    },
+    "Blood Is Power",
+    "Blood Curse",
+    "Rending Curse",
+    {
+      "name": "Nefarious Favor",
+      "offset": 361
+    },
+    "Putrid Curse",
+    "Manifest Sand Shade",
+    "Blood Curse",
+    "Harrowing Wave",
+    "Blood Curse",
+    "Rending Curse",
+    {
+      "name": "Haunt",
+      "offset": 519
+    },
+    "Putrid Curse",
+    {
+      "name": "Nefarious Favor",
+      "offset": 438
+    },
+    "Blood Curse",
+    "Rending Curse",
+    "Putrid Curse",
+    "Devouring Darkness",
+    "Blood Curse",
+    "Grasping Dead",
+    {
+      "name": "Nefarious Favor",
+      "offset": 678
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 117
+    },
+    "Weeping Shots",
+    "Vile Blast",
+    "Oppressive Collapse",
+    "Signet of Spite",
+    "Manifest Sand Shade",
+    {
+      "name": "Nefarious Favor",
+      "offset": 516
+    },
+    "Blood Is Power",
+    {
+      "name": "Desert Shroud",
+      "offset": 806
+    },
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Weeping Shots",
+    {
+      "name": "Nefarious Favor",
+      "offset": 802
+    },
+    "Vicious Shot",
+    "Harrowing Wave",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    {
+      "name": "Nefarious Favor",
+      "offset": 119
+    },
+    "Vicious Shot",
+    "Vile Blast",
+    {
+      "name": "Haunt",
+      "offset": 119
+    },
+    "Weeping Shots",
+    {
+      "name": "Swap Weapons",
+      "offset": 1000
+    },
+    "Devouring Darkness",
+    "Grasping Dead",
+    {
+      "name": "Nefarious Favor",
+      "offset": 440
+    },
+    "Manifest Sand Shade",
+    "Blood Curse",
+    "Rending Curse",
+    "Putrid Curse",
+    "Blood Curse",
+    "Rending Curse",
+    {
+      "name": "Nefarious Favor",
+      "offset": 524
+    },
+    "Putrid Curse",
+    {
+      "name": "Desert Shroud",
+      "offset": 519
+    },
+    "Oppressive Collapse",
+    "Blood Is Power",
+    "Plaguelands",
+    "Manifest Sand Shade",
+    {
+      "name": "Nefarious Favor",
+      "offset": 443
+    },
+    "Harrowing Wave",
+    "Devouring Darkness",
+    "Blood Curse",
+    "Grasping Dead",
+    {
+      "name": "Swap Weapons",
+      "offset": 762
+    },
+    "Weeping Shots",
+    "Vile Blast",
+    {
+      "name": "Nefarious Favor",
+      "offset": 276
+    },
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    {
+      "name": "Haunt",
+      "offset": 276
+    },
+    "Vicious Shot",
+    {
+      "name": "Nefarious Favor",
+      "offset": 202
+    },
+    "Vicious Shot",
+    "Vicious Shot",
+    "Weeping Shots",
+    "Manifest Sand Shade",
+    "Blood Is Power",
+    "Vicious Shot",
+    {
+      "name": "Desert Shroud",
+      "offset": 77
+    },
+    {
+      "name": "Nefarious Favor",
+      "offset": 201
+    },
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Harrowing Wave",
+    "Vile Blast",
+    "Weeping Shots",
+    {
+      "name": "Nefarious Favor",
+      "offset": 519
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 480
+    },
+    "Devouring Darkness",
+    "Grasping Dead",
+    "Oppressive Collapse",
+    "Signet of Spite",
+    "Blood Curse",
+    {
+      "name": "Nefarious Favor",
+      "offset": 78
+    },
+    "Rending Curse",
+    "Putrid Curse",
+    "Manifest Sand Shade",
+    "Blood Curse",
+    "Rending Curse",
+    "Putrid Curse",
+    {
+      "name": "Nefarious Favor",
+      "offset": 440
+    },
+    "Blood Curse",
+    "Rending Curse",
+    {
+      "name": "Haunt",
+      "offset": 77
+    },
+    "Putrid Curse",
+    "Blood Curse",
+    "Blood Is Power",
+    "Devouring Darkness",
+    {
+      "name": "Desert Shroud",
+      "offset": 119
+    },
+    "Grasping Dead",
+    {
+      "name": "Swap Weapons",
+      "offset": 799
+    },
+    "Weeping Shots",
+    {
+      "name": "Nefarious Favor",
+      "offset": 84
+    },
+    "Vile Blast",
+    "Harrowing Wave",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    {
+      "name": "Nefarious Favor",
+      "offset": 563
+    },
+    "Vicious Shot",
+    "Manifest Sand Shade",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Weeping Shots",
+    "Oppressive Collapse",
+    {
+      "name": "Nefarious Favor",
+      "offset": 358
+    },
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Vicious Shot",
+    "Manifest Sand Shade",
+    "Vile Blast",
+    "Weeping Shots",
+    {
+      "name": "Haunt",
+      "offset": 7
+    },
+    {
+      "name": "Nefarious Favor",
+      "offset": 313
+    },
+    {
+      "name": "Swap Weapons",
+      "offset": 1045
+    },
+    "Devouring Darkness",
+    "Grasping Dead"
+  ]
+}

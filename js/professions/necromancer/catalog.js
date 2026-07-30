@@ -17,7 +17,6 @@ export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
     "Spectral Walk",
     "Spectral Recall",
     "Well of Power",
-    "Resilient Weapon",
     "Weapon of Warding",
     "Weapon of Remedy",
     "Xinrae's Weapon",

@@ -2549,7 +2549,9 @@ test("Renegade critical traits and Blood Fury use their supplied intervals", () 
     revenantAttributeRules.modifyConditionDuration({
       config: {
         traitIds: [TRAIT.PACT_OF_PAIN],
-        revenantBuildAttributesApplied: true,
+        attributeProvenance: {
+          professionStaticRulesApplied: true,
+        },
       },
       condition: "Torment",
       time: 1,
@@ -4413,7 +4415,9 @@ test("Bolstered Bonds and Kinetic Insight modify runtime attributes and damage",
     ...context,
     config: {
       specialization: "Conduit",
-      revenantBuildAttributesApplied: true,
+      attributeProvenance: {
+        professionStaticRulesApplied: true,
+      },
       traitIds: [
         TRAIT.DETERMINED_RESOLUTION,
         TRAIT.SERENE_REJUVENATION,

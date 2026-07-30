@@ -1,4 +1,8 @@
 import {
+  actualNecromancerLifeForceCost,
+  normalizedNecromancerLifeForceCost,
+} from "../state.js";
+import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
@@ -171,16 +175,47 @@ function inShroudGate(context, skill, { state, activeShroud }) {
   return chainVerdict(context, skill, state);
 }
 
-function spiritGate(_context, skill, { state, activeShroud }) {
+function spiritGate(_context, skill, { state }) {
   const spirit = INNERVATE_SPIRIT.get(skill.id);
   if (!spirit) return null;
-  return activeShroud === "ritualist" && Boolean(state.activeSpirits?.[spirit])
+  return Boolean(state.activeSpirits?.[spirit])
     ? READY
     : deny(
         skill,
         "necromancer.spirit",
-        `requires an active ${spirit} spirit in Ritualist shroud.`,
+        `requires an active ${spirit} spirit.`,
       );
+}
+
+function activeMinionGate(context, skill, { state }) {
+  if (!skill.rechargeOnMinionDeath) return null;
+  const commandAvailableUntil = Number(
+    state.availableFlips?.[skill.flipSkillId] || 0,
+  );
+  return commandAvailableUntil > context.start
+    ? deny(
+        skill,
+        "necromancer.minion-active",
+        "its summoned minion is still alive.",
+      )
+    : null;
+}
+
+function selectedSlotSkillGate(context, skill) {
+  if (
+    !["Heal", "Utility", "Elite"].includes(skill.type)
+    || skill.flipParentId != null
+  ) {
+    return null;
+  }
+  const source = context.config?.selectedSkills || [];
+  const selected = Array.isArray(source) ? source : Object.values(source);
+  if (!selected.length || selected.includes(skill.name)) return null;
+  return deny(
+    skill,
+    "necromancer.slot-skill",
+    "the skill is not equipped.",
+  );
 }
 
 // Terminal gate for ordinary out-of-shroud skills. Always yields a verdict.
@@ -195,13 +230,14 @@ function baselineGate(context, skill, { state, activeShroud }) {
   if (
     skill.lifeForceCost &&
     Number(state.lifeForce || 0) <
-      (Number(skill.lifeForceCost) * Number(state.maximumLifeForce || 100)) /
-        100
+      normalizedNecromancerLifeForceCost(state, skill.lifeForceCost)
   ) {
     return deny(
       skill,
       "necromancer.insufficient-life-force",
-      `requires ${skill.lifeForceCost} life force.`,
+      `requires ${Math.round(
+        actualNecromancerLifeForceCost(skill.lifeForceCost),
+      )} life force.`,
     );
   }
   if (
@@ -224,6 +260,8 @@ const CAST_STATE_GATES = Object.freeze([
   lichSkillGate,
   inShroudGate,
   spiritGate,
+  selectedSlotSkillGate,
+  activeMinionGate,
   baselineGate,
 ]);
 

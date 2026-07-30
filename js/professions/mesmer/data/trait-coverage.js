@@ -62,6 +62,25 @@ const IMPLEMENTED = new Set([
 const OUT_OF_MODEL_REASON =
   "This defensive, healing, ally-only, movement, incoming-hit, boon-support, or competitive-only effect does not change the deterministic single-target damage model.";
 
+function implementedEvidence(trait) {
+  if (trait.specialization === "Mirage") {
+    return {
+      file: "tests/rotation.test.js",
+      name: "Mirage support and cloak traits emit their current effects",
+    };
+  }
+  if (trait.specialization === "Chronomancer") {
+    return {
+      file: "tests/rotation.test.js",
+      name: "Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it first",
+    };
+  }
+  return {
+    file: "tests/rotation.test.js",
+    name: "supplied trait attacks execute with their exact coefficients",
+  };
+}
+
 const manifest = mesmerCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(Number(trait.id));
   const status = implemented
@@ -80,7 +99,7 @@ const manifest = mesmerCatalog.traits.map((trait) => {
       },
     ],
     ...(implemented
-      ? { tests: ["tests/rotation.test.js#mesmer-trait-behavior"] }
+      ? { tests: [implementedEvidence(trait)] }
       : { reason: OUT_OF_MODEL_REASON }),
   };
 });

@@ -95,8 +95,40 @@ export function snapshotEngineerState(state) {
   return structuredClone(state);
 }
 
+export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
+  "heat",
+  "maximumHeat",
+  "photonForgeActive",
+  "forgeExitedAt",
+  "overheated",
+  "activeKit",
+  "availableFlips",
+  "autoattackChains",
+  "mech",
+  "selectedMorphSkillIds",
+  "evolvedUntil",
+  "focusedUntil",
+  "lightningRodChargeExpiries",
+  "electricArtilleryAvailable",
+  "electricArtilleryReadyAt",
+  "electricArtilleryExpiresAt",
+  "willingHostUntil",
+  "plasmaticStateUntil",
+  "plasmaticLockoutUntil",
+  "thornsUntil",
+  "rapaciousUntil",
+  "predatorUntil",
+  "titanicUntil",
+  "berserkerUntil",
+  "activeStances",
+]);
+
 export function projectEngineerEndState({ schedulerState }) {
-  const projected = snapshotEngineerState(schedulerState.profession);
-  delete projected.traitProcReadyAt;
-  return projected;
+  const state = schedulerState.profession;
+  return Object.fromEntries(
+    ENGINEER_PUBLIC_END_STATE_KEYS.map((key) => [
+      key,
+      structuredClone(state[key]),
+    ]),
+  );
 }

@@ -308,6 +308,16 @@ test("shared results render summaries, totals, contributions, and icons", () => 
       },
     ],
     contributionsStale: true,
+    randomDistributionRequested: true,
+    randomDistribution: {
+      trials: 500,
+      mean: 1234,
+      p01: 1000,
+      p10: 1100,
+      p50: 1225,
+      p90: 1350,
+      p99: 1500,
+    },
   }, {
     resolveSkillIcon: row => {
       resolved.push(row.name);
@@ -336,9 +346,40 @@ test("shared results render summaries, totals, contributions, and icons", () => 
   assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/>Bonus/);
   assert.match(container.innerHTML, /contrib-status/);
   assert.match(container.innerHTML, /Recalculating/);
+  assert.match(container.innerHTML, /Trait-proc RNG distribution/);
+  assert.match(container.innerHTML, /500 simulated rotations/);
+  assert.match(container.innerHTML, /Very unlucky/);
+  assert.match(container.innerHTML, /P1 DPS/);
+  assert.match(container.innerHTML, /Very lucky/);
+  assert.match(container.innerHTML, /P99 DPS/);
+  assert.match(container.innerHTML, /1,100&ndash;1,350/);
+  assert.ok(
+    container.innerHTML.indexOf("DPS snapshots")
+    < container.innerHTML.indexOf("Trait-proc RNG distribution"),
+  );
   assert.deepEqual(resolved, ["High", "Low"]);
 
   assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
+});
+
+test("RNG distribution renders completed outcomes and percentage progress", () => {
+  const container = inertContainer();
+  mountRotationResults(container, {
+    metrics: [],
+    randomDistributionRequested: true,
+    randomDistributionStale: true,
+    randomDistributionTrials: 500,
+    randomDistributionProgress: {
+      completed: 125,
+      total: 500,
+      percent: 25,
+    },
+  });
+
+  assert.match(container.innerHTML, /role="progressbar"/);
+  assert.match(container.innerHTML, /aria-valuenow="25"/);
+  assert.match(container.innerHTML, /style="width: 25%"/);
+  assert.match(container.innerHTML, /125 \/ 500 outcomes \(25%\)/);
 });
 
 test("rotation warnings render a collapsed count and escaped details", () => {

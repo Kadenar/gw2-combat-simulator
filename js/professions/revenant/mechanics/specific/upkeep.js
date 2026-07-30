@@ -279,7 +279,7 @@ export function handleRevenantUpkeepPulse(context, task) {
       for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
         emitDamage(context, skill, task.at, profile.coefficient, {
           actorType: "effect",
-          name: `Soulcleave's Summit â€” Ally ${allyIndex} Additional Strike`,
+          name: `Soulcleave's Summit — Ally ${allyIndex} Additional Strike`,
         });
         context.emit({
           type: "damage",
@@ -289,7 +289,7 @@ export function handleRevenantUpkeepPulse(context, task) {
           actorType: "effect",
           skillId: skill.id,
           skillName: skill.name,
-          name: `Soulcleave's Summit â€” Ally ${allyIndex} Life Siphon`,
+          name: `Soulcleave's Summit — Ally ${allyIndex} Life Siphon`,
           coefficient: 0,
           flatStrikeBase: profile.siphon.flatStrikeBase,
           flatStrikePowerCoeff: profile.siphon.flatStrikePowerCoeff,

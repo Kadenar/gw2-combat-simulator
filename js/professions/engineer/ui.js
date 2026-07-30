@@ -1,6 +1,9 @@
 import {
   createProfessionAssumptionControls,
 } from "../../app/profession-assumptions.js";
+import {
+  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+} from "../../app/simulation-randomness.js";
 import { engineerCatalog } from "./catalog.js";
 import { getActiveTraits } from "./data/traits-data.js";
 import { selectedMechCommands } from "./state.js";
@@ -53,6 +56,7 @@ const UNSELECTABLE_SLOT_SKILLS = new Set([
 ]);
 
 const ENGINEER_ASSUMPTION_CONTROLS = createProfessionAssumptionControls([
+  ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   {
     key: "inDamagingField",
     label: "In damaging field",
@@ -264,7 +268,7 @@ function professionSkills(context) {
   return professionSkillSlots(context).filter(id => id != null);
 }
 
-function rotationSkillAvailability(skill, context = {}) {
+function engineerPaletteSkillAvailability(context = {}, skill) {
   const state = stateFrom(context);
   if (skill.name === "Electric Artillery") {
     const charging = Number(state.electricArtilleryReadyAt || 0) > 0;
@@ -325,13 +329,25 @@ function rotationSkillAvailability(skill, context = {}) {
   return { available: true, message: "" };
 }
 
-export function engineerEventLogRow(event) {
-  if (event.type !== "engineer.state") return undefined;
+export function engineerEventLogRow(_context, event) {
+  if ([
+    "engineer.lightning-rod-pulse",
+    "engineer.conduit-surge",
+    "engineer.electric-artillery",
+  ].includes(event?.type)) {
+    // These resolver events materialize skill packets. The ordinary action,
+    // damage, and condition rows already present their user-visible effects.
+    return null;
+  }
+  if (event?.type !== "engineer.state") return undefined;
   return {
-    at: event.at,
-    type: "Engineer",
-    name: event.reason || "State",
-    detail: `Heat ${Number(event.state?.heat || 0).toFixed(1)}`,
+    type: event.type,
+    description:
+      `${event.reason || "State"} - ` +
+      `Heat ${Number(event.state?.heat || 0).toFixed(1)}`,
+    className: "resource",
+    order: 30,
+    flags: [],
   };
 }
 
@@ -401,7 +417,7 @@ export const engineerUi = Object.freeze({
       statusLabel: state.overheated ? "Overheated" : "Current",
     }];
   },
-  rotationSkillAvailability,
+  paletteSkillAvailability: engineerPaletteSkillAvailability,
   isSlotSkillSelectable(_context, skill) {
     return (
       skill.slotSelectable !== false
@@ -412,11 +428,5 @@ export const engineerUi = Object.freeze({
     );
   },
   weaponSwapChangesSet: false,
-  isPaletteSkillAvailable(context, skill) {
-    return rotationSkillAvailability(skill, context).available;
-  },
-  paletteSkillUnavailableMessage(context, skill) {
-    return rotationSkillAvailability(skill, context).message;
-  },
   eventLogRow: engineerEventLogRow,
 });

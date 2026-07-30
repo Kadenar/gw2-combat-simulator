@@ -90,12 +90,12 @@ export const testProfession = defineProfession({
       label: "Fixture",
       skillIds: [900001, 900002],
     }],
-    resourceView: context => ({
+    resourceViews: context => [{
       id: "charge",
       singular: "charge",
       plural: "charges",
       maximum: 5,
       value: context.state?.profession?.charge || 0,
-    }),
+    }],
   },
 });

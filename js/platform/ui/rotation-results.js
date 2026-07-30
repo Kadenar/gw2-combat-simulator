@@ -136,6 +136,38 @@ export function mountRotationResults(container, model = {}, options = {}) {
   const conditions = model.conditions || [];
   const contributions = model.contributions || [];
   const contributionsStale = model.contributionsStale === true;
+  const randomDistribution = model.randomDistribution || null;
+  const randomDistributionRequested =
+    model.randomDistributionRequested === true;
+  const randomDistributionStale = model.randomDistributionStale === true;
+  const randomDistributionTrials = Number(
+    randomDistribution?.trials || model.randomDistributionTrials || 0,
+  );
+  const randomDistributionProgress = model.randomDistributionProgress || {};
+  const randomDistributionCompleted = Math.max(
+    0,
+    Math.min(
+      randomDistributionTrials,
+      Number(randomDistributionProgress.completed || 0),
+    ),
+  );
+  const randomDistributionPercent = Math.max(
+    0,
+    Math.min(
+      100,
+      Number(
+        randomDistributionProgress.percent
+        ?? (
+          randomDistributionTrials > 0
+            ? (randomDistributionCompleted / randomDistributionTrials) * 100
+            : 0
+        ),
+      ),
+    ),
+  );
+  const randomDistributionError = String(
+    model.randomDistributionError || "",
+  );
   let sortState = {
     column: options.sortState?.column || null,
     direction: options.sortState?.direction || null,
@@ -175,6 +207,65 @@ export function mountRotationResults(container, model = {}, options = {}) {
       </div>`).join("")}
     </div>
   </details>` : ""}
+  ${randomDistributionRequested ? `<section class="rng-distribution">
+    <div class="rng-distribution-heading">
+      <div>
+        <h4>Trait-proc RNG distribution</h4>
+        <p>Use Expected for planning. P1 and P99 show rare unlucky and lucky outcomes. Other result panels use the deterministic baseline.</p>
+      </div>
+      ${randomDistributionTrials
+        ? `<span>${number(randomDistributionTrials)} simulated rotations</span>`
+        : ""}
+    </div>
+    ${randomDistributionStale
+      ? `<div class="rng-distribution-progress"
+          data-role="rng-progress"
+          role="progressbar"
+          aria-label="Calculating RNG outcomes"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="${Math.round(randomDistributionPercent)}">
+          <div class="rng-distribution-progress-track">
+            <span data-role="rng-progress-bar" style="width: ${randomDistributionPercent}%"></span>
+          </div>
+          <span data-role="rng-progress-label">${
+            number(randomDistributionCompleted)
+          } / ${number(randomDistributionTrials)} outcomes (${
+            Math.round(randomDistributionPercent)
+          }%)</span>
+        </div>`
+      : randomDistributionError
+        ? `<div class="rng-distribution-status rng-distribution-error">${escapeHtml(randomDistributionError)}</div>`
+        : randomDistribution
+          ? `<div class="rng-distribution-grid">
+            <div class="rng-distribution-stat">
+              <span>Expected</span>
+              <strong>${number(randomDistribution.mean)}</strong>
+              <small>Mean DPS</small>
+            </div>
+            <div class="rng-distribution-stat">
+              <span>Typical</span>
+              <strong>${number(randomDistribution.p50)}</strong>
+              <small>P50 DPS</small>
+            </div>
+            <div class="rng-distribution-stat rng-distribution-range">
+              <span>Likely range</span>
+              <strong>${number(randomDistribution.p10)}&ndash;${number(randomDistribution.p90)}</strong>
+              <small>P10&ndash;P90 DPS</small>
+            </div>
+            <div class="rng-distribution-stat rng-unlucky">
+              <span>Very unlucky</span>
+              <strong>${number(randomDistribution.p01)}</strong>
+              <small>P1 DPS</small>
+            </div>
+            <div class="rng-distribution-stat rng-lucky">
+              <span>Very lucky</span>
+              <strong>${number(randomDistribution.p99)}</strong>
+              <small>P99 DPS</small>
+            </div>
+          </div>`
+          : '<div class="rng-distribution-status">No RNG outcomes available.</div>'}
+  </section>` : ""}
   ${skillColumns.length ? `<div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
     <div class="res-hdr res-hdr-sortable" data-role="skill-header">
       ${skillHeaderHtml(skillColumns, sortState)}

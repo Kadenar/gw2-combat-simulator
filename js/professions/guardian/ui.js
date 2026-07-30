@@ -56,58 +56,125 @@ function professionState(context = {}) {
     || {};
 }
 
-function guardianPaletteSkillAvailable(context, skill) {
-  const state = professionState(context);
-  if (
-    skill.type === "Weapon"
-    && (state.activeTome || state.radiantForge)
-  ) return false;
-  if (skill.tome) {
-    return state.activeTome === skill.tome
-      && Number(state.tomePages || 0) >= Number(skill.pageCost || 1);
-  }
-  if (skill.radiantForgeSkill) return Boolean(state.radiantForge);
-  if (skill.name === "Stow Tome") return Boolean(state.activeTome);
-  if (skill.name === "Enter Radiant Forge") {
-    return !state.radiantForge;
-  }
-  if (skill.name === "Exit Radiant Forge") {
-    return Boolean(state.radiantForge);
-  }
-  return true;
-}
-
-function guardianPaletteSkillUnavailableMessage(context, skill) {
+function guardianPaletteSkillAvailability(context = {}, skill = {}) {
   const state = professionState(context);
   if (skill.type === "Weapon" && state.activeTome) {
-    return "Weapon skills are unavailable while a tome is equipped";
+    return {
+      available: false,
+      message: "Weapon skills are unavailable while a tome is equipped",
+    };
   }
   if (skill.type === "Weapon" && state.radiantForge) {
-    return "Weapon skills are unavailable during Radiant Forge";
+    return {
+      available: false,
+      message: "Weapon skills are unavailable during Radiant Forge",
+    };
   }
   if (skill.tome && !state.activeTome) {
-    return "Equip this tome to use its chapter skills";
+    return {
+      available: false,
+      message: "Equip this tome to use its chapter skills",
+    };
   }
   if (skill.tome && state.activeTome !== skill.tome) {
-    return `Currently using the ${state.activeTome} tome`;
+    return {
+      available: false,
+      message: `Currently using the ${state.activeTome} tome`,
+    };
   }
-  if (
-    skill.tome
-    && Number(state.tomePages || 0) < Number(skill.pageCost || 1)
-  ) {
-    return `Requires ${Number(skill.pageCost || 1)} tome pages`;
+  const pageCost = Number(skill.pageCost || 1);
+  if (skill.tome && Number(state.tomePages || 0) < pageCost) {
+    return {
+      available: false,
+      message: `Requires ${pageCost} tome pages`,
+    };
   }
   if (skill.radiantForgeSkill && !state.radiantForge) {
-    return "Enter Radiant Forge to use this skill";
+    return {
+      available: false,
+      message: "Enter Radiant Forge to use this skill",
+    };
   }
-  if (skill.name === "Stow Tome") return "No tome is currently equipped";
-  if (skill.name === "Enter Radiant Forge") {
-    return "Radiant Forge is already active";
+  if (skill.name === "Stow Tome" && !state.activeTome) {
+    return {
+      available: false,
+      message: "No tome is currently equipped",
+    };
   }
-  if (skill.name === "Exit Radiant Forge") {
-    return "Radiant Forge is not active";
+  if (skill.name === "Enter Radiant Forge" && state.radiantForge) {
+    return {
+      available: false,
+      message: "Radiant Forge is already active",
+    };
   }
-  return "";
+  if (skill.name === "Exit Radiant Forge" && !state.radiantForge) {
+    return {
+      available: false,
+      message: "Radiant Forge is not active",
+    };
+  }
+  return { available: true, message: "" };
+}
+
+const GUARDIAN_INTERNAL_EVENT_TYPES = new Set([
+  "guardian.effulgent-activated",
+  "guardian.effulgent-detonate",
+  "guardian.righteous-instincts-tick",
+]);
+
+export function guardianEventLogRow(_context, event) {
+  if (GUARDIAN_INTERNAL_EVENT_TYPES.has(event?.type)) {
+    // These events materialize trait or skill packets. Proc, damage, control,
+    // and buff rows already present their user-visible results.
+    return null;
+  }
+  const base = {
+    type: event?.type,
+    className: "resource",
+    order: 30,
+    flags: [],
+  };
+  if (event?.type === "guardian.virtue-activated") {
+    return {
+      ...base,
+      description:
+        `VIRTUE ACTIVATED ${event.skillName || event.virtue || "Unknown"}`,
+    };
+  }
+  if (event?.type === "guardian.virtues-refreshed") {
+    return {
+      ...base,
+      description: "VIRTUES REFRESHED",
+    };
+  }
+  if (event?.type === "guardian.tome-stowed") {
+    return {
+      ...base,
+      description: "TOME STOWED",
+    };
+  }
+  if (event?.type === "guardian.tome-page-used") {
+    const cost = Math.max(1, Number(event.pageCost || 1));
+    return {
+      ...base,
+      description:
+        `TOME PAGE USED ${event.skillName || event.tome || "Unknown"} ` +
+        `(-${cost}) -> ${Number(event.pagesRemaining || 0)} remaining`,
+    };
+  }
+  if (
+    event?.type === "guardian.radiant-forge-entered"
+    || event?.type === "guardian.radiant-forge-exited"
+  ) {
+    const entered = event.type.endsWith("-entered");
+    return {
+      ...base,
+      description:
+        `RADIANT FORGE ${entered ? "ENTERED" : "EXITED"}` +
+        `${event.automatic ? " [automatic]" : ""}`,
+    };
+  }
+  return undefined;
 }
 
 export const guardianUi = Object.freeze({
@@ -159,8 +226,8 @@ export const guardianUi = Object.freeze({
     }
     return groups;
   },
-  isPaletteSkillAvailable: guardianPaletteSkillAvailable,
-  paletteSkillUnavailableMessage: guardianPaletteSkillUnavailableMessage,
+  paletteSkillAvailability: guardianPaletteSkillAvailability,
+  eventLogRow: guardianEventLogRow,
   resourceViews: context => {
     const specialization =
       context.specialization
