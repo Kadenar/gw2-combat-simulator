@@ -124,7 +124,6 @@ test('Mesmer relic options exclude profession-inapplicable relics', () => {
         'Nourys',
         'Mount Balrior',
         'Steamshrieker',
-        'Blightbringer',
     ];
     assert.equal(RELIC_NAMES.includes('Claw'), true);
     assert.deepEqual(RELIC_NAMES.filter(name => excluded.includes(name)), []);

@@ -185,12 +185,37 @@ export function renderAssumptions(app: ProfessionAppState): void {
             </label>`;
   };
   const professionAssumptionItems = assumptionControls
-    .filter((control) => control.section !== "simulation")
+    .filter((control) => !control.section || control.section === "target")
     .map(professionAssumptionItem)
     .join("");
   const simulationAssumptionItems = assumptionControls
     .filter((control) => control.section === "simulation")
     .map(professionAssumptionItem)
+    .join("");
+  const customAssumptionSections = new Map<
+    string,
+    ProfessionAssumptionControl[]
+  >();
+  assumptionControls
+    .filter(
+      (control) =>
+        !!control.section &&
+        !["target", "simulation"].includes(control.section),
+    )
+    .forEach((control) => {
+      const section = control.section;
+      if (!section) return;
+      const controls = customAssumptionSections.get(section) || [];
+      controls.push(control);
+      customAssumptionSections.set(section, controls);
+    });
+  const customAssumptionGroups = Array.from(customAssumptionSections)
+    .map(
+      ([section, controls]) =>
+        `<div class="perma-group"><span class="perma-group-label">${esc(section)}</span>${controls
+          .map(professionAssumptionItem)
+          .join("")}</div>`,
+    )
     .join("");
   const container = document.getElementById("perma-boons");
   if (!container) throw new Error("Required assumptions panel is missing.");
@@ -202,6 +227,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
                 <label class="boon-control"><input id="target-moving" type="checkbox"${a.targetMoving ? " checked" : ""}> Moving</label>
                 ${professionAssumptionItems}
             </div>
+            ${customAssumptionGroups}
             <div class="perma-group"><span class="perma-group-label">Party</span>
                 <label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>
             </div>

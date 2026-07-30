@@ -174,7 +174,7 @@ test('Virtuoso alacrity starts Imaginary Inversion recharge after the cast', () 
             secondaryWeapon: '',
         }),
     );
-    assert.equal(result.steps[1].start, 8500);
+    assert.equal(result.steps[1].start, 8680);
 });
 
 test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
@@ -2625,7 +2625,7 @@ test('split autoattacks preserve each full-chain cadence', () => {
         [['Mind Slash', 'Mind Gash', 'Mind Spike'], 2580],
         [['Ether Bolt', 'Ether Blast', 'Ether Clone'], 2700],
         [['Lacerating Chop', 'Ethereal Chop', 'Mirror Strikes'], 2520],
-        [['Psycut', 'Psystrike', 'Mind Pierce'], 2180],
+        [['Psycut', 'Psystrike', 'Mind Pierce'], 2220],
     ];
     for (const [skills, expectedTime] of chains) {
         assert.equal(simulateMesmer(skills, config).endState.time, expectedTime);

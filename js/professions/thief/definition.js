@@ -12,6 +12,9 @@ import { thiefCatalog } from "./catalog.js";
 import { thiefCastRules, thiefSchedulerHooks } from "./mechanics/contract.js";
 import { thiefResolverEventHandlers } from "./resolver/event-handlers.js";
 import {
+  thiefResolverEventReactions,
+} from "./resolver/event-reactions.js";
+import {
   createThiefState,
   projectThiefEndState,
   snapshotThiefState,
@@ -41,6 +44,7 @@ export const thiefProfession = defineProfession({
   },
   resolverHooks: {
     eventHandlers: thiefResolverEventHandlers,
+    eventReactions: thiefResolverEventReactions,
   },
   ui: thiefUi,
 });

@@ -17,9 +17,7 @@ import type {
 } from "../types.js";
 
 interface CreateGw2ConditionResolutionOptions {
-  readonly targetHealthMultiplier?: (
-    context: Gw2ResolverRuntime,
-  ) => number;
+  readonly targetHealthMultiplier?: (context: Gw2ResolverRuntime) => number;
   readonly onConditionApplied?: (
     context: Gw2ResolverRuntime,
     application: Gw2ResolvedConditionApplication,
@@ -37,9 +35,7 @@ const CONFUSION_ACTIVATION = Object.freeze({ base: 16.24, scaling: 0.0325 });
 export function createGw2ConditionResolution({
   targetHealthMultiplier = () => 1,
   onConditionApplied = () => {},
-}: CreateGw2ConditionResolutionOptions = {}): Readonly<
-  Gw2ConditionResolution
-> {
+}: CreateGw2ConditionResolutionOptions = {}): Readonly<Gw2ConditionResolution> {
   function activeStacks(
     ctx: Gw2ResolverRuntime,
     name: string,
@@ -176,10 +172,7 @@ export function createGw2ConditionResolution({
     const application = {
       ...event,
       sourceId:
-        event.sourceId ??
-        event.skillId ??
-        event.skillName ??
-        event.type,
+        event.sourceId ?? event.skillId ?? event.skillName ?? event.type,
       name:
         event.name ||
         `${event.skillName || event.sourceId || "Condition"} — ${name}`,
@@ -218,10 +211,7 @@ export function createGw2ConditionResolution({
   }
 
   const applyRelicCondition: Gw2ApplyCondition = (context, event) =>
-    applyCondition(
-      context as Gw2ResolverRuntime,
-      event,
-    );
+    applyCondition(context as Gw2ResolverRuntime, event);
 
   function handleConditionTick(
     ctx: Gw2ResolverRuntime,
@@ -237,12 +227,7 @@ export function createGw2ConditionResolution({
     // at tick time rather than frozen with the application.
     const perStack =
       conditionRate(ctx, condition, stats.conditionDamage) *
-      ctx.query.conditionMultiplier(
-        condition,
-        event.at,
-        application,
-        ctx,
-      ) *
+      ctx.query.conditionMultiplier(condition, event.at, application, ctx) *
       targetHealthMultiplier(ctx);
     const stackSeconds = application.stacks * fraction;
     const damage = perStack * stackSeconds;

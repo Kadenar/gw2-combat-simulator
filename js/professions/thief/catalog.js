@@ -36,6 +36,7 @@ const SIMULATOR_EXCLUDED_SKILL_NAMES = new Set([
 const SIMULATOR_EXCLUDED_ALIAS_IDS = new Set([
   45094, // Throw Gunk mode alias
   80278, // Death's Advance mode alias
+  76744, // Canach-Coin Toss backfire alias
   76550, // Forged Surfer Dash mode alias
   76601, // Exalted Hammer mode alias
   76800, // Holo-Dancer Decoy mode alias
@@ -64,7 +65,18 @@ const allDeclared = [...generatedSource, ...supplementalSource];
 const declaredIds = new Set(allDeclared.map(skill => skill.id));
 const terrestrialMechanics = Object.fromEntries(
   Object.entries(THIEF_SKILL_MECHANICS)
-    .filter(([id]) => declaredIds.has(Number(id))),
+    .filter(([id]) => declaredIds.has(Number(id)))
+    .map(([id, mechanics]) => [
+      id,
+      {
+        ...mechanics,
+        ...(
+          Number(mechanics.initiativeCost || 0) > 0
+            ? { resource: "initiative" }
+            : {}
+        ),
+      },
+    ]),
 );
 const byId = new Map(allDeclared.map(skill => [skill.id, skill]));
 const flipParentById = new Map();
@@ -88,6 +100,11 @@ const normalize = skill => ({
   flipParentId: flipParentById.get(skill.id) ?? null,
   dualWieldOpener: Object.hasOwn(DUAL_FOLLOWUP_BY_PARENT, skill.id),
   dualWieldFollowup: DUAL_FOLLOWUP_IDS.has(skill.id),
+  ...(
+    Number(skill.initiativeCost || 0) > 0
+      ? { resource: "initiative" }
+      : {}
+  ),
 });
 const generated = generatedSource.map(skill => ({
   ...normalize(skill),

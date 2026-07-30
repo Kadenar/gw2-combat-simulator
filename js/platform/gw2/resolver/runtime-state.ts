@@ -13,19 +13,17 @@ import type {
  * Profession state is supplied independently from common relic, sigil,
  * condition, damage, and reporting state.
  */
-export function createGw2ResolverRuntimeState(
-  {
-    config,
-    traits = new Set(),
-    horizon,
-    query,
-    helpers,
-    queue,
-    professionState = {},
-    warnings = [],
-    eventFilterState = {},
-  }: CreateGw2ResolverRuntimeStateOptions,
-): Gw2ResolverRuntime {
+export function createGw2ResolverRuntimeState({
+  config,
+  traits = new Set(),
+  horizon,
+  query,
+  helpers,
+  queue,
+  professionState = {},
+  warnings = [],
+  eventFilterState = {},
+}: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const runtime: Gw2ResolverRuntime = {
     config,
     traits,
@@ -109,8 +107,7 @@ export function createGw2ResolverRuntimeState(
       const key = source
         ? `${String(identityId)}|${parentSkill}|${name}`
         : name;
-      const current: Gw2DamageBreakdownEntry =
-        this.breakdown.get(key) || {
+      const current: Gw2DamageBreakdownEntry = this.breakdown.get(key) || {
         name,
         sourceSkill,
         parentSkill,
@@ -123,7 +120,7 @@ export function createGw2ResolverRuntimeState(
         strikeDamage: 0,
         conditionDamage: 0,
         hits: 0,
-        };
+      };
       if (current.skillId == null && source?.skillId != null) {
         current.skillId = source.skillId;
       }

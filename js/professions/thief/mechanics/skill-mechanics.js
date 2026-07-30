@@ -857,7 +857,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.SLICE]: {
     "implemented": true,
-    "castTimeMs": 0,
+    "castTimeMs": 500,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
@@ -909,7 +909,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 26.88,
+        "coefficient": 3.36,
         "hits": 8,
         "name": "Unload",
         "actorType": "player",
@@ -922,7 +922,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
         "type": "boon",
         "boon": "might",
         "duration": 8,
-        "stacks": 1
+        "stacks": 8
       }
     ],
     "requiredMainHand": "Pistol",
@@ -1118,8 +1118,10 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.PREPARE_THOUSAND_NEEDLES]: {
     "implemented": true,
-    "castTimeMs": 500,
+    "handlerId": "thief.prepare-thousand-needles",
+    "castTimeMs": 750,
     "cooldown": 30,
+    "rechargeAnchor": "castStart",
     "initiativeCost": 0,
     "effects": [],
   },
@@ -1145,25 +1147,11 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.CALTROPS]: {
     "implemented": true,
-    "castTimeMs": 1000,
+    "handlerId": "thief.caltrops",
+    "castTimeMs": 1150,
     "cooldown": 24,
     "initiativeCost": 0,
-    "effects": [
-      {
-        "type": "condition",
-        "condition": "Bleeding",
-        "stacks": 1,
-        "duration": 10,
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Crippled",
-        "stacks": 1,
-        "duration": 10,
-        "actorType": "player"
-      }
-    ],
+    "effects": [],
   },
   [ID.ROLL_FOR_INITIATIVE]: {
     "implemented": true,
@@ -1174,18 +1162,11 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.SPIDER_VENOM]: {
     "implemented": true,
+    "handlerId": "thief.spider-venom",
     "castTimeMs": 0,
     "cooldown": 30,
     "initiativeCost": 0,
-    "effects": [
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 3,
-        "actorType": "player"
-      }
-    ],
+    "effects": [],
   },
   [ID.SHADOW_SHOT]: {
     "implemented": true,
@@ -1276,6 +1257,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.ASSASSINS_SIGNET]: {
     "implemented": true,
+    "handlerId": "thief.assassins-signet",
     "castTimeMs": 0,
     "cooldown": 20,
     "initiativeCost": 0,
@@ -1686,7 +1668,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.SLASH]: {
     "implemented": true,
-    "castTimeMs": 500,
+    "castTimeMs": 625,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
@@ -1823,7 +1805,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 7.5,
+        "coefficient": 1.5,
         "hits": 5,
         "name": "Repeater (offhand empty)",
         "actorType": "player",
@@ -1879,14 +1861,19 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
       },
       {
         "type": "blind",
-        "actorType": "player"
+        "actorType": "player",
+        "applications": 3,
+        "atMs": 0,
+        "intervalMs": 2000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ],
   },
   [ID.TACTICAL_STRIKE]: {
     "implemented": true,
     "handlerId": "thief.stealth-attack",
-    "castTimeMs": 0,
+    "castTimeMs": 525,
     "cooldown": 1,
     "initiativeCost": 0,
     "effects": [
@@ -1902,15 +1889,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
         "actorType": "player",
         "metadata": {
           "controlKind": "daze",
-          "duration": 1
-        }
-      },
-      {
-        "type": "control",
-        "actorType": "player",
-        "metadata": {
-          "controlKind": "daze",
-          "duration": 3
+          "duration": 2
         }
       },
       {
@@ -1933,7 +1912,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 9,
+        "coefficient": 1.8,
         "hits": 5,
         "name": "Sneak Attack",
         "actorType": "player",
@@ -1955,7 +1934,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.CRIPPLING_STRIKE]: {
     "implemented": true,
-    "castTimeMs": 500,
+    "castTimeMs": 775,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
@@ -3946,46 +3925,11 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.THOUSAND_NEEDLES]: {
     "implemented": true,
+    "handlerId": "thief.thousand-needles",
     "castTimeMs": 0,
-    "cooldown": 3,
+    "cooldown": 0,
     "initiativeCost": 0,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 0.5,
-        "hits": 1,
-        "name": "Thousand Needles — Packet 1",
-        "actorType": "player"
-      },
-      {
-        "type": "strike",
-        "coefficient": 0.2,
-        "hits": 1,
-        "name": "Pulsing Damage",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 8,
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Bleeding",
-        "stacks": 2,
-        "duration": 5,
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Crippled",
-        "stacks": 1,
-        "duration": 2,
-        "actorType": "player"
-      }
-    ],
+    "effects": [],
   },
   [ID.THROW_ENCHANTED_ICE]: {
     "implemented": true,
@@ -5114,7 +5058,8 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.ENTANGLING_ASP]: {
     "implemented": true,
-    "castTimeMs": 750,
+    "handlerId": "thief.spear-chain",
+    "castTimeMs": 650,
     "cooldown": 0,
     "initiativeCost": 2,
     "effects": [
@@ -5131,12 +5076,20 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
         "stacks": 1,
         "duration": 2,
         "actorType": "player"
+      },
+      {
+        "type": "condition",
+        "condition": "Immobilized",
+        "stacks": 1,
+        "duration": 2,
+        "actorType": "player"
       }
     ],
   },
   [ID.SHATTERING_ASSAULT]: {
     "implemented": true,
-    "castTimeMs": 500,
+    "handlerId": "thief.spear-chain",
+    "castTimeMs": 800,
     "cooldown": 0,
     "initiativeCost": 1,
     "effects": [
@@ -5157,21 +5110,28 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.MALICIOUS_ASHEN_ASSAULT]: {
     "implemented": true,
-    "handlerId": "thief.stealth-attack",
+    "handlerId": "thief.spear-stealth-attack",
     "castTimeMs": 1500,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 10.8,
-        "hits": 6,
+        "coefficient": 1.5,
+        "hits": 5,
         "name": "Malicious Ashen Assault",
         "actorType": "player",
         "atMs": 250,
         "intervalMs": 250,
         "timingAnchor": "castStart",
         "timingScale": "cast"
+      },
+      {
+        "type": "strike",
+        "coefficient": 0.3,
+        "hits": 1,
+        "name": "Malicious Ashen Assault — Final Strike",
+        "actorType": "player"
       },
       {
         "type": "condition",
@@ -5201,7 +5161,8 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.DISTRACTING_THROW]: {
     "implemented": true,
-    "castTimeMs": 500,
+    "handlerId": "thief.spear-chain",
+    "castTimeMs": 450,
     "cooldown": 0,
     "initiativeCost": 2,
     "effects": [
@@ -5238,6 +5199,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.UNSUSPECTING_STRIKE]: {
     "implemented": true,
+    "handlerId": "thief.spear-chain",
     "castTimeMs": 750,
     "cooldown": 0,
     "initiativeCost": 3,
@@ -5274,21 +5236,28 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.ASHEN_ASSAULT]: {
     "implemented": true,
-    "handlerId": "thief.stealth-attack",
+    "handlerId": "thief.spear-stealth-attack",
     "castTimeMs": 1500,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 10.8,
-        "hits": 6,
+        "coefficient": 1.5,
+        "hits": 5,
         "name": "Ashen Assault",
         "actorType": "player",
         "atMs": 250,
         "intervalMs": 250,
         "timingAnchor": "castStart",
         "timingScale": "cast"
+      },
+      {
+        "type": "strike",
+        "coefficient": 0.3,
+        "hits": 1,
+        "name": "Ashen Assault — Final Strike",
+        "actorType": "player"
       },
       {
         "type": "condition",
@@ -5317,6 +5286,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.MANTIS_STING]: {
     "implemented": true,
+    "handlerId": "thief.spear-chain",
     "castTimeMs": 500,
     "cooldown": 0,
     "initiativeCost": 3,
@@ -5346,6 +5316,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.VAMPIRIC_SLASH]: {
     "implemented": true,
+    "handlerId": "thief.spear-chain",
     "castTimeMs": 500,
     "cooldown": 0,
     "initiativeCost": 1,
@@ -5361,8 +5332,9 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 0.2,
         "hits": 1,
-        "name": "Vampiric Slash — Packet 2",
-        "actorType": "player"
+        "name": "Vampiric Slash — Life Siphon",
+        "actorType": "player",
+        "canCrit": false
       },
       {
         "type": "condition",
@@ -5375,6 +5347,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.FALLING_SPIDER]: {
     "implemented": true,
+    "handlerId": "thief.spear-chain",
     "castTimeMs": 750,
     "cooldown": 0,
     "initiativeCost": 1,
@@ -5411,6 +5384,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.BARBED_SPEAR]: {
     "implemented": true,
+    "handlerId": "thief.spear-chain",
     "castTimeMs": 750,
     "cooldown": 0,
     "initiativeCost": 0,
@@ -5441,14 +5415,14 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   [ID.METAL_LEGION_GUITAR]: {
     "implemented": true,
     "handlerId": "thief.artifact",
-    "castTimeMs": 2000,
+    "castTimeMs": 2875,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 0.8,
-        "hits": 1,
+        "coefficient": 3.2,
+        "hits": 4,
         "name": "Metal Legion Guitar — Packet 1",
         "actorType": "player"
       },
@@ -5464,7 +5438,12 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
         "condition": "Confusion",
         "stacks": 1,
         "duration": 8,
-        "actorType": "player"
+        "actorType": "player",
+        "applications": 4,
+        "atMs": 400,
+        "intervalMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       },
       {
         "type": "control",
@@ -5539,8 +5518,8 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.FORGED_SURFER_DASH_ID_76633]: {
     "implemented": true,
-    "handlerId": "thief.artifact",
-    "castTimeMs": 1000,
+    "handlerId": "thief.forged-surfer",
+    "castTimeMs": 300,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
@@ -5553,17 +5532,24 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
       },
       {
         "type": "strike",
-        "coefficient": 1.2,
-        "hits": 1,
+        "coefficient": 6,
+        "hits": 5,
         "name": "Additional Bomb Damage",
-        "actorType": "player"
+        "actorType": "player",
+        "intervalMs": 100,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 3.5,
-        "actorType": "player"
+        "actorType": "player",
+        "applications": 5,
+        "intervalMs": 100,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
@@ -5578,20 +5564,27 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   [ID.HOLO_DANCER_DECOY]: {
     "implemented": true,
     "handlerId": "thief.artifact",
-    "castTimeMs": 500,
+    "castTimeMs": 850,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
       {
+        "type": "control",
+        "actorType": "player",
+        "metadata": {
+          "controlKind": "taunt",
+          "duration": 3
+        }
+      },
+      {
         "type": "strike",
-        "coefficient": 6,
-        "hits": 3,
+        "coefficient": 2,
+        "hits": 1,
         "name": "Holo-Dancer Decoy",
         "actorType": "player",
-        "atMs": 167,
-        "intervalMs": 167,
-        "timingAnchor": "castStart",
-        "timingScale": "cast"
+        "atMs": 3000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       },
       {
         "type": "boon",
@@ -5603,13 +5596,19 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
         "type": "boon",
         "boon": "might",
         "duration": 8,
-        "stacks": 4
+        "stacks": 4,
+        "atMs": 3000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       },
       {
         "type": "boon",
         "boon": "fury",
         "duration": 8,
-        "stacks": 1
+        "stacks": 1,
+        "atMs": 3000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       }
     ],
     "artifactKind": "defensive",
@@ -5640,13 +5639,14 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   [ID.STONE_SUMMIT_CANNON]: {
     "implemented": true,
     "handlerId": "thief.double-edge",
-    "castTimeMs": 500,
+    "usableWhileRecharging": true,
+    "castTimeMs": 780,
     "cooldown": 15,
     "initiativeCost": 0,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 9,
+        "coefficient": 3,
         "hits": 3,
         "name": "Stone Summit Cannon — Packet 1",
         "actorType": "player",
@@ -5811,7 +5811,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 7.5,
+        "coefficient": 1.5,
         "hits": 5,
         "name": "Chak Shield",
         "actorType": "player"
@@ -5856,7 +5856,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   [ID.ZEPHYRITE_SUN_CRYSTAL]: {
     "implemented": true,
     "handlerId": "thief.artifact",
-    "castTimeMs": 1000,
+    "castTimeMs": 330,
     "cooldown": 1,
     "initiativeCost": 0,
     "effects": [
@@ -5872,7 +5872,18 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
         "condition": "Burning",
         "stacks": 2,
         "duration": 4,
-        "actorType": "player"
+        "actorType": "player",
+        "atMs": 400,
+        "intervalMs": 500,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+      },
+      {
+        "type": "blind",
+        "actorType": "player",
+        "metadata": {
+          "duration": 5
+        }
       }
     ],
     "artifactKind": "defensive",
@@ -5927,27 +5938,32 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   [ID.SUMMON_KRYPTIS_TURRET_ID_77192]: {
     "implemented": true,
     "handlerId": "thief.artifact",
-    "castTimeMs": 500,
+    "castTimeMs": 660,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 22.4,
+        "coefficient": 2.8,
         "hits": 8,
         "name": "Summon Kryptis Turret",
         "actorType": "player",
-        "atMs": 63,
-        "intervalMs": 63,
-        "timingAnchor": "castStart",
-        "timingScale": "cast"
+        "atMs": 760,
+        "intervalMs": 400,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Torment",
         "stacks": 1,
         "duration": 4,
-        "actorType": "player"
+        "actorType": "player",
+        "applications": 8,
+        "atMs": 760,
+        "intervalMs": 400,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       }
     ],
     "artifactKind": "offensive",
@@ -5955,6 +5971,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   [ID.CANACH_COIN_TOSS_ID_77230]: {
     "implemented": true,
     "handlerId": "thief.double-edge",
+    "usableWhileRecharging": true,
     "castTimeMs": 0,
     "cooldown": 15,
     "initiativeCost": 0,
@@ -5963,8 +5980,8 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.SKRITT_SCUFFLE]: {
     "implemented": true,
-    "handlerId": "thief.double-edge",
-    "castTimeMs": 500,
+    "handlerId": "thief.skritt-scuffle",
+    "castTimeMs": 840,
     "cooldown": 50,
     "initiativeCost": 0,
     "effects": [
@@ -5989,7 +6006,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   [ID.MISTBURN_MORTAR]: {
     "implemented": true,
     "handlerId": "thief.artifact",
-    "castTimeMs": 750,
+    "castTimeMs": 950,
     "cooldown": 0,
     "initiativeCost": 0,
     "effects": [
@@ -5999,24 +6016,22 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
         "hits": 5,
         "name": "Mistburn Mortar",
         "actorType": "player",
-        "atMs": 150,
-        "intervalMs": 150,
+        "atMs": 500,
+        "intervalMs": 1000,
         "timingAnchor": "castStart",
-        "timingScale": "cast"
-      },
-      {
-        "type": "condition",
-        "condition": "Burning",
-        "stacks": 1,
-        "duration": 1,
-        "actorType": "player"
+        "timingScale": "fixed"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 1.5,
-        "actorType": "player"
+        "actorType": "player",
+        "applications": 5,
+        "atMs": 500,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ],
     "artifactKind": "offensive",
@@ -6060,13 +6075,13 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
   },
   [ID.FLAWLESS_EXECUTION]: {
     "implemented": true,
-    "castTimeMs": 1750,
+    "castTimeMs": 2100,
     "cooldown": 0,
     "initiativeCost": 4,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 4.7700000000000005,
+        "coefficient": 1.59,
         "hits": 3,
         "name": "Flawless Execution — Packet 1",
         "actorType": "player",
@@ -6084,7 +6099,7 @@ export const THIEF_SKILL_MECHANICS = Object.freeze({
       },
       {
         "type": "strike",
-        "coefficient": 9,
+        "coefficient": 1.5,
         "hits": 6,
         "name": "Projectile Damage",
         "actorType": "player",

@@ -64,12 +64,9 @@ export function resolveGw2Timeline({
   }
   const scheduled = assertPlatformStream(stream);
   const queue = createEventQueue(
-    scheduled.events.map(
-      (event) => ({ ...event }) as Gw2ResolverEvent,
-    ),
+    scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent),
   );
-  const handoff =
-    scheduled.resolverHandoff as Readonly<Gw2ResolverHandoff>;
+  const handoff = scheduled.resolverHandoff as Readonly<Gw2ResolverHandoff>;
   const ctx = createRuntimeState({
     config,
     traits,
@@ -109,10 +106,9 @@ export function resolveGw2Timeline({
 
   const totalDamage = ctx.totals.strike + ctx.totals.condition;
   const effectiveEnd = ctx.deathTime ?? scheduled.rotationEndTime;
-  const effectiveEvents =
-    scheduled.events.filter(
-        (event) => event.at <= effectiveEnd + EPSILON,
-      ) as Gw2ResolverEvent[];
+  const effectiveEvents = scheduled.events.filter(
+    (event) => event.at <= effectiveEnd + EPSILON,
+  ) as Gw2ResolverEvent[];
   const casts = addCastsToBreakdown(ctx, effectiveEvents, effectiveEnd);
   const explicitCombatStart = Number(handoff.combatStartTime || 0);
   // DPS always begins with the first surviving positive damage event. An

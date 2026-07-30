@@ -12,10 +12,7 @@ import type {
 } from "../types.js";
 
 function streamActor(event: Gw2ResolverEvent): string {
-  if (
-    event.actorType === "summon" ||
-    event.actorType === "phantasm"
-  ) {
+  if (event.actorType === "summon" || event.actorType === "phantasm") {
     return "summon";
   }
   return event.actorType === "effect" ? "effect" : "player";
@@ -83,7 +80,7 @@ export function resolvedWeaponStrength(
     if (existing.profileId !== profile.id) {
       throw new Error(
         `Activation ${activationId} changed weapon-strength profile ` +
-        `from ${existing.profileId} to ${profile.id}.`,
+          `from ${existing.profileId} to ${profile.id}.`,
       );
     }
     return {

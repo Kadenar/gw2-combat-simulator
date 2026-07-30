@@ -94,28 +94,41 @@ export function createGw2HitResolution({
         relicStrikeMultiplier(ctx, event) *
         targetHealthMultiplier(ctx, event);
     const summonDamagePerCoefficient = Number(event.summonDamagePerCoefficient);
+    const summonWeaponStrengthProfile =
+      event.independentSummonStrike === true &&
+      typeof event.weaponStrengthProfileId === "string" &&
+      event.weaponStrengthProfileId.length > 0;
     const independentSummonStrike =
       event.independentSummonStrike === true &&
-      Number.isFinite(summonDamagePerCoefficient) &&
-      Number(event.summonBasePower) > 0;
+      (summonWeaponStrengthProfile ||
+        (Number.isFinite(summonDamagePerCoefficient) &&
+          Number(event.summonBasePower) > 0));
     const targetArmor = Math.max(
       1,
       Number(ctx.config.target?.armor || STANDARD_TARGET_ARMOR),
     );
     const strength =
-      !flatStrike && !independentSummonStrike
+      !flatStrike && (!independentSummonStrike || summonWeaponStrengthProfile)
         ? resolvedWeaponStrength(ctx, event)
         : null;
     const baseDamage = flatStrike
       ? Number(event.flatDamage ?? event.flatStrikeBase ?? 0) +
         Number(event.flatStrikePowerCoeff || 0) * stats.power
       : independentSummonStrike
-        ? (((Number(event.coefficient || 0) *
-            summonDamagePerCoefficient *
-            stats.power) /
-            Number(event.summonBasePower)) *
-            STANDARD_TARGET_ARMOR) /
-          targetArmor
+        ? strength
+          ? strikeDamage(
+              Number(event.coefficient || 0) *
+                coefficientMultiplier(ctx, event),
+              strength.value,
+              stats.power,
+              targetArmor,
+            )
+          : (((Number(event.coefficient || 0) *
+              summonDamagePerCoefficient *
+              stats.power) /
+              Number(event.summonBasePower)) *
+              STANDARD_TARGET_ARMOR) /
+            targetArmor
         : strikeDamage(
             Number(event.coefficient || 0) * coefficientMultiplier(ctx, event),
             strength!.value,

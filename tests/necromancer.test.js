@@ -3298,9 +3298,13 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
     app.attributeData.activeTraits.map(trait => trait.name),
   );
   const logDps = 3_939_426 / 92.116;
-  const rows = new Map(
-    skillBreakdownRows(result).map(row => [row.name, row]),
-  );
+  const rows = new Map();
+  for (const row of skillBreakdownRows(result)) {
+    const aggregate = rows.get(row.name) || { hits: 0, total: 0 };
+    aggregate.hits += row.hits;
+    aggregate.total += row.total;
+    rows.set(row.name, aggregate);
+  }
   const packetError = (name, logDamage) =>
     Math.abs(rows.get(name).total - logDamage) / logDamage;
 

@@ -32,13 +32,8 @@ export function createGw2ResolverHandlerRegistry({
   commonHandlers = {},
   professionHandlers = {},
 }: CreateGw2ResolverHandlerRegistryOptions = {}): Gw2ResolverHandlerRegistry {
-  const registry = new HandlerRegistry<
-    Gw2ResolverRuntime,
-    Gw2ResolverEvent
-  >();
-  return registry
-    .registerAll(commonHandlers)
-    .registerAll(professionHandlers);
+  const registry = new HandlerRegistry<Gw2ResolverRuntime, Gw2ResolverEvent>();
+  return registry.registerAll(commonHandlers).registerAll(professionHandlers);
 }
 
 function targetHealth(ctx: Gw2ResolverRuntime): number {

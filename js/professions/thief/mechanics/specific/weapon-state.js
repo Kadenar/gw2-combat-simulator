@@ -4,6 +4,7 @@ import {
   emitThiefState,
   gainThiefInitiative,
 } from "./shared.js";
+import { updateSpearChainState } from "./condition-antiquary.js";
 
 function enterStealthFromSkill(context, skill, at) {
   const duration = (skill.effects || [])
@@ -22,7 +23,30 @@ function enterStealthFromSkill(context, skill, at) {
     entering
     && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)
   ) {
-    gainThiefInitiative(context, 1, at, "enter-stealth");
+    gainThiefInitiative(context, 2, at, "enter-stealth");
+  }
+  if (entering && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
+    state.spiderVenomCharges = Math.min(
+      6,
+      Number(state.spiderVenomCharges || 0) + 3,
+    );
+    state.spiderVenomExpiresAt = at + 24;
+    state.spiderVenomGeneration += 1;
+  }
+  if (entering && hasThiefTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) {
+    context.emit({
+      type: "condition",
+      at,
+      source: "Trait",
+      sourceId: TRAIT.CLOAKED_IN_SHADOW,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: "Cloaked in Shadow — Blindness",
+      condition: "Blindness",
+      stacks: 1,
+      duration: 5,
+    });
   }
   emitThiefState(context, at, "stealth");
 }
@@ -38,6 +62,7 @@ export function updateThiefWeaponState(context, skill) {
     state.autoattackChains = {};
   }
   enterStealthFromSkill(context, skill, at);
+  updateSpearChainState(context, skill, at);
   if (skill.dualWieldOpener && skill.flipSkillId != null) {
     state.availableFlips[skill.flipSkillId] = at + 4;
     emitThiefState(context, at, "dual-wield-follow-up");

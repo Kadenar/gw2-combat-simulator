@@ -7,8 +7,12 @@ import type {
 } from "./types.js";
 
 type SkillHandlerOptions<TContext extends object> =
-  Omit<Partial<SkillHandlerStrategy<TContext>>, "mode"> & {
+  Omit<
+    Partial<SkillHandlerStrategy<TContext>>,
+    "mode" | "beforeEffects"
+  > & {
     readonly mode?: unknown;
+    readonly beforeEffects?: SkillHandlerPhase<TContext> | null;
   };
 
 /**
@@ -109,7 +113,7 @@ export function skillHandler<
 export function augmentSkillHandler<
   TContext extends object = SchedulerRecord,
 >(
-  beforeEffects: SkillHandlerPhase<TContext>,
+  beforeEffects: SkillHandlerPhase<TContext> | null,
   options: Omit<
     Partial<SkillHandlerStrategy<TContext>>,
     "mode" | "beforeEffects"
@@ -130,7 +134,7 @@ export function augmentSkillHandler<
 export function replaceSkillHandler<
   TContext extends object = SchedulerRecord,
 >(
-  beforeEffects: SkillHandlerPhase<TContext>,
+  beforeEffects: SkillHandlerPhase<TContext> | null,
   options: Omit<
     Partial<SkillHandlerStrategy<TContext>>,
     "mode" | "beforeEffects"

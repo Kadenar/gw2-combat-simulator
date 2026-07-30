@@ -70,15 +70,15 @@ export function createGw2SchedulerEventFactory({
     event: Gw2SchedulerEventDraft,
   ): SimulationEvent | SimulationEventInput | null => {
     const normalized: SimulationEventInput = {
-        source: event.source || defaultSource,
-        sourceId:
-          event.sourceId ??
-          event.skillId ??
-          event.skillName ??
-          event.name ??
-          event.type,
-        ...event,
-      };
+      source: event.source || defaultSource,
+      sourceId:
+        event.sourceId ??
+        event.skillId ??
+        event.skillName ??
+        event.name ??
+        event.type,
+      ...event,
+    };
     if (normalized.at <= horizon + epsilon) {
       if (emit) return emit(normalized);
       events.push(normalized);
@@ -120,8 +120,7 @@ export function createGw2SchedulerEventFactory({
     const name = conditionName(condition.name);
     if (!conditionFormulas[name] || !condition.duration) return null;
     const actorType: SimulationActorType =
-      extra.actorType ||
-      gw2ActorTypeForSource(source);
+      extra.actorType || gw2ActorTypeForSource(source);
     const event = addEvent({
       type: "condition",
       at,
@@ -159,9 +158,7 @@ export function createGw2SchedulerEventFactory({
     const coefficient = Number(group.coefficient || 0) / hits;
     const source = group.source || extra.source || "Player";
     const actorType =
-      group.actorType ||
-      extra.actorType ||
-      gw2ActorTypeForSource(source);
+      group.actorType || extra.actorType || gw2ActorTypeForSource(source);
     const slotSkill =
       skill.type === "Heal" ||
       skill.type === "Utility" ||
