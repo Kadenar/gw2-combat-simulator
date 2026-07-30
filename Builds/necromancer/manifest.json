@@ -6,7 +6,7 @@
         "label": "Condition",
         "build": "Builds/necromancer/b-condi-scourge.json",
         "rotation": "Rotations/necromancer/r-condi-scourge-bench.json",
-        "benchmarkDps": 39830,
+        "benchmarkDps": 39359,
         "upToDate": true
       }
     ]
@@ -17,13 +17,14 @@
       {
         "label": "Power",
         "build": "Builds/necromancer/b-power-reaper.json",
-        "rotation": "Rotations/necromancer/r-power-reaper-bench.json"
+        "rotation": "Rotations/necromancer/r-power-reaper-bench.json",
+        "benchmarkDps": 41032
       },
       {
         "label": "Condition",
         "build": "Builds/necromancer/b-condi-reaper.json",
         "rotation": "Rotations/necromancer/r-condi-reaper-bench.json",
-        "benchmarkDps": 44355,
+        "benchmarkDps": 44097,
         "upToDate": true
       }
     ]
@@ -35,7 +36,7 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-ritualist.json",
         "rotation": "Rotations/necromancer/r-power-ritualist-bench.json",
-        "benchmarkDps": 42762,
+        "benchmarkDps": 43396,
         "upToDate": true
       }
     ]
@@ -46,12 +47,14 @@
       {
         "label": "Power",
         "build": "Builds/necromancer/b-power-harbinger.json",
-        "rotation": "Rotations/necromancer/r-power-harbinger-bench.json"
+        "rotation": "Rotations/necromancer/r-power-harbinger-bench.json",
+        "benchmarkDps": 43991
       },
       {
         "label": "Condition",
         "build": "Builds/necromancer/b-condi-harbinger.json",
-        "rotation": "Rotations/necromancer/r-condi-harbinger-bench.json"
+        "rotation": "Rotations/necromancer/r-condi-harbinger-bench.json",
+        "benchmarkDps": 44887
       }
     ]
   }

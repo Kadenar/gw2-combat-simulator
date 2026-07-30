@@ -236,6 +236,8 @@ has:
   source,
   sourceId,
   actorType, // "player", "summon", "effect", or "unknown"
+  activationId, // one cast or triggered-effect activation
+  weaponStrengthProfileId, // coefficient-based strike profile snapshot
 }
 ```
 
@@ -271,6 +273,28 @@ resolved context plus capabilities such as `hitContext` and `applyCondition`.
 For example, Ineptitude is a Mesmer `control`/`blind` reaction; control relics
 and control-triggered sigils remain common GW2 behavior.
 
+Critical-hit sigils retain expected-critical accumulation in deterministic
+mode. In stochastic mode the chronological scheduler samples one critical
+outcome, stores it as `didCrit` on the canonical damage event, and uses that
+same fact for all ready on-critical sigils. The resolver consumes the stored
+fact for profession reactions without rolling again. Critical strike damage
+remains expected-valued.
+
+The scheduler assigns every cast a stable `activationId`; all direct,
+channeled, pulsing, and delayed packets from that cast retain it. Triggered
+traits, sigils, relics, equipment effects, and summon attacks receive separate
+activation IDs. The GW2 policy snapshots `weaponStrengthProfileId` from
+canonical skill metadata while the activation's weapon, kit, transform, or
+shroud is still known.
+
+`platform/gw2/weapon-strength.js` owns immutable min/max profiles. The resolver
+uses their midpoint in deterministic mode. In stochastic mode it draws one
+continuous uniform value per activation, caches it for every packet, and uses
+an actor-scoped `weapon-strength:*` random stream independent from critical and
+trait streams. Resolved coefficient strikes expose the activation, profile,
+resolved strength, and whether it was sampled. Explicit numeric strength,
+flat damage, conditions, and independent summon formulas remain exempt.
+
 ## Skills, traits, and rotations
 
 Behavior uses stable IDs. A canonical catalog merges generated metadata,
@@ -302,7 +326,8 @@ All native profession skill mechanics use one timing contract:
   `packetOffsets`, `atMsList`, inferred cast scaling, and special cast-end
   offset fields are rejected at catalog assembly.
 
-Shared weapon data owns family strength and broad capabilities. Each canonical
+Shared weapon data derives midpoint compatibility values from canonical
+weapon-strength profiles and owns broad capabilities. Each canonical
 profession catalog owns exact `weaponHands` metadata. Application adapters
 derive their weapon selector data by combining those two sources.
 

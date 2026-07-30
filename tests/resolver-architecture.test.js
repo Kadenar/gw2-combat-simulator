@@ -16,6 +16,9 @@ import {
   buildScheduledEventStream,
 } from "../js/platform/engine/scheduled-event-stream.js";
 import {
+  createSimulationRandom,
+} from "../js/platform/engine/simulation-random.js";
+import {
   createCloneAttackScheduler,
 } from "../js/professions/mesmer/mechanics/specific/illusions.js";
 
@@ -694,6 +697,77 @@ test("critical sigils enqueue and resolve their own proc event", () => {
   assert.ok(result.breakdown.some(entry =>
     entry.name === "Sigil of Air" && entry.strikeDamage > 0
   ));
+});
+
+test("seeded critical sigils consume the hit's single sampled crit outcome", () => {
+  const defaults = defaultSimulationConfig();
+  const rotation = [];
+  for (let index = 0; index < 6; index += 1) {
+    rotation.push("Flying Cutter");
+    if (index < 5) rotation.push({ name: "__wait", waitMs: 5100 });
+  }
+  const config = defaultSimulationConfig({
+    stats: {
+      ...defaults.stats,
+      precision: 1945,
+    },
+    boons: {
+      ...defaults.boons,
+      fury: false,
+    },
+    sigilSets: [
+      { names: ["Earth", "Torment"], strike: 1, condition: 1 },
+      { names: [], strike: 1, condition: 1 },
+    ],
+  });
+  const run = (mode, seed = 37) => simulateMesmer(rotation, {
+    ...config,
+    randomness: { mode, seed },
+  });
+
+  const stochastic = run("stochastic");
+  const random = createSimulationRandom({ mode: "stochastic", seed: 37 });
+  const expectedOutcomes = Array.from(
+    { length: 6 },
+    () => random.roll(0.5, "critical:player"),
+  );
+  const sourceHits = stochastic.events.filter(event =>
+    event.type === "damage" && event.skillName === "Flying Cutter"
+  );
+  assert.deepEqual(
+    sourceHits.map(event => event.didCrit),
+    expectedOutcomes,
+  );
+  assert.deepEqual(
+    stochastic.resolvedEvents
+      .filter(event =>
+        event.type === "damage" && event.skillName === "Flying Cutter"
+      )
+      .map(event => event.didCrit),
+    expectedOutcomes,
+  );
+
+  const expectedProcs = expectedOutcomes.filter(Boolean).length;
+  for (const sigil of ["Earth", "Torment"]) {
+    assert.equal(
+      stochastic.events.filter(event =>
+        event.type === "condition"
+        && event.skillName === `Sigil of ${sigil}`
+      ).length,
+      expectedProcs,
+    );
+  }
+
+  const deterministic = run("deterministic");
+  for (const sigil of ["Earth", "Torment"]) {
+    assert.equal(
+      deterministic.events.filter(event =>
+        event.type === "condition"
+        && event.skillName === `Sigil of ${sigil}`
+      ).length,
+      3,
+    );
+  }
 });
 
 test("Earth bleeding grants a scheduler-visible Bloodsong blade", () => {

@@ -8,6 +8,7 @@ const SKIPPED_DIRECTORIES = new Set([
   ".claude",
   ".git",
   ".lavish",
+  "dist",
   "node_modules",
 ]);
 

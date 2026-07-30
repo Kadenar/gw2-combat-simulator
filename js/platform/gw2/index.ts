@@ -1,0 +1,26 @@
+export * from "./attributes.js";
+export * from "./attribute-provenance.js";
+export * from "./build-codec.js";
+// `conditionTickDamage` is exported by both condition-formulas and damage; the
+// damage layer's wrapper is canonical, so re-export the rest explicitly to
+// avoid an ambiguous star-export collision.
+export { CONDITION_FORMULAS } from "./condition-formulas.js";
+export type { ConditionFormula } from "./condition-formulas.js";
+export * from "./damage.js";
+export * from "./declarative-simulation.js";
+export * from "./event-ownership.js";
+export * from "./event-handlers.js";
+export * from "./gear-data.js";
+export * from "./modifier-rules.js";
+export * from "./query.js";
+export * from "./relic-rules.js";
+export * from "./runtime-rules.js";
+export * from "./resolver/index.js";
+export * from "./scheduler/index.js";
+export * from "./simulate.js";
+export * from "./target-state.js";
+export * from "./timeline-index.js";
+export * from "./trait-coverage.js";
+export * from "./trait-state.js";
+export * from "./weapon-sigils.js";
+export * from "./weapon-skill-matcher.js";

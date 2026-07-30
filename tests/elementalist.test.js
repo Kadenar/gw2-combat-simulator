@@ -62,6 +62,17 @@ async function javascriptFiles(directory) {
   return nested.flat();
 }
 
+async function accessSourceModule(target) {
+  try {
+    await access(target);
+  } catch (error) {
+    if (!target.pathname.endsWith(".js")) throw error;
+    const typeScript = new URL(target);
+    typeScript.pathname = typeScript.pathname.replace(/\.js$/, ".ts");
+    await access(typeScript);
+  }
+}
+
 test("profession selector exposes every ready application route", () => {
   assert.deepEqual(
     PROFESSION_ROUTES,
@@ -298,7 +309,7 @@ test("every relative import in the Elementalist package resolves", async () => {
       const specifier = match[1].split("?")[0];
       const target = new URL(specifier, file);
       await assert.doesNotReject(
-        access(target),
+        accessSourceModule(target),
         `${path.relative(process.cwd(), file.pathname)} -> ${specifier}`,
       );
     }

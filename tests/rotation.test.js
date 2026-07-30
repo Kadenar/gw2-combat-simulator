@@ -424,7 +424,7 @@ test('Spatial Surge keeps channel packets completed before an interrupt', () => 
     assert.ok(partial[1].at > partial[0].at);
 });
 
-test('the supplied condition Virtuoso build retains its 39k parity baseline', () => {
+test('the supplied condition Virtuoso build uses the profession-mechanic midpoint', () => {
     const rotation = [
         'Unstable Bladestorm',
         'Phantasmal Swordsman',
@@ -530,7 +530,7 @@ test('the supplied condition Virtuoso build retains its 39k parity baseline', ()
     });
 
     assert.equal(result.warnings.length, 0);
-    assert.ok(Math.abs(result.dps - 39763.11948986904) < 1e-6);
+    assert.ok(Math.abs(result.dps - 40155.29093362511) < 1e-6);
 });
 
 test('Phantasmal Swordsman independently gates its summon and player hit', () => {

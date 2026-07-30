@@ -5,6 +5,11 @@ import {
 } from "../../platform/gw2/weapon-sigils.js";
 import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
 import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
+import {
+  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
+  normalizeSimulationRandomnessAssumptions,
+  validateSimulationRandomnessAssumptions,
+} from "../../app/simulation/randomness.js";
 import { revenantCatalog } from "./catalog.js";
 import { REVENANT_LEGEND_IDS as LEGEND } from "./data/ids.js";
 import { revenantLegendLoadout } from "./legend-loadout.js";
@@ -52,6 +57,7 @@ export function createRevenantBuildDefaults() {
     selectedDodge: "Death Drop",
     allianceSide: "luxon",
     assumptions: {
+      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
       might: 25,
       fury: true,
       quickness: true,
@@ -83,6 +89,9 @@ const revenantBuildCodec = createGw2BuildCodec({
   normalizeExtra(build, { saved }) {
     return {
       ...build,
+      assumptions: normalizeSimulationRandomnessAssumptions(
+        build.assumptions,
+      ),
       initialEnergy: Math.max(
         0,
         Math.min(100, Number(saved.initialEnergy ?? 50) || 0),
@@ -98,7 +107,7 @@ const revenantBuildCodec = createGw2BuildCodec({
     };
   },
   validateExtra(build) {
-    const errors = [];
+    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
     if (
       !(Number(build.initialEnergy) >= 0 && Number(build.initialEnergy) <= 100)
     ) {

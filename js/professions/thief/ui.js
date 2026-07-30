@@ -1,3 +1,6 @@
+import {
+  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+} from "../../app/simulation/randomness.js";
 import { THIEF_ASSUMPTION_CONTROLS } from "./assumptions.js";
 import {
   thiefCatalog,
@@ -269,7 +272,10 @@ export function thiefEventLogRow(_context, event) {
 }
 
 export const thiefUi = Object.freeze({
-  assumptionControls: THIEF_ASSUMPTION_CONTROLS,
+  assumptionControls: Object.freeze([
+    ...THIEF_ASSUMPTION_CONTROLS,
+    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  ]),
   weaponSkillMatchesSet: thiefWeaponSkillMatchesSet,
   paletteGroups: context => [{
     id: "thief-profession",

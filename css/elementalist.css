@@ -2295,6 +2295,30 @@ header .accent {
     background: var(--bg-panel-alt);
 }
 
+.res-skill-group-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 4px 4px;
+    color: var(--text-bright);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+}
+
+.res-skill-group-heading:not(:first-child) {
+    margin-top: 6px;
+}
+
+.res-skill-group-heading span:last-child {
+    color: var(--text-dim);
+    font-size: 9px;
+    font-weight: 500;
+}
+
 .res-row span:nth-child(n+2) {
     text-align: right;
     color: var(--text-bright);

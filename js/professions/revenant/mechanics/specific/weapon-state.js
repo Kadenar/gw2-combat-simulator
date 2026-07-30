@@ -1,9 +1,9 @@
 /**
  * Revenant weapon-chain and temporary flip state.
  *
- * Advances canonical autoattack chains after casts and resets them on other
- * weapon actions. It also owns Imperial Guard's blocking window, the temporary
- * True Strike flip, and the typed task that expires that follow-up.
+ * Advances canonical autoattack chains after casts and resets them on
+ * interrupting actions. It also owns Imperial Guard's blocking window, the
+ * temporary True Strike flip, and the typed task that expires that follow-up.
  */
 import { REVENANT_SKILL_IDS as ID } from "../../data/ids.js";
 import { emitRevenantState } from "./shared.js";
@@ -21,7 +21,10 @@ export function updateRevenantWeaponState(context, skill) {
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];
     else state.autoattackChains[chain.root] = chain.next;
-  } else if (skill.id === ID.DODGE) {
+  } else if (
+    skill.id === ID.DODGE ||
+    skill.handlerId === "revenant.beguiling-haze"
+  ) {
     state.autoattackChains = {};
   } else if (skill.id !== ID.TEMPORAL_RIFT && skill.type === "Weapon") {
     state.autoattackChains = {};

@@ -398,6 +398,36 @@ test("Temporal Rift preserves the Mace autoattack chain", () => {
   );
 });
 
+test("Beguiling Haze resets the Sword autoattack chain", () => {
+  const result = simulate("Conduit", [
+    "Preparation Thrust",
+    "Brutal Blade",
+    "Beguiling Haze",
+    "Preparation Thrust",
+  ], {
+    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.ENTITY,
+    initialEnergy: 100,
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Sword",
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.map(step => step.skill),
+    [
+      "Preparation Thrust",
+      "Brutal Blade",
+      "Beguiling Haze",
+      "Preparation Thrust",
+    ],
+  );
+  assert.equal(
+    result.endState.profession.autoattackChains[SKILL.PREPARATION_THRUST],
+    SKILL.BRUTAL_BLADE,
+  );
+});
+
 test("Renegade shortbow skills use supplied casts, packets, and combo data", () => {
   const expectedSkills = [
     [SKILL.SHATTERSHOT, 480, 0.65, 1],
@@ -4126,8 +4156,8 @@ test("Revenant Peitha triggers resolve at the observed projectile impact", () =>
   }
 });
 
-test("Form of the Dervish damage carries its catalog icon into results", () => {
-  const result = simulate("Conduit", [
+test("Conduit form attacks carry usable icons into skill breakdowns", () => {
+  const dervish = simulate("Conduit", [
     "Cosmic Wisdom",
     "Gladiator's Defense",
   ], {
@@ -4137,13 +4167,34 @@ test("Form of the Dervish damage carries its catalog icon into results", () => {
   });
   const expectedIcon =
     revenantCatalog.skillsById.get(SKILL.FORM_OF_THE_DERVISH_ATTACK).icon;
-  const attack = result.events.find(event =>
+  const attack = dervish.events.find(event =>
     event.type === "damage"
     && event.skillName === "Form of the Dervish");
-  const row = skillBreakdownRows(result).find(entry =>
+  const row = skillBreakdownRows(dervish).find(entry =>
     entry.name === "Form of the Dervish");
+  assert.match(expectedIcon, /^https:\/\/render\.guildwars2\.com\//);
   assert.equal(attack.icon, expectedIcon);
   assert.equal(row.icon, expectedIcon);
+
+  const assassin = simulate("Conduit", [
+    "Cosmic Wisdom",
+    "Impossible Odds",
+    { type: "wait", durationMs: 1100 },
+  ], {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+    startingLegend: LEGEND.ASSASSIN,
+    initialEnergy: 100,
+  });
+  const expectedDaggersIcon =
+    revenantCatalog.skillsById.get(SKILL.LESSER_ENCHANTED_DAGGERS).icon;
+  const daggers = assassin.events.find(event =>
+    event.type === "damage"
+    && event.skillName === "Lesser Enchanted Daggers");
+  const daggersRow = skillBreakdownRows(assassin).find(entry =>
+    entry.name === "Lesser Enchanted Daggers");
+  assert.match(expectedDaggersIcon, /^https:\/\/render\.guildwars2\.com\//);
+  assert.equal(daggers.icon, expectedDaggersIcon);
+  assert.equal(daggersRow.icon, expectedDaggersIcon);
 });
 
 test("Release Potential variants use affinity and equipped-legend effects", () => {

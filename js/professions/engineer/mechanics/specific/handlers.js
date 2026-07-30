@@ -17,10 +17,15 @@ import {
 import { deployEngineerTurret } from "./turrets.js";
 import { engineerKitSkillHandlers } from "./kits.js";
 import { engineerFlipSkillHandlers } from "./flips.js";
-import { engineerMechSkillHandlers } from "./mech.js";
+import {
+  activateOverclockSignet,
+  engineerMechSkillHandlers,
+} from "./mech.js";
+import { rechargeOtherSwordSkills } from "./sword.js";
 import {
   engineerPhotonForgeSkillHandlers,
 } from "./photon-forge.js";
+import { performEngineerDodge } from "./dodge.js";
 
 function afterEffects(handler) {
   return augmentSkillHandler(null, { afterEffects: handler });
@@ -31,6 +36,7 @@ function replaceAfterEffects(handler) {
 }
 
 export const engineerSkillHandlers = Object.freeze({
+  "engineer.dodge": replaceSkillHandler(performEngineerDodge),
   "engineer.kit-equip": afterEffects(
     engineerKitSkillHandlers["engineer.kit-equip"],
   ),
@@ -58,6 +64,8 @@ export const engineerSkillHandlers = Object.freeze({
   "engineer.mech-recall": afterEffects(
     engineerMechSkillHandlers["engineer.mech-recall"],
   ),
+  "engineer.overclock-signet": afterEffects(activateOverclockSignet),
+  "engineer.gleam-saber": afterEffects(rechargeOtherSwordSkills),
   "engineer.amalgam-morph": afterEffects(activateAmalgamMorph),
   "engineer.evolve": afterEffects(evolveAmalgam),
   "engineer.plasmatic-state": afterEffects(activatePlasmaticState),

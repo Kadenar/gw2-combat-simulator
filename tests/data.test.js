@@ -120,7 +120,6 @@ test('Mesmer relic options exclude profession-inapplicable relics', () => {
     const excluded = [
         'Krait',
         'Weaver',
-        'Bloodstone',
         'Fire',
         'Nourys',
         'Mount Balrior',

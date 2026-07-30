@@ -32,23 +32,34 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "castTimeMs": 500,
     "quicknessCastTimeMs": 680,
     "cooldown": 20,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 2.25,
-        "hits": 3,
-        "atMs": 167,
-        "intervalMs": 167,
+        "ticks": [
+          { "atMs": 400, "coefficient": 0.75 },
+          { "atMs": 440, "coefficient": 0.75 },
+          { "atMs": 440, "coefficient": 0.75 }
+        ],
         "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "timingScale": "fixed",
         "name": "Poison Grenade",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion",
+          "projectile": true
+        }
       },
       {
         "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 3,
-        "duration": 8,
+        "ticks": [
+          { "atMs": 400, "condition": "Poisoned", "stacks": 3, "duration": 8 },
+          { "atMs": 440, "condition": "Poisoned", "stacks": 3, "duration": 8 },
+          { "atMs": 440, "condition": "Poisoned", "stacks": 3, "duration": 8 }
+        ],
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       }
     ],
@@ -59,23 +70,33 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "castTimeMs": 500,
     "quicknessCastTimeMs": 680,
     "cooldown": 5,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 1.8900000000000001,
-        "hits": 3,
-        "atMs": 167,
-        "intervalMs": 167,
+        "ticks": [
+          { "atMs": 400, "coefficient": 0.63 },
+          { "atMs": 440, "coefficient": 0.63 },
+          { "atMs": 440, "coefficient": 0.63 }
+        ],
         "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "timingScale": "fixed",
         "name": "Shrapnel Grenade",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "condition",
-        "condition": "Bleeding",
-        "stacks": 3,
-        "duration": 7,
+        "ticks": [
+          { "atMs": 400, "condition": "Bleeding", "stacks": 1, "duration": 7 },
+          { "atMs": 440, "condition": "Bleeding", "stacks": 1, "duration": 7 },
+          { "atMs": 440, "condition": "Bleeding", "stacks": 1, "duration": 7 }
+        ],
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       }
     ],
@@ -90,16 +111,22 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 0.30000000000000004,
         "hits": 3,
-        "atMs": 167,
-        "intervalMs": 167,
+        "atMs": 166.66666666666666,
+        "intervalMs": 166.66666666666666,
         "timingAnchor": "castStart",
         "timingScale": "cast",
         "name": "Flash Grenade",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "blind",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "duration": 5
+        }
       }
     ],
     "kit": "Grenade Kit",
@@ -109,23 +136,33 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "castTimeMs": 500,
     "quicknessCastTimeMs": 680,
     "cooldown": 20,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 2.25,
-        "hits": 3,
-        "atMs": 167,
-        "intervalMs": 167,
+        "ticks": [
+          { "atMs": 400, "coefficient": 0.75 },
+          { "atMs": 440, "coefficient": 0.75 },
+          { "atMs": 440, "coefficient": 0.75 }
+        ],
         "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "timingScale": "fixed",
         "name": "Freeze Grenade",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "condition",
-        "condition": "Chilled",
-        "stacks": 3,
-        "duration": 2,
+        "ticks": [
+          { "atMs": 400, "condition": "Chilled", "stacks": 1, "duration": 2 },
+          { "atMs": 440, "condition": "Chilled", "stacks": 1, "duration": 2 },
+          { "atMs": 440, "condition": "Chilled", "stacks": 1, "duration": 2 }
+        ],
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       }
     ],
@@ -134,18 +171,25 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.GRENADE_BARRAGE]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 680,
     "cooldown": 25,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 3.5999999999999996,
+        "coefficient": 3.6,
         "hits": 6,
         "atMs": 83,
         "intervalMs": 83,
         "timingAnchor": "castStart",
         "timingScale": "cast",
         "name": "Grenade Barrage",
-        "actorType": "player"
+        "weapon": "Profession mechanic",
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion"
+        }
       }
     ],
     "toolbeltParentName": "Grenade Kit",
@@ -184,18 +228,32 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.BIG_OL_BOMB]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 600,
     "cooldown": 20,
+    "finisherType": "Blast",
+    "finisherValue": 2,
     "effects": [
       {
         "type": "strike",
         "coefficient": 3,
         "hits": 1,
+        "atMs": 2760,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
         "name": "Big Ol' Bomb",
-        "actorType": "player"
+        "actorType": "player",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "control",
         "actorType": "player",
+        "atMs": 2760,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true,
         "metadata": {
           "controlKind": "knockdown",
           "duration": 3
@@ -287,25 +345,43 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.GALVANIC_BOMB]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 600,
     "cooldown": 16,
+    "finisherType": "Blast",
+    "finisherValue": 1,
     "effects": [
       {
         "type": "strike",
         "coefficient": 2.5,
         "hits": 1,
+        "atMs": 760,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
         "name": "Galvanic Bomb",
-        "actorType": "player"
+        "actorType": "player",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "condition",
         "condition": "Confusion",
         "stacks": 6,
         "duration": 8,
-        "actorType": "player"
+        "actorType": "player",
+        "atMs": 760,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "control",
         "actorType": "player",
+        "atMs": 760,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true,
         "metadata": {
           "controlKind": "daze",
           "duration": 1
@@ -317,32 +393,49 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.FIRE_BOMB]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 600,
     "cooldown": 8,
+    "comboField": "Fire",
+    "duration": 3,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 0.5,
-        "hits": 2,
-        "atMs": 250,
-        "intervalMs": 250,
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "coefficient": 1,
+        "hits": 4,
+        "atMs": 760,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
         "name": "Fire Bomb",
-        "actorType": "player"
+        "actorType": "player",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 2,
         "duration": 5,
-        "actorType": "player"
+        "actorType": "player",
+        "atMs": 760,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 2,
-        "actorType": "player"
+        "applications": 3,
+        "atMs": 1760,
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "actorType": "player",
+        "persistsAfterInterrupt": true
       }
     ],
     "kit": "Bomb Kit",
@@ -377,14 +470,20 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.FRAGMENTATION_SHOT]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 520,
     "cooldown": 0,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
         "coefficient": 0.4,
         "hits": 1,
         "name": "Fragmentation Shot",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "projectile": true
+        }
       },
       {
         "type": "condition",
@@ -398,39 +497,57 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.POISON_DART_VOLLEY]: {
     "implemented": true,
     "castTimeMs": 1250,
+    "quicknessCastTimeMs": 840,
     "cooldown": 8,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 10,
+        "coefficient": 2,
         "hits": 5,
         "atMs": 250,
         "intervalMs": 250,
         "timingAnchor": "castStart",
         "timingScale": "cast",
         "name": "Poison Dart Volley",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "projectile": true
+        }
       },
       {
         "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 1,
-        "duration": 7,
+        "ticks": [
+          { "atMs": 250, "condition": "Poisoned", "stacks": 1, "duration": 7 },
+          { "atMs": 500, "condition": "Poisoned", "stacks": 1, "duration": 7 },
+          { "atMs": 750, "condition": "Poisoned", "stacks": 1, "duration": 7 },
+          { "atMs": 1000, "condition": "Poisoned", "stacks": 1, "duration": 7 },
+          { "atMs": 1250, "condition": "Poisoned", "stacks": 1, "duration": 7 }
+        ],
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
         "actorType": "player"
       }
     ],
   },
   [ID.STATIC_SHOT]: {
     "implemented": true,
-    "castTimeMs": 0,
-    "cooldown": 10,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 320,
+    "cooldown": 12,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
         "coefficient": 0.4,
         "hits": 1,
         "name": "Static Shot",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "projectile": true
+        }
       },
       {
         "type": "condition",
@@ -448,24 +565,39 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.GLUE_SHOT]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 560,
     "cooldown": 20,
+    "duration": 5,
+    "finisherType": "Blast",
+    "finisherValue": 1,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 10,
-        "hits": 4,
-        "atMs": 125,
-        "intervalMs": 125,
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "coefficient": 2.5,
+        "hits": 1,
         "name": "Glue Shot",
+        "actorType": "player",
+        "metadata": {
+          "projectile": true
+        }
+      },
+      {
+        "type": "condition",
+        "ticks": [
+          { "atMs": 0, "condition": "Crippled", "stacks": 1, "duration": 2 },
+          { "atMs": 1000, "condition": "Crippled", "stacks": 1, "duration": 2 },
+          { "atMs": 2000, "condition": "Crippled", "stacks": 1, "duration": 2 },
+          { "atMs": 3000, "condition": "Crippled", "stacks": 1, "duration": 2 }
+        ],
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
         "actorType": "player"
       },
       {
         "type": "condition",
-        "condition": "Crippled",
+        "condition": "Immobilized",
         "stacks": 1,
-        "duration": 2,
+        "duration": 1.5,
         "actorType": "player"
       }
     ],
@@ -473,6 +605,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.BLOWTORCH]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 560,
     "cooldown": 12,
     "effects": [
       {
@@ -480,6 +613,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 2,
         "hits": 1,
         "name": "Maximum Damage",
+        "persistsAfterInterrupt": true,
         "actorType": "player"
       },
       {
@@ -487,13 +621,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "condition": "Burning",
         "stacks": 3,
         "duration": 4.5,
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Burning",
-        "stacks": 3,
-        "duration": 3,
+        "persistsAfterInterrupt": true,
         "actorType": "player"
       }
     ],
@@ -602,8 +730,15 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 1.2,
         "hits": 1,
+        "atMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Bomb",
-        "actorType": "player"
+        "actorType": "player",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "damageKind": "explosion"
+        }
       }
     ],
     "kit": "Bomb Kit",
@@ -732,18 +867,25 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.GRENADE]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 680,
     "cooldown": 0,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 0.99,
-        "hits": 3,
-        "atMs": 167,
-        "intervalMs": 167,
+        "ticks": [
+          { "atMs": 400, "coefficient": 0.33 },
+          { "atMs": 440, "coefficient": 0.33 },
+          { "atMs": 440, "coefficient": 0.33 }
+        ],
         "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "timingScale": "fixed",
         "name": "Grenade",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion"
+        }
       }
     ],
     "kit": "Grenade Kit",
@@ -993,7 +1135,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.FLAME_BLAST]: {
     "implemented": true,
     "castTimeMs": 1170,
-    "quicknessCastTimeMs": 780,
+    "quicknessCastTimeMs": 800,
     "measuredCancelMs": 480,
     "cooldown": 6,
     "effects": [
@@ -1003,6 +1145,9 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "hits": 1,
         "name": "Flame Blast",
         "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion"
+        },
         "persistsAfterInterrupt": true
       },
       {
@@ -1534,42 +1679,78 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.RIFLE_BURST]: {
     "implemented": true,
-    "castTimeMs": 500,
+    "castTimeMs": 1250,
+    "quicknessCastTimeMs": 835,
     "cooldown": 0,
     "effects": [
       {
         "type": "strike",
         "coefficient": 0.6,
         "hits": 1,
+        "atMs": 318,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Rifle Burst",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "projectile": true,
+          "finisherType": "Projectile",
+          "finisherValue": 0.2
+        }
       },
       {
         "type": "strike",
         "coefficient": 0.8,
         "hits": 1,
+        "atMs": 602,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Rifle Burst Grenade",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion",
+          "projectile": true
+        }
       }
     ],
   },
   [ID.NET_SHOT]: {
     "implemented": true,
-    "castTimeMs": 0,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 570,
     "cooldown": 9,
     "effects": [
       {
         "type": "strike",
         "coefficient": 1.25,
         "hits": 1,
+        "atMs": 518,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Net Shot",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "projectile": true
+        }
       },
       {
         "type": "condition",
         "condition": "Vulnerability",
         "stacks": 8,
         "duration": 8,
+        "atMs": 518,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "actorType": "player"
+      },
+      {
+        "type": "condition",
+        "condition": "Immobilized",
+        "stacks": 1,
+        "duration": 4,
+        "atMs": 518,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       }
     ],
@@ -1577,12 +1758,16 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.JUMP_SHOT]: {
     "implemented": true,
     "castTimeMs": 1000,
+    "quicknessCastTimeMs": 1000,
     "cooldown": 18,
     "effects": [
       {
         "type": "strike",
         "coefficient": 0.3,
         "hits": 1,
+        "atMs": 117,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Leap Damage",
         "actorType": "player"
       },
@@ -1590,6 +1775,9 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 2.4,
         "hits": 1,
+        "atMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Landing Damage",
         "actorType": "player"
       },
@@ -1598,6 +1786,9 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "condition": "Vulnerability",
         "stacks": 3,
         "duration": 7,
+        "atMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       }
     ],
@@ -1922,12 +2113,16 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.BLUNDERBUSS]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 400,
     "cooldown": 6,
     "effects": [
       {
         "type": "strike",
         "coefficient": 2.2,
         "hits": 1,
+        "atMs": 368,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Maximum Damage",
         "actorType": "player"
       },
@@ -1936,34 +2131,41 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "condition": "Bleeding",
         "stacks": 3,
         "duration": 9,
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Bleeding",
-        "stacks": 3,
-        "duration": 3,
+        "atMs": 368,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       },
       {
         "type": "boon",
         "boon": "might",
         "duration": 8,
-        "stacks": 5
+        "stacks": 5,
+        "atMs": 368,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
       }
     ],
   },
   [ID.OVERCHARGED_SHOT]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 400,
     "cooldown": 14,
     "effects": [
       {
         "type": "strike",
         "coefficient": 1,
         "hits": 1,
+        "atMs": 451,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Overcharged Shot",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "projectile": true
+        },
+        "persistsAfterInterrupt": true
       },
       {
         "type": "control",
@@ -2645,6 +2847,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.STATIC_SHOCK]: {
     "implemented": true,
     "castTimeMs": 750,
+    "quicknessCastTimeMs": 680,
     "cooldown": 20,
     "effects": [
       {
@@ -2652,6 +2855,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1,
         "hits": 1,
         "name": "Static Shock",
+        "weapon": "Profession mechanic",
         "actorType": "player"
       },
       {
@@ -2876,10 +3080,11 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 1750,
     "cooldown": 18,
+    "blockDuration": 2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 6.25,
+        "coefficient": 1.25,
         "hits": 5,
         "atMs": 350,
         "intervalMs": 350,
@@ -2991,10 +3196,12 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 1000,
     "cooldown": 6,
+    "finisherType": "Whirl",
+    "finisherValue": 1,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 6,
+        "coefficient": 3,
         "hits": 2,
         "atMs": 500,
         "intervalMs": 500,
@@ -3229,7 +3436,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 10.8,
+        "coefficient": 3.6,
         "hits": 3,
         "atMs": 583,
         "intervalMs": 583,
@@ -3258,28 +3465,44 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 750,
     "cooldown": 20,
+    "comboField": "Lightning",
+    "duration": 5,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 20,
+        "coefficient": 4,
         "hits": 5,
-        "atMs": 150,
-        "intervalMs": 150,
+        "atMs": 1750,
+        "intervalMs": 1000,
         "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "timingScale": "fixed",
         "name": "Thunderclap",
-        "actorType": "player"
+        "actorType": "player",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "condition",
         "condition": "Vulnerability",
         "stacks": 1,
         "duration": 8,
-        "actorType": "player"
+        "applications": 5,
+        "atMs": 1750,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "actorType": "player",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "control",
         "actorType": "player",
+        "atMs": 451,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true,
+        "atMs": 750,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "metadata": {
           "controlKind": "stun",
           "duration": 1
@@ -3428,6 +3651,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.RADIANT_ARC]: {
     "implemented": true,
     "castTimeMs": 750,
+    "quicknessCastTimeMs": 840,
     "cooldown": 12,
     "effects": [
       {
@@ -3445,16 +3669,12 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "actorType": "player"
       },
       {
-        "type": "boon",
-        "boon": "quickness",
-        "duration": 2,
-        "stacks": 1
-      },
-      {
-        "type": "boon",
-        "boon": "quickness",
-        "duration": 4,
-        "stacks": 1
+        "type": "custom",
+        "eventType": "engineer.radiant-arc-quickness",
+        "event": {
+          "name": "Radiant Arc — quickness"
+        },
+        "actorType": "player"
       }
     ],
   },
@@ -3509,21 +3729,21 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.LAUNCH_WALL]: {
     "implemented": true,
+    "handlerId": "engineer.consume-flip",
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 520,
     "cooldown": 0.5,
+    "flipParentName": "Photon Wall",
     "effects": [
       {
-        "type": "strike",
-        "coefficient": 1.5,
-        "hits": 1,
-        "name": "Launch Wall",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Vulnerability",
-        "stacks": 3,
-        "duration": 5,
+        "type": "custom",
+        "eventType": "engineer.launch-wall",
+        "atMs": 0,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "event": {
+          "name": "Launch Wall"
+        },
         "actorType": "player"
       }
     ],
@@ -3568,20 +3788,27 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.FLASH_CUTTER_STORM]: {
     "implemented": true,
     "handlerId": "engineer.heat",
-    "castTimeMs": 500,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 560,
     "cooldown": 0,
     "heatGain": 3,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 3.2,
+        "coefficient": 1.6,
         "hits": 2,
         "atMs": 250,
         "intervalMs": 250,
         "timingAnchor": "castStart",
         "timingScale": "cast",
         "name": "Flash Cutter—Storm",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion",
+          "projectile": true
+        }
       }
     ],
     "forgeSkill": true
@@ -3619,6 +3846,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.PRIME_LIGHT_BEAM]: {
     "implemented": true,
     "castTimeMs": 1250,
+    "quicknessCastTimeMs": 1160,
     "cooldown": 60,
     "effects": [
       {
@@ -3626,20 +3854,20 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 3,
         "hits": 1,
         "name": "Prime Light Beam — Packet 1",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
-        "type": "strike",
-        "coefficient": 0.5,
-        "hits": 1,
-        "name": "Field Damage",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Burning",
-        "stacks": 1,
-        "duration": 3,
+        "type": "custom",
+        "eventType": "engineer.prime-light-beam-field",
+        "atMs": 0,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "event": {
+          "name": "Prime Light Beam — field"
+        },
         "actorType": "player"
       },
       {
@@ -3662,6 +3890,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 0.8,
         "hits": 1,
         "name": "Blade Burst",
+        "weapon": "Profession mechanic",
         "actorType": "player"
       },
       {
@@ -3677,16 +3906,23 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.BRIGHT_SLASH_STORM]: {
     "implemented": true,
     "handlerId": "engineer.heat",
-    "castTimeMs": 500,
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 520,
     "cooldown": 0,
     "heatGain": 3,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
         "coefficient": 1,
         "hits": 1,
         "name": "Bright Slash—Storm",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion",
+          "projectile": true
+        }
       }
     ],
     "forgeSkill": true
@@ -3718,25 +3954,19 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.LASER_DISK]: {
     "implemented": true,
-    "castTimeMs": 750,
+    "castTimeMs": 1500,
+    "quicknessCastTimeMs": 960,
     "cooldown": 30,
     "effects": [
       {
-        "type": "strike",
-        "coefficient": 6,
-        "hits": 12,
-        "atMs": 63,
-        "intervalMs": 63,
+        "type": "custom",
+        "eventType": "engineer.laser-disk",
+        "atMs": 0,
         "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "name": "Laser Disk",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Bleeding",
-        "stacks": 1,
-        "duration": 2,
+        "timingScale": "fixed",
+        "event": {
+          "name": "Laser Disk"
+        },
         "actorType": "player"
       }
     ],
@@ -3789,6 +4019,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.SUN_EDGE]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 440,
     "cooldown": 0,
     "effects": [
       {
@@ -3819,7 +4050,10 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.1,
         "hits": 1,
         "name": "Vent Exhaust",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "noCrit": true
+        }
       },
       {
         "type": "condition",
@@ -3832,8 +4066,11 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.PHOTON_WALL]: {
     "implemented": true,
-    "castTimeMs": 250,
+    "handlerId": "engineer.arm-flip",
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 400,
     "cooldown": 25,
+    "paletteFlipSkillId": ID.LAUNCH_WALL,
     "effects": [],
   },
   [ID.CAUTERIZE]: {
@@ -3861,12 +4098,16 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.REFRACTION_CUTTER]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 520,
     "cooldown": 6,
     "effects": [
       {
         "type": "strike",
         "coefficient": 1.4,
         "hits": 1,
+        "atMs": 320,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Refraction Cutter — Packet 1",
         "actorType": "player"
       },
@@ -3874,14 +4115,34 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 0.4,
         "hits": 1,
-        "name": "Projectile Damage",
-        "actorType": "player"
+        "atMs": 360,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "name": "Refraction Cutter Blade",
+        "actorType": "player",
+        "metadata": {
+          "projectile": true
+        }
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 4,
+        "atMs": 360,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "actorType": "player"
+      },
+      {
+        "type": "custom",
+        "eventType": "engineer.refraction-cutter-extra-blades",
+        "atMs": 0,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "event": {
+          "name": "Refraction Cutter extra blades"
+        },
         "actorType": "player"
       }
     ],
@@ -3889,16 +4150,23 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.LIGHT_STRIKE_STORM]: {
     "implemented": true,
     "handlerId": "engineer.heat",
-    "castTimeMs": 0,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 360,
     "cooldown": 0,
     "heatGain": 3,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
         "coefficient": 1,
         "hits": 1,
         "name": "Light Strike—Storm",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion",
+          "projectile": true
+        }
       }
     ],
     "forgeSkill": true
@@ -3913,42 +4181,107 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "handlerId": "engineer.heat",
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 480,
+    "interruptCommitMs": 400,
     "cooldown": 6,
-    "heatGain": 2,
+    "heatGain": 10,
     "effects": [
       {
         "type": "strike",
         "coefficient": 1.5,
         "hits": 1,
+        "atMs": 400,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Initial Damage",
-        "actorType": "player"
+        "actorType": "player",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "strike",
         "coefficient": 1.5,
         "hits": 1,
+        "atMs": 1800,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Explosion Damage",
-        "actorType": "player"
+        "actorType": "player",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "condition",
         "condition": "Vulnerability",
         "stacks": 8,
         "duration": 8,
-        "actorType": "player"
+        "actorType": "player",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "condition",
-        "condition": "Burning",
-        "stacks": 2,
-        "duration": 5,
-        "actorType": "player"
+        "ticks": [
+          { "atMs": 400, "condition": "Burning", "stacks": 2, "duration": 5 },
+          { "atMs": 1800, "condition": "Burning", "stacks": 2, "duration": 5 }
+        ],
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "actorType": "player",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "boon",
         "boon": "might",
         "duration": 8,
-        "stacks": 1
+        "stacks": 1,
+        "atMs": 400,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "boon",
+        "boon": "might",
+        "duration": 8,
+        "stacks": 1,
+        "atMs": 760,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "boon",
+        "boon": "might",
+        "duration": 8,
+        "stacks": 1,
+        "atMs": 1120,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "boon",
+        "boon": "might",
+        "duration": 8,
+        "stacks": 1,
+        "atMs": 1480,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
+      },
+      {
+        "type": "boon",
+        "boon": "might",
+        "duration": 8,
+        "stacks": 1,
+        "atMs": 1800,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true
       }
     ],
     "forgeSkill": true
@@ -3956,7 +4289,8 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.LIGHT_STRIKE]: {
     "implemented": true,
     "handlerId": "engineer.heat",
-    "castTimeMs": 0,
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 360,
     "cooldown": 0,
     "heatGain": 2,
     "effects": [
@@ -4029,6 +4363,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.SUN_RIPPER]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 480,
     "cooldown": 0,
     "effects": [
       {
@@ -4077,6 +4412,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1,
         "hits": 1,
         "name": "Particle Accelerator",
+        "weapon": "Profession mechanic",
         "actorType": "player"
       },
       {
@@ -4099,6 +4435,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "handlerId": "engineer.heat",
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 520,
     "cooldown": 0,
     "heatGain": 2,
     "effects": [
@@ -4116,25 +4453,46 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "handlerId": "engineer.heat",
     "castTimeMs": 1500,
+    "quicknessCastTimeMs": 1320,
     "cooldown": 10,
-    "heatGain": 2,
+    "heatGain": 16,
+    "finisherType": "Projectile",
+    "finisherValue": 0.2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 40.96,
-        "hits": 8,
-        "atMs": 188,
-        "intervalMs": 188,
+        "ticks": [
+          { "atMs": 240, "coefficient": 0.64 },
+          { "atMs": 400, "coefficient": 0.64 },
+          { "atMs": 480, "coefficient": 0.64 },
+          { "atMs": 640, "coefficient": 0.64 },
+          { "atMs": 720, "coefficient": 0.64 },
+          { "atMs": 880, "coefficient": 0.64 },
+          { "atMs": 960, "coefficient": 0.64 },
+          { "atMs": 1120, "coefficient": 0.64 }
+        ],
         "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "timingScale": "fixed",
         "name": "Photon Blitz",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "projectile": true
+        }
       },
       {
         "type": "condition",
-        "condition": "Burning",
-        "stacks": 8,
-        "duration": 3,
+        "ticks": [
+          { "atMs": 240, "condition": "Burning", "stacks": 1, "duration": 3 },
+          { "atMs": 400, "condition": "Burning", "stacks": 1, "duration": 3 },
+          { "atMs": 480, "condition": "Burning", "stacks": 1, "duration": 3 },
+          { "atMs": 640, "condition": "Burning", "stacks": 1, "duration": 3 },
+          { "atMs": 720, "condition": "Burning", "stacks": 1, "duration": 3 },
+          { "atMs": 880, "condition": "Burning", "stacks": 1, "duration": 3 },
+          { "atMs": 960, "condition": "Burning", "stacks": 1, "duration": 3 },
+          { "atMs": 1120, "condition": "Burning", "stacks": 1, "duration": 3 }
+        ],
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       }
     ],
@@ -4144,12 +4502,13 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "handlerId": "engineer.heat",
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 520,
     "cooldown": 0,
     "heatGain": 2,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 3.2,
+        "coefficient": 1.6,
         "hits": 2,
         "atMs": 250,
         "intervalMs": 250,
@@ -4163,7 +4522,9 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.GLEAM_SABER]: {
     "implemented": true,
+    "handlerId": "engineer.gleam-saber",
     "castTimeMs": 750,
+    "quicknessCastTimeMs": 720,
     "cooldown": 0,
     "effects": [
       {
@@ -4326,6 +4687,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.OVERCLOCK_SIGNET]: {
     "implemented": true,
+    "handlerId": "engineer.overclock-signet",
     "castTimeMs": 0,
     "cooldown": 90,
     "effects": [],
@@ -4377,26 +4739,38 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.JADE_MORTAR]: {
     "implemented": true,
-    "castTimeMs": 500,
+    "castTimeMs": 0,
     "cooldown": 20,
     "effects": [
       {
         "type": "strike",
         "coefficient": 2.2,
         "hits": 1,
+        "atMs": 601,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Jade Mortar",
-        "actorType": "player"
+        "actorType": "summon",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 3,
         "duration": 6,
-        "actorType": "player"
+        "atMs": 601,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "actorType": "summon",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "control",
-        "actorType": "player",
+        "atMs": 601,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true,
+        "actorType": "summon",
         "metadata": {
           "controlKind": "daze",
           "duration": 1
@@ -4510,7 +4884,10 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1,
         "hits": 1,
         "name": "Rocket Punch (Mech)",
-        "actorType": "summon"
+        "actorType": "summon",
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "condition",
@@ -4518,6 +4895,14 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "stacks": 1,
         "duration": 5,
         "actorType": "summon"
+      },
+      {
+        "type": "control",
+        "actorType": "summon",
+        "metadata": {
+          "controlKind": "defiance",
+          "duration": 100
+        }
       }
     ],
   },
@@ -4544,19 +4929,30 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.SPARK_REVOLVER]: {
     "implemented": true,
-    "castTimeMs": 750,
+    "castTimeMs": 0,
     "cooldown": 20,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 2.112,
-        "hits": 12,
-        "atMs": 63,
-        "intervalMs": 63,
+        "ticks": [
+          { "atMs": 717, "coefficient": 0.176 },
+          { "atMs": 717, "coefficient": 0.176 },
+          { "atMs": 834, "coefficient": 0.176 },
+          { "atMs": 834, "coefficient": 0.176 },
+          { "atMs": 1001, "coefficient": 0.176 },
+          { "atMs": 1001, "coefficient": 0.176 },
+          { "atMs": 1151, "coefficient": 0.176 },
+          { "atMs": 1151, "coefficient": 0.176 },
+          { "atMs": 1318, "coefficient": 0.176 },
+          { "atMs": 1318, "coefficient": 0.176 },
+          { "atMs": 1484, "coefficient": 0.176 },
+          { "atMs": 1484, "coefficient": 0.176 }
+        ],
         "timingAnchor": "castStart",
-        "timingScale": "cast",
+        "timingScale": "fixed",
         "name": "Spark Revolver",
-        "actorType": "summon"
+        "actorType": "summon",
+        "persistsAfterInterrupt": true
       }
     ],
     "mechanicSlot": 1,
@@ -4619,31 +5015,31 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 0.6,
-        "hits": 1,
+        "coefficient": 1.8,
+        "hits": 3,
         "name": "Missile Damage",
-        "actorType": "player"
+        "actorType": "summon"
       },
       {
         "type": "strike",
         "coefficient": 1.2,
         "hits": 1,
         "name": "Landing Damage",
-        "actorType": "player"
+        "actorType": "summon"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 5,
-        "actorType": "player"
+        "actorType": "summon"
       },
       {
         "type": "control",
-        "actorType": "player",
+        "actorType": "summon",
         "metadata": {
-          "controlKind": "launch",
-          "duration": 100
+          "controlKind": "knockdown",
+          "duration": 232
         }
       }
     ],
@@ -4704,7 +5100,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "effects": [
       {
         "type": "strike",
-        "coefficient": 1.6,
+        "coefficient": 0.8,
         "hits": 2,
         "atMs": 250,
         "intervalMs": 250,
@@ -4793,22 +5189,30 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.CORE_REACTOR_SHOT]: {
     "implemented": true,
-    "castTimeMs": 750,
+    "castTimeMs": 0,
     "cooldown": 25,
     "effects": [
       {
         "type": "strike",
         "coefficient": 2.5,
         "hits": 1,
+        "atMs": 684,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Core Reactor Shot",
-        "actorType": "player"
+        "actorType": "summon",
+        "persistsAfterInterrupt": true
       },
       {
         "type": "control",
-        "actorType": "player",
+        "atMs": 684,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true,
+        "actorType": "summon",
         "metadata": {
           "controlKind": "launch",
-          "duration": 240
+          "duration": 232
         }
       }
     ],
@@ -4830,14 +5234,17 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 1.8,
         "hits": 1,
         "name": "Explosive Knuckle",
-        "actorType": "player"
+        "actorType": "summon",
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "condition",
         "condition": "Weakness",
         "stacks": 1,
         "duration": 5,
-        "actorType": "player"
+        "actorType": "summon"
       }
     ],
     "mechanicSlot": 1,
@@ -4851,55 +5258,80 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 1.5,
         "hits": 5,
+        "atMs": 0,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Discharge Array",
-        "actorType": "player"
+        "actorType": "summon"
       },
       {
         "type": "condition",
         "condition": "Slow",
         "stacks": 1,
         "duration": 2,
-        "actorType": "player"
+        "applications": 5,
+        "atMs": 0,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "actorType": "summon"
       },
       {
         "type": "condition",
         "condition": "Confusion",
         "stacks": 2,
         "duration": 3,
-        "actorType": "player"
+        "applications": 5,
+        "atMs": 0,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "actorType": "summon"
       },
       {
         "type": "condition",
         "condition": "Burning",
         "stacks": 1,
         "duration": 3,
-        "actorType": "player"
+        "applications": 5,
+        "atMs": 0,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
+        "actorType": "summon"
       }
     ],
     "mechanicSlot": 2,
   },
   [ID.JADE_BUSTER_CANNON]: {
     "implemented": true,
+    "simulatorExcluded": true,
     "castTimeMs": 3250,
     "cooldown": 1,
     "effects": [
       {
         "type": "strike",
-        "coefficient": 23.75,
+        "coefficient": 4.75,
         "hits": 5,
         "atMs": 650,
         "intervalMs": 650,
         "timingAnchor": "castStart",
         "timingScale": "cast",
         "name": "Jade Buster Cannon",
-        "actorType": "player"
+        "actorType": "summon"
       },
       {
         "type": "condition",
         "condition": "Burning",
-        "stacks": 5,
+        "stacks": 1,
         "duration": 6,
-        "actorType": "player"
+        "applications": 5,
+        "atMs": 650,
+        "intervalMs": 650,
+        "timingAnchor": "castStart",
+        "timingScale": "cast",
+        "actorType": "summon"
       }
     ],
     "toolbeltParentName": "Overclock Signet",
@@ -4915,14 +5347,21 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "coefficient": 0.8,
         "hits": 1,
         "name": "Rifle Burst Grenade",
-        "actorType": "player"
+        "actorType": "player",
+        "metadata": {
+          "damageKind": "explosion",
+          "projectile": true
+        }
       }
     ],
   },
   [ID.RADIANT_ARC_ID_69565]: {
     "implemented": true,
     "castTimeMs": 750,
+    "quicknessCastTimeMs": 840,
     "cooldown": 14,
+    "finisherType": "Leap",
+    "finisherValue": 1,
     "effects": [
       {
         "type": "strike",
@@ -4949,6 +5388,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.SUN_RIPPER_ID_69906]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 480,
     "cooldown": 0,
     "effects": [
       {
@@ -4970,6 +5410,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.SUN_EDGE_ID_70514]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 440,
     "cooldown": 0,
     "effects": [
       {
@@ -4990,7 +5431,9 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   },
   [ID.GLEAM_SABER_ID_70771]: {
     "implemented": true,
+    "handlerId": "engineer.gleam-saber",
     "castTimeMs": 750,
+    "quicknessCastTimeMs": 720,
     "cooldown": 0,
     "effects": [
       {
@@ -5005,6 +5448,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.REFRACTION_CUTTER_ID_71121]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 520,
     "cooldown": 6,
     "effects": [
       {
@@ -5016,17 +5460,31 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
       },
       {
         "type": "strike",
-        "coefficient": 0.4,
-        "hits": 1,
-        "name": "Projectile Damage",
-        "actorType": "player"
+        "coefficient": 0.8,
+        "hits": 2,
+        "atMs": 34,
+        "intervalMs": 51,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "name": "Refraction Cutter Blade",
+        "actorType": "player",
+        "metadata": {
+          "projectile": true,
+          "finisherType": "Projectile",
+          "finisherValue": 1
+        }
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 1,
         "duration": 4,
-        "actorType": "player"
+        "applications": 2,
+        "atMs": 34,
+        "intervalMs": 51,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "actorType": "summon"
       }
     ],
   },
@@ -5202,6 +5660,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "handlerId": "engineer.devastator",
     "castTimeMs": 1000,
+    "quicknessCastTimeMs": 1000,
     "cooldown": 20,
     "effects": [
       {
@@ -5352,6 +5811,8 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "castTimeMs": 500,
     "quicknessCastTimeMs": 440,
     "cooldown": 20,
+    "comboField": "Fire",
+    "duration": 1,
     "effects": [
       {
         "type": "strike",
@@ -5385,18 +5846,30 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
   [ID.MAGNETIC_BOMB]: {
     "implemented": true,
     "castTimeMs": 500,
+    "quicknessCastTimeMs": 480,
     "cooldown": 20,
     "effects": [
       {
         "type": "strike",
         "coefficient": 1.5,
         "hits": 1,
+        "atMs": 1880,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
         "name": "Magnetic Bomb",
-        "actorType": "player"
+        "actorType": "player",
+        "persistsAfterInterrupt": true,
+        "metadata": {
+          "damageKind": "explosion"
+        }
       },
       {
         "type": "control",
         "actorType": "player",
+        "atMs": 1880,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "persistsAfterInterrupt": true,
         "metadata": {
           "controlKind": "pull",
           "duration": 300
@@ -5410,6 +5883,8 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "castTimeMs": 1000,
     "quicknessCastTimeMs": 760,
     "cooldown": 20,
+    "finisherType": "Projectile",
+    "finisherValue": 1,
     "effects": [
       {
         "type": "strike",
@@ -5513,14 +5988,20 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 2.88,
         "hits": 1,
+        "atMs": 640,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Offensive Protocol: Obliterate",
-        "actorType": "player"
+        "actorType": "summon"
       },
       {
         "type": "condition",
         "condition": "Bleeding",
         "stacks": 8,
         "duration": 6,
+        "atMs": 640,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       }
     ],
@@ -5535,12 +6016,6 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "type": "boon",
         "boon": "protection",
         "duration": 3,
-        "stacks": 1
-      },
-      {
-        "type": "boon",
-        "boon": "alacrity",
-        "duration": 8,
         "stacks": 1
       }
     ],
@@ -5568,12 +6043,6 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "boon": "protection",
         "duration": 3,
         "stacks": 1
-      },
-      {
-        "type": "boon",
-        "boon": "alacrity",
-        "duration": 8,
-        "stacks": 1
       }
     ],
     "mechanicSlot": 2,
@@ -5588,6 +6057,9 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 2.88,
         "hits": 1,
+        "atMs": 640,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Offensive Protocol: Obliterate",
         "actorType": "player"
       },
@@ -5596,6 +6068,9 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "condition": "Bleeding",
         "stacks": 8,
         "duration": 6,
+        "atMs": 640,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       }
     ],
@@ -5627,14 +6102,6 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
           "controlKind": "stun",
           "duration": 2
         }
-      },
-      {
-        "type": "control",
-        "actorType": "player",
-        "metadata": {
-          "controlKind": "stun",
-          "duration": 2
-        }
       }
     ],
     "mechanicSlot": 2,
@@ -5644,6 +6111,8 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "castTimeMs": 1000,
     "quicknessCastTimeMs": 760,
     "cooldown": 20,
+    "finisherType": "Projectile",
+    "finisherValue": 1,
     "effects": [
       {
         "type": "strike",
@@ -5677,6 +6146,9 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "type": "strike",
         "coefficient": 2.88,
         "hits": 1,
+        "atMs": 640,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "name": "Offensive Protocol: Obliterate",
         "actorType": "player"
       },
@@ -5685,6 +6157,9 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "condition": "Bleeding",
         "stacks": 8,
         "duration": 6,
+        "atMs": 640,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed",
         "actorType": "player"
       }
     ],
@@ -5780,14 +6255,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 1500,
     "cooldown": 20,
-    "effects": [
-      {
-        "type": "boon",
-        "boon": "resistance",
-        "duration": 8,
-        "stacks": 1
-      }
-    ],
+    "effects": [],
     "mechanicSlot": 2,
   },
   [ID.FLUX_STATE]: {
@@ -5871,14 +6339,6 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
           "controlKind": "stun",
           "duration": 2
         }
-      },
-      {
-        "type": "control",
-        "actorType": "player",
-        "metadata": {
-          "controlKind": "stun",
-          "duration": 2
-        }
       }
     ],
     "mechanicSlot": 3,
@@ -5901,14 +6361,6 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "stacks": 8,
         "duration": 8,
         "actorType": "player"
-      },
-      {
-        "type": "control",
-        "actorType": "player",
-        "metadata": {
-          "controlKind": "stun",
-          "duration": 2
-        }
       },
       {
         "type": "control",
@@ -5960,6 +6412,8 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "castTimeMs": 1000,
     "quicknessCastTimeMs": 760,
     "cooldown": 20,
+    "finisherType": "Projectile",
+    "finisherValue": 1,
     "effects": [
       {
         "type": "strike",
@@ -6025,14 +6479,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 1500,
     "cooldown": 20,
-    "effects": [
-      {
-        "type": "boon",
-        "boon": "resistance",
-        "duration": 8,
-        "stacks": 1
-      }
-    ],
+    "effects": [],
     "mechanicSlot": 3,
   },
   [ID.PLASMATIC_STATE]: {
@@ -6079,12 +6526,6 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
         "boon": "protection",
         "duration": 3,
         "stacks": 1
-      },
-      {
-        "type": "boon",
-        "boon": "alacrity",
-        "duration": 8,
-        "stacks": 1
       }
     ],
     "mechanicSlot": 3,
@@ -6093,14 +6534,7 @@ export const ENGINEER_SKILL_MECHANICS = Object.freeze({
     "implemented": true,
     "castTimeMs": 1500,
     "cooldown": 20,
-    "effects": [
-      {
-        "type": "boon",
-        "boon": "resistance",
-        "duration": 8,
-        "stacks": 1
-      }
-    ],
+    "effects": [],
     "mechanicSlot": 4,
   },
   [ID.LOCKED_ID_77388]: {
@@ -6117,13 +6551,26 @@ export const ENGINEER_IMPLEMENTED_SKILL_IDS = Object.freeze(
 
 export const ENGINEER_TRIGGERED_MECHANICS = Object.freeze({
   [INTERNAL.MECH_BASIC_ATTACK]: Object.freeze({
-    coefficient: 0.6,
-    hits: 1,
-    interval: 1,
+    coefficient: 0.84,
+    hits: 2,
+    interval: 1.575,
   }),
 });
 
 const extraSkills = [
+  {
+    "id": ID.DODGE,
+    "name": "Dodge",
+    "description": "Perform a dodge roll.",
+    "icon": "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
+    "type": "Action",
+    "slot": "Action",
+    "handlerId": "engineer.dodge",
+    "castTimeMs": 800,
+    "cooldown": 0,
+    "implemented": true,
+    "effects": []
+  },
   {
     "id": ID.STOW_ELITE_MORTAR_KIT,
     "name": "Stow Elite Mortar Kit",

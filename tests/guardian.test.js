@@ -1888,7 +1888,12 @@ test("Luminary stances apply modifiers, combos, delayed damage, and control", ()
   assert.equal(effulgentDamage.at, 4);
   assert.equal(effulgentDamage.stackCount, 10);
   assert.equal(effulgentDamage.coefficient, 4);
-  assert.equal(effulgentDamage.weaponStrength, 690.5);
+  assert.equal(
+    effulgentDamage.weaponStrengthProfileId,
+    "nonweapon.unequipped",
+  );
+  assert.equal(effulgentDamage.resolvedWeaponStrength, 690.5);
+  assert.equal(effulgentDamage.weaponStrengthSampled, false);
   assert.equal(procChargedEffulgent.stackCount, 3);
   assert.ok(Math.abs(procChargedEffulgent.coefficient - 1.55) < 1e-9);
   assert.deepEqual(

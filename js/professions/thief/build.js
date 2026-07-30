@@ -11,6 +11,11 @@ import {
   normalizeProfessionAssumptions,
   validateProfessionAssumptions,
 } from "../../app/profession/assumptions.js";
+import {
+  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
+  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  normalizeSimulationRandomnessAssumptions,
+} from "../../app/simulation/randomness.js";
 import { THIEF_ASSUMPTION_CONTROLS } from "./assumptions.js";
 import {
   thiefCatalog,
@@ -28,6 +33,11 @@ import {
 
 export const THIEF_BUILD_SCHEMA_VERSION = 3;
 export const THIEF_PROFESSION_ID = "thief";
+
+const THIEF_BUILD_ASSUMPTION_CONTROLS = Object.freeze([
+  ...THIEF_ASSUMPTION_CONTROLS,
+  ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+]);
 
 export { createDefaultTargetConditions };
 export function createThiefBuildDefaults() {
@@ -62,6 +72,7 @@ export function createThiefBuildDefaults() {
     },
     selectedDodge: "Dodge",
     assumptions: {
+      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
       might: 25,
       fury: true,
       quickness: true,
@@ -75,7 +86,10 @@ export function createThiefBuildDefaults() {
       targetMoving: false,
       targetBoonless: true,
       targetConditions: createDefaultTargetConditions(),
-      ...normalizeProfessionAssumptions({}, THIEF_ASSUMPTION_CONTROLS),
+      ...normalizeProfessionAssumptions(
+        {},
+        THIEF_BUILD_ASSUMPTION_CONTROLS,
+      ),
     },
     initialInitiative: 12,
     initialShadowForce: 0,
@@ -93,8 +107,8 @@ const thiefBuildCodec = createGw2BuildCodec({
   createDefaults: createThiefBuildDefaults,
   normalizeExtra(build, { saved }) {
     const assumptions = normalizeProfessionAssumptions(
-      build.assumptions,
-      THIEF_ASSUMPTION_CONTROLS,
+      normalizeSimulationRandomnessAssumptions(build.assumptions),
+      THIEF_BUILD_ASSUMPTION_CONTROLS,
     );
     delete assumptions.markedTargetChoice;
     delete assumptions.playerHealthPercent;
@@ -123,7 +137,7 @@ const thiefBuildCodec = createGw2BuildCodec({
   validateExtra(build) {
     const errors = validateProfessionAssumptions(
       build.assumptions,
-      THIEF_ASSUMPTION_CONTROLS,
+      THIEF_BUILD_ASSUMPTION_CONTROLS,
     );
     if (
       !(Number(build.initialInitiative) >= 0

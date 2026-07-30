@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildChartSeries,
+  buildPhaseDpsSeries,
   chartValueAt,
   mountTimeSeriesCharts,
 } from "../js/platform/ui/charts.js";
@@ -149,6 +150,7 @@ test("shared chart lookup and series cover damage timing and configurable effect
   assert.equal(series.dps[0].v, 0);
   assert.equal(series.dps[1].v, 150);
   assert.equal(series.dps.at(-1).v, 400 / 1.5);
+  assert.equal(series.cumulativeDamage.at(-1).v, 400);
   assert.equal(series.effects["Effect <burn>"][1].v, 2);
   assert.equal(series.effects["Effect <burn>"].at(-1).v, 2);
   assert.equal(series.effects["Effect <power>"][0].v, 2);
@@ -209,16 +211,96 @@ test("target health breakpoints use cumulative damage and individual condition t
   assert.deepEqual(targetHealthBreakpointSnapshots({}, 0), []);
 });
 
+test("phase DPS is recalculated from damage within the selected health range", () => {
+  assert.deepEqual(
+    buildPhaseDpsSeries(
+      [
+        { t: 0, v: 0 },
+        { t: 1000, v: 100 },
+        { t: 2000, v: 300 },
+        { t: 3000, v: 600 },
+      ],
+      1000,
+      3000,
+      100,
+      600,
+    ),
+    [
+      { t: 0, v: 0 },
+      { t: 1000, v: 200 },
+      { t: 2000, v: 250 },
+    ],
+  );
+  assert.deepEqual(buildPhaseDpsSeries([], 1000, 1000, 100, 100), []);
+});
+
 test("shared chart markup escapes effect names and uses scoped roles without ids", () => {
   const container = inertContainer();
   mountTimeSeriesCharts(container, {
     durationMs: 1000,
     dps: [{ t: 0, v: 0 }],
     effects: { 'Bad"><img src=x>': [{ t: 0, v: 1 }] },
+    cumulativeDamage: [
+      { t: 0, v: 0 },
+      { t: 1000, v: 1000 },
+    ],
+  }, {
+    healthBreakpoints: [
+      { healthPercent: 80, elapsed: 0.2, damage: 200 },
+      { healthPercent: 60, elapsed: 0.4, damage: 400 },
+      { healthPercent: 40, elapsed: 0.6, damage: 600 },
+      { healthPercent: 20, elapsed: 0.8, damage: 800 },
+    ],
   });
   assert.match(container.innerHTML, /data-role="dps-canvas"/);
   assert.match(container.innerHTML, /Bad&quot;&gt;&lt;img src=x&gt;/);
+  assert.match(container.innerHTML, /data-role="chart-phase-toggles"/);
+  assert.match(container.innerHTML, /Full Fight/);
+  assert.deepEqual(
+    [...container.innerHTML.matchAll(/data-chart-phase="([^"]+)"/g)]
+      .map(match => match[1]),
+    ["full", "100-80", "80-60", "60-40", "40-20", "20-0"],
+  );
+  const finalPhaseButton = container.innerHTML.match(
+    /<button type="button"[\s\S]*?data-chart-phase="20-0"[\s\S]*?<\/button>/,
+  );
+  assert.ok(finalPhaseButton);
+  assert.doesNotMatch(finalPhaseButton[0], /disabled/);
   assert.doesNotMatch(container.innerHTML, /\sid="/);
+});
+
+test("result charts reuse the target-health DPS snapshot breakpoints", () => {
+  const chartContainer = inertContainer();
+  const container = {
+    innerHTML: "",
+    querySelector: selector =>
+      selector === '[data-role="result-charts"]' ? chartContainer : null,
+    querySelectorAll: () => [],
+  };
+  mountRotationResults(container, {
+    breakpoints: [
+      { healthPercent: 80, dps: 1200, elapsed: 1, damage: 1200 },
+      { healthPercent: 60, dps: 1400, elapsed: 2, damage: 2800 },
+    ],
+    chartSeries: {
+      durationMs: 3000,
+      dps: [{ t: 0, v: 0 }],
+      effects: {},
+      cumulativeDamage: [
+        { t: 0, v: 0 },
+        { t: 3000, v: 4000 },
+      ],
+    },
+  });
+
+  assert.match(
+    chartContainer.innerHTML,
+    /data-chart-phase="100-80"[\s\S]*?aria-pressed="false"/,
+  );
+  assert.match(
+    chartContainer.innerHTML,
+    /data-chart-phase="80-60"[\s\S]*?aria-pressed="false"/,
+  );
 });
 
 test("result sorting handles defaults, numeric directions, strings, and cycling", () => {
@@ -346,7 +428,7 @@ test("shared results render summaries, totals, contributions, and icons", () => 
   assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/>Bonus/);
   assert.match(container.innerHTML, /contrib-status/);
   assert.match(container.innerHTML, /Recalculating/);
-  assert.match(container.innerHTML, /Trait-proc RNG distribution/);
+  assert.match(container.innerHTML, /Simulation RNG distribution/);
   assert.match(container.innerHTML, /500 outcomes per run/);
   assert.match(container.innerHTML, /Very unlucky/);
   assert.match(container.innerHTML, /P1 DPS/);
@@ -355,11 +437,38 @@ test("shared results render summaries, totals, contributions, and icons", () => 
   assert.match(container.innerHTML, /1,100&ndash;1,350/);
   assert.ok(
     container.innerHTML.indexOf("DPS snapshots")
-    < container.innerHTML.indexOf("Trait-proc RNG distribution"),
+    < container.innerHTML.indexOf("Simulation RNG distribution"),
   );
   assert.deepEqual(resolved, ["High", "Low"]);
 
   assert.doesNotThrow(() => mountRotationResults(inertContainer(), {}));
+});
+
+test("skill damage rows group player damage before owned entities", () => {
+  const container = inertContainer();
+  mountRotationResults(container, {
+    skillColumns: [
+      { key: "name", label: "Skill", numeric: false },
+      { key: "total", label: "Total", numeric: true },
+    ],
+    skillRows: [
+      { name: "Player Low", total: 10, group: "Player" },
+      { name: "Entity High", total: 100, group: "Entities" },
+      { name: "Player High", total: 20, group: "Player" },
+      { name: "Entity Low", total: 50, group: "Entities" },
+    ],
+  });
+
+  const html = container.innerHTML;
+  const playerGroup = html.indexOf('data-skill-group="Player"');
+  const entityGroup = html.indexOf('data-skill-group="Entities"');
+  assert.ok(playerGroup >= 0);
+  assert.ok(entityGroup > playerGroup);
+  assert.ok(html.indexOf("Player High") < html.indexOf("Player Low"));
+  assert.ok(html.indexOf("Player Low") < entityGroup);
+  assert.ok(html.indexOf("Entity High") < html.indexOf("Entity Low"));
+  assert.match(html, /30 total/);
+  assert.match(html, /150 total/);
 });
 
 test("RNG distribution waits for its manual run button", () => {

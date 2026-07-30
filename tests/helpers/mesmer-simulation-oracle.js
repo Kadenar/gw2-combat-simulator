@@ -7,6 +7,28 @@ const DAMAGE_FIELDS = new Set([
   "totalDamage",
   "dps",
 ]);
+const WEAPON_RANDOMNESS_FIELDS = new Set([
+  "activationId",
+  "weaponStrength",
+  "weaponStrengthProfileId",
+  "resolvedWeaponStrength",
+  "weaponStrengthSampled",
+]);
+
+function withoutWeaponRandomnessFields(value) {
+  if (Array.isArray(value)) return value.map(withoutWeaponRandomnessFields);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([key]) => !WEAPON_RANDOMNESS_FIELDS.has(key))
+        .map(([key, child]) => [
+          key,
+          withoutWeaponRandomnessFields(child),
+        ]),
+    );
+  }
+  return value;
+}
 
 function canonical(value) {
   if (Object.is(value, -0)) return 0;
@@ -120,7 +142,11 @@ export function assertMesmerResultParity(
       ? expectedResult
       : normalizeMesmerResult(expectedResult);
   const actual = normalizeMesmerResult(actualResult);
-  assert.deepEqual(actual.exact, expected.exact, `${name}: exact result`);
+  assert.deepEqual(
+    withoutWeaponRandomnessFields(actual.exact),
+    withoutWeaponRandomnessFields(expected.exact),
+    `${name}: exact result`,
+  );
   assertDamageClose(
     name,
     expected.damage,

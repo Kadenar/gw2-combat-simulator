@@ -5,7 +5,8 @@
       {
         "label": "Power",
         "build": "Builds/guardian/b-power-luminary.json",
-        "rotation": "Rotations/guardian/r-power-luminary-bench.json"
+        "rotation": "Rotations/guardian/r-power-luminary-bench.json",
+        "benchmarkDps": 42328
       }
     ]
   }

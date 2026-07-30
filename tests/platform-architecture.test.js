@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
-import { readFile, readdir } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import ts from "typescript";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { createCanonicalCatalog } from "../js/platform/engine/catalog.js";
@@ -1639,6 +1640,95 @@ test("Relic of the Brawler grants four seconds of strike damage with a strict ei
   assert.ok(Math.abs(strikes[3].damage / strikes[1].damage - 1.1) < 1e-12);
 });
 
+test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930100,
+        name: "Bloodstone Fixture Strike",
+        type: "Weapon",
+        castTimeMs: 0,
+        effects: [strike(1)],
+      },
+      {
+        id: 930101,
+        name: "Bloodstone Fixture Blast",
+        type: "Utility",
+        castTimeMs: 0,
+        effects: [custom("blast_combo")],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "bloodstone-fixture",
+    name: "Bloodstone Fixture",
+    catalog,
+  });
+  const config = {
+    relic: "Bloodstone",
+    stats: { power: 2000, precision: 1000, ferocity: 0 },
+    target: { armor: 2597, conditions: {} },
+  };
+  const threeBlasts = simulateGw2({
+    profession,
+    rotation: [
+      "Bloodstone Fixture Blast",
+      "Bloodstone Fixture Blast",
+      "Bloodstone Fixture Blast",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Bloodstone Fixture Strike",
+      "Bloodstone Fixture Blast",
+      "Bloodstone Fixture Blast",
+      "Bloodstone Fixture Blast",
+      "Bloodstone Fixture Blast",
+      "Bloodstone Fixture Blast",
+      "Bloodstone Fixture Strike",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config,
+  });
+  const volatility = result.procSteps.filter(
+    step => step.skill === "Bloodstone Volatility",
+  );
+  const fervor = result.procSteps.filter(
+    step => step.skill === "Relic of Bloodstone",
+  );
+  const strikes = result.resolvedEvents.filter(
+    event => event.skillName === "Bloodstone Fixture Strike",
+  );
+  const explosion = result.resolvedEvents.find(
+    event =>
+      event.type === "damage"
+      && event.skillName === "Bloodstone Explosion",
+  );
+  const bleeding = result.resolvedEvents.find(
+    event =>
+      event.type === "condition"
+      && event.skillName === "Bloodstone Explosion",
+  );
+
+  // Consecutive identical proc rows are intentionally grouped for display.
+  assert.deepEqual(volatility.map(step => step.detail), ["1/3 stacks"]);
+  assert.equal(
+    threeBlasts.procSteps.some(
+      step => step.skill === "Relic of Bloodstone",
+    ),
+    false,
+  );
+  assert.equal(fervor.length, 1);
+  assert.ok(Math.abs(strikes[1].damage / strikes[0].damage - 1.07) < 1e-12);
+  assert.equal(explosion.coefficient, 3);
+  assert.equal(explosion.at, 0.68);
+  assert.equal(bleeding.stacks, 6);
+  assert.equal(bleeding.duration, 6);
+});
+
 test("Relic of the Shackles strikes five seconds after immobilize with a strict ten-second ICD", () => {
   const catalog = createCanonicalCatalog({
     generated: [{
@@ -1797,7 +1887,13 @@ async function javascriptFiles(root) {
     const target = path.join(root, entry.name);
     return entry.isDirectory()
       ? javascriptFiles(target)
-      : entry.name.endsWith(".js")
+      : (
+          entry.name.endsWith(".js") ||
+          (
+            entry.name.endsWith(".ts") &&
+            !entry.name.endsWith(".d.ts")
+          )
+        )
         ? [target]
         : [];
   }));
@@ -1842,7 +1938,7 @@ test("Mesmer conforms to native handler, identity, and state boundaries", async 
     "../js/professions/mesmer",
   );
   const contract = await readFile(
-    path.join(mesmerRoot, "mechanics", "contract.js"),
+    path.join(mesmerRoot, "mechanics", "contract.ts"),
     "utf8",
   );
   assert.doesNotMatch(contract, /\bscheduleSkill\b/);
@@ -1876,15 +1972,16 @@ test("platform import boundaries are profession neutral", async () => {
   for (const file of await javascriptFiles(root)) {
     const source = await readFile(file, "utf8");
     const relative = path.relative(root, file).replaceAll("\\", "/");
+    const modulePath = relative.replace(/\.(?:js|ts)$/, "");
     for (const entry of nativeProfessionRegistry) {
       for (const term of [entry.id, entry.name]) {
         if (
           entry.id === "thief"
           && [
-            "gw2/gear-data.js",
-            "gw2/relic-rules.js",
-            "gw2/resolver/runtime-state.js",
-          ].includes(relative)
+            "gw2/gear-data",
+            "gw2/relic-rules",
+            "gw2/resolver/runtime-state",
+          ].includes(modulePath)
         ) continue;
         assert.equal(
           source.toLowerCase().includes(term.toLowerCase()),
@@ -1922,16 +2019,47 @@ async function relativeModuleGraph(entryFiles) {
   const visited = new Set();
   const pending = [...entryFiles];
   while (pending.length) {
-    const file = path.resolve(pending.pop());
+    const file = await sourceModulePath(path.resolve(pending.pop()));
     if (visited.has(file)) continue;
     visited.add(file);
     const source = await readFile(file, "utf8");
-    const specifiers = [
-      ...source.matchAll(
-        /(?:import|export)\s+(?:[^"'()]*?\s+from\s+)?["'](\.[^"']+)["']/g,
-      ),
-      ...source.matchAll(/import\(\s*["'](\.[^"']+)["']\s*\)/g),
-    ].map((match) => match[1]);
+    const syntax = ts.createSourceFile(
+      file,
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.JS,
+    );
+    const specifiers = [];
+    const visit = (node) => {
+      if (
+        (
+          ts.isImportDeclaration(node) ||
+          ts.isExportDeclaration(node)
+        ) &&
+        !(
+          ts.isImportDeclaration(node) &&
+          node.importClause?.isTypeOnly
+        ) &&
+        !(
+          ts.isExportDeclaration(node) &&
+          node.isTypeOnly
+        ) &&
+        node.moduleSpecifier &&
+        ts.isStringLiteralLike(node.moduleSpecifier)
+      ) {
+        specifiers.push(node.moduleSpecifier.text);
+      } else if (
+        ts.isCallExpression(node) &&
+        node.expression.kind === ts.SyntaxKind.ImportKeyword &&
+        node.arguments.length === 1 &&
+        ts.isStringLiteralLike(node.arguments[0])
+      ) {
+        specifiers.push(node.arguments[0].text);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(syntax);
     for (const specifier of specifiers) {
       const dependency = path.resolve(path.dirname(file), specifier);
       if (dependency.endsWith(".js") || dependency.endsWith(".mjs")) {
@@ -1940,6 +2068,21 @@ async function relativeModuleGraph(entryFiles) {
     }
   }
   return visited;
+}
+
+async function sourceModulePath(file) {
+  if (!file.endsWith(".js")) return file;
+  const typeScript = file.replace(/\.js$/, ".ts");
+  try {
+    await access(typeScript);
+    return typeScript;
+  } catch {
+    return file;
+  }
+}
+
+async function readSourceModule(file) {
+  return readFile(await sourceModulePath(file), "utf8");
 }
 
 test("native registry loaders do not pull another profession module graph", async () => {
@@ -1974,9 +2117,8 @@ test("declarative professions use the standard mechanics module roles", async ()
   for (const profession of nativeProfessionRegistry.map(entry => entry.id)) {
     const mechanicsRoot = path.join(root, profession, "mechanics");
     const prefix = profession.toUpperCase();
-    const mechanics = await readFile(
+    const mechanics = await readSourceModule(
       path.join(mechanicsRoot, "skill-mechanics.js"),
-      "utf8",
     );
     assert.match(mechanics, new RegExp(
       `export const ${prefix}_SKILL_MECHANICS\\b`,
@@ -1988,13 +2130,11 @@ test("declarative professions use the standard mechanics module roles", async ()
       || profession === "necromancer"
       || profession === "revenant"
     ) {
-      const handlerMechanics = await readFile(
+      const handlerMechanics = await readSourceModule(
         path.join(mechanicsRoot, "handler-mechanics.js"),
-        "utf8",
       );
-      const handlers = await readFile(
+      const handlers = await readSourceModule(
         path.join(mechanicsRoot, "specific", "handlers.js"),
-        "utf8",
       );
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       if (profession === "mesmer") {
@@ -2006,9 +2146,8 @@ test("declarative professions use the standard mechanics module roles", async ()
       assert.match(handlers, /replaceSkillHandler/);
     }
 
-    const catalog = await readFile(
+    const catalog = await readSourceModule(
       path.join(root, profession, "catalog.js"),
-      "utf8",
     );
     assert.match(catalog, /mechanics\/skill-mechanics\.js/);
     assert.doesNotMatch(catalog, /mechanics\/skill-(?:defaults|overrides)\.js/);
@@ -2059,9 +2198,9 @@ test("application shell uses feature-owned modules without legacy facades", asyn
     .map(entry => entry.name)
     .sort();
   assert.deepEqual(topLevelFiles, [
-    "app.js",
-    "bootstrap.js",
-    "profession-app.js",
+    "app.ts",
+    "bootstrap.ts",
+    "profession-app.ts",
   ]);
 
   const directories = new Set(
@@ -2072,7 +2211,7 @@ test("application shell uses feature-owned modules without legacy facades", asyn
     ["build", "profession", "rotation", "simulation"],
   );
 
-  const appEntry = await readFile(path.join(appRoot, "app.js"), "utf8");
+  const appEntry = await readFile(path.join(appRoot, "app.ts"), "utf8");
   assert.match(appEntry, /bootstrapProfessionApp/);
   assert.doesNotMatch(appEntry, /class ProfessionApp|renderPalette|renderGear/);
 });

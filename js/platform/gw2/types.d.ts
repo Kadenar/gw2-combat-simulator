@@ -1,0 +1,1244 @@
+import type {
+  CanonicalCatalog,
+  NormalizedProfessionContract,
+  ScheduledEventStream,
+  SchedulerRunResult,
+  SchedulerState,
+  SchedulerStep,
+  SchedulerRecord,
+  SimulationRandom,
+  SimulationRandomnessConfig,
+  SimulationActorType,
+  SimulationEvent,
+  SimulationEventInput,
+  Skill,
+  ScheduledTask,
+  SchedulerContext,
+  SchedulerPolicy,
+} from "../engine/types.js";
+import type { StableEventQueue } from "../engine/event-queue.js";
+import type { HandlerRegistry } from "../engine/handler-registry.js";
+
+export interface Gw2Stats extends SchedulerRecord {
+  readonly power?: number;
+  readonly precision?: number;
+  readonly toughness?: number;
+  readonly vitality?: number;
+  readonly ferocity?: number;
+  readonly conditionDamage?: number;
+  readonly expertise?: number;
+  readonly concentration?: number;
+  readonly healingPower?: number;
+  readonly boonDurationBonus?: number;
+  readonly boonDurationBonuses?: Readonly<Record<string, number>>;
+  readonly conditionDurationBonus?: number;
+  readonly conditionDurationBonuses?: Readonly<Record<string, number>>;
+  readonly criticalChanceBonus?: number;
+}
+
+export interface Gw2SigilSet extends SchedulerRecord {
+  readonly names?: readonly string[];
+  readonly boonDurationBonus?: number;
+  readonly criticalChanceBonus?: number;
+  readonly strikeAdd?: number;
+  readonly strike?: number;
+  readonly conditionAdd?: number;
+  readonly condition?: number;
+  readonly conditionDurationBonus?: number;
+  readonly conditionDurationBonuses?: Readonly<Record<string, number>>;
+}
+
+export interface Gw2WeaponDataEntry {
+  readonly wielding: string;
+  readonly weaponStrengthProfileId: string;
+  readonly weaponStrength: number;
+}
+
+export interface Gw2WeaponStrengthProfile {
+  readonly id: string;
+  readonly min: number;
+  readonly max: number;
+}
+
+export interface Gw2ResolvedWeaponStrength {
+  readonly activationId: string | null;
+  readonly profileId: string;
+  readonly value: number;
+  readonly sampled: boolean;
+}
+
+export interface Gw2SigilProc extends SchedulerRecord {
+  readonly trigger: string;
+  readonly cooldown: number;
+  readonly effect: string;
+  readonly icon?: string;
+  readonly coefficient?: number;
+  readonly weaponStrength?: number;
+  readonly weaponStrengthProfileId?: string;
+  readonly canCrit?: boolean;
+  readonly condition?: string;
+  readonly stacks?: number;
+  readonly duration?: number;
+  readonly amount?: number;
+}
+
+export interface Gw2Config extends SchedulerRecord {
+  readonly stats?: Gw2Stats;
+  readonly attributes?: Gw2Stats;
+  readonly boons?: Readonly<Record<string, boolean | number>>;
+  readonly startingWeaponSet?: number;
+  readonly primaryWeapon?: string;
+  readonly secondaryWeapon?: string;
+  readonly weaponSet2Primary?: string;
+  readonly weaponSet2Secondary?: string;
+  readonly sigilSets?: readonly Gw2SigilSet[];
+  readonly traitIds?: readonly (string | number)[];
+  readonly selectedTraitIds?: readonly (string | number)[];
+  readonly selectedTraits?: readonly (string | number)[];
+  readonly relic?: string;
+  readonly food?: string;
+  readonly targetHP?: number;
+  readonly randomness?: SimulationRandomnessConfig;
+  readonly attributeProvenance?: Partial<Gw2AttributeProvenance>;
+  readonly alacrityRechargeRate?: number;
+  readonly target?: Gw2TargetConfig;
+  readonly modifiers?: {
+    readonly strike?: number;
+    readonly condition?: number;
+  };
+}
+
+export interface Gw2TargetConfig extends SchedulerRecord {
+  readonly vulnerability?: number | boolean;
+  readonly slowed?: number | boolean;
+  readonly conditions?: Readonly<Record<string, number | boolean>>;
+  readonly health?: number;
+  readonly armor?: number;
+  readonly moving?: boolean;
+  readonly confusionActivationsPerSecond?: number;
+  readonly disabled?: boolean;
+  readonly defianceBroken?: boolean;
+}
+
+export interface Gw2RuntimeConditionStack extends SchedulerRecord {
+  readonly appliedAt?: number;
+  readonly expiresAt?: number;
+  readonly removedAt?: number;
+  readonly weight?: number;
+  readonly stacks?: number;
+}
+
+export interface Gw2RuntimeConditionEntry extends SchedulerRecord {
+  readonly stacks: Gw2RuntimeConditionStack[];
+}
+
+export interface Gw2RuntimeStateLike extends SchedulerRecord {
+  readonly conditionState?: Map<string, Gw2RuntimeConditionEntry>;
+}
+
+export interface Gw2TimedBuffApplication {
+  readonly at: number;
+  readonly expiresAt: number;
+  readonly stacks: number;
+}
+
+export interface Gw2RelicState extends SchedulerRecord {
+  readyAt?: number;
+  buffUntil?: number;
+  stacks?: number;
+  expiresAt?: number;
+}
+
+export interface Gw2RelicContext extends SchedulerRecord {
+  readonly config: Gw2Config;
+  readonly totals: { strike: number; condition: number };
+  readonly resolved: SchedulerRecord[];
+  readonly queue: Gw2EventQueue;
+  readonly combatStartTime?: number | null;
+  readonly relic?: Gw2RelicRuntime;
+  recordProc(
+    kind: string,
+    name: string,
+    at: number,
+    sourceSkill?: string,
+    detail?: string,
+    icon?: string,
+    cooldownReduction?: number | null,
+  ): unknown;
+  addBreakdown(
+    name: string,
+    amount: number,
+    kind: string,
+    hits?: unknown,
+  ): unknown;
+}
+
+export interface Gw2EventDraft extends SchedulerRecord {
+  readonly type: string;
+  readonly at: number;
+  readonly source: string;
+  readonly sourceId?: import("../engine/types.js").SkillId;
+  readonly actorType?: SimulationActorType;
+  readonly name?: string;
+  readonly skillName?: string;
+  readonly parentSkillName?: string;
+  readonly skillId?: import("../engine/types.js").SkillId | null;
+  readonly icon?: string;
+  readonly kind?: string;
+  readonly duration?: number;
+  readonly stacks?: number;
+  readonly condition?: string;
+  readonly fixedDuration?: boolean;
+}
+
+export interface Gw2SchedulerEventDraft extends SchedulerRecord {
+  readonly type: string;
+  readonly at: number;
+  readonly source?: string;
+  readonly sourceId?: import("../engine/types.js").SkillId;
+  readonly actorType?: SimulationActorType;
+  readonly name?: string;
+  readonly skillName?: string;
+  readonly skillId?: import("../engine/types.js").SkillId | null;
+}
+
+export type Gw2ApplyCondition = (
+  context: Gw2RelicContext,
+  event: Gw2EventDraft,
+) => unknown;
+
+export interface Gw2ConditionHelpers {
+  activeConditionStackCount(
+    context: Gw2RelicContext,
+    condition: string,
+    at: number,
+  ): number;
+  applyCondition: Gw2ApplyCondition;
+}
+
+export interface Gw2RelicRule {
+  readonly createState?: () => Gw2RelicState;
+  readonly control?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+    helpers: Gw2ConditionHelpers,
+  ) => unknown;
+  readonly timeline?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    events: readonly SimulationEvent[],
+    rotationEndTime: number,
+  ) => unknown;
+  readonly boon?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+  ) => unknown;
+  readonly blastCombo?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+  ) => unknown;
+  readonly strikeMultiplier?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+  ) => number;
+  readonly afterHit?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+    skill: Skill | null | undefined,
+  ) => unknown;
+  readonly conditionDurationBonus?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    at: number,
+  ) => number;
+  readonly condition?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    application: SimulationEvent,
+    helpers: Gw2ConditionHelpers,
+  ) => unknown;
+  readonly damageResolved?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+  ) => unknown;
+  readonly peitha?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+    applyCondition: Gw2ApplyCondition,
+  ) => unknown;
+}
+
+export interface Gw2RelicRuntime {
+  readonly name: string;
+  readonly rules: Readonly<Gw2RelicRule>;
+  readonly state: Gw2RelicState;
+}
+
+export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
+  readonly boons?: Map<string, Gw2TimedBuffApplication[]>;
+  readonly activeWeaponSet?: number;
+  readonly sigil?: { readonly severanceUntil?: number };
+  readonly relic?: Gw2RelicRuntime;
+  readonly profession?: object | null;
+}
+
+export interface Gw2CriticalResult {
+  chance: number;
+  damage: number;
+  didCrit?: boolean | null;
+}
+
+export interface Gw2CombatQuery {
+  statsAt(
+    time: number,
+    event?: SimulationEvent | null,
+    runtime?: Gw2QueryRuntime | null,
+  ): Gw2ResolvedStats;
+  critical(
+    event: SimulationEvent,
+    time: number,
+    runtime?: Gw2QueryRuntime | null,
+  ): Gw2CriticalResult;
+  strikeMultiplier(
+    event: SimulationEvent,
+    time: number,
+    runtime?: Gw2QueryRuntime | null,
+  ): number;
+  conditionMultiplier(
+    name: string,
+    time: number,
+    event?: SimulationEvent | null,
+    runtime?: Gw2QueryRuntime | null,
+  ): number;
+  conditionDurationMultiplier(
+    name: string,
+    time: number,
+    stats?: Gw2ResolvedStats,
+    event?: SimulationEvent | null,
+    runtime?: Gw2QueryRuntime | null,
+  ): number;
+  conditionBaseDurationMultiplier(
+    name: string,
+    time: number,
+    event?: SimulationEvent | null,
+    runtime?: Gw2QueryRuntime | null,
+  ): number;
+  targetConditionStacks(
+    condition: string,
+    time: number,
+    runtime?: Gw2QueryRuntime | null,
+  ): number;
+  targetHasCondition(
+    condition: string,
+    time: number,
+    runtime?: Gw2QueryRuntime | null,
+  ): boolean;
+  readonly activeWeaponSetAt: Gw2TimelineIndex["activeWeaponSetAt"];
+  readonly activeSigilSetAt: Gw2TimelineIndex["activeSigilSetAt"];
+  readonly timedStacks: Gw2TimelineIndex["timedStacks"];
+  readonly timeline: Readonly<Gw2TimelineIndex>;
+}
+
+export interface Gw2TriggerMaterializer {
+  readonly state: SchedulerRecord;
+  initialize(context: SchedulerContext): void;
+  onEventScheduled(
+    context: SchedulerContext,
+    event: SimulationEvent,
+  ): void;
+  handleTask(
+    context: SchedulerContext,
+    task: ScheduledTask<SchedulerRecord>,
+  ): void;
+  critical(event: SimulationEvent): Gw2CriticalResult;
+  isCombatActive(): boolean;
+  combatBeganAt(): number | null;
+  requireCriticalFacts(): void;
+}
+
+export interface Gw2SchedulerPolicy extends SchedulerPolicy {
+  critical(
+    context: SchedulerContext,
+    event: SimulationEvent,
+  ): Gw2CriticalResult;
+  isCombatActive(): boolean;
+  combatBeganAt(): number | null;
+  requireCriticalFacts(): void;
+}
+
+export interface Gw2ResolvedStats extends SchedulerRecord {
+  readonly power: number;
+  readonly precision: number;
+  readonly toughness: number;
+  readonly vitality: number;
+  readonly ferocity: number;
+  readonly conditionDamage: number;
+  readonly expertise: number;
+  readonly concentration: number;
+  readonly healingPower: number;
+  readonly conditionDurationBonus: number;
+  readonly conditionDurationBonuses: Readonly<Record<string, number>>;
+}
+
+export interface Gw2TimelineIndex {
+  aristocracyStacksAt(time: number): number;
+  timedStacks(
+    kind: string,
+    time: number,
+    duration: number,
+    maximum: number,
+  ): number;
+  timedActive(kind: string, time: number): boolean;
+  mightStacksAt(time: number): number;
+  furyActiveAt(time: number): boolean;
+  vigorActiveAt(time: number): boolean;
+  vulnerabilityStacksAt(time: number): number;
+  activeWeaponSetAt(time: number): number;
+  activeSigilSetAt(time: number): Gw2SigilSet;
+  skillOnCooldownAt(
+    skillId: import("../engine/types.js").SkillId,
+    time: number,
+  ): boolean;
+}
+
+export interface Gw2WeaponMatcherContext extends SchedulerRecord {
+  readonly catalog?: CanonicalCatalog | null;
+  readonly config?: Gw2Config;
+  readonly state?: object;
+  readonly weaponData?: Readonly<
+    Record<string, { readonly wielding?: string }>
+  >;
+}
+
+export type Gw2WeaponSkillMatcher = (
+  skill: Skill,
+  weaponSet?: readonly (string | undefined)[],
+  context?: Gw2WeaponMatcherContext,
+) => boolean;
+
+export interface Gw2ConditionApplication extends SchedulerRecord {
+  readonly name: string;
+  readonly duration: number;
+  readonly stacks?: number;
+}
+
+export interface Gw2DamageGroup extends SchedulerRecord {
+  readonly coefficient?: number;
+  readonly hits?: number;
+  readonly source?: string;
+  readonly actorType?: SimulationActorType;
+  readonly weapon?: string;
+  readonly weaponStrength?: number;
+  readonly weaponStrengthProfileId?: string;
+}
+
+export interface Gw2EventExtra extends SchedulerRecord {
+  readonly name?: string;
+  readonly source?: string;
+  readonly sourceId?: import("../engine/types.js").SkillId;
+  readonly skillId?: import("../engine/types.js").SkillId | null;
+  readonly actorType?: SimulationActorType;
+}
+
+export interface Gw2SchedulerEventFactory {
+  addEvent(
+    event: Gw2SchedulerEventDraft,
+  ): SimulationEventInput | SimulationEvent | null;
+  addTraitProc(
+    name: string,
+    at: number,
+    sourceSkill?: string,
+    detail?: string,
+  ): SimulationEventInput | SimulationEvent | null;
+  addCondition(
+    skillName: string,
+    at: number,
+    condition: Gw2ConditionApplication,
+    source?: string,
+    label?: string,
+    extra?: Gw2EventExtra,
+  ): SimulationEventInput | SimulationEvent | null;
+  addDamage(
+    skill: Skill,
+    at: number,
+    group: Gw2DamageGroup,
+    extra?: Gw2EventExtra,
+  ): void;
+}
+
+export type Gw2ResolverEvent = SimulationEvent & {
+  readonly causalOrder?: number;
+  readonly __order?: number;
+  readonly name?: string;
+  readonly skillName?: string;
+  readonly parentSkillName?: string;
+  readonly skillId?: import("../engine/types.js").SkillId | null;
+  readonly icon?: string;
+  readonly kind?: string;
+  readonly duration?: number;
+  readonly stacks?: number;
+  readonly condition?: string;
+  readonly application?: Gw2ResolvedConditionApplication;
+  readonly fraction?: number;
+  readonly fixedDuration?: boolean;
+  readonly coefficient?: number;
+  readonly coefficientModifiers?: readonly {
+    readonly kind?: string;
+    readonly threshold?: number;
+    readonly multiplier?: number;
+  }[];
+  readonly flatDamage?: number;
+  readonly flatStrikeBase?: number;
+  readonly flatStrikePowerCoeff?: number;
+  readonly flatStrikeMultiplier?: number;
+  readonly flatStrikeHealthThreshold?: number;
+  readonly flatStrikeThresholdMultiplier?: number;
+  readonly summonDamagePerCoefficient?: number;
+  readonly summonBasePower?: number;
+  readonly independentSummonStrike?: boolean;
+  readonly summonInheritsAttributes?: boolean;
+  readonly summonUsesProfessionModifiers?: boolean;
+  readonly noCrit?: boolean;
+  readonly didCrit?: boolean;
+  readonly hits?: number;
+  readonly weaponSet?: number;
+  readonly procType?: string;
+  readonly sourceSkill?: string;
+  readonly detail?: string;
+  readonly cooldownReduction?: number;
+  readonly activationId?: string;
+  readonly weaponStrength?: number;
+  readonly weaponStrengthProfileId?: string;
+  readonly resolvedWeaponStrength?: number;
+  readonly weaponStrengthSampled?: boolean;
+};
+
+export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
+  readonly name: string;
+  readonly condition: string;
+  readonly stacks: number;
+  readonly effectiveDuration: number;
+  readonly activeDuration: number;
+  readonly expiresAt: number;
+  readonly naturalExpiresAt: number;
+  damage: number;
+  damagingStackSeconds: number;
+  readonly damageTicks: Array<{
+    at: number;
+    damage: number;
+    fraction: number;
+  }>;
+};
+
+export interface Gw2ResolverConditionStack
+  extends Gw2RuntimeConditionStack {
+  appliedAt: number;
+  expiresAt: number;
+  weight: number;
+  application: Gw2ResolvedConditionApplication;
+}
+
+export interface Gw2ResolverConditionState
+  extends Gw2RuntimeConditionEntry {
+  stacks: Gw2ResolverConditionStack[];
+}
+
+export interface Gw2DamageBreakdownEntry {
+  name: string;
+  sourceSkill: string;
+  parentSkill: string;
+  icon: string;
+  skillId?: import("../engine/types.js").SkillId | null;
+  sourceId?: import("../engine/types.js").SkillId;
+  actorType?: SimulationActorType;
+  source?: string;
+  damage: number;
+  strikeDamage: number;
+  conditionDamage: number;
+  hits: number;
+  casts?: number;
+}
+
+export interface Gw2ConditionBreakdownEntry {
+  name: string;
+  damage: number;
+  stackSeconds: number;
+}
+
+export interface Gw2ProcStep {
+  ri: number;
+  type: string;
+  skill: string;
+  sourceSkill: string;
+  detail: string;
+  icon: string;
+  start: number;
+  end: number;
+  cooldownReduction?: number;
+}
+
+export interface Gw2ResolverHelpers extends SchedulerRecord {
+  conditionName(value: unknown): string;
+  weaponStrength(event: Gw2ResolverEvent, config: Gw2Config): number;
+  readonly skillsById?: ReadonlyMap<
+    import("../engine/types.js").SkillId,
+    Skill
+  >;
+  readonly skillsByName?: ReadonlyMap<string, Skill>;
+}
+
+export type Gw2EventQueue =
+  | Gw2ResolverEvent[]
+  | StableEventQueue<Gw2ResolverEvent>;
+
+export interface Gw2ResolverRuntime extends SchedulerRecord {
+  config: Gw2Config;
+  traits: ReadonlySet<string | number>;
+  horizon: number;
+  query: Readonly<Gw2CombatQuery>;
+  helpers: Gw2ResolverHelpers;
+  queue: Gw2EventQueue;
+  warnings: string[];
+  eventFilterState: object;
+  breakdown: Map<string, Gw2DamageBreakdownEntry>;
+  conditions: Map<string, Gw2ConditionBreakdownEntry>;
+  conditionState: Map<string, Gw2ResolverConditionState>;
+  conditionApplications: Gw2ResolvedConditionApplication[];
+  resolved: Gw2ResolverEvent[];
+  procSteps: Gw2ProcStep[];
+  procKeys: Set<string>;
+  boons: Map<string, Gw2TimedBuffApplication[]>;
+  totals: { strike: number; condition: number };
+  firstHitTime: number | null;
+  lastHitTime: number | null;
+  deathTime: number | null;
+  combatStartTime?: number | null;
+  combatActive: boolean;
+  activeWeaponSet: number;
+  relic: Gw2RelicRuntime;
+  profession: object;
+  sigil: { severanceUntil: number };
+  food: { criticalProgress: number; readyAt: number };
+  random: Readonly<SimulationRandom>;
+  weaponStrengthRolls: Map<
+    string,
+    { profileId: string; value: number }
+  >;
+  weaponStrengthActivationOrder: number;
+  recordProc(
+    type: string,
+    name: string,
+    at: number,
+    sourceSkill?: string,
+    detail?: string,
+    icon?: string,
+    cooldownReduction?: number | null,
+  ): void;
+  addBreakdown(
+    name: string,
+    damage: number,
+    type: "strikeDamage" | "conditionDamage",
+    hits?: number,
+    source?: Gw2ResolverEvent | null,
+  ): void;
+  markDamageTime(at: number): void;
+}
+
+export interface Gw2HitResolutionContext {
+  readonly stats: Gw2ResolvedStats;
+  readonly critical: Gw2CriticalResult;
+  readonly criticalMultiplier: number;
+  readonly outgoingMultiplier: number;
+  readonly weaponStrength: Gw2ResolvedWeaponStrength | null;
+  readonly baseDamage: number;
+  readonly damage: number;
+}
+
+export interface Gw2HitResolution {
+  buildHitResolutionContext(
+    context: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+  ): Gw2HitResolutionContext;
+  applyResolvedHit(
+    context: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+    hit: Gw2HitResolutionContext,
+  ): Gw2ResolverEvent;
+}
+
+export interface Gw2ConditionTickResult {
+  readonly application: Gw2ResolvedConditionApplication;
+  readonly damage: number;
+  readonly fraction: number;
+  readonly perStack: number;
+  readonly stackSeconds: number;
+}
+
+export interface Gw2ConditionResolution {
+  activeConditionStackCount(
+    context: Gw2ResolverRuntime,
+    name: string,
+    at: number,
+  ): number;
+  applyCondition(
+    context: Gw2ResolverRuntime,
+    event: Gw2EventDraft,
+  ): Gw2ResolvedConditionApplication | null;
+  handleConditionTick(
+    context: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+  ): Gw2ConditionTickResult | null;
+}
+
+export type Gw2ResolverEventHandler = (
+  context: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
+) => unknown;
+
+export type Gw2ResolverEventHandlers = Readonly<
+  Record<string, Gw2ResolverEventHandler>
+>;
+
+export type Gw2ResolverHandlerRegistry = HandlerRegistry<
+  Gw2ResolverRuntime,
+  Gw2ResolverEvent
+>;
+
+export type Gw2ResolverReaction = (
+  context: Gw2ResolverRuntime,
+  event: Gw2ResolverEvent,
+  details?: SchedulerRecord,
+) => SchedulerRecord | void;
+
+export type Gw2ResolverReactions = Readonly<
+  Record<string, Gw2ResolverReaction>
+>;
+
+export interface Gw2ResolverResult extends SchedulerRecord {
+  readonly duration: number;
+  readonly dpsStartTime: number;
+  readonly dpsWindow: number;
+  readonly firstHitTime: number | null;
+  readonly lastHitTime: number | null;
+  readonly deathTime: number | null;
+  readonly totalDamage: number;
+  readonly dps: number;
+  readonly strikeDamage: number;
+  readonly conditionDamage: number;
+  readonly breakdown: Gw2DamageBreakdownEntry[];
+  readonly conditionBreakdown: Array<{
+    name: string;
+    damage: number;
+    dps: number;
+    averageStacks: number;
+  }>;
+  readonly events: readonly SimulationEvent[];
+  readonly resolvedEvents: Gw2ResolverEvent[];
+  readonly procSteps: Gw2ProcStep[];
+  readonly warnings: string[];
+  readonly casts: Array<{ name: string; count: number }>;
+  readonly randomness: {
+    mode: SimulationRandom["mode"];
+    seed: number;
+  };
+  readonly profession: object;
+}
+
+export interface ResolveGw2TimelineOptions {
+  readonly stream: ScheduledEventStream;
+  readonly config: Gw2Config;
+  readonly traits: ReadonlySet<string | number>;
+  readonly query: Readonly<Gw2CombatQuery>;
+  readonly helpers: Gw2ResolverHelpers;
+  readonly createRuntimeState: (
+    options: CreateGw2ResolverRuntimeStateOptions,
+  ) => Gw2ResolverRuntime;
+  readonly commonHandlers: Gw2ResolverEventHandlers;
+  readonly professionHandlers?: Gw2ResolverEventHandlers;
+  readonly professionState?: object;
+  readonly eventFilterState?: object;
+  readonly shouldSkipEvent?: (
+    context: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+  ) => boolean;
+}
+
+export interface CreateGw2ResolverRuntimeStateOptions {
+  readonly config: Gw2Config;
+  readonly traits?: ReadonlySet<string | number>;
+  readonly horizon: number;
+  readonly query: Readonly<Gw2CombatQuery>;
+  readonly helpers: Gw2ResolverHelpers;
+  readonly queue: Gw2EventQueue;
+  readonly professionState?: object;
+  readonly warnings?: string[];
+  readonly eventFilterState?: object;
+}
+
+export interface Gw2ProfessionContract
+  extends Omit<
+    NormalizedProfessionContract,
+    | "eventHandlers"
+    | "eventReactions"
+    | "simulation"
+    | "projectEndState"
+  > {
+  readonly eventHandlers: Gw2ResolverEventHandlers;
+  readonly eventReactions: Gw2ResolverReactions;
+  readonly simulation:
+    | (SchedulerRecord & {
+        readonly refineSchedulerConfig?: (
+          config: Gw2Config,
+          result: Gw2SimulationResult,
+        ) => Gw2Config | null | undefined;
+      })
+    | null;
+  readonly projectEndState: (options: {
+    readonly config: Gw2Config;
+    readonly schedulerContext: SchedulerContext;
+    readonly schedulerState: SchedulerState;
+    readonly resolverState: object;
+  }) => unknown;
+}
+
+export interface Gw2SimulationEndState {
+  readonly time: number;
+  readonly cooldowns: Readonly<
+    Record<string, { readyAt: number; remaining: number }>
+  >;
+  readonly ammo: Readonly<Record<string, unknown>>;
+  readonly activeWeaponSet: number;
+  readonly profession: unknown;
+}
+
+export interface Gw2SimulationResult extends Gw2ResolverResult {
+  readonly steps: readonly SchedulerStep[];
+  readonly endState: Gw2SimulationEndState;
+  readonly schedulerState: SchedulerState;
+  readonly snapshot: unknown;
+  readonly warnings: string[];
+}
+
+export interface Gw2DeclarativeSimulationOptions {
+  readonly profession: Gw2ProfessionContract;
+  readonly rotation: readonly unknown[];
+  readonly config?: Gw2Config;
+}
+
+export type Gw2NumericAttributes = Record<string, number>;
+
+export interface Gw2AttributeBreakdown {
+  final: number;
+  base: number;
+  gear: number;
+  runes: number;
+  food: number;
+  utility: number;
+  jbc: number;
+  traits: number;
+  sigils: number;
+  infusions: number;
+}
+
+export type Gw2AttributeMap = Record<string, Gw2AttributeBreakdown>;
+
+export interface Gw2Build extends SchedulerRecord {
+  gear?: Record<string, string>;
+  weapons?: string[];
+  alternateWeapons?: string[];
+  rune?: string;
+  weaponSigils?: string[][];
+  relic?: string;
+  food?: string;
+  utility?: string;
+  jadeBotCore?: boolean;
+  specializations?: unknown[];
+  infusions?: Array<{ stat?: string; count?: number }>;
+}
+
+export interface Gw2BuildSpecialization {
+  name: string;
+  traits: string;
+}
+
+export interface Gw2BuildInfusion {
+  stat: string;
+  count: number;
+}
+
+export interface Gw2CanonicalBuild extends SchedulerRecord {
+  schemaVersion: number;
+  profession: string;
+  gear: Record<string, string>;
+  weapons: string[];
+  alternateWeapons: string[];
+  rune: string;
+  weaponSigils: string[][];
+  relic: string;
+  food: string;
+  utility: string;
+  jadeBotCore: boolean;
+  specializations: Gw2BuildSpecialization[];
+  selectedSkills: Record<string, string>;
+  assumptions: SchedulerRecord;
+  infusions: Gw2BuildInfusion[];
+  startingWeaponSet: number;
+  targetHealth: number;
+  targetArmor: number;
+  rotation: import("../engine/types.js").RotationCommand[];
+  selectedSkillIds?: import("../engine/types.js").SkillId[];
+  sigils?: string[];
+}
+
+export interface Gw2BuildValidationResult {
+  readonly valid: boolean;
+  readonly errors: string[];
+}
+
+export interface Gw2BuildCodecContext<
+  TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild,
+> {
+  readonly saved: SchedulerRecord;
+  readonly defaults: TBuild;
+}
+
+export interface Gw2SlotLoadoutContext<
+  TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild,
+> {
+  readonly build: TBuild;
+  readonly specialization: string;
+  readonly catalog: CanonicalCatalog;
+}
+
+export interface Gw2SlotLoadout<
+  TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild,
+> extends SchedulerRecord {
+  normalizeBuild(
+    build: TBuild,
+    context: Gw2SlotLoadoutContext<TBuild>,
+  ): Partial<TBuild> & SchedulerRecord;
+  validateBuild(
+    build: TBuild,
+    context: Gw2SlotLoadoutContext<TBuild>,
+  ): readonly unknown[];
+}
+
+export interface Gw2BuildCodecOptions<
+  TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild,
+> {
+  readonly professionId: string;
+  readonly schemaVersion: number;
+  readonly catalog: CanonicalCatalog;
+  readonly createDefaults: () => TBuild;
+  readonly migrations?: Readonly<
+    Record<number, (saved: SchedulerRecord) => SchedulerRecord>
+  >;
+  readonly normalizeExtra?: (
+    build: TBuild,
+    context: Gw2BuildCodecContext<TBuild>,
+  ) => TBuild;
+  readonly validateExtra?: (
+    build: TBuild,
+  ) =>
+    | unknown[]
+    | { readonly errors?: readonly unknown[] }
+    | null
+    | undefined;
+  readonly legacyGearAliases?: Readonly<Record<string, string>>;
+  readonly slotLoadout?: Gw2SlotLoadout<TBuild> | null;
+}
+
+export interface Gw2ApplicationBuild extends SchedulerRecord {
+  schemaVersion: number;
+  profession: string;
+  gear: Record<string, string>;
+  weapons: string[];
+  alternateWeapons: string[];
+  rune: string;
+  weaponSigils: string[][];
+  relic: string;
+  food: string;
+  utility: string;
+  jadeBotCore: boolean;
+  specializations: Gw2BuildSpecialization[];
+  selectedSkills: Record<string, string>;
+  assumptions: SchedulerRecord;
+  infusions: Gw2BuildInfusion[];
+  startingWeaponSet: number;
+  targetHealth: number;
+  targetArmor: number;
+  rotation: import("../engine/types.js").LegacyRotationItem[];
+}
+
+export interface Gw2BuildCodec<
+  TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild,
+> {
+  migrateBuild(candidate: unknown): TBuild;
+  validateBuild(build: unknown): Gw2BuildValidationResult;
+  toApplicationBuild(candidate: unknown): Gw2ApplicationBuild;
+}
+
+export interface Gw2BuildValidationOptions {
+  readonly professionId: string;
+  readonly schemaVersion: number;
+  readonly catalog: CanonicalCatalog;
+  readonly slotLoadout?: Gw2SlotLoadout | null;
+}
+
+export type Gw2TraitCoverageStatus =
+  | "implemented"
+  | "out-of-model"
+  | "pending";
+
+export interface Gw2TraitCoverageEffectInput extends SchedulerRecord {
+  readonly description?: unknown;
+  readonly status?: unknown;
+  readonly reason?: unknown;
+}
+
+export interface Gw2TraitCoverageEntryInput extends SchedulerRecord {
+  readonly traitId?: unknown;
+  readonly status?: unknown;
+  readonly effects?: unknown;
+  readonly tests?: unknown;
+  readonly reason?: unknown;
+}
+
+export interface Gw2TraitCoverageEffect {
+  readonly description: string;
+  readonly status: Gw2TraitCoverageStatus;
+  readonly reason: string | null;
+}
+
+export interface Gw2TraitCoverageTestEvidence {
+  readonly file: string;
+  readonly name: string;
+}
+
+export interface Gw2TraitCoverageEntry {
+  readonly traitId: number;
+  readonly status: Gw2TraitCoverageStatus;
+  readonly effects: readonly Gw2TraitCoverageEffect[];
+  readonly tests: readonly Gw2TraitCoverageTestEvidence[];
+  readonly reason: string | null;
+}
+
+export interface Gw2TraitCoverageCatalog {
+  readonly traits?: readonly import("../engine/types.js").CatalogEntity[];
+}
+
+export interface Gw2AttributeCommonContext {
+  conversionPool: Gw2NumericAttributes;
+  conversionPoolNoFood: Gw2NumericAttributes;
+  runeDurations: Gw2NumericAttributes;
+  foodDurations: Gw2NumericAttributes;
+  sigilDurations: Gw2NumericAttributes;
+  sigilCriticalChance: number;
+}
+
+export interface Gw2CommonAttributeResult extends SchedulerRecord {
+  attributes: Gw2AttributeMap;
+  gear: Record<string, string>;
+  weapons: string[];
+  alternateWeapons: string[];
+  runes: string;
+  weaponSigils: string[][];
+  relic: string;
+  food: string;
+  utility: string;
+  jadeBotCore: boolean;
+  specializations: unknown[];
+  commonContext: Gw2AttributeCommonContext;
+}
+
+export interface Gw2FinalizedAttributeResult extends SchedulerRecord {
+  attributes: Gw2AttributeMap;
+  gear: Record<string, string>;
+  weapons: string[];
+  alternateWeapons: string[];
+  runes: string;
+  weaponSigils: string[][];
+  relic: string;
+  food: string;
+  utility: string;
+  jadeBotCore: boolean;
+  specializations: unknown[];
+  activeTraits: unknown;
+}
+
+export interface Gw2AttributeData {
+  BASE_STATS?: Readonly<Gw2NumericAttributes>;
+  FOOD_DATA?: Readonly<
+    Record<
+      string,
+      {
+        readonly isConverted?: boolean;
+        readonly stats?: Readonly<Gw2NumericAttributes>;
+        readonly durations?: Readonly<Gw2NumericAttributes>;
+      }
+    >
+  >;
+  GEAR_SLOTS?: readonly string[];
+  GEAR_STATS?: Readonly<
+    Record<
+      string,
+      Readonly<Record<string, Readonly<Gw2NumericAttributes>>>
+    >
+  >;
+  INFUSION_BONUS?: number;
+  JBC_BONUS?: Readonly<Gw2NumericAttributes>;
+  RUNE_DATA?: Readonly<
+    Record<
+      string,
+      {
+        readonly stats?: Readonly<Gw2NumericAttributes>;
+        readonly durations?: Readonly<Gw2NumericAttributes>;
+      }
+    >
+  >;
+  SIGIL_DATA?: Readonly<
+    Record<
+      string,
+      {
+        readonly criticalChance?: number;
+        readonly strikeDamageA?: number;
+        readonly conditionDamageA?: number;
+        readonly conditionDuration?: number;
+        readonly bleedingDuration?: number;
+        readonly burningDuration?: number;
+        readonly poisonDuration?: number;
+        readonly tormentDuration?: number;
+        readonly boonDuration?: number;
+      } & SchedulerRecord
+    >
+  >;
+  UTILITY_CONVERSION_RATES?: Readonly<Gw2NumericAttributes>;
+  UTILITY_DATA?: Readonly<
+    Record<
+      string,
+      readonly { readonly from: string; readonly to: string }[]
+    >
+  >;
+  WEAPON_DATA?: Readonly<Record<string, Gw2WeaponDataEntry>>;
+}
+
+export interface Gw2BuildAttributeRuleContext {
+  readonly build: Gw2Build;
+  readonly selectedSkills: readonly Skill[];
+  readonly weaponSet: number;
+  readonly disabledTrait: string | null;
+}
+
+export type Gw2ApplyBuildAttributeRules = (
+  common: Gw2CommonAttributeResult,
+  context: Gw2BuildAttributeRuleContext,
+) => Gw2FinalizedAttributeResult;
+
+export type Gw2CalculateAttributes = (
+  build: Gw2Build,
+  selectedSkills?: readonly Skill[],
+  weaponSet?: number,
+  disabledTrait?: string | null,
+) => Gw2FinalizedAttributeResult;
+
+export type Gw2ModifierTarget =
+  | "criticalChance"
+  | "criticalDamage"
+  | "strikeDamage"
+  | "conditionDamage"
+  | "conditionDuration";
+
+export type Gw2DamageModifierTarget =
+  | "strikeDamage"
+  | "conditionDamage";
+
+export type Gw2ModifierOperation =
+  | "add"
+  | "damage-additive"
+  | "multiply";
+
+export interface Gw2ModifierContext extends SchedulerRecord {
+  readonly config?: Gw2Config;
+  readonly time: number;
+  readonly event?: SimulationEvent | null;
+  readonly condition?: string | null;
+  readonly traits?: ReadonlySet<string | number>;
+  readonly query?: Readonly<Gw2CombatQuery>;
+  readonly timeline?: Readonly<Gw2TimelineIndex>;
+  readonly events?: readonly SimulationEvent[];
+  readonly runtime?: Gw2QueryRuntime | null;
+}
+
+export interface Gw2TraitContext extends SchedulerRecord {
+  readonly traits?: ReadonlySet<string | number>;
+  readonly config?: Gw2Config;
+}
+
+export type Gw2ModifierNumericResolver = (
+  context: Gw2ModifierContext,
+  target: Gw2ModifierTarget,
+) => number;
+
+export interface Gw2ModifierRule {
+  readonly id: string;
+  readonly target:
+    | Gw2ModifierTarget
+    | readonly Gw2ModifierTarget[];
+  readonly operation: Gw2ModifierOperation;
+  readonly amount?: number | Gw2ModifierNumericResolver;
+  readonly factor?: number | Gw2ModifierNumericResolver;
+  readonly when?: (context: Gw2ModifierContext) => boolean;
+  readonly order?: number;
+}
+
+export interface Gw2NormalizedModifierRule {
+  readonly id: string;
+  readonly targets: readonly Gw2ModifierTarget[];
+  readonly operation: Gw2ModifierOperation;
+  readonly amount?: number | Gw2ModifierNumericResolver;
+  readonly factor?: number | Gw2ModifierNumericResolver;
+  readonly when: ((context: Gw2ModifierContext) => boolean) | null;
+  readonly order: number;
+  readonly declarationIndex: number;
+}
+
+export type Gw2IncludeSigilPolicy =
+  | boolean
+  | ((context: Gw2ModifierContext) => boolean);
+
+export interface Gw2DamageBucketPolicy {
+  readonly includeSigil: Gw2IncludeSigilPolicy;
+}
+
+export type Gw2DamageBucketPolicies = Partial<
+  Record<
+    Gw2DamageModifierTarget,
+    { readonly includeSigil?: Gw2IncludeSigilPolicy }
+  >
+>;
+
+export type Gw2ModifierHook = (
+  context: Gw2ModifierContext,
+  initialValue: number,
+) => number;
+
+export interface Gw2ModifierHooks {
+  readonly modifyCriticalChance: Gw2ModifierHook;
+  readonly modifyCriticalDamage: Gw2ModifierHook;
+  readonly modifyStrikeDamage: Gw2ModifierHook;
+  readonly modifyConditionDamage: Gw2ModifierHook;
+  readonly modifyConditionDuration: Gw2ModifierHook;
+}
+
+export interface Gw2AttributeProvenance {
+  readonly professionStaticRulesApplied: boolean;
+  readonly calculatedWeaponSet: number;
+  readonly calculatedPrimaryWeapon: string;
+}

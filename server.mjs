@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
+const buildRoot = path.join(root, "dist");
 const port = Number(process.env.PORT || 4173);
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -18,13 +19,24 @@ createServer(async (request, response) => {
   try {
     const pathname = decodeURIComponent(new URL(request.url, "http://local").pathname);
     const relative = pathname === "/" ? "index.html" : pathname.slice(1);
-    const target = path.resolve(root, relative);
-    if (!target.startsWith(`${root}${path.sep}`)) {
+    const sourceTarget = path.resolve(root, relative);
+    if (!sourceTarget.startsWith(`${root}${path.sep}`)) {
       response.writeHead(403).end("Forbidden");
       return;
     }
-    const metadata = await stat(target);
-    const file = metadata.isDirectory() ? path.join(target, "index.html") : target;
+    const buildTarget = path.resolve(buildRoot, relative);
+    let file = sourceTarget;
+    try {
+      const buildMetadata = await stat(buildTarget);
+      file = buildMetadata.isDirectory()
+        ? path.join(buildTarget, "index.html")
+        : buildTarget;
+    } catch {
+      const sourceMetadata = await stat(sourceTarget);
+      file = sourceMetadata.isDirectory()
+        ? path.join(sourceTarget, "index.html")
+        : sourceTarget;
+    }
     const body = await readFile(file);
     response.writeHead(200, {
       "Content-Type": contentTypes[path.extname(file)] || "application/octet-stream",

@@ -2,14 +2,19 @@ import {
   emitEngineerBarSwap,
   emitEngineerState,
 } from "./shared.js";
+import { grantSolarFocusingLens } from "./photon-forge.js";
 
 function equipKit(context, skill) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
   const kit = skill.kitName || skill.name;
+  const leftPhotonForge = state.photonForgeActive;
   state.activeKit = kit;
   state.photonForgeActive = false;
-  state.forgeExitedAt = at;
+  if (leftPhotonForge) {
+    state.forgeExitedAt = at;
+    grantSolarFocusingLens(context, at, 2);
+  }
   emitEngineerBarSwap(context, skill, at);
   emitEngineerState(context, at, "equip-kit");
 }

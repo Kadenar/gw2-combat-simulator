@@ -1,0 +1,377 @@
+{
+  "metadata": {
+    "log": "power holo sw+p bench.zevtc",
+    "benchmarkDurationSeconds": 95.28,
+    "benchmarkDamage": 3966303,
+    "benchmarkDps": 41627.86523929471
+  },
+  "rotation": [
+    {
+      "name": "__wait",
+      "waitMs": 1000
+    },
+    "Laser Disk",
+    {
+      "name": "__combat_start",
+      "offset": 520
+    },
+    {
+      "name": "Particle Accelerator",
+      "offset": 600
+    },
+    {
+      "name": "Blade Burst",
+      "offset": 600
+    },
+    "Refraction Cutter",
+    {
+      "name": "Blowtorch",
+      "interruptMs": 360
+    },
+    "Engage Photon Forge",
+    {
+      "name": "__wait",
+      "waitMs": 200
+    },
+    "Corona Burst",
+    "Photon Wall",
+    "Grenade Barrage",
+    "Light Strike",
+    "Bright Slash",
+    "Flash Cutter",
+    "Launch Wall",
+    {
+      "name": "Light Strike",
+      "interruptMs": 80
+    },
+    "Prime Light Beam",
+    "Photon Blitz",
+    {
+      "name": "Particle Accelerator",
+      "offset": 720
+    },
+    "Corona Burst",
+    "Deactivate Photon Forge",
+
+    "Refraction Cutter",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Poison Grenade",
+      "interruptMs": 480
+    },
+    "Stow Grenade Kit",
+    "Glue Shot",
+    "Sun Edge",
+    "Sun Ripper",
+    "Gleam Saber",
+    "Refraction Cutter",
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 480
+    },
+    "Particle Accelerator",
+    "Stow Grenade Kit",
+    "Sun Edge",
+    "Sun Ripper",
+    "Gleam Saber",
+    "Sun Edge",
+    "Sun Ripper",
+    "Blade Burst",
+    "Gleam Saber",
+    "Refraction Cutter",
+    "Blowtorch",
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 560
+    },
+    "Stow Grenade Kit",
+    "Engage Photon Forge",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Corona Burst",
+    "Light Strike",
+    "Bright Slash",
+    "Flash Cutter",
+    {
+      "name": "Particle Accelerator",
+      "offset": 80
+    },
+    "Static Shock",
+    "Photon Blitz",
+    "Photon Wall",
+    "Grenade Barrage",
+    "Launch Wall",
+    "Corona Burst",
+    "Deactivate Photon Forge",
+
+    "Refraction Cutter",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Poison Grenade",
+      "interruptMs": 480
+    },
+    {
+      "name": "Particle Accelerator",
+      "offset": 440
+    },
+    "Stow Grenade Kit",
+    "Glue Shot",
+    "Laser Disk",
+    "Radiant Arc",
+    "Blowtorch",
+    "Refraction Cutter",
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 440
+    },
+    {
+      "name": "__wait",
+      "waitMs": 760
+    },
+    "Stow Grenade Kit",
+    "Sun Edge",
+    "Sun Ripper",
+    {
+      "name": "Blade Burst",
+      "offset": 320
+    },
+    "Gleam Saber",
+    "Sun Edge",
+    {
+      "name": "Particle Accelerator",
+      "offset": 360
+    },
+    "Sun Ripper",
+    "Gleam Saber",
+    "Refraction Cutter",
+    {
+      "name": "__wait",
+      "waitMs": 520
+    },
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 560
+    },
+    "Stow Grenade Kit",
+    "Engage Photon Forge",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Corona Burst",
+    "Light Strike",
+    "Bright Slash",
+    "Flash Cutter",
+    "Static Shock",
+    "Photon Blitz",
+    "Particle Accelerator",
+    "Light Strike",
+    "Bright Slash",
+    "Flash Cutter",
+    "Corona Burst",
+    "Deactivate Photon Forge",
+
+    "Refraction Cutter",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Poison Grenade",
+      "interruptMs": 560
+    },
+    "Stow Grenade Kit",
+    "Glue Shot",
+    "Photon Wall",
+    "Grenade Barrage",
+    "Launch Wall",
+    "Radiant Arc",
+    {
+      "name": "Particle Accelerator",
+      "offset": 520
+    },
+    "Refraction Cutter",
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 440
+    },
+    "Blade Burst",
+    "Stow Grenade Kit",
+    "Sun Edge",
+    "Sun Ripper",
+    "Gleam Saber",
+    "Sun Edge",
+    "Sun Ripper",
+    "Gleam Saber",
+    "Refraction Cutter",
+    "Blowtorch",
+    "Engage Photon Forge",
+    {
+      "name": "__wait",
+      "waitMs": 120
+    },
+    "Corona Burst",
+    "Light Strike",
+    "Bright Slash",
+    {
+      "name": "Particle Accelerator",
+      "offset": 520
+    },
+    "Flash Cutter",
+    "Laser Disk",
+    "Static Shock",
+    "Prime Light Beam",
+    "Photon Blitz",
+    "Corona Burst",
+    "Deactivate Photon Forge",
+
+    "Refraction Cutter",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    {
+      "name": "Freeze Grenade",
+      "interruptMs": 520
+    },
+    {
+      "name": "Particle Accelerator",
+      "offset": 520
+    },
+    {
+      "name": "Poison Grenade",
+      "interruptMs": 520
+    },
+    "Stow Grenade Kit",
+    "Glue Shot",
+    "Sun Edge",
+    "Sun Ripper",
+    "Gleam Saber",
+    "Refraction Cutter",
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 480
+    },
+    "Blade Burst",
+    "Stow Grenade Kit",
+    "Blowtorch",
+    "Photon Wall",
+    "Grenade Barrage",
+    "Launch Wall",
+    "Sun Edge",
+    {
+      "name": "Particle Accelerator",
+      "offset": 400
+    },
+    "Sun Ripper",
+    "Gleam Saber",
+    "Refraction Cutter",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Stow Grenade Kit",
+    "Engage Photon Forge",
+    "Corona Burst",
+    {
+      "name": "Light Strike",
+      "offset": 0,
+      "interruptMs": 80
+    },
+    "Light Strike",
+    "Bright Slash",
+    "Flash Cutter",
+    "Static Shock",
+    "Photon Blitz",
+    {
+      "name": "Particle Accelerator",
+      "offset": 960
+    },
+    "Light Strike",
+    "Bright Slash",
+    "Flash Cutter",
+    "Corona Burst",
+    "Deactivate Photon Forge",
+
+    "Refraction Cutter",
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Freeze Grenade",
+    {
+      "name": "Poison Grenade",
+      "interruptMs": 640
+    },
+    "Stow Grenade Kit",
+    "Glue Shot",
+    "Radiant Arc",
+    "Laser Disk",
+    {
+      "name": "Particle Accelerator",
+      "offset": 840
+    },
+    "Blowtorch",
+    {
+      "name": "Blade Burst",
+      "offset": 520
+    },
+    "Refraction Cutter",
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 520
+    },
+    "Stow Grenade Kit",
+    "Sun Edge",
+    "Sun Ripper",
+    "Gleam Saber",
+    "Sun Edge",
+    "Sun Ripper",
+    "Gleam Saber",
+    "Refraction Cutter",
+    "Grenade Kit",
+    {
+      "name": "Shrapnel Grenade",
+      "interruptMs": 440
+    },
+    {
+      "name": "Engage Photon Forge",
+      "offset": 360
+    },
+    {
+      "name": "__wait",
+      "waitMs": 280
+    },
+    "Corona Burst",
+    "Photon Wall",
+    "Grenade Barrage",
+    "Photon Blitz",
+    {
+      "name": "Particle Accelerator",
+      "offset": 800
+    },
+    "Launch Wall",
+    {
+      "name": "__wait",
+      "waitMs": 440
+    },
+    "Light Strike",
+    "Bright Slash",
+    "Flash Cutter",
+    "Static Shock",
+    "Corona Burst",
+    "Deactivate Photon Forge",
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    "Refraction Cutter",
+    "Blowtorch"
+  ]
+}

@@ -1,3 +1,6 @@
+import {
+  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+} from "../../app/simulation/randomness.js";
 import { revenantCatalog } from "./catalog.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -165,6 +168,7 @@ function revenantPaletteSkillAvailability(context = {}, skill) {
 }
 
 export const revenantUi = Object.freeze({
+  assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   targetHealthThresholds: (context = {}) => {
     const traits = getActiveTraits(context.build?.specializations || []);
     return traits.some((trait) => trait.name === "Swift Termination")
