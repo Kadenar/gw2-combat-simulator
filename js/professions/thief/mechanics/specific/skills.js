@@ -74,7 +74,20 @@ export function swapThiefWeapons(context, skill) {
   });
   state.kneeling = false;
   emitThiefState(context, at, "stand");
-  if (hasThiefTrait(context.config, TRAIT.QUICK_POCKETS)) {
+  const inCombat =
+    !context.hasExplicitCombatStart
+    || (
+      context.combatStartTime != null
+      && at + Number(context.epsilon || 0.0001)
+        >= Number(context.combatStartTime)
+    );
+  if (
+    inCombat
+    && hasThiefTrait(context.config, TRAIT.QUICK_POCKETS)
+    && at + Number(context.epsilon || 0.0001)
+      >= Number(state.quickPocketsReadyAt || 0)
+  ) {
+    state.quickPocketsReadyAt = at + 8;
     gainThiefInitiative(context, 3, at, "quick-pockets");
   }
 }

@@ -1,12 +1,7 @@
 import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
-import {
-  isInternalCooldownReady,
-} from "../../engine/internal-cooldown.js";
-import {
-  FOOD_DATA,
-  NOURISHMENT_ICON,
-} from "../gear-data.js";
+import { isInternalCooldownReady } from "../../engine/internal-cooldown.js";
+import { FOOD_DATA, NOURISHMENT_ICON } from "../gear-data.js";
 import {
   handleBlastComboRelic,
   handleBoonRelics,
@@ -40,9 +35,7 @@ interface CreateGw2ResolverEventHandlersOptions {
     readonly apply?: Gw2HitResolution["applyResolvedHit"];
   };
   readonly conditions?: {
-    readonly activeStackCount?: Gw2ConditionResolution[
-      "activeConditionStackCount"
-    ];
+    readonly activeStackCount?: Gw2ConditionResolution["activeConditionStackCount"];
     readonly apply?: Gw2ConditionResolution["applyCondition"];
     readonly tick?: Gw2ConditionResolution["handleConditionTick"];
   };
@@ -76,7 +69,7 @@ function handleBuff(
   // Keep expired applications for historical timestamp queries, but report
   // only stacks active immediately after this application.
   const activeStacks = applications
-    .filter(application => application.expiresAt > event.at)
+    .filter((application) => application.expiresAt > event.at)
     .reduce((sum, application) => sum + application.stacks, 0);
   if (kind === "sigil-severance") {
     ctx.sigil.severanceUntil = Math.max(
@@ -108,8 +101,8 @@ function triggeringSkill(
   // Scheduled events normally carry an id; name lookup supports older streams
   // and generated events whose source id is not a catalog skill id.
   return (
-    ctx.helpers.skillsById?.get(event.skillId ?? event.sourceId)
-    ?? ctx.helpers.skillsByName?.get(event.skillName || "")
+    ctx.helpers.skillsById?.get(event.skillId ?? event.sourceId) ??
+    ctx.helpers.skillsByName?.get(event.skillName || "")
   );
 }
 
@@ -121,10 +114,7 @@ function handleCriticalFood(
 ): void {
   if (!isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
   const proc = FOOD_DATA[String(ctx.config.food || "")]?.proc;
-  if (
-    proc?.type !== "critStrike"
-    || hitContext.critical.chance <= 0
-  ) return;
+  if (proc?.type !== "critStrike" || hitContext.critical.chance <= 0) return;
 
   // Expected-value procs use a deterministic accumulator. A 25% expected proc
   // contributes 0.25 per eligible hit and fires whenever progress reaches one.
@@ -153,10 +143,11 @@ function handleCriticalFood(
     noCrit: true,
     triggeredBy: event.skillName,
   } as Gw2ResolverEvent;
-  const professionUpdates = reactionFor(
-    eventReactions,
-    "food_proc",
-  )(ctx, foodEvent, { proc, triggeringEvent: event }) || {};
+  const professionUpdates =
+    reactionFor(eventReactions, "food_proc")(ctx, foodEvent, {
+      proc,
+      triggeringEvent: event,
+    }) || {};
   enqueueOrdered(ctx.queue, {
     ...foodEvent,
     ...professionUpdates,
@@ -179,8 +170,8 @@ function markCombatActive(
   // Player and summon output starts combat. Passive equipment/food effects do
   // not bootstrap combat by themselves.
   if (
-    actorType === GW2_EVENT_ACTOR_TYPES.PLAYER
-    || actorType === GW2_EVENT_ACTOR_TYPES.SUMMON
+    actorType === GW2_EVENT_ACTOR_TYPES.PLAYER ||
+    actorType === GW2_EVENT_ACTOR_TYPES.SUMMON
   ) {
     ctx.combatActive = true;
   }
@@ -197,36 +188,28 @@ export function createGw2ResolverEventHandlers({
   conditions,
   eventReactions = {},
 }: CreateGw2ResolverEventHandlersOptions = {}): Gw2ResolverEventHandlers {
-  const buildHitResolutionContext =
-    requireFunction(
+  const buildHitResolutionContext = requireFunction(
     hitResolution?.buildContext,
     "hitResolution.buildContext",
-    ) as Gw2HitResolution["buildHitResolutionContext"];
-  const applyResolvedHit =
-    requireFunction(
+  ) as Gw2HitResolution["buildHitResolutionContext"];
+  const applyResolvedHit = requireFunction(
     hitResolution?.apply,
     "hitResolution.apply",
-    ) as Gw2HitResolution["applyResolvedHit"];
-  const activeConditionStackCount =
-    requireFunction(
+  ) as Gw2HitResolution["applyResolvedHit"];
+  const activeConditionStackCount = requireFunction(
     conditions?.activeStackCount,
     "conditions.activeStackCount",
-    ) as Gw2ConditionResolution["activeConditionStackCount"];
-  const applyCondition =
-    requireFunction(
+  ) as Gw2ConditionResolution["activeConditionStackCount"];
+  const applyCondition = requireFunction(
     conditions?.apply,
     "conditions.apply",
-    ) as Gw2ConditionResolution["applyCondition"];
-  const handleConditionTick =
-    requireFunction(
+  ) as Gw2ConditionResolution["applyCondition"];
+  const handleConditionTick = requireFunction(
     conditions?.tick,
     "conditions.tick",
-    ) as Gw2ConditionResolution["handleConditionTick"];
+  ) as Gw2ConditionResolution["handleConditionTick"];
   const applyRelicCondition: Gw2ApplyCondition = (context, event) =>
-    applyCondition(
-      context as Gw2ResolverRuntime,
-      event,
-    );
+    applyCondition(context as Gw2ResolverRuntime, event);
 
   const handlers: Gw2ResolverEventHandlers = {
     // These event types are canonical timeline/reporting records with no shared

@@ -77,8 +77,7 @@ const OBSERVED_EVENT_TYPES = new Set([
   "sigil_swap",
 ]);
 
-const SIGIL_PROC_LOOKUP =
-  SIGIL_PROCS as Readonly<Record<string, Gw2SigilProc>>;
+const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<Record<string, Gw2SigilProc>>;
 
 function conditionName(value: unknown): string {
   return canonicalTargetConditionName(value);
@@ -270,13 +269,7 @@ export function createGw2TriggerMaterializer(
     const stats = query.statsAt(event.at, event, state);
     const durationMultiplier = event.fixedDuration
       ? 1
-      : query.conditionDurationMultiplier(
-          name,
-          event.at,
-          stats,
-          event,
-          state,
-        );
+      : query.conditionDurationMultiplier(name, event.at, stats, event, state);
     const baseDurationMultiplier = event.fixedDuration
       ? 1
       : (query.conditionBaseDurationMultiplier?.(
@@ -494,8 +487,8 @@ export function createGw2TriggerMaterializer(
       state.traits =
         traits || selectedGw2TraitValues(config, context.profession.catalog);
       state.state = context.state;
-      state.profession =
-        context.state.profession as MaterializerProfessionState;
+      state.profession = context.state
+        .profession as MaterializerProfessionState;
       state.activeWeaponSet = context.state.activeWeaponSet;
       state.query = createGw2CombatQuery({
         profession: context.profession,
@@ -534,10 +527,7 @@ export function createGw2TriggerMaterializer(
       });
     },
     handleTask(context, task: ScheduledTask<SchedulerRecord>) {
-      processEvent(
-        context,
-        task.payload?.event as SimulationEvent,
-      );
+      processEvent(context, task.payload?.event as SimulationEvent);
     },
     critical(event) {
       const query = state.query!;

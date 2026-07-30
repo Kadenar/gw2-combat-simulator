@@ -11,10 +11,7 @@ import {
   UTILITY_DATA,
   WEAPON_DATA,
 } from "./gear-data.js";
-import {
-  normalizeWeaponSigils,
-  weaponSigilsForSet,
-} from "./weapon-sigils.js";
+import { normalizeWeaponSigils, weaponSigilsForSet } from "./weapon-sigils.js";
 
 import type { Skill } from "../engine/types.js";
 import type {
@@ -158,9 +155,8 @@ export function calculateCommonAttributes(
   const sigilDurations: Gw2NumericAttributes = {};
   const infusions: Gw2NumericAttributes = {};
 
-  const selectedWeapons = weaponSet === 2
-    ? build.alternateWeapons
-    : build.weapons;
+  const selectedWeapons =
+    weaponSet === 2 ? build.alternateWeapons : build.weapons;
   const mainHand = selectedWeapons?.[0] || "";
   const isTwoHanded = weaponData[mainHand]?.wielding === "2h";
   for (const slot of gearSlots) {
@@ -184,16 +180,16 @@ export function calculateCommonAttributes(
   // food buffs are applied later and must not feed another conversion.
   for (const stat of PRIMARY_ATTRIBUTES) {
     conversionPool[stat] =
-      (baseStats[stat] || 0)
-      + (gear[stat] || 0)
-      + (runes[stat] || 0)
-      + (foodConverted[stat] || 0)
-      + (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
+      (baseStats[stat] || 0) +
+      (gear[stat] || 0) +
+      (runes[stat] || 0) +
+      (foodConverted[stat] || 0) +
+      (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
     conversionPoolNoFood[stat] =
-      (baseStats[stat] || 0)
-      + (gear[stat] || 0)
-      + (runes[stat] || 0)
-      + (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
+      (baseStats[stat] || 0) +
+      (gear[stat] || 0) +
+      (runes[stat] || 0) +
+      (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
   }
   for (const conversion of utilityData[build.utility || ""] || []) {
     const rate = (utilityRates[conversion.from] || 0) / 100;
@@ -216,7 +212,11 @@ export function calculateCommonAttributes(
     const sigil = sigilData[name];
     if (!sigil) continue;
     if (sigil.conditionDuration) {
-      addAttribute(sigilDurations, "Condition Duration", sigil.conditionDuration);
+      addAttribute(
+        sigilDurations,
+        "Condition Duration",
+        sigil.conditionDuration,
+      );
     }
     if (sigil.bleedingDuration) {
       addAttribute(sigilDurations, "Bleeding Duration", sigil.bleedingDuration);
@@ -237,7 +237,11 @@ export function calculateCommonAttributes(
   }
   for (const infusion of build.infusions || []) {
     if (infusion?.stat && Number(infusion.count) > 0) {
-      addAttribute(infusions, infusion.stat, Number(infusion.count) * infusionBonus);
+      addAttribute(
+        infusions,
+        infusion.stat,
+        Number(infusion.count) * infusionBonus,
+      );
     }
   }
 
@@ -256,8 +260,10 @@ export function calculateCommonAttributes(
       sigils: 0,
       infusions: infusions[stat] || 0,
     };
-    breakdown.final = Object.values(breakdown)
-      .reduce((sum, value) => sum + value, 0);
+    breakdown.final = Object.values(breakdown).reduce(
+      (sum, value) => sum + value,
+      0,
+    );
     attributes[stat] = breakdown;
   }
   const precision = attributes.Precision.final;
@@ -273,20 +279,20 @@ export function calculateCommonAttributes(
   );
   attributes["Critical Damage"] = derivedAttribute(150 + ferocity / 15);
   attributes["Boon Duration"] = derivedAttribute(
-    concentration / 15
-      + (runeDurations["Boon Duration"] || 0)
-      + (foodDurations["Boon Duration"] || 0)
-      + (sigilDurations["Boon Duration"] || 0),
+    concentration / 15 +
+      (runeDurations["Boon Duration"] || 0) +
+      (foodDurations["Boon Duration"] || 0) +
+      (sigilDurations["Boon Duration"] || 0),
     0,
     sigilDurations["Boon Duration"] || 0,
     runeDurations["Boon Duration"] || 0,
     foodDurations["Boon Duration"] || 0,
   );
   attributes["Condition Duration"] = derivedAttribute(
-    expertise / 15
-      + (runeDurations["Condition Duration"] || 0)
-      + (foodDurations["Condition Duration"] || 0)
-      + (sigilDurations["Condition Duration"] || 0),
+    expertise / 15 +
+      (runeDurations["Condition Duration"] || 0) +
+      (foodDurations["Condition Duration"] || 0) +
+      (sigilDurations["Condition Duration"] || 0),
     0,
     sigilDurations["Condition Duration"] || 0,
     runeDurations["Condition Duration"] || 0,
@@ -294,9 +300,9 @@ export function calculateCommonAttributes(
   );
   for (const key of SPECIFIC_DURATION_ATTRIBUTES) {
     const value =
-      (runeDurations[key] || 0)
-      + (foodDurations[key] || 0)
-      + (sigilDurations[key] || 0);
+      (runeDurations[key] || 0) +
+      (foodDurations[key] || 0) +
+      (sigilDurations[key] || 0);
     if (value) {
       attributes[key] = derivedAttribute(
         value,
@@ -353,12 +359,8 @@ export function finalizeBuildAttributes(
     attributes[name].final += amount;
   }
 
-  const {
-    runeDurations,
-    foodDurations,
-    sigilDurations,
-    sigilCriticalChance,
-  } = common.commonContext;
+  const { runeDurations, foodDurations, sigilDurations, sigilCriticalChance } =
+    common.commonContext;
   const precision = attributes.Precision.final;
   const ferocity = attributes.Ferocity.final;
   const concentration = attributes.Concentration.final;
@@ -366,30 +368,30 @@ export function finalizeBuildAttributes(
   // Trait stat changes can affect every derived percentage, so recompute them
   // from finalized primaries instead of incrementally patching prior results.
   attributes["Critical Chance"] = derivedAttribute(
-    (precision - 895) / 21
-      + Number(traitCriticalChance || 0)
-      + sigilCriticalChance,
+    (precision - 895) / 21 +
+      Number(traitCriticalChance || 0) +
+      sigilCriticalChance,
     Number(traitCriticalChance || 0),
     sigilCriticalChance,
   );
   attributes["Critical Damage"] = derivedAttribute(150 + ferocity / 15);
   attributes["Boon Duration"] = derivedAttribute(
-    concentration / 15
-      + (runeDurations["Boon Duration"] || 0)
-      + (traitDurations["Boon Duration"] || 0)
-      + (foodDurations["Boon Duration"] || 0)
-      + (sigilDurations["Boon Duration"] || 0),
+    concentration / 15 +
+      (runeDurations["Boon Duration"] || 0) +
+      (traitDurations["Boon Duration"] || 0) +
+      (foodDurations["Boon Duration"] || 0) +
+      (sigilDurations["Boon Duration"] || 0),
     traitDurations["Boon Duration"] || 0,
     sigilDurations["Boon Duration"] || 0,
     runeDurations["Boon Duration"] || 0,
     foodDurations["Boon Duration"] || 0,
   );
   attributes["Condition Duration"] = derivedAttribute(
-    expertise / 15
-      + (runeDurations["Condition Duration"] || 0)
-      + (traitDurations["Condition Duration"] || 0)
-      + (foodDurations["Condition Duration"] || 0)
-      + (sigilDurations["Condition Duration"] || 0),
+    expertise / 15 +
+      (runeDurations["Condition Duration"] || 0) +
+      (traitDurations["Condition Duration"] || 0) +
+      (foodDurations["Condition Duration"] || 0) +
+      (sigilDurations["Condition Duration"] || 0),
     traitDurations["Condition Duration"] || 0,
     sigilDurations["Condition Duration"] || 0,
     runeDurations["Condition Duration"] || 0,
@@ -397,10 +399,10 @@ export function finalizeBuildAttributes(
   );
   for (const key of CONDITION_DURATION_ATTRIBUTES) {
     const value =
-      (runeDurations[key] || 0)
-      + (traitDurations[key] || 0)
-      + (foodDurations[key] || 0)
-      + (sigilDurations[key] || 0);
+      (runeDurations[key] || 0) +
+      (traitDurations[key] || 0) +
+      (foodDurations[key] || 0) +
+      (sigilDurations[key] || 0);
     if (!value) {
       // Remove zero-valued provisional entries to keep the public result sparse.
       delete attributes[key];

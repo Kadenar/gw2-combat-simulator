@@ -880,7 +880,13 @@ export function createScheduler<
     // rechargeReadyAt is preferred to effectiveEnd because a concurrent cast
     // cannot reuse the same skill while its reservation still owns recharge.
     const result: AvailabilityResult[] = [];
-    if (readyAt > at + epsilon || (ammo && ammo.charges <= 0)) {
+    if (
+      (
+        readyAt > at + epsilon
+        && skill.usableWhileRecharging !== true
+      )
+      || (ammo && ammo.charges <= 0)
+    ) {
       result.push(
         unavailable(
           `${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`,

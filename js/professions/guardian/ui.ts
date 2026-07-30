@@ -1,10 +1,6 @@
-import {
-  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-} from "../../app/simulation/randomness.js";
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../app/simulation/randomness.js";
 import { guardianCatalog } from "./catalog.js";
-import {
-  GUARDIAN_VIRTUE_NAMES_BY_SPECIALIZATION,
-} from "./mechanics/specific/virtues.js";
+import { GUARDIAN_VIRTUE_NAMES_BY_SPECIALIZATION } from "./mechanics/specific/virtues.js";
 import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
@@ -34,34 +30,30 @@ function guardianProfessionSkillIds(
   context: GuardianUiContext = {},
 ): SkillId[] {
   const specialization =
-    context.specialization
-    || context.config?.specialization
-    || "Core";
+    context.specialization || context.config?.specialization || "Core";
   const names = [
     ...(GUARDIAN_VIRTUE_NAMES_BY_SPECIALIZATION[specialization] || []),
     ...(specialization === "Firebrand" ? ["Stow Tome"] : []),
-    ...(specialization === "Luminary"
-      ? ["Enter Radiant Forge"]
-      : []),
+    ...(specialization === "Luminary" ? ["Enter Radiant Forge"] : []),
   ];
-  const skillIds = names.flatMap(name => {
+  const skillIds = names.flatMap((name) => {
     const id = guardianCatalog.skillsByName.get(name)?.id;
     return id == null ? [] : [id];
   });
-  const activeFlips = context.state?.profession?.availableFlips
-    || context.professionState?.availableFlips
-    || {};
-  return skillIds.flatMap(id => {
+  const activeFlips =
+    context.state?.profession?.availableFlips ||
+    context.professionState?.availableFlips ||
+    {};
+  return skillIds.flatMap((id) => {
     const skill = guardianCatalog.skillsById.get(id);
     const flipId = skill?.flipSkillId;
-    const flip = flipId == null
-      ? undefined
-      : guardianCatalog.skillsById.get(flipId);
-    return (
-      flipId != null
-      && flip?.flipParentId === id
-      && Number(activeFlips[flipId] || 0) > 0
-    ) ? [id, flipId] : [id];
+    const flip =
+      flipId == null ? undefined : guardianCatalog.skillsById.get(flipId);
+    return flipId != null &&
+      flip?.flipParentId === id &&
+      Number(activeFlips[flipId] || 0) > 0
+      ? [id, flipId]
+      : [id];
   });
 }
 
@@ -74,11 +66,13 @@ function skillsByMode(
   value: unknown = true,
 ): SkillId[] {
   return guardianCatalog.skills
-    .filter(skill => skill[property] === value)
-    .sort((left, right) =>
-      String(left.slot).localeCompare(String(right.slot))
-      || left.name.localeCompare(right.name))
-    .map(skill => skill.id);
+    .filter((skill) => skill[property] === value)
+    .sort(
+      (left, right) =>
+        String(left.slot).localeCompare(String(right.slot)) ||
+        left.name.localeCompare(right.name),
+    )
+    .map((skill) => skill.id);
 }
 
 /**
@@ -88,9 +82,7 @@ function skillsByMode(
 function professionState(
   context: GuardianUiContext = {},
 ): Partial<GuardianState> {
-  return context.state?.profession
-    || context.professionState
-    || {};
+  return context.state?.profession || context.professionState || {};
 }
 
 /**
@@ -189,8 +181,7 @@ export function guardianEventLogRow(
   if (event.type === "guardian.virtue-activated") {
     return {
       ...base,
-      description:
-        `VIRTUE ACTIVATED ${event.skillName || event.virtue || "Unknown"}`,
+      description: `VIRTUE ACTIVATED ${event.skillName || event.virtue || "Unknown"}`,
     };
   }
   if (event.type === "guardian.virtues-refreshed") {
@@ -215,8 +206,8 @@ export function guardianEventLogRow(
     };
   }
   if (
-    event.type === "guardian.radiant-forge-entered"
-    || event.type === "guardian.radiant-forge-exited"
+    event.type === "guardian.radiant-forge-entered" ||
+    event.type === "guardian.radiant-forge-exited"
   ) {
     const entered = event.type.endsWith("-entered");
     return {
@@ -231,77 +222,72 @@ export function guardianEventLogRow(
 
 export const guardianUi: Partial<ProfessionUiContract> & SchedulerRecord =
   Object.freeze({
-  assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-  paletteGroups: (context: GuardianUiContext) => {
-    const specialization =
-      context.specialization
-      || context.config?.specialization
-      || "Core";
-    const groups: ProfessionPaletteGroup[] = [{
-      id: "profession",
-      label: "F",
-      skillIds: guardianProfessionSkillIds(context),
-      color: "#2f7eb8",
-      resourceAnchor: true,
-      stackId: specialization === "Luminary"
-        ? "luminary-profession"
-        : "",
-    }];
-    if (specialization === "Firebrand") {
-      groups.push(
+    assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+    paletteGroups: (context: GuardianUiContext) => {
+      const specialization =
+        context.specialization || context.config?.specialization || "Core";
+      const groups: ProfessionPaletteGroup[] = [
         {
-          id: "tome-justice",
-          label: "F1",
-          skillIds: skillsByMode("tome", "justice"),
-          color: "#d26b46",
+          id: "profession",
+          label: "F",
+          skillIds: guardianProfessionSkillIds(context),
+          color: "#2f7eb8",
+          resourceAnchor: true,
+          stackId: specialization === "Luminary" ? "luminary-profession" : "",
         },
+      ];
+      if (specialization === "Firebrand") {
+        groups.push(
+          {
+            id: "tome-justice",
+            label: "F1",
+            skillIds: skillsByMode("tome", "justice"),
+            color: "#d26b46",
+          },
+          {
+            id: "tome-resolve",
+            label: "F2",
+            skillIds: skillsByMode("tome", "resolve"),
+            color: "#5dad7d",
+          },
+          {
+            id: "tome-courage",
+            label: "F3",
+            skillIds: skillsByMode("tome", "courage"),
+            color: "#6d96ce",
+          },
+        );
+      }
+      if (specialization === "Luminary") {
+        groups.push({
+          id: "radiant-forge",
+          label: "RF",
+          skillIds: skillsByMode("radiantForgeSkill"),
+          color: "#d6b85c",
+          stackId: "luminary-profession",
+        });
+      }
+      return groups;
+    },
+    paletteSkillAvailability: guardianPaletteSkillAvailability,
+    eventLogRow: guardianEventLogRow,
+    resourceViews: (context: GuardianUiContext) => {
+      const specialization =
+        context.specialization || context.config?.specialization || "Core";
+      if (specialization !== "Firebrand") return [];
+      const state = context.state?.profession || context.professionState || {};
+      const maximum = Number(state.maximumTomePages || 5);
+      return [
         {
-          id: "tome-resolve",
-          label: "F2",
-          skillIds: skillsByMode("tome", "resolve"),
-          color: "#5dad7d",
+          id: "pages",
+          singular: "page",
+          plural: "pages",
+          maximum,
+          value: Number(state.tomePages ?? maximum),
+          canStart: false,
+          shortLabel: "Pgs",
+          statusLabel: "Current",
         },
-        {
-          id: "tome-courage",
-          label: "F3",
-          skillIds: skillsByMode("tome", "courage"),
-          color: "#6d96ce",
-        },
-      );
-    }
-    if (specialization === "Luminary") {
-      groups.push({
-        id: "radiant-forge",
-        label: "RF",
-        skillIds: skillsByMode("radiantForgeSkill"),
-        color: "#d6b85c",
-        stackId: "luminary-profession",
-      });
-    }
-    return groups;
-  },
-  paletteSkillAvailability: guardianPaletteSkillAvailability,
-  eventLogRow: guardianEventLogRow,
-  resourceViews: (context: GuardianUiContext) => {
-    const specialization =
-      context.specialization
-      || context.config?.specialization
-      || "Core";
-    if (specialization !== "Firebrand") return [];
-    const state =
-      context.state?.profession
-      || context.professionState
-      || {};
-    const maximum = Number(state.maximumTomePages || 5);
-    return [{
-      id: "pages",
-      singular: "page",
-      plural: "pages",
-      maximum,
-      value: Number(state.tomePages ?? maximum),
-      canStart: false,
-      shortLabel: "Pgs",
-      statusLabel: "Current",
-    }];
-  },
-});
+      ];
+    },
+  });

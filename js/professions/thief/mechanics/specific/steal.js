@@ -28,6 +28,23 @@ const DEADEYE_STOLEN_ID_BY_CHOICE = Object.freeze({
   "steal-mobility": ID.STEAL_MOBILITY,
 });
 
+function emitStealBoon(context, at, boon, duration, stacks = 1) {
+  context.emit({
+    type: "buff",
+    at,
+    source: "Trait",
+    sourceId: `thief.steal.${boon}`,
+    actorType: "player",
+    skillId: context.skill?.id,
+    skillName: context.skill?.name,
+    name: `Steal — ${boon}`,
+    kind: boon,
+    boon,
+    duration,
+    stacks,
+  });
+}
+
 function selectedStolenSkill(context) {
   const specialization = String(context.config.specialization || "Core");
   if (specialization === "Deadeye") {
@@ -45,14 +62,31 @@ function selectedStolenSkill(context) {
 
 export function emitStealTraitEffects(context) {
   const at = context.effectiveEnd;
+  const state = context.state.profession;
+  const potentPoison = hasThiefTrait(context.config, TRAIT.POTENT_POISON);
   if (hasThiefTrait(context.config, TRAIT.SERPENTS_TOUCH)) {
     emitThiefCondition(context, {
       at,
       condition: "Poisoned",
-      duration: 6,
-      stacks: 2,
+      duration: 10,
+      stacks: potentPoison ? 3 : 2,
       sourceId: TRAIT.SERPENTS_TOUCH,
       name: "Serpent's Touch — Poison",
+    });
+  }
+  if (hasThiefTrait(context.config, TRAIT.MUG)) {
+    context.emit({
+      type: "damage",
+      at,
+      source: "Trait",
+      sourceId: TRAIT.MUG,
+      actorType: "player",
+      skillId: context.skill?.id,
+      skillName: context.skill?.name,
+      name: "Mug",
+      coefficient: 1.5,
+      hits: 1,
+      canCrit: false,
     });
   }
   if (hasThiefTrait(context.config, TRAIT.EVEN_THE_ODDS)) {
@@ -60,7 +94,7 @@ export function emitStealTraitEffects(context) {
       at,
       condition: "Vulnerability",
       duration: 10,
-      stacks: 5,
+      stacks: 10,
       sourceId: TRAIT.EVEN_THE_ODDS,
       name: "Even the Odds — Vulnerability",
     });
@@ -69,11 +103,58 @@ export function emitStealTraitEffects(context) {
     emitThiefCondition(context, {
       at,
       condition: "Bleeding",
-      duration: 8,
+      duration: 10,
       stacks: 3,
       sourceId: TRAIT.DEADLY_AMBUSH,
       name: "Deadly Ambush — Bleeding",
     });
+  }
+  if (hasThiefTrait(context.config, TRAIT.THRILL_OF_THE_CRIME)) {
+    emitStealBoon(context, at, "Fury", 10);
+    emitStealBoon(context, at, "Might", 10, 5);
+    emitStealBoon(context, at, "Swiftness", 10);
+  }
+  if (hasThiefTrait(context.config, TRAIT.BOUNTIFUL_THEFT)) {
+    emitStealBoon(context, at, "Vigor", 10);
+    if (context.config?.target?.boonless !== false) {
+      emitStealBoon(context, at, "Might", 10, 5);
+    }
+  }
+  if (hasThiefTrait(context.config, TRAIT.SLEIGHT_OF_HAND)) {
+    context.emit({
+      type: "control",
+      at,
+      source: "Trait",
+      sourceId: TRAIT.SLEIGHT_OF_HAND,
+      actorType: "player",
+      skillId: context.skill?.id,
+      skillName: context.skill?.name,
+      name: "Sleight of Hand - Daze",
+      effect: "Daze",
+      duration: 1,
+    });
+  }
+  if (hasThiefTrait(context.config, TRAIT.HIDDEN_THIEF)) {
+    const readyAt = Number(state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] ?? 0);
+    if (at + 1e-9 >= readyAt) {
+      state.traitProcReadyAt[TRAIT.HIDDEN_THIEF] = at + 2;
+      emitThiefCondition(context, {
+        at,
+        condition: "Blindness",
+        duration: 3,
+        stacks: 1,
+        sourceId: TRAIT.HIDDEN_THIEF,
+        name: "Hidden Thief - Blindness",
+      });
+      emitThiefCondition(context, {
+        at,
+        condition: "Weakness",
+        duration: 3,
+        stacks: 1,
+        sourceId: TRAIT.HIDDEN_THIEF,
+        name: "Hidden Thief - Weakness",
+      });
+    }
   }
 }
 
@@ -110,7 +191,7 @@ export function completeSteal(context, skill) {
 
 export function completeSkrittSwipe(context) {
   const at = context.effectiveEnd;
-  pilferArtifacts(context, at);
+  pilferArtifacts(context, at, "pilfer", "swipe");
   if (hasThiefTrait(context.config, TRAIT.KLEPTOMANIAC)) {
     gainThiefInitiative(context, 2, at, "kleptomaniac");
   }

@@ -254,6 +254,12 @@ export interface Skill extends CatalogSkill {
   readonly rechargeOffsetMs?: number;
   readonly cooldown?: number;
   readonly recharge?: number;
+  /**
+   * Allows a profession mechanic to activate this skill while its ordinary
+   * recharge is still running. The profession remains responsible for
+   * resolving the alternate outcome and preserving the original recharge.
+   */
+  readonly usableWhileRecharging?: boolean;
   readonly ammo?: number;
   readonly ammoRecharge?: number;
   readonly defaultInterruptMs?: number;

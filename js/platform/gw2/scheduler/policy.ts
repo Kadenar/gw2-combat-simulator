@@ -72,9 +72,7 @@ function scaleCastBoundTiming(
           })),
         }
       : {}),
-    ...(effect.atMs == null
-      ? {}
-      : { atMs: Number(effect.atMs) * scale }),
+    ...(effect.atMs == null ? {} : { atMs: Number(effect.atMs) * scale }),
     ...(effect.intervalMs == null || effect.intervalTimingScale === "fixed"
       ? {}
       : { intervalMs: Number(effect.intervalMs) * scale }),
@@ -91,15 +89,9 @@ function configuredWeaponSet(
   weaponSet: number,
 ): [string | undefined, string | undefined] {
   if (weaponSet === 2) {
-    return [
-      config.weaponSet2Primary,
-      config.weaponSet2Secondary,
-    ];
+    return [config.weaponSet2Primary, config.weaponSet2Secondary];
   }
-  return [
-    config.primaryWeapon,
-    config.secondaryWeapon,
-  ];
+  return [config.primaryWeapon, config.secondaryWeapon];
 }
 
 export function isGw2WeaponSkillEquipped(
@@ -115,8 +107,8 @@ export function isGw2WeaponSkillEquipped(
   );
   // Empty weapon configuration is treated as an unrestricted sandbox build.
   return (
-    configured.every(value => !value)
-    || weaponSkillMatchesSet(matcher, skill, configured, {
+    configured.every((value) => !value) ||
+    weaponSkillMatchesSet(matcher, skill, configured, {
       catalog,
       config: context.config,
       state: context.state,
@@ -139,8 +131,8 @@ export function createGw2SchedulerPolicy(
   const triggeredActivationIds = new Map<string, string>();
   const policy: Gw2SchedulerPolicy = {
     taskHandlers: Object.freeze({
-      [GW2_MATERIALIZE_EVENT_TASK]:
-        (context, task) => materializer.handleTask(context, task),
+      [GW2_MATERIALIZE_EVENT_TASK]: (context, task) =>
+        materializer.handleTask(context, task),
     }),
 
     initialize(context) {
@@ -172,12 +164,10 @@ export function createGw2SchedulerPolicy(
       const triggeredEffect =
         coefficientBasedDamage &&
         String(event.activationId || "").startsWith("cast:") &&
-        (
-          event.actorType === "effect" ||
+        (event.actorType === "effect" ||
           /^(trait|sigil|relic|food|equipment)$/i.test(
             String(event.source || ""),
-          )
-        );
+          ));
       let activationId = event.activationId;
       if (triggeredEffect) {
         const key = [
@@ -193,9 +183,7 @@ export function createGw2SchedulerPolicy(
         }
       } else if (coefficientBasedDamage && !activationId) {
         activationId = context.createActivationId(
-          event.actorType === "summon"
-            ? "summon-attack"
-            : "effect",
+          event.actorType === "summon" ? "summon-attack" : "effect",
         );
       }
       return {
@@ -241,10 +229,10 @@ export function createGw2SchedulerPolicy(
       const weaponSet = _context.state?.activeWeaponSet === 2 ? 2 : 1;
       const sigils = config.sigilSets?.[weaponSet - 1] || {};
       const bonus =
-        Number(config.stats?.concentration || 0) / 1500
-        + Number(config.stats?.boonDurationBonus || 0) / 100
-        + Number(config.stats?.boonDurationBonuses?.[name] || 0) / 100
-        + Number(sigils.boonDurationBonus || 0) / 100;
+        Number(config.stats?.concentration || 0) / 1500 +
+        Number(config.stats?.boonDurationBonus || 0) / 100 +
+        Number(config.stats?.boonDurationBonuses?.[name] || 0) / 100 +
+        Number(sigils.boonDurationBonus || 0) / 100;
       // GW2 boon duration cannot be reduced below base here and caps at +100%.
       return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
     },
@@ -256,7 +244,7 @@ export function createGw2SchedulerPolicy(
       if (skill.quicknessCastTimeMs != null) {
         return Math.max(0, Number(skill.quicknessCastTimeMs)) / 1000;
       }
-      const quicknessMs = baseDuration * 1000 / QUICKNESS_ACTION_RATE;
+      const quicknessMs = (baseDuration * 1000) / QUICKNESS_ACTION_RATE;
       return quantizeUp(quicknessMs, ACTION_TICK_MS) / 1000;
     },
 

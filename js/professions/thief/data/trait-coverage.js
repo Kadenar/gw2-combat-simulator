@@ -47,12 +47,16 @@ const IMPLEMENTED = new Set([
   "Specter",
   "Amplified Siphoning",
   "Strength of Shadows",
+  "Card Swap",
+  "Repeat Ransacker",
   "Enterprising Aristocrat",
   "Trinket Collector",
   "Prolific Plunderer",
   "Scoundrel's Luck",
+  "Meticulous Custodian",
   "Exhilarating Ephemera",
   "Prodigious Pincher",
+  "Possessive Hoarder",
   "Combat High",
 ]);
 const reason =

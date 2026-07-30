@@ -1363,6 +1363,11 @@ export const RELIC_DATA = {
     cooldown: 10,
     icon: "https://render.guildwars2.com/file/594C437E9606A167F4F372BCEB0C2B7C7828037B/3122330.png",
   },
+  Blightbringer: {
+    trigger: "Apply poison with six distinct skill activations",
+    cooldown: 8,
+    icon: "https://render.guildwars2.com/file/286C60AC6FA239B0070293039091A44476A35E90/3375219.png",
+  },
   Bloodstone: {
     trigger:
       "Complete four blast combos (3.0 strike, 6 bleeding, +7% strike damage)",

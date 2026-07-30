@@ -39,6 +39,11 @@ import {
   THIEF_SKILL_MECHANICS,
 } from "../js/professions/thief/mechanics/skill-mechanics.js";
 import {
+  recalculate,
+  runSimulation,
+  thiefAppAdapter,
+} from "../js/professions/thief/app/app-definition.js";
+import {
   thiefProfession,
 } from "../js/professions/thief/definition.js";
 
@@ -153,10 +158,12 @@ test("Thief defaults migrate deterministic assumptions and validate bars", () =>
       targetDistance: 1200,
       artifactDrawSequence: "reverse",
       doubleEdgeOutcomeSequence: "success",
+      forgedSurferBombsHit: "2",
     },
   });
   assert.equal(migrated.assumptions.artifactDrawSequence, "reverse");
   assert.equal(migrated.assumptions.doubleEdgeOutcomeSequence, "success");
+  assert.equal(migrated.assumptions.forgedSurferBombsHit, "2");
   assert.equal(Object.hasOwn(migrated.assumptions, "markedTargetChoice"), false);
   assert.equal(Object.hasOwn(migrated.assumptions, "playerHealthPercent"), false);
   assert.equal(Object.hasOwn(migrated.assumptions, "targetDistance"), false);
@@ -190,6 +197,17 @@ test("Thief defaults migrate deterministic assumptions and validate bars", () =>
   }
   assert.equal(keysFor("Antiquary").has("artifactDrawSequence"), true);
   assert.equal(keysFor("Antiquary").has("doubleEdgeOutcomeSequence"), true);
+  assert.equal(keysFor("Antiquary").has("forgedSurferBombsHit"), true);
+  assert.deepEqual(
+    thiefProfession.ui.assumptionControls
+      .filter(control => [
+        "artifactDrawSequence",
+        "doubleEdgeOutcomeSequence",
+        "forgedSurferBombsHit",
+      ].includes(control.key))
+      .map(control => control.section),
+    ["Antiquary", "Antiquary", "Antiquary"],
+  );
   for (const specialization of [
     "Core",
     "Daredevil",
@@ -198,6 +216,7 @@ test("Thief defaults migrate deterministic assumptions and validate bars", () =>
   ]) {
     assert.equal(keysFor(specialization).has("artifactDrawSequence"), false);
     assert.equal(keysFor(specialization).has("doubleEdgeOutcomeSequence"), false);
+    assert.equal(keysFor(specialization).has("forgedSurferBombsHit"), false);
   }
   for (const specialization of [
     "Core",
@@ -701,6 +720,7 @@ test("Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic
   const artifact = simulate("Antiquary", [
     "Skritt Swipe",
     "Forged Surfer Dash",
+    { type: "wait", durationMs: 1200 },
   ], {
     primaryWeapon: "Axe",
     secondaryWeapon: "Dagger",
@@ -723,12 +743,15 @@ test("Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic
 
   const doubleEdge = simulate("Antiquary", [
     "Stone Summit Cannon",
-    { type: "wait", durationMs: 16000 },
     "Stone Summit Cannon",
   ], {
     primaryWeapon: "Axe",
     secondaryWeapon: "Dagger",
+    deterministicChoices: {
+      doubleEdgeOutcomeSequence: "backfire",
+    },
   });
+  assert.equal(doubleEdge.warnings.length, 0);
   assert.ok(doubleEdge.endState.profession.backfireState[76725]);
 
   const guild = simulate("Antiquary", [
@@ -825,6 +848,59 @@ test("Antiquary choice mode exposes every artifact from Swipe and Scuffle", () =
   );
 });
 
+test("Meticulous Custodian upgrades artifact packets and effect durations", () => {
+  const config = {
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Pistol",
+    deterministicChoices: {
+      artifactDrawSequence: "choose",
+      forgedSurferBombsHit: "1",
+    },
+  };
+  const artifact = (name, meticulous = false) => simulate(
+    "Antiquary",
+    ["Skritt Swipe", name, { type: "wait", durationMs: 6000 }],
+    {
+      ...config,
+      traitIds: meticulous ? [TRAIT.METICULOUS_CUSTODIAN] : [],
+    },
+  );
+  const damage = (result, match) =>
+    result.breakdown.find(entry =>
+      typeof match === "function" ? match(entry) : entry.name === match
+    )?.damage || 0;
+  const ratio = (name, rowName = name) => {
+    const base = artifact(name);
+    const meticulous = artifact(name, true);
+    return damage(meticulous, rowName) / damage(base, rowName);
+  };
+
+  assert.ok(Math.abs(
+    ratio("Metal Legion Guitar", entry =>
+      entry.sourceSkill === "Metal Legion Guitar"
+      && entry.name.endsWith("Packet 1")) - 1.5,
+  ) < 1e-9);
+  assert.ok(Math.abs(
+    ratio("Metal Legion Guitar", "Final Smash") - 1.2,
+  ) < 1e-9);
+  assert.ok(Math.abs(ratio("Mistburn Mortar") - 1.2) < 1e-9);
+  assert.ok(Math.abs(
+    ratio("Summon Kryptis Turret") - 3.84 / 2.8,
+  ) < 1e-9);
+  assert.ok(Math.abs(ratio("Chak Shield") - 1.2) < 1e-9);
+  assert.ok(Math.abs(ratio("Holo-Dancer Decoy") - 1.5) < 1e-9);
+
+  const mortar = artifact("Mistburn Mortar", true);
+  const turret = artifact("Summon Kryptis Turret", true);
+  const sunCrystal = artifact("Zephyrite Sun Crystal", true);
+  assert.equal(mortar.endState.profession.mistburnExpiresAt, 12.95);
+  assert.equal(turret.endState.profession.kryptisDamageUntil, 10.66);
+  assert.ok(
+    sunCrystal.conditionDamage
+    > artifact("Zephyrite Sun Crystal").conditionDamage * 1.8,
+  );
+});
+
 test("Antiquary skill bar previews wiki-categorized artifacts", () => {
   const groups = thiefProfession.ui.skillBarGroups({
     specialization: "Antiquary",
@@ -859,6 +935,65 @@ test("Antiquary skill bar previews wiki-categorized artifacts", () => {
     thiefProfession.ui.skillBarGroups({ specialization: "Specter" }),
     [],
   );
+});
+
+test("Power Antiquary benchmark preset matches the supplied EVTC", async () => {
+  const savedBuild = JSON.parse(await readFile(
+    new URL(
+      "../Builds/thief/b-power-antiquary-sword-pistol.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ));
+  const savedRotation = JSON.parse(await readFile(
+    new URL(
+      "../Rotations/thief/r-power-antiquary-sword-pistol-bench.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ));
+  const build = migrateThiefBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    adapter: thiefAppAdapter,
+    profession: thiefProfession,
+    skillById: thiefCatalog.skillsById,
+    skillByName: thiefCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const row = name => result.breakdown.find(entry => entry.name === name);
+  const cannonBackfire = result.breakdown.find(entry =>
+    entry.sourceSkill === "Stone Summit Cannon"
+    && entry.name.endsWith("Backfire"));
+  const relativeError = (actual, expected) =>
+    Math.abs(actual - expected) / expected;
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(build.assumptions.artifactDrawSequence, "choose");
+  assert.equal(build.assumptions.doubleEdgeOutcomeSequence, "backfire");
+  assert.equal(row("Stone Summit Cannon").hits, 18);
+  assert.equal(cannonBackfire.hits, 6);
+  assert.equal(row("Tactical Strike").hits, 9);
+  assert.equal(row("Summon Kryptis Turret").hits, 56);
+  assert.deepEqual(
+    result.steps
+      .filter(step => step.skill === "Canach-Coin Toss")
+      .map(step => step.start),
+    [4300, 18000, 35641, 37041, 67241, 68641, 79161],
+  );
+  assert.ok(relativeError(
+    result.totalDamage,
+    savedRotation.metadata.benchmarkDamage,
+  ) < 0.02);
+  assert.ok(relativeError(
+    result.dps,
+    savedRotation.metadata.benchmarkDps,
+  ) < 0.01);
 });
 
 test("Thief skill bar previews specialization-specific stolen skills", () => {

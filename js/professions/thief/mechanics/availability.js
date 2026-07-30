@@ -1,5 +1,8 @@
 import { THIEF_SKILL_IDS as ID } from "../data/ids.js";
 import { thiefEnduranceReadyAt } from "./specific/resources.js";
+import {
+  spearChainStageForSkill,
+} from "./specific/condition-antiquary.js";
 
 const PROFESSION_SKILL_BY_SPEC = Object.freeze({
   Core: ID.STEAL,
@@ -54,6 +57,34 @@ export function thiefCastAvailability(context, skill) {
       "use its opening dual-wield skill first.",
     );
   }
+  const spearStage = spearChainStageForSkill(skill.id);
+  if (
+    spearStage != null
+    && Number(state.spearChainStage || 0) !== spearStage
+  ) {
+    return deny(
+      skill,
+      "thief.spear-chain",
+      `requires spear chain stage ${spearStage + 1}.`,
+    );
+  }
+  if (skill.id === ID.THOUSAND_NEEDLES) {
+    if (!state.thousandNeedlesPrepared) {
+      return deny(
+        skill,
+        "thief.thousand-needles",
+        "prepare Thousand Needles first.",
+      );
+    }
+    if (Number(state.thousandNeedlesArmedAt || 0) > context.start) {
+      return deny(
+        skill,
+        "thief.thousand-needles-arming",
+        "the preparation is still arming.",
+        Number(state.thousandNeedlesArmedAt),
+      );
+    }
+  }
   if (
     skill.dualWieldOpener
     && Number(state.availableFlips[skill.flipSkillId] || 0) > context.start
@@ -82,10 +113,16 @@ export function thiefCastAvailability(context, skill) {
       state.artifactUsesRemaining <= 0
       || !state.artifactSlots.some(slot => slot.skillId === skill.id)
     ) {
+      const retryAt =
+        context.config.deterministicChoices?.artifactDrawSequence === "choose"
+        && Number(state.nextSkrittScufflePilferAt || 0) > context.start
+          ? Number(state.nextSkrittScufflePilferAt)
+          : null;
       return deny(
         skill,
         "thief.artifact",
         "this artifact is not in an available artifact slot.",
+        retryAt,
       );
     }
   }
@@ -142,8 +179,11 @@ export function thiefCastAvailability(context, skill) {
   const stealthed =
     state.stealthUntil > context.start
     && state.revealedUntil <= context.start;
+  const artifactStealthAttack =
+    state.artifactStealthAttacksRemaining > 0
+    && state.artifactStealthAttackExpiresAt > context.start;
   if (skill.stealthAttack) {
-    if (!stealthed) {
+    if (!stealthed && !artifactStealthAttack) {
       return deny(skill, "thief.not-stealthed", "requires stealth.");
     }
     if (skill.requiredMainHand && skill.requiredMainHand !== mainHand) {
@@ -164,7 +204,8 @@ export function thiefCastAvailability(context, skill) {
       );
     }
   } else if (
-    stealthed
+    (stealthed || artifactStealthAttack)
+    && !skill.artifactKind
     && skill.type === "Weapon"
     && skill.slot === "Weapon_1"
   ) {

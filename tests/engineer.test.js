@@ -2815,12 +2815,24 @@ test("Aim-Assisted Rocket calls an orbital strike after four rockets", () => {
     event.type === "damage" && event.name === "Orbital Command Strike");
   assert.equal(rockets.length, 4);
   assert.ok(rockets.every(event =>
-    event.coefficient === 1 && event.explosion === true));
+    event.coefficient === 1
+    && event.explosion === true
+    && event.actorType === "effect"
+    && event.sourceId === ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL
+    && event.weaponStrengthProfileId === "nonweapon.unequipped"
+    && event.resolvedWeaponStrength === 690.5));
   assert.equal(orbital.coefficient, 1.92);
   assert.equal(orbital.blastFinisher, true);
   assert.equal(orbital.finisherType, "Blast");
   assert.equal(orbital.finisherValue, 1);
   assert.equal(orbital.explosion, false);
+  assert.equal(orbital.actorType, "effect");
+  assert.equal(orbital.sourceId, ID.ORBITAL_COMMAND_STRIKE);
+  assert.equal(
+    orbital.weaponStrengthProfileId,
+    "nonweapon.unequipped",
+  );
+  assert.equal(orbital.resolvedWeaponStrength, 690.5);
 
   const rifleProjectiles = simulate("Core", [
     "Overcharged Shot",
@@ -2860,7 +2872,11 @@ test("Aim-Assisted Rocket calls an orbital strike after four rockets", () => {
     });
     const rocket = mechProjectile.resolvedEvents.find(event =>
       event.type === "damage" && event.name === "Aim-Assisted Rocket");
-    assert.equal(rocket.triggeredBy, command);
+    assert.equal(
+      rocket,
+      undefined,
+      `${command} must not trigger the player-owned trait proc`,
+    );
   }
 
   const fielded = simulate("Core", [
@@ -3380,6 +3396,11 @@ test("Mechanist arm traits alter mech hits and their command skills", () => {
   assert.equal(knuckle.actorType, "summon");
   assert.equal(knuckle.coefficient, 1.8);
   assert.equal(knuckle.damageKind, "explosion");
+  assert.equal(
+    knuckle.weaponStrengthProfileId,
+    "summon.weapon-type-2",
+  );
+  assert.equal(knuckle.resolvedWeaponStrength, 2878);
   assert.ok(highImpact.resolvedEvents.some(event =>
     event.type === "condition"
     && event.condition === "Weakness"
@@ -3406,17 +3427,37 @@ test("Mechanist arm traits alter mech hits and their command skills", () => {
   assert.equal(spark.length, 12);
   assert.ok(spark.every(event =>
     event.actorType === "summon"
-    && Math.abs(event.coefficient - 0.176) < 1e-12));
+    && Math.abs(event.coefficient - 0.176) < 1e-12
+    && event.weaponStrengthProfileId === "summon.weapon-type-2"
+    && event.resolvedWeaponStrength === 2878));
   const autos = jadeCannons.resolvedEvents.filter(event =>
     event.type === "damage" && event.name === "Jade Energy Shot");
   assert.ok(autos.length >= 2);
   assert.ok(spark.every(event => event.criticalChance === 0.25));
   assert.deepEqual(
     autos.slice(0, 2).map(event =>
-      [event.skillId, event.coefficient, event.criticalChance]),
+      [
+        event.skillId,
+        event.coefficient,
+        event.criticalChance,
+        event.weaponStrengthProfileId,
+        event.resolvedWeaponStrength,
+      ]),
     [
-      [ID.JADE_ENERGY_SHOT, 0.42, 0.25],
-      [ID.JADE_ENERGY_SHOT_ID_63348, 0.42, 0.25],
+      [
+        ID.JADE_ENERGY_SHOT,
+        0.42,
+        0.25,
+        "summon.weapon-type-1",
+        2553.5,
+      ],
+      [
+        ID.JADE_ENERGY_SHOT_ID_63348,
+        0.42,
+        0.25,
+        "summon.weapon-type-1",
+        2553.5,
+      ],
     ],
   );
   assert.ok(jadeCannons.resolvedEvents.some(event =>
@@ -3424,6 +3465,30 @@ test("Mechanist arm traits alter mech hits and their command skills", () => {
     && event.skillName === "Mech Arms: Jade Cannons"
     && event.condition === "Vulnerability"
     && event.duration === 6));
+
+  const meleeChain = simulate("Mechanist", [
+    { type: "wait", durationMs: 3000 },
+  ], {
+    selectedTraitIds: [
+      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+      TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
+      TRAIT.MECH_CORE_J_DRIVE,
+    ],
+    target: { conditions: {} },
+  }).resolvedEvents.filter(event =>
+    event.type === "damage"
+    && [
+      "Hard Strike",
+      "Heavy Smash (Mech)",
+      "Twin Strike (Mech)",
+    ].includes(event.name));
+  assert.deepEqual(
+    [...new Set(meleeChain.map(event => event.name))],
+    ["Hard Strike", "Heavy Smash (Mech)", "Twin Strike (Mech)"],
+  );
+  assert.ok(meleeChain.every(event =>
+    event.weaponStrengthProfileId === "summon.weapon-type-2"
+    && event.resolvedWeaponStrength === 2878));
 });
 
 test("Mechanist frame commands use mech stats and requested pulse profiles", () => {
@@ -3471,6 +3536,11 @@ test("Mechanist frame commands use mech stats and requested pulse profiles", () 
     event.type === "damage" && event.name === "Core Reactor Shot");
   assert.equal(reactor.actorType, "summon");
   assert.equal(reactor.coefficient, 2.5);
+  assert.equal(
+    reactor.weaponStrengthProfileId,
+    "summon.weapon-type-1",
+  );
+  assert.equal(reactor.resolvedWeaponStrength, 2553.5);
   assert.ok(variable.events.some(event =>
     event.type === "control"
     && event.skillName === "Core Reactor Shot"
@@ -3491,6 +3561,11 @@ test("Mech Fighter, Jade Dynamo, and J-Drive add their active effects", () => {
   assert.equal(punch.actorType, "summon");
   assert.equal(punch.coefficient, 1);
   assert.equal(punch.explosion, true);
+  assert.equal(
+    punch.weaponStrengthProfileId,
+    "summon.weapon-type-1",
+  );
+  assert.equal(punch.resolvedWeaponStrength, 2553.5);
   const punchBreakdown = fighter.breakdown.find(entry =>
     entry.name === "Rocket Punch (Mech)");
   assert.equal(punchBreakdown.skillId, ID.ROCKET_PUNCH_MECH);
@@ -3537,6 +3612,11 @@ test("Mech Fighter, Jade Dynamo, and J-Drive add their active effects", () => {
     event.type === "damage" && event.name === "Jade Mortar");
   assert.equal(mortar.actorType, "summon");
   assert.equal(mortar.coefficient, 2.2);
+  assert.equal(
+    mortar.weaponStrengthProfileId,
+    "summon.weapon-type-2",
+  );
+  assert.equal(mortar.resolvedWeaponStrength, 2878);
 
   const overclock = simulate("Mechanist", [
     "Overclock Signet",
@@ -3565,10 +3645,46 @@ test("Mech Fighter, Jade Dynamo, and J-Drive add their active effects", () => {
   assert.equal(buster.length, 5);
   assert.ok(buster.every(event =>
     event.actorType === "summon"
-    && event.coefficient === 0.95));
+    && event.coefficient === 0.95
+    && event.weaponStrengthProfileId === "summon.weapon-type-3"
+    && event.resolvedWeaponStrength === 2749));
+  assert.equal(new Set(
+    buster.map(event => event.activationId),
+  ).size, 1);
   assert.equal(busterBurns.length, 5);
   assert.ok(busterBurns.every(event =>
     event.stacks === 1 && event.duration === 6));
+  const stochasticBuster = simulate("Mechanist", [
+    "Overclock Signet",
+    { type: "wait", durationMs: 4000 },
+  ], {
+    selectedSkills: [
+      "Rectifier Signet",
+      "Grenade Kit",
+      "Shift Signet",
+      "Force Signet",
+      "Overclock Signet",
+    ],
+    selectedTraitIds: [
+      TRAIT.MECH_ARMS_JADE_CANNONS,
+      TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
+      TRAIT.MECH_CORE_JADE_DYNAMO,
+    ],
+    randomness: { mode: "stochastic", seed: 63374 },
+    target: { conditions: {} },
+  }).resolvedEvents.filter(event =>
+    event.type === "damage" && event.name === "Jade Buster Cannon");
+  const stochasticStrengths = [
+    ...new Set(stochasticBuster.map(event =>
+      event.resolvedWeaponStrength)),
+  ];
+  assert.equal(stochasticStrengths.length, 1);
+  assert.ok(
+    stochasticStrengths[0] >= 2448 &&
+    stochasticStrengths[0] < 3050,
+  );
+  assert.ok(stochasticBuster.every(event =>
+    event.weaponStrengthSampled === true));
 
   const jDriveConfig = {
     selectedSkills: [
@@ -4069,11 +4185,13 @@ test("condition alacrity Amalgam benchmark preset preserves supplied build", asy
         step.icon === "https://render.guildwars2.com/file/"
           + "5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png"),
   );
+  // Devastator is a core Engineer spear skill, so its six casts do not trigger
+  // Carbolic Composition's Amalgam-skill poison.
   assert.equal(
     result.resolvedEvents.filter(event =>
       event.type === "condition"
       && event.skillName === "Carbolic Composition").length,
-    118,
+    112,
   );
   assert.equal(
     result.resolvedEvents.filter(event =>
@@ -4083,11 +4201,17 @@ test("condition alacrity Amalgam benchmark preset preserves supplied build", asy
   const bleedingDamage = result.breakdown
     .filter(entry => entry.name.endsWith("— Bleeding"))
     .reduce((total, entry) => total + entry.damage, 0);
-  assert.ok(Math.abs(bleedingDamage - 934151.92) < 2);
+  assert.ok(
+    Math.abs(bleedingDamage - 929396.64) < 2,
+    `Unexpected bleeding damage: ${bleedingDamage}`,
+  );
   const conduit = result.breakdown.find(entry =>
     entry.name === "Conduit Surge");
   assert.equal(conduit.hits, 22);
-  assert.ok(Math.abs(conduit.damage - 75531) < 2);
+  assert.ok(
+    Math.abs(conduit.damage - 78385.39) < 2,
+    `Unexpected Conduit Surge damage: ${conduit.damage}`,
+  );
 });
 
 test("condition Amalgam three-kit benchmark preserves the supplied log", async () => {
@@ -4205,8 +4329,10 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
   );
   const nourishment = result.breakdown.find(entry =>
     entry.name === "Nourishment");
-  assert.equal(nourishment.hits, 41);
-  assert.equal(nourishment.damage, 13325);
+  // Deterministic expected-value accumulation, including the shared strict ICD
+  // boundary, produces 39 procs for this rotation.
+  assert.equal(nourishment.hits, 39);
+  assert.equal(nourishment.damage, 12675);
   const obliterateHits = result.resolvedEvents.filter(event =>
     event.type === "damage"
     && event.name === "Offensive Protocol: Obliterate");

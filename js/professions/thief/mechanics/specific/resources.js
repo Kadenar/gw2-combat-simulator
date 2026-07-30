@@ -39,13 +39,41 @@ export function thiefEnduranceReadyAt(context, cost) {
 
 export function advanceThiefResources(context, target) {
   const state = context.state.profession;
-  if (state.leadAttacksUntil > 0 && target >= state.leadAttacksUntil) {
-    state.leadAttacksStacks = 0;
-    state.leadAttacksUntil = 0;
+  state.leadAttackExpirations = (
+    state.leadAttackExpirations || []
+  ).filter(expiresAt => Number(expiresAt) > target);
+  state.leadAttacksStacks = state.leadAttackExpirations.length;
+  state.leadAttacksUntil = state.leadAttackExpirations.length
+    ? Math.max(...state.leadAttackExpirations)
+    : 0;
+  if (Number(state.spiderVenomExpiresAt || 0) <= target) {
+    state.spiderVenomCharges = 0;
   }
   state.activeAntiquarySummons = state.activeAntiquarySummons.filter(
     summon => Number(summon.expiresAt || 0) > target,
   );
+  const combatHighRemaining = Math.max(
+    0,
+    Number(state.combatHighExpiresAt || 0) - target,
+  );
+  state.combatHighStacks = Math.min(
+    10,
+    Math.ceil(combatHighRemaining / 2),
+  );
+  if (
+    Number(state.artifactStealthAttackExpiresAt || 0) <= target
+  ) {
+    state.artifactStealthAttacksRemaining = 0;
+  }
+  if (Number(state.mistburnExpiresAt || 0) <= target) {
+    state.mistburnCharges = 0;
+  }
+  if (
+    Number(state.holoUtilityCooldownReductionExpiresAt || 0) <= target
+  ) {
+    state.holoUtilityCooldownReduction = 0;
+    state.holoUtilityCooldownReductionExpirations = [];
+  }
   if (
     state.activeThievesGuild
     && Number(state.activeThievesGuild.expiresAt || 0) <= target
@@ -115,12 +143,13 @@ export function spendThiefResources(context, skill) {
       );
     }
     state.initiativeSpentSincePilfer += cost;
-    if (hasThiefTrait(context.config, TRAIT.LEAD_ATTACKS)) {
-      state.leadAttacksStacks = Math.min(
-        15,
-        Number(state.leadAttacksStacks || 0) + cost,
+    if (Number(state.chakInitiativeRefundUntil || 0) > context.start) {
+      gainThiefInitiative(
+        context,
+        cost,
+        context.start,
+        "chak-shield-refund",
       );
-      state.leadAttacksUntil = context.start + 15;
     }
     if (
       context.config.specialization === "Daredevil"
@@ -133,9 +162,22 @@ export function spendThiefResources(context, skill) {
     if (
       context.config.specialization === "Antiquary"
       && hasThiefTrait(context.config, TRAIT.PRODIGIOUS_PINCHER)
+      && (
+        !context.hasExplicitCombatStart
+        || (
+          context.combatStartTime != null
+          && context.start + Number(context.epsilon || 0.0001)
+            >= Number(context.combatStartTime)
+        )
+      )
       && state.initiativeSpentSincePilfer >= 15
     ) {
-      pilferArtifacts(context, context.start, "prodigious-pincher");
+      pilferArtifacts(
+        context,
+        context.start,
+        "prodigious-pincher",
+        "initiative",
+      );
     }
   }
   if (
@@ -143,7 +185,7 @@ export function spendThiefResources(context, skill) {
       String(category).toLowerCase().includes("signet"))
     && hasThiefTrait(context.config, TRAIT.SIGNETS_OF_POWER)
   ) {
-    gainThiefInitiative(context, 2, context.start, "signets-of-power");
+    gainThiefInitiative(context, 3, context.start, "signets-of-power");
   }
   if (
     (skill.categories || []).some(category =>

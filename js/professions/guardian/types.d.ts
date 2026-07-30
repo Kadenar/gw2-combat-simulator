@@ -17,9 +17,7 @@ import type {
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
 } from "../../platform/gw2/types.js";
-import type {
-  ProfessionApplicationBuild,
-} from "../../app/profession/types.js";
+import type { ProfessionApplicationBuild } from "../../app/profession/types.js";
 
 export interface GuardianSpecializationSelection {
   readonly name?: string;
@@ -35,13 +33,14 @@ export interface GuardianCanonicalBuild extends Gw2CanonicalBuild {
   initialTomePages: number;
 }
 
-export interface GuardianApplicationBuild
-  extends ProfessionApplicationBuild {
+export interface GuardianApplicationBuild extends ProfessionApplicationBuild {
   initialTomePages: number;
 }
 
-export interface GuardianBuildAttributeRuleContext
-  extends Omit<Gw2BuildAttributeRuleContext, "build"> {
+export interface GuardianBuildAttributeRuleContext extends Omit<
+  Gw2BuildAttributeRuleContext,
+  "build"
+> {
   readonly build: GuardianBuild;
 }
 
@@ -50,10 +49,7 @@ export interface GuardianConfig extends Gw2Config {
   readonly maximumTomePages?: number;
   readonly initialTomePages?: number;
   readonly specialization?: string;
-  readonly specializations?: readonly (
-    | string
-    | { readonly name?: string }
-  )[];
+  readonly specializations?: readonly (string | { readonly name?: string })[];
 }
 
 export interface GuardianLightField {
@@ -104,14 +100,17 @@ export interface GuardianState extends SchedulerRecord {
   daybreakingSlashChainStep: number;
 }
 
-export type GuardianSchedulerContext =
-  SchedulerContext<GuardianState> & { readonly config: GuardianConfig };
+export type GuardianSchedulerContext = SchedulerContext<GuardianState> & {
+  readonly config: GuardianConfig;
+};
 
-export type GuardianCastContext =
-  CastLifecycleContext<GuardianState> & { readonly config: GuardianConfig };
+export type GuardianCastContext = CastLifecycleContext<GuardianState> & {
+  readonly config: GuardianConfig;
+};
 
-export type GuardianPrecastContext =
-  CastContext<GuardianState> & { readonly config: GuardianConfig };
+export type GuardianPrecastContext = CastContext<GuardianState> & {
+  readonly config: GuardianConfig;
+};
 
 export interface GuardianEndStateProjectionOptions {
   readonly schedulerState: SchedulerState<GuardianState>;

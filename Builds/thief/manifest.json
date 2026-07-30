@@ -1,0 +1,21 @@
+[
+  {
+    "section": "Antiquary",
+    "presets": [
+      {
+        "label": "Power (Sword / Pistol)",
+        "build": "Builds/thief/b-power-antiquary-sword-pistol.json",
+        "rotation": "Rotations/thief/r-power-antiquary-sword-pistol-bench.json",
+        "benchmarkDps": 43456,
+        "upToDate": true
+      },
+      {
+        "label": "Condition (Spear)",
+        "build": "Builds/thief/b-condi-antiquary-spear.json",
+        "rotation": "Rotations/thief/r-condi-antiquary-spear-bench.json",
+        "benchmarkDps": 40453,
+        "upToDate": true
+      }
+    ]
+  }
+]

@@ -248,19 +248,19 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
 test("Revenant mechanics modules preserve the declarative contract", async () => {
   const [ids, skillMechanics, handlerMechanics, catalog] = await Promise.all([
     readFile(new URL(
-      "../js/professions/revenant/data/ids.js",
+      "../js/professions/revenant/data/ids.ts",
       import.meta.url,
     ), "utf8"),
     readFile(new URL(
-      "../js/professions/revenant/mechanics/skill-mechanics.js",
+      "../js/professions/revenant/mechanics/skill-mechanics.ts",
       import.meta.url,
     ), "utf8"),
     readFile(new URL(
-      "../js/professions/revenant/mechanics/handler-mechanics.js",
+      "../js/professions/revenant/mechanics/handler-mechanics.ts",
       import.meta.url,
     ), "utf8"),
     readFile(new URL(
-      "../js/professions/revenant/catalog.js",
+      "../js/professions/revenant/catalog.ts",
       import.meta.url,
     ), "utf8"),
   ]);
