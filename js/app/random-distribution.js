@@ -1,50 +1,5 @@
 import { SIMULATION_RANDOMNESS_MODES } from "../platform/engine/simulation-random.js";
 
-/**
- * Aggregate DPS statistics for a set of stochastic simulation trials.
- *
- * Percentiles use linear interpolation between adjacent sorted samples.
- *
- * @typedef {Object} RandomDistributionSummary
- * @property {number} trials Number of finite DPS samples included.
- * @property {number} mean Arithmetic mean DPS.
- * @property {number} p01 First-percentile DPS.
- * @property {number} p10 Tenth-percentile DPS.
- * @property {number} p50 Median DPS.
- * @property {number} p90 Ninetieth-percentile DPS.
- * @property {number} p99 Ninety-ninth-percentile DPS.
- * @property {number[]} [samples] Raw DPS samples when explicitly requested.
- */
-
-/**
- * Progress reported while calculating a random distribution.
- *
- * @typedef {Object} RandomDistributionProgress
- * @property {number} completed Completed trial count.
- * @property {number} total Normalized total trial count.
- * @property {number} percent Completion percentage from 0 through 100.
- */
-
-/**
- * Inputs shared by synchronous and worker-backed distribution calculations.
- *
- * @typedef {Object} RandomDistributionRequest
- * @property {*[]} rotation Rotation passed to every simulation.
- * @property {Object} baseConfig Base simulation configuration.
- * @property {number} [trials] Requested number of trials.
- * @property {number} [seedStart] Seed assigned to the first trial.
- */
-
-/**
- * Optional distribution output and progress behavior.
- *
- * @typedef {Object} RandomDistributionOptions
- * @property {boolean} [includeSamples=false] Include raw DPS values for
- * cross-worker aggregation.
- * @property {(progress: RandomDistributionProgress) => void} [onProgress]
- * Receives an initial, periodic, and final progress update.
- */
-
 /** Default number of stochastic trials used by the application. */
 export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;
 
