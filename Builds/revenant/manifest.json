@@ -4,19 +4,19 @@
     "presets": [
       {
         "label": "Power (Greatsword / SwSw)",
-        "build": "Builds/b-power-renegade-greatsword.json"
+        "build": "Builds/revenant/b-power-renegade-greatsword.json"
       },
       {
         "label": "Power Renegade (Hammer / SwSw)",
-        "build": "Builds/b-power-renegade-hammer.json"
+        "build": "Builds/revenant/b-power-renegade-hammer.json"
       },
       {
         "label": "Condition (Shortbow / Mace-Axe)",
-        "build": "Builds/b-condi-renegade-shortbow-mace-axe.json"
+        "build": "Builds/revenant/b-condi-renegade-shortbow-mace-axe.json"
       },
       {
         "label": "Condition (Mace-Axe / Spear)",
-        "build": "Builds/b-condi-renegade-spear-mace-axe.json"
+        "build": "Builds/revenant/b-condi-renegade-spear-mace-axe.json"
       }
     ]
   },
@@ -25,7 +25,7 @@
     "presets": [
       {
         "label": "Condition Quickness (Shortbow / Mace-Axe)",
-        "build": "Builds/b-condi-quick-herald-shortbow-mace-axe.json",
+        "build": "Builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-benchmark.json"
       }
     ]
@@ -35,14 +35,14 @@
     "presets": [
       {
         "label": "Power (Greatsword / SwSw - Energy)",
-        "build": "Builds/b-power-vindicator-greatsword-energy.json",
+        "build": "Builds/revenant/b-power-vindicator-greatsword-energy.json",
         "rotation": "Rotations/revenant/r-power-vindicator-greatsword-benchmark.json",
         "benchmarkDps": 42762,
         "upToDate": true
       },
       {
         "label": "Power (Greatsword / SwSw - Hydro)",
-        "build": "Builds/b-power-vindicator-greatsword-hydro.json"
+        "build": "Builds/revenant/b-power-vindicator-greatsword-hydro.json"
       }
     ]
   },
@@ -51,14 +51,14 @@
     "presets": [
       {
         "label": "Power (Greatsword / SwSw)",
-        "build": "Builds/b-power-conduit.json",
+        "build": "Builds/revenant/b-power-conduit.json",
         "rotation": "Rotations/revenant/r-power-conduit-bench.json",
         "benchmarkDps": 41990,
         "upToDate": true
       },
       {
         "label": "Condition (Mistfire)",
-        "build": "Builds/b-condi-conduit-mistfire.json"
+        "build": "Builds/revenant/b-condi-conduit-mistfire.json"
       }
     ]
   }

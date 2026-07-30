@@ -1286,7 +1286,7 @@ test('Ineptitude intervals only interrupt-generated blinds on defiant targets', 
 
 test('condition Chronomancer preset retains multi-hit Ineptitude', () => {
     const saved = JSON.parse(readFileSync(
-        new URL('../Builds/b-condi-chronomancer.json', import.meta.url),
+        new URL('../Builds/mesmer/b-condi-chronomancer.json', import.meta.url),
         'utf8',
     ));
     const build = toApplicationBuild({

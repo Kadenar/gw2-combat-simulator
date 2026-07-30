@@ -401,6 +401,9 @@ Post-scheduler phase that converts timed events into damage numbers using calcul
 | `js/professions/*/data/` | Profession-owned catalogs, mechanics data, traits, and loaders |
 | `js/professions/*/mechanics/` | Profession rules and skill definitions (per profession) |
 | `js/professions/elementalist/{sim,optimizer}/` | Ported Elementalist simulator and gear optimizer |
-| `Builds/`, `Rotations/`, `csv input/` | Elementalist presets, rotation examples, and skill/hit CSVs |
+| `Builds/manifest.json`, `Builds/*.json` | Elementalist build presets |
+| `Builds/<profession>/` | Native profession builds and `manifest.json` |
+| `Rotations/`, `Rotations/<profession>/` | Elementalist and native profession rotation examples |
+| `csv input/` | Elementalist skill and hit CSVs |
 | `tests/browser/` | Browser interaction fixtures |
 | `tests/helpers/` | Shared testing utilities |

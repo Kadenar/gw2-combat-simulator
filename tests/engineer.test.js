@@ -1243,7 +1243,7 @@ test("trait-coverage manifest covers all Engineer traits", () => {
 test("condition alacrity Amalgam benchmark preset preserves supplied build", async () => {
   const raw = JSON.parse(await readFile(
     new URL(
-      "../Builds/b-condi-alac-amalgam-2kit.json",
+      "../Builds/engineer/b-condi-alac-amalgam-2kit.json",
       import.meta.url,
     ),
     "utf8",

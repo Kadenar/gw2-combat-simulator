@@ -3269,7 +3269,7 @@ test("Necromancer builds migrate and validate against canonical metadata", () =>
 
 test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   const savedBuild = JSON.parse(await readFile(
-    new URL("../Builds/b-power-ritualist.json", import.meta.url),
+    new URL("../Builds/necromancer/b-power-ritualist.json", import.meta.url),
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
@@ -3395,7 +3395,7 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
 
 test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", async () => {
   const savedBuild = JSON.parse(await readFile(
-    new URL("../Builds/b-condi-reaper.json", import.meta.url),
+    new URL("../Builds/necromancer/b-condi-reaper.json", import.meta.url),
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
@@ -3473,7 +3473,7 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
 
 test("Condition Scourge benchmark preset reconstructs hidden shade casts", async () => {
   const savedBuild = JSON.parse(await readFile(
-    new URL("../Builds/b-condi-scourge.json", import.meta.url),
+    new URL("../Builds/necromancer/b-condi-scourge.json", import.meta.url),
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(

@@ -13,10 +13,43 @@ import {
   runSimulation,
 } from "../js/professions/necromancer/app/app-definition.js";
 
+test("native build manifests and assets stay profession-scoped", async () => {
+  const professions = [
+    "engineer",
+    "guardian",
+    "mesmer",
+    "necromancer",
+    "revenant",
+  ];
+
+  for (const profession of professions) {
+    const manifest = JSON.parse(await readFile(
+      new URL(`../Builds/${profession}/manifest.json`, import.meta.url),
+      "utf8",
+    ));
+    const presets = manifest.flatMap((section) => section.presets);
+
+    assert.ok(presets.length > 0, profession);
+    for (const preset of presets) {
+      assert.match(
+        preset.build,
+        new RegExp(`^Builds/${profession}/[^/]+\\.json$`),
+      );
+      const build = JSON.parse(await readFile(
+        new URL(`../${preset.build}`, import.meta.url),
+        "utf8",
+      ));
+      if (build.profession) {
+        assert.equal(build.profession, profession);
+      }
+    }
+  }
+});
+
 test("Necromancer rotation presets stay separate from Elementalist presets", async () => {
   const [necromancerManifest, elementalistManifest] = await Promise.all([
     readFile(
-      new URL("../Builds/necromancer-manifest.json", import.meta.url),
+      new URL("../Builds/necromancer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
     readFile(
@@ -103,7 +136,7 @@ test("new Necromancer rotation presets execute without warnings", async () => {
   for (const [buildFile, rotationFile] of presets) {
     const [savedBuild, savedRotation] = await Promise.all([
       readFile(
-        new URL(`../Builds/${buildFile}`, import.meta.url),
+        new URL(`../Builds/necromancer/${buildFile}`, import.meta.url),
         "utf8",
       ).then(JSON.parse),
       readFile(
@@ -131,7 +164,7 @@ test("new Necromancer rotation presets execute without warnings", async () => {
 
 test("all Revenant default rotations are surfaced from its own directory", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    new URL("../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const presets = manifest.flatMap((section) =>
@@ -177,11 +210,11 @@ test("all Revenant default rotations are surfaced from its own directory", async
 test("Guardian and Mesmer rotations are paired with their build templates", async () => {
   const [guardianManifest, mesmerManifest] = await Promise.all([
     readFile(
-      new URL("../Builds/guardian-manifest.json", import.meta.url),
+      new URL("../Builds/guardian/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("../Builds/mesmer-manifest.json", import.meta.url),
+      new URL("../Builds/mesmer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);

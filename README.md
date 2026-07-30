@@ -70,8 +70,11 @@ gw2-combat-simulator/
       revenant/                Revenant legends, energy, and Conduit rules
       thief/                   Thief initiative, stealth, and artifact rules
     app/                       shared browser shell and composition
-  Builds/                      Elementalist build presets
-  Rotations/                   profession rotation examples
+  Builds/                      build presets and manifests
+    manifest.json              Elementalist preset manifest
+    <profession>/              native profession builds and manifest
+  Rotations/                   Elementalist rotation examples
+    <profession>/              native profession rotation examples
   csv input/                   Elementalist skill and hit data
   index.html                   Generic profession landing page
   mesmer.html                  Mesmer application
