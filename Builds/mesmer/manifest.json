@@ -4,12 +4,12 @@
     "presets": [
       {
         "label": "Power",
-        "build": "Builds/b-power-chronomancer.json",
+        "build": "Builds/mesmer/b-power-chronomancer.json",
         "rotation": "Rotations/mesmer/r-power-chronomancer-bench.json"
       },
       {
         "label": "Condition",
-        "build": "Builds/b-condi-chronomancer.json",
+        "build": "Builds/mesmer/b-condi-chronomancer.json",
         "rotation": "Rotations/mesmer/r-condi-chronomancer-bench.json"
       }
     ]
@@ -19,7 +19,7 @@
     "presets": [
       {
         "label": "Condition",
-        "build": "Builds/b-condi-virtuoso.json",
+        "build": "Builds/mesmer/b-condi-virtuoso.json",
         "rotation": "Rotations/mesmer/r-condi-virtuoso-bench.json"
       }
     ]

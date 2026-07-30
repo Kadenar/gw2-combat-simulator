@@ -103,7 +103,7 @@ function closeTemplateMenus(container) {
 export async function initBuildTemplates(app) {
   try {
     const manifest = await fetchJsonAsset(
-      `Builds/${app.adapter.id}-manifest.json`,
+      `Builds/${app.adapter.id}/manifest.json`,
       { optional: true },
     );
     if (!Array.isArray(manifest) || manifest.length === 0) return;

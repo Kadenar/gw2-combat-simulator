@@ -1342,7 +1342,7 @@ test("Corruption traits update attributes, duration, and chill triggers", () => 
 
 test("Notoriety applies its Might conversion at runtime without negative UI attributes", async () => {
   const saved = JSON.parse(await readFile(
-    new URL("../Builds/b-power-conduit.json", import.meta.url),
+    new URL("../Builds/revenant/b-power-conduit.json", import.meta.url),
     "utf8",
   ));
   const attributes = calculateRevenantAttributes(

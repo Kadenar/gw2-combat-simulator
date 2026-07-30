@@ -350,7 +350,7 @@ test("the generic landing page and profession simulators have separate entries",
 
 test("Mesmer default builds resolve without embedded rotations", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/mesmer-manifest.json", import.meta.url),
+    new URL("../Builds/mesmer/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("mesmer");
@@ -375,7 +375,7 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
 
 test("Guardian Power Luminary default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/guardian-manifest.json", import.meta.url),
+    new URL("../Builds/guardian/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("guardian");
@@ -399,7 +399,7 @@ test("Guardian Power Luminary default build resolves", async () => {
 
 test("Revenant Power Renegade Greatsword default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    new URL("../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -426,7 +426,7 @@ test("Revenant Power Renegade Greatsword default build resolves", async () => {
 
 test("Revenant Power Renegade Hammer default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    new URL("../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -440,7 +440,10 @@ test("Revenant Power Renegade Hammer default build resolves", async () => {
   ));
   const build = adapter.toApplicationBuild(saved);
 
-  assert.equal(preset.build, "Builds/b-power-renegade-hammer.json");
+  assert.equal(
+    preset.build,
+    "Builds/revenant/b-power-renegade-hammer.json",
+  );
   assert.equal(Object.hasOwn(saved, "rotation"), false);
   assert.equal(build.profession, "revenant");
   assert.equal(build.specializations[2].name, "Renegade");
@@ -456,7 +459,7 @@ test("Revenant Power Renegade Hammer default build resolves", async () => {
 
 test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    new URL("../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -485,11 +488,11 @@ test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
 
   assert.equal(
     energyPreset.build,
-    "Builds/b-power-vindicator-greatsword-energy.json",
+    "Builds/revenant/b-power-vindicator-greatsword-energy.json",
   );
   assert.equal(
     hydroPreset.build,
-    "Builds/b-power-vindicator-greatsword-hydro.json",
+    "Builds/revenant/b-power-vindicator-greatsword-hydro.json",
   );
   assert.equal(
     energyPreset.rotation,
@@ -549,7 +552,7 @@ test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
 
 test("Revenant Condition Renegade Shortbow default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    new URL("../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -565,7 +568,7 @@ test("Revenant Condition Renegade Shortbow default build resolves", async () => 
 
   assert.equal(
     preset.build,
-    "Builds/b-condi-renegade-shortbow-mace-axe.json",
+    "Builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
   );
   assert.equal(Object.hasOwn(saved, "rotation"), false);
   assert.equal(build.profession, "revenant");
@@ -586,7 +589,7 @@ test("Revenant Condition Renegade Shortbow default build resolves", async () => 
 
 test("Revenant Condition Renegade Spear default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    new URL("../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -602,7 +605,7 @@ test("Revenant Condition Renegade Spear default build resolves", async () => {
 
   assert.equal(
     preset.build,
-    "Builds/b-condi-renegade-spear-mace-axe.json",
+    "Builds/revenant/b-condi-renegade-spear-mace-axe.json",
   );
   assert.equal(Object.hasOwn(saved, "rotation"), false);
   assert.equal(build.profession, "revenant");
@@ -627,7 +630,7 @@ test("Revenant Condition Renegade Spear default build resolves", async () => {
 
 test("Revenant Condition Quickness Herald default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    new URL("../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -644,7 +647,7 @@ test("Revenant Condition Quickness Herald default build resolves", async () => {
 
   assert.equal(
     preset.build,
-    "Builds/b-condi-quick-herald-shortbow-mace-axe.json",
+    "Builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
   );
   assert.equal(Object.hasOwn(saved, "rotation"), false);
   assert.equal(build.profession, "revenant");
@@ -696,7 +699,7 @@ test("Revenant Condition Quickness Herald default build resolves", async () => {
 
 test("Revenant Condition Conduit Mistfire default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/revenant-manifest.json", import.meta.url),
+    new URL("../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -710,7 +713,10 @@ test("Revenant Condition Conduit Mistfire default build resolves", async () => {
   ));
   const build = adapter.toApplicationBuild(saved);
 
-  assert.equal(preset.build, "Builds/b-condi-conduit-mistfire.json");
+  assert.equal(
+    preset.build,
+    "Builds/revenant/b-condi-conduit-mistfire.json",
+  );
   assert.equal(Object.hasOwn(saved, "rotation"), false);
   assert.equal(build.profession, "revenant");
   assert.deepEqual(build.specializations, [
@@ -730,7 +736,7 @@ test("Revenant Condition Conduit Mistfire default build resolves", async () => {
 
 test("Necromancer preset builds keep rotation data separate", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("../Builds/necromancer-manifest.json", import.meta.url),
+    new URL("../Builds/necromancer/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("necromancer");

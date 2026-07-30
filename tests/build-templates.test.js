@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  initBuildTemplates,
   loadTemplateAction,
   undoTemplateLoad,
 } from "../js/app/build/presets.js";
@@ -37,10 +38,22 @@ function createButton() {
   };
 }
 
+test("template discovery loads the profession-scoped manifest", async (t) => {
+  let requestedPath;
+  t.mock.method(globalThis, "fetch", async (url) => {
+    requestedPath = String(url).split("?")[0];
+    return { ok: false };
+  });
+
+  await initBuildTemplates({ adapter: { id: "mesmer" } });
+
+  assert.equal(requestedPath, "Builds/mesmer/manifest.json");
+});
+
 test("template actions load paired or partial state and support undo", async (t) => {
   const payloads = new Map([
     [
-      "Builds/test-build.json",
+      "Builds/mesmer/test-build.json",
       {
         profession: "mesmer",
         marker: "template",
@@ -63,7 +76,7 @@ test("template actions load paired or partial state and support undo", async (t)
   const preset = {
     section: "Chronomancer",
     label: "Power",
-    build: "Builds/test-build.json",
+    build: "Builds/mesmer/test-build.json",
     rotation: "Rotations/mesmer/test-rotation.json",
   };
 
@@ -122,7 +135,7 @@ test("a complete template without a rotation clears stale rotation state", async
     {
       section: "Mirage",
       label: "Power",
-      build: "Builds/build-only.json",
+      build: "Builds/mesmer/build-only.json",
     },
     "template",
     createButton(),
