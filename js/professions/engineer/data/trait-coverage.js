@@ -12,6 +12,7 @@ const IMPLEMENTED = new Set([
   "Aim-Assisted Rocket",
   "Shrapnel",
   "Blast Shield",
+  "Compounding Chemicals",
   "Excessive Energy",
   "Gadgeteer",
   "Serrated Steel",
@@ -35,21 +36,90 @@ const IMPLEMENTED = new Set([
   "Mech Core: J-Drive",
   "Laser's Edge",
   "Enhanced Capacity Storage Unit",
+  "Photonic Blasting Module",
+  "Crystal Configuration: Storm",
+  "Photon Projector",
+  "Function Gyro",
+  "Mechanical Genius",
   "Willing Host",
   "Hardened Chrome",
   "Carbolic Composition",
   "New Genes",
+  "Experimental Union",
+  "Hybrid Vigor",
 ]);
+
+const OUT_OF_MODEL_REASONS = Object.freeze({
+  defensive:
+    "Incoming-hit, barrier, healing, condition-cleansing, and damage-reduction effects are outside the outgoing single-target damage model.",
+  ally:
+    "Ally-only support, revival, and area boon delivery are outside the single-player target model.",
+  movement:
+    "Movement speed, evade mobility, and downed-state behavior are not represented by the stationary PvE target model.",
+  random:
+    "Random proc selection is not resolved without an explicit deterministic-choice contract and authoritative proc packet data.",
+  missingMechanics:
+    "The API presentation text lacks the numeric coefficient, duration, threshold, or proc cadence required for deterministic simulation evidence.",
+});
+
+function outOfModelReason(trait) {
+  const description = String(trait.description || "").toLowerCase();
+  if (/ally|allies|reviv|nearby/.test(description)) {
+    return OUT_OF_MODEL_REASONS.ally;
+  }
+  if (/heal|barrier|incoming|block|damage reduction|condition.*remove/.test(
+    description,
+  )) {
+    return OUT_OF_MODEL_REASONS.defensive;
+  }
+  if (/movement|swiftness|superspeed|downed/.test(description)) {
+    return OUT_OF_MODEL_REASONS.movement;
+  }
+  if (/chance|random/.test(description)) {
+    return OUT_OF_MODEL_REASONS.random;
+  }
+  return OUT_OF_MODEL_REASONS.missingMechanics;
+}
+
+function implementedEvidence(trait) {
+  if (["Compounding Chemicals", "Hybrid Vigor"].includes(trait.name)) {
+    return {
+      file: "tests/native-build-attributes.test.js",
+      name: "Engineer exposes current unconditional trait attributes",
+    };
+  }
+  if (trait.specialization === "Mechanist") {
+    return {
+      file: "tests/engineer.test.js",
+      name: "Mechanist commands are selected by traits and mech attacks persist",
+    };
+  }
+  if (trait.specialization === "Holosmith") {
+    return {
+      file: "tests/engineer.test.js",
+      name: "Photon Forge overheats at its trait-adjusted maximum",
+    };
+  }
+  if (trait.specialization === "Amalgam") {
+    return {
+      file: "tests/engineer.test.js",
+      name: "benchmark Amalgam traits activate on morph and Evolve chronology",
+    };
+  }
+  return {
+    file: "tests/engineer.test.js",
+    name: "benchmark Explosives and Firearms traits materialize offensive effects",
+  };
+}
 
 const manifest = engineerCatalog.traits.map(trait => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
     ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED
-    : TRAIT_COVERAGE_STATUSES.PENDING;
+    : TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL;
   const description = String(trait.description || "").trim()
     || `Reviewed passive or utility behavior for ${trait.name}.`;
-  const pendingReason =
-    "This behavior has not yet been implemented and verified against a behavioral simulation test.";
+  const reason = outOfModelReason(trait);
   return {
     traitId: trait.id,
     status,
@@ -57,13 +127,13 @@ const manifest = engineerCatalog.traits.map(trait => {
       description,
       status,
       ...(implemented ? {} : {
-        reason: pendingReason,
+        reason,
       }),
     }],
     ...(implemented ? {
-      tests: ["tests/engineer.test.js#trait-coverage"],
+      tests: [implementedEvidence(trait)],
     } : {
-      reason: pendingReason,
+      reason,
     }),
   };
 });

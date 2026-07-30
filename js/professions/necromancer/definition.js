@@ -12,6 +12,7 @@ import {
   necromancerCastModifiers,
 } from "./attribute-rules.js";
 import { necromancerCatalog } from "./catalog.js";
+import "./data/trait-coverage.js";
 import {
   necromancerCastRules,
   necromancerSchedulerHooks,

@@ -25,10 +25,74 @@ import {
 import {
   isGw2WeaponSkillEquipped,
 } from "../js/platform/gw2/scheduler/policy.js";
+import {
+  engineerProfession,
+} from "../js/professions/engineer/definition.js";
+import {
+  guardianProfession,
+} from "../js/professions/guardian/definition.js";
+import {
+  necromancerProfession,
+} from "../js/professions/necromancer/definition.js";
+import {
+  thiefProfession,
+} from "../js/professions/thief/definition.js";
 
 const queryProfession = defineProfession({
   id: "query-fixture",
   name: "Query Fixture",
+});
+
+test("profession composition validates UI callbacks and scheduler refiners", () => {
+  assert.throws(
+    () => defineProfession({
+      id: "invalid-ui",
+      name: "Invalid UI",
+      ui: { eventLogRow: true },
+    }),
+    /ui\.eventLogRow must be a function/,
+  );
+
+  const invalidAvailability = defineProfession({
+    id: "invalid-availability",
+    name: "Invalid Availability",
+    ui: {
+      paletteSkillAvailability: () => true,
+    },
+  });
+  assert.throws(
+    () => invalidAvailability.ui.paletteSkillAvailability({}, {}),
+    /must return an object/,
+  );
+
+  const mutating = defineProfession({
+    id: "mutating-refiner",
+    name: "Mutating Refiner",
+    simulation: {
+      refineSchedulerConfig(config) {
+        config.changed = true;
+        return { ...config };
+      },
+    },
+  });
+  assert.throws(
+    () => mutating.simulation.refineSchedulerConfig({}, {}),
+    /must not mutate prior config/,
+  );
+
+  const sameObject = defineProfession({
+    id: "same-refiner",
+    name: "Same Refiner",
+    simulation: {
+      refineSchedulerConfig(config) {
+        return config;
+      },
+    },
+  });
+  assert.throws(
+    () => sameObject.simulation.refineSchedulerConfig({}, {}),
+    /must return a new config object/,
+  );
 });
 
 test("target-condition queries combine assumptions and chronological runtime state", () => {
@@ -112,7 +176,10 @@ test("trait coverage validates complete, behavioral, mixed-effect manifests", ()
           reason: "Ally healing is outside the single-target damage model.",
         },
       ],
-      tests: ["trait.mixed.poisoned-damage"],
+      tests: [{
+        file: "tests/fixture.test.js",
+        name: "mixed poisoned damage",
+      }],
       reason: null,
     },
     {
@@ -140,7 +207,10 @@ test("trait coverage rejects gaps, unknown traits, names, and weak evidence", ()
       traitId: 2,
       status: "implemented",
       effects: ["Deals strike damage after using a tool-belt skill."],
-      tests: ["trait.unknown"],
+      tests: [{
+        file: "tests/fixture.test.js",
+        name: "unknown trait",
+      }],
       reason: null,
     }]),
     /unknown trait 2/,
@@ -150,7 +220,10 @@ test("trait coverage rejects gaps, unknown traits, names, and weak evidence", ()
       traitId: 1,
       status: "implemented",
       effects: ["Known Trait"],
-      tests: ["trait.known"],
+      tests: [{
+        file: "tests/fixture.test.js",
+        name: "known trait",
+      }],
       reason: null,
     }]),
     /not only its name/,
@@ -223,6 +296,139 @@ test("profession event-log hooks present, hide, and diagnose custom events", () 
       "UNPRESENTED CUSTOM EVENT engineer.unknown",
     );
     assert.equal(warnings.length, 1);
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
+test("Engineer and Thief contracts present state and suppress known packet events", () => {
+  const engineerRows = simulationEventLogRows({
+    events: [
+      {
+        type: "engineer.state",
+        at: 1,
+        reason: "forge-entered",
+        state: { heat: 25 },
+      },
+      { type: "engineer.lightning-rod-pulse", at: 1.1 },
+      { type: "engineer.conduit-surge", at: 1.2 },
+      { type: "engineer.electric-artillery", at: 1.3 },
+    ],
+    resolvedEvents: [],
+    endState: { profession: {} },
+  }, null, engineerProfession);
+  assert.equal(engineerRows.length, 1);
+  assert.equal(engineerRows[0].type, "engineer.state");
+  assert.match(engineerRows[0].description, /forge-entered.*Heat 25\.0/);
+  assert.notEqual(engineerRows[0].type, "diagnostic");
+
+  const thiefRows = simulationEventLogRows({
+    events: [{
+      type: "thief.state",
+      at: 2,
+      reason: "initiative-spent",
+      state: { initiative: 7, malice: 2 },
+    }],
+    resolvedEvents: [],
+    endState: { profession: {} },
+  }, null, thiefProfession);
+  assert.equal(thiefRows.length, 1);
+  assert.equal(thiefRows[0].type, "thief.state");
+  assert.match(thiefRows[0].description, /initiative-spent.*Initiative 7\.0/);
+  assert.notEqual(thiefRows[0].type, "diagnostic");
+
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  try {
+    const [unknown] = simulationEventLogRows({
+      events: [{ type: "engineer.unhandled", at: 3 }],
+      resolvedEvents: [],
+      endState: { profession: {} },
+    }, null, engineerProfession);
+    assert.equal(
+      unknown.description,
+      "UNPRESENTED CUSTOM EVENT engineer.unhandled",
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
+test("Guardian and Necromancer classify every known custom event", () => {
+  const warnings = [];
+  const originalWarn = console.warn;
+  console.warn = (...values) => warnings.push(values);
+  try {
+    const guardianRows = simulationEventLogRows({
+      events: [
+        {
+          type: "guardian.virtue-activated",
+          at: 0,
+          skillName: "Virtue of Justice",
+        },
+        { type: "guardian.virtues-refreshed", at: 1 },
+        { type: "guardian.effulgent-activated", at: 2 },
+        { type: "guardian.effulgent-detonate", at: 6 },
+        { type: "guardian.righteous-instincts-tick", at: 7 },
+        { type: "guardian.tome-stowed", at: 8 },
+        {
+          type: "guardian.tome-page-used",
+          at: 9,
+          skillName: "Chapter 1: Searing Spell",
+          pageCost: 1,
+          pagesRemaining: 4,
+        },
+        { type: "guardian.radiant-forge-entered", at: 10 },
+        {
+          type: "guardian.radiant-forge-exited",
+          at: 30,
+          automatic: true,
+        },
+      ],
+      resolvedEvents: [],
+      endState: { profession: {} },
+    }, null, guardianProfession);
+    assert.deepEqual(
+      guardianRows.map(row => row.type),
+      [
+        "guardian.virtue-activated",
+        "guardian.virtues-refreshed",
+        "guardian.tome-stowed",
+        "guardian.tome-page-used",
+        "guardian.radiant-forge-entered",
+        "guardian.radiant-forge-exited",
+      ],
+    );
+    assert.match(guardianRows[0].description, /VIRTUE ACTIVATED/);
+    assert.match(guardianRows.at(-1).description, /\[automatic\]/);
+
+    const necromancerRows = simulationEventLogRows({
+      events: [
+        {
+          type: "necromancer.state",
+          at: 0,
+          reason: "shroud-entered",
+          state: { lifeForce: 75, activeShroud: "reaper" },
+        },
+        {
+          type: "necromancer.chill",
+          at: 1,
+          skillName: "Spinal Shivers",
+          duration: 5,
+        },
+        { type: "necromancer.painful-bond", at: 2 },
+        { type: "necromancer.summon-attack", at: 3 },
+        { type: "necromancer.weapon-spell", at: 4 },
+      ],
+      resolvedEvents: [],
+      endState: { profession: {} },
+    }, null, necromancerProfession);
+    assert.deepEqual(
+      necromancerRows.map(row => row.type),
+      ["necromancer.state", "necromancer.chill"],
+    );
+    assert.match(necromancerRows[1].description, /Spinal Shivers \(5\.0s\)/);
+    assert.equal(warnings.length, 0);
   } finally {
     console.warn = originalWarn;
   }

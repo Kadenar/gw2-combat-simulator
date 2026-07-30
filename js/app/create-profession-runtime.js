@@ -1,6 +1,13 @@
 import { createGw2SimulationConfig } from "./gw2-simulation-config.js";
 import { calculateContributionComparisons } from "./modifier-contributions.js";
+import {
+  DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
+  calculateRandomDistribution as calculateDistribution,
+} from "./random-distribution.js";
 import { FOOD_DATA } from "../platform/gw2/gear-data.js";
+import {
+  SIMULATION_RANDOMNESS_MODES,
+} from "../platform/engine/simulation-random.js";
 import { simulateGw2 } from "../platform/gw2/simulate.js";
 
 /**
@@ -205,12 +212,22 @@ export function createProfessionRuntime({
   }
 
   function modifierContributionRequest(app) {
-    const baseConfig = simulationConfig(app);
+    const deterministicConfig = config =>
+      config.randomness?.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
+        ? {
+            ...config,
+            randomness: {
+              ...config.randomness,
+              mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC,
+            },
+          }
+        : config;
+    const baseConfig = deterministicConfig(simulationConfig(app));
     if (app.build.relic !== "Eagle") {
       baseConfig.target = { ...baseConfig.target, health: 0 };
     }
     const comparisons = modifierCandidates(app).map((modifier) => {
-      const config = simulationConfig(app, modifier);
+      const config = deterministicConfig(simulationConfig(app, modifier));
       if (app.build.relic !== "Eagle") {
         config.target = { ...config.target, health: 0 };
       }
@@ -239,8 +256,41 @@ export function createProfessionRuntime({
     return calculateModifierContributions(modifierContributionRequest(app));
   }
 
+  function randomDistributionRequest(app) {
+    const baseConfig = simulationConfig(app);
+    if (
+      baseConfig.randomness?.mode !== SIMULATION_RANDOMNESS_MODES.STOCHASTIC
+    ) {
+      return null;
+    }
+    return {
+      professionId: profession.id,
+      rotation: app.build.rotation,
+      baseConfig,
+      trials: DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
+    };
+  }
+
+  function calculateRandomDistribution(request, options) {
+    return calculateDistribution(request, simulateBuild, options);
+  }
+
   function runSimulation(app) {
-    app.results = simulateBuild(app.build.rotation, simulationConfig(app));
+    const config = simulationConfig(app);
+    // Detailed tables and timelines need one stable run. When distribution
+    // mode is selected, keep that baseline deterministic and calculate RNG
+    // percentiles separately.
+    const baselineConfig =
+      config.randomness?.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
+        ? {
+            ...config,
+            randomness: {
+              ...config.randomness,
+              mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC,
+            },
+          }
+        : config;
+    app.results = simulateBuild(app.build.rotation, baselineConfig);
     return app.results;
   }
 
@@ -253,6 +303,8 @@ export function createProfessionRuntime({
     modifierContributionRequest,
     calculateModifierContributions,
     computeModifierContributions,
+    randomDistributionRequest,
+    calculateRandomDistribution,
     runSimulation,
   };
 }

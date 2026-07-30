@@ -1,8 +1,8 @@
 # Engineer simulator
 
-The Engineer implementation uses the generated Guild Wars 2 API identity
-snapshot from July 28, 2026 and checked-in PvE Wiki research for terrestrial
-mechanics omitted by the API.
+The Engineer implementation uses the checked-in Guild Wars 2 API identity
+snapshot from July 28, 2026 plus manually reviewed PvE mechanics encoded in
+the profession modules.
 
 ## Implemented systems
 
@@ -24,7 +24,9 @@ and competitive-mode behavior—are explicitly classified out of model.
 
 ## Data provenance
 
-`scripts/update-profession-data.mjs` owns API identity data.
-`scripts/update-profession-wiki-data.mjs` owns the checked-in Wiki mechanics
-research. Runtime simulation is network-free. Each researched skill stores its
-source URL, revision ID, revision date, and PvE facts.
+Refresh API identity data with
+`npm run update:profession-data -- --profession Engineer`, which runs
+`scripts/update-profession-api-data.mjs`. Runtime simulation is network-free.
+Non-API coefficients and state-machine rules are manually reviewed and
+checked into the mechanics modules; the repository does not currently track
+per-record Wiki revision metadata.

@@ -8,6 +8,9 @@ import {
   createModifierHooks,
   MODIFIER_TARGET,
 } from "../../platform/gw2/modifier-rules.js";
+import {
+  professionStaticRulesApplied,
+} from "../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../platform/gw2/trait-state.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
@@ -70,6 +73,21 @@ function activeShroud(context) {
   return String(context.runtime?.profession?.activeShroud || "");
 }
 
+function selectedSkill(context, name) {
+  const source = context.config?.selectedSkills || [];
+  const selected = Array.isArray(source) ? source : Object.values(source);
+  return selected.includes(name);
+}
+
+function signetOfSpitePassiveActive(context) {
+  return selectedSkill(context, "Signet of Spite")
+    && !activeShroud(context)
+    && !context.timeline?.skillOnCooldownAt(
+      ID.SIGNET_OF_SPITE,
+      context.time,
+    );
+}
+
 function activeBlight(context) {
   return Math.max(
     0,
@@ -92,8 +110,26 @@ function targetChilled(context) {
   );
 }
 
+function targetControlled(context) {
+  return Boolean(context.config?.target?.controlled)
+    || (
+      context.config?.target?.defiant !== true
+      && Number(context.runtime?.profession?.targetControlledUntil || 0)
+        > context.time
+    );
+}
+
 function modifyNecromancerAttributes(context, attributes) {
   const result = { ...attributes };
+  const staticRulesApplied = professionStaticRulesApplied(context.config);
+  if (selectedSkill(context, "Signet of Spite")) {
+    const passiveActive = signetOfSpitePassiveActive(context);
+    if (staticRulesApplied) {
+      if (!passiveActive) result.power -= 180;
+    } else if (passiveActive) {
+      result.power += 180;
+    }
+  }
   const timedCarapace = (
     context.runtime?.profession?.carapaceExpiries || []
   ).filter((expiresAt) => expiresAt > context.time).length;
@@ -112,7 +148,7 @@ function modifyNecromancerAttributes(context, attributes) {
     result.power +=
       Number(context.timeline?.mightStacksAt(context.time) || 0) * 10;
   }
-  if (!context.config?.necromancerBuildAttributesApplied) {
+  if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)) {
       result.vitality += Number(result.power || 0) * 0.1;
     }
@@ -308,6 +344,17 @@ export const necromancerModifierRules = Object.freeze([
       Number(context.runtime?.profession?.meltdownUntil || 0) > context.time,
   },
   {
+    id: "necromancer.essence-blast-active-spirits",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: (context) =>
+      Number(context.event?.activeSpirits || 0)
+      * Number(context.event?.essenceBlastDamagePerSpirit || 0),
+    when: (context) =>
+      eventSkill(context)?.id === ID.ESSENCE_BLAST
+      && Number(context.event?.activeSpirits || 0) > 0,
+  },
+  {
     id: "necromancer.lingering-spirits",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
@@ -364,10 +411,19 @@ export const necromancerModifierRules = Object.freeze([
       hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION),
   },
   {
+    id: "necromancer.anguish-conditional-damage",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: (context) =>
+      targetConditionCount(context) * 0.02
+      + (targetControlled(context) ? 0.2 : 0),
+    when: (context) => Boolean(context.event?.anguishConditionalDamage),
+  },
+  {
     id: "necromancer.spirits-strength",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: 1.2,
+    factor: 1.5,
     order: 100,
     when: (context) =>
       context.event?.actorType === "summon" &&
@@ -409,16 +465,7 @@ export const necromancerModifierRules = Object.freeze([
     when: (context) =>
       context.condition === "Bleeding" &&
       hasTrait(context, TRAIT.BARBED_PRECISION) &&
-      !context.config?.necromancerBuildAttributesApplied,
-  },
-  {
-    id: "necromancer.lingering-curse-duration",
-    target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: "multiply",
-    factor: 1.5,
-    when: (context) =>
-      eventSkill(context)?.weapon === "Scepter" &&
-      hasTrait(context, TRAIT.LINGERING_CURSE),
+      !professionStaticRulesApplied(context.config),
   },
 ]);
 
@@ -430,12 +477,21 @@ function modifyNecromancerRechargeDuration(context, duration) {
   let result = duration;
   const skill = context.skill;
   if (
+    skill?.rechargeOnMinionDeath &&
+    !context.minionDeathRecharge
+  ) {
+    return 0;
+  }
+  if (
     skill?.categories?.includes("Corruption") &&
     hasTrait(context, TRAIT.MASTER_OF_CORRUPTION)
   ) {
     result *= 0.67;
   }
-  if (skill?.shroud && hasTrait(context, TRAIT.SINISTER_SHROUD)) {
+  if (
+    (skill?.shroud || skill?.handlerId === "necromancer.shade") &&
+    hasTrait(context, TRAIT.SINISTER_SHROUD)
+  ) {
     result *= 0.85;
   }
   if (skill?.weapon === "Pistol" && hasTrait(context, TRAIT.DARK_GUNSLINGER)) {
@@ -448,6 +504,16 @@ function modifyNecromancerRechargeDuration(context, duration) {
     result *= 1.25;
   }
   return result;
+}
+
+function modifyNecromancerConditionBaseDuration(context, duration) {
+  return (
+    eventSkill(context)?.weapon === "Scepter" &&
+    context.event?.skillId !== ID.DEVOURING_DARKNESS &&
+    hasTrait(context, TRAIT.LINGERING_CURSE)
+  )
+    ? duration * 1.5
+    : duration;
 }
 
 function modifyNecromancerMaximumAmmo(context, maximum) {
@@ -480,6 +546,7 @@ function modifyNecromancerRechargeStart(context, rechargeStart) {
 
 export const necromancerAttributeRules = Object.freeze({
   modifyAttributes: modifyNecromancerAttributes,
+  modifyConditionBaseDuration: modifyNecromancerConditionBaseDuration,
   ...necromancerModifierHooks,
 });
 

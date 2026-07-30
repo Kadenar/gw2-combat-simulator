@@ -165,7 +165,7 @@ advances exactly one version.
 ### [attributes.js](js/platform/gw2/attributes.js)
 Profession-neutral common attribute assembly and shared build finalization.
 Profession calculators resolve their own ordered trait and skill deltas;
-Guardian, Mesmer, and Necromancer pass those deltas to
+Native professions pass those deltas to
 `finalizeBuildAttributes()` to rebuild all derived critical and duration
 breakdowns.
 
@@ -249,7 +249,7 @@ critical traits, and Bloodsong.
 
 ### Declarative Profession Mechanics
 
-Mesmer, Guardian, and Necromancer use the same files for shared concepts:
+Every native profession uses the same files for shared concepts:
 
 - `attribute-rules.js` — profession predicates, declarative scalar modifier
   rules, and exceptional ordered attribute transforms.
@@ -257,12 +257,25 @@ Mesmer, Guardian, and Necromancer use the same files for shared concepts:
   calculation before shared finalization.
 - `data/<profession>-api-metadata.js` — generated identity and presentation
   metadata only.
+- `data/trait-coverage.js` — one validated, non-pending disposition per catalog
+  trait, with structured behavioral test evidence for implemented effects.
 - `mechanics/skill-mechanics.js` — shared-schema declarative skill mechanics.
 - `mechanics/handler-mechanics.js` — optional profession-specific triggered
   effect and state-machine formulas.
 - `catalog.js` — canonical autoattack-chain derivation plus any profession
   additions or exclusions.
 - `mechanics/handlers.js` — explicit augment/replace runtime strategies.
+
+Each native `definition.js` is composed through
+`platform/engine/profession.js`. That module owns the complete UI callback
+surface, canonical event-log descriptors, structured palette availability,
+public resource views, optional immutable scheduler-config refinement, and
+callback type validation. Scheduler snapshots remain profession-internal;
+`resources.projectEndState` publishes an explicit allowlisted state object.
+
+`platform/gw2/attribute-provenance.js` defines the shared marker that tells
+runtime hooks whether static profession rules were already applied by browser
+build calculation and which weapon set supplied those attributes.
 
 ### Mesmer-Specific Mechanics
 

@@ -16,11 +16,13 @@ import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics
 import {
   addSoulShards,
   consumeSoulShards,
+  emitBuff,
   emitCondition,
   emitControl,
   emitState,
   gainNecromancerLifeForce,
   hasTrait,
+  necromancerBoonDuration,
 } from "./shared.js";
 
 const GRASPING_DARKNESS_LIFE_FORCE_TASK =
@@ -171,6 +173,24 @@ function committedAtBaseOffset(context, skill, baseOffsetMs) {
   return context.effectiveEnd + context.epsilon >= commitAt;
 }
 
+function oppressiveCollapse(context, skill) {
+  const conditionCount = Math.min(
+    7,
+    Object.values(context.config.target?.conditions || {})
+      .filter(value => value === true || Number(value) > 0)
+      .length,
+  );
+  if (!conditionCount) return;
+  emitBuff(
+    context,
+    skill,
+    "might",
+    necromancerBoonDuration(context, "Might", 8),
+    conditionCount * 2,
+    { metadata: { affectsSummons: true } },
+  );
+}
+
 function graspingDarknessCommitted(context, skill) {
   return committedAtBaseOffset(
     context,
@@ -236,6 +256,7 @@ export const necromancerWeaponSkillHandlers = Object.freeze({
   "necromancer.chilling-scythe": chillingScythe,
   "necromancer.addle": addle,
   "necromancer.extirpate": extirpate,
+  "necromancer.oppressive-collapse": oppressiveCollapse,
   "necromancer.perforate": Object.freeze({
     prepare: preparePerforate,
     afterEffect: afterPerforateEffect,

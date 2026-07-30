@@ -146,6 +146,5 @@ export const mesmerUi = Object.freeze({
   paletteGroups: mesmerPaletteGroups,
   isPaletteSkillAvailable: isMesmerPaletteSkillAvailable,
   paletteSkillUnavailableMessage: mesmerPaletteSkillUnavailableMessage,
-  resourceView: mesmerResourceView,
   resourceViews: (context) => [mesmerResourceView(context)],
 });

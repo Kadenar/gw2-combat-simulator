@@ -98,6 +98,7 @@ function readEvtc(path) {
 
 const data = readEvtc(input);
 const magic = data.toString("ascii", 0, 12);
+const encounterId = data.readUInt16LE(13);
 if (!magic.startsWith("EVTC")) {
   throw new Error(`${input} is not an uncompressed EVTC file.`);
 }
@@ -174,6 +175,21 @@ const players = agents.filter(agent =>
     && agent.elite !== 0xffffffff
   ));
 const playerAddresses = new Set(players.map(player => player.address));
+const playerInstances = new Set();
+for (const event of events) {
+  if (playerAddresses.has(event.source) && event.sourceInstance) {
+    playerInstances.add(event.sourceInstance);
+  }
+  if (playerAddresses.has(event.target) && event.targetInstance) {
+    playerInstances.add(event.targetInstance);
+  }
+}
+const isPlayerOwnedSource = event =>
+  playerAddresses.has(event.source)
+  || (
+    event.sourceMasterInstance > 0
+    && playerInstances.has(event.sourceMasterInstance)
+  );
 const timelineEvents = events.filter(event =>
   event.time > 0
   && (
@@ -204,7 +220,7 @@ const casts = events
 const outgoing = new Map();
 for (const event of events) {
   if (
-    !playerAddresses.has(event.source)
+    !isPlayerOwnedSource(event)
     || playerAddresses.has(event.target)
     || event.iff !== 1
     || event.stateChange !== 0
@@ -266,7 +282,7 @@ for (const event of events) {
 function collectConditionApplications({ self }) {
   const applications = new Map();
   for (const event of events) {
-    const playerSource = playerAddresses.has(event.source);
+    const playerSource = isPlayerOwnedSource(event);
     const playerTarget = playerAddresses.has(event.target);
     if (
       !playerSource
@@ -309,6 +325,31 @@ const outgoingConditionApplications =
   collectConditionApplications({ self: false });
 const selfConditionApplications =
   collectConditionApplications({ self: true });
+const playerStrikeEvents = events.filter(event =>
+  playerAddresses.has(event.source)
+  && !playerAddresses.has(event.target)
+  && event.iff === 1
+  && event.buff === 0
+  && event.stateChange === 0
+  && event.activation === 0
+  && event.value > 0);
+const playerCriticalSummary = {
+  hits: playerStrikeEvents.length,
+  criticalHits: playerStrikeEvents.filter(event => event.result === 1).length,
+  bySkill: [...playerStrikeEvents.reduce((entries, event) => {
+    const current = entries.get(event.skillId) || {
+      skillId: event.skillId,
+      skill: skillName(event.skillId),
+      hits: 0,
+      criticalHits: 0,
+    };
+    current.hits += 1;
+    current.criticalHits += event.result === 1 ? 1 : 0;
+    entries.set(event.skillId, current);
+    return entries;
+  }, new Map()).values()]
+    .sort((left, right) => right.hits - left.hits),
+};
 
 const damage = [...outgoing.values()]
   .sort((left, right) =>
@@ -318,11 +359,78 @@ const totalDamage = damage.reduce(
   (sum, entry) => sum + entry.strikeDamage + entry.conditionDamage,
   0,
 );
+const targetExitAt = events
+  .filter(event =>
+    event.stateChange === 2
+    && event.value === encounterId)
+  .map(event => relative(event.time))
+  .sort((left, right) => left - right)[0];
+const lastDamageAt = Math.max(
+  0,
+  ...damage.flatMap(entry => entry.packets.map(packet => packet.at)),
+);
+const combatDuration = Number.isFinite(targetExitAt)
+  ? targetExitAt
+  : lastDamageAt;
+const combatWindow = {
+  duration: combatDuration,
+  totalDamage,
+  dps: combatDuration > 0 ? totalDamage / combatDuration : 0,
+};
+function median(values) {
+  if (!values.length) return null;
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+const spiritAutoattacks = damage
+  .filter(entry => /autoattack/i.test(entry.skill))
+  .map(entry => {
+    const times = [...new Set(entry.packets.map(packet => packet.at))]
+      .sort((left, right) => left - right);
+    const intervals = times
+      .slice(1)
+      .map((time, index) => Number((time - times[index]).toFixed(3)));
+    return {
+      skillId: entry.skillId,
+      skill: entry.skill,
+      hits: entry.strikeHits,
+      damage: entry.strikeDamage,
+      firstAt: entry.firstAt,
+      lastAt: entry.lastAt,
+      medianInterval: median(intervals),
+    };
+  });
+const summonSpiritVariants = damage
+  .filter(entry => entry.skill === "Summon Spirits")
+  .map(entry => ({
+    skillId: entry.skillId,
+    hits: entry.strikeHits,
+    damage: entry.strikeDamage,
+    firstAt: entry.firstAt,
+    lastAt: entry.lastAt,
+  }));
+const summonMetadata = {
+  spiritAutoattacks,
+  summonSpirits: {
+    uses: summonSpiritVariants.length
+      ? Math.min(
+          ...summonSpiritVariants
+            .map(entry => entry.hits)
+            .filter(hits => hits > 0),
+        )
+      : 0,
+    variants: summonSpiritVariants,
+  },
+};
 const report = {
   header: {
     magic,
     revision: data[12],
-    encounterId: data.readUInt16LE(13),
+    encounterId,
     agentCount,
     skillCount,
     eventCount: events.length,
@@ -352,6 +460,9 @@ const report = {
       rawFlags: event.rawFlags.join(" "),
     })),
   totalDamage,
+  combatWindow,
+  playerCriticalSummary,
+  summonMetadata,
   casts,
   damage,
   buffs: [...buffs.values()]
@@ -360,6 +471,14 @@ const report = {
   selfConditionApplications,
   ...(debugSkillIds.size || debugSkillNames.length || debugStateChanges.size
     ? {
+        debugAgents: agents.map(agent => ({
+          addressHex: agent.addressHex,
+          profession: agent.profession,
+          elite: agent.elite,
+          character: agent.character,
+          account: agent.account,
+          subgroup: agent.subgroup,
+        })),
         debugSkills: [...skills]
           .filter(([id, name]) =>
             debugSkillIds.has(id)
@@ -421,7 +540,10 @@ const summary = {
   header: report.header,
   players: report.players,
   totalDamage,
-  dps: totalDamage / report.header.duration,
+  dps: combatWindow.dps,
+  combatWindow,
+  playerCriticalSummary,
+  summonMetadata,
   casts: [...casts.reduce((counts, cast) => {
     const current = counts.get(cast.skill) || {
       skill: cast.skill,

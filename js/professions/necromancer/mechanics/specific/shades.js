@@ -12,8 +12,12 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
-import { syncNecromancerResources } from "../../state.js";
+import {
+  normalizedNecromancerLifeForceCost,
+  syncNecromancerResources,
+} from "../../state.js";
 import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
+import { removeNecromancerSelfCondition } from "./conditions.js";
 import {
   emitBuff,
   emitCondition,
@@ -23,34 +27,91 @@ import {
   hasTrait,
 } from "./shared.js";
 
+function applyBarrierTraits(context, skill, at = context.effectiveEnd) {
+  const shadeMechanics = MECHANICS.shade;
+  if (hasTrait(context, TRAIT.ABRASIVE_GRIT)) {
+    emitBuff(
+      context,
+      skill,
+      "might",
+      shadeMechanics.abrasiveGrit.mightDuration,
+      shadeMechanics.abrasiveGrit.mightStacks,
+      { at },
+    );
+  }
+  if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
+    emitBuff(
+      context,
+      skill,
+      "alacrity",
+      shadeMechanics.desertEmpowerment.alacrityDuration,
+      1,
+      { at },
+    );
+  }
+}
+
+function barrier(context, skill) {
+  applyBarrierTraits(context, skill);
+  return true;
+}
+
 function shade(context, skill) {
   const state = context.state.profession;
   const at = context.effectiveEnd;
   const shadeMechanics = MECHANICS.shade;
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
     const maximum = hasTrait(context, TRAIT.SAND_SAVANT) ? 1 : 3;
-    state.shades = [...state.shades, at + 15]
+    const duration = hasTrait(context, TRAIT.SAND_SAVANT)
+      ? shadeMechanics.manifest.sandSavantDuration
+      : shadeMechanics.manifest.duration;
+    state.shades = [...state.shades, at + duration]
       .sort((left, right) => left - right)
       .slice(-maximum);
     if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
-      emitBuff(context, skill, "alacrity", 2);
-      emitBuff(context, skill, "vigor", 2);
+      applyBarrierTraits(context, skill, at);
     }
   } else {
     state.lifeForce = Math.max(
       0,
       state.lifeForce
-        - Number(skill.lifeForceCost || 0)
-          * Number(state.maximumLifeForce || 100) / 100,
+        - normalizedNecromancerLifeForceCost(state, skill.lifeForceCost),
     );
+    if (
+      [ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD].includes(skill.id) &&
+      hasTrait(context, TRAIT.PLAGUE_SENDING)
+    ) {
+      const hasActiveSelfCondition = (state.selfConditions || []).some(
+        application =>
+          application.appliedAt <= at && application.expiresAt > at,
+      );
+      state.plagueSendingArmed = true;
+      state.plagueSendingEntrySkillId = hasActiveSelfCondition
+        ? null
+        : skill.id;
+    }
+    if (skill.id === ID.NEFARIOUS_FAVOR) {
+      removeNecromancerSelfCondition(state, at, 1);
+    }
   }
   syncNecromancerResources(state);
   emitState(context, at, "shade");
 
+  // ArcDPS records the automatic shade strike under two Manifest Sand Shade
+  // packet identities: Nefarious Favor uses one, while F1/F5 use the other.
+  // Keep the parent cast for mechanics, but report those packets separately.
+  const shadeStrikeName =
+    skill.id === ID.NEFARIOUS_FAVOR
+      ? "Manifest Sand Shade"
+      : "Manifest Sand Shade (F1/F5)";
   emitDamage(context, skill, shadeMechanics.manifest.coefficient, {
     name: "Sand Shade — Strike",
     sourceId: ID.MANIFEST_SAND_SHADE,
     skillWeapon: "Unequipped",
+    metadata: {
+      skillName: shadeStrikeName,
+      parentSkillName: skill.name,
+    },
   });
   emitCondition(context, skill, ...shadeMechanics.manifest.condition, {
     sourceId: ID.MANIFEST_SAND_SHADE,
@@ -66,11 +127,20 @@ function shade(context, skill) {
       actorType: "effect",
     });
   } else if (skill.id === ID.SAND_CASCADE) {
-    emitBuff(context, skill, "might", 6, 2);
+    applyBarrierTraits(context, skill, at);
   } else if (skill.id === ID.GARISH_PILLAR) {
-    emitDamage(context, skill, shadeMechanics.garishPillar.coefficient);
-    emitControl(context, skill, "fear");
+    emitControl(
+      context,
+      skill,
+      "fear",
+      at,
+      shadeMechanics.garishPillar.fearDuration,
+    );
   } else if (skill.id === ID.DESERT_SHROUD) {
+    if (hasTrait(context, TRAIT.SOUL_BARBS)) {
+      emitBuff(context, skill, "necromancer-soul-barbs", 15, 1, { at });
+    }
+    applyBarrierTraits(context, skill, at);
     emitDamage(context, skill, shadeMechanics.desertShroud.coefficient, {
       at,
       hits: shadeMechanics.desertShroud.hits,
@@ -83,6 +153,30 @@ function shade(context, skill) {
     }
   } else if (skill.id === ID.SANDSTORM_SHROUD) {
     const sandstorm = shadeMechanics.sandstormShroud;
+    if (hasTrait(context, TRAIT.SOUL_BARBS)) {
+      emitBuff(context, skill, "necromancer-soul-barbs", 15, 1, { at });
+    }
+    for (let index = 0; index < sandstorm.pulseCount; index += 1) {
+      const pulseAt = at + index * sandstorm.pulseInterval;
+      applyBarrierTraits(context, skill, pulseAt);
+      emitBuff(
+        context,
+        skill,
+        "protection",
+        sandstorm.pulseProtectionDuration,
+        1,
+        { at: pulseAt },
+      );
+    }
+    applyBarrierTraits(context, skill, at + sandstorm.delay);
+    emitBuff(
+      context,
+      skill,
+      "protection",
+      sandstorm.detonationProtectionDuration,
+      1,
+      { at: at + sandstorm.delay },
+    );
     emitDamage(context, skill, sandstorm.coefficient, {
       at: at + sandstorm.delay,
     });
@@ -95,4 +189,5 @@ function shade(context, skill) {
 
 export const necromancerShadeSkillHandlers = Object.freeze({
   "necromancer.shade": shade,
+  "necromancer.barrier": barrier,
 });

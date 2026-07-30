@@ -1,8 +1,7 @@
-import {
-  expectedCritMultiplier,
-  strikeDamage,
-} from "../damage.js";
+import { expectedCritMultiplier, strikeDamage } from "../damage.js";
 import { relicStrikeMultiplier } from "../relic-rules.js";
+
+const STANDARD_TARGET_ARMOR = 2597;
 
 /**
  * Creates timestamp-aware strike resolution shared by GW2 professions.
@@ -19,68 +18,83 @@ export function createGw2HitResolution({
     const maximum = Number(ctx.config.target?.health || 0);
     if (!(maximum > 0)) return 1;
     const currentDamage =
-      Number(ctx.totals.strike || 0)
-      + Number(ctx.totals.condition || 0);
-    const healthFraction = Math.max(
-      0,
-      1 - currentDamage / maximum,
-    );
+      Number(ctx.totals.strike || 0) + Number(ctx.totals.condition || 0);
+    const healthFraction = Math.max(0, 1 - currentDamage / maximum);
     const selected = modifiers
-      .filter(modifier =>
-        modifier?.kind === "target-health-below"
-        && healthFraction < Number(modifier.threshold))
-      .sort((left, right) =>
-        Number(left.threshold) - Number(right.threshold))[0];
+      .filter(
+        (modifier) =>
+          modifier?.kind === "target-health-below" &&
+          healthFraction < Number(modifier.threshold),
+      )
+      .sort(
+        (left, right) => Number(left.threshold) - Number(right.threshold),
+      )[0];
     return selected ? Number(selected.multiplier) : 1;
   }
 
   function buildHitResolutionContext(ctx, event) {
     const stats = ctx.query.statsAt(event.at, event, ctx);
     const flatStrike =
-      Number.isFinite(event.flatDamage)
-      || Number.isFinite(event.flatStrikeBase)
-      || Number.isFinite(event.flatStrikePowerCoeff);
+      Number.isFinite(event.flatDamage) ||
+      Number.isFinite(event.flatStrikeBase) ||
+      Number.isFinite(event.flatStrikePowerCoeff);
     const critical = ctx.query.critical(event, event.at, ctx);
     if (event.noCrit || flatStrike) critical.chance = 0;
+    // Stochastic trait-proc mode samples one shared crit outcome for reactions.
+    // Strike damage remains expected-valued so this mode isolates proc RNG.
+    critical.didCrit = ctx.random?.stochastic
+      ? ctx.random.roll(
+          critical.chance,
+          `critical:${String(event.actorType || "player")}`,
+        )
+      : null;
     const criticalMultiplier = flatStrike
       ? 1
-      : expectedCritMultiplier(
-        critical.chance * 100,
-        critical.damage * 100,
-      );
+      : expectedCritMultiplier(critical.chance * 100, critical.damage * 100);
     const outgoingMultiplier = flatStrike
       ? (() => {
-        let multiplier = Number(event.flatStrikeMultiplier ?? 1);
-        const maximum = Number(ctx.config.target?.health || 0);
-        const threshold = Number(event.flatStrikeHealthThreshold || 0);
-        const currentDamage =
-          Number(ctx.totals.strike || 0)
-          + Number(ctx.totals.condition || 0);
-        if (
-          maximum > 0
-          && threshold > 0
-          && currentDamage > maximum * (1 - threshold)
-        ) {
-          multiplier *= Number(event.flatStrikeThresholdMultiplier ?? 1);
-        }
-        return multiplier;
-      })()
-      : (
-        ctx.query.strikeMultiplier(event, event.at, ctx)
-        * relicStrikeMultiplier(ctx, event)
-        * targetHealthMultiplier(ctx, event)
-      );
+          let multiplier = Number(event.flatStrikeMultiplier ?? 1);
+          const maximum = Number(ctx.config.target?.health || 0);
+          const threshold = Number(event.flatStrikeHealthThreshold || 0);
+          const currentDamage =
+            Number(ctx.totals.strike || 0) + Number(ctx.totals.condition || 0);
+          if (
+            maximum > 0 &&
+            threshold > 0 &&
+            currentDamage > maximum * (1 - threshold)
+          ) {
+            multiplier *= Number(event.flatStrikeThresholdMultiplier ?? 1);
+          }
+          return multiplier;
+        })()
+      : ctx.query.strikeMultiplier(event, event.at, ctx) *
+        relicStrikeMultiplier(ctx, event) *
+        targetHealthMultiplier(ctx, event);
+    const summonDamagePerCoefficient = Number(event.summonDamagePerCoefficient);
+    const independentSummonStrike =
+      event.independentSummonStrike === true &&
+      Number.isFinite(summonDamagePerCoefficient) &&
+      Number(event.summonBasePower) > 0;
+    const targetArmor = Math.max(
+      1,
+      Number(ctx.config.target?.armor || STANDARD_TARGET_ARMOR),
+    );
     const baseDamage = flatStrike
-      ? (
-        Number(event.flatDamage ?? event.flatStrikeBase ?? 0)
-        + Number(event.flatStrikePowerCoeff || 0) * stats.power
-      )
-      : strikeDamage(
-        Number(event.coefficient || 0) * coefficientMultiplier(ctx, event),
-        ctx.helpers.weaponStrength(event, ctx.config),
-        stats.power,
-        Math.max(1, Number(ctx.config.target?.armor || 2597)),
-      );
+      ? Number(event.flatDamage ?? event.flatStrikeBase ?? 0) +
+        Number(event.flatStrikePowerCoeff || 0) * stats.power
+      : independentSummonStrike
+        ? (((Number(event.coefficient || 0) *
+            summonDamagePerCoefficient *
+            stats.power) /
+            Number(event.summonBasePower)) *
+            STANDARD_TARGET_ARMOR) /
+          targetArmor
+        : strikeDamage(
+            Number(event.coefficient || 0) * coefficientMultiplier(ctx, event),
+            ctx.helpers.weaponStrength(event, ctx.config),
+            stats.power,
+            targetArmor,
+          );
 
     return {
       stats,

@@ -3,6 +3,9 @@ import {
   MODIFIER_TARGET,
 } from "../../platform/gw2/modifier-rules.js";
 import {
+  attributeProvenance,
+} from "../../platform/gw2/attribute-provenance.js";
+import {
   targetHasCondition as targetHasConfiguredCondition,
 } from "../../platform/gw2/target-state.js";
 import { hasTrait } from "../../platform/gw2/trait-state.js";
@@ -86,8 +89,9 @@ function targetDisabled(context) {
 function modifyGuardianAttributes(context, attributes) {
   const result = { ...attributes };
   const currentWeapon = activeWeapon(context);
-  const staticWeapon = context.config?.guardianStaticTraitWeapon;
-  const staticApplied = context.config?.guardianStaticTraitsApplied;
+  const provenance = attributeProvenance(context.config);
+  const staticWeapon = provenance.calculatedPrimaryWeapon;
+  const staticApplied = provenance.professionStaticRulesApplied;
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
     if (staticApplied) {
       result.power += (
@@ -111,7 +115,7 @@ function modifyGuardianAttributes(context, attributes) {
     }
   }
   if (
-    !context.config?.guardianStaticTraitsApplied
+    !staticApplied
     && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)
   ) {
     result.ferocity += 150;

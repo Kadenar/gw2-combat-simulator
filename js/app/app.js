@@ -30,6 +30,11 @@ import {
     partitionModifierComparisons,
 } from './modifier-contributions.js';
 import {
+    partitionRandomDistributionTrials,
+    randomDistributionWorkerCount,
+    summarizeRandomDistribution,
+} from './random-distribution.js';
+import {
     downloadJson,
     fetchJsonAsset,
     getBuildExportPayload,
@@ -89,6 +94,7 @@ const EFFECT_COLORS = {
     Poisoned: '#70a33e',
 };
 const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
+const RANDOM_DISTRIBUTION_DEBOUNCE_MS = 350;
 
 // Main application controller class
 // Maintains UI state, coordinates between UI and simulation engine
@@ -118,6 +124,9 @@ export class ProfessionApp {
         this.modifierContributionTimer = null;
         this.modifierContributionWorkers = new Set();
         this.modifierContributionRequestId = 0;
+        this.randomDistributionTimer = null;
+        this.randomDistributionWorkers = new Set();
+        this.randomDistributionRequestId = 0;
         this.defaultBuildPresets = [];
     }
 
@@ -141,6 +150,7 @@ export class ProfessionApp {
         if (Array.isArray(previousContributions)) {
             this.results.contributions = previousContributions;
         }
+        this.scheduleRandomDistribution();
         this.scheduleModifierContributions();
         saveBuild(this.build, this.adapter);
         if (rebuildStatic) {
@@ -189,9 +199,18 @@ export class ProfessionApp {
             this.adapter.renderResults(this);
         };
 
-        this.modifierContributionTimer = setTimeout(() => {
+        const calculateContributions = () => {
             this.modifierContributionTimer = null;
             if (requestId !== this.modifierContributionRequestId) return;
+            // Give RNG sampling uncontested CPU time. Contribution comparisons
+            // start as soon as the distribution worker pool finishes.
+            if (this.randomDistributionWorkers.size) {
+                this.modifierContributionTimer = setTimeout(
+                    calculateContributions,
+                    250,
+                );
+                return;
+            }
 
             if (typeof Worker === 'function') {
                 const workerCount = modifierContributionWorkerCount(
@@ -252,7 +271,197 @@ export class ProfessionApp {
             }
 
             applyContributions(this.adapter.calculateModifierContributions(request));
-        }, MODIFIER_CONTRIBUTION_DEBOUNCE_MS);
+        };
+        this.modifierContributionTimer = setTimeout(
+            calculateContributions,
+            MODIFIER_CONTRIBUTION_DEBOUNCE_MS,
+        );
+    }
+
+    // Debounced RNG sampling for random trait procs. A small worker pool splits
+    // the trials across CPU cores without blocking the UI.
+    scheduleRandomDistribution() {
+        const requestId = ++this.randomDistributionRequestId;
+        clearTimeout(this.randomDistributionTimer);
+        this.randomDistributionTimer = null;
+        for (const worker of this.randomDistributionWorkers) {
+            worker.terminate();
+        }
+        this.randomDistributionWorkers.clear();
+
+        const request = this.build.rotation.length && this.results
+            ? this.adapter.randomDistributionRequest?.(this)
+            : null;
+        if (!request) {
+            if (this.results) {
+                this.results.randomDistributionRequested = false;
+                this.results.randomDistributionStale = false;
+            }
+            return;
+        }
+
+        this.results.randomDistributionRequested = true;
+        this.results.randomDistributionStale = true;
+        this.results.randomDistributionTrials = request.trials;
+        this.results.randomDistributionProgress = {
+            completed: 0,
+            total: request.trials,
+            percent: 0,
+        };
+
+        const applyProgress = progress => {
+            if (requestId !== this.randomDistributionRequestId || !this.results) return;
+            const total = Math.max(1, Number(progress?.total || request.trials));
+            const completed = Math.max(
+                0,
+                Math.min(total, Number(progress?.completed || 0)),
+            );
+            const percent = Math.max(
+                0,
+                Math.min(100, Number(progress?.percent ?? (completed / total) * 100)),
+            );
+            this.results.randomDistributionProgress = {
+                completed,
+                total,
+                percent,
+            };
+
+            // Progress updates only touch the indicator. Remounting the full
+            // result view would repeatedly rebuild tables and charts.
+            const indicator = document.querySelector(
+                '#rotation-results [data-role="rng-progress"]',
+            );
+            if (!indicator) return;
+            indicator.setAttribute('aria-valuenow', String(Math.round(percent)));
+            const bar = indicator.querySelector('[data-role="rng-progress-bar"]');
+            if (bar) bar.style.width = `${percent}%`;
+            const label = indicator.querySelector('[data-role="rng-progress-label"]');
+            if (label) {
+                label.textContent = `${
+                    Math.round(completed).toLocaleString()
+                } / ${Math.round(total).toLocaleString()} outcomes (${
+                    Math.round(percent)
+                }%)`;
+            }
+        };
+
+        const applyDistribution = distribution => {
+            if (requestId !== this.randomDistributionRequestId || !this.results) return;
+            this.results.randomDistribution = distribution;
+            this.results.randomDistributionStale = false;
+            this.results.randomDistributionProgress = {
+                completed: distribution.trials,
+                total: distribution.trials,
+                percent: 100,
+            };
+            this.results.randomDistributionError = '';
+            this.adapter.renderResults(this);
+        };
+        const failDistribution = error => {
+            if (requestId !== this.randomDistributionRequestId || !this.results) return;
+            for (const worker of this.randomDistributionWorkers) {
+                worker.terminate();
+            }
+            this.randomDistributionWorkers.clear();
+            this.results.randomDistributionStale = false;
+            this.results.randomDistributionError = error instanceof Error
+                ? error.message
+                : String(error || 'RNG distribution failed.');
+            this.adapter.renderResults(this);
+        };
+
+        this.randomDistributionTimer = setTimeout(() => {
+            this.randomDistributionTimer = null;
+            if (requestId !== this.randomDistributionRequestId) return;
+
+            if (typeof Worker === 'function') {
+                const workerCount = randomDistributionWorkerCount(
+                    request.trials,
+                    globalThis.navigator?.hardwareConcurrency,
+                );
+                const batches = partitionRandomDistributionTrials(
+                    request.trials,
+                    workerCount,
+                );
+                const batchProgress = batches.map(() => 0);
+                const completedSamples = batches.map(() => null);
+                let completedWorkers = 0;
+                let failed = false;
+
+                batches.forEach((batch, batchIndex) => {
+                    const worker = new Worker(
+                        new URL('./random-distribution-worker.js', import.meta.url),
+                        { type: 'module' },
+                    );
+                    this.randomDistributionWorkers.add(worker);
+                    const finishWorker = () => {
+                        worker.terminate();
+                        this.randomDistributionWorkers.delete(worker);
+                    };
+                    worker.addEventListener('message', ({ data }) => {
+                        if (
+                            failed
+                            || data.requestId !== requestId
+                            || requestId !== this.randomDistributionRequestId
+                        ) return;
+                        if (data.progress) {
+                            batchProgress[batchIndex] = Math.max(
+                                0,
+                                Math.min(batch.trials, Number(data.progress.completed || 0)),
+                            );
+                            const completed = batchProgress.reduce(
+                                (sum, value) => sum + value,
+                                0,
+                            );
+                            applyProgress({
+                                completed,
+                                total: request.trials,
+                                percent: (completed / request.trials) * 100,
+                            });
+                            return;
+                        }
+                        finishWorker();
+                        if (data.error) {
+                            failed = true;
+                            failDistribution(data.error);
+                            return;
+                        }
+                        completedSamples[batchIndex] =
+                            data.distribution?.samples || [];
+                        completedWorkers += 1;
+                        if (completedWorkers === batches.length) {
+                            applyDistribution(
+                                summarizeRandomDistribution(
+                                    completedSamples.flat(),
+                                ),
+                            );
+                        }
+                    });
+                    worker.addEventListener('error', event => {
+                        if (failed) return;
+                        failed = true;
+                        finishWorker();
+                        failDistribution(event?.message);
+                    }, { once: true });
+                    worker.postMessage({
+                        requestId,
+                        request: { ...request, ...batch },
+                        includeSamples: true,
+                    });
+                });
+                return;
+            }
+
+            try {
+                applyDistribution(
+                    this.adapter.calculateRandomDistribution(request, {
+                        onProgress: applyProgress,
+                    }),
+                );
+            } catch (error) {
+                failDistribution(error);
+            }
+        }, RANDOM_DISTRIBUTION_DEBOUNCE_MS);
     }
 
     // Ensures selected skills are valid for current elite specialization
@@ -930,7 +1139,7 @@ export class ProfessionApp {
             option.icon
             || this.skillById.get(Number(option.skillId))?.icon
             || '';
-        const professionAssumptionItems = assumptionControls.map(control => {
+        const professionAssumptionItem = control => {
             const value = a[control.key] ?? control.defaultValue;
             if (control.type === 'boolean') {
                 return `<label class="boon-control"><input data-assumption-key="${esc(control.key)}" data-assumption-type="boolean" type="checkbox"${value ? ' checked' : ''}> ${esc(control.label)}</label>`;
@@ -974,7 +1183,15 @@ export class ProfessionApp {
                 <input data-assumption-key="${esc(control.key)}" data-assumption-type="number" type="number"
                     min="${control.minimum}" max="${control.maximum}" step="${control.step}" value="${Number(value)}">
             </label>`;
-        }).join('');
+        };
+        const professionAssumptionItems = assumptionControls
+            .filter(control => control.section !== 'simulation')
+            .map(professionAssumptionItem)
+            .join('');
+        const simulationAssumptionItems = assumptionControls
+            .filter(control => control.section === 'simulation')
+            .map(professionAssumptionItem)
+            .join('');
         const container = document.getElementById('perma-boons');
         container.innerHTML = `
             <div class="perma-group"><span class="perma-group-label">Boons</span>${boonItems}</div>
@@ -986,7 +1203,10 @@ export class ProfessionApp {
             </div>
             <div class="perma-group"><span class="perma-group-label">Party</span>
                 <label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>
-            </div>`;
+            </div>
+            ${simulationAssumptionItems
+                ? `<div class="perma-group"><span class="perma-group-label">Simulation</span>${simulationAssumptionItems}</div>`
+                : ''}`;
 
         container.querySelectorAll('input[type="checkbox"][data-effect-type]')
             .forEach(check => check.addEventListener('change', () => {

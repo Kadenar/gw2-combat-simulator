@@ -1,9 +1,15 @@
-import { spawnSync } from "node:child_process";
-import { readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import ts from "typescript";
 
-const SKIPPED_DIRECTORIES = new Set([".git", "node_modules"]);
+const SKIPPED_DIRECTORIES = new Set([
+  ".analysis-inputs",
+  ".claude",
+  ".git",
+  ".lavish",
+  "node_modules",
+]);
 
 function javascriptFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -16,16 +22,30 @@ function javascriptFiles(directory) {
 
 const files = javascriptFiles(process.cwd()).sort();
 for (const file of files) {
-  const result = spawnSync(process.execPath, ["--check", file], {
-    encoding: "utf8",
-  });
-  if (result.status !== 0) {
-    process.stderr.write(
-      result.stderr ||
-        result.stdout ||
-        `${file}: ${result.error?.message || "syntax check failed"}\n`,
-    );
-    process.exit(result.status || 1);
+  const source = ts.createSourceFile(
+    file,
+    readFileSync(file, "utf8"),
+    ts.ScriptTarget.Latest,
+    true,
+    file.endsWith(".mjs") ? ts.ScriptKind.JS : ts.ScriptKind.JS,
+  );
+  const diagnostics = source.parseDiagnostics || [];
+  if (diagnostics.length) {
+    for (const diagnostic of diagnostics) {
+      const position = diagnostic.start == null
+        ? null
+        : source.getLineAndCharacterOfPosition(diagnostic.start);
+      const location = position
+        ? `${file}:${position.line + 1}:${position.character + 1}`
+        : file;
+      process.stderr.write(
+        `${location} ${ts.flattenDiagnosticMessageText(
+          diagnostic.messageText,
+          "\n",
+        )}\n`,
+      );
+    }
+    process.exit(1);
   }
 }
 console.log(`Syntax checked ${files.length} JavaScript files.`);

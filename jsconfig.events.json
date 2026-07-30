@@ -9,6 +9,7 @@
     "moduleResolution": "NodeNext"
   },
   "include": [
-    "js/platform/engine/events.js"
+    "js/platform/engine/events.js",
+    "js/platform/engine/profession.js"
   ]
 }

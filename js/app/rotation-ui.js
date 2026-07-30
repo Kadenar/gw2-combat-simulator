@@ -9,8 +9,10 @@ import {
     virtualPaletteSkillHtml,
 } from '../platform/ui/palette.js';
 import {
+    EVENT_LOG_ORDER,
     eventLogCsv,
     mountEventLog,
+    normalizeEventLogDescriptor,
 } from '../platform/ui/event-log.js';
 import {
     skillBreakdownRows as transformSkillBreakdownRows,
@@ -71,6 +73,8 @@ const WEAPON_SET_REFRESH_SKILLS = new Set([
     "Exit Reaper's Shroud",
     'Harbinger Shroud',
     'Exit Harbinger Shroud',
+    "Ritualist's Shroud",
+    "Exit Ritualist's Shroud",
     'Enter Shadow Shroud',
     'Exit Shadow Shroud',
     'Enter Radiant Forge',
@@ -135,6 +139,7 @@ const EFFECT_NAMES = {
     'necromancer-soul-barbs': 'Soul Barbs',
 };
 const EFFECT_STACK_CAPS = {
+    Might: 25,
     Vulnerability: 25,
     "Kalla's Fervor": 5,
     'Compounding Power': 5,
@@ -931,18 +936,25 @@ export function renderPalette(app) {
     const autoattackChains = professionState.autoattackChains || {};
     const loadoutUnavailableMessage = skill =>
         app.adapter.slotLoadout?.unavailableReason(skill, paletteContext) || '';
+    const paletteAvailabilityBySkill = new Map();
+    const professionPaletteAvailability = skill => {
+        if (!paletteAvailabilityBySkill.has(skill)) {
+            paletteAvailabilityBySkill.set(
+                skill,
+                app.profession.ui.paletteSkillAvailability(
+                    paletteContext,
+                    skill,
+                ),
+            );
+        }
+        return paletteAvailabilityBySkill.get(skill);
+    };
     const professionAllowsPaletteSkill = skill =>
         !loadoutUnavailableMessage(skill)
-        && app.profession.ui.isPaletteSkillAvailable?.(
-            paletteContext,
-            skill,
-        ) !== false;
+        && professionPaletteAvailability(skill).available;
     const professionPaletteUnavailableMessage = skill =>
         loadoutUnavailableMessage(skill)
-        || app.profession.ui.paletteSkillUnavailableMessage?.(
-            paletteContext,
-            skill,
-        ) || '';
+        || professionPaletteAvailability(skill).message;
     const flipAvailable = skill => Boolean(
         availableFlips[skill.id] ?? availableFlips[skill.name],
     );
@@ -1658,38 +1670,6 @@ export function rotationWarningItems(result) {
     });
 }
 
-const eventLogOrder = {
-    combat_start: 5,
-    cast: 10,
-    resource: 30,
-    marker: 40,
-    proc: 50,
-    trigger: 55,
-    damage: 60,
-    condition: 70,
-    cast_end: 90,
-};
-
-function normalizedProfessionEventRow(descriptor) {
-    if (descriptor === null) return null;
-    if (!descriptor || typeof descriptor !== 'object') return undefined;
-    const type = String(descriptor.type || '').trim();
-    const description = String(descriptor.description || '').trim();
-    if (!type || !description) return undefined;
-    const flags = Array.isArray(descriptor.flags)
-        ? descriptor.flags.map(String)
-        : [];
-    return {
-        type,
-        description,
-        className: String(descriptor.className || ''),
-        order: Number.isFinite(Number(descriptor.order))
-            ? Number(descriptor.order)
-            : eventLogOrder[type] ?? 80,
-        phantasmClone: flags.includes('phantasm-clone'),
-    };
-}
-
 export function simulationEventLogRows(
     result,
     build = null,
@@ -1709,11 +1689,11 @@ export function simulationEventLogRows(
             description,
             className,
             phantasmClone,
-            order: eventLogOrder[type] ?? 80,
+            order: EVENT_LOG_ORDER[type] ?? 80,
         });
     };
     const pushProfessionRow = (event) => {
-        const descriptor = normalizedProfessionEventRow(
+        const normalized = normalizeEventLogDescriptor(
             professionUi.eventLogRow?.(
                 {
                     result,
@@ -1725,12 +1705,14 @@ export function simulationEventLogRows(
                 event,
             ),
         );
-        if (descriptor === null) return;
-        if (descriptor) {
+        if (normalized === null) return;
+        if (normalized) {
+            const { flags, ...descriptor } = normalized;
             const displayAt = Number(event.at || 0) - displayReferenceSeconds;
             rows.push({
                 at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
                 ...descriptor,
+                phantasmClone: flags.includes('phantasm-clone'),
             });
             return;
         }
@@ -1984,7 +1966,10 @@ export function renderResults(app) {
         element.innerHTML = '';
         return;
     }
-    const metrics = resultSummaryMetrics(result);
+    const metrics = resultSummaryMetrics(result).map(metric =>
+        result.randomDistributionRequested && metric.label === 'DPS'
+            ? { ...metric, label: 'Baseline DPS' }
+            : metric);
     const skillRows = skillBreakdownRows(result);
     const conditions = result.conditionBreakdown || [];
     const series = buildChartSeries(result);
@@ -2013,6 +1998,17 @@ export function renderResults(app) {
         } : null,
         contributions,
         contributionsStale: result.modifierContributionsStale === true,
+        randomDistribution: result.randomDistribution || null,
+        randomDistributionRequested:
+            result.randomDistributionRequested === true,
+        randomDistributionStale:
+            result.randomDistributionStale === true,
+        randomDistributionTrials:
+            Number(result.randomDistributionTrials || 0),
+        randomDistributionProgress:
+            result.randomDistributionProgress || null,
+        randomDistributionError:
+            result.randomDistributionError || '',
         chartSeries: series,
     }, {
         resolveSkillIcon: row => resultSkillIcon(app, row),

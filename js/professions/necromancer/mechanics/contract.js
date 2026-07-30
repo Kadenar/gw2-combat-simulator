@@ -22,6 +22,7 @@ import {
 } from "./specific/shared.js";
 import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
 import { necromancerWeaponTaskHandlers } from "./specific/weapons.js";
+import { necromancerMinionTaskHandlers } from "./specific/minions.js";
 import {
   EXIT_IDS,
   hasTrait,
@@ -82,7 +83,11 @@ function updateNecromancerCastState(context, skill) {
     state.autoattackChains = {};
   }
 
-  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
+  if (
+    skill.flipSkillId != null &&
+    skill.flipSkillId !== skill.nextChainId &&
+    skill.handlerId !== "necromancer.minion"
+  ) {
     const flip = context.catalog.skillsById.get(skill.flipSkillId);
     if (flip && flip.name !== skill.name && flip.flipParentId === skill.id) {
       state.availableFlips[flip.id] =
@@ -93,7 +98,11 @@ function updateNecromancerCastState(context, skill) {
         );
     }
   }
-  if (skill.flipParentId != null && !EXIT_IDS.has(skill.id)) {
+  if (
+    skill.flipParentId != null &&
+    !EXIT_IDS.has(skill.id) &&
+    skill.handlerId !== "necromancer.minion-command"
+  ) {
     delete state.availableFlips[skill.id];
   }
 
@@ -300,8 +309,19 @@ function onEventScheduled(context, event) {
     return;
   const skill = context.catalog.skillsById.get(event.skillId);
   if (!skill) return;
+  if (
+    Number(state.plagueSendingEntrySkillId) === Number(event.skillId)
+  ) return;
+  const transferred = transferNecromancerSelfConditions(
+    context,
+    skill,
+    2,
+    event.at,
+    { latestApplications: true },
+  );
+  if (!transferred) return;
   state.plagueSendingArmed = false;
-  transferNecromancerSelfConditions(context, skill, 2, event.at);
+  state.plagueSendingEntrySkillId = null;
 }
 
 /**
@@ -360,5 +380,8 @@ export const necromancerSchedulerHooks = Object.freeze({
     context.state.profession.selfConditions = [];
   },
   onEventScheduled,
-  taskHandlers: necromancerWeaponTaskHandlers,
+  taskHandlers: Object.freeze({
+    ...necromancerWeaponTaskHandlers,
+    ...necromancerMinionTaskHandlers,
+  }),
 });

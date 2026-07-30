@@ -58,6 +58,24 @@ const IMPLEMENTED = new Set([
 const reason =
   "This healing, barrier, ally-only, movement, incoming-hit, defensive, revival, or competitive-only effect does not change the deterministic single-target damage model.";
 
+const EVIDENCE_BY_SPECIALIZATION = Object.freeze({
+  Daredevil: "Daredevil capacity and every dodge replacement resolve explicitly",
+  Deadeye: "Deadeye Mark grants malice once per initiative skill use",
+  Specter: "Specter Siphon, initiative spending, and Shadow Shroud share force",
+  Antiquary: "Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic",
+});
+
+function implementedEvidence(trait) {
+  const specializationTest =
+    EVIDENCE_BY_SPECIALIZATION[trait.specialization];
+  return specializationTest
+    ? { file: "tests/thief.test.js", name: specializationTest }
+    : {
+        file: "tests/native-build-attributes.test.js",
+        name: "Thief uses current flat trait and conversion values",
+      };
+}
+
 const manifest = thiefCatalog.traits.map(trait => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
@@ -73,7 +91,7 @@ const manifest = thiefCatalog.traits.map(trait => {
       ...(implemented ? {} : { reason }),
     }],
     ...(implemented
-      ? { tests: ["tests/thief.test.js#trait-coverage"] }
+      ? { tests: [implementedEvidence(trait)] }
       : { reason }),
   };
 });

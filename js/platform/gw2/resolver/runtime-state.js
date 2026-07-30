@@ -1,3 +1,5 @@
+import { createSimulationRandom } from "../../engine/simulation-random.js";
+
 /**
  * Creates the mutable state for the full GW2 timeline resolver.
  * Profession state is supplied independently from common relic, sigil,
@@ -62,6 +64,7 @@ export function createGw2ResolverRuntimeState({
       criticalProgress: 0,
       readyAt: 0,
     },
+    random: createSimulationRandom(config.randomness),
 
     recordProc(
       type,
@@ -93,15 +96,10 @@ export function createGw2ResolverRuntimeState({
     },
 
     addBreakdown(name, damage, type, hits = 0, source = null) {
-      const sourceSkill =
-        source?.skillName
-        || source?.name
-        || name;
+      const sourceSkill = source?.skillName || source?.name || name;
       const parentSkill = source?.parentSkillName || "";
       const sourceId = source?.skillId ?? source?.sourceId ?? sourceSkill;
-      const key = source
-        ? `${String(sourceId)}|${parentSkill}|${name}`
-        : name;
+      const key = source ? `${String(sourceId)}|${parentSkill}|${name}` : name;
       const current = this.breakdown.get(key) || {
         name,
         sourceSkill,

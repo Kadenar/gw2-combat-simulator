@@ -1,7 +1,8 @@
 # Revenant simulator
 
-The Revenant implementation uses the generated Guild Wars 2 API identity
-snapshot from July 28, 2026 and checked-in PvE Wiki mechanics research.
+The Revenant implementation uses the checked-in Guild Wars 2 API identity
+snapshot from July 28, 2026 plus manually reviewed PvE mechanics encoded in
+the profession modules.
 
 ## Implemented systems
 
@@ -21,7 +22,9 @@ snapshot from July 28, 2026 and checked-in PvE Wiki mechanics research.
 
 ## Data provenance
 
-`scripts/update-profession-data.mjs` owns API identity data.
-`scripts/update-profession-wiki-data.mjs` owns the checked-in Wiki research,
-including energy and upkeep fields. Runtime simulation is network-free and each
-research record pins its source URL, revision ID, and revision date.
+Refresh API identity data with
+`npm run update:profession-data -- --profession Revenant`, which runs
+`scripts/update-profession-api-data.mjs`. Runtime simulation is network-free.
+Energy, upkeep, and other non-API mechanics are manually reviewed and checked
+into the mechanics modules; the repository does not currently track
+per-record Wiki revision metadata.

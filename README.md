@@ -1,7 +1,8 @@
 # Guild Wars 2 Combat Simulator
 
 A standalone deterministic PvE build and rotation simulator with browser
-applications for Mesmer, Elementalist, Guardian, and Necromancer.
+applications for every profession registered in
+`js/app/profession-registry.js`.
 
 Choose a profession from the landing page or the shared simulator header:
 
@@ -9,6 +10,9 @@ Choose a profession from the landing page or the shared simulator header:
 - **Elementalist**: Core, Tempest, Weaver, Catalyst, and Evoker.
 - **Guardian**: Core, Dragonhunter, Firebrand, Willbender, and Luminary.
 - **Necromancer**: Core, Reaper, Scourge, Harbinger, and Ritualist.
+- **Engineer**: Core, Scrapper, Holosmith, Mechanist, and Amalgam.
+- **Revenant**: Core, Herald, Renegade, Vindicator, and Conduit.
+- **Thief**: Core, Daredevil, Deadeye, Specter, and Antiquary.
 
 The Elementalist package is a direct port of the reference
 `Elementalist-Simulator` implementation. It retains its event scheduler,
@@ -62,6 +66,9 @@ gw2-combat-simulator/
       elementalist/            Elementalist implementation and optimizer
       guardian/                Guardian data, rules, mechanics, and build codec
       necromancer/             Necromancer data, shrouds, summons, and rules
+      engineer/                Engineer kits, heat, mech, and Amalgam rules
+      revenant/                Revenant legends, energy, and Conduit rules
+      thief/                   Thief initiative, stealth, and artifact rules
     app/                       shared browser shell and composition
   Builds/                      Elementalist build presets
   Rotations/                   profession rotation examples
@@ -71,6 +78,9 @@ gw2-combat-simulator/
   elementalist.html            Elementalist application
   guardian.html                Guardian application
   necromancer.html             Necromancer application
+  engineer.html                Engineer application
+  revenant.html                Revenant application
+  thief.html                   Thief application
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the profession contract and
@@ -81,3 +91,6 @@ responsibilities and public contracts. Profession-specific documentation:
 - Elementalist implementation details: [docs/ELEMENTALIST.md](docs/ELEMENTALIST.md)
 - Guardian status: [docs/GUARDIAN.md](docs/GUARDIAN.md)
 - Necromancer status: [docs/NECROMANCER.md](docs/NECROMANCER.md)
+- Engineer status: [docs/ENGINEER.md](docs/ENGINEER.md)
+- Revenant status: [docs/REVENANT.md](docs/REVENANT.md)
+- Thief status: [docs/THIEF.md](docs/THIEF.md)

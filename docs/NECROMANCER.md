@@ -36,8 +36,10 @@ Same-name API mode aliases resolve to one canonical selectable skill.
 - Reaper Shroud, four-percent-per-second drain, its complete bar, autoattack
   chain, flips, channels, control, chill, Reaper's Onslaught one-second
   shroud-skill recharge reductions, and Reaper trait modifiers.
-- Scourge F1–F5, three-charge Manifest Sand Shade, shade duration/cap, current
-  PvE life-force costs, Sand Savant, Desert Shroud, and Sandstorm Shroud.
+- Scourge F1–F5, three-charge Manifest Sand Shade, fixed base-health
+  life-force costs, Sand Savant duration/recharge, seven-pulse Desert Shroud,
+  and delayed Sandstorm Shroud. Abrasive Grit and Desert Empowerment react to
+  barrier from Scourge skills, while Sand Sage tracks active shades.
 - Harbinger Shroud, zero-resource entry, five-percent-per-second drain,
   two Blight per second, 25-stack cap, 25-second expiration, elixir Blight,
   empowered consumption thresholds, Cascading Corruption, Deathly Haste,
@@ -95,7 +97,7 @@ Same-name API mode aliases resolve to one canonical selectable skill.
   each interval outside shroud up to its threshold, and Death Perception adds
   critical chance globally plus critical-hit damage while shroud is active.
   Soul Barbs is a non-stacking 15-second active state refreshed on shroud
-  entry and exit.
+  entry and exit; Desert Shroud and Sandstorm Shroud trigger the entry effect.
 - Dhuumfire burns for three seconds on core/Reaper/Ritualist, two seconds on
   Scourge with a one-second internal cooldown, and one second per Tainted
   Bolts projectile on Harbinger. Septic Corruption applies poison per Dark
@@ -108,11 +110,11 @@ Same-name API mode aliases resolve to one canonical selectable skill.
   canonical ID rotations, independent browser storage, and Life Force/Blight
   start controls. Life Force values are rounded for display, and Blight is
   stacked below Life Force rather than extending the palette horizontally.
-- The Harbinger Power and condition presets and supplied Power Reaper benchmark
-  preset are loaded through `Builds/necromancer-manifest.json`. Build files
-  remain rotation-free; the Reaper preset loads
-  `Rotations/r-power-reaper-bench.json` separately. Meltdown uses its wiki
-  effect icon in proc results and modifier contributions.
+- The benchmark-backed Condition Scourge, Power/Condition Reaper, and Power
+  Ritualist presets are loaded through `Builds/necromancer-manifest.json`.
+  Build files remain rotation-free and load their rotations separately.
+  Meltdown uses its wiki effect icon in proc results and modifier
+  contributions.
 
 Core, Reaper, Harbinger, and Ritualist shroud skills remain visible while the
 matching shroud is inactive, but are disabled until entry. Weapon and slot
@@ -147,6 +149,7 @@ Gravedigger fully recharges when its hit lands after the configured target has
 dropped below 50% health.
 
 Life-force capacity is 69% of the Necromancer's maximum health and therefore
-scales with Vitality. Soul Battery increases that capacity by 20%. Skill gains,
-costs, and shroud upkeep are percentages of the resulting pool; Death Shroud
-drains 3% per second and Reaper's Shroud drains 4% per second.
+scales with Vitality. Soul Battery increases that capacity by 20%. Most skill
+gains, costs, and shroud upkeep are percentages of the resulting pool; Scourge
+shade costs are fixed percentages of the Necromancer's 9,212 base health.
+Death Shroud drains 3% per second and Reaper's Shroud drains 4% per second.

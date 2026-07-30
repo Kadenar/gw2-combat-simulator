@@ -81,7 +81,6 @@ export function createGuardianBuildDefaults() {
       targetConditions: createDefaultTargetConditions(),
       targetSkillActivationsPerSecond: 0,
     },
-    initialResource: 0,
     initialTomePages: 5,
     startingWeaponSet: 1,
     targetHealth: 3_970_000,
@@ -97,8 +96,9 @@ const guardianBuildCodec = createGw2BuildCodec({
   createDefaults: createGuardianBuildDefaults,
   normalizeExtra(build, { saved }) {
     const configured = Number(saved.initialTomePages ?? 5);
+    const { initialResource: _discardedInitialResource, ...current } = build;
     return {
-      ...build,
+      ...current,
       initialTomePages: Math.max(
         0,
         Math.min(8, Math.trunc(Number.isFinite(configured) ? configured : 5)),

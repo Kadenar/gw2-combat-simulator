@@ -1,7 +1,8 @@
 # Thief simulator
 
-The Thief implementation uses the generated Guild Wars 2 API identity snapshot
-from July 28, 2026 and checked-in PvE Wiki mechanics research.
+The Thief implementation uses the checked-in Guild Wars 2 API identity
+snapshot from July 28, 2026 plus manually reviewed PvE mechanics encoded in
+the profession modules.
 
 ## Implemented systems
 
@@ -27,7 +28,9 @@ scenario choices; simulation never uses unseeded randomness.
 
 ## Data provenance
 
-`scripts/update-profession-data.mjs` owns API identity data.
-`scripts/update-profession-wiki-data.mjs` owns the checked-in Wiki research,
-including initiative fields. Runtime simulation is network-free and every
-research record pins its source URL, revision ID, revision date, and PvE facts.
+Refresh API identity data with
+`npm run update:profession-data -- --profession Thief`, which runs
+`scripts/update-profession-api-data.mjs`. Runtime simulation is network-free.
+Initiative and other non-API mechanics are manually reviewed and checked into
+the mechanics modules; the repository does not currently track per-record
+Wiki revision metadata.

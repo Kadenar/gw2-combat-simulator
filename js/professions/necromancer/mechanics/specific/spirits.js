@@ -1,21 +1,24 @@
 /**
- * Ritualist spirit handlers.
+ * Ritualist spirits, spirit actives, and innervations.
  *
- * Summoning a spirit (Anguish, Wanderlust) records it in `state.activeSpirits`,
- * fires its summon burst, and queues recurring `necromancer.summon-attack`
- * events (materialized in events.js) for the rest of the sim. Essence Blast
- * scales with the number of active spirits; Summon Spirits detonates them.
- * Innervate skills consume/enhance spirits for life force. Soul Twisting arms a
- * pending free recast. Exports `necromancerSpiritSkillHandlers`.
+ * Spirit summons keep a generation number so replacing a spirit invalidates
+ * its old queued autoattacks. Periodic attacks share a four-second cadence.
+ * Summon Spirits schedules each spirit's distinct follow-up instead of
+ * collapsing them into the player cast.
  */
-import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
 import { NECROMANCER_HANDLER_MECHANICS as MECHANICS } from "../handler-mechanics.js";
 import {
-  emitControl,
+  emitBuff,
+  emitCondition,
   emitCreatureSummonTraits,
   emitDamage,
   emitState,
   gainNecromancerLifeForce,
+  hasTrait,
 } from "./shared.js";
 
 const SPIRITS = MECHANICS.spirits;
@@ -26,11 +29,36 @@ function activePrimaryWeapon(context) {
     : context.config.primaryWeapon || "";
 }
 
+function spiritMetadata(key, attackType, extra = {}) {
+  return {
+    summonKind: "spirit",
+    summonOwner: `spirit:${key}`,
+    spirit: key,
+    spiritAttackType: attackType,
+    weaponStrength: MECHANICS.summonWeaponStrength,
+    ...extra,
+  };
+}
+
+function nextSpiritPulse(state, at) {
+  if (!Number.isFinite(state.spiritAutoAnchorAt)) {
+    state.spiritAutoAnchorAt = at + MECHANICS.firstSpiritAttackDelay;
+  }
+  const interval = MECHANICS.spiritAttackInterval;
+  return state.spiritAutoAnchorAt > at
+    ? state.spiritAutoAnchorAt
+    : state.spiritAutoAnchorAt
+      + Math.ceil((at - state.spiritAutoAnchorAt + Number.EPSILON) / interval)
+        * interval;
+}
+
 function queueSpiritAutoattacks(context, skill, spirit, at) {
   if (!(spirit.attackCoefficient > 0)) return;
+  const state = context.state.profession;
+  const generation = Number(state.spiritGenerations[spirit.key] || 0);
   const horizon = at + Math.max(180, Number(context.config.duration || 0));
   for (
-    let attackAt = at + MECHANICS.spiritAttackInterval;
+    let attackAt = nextSpiritPulse(state, at);
     attackAt <= horizon;
     attackAt += MECHANICS.spiritAttackInterval
   ) {
@@ -41,13 +69,229 @@ function queueSpiritAutoattacks(context, skill, spirit, at) {
       sourceId: skill.id,
       actorType: "summon",
       skillId: skill.id,
-      skillName: `${skill.name} — Spirit Attack`,
-      name: `${skill.name} — Spirit Attack`,
+      skillName: `${skill.name} Autoattack`,
+      name: `${skill.name} Autoattack`,
+      icon: skill.icon || "",
       coefficient: spirit.attackCoefficient,
+      weaponStrength: MECHANICS.summonWeaponStrength,
       requiresSpirit: spirit.key,
+      requiresSpiritGeneration: generation,
       summonKind: "spirit",
+      summonOwner: `spirit:${spirit.key}`,
+      spirit: spirit.key,
+      spiritAttackType: "autoattack",
+      anguishConditionalDamage: spirit.key === "anguish",
     });
   }
+}
+
+function emitEmpoweringSpirits(context, skill, key) {
+  if (!hasTrait(context, TRAIT.EMPOWERING_SPIRITS)) return;
+  emitBuff(context, skill, "quickness", 3.75);
+  if (key === "anguish") {
+    emitBuff(context, skill, "might", 10, 8);
+  } else if (key === "wanderlust") {
+    emitBuff(context, skill, "fury", 5);
+  } else if (key === "preservation") {
+    emitBuff(context, skill, "resolution", 4);
+  }
+}
+
+function painfulBondDuration(context) {
+  const stats = context.config.stats || {};
+  const bonus =
+    Number(stats.concentration || 0) / 1500
+    + Number(stats.boonDurationBonus || 0) / 100
+    + Number(stats.boonDurationBonuses?.["Painful Bond"] || 0) / 100;
+  return MECHANICS.painfulBond.duration
+    * Math.max(1, Math.min(2, 1 + bonus));
+}
+
+function emitPainfulBond(context, skill, at) {
+  const duration = painfulBondDuration(context);
+  context.emit({
+    type: "buff",
+    at,
+    source: "necromancer",
+    sourceId: skill.id,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: skill.name,
+    name: "Painful Bond",
+    kind: "necromancer-painful-bond",
+    duration,
+    stacks: 1,
+  });
+  context.emit({
+    type: "necromancer.painful-bond",
+    at,
+    mode: "apply",
+    source: "Spirit",
+    sourceId: "ritualist.painful-bond",
+    actorType: "effect",
+    skillName: "Painful Bond",
+    name: "Painful Bond",
+    icon: MECHANICS.painfulBond.icon,
+    duration,
+    triggeredBy: skill.name,
+  });
+}
+
+function emitAnguishInitial(context, skill, spirit, at) {
+  emitCondition(context, skill, "Crippled", 1, 4, { at });
+  context.emit({
+    type: "buff",
+    at,
+    source: "necromancer",
+    sourceId: skill.id,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: skill.name,
+    kind: "target-vulnerability",
+    duration: 10,
+    stacks: 8,
+  });
+  const impactAt = at + spirit.summonDelay;
+  emitPainfulBond(context, skill, impactAt);
+  emitDamage(context, skill, spirit.summonCoefficient, {
+    at: impactAt,
+    hits: spirit.summonHits,
+    interval: spirit.summonInterval,
+    name: skill.name,
+    source: "Spirit",
+    actorType: "summon",
+    metadata: spiritMetadata("anguish", "initial", {
+      anguishConditionalDamage: true,
+      weaponStrength: spirit.summonWeaponStrength,
+    }),
+  });
+}
+
+function emitWanderlustInitial(context, skill, spirit, at) {
+  emitDamage(context, skill, spirit.summonCoefficient, {
+    at: context.start + 0.72,
+    skillWeapon: activePrimaryWeapon(context),
+  });
+  const fieldAt = at + spirit.lingeringDelay;
+  emitDamage(context, skill, spirit.lingeringCoefficient, {
+    at: fieldAt,
+    hits: spirit.lingeringHits,
+    interval: spirit.lingeringInterval,
+    name: "Spirit of Wanderlust — Initial Attack",
+    source: "Spirit",
+    actorType: "summon",
+    metadata: spiritMetadata("wanderlust", "initial"),
+  });
+  emitCondition(context, skill, "Chilled", 1, 2, { at: fieldAt });
+  context.emit({
+    type: "buff",
+    at: fieldAt,
+    source: "Spirit",
+    sourceId: skill.id,
+    actorType: "summon",
+    skillId: skill.id,
+    skillName: skill.name,
+    kind: "target-vulnerability",
+    duration: 6,
+    stacks: 4,
+    ...spiritMetadata("wanderlust", "initial"),
+  });
+  emitCondition(context, skill, "Weakness", 1, 4, {
+    at: fieldAt + 2,
+    source: "Spirit",
+    actorType: "summon",
+    metadata: spiritMetadata("wanderlust", "initial"),
+  });
+  emitCondition(context, skill, "Slow", 1, 2, {
+    at: fieldAt + 3,
+    source: "Spirit",
+    actorType: "summon",
+    metadata: spiritMetadata("wanderlust", "initial"),
+  });
+  context.emit({
+    type: "control",
+    at: fieldAt + 3,
+    source: "Spirit",
+    sourceId: skill.id,
+    actorType: "summon",
+    skillId: skill.id,
+    skillName: skill.name,
+    controlKind: "knockdown",
+    ...spiritMetadata("wanderlust", "initial"),
+  });
+}
+
+function summonSpirit(context, skill, spirit, at) {
+  const state = context.state.profession;
+  state.activeSpirits[spirit.key] = true;
+  state.spiritGenerations[spirit.key] =
+    Number(state.spiritGenerations[spirit.key] || 0) + 1;
+  const initialDuration = spirit.key === "anguish" ? 1.1 : 0;
+  state.spiritInitialUntil[spirit.key] = at + initialDuration;
+  state.spiritBusyUntil[spirit.key] = at + initialDuration;
+  if (state.soulTwistingAvailable) {
+    state.soulTwistingAvailable = false;
+    state.pendingSoulTwistSkill = skill.id;
+  }
+  emitState(context, at, "spirit-summoned");
+  emitCreatureSummonTraits(context, skill, at);
+  emitEmpoweringSpirits(context, skill, spirit.key);
+
+  if (spirit.key === "anguish") {
+    emitAnguishInitial(context, skill, spirit, at);
+  } else if (spirit.key === "wanderlust") {
+    emitWanderlustInitial(context, skill, spirit, at);
+  } else if (spirit.key === "preservation") {
+    emitBuff(context, skill, "protection", 4);
+    emitBuff(context, skill, "vigor", 4);
+  }
+  queueSpiritAutoattacks(context, skill, spirit, at);
+}
+
+function summonSpirits(context, skill, at) {
+  const state = context.state.profession;
+  for (const spirit of Object.values(SPIRITS)) {
+    if (
+      !state.activeSpirits[spirit.key]
+      || Number(state.spiritInitialUntil[spirit.key] || 0) > at
+    ) continue;
+    if (spirit.activeCoefficient > 0 && spirit.activeHits > 0) {
+      emitDamage(context, skill, spirit.activeCoefficient, {
+        at: at + spirit.activeDelay,
+        hits: spirit.activeHits,
+        interval: spirit.activeInterval,
+        name: skill.name,
+        source: "Spirit",
+        sourceId: `ritualist.${spirit.key}.summon-spirits`,
+        actorType: "summon",
+        skillWeapon: "Unequipped",
+        metadata: spiritMetadata(spirit.key, "summon-spirits", {
+          anguishConditionalDamage: spirit.key === "anguish",
+          weaponStrength: MECHANICS.summonSpiritsWeaponStrength,
+        }),
+      });
+    }
+    if (spirit.key === "wanderlust") {
+      context.emit({
+        type: "control",
+        at: at + spirit.activeDelay,
+        source: "Spirit",
+        sourceId: `ritualist.${spirit.key}.summon-spirits`,
+        actorType: "summon",
+        skillId: skill.id,
+        skillName: skill.name,
+        controlKind: "daze",
+        duration: 2,
+        ...spiritMetadata(spirit.key, "summon-spirits"),
+      });
+    }
+    state.spiritBusyUntil[spirit.key] =
+      Math.max(
+        Number(state.spiritBusyUntil[spirit.key] || 0),
+        at + spirit.activeDuration,
+      );
+  }
+  emitState(context, at, "summon-spirits");
 }
 
 function ritualist(context, skill) {
@@ -59,80 +303,25 @@ function ritualist(context, skill) {
     emitDamage(
       context,
       skill,
-      essence.coefficient * (1 + spirits * essence.coefficientPerSpirit),
+      essence.coefficient,
       {
         skillWeapon: activePrimaryWeapon(context),
-        metadata: { activeSpirits: spirits },
+        metadata: {
+          activeSpirits: spirits,
+          essenceBlastDamagePerSpirit: essence.damagePerSpirit,
+        },
       },
     );
     return true;
   }
   if (skill.id === ID.SUMMON_SPIRITS) {
-    for (const key of Object.keys(state.activeSpirits)) {
-      const coefficient = Object.values(SPIRITS)
-        .find(definition => definition.key === key)
-        ?.activeCoefficient || 0;
-      if (coefficient > 0) {
-        emitDamage(context, skill, coefficient, {
-          source: "Spirit",
-          sourceId: `ritualist.${key}`,
-          actorType: "summon",
-          skillWeapon: "Hammer",
-          metadata: { summonKind: "spirit" },
-        });
-      }
-    }
+    summonSpirits(context, skill, at);
     return true;
   }
 
   const spirit = SPIRITS[skill.id];
   if (!spirit) return false;
-  state.activeSpirits[spirit.key] = true;
-  if (state.soulTwistingAvailable) {
-    state.soulTwistingAvailable = false;
-    state.pendingSoulTwistSkill = skill.id;
-  }
-  emitState(context, at, "spirit-summoned");
-  emitCreatureSummonTraits(context, skill, at);
-
-  if (skill.id === ID.ANGUISH) {
-    emitDamage(context, skill, spirit.summonCoefficient, {
-      hits: spirit.summonHits,
-      interval: spirit.summonInterval,
-      source: "Spirit",
-      actorType: "summon",
-      metadata: { summonKind: "spirit" },
-    });
-    const painfulBond = MECHANICS.painfulBond;
-    for (let index = 1; index <= painfulBond.hits; index += 1) {
-      context.emit({
-        type: "damage",
-        at: at + index * painfulBond.interval,
-        source: "Spirit",
-        sourceId: "ritualist.painful-bond",
-        actorType: "effect",
-        skillId: skill.id,
-        skillName: skill.name,
-        name: "Painful Bond",
-        coefficient: 0,
-        flatStrikeBase: painfulBond.flatStrikeBase,
-        flatStrikePowerCoeff: painfulBond.flatStrikePowerCoeff,
-        noCrit: true,
-        damageKind: "life-steal",
-      });
-    }
-  } else if (skill.id === ID.WANDERLUST) {
-    emitDamage(context, skill, spirit.summonCoefficient);
-    emitDamage(context, skill, spirit.lingeringCoefficient, {
-      hits: spirit.lingeringHits,
-      interval: spirit.lingeringInterval,
-      source: "Spirit",
-      actorType: "summon",
-      metadata: { summonKind: "spirit" },
-    });
-    emitControl(context, skill, "knockdown");
-  }
-  queueSpiritAutoattacks(context, skill, spirit, at);
+  summonSpirit(context, skill, spirit, at);
   return true;
 }
 
@@ -142,10 +331,34 @@ function innervate(context, skill) {
     emitDamage(context, skill, MECHANICS.innervateAnguish.coefficient, {
       source: "Spirit",
       actorType: "summon",
-      metadata: { summonKind: "spirit" },
+      metadata: {
+        summonKind: "spirit",
+        summonOwner: "spirit:anguish",
+        spirit: "anguish",
+        spiritAttackType: "innervate",
+      },
     });
+    emitBuff(context, skill, "might", 10, 8);
+    emitBuff(context, skill, "fury", 5);
   } else if (skill.id === ID.INNERVATE_WANDERLUST) {
-    emitControl(context, skill, "fear");
+    context.emit({
+      type: "control",
+      at,
+      source: "Spirit",
+      sourceId: skill.id,
+      actorType: "summon",
+      skillId: skill.id,
+      skillName: skill.name,
+      controlKind: "fear",
+      duration: 1.5,
+      ...spiritMetadata("wanderlust", "innervate"),
+    });
+  } else if (skill.id === ID.INNERVATE_PRESERVATION) {
+    emitBuff(context, skill, "aegis", 3);
+    emitBuff(context, skill, "resistance", 4);
+    emitBuff(context, skill, "stability", 5);
+  } else {
+    return false;
   }
   gainNecromancerLifeForce(context, 10, at);
   emitState(context, at, "innervate");

@@ -168,10 +168,17 @@ export function emitControl(
   });
 }
 
-export function emitBuff(context, skill, kind, duration, stacks = 1) {
+export function emitBuff(
+  context,
+  skill,
+  kind,
+  duration,
+  stacks = 1,
+  { at = context.effectiveEnd, metadata = {} } = {},
+) {
   context.emit({
     type: "buff",
-    at: context.effectiveEnd,
+    at,
     source: "necromancer",
     sourceId: skill.id,
     actorType: "player",
@@ -180,7 +187,29 @@ export function emitBuff(context, skill, kind, duration, stacks = 1) {
     kind,
     duration,
     stacks,
+    ...metadata,
   });
+}
+
+export function necromancerBoonDuration(
+  context,
+  boon,
+  baseDuration,
+  at = context.effectiveEnd,
+) {
+  let concentration = Number(context.config.stats?.concentration || 0);
+  if (
+    hasTrait(context, TRAIT.SAND_SAGE)
+    && (context.state.profession.shades || []).some(expiresAt => expiresAt > at)
+  ) {
+    concentration += 225;
+  }
+  const name = String(boon || "");
+  const bonus =
+    concentration / 1500
+    + Number(context.config.stats?.boonDurationBonus || 0) / 100
+    + Number(context.config.stats?.boonDurationBonuses?.[name] || 0) / 100;
+  return Number(baseDuration) * Math.max(1, Math.min(2, 1 + bonus));
 }
 
 export function purgeTimedState(state, at) {
@@ -284,12 +313,18 @@ export function emitCreatureSummonTraits(context, skill, at, count = 1) {
       skill,
       MECHANICS.traitStrikeCoefficient[TRAIT.EXPLOSIVE_GROWTH] * count,
       {
-      at,
-      name: "Explosive Growth",
-      source: "Trait",
-      sourceId: TRAIT.EXPLOSIVE_GROWTH,
-      actorType: "effect",
-      skillWeapon: "Unequipped",
+        at,
+        name: "Explosive Growth",
+        source: "Trait",
+        sourceId: TRAIT.EXPLOSIVE_GROWTH,
+        actorType: "effect",
+        skillWeapon: "Unequipped",
+        metadata: {
+          skillId: TRAIT.EXPLOSIVE_GROWTH,
+          skillName: "Explosive Growth",
+          parentSkillName: skill.name,
+          triggeredBy: skill.name,
+        },
       },
     );
   }

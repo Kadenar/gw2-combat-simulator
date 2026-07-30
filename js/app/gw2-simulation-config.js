@@ -2,7 +2,14 @@ import {
   aggregateSigilSet,
   weaponSigilsForSet,
 } from "../platform/gw2/weapon-sigils.js";
+import {
+  createAttributeProvenance,
+} from "../platform/gw2/attribute-provenance.js";
 import { assumptionControlsForSpecialization } from "./profession-assumptions.js";
+import {
+  isSimulationRandomnessControl,
+  simulationRandomnessFromAssumptions,
+} from "./simulation-randomness.js";
 
 /**
  * Assembles common equipment, boon, target, weapon, and stat simulation input.
@@ -84,6 +91,12 @@ export function createGw2SimulationConfig({
       app.adapter?.assumptionControls || [],
       specialization,
     );
+  const calculatedWeaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1;
+  const calculatedPrimaryWeapon = (
+    calculatedWeaponSet === 2
+      ? app.build.alternateWeapons
+      : app.build.weapons
+  )?.[0] || "";
 
   return {
     specialization,
@@ -105,6 +118,11 @@ export function createGw2SimulationConfig({
     weaponSet2Primary: app.build.alternateWeapons[0],
     weaponSet2Secondary: app.build.alternateWeapons[1],
     startingWeaponSet: app.build.startingWeaponSet === 2 ? 2 : 1,
+    attributeProvenance: createAttributeProvenance({
+      professionStaticRulesApplied: true,
+      calculatedWeaponSet,
+      calculatedPrimaryWeapon,
+    }),
     initialResource,
     playerHealthFraction: Math.max(
       0,
@@ -112,9 +130,12 @@ export function createGw2SimulationConfig({
     ),
     deterministicChoices: Object.fromEntries(
       professionAssumptionControls
-        .filter((control) => control.type === "select")
+        .filter((control) =>
+          control.type === "select"
+          && !isSimulationRandomnessControl(control))
         .map((control) => [control.key, assumptions[control.key]]),
     ),
+    randomness: simulationRandomnessFromAssumptions(assumptions),
     professionAssumptions: Object.fromEntries(
       professionAssumptionControls.map((control) => [
         control.key,

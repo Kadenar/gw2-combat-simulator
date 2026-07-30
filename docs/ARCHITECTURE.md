@@ -13,6 +13,9 @@ js/
     elementalist/  Elementalist engine, data, app adapter, and optimizer
     guardian/      Guardian API catalog, virtues, rules, and declarative skills
     necromancer/   Necromancer catalog, shrouds, summons, rules, and adapter
+    engineer/      Engineer catalog, kits, heat, mech, and Amalgam mechanics
+    revenant/      Revenant catalog, legends, energy, and Conduit mechanics
+    thief/         Thief catalog, initiative, stealth, and artifact mechanics
   app/             browser composition and persistence adapters
 ```
 
@@ -31,8 +34,8 @@ runtime state that is not part of the generic event schema.
 
 Each profession owns its build-specific trait calculations. The shared
 `calculateCommonAttributes()` function assembles equipment, consumables,
-infusions, sigils, and base derived stats. Guardian, Mesmer, and Necromancer
-pass their resolved deltas to `finalizeBuildAttributes()`, which applies the
+infusions, sigils, and base derived stats. Native professions pass their
+resolved deltas to `finalizeBuildAttributes()`, which applies the
 deltas and consistently rebuilds critical chance, critical damage, boon
 duration, and condition duration. Elementalist remains on its profession-owned
 attribute engine.
@@ -42,16 +45,17 @@ shell receives a profession application adapter for its build codec, storage
 key, runtime/config builder, renderer hooks, filenames, specialization
 fallback, supported relic list, and background contribution worker. The
 shared rotation renderer consumes profession palette/resource view models and
-canonical result state. Specialized Mesmer timeline/log details are optional
-branches over those contracts; Guardian tome and forge availability is
-supplied by its profession UI definition.
+canonical result state. Profession-specific timeline, log, fixed-bar, resource,
+and palette availability behavior is supplied by each profession UI definition.
 
-The shared Mesmer/Guardian/Necromancer rotation palette renders both configured weapon
-sets. Only the active set is context-enabled; inactive-set skills remain
+The shared native-profession rotation palette renders both configured weapon
+sets when the profession uses ordinary weapon swaps. Only the active set is
+context-enabled; inactive-set skills remain
 visible so their cooldown state can still be inspected.
 
-The shared profession selector routes between all four applications while
-preserving one visual system and independent persisted builds.
+The registry-driven profession selector routes between every registered
+application while preserving one visual system and independent persisted
+builds.
 
 ## Dependency rules
 
@@ -66,7 +70,7 @@ profession terminology inside the platform tree.
 
 ## Declarative profession mechanics layout
 
-Mesmer, Guardian, and Necromancer use the same module roles:
+Every native profession uses the same module roles:
 
 - `data/<profession>-api-metadata.js` is generated presentation and identity
   metadata. It is never a source of coefficients or damaging conditions.
@@ -116,10 +120,23 @@ export const exampleProfession = defineProfession({
     eventReactions, // reactions to standard GW2 event types
   },
   ui: {
+    assumptionControls,
+    eventLogRow,
+    isPaletteSkillInstant,
+    paletteSkillAvailability, // { available, message }
+    isSlotSkillSelectable,
     paletteGroups,
     resourceViews, // zero, one, or multiple resource view models
-    isPaletteSkillAvailable,       // optional contextual castability
-    paletteSkillUnavailableMessage, // optional disabled-state explanation
+    skillBarGroups,
+    slotLoadout,
+    targetHealthThresholds,
+    timelineSkillIcon,
+    updateSkillBarSelection,
+    weaponSkillMatchesSet,
+    weaponSwapChangesSet,
+  },
+  simulation: {
+    refineSchedulerConfig, // optional immutable feedback-pass refinement
   },
 });
 ```
@@ -130,7 +147,13 @@ resolver event reactions accept
 `{ id, order, handler }`; lower order runs first and declaration order breaks
 ties deterministically.
 
-Guardian, Mesmer, and Necromancer scalar combat bonuses are declared as
+`defineProfession()` validates every supported callback type and normalizes
+palette availability into one `{ available, message }` result. Compatibility
+boolean/message callbacks are derived from that result. Event presenters
+return `{ type, description, className, order, flags }`; `null` deliberately
+suppresses an internal event and `undefined` requests the diagnostic fallback.
+
+Native-profession scalar combat bonuses are declared as
 per-effect rules in their `attribute-rules.js` modules. The shared
 `platform/gw2/modifier-rules.js` adapter compiles those rules into the existing
 critical chance, critical damage, strike damage, condition damage, and
@@ -156,6 +179,36 @@ GW2 scheduler, event-stream builder, resolver, and result builder. Canonical
 sequence results keep time, cooldowns, ammo, and active weapon set under
 `endState`; profession mechanics are exposed only through
 `endState.profession`.
+
+Scheduler snapshots and public profession state are separate contracts.
+Snapshots may contain task progress, deterministic-choice indices, internal
+cooldowns, and resolver bookkeeping. `resources.projectEndState` constructs a
+public allowlisted object containing only resource, palette, timeline, and
+supported post-simulation inspection fields.
+
+Browser attribute calculation records one shared provenance object:
+
+```js
+attributeProvenance: {
+  professionStaticRulesApplied: true,
+  calculatedWeaponSet: 1,
+  calculatedPrimaryWeapon: "Greatsword",
+}
+```
+
+Direct engine callers normally omit it, causing runtime hooks to apply static
+profession rules. Browser adapters set it after build calculation so static
+rules are applied exactly once. Weapon-dependent rules compare the calculated
+weapon against the active runtime weapon after a swap; dynamic combat-state
+modifiers always remain runtime rules.
+
+`simulation.refineSchedulerConfig(config, result)` supports scheduler decisions
+that depend on resolved damage state. It returns a new config object to request
+another pass, or `null`/`undefined` when converged. The simulator permits at
+most five refinement passes. The callback must not mutate its prior config or
+result; composition rejects top-level mutation, non-object output, and returning
+the same config object. Refiners should converge before the pass limit and
+produce identical output when rerun with an already-converged result.
 
 The platform scheduler handles ordinary declarative skills and invokes
 profession hooks for complex behavior. Catalog skill handlers use a shared
@@ -229,7 +282,7 @@ Canonical catalogs may also carry validated trait and specialization metadata.
 Resolver behavior looks skills up by `skillId`; display-name lookup is retained
 only for legacy streams and application-boundary rotation migration.
 
-Mesmer, Guardian, and Necromancer skill mechanics use one timing contract:
+All native profession skill mechanics use one timing contract:
 
 - `castTimeMs` is the base action duration. `quicknessCastTimeMs` is optional
   measured compatibility data; otherwise the GW2 policy applies action-rate
@@ -288,7 +341,7 @@ The current persisted schema is:
 ```js
 {
   schemaVersion: 3,
-  profession: "mesmer", // or "elementalist" / "guardian" / "necromancer"
+  profession: "<registry id>",
   // profession build fields
 }
 ```
@@ -322,6 +375,16 @@ wrong-profession and future-version errors.
   API snapshot, API-omitted shroud/Lich/Ritualist supplements, life force,
   Reaper/Harbinger/Ritualist shrouds, Scourge shades, blight, minions,
   spirits, trait reactions, build validation, and a shared-shell application.
+- `engineer`: native shared-engine implementation for kits, tool-belt skills,
+  Photon Forge heat, Mechanist commands, and Amalgam morph state.
+- `revenant`: native shared-engine implementation for fixed legend bars,
+  energy and upkeep, legend swaps, Vindicator dodges, and Conduit affinity.
+- `thief`: native shared-engine implementation for initiative, stealth and
+  revealed state, stolen skills, malice, Shadow Shroud, and Antiquary
+  artifacts.
+
+`js/app/profession-registry.js` is the application roster source of truth;
+documentation must not maintain a separate profession count.
 
 ## Adding another profession
 

@@ -25,7 +25,6 @@ export const necromancerApp = defineProfessionApp({
     }),
     buildConfigExtras: (app) => ({
       initialBlight: app.build.initialBlight,
-      necromancerBuildAttributesApplied: true,
     }),
     isContributionTrait: (trait) => trait.name !== "Dark Disciple",
   },

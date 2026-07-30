@@ -83,6 +83,8 @@ export function defineProfessionApp({
     modifierContributionRequest: runtimeApi.modifierContributionRequest,
     calculateModifierContributions:
       runtimeApi.calculateModifierContributions,
+    randomDistributionRequest: runtimeApi.randomDistributionRequest,
+    calculateRandomDistribution: runtimeApi.calculateRandomDistribution,
     isSkillAvailable,
     defaultOffhand,
   });

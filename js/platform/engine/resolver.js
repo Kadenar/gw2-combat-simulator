@@ -1,5 +1,8 @@
 import { assertScheduledEventStream } from "./scheduled-event-stream.js";
-import { sortQueuedEvents } from "./event-queue.js";
+import {
+  createEventQueue,
+  takeNextEvent,
+} from "./event-queue.js";
 
 // Minimal resolver implementation for event streams whose behavior is fully
 // provided by registered handlers. Shared GW2 resolution layers build on this
@@ -60,8 +63,9 @@ export function resolveScheduledStream({
     throw new TypeError("Resolver requires a handler registry.");
   handlerRegistry.require(scheduled.events.map((event) => event.type));
   const state = createResolverState({ profession, config, stream: scheduled });
-  const queue = scheduled.events.map((event) => ({ ...event }));
-  sortQueuedEvents(queue);
+  const queue = createEventQueue(
+    scheduled.events.map((event) => ({ ...event })),
+  );
   const context = {
     profession,
     config,
@@ -70,7 +74,8 @@ export function resolveScheduledStream({
     stream: scheduled,
     addBreakdown: (...args) => addBreakdown(state, ...args),
   };
-  for (const event of queue) {
+  while (queue.length > 0) {
+    const event = takeNextEvent(queue);
     state.time = event.at;
     handlerRegistry.dispatch(event, context);
     state.resolvedEvents.push(event);

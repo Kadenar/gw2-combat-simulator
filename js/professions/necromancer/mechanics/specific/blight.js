@@ -36,14 +36,10 @@ function applyCascadingCorruption(context, skill, consumed, at) {
   if (
     !hasTrait(context, TRAIT.CASCADING_CORRUPTION) ||
     !consumed ||
-    (
-      context.hasExplicitCombatStart &&
-      (
-        context.combatStartTime == null ||
-        at < Number(context.combatStartTime)
-      )
-    )
-  ) return;
+    (context.hasExplicitCombatStart &&
+      (context.combatStartTime == null || at < Number(context.combatStartTime)))
+  )
+    return;
   const state = context.state.profession;
   state.cascadingCorruptionStacks += consumed;
   if (state.cascadingCorruptionStacks < 20) return;
@@ -96,9 +92,7 @@ function elixir(context, skill) {
   applyCascadingCorruption(context, skill, consumed, at);
   emitState(context, at, "blight-consumed");
   const elixirMechanics = MECHANICS.elixirs;
-  const durationMultiplier = empowered
-    ? elixirMechanics.durationMultiplier
-    : 1;
+  const durationMultiplier = empowered ? elixirMechanics.durationMultiplier : 1;
   const coefficient = elixirMechanics.coefficientBySkillId[skill.id] || 0;
   if (hasTrait(context, TRAIT.BOLSTERING_BREW)) {
     emitBuff(context, skill, "protection", 3);
@@ -106,14 +100,13 @@ function elixir(context, skill) {
   emitDamage(
     context,
     skill,
-    coefficient * (empowered
-      ? elixirMechanics.empoweredCoefficientMultiplier
-      : 1),
+    coefficient *
+      (empowered ? elixirMechanics.empoweredCoefficientMultiplier : 1),
     {
-    metadata: {
-      blightEmpowered: empowered,
-      necromancerBlight: state.blight,
-    },
+      metadata: {
+        blightEmpowered: empowered,
+        necromancerBlight: state.blight,
+      },
     },
   );
   if (skill.id === ID.ELIXIR_OF_PROMISE) {

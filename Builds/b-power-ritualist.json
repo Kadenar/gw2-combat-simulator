@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 3,
+  "profession": "necromancer",
+  "gear": {
+    "Helm": "Assassin's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "weapons": [
+    "Greatsword",
+    ""
+  ],
+  "alternateWeapons": [
+    "Spear",
+    ""
+  ],
+  "rune": "Dragonhunter",
+  "weaponSigils": [
+    [
+      "Force",
+      "Accuracy"
+    ],
+    [
+      "Force",
+      "Accuracy"
+    ]
+  ],
+  "relic": "Claw",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 12
+    },
+    {
+      "stat": "Precision",
+      "count": 6
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Spite",
+      "traits": "1-2-2"
+    },
+    {
+      "name": "Soul Reaping",
+      "traits": "1-1-2"
+    },
+    {
+      "name": "Ritualist",
+      "traits": "3-3-2"
+    }
+  ],
+  "selectedSkills": {
+    "Heal": "Summon Blood Fiend",
+    "Utility1": "Summon Bone Minions",
+    "Utility2": "Nightmare Weapon",
+    "Utility3": "Splinter Weapon",
+    "Elite": "Summon Flesh Golem"
+  },
+  "assumptions": {
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetSkillActivationsPerSecond": 0
+  },
+  "initialResource": 100,
+  "initialBlight": 0,
+  "startingWeaponSet": 1,
+  "targetHealth": 3970000,
+  "targetArmor": 2597
+}

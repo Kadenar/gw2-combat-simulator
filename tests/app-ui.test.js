@@ -740,11 +740,18 @@ test("Necromancer preset builds keep rotation data separate", async () => {
 
   assert.deepEqual(
     manifest.map(section => section.section),
-    ["Reaper", "Harbinger"],
+    ["Scourge", "Reaper", "Ritualist", "Harbinger"],
   );
   assert.deepEqual(
     presets.map(preset => preset.label),
-    ["Power", "Condition", "Power", "Condition"],
+    [
+      "Condition",
+      "Power",
+      "Condition",
+      "Power (Greatsword / Spear)",
+      "Power",
+      "Condition",
+    ],
   );
   for (const preset of presets) {
     const saved = JSON.parse(await readFile(

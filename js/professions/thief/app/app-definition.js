@@ -28,7 +28,6 @@ export const thiefApp = defineProfessionApp({
       initialShadowForce: app.build.initialShadowForce,
       playerHealthFraction: 1,
       selectedDodge: app.build.selectedDodge,
-      thiefBuildAttributesApplied: true,
     }),
   },
   defaultOffhand({ mainHand, offHands = [] } = {}) {

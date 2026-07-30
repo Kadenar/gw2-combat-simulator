@@ -20,6 +20,42 @@ import { defineProfession } from "../js/platform/engine/profession.js";
 import { SKILL_HANDLER_MODES } from "../js/platform/engine/skill-handlers.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
+  TRAIT_COVERAGE_STATUSES,
+} from "../js/platform/gw2/trait-coverage.js";
+import {
+  ENGINEER_TRAIT_COVERAGE,
+} from "../js/professions/engineer/data/trait-coverage.js";
+import {
+  ENGINEER_PUBLIC_END_STATE_KEYS,
+} from "../js/professions/engineer/state.js";
+import {
+  GUARDIAN_TRAIT_COVERAGE,
+} from "../js/professions/guardian/data/trait-coverage.js";
+import {
+  GUARDIAN_PUBLIC_END_STATE_KEYS,
+} from "../js/professions/guardian/state.js";
+import {
+  MESMER_TRAIT_COVERAGE,
+} from "../js/professions/mesmer/data/trait-coverage.js";
+import {
+  NECROMANCER_TRAIT_COVERAGE,
+} from "../js/professions/necromancer/data/trait-coverage.js";
+import {
+  NECROMANCER_PUBLIC_END_STATE_KEYS,
+} from "../js/professions/necromancer/state.js";
+import {
+  REVENANT_TRAIT_COVERAGE,
+} from "../js/professions/revenant/data/trait-coverage.js";
+import {
+  REVENANT_PUBLIC_END_STATE_KEYS,
+} from "../js/professions/revenant/state.js";
+import {
+  THIEF_TRAIT_COVERAGE,
+} from "../js/professions/thief/data/trait-coverage.js";
+import {
+  THIEF_PUBLIC_END_STATE_KEYS,
+} from "../js/professions/thief/state.js";
+import {
   nativeProfessionRegistry,
   PROFESSION_APPLICATION_KINDS,
   professionRegistry,
@@ -48,6 +84,33 @@ const apiFixture = JSON.parse(
     "utf8",
   ),
 );
+
+const TRAIT_COVERAGE_BY_PROFESSION = Object.freeze({
+  engineer: ENGINEER_TRAIT_COVERAGE,
+  guardian: GUARDIAN_TRAIT_COVERAGE,
+  mesmer: MESMER_TRAIT_COVERAGE,
+  necromancer: NECROMANCER_TRAIT_COVERAGE,
+  revenant: REVENANT_TRAIT_COVERAGE,
+  thief: THIEF_TRAIT_COVERAGE,
+});
+const PUBLIC_END_STATE_KEYS_BY_PROFESSION = Object.freeze({
+  engineer: ENGINEER_PUBLIC_END_STATE_KEYS,
+  guardian: GUARDIAN_PUBLIC_END_STATE_KEYS,
+  mesmer: Object.freeze([
+    "resource",
+    "resourceDefinition",
+    "clarityRemaining",
+    "counterspellAvailable",
+    "availableAmbush",
+    "availableFlips",
+    "autoattackChains",
+    "continuumActive",
+    "continuumRemaining",
+  ]),
+  necromancer: NECROMANCER_PUBLIC_END_STATE_KEYS,
+  revenant: REVENANT_PUBLIC_END_STATE_KEYS,
+  thief: THIEF_PUBLIC_END_STATE_KEYS,
+});
 
 function createFixtureFetch(requests = []) {
   return async (requestUrl) => {
@@ -174,6 +237,77 @@ function assertUiContracts(entry, profession, specialization) {
       `${entry.id} statusLabel`,
     );
   }
+  for (const callback of [
+    "isPaletteSkillInstant",
+    "paletteSkillAvailability",
+    "isPaletteSkillAvailable",
+    "isSlotSkillSelectable",
+    "paletteSkillUnavailableMessage",
+    "paletteGroups",
+    "resourceView",
+    "resourceViews",
+    "skillBarGroups",
+    "targetHealthThresholds",
+    "timelineSkillIcon",
+    "updateSkillBarSelection",
+  ]) {
+    assert.equal(
+      typeof profession.ui[callback],
+      "function",
+      `${entry.id} ui.${callback}`,
+    );
+  }
+  const sampleSkill = profession.catalog.skills.find((skill) =>
+    skill.implemented !== false && !skill.simulatorExcluded);
+  if (sampleSkill) {
+    const availability = profession.ui.paletteSkillAvailability(
+      context,
+      sampleSkill,
+    );
+    assert.equal(typeof availability.available, "boolean");
+    assert.equal(typeof availability.message, "string");
+  }
+}
+
+function assertEventDescriptors(entry, profession) {
+  const baseEvent = {
+    at: 0,
+    reason: "state-updated",
+    state: {
+      energy: 40,
+      heat: 25,
+      initiative: 8,
+      lifeForce: 75,
+    },
+    name: "Synthetic Event",
+    skillName: "Synthetic Skill",
+    count: 1,
+    instrument: "Lute",
+    duration: 5,
+    pageCost: 1,
+    pagesRemaining: 4,
+  };
+  for (const type of Object.keys(profession.eventHandlers)) {
+    const descriptor = profession.ui.eventLogRow?.(
+      {},
+      { ...baseEvent, type },
+    );
+    assert.notEqual(
+      descriptor,
+      undefined,
+      `${entry.id} must present or explicitly suppress ${type}`,
+    );
+    if (descriptor === null) continue;
+    assert.deepEqual(
+      Object.keys(descriptor).sort(),
+      ["className", "description", "flags", "order", "type"].sort(),
+    );
+    assert.ok(String(descriptor.type).trim());
+    assert.ok(String(descriptor.description).trim());
+    assert.equal(typeof descriptor.className, "string");
+    assert.equal(Number.isFinite(descriptor.order), true);
+    assert.equal(Array.isArray(descriptor.flags), true);
+  }
 }
 
 test("native profession registry entries conform to the shared contracts", async () => {
@@ -195,6 +329,7 @@ test("native profession registry entries conform to the shared contracts", async
     assert.equal(PROFESSION_ROUTES[entry.id], entry.route);
     assert.ok(entry.themeClass);
     assertCatalogMetadata(entry, profession.catalog);
+    assertEventDescriptors(entry, profession);
 
     const ids = profession.catalog.skills.map((skill) => skill.id);
     assert.equal(new Set(ids).size, ids.length);
@@ -303,6 +438,137 @@ test("native profession registry entries conform to the shared contracts", async
   }
 });
 
+test("ready native professions have complete trait evidence with no pending entries", async () => {
+  const testFiles = new Map();
+  for (const entry of nativeProfessionRegistry) {
+    const profession = await entry.loadProfession();
+    const coverage = TRAIT_COVERAGE_BY_PROFESSION[entry.id];
+    assert.ok(coverage, `${entry.id} trait coverage`);
+    assert.equal(coverage.length, profession.catalog.traits.length);
+    assert.equal(
+      new Set(coverage.map((item) => item.traitId)).size,
+      profession.catalog.traits.length,
+    );
+    assert.equal(
+      coverage.some((item) =>
+        item.status === TRAIT_COVERAGE_STATUSES.PENDING
+        || item.effects.some((effect) =>
+          effect.status === TRAIT_COVERAGE_STATUSES.PENDING)),
+      false,
+      `${entry.id} pending trait coverage`,
+    );
+    for (const item of coverage) {
+      if (
+        item.status !== TRAIT_COVERAGE_STATUSES.IMPLEMENTED
+        && !item.effects.some((effect) =>
+          effect.status === TRAIT_COVERAGE_STATUSES.IMPLEMENTED)
+      ) continue;
+      assert.ok(item.tests.length > 0, `${entry.id} trait ${item.traitId}`);
+      for (const evidence of item.tests) {
+        if (!testFiles.has(evidence.file)) {
+          testFiles.set(
+            evidence.file,
+            await readFile(
+              new URL(`../${evidence.file}`, import.meta.url),
+              "utf8",
+            ),
+          );
+        }
+        const source = testFiles.get(evidence.file);
+        assert.equal(
+          source.includes(`test("${evidence.name}"`)
+            || source.includes(`test('${evidence.name}'`),
+          true,
+          `${entry.id} trait ${item.traitId}: ${evidence.file}#${evidence.name}`,
+        );
+        assert.equal(
+          /trait[- ]coverage manifest/i.test(evidence.name),
+          false,
+          `${entry.id} trait ${item.traitId} uses readiness-only evidence`,
+        );
+      }
+    }
+  }
+});
+
+test("ready native professions expose deliberate public end-state keys", async () => {
+  const internalKeys = {
+    engineer: [
+      "heatUpdatedAt",
+      "kitLockoutUntil",
+      "lightningRodActivationId",
+      "traitProcReadyAt",
+    ],
+    guardian: [
+      "ashesNextTriggerAt",
+      "daybreakingSlashChainStep",
+      "furiousFocusReadyAt",
+      "radiantForgeEnteredAt",
+    ],
+    mesmer: [
+      "bloodsongProgress",
+      "pendingResources",
+      "traitReadyAt",
+    ],
+    necromancer: [
+      "lastResourceAt",
+      "nextBlightAt",
+      "minionGenerations",
+      "minionAttackGenerations",
+      "spiritGenerations",
+      "spiritInitialUntil",
+      "spiritBusyUntil",
+      "spiritAutoAnchorAt",
+      "pendingShroudEntryId",
+      "pendingSoulTwistSkill",
+      "plagueSendingArmed",
+      "plagueSendingEntrySkillId",
+      "signetNextLifeForceAt",
+      "vampirismNextAt",
+      "painfulBondPulseAnchorAt",
+      "cascadingCorruptionStacks",
+      "targetChilledUntil",
+      "targetControlledUntil",
+      "fearOfDeathReadyAt",
+      "vampiricPresenceReadyAt",
+      "barbedPrecisionProgress",
+      "chillingNovaProgress",
+      "demonicLoreReadyAt",
+      "spitefulFortitudeLifeForce",
+      "traitProcReadyAt",
+      "weaponSpells",
+    ],
+    revenant: [
+      "energyUpdatedAt",
+      "enduranceUpdatedAt",
+      "renegadeCriticalProgress",
+      "traitProcReadyAt",
+    ],
+    thief: [
+      "artifactOutcomeIndices",
+      "doubleEdgeOutcomeIndex",
+      "initiativeSpentSincePilfer",
+      "traitProcReadyAt",
+    ],
+  };
+  for (const entry of nativeProfessionRegistry) {
+    const profession = await entry.loadProfession();
+    const result = simulateGw2({ profession, rotation: [], config: {} });
+    assert.deepEqual(
+      Object.keys(result.endState.profession).sort(),
+      [...PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id]].sort(),
+      entry.id,
+    );
+    for (const key of internalKeys[entry.id]) {
+      assert.equal(
+        Object.hasOwn(result.endState.profession, key),
+        false,
+        `${entry.id}.${key}`,
+      );
+    }
+  }
+});
+
 test("the standalone Elementalist manifest entry has no native adapter", () => {
   const elementalist = professionRegistry.find(
     (entry) => entry.id === "elementalist",
@@ -370,6 +636,19 @@ test("native build codecs share version, schema, and sanitization behavior", asy
       entry.loadAppAdapter(),
     ]);
     const defaults = profession.createBuildDefaults();
+    if (entry.id === "guardian") {
+      assert.equal(Object.hasOwn(defaults, "initialResource"), false);
+      assert.equal(
+        Object.hasOwn(
+          profession.migrateBuild({
+            ...defaults,
+            initialResource: 3,
+          }),
+          "initialResource",
+        ),
+        false,
+      );
+    }
     assert.throws(
       () =>
         replaceBuild(

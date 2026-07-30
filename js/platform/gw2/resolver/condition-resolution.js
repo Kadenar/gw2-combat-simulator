@@ -1,8 +1,6 @@
 import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
-import {
-  isInternalCooldownReady,
-} from "../../engine/internal-cooldown.js";
+import { isInternalCooldownReady } from "../../engine/internal-cooldown.js";
 import { conditionTickDamage } from "../damage.js";
 import { permanentTargetConditionStacks } from "../target-state.js";
 
@@ -22,18 +20,24 @@ export function createGw2ConditionResolution({
     const state = ctx.conditionState.get(name);
     if (!state) return [];
     // Expiry is half-open: a stack is active before expiresAt, not at it.
-    return state.stacks.filter(stack =>
-      stack.appliedAt <= at + EPSILON
-      && stack.expiresAt > at + EPSILON
-      && stack.weight > 0);
+    return state.stacks.filter(
+      (stack) =>
+        stack.appliedAt <= at + EPSILON &&
+        stack.expiresAt > at + EPSILON &&
+        stack.weight > 0,
+    );
   }
 
   function activeConditionStackCount(ctx, name, at) {
     // Target configuration represents ambient stacks that have no application
     // event, so it is added separately from player-created stack state.
-    return permanentTargetConditionStacks(ctx.config, name)
-      + activeStacks(ctx, name, at)
-        .reduce((total, stack) => total + stack.weight, 0);
+    return (
+      permanentTargetConditionStacks(ctx.config, name) +
+      activeStacks(ctx, name, at).reduce(
+        (total, stack) => total + stack.weight,
+        0,
+      )
+    );
   }
 
   function conditionRate(ctx, name, conditionDamage) {
@@ -44,11 +48,10 @@ export function createGw2ConditionResolution({
     }
     let rate = conditionTickDamage(name, conditionDamage);
     if (name === "Confusion") {
-      rate += Number(ctx.config.target?.confusionActivationsPerSecond || 0)
-        * (
-          CONFUSION_ACTIVATION.base
-          + CONFUSION_ACTIVATION.scaling * conditionDamage
-        );
+      rate +=
+        Number(ctx.config.target?.confusionActivationsPerSecond || 0) *
+        (CONFUSION_ACTIVATION.base +
+          CONFUSION_ACTIVATION.scaling * conditionDamage);
     }
     return rate;
   }
@@ -96,14 +99,12 @@ export function createGw2ConditionResolution({
 
   function maybeTriggerFractal(ctx, application) {
     if (
-      ctx.config.relic !== "Fractal"
-      || application.condition !== "Bleeding"
-      || !isInternalCooldownReady(
-        application.at,
-        ctx.relic.fractalReadyAt,
-      )
-      || activeConditionStackCount(ctx, "Bleeding", application.at) < 6
-    ) return;
+      ctx.config.relic !== "Fractal" ||
+      application.condition !== "Bleeding" ||
+      !isInternalCooldownReady(application.at, ctx.relic.fractalReadyAt) ||
+      activeConditionStackCount(ctx, "Bleeding", application.at) < 6
+    )
+      return;
 
     // The triggering bleed is already in conditionState, so reaching six stacks
     // on this application is sufficient. The generated conditions cannot
@@ -153,8 +154,18 @@ export function createGw2ConditionResolution({
           event,
           ctx,
         );
+    const baseDurationMultiplier = event.fixedDuration
+      ? 1
+      : (ctx.query.conditionBaseDurationMultiplier?.(
+          name,
+          event.at,
+          event,
+          ctx,
+        ) ?? 1);
     const duration =
-      Math.max(0, Number(event.duration || 0)) * durationMultiplier;
+      Math.max(0, Number(event.duration || 0)) *
+      baseDurationMultiplier *
+      durationMultiplier;
     const expiresAt = event.at + duration;
     const stacks = Math.max(0, Number(event.stacks || 0));
     if (!stacks || !duration) return null;
@@ -162,17 +173,14 @@ export function createGw2ConditionResolution({
     const application = {
       ...event,
       name:
-        event.name
-        || `${event.skillName || event.sourceId || "Condition"} — ${name}`,
+        event.name ||
+        `${event.skillName || event.sourceId || "Condition"} — ${name}`,
       condition: name,
       stacks,
       effectiveDuration: duration,
       // activeDuration/expiresAt describe the simulated portion; naturalExpiresAt
       // preserves the unclipped lifetime for diagnostics and downstream views.
-      activeDuration: Math.max(
-        0,
-        Math.min(ctx.horizon, expiresAt) - event.at,
-      ),
+      activeDuration: Math.max(0, Math.min(ctx.horizon, expiresAt) - event.at),
       expiresAt: Math.min(ctx.horizon, expiresAt),
       naturalExpiresAt: expiresAt,
       damage: 0,
@@ -206,14 +214,15 @@ export function createGw2ConditionResolution({
     const stats = ctx.query.statsAt(event.at, application, ctx);
     // Dynamic effects (boons, target health, profession modifiers) are sampled
     // at tick time rather than frozen with the application.
-    const perStack = conditionRate(ctx, event.condition, stats.conditionDamage)
-      * ctx.query.conditionMultiplier(
+    const perStack =
+      conditionRate(ctx, event.condition, stats.conditionDamage) *
+      ctx.query.conditionMultiplier(
         event.condition,
         event.at,
         application,
         ctx,
-      )
-      * targetHealthMultiplier(ctx);
+      ) *
+      targetHealthMultiplier(ctx);
     const stackSeconds = application.stacks * fraction;
     const damage = perStack * stackSeconds;
     application.damage += damage;

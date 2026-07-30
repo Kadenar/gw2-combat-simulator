@@ -1,5 +1,8 @@
 import { thiefCatalog } from "./catalog.js";
 import {
+  professionStaticRulesApplied,
+} from "../../platform/gw2/attribute-provenance.js";
+import {
   THIEF_ARTIFACT_IDS,
   THIEF_TRAIT_IDS as TRAIT,
 } from "./data/ids.js";
@@ -55,7 +58,7 @@ function thiefMaximumHealth(config, traits) {
     ?? 1000,
   );
   if (
-    !config.thiefBuildAttributesApplied
+    !professionStaticRulesApplied(config)
     && hasThiefTrait(traits, TRAIT.MARAUDERS_RESILIENCE)
   ) {
     vitality += Number(
@@ -120,10 +123,46 @@ export function createThiefState(config = {}) {
 export function snapshotThiefState(state) {
   return structuredClone(state);
 }
+export const THIEF_PUBLIC_END_STATE_KEYS = Object.freeze([
+  "initiative",
+  "maximumInitiative",
+  "stealthUntil",
+  "revealedUntil",
+  "storedStolenSkillId",
+  "markedTargetId",
+  "malice",
+  "maximumMalice",
+  "maleficentSevenTriggered",
+  "kneeling",
+  "shadowForce",
+  "maximumShadowForce",
+  "maximumHealth",
+  "shadowForcePoolCapacity",
+  "shadowShroudActive",
+  "endurance",
+  "maximumEndurance",
+  "selectedDodge",
+  "leadAttacksStacks",
+  "leadAttacksUntil",
+  "boundingDamageUntil",
+  "artifactSlots",
+  "artifactUsesRemaining",
+  "scoundrelsLuck",
+  "backfireState",
+  "activeAntiquarySummons",
+  "activeThievesGuild",
+  "antiquaryDamageUntil",
+  "availableFlips",
+  "autoattackChains",
+]);
 export function projectThiefEndState({ schedulerState }) {
-  const projected = snapshotThiefState(schedulerState.profession);
-  delete projected.traitProcReadyAt;
-  return projected;
+  const state = schedulerState.profession;
+  return Object.fromEntries(
+    THIEF_PUBLIC_END_STATE_KEYS.map((key) => [
+      key,
+      structuredClone(state[key]),
+    ]),
+  );
 }
 export function thiefSkillId(name) {
   return thiefCatalog.skillsByName.get(name)?.id ?? null;

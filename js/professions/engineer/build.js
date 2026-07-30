@@ -5,6 +5,11 @@ import {
 } from "../../platform/gw2/weapon-sigils.js";
 import { createGw2BuildCodec } from "../../platform/gw2/build-codec.js";
 import { createDefaultTargetConditions } from "../../platform/gw2/default-target-conditions.js";
+import {
+  DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
+  normalizeSimulationRandomnessAssumptions,
+  validateSimulationRandomnessAssumptions,
+} from "../../app/simulation-randomness.js";
 import { engineerCatalog } from "./catalog.js";
 
 /**
@@ -65,6 +70,7 @@ export function createEngineerBuildDefaults() {
     },
     selectedMorphSkillIds: [...DEFAULT_MORPHS],
     assumptions: {
+      ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
       might: 25,
       fury: true,
       quickness: true,
@@ -155,6 +161,9 @@ const engineerBuildCodec = createGw2BuildCodec({
     const selectedMorphSkillIds = normalizeMorphs(saved.selectedMorphSkillIds);
     return {
       ...build,
+      assumptions: normalizeSimulationRandomnessAssumptions(
+        build.assumptions,
+      ),
       initialHeat: Math.max(
         0,
         Math.min(150, Number(saved.initialHeat ?? 0) || 0),
@@ -168,7 +177,9 @@ const engineerBuildCodec = createGw2BuildCodec({
     };
   },
   validateExtra(build) {
-    const errors = [];
+    const errors = validateSimulationRandomnessAssumptions(
+      build.assumptions,
+    );
     if (!(Number(build.initialHeat) >= 0 && Number(build.initialHeat) <= 150)) {
       errors.push("initialHeat must be between 0 and 150.");
     }

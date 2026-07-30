@@ -84,7 +84,7 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
       name: "Demonic Lore",
       traitId: TRAIT.DEMONIC_LORE,
       condition: "Burning",
-      duration: 3,
+      duration: 1,
       interval: 3,
     }),
     [TRAIT.DEATHLY_CHILL]: Object.freeze({
@@ -111,8 +111,8 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
     [ID.SUMMON_BLOOD_FIEND]: Object.freeze({
       key: "blood-fiend",
       count: 1,
-      coefficient: 0.3,
-      interval: 2,
+      coefficient: 0.065,
+      interval: 3.1,
       commandId: ID.TASTE_OF_DEATH,
     }),
     [ID.SUMMON_BONE_FIEND]: Object.freeze({
@@ -125,22 +125,64 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
     [ID.SUMMON_BONE_MINIONS]: Object.freeze({
       key: "bone-minion",
       count: 2,
-      coefficient: 0.2,
-      interval: 1.5,
+      coefficient: 0.04,
+      interval: 3.52,
       commandId: ID.PUTRID_EXPLOSION,
     }),
     [ID.SUMMON_SHADOW_FIEND]: Object.freeze({
       key: "shadow-fiend",
       count: 1,
-      coefficient: 0.3,
-      interval: 1.8,
+      // Slash and Haunt use the same Shadow Fiend attribute profile. The
+      // 1,750 value is the coefficient-normalized PvE skill fact shared by
+      // Slash (525 / 0.3) and Haunt (700 / 0.4).
+      basePower: 1700,
+      damagePerCoefficient: 1750,
+      criticalChance: 0.05,
+      criticalDamage: 1.5,
+      interval: 1.76,
+      commandRecoveryDelay: 3.58,
+      attacks: Object.freeze([
+        Object.freeze({
+          skillId: 3642,
+          name: "Slash",
+          coefficient: 0.3,
+        }),
+      ]),
       commandId: ID.HAUNT,
     }),
     [ID.SUMMON_FLESH_GOLEM]: Object.freeze({
       key: "flesh-golem",
       count: 1,
-      coefficient: 0.5,
-      interval: 2.2,
+      weaponStrength: 900,
+      initialDelay: 2.2,
+      interval: 4,
+      attacks: Object.freeze([
+        Object.freeze({
+          skillId: 3653,
+          name: "Slash",
+          icon:
+            "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png",
+          coefficient: 0.18,
+          offset: 0,
+        }),
+        Object.freeze({
+          skillId: 3654,
+          name: "Slash",
+          icon:
+            "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png",
+          coefficient: 0.18,
+          offset: 1.28,
+        }),
+        Object.freeze({
+          skillId: 3655,
+          name: "Fist",
+          icon:
+            "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png",
+          coefficient: 0.29,
+          weaponStrength: 931,
+          offset: 2.56,
+        }),
+      ]),
       commandId: ID.CHARGE,
     }),
   }),
@@ -165,6 +207,13 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
       minion: "shadow-fiend",
       coefficient: 0.4,
       control: "blind",
+      blindDuration: 5,
+      conditions: Object.freeze([
+        Object.freeze(["Chilled", 1, 3]),
+        Object.freeze(["Weakness", 1, 5]),
+      ]),
+      impactDelay: 2,
+      lifeForceGain: 10,
     }),
     [ID.CHARGE]: Object.freeze({
       minion: "flesh-golem",
@@ -176,11 +225,20 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
     manifest: Object.freeze({
       coefficient: 0.666,
       condition: Object.freeze(["Torment", 1, 2]),
+      duration: 15,
+      sandSavantDuration: 8,
+    }),
+    abrasiveGrit: Object.freeze({
+      mightDuration: 6,
+      mightStacks: 2,
+    }),
+    desertEmpowerment: Object.freeze({
+      alacrityDuration: 1.5,
     }),
     sadisticSearing: Object.freeze({
       condition: Object.freeze(["Burning", 1, 4]),
     }),
-    garishPillar: Object.freeze({ coefficient: 0.333 }),
+    garishPillar: Object.freeze({ fearDuration: 1 }),
     desertShroud: Object.freeze({
       coefficient: 3.15,
       hits: 7,
@@ -189,8 +247,12 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
     }),
     sandstormShroud: Object.freeze({
       coefficient: 3,
-      delay: 4,
+      delay: 3.5,
       condition: Object.freeze(["Torment", 6, 5]),
+      pulseCount: 3,
+      pulseInterval: 1,
+      pulseProtectionDuration: 1.5,
+      detonationProtectionDuration: 3,
     }),
   }),
   elixirs: Object.freeze({
@@ -233,39 +295,94 @@ export const NECROMANCER_HANDLER_MECHANICS = Object.freeze({
   spirits: Object.freeze({
     [ID.ANGUISH]: Object.freeze({
       key: "anguish",
-      attackCoefficient: 0.75,
+      attackCoefficient: 0.4,
       summonCoefficient: 3.5,
       summonHits: 7,
-      summonInterval: 0.1,
-      activeCoefficient: 2,
+      // The live barrage packet does not use the spirit autoattack's 1000
+      // weapon strength. The supplied EVTC resolves it at ~805 instead.
+      summonWeaponStrength: 805,
+      summonDelay: 0.68,
+      summonInterval: 0.067,
+      activeCoefficient: 2.5,
+      activeHits: 4,
+      activeDelay: 0.36,
+      activeInterval: 0.32,
+      activeDuration: 2,
     }),
     [ID.WANDERLUST]: Object.freeze({
       key: "wanderlust",
-      attackCoefficient: 0.6,
+      attackCoefficient: 0.4,
       summonCoefficient: 1,
-      lingeringCoefficient: 0.72,
+      // Live PvE packets resolve at 0.45 per pulse (1.8 over four pulses).
+      lingeringCoefficient: 1.8,
       lingeringHits: 4,
       lingeringInterval: 1,
-      activeCoefficient: 1,
+      lingeringDelay: 1.877,
+      activeCoefficient: 3.7,
+      activeHits: 1,
+      activeDelay: 0.84,
+      activeInterval: 0,
+      activeDuration: 1.8,
     }),
     [ID.PRESERVATION]: Object.freeze({
       key: "preservation",
-      attackCoefficient: 0,
+      // The spirit itself has a damaging autoattack even though Preservation's
+      // summon and active effects are support-only.
+      attackCoefficient: 0.3,
+      summonCoefficient: 0,
       activeCoefficient: 0,
+      activeHits: 0,
+      activeDelay: 0,
+      activeInterval: 0,
+      activeDuration: 0,
     }),
   }),
-  spiritAttackInterval: 3,
+  spiritAttackInterval: 4,
+  firstSpiritAttackDelay: 7.36,
+  // Summon packets use their own calibrated baselines. This keeps player-only
+  // attribute effects, such as Signet of Spite, from being baked into them.
+  summonWeaponStrength: 1048,
+  summonSpiritsWeaponStrength: 1056,
   essenceBlast: Object.freeze({
     coefficient: 0.75,
-    coefficientPerSpirit: 0.15,
+    damagePerSpirit: 0.15,
   }),
   painfulBond: Object.freeze({
-    hits: 10,
+    duration: 10,
     interval: 1,
+    firstPulseDelay: 0.004,
     flatStrikeBase: 200,
     flatStrikePowerCoeff: 0.4,
+    icon:
+      "https://render.guildwars2.com/file/9CA8D4479BEE9A28C810CCB0E234BAC7712104A0/3680170.png",
   }),
   innervateAnguish: Object.freeze({ coefficient: 1.3 }),
+  weaponSpells: Object.freeze({
+    nightmare: Object.freeze({
+      duration: 10,
+      playerStacks: 5,
+      allyStacks: 3,
+      maxAllies: 4,
+      flatStrikeBase: 1200,
+      flatStrikePowerCoeff: 0.05,
+      vulnerabilityStacks: 2,
+      vulnerabilityDuration: 8,
+    }),
+    splinter: Object.freeze({
+      duration: 10,
+      playerStacks: 5,
+      allyStacks: 3,
+      maxAllies: 4,
+      coefficient: 0.4,
+      internalCooldown: 0.25,
+    }),
+    resilient: Object.freeze({
+      duration: 10,
+      playerStacks: 5,
+      allyStacks: 3,
+      maxAllies: 4,
+    }),
+  }),
   summonMadness: Object.freeze({
     summons: 8,
     summonInterval: 1,

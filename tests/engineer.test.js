@@ -1232,10 +1232,10 @@ test("trait-coverage manifest covers all Engineer traits", () => {
   };
   assert.equal(coverage("Aim-Assisted Rocket").status, "implemented");
   assert.equal(coverage("Carbolic Composition").status, "implemented");
-  assert.equal(coverage("Grenadier").status, "pending");
+  assert.equal(coverage("Grenadier").status, "out-of-model");
   assert.equal(
     ENGINEER_TRAIT_COVERAGE.some(entry =>
-      entry.status === "out-of-model"),
+      entry.status === "pending"),
     false,
   );
 });

@@ -17,9 +17,11 @@ import {
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import {
+  emitBuff,
   emitCondition,
   emitDamage,
   hasTrait,
+  necromancerBoonDuration,
 } from "./shared.js";
 
 const DAMAGING_CONDITIONS = new Set([
@@ -88,10 +90,27 @@ function conditionDurationMultiplier(context, skill, condition, at) {
 }
 
 export function purgeNecromancerSelfConditions(state, at) {
-  state.selfConditions = (state.selfConditions || [])
-    .filter(application =>
-      application.appliedAt <= at && application.expiresAt > at);
+  state.selfConditions = (state.selfConditions || []).filter(
+    (application) => application.appliedAt <= at && application.expiresAt > at,
+  );
   return state.selfConditions;
+}
+
+export function removeNecromancerSelfCondition(
+  state,
+  at,
+  maximumConditionTypes = 1,
+) {
+  const active = purgeNecromancerSelfConditions(state, at);
+  const selected = new Set();
+  for (const application of active) {
+    if (selected.size >= maximumConditionTypes) break;
+    selected.add(application.condition);
+  }
+  state.selfConditions = active.filter(
+    (application) => !selected.has(application.condition),
+  );
+  return selected.size;
 }
 
 export function applyNecromancerSelfCondition(
@@ -103,8 +122,8 @@ export function applyNecromancerSelfCondition(
   at = context.effectiveEnd,
 ) {
   const effectiveDuration =
-    Math.max(0, Number(duration || 0))
-    * conditionDurationMultiplier(context, skill, condition, at);
+    Math.max(0, Number(duration || 0)) *
+    conditionDurationMultiplier(context, skill, condition, at);
   if (!(effectiveDuration > 0) || !(Number(stacks) > 0)) return null;
   const application = {
     condition,
@@ -170,19 +189,34 @@ export function transferNecromancerSelfConditions(
   skill,
   maximumConditionTypes,
   at = context.effectiveEnd,
+  { latestApplications = false } = {},
 ) {
   const state = context.state.profession;
   const active = purgeNecromancerSelfConditions(state, at);
+  if (latestApplications) {
+    const transferred = active.slice(-maximumConditionTypes);
+    if (!transferred.length) return 0;
+    const retained = new Set(transferred);
+    state.selfConditions = active.filter(
+      (application) => !retained.has(application),
+    );
+    for (const application of transferred) {
+      emitTransferredApplication(context, skill, application, at);
+    }
+    return transferred.length;
+  }
   const selected = new Set();
   for (const application of active) {
     if (selected.size >= maximumConditionTypes) break;
     selected.add(application.condition);
   }
   if (!selected.size) return 0;
-  const transferred = active.filter(application =>
-    selected.has(application.condition));
-  state.selfConditions = active.filter(application =>
-    !selected.has(application.condition));
+  const transferred = active.filter((application) =>
+    selected.has(application.condition),
+  );
+  state.selfConditions = active.filter(
+    (application) => !selected.has(application.condition),
+  );
   for (const application of transferred) {
     emitTransferredApplication(context, skill, application, at);
   }
@@ -200,6 +234,29 @@ function corruption(context, skill) {
       applyNecromancerSelfCondition(context, skill, ...application);
     }
   }
+  if (context.state.profession.plagueSendingArmed) {
+    const transferred = transferNecromancerSelfConditions(
+      context,
+      skill,
+      2,
+      context.effectiveEnd,
+      { latestApplications: true },
+    );
+    if (transferred) {
+      context.state.profession.plagueSendingArmed = false;
+      context.state.profession.plagueSendingEntrySkillId = null;
+    }
+  }
+  if (skill.id === ID.BLOOD_IS_POWER) {
+    emitBuff(
+      context,
+      skill,
+      "might",
+      necromancerBoonDuration(context, "Might", 20),
+      5,
+      { metadata: { affectsSummons: true } },
+    );
+  }
   return false;
 }
 
@@ -216,33 +273,13 @@ function transfer(context, skill) {
 }
 
 function lifeSiphonSelfBleed(context, skill, event) {
-  if (
-    event?.type !== "damage"
-    || Number(event.hitIndex || 1) !== 1
-  ) return;
-  applyNecromancerSelfCondition(
-    context,
-    skill,
-    "Bleeding",
-    1,
-    8,
-    event.at,
-  );
+  if (event?.type !== "damage" || Number(event.hitIndex || 1) !== 1) return;
+  applyNecromancerSelfCondition(context, skill, "Bleeding", 1, 8, event.at);
 }
 
 function darkPactOnHit(context, skill, event) {
-  if (
-    event?.type !== "damage"
-    || Number(event.hitIndex || 1) !== 1
-  ) return;
-  applyNecromancerSelfCondition(
-    context,
-    skill,
-    "Bleeding",
-    2,
-    10,
-    event.at,
-  );
+  if (event?.type !== "damage" || Number(event.hitIndex || 1) !== 1) return;
+  applyNecromancerSelfCondition(context, skill, "Bleeding", 2, 10, event.at);
   emitCondition(context, skill, "Immobilized", 1, 6, {
     at: event.at,
   });
@@ -251,9 +288,9 @@ function darkPactOnHit(context, skill, event) {
 function devouringDarkness(context, skill) {
   const count = Math.min(
     5,
-    Object.values(context.config.target?.conditions || {})
-      .filter(value => value === true || Number(value) > 0)
-      .length,
+    Object.values(context.config.target?.conditions || {}).filter(
+      (value) => value === true || Number(value) > 0,
+    ).length,
   );
   emitDamage(context, skill, 1.16);
   if (count > 0) {

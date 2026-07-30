@@ -21,6 +21,8 @@ const WEAPON_STRENGTHS = Object.freeze(
   ),
 );
 
+export const MAX_SCHEDULER_REFINEMENT_PASSES = 5;
+
 function conditionName(value) {
   return canonicalTargetConditionName(value);
 }
@@ -159,7 +161,11 @@ export function simulateDeclarativeGw2(options = {}) {
     options.profession?.simulation?.refineSchedulerConfig;
   if (typeof refineConfig !== "function") return result;
 
-  for (let pass = 0; pass < 5; pass += 1) {
+  for (
+    let pass = 0;
+    pass < MAX_SCHEDULER_REFINEMENT_PASSES;
+    pass += 1
+  ) {
     const refined = refineConfig(config, result);
     if (!refined) break;
     config = refined;

@@ -55,6 +55,24 @@ const IMPLEMENTED = new Set([
 ]);
 const reason =
   "This defensive, support, movement, healing, incoming-hit, or competitive-only effect does not change the deterministic single-target damage model.";
+const EVIDENCE_BY_SPECIALIZATION = Object.freeze({
+  Invocation: "legend invocation traits resolve after swap effects",
+  Corruption: "Corruption traits update attributes, duration, and chill triggers",
+  Retribution: "Retribution and Invocation traits use live combat state",
+  Devastation: "Devastation modifiers and Battle Scars use supplied thresholds",
+  Herald: "Herald consume skills apply their full outgoing profiles",
+  Renegade: "Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy",
+  Vindicator: "Vindicator dodge traits apply current endurance and damage behavior",
+  Conduit: "Conduit grandmasters alter release, invocation, and Cosmic Wisdom",
+});
+function implementedEvidence(trait) {
+  return {
+    file: "tests/revenant.test.js",
+    name:
+      EVIDENCE_BY_SPECIALIZATION[trait.specialization]
+      || "Retribution and Invocation traits use live combat state",
+  };
+}
 const manifest = revenantCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
@@ -73,7 +91,7 @@ const manifest = revenantCatalog.traits.map((trait) => {
       },
     ],
     ...(implemented
-      ? { tests: ["tests/revenant.test.js#trait-coverage"] }
+      ? { tests: [implementedEvidence(trait)] }
       : { reason }),
   };
 });

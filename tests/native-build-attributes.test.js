@@ -3,9 +3,21 @@ import test from "node:test";
 
 import { createEngineerBuildDefaults } from "../js/professions/engineer/build.js";
 import {
+  engineerAttributeRules,
+} from "../js/professions/engineer/attribute-rules.js";
+import {
+  ENGINEER_TRAIT_IDS,
+} from "../js/professions/engineer/data/ids.js";
+import {
   calculateAttributes as calculateEngineerAttributes,
 } from "../js/professions/engineer/app/app-definition.js";
 import { createGuardianBuildDefaults } from "../js/professions/guardian/build.js";
+import {
+  guardianAttributeRules,
+} from "../js/professions/guardian/attribute-rules.js";
+import {
+  GUARDIAN_TRAIT_IDS,
+} from "../js/professions/guardian/data/ids.js";
 import {
   calculateAttributes as calculateGuardianAttributes,
 } from "../js/professions/guardian/app/app-definition.js";
@@ -17,6 +29,15 @@ import { createNecromancerBuildDefaults } from "../js/professions/necromancer/bu
 import {
   calculateAttributes as calculateNecromancerAttributes,
 } from "../js/professions/necromancer/app/app-definition.js";
+import {
+  necromancerAttributeRules,
+} from "../js/professions/necromancer/attribute-rules.js";
+import {
+  NECROMANCER_TRAIT_IDS,
+} from "../js/professions/necromancer/data/ids.js";
+import {
+  createNecromancerState,
+} from "../js/professions/necromancer/state.js";
 import { createRevenantBuildDefaults } from "../js/professions/revenant/build.js";
 import {
   calculateAttributes as calculateRevenantAttributes,
@@ -33,6 +54,10 @@ import { createThiefBuildDefaults } from "../js/professions/thief/build.js";
 import {
   calculateAttributes as calculateThiefAttributes,
 } from "../js/professions/thief/app/app-definition.js";
+import {
+  THIEF_TRAIT_IDS,
+} from "../js/professions/thief/data/ids.js";
+import { createThiefState } from "../js/professions/thief/state.js";
 
 function traitDelta(
   calculate,
@@ -51,6 +76,96 @@ function traitDelta(
   ).attributes;
   return withTrait[attribute].final - withoutTrait[attribute].final;
 }
+
+test("shared attribute provenance applies profession static rules once", () => {
+  const applied = {
+    attributeProvenance: {
+      professionStaticRulesApplied: true,
+      calculatedWeaponSet: 1,
+      calculatedPrimaryWeapon: "Greatsword",
+    },
+  };
+
+  const engineerDirect = engineerAttributeRules.modifyAttributes({
+    config: { traitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS] },
+  }, { conditionDamage: 1000 });
+  const engineerBrowser = engineerAttributeRules.modifyAttributes({
+    config: {
+      ...applied,
+      traitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS],
+    },
+  }, { conditionDamage: 1120 });
+  assert.equal(engineerDirect.conditionDamage, 1120);
+  assert.equal(engineerBrowser.conditionDamage, engineerDirect.conditionDamage);
+
+  const guardianDirect = guardianAttributeRules.modifyAttributes({
+    config: { traitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE] },
+    event: { skillWeapon: "Greatsword" },
+  }, { power: 1000, precision: 1000, ferocity: 0, vitality: 1000 });
+  const guardianBrowser = guardianAttributeRules.modifyAttributes({
+    config: {
+      ...applied,
+      traitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE],
+    },
+    event: { skillWeapon: "Greatsword" },
+  }, { power: 1240, precision: 1000, ferocity: 0, vitality: 1000 });
+  assert.equal(guardianDirect.power, 1240);
+  assert.equal(guardianBrowser.power, guardianDirect.power);
+
+  const necromancerDirect = necromancerAttributeRules.modifyAttributes({
+    config: { traitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE] },
+  }, { precision: 1000 });
+  const necromancerBrowser = necromancerAttributeRules.modifyAttributes({
+    config: {
+      ...applied,
+      traitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE],
+    },
+  }, { precision: 1180 });
+  assert.equal(necromancerDirect.precision, 1180);
+  assert.equal(
+    necromancerBrowser.precision,
+    necromancerDirect.precision,
+  );
+
+  const necromancerDirectState = createNecromancerState({
+    traitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
+    stats: { power: 1000, vitality: 1000 },
+  });
+  const necromancerBrowserState = createNecromancerState({
+    ...applied,
+    traitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
+    stats: { power: 1000, vitality: 1100 },
+  });
+  assert.equal(
+    necromancerBrowserState.maximumHealth,
+    necromancerDirectState.maximumHealth,
+  );
+
+  const revenantDirect = revenantAttributeRules.modifyConditionDuration({
+    config: { traitIds: [TRAIT.PACT_OF_PAIN] },
+    condition: "Torment",
+  }, 1);
+  const revenantBrowser = revenantAttributeRules.modifyConditionDuration({
+    config: {
+      ...applied,
+      traitIds: [TRAIT.PACT_OF_PAIN],
+    },
+    condition: "Torment",
+  }, 1.15);
+  assert.equal(revenantDirect, 1.15);
+  assert.equal(revenantBrowser, revenantDirect);
+
+  const thiefDirect = createThiefState({
+    traitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE],
+    stats: { vitality: 1000, power: 1000 },
+  });
+  const thiefBrowser = createThiefState({
+    ...applied,
+    traitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE],
+    stats: { vitality: 1070, power: 1000 },
+  });
+  assert.equal(thiefBrowser.maximumHealth, thiefDirect.maximumHealth);
+});
 
 test("Engineer exposes current unconditional trait attributes", () => {
   const build = createEngineerBuildDefaults();
@@ -242,7 +357,9 @@ test("Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy", () =>
   const context = {
     config: {
       specialization: "Conduit",
-      revenantBuildAttributesApplied: true,
+      attributeProvenance: {
+        professionStaticRulesApplied: true,
+      },
     },
     time: 1,
     runtime: {
@@ -338,7 +455,9 @@ test("Brutal Momentum exposes its unconditional critical chance", () => {
   const runtime = revenantAttributeRules.modifyCriticalChance({
     config: {
       specialization: "Renegade",
-      revenantBuildAttributesApplied: true,
+      attributeProvenance: {
+        professionStaticRulesApplied: true,
+      },
       traitIds: [TRAIT.BRUTAL_MOMENTUM],
     },
     runtime: {

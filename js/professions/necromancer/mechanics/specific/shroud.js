@@ -82,6 +82,7 @@ function activateShroud(context, skill) {
       (application) =>
         application.appliedAt <= at && application.expiresAt > at,
     );
+  state.plagueSendingEntrySkillId = null;
 
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
     emitBuff(context, skill, "necromancer-soul-barbs", 15);

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 3,
+  "profession": "necromancer",
+  "gear": {
+    "Helm": "Viper's",
+    "Shoulders": "Viper's",
+    "Chest": "Viper's",
+    "Gloves": "Viper's",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Viper's",
+    "Ring1": "Viper's",
+    "Ring2": "Viper's",
+    "Accessory1": "Viper's",
+    "Accessory2": "Viper's",
+    "Back": "Viper's",
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
+  },
+  "weapons": [
+    "Pistol",
+    "Torch"
+  ],
+  "alternateWeapons": [
+    "Scepter",
+    "Torch"
+  ],
+  "rune": "Trapper",
+  "weaponSigils": [
+    [
+      "Bursting",
+      "Torment"
+    ],
+    [
+      "Bursting",
+      "Torment"
+    ]
+  ],
+  "relic": "Fractal",
+  "food": "Meaty Asparagus Skewer",
+  "utility": "Tuning Icicle",
+  "jadeBotCore": true,
+  "infusions": [
+    {
+      "stat": "Power",
+      "count": 0
+    },
+    {
+      "stat": "Precision",
+      "count": 0
+    },
+    {
+      "stat": "Condition Damage",
+      "count": 18
+    }
+  ],
+  "specializations": [
+    {
+      "name": "Curses",
+      "traits": "2-1-3"
+    },
+    {
+      "name": "Soul Reaping",
+      "traits": "1-1-3"
+    },
+    {
+      "name": "Scourge",
+      "traits": "2-2-2"
+    }
+  ],
+  "selectedSkills": {
+    "Heal": "Sand Flare",
+    "Utility1": "Blood Is Power",
+    "Utility2": "Signet of Spite",
+    "Utility3": "Summon Shadow Fiend",
+    "Elite": "Plaguelands"
+  },
+  "assumptions": {
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    },
+    "targetSkillActivationsPerSecond": 0
+  },
+  "initialResource": 100,
+  "initialBlight": 0,
+  "startingWeaponSet": 1,
+  "targetHealth": 3970000,
+  "targetArmor": 2597
+}

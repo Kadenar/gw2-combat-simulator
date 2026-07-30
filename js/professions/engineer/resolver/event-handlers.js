@@ -211,6 +211,14 @@ function recordTrait(context, name, event) {
   context.recordProc?.("trait", name, event.at, event.skillName);
 }
 
+function usesRandomTraitProcs(context) {
+  return context.random?.stochastic === true;
+}
+
+function rolledCritical(details) {
+  return details.hitContext?.critical?.didCrit === true;
+}
+
 function reactToEngineerDamage(context, event, details = {}) {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
@@ -276,9 +284,17 @@ function reactToEngineerDamage(context, event, details = {}) {
     });
   }
   if (explosion && hasTrait(context, TRAIT.SHRAPNEL)) {
-    state.shrapnelProgress = Number(state.shrapnelProgress || 0) + 0.33;
-    if (state.shrapnelProgress >= 1) {
-      state.shrapnelProgress -= 1;
+    let triggered = false;
+    if (usesRandomTraitProcs(context)) {
+      triggered = context.random.roll(0.33, "engineer.shrapnel");
+    } else {
+      state.shrapnelProgress = Number(state.shrapnelProgress || 0) + 0.33;
+      triggered = state.shrapnelProgress >= 1;
+    }
+    if (triggered) {
+      if (!usesRandomTraitProcs(context)) {
+        state.shrapnelProgress -= 1;
+      }
       applyCondition(details, context, event, {
         name: "Shrapnel",
         condition: "Bleeding",
@@ -304,10 +320,20 @@ function reactToEngineerDamage(context, event, details = {}) {
     hasTrait(context, TRAIT.SERRATED_STEEL) &&
     criticalChance > 0
   ) {
-    state.serratedSteelProgress =
-      Number(state.serratedSteelProgress || 0) + criticalChance * 0.33;
-    if (state.serratedSteelProgress >= 1) {
-      state.serratedSteelProgress -= 1;
+    let triggered = false;
+    if (usesRandomTraitProcs(context)) {
+      triggered =
+        rolledCritical(details) &&
+        context.random.roll(0.33, "engineer.serrated-steel");
+    } else {
+      state.serratedSteelProgress =
+        Number(state.serratedSteelProgress || 0) + criticalChance * 0.33;
+      triggered = state.serratedSteelProgress >= 1;
+    }
+    if (triggered) {
+      if (!usesRandomTraitProcs(context)) {
+        state.serratedSteelProgress -= 1;
+      }
       applyCondition(details, context, event, {
         name: "Serrated Steel",
         condition: "Bleeding",
@@ -325,13 +351,22 @@ function reactToEngineerDamage(context, event, details = {}) {
     hasTrait(context, TRAIT.INCENDIARY_POWDER) &&
     criticalChance > 0
   ) {
-    state.incendiaryProgress =
-      Number(state.incendiaryProgress || 0) + criticalChance;
-    if (
-      state.incendiaryProgress >= 1 &&
-      Number(state.incendiaryPowder || 0) <= event.at
-    ) {
-      state.incendiaryProgress -= 1;
+    let triggered = false;
+    if (usesRandomTraitProcs(context)) {
+      triggered =
+        rolledCritical(details) &&
+        Number(state.incendiaryPowder || 0) <= event.at;
+    } else {
+      state.incendiaryProgress =
+        Number(state.incendiaryProgress || 0) + criticalChance;
+      triggered =
+        state.incendiaryProgress >= 1 &&
+        Number(state.incendiaryPowder || 0) <= event.at;
+    }
+    if (triggered) {
+      if (!usesRandomTraitProcs(context)) {
+        state.incendiaryProgress -= 1;
+      }
       state.incendiaryPowder = event.at + 10;
       applyCondition(details, context, event, {
         name: "Incendiary Powder",
