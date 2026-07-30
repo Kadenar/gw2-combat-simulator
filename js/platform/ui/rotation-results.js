@@ -214,7 +214,7 @@ export function mountRotationResults(container, model = {}, options = {}) {
         <p>Use Expected for planning. P1 and P99 show rare unlucky and lucky outcomes. Other result panels use the deterministic baseline.</p>
       </div>
       ${randomDistributionTrials
-        ? `<span>${number(randomDistributionTrials)} simulated rotations</span>`
+        ? `<span>${number(randomDistributionTrials)} outcomes per run</span>`
         : ""}
     </div>
     ${randomDistributionStale
@@ -264,7 +264,12 @@ export function mountRotationResults(container, model = {}, options = {}) {
               <small>P99 DPS</small>
             </div>
           </div>`
-          : '<div class="rng-distribution-status">No RNG outcomes available.</div>'}
+          : `<div class="rng-distribution-manual">
+              <span>Run the distribution when the rotation is ready.</span>
+              <button type="button" data-role="rng-run">
+                Run ${number(randomDistributionTrials)} outcomes
+              </button>
+            </div>`}
   </section>` : ""}
   ${skillColumns.length ? `<div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
     <div class="res-hdr res-hdr-sortable" data-role="skill-header">
@@ -359,6 +364,15 @@ export function mountRotationResults(container, model = {}, options = {}) {
       model.chartSeries,
       options.chartOptions || {},
     );
+  }
+  const runRandomDistribution = container.querySelector?.(
+    '[data-role="rng-run"]',
+  );
+  if (
+    runRandomDistribution
+    && typeof options.onRunRandomDistribution === "function"
+  ) {
+    runRandomDistribution.onclick = options.onRunRandomDistribution;
   }
   return { getSortState: () => ({ ...sortState }), renderSortedRows };
 }

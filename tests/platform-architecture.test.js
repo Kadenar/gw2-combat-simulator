@@ -44,6 +44,9 @@ import {
   WEAPON_DATA,
 } from "../js/platform/gw2/gear-data.js";
 import {
+  createGw2ResolverRuntimeState,
+} from "../js/platform/gw2/resolver/runtime-state.js";
+import {
   GW2_SKILL_FLAGS,
 } from "../scripts/lib/gw2-profession-snapshot.mjs";
 import {
@@ -1545,6 +1548,24 @@ test("shared relic behavior resolves triggering skills by stable id", () => {
     result.procSteps.some(step => step.skill === "Relic of Fireworks"),
     true,
   );
+});
+
+test("resolver runtime creates state only for the selected relic", () => {
+  const createRuntime = (relic) =>
+    createGw2ResolverRuntimeState({ config: { relic } });
+  const thief = createRuntime("Thief");
+  const anotherThief = createRuntime("Thief");
+  const brawler = createRuntime("Brawler");
+  const aristocracy = createRuntime("Aristocracy");
+
+  assert.equal(thief.relic.name, "Thief");
+  assert.deepEqual(thief.relic.state, { stacks: 0, expiresAt: 0 });
+  assert.deepEqual(brawler.relic.state, { readyAt: 0, buffUntil: 0 });
+  assert.deepEqual(aristocracy.relic.state, {});
+  assert.notEqual(thief.relic.state, anotherThief.relic.state);
+
+  thief.relic.state.stacks = 3;
+  assert.equal(anotherThief.relic.state.stacks, 0);
 });
 
 test("Relic of the Brawler grants four seconds of strike damage with a strict eight-second ICD", () => {

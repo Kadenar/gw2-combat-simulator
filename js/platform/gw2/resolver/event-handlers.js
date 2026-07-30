@@ -8,9 +8,7 @@ import {
   NOURISHMENT_ICON,
 } from "../gear-data.js";
 import {
-  applyMistStranger,
   handleBoonRelics,
-  handleConditionRelics,
   handleControlRelics,
   handlePeithaRelic,
   handleRelicDamageResolved,
@@ -193,7 +191,6 @@ export function createGw2ResolverEventHandlers({
       // expected food procs, and finally relic after-hit rules.
       applyResolvedHit(ctx, event, hitContext);
       handleRelicDamageResolved(ctx, event);
-      applyMistStranger(ctx, event);
       reactionFor(eventReactions, "damage")(ctx, event, {
         hitContext,
         applyCondition,
@@ -206,8 +203,7 @@ export function createGw2ResolverEventHandlers({
       markCombatActive(ctx, event);
       // applyCondition schedules future tick events; it does not charge the
       // condition's full damage at application time.
-      const application = applyCondition(ctx, event);
-      handleConditionRelics(ctx, application);
+      applyCondition(ctx, event);
     },
 
     condition_tick(ctx, event) {

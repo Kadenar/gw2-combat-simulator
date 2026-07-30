@@ -1,5 +1,7 @@
 /**
- * Relic trigger rules: strike/condition multipliers, active-hit effects, passive timelines.
+ * Relic trigger rules: strike/condition multipliers, active effects, and
+ * passive timelines. Each simulation selects exactly one rule set and creates
+ * only the mutable state required by that relic.
  */
 
 import { EPSILON } from "../engine/clock.js";
@@ -7,374 +9,483 @@ import { enqueueOrdered } from "../engine/event-queue.js";
 import { isInternalCooldownReady } from "../engine/internal-cooldown.js";
 import { isGw2PlayerActorEvent } from "./event-ownership.js";
 
-/**
- * Calculates strike damage multiplier for active relics.
- * - Thief: +1% per stack (up to 5 stacks, 6s duration, triggers on weapon skills).
- * - Fireworks: +7% while active (6s after weapon cooldown ≥20).
- * - Claw: +7% while active (8s after control).
- * - Peitha: +10% while active (4s after Peitha event).
- * - Brawler: +10% while active (4s after self-granted Protection/Resolution).
- * - Eagle: +10% when target > 50% health.
- * @param {Object} ctx - Resolver context
- * @param {Object} event - Damage event
- * @returns {number} Strike multiplier
- */
-export function relicStrikeMultiplier(ctx, event) {
-  const { config, relic, totals } = ctx;
-  const at = event.at;
-  switch (config.relic) {
-    case "Thief":
-      return relic.thiefStacks > 0 && relic.thiefUntil > at
-        ? 1 + relic.thiefStacks * 0.01
-        : 1;
-    case "Fireworks":
-    case "Claw":
-    case "Peitha":
-      if (relic.buffUntil <= at) return 1;
-      return config.relic === "Peitha" ? 1.1 : 1.07;
-    case "Dragonhunter":
-      return relic.buffUntil > at ? 1.1 : 1;
-    case "Brawler":
-      return relic.buffUntil > at ? 1.1 : 1;
-    case "Eagle": {
-      const targetHealth = Number(config.target?.health || 0);
-      return targetHealth > 0 &&
-        totals.strike + totals.condition >= targetHealth * 0.5
-        ? 1.1
-        : 1;
-    }
-    default:
-      return 1;
-  }
+const STATELESS_RELIC = Object.freeze({});
+
+function defineRelic(rules) {
+  return Object.freeze(rules);
 }
 
-/**
- * Activates Brawler when the player grants themselves Protection or Resolution.
- * @param {Object} ctx - Resolver context
- * @param {Object} event - Resolved buff application
- */
-export function handleBoonRelics(ctx, event) {
-  const kind = String(event?.kind || "").toLowerCase();
-  if (
-    ctx.config.relic !== "Brawler" ||
-    (kind !== "protection" && kind !== "resolution") ||
-    !isGw2PlayerActorEvent(event) ||
-    !(Number(event.duration) > 0) ||
-    !(Number(event.stacks ?? 1) > 0) ||
-    !isInternalCooldownReady(event.at, ctx.relic.brawlerReadyAt)
-  ) return;
-
-  ctx.relic.brawlerReadyAt = event.at + 8;
-  ctx.relic.buffUntil = event.at + 4;
-  ctx.recordProc(
-    "relic",
-    "Relic of the Brawler",
-    event.at,
-    event.skillName,
-    "activated",
-  );
-}
-
-/**
- * Applies Mist Stranger siphon damage: 105 flat per player hit.
- * @param {Object} ctx - Resolver context
- * @param {Object} event - Damage event
- */
-export function applyMistStranger(ctx, event) {
-  if (ctx.config.relic !== "Mist Stranger" || !isGw2PlayerActorEvent(event))
-    return;
-  const siphon = 105 * Number(event.hits || 1);
-  ctx.totals.strike += siphon;
-  ctx.addBreakdown(
-    "Relic of the Mist Stranger",
-    siphon,
-    "strikeDamage",
-    event.hits,
-  );
-  ctx.resolved.push({
-    type: "damage",
-    at: event.at,
-    name: "Relic of the Mist Stranger",
-    skillName: "Relic of the Mist Stranger",
-    triggeredBy: event.skillName,
-    coefficient: 0,
-    hits: event.hits,
-    source: "Relic",
-    damage: siphon,
-  });
-  ctx.recordProc(
-    "relic",
-    "Relic of the Mist Stranger",
-    event.at,
-    event.skillName,
-  );
-}
-
-/**
- * Handles active relic procs after player hits: Thief (stack/duration), Fireworks (cooldown ≥20).
- * @param {Object} ctx - Resolver context
- * @param {Object} event - Damage event
- * @param {Object} skill - Skill object (from skillsByName)
- */
-export function handleRelicsAfterHit(ctx, event, skill) {
-  if (
-    ctx.config.relic === "Thief" &&
-    isGw2PlayerActorEvent(event) &&
-    skill?.type === "Weapon" &&
-    (Number(skill.cooldown || 0) > 0 || skill.resource)
-  ) {
-    if (ctx.relic.thiefUntil <= event.at) ctx.relic.thiefStacks = 0;
-    ctx.relic.thiefStacks = Math.min(5, ctx.relic.thiefStacks + 1);
-    ctx.relic.thiefUntil = event.at + 6;
-    ctx.recordProc(
-      "relic",
-      "Relic of the Thief",
-      event.at,
-      event.skillName,
-      `${ctx.relic.thiefStacks}/5 stacks`,
-    );
-  }
-  if (
-    ctx.config.relic === "Fireworks" &&
-    isGw2PlayerActorEvent(event) &&
-    skill?.type === "Weapon" &&
-    Number(skill?.cooldown || 0) >= 20
-  ) {
-    const wasActive = ctx.relic.buffUntil > event.at;
-    ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 6);
-    ctx.recordProc(
-      "relic",
-      "Relic of Fireworks",
-      event.at,
-      event.skillName,
-      wasActive ? "refreshed" : "activated",
-    );
-  }
-  if (
-    ctx.config.relic === "Dragonhunter" &&
-    isGw2PlayerActorEvent(event) &&
-    skill?.categories?.includes("Trap")
-  ) {
-    const wasActive = ctx.relic.buffUntil > event.at;
-    ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 5);
-    ctx.recordProc(
-      "relic",
-      "Relic of the Dragonhunter",
-      event.at,
-      event.skillName,
-      wasActive ? "refreshed" : "activated",
-    );
-  }
-}
-
-/**
- * Tethers the target when the player applies Immobilized. The tether expires
- * after five seconds and resolves as a single 3.0-coefficient strike.
- * @param {Object} ctx - Resolver context
- * @param {Object|null} application - Resolved condition application
- */
-export function handleConditionRelics(ctx, application) {
-  if (
-    ctx.config.relic !== "Shackles" ||
-    application?.condition !== "Immobilized" ||
-    !isGw2PlayerActorEvent(application) ||
-    !isInternalCooldownReady(
-      application.at,
-      ctx.relic.shacklesReadyAt,
-    )
-  ) return;
-
-  ctx.relic.shacklesReadyAt = application.at + 10;
-  ctx.recordProc(
-    "relic",
-    "Relic of the Shackles",
-    application.at,
-    application.skillName,
-    "tethered",
-  );
-  enqueueOrdered(ctx.queue, {
-    type: "damage",
-    at: application.at + 5,
-    name: "Relic of the Shackles",
-    skillName: "Relic of the Shackles",
-    coefficient: 3,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    source: "Relic",
-    sourceId: "relic.shackles",
-    actorType: "effect",
-    skillWeapon: "Unequipped",
-    canCrit: true,
-    triggeredBy: application.skillName,
-  });
-}
-
-/**
- * Records the delayed Shackles strike when it actually resolves. Keeping this
- * separate from the tether proc avoids reporting damage if the queued strike
- * falls outside the encounter or occurs after the target has died.
- * @param {Object} ctx - Resolver context
- * @param {Object} event - Resolved damage event
- */
-export function handleRelicDamageResolved(ctx, event) {
-  if (
-    event?.type !== "damage"
-    || event.sourceId !== "relic.shackles"
-    || event.skillName !== "Relic of the Shackles"
-  ) return;
-
-  ctx.recordProc(
-    "relic",
-    "Relic of the Shackles",
-    event.at,
-    event.triggeredBy,
-    "damage",
-  );
-}
-
-/**
- * Condition-duration bonus from active relics (fraction, e.g. 0.1 = +10%).
- * - Dragonhunter: +10% while the trap buff is active (5s after a trap hit).
- * @param {Object} ctx - Resolver context
- * @param {number} at - Application time
- * @returns {number} Additive condition-duration bonus
- */
-export function relicConditionDurationBonus(ctx, at) {
-  if (!ctx || ctx.config?.relic !== "Dragonhunter") return 0;
-  return ctx.relic?.buffUntil > at ? 0.1 : 0;
-}
-
-function maybeTriggerAkeem(
+function recordTimedBuffProc(
   ctx,
+  state,
   event,
-  { activeConditionStackCount, applyCondition },
+  {
+    duration,
+    name,
+    detail = null,
+  },
 ) {
-  if (
-    ctx.config.relic !== "Akeem" ||
-    !isInternalCooldownReady(event.at, ctx.relic.akeemReadyAt)
-  )
-    return;
-  if (
-    activeConditionStackCount(ctx, "Confusion", event.at) < 5 &&
-    activeConditionStackCount(ctx, "Torment", event.at) < 5
-  )
-    return;
-
-  ctx.relic.akeemReadyAt = event.at + 10;
-  ctx.recordProc("relic", "Relic of Akeem", event.at, event.skillName);
-  applyCondition(ctx, {
-    type: "condition",
-    at: event.at,
-    name: "Relic of Akeem — Confusion",
-    skillName: "Relic of Akeem",
-    condition: "Confusion",
-    duration: 10,
-    stacks: 2,
-    source: "Relic",
-  });
-  applyCondition(ctx, {
-    type: "condition",
-    at: event.at,
-    name: "Relic of Akeem — Torment",
-    skillName: "Relic of Akeem",
-    condition: "Torment",
-    duration: 10,
-    stacks: 2,
-    source: "Relic",
-  });
+  const wasActive = state.buffUntil > event.at;
+  state.buffUntil = Math.max(state.buffUntil, event.at + duration);
+  ctx.recordProc(
+    "relic",
+    name,
+    event.at,
+    event.skillName,
+    detail ?? (wasActive ? "refreshed" : "activated"),
+  );
 }
 
-/**
- * Handles control event relic triggers: Claw (+7% for 8s), Akeem (6+ Confusion/Torment → 2 Confusion + 2 Torment).
- * @param {Object} ctx - Resolver context
- * @param {Object} event - Control event
- * @param {Object} conditionHelpers - {activeConditionStackCount, applyCondition}
- */
-export function handleControlRelics(ctx, event, conditionHelpers) {
-  if (ctx.config.relic === "Claw") {
-    const wasActive = ctx.relic.buffUntil > event.at;
-    ctx.relic.buffUntil = Math.max(ctx.relic.buffUntil, event.at + 8);
-    ctx.recordProc(
-      "relic",
-      "Relic of the Claw",
-      event.at,
-      event.skillName,
-      wasActive ? "refreshed" : "activated",
-    );
-  }
-  maybeTriggerAkeem(ctx, event, conditionHelpers);
-}
-
-/**
- * Handles Peitha event: applies 2 Torment (7s) every 4s.
- * @param {Object} ctx - Resolver context
- * @param {Object} event - Peitha event
- * @param {Function} applyCondition - Condition application function
- */
-export function handlePeithaRelic(ctx, event, applyCondition) {
-  if (ctx.config.relic !== "Peitha") return;
-  if (!isInternalCooldownReady(event.at, ctx.relic.peithaReadyAt)) return;
-  ctx.relic.peithaReadyAt = event.at + 4;
-  ctx.relic.buffUntil = event.at + 4;
-  ctx.recordProc("relic", "Relic of Peitha", event.at, event.skillName);
-  applyCondition(ctx, {
-    type: "condition",
-    at: event.at,
-    name: "Relic of Peitha — Torment",
-    skillName: "Relic of Peitha",
-    condition: "Torment",
-    duration: 7,
-    stacks: 2,
-    source: "Relic",
-  });
-}
-
-/**
- * Records passive relic timeline for UI display: Aristocracy (stacks timeline), Thorns (stack timeline).
- * @param {Object} ctx - Resolver context
- * @param {Array} events - All scheduled events
- * @param {number} rotationEndTime - Rotation end time
- */
-export function recordPassiveRelicTimeline(ctx, events, rotationEndTime) {
-  if (ctx.config.relic === "Aristocracy") {
-    let readyAt = 0;
-    let stacks = 0;
-    let expiresAt = -Infinity;
-    for (const event of events) {
+const RELIC_RULES = Object.freeze({
+  Akeem: defineRelic({
+    createState: () => ({ readyAt: 0 }),
+    control(
+      ctx,
+      state,
+      event,
+      { activeConditionStackCount, applyCondition },
+    ) {
+      if (!isInternalCooldownReady(event.at, state.readyAt)) return;
       if (
-        event.type !== "weakness_vulnerability" ||
-        (ctx.combatStartTime != null &&
-          event.at < ctx.combatStartTime - EPSILON) ||
-        !isInternalCooldownReady(event.at, readyAt)
-      )
-        continue;
-      if (event.at >= expiresAt - EPSILON) stacks = 0;
-      stacks = Math.min(5, stacks + 1);
-      expiresAt = event.at + 8;
-      readyAt = event.at + 1;
+        activeConditionStackCount(ctx, "Confusion", event.at) < 5 &&
+        activeConditionStackCount(ctx, "Torment", event.at) < 5
+      ) {
+        return;
+      }
+
+      state.readyAt = event.at + 10;
+      ctx.recordProc("relic", "Relic of Akeem", event.at, event.skillName);
+      applyCondition(ctx, {
+        type: "condition",
+        at: event.at,
+        name: "Relic of Akeem — Confusion",
+        skillName: "Relic of Akeem",
+        condition: "Confusion",
+        duration: 10,
+        stacks: 2,
+        source: "Relic",
+      });
+      applyCondition(ctx, {
+        type: "condition",
+        at: event.at,
+        name: "Relic of Akeem — Torment",
+        skillName: "Relic of Akeem",
+        condition: "Torment",
+        duration: 10,
+        stacks: 2,
+        source: "Relic",
+      });
+    },
+  }),
+
+  Aristocracy: defineRelic({
+    timeline(ctx, _state, events) {
+      let readyAt = 0;
+      let stacks = 0;
+      let expiresAt = -Infinity;
+      for (const event of events) {
+        if (
+          event.type !== "weakness_vulnerability" ||
+          (ctx.combatStartTime != null &&
+            event.at < ctx.combatStartTime - EPSILON) ||
+          !isInternalCooldownReady(event.at, readyAt)
+        ) {
+          continue;
+        }
+        if (event.at >= expiresAt - EPSILON) stacks = 0;
+        stacks = Math.min(5, stacks + 1);
+        expiresAt = event.at + 8;
+        readyAt = event.at + 1;
+        ctx.recordProc(
+          "relic",
+          "Relic of Aristocracy",
+          event.at,
+          event.skillName,
+          `${stacks}/5 stacks`,
+        );
+      }
+    },
+  }),
+
+  Brawler: defineRelic({
+    createState: () => ({ readyAt: 0, buffUntil: 0 }),
+    boon(ctx, state, event) {
+      const kind = String(event?.kind || "").toLowerCase();
+      if (
+        (kind !== "protection" && kind !== "resolution") ||
+        !isGw2PlayerActorEvent(event) ||
+        !(Number(event.duration) > 0) ||
+        !(Number(event.stacks ?? 1) > 0) ||
+        !isInternalCooldownReady(event.at, state.readyAt)
+      ) {
+        return;
+      }
+
+      state.readyAt = event.at + 8;
+      state.buffUntil = event.at + 4;
       ctx.recordProc(
         "relic",
-        "Relic of Aristocracy",
+        "Relic of the Brawler",
         event.at,
         event.skillName,
-        `${stacks}/5 stacks`,
+        "activated",
       );
-    }
-  }
-  if (ctx.config.relic === "Thorns") {
-    for (
-      let at = 3, stacks = 1;
-      at <= rotationEndTime + EPSILON && stacks <= 10;
-      at += 5, stacks += 1
+    },
+    strikeMultiplier(_ctx, state, event) {
+      return state.buffUntil > event.at ? 1.1 : 1;
+    },
+  }),
+
+  Claw: defineRelic({
+    createState: () => ({ buffUntil: 0 }),
+    control(ctx, state, event) {
+      recordTimedBuffProc(ctx, state, event, {
+        duration: 8,
+        name: "Relic of the Claw",
+      });
+    },
+    strikeMultiplier(_ctx, state, event) {
+      return state.buffUntil > event.at ? 1.07 : 1;
+    },
+  }),
+
+  Dragonhunter: defineRelic({
+    createState: () => ({ buffUntil: 0 }),
+    afterHit(ctx, state, event, skill) {
+      if (
+        !isGw2PlayerActorEvent(event) ||
+        !skill?.categories?.includes("Trap")
+      ) {
+        return;
+      }
+      recordTimedBuffProc(ctx, state, event, {
+        duration: 5,
+        name: "Relic of the Dragonhunter",
+      });
+    },
+    conditionDurationBonus(_ctx, state, at) {
+      return state.buffUntil > at ? 0.1 : 0;
+    },
+    strikeMultiplier(_ctx, state, event) {
+      return state.buffUntil > event.at ? 1.1 : 1;
+    },
+  }),
+
+  Eagle: defineRelic({
+    strikeMultiplier(ctx) {
+      const targetHealth = Number(ctx.config.target?.health || 0);
+      return targetHealth > 0 &&
+        ctx.totals.strike + ctx.totals.condition >= targetHealth * 0.5
+        ? 1.1
+        : 1;
+    },
+  }),
+
+  Fireworks: defineRelic({
+    createState: () => ({ buffUntil: 0 }),
+    afterHit(ctx, state, event, skill) {
+      if (
+        !isGw2PlayerActorEvent(event) ||
+        skill?.type !== "Weapon" ||
+        Number(skill.cooldown || 0) < 20
+      ) {
+        return;
+      }
+      recordTimedBuffProc(ctx, state, event, {
+        duration: 6,
+        name: "Relic of Fireworks",
+      });
+    },
+    strikeMultiplier(_ctx, state, event) {
+      return state.buffUntil > event.at ? 1.07 : 1;
+    },
+  }),
+
+  Fractal: defineRelic({
+    createState: () => ({ readyAt: 0 }),
+    condition(
+      ctx,
+      state,
+      application,
+      { activeConditionStackCount, applyCondition },
     ) {
+      if (
+        application?.condition !== "Bleeding" ||
+        !isInternalCooldownReady(application.at, state.readyAt) ||
+        activeConditionStackCount(ctx, "Bleeding", application.at) < 6
+      ) {
+        return;
+      }
+
+      // The triggering bleed is already in conditionState, so reaching six
+      // stacks on this application is sufficient.
+      state.readyAt = application.at + 20;
       ctx.recordProc(
         "relic",
-        "Relic of Thorns",
-        at,
-        "Incoming enemy hit",
-        `${stacks}/10 stacks`,
+        "Relic of the Fractal",
+        application.at,
+        application.skillName,
       );
-    }
-  }
+      applyCondition(ctx, {
+        type: "condition",
+        at: application.at,
+        name: "Relic of the Fractal — Burning",
+        skillName: "Relic of the Fractal",
+        condition: "Burning",
+        duration: 8,
+        stacks: 2,
+        source: "Relic",
+        sourceId: "relic.fractal",
+      });
+      applyCondition(ctx, {
+        type: "condition",
+        at: application.at,
+        name: "Relic of the Fractal — Torment",
+        skillName: "Relic of the Fractal",
+        condition: "Torment",
+        duration: 8,
+        stacks: 3,
+        source: "Relic",
+        sourceId: "relic.fractal",
+      });
+    },
+  }),
+
+  "Mist Stranger": defineRelic({
+    damageResolved(ctx, _state, event) {
+      if (!isGw2PlayerActorEvent(event)) return;
+      const siphon = 105 * Number(event.hits || 1);
+      ctx.totals.strike += siphon;
+      ctx.addBreakdown(
+        "Relic of the Mist Stranger",
+        siphon,
+        "strikeDamage",
+        event.hits,
+      );
+      ctx.resolved.push({
+        type: "damage",
+        at: event.at,
+        name: "Relic of the Mist Stranger",
+        skillName: "Relic of the Mist Stranger",
+        triggeredBy: event.skillName,
+        coefficient: 0,
+        hits: event.hits,
+        source: "Relic",
+        damage: siphon,
+      });
+      ctx.recordProc(
+        "relic",
+        "Relic of the Mist Stranger",
+        event.at,
+        event.skillName,
+      );
+    },
+  }),
+
+  Peitha: defineRelic({
+    createState: () => ({ readyAt: 0, buffUntil: 0 }),
+    peitha(ctx, state, event, applyCondition) {
+      if (!isInternalCooldownReady(event.at, state.readyAt)) return;
+      state.readyAt = event.at + 4;
+      state.buffUntil = event.at + 4;
+      ctx.recordProc("relic", "Relic of Peitha", event.at, event.skillName);
+      applyCondition(ctx, {
+        type: "condition",
+        at: event.at,
+        name: "Relic of Peitha — Torment",
+        skillName: "Relic of Peitha",
+        condition: "Torment",
+        duration: 7,
+        stacks: 2,
+        source: "Relic",
+      });
+    },
+    strikeMultiplier(_ctx, state, event) {
+      return state.buffUntil > event.at ? 1.1 : 1;
+    },
+  }),
+
+  Shackles: defineRelic({
+    createState: () => ({ readyAt: 0 }),
+    condition(ctx, state, application) {
+      if (
+        application?.condition !== "Immobilized" ||
+        !isGw2PlayerActorEvent(application) ||
+        !isInternalCooldownReady(application.at, state.readyAt)
+      ) {
+        return;
+      }
+
+      state.readyAt = application.at + 10;
+      ctx.recordProc(
+        "relic",
+        "Relic of the Shackles",
+        application.at,
+        application.skillName,
+        "tethered",
+      );
+      enqueueOrdered(ctx.queue, {
+        type: "damage",
+        at: application.at + 5,
+        name: "Relic of the Shackles",
+        skillName: "Relic of the Shackles",
+        coefficient: 3,
+        hits: 1,
+        hitIndex: 1,
+        totalHits: 1,
+        source: "Relic",
+        sourceId: "relic.shackles",
+        actorType: "effect",
+        skillWeapon: "Unequipped",
+        canCrit: true,
+        triggeredBy: application.skillName,
+      });
+    },
+    damageResolved(ctx, _state, event) {
+      if (
+        event?.type !== "damage" ||
+        event.sourceId !== "relic.shackles" ||
+        event.skillName !== "Relic of the Shackles"
+      ) {
+        return;
+      }
+      ctx.recordProc(
+        "relic",
+        "Relic of the Shackles",
+        event.at,
+        event.triggeredBy,
+        "damage",
+      );
+    },
+  }),
+
+  Thief: defineRelic({
+    createState: () => ({ stacks: 0, expiresAt: 0 }),
+    afterHit(ctx, state, event, skill) {
+      if (
+        !isGw2PlayerActorEvent(event) ||
+        skill?.type !== "Weapon" ||
+        !(Number(skill.cooldown || 0) > 0 || skill.resource)
+      ) {
+        return;
+      }
+      if (state.expiresAt <= event.at) state.stacks = 0;
+      state.stacks = Math.min(5, state.stacks + 1);
+      state.expiresAt = event.at + 6;
+      ctx.recordProc(
+        "relic",
+        "Relic of the Thief",
+        event.at,
+        event.skillName,
+        `${state.stacks}/5 stacks`,
+      );
+    },
+    strikeMultiplier(_ctx, state, event) {
+      return state.stacks > 0 && state.expiresAt > event.at
+        ? 1 + state.stacks * 0.01
+        : 1;
+    },
+  }),
+
+  Thorns: defineRelic({
+    timeline(ctx, _state, _events, rotationEndTime) {
+      for (
+        let at = 3, stacks = 1;
+        at <= rotationEndTime + EPSILON && stacks <= 10;
+        at += 5, stacks += 1
+      ) {
+        ctx.recordProc(
+          "relic",
+          "Relic of Thorns",
+          at,
+          "Incoming enemy hit",
+          `${stacks}/10 stacks`,
+        );
+      }
+    },
+  }),
+});
+
+/**
+ * Creates the selected relic runtime. Rules are immutable and shared; mutable
+ * state is created independently for each simulation.
+ */
+export function createRelicRuntime(name) {
+  const selectedName = String(name || "");
+  const rules = RELIC_RULES[selectedName] || STATELESS_RELIC;
+  const state = rules.createState?.() || {};
+  return Object.freeze({
+    name: selectedName,
+    rules,
+    state,
+  });
+}
+
+function invokeRelicHook(ctx, hook, ...args) {
+  const handler = ctx?.relic?.rules?.[hook];
+  if (typeof handler !== "function") return undefined;
+  return handler(ctx, ctx.relic.state, ...args);
+}
+
+/**
+ * Calculates the strike multiplier supplied by the selected relic.
+ */
+export function relicStrikeMultiplier(ctx, event) {
+  return invokeRelicHook(ctx, "strikeMultiplier", event) ?? 1;
+}
+
+/**
+ * Applies the selected relic's boon trigger, if any.
+ */
+export function handleBoonRelics(ctx, event) {
+  invokeRelicHook(ctx, "boon", event);
+}
+
+/**
+ * Applies effects that occur after a damage event resolves.
+ */
+export function handleRelicDamageResolved(ctx, event) {
+  invokeRelicHook(ctx, "damageResolved", event);
+}
+
+/**
+ * Applies selected relic triggers that inspect the triggering skill after hit.
+ */
+export function handleRelicsAfterHit(ctx, event, skill) {
+  invokeRelicHook(ctx, "afterHit", event, skill);
+}
+
+/**
+ * Applies selected relic triggers after a condition is recorded.
+ */
+export function handleConditionRelics(ctx, application, conditionHelpers) {
+  invokeRelicHook(ctx, "condition", application, conditionHelpers);
+}
+
+/**
+ * Returns the selected relic's additive condition-duration bonus.
+ */
+export function relicConditionDurationBonus(ctx, at) {
+  return invokeRelicHook(ctx, "conditionDurationBonus", at) ?? 0;
+}
+
+/**
+ * Applies the selected relic's control trigger, if any.
+ */
+export function handleControlRelics(ctx, event, conditionHelpers) {
+  invokeRelicHook(ctx, "control", event, conditionHelpers);
+}
+
+/**
+ * Applies the selected relic's explicit Peitha-event trigger, if any.
+ */
+export function handlePeithaRelic(ctx, event, applyCondition) {
+  invokeRelicHook(ctx, "peitha", event, applyCondition);
+}
+
+/**
+ * Records passive proc timelines for relics that do not need resolver state.
+ */
+export function recordPassiveRelicTimeline(ctx, events, rotationEndTime) {
+  invokeRelicHook(ctx, "timeline", events, rotationEndTime);
 }

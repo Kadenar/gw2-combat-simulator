@@ -1,4 +1,5 @@
 import { createSimulationRandom } from "../../engine/simulation-random.js";
+import { createRelicRuntime } from "../relic-rules.js";
 
 /**
  * Creates the mutable state for the full GW2 timeline resolver.
@@ -42,20 +43,7 @@ export function createGw2ResolverRuntimeState({
     deathTime: null,
     combatActive: false,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
-    relic: {
-      buffUntil: 0,
-      thiefStacks: 0,
-      thiefUntil: 0,
-      aristocracyStacks: 0,
-      aristocracyUntil: 0,
-      aristocracyReadyAt: 0,
-      fractalReadyAt: 0,
-      akeemReadyAt: 0,
-      peithaReadyAt: 0,
-      brawlerReadyAt: 0,
-      shacklesReadyAt: 0,
-      thornsStacks: 0,
-    },
+    relic: createRelicRuntime(config.relic),
     profession: professionState,
     sigil: {
       severanceUntil: 0,

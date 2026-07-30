@@ -1,7 +1,7 @@
 import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
-import { isInternalCooldownReady } from "../../engine/internal-cooldown.js";
 import { conditionTickDamage } from "../damage.js";
+import { handleConditionRelics } from "../relic-rules.js";
 import { permanentTargetConditionStacks } from "../target-state.js";
 
 const MOVING_TORMENT = Object.freeze({ base: 22, scaling: 0.06 });
@@ -97,49 +97,6 @@ export function createGw2ConditionResolution({
     }
   }
 
-  function maybeTriggerFractal(ctx, application) {
-    if (
-      ctx.config.relic !== "Fractal" ||
-      application.condition !== "Bleeding" ||
-      !isInternalCooldownReady(application.at, ctx.relic.fractalReadyAt) ||
-      activeConditionStackCount(ctx, "Bleeding", application.at) < 6
-    )
-      return;
-
-    // The triggering bleed is already in conditionState, so reaching six stacks
-    // on this application is sufficient. The generated conditions cannot
-    // recursively retrigger the relic because neither is Bleeding.
-    ctx.relic.fractalReadyAt = application.at + 20;
-    ctx.recordProc(
-      "relic",
-      "Relic of the Fractal",
-      application.at,
-      application.skillName,
-    );
-    applyCondition(ctx, {
-      type: "condition",
-      at: application.at,
-      name: "Relic of the Fractal — Burning",
-      skillName: "Relic of the Fractal",
-      condition: "Burning",
-      duration: 8,
-      stacks: 2,
-      source: "Relic",
-      sourceId: "relic.fractal",
-    });
-    applyCondition(ctx, {
-      type: "condition",
-      at: application.at,
-      name: "Relic of the Fractal — Torment",
-      skillName: "Relic of the Fractal",
-      condition: "Torment",
-      duration: 8,
-      stacks: 3,
-      source: "Relic",
-      sourceId: "relic.fractal",
-    });
-  }
-
   function applyCondition(ctx, event) {
     const name = ctx.helpers.conditionName(event.condition);
     // Duration is snapshotted at application time. Damage stats and multipliers
@@ -202,7 +159,10 @@ export function createGw2ConditionResolution({
     scheduleApplicationTicks(ctx, application);
 
     onConditionApplied(ctx, application);
-    maybeTriggerFractal(ctx, application);
+    handleConditionRelics(ctx, application, {
+      activeConditionStackCount,
+      applyCondition,
+    });
     return application;
   }
 

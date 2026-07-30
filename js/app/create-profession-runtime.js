@@ -5,9 +5,7 @@ import {
   calculateRandomDistribution as calculateDistribution,
 } from "./random-distribution.js";
 import { FOOD_DATA } from "../platform/gw2/gear-data.js";
-import {
-  SIMULATION_RANDOMNESS_MODES,
-} from "../platform/engine/simulation-random.js";
+import { SIMULATION_RANDOMNESS_MODES } from "../platform/engine/simulation-random.js";
 import { simulateGw2 } from "../platform/gw2/simulate.js";
 
 /**
@@ -212,7 +210,7 @@ export function createProfessionRuntime({
   }
 
   function modifierContributionRequest(app) {
-    const deterministicConfig = config =>
+    const deterministicConfig = (config) =>
       config.randomness?.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
         ? {
             ...config,

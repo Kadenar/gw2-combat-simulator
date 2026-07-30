@@ -94,7 +94,6 @@ const EFFECT_COLORS = {
     Poisoned: '#70a33e',
 };
 const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
-const RANDOM_DISTRIBUTION_DEBOUNCE_MS = 350;
 
 // Main application controller class
 // Maintains UI state, coordinates between UI and simulation engine
@@ -278,9 +277,9 @@ export class ProfessionApp {
         );
     }
 
-    // Debounced RNG sampling for random trait procs. A small worker pool splits
-    // the trials across CPU cores without blocking the UI.
-    scheduleRandomDistribution() {
+    // Prepares or manually starts RNG sampling for random trait procs. A small
+    // worker pool splits the trials across CPU cores without blocking the UI.
+    scheduleRandomDistribution(run = false) {
         const requestId = ++this.randomDistributionRequestId;
         clearTimeout(this.randomDistributionTimer);
         this.randomDistributionTimer = null;
@@ -301,13 +300,15 @@ export class ProfessionApp {
         }
 
         this.results.randomDistributionRequested = true;
-        this.results.randomDistributionStale = true;
+        this.results.randomDistributionStale = run;
         this.results.randomDistributionTrials = request.trials;
+        this.results.randomDistributionError = '';
         this.results.randomDistributionProgress = {
             completed: 0,
             total: request.trials,
             percent: 0,
         };
+        if (!run) return;
 
         const applyProgress = progress => {
             if (requestId !== this.randomDistributionRequestId || !this.results) return;
@@ -461,7 +462,14 @@ export class ProfessionApp {
             } catch (error) {
                 failDistribution(error);
             }
-        }, RANDOM_DISTRIBUTION_DEBOUNCE_MS);
+        }, 0);
+    }
+
+    runRandomDistribution() {
+        this.scheduleRandomDistribution(true);
+        // Restart contribution work so it cannot contend with the RNG pool.
+        this.scheduleModifierContributions();
+        this.adapter.renderResults(this);
     }
 
     // Ensures selected skills are valid for current elite specialization

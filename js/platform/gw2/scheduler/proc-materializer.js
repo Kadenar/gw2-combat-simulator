@@ -1,5 +1,6 @@
 import { isInternalCooldownReady } from "../../engine/internal-cooldown.js";
 import { SIGIL_PROCS } from "../gear-data.js";
+import { createRelicRuntime } from "../relic-rules.js";
 import {
   GW2_EVENT_ACTOR_TYPES,
   gw2EventActorType,
@@ -68,7 +69,7 @@ export function createGw2TriggerMaterializer(
     boons: new Map(),
     conditionState: new Map(),
     totals: { strike: 0, condition: 0 },
-    relic: { buffUntil: 0 },
+    relic: createRelicRuntime(config.relic),
     sigil: {
       readyAt: new Map(),
       criticalProgress: 0,

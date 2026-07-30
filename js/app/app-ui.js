@@ -50,7 +50,7 @@ export const TARGET_CONDITION_GROUPS = Object.freeze([
 ]);
 
 export const PERMANENT_TARGET_CONDITIONS = Object.freeze(
-  TARGET_CONDITION_GROUPS.flatMap(group => group.conditions),
+  TARGET_CONDITION_GROUPS.flatMap((group) => group.conditions),
 );
 
 export const STACKING_TARGET_CONDITIONS = new Set([
@@ -67,17 +67,17 @@ export function option(value, selected, label = value, disabled = false) {
 export function groupedOptions(
   groups,
   selected,
-  labelFor = value => value,
+  labelFor = (value) => value,
   disabledFor = () => false,
 ) {
-  return groups.map(group =>
-    `<optgroup label="${esc(group.label)}">${group.items
-      .map(item => option(
-        item,
-        selected,
-        labelFor(item),
-        disabledFor(item),
-      ))
-      .join("")}</optgroup>`
-  ).join("");
+  return groups
+    .map(
+      (group) =>
+        `<optgroup label="${esc(group.label)}">${group.items
+          .map((item) =>
+            option(item, selected, labelFor(item), disabledFor(item)),
+          )
+          .join("")}</optgroup>`,
+    )
+    .join("");
 }
