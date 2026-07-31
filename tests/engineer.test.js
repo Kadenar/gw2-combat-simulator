@@ -1474,7 +1474,8 @@ test("Engineer benchmark packets use total coefficients and measured cadence", (
   assert.equal(shredSkill.effects[1].duration, 3);
 
   const demolish = mechanic("Offensive Protocol: Demolish");
-  assert.equal(demolish.quicknessCastTimeMs, 1000);
+  assert.equal(demolish.castTimeMs, 1250 + 700);
+  assert.equal(demolish.quicknessCastTimeMs, 1000 + 560);
   assert.ok(Math.abs(demolish.effects[0].coefficient - 8.1) < 1e-12);
   assert.equal(demolish.effects[0].hits, 3);
   assert.equal(demolish.effects[1].coefficient, 2.25);
@@ -2005,6 +2006,21 @@ test("measured Quickness animations and Flame Blast cancellation drive steps", (
   );
   assert.equal(fullFlameBlast.end - fullFlameBlast.start, 800);
   assert.equal(fullFlameBlast.interrupted, false);
+
+  const demolish = simulate("Amalgam", [76927], {
+    boons: { quickness: true },
+    selectedMorphSkillIds: [76927, 77104, 76705],
+  });
+  const demolishStep = demolish.steps.find(
+    step => step.skill === "Offensive Protocol: Demolish",
+  );
+  assert.equal(demolishStep.end - demolishStep.start, 1000 + 560);
+  const smash = demolish.resolvedEvents.find(event =>
+    event.type === "damage" && event.name === "Smash Damage");
+  assert.equal(
+    Math.round((smash.at - demolishStep.start / 1000) * 1000),
+    1560,
+  );
 });
 
 test("Flame Jet gains ten percent strike damage against burning targets", () => {
@@ -4128,6 +4144,122 @@ test("condition Holosmith pistol benchmark preserves the supplied log", async ()
   assert.ok(Math.abs(conditionDamage("Confusion") - 137892) < 5000);
 });
 
+test("power Amalgam hammer Symbiotic preset preserves supplied build and log", async () => {
+  const [raw, savedRotation, manifest] = await Promise.all([
+    readFile(
+      new URL(
+        "../Builds/engineer/b-power-amalgam-hammer-symbiotic.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../Rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL("../Builds/engineer/manifest.json", import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+
+  assert.ok(Object.values(raw.gear).every(prefix =>
+    prefix === "Berserker's"));
+  assert.deepEqual(raw.weapons, ["Hammer", ""]);
+  assert.equal(raw.rune, "Scholar");
+  assert.deepEqual(raw.weaponSigils[0], ["Force", "Impact"]);
+  assert.equal(raw.relic, "Bloodstone");
+  assert.equal(raw.food, "Cilantro Lime Sous-Vide Steak");
+  assert.equal(raw.utility, "Superior Sharpening Stone");
+  assert.deepEqual(raw.infusions, [
+    { stat: "Power", count: 18 },
+    { stat: "Precision", count: 0 },
+    { stat: "Condition Damage", count: 0 },
+  ]);
+  assert.deepEqual(raw.specializations, [
+    { name: "Explosives", traits: "3-2-3" },
+    { name: "Firearms", traits: "3-3-2" },
+    { name: "Amalgam", traits: "2-2-1" },
+  ]);
+  assert.deepEqual(raw.selectedSkills, {
+    Heal: "A.E.D.",
+    Utility1: "Grenade Kit",
+    Utility2: "Bomb Kit",
+    Utility3: "Throw Mine",
+    Elite: "Flux State",
+  });
+  assert.deepEqual(raw.selectedMorphSkillIds, [76927, 77104, 76705]);
+  assert.equal(raw.initialHeat, 100);
+  assert.equal(raw.targetHealth, 3966303);
+
+  const preset = manifest
+    .find(section => section.section === "Amalgam")
+    .presets.find(entry =>
+      entry.build
+        === "Builds/engineer/b-power-amalgam-hammer-symbiotic.json");
+  assert.equal(preset.label, "Power (Hammer - Symbiotic)");
+  assert.equal(
+    preset.rotation,
+    "Rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
+  );
+  assert.equal(
+    preset.dpsReportUrl,
+    "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
+  );
+  assert.equal(preset.benchmarkDps, 42177);
+  assert.equal(preset.upToDate, true);
+  assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 94.202);
+  assert.equal(savedRotation.metadata.benchmarkDamage, 3973116);
+  assert.ok(
+    Math.abs(savedRotation.metadata.benchmarkDps - 42176.556761002954)
+      < 1e-9,
+  );
+  assert.equal(savedRotation.rotation.length, 198);
+  assert.equal(
+    savedRotation.rotation.filter(entry =>
+      typeof entry === "object" && entry.interruptMs != null).length,
+    3,
+  );
+
+  const build = migrateEngineerBuild({
+    ...raw,
+    rotation: savedRotation.rotation,
+  });
+  assert.equal(validateEngineerBuild(build).valid, true);
+  const app = {
+    build,
+    skillByName: engineerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(
+    Math.abs(result.dps - savedRotation.metadata.benchmarkDps) < 1500,
+  );
+  const steps = name => result.steps.filter(step => step.skill === name);
+  assert.equal(steps("Offensive Protocol: Demolish").length, 10);
+  assert.equal(steps("Offensive Protocol: Obliterate").length, 10);
+  assert.equal(steps("Defensive Protocol: Thorns").length, 10);
+  assert.equal(steps("Evolve").length, 5);
+  assert.equal(steps("Flux State").length, 3);
+  assert.ok(steps("Offensive Protocol: Demolish").every(step =>
+    step.end - step.start === 1560));
+  const smashes = result.resolvedEvents.filter(event =>
+    event.type === "damage" && event.name === "Smash Damage");
+  assert.deepEqual(
+    smashes.map((event, index) => Math.round(
+      (event.at - steps("Offensive Protocol: Demolish")[index].start / 1000)
+        * 1000,
+    )),
+    Array(10).fill(1560),
+  );
+});
+
 test("condition alacrity Amalgam benchmark preset preserves supplied build", async () => {
   const [raw, savedRotation, manifest] = await Promise.all([
     readFile(
@@ -4168,8 +4300,10 @@ test("condition alacrity Amalgam benchmark preset preserves supplied build", asy
     { stat: "Precision", count: 0 },
     { stat: "Condition Damage", count: 18 },
   ]);
+  const preset = manifest[0].presets.find(entry =>
+    entry.build === "Builds/engineer/b-condi-alac-amalgam-2kit.json");
   assert.equal(
-    manifest[0].presets[0].rotation,
+    preset.rotation,
     "Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
   );
   assert.equal(savedRotation.rotation.length, 251);
