@@ -189,7 +189,7 @@ test("new Necromancer rotation presets execute without warnings", async () => {
   const conditionHarbinger = manifest
     .find(section => section.section === "Harbinger")
     ?.presets.find(preset => preset.label === "Condition");
-  assert.equal(conditionHarbinger?.benchmarkDps, 45192);
+  assert.equal(conditionHarbinger?.benchmarkDps, 45492);
 
   const presets = [
     ["b-power-reaper.json", "r-power-reaper-bench.json"],

@@ -193,38 +193,38 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<
 > = Object.freeze({
   [ID.PHANTASMAL_SWORDSMAN]: {
     "castTimeMs": 880,
-    "damageAtMs": 3159,
-    "spawnAtMs": 4284,
+    "damageAtMs": 2279,
+    "spawnAtMs": 3600,
     "damageTicks": {
       "Phantasm leap": [
         {
-          "atMs": 1725
+          "atMs": 845
         }
       ],
       "Phantasm Blurred Frenzy": [
         {
-          "atMs": 2201
+          "atMs": 1321
         },
         {
-          "atMs": 2242
+          "atMs": 1362
         },
         {
-          "atMs": 2525
+          "atMs": 1645
         },
         {
-          "atMs": 2559
+          "atMs": 1679
         },
         {
-          "atMs": 2800
+          "atMs": 1920
         },
         {
-          "atMs": 2842
+          "atMs": 1962
         },
         {
-          "atMs": 3126
+          "atMs": 2246
         },
         {
-          "atMs": 3159
+          "atMs": 2279
         }
       ]
     },
@@ -232,33 +232,33 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<
   },
   [ID.PHANTASMAL_DUELIST]: {
     "castTimeMs": 560,
-    "damageAtMs": 2751,
-    "spawnAtMs": 3334,
+    "damageAtMs": 2400,
+    "spawnAtMs": 2880,
     "damageTicks": {
       "Illusion Damage": [
         {
-          "atMs": 1351
+          "atMs": 791
         },
         {
-          "atMs": 1551
+          "atMs": 991
         },
         {
-          "atMs": 1750
+          "atMs": 1190
         },
         {
-          "atMs": 1950
+          "atMs": 1390
         },
         {
-          "atMs": 2151
+          "atMs": 1591
         },
         {
-          "atMs": 2350
+          "atMs": 1790
         },
         {
-          "atMs": 2550
+          "atMs": 1990
         },
         {
-          "atMs": 2751
+          "atMs": 2400
         }
       ]
     },
@@ -282,7 +282,7 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<
   [ID.PHANTASMAL_DISENCHANTER]: {
     "castTimeMs": 760,
     "damageAtMs": 1150,
-    "spawnAtMs": 1840
+    "spawnAtMs": 1840,
   },
   [ID.PHANTASMAL_WARDEN]: {
     "castTimeMs": 460,
@@ -290,7 +290,7 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<
     "spawnAtMs": 7240
   },
   [ID.PHANTASMAL_DEFENDER]: {
-    "castTimeMs": 770,
+    "castTimeMs": 780,
     "damageAtMs": 3800,
     "spawnAtMs": 4510
   },
@@ -300,15 +300,15 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<
     "spawnAtMs": 2160
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
-    "castTimeMs": 500,
+    "castTimeMs": 520,
     "damageAtMs": 1550,
-    "spawnAtMs": 1550,
+    "spawnAtMs": 1560,
     "estimated": true
   },
   [ID.PHANTASMAL_LANCER]: {
-    "castTimeMs": 333.333333333,
-    "damageAtMs": 1083.3333333,
-    "spawnAtMs": 1083.3333333,
+    "castTimeMs": 520,
+    "damageAtMs": 1080,
+    "spawnAtMs": 1080,
     "estimated": true
   }
 });

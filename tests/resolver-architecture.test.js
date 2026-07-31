@@ -391,15 +391,15 @@ test("Phantasmal Swordsman follows the EVTC packet, bleed, and blade timeline", 
     [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159],
     "Phantasmal Swordsman damage",
   );
-  assert.ok(Math.abs(phantasmalBlade.at - 4.367) < 1e-12);
+  assert.ok(Math.abs(phantasmalBlade.at - 4.563) < 1e-12);
   assertEventTimes(
     bleeding,
-    [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159, 4.367],
+    [1.725, 2.201, 2.242, 2.525, 2.559, 2.8, 2.842, 3.126, 3.159, 4.563],
     "Phantasmal Swordsman bleeding",
   );
   assertEventTimes(
     bladeGains.map(event => event.at),
-    [2.5591, 4.2841, 4.3671],
+    [2.5591, 4.4801, 4.5631],
     "Phantasmal Swordsman blade gain",
   );
   assert.deepEqual(

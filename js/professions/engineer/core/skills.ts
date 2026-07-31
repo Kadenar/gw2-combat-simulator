@@ -2206,6 +2206,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 3,
         hits: 1,
+        metadata: { finisherType: "Blast", finisherValue: 1 },
         name: "Detonate (engineer skill)",
         actorType: "player",
       },

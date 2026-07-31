@@ -23,40 +23,40 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
   Record<number, Partial<MesmerPhantasmAttackTiming>>
 > = Object.freeze({
   [ID.PHANTASMAL_SWORDSMAN]: {
-    "chronophantasmaDamageAtMs": 7120,
-    "chronophantasmaSpawnAtMs": 8270
+    "chronophantasmaDamageAtMs": 5870,
+    "chronophantasmaSpawnAtMs": 7020
   },
   [ID.PHANTASMAL_DUELIST]: {
-    "chronophantasmaDamageAtMs": 6440,
-    "chronophantasmaSpawnAtMs": 7040
+    "chronophantasmaDamageAtMs": 5190,
+    "chronophantasmaSpawnAtMs": 5790
   },
   [ID.PHANTASMAL_MAGE]: {
-    "chronophantasmaDamageAtMs": 5320,
-    "chronophantasmaSpawnAtMs": 5560
+    "chronophantasmaDamageAtMs": 4070,
+    "chronophantasmaSpawnAtMs": 4310
   },
   [ID.PHANTASMAL_WARLOCK]: {
-    "chronophantasmaDamageAtMs": 8560,
-    "chronophantasmaSpawnAtMs": 9840
+    "chronophantasmaDamageAtMs": 7310,
+    "chronophantasmaSpawnAtMs": 8590
   },
   [ID.PHANTASMAL_BERSERKER]: {
-    "chronophantasmaDamageAtMs": 4680,
-    "chronophantasmaSpawnAtMs": 5920
+    "chronophantasmaDamageAtMs": 3430,
+    "chronophantasmaSpawnAtMs": 4670
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
-    "chronophantasmaDamageAtMs": 4040,
-    "chronophantasmaSpawnAtMs": 4720
+    "chronophantasmaDamageAtMs": 3240,
+    "chronophantasmaSpawnAtMs": 3930
   },
   [ID.PHANTASMAL_WARDEN]: {
-    "chronophantasmaDamageAtMs": 13200,
-    "chronophantasmaSpawnAtMs": 15320
+    "chronophantasmaDamageAtMs": 11950,
+    "chronophantasmaSpawnAtMs": 14070
   },
   [ID.PHANTASMAL_DEFENDER]: {
-    "chronophantasmaDamageAtMs": 8800,
-    "chronophantasmaSpawnAtMs": 9520
+    "chronophantasmaDamageAtMs": 7550,
+    "chronophantasmaSpawnAtMs": 8270
   },
   [ID.ECHO_OF_MEMORY]: {
-    "chronophantasmaDamageAtMs": 4200,
-    "chronophantasmaSpawnAtMs": 4960
+    "chronophantasmaDamageAtMs": 2950,
+    "chronophantasmaSpawnAtMs": 3710
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
     "chronophantasmaDamageAtMs": 2600,

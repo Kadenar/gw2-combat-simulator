@@ -1742,7 +1742,7 @@ const records: EngineerSupplementalSkill[] = [
     "id": 29889,
     "name": "Aim-Assisted Rocket (trait skill)",
     "description": "Fire a seeking rocket at your foe.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Aim-Assisted_Rocket_(trait_skill).png",
+    "icon": "https://render.guildwars2.com/file/C61F211044C97242B6324B6F092802706A5FC101/103936.png",
     "type": "Action",
     "slot": "Action",
     "specialization": "",

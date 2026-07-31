@@ -16,7 +16,7 @@
         "label": "Condition (Shortbow / Mace-Axe)",
         "build": "Builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "Rotations/revenant/r-condi-renegade-shortbow-mace-axe-benchmark.json",
-        "benchmarkDps": 40615
+        "benchmarkDps": 41084
       },
       {
         "label": "Condition (Mace-Axe / Spear)",

@@ -21,64 +21,13 @@
     },
     {
       "name": "Continuum Split",
-      "offset": 700
-    },
-    {
-      "name": "Mirror Images",
-      "offset": 100
-    },
-    {
-      "name": "Rewinder",
-      "offset": 100
-    },
-    {
-      "name": "Signet of the Ether"
-    },
-    {
-      "name": "Phantasmal Warlock"
-    },
-    {
-      "name": "Split Second",
-      "offset": 100
-    },
-    {
-      "name": "Time Sink",
-      "offset": 100
-    },
-    {
-      "name": "Distortion",
-      "offset": 100
-    },
-    {
-      "name": "Split Second",
-      "offset": 100
-    },
-    {
-      "name": "Chaos Armor",
-      "offset": 100
-    },
-    {
-      "name": "Chaos Storm"
-    },
-    {
-      "name": "Signet of Midnight",
-      "offset": 100
-    },
-    {
-      "name": "Phase Retreat"
-    },
-    {
-      "name": "Continuum Shift",
-      "offset": 100
-    },
-    {
-      "name": "Phantasmal Warlock"
-    },
-    {
-      "name": "Mirror Images",
       "offset": 600
     },
     {
+      "name": "Mirror Images",
+      "offset": 100
+    },
+    {
       "name": "Rewinder",
       "offset": 100
     },
@@ -89,117 +38,48 @@
       "name": "Phantasmal Warlock"
     },
     {
+      "name": "Split Second",
+      "offset": 100
+    },
+    {
       "name": "Chaos Armor",
       "offset": 100
-    },
-    {
-      "name": "Phase Retreat",
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos"
     },
     {
       "name": "Chaos Storm"
     },
     {
-      "name": "Split Second",
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Phantasmal Duelist"
-    },
-    {
       "name": "Time Sink",
       "offset": 100
-    },
-    {
-      "name": "Confusing Images"
     },
     {
       "name": "Distortion",
-      "offset": 1200
+      "offset": 100
     },
     {
-      "name": "Illusionary Counter",
-      "interruptMs": 120
+      "name": "Split Second",
+      "offset": 100
     },
     {
-      "name": "Counterspell"
+      "name": "Signet of Midnight"
     },
     {
-      "name": "Magic Bullet"
+      "name": "Phase Retreat",
+      "offset": 100
+    },
+    {
+      "name": "Phantasmal Warlock"
+    },
+    {
+      "name": "Mirror Images",
+      "offset": 100
     },
     {
       "name": "Rewinder",
       "offset": 100
     },
     {
-      "name": "Ether Bolt"
-    },
-    {
-      "name": "Ether Blast"
-    },
-    {
-      "name": "Ether Clone"
-    },
-    {
-      "name": "Ether Bolt"
-    },
-    {
-      "name": "Split Second",
-      "offset": 100
-    },
-    {
-      "name": "Ether Blast"
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120
-    },
-    {
-      "name": "Counterspell"
-    },
-    {
-      "name": "Ether Clone"
-    },
-    {
-      "name": "Ether Bolt"
-    },
-    {
-      "name": "Split Second",
-      "offset": 100
-    },
-    {
-      "name": "Confusing Images"
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120
-    },
-    {
-      "name": "Counterspell"
-    },
-    {
-      "name": "Phantasmal Duelist"
-    },
-    {
-      "name": "Swap Weapons"
+      "name": "Signet of the Ether"
     },
     {
       "name": "Phantasmal Warlock"
@@ -211,23 +91,6 @@
     {
       "name": "Phase Retreat",
       "offset": 100
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Rewinder"
-    },
-    {
-      "name": "Mirror Images",
-      "offset": 100
-    },
-    {
-      "name": "Split Second",
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos"
     },
     {
       "name": "Winds of Chaos"
@@ -236,283 +99,738 @@
       "name": "Chaos Storm"
     },
     {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Phase Retreat",
-      "offset": 100
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
-      "name": "Winds of Chaos"
-    },
-    {
       "name": "Split Second",
       "offset": 100
     },
     {
-      "name": "Phantasmal Warlock"
+      "name": "Winds of Chaos"
     },
     {
-      "name": "Signet of the Ether"
+      "name": "Winds of Chaos",
+      "skillId": 10273
     },
     {
-      "name": "Rewinder",
-      "offset": 100
-    },
-    {
-      "name": "Phantasmal Warlock"
-    },
-    {
-      "name": "Chaos Armor",
-      "offset": 100
-    },
-    {
-      "name": "Phase Retreat",
-      "offset": 100
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Phantasmal Duelist"
-    },
-    {
-      "name": "Confusing Images"
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120
-    },
-    {
-      "name": "Counterspell"
-    },
-    {
-      "name": "Magic Bullet"
+      "name": "Winds of Chaos",
+      "skillId": 10273
     },
     {
       "name": "Time Sink",
+      "skillId": 56873
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Phantasmal Duelist",
+      "skillId": 10175
+    },
+    {
+      "name": "Confusing Images",
+      "skillId": 10168
+    },
+    {
+      "name": "Distortion",
+      "skillId": 10192,
+      "offset": 800
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120,
+      "skillId": 10276
+    },
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
+    {
+      "name": "Magic Bullet",
+      "skillId": 10229
+    },
+    {
+      "name": "Rewinder",
+      "skillId": 56928,
       "offset": 100
     },
     {
-      "name": "Ether Bolt"
+      "name": "Ether Bolt",
+      "skillId": 10289
     },
     {
-      "name": "Ether Blast"
+      "name": "Ether Blast",
+      "skillId": 10290
     },
     {
-      "name": "Ether Clone"
+      "name": "Ether Clone",
+      "skillId": 10291
     },
     {
-      "name": "Ether Bolt"
+      "name": "Ether Bolt",
+      "skillId": 10289
     },
     {
-      "name": "Ether Blast"
-    },
-    {
-      "name": "Illusionary Counter",
-      "interruptMs": 120
-    },
-    "Counterspell",
-    "Split Second",
-    "Ether Clone",
-    "Rewinder",
-    "Ether Bolt",
-    "Confusing Images",
-    "Distortion",
-    {
-      "name": "Mirror Images",
+      "name": "Split Second",
+      "skillId": 56930,
       "offset": 100
     },
-    "Split Second",
+    {
+      "name": "Ether Blast",
+      "skillId": 10290
+    },
     {
       "name": "Illusionary Counter",
-      "interruptMs": 120
+      "interruptMs": 120,
+      "skillId": 10276
     },
-    "Counterspell",
-    "Phantasmal Duelist",
-    "Swap Weapons",
-    "Phantasmal Warlock",
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
+    {
+      "name": "Ether Clone",
+      "skillId": 10291
+    },
+    {
+      "name": "Split Second",
+      "skillId": 56930,
+      "offset": 100
+    },
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    },
+    {
+      "name": "Confusing Images",
+      "skillId": 10168
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120,
+      "skillId": 10276
+    },
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
+    {
+      "name": "Phantasmal Duelist",
+      "skillId": 10175
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Phantasmal Warlock",
+      "skillId": 10216
+    },
     {
       "name": "Chaos Armor",
+      "skillId": 10331,
       "offset": 100
     },
     {
       "name": "Phase Retreat",
-      "offset": 100
+      "skillId": 10310
     },
-    "Winds of Chaos",
-    "Winds of Chaos",
-    "Winds of Chaos",
-    "Chaos Storm",
-    "Winds of Chaos",
-    "Winds of Chaos",
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
     {
       "name": "Rewinder",
+      "skillId": 56928,
       "offset": 100
     },
-    "Winds of Chaos",
-    "Phase Retreat",
-    "Winds of Chaos",
-    "Winds of Chaos",
-    "Winds of Chaos",
+    {
+      "name": "Mirror Images",
+      "skillId": 10202,
+      "offset": 100
+    },
     {
       "name": "Split Second",
+      "skillId": 56930,
       "offset": 100
     },
-    "Winds of Chaos",
-    "Phantasmal Warlock",
-    "Winds of Chaos",
-    "Swap Weapons",
-    "Phantasmal Duelist",
-    "Confusing Images",
     {
-      "name": "Illusionary Counter",
-      "interruptMs": 120
+      "name": "Winds of Chaos",
+      "skillId": 10273
     },
-    "Counterspell",
-    "Magic Bullet",
+    {
+      "name": "Chaos Storm",
+      "skillId": 10169
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Phase Retreat",
+      "skillId": 10310,
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Split Second",
+      "skillId": 56930,
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Phantasmal Warlock",
+      "skillId": 10216
+    },
+    {
+      "name": "Signet of the Ether",
+      "skillId": 21750
+    },
+    {
+      "name": "Phantasmal Warlock",
+      "skillId": 10216
+    },
     {
       "name": "Rewinder",
+      "skillId": 56928,
       "offset": 100
     },
-    "Ether Bolt",
-    "Ether Blast",
-    "Ether Clone",
-    "Ether Bolt",
-    "Ether Blast",
+    {
+      "name": "Chaos Armor",
+      "skillId": 10331,
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat",
+      "skillId": 10310,
+      "offset": 100
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Phantasmal Duelist",
+      "skillId": 10175
+    },
+    {
+      "name": "Confusing Images",
+      "skillId": 10168
+    },
     {
       "name": "Illusionary Counter",
-      "interruptMs": 120
+      "interruptMs": 120,
+      "skillId": 10276
     },
-    "Counterspell",
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
+    {
+      "name": "Magic Bullet",
+      "skillId": 10229
+    },
+    {
+      "name": "Time Sink",
+      "skillId": 56873,
+      "offset": 100
+    },
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    },
+    {
+      "name": "Ether Blast",
+      "skillId": 10290
+    },
+    {
+      "name": "Ether Clone",
+      "skillId": 10291
+    },
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    },
+    {
+      "name": "Ether Blast",
+      "skillId": 10290
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120,
+      "skillId": 10276
+    },
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
     {
       "name": "Split Second",
+      "skillId": 56930,
       "offset": 100
     },
-    "Ether Clone",
-    "Ether Bolt",
-    "Confusing Images",
+    {
+      "name": "Ether Clone",
+      "skillId": 10291
+    },
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    },
+    {
+      "name": "Rewinder",
+      "skillId": 56928,
+      "offset": 100
+    },
+    {
+      "name": "Confusing Images",
+      "skillId": 10168
+    },
+    {
+      "name": "Distortion",
+      "skillId": 10192,
+      "offset": 100
+    },
+    {
+      "name": "Mirror Images",
+      "skillId": 10202,
+      "offset": 100
+    },
+    {
+      "name": "Split Second",
+      "skillId": 56930,
+      "offset": 100
+    },
     {
       "name": "Illusionary Counter",
-      "interruptMs": 120
+      "interruptMs": 120,
+      "skillId": 10276
     },
-    "Counterspell",
-    "Phantasmal Duelist",
-    "Swap Weapons",
-    "Phantasmal Warlock",
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
+    {
+      "name": "Phantasmal Duelist",
+      "skillId": 10175
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Phantasmal Warlock",
+      "skillId": 10216
+    },
+    {
+      "name": "Chaos Armor",
+      "skillId": 10331,
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat",
+      "skillId": 10310,
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Chaos Storm",
+      "skillId": 10169
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Rewinder",
+      "skillId": 56928,
+      "offset": 100
+    },
+    {
+      "name": "Phase Retreat",
+      "skillId": 10310,
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Split Second",
+      "skillId": 56930,
+      "offset": 100
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Phantasmal Warlock",
+      "skillId": 10216
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Phantasmal Duelist",
+      "skillId": 10175
+    },
+    {
+      "name": "Confusing Images",
+      "skillId": 10168
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120,
+      "skillId": 10276
+    },
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
+    {
+      "name": "Magic Bullet",
+      "skillId": 10229
+    },
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    },
+    {
+      "name": "Rewinder",
+      "skillId": 56928,
+      "offset": 100
+    },
+    {
+      "name": "Ether Blast",
+      "skillId": 10290
+    },
+    {
+      "name": "Ether Clone",
+      "skillId": 10291
+    },
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    },
+    {
+      "name": "Ether Blast",
+      "skillId": 10290
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120,
+      "skillId": 10276
+    },
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
+    {
+      "name": "Split Second",
+      "skillId": 56930,
+      "offset": 100
+    },
+    {
+      "name": "Ether Clone",
+      "skillId": 10291
+    },
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    },
+    {
+      "name": "Confusing Images",
+      "skillId": 10168
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120,
+      "skillId": 10276
+    },
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
+    {
+      "name": "Phantasmal Duelist",
+      "skillId": 10175
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Phantasmal Warlock",
+      "skillId": 10216
+    },
     {
       "name": "Continuum Split",
-      "offset": 100
+      "skillId": 29830,
+      "offset": 600
     },
     {
       "name": "Mirror Images",
+      "skillId": 10202,
       "offset": 100
     },
     {
       "name": "Rewinder",
+      "skillId": 56928,
       "offset": 100
     },
-    "Signet of the Ether",
     {
-      "name": "Split Second",
-      "offset": 100
+      "name": "Signet of the Ether",
+      "skillId": 21750
     },
-    "Phantasmal Warlock",
+    {
+      "name": "Phantasmal Warlock",
+      "skillId": 10216
+    },
     {
       "name": "Chaos Armor",
-      "offset": 100
-    },
-    "Chaos Storm",
-    {
-      "name": "Time Sink",
+      "skillId": 10331,
       "offset": 100
     },
     {
       "name": "Split Second",
+      "skillId": 56930,
+      "offset": 100
+    },
+    {
+      "name": "Time Sink",
+      "skillId": 56873,
+      "offset": 100
+    },
+    {
+      "name": "Chaos Storm",
+      "skillId": 10169
+    },
+    {
+      "name": "Distortion",
+      "skillId": 10192,
+      "offset": 100
+    },
+    {
+      "name": "Split Second",
+      "skillId": 56930,
+      "offset": 100
+    },
+    {
+      "name": "Signet of Midnight",
+      "skillId": 10234,
       "offset": 100
     },
     {
       "name": "Phase Retreat",
+      "skillId": 10310,
       "offset": 100
     },
     {
       "name": "Continuum Shift",
-      "offset": 200
+      "skillId": -4
     },
-    "Phantasmal Warlock",
+    {
+      "name": "Phantasmal Warlock",
+      "skillId": 10216
+    },
     {
       "name": "Mirror Images",
+      "skillId": 10202,
       "offset": 100
     },
     {
       "name": "Rewinder",
+      "skillId": 56928,
       "offset": 100
     },
-    "Signet of the Ether",
-    "Phantasmal Warlock",
+    {
+      "name": "Signet of the Ether",
+      "skillId": 21750
+    },
+    {
+      "name": "Phantasmal Warlock",
+      "skillId": 10216
+    },
     {
       "name": "Chaos Armor",
+      "skillId": 10331,
       "offset": 100
+    },
+    {
+      "name": "Chaos Storm",
+      "skillId": 10169
     },
     {
       "name": "Phase Retreat",
+      "skillId": 10310,
       "offset": 100
     },
-    "Winds of Chaos",
-    "Winds of Chaos",
-    "Chaos Storm",
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
     {
       "name": "Split Second",
+      "skillId": 56930,
       "offset": 100
     },
-    "Winds of Chaos",
-    "Winds of Chaos",
-    "Winds of Chaos",
-    "Swap Weapons",
-    "Phantasmal Duelist",
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Winds of Chaos",
+      "skillId": 10273
+    },
+    {
+      "name": "Time Sink",
+      "skillId": 56873
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Phantasmal Duelist",
+      "skillId": 10175
+    },
+    {
+      "name": "Confusing Images",
+      "skillId": 10168
+    },
+    {
+      "name": "Rewinder",
+      "skillId": 56928,
+      "offset": 100
+    },
+    {
+      "name": "Illusionary Counter",
+      "interruptMs": 120,
+      "skillId": 10276
+    },
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
+    {
+      "name": "Magic Bullet",
+      "skillId": 10229
+    },
+    {
+      "name": "Split Second",
+      "skillId": 56930,
+      "offset": 100
+    },
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    },
+    {
+      "name": "Ether Blast",
+      "skillId": 10290
+    },
     {
       "name": "Distortion",
-      "offset": 100
+      "skillId": 10192
     },
-    "Confusing Images",
-    "Rewinder",
+    {
+      "name": "Ether Clone",
+      "skillId": 10291
+    },
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    },
+    {
+      "name": "Ether Blast",
+      "skillId": 10290
+    },
     {
       "name": "Illusionary Counter",
-      "interruptMs": 120
+      "interruptMs": 120,
+      "skillId": 10276
     },
-    "Counterspell",
-    "Magic Bullet",
+    {
+      "name": "Counterspell",
+      "skillId": 10314
+    },
     {
       "name": "Split Second",
+      "skillId": 56930,
       "offset": 100
     },
-    "Ether Bolt",
-    "Ether Blast",
-    "Time Sink",
-    "Ether Clone",
-    "Ether Bolt",
-    "Split Second",
-    "Ether Blast",
-    "Ether Clone",
     {
-      "name": "Illusionary Counter",
-      "interruptMs": 120
+      "name": "Ether Clone",
+      "skillId": 10291
     },
-    "Counterspell"
+    {
+      "name": "Ether Bolt",
+      "skillId": 10289
+    }
   ]
 }

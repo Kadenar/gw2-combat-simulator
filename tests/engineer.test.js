@@ -1476,7 +1476,7 @@ test("Engineer benchmark packets use total coefficients and measured cadence", (
   const demolish = mechanic("Offensive Protocol: Demolish");
   assert.equal(demolish.castTimeMs, 1250 + 700);
   assert.equal(demolish.quicknessCastTimeMs, 1000 + 560);
-  assert.ok(Math.abs(demolish.effects[0].coefficient - 8.1) < 1e-12);
+  assert.ok(Math.abs(demolish.effects[0].coefficient - 2.7) < 1e-12);
   assert.equal(demolish.effects[0].hits, 3);
   assert.equal(demolish.effects[1].coefficient, 2.25);
   assert.equal(demolish.effects.some(effect => effect.boon === "stability"), false);

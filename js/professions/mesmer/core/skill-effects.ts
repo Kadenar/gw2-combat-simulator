@@ -95,12 +95,15 @@ export function createSkillEffectController({
       playerEffectEnd = Infinity,
     }: MesmerExceptionalProfileOptions = {},
   ): boolean => {
+    // --- Clarity (spear empowerment) ---
     const clarityConsumed =
       CLARITY_CONSUMERS.has(skill.id) &&
       professionCoreState(state).clarityUntil > castStart;
     if (CLARITY_CONSUMERS.has(skill.id)) {
       professionCoreState(state).clarityUntil = 0;
     }
+
+    // --- Pulse setup (channeled multi-hit skills) ---
     const pulseCount = Math.max(1, Math.trunc(Number(skill.pulseCount || 1)));
     const pulseTimes =
       pulseCount > 1
@@ -110,6 +113,8 @@ export function createSkillEffectController({
               castStart + ((at - castStart) * (index + 1)) / pulseCount,
           )
         : [];
+
+    // --- Phantasm setup ---
     const etherCloneAtMaximum =
       skill.id === ID.ETHER_CLONE &&
       resourceDefinition.singular === "clone" &&
@@ -127,9 +132,10 @@ export function createSkillEffectController({
     const phantasmTiming = phantasmAttackTimings[skill.id];
     const hasChronophantasma = isPhantasm && traits.has(TRAIT.CHRONOPHANTASMA);
     const phantasmSpeed = traits.has(TRAIT.PHANTASMAL_HASTE) ? 1.5 : 1;
+
+    // atMs values in phantasmTiming are delays after cast completes, speed-scaled by phantasmSpeed
     const phantasmEndpoint = (atMs: number | undefined) => {
-      const measuredCastTimeMs = Number(phantasmTiming?.castTimeMs || 0);
-      const measuredPostCast = (Number(atMs) - measuredCastTimeMs) / 1000;
+      const measuredPostCast = Number(atMs) / 1000;
       const actualCastTime = phantasmSummonAt - castStart;
       return castStart + actualCastTime + measuredPostCast / phantasmSpeed;
     };
@@ -196,6 +202,7 @@ export function createSkillEffectController({
       );
     };
 
+    // --- Phantasm summoning events ---
     if (isPhantasm) {
       if (traits.has(TRAIT.COMPOUNDING_POWER)) {
         markCompounding(phantasmSummonAt, phantasmCount);
@@ -289,6 +296,7 @@ export function createSkillEffectController({
       }
     }
 
+    // --- Strike damage ---
     const playerHitTimes: number[] = [];
     const strikeEffects = (skill.effects || []).filter(
       (effect) => effect.type === "strike",
@@ -409,6 +417,7 @@ export function createSkillEffectController({
         addFencerStacks([chronophantasmaDamageAt], scaledGroup.hits);
       }
     }
+    // --- Tracked hit damage (e.g. Sword 5 bonus hit on N-hit threshold) ---
     if (skill.trackedHitDamage) {
       const tracking = skill.trackedHitDamage;
       const duration = Number(tracking.duration || 0);
@@ -460,6 +469,7 @@ export function createSkillEffectController({
       professionCoreState(state).trackedSkillHits[skill.id] = recentHits;
     }
 
+    // --- Condition effects ---
     const appliedConditions = etherCloneAtMaximum
       ? skill.maxCloneEffects || []
       : (skill.effects || []).filter((effect) => effect.type === "condition");
@@ -533,6 +543,7 @@ export function createSkillEffectController({
       }
     }
 
+    // --- Resource generation ---
     if (skill.resource?.mode === "fill") {
       queueResources(
         at + epsilon,
@@ -575,6 +586,7 @@ export function createSkillEffectController({
       );
     }
 
+    // --- Special skill effects ---
     if (skill.id === ID.MIND_THE_GAP) {
       professionCoreState(state).clarityUntil = at + CLARITY_DURATION;
       addEvent({
