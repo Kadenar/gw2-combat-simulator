@@ -103,10 +103,10 @@ export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatter
     "slot": 2,
     "kind": "chrono-confusion",
     "coefficients": [
-      0.42,
-      0.84,
-      1.25,
-      1.67
+      0.38,
+      0.76,
+      1.14,
+      1.52
     ],
     "rechargeReductionPerSource": 3
   },
@@ -114,10 +114,10 @@ export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatter
     "slot": 1,
     "kind": "chrono-power",
     "coefficients": [
-      1.534,
-      3.22,
-      3.86,
-      4.51
+      1.53,
+      3.07,
+      3.68,
+      4.3
     ]
   }
 });

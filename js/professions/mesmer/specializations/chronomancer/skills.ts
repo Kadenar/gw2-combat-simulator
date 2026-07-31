@@ -103,7 +103,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "effects": [
       {
         "type": "strike",
-        "coefficient": 1.1,
+        "coefficient": 3.3,
         "hits": 3,
         "name": "Pulse damage",
         "actorType": "player",
