@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   CANONICAL_TARGET_CONDITIONS,
   canonicalTargetConditionName,
@@ -37,7 +38,29 @@ export function thiefPlayerEvent(context) {
 }
 
 export function thiefRuntimeState(context) {
-  return context.runtime?.profession || {};
+  const state = context.runtime?.profession || {};
+  return state.core && typeof state.core === "object"
+    ? state.core
+    : state;
+}
+
+export function thiefRuntimeSpecializationState(context, expectedKind) {
+  const state = context.runtime?.profession || {};
+  if (
+    state.specialization
+    && typeof state.specialization === "object"
+    && state.specialization.state
+  ) {
+    if (state.specialization.kind !== expectedKind) {
+      throw new TypeError(
+        `Expected active specialization ${expectedKind}, received ${
+          state.specialization.kind
+        }.`,
+      );
+    }
+    return state.specialization.state;
+  }
+  return state;
 }
 
 export function thiefTargetHealthFraction(context) {
@@ -307,7 +330,7 @@ export const thiefCoreAttributeRules = Object.freeze({
 
 function modifyThiefCoreRechargeDuration(context, duration) {
   const skill = context.skill;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
   if (
     skill.usableWhileRecharging === true

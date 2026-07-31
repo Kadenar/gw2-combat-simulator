@@ -1,9 +1,11 @@
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { REVENANT_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { normalizeRevenantLegendIds } from "../legend-rules.js";
 import type {
   ConduitState,
   RevenantConfig,
   RevenantCoreState,
+  RevenantRuntimeState,
   RevenantState,
 } from "../types.js";
 import type { SchedulerState } from "../../../platform/engine/types.js";
@@ -95,22 +97,11 @@ export function createRevenantCoreState(
 }
 
 export function snapshotRevenantState(
-  state: RevenantState,
+  state: unknown,
 ): RevenantState {
-  const runtime = state as unknown as {
-    readonly core?: Partial<RevenantState>;
-    readonly specialization?: {
-      readonly state?: Partial<RevenantState>;
-    };
-  };
-  const flattened =
-    runtime.core && runtime.specialization?.state
-      ? {
-          ...runtime.core,
-          ...runtime.specialization.state,
-        }
-      : state;
-  return structuredClone(flattened) as RevenantState;
+  return structuredClone(
+    flattenProfessionState(state),
+  ) as unknown as RevenantState;
 }
 
 export const REVENANT_PUBLIC_END_STATE_KEYS: readonly (
@@ -174,7 +165,7 @@ const REVENANT_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
 });
 
 export function projectRevenantEndState(
-  { schedulerState }: { schedulerState: SchedulerState<RevenantState> },
+  { schedulerState }: { schedulerState: SchedulerState<RevenantRuntimeState> },
 ): Partial<RevenantState> {
   const state = snapshotRevenantState(schedulerState.profession);
   return Object.fromEntries(

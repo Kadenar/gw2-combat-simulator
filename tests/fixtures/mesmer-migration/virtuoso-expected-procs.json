@@ -83,6 +83,7 @@
       "events": [
         {
           "__order": 0,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
           "endsAt": 0.56,
@@ -95,10 +96,12 @@
           "skillName": "Phantasmal Duelist",
           "source": "mesmer",
           "sourceId": 10175,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.pistol"
         },
         {
           "__order": 3,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.35,
           "blade": false,
@@ -115,10 +118,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "pistol",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.pistol"
         },
         {
           "__order": 4,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.35,
           "blade": false,
@@ -135,10 +139,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "pistol",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.pistol"
         },
         {
           "__order": 5,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.4,
           "blade": false,
@@ -155,10 +160,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "pistol",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.pistol"
         },
         {
           "__order": 1,
+          "activationId": "cast:1",
           "at": 0.56,
           "count": 1,
           "name": "Phantasmal Duelist",
@@ -169,6 +175,7 @@
         },
         {
           "__order": 6,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 1.351,
           "blade": false,
@@ -189,6 +196,7 @@
         },
         {
           "__order": 14,
+          "activationId": "cast:1",
           "actorType": "summon",
           "at": 1.351,
           "condition": "Bleeding",
@@ -204,6 +212,7 @@
         },
         {
           "__order": 7,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 1.5510000000000002,
           "blade": false,
@@ -240,6 +249,7 @@
         },
         {
           "__order": 15,
+          "activationId": "cast:1",
           "actorType": "summon",
           "at": 1.5510000000000002,
           "condition": "Bleeding",
@@ -267,6 +277,7 @@
         },
         {
           "__order": 8,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 1.75,
           "blade": false,
@@ -287,6 +298,7 @@
         },
         {
           "__order": 16,
+          "activationId": "cast:1",
           "actorType": "summon",
           "at": 1.75,
           "condition": "Bleeding",
@@ -302,6 +314,7 @@
         },
         {
           "__order": 9,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 1.95,
           "blade": false,
@@ -338,6 +351,7 @@
         },
         {
           "__order": 17,
+          "activationId": "cast:1",
           "actorType": "summon",
           "at": 1.95,
           "condition": "Bleeding",
@@ -390,6 +404,7 @@
         },
         {
           "__order": 10,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.151,
           "blade": false,
@@ -426,6 +441,7 @@
         },
         {
           "__order": 18,
+          "activationId": "cast:1",
           "actorType": "summon",
           "at": 2.151,
           "condition": "Bleeding",
@@ -453,6 +469,7 @@
         },
         {
           "__order": 11,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.35,
           "blade": false,
@@ -473,6 +490,7 @@
         },
         {
           "__order": 19,
+          "activationId": "cast:1",
           "actorType": "summon",
           "at": 2.35,
           "condition": "Bleeding",
@@ -488,6 +506,7 @@
         },
         {
           "__order": 12,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.55,
           "blade": false,
@@ -524,6 +543,7 @@
         },
         {
           "__order": 20,
+          "activationId": "cast:1",
           "actorType": "summon",
           "at": 2.55,
           "condition": "Bleeding",
@@ -576,6 +596,7 @@
         },
         {
           "__order": 2,
+          "activationId": "cast:1",
           "at": 2.751,
           "complete": true,
           "count": 1,
@@ -588,6 +609,7 @@
         },
         {
           "__order": 13,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.751,
           "blade": false,
@@ -608,6 +630,7 @@
         },
         {
           "__order": 21,
+          "activationId": "cast:1",
           "actorType": "summon",
           "at": 2.751,
           "condition": "Bleeding",
@@ -665,6 +688,7 @@
       "resolvedEvents": [
         {
           "__order": 3,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.35,
           "blade": false,
@@ -674,6 +698,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -683,10 +708,12 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "pistol",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.pistol",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 4,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.35,
           "blade": false,
@@ -696,6 +723,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -705,10 +733,12 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "pistol",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.pistol",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 5,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.4,
           "blade": false,
@@ -718,6 +748,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -727,10 +758,12 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "pistol",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.pistol",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 6,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 1.351,
           "blade": false,
@@ -740,6 +773,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 2615.5,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -749,10 +783,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "phantasm medium",
-          "weaponStrength": 2615.5
+          "weaponStrength": 2615.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 14,
+          "activationId": "cast:1",
           "activeDuration": 4.2090000000000005,
           "actorType": "summon",
           "at": 1.351,
@@ -795,6 +832,7 @@
         },
         {
           "__order": 7,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 1.5510000000000002,
           "blade": false,
@@ -804,6 +842,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 2615.5,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -813,7 +852,9 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "phantasm medium",
-          "weaponStrength": 2615.5
+          "weaponStrength": 2615.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 22,
@@ -860,6 +901,7 @@
         },
         {
           "__order": 15,
+          "activationId": "cast:1",
           "activeDuration": 4.009,
           "actorType": "summon",
           "at": 1.5510000000000002,
@@ -902,6 +944,7 @@
         },
         {
           "__order": 8,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 1.75,
           "blade": false,
@@ -911,6 +954,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 2615.5,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -920,10 +964,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "phantasm medium",
-          "weaponStrength": 2615.5
+          "weaponStrength": 2615.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 16,
+          "activationId": "cast:1",
           "activeDuration": 3.8100000000000005,
           "actorType": "summon",
           "at": 1.75,
@@ -962,6 +1009,7 @@
         },
         {
           "__order": 9,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 1.95,
           "blade": false,
@@ -971,6 +1019,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 2615.5,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -980,7 +1029,9 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "phantasm medium",
-          "weaponStrength": 2615.5
+          "weaponStrength": 2615.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 24,
@@ -1023,6 +1074,7 @@
         },
         {
           "__order": 17,
+          "activationId": "cast:1",
           "activeDuration": 3.6100000000000003,
           "actorType": "summon",
           "at": 1.95,
@@ -1061,6 +1113,7 @@
         },
         {
           "__order": 10,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.151,
           "blade": false,
@@ -1070,6 +1123,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 2615.5,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -1079,7 +1133,9 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "phantasm medium",
-          "weaponStrength": 2615.5
+          "weaponStrength": 2615.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 28,
@@ -1122,6 +1178,7 @@
         },
         {
           "__order": 18,
+          "activationId": "cast:1",
           "activeDuration": 3.4090000000000007,
           "actorType": "summon",
           "at": 2.151,
@@ -1160,6 +1217,7 @@
         },
         {
           "__order": 11,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.35,
           "blade": false,
@@ -1169,6 +1227,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 2615.5,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -1178,10 +1237,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "phantasm medium",
-          "weaponStrength": 2615.5
+          "weaponStrength": 2615.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 19,
+          "activationId": "cast:1",
           "activeDuration": 3.2100000000000004,
           "actorType": "summon",
           "at": 2.35,
@@ -1220,6 +1282,7 @@
         },
         {
           "__order": 12,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.55,
           "blade": false,
@@ -1229,6 +1292,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 2615.5,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -1238,7 +1302,9 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "phantasm medium",
-          "weaponStrength": 2615.5
+          "weaponStrength": 2615.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 30,
@@ -1281,6 +1347,7 @@
         },
         {
           "__order": 20,
+          "activationId": "cast:1",
           "activeDuration": 3.0100000000000007,
           "actorType": "summon",
           "at": 2.55,
@@ -1319,6 +1386,7 @@
         },
         {
           "__order": 13,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.751,
           "blade": false,
@@ -1328,6 +1396,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Duelist",
+          "resolvedWeaponStrength": 2615.5,
           "schemaVersion": 1,
           "skillId": 10175,
           "skillName": "Phantasmal Duelist",
@@ -1337,10 +1406,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "phantasm medium",
-          "weaponStrength": 2615.5
+          "weaponStrength": 2615.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 21,
+          "activationId": "cast:1",
           "activeDuration": 2.8090000000000006,
           "actorType": "summon",
           "at": 2.751,

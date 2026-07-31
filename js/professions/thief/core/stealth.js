@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { THIEF_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasThiefTrait } from "./state.js";
 import {
@@ -7,16 +8,20 @@ import {
 } from "./shared.js";
 
 export function beginStealthAttack(context, skill) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
+  const specialization = context.state.profession.specialization;
+  const stealthAttackState = specialization.kind === "Antiquary"
+    ? specialization.state
+    : state;
   const stealthed =
     state.stealthUntil > context.start
     && state.revealedUntil <= context.start;
   if (
     !stealthed
-    && Number(state.stealthAttackCharges || 0) > 0
-    && Number(state.stealthAttackExpiresAt || 0) > context.start
+    && Number(stealthAttackState.stealthAttackCharges || 0) > 0
+    && Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start
   ) {
-    state.stealthAttackCharges -= 1;
+    stealthAttackState.stealthAttackCharges -= 1;
   }
   if (
     stealthed

@@ -1,5 +1,4 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import { revenantModuleCatalog } from "../../catalog.js";
 import {
   renegadeEventHandlers,
@@ -13,8 +12,9 @@ import {
 } from "./rules.js";
 import { createRenegadeState } from "./state.js";
 import { renegadeUi } from "./ui.js";
+import type { RenegadeState } from "../../types.js";
 
-export const renegadeModule = defineProfessionModule<SchedulerRecord>({
+export const renegadeModule = defineProfessionModule<RenegadeState>({
   id: "Renegade",
   catalog: {
     ...revenantModuleCatalog("Renegade"),

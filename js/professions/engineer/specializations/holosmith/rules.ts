@@ -3,7 +3,7 @@ import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import {
   engineerEvent,
-  engineerRuntimeState,
+  engineerSpecializationState,
   eventSkill,
   playerStrike,
 } from "../../core/rule-helpers.js";
@@ -14,7 +14,9 @@ import type {
 } from "../../../../platform/gw2/types.js";
 
 function heatTierStrikeFactor(context: Gw2ModifierContext): number {
-  const heat = Number(engineerRuntimeState(context).heat || 0);
+  const heat = Number(
+    engineerSpecializationState(context, "Holosmith").heat || 0,
+  );
   const event = engineerEvent(context);
   const skillName = String(eventSkill(context)?.name || event?.skillName || "");
   if (["Sun Edge", "Sun Ripper", "Gleam Saber"].includes(skillName)) {
@@ -68,7 +70,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] =
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
       factor: (context) => {
-        const state = engineerRuntimeState(context);
+        const state = engineerSpecializationState(context, "Holosmith");
         const maximum = hasTrait(
           context,
           TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
@@ -78,7 +80,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] =
         return 1 + Math.min(maximum, Number(state.heat || 0) * 0.0015);
       },
       when: (context) => {
-        const state = engineerRuntimeState(context);
+        const state = engineerSpecializationState(context, "Holosmith");
         return (
           playerStrike(context)
           && hasTrait(context, TRAIT.LASERS_EDGE)

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Revenant legend-swap transition.
  *
@@ -33,7 +34,7 @@ export function swapRevenantLegend(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const previousEnergy = state.energy;
   const other = state.selectedLegendIds.find(

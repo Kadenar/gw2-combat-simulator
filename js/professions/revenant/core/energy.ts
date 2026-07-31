@@ -1,3 +1,7 @@
+import {
+  flattenProfessionState,
+  professionCoreState,
+} from "../../../platform/engine/profession.js";
 /**
  * Revenant Energy and endurance lifecycle.
  *
@@ -11,6 +15,7 @@ import { hasRevenantTrait } from "./state.js";
 import { emitRevenantState } from "./shared.js";
 import { REVENANT_CORE_MECHANICS } from "./mechanics.js";
 import type {
+  RevenantCoreState,
   RevenantEnergyContext,
   RevenantPrecastContext,
   RevenantSchedulerContext,
@@ -22,7 +27,7 @@ const MECHANICS = REVENANT_CORE_MECHANICS;
 
 function syncRevenantCombatState(
   context: RevenantSchedulerContext,
-  state: RevenantState,
+  state: RevenantCoreState,
 ): void {
   const sharedAt = context.schedulerPolicy.combatBeganAt?.();
   if (sharedAt == null) return;
@@ -32,7 +37,7 @@ function syncRevenantCombatState(
 
 function regenerateRevenantEnergy(
   context: RevenantSchedulerContext,
-  state: RevenantState,
+  state: RevenantCoreState,
   from: number,
   target: number,
   rate: number,
@@ -49,7 +54,7 @@ function regenerateRevenantEnergy(
 
 export function revenantEnduranceRegenerationRate(
   context: RevenantEnergyContext,
-  at = Number(context.start ?? context.state?.time ?? 0),
+  at = Number(context.start ?? context.time ?? context.state?.time ?? 0),
 ): number {
   const vigorActive = Boolean(
     context.config?.boons?.vigor ||
@@ -66,7 +71,7 @@ export function revenantEnduranceReadyAt(
   context: RevenantPrecastContext,
   cost: number,
 ): number | null {
-  const current = Number(context.state.profession.endurance || 0);
+  const current = Number(professionCoreState(context).endurance || 0);
   const required = Math.max(0, Number(cost || 0));
   const missing = required - current;
   if (missing <= Number(context.epsilon || 0.0001)) return context.start;
@@ -81,7 +86,7 @@ export function advanceRevenantEnergy(
   context: RevenantSchedulerContext,
   target: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   syncRevenantCombatState(context, state);
   const from = Number(state.energyUpdatedAt || 0);
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
@@ -149,12 +154,13 @@ export function effectiveRevenantEnergyCost(
     context.state && "profession" in context.state
       ? context.state
       : undefined;
-  const state: Partial<RevenantState> = (
-    schedulerState?.profession
-    || context.professionState
-    || context.state as Partial<RevenantState> | undefined
-    || {}
-  ) as Partial<RevenantState>;
+  const state: Partial<RevenantState> = schedulerState
+    ? flattenProfessionState(schedulerState.profession)
+    : (
+      context.professionState
+      || context.state as Partial<RevenantState> | undefined
+      || {}
+    ) as Partial<RevenantState>;
   const active = (state.activeUpkeeps || []).some(
     (upkeep) => upkeep.skillId === skill.id,
   );
@@ -167,7 +173,11 @@ export function effectiveRevenantEnergyCost(
   }
   if (
     skill.freeWhenStatePositive &&
-    Number(state[skill.freeWhenStatePositive] || 0) > 0
+    Number(
+      (state as unknown as Record<string, unknown>)[
+        skill.freeWhenStatePositive
+      ] || 0,
+    ) > 0
   ) {
     return 0;
   }
@@ -187,7 +197,7 @@ export function spendRevenantEnergy(
     ([ID.SWAP_LEGENDS, ID.DODGE] as readonly number[])
       .includes(Number(skill.id))
   ) return;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const cost = effectiveRevenantEnergyCost(context, skill);
   state.energy = Math.max(0, state.energy - cost);
   if (cost > 0) {

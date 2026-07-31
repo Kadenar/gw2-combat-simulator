@@ -101,34 +101,6 @@ function resolvedTotalDamage(context: Gw2ModifierContext): number {
 export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
   Object.freeze([
   {
-    id: "mesmer.illusion-config-critical-chance",
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: "add",
-    amount: (context) =>
-      -Number(context.config?.stats?.criticalChanceBonus || 0) / 100,
-    when: illusionSource,
-  },
-  {
-    id: "mesmer.illusion-sigil-critical-chance",
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: "add",
-    amount: (context) =>
-      -Number(
-        context.timeline?.activeSigilSetAt(context.time)?.criticalChanceBonus ||
-          0,
-      ) / 100,
-    when: illusionSource,
-  },
-  {
-    id: "mesmer.illusion-fury-critical-chance",
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: "add",
-    amount: -0.25,
-    when: (context) =>
-      illusionSource(context) &&
-      Boolean(context.timeline?.furyActiveAt(context.time)),
-  },
-  {
     id: "mesmer.mistburn-critical-chance",
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: "add",

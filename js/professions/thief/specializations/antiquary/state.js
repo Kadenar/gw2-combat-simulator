@@ -1,6 +1,5 @@
 import {
   THIEF_ARTIFACT_IDS,
-  THIEF_SKILL_IDS as ID,
 } from "../../data/ids.js";
 
 function artifactSequence(config) {
@@ -24,7 +23,6 @@ function doubleEdgeSequence(config) {
 
 export function createAntiquaryState(config = {}) {
   return {
-    professionSkillId: ID.SKRITT_SWIPE,
     initiativePipRows: 3,
     artifactSlots: [],
     artifactUsesRemaining: 0,
@@ -61,6 +59,5 @@ export function createAntiquaryState(config = {}) {
       ),
     ),
     canachCoinIndex: 0,
-    thievesGuildVariant: "Skritt",
   };
 }

@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 /**
  * Ritualist spirits, spirit actives, and innervations.
  *
@@ -29,7 +30,7 @@ import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
   NecromancerSkill,
-  NecromancerState,
+  RitualistState,
 } from "../../types.js";
 
 interface SpiritDefinition {
@@ -121,7 +122,7 @@ function spiritMetadata(
 }
 
 function nextSpiritPulse(
-  state: NecromancerState,
+  state: RitualistState,
   at: number,
 ): number {
   if (!Number.isFinite(state.spiritAutoAnchorAt)) {
@@ -142,7 +143,7 @@ function queueSpiritAutoattacks(
   at: number,
 ): void {
   if (!(spirit.attackCoefficient > 0)) return;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Ritualist");
   const generation = Number(state.spiritGenerations[spirit.key] || 0);
   const horizon = at + Math.max(180, Number(context.config.duration || 0));
   for (
@@ -260,7 +261,7 @@ function emitAnguishInitial(
     interval: Number(spirit.summonInterval || 0),
     name: skill.name,
     source: "Spirit",
-    actorType: "summon",
+    actorType: "player",
     metadata: spiritMetadata("anguish", "initial", {
       anguishConditionalDamage: true,
       weaponStrength: spirit.summonWeaponStrength,
@@ -285,7 +286,7 @@ function emitWanderlustInitial(
     interval: Number(spirit.lingeringInterval || 0),
     name: "Spirit of Wanderlust — Initial Attack",
     source: "Spirit",
-    actorType: "summon",
+    actorType: "player",
     metadata: spiritMetadata("wanderlust", "initial"),
   });
   emitCondition(context, skill, "Chilled", 1, 2, { at: fieldAt });
@@ -294,7 +295,7 @@ function emitWanderlustInitial(
     at: fieldAt,
     source: "Spirit",
     sourceId: skill.id,
-    actorType: "summon",
+    actorType: "player",
     skillId: skill.id,
     skillName: skill.name,
     kind: "target-vulnerability",
@@ -305,13 +306,13 @@ function emitWanderlustInitial(
   emitCondition(context, skill, "Weakness", 1, 4, {
     at: fieldAt + 2,
     source: "Spirit",
-    actorType: "summon",
+    actorType: "player",
     metadata: spiritMetadata("wanderlust", "initial"),
   });
   emitCondition(context, skill, "Slow", 1, 2, {
     at: fieldAt + 3,
     source: "Spirit",
-    actorType: "summon",
+    actorType: "player",
     metadata: spiritMetadata("wanderlust", "initial"),
   });
   context.emit({
@@ -319,7 +320,7 @@ function emitWanderlustInitial(
     at: fieldAt + 3,
     source: "Spirit",
     sourceId: skill.id,
-    actorType: "summon",
+    actorType: "player",
     skillId: skill.id,
     skillName: skill.name,
     controlKind: "knockdown",
@@ -333,7 +334,7 @@ function summonSpirit(
   spirit: SpiritDefinition,
   at: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Ritualist");
   state.activeSpirits[spirit.key] = true;
   state.spiritGenerations[spirit.key] =
     Number(state.spiritGenerations[spirit.key] || 0) + 1;
@@ -364,7 +365,7 @@ function summonSpirits(
   skill: NecromancerSkill,
   at: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Ritualist");
   for (const spirit of Object.values(SPIRITS)) {
     if (
       !state.activeSpirits[spirit.key]
@@ -378,7 +379,7 @@ function summonSpirits(
         name: skill.name,
         source: "Spirit",
         sourceId: `ritualist.${spirit.key}.summon-spirits`,
-        actorType: "summon",
+        actorType: "player",
         skillWeapon: "Unequipped",
         metadata: spiritMetadata(spirit.key, "summon-spirits", {
           anguishConditionalDamage: spirit.key === "anguish",
@@ -392,7 +393,7 @@ function summonSpirits(
         at: at + spirit.activeDelay,
         source: "Spirit",
         sourceId: `ritualist.${spirit.key}.summon-spirits`,
-        actorType: "summon",
+        actorType: "player",
         skillId: skill.id,
         skillName: skill.name,
         controlKind: "daze",
@@ -413,7 +414,7 @@ function ritualist(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Ritualist");
   const at = context.effectiveEnd;
   if (skill.id === ID.ESSENCE_BLAST) {
     const spirits = Object.keys(state.activeSpirits).length;
@@ -451,7 +452,7 @@ function innervate(
   if (skill.id === ID.INNERVATE_ANGUISH) {
     emitDamage(context, skill, MECHANICS.innervateAnguish.coefficient, {
       source: "Spirit",
-      actorType: "summon",
+      actorType: "player",
       metadata: {
         summonKind: "spirit",
         summonOwner: "spirit:anguish",
@@ -467,7 +468,7 @@ function innervate(
       at,
       source: "Spirit",
       sourceId: skill.id,
-      actorType: "summon",
+      actorType: "player",
       skillId: skill.id,
       skillName: skill.name,
       controlKind: "fear",

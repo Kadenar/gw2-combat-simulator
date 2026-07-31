@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { defineProfessionModule } from "../../../platform/engine/profession.js";
 import { engineerModuleCatalog } from "../catalog.js";
 import {
@@ -16,10 +17,12 @@ import {
   snapshotEngineerState,
 } from "./state.js";
 import { engineerCoreUi } from "./ui.js";
-import type { SchedulerRecord } from "../../../platform/engine/types.js";
-import type { EngineerSchedulerContext } from "../types.js";
+import type {
+  EngineerCoreState,
+  EngineerSchedulerContext,
+} from "../types.js";
 
-export const engineerCoreModule = defineProfessionModule<SchedulerRecord>({
+export const engineerCoreModule = defineProfessionModule<EngineerCoreState>({
   id: "Core",
   catalog: {
     ...engineerModuleCatalog("Core"),

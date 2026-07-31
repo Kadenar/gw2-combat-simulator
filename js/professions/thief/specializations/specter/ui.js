@@ -1,3 +1,4 @@
+import { flattenProfessionState } from "../../../../platform/engine/profession.js";
 import { THIEF_SKILL_IDS as ID } from "../../data/ids.js";
 
 const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
@@ -9,11 +10,19 @@ const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
 ]);
 
 function stateFrom(context = {}) {
-  return context.state?.profession || context.professionState || {};
+  return flattenProfessionState(
+    context.state?.profession || context.professionState,
+  );
 }
 
 export const specterUi = Object.freeze({
   paletteGroups: () => [{
+    id: "thief-profession",
+    label: "F",
+    skillIds: [ID.SIPHON, ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD],
+    color: "#9a535c",
+    resourceAnchor: true,
+  }, {
     id: "thief-shadow-shroud",
     label: "Shroud",
     skillIds: SHADOW_SHROUD_SKILL_IDS,

@@ -21,10 +21,7 @@ export {
   professionRoute,
 };
 
-function activeProfessionId(
-  root: Document,
-  select: HTMLSelectElement,
-): string {
+function activeProfessionId(root: Document, select: HTMLSelectElement): string {
   return root.body?.dataset.profession || select.dataset.activeProfession || "";
 }
 

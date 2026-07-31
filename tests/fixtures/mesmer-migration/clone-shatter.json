@@ -86,6 +86,7 @@
       "events": [
         {
           "__order": 0,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
           "endsAt": 0,
@@ -98,7 +99,8 @@
           "skillName": "Mirror Images",
           "source": "mesmer",
           "sourceId": 10202,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "nonweapon.unequipped"
         },
         {
           "__order": 1,
@@ -124,6 +126,7 @@
         },
         {
           "__order": 2,
+          "activationId": "summon-attack:3",
           "actorType": "summon",
           "at": 0.6801,
           "blade": false,
@@ -145,6 +148,7 @@
         },
         {
           "__order": 3,
+          "activationId": "summon-attack:6",
           "actorType": "summon",
           "at": 0.6802,
           "blade": false,
@@ -166,6 +170,7 @@
         },
         {
           "__order": 4,
+          "activationId": "summon-attack:9",
           "actorType": "summon",
           "at": 1.3601,
           "blade": false,
@@ -187,6 +192,7 @@
         },
         {
           "__order": 5,
+          "activationId": "summon-attack:12",
           "actorType": "summon",
           "at": 1.3602,
           "blade": false,
@@ -208,6 +214,7 @@
         },
         {
           "__order": 6,
+          "activationId": "summon-attack:15",
           "actorType": "summon",
           "at": 2.0401000000000002,
           "blade": false,
@@ -229,6 +236,7 @@
         },
         {
           "__order": 7,
+          "activationId": "summon-attack:18",
           "actorType": "summon",
           "at": 2.0402,
           "blade": false,
@@ -250,6 +258,7 @@
         },
         {
           "__order": 8,
+          "activationId": "summon-attack:21",
           "actorType": "summon",
           "at": 2.7201000000000004,
           "blade": false,
@@ -271,6 +280,7 @@
         },
         {
           "__order": 9,
+          "activationId": "summon-attack:24",
           "actorType": "summon",
           "at": 2.7202,
           "blade": false,
@@ -292,6 +302,7 @@
         },
         {
           "__order": 10,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
           "endsAt": 3,
@@ -304,7 +315,8 @@
           "skillName": "Mind Wrack",
           "source": "mesmer",
           "sourceId": 10191,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
           "__order": 11,
@@ -322,6 +334,7 @@
         },
         {
           "__order": 12,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
           "blade": false,
@@ -339,10 +352,11 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
           "__order": 13,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
           "blade": false,
@@ -360,10 +374,11 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
           "__order": 14,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
           "blade": false,
@@ -381,10 +396,11 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
           "__order": 15,
+          "activationId": "cast:2",
           "at": 3,
           "detail": "2 clones spent",
           "name": "Mind Wrack",
@@ -424,6 +440,7 @@
       "resolvedEvents": [
         {
           "__order": 2,
+          "activationId": "summon-attack:3",
           "actorType": "summon",
           "at": 0.6801,
           "blade": false,
@@ -434,6 +451,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
+          "resolvedWeaponStrength": 26.5,
           "schemaVersion": 1,
           "skillId": "Clone: Flying Cutter",
           "skillName": "Clone: Flying Cutter",
@@ -443,10 +461,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 26.5
+          "weaponStrength": 26.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 3,
+          "activationId": "summon-attack:6",
           "actorType": "summon",
           "at": 0.6802,
           "blade": false,
@@ -457,6 +478,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
+          "resolvedWeaponStrength": 26.5,
           "schemaVersion": 1,
           "skillId": "Clone: Flying Cutter",
           "skillName": "Clone: Flying Cutter",
@@ -466,10 +488,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 26.5
+          "weaponStrength": 26.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 4,
+          "activationId": "summon-attack:9",
           "actorType": "summon",
           "at": 1.3601,
           "blade": false,
@@ -480,6 +505,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
+          "resolvedWeaponStrength": 26.5,
           "schemaVersion": 1,
           "skillId": "Clone: Flying Cutter",
           "skillName": "Clone: Flying Cutter",
@@ -489,10 +515,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 26.5
+          "weaponStrength": 26.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 5,
+          "activationId": "summon-attack:12",
           "actorType": "summon",
           "at": 1.3602,
           "blade": false,
@@ -503,6 +532,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
+          "resolvedWeaponStrength": 26.5,
           "schemaVersion": 1,
           "skillId": "Clone: Flying Cutter",
           "skillName": "Clone: Flying Cutter",
@@ -512,10 +542,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 26.5
+          "weaponStrength": 26.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 6,
+          "activationId": "summon-attack:15",
           "actorType": "summon",
           "at": 2.0401000000000002,
           "blade": false,
@@ -526,6 +559,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
+          "resolvedWeaponStrength": 26.5,
           "schemaVersion": 1,
           "skillId": "Clone: Flying Cutter",
           "skillName": "Clone: Flying Cutter",
@@ -535,10 +569,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 26.5
+          "weaponStrength": 26.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 7,
+          "activationId": "summon-attack:18",
           "actorType": "summon",
           "at": 2.0402,
           "blade": false,
@@ -549,6 +586,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
+          "resolvedWeaponStrength": 26.5,
           "schemaVersion": 1,
           "skillId": "Clone: Flying Cutter",
           "skillName": "Clone: Flying Cutter",
@@ -558,10 +596,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 26.5
+          "weaponStrength": 26.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 8,
+          "activationId": "summon-attack:21",
           "actorType": "summon",
           "at": 2.7201000000000004,
           "blade": false,
@@ -572,6 +613,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
+          "resolvedWeaponStrength": 26.5,
           "schemaVersion": 1,
           "skillId": "Clone: Flying Cutter",
           "skillName": "Clone: Flying Cutter",
@@ -581,10 +623,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 26.5
+          "weaponStrength": 26.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 9,
+          "activationId": "summon-attack:24",
           "actorType": "summon",
           "at": 2.7202,
           "blade": false,
@@ -595,6 +640,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
+          "resolvedWeaponStrength": 26.5,
           "schemaVersion": 1,
           "skillId": "Clone: Flying Cutter",
           "skillName": "Clone: Flying Cutter",
@@ -604,10 +650,13 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 26.5
+          "weaponStrength": 26.5,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 12,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
           "blade": false,
@@ -617,6 +666,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Mind Wrack",
+          "resolvedWeaponStrength": 1100,
           "schemaVersion": 1,
           "shatter": true,
           "skillId": 10191,
@@ -627,10 +677,12 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 13,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
           "blade": false,
@@ -640,6 +692,7 @@
           "hitIndex": 2,
           "hits": 1,
           "name": "Mind Wrack",
+          "resolvedWeaponStrength": 1100,
           "schemaVersion": 1,
           "shatter": true,
           "skillId": 10191,
@@ -650,10 +703,12 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 14,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
           "blade": false,
@@ -663,6 +718,7 @@
           "hitIndex": 3,
           "hits": 1,
           "name": "Mind Wrack",
+          "resolvedWeaponStrength": 1100,
           "schemaVersion": 1,
           "shatter": true,
           "skillId": 10191,
@@ -673,7 +729,8 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic",
+          "weaponStrengthSampled": false
         }
       ],
       "steps": [
@@ -706,7 +763,7 @@
     },
     "damage": {
       "conditionDamage": 0,
-      "dps": 4876.381209523701,
+      "dps": 4832.720592554814,
       "events": [
         {},
         {
@@ -732,28 +789,28 @@
       ],
       "resolvedEvents": [
         {
-          "damage": 63.305165816326536
+          "damage": 50.64413265306123
         },
         {
-          "damage": 63.305165816326536
+          "damage": 50.64413265306123
         },
         {
-          "damage": 63.305165816326536
+          "damage": 50.64413265306123
         },
         {
-          "damage": 63.305165816326536
+          "damage": 50.64413265306123
         },
         {
-          "damage": 63.305165816326536
+          "damage": 50.64413265306123
         },
         {
-          "damage": 63.305165816326536
+          "damage": 50.64413265306123
         },
         {
-          "damage": 63.305165816326536
+          "damage": 50.64413265306123
         },
         {
-          "damage": 63.305165816326536
+          "damage": 50.64413265306123
         },
         {
           "damage": 3602.0918138144743
@@ -770,8 +827,8 @@
         {},
         {}
       ],
-      "strikeDamage": 11312.716767974034,
-      "totalDamage": 11312.716767974034
+      "strikeDamage": 11211.428502667914,
+      "totalDamage": 11211.428502667914
     }
   }
 }

@@ -17,9 +17,7 @@ import { renderTraits } from "./build/traits-panel.js";
 import { addRotation } from "./rotation/actions.js";
 import { ModifierContributionRunner } from "./simulation/modifier-contribution-runner.js";
 import { RandomDistributionRunner } from "./simulation/random-distribution-runner.js";
-import {
-  RELIC_NAMES as SHARED_RELIC_NAMES,
-} from "../platform/gw2/gear-data.js";
+import { RELIC_NAMES as SHARED_RELIC_NAMES } from "../platform/gw2/gear-data.js";
 
 import type {
   BuildTemplatePreset,
@@ -96,8 +94,7 @@ export class ProfessionApp implements ProfessionAppState {
     const previousContributions = this.results?.contributions;
     normalizeSelectedSkills(this);
     this.adapter.recalculate(this);
-    this.results =
-      this.adapter.runSimulation(this) as ProfessionAppResult;
+    this.results = this.adapter.runSimulation(this) as ProfessionAppResult;
     if (Array.isArray(previousContributions)) {
       this.results.contributions = previousContributions;
     }
@@ -115,10 +112,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.adapter.renderRotationBuilder(this);
   }
 
-  addRotation(
-    name: string,
-    options: RotationActionOptions = {},
-  ): void {
+  addRotation(name: string, options: RotationActionOptions = {}): void {
     addRotation(this, name, options);
   }
 

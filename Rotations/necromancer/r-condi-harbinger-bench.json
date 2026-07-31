@@ -262,7 +262,8 @@
       "name": "Devouring Cut"
     },
     {
-      "name": "Dark Barrage"
+      "name": "Dark Barrage",
+      "interruptMs": 800
     },
     {
       "name": "Vital Draw"

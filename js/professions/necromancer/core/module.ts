@@ -16,10 +16,13 @@ import {
   snapshotNecromancerState,
 } from "./state.js";
 import { necromancerCoreUi } from "./ui.js";
-import type { NecromancerSchedulerContext } from "../types.js";
-import type { SchedulerRecord } from "../../../platform/engine/types.js";
+import type {
+  NecromancerCoreState,
+  NecromancerSchedulerContext,
+} from "../types.js";
 
-export const necromancerCoreModule = defineProfessionModule<SchedulerRecord>({
+export const necromancerCoreModule =
+  defineProfessionModule<NecromancerCoreState>({
   id: "Core",
   catalog: {
     ...necromancerModuleCatalog("Core"),
@@ -42,4 +45,4 @@ export const necromancerCoreModule = defineProfessionModule<SchedulerRecord>({
     eventReactions: necromancerCoreEventReactions,
   },
   ui: necromancerCoreUi,
-});
+  });

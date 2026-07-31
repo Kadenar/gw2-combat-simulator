@@ -1,3 +1,4 @@
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import type {
   MesmerConfig,
   MesmerCoreState,
@@ -44,8 +45,9 @@ export function createMesmerCoreResolverState(): MesmerResolverState {
 }
 
 export function snapshotMesmerState(
-  state: Partial<MesmerCoreState> & Record<string, unknown>,
+  stateInput: unknown,
 ): MesmerStateSnapshot {
+  const state = flattenProfessionState(stateInput);
   const clones = Array.isArray(state.clones) ? state.clones : [];
   const instruments =
     state.instruments && typeof state.instruments === "object"

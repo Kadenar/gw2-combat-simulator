@@ -1,4 +1,5 @@
 import { createCanonicalCatalog } from "../../platform/engine/catalog.js";
+import { flattenProfessionState } from "../../platform/engine/profession.js";
 import {
   SKILLS,
   SPECIALIZATIONS,
@@ -25,10 +26,11 @@ import {
 } from "./core/weapons.js";
 
 export function thiefWeaponSkillMatchesSet(skill, pair, context = {}) {
-  const professionState =
+  const professionState = flattenProfessionState(
     context.professionState
     || context.state?.profession
-    || {};
+    || {},
+  );
   return thiefCoreWeaponSkillMatchesSet(skill, pair, {
     ...context,
     professionState: {

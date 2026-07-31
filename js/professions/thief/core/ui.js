@@ -1,3 +1,4 @@
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import {
   SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
 } from "../../../app/simulation/randomness.js";
@@ -9,15 +10,17 @@ import { spearChainStageForSkill } from "./conditions.js";
 import { thiefWeaponSkillMatchesSet } from "./weapons.js";
 
 function stateFrom(context = {}) {
-  return context.state?.profession || context.professionState || {};
+  return flattenProfessionState(
+    context.state?.profession || context.professionState,
+  );
 }
 
 function professionIds(context) {
   const state = stateFrom(context);
   return [
-    Number(state.professionSkillId || ID.STEAL),
-    Number(state.storedStolenSkillId),
-  ].filter(Number.isFinite);
+    state.professionSkillId || ID.STEAL,
+    state.storedStolenSkillId,
+  ].filter(value => value != null).map(Number).filter(Number.isFinite);
 }
 
 function corePaletteSkillAvailability(context = {}, skill) {
@@ -86,15 +89,22 @@ export const thiefCoreUi = Object.freeze({
     ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   ]),
   weaponSkillMatchesSet: thiefWeaponSkillMatchesSet,
-  paletteGroups: context => [{
-    id: "thief-profession",
-    label: "F",
-    skillIds: professionIds(context),
-    color: "#9a535c",
-    resourceAnchor: true,
-  }],
+  paletteGroups: context =>
+    ["Core", "Daredevil"].includes(
+      context.specialization || context.config?.specialization || "Core",
+    )
+      ? [{
+          id: "thief-profession",
+          label: "F",
+          skillIds: professionIds(context),
+          color: "#9a535c",
+          resourceAnchor: true,
+        }]
+      : [],
   skillBarGroups: context =>
-    Number(stateFrom(context).professionSkillId || ID.STEAL) === ID.STEAL
+    ["Core", "Daredevil"].includes(
+      context.specialization || context.config?.specialization || "Core",
+    )
       ? [{
           id: "thief-stolen-skills",
           label: "Stolen Skills",
@@ -107,6 +117,8 @@ export const thiefCoreUi = Object.freeze({
       : [],
   resourceViews: context => {
     const state = stateFrom(context);
+    const specialization =
+      context.specialization || context.config?.specialization || "Core";
     return [{
       id: "initiative",
       singular: "initiative",
@@ -120,14 +132,18 @@ export const thiefCoreUi = Object.freeze({
       step: 1,
       displayMode: "pips",
       pipStyle: "thief-initiative",
-      pipRows: Number(state.initiativePipRows || 2),
+      pipRows: Number(
+        state.initiativePipRows || (specialization === "Antiquary" ? 3 : 2),
+      ),
       shortLabel: "Init",
       statusLabel: "Current",
     }, {
       id: "endurance",
       singular: "endurance",
       plural: "endurance",
-      maximum: Number(state.maximumEndurance || 100),
+      maximum: Number(
+        state.maximumEndurance || (specialization === "Daredevil" ? 150 : 100),
+      ),
       value: Number(state.endurance ?? 100),
       canStart: false,
       step: 1,

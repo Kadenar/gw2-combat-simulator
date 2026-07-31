@@ -1,4 +1,8 @@
 import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
+import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
@@ -34,7 +38,7 @@ export function modifyConduitCastDuration(
 ): number {
   if (context.skill?.handlerId !== "revenant.beguiling-haze") return duration;
   const quickness = context.hasBuff?.("quickness", context.start);
-  return Number(context.state.profession.beguilingHazeCharges || 0) > 0
+  return Number(professionSpecializationState(context, "Conduit").beguilingHazeCharges || 0) > 0
     ? quickness ? 0.24 : 0.25
     : duration + (quickness ? 0.36 : 0.4);
 }
@@ -60,7 +64,7 @@ export function modifyConduitRechargeDuration(
       ID.BANISH_ENCHANTMENT_ID_78587,
     ] as readonly number[]).includes(Number(skill?.id)) &&
     revenantConduitFormIsActive(
-      context.state.profession,
+      professionSpecializationState(context, "Conduit"),
       "Mesmer",
       context.start ?? context.at,
     )
@@ -135,7 +139,7 @@ export function observeConduitTraits(
   ) {
     return;
   }
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const profile = MECHANICS.traitProcs.mistfire;
   const readyAt = Number(state.traitProcReadyAt.mistfire || 0);
   if (event.at + context.epsilon < readyAt) return;

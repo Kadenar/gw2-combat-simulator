@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Weapon-specific necromancer skill and scheduled-task handlers.
  *
@@ -54,7 +55,7 @@ function addShards(
   reason: string,
   at = context.effectiveEnd,
 ): void {
-  addSoulShards(context.state.profession, stacks, at);
+  addSoulShards(professionCoreState(context), stacks, at);
   emitState(context, at, reason || `${skill.name}-soul-shards`);
 }
 
@@ -87,7 +88,7 @@ function addle(
 ): void {
   // Immobilize checks the resource at activation, before Addle grants shards.
   const soulShardsAtActivation = Number(
-    context.state.profession.soulShards || 0,
+    professionCoreState(context).soulShards || 0,
   );
   const bonusEffects = Boolean(
     context.config.target?.defiant
@@ -171,7 +172,7 @@ function preparePerforate(
   if (context.effectiveEnd < context.fullEnd - context.epsilon) {
     return { at, shardCount: 0, interrupted: true };
   }
-  const shardCount = consumeSoulShards(context.state.profession, 6, at);
+  const shardCount = consumeSoulShards(professionCoreState(context), 6, at);
   return { at, shardCount };
 }
 
@@ -215,7 +216,7 @@ function distress(
   skill: NecromancerSkill,
 ): boolean {
   const at = context.effectiveEnd;
-  delete context.state.profession.availableFlips[skill.id];
+  delete professionCoreState(context).availableFlips[skill.id];
   context.state.cooldowns.delete(ID.PERFORATE);
   // The simulator models one target, so Distress always receives its
   // three additional shards for having no other enemies nearby.

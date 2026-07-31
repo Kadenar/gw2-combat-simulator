@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 /**
  * Ritualist weapon-spell applications.
  *
@@ -10,12 +14,16 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
+import {
+  gw2AlliedEffectRecipients,
+  gw2AlliedPlayerProcTimeline,
+} from "../../../../platform/gw2/allied-players.js";
 import { RITUALIST_MECHANICS as MECHANICS } from "./mechanics.js";
 import { hasTrait } from "../../core/shared.js";
 import type {
   NecromancerCastContext,
+  NecromancerCoreState,
   NecromancerSkill,
-  NecromancerState,
 } from "../../types.js";
 
 interface WeaponSpellDefinition {
@@ -23,6 +31,7 @@ interface WeaponSpellDefinition {
   readonly playerStacks: number;
   readonly allyStacks: number;
   readonly maxAllies: number;
+  readonly internalCooldown?: number;
 }
 
 const SPELL_BY_SKILL_ID: Readonly<Record<string | number, string>> =
@@ -32,15 +41,12 @@ Object.freeze({
   [ID.RESILIENT_WEAPON]: "resilient",
 });
 
-function activeSummonRecipients(state: NecromancerState): string[] {
+function activeMinionRecipients(state: NecromancerCoreState): string[] {
   const recipients: string[] = [];
   for (const [key, count] of Object.entries(state.activeMinions || {})) {
     for (let index = 0; index < Number(count || 0); index += 1) {
       recipients.push(`minion:${key}:${index}`);
     }
-  }
-  for (const key of Object.keys(state.activeSpirits || {})) {
-    recipients.push(`spirit:${key}`);
   }
   return recipients;
 }
@@ -60,8 +66,10 @@ function applyWeaponSpell(
   const allyStacks = fullAlliedBenefit
     ? definition.playerStacks
     : definition.allyStacks;
-  const recipients = activeSummonRecipients(context.state.profession)
-    .slice(0, definition.maxAllies);
+  const party = gw2AlliedEffectRecipients(context.config, {
+    maximumRecipients: definition.maxAllies + 1,
+    companionIds: activeMinionRecipients(professionCoreState(context)),
+  });
   context.emit({
     type: "necromancer.weapon-spell",
     at: context.effectiveEnd,
@@ -76,9 +84,37 @@ function applyWeaponSpell(
     playerStacks: definition.playerStacks,
     allyStacks,
     maxAllies: definition.maxAllies,
-    recipients,
+    recipients: party.companionIds,
+    alliedPlayerCount: party.alliedPlayerCount,
+    recipientCount: party.recipientCount,
     alliesReceiveFullBenefit: fullAlliedBenefit,
   });
+  if (spell === "nightmare" || spell === "splinter") {
+    const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
+      start: context.effectiveEnd,
+      duration: definition.duration,
+      maximumAllies: party.alliedPlayerCount,
+      maximumPerAlly: allyStacks,
+      internalCooldown: definition.internalCooldown,
+    });
+    for (let index = 0; index < alliedProcs.length; index += 1) {
+      const proc = alliedProcs[index];
+      context.emit({
+        type: "necromancer.weapon-spell-ally-trigger",
+        at: proc.at,
+        source: "necromancer",
+        sourceId: skill.id,
+        actorType: "effect",
+        skillId: skill.id,
+        skillName: skill.name,
+        name: `${skill.name} — Ally ${proc.allyIndex} Trigger`,
+        spell,
+        triggeredByAlly: proc.allyIndex,
+        procIndex: proc.procIndex,
+        extendsResolutionHorizon: index === alliedProcs.length - 1,
+      });
+    }
+  }
   return true;
 }
 

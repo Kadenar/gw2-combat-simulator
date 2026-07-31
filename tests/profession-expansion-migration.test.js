@@ -27,13 +27,13 @@ import {
 } from "../js/professions/engineer/data/trait-coverage.js";
 import {
   ENGINEER_PUBLIC_END_STATE_KEYS,
-} from "../js/professions/engineer/state.js";
+} from "../js/professions/engineer/core/state.js";
 import {
   GUARDIAN_TRAIT_COVERAGE,
 } from "../js/professions/guardian/data/trait-coverage.js";
 import {
   GUARDIAN_PUBLIC_END_STATE_KEYS,
-} from "../js/professions/guardian/state.js";
+} from "../js/professions/guardian/core/state.js";
 import {
   MESMER_TRAIT_COVERAGE,
 } from "../js/professions/mesmer/data/trait-coverage.js";
@@ -42,19 +42,19 @@ import {
 } from "../js/professions/necromancer/data/trait-coverage.js";
 import {
   NECROMANCER_PUBLIC_END_STATE_KEYS,
-} from "../js/professions/necromancer/state.js";
+} from "../js/professions/necromancer/core/state.js";
 import {
   REVENANT_TRAIT_COVERAGE,
 } from "../js/professions/revenant/data/trait-coverage.js";
 import {
   REVENANT_PUBLIC_END_STATE_KEYS,
-} from "../js/professions/revenant/state.js";
+} from "../js/professions/revenant/core/state.js";
 import {
   THIEF_TRAIT_COVERAGE,
 } from "../js/professions/thief/data/trait-coverage.js";
 import {
   THIEF_PUBLIC_END_STATE_KEYS,
-} from "../js/professions/thief/state.js";
+} from "../js/professions/thief/core/state.js";
 import {
   nativeProfessionRegistry,
   PROFESSION_APPLICATION_KINDS,
@@ -187,11 +187,25 @@ function assertCatalogMetadata(entry, catalog) {
 }
 
 function assertUiContracts(entry, profession, specialization) {
+  const runtimeSpecialization = profession.catalog.specializations.some(
+    (candidate) =>
+      candidate.elite && candidate.name === specialization,
+  )
+    ? specialization
+    : "Core";
+  let runtime;
+  try {
+    runtime = profession.resolveRuntime({
+      specialization: runtimeSpecialization,
+    });
+  } catch {
+    runtime = profession.resolveRuntime({ specialization: "Core" });
+  }
   const context = {
     catalog: profession.catalog,
     specialization,
     config: { specialization },
-    professionState: profession.createProfessionState({ specialization }),
+    professionState: runtime.createProfessionState({ specialization }),
   };
   const groups = profession.ui.paletteGroups(context);
   const views = profession.ui.resourceViews(context);
@@ -288,26 +302,43 @@ function assertEventDescriptors(entry, profession) {
     pageCost: 1,
     pagesRemaining: 4,
   };
-  for (const type of Object.keys(profession.eventHandlers)) {
-    const descriptor = profession.ui.eventLogRow?.(
-      {},
-      { ...baseEvent, type },
-    );
-    assert.notEqual(
-      descriptor,
-      undefined,
-      `${entry.id} must present or explicitly suppress ${type}`,
-    );
-    if (descriptor === null) continue;
-    assert.deepEqual(
-      Object.keys(descriptor).sort(),
-      ["className", "description", "flags", "order", "type"].sort(),
-    );
-    assert.ok(String(descriptor.type).trim());
-    assert.ok(String(descriptor.description).trim());
-    assert.equal(typeof descriptor.className, "string");
-    assert.equal(Number.isFinite(descriptor.order), true);
-    assert.equal(Array.isArray(descriptor.flags), true);
+  const specializations = [
+    "Core",
+    ...profession.catalog.specializations
+      .filter((specialization) => specialization.elite)
+      .map((specialization) => specialization.name)
+      .filter((name) => {
+        try {
+          profession.resolveRuntime({ specialization: name });
+          return true;
+        } catch {
+          return false;
+        }
+      }),
+  ];
+  for (const specialization of specializations) {
+    const runtime = profession.resolveRuntime({ specialization });
+    for (const type of Object.keys(runtime.eventHandlers)) {
+      const descriptor = profession.ui.eventLogRow?.(
+        { specialization, config: { specialization } },
+        { ...baseEvent, type },
+      );
+      assert.notEqual(
+        descriptor,
+        undefined,
+        `${entry.id}/${specialization} must present or suppress ${type}`,
+      );
+      if (descriptor === null) continue;
+      assert.deepEqual(
+        Object.keys(descriptor).sort(),
+        ["className", "description", "flags", "order", "type"].sort(),
+      );
+      assert.ok(String(descriptor.type).trim());
+      assert.ok(String(descriptor.description).trim());
+      assert.equal(typeof descriptor.className, "string");
+      assert.equal(Number.isFinite(descriptor.order), true);
+      assert.equal(Array.isArray(descriptor.flags), true);
+    }
   }
 }
 
@@ -329,6 +360,10 @@ test("native profession registry entries conform to the shared contracts", async
     assert.equal(adapter.id, entry.id);
     assert.equal(PROFESSION_ROUTES[entry.id], entry.route);
     assert.ok(entry.themeClass);
+    assert.equal(typeof profession.resolveRuntime, "function");
+    assert.equal(Object.hasOwn(profession, "eventHandlers"), false);
+    assert.equal(Object.hasOwn(profession, "taskHandlers"), false);
+    assert.equal(Object.hasOwn(profession, "createProfessionState"), false);
     assertCatalogMetadata(entry, profession.catalog);
     assertEventDescriptors(entry, profession);
 
@@ -368,19 +403,41 @@ test("native profession registry entries conform to the shared contracts", async
           true,
           effect.eventType,
         );
+        const owner = skill.specialization
+          && profession.catalog.specializations.some(
+            (specialization) =>
+              specialization.elite
+              && specialization.name === skill.specialization,
+          )
+          ? skill.specialization
+          : "Core";
+        const runtime = profession.resolveRuntime({ specialization: owner });
         assert.equal(
-          typeof profession.eventHandlers[effect.eventType],
+          typeof runtime.eventHandlers[effect.eventType],
           "function",
           effect.eventType,
         );
       }
     }
-    for (const type of Object.keys(profession.eventHandlers)) {
-      assert.equal(type.startsWith(`${entry.id}.`), true, type);
-      assert.equal(COMMON_EVENT_TYPES.includes(type), false, type);
-    }
-    for (const type of Object.keys(profession.taskHandlers)) {
-      assert.equal(type.startsWith(`${entry.id}.`), true, type);
+    for (const specialization of [
+      "Core",
+      ...profession.catalog.specializations
+        .filter((candidate) => candidate.elite)
+        .map((candidate) => candidate.name),
+    ]) {
+      let runtime;
+      try {
+        runtime = profession.resolveRuntime({ specialization });
+      } catch {
+        continue;
+      }
+      for (const type of Object.keys(runtime.eventHandlers)) {
+        assert.equal(type.startsWith(`${entry.id}.`), true, type);
+        assert.equal(COMMON_EVENT_TYPES.includes(type), false, type);
+      }
+      for (const type of Object.keys(runtime.taskHandlers)) {
+        assert.equal(type.startsWith(`${entry.id}.`), true, type);
+      }
     }
 
     const defaults = profession.createBuildDefaults();

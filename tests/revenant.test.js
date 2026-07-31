@@ -2529,10 +2529,19 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     time: 1,
     runtime: {
       profession: {
-        kallasFervor: Array.from(
-          { length: 5 },
-          () => ({ at: 0, expiresAt: 10 }),
-        ),
+        core: {
+          endurance: 100,
+          maximumEndurance: 100,
+        },
+        specialization: {
+          kind: "Renegade",
+          state: {
+            kallasFervor: Array.from(
+              { length: 5 },
+              () => ({ at: 0, expiresAt: 10 }),
+            ),
+          },
+        },
       },
       boons: new Map(),
     },

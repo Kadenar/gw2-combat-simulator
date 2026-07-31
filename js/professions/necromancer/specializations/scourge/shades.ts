@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 /**
  * Scourge sand shade handlers.
  *
@@ -15,7 +19,7 @@ import {
 import {
   normalizedNecromancerLifeForceCost,
   syncNecromancerResources,
-} from "../../state.js";
+} from "../../core/state.js";
 import { SCOURGE_MECHANICS as MECHANICS } from "./mechanics.js";
 import { removeNecromancerSelfCondition } from "../../core/conditions.js";
 import {
@@ -87,7 +91,7 @@ function shade(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Scourge");
   const at = context.effectiveEnd;
   const shadeMechanics = MECHANICS.shade;
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
@@ -102,11 +106,12 @@ function shade(
       applyBarrierTraits(context, skill, at);
     }
   } else {
-    state.lifeForce = Math.max(
+    const coreState = professionCoreState(context);
+    coreState.lifeForce = Math.max(
       0,
-      state.lifeForce
+      coreState.lifeForce
         - normalizedNecromancerLifeForceCost(
-          state,
+          coreState,
           Number(skill.lifeForceCost || 0),
         ),
     );
@@ -117,20 +122,20 @@ function shade(
       ]).has(skill.id) &&
       hasTrait(context, TRAIT.PLAGUE_SENDING)
     ) {
-      const hasActiveSelfCondition = (state.selfConditions || []).some(
+      const hasActiveSelfCondition = coreState.selfConditions.some(
         application =>
           application.appliedAt <= at && application.expiresAt > at,
       );
-      state.plagueSendingArmed = true;
-      state.plagueSendingEntrySkillId = hasActiveSelfCondition
+      coreState.plagueSendingArmed = true;
+      coreState.plagueSendingEntrySkillId = hasActiveSelfCondition
         ? null
         : skill.id;
     }
     if (skill.id === ID.NEFARIOUS_FAVOR) {
-      removeNecromancerSelfCondition(state, at, 1);
+      removeNecromancerSelfCondition(coreState, at, 1);
     }
   }
-  syncNecromancerResources(state);
+  syncNecromancerResources(professionCoreState(context));
   emitState(context, at, "shade");
 
   // ArcDPS records the automatic shade strike under two Manifest Sand Shade

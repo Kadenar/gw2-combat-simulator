@@ -4075,7 +4075,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         "intervalMs": 51,
         "timingAnchor": "castEnd",
         "timingScale": "fixed",
-        "actorType": "summon"
+        "actorType": "player"
       }
     ],
   },

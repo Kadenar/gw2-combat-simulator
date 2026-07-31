@@ -1,5 +1,4 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import { revenantModuleCatalog } from "../../catalog.js";
 import {
   vindicatorEventHandlers,
@@ -13,8 +12,9 @@ import {
 } from "./rules.js";
 import { createVindicatorState } from "./state.js";
 import { vindicatorUi } from "./ui.js";
+import type { VindicatorState } from "../../types.js";
 
-export const vindicatorModule = defineProfessionModule<SchedulerRecord>({
+export const vindicatorModule = defineProfessionModule<VindicatorState>({
   id: "Vindicator",
   catalog: {
     ...revenantModuleCatalog("Vindicator"),

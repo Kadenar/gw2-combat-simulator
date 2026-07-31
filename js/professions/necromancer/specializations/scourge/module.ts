@@ -1,5 +1,4 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import {
   scourgeEventReactions,
   scourgeSkillHandlers,
@@ -11,8 +10,9 @@ import {
 import { necromancerModuleCatalog } from "../../catalog.js";
 import { createScourgeState } from "./state.js";
 import { scourgeUi } from "./ui.js";
+import type { ScourgeState } from "../../types.js";
 
-export const scourgeModule = defineProfessionModule<SchedulerRecord>({
+export const scourgeModule = defineProfessionModule<ScourgeState>({
   id: "Scourge",
   catalog: {
     ...necromancerModuleCatalog("Scourge"),

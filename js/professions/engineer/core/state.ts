@@ -6,8 +6,10 @@ import type {
   EngineerConfig,
   EngineerCoreState,
   EngineerEndStateProjectionOptions,
+  EngineerRuntimeState,
   EngineerState,
 } from "../types.js";
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 
 export function selectedEngineerTraits(
   config: EngineerConfig = {},
@@ -56,18 +58,12 @@ export function createEngineerCoreState(
   };
 }
 
-export function snapshotEngineerState(state: EngineerState): EngineerState {
-  const runtime = state as unknown as {
-    readonly core?: Partial<EngineerState>;
-    readonly specialization?: {
-      readonly state?: Partial<EngineerState>;
-    };
-  };
+export function snapshotEngineerState(
+  state: unknown,
+): EngineerState {
   return structuredClone(
-    runtime.core && runtime.specialization?.state
-      ? { ...runtime.core, ...runtime.specialization.state }
-      : state,
-  ) as EngineerState;
+    flattenProfessionState(state),
+  ) as unknown as EngineerState;
 }
 
 export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([

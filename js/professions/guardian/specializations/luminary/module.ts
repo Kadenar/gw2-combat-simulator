@@ -1,5 +1,5 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
+import type { GuardianLuminaryState } from "../../types.js";
 import { guardianModuleCatalog } from "../../catalog.js";
 import {
   luminaryEventHandlers,
@@ -14,7 +14,8 @@ import {
 import { createLuminaryState } from "./state.js";
 import { luminaryUi } from "./ui.js";
 
-export const luminaryModule = defineProfessionModule<SchedulerRecord>({
+export const luminaryModule =
+  defineProfessionModule<GuardianLuminaryState>({
   id: "Luminary",
   catalog: {
     ...guardianModuleCatalog("Luminary"),
@@ -32,4 +33,4 @@ export const luminaryModule = defineProfessionModule<SchedulerRecord>({
     eventReactions: luminaryEventReactions,
   },
   ui: luminaryUi,
-});
+  });

@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
@@ -59,6 +60,7 @@ function queueNightmareWeapon(
     noCrit: true,
     damageKind: "life-steal",
     triggeredBy: event.skillName,
+    triggeredByAlly: event.triggeredByAlly,
   });
   enqueueOrdered(context.queue, {
     type: "buff",
@@ -72,6 +74,7 @@ function queueNightmareWeapon(
     sourceId: ID.NIGHTMARE_WEAPON,
     actorType: "effect",
     triggeredBy: event.skillName,
+    triggeredByAlly: event.triggeredByAlly,
   });
   context.recordProc?.(
     "skill",
@@ -103,6 +106,7 @@ function queueSplinterWeapon(
     skillId: ID.SPLINTER_WEAPON,
     skillWeapon: "Unequipped",
     triggeredBy: event.skillName,
+    triggeredByAlly: event.triggeredByAlly,
   });
   context.recordProc?.(
     "skill",
@@ -114,6 +118,21 @@ function queueSplinterWeapon(
   );
 }
 
+export function handleNecromancerWeaponSpellAllyTrigger(
+  context: NecromancerResolverContext,
+  event: NecromancerResolverEvent,
+): void {
+  const definition = (
+    MECHANICS.weaponSpells as Readonly<Record<string, WeaponSpellDefinition>>
+  )[String(event.spell || "")];
+  if (!definition) return;
+  if (event.spell === "nightmare") {
+    queueNightmareWeapon(context, event, definition);
+  } else if (event.spell === "splinter") {
+    queueSplinterWeapon(context, event, definition);
+  }
+}
+
 function reactToDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
@@ -122,7 +141,7 @@ function reactToDamage(
   const keys = recipientKeys(event);
   if (!keys.length) return;
   for (const spell of ["nightmare", "splinter"]) {
-    const active = context.profession.weaponSpells?.[spell];
+    const active = professionSpecializationState(context, "Ritualist").weaponSpells?.[spell];
     if (!active || Number(active.expiresAt || 0) <= event.at) continue;
     const definition = (
       MECHANICS.weaponSpells as Readonly<Record<string, WeaponSpellDefinition>>

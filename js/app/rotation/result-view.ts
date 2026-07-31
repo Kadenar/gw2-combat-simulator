@@ -3,16 +3,9 @@ import {
   SKILL_COLS,
 } from "../../platform/ui/rotation-results.js";
 import { targetHealthBreakpointSnapshots } from "../../platform/ui/result-transform.js";
-import type {
-  ProfessionAppState,
-} from "../profession/types.js";
-import {
-  PLACEHOLDER_ICON,
-  resultSkillIcon,
-} from "./icons.js";
-import type {
-  ResultIconRow,
-} from "./icons.js";
+import type { ProfessionAppState } from "../profession/types.js";
+import { PLACEHOLDER_ICON, resultSkillIcon } from "./icons.js";
+import type { ResultIconRow } from "./icons.js";
 import {
   buildChartSeries,
   resultSummaryMetrics,
@@ -51,15 +44,15 @@ export function renderResults(app: ProfessionAppState): void {
     element.innerHTML = "";
     return;
   }
-  const metrics = resultSummaryMetrics(result).map(metric =>
+  const metrics = resultSummaryMetrics(result).map((metric) =>
     result.randomDistributionRequested && metric.label === "DPS"
       ? { ...metric, label: "Baseline DPS" }
-      : metric
+      : metric,
   );
   const skillRows = skillBreakdownRows(result);
   const conditions = result.conditionBreakdown || [];
   const series = buildChartSeries(result);
-  const contributions = (result.contributions || []).map(contribution => ({
+  const contributions = (result.contributions || []).map((contribution) => ({
     ...contribution,
     icon: resultSkillIcon(app, contribution),
   }));
@@ -96,8 +89,7 @@ export function renderResults(app: ProfessionAppState): void {
       chartSeries: series,
     },
     {
-      resolveSkillIcon: row =>
-        resultSkillIcon(app, row as ResultIconRow),
+      resolveSkillIcon: (row) => resultSkillIcon(app, row as ResultIconRow),
       placeholderIcon: PLACEHOLDER_ICON,
       skillBreakdownClassName: `${app.adapter.id}-skill-breakdown`,
       chartOptions: {

@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import { THIEF_SKILL_IDS as ID } from "../../data/ids.js";
 
 function deny(skill, code, cause) {
@@ -10,7 +11,7 @@ function deny(skill, code, cause) {
 }
 
 export function specterCastAvailability(context, skill) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Specter");
   if (skill.id === ID.ENTER_SHADOW_SHROUD) {
     if (state.shadowShroudActive) {
       return deny(skill, "thief.in-shroud", "Shadow Shroud is already active.");

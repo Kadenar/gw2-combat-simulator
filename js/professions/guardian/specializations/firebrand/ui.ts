@@ -1,17 +1,50 @@
+import { flattenProfessionState } from "../../../../platform/engine/profession.js";
 import {
   guardianUiSkillIdsByName,
   guardianUiSkillsByMode,
 } from "../../core/ui.js";
 import type {
   PaletteSkillAvailability,
+  ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionSkillBarGroup,
+  SchedulerRecord,
 } from "../../../../platform/engine/types.js";
 import type {
+  GuardianResolverEvent,
   GuardianSkill,
   GuardianState,
   GuardianUiContext,
 } from "../../types.js";
+
+function firebrandEventLogRow(
+  _context: SchedulerRecord,
+  event: GuardianResolverEvent,
+): ProfessionEventLogDescriptor | null | undefined {
+  if ([
+    "guardian.ashes-expired",
+    "guardian.firebrand-virtue-activated",
+  ].includes(event.type)) return null;
+  const base = {
+    type: event.type,
+    className: "resource",
+    order: 30,
+    flags: [],
+  };
+  if (event.type === "guardian.tome-stowed") {
+    return { ...base, description: "TOME STOWED" };
+  }
+  if (event.type === "guardian.tome-page-used") {
+    const cost = Math.max(1, Number(event.pageCost || 1));
+    return {
+      ...base,
+      description:
+        `TOME PAGE USED ${event.skillName || event.tome || "Unknown"} ` +
+        `(-${cost}) -> ${Number(event.pagesRemaining || 0)} remaining`,
+    };
+  }
+  return undefined;
+}
 
 const VIRTUE_NAMES = Object.freeze([
   "Tome of Justice",
@@ -23,7 +56,9 @@ const VIRTUE_NAMES = Object.freeze([
 function professionState(
   context: GuardianUiContext,
 ): Partial<GuardianState> {
-  return context.state?.profession || context.professionState || {};
+  return flattenProfessionState(
+    context.state?.profession || context.professionState,
+  );
 }
 
 function tomeGroups(
@@ -54,6 +89,7 @@ function tomeGroups(
 }
 
 export const firebrandUi = Object.freeze({
+  eventLogRow: firebrandEventLogRow,
   skillBarGroups: tomeGroups,
   paletteGroups: (context: GuardianUiContext): ProfessionPaletteGroup[] => [
     {

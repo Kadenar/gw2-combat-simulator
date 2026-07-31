@@ -26,11 +26,7 @@ function requiredSelect(id: string): HTMLSelectElement {
   return select;
 }
 
-function selectRow(
-  label: string,
-  id: string,
-  optionsHtml: string,
-): string {
+function selectRow(label: string, id: string, optionsHtml: string): string {
   return `<div class="gear-row"><span class="gear-label">${label}</span>
             <select class="gear-select" id="${id}">${optionsHtml}</select></div>`;
 }
@@ -117,41 +113,38 @@ export function renderGear(app: ProfessionAppState): void {
   requiredElement("weapon-select").innerHTML = `
             ${weaponSetRows(1, b.weapons, b.weaponSigils[0])}
             ${weaponSetRows(2, b.alternateWeapons, b.weaponSigils[1], true)}`;
-  const bindWeaponSet = (
-    setNumber: number,
-    weapons: string[],
-  ): void => {
+  const bindWeaponSet = (setNumber: number, weapons: string[]): void => {
     const mainHand = requiredSelect(`sel-mh${setNumber}`);
     mainHand.addEventListener("change", () => {
-        weapons[0] = mainHand.value;
-        if (!mainHand.value) {
-          weapons[1] = "";
-          b.startingWeaponSet = 1;
-          app.attributeWeaponSet = 1;
-        } else if (app.weaponData[mainHand.value]?.wielding === "2h") {
-          weapons[1] = "";
-        } else if (!weapons[1]) {
-          weapons[1] =
-            app.adapter.defaultOffhand({
-              mainHand: mainHand.value,
-              offHands,
-            }) ||
-            offHands[0] ||
-            "";
-        }
-        app.changed();
-      });
+      weapons[0] = mainHand.value;
+      if (!mainHand.value) {
+        weapons[1] = "";
+        b.startingWeaponSet = 1;
+        app.attributeWeaponSet = 1;
+      } else if (app.weaponData[mainHand.value]?.wielding === "2h") {
+        weapons[1] = "";
+      } else if (!weapons[1]) {
+        weapons[1] =
+          app.adapter.defaultOffhand({
+            mainHand: mainHand.value,
+            offHands,
+          }) ||
+          offHands[0] ||
+          "";
+      }
+      app.changed();
+    });
     const offHand = requiredSelect(`sel-oh${setNumber}`);
     offHand.addEventListener("change", () => {
-        weapons[1] = offHand.value;
-        app.changed();
-      });
+      weapons[1] = offHand.value;
+      app.changed();
+    });
     for (const slot of [0, 1]) {
       const sigil = requiredSelect(`sel-sig${setNumber}-${slot + 1}`);
       sigil.addEventListener("change", () => {
-          setWeaponSigil(b, setNumber - 1, slot, sigil.value);
-          app.changed();
-        });
+        setWeaponSigil(b, setNumber - 1, slot, sigil.value);
+        app.changed();
+      });
     }
   };
   bindWeaponSet(1, b.weapons);
@@ -181,10 +174,7 @@ export function renderGear(app: ProfessionAppState): void {
             <div class="gear-row infusion-total-row"><span class="gear-label">Total</span>
                 <span class="inf-total">${b.infusions.reduce((sum, infusion) => sum + infusion.count, 0)}/18</span>
             </div>`;
-  const bindValue = (
-    id: string,
-    setter: (value: string) => void,
-  ): void => {
+  const bindValue = (id: string, setter: (value: string) => void): void => {
     const select = requiredSelect(id);
     select.addEventListener("change", () => {
       setter(select.value);

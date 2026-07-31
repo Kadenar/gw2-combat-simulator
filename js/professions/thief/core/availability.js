@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { THIEF_SKILL_IDS as ID } from "../data/ids.js";
 import { thiefEnduranceReadyAt } from "./resources.js";
 import { spearChainStageForSkill } from "./conditions.js";
@@ -24,7 +25,11 @@ function activeWeapons(context) {
 }
 
 export function thiefCoreCastAvailability(context, skill) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
+  const specialization = context.state.profession.specialization;
+  const stealthAttackState = specialization.kind === "Antiquary"
+    ? specialization.state
+    : state;
   if (skill.id === ID.DODGE) {
     return state.endurance + Number(context.epsilon || 0.0001) >= 50
       ? { ready: true }
@@ -88,8 +93,8 @@ export function thiefCoreCastAvailability(context, skill) {
     state.stealthUntil > context.start
     && state.revealedUntil <= context.start;
   const bonusStealthAttack =
-    Number(state.stealthAttackCharges || 0) > 0
-    && Number(state.stealthAttackExpiresAt || 0) > context.start;
+    Number(stealthAttackState.stealthAttackCharges || 0) > 0
+    && Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start;
   if (skill.stealthAttack) {
     if (!stealthed && !bonusStealthAttack) {
       return deny(skill, "thief.not-stealthed", "requires stealth.");

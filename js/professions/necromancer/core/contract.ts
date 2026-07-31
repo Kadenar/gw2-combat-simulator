@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * @fileoverview Composes Necromancer cast validation, shroud and weapon state,
  * trait reactions, cooldown feedback, and typed tasks into the shared
@@ -11,25 +12,25 @@ import {
 import {
   advanceNecromancerState,
   finalizeNecromancerCast,
-} from "../core/life-force.js";
-import { gainNecromancerLifeForce } from "../core/shared.js";
-import { transferNecromancerSelfConditions } from "../core/conditions.js";
+} from "./life-force.js";
+import { gainNecromancerLifeForce } from "./shared.js";
+import { transferNecromancerSelfConditions } from "./conditions.js";
 import {
   addCarapace,
   emitBuff,
   emitCondition,
   emitDamage,
   hasTrait,
-} from "../core/shared.js";
+} from "./shared.js";
 import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
-import { necromancerWeaponTaskHandlers } from "../core/weapons.js";
-import { necromancerMinionTaskHandlers } from "../core/minions.js";
+import { necromancerWeaponTaskHandlers } from "./weapons.js";
+import { necromancerMinionTaskHandlers } from "./minions.js";
 import {
   EXIT_IDS,
   necromancerCastAvailability,
   requiredShroud,
   validateNecromancerBuild,
-} from "./availability.js";
+} from "../mechanics/availability.js";
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
@@ -50,7 +51,7 @@ function updateNecromancerCastState(
   skill: NecromancerSkill,
 ): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (chain) {
     if (chain.next == null) {
@@ -119,7 +120,7 @@ function afterCast(
   skill: NecromancerSkill,
 ): void {
   updateNecromancerCastState(context, skill);
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (
     skill.type === "Heal" &&
     hasTrait(context, TRAIT.DARK_DEFENSE) &&
@@ -205,7 +206,7 @@ function onEventScheduled(
   context: NecromancerSchedulerContext,
   event: NecromancerSimulationEvent,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (
     event.type === "condition" &&
     event.condition === "Burning" &&
@@ -293,7 +294,7 @@ export const necromancerSchedulerHooks = Object.freeze({
    * @returns {void}
    */
   onCooldownReset: (context: NecromancerSchedulerContext): void => {
-    context.state.profession.selfConditions = [];
+    professionCoreState(context).selfConditions = [];
   },
   onEventScheduled,
   taskHandlers: Object.freeze({

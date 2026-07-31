@@ -19,10 +19,7 @@ function requiredElement(id: string): HTMLElement {
  * @param {string} type
  * @returns {Skill[]}
  */
-function availableSlotSkills(
-  app: ProfessionAppState,
-  type: string,
-): Skill[] {
+function availableSlotSkills(app: ProfessionAppState, type: string): Skill[] {
   const spec = app.adapter.eliteSpecialization(app.build);
   return [
     ...new Map(
@@ -77,16 +74,8 @@ export function renderSkills(app: ProfessionAppState): void {
       const slotOrder = String(a.slot).localeCompare(String(b.slot));
       if (slotOrder) return slotOrder;
       const sequenceOrder =
-        Number(
-          a.weaponBarChainStep
-          ?? a.chainStep
-          ?? Number.MAX_SAFE_INTEGER,
-        )
-        - Number(
-          b.weaponBarChainStep
-          ?? b.chainStep
-          ?? Number.MAX_SAFE_INTEGER,
-        );
+        Number(a.weaponBarChainStep ?? a.chainStep ?? Number.MAX_SAFE_INTEGER) -
+        Number(b.weaponBarChainStep ?? b.chainStep ?? Number.MAX_SAFE_INTEGER);
       return sequenceOrder || 0;
     });
   };
@@ -103,16 +92,21 @@ export function renderSkills(app: ProfessionAppState): void {
       if (!bySlot.has(slot)) bySlot.set(slot, []);
       bySlot.get(slot)?.push(skill);
     }
-    return [...bySlot.values()].map((slotSkills) =>
-      `<div class="weapon-slot">${slotSkills.map((skill, index) =>
-        index === 0
-          ? weaponIcon(skill)
-          : `<div class="weapon-chain-step">
+    return [...bySlot.values()]
+      .map(
+        (slotSkills) =>
+          `<div class="weapon-slot">${slotSkills
+            .map((skill, index) =>
+              index === 0
+                ? weaponIcon(skill)
+                : `<div class="weapon-chain-step">
               <span class="weapon-chain-arrow" aria-hidden="true">↳</span>
               ${weaponIcon(skill, true)}
-            </div>`
-      ).join("")}</div>`
-    ).join("");
+            </div>`,
+            )
+            .join("")}</div>`,
+      )
+      .join("");
   };
   requiredElement("weapon-bar").innerHTML = `
             <div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 1</span>${weaponSlots(set1Skills)}</div>
@@ -264,11 +258,7 @@ export function renderSkills(app: ProfessionAppState): void {
           const key = slot.dataset.selectionKey;
           const index = Number(slot.dataset.selectionIndex);
           const skillId = Number(item.dataset.skillId);
-          if (
-            !key ||
-            !Number.isInteger(index) ||
-            !Number.isFinite(skillId)
-          ) {
+          if (!key || !Number.isInteger(index) || !Number.isFinite(skillId)) {
             return;
           }
           if (app.profession.ui.updateSkillBarSelection) {
@@ -292,7 +282,6 @@ export function renderSkills(app: ProfessionAppState): void {
         });
       });
     });
-
 }
 
 /**
@@ -300,10 +289,7 @@ export function renderSkills(app: ProfessionAppState): void {
  * @param {string} spec
  * @returns {void}
  */
-function renderFixedSlotLoadout(
-  app: ProfessionAppState,
-  spec: string,
-): void {
+function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const loadout = app.adapter.slotLoadout;
   if (!loadout) return;
   const context = {
@@ -341,8 +327,8 @@ function renderFixedSlotLoadout(
   };
   const barHtml = (bar: ProfessionSlotLoadoutBar): string =>
     `<div class="fixed-loadout-bar${
-    view.formatActiveBar ? (bar.active ? " active" : " inactive") : " static"
-  }">
+      view.formatActiveBar ? (bar.active ? " active" : " inactive") : " static"
+    }">
             <span class="fixed-loadout-bar-label">${esc(bar.label)}</span>
             ${bar.skillIds
               .map((id) => app.skillById.get(Number(id)))
@@ -350,9 +336,7 @@ function renderFixedSlotLoadout(
               .map(barSkillHtml)
               .join("")}
         </div>`;
-  const selectorHtml = (
-    selector: ProfessionSlotLoadoutSelector,
-  ): string =>
+  const selectorHtml = (selector: ProfessionSlotLoadoutSelector): string =>
     view.selectionControl === "icons"
       ? `<div class="fixed-loadout-icon-selector">
                 <span>${esc(selector.label)}</span>
@@ -380,12 +364,13 @@ function renderFixedSlotLoadout(
                 </select>
             </label>`;
   const pairedIconLoadout =
-    view.selectionControl === "icons"
-    && view.selectors.length === view.bars.length;
+    view.selectionControl === "icons" &&
+    view.selectors.length === view.bars.length;
   skillBar.innerHTML = pairedIconLoadout
     ? `<div class="fixed-loadout-pairs">${view.selectors
-        .map((selector, index) =>
-          `<div class="fixed-loadout-pair">
+        .map(
+          (selector, index) =>
+            `<div class="fixed-loadout-pair">
               ${selectorHtml(selector)}
               ${barHtml(view.bars[index])}
           </div>`,
@@ -399,12 +384,7 @@ function renderFixedSlotLoadout(
     select.addEventListener("change", () => {
       const key = select.dataset.loadoutKey;
       if (!key) return;
-      loadout.updateBuild(
-        app.build,
-        key,
-        select.value,
-        context,
-      );
+      loadout.updateBuild(app.build, key, select.value, context);
       app.changed();
     });
   });
@@ -414,14 +394,8 @@ function renderFixedSlotLoadout(
       const key = button.dataset.loadoutKey;
       const value = button.dataset.loadoutValue;
       if (!key || value === undefined) return;
-      loadout.updateBuild(
-        app.build,
-        key,
-        value,
-        context,
-      );
+      loadout.updateBuild(app.build, key, value, context);
       app.changed();
     });
   });
-
 }

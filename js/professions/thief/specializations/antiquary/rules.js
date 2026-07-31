@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
@@ -6,7 +7,7 @@ import {
 } from "../../data/ids.js";
 import {
   thiefPlayerEvent,
-  thiefRuntimeState,
+  thiefRuntimeSpecializationState,
 } from "../../core/rules.js";
 import { antiquaryCastAvailability } from "./availability.js";
 
@@ -32,7 +33,10 @@ export const antiquaryModifierRules = Object.freeze([
     amount: 0.1,
     when: context =>
       thiefPlayerEvent(context)
-      && Number(thiefRuntimeState(context).antiquaryDamageUntil || 0)
+      && Number(
+        thiefRuntimeSpecializationState(context, "Antiquary")
+          .antiquaryDamageUntil || 0,
+      )
         > context.time,
   },
   {
@@ -43,7 +47,10 @@ export const antiquaryModifierRules = Object.freeze([
       10,
       Math.ceil(Math.max(
         0,
-        Number(thiefRuntimeState(context).combatHighExpiresAt || 0)
+        Number(
+          thiefRuntimeSpecializationState(context, "Antiquary")
+            .combatHighExpiresAt || 0,
+        )
           - context.time,
       ) / 2),
     ) * 0.03,
@@ -58,7 +65,10 @@ export const antiquaryModifierRules = Object.freeze([
       10,
       Math.ceil(Math.max(
         0,
-        Number(thiefRuntimeState(context).combatHighExpiresAt || 0)
+        Number(
+          thiefRuntimeSpecializationState(context, "Antiquary")
+            .combatHighExpiresAt || 0,
+        )
           - context.time,
       ) / 2),
     ) * 0.02,
@@ -72,7 +82,10 @@ export const antiquaryModifierRules = Object.freeze([
     factor: 1.15,
     when: context =>
       thiefPlayerEvent(context)
-      && Number(thiefRuntimeState(context).kryptisDamageUntil || 0)
+      && Number(
+        thiefRuntimeSpecializationState(context, "Antiquary")
+          .kryptisDamageUntil || 0,
+      )
         > context.time,
   },
   {
@@ -119,7 +132,7 @@ export const antiquaryAttributeRules = Object.freeze({
 });
 
 function modifyAntiquaryRechargeDuration(context, duration) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   const expirations = (
     state.holoUtilityCooldownReductionExpirations || []
   ).filter(expiresAt => Number(expiresAt) > context.start);

@@ -82,6 +82,7 @@
       "events": [
         {
           "__order": 0,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
           "endsAt": 0.78,
@@ -94,10 +95,12 @@
           "skillName": "Phantasmal Warlock",
           "source": "mesmer",
           "sourceId": 10216,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.staff"
         },
         {
           "__order": 1,
+          "activationId": "cast:1",
           "at": 0.78,
           "count": 2,
           "name": "Phantasmal Warlock",
@@ -108,6 +111,7 @@
         },
         {
           "__order": 2,
+          "activationId": "cast:1",
           "at": 2.96,
           "complete": true,
           "count": 2,
@@ -120,6 +124,7 @@
         },
         {
           "__order": 5,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -140,6 +145,7 @@
         },
         {
           "__order": 6,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -160,6 +166,7 @@
         },
         {
           "__order": 7,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -180,6 +187,7 @@
         },
         {
           "__order": 8,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -200,6 +208,7 @@
         },
         {
           "__order": 9,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -220,6 +229,7 @@
         },
         {
           "__order": 10,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -240,6 +250,7 @@
         },
         {
           "__order": 18,
+          "activationId": "cast:1",
           "actorType": "summon",
           "at": 2.96,
           "condition": "Torment",
@@ -255,6 +266,7 @@
         },
         {
           "__order": 3,
+          "activationId": "cast:1",
           "at": 4.24,
           "count": 2,
           "name": "Phantasmal Warlock",
@@ -265,6 +277,7 @@
         },
         {
           "__order": 17,
+          "activationId": "cast:1",
           "at": 4.24,
           "detail": "",
           "name": "Chronophantasma",
@@ -306,6 +319,7 @@
       "resolvedEvents": [
         {
           "__order": 5,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -315,6 +329,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Phantasmal Warlock",
+          "resolvedWeaponStrength": 2877,
           "schemaVersion": 1,
           "skillId": 10216,
           "skillName": "Phantasmal Warlock",
@@ -324,10 +339,13 @@
           "totalHits": 6,
           "type": "damage",
           "weapon": "Phantasm high",
-          "weaponStrength": 2877
+          "weaponStrength": 2877,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 6,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -337,6 +355,7 @@
           "hitIndex": 2,
           "hits": 1,
           "name": "Phantasmal Warlock",
+          "resolvedWeaponStrength": 2877,
           "schemaVersion": 1,
           "skillId": 10216,
           "skillName": "Phantasmal Warlock",
@@ -346,10 +365,13 @@
           "totalHits": 6,
           "type": "damage",
           "weapon": "Phantasm high",
-          "weaponStrength": 2877
+          "weaponStrength": 2877,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 7,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -359,6 +381,7 @@
           "hitIndex": 3,
           "hits": 1,
           "name": "Phantasmal Warlock",
+          "resolvedWeaponStrength": 2877,
           "schemaVersion": 1,
           "skillId": 10216,
           "skillName": "Phantasmal Warlock",
@@ -368,10 +391,13 @@
           "totalHits": 6,
           "type": "damage",
           "weapon": "Phantasm high",
-          "weaponStrength": 2877
+          "weaponStrength": 2877,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 8,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -381,6 +407,7 @@
           "hitIndex": 4,
           "hits": 1,
           "name": "Phantasmal Warlock",
+          "resolvedWeaponStrength": 2877,
           "schemaVersion": 1,
           "skillId": 10216,
           "skillName": "Phantasmal Warlock",
@@ -390,10 +417,13 @@
           "totalHits": 6,
           "type": "damage",
           "weapon": "Phantasm high",
-          "weaponStrength": 2877
+          "weaponStrength": 2877,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 9,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -403,6 +433,7 @@
           "hitIndex": 5,
           "hits": 1,
           "name": "Phantasmal Warlock",
+          "resolvedWeaponStrength": 2877,
           "schemaVersion": 1,
           "skillId": 10216,
           "skillName": "Phantasmal Warlock",
@@ -412,10 +443,13 @@
           "totalHits": 6,
           "type": "damage",
           "weapon": "Phantasm high",
-          "weaponStrength": 2877
+          "weaponStrength": 2877,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 10,
+          "activationId": "cast:1",
           "actorType": "phantasm",
           "at": 2.96,
           "blade": false,
@@ -425,6 +459,7 @@
           "hitIndex": 6,
           "hits": 1,
           "name": "Phantasmal Warlock",
+          "resolvedWeaponStrength": 2877,
           "schemaVersion": 1,
           "skillId": 10216,
           "skillName": "Phantasmal Warlock",
@@ -434,10 +469,13 @@
           "totalHits": 6,
           "type": "damage",
           "weapon": "Phantasm high",
-          "weaponStrength": 2877
+          "weaponStrength": 2877,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 18,
+          "activationId": "cast:1",
           "activeDuration": 2.8200000000000003,
           "actorType": "summon",
           "at": 2.96,

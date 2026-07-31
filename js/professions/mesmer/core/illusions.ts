@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Core schedules task-driven periodic clone attacks based on weapon.
  * Manages clone attack timing (interval per weapon), damage, conditions.
@@ -34,7 +35,7 @@ export function createCloneAttackScheduler({
   addCondition,
   scheduleTask = null,
 }: CloneAttackSchedulerOptions): MesmerCloneAttackScheduler {
-  const profession = "profession" in state ? state.profession : state;
+  const profession = "profession" in state ? professionCoreState(state) : state;
   /** Gets attack pattern for a clone's weapon (defaults to Sword). */
   const attackFor = (clone: MesmerClone) =>
     cloneAttacks[clone.weapon] || cloneAttacks.Sword;

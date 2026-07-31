@@ -97,9 +97,7 @@ export class RandomDistributionRunner {
         '[data-role="rng-progress-bar"]',
       );
       if (bar) bar.style.width = `${percent}%`;
-      const label = indicator.querySelector(
-        '[data-role="rng-progress-label"]',
-      );
+      const label = indicator.querySelector('[data-role="rng-progress-label"]');
       if (label) {
         label.textContent = `${Math.round(
           completed,
@@ -151,8 +149,9 @@ export class RandomDistributionRunner {
           workerCount,
         );
         const batchProgress: number[] = batches.map(() => 0);
-        const completedSamples: Array<readonly number[] | null> =
-          batches.map(() => null);
+        const completedSamples: Array<readonly number[] | null> = batches.map(
+          () => null,
+        );
         let completedWorkers = 0;
         let failed = false;
 
@@ -180,10 +179,7 @@ export class RandomDistributionRunner {
               if (data.progress) {
                 batchProgress[batchIndex] = Math.max(
                   0,
-                  Math.min(
-                    batch.trials,
-                    Number(data.progress.completed || 0),
-                  ),
+                  Math.min(batch.trials, Number(data.progress.completed || 0)),
                 );
                 const completed = batchProgress.reduce(
                   (sum, value) => sum + value,
@@ -202,13 +198,12 @@ export class RandomDistributionRunner {
                 failDistribution(data.error);
                 return;
               }
-              completedSamples[batchIndex] =
-                data.distribution?.samples || [];
+              completedSamples[batchIndex] = data.distribution?.samples || [];
               completedWorkers += 1;
               if (completedWorkers === batches.length) {
                 applyDistribution(
                   summarizeRandomDistribution(
-                    completedSamples.flatMap(samples => samples || []),
+                    completedSamples.flatMap((samples) => samples || []),
                   ),
                 );
               }
@@ -216,7 +211,7 @@ export class RandomDistributionRunner {
           );
           worker.addEventListener(
             "error",
-            event => {
+            (event) => {
               if (failed) return;
               failed = true;
               finishWorker();

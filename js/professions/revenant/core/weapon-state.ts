@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Revenant weapon-chain and temporary flip state.
  *
@@ -19,7 +20,7 @@ export function updateRevenantWeaponState(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (context.action?.cancelled === true) return;
   if (skill.id === ID.ABYSSAL_STRIKE) {
     state.abyssalStrikeSecondCast = !state.abyssalStrikeSecondCast;
@@ -48,7 +49,7 @@ export function beginRevenantWeaponCast(
   skill: RevenantSkill,
 ): void {
   if (skill.id !== ID.IMPERIAL_GUARD) return;
-  context.state.profession.availableFlips[ID.TRUE_STRIKE] = true;
+  professionCoreState(context).availableFlips[ID.TRUE_STRIKE] = true;
   context.emit({
     type: "buff",
     at: context.start,
@@ -70,7 +71,7 @@ export function completeRevenantWeaponCast(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (skill.id === ID.IMPERIAL_GUARD) {
     context.tasks.cancelOwner(IMPERIAL_GUARD_OWNER);
     context.tasks.schedule({
@@ -92,6 +93,6 @@ export function expireImperialGuard(
   context: RevenantSchedulerContext,
   task: RevenantScheduledTask,
 ): void {
-  delete context.state.profession.availableFlips[ID.TRUE_STRIKE];
+  delete professionCoreState(context).availableFlips[ID.TRUE_STRIKE];
   emitRevenantState(context, task.at, "imperial-guard-expired");
 }

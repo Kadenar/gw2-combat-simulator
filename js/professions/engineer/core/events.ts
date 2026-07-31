@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { snapshotEngineerState } from "./state.js";
 import type {
   EngineerSchedulerContext,

@@ -143,7 +143,7 @@ export interface MesmerContinuumSnapshot {
  * skill id or name) so the state serializes without custom Map handling; only
  * engine-level `state.cooldowns`/`state.ammo` remain Maps.
  */
-export interface MesmerCoreState extends SchedulerRecord {
+export interface MesmerCoreState {
   clones: MesmerClone[];
   pendingResources: MesmerPendingResource[];
   trackedSkillHits: Record<string, number[]>;
@@ -158,25 +158,25 @@ export interface MesmerCoreState extends SchedulerRecord {
   combatStartTime: number;
 }
 
-export interface MesmerChronomancerState extends SchedulerRecord {
+export interface MesmerChronomancerState {
   continuum: MesmerContinuumSnapshot | null;
   timeBombUntil: number;
 }
 
-export interface MesmerMirageState extends SchedulerRecord {
+export interface MesmerMirageState {
   ambushUntil: number;
   ambushSource: string;
   cloneAmbushUntil: number;
   riddleOfSandReady: boolean;
 }
 
-export interface MesmerVirtuosoState extends SchedulerRecord {
+export interface MesmerVirtuosoState {
   numericResource: number;
   nextForgeAt: number;
   bloodsongProgress: number;
 }
 
-export interface MesmerTroubadourState extends SchedulerRecord {
+export interface MesmerTroubadourState {
   numericResource: number;
   instruments: Record<string, number>;
   lastInstrument: string;
@@ -189,6 +189,16 @@ export interface MesmerProfessionState
     MesmerMirageState,
     MesmerVirtuosoState,
     MesmerTroubadourState {}
+
+export interface MesmerRuntimeState {
+  core: MesmerCoreState;
+  specialization:
+    | { kind: "Core"; state: Record<string, never> }
+    | { kind: "Chronomancer"; state: MesmerChronomancerState }
+    | { kind: "Mirage"; state: MesmerMirageState }
+    | { kind: "Virtuoso"; state: MesmerVirtuosoState }
+    | { kind: "Troubadour"; state: MesmerTroubadourState };
+}
 
 /**
  * Resolver-only Mesmer profession state. Scheduler-gated blades and their
@@ -394,9 +404,9 @@ export interface MesmerContinuumController {
 
 export type MesmerCatalog = CanonicalCatalog<MesmerSkill>;
 
-export interface MesmerSchedulerPolicy extends SchedulerPolicy<MesmerProfessionState> {
+export interface MesmerSchedulerPolicy extends SchedulerPolicy<MesmerRuntimeState> {
   critical(
-    context: SchedulerContext<MesmerProfessionState>,
+    context: SchedulerContext<MesmerRuntimeState>,
     event: SimulationEvent,
   ): Gw2CriticalResult;
   isCombatActive(): boolean;
@@ -405,7 +415,7 @@ export interface MesmerSchedulerPolicy extends SchedulerPolicy<MesmerProfessionS
 }
 
 export type MesmerSchedulerContext = Omit<
-  SchedulerContext<MesmerProfessionState>,
+  SchedulerContext<MesmerRuntimeState>,
   "config" | "catalog" | "schedulerPolicy"
 > & {
   readonly config: MesmerConfig;
@@ -573,7 +583,7 @@ export type MesmerRefreshAmmo = (
 ) => AmmoState | null;
 
 export type MesmerState =
-  | SchedulerState<MesmerProfessionState>
+  | SchedulerState<MesmerRuntimeState>
   | Pick<MesmerProfessionState, "clones">;
 
 export interface MesmerProjectedFlip {

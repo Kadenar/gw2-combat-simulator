@@ -1,3 +1,4 @@
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import {
   SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
 } from "../../../app/simulation/randomness.js";
@@ -23,7 +24,9 @@ import type {
 export function revenantUiState(
   context: RevenantUiContext = {},
 ): Partial<RevenantState> {
-  return context.state?.profession || context.professionState || {};
+  return flattenProfessionState(
+    context.state?.profession || context.professionState,
+  );
 }
 
 export function revenantUiSpecialization(

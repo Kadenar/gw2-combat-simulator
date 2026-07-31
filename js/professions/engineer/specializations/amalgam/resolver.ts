@@ -1,8 +1,8 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import {
   applyCondition,
-  engineerState,
   procState,
   queueDamage,
   recordTrait,
@@ -52,7 +52,9 @@ function reactToAmalgamDamage(
   }
   if (
     event.actorType !== "summon"
-    && Number(engineerState(context).rapaciousUntil || 0) > event.at
+    && Number(
+      professionSpecializationState(context, "Amalgam").rapaciousUntil || 0
+    ) > event.at
     && Number(state.rapacious || 0) <= event.at
   ) {
     state.rapacious = event.at + 0.6;

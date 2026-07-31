@@ -91,7 +91,7 @@ export interface EngineerComboField extends SchedulerRecord {
   readonly skillName?: string;
 }
 
-export interface EngineerCoreState extends SchedulerRecord {
+export interface EngineerCoreState {
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
@@ -111,9 +111,9 @@ export interface EngineerCoreState extends SchedulerRecord {
   traitProcReadyAt: Record<string, number | boolean>;
 }
 
-export interface ScrapperState extends SchedulerRecord {}
+export interface ScrapperState {}
 
-export interface HolosmithState extends SchedulerRecord {
+export interface HolosmithState {
   heat: number;
   maximumHeat: number;
   heatUpdatedAt: number;
@@ -127,11 +127,11 @@ export interface HolosmithState extends SchedulerRecord {
   kitLockoutUntil: number;
 }
 
-export interface MechanistState extends SchedulerRecord {
+export interface MechanistState {
   mech: EngineerMechState;
 }
 
-export interface AmalgamState extends SchedulerRecord {
+export interface AmalgamState {
   selectedMorphSkillIds: number[];
   evolvedUntil: number;
   willingHostUntil: number;
@@ -153,7 +153,7 @@ export interface EngineerState
     MechanistState,
     AmalgamState {}
 
-export interface EngineerRuntimeState extends SchedulerRecord {
+export interface EngineerRuntimeState {
   core: EngineerCoreState;
   specialization:
     | { kind: "Core"; state: Record<string, never> }
@@ -181,17 +181,17 @@ export interface EngineerSkill extends Skill {
   readonly toolbeltParentName?: string;
 }
 
-export type EngineerSchedulerContext = SchedulerContext<EngineerState> & {
+export type EngineerSchedulerContext = SchedulerContext<EngineerRuntimeState> & {
   readonly catalog: CanonicalCatalog<EngineerSkill>;
   readonly config: EngineerConfig;
 };
 
-export type EngineerCastContext = CastLifecycleContext<EngineerState> & {
+export type EngineerCastContext = CastLifecycleContext<EngineerRuntimeState> & {
   readonly catalog: CanonicalCatalog<EngineerSkill>;
   readonly config: EngineerConfig;
 };
 
-export type EngineerPrecastContext = CastContext<EngineerState> & {
+export type EngineerPrecastContext = CastContext<EngineerRuntimeState> & {
   readonly catalog: CanonicalCatalog<EngineerSkill>;
   readonly config: EngineerConfig;
 };
@@ -225,7 +225,7 @@ export type EngineerSimulationEvent = SimulationEvent & {
 };
 
 export interface EngineerEndStateProjectionOptions {
-  readonly schedulerState: SchedulerState<EngineerState>;
+  readonly schedulerState: SchedulerState<EngineerRuntimeState>;
 }
 
 export type EngineerPlayerStats = Partial<Gw2Stats>;
@@ -256,8 +256,8 @@ export type EngineerResolverEvent = Gw2ResolverEvent & {
 
 export type EngineerResolverContext = Gw2ResolverRuntime & {
   config: EngineerConfig;
-  profession: EngineerState;
-  readonly state?: { readonly profession: EngineerState };
+  profession: EngineerRuntimeState;
+  readonly state?: { readonly profession: EngineerRuntimeState };
 };
 
 export interface EngineerResolverReactionDetails extends SchedulerRecord {

@@ -1,7 +1,8 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   actualNecromancerLifeForceCost,
   normalizedNecromancerLifeForceCost,
-} from "../state.js";
+} from "../core/state.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -13,8 +14,8 @@ import type {
 } from "../../../platform/engine/types.js";
 import type {
   NecromancerPrecastContext,
+  NecromancerCoreState,
   NecromancerSkill,
-  NecromancerState,
 } from "../types.js";
 
 export { hasTrait };
@@ -53,7 +54,7 @@ const INNERVATE_SPIRIT: ReadonlyMap<SkillId, string> = new Map([
   [ID.INNERVATE_PRESERVATION, "preservation"],
 ]);
 interface AvailabilityEnvironment {
-  readonly state: NecromancerState;
+  readonly state: NecromancerCoreState;
   readonly activeShroud: string;
   readonly spec: string;
 }
@@ -99,7 +100,7 @@ function deny(
 function chainVerdict(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill,
-  state: NecromancerState,
+  state: NecromancerCoreState,
 ): Readonly<AvailabilityResult> {
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (!chain) return READY;
@@ -237,13 +238,14 @@ function inShroudGate(
 }
 
 function spiritGate(
-  _context: NecromancerPrecastContext,
+  context: NecromancerPrecastContext,
   skill: NecromancerSkill,
-  { state }: AvailabilityEnvironment,
+  _environment: AvailabilityEnvironment,
 ): AvailabilityVerdict {
   const spirit = INNERVATE_SPIRIT.get(skill.id);
   if (!spirit) return null;
-  return Boolean(state.activeSpirits?.[spirit])
+  const active = context.state.profession.specialization;
+  return active.kind === "Ritualist" && Boolean(active.state.activeSpirits[spirit])
     ? READY
     : deny(skill, "necromancer.spirit", `requires an active ${spirit} spirit.`);
 }
@@ -377,7 +379,7 @@ export function necromancerCastAvailability(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill,
 ): Readonly<AvailabilityResult> {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const env = {
     state,
     activeShroud: String(state.activeShroud || ""),

@@ -3,12 +3,8 @@ import type {
   ModifierContributionRequest,
   ProfessionModifierComparison,
 } from "../profession/types.js";
-import type {
-  Gw2Config,
-} from "../../platform/gw2/types.js";
-import type {
-  LegacyRotationItem,
-} from "../../platform/engine/types.js";
+import type { Gw2Config } from "../../platform/gw2/types.js";
+import type { LegacyRotationItem } from "../../platform/engine/types.js";
 
 export const MAX_MODIFIER_CONTRIBUTION_WORKERS = 3;
 
@@ -34,15 +30,20 @@ export function partitionModifierComparisons(
   comparisons: readonly ProfessionModifierComparison[],
   workerCount: unknown,
 ): ProfessionModifierComparison[][] {
-  const values: readonly ProfessionModifierComparison[] =
-    Array.isArray(comparisons) ? comparisons : [];
+  const values: readonly ProfessionModifierComparison[] = Array.isArray(
+    comparisons,
+  )
+    ? comparisons
+    : [];
   const count = Math.min(
     values.length,
     Math.max(0, Math.trunc(Number(workerCount) || 0)),
   );
   if (!count) return [];
-  const batches: ProfessionModifierComparison[][] =
-    Array.from({ length: count }, () => []);
+  const batches: ProfessionModifierComparison[][] = Array.from(
+    { length: count },
+    () => [],
+  );
   values.forEach((comparison, index) => {
     batches[index % count].push(comparison);
   });
@@ -52,8 +53,11 @@ export function partitionModifierComparisons(
 export function mergeModifierContributions(
   groups: readonly (readonly ModifierContribution[])[],
 ): ModifierContribution[] {
-  const values: readonly (readonly ModifierContribution[])[] =
-    Array.isArray(groups) ? groups : [];
+  const values: readonly (readonly ModifierContribution[])[] = Array.isArray(
+    groups,
+  )
+    ? groups
+    : [];
   return values
     .flat()
     .sort((left, right) => right.dpsIncrease - left.dpsIncrease);

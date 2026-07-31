@@ -1,10 +1,13 @@
+import { flattenProfessionState } from "../../../../platform/engine/profession.js";
 import {
   THIEF_ANTIQUARY_ASSUMPTION_CONTROLS,
 } from "./assumptions.js";
 import { THIEF_ARTIFACT_IDS, THIEF_SKILL_IDS as ID } from "../../data/ids.js";
 
 function stateFrom(context = {}) {
-  return context.state?.profession || context.professionState || {};
+  return flattenProfessionState(
+    context.state?.profession || context.professionState,
+  );
 }
 
 function choosesAllArtifacts(context) {
@@ -22,15 +25,24 @@ export const antiquaryUi = Object.freeze({
     const availableArtifactIds = new Set(
       state.artifactSlots?.map(slot => Number(slot.skillId)) || [],
     );
-    return [
+    return [{
+      id: "thief-profession",
+      label: "F",
+      skillIds: [
+        ID.SKRITT_SWIPE,
+        ...(!choosesAllArtifacts(context) && state.artifactSlots?.length
+          ? [ID.RESHUFFLE]
+          : []),
+      ],
+      color: "#9a535c",
+      resourceAnchor: true,
+    }, ...[
       ["thief-artifacts-offensive", "Offensive", THIEF_ARTIFACT_IDS.OFFENSIVE, "#c65d68"],
       ["thief-artifacts-defensive", "Defensive", THIEF_ARTIFACT_IDS.DEFENSIVE, "#6f9cb8"],
     ].map(([id, label, artifactIds, color]) => {
-      const skillIds = choosesAllArtifacts(context)
-        ? [...artifactIds]
-        : hasArtifactUse
-          ? artifactIds.filter(skillId => availableArtifactIds.has(skillId))
-          : [];
+      const skillIds = hasArtifactUse
+        ? artifactIds.filter(skillId => availableArtifactIds.has(skillId))
+        : [];
       return {
         id,
         label,
@@ -43,7 +55,7 @@ export const antiquaryUi = Object.freeze({
           skillIds.length ? "" : "pal-group-concealed",
         ].filter(Boolean).join(" "),
       };
-    });
+    })];
   },
   skillBarGroups: () => [{
     id: "thief-artifacts-offensive",

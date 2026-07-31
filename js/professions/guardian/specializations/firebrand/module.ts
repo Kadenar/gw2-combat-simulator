@@ -1,5 +1,5 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
+import type { GuardianFirebrandState } from "../../types.js";
 import { guardianModuleCatalog } from "../../catalog.js";
 import {
   firebrandEventHandlers,
@@ -14,7 +14,8 @@ import {
 import { createFirebrandState } from "./state.js";
 import { firebrandUi } from "./ui.js";
 
-export const firebrandModule = defineProfessionModule<SchedulerRecord>({
+export const firebrandModule =
+  defineProfessionModule<GuardianFirebrandState>({
   id: "Firebrand",
   catalog: {
     ...guardianModuleCatalog("Firebrand"),
@@ -32,4 +33,4 @@ export const firebrandModule = defineProfessionModule<SchedulerRecord>({
     eventReactions: firebrandEventReactions,
   },
   ui: firebrandUi,
-});
+  });

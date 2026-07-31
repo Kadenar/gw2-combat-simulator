@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
@@ -12,7 +16,8 @@ import { revenantCombatActive } from "../../core/legend.js";
 import { hasRevenantTrait } from "../../core/state.js";
 import {
   revenantPlayer,
-  revenantProfessionState,
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState,
 } from "../../core/attribute-rules.js";
 import { VINDICATOR_MECHANICS as MECHANICS } from "./mechanics.js";
 import { completeVindicatorDodge } from "./dodge.js";
@@ -36,7 +41,7 @@ import type {
 } from "../../types.js";
 
 function enduranceNotFull(context: Gw2ModifierContext): boolean {
-  const state = revenantProfessionState(context);
+  const state = revenantRuntimeCoreState(context);
   const maximum = Number(state.maximumEndurance || 0);
   return maximum > 0 && Number(state.endurance || 0) < maximum - 1e-9;
 }
@@ -65,7 +70,8 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] =
           context.event?.forerunnerOfDeathActive != null
             ? Boolean(context.event.forerunnerOfDeathActive)
             : Number(
-                revenantProfessionState(context).forerunnerOfDeathUntil || 0,
+                revenantRuntimeSpecializationState(context)
+                  .forerunnerOfDeathUntil || 0,
               ) > context.time
         ),
     },
@@ -100,13 +106,14 @@ function observeVindicatorEvent(
     return;
   }
   if (event.type !== "sigil_swap") return;
-  const state = context.state.profession;
-  if (state.activeLegendId === LEGEND.ALLIANCE) {
+  const state = professionSpecializationState(context, "Vindicator");
+  const coreState = professionCoreState(context);
+  if (coreState.activeLegendId === LEGEND.ALLIANCE) {
     state.allianceSide =
       context.config.allianceSide === "kurzick" ? "kurzick" : "luxon";
   }
   if (
-    state.activeLegendId !== LEGEND.ALLIANCE ||
+    coreState.activeLegendId !== LEGEND.ALLIANCE ||
     !revenantCombatActive(context, event.at)
   ) {
     return;
@@ -148,13 +155,13 @@ function observeVindicatorEvent(
     totalHits: 1,
     skillWeapon: "Unequipped",
   });
-  state.endurance = Math.min(
-    state.maximumEndurance,
-    Number(state.endurance || 0) +
+  coreState.endurance = Math.min(
+    coreState.maximumEndurance,
+    coreState.endurance +
       song.enduranceOnCast +
       song.endurancePerHit,
   );
-  state.enduranceUpdatedAt = event.at;
+  coreState.enduranceUpdatedAt = event.at;
 }
 
 export const vindicatorAttributeRules = Object.freeze({
@@ -181,9 +188,9 @@ function vindicatorCastAvailability(
   context: RevenantPrecastContext,
   skill: RevenantSkill,
 ) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Vindicator");
   const wrongSide =
-    state.activeLegendId === LEGEND.ALLIANCE &&
+    professionCoreState(context).activeLegendId === LEGEND.ALLIANCE &&
     (
       (LUXON.has(skill.id) && state.allianceSide !== "luxon") ||
       (KURZICK.has(skill.id) && state.allianceSide !== "kurzick")

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Shared Revenant mechanic primitives.
  *
@@ -19,7 +20,7 @@ export function swapRevenantWeapons(
 ): void {
   const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
   context.state.activeWeaponSet = weaponSet;
-  context.state.profession.autoattackChains = {};
+  professionCoreState(context).autoattackChains = {};
   context.emit({
     type: "weapon_set",
     at: context.effectiveEnd,

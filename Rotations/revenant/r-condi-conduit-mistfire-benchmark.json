@@ -198,7 +198,7 @@
     },
     {
       "name": "Swap Legends",
-      "offset": 100
+      "offset": 400
     },
     {
       "name": "Release Potential: Dervish"
@@ -636,16 +636,16 @@
       "skillId": 78615
     },
     {
+      "name": "Abyssal Strike",
+      "skillId": 73015
+    },
+    {
       "name": "Swap Legends",
       "skillId": -4
     },
     {
       "name": "Release Potential: Dervish",
       "skillId": 78661
-    },
-    {
-      "name": "Abyssal Strike",
-      "skillId": 73015
     },
     {
       "name": "Swap Weapons",
@@ -678,10 +678,6 @@
     {
       "name": "Twin Moon Sweep",
       "skillId": 76968
-    },
-    {
-      "name": "Cosmic Wisdom",
-      "skillId": 77371
     },
     {
       "name": "Frigid Blitz",

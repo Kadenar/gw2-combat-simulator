@@ -2,6 +2,7 @@ import {
   createModifierHooks,
   MODIFIER_TARGET,
 } from "../../../platform/gw2/modifier-rules.js";
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { attributeProvenance } from "../../../platform/gw2/attribute-provenance.js";
 import { targetHasCondition as targetHasConfiguredCondition } from "../../../platform/gw2/target-state.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
@@ -47,7 +48,13 @@ type GuardianAmmoModifierContext = GuardianSchedulerContext &
 export function guardianRuntimeState(
   context: Gw2ModifierContext,
 ): Partial<GuardianState> {
-  return (context.runtime?.profession || {}) as Partial<GuardianState>;
+  const state = context.runtime?.profession as
+    | { readonly core?: Partial<GuardianState> }
+    | Partial<GuardianState>
+    | undefined;
+  return state && "core" in state && state.core
+    ? state.core
+    : state as Partial<GuardianState> || {};
 }
 
 /** @param {Gw2ModifierContext} context */
@@ -390,7 +397,7 @@ function modifyGuardianCastDuration(
   ) {
     return duration;
   }
-  return Number(context.state?.profession?.daybreakingSlashChainStep || 0) === 0
+  return Number(professionCoreState(context).daybreakingSlashChainStep || 0) === 0
     ? 0.52
     : 0.44;
 }

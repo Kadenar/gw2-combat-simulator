@@ -3,7 +3,7 @@ import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import {
   activeBoonStacks,
-  activeEngineerState,
+  activeEngineerSpecializationState,
   cloneEngineerAttributes,
   eventSkill,
 } from "../../core/rule-helpers.js";
@@ -52,7 +52,11 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] =
       when: (context) =>
         context.event?.actorType !== "summon"
         && hasTrait(context, TRAIT.WILLING_HOST)
-        && activeEngineerState(context, "willingHostUntil"),
+        && activeEngineerSpecializationState(
+          context,
+          "Amalgam",
+          "willingHostUntil",
+        ),
     },
     {
       id: "engineer.symbiotic-synergy",
@@ -73,7 +77,11 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] =
       amount: 0.07,
       when: (context) =>
         context.event?.actorType !== "summon"
-        && activeEngineerState(context, "plasmaticStateUntil"),
+        && activeEngineerSpecializationState(
+          context,
+          "Amalgam",
+          "plasmaticStateUntil",
+        ),
     },
     {
       id: "engineer.carbolic-composition-duration",
@@ -91,7 +99,9 @@ function modifyAmalgamAttributes(
   attributes: SchedulerRecord,
 ): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
-  if (activeEngineerState(context, "evolvedUntil")) {
+  if (
+    activeEngineerSpecializationState(context, "Amalgam", "evolvedUntil")
+  ) {
     const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
       ? 1.2
       : 1.1;
@@ -100,7 +110,9 @@ function modifyAmalgamAttributes(
         Number(modified[attribute] || 0) * evolveFactor;
     }
   }
-  if (activeEngineerState(context, "titanicUntil")) {
+  if (
+    activeEngineerSpecializationState(context, "Amalgam", "titanicUntil")
+  ) {
     const improvedMight = activeBoonStacks(context, "might") * 5;
     modified.power += improvedMight;
     modified.conditionDamage += improvedMight;

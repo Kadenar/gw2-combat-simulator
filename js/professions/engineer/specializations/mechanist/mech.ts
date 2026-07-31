@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 import { emitEngineerState } from "../../core/events.js";
 import {
   ENGINEER_SKILL_IDS as ID,
@@ -196,7 +200,7 @@ function scheduleMechAttack(
   at: number,
   payload: MechAttackPayload,
 ): void {
-  context.state.profession.mech.nextAttackAt = at;
+  professionSpecializationState(context, "Mechanist").mech.nextAttackAt = at;
   context.tasks.schedule({
     type: "engineer.mech-attack",
     at,
@@ -207,13 +211,13 @@ function scheduleMechAttack(
 
 function summonMech(context: EngineerCastContext): void {
   const at = context.effectiveEnd;
-  context.state.profession.mech.active = true;
+  professionSpecializationState(context, "Mechanist").mech.active = true;
   emitEngineerState(context, at, "summon-mech");
 }
 
 function recallMech(context: EngineerCastContext): void {
   const at = context.effectiveEnd;
-  context.state.profession.mech.active = false;
+  professionSpecializationState(context, "Mechanist").mech.active = false;
   emitEngineerState(context, at, "recall-mech");
 }
 
@@ -289,7 +293,7 @@ export function applyEngineerMechCastTraits(
   skill: EngineerSkill,
 ): void {
   if (context.config.specialization !== "Mechanist") return;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Mechanist");
   const at = context.effectiveEnd;
 
   if (state.mech.active && isEngineerMechCommand(skill)) {
@@ -306,9 +310,11 @@ export function applyEngineerMechCastTraits(
     skill.type === "Weapon" &&
     !skill.kit &&
     skill.slot === "Weapon_3" &&
-    Number(state.traitProcReadyAt.rocketPunch || 0) <= at + context.epsilon
+    Number(
+      professionCoreState(context).traitProcReadyAt.rocketPunch || 0
+    ) <= at + context.epsilon
   ) {
-    state.traitProcReadyAt.rocketPunch = at + 5;
+    professionCoreState(context).traitProcReadyAt.rocketPunch = at + 5;
     emitRocketPunch(context, skill, at);
   }
 
@@ -335,7 +341,7 @@ export function applyEngineerMechCastTraits(
 export function initializeEngineerMech(
   context: EngineerSchedulerContext,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Mechanist");
   if (!state.mech.enabled || !state.mech.active) return;
   scheduleMechAttack(context, 1, { phase: 0 });
 }
@@ -344,7 +350,7 @@ export function handleEngineerMechAttack(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<MechAttackPayload>,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Mechanist");
   if (!state.mech.enabled) return;
   if (!state.mech.active) {
     scheduleMechAttack(context, task.at + 1, { phase: 0 });
@@ -415,7 +421,7 @@ export function activateOverclockSignet(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Mechanist");
   if (!state.mech?.active) return;
   const at = context.effectiveEnd;
   const interval = 0.65;

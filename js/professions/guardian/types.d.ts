@@ -57,7 +57,7 @@ export interface GuardianLightField {
   readonly endsAt: number;
 }
 
-export interface GuardianCoreState extends SchedulerRecord {
+export interface GuardianCoreState {
   justiceArmed: boolean;
   justiceActiveArmed: boolean;
   justiceHitCount: number;
@@ -81,7 +81,7 @@ export interface GuardianCoreState extends SchedulerRecord {
   daybreakingSlashChainStep: number;
 }
 
-export interface GuardianFirebrandState extends SchedulerRecord {
+export interface GuardianFirebrandState {
   activeTome: string;
   tomePages: number;
   maximumTomePages: number;
@@ -98,7 +98,7 @@ export interface GuardianFirebrandState extends SchedulerRecord {
   quickfireReadyAt: number;
 }
 
-export interface GuardianLuminaryState extends SchedulerRecord {
+export interface GuardianLuminaryState {
   radiantForge: boolean;
   radiantForgeEndsAt: number;
   radiantForgeEnteredAt: number;
@@ -118,7 +118,7 @@ export interface GuardianLuminaryState extends SchedulerRecord {
 export interface GuardianState
   extends GuardianCoreState, GuardianFirebrandState, GuardianLuminaryState {}
 
-export interface GuardianRuntimeState extends SchedulerRecord {
+export interface GuardianRuntimeState {
   core: GuardianCoreState;
   specialization:
     | { kind: "Core"; state: Record<string, never> }
@@ -128,20 +128,20 @@ export interface GuardianRuntimeState extends SchedulerRecord {
     | { kind: "Luminary"; state: GuardianLuminaryState };
 }
 
-export type GuardianSchedulerContext = SchedulerContext<GuardianState> & {
+export type GuardianSchedulerContext = SchedulerContext<GuardianRuntimeState> & {
   readonly config: GuardianConfig;
 };
 
-export type GuardianCastContext = CastLifecycleContext<GuardianState> & {
+export type GuardianCastContext = CastLifecycleContext<GuardianRuntimeState> & {
   readonly config: GuardianConfig;
 };
 
-export type GuardianPrecastContext = CastContext<GuardianState> & {
+export type GuardianPrecastContext = CastContext<GuardianRuntimeState> & {
   readonly config: GuardianConfig;
 };
 
 export interface GuardianEndStateProjectionOptions {
-  readonly schedulerState: SchedulerState<GuardianState>;
+  readonly schedulerState: SchedulerState<GuardianRuntimeState>;
   readonly resolverState?: Partial<GuardianState> | null;
 }
 
@@ -181,7 +181,7 @@ export interface GuardianStrikeFields extends SchedulerRecord {
 
 export type GuardianResolverContext = Gw2ResolverRuntime & {
   config: GuardianConfig;
-  profession: GuardianState;
+  profession: GuardianRuntimeState;
   readonly epsilon?: number;
 };
 

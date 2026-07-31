@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   ENGINEER_SKILL_IDS as ID,
   ENGINEER_TRAIT_IDS as TRAIT,
@@ -56,7 +57,7 @@ export function performEngineerDodge(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.start;
   state.endurance = Math.max(
     0,

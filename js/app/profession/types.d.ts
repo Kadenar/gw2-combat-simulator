@@ -32,6 +32,7 @@ export interface ProfessionBuildAssumptions extends SchedulerRecord {
   vigor?: boolean;
   aegis?: boolean;
   alliedPlayerCount?: number;
+  sharePlayerBoonsWithSummons?: boolean;
   playerHealthPercent?: number;
   targetDefiant?: boolean;
   targetDistance?: number;

@@ -8,9 +8,10 @@ import {
   createTroubadourState,
 } from "./state.js";
 import { troubadourUi } from "./ui.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
+import type { MesmerTroubadourState } from "../../types.js";
 
-export const troubadourModule = defineProfessionModule<SchedulerRecord>({
+export const troubadourModule =
+  defineProfessionModule<MesmerTroubadourState>({
   id: "Troubadour",
   catalog: {
     ...mesmerModuleCatalog("Troubadour"),
@@ -26,4 +27,4 @@ export const troubadourModule = defineProfessionModule<SchedulerRecord>({
     eventHandlers: troubadourEventHandlers,
   },
   ui: troubadourUi,
-});
+  });

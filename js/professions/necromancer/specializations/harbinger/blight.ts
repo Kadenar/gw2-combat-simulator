@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 /**
  * Harbinger blight skill handlers.
  *
@@ -41,14 +45,15 @@ export function advanceHarbingerBlight(
   context: NecromancerSchedulerContext,
   target: number,
 ): void {
-  const state = context.state.profession;
-  if (state.activeShroud !== "harbinger") return;
-  const start = Number(state.lastResourceAt || 0);
+  const state = professionSpecializationState(context, "Harbinger");
+  const coreState = professionCoreState(context);
+  if (coreState.activeShroud !== "harbinger") return;
+  const start = Number(coreState.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
-  const drainRate = Number(state.maximumLifeForce || 100) * 0.05;
+  const drainRate = Number(coreState.maximumLifeForce || 100) * 0.05;
   const exitAt =
-    drainRate > 0 && drainRate * (end - start) >= state.lifeForce
-      ? start + state.lifeForce / drainRate
+    drainRate > 0 && drainRate * (end - start) >= coreState.lifeForce
+      ? start + coreState.lifeForce / drainRate
       : end;
   const stacksPerSecond = hasTrait(context, TRAIT.DOOM_APPROACHES) ? 4 : 2;
   while (
@@ -74,7 +79,7 @@ function applyCascadingCorruption(
       (context.combatStartTime == null || at < Number(context.combatStartTime)))
   )
     return;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Harbinger");
   state.cascadingCorruptionStacks += consumed;
   if (state.cascadingCorruptionStacks < 20) return;
   state.cascadingCorruptionStacks -= 20;
@@ -121,7 +126,7 @@ function elixir(
   skill: NecromancerSkill,
 ): boolean {
   const at = context.effectiveEnd;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Harbinger");
   const ambition = skill.id === ID.ELIXIR_OF_AMBITION;
   const threshold = ambition ? 10 : 5;
   const empowered = state.blight >= threshold;
@@ -217,7 +222,7 @@ function blightSkill(
   skill: NecromancerSkill,
 ): boolean {
   const at = context.effectiveEnd;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Harbinger");
   const empowered = state.blight >= 5;
   const consumed = empowered ? consumeBlight(state, 5, at) : 0;
   // The strike snapshots Blight after the five-stack activation cost. Blight

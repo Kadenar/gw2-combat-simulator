@@ -2,18 +2,14 @@ import type {
   SchedulerRecord,
   SimulationEvent,
 } from "../../platform/engine/types.js";
-import type {
-  Gw2SimulationResult,
-} from "../../platform/gw2/types.js";
+import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
 import {
   EVENT_LOG_ORDER,
   eventLogCsv,
   mountEventLog,
   normalizeEventLogDescriptor,
 } from "../../platform/ui/event-log.js";
-import type {
-  EventLogRow,
-} from "../../platform/ui/types.js";
+import type { EventLogRow } from "../../platform/ui/types.js";
 import type {
   ProfessionAppContract,
   ProfessionApplicationBuild,
@@ -36,7 +32,7 @@ export function simulationEventLogRows(
   const resourceDefinition =
     endState.resourceDefinition &&
     typeof endState.resourceDefinition === "object"
-      ? endState.resourceDefinition as SchedulerRecord
+      ? (endState.resourceDefinition as SchedulerRecord)
       : {};
   const maximumResource = Number(resourceDefinition.maximum || 0);
   const push = (
@@ -113,7 +109,7 @@ export function simulationEventLogRows(
           .map((rawClone: unknown) => {
             const clone =
               rawClone && typeof rawClone === "object"
-                ? rawClone as SchedulerRecord
+                ? (rawClone as SchedulerRecord)
                 : {};
             return `Clone #${String(clone.id ?? "")}${
               clone.weapon ? ` [${String(clone.weapon)}]` : ""
@@ -218,10 +214,11 @@ export function simulationEventLogRows(
   }
 
   return rows
-    .sort((left, right) =>
-      left.at - right.at ||
-      left.order - right.order ||
-      left.description.localeCompare(right.description)
+    .sort(
+      (left, right) =>
+        left.at - right.at ||
+        left.order - right.order ||
+        left.description.localeCompare(right.description),
     )
     .map(({ order: _order, ...row }) => row);
 }
@@ -238,10 +235,10 @@ export function renderEventLog(app: ProfessionAppState): void {
     return;
   }
   const eventLog = simulationEventLogRows(result, app.build, app.profession);
-  const hasPhantasmClone = eventLog.some(event => event.phantasmClone);
+  const hasPhantasmClone = eventLog.some((event) => event.phantasmClone);
   mountEventLog(
     element,
-    eventLog.map(event => ({
+    eventLog.map((event) => ({
       ...event,
       rowClassName: event.phantasmClone ? "log-phantasm" : "",
     })),
@@ -253,7 +250,7 @@ export function renderEventLog(app: ProfessionAppState): void {
             {
               id: "phantasm",
               label: "Phantasm & Clone only",
-              predicate: event => Boolean(event.phantasmClone),
+              predicate: (event) => Boolean(event.phantasmClone),
             },
           ]
         : [],

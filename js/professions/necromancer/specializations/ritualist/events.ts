@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import { EPSILON } from "../../../../platform/engine/clock.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { RITUALIST_MECHANICS as MECHANICS } from "./mechanics.js";
@@ -13,13 +14,13 @@ export function handleNecromancerPainfulBond(
 ): void {
   const definition = MECHANICS.painfulBond;
   if (event.mode === "apply") {
-    context.profession.painfulBondUntil = Math.max(
-      Number(context.profession.painfulBondUntil || 0),
+    professionSpecializationState(context, "Ritualist").painfulBondUntil = Math.max(
+      Number(professionSpecializationState(context, "Ritualist").painfulBondUntil || 0),
       event.at + Number(event.duration || definition.duration),
     );
-    if (!Number.isFinite(context.profession.painfulBondPulseAnchorAt)) {
+    if (!Number.isFinite(professionSpecializationState(context, "Ritualist").painfulBondPulseAnchorAt)) {
       const firstPulseAt = event.at + Number(definition.firstPulseDelay || 0);
-      context.profession.painfulBondPulseAnchorAt = firstPulseAt;
+      professionSpecializationState(context, "Ritualist").painfulBondPulseAnchorAt = firstPulseAt;
       enqueueOrdered(context.queue, {
         ...event,
         at: firstPulseAt,
@@ -30,7 +31,7 @@ export function handleNecromancerPainfulBond(
   }
   if (event.mode !== "tick") return;
 
-  if (event.at < Number(context.profession.painfulBondUntil || 0) - EPSILON) {
+  if (event.at < Number(professionSpecializationState(context, "Ritualist").painfulBondUntil || 0) - EPSILON) {
     enqueueOrdered(context.queue, {
       type: "damage",
       at: event.at,
@@ -79,7 +80,7 @@ export function handleNecromancerWeaponSpell(
       nextAt: 0,
     };
   }
-  context.profession.weaponSpells[event.spell] = {
+  professionSpecializationState(context, "Ritualist").weaponSpells[event.spell] = {
     skillId: event.skillId ?? undefined,
     skillName: event.skillName,
     appliedAt: event.at,

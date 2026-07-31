@@ -80,6 +80,7 @@
       "events": [
         {
           "__order": 0,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
           "endsAt": 0.96,
@@ -92,10 +93,12 @@
           "skillName": "Blurred Frenzy",
           "source": "mesmer",
           "sourceId": 10334,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.sword"
         },
         {
           "__order": 1,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -112,10 +115,11 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword"
         },
         {
           "__order": 2,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -132,10 +136,11 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword"
         },
         {
           "__order": 3,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -152,10 +157,11 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword"
         },
         {
           "__order": 4,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -172,10 +178,11 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword"
         },
         {
           "__order": 5,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -192,10 +199,11 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword"
         },
         {
           "__order": 6,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -212,10 +220,11 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword"
         },
         {
           "__order": 7,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -232,10 +241,11 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword"
         },
         {
           "__order": 8,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -252,7 +262,7 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword"
         }
       ],
       "profession": {
@@ -285,6 +295,7 @@
       "resolvedEvents": [
         {
           "__order": 1,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -294,6 +305,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Blurred Frenzy",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10334,
           "skillName": "Blurred Frenzy",
@@ -303,10 +315,12 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 2,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -316,6 +330,7 @@
           "hitIndex": 2,
           "hits": 1,
           "name": "Blurred Frenzy",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10334,
           "skillName": "Blurred Frenzy",
@@ -325,10 +340,12 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 3,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -338,6 +355,7 @@
           "hitIndex": 3,
           "hits": 1,
           "name": "Blurred Frenzy",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10334,
           "skillName": "Blurred Frenzy",
@@ -347,10 +365,12 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 4,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -360,6 +380,7 @@
           "hitIndex": 4,
           "hits": 1,
           "name": "Blurred Frenzy",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10334,
           "skillName": "Blurred Frenzy",
@@ -369,10 +390,12 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 5,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -382,6 +405,7 @@
           "hitIndex": 5,
           "hits": 1,
           "name": "Blurred Frenzy",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10334,
           "skillName": "Blurred Frenzy",
@@ -391,10 +415,12 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 6,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -404,6 +430,7 @@
           "hitIndex": 6,
           "hits": 1,
           "name": "Blurred Frenzy",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10334,
           "skillName": "Blurred Frenzy",
@@ -413,10 +440,12 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 7,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -426,6 +455,7 @@
           "hitIndex": 7,
           "hits": 1,
           "name": "Blurred Frenzy",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10334,
           "skillName": "Blurred Frenzy",
@@ -435,10 +465,12 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 8,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -448,6 +480,7 @@
           "hitIndex": 8,
           "hits": 1,
           "name": "Blurred Frenzy",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10334,
           "skillName": "Blurred Frenzy",
@@ -457,7 +490,8 @@
           "totalHits": 8,
           "type": "damage",
           "weapon": "sword",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.sword",
+          "weaponStrengthSampled": false
         }
       ],
       "steps": [

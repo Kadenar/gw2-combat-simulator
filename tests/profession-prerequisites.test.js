@@ -156,6 +156,140 @@ test("same-time target-condition visibility follows runtime insertion order", ()
   assert.equal(query.targetHasCondition("Weakness", 3, runtime), false);
 });
 
+test("player boon sharing can exclude non-mech summons", () => {
+  const events = [{
+    type: "buff",
+    at: 0,
+    source: "Player",
+    sourceId: "player-might",
+    actorType: "player",
+    kind: "might",
+    duration: 10,
+    stacks: 5,
+  }, {
+    type: "buff",
+    at: 0,
+    source: "Player",
+    sourceId: "player-fury",
+    actorType: "player",
+    kind: "fury",
+    duration: 10,
+    stacks: 1,
+  }];
+  const runtime = {
+    boons: new Map([
+      ["might", [{ at: 0, expiresAt: 10, stacks: 5 }]],
+      ["fury", [{ at: 0, expiresAt: 10, stacks: 1 }]],
+    ]),
+  };
+  const config = {
+    stats: {
+      power: 1000,
+      precision: 1000,
+    },
+    boons: {
+      might: 5,
+      fury: false,
+    },
+  };
+  const damageEvent = {
+    type: "damage",
+    at: 1,
+    source: "Player",
+    sourceId: "fixture-hit",
+    actorType: "player",
+    coefficient: 1,
+  };
+  const summonEvent = {
+    ...damageEvent,
+    source: "Minion",
+    actorType: "summon",
+  };
+  const mechEvent = {
+    ...summonEvent,
+    source: "engineer",
+    engineerMech: true,
+    summonInheritsAttributes: true,
+  };
+  const phantasmEvent = {
+    ...summonEvent,
+    source: "Phantasm",
+  };
+  const spiritSkillEvent = {
+    ...summonEvent,
+    source: "Spirit",
+    actorType: "player",
+    summonKind: "spirit",
+    spiritAttackType: "initial",
+  };
+  const spiritAutoattackEvent = {
+    ...spiritSkillEvent,
+    actorType: "summon",
+    spiritAttackType: "autoattack",
+  };
+  const shared = createGw2CombatQuery({
+    profession: queryProfession,
+    config: {
+      ...config,
+      sharePlayerBoonsWithSummons: true,
+    },
+    events,
+  });
+  const isolated = createGw2CombatQuery({
+    profession: queryProfession,
+    config: {
+      ...config,
+      sharePlayerBoonsWithSummons: false,
+    },
+    events,
+  });
+
+  assert.equal(shared.statsAt(1, damageEvent, runtime).power, 1300);
+  // Permanent assumption Might is player-only; shared runtime Might remains.
+  assert.equal(shared.statsAt(1, summonEvent, runtime).power, 1150);
+  assert.equal(isolated.statsAt(1, summonEvent, runtime).power, 1000);
+  assert.equal(isolated.statsAt(1, mechEvent, runtime).power, 1300);
+  assert.equal(isolated.statsAt(1, phantasmEvent, runtime).power, 1300);
+  assert.equal(isolated.statsAt(1, spiritSkillEvent, runtime).power, 1300);
+  assert.equal(isolated.statsAt(1, spiritAutoattackEvent, runtime).power, 1000);
+  assert.equal(shared.critical(summonEvent, 1, runtime).chance, 0.3);
+  assert.equal(isolated.critical(summonEvent, 1, runtime).chance, 0.05);
+  assert.equal(isolated.critical(mechEvent, 1, runtime).chance, 0.3);
+});
+
+test("summon-targeted trait boons bypass disabled player boon sharing", () => {
+  const events = [{
+    type: "buff",
+    at: 0,
+    source: "Trait",
+    sourceId: "summon-trait",
+    actorType: "effect",
+    kind: "might",
+    duration: 10,
+    stacks: 2,
+    affectsSummons: true,
+  }];
+  const query = createGw2CombatQuery({
+    profession: queryProfession,
+    config: {
+      stats: { power: 1000 },
+      boons: { might: 25 },
+      sharePlayerBoonsWithSummons: false,
+    },
+    events,
+  });
+  const summonEvent = {
+    type: "damage",
+    at: 1,
+    source: "Minion",
+    sourceId: "fixture-minion",
+    actorType: "summon",
+    coefficient: 1,
+  };
+
+  assert.equal(query.statsAt(1, summonEvent).power, 1060);
+});
+
 test("trait coverage validates complete, behavioral, mixed-effect manifests", () => {
   const catalog = {
     traits: [
@@ -423,6 +557,7 @@ test("Guardian and Necromancer classify every known custom event", () => {
         { type: "necromancer.painful-bond", at: 2 },
         { type: "necromancer.summon-attack", at: 3 },
         { type: "necromancer.weapon-spell", at: 4 },
+        { type: "necromancer.weapon-spell-ally-trigger", at: 5 },
       ],
       resolvedEvents: [],
       endState: { profession: {} },

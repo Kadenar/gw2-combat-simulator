@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
@@ -9,7 +10,7 @@ import {
 } from "./shared.js";
 
 export function summonThievesGuild(context, skill) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const variant = state.thievesGuildVariant || "Core Thief";
   const attack = skill.summonAttack;
@@ -55,7 +56,7 @@ export function handleThievesGuildAttack(context, task) {
 }
 
 export function swapThiefWeapons(context, skill) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   context.state.activeWeaponSet =
     context.state.activeWeaponSet === 1 ? 2 : 1;
@@ -90,17 +91,17 @@ export function swapThiefWeapons(context, skill) {
 }
 
 export function kneel(context) {
-  context.state.profession.kneeling = true;
+  professionCoreState(context).kneeling = true;
   emitThiefState(context, context.effectiveEnd, "kneel");
 }
 
 export function stand(context) {
-  context.state.profession.kneeling = false;
+  professionCoreState(context).kneeling = false;
   emitThiefState(context, context.effectiveEnd, "stand");
 }
 
 export function activateAssassinsSignet(context) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.assassinsSignetActiveUntil = at + 5;
   state.assassinsSignetPassiveDisabledUntil = Number(

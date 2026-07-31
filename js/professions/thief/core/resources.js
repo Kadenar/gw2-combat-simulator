@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { THIEF_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasThiefTrait } from "./state.js";
 import {
@@ -25,7 +26,7 @@ export function thiefEnduranceRegenerationRate(
 }
 
 export function thiefEnduranceReadyAt(context, cost) {
-  const current = Number(context.state.profession.endurance || 0);
+  const current = Number(professionCoreState(context).endurance || 0);
   const required = Math.max(0, Number(cost || 0));
   const missing = required - current;
   if (missing <= Number(context.epsilon || 0.0001)) return context.start;
@@ -34,7 +35,7 @@ export function thiefEnduranceReadyAt(context, cost) {
 }
 
 export function advanceThiefCoreResources(context, target) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   state.leadAttackExpirations = (
     state.leadAttackExpirations || []
   ).filter(expiresAt => Number(expiresAt) > target);
@@ -79,7 +80,7 @@ export function advanceThiefCoreResources(context, target) {
 }
 
 export function spendThiefCoreResources(context, skill) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const cost = Number(skill.initiativeCost || 0);
   if (cost > 0) {
     state.initiative = Math.max(0, state.initiative - cost);

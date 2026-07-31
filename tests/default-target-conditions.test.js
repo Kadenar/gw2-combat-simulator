@@ -60,4 +60,17 @@ test("ally calculations always use one strike per second per ally", () => {
     count: 3,
     strikesPerSecond: 1,
   });
+  assert.equal(config.sharePlayerBoonsWithSummons, true);
+
+  build.assumptions.sharePlayerBoonsWithSummons = false;
+  const isolatedSummonConfig = createGw2SimulationConfig({
+    app: {
+      build,
+      adapter: { assumptionControls: [] },
+      skillById: new Map(),
+    },
+    attributeData: { attributes: {} },
+    specialization: "Core",
+  });
+  assert.equal(isolatedSummonConfig.sharePlayerBoonsWithSummons, false);
 });

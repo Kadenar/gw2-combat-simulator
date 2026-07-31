@@ -231,11 +231,13 @@ export function renderAssumptions(app: ProfessionAppState): void {
             <div class="perma-group"><span class="perma-group-label">Party</span>
                 <label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>
             </div>
-            ${
-              simulationAssumptionItems
-                ? `<div class="perma-group"><span class="perma-group-label">Simulation</span>${simulationAssumptionItems}</div>`
-                : ""
-            }`;
+            <div class="perma-group"><span class="perma-group-label">Simulation</span>
+                <label class="boon-control" title="Controls minions, clones, turrets, and other ordinary summons. Mesmer phantasms and the Mechanist mech are unchanged.">
+                    <input id="share-player-boons-with-summons" type="checkbox"${a.sharePlayerBoonsWithSummons !== false ? " checked" : ""}>
+                    Share player boons with summons
+                </label>
+                ${simulationAssumptionItems}
+            </div>`;
 
   container
     .querySelectorAll('input[type="checkbox"][data-effect-type]')
@@ -306,6 +308,13 @@ export function renderAssumptions(app: ProfessionAppState): void {
       0,
       Math.min(4, Math.trunc(Number(alliedPlayerCount.value) || 0)),
     );
+    app.changed();
+  });
+  const sharePlayerBoonsWithSummons = requiredInput(
+    "share-player-boons-with-summons",
+  );
+  sharePlayerBoonsWithSummons.addEventListener("change", () => {
+    a.sharePlayerBoonsWithSummons = sharePlayerBoonsWithSummons.checked;
     app.changed();
   });
   container.querySelectorAll("[data-assumption-key]").forEach((control) => {

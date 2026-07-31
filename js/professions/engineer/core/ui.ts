@@ -4,6 +4,7 @@ import {
 import {
   defaultWeaponSkillMatchesSet,
 } from "../../../platform/gw2/weapon-skill-matcher.js";
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { engineerCatalog } from "../catalog.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import { getActiveTraits } from "../data/traits-data.js";
@@ -89,7 +90,9 @@ const engineerSkillsById =
 export function engineerUiState(
   context: EngineerUiContext = {},
 ): Partial<EngineerState> {
-  return context.state?.profession || context.professionState || {};
+  return flattenProfessionState(
+    context.state?.profession || context.professionState,
+  );
 }
 
 export function engineerUiSpecialization(

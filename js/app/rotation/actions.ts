@@ -1,6 +1,4 @@
-import type {
-  LegacyRotationItem,
-} from "../../platform/engine/types.js";
+import type { LegacyRotationItem } from "../../platform/engine/types.js";
 import type {
   ProfessionAppState,
   RotationActionOptions,
@@ -12,9 +10,10 @@ export function addRotation(
   options: RotationActionOptions = {},
 ): void {
   const skillId = options.skillId == null ? null : Number(options.skillId);
-  const skill = skillId !== null && Number.isFinite(skillId)
-    ? app.skillById.get(skillId)
-    : app.skillByName.get(name);
+  const skill =
+    skillId !== null && Number.isFinite(skillId)
+      ? app.skillById.get(skillId)
+      : app.skillByName.get(name);
   const defaultInterruptMs = skill?.defaultInterruptMs;
   const resolvedOptions =
     defaultInterruptMs != null && options.interruptMs == null

@@ -4,30 +4,17 @@ import {
   migrateMesmerBuild,
   validateMesmerBuild,
 } from "./build.js";
-import { mesmerAttributeRules } from "./attribute-rules.js";
 import { mesmerCatalog } from "./catalog.js";
 import { mesmerCoreModule } from "./core/module.js";
-import {
-  mesmerCastRules,
-  mesmerSchedulerHooks,
-  projectMesmerEndState,
-} from "./mechanics/contract.js";
-import {
-  mesmerResolverEventHandlers,
-  mesmerResolverEventReactions,
-} from "./resolver.js";
 import { chronomancerModule } from "./specializations/chronomancer/module.js";
 import { mirageModule } from "./specializations/mirage/module.js";
 import { troubadourModule } from "./specializations/troubadour/module.js";
 import { virtuosoModule } from "./specializations/virtuoso/module.js";
-import {
-  createMesmerResolverState,
-  createMesmerState,
-  snapshotMesmerState,
-} from "./state.js";
-import { mesmerUi } from "./ui.js";
 import type { SchedulerRecord } from "../../platform/engine/types.js";
-import type { MesmerSchedulerContext } from "./types.js";
+import type {
+  MesmerRuntimeState,
+  MesmerSchedulerContext,
+} from "./types.js";
 
 function projectMesmerSimulationEndState({
   schedulerContext,
@@ -65,7 +52,7 @@ function projectMesmerSimulationEndState({
   return { ammo };
 }
 
-export const mesmerProfession = defineProfessionFamily<SchedulerRecord>({
+export const mesmerProfession = defineProfessionFamily<MesmerRuntimeState>({
   id: "mesmer",
   name: "Mesmer",
   catalog: mesmerCatalog,
@@ -73,22 +60,6 @@ export const mesmerProfession = defineProfessionFamily<SchedulerRecord>({
     createBuildDefaults: createMesmerBuildDefaults,
     migrateBuild: migrateMesmerBuild,
     validateBuild: validateMesmerBuild,
-  },
-  resources: {
-    createProfessionState: createMesmerState,
-    createResolverState: createMesmerResolverState,
-    projectEndState: projectMesmerEndState,
-  },
-  attributeRules: mesmerAttributeRules,
-  castRules: mesmerCastRules,
-  schedulerHooks: {
-    ...mesmerSchedulerHooks,
-    snapshot: (context: MesmerSchedulerContext) =>
-      snapshotMesmerState(context.state.profession),
-  },
-  resolverHooks: {
-    eventHandlers: mesmerResolverEventHandlers,
-    eventReactions: mesmerResolverEventReactions,
   },
   core: mesmerCoreModule,
   specializations: {
@@ -100,7 +71,6 @@ export const mesmerProfession = defineProfessionFamily<SchedulerRecord>({
   simulation: Object.freeze({
     projectEndState: projectMesmerSimulationEndState,
   }) as SchedulerRecord,
-  ui: mesmerUi,
 });
 
 export default mesmerProfession;

@@ -80,20 +80,17 @@ Every native profession uses the same module roles:
   behavioral evidence or an explicit out-of-model reason.
 - `data/traits-data.js` is the only module that exports the flattened runtime
   `TRAITS` collection; it derives that view from specialization metadata.
-- Legacy professions keep authoritative ID-keyed declarative skill fields in
-  `mechanics/skill-mechanics.js`. Migrated families move those declarations
-  into Core/specialization `skills.js`; the root file only normalizes and
-  composes the complete application catalog.
-- Legacy `mechanics/handler-mechanics.js` files may own profession-specific
-  formulas for triggered effects and state machines. Migrated families keep
-  those formulas in owner-local `mechanics.js` files and avoid a mixed runtime
-  aggregate.
+- Families keep authoritative ID-keyed declarative skill fields in
+  Core/specialization `skills.js`. A root `mechanics/skill-mechanics.js` may
+  remain only as inert composition for the complete application catalog.
+- Triggered effects and state machines live in owner-local `mechanics.js`
+  files; families do not use mixed profession-wide runtime aggregates.
 - `catalog.js` derives and indexes autoattack chains, with profession-specific
   additions or exclusions supplied as catalog options.
 - `handlers.js`, when needed, registers explicit `augment` or `replace`
   strategies for behavior that cannot be represented by declarative effects.
-  Migrated runtime modules use their local registry; a root registry is an
-  application-catalog facade only.
+  Family runtime modules use their local registry; a root registry may remain
+  only as an inert application-catalog facade.
 
 Profession-specific state machines remain in named feature modules beside
 these boundaries. Skill entries reference those handlers explicitly.
@@ -154,21 +151,33 @@ resolver event reactions accept
 `{ id, order, handler }`; lower order runs first and declaration order breaks
 ties deterministically.
 
-Migrated professions use `defineProfessionFamily()` and
-`defineProfessionModule()`. A family keeps the complete application-facing
-catalog, build codec, and UI surface. `resolveRuntime(config)` returns a cached
-normalized contract containing Core plus only the selected elite module.
+Engineer, Guardian, Mesmer, Necromancer, Revenant, and Thief use
+`defineProfessionFamily()` and `defineProfessionModule()`. A family is an
+application contract: it exposes identity, the complete catalog, build codec,
+normalized application UI, optional simulation refinement, and
+`resolveRuntime(config)`. It does not expose runtime handlers, hooks, rules, or
+mutable state. `resolveRuntime(config)` returns the cached executable contract
+containing Core plus only the selected elite module.
 `simulateGw2()`, the direct scheduler, and the direct resolver normalize family
-sources before constructing runtime state. Legacy `defineProfession()`
-contracts pass through unchanged.
+sources before constructing runtime state. Ordinary `defineProfession()`
+contracts, including Elementalist and test fixtures, pass through unchanged.
 
 Module composition rejects duplicate hook IDs, skill IDs, trait IDs,
 specialization IDs, task handlers, event handlers, skill handlers, and
 weapon-hand declarations. Runtime state is stored as
-`{ core, specialization: { kind, state } }`; the compatibility adapter exposes
-active flat fields to mechanics during migration without allocating sibling
-state. Missing or `Core` specialization selects Core alone; unknown elite names
-fail explicitly.
+`{ core, specialization: { kind, state } }`. The container is an ordinary
+object with no proxy or flat compatibility accessors. Core mechanics address
+`core` directly and elite mechanics validate and address only the active
+specialization state. Missing or `Core` specialization selects Core alone;
+unknown elite names fail explicitly.
+
+`createProfessionFamilyUi()` owns application specialization dispatch. Core is
+selected for a missing specialization, `"Core"`, a Core trait-line name, or an
+unknown application-only name. A known elite selects Core plus that elite.
+Lists compose Core first and the active elite second, availability callbacks
+may veto, event presenters delegate on `undefined`, selection replacement asks
+the elite first, and resource-anchor palette groups use the active elite's
+profession skills. Runtime resolution remains strict for unknown elites.
 
 Modules may contribute inert `attributeRules.modifierRules` declarations.
 Exactly one module supplies `compileModifierRules`; the family merges Core and
@@ -182,20 +191,22 @@ boolean/message callbacks are derived from that result. Event presenters
 return `{ type, description, className, order, flags }`; `null` deliberately
 suppresses an internal event and `undefined` requests the diagnostic fallback.
 
-Native-profession scalar combat bonuses are declared as
-per-effect rules in their `attribute-rules.js` modules. The shared
+Native-profession scalar combat bonuses are declared as per-effect rules in
+owner-local Core or elite `rules.js` modules. The shared
 `platform/gw2/modifier-rules.js` adapter compiles those rules into the existing
 critical chance, critical damage, strike damage, condition damage, and
-condition duration hooks. It owns flat scalar sequencing and the single GW2
+condition duration hooks. It owns scalar sequencing and the single GW2
 outgoing additive-damage bucket rebuild; profession modules own predicates and
 runtime state. Ordered attribute conversions remain narrow imperative hooks.
 Elementalist is excluded until its resolver path adopts the shared GW2
 profession hooks.
 
 Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill
-uses, pending events, and `profession`. Profession resources and mechanic
-timers live under `state.profession`. Typed scheduler tasks carry serializable
-payloads and are dispatched to namespaced profession handlers.
+uses, pending events, and `profession`. For families, Core resources live under
+`state.profession.core`; active-elite resources live under
+`state.profession.specialization.state`. Public `endState.profession` remains
+an allowlisted, compatibility-stable projection. Typed scheduler tasks carry
+serializable payloads and are dispatched to namespaced profession handlers.
 
 The neutral engine accepts scheduler policy callbacks. `platform/gw2` supplies
 the shared GW2 policy for Quickness-adjusted casts, Alacrity-adjusted recharge,
@@ -449,8 +460,10 @@ documentation must not maintain a separate profession count.
 
 ## Adding another profession
 
-1. Add `js/professions/<id>/` with catalog, build, state, rules, UI view models,
-   and a `defineProfession()` composition.
+1. Add `js/professions/<id>/` with a complete application catalog and build
+   codec, a Core module, owner-local elite modules, and a
+   `defineProfessionFamily()` composition. Use `defineProfession()` only for a
+   profession that intentionally has no family split.
 2. Register stable skill/trait IDs, namespaced custom event handlers, and only
    the standard event reactions the profession needs.
    Declare exact hand availability in `weaponHands` and register callable

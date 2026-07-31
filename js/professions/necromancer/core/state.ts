@@ -1,4 +1,5 @@
 import { professionStaticRulesApplied } from "../../../platform/gw2/attribute-provenance.js";
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { NECROMANCER_TRAIT_IDS } from "../data/ids.js";
 import type { SkillId } from "../../../platform/engine/types.js";
 import type {
@@ -160,22 +161,11 @@ export function createNecromancerCoreState(
 }
 
 export function snapshotNecromancerState(
-  state: NecromancerState,
+  state: unknown,
 ): NecromancerState {
-  syncNecromancerResources(state);
-  const runtime = state as unknown as {
-    readonly core?: Partial<NecromancerState>;
-    readonly specialization?: {
-      readonly state?: Partial<NecromancerState>;
-    };
-  };
   const flattened =
-    runtime.core && runtime.specialization?.state
-      ? {
-          ...runtime.core,
-          ...runtime.specialization.state,
-        }
-      : state;
+    flattenProfessionState(state) as unknown as NecromancerState;
+  syncNecromancerResources(flattened);
   return structuredClone(flattened) as NecromancerState;
 }
 
@@ -233,9 +223,10 @@ export function projectNecromancerEndState({
     maximumLifeForce: number;
     resource: number;
   };
+  const resolver = flattenProfessionState(resolverState || {});
   const resolverLifeForce = Math.max(
     0,
-    Number(resolverState?.spitefulFortitudeLifeForce || 0),
+    Number(resolver.spitefulFortitudeLifeForce || 0),
   );
   projected.lifeForce = Math.min(
     projected.maximumLifeForce,

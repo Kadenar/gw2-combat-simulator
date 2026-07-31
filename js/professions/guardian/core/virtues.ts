@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * @fileoverview Implements specialization-specific Guardian virtue
  * validation, activation and refresh events, plus resolver-time Justice
@@ -68,7 +69,7 @@ function activateVirtue(
   const slot = Number(String(skill.slot || "").match(/(\d)$/)?.[1] || 0);
   const virtue = VIRTUES_BY_SLOT[slot];
   if (!virtue) return false;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   state.lastVirtue = virtue;
   state.lastVirtuePassiveWasReady =
     Number(state.virtueReadyAt[virtue] || 0) <=
@@ -129,12 +130,12 @@ export function handleVirtueActivation(
 ): void {
   const virtue = event.virtue;
   if (!virtue) return;
-  context.profession.virtueReadyAt[virtue] = Number(
+  professionCoreState(context).virtueReadyAt[virtue] = Number(
     event.passiveReadyAt || event.at,
   );
   if (virtue === "justice" && event.skillId === GUARDIAN_SKILL_IDS.JUSTICE) {
-    context.profession.justiceActiveArmed = true;
-    context.profession.justiceArmed = true;
+    professionCoreState(context).justiceActiveArmed = true;
+    professionCoreState(context).justiceArmed = true;
   }
 }
 
@@ -149,7 +150,7 @@ export function handleVirtueRefresh(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  context.profession.virtueReadyAt = {
+  professionCoreState(context).virtueReadyAt = {
     justice: event.at,
     resolve: event.at,
     courage: event.at,
@@ -197,9 +198,9 @@ function applyJusticeBurn(
     stacks: burn.stacks,
     duration: burn.duration,
   });
-  context.profession.justiceBurns += 1;
-  if (active) context.profession.justiceActiveBurns += 1;
-  else context.profession.justicePassiveBurns += 1;
+  professionCoreState(context).justiceBurns += 1;
+  if (active) professionCoreState(context).justiceActiveBurns += 1;
+  else professionCoreState(context).justicePassiveBurns += 1;
   context.recordProc(
     "profession",
     active ? "Justice Active" : "Justice Passive",
@@ -222,10 +223,7 @@ export function reactToJusticeHit(
   event: GuardianResolverEvent,
   { hitContext, applyCondition }: JusticeHitDependencies = {},
 ): void {
-  const runtime =
-    context.profession as GuardianResolverContext["profession"] & {
-      readonly specialization?: { readonly kind?: string };
-    };
+  const runtime = context.profession;
   if (runtime.specialization?.kind && runtime.specialization.kind !== "Core") {
     return;
   }
@@ -254,7 +252,7 @@ export function reactToJusticeHitWithOptions(
   )
     return;
 
-  const state = context.profession;
+  const state = professionCoreState(context);
   if (state.justiceActiveArmed) {
     state.justiceActiveArmed = false;
     state.justiceArmed = false;

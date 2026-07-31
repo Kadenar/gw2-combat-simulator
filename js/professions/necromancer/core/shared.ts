@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Shared primitives for every necromancer skill handler.
  *
@@ -22,18 +23,20 @@ import {
   hasNecromancerTrait,
   snapshotNecromancerState,
   syncNecromancerResources,
-} from "../state.js";
+} from "./state.js";
 import type {
   SimulationActorType,
   SkillId,
 } from "../../../platform/engine/types.js";
 import type {
+  HarbingerState,
   NecromancerCastContext,
   NecromancerConfig,
+  NecromancerCoreState,
   NecromancerEmissionContext,
   NecromancerSchedulerContext,
   NecromancerSkill,
-  NecromancerState,
+  ScourgeState,
 } from "../types.js";
 
 export const SHROUD_ENTRY: Readonly<Record<SkillId, string>> = Object.freeze({
@@ -245,9 +248,11 @@ export function necromancerBoonDuration(
   at = context.effectiveEnd,
 ): number {
   let concentration = Number(context.config.stats?.concentration || 0);
+  const active = context.state.profession.specialization;
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&
-    (context.state.profession.shades || []).some(
+    active.kind === "Scourge" &&
+    active.state.shades.some(
       (expiresAt: number) => expiresAt > at,
     )
   ) {
@@ -261,28 +266,40 @@ export function necromancerBoonDuration(
   return Number(baseDuration) * Math.max(1, Math.min(2, 1 + bonus));
 }
 
-export function purgeTimedState(state: NecromancerState, at: number): void {
-  if (Object.hasOwn(state, "blightExpiries")) {
-    state.blightExpiries = (state.blightExpiries || []).filter(
-      (expiresAt: number) => expiresAt > at,
-    );
-  }
-  state.carapaceExpiries = (state.carapaceExpiries || []).filter(
+export function purgeTimedState(
+  state: NecromancerCoreState,
+  at: number,
+): void {
+  state.carapaceExpiries = state.carapaceExpiries.filter(
     (expiresAt: number) => expiresAt > at,
   );
-  if (Object.hasOwn(state, "shades")) {
-    state.shades = (state.shades || []).filter(
-      (expiresAt: number) => expiresAt > at,
-    );
-  }
-  state.soulShardExpiries = (state.soulShardExpiries || []).filter(
+  state.soulShardExpiries = state.soulShardExpiries.filter(
     (expiresAt: number) => expiresAt > at,
   );
   syncNecromancerResources(state);
 }
 
+export function purgeHarbingerTimedState(
+  state: HarbingerState,
+  at: number,
+): void {
+  state.blightExpiries = state.blightExpiries.filter(
+    (expiresAt: number) => expiresAt > at,
+  );
+  state.blight = state.blightExpiries.length;
+}
+
+export function purgeScourgeTimedState(
+  state: ScourgeState,
+  at: number,
+): void {
+  state.shades = state.shades.filter(
+    (expiresAt: number) => expiresAt > at,
+  );
+}
+
 export function addCarapace(
-  state: NecromancerState,
+  state: NecromancerCoreState,
   stacks: number,
   at: number,
   duration = 10,
@@ -299,37 +316,37 @@ export function addCarapace(
 }
 
 export function addBlight(
-  state: NecromancerState,
+  state: HarbingerState,
   stacks: number,
   at: number,
 ): number {
-  purgeTimedState(state, at);
+  purgeHarbingerTimedState(state, at);
   const count = Math.min(
     Math.max(0, Math.trunc(Number(stacks || 0))),
     25 - state.blightExpiries.length,
   );
   state.blightExpiries.push(...Array.from({ length: count }, () => at + 25));
-  syncNecromancerResources(state);
+  state.blight = state.blightExpiries.length;
   return count;
 }
 
 export function consumeBlight(
-  state: NecromancerState,
+  state: HarbingerState,
   stacks: number,
   at: number,
 ): number {
-  purgeTimedState(state, at);
+  purgeHarbingerTimedState(state, at);
   const count = Math.min(
     Math.max(0, Math.trunc(Number(stacks || 0))),
     state.blightExpiries.length,
   );
   state.blightExpiries.splice(0, count);
-  syncNecromancerResources(state);
+  state.blight = state.blightExpiries.length;
   return count;
 }
 
 export function addSoulShards(
-  state: NecromancerState,
+  state: NecromancerCoreState,
   stacks: number,
   at: number,
   duration = 10,
@@ -349,7 +366,7 @@ export function addSoulShards(
 }
 
 export function consumeSoulShards(
-  state: NecromancerState,
+  state: NecromancerCoreState,
   stacks: number,
   at: number,
 ): number {
@@ -370,7 +387,7 @@ export function gainNecromancerLifeForce(
   reason = "",
 ): number {
   if (!(Number(amount) > 0)) return 0;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const multiplier = hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1;
   const before = state.lifeForce;
   state.lifeForce = Math.min(

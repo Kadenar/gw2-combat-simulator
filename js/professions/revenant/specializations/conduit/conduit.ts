@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 /**
  * Conduit and Legendary Entity runtime mechanics.
  *
@@ -24,11 +28,11 @@ import type {
   SkillId,
 } from "../../../../platform/engine/types.js";
 import type {
+  ConduitState,
   RevenantCastContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSkill,
-  RevenantState,
 } from "../../types.js";
 
 type RevenantMechanicContext = RevenantSchedulerContext & {
@@ -92,7 +96,7 @@ function hasLegend(
   context: RevenantSchedulerContext,
   legendId: string,
 ): boolean {
-  return context.state.profession.selectedLegendIds.includes(legendId);
+  return professionCoreState(context).selectedLegendIds.includes(legendId);
 }
 
 function hasTrait(
@@ -128,7 +132,7 @@ function effectiveAffinity(context: RevenantSchedulerContext): number {
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
   return Math.min(
     MECHANICS.conduit.affinityMaximum,
-    Number(context.state.profession.affinity || 0) + bonus,
+    Number(professionSpecializationState(context, "Conduit").affinity || 0) + bonus,
   );
 }
 
@@ -201,7 +205,7 @@ export function emitDervishFormAttack(
   skill: RevenantSkill,
   { elite = false }: { readonly elite?: boolean } = {},
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Conduit");
   if (
     context.config.specialization !== "Conduit" ||
     state.conduitForm !== "Dervish" ||
@@ -241,7 +245,7 @@ export function emitLesserEnchantedDaggers(
 ): void {
   if (
     !revenantConduitFormIsActive(
-      context.state.profession,
+      professionSpecializationState(context, "Conduit"),
       "Assassin",
       at,
     )
@@ -278,7 +282,7 @@ export function applyCosmicWisdomAfterCast(
   if (
     skill.legendId === LEGEND.ASSASSIN &&
     revenantConduitFormIsActive(
-      context.state.profession,
+      professionSpecializationState(context, "Conduit"),
       "Assassin",
       at,
     )
@@ -288,7 +292,7 @@ export function applyCosmicWisdomAfterCast(
   if (
     skill.legendId !== LEGEND.ENTITY ||
     !revenantConduitFormIsActive(
-      context.state.profession,
+      professionSpecializationState(context, "Conduit"),
       "Dervish",
       at,
     )
@@ -383,7 +387,8 @@ export function gainConduitAffinity(
   reason: string,
 ): number {
   if (context.config.specialization !== "Conduit") return 0;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Conduit");
+  const coreState = professionCoreState(context);
   const previous = Number(state.affinity || 0);
   state.affinity = Math.min(
     MECHANICS.conduit.affinityMaximum,
@@ -394,9 +399,9 @@ export function gainConduitAffinity(
     state.affinity === MECHANICS.conduit.affinityMaximum &&
     hasTrait(context, TRAIT.EXPANDED_CONSCIOUSNESS)
   ) {
-    state.energy = Math.min(
-      state.maximumEnergy,
-      state.energy + MECHANICS.conduit.expandedConsciousnessEnergy,
+    coreState.energy = Math.min(
+      coreState.maximumEnergy,
+      coreState.energy + MECHANICS.conduit.expandedConsciousnessEnergy,
     );
   }
   if (state.affinity !== previous) {
@@ -411,7 +416,7 @@ export function gainConduitAffinity(
 
 /** Refreshes Conduit-owned Energy overrides for the active cosmic form. */
 export function syncConduitEnergyCostOverrides(
-  state: RevenantState,
+  state: ConduitState,
 ): void {
   if (state.conduitForm !== "Mesmer") {
     state.energyCostOverrides = {};
@@ -454,7 +459,7 @@ export function emitNuminousGift(
     profile.mightStacks,
     { recipients },
   );
-  for (const legendId of context.state.profession.selectedLegendIds) {
+  for (const legendId of professionCoreState(context).selectedLegendIds) {
     const boons = profile.boons as unknown as Readonly<
       Record<string, readonly [string, number]>
     >;
@@ -471,7 +476,7 @@ export function castBeguilingHaze(
   skill: RevenantSkill,
 ): void {
   const profile = MECHANICS.conduit.beguilingHaze;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Conduit");
   const followUp = Number(state.beguilingHazeCharges || 0) > 0;
   if (followUp) {
     state.beguilingHazeCharges -= 1;
@@ -498,7 +503,7 @@ export function completeBeguilingHaze(
   skill: RevenantSkill,
 ): void {
   if (skill.handlerId !== "revenant.beguiling-haze") return;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Conduit");
   const index = state.beguilingHazeMainReservations.indexOf(
     context.reservationId,
   );
@@ -538,8 +543,8 @@ function activeSelfConditions(
   context: RevenantCastContext,
   at: number,
 ): number {
-  const state = context.state.profession;
-  state.selfConditions = (state.selfConditions || []).filter(
+  const state = professionCoreState(context);
+  state.selfConditions = state.selfConditions.filter(
     (application) => Number(application.expiresAt || 0) > at,
   );
   const configured = Math.max(0, Number(state.selfConditionCount || 0));
@@ -552,7 +557,7 @@ export function castHexEaterVortex(
   skill: RevenantSkill,
 ): void {
   const profile = MECHANICS.conduit.hexEaterVortex;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const projectileCount = hasLegend(context, LEGEND.DEMON)
     ? profile.maximumProjectiles
@@ -779,7 +784,7 @@ export function castReleasePotential(
         Math.max(0, 1 - affinity * profile.selfDurationReductionPerAffinity);
       const count = targetsHit(context);
       for (let index = 0; index < count; index += 1) {
-        context.state.profession.selfConditions.push({
+        professionCoreState(context).selfConditions.push({
           condition: "Torment",
           stacks: 1,
           at: context.effectiveEnd,
@@ -830,7 +835,7 @@ export function castReleasePotential(
 export function activateCosmicWisdom(
   context: RevenantCastContext,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Conduit");
   const at = context.effectiveEnd;
   // Mistfire resolves as part of the activation, before Cosmic Wisdom's
   // doubled Bolstered Bonds attributes become active.
@@ -867,7 +872,9 @@ export function activateCosmicWisdom(
   }
   state.cosmicWisdomUntil = at + MECHANICS.conduit.cosmicWisdomDuration;
   state.conduitForm =
-    REVENANT_RELEASE_POTENTIAL_BY_LEGEND[state.activeLegendId]?.replace(
+    REVENANT_RELEASE_POTENTIAL_BY_LEGEND[
+      professionCoreState(context).activeLegendId
+    ]?.replace(
       "Release Potential: ",
       "",
     ) || "";

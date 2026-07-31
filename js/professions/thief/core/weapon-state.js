@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { THIEF_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasThiefTrait } from "./state.js";
 import {
@@ -12,7 +13,7 @@ function enterStealthFromSkill(context, skill, at) {
       effect.type === "buff" && effect.kind === "stealth")
     .reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
   if (!(duration > 0)) return;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (state.revealedUntil > at) return;
   const entering = state.stealthUntil <= at;
   state.stealthUntil = Math.min(
@@ -52,7 +53,7 @@ function enterStealthFromSkill(context, skill, at) {
 }
 
 export function updateThiefWeaponState(context, skill) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const chain = context.catalog.autoattackChainPositions.get(skill.id);
   if (chain) {

@@ -87,6 +87,7 @@ export interface Gw2Config extends SchedulerRecord {
   readonly stats?: Gw2Stats;
   readonly attributes?: Gw2Stats;
   readonly boons?: Readonly<Record<string, boolean | number>>;
+  readonly sharePlayerBoonsWithSummons?: boolean;
   readonly startingWeaponSet?: number;
   readonly primaryWeapon?: string;
   readonly secondaryWeapon?: string;

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   CANONICAL_TARGET_CONDITIONS,
   canonicalTargetConditionName,
@@ -16,7 +17,7 @@ import {
 import {
   necromancerCastRules,
   necromancerSchedulerHooks,
-} from "../mechanics/contract.js";
+} from "./contract.js";
 import type {
   SchedulerRecord,
   SkillId,
@@ -27,19 +28,43 @@ import type {
 } from "../../../platform/gw2/types.js";
 import type {
   NecromancerConfig,
+  NecromancerCoreState,
   NecromancerQueryRuntime,
   NecromancerRechargeModifierContext,
+  NecromancerRuntimeState,
   NecromancerSkill,
   NecromancerState,
 } from "../types.js";
 
-export function necromancerRuntimeState(
+function queryProfessionState(
   context: Gw2ModifierContext,
-): Partial<NecromancerState> {
+): Partial<NecromancerState> | NecromancerRuntimeState {
   return (
     (context.runtime as NecromancerQueryRuntime | null | undefined)
       ?.profession || {}
   );
+}
+
+export function necromancerRuntimeCoreState(
+  context: Gw2ModifierContext,
+): Partial<NecromancerCoreState> {
+  const state = queryProfessionState(context);
+  const runtime = state as Partial<NecromancerRuntimeState>;
+  return runtime.core && typeof runtime.core === "object"
+    ? runtime.core
+    : state as Partial<NecromancerCoreState>;
+}
+
+export function necromancerRuntimeSpecializationState(
+  context: Gw2ModifierContext,
+): Partial<NecromancerState> {
+  const state = queryProfessionState(context);
+  const runtime = state as Partial<NecromancerRuntimeState>;
+  return runtime.specialization
+      && typeof runtime.specialization === "object"
+      && runtime.specialization.state
+    ? runtime.specialization.state
+    : state as Partial<NecromancerState>;
 }
 
 export function necromancerEventSkill(
@@ -108,13 +133,13 @@ export function necromancerTargetHealthFraction(
 }
 
 export function necromancerActiveShroud(context: Gw2ModifierContext): string {
-  return String(necromancerRuntimeState(context).activeShroud || "");
+  return String(necromancerRuntimeCoreState(context).activeShroud || "");
 }
 
 export function necromancerTargetChilled(context: Gw2ModifierContext): boolean {
   return (
     necromancerTargetHasCondition(context, "Chilled") ||
-    Number(necromancerRuntimeState(context).targetChilledUntil || 0) >
+    Number(necromancerRuntimeCoreState(context).targetChilledUntil || 0) >
       context.time
   );
 }
@@ -125,7 +150,7 @@ export function necromancerTargetControlled(
   return (
     Boolean(context.config?.target?.controlled) ||
     (context.config?.target?.defiant !== true &&
-      Number(necromancerRuntimeState(context).targetControlledUntil || 0) >
+      Number(necromancerRuntimeCoreState(context).targetControlledUntil || 0) >
         context.time)
   );
 }
@@ -198,11 +223,11 @@ export function modifyNecromancerCoreAttributes(
     }
   }
   const timedCarapace = (
-    necromancerRuntimeState(context).carapaceExpiries || []
+    necromancerRuntimeCoreState(context).carapaceExpiries || []
   ).filter((expiresAt: number) => expiresAt > context.time).length;
   const minionCarapace = hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
     ? Object.values(
-        necromancerRuntimeState(context).activeMinions || {},
+        necromancerRuntimeCoreState(context).activeMinions || {},
       ).reduce(
         (total: number, count: number) => total + Number(count || 0) * 2,
         0,
@@ -281,7 +306,8 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] =
       amount: 0.2,
       when: (context) =>
         hasTrait(context, TRAIT.DREAD) &&
-        Number(necromancerRuntimeState(context).dreadUntil || 0) > context.time,
+        Number(necromancerRuntimeCoreState(context).dreadUntil || 0) >
+          context.time,
     },
     {
       id: "necromancer.death-perception-critical-hit-damage",

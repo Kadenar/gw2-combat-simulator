@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Condition-manipulation skill handlers.
  *
@@ -25,12 +26,12 @@ import {
 } from "./shared.js";
 import type {
   NecromancerCastContext,
+  NecromancerCoreState,
   NecromancerEmissionContext,
   NecromancerQueryRuntime,
   NecromancerSelfCondition,
   NecromancerSimulationEvent,
   NecromancerSkill,
-  NecromancerState,
 } from "../types.js";
 
 const DAMAGING_CONDITIONS = new Set([
@@ -80,7 +81,7 @@ function conditionDurationMultiplier(
   };
   const traits = selectedGw2TraitValues(
     context.config,
-    context.profession.catalog,
+    context.catalog,
   );
   const query = createGw2CombatQuery({
     profession: context.profession,
@@ -108,7 +109,7 @@ function conditionDurationMultiplier(
 }
 
 export function purgeNecromancerSelfConditions(
-  state: NecromancerState,
+  state: NecromancerCoreState,
   at: number,
 ): NecromancerSelfCondition[] {
   state.selfConditions = (state.selfConditions || []).filter(
@@ -118,7 +119,7 @@ export function purgeNecromancerSelfConditions(
 }
 
 export function removeNecromancerSelfCondition(
-  state: NecromancerState,
+  state: NecromancerCoreState,
   at: number,
   maximumConditionTypes = 1,
 ): number {
@@ -154,8 +155,8 @@ export function applyNecromancerSelfCondition(
     sourceSkillId: skill.id,
     sourceSkillName: skill.name,
   };
-  purgeNecromancerSelfConditions(context.state.profession, at);
-  context.state.profession.selfConditions.push(application);
+  purgeNecromancerSelfConditions(professionCoreState(context), at);
+  professionCoreState(context).selfConditions.push(application);
   context.emit({
     type: "self_condition",
     at,
@@ -221,7 +222,7 @@ export function transferNecromancerSelfConditions(
     readonly latestApplications?: boolean;
   } = {},
 ): number {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const active = purgeNecromancerSelfConditions(state, at);
   if (latestApplications) {
     const transferred = active.slice(-maximumConditionTypes);
@@ -289,7 +290,7 @@ function corruption(
       );
     }
   }
-  if (context.state.profession.plagueSendingArmed) {
+  if (professionCoreState(context).plagueSendingArmed) {
     const transferred = transferNecromancerSelfConditions(
       context,
       skill,
@@ -298,8 +299,8 @@ function corruption(
       { latestApplications: true },
     );
     if (transferred) {
-      context.state.profession.plagueSendingArmed = false;
-      context.state.profession.plagueSendingEntrySkillId = null;
+      professionCoreState(context).plagueSendingArmed = false;
+      professionCoreState(context).plagueSendingEntrySkillId = null;
     }
   }
   if (skill.id === ID.BLOOD_IS_POWER) {

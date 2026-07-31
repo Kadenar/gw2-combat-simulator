@@ -13,6 +13,9 @@ import { createResolverState } from "../js/platform/engine/resolver.js";
 import { createScheduler } from "../js/platform/engine/scheduler.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import {
+  assertProfessionFamilyConformance,
+} from "./helpers/profession-family-conformance.js";
+import {
   ENGINEER_ELITE_SPECIALIZATIONS,
   engineerCatalog,
 } from "../js/professions/engineer/catalog.js";
@@ -69,6 +72,79 @@ import { conduitModule } from "../js/professions/revenant/specializations/condui
 import { heraldModule } from "../js/professions/revenant/specializations/herald/module.js";
 import { renegadeModule } from "../js/professions/revenant/specializations/renegade/module.js";
 import { vindicatorModule } from "../js/professions/revenant/specializations/vindicator/module.js";
+import { thiefProfession } from "../js/professions/thief/definition.js";
+import { thiefCoreModule } from "../js/professions/thief/core/module.js";
+import { antiquaryModule as thiefAntiquaryModule } from "../js/professions/thief/specializations/antiquary/module.js";
+import { daredevilModule as thiefDaredevilModule } from "../js/professions/thief/specializations/daredevil/module.js";
+import { deadeyeModule as thiefDeadeyeModule } from "../js/professions/thief/specializations/deadeye/module.js";
+import { specterModule as thiefSpecterModule } from "../js/professions/thief/specializations/specter/module.js";
+
+test("all migrated profession families share one conformance harness", () => {
+  for (const fixture of [
+    {
+      family: engineerProfession,
+      core: engineerCoreModule,
+      specializations: {
+        Scrapper: scrapperModule,
+        Holosmith: holosmithModule,
+        Mechanist: mechanistModule,
+        Amalgam: amalgamModule,
+      },
+    },
+    {
+      family: guardianProfession,
+      core: guardianCoreModule,
+      specializations: {
+        Dragonhunter: dragonhunterModule,
+        Firebrand: firebrandModule,
+        Willbender: willbenderModule,
+        Luminary: luminaryModule,
+      },
+    },
+    {
+      family: mesmerProfession,
+      core: mesmerCoreModule,
+      specializations: {
+        Chronomancer: chronomancerModule,
+        Mirage: mirageModule,
+        Virtuoso: virtuosoModule,
+        Troubadour: troubadourModule,
+      },
+    },
+    {
+      family: necromancerProfession,
+      core: necromancerCoreModule,
+      specializations: {
+        Reaper: reaperModule,
+        Scourge: scourgeModule,
+        Harbinger: harbingerModule,
+        Ritualist: ritualistModule,
+      },
+    },
+    {
+      family: revenantProfession,
+      core: revenantCoreModule,
+      specializations: {
+        Herald: heraldModule,
+        Renegade: renegadeModule,
+        Vindicator: vindicatorModule,
+        Conduit: conduitModule,
+      },
+    },
+    {
+      family: thiefProfession,
+      core: thiefCoreModule,
+      specializations: {
+        Daredevil: thiefDaredevilModule,
+        Deadeye: thiefDeadeyeModule,
+        Specter: thiefSpecterModule,
+        Antiquary: thiefAntiquaryModule,
+      },
+    },
+  ]) {
+    assertProfessionFamilyConformance(fixture);
+  }
+});
 
 const coreSkill = Object.freeze({
   id: 1,
@@ -104,7 +180,7 @@ function testModule(id, options = {}) {
     },
     resources: options.resources || {
       createProfessionState: () =>
-        id === "Core" ? { core: true } : { elite: true },
+        id === "Core" ? { coreReady: true } : { eliteReady: true },
     },
     schedulerHooks: options.schedulerHooks,
     resolverHooks: options.resolverHooks,
@@ -138,14 +214,14 @@ test("profession families resolve Core or one known elite and cache contracts", 
   assert.deepEqual(core.catalog.skills.map(skill => skill.id), [1]);
   assert.deepEqual(elite.catalog.skills.map(skill => skill.id), [1, 2]);
   assert.deepEqual(core.createProfessionState({}), {
-    core: { core: true },
+    core: { coreReady: true },
     specialization: { kind: "Core", state: {} },
   });
   assert.deepEqual(
     elite.createProfessionState({ specialization: "Elite" }),
     {
-      core: { core: true },
-      specialization: { kind: "Elite", state: { elite: true } },
+      core: { coreReady: true },
+      specialization: { kind: "Elite", state: { eliteReady: true } },
     },
   );
   assert.equal(family.resolveRuntime({ specialization: "Elite" }), elite);
@@ -298,8 +374,8 @@ test("scheduler, resolver, and canonical simulation normalize family sources", (
       config: { specialization: "Elite" },
     }).profession,
     {
-      core: { core: true },
-      specialization: { kind: "Elite", state: { elite: true } },
+      core: { coreReady: true },
+      specialization: { kind: "Elite", state: { eliteReady: true } },
     },
   );
 
@@ -564,8 +640,8 @@ test("Necromancer runtimes exclude sibling catalogs, handlers, and state", () =>
         );
         assert.equal(
           Object.hasOwn(state, key),
-          owner === active,
-          `${active}:${key}`,
+          false,
+          `${active}:no-flat-state:${key}`,
         );
       }
     }
@@ -786,7 +862,11 @@ test("Guardian runtimes exclude inactive elite catalogs, registries, and state",
           owner === active,
           `${active}:slice:${key}`,
         );
-        assert.equal(Object.hasOwn(state, key), owner === active, `${active}:${key}`);
+        assert.equal(
+          Object.hasOwn(state, key),
+          false,
+          `${active}:no-flat-state:${key}`,
+        );
       }
     }
     assert.equal(

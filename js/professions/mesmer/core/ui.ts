@@ -1,3 +1,4 @@
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import {
   SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
 } from "../../../app/simulation/randomness.js";
@@ -18,6 +19,7 @@ import type {
   SkillId,
 } from "../../../platform/engine/types.js";
 import type {
+  MesmerProfessionState,
   MesmerResolverEvent,
   MesmerSkill,
   MesmerUiContext,
@@ -29,6 +31,11 @@ export interface MesmerUiResourceDefinition {
   readonly plural: string;
   readonly maximum: number;
 }
+
+type MesmerUiState = Partial<MesmerProfessionState> & {
+  readonly resource?: number;
+  readonly continuumActive?: boolean;
+};
 
 export function mesmerUiSpecialization(
   context: MesmerUiContext = {},
@@ -64,7 +71,9 @@ export function mesmerResourceViews(
   context: MesmerUiContext,
   definition: MesmerUiResourceDefinition,
 ): ProfessionResourceView[] {
-  const state = context.state?.profession || context.professionState || {};
+  const state = flattenProfessionState(
+    context.state?.profession || context.professionState,
+  ) as MesmerUiState;
   const value =
     definition.id === "clones"
       ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
@@ -136,7 +145,9 @@ export function mesmerPaletteSkillAvailability(
 ): { available: boolean; message: string } {
   const mesmerSkill = skill as MesmerSkill;
   const specialization = mesmerUiSpecialization(context);
-  const state = context.state?.profession || context.professionState || {};
+  const state = flattenProfessionState(
+    context.state?.profession || context.professionState,
+  ) as MesmerUiState;
   if (
     !isMesmerBuildSkillAvailable(mesmerSkill, {
       specialization,

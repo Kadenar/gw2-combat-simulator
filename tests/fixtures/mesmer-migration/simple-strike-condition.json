@@ -88,6 +88,7 @@
         },
         {
           "__order": 1,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
           "endsAt": 0.44,
@@ -100,10 +101,12 @@
           "skillName": "Bladecall",
           "source": "mesmer",
           "sourceId": 69311,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.dagger"
         },
         {
           "__order": 2,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.199,
           "blade": true,
@@ -120,10 +123,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "dagger",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger"
         },
         {
           "__order": 3,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.199,
           "blade": true,
@@ -140,10 +144,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "dagger",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger"
         },
         {
           "__order": 4,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.199,
           "blade": true,
@@ -160,7 +165,7 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "dagger",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger"
         }
       ],
       "profession": {
@@ -193,6 +198,7 @@
       "resolvedEvents": [
         {
           "__order": 2,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.199,
           "blade": true,
@@ -202,6 +208,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Bladecall",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 69311,
           "skillName": "Bladecall",
@@ -211,10 +218,12 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "dagger",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 3,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.199,
           "blade": true,
@@ -224,6 +233,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Bladecall",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 69311,
           "skillName": "Bladecall",
@@ -233,10 +243,12 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "dagger",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 4,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.199,
           "blade": true,
@@ -246,6 +258,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Bladecall",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 69311,
           "skillName": "Bladecall",
@@ -255,7 +268,8 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "dagger",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger",
+          "weaponStrengthSampled": false
         }
       ],
       "steps": [

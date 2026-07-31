@@ -2,6 +2,10 @@ import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
+import {
+  professionStaticRulesApplied,
+} from "../../../platform/gw2/attribute-provenance.js";
 
 export const THIEF_BASE_HEALTH = 1645;
 
@@ -31,7 +35,35 @@ export function thiefBaseMaximumHealth(config = {}) {
 
 export function createThiefCoreState(config = {}) {
   const traits = selectedThiefTraits(config);
+  const specialization = config.specialization || "Core";
   const maximumInitiative = hasThiefTrait(traits, TRAIT.PREPAREDNESS) ? 15 : 12;
+  let maximumHealth = thiefBaseMaximumHealth(config);
+  if (
+    !professionStaticRulesApplied(config)
+    && hasThiefTrait(traits, TRAIT.MARAUDERS_RESILIENCE)
+  ) {
+    maximumHealth += Number(
+      config.stats?.power
+      ?? config.attributes?.power
+      ?? 1000,
+    ) * 0.7;
+  }
+  const professionSkillId = specialization === "Deadeye"
+    ? ID.DEADEYES_MARK
+    : specialization === "Specter"
+      ? ID.SIPHON
+      : specialization === "Antiquary"
+        ? ID.SKRITT_SWIPE
+        : ID.STEAL;
+  const thievesGuildVariant = specialization === "Daredevil"
+    ? "Daredevil"
+    : specialization === "Deadeye"
+      ? "Deadeye"
+      : specialization === "Specter"
+        ? "Specter"
+        : specialization === "Antiquary"
+          ? "Skritt"
+          : "Core Thief";
   return {
     initiative: Math.min(
       maximumInitiative,
@@ -42,12 +74,12 @@ export function createThiefCoreState(config = {}) {
     stealthUntil: 0,
     revealedUntil: 0,
     storedStolenSkillId: null,
-    professionSkillId: ID.STEAL,
+    professionSkillId,
     kneeling: false,
     endurance: 100,
-    maximumEndurance: 100,
+    maximumEndurance: specialization === "Daredevil" ? 150 : 100,
     enduranceUpdatedAt: 0,
-    maximumHealth: thiefBaseMaximumHealth(config),
+    maximumHealth,
     leadAttacksStacks: 0,
     leadAttacksUntil: 0,
     leadAttackExpirations: [],
@@ -64,7 +96,7 @@ export function createThiefCoreState(config = {}) {
     thousandNeedlesArmedAt: 0,
     thousandNeedlesGeneration: 0,
     activeThievesGuild: null,
-    thievesGuildVariant: "Core Thief",
+    thievesGuildVariant,
     assassinsSignetActiveUntil: 0,
     assassinsSignetPassiveDisabledUntil: 0,
     availableFlips: {},
@@ -74,17 +106,7 @@ export function createThiefCoreState(config = {}) {
 }
 
 export function snapshotThiefState(state) {
-  const runtime = state || {};
-  if (
-    runtime.core
-    && runtime.specialization?.state
-  ) {
-    return structuredClone({
-      ...runtime.core,
-      ...runtime.specialization.state,
-    });
-  }
-  return structuredClone(runtime);
+  return structuredClone(flattenProfessionState(state));
 }
 
 export const THIEF_PUBLIC_END_STATE_KEYS = Object.freeze([

@@ -192,6 +192,8 @@ export function createGw2SimulationConfig({
       vigor: Boolean(assumptions.vigor),
       aegis: Boolean(assumptions.aegis),
     },
+    sharePlayerBoonsWithSummons:
+      assumptions.sharePlayerBoonsWithSummons !== false,
     allies: {
       count: alliedPlayerCount,
       strikesPerSecond: 1,

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import { ENGINEER_DODGE_ENDURANCE_COST } from "./mechanics.js";
 import { engineerEnduranceReadyAt } from "./resources.js";
@@ -6,9 +7,9 @@ import type {
 } from "../../../platform/engine/types.js";
 import type {
   EngineerConfig,
+  EngineerCoreState,
   EngineerPrecastContext,
   EngineerSkill,
-  EngineerState,
 } from "../types.js";
 
 export function selectedEngineerSkillNames(
@@ -37,7 +38,7 @@ export function denyEngineerCast(
 export function expectedEngineerChainSkill(
   context: EngineerPrecastContext,
   skill: EngineerSkill,
-  state: EngineerState,
+  state: EngineerCoreState,
 ): boolean {
   const chain = typeof skill.id === "number"
     ? context.catalog.autoattackChainPositions.get(skill.id)
@@ -50,7 +51,7 @@ export function engineerCoreCastAvailability(
   context: EngineerPrecastContext,
   skill: EngineerSkill,
 ): AvailabilityResult {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const specialization = String(context.config.specialization || "Core");
   if (skill.id === ID.DODGE) {
     return Number(state.endurance || 0) + Number(context.epsilon || 0.0001)

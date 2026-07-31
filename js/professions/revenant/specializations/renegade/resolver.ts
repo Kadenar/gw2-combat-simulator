@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { RENEGADE_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
@@ -20,7 +24,9 @@ function activeSkillIds(
   context: RevenantResolverContext,
 ): Set<SkillId> {
   return new Set<SkillId>(
-    (context.profession.activeUpkeeps || []).map((upkeep) => upkeep.skillId),
+    professionCoreState(context).activeUpkeeps.map(
+      (upkeep) => upkeep.skillId,
+    ),
   );
 }
 
@@ -35,7 +41,7 @@ function kallasFervorLifeSiphonMultiplier(
   context: RevenantResolverContext,
   at: number,
 ): number {
-  const stacks = activeKallasFervorStacks(context.profession, at);
+  const stacks = activeKallasFervorStacks(professionSpecializationState(context, "Renegade"), at);
   if (!stacks) return 1;
   const profile = MECHANICS.renegade.kallasFervor;
   const perStack = hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
@@ -55,10 +61,12 @@ function reactToDamage(
     soulcleave &&
     active.has(soulcleave.id) &&
     event.skillId !== soulcleave.id &&
-    event.at >= Number(context.profession.traitProcReadyAt.soulcleave || 0)
+    event.at >= Number(
+      professionCoreState(context).traitProcReadyAt.soulcleave || 0
+    )
   ) {
     const profile = MECHANICS.soulcleave;
-    context.profession.traitProcReadyAt.soulcleave =
+    professionCoreState(context).traitProcReadyAt.soulcleave =
       event.at + profile.interval;
     enqueueOrdered(context.queue, {
       type: "damage",

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import type {
   EngineerSchedulerContext,
   EngineerSimulationEvent,
@@ -71,7 +72,7 @@ export function observeEngineerComboFinisher(
     || !activeComboField(context, "Fire", event.at)
   ) return;
   if (finisherChance < 1) {
-    const state = context.state.profession;
+    const state = professionCoreState(context);
     state.fireProjectileFinisherProgress =
       Number(state.fireProjectileFinisherProgress || 0) + finisherChance;
     if (state.fireProjectileFinisherProgress < 1 - context.epsilon) return;

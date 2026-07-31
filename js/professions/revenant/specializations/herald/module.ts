@@ -1,5 +1,4 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import { revenantModuleCatalog } from "../../catalog.js";
 import {
   heraldEventHandlers,
@@ -13,8 +12,9 @@ import {
 } from "./rules.js";
 import { createHeraldState } from "./state.js";
 import { heraldUi } from "./ui.js";
+import type { HeraldState } from "../../types.js";
 
-export const heraldModule = defineProfessionModule<SchedulerRecord>({
+export const heraldModule = defineProfessionModule<HeraldState>({
   id: "Herald",
   catalog: {
     ...revenantModuleCatalog("Herald"),

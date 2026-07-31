@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Scheduler-side Revenant trait lifecycle and event observation.
  *
@@ -21,13 +22,13 @@ import type {
 } from "../../../platform/engine/types.js";
 import type {
   RevenantCastContext,
+  RevenantCoreState,
   RevenantPrecastContext,
   RevenantRechargeContext,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill,
-  RevenantState,
 } from "../types.js";
 
 const MECHANICS = REVENANT_CORE_MECHANICS;
@@ -62,7 +63,7 @@ export function handleImpossibleOddsStrike(
 ): void {
   if (!task.payload) return;
   const cause = task.payload.event;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const impossible = context.catalog.skillsById.get(ID.IMPOSSIBLE_ODDS);
   if (
     !impossible ||
@@ -117,7 +118,7 @@ function emitTraitCondition(
   });
 }
 
-function pruneBattleScars(state: RevenantState, at: number): void {
+function pruneBattleScars(state: RevenantCoreState, at: number): void {
   state.battleScars = (state.battleScars || []).filter(
     (stack) => stack.expiresAt > at,
   );
@@ -128,7 +129,7 @@ function grantBattleScars(
   { at, stacks, sourceId, sourceName, cause = null }: BattleScarGrant,
 ): void {
   const profile = MECHANICS.battleScars;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   pruneBattleScars(state, at);
   const count = Math.min(
     Math.max(0, Math.trunc(Number(stacks || 0))),
@@ -163,7 +164,7 @@ function materializeThrillOfCombat(
   event: RevenantSimulationEvent,
 ): void {
   if (!hasRevenantTrait(context.config, TRAIT.THRILL_OF_COMBAT)) return;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const profile = MECHANICS.battleScars;
   if (state.nextThrillOfCombatAt == null) {
     state.nextThrillOfCombatAt =
@@ -209,7 +210,7 @@ function consumeBattleScar(
   event: RevenantSimulationEvent,
 ): void {
   const profile = MECHANICS.battleScars;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   pruneBattleScars(state, event.at);
   if (!state.battleScars.length) return;
   state.battleScars.pop();
@@ -314,7 +315,7 @@ export function afterRevenantCast(
     !([ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[])
       .includes(Number(skill.id))
   ) {
-    const embrace = context.state.profession.activeUpkeeps.find(
+    const embrace = professionCoreState(context).activeUpkeeps.find(
       (upkeep) => upkeep.skillId === ID.EMBRACE_THE_DARKNESS,
     );
     if (embrace) embrace.empoweredNextPulse = true;
@@ -329,7 +330,7 @@ export function observeRevenantEvent(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (canTriggerImpossibleOdds(event)) {
     context.tasks.schedule({
       id: `${IMPOSSIBLE_ODDS_TASK}:${event.__order}`,
@@ -361,11 +362,11 @@ export function observeRevenantEvent(
     event.skillId === ID.SWAP_WEAPONS &&
     hasRevenantTrait(context.config, TRAIT.BRUTALITY) &&
     Number(event.endsAt ?? event.at) + context.epsilon >=
-      Number(context.state.profession.traitProcReadyAt.brutality || 0)
+      Number(professionCoreState(context).traitProcReadyAt.brutality || 0)
   ) {
     const profile = MECHANICS.traitProcs.brutality;
     const at = Number(event.endsAt ?? event.at);
-    context.state.profession.traitProcReadyAt.brutality = at + profile.interval;
+    professionCoreState(context).traitProcReadyAt.brutality = at + profile.interval;
     context.emitDerived(event, {
       type: "buff",
       at,

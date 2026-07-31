@@ -2680,6 +2680,7 @@ test("Zeal symbol traits emit their full profiles and stack damage", () => {
     true,
   );
   assert.equal(symbols.endState.profession.symbolicAvengerStacks, 5);
+  assert.ok(blades.at(-1).damage > blades[0].damage);
   assert.equal(
     symbols.events.filter(event =>
       event.kind === "target-vulnerability"

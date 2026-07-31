@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
@@ -10,7 +11,7 @@ function applyMistburnCharge(context, event, details) {
     || event.coefficient == null
     || event.skillId === ID.MISTBURN_MORTAR
   ) return;
-  const state = context.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   if (
     Number(state.mistburnCharges || 0) <= 0
     || Number(state.mistburnExpiresAt || 0) <= event.at

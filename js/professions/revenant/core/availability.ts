@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { isLegalRevenantLegendId } from "../legend-rules.js";
 import { REVENANT_SKILL_IDS as ID } from "../data/ids.js";
 import { REVENANT_CORE_MECHANICS } from "./mechanics.js";
@@ -39,7 +40,7 @@ export function revenantCastAvailability(
   context: RevenantPrecastContext,
   skill: RevenantSkill,
 ): AvailabilityResult {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const specialization = String(context.config.specialization || "Core");
   if (skill.id === ID.ABYSSAL_FIRE) {
     return denyRevenantSkill(skill, "revenant.abyssal-fire-hidden", "use Abyssal Strike.");

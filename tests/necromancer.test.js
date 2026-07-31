@@ -53,7 +53,7 @@ import {
 import {
   actualNecromancerLifeForceCost,
   normalizedNecromancerLifeForceCost,
-} from "../js/professions/necromancer/state.js";
+} from "../js/professions/necromancer/core/state.js";
 import {
   calculateModifierContributions,
   modifierCandidates,
@@ -1726,6 +1726,35 @@ test("minion summons persist, attack, and unlock their command", () => {
   assert.match(invalid.warnings.join(" "), /Rigor Mortis is unavailable/);
 });
 
+test("player boon sharing can be disabled for Necromancer minions", () => {
+  const rotation = [
+    "Summon Bone Fiend",
+    "Blood Is Power",
+    { type: "wait", durationMs: 4000 },
+  ];
+  const config = {
+    selectedSkills: ["Summon Bone Fiend", "Blood Is Power"],
+    boons: { might: 0, fury: false },
+  };
+  const shared = simulate("Core", rotation, {
+    ...config,
+    sharePlayerBoonsWithSummons: true,
+  });
+  const isolated = simulate("Core", rotation, {
+    ...config,
+    sharePlayerBoonsWithSummons: false,
+  });
+  const minionDamage = result => result.resolvedEvents
+    .filter(event =>
+      event.type === "damage"
+      && event.source === "Minion"
+      && event.skillName.includes("Summon Bone Fiend"))
+    .reduce((sum, event) => sum + event.damage, 0);
+
+  assert.ok(minionDamage(shared) > minionDamage(isolated));
+  assert.ok(minionDamage(isolated) > 0);
+});
+
 test("unequipped Necromancer slot skills cannot execute", () => {
   const denied = simulate("Core", ["Summon Bone Minions"], {
     selectedSkills: ["Signet of Spite"],
@@ -1946,10 +1975,24 @@ test("Reaper traits reduce shroud cooldowns and ignore minion critical hits", ()
     boons: { quickness: true, alacrity: true },
     selectedTraitIds: [TRAIT.REAPERS_ONSLAUGHT],
   });
+  const shroudDamageTraits = simulate("Reaper", rotation, {
+    boons: { quickness: true, alacrity: true },
+    selectedTraitIds: [
+      TRAIT.REAPERS_ONSLAUGHT,
+      TRAIT.DEATH_PERCEPTION,
+    ],
+  });
   const secondChargeStart = result =>
     result.steps.filter(step => step.skill === "Death's Charge")[1].start;
+  const firstLifeRendDamage = result => result.resolvedEvents.find(event =>
+    event.type === "damage" && event.skillName === "Life Rend")?.damage || 0;
 
   assert.equal(secondChargeStart(base) - secondChargeStart(onslaught), 1000);
+  assert.ok(firstLifeRendDamage(onslaught) > firstLifeRendDamage(base));
+  assert.ok(
+    firstLifeRendDamage(shroudDamageTraits)
+      > firstLifeRendDamage(base) * 1.15,
+  );
 
   const nova = simulate("Reaper", [
     "Summon Flesh Golem",
@@ -2086,7 +2129,7 @@ test("Ritualist live spirit packets retain independent ownership and cadence", (
   const preservationAutos = damageEvents.filter(event =>
     event.skillName === "Preservation Autoattack");
   const lingering = wanderlust.filter(event =>
-    event.actorType === "summon");
+    event.actorType === "player" && event.source === "Spirit");
   const essence = damageEvents.find(event =>
     event.skillName === "Essence Blast");
   const growth = damageEvents.filter(event =>
@@ -2100,12 +2143,15 @@ test("Ritualist live spirit packets retain independent ownership and cadence", (
 
   assert.equal(anguish.length, 7);
   assert.equal(anguish.every(event =>
-    event.coefficient === 0.5 && event.weaponStrength === 805), true);
+    event.actorType === "player"
+    && event.coefficient === 0.5
+    && event.weaponStrength === 805), true);
   assert.equal(lingering.length, 4);
   assert.equal(lingering.every(event => event.coefficient === 0.45), true);
   assert.ok(preservationAutos.length > 0);
   assert.equal(
-    preservationAutos.every(event => event.coefficient === 0.3),
+    preservationAutos.every(event =>
+      event.actorType === "summon" && event.coefficient === 0.3),
     true,
   );
   assert.equal(essence.coefficient, 0.75);
@@ -2182,6 +2228,94 @@ test("Ritualist weapon spells consume stacks and Resilient Weapon is usable", ()
   assert.equal(
     NECROMANCER_NON_DPS_SKILL_NAMES.has("Resilient Weapon"),
     false,
+  );
+});
+
+test("Ritualist weapon spells scale with allied players", () => {
+  const rotation = [
+    "Nightmare Weapon",
+    "Splinter Weapon",
+  ];
+  const solo = simulate("Ritualist", rotation, {
+    selectedSkills: rotation,
+    allies: { count: 0, strikesPerSecond: 1 },
+  });
+  const party = simulate("Ritualist", rotation, {
+    selectedSkills: rotation,
+    allies: { count: 4, strikesPerSecond: 1 },
+  });
+  const allyProcs = party.resolvedEvents.filter(event =>
+    event.triggeredByAlly);
+  const applicationEvents = party.events.filter(event =>
+    event.type === "necromancer.weapon-spell");
+
+  assert.equal(solo.totalDamage, 0);
+  assert.ok(party.totalDamage > solo.totalDamage);
+  assert.equal(
+    allyProcs.filter(event => event.name === "Nightmare Weapon").length,
+    12,
+  );
+  assert.equal(
+    allyProcs.filter(event => event.name === "Splinter Weapon").length,
+    12,
+  );
+  assert.deepEqual(
+    [...new Set(allyProcs.map(event => event.triggeredByAlly))],
+    [1, 2, 3, 4],
+  );
+  assert.equal(applicationEvents.every(event =>
+    event.alliedPlayerCount === 4
+    && event.recipientCount === 5
+    && event.recipients.length === 0), true);
+
+  const wieldersBoon = simulate("Ritualist", ["Nightmare Weapon"], {
+    selectedSkills: ["Nightmare Weapon"],
+    selectedTraitIds: [TRAIT.WIELDERS_BOON],
+    allies: { count: 1, strikesPerSecond: 10 },
+  });
+  assert.equal(
+    wieldersBoon.resolvedEvents.filter(event =>
+      event.name === "Nightmare Weapon"
+      && event.triggeredByAlly === 1).length,
+    5,
+  );
+});
+
+test("Ritualist weapon spells prioritize players, include minions, and exclude spirits", () => {
+  const result = simulate("Ritualist", [
+    "Summon Bone Minions",
+    "Ritualist's Shroud",
+    "Anguish",
+    "Exit Ritualist's Shroud",
+    "Nightmare Weapon",
+  ], {
+    initialResource: 100,
+    selectedSkills: ["Summon Bone Minions", "Nightmare Weapon"],
+    selectedTraitIds: [TRAIT.LINGERING_SPIRITS],
+    allies: { count: 2, strikesPerSecond: 1 },
+  });
+  const application = result.events.find(event =>
+    event.type === "necromancer.weapon-spell"
+    && event.spell === "nightmare");
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.profession.activeSpirits.anguish, true);
+  assert.equal(application.alliedPlayerCount, 2);
+  assert.equal(application.recipientCount, 5);
+  assert.deepEqual(application.recipients, [
+    "minion:bone-minion:0",
+    "minion:bone-minion:1",
+  ]);
+  assert.equal(
+    application.recipients.some(recipient =>
+      recipient.startsWith("spirit:")),
+    false,
+  );
+  assert.equal(
+    result.resolvedEvents.filter(event =>
+      event.name === "Nightmare Weapon"
+      && event.triggeredByAlly).length,
+    6,
   );
 });
 
@@ -3450,9 +3584,10 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   assert.ok(packetError("Explosive Growth", 132_893) < 0.08);
   assert.ok(packetError("Essence Blast", 264_353) < 0.09);
   assert.ok(packetError("Wanderlust", 158_654) < 0.03);
-  assert.ok(packetError("Preservation Autoattack", 67_436) < 0.01);
-  assert.ok(packetError("Slash", 75_770) < 0.03);
-  assert.ok(packetError("Fist", 60_795) < 0.03);
+  // Autonomous summon attacks intentionally do not inherit console Might.
+  assert.ok(packetError("Preservation Autoattack", 61_304) < 0.01);
+  assert.ok(packetError("Slash", 67_582) < 0.03);
+  assert.ok(packetError("Fist", 55_310) < 0.03);
   assert.ok(packetError("Perforate", 299_894) < 0.01);
   assert.ok(packetError("Summon Spirits", 441_885) < 0.01);
   assert.equal(
@@ -3496,7 +3631,6 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   }
 
   const neutralTraitNames = new Set([
-    "Reaper's Might",
     "Spiteful Fortitude",
     "Gluttony",
     "Unyielding Blast",

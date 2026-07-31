@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Revenant Core upkeep and pulse state machines.
  *
@@ -16,10 +17,10 @@ import type {
 } from "../../../platform/engine/types.js";
 import type {
   RevenantCastContext,
+  RevenantCoreState,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSkill,
-  RevenantState,
   RevenantUpkeepState,
 } from "../types.js";
 
@@ -100,7 +101,7 @@ function upkeepPulseInterval(skill: RevenantSkill | undefined): number {
 
 function facetConsumeId(
   skill: RevenantSkill,
-  state: RevenantState,
+  state: RevenantCoreState,
 ): SkillId | undefined {
   return (
     skill.upkeepConsumeByLegendId?.[state.activeLegendId] ??
@@ -136,7 +137,7 @@ export function toggleRevenantUpkeep(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const index = state.activeUpkeeps.findIndex(
     (upkeep) => upkeep.skillId === skill.id,
@@ -189,7 +190,7 @@ export function releaseRevenantUpkeep(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const parent =
     skill.flipParentId == null
@@ -255,7 +256,7 @@ export function handleRevenantUpkeepPulse(
 ): void {
   if (!task.payload) return;
   const payload = task.payload;
-  const active = context.state.profession.activeUpkeeps.find(
+  const active = professionCoreState(context).activeUpkeeps.find(
     (upkeep) => upkeep.skillId === payload.skillId,
   );
   if (!active) return;

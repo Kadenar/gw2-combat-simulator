@@ -1,3 +1,7 @@
+import {
+  flattenProfessionState,
+  professionCoreState,
+} from "../../../platform/engine/profession.js";
 /**
  * @fileoverview Owns the Core Mesmer scheduler integration boundary. It assembles
  * specialization controllers, normalizes build/runtime data, coordinates cast
@@ -58,6 +62,7 @@ import type {
   MesmerMaximumAmmoContext,
   MesmerPendingResource,
   MesmerPrecastContext,
+  MesmerProfessionState,
   MesmerProjectedFlip,
   MesmerRechargeContext,
   MesmerRuntime,
@@ -487,7 +492,7 @@ function updateAutoattackChains(
   skill: MesmerSkill,
 ): void {
   const { state, catalog } = runtime.context;
-  const chains = state.profession.autoattackChains;
+  const chains = professionCoreState(state).autoattackChains;
   const position = catalog.autoattackChainPositions.get(skill.id);
   if (position) {
     // Object.keys yields string keys; chain roots are numeric skill ids, so
@@ -503,7 +508,7 @@ function updateAutoattackChains(
     return;
   }
   if (skill.id === -3) {
-    state.profession.autoattackChains = {};
+    professionCoreState(state).autoattackChains = {};
     return;
   }
   if (
@@ -630,7 +635,7 @@ function completeMesmerSkill(
       runtime.mirage.handlePostSkill(skill, at);
       const armedFlip = runtime.flipSkillsByParent.get(skill.id);
       if (armedFlip && context.maximumAmmoFor(armedFlip)) {
-        state.profession.availableFlips[armedFlip.id] = {
+        professionCoreState(state).availableFlips[armedFlip.id] = {
           availableAt: at,
           expiresAt: Infinity,
         };
@@ -643,9 +648,9 @@ function completeMesmerSkill(
           expiresAt: context.start + Number(armedFlip.flipDuration || 0),
         };
         if (flip.expiresAt >= at - EPSILON) {
-          state.profession.availableFlips[armedFlip.id] = flip;
+          professionCoreState(state).availableFlips[armedFlip.id] = flip;
           if (armedFlip.id === ID.COUNTERSPELL) {
-            state.profession.counterspellAvailable = true;
+            professionCoreState(state).counterspellAvailable = true;
           }
         }
       }
@@ -654,15 +659,15 @@ function completeMesmerSkill(
         const flipAmmo = state.ammo.get(skill.id);
         if (flipAmmo?.maximum) {
           if (flipAmmo.charges <= 0) {
-            delete state.profession.availableFlips[skill.id];
+            delete professionCoreState(state).availableFlips[skill.id];
             state.ammo.delete(skill.id);
             state.cooldowns.delete(skill.id);
           }
         } else {
-          delete state.profession.availableFlips[skill.id];
+          delete professionCoreState(state).availableFlips[skill.id];
         }
         if (skill.id === ID.COUNTERSPELL) {
-          state.profession.counterspellAvailable = false;
+          professionCoreState(state).counterspellAvailable = false;
         }
         if (skill.parentCooldownIncrease) {
           const parent = runtime.skillsById.get(flipParentId);
@@ -782,8 +787,8 @@ export function initializeMesmerScheduler(
   ) {
     context.schedulerPolicy.requireCriticalFacts?.();
   }
-  if ("riddleOfSandReady" in state.profession) {
-    state.profession.riddleOfSandReady =
+  if (state.profession.specialization.kind === "Mirage") {
+    state.profession.specialization.state.riddleOfSandReady =
       runtime.traits.has(TRAIT.RIDDLE_OF_SAND);
   }
   const initial = clamp(
@@ -809,7 +814,7 @@ export function initializeMesmerScheduler(
       skill.mesmerMechanic?.flipParentId &&
       context.maximumAmmoFor(skill)
     ) {
-      state.profession.availableFlips[skill.id] = {
+      professionCoreState(state).availableFlips[skill.id] = {
         availableAt: 0,
         expiresAt: Infinity,
       };
@@ -907,12 +912,15 @@ export function advanceMesmerScheduler(
   context: MesmerSchedulerContext,
   target: number,
 ): void {
-  const profession = context.state.profession;
-  for (const [instrument, expiresAt] of Object.entries(
-    profession.instruments || {},
-  )) {
-    if (expiresAt <= target + EPSILON) {
-      delete profession.instruments[instrument];
+  const profession = professionCoreState(context);
+  const active = context.state.profession.specialization;
+  if (active.kind === "Troubadour") {
+    for (const [instrument, expiresAt] of Object.entries(
+      active.state.instruments,
+    )) {
+      if (expiresAt <= target + EPSILON) {
+        delete active.state.instruments[instrument];
+      }
     }
   }
   for (const [skillId, flip] of Object.entries(profession.availableFlips)) {
@@ -940,8 +948,8 @@ export function observeMesmerEvent(
   const runtime = context.mesmerRuntime;
   if (!runtime) return;
   if (event.type === "combat_start") {
-    context.state.profession.hasExplicitCombatStart = true;
-    context.state.profession.combatStartTime = event.at;
+    professionCoreState(context).hasExplicitCombatStart = true;
+    professionCoreState(context).combatStartTime = event.at;
     restartSignetIllusionsPassive(context, event.at);
   }
   let candidate: MesmerExpectedProcCandidate | null = null;
@@ -1195,9 +1203,12 @@ export function projectMesmerEndState({
   const { state, config } = context;
   const endTime = state.time;
   const definition = runtime.resourceDefinition;
+  const publicState = flattenProfessionState(
+    state.profession,
+  ) as unknown as MesmerProfessionState;
   const availableFlips: Record<string, MesmerProjectedFlip> = {};
   for (const [skillId, flip] of Object.entries(
-    state.profession.availableFlips,
+    publicState.availableFlips,
   )) {
     if (flip.expiresAt < endTime - EPSILON) continue;
     const name = context.catalog.skillsById.get(Number(skillId))?.name;
@@ -1219,24 +1230,24 @@ export function projectMesmerEndState({
   return {
     resource:
       definition.singular === "clone"
-        ? state.profession.clones.length
-        : state.profession.numericResource,
+        ? publicState.clones.length
+        : publicState.numericResource,
     resourceDefinition: definition,
     clarityRemaining: Math.max(
       0,
-      Math.round((state.profession.clarityUntil - endTime) * 1000),
+      Math.round((publicState.clarityUntil - endTime) * 1000),
     ),
-    counterspellAvailable: state.profession.counterspellAvailable,
+    counterspellAvailable: publicState.counterspellAvailable,
     availableAmbush:
-      state.profession.ambushSource &&
-      state.profession.ambushUntil > endTime + EPSILON
+      publicState.ambushSource &&
+      publicState.ambushUntil > endTime + EPSILON
         ? {
             name: runtime.ambushAttacks[activeWeapon]?.name || "",
-            source: state.profession.ambushSource,
-            expiresAt: Math.round(state.profession.ambushUntil * 1000),
+            source: publicState.ambushSource,
+            expiresAt: Math.round(publicState.ambushUntil * 1000),
             remaining: Math.max(
               0,
-              Math.round((state.profession.ambushUntil - endTime) * 1000),
+              Math.round((publicState.ambushUntil - endTime) * 1000),
             ),
           }
         : null,
@@ -1244,14 +1255,14 @@ export function projectMesmerEndState({
     autoattackChains: Object.fromEntries(
       context.catalog.autoattackChains.map((chain) => [
         chain[0],
-        state.profession.autoattackChains[chain[0]] || chain[0],
+        publicState.autoattackChains[chain[0]] || chain[0],
       ]),
     ),
-    continuumActive: Boolean(state.profession.continuum),
-    continuumRemaining: state.profession.continuum
+    continuumActive: Boolean(publicState.continuum),
+    continuumRemaining: publicState.continuum
       ? Math.max(
           0,
-          Math.round((state.profession.continuum.expiresAt - endTime) * 1000),
+          Math.round((publicState.continuum.expiresAt - endTime) * 1000),
         )
       : 0,
   };

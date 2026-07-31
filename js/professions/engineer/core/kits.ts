@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   emitEngineerBarSwap,
   emitEngineerState,
@@ -11,7 +12,7 @@ function equipKit(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const kit = skill.kitName || skill.name;
   state.activeKit = kit;
@@ -24,7 +25,7 @@ function stowKit(
   skill: EngineerSkill,
 ): void {
   const at = context.effectiveEnd;
-  context.state.profession.activeKit = "";
+  professionCoreState(context).activeKit = "";
   emitEngineerBarSwap(context, skill, at);
   emitEngineerState(context, at, "stow-kit");
 }

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from "../data/ids.js";
 import { SPECIALIZATIONS } from "../data/guardian-api-metadata.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
@@ -10,6 +11,7 @@ import type {
 } from "../../../platform/engine/types.js";
 import type {
   GuardianCastContext,
+  GuardianCoreState,
   GuardianResolverContext,
   GuardianResolverEvent,
   GuardianSchedulerContext,
@@ -166,9 +168,9 @@ export function updateGuardianTraitCastState(
     skill.categories?.includes("Virtue") &&
     String(skill.slot) === "Profession_1" &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS) &&
-    isInternalCooldownReady(at, context.state.profession.furiousFocusReadyAt)
+    isInternalCooldownReady(at, professionCoreState(context).furiousFocusReadyAt)
   ) {
-    context.state.profession.furiousFocusReadyAt = at + 10;
+    professionCoreState(context).furiousFocusReadyAt = at + 10;
     emitLesserSymbolOfBlades(context, skill, at);
   }
 }
@@ -215,8 +217,8 @@ export function observeGuardianScheduledEvent(
   }
 }
 
-function resolverState(context: GuardianResolverContext): GuardianState {
-  return context.profession;
+function resolverState(context: GuardianResolverContext): GuardianCoreState {
+  return professionCoreState(context);
 }
 
 function resolverEpsilon(context: GuardianResolverContext): number {
