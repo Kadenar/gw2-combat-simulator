@@ -1,18 +1,11 @@
-import type {
-  SchedulerRecord,
-  SkillId,
-} from "../../platform/engine/types.js";
-import type {
-  Gw2ProcStep,
-} from "../../platform/gw2/types.js";
+import type { SchedulerRecord, SkillId } from "../../platform/engine/types.js";
+import type { Gw2ProcStep } from "../../platform/gw2/types.js";
 import {
   NOURISHMENT_ICON,
   RELIC_DATA,
   SIGIL_DATA,
 } from "../../platform/gw2/gear-data.js";
-import type {
-  ProfessionAppState,
-} from "../profession/types.js";
+import type { ProfessionAppState } from "../profession/types.js";
 
 export interface ResultIconRow {
   readonly name: string;
@@ -65,7 +58,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
 
 function resolveRelicIcon(label: unknown): string {
   const value = String(label || "");
-  const sourceName = value.match(/^relic[.:_-](.+)$/i)?.[1]
+  const sourceName = value
+    .match(/^relic[.:_-](.+)$/i)?.[1]
     ?.replace(/[._-]+/g, " ")
     .trim()
     .toLowerCase();
@@ -111,7 +105,7 @@ export function resolveProcIcon(
   const traits = app.attributeData?.activeTraits || [];
   const traitIcon =
     proc.type === "trait_proc"
-      ? traits.find(trait => trait.name === proc.skill)?.icon
+      ? traits.find((trait) => trait.name === proc.skill)?.icon
       : "";
   const relicIcon =
     proc.type === "relic_proc" ? resolveRelicIcon(proc.skill) : "";
@@ -134,9 +128,9 @@ export function resultSkillIcon(
   if (row.icon) return String(row.icon);
   for (const id of [row.skillId, row.sourceId]) {
     if (id == null) continue;
-    const skill = app.skillById?.get(id) || app.skills.find(candidate =>
-      String(candidate.id) === String(id)
-    );
+    const skill =
+      app.skillById?.get(id) ||
+      app.skills.find((candidate) => String(candidate.id) === String(id));
     if (skill?.icon) return String(skill.icon);
   }
   const breakdownName = baseBreakdownName(row.name);
@@ -151,10 +145,10 @@ export function resultSkillIcon(
       RESULT_PROC_NAMES[row.name],
       row.sourceSkill ? RESULT_PROC_NAMES[row.sourceSkill] : "",
       RESULT_PROC_NAMES[breakdownName],
-    ].flatMap(name => name ? [String(name)] : []),
+    ].flatMap((name) => (name ? [String(name)] : [])),
   );
-  const matchingProc = (app.results?.procSteps || []).find(proc =>
-    procNames.has(proc.skill)
+  const matchingProc = (app.results?.procSteps || []).find((proc) =>
+    procNames.has(proc.skill),
   );
   const procIcon = matchingProc && resolveProcIcon(app, matchingProc);
   if (procIcon) return procIcon;
@@ -163,10 +157,11 @@ export function resultSkillIcon(
   if (modifierIcon) return modifierIcon;
 
   const traits = app.attributeData?.activeTraits || [];
-  const trait = traits.find(candidate =>
-    candidate.name === row.name ||
-    candidate.name === breakdownName ||
-    row.name.includes(candidate.name)
+  const trait = traits.find(
+    (candidate) =>
+      candidate.name === row.name ||
+      candidate.name === breakdownName ||
+      row.name.includes(candidate.name),
   );
   if (trait?.icon) return String(trait.icon);
 
@@ -189,10 +184,11 @@ export function resultSkillIcon(
 
   if (row.name.endsWith(" Clone")) {
     const weapon = row.name.slice(0, -" Clone".length);
-    const autoattack = app.skills.find(skill =>
-      skill.type === "Weapon" &&
-      skill.weapon === weapon &&
-      String(skill.slot).endsWith("1")
+    const autoattack = app.skills.find(
+      (skill) =>
+        skill.type === "Weapon" &&
+        skill.weapon === weapon &&
+        String(skill.slot).endsWith("1"),
     );
     if (autoattack?.icon) return autoattack.icon;
   }

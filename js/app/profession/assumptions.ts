@@ -7,46 +7,45 @@ import type {
 /**
  * Standard positioning and health assumptions available to professions.
  */
-export const STANDARD_POSITION_ASSUMPTION_CONTROLS: ReadonlyArray<
-  ProfessionAssumptionControl
-> = Object.freeze([
-  Object.freeze({
-    key: "flanking",
-    label: "Flanking",
-    type: "boolean",
-    defaultValue: false,
-  }),
-  Object.freeze({
-    key: "behind",
-    label: "Behind target",
-    type: "boolean",
-    defaultValue: false,
-  }),
-  Object.freeze({
-    key: "targetDistance",
-    label: "Target distance",
-    type: "number",
-    defaultValue: 130,
-    minimum: 0,
-    maximum: 2000,
-    step: 10,
-  }),
-  Object.freeze({
-    key: "playerHealthPercent",
-    label: "Player health %",
-    type: "number",
-    defaultValue: 100,
-    minimum: 0,
-    maximum: 100,
-    step: 1,
-  }),
-  Object.freeze({
-    key: "targetDefiant",
-    label: "Defiant target",
-    type: "boolean",
-    defaultValue: true,
-  }),
-]);
+export const STANDARD_POSITION_ASSUMPTION_CONTROLS: ReadonlyArray<ProfessionAssumptionControl> =
+  Object.freeze([
+    Object.freeze({
+      key: "flanking",
+      label: "Flanking",
+      type: "boolean",
+      defaultValue: false,
+    }),
+    Object.freeze({
+      key: "behind",
+      label: "Behind target",
+      type: "boolean",
+      defaultValue: false,
+    }),
+    Object.freeze({
+      key: "targetDistance",
+      label: "Target distance",
+      type: "number",
+      defaultValue: 130,
+      minimum: 0,
+      maximum: 2000,
+      step: 10,
+    }),
+    Object.freeze({
+      key: "playerHealthPercent",
+      label: "Player health %",
+      type: "number",
+      defaultValue: 100,
+      minimum: 0,
+      maximum: 100,
+      step: 1,
+    }),
+    Object.freeze({
+      key: "targetDefiant",
+      label: "Defiant target",
+      type: "boolean",
+      defaultValue: true,
+    }),
+  ]);
 
 function normalizedSpecializations(
   value: unknown,
@@ -75,9 +74,7 @@ function normalizedControl(
     ...(control.section ? { section: String(control.section) } : {}),
     ...(normalizedSpecializations(control.specializations)
       ? {
-          specializations: normalizedSpecializations(
-            control.specializations,
-          ),
+          specializations: normalizedSpecializations(control.specializations),
         }
       : {}),
   };
@@ -100,20 +97,22 @@ function normalizedControl(
     const sourceOptions: unknown[] = Array.isArray(control.options)
       ? control.options
       : [];
-    const options: ProfessionAssumptionOption[] = sourceOptions.map(option => {
-      if (!option || typeof option !== "object" || Array.isArray(option)) {
-        return { value: String(option), label: String(option) };
-      }
-      const source = option as Record<string, unknown>;
-      return {
-        value: String(source.value),
-        label: String(source.label || source.value),
-        ...(Number.isFinite(Number(source.skillId))
-          ? { skillId: Number(source.skillId) }
-          : {}),
-        ...(source.icon ? { icon: String(source.icon) } : {}),
-      };
-    });
+    const options: ProfessionAssumptionOption[] = sourceOptions.map(
+      (option) => {
+        if (!option || typeof option !== "object" || Array.isArray(option)) {
+          return { value: String(option), label: String(option) };
+        }
+        const source = option as Record<string, unknown>;
+        return {
+          value: String(source.value),
+          label: String(source.label || source.value),
+          ...(Number.isFinite(Number(source.skillId))
+            ? { skillId: Number(source.skillId) }
+            : {}),
+          ...(source.icon ? { icon: String(source.icon) } : {}),
+        };
+      },
+    );
     if (!options.length) {
       throw new TypeError(`Assumption control ${key} needs select options.`);
     }
@@ -138,7 +137,7 @@ export function createProfessionAssumptionControls(
 ): ReadonlyArray<ProfessionAssumptionControl> {
   const normalized = controls.map(normalizedControl);
   if (
-    new Set(normalized.map(control => control.key)).size !== normalized.length
+    new Set(normalized.map((control) => control.key)).size !== normalized.length
   ) {
     throw new TypeError("Assumption control keys must be unique.");
   }
@@ -149,9 +148,10 @@ export function assumptionControlsForSpecialization(
   controls: ReadonlyArray<ProfessionAssumptionControl> = [],
   specialization = "Core",
 ): ProfessionAssumptionControl[] {
-  return controls.filter(control =>
-    !control.specializations?.length ||
-    control.specializations.includes(String(specialization))
+  return controls.filter(
+    (control) =>
+      !control.specializations?.length ||
+      control.specializations.includes(String(specialization)),
   );
 }
 
@@ -175,9 +175,9 @@ export function normalizeProfessionAssumptions(
       );
     } else {
       const candidate = String(value);
-      result[control.key] = control.options.some(option =>
-          option.value === candidate
-        )
+      result[control.key] = control.options.some(
+        (option) => option.value === candidate,
+      )
         ? candidate
         : String(control.defaultValue ?? control.options[0].value);
     }
@@ -205,7 +205,7 @@ export function validateProfessionAssumptions(
       );
     } else if (
       control.type === "select" &&
-      !control.options.some(option => option.value === String(value))
+      !control.options.some((option) => option.value === String(value))
     ) {
       errors.push(`assumptions.${control.key} must be a legal choice.`);
     }

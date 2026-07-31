@@ -1,3 +1,4 @@
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../../app/simulation/randomness.js";
 import { necromancerCatalog } from "../catalog.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../data/ids.js";
@@ -88,7 +89,9 @@ const HALF_HEALTH_TRAITS = new Set([
 export function necromancerUiState(
   context: NecromancerUiContext = {},
 ): Partial<NecromancerState> {
-  return context.state?.profession || context.professionState || {};
+  return flattenProfessionState(
+    context.state?.profession || context.professionState,
+  );
 }
 
 export function necromancerUiSpecialization(
@@ -318,6 +321,7 @@ export function necromancerEventLogRow(
       "necromancer.painful-bond",
       "necromancer.summon-attack",
       "necromancer.weapon-spell",
+      "necromancer.weapon-spell-ally-trigger",
     ].includes(event?.type)
   ) {
     return null;

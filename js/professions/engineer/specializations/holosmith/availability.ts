@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { hasEngineerTrait } from "../../core/state.js";
 import {
@@ -17,7 +21,7 @@ export function holosmithCastAvailability(
   skill: EngineerSkill,
 ): AvailabilityResult {
   if (context.config.specialization !== "Holosmith") return { ready: true };
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Holosmith");
   if (skill.forgeSkill && skill.slot === "Weapon_1") {
     const stormSelected = hasEngineerTrait(
       context.config,
@@ -41,7 +45,11 @@ export function holosmithCastAvailability(
       && Math.abs(
         context.start - Number(state.forgeExitedAt || 0),
       ) <= Number(context.epsilon || 0.0001)
-      && expectedEngineerChainSkill(context, skill, state);
+      && expectedEngineerChainSkill(
+        context,
+        skill,
+        professionCoreState(context),
+      );
     if (!state.photonForgeActive && !queuedChainAfterOverheat) {
       return denyEngineerCast(
         skill,

@@ -1,9 +1,5 @@
 import { escapeHtml as esc } from "../../platform/ui/html.js";
-import {
-  fetchJsonAsset,
-  getRotationItems,
-  loadPresetBundle,
-} from "./files.js";
+import { fetchJsonAsset, getRotationItems, loadPresetBundle } from "./files.js";
 import { replaceBuildConfiguration } from "./persistence.js";
 
 import type { LegacyRotationItem } from "../../platform/engine/types.js";
@@ -16,17 +12,17 @@ import type {
 
 type TemplateLoadAction = "build" | "rotation" | "template";
 
-function normalizeTemplateSections(
-  manifest: unknown,
-): BuildTemplateSection[] {
+function normalizeTemplateSections(manifest: unknown): BuildTemplateSection[] {
   if (!Array.isArray(manifest) || manifest.length === 0) return [];
   const sections = manifest as BuildTemplateSection[];
   return sections[0]?.presets !== undefined
     ? sections
-    : [{
-        section: null,
-        presets: manifest as BuildTemplatePreset[],
-      }];
+    : [
+        {
+          section: null,
+          presets: manifest as BuildTemplatePreset[],
+        },
+      ];
 }
 
 function templateSummary(preset: BuildTemplatePreset): string {
@@ -170,9 +166,7 @@ function showTemplateUndo(
  * @param {ParentNode | null | undefined} container
  * @returns {void}
  */
-function closeTemplateMenus(
-  container: ParentNode | null | undefined,
-): void {
+function closeTemplateMenus(container: ParentNode | null | undefined): void {
   container
     ?.querySelectorAll(".template-actions[open]")
     .forEach((details) => details.removeAttribute("open"));
@@ -238,10 +232,7 @@ export async function initBuildTemplates(
     });
     document.addEventListener("click", (event) => {
       const target = event.target;
-      if (
-        target instanceof Element &&
-        !target.closest(".template-actions")
-      ) {
+      if (target instanceof Element && !target.closest(".template-actions")) {
         closeTemplateMenus(container);
       }
     });
@@ -284,11 +275,7 @@ export async function loadTemplateAction(
     } else if (action === "build") {
       const buildData = await fetchJsonAsset(preset.build);
       validateBuildProfession(app, buildData);
-      app.build = replaceBuildConfiguration(
-        buildData,
-        app.build,
-        app.adapter,
-      );
+      app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
       app.currentTemplate = null;
       app.changed();
     } else {
@@ -297,14 +284,8 @@ export async function loadTemplateAction(
       if (preset.rotation && !Array.isArray(rotationItems)) {
         throw new Error("Rotation array missing.");
       }
-      app.build = replaceBuildConfiguration(
-        buildData,
-        app.build,
-        app.adapter,
-      );
-      app.build.rotation = Array.isArray(rotationItems)
-        ? rotationItems
-        : [];
+      app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
+      app.build.rotation = Array.isArray(rotationItems) ? rotationItems : [];
       app.changed();
       app.currentTemplate = {
         build: preset.build,
@@ -314,8 +295,7 @@ export async function loadTemplateAction(
     }
     showTemplateUndo(app, loadedMessage(preset, action), previousBuild);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : String(error);
+    const message = error instanceof Error ? error.message : String(error);
     alert(`Failed to load ${actionLabel(action)}: ${message}`);
   } finally {
     button.disabled = false;
@@ -334,20 +314,17 @@ export function updateTemplateSelection(app: ProfessionAppState): void {
   const modified = Boolean(
     current && current.signature !== buildSignature(app.build),
   );
-  container
-    .querySelectorAll(".template-load-btn")
-    .forEach((button) => {
-      if (!(button instanceof HTMLElement)) return;
-      const preset =
-        app.templatePresets[Number(button.dataset.templateIndex)];
-      const selected = Boolean(current && preset?.build === current.build);
-      button.classList.toggle("template-load-btn--current", selected);
-      button.classList.toggle(
-        "template-load-btn--modified",
-        selected && modified,
-      );
-      button.setAttribute("aria-pressed", String(selected));
-    });
+  container.querySelectorAll(".template-load-btn").forEach((button) => {
+    if (!(button instanceof HTMLElement)) return;
+    const preset = app.templatePresets[Number(button.dataset.templateIndex)];
+    const selected = Boolean(current && preset?.build === current.build);
+    button.classList.toggle("template-load-btn--current", selected);
+    button.classList.toggle(
+      "template-load-btn--modified",
+      selected && modified,
+    );
+    button.setAttribute("aria-pressed", String(selected));
+  });
 }
 
 /**

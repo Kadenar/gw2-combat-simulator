@@ -4,38 +4,19 @@ import {
   migrateNecromancerBuild,
   validateNecromancerBuild,
 } from "./build.js";
-import {
-  necromancerAttributeRules,
-  necromancerCastModifiers,
-} from "./attribute-rules.js";
 import { necromancerCatalog } from "./catalog.js";
 import { necromancerCoreModule } from "./core/module.js";
 import "./data/trait-coverage.js";
-import {
-  necromancerCastRules,
-  necromancerSchedulerHooks,
-} from "./mechanics/contract.js";
-import {
-  necromancerResolverEventHandlers,
-  necromancerResolverEventReactions,
-} from "./resolver.js";
 import { harbingerModule } from "./specializations/harbinger/module.js";
 import { reaperModule } from "./specializations/reaper/module.js";
 import { ritualistModule } from "./specializations/ritualist/module.js";
 import { scourgeModule } from "./specializations/scourge/module.js";
-import {
-  createNecromancerResolverState,
-  createNecromancerState,
-  projectNecromancerEndState,
-  snapshotNecromancerState,
-} from "./state.js";
-import { createNecromancerFamilyUi } from "./ui.js";
 import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
 import type { SchedulerRecord } from "../../platform/engine/types.js";
 import type {
   NecromancerConfig,
   NecromancerResolverEvent,
-  NecromancerSchedulerContext,
+  NecromancerRuntimeState,
 } from "./types.js";
 
 function targetBelowHalfAt(
@@ -92,18 +73,8 @@ function refineNecromancerSchedulerConfig(
   };
 }
 
-const necromancerUi = createNecromancerFamilyUi(
-  necromancerCoreModule.ui || {},
-  {
-    Reaper: reaperModule.ui || {},
-    Scourge: scourgeModule.ui || {},
-    Harbinger: harbingerModule.ui || {},
-    Ritualist: ritualistModule.ui || {},
-  },
-);
-
 export const necromancerProfession =
-  defineProfessionFamily<SchedulerRecord>({
+  defineProfessionFamily<NecromancerRuntimeState>({
     id: "necromancer",
     name: "Necromancer",
     catalog: necromancerCatalog,
@@ -111,27 +82,6 @@ export const necromancerProfession =
       createBuildDefaults: createNecromancerBuildDefaults,
       migrateBuild: migrateNecromancerBuild,
       validateBuild: validateNecromancerBuild,
-    },
-    // Family/application compatibility only. Simulation always uses the
-    // module-composed state factory returned by resolveRuntime().
-    resources: {
-      createProfessionState: createNecromancerState,
-      createResolverState: createNecromancerResolverState,
-      projectEndState: projectNecromancerEndState,
-    },
-    attributeRules: necromancerAttributeRules,
-    castRules: {
-      ...necromancerCastRules,
-      ...necromancerCastModifiers,
-    },
-    schedulerHooks: {
-      ...necromancerSchedulerHooks,
-      snapshot: (context: NecromancerSchedulerContext) =>
-        snapshotNecromancerState(context.state.profession),
-    },
-    resolverHooks: {
-      eventHandlers: necromancerResolverEventHandlers,
-      eventReactions: necromancerResolverEventReactions,
     },
     core: necromancerCoreModule,
     specializations: {
@@ -143,7 +93,6 @@ export const necromancerProfession =
     simulation: Object.freeze({
       refineSchedulerConfig: refineNecromancerSchedulerConfig,
     }),
-    ui: necromancerUi,
   });
 
 export default necromancerProfession;

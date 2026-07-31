@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
@@ -11,7 +15,8 @@ import { REVENANT_RELEASE_POTENTIAL_BY_LEGEND } from "../../legend-rules.js";
 import { bolsteredBondsBonuses } from "../../bolstered-bonds.js";
 import {
   revenantPlayer,
-  revenantProfessionState,
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState,
   revenantTargetVulnerability,
 } from "../../core/attribute-rules.js";
 import { denyRevenantSkill } from "../../core/availability.js";
@@ -50,13 +55,13 @@ function affinity(context: Gw2ModifierContext): number {
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
   return Math.min(
     5,
-    Number(revenantProfessionState(context).affinity || 0) + bonus,
+    Number(revenantRuntimeSpecializationState(context).affinity || 0) + bonus,
   );
 }
 
 function equippedLegend(context: Gw2ModifierContext, legendId: string): boolean {
   return (
-    revenantProfessionState(context).selectedLegendIds || []
+    revenantRuntimeCoreState(context).selectedLegendIds || []
   ).includes(legendId);
 }
 
@@ -137,12 +142,13 @@ function modifyConduitAttributes(
 ): Gw2Stats {
   const modified = { ...attributes } as Record<string, number>;
   if (context.config?.specialization !== "Conduit") return modified;
-  const state = revenantProfessionState(context);
+  const state = revenantRuntimeSpecializationState(context);
+  const coreState = revenantRuntimeCoreState(context);
   const cosmicMultiplier =
     Number(state.cosmicWisdomUntil || 0) > context.time ? 2 : 1;
   const buildMultiplier = professionStaticRulesApplied(context.config) ? 1 : 0;
   const bonuses = bolsteredBondsBonuses(
-    state.selectedLegendIds,
+    coreState.selectedLegendIds,
     cosmicMultiplier - buildMultiplier,
   );
   for (const [attribute, bonus] of Object.entries(bonuses)) {
@@ -177,7 +183,7 @@ function conduitCastAvailability(
   context: RevenantPrecastContext,
   skill: RevenantSkill,
 ) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Conduit");
   if (
     skill.handlerId === "revenant.beguiling-haze" &&
     Number(state.beguilingHazeCharges || 0) <= 0 &&
@@ -192,7 +198,9 @@ function conduitCastAvailability(
   }
   if (
     RELEASE_POTENTIAL_IDS.has(skill.id) &&
-    REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[state.activeLegendId] !==
+    REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[
+      professionCoreState(context).activeLegendId
+    ] !==
       skill.id
   ) {
     return denyRevenantSkill(
@@ -220,7 +228,7 @@ function afterConduitCast(
 ): void {
   afterConduitTraitCast(context, skill);
   if (skill.handlerId !== "revenant.upkeep") return;
-  const active = context.state.profession.activeUpkeeps.find(
+  const active = professionCoreState(context).activeUpkeeps.find(
     (upkeep) => upkeep.skillId === skill.id,
   );
   if (active && active.nextAffinityAt == null) {
@@ -247,13 +255,13 @@ function advanceConduitUpkeep(
   context: RevenantSchedulerContext,
   target: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Conduit");
   if (state.cosmicWisdomUntil > 0 && target >= state.cosmicWisdomUntil) {
     state.cosmicWisdomUntil = 0;
     state.conduitForm = "";
     syncConduitEnergyCostOverrides(state);
   }
-  for (const active of state.activeUpkeeps) {
+  for (const active of professionCoreState(context).activeUpkeeps) {
     if (
       active.nextAffinityAt != null &&
       target + context.epsilon >= active.nextAffinityAt
@@ -309,7 +317,7 @@ function observeConduitEvent(
   event: RevenantSimulationEvent,
 ): void {
   if (event.type !== "sigil_swap") return;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Conduit");
   const cosmicWisdomActive = state.cosmicWisdomUntil > event.at;
   state.affinity = 0;
   if (
@@ -331,7 +339,9 @@ function observeConduitEvent(
   }
   if (cosmicWisdomActive) {
     state.conduitForm =
-      REVENANT_RELEASE_POTENTIAL_BY_LEGEND[state.activeLegendId]?.replace(
+      REVENANT_RELEASE_POTENTIAL_BY_LEGEND[
+        professionCoreState(context).activeLegendId
+      ]?.replace(
         "Release Potential: ",
         "",
       ) || "";
@@ -384,7 +394,7 @@ export const conduitSchedulerHooks = Object.freeze({
     id: "revenant.conduit-cooldown-reset",
     order: 20,
     handler: (context: RevenantSchedulerContext): void => {
-      context.state.profession.beguilingHazeReadyAt = context.state.time;
+      professionSpecializationState(context, "Conduit").beguilingHazeReadyAt = context.state.time;
     },
   },
   taskHandlers: Object.freeze({

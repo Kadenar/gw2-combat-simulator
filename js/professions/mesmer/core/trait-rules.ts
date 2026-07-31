@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Resolver-only Mesmer trait mechanics whose trigger does not affect later
  * scheduler-owned state.

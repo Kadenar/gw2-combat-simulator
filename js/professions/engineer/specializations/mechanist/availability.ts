@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import {
   denyEngineerCast,
 } from "../../core/availability.js";
@@ -14,7 +15,7 @@ export function mechanistCastAvailability(
   skill: EngineerSkill,
 ): AvailabilityResult {
   if (context.config.specialization !== "Mechanist") return { ready: true };
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Mechanist");
   if (skill.toolbeltParentName) {
     return denyEngineerCast(
       skill,

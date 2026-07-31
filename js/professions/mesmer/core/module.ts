@@ -18,11 +18,11 @@ import {
 } from "./state.js";
 import { mesmerCoreUi } from "./ui.js";
 import type {
-  SchedulerRecord,
-} from "../../../platform/engine/types.js";
-import type { MesmerSchedulerContext } from "../types.js";
+  MesmerCoreState,
+  MesmerSchedulerContext,
+} from "../types.js";
 
-export const mesmerCoreModule = defineProfessionModule<SchedulerRecord>({
+export const mesmerCoreModule = defineProfessionModule<MesmerCoreState>({
   id: "Core",
   catalog: {
     ...mesmerModuleCatalog("Core"),

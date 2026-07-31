@@ -1,6 +1,4 @@
-import type {
-  SchedulerRecord,
-} from "../../platform/engine/types.js";
+import type { SchedulerRecord } from "../../platform/engine/types.js";
 import type {
   ProfessionAppResult,
   ProfessionAppState,
@@ -12,11 +10,9 @@ export const seconds = (ms: number): string =>
 export const professionEndState = (
   result: ProfessionAppResult | null | undefined,
 ): SchedulerRecord =>
-  result?.endState?.profession &&
-  typeof result.endState.profession === "object"
-    ? result.endState.profession as SchedulerRecord
+  result?.endState?.profession && typeof result.endState.profession === "object"
+    ? (result.endState.profession as SchedulerRecord)
     : {};
 
-export const activeSpecialization = (
-  app: ProfessionAppState,
-): string => app.adapter.eliteSpecialization(app.build);
+export const activeSpecialization = (app: ProfessionAppState): string =>
+  app.adapter.eliteSpecialization(app.build);

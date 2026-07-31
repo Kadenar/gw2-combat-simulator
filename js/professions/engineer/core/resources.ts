@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasEngineerTrait } from "./state.js";
 import { emitEngineerState } from "./events.js";
@@ -33,7 +34,7 @@ export function engineerEnduranceReadyAt(
   context: EngineerResourceContext & { readonly start: number },
   cost: number,
 ): number | null {
-  const current = Number(context.state.profession.endurance || 0);
+  const current = Number(professionCoreState(context).endurance || 0);
   const missing = Math.max(0, Number(cost || 0) - current);
   if (missing <= Number(context.epsilon || 0.0001)) return context.start;
   const rate = engineerEnduranceRegenerationRate(context, context.start);
@@ -44,7 +45,7 @@ export function advanceEngineerResources(
   context: EngineerSchedulerContext,
   target: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const from = Number(state.enduranceUpdatedAt || 0);
   if (target <= from) return;
   state.endurance = Math.min(

@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 /**
  * Revenant dodge execution.
  *
@@ -23,23 +27,24 @@ export function performEnergyMeld(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Vindicator");
+  const coreState = professionCoreState(context);
   const profile = MECHANICS.endurance.energyMeld;
   const at = context.effectiveEnd;
   const songOfArboreum = hasRevenantTrait(
     context.config,
     TRAIT.SONG_OF_ARBOREUM,
   );
-  state.endurance = Math.min(
-    state.maximumEndurance,
-    Number(state.endurance || 0) +
+  coreState.endurance = Math.min(
+    coreState.maximumEndurance,
+    coreState.endurance +
       (
         songOfArboreum
           ? profile.songOfArboreumEndurance
           : profile.endurance
       ),
   );
-  state.enduranceUpdatedAt = at;
+  coreState.enduranceUpdatedAt = at;
   if (hasRevenantTrait(context.config, TRAIT.REAVERS_CURSE)) {
     state.reaversCurseUntil = at + profile.reaversCurseDuration;
   }
@@ -47,9 +52,9 @@ export function performEnergyMeld(
     hasRevenantTrait(context.config, TRAIT.ANGSIYANS_TRUST) &&
     revenantCombatActive(context, at)
   ) {
-    state.energy = Math.min(
-      state.maximumEnergy,
-      Number(state.energy || 0) + profile.angsiyansTrustEnergy,
+    coreState.energy = Math.min(
+      coreState.maximumEnergy,
+      coreState.energy + profile.angsiyansTrustEnergy,
     );
   }
   if (songOfArboreum) {
@@ -69,7 +74,7 @@ export function performEnergyMeld(
 export function switchAllianceTactics(
   context: RevenantCastContext,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Vindicator");
   const at = context.effectiveEnd;
   state.allianceSide = state.allianceSide === "luxon" ? "kurzick" : "luxon";
   emitRevenantState(context, at, "alliance-tactics");
@@ -81,7 +86,7 @@ export function completeVindicatorDodge(
   skill: RevenantSkill,
   start: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Vindicator");
   const dodge = state.selectedDodge;
   const dodgeByName = MECHANICS.endurance.dodgeByName as Partial<
     Record<RevenantDodge, { readonly coefficient: number; readonly hits: number }>

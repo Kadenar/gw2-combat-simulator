@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * @fileoverview Tracks Guardian weapon autoattack chains, temporary flip
  * availability, normal weapon-bar gating, and weapon-set swaps.
@@ -15,7 +16,7 @@ import type {
  * Guardian weapon-slot bookkeeping: autoattack-chain progression, weapon swap,
  * and flip-skill (over/under) availability windows.
  *
- * The three pieces of per-weapon state all live on `context.state.profession`:
+ * The three pieces of per-weapon state all live on `professionCoreState(context)`:
  * - `autoattackChains` — map of chain-root skill id → the id of the next step
  *   the slot-1 autoattack should fire. Absent means "start from the root".
  * - `availableFlips` — map of flip-skill id → the sim time the flip stays
@@ -46,7 +47,7 @@ export function validateWeaponState(
 ): boolean | undefined {
   if (skill.flipParentId != null) {
     return (
-      Number(context.state.profession.availableFlips[skill.id] || 0) >
+      Number(professionCoreState(context).availableFlips[skill.id] || 0) >
       context.start + context.epsilon
     );
   }
@@ -56,7 +57,7 @@ export function validateWeaponState(
       : undefined;
   if (!chain) return;
   const expected =
-    context.state.profession.autoattackChains[chain.root] || chain.root;
+    professionCoreState(context).autoattackChains[chain.root] || chain.root;
   return expected === skill.id;
 }
 
@@ -89,12 +90,12 @@ export function updateWeaponCastState(
       : undefined;
   if (chain) {
     if (chain.next == null) {
-      delete context.state.profession.autoattackChains[chain.root];
+      delete professionCoreState(context).autoattackChains[chain.root];
     } else {
-      context.state.profession.autoattackChains[chain.root] = chain.next;
+      professionCoreState(context).autoattackChains[chain.root] = chain.next;
     }
   } else if (skill.type === "Weapon") {
-    context.state.profession.autoattackChains = {};
+    professionCoreState(context).autoattackChains = {};
   }
 
   if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
@@ -104,12 +105,12 @@ export function updateWeaponCastState(
         skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME
           ? 3
           : Math.max(1, Number(skill.cooldown || skill.recharge || 5));
-      context.state.profession.availableFlips[flip.id] =
+      professionCoreState(context).availableFlips[flip.id] =
         context.effectiveEnd + duration;
     }
   }
   if (skill.flipParentId != null) {
-    delete context.state.profession.availableFlips[skill.id];
+    delete professionCoreState(context).availableFlips[skill.id];
   }
 }
 
@@ -127,7 +128,7 @@ function swapWeapons(
 ): boolean {
   const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
   context.state.activeWeaponSet = weaponSet;
-  context.state.profession.autoattackChains = {};
+  professionCoreState(context).autoattackChains = {};
   emitGuardianEvent(context, skill, "weapon_set", { weaponSet });
   return true;
 }

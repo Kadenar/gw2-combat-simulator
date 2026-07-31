@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * @fileoverview Composes Revenant Energy, weapon, trait, and upkeep
  * callbacks into the cast and scheduler contracts used by the shared engine.
@@ -129,7 +130,7 @@ export const revenantSchedulerHooks = Object.freeze({
    * @returns {void}
    */
   onCooldownReset: (context: RevenantSchedulerContext): void => {
-    context.state.profession.legendSwapReadyAt = context.state.time;
+    professionCoreState(context).legendSwapReadyAt = context.state.time;
   },
   onEventScheduled,
   taskHandlers: Object.freeze({

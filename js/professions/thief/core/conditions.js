@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { THIEF_SKILL_IDS as ID } from "../data/ids.js";
 import {
   gw2AlliedPlayerAssumptions,
@@ -72,7 +73,7 @@ export function spearChainStageForSkill(skillId) {
 }
 
 export function prepareSpearChainSkill(context, skill) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   return {
     fallingSpiderEmpowered:
       skill.id === ID.FALLING_SPIDER
@@ -131,7 +132,7 @@ export function completeSpearStealthAttack(
 }
 
 export function updateSpearChainState(context, skill, at) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const requiredStage = spearChainStageForSkill(skill.id);
   if (requiredStage != null) {
     state.spearChainStage = (requiredStage + 1) % 3;
@@ -175,7 +176,7 @@ export function updateSpearChainState(context, skill, at) {
 }
 
 export function activateSpiderVenom(context) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const party = gw2AlliedPlayerAssumptions(context.config);
   state.spiderVenomCharges = 6;
@@ -221,7 +222,7 @@ export function activateSpiderVenom(context) {
 }
 
 export function prepareThousandNeedles(context) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.thousandNeedlesPrepared = true;
   state.thousandNeedlesArmedAt = at + 3;
@@ -229,7 +230,7 @@ export function prepareThousandNeedles(context) {
 }
 
 export function activateThousandNeedles(context, skill) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   state.thousandNeedlesPrepared = false;
   state.thousandNeedlesArmedAt = 0;
   state.thousandNeedlesGeneration += 1;

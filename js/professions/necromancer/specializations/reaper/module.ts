@@ -1,5 +1,4 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import {
   reaperEventReactions,
   reaperSchedulerHooks,
@@ -12,8 +11,9 @@ import {
 import { necromancerModuleCatalog } from "../../catalog.js";
 import { createReaperState } from "./state.js";
 import { reaperUi } from "./ui.js";
+import type { ReaperState } from "../../types.js";
 
-export const reaperModule = defineProfessionModule<SchedulerRecord>({
+export const reaperModule = defineProfessionModule<ReaperState>({
   id: "Reaper",
   catalog: {
     ...necromancerModuleCatalog("Reaper"),

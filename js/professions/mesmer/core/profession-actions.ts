@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Handles shared profession actions decorated by active modules.
  * Manages resource consumption, trait procs (Maim/Phantom Pain/Illusionary Membrane/etc.).
@@ -19,7 +20,7 @@ import type {
   MesmerDestroyClone,
   MesmerInstrument,
   MesmerProfessionActionController,
-  MesmerProfessionState,
+  MesmerRuntimeState,
   MesmerQueueResources,
   MesmerResourceDefinition,
   MesmerResourceSpendDetails,
@@ -30,7 +31,7 @@ import type {
 } from "../types.js";
 
 interface ProfessionActionControllerOptions {
-  readonly state: SchedulerState<MesmerProfessionState>;
+  readonly state: SchedulerState<MesmerRuntimeState>;
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly destroyClone: MesmerDestroyClone;
@@ -66,10 +67,33 @@ export function createProfessionActionController({
   byId,
   traitDamage,
 }: ProfessionActionControllerOptions): MesmerProfessionActionController {
+  const numericResourceState = () => {
+    const active = state.profession.specialization;
+    if (active.kind !== "Virtuoso" && active.kind !== "Troubadour") {
+      throw new TypeError(
+        `${active.kind} does not own a numeric Mesmer resource.`,
+      );
+    }
+    return active.state;
+  };
+  const chronomancerState = () => {
+    const active = state.profession.specialization;
+    if (active.kind !== "Chronomancer") {
+      throw new TypeError(`Expected Chronomancer, received ${active.kind}.`);
+    }
+    return active.state;
+  };
+  const troubadourState = () => {
+    const active = state.profession.specialization;
+    if (active.kind !== "Troubadour") {
+      throw new TypeError(`Expected Troubadour, received ${active.kind}.`);
+    }
+    return active.state;
+  };
   const currentResource = () =>
     resourceDefinition.singular === "clone"
-      ? state.profession.clones.length
-      : state.profession.numericResource;
+      ? professionCoreState(state).clones.length
+      : numericResourceState().numericResource;
 
   const addResourceSpendEvent = (
     at: number,
@@ -95,12 +119,12 @@ export function createProfessionActionController({
   ): number => {
     const spent = currentResource();
     if (resourceDefinition.singular === "clone") {
-      for (const clone of state.profession.clones) {
+      for (const clone of professionCoreState(state).clones) {
         destroyClone(clone, at);
       }
-      state.profession.clones = [];
+      professionCoreState(state).clones = [];
     } else {
-      state.profession.numericResource = 0;
+      numericResourceState().numericResource = 0;
     }
     return addResourceSpendEvent(at, spent, { sourceSkill, rotationIndex });
   };
@@ -110,7 +134,7 @@ export function createProfessionActionController({
     if (resourceDefinition.singular === "clone") {
       throw new Error("Clone resources cannot be reserved.");
     }
-    state.profession.numericResource = 0;
+    numericResourceState().numericResource = 0;
     return spent;
   };
 
@@ -124,10 +148,10 @@ export function createProfessionActionController({
       Math.max(0, Number(reserved || 0)),
     );
     const additionalSpent = Math.min(
-      state.profession.numericResource,
+      numericResourceState().numericResource,
       resourceDefinition.maximum - reservedCount,
     );
-    state.profession.numericResource -= additionalSpent;
+    numericResourceState().numericResource -= additionalSpent;
     return addResourceSpendEvent(at, reservedCount + additionalSpent, {
       sourceSkill,
       rotationIndex,
@@ -136,9 +160,12 @@ export function createProfessionActionController({
 
   const restoreReservedResources = (spent: number): void => {
     if (resourceDefinition.singular === "clone") return;
-    state.profession.numericResource = Math.min(
+    numericResourceState().numericResource = Math.min(
       resourceDefinition.maximum,
-      state.profession.numericResource + Math.max(0, Number(spent || 0)),
+      numericResourceState().numericResource + Math.max(
+        0,
+        Number(spent || 0),
+      ),
     );
   };
 
@@ -388,11 +415,11 @@ export function createProfessionActionController({
     if (
       skill.id === ID.TIME_SINK &&
       traits.has(TRAIT.TIME_BOMB) &&
-      at >= state.profession.timeBombUntil - epsilon
+      at >= chronomancerState().timeBombUntil - epsilon
     ) {
       const timeBomb = traitDamage["Time Bomb"];
       const duration = Number(timeBomb.duration || 0);
-      state.profession.timeBombUntil = at + duration;
+      chronomancerState().timeBombUntil = at + duration;
       addEvent({
         type: "buff",
         at,
@@ -408,7 +435,7 @@ export function createProfessionActionController({
           weapon: "Utility",
           blade: false,
         },
-        state.profession.timeBombUntil,
+        chronomancerState().timeBombUntil,
         {
           coefficient: timeBomb.coefficient,
           hits: timeBomb.hits,
@@ -459,8 +486,8 @@ export function createProfessionActionController({
       addCondition(skill.name, at, condition);
     }
     const expiresAt = at + 5 + spent * 5;
-    state.profession.instruments[data.instrument] = expiresAt;
-    state.profession.lastInstrument = data.instrument;
+    troubadourState().instruments[data.instrument] = expiresAt;
+    troubadourState().lastInstrument = data.instrument;
     addEvent({
       type: "mesmer.instrument",
       at: at + epsilon,
@@ -485,7 +512,7 @@ export function createProfessionActionController({
 
   const handleCrescendo = (skill: MesmerSkill, at: number): void => {
     const activeInstruments = Object.entries(
-      state.profession.instruments,
+      troubadourState().instruments,
     ).filter(([, expiresAt]) => expiresAt > at);
     addDamage(skill, at, {
       coefficient:
@@ -498,7 +525,7 @@ export function createProfessionActionController({
     });
 
     if (traits.has(TRAIT.ALTERED_CHORD)) {
-      if (state.profession.lastInstrument === "Lute") {
+      if (troubadourState().lastInstrument === "Lute") {
         addEvent({
           type: "buff",
           at: at + epsilon,
@@ -507,7 +534,7 @@ export function createProfessionActionController({
           duration: 10,
         });
         addTraitProc("Altered Chord", at + epsilon, skill.name, "Lute");
-      } else if (state.profession.lastInstrument === "Flute") {
+      } else if (troubadourState().lastInstrument === "Flute") {
         addCondition(
           skill.name,
           at,

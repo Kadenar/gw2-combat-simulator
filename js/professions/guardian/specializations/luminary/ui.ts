@@ -1,13 +1,43 @@
+import { flattenProfessionState } from "../../../../platform/engine/profession.js";
 import {
   guardianUiSkillIdsByName,
   guardianUiSkillsByMode,
 } from "../../core/ui.js";
-import type { PaletteSkillAvailability } from "../../../../platform/engine/types.js";
 import type {
+  PaletteSkillAvailability,
+  ProfessionEventLogDescriptor,
+  SchedulerRecord,
+} from "../../../../platform/engine/types.js";
+import type {
+  GuardianResolverEvent,
   GuardianSkill,
   GuardianState,
   GuardianUiContext,
 } from "../../types.js";
+
+function luminaryEventLogRow(
+  _context: SchedulerRecord,
+  event: GuardianResolverEvent,
+): ProfessionEventLogDescriptor | null | undefined {
+  if ([
+    "guardian.effulgent-activated",
+    "guardian.effulgent-detonate",
+  ].includes(event.type)) return null;
+  if (
+    event.type !== "guardian.radiant-forge-entered"
+    && event.type !== "guardian.radiant-forge-exited"
+  ) return undefined;
+  const entered = event.type.endsWith("-entered");
+  return {
+    type: event.type,
+    description:
+      `RADIANT FORGE ${entered ? "ENTERED" : "EXITED"}` +
+      `${event.automatic ? " [automatic]" : ""}`,
+    className: "resource",
+    order: 30,
+    flags: [],
+  };
+}
 
 const VIRTUE_NAMES = Object.freeze([
   "Radiant Justice",
@@ -19,10 +49,13 @@ const VIRTUE_NAMES = Object.freeze([
 function professionState(
   context: GuardianUiContext,
 ): Partial<GuardianState> {
-  return context.state?.profession || context.professionState || {};
+  return flattenProfessionState(
+    context.state?.profession || context.professionState,
+  );
 }
 
 export const luminaryUi = Object.freeze({
+  eventLogRow: luminaryEventLogRow,
   skillBarGroups: (context: GuardianUiContext) => [
     {
       id: "guardian-f-keys",

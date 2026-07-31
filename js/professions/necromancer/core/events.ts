@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Handlers for necromancer events pulled off the scheduler/resolver queue.
  *
@@ -42,45 +43,49 @@ export function handleNecromancerStateEvent(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
 ): void {
-  const resolverCarapace = context.profession.carapaceExpiries || [];
+  const core = professionCoreState(context);
+  const mutableCore = core as unknown as Record<string, unknown>;
+  const active = context.profession.specialization;
+  const specializationState = active.state as Record<string, unknown>;
+  const coreKeys = new Set(Object.keys(core));
+  const specializationKeys = new Set(Object.keys(specializationState));
+  const resolverCarapace = core.carapaceExpiries || [];
   const resolverOnly = {
-    targetChilledUntil: context.profession.targetChilledUntil,
-    targetControlledUntil: context.profession.targetControlledUntil,
-    painfulBondUntil: context.profession.painfulBondUntil,
-    painfulBondPulseAnchorAt: context.profession.painfulBondPulseAnchorAt,
-    weaponSpells: context.profession.weaponSpells,
-    dreadUntil: context.profession.dreadUntil,
-    fearOfDeathReadyAt: context.profession.fearOfDeathReadyAt,
-    vampiricPresenceReadyAt: context.profession.vampiricPresenceReadyAt,
-    barbedPrecisionProgress: context.profession.barbedPrecisionProgress,
-    chillingNovaProgress: context.profession.chillingNovaProgress,
-    demonicLoreReadyAt: context.profession.demonicLoreReadyAt,
-    spitefulFortitudeLifeForce: context.profession.spitefulFortitudeLifeForce,
-    traitProcReadyAt: context.profession.traitProcReadyAt,
+    targetChilledUntil: core.targetChilledUntil,
+    targetControlledUntil: core.targetControlledUntil,
+    dreadUntil: core.dreadUntil,
+    fearOfDeathReadyAt: core.fearOfDeathReadyAt,
+    vampiricPresenceReadyAt: core.vampiricPresenceReadyAt,
+    barbedPrecisionProgress: core.barbedPrecisionProgress,
+    chillingNovaProgress: core.chillingNovaProgress,
+    demonicLoreReadyAt: core.demonicLoreReadyAt,
+    spitefulFortitudeLifeForce: core.spitefulFortitudeLifeForce,
+    traitProcReadyAt: core.traitProcReadyAt,
   };
-  const runtime = context.profession as unknown as {
-    readonly core?: Record<string, unknown>;
-    readonly specialization?: {
-      readonly state?: Record<string, unknown>;
-    };
-  };
-  if (runtime.core && runtime.specialization?.state) {
-    for (const key of Object.keys(runtime.core)) delete runtime.core[key];
-    for (const key of Object.keys(runtime.specialization.state)) {
-      delete runtime.specialization.state[key];
+  const ritualistOnly = active.kind === "Ritualist"
+    ? {
+      painfulBondUntil: active.state.painfulBondUntil,
+      painfulBondPulseAnchorAt: active.state.painfulBondPulseAnchorAt,
+      weaponSpells: active.state.weaponSpells,
     }
-  } else {
-    for (const key of Object.keys(context.profession)) {
-      delete context.profession[key];
+    : null;
+  for (const key of coreKeys) delete mutableCore[key];
+  for (const key of specializationKeys) delete specializationState[key];
+  for (const [key, value] of Object.entries(event.state || {})) {
+    if (coreKeys.has(key)) mutableCore[key] = structuredClone(value);
+    if (specializationKeys.has(key)) {
+      specializationState[key] = structuredClone(value);
     }
   }
-  Object.assign(context.profession, structuredClone(event.state || {}));
-  context.profession.carapaceExpiries = mergeExpiryStacks(
-    context.profession.carapaceExpiries,
+  core.carapaceExpiries = mergeExpiryStacks(
+    core.carapaceExpiries,
     resolverCarapace,
   );
   for (const [key, value] of Object.entries(resolverOnly)) {
-    if (value !== undefined) context.profession[key] = value;
+    if (value !== undefined) mutableCore[key] = value;
+  }
+  if (ritualistOnly) {
+    Object.assign(active.state, ritualistOnly);
   }
 }
 
@@ -88,8 +93,8 @@ export function handleNecromancerChillEvent(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
 ): void {
-  context.profession.targetChilledUntil = Math.max(
-    Number(context.profession.targetChilledUntil || 0),
+  professionCoreState(context).targetChilledUntil = Math.max(
+    Number(professionCoreState(context).targetChilledUntil || 0),
     event.at + Number(event.duration || 0),
   );
   if (hasTrait(context, TRAIT.BITTER_CHILL)) {
@@ -133,15 +138,15 @@ export function handleNecromancerSummonAttack(
   if (
     event.requiresMinion &&
     !(
-      Number(context.profession.activeMinions?.[event.requiresMinion]) >
+      Number(professionCoreState(context).activeMinions?.[event.requiresMinion]) >
         Number(event.requiresMinionIndex || 0) &&
       (event.requiresMinionGeneration == null ||
         Number(
-          context.profession.minionGenerations?.[event.requiresMinion] || 0,
+          professionCoreState(context).minionGenerations?.[event.requiresMinion] || 0,
         ) === Number(event.requiresMinionGeneration)) &&
       (event.requiresMinionAttackGeneration == null ||
         Number(
-          context.profession.minionAttackGenerations?.[event.requiresMinion] ||
+          professionCoreState(context).minionAttackGenerations?.[event.requiresMinion] ||
             0,
         ) === Number(event.requiresMinionAttackGeneration))
     )
@@ -149,15 +154,19 @@ export function handleNecromancerSummonAttack(
     return;
   if (
     event.requiresSpirit &&
-    !(
-      context.profession.activeSpirits?.[event.requiresSpirit] &&
+    !(() => {
+      const active = context.profession.specialization;
+      if (active.kind !== "Ritualist") return false;
+      return (
+      active.state.activeSpirits[event.requiresSpirit] &&
       (event.requiresSpiritGeneration == null ||
         Number(
-          context.profession.spiritGenerations?.[event.requiresSpirit] || 0,
+          active.state.spiritGenerations[event.requiresSpirit] || 0,
         ) === Number(event.requiresSpiritGeneration)) &&
-      Number(context.profession.spiritBusyUntil?.[event.requiresSpirit] || 0) <=
+      Number(active.state.spiritBusyUntil[event.requiresSpirit] || 0) <=
         event.at
-    )
+      );
+    })()
   )
     return;
   enqueueOrdered(context.queue, {

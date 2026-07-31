@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Trait effects triggered by invoking a legend.
  *
@@ -17,8 +18,8 @@ import type {
 } from "../../../platform/engine/types.js";
 import type {
   RevenantCastContext,
+  RevenantCoreState,
   RevenantSkill,
-  RevenantState,
 } from "../types.js";
 
 interface LegendInvocationBoon {
@@ -37,7 +38,7 @@ interface LegendInvocationSong {
   readonly hits?: number;
 }
 
-function invokedLegend(state: RevenantState): string {
+function invokedLegend(state: RevenantCoreState): string {
   if (state.activeLegendId !== LEGEND.ENTITY) return state.activeLegendId;
   return (
     state.selectedLegendIds.find((id) => id !== LEGEND.ENTITY) || LEGEND.ENTITY
@@ -159,7 +160,7 @@ function emitSongOfTheMists(
     Number(profile.endurancePerHit || 0) *
       Math.max(0, Number(profile.hits || 1));
   if (endurance > 0) {
-    const state = context.state.profession;
+    const state = professionCoreState(context);
     state.endurance = Math.min(
       state.maximumEndurance,
       Number(state.endurance || 0) + endurance,
@@ -216,7 +217,7 @@ export function applyLegendInvocationTraits(
   swapSkill: RevenantSkill,
 ): void {
   const at = context.effectiveEnd;
-  const legendId = invokedLegend(context.state.profession);
+  const legendId = invokedLegend(professionCoreState(context));
   if (
     CORE_LEGENDS.has(legendId) &&
     hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)

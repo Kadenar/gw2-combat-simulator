@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 /**
  * Renegade runtime mechanics.
  *
@@ -27,10 +31,10 @@ import type {
 } from "../../../../platform/engine/types.js";
 import type {
   RevenantCastContext,
+  RenegadeState,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill,
-  RevenantState,
 } from "../../types.js";
 
 export interface BandTogetherState {
@@ -55,7 +59,7 @@ function hasTrait(
 
 /** Returns whether the one-use Band Together enhancement is active at `at`. */
 export function isBandTogetherReady(
-  state: Partial<RevenantState>,
+  state: Partial<RenegadeState>,
   at: number,
 ): boolean {
   return (
@@ -70,7 +74,7 @@ function replacesBandTogetherEffects(
 ): boolean {
   return (
     skill.id === ID.ICERAZORS_IRE &&
-    isBandTogetherReady(context.state.profession, context.start)
+    isBandTogetherReady(professionSpecializationState(context, "Renegade"), context.start)
   );
 }
 
@@ -83,7 +87,7 @@ function fervorDuration(context: RevenantSchedulerContext): number {
 
 /** Counts unexpired Kalla's Fervor applications, capped by the live maximum. */
 export function activeKallasFervorStacks(
-  state: RevenantState,
+  state: RenegadeState,
   at: number,
 ): number {
   const maximum = MECHANICS.renegade.kallasFervor.maximumStacks;
@@ -97,7 +101,7 @@ export function activeKallasFervorStacks(
   );
 }
 
-function pruneKallasFervor(state: RevenantState, at: number): void {
+function pruneKallasFervor(state: RenegadeState, at: number): void {
   state.kallasFervor = (state.kallasFervor || []).filter(
     (application) => Number(application.expiresAt || 0) > at,
   );
@@ -120,7 +124,7 @@ export function grantKallasFervor(
     sourceName?: string;
   } = {},
 ): boolean {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Renegade");
   const profile = MECHANICS.renegade.kallasFervor;
   pruneKallasFervor(state, at);
   if (activeKallasFervorStacks(state, at) >= profile.maximumStacks)
@@ -148,7 +152,7 @@ function refreshKallasFervor(
   context: RevenantSchedulerContext,
   at: number,
 ): number {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Renegade");
   pruneKallasFervor(state, at);
   const duration = fervorDuration(context);
   for (const application of state.kallasFervor) {
@@ -261,15 +265,15 @@ export function beginBandTogether(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): BandTogetherState {
-  const profession = context.state.profession;
+  const profession = professionSpecializationState(context, "Renegade");
   const enhanced = isBandTogetherReady(profession, context.start);
   profession.bandTogetherReady = false;
   profession.bandTogetherExpiresAt = 0;
   if (enhanced && hasTrait(context, TRAIT.ALL_FOR_ONE)) {
-    const state = context.state.profession;
+    const state = professionCoreState(context);
     state.energy = Math.min(
       state.maximumEnergy,
-      Number(state.energy || 0) + MECHANICS.renegade.allForOne.energy,
+      state.energy + MECHANICS.renegade.allForOne.energy,
     );
     emitRevenantState(context, context.start, "all-for-one");
   }
@@ -365,7 +369,7 @@ function grantRazorclawsRage(
   const profile = MECHANICS.bandTogether.razorclaw;
   const at = context.effectiveEnd;
   const party = gw2AlliedPlayerAssumptions(context.config);
-  context.state.profession.razorclawsRage = {
+  professionSpecializationState(context, "Renegade").razorclawsRage = {
     charges: profile.charges,
     expiresAt: at + profile.duration,
     readyAt: at,
@@ -450,8 +454,8 @@ export function completeBandTogether(
     }
   }
   if (!state.enhanced) {
-    context.state.profession.bandTogetherReady = true;
-    context.state.profession.bandTogetherExpiresAt =
+    professionSpecializationState(context, "Renegade").bandTogetherReady = true;
+    professionSpecializationState(context, "Renegade").bandTogetherExpiresAt =
       context.effectiveEnd + MECHANICS.bandTogether.duration;
     emitRevenantState(context, context.effectiveEnd, "band-together");
   }

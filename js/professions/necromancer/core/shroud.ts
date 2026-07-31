@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Shroud entry/exit and Lich Form handlers.
  *
@@ -32,7 +33,7 @@ function activateShroud(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const shroud = SHROUD_ENTRY[skill.id];
   const at = context.effectiveEnd;
   const specialization = context.config.specialization || "Core";
@@ -70,8 +71,9 @@ function activateShroud(
   state.activeShroud = shroud;
   state.shroudEnteredAt = at;
   state.lastResourceAt = at;
-  if (Object.hasOwn(state, "soulTwistingAvailable")) {
-    state.soulTwistingAvailable =
+  const active = context.state.profession.specialization;
+  if (active.kind === "Ritualist") {
+    active.state.soulTwistingAvailable =
       shroud === "ritualist" && hasTrait(context, TRAIT.SOUL_TWISTING);
   }
   const exitId = EXIT_ID_BY_SHROUD[shroud];
@@ -159,7 +161,7 @@ function lich(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   if (skill.id === ID.LICH_FORM) {
     state.activeShroud = "lich";

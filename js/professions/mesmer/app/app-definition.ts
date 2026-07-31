@@ -6,7 +6,6 @@ import { defineProfessionApp } from "../../../app/profession/define-app.js";
 import { applyMesmerBuildAttributeRules } from "../build-attributes.js";
 import { createDefaultTargetConditions, toApplicationBuild } from "../build.js";
 import { mesmerProfession } from "../definition.js";
-import { mesmerResourceDefinition as getResourceDefinition } from "../ui.js";
 import type { MesmerApplicationBuild } from "../types.js";
 
 export const mesmerApp = defineProfessionApp({
@@ -20,7 +19,8 @@ export const mesmerApp = defineProfessionApp({
     buildConfigInputs(app, { specialization, activeTraits }) {
       const build = app.build as MesmerApplicationBuild;
       const startsWithClones =
-        getResourceDefinition(specialization).singular === "clone";
+        mesmerProfession.ui.resourceViews({ specialization })[0]?.singular
+          === "clone";
       const hasMaliciousSorcery = activeTraits.some(
         (trait) => trait.name === "Malicious Sorcery",
       );

@@ -1,6 +1,4 @@
-import type {
-  LegacyRotationItem,
-} from "../../platform/engine/types.js";
+import type { LegacyRotationItem } from "../../platform/engine/types.js";
 import type {
   Gw2ProcStep,
   Gw2SimulationResult,
@@ -46,15 +44,11 @@ export function procStackLabel(proc: Gw2ProcStep): string {
   return String(proc.detail || "").match(/^(\d+\/\d+)\s+stacks$/)?.[1] || "";
 }
 
-export function procBadgeLabel(
-  procSteps: readonly Gw2ProcStep[] = [],
-): string {
-  const reductions = procSteps.map(proc => Number(proc.cooldownReduction));
+export function procBadgeLabel(procSteps: readonly Gw2ProcStep[] = []): string {
+  const reductions = procSteps.map((proc) => Number(proc.cooldownReduction));
   if (
     reductions.length &&
-    reductions.every(reduction =>
-      Number.isFinite(reduction) && reduction > 0
-    )
+    reductions.every((reduction) => Number.isFinite(reduction) && reduction > 0)
   ) {
     const total = reductions.reduce((sum, reduction) => sum + reduction, 0);
     const rounded = Math.round((total + Number.EPSILON) * 1000) / 1000;
@@ -104,8 +98,9 @@ export function timelineWeaponRows(
   return timelineRows(rotation, {
     startingWeaponSet,
     isWeaponSwap(entry) {
-      return weaponSwapChangesSet &&
-        rotationEntryName(entry) === "Swap Weapons";
+      return (
+        weaponSwapChangesSet && rotationEntryName(entry) === "Swap Weapons"
+      );
     },
     isWeaponSetRefresh(entry) {
       const name = rotationEntryName(entry);
@@ -115,10 +110,7 @@ export function timelineWeaponRows(
       );
     },
     weaponLineTransition(entry, current) {
-      return weaponLineTransition(
-        entry as LegacyRotationItem,
-        current,
-      );
+      return weaponLineTransition(entry as LegacyRotationItem, current);
     },
   });
 }
@@ -130,7 +122,7 @@ export function continuumEndTimelineMarkers(
   return eventTimelineMarkers(
     result,
     rotationLength,
-    event =>
+    (event) =>
       event.type === "marker" &&
       event.name === "Continuum Shift" &&
       event.detail === "split expired",
@@ -144,16 +136,16 @@ export function targetHealthTimelineMarkers(
   rotationLength = 0,
 ) {
   const percents = [...new Set(thresholds)]
-    .map(threshold => Number(threshold) * 100)
-    .filter(percent => percent > 0 && percent < 100);
+    .map((threshold) => Number(threshold) * 100)
+    .filter((percent) => percent > 0 && percent < 100);
   if (!percents.length) return [];
   const steps = (result?.steps || [])
-    .filter(step => step.ri >= 0 && !step.invalid)
+    .filter((step) => step.ri >= 0 && !step.invalid)
     .sort((left, right) => left.start - right.start || left.ri - right.ri);
   return targetHealthBreakpointSnapshots(result, targetHealth, percents).map(
-    snapshot => {
+    (snapshot) => {
       const start = Math.round(snapshot.at * 1000);
-      const next = steps.find(step => step.start >= start);
+      const next = steps.find((step) => step.start >= start);
       return {
         insertionIndex: next?.ri ?? rotationLength,
         healthPercent: snapshot.healthPercent,

@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 /**
  * @fileoverview Implements Firebrand tome cast gating, shared page
  * regeneration and spending, tome state replay, and Ashes of the Just damage
@@ -44,17 +48,17 @@ export function validateTomeCast(
   context: GuardianPrecastContext,
   skill: GuardianSkill,
 ): boolean | undefined {
-  if (skill.type === "Weapon" && context.state.profession.activeTome) {
+  if (skill.type === "Weapon" && professionSpecializationState(context, "Firebrand").activeTome) {
     return false;
   }
   if (skill.tome) {
     return (
       selectedGuardianSpecialization(context) === "Firebrand" &&
-      context.state.profession.activeTome === skill.tome
+      professionSpecializationState(context, "Firebrand").activeTome === skill.tome
     );
   }
   if (skill.name === "Stow Tome") {
-    return Boolean(context.state.profession.activeTome);
+    return Boolean(professionSpecializationState(context, "Firebrand").activeTome);
   }
 }
 
@@ -73,7 +77,7 @@ export function tomePageAvailability(
   context: GuardianPrecastContext,
   skill: GuardianSkill,
 ): boolean | AvailabilityResult {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Firebrand");
   if (
     !skill.tome ||
     selectedGuardianSpecialization(context) !== "Firebrand" ||
@@ -107,9 +111,9 @@ export function tomePageAvailability(
  * @returns {boolean} Always true to indicate the state-only action completed.
  */
 function stowTome(context: GuardianCastContext, skill: GuardianSkill): boolean {
-  context.state.profession.activeTome = "";
-  context.state.profession.swiftScholarTome = "";
-  context.state.profession.swiftScholarCount = 0;
+  professionSpecializationState(context, "Firebrand").activeTome = "";
+  professionSpecializationState(context, "Firebrand").swiftScholarTome = "";
+  professionSpecializationState(context, "Firebrand").swiftScholarCount = 0;
   emitGuardianEvent(context, skill, "guardian.tome-stowed", {
     activeTome: "",
   });
@@ -129,7 +133,7 @@ function useTomePage(
   skill: GuardianSkill,
 ): boolean {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Firebrand");
   const pageCost = Math.max(1, Number(skill.pageCost || 1));
   if (state.tomePages >= state.maximumTomePages) {
     state.nextTomePageAt = context.effectiveEnd + state.tomePageInterval;
@@ -286,7 +290,7 @@ export const guardianTomeSkillHandlers = Object.freeze({
  * @returns {void}
  */
 function handleTomeStowed(context: GuardianResolverContext): void {
-  context.profession.activeTome = "";
+  professionSpecializationState(context, "Firebrand").activeTome = "";
 }
 
 /**
@@ -300,19 +304,19 @@ function handleTomePageUsed(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  context.profession.tomePages = Number(event.pagesRemaining || 0);
-  context.profession.activeTome = String(event.activeTome || "");
-  context.profession.nextTomePageAt = Number(
-    event.nextTomePageAt ?? context.profession.nextTomePageAt,
+  professionSpecializationState(context, "Firebrand").tomePages = Number(event.pagesRemaining || 0);
+  professionSpecializationState(context, "Firebrand").activeTome = String(event.activeTome || "");
+  professionSpecializationState(context, "Firebrand").nextTomePageAt = Number(
+    event.nextTomePageAt ?? professionSpecializationState(context, "Firebrand").nextTomePageAt,
   );
-  context.profession.ashesCharges = Number(
-    event.ashesCharges ?? context.profession.ashesCharges,
+  professionSpecializationState(context, "Firebrand").ashesCharges = Number(
+    event.ashesCharges ?? professionSpecializationState(context, "Firebrand").ashesCharges,
   );
-  context.profession.ashesNextTriggerAt = Number(
-    event.ashesNextTriggerAt ?? context.profession.ashesNextTriggerAt,
+  professionSpecializationState(context, "Firebrand").ashesNextTriggerAt = Number(
+    event.ashesNextTriggerAt ?? professionSpecializationState(context, "Firebrand").ashesNextTriggerAt,
   );
-  context.profession.ashesExpiresAt = Number(
-    event.ashesExpiresAt ?? context.profession.ashesExpiresAt,
+  professionSpecializationState(context, "Firebrand").ashesExpiresAt = Number(
+    event.ashesExpiresAt ?? professionSpecializationState(context, "Firebrand").ashesExpiresAt,
   );
 }
 
@@ -321,10 +325,10 @@ function handleAshesExpired(
   event: GuardianResolverEvent,
 ): void {
   if (
-    Number(context.profession.ashesExpiresAt || 0)
+    Number(professionSpecializationState(context, "Firebrand").ashesExpiresAt || 0)
     <= Number(event.at) + Number(context.epsilon || 0.0001)
   ) {
-    context.profession.ashesCharges = 0;
+    professionSpecializationState(context, "Firebrand").ashesCharges = 0;
   }
 }
 
@@ -349,7 +353,7 @@ export function advanceTomeState(
   context: GuardianSchedulerContext,
   target: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Firebrand");
   while (
     state.tomePages < state.maximumTomePages &&
     state.nextTomePageAt <= target + context.epsilon
@@ -378,7 +382,9 @@ export function advanceTomeState(
   ) {
     const at = state.nextCourageAegisAt;
     if (
-      at >= Number(state.virtueReadyAt.courage || 0) - context.epsilon ||
+      at >= Number(
+        professionCoreState(context).virtueReadyAt.courage || 0
+      ) - context.epsilon ||
       hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)
     ) {
       context.emit({
@@ -422,7 +428,7 @@ export function reactToAshesHit(
   )
     return;
 
-  const state = context.profession;
+  const state = professionSpecializationState(context, "Firebrand");
   if (
     state.ashesCharges <= 0 ||
     event.at >= state.ashesExpiresAt - Number(context.epsilon || 0.0001) ||

@@ -68,7 +68,7 @@ export interface NecromancerWeaponSpellState extends SchedulerRecord {
   readonly recipients?: Record<string, NecromancerWeaponSpellRecipient>;
 }
 
-export interface NecromancerCoreState extends SchedulerRecord {
+export interface NecromancerCoreState {
   lifeForce: number;
   resource: number;
   maximumLifeForce: number;
@@ -104,15 +104,15 @@ export interface NecromancerCoreState extends SchedulerRecord {
   traitProcReadyAt: Record<string, number>;
 }
 
-export interface ReaperState extends SchedulerRecord {
+export interface ReaperState {
   executionersIceFieldUntil: number;
 }
 
-export interface ScourgeState extends SchedulerRecord {
+export interface ScourgeState {
   shades: number[];
 }
 
-export interface HarbingerState extends SchedulerRecord {
+export interface HarbingerState {
   nextBlightAt?: number;
   blight: number;
   blightExpiries: number[];
@@ -120,7 +120,7 @@ export interface HarbingerState extends SchedulerRecord {
   meltdownUntil: number;
 }
 
-export interface RitualistState extends SchedulerRecord {
+export interface RitualistState {
   activeSpirits: Record<string, boolean>;
   spiritGenerations: Record<string, number>;
   spiritInitialUntil: Record<string, number>;
@@ -141,7 +141,7 @@ export interface NecromancerState
     HarbingerState,
     RitualistState {}
 
-export interface NecromancerRuntimeState extends SchedulerRecord {
+export interface NecromancerRuntimeState {
   core: NecromancerCoreState;
   specialization:
     | { kind: "Core"; state: Record<string, never> }
@@ -163,12 +163,12 @@ export interface NecromancerSkill extends Skill {
   readonly slotSelectable?: boolean;
 }
 
-export type NecromancerSchedulerContext = SchedulerContext<NecromancerState> & {
+export type NecromancerSchedulerContext = SchedulerContext<NecromancerRuntimeState> & {
   readonly catalog: CanonicalCatalog<NecromancerSkill>;
   readonly config: NecromancerConfig;
 };
 
-export type NecromancerCastContext = CastLifecycleContext<NecromancerState> & {
+export type NecromancerCastContext = CastLifecycleContext<NecromancerRuntimeState> & {
   readonly catalog: CanonicalCatalog<NecromancerSkill>;
   readonly config: NecromancerConfig;
 };
@@ -177,24 +177,24 @@ export type NecromancerEmissionContext = NecromancerSchedulerContext & {
   readonly effectiveEnd?: number;
 };
 
-export type NecromancerPrecastContext = CastContext<NecromancerState> & {
+export type NecromancerPrecastContext = CastContext<NecromancerRuntimeState> & {
   readonly catalog: CanonicalCatalog<NecromancerSkill>;
   readonly config: NecromancerConfig;
 };
 
 export type NecromancerCastModifierContext = Omit<
-  CastContext<NecromancerState>,
+  CastContext<NecromancerRuntimeState>,
   "config" | "skill" | "state"
 > & {
   readonly config: NecromancerConfig;
   readonly skill?: NecromancerSkill;
-  readonly state: SchedulerState<NecromancerState>;
+  readonly state: SchedulerState<NecromancerRuntimeState>;
   readonly start: number;
   readonly hasBuff?: (name: string, at: number) => boolean;
 };
 
 export type NecromancerRechargeModifierContext = Omit<
-  SchedulerContext<NecromancerState>,
+  SchedulerContext<NecromancerRuntimeState>,
   "config"
 > & {
   readonly config: NecromancerConfig;
@@ -257,9 +257,13 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly requiresSpiritGeneration?: number;
   readonly mode?: string;
   readonly recipients?: readonly string[];
+  readonly alliedPlayerCount?: number;
+  readonly recipientCount?: number;
   readonly playerStacks?: number;
   readonly allyStacks?: number;
   readonly spell?: string;
+  readonly triggeredByAlly?: number;
+  readonly procIndex?: number;
   readonly alliesReceiveFullBenefit?: boolean;
   readonly controlKind?: string;
   readonly effectiveDuration?: number;
@@ -267,8 +271,8 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
 
 export type NecromancerResolverContext = Gw2ResolverRuntime & {
   config: NecromancerConfig;
-  profession: NecromancerState;
-  readonly state?: { readonly profession: NecromancerState };
+  profession: NecromancerRuntimeState;
+  readonly state?: { readonly profession: NecromancerRuntimeState };
 };
 
 export interface NecromancerResolverReactionDetails extends SchedulerRecord {
@@ -280,7 +284,10 @@ export interface NecromancerResolverReactionDetails extends SchedulerRecord {
 }
 
 export type NecromancerQueryRuntime = Gw2QueryRuntime & {
-  readonly profession?: Partial<NecromancerState> | null;
+  readonly profession?:
+    | NecromancerRuntimeState
+    | Partial<NecromancerState>
+    | null;
   readonly totals?: {
     readonly strike?: number;
     readonly condition?: number;
@@ -288,7 +295,7 @@ export type NecromancerQueryRuntime = Gw2QueryRuntime & {
 };
 
 export interface NecromancerEndStateProjectionOptions {
-  readonly schedulerState: SchedulerState<NecromancerState>;
+  readonly schedulerState: SchedulerState<NecromancerRuntimeState>;
   readonly resolverState?: Partial<NecromancerState> | null;
 }
 

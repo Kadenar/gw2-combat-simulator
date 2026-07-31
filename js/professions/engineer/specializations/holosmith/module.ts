@@ -11,9 +11,9 @@ import {
 } from "./rules.js";
 import { createHolosmithState } from "./state.js";
 import { holosmithUi } from "./ui.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
+import type { HolosmithState } from "../../types.js";
 
-export const holosmithModule = defineProfessionModule<SchedulerRecord>({
+export const holosmithModule = defineProfessionModule<HolosmithState>({
   id: "Holosmith",
   catalog: {
     ...engineerModuleCatalog("Holosmith"),

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
@@ -41,7 +42,7 @@ function selectedStolenSkill(context) {
 
 export function emitStealTraitEffects(context) {
   const at = context.effectiveEnd;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const potentPoison = hasThiefTrait(context.config, TRAIT.POTENT_POISON);
   if (hasThiefTrait(context.config, TRAIT.SERPENTS_TOUCH)) {
     emitThiefCondition(context, {
@@ -138,7 +139,7 @@ export function emitStealTraitEffects(context) {
 }
 
 export function completeStealWithStoredSkill(context, storedSkillId) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.storedStolenSkillId = storedSkillId;
   if (hasThiefTrait(context.config, TRAIT.KLEPTOMANIAC)) {
@@ -155,6 +156,6 @@ export function completeSteal(context) {
 }
 
 export function consumeStoredStolenSkill(context) {
-  context.state.profession.storedStolenSkillId = null;
+  professionCoreState(context).storedStolenSkillId = null;
   emitThiefState(context, context.effectiveEnd, "stolen-skill-used");
 }

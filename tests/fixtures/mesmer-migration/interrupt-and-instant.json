@@ -116,6 +116,7 @@
         },
         {
           "__order": 1,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
           "endsAt": 1.85,
@@ -128,10 +129,12 @@
           "skillName": "Confusing Images",
           "source": "mesmer",
           "sourceId": 10168,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 2,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.1,
           "endsAt": 0.1,
@@ -144,10 +147,12 @@
           "skillName": "Blink",
           "source": "mesmer",
           "sourceId": 10200,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "nonweapon.unequipped"
         },
         {
           "__order": 3,
+          "activationId": "cast:2",
           "at": 0.1,
           "schemaVersion": 1,
           "skillName": "Blink",
@@ -157,6 +162,7 @@
         },
         {
           "__order": 4,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.2642857142857143,
           "blade": false,
@@ -173,10 +179,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 11,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.2642857142857143,
           "condition": "Confusion",
@@ -192,6 +199,7 @@
         },
         {
           "__order": 5,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.5285714285714286,
           "blade": false,
@@ -208,10 +216,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 12,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.5285714285714286,
           "condition": "Confusion",
@@ -227,6 +236,7 @@
         },
         {
           "__order": 6,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.7928571428571429,
           "blade": false,
@@ -243,10 +253,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 13,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.7928571428571429,
           "condition": "Confusion",
@@ -262,6 +273,7 @@
         },
         {
           "__order": 7,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 1.0571428571428572,
           "blade": false,
@@ -278,10 +290,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 14,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 1.0571428571428572,
           "condition": "Confusion",
@@ -297,6 +310,7 @@
         },
         {
           "__order": 8,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 1.3214285714285714,
           "blade": false,
@@ -313,10 +327,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 15,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 1.3214285714285714,
           "condition": "Confusion",
@@ -332,6 +347,7 @@
         },
         {
           "__order": 9,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 1.5857142857142859,
           "blade": false,
@@ -348,10 +364,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 16,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 1.5857142857142859,
           "condition": "Confusion",
@@ -367,6 +384,7 @@
         },
         {
           "__order": 10,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 1.85,
           "blade": false,
@@ -383,10 +401,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 17,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 1.85,
           "condition": "Confusion",
@@ -411,6 +430,7 @@
         },
         {
           "__order": 19,
+          "activationId": "summon-attack:17",
           "actorType": "summon",
           "at": 2,
           "blade": false,
@@ -448,6 +468,7 @@
         },
         {
           "__order": 21,
+          "activationId": "summon-attack:21",
           "actorType": "summon",
           "at": 2.0001,
           "blade": false,
@@ -485,6 +506,7 @@
         },
         {
           "__order": 23,
+          "activationId": "summon-attack:25",
           "actorType": "summon",
           "at": 2.0002,
           "blade": false,
@@ -551,6 +573,7 @@
       "resolvedEvents": [
         {
           "__order": 10,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 1.85,
           "blade": false,
@@ -560,6 +583,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Confusing Images",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10168,
           "skillName": "Confusing Images",
@@ -569,10 +593,12 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 17,
+          "activationId": "cast:1",
           "activeDuration": 0.25,
           "actorType": "player",
           "at": 1.85,
@@ -599,6 +625,7 @@
         },
         {
           "__order": 19,
+          "activationId": "summon-attack:17",
           "actorType": "summon",
           "at": 2,
           "blade": false,
@@ -609,6 +636,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Ether Bolt",
+          "resolvedWeaponStrength": 34,
           "schemaVersion": 1,
           "skillId": "Clone: Ether Bolt",
           "skillName": "Clone: Ether Bolt",
@@ -618,7 +646,9 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 34
+          "weaponStrength": 34,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 20,
@@ -649,6 +679,7 @@
         },
         {
           "__order": 21,
+          "activationId": "summon-attack:21",
           "actorType": "summon",
           "at": 2.0001,
           "blade": false,
@@ -659,6 +690,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Ether Bolt",
+          "resolvedWeaponStrength": 34,
           "schemaVersion": 1,
           "skillId": "Clone: Ether Bolt",
           "skillName": "Clone: Ether Bolt",
@@ -668,7 +700,9 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 34
+          "weaponStrength": 34,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 22,
@@ -699,6 +733,7 @@
         },
         {
           "__order": 23,
+          "activationId": "summon-attack:25",
           "actorType": "summon",
           "at": 2.0002,
           "blade": false,
@@ -709,6 +744,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Ether Bolt",
+          "resolvedWeaponStrength": 34,
           "schemaVersion": 1,
           "skillId": "Clone: Ether Bolt",
           "skillName": "Clone: Ether Bolt",
@@ -718,7 +754,9 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 34
+          "weaponStrength": 34,
+          "weaponStrengthProfileId": "fixed",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 24,
@@ -783,8 +821,8 @@
       "warnings": []
     },
     "damage": {
-      "conditionDamage": 115.38760625,
-      "dps": 13220.012455364707,
+      "conditionDamage": 90.10041875000002,
+      "dps": 13035.321362551575,
       "events": [
         {
           "created": [
@@ -831,35 +869,35 @@
           ]
         },
         {
-          "damage": 34.80930950547335
+          "damage": 27.84744760437868
         },
         {
-          "damage": 23.662500000000023,
+          "damage": 15.225000000000014,
           "damageTicks": [
             {
-              "damage": 23.662500000000023
+              "damage": 15.225000000000014
             }
           ]
         },
         {
-          "damage": 34.80930950547335
+          "damage": 27.84744760437868
         },
         {
-          "damage": 23.638837499999973,
+          "damage": 15.209774999999981,
           "damageTicks": [
             {
-              "damage": 23.638837499999973
+              "damage": 15.209774999999981
             }
           ]
         },
         {
-          "damage": 34.80930950547335
+          "damage": 27.84744760437868
         },
         {
-          "damage": 23.615175000000026,
+          "damage": 15.194550000000017,
           "damageTicks": [
             {
-              "damage": 23.615175000000026
+              "damage": 15.194550000000017
             }
           ]
         }
@@ -870,8 +908,8 @@
         {},
         {}
       ],
-      "strikeDamage": 3189.615507591177,
-      "totalDamage": 3305.003113841177
+      "strikeDamage": 3168.729921887894,
+      "totalDamage": 3258.8303406378936
     }
   }
 }

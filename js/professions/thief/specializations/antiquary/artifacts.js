@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,
@@ -73,7 +74,7 @@ function reduceSkrittSwipeRecharge(context, at) {
 }
 
 function grantScoundrelsLuck(context, at) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   if (
     !hasThiefTrait(context.config, TRAIT.SCOUNDRELS_LUCK)
     || at + Number(context.epsilon || 0.0001)
@@ -85,14 +86,14 @@ function grantScoundrelsLuck(context, at) {
 
 function grantCombatHigh(context, at) {
   if (!hasThiefTrait(context.config, TRAIT.COMBAT_HIGH)) return;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   state.combatHighStacks = 10;
   state.combatHighExpiresAt = at + 20;
 }
 
 function reduceUtilityRecharges(context, at) {
   if (!hasThiefTrait(context.config, TRAIT.IMPROVISATION)) return;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   if (
     at + Number(context.epsilon || 0.0001)
     < Number(state.improvisationReadyAt || 0)
@@ -129,7 +130,7 @@ export function pilferArtifacts(
   reason = "pilfer",
   source = "initiative",
 ) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   const prolific = hasThiefTrait(context.config, TRAIT.PROLIFIC_PLUNDERER);
   state.artifactSlots = usesArtifactChoiceMode(context)
     ? allArtifactChoices()
@@ -156,7 +157,7 @@ export function pilferArtifacts(
 }
 
 export function reshuffleArtifacts(context) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   const at = context.effectiveEnd;
   state.artifactSlots = usesArtifactChoiceMode(context)
     ? allArtifactChoices()
@@ -170,7 +171,7 @@ function extendExhilaratingEphemera(state, at) {
 }
 
 function applyArtifactIdentity(context, skill, at) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   const meticulous = hasThiefTrait(
     context.config,
     TRAIT.METICULOUS_CUSTODIAN,
@@ -202,7 +203,7 @@ function applyArtifactIdentity(context, skill, at) {
 }
 
 export function consumeArtifact(context, skill) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   const at = context.effectiveEnd;
   const slot = state.artifactSlots.find(value => value.skillId === skill.id);
   state.artifactUsesRemaining = Math.max(
@@ -252,7 +253,7 @@ export function consumeArtifact(context, skill) {
 
 export function completeForgedSurfer(context, skill) {
   consumeArtifact(context, skill);
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   context.tasks.schedule({
     type: "thief.forged-surfer",
     at: context.effectiveEnd + 1,
@@ -306,7 +307,7 @@ function emitForgedSurferPacket(
 export function handleForgedSurfer(context, task) {
   if (
     Number(task.payload.generation || 0)
-    !== Number(context.state.profession.forgedSurferGeneration || 0)
+    !== Number(professionSpecializationState(context, "Antiquary").forgedSurferGeneration || 0)
   ) return;
   const bomb = Number(task.payload.bomb || 0);
   const meticulous = hasThiefTrait(
@@ -327,7 +328,7 @@ export function handleForgedSurfer(context, task) {
   if (
     bomb
     >= Number(
-      context.state.profession.forgedSurferMaximumBombHits || 5,
+      professionSpecializationState(context, "Antiquary").forgedSurferMaximumBombHits || 5,
     )
   ) return;
   context.tasks.schedule({
@@ -346,7 +347,7 @@ function riskyDoubleEdge(context, skill) {
 }
 
 function peekRiskyOutcome(context) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   if (state.scoundrelsLuck > 0) return "success";
   const sequence = state.doubleEdgeOutcomeSequence || ["success", "backfire"];
   const index = Number(state.doubleEdgeOutcomeIndex || 0);
@@ -359,7 +360,7 @@ export function peekDoubleEdgeOutcome(context, skill) {
 
 function consumeDoubleEdgeOutcome(context, skill) {
   if (!riskyDoubleEdge(context, skill)) return "success";
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   if (state.scoundrelsLuck > 0) {
     state.scoundrelsLuck -= 1;
     return "success";
@@ -431,7 +432,7 @@ function emitCannonSuccess(context) {
 }
 
 function tossCanachCoins(context, at, backfire) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   let initiative = 0;
   for (let coin = 0; coin < 3; coin += 1) {
     const heads = Number(state.canachCoinIndex || 0) % 2 === 0;
@@ -451,7 +452,7 @@ function tossCanachCoins(context, at, backfire) {
 }
 
 export function resolveDoubleEdge(context, skill) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   const at = context.effectiveEnd;
   const outcome = consumeDoubleEdgeOutcome(context, skill);
   if (outcome === "backfire") {
@@ -476,7 +477,7 @@ export function resolveDoubleEdge(context, skill) {
 }
 
 export function completeSkrittScuffle(context, skill) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   const at = context.effectiveEnd;
   const summon = {
     skillId: skill.id,
@@ -507,7 +508,7 @@ export function handleSkrittScuffle(context, task) {
       + Number(context.epsilon || 0.0001)
   ) return;
   const nextPilferAt = task.at + SCUFFLE_INTERVAL;
-  context.state.profession.nextSkrittScufflePilferAt =
+  professionSpecializationState(context, "Antiquary").nextSkrittScufflePilferAt =
     nextPilferAt <= Number(task.payload.expiresAt || 0)
       ? nextPilferAt
       : 0;

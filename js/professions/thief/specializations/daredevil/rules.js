@@ -3,7 +3,7 @@ import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import {
   thiefPlayerEvent,
-  thiefRuntimeState,
+  thiefRuntimeSpecializationState,
   thiefTargetHasCondition,
 } from "../../core/rules.js";
 
@@ -23,7 +23,7 @@ export const daredevilModifierRules = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
     amount: context => {
-      const state = thiefRuntimeState(context);
+      const state = thiefRuntimeSpecializationState(context, "Daredevil");
       const maximum = Math.max(1, Number(state.maximumEndurance || 100));
       return (1 - Number(state.endurance || 0) / maximum) * 0.15;
     },
@@ -38,7 +38,10 @@ export const daredevilModifierRules = Object.freeze([
     when: context =>
       thiefPlayerEvent(context)
       && hasTrait(context, TRAIT.BOUNDING_DODGER)
-      && Number(thiefRuntimeState(context).boundingDamageUntil || 0)
+      && Number(
+        thiefRuntimeSpecializationState(context, "Daredevil")
+          .boundingDamageUntil || 0,
+      )
         > context.time,
   },
 ]);

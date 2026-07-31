@@ -4,27 +4,14 @@ import {
   migrateThiefBuild,
   validateThiefBuild,
 } from "./build.js";
-import { thiefAttributeRules } from "./attribute-rules.js";
 import { thiefCatalog } from "./catalog.js";
+import { thiefWeaponSkillMatchesSet } from "./catalog.js";
 import { thiefCoreModule } from "./core/module.js";
 import "./data/trait-coverage.js";
-import {
-  thiefCastRules,
-  thiefSchedulerHooks,
-} from "./mechanics/contract.js";
-import {
-  thiefResolverEventHandlers,
-  thiefResolverEventReactions,
-} from "./resolver.js";
 import { antiquaryModule } from "./specializations/antiquary/module.js";
 import { daredevilModule } from "./specializations/daredevil/module.js";
 import { deadeyeModule } from "./specializations/deadeye/module.js";
 import { specterModule } from "./specializations/specter/module.js";
-import {
-  createThiefState,
-  projectThiefEndState,
-} from "./state.js";
-import { thiefUi } from "./ui.js";
 
 export const thiefProfession = defineProfessionFamily({
   id: "thief",
@@ -35,18 +22,6 @@ export const thiefProfession = defineProfessionFamily({
     migrateBuild: migrateThiefBuild,
     validateBuild: validateThiefBuild,
   },
-  resources: {
-    createProfessionState: createThiefState,
-    createResolverState: createThiefState,
-    projectEndState: projectThiefEndState,
-  },
-  attributeRules: thiefAttributeRules,
-  castRules: thiefCastRules,
-  schedulerHooks: thiefSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: thiefResolverEventHandlers,
-    eventReactions: thiefResolverEventReactions,
-  },
   core: thiefCoreModule,
   specializations: {
     Daredevil: daredevilModule,
@@ -54,7 +29,9 @@ export const thiefProfession = defineProfessionFamily({
     Specter: specterModule,
     Antiquary: antiquaryModule,
   },
-  ui: thiefUi,
+  ui: {
+    weaponSkillMatchesSet: thiefWeaponSkillMatchesSet,
+  },
 });
 
 export default thiefProfession;

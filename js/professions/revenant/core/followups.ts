@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Revenant contextual legend-skill follow-ups.
  */
@@ -13,7 +14,7 @@ export function completeRevenantFollowup(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (skill.id === ID.CALL_TO_ANGUISH) {
     state.availableFlips[ID.UNYIELDING_IMPACT] = true;
     emitRevenantState(context, context.effectiveEnd, "unyielding-impact-ready");

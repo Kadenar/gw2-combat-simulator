@@ -273,6 +273,51 @@ test('illusions do not inherit the mesmer Fury boon', () => {
     assert.ok(Math.abs(phantasmHit.criticalChance - 0.05) < 1e-12);
 });
 
+test('clones do not inherit permanent Might while phantasms remain player-owned', () => {
+    const simulateWithMight = might => simulateMesmer(
+        [
+            'Phase Retreat',
+            'Phantasmal Warlock',
+            { name: '__wait', waitMs: 4000 },
+        ],
+        defaultSimulationConfig({
+            specialization: 'Core',
+            selectedTraits: [],
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
+            initialResource: 0,
+            stats: {
+                power: 1000,
+                precision: 1000,
+                ferocity: 0,
+                conditionDamage: 0,
+            },
+            boons: {
+                might,
+                fury: false,
+                quickness: false,
+                alacrity: false,
+            },
+        }),
+    );
+    const withoutMight = simulateWithMight(0);
+    const withMight = simulateWithMight(25);
+    const illusionDamage = (result, source) => result.resolvedEvents
+        .filter(event => event.type === 'damage' && event.source === source)
+        .reduce((sum, event) => sum + event.damage, 0);
+
+    assert.ok(illusionDamage(withoutMight, 'Clone') > 0);
+    assert.ok(illusionDamage(withoutMight, 'Phantasm') > 0);
+    assert.equal(
+        illusionDamage(withMight, 'Clone'),
+        illusionDamage(withoutMight, 'Clone'),
+    );
+    assert.ok(
+        illusionDamage(withMight, 'Phantasm')
+        > illusionDamage(withoutMight, 'Phantasm'),
+    );
+});
+
 test('Shift+click timeline form casts an instant skill 100ms into the prior cast', () => {
     const result = simulateMesmer(
         ['Bladecall', { name: 'Bladesong Distortion', offset: 100 }],

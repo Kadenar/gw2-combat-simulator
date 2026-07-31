@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Minion summon and command handlers.
  *
@@ -101,10 +102,10 @@ function queueSummonAttacks(
   } = {},
 ): void {
   const generation = Number(
-    context.state.profession.minionGenerations[definition.key] || 0,
+    professionCoreState(context).minionGenerations[definition.key] || 0,
   );
   const attackGeneration = Number(
-    context.state.profession.minionAttackGenerations[definition.key] || 0,
+    professionCoreState(context).minionAttackGenerations[definition.key] || 0,
   );
   const horizon = at + Math.max(180, Number(context.config.duration || 0));
   const attacks = definition.attacks || [
@@ -162,7 +163,7 @@ function summonMinion(
 ): boolean {
   const definition = MINIONS[skill.id];
   if (!definition) return false;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   state.activeMinions[definition.key] = definition.count;
   state.minionGenerations[definition.key] =
     Number(state.minionGenerations[definition.key] || 0) + 1;
@@ -247,7 +248,7 @@ function restartMinionAttacks(
 ): void {
   const minion = minionDefinitionFor(definition.minion);
   if (!minion || !Number.isFinite(Number(minion.commandRecoveryDelay))) return;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   state.minionAttackGenerations[minion.key] =
     Number(state.minionAttackGenerations[minion.key] || 0) + 1;
   if (skill.flipParentId == null) return;
@@ -280,16 +281,16 @@ function minionCommand(
   if (definition.consumes) {
     const remaining = Math.max(
       0,
-      Number(context.state.profession.activeMinions[definition.minion] || 0) -
+      Number(professionCoreState(context).activeMinions[definition.minion] || 0) -
         definition.consumes,
     );
     if (remaining) {
-      context.state.profession.activeMinions[definition.minion] = remaining;
-      context.state.profession.availableFlips[skill.id] =
+      professionCoreState(context).activeMinions[definition.minion] = remaining;
+      professionCoreState(context).availableFlips[skill.id] =
         Number.POSITIVE_INFINITY;
     } else {
-      delete context.state.profession.activeMinions[definition.minion];
-      delete context.state.profession.availableFlips[skill.id];
+      delete professionCoreState(context).activeMinions[definition.minion];
+      delete professionCoreState(context).availableFlips[skill.id];
       const summon =
         skill.flipParentId == null
           ? undefined
@@ -309,9 +310,9 @@ function minionCommand(
       }
     }
   } else if (
-    Number(context.state.profession.activeMinions[definition.minion] || 0) > 0
+    Number(professionCoreState(context).activeMinions[definition.minion] || 0) > 0
   ) {
-    context.state.profession.availableFlips[skill.id] =
+    professionCoreState(context).availableFlips[skill.id] =
       Number.POSITIVE_INFINITY;
   }
   emitState(context, context.effectiveEnd, "minion-command");
@@ -329,7 +330,7 @@ function handleMinionCommandImpact(
     !skill ||
     !definition ||
     !(
-      Number(context.state.profession.activeMinions[definition.minion] || 0) > 0
+      Number(professionCoreState(context).activeMinions[definition.minion] || 0) > 0
     )
   )
     return;

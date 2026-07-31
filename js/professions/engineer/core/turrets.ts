@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import { emitEngineerState } from "./events.js";
 import type {
@@ -64,7 +65,7 @@ export function deployEngineerTurret(
     skill.paletteFlipSkillId ?? skill.flipSkillId,
   );
   if (Number.isFinite(flipSkillId)) {
-    context.state.profession.availableFlips[flipSkillId] = true;
+    professionCoreState(context).availableFlips[flipSkillId] = true;
   }
   if (skill.id === ID.HEALING_TURRET) {
     context.emit({

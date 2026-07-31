@@ -11,9 +11,9 @@ import {
 } from "./rules.js";
 import { createAmalgamState } from "./state.js";
 import { amalgamUi } from "./ui.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
+import type { AmalgamState } from "../../types.js";
 
-export const amalgamModule = defineProfessionModule<SchedulerRecord>({
+export const amalgamModule = defineProfessionModule<AmalgamState>({
   id: "Amalgam",
   catalog: {
     ...engineerModuleCatalog("Amalgam"),

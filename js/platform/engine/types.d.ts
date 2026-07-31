@@ -847,11 +847,11 @@ export interface ProfessionModuleCatalogFragment {
 }
 
 export interface ProfessionModuleDefinition<
-  TProfessionState extends object = SchedulerRecord,
+  TModuleState extends object = SchedulerRecord,
 > {
   readonly id: string;
   readonly catalog?: ProfessionModuleCatalogFragment;
-  readonly resources?: ProfessionResourceDefinition<TProfessionState>;
+  readonly resources?: ProfessionResourceDefinition<TModuleState>;
   readonly attributeRules?: SchedulerRecord;
   readonly castRules?: SchedulerRecord;
   readonly schedulerHooks?: ProfessionSchedulerHookDefinition;
@@ -872,11 +872,21 @@ export interface ComposedProfessionState<
 
 export interface ProfessionFamilyDefinition<
   TProfessionState extends object = SchedulerRecord,
-> extends ProfessionDefinition<TProfessionState> {
-  readonly core: ProfessionModuleDefinition<TProfessionState>;
+> {
+  readonly id: string;
+  readonly name: string;
+  readonly catalog: CanonicalCatalog;
+  readonly build?: ProfessionBuildDefinition;
+  readonly core: ProfessionModuleDefinition<any>;
   readonly specializations: Readonly<
-    Record<string, ProfessionModuleDefinition<TProfessionState>>
+    Record<string, ProfessionModuleDefinition<any>>
   >;
+  /**
+   * Application-only callbacks that are genuinely global to the family.
+   * Runtime callbacks belong to Core or the active specialization module.
+   */
+  readonly ui?: Partial<ProfessionUiContract> & SchedulerRecord;
+  readonly simulation?: SchedulerRecord | null;
 }
 
 export interface NormalizedProfessionContract<
@@ -1013,9 +1023,22 @@ export interface NormalizedProfessionContract<
   ) => ProfessionResourceView[];
 }
 
+export interface ProfessionApplicationContract {
+  readonly id: string;
+  readonly name: string;
+  readonly catalog: CanonicalCatalog;
+  readonly ui: ProfessionUiContract;
+  readonly simulation: SchedulerRecord | null;
+  readonly createBuildDefaults: () => SchedulerRecord;
+  readonly migrateBuild: (saved: SchedulerRecord) => SchedulerRecord;
+  readonly validateBuild: (
+    build: SchedulerRecord,
+  ) => BuildValidationResult;
+}
+
 export interface ProfessionFamilyContract<
   TProfessionState extends object = SchedulerRecord,
-> extends NormalizedProfessionContract<TProfessionState> {
+> extends ProfessionApplicationContract {
   readonly resolveRuntime: (
     config: Readonly<SchedulerConfig>,
   ) => Readonly<NormalizedProfessionContract<TProfessionState>>;
@@ -1025,7 +1048,7 @@ export type ProfessionSource<
   TProfessionState extends object = SchedulerRecord,
 > =
   | NormalizedProfessionContract<TProfessionState>
-  | ProfessionFamilyContract<TProfessionState>;
+  | ProfessionFamilyContract;
 
 export interface CastCommand {
   readonly type: "cast";

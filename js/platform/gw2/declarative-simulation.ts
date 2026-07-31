@@ -1,6 +1,7 @@
 import { createScheduler } from "../engine/scheduler.js";
 import {
   cloneProfessionState,
+  flattenProfessionState,
   resolveProfessionRuntime,
 } from "../engine/profession.js";
 import type {
@@ -183,6 +184,9 @@ function simulateDeclarativeGw2Pass({
   });
   return {
     ...resolved,
+    profession: structuredClone(
+      flattenProfessionState(resolved.profession),
+    ),
     steps: scheduled.steps,
     endState: endState(runtimeProfession, config, scheduled, resolved),
     schedulerState: scheduled.state,

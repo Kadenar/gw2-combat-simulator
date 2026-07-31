@@ -69,7 +69,7 @@ import {
   createDefaultConfig,
   simulateMesmer,
 } from "./helpers/mesmer-simulation.js";
-import { createMesmerState, snapshotMesmerState } from "../js/professions/mesmer/state.js";
+import { snapshotMesmerState } from "../js/professions/mesmer/core/state.js";
 import { testProfession } from "./fixtures/test-profession.js";
 
 test("native professions share one skill timing contract", async () => {
@@ -1854,32 +1854,35 @@ test("common weapon data includes Guardian weapon families", () => {
 });
 
 test("Mesmer state creation and snapshots are profession owned", () => {
-  const state = createMesmerState({
+  const virtuosoRuntime = mesmerProfession.resolveRuntime({
+    specialization: "Virtuoso",
+  });
+  const state = virtuosoRuntime.createProfessionState({
     specialization: "Virtuoso",
     infiniteForge: true,
   });
-  state.numericResource = 3;
-  state.clones.push({ id: 1 });
+  state.specialization.state.numericResource = 3;
+  state.core.clones.push({ id: 1 });
   const snapshot = snapshotMesmerState(state);
-  assert.equal(state.nextForgeAt, 3);
+  assert.equal(state.specialization.state.nextForgeAt, 3);
   assert.equal(snapshot.numericResource, 3);
   assert.equal(snapshot.cloneCount, 1);
   assert.equal(mesmerProfession.id, "mesmer");
   assert.equal(
-    Object.hasOwn(mesmerProfession.eventReactions, "damage"),
+    Object.hasOwn(virtuosoRuntime.eventReactions, "damage"),
     false,
   );
-  assert.equal(typeof mesmerProfession.eventReactions.control, "function");
-  assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "damage"), false);
-  assert.equal(Object.hasOwn(mesmerProfession.eventHandlers, "control"), false);
+  assert.equal(typeof virtuosoRuntime.eventReactions.control, "function");
+  assert.equal(Object.hasOwn(virtuosoRuntime.eventHandlers, "damage"), false);
+  assert.equal(Object.hasOwn(virtuosoRuntime.eventHandlers, "control"), false);
   assert.equal(
-    Object.keys(mesmerProfession.eventHandlers)
+    Object.keys(virtuosoRuntime.eventHandlers)
       .every(type => type.startsWith("mesmer.")),
     true,
   );
   assert.equal(
     COMMON_EVENT_TYPES.some(type =>
-      Object.hasOwn(mesmerProfession.eventHandlers, type)),
+      Object.hasOwn(virtuosoRuntime.eventHandlers, type)),
     false,
   );
 });
@@ -1926,7 +1929,10 @@ test("Mesmer conforms to native handler, identity, and state boundaries", async 
   );
   assert.equal(MESMER_TRAIT_COVERAGE.length, mesmerCatalog.traits.length);
   assert.ok(
-    Object.keys(mesmerProfession.taskHandlers)
+    Object.keys(
+      mesmerProfession.resolveRuntime({ specialization: "Chronomancer" })
+        .taskHandlers,
+    )
       .every(type => type.startsWith("mesmer.")),
   );
 
@@ -1940,12 +1946,10 @@ test("Mesmer conforms to native handler, identity, and state boundaries", async 
     path.dirname(fileURLToPath(import.meta.url)),
     "../js/professions/mesmer",
   );
-  const contract = await readFile(
-    path.join(mesmerRoot, "mechanics", "contract.ts"),
-    "utf8",
+  await assert.rejects(
+    readFile(path.join(mesmerRoot, "mechanics", "contract.ts"), "utf8"),
+    error => error?.code === "ENOENT",
   );
-  assert.doesNotMatch(contract, /\bscheduleSkill\b/);
-  assert.doesNotMatch(contract, /\bWeakMap\b|mechanics\/runtime\.js/);
   await assert.rejects(
     readFile(path.join(mesmerRoot, "mechanics", "runtime.js"), "utf8"),
     error => error?.code === "ENOENT",
@@ -2347,6 +2351,77 @@ test("obsolete compatibility trees are removed", async () => {
     ),
     error => error?.code === "ENOENT",
   );
+  for (const profession of [
+    "engineer",
+    "guardian",
+    "mesmer",
+    "necromancer",
+    "revenant",
+    "thief",
+  ]) {
+    const extension = profession === "thief" ? "js" : "ts";
+    for (const facade of ["resolver", "state", "ui"]) {
+      await assert.rejects(
+        readFile(
+          path.join(
+            root,
+            "professions",
+            profession,
+            `${facade}.${extension}`,
+          ),
+          "utf8",
+        ),
+        error => error?.code === "ENOENT",
+      );
+    }
+    const family = await readFile(
+      path.join(
+        root,
+        "professions",
+        profession,
+        `family.${extension}`,
+      ),
+      "utf8",
+    );
+    assert.doesNotMatch(
+      family,
+      /(?:attribute-rules|handlers|mechanics\/contract|resolver|state|ui)\.js/,
+    );
+  }
+});
+
+test("profession family state composition has no flat runtime adapters", async () => {
+  const jsRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../js",
+  );
+  const engineSource = await readFile(
+    path.join(jsRoot, "platform", "engine", "profession.ts"),
+    "utf8",
+  );
+  assert.doesNotMatch(
+    engineSource,
+    /\bnew Proxy\b|Object\.defineProperty|createComposedStateAdapter/,
+  );
+
+  for (const profession of [
+    "engineer",
+    "guardian",
+    "mesmer",
+    "necromancer",
+    "revenant",
+  ]) {
+    const root = path.join(jsRoot, "professions", profession);
+    for (const file of await javascriptFiles(root)) {
+      if (path.basename(file) !== "module.ts") continue;
+      const source = await readFile(file, "utf8");
+      assert.doesNotMatch(
+        source,
+        /defineProfessionModule<SchedulerRecord>/,
+        path.relative(jsRoot, file),
+      );
+    }
+  }
 });
 
 test("application shell uses feature-owned modules without legacy facades", async () => {

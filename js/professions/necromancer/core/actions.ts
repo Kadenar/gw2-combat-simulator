@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Core (profession-agnostic) necromancer skill handlers.
  *
@@ -17,7 +18,7 @@ function swapWeapons(
 ): boolean {
   const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
   context.state.activeWeaponSet = weaponSet;
-  context.state.profession.autoattackChains = {};
+  professionCoreState(context).autoattackChains = {};
   context.emit({
     type: "weapon_set",
     at: context.effectiveEnd,
@@ -35,7 +36,7 @@ function flip(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (skill.flipSkillId != null) {
     const duration =
       (

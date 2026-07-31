@@ -1,4 +1,5 @@
 import type { SchedulerRecord } from "../../../platform/engine/types.js";
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import type {
   GuardianCoreState,
   GuardianEndStateProjectionOptions,
@@ -35,16 +36,10 @@ export function createGuardianCoreState(): GuardianCoreState {
   };
 }
 
-export function snapshotGuardianState(state: GuardianState): GuardianState {
-  const runtime = state as unknown as {
-    readonly core?: Partial<GuardianState>;
-    readonly specialization?: { readonly state?: Partial<GuardianState> };
-  };
+export function snapshotGuardianState(state: unknown): GuardianState {
   return structuredClone(
-    runtime.core && runtime.specialization?.state
-      ? { ...runtime.core, ...runtime.specialization.state }
-      : state,
-  ) as GuardianState;
+    flattenProfessionState(state),
+  ) as unknown as GuardianState;
 }
 
 export const GUARDIAN_PUBLIC_END_STATE_KEYS = Object.freeze([
@@ -126,7 +121,10 @@ export function projectGuardianEndState({
   resolverState,
 }: GuardianEndStateProjectionOptions): SchedulerRecord {
   const state = snapshotGuardianState(schedulerState.profession);
-  const resolver = resolverState || {};
+  const resolver = flattenProfessionState(resolverState || {});
+  const mutableState = state as unknown as SchedulerRecord;
+  const inactiveDefaults =
+    GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS as unknown as SchedulerRecord;
   // Scheduler state owns castability and resources. These values are produced
   // only while resolving chronological damage and condition events.
   for (const key of [
@@ -150,13 +148,13 @@ export function projectGuardianEndState({
     "effulgentActiveUntil",
     "effulgentStacks",
   ]) {
-    if (Object.hasOwn(resolver, key)) state[key] = resolver[key];
+    if (Object.hasOwn(resolver, key)) mutableState[key] = resolver[key];
   }
   return Object.fromEntries(
     GUARDIAN_PUBLIC_END_STATE_KEYS.map((key) => [
       key,
       structuredClone(
-        state[key] ?? GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS[key],
+        mutableState[key] ?? inactiveDefaults[key],
       ),
     ]),
   );

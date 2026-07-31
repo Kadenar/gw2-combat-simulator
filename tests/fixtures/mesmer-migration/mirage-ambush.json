@@ -80,6 +80,7 @@
       "events": [
         {
           "__order": 0,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
           "endsAt": 0,
@@ -92,10 +93,12 @@
           "skillName": "Dodge / Mirage Cloak",
           "source": "mesmer",
           "sourceId": -1,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.axe"
         },
         {
           "__order": 1,
+          "activationId": "cast:1",
           "at": 0,
           "detail": "Dodge / Mirage Cloak (1.5s)",
           "name": "Ambush Window",
@@ -106,6 +109,7 @@
         },
         {
           "__order": 2,
+          "activationId": "cast:1",
           "at": 0,
           "duration": 0.75,
           "kind": "mirage-cloak",
@@ -118,6 +122,7 @@
         },
         {
           "__order": 3,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0,
           "endsAt": 0.52,
@@ -130,10 +135,12 @@
           "skillName": "Imaginary Axes",
           "source": "mesmer",
           "sourceId": 44321,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.axe"
         },
         {
           "__order": 4,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.52,
           "blade": false,
@@ -150,10 +157,11 @@
           "totalHits": 2,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.axe"
         },
         {
           "__order": 5,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.52,
           "blade": false,
@@ -170,10 +178,11 @@
           "totalHits": 2,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.axe"
         },
         {
           "__order": 6,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.52,
           "condition": "Torment",
@@ -218,6 +227,7 @@
       "resolvedEvents": [
         {
           "__order": 4,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.52,
           "blade": false,
@@ -227,6 +237,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Imaginary Axes",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": "Imaginary Axes",
           "skillName": "Imaginary Axes",
@@ -236,10 +247,12 @@
           "totalHits": 2,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.axe",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 5,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.52,
           "blade": false,
@@ -249,6 +262,7 @@
           "hitIndex": 2,
           "hits": 1,
           "name": "Imaginary Axes",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": "Imaginary Axes",
           "skillName": "Imaginary Axes",
@@ -258,10 +272,12 @@
           "totalHits": 2,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.axe",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 6,
+          "activationId": "cast:2",
           "activeDuration": 0,
           "actorType": "player",
           "at": 0.52,

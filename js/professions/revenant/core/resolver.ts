@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import type {
   RevenantResolverContext,
   RevenantResolverEvent,
@@ -7,10 +8,16 @@ function handleRevenantState(
   context: RevenantResolverContext,
   event: RevenantResolverEvent,
 ): void {
+  const core = professionCoreState(context);
+  const specialization = context.profession.specialization.state;
   const preserved = {
-    traitProcReadyAt: context.profession.traitProcReadyAt || {},
+    traitProcReadyAt: core.traitProcReadyAt || {},
   };
-  Object.assign(context.profession, structuredClone(event.state || {}), preserved);
+  for (const [key, value] of Object.entries(event.state || {})) {
+    const owner = Object.hasOwn(specialization, key) ? specialization : core;
+    (owner as Record<string, unknown>)[key] = structuredClone(value);
+  }
+  Object.assign(core, preserved);
 }
 export const revenantCoreResolverEventHandlers = Object.freeze({
   "revenant.state": handleRevenantState,

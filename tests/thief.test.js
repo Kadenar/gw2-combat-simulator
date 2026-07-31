@@ -246,10 +246,9 @@ test("Thief resources use profession-specific initiative and malice pips", () =>
     thiefProfession.ui.resourceViews({
       specialization,
       config: { specialization, ...config },
-      professionState: thiefProfession.createProfessionState({
+      professionState: thiefProfession.resolveRuntime({
         specialization,
-        ...config,
-      }),
+      }).createProfessionState({ specialization, ...config }),
     });
 
   const coreInitiative = resourceViews("Core")[0];

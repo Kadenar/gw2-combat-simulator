@@ -1,3 +1,4 @@
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../../app/simulation/randomness.js";
 import { guardianCatalog } from "../catalog.js";
 import type {
@@ -23,9 +24,9 @@ export function guardianUiSkillIdsByName(
   context: GuardianUiContext = {},
 ): SkillId[] {
   const activeFlips =
-    context.state?.profession?.availableFlips ||
-    context.professionState?.availableFlips ||
-    {};
+    flattenProfessionState(
+      context.state?.profession || context.professionState,
+    ).availableFlips as Record<string, number> || {};
   return names.flatMap((name) => {
     const id = guardianCatalog.skillsByName.get(name)?.id;
     if (id == null) return [];

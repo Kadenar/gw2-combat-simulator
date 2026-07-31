@@ -1,5 +1,9 @@
 # Elite-specialization family migration specification
 
+> Status: complete for Engineer, Guardian, Mesmer, Necromancer, Revenant, and
+> Thief. This document is retained as migration history. Elementalist remains
+> outside the family architecture pending a separate review.
+
 ## Purpose
 
 This document is the repeatable specification for converting one native
@@ -27,10 +31,10 @@ acceptance requirements.
 | --- | --- | --- |
 | Necromancer | Complete | Reference family: Core, Reaper, Scourge, Harbinger, Ritualist |
 | Mesmer | Complete | Family: Core, Chronomancer, Mirage, Virtuoso, Troubadour |
-| Guardian | Pending | Legacy profession-wide contract |
-| Engineer | Pending | Legacy profession-wide contract |
+| Guardian | Complete | Family: Core, Dragonhunter, Firebrand, Willbender, Luminary |
+| Engineer | Complete | Family: Core, Scrapper, Holosmith, Mechanist, Amalgam |
 | Revenant | Complete | Family: Core, Herald, Renegade, Vindicator, Conduit |
-| Thief | Pending | Legacy profession-wide contract |
+| Thief | Complete | Family: Core, Daredevil, Deadeye, Specter, Antiquary |
 | Elementalist | Separate review | Standalone application and custom simulation architecture |
 
 Only one row may be in progress at a time. Finish its validation and update
@@ -251,10 +255,11 @@ Root facades exist only for stable imports or the complete application surface:
   module-specific catalog slices.
 - `mechanics/skill-mechanics.ts` may normalize and merge module-owned raw skill
   fragments.
-- `handlers.ts` and `resolver.ts` may merge registries for the complete
-  application catalog.
-- `state.ts` may preserve the public state factory or result projection.
-- `ui.ts` may dispatch application callbacks to Core plus the selected elite.
+- `handlers.ts` may merge inert skill-handler strategies required by the
+  complete application catalog.
+- public end-state projection remains in Core state ownership.
+- root `resolver`, full-state factory, and UI dispatch facades are removed;
+  runtime resolution and application UI composition are platform-owned.
 
 Core and elite feature files must not import executable application facades.
 The composition-only `module.ts` may import the inert catalog-slice function;

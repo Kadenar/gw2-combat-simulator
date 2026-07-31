@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { snapshotThiefState } from "./state.js";
 
 export function emitThiefState(context, at, reason) {
@@ -27,7 +28,7 @@ export function emitThiefShroudSwap(context, skill, at) {
 }
 
 export function gainThiefInitiative(context, amount, at, reason) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   state.initiative = Math.min(
     state.maximumInitiative,
     state.initiative + Math.max(0, Number(amount || 0)),
@@ -36,7 +37,7 @@ export function gainThiefInitiative(context, amount, at, reason) {
 }
 
 export function gainThiefEndurance(context, amount, at, reason) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   state.endurance = Math.min(
     state.maximumEndurance,
     state.endurance + Math.max(0, Number(amount || 0)),

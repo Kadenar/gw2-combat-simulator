@@ -9,7 +9,7 @@ import {
 } from "../../data/ids.js";
 import {
   cloneNecromancerAttributes,
-  necromancerRuntimeState,
+  necromancerRuntimeSpecializationState,
 } from "../../core/rules.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
@@ -34,7 +34,7 @@ function modifyScourgeAttributes(
   }
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&
-    (necromancerRuntimeState(context).shades || []).some(
+    (necromancerRuntimeSpecializationState(context).shades || []).some(
       (expiresAt: number) => expiresAt > context.time,
     )
   ) {

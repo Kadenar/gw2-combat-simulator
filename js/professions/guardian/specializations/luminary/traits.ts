@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { isGw2PlayerActorEvent } from "../../../../platform/gw2/event-ownership.js";
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from "../../data/ids.js";
@@ -18,7 +22,7 @@ import type {
   GuardianResolverEvent,
   GuardianSchedulerContext,
   GuardianSkill,
-  GuardianState,
+  GuardianLuminaryState,
   GuardianVirtue,
 } from "../../types.js";
 
@@ -37,7 +41,7 @@ const RADIANT_VIRTUE_IDS: ReadonlySet<SkillId> = new Set([
 ]);
 
 function lightAuraActive(
-  state: GuardianState,
+  state: GuardianLuminaryState,
   at: number,
   epsilon: number,
 ): boolean {
@@ -45,7 +49,7 @@ function lightAuraActive(
 }
 
 function activeLightField(
-  state: GuardianState,
+  state: GuardianLuminaryState,
   at: number,
   epsilon: number,
 ): boolean {
@@ -58,7 +62,7 @@ function activeLightField(
 }
 
 function addLightField(
-  state: GuardianState,
+  state: GuardianLuminaryState,
   startsAt: number,
   duration: number,
 ): void {
@@ -71,7 +75,7 @@ function detonateLightAura(
   skill: GuardianSkill,
   at: number,
 ): boolean {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Luminary");
   if (!lightAuraActive(state, at, context.epsilon)) return false;
   state.lightAuraUntil = 0;
   context.emit(
@@ -103,12 +107,12 @@ function grantLightAura(
   at: number,
 ): void {
   if (
-    lightAuraActive(context.state.profession, at, context.epsilon) &&
+    lightAuraActive(professionSpecializationState(context, "Luminary"), at, context.epsilon) &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
   ) {
     detonateLightAura(context, skill, at);
   }
-  context.state.profession.lightAuraUntil = at + 4;
+  professionSpecializationState(context, "Luminary").lightAuraUntil = at + 4;
 }
 
 function isLuminaryDetonator(skill: GuardianSkill): boolean {
@@ -134,7 +138,7 @@ function processLightAuraAndFields(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Luminary");
   const activationAt = context.start;
   const impactAt = context.effectiveEnd;
   const sovereign = hasGuardianTrait(
@@ -189,7 +193,7 @@ function processStanceDamageBuffs(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Luminary");
   if (skill.id === GUARDIAN_SKILL_IDS.PIERCING_STANCE) {
     const at = context.start;
     const wasActive =
@@ -253,7 +257,7 @@ export function handleRadiantWeaponEquipped(
 ): void {
   if (!skill.radiantWeapon || skill.flipParentId != null) return;
   const at = context.effectiveEnd + 0.001;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Luminary");
   const weapon = skill.radiantWeapon;
   state.radiantWeaponsUsed[weapon] = true;
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
@@ -341,7 +345,7 @@ function handleLuminaryVirtueTraits(
   const virtue = virtueFor(skill);
   if (!virtue) return;
   const at = context.effectiveEnd;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Luminary");
   if (
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS) &&
     resetRadiantWeaponCooldowns(context, virtue)
@@ -386,7 +390,7 @@ export function updateLuminaryTraitCastState(
   skill: GuardianSkill,
 ): void {
   if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
-    context.state.profession.availableFlips[
+    professionCoreState(context).availableFlips[
       GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE
     ] = Number.POSITIVE_INFINITY;
   }
@@ -404,7 +408,7 @@ export function observeLuminaryScheduledEvent(
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES &&
     Number(event.hitIndex || 0) === 1
   ) {
-    addLightField(context.state.profession, event.at, 4);
+    addLightField(professionSpecializationState(context, "Luminary"), event.at, 4);
   }
   if (
     event.type === "damage" &&
@@ -440,7 +444,7 @@ export function reactToEffulgentStrike(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  const state = context.profession;
+  const state = professionSpecializationState(context, "Luminary");
   const guardianOwnedStrike =
     isGw2PlayerActorEvent(event) ||
     (event.source === "guardian" && event.actorType === "effect");
@@ -465,15 +469,15 @@ export function handleEffulgentActivated(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  context.profession.effulgentActiveUntil = event.at + 4;
-  context.profession.effulgentStacks = 0;
+  professionSpecializationState(context, "Luminary").effulgentActiveUntil = event.at + 4;
+  professionSpecializationState(context, "Luminary").effulgentStacks = 0;
 }
 
 export function handleEffulgentDetonate(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  const state = context.profession;
+  const state = professionSpecializationState(context, "Luminary");
   const stacks = Math.max(0, Math.min(10, Number(state.effulgentStacks || 0)));
   state.effulgentActiveUntil = 0;
   state.effulgentStacks = 0;

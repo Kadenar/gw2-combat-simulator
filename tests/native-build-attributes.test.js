@@ -36,8 +36,8 @@ import {
   NECROMANCER_TRAIT_IDS,
 } from "../js/professions/necromancer/data/ids.js";
 import {
-  createNecromancerState,
-} from "../js/professions/necromancer/state.js";
+  createNecromancerCoreState,
+} from "../js/professions/necromancer/core/state.js";
 import { createRevenantBuildDefaults } from "../js/professions/revenant/build.js";
 import {
   calculateAttributes as calculateRevenantAttributes,
@@ -57,7 +57,7 @@ import {
 import {
   THIEF_TRAIT_IDS,
 } from "../js/professions/thief/data/ids.js";
-import { createThiefState } from "../js/professions/thief/state.js";
+import { createThiefCoreState } from "../js/professions/thief/core/state.js";
 
 function traitDelta(
   calculate,
@@ -127,11 +127,11 @@ test("shared attribute provenance applies profession static rules once", () => {
     necromancerDirect.precision,
   );
 
-  const necromancerDirectState = createNecromancerState({
+  const necromancerDirectState = createNecromancerCoreState({
     traitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
     stats: { power: 1000, vitality: 1000 },
   });
-  const necromancerBrowserState = createNecromancerState({
+  const necromancerBrowserState = createNecromancerCoreState({
     ...applied,
     traitIds: [NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE],
     stats: { power: 1000, vitality: 1100 },
@@ -155,11 +155,11 @@ test("shared attribute provenance applies profession static rules once", () => {
   assert.equal(revenantDirect, 1.15);
   assert.equal(revenantBrowser, revenantDirect);
 
-  const thiefDirect = createThiefState({
+  const thiefDirect = createThiefCoreState({
     traitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE],
     stats: { vitality: 1000, power: 1000 },
   });
-  const thiefBrowser = createThiefState({
+  const thiefBrowser = createThiefCoreState({
     ...applied,
     traitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE],
     stats: { vitality: 1070, power: 1000 },
@@ -358,10 +358,10 @@ test("Condition Harbinger attributes match the in-game stat panel", () => {
   assert.equal(attributes["Condition Damage"].final, 2093);
   assert.equal(attributes.Expertise.final, 971);
   assert.equal(attributes["Condition Duration"].final, 79.73333333333333);
-  assert.equal(attributes["Torment Duration"].final, 20);
+  assert.equal(attributes["Bleeding Duration"].final, 20);
   assert.equal(
     attributes["Condition Duration"].final
-      + attributes["Torment Duration"].final,
+      + attributes["Bleeding Duration"].final,
     99.73333333333333,
   );
 });

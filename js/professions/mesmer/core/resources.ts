@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   MESMER_SKILL_IDS as ID,
   MESMER_TRAIT_IDS as TRAIT,
@@ -13,7 +14,7 @@ import type {
   MesmerCloneAttackScheduler,
   MesmerDestroyClone,
   MesmerPendingResource,
-  MesmerProfessionState,
+  MesmerRuntimeState,
   MesmerResourceCause,
   MesmerResourceController,
   MesmerResourceDefinition,
@@ -30,7 +31,7 @@ const RESOURCE_TRAIT_IDS = new Set<number>([
 ]);
 
 interface ResourceControllerOptions {
-  readonly state: SchedulerState<MesmerProfessionState>;
+  readonly state: SchedulerState<MesmerRuntimeState>;
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly epsilon: number;
@@ -66,6 +67,15 @@ export function createResourceController({
   scheduleResourceTask = null,
 }: ResourceControllerOptions): MesmerResourceController {
   let cloneSequence = 0;
+  const numericResourceState = () => {
+    const active = state.profession.specialization;
+    if (active.kind !== "Virtuoso" && active.kind !== "Troubadour") {
+      throw new TypeError(
+        `${active.kind} does not own a numeric Mesmer resource.`,
+      );
+    }
+    return active.state;
+  };
   let onAmbushCreatedClones = (
     _at: number,
     _clones: readonly MesmerClone[],
@@ -98,8 +108,8 @@ export function createResourceController({
 
     if (resourceDefinition.singular === "clone") {
       for (let index = 0; index < amount; index += 1) {
-        if (state.profession.clones.length >= resourceDefinition.maximum) {
-          const replaced = state.profession.clones.shift();
+        if (professionCoreState(state).clones.length >= resourceDefinition.maximum) {
+          const replaced = professionCoreState(state).clones.shift();
           if (replaced) destroyClone(replaced, at);
         }
         const clone = {
@@ -108,19 +118,20 @@ export function createResourceController({
           weapon: weapon || activePrimaryWeapon(),
         };
         const initialized = cloneAttackScheduler.initializeClone(clone);
-        state.profession.clones.push(initialized);
+        professionCoreState(state).clones.push(initialized);
         createdClones.push(initialized);
         created.push({ id: clone.id, weapon: clone.weapon });
         gained += 1;
       }
     } else {
-      const before = state.profession.numericResource;
-      state.profession.numericResource = clamp(
+      const resourceState = numericResourceState();
+      const before = resourceState.numericResource;
+      resourceState.numericResource = clamp(
         before + amount,
         0,
         resourceDefinition.maximum,
       );
-      gained = state.profession.numericResource - before;
+      gained = resourceState.numericResource - before;
     }
 
     if (gained <= 0) return;
@@ -130,8 +141,8 @@ export function createResourceController({
       amount: gained,
       value:
         resourceDefinition.singular === "clone"
-          ? state.profession.clones.length
-          : state.profession.numericResource,
+          ? professionCoreState(state).clones.length
+          : numericResourceState().numericResource,
       resource: resourceDefinition.plural,
       reason,
       created,
@@ -165,7 +176,9 @@ export function createResourceController({
         (resourceTraitId === TRAIT.SELF_DECEPTION &&
           cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH)) &&
       traits.has(TRAIT.INFINITE_HORIZON) &&
-      state.profession.cloneAmbushUntil >= at - epsilon
+      state.profession.specialization.kind === "Mirage"
+      && state.profession.specialization.state.cloneAmbushUntil
+        >= at - epsilon
     ) {
       onAmbushCreatedClones(at, createdClones);
     }
@@ -182,14 +195,14 @@ export function createResourceController({
       scheduleResourceTask({ at, count, weapon, reason, cause });
       return;
     }
-    state.profession.pendingResources.push({
+    professionCoreState(state).pendingResources.push({
       at,
       count,
       weapon,
       reason,
       cause,
     });
-    state.profession.pendingResources.sort((a, b) => a.at - b.at);
+    professionCoreState(state).pendingResources.sort((a, b) => a.at - b.at);
   };
 
   return {

@@ -35,15 +35,9 @@ import type {
   SchedulerRecord,
   SchedulerStep,
 } from "../../platform/engine/types.js";
-import type {
-  Gw2ProcStep,
-} from "../../platform/gw2/types.js";
-import type {
-  TimelineInteractionOptions,
-} from "../../platform/ui/types.js";
-import type {
-  ProfessionAppState,
-} from "../profession/types.js";
+import type { Gw2ProcStep } from "../../platform/gw2/types.js";
+import type { TimelineInteractionOptions } from "../../platform/ui/types.js";
+import type { ProfessionAppState } from "../profession/types.js";
 
 type TimelineItem = SchedulerRecord & {
   name: string;
@@ -170,9 +164,10 @@ export function renderTimeline(app: ProfessionAppState): void {
       const item = timelineItem(entry);
       const explicitSkillId =
         item.skillId == null ? null : Number(item.skillId);
-      const skill = explicitSkillId !== null && Number.isFinite(explicitSkillId)
-        ? app.skillById.get(explicitSkillId)
-        : app.skillByName.get(String(item.name));
+      const skill =
+        explicitSkillId !== null && Number.isFinite(explicitSkillId)
+          ? app.skillById.get(explicitSkillId)
+          : app.skillByName.get(String(item.name));
       return app.profession.ui.timelineWeaponLineTransition({
         entry: item,
         skill,
@@ -250,9 +245,8 @@ export function renderTimeline(app: ProfessionAppState): void {
     .map((row, rowNumber) => {
       const weapons =
         row.weaponSet === 1 ? app.build.weapons : app.build.alternateWeapons;
-      const weaponLabel = row.weaponLine
-        || weapons.filter(Boolean).join("/")
-        || "Unequipped";
+      const weaponLabel =
+        row.weaponLine || weapons.filter(Boolean).join("/") || "Unequipped";
       const rowLabel = row.weaponLine
         ? row.weaponLine.replace(/ Kit$/, "")
         : `W${row.weaponSet}`;
@@ -270,9 +264,10 @@ export function renderTimeline(app: ProfessionAppState): void {
         const item = timelineItem(entry);
         const explicitSkillId =
           item.skillId == null ? null : Number(item.skillId);
-        const skill = explicitSkillId !== null && Number.isFinite(explicitSkillId)
-          ? app.skillById.get(explicitSkillId)
-          : app.skillByName.get(String(item.name));
+        const skill =
+          explicitSkillId !== null && Number.isFinite(explicitSkillId)
+            ? app.skillById.get(explicitSkillId)
+            : app.skillByName.get(String(item.name));
         const step = steps.get(index);
         const invalid = Boolean(step?.invalid);
         const display =
@@ -544,8 +539,7 @@ export function renderTimeline(app: ProfessionAppState): void {
       const active =
         !!key &&
         icons.some(
-          icon =>
-            icon instanceof HTMLElement && icon.dataset.procKey === key,
+          (icon) => icon instanceof HTMLElement && icon.dataset.procKey === key,
         );
       if (!active) app.procHighlightKey = null;
       icons.forEach((icon) => {

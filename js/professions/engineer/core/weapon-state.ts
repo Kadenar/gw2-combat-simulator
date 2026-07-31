@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import type {
   EngineerCastContext,
   EngineerSkill,
@@ -7,7 +8,7 @@ export function updateEngineerWeaponState(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const chain = typeof skill.id === "number"
     ? context.catalog.autoattackChainPositions.get(skill.id)
     : undefined;

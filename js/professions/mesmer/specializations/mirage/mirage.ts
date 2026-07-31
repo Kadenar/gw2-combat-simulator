@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import {
   MESMER_SKILL_IDS as ID,
@@ -21,7 +25,7 @@ import type {
   MesmerCurrentResource,
   MesmerMirageCloakOptions,
   MesmerMirageController,
-  MesmerProfessionState,
+  MesmerRuntimeState,
   MesmerQueueResources,
   MesmerSkill,
 } from "../../types.js";
@@ -40,7 +44,7 @@ const DECEPTION_SKILLS = new Set<number>([
 ]);
 
 interface MirageActionControllerOptions {
-  readonly state: SchedulerState<MesmerProfessionState>;
+  readonly state: SchedulerState<MesmerRuntimeState>;
   readonly config: MesmerConfig;
   readonly traits: ReadonlySet<number>;
   readonly ambushAttacks: Readonly<Record<string, MesmerAmbushAttack>>;
@@ -112,7 +116,7 @@ export function createMirageActionController({
 
   const executeCloneAmbushes = (
     at: number,
-    clones: readonly MesmerClone[] = state.profession.clones,
+    clones: readonly MesmerClone[] = professionCoreState(state).clones,
   ) => {
     if (!traits.has(TRAIT.INFINITE_HORIZON) || !clones.length) return;
     addTraitProc(
@@ -170,11 +174,11 @@ export function createMirageActionController({
     duration = 1.5,
   ) => {
     if (config.specialization !== "Mirage") return;
-    state.profession.ambushUntil = Math.max(
-      state.profession.ambushUntil,
+    professionSpecializationState(state, "Mirage").ambushUntil = Math.max(
+      professionSpecializationState(state, "Mirage").ambushUntil,
       at + duration,
     );
-    state.profession.ambushSource = source;
+    professionSpecializationState(state, "Mirage").ambushSource = source;
     addEvent({
       type: "marker",
       at,
@@ -227,8 +231,8 @@ export function createMirageActionController({
     }
     reduceDuneCloakShatters(at, source);
     if (grantCloneCloak && traits.has(TRAIT.INFINITE_HORIZON)) {
-      state.profession.cloneAmbushUntil = at + duration;
-      executeCloneAmbushes(at, state.profession.clones);
+      professionSpecializationState(state, "Mirage").cloneAmbushUntil = at + duration;
+      executeCloneAmbushes(at, professionCoreState(state).clones);
     }
   };
 
@@ -251,7 +255,7 @@ export function createMirageActionController({
       addCondition(ambush.name, at, condition);
     }
     if (
-      state.profession.riddleOfSandReady &&
+      professionSpecializationState(state, "Mirage").riddleOfSandReady &&
       traits.has(TRAIT.RIDDLE_OF_SAND)
     ) {
       addCondition(
@@ -262,7 +266,7 @@ export function createMirageActionController({
         `${ambush.name} — Riddle of Sand`,
       );
       addTraitProc("Riddle of Sand", at, ambush.name, "2 confusion");
-      state.profession.riddleOfSandReady = false;
+      professionSpecializationState(state, "Mirage").riddleOfSandReady = false;
     }
     for (const boon of ambush.playerBoons || []) {
       addBoon(at, boon, ambush.name);
@@ -278,8 +282,8 @@ export function createMirageActionController({
         sourceSkillId: skill.id,
       });
     }
-    state.profession.ambushUntil = 0;
-    state.profession.ambushSource = "";
+    professionSpecializationState(state, "Mirage").ambushUntil = 0;
+    professionSpecializationState(state, "Mirage").ambushSource = "";
   };
 
   const handleMirageShatter = (
@@ -289,7 +293,7 @@ export function createMirageActionController({
   ) => {
     if (config.specialization !== "Mirage") return;
     if (traits.has(TRAIT.RIDDLE_OF_SAND)) {
-      state.profession.riddleOfSandReady = true;
+      professionSpecializationState(state, "Mirage").riddleOfSandReady = true;
       addTraitProc("Riddle of Sand", at, skill.name, "ambush primed");
     }
     if (traits.has(TRAIT.NOMADS_ENDURANCE)) {

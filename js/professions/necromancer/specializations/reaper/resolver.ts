@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { isInternalCooldownReady } from "../../../../platform/engine/internal-cooldown.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
@@ -31,25 +32,25 @@ function reactToDamage(
     return;
   }
   if (!usesRandomTraitProcs(context)) {
-    context.profession.chillingNovaProgress += Number(
+    professionCoreState(context).chillingNovaProgress += Number(
       details.hitContext?.critical?.chance || 0,
     );
   }
   if (
     !(usesRandomTraitProcs(context)
       ? rolledCritical(details)
-      : context.profession.chillingNovaProgress >= 1) ||
+      : professionCoreState(context).chillingNovaProgress >= 1) ||
     !isInternalCooldownReady(
       event.at,
-      Number(context.profession.traitProcReadyAt.chillingNova || 0),
+      Number(professionCoreState(context).traitProcReadyAt.chillingNova || 0),
     )
   ) {
     return;
   }
   if (!usesRandomTraitProcs(context)) {
-    context.profession.chillingNovaProgress -= 1;
+    professionCoreState(context).chillingNovaProgress -= 1;
   }
-  context.profession.traitProcReadyAt.chillingNova = event.at + 3;
+  professionCoreState(context).traitProcReadyAt.chillingNova = event.at + 3;
   queueTraitCoefficientDamage(context, event, {
     name: "Chilling Nova",
     traitId: TRAIT.CHILLING_NOVA,

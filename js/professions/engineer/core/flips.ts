@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { emitEngineerState } from "./events.js";
 import { turretOwnerId } from "./turrets.js";
 import type {
@@ -11,7 +12,7 @@ function armFlip(
 ): void {
   const flipSkillId = Number(skill.paletteFlipSkillId ?? skill.flipSkillId);
   if (!Number.isFinite(flipSkillId)) return;
-  context.state.profession.availableFlips[flipSkillId] = true;
+  professionCoreState(context).availableFlips[flipSkillId] = true;
   emitEngineerState(context, context.effectiveEnd, "arm-flip");
 }
 
@@ -19,7 +20,7 @@ function consumeFlip(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  context.state.profession.availableFlips[skill.id] = false;
+  professionCoreState(context).availableFlips[skill.id] = false;
   const parentId = Number(
     skill.flipParentId
     ?? context.catalog.skillsByName.get(skill.flipParentName || "")?.id,

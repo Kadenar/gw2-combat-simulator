@@ -6,9 +6,7 @@ import type {
 } from "../../platform/engine/types.js";
 import { defaultWeaponSkillMatchesSet } from "../../platform/gw2/weapon-skill-matcher.js";
 import { paletteView } from "../../platform/ui/palette.js";
-import type {
-  NormalizedPaletteGroup,
-} from "../../platform/ui/types.js";
+import type { NormalizedPaletteGroup } from "../../platform/ui/types.js";
 import type {
   ProfessionAppState,
   ProfessionSlotLoadoutContext,
@@ -32,14 +30,11 @@ export function uniqueByName(skills: readonly Skill[]): Skill[] {
   return [...unique.values()];
 }
 
-export function weaponSkills(
-  app: ProfessionAppState,
-  weaponSet = 1,
-): Skill[] {
+export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
   const [mainHand, offHand] =
     weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
   return uniqueByName(
-    app.skills.filter(skill => {
+    app.skills.filter((skill) => {
       // Temporary bars and supplemental effects are exposed by profession
       // palette groups, never as skills on an equipped weapon set.
       if (skill.type !== "Weapon" || !skill.weapon) return false;
@@ -88,19 +83,17 @@ export function weaponPaletteRows(
   activeWeaponSet = 1,
 ): WeaponPaletteRow[] {
   return [1, 2]
-    .map(weaponSet => ({
+    .map((weaponSet) => ({
       id: `weapon-set-${weaponSet}`,
       label: `W${weaponSet}`,
       weaponSet,
       active: weaponSet === activeWeaponSet,
       skills: weaponSkills(app, weaponSet),
     }))
-    .filter(row => row.skills.length);
+    .filter((row) => row.skills.length);
 }
 
-export function weaponPaletteStackHtml(
-  groups: readonly string[] = [],
-): string {
+export function weaponPaletteStackHtml(groups: readonly string[] = []): string {
   const content = groups.filter(Boolean).join("");
   if (!content) return "";
   return (
@@ -133,27 +126,26 @@ export function autoattackChainSkillAvailable(
   return skill.name === expected || skill.id === Number(expected);
 }
 
-export function currentAutoattackSkill(
-  app: ProfessionAppState,
-): Skill | null {
+export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {
   const activeWeaponSet = Number(
     app.results?.endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
   );
   const professionValue = app.results?.endState?.profession;
   const professionState =
     professionValue && typeof professionValue === "object"
-      ? professionValue as SchedulerRecord
+      ? (professionValue as SchedulerRecord)
       : {};
   const autoattackChains = professionState.autoattackChains;
   const chainState =
     autoattackChains && typeof autoattackChains === "object"
-      ? autoattackChains as SchedulerRecord
+      ? (autoattackChains as SchedulerRecord)
       : {};
   return (
-    weaponSkills(app, activeWeaponSet).find(skill =>
-      skill.slot === "Weapon_1" &&
-      !skill.ambush &&
-      autoattackChainSkillAvailable(skill, chainState)
+    weaponSkills(app, activeWeaponSet).find(
+      (skill) =>
+        skill.slot === "Weapon_1" &&
+        !skill.ambush &&
+        autoattackChainSkillAvailable(skill, chainState),
     ) || null
   );
 }
@@ -213,27 +205,29 @@ export function paletteActionSkills(
   specialization = activeSpecialization(app),
 ): Skill[] {
   return uniqueByName(
-    app.skills.filter(skill =>
-      skill.type === "Action" &&
-      // Shared actions are simulator-owned records. Positive API/Wiki IDs
-      // classified as Action are usually trait procs, bundles, or encounter
-      // skills and require an explicit opt-in before entering the palette.
-      (Number(skill.id) < 0 || skill.paletteAction === true) &&
-      skill.name !== "Continuum Shift" &&
-      (skill.name !== "Swap Weapons" ||
-        app.profession.ui?.weaponSwapChangesSet === false ||
-        Boolean(app.build.alternateWeapons?.[0])) &&
-      (!skill.specialization || skill.specialization === specialization) &&
-      app.adapter.isSkillAvailable(skill, {
-        build: app.build,
-        specialization,
-        professionState: app.results?.endState?.profession,
-      })
+    app.skills.filter(
+      (skill) =>
+        skill.type === "Action" &&
+        // Shared actions are simulator-owned records. Positive API/Wiki IDs
+        // classified as Action are usually trait procs, bundles, or encounter
+        // skills and require an explicit opt-in before entering the palette.
+        (Number(skill.id) < 0 || skill.paletteAction === true) &&
+        skill.name !== "Continuum Shift" &&
+        (skill.name !== "Swap Weapons" ||
+          app.profession.ui?.weaponSwapChangesSet === false ||
+          Boolean(app.build.alternateWeapons?.[0])) &&
+        (!skill.specialization || skill.specialization === specialization) &&
+        app.adapter.isSkillAvailable(skill, {
+          build: app.build,
+          specialization,
+          professionState: app.results?.endState?.profession,
+        }),
     ),
-  ).sort((left, right) =>
-    (PALETTE_ACTION_ORDER.get(left.name) ?? Number.MAX_SAFE_INTEGER) -
-      (PALETTE_ACTION_ORDER.get(right.name) ?? Number.MAX_SAFE_INTEGER) ||
-    left.name.localeCompare(right.name)
+  ).sort(
+    (left, right) =>
+      (PALETTE_ACTION_ORDER.get(left.name) ?? Number.MAX_SAFE_INTEGER) -
+        (PALETTE_ACTION_ORDER.get(right.name) ?? Number.MAX_SAFE_INTEGER) ||
+      left.name.localeCompare(right.name),
   );
 }
 
@@ -251,15 +245,12 @@ export function rotationLoadoutPaletteGroups(
   return app.adapter.slotLoadout?.paletteGroups(context) || [];
 }
 
-export function rotationSelectedSlotSkills(
-  app: ProfessionAppState,
-): Skill[] {
+export function rotationSelectedSlotSkills(app: ProfessionAppState): Skill[] {
   if (app.adapter.slotLoadout) return [];
-  return Object.values(app.build.selectedSkills)
-    .flatMap(name => {
-      const skill = app.skillByName.get(name);
-      return skill ? [skill] : [];
-    });
+  return Object.values(app.build.selectedSkills).flatMap((name) => {
+    const skill = app.skillByName.get(name);
+    return skill ? [skill] : [];
+  });
 }
 
 export function rotationUtilityFlipByParent(
@@ -277,9 +268,7 @@ export function rotationUtilityFlipByParent(
       continue;
     }
     const parentName = String(
-      skill.flipParent ||
-      skillById.get(Number(skill.flipParentId))?.name ||
-      "",
+      skill.flipParent || skillById.get(Number(skill.flipParentId))?.name || "",
     );
     if (parentName) flips.set(parentName, skill);
   }

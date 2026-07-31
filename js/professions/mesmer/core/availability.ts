@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { EPSILON } from "../../../platform/engine/clock.js";
 import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
 import { mesmerRuntimeFor } from "./runtime.js";
@@ -69,40 +70,10 @@ export function mesmerAvailability(
       reason: `${skill.name} is unavailable for this build.`,
     };
   }
-  if (
-    !isMesmerContinuumSkillAvailable(
-      skill,
-      Boolean(state.profession.continuum),
-    )
-  ) {
-    return {
-      ready: false,
-      retryAt: null,
-      code: "mesmer.continuum-inactive",
-      reason: `${skill.name} requires an active Continuum Split.`,
-    };
-  }
-  if (skill.ambush) {
-    const activeAmbush =
-      runtime.ambushAttacks[runtime.activePrimaryWeapon()];
-    if (
-      !activeAmbush ||
-      activeAmbush.name !== skill.name ||
-      !state.profession.ambushSource ||
-      state.profession.ambushUntil <= at + EPSILON
-    ) {
-      return {
-        ready: false,
-        retryAt: null,
-        code: "mesmer.ambush",
-        reason: `${skill.name} has no active Mirage Cloak ambush window.`,
-      };
-    }
-  }
   const position = context.catalog.autoattackChainPositions.get(skill.id);
   if (position) {
     const expected =
-      state.profession.autoattackChains[position.root] || position.root;
+      professionCoreState(state).autoattackChains[position.root] || position.root;
     if (skill.id !== expected) {
       return {
         ready: false,
@@ -115,7 +86,7 @@ export function mesmerAvailability(
     }
   }
   if (skill.mesmerMechanic?.flipParentId) {
-    const flip = state.profession.availableFlips[skill.id];
+    const flip = professionCoreState(state).availableFlips[skill.id];
     if (!flip || flip.expiresAt < at - EPSILON) {
       const parent = runtime.skillsById.get(
         skill.mesmerMechanic?.flipParentId,

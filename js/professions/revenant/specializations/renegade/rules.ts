@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
 import { gw2AlliedPlayerAssumptions } from "../../../../platform/gw2/allied-players.js";
@@ -9,7 +13,8 @@ import {
 } from "../../data/ids.js";
 import {
   revenantPlayer,
-  revenantProfessionState,
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState,
   revenantTargetHasCondition,
   revenantTimedBuff,
 } from "../../core/attribute-rules.js";
@@ -39,7 +44,7 @@ import type {
 function kallasFervorStacks(context: Gw2ModifierContext): number {
   return Math.min(
     MECHANICS.renegade.kallasFervor.maximumStacks,
-    (revenantProfessionState(context).kallasFervor || []).filter(
+    (revenantRuntimeSpecializationState(context).kallasFervor || []).filter(
       (application) =>
         Number(application.at || 0) <= context.time &&
         Number(application.expiresAt || 0) > context.time,
@@ -101,7 +106,7 @@ function modifyRenegadeCriticalChance(
   chance: number,
 ): number {
   if (!hasTrait(context, TRAIT.BRUTAL_MOMENTUM)) return chance;
-  const state = revenantProfessionState(context);
+  const state = revenantRuntimeCoreState(context);
   const maximum = Number(state.maximumEndurance || 0);
   const full = maximum > 0 && Number(state.endurance || 0) >= maximum - 1e-9;
   return chance + (full ? 0.33 : 0.1);
@@ -136,7 +141,7 @@ function afterRenegadeCast(
   skill: RevenantSkill,
 ): void {
   if (skill.id !== ID.SOULCLEAVES_SUMMIT) return;
-  const active = context.state.profession.activeUpkeeps.find(
+  const active = professionCoreState(context).activeUpkeeps.find(
     (upkeep) => upkeep.skillId === skill.id,
   );
   if (!active) return;
@@ -151,7 +156,7 @@ function advanceRenegadeUpkeep(
   context: RevenantSchedulerContext,
   target: number,
 ): void {
-  const active = context.state.profession.activeUpkeeps.find(
+  const active = professionCoreState(context).activeUpkeeps.find(
     (upkeep) => upkeep.skillId === ID.SOULCLEAVES_SUMMIT,
   );
   if (
@@ -208,7 +213,7 @@ function observeRenegadeEvent(
 ): void {
   if (
     event.type !== "sigil_swap" ||
-    context.state.profession.activeLegendId !== LEGEND.RENEGADE ||
+    professionCoreState(context).activeLegendId !== LEGEND.RENEGADE ||
     !revenantCombatActive(context, event.at)
   ) {
     return;

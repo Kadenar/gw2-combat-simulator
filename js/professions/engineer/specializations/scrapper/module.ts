@@ -12,9 +12,9 @@ import {
 } from "./rules.js";
 import { createScrapperState } from "./state.js";
 import { scrapperUi } from "./ui.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
+import type { ScrapperState } from "../../types.js";
 
-export const scrapperModule = defineProfessionModule<SchedulerRecord>({
+export const scrapperModule = defineProfessionModule<ScrapperState>({
   id: "Scrapper",
   catalog: {
     ...engineerModuleCatalog("Scrapper"),

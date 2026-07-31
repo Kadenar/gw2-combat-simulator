@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import {
   MESMER_SKILL_IDS as ID,
   MESMER_TRAIT_IDS as TRAIT,
@@ -17,7 +18,7 @@ import type {
   MesmerExceptionalProfileOptions,
   MesmerInstrument,
   MesmerPhantasmAttackTiming,
-  MesmerProfessionState,
+  MesmerRuntimeState,
   MesmerQueueResources,
   MesmerResourceDefinition,
   MesmerShatter,
@@ -40,7 +41,7 @@ const SIGNET_ILLUSIONS_RESET_EXCLUSIONS = new Set<number>([
 ]);
 
 interface SkillEffectControllerOptions {
-  readonly state: SchedulerState<MesmerProfessionState>;
+  readonly state: SchedulerState<MesmerRuntimeState>;
   readonly config: MesmerConfig;
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
@@ -96,9 +97,9 @@ export function createSkillEffectController({
   ): boolean => {
     const clarityConsumed =
       CLARITY_CONSUMERS.has(skill.id) &&
-      state.profession.clarityUntil > castStart;
+      professionCoreState(state).clarityUntil > castStart;
     if (CLARITY_CONSUMERS.has(skill.id)) {
-      state.profession.clarityUntil = 0;
+      professionCoreState(state).clarityUntil = 0;
     }
     const pulseCount = Math.max(1, Math.trunc(Number(skill.pulseCount || 1)));
     const pulseTimes =
@@ -411,7 +412,7 @@ export function createSkillEffectController({
     if (skill.trackedHitDamage) {
       const tracking = skill.trackedHitDamage;
       const duration = Number(tracking.duration || 0);
-      let recentHits = [...(state.profession.trackedSkillHits[skill.id] || [])];
+      let recentHits = [...(professionCoreState(state).trackedSkillHits[skill.id] || [])];
       const required = Math.max(
         1,
         Math.trunc(Number(tracking.hitsRequired || 1)),
@@ -456,7 +457,7 @@ export function createSkillEffectController({
           }
         }
       }
-      state.profession.trackedSkillHits[skill.id] = recentHits;
+      professionCoreState(state).trackedSkillHits[skill.id] = recentHits;
     }
 
     const appliedConditions = etherCloneAtMaximum
@@ -575,7 +576,7 @@ export function createSkillEffectController({
     }
 
     if (skill.id === ID.MIND_THE_GAP) {
-      state.profession.clarityUntil = at + CLARITY_DURATION;
+      professionCoreState(state).clarityUntil = at + CLARITY_DURATION;
       addEvent({
         type: "proc",
         procType: "skill",
@@ -641,7 +642,7 @@ export function createSkillEffectController({
     if (skill.type === "Heal" && traits.has(TRAIT.METHOD_OF_MADNESS)) {
       const storm = traitDamage["Lesser Chaos Storm"];
       const readyAt =
-        state.profession.traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
+        professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
       if (isInternalCooldownReady(at, readyAt)) {
         const hits = Math.max(1, Math.trunc(Number(storm.hits || 1)));
         const interval = Math.max(0, Number(storm.interval || 0));
@@ -663,7 +664,7 @@ export function createSkillEffectController({
           );
         }
         addTraitProc("Method of Madness", at, skill.name);
-        state.profession.traitReadyAt[TRAIT.METHOD_OF_MADNESS] =
+        professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] =
           at + Number(storm.cooldown || 0);
         if (traits.has(TRAIT.SYNCOPATE)) {
           const syncopate = traitDamage.Syncopate;

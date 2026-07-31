@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { THIEF_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasThiefTrait } from "./state.js";
 import {
@@ -7,7 +8,7 @@ import {
 } from "./shared.js";
 
 export function updateThiefTraitCastState(context, skill) {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const initiativeCost = Math.max(0, Number(skill.initiativeCost || 0));
   if (

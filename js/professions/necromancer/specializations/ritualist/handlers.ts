@@ -2,7 +2,10 @@ import {
   handleNecromancerPainfulBond,
   handleNecromancerWeaponSpell,
 } from "./events.js";
-import { ritualistResolverEventReactions } from "./resolver.js";
+import {
+  handleNecromancerWeaponSpellAllyTrigger,
+  ritualistResolverEventReactions,
+} from "./resolver.js";
 import {
   necromancerSpiritSkillHandlers,
   ritualistSchedulerHooks,
@@ -35,6 +38,8 @@ export const ritualistEventHandlers = Object.freeze(
   {
     "necromancer.painful-bond": handleNecromancerPainfulBond,
     "necromancer.weapon-spell": handleNecromancerWeaponSpell,
+    "necromancer.weapon-spell-ally-trigger":
+      handleNecromancerWeaponSpellAllyTrigger,
   },
 );
 

@@ -8,10 +8,7 @@
  * can be bootstrapped through the shared profession app adapter.
  */
 
-import type {
-  Gw2AppAdapter,
-  ProfessionAppContract,
-} from "./types.js";
+import type { Gw2AppAdapter, ProfessionAppContract } from "./types.js";
 
 export const PROFESSION_APPLICATION_KINDS = Object.freeze({
   NATIVE: "native",
@@ -47,8 +44,7 @@ const entries: ProfessionRegistryEntry[] = [
     id: "mesmer",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Mesmer",
-    icon:
-      "https://render.guildwars2.com/file/AF61567E16A83F145D6FB35D63BF01074A3A5AB9/156635.png",
+    icon: "https://render.guildwars2.com/file/AF61567E16A83F145D6FB35D63BF01074A3A5AB9/156635.png",
     route: "mesmer.html",
     themeClass: "mesmer-theme",
     specializationSummary:
@@ -58,9 +54,8 @@ const entries: ProfessionRegistryEntry[] = [
       return module.mesmerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import(
-        "../../professions/mesmer/app/app-definition.js"
-      );
+      const module =
+        await import("../../professions/mesmer/app/app-definition.js");
       return module.mesmerAppAdapter;
     },
   },
@@ -68,13 +63,13 @@ const entries: ProfessionRegistryEntry[] = [
     id: "elementalist",
     applicationKind: PROFESSION_APPLICATION_KINDS.STANDALONE,
     name: "Elementalist",
-    icon:
-      "https://render.guildwars2.com/file/BBED46EB20C80D0DDE0F99402493C7E6FFAE1530/156629.png",
+    icon: "https://render.guildwars2.com/file/BBED46EB20C80D0DDE0F99402493C7E6FFAE1530/156629.png",
     route: "elementalist.html",
     themeClass: "",
     specializationSummary: "Core · Tempest · Weaver · Catalyst · Evoker",
     loadProfession: async () => {
-      const module = await import("../../professions/elementalist/definition.js");
+      const module =
+        await import("../../professions/elementalist/definition.js");
       return module.elementalistProfession;
     },
     // Elementalist remains a standalone legacy application.
@@ -84,8 +79,7 @@ const entries: ProfessionRegistryEntry[] = [
     id: "guardian",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Guardian",
-    icon:
-      "https://render.guildwars2.com/file/6E0D0AC6E0CE5C0C29B3D736ABEA070F4A58540E/156633.png",
+    icon: "https://render.guildwars2.com/file/6E0D0AC6E0CE5C0C29B3D736ABEA070F4A58540E/156633.png",
     route: "guardian.html",
     themeClass: "guardian-theme",
     specializationSummary:
@@ -95,9 +89,8 @@ const entries: ProfessionRegistryEntry[] = [
       return module.guardianProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import(
-        "../../professions/guardian/app/app-definition.js"
-      );
+      const module =
+        await import("../../professions/guardian/app/app-definition.js");
       return module.guardianAppAdapter;
     },
   },
@@ -105,19 +98,18 @@ const entries: ProfessionRegistryEntry[] = [
     id: "necromancer",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Necromancer",
-    icon:
-      "https://render.guildwars2.com/file/CA5A4E96080FCF057C9DA0ED35C693477580421C/156637.png",
+    icon: "https://render.guildwars2.com/file/CA5A4E96080FCF057C9DA0ED35C693477580421C/156637.png",
     route: "necromancer.html",
     themeClass: "necromancer-theme",
     specializationSummary: "Core · Reaper · Scourge · Harbinger · Ritualist",
     loadProfession: async () => {
-      const module = await import("../../professions/necromancer/definition.js");
+      const module =
+        await import("../../professions/necromancer/definition.js");
       return module.necromancerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import(
-        "../../professions/necromancer/app/app-definition.js"
-      );
+      const module =
+        await import("../../professions/necromancer/app/app-definition.js");
       return module.necromancerAppAdapter;
     },
   },
@@ -125,8 +117,7 @@ const entries: ProfessionRegistryEntry[] = [
     id: "engineer",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Engineer",
-    icon:
-      "https://render.guildwars2.com/file/A94D00911BD47CDE39A104F90C7D07DE623554ED/156631.png",
+    icon: "https://render.guildwars2.com/file/A94D00911BD47CDE39A104F90C7D07DE623554ED/156631.png",
     route: "engineer.html",
     themeClass: "engineer-theme",
     specializationSummary: "Core · Scrapper · Holosmith · Mechanist · Amalgam",
@@ -135,9 +126,8 @@ const entries: ProfessionRegistryEntry[] = [
       return module.engineerProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import(
-        "../../professions/engineer/app/app-definition.js"
-      );
+      const module =
+        await import("../../professions/engineer/app/app-definition.js");
       return module.engineerAppAdapter;
     },
   },
@@ -145,8 +135,7 @@ const entries: ProfessionRegistryEntry[] = [
     id: "revenant",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Revenant",
-    icon:
-      "https://render.guildwars2.com/file/696A48DD61EE01FD1F4FBBBDB82D74611E04EA39/965717.png",
+    icon: "https://render.guildwars2.com/file/696A48DD61EE01FD1F4FBBBDB82D74611E04EA39/965717.png",
     route: "revenant.html",
     themeClass: "revenant-theme",
     specializationSummary: "Core · Herald · Renegade · Vindicator · Conduit",
@@ -155,9 +144,8 @@ const entries: ProfessionRegistryEntry[] = [
       return module.revenantProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import(
-        "../../professions/revenant/app/app-definition.js"
-      );
+      const module =
+        await import("../../professions/revenant/app/app-definition.js");
       return module.revenantAppAdapter;
     },
   },
@@ -165,8 +153,7 @@ const entries: ProfessionRegistryEntry[] = [
     id: "thief",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Thief",
-    icon:
-      "https://render.guildwars2.com/file/13A2C0EF23F23FF2084875629465279DDA807E3D/103581.png",
+    icon: "https://render.guildwars2.com/file/13A2C0EF23F23FF2084875629465279DDA807E3D/103581.png",
     route: "thief.html",
     themeClass: "thief-theme",
     specializationSummary: "Core · Daredevil · Deadeye · Specter · Antiquary",
@@ -175,9 +162,8 @@ const entries: ProfessionRegistryEntry[] = [
       return module.thiefProfession;
     },
     loadAppAdapter: async () => {
-      const module = await import(
-        "../../professions/thief/app/app-definition.js"
-      );
+      const module =
+        await import("../../professions/thief/app/app-definition.js");
       return module.thiefAppAdapter;
     },
   },
@@ -276,9 +262,10 @@ export const professionOptions: readonly ProfessionOption[] = Object.freeze(
   professionRegistry.map(({ id, name }) => Object.freeze({ id, name })),
 );
 
-export const PROFESSION_ROUTES: Readonly<Record<string, string>> = Object.freeze(
-  Object.fromEntries(professionRegistry.map(({ id, route }) => [id, route])),
-);
+export const PROFESSION_ROUTES: Readonly<Record<string, string>> =
+  Object.freeze(
+    Object.fromEntries(professionRegistry.map(({ id, route }) => [id, route])),
+  );
 
 /**
  * Returns the registered entry for a profession ID, or `null` for an unknown ID.

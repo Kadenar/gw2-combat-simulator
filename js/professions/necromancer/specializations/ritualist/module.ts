@@ -1,5 +1,4 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import {
   ritualistEventHandlers,
   ritualistEventReactions,
@@ -10,8 +9,9 @@ import { ritualistAttributeRules } from "./rules.js";
 import { necromancerModuleCatalog } from "../../catalog.js";
 import { createRitualistState } from "./state.js";
 import { ritualistUi } from "./ui.js";
+import type { RitualistState } from "../../types.js";
 
-export const ritualistModule = defineProfessionModule<SchedulerRecord>({
+export const ritualistModule = defineProfessionModule<RitualistState>({
   id: "Ritualist",
   catalog: {
     ...necromancerModuleCatalog("Ritualist"),

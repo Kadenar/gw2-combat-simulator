@@ -1,9 +1,5 @@
-import type {
-  LegacyRotationItem,
-} from "../../platform/engine/types.js";
-import type {
-  Gw2Config,
-} from "../../platform/gw2/types.js";
+import type { LegacyRotationItem } from "../../platform/engine/types.js";
+import type { Gw2Config } from "../../platform/gw2/types.js";
 import { SIMULATION_RANDOMNESS_MODES } from "../../platform/engine/simulation-random.js";
 import type {
   RandomDistributionOptions,
@@ -137,10 +133,7 @@ export function calculateRandomDistribution(
     seedStart = 1,
   }: RandomDistributionRequest,
   simulateBuild: SimulateForDistribution,
-  {
-    includeSamples = false,
-    onProgress,
-  }: RandomDistributionOptions = {},
+  { includeSamples = false, onProgress }: RandomDistributionOptions = {},
 ): RandomDistributionSummary {
   if (typeof simulateBuild !== "function") {
     throw new TypeError("A simulation function is required.");

@@ -7,10 +7,7 @@ import {
 import { FOOD_DATA } from "../../platform/gw2/gear-data.js";
 import { SIMULATION_RANDOMNESS_MODES } from "../../platform/engine/simulation-random.js";
 import { simulateGw2 } from "../../platform/gw2/simulate.js";
-import type {
-  CatalogEntity,
-  Skill,
-} from "../../platform/engine/types.js";
+import type { CatalogEntity, Skill } from "../../platform/engine/types.js";
 import type {
   Gw2Config,
   Gw2ProfessionContract,
@@ -76,9 +73,7 @@ export function createProfessionRuntime({
       .map((specialization) => specialization.name),
   );
 
-  function eliteSpecialization(
-    build: ProfessionApplicationBuild,
-  ): string {
+  function eliteSpecialization(build: ProfessionApplicationBuild): string {
     return (
       build.specializations.find((specialization) =>
         eliteNames.has(specialization.name),
@@ -92,7 +87,7 @@ export function createProfessionRuntime({
    */
   function selectedSkills(app: ProfessionAppState): Skill[] {
     const loadout = profession.ui.slotLoadout
-      ? profession.ui.slotLoadout as ProfessionSlotLoadout
+      ? (profession.ui.slotLoadout as ProfessionSlotLoadout)
       : null;
     if (loadout) {
       return loadout
@@ -111,12 +106,11 @@ export function createProfessionRuntime({
   }
 
   function recalculate(app: ProfessionAppState): void {
-    app.attributeData =
-      calculateAttributes(
-        app.build,
-        selectedSkills(app),
-        app.attributeWeaponSet || 1,
-      ) as ProfessionAttributeData;
+    app.attributeData = calculateAttributes(
+      app.build,
+      selectedSkills(app),
+      app.attributeWeaponSet || 1,
+    ) as ProfessionAttributeData;
   }
 
   /**
@@ -148,11 +142,11 @@ export function createProfessionRuntime({
       };
     }
     return calculateAttributes(
-        build,
-        selectedSkills(app),
-        app.attributeWeaponSet || 1,
-        disabled.type === "Trait" ? disabled.name : null,
-      ) as ProfessionAttributeData;
+      build,
+      selectedSkills(app),
+      app.attributeWeaponSet || 1,
+      disabled.type === "Trait" ? disabled.name : null,
+    ) as ProfessionAttributeData;
   }
 
   /**
@@ -193,12 +187,9 @@ export function createProfessionRuntime({
    * @param {ProfessionAppState} app
    * @returns {ProfessionModifier[]}
    */
-  function modifierCandidates(
-    app: ProfessionAppState,
-  ): ProfessionModifier[] {
+  function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
     const candidates: ProfessionModifier[] = [];
-    const assumptions =
-      app.build.assumptions as ProfessionBuildAssumptions;
+    const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
     if (Number(assumptions.might) > 0) {
       candidates.push({
         id: "Boon:Might",
@@ -310,13 +301,11 @@ export function createProfessionRuntime({
     };
   }
 
-  function calculateModifierContributions(
-    {
-      rotation,
-      baseConfig,
-      comparisons,
-    }: ModifierContributionRequest,
-  ) {
+  function calculateModifierContributions({
+    rotation,
+    baseConfig,
+    comparisons,
+  }: ModifierContributionRequest) {
     return calculateContributionComparisons(
       { rotation, baseConfig, comparisons },
       simulateBuild,
@@ -359,9 +348,7 @@ export function createProfessionRuntime({
     return calculateDistribution(request, simulateBuild, options);
   }
 
-  function runSimulation(
-    app: ProfessionAppState,
-  ): Gw2SimulationResult {
+  function runSimulation(app: ProfessionAppState): Gw2SimulationResult {
     const config = simulationConfig(app);
     // Detailed tables and timelines need one stable run. When distribution
     // mode is selected, keep that baseline deterministic and calculate RNG

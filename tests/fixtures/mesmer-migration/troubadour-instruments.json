@@ -78,6 +78,7 @@
       "events": [
         {
           "__order": 0,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
           "endsAt": 0.33333333333299997,
@@ -90,10 +91,12 @@
           "skillName": "Lively Lute",
           "source": "mesmer",
           "sourceId": 77306,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
           "__order": 1,
+          "activationId": "cast:1",
           "amount": 0,
           "at": 0.33333333333299997,
           "reason": "profession mechanic",
@@ -106,6 +109,7 @@
         },
         {
           "__order": 2,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.33333333333299997,
           "blade": false,
@@ -122,10 +126,11 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger"
         },
         {
           "__order": 3,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.33333333333299997,
           "blade": false,
@@ -142,10 +147,11 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger"
         },
         {
           "__order": 4,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.33333333333299997,
           "blade": false,
@@ -162,10 +168,11 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger"
         },
         {
           "__order": 6,
+          "activationId": "cast:1",
           "at": 0.33333333333299997,
           "detail": "Lute playing for 5s",
           "name": "Lively Lute",
@@ -176,6 +183,7 @@
         },
         {
           "__order": 7,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.33333333333299997,
           "endsAt": 1.166666666666,
@@ -188,10 +196,12 @@
           "skillName": "Crescendo",
           "source": "mesmer",
           "sourceId": 76931,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
           "__order": 5,
+          "activationId": "cast:1",
           "at": 0.33343333333299996,
           "expiresAt": 5.333333333333,
           "instrument": "Lute",
@@ -202,6 +212,7 @@
         },
         {
           "__order": 8,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 1.166666666666,
           "blade": false,
@@ -218,7 +229,7 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger"
         }
       ],
       "profession": {
@@ -251,6 +262,7 @@
       "resolvedEvents": [
         {
           "__order": 2,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.33333333333299997,
           "blade": false,
@@ -260,6 +272,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Lively Lute",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 77306,
           "skillName": "Lively Lute",
@@ -269,10 +282,12 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 3,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.33333333333299997,
           "blade": false,
@@ -282,6 +297,7 @@
           "hitIndex": 2,
           "hits": 1,
           "name": "Lively Lute",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 77306,
           "skillName": "Lively Lute",
@@ -291,10 +307,12 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 4,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.33333333333299997,
           "blade": false,
@@ -304,6 +322,7 @@
           "hitIndex": 3,
           "hits": 1,
           "name": "Lively Lute",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 77306,
           "skillName": "Lively Lute",
@@ -313,10 +332,12 @@
           "totalHits": 3,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 8,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 1.166666666666,
           "blade": false,
@@ -326,6 +347,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Crescendo",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 76931,
           "skillName": "Crescendo",
@@ -335,7 +357,8 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.dagger",
+          "weaponStrengthSampled": false
         }
       ],
       "steps": [

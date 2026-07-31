@@ -84,6 +84,7 @@
       "events": [
         {
           "__order": 0,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0,
           "endsAt": 0.44,
@@ -96,10 +97,12 @@
           "skillName": "Ether Bolt",
           "source": "mesmer",
           "sourceId": 10289,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 1,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.44,
           "blade": false,
@@ -116,10 +119,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 2,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.44,
           "condition": "Torment",
@@ -135,6 +139,7 @@
         },
         {
           "__order": 3,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.44,
           "endsAt": 0.96,
@@ -147,10 +152,12 @@
           "skillName": "Ether Blast",
           "source": "mesmer",
           "sourceId": 10290,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 4,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -167,10 +174,11 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 5,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.96,
           "condition": "Torment",
@@ -186,6 +194,7 @@
         },
         {
           "__order": 6,
+          "activationId": "cast:3",
           "actorType": "player",
           "at": 0.96,
           "endsAt": 0.96,
@@ -198,10 +207,12 @@
           "skillName": "Swap Weapons",
           "source": "mesmer",
           "sourceId": -3,
-          "type": "action"
+          "type": "action",
+          "weaponStrengthProfileId": "weapon.scepter"
         },
         {
           "__order": 7,
+          "activationId": "cast:3",
           "at": 0.96,
           "schemaVersion": 1,
           "source": "Mesmer",
@@ -240,6 +251,7 @@
       "resolvedEvents": [
         {
           "__order": 1,
+          "activationId": "cast:1",
           "actorType": "player",
           "at": 0.44,
           "blade": false,
@@ -249,6 +261,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Ether Bolt",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10289,
           "skillName": "Ether Bolt",
@@ -258,10 +271,12 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 2,
+          "activationId": "cast:1",
           "activeDuration": 0.52,
           "actorType": "player",
           "at": 0.44,
@@ -288,6 +303,7 @@
         },
         {
           "__order": 4,
+          "activationId": "cast:2",
           "actorType": "player",
           "at": 0.96,
           "blade": false,
@@ -297,6 +313,7 @@
           "hitIndex": 1,
           "hits": 1,
           "name": "Ether Blast",
+          "resolvedWeaponStrength": 1000,
           "schemaVersion": 1,
           "skillId": 10290,
           "skillName": "Ether Blast",
@@ -306,10 +323,12 @@
           "totalHits": 1,
           "type": "damage",
           "weapon": "scepter",
-          "weaponStrength": 1000
+          "weaponStrengthProfileId": "weapon.scepter",
+          "weaponStrengthSampled": false
         },
         {
           "__order": 5,
+          "activationId": "cast:2",
           "activeDuration": 0,
           "actorType": "player",
           "at": 0.96,

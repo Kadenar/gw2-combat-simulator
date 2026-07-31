@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { isInternalCooldownReady } from "../../../../platform/engine/internal-cooldown.js";
 import { gw2AlliedPlayerProcTimeline } from "../../../../platform/gw2/allied-players.js";
@@ -52,7 +56,8 @@ export function updateFirebrandCastState(
   skill: GuardianSkill,
 ): void {
   const at = context.effectiveEnd;
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Firebrand");
+  const coreState = professionCoreState(context);
   const virtue = virtueFor(skill);
   if (virtue) {
     state.activeTome = virtue;
@@ -61,12 +66,12 @@ export function updateFirebrandCastState(
       state.swiftScholarCount = 0;
     }
     const passiveReadyAt = at + DORMANT_DURATION[virtue];
-    state.virtueReadyAt[virtue] = passiveReadyAt;
+    coreState.virtueReadyAt[virtue] = passiveReadyAt;
     emitGuardianEvent(context, skill, "guardian.firebrand-virtue-activated", {
       virtue,
       passiveReadyAt,
     });
-    if (state.lastVirtuePassiveWasReady) {
+    if (coreState.lastVirtuePassiveWasReady) {
       emitGuardianBuff(context, skill, at, "quickness", 3);
       emitGuardianProc(context, {
         name: "Swift Scholar",
@@ -133,7 +138,7 @@ export function observeFirebrandScheduledEvent(
   event: GuardianResolverEvent,
 ): void {
   const kind = String(event.kind || "").toLowerCase();
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Firebrand");
   if (
     event.type === "buff" &&
     ["aegis", "stability"].includes(kind) &&
@@ -231,8 +236,10 @@ export function handleFirebrandVirtueActivation(
 ): void {
   const virtue = event.virtue;
   if (!virtue) return;
-  context.profession.activeTome = virtue;
-  context.profession.virtueReadyAt[virtue] = Number(event.passiveReadyAt);
+  professionSpecializationState(context, "Firebrand").activeTome = virtue;
+  professionCoreState(context).virtueReadyAt[virtue] = Number(
+    event.passiveReadyAt,
+  );
 }
 
 export function reactToFirebrandJusticeHit(
@@ -254,7 +261,7 @@ export function reactToFirebrandBuffTraits(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  const state = context.profession;
+  const state = professionSpecializationState(context, "Firebrand");
   if (
     String(event.kind || "").toLowerCase() !== "quickness" ||
     !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE) ||

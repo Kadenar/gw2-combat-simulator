@@ -27,9 +27,9 @@ codec, storage key, renderer hooks, and worker.
 
 Each native profession has two deliberately separate composition boundaries:
 
-- `definition.js` exports the engine-facing profession contract: catalog,
-  build migration and validation, resources, mechanics, scheduler/resolver
-  hooks, and engine attribute rules. Engine-only consumers use this module.
+- `definition.js` exports the stable profession source. For a family this is
+  an application contract plus `resolveRuntime(config)`; executable resources,
+  rules, hooks, and registries exist only on the resolved runtime.
 - `app/app-definition.js` composes that contract for the shared browser shell.
   It constructs the build attribute calculator and application runtime, then
   supplies persistence metadata, import/export filenames, selector behavior,
@@ -38,22 +38,17 @@ Each native profession has two deliberately separate composition boundaries:
 Keeping browser composition out of `definition.js` lets simulations and other
 engine consumers load a profession without pulling in application rendering,
 storage, and modifier-contribution dependencies. Elementalist remains a
-standalone legacy application and does not use this native composition pattern.
+standalone application with its profession-owned scheduler and resolver.
 
-Necromancer's stable `definition.ts` re-exports `family.ts`. Its Core module is
-under `core/`; Reaper, Scourge, Harbinger, and Ritualist modules are under
-`specializations/<elite>/`. Each directory owns `module.ts`, `state.ts`,
-`skills.ts`, `handlers.ts`, `rules.ts`, and `ui.ts`. The family retains the
-full catalog for build editing, while simulation composes a smaller immutable
-catalog, state factory, handler registries, modifier-rule set, and UI contract
-for the active elite. `platform/engine/profession.ts` owns the generic
-family/module composition and collision validation.
-
-Revenant follows the same family boundary. `core/` owns common energy, legend,
-weapon, upkeep, and trait behavior; `specializations/herald`, `renegade`,
-`vindicator`, and `conduit` own complete elite vertical slices. The root
-catalog, handler, resolver, state, and UI modules are application compatibility
-facades, while simulation composes Core with only the active elite.
+Engineer, Guardian, Mesmer, Necromancer, Revenant, and Thief share the family
+boundary. `core/` owns always-active behavior;
+`specializations/<elite>/` owns each elite vertical slice. A slice normally
+contains `module`, `state`, `skills`, `handlers`, `mechanics`, `rules`, and
+`ui`. `family` imports only the complete catalog, build behavior, Core, the
+elite roster, optional application callbacks, and optional simulation
+refinement. `platform/engine/profession.ts` owns catalog and hook composition,
+collision validation, cached runtime resolution, and generic application UI
+dispatch.
 
 ### Profession composition (`js/app/profession/`)
 
@@ -269,8 +264,8 @@ critical traits, and Bloodsong.
 - [GW2 scheduler policy](js/platform/gw2/scheduler/policy.js) — Quickness,
   Alacrity, and starting-weapon-set policy injected into the neutral scheduler.
 - [event-factory.js](js/platform/gw2/scheduler/event-factory.js) — canonical GW2 scheduler events.
-- [Mesmer contract](js/professions/mesmer/mechanics/contract.js) — Mesmer
-  availability, lifecycle hooks, task handlers, and end-state projection.
+- Owner-local Core and elite `rules.js` modules supply availability,
+  lifecycle hooks, task handlers, and end-state projection.
 
 ### Resolver
 
@@ -283,7 +278,7 @@ critical traits, and Bloodsong.
   — deterministic midpoint or cached per-activation stochastic strength
   resolution and diagnostics.
 - [condition-resolution.js](js/platform/gw2/resolver/condition-resolution.js) — shared condition applications and ticks.
-- [Mesmer reactions](js/professions/mesmer/resolver/event-handlers.js) — Ineptitude, critical traits, Bloodsong, and Mesmer custom timeline events.
+- Owner-local Core and elite resolver modules supply profession reactions.
 
 ### Shared Platform Simulation
 
@@ -295,65 +290,41 @@ critical traits, and Bloodsong.
 
 ### Declarative Profession Mechanics
 
-Every native profession uses the same files for shared concepts:
+Every family module uses the same roles for shared concepts:
 
-- `attribute-rules.js` — profession predicates, declarative scalar modifier
-  rules, and exceptional ordered attribute transforms.
+- `rules.js` — owner-local predicates, declarative scalar modifier rules,
+  cast rules, scheduler hooks, and exceptional ordered transforms.
 - `build-attributes.js` — profession-owned trait delta and conversion
   calculation before shared finalization.
 - `data/<profession>-api-metadata.js` — generated identity and presentation
   metadata only.
 - `data/trait-coverage.js` — one validated, non-pending disposition per catalog
   trait, with structured behavioral test evidence for implemented effects.
-- `mechanics/skill-mechanics.js` — shared-schema declarative skill mechanics
-  for legacy professions; a composition facade over module-owned `skills.js`
-  fragments for migrated families.
-- `mechanics/handler-mechanics.js` — optional legacy profession-wide triggered
-  effect and state-machine formulas. Migrated families use owner-local
-  `mechanics.js` files instead of a mixed runtime aggregate.
+- `mechanics/skill-mechanics.js` — optional inert application-catalog
+  composition over module-owned `skills.js` fragments.
+- `mechanics.js` — owner-local triggered effects and state-machine formulas.
 - `catalog.js` — canonical autoattack-chain derivation plus any profession
   additions or exclusions.
-- `mechanics/handlers.js` — explicit augment/replace runtime strategies for
-  legacy professions. Migrated modules own local handler registries.
+- `handlers.js` — owner-local augment/replace strategies and event/task
+  registries.
 
-Each native `definition.js` is composed through
-`platform/engine/profession.js`. That module owns the complete UI callback
-surface, canonical event-log descriptors, structured palette availability,
-public resource views, optional immutable scheduler-config refinement, and
-callback type validation. Scheduler snapshots remain profession-internal;
-`resources.projectEndState` publishes an explicit allowlisted state object.
+Each family `definition.js` resolves through `platform/engine/profession.js`.
+That module composes the complete application UI from Core plus the selected
+elite and composes a separate executable runtime. Scheduler snapshots remain
+profession-internal; `resources.projectEndState` publishes an explicit
+allowlisted public state object.
 
 `platform/gw2/attribute-provenance.js` defines the shared marker that tells
 runtime hooks whether static profession rules were already applied by browser
 build calculation and which weapon set supplied those attributes.
 
-### Mesmer-Specific Mechanics
+### Family source discovery
 
-- [mesmer-supplemental-skills.js](js/professions/mesmer/data/mesmer-supplemental-skills.js) — positive-ID ambush and flip identity omitted from the API snapshot.
-- [trait-coverage.js](js/professions/mesmer/data/trait-coverage.js) — validated disposition for every catalog trait.
-- [contract.js](js/professions/mesmer/mechanics/contract.js) — standard
-  profession hooks, scheduler-local runtime construction, typed tasks, and
-  chain-preservation policy.
-- [handler-mechanics.js](js/professions/mesmer/mechanics/handler-mechanics.js) — stable-ID handler classification and flip relationships.
-- [handlers.js](js/professions/mesmer/mechanics/specific/handlers.js) — registered augment/replace cast strategies.
-- [availability.js](js/professions/mesmer/mechanics/availability.js) — pure scheduler and palette availability predicates.
-- [illusions.js](js/professions/mesmer/mechanics/specific/illusions.js) — task-driven
-  clone attack scheduling.
-- [resources.js](js/professions/mesmer/mechanics/specific/resources.js) — clone, blade,
-  and note gains.
-- [continuum.js](js/professions/mesmer/mechanics/specific/continuum.js) — Continuum
-  checkpoint and restoration behavior.
-- [expected-procs.js](js/professions/mesmer/mechanics/specific/expected-procs.js) —
-  deterministic scheduling-relevant proc progress.
-- [profession-actions.js](js/professions/mesmer/mechanics/specific/profession-actions.js) — shatters, phantasms, instruments, and specialization resources.
-- [skill-effects.js](js/professions/mesmer/mechanics/specific/skill-effects.js) — exceptional cast profiles selected by registered handler metadata.
-- [mirage.js](js/professions/mesmer/mechanics/specific/mirage.js) — Mirage Cloak and ambush behavior.
-- [trait-rules.js](js/professions/mesmer/mechanics/specific/trait-rules.js) — Mesmer resolver reactions.
-
-Ordinary effects remain in the canonical `effects` array and use shared
-scheduling. Replacing handlers have empty canonical effects and retain their
-profession-owned profile as `mesmerEffects`. Completion and future state
-changes remain chronological through lifecycle hooks and `mesmer.*` tasks.
+`tsconfig.build.json` and `jsconfig.typed.json` include `js/**/*.ts` instead of
+enumerating profession files. New TypeScript module files are built and checked
+automatically. `scripts/check-dist.mjs` verifies that every non-declaration
+TypeScript source has one compiled output, that no generated JavaScript sits
+beside a TypeScript source, and that `dist` has no stale output.
 
 ## Test fixtures
 

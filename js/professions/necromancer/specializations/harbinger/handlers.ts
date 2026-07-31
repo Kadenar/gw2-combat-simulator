@@ -1,4 +1,8 @@
 import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
+import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
@@ -50,10 +54,13 @@ function afterCast(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Harbinger");
   const at = context.effectiveEnd;
   advanceHarbingerBlight(context, at);
-  if (skill.id === ID.HARBINGER_SHROUD && state.activeShroud === "harbinger") {
+  if (
+    skill.id === ID.HARBINGER_SHROUD
+    && professionCoreState(context).activeShroud === "harbinger"
+  ) {
     state.nextBlightAt = Math.floor(at) + 1;
     if (hasTrait(context, TRAIT.CORRUPTED_TALENT)) {
       gainNecromancerLifeForce(context, 15, at);

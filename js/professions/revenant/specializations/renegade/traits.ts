@@ -1,4 +1,8 @@
 import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
+import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
@@ -38,7 +42,7 @@ function expectedCriticals(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): number {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Renegade");
   const chance = Number(
     context.schedulerPolicy.critical?.(context, event)?.chance || 0,
   );
@@ -68,7 +72,7 @@ function applyCriticalTraits(
       sourceName: "Ambush Commander",
     });
   }
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (
     !enmity ||
     criticals <= 0 ||
@@ -133,7 +137,7 @@ function applyKallasFervorLifeSiphon(
     return;
   }
   if (!/siphon/i.test(`${event.name || ""} ${event.skillName || ""}`)) return;
-  const stacks = activeKallasFervorStacks(context.state.profession, event.at);
+  const stacks = activeKallasFervorStacks(professionSpecializationState(context, "Renegade"), event.at);
   if (!stacks) return;
   const profile = MECHANICS.renegade.kallasFervor;
   const perStack = hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
@@ -161,7 +165,7 @@ export function modifyRenegadeCastDuration(
   duration: number,
 ): number {
   return context.skill?.handlerId === "revenant.band-together" &&
-      isBandTogetherReady(context.state.profession, context.start)
+      isBandTogetherReady(professionSpecializationState(context, "Renegade"), context.start)
     ? 0
     : duration;
 }
@@ -172,7 +176,7 @@ export function modifyRenegadeRechargeDuration(
 ): number {
   return context.skill?.handlerId === "revenant.band-together" &&
       isBandTogetherReady(
-        context.state.profession,
+        professionSpecializationState(context, "Renegade"),
         Number(context.start ?? context.at),
       ) &&
       hasRevenantTrait(context.config, TRAIT.ALL_FOR_ONE)
@@ -184,14 +188,17 @@ export function observeRenegadeTraits(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Renegade");
+  const coreState = professionCoreState(context);
   if (
     event.type === "buff" &&
     String(event.kind || "").toLowerCase() === "fury" &&
     hasRevenantTrait(context.config, TRAIT.BLOOD_FURY) &&
-    event.at + context.epsilon >= Number(state.traitProcReadyAt.bloodFury || 0)
+    event.at + context.epsilon >= Number(
+      coreState.traitProcReadyAt.bloodFury || 0
+    )
   ) {
-    state.traitProcReadyAt.bloodFury =
+    coreState.traitProcReadyAt.bloodFury =
       event.at + MECHANICS.renegade.bloodFury.interval;
     grantKallasFervor(context, event, {
       sourceId: TRAIT.BLOOD_FURY,

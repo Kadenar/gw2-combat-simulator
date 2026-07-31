@@ -49,9 +49,7 @@ import type {
   SchedulerRecord,
   Skill,
 } from "../../platform/engine/types.js";
-import type {
-  PaletteSkillView,
-} from "../../platform/ui/types.js";
+import type { PaletteSkillView } from "../../platform/ui/types.js";
 import type {
   ProfessionAppState,
   RotationActionOptions,
@@ -67,9 +65,10 @@ function rotationItem(
   options: RotationActionOptions = {},
 ): LegacyRotationItem {
   const skillId = options.skillId == null ? null : Number(options.skillId);
-  const skill = skillId !== null && Number.isFinite(skillId)
-    ? app.skillById.get(skillId)
-    : app.skillByName.get(name);
+  const skill =
+    skillId !== null && Number.isFinite(skillId)
+      ? app.skillById.get(skillId)
+      : app.skillByName.get(name);
   const defaultInterruptMs = skill?.defaultInterruptMs;
   const resolvedOptions =
     defaultInterruptMs != null && options.interruptMs == null
@@ -92,7 +91,7 @@ export function resolvePaletteDropItem(
   if (
     name === "__combat_start" &&
     app.build.rotation.some(
-      entry => rotationEntryName(entry) === "__combat_start",
+      (entry) => rotationEntryName(entry) === "__combat_start",
     )
   ) {
     return null;
@@ -244,25 +243,28 @@ export function renderPalette(app: ProfessionAppState): void {
   const renderGroups = (
     groups: readonly ProfessionPaletteGroup[],
   ): RenderedPaletteGroup[] =>
-    groups.map(group => {
+    groups.map((group) => {
       const skillIds = group.skillIds || [];
       const reservedSkillIds = group.reservedSkillIds || [];
       return {
         ...group,
         skills: [
-          ...(reservedSkillIds.length ? reservedSkillIds : skillIds)
-            .flatMap(id => {
+          ...(reservedSkillIds.length ? reservedSkillIds : skillIds).flatMap(
+            (id) => {
               const skill = app.skillById.get(id);
               return skill &&
                 (group.includeActionSkills || skill.type !== "Action")
-                ? [{
-                    ...skill,
-                    concealed:
-                      reservedSkillIds.length > 0 &&
-                      !skillIds.includes(skill.id),
-                  }]
+                ? [
+                    {
+                      ...skill,
+                      concealed:
+                        reservedSkillIds.length > 0 &&
+                        !skillIds.includes(skill.id),
+                    },
+                  ]
                 : [];
-            }),
+            },
+          ),
           ...(group.skillEntries || []).flatMap((entry) => {
             const skill = app.skillById.get(Number(entry.skillId));
             return skill &&
@@ -304,22 +306,21 @@ export function renderPalette(app: ProfessionAppState): void {
   const availableFlips =
     professionState.availableFlips &&
     typeof professionState.availableFlips === "object"
-      ? professionState.availableFlips as SchedulerRecord
+      ? (professionState.availableFlips as SchedulerRecord)
       : {};
   const availableAmbush =
     professionState.availableAmbush &&
     typeof professionState.availableAmbush === "object"
-      ? professionState.availableAmbush as SchedulerRecord
+      ? (professionState.availableAmbush as SchedulerRecord)
       : null;
   const autoattackChains =
     professionState.autoattackChains &&
     typeof professionState.autoattackChains === "object"
-      ? professionState.autoattackChains as SchedulerRecord
+      ? (professionState.autoattackChains as SchedulerRecord)
       : {};
   const loadoutUnavailableMessage = (skill: Skill): string =>
     app.adapter.slotLoadout?.unavailableReason(skill, paletteContext) || "";
-  const paletteAvailabilityBySkill =
-    new Map<Skill, PaletteSkillAvailability>();
+  const paletteAvailabilityBySkill = new Map<Skill, PaletteSkillAvailability>();
   const professionPaletteAvailability = (
     skill: Skill,
   ): PaletteSkillAvailability => {
@@ -340,9 +341,11 @@ export function renderPalette(app: ProfessionAppState): void {
   const flipAvailable = (skill: Skill): boolean =>
     Boolean(availableFlips[skill.id] ?? availableFlips[skill.name]);
   const flipParentName = (skill: Skill): string =>
-    String(skill.flipParent ||
-    app.skillById.get(Number(skill.flipParentId))?.name ||
-    "its parent skill");
+    String(
+      skill.flipParent ||
+        app.skillById.get(Number(skill.flipParentId))?.name ||
+        "its parent skill",
+    );
   const usesStatefulFlip = (skill: Skill): boolean =>
     skill.paletteFlip !== false &&
     Boolean(skill.flipParent || skill.flipParentId != null);
@@ -416,6 +419,9 @@ export function renderPalette(app: ProfessionAppState): void {
     if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
       return false;
     }
+    if (!autoattackChainSkillAvailable(skill, autoattackChains)) {
+      return false;
+    }
     return true;
   };
   const professionSkillUnavailableMessage = (skill: Skill): string => {
@@ -424,6 +430,13 @@ export function renderPalette(app: ProfessionAppState): void {
     }
     if (usesStatefulFlip(skill) && !flipAvailable(skill)) {
       return `Unavailable until ${flipParentName(skill)} has been used`;
+    }
+    if (skill.chainRoot) {
+      const expected = chainExpected(skill);
+      if (skill.name !== expected && skill.id !== Number(expected)) {
+        const expectedSkill = app.skillById.get(Number(expected));
+        return `Cast ${expectedSkill?.name || expected} first`;
+      }
     }
     return "";
   };
@@ -536,7 +549,7 @@ export function renderPalette(app: ProfessionAppState): void {
               title: "Combat Start",
               icon: COMBAT_START_ICON,
               disabled: app.build.rotation.some(
-                item => rotationEntryName(item) === "__combat_start",
+                (item) => rotationEntryName(item) === "__combat_start",
               ),
             })}</div>
         </div>

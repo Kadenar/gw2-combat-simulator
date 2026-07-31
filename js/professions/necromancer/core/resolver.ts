@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
 import {
@@ -150,7 +151,7 @@ export function targetIsChilled(
     Number(context.config.target?.conditions?.Chilled || 0) > 0
   )
     return true;
-  return Number(context.profession.targetChilledUntil || 0) > at;
+  return Number(professionCoreState(context).targetChilledUntil || 0) > at;
 }
 
 export function usesRandomTraitProcs(
@@ -235,10 +236,10 @@ export function reactToNecromancerCoreDamage(
     targetBelowHalfHealth(context) &&
     isInternalCooldownReady(
       event.at,
-      Number(context.profession.traitProcReadyAt.siphonedPower || 0),
+      Number(professionCoreState(context).traitProcReadyAt.siphonedPower || 0),
     )
   ) {
-    context.profession.traitProcReadyAt.siphonedPower = event.at + 1;
+    professionCoreState(context).traitProcReadyAt.siphonedPower = event.at + 1;
     enqueueOrdered(context.queue, {
       type: "buff",
       at: event.at,
@@ -259,8 +260,8 @@ export function reactToNecromancerCoreDamage(
     event.actorType === "player" &&
     targetBelowHalfHealth(context)
   ) {
-    context.profession.spitefulFortitudeLifeForce =
-      Number(context.profession.spitefulFortitudeLifeForce || 0) +
+    professionCoreState(context).spitefulFortitudeLifeForce =
+      Number(professionCoreState(context).spitefulFortitudeLifeForce || 0) +
       (hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1);
   }
   if (
@@ -268,10 +269,10 @@ export function reactToNecromancerCoreDamage(
     targetBelowHalfHealth(context) &&
     isInternalCooldownReady(
       event.at,
-      Number(context.profession.traitProcReadyAt.chillOfDeath || 0),
+      Number(professionCoreState(context).traitProcReadyAt.chillOfDeath || 0),
     )
   ) {
-    context.profession.traitProcReadyAt.chillOfDeath = event.at + 16;
+    professionCoreState(context).traitProcReadyAt.chillOfDeath = event.at + 16;
     const boons = context.config.target?.boonless
       ? 0
       : Math.min(
@@ -310,13 +311,13 @@ export function reactToNecromancerCoreDamage(
       interval > 0 &&
       !isInternalCooldownReady(
         event.at,
-        Number(context.profession.traitProcReadyAt?.dhuumfire || 0),
+        Number(professionCoreState(context).traitProcReadyAt?.dhuumfire || 0),
       )
     ) {
       // Variant-specific internal cooldown supplied by the owning handler.
     } else {
       if (interval > 0) {
-        context.profession.traitProcReadyAt.dhuumfire = event.at + interval;
+        professionCoreState(context).traitProcReadyAt.dhuumfire = event.at + interval;
       }
       applyTraitCondition(details, context, event, {
         ...proc,
@@ -346,11 +347,11 @@ export function reactToNecromancerCoreDamage(
         applyTraitCondition(details, context, event, proc);
       }
     } else {
-      context.profession.barbedPrecisionProgress +=
+      professionCoreState(context).barbedPrecisionProgress +=
         Number(details.hitContext?.critical?.chance || 0) *
         proc.chanceOnCriticalHit;
-      while (context.profession.barbedPrecisionProgress >= 1) {
-        context.profession.barbedPrecisionProgress -= 1;
+      while (professionCoreState(context).barbedPrecisionProgress >= 1) {
+        professionCoreState(context).barbedPrecisionProgress -= 1;
         applyTraitCondition(details, context, event, proc);
       }
     }
@@ -359,11 +360,11 @@ export function reactToNecromancerCoreDamage(
     hasTrait(context, TRAIT.VAMPIRIC_PRESENCE) &&
     isInternalCooldownReady(
       event.at,
-      Number(context.profession.vampiricPresenceReadyAt || 0),
+      Number(professionCoreState(context).vampiricPresenceReadyAt || 0),
     )
   ) {
     const proc = MECHANICS.traitProcs[TRAIT.VAMPIRIC_PRESENCE];
-    context.profession.vampiricPresenceReadyAt = event.at + proc.interval;
+    professionCoreState(context).vampiricPresenceReadyAt = event.at + proc.interval;
     queueTraitDamage(context, event, proc);
   }
   if (
@@ -385,8 +386,8 @@ export function reactToNecromancerCoreCondition(
   details: NecromancerResolverReactionDetails = {},
 ): void {
   if (event.condition === "Chilled") {
-    context.profession.targetChilledUntil = Math.max(
-      Number(context.profession.targetChilledUntil || 0),
+    professionCoreState(context).targetChilledUntil = Math.max(
+      Number(professionCoreState(context).targetChilledUntil || 0),
       event.at + Number(event.effectiveDuration ?? event.duration ?? 0),
     );
   }
@@ -394,7 +395,7 @@ export function reactToNecromancerCoreCondition(
     event.actorType !== "summon" &&
     hasTrait(context, TRAIT.CORRUPTERS_FERVOR)
   ) {
-    addCarapace(context.profession, 1, event.at);
+    addCarapace(professionCoreState(context), 1, event.at);
   }
 }
 
@@ -407,11 +408,11 @@ export function reactToNecromancerBlind(
     !hasTrait(context, TRAIT.CHILLING_DARKNESS) ||
     !isInternalCooldownReady(
       event.at,
-      Number(context.profession.traitProcReadyAt.chillingDarkness || 0),
+      Number(professionCoreState(context).traitProcReadyAt.chillingDarkness || 0),
     )
   )
     return;
-  context.profession.traitProcReadyAt.chillingDarkness = event.at + 3;
+  professionCoreState(context).traitProcReadyAt.chillingDarkness = event.at + 3;
   applyTraitCondition(
     details,
     context,
@@ -425,13 +426,13 @@ export function reactToNecromancerCoreControl(
   event: NecromancerResolverEvent,
   details: NecromancerResolverReactionDetails = {},
 ): void {
-  context.profession.targetControlledUntil = Math.max(
-    Number(context.profession.targetControlledUntil || 0),
+  professionCoreState(context).targetControlledUntil = Math.max(
+    Number(professionCoreState(context).targetControlledUntil || 0),
     event.at + Math.max(0.001, Number(event.duration || 0)),
   );
   if (event.controlKind === "fear" || event.kind === "fear") {
-    context.profession.dreadUntil = Math.max(
-      Number(context.profession.dreadUntil || 0),
+    professionCoreState(context).dreadUntil = Math.max(
+      Number(professionCoreState(context).dreadUntil || 0),
       event.at + 3,
     );
     if (hasTrait(context, TRAIT.TERROR)) {

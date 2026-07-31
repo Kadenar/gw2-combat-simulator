@@ -49,9 +49,7 @@ export function createDefaultBuild(
  * @returns {ProfessionApplicationBuild} Restored or default application build.
  * @throws {TypeError} When the adapter is invalid.
  */
-export function loadBuild(
-  adapter: Gw2AppAdapter,
-): ProfessionApplicationBuild {
+export function loadBuild(adapter: Gw2AppAdapter): ProfessionApplicationBuild {
   const resolved = resolveAdapter(adapter);
   try {
     const saved = JSON.parse(

@@ -11,9 +11,9 @@ import {
 } from "./rules.js";
 import { createMechanistState } from "./state.js";
 import { mechanistUi } from "./ui.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
+import type { MechanistState } from "../../types.js";
 
-export const mechanistModule = defineProfessionModule<SchedulerRecord>({
+export const mechanistModule = defineProfessionModule<MechanistState>({
   id: "Mechanist",
   catalog: {
     ...engineerModuleCatalog("Mechanist"),

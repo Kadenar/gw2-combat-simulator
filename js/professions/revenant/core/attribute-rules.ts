@@ -14,6 +14,8 @@ import type {
 } from "../../../platform/gw2/types.js";
 import type {
   RevenantConfig,
+  RevenantCoreState,
+  RevenantRuntimeState,
   RevenantState,
 } from "../types.js";
 
@@ -28,14 +30,32 @@ export function revenantPlayer(context: RevenantModifierContext): boolean {
   return context.event?.actorType !== "summon";
 }
 
-export function revenantProfessionState(
+function revenantRuntimeState(
   context: RevenantModifierContext,
-): Partial<RevenantState> {
+): Partial<RevenantState> | RevenantRuntimeState {
   return (
     context.runtime?.profession ??
     context.state?.profession ??
     {}
-  ) as Partial<RevenantState>;
+  ) as Partial<RevenantState> | RevenantRuntimeState;
+}
+
+export function revenantRuntimeCoreState(
+  context: RevenantModifierContext,
+): Partial<RevenantCoreState> {
+  const state = revenantRuntimeState(context);
+  return "core" in state && state.core
+    ? state.core
+    : state as Partial<RevenantCoreState>;
+}
+
+export function revenantRuntimeSpecializationState(
+  context: RevenantModifierContext,
+): Partial<RevenantState> {
+  const state = revenantRuntimeState(context);
+  return "specialization" in state && state.specialization?.state
+    ? state.specialization.state as Partial<RevenantState>
+    : state as Partial<RevenantState>;
 }
 
 export function revenantTimedBuff(

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { emitRevenantState } from "./shared.js";
 import { REVENANT_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
 import type {
@@ -12,7 +13,7 @@ export function activateEnchantedDaggers(
 ): void {
   const profile = MECHANICS.enchantedDaggers;
   const at = context.effectiveEnd;
-  context.state.profession.enchantedDaggers = {
+  professionCoreState(context).enchantedDaggers = {
     charges: profile.charges,
     expiresAt: at + profile.duration,
     readyAt: at,

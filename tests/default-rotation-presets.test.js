@@ -148,7 +148,49 @@ test("Necromancer rotation presets stay separate from Elementalist presets", asy
   }
 });
 
+test("Necromancer and Thief displayed benchmark DPS stays current", async () => {
+  const [necromancerManifest, thiefManifest] = await Promise.all([
+    readFile(
+      new URL("../Builds/necromancer/manifest.json", import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL("../Builds/thief/manifest.json", import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+  const necromancerDps = new Map(
+    necromancerManifest.flatMap(section => section.presets.map(preset => [
+      `${section.section}:${preset.label}`,
+      preset.benchmarkDps,
+    ])),
+  );
+
+  assert.equal(necromancerDps.get("Scourge:Condition"), 39612);
+  assert.equal(necromancerDps.get("Reaper:Power"), 40693);
+  assert.equal(necromancerDps.get("Reaper:Condition"), 44284);
+  assert.equal(
+    necromancerDps.get("Ritualist:Power (Greatsword / Spear)"),
+    42946,
+  );
+  assert.equal(necromancerDps.get("Harbinger:Power"), 44002);
+  assert.deepEqual(
+    thiefManifest.flatMap(section => section.presets)
+      .map(preset => preset.benchmarkDps),
+    [43248, 40790],
+  );
+});
+
 test("new Necromancer rotation presets execute without warnings", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/necromancer/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const conditionHarbinger = manifest
+    .find(section => section.section === "Harbinger")
+    ?.presets.find(preset => preset.label === "Condition");
+  assert.equal(conditionHarbinger?.benchmarkDps, 45192);
+
   const presets = [
     ["b-power-reaper.json", "r-power-reaper-bench.json"],
     ["b-power-harbinger.json", "r-power-harbinger-bench.json"],
@@ -175,6 +217,9 @@ test("new Necromancer rotation presets execute without warnings", async () => {
         ["Demons", "Torment"],
         ["Demons", "Bursting"],
       ]);
+      const darkBarrages = savedRotation.rotation.filter(step =>
+        (typeof step === "string" ? step : step.name) === "Dark Barrage");
+      assert.equal(darkBarrages[6].interruptMs, 800);
     }
     const app = {
       build,
@@ -285,6 +330,43 @@ test("Power Conduit preset executes without warnings", async () => {
 
   assert.deepEqual(result.warnings, []);
   assert.ok(result.dps > 0);
+});
+
+test("Condition Conduit Mistfire preset matches its benchmark", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../Builds/revenant/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const preset = manifest
+    .find((section) => section.section === "Conduit")
+    ?.presets.find((candidate) => candidate.label === "Condition (Mistfire)");
+  const [savedBuild, savedRotation] = await Promise.all([
+    readFile(
+      new URL(`../${preset.build}`, import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(`../${preset.rotation}`, import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+  const build = migrateRevenantBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: revenantCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+
+  recalculateRevenant(app);
+  const result = runRevenantSimulation(app);
+
+  assert.equal(preset.benchmarkDps, 40034);
+  assert.equal(preset.upToDate, true);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(Math.round(result.dps), preset.benchmarkDps);
 });
 
 test("Guardian and Mesmer rotations are paired with their build templates", async () => {

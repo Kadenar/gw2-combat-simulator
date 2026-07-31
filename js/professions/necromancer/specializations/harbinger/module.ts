@@ -1,5 +1,4 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import {
   harbingerEventReactions,
   harbingerSchedulerHooks,
@@ -12,8 +11,9 @@ import {
 import { necromancerModuleCatalog } from "../../catalog.js";
 import { createHarbingerState } from "./state.js";
 import { harbingerUi } from "./ui.js";
+import type { HarbingerState } from "../../types.js";
 
-export const harbingerModule = defineProfessionModule<SchedulerRecord>({
+export const harbingerModule = defineProfessionModule<HarbingerState>({
   id: "Harbinger",
   catalog: {
     ...necromancerModuleCatalog("Harbinger"),

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { CANONICAL_TARGET_CONDITIONS } from "../../../platform/gw2/target-state.js";
 import type {
   SchedulerRecord,
@@ -10,6 +11,7 @@ import type {
 import type {
   EngineerConfig,
   EngineerMechAttributes,
+  EngineerRuntimeState,
   EngineerSimulationEvent,
   EngineerSkill,
   EngineerState,
@@ -24,16 +26,26 @@ export function engineerEvent(
 export function engineerRuntimeState(
   context: Gw2ModifierContext,
 ): Partial<EngineerState> {
-  return (context.runtime?.profession || {}) as Partial<EngineerState>;
+  return professionCoreState(context) as Partial<EngineerState>;
 }
 
 export function engineerSchedulerState(
   context: Gw2ModifierContext,
 ): Partial<EngineerState> {
-  const state = context.state as
-    | { readonly profession?: Partial<EngineerState> }
-    | undefined;
-  return state?.profession || {};
+  return professionCoreState(context) as Partial<EngineerState>;
+}
+
+export function engineerSpecializationState(
+  context: Gw2ModifierContext,
+  expectedKind: string,
+): Partial<EngineerState> {
+  const state = (
+    context.runtime?.profession
+    ?? (context.state as { readonly profession?: unknown } | undefined)
+      ?.profession
+  ) as EngineerRuntimeState | undefined;
+  if (state?.specialization.kind !== expectedKind) return {};
+  return state.specialization.state as Partial<EngineerState>;
 }
 
 export function targetConditionCount(context: Gw2ModifierContext): number {
@@ -148,14 +160,12 @@ export function activeBoonStacks(
   return Math.max(0, Math.min(maximum, base + dynamic));
 }
 
-export function activeEngineerState(
+export function activeEngineerSpecializationState(
   context: Gw2ModifierContext,
+  expectedKind: string,
   field: keyof EngineerState,
 ): boolean {
-  const state =
-    context.runtime?.profession != null
-      ? engineerRuntimeState(context)
-      : engineerSchedulerState(context);
+  const state = engineerSpecializationState(context, expectedKind);
   return Number(state?.[field] || 0) > context.time;
 }
 

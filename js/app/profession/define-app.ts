@@ -31,12 +31,10 @@ export function defaultIsSkillAvailable(
  * @param {string} preferred
  * @returns {ProfessionDefaultOffhand}
  */
-export function preferOffhand(
-  preferred: string,
-): ProfessionDefaultOffhand {
-  return function defaultOffhand(
-    { offHands = [] }: ProfessionOffhandContext = {},
-  ): string {
+export function preferOffhand(preferred: string): ProfessionDefaultOffhand {
+  return function defaultOffhand({
+    offHands = [],
+  }: ProfessionOffhandContext = {}): string {
     return offHands.includes(preferred) ? preferred : offHands[0] || "";
   };
 }

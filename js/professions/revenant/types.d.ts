@@ -129,7 +129,7 @@ export interface RevenantSelfCondition extends SchedulerRecord {
   readonly skillName: string;
 }
 
-export interface RevenantCoreState extends SchedulerRecord {
+export interface RevenantCoreState {
   energy: number;
   maximumEnergy: number;
   energyUpdatedAt: number;
@@ -157,9 +157,9 @@ export interface RevenantCoreState extends SchedulerRecord {
   traitProcReadyAt: Record<string, number | boolean>;
 }
 
-export interface HeraldState extends SchedulerRecord {}
+export interface HeraldState {}
 
-export interface RenegadeState extends SchedulerRecord {
+export interface RenegadeState {
   bandTogetherReady: boolean;
   bandTogetherExpiresAt: number;
   kallasFervor: RevenantTimedStack[];
@@ -167,14 +167,14 @@ export interface RenegadeState extends SchedulerRecord {
   razorclawsRage: RevenantChargeState;
 }
 
-export interface VindicatorState extends SchedulerRecord {
+export interface VindicatorState {
   allianceSide: RevenantAllianceSide;
   selectedDodge: RevenantDodge;
   reaversCurseUntil: number;
   forerunnerOfDeathUntil: number;
 }
 
-export interface ConduitState extends SchedulerRecord {
+export interface ConduitState {
   affinity: number;
   cosmicWisdomUntil: number;
   conduitForm: string;
@@ -192,7 +192,7 @@ export interface RevenantState
     VindicatorState,
     ConduitState {}
 
-export interface RevenantRuntimeState extends SchedulerRecord {
+export interface RevenantRuntimeState {
   core: RevenantCoreState;
   specialization:
     | { kind: "Core"; state: Record<string, never> }
@@ -202,11 +202,11 @@ export interface RevenantRuntimeState extends SchedulerRecord {
     | { kind: "Conduit"; state: ConduitState };
 }
 
-export type RevenantSchedulerContext = SchedulerContext<RevenantState> & {
+export type RevenantSchedulerContext = SchedulerContext<RevenantRuntimeState> & {
   readonly catalog: CanonicalCatalog<RevenantSkill>;
   readonly config: RevenantConfig;
   readonly schedulerPolicy: SchedulerContext<
-    RevenantState
+    RevenantRuntimeState
   >["schedulerPolicy"] & {
     readonly combatBeganAt?: () => number | null;
     readonly critical?: (
@@ -218,13 +218,13 @@ export type RevenantSchedulerContext = SchedulerContext<RevenantState> & {
   };
 };
 
-export type RevenantCastContext = CastLifecycleContext<RevenantState> & {
+export type RevenantCastContext = CastLifecycleContext<RevenantRuntimeState> & {
   readonly catalog: CanonicalCatalog<RevenantSkill>;
   readonly config: RevenantConfig;
   readonly skill: RevenantSkill;
 };
 
-export type RevenantPrecastContext = CastContext<RevenantState> & {
+export type RevenantPrecastContext = CastContext<RevenantRuntimeState> & {
   readonly catalog: CanonicalCatalog<RevenantSkill>;
   readonly config: RevenantConfig;
   readonly skill: RevenantSkill;
@@ -241,8 +241,14 @@ export type RevenantRechargeContext = RevenantSchedulerContext &
 export interface RevenantEnergyContext {
   readonly config?: RevenantConfig;
   readonly state?:
-    | SchedulerState<RevenantState>
-    | Partial<RevenantState>;
+    | SchedulerState<RevenantRuntimeState>
+    | (Partial<RevenantState> & { readonly time?: number })
+    | {
+      readonly time?: number;
+      readonly profession?:
+        | Partial<RevenantState>
+        | RevenantRuntimeState;
+    };
   readonly professionState?: Partial<RevenantState>;
   readonly start?: number;
   readonly time?: number;
@@ -266,7 +272,7 @@ export type RevenantResolverEvent = Gw2ResolverEvent & {
 
 export type RevenantResolverContext = Gw2ResolverRuntime & {
   config: RevenantConfig;
-  profession: RevenantState;
+  profession: RevenantRuntimeState;
 };
 
 export interface RevenantUiContext extends SchedulerRecord {

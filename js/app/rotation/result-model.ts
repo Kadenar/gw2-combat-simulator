@@ -1,16 +1,10 @@
-import type {
-  Gw2SimulationResult,
-} from "../../platform/gw2/types.js";
+import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
 import {
   buildChartSeries as buildSharedChartSeries,
   chartValueAt,
 } from "../../platform/ui/charts.js";
-import {
-  skillBreakdownRows as transformSkillBreakdownRows,
-} from "../../platform/ui/result-tables.js";
-import {
-  resultSummaryMetrics as transformResultSummaryMetrics,
-} from "../../platform/ui/result-transform.js";
+import { skillBreakdownRows as transformSkillBreakdownRows } from "../../platform/ui/result-tables.js";
+import { resultSummaryMetrics as transformResultSummaryMetrics } from "../../platform/ui/result-transform.js";
 
 const EFFECT_NAMES: Readonly<Record<string, string>> = {
   compounding: "Compounding Power",
@@ -65,7 +59,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
 export function resultCombatReferenceMs(
   result: Gw2SimulationResult | null | undefined,
 ): number {
-  const marker = result?.events?.find(event => event.type === "combat_start");
+  const marker = result?.events?.find((event) => event.type === "combat_start");
   if (!marker) return 0;
   return Number(marker.at || 0) * 1000;
 }
@@ -92,7 +86,7 @@ export function effectName(kind: unknown): string {
   return key
     .split("-")
     .filter(Boolean)
-    .map(part => `${part[0]?.toUpperCase() || ""}${part.slice(1)}`)
+    .map((part) => `${part[0]?.toUpperCase() || ""}${part.slice(1)}`)
     .join(" ");
 }
 

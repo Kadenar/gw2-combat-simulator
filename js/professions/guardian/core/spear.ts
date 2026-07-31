@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * @fileoverview Implements Guardian spear's Illuminated state machine and
  * applies its conditional damage changes to scheduler events.
@@ -215,7 +216,7 @@ export function updateSpearIlluminationState(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (skill.id === ID.DAYBREAKING_SLASH) {
     state.daybreakingSlashChainStep =
       Number(state.daybreakingSlashChainStep || 0) === 0 ? 1 : 0;
@@ -288,7 +289,7 @@ export function advanceSpearIlluminationState(
   context: GuardianSchedulerContext,
   target: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (
     state.spearIlluminatedArmed &&
     Number(state.spearIlluminatedUntil || 0) <= target + context.epsilon

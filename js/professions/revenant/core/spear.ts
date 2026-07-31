@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Revenant spear recharge and Crushing Abyss mechanics.
  *
@@ -14,11 +15,11 @@ import type {
 import type {
   RevenantCastContext,
   RevenantConfig,
+  RevenantCoreState,
   RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill,
-  RevenantState,
 } from "../types.js";
 
 const RECHARGE_TASK = "revenant.abyssal-raze-recharge";
@@ -26,7 +27,7 @@ const CRUSHING_GAIN_TASK = "revenant.crushing-abyss-gain";
 const CRUSHING_SWAP_TASK = "revenant.crushing-abyss-weapon-swap";
 
 function activeCrushingAbyss(
-  state: RevenantState,
+  state: RevenantCoreState,
   at: number,
 ): number[] {
   state.crushingAbyss = (state.crushingAbyss || []).filter(
@@ -36,7 +37,7 @@ function activeCrushingAbyss(
 }
 
 function crushingAbyssStacksAt(
-  state: RevenantState,
+  state: RevenantCoreState,
   at: number,
 ): number {
   return (state.crushingAbyss || []).filter(
@@ -120,7 +121,7 @@ export function castAbyssalRaze(
   skill: RevenantSkill,
 ): void {
   const at = context.effectiveEnd;
-  const stacks = crushingAbyssStacksAt(context.state.profession, at);
+  const stacks = crushingAbyssStacksAt(professionCoreState(context), at);
   emitAbyssalRazePackets(context, skill, at, stacks);
   context.tasks.schedule({
     id: `${CRUSHING_GAIN_TASK}:${context.reservationId}`,
@@ -206,7 +207,7 @@ export function handleCrushingAbyssGain(
   if (!task.payload) return;
   const profile = MECHANICS.spear.abyssalRaze;
   const effect = profile.crushingAbyssEffect;
-  const stacks = activeCrushingAbyss(context.state.profession, task.at);
+  const stacks = activeCrushingAbyss(professionCoreState(context), task.at);
   if (stacks.length >= profile.crushingAbyssMaximum) return;
   stacks.push(task.at + profile.crushingAbyssDuration);
   const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE);
@@ -263,12 +264,12 @@ export function handleCrushingAbyssWeaponSwap(
 ): void {
   if (!task.payload) return;
   const profile = MECHANICS.spear.abyssalRaze;
-  const stacks = activeCrushingAbyss(context.state.profession, task.at);
+  const stacks = activeCrushingAbyss(professionCoreState(context), task.at);
   if (stacks.length < profile.crushingAbyssMaximum) return;
   const destination = Number(task.payload.weaponSet) === 2 ? 2 : 1;
   const origin = destination === 2 ? 1 : 2;
   if (sameWeaponSet(context.config, origin, destination)) return;
-  context.state.profession.crushingAbyss = [];
+  professionCoreState(context).crushingAbyss = [];
   const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE);
   if (!skill) return;
   emitAbyssalRazePackets(
@@ -286,7 +287,7 @@ export function advanceRevenantSpearState(
   context: RevenantSchedulerContext,
   time: number,
 ): void {
-  activeCrushingAbyss(context.state.profession, time);
+  activeCrushingAbyss(professionCoreState(context), time);
 }
 
 export const revenantSpearSkillHandlers = Object.freeze({

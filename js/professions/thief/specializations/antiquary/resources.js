@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { hasThiefTrait } from "../../core/state.js";
 import {
@@ -7,7 +8,7 @@ import {
 import { pilferArtifacts } from "./artifacts.js";
 
 export function advanceAntiquaryResources(context, target) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   state.activeAntiquarySummons = state.activeAntiquarySummons.filter(
     summon => Number(summon.expiresAt || 0) > target,
   );
@@ -40,7 +41,7 @@ export function advanceAntiquaryResources(context, target) {
 }
 
 export function spendAntiquaryResources(context, skill) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Antiquary");
   const cost = Number(skill.initiativeCost || 0);
   if (!(cost > 0)) return;
   state.initiativeSpentSincePilfer += cost;

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { defineProfessionModule } from "../../../platform/engine/profession.js";
 import { guardianModuleCatalog } from "../catalog.js";
 import {
@@ -16,10 +17,12 @@ import {
   snapshotGuardianState,
 } from "./state.js";
 import { guardianCoreUi } from "./ui.js";
-import type { SchedulerRecord } from "../../../platform/engine/types.js";
-import type { GuardianSchedulerContext } from "../types.js";
+import type {
+  GuardianCoreState,
+  GuardianSchedulerContext,
+} from "../types.js";
 
-export const guardianCoreModule = defineProfessionModule<SchedulerRecord>({
+export const guardianCoreModule = defineProfessionModule<GuardianCoreState>({
   id: "Core",
   catalog: {
     ...guardianModuleCatalog("Core"),

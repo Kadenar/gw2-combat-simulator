@@ -1,9 +1,5 @@
-import type {
-  ProfessionResourceView,
-} from "../../platform/engine/types.js";
-import type {
-  ProfessionAppState,
-} from "../profession/types.js";
+import type { ProfessionResourceView } from "../../platform/engine/types.js";
+import type { ProfessionAppState } from "../profession/types.js";
 import { resourceDisplayViews } from "../../platform/ui/resource-display.js";
 import { escapeHtml as esc } from "../../platform/ui/html.js";
 import { activeSpecialization, professionEndState } from "./context.js";
@@ -35,7 +31,7 @@ function resourcePipsHtml(
   const rows = resourcePipRows(definition.maximum, pipRows);
   let index = 0;
   const content = rows
-    .map(count => {
+    .map((count) => {
       const pips = Array.from({ length: count }, () => {
         const stateClass = index < value ? " active" : "";
         index += 1;
@@ -66,16 +62,13 @@ export function activeResourceGroup(app: ProfessionAppState): string {
     initialBlight: app.build.initialBlight,
   });
   const groups = definitions
-    .map(definition => {
+    .map((definition) => {
       const buildValue = definition.buildKey
         ? app.build[definition.buildKey]
         : 0;
       const value = Math.max(
         0,
-        Math.min(
-          definition.maximum,
-          Number(definition.value ?? buildValue),
-        ),
+        Math.min(definition.maximum, Number(definition.value ?? buildValue)),
       );
       const displayValue = formatResourceValue(value);
       const title = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
@@ -120,7 +113,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     ? `<span class="start-att-label">Start weapon:</span>
         <div class="weapon-set-toggle">${[1, 2]
           .map(
-            set =>
+            (set) =>
               `<button class="weapon-set-btn${set === startSet ? " active" : ""}"
                 data-set="${set}" title="Start on weapon set ${set}">W${set}</button>`,
           )
@@ -133,16 +126,15 @@ export function renderStartResource(app: ProfessionAppState): void {
     professionState,
     catalog: app.profession.catalog,
   });
-  const startingLoadoutId = loadoutView && slotLoadout
-    ? app.build[slotLoadout.startingKey]
-    : "";
+  const startingLoadoutId =
+    loadoutView && slotLoadout ? app.build[slotLoadout.startingKey] : "";
   const loadoutControl = loadoutView?.bars?.length
     ? `<span class="start-att-label">Start ${esc(
         loadoutView.label.replace(/s$/, "").toLowerCase(),
       )}:</span>
         <div class="start-loadout-toggle">${loadoutView.bars
           .map(
-            bar =>
+            (bar) =>
               `<button class="start-att-btn start-loadout-btn${
                 bar.id === startingLoadoutId ? " active" : ""
               }" data-loadout-id="${esc(bar.id)}" style="--att-c:var(--accent)"
@@ -155,7 +147,7 @@ export function renderStartResource(app: ProfessionAppState): void {
   const bindStartingLoadout = (): void => {
     element
       .querySelectorAll<HTMLElement>(".start-loadout-btn")
-      .forEach(button => {
+      .forEach((button) => {
         button.addEventListener("click", () => {
           if (!slotLoadout) return;
           slotLoadout.updateBuild(
@@ -177,7 +169,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     element.innerHTML = `${weaponControl}${loadoutControl}`;
     element
       .querySelectorAll<HTMLElement>(".weapon-set-btn")
-      .forEach(button => {
+      .forEach((button) => {
         button.addEventListener("click", () => {
           app.build.startingWeaponSet = Number(button.dataset.set);
           app.changed();
@@ -187,7 +179,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     return;
   }
   const resourceControls = definitions
-    .map(definition => {
+    .map((definition) => {
       if (definition.canStart === false) return "";
       const key = definition.buildKey || "initialResource";
       const startMaximum = Number(
@@ -214,7 +206,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     })
     .join("");
   element.innerHTML = `${weaponControl}${loadoutControl}${resourceControls}`;
-  element.querySelectorAll<HTMLElement>(".resource-pip").forEach(button => {
+  element.querySelectorAll<HTMLElement>(".resource-pip").forEach((button) => {
     button.addEventListener("click", () => {
       const count = Number(button.dataset.count);
       const key = button.dataset.resourceKey || "initialResource";
@@ -224,7 +216,7 @@ export function renderStartResource(app: ProfessionAppState): void {
   });
   element
     .querySelectorAll<HTMLInputElement>("input[data-resource-key]")
-    .forEach(input => {
+    .forEach((input) => {
       input.addEventListener("change", () => {
         const key = input.dataset.resourceKey || "initialResource";
         app.build[key] = Math.max(
@@ -234,7 +226,7 @@ export function renderStartResource(app: ProfessionAppState): void {
         app.changed();
       });
     });
-  element.querySelectorAll<HTMLElement>(".weapon-set-btn").forEach(button => {
+  element.querySelectorAll<HTMLElement>(".weapon-set-btn").forEach((button) => {
     button.addEventListener("click", () => {
       app.build.startingWeaponSet = Number(button.dataset.set);
       app.changed();

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import {
   CANONICAL_TARGET_CONDITIONS,
@@ -10,8 +11,12 @@ import { hasThiefTrait } from "./state.js";
 
 function handleThiefState(context, event) {
   const incoming = structuredClone(event.state || {});
+  const core = professionCoreState(context);
+  const specialization = context.profession.specialization.state;
+  const ownerFor = key =>
+    Object.hasOwn(specialization, key) ? specialization : core;
   const preserved = {
-    traitProcReadyAt: context.profession.traitProcReadyAt || {},
+    traitProcReadyAt: core.traitProcReadyAt || {},
   };
   for (const generationField of Object.keys(incoming).filter(
     key => key.endsWith("Generation"),
@@ -19,16 +24,22 @@ function handleThiefState(context, event) {
     const prefix = generationField.slice(0, -"Generation".length);
     const chargesField = `${prefix}Charges`;
     const expiresAtField = `${prefix}ExpiresAt`;
+    const owner = ownerFor(generationField);
     if (
       Number(incoming[generationField] || 0)
-        === Number(context.profession[generationField] || 0)
+        === Number(owner[generationField] || 0)
       && Number(incoming[expiresAtField] || 0) > event.at
-      && Object.hasOwn(context.profession, chargesField)
+      && Object.hasOwn(owner, chargesField)
     ) {
-      preserved[chargesField] = context.profession[chargesField] || 0;
+      preserved[chargesField] = owner[chargesField] || 0;
     }
   }
-  Object.assign(context.profession, incoming, preserved);
+  for (const [key, value] of Object.entries(incoming)) {
+    ownerFor(key)[key] = value;
+  }
+  for (const [key, value] of Object.entries(preserved)) {
+    ownerFor(key)[key] = value;
+  }
 }
 
 export const thiefCoreResolverEventHandlers = Object.freeze({
@@ -63,7 +74,7 @@ function applySpiderVenom(context, event, details) {
     event.actorType !== "player"
     || !(Number(event.coefficient) > 0)
   ) return;
-  const state = context.profession;
+  const state = professionCoreState(context);
   if (
     Number(state.spiderVenomCharges || 0) <= 0
     || Number(state.spiderVenomExpiresAt || 0) <= event.at
@@ -104,7 +115,7 @@ function applyShadowSiphoning(context, event) {
     context.helpers.skillsById?.get(event.skillId)
     || context.helpers.skillsByName?.get(event.skillName);
   if (!skill?.stealthAttack) return;
-  const state = context.profession;
+  const state = professionCoreState(context);
   const readyAt = Number(
     state.traitProcReadyAt[TRAIT.SHADOW_SIPHONING] || 0,
   );
@@ -133,7 +144,7 @@ function applyPanicStrike(context, event, details) {
     || !hasThiefTrait(context.config, TRAIT.PANIC_STRIKE)
     || targetConditionCount(context, event.at) < 3
   ) return;
-  const state = context.profession;
+  const state = professionCoreState(context);
   const readyAt = Number(state.traitProcReadyAt[TRAIT.PANIC_STRIKE] || 0);
   if (event.at + 1e-9 < readyAt) return;
   state.traitProcReadyAt[TRAIT.PANIC_STRIKE] = event.at + 20;

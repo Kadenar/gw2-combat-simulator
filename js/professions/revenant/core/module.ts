@@ -1,5 +1,4 @@
 import { defineProfessionModule } from "../../../platform/engine/profession.js";
-import type { SchedulerRecord } from "../../../platform/engine/types.js";
 import { revenantModuleCatalog } from "../catalog.js";
 import {
   revenantCoreEventHandlers,
@@ -17,9 +16,12 @@ import {
   snapshotRevenantState,
 } from "./state.js";
 import { revenantCoreUi } from "./ui.js";
-import type { RevenantSchedulerContext } from "../types.js";
+import type {
+  RevenantCoreState,
+  RevenantSchedulerContext,
+} from "../types.js";
 
-export const revenantCoreModule = defineProfessionModule<SchedulerRecord>({
+export const revenantCoreModule = defineProfessionModule<RevenantCoreState>({
   id: "Core",
   catalog: {
     ...revenantModuleCatalog("Core"),

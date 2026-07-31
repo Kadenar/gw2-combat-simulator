@@ -8,7 +8,7 @@ import {
   cloneNecromancerAttributes,
   necromancerActiveShroud,
   necromancerCriticalExpectedFactor,
-  necromancerRuntimeState,
+  necromancerRuntimeSpecializationState,
   necromancerTargetHasCondition,
 } from "../../core/rules.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
@@ -52,7 +52,7 @@ function activeBlight(context: Gw2ModifierContext): number {
     0,
     Number(
       event?.necromancerBlight ??
-        necromancerRuntimeState(context).blight ??
+        necromancerRuntimeSpecializationState(context).blight ??
         0,
     ),
   );
@@ -115,7 +115,9 @@ export const harbingerModifierRules: readonly Gw2ModifierRule[] =
       amount: 0.1,
       when: (context) =>
         hasTrait(context, TRAIT.CASCADING_CORRUPTION) &&
-        Number(necromancerRuntimeState(context).meltdownUntil || 0)
+        Number(
+          necromancerRuntimeSpecializationState(context).meltdownUntil || 0,
+        )
           > context.time,
     },
   ]);

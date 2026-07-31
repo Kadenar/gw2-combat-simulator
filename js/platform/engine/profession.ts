@@ -669,18 +669,12 @@ const UI_LIST_CALLBACK_NAMES = Object.freeze([
   "targetHealthThresholds",
 ]);
 const UI_SINGLE_CALLBACK_NAMES = Object.freeze([
-  "eventLogRow",
-  "isPaletteSkillInstant",
-  "isSlotSkillSelectable",
-  "timelineWeaponLineTransition",
-  "timelineSkillIcon",
-  "updateSkillBarSelection",
   "weaponSkillMatchesSet",
 ]);
 
-interface NamedModule<TProfessionState extends object> {
+interface NamedModule<TModuleState extends object = SchedulerRecord> {
   readonly name: string;
-  readonly module: ProfessionModuleDefinition<TProfessionState>;
+  readonly module: ProfessionModuleDefinition<TModuleState>;
 }
 
 function assertModuleDefinition(
@@ -909,64 +903,37 @@ function createStateFragment(
   return fragment as SchedulerRecord;
 }
 
-function createComposedStateAdapter(
+function createComposedState(
   core: SchedulerRecord,
   specializationKind: string,
   specializationState: SchedulerRecord,
 ): object {
-  const specializationKeys = new Set(Reflect.ownKeys(specializationState));
-  const target = {
+  for (const property of Reflect.ownKeys(core)) {
+    if (property === "core" || property === "specialization") {
+      throw new TypeError(
+        `Core state fragment uses reserved key ${String(property)}.`,
+      );
+    }
+  }
+  for (const property of Reflect.ownKeys(specializationState)) {
+    if (property === "core" || property === "specialization") {
+      throw new TypeError(
+        `${specializationKind} state fragment uses reserved key ${String(property)}.`,
+      );
+    }
+    if (Reflect.has(core, property)) {
+      throw new TypeError(
+        `Duplicate state field ${String(property)} in Core and ${specializationKind}.`,
+      );
+    }
+  }
+  return {
     core,
     specialization: {
       kind: specializationKind,
       state: specializationState,
     },
   };
-  return new Proxy(target, {
-    get(current, property, receiver) {
-      if (Reflect.has(current, property)) {
-        return Reflect.get(current, property, receiver);
-      }
-      if (Reflect.has(specializationState, property)) {
-        return Reflect.get(specializationState, property);
-      }
-      return Reflect.get(core, property);
-    },
-    set(_current, property, value) {
-      const owner = specializationKeys.has(property)
-        ? specializationState
-        : core;
-      return Reflect.set(owner, property, value);
-    },
-    deleteProperty(_current, property) {
-      const owner = specializationKeys.has(property)
-        ? specializationState
-        : core;
-      return Reflect.deleteProperty(owner, property);
-    },
-    has(current, property) {
-      return Reflect.has(current, property) ||
-        Reflect.has(specializationState, property) ||
-        Reflect.has(core, property);
-    },
-    ownKeys(current) {
-      return [...new Set<string | symbol>([
-        ...Reflect.ownKeys(current),
-        ...Reflect.ownKeys(core),
-        ...Reflect.ownKeys(specializationState),
-      ])];
-    },
-    getOwnPropertyDescriptor(current, property) {
-      const direct = Reflect.getOwnPropertyDescriptor(current, property);
-      if (direct) return direct;
-      const descriptor =
-        Reflect.getOwnPropertyDescriptor(specializationState, property) ||
-        Reflect.getOwnPropertyDescriptor(core, property);
-      return descriptor
-        ? { ...descriptor, configurable: true, enumerable: false }
-        : undefined;
-    },
-  });
 }
 
 function composeStateFragments(
@@ -976,7 +943,7 @@ function composeStateFragments(
 ): object {
   const core = createStateFragment(modules[0], config, resolver);
   const specialization = modules[1];
-  return createComposedStateAdapter(
+  return createComposedState(
     core,
     specialization?.name || "Core",
     specialization
@@ -986,56 +953,136 @@ function composeStateFragments(
 }
 
 /**
- * Clones either ordinary profession state or the nested storage behind a
- * family-state compatibility adapter.
+ * Flattens Core plus the active specialization solely for stable public
+ * projections and event snapshots. Runtime mechanics use the nested state.
  */
-export function cloneProfessionState(value: unknown): unknown {
-  if (!value || typeof value !== "object") return structuredClone(value);
-  const candidate = value as SchedulerRecord;
-  const specialization = candidate.specialization as
-    | { readonly kind?: unknown; readonly state?: unknown }
+export function flattenProfessionState(
+  professionState: unknown,
+): SchedulerRecord {
+  if (!professionState || typeof professionState !== "object") return {};
+  const runtime = professionState as SchedulerRecord;
+  const specialization = runtime.specialization as
+    | { readonly state?: unknown }
     | undefined;
   if (
-    candidate.core &&
-    typeof candidate.core === "object" &&
-    specialization &&
-    specialization.state &&
-    typeof specialization.state === "object"
+    runtime.core
+    && typeof runtime.core === "object"
+    && specialization?.state
+    && typeof specialization.state === "object"
   ) {
     return {
-      core: structuredClone(candidate.core),
-      specialization: {
-        kind: String(specialization.kind || "Core"),
-        state: structuredClone(specialization.state),
-      },
+      ...runtime.core as SchedulerRecord,
+      ...specialization.state as SchedulerRecord,
     };
   }
-  return structuredClone(value);
+  return { ...runtime };
+}
+
+type ProfessionStateContext<TRuntimeState> = {
+  readonly state: {
+    readonly profession: TRuntimeState;
+  };
+};
+
+type DirectProfessionContext<TRuntimeState> = {
+  readonly profession: TRuntimeState;
+};
+
+type ProfessionRuntimeFromContext<TContext> =
+  TContext extends ProfessionStateContext<infer TRuntimeState>
+    ? TRuntimeState
+    : TContext extends DirectProfessionContext<infer TRuntimeState>
+      ? TRuntimeState
+      : never;
+
+type RuntimeCoreState<TRuntimeState> =
+  TRuntimeState extends { readonly core: infer TCoreState }
+    ? TCoreState
+    : never;
+
+type RuntimeSpecialization<TRuntimeState> =
+  TRuntimeState extends { readonly specialization: infer TSpecialization }
+    ? TSpecialization
+    : never;
+
+type RuntimeSpecializationKind<TRuntimeState> =
+  RuntimeSpecialization<TRuntimeState> extends { readonly kind: infer TKind }
+    ? TKind & string
+    : never;
+
+type RuntimeSpecializationState<
+  TRuntimeState,
+  TKind extends string,
+> = Extract<
+  RuntimeSpecialization<TRuntimeState>,
+  { readonly kind: TKind }
+> extends { readonly state: infer TState }
+  ? TState
+  : never;
+
+/**
+ * Returns the explicitly owned Core state slice for a family runtime.
+ */
+export function professionCoreState<TContext>(
+  context: TContext,
+): RuntimeCoreState<ProfessionRuntimeFromContext<TContext>> {
+  const candidate = context as {
+    readonly state?: { readonly profession?: unknown };
+    readonly runtime?: { readonly profession?: unknown };
+    readonly profession?: unknown;
+  };
+  const runtime = (
+    candidate.state?.profession
+    ?? candidate.runtime?.profession
+    ?? candidate.profession
+  ) as { readonly core: unknown };
+  return runtime.core as RuntimeCoreState<
+    ProfessionRuntimeFromContext<TContext>
+  >;
 }
 
 /**
- * Produces an independent mutable state value while preserving the family
- * adapter used by direct resolver entry points.
+ * Returns the active specialization state after validating its discriminant.
+ * Module mechanics use this accessor instead of a flat family-state view.
  */
-export function cloneMutableProfessionState(value: unknown): unknown {
-  if (!value || typeof value !== "object") return structuredClone(value);
-  const candidate = value as SchedulerRecord;
-  const specialization = candidate.specialization as
-    | { readonly kind?: unknown; readonly state?: unknown }
-    | undefined;
-  if (
-    candidate.core &&
-    typeof candidate.core === "object" &&
-    specialization &&
-    specialization.state &&
-    typeof specialization.state === "object"
-  ) {
-    return createComposedStateAdapter(
-      structuredClone(candidate.core) as SchedulerRecord,
-      String(specialization.kind || "Core"),
-      structuredClone(specialization.state) as SchedulerRecord,
+export function professionSpecializationState<
+  TContext,
+  TRuntimeState = ProfessionRuntimeFromContext<TContext>,
+  TKind extends RuntimeSpecializationKind<TRuntimeState> =
+    RuntimeSpecializationKind<TRuntimeState>,
+>(
+  context: TContext,
+  expectedKind: TKind,
+): RuntimeSpecializationState<TRuntimeState, TKind> {
+  const candidate = context as {
+    readonly state?: { readonly profession?: unknown };
+    readonly runtime?: { readonly profession?: unknown };
+    readonly profession?: unknown;
+  };
+  const runtime = (
+    candidate.state?.profession
+    ?? candidate.runtime?.profession
+    ?? candidate.profession
+  ) as {
+    readonly specialization: {
+      readonly kind: string;
+      readonly state: object;
+    };
+  };
+  const active = runtime.specialization;
+  if (active.kind !== expectedKind) {
+    throw new TypeError(
+      `Expected active specialization ${expectedKind}, received ${active.kind}.`,
     );
   }
+  return active.state as RuntimeSpecializationState<TRuntimeState, TKind>;
+}
+
+export function cloneProfessionState(value: unknown): unknown {
+  return structuredClone(value);
+}
+
+export function cloneMutableProfessionState(value: unknown): unknown {
   return structuredClone(value);
 }
 
@@ -1055,6 +1102,7 @@ function singleOwnerValue(
 
 function composeModuleUi(
   modules: readonly NamedModule<object>[],
+  familyUi: Partial<ProfessionUiContract> | undefined = undefined,
 ): Partial<ProfessionUiContract> & SchedulerRecord {
   const ui: SchedulerRecord = {};
   ui.assumptionControls = Object.freeze(
@@ -1085,12 +1133,77 @@ function composeModuleUi(
       return { available: true, message: "" };
     };
   }
-  for (const name of UI_SINGLE_CALLBACK_NAMES) {
-    const callback = singleOwnerValue(
-      modules,
-      (module) => module.ui?.[name],
-      `ui.${name}`,
+  const eventLogCallbacks = modules
+    .map((entry) => entry.module.ui?.eventLogRow)
+    .filter((value): value is NonNullable<ProfessionUiContract["eventLogRow"]> =>
+      typeof value === "function"
     );
+  if (eventLogCallbacks.length) {
+    ui.eventLogRow = (...args: Parameters<NonNullable<
+      ProfessionUiContract["eventLogRow"]
+    >>) => {
+      for (const callback of eventLogCallbacks) {
+        const result = callback(...args);
+        if (result !== undefined) return result;
+      }
+      return undefined;
+    };
+  }
+  const instantCallbacks = modules
+    .map((entry) => entry.module.ui?.isPaletteSkillInstant)
+    .filter((value): value is ProfessionUiContract["isPaletteSkillInstant"] =>
+      typeof value === "function"
+    );
+  if (instantCallbacks.length) {
+    ui.isPaletteSkillInstant = (...args: Parameters<
+      ProfessionUiContract["isPaletteSkillInstant"]
+    >) => instantCallbacks.some((callback) => callback(...args));
+  }
+  const selectableCallbacks = modules
+    .map((entry) => entry.module.ui?.isSlotSkillSelectable)
+    .filter((value): value is ProfessionUiContract["isSlotSkillSelectable"] =>
+      typeof value === "function"
+    );
+  if (selectableCallbacks.length) {
+    ui.isSlotSkillSelectable = (...args: Parameters<
+      ProfessionUiContract["isSlotSkillSelectable"]
+    >) => selectableCallbacks.every((callback) => callback(...args));
+  }
+  const selectionCallbacks = modules
+    .map((entry) => entry.module.ui?.updateSkillBarSelection)
+    .filter((value): value is ProfessionUiContract["updateSkillBarSelection"] =>
+      typeof value === "function"
+    )
+    .reverse();
+  if (selectionCallbacks.length) {
+    ui.updateSkillBarSelection = (...args: Parameters<
+      ProfessionUiContract["updateSkillBarSelection"]
+    >) => selectionCallbacks.some((callback) => callback(...args));
+  }
+  for (const name of [
+    "timelineWeaponLineTransition",
+    "timelineSkillIcon",
+  ] as const) {
+    const callbacks = modules
+      .map((entry) => entry.module.ui?.[name])
+      .filter((value) => typeof value === "function")
+      .reverse() as ((...args: any[]) => unknown)[];
+    if (!callbacks.length) continue;
+    ui[name] = (...args: unknown[]) => {
+      for (const callback of callbacks) {
+        const result = callback(...args);
+        if (result !== undefined && result !== "") return result;
+      }
+      return name === "timelineSkillIcon" ? "" : undefined;
+    };
+  }
+  for (const name of UI_SINGLE_CALLBACK_NAMES) {
+    const familyCallback = (familyUi as SchedulerRecord | undefined)?.[name];
+    const callback = familyCallback ?? singleOwnerValue(
+        modules,
+        (module) => module.ui?.[name],
+        `ui.${name}`,
+      );
     if (callback != null) ui[name] = callback;
   }
   const slotLoadout = singleOwnerValue(
@@ -1108,6 +1221,276 @@ function composeModuleUi(
     ui.weaponSwapChangesSet = weaponSwapChangesSet;
   }
   return ui;
+}
+
+type UiSlice = Partial<ProfessionUiContract> & SchedulerRecord;
+
+export interface ProfessionFamilyUiDefinition {
+  readonly catalog: CanonicalCatalog;
+  readonly core: UiSlice;
+  readonly specializations: Readonly<Record<string, UiSlice>>;
+  readonly family?: UiSlice;
+}
+
+function uiSpecialization(context: unknown): string {
+  if (!context || typeof context !== "object") return "Core";
+  const candidate = context as SchedulerRecord;
+  const config = candidate.config as SchedulerRecord | undefined;
+  return String(candidate.specialization || config?.specialization || "Core")
+    .trim() || "Core";
+}
+
+function explicitUiSpecialization(context: unknown): string | null {
+  if (!context || typeof context !== "object") return null;
+  const candidate = context as SchedulerRecord;
+  const config = candidate.config as SchedulerRecord | undefined;
+  const value = candidate.specialization ?? config?.specialization;
+  if (value == null || !String(value).trim()) return null;
+  return String(value).trim();
+}
+
+function normalizedCoreUiContext(
+  context: unknown,
+): SchedulerRecord {
+  if (!context || typeof context !== "object") {
+    return { specialization: "Core", config: { specialization: "Core" } };
+  }
+  const candidate = context as SchedulerRecord;
+  return {
+    ...candidate,
+    specialization: "Core",
+    config: {
+      ...((candidate.config as SchedulerRecord | undefined) || {}),
+      specialization: "Core",
+    },
+  };
+}
+
+function deduplicateUiEntries(
+  values: readonly unknown[],
+  callbackName: string,
+): unknown[] {
+  const keys = new Set<string>();
+  return values.filter((value, index) => {
+    if (!value || typeof value !== "object") return true;
+    const candidate = value as SchedulerRecord;
+    const key = candidate.id == null ? "" : String(candidate.id);
+    if (!key) return true;
+    if (keys.has(key)) {
+      throw new TypeError(
+        `ui.${callbackName} returned duplicate id ${key} at index ${index}.`,
+      );
+    }
+    keys.add(key);
+    return true;
+  });
+}
+
+function normalizeApplicationUiList(
+  values: readonly unknown[],
+  callbackName: string,
+): unknown[] {
+  if (callbackName !== "paletteGroups") {
+    return deduplicateUiEntries(values, callbackName);
+  }
+  const groups = [...values];
+  const anchorIndexes = groups.flatMap((value, index) =>
+    value
+      && typeof value === "object"
+      && (value as SchedulerRecord).resourceAnchor
+      ? [index]
+      : []
+  );
+  if (anchorIndexes.length > 1) {
+    const firstIndex = anchorIndexes[0];
+    const lastIndex = anchorIndexes.at(-1) as number;
+    const first = groups[firstIndex] as SchedulerRecord;
+    const last = groups[lastIndex] as SchedulerRecord;
+    groups[firstIndex] = {
+      ...first,
+      skillIds: last.skillIds,
+    };
+    for (const index of anchorIndexes.slice(1).reverse()) {
+      groups.splice(index, 1);
+    }
+  }
+  return deduplicateUiEntries(groups, callbackName);
+}
+
+/**
+ * Composes the complete application UI from Core, the selected elite, and
+ * narrowly scoped family callbacks. Unknown elite names and ordinary Core
+ * trait-line names intentionally fall back to Core for application rendering;
+ * runtime resolution remains strict.
+ */
+export function createProfessionFamilyUi(
+  definition: ProfessionFamilyUiDefinition,
+): UiSlice {
+  const family = definition.family || {};
+  const eliteNames = new Set(
+    definition.catalog.specializations
+      .filter((specialization) => specialization.elite)
+      .map((specialization) => specialization.name),
+  );
+  const active = (
+    context: unknown,
+  ): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
+    const requested = uiSpecialization(context);
+    const specialization = definition.specializations[requested];
+    if (specialization && eliteNames.has(requested)) {
+      return {
+        context: context as SchedulerRecord,
+        slices: [definition.core, specialization],
+      };
+    }
+    return {
+      context: requested === "Core"
+        ? (context as SchedulerRecord)
+        : normalizedCoreUiContext(context),
+      slices: [definition.core],
+    };
+  };
+  const allSlices = [
+    definition.core,
+    ...Object.values(definition.specializations),
+  ];
+  const scalarSlices = (
+    context: unknown,
+    skill?: Skill,
+  ): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
+    if (explicitUiSpecialization(context)) return active(context);
+    const skillSpecialization = String(skill?.specialization || "").trim();
+    const specialization = definition.specializations[skillSpecialization];
+    if (specialization && eliteNames.has(skillSpecialization)) {
+      return {
+        context: context as SchedulerRecord,
+        slices: [definition.core, specialization, family],
+      };
+    }
+    return {
+      context: context as SchedulerRecord,
+      slices: [...allSlices, family],
+    };
+  };
+  const ui: SchedulerRecord = {
+    assumptionControls: Object.freeze(
+      deduplicateUiEntries(
+        [
+          ...(family.assumptionControls || []),
+          ...allSlices.flatMap((slice) => slice.assumptionControls || []),
+        ],
+        "assumptionControls",
+      ) as SchedulerRecord[],
+    ),
+  };
+
+  for (const name of UI_LIST_CALLBACK_NAMES) {
+    ui[name] = (context: unknown) => {
+      const selected = active(context);
+      const values = [
+        ...selected.slices,
+        family,
+      ].flatMap((slice) => {
+        const callback = slice[name];
+        return typeof callback === "function"
+          ? (callback(selected.context) || [])
+          : [];
+      });
+      return normalizeApplicationUiList(values, name);
+    };
+  }
+
+  ui.paletteSkillAvailability = (context: unknown, skill: Skill) => {
+    const selected = scalarSlices(context, skill);
+    for (const slice of selected.slices) {
+      const callback = slice.paletteSkillAvailability;
+      if (typeof callback !== "function") continue;
+      const result = callback(selected.context, skill);
+      if (result?.available === false) return result;
+    }
+    return { available: true, message: "" };
+  };
+  ui.eventLogRow = (
+    context: SchedulerRecord,
+    event: Parameters<NonNullable<ProfessionUiContract["eventLogRow"]>>[1],
+  ) => {
+    const selected = {
+      context,
+      slices: [...allSlices, family],
+    };
+    for (const slice of selected.slices) {
+      const callback = slice.eventLogRow;
+      if (typeof callback !== "function") continue;
+      const result = callback(selected.context, event);
+      if (result !== undefined) return result;
+    }
+    return undefined;
+  };
+  ui.isPaletteSkillInstant = (context: SchedulerRecord, skill: Skill) => {
+    const selected = scalarSlices(context, skill);
+    return selected.slices.some((slice) =>
+      slice.isPaletteSkillInstant?.(selected.context, skill) === true
+    );
+  };
+  ui.isSlotSkillSelectable = (context: SchedulerRecord, skill: Skill) => {
+    const selected = scalarSlices(context, skill);
+    return selected.slices.every((slice) =>
+      slice.isSlotSkillSelectable?.(selected.context, skill) !== false
+    );
+  };
+  ui.updateSkillBarSelection = (
+    context: SchedulerRecord,
+    selection: SchedulerRecord,
+  ) => {
+    const selected = active(context);
+    for (const slice of [
+      ...selected.slices.slice().reverse(),
+      family,
+    ]) {
+      if (slice.updateSkillBarSelection?.(selected.context, selection)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  for (const name of [
+    "timelineWeaponLineTransition",
+    "timelineSkillIcon",
+  ] as const) {
+    ui[name] = (context: SchedulerRecord) => {
+      const selected = active(context);
+      for (const slice of [
+        ...selected.slices.slice().reverse(),
+        family,
+      ]) {
+        const callback = slice[name];
+        if (typeof callback !== "function") continue;
+        const result = callback(selected.context);
+        if (result !== undefined && result !== "") return result;
+      }
+      return name === "timelineSkillIcon" ? "" : undefined;
+    };
+  }
+
+  for (const name of ["slotLoadout", "weaponSwapChangesSet"] as const) {
+    const owners = [family, ...allSlices].filter(
+      (slice) => slice[name] != null,
+    );
+    if (owners.length > 1) {
+      throw new TypeError(`ui.${name} has multiple application owners.`);
+    }
+    if (owners.length) ui[name] = owners[0][name];
+  }
+  const weaponMatcher = family.weaponSkillMatchesSet || singleOwnerValue(
+    allSlices.map((slice, index) => ({
+      name: index === 0 ? "Core" : `Specialization ${index}`,
+      module: { id: `ui-${index}`, ui: slice },
+    })),
+    (module) => module.ui?.weaponSkillMatchesSet,
+    "ui.weaponSkillMatchesSet",
+  );
+  if (weaponMatcher != null) ui.weaponSkillMatchesSet = weaponMatcher;
+  return Object.freeze(ui) as UiSlice;
 }
 
 /**
@@ -1163,7 +1546,7 @@ function composeModuleAttributeRules(
 
 function composeRuntimeDefinition<TProfessionState extends object>(
   definition: ProfessionFamilyDefinition<TProfessionState>,
-  modules: readonly NamedModule<TProfessionState>[],
+  modules: readonly NamedModule[],
 ): ProfessionDefinition<TProfessionState> {
   const genericModules = modules as readonly NamedModule<object>[];
   const schedulerHooks = composeHookContainer(
@@ -1209,7 +1592,7 @@ function composeRuntimeDefinition<TProfessionState extends object>(
       eventHandlers,
       eventReactions: composeEventReactions(genericModules),
     },
-    ui: composeModuleUi(genericModules),
+    ui: composeModuleUi(genericModules, definition.ui),
     simulation: definition.simulation,
   };
 }
@@ -1237,7 +1620,7 @@ export function defineProfessionFamily<
   }
   const specializationModules = new Map<
     string,
-    Readonly<ProfessionModuleDefinition<TProfessionState>>
+    Readonly<ProfessionModuleDefinition>
   >();
   for (const [name, module] of Object.entries(definition.specializations)) {
     assertModuleDefinition(module);
@@ -1249,7 +1632,28 @@ export function defineProfessionFamily<
     specializationModules.set(name, defineProfessionModule(module));
   }
   const core = defineProfessionModule(definition.core);
-  const applicationSurface = defineProfession(definition);
+  const applicationUi = createProfessionFamilyUi({
+    catalog: definition.catalog,
+    core: core.ui || {},
+    specializations: Object.fromEntries(
+      [...specializationModules].map(([name, module]) => [
+        name,
+        module.ui || {},
+      ]),
+    ),
+    family: definition.ui,
+  });
+  // Reuse the ordinary application normalizers without constructing a
+  // profession-wide executable registry. Only the application properties
+  // below are exposed on the family.
+  const applicationSurface = defineProfession({
+    id: definition.id,
+    name: definition.name,
+    catalog: definition.catalog,
+    build: definition.build,
+    ui: applicationUi,
+    simulation: definition.simulation,
+  });
   const cache = new Map<
     string,
     Readonly<NormalizedProfessionContract<TProfessionState>>
@@ -1267,7 +1671,7 @@ export function defineProfessionFamily<
     }
     const cached = cache.get(specialization);
     if (cached) return cached;
-    const modules: NamedModule<TProfessionState>[] = [
+    const modules: NamedModule[] = [
       { name: "Core", module: core },
     ];
     const specializationModule = specializationModules.get(specialization);
@@ -1281,7 +1685,14 @@ export function defineProfessionFamily<
     return runtime;
   };
   return Object.freeze({
-    ...applicationSurface,
+    id: applicationSurface.id,
+    name: applicationSurface.name,
+    catalog: applicationSurface.catalog,
+    ui: applicationSurface.ui,
+    simulation: applicationSurface.simulation,
+    createBuildDefaults: applicationSurface.createBuildDefaults,
+    migrateBuild: applicationSurface.migrateBuild,
+    validateBuild: applicationSurface.validateBuild,
     resolveRuntime,
   }) as Readonly<ProfessionFamilyContract<TProfessionState>>;
 }
@@ -1303,7 +1714,7 @@ export function resolveProfessionRuntime<
     .resolveRuntime === "function"
     ? (profession as ProfessionFamilyContract<TProfessionState>)
       .resolveRuntime(config)
-    : profession;
+    : profession as Readonly<NormalizedProfessionContract<TProfessionState>>;
 }
 
 /**

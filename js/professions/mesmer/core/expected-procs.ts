@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import type {
   SchedulerState,
@@ -10,14 +11,14 @@ import type {
   MesmerEmitDerivedCondition,
   MesmerExpectedProcCandidate,
   MesmerExpectedProcTracker,
-  MesmerProfessionState,
+  MesmerRuntimeState,
   MesmerQueueResources,
 } from "../types.js";
 
 const PROC_PROGRESS_TOLERANCE = 1e-9;
 
 interface ExpectedProcTrackerOptions {
-  readonly state: SchedulerState<MesmerProfessionState>;
+  readonly state: SchedulerState<MesmerRuntimeState>;
   readonly config: MesmerConfig;
   readonly traits: ReadonlySet<number>;
   readonly epsilon: number;
@@ -46,10 +47,11 @@ export function createExpectedProcTracker({
   const trackBloodsong = (at: number, bleedingStacks: number) => {
     if (config.specialization !== "Virtuoso" || !traits.has(TRAIT.BLOODSONG))
       return;
-
-    state.profession.bloodsongProgress += Number(bleedingStacks || 0);
-    while (state.profession.bloodsongProgress >= 5 - PROC_PROGRESS_TOLERANCE) {
-      state.profession.bloodsongProgress -= 5;
+    const active = state.profession.specialization;
+    if (active.kind !== "Virtuoso") return;
+    active.state.bloodsongProgress += Number(bleedingStacks || 0);
+    while (active.state.bloodsongProgress >= 5 - PROC_PROGRESS_TOLERANCE) {
+      active.state.bloodsongProgress -= 5;
       queueResources(
         at + epsilon,
         1,
@@ -66,12 +68,12 @@ export function createExpectedProcTracker({
       traits.has(TRAIT.SHARPER_IMAGES) &&
       (event.source === "Clone" || event.source === "Phantasm")
     ) {
-      state.profession.sharperImagesProgress += chance;
+      professionCoreState(state).sharperImagesProgress += chance;
       const procCount = Math.floor(
-        state.profession.sharperImagesProgress + PROC_PROGRESS_TOLERANCE,
+        professionCoreState(state).sharperImagesProgress + PROC_PROGRESS_TOLERANCE,
       );
       if (procCount > 0) {
-        state.profession.sharperImagesProgress -= procCount;
+        professionCoreState(state).sharperImagesProgress -= procCount;
         emitCondition(event, {
           type: "condition",
           at: event.at,

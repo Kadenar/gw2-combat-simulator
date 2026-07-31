@@ -42,11 +42,11 @@ import {
 } from "../js/professions/engineer/definition.js";
 import {
   engineerMechAttributes,
-} from "../js/professions/engineer/state.js";
+} from "../js/professions/engineer/specializations/mechanist/state.js";
 import {
   engineerEventLogRow,
   engineerWeaponSkillMatchesSet,
-} from "../js/professions/engineer/ui.js";
+} from "../js/professions/engineer/core/ui.js";
 import {
   recalculate,
   runSimulation,
@@ -205,9 +205,9 @@ test("Holosmith palette exposes tool-belt skills, forge, and replacement bars", 
 
 test("Engineer renders Endurance only for Tools and uses a standard bar", () => {
   const build = createEngineerBuildDefaults();
-  const state = engineerProfession.createProfessionState({
+  const state = engineerProfession.resolveRuntime({
     specialization: "Core",
-  });
+  }).createProfessionState({ specialization: "Core" });
   const core = engineerProfession.ui.resourceViews({
     specialization: "Core",
     build,
@@ -234,9 +234,9 @@ test("Engineer renders Endurance only for Tools and uses a standard bar", () => 
   const holosmith = engineerProfession.ui.resourceViews({
     specialization: "Holosmith",
     build,
-    professionState: engineerProfession.createProfessionState({
+    professionState: engineerProfession.resolveRuntime({
       specialization: "Holosmith",
-    }),
+    }).createProfessionState({ specialization: "Holosmith" }),
   });
   assert.deepEqual(holosmith.map(view => view.id), ["heat"]);
 });
@@ -3318,7 +3318,9 @@ test("Mechanical Genius gives the jade mech independent inherited attributes", (
   }, uncapped);
   assert.equal(cappedChanneling.concentration, 1500);
   assert.equal(cappedChanneling.healingPower, 1500);
-  const copiedMightAfterCaps = engineerProfession.modifyAttributes({
+  const copiedMightAfterCaps = engineerProfession.resolveRuntime({
+    specialization: "Mechanist",
+  }).modifyAttributes({
     config: {
       specialization: "Mechanist",
       selectedSkills: ["Shift Signet"],
@@ -3802,7 +3804,9 @@ test("Mech Fighter, Jade Dynamo, and J-Drive add their active effects", () => {
         - 1.375,
     ) < 1e-12,
   );
-  assert.equal(engineerProfession.modifyConditionDamage({
+  assert.equal(engineerProfession.resolveRuntime({
+    specialization: "Mechanist",
+  }).modifyConditionDamage({
     config: jDriveConfig,
     time: 0,
   }, 1), 1.12);
@@ -3824,7 +3828,9 @@ test("Energy Amplifier adds Power and Healing Power during regeneration", () => 
     },
     time: 0,
   };
-  const attributes = engineerProfession.modifyAttributes(context, {
+  const attributes = engineerProfession.resolveRuntime({
+    specialization: "Core",
+  }).modifyAttributes(context, {
     power: 2000,
     precision: 1000,
     toughness: 1000,

@@ -31,9 +31,7 @@ interface TraitCatalog {
   readonly traits?: readonly CatalogEntity[];
 }
 
-interface CreateGw2CombatQueryOptions<
-  TProfessionState extends object,
-> {
+interface CreateGw2CombatQueryOptions<TProfessionState extends object> {
   readonly profession?: NormalizedProfessionContract<TProfessionState>;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
@@ -102,9 +100,7 @@ export function createGw2CombatQuery<
   config = {},
   events = [],
   traits = selectedGw2TraitValues(config, profession?.catalog),
-}: CreateGw2CombatQueryOptions<TProfessionState> = {}): Readonly<
-  Gw2CombatQuery
-> {
+}: CreateGw2CombatQueryOptions<TProfessionState> = {}): Readonly<Gw2CombatQuery> {
   if (!profession?.id) {
     throw new TypeError("GW2 combat query requires a profession.");
   }
@@ -164,41 +160,123 @@ export function createGw2CombatQuery<
     );
   };
   /**
-   * @param {number} time
-   * @param {Gw2QueryRuntime | null | undefined} runtime
+   * Player-configured permanent boons do not apply to ordinary summons.
+   * Explicitly inherited companion profiles retain their existing behavior.
+   *
+   * @param {SimulationEvent | null | undefined} event
    */
-  const mightStacksAt = (
+  const isBoonIsolatedSummonEvent = (
+    event: SimulationEvent | null | undefined,
+  ): boolean =>
+    gw2EventActorType(event) === "summon" &&
+    event?.summonInheritsAttributes !== true &&
+    event?.source !== "Phantasm";
+  /**
+   * Counts explicitly summon-targeted trait boons. These remain available when
+   * ordinary player-to-summon boon sharing is disabled.
+   *
+   * @param {string} kind
+   * @param {number} time
+   * @param {number} maximum
+   */
+  const summonTraitBoonStacksAt = (
+    kind: string,
     time: number,
+    maximum: number,
+  ): number =>
+    Math.max(
+      0,
+      Math.min(
+        maximum,
+        events
+          .filter(
+            (event) =>
+              event.type === "buff" &&
+              String(event.kind || "").toLowerCase() === kind &&
+              event.source === "Trait" &&
+              event.affectsSummons === true &&
+              event.at <= time &&
+              event.at + Number(event.duration || 0) > time,
+          )
+          .reduce((sum, event) => sum + Number(event.stacks || 1), 0),
+      ),
+    );
+  /**
+   * @param {string} kind
+   * @param {number} time
+   * @param {number} maximum
+   * @param {Gw2QueryRuntime | null | undefined} runtime
+   * @param {SimulationEvent | null | undefined} event
+   */
+  const boonStacksAt = (
+    kind: string,
+    time: number,
+    maximum: number,
     runtime: Gw2QueryRuntime | null | undefined,
+    event: SimulationEvent | null | undefined,
   ): number => {
-    const dynamic = runtimeBuffStacks(runtime, "might", time, 25);
-    if (dynamic == null) return timeline.mightStacksAt(time);
-    return Math.min(25, Number(config.boons?.might || 0) + dynamic);
+    const isolatedSummon = isBoonIsolatedSummonEvent(event);
+    const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
+    if (isolatedSummon && config.sharePlayerBoonsWithSummons === false) {
+      return summonTraitBoonStacksAt(kind, time, maximum);
+    }
+    const runtimeStacks = runtimeBuffStacks(runtime, kind, time, maximum);
+    const dynamic =
+      runtimeStacks == null
+        ? timeline.timedStacks(kind, time, 1, maximum)
+        : runtimeStacks;
+    return Math.max(0, Math.min(maximum, configured + dynamic));
   };
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
+   * @param {SimulationEvent | null | undefined} event
+   */
+  const mightStacksAt = (
+    time: number,
+    runtime: Gw2QueryRuntime | null | undefined,
+    event: SimulationEvent | null | undefined,
+  ): number => boonStacksAt("might", time, 25, runtime, event);
+  /**
+   * @param {number} time
+   * @param {Gw2QueryRuntime | null | undefined} runtime
+   * @param {SimulationEvent | null | undefined} event
    */
   const furyActiveAt = (
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
+    event: SimulationEvent | null | undefined,
   ): boolean => {
-    if (config.boons?.fury) return true;
+    const isolatedSummon = isBoonIsolatedSummonEvent(event);
+    // Illusions inherit the summoner's base crit chance but never the
+    // player-configured permanent Fury. They gain Fury only when a skill
+    // applies it dynamically (handled by the runtime/timeline branch below).
+    const illusionEvent =
+      event?.source === "Clone" || event?.source === "Phantasm";
+    if (!isolatedSummon && !illusionEvent && config.boons?.fury) return true;
+    if (isolatedSummon && config.sharePlayerBoonsWithSummons === false) {
+      return summonTraitBoonStacksAt("fury", time, 1) > 0;
+    }
     const dynamic = runtimeBuffStacks(runtime, "fury", time, 1);
-    return dynamic == null ? timeline.furyActiveAt(time) : dynamic > 0;
+    return dynamic == null ? timeline.timedActive("fury", time) : dynamic > 0;
   };
   /** @param {number} time */
-  const summonMightStacksAt = (time: number): number => Math.min(
-    25,
-    events
-      .filter(event =>
-        event.type === "buff"
-        && String(event.kind || "").toLowerCase() === "might"
-        && event.affectsSummons === true
-        && event.at <= time
-        && event.at + Number(event.duration || 0) > time)
-      .reduce((sum, event) => sum + Number(event.stacks || 1), 0),
-  );
+  const summonMightStacksAt = (time: number): number =>
+    Math.min(
+      25,
+      events
+        .filter(
+          (event) =>
+            event.type === "buff" &&
+            String(event.kind || "").toLowerCase() === "might" &&
+            event.affectsSummons === true &&
+            (config.sharePlayerBoonsWithSummons !== false ||
+              event.source === "Trait") &&
+            event.at <= time &&
+            event.at + Number(event.duration || 0) > time,
+        )
+        .reduce((sum, event) => sum + Number(event.stacks || 1), 0),
+    );
   /**
    * @param {number} time
    * @param {Gw2QueryRuntime | null | undefined} runtime
@@ -275,15 +353,10 @@ export function createGw2CombatQuery<
   const activeSigilSetAt = (
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
-  ) =>
-    gw2SigilSet(config, activeWeaponSetAt(time, runtime));
+  ) => gw2SigilSet(config, activeWeaponSetAt(time, runtime));
   const hookContext = (
     time: number,
-    {
-      event = null,
-      condition = null,
-      runtime = null,
-    }: HookContextOptions = {},
+    { event = null, condition = null, runtime = null }: HookContextOptions = {},
   ): SchedulerRecord => ({
     profession: activeProfession,
     config,
@@ -314,19 +387,17 @@ export function createGw2CombatQuery<
       hookContext(time, { event, runtime }),
       gw2StaticAttributes(
         configWithBaselineStats,
-        mightStacksAt(time, runtime),
+        mightStacksAt(time, runtime, event),
       ),
     ) as unknown as Gw2ResolvedStats;
     if (
-      event?.independentSummonStrike === true
-      && event?.summonInheritsAttributes !== true
-      && Number.isFinite(Number(event.summonBasePower))
+      event?.independentSummonStrike === true &&
+      event?.summonInheritsAttributes !== true &&
+      Number.isFinite(Number(event.summonBasePower))
     ) {
       return {
         ...stats,
-        power:
-          Number(event.summonBasePower)
-          + summonMightStacksAt(time) * 30,
+        power: Number(event.summonBasePower) + summonMightStacksAt(time) * 30,
         precision: 1000,
         ferocity: 0,
       };
@@ -342,26 +413,34 @@ export function createGw2CombatQuery<
       runtime: Gw2QueryRuntime | null = null,
     ) {
       if (
-        event?.independentSummonStrike === true
-        && event?.summonInheritsAttributes !== true
+        event?.independentSummonStrike === true &&
+        event?.summonInheritsAttributes !== true
       ) {
         return {
           chance:
             event.canCrit === false || event.noCrit
               ? 0
               : Math.max(
-                0,
-                Math.min(1, Number(event.summonCriticalChance ?? 0.05)),
-              ),
+                  0,
+                  Math.min(1, Number(event.summonCriticalChance ?? 0.05)),
+                ),
           damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5)),
         };
       }
       const stats = statsAt(time, event, runtime);
       let chance = criticalChance(stats.precision);
-      chance += Number(config.stats?.criticalChanceBonus || 0) / 100;
-      chance +=
-        Number(activeSigilSetAt(time, runtime).criticalChanceBonus || 0) / 100;
-      if (furyActiveAt(time, runtime)) chance += 0.25;
+      // Illusions inherit only the summoner's base (precision-derived) crit
+      // chance. Player-only gear bonuses — configured crit-chance and weapon
+      // sigils — do not carry over to them.
+      const illusionEvent =
+        event?.source === "Clone" || event?.source === "Phantasm";
+      if (!illusionEvent) {
+        chance += Number(config.stats?.criticalChanceBonus || 0) / 100;
+        chance +=
+          Number(activeSigilSetAt(time, runtime).criticalChanceBonus || 0) /
+          100;
+      }
+      if (furyActiveAt(time, runtime, event)) chance += 0.25;
       chance = activeProfession.modifyCriticalChance(
         hookContext(time, { event, runtime }),
         chance,

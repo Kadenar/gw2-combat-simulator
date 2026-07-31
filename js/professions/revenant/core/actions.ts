@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Core Revenant action-handler map.
  *
@@ -23,7 +24,7 @@ export const revenantCoreSkillHandlers = Object.freeze({
 export function gainAncientEchoEnergy(
   context: RevenantCastContext,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.energy = Math.min(
     state.maximumEnergy,

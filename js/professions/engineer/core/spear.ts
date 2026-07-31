@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { emitEngineerState } from "./events.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import type {
@@ -36,7 +37,7 @@ export function scheduleLightningRod(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const activationId = context.reservationId;
   const firstAt = context.effectiveEnd + 0.16;
   const readyAt = firstAt + 3.5;
@@ -92,8 +93,8 @@ export function scheduleConduitSurge(
   skill: EngineerSkill,
 ): void {
   const at = context.effectiveEnd;
-  context.state.profession.focusedUntil = Math.max(
-    context.state.profession.focusedUntil,
+  professionCoreState(context).focusedUntil = Math.max(
+    professionCoreState(context).focusedUntil,
     at + 10,
   );
   emitEngineerState(context, at, "conduit-surge");
@@ -104,7 +105,7 @@ export function scheduleElectricArtillery(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const charges = state.lightningRodChargeExpiries
     .filter(expiresAt => Number(expiresAt) > at)
@@ -136,7 +137,7 @@ export function handleLightningRodCharge(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<LightningRodTaskPayload>,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (state.lightningRodActivationId !== task.payload?.activationId) return;
   state.lightningRodChargeExpiries = state.lightningRodChargeExpiries
     .filter(expiresAt => Number(expiresAt) > task.at);
@@ -149,7 +150,7 @@ export function handleElectricArtilleryReady(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<LightningRodTaskPayload>,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (state.lightningRodActivationId !== task.payload?.activationId) return;
   state.electricArtilleryAvailable = true;
   state.availableFlips[ID.ELECTRIC_ARTILLERY] = true;
@@ -161,7 +162,7 @@ export function handleElectricArtilleryExpire(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<LightningRodTaskPayload>,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (state.lightningRodActivationId !== task.payload?.activationId) return;
   state.lightningRodActivationId = "";
   state.lightningRodChargeExpiries = [];
@@ -177,7 +178,7 @@ export function scheduleRoilingSkiesControl(
   skill: EngineerSkill,
 ): void {
   const isFocused =
-    context.state.profession.focusedUntil > context.effectiveEnd;
+    professionCoreState(context).focusedUntil > context.effectiveEnd;
   context.emit({
     type: "control",
     at: context.effectiveEnd,
@@ -197,7 +198,7 @@ export function scheduleDevastatorFollowup(
   skill: EngineerSkill,
 ): void {
   const impactAt = context.fullEnd;
-  if (context.state.profession.focusedUntil <= impactAt) return;
+  if (professionCoreState(context).focusedUntil <= impactAt) return;
   for (let index = 0; index < 6; index += 1) {
     const at = impactAt + 0.16 * (index + 1);
     context.emit({

@@ -1,12 +1,6 @@
-import type {
-  SchedulerStep,
-} from "../../platform/engine/types.js";
-import type {
-  Gw2SimulationResult,
-} from "../../platform/gw2/types.js";
-import type {
-  ProfessionAppState,
-} from "../profession/types.js";
+import type { SchedulerStep } from "../../platform/engine/types.js";
+import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
+import type { ProfessionAppState } from "../profession/types.js";
 import { mountRotationWarnings } from "../../platform/ui/rotation-warnings.js";
 import { formatResultTimelineTime } from "./result-model.js";
 
@@ -26,7 +20,7 @@ export function rotationWarningItems(
     invalidSteps.set(step.invalidReason, matches);
   }
 
-  return (result?.warnings || []).map(rawWarning => {
+  return (result?.warnings || []).map((rawWarning) => {
     const message = String(rawWarning);
     const step = invalidSteps.get(message)?.shift();
     if (step && Number.isFinite(Number(step.start))) {

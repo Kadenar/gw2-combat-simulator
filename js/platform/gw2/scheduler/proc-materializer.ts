@@ -205,12 +205,17 @@ export function createGw2TriggerMaterializer(
   ): void => {
     const profession = state.profession;
     if (!profession) return;
-    const maximum = Number(profession.maximumEndurance);
-    const current = Number(profession.endurance);
+    const resources = (
+      profession.core && typeof profession.core === "object"
+        ? profession.core
+        : profession
+    ) as MaterializerProfessionState;
+    const maximum = Number(resources.maximumEndurance);
+    const current = Number(resources.endurance);
     if (!Number.isFinite(maximum) || !Number.isFinite(current)) return;
     const amount = Math.max(0, Number(proc.amount || 0));
-    profession.endurance = Math.min(maximum, current + amount);
-    profession.enduranceUpdatedAt = cause.at;
+    resources.endurance = Math.min(maximum, current + amount);
+    resources.enduranceUpdatedAt = cause.at;
     context.emitDerived(cause, {
       type: "resource",
       at: cause.at,

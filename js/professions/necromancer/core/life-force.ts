@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 /**
  * Life-force resource clock and cast finalization.
  *
@@ -13,7 +14,7 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
-import { syncNecromancerResources } from "../state.js";
+import { syncNecromancerResources } from "./state.js";
 import { NECROMANCER_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
   ENTRY_ID_BY_SHROUD,
@@ -23,6 +24,8 @@ import {
   gainNecromancerLifeForce,
   hasTrait,
   purgeTimedState,
+  purgeHarbingerTimedState,
+  purgeScourgeTimedState,
 } from "./shared.js";
 import type {
   NecromancerCastContext,
@@ -77,7 +80,8 @@ function clearSpiritsUnlessLingering(
   context: NecromancerSchedulerContext,
 ): void {
   if (hasTrait(context, TRAIT.LINGERING_SPIRITS)) return;
-  context.state.profession.activeSpirits = {};
+  const active = context.state.profession.specialization;
+  if (active.kind === "Ritualist") active.state.activeSpirits = {};
 }
 
 export function leaveShroud(
@@ -85,13 +89,14 @@ export function leaveShroud(
   at: number,
   reason = "shroud-exit",
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const shroud = state.activeShroud;
   if (!shroud || shroud === "lich") return;
   state.activeShroud = "";
   state.shroudEnteredAt = 0;
-  if (Object.hasOwn(state, "nextBlightAt")) {
-    state.nextBlightAt = Number.POSITIVE_INFINITY;
+  const active = context.state.profession.specialization;
+  if (active.kind === "Harbinger") {
+    active.state.nextBlightAt = Number.POSITIVE_INFINITY;
   }
   const exitId = EXIT_ID_BY_SHROUD[shroud];
   if (exitId != null) {
@@ -148,10 +153,13 @@ export function advanceNecromancerState(
   context: NecromancerSchedulerContext,
   target: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const start = Number(state.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
   purgeTimedState(state, end);
+  const active = context.state.profession.specialization;
+  if (active.kind === "Harbinger") purgeHarbingerTimedState(active.state, end);
+  if (active.kind === "Scourge") purgeScourgeTimedState(active.state, end);
 
   if (activeSignetOfUndeath(context)) {
     while (state.signetNextLifeForceAt <= end + context.epsilon) {
@@ -235,7 +243,8 @@ export function advanceNecromancerState(
     }
   } else if (
     !state.activeShroud
-    && Object.keys(state.activeSpirits || {}).length
+    && active.kind === "Ritualist"
+    && Object.keys(active.state.activeSpirits).length
     && hasTrait(context, TRAIT.LINGERING_SPIRITS)
   ) {
     state.lifeForce = Math.max(
@@ -245,7 +254,7 @@ export function advanceNecromancerState(
     );
     if (state.lifeForce <= context.epsilon) {
       state.lifeForce = 0;
-      state.activeSpirits = {};
+      active.state.activeSpirits = {};
     }
   }
 
@@ -296,14 +305,18 @@ export function finalizeNecromancerCast(
   advanceNecromancerState(context, context.effectiveEnd);
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   applySkillLifeForceGain(context, skill);
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (state.pendingShroudEntryId === skill.id) {
     context.state.cooldowns.set(skill.id, Number.POSITIVE_INFINITY);
     delete state.pendingShroudEntryId;
   }
-  if (state.pendingSoulTwistSkill === skill.id) {
+  const specialization = context.state.profession.specialization;
+  if (
+    specialization.kind === "Ritualist"
+    && specialization.state.pendingSoulTwistSkill === skill.id
+  ) {
     context.state.cooldowns.delete(skill.id);
-    delete state.pendingSoulTwistSkill;
+    delete specialization.state.pendingSoulTwistSkill;
   }
   emitState(context, context.effectiveEnd, "after-cast");
 }

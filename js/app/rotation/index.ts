@@ -1,6 +1,4 @@
-import type {
-  ProfessionAppState,
-} from "../profession/types.js";
+import type { ProfessionAppState } from "../profession/types.js";
 import { renderEventLog } from "./event-log.js";
 import { renderPalette } from "./palette-view.js";
 import { renderResults } from "./result-view.js";

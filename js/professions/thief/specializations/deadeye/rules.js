@@ -4,7 +4,7 @@ import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import {
   thiefEventSkill,
   thiefPlayerEvent,
-  thiefRuntimeState,
+  thiefRuntimeSpecializationState,
 } from "../../core/rules.js";
 import { deadeyeCastAvailability } from "./availability.js";
 
@@ -22,7 +22,9 @@ export const deadeyeModifierRules = Object.freeze([
     when: context =>
       thiefPlayerEvent(context)
       && hasTrait(context, TRAIT.IRON_SIGHT)
-      && Boolean(thiefRuntimeState(context).markedTargetId),
+      && Boolean(
+        thiefRuntimeSpecializationState(context, "Deadeye").markedTargetId,
+      ),
   },
   {
     id: "thief.premeditation",
@@ -37,7 +39,12 @@ export const deadeyeModifierRules = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
     amount: context =>
-      Math.max(0, Number(thiefRuntimeState(context).malice || 0)) * 0.15,
+      Math.max(
+        0,
+        Number(
+          thiefRuntimeSpecializationState(context, "Deadeye").malice || 0,
+        ),
+      ) * 0.15,
     when: context =>
       thiefPlayerEvent(context)
       && Boolean(thiefEventSkill(context)?.malicious)

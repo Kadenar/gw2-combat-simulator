@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { targetConditionStacks as configuredTargetConditionStacks } from "../../../../platform/gw2/target-state.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
@@ -34,7 +35,7 @@ function modifyReaperCastDuration(
   duration: number,
 ): number {
   return hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) &&
-    context.state.profession.activeShroud === "reaper" &&
+    professionCoreState(context).activeShroud === "reaper" &&
     !context.hasBuff?.("quickness", context.start)
     ? duration / 1.5
     : duration;

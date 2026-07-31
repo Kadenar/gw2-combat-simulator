@@ -1,14 +1,25 @@
+import { flattenProfessionState } from "../../../../platform/engine/profession.js";
 import {
   THIEF_DEADEYE_ASSUMPTION_CONTROLS,
 } from "./assumptions.js";
 import { deadeyeCastAvailability } from "./availability.js";
+import { THIEF_SKILL_IDS as ID } from "../../data/ids.js";
 
 function stateFrom(context = {}) {
-  return context.state?.profession || context.professionState || {};
+  return flattenProfessionState(
+    context.state?.profession || context.professionState,
+  );
 }
 
 export const deadeyeUi = Object.freeze({
   assumptionControls: THIEF_DEADEYE_ASSUMPTION_CONTROLS,
+  paletteGroups: () => [{
+    id: "thief-profession",
+    label: "F",
+    skillIds: [ID.DEADEYES_MARK],
+    color: "#9a535c",
+    resourceAnchor: true,
+  }],
   skillBarGroups: () => [{
     id: "deadeye-stolen-skills",
     label: "Deadeye Stolen Skills",

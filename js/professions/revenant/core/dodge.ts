@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { emitRevenantState } from "./shared.js";
 import { REVENANT_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
 import type {
@@ -10,7 +11,7 @@ export function performRevenantDodge(
   context: RevenantCastContext,
   _skill: RevenantSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   state.endurance = Math.max(
     0,
     state.endurance - MECHANICS.endurance.dodgeCost,

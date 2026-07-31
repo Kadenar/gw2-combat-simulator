@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasEngineerTrait } from "./state.js";
 import { emitEngineerState } from "./events.js";
@@ -117,7 +118,7 @@ function applyGrenadier(
   skill: EngineerSkill,
   at: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (
     !hasEngineerTrait(context.config, TRAIT.GRENADIER)
     || at + context.epsilon
@@ -142,7 +143,7 @@ function applyStreamlinedKits(
   skill: EngineerSkill,
   at: number,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (
     skill.handlerId !== "engineer.kit-equip"
     || !hasEngineerTrait(context.config, TRAIT.STREAMLINED_KITS)
@@ -172,7 +173,7 @@ function applyToolbeltTraits(
   at: number,
 ): void {
   if (!isEngineerToolbeltSkill(skill)) return;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
 
   if (hasEngineerTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) {
     emitBuff(context, skill, "vigor", 4, {

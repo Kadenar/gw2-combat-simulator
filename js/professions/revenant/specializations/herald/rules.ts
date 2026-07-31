@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
@@ -59,7 +60,7 @@ function observeHeraldEvent(
 ): void {
   if (
     event.type !== "sigil_swap" ||
-    context.state.profession.activeLegendId !== LEGEND.DRAGON ||
+    professionCoreState(context).activeLegendId !== LEGEND.DRAGON ||
     !revenantCombatActive(context, event.at)
   ) {
     return;

@@ -8,7 +8,7 @@ import {
 import {
   cloneNecromancerAttributes,
   necromancerEventSkill,
-  necromancerRuntimeState,
+  necromancerRuntimeSpecializationState,
   necromancerTargetConditionCount,
   necromancerTargetControlled,
 } from "../../core/rules.js";
@@ -54,7 +54,10 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       amount: 0.05,
       when: (context) =>
         hasTrait(context, TRAIT.LINGERING_SPIRITS) &&
-        Boolean(necromancerRuntimeState(context).activeSpirits?.anguish),
+        Boolean(
+          necromancerRuntimeSpecializationState(context)
+            .activeSpirits?.anguish,
+        ),
     },
     {
       id: "necromancer.anguish-conditional-damage",
@@ -73,7 +76,10 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       order: 100,
       when: (context) =>
         Boolean(
-          context.event?.actorType === "summon" &&
+          (
+            context.event?.actorType === "summon"
+            || context.event?.summonKind === "spirit"
+          ) &&
           hasTrait(context, TRAIT.SPIRITS_STRENGTH),
         ),
     },

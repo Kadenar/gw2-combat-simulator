@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import {
@@ -66,17 +67,19 @@ function handleEngineerState(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
 ): void {
+  const core = professionCoreState(context);
+  const specialization = context.profession.specialization.state;
   const preserved = {
-    traitProcReadyAt: context.profession.traitProcReadyAt || {},
-    activeComboFields: context.profession.activeComboFields || [],
+    traitProcReadyAt: core.traitProcReadyAt || {},
+    activeComboFields: core.activeComboFields || [],
     completedBlastFinisherActivations:
-      context.profession.completedBlastFinisherActivations || {},
+      core.completedBlastFinisherActivations || {},
   };
-  Object.assign(
-    context.profession,
-    structuredClone(event.state || {}),
-    preserved,
-  );
+  for (const [key, value] of Object.entries(event.state || {})) {
+    const owner = Object.hasOwn(specialization, key) ? specialization : core;
+    (owner as SchedulerRecord)[key] = structuredClone(value);
+  }
+  Object.assign(core, preserved);
 }
 
 export function queueDamage(
@@ -127,7 +130,7 @@ function handleEngineerComboField(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
 ): void {
-  const state = engineerState(context);
+  const state = professionCoreState(context);
   const fields = state.activeComboFields || [];
   state.activeComboFields = fields
     .filter(field => Number(field.expiresAt || 0) >= event.at)
@@ -144,7 +147,7 @@ function hasActiveEngineerComboField(
   context: EngineerResolverContext,
   at: number,
 ): boolean {
-  const state = engineerState(context);
+  const state = professionCoreState(context);
   state.activeComboFields = (state.activeComboFields || [])
     .filter(field => Number(field.expiresAt || 0) >= at);
   return state.activeComboFields.some(field =>
@@ -215,11 +218,7 @@ export function applyCondition(
 }
 
 function focused(context: EngineerResolverContext, at: number): boolean {
-  return Number(context.profession.focusedUntil || 0) > at;
-}
-
-export function engineerState(context: EngineerResolverContext): EngineerState {
-  return context.state?.profession ?? context.profession;
+  return Number(professionCoreState(context).focusedUntil || 0) > at;
 }
 
 function handleLightningRodPulse(
@@ -245,8 +244,8 @@ function handleConduitSurge(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
 ): void {
-  context.profession.focusedUntil = Math.max(
-    Number(context.profession.focusedUntil || 0),
+  professionCoreState(context).focusedUntil = Math.max(
+    Number(professionCoreState(context).focusedUntil || 0),
     event.at + 10,
   );
   queueDamage(context, event, {
@@ -298,7 +297,7 @@ function handleElectricArtillery(
 export function procState(
   context: EngineerResolverContext,
 ): Record<string, number | boolean> {
-  const state = engineerState(context);
+  const state = professionCoreState(context);
   state.traitProcReadyAt ||= {};
   return state.traitProcReadyAt;
 }
@@ -395,7 +394,7 @@ function reactToEngineerDamage(
   const finisherValue = Number(
     event.finisherValue ?? skill?.finisherValue ?? 0,
   );
-  const comboState = engineerState(context);
+  const comboState = professionCoreState(context);
   const activation = String(
     event.activationId || `${event.skillId || event.sourceId}:${event.at}`,
   );
@@ -679,7 +678,7 @@ function reactToEngineerCondition(
     event.actorType !== "summon"
     && hasTrait(context, TRAIT.THERMAL_VISION)
   ) {
-    const state = engineerState(context);
+    const state = professionCoreState(context);
     state.traitProcReadyAt.thermalVisionUntil = Math.max(
       Number(state.traitProcReadyAt.thermalVisionUntil || 0),
       event.at + 4,

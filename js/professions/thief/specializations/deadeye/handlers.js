@@ -1,3 +1,4 @@
+import { professionSpecializationState } from "../../../../platform/engine/profession.js";
 import { augmentSkillHandler } from "../../../../platform/engine/skill-handlers.js";
 import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import {
@@ -25,7 +26,7 @@ function selectedDeadeyeStolenSkill(context) {
 }
 
 function completeDeadeyesMark(context) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Deadeye");
   state.markedTargetId = "primary-target";
   state.malice = hasThiefTrait(
     context.config,
@@ -37,7 +38,7 @@ function completeDeadeyesMark(context) {
 
 function prepareDeadeyeSpearStealthAttack(context, skill) {
   const handlerState = {
-    malice: Math.max(0, Number(context.state.profession.malice || 0)),
+    malice: Math.max(0, Number(professionSpecializationState(context, "Deadeye").malice || 0)),
   };
   beginStealthAttack(context, skill);
   return handlerState;
@@ -82,7 +83,7 @@ function completeDeadeyeSpearStealthAttack(
 }
 
 export function updateDeadeyeMalice(context, skill) {
-  const state = context.state.profession;
+  const state = professionSpecializationState(context, "Deadeye");
   const at = context.effectiveEnd;
   if (
     state.markedTargetId

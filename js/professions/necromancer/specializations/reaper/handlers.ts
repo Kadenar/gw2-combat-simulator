@@ -1,3 +1,7 @@
+import {
+  professionCoreState,
+  professionSpecializationState,
+} from "../../../../platform/engine/profession.js";
 import { reaperResolverEventReactions } from "./resolver.js";
 import { executionersScythe, soulSpiral } from "./shroud.js";
 import {
@@ -83,7 +87,7 @@ function afterCast(
     });
   }
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   if (
     hasTrait(context, TRAIT.CHILLING_VICTORY)
     && requiredShroud(skill) === "reaper"

@@ -1,3 +1,4 @@
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { emitRevenantState } from "../../core/shared.js";
 import {
   emitCondition,
@@ -41,7 +42,7 @@ export function consumeRevenantFacet(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const state = context.state.profession;
+  const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const facetByConsume =
     MECHANICS.facetSkillByConsumeId as Readonly<Record<SkillId, SkillId>>;

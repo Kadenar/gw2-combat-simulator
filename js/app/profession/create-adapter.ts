@@ -63,11 +63,10 @@ export function createGw2AppAdapter({
     renderResults,
     renderRotationBuilder,
     slotLoadout: profession.ui.slotLoadout
-      ? profession.ui.slotLoadout as unknown as ProfessionSlotLoadout
+      ? (profession.ui.slotLoadout as unknown as ProfessionSlotLoadout)
       : null,
-    assumptionControls:
-      (profession.ui.assumptionControls || Object.freeze([])) as
-        readonly ProfessionAssumptionControl[],
+    assumptionControls: (profession.ui.assumptionControls ||
+      Object.freeze([])) as readonly ProfessionAssumptionControl[],
     weaponSkillMatchesSet:
       profession.ui.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,
     isSkillAvailable,
