@@ -41,8 +41,11 @@ import {
   NECROMANCER_QUICKNESS_CAST_TIMES_MS,
 } from "../js/professions/necromancer/mechanics/skill-mechanics.js";
 import {
-  NECROMANCER_HANDLER_MECHANICS,
-} from "../js/professions/necromancer/mechanics/handler-mechanics.js";
+  SCOURGE_MECHANICS,
+} from "../js/professions/necromancer/specializations/scourge/mechanics.js";
+import {
+  RITUALIST_MECHANICS,
+} from "../js/professions/necromancer/specializations/ritualist/mechanics.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -749,11 +752,11 @@ test("Scourge shade costs and packets use their fixed PvE values", () => {
   assert.equal(torment.every(event =>
     event.stacks === 1 && event.duration === 5), true);
   assert.equal(
-    NECROMANCER_HANDLER_MECHANICS.shade.manifest.coefficient,
+    SCOURGE_MECHANICS.shade.manifest.coefficient,
     0.666,
   );
   assert.deepEqual(
-    NECROMANCER_HANDLER_MECHANICS.shade.manifest.condition,
+    SCOURGE_MECHANICS.shade.manifest.condition,
     ["Torment", 1, 2],
   );
 });
@@ -2162,12 +2165,12 @@ test("Ritualist weapon spells consume stacks and Resilient Weapon is usable", ()
     true,
   );
   assert.equal(
-    NECROMANCER_HANDLER_MECHANICS.weaponSpells.nightmare
+    RITUALIST_MECHANICS.weaponSpells.nightmare
       .vulnerabilityStacks,
     2,
   );
   assert.equal(
-    NECROMANCER_HANDLER_MECHANICS.weaponSpells.nightmare
+    RITUALIST_MECHANICS.weaponSpells.nightmare
       .vulnerabilityDuration,
     8,
   );
@@ -2364,12 +2367,11 @@ test("requested Harbinger damage traits apply at their per-hit triggers", () => 
       event.condition === "Poisoned").length,
     6,
   );
-  assert.equal(
-    result.resolvedEvents.some(event =>
-      event.sourceId === TRAIT.INSIDIOUS_DISRUPTION &&
-      event.condition === "Torment"),
-    true,
-  );
+  const insidiousDisruption = result.resolvedEvents.filter(event =>
+    event.sourceId === TRAIT.INSIDIOUS_DISRUPTION &&
+    event.condition === "Torment");
+  assert.equal(insidiousDisruption.length, 3);
+  assert.ok(insidiousDisruption.every(event => event.duration === 5));
 });
 
 test("Barbed Precision uses centered deterministic expected procs", () => {
@@ -2468,6 +2470,21 @@ test("current Harbinger grandmaster traits use their live PvE mechanics", () => 
   });
 
   assert.deepEqual(cascading.warnings, []);
+  const riskWeakness = cascading.resolvedEvents.find(event =>
+    event.skillId === ID.ELIXIR_OF_RISK &&
+    event.condition === "Weakness");
+  assert.deepEqual(
+    {
+      stacks: riskWeakness?.stacks,
+      duration: riskWeakness?.duration,
+      effectiveDuration: riskWeakness?.effectiveDuration,
+    },
+    {
+      stacks: 1,
+      duration: 10,
+      effectiveDuration: 10,
+    },
+  );
   const cascadingStrike = cascading.resolvedEvents.find(event =>
     event.type === "damage" &&
     event.sourceId === TRAIT.CASCADING_CORRUPTION);
@@ -3082,6 +3099,105 @@ test("Necromancer resources and palette change with specialization state", () =>
     }),
     [0.5],
   );
+});
+
+test("Necromancer skill bar exposes each specialization's shroud abilities", () => {
+  const groups = specialization =>
+    necromancerProfession.ui.skillBarGroups({
+      specialization,
+      professionState: {},
+    });
+
+  assert.deepEqual(
+    groups("Core").map(group => [group.label, group.skillIds]),
+    [
+      ["F Keys", [ID.DEATH_SHROUD]],
+      [
+        "Death Shroud",
+        [
+          ID.LIFE_BLAST,
+          ID.DARK_PATH,
+          ID.DOOM,
+          ID.LIFE_TRANSFER,
+          ID.TAINTED_SHACKLES,
+        ],
+      ],
+    ],
+  );
+  assert.deepEqual(
+    groups("Reaper").map(group => [group.label, group.skillIds]),
+    [
+      ["F Keys", [ID.REAPERS_SHROUD]],
+      [
+        "Reaper's Shroud",
+        [
+          ID.LIFE_REND,
+          ID.DEATHS_CHARGE,
+          ID.INFUSING_TERROR,
+          ID.SOUL_SPIRAL,
+          ID.EXECUTIONERS_SCYTHE,
+        ],
+      ],
+    ],
+  );
+  assert.deepEqual(
+    groups("Harbinger").map(group => [group.label, group.skillIds]),
+    [
+      ["F Keys", [ID.HARBINGER_SHROUD]],
+      [
+        "Harbinger Shroud",
+        [
+          ID.TAINTED_BOLTS,
+          ID.DARK_BARRAGE,
+          ID.DEVOURING_CUT,
+          ID.VORACIOUS_ARC,
+          ID.VITAL_DRAW,
+        ],
+      ],
+    ],
+  );
+  assert.deepEqual(
+    groups("Ritualist").map(group => [group.label, group.skillIds]),
+    [
+      [
+        "F Keys",
+        [
+          ID.RITUALISTS_SHROUD,
+          ID.INNERVATE_ANGUISH,
+          ID.INNERVATE_WANDERLUST,
+          ID.INNERVATE_PRESERVATION,
+        ],
+      ],
+      [
+        "Ritualist's Shroud",
+        [
+          ID.ESSENCE_BLAST,
+          ID.ANGUISH,
+          ID.WANDERLUST,
+          ID.PRESERVATION,
+          ID.SUMMON_SPIRITS,
+        ],
+      ],
+    ],
+  );
+
+  const scourge = necromancerProfession.ui.skillBarGroups({
+    specialization: "Scourge",
+    build: {
+      specializations: [
+        { name: "Scourge", traits: "1-3-3" },
+      ],
+    },
+    professionState: {},
+  });
+  assert.deepEqual(scourge.map(group => group.label), ["F Keys"]);
+  assert.deepEqual(scourge[0].skillIds, [
+    ID.MANIFEST_SAND_SHADE,
+    ID.NEFARIOUS_FAVOR,
+    ID.SAND_CASCADE,
+    ID.GARISH_PILLAR,
+    ID.SANDSTORM_SHROUD,
+  ]);
 });
 
 test("Necromancer state events have a real event-log presentation", () => {

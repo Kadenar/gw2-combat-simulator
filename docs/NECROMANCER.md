@@ -5,6 +5,44 @@ The browser application is `necromancer.html`; it shares build controls,
 rotation editing, results, event logs, persistence, and import/export with the
 other declarative professions.
 
+## Specialization modules
+
+`js/professions/necromancer/definition.ts` is the stable export for the
+Necromancer family. `family.ts` retains the complete build-editor catalog and
+resolves one cached simulation contract from:
+
+- `core/`;
+- `specializations/reaper/`;
+- `specializations/scourge/`;
+- `specializations/harbinger/`; or
+- `specializations/ritualist/`.
+
+Each directory contains `module.ts`, `state.ts`, `skills.ts`, `handlers.ts`,
+`mechanics.ts`, `rules.ts`, and `ui.ts`. `module.ts` only assembles its local
+vertical slice. `skills.ts` owns the module's declarative skill mechanics and
+measured Quickness timings; the top-level skill-mechanics file only normalizes
+and composes those fragments for the complete application catalog.
+Core mechanics live under `core/`; specialization mechanics are colocated with
+their owner: Reaper shroud combos, Scourge shades, Harbinger Blight and Dark
+Barrage, and Ritualist spirits, weapon spells, and resolver events. The former
+`mechanics/specific/` ownership bucket and its profession-wide handler
+aggregator have been removed. Top-level `handlers.ts` and `resolver.ts` are
+application-catalog facades only; active simulation runtimes compose the local
+Core and selected-specialization registries directly.
+The stable top-level `state.ts` and `ui.ts` files are compatibility facades:
+state preserves the legacy flat factory and public result projection, while UI
+dispatches application callbacks to Core plus the selected module.
+
+Core runtime catalogs include all ordinary Necromancer mechanics and all
+weapon skills, including elite weapons available through Weaponmaster
+Training. Non-weapon elite skills, elite traits, state fields, handlers, and
+resolver event types, modifier declarations, rules, and UI contributions are
+included only for the selected elite. Core state does not allocate shades,
+Blight, or spirit/weapon-spell state; those fields are created by Scourge,
+Harbinger, and Ritualist respectively under the discriminated
+`specialization` state slice. Public `endState.profession` projection remains
+backward compatible.
+
 ## Data
 
 `js/professions/necromancer/data/necromancer-api-metadata.js` is generated from the
@@ -21,8 +59,9 @@ npm run update:necromancer-data
 ```
 
 The generator owns API metadata only. Simulator timing and behavior live in
-the shared-schema `mechanics/skill-mechanics.js` table, with chains and
-handlers supporting complex state. Missing-but-stable entries stay in
+the shared-schema module `skills.js` fragments, with the
+`mechanics/skill-mechanics.js` facade composing the application catalog.
+Chains and handlers support complex state. Missing-but-stable entries stay in
 `data/necromancer-supplemental-skills.js`, so refreshes do not overwrite them.
 Same-name API mode aliases resolve to one canonical selectable skill.
 

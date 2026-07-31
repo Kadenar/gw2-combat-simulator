@@ -9,9 +9,7 @@ import type {
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes,
 } from "../../platform/gw2/types.js";
-import type {
-  MesmerBuild,
-} from "./types.js";
+import type { MesmerBuild } from "./types.js";
 
 export function applyMesmerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
@@ -22,12 +20,11 @@ export function applyMesmerBuildAttributeRules(
   }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
   const mesmerBuild = build as MesmerBuild;
-  const attributes = common.attributes;
   const traitStats: Gw2NumericAttributes = {};
   const traitDurations: Gw2NumericAttributes = {};
-  const activeTraits = getActiveTraits(mesmerBuild.specializations || []).filter(
-    (trait) => trait.name !== disabledTrait,
-  );
+  const activeTraits = getActiveTraits(
+    mesmerBuild.specializations || [],
+  ).filter((trait) => trait.name !== disabledTrait);
   const hasTrait = (name: string): boolean =>
     activeTraits.some((trait) => trait.name === name);
   const assumptions = mesmerBuild.assumptions || {};
@@ -75,11 +72,7 @@ export function applyMesmerBuildAttributeRules(
       addAttribute(traitStats, "Ferocity", Number(trait.ferocity));
     }
     if (trait.concentration) {
-      addAttribute(
-        traitStats,
-        "Concentration",
-        Number(trait.concentration),
-      );
+      addAttribute(traitStats, "Concentration", Number(trait.concentration));
     }
     if (trait.vitality) {
       addAttribute(traitStats, "Vitality", Number(trait.vitality));

@@ -326,6 +326,46 @@ test("Necromancer static minor attributes remain represented", () => {
   );
 });
 
+test("Dark Gunslinger rounds its Expertise conversion for game parity", () => {
+  const build = createNecromancerBuildDefaults();
+
+  assert.equal(
+    traitDelta(
+      calculateNecromancerAttributes,
+      build,
+      "Dark Gunslinger",
+      "Expertise",
+    ),
+    148,
+  );
+});
+
+test("Condition Harbinger attributes match the in-game stat panel", () => {
+  const build = createNecromancerBuildDefaults();
+  build.food = "Salsa-Topped Veggie Flatbread";
+  build.utility = "Tuning Icicle";
+  build.infusions = [{ stat: "Expertise", count: 18 }];
+  build.specializations = [
+    { name: "Curses", traits: "1-1-3" },
+    { name: "Soul Reaping", traits: "1-1-3" },
+    { name: "Harbinger", traits: "3-3-1" },
+  ];
+
+  const attributes = calculateNecromancerAttributes(build).attributes;
+
+  assert.equal(attributes.Power.final, 2173);
+  assert.equal(attributes.Precision.final, 1813);
+  assert.equal(attributes["Condition Damage"].final, 2093);
+  assert.equal(attributes.Expertise.final, 971);
+  assert.equal(attributes["Condition Duration"].final, 79.73333333333333);
+  assert.equal(attributes["Torment Duration"].final, 20);
+  assert.equal(
+    attributes["Condition Duration"].final
+      + attributes["Torment Duration"].final,
+    99.73333333333333,
+  );
+});
+
 test("Bolstered Bonds follows both selected legends in build attributes", () => {
   const build = createRevenantBuildDefaults();
   build.specializations = [{ name: "Conduit", traits: "1-1-1" }];

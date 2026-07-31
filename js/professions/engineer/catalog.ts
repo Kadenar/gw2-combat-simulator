@@ -14,12 +14,14 @@ import {
 } from "./mechanics/skill-mechanics.js";
 import {
   engineerSkillHandlers,
-} from "./mechanics/specific/handlers.js";
+} from "./handlers.js";
 import type {
+  ProfessionModuleCatalogFragment,
   Skill,
   SkillFragment,
   SkillId,
 } from "../../platform/engine/types.js";
+import type { EngineerSkill } from "./types.js";
 
 const AMALGAM_PROTOCOL_ICONS = new Map<string, string>([
   ["Defensive Protocol: Cleanse", "https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png"],
@@ -158,3 +160,101 @@ export const engineerCatalog = createCanonicalCatalog({
 
 export const ENGINEER_SKILLS = engineerCatalog.skills;
 export const ENGINEER_GENERATED_SKILL_IDS = Object.freeze([...generatedIds]);
+
+export const ENGINEER_ELITE_SPECIALIZATIONS = Object.freeze([
+  "Scrapper",
+  "Holosmith",
+  "Mechanist",
+  "Amalgam",
+]);
+
+const eliteSpecializations = new Set(ENGINEER_ELITE_SPECIALIZATIONS);
+const fragmentCache = new Map<string, ProfessionModuleCatalogFragment>();
+
+function engineerSkillRuntimeOwner(skill: EngineerSkill): string {
+  const handlerId = String(skill.handlerId || "");
+  if (
+    skill.forgeSkill
+    || skill.name === "Engage Photon Forge"
+    || skill.name.startsWith("Deactivate Photon Forge")
+    || handlerId === "engineer.photon-forge-enter"
+    || handlerId === "engineer.photon-forge-exit"
+    || handlerId === "engineer.heat"
+  ) {
+    return "Holosmith";
+  }
+  if (
+    skill.name === "Crash Down"
+    || skill.name.startsWith("Recall Mech")
+    || skill.name === "Mech Support: Depth Charges"
+    || handlerId === "engineer.mech-summon"
+    || handlerId === "engineer.mech-recall"
+    || handlerId === "engineer.overclock-signet"
+  ) {
+    return "Mechanist";
+  }
+  if (
+    skill.name === "Evolve"
+    || skill.name === "Locked"
+    || skill.categories?.includes("Morph")
+    || handlerId === "engineer.amalgam-morph"
+    || handlerId === "engineer.evolve"
+    || handlerId === "engineer.plasmatic-state"
+  ) {
+    return "Amalgam";
+  }
+  if (skill.name.startsWith("Function Gyro")) return "Scrapper";
+  if (skill.type === "Weapon") return "Core";
+  const specialization = String(skill.specialization || "").toLowerCase();
+  const elite = ENGINEER_ELITE_SPECIALIZATIONS.find(
+    (name) => name.toLowerCase() === specialization,
+  );
+  return elite || "Core";
+}
+
+/**
+ * Returns the inert catalog slice owned by Core or one elite module. Physical
+ * weapon skills remain Core-owned because Weaponmaster Training makes them
+ * profession-wide; elite profession and slot skills stay module-local.
+ */
+export function engineerModuleCatalog(
+  moduleId: string,
+): Readonly<ProfessionModuleCatalogFragment> {
+  const cached = fragmentCache.get(moduleId);
+  if (cached) return cached;
+  if (moduleId !== "Core" && !eliteSpecializations.has(moduleId)) {
+    throw new Error(`Unknown Engineer catalog module ${moduleId}.`);
+  }
+  const skills = engineerCatalog.skills.filter(
+    (skill) =>
+      skill.simulatorAliasOfId == null
+      && engineerSkillRuntimeOwner(skill as EngineerSkill) === moduleId,
+  );
+  const traits = engineerCatalog.traits.filter((trait) =>
+    moduleId === "Core"
+      ? !eliteSpecializations.has(String(trait.specialization || ""))
+      : trait.specialization === moduleId,
+  );
+  const specializations = engineerCatalog.specializations.filter(
+    (specialization) =>
+      moduleId === "Core"
+        ? !specialization.elite
+        : specialization.name === moduleId,
+  );
+  const fragment: ProfessionModuleCatalogFragment = Object.freeze({
+    skills: Object.freeze([...skills]),
+    traits: Object.freeze([...traits]),
+    specializations: Object.freeze([...specializations]),
+    ...(moduleId === "Core"
+      ? {
+          weapons: Object.freeze([...engineerCatalog.weapons]),
+          weaponHands: new Map(engineerCatalog.weaponHands),
+          autoattackChains: {
+            excludeSkillIds: [ID.RIFLE_BURST_GRENADE],
+          },
+        }
+      : {}),
+  });
+  fragmentCache.set(moduleId, fragment);
+  return fragment;
+}

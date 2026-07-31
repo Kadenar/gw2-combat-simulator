@@ -1854,7 +1854,10 @@ test("common weapon data includes Guardian weapon families", () => {
 });
 
 test("Mesmer state creation and snapshots are profession owned", () => {
-  const state = createMesmerState({ infiniteForge: true });
+  const state = createMesmerState({
+    specialization: "Virtuoso",
+    infiniteForge: true,
+  });
   state.numericResource = 3;
   state.clones.push({ id: 1 });
   const snapshot = snapshotMesmerState(state);
@@ -1950,7 +1953,8 @@ test("Mesmer conforms to native handler, identity, and state boundaries", async 
 
   const behavioralRoots = [
     path.join(mesmerRoot, "mechanics"),
-    path.join(mesmerRoot, "resolver"),
+    path.join(mesmerRoot, "core"),
+    path.join(mesmerRoot, "specializations"),
   ];
   for (const root of behavioralRoots) {
     for (const file of await javascriptFiles(root)) {
@@ -2124,24 +2128,182 @@ test("declarative professions use the standard mechanics module roles", async ()
       `export const ${prefix}_SKILL_MECHANICS\\b`,
     ));
     assert.doesNotMatch(mechanics, /apiDamage|apiConditions/);
-    if (
-      profession === "guardian"
-      || profession === "mesmer"
-      || profession === "necromancer"
-      || profession === "revenant"
-    ) {
-      const handlerMechanics = await readSourceModule(
-        path.join(mechanicsRoot, "handler-mechanics.js"),
-      );
-      const handlers = await readSourceModule(
-        path.join(mechanicsRoot, "specific", "handlers.js"),
-      );
-      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
-      if (profession === "mesmer") {
-        assert.match(handlerMechanics, /export function mesmerHandlerIdFor\b/);
-      } else {
-        assert.match(handlerMechanics, /export const \w+_HANDLER_MECHANICS\b/);
+    if (profession === "necromancer") {
+      const localMechanics = await Promise.all([
+        path.join(root, profession, "core", "mechanics.js"),
+        path.join(
+          root,
+          profession,
+          "specializations",
+          "reaper",
+          "mechanics.js",
+        ),
+        path.join(
+          root,
+          profession,
+          "specializations",
+          "scourge",
+          "mechanics.js",
+        ),
+        path.join(
+          root,
+          profession,
+          "specializations",
+          "harbinger",
+          "mechanics.js",
+        ),
+        path.join(
+          root,
+          profession,
+          "specializations",
+          "ritualist",
+          "mechanics.js",
+        ),
+      ].map(readSourceModule));
+      const handlers = (
+        await Promise.all([
+          path.join(root, profession, "core", "handlers.js"),
+          path.join(
+            root,
+            profession,
+            "specializations",
+            "reaper",
+            "handlers.js",
+          ),
+          path.join(
+            root,
+            profession,
+            "specializations",
+            "scourge",
+            "handlers.js",
+          ),
+          path.join(
+            root,
+            profession,
+            "specializations",
+            "harbinger",
+            "handlers.js",
+          ),
+          path.join(
+            root,
+            profession,
+            "specializations",
+            "ritualist",
+            "handlers.js",
+          ),
+        ].map(readSourceModule))
+      ).join("\n");
+      for (const source of localMechanics) {
+        assert.match(source, /export const \w+_MECHANICS\b/);
+        assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
+      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
+      assert.match(handlers, /augmentSkillHandler/);
+      assert.match(handlers, /replaceSkillHandler/);
+    } else if (profession === "guardian") {
+      const localMechanics = await Promise.all([
+        path.join(root, profession, "core", "mechanics.js"),
+        path.join(
+          root,
+          profession,
+          "specializations",
+          "firebrand",
+          "mechanics.js",
+        ),
+        path.join(
+          root,
+          profession,
+          "specializations",
+          "luminary",
+          "mechanics.js",
+        ),
+      ].map(readSourceModule));
+      const handlers = (
+        await Promise.all([
+          path.join(root, profession, "core", "handlers.js"),
+          path.join(
+            root,
+            profession,
+            "specializations",
+            "firebrand",
+            "handlers.js",
+          ),
+          path.join(
+            root,
+            profession,
+            "specializations",
+            "luminary",
+            "handlers.js",
+          ),
+        ].map(readSourceModule))
+      ).join("\n");
+      for (const source of localMechanics) {
+        assert.match(source, /export const \w+_MECHANICS\b/);
+        assert.doesNotMatch(source, /HANDLER_MECHANICS/);
+      }
+      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
+      assert.match(handlers, /augmentSkillHandler/);
+      assert.match(handlers, /replaceSkillHandler/);
+    } else if (profession === "mesmer") {
+      const sliceDirectories = [
+        "core",
+        "specializations/chronomancer",
+        "specializations/mirage",
+        "specializations/virtuoso",
+        "specializations/troubadour",
+      ];
+      const localMechanics = await Promise.all(
+        sliceDirectories.map(directory =>
+          readSourceModule(
+            path.join(root, profession, directory, "mechanics.js"),
+          )
+        ),
+      );
+      const handlers = (
+        await Promise.all(
+          sliceDirectories.map(directory =>
+            readSourceModule(
+              path.join(root, profession, directory, "handlers.js"),
+            )
+          ),
+        )
+      ).join("\n");
+      for (const source of localMechanics) {
+        assert.match(source, /export const MESMER_\w+\b/);
+        assert.doesNotMatch(source, /HANDLER_MECHANICS/);
+      }
+      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
+      assert.match(handlers, /augmentSkillHandler/);
+      assert.match(handlers, /replaceSkillHandler/);
+    } else if (profession === "revenant") {
+      const sliceDirectories = [
+        "core",
+        "specializations/herald",
+        "specializations/renegade",
+        "specializations/vindicator",
+        "specializations/conduit",
+      ];
+      const localMechanics = await Promise.all(
+        sliceDirectories.map(directory =>
+          readSourceModule(
+            path.join(root, profession, directory, "mechanics.js"),
+          )
+        ),
+      );
+      const handlers = (
+        await Promise.all(
+          sliceDirectories.map(directory =>
+            readSourceModule(
+              path.join(root, profession, directory, "handlers.js"),
+            )
+          ),
+        )
+      ).join("\n");
+      for (const source of localMechanics) {
+        assert.match(source, /export const \w+_MECHANICS\b/);
+        assert.doesNotMatch(source, /HANDLER_MECHANICS/);
+      }
+      assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
       assert.match(handlers, /augmentSkillHandler/);
       assert.match(handlers, /replaceSkillHandler/);
     }

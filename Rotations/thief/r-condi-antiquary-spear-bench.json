@@ -53,10 +53,7 @@
     "Distracting Throw",
     "Entangling Asp",
     "Falling Spider",
-    {
-      "name": "__wait",
-      "waitMs": 1090
-    },
+    "Chak Shield",
     "Skritt Swipe",
     "Distracting Throw",
     "Entangling Asp",
@@ -131,6 +128,7 @@
     "Falling Spider",
     "Distracting Throw",
     "Entangling Asp",
+    "Chak Shield",
     "Falling Spider",
     "Distracting Throw",
     "Entangling Asp",
@@ -203,6 +201,10 @@
     "Distracting Throw",
     "Entangling Asp",
     "Falling Spider",
+    {
+      "name": "__wait",
+      "waitMs": 3310
+    },
     "Ashen Assault"
   ]
 }

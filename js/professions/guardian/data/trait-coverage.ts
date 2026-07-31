@@ -34,7 +34,15 @@ const IMPLEMENTED = new Set([
   "Conceited Curate",
   "Light's Gift",
   "Permeating Wrath",
+  "Purity of Word",
+  "Unrelenting Criticism",
+  "Liberator's Vow",
   "Archivist of Whispers",
+  "Swift Scholar",
+  "Weighty Terms",
+  "Stalwart Speed",
+  "Legendary Lore",
+  "Stoic Demeanor",
   "Loremaster",
   "Quickfire",
   "Sovereign of Light",
@@ -47,8 +55,7 @@ const IMPLEMENTED = new Set([
 const REASONS = Object.freeze({
   defensive:
     "Incoming-hit, block, healing, barrier, revival, and damage-reduction behavior is outside the outgoing single-target damage model.",
-  ally:
-    "Ally-only healing, boon delivery, and group support are outside the single-player target model.",
+  ally: "Ally-only healing, boon delivery, and group support are outside the single-player target model.",
   movement:
     "Movement, mobility, and downed-state effects are not represented by the stationary PvE target model.",
   missingMechanics:
@@ -67,9 +74,10 @@ function outOfModelReason(trait: CatalogEntity): string {
 }
 
 /** @param {CatalogEntity} trait */
-function implementedEvidence(
-  trait: CatalogEntity,
-): { readonly file: string; readonly name: string } {
+function implementedEvidence(trait: CatalogEntity): {
+  readonly file: string;
+  readonly name: string;
+} {
   if (trait.specialization === "Firebrand") {
     return {
       file: "tests/guardian.test.js",
@@ -82,23 +90,25 @@ function implementedEvidence(
       name: "Luminary recharge traits alter the intended cooldown families",
     };
   }
-  if ([
-    "Kindled Zeal",
-    "Zealous Blade",
-    "Radiant Power",
-    "Right-Hand Strength",
-    "Perfect Inscriptions",
-    "Stalwart Defender",
-    "Honorable Staff",
-    "Force of Will",
-    "Power of the Virtuous",
-    "Defender's Dogma",
-    "Imbued Haste",
-    "Searing Pact",
-    "Power for Power",
-    "Conceited Curate",
-    "Light's Gift",
-  ].includes(trait.name)) {
+  if (
+    [
+      "Kindled Zeal",
+      "Zealous Blade",
+      "Radiant Power",
+      "Right-Hand Strength",
+      "Perfect Inscriptions",
+      "Stalwart Defender",
+      "Honorable Staff",
+      "Force of Will",
+      "Power of the Virtuous",
+      "Defender's Dogma",
+      "Imbued Haste",
+      "Searing Pact",
+      "Power for Power",
+      "Conceited Curate",
+      "Light's Gift",
+    ].includes(trait.name)
+  ) {
     return {
       file: "tests/guardian.test.js",
       name: "Guardian build attributes expose static Zeal and Radiance bonuses",
@@ -110,29 +120,27 @@ function implementedEvidence(
   };
 }
 
-const manifest = guardianCatalog.traits.map(
-  (trait) => {
+const manifest = guardianCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
     ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED
     : TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL;
   const reason = outOfModelReason(trait);
-    return {
-      traitId: trait.id,
-      status,
-      effects: [{
+  return {
+    traitId: trait.id,
+    status,
+    effects: [
+      {
         description:
-          String(trait.description || "").trim()
-          || `Reviewed combat behavior for ${trait.name}.`,
+          String(trait.description || "").trim() ||
+          `Reviewed combat behavior for ${trait.name}.`,
         status,
         ...(implemented ? {} : { reason }),
-      }],
-      ...(implemented
-        ? { tests: [implementedEvidence(trait)] }
-        : { reason }),
-    };
-  },
-);
+      },
+    ],
+    ...(implemented ? { tests: [implementedEvidence(trait)] } : { reason }),
+  };
+});
 
 export const GUARDIAN_TRAIT_COVERAGE = validateTraitCoverageManifest(
   guardianCatalog,

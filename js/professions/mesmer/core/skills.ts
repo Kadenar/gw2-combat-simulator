@@ -1,0 +1,2178 @@
+/**
+ * Raw Core skill mechanics. Generated once from the characterized
+ * pre-migration table; this file is now the runtime source owner.
+ */
+import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
+import type {
+  Skill,
+  SkillFragment,
+  SkillId,
+} from "../../../platform/engine/types.js";
+import type { MesmerSkill } from "../types.js";
+
+export const MESMER_CORE_SKILL_MECHANICS: Readonly<
+  Record<SkillId, SkillFragment>
+> = Object.freeze({
+  [ID.CONFUSING_IMAGES]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 9,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Confusing_Images",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 5.32,
+        "hits": 7,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "scepter"
+      },
+      {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 7,
+        "stacks": 7
+      }
+    ],
+    "castTimeMs": 2775,
+    "quicknessCastTimeMs": 1850,
+    "pulseCount": 7
+  },
+  [ID.CHAOS_STORM]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Staff",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Chaos_Storm",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.98,
+        "hits": 6,
+        "name": "Six pulses",
+        "actorType": "player",
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+      },
+      {
+        "type": "condition",
+        "condition": "Poisoned",
+        "duration": 4,
+        "stacks": 2
+      }
+    ],
+    "castTimeMs": 720
+  },
+  [ID.MIND_SLASH]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Slash",
+    "nextChainId": ID.MIND_GASH,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+      }
+    ],
+    "castTimeMs": 540
+  },
+  [ID.MIND_GASH]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 780,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Gash",
+    "nextChainId": ID.MIND_SPIKE,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+      }
+    ]
+  },
+  [ID.MIND_SPIKE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1260,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "boonlessCoefficient": 2,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Spike",
+    "nextChainId": null,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+      }
+    ]
+  },
+  [ID.ILLUSIONARY_LEAP]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 600,
+    "cooldown": 12,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusionary_Leap",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.003,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+      }
+    ]
+  },
+  [ID.PHANTASMAL_SWORDSMAN]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 15,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    },
+    "phantasmSummonProgress": 0.8181818181818182,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Swordsman",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Mesmer strike",
+        "actorType": "player",
+        "weapon": "sword",
+        "castProgress": 0.8625
+      },
+      {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Phantasm leap",
+        "actorType": "phantasm",
+        "weapon": "phantasm medium"
+      },
+      {
+        "type": "strike",
+        "coefficient": 1.6,
+        "hits": 8,
+        "name": "Phantasm Blurred Frenzy",
+        "actorType": "phantasm",
+        "weapon": "phantasm medium"
+      }
+    ],
+    "castTimeMs": 1320
+  },
+  [ID.PHANTASMAL_DUELIST]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 16,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Duelist",
+    "effects": [
+      {
+        "type": "strike",
+        "ticks": [
+          {
+            "atMs": 350,
+            "coefficient": 0.33
+          },
+          {
+            "atMs": 350,
+            "coefficient": 0.33
+          },
+          {
+            "atMs": 400,
+            "coefficient": 0.33
+          }
+        ],
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "pistol",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+      },
+      {
+        "type": "strike",
+        "coefficient": 0.92,
+        "hits": 8,
+        "name": "Illusion Damage",
+        "actorType": "phantasm",
+        "weapon": "phantasm medium"
+      },
+      {
+        "type": "condition",
+        "condition": "bleeding",
+        "duration": 4,
+        "stacks": 8,
+        "packetLabel": "Illusion Damage"
+      }
+    ],
+    "castTimeMs": 840
+  },
+  [ID.ETHER_FEAST]: {
+    "implemented": true,
+    "type": "Heal",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 666.666666667,
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Ether_Feast",
+    "effects": []
+  },
+  [ID.MIRROR]: {
+    "implemented": true,
+    "type": "Heal",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1250,
+    "quicknessCastTimeMs": 833.333333333,
+    "cooldown": 12,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mirror",
+    "effects": []
+  },
+  [ID.TEMPORAL_CURTAIN]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Focus",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1110,
+    "quicknessCastTimeMs": 740,
+    "cooldown": 25,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Temporal_Curtain",
+    "effects": []
+  },
+  [ID.PHANTASMAL_MAGE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Torch",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 20,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Mage",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.19,
+        "hits": 1,
+        "name": "Mesmer attack",
+        "actorType": "player",
+        "weapon": "torch"
+      },
+      {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Phantasm attack",
+        "actorType": "phantasm",
+        "weapon": "torch"
+      },
+      {
+        "type": "condition",
+        "condition": "burning",
+        "duration": 9,
+        "stacks": 1
+      },
+      {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 3,
+        "stacks": 3
+      }
+    ],
+    "castTimeMs": 1200
+  },
+  [ID.CRY_OF_FRUSTRATION]: {
+    "implemented": true,
+    "type": "Profession",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "lockouts": [
+      {
+        "group": "mesmer.shatter",
+        "durationMs": 50
+      }
+    ],
+    "rechargeAnchor": "castStart",
+    "cooldown": 25,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Cry_of_Frustration",
+    "effects": []
+  },
+  [ID.MIND_WRACK]: {
+    "implemented": true,
+    "type": "Profession",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "lockouts": [
+      {
+        "group": "mesmer.shatter",
+        "durationMs": 50
+      }
+    ],
+    "rechargeAnchor": "castStart",
+    "cooldown": 12,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Wrack",
+    "effects": []
+  },
+  [ID.DISTORTION]: {
+    "implemented": true,
+    "type": "Profession",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "lockouts": [
+      {
+        "group": "mesmer.shatter",
+        "durationMs": 50
+      }
+    ],
+    "rechargeAnchor": "castStart",
+    "cooldown": 50,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Distortion",
+    "effects": []
+  },
+  [ID.PORTAL_ENTRE]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 72,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Portal_Entre",
+    "effects": []
+  },
+  [ID.BLINK]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Blink",
+    "effects": []
+  },
+  [ID.DECOY]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Decoy",
+    "effects": []
+  },
+  [ID.MIRROR_IMAGES]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 25,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 2
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mirror_Images",
+    "effects": []
+  },
+  [ID.NULL_FIELD]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
+    "cooldown": 25,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Null_Field",
+    "effects": []
+  },
+  [ID.MANTRA_OF_PAIN]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 2250,
+    "quicknessCastTimeMs": 1500,
+    "cooldown": 1,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mantra_of_Pain",
+    "effects": []
+  },
+  [ID.MANTRA_OF_RECOVERY]: {
+    "implemented": true,
+    "type": "Heal",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 2250,
+    "quicknessCastTimeMs": 1500,
+    "cooldown": 10,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mantra_of_Recovery",
+    "effects": []
+  },
+  [ID.PHANTASMAL_WARLOCK]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Staff",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 12,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 2
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Warlock",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.45,
+        "hits": 3,
+        "name": "One warlock",
+        "actorType": "phantasm",
+        "weapon": "Phantasm high"
+      },
+      {
+        "type": "condition",
+        "condition": "Torment",
+        "duration": 4,
+        "stacks": 6
+      }
+    ],
+    "castTimeMs": 1170,
+    "quicknessCastTimeMs": 780
+  },
+  [ID.MIND_STAB]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Greatsword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 10,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Stab",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.8,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "greatsword"
+      }
+    ],
+    "castTimeMs": 540
+  },
+  [ID.SPATIAL_SURGE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Greatsword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1125,
+    "quicknessCastTimeMs": 750,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Spatial_Surge",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.1,
+        "hits": 3,
+        "name": "Maximum-range damage",
+        "actorType": "player"
+      }
+    ],
+    "pulseCount": 3
+  },
+  [ID.ILLUSIONARY_WAVE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Greatsword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 960,
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusionary_Wave",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.3,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "greatsword"
+      }
+    ]
+  },
+  [ID.PHANTASMAL_BERSERKER]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Greatsword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 12,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Berserker",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.2,
+        "hits": 4,
+        "name": "One berserker",
+        "actorType": "phantasm",
+        "weapon": "phantasm high"
+      },
+      {
+        "type": "strike",
+        "coefficient": 1.2,
+        "hits": 1,
+        "name": "Greatsword damage",
+        "actorType": "player",
+        "weapon": "greatsword"
+      }
+    ],
+    "castTimeMs": 840
+  },
+  [ID.MAGIC_BULLET]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Pistol",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Magic_Bullet",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.2,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "pistol"
+      },
+      {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 5,
+        "stacks": 3
+      }
+    ],
+    "castTimeMs": 660
+  },
+  [ID.SIGNET_OF_DOMINATION]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
+    "cooldown": 25,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Signet_of_Domination",
+    "effects": []
+  },
+  [ID.SIGNET_OF_MIDNIGHT]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Signet_of_Midnight",
+    "effects": []
+  },
+  [ID.SIGNET_OF_INSPIRATION]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Signet_of_Inspiration",
+    "effects": []
+  },
+  [ID.MASS_INVISIBILITY]: {
+    "implemented": true,
+    "type": "Elite",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1250,
+    "quicknessCastTimeMs": 833.333333333,
+    "cooldown": 35,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mass_Invisibility",
+    "effects": []
+  },
+  [ID.SIGNET_OF_ILLUSIONS]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1680,
+    "cooldown": 60,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Signet_of_Illusions",
+    "effects": []
+  },
+  [ID.PHANTASMAL_DISENCHANTER]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 20,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Disenchanter",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Target without boons",
+        "actorType": "phantasm",
+        "weapon": "phantasm medium"
+      }
+    ],
+    "castTimeMs": 1140
+  },
+  [ID.WINDS_OF_CHAOS]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Staff",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Winds_of_Chaos",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.6,
+        "hits": 2,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "staff"
+      },
+      {
+        "type": "condition",
+        "condition": "torment",
+        "duration": 5,
+        "stacks": 1
+      },
+      {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 5,
+        "stacks": 1
+      }
+    ],
+    "castTimeMs": 1140
+  },
+  [ID.ILLUSIONARY_COUNTER]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 2000,
+    "quicknessCastTimeMs": 1333.333333333,
+    "cooldown": 6,
+    "phantasm": false,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusionary_Counter",
+    "effects": [],
+    "resource": null,
+    "defaultInterruptMs": 120
+  },
+  [ID.ILLUSIONARY_RIPOSTE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 2250,
+    "quicknessCastTimeMs": 1500,
+    "cooldown": 12,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusionary_Riposte",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 2,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+      }
+    ],
+    "defaultInterruptMs": 120
+  },
+  [ID.PHANTASMAL_WARDEN]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Focus",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 20,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Warden",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.656,
+        "hits": 12,
+        "name": "Damage",
+        "actorType": "phantasm",
+        "weapon": "phantasm medium"
+      }
+    ],
+    "castTimeMs": 690,
+    "quicknessCastTimeMs": 460
+  },
+  [ID.THE_PRESTIGE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Torch",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/The_Prestige",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "torch"
+      },
+      {
+        "type": "condition",
+        "condition": "burning",
+        "duration": 9,
+        "stacks": 1
+      }
+    ]
+  },
+  [ID.DIVERSION]: {
+    "implemented": true,
+    "type": "Profession",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "lockouts": [
+      {
+        "group": "mesmer.shatter",
+        "durationMs": 50
+      }
+    ],
+    "rechargeAnchor": "castStart",
+    "cooldown": 38,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Diversion",
+    "effects": []
+  },
+  [ID.ETHER_BOLT]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Ether_Bolt",
+    "nextChainId": ID.ETHER_BLAST,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "scepter"
+      },
+      {
+        "type": "condition",
+        "condition": "torment",
+        "duration": 4,
+        "stacks": 1
+      }
+    ],
+    "castTimeMs": 660
+  },
+  [ID.ETHER_BLAST]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 780,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Ether_Blast",
+    "nextChainId": ID.ETHER_CLONE,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "scepter"
+      },
+      {
+        "type": "condition",
+        "condition": "Torment",
+        "duration": 6,
+        "stacks": 1
+      }
+    ]
+  },
+  [ID.ETHER_CLONE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Scepter",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1260,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "maxCloneEffects": [
+      {
+        "type": "condition",
+        "condition": "Torment",
+        "duration": 9,
+        "stacks": 1
+      }
+    ],
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Ether_Clone",
+    "nextChainId": null,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.75,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "scepter"
+      }
+    ]
+  },
+  [ID.FEEDBACK]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 32,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Feedback",
+    "effects": []
+  },
+  [ID.PHASE_RETREAT]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Staff",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 8,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phase_Retreat",
+    "effects": []
+  },
+  [ID.TIME_WARP]: {
+    "implemented": true,
+    "type": "Elite",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 960,
+    "cooldown": 120,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Time_Warp",
+    "effects": []
+  },
+  [ID.CHAOS_ARMOR]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Staff",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 16,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Chaos_Armor",
+    "effects": [
+      {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 5,
+        "stacks": 3
+      }
+    ]
+  },
+  [ID.MIRROR_BLADE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Greatsword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1080,
+    "cooldown": 5,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": true,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mirror_Blade",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 2.5,
+        "hits": 1,
+        "name": "Initial target hit",
+        "actorType": "player",
+        "weapon": "greatsword"
+      },
+      {
+        "type": "strike",
+        "coefficient": 0.1,
+        "hits": 1,
+        "name": "Second target hit after one ally bounce",
+        "actorType": "player",
+        "weapon": "greatsword",
+        "atMs": 300,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+      },
+      {
+        "type": "strike",
+        "coefficient": 0.004,
+        "hits": 1,
+        "name": "Third target hit after two ally bounces",
+        "actorType": "player",
+        "weapon": "greatsword",
+        "atMs": 600,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+      },
+      {
+        "type": "strike",
+        "coefficient": 0.00016,
+        "hits": 1,
+        "name": "Fourth target hit after three ally bounces",
+        "requiredTrait": 686,
+        "actorType": "player",
+        "weapon": "greatsword",
+        "atMs": 900,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+      }
+    ]
+  },
+  [ID.BLURRED_FRENZY]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1440,
+    "cooldown": 10,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Blurred_Frenzy",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 3.6,
+        "hits": 8,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+      }
+    ]
+  },
+  [ID.PHANTASMAL_DEFENDER]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 40,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Defender",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.4,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "phantasm",
+        "weapon": "phantasm defender"
+      }
+    ],
+    "castTimeMs": 1155,
+    "quicknessCastTimeMs": 770
+  },
+  [ID.SIGNET_OF_THE_ETHER]: {
+    "implemented": true,
+    "type": "Heal",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 30,
+    "phantasm": false,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Signet_of_the_Ether",
+    "effects": [],
+    "resource": null,
+    "castTimeMs": 1380
+  },
+  [ID.SIGNET_OF_HUMILITY]: {
+    "implemented": true,
+    "type": "Elite",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1000,
+    "quicknessCastTimeMs": 666.666666667,
+    "cooldown": 45,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Signet_of_Humility",
+    "effects": []
+  },
+  [ID.MIMIC]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mimic",
+    "effects": []
+  },
+  [ID.TIDES_OF_TIME]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Shield",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 1020,
+    "cooldown": 35,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Tides_of_Time",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "shield"
+      }
+    ]
+  },
+  [ID.ECHO_OF_MEMORY]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Shield",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "cooldown": 30,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Echo_of_Memory",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.9,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "phantasm",
+        "weapon": "phantasm medium"
+      }
+    ],
+    "castTimeMs": 2460
+  },
+  [ID.MIRROR_STRIKES]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Axe",
+    "specialization": "Mirage",
+    "environment": "Terrestrial",
+    "castTimeMs": 1080,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mirror_Strikes",
+    "nextChainId": null,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.1,
+        "hits": 2,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+      },
+      {
+        "type": "condition",
+        "condition": "Bleeding",
+        "duration": 6,
+        "stacks": 1
+      },
+      {
+        "type": "condition",
+        "condition": "Torment",
+        "duration": 6,
+        "stacks": 1
+      }
+    ]
+  },
+  [ID.AXES_OF_SYMMETRY]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Axe",
+    "specialization": "Mirage",
+    "environment": "Terrestrial",
+    "cooldown": 8,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Axes_of_Symmetry",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.75,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+      },
+      {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 6,
+        "stacks": 5
+      },
+      {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 6,
+        "stacks": 1
+      }
+    ],
+    "castTimeMs": 1530,
+    "quicknessCastTimeMs": 1020
+  },
+  [ID.LACERATING_CHOP]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Axe",
+    "specialization": "Mirage",
+    "environment": "Terrestrial",
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Lacerating_Chop",
+    "nextChainId": ID.ETHEREAL_CHOP,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.55,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+      },
+      {
+        "type": "condition",
+        "condition": "Bleeding",
+        "duration": 2,
+        "stacks": 1
+      }
+    ],
+    "castTimeMs": 645,
+    "quicknessCastTimeMs": 430
+  },
+  [ID.ETHEREAL_CHOP]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Axe",
+    "specialization": "Mirage",
+    "environment": "Terrestrial",
+    "castTimeMs": 795,
+    "quicknessCastTimeMs": 530,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Ethereal_Chop",
+    "nextChainId": ID.MIRROR_STRIKES,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.55,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+      },
+      {
+        "type": "condition",
+        "condition": "Torment",
+        "duration": 2,
+        "stacks": 1
+      }
+    ]
+  },
+  [ID.LINGERING_THOUGHTS]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Axe",
+    "specialization": "Mirage",
+    "environment": "Terrestrial",
+    "cooldown": 0.25,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Lingering_Thoughts",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.2,
+        "hits": 3,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+      },
+      {
+        "type": "condition",
+        "condition": "torment",
+        "duration": 4,
+        "stacks": 3
+      }
+    ],
+    "castTimeMs": 1395,
+    "quicknessCastTimeMs": 930
+  },
+  [ID.FLYING_CUTTER]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "specialization": "Virtuoso",
+    "environment": "Terrestrial",
+    "castTimeMs": 660,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": true,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Flying_Cutter",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Projectile",
+        "actorType": "player",
+        "castProgress": 0.72
+      }
+    ],
+    "trackedHitDamage": {
+      "hitsRequired": 3,
+      "duration": 5,
+      "skillId": ID.CUTTER_BURST,
+      "wikiUrl": "https://wiki.guildwars2.com/wiki/Cutter_Burst",
+      "name": "Cutter Burst",
+      "actorType": "player",
+      "ticks": [
+        {
+          "atMs": 217,
+          "coefficient": 0.2
+        },
+        {
+          "atMs": 250,
+          "coefficient": 0.2
+        },
+        {
+          "atMs": 384,
+          "coefficient": 0.2
+        }
+      ]
+    }
+  },
+  [ID.BLADE_LEAP]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Sword",
+    "specialization": "Troubadour",
+    "environment": "Terrestrial",
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
+    "cooldown": 12,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Blade_Leap",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+      }
+    ]
+  },
+  [ID.UNSTABLE_BLADESTORM]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "specialization": "Virtuoso",
+    "environment": "Terrestrial",
+    "castTimeMs": 660,
+    "cooldown": 12,
+    "phantasm": false,
+    "resource": null,
+    "blade": true,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Unstable_Bladestorm",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 4,
+        "name": "Storm pulses",
+        "actorType": "player",
+        "atMs": 1156,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+      },
+      {
+        "type": "strike",
+        "coefficient": 2,
+        "hits": 4,
+        "name": "Launched blades",
+        "actorType": "player",
+        "atMs": 1198,
+        "intervalMs": 1000,
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+      }
+    ]
+  },
+  [ID.BLADECALL]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Dagger",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 5,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1,
+      "timingAnchor": "castStart",
+      "atMs": 199
+    },
+    "blade": true,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Bladecall",
+    "effects": [
+      {
+        "type": "strike",
+        "ticks": [
+          {
+            "atMs": 199,
+            "coefficient": 0.25
+          },
+          {
+            "atMs": 199,
+            "coefficient": 0.25
+          },
+          {
+            "atMs": 199,
+            "coefficient": 0.25
+          }
+        ],
+        "name": "Outgoing damage",
+        "actorType": "player",
+        "weapon": "dagger",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+      },
+      {
+        "type": "strike",
+        "ticks": [
+          {
+            "atMs": 2716,
+            "coefficient": 0.25
+          },
+          {
+            "atMs": 2716,
+            "coefficient": 0.25
+          },
+          {
+            "atMs": 2766,
+            "coefficient": 0.25
+          }
+        ],
+        "name": "Returning damage",
+        "actorType": "player",
+        "weapon": "dagger",
+        "timingAnchor": "castStart",
+        "timingScale": "fixed"
+      }
+    ],
+    "castTimeMs": 660
+  },
+  [ID.TROUBADOUR_LINGERING_THOUGHTS]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Axe",
+    "specialization": "Troubadour",
+    "environment": "Terrestrial",
+    "cooldown": 0.25,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Lingering_Thoughts",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.2,
+        "hits": 3,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+      },
+      {
+        "type": "condition",
+        "condition": "torment",
+        "duration": 4,
+        "stacks": 3
+      }
+    ],
+    "castTimeMs": 1395,
+    "quicknessCastTimeMs": 930
+  },
+  [ID.TROUBADOUR_AXES_OF_SYMMETRY]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Axe",
+    "specialization": "Troubadour",
+    "environment": "Terrestrial",
+    "cooldown": 8,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Axes_of_Symmetry",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.75,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "axe"
+      },
+      {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 6,
+        "stacks": 5
+      },
+      {
+        "type": "condition",
+        "condition": "confusion",
+        "duration": 6,
+        "stacks": 1
+      }
+    ],
+    "castTimeMs": 1530,
+    "quicknessCastTimeMs": 1020
+  },
+  [ID.FRIENDLY_FIRE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Friendly_Fire",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "rifle"
+      }
+    ]
+  },
+  [ID.JOURNEY]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
+    "cooldown": 5,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Journey",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "rifle"
+      }
+    ]
+  },
+  [ID.INSPIRING_IMAGERY]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
+    "cooldown": 12,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Inspiring_Imagery",
+    "effects": []
+  },
+  [ID.PHANTASMAL_SHARPSHOOTER]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 750,
+    "quicknessCastTimeMs": 500,
+    "cooldown": 20,
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Sharpshooter",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 2.28,
+        "hits": 1,
+        "name": "Phantasm shot",
+        "actorType": "phantasm",
+        "weapon": "rifle"
+      }
+    ]
+  },
+  [ID.SINGULARITY_SHOT]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Rifle",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Singularity_Shot",
+    "effects": []
+  },
+  [ID.PHANTASMAL_LANCER]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Spear",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 780,
+    "quicknessCastTimeMs": 520,
+    "cooldown": 12,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Phantasmal_Lancer",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Mesmer attack",
+        "actorType": "player",
+        "weapon": "spear"
+      },
+      {
+        "type": "strike",
+        "coefficient": 1.23,
+        "hits": 1,
+        "name": "One lancer",
+        "actorType": "phantasm",
+        "weapon": "spear"
+      }
+    ],
+    "phantasm": true,
+    "resource": {
+      "mode": "phantasm",
+      "count": 1
+    }
+  },
+  [ID.MENTAL_COLLAPSE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Spear",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 960,
+    "quicknessCastTimeMs": 640,
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mental_Collapse",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 3,
+        "hits": 3,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+      }
+    ]
+  },
+  [ID.PSYSTRIKE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Spear",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 780,
+    "quicknessCastTimeMs": 520,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Psystrike",
+    "nextChainId": ID.MIND_PIERCE,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+      }
+    ]
+  },
+  [ID.MIND_THE_GAP]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Spear",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 900,
+    "quicknessCastTimeMs": 600,
+    "cooldown": 5,
+    "phantasm": false,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_the_Gap",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.92,
+        "hits": 1,
+        "name": "Outer-edge damage",
+        "actorType": "player",
+        "weapon": "spear"
+      }
+    ]
+  },
+  [ID.MIND_PIERCE]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Spear",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 840,
+    "quicknessCastTimeMs": 560,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mind_Pierce",
+    "nextChainId": null,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.5,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+      }
+    ]
+  },
+  [ID.IMAGINARY_INVERSION]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Spear",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "castTimeMs": 1020,
+    "quicknessCastTimeMs": 680,
+    "cooldown": 10,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Imaginary_Inversion",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 2.4,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+      }
+    ]
+  },
+  [ID.PSYCUT]: {
+    "implemented": true,
+    "type": "Weapon",
+    "weapon": "Spear",
+    "specialization": "",
+    "environment": "Terrestrial",
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Psycut",
+    "nextChainId": ID.PSYSTRIKE,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "spear"
+      }
+    ],
+    "castTimeMs": 600,
+    "quicknessCastTimeMs": 400
+  }
+});
+
+export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
+  Record<SkillId, SkillFragment>
+> = Object.freeze({
+  [ID.POWER_SPIKE]: {
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 10,
+    "resource": null,
+    "blade": false,
+    "ammo": 2,
+    "armedAtStart": true,
+    "implemented": true,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 1.33,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player"
+      }
+    ]
+  },
+  [ID.COUNTERSPELL]: {
+    "castTimeMs": 900,
+    "cooldown": 0,
+    "resource": {
+      "mode": "add",
+      "count": 1
+    },
+    "blade": false,
+    "flipDuration": 2,
+    "implemented": true,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.1,
+        "hits": 1,
+        "name": "Projectile",
+        "actorType": "player",
+        "weapon": "scepter"
+      },
+      {
+        "type": "condition",
+        "condition": "Confusion",
+        "duration": 7,
+        "stacks": 5
+      }
+    ]
+  },
+  [ID.SWAP]: {
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "flipDuration": 5,
+    "flipDelay": 0,
+    "implemented": true,
+    "effects": []
+  },
+  [ID.COUNTER_BLADE]: {
+    "castTimeMs": 1020,
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "flipDuration": 3,
+    "flipDelay": 0,
+    "implemented": true,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 0.1,
+        "hits": 1,
+        "name": "Damage",
+        "actorType": "player",
+        "weapon": "sword"
+      }
+    ]
+  },
+  [ID.INTO_THE_VOID]: {
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "flipDuration": 5,
+    "flipDelay": 1,
+    "implemented": true,
+    "effects": []
+  },
+  [ID.DIMENSIONAL_APERTURE]: {
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "flipDuration": 3,
+    "flipDelay": 0,
+    "parentCooldownIncrease": 0.5,
+    "implemented": true,
+    "effects": []
+  },
+  [ID.ABSTRACTION]: {
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 0,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "flipDuration": 2,
+    "flipDelay": 0,
+    "implemented": true,
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 2.5,
+        "hits": 1,
+        "name": "Detonation",
+        "actorType": "player",
+        "weapon": "rifle"
+      }
+    ]
+  }
+});
+
+export const MESMER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze(
+  [
+  {
+    "id": ID.SWAP_WEAPONS,
+    "name": "Swap Weapons",
+    "description": "Swap between weapon sets. The swap has a 10-second recharge.",
+    "icon": "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
+    "type": "Action",
+    "slot": "Action",
+    "castTimeMs": 0,
+    "quicknessCastTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 10,
+    "implemented": true,
+    "effects": []
+  }
+] satisfies readonly MesmerSkill[],
+);

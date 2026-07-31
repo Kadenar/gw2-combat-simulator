@@ -8,12 +8,40 @@ import {
   THIEF_SUPPLEMENTAL_SKILLS,
 } from "./data/thief-supplemental-skills.js";
 import {
+  THIEF_SKILL_IDS as ID,
+} from "./data/ids.js";
+import {
   THIEF_EXTRA_SKILLS,
   THIEF_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
 import {
   thiefSkillHandlers,
-} from "./mechanics/specific/handlers.js";
+} from "./handlers.js";
+import {
+  spearChainStageForSkill,
+} from "./core/conditions.js";
+import {
+  thiefWeaponSkillMatchesSet as thiefCoreWeaponSkillMatchesSet,
+} from "./core/weapons.js";
+
+export function thiefWeaponSkillMatchesSet(skill, pair, context = {}) {
+  const professionState =
+    context.professionState
+    || context.state?.profession
+    || {};
+  return thiefCoreWeaponSkillMatchesSet(skill, pair, {
+    ...context,
+    professionState: {
+      ...professionState,
+      usesMaliciousStealthAttacks:
+        professionState.usesMaliciousStealthAttacks
+        ?? (
+          context.specialization === "Deadeye"
+          || context.config?.specialization === "Deadeye"
+        ),
+    },
+  });
+}
 
 const DUAL_FOLLOWUP_BY_PARENT = Object.freeze({
   13010: 59526, // Shadow Strike -> Repeater
@@ -23,6 +51,17 @@ const DUAL_FOLLOWUP_BY_PARENT = Object.freeze({
 const DUAL_FOLLOWUP_IDS = new Set(
   Object.values(DUAL_FOLLOWUP_BY_PARENT),
 );
+function spearWeaponBarMetadata(skill) {
+  const stage = spearChainStageForSkill(skill.id);
+  if (stage == null) return {};
+  return {
+    weaponBarChainRootId:
+      skill.slot === "Weapon_2"
+        ? ID.MANTIS_STING
+        : ID.UNSUSPECTING_STRIKE,
+    weaponBarChainStep: stage + 1,
+  };
+}
 const SIMULATOR_EXCLUDED_SKILL_NAMES = new Set([
   "Prepare Seal Area",
   "Prepare Shadow Portal",
@@ -75,6 +114,11 @@ const terrestrialMechanics = Object.fromEntries(
             ? { resource: "initiative" }
             : {}
         ),
+        ...(
+          mechanics.artifactKind
+            ? { ignoresStealthWeaponReplacement: true }
+            : {}
+        ),
       },
     ]),
 );
@@ -89,6 +133,7 @@ for (const skill of allDeclared) {
 }
 const normalize = skill => ({
   ...skill,
+  ...spearWeaponBarMetadata(skill),
   ...(
     skill.recharge == null && skill.ammoRecharge == null
       ? {}
@@ -145,49 +190,94 @@ export const thiefCatalog = createCanonicalCatalog({
 });
 export const THIEF_SKILLS = thiefCatalog.skills;
 
-export function thiefWeaponSkillMatchesSet(skill, pair, context = {}) {
-  const specialization =
-    context.specialization
-    || context.config?.specialization
-    || "Core";
-  const professionState =
-    context.professionState
-    || context.state?.profession
-    || null;
-  if (skill.stealthAttack) {
-    if (
-      specialization === "Deadeye"
-        ? !skill.malicious
-        : skill.malicious
-    ) return false;
-  }
+export const THIEF_ELITE_SPECIALIZATIONS = Object.freeze([
+  "Daredevil",
+  "Deadeye",
+  "Specter",
+  "Antiquary",
+]);
+
+const eliteSpecializations = new Set(THIEF_ELITE_SPECIALIZATIONS);
+const ANTIQUARY_HANDLER_IDS = new Set([
+  "thief.artifact",
+  "thief.forged-surfer",
+  "thief.double-edge",
+  "thief.reshuffle",
+  "thief.skritt-scuffle",
+  "thief.skritt-swipe",
+]);
+const SPECTER_HANDLER_IDS = new Set([
+  "thief.siphon",
+  "thief.shadow-shroud-enter",
+  "thief.shadow-shroud-exit",
+]);
+
+function explicitThiefSkillRuntimeOwner(skill) {
   if (
-    skill.weapon === "Rifle"
-    && professionState
-    && !skill.stealthAttack
-    && Boolean(skill.kneelSkill) !== Boolean(professionState.kneeling)
-  ) return false;
+    skill.artifactKind
+    || skill.backfire
+    || ANTIQUARY_HANDLER_IDS.has(String(skill.handlerId || ""))
+  ) return "Antiquary";
+  if (skill.id === ID.DEADEYES_MARK || skill.malicious) return "Deadeye";
   if (
-    skill.requiredMainHand != null
-    || skill.requiredOffHand != null
-    || skill.requiresEmptyOffhand
+    skill.shadowShroudSkill
+    || SPECTER_HANDLER_IDS.has(String(skill.handlerId || ""))
+  ) return "Specter";
+  if (
+    skill.type !== "Weapon"
+    && eliteSpecializations.has(String(skill.specialization || ""))
   ) {
-    const [mainHand = "", offHand = ""] = pair;
-    return (
-      (skill.requiredMainHand == null || skill.requiredMainHand === mainHand)
-      && (
-        skill.requiredOffHand == null
-        || (
-          skill.requiredOffHand === false
-            ? !offHand
-            : skill.requiredOffHand === offHand
-        )
-      )
-    );
+    return String(skill.specialization);
   }
-  const wielding = context.weaponData?.[pair[0]]?.wielding
-    || context.catalog?.weaponHands?.get(pair[0]);
-  if (wielding === "2h") return skill.weapon === pair[0];
-  const slot = Number(String(skill.slot || "").match(/(\d+)$/)?.[1] || 0);
-  return slot <= 3 ? skill.weapon === pair[0] : skill.weapon === pair[1];
+  return "Core";
+}
+
+const eliteOwnerBySkillName = new Map();
+for (const skill of thiefCatalog.skills) {
+  const owner = explicitThiefSkillRuntimeOwner(skill);
+  if (owner !== "Core") eliteOwnerBySkillName.set(skill.name, owner);
+}
+
+export function thiefSkillRuntimeOwner(skill) {
+  return explicitThiefSkillRuntimeOwner(skill)
+    === "Core"
+    ? eliteOwnerBySkillName.get(skill.name) || "Core"
+    : explicitThiefSkillRuntimeOwner(skill);
+}
+
+const moduleCatalogCache = new Map();
+
+export function thiefModuleCatalog(moduleId) {
+  const cached = moduleCatalogCache.get(moduleId);
+  if (cached) return cached;
+  if (moduleId !== "Core" && !eliteSpecializations.has(moduleId)) {
+    throw new Error(`Unknown Thief catalog module ${moduleId}.`);
+  }
+  const core = moduleId === "Core";
+  const fragment = Object.freeze({
+    skills: Object.freeze(
+      thiefCatalog.skills.filter(skill =>
+        thiefSkillRuntimeOwner(skill) === moduleId),
+    ),
+    traits: Object.freeze(
+      thiefCatalog.traits.filter(trait =>
+        core
+          ? !eliteSpecializations.has(String(trait.specialization || ""))
+          : trait.specialization === moduleId),
+    ),
+    specializations: Object.freeze(
+      thiefCatalog.specializations.filter(specialization =>
+        core
+          ? !specialization.elite
+          : specialization.name === moduleId),
+    ),
+    ...(core
+      ? {
+          weapons: Object.freeze([...thiefCatalog.weapons]),
+          weaponHands: new Map(thiefCatalog.weaponHands),
+        }
+      : {}),
+  });
+  moduleCatalogCache.set(moduleId, fragment);
+  return fragment;
 }

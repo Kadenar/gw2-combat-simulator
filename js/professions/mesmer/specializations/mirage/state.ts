@@ -1,0 +1,19 @@
+import type {
+  MesmerConfig,
+  MesmerMirageState,
+} from "../../types.js";
+
+export function createMirageState(
+  _config: Partial<MesmerConfig> = {},
+): MesmerMirageState {
+  return {
+    ambushUntil: 0,
+    ambushSource: "",
+    cloneAmbushUntil: 0,
+    riddleOfSandReady: false,
+  };
+}
+
+export function createMirageResolverState(): Record<string, never> {
+  return {};
+}

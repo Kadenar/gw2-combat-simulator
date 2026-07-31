@@ -5,7 +5,7 @@ import {
   REVENANT_SKILL_IDS as SKILL,
 } from "./data/ids.js";
 import { REVENANT_LEGEND_SPECIALIZATIONS } from "./legend-rules.js";
-import { REVENANT_HANDLER_MECHANICS } from "./mechanics/handler-mechanics.js";
+import { HERALD_MECHANICS } from "./specializations/herald/mechanics.js";
 import type {
   SkillId,
 } from "../../platform/engine/types.js";
@@ -195,6 +195,20 @@ const baseRevenantLegendLoadout = createFixedSlotLoadout({
 export const revenantLegendLoadout = Object.freeze({
   ...baseRevenantLegendLoadout,
   palettePlacement: "after-actions",
+  skillChildren(
+    _context: RevenantLegendLoadoutContext,
+    skillId: SkillId,
+  ): readonly SkillId[] {
+    const facetConsumeBySkillId =
+      HERALD_MECHANICS.facetConsumeBySkillId as Readonly<
+        Record<number, number>
+      >;
+    const facetConsumeId = facetConsumeBySkillId[Number(skillId)];
+    if (Number.isFinite(facetConsumeId)) return [facetConsumeId];
+    return Number(skillId) === SKILL.CALL_TO_ANGUISH
+      ? [SKILL.UNYIELDING_IMPACT]
+      : [];
+  },
   paletteGroups(context: RevenantLegendLoadoutContext = {}) {
     const availableFlips =
       context.professionState?.availableFlips ||
@@ -204,7 +218,7 @@ export const revenantLegendLoadout = Object.freeze({
       ...group,
       skillIds: group.skillIds.flatMap((skillId) => {
         const facetConsumeBySkillId =
-          REVENANT_HANDLER_MECHANICS.upkeep.facetConsumeBySkillId as Readonly<
+          HERALD_MECHANICS.facetConsumeBySkillId as Readonly<
             Record<number, number>
           >;
         const heraldFlipId = facetConsumeBySkillId[skillId];

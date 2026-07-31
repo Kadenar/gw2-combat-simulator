@@ -4,14 +4,24 @@
  * run different professions without special cases.
  */
 import type {
+  CatalogEntity,
+  CanonicalCatalog,
   AvailabilityResult,
   NormalizedProfessionContract,
   PaletteSkillAvailability,
   ProfessionDefinition,
+  ProfessionFamilyContract,
+  ProfessionFamilyDefinition,
+  ProfessionModuleCatalogFragment,
+  ProfessionModuleDefinition,
+  ProfessionSource,
   ProfessionUiContract,
   SchedulerRecord,
+  SchedulerConfig,
   Skill,
+  SkillId,
 } from "./types.js";
+import { createCanonicalCatalog } from "./catalog.js";
 
 type ComposableHook = (...args: any[]) => unknown;
 
@@ -84,7 +94,7 @@ function orderedHooks(
   hookName: string,
 ): OrderedHook[] {
   const entries = value == null ? [] : Array.isArray(value) ? value : [value];
-  return entries
+  const hooks = entries
     .map((entry, index) => {
       if (typeof entry === "function") {
         return {
@@ -114,6 +124,14 @@ function orderedHooks(
         left.index - right.index ||
         left.id.localeCompare(right.id),
     );
+  const ids = new Set<string>();
+  for (const hook of hooks) {
+    if (ids.has(hook.id)) {
+      throw new TypeError(`Duplicate ${hookName} hook id: ${hook.id}.`);
+    }
+    ids.add(hook.id);
+  }
+  return hooks;
 }
 
 /**
@@ -355,6 +373,11 @@ function normalizeSimulation(
   assertOptionalCallback(
     simulation,
     "refineSchedulerConfig",
+    "simulation",
+  );
+  assertOptionalCallback(
+    simulation,
+    "projectEndState",
     "simulation",
   );
   if (!simulation.refineSchedulerConfig) {
@@ -601,6 +624,686 @@ export function defineProfession<
   return Object.freeze(profession) as unknown as Readonly<
     NormalizedProfessionContract<TProfessionState>
   >;
+}
+
+const ATTRIBUTE_HOOK_NAMES = Object.freeze([
+  "modifyAttributes",
+  "modifyCriticalChance",
+  "modifyCriticalDamage",
+  "modifyStrikeDamage",
+  "modifyConditionDamage",
+  "modifyConditionBaseDuration",
+  "modifyConditionDuration",
+]);
+const CAST_HOOK_NAMES = Object.freeze([
+  "availability",
+  "validateCast",
+  "scheduleSkill",
+  "modifyCastDuration",
+  "modifyRechargeDuration",
+  "modifyRechargeStart",
+  "modifyMaximumAmmo",
+]);
+const SCHEDULER_HOOK_NAMES = Object.freeze([
+  "initialize",
+  "availability",
+  "validateCast",
+  "scheduleSkill",
+  "afterCast",
+  "advance",
+  "snapshot",
+  "projectEndState",
+  "onCastStart",
+  "onCastComplete",
+  "onCooldownReset",
+  "onEventScheduled",
+  "modifyCastDuration",
+  "modifyRechargeDuration",
+  "modifyRechargeStart",
+  "modifyMaximumAmmo",
+]);
+const UI_LIST_CALLBACK_NAMES = Object.freeze([
+  "paletteGroups",
+  "resourceViews",
+  "skillBarGroups",
+  "targetHealthThresholds",
+]);
+const UI_SINGLE_CALLBACK_NAMES = Object.freeze([
+  "eventLogRow",
+  "isPaletteSkillInstant",
+  "isSlotSkillSelectable",
+  "timelineWeaponLineTransition",
+  "timelineSkillIcon",
+  "updateSkillBarSelection",
+  "weaponSkillMatchesSet",
+]);
+
+interface NamedModule<TProfessionState extends object> {
+  readonly name: string;
+  readonly module: ProfessionModuleDefinition<TProfessionState>;
+}
+
+function assertModuleDefinition(
+  definition: unknown,
+): void {
+  if (!definition || typeof definition !== "object" || Array.isArray(definition)) {
+    throw new TypeError("A profession module must be an object.");
+  }
+  const candidate = definition as SchedulerRecord;
+  if (!String(candidate.id || "").trim()) {
+    throw new TypeError("Profession module id is required.");
+  }
+}
+
+/**
+ * Declares one independently composable profession mechanics fragment.
+ */
+export function defineProfessionModule<
+  TProfessionState extends object = SchedulerRecord,
+>(
+  definition: ProfessionModuleDefinition<TProfessionState>,
+): Readonly<ProfessionModuleDefinition<TProfessionState>> {
+  assertModuleDefinition(definition);
+  return Object.freeze({
+    ...definition,
+    catalog: definition.catalog
+      ? Object.freeze({ ...definition.catalog })
+      : undefined,
+  });
+}
+
+function mergeUniqueEntries<T>(
+  modules: readonly NamedModule<object>[],
+  values: (module: ProfessionModuleDefinition<any>) => readonly T[],
+  keyFor: (value: T) => string | number,
+  label: string,
+): T[] {
+  const result: T[] = [];
+  const owners = new Map<string | number, string>();
+  for (const entry of modules) {
+    for (const value of values(entry.module)) {
+      const key = keyFor(value);
+      const previous = owners.get(key);
+      if (previous) {
+        throw new TypeError(
+          `Duplicate ${label} ${String(key)} in ${previous} and ${entry.name}.`,
+        );
+      }
+      owners.set(key, entry.name);
+      result.push(value);
+    }
+  }
+  return result;
+}
+
+function handlerEntries(
+  value: ProfessionModuleCatalogFragment["skillHandlers"],
+): [string, unknown][] {
+  return value instanceof Map
+    ? [...value.entries()].map(([id, handler]) => [String(id), handler])
+    : Object.entries(value || {});
+}
+
+function composeModuleCatalog(
+  modules: readonly NamedModule<object>[],
+): Readonly<CanonicalCatalog> {
+  const skills = mergeUniqueEntries(
+    modules,
+    (entry) => entry.catalog?.skills || [],
+    (skill) => skill.id,
+    "skill id",
+  ) as Skill[];
+  const traits = mergeUniqueEntries(
+    modules,
+    (entry) => entry.catalog?.traits || [],
+    (trait) => trait.id,
+    "trait id",
+  ) as CatalogEntity[];
+  const specializations = mergeUniqueEntries(
+    modules,
+    (entry) => entry.catalog?.specializations || [],
+    (specialization) => specialization.id,
+    "specialization id",
+  ) as CatalogEntity[];
+  const handlers = new Map<string, unknown>();
+  const handlerOwners = new Map<string, string>();
+  const weapons = new Set<string>();
+  const weaponHands = new Map<string, string>();
+  const additionalChains: SkillId[][] = [];
+  const excludedSkillIds = new Set<SkillId>();
+
+  for (const entry of modules) {
+    const fragment = entry.module.catalog || {};
+    for (const [id, handler] of handlerEntries(fragment.skillHandlers)) {
+      const previous = handlerOwners.get(id);
+      if (previous) {
+        throw new TypeError(
+          `Duplicate skill handler ${id} in ${previous} and ${entry.name}.`,
+        );
+      }
+      handlerOwners.set(id, entry.name);
+      handlers.set(id, handler);
+    }
+    for (const weapon of fragment.weapons || []) weapons.add(weapon);
+    const hands = fragment.weaponHands instanceof Map
+      ? fragment.weaponHands.entries()
+      : Object.entries(fragment.weaponHands || {});
+    for (const [weapon, hand] of hands) {
+      if (weaponHands.has(weapon)) {
+        throw new TypeError(
+          `Duplicate weapon-hand entry ${weapon} in ${entry.name}.`,
+        );
+      }
+      weaponHands.set(weapon, String(hand));
+    }
+    for (const chain of fragment.autoattackChains?.additional || []) {
+      additionalChains.push([...chain]);
+    }
+    for (const skillId of fragment.autoattackChains?.excludeSkillIds || []) {
+      excludedSkillIds.add(skillId);
+    }
+  }
+
+  return createCanonicalCatalog({
+    generated: skills,
+    skillHandlers: handlers,
+    traits,
+    specializations,
+    weapons: [...weapons],
+    weaponHands,
+    autoattackChains: {
+      additional: additionalChains,
+      excludeSkillIds: [...excludedSkillIds],
+    },
+  });
+}
+
+function hookValues(
+  modules: readonly NamedModule<object>[],
+  container: keyof ProfessionModuleDefinition<any>,
+  name: string,
+): unknown[] {
+  return modules.flatMap((entry) => {
+    const source = entry.module[container] as SchedulerRecord | undefined;
+    const value = source?.[name];
+    return value == null ? [] : Array.isArray(value) ? value : [value];
+  });
+}
+
+function composeHookContainer(
+  modules: readonly NamedModule<object>[],
+  container: keyof ProfessionModuleDefinition<any>,
+  names: readonly string[],
+): SchedulerRecord {
+  return Object.fromEntries(
+    names.flatMap((name) => {
+      const values = hookValues(modules, container, name);
+      return values.length ? [[name, values]] : [];
+    }),
+  );
+}
+
+function mergeHandlerRegistries(
+  modules: readonly NamedModule<object>[],
+  select: (module: ProfessionModuleDefinition<any>) =>
+    | Readonly<Record<string, (...args: never[]) => unknown>>
+    | null
+    | undefined,
+  label: string,
+): Readonly<Record<string, (...args: never[]) => unknown>> {
+  const result: Record<string, (...args: never[]) => unknown> = {};
+  const owners = new Map<string, string>();
+  for (const entry of modules) {
+    for (const [id, handler] of Object.entries(select(entry.module) || {})) {
+      const previous = owners.get(id);
+      if (previous) {
+        throw new TypeError(
+          `Duplicate ${label} ${id} in ${previous} and ${entry.name}.`,
+        );
+      }
+      owners.set(id, entry.name);
+      result[id] = handler;
+    }
+  }
+  return Object.freeze(result);
+}
+
+function composeEventReactions(
+  modules: readonly NamedModule<object>[],
+): Readonly<Record<string, unknown>> {
+  const eventTypes = new Set<string>();
+  for (const entry of modules) {
+    for (const eventType of Object.keys(
+      entry.module.resolverHooks?.eventReactions || {},
+    )) {
+      eventTypes.add(eventType);
+    }
+  }
+  return Object.freeze(
+    Object.fromEntries(
+      [...eventTypes].map((eventType) => [
+        eventType,
+        modules.flatMap((entry) => {
+          const value =
+            entry.module.resolverHooks?.eventReactions?.[eventType];
+          return value == null ? [] : Array.isArray(value) ? value : [value];
+        }),
+      ]),
+    ),
+  );
+}
+
+function createStateFragment(
+  entry: NamedModule<object>,
+  config: Readonly<SchedulerConfig>,
+  resolver: boolean,
+): SchedulerRecord {
+  const resources = entry.module.resources;
+  const factory = resolver
+    ? resources?.createResolverState || resources?.createProfessionState
+    : resources?.createProfessionState;
+  const fragment = factory?.(config) || {};
+  if (!fragment || typeof fragment !== "object" || Array.isArray(fragment)) {
+    throw new TypeError(`${entry.name} state factory must return an object.`);
+  }
+  return fragment as SchedulerRecord;
+}
+
+function createComposedStateAdapter(
+  core: SchedulerRecord,
+  specializationKind: string,
+  specializationState: SchedulerRecord,
+): object {
+  const specializationKeys = new Set(Reflect.ownKeys(specializationState));
+  const target = {
+    core,
+    specialization: {
+      kind: specializationKind,
+      state: specializationState,
+    },
+  };
+  return new Proxy(target, {
+    get(current, property, receiver) {
+      if (Reflect.has(current, property)) {
+        return Reflect.get(current, property, receiver);
+      }
+      if (Reflect.has(specializationState, property)) {
+        return Reflect.get(specializationState, property);
+      }
+      return Reflect.get(core, property);
+    },
+    set(_current, property, value) {
+      const owner = specializationKeys.has(property)
+        ? specializationState
+        : core;
+      return Reflect.set(owner, property, value);
+    },
+    deleteProperty(_current, property) {
+      const owner = specializationKeys.has(property)
+        ? specializationState
+        : core;
+      return Reflect.deleteProperty(owner, property);
+    },
+    has(current, property) {
+      return Reflect.has(current, property) ||
+        Reflect.has(specializationState, property) ||
+        Reflect.has(core, property);
+    },
+    ownKeys(current) {
+      return [...new Set<string | symbol>([
+        ...Reflect.ownKeys(current),
+        ...Reflect.ownKeys(core),
+        ...Reflect.ownKeys(specializationState),
+      ])];
+    },
+    getOwnPropertyDescriptor(current, property) {
+      const direct = Reflect.getOwnPropertyDescriptor(current, property);
+      if (direct) return direct;
+      const descriptor =
+        Reflect.getOwnPropertyDescriptor(specializationState, property) ||
+        Reflect.getOwnPropertyDescriptor(core, property);
+      return descriptor
+        ? { ...descriptor, configurable: true, enumerable: false }
+        : undefined;
+    },
+  });
+}
+
+function composeStateFragments(
+  modules: readonly NamedModule<object>[],
+  config: Readonly<SchedulerConfig>,
+  resolver: boolean,
+): object {
+  const core = createStateFragment(modules[0], config, resolver);
+  const specialization = modules[1];
+  return createComposedStateAdapter(
+    core,
+    specialization?.name || "Core",
+    specialization
+      ? createStateFragment(specialization, config, resolver)
+      : {},
+  );
+}
+
+/**
+ * Clones either ordinary profession state or the nested storage behind a
+ * family-state compatibility adapter.
+ */
+export function cloneProfessionState(value: unknown): unknown {
+  if (!value || typeof value !== "object") return structuredClone(value);
+  const candidate = value as SchedulerRecord;
+  const specialization = candidate.specialization as
+    | { readonly kind?: unknown; readonly state?: unknown }
+    | undefined;
+  if (
+    candidate.core &&
+    typeof candidate.core === "object" &&
+    specialization &&
+    specialization.state &&
+    typeof specialization.state === "object"
+  ) {
+    return {
+      core: structuredClone(candidate.core),
+      specialization: {
+        kind: String(specialization.kind || "Core"),
+        state: structuredClone(specialization.state),
+      },
+    };
+  }
+  return structuredClone(value);
+}
+
+/**
+ * Produces an independent mutable state value while preserving the family
+ * adapter used by direct resolver entry points.
+ */
+export function cloneMutableProfessionState(value: unknown): unknown {
+  if (!value || typeof value !== "object") return structuredClone(value);
+  const candidate = value as SchedulerRecord;
+  const specialization = candidate.specialization as
+    | { readonly kind?: unknown; readonly state?: unknown }
+    | undefined;
+  if (
+    candidate.core &&
+    typeof candidate.core === "object" &&
+    specialization &&
+    specialization.state &&
+    typeof specialization.state === "object"
+  ) {
+    return createComposedStateAdapter(
+      structuredClone(candidate.core) as SchedulerRecord,
+      String(specialization.kind || "Core"),
+      structuredClone(specialization.state) as SchedulerRecord,
+    );
+  }
+  return structuredClone(value);
+}
+
+function singleOwnerValue(
+  modules: readonly NamedModule<object>[],
+  select: (module: ProfessionModuleDefinition<any>) => unknown,
+  label: string,
+): unknown {
+  const owners = modules.filter((entry) => select(entry.module) != null);
+  if (owners.length > 1) {
+    throw new TypeError(
+      `${label} has multiple owners: ${owners.map((entry) => entry.name).join(", ")}.`,
+    );
+  }
+  return owners.length ? select(owners[0].module) : undefined;
+}
+
+function composeModuleUi(
+  modules: readonly NamedModule<object>[],
+): Partial<ProfessionUiContract> & SchedulerRecord {
+  const ui: SchedulerRecord = {};
+  ui.assumptionControls = Object.freeze(
+    modules.flatMap((entry) => entry.module.ui?.assumptionControls || []),
+  );
+  for (const name of UI_LIST_CALLBACK_NAMES) {
+    const callbacks = modules
+      .map((entry) => entry.module.ui?.[name])
+      .filter((value): value is (...args: unknown[]) => unknown[] =>
+        typeof value === "function"
+      );
+    if (callbacks.length) {
+      ui[name] = (...args: unknown[]) =>
+        callbacks.flatMap((callback) => callback(...args) || []);
+    }
+  }
+  const availabilityCallbacks = modules
+    .map((entry) => entry.module.ui?.paletteSkillAvailability)
+    .filter((value): value is (...args: unknown[]) => PaletteSkillAvailability =>
+      typeof value === "function"
+    );
+  if (availabilityCallbacks.length) {
+    ui.paletteSkillAvailability = (...args: unknown[]) => {
+      for (const callback of availabilityCallbacks) {
+        const result = callback(...args);
+        if (result?.available === false) return result;
+      }
+      return { available: true, message: "" };
+    };
+  }
+  for (const name of UI_SINGLE_CALLBACK_NAMES) {
+    const callback = singleOwnerValue(
+      modules,
+      (module) => module.ui?.[name],
+      `ui.${name}`,
+    );
+    if (callback != null) ui[name] = callback;
+  }
+  const slotLoadout = singleOwnerValue(
+    modules,
+    (module) => module.ui?.slotLoadout,
+    "ui.slotLoadout",
+  );
+  if (slotLoadout != null) ui.slotLoadout = slotLoadout;
+  const weaponSwapChangesSet = singleOwnerValue(
+    modules,
+    (module) => module.ui?.weaponSwapChangesSet,
+    "ui.weaponSwapChangesSet",
+  );
+  if (weaponSwapChangesSet != null) {
+    ui.weaponSwapChangesSet = weaponSwapChangesSet;
+  }
+  return ui;
+}
+
+/**
+ * Composes ordinary attribute hooks plus optional declarative rule fragments.
+ * The compiler is single-owner (normally Core) so GW2 damage buckets are
+ * compiled once after Core and active-specialization declarations are merged.
+ */
+function composeModuleAttributeRules(
+  modules: readonly NamedModule<object>[],
+): SchedulerRecord {
+  const result = composeHookContainer(
+    modules,
+    "attributeRules",
+    ATTRIBUTE_HOOK_NAMES,
+  );
+  const declarations = modules.flatMap((entry) => {
+    const value = entry.module.attributeRules?.modifierRules;
+    if (value == null) return [];
+    if (!Array.isArray(value)) {
+      throw new TypeError(
+        `${entry.name} attributeRules.modifierRules must be an array.`,
+      );
+    }
+    return value;
+  });
+  const compiler = singleOwnerValue(
+    modules,
+    (module) => module.attributeRules?.compileModifierRules,
+    "attributeRules.compileModifierRules",
+  );
+  if (!declarations.length) return result;
+  if (typeof compiler !== "function") {
+    throw new TypeError(
+      "Attribute modifier-rule fragments require one compiler.",
+    );
+  }
+  const compiled = compiler(declarations);
+  if (!compiled || typeof compiled !== "object" || Array.isArray(compiled)) {
+    throw new TypeError(
+      "attributeRules.compileModifierRules must return a hook object.",
+    );
+  }
+  for (const name of ATTRIBUTE_HOOK_NAMES) {
+    const hook = (compiled as SchedulerRecord)[name];
+    if (hook == null) continue;
+    result[name] = [
+      ...((result[name] as unknown[] | undefined) || []),
+      hook,
+    ];
+  }
+  return result;
+}
+
+function composeRuntimeDefinition<TProfessionState extends object>(
+  definition: ProfessionFamilyDefinition<TProfessionState>,
+  modules: readonly NamedModule<TProfessionState>[],
+): ProfessionDefinition<TProfessionState> {
+  const genericModules = modules as readonly NamedModule<object>[];
+  const schedulerHooks = composeHookContainer(
+    genericModules,
+    "schedulerHooks",
+    SCHEDULER_HOOK_NAMES,
+  );
+  schedulerHooks.taskHandlers = mergeHandlerRegistries(
+    genericModules,
+    (module) => module.schedulerHooks?.taskHandlers,
+    "task handler",
+  );
+  const eventHandlers = mergeHandlerRegistries(
+    genericModules,
+    (module) => module.resolverHooks?.eventHandlers,
+    "event handler",
+  );
+  const projectEndState = singleOwnerValue(
+    genericModules,
+    (module) => module.resources?.projectEndState,
+    "resources.projectEndState",
+  );
+  return {
+    id: definition.id,
+    name: definition.name,
+    catalog: composeModuleCatalog(genericModules),
+    build: definition.build,
+    resources: {
+      createProfessionState: (config) =>
+        composeStateFragments(genericModules, config, false) as TProfessionState,
+      createResolverState: (config) =>
+        composeStateFragments(genericModules, config, true),
+      ...(projectEndState == null ? {} : { projectEndState }),
+    },
+    attributeRules: composeModuleAttributeRules(genericModules),
+    castRules: composeHookContainer(
+      genericModules,
+      "castRules",
+      CAST_HOOK_NAMES,
+    ),
+    schedulerHooks,
+    resolverHooks: {
+      eventHandlers,
+      eventReactions: composeEventReactions(genericModules),
+    },
+    ui: composeModuleUi(genericModules),
+    simulation: definition.simulation,
+  };
+}
+
+/**
+ * Creates a full application-facing profession catalog with a cached
+ * core-plus-one-specialization simulation resolver.
+ */
+export function defineProfessionFamily<
+  TProfessionState extends object = SchedulerRecord,
+>(
+  definition: ProfessionFamilyDefinition<TProfessionState>,
+): Readonly<ProfessionFamilyContract<TProfessionState>> {
+  assertDefinition(definition);
+  assertModuleDefinition(definition.core);
+  if (definition.core.id !== "Core") {
+    throw new TypeError('The core profession module id must be "Core".');
+  }
+  if (
+    !definition.specializations ||
+    typeof definition.specializations !== "object" ||
+    Array.isArray(definition.specializations)
+  ) {
+    throw new TypeError("Profession family specializations must be an object.");
+  }
+  const specializationModules = new Map<
+    string,
+    Readonly<ProfessionModuleDefinition<TProfessionState>>
+  >();
+  for (const [name, module] of Object.entries(definition.specializations)) {
+    assertModuleDefinition(module);
+    if (name !== module.id) {
+      throw new TypeError(
+        `Specialization key ${name} does not match module id ${module.id}.`,
+      );
+    }
+    specializationModules.set(name, defineProfessionModule(module));
+  }
+  const core = defineProfessionModule(definition.core);
+  const applicationSurface = defineProfession(definition);
+  const cache = new Map<
+    string,
+    Readonly<NormalizedProfessionContract<TProfessionState>>
+  >();
+  const resolveRuntime = (
+    config: Readonly<SchedulerConfig> = {},
+  ): Readonly<NormalizedProfessionContract<TProfessionState>> => {
+    const specialization =
+      String(config.specialization || "Core").trim() || "Core";
+    if (specialization !== "Core" && !specializationModules.has(specialization)) {
+      throw new Error(
+        `Unknown ${definition.name} elite specialization "${specialization}". ` +
+          `Expected Core or one of: ${[...specializationModules.keys()].join(", ")}.`,
+      );
+    }
+    const cached = cache.get(specialization);
+    if (cached) return cached;
+    const modules: NamedModule<TProfessionState>[] = [
+      { name: "Core", module: core },
+    ];
+    const specializationModule = specializationModules.get(specialization);
+    if (specializationModule) {
+      modules.push({ name: specialization, module: specializationModule });
+    }
+    const runtime = defineProfession(
+      composeRuntimeDefinition(definition, modules),
+    );
+    cache.set(specialization, runtime);
+    return runtime;
+  };
+  return Object.freeze({
+    ...applicationSurface,
+    resolveRuntime,
+  }) as Readonly<ProfessionFamilyContract<TProfessionState>>;
+}
+
+/**
+ * Legacy contracts pass through unchanged. Family contracts resolve once for
+ * the supplied configuration.
+ */
+export function resolveProfessionRuntime<
+  TProfessionState extends object = SchedulerRecord,
+>(
+  profession: ProfessionSource<TProfessionState>,
+  config: Readonly<SchedulerConfig> = {},
+): Readonly<NormalizedProfessionContract<TProfessionState>> {
+  if (!profession || typeof profession !== "object") {
+    throw new TypeError("A profession contract is required.");
+  }
+  return typeof (profession as ProfessionFamilyContract<TProfessionState>)
+    .resolveRuntime === "function"
+    ? (profession as ProfessionFamilyContract<TProfessionState>)
+      .resolveRuntime(config)
+    : profession;
 }
 
 /**

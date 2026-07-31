@@ -553,38 +553,6 @@ const records = [
     "simulatorExcluded": false
   },
   {
-    "id": 13125,
-    "name": "Deadly Strike",
-    "description": "Attack from stealth, bleeding and weakening your target.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Deadly_Strike.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "weapon": "Spear",
-    "specialization": "",
-    "categories": [
-      "Stealth Attack"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 13126,
-    "name": "The Ripper",
-    "description": "Fire a shot from stealth to bleed your target.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/The_Ripper.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "weapon": "Spear",
-    "specialization": "",
-    "categories": [
-      "Stealth Attack"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
     "id": 13128,
     "name": "Infiltrator's Return",
     "description": "Return to your original location. Cure one condition.",
@@ -1058,38 +1026,6 @@ const records = [
     "simulatorExcluded": false
   },
   {
-    "id": 50417,
-    "name": "Malicious Deadly Strike",
-    "description": "Attack while in stealth, bleeding and weakening your target. Consumes all malice to deal bonus damage if it strikes your mark.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Malicious_Deadly_Strike.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "weapon": "Spear",
-    "specialization": "Deadeye",
-    "categories": [
-      "Stealth Attack"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
-    "id": 50449,
-    "name": "Malicious Ripper",
-    "description": "Fire a shot while in stealth to bleed your target. Consumes all malice when striking your mark to add additional bleeding stacks.",
-    "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Malicious_Ripper.png",
-    "type": "Weapon",
-    "slot": "Weapon_1",
-    "weapon": "Spear",
-    "specialization": "Deadeye",
-    "categories": [
-      "Stealth Attack"
-    ],
-    "nextChainId": null,
-    "flipSkillId": null,
-    "simulatorExcluded": false
-  },
-  {
     "id": 50451,
     "name": "Malicious Surprise Shot",
     "description": "Shoot an arrow that bleeds and immobilizes your foe. If the arrow hits your marked target, it consumes all malice and splinters, firing new arrows at nearby foes for each malice consumed.",
@@ -1472,7 +1408,7 @@ const records = [
     "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Shattering_Assault.png",
     "type": "Weapon",
     "slot": "Weapon_3",
-    "weapon": "",
+    "weapon": "Spear",
     "specialization": "",
     "categories": [],
     "nextChainId": null,
@@ -1486,7 +1422,7 @@ const records = [
     "icon": "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Falling_Spider.png",
     "type": "Weapon",
     "slot": "Weapon_2",
-    "weapon": "",
+    "weapon": "Spear",
     "specialization": "",
     "categories": [],
     "nextChainId": null,

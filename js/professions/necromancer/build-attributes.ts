@@ -47,13 +47,6 @@ export function applyNecromancerBuildAttributeRules(
   if (hasTrait("Furious Demise")) {
     addAttribute(traitStats, "Precision", 180);
   }
-  if (hasTrait("Target the Weak")) {
-    addAttribute(
-      traitStats,
-      "Condition Damage",
-      attributes.Precision.final * 0.13,
-    );
-  }
   if (hasTrait("Lingering Curse")) {
     addAttribute(traitStats, "Condition Damage", 200);
   }
@@ -71,10 +64,19 @@ export function applyNecromancerBuildAttributeRules(
     addAttribute(traitStats, "Concentration", vitality * 0.13);
   }
   if (hasTrait("Dark Gunslinger")) {
-    addAttribute(traitStats, "Expertise", vitality * 0.1);
+    addAttribute(traitStats, "Expertise", Math.round(vitality * 0.1));
   }
   if (hasTrait("Boon of Creation")) {
     addAttribute(traitStats, "Concentration", 180);
+  }
+  if (hasTrait("Target the Weak")) {
+    const precision =
+      attributes.Precision.final + Number(traitStats.Precision || 0);
+    addAttribute(
+      traitStats,
+      "Condition Damage",
+      Math.floor(precision * 0.13),
+    );
   }
   if (hasTrait("Fell Beacon")) {
     addAttribute(

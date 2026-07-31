@@ -1,0 +1,273 @@
+/**
+ * Raw Chronomancer skill mechanics. Generated once from the characterized
+ * pre-migration table; this file is now the runtime source owner.
+ */
+import { MESMER_SKILL_IDS as ID } from "../../data/ids.js";
+import type {
+  Skill,
+  SkillFragment,
+  SkillId,
+} from "../../../../platform/engine/types.js";
+import type { MesmerSkill } from "../../types.js";
+
+export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
+  Record<SkillId, SkillFragment>
+> = Object.freeze({
+  [ID.WELL_OF_PRECOGNITION]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 500,
+    "quicknessCastTimeMs": 333.333333333,
+    "cooldown": 60,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Precognition",
+    "effects": []
+  },
+  [ID.CONTINUUM_SPLIT]: {
+    "implemented": true,
+    "type": "Profession",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "lockouts": [
+      {
+        "group": "mesmer.shatter",
+        "durationMs": 50
+      }
+    ],
+    "rechargeAnchor": "castStart",
+    "cooldown": 105,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Continuum_Split",
+    "effects": []
+  },
+  [ID.WELL_OF_SENILITY]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 1140,
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Senility",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 4.5,
+        "hits": 3,
+        "name": "Pulse damage",
+        "actorType": "player",
+        "weapon": "utility"
+      }
+    ]
+  },
+  [ID.WELL_OF_ETERNITY]: {
+    "implemented": true,
+    "type": "Heal",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 250,
+    "quicknessCastTimeMs": 166.666666667,
+    "cooldown": 30,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Eternity",
+    "effects": []
+  },
+  [ID.GRAVITY_WELL]: {
+    "implemented": true,
+    "type": "Elite",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 1560,
+    "cooldown": 60,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Gravity_Well",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 3.3,
+        "hits": 3,
+        "name": "Pulse damage",
+        "actorType": "player",
+        "weapon": "utility",
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+      },
+      {
+        "type": "strike",
+        "coefficient": 2.1,
+        "hits": 1,
+        "name": "Final damage",
+        "actorType": "player",
+        "weapon": "utility",
+        "atMs": 3000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+      }
+    ]
+  },
+  [ID.WELL_OF_CALAMITY]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 1200,
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Calamity",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 3.9,
+        "hits": 3,
+        "name": "Pulse damage",
+        "actorType": "player",
+        "weapon": "utility",
+        "intervalMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+      },
+      {
+        "type": "strike",
+        "coefficient": 2.1,
+        "hits": 1,
+        "name": "Final damage",
+        "actorType": "player",
+        "weapon": "utility",
+        "atMs": 3000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
+      }
+    ]
+  },
+  [ID.WELL_OF_ACTION]: {
+    "implemented": true,
+    "type": "Utility",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 1200,
+    "cooldown": 20,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Action",
+    "effects": [
+      {
+        "type": "strike",
+        "coefficient": 4.5,
+        "hits": 3,
+        "name": "Pulse damage",
+        "actorType": "player",
+        "weapon": "utility"
+      }
+    ]
+  },
+  [ID.TIME_SINK]: {
+    "implemented": true,
+    "type": "Profession",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "lockouts": [
+      {
+        "group": "mesmer.shatter",
+        "durationMs": 50
+      }
+    ],
+    "rechargeAnchor": "castStart",
+    "cooldown": 38,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Time_Sink",
+    "effects": []
+  },
+  [ID.REWINDER]: {
+    "implemented": true,
+    "type": "Profession",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "lockouts": [
+      {
+        "group": "mesmer.shatter",
+        "durationMs": 50
+      }
+    ],
+    "rechargeAnchor": "castStart",
+    "cooldown": 30,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Rewinder",
+    "effects": []
+  },
+  [ID.SPLIT_SECOND]: {
+    "implemented": true,
+    "type": "Profession",
+    "weapon": "",
+    "specialization": "Chronomancer",
+    "environment": "Terrestrial",
+    "castTimeMs": 0,
+    "lockouts": [
+      {
+        "group": "mesmer.shatter",
+        "durationMs": 50
+      }
+    ],
+    "rechargeAnchor": "castStart",
+    "cooldown": 12,
+    "phantasm": false,
+    "resource": null,
+    "blade": false,
+    "wikiUrl": "https://wiki.guildwars2.com/wiki/Split_Second",
+    "effects": []
+  }
+});
+
+export const MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
+  Record<SkillId, SkillFragment>
+> = Object.freeze({});
+
+export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly Skill[] = Object.freeze(
+  [
+  {
+    "id": ID.CONTINUUM_SHIFT,
+    "name": "Continuum Shift",
+    "description": "End Continuum Split early and restore the cooldown state captured when the split began.",
+    "icon": "https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png",
+    "type": "Action",
+    "slot": "Action",
+    "castTimeMs": 0,
+    "rechargeAnchor": "castStart",
+    "cooldown": 0,
+    "specialization": "Chronomancer",
+    "implemented": true,
+    "effects": []
+  }
+] satisfies readonly MesmerSkill[],
+);

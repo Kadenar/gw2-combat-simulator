@@ -20,7 +20,7 @@ import {
 } from "../js/platform/engine/simulation-random.js";
 import {
   createCloneAttackScheduler,
-} from "../js/professions/mesmer/mechanics/specific/illusions.js";
+} from "../js/professions/mesmer/core/illusions.js";
 
 test("clone attacks are scheduled lazily as the timeline advances", () => {
   const state = { clones: [] };

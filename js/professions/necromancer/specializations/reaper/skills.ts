@@ -1,0 +1,355 @@
+/**
+ * Reaper skill mechanics owned by the Reaper Necromancer module.
+ *
+ * The root catalog composes this inert fragment with the other active module
+ * fragments. Weapon skills remain Core-owned because Weaponmaster Training
+ * makes elite weapon families profession-wide.
+ */
+import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
+import type { SkillFragment } from "../../../../platform/engine/types.js";
+
+export const REAPER_BASE_SKILL_MECHANICS: Readonly<
+  Record<number, SkillFragment>
+> = Object.freeze({
+  [ID.YOU_ARE_ALL_WEAKLINGS]: {
+    implemented: true,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.5,
+        hits: 1,
+      },
+      {
+        type: "control",
+        metadata: {
+          controlKind: "control",
+        },
+      },
+    ],
+  },
+  [ID.LIFE_REND]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.4,
+        hits: 1,
+      },
+    ],
+    type: "Profession",
+    slot: "Weapon_1",
+    shroud: "reaper",
+    shroudSlot: 1,
+    specialization: "Reaper",
+  },
+  [ID.LIFE_SLASH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.6,
+        hits: 1,
+      },
+    ],
+    type: "Profession",
+    slot: "Weapon_1",
+    shroud: "reaper",
+    shroudSlot: 1,
+    specialization: "Reaper",
+  },
+  [ID.NOTHING_CAN_SAVE_YOU]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 1,
+      },
+      {
+        type: "buff",
+        kind: "target-vulnerability",
+        duration: 10,
+        stacks: 6,
+      },
+    ],
+  },
+  [ID.TERRIFY]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "control",
+        metadata: {
+          controlKind: "fear",
+        },
+      },
+    ],
+    type: "Profession",
+    slot: "Weapon_3",
+    shroud: "reaper",
+    shroudSlot: 3,
+    specialization: "Reaper",
+    cooldown: 0,
+  },
+  [ID.INFUSING_TERROR]: {
+    implemented: true,
+    castTimeMs: 0,
+    effects: [],
+    type: "Profession",
+    slot: "Weapon_3",
+    shroud: "reaper",
+    shroudSlot: 3,
+    specialization: "Reaper",
+    handlerId: "necromancer.flip",
+  },
+  [ID.CHILLED_TO_THE_BONE]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 3,
+        hits: 1,
+      },
+      {
+        type: "control",
+        metadata: {
+          controlKind: "control",
+        },
+      },
+      {
+        type: "custom",
+        eventType: "necromancer.chill",
+        event: {
+          duration: 4,
+        },
+      },
+    ],
+  },
+  [ID.LIFE_REAP]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.8,
+        hits: 1,
+        atMs: 420,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+    ],
+    lifeForceGain: 1.5,
+    type: "Profession",
+    slot: "Weapon_1",
+    shroud: "reaper",
+    shroudSlot: 1,
+    specialization: "Reaper",
+  },
+  [ID.YOUR_SOUL_IS_MINE]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+      },
+    ],
+    lifeForceGain: 15,
+  },
+  [ID.SOUL_SPIRAL]: {
+    implemented: true,
+    castTimeMs: 2750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 8.4,
+        hits: 12,
+        atMs: 270,
+        intervalMs: 270,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        persistsAfterInterrupt: true,
+      },
+      {
+        type: "condition",
+        ticks: [
+          { atMs: 270, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 540, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 810, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 1080, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 1350, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 1620, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 1890, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 2160, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 2430, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 2700, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 2970, condition: "Poisoned", stacks: 1, duration: 2 },
+          { atMs: 3240, condition: "Poisoned", stacks: 1, duration: 2 },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        persistsAfterInterrupt: true,
+      },
+    ],
+    type: "Profession",
+    slot: "Weapon_4",
+    shroud: "reaper",
+    shroudSlot: 4,
+    specialization: "Reaper",
+    handlerId: "necromancer.soul-spiral",
+  },
+  [ID.EXECUTIONERS_SCYTHE]: {
+    implemented: true,
+    castTimeMs: 1250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 4,
+        hits: 1,
+        atMs: 1260,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        coefficientModifiers: [
+          {
+            kind: "target-health-below",
+            threshold: 0.25,
+            multiplier: 2,
+          },
+          {
+            kind: "target-health-below",
+            threshold: 0.5,
+            multiplier: 1.5,
+          },
+        ],
+      },
+      {
+        type: "control",
+        atMs: 1260,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        metadata: {
+          controlKind: "stun",
+        },
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 1,
+        applications: 5,
+        atMs: 1260,
+        intervalMs: 1000,
+        intervalTimingScale: "fixed",
+        timingAnchor: "castStart",
+        timingScale: "cast",
+        persistsAfterInterrupt: true,
+        metadata: {
+          extendsResolutionHorizon: true,
+        },
+      },
+    ],
+    type: "Profession",
+    slot: "Weapon_5",
+    shroud: "reaper",
+    shroudSlot: 5,
+    specialization: "Reaper",
+    handlerId: "necromancer.executioners-scythe",
+  },
+  [ID.SUFFER]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.5,
+        hits: 1,
+      },
+      {
+        type: "custom",
+        eventType: "necromancer.chill",
+        event: {
+          duration: 3,
+        },
+      },
+    ],
+    handlerId: "necromancer.condition-transfer",
+  },
+  [ID.RISE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+      },
+    ],
+  },
+  [ID.REAPERS_SHROUD]: {
+    implemented: true,
+    castTimeMs: 0,
+    effects: [],
+    cooldown: 10,
+    specialization: "Reaper",
+    handlerId: "necromancer.shroud",
+  },
+  [ID.DEATHS_CHARGE]: {
+    implemented: true,
+    castTimeMs: 1250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.25,
+        hits: 9,
+        atMs: 100,
+        intervalMs: 100,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "strike",
+        coefficient: 1.625,
+        hits: 1,
+        atMs: 1250,
+        name: "Death's Charge — Final Strike",
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "blind",
+      },
+    ],
+    type: "Profession",
+    slot: "Weapon_2",
+    shroud: "reaper",
+    shroudSlot: 2,
+    specialization: "Reaper",
+  },
+  [ID.EXIT_REAPERS_SHROUD]: {
+    implemented: true,
+    castTimeMs: 0,
+    effects: [],
+    cooldown: 0,
+    specialization: "Reaper",
+    handlerId: "necromancer.shroud",
+  },
+});
+
+export const REAPER_QUICKNESS_CAST_TIMES_MS: Readonly<
+  Record<string, number>
+> = Object.freeze({
+  [ID.LIFE_REND]: 400,
+  [ID.SOUL_SPIRAL]: 2160,
+  [ID.LIFE_SLASH]: 600,
+  [ID.LIFE_REAP]: 560,
+  [ID.DEATHS_CHARGE]: 1200,
+  [ID.EXECUTIONERS_SCYTHE]: 1320,
+  [ID.TERRIFY]: 320,
+  [ID.SUFFER]: 0,
+});

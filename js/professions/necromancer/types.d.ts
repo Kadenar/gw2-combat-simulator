@@ -68,7 +68,7 @@ export interface NecromancerWeaponSpellState extends SchedulerRecord {
   readonly recipients?: Record<string, NecromancerWeaponSpellRecipient>;
 }
 
-export interface NecromancerState extends SchedulerRecord {
+export interface NecromancerCoreState extends SchedulerRecord {
   lifeForce: number;
   resource: number;
   maximumLifeForce: number;
@@ -77,39 +77,23 @@ export interface NecromancerState extends SchedulerRecord {
   activeShroud: string;
   shroudEnteredAt: number;
   lastResourceAt: number;
-  nextBlightAt: number;
-  blight: number;
-  blightExpiries: number[];
   soulShards: number;
   soulShardExpiries: number[];
   carapaceExpiries: number[];
-  shades: number[];
   activeMinions: Record<string, number>;
   minionGenerations: Record<string, number>;
   minionAttackGenerations: Record<string, number>;
-  activeSpirits: Record<string, boolean>;
-  spiritGenerations: Record<string, number>;
-  spiritInitialUntil: Record<string, number>;
-  spiritBusyUntil: Record<string, number>;
-  spiritAutoAnchorAt: number;
-  weaponSpells: Record<string, NecromancerWeaponSpellState>;
   availableFlips: Record<string, boolean | number | SchedulerRecord>;
   autoattackChains: Record<string, SkillId>;
   selfConditions: NecromancerSelfCondition[];
   plagueSendingArmed: boolean;
   plagueSendingEntrySkillId: SkillId | null;
   lichEndsAt: number;
-  soulTwistingAvailable: boolean;
-  pendingSoulTwistSkill?: SkillId | null;
   pendingShroudEntryId?: SkillId | null;
   signetNextLifeForceAt: number;
   vampirismNextAt: number;
-  cascadingCorruptionStacks: number;
-  meltdownUntil: number;
   targetChilledUntil: number;
   targetControlledUntil: number;
-  painfulBondUntil: number;
-  painfulBondPulseAnchorAt: number;
   dreadUntil: number;
   fearOfDeathReadyAt: number;
   vampiricPresenceReadyAt: number;
@@ -118,11 +102,58 @@ export interface NecromancerState extends SchedulerRecord {
   demonicLoreReadyAt: number;
   spitefulFortitudeLifeForce: number;
   traitProcReadyAt: Record<string, number>;
-  executionersIceFieldUntil?: number;
+}
+
+export interface ReaperState extends SchedulerRecord {
+  executionersIceFieldUntil: number;
+}
+
+export interface ScourgeState extends SchedulerRecord {
+  shades: number[];
+}
+
+export interface HarbingerState extends SchedulerRecord {
+  nextBlightAt?: number;
+  blight: number;
+  blightExpiries: number[];
+  cascadingCorruptionStacks: number;
+  meltdownUntil: number;
+}
+
+export interface RitualistState extends SchedulerRecord {
+  activeSpirits: Record<string, boolean>;
+  spiritGenerations: Record<string, number>;
+  spiritInitialUntil: Record<string, number>;
+  spiritBusyUntil: Record<string, number>;
+  spiritAutoAnchorAt: number;
+  weaponSpells: Record<string, NecromancerWeaponSpellState>;
+  soulTwistingAvailable: boolean;
+  pendingSoulTwistSkill?: SkillId | null;
+  painfulBondUntil: number;
+  painfulBondPulseAnchorAt: number;
+}
+
+export interface NecromancerState
+  extends
+    NecromancerCoreState,
+    ReaperState,
+    ScourgeState,
+    HarbingerState,
+    RitualistState {}
+
+export interface NecromancerRuntimeState extends SchedulerRecord {
+  core: NecromancerCoreState;
+  specialization:
+    | { kind: "Core"; state: Record<string, never> }
+    | { kind: "Reaper"; state: ReaperState }
+    | { kind: "Scourge"; state: ScourgeState }
+    | { kind: "Harbinger"; state: HarbingerState }
+    | { kind: "Ritualist"; state: RitualistState };
 }
 
 export interface NecromancerSkill extends Skill {
   readonly blightCost?: number;
+  readonly dhuumfireDuration?: number;
   readonly flipParent?: string;
   readonly lifeForceCost?: number;
   readonly lifeForceGain?: number;
@@ -132,44 +163,44 @@ export interface NecromancerSkill extends Skill {
   readonly slotSelectable?: boolean;
 }
 
-export type NecromancerSchedulerContext =
-  SchedulerContext<NecromancerState> & {
-    readonly catalog: CanonicalCatalog<NecromancerSkill>;
-    readonly config: NecromancerConfig;
-  };
+export type NecromancerSchedulerContext = SchedulerContext<NecromancerState> & {
+  readonly catalog: CanonicalCatalog<NecromancerSkill>;
+  readonly config: NecromancerConfig;
+};
 
-export type NecromancerCastContext =
-  CastLifecycleContext<NecromancerState> & {
-    readonly catalog: CanonicalCatalog<NecromancerSkill>;
-    readonly config: NecromancerConfig;
-  };
+export type NecromancerCastContext = CastLifecycleContext<NecromancerState> & {
+  readonly catalog: CanonicalCatalog<NecromancerSkill>;
+  readonly config: NecromancerConfig;
+};
 
-export type NecromancerEmissionContext =
-  NecromancerSchedulerContext & {
-    readonly effectiveEnd?: number;
-  };
+export type NecromancerEmissionContext = NecromancerSchedulerContext & {
+  readonly effectiveEnd?: number;
+};
 
-export type NecromancerPrecastContext =
-  CastContext<NecromancerState> & {
-    readonly catalog: CanonicalCatalog<NecromancerSkill>;
-    readonly config: NecromancerConfig;
-  };
+export type NecromancerPrecastContext = CastContext<NecromancerState> & {
+  readonly catalog: CanonicalCatalog<NecromancerSkill>;
+  readonly config: NecromancerConfig;
+};
 
-export type NecromancerCastModifierContext =
-  Omit<CastContext<NecromancerState>, "config" | "skill" | "state"> & {
-    readonly config: NecromancerConfig;
-    readonly skill?: NecromancerSkill;
-    readonly state: SchedulerState<NecromancerState>;
-    readonly start: number;
-    readonly hasBuff?: (name: string, at: number) => boolean;
-  };
+export type NecromancerCastModifierContext = Omit<
+  CastContext<NecromancerState>,
+  "config" | "skill" | "state"
+> & {
+  readonly config: NecromancerConfig;
+  readonly skill?: NecromancerSkill;
+  readonly state: SchedulerState<NecromancerState>;
+  readonly start: number;
+  readonly hasBuff?: (name: string, at: number) => boolean;
+};
 
-export type NecromancerRechargeModifierContext =
-  Omit<SchedulerContext<NecromancerState>, "config"> & {
-    readonly config: NecromancerConfig;
-    readonly skill?: NecromancerSkill;
-    readonly minionDeathRecharge?: boolean;
-  };
+export type NecromancerRechargeModifierContext = Omit<
+  SchedulerContext<NecromancerState>,
+  "config"
+> & {
+  readonly config: NecromancerConfig;
+  readonly skill?: NecromancerSkill;
+  readonly minionDeathRecharge?: boolean;
+};
 
 export type NecromancerAmmoModifierContext =
   NecromancerRechargeModifierContext & {
@@ -184,9 +215,12 @@ export type NecromancerSimulationEvent = SimulationEvent & {
   readonly coefficient?: number;
   readonly condition?: string;
   readonly essenceBlastDamagePerSpirit?: number;
+  readonly dhuumfireDuration?: number;
+  readonly dhuumfireInterval?: number;
   readonly expiresAt?: number;
   readonly hitIndex?: number;
   readonly necromancerBlight?: number;
+  readonly necromancerShroudSkillOne?: boolean;
   readonly spirit?: string;
   readonly spiritAttackType?: string;
   readonly state?: Partial<NecromancerState>;
@@ -199,7 +233,10 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly application?: NecromancerResolverEvent;
   readonly coefficient?: number;
   readonly essenceBlastDamagePerSpirit?: number;
+  readonly dhuumfireDuration?: number;
+  readonly dhuumfireInterval?: number;
   readonly necromancerBlight?: number;
+  readonly necromancerShroudSkillOne?: boolean;
   readonly spirit?: string;
   readonly spiritAttackType?: string;
   readonly state?: Partial<NecromancerState>;

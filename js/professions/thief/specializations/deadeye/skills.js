@@ -1,0 +1,765 @@
+import { THIEF_SKILL_IDS as ID } from "../../data/ids.js";
+
+export const DEADEYE_SKILL_MECHANICS = Object.freeze({
+  [ID.STEAL_WARMTH]: {
+      "implemented": true,
+      "handlerId": "thief.stolen-skill",
+      "castTimeMs": 250,
+      "cooldown": 0.5,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.5,
+          "hits": 1,
+          "name": "Steal Warmth",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "boon",
+          "boon": "vigor",
+          "duration": 10,
+          "stacks": 1
+        },
+        {
+          "type": "condition",
+          "condition": "Chilled",
+          "stacks": 1,
+          "duration": 3,
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.STEAL_RESISTANCE]: {
+      "implemented": true,
+      "handlerId": "thief.stolen-skill",
+      "castTimeMs": 250,
+      "cooldown": 0.5,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.5,
+          "hits": 1,
+          "name": "Steal Resistance",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "boon",
+          "boon": "resistance",
+          "duration": 5,
+          "stacks": 1
+        },
+        {
+          "type": "condition",
+          "condition": "Torment",
+          "stacks": 3,
+          "duration": 8,
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.STEAL_PRECISION]: {
+      "implemented": true,
+      "handlerId": "thief.stolen-skill",
+      "castTimeMs": 250,
+      "cooldown": 0.5,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.5,
+          "hits": 1,
+          "name": "Steal Precision",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "boon",
+          "boon": "fury",
+          "duration": 8,
+          "stacks": 1
+        },
+        {
+          "type": "blind",
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.STEAL_HEALTH]: {
+      "implemented": true,
+      "handlerId": "thief.stolen-skill",
+      "castTimeMs": 250,
+      "cooldown": 0.5,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.5,
+          "hits": 1,
+          "name": "Steal Health",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "condition",
+          "condition": "Bleeding",
+          "stacks": 5,
+          "duration": 8,
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.STEAL_STRENGTH]: {
+      "implemented": true,
+      "handlerId": "thief.stolen-skill",
+      "castTimeMs": 250,
+      "cooldown": 0.5,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.5,
+          "hits": 1,
+          "name": "Steal Strength",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "boon",
+          "boon": "might",
+          "duration": 12,
+          "stacks": 5
+        },
+        {
+          "type": "condition",
+          "condition": "Weakness",
+          "stacks": 1,
+          "duration": 8,
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.SHADOW_FLARE]: {
+      "implemented": true,
+      "castTimeMs": 750,
+      "cooldown": 20,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 1,
+          "hits": 1,
+          "name": "Shadow Flare",
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.BINDING_SHADOW]: {
+      "implemented": true,
+      "castTimeMs": 750,
+      "cooldown": 20,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 1,
+          "hits": 1,
+          "name": "Binding Shadow",
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Immobilized",
+          "stacks": 1,
+          "duration": 2,
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Poisoned",
+          "stacks": 2,
+          "duration": 10,
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Vulnerability",
+          "stacks": 15,
+          "duration": 10,
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.MERCY]: {
+      "implemented": true,
+      "castTimeMs": 0,
+      "cooldown": 1,
+      "initiativeCost": 0,
+      "effects": [],
+    },
+  [ID.STEAL_TIME]: {
+      "implemented": true,
+      "handlerId": "thief.stolen-skill",
+      "castTimeMs": 250,
+      "cooldown": 0.5,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.5,
+          "hits": 1,
+          "name": "Steal Time",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "boon",
+          "boon": "quickness",
+          "duration": 5,
+          "stacks": 1
+        },
+        {
+          "type": "condition",
+          "condition": "Slow",
+          "stacks": 1,
+          "duration": 3,
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.STEAL_DURABILITY]: {
+      "implemented": true,
+      "handlerId": "thief.stolen-skill",
+      "castTimeMs": 250,
+      "cooldown": 0.5,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.5,
+          "hits": 1,
+          "name": "Steal Durability",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "boon",
+          "boon": "protection",
+          "duration": 5,
+          "stacks": 1
+        },
+        {
+          "type": "condition",
+          "condition": "Vulnerability",
+          "stacks": 10,
+          "duration": 5,
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.DEADEYES_MARK]: {
+      "implemented": true,
+      "movementSkill": true,
+      "handlerId": "thief.deadeyes-mark",
+      "castTimeMs": 0,
+      "cooldown": 25,
+      "initiativeCost": 0,
+      "effects": [],
+    },
+  [ID.STEAL_DEFENSES]: {
+      "implemented": true,
+      "handlerId": "thief.stolen-skill",
+      "castTimeMs": 250,
+      "cooldown": 0.5,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.5,
+          "hits": 1,
+          "name": "Steal Defenses",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "boon",
+          "boon": "aegis",
+          "duration": 5,
+          "stacks": 1
+        },
+        {
+          "type": "condition",
+          "condition": "Poisoned",
+          "stacks": 2,
+          "duration": 8,
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.MALICIOUS_DEATHS_JUDGMENT]: {
+      "implemented": true,
+      "handlerId": "thief.stealth-attack",
+      "castTimeMs": 500,
+      "cooldown": 1,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 2.67,
+          "hits": 1,
+          "name": "Malicious Death's Judgment — Packet 1",
+          "actorType": "player"
+        },
+        {
+          "type": "strike",
+          "coefficient": 1.32,
+          "hits": 1,
+          "name": "Damage on Untargeted Foes",
+          "actorType": "player"
+        }
+      ],
+      "requiredMainHand": "Rifle",
+      "stealthAttack": true,
+      "malicious": true,
+    },
+  [ID.STEAL_MOBILITY]: {
+      "implemented": true,
+      "handlerId": "thief.stolen-skill",
+      "castTimeMs": 250,
+      "cooldown": 0.5,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.5,
+          "hits": 1,
+          "name": "Steal Mobility",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "condition",
+          "condition": "Immobilized",
+          "stacks": 1,
+          "duration": 1.5,
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.MALICIOUS_RESTORATION]: {
+      "implemented": true,
+      "castTimeMs": 750,
+      "cooldown": 25,
+      "initiativeCost": 0,
+      "effects": [],
+      "malicious": true,
+    },
+  [ID.SHADOW_MELD]: {
+      "implemented": true,
+      "castTimeMs": 500,
+      "cooldown": 5,
+      "ammo": 2,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        }
+      ],
+    },
+  [ID.SHADOW_SWAP]: {
+      "implemented": true,
+      "castTimeMs": 0,
+      "cooldown": 0,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 1,
+          "hits": 1,
+          "name": "Shadow Swap",
+          "actorType": "player"
+        }
+      ],
+    },
+  [ID.SHADOW_GUST]: {
+      "implemented": true,
+      "castTimeMs": 500,
+      "cooldown": 30,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.4,
+          "hits": 1,
+          "name": "Shadow Gust",
+          "actorType": "player"
+        },
+        {
+          "type": "buff",
+          "kind": "stealth",
+          "duration": 3,
+          "stacks": 1
+        },
+        {
+          "type": "control",
+          "actorType": "player",
+          "metadata": {
+            "controlKind": "launch",
+            "duration": 450
+          }
+        },
+        {
+          "type": "control",
+          "actorType": "player",
+          "metadata": {
+            "controlKind": "knockback",
+            "duration": 450
+          }
+        }
+      ],
+    },
+  [ID.MALICIOUS_SURPRISE_SHOT]: {
+      "implemented": true,
+      "handlerId": "thief.stealth-attack",
+      "castTimeMs": 250,
+      "cooldown": 1,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.6,
+          "hits": 1,
+          "name": "Malicious Surprise Shot",
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Bleeding",
+          "stacks": 3,
+          "duration": 5,
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Immobilized",
+          "stacks": 1,
+          "duration": 2,
+          "actorType": "player"
+        }
+      ],
+      "requiredMainHand": "Shortbow",
+      "stealthAttack": true,
+      "malicious": true,
+    },
+  [ID.MALICIOUS_SNEAK_ATTACK]: {
+      "implemented": true,
+      "handlerId": "thief.stealth-attack",
+      "castTimeMs": 1000,
+      "cooldown": 1,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 9,
+          "hits": 5,
+          "name": "Malicious Sneak Attack",
+          "actorType": "player",
+          "atMs": 200,
+          "intervalMs": 200,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
+        },
+        {
+          "type": "condition",
+          "condition": "Bleeding",
+          "stacks": 5,
+          "duration": 5,
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Torment",
+          "stacks": 1,
+          "duration": 1,
+          "actorType": "player"
+        }
+      ],
+      "requiredMainHand": "Pistol",
+      "stealthAttack": true,
+      "malicious": true,
+    },
+  [ID.MALICIOUS_BACKSTAB]: {
+      "implemented": true,
+      "handlerId": "thief.stealth-attack",
+      "castTimeMs": 250,
+      "cooldown": 1,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 1.5,
+          "hits": 1,
+          "name": "Front damage",
+          "actorType": "player"
+        }
+      ],
+      "requiredMainHand": "Dagger",
+      "stealthAttack": true,
+      "malicious": true,
+    },
+  [ID.MALICIOUS_TACTICAL_STRIKE]: {
+      "implemented": true,
+      "handlerId": "thief.stealth-attack",
+      "castTimeMs": 0,
+      "cooldown": 1,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 2,
+          "hits": 1,
+          "name": "Malicious Tactical Strike",
+          "actorType": "player"
+        },
+        {
+          "type": "control",
+          "actorType": "player",
+          "metadata": {
+            "controlKind": "daze",
+            "duration": 1
+          }
+        },
+        {
+          "type": "control",
+          "actorType": "player",
+          "metadata": {
+            "controlKind": "daze",
+            "duration": 3
+          }
+        },
+        {
+          "type": "condition",
+          "condition": "Vulnerability",
+          "stacks": 10,
+          "duration": 5,
+          "actorType": "player"
+        }
+      ],
+      "requiredMainHand": "Sword",
+      "stealthAttack": true,
+      "malicious": true,
+    },
+  [ID.MALICIOUS_SHADOWSQUALL]: {
+      "implemented": true,
+      "handlerId": "thief.stealth-attack",
+      "castTimeMs": 2500,
+      "cooldown": 0,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 1.6,
+          "hits": 8,
+          "name": "Malicious Shadowsquall",
+          "actorType": "player",
+          "atMs": 313,
+          "intervalMs": 313,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
+        },
+        {
+          "type": "condition",
+          "condition": "Poisoned",
+          "stacks": 1,
+          "duration": 3,
+          "actorType": "player"
+        },
+        {
+          "type": "boon",
+          "boon": "Regeneration",
+          "duration": 2.5,
+          "stacks": 1
+        }
+      ],
+      "requiredMainHand": "Scepter",
+      "stealthAttack": true,
+      "malicious": true,
+    },
+  [ID.MALICIOUS_HOOK_STRIKE]: {
+      "implemented": true,
+      "handlerId": "thief.stealth-attack",
+      "castTimeMs": 0,
+      "cooldown": 1,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 0.65,
+          "hits": 1,
+          "name": "Malicious Hook Strike",
+          "actorType": "player"
+        },
+        {
+          "type": "boon",
+          "boon": "quickness",
+          "duration": 0.75,
+          "stacks": 1
+        },
+        {
+          "type": "control",
+          "actorType": "player",
+          "metadata": {
+            "controlKind": "knockdown",
+            "duration": 4
+          }
+        }
+      ],
+      "requiredMainHand": "Staff",
+      "stealthAttack": true,
+      "malicious": true,
+    },
+  [ID.MALICIOUS_CUNNING_SALVO]: {
+      "implemented": true,
+      "handlerId": "thief.stealth-attack",
+      "castTimeMs": 500,
+      "cooldown": 1,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 1.5,
+          "hits": 1,
+          "name": "Malicious Cunning Salvo",
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Bleeding",
+          "stacks": 1,
+          "duration": 8,
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Poisoned",
+          "stacks": 1,
+          "duration": 1,
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Crippled",
+          "stacks": 1,
+          "duration": 4,
+          "actorType": "player"
+        }
+      ],
+      "requiredMainHand": "Axe",
+      "stealthAttack": true,
+      "malicious": true,
+    },
+  [ID.MALICIOUS_ASHEN_ASSAULT]: {
+      "implemented": true,
+      "preservesStealth": true,
+      "spearStealthAttack": true,
+      "handlerId": "thief.deadeye-spear-stealth-attack",
+      "castTimeMs": 575,
+      "cooldown": 0,
+      "initiativeCost": 0,
+      "effects": [
+        {
+          "type": "strike",
+          "coefficient": 1.5,
+          "hits": 5,
+          "name": "Malicious Ashen Assault",
+          "actorType": "player",
+          "atMs": 250,
+          "intervalMs": 250,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
+        },
+        {
+          "type": "strike",
+          "coefficient": 0.3,
+          "hits": 1,
+          "name": "Malicious Ashen Assault — Final Strike",
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Vulnerability",
+          "stacks": 5,
+          "duration": 8,
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Bleeding",
+          "stacks": 3,
+          "duration": 4,
+          "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Poisoned",
+          "stacks": 3,
+          "duration": 4,
+          "actorType": "player"
+        }
+      ],
+      "requiredMainHand": "Spear",
+      "stealthAttack": true,
+      "malicious": true,
+    },
+});

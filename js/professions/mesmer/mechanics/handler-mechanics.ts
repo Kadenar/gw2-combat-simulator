@@ -1,8 +1,9 @@
 import { MESMER_SKILL_IDS as ID } from "../data/ids.js";
-import type {
-  MesmerRuntime,
-  MesmerSkillCatalogFragment,
-} from "../types.js";
+import {
+  MESMER_FLIP_CHILD_BY_PARENT_ID,
+  MESMER_FLIP_PARENT_BY_CHILD_ID,
+} from "../core/runtime.js";
+import type { MesmerSkillCatalogFragment } from "../types.js";
 
 const SHATTER_SKILL_IDS = new Set<number>([
   ID.MIND_WRACK,
@@ -29,25 +30,7 @@ const INSTRUMENT_SKILL_IDS = new Set<number>([
   ID.HARMONIOUS_HARP_ALTERNATE,
 ]);
 
-export const MESMER_FLIP_PARENT_BY_CHILD_ID: Readonly<Record<number, number>> =
-  Object.freeze({
-    [ID.COUNTERSPELL]: ID.ILLUSIONARY_COUNTER,
-    [ID.POWER_SPIKE]: ID.MANTRA_OF_PAIN,
-    [ID.DIMENSIONAL_APERTURE]: ID.SINGULARITY_SHOT,
-    [ID.ABSTRACTION]: ID.INSPIRING_IMAGERY,
-    [ID.INTO_THE_VOID]: ID.TEMPORAL_CURTAIN,
-    [ID.COUNTER_BLADE]: ID.ILLUSIONARY_RIPOSTE,
-    [ID.SWAP]: ID.ILLUSIONARY_LEAP,
-  });
-
-export const MESMER_FLIP_CHILD_BY_PARENT_ID: Readonly<Record<number, number>> =
-  Object.freeze(
-    Object.fromEntries(
-      Object.entries(MESMER_FLIP_PARENT_BY_CHILD_ID).map(
-        ([childId, parentId]): [number, number] => [parentId, Number(childId)],
-      ),
-    ),
-  );
+export { MESMER_FLIP_CHILD_BY_PARENT_ID, MESMER_FLIP_PARENT_BY_CHILD_ID };
 
 const FLIP_SKILL_IDS = new Set<number>([
   ...Object.keys(MESMER_FLIP_PARENT_BY_CHILD_ID).map(Number),
@@ -88,9 +71,7 @@ export function mesmerHandlerIdFor(
   if (id === ID.CONTINUUM_SHIFT) return "mesmer.continuum-shift";
   if (id === ID.CONTINUUM_SPLIT) return "mesmer.continuum-split";
   if (SHATTER_SKILL_IDS.has(id)) {
-    return id >= ID.BLADETURN_REQUIEM
-      ? "mesmer.bladesong"
-      : "mesmer.shatter";
+    return id >= ID.BLADETURN_REQUIEM ? "mesmer.bladesong" : "mesmer.shatter";
   }
   if (INSTRUMENT_SKILL_IDS.has(id)) return "mesmer.instrument";
   if (id === ID.CRESCENDO) return "mesmer.crescendo";
@@ -133,8 +114,7 @@ export function prepareMesmerSkillForCatalog<
   const mechanic =
     flipParentId || flipChildId
       ? {
-          ...(skill.mesmerMechanic &&
-          typeof skill.mesmerMechanic === "object"
+          ...(skill.mesmerMechanic && typeof skill.mesmerMechanic === "object"
             ? skill.mesmerMechanic
             : {}),
           ...(flipParentId ? { flipParentId } : {}),
@@ -154,20 +134,4 @@ export function prepareMesmerSkillForCatalog<
     mesmerEffects: skill.effects || [],
     effects: [],
   };
-}
-
-/**
- * Returns the explicit Mesmer dependencies attached to one scheduler context.
- *
- * The object is scheduler-local and never stored in profession state or
- * projected into public results.
- */
-export function mesmerRuntimeFor(
-  context: { readonly mesmerRuntime?: MesmerRuntime } | null | undefined,
-): MesmerRuntime {
-  const runtime = context?.mesmerRuntime;
-  if (!runtime) {
-    throw new Error("Mesmer scheduler runtime is not initialized.");
-  }
-  return runtime;
 }

@@ -10,6 +10,9 @@ import {
 import {
   assumptionControlsForSpecialization,
 } from "../js/app/profession/assumptions.js";
+import {
+  weaponSkills,
+} from "../js/app/rotation/palette-model.js";
 import { simulateGw2 } from "../js/platform/gw2/simulate.js";
 import { resourceDisplayViews } from "../js/platform/ui/resource-display.js";
 import {
@@ -104,7 +107,7 @@ test("Thief catalog pins API identity and explicit terrestrial mechanics", () =>
   assert.equal(DATA_SNAPSHOT, "2026-07-28");
   assert.equal(thiefCatalog.specializations.length, 9);
   assert.equal(thiefCatalog.traits.length, 108);
-  assert.ok(thiefCatalog.skills.length >= 260);
+  assert.ok(thiefCatalog.skills.length >= 256);
   assert.equal(thiefCatalog.skillsById.has(76550), false);
   assert.equal(thiefCatalog.skillsById.has(40436), true);
   assert.equal(thiefCatalog.skillsById.has(80278), false);
@@ -113,6 +116,9 @@ test("Thief catalog pins API identity and explicit terrestrial mechanics", () =>
   assert.equal(THIEF_SKILL_MECHANICS[13006].effects[0].hits, 3);
   assert.equal(THIEF_SKILL_MECHANICS[13006].effects[1].condition, "Bleeding");
   for (const excludedName of [
+    "Deadly Strike",
+    "Malicious Deadly Strike",
+    "Malicious Ripper",
     "Prepare Seal Area",
     "Prepare Shadow Portal",
     "Seal Area",
@@ -121,6 +127,7 @@ test("Thief catalog pins API identity and explicit terrestrial mechanics", () =>
     "Shadow Return",
     "Shadowstep",
     "Smoke Screen",
+    "The Ripper",
   ]) {
     assert.equal(
       thiefCatalog.skillsByName.has(excludedName),
@@ -716,6 +723,143 @@ test("Specter shadow force is 69% of health and drains 2% per second", () => {
   assert.equal(drained.shadowForce, 98);
 });
 
+test("Spear slots 2 and 3 shift through lead, follow-up, and finisher skills", () => {
+  const chainSkills = [
+    "Mantis Sting",
+    "Entangling Asp",
+    "Falling Spider",
+    "Unsuspecting Strike",
+    "Vampiric Slash",
+    "Shattering Assault",
+  ].map(name => thiefCatalog.skillsByName.get(name));
+  const visibleAtStage = stage => chainSkills
+    .filter(skill => thiefWeaponSkillMatchesSet(
+      skill,
+      ["Spear", ""],
+      {
+        catalog: thiefCatalog,
+        professionState: { spearChainStage: stage },
+      },
+    ))
+    .map(skill => skill.name);
+  const paletteAtStage = stage => weaponSkills({
+    build: {
+      ...createThiefBuildDefaults(),
+      weapons: ["Spear", ""],
+      alternateWeapons: ["Spear", ""],
+    },
+    adapter: thiefAppAdapter,
+    profession: thiefProfession,
+    skills: thiefCatalog.skills,
+    weaponData: thiefAppAdapter.weaponData,
+    results: {
+      endState: {
+        activeWeaponSet: 1,
+        profession: { spearChainStage: stage },
+      },
+    },
+  }).filter(skill => [2, 3].includes(
+    Number(String(skill.slot).split("_").at(-1)),
+  )).map(skill => skill.name);
+
+  assert.deepEqual(visibleAtStage(0), [
+    "Mantis Sting",
+    "Unsuspecting Strike",
+  ]);
+  assert.deepEqual(visibleAtStage(1), [
+    "Entangling Asp",
+    "Vampiric Slash",
+  ]);
+  assert.deepEqual(visibleAtStage(2), [
+    "Falling Spider",
+    "Shattering Assault",
+  ]);
+  assert.deepEqual(
+    chainSkills
+      .filter(skill => thiefWeaponSkillMatchesSet(
+        skill,
+        ["Spear", ""],
+        {
+          catalog: thiefCatalog,
+          professionState: { spearChainStage: 0 },
+          weaponBarPreview: true,
+        },
+      ))
+      .map(skill => [
+        skill.name,
+        skill.weaponBarChainStep,
+      ]),
+    [
+      ["Mantis Sting", 1],
+      ["Entangling Asp", 2],
+      ["Falling Spider", 3],
+      ["Unsuspecting Strike", 1],
+      ["Vampiric Slash", 2],
+      ["Shattering Assault", 3],
+    ],
+  );
+  assert.deepEqual(paletteAtStage(0), [
+    "Mantis Sting",
+    "Unsuspecting Strike",
+  ]);
+  assert.deepEqual(paletteAtStage(1), [
+    "Entangling Asp",
+    "Vampiric Slash",
+  ]);
+  assert.deepEqual(paletteAtStage(2), [
+    "Falling Spider",
+    "Shattering Assault",
+  ]);
+  assert.equal(
+    thiefProfession.ui.paletteSkillAvailability(
+      { professionState: { spearChainStage: 0 } },
+      thiefCatalog.skillsByName.get("Entangling Asp"),
+    ).available,
+    false,
+  );
+  assert.equal(
+    thiefProfession.ui.paletteSkillAvailability(
+      { professionState: { spearChainStage: 1 } },
+      thiefCatalog.skillsByName.get("Entangling Asp"),
+    ).available,
+    true,
+  );
+});
+
+test("Spider Venom grants six independent charges to the player and allies", () => {
+  const result = simulate("Core", [
+    "Spider Venom",
+    "Heartseeker",
+  ], {
+    selectedSkills: ["Hide in Shadows", "Spider Venom"],
+    allies: { count: 4, strikesPerSecond: 1 },
+  });
+  const partyBuff = result.events.find(event =>
+    event.type === "buff" && event.kind === "spider-venom");
+  assert.equal(partyBuff.stacks, 6);
+  assert.equal(partyBuff.duration, 24);
+  assert.equal(partyBuff.recipientCount, 5);
+
+  const allyPoisons = result.resolvedEvents.filter(event =>
+    event.type === "condition"
+    && event.skillId === ID.SPIDER_VENOM
+    && event.triggeredByAlly);
+  assert.equal(allyPoisons.length, 24);
+  assert.deepEqual(
+    [...new Set(allyPoisons.map(event => event.triggeredByAlly))],
+    [1, 2, 3, 4],
+  );
+  assert.ok(allyPoisons.every(event =>
+    event.stacks === 1
+    && Math.abs(event.naturalExpiresAt - event.at - 3) < 1e-9));
+
+  const personalPoisons = result.resolvedEvents.filter(event =>
+    event.type === "condition"
+    && event.skillId === ID.SPIDER_VENOM
+    && !event.triggeredByAlly);
+  assert.equal(personalPoisons.length, 3);
+});
+
 test("Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic", () => {
   const artifact = simulate("Antiquary", [
     "Skritt Swipe",
@@ -893,6 +1037,11 @@ test("Meticulous Custodian upgrades artifact packets and effect durations", () =
   const mortar = artifact("Mistburn Mortar", true);
   const turret = artifact("Summon Kryptis Turret", true);
   const sunCrystal = artifact("Zephyrite Sun Crystal", true);
+  const chakShield = artifact("Chak Shield", true);
+  assert.equal(
+    chakShield.breakdown.find(entry => entry.name === "Chak Shield").hits,
+    6,
+  );
   assert.equal(mortar.endState.profession.mistburnExpiresAt, 12.95);
   assert.equal(turret.endState.profession.kryptisDamageUntil, 10.66);
   assert.ok(
@@ -931,9 +1080,22 @@ test("Antiquary skill bar previews wiki-categorized artifacts", () => {
       },
     ],
   );
+  const specter = thiefProfession.ui.skillBarGroups({
+    specialization: "Specter",
+  });
+  assert.deepEqual(specter.map(group => group.label), [
+    "F Keys",
+    "Shadow Shroud",
+  ]);
   assert.deepEqual(
-    thiefProfession.ui.skillBarGroups({ specialization: "Specter" }),
-    [],
+    specter[1].skillIds.map(id => thiefCatalog.skillsById.get(id)?.name),
+    [
+      "Haunt Shot",
+      "Grasping Shadows",
+      "Dawn's Repose",
+      "Eternal Night",
+      "Mind Shock",
+    ],
   );
 });
 
@@ -985,6 +1147,61 @@ test("Power Antiquary benchmark preset matches the supplied EVTC", async () => {
       .filter(step => step.skill === "Canach-Coin Toss")
       .map(step => step.start),
     [4300, 18000, 35641, 37041, 67241, 68641, 79161],
+  );
+  assert.ok(relativeError(
+    result.totalDamage,
+    savedRotation.metadata.benchmarkDamage,
+  ) < 0.02);
+  assert.ok(relativeError(
+    result.dps,
+    savedRotation.metadata.benchmarkDps,
+  ) < 0.01);
+});
+
+test("Condition Antiquary spear preset matches the supplied EVTC", async () => {
+  const savedBuild = JSON.parse(await readFile(
+    new URL(
+      "../Builds/thief/b-condi-antiquary-spear.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ));
+  const savedRotation = JSON.parse(await readFile(
+    new URL(
+      "../Rotations/thief/r-condi-antiquary-spear-bench.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ));
+  const build = migrateThiefBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    adapter: thiefAppAdapter,
+    profession: thiefProfession,
+    skillById: thiefCatalog.skillsById,
+    skillByName: thiefCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const castCount = name => result.steps.filter(step =>
+    step.skill === name && !step.invalid).length;
+  const relativeError = (actual, expected) =>
+    Math.abs(actual - expected) / expected;
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(build.assumptions.artifactDrawSequence, "choose");
+  assert.equal(castCount("Ashen Assault"), 10);
+  assert.equal(castCount("Entangling Asp"), 40);
+  assert.equal(castCount("Falling Spider"), 32);
+  assert.equal(castCount("Distracting Throw"), 31);
+  assert.equal(castCount("Chak Shield"), 2);
+  assert.equal(
+    result.breakdown.find(entry => entry.name === "Chak Shield").hits,
+    12,
   );
   assert.ok(relativeError(
     result.totalDamage,

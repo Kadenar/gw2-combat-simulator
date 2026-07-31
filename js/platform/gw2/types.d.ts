@@ -1,6 +1,7 @@
 import type {
   CanonicalCatalog,
   NormalizedProfessionContract,
+  ProfessionSource,
   ScheduledEventStream,
   SchedulerRunResult,
   SchedulerState,
@@ -412,6 +413,7 @@ export interface Gw2WeaponMatcherContext extends SchedulerRecord {
   readonly catalog?: CanonicalCatalog | null;
   readonly config?: Gw2Config;
   readonly state?: object;
+  readonly weaponBarPreview?: boolean;
   readonly weaponData?: Readonly<
     Record<string, { readonly wielding?: string }>
   >;
@@ -794,10 +796,26 @@ export interface Gw2ProfessionContract
   readonly eventReactions: Gw2ResolverReactions;
   readonly simulation:
     | (SchedulerRecord & {
-        readonly refineSchedulerConfig?: (
-          config: Gw2Config,
-          result: Gw2SimulationResult,
-        ) => Gw2Config | null | undefined;
+      readonly refineSchedulerConfig?: (
+        config: Gw2Config,
+        result: Gw2SimulationResult,
+      ) => Gw2Config | null | undefined;
+      readonly projectEndState?: (options: {
+        readonly config: Gw2Config;
+        readonly schedulerContext: SchedulerContext;
+        readonly schedulerState: SchedulerState;
+        readonly resolverState: object;
+        readonly cooldowns: Gw2SimulationEndState["cooldowns"];
+        readonly ammo: Gw2SimulationEndState["ammo"];
+        readonly profession: unknown;
+      }) =>
+        | {
+            readonly cooldowns?: Gw2SimulationEndState["cooldowns"];
+            readonly ammo?: Gw2SimulationEndState["ammo"];
+            readonly profession?: unknown;
+          }
+        | null
+        | undefined;
       })
     | null;
   readonly projectEndState: (options: {
@@ -827,7 +845,7 @@ export interface Gw2SimulationResult extends Gw2ResolverResult {
 }
 
 export interface Gw2DeclarativeSimulationOptions {
-  readonly profession: Gw2ProfessionContract;
+  readonly profession: Gw2ProfessionContract | ProfessionSource;
   readonly rotation: readonly unknown[];
   readonly config?: Gw2Config;
 }

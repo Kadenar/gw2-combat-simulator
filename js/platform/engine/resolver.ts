@@ -4,9 +4,14 @@ import {
   StableEventQueue,
   takeNextEvent,
 } from "./event-queue.js";
+import {
+  cloneMutableProfessionState,
+  resolveProfessionRuntime,
+} from "./profession.js";
 
 import type {
   NormalizedProfessionContract,
+  ProfessionSource,
   ScheduledEventStream,
   SchedulerConfig,
   SimulationEvent,
@@ -84,7 +89,7 @@ export interface DirectResolverContext<TProfessionState = unknown> {
  * A profession contract able to seed direct-resolver profession state.
  */
 export type DirectResolverProfession<TProfessionState extends object = object> =
-  NormalizedProfessionContract<TProfessionState>;
+  ProfessionSource<TProfessionState>;
 
 interface CreateResolverStateOptions<TProfessionState extends object> {
   readonly profession: DirectResolverProfession<TProfessionState>;
@@ -101,13 +106,14 @@ export function createResolverState<TProfessionState extends object>({
 }: CreateResolverStateOptions<TProfessionState>): DirectResolverState<
   TProfessionState
 > {
+  const activeProfession = resolveProfessionRuntime(profession, config);
   return {
     time: 0,
     config,
-    profession: structuredClone(
-      typeof profession.createResolverState === "function"
-        ? profession.createResolverState(config)
-        : profession.createProfessionState(config),
+    profession: cloneMutableProfessionState(
+      typeof activeProfession.createResolverState === "function"
+        ? activeProfession.createResolverState(config)
+        : activeProfession.createProfessionState(config),
     ) as TProfessionState,
     totals: { strike: 0, condition: 0 },
     breakdown: new Map(),
@@ -180,15 +186,20 @@ export function resolveScheduledStream<TProfessionState extends object>({
   TProfessionState
 > {
   const scheduled = assertScheduledEventStream(stream);
+  const activeProfession = resolveProfessionRuntime(profession, config);
   if (!handlerRegistry)
     throw new TypeError("Resolver requires a handler registry.");
   handlerRegistry.require(scheduled.events.map((event) => event.type));
-  const state = createResolverState({ profession, config, stream: scheduled });
+  const state = createResolverState({
+    profession: activeProfession,
+    config,
+    stream: scheduled,
+  });
   const queue = createEventQueue<SimulationEvent>(
     scheduled.events.map((event) => ({ ...event }) as SimulationEvent),
   );
   const context: DirectResolverContext<TProfessionState> = {
-    profession,
+    profession: activeProfession,
     config,
     state,
     queue,

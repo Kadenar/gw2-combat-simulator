@@ -1,7 +1,5 @@
 import { SKILLS, SPECIALIZATIONS } from "./data/mesmer-api-metadata.js";
-import {
-  MESMER_SUPPLEMENTAL_SKILLS,
-} from "./data/mesmer-supplemental-skills.js";
+import { MESMER_SUPPLEMENTAL_SKILLS } from "./data/mesmer-supplemental-skills.js";
 import {
   defaultMesmerLegacySkillId,
   MESMER_DUPLICATE_SKILL_NAMES,
@@ -12,15 +10,15 @@ import {
   MESMER_SKILL_MECHANICS,
   MESMER_SUPPLEMENTAL_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
+import { MESMER_SKILL_IDS as ID } from "./data/ids.js";
 import {
   MESMER_FLIP_PARENT_BY_CHILD_ID,
   prepareMesmerSkillForCatalog,
 } from "./mechanics/handler-mechanics.js";
-import {
-  mesmerSkillHandlers,
-} from "./mechanics/specific/handlers.js";
+import { mesmerSkillHandlers } from "./handlers.js";
 import { createCanonicalCatalog } from "../../platform/engine/catalog.js";
 import type {
+  ProfessionModuleCatalogFragment,
   Skill,
   SkillFragment,
   SkillId,
@@ -30,10 +28,10 @@ const generated: readonly Skill[] = [
   ...SKILLS,
   ...MESMER_SUPPLEMENTAL_SKILLS,
 ].map((skill) => ({
-    ...skill,
-    implemented: false,
-    effects: [],
-  }));
+  ...skill,
+  implemented: false,
+  effects: [],
+}));
 
 // Ammo-flip mantras (e.g. Mantra of Pain) store their charges on the armed
 // flip child (Power Spike), which we model with armedAtStart + ammo. The GW2
@@ -116,3 +114,71 @@ for (const name of MESMER_DUPLICATE_SKILL_NAMES) {
 }
 
 export const MESMER_SKILLS = mesmerCatalog.skills;
+
+export const MESMER_ELITE_SPECIALIZATIONS = Object.freeze([
+  "Chronomancer",
+  "Mirage",
+  "Virtuoso",
+  "Troubadour",
+]);
+
+const eliteSpecializations = new Set(MESMER_ELITE_SPECIALIZATIONS);
+const coreRuntimeSkills = mesmerCatalog.skills.filter(
+  (skill) =>
+    skill.id === -3 ||
+    (skill.id !== -1 &&
+      skill.id !== -4 &&
+      skill.id !== ID.TROUBADOUR_BLADECALL &&
+      !skill.ambush &&
+      (skill.type === "Weapon" ||
+        !eliteSpecializations.has(String(skill.specialization || "")))),
+);
+const fragmentCache = new Map<string, ProfessionModuleCatalogFragment>();
+
+export function mesmerModuleCatalog(
+  moduleId: string,
+): Readonly<ProfessionModuleCatalogFragment> {
+  const cached = fragmentCache.get(moduleId);
+  if (cached) return cached;
+  if (moduleId !== "Core" && !eliteSpecializations.has(moduleId)) {
+    throw new Error(`Unknown Mesmer catalog module ${moduleId}.`);
+  }
+  const core = moduleId === "Core";
+  const skills = core
+    ? coreRuntimeSkills
+    : mesmerCatalog.skills.filter((skill) =>
+        moduleId === "Mirage"
+          ? skill.id === -1 ||
+            skill.ambush ||
+            (skill.type !== "Weapon" && skill.specialization === moduleId)
+          : moduleId === "Chronomancer"
+            ? skill.id === -4 ||
+              (skill.type !== "Weapon" && skill.specialization === moduleId)
+            : moduleId === "Troubadour"
+              ? skill.id === ID.TROUBADOUR_BLADECALL ||
+                (skill.type !== "Weapon" && skill.specialization === moduleId)
+              : skill.type !== "Weapon" && skill.specialization === moduleId,
+      );
+  const traits = mesmerCatalog.traits.filter((trait) =>
+    core
+      ? !eliteSpecializations.has(String(trait.specialization || ""))
+      : trait.specialization === moduleId,
+  );
+  const specializations = mesmerCatalog.specializations.filter(
+    (specialization) =>
+      core ? !specialization.elite : specialization.name === moduleId,
+  );
+  const fragment = Object.freeze({
+    skills: Object.freeze([...skills]),
+    traits: Object.freeze([...traits]),
+    specializations: Object.freeze([...specializations]),
+    ...(core
+      ? {
+          weapons: Object.freeze([...mesmerCatalog.weapons]),
+          weaponHands: new Map(mesmerCatalog.weaponHands),
+        }
+      : {}),
+  });
+  fragmentCache.set(moduleId, fragment);
+  return fragment;
+}

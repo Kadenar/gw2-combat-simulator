@@ -1,7 +1,10 @@
 import { createScheduler } from "../engine/scheduler.js";
+import {
+  cloneProfessionState,
+  resolveProfessionRuntime,
+} from "../engine/profession.js";
 import type {
   NormalizedProfessionContract,
-  SchedulerRecord,
   SchedulerRunResult,
   SkillId,
 } from "../engine/types.js";
@@ -74,13 +77,24 @@ function endState(
     schedulerState: scheduled.state,
     resolverState: resolved.profession,
   });
-  return {
-    time: Math.round(endTime * 1000),
+  const simulationProjection = profession.simulation?.projectEndState?.({
+    config,
+    schedulerContext: scheduled.context,
+    schedulerState: scheduled.state,
+    resolverState: resolved.profession,
     cooldowns,
     ammo,
+    profession: projected ?? resolved.profession,
+  }) || {};
+  return {
+    time: Math.round(endTime * 1000),
+    cooldowns: simulationProjection.cooldowns || cooldowns,
+    ammo: simulationProjection.ammo || ammo,
     activeWeaponSet: scheduled.state.activeWeaponSet,
     // Projection lets a profession hide resolver-only bookkeeping.
-    profession: structuredClone(projected ?? resolved.profession),
+    profession: cloneProfessionState(
+      simulationProjection.profession ?? projected ?? resolved.profession,
+    ),
   };
 }
 
@@ -93,18 +107,22 @@ function simulateDeclarativeGw2Pass({
   rotation,
   config = {},
 }: Gw2DeclarativeSimulationOptions): Gw2SimulationResult {
+  const runtimeProfession = resolveProfessionRuntime(
+    profession as unknown as NormalizedProfessionContract,
+    config,
+  ) as unknown as Gw2ProfessionContract;
   const engineProfession =
-    profession as unknown as NormalizedProfessionContract;
+    runtimeProfession as unknown as NormalizedProfessionContract;
   // Resolve traits once and share the exact selection between both phases.
-  const traits = selectedGw2TraitValues(config, profession.catalog);
+  const traits = selectedGw2TraitValues(config, runtimeProfession.catalog);
   const scheduled = createScheduler({
     profession: engineProfession,
     config,
     schedulerPolicy: createGw2SchedulerPolicy(config, {
       traits,
-      catalog: profession.catalog,
+      catalog: runtimeProfession.catalog,
       weaponSkillMatchesSet:
-        profession.ui.weaponSkillMatchesSet as
+        runtimeProfession.ui.weaponSkillMatchesSet as
           | Gw2WeaponSkillMatcher
           | undefined,
     }),
@@ -120,7 +138,7 @@ function simulateDeclarativeGw2Pass({
     onConditionApplied(ctx, application) {
       // Application reactions run after state insertion, allowing traits to
       // query the newly applied stack count.
-      profession.eventReactions.condition?.(ctx, application, {
+      runtimeProfession.eventReactions.condition?.(ctx, application, {
         application,
       });
     },
@@ -135,7 +153,7 @@ function simulateDeclarativeGw2Pass({
       apply: conditionResolution.applyCondition,
       tick: conditionResolution.handleConditionTick,
     },
-    eventReactions: profession.eventReactions,
+    eventReactions: runtimeProfession.eventReactions,
   });
   const resolved = resolveGw2Timeline({
     stream: scheduled.stream,
@@ -144,8 +162,8 @@ function simulateDeclarativeGw2Pass({
     query,
     helpers: {
       conditionName,
-      skillsById: profession.catalog?.skillsById || new Map(),
-      skillsByName: profession.catalog?.skillsByName || new Map(),
+      skillsById: runtimeProfession.catalog?.skillsById || new Map(),
+      skillsByName: runtimeProfession.catalog?.skillsByName || new Map(),
       weaponStrength: (event, currentConfig) =>
         gw2WeaponStrength(event, currentConfig, {
           strengths: WEAPON_STRENGTHS,
@@ -155,18 +173,18 @@ function simulateDeclarativeGw2Pass({
       return createGw2ResolverRuntimeState(options);
     },
     commonHandlers,
-    professionHandlers: profession.eventHandlers,
+    professionHandlers: runtimeProfession.eventHandlers,
     professionState:
       // Resolver state is always time-zero state. Scheduler changes that matter
       // during numeric resolution must be represented by chronological events.
-      typeof profession.createResolverState === "function"
-        ? profession.createResolverState(config)
-        : profession.createProfessionState(config),
+      typeof runtimeProfession.createResolverState === "function"
+        ? runtimeProfession.createResolverState(config)
+        : runtimeProfession.createProfessionState(config),
   });
   return {
     ...resolved,
     steps: scheduled.steps,
-    endState: endState(profession, config, scheduled, resolved),
+    endState: endState(runtimeProfession, config, scheduled, resolved),
     schedulerState: scheduled.state,
     snapshot: scheduled.snapshot,
     // Preserve phase order so scheduling diagnostics appear before resolution

@@ -1,140 +1,136 @@
-# Elite-specialization module migration
+# Elite-specialization family migration specification
 
-## Objective
+## Purpose
 
-Replace each profession-wide runtime "god contract" with a composition of:
+This document is the repeatable specification for converting one native
+profession from a profession-wide runtime contract into:
 
-1. one always-active profession core module; and
+1. one always-active Core module; and
 2. at most one active elite-specialization module.
 
-Migrate one profession at a time. Migrated and legacy professions must run
-through the same application and simulation entry points during the migration.
+Necromancer is the reference implementation. The remaining professions must be
+migrated one profession at a time. Within a profession, extract one elite
+folder at a time, but do not mark the profession migrated until Core and every
+supported elite satisfy this specification.
 
-This is primarily a separation-of-concerns change. It must not alter damage,
-timing, cooldowns, resources, build persistence, palettes, event logs, or public
-simulation results.
+This is a separation-of-concerns migration. Unless separately approved, it must
+not change damage, timing, cooldowns, resources, build persistence, selectable
+skills, UI output, event logs, stochastic behavior, or public simulation
+results.
 
-In this document, "elite specialization" means the active elite mechanic such
-as Deadeye or Antiquary. It does not mean every selectable core trait line.
+Normative terms such as **must**, **must not**, and **should** describe
+acceptance requirements.
 
-## Current problem
+## Migration status
 
-Native professions currently export one normalized contract containing every
-elite specialization:
+| Profession | Status | Notes |
+| --- | --- | --- |
+| Necromancer | Complete | Reference family: Core, Reaper, Scourge, Harbinger, Ritualist |
+| Mesmer | Complete | Family: Core, Chronomancer, Mirage, Virtuoso, Troubadour |
+| Guardian | Pending | Legacy profession-wide contract |
+| Engineer | Pending | Legacy profession-wide contract |
+| Revenant | Complete | Family: Core, Herald, Renegade, Vindicator, Conduit |
+| Thief | Pending | Legacy profession-wide contract |
+| Elementalist | Separate review | Standalone application and custom simulation architecture |
 
-- state factories allocate fields for inactive specializations;
-- availability and UI functions switch on specialization names;
-- task, event, skill-handler, and modifier registries contain inactive logic;
-- authoritative skill-mechanics objects contain the entire profession; and
-- changing one elite specialization can affect the profession-wide contract.
+Only one row may be in progress at a time. Finish its validation and update
+this table before beginning another profession.
 
-Thief is the clearest pilot. Its runtime state simultaneously contains malice,
-shadow force, Daredevil endurance behavior, and Antiquary artifact state.
+## Goals
 
-Splitting a large file into smaller imports is useful, but insufficient. The
-active runtime contract must also exclude inactive specialization behavior.
+A migrated profession must provide:
+
+- a stable family/application contract containing the complete build-editor
+  catalog;
+- an active runtime contract containing Core plus zero or one selected elite;
+- state that allocates no inactive elite fields;
+- registries containing no inactive elite handlers, tasks, or reactions;
+- source files whose ownership matches runtime ownership;
+- deterministic module composition with duplicate validation; and
+- compatibility facades only where an existing external import or application
+  surface requires them.
+
+Splitting files without excluding inactive runtime behavior is not a migration.
+Likewise, runtime filtering without moving source ownership out of mixed
+profession-wide files is incomplete.
 
 ## Non-goals
 
-Do not combine this migration with:
+Do not combine a profession migration with:
 
 - balance changes or mechanic corrections;
-- build-schema changes;
+- build-schema or storage-key changes;
 - skill, trait, task, event, or handler ID renames;
-- application redesign;
+- unrelated application redesign;
+- dynamic imports or bundle splitting;
 - unrelated JavaScript-to-TypeScript conversion;
-- dynamic-import or bundle-splitting work;
-- extracting core trait lines into independently activated modules; or
-- moving profession behavior into `platform/engine` or `platform/gw2`.
+- extraction of individual Core trait lines into runtime modules; or
+- movement of profession policy into `platform/engine` or `platform/gw2`.
 
-Static imports are acceptable initially. Runtime composition and source
-ownership are the first goals; lazy loading can be considered separately.
+If a characterization test is wrong, correct it in a separate, explicit change
+or document why the correction is inseparable from the migration.
 
-## Compatibility strategy
+## Existing platform contract
 
-Keep `defineProfession()` and `NormalizedProfessionContract` working for every
-legacy profession.
+The family infrastructure already exists. Do not create a second composition
+system.
 
-Introduce an additive family contract:
+- `defineProfessionModule()` validates and freezes one module definition.
+- `defineProfessionFamily()` keeps the complete application surface and caches
+  Core-plus-active-elite runtime contracts.
+- `resolveProfessionRuntime()` passes legacy contracts through and resolves
+  family contracts.
+- scheduler, resolver, and canonical simulation entry points normalize the
+  same family source before constructing state.
+- module composition rejects duplicate skill, trait, specialization, hook,
+  task-handler, event-handler, skill-handler, and weapon-hand ownership.
 
-```ts
-export interface ProfessionFamilyContract<
-  TProfessionState extends object = SchedulerRecord,
-> extends NormalizedProfessionContract<TProfessionState> {
-  readonly resolveRuntime: (
-    config: Readonly<SchedulerConfig>,
-  ) => Readonly<NormalizedProfessionContract<TProfessionState>>;
-}
+Missing or `"Core"` specialization selects Core alone. Unknown non-empty elite
+names must fail clearly.
 
-export type ProfessionSource<TProfessionState extends object = SchedulerRecord> =
-  | NormalizedProfessionContract<TProfessionState>
-  | ProfessionFamilyContract<TProfessionState>;
-```
+Do not resolve separate runtime instances for scheduling and resolution during
+one simulation pass.
 
-The exact names may change if a clearer repository convention exists, but the
-compatibility behavior must remain:
+## Family surface versus runtime surface
 
-```ts
-export function resolveProfessionRuntime(
-  profession: ProfessionSource,
-  config: Readonly<SchedulerConfig>,
-): Readonly<NormalizedProfessionContract> {
-  return typeof profession.resolveRuntime === "function"
-    ? profession.resolveRuntime(config)
-    : profession;
-}
-```
-
-Resolve the active contract once before scheduler and resolver construction:
-
-```ts
-const runtimeProfession = resolveProfessionRuntime(profession, config);
-```
-
-The scheduler, resolver, combat query, end-state projection, and profession
-hooks for that pass must all receive the same resolved contract. Do not resolve
-different contract instances independently for the scheduling and resolution
-phases.
-
-Missing or `"Core"` specialization selects only the core module. An unknown
-non-empty elite-specialization name should fail with a useful error instead of
-silently selecting Core.
-
-## Family contract versus runtime contract
-
-A profession family has two responsibilities that must remain distinct.
+These surfaces have different responsibilities and must remain distinct.
 
 ### Family/application surface
 
-The application still needs a complete catalog to:
+The family retains the complete profession catalog and build behavior needed
+to:
 
-- render all specialization choices;
-- edit and validate builds;
-- inspect skills and traits while the user changes a build;
-- migrate saved builds; and
-- expose profession-wide assumptions that are filtered by specialization.
+- render every supported specialization;
+- edit, migrate, and validate builds;
+- inspect all selectable skills and traits;
+- construct application palettes; and
+- preserve stable imports from `definition.ts`.
 
-The family contract therefore retains the complete application-facing catalog,
-build codec, and specialization manifest.
+Family-level facades may know the complete elite roster. They must not become
+the runtime implementation of elite mechanics.
 
-### Active simulation surface
+### Active runtime surface
 
-`resolveRuntime(config)` returns a normalized contract containing only:
+`resolveRuntime(config)` contains only:
 
-- profession core mechanics; and
-- the selected elite-specialization module, if any.
+- the Core catalog, state, handlers, hooks, rules, and UI; and
+- the selected elite module's contributions, if one is selected.
 
-Its executable registries must not contain inactive specialization task
-handlers, event handlers, event reactions, skill handlers, modifiers, state
-factories, or UI contributions.
+An inactive elite must contribute no:
 
-The family object may dispatch application UI callbacks to the selected module,
-but it must not reimplement specialization behavior with another central
-`switch`.
+- state fields;
+- skill, task, or event handlers;
+- resolver reactions;
+- cast or scheduler hooks;
+- modifier rules;
+- assumptions;
+- resource views;
+- palette groups; or
+- skill-bar groups.
 
-## Proposed source layout
+## Required source shape
 
-Use the same shape for each migrated profession:
+Use this conceptual layout:
 
 ```text
 js/professions/<profession>/
@@ -143,406 +139,648 @@ js/professions/<profession>/
     state.ts
     skills.ts
     handlers.ts
+    mechanics.ts
     rules.ts
     ui.ts
   specializations/
-    <elite-one>/
+    <elite>/
       module.ts
       state.ts
       skills.ts
       handlers.ts
+      mechanics.ts
       rules.ts
       ui.ts
-    <elite-two>/
-      ...
+      <feature>.ts
   family.ts
   catalog.ts
   definition.ts
+  handlers.ts
+  resolver.ts
+  state.ts
+  ui.ts
+  mechanics/
+    skill-mechanics.ts
 ```
 
-Only create files a profession actually needs. A purely declarative
-specialization does not need empty handler or state files.
+The named roles are more important than exact filenames. Do not create a
+one-line forwarding file merely to satisfy the diagram. A role file must own
+data or behavior. Additional feature files should be placed inside the owning
+Core or elite directory.
 
-`definition.ts` remains the stable external import and exports the profession
-family under the existing profession export name. This avoids changing the
-application registry and external imports while each profession migrates.
+Follow the profession's current source format. Do not create `.js` siblings
+beside `.ts` sources and do not commit generated `dist/` output.
 
-Follow the repository's current source format. Do not create `.js` siblings
-beside `.ts` sources, and do not commit generated `dist/` output.
+## File responsibilities
 
-## Module contract
+### `module.ts`
 
-A specialization module owns a complete vertical slice:
+`module.ts` is composition only. It wires local exports into
+`defineProfessionModule()`:
 
 ```ts
-export const antiquaryModule = defineProfessionModule({
-  id: "Antiquary",
-  state: {
-    create: createAntiquaryState,
-    project: projectAntiquaryState,
-  },
+export const eliteModule = defineProfessionModule({
+  id: "Elite",
   catalog: {
-    skillMechanics: ANTIQUARY_SKILL_MECHANICS,
-    extraSkills: ANTIQUARY_EXTRA_SKILLS,
-    skillHandlers: antiquarySkillHandlers,
+    ...professionModuleCatalog("Elite"),
+    skillHandlers: eliteSkillHandlers,
   },
-  attributeRules: antiquaryAttributeRules,
-  castRules: antiquaryCastRules,
-  schedulerHooks: antiquarySchedulerHooks,
-  resolverHooks: antiquaryResolverHooks,
-  ui: antiquaryUi,
-  assumptionControls: antiquaryAssumptionControls,
+  resources: {
+    createProfessionState: createEliteState,
+    createResolverState: createEliteResolverState,
+  },
+  attributeRules: eliteAttributeRules,
+  castRules: eliteCastRules,
+  schedulerHooks: eliteSchedulerHooks,
+  resolverHooks: {
+    eventHandlers: eliteEventHandlers,
+    eventReactions: eliteEventReactions,
+  },
+  ui: eliteUi,
 });
 ```
 
-This is an illustrative shape, not a requirement to duplicate
-`ProfessionDefinition`. Keep module fragments narrow and let the family
-composer produce the existing normalized runtime contract.
+Omit genuinely unused properties. Do not put mechanics, state mutation, or
+specialization branching directly in `module.ts`.
 
-An elite-specialization module may import:
+### `state.ts`
 
-- its profession's core public API;
-- stable profession IDs and inert identity metadata;
-- `platform/engine`;
-- `platform/gw2`; and
-- shared application view-model types where needed.
+Owns the mutable fields and factories for that slice. An elite `state.ts` must
+not type or initialize sibling state.
 
-It must not import sibling elite-specialization modules.
+### `skills.ts`
 
-The family composition root is the only profession module that knows the full
-elite-specialization roster.
+Owns raw declarative skill mechanics, measured cast timings, and local extra
+skill definitions. It must not be a wrapper around
+`professionModuleCatalog("Elite")`.
 
-## State isolation
+The catalog-slice call belongs in `module.ts`. The full application catalog
+imports the raw mechanics fragments from `skills.ts`.
 
-Do not continue shallow-merging every specialization into one flat state
-object. Use an explicit core state and a discriminated specialization state:
+### `handlers.ts`
+
+Owns the slice's skill-handler registry and exposes its task/event/reaction
+registries. Put substantial behavior in named feature files and assemble it
+here.
+
+### `mechanics.ts`
+
+Owns formulas and configuration consumed by multiple handlers in the same
+slice: triggered-effect coefficients, summon profiles, trait proc profiles,
+state-machine constants, and similar data.
+
+Data used by exactly one feature may live beside that feature instead. Do not
+create another broad mixed-ownership mechanics bucket.
+
+### `rules.ts`
+
+Owns attribute declarations, cast rules, recharge/ammo modifiers, scheduler
+hooks, and other rule fragments belonging to the slice.
+
+### `ui.ts`
+
+Owns resource views, palette groups, skill bars, availability messages, and
+assumptions contributed by the slice. It must not reproduce runtime mechanics.
+
+### Root facades
+
+Root facades exist only for stable imports or the complete application surface:
+
+- `family.ts` is the only file that knows the complete elite module roster.
+- `catalog.ts` builds the full application catalog and returns inert
+  module-specific catalog slices.
+- `mechanics/skill-mechanics.ts` may normalize and merge module-owned raw skill
+  fragments.
+- `handlers.ts` and `resolver.ts` may merge registries for the complete
+  application catalog.
+- `state.ts` may preserve the public state factory or result projection.
+- `ui.ts` may dispatch application callbacks to Core plus the selected elite.
+
+Core and elite feature files must not import executable application facades.
+The composition-only `module.ts` may import the inert catalog-slice function;
+this is the intentional exception. A facade must not regain executable
+ownership.
+
+## Dependency rules
+
+The permitted direction is:
+
+```text
+platform
+  ↑
+profession Core
+  ↑
+active elite
+  ↑
+family/application composition
+```
+
+Therefore:
+
+- Core may import platform and profession-wide identity data.
+- An elite may import platform, stable profession data, and Core public APIs.
+- An elite must not import a sibling elite.
+- Core must not import an elite.
+- Runtime feature files must not import root application handler, resolver,
+  state, or UI facades.
+- `module.ts` may import the inert module-catalog slicer from `catalog.ts`.
+- `skills.ts` must not import `catalog.ts`; this would reverse catalog
+  ownership and commonly creates a cycle.
+- `catalog.ts` may import raw skill fragments but must not import `module.ts`.
+
+Use architecture tests to enforce these boundaries.
+
+## Ownership decision procedure
+
+Classify every field, function, constant, mechanic entry, event, and UI
+contribution by runtime availability, not by its current filename.
+
+Apply these questions in order:
+
+1. Can the behavior execute in a Core runtime?
+   - Yes: Core owns it.
+2. Can the behavior execute for several elites because of a profession-wide
+   unlock such as Weaponmaster Training?
+   - Yes: Core owns the shared skill or primitive.
+3. Does the behavior require one active elite mechanic, trait, state field, or
+   profession bar?
+   - Yes: that elite owns it.
+4. Is it a pure primitive used by Core and elites, with no elite policy?
+   - Yes: Core may own and expose it.
+5. Is it an elite rule reacting to a Core event?
+   - The elite owns the reaction. Core emits or dispatches a neutral lifecycle
+     signal; composed hooks register the elite behavior.
+6. Is it used by two sibling elites but not Core?
+   - Do not make the siblings import each other. Extract a narrow
+     profession-wide primitive only if it is genuinely policy-free; otherwise
+     keep separate local implementations.
+
+The API `specialization` field is evidence, not the ownership rule. For
+example, an elite-introduced weapon skill available profession-wide through
+Weaponmaster Training remains Core runtime data.
+
+## State contract
+
+Runtime state uses explicit Core and active-specialization storage:
 
 ```ts
-interface ThiefRuntimeState {
-  core: ThiefCoreState;
+interface ProfessionRuntimeState {
+  core: CoreState;
   specialization:
     | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Daredevil"; state: DaredevilState }
-    | { kind: "Deadeye"; state: DeadeyeState }
-    | { kind: "Specter"; state: SpecterState }
-    | { kind: "Antiquary"; state: AntiquaryState };
+    | { kind: "EliteOne"; state: EliteOneState }
+    | { kind: "EliteTwo"; state: EliteTwoState };
 }
 ```
 
-Specialization adapters should expose only:
+The existing compatibility adapter may expose active fields through a flat
+view while mechanics are migrated, but it must not allocate inactive sibling
+state.
 
-- the shared engine context;
-- the profession core state or a narrow core-mechanics API; and
-- that specialization's own state slice.
+During the initial migration:
 
-Do not give a specialization a type containing sibling state. For example,
-Antiquary code must be unable to reference Deadeye malice at compile time.
+- preserve existing build schema and persistence keys;
+- preserve the public `endState.profession` shape;
+- use explicit projection to supply compatibility fields where required;
+- ensure snapshots clone only Core and active elite state; and
+- prevent elite types from referencing sibling fields.
 
-Keep the existing public `endState.profession` shape during the first migration
-unless a separate breaking change is approved. `projectEndState` can flatten or
-otherwise adapt internal core/specialization state to the current public
-result.
+## Skill mechanics and catalog ownership
 
-## Composition rules
+The root skill table must become a composition facade, not the source owner.
 
-The family composer must define and test deterministic merge behavior.
+Each slice exports its raw mechanics and timing data:
 
-### Hooks
+```ts
+export const ELITE_BASE_SKILL_MECHANICS = Object.freeze({
+  [ID.ELITE_SKILL]: {
+    implemented: true,
+    effects: [],
+    handlerId: "profession.elite-skill",
+  },
+});
 
-- Compose core hooks before specialization hooks unless explicit hook order
-  says otherwise.
-- Preserve the existing `{ id, order, handler }` ordering behavior.
-- Reject duplicate hook IDs within the resolved contract.
+export const ELITE_QUICKNESS_CAST_TIMES_MS = Object.freeze({
+  [ID.ELITE_SKILL]: 640,
+});
+```
 
-### Registries
+The root facade merges fragments and applies shared normalization:
 
-- Merge task handlers, event handlers, and skill handlers.
-- Reject duplicate registry keys unless the module declares an explicit,
-  validated replacement.
-- Do not use object-spread ordering as an implicit override policy.
+```ts
+const BASE_SKILL_MECHANICS = Object.freeze({
+  ...CORE_BASE_SKILL_MECHANICS,
+  ...ELITE_ONE_BASE_SKILL_MECHANICS,
+  ...ELITE_TWO_BASE_SKILL_MECHANICS,
+});
 
-### Catalog fragments
+export const PROFESSION_SKILL_MECHANICS =
+  normalizeSkillMechanics(BASE_SKILL_MECHANICS);
+```
 
-- A resolved runtime catalog contains core skills plus active specialization
-  skills.
-- Preserve stable skill IDs, names, handler IDs, and canonical effect shapes.
-- Reject accidental duplicate skill IDs.
-- Model intentional profession-action or skill replacements explicitly.
-  Do not recreate a family-wide specialization switch in availability logic.
+Requirements:
 
-### UI and assumptions
+- preserve each mechanics entry and measured timing;
+- move local extra skills with their owner;
+- retain one full application-facing aggregate;
+- keep shared normalization in one place;
+- reject duplicate IDs;
+- prove that the fragment union loses no mechanics;
+- keep all profession-wide weapon skills in Core, regardless of original elite
+  introduction; and
+- do not let runtime modules import the aggregate facade.
 
-- Concatenate list contributions such as resource views, palette groups, skill
-  bar groups, and assumption controls.
-- Compose availability predicates so every active predicate must allow the
-  skill.
-- Keep single-owner callbacks, such as ordinary weapon matching, on the core
-  module unless the active specialization explicitly decorates them.
-- Inactive specialization UI contributions must not appear in the resolved
-  runtime UI.
+A large Core `skills.ts` is acceptable when Core legitimately owns many shared
+weapon skills. Split further by weapon or feature only when it improves local
+maintainability without obscuring runtime ownership.
 
-### Attributes and modifiers
+## Handler mechanics and executable behavior
 
-- Compose core modifier hooks with active specialization modifier hooks.
-- Preserve current modifier order and additive/multiplicative bucket behavior.
-- Do not move specialization predicates into shared GW2 modifier code.
+A mixed root `handler-mechanics` object is not acceptable runtime ownership.
 
-### Caching
+For every entry:
 
-Resolved contracts are immutable and may be cached by specialization name.
-Repeated resolution of the same family and specialization should return an
-equivalent, preferably identical, contract.
+- move Core-only formulas to `core/mechanics.ts`;
+- move elite-only formulas to that elite's `mechanics.ts`;
+- co-locate single-consumer data with its handler where clearer;
+- remove dead compatibility fields found during the move; and
+- update consumers to import only their Core or local mechanics.
 
-## Infrastructure phase
+A root handler-mechanics facade is allowed only when an established
+application-facing consumer requires the complete data set. No runtime module
+may import it. Prefer deleting it when no such consumer exists.
 
-Complete this additive infrastructure before extracting profession behavior:
+Move executable behavior with its data:
 
-1. Add family/module types without changing existing profession definitions.
-2. Add `resolveProfessionRuntime()` with legacy fallback.
-3. Resolve once at the canonical GW2 simulation entry point.
-4. Ensure direct scheduler or resolver entry points either receive an already
-   resolved contract or perform the same documented normalization.
-5. Add family-composition validation for duplicate IDs and registry keys.
-6. Add architecture tests proving an unchanged legacy profession still runs.
-7. Document the new contract in `docs/ARCHITECTURE.md` and `docs/MODULES.md`.
+- skill handler strategies;
+- cast availability and replacement logic;
+- typed scheduler tasks;
+- custom resolver event handlers;
+- reactions to standard GW2 events;
+- state transitions;
+- summon and transform behavior; and
+- trait-triggered effects.
 
-Do not migrate multiple professions as part of the infrastructure phase.
+Pure shared primitives may remain in Core. Functions containing an elite trait
+check, elite state access, elite ID branch, or elite coefficient belong to that
+elite.
 
-## Per-profession migration playbook
+### Cross-slice reactions
 
-Repeat this process for exactly one profession at a time.
+Core must not implement an elite trait merely because that trait reacts to a
+Core skill.
 
-### 1. Establish parity
+Use composed control flow:
 
-- Run the profession test file and platform architecture tests before edits.
-- Record failures already present in the working tree.
-- Identify public end-state fields, event types, handler IDs, task IDs,
-  assumptions, palette groups, and build defaults that must remain stable.
+1. Core exposes a neutral lifecycle signal or narrow registration API.
+2. The active elite registers a scheduler hook or resolver reaction.
+3. Core dispatches the signal without naming the elite.
+4. No callback is installed in Core-only or sibling runtimes.
 
-### 2. Inventory ownership
+This preserves both directions: Core remains elite-neutral and the elite can
+decorate Core behavior when active.
 
-Classify every profession-owned behavior as:
+## Rules and modifiers
 
-- core;
-- one elite specialization; or
-- genuinely shared between core and several elite specializations.
+Move each elite's:
 
-Classify by actual game availability, skill/trait metadata, and tests, not only
-by the current filename. Existing filenames may already conflate concepts.
+- declarative modifier rules;
+- cast-duration and recharge modifiers;
+- ammo changes;
+- availability predicates;
+- scheduler lifecycle hooks; and
+- resolver-time damage or condition rules.
 
-### 3. Split inert mechanics data
+Core retains profession-wide rules and the single modifier-rule compiler.
+Composition merges Core plus active-elite declarations before compilation so
+the GW2 additive and multiplicative buckets remain unchanged.
 
-- Move the large skill-mechanics object into core and specialization fragments.
-- Preserve every entry byte-for-byte where practical.
-- Compose the current full application catalog from those fragments.
-- Add a coverage assertion showing that no mechanic entry was lost or
-  duplicated.
+Do not leave generic-looking functions in a root rule file when they encode
+one elite's IDs or policy. Generic naming does not make behavior shared.
 
-This step should not change runtime behavior.
+## UI composition
 
-### 4. Extract executable modules
+The family application UI may dispatch to Core plus the selected elite, but:
 
-For each elite specialization, move its:
+- Core UI must not switch between elite bars or resources;
+- each elite owns its profession bar, resources, assumptions, and availability
+  messages;
+- list contributions concatenate deterministically;
+- availability predicates all receive a chance to reject;
+- inactive elite contributions remain absent; and
+- single-owner callbacks stay in Core unless an active elite explicitly
+  decorates them.
 
-- state;
-- state projection;
-- cast availability;
-- skill handlers;
-- scheduled tasks;
-- resolver handlers and reactions;
-- attribute/modifier rules;
-- assumptions; and
-- UI resource and palette contributions.
+UI dispatch is not permission to centralize simulation logic.
 
-Remove the corresponding branches and registrations from the profession core.
+## Deterministic composition
 
-### 5. Compose active runtime contracts
+Composition must:
 
-- Core builds resolve to core only.
-- Elite builds resolve to core plus exactly one elite module.
-- Validate that inactive registries and state are absent.
-- Keep the family-level application catalog and build codec stable.
+- run hooks by explicit order, with stable declaration order as the tie-break;
+- reject duplicate hook IDs;
+- reject duplicate task, event, and skill-handler keys;
+- reject duplicate skill, trait, and specialization IDs;
+- preserve explicit augment/replace skill-handler modes;
+- preserve stable event and handler namespaces;
+- include Core plus exactly one elite catalog fragment; and
+- cache equivalent runtime contracts by specialization.
 
-### 6. Preserve external behavior
+Object spread order is not an override policy.
 
-- Keep build schema and storage keys unchanged.
-- Keep rotation commands and skill names unchanged.
-- Keep event/task/handler namespaces unchanged.
-- Keep public result projection unchanged.
-- Keep deterministic and stochastic simulation behavior unchanged.
+## Migration procedure
 
-### 7. Remove obsolete dispatch
+Repeat the following for exactly one profession.
 
-Delete central `switch`, lookup, or `if specialization === ...` logic after its
-behavior is owned by modules. A small specialization lookup in `family.ts` is
-expected; executable mechanic branching outside the active module is not.
+### Phase 0: declare scope
 
-### 8. Verify and stop
+- Update the status table to mark one profession in progress.
+- Do not edit another profession except for shared additive infrastructure
+  strictly required by the active migration.
+- Record unrelated dirty files and avoid overwriting them.
+
+### Phase 1: establish a baseline
+
+Run the profession tests, family/framework tests, architecture tests,
+`npm run check`, and the full suite.
+
+Record:
+
+- passing counts;
+- existing failures and exact mismatches;
+- benchmark/template outputs;
+- public state fields;
+- build defaults and storage keys;
+- registered skill/task/event handler IDs;
+- event types and projection shapes; and
+- UI resource, palette, and skill-bar output.
+
+Do not attribute an existing dirty-tree failure to the migration.
+
+### Phase 2: build an ownership inventory
+
+Create a temporary working inventory with at least:
+
+| Item | Current location | Runtime owner | Consumers | Destination | Compatibility required |
+| --- | --- | --- | --- | --- | --- |
+| State field | | | | | |
+| Skill mechanics entry | | | | | |
+| Handler/mechanics profile | | | | | |
+| Hook/rule | | | | | |
+| Event/task | | | | | |
+| UI contribution | | | | | |
+
+Search actual consumers. Do not classify by directory name alone.
+
+Specifically inventory:
+
+- state factories and snapshot/projection code;
+- skill mechanics and measured timings;
+- extra/supplemental skills;
+- handler-mechanics entries;
+- skill handlers and handler IDs;
+- scheduler task handlers and task IDs;
+- resolver custom handlers and standard-event reactions;
+- attribute and cast rules;
+- specialization branches in generic helpers;
+- UI callbacks and assumptions; and
+- tests importing mixed aggregate files.
+
+### Phase 3: scaffold the family slices
+
+- Create Core and elite directories.
+- Create composition-only `module.ts` files.
+- Keep `definition.ts` as the stable export.
+- Create `family.ts` as the only full-roster module.
+- Establish state fragments and compatibility projection.
+- Resolve Core and every elite before moving behavior, using temporary
+  delegation only when necessary.
+
+Temporary delegation must be removed before completion.
+
+### Phase 4: migrate skill mechanics
+
+- Move raw skill entries and measured timings into owner `skills.ts` files.
+- Move extra skills to their owner.
+- Keep profession-wide weapon families in Core.
+- Convert the root skill-mechanics file to merge and normalize fragments.
+- Put `professionModuleCatalog("Owner")` in `module.ts`.
+- Remove catalog imports from `skills.ts`.
+- Add no-loss/no-duplicate coverage.
+
+This phase should be behavior-neutral.
+
+### Phase 5: migrate handler mechanics
+
+- Split the mixed formula/configuration table.
+- Update every consumer to import local or Core data.
+- Delete the aggregate if no application consumer requires it.
+- Remove obsolete fields only after confirming they have no consumers.
+- Add architecture guards against aggregate runtime imports.
+
+### Phase 6: migrate executable vertical slices
+
+For one elite folder at a time, move:
+
+- state mutation;
+- handlers;
+- tasks;
+- events and reactions;
+- availability;
+- transforms, summons, or profession actions;
+- scheduler hooks; and
+- trait behavior.
+
+After each elite:
+
+- run focused behavior tests;
+- assert siblings remain absent from its runtime; and
+- remove the corresponding central branch.
+
+### Phase 7: migrate rules and UI
+
+- Move modifier declarations and exceptional rule hooks.
+- Keep the single rule compiler in Core.
+- Move elite resources, palettes, skill bars, assumptions, and availability
+  messages.
+- Keep root rule/UI modules as thin compatibility or application facades only.
+
+### Phase 8: remove obsolete ownership
+
+Delete:
+
+- central executable specialization switches;
+- obsolete `mechanics/specific` ownership buckets;
+- mixed aggregate handler-mechanics tables;
+- profession-wide event-handler aggregators used by active runtimes;
+- forwarding `skills.ts` wrappers;
+- temporary delegation; and
+- stale imports, exports, comments, and tests.
+
+Permitted root branching is limited to:
+
+- family roster lookup;
+- application catalog slicing;
+- application UI dispatch; and
+- compatibility projection.
+
+Every remaining specialization branch must be listed in the handoff with a
+specific reason.
+
+### Phase 9: validate and stop
 
 Run:
 
 ```powershell
-npm test -- tests/<profession>.test.js tests/platform-architecture.test.js
-npm test
+npm run build
+node --import ./scripts/register-dist-loader.mjs --test --test-isolation=none `
+  tests/<profession>.test.js `
+  tests/profession-family.test.js `
+  tests/platform-architecture.test.js
 npm run check
+npm test
+git diff --check
 ```
 
-Fix failures caused by the migration. Do not begin another profession in the
-same change.
-
-## Thief pilot boundaries
-
-Use Thief as the first migrated profession.
-
-### Core Thief
-
-Core should own:
-
-- initiative and regeneration;
-- baseline endurance;
-- stealth and Revealed;
-- baseline Steal and stored stolen skills;
-- common weapon, dual-wield, autoattack-chain, and weapon-swap state;
-- common slot skills;
-- common trait behavior; and
-- common state events and public projection.
-
-### Daredevil
-
-Daredevil should own:
-
-- increased endurance capacity;
-- dodge replacements and their effects;
-- Daredevil-only traits and modifiers; and
-- Daredevil UI/resource differences.
-
-### Deadeye
-
-Deadeye should own:
-
-- Deadeye's Mark and its stolen-skill set;
-- marked-target state;
-- malice and Maleficent Seven;
-- Kneel/rifle stance behavior;
-- malicious stealth-attack replacements; and
-- Deadeye-only traits, modifiers, resources, and UI.
-
-### Specter
-
-Specter should own:
-
-- Siphon;
-- shadow-force generation, capacity, and drain;
-- Shadow Shroud entry, exit, bar replacement, and skills; and
-- Specter-only traits, resources, availability, and UI.
-
-### Antiquary
-
-Antiquary should own:
-
-- Skritt Swipe;
-- artifact draw state and assumptions;
-- artifact slots, uses, Reshuffle, and Double Edge;
-- artifact-specific handlers, tasks, reactions, and summons;
-- Antiquary-only traits and modifiers; and
-- Antiquary resource, palette, and skill-bar UI.
-
-Review mixed files carefully. For example, a file whose name mentions
-Antiquary may also contain baseline weapon or condition behavior and must be
-split by actual ownership.
+Fix migration-caused failures. Report baseline failures separately with exact
+values. Do not begin the next profession in the same change.
 
 ## Required tests
 
-### Framework tests
+### Framework behavior
 
-Add tests covering:
+Maintain coverage proving:
 
 - legacy contracts pass through unchanged;
-- Core resolves to the core module only;
-- each known elite specialization resolves to core plus that module;
-- unknown specializations fail clearly;
-- hook ordering remains deterministic;
-- duplicate hook, task, event, skill-handler, and skill IDs are rejected;
-- repeated resolution is stable;
-- the scheduler and resolver use the same resolved contract; and
-- the complete family catalog remains available to the application.
+- Core resolves without an elite;
+- every known elite resolves as Core plus that elite;
+- unknown elites fail clearly;
+- resolution is cached and stable;
+- scheduler and resolver use the same runtime;
+- hook order is deterministic;
+- duplicate registries and catalog IDs fail; and
+- the family retains the complete application catalog.
 
-### Profession-isolation tests
+### Runtime isolation
 
-For every migrated specialization, assert that the resolved contract excludes
-sibling behavior. For example, an Antiquary runtime must not contain:
+For Core and every elite, assert:
 
-- Deadeye malice state;
-- Specter shadow-force state;
-- Daredevil-only state;
-- Deadeye or Specter task/skill handlers;
-- sibling resolver handlers or reactions; or
-- sibling resource and palette views.
+- sibling state fields are absent;
+- sibling skill handlers are absent;
+- sibling task and event handlers are absent;
+- sibling resolver reactions are absent;
+- sibling modifier declarations are absent;
+- sibling resources and palette groups are absent; and
+- only Core plus the selected elite's skills and traits are present.
 
-Prefer positive registry/state assertions over tests that inspect source text.
-An optional import-boundary test may additionally reject direct imports between
-sibling specialization directories.
+Prefer runtime assertions over source-text assertions.
 
-### Parity tests
+### Source ownership
 
-Existing profession tests are characterization tests for this migration. Do
-not rewrite expected values merely to make the refactor pass. If an existing
-expectation is wrong, handle that correction separately.
+Architecture tests must additionally assert:
 
-Add focused parity coverage for:
+- Core imports no elite;
+- elites import no siblings;
+- runtime feature files import no executable application facade;
+- each `module.ts` imports at most the permitted inert catalog slicer;
+- each `skills.ts` owns raw mechanics and imports no root catalog;
+- the root skill-mechanics file declares no individual skill behavior;
+- runtime handlers import local/Core mechanics, not an aggregate
+  handler-mechanics table;
+- obsolete mixed ownership directories are removed; and
+- each declared vertical-slice role exists and has a real owner.
 
-- damage totals and condition totals;
-- cast and cooldown timing;
-- final resources;
-- scheduled events;
+### Mechanics coverage
+
+Assert that:
+
+- module skill-mechanics keys are disjoint;
+- their union equals the pre-migration mechanics key set;
+- measured timing keys remain unchanged;
+- implemented skills still reference registered handlers;
+- extra skills remain in the complete catalog;
+- intentional replacements and chains remain valid; and
+- profession-wide unlocks remain available in every appropriate runtime.
+
+### Behavioral parity
+
+Retain or add focused coverage for:
+
+- strike and condition totals;
+- cast, channel, cooldown, and ammo timing;
+- profession resources;
+- transform and weapon-bar transitions;
+- summons and delayed events;
+- deterministic and stochastic procs;
 - public end-state projection;
-- palette and resource views;
-- build encode/decode round trips; and
-- deterministic-choice behavior.
+- build encode/decode round trips;
+- palettes, resources, and skill bars; and
+- benchmark/template outputs.
+
+Do not update expected values solely to make the refactor pass.
 
 ## Definition of done for one profession
 
 A profession is migrated only when:
 
-- its stable `definition` export now represents a family;
-- runtime resolution selects core plus no more than one elite module;
-- internal state contains no inactive specialization slice;
-- executable registries contain no inactive specialization entries;
-- specialization modules do not import siblings;
-- family-level central mechanic switches have been removed;
-- the full build-editor catalog still works;
-- existing public output and persistence contracts remain compatible;
-- its focused tests, the complete test suite, and `npm run check` pass; and
-- architecture documentation identifies it as migrated.
+- `definition.ts` exports a family under the stable profession name;
+- Core and every supported elite have explicit vertical-slice ownership;
+- runtime resolution selects Core plus no more than one elite;
+- inactive state and registries are absent;
+- raw skill and handler mechanics are no longer mixed at the profession root;
+- module `skills.ts` files own data rather than forwarding catalog calls;
+- Core imports no elite and elites import no siblings;
+- elite reactions to Core behavior use composition rather than Core policy;
+- central executable specialization switches are removed;
+- the complete application catalog and build codec remain stable;
+- public persistence and result contracts remain compatible;
+- no mechanics or timing entries were lost or duplicated;
+- focused tests and `npm run check` pass;
+- the full suite has no new failures;
+- architecture documentation and the status table are updated; and
+- the next profession has not been started.
 
-Do not mark the overall migration complete until every native profession uses
-the family contract. Elementalist should be evaluated separately because its
-current adapter and simulator architecture differ from the shared native
-profession path.
+## Lessons established by Necromancer
 
-## Agent handoff checklist
+These are requirements derived from the reference migration:
 
-Before editing:
+1. **Vertical slices include data.** Moving handlers and state is insufficient
+   while skill mechanics or triggered-effect profiles remain mixed.
+2. **A forwarding `skills.ts` has no value.** It becomes meaningful only when
+   it owns raw mechanics, timings, or extra skills. Catalog slicing belongs in
+   `module.ts`.
+3. **Runtime ownership beats API labels.** Weaponmaster-style unlocks can make
+   an elite-introduced weapon a Core runtime concern.
+4. **The full catalog is a facade, not a runtime.** Application composition may
+   merge every module; active simulation may not.
+5. **Aggregate handler data creates real coupling.** Local handlers should not
+   import formulas for every sibling elite.
+6. **Cross-cutting elite traits still belong to the elite.** A neutral Core
+   signal plus an active-module hook avoids a Core-to-elite dependency.
+7. **Core baselines may be reused downward.** An elite may import a genuinely
+   profession-wide Core primitive, such as a shared summon baseline.
+8. **Compatibility adapters are temporary boundaries, not ownership.** They
+   preserve public state while internal allocation becomes isolated.
+9. **Both runtime and source isolation need tests.** Either one alone permits
+   the architecture to regress.
+10. **Pre-existing failures must be recorded exactly.** A dirty benchmark or
+    template mismatch must not be hidden by unrelated expectation changes.
 
-- inspect the current working tree and preserve unrelated user changes;
-- read `docs/ARCHITECTURE.md`, `docs/MODULES.md`, and the profession document;
-- inspect current source extensions and TypeScript build inclusion;
-- run the focused baseline tests; and
-- state which single profession is in scope.
+## Handoff template
 
-During implementation:
+At the end of each profession migration, report:
 
-- keep infrastructure additive;
-- preserve stable IDs and public shapes;
-- make module ownership explicit;
-- add validation instead of silent override behavior;
-- avoid sibling specialization imports; and
-- do not start a second profession.
-
-At handoff:
-
-- list created module boundaries;
-- identify any remaining specialization branches and why they remain;
-- report focused, full-suite, and check results;
-- call out pre-existing failures separately; and
-- name the next profession without beginning its migration.
+```text
+Profession:
+Core ownership:
+Elite modules:
+Application-only facades retained:
+Shared Core primitives imported by elites:
+Remaining specialization branches and reasons:
+Files/directories removed:
+Focused tests:
+Full-suite result:
+Check result:
+Pre-existing failures:
+Next profession (not started):
+```

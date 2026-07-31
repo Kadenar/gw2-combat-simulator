@@ -29,9 +29,7 @@ import type {
   Gw2ResolverRuntime,
   Gw2SchedulerEventFactory,
 } from "../../platform/gw2/types.js";
-import type {
-  ProfessionApplicationBuild,
-} from "../../app/profession/types.js";
+import type { ProfessionApplicationBuild } from "../../app/profession/types.js";
 
 export interface MesmerSpecializationSelection {
   readonly name: string;
@@ -53,13 +51,14 @@ export interface MesmerCanonicalBuild extends Gw2CanonicalBuild {
   initialResource: number;
 }
 
-export interface MesmerApplicationBuild
-  extends ProfessionApplicationBuild {
+export interface MesmerApplicationBuild extends ProfessionApplicationBuild {
   initialResource: number;
 }
 
-export interface MesmerBuildAttributeRuleContext
-  extends Omit<Gw2BuildAttributeRuleContext, "build"> {
+export interface MesmerBuildAttributeRuleContext extends Omit<
+  Gw2BuildAttributeRuleContext,
+  "build"
+> {
   readonly build: MesmerBuild;
 }
 
@@ -144,31 +143,52 @@ export interface MesmerContinuumSnapshot {
  * skill id or name) so the state serializes without custom Map handling; only
  * engine-level `state.cooldowns`/`state.ammo` remain Maps.
  */
-export interface MesmerProfessionState extends SchedulerRecord {
+export interface MesmerCoreState extends SchedulerRecord {
   clones: MesmerClone[];
-  numericResource: number;
   pendingResources: MesmerPendingResource[];
   trackedSkillHits: Record<string, number[]>;
   traitReadyAt: Record<string, number>;
-  instruments: Record<string, number>;
-  lastInstrument: string;
-  continuum: MesmerContinuumSnapshot | null;
   counterspellAvailable: boolean;
   availableFlips: Record<string, MesmerAvailableFlip>;
   autoattackChains: Record<string, SkillId>;
-  nextForgeAt: number;
-  bloodsongProgress: number;
   sharperImagesProgress: number;
   ineptitudeReadyAt: number;
   clarityUntil: number;
+  hasExplicitCombatStart: boolean;
+  combatStartTime: number;
+}
+
+export interface MesmerChronomancerState extends SchedulerRecord {
+  continuum: MesmerContinuumSnapshot | null;
+  timeBombUntil: number;
+}
+
+export interface MesmerMirageState extends SchedulerRecord {
   ambushUntil: number;
   ambushSource: string;
   cloneAmbushUntil: number;
   riddleOfSandReady: boolean;
-  timeBombUntil: number;
-  hasExplicitCombatStart: boolean;
-  combatStartTime: number;
 }
+
+export interface MesmerVirtuosoState extends SchedulerRecord {
+  numericResource: number;
+  nextForgeAt: number;
+  bloodsongProgress: number;
+}
+
+export interface MesmerTroubadourState extends SchedulerRecord {
+  numericResource: number;
+  instruments: Record<string, number>;
+  lastInstrument: string;
+}
+
+export interface MesmerProfessionState
+  extends
+    MesmerCoreState,
+    MesmerChronomancerState,
+    MesmerMirageState,
+    MesmerVirtuosoState,
+    MesmerTroubadourState {}
 
 /**
  * Resolver-only Mesmer profession state. Scheduler-gated blades and their
@@ -189,8 +209,7 @@ export type MesmerResolverContext = Gw2ResolverRuntime & {
   profession: MesmerResolverState;
 };
 
-export type MesmerApplyCondition =
-  Gw2ConditionResolution["applyCondition"];
+export type MesmerApplyCondition = Gw2ConditionResolution["applyCondition"];
 
 export type MesmerResolverEvent = Gw2ResolverEvent & {
   readonly count?: number;
@@ -330,6 +349,17 @@ export interface MesmerRuntime {
   flipSkillsByParent: ReadonlyMap<SkillId, MesmerSkill>;
   activeEmission: MesmerActiveEmission | null;
   castDetails: Map<string, MesmerCastDetails>;
+  weaponStrength: Readonly<Record<string, number>>;
+  cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
+  ambushAttacks: Record<string, MesmerAmbushAttack>;
+  phantasmAttackTimings: Record<number, MesmerPhantasmAttackTiming>;
+  traitDamage: Record<string, MesmerTraitDamage>;
+  shatters: Record<number, MesmerShatter>;
+  instruments: Record<number, MesmerInstrument>;
+  controlSkills: Set<number>;
+  blindSkills: Set<number>;
+  aristocracySkills: Set<number>;
+  peithaSkills: Set<number>;
   activePrimaryWeapon: MesmerActivePrimaryWeapon;
   addEvent: MesmerAddEvent;
   addTraitProc: MesmerAddTraitProc;
@@ -364,8 +394,7 @@ export interface MesmerContinuumController {
 
 export type MesmerCatalog = CanonicalCatalog<MesmerSkill>;
 
-export interface MesmerSchedulerPolicy
-  extends SchedulerPolicy<MesmerProfessionState> {
+export interface MesmerSchedulerPolicy extends SchedulerPolicy<MesmerProfessionState> {
   critical(
     context: SchedulerContext<MesmerProfessionState>,
     event: SimulationEvent,
@@ -375,16 +404,15 @@ export interface MesmerSchedulerPolicy
   requireCriticalFacts(): void;
 }
 
-export type MesmerSchedulerContext =
-  Omit<
-    SchedulerContext<MesmerProfessionState>,
-    "config" | "catalog" | "schedulerPolicy"
-  > & {
-    readonly config: MesmerConfig;
-    readonly catalog: MesmerCatalog;
-    readonly schedulerPolicy: MesmerSchedulerPolicy;
-    mesmerRuntime?: MesmerRuntime;
-  };
+export type MesmerSchedulerContext = Omit<
+  SchedulerContext<MesmerProfessionState>,
+  "config" | "catalog" | "schedulerPolicy"
+> & {
+  readonly config: MesmerConfig;
+  readonly catalog: MesmerCatalog;
+  readonly schedulerPolicy: MesmerSchedulerPolicy;
+  mesmerRuntime?: MesmerRuntime;
+};
 
 export type MesmerHandlerContext = MesmerSchedulerContext & {
   readonly mesmerRuntime: MesmerRuntime;
@@ -461,7 +489,8 @@ export type MesmerExpectedProcCandidate = (
       readonly at: number;
       readonly event: SimulationEvent;
     }
-) & SchedulerRecord;
+) &
+  SchedulerRecord;
 
 export interface MesmerExpectedProcTracker {
   process(candidate: MesmerExpectedProcCandidate): void;
@@ -473,21 +502,14 @@ export interface MesmerMirageCloakOptions {
 }
 
 export interface MesmerMirageController {
-  executeCloneAmbushes(
-    at: number,
-    clones?: readonly MesmerClone[],
-  ): void;
+  executeCloneAmbushes(at: number, clones?: readonly MesmerClone[]): void;
   executePlayerAmbush(skill: MesmerSkill, at: number): void;
   grantMirageCloak(
     at: number,
     source: string,
     options?: MesmerMirageCloakOptions,
   ): void;
-  handleMirageShatter(
-    skill: MesmerSkill,
-    at: number,
-    spent: number,
-  ): void;
+  handleMirageShatter(skill: MesmerSkill, at: number, spent: number): void;
   handlePostSkill(skill: MesmerSkill, at: number): void;
 }
 
@@ -520,10 +542,7 @@ export interface MesmerProfessionActionController {
     reserved: number,
     details?: MesmerResourceSpendDetails,
   ): number;
-  consumeResources(
-    at: number,
-    details?: MesmerResourceSpendDetails,
-  ): number;
+  consumeResources(at: number, details?: MesmerResourceSpendDetails): number;
   currentResource(): number;
   handleCrescendo(skill: MesmerSkill, at: number): void;
   handleInstrument(skill: MesmerSkill, at: number): void;
@@ -598,10 +617,7 @@ export interface MesmerSchedulerTaskPayloads {
 
 export type MesmerSchedulerTask<
   TPayload extends keyof MesmerSchedulerTaskPayloads,
-> = Omit<
-  ScheduledTask<MesmerSchedulerTaskPayloads[TPayload]>,
-  "payload"
-> & {
+> = Omit<ScheduledTask<MesmerSchedulerTaskPayloads[TPayload]>, "payload"> & {
   readonly payload: MesmerSchedulerTaskPayloads[TPayload];
 };
 

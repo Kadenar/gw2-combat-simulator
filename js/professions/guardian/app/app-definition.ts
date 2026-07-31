@@ -7,10 +7,7 @@ import {
   preferOffhand,
 } from "../../../app/profession/define-app.js";
 import { applyGuardianBuildAttributeRules } from "../build-attributes.js";
-import {
-  createDefaultTargetConditions,
-  toApplicationBuild,
-} from "../build.js";
+import { createDefaultTargetConditions, toApplicationBuild } from "../build.js";
 import { guardianProfession } from "../definition.js";
 import type { GuardianApplicationBuild } from "../types.js";
 
@@ -21,7 +18,7 @@ export const guardianApp = defineProfessionApp({
   toApplicationBuild,
   specializationFallback: "Zeal",
   runtime: {
-    buildConfigExtras: app => {
+    buildConfigExtras: (app) => {
       const build = app.build as GuardianApplicationBuild;
       return { initialTomePages: build.initialTomePages };
     },

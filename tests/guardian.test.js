@@ -507,6 +507,84 @@ test("Guardian swaps weapons and exposes profession palette groups", () => {
   );
 });
 
+test("Guardian skill bar exposes F keys and Luminary Radiant Forge skills", () => {
+  const coreGroups = guardianProfession.ui.skillBarGroups({
+    specialization: "Core",
+  });
+  assert.deepEqual(coreGroups.map(group => group.label), ["F Keys"]);
+  assert.deepEqual(coreGroups[0].skillIds, [
+    GUARDIAN_SKILL_IDS.JUSTICE,
+    GUARDIAN_SKILL_IDS.RESOLVE,
+    GUARDIAN_SKILL_IDS.COURAGE,
+  ]);
+
+  const luminaryGroups = guardianProfession.ui.skillBarGroups({
+    specialization: "Luminary",
+    professionState: { radiantForge: false },
+  });
+  assert.deepEqual(
+    luminaryGroups.map(group => group.label),
+    ["F Keys", "Radiant Forge"],
+  );
+  assert.equal(
+    luminaryGroups[0].skillIds.includes(
+      GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE,
+    ),
+    true,
+  );
+  assert.equal(
+    luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.GLARING_BURST),
+    true,
+  );
+  assert.equal(
+    luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER),
+    true,
+  );
+  assert.equal(
+    luminaryGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.BRILLIANT_SLAM),
+    true,
+  );
+
+  const firebrandGroups = guardianProfession.ui.skillBarGroups({
+    specialization: "Firebrand",
+    professionState: { activeTome: "", tomePages: 5 },
+  });
+  assert.deepEqual(
+    firebrandGroups.map(group => group.label),
+    [
+      "F Keys",
+      "Tome of Justice",
+      "Tome of Resolve",
+      "Tome of Courage",
+    ],
+  );
+  assert.deepEqual(
+    firebrandGroups.slice(1).map(group => group.skillIds.length),
+    [5, 5, 5],
+  );
+  assert.deepEqual(
+    firebrandGroups.map(group => group.layout),
+    [
+      "guardian-tomes",
+      "guardian-tomes",
+      "guardian-tomes",
+      "guardian-tomes",
+    ],
+  );
+  assert.equal(
+    firebrandGroups[1].skillIds.includes(GUARDIAN_SKILL_IDS.SEARING_SPELL),
+    true,
+  );
+  assert.equal(
+    firebrandGroups[2].skillIds.includes(GUARDIAN_SKILL_IDS.AZURE_SUN),
+    true,
+  );
+  assert.equal(
+    firebrandGroups[3].skillIds.includes(GUARDIAN_SKILL_IDS.UNBROKEN_LINES),
+    true,
+  );
+});
+
 test("Guardian palettes keep inactive tome and forge skills visible", () => {
   const inactiveFirebrand = {
     specialization: "Firebrand",
@@ -1001,6 +1079,7 @@ test("non-DPS Guardian slot skills are excluded from the simulator surface", () 
     "Stalwart Stance",
     "Mantra of Lore",
     "Hallowed Ground",
+    "Bow of Truth",
   ];
   for (const name of excludedNames) {
     assert.equal(
@@ -1092,7 +1171,7 @@ test("Firebrand tomes consume shared pages and execute tome damage", () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.tomePages, 2);
+  assert.equal(result.endState.profession.tomePages, 3);
   assert.equal(result.endState.profession.ashesCharges, 0);
   assert.ok(result.conditionBreakdown.some(row => row.name === "Burning"));
   assert.ok(result.conditionBreakdown.some(row => row.name === "Bleeding"));
@@ -1100,6 +1179,256 @@ test("Firebrand tomes consume shared pages and execute tome damage", () => {
     result.procSteps.some(step => step.skill === "Ashes of the Just"),
     true,
   );
+});
+
+test("Firebrand tome chapters use their reference packets and cooldowns", () => {
+  const firebrandConfig = {
+    ...config,
+    specialization: "Firebrand",
+    maximumTomePages: 8,
+    initialTomePages: 8,
+  };
+  const justice = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Justice",
+      "Chapter 1: Searing Spell",
+      "Chapter 2: Igniting Burst",
+      "Chapter 3: Heated Rebuke",
+      "Chapter 4: Scorched Aftermath",
+      { type: "wait", durationMs: 5000 },
+    ],
+    config: firebrandConfig,
+  });
+  const coefficients = skillId =>
+    justice.resolvedEvents
+      .filter(event => event.type === "damage" && event.skillId === skillId)
+      .reduce((sum, event) => sum + event.coefficient, 0);
+  const condition = (skillId, name) =>
+    justice.resolvedEvents.find(event =>
+      event.type === "condition" &&
+      event.skillId === skillId &&
+      event.condition === name
+    );
+
+  assert.equal(coefficients(GUARDIAN_SKILL_IDS.SEARING_SPELL), 0.95);
+  assert.equal(coefficients(GUARDIAN_SKILL_IDS.IGNITING_BURST), 0.55);
+  assert.equal(coefficients(GUARDIAN_SKILL_IDS.HEATED_REBUKE), 0.45);
+  assert.equal(
+    Number(coefficients(GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH).toFixed(6)),
+    3.2,
+  );
+  assert.deepEqual(
+    justice.resolvedEvents
+      .filter(event =>
+        event.type === "damage" &&
+        event.skillId === GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH
+      )
+      .map(event => event.coefficient),
+    [0.64, 0.64, 0.64, 0.64, 0.64],
+  );
+  assert.deepEqual(
+    {
+      stacks: condition(
+        GUARDIAN_SKILL_IDS.SEARING_SPELL,
+        "Vulnerability",
+      ).stacks,
+      duration: condition(
+        GUARDIAN_SKILL_IDS.SEARING_SPELL,
+        "Vulnerability",
+      ).duration,
+    },
+    { stacks: 2, duration: 10 },
+  );
+  assert.equal(
+    condition(GUARDIAN_SKILL_IDS.IGNITING_BURST, "Weakness").duration,
+    4,
+  );
+  assert.equal(
+    justice.events.find(event =>
+      event.type === "control" &&
+      event.skillId === GUARDIAN_SKILL_IDS.HEATED_REBUKE
+    ).controlKind,
+    "pull",
+  );
+  assert.equal(
+    justice.resolvedEvents.filter(event =>
+      event.type === "condition" &&
+      event.skillId === GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH &&
+      event.condition === "Burning"
+    ).length,
+    5,
+  );
+  assert.equal(
+    guardianCatalog.skillsById.get(
+      GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH,
+    ).comboField,
+    "Fire",
+  );
+
+  const resolve = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Resolve",
+      "Chapter 1: Desert Bloom",
+      "Chapter 2: Radiant Recovery",
+      "Chapter 3: Azure Sun",
+      "Chapter 4: Shining River",
+      "Epilogue: Eternal Oasis",
+      { type: "wait", durationMs: 5000 },
+    ],
+    config: firebrandConfig,
+  });
+  const resolveBuffs = (skillId, kind) =>
+    resolve.events.filter(event =>
+      event.type === "buff" &&
+      event.skillId === skillId &&
+      event.kind === kind
+    );
+  assert.equal(resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, "vigor")[0].duration, 5);
+  assert.equal(
+    resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, "regeneration")[0].duration,
+    6,
+  );
+  assert.equal(
+    resolveBuffs(GUARDIAN_SKILL_IDS.AZURE_SUN, "swiftness")[0].duration,
+    5,
+  );
+  assert.equal(
+    resolveBuffs(GUARDIAN_SKILL_IDS.SHINING_RIVER, "swiftness").length,
+    5,
+  );
+
+  const courage = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Courage",
+      "Chapter 1: Unflinching Charge",
+      "Chapter 2: Daring Challenge",
+      "Chapter 3: Valiant Bulwark",
+      "Chapter 4: Stalwart Stand",
+      "Epilogue: Unbroken Lines",
+      { type: "wait", durationMs: 4000 },
+    ],
+    config: firebrandConfig,
+  });
+  const courageBuffs = (skillId, kind) =>
+    courage.events.filter(event =>
+      event.type === "buff" &&
+      event.skillId === skillId &&
+      event.kind === kind
+    );
+  assert.equal(
+    courage.events
+      .filter(event =>
+        event.type === "damage" &&
+        event.skillId === GUARDIAN_SKILL_IDS.DARING_CHALLENGE
+      )
+      .reduce((sum, event) => sum + event.coefficient, 0),
+    1.4,
+  );
+  assert.deepEqual(
+    courage.events
+      .filter(event =>
+        event.type === "control" &&
+        event.skillId === GUARDIAN_SKILL_IDS.DARING_CHALLENGE
+      )
+      .map(event => [event.controlKind, event.duration]),
+    [["taunt", 2]],
+  );
+  assert.equal(
+    courageBuffs(GUARDIAN_SKILL_IDS.STALWART_STAND, "resistance").length,
+    4,
+  );
+  assert.deepEqual(
+    ["protection", "stability", "aegis", "toughness"].map(kind => [
+      kind,
+      courageBuffs(GUARDIAN_SKILL_IDS.UNBROKEN_LINES, kind)[0].duration,
+    ]),
+    [
+      ["protection", 5],
+      ["stability", 5],
+      ["aegis", 4],
+      ["toughness", 5],
+    ],
+  );
+  assert.equal(
+    courageBuffs(GUARDIAN_SKILL_IDS.UNBROKEN_LINES, "toughness")[0].stacks,
+    300,
+  );
+  assert.equal(
+    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.VALIANT_BULWARK)
+      .cooldown,
+    15,
+  );
+  assert.equal(
+    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.STALWART_STAND)
+      .cooldown,
+    20,
+  );
+  assert.equal(
+    guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.UNBROKEN_LINES)
+      .cooldown,
+    25,
+  );
+});
+
+test("Ashes of the Just grants party charges using Firebrand condition stats", () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Justice",
+      "Epilogue: Ashes of the Just",
+      "Stow Tome",
+      "True Strike",
+      { type: "wait", durationMs: 3000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      primaryWeapon: "Mace",
+      allies: { count: 4, strikesPerSecond: 1 },
+    },
+  });
+  const ashesBuff = result.events.find(event =>
+    event.type === "buff" && event.kind === "ashes-of-the-just"
+  );
+  const might = result.events.find(event =>
+    event.type === "buff" &&
+    event.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST &&
+    event.kind === "might"
+  );
+  const allyBurns = result.resolvedEvents.filter(event =>
+    event.type === "condition" &&
+    event.sourceId === "guardian.ashes-of-the-just" &&
+    event.triggeredByAlly
+  );
+  const personalBurns = result.resolvedEvents.filter(event =>
+    event.type === "condition" &&
+    event.sourceId === "guardian.ashes-of-the-just" &&
+    !event.triggeredByAlly
+  );
+
+  assert.deepEqual(
+    {
+      stacks: ashesBuff.stacks,
+      duration: ashesBuff.duration,
+      recipients: ashesBuff.recipientCount,
+    },
+    { stacks: 2, duration: 10, recipients: 5 },
+  );
+  assert.deepEqual(
+    {
+      stacks: might.stacks,
+      duration: might.duration,
+      recipients: might.recipientCount,
+    },
+    { stacks: 8, duration: 10, recipients: 5 },
+  );
+  assert.equal(allyBurns.length, 8);
+  assert.equal(personalBurns.length, 1);
+  assert.ok(allyBurns.every(event => event.duration === 3));
+  assert.ok(result.conditionDamage > 0);
 });
 
 test("Ashes of the Just cannot trigger before its application event", () => {
@@ -1168,7 +1497,7 @@ test("Firebrand page exhaustion stows the tome and pages regenerate", () => {
   assert.equal(exhausted.endState.profession.tomePages, 1);
   assert.equal(traited.endState.profession.maximumTomePages, 8);
   assert.equal(traited.endState.profession.tomePages, 8);
-  assert.equal(traited.endState.profession.tomePageInterval, 6);
+  assert.equal(traited.endState.profession.tomePageInterval, 5);
 });
 
 test("Firebrand tome page cost waits for a regenerating page", () => {
@@ -1195,6 +1524,289 @@ test("Firebrand tome page cost waits for a regenerating page", () => {
   // The first page lands at the 8s interval, so the cast is delayed to it.
   assert.ok(epilogue.start >= 8000);
   assert.equal(result.endState.profession.activeTome, "");
+});
+
+test("Firebrand axe skills and Unrelenting Criticism use reference packets", () => {
+  const result = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Core Cleave",
+      "Bleeding Edge",
+      "Searing Slash",
+      "Symbol of Vengeance",
+      "Blazing Edge",
+      { type: "wait", durationMs: 5000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      primaryWeapon: "Axe",
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.UNRELENTING_CRITICISM],
+    },
+  });
+  const packet = skillId =>
+    result.resolvedEvents
+      .filter(event => event.type === "damage" && event.skillId === skillId);
+  const coefficient = skillId =>
+    packet(skillId).reduce((sum, event) => sum + event.coefficient, 0);
+
+  assert.deepEqual(
+    [
+      [packet(GUARDIAN_SKILL_IDS.CORE_CLEAVE).length,
+        coefficient(GUARDIAN_SKILL_IDS.CORE_CLEAVE)],
+      [packet(GUARDIAN_SKILL_IDS.BLEEDING_EDGE).length,
+        coefficient(GUARDIAN_SKILL_IDS.BLEEDING_EDGE)],
+      [packet(GUARDIAN_SKILL_IDS.SEARING_SLASH).length,
+        coefficient(GUARDIAN_SKILL_IDS.SEARING_SLASH)],
+      [packet(GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE).length,
+        coefficient(GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE)],
+      [packet(GUARDIAN_SKILL_IDS.BLAZING_EDGE).length,
+        coefficient(GUARDIAN_SKILL_IDS.BLAZING_EDGE)],
+    ],
+    [
+      [1, 0.72],
+      [2, 0.72],
+      [2, 2.4],
+      [5, 3],
+      [1, 0.8],
+    ],
+  );
+  const criticism = result.resolvedEvents.filter(event =>
+    event.type === "condition" &&
+    event.name === "Unrelenting Criticism — Bleeding"
+  );
+  assert.equal(criticism.length, 11);
+  assert.ok(criticism.every(event => event.duration === 4.5));
+  assert.equal(
+    result.events.filter(event =>
+      event.type === "buff" &&
+      event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE &&
+      event.kind === "fury"
+    ).length,
+    5,
+  );
+  assert.equal(
+    result.events.some(event =>
+      event.type === "control" &&
+      event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_VENGEANCE &&
+      event.controlKind === "daze"
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.some(event =>
+      event.type === "control" &&
+      event.skillId === GUARDIAN_SKILL_IDS.BLAZING_EDGE &&
+      event.controlKind === "pull"
+    ),
+    true,
+  );
+});
+
+test("Firebrand specialization traits drive pages, quickness, and tome bonuses", () => {
+  const lore = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Justice",
+      "Chapter 1: Searing Spell",
+      "Chapter 2: Igniting Burst",
+      "Chapter 3: Heated Rebuke",
+      "Stow Tome",
+      "Tome of Justice",
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      initialTomePages: 5,
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.LEGENDARY_LORE],
+    },
+  });
+  assert.equal(lore.endState.profession.tomePages, 3);
+  assert.equal(
+    lore.events.filter(event =>
+      event.type === "buff" &&
+      event.skillName === "Tome of Justice" &&
+      event.kind === "quickness"
+    ).length,
+    1,
+  );
+  assert.equal(
+    lore.events.filter(event =>
+      event.type === "buff" &&
+      event.sourceId === GUARDIAN_TRAIT_IDS.LEGENDARY_LORE &&
+      event.kind === "might"
+    ).length,
+    3,
+  );
+  assert.ok(
+    lore.events
+      .filter(event =>
+        event.type === "buff" &&
+        event.sourceId === GUARDIAN_TRAIT_IDS.LEGENDARY_LORE
+      )
+      .every(event => event.stacks === 2 && event.duration === 10),
+  );
+
+  const weighted = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Mantra of Potence",
+      "Potent Haste",
+      "Overwhelming Celerity",
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      selectedSkills: ["Mantra of Potence"],
+      initialTomePages: 1,
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS],
+    },
+  });
+  assert.deepEqual(weighted.warnings, []);
+  assert.equal(weighted.endState.profession.tomePages, 3);
+  assert.deepEqual(
+    weighted.resolvedEvents
+      .filter(event =>
+        event.type === "condition" &&
+        event.sourceId === GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS
+      )
+      .map(event => [event.condition, event.duration]),
+    [["Slow", 1.5]],
+  );
+
+  const liberated = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Shelter"],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      selectedSkills: ["Shelter"],
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.LIBERATORS_VOW],
+    },
+  });
+  assert.equal(
+    liberated.events.some(event =>
+      event.type === "buff" &&
+      event.kind === "quickness" &&
+      event.sourceId === GUARDIAN_SKILL_IDS.SHELTER &&
+      event.duration === 2
+    ),
+    true,
+  );
+});
+
+test("Firebrand grandmaster support traits react to boons and control", () => {
+  const quickfire = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Courage",
+      "Epilogue: Unbroken Lines",
+      { type: "wait", durationMs: 2000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      maximumTomePages: 8,
+      initialTomePages: 8,
+      allies: { count: 1, strikesPerSecond: 1 },
+      selectedTraitIds: [
+        GUARDIAN_TRAIT_IDS.STALWART_SPEED,
+        GUARDIAN_TRAIT_IDS.QUICKFIRE,
+      ],
+    },
+  });
+  assert.equal(
+    quickfire.procSteps.some(step => step.skill === "Stalwart Speed"),
+    true,
+  );
+  assert.equal(
+    quickfire.procSteps.some(step => step.skill === "Quickfire"),
+    true,
+  );
+  assert.equal(
+    quickfire.resolvedEvents.filter(event =>
+      event.type === "condition" &&
+      event.skillName === "Quickfire" &&
+      event.triggeredByAlly === 1
+    ).length,
+    1,
+  );
+
+  const stoic = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Courage",
+      "Chapter 2: Daring Challenge",
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR],
+    },
+  });
+  const stoicBuffs = stoic.events.filter(event =>
+    event.type === "buff" &&
+    event.sourceId === GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR
+  );
+  assert.deepEqual(
+    stoicBuffs.map(event => [event.kind, event.stacks, event.duration]),
+    [
+      ["resistance", 1, 2],
+      ["might", 3, 10],
+    ],
+  );
+});
+
+test("Firebrand dormant passives and Imbued Haste use timeline state", () => {
+  const passive = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Whirling Wrath",
+      { type: "wait", durationMs: 80000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      primaryWeapon: "Greatsword",
+    },
+  });
+  assert.equal(passive.endState.profession.justicePassiveBurns, 2);
+  assert.equal(
+    passive.resolvedEvents
+      .filter(event => event.sourceId === "guardian.justice-passive")
+      .every(event =>
+        event.skillId === GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE &&
+        event.skillName === "Tome of Justice"
+      ),
+    true,
+  );
+  assert.deepEqual(
+    passive.events
+      .filter(event =>
+        event.type === "buff" &&
+        event.skillId === GUARDIAN_SKILL_IDS.TOME_OF_COURAGE &&
+        event.kind === "aegis"
+      )
+      .map(event => event.at),
+    [0, 40, 80],
+  );
+
+  const tome = traitIds => simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Tome of Justice",
+      "Chapter 1: Searing Spell",
+      { type: "wait", durationMs: 3000 },
+    ],
+    config: {
+      ...config,
+      specialization: "Firebrand",
+      selectedTraitIds: traitIds,
+    },
+  });
+  const normal = tome([]);
+  const imbued = tome([GUARDIAN_TRAIT_IDS.IMBUED_HASTE]);
+  assert.ok(imbued.conditionDamage > normal.conditionDamage);
 });
 
 test("Luminary Radiant Forge enforces entry and radiant weapon flips", () => {
