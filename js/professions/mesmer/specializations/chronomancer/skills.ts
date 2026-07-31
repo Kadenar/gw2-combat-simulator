@@ -93,7 +93,8 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "castTimeMs": 1560,
+    "castTimeMs": 1620,
+    "quicknessCastTimeMs": 1080,
     "cooldown": 60,
     "phantasm": false,
     "resource": null,
@@ -102,7 +103,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "effects": [
       {
         "type": "strike",
-        "coefficient": 3.3,
+        "coefficient": 1.1,
         "hits": 3,
         "name": "Pulse damage",
         "actorType": "player",
@@ -118,9 +119,33 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
         "name": "Final damage",
         "actorType": "player",
         "weapon": "utility",
-        "atMs": 3000,
+        "atMs": 2000,
         "timingAnchor": "castEnd",
         "timingScale": "fixed"
+      },
+      {
+        "type": "control",
+        "actorType": "player",
+        "atMs": 0,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "metadata": { "controlKind": "knockdown" }
+      },
+      {
+        "type": "control",
+        "actorType": "player",
+        "atMs": 1000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "metadata": { "controlKind": "pull" }
+      },
+      {
+        "type": "control",
+        "actorType": "player",
+        "atMs": 2000,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
+        "metadata": { "controlKind": "float" }
       }
     ]
   },

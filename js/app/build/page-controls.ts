@@ -8,6 +8,7 @@ import {
   createDefaultBuild,
   replaceBuildConfiguration,
 } from "./persistence.js";
+import { redoRotation, undoRotation } from "../rotation/history.js";
 
 import type { LegacyRotationItem } from "../../platform/engine/types.js";
 import type { ProfessionAppState } from "../profession/types.js";
@@ -56,6 +57,32 @@ export function bindPageControls(app: ProfessionAppState): void {
   requiredElement("btn-sim-clear").addEventListener("click", () => {
     app.build.rotation = [];
     app.changed(false);
+  });
+  document.getElementById("btn-sim-undo")?.addEventListener("click", () =>
+    undoRotation(app),
+  );
+  document.getElementById("btn-sim-redo")?.addEventListener("click", () =>
+    redoRotation(app),
+  );
+  document.addEventListener("keydown", (event) => {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+    const target = event.target;
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement ||
+      (target instanceof HTMLElement && target.isContentEditable)
+    ) {
+      return;
+    }
+    const key = event.key.toLowerCase();
+    if (key === "z" && !event.shiftKey) {
+      event.preventDefault();
+      undoRotation(app);
+    } else if (key === "y" || (key === "z" && event.shiftKey)) {
+      event.preventDefault();
+      redoRotation(app);
+    }
   });
   requiredElement("btn-sim-rerun").addEventListener("click", () =>
     app.changed(false),
