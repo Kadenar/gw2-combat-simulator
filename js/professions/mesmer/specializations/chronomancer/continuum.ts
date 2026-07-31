@@ -57,6 +57,7 @@ export function createContinuumController({
     const continuum = chronomancer.continuum;
     if (!continuum) return;
     const splitReady = continuum.splitReady;
+    const openAt = continuum.openAt;
     const unaffectedCooldowns = [...state.cooldowns].filter(([id]) =>
       unaffectedCooldownIds.has(id),
     );
@@ -72,7 +73,7 @@ export function createContinuumController({
         ),
     ]);
     if (splitReady)
-      state.cooldowns.set(continuum.splitId, at + splitReady);
+      state.cooldowns.set(continuum.splitId, at + splitReady - openAt);
     state.ammo = new Map(
       [...continuum.ammo].map(([id, ammo]) => [
         id,
@@ -134,6 +135,7 @@ export function createContinuumController({
     chronomancer.continuum = {
       splitId: skill.id,
       splitReady: state.cooldowns.get(skill.id),
+      openAt: at,
       remainingCooldowns,
       ammo,
       autoattackChains: { ...professionCoreState(state).autoattackChains },
