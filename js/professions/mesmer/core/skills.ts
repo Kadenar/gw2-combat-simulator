@@ -610,9 +610,9 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     "effects": [
       {
         "type": "strike",
-        "coefficient": 1.1,
+        "coefficient": 0.8,
         "hits": 3,
-        "name": "Maximum-range damage",
+        "name": "Minimum-range damage",
         "actorType": "player"
       }
     ],
