@@ -30,10 +30,41 @@ export function uniqueByName(skills: readonly Skill[]): Skill[] {
   return [...unique.values()];
 }
 
+// An elite specialization can rework a base weapon skill while keeping its name
+// (e.g. Troubadour's Bladecall vs the base dagger Bladecall). Weaponmaster
+// training makes both variants pass availability, so a plain name-dedup can keep
+// the off-spec rework — whose id the active spec's runtime catalog rejects
+// ("Unknown skill id"). Rank same-named weapon skills so the active spec's
+// variant wins, then the unspecialized base, then any other elite variant.
+function weaponVariantRank(skill: Skill, specialization: string): number {
+  const spec = String(skill.specialization || "");
+  if (spec === specialization) return 0;
+  if (spec === "") return 1;
+  return 2;
+}
+
+export function uniqueBySpecializedName(
+  skills: readonly Skill[],
+  specialization: string,
+): Skill[] {
+  const byName = new Map<string, Skill>();
+  for (const skill of skills) {
+    const existing = byName.get(skill.name);
+    if (
+      !existing ||
+      weaponVariantRank(skill, specialization) <
+        weaponVariantRank(existing, specialization)
+    ) {
+      byName.set(skill.name, skill);
+    }
+  }
+  return [...byName.values()];
+}
+
 export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
   const [mainHand, offHand] =
     weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons;
-  return uniqueByName(
+  return uniqueBySpecializedName(
     app.skills.filter((skill) => {
       // Temporary bars and supplemental effects are exposed by profession
       // palette groups, never as skills on an equipped weapon set.
@@ -58,6 +89,7 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
         weaponSet,
       });
     }),
+    activeSpecialization(app),
   ).sort((left, right) => {
     const slotOrder = String(left.slot).localeCompare(String(right.slot));
     if (slotOrder) return slotOrder;

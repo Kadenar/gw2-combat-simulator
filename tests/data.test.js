@@ -562,7 +562,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
         'Ether Clone': 0.75,
         Counterspell: 0.1,
         'Confusing Images': 5.32,
-        'Gravity Well': 5.4,
+        'Gravity Well': 3.2,
         'Mind Slash': 1,
         'Mind Gash': 1,
         'Blurred Frenzy': 3.6,

@@ -2257,6 +2257,19 @@ header .accent {
     background: rgba(102, 170, 255, 0.15);
 }
 
+.btn-undo {
+    color: var(--text-dim);
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.btn:disabled:hover {
+    background: var(--bg-panel-alt);
+}
+
 /* ─── dps.report import bar ─── */
 
 .dpsreport-bar {

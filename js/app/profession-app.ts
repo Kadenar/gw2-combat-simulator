@@ -15,6 +15,7 @@ import { normalizeSelectedSkills } from "./build/selection.js";
 import { renderSkills } from "./build/skills-panel.js";
 import { renderTraits } from "./build/traits-panel.js";
 import { addRotation } from "./rotation/actions.js";
+import { recordRotationHistory } from "./rotation/history.js";
 import { ModifierContributionRunner } from "./simulation/modifier-contribution-runner.js";
 import { RandomDistributionRunner } from "./simulation/random-distribution-runner.js";
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from "../platform/gw2/gear-data.js";
@@ -91,6 +92,7 @@ export class ProfessionApp implements ProfessionAppState {
   }
 
   changed(rebuildStatic = true, rebuildGear = rebuildStatic): void {
+    recordRotationHistory(this);
     const previousContributions = this.results?.contributions;
     normalizeSelectedSkills(this);
     this.adapter.recalculate(this);

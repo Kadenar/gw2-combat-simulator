@@ -1332,3 +1332,46 @@ test("shared palettes reject supplemental effects from weapon and action rows", 
     [],
   );
 });
+
+test("weaponmaster palettes keep the active spec's weapon-skill variant", () => {
+  // Both Bladecall variants share a slot and pass availability under
+  // weaponmaster training; the off-spec Troubadour rework (62560) sorts first
+  // in catalog order but is absent from a non-Troubadour runtime catalog, so it
+  // must not win the name-dedup and poison the rotation with an unknown id.
+  const skills = [
+    {
+      id: 62560,
+      name: "Bladecall",
+      type: "Weapon",
+      slot: "Weapon_2",
+      weapon: "Dagger",
+      specialization: "Troubadour",
+    },
+    {
+      id: 69311,
+      name: "Bladecall",
+      type: "Weapon",
+      slot: "Weapon_2",
+      weapon: "Dagger",
+      specialization: "",
+    },
+  ];
+  const makeApp = specialization => ({
+    profession: { catalog: { weaponHands: new Map([["Dagger", "mh"]]) } },
+    build: { weapons: ["Dagger", ""], alternateWeapons: ["", ""] },
+    skills,
+    adapter: {
+      eliteSpecialization: () => specialization,
+      isSkillAvailable: () => true,
+    },
+  });
+
+  assert.deepEqual(
+    weaponSkills(makeApp("Chronomancer")).map(skill => skill.id),
+    [69311],
+  );
+  assert.deepEqual(
+    weaponSkills(makeApp("Troubadour")).map(skill => skill.id),
+    [62560],
+  );
+});

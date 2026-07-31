@@ -317,6 +317,11 @@ export interface ProfessionAppState {
   };
   _skillSortCol?: string | null;
   _skillSortDir?: "asc" | "desc" | null;
+  _rotationHistory?: {
+    undo: LegacyRotationItem[][];
+    redo: LegacyRotationItem[][];
+    current: LegacyRotationItem[];
+  };
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
