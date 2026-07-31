@@ -132,6 +132,7 @@ export interface MesmerContinuumAmmo {
 export interface MesmerContinuumSnapshot {
   splitId: SkillId;
   splitReady: number | undefined;
+  openAt: number;
   remainingCooldowns: Map<SkillId, number>;
   ammo: Map<SkillId, MesmerContinuumAmmo>;
   autoattackChains: Record<string, SkillId>;
