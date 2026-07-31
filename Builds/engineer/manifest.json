@@ -3,6 +3,14 @@
     "section": "Amalgam",
     "presets": [
       {
+        "label": "Power (Hammer - Symbiotic)",
+        "build": "Builds/engineer/b-power-amalgam-hammer-symbiotic.json",
+        "rotation": "Rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
+        "dpsReportUrl": "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
+        "benchmarkDps": 42177,
+        "upToDate": true
+      },
+      {
         "label": "Condition Alacrity (2 Kit)",
         "build": "Builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",

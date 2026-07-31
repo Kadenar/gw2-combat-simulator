@@ -7,672 +7,680 @@
 import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
 
-export const AMALGAM_SKILL_MECHANICS: Readonly<
-  Record<string, SkillFragment>
-> = Object.freeze({
-  [ID.OFFENSIVE_PROTOCOL_SHRED]: {
-    "implemented": true,
-    "castTimeMs": 1000,
-    "quicknessCastTimeMs": 760,
-    "cooldown": 20,
-    "finisherType": "Projectile",
-    "finisherValue": 1,
-    "effects": [
-      {
-        "type": "strike",
-        "ticks": [
-          { "atMs": 840, "coefficient": 0.96 },
-          { "atMs": 900, "coefficient": 0.96 },
-          { "atMs": 960, "coefficient": 0.96 }
-        ],
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "name": "Offensive Protocol: Shred",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Immobilized",
-        "stacks": 1,
-        "duration": 3,
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 4,
-  },
-  [ID.SYMBIOTIC_SHIELDING]: {
-    "implemented": true,
-    "castTimeMs": 0,
-    "cooldown": 25,
-    "effects": [],
-    "toolbeltParentName": "Mitotic State",
-    "mechanicSlot": 1,
-  },
-  [ID.DEFENSIVE_PROTOCOL_THORNS]: {
-    "implemented": true,
-    "handlerId": "engineer.amalgam-morph",
-    "castTimeMs": 0,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 1,
-        "hits": 1,
-        "name": "Initial Damage",
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 4,
-  },
-  [ID.EVOLVE]: {
-    "implemented": true,
-    "handlerId": "engineer.evolve",
-    "castTimeMs": 750,
-    "quicknessCastTimeMs": 640,
-    "cooldown": 40,
-    "effects": [],
-    "mechanicSlot": 5,
-  },
-  [ID.EVOLVE_ID_76651]: {
-    "implemented": true,
-    "handlerId": "engineer.evolve",
-    "castTimeMs": 750,
-    "quicknessCastTimeMs": 640,
-    "cooldown": 40,
-    "ammo": 2,
-    "effects": [],
-    "mechanicSlot": 5,
-  },
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: {
-    "implemented": true,
-    "castTimeMs": 1250,
-    "quicknessCastTimeMs": 1000,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 8.100000000000001,
-        "hits": 3,
-        "atMs": 417,
-        "intervalMs": 417,
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "name": "Offensive Protocol: Demolish — Packet 1",
-        "actorType": "player"
-      },
-      {
-        "type": "strike",
-        "coefficient": 2.25,
-        "hits": 1,
-        "name": "Smash Damage",
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 3,
-  },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: {
-    "implemented": true,
-    "castTimeMs": 1200,
-    "quicknessCastTimeMs": 800,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 2.88,
-        "hits": 1,
-        "atMs": 640,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed",
-        "name": "Offensive Protocol: Obliterate",
-        "actorType": "summon"
-      },
-      {
-        "type": "condition",
-        "condition": "Bleeding",
-        "stacks": 8,
-        "duration": 6,
-        "atMs": 640,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed",
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 4,
-  },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE]: {
-    "implemented": true,
-    "castTimeMs": 0,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "boon",
-        "boon": "protection",
-        "duration": 3,
-        "stacks": 1
-      }
-    ],
-    "mechanicSlot": 4,
-  },
-  [ID.MITOTIC_STATE]: {
-    "implemented": true,
-    "castTimeMs": 1000,
-    "cooldown": 20,
-    "effects": [],
-  },
-  [ID.LOCKED]: {
-    "implemented": true,
-    "castTimeMs": 0,
-    "cooldown": 0,
-    "effects": [],
-  },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798]: {
-    "implemented": true,
-    "castTimeMs": 0,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "boon",
-        "boon": "protection",
-        "duration": 3,
-        "stacks": 1
-      }
-    ],
-    "mechanicSlot": 2,
-  },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: {
-    "implemented": true,
-    "castTimeMs": 1200,
-    "quicknessCastTimeMs": 800,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 2.88,
-        "hits": 1,
-        "atMs": 640,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed",
-        "name": "Offensive Protocol: Obliterate",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Bleeding",
-        "stacks": 8,
-        "duration": 6,
-        "atMs": 640,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed",
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 2,
-  },
-  [ID.OFFENSIVE_PROTOCOL_PIERCE]: {
-    "implemented": true,
-    "castTimeMs": 1000,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 2.88,
-        "hits": 1,
-        "name": "Offensive Protocol: Pierce",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Vulnerability",
-        "stacks": 8,
-        "duration": 8,
-        "actorType": "player"
-      },
-      {
-        "type": "control",
-        "actorType": "player",
-        "metadata": {
-          "controlKind": "stun",
-          "duration": 2
-        }
-      }
-    ],
-    "mechanicSlot": 2,
-  },
-  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: {
-    "implemented": true,
-    "castTimeMs": 1000,
-    "quicknessCastTimeMs": 760,
-    "cooldown": 20,
-    "finisherType": "Projectile",
-    "finisherValue": 1,
-    "effects": [
-      {
-        "type": "strike",
-        "ticks": [
-          { "atMs": 840, "coefficient": 0.96 },
-          { "atMs": 900, "coefficient": 0.96 },
-          { "atMs": 960, "coefficient": 0.96 }
-        ],
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "name": "Offensive Protocol: Shred",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Immobilized",
-        "stacks": 1,
-        "duration": 3,
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 3,
-  },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: {
-    "implemented": true,
-    "castTimeMs": 1200,
-    "quicknessCastTimeMs": 800,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 2.88,
-        "hits": 1,
-        "atMs": 640,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed",
-        "name": "Offensive Protocol: Obliterate",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Bleeding",
-        "stacks": 8,
-        "duration": 6,
-        "atMs": 640,
-        "timingAnchor": "castStart",
-        "timingScale": "fixed",
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 3,
-  },
-  [ID.LIQUID_STATE]: {
-    "implemented": true,
-    "castTimeMs": 1500,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 3.2,
-        "hits": 4,
-        "atMs": 375,
-        "intervalMs": 375,
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "name": "Liquid State",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Poisoned",
-        "stacks": 4,
-        "duration": 12,
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Crippled",
-        "stacks": 4,
-        "duration": 1,
-        "actorType": "player"
-      }
-    ],
-  },
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: {
-    "implemented": true,
-    "castTimeMs": 1250,
-    "quicknessCastTimeMs": 1000,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 8.100000000000001,
-        "hits": 3,
-        "atMs": 417,
-        "intervalMs": 417,
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "name": "Offensive Protocol: Demolish — Packet 1",
-        "actorType": "player"
-      },
-      {
-        "type": "strike",
-        "coefficient": 2.25,
-        "hits": 1,
-        "name": "Smash Damage",
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 2,
-  },
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: {
-    "implemented": true,
-    "castTimeMs": 1250,
-    "quicknessCastTimeMs": 1000,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 8.100000000000001,
-        "hits": 3,
-        "atMs": 417,
-        "intervalMs": 417,
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "name": "Offensive Protocol: Demolish — Packet 1",
-        "actorType": "player"
-      },
-      {
-        "type": "strike",
-        "coefficient": 2.25,
-        "hits": 1,
-        "name": "Smash Damage",
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 4,
-  },
-  [ID.DEFENSIVE_PROTOCOL_PROTECT]: {
-    "implemented": true,
-    "castTimeMs": 1500,
-    "cooldown": 20,
-    "effects": [],
-    "mechanicSlot": 2,
-  },
-  [ID.FLUX_STATE]: {
-    "implemented": true,
-    "castTimeMs": 750,
-    "quicknessCastTimeMs": 640,
-    "cooldown": 50,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 2,
-        "hits": 1,
-        "name": "Flux State — Packet 1",
-        "actorType": "player"
-      },
-      {
-        "type": "strike",
-        "coefficient": 9,
-        "hits": 12,
-        "atMs": 500,
-        "intervalMs": 500,
-        "intervalTimingScale": "fixed",
-        "timingAnchor": "castEnd",
-        "timingScale": "fixed",
-        "name": "Storm Damage",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "ticks": [
-          { "atMs": 500, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 1000, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 1500, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 2000, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 2500, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 3000, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 3500, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 4000, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 4500, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 5000, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 5500, "condition": "Bleeding", "stacks": 1, "duration": 5 },
-          { "atMs": 6000, "condition": "Bleeding", "stacks": 1, "duration": 5 }
-        ],
-        "timingAnchor": "castEnd",
-        "timingScale": "fixed",
-        "actorType": "player"
-      },
-      {
-        "type": "control",
-        "actorType": "player",
-        "metadata": {
-          "controlKind": "pull",
-          "duration": 360
-        }
-      }
-    ],
-  },
-  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005]: {
-    "implemented": true,
-    "castTimeMs": 1000,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 2.88,
-        "hits": 1,
-        "name": "Offensive Protocol: Pierce",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Vulnerability",
-        "stacks": 8,
-        "duration": 8,
-        "actorType": "player"
-      },
-      {
-        "type": "control",
-        "actorType": "player",
-        "metadata": {
-          "controlKind": "stun",
-          "duration": 2
-        }
-      }
-    ],
-    "mechanicSlot": 3,
-  },
-  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015]: {
-    "implemented": true,
-    "castTimeMs": 1000,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 2.88,
-        "hits": 1,
-        "name": "Offensive Protocol: Pierce",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Vulnerability",
-        "stacks": 8,
-        "duration": 8,
-        "actorType": "player"
-      },
-      {
-        "type": "control",
-        "actorType": "player",
-        "metadata": {
-          "controlKind": "stun",
-          "duration": 2
-        }
-      }
-    ],
-    "mechanicSlot": 4,
-  },
-  [ID.GASEOUS_STATE]: {
-    "implemented": true,
-    "castTimeMs": 0,
-    "cooldown": 20,
-    "effects": [],
-  },
-  [ID.SOLID_STATE]: {
-    "implemented": true,
-    "castTimeMs": 750,
-    "cooldown": 25,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 3,
-        "hits": 1,
-        "name": "Solid State",
-        "actorType": "player"
-      },
-      {
-        "type": "control",
-        "actorType": "player",
-        "metadata": {
-          "controlKind": "stun",
-          "duration": 2
-        }
-      },
-      {
-        "type": "boon",
-        "boon": "stability",
-        "duration": 5,
-        "stacks": 5
-      }
-    ],
-  },
-  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: {
-    "implemented": true,
-    "castTimeMs": 1000,
-    "quicknessCastTimeMs": 760,
-    "cooldown": 20,
-    "finisherType": "Projectile",
-    "finisherValue": 1,
-    "effects": [
-      {
-        "type": "strike",
-        "ticks": [
-          { "atMs": 840, "coefficient": 0.96 },
-          { "atMs": 900, "coefficient": 0.96 },
-          { "atMs": 960, "coefficient": 0.96 }
-        ],
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "name": "Offensive Protocol: Shred",
-        "actorType": "player"
-      },
-      {
-        "type": "condition",
-        "condition": "Immobilized",
-        "stacks": 1,
-        "duration": 3,
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 2,
-  },
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: {
-    "implemented": true,
-    "handlerId": "engineer.amalgam-morph",
-    "castTimeMs": 0,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 1,
-        "hits": 1,
-        "name": "Initial Damage",
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 3,
-  },
-  [ID.LOCKED_ID_77107]: {
-    "implemented": true,
-    "castTimeMs": 0,
-    "cooldown": 0,
-    "effects": [],
-  },
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: {
-    "implemented": true,
-    "handlerId": "engineer.amalgam-morph",
-    "castTimeMs": 0,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "strike",
-        "coefficient": 1,
-        "hits": 1,
-        "name": "Initial Damage",
-        "actorType": "player"
-      }
-    ],
-    "mechanicSlot": 2,
-  },
-  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203]: {
-    "implemented": true,
-    "castTimeMs": 1500,
-    "cooldown": 20,
-    "effects": [],
-    "mechanicSlot": 3,
-  },
-  [ID.PLASMATIC_STATE]: {
-    "implemented": true,
-    "handlerId": "engineer.plasmatic-state",
-    "castTimeMs": 720,
-    "quicknessCastTimeMs": 480,
-    "aftercastMs": 660,
-    "quicknessAftercastMs": 440,
-    "cooldown": 25,
-    "effects": [
-      {
-        "type": "strike",
-        "ticks": [
-          { "atMs": 640, "coefficient": 2.25 },
-          { "atMs": 1180, "coefficient": 2.25 }
-        ],
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "name": "Plasmatic State",
-        "actorType": "player",
-        "persistsAfterInterrupt": true
-      },
-      {
-        "type": "condition",
-        "ticks": [
-          { "atMs": 640, "condition": "Burning", "stacks": 2, "duration": 5 },
-          { "atMs": 1180, "condition": "Burning", "stacks": 2, "duration": 5 }
-        ],
-        "timingAnchor": "castStart",
-        "timingScale": "cast",
-        "actorType": "player",
-        "persistsAfterInterrupt": true
-      }
-    ],
-  },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285]: {
-    "implemented": true,
-    "castTimeMs": 0,
-    "cooldown": 20,
-    "effects": [
-      {
-        "type": "boon",
-        "boon": "protection",
-        "duration": 3,
-        "stacks": 1
-      }
-    ],
-    "mechanicSlot": 3,
-  },
-  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358]: {
-    "implemented": true,
-    "castTimeMs": 1500,
-    "cooldown": 20,
-    "effects": [],
-    "mechanicSlot": 4,
-  },
-  [ID.LOCKED_ID_77388]: {
-    "implemented": true,
-    "castTimeMs": 0,
-    "cooldown": 0,
-    "effects": [],
-  },
-});
+const DEMOLISH_CAST_TIME_MS = 1250 + 700;
+const DEMOLISH_QUICKNESS_CAST_TIME_MS = 1000 + 560;
+
+export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
+  Object.freeze({
+    [ID.OFFENSIVE_PROTOCOL_SHRED]: {
+      implemented: true,
+      castTimeMs: 1000,
+      quicknessCastTimeMs: 760,
+      cooldown: 20,
+      finisherType: "Projectile",
+      finisherValue: 1,
+      effects: [
+        {
+          type: "strike",
+          ticks: [
+            { atMs: 840, coefficient: 0.96 },
+            { atMs: 900, coefficient: 0.96 },
+            { atMs: 960, coefficient: 0.96 },
+          ],
+          timingAnchor: "castStart",
+          timingScale: "cast",
+          name: "Offensive Protocol: Shred",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Immobilized",
+          stacks: 1,
+          duration: 3,
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 4,
+    },
+    [ID.SYMBIOTIC_SHIELDING]: {
+      implemented: true,
+      castTimeMs: 0,
+      cooldown: 25,
+      effects: [],
+      toolbeltParentName: "Mitotic State",
+      mechanicSlot: 1,
+    },
+    [ID.DEFENSIVE_PROTOCOL_THORNS]: {
+      implemented: true,
+      handlerId: "engineer.amalgam-morph",
+      castTimeMs: 0,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 1,
+          hits: 1,
+          name: "Initial Damage",
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 4,
+    },
+    [ID.EVOLVE]: {
+      implemented: true,
+      handlerId: "engineer.evolve",
+      castTimeMs: 750,
+      quicknessCastTimeMs: 640,
+      cooldown: 40,
+      effects: [],
+      mechanicSlot: 5,
+    },
+    [ID.EVOLVE_ID_76651]: {
+      implemented: true,
+      handlerId: "engineer.evolve",
+      castTimeMs: 750,
+      quicknessCastTimeMs: 640,
+      cooldown: 40,
+      ammo: 2,
+      effects: [],
+      mechanicSlot: 5,
+    },
+    [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: {
+      implemented: true,
+      castTimeMs: DEMOLISH_CAST_TIME_MS,
+      quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
+      cooldown: 20,
+      finisherType: "Blast",
+      finisherValue: 1,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.7,
+          hits: 3,
+          atMs: 417,
+          intervalMs: 417,
+          timingAnchor: "castStart",
+          timingScale: "cast",
+          name: "Offensive Protocol: Demolish — Packet 1",
+          actorType: "player",
+        },
+        {
+          type: "strike",
+          coefficient: 2.25,
+          hits: 1,
+          name: "Smash Damage",
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 3,
+    },
+    [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: {
+      implemented: true,
+      castTimeMs: 1200,
+      quicknessCastTimeMs: 800,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.88,
+          hits: 1,
+          atMs: 640,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+          name: "Offensive Protocol: Obliterate",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Bleeding",
+          stacks: 8,
+          duration: 6,
+          atMs: 640,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 4,
+    },
+    [ID.DEFENSIVE_PROTOCOL_CLEANSE]: {
+      implemented: true,
+      castTimeMs: 0,
+      cooldown: 20,
+      effects: [
+        {
+          type: "boon",
+          boon: "protection",
+          duration: 3,
+          stacks: 1,
+        },
+      ],
+      mechanicSlot: 4,
+    },
+    [ID.MITOTIC_STATE]: {
+      implemented: true,
+      castTimeMs: 1000,
+      cooldown: 20,
+      effects: [],
+    },
+    [ID.LOCKED]: {
+      implemented: true,
+      castTimeMs: 0,
+      cooldown: 0,
+      effects: [],
+    },
+    [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798]: {
+      implemented: true,
+      castTimeMs: 0,
+      cooldown: 20,
+      effects: [
+        {
+          type: "boon",
+          boon: "protection",
+          duration: 3,
+          stacks: 1,
+        },
+      ],
+      mechanicSlot: 2,
+    },
+    [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: {
+      implemented: true,
+      castTimeMs: 1200,
+      quicknessCastTimeMs: 800,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.88,
+          hits: 1,
+          atMs: 640,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+          name: "Offensive Protocol: Obliterate",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Bleeding",
+          stacks: 8,
+          duration: 6,
+          atMs: 640,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 2,
+    },
+    [ID.OFFENSIVE_PROTOCOL_PIERCE]: {
+      implemented: true,
+      castTimeMs: 1000,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.88,
+          hits: 1,
+          name: "Offensive Protocol: Pierce",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Vulnerability",
+          stacks: 8,
+          duration: 8,
+          actorType: "player",
+        },
+        {
+          type: "control",
+          actorType: "player",
+          metadata: {
+            controlKind: "stun",
+            duration: 2,
+          },
+        },
+      ],
+      mechanicSlot: 2,
+    },
+    [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: {
+      implemented: true,
+      castTimeMs: 1000,
+      quicknessCastTimeMs: 760,
+      cooldown: 20,
+      finisherType: "Projectile",
+      finisherValue: 1,
+      effects: [
+        {
+          type: "strike",
+          ticks: [
+            { atMs: 840, coefficient: 0.96 },
+            { atMs: 900, coefficient: 0.96 },
+            { atMs: 960, coefficient: 0.96 },
+          ],
+          timingAnchor: "castStart",
+          timingScale: "cast",
+          name: "Offensive Protocol: Shred",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Immobilized",
+          stacks: 1,
+          duration: 3,
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 3,
+    },
+    [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: {
+      implemented: true,
+      castTimeMs: 1200,
+      quicknessCastTimeMs: 800,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.88,
+          hits: 1,
+          atMs: 640,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+          name: "Offensive Protocol: Obliterate",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Bleeding",
+          stacks: 8,
+          duration: 6,
+          atMs: 640,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 3,
+    },
+    [ID.LIQUID_STATE]: {
+      implemented: true,
+      castTimeMs: 1500,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 3.2,
+          hits: 4,
+          atMs: 375,
+          intervalMs: 375,
+          timingAnchor: "castStart",
+          timingScale: "cast",
+          name: "Liquid State",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Poisoned",
+          stacks: 4,
+          duration: 12,
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Crippled",
+          stacks: 4,
+          duration: 1,
+          actorType: "player",
+        },
+      ],
+    },
+    [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: {
+      implemented: true,
+      castTimeMs: DEMOLISH_CAST_TIME_MS,
+      quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
+      cooldown: 20,
+      finisherType: "Blast",
+      finisherValue: 1,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.7,
+          hits: 3,
+          atMs: 417,
+          intervalMs: 417,
+          timingAnchor: "castStart",
+          timingScale: "cast",
+          name: "Offensive Protocol: Demolish — Packet 1",
+          actorType: "player",
+        },
+        {
+          type: "strike",
+          coefficient: 2.25,
+          hits: 1,
+          name: "Smash Damage",
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 2,
+    },
+    [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: {
+      implemented: true,
+      castTimeMs: DEMOLISH_CAST_TIME_MS,
+      quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
+      cooldown: 20,
+      finisherType: "Blast",
+      finisherValue: 1,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.7,
+          hits: 3,
+          atMs: 417,
+          intervalMs: 417,
+          timingAnchor: "castStart",
+          timingScale: "cast",
+          name: "Offensive Protocol: Demolish — Packet 1",
+          actorType: "player",
+        },
+        {
+          type: "strike",
+          coefficient: 2.25,
+          hits: 1,
+          name: "Smash Damage",
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 4,
+    },
+    [ID.DEFENSIVE_PROTOCOL_PROTECT]: {
+      implemented: true,
+      castTimeMs: 1500,
+      cooldown: 20,
+      effects: [],
+      mechanicSlot: 2,
+    },
+    [ID.FLUX_STATE]: {
+      implemented: true,
+      castTimeMs: 750,
+      quicknessCastTimeMs: 640,
+      cooldown: 50,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2,
+          hits: 1,
+          name: "Flux State — Packet 1",
+          actorType: "player",
+        },
+        {
+          type: "strike",
+          coefficient: 9,
+          hits: 12,
+          atMs: 500,
+          intervalMs: 500,
+          intervalTimingScale: "fixed",
+          timingAnchor: "castEnd",
+          timingScale: "fixed",
+          name: "Storm Damage",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          ticks: [
+            { atMs: 500, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 1000, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 1500, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 2000, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 2500, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 3000, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 3500, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 4000, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 4500, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 5000, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 5500, condition: "Bleeding", stacks: 1, duration: 5 },
+            { atMs: 6000, condition: "Bleeding", stacks: 1, duration: 5 },
+          ],
+          timingAnchor: "castEnd",
+          timingScale: "fixed",
+          actorType: "player",
+        },
+        {
+          type: "control",
+          actorType: "player",
+          metadata: {
+            controlKind: "pull",
+            duration: 360,
+          },
+        },
+      ],
+    },
+    [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005]: {
+      implemented: true,
+      castTimeMs: 1000,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.88,
+          hits: 1,
+          name: "Offensive Protocol: Pierce",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Vulnerability",
+          stacks: 8,
+          duration: 8,
+          actorType: "player",
+        },
+        {
+          type: "control",
+          actorType: "player",
+          metadata: {
+            controlKind: "stun",
+            duration: 2,
+          },
+        },
+      ],
+      mechanicSlot: 3,
+    },
+    [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015]: {
+      implemented: true,
+      castTimeMs: 1000,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.88,
+          hits: 1,
+          name: "Offensive Protocol: Pierce",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Vulnerability",
+          stacks: 8,
+          duration: 8,
+          actorType: "player",
+        },
+        {
+          type: "control",
+          actorType: "player",
+          metadata: {
+            controlKind: "stun",
+            duration: 2,
+          },
+        },
+      ],
+      mechanicSlot: 4,
+    },
+    [ID.GASEOUS_STATE]: {
+      implemented: true,
+      castTimeMs: 0,
+      cooldown: 20,
+      effects: [],
+    },
+    [ID.SOLID_STATE]: {
+      implemented: true,
+      castTimeMs: 750,
+      cooldown: 25,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 3,
+          hits: 1,
+          name: "Solid State",
+          actorType: "player",
+        },
+        {
+          type: "control",
+          actorType: "player",
+          metadata: {
+            controlKind: "stun",
+            duration: 2,
+          },
+        },
+        {
+          type: "boon",
+          boon: "stability",
+          duration: 5,
+          stacks: 5,
+        },
+      ],
+    },
+    [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: {
+      implemented: true,
+      castTimeMs: 1000,
+      quicknessCastTimeMs: 760,
+      cooldown: 20,
+      finisherType: "Projectile",
+      finisherValue: 1,
+      effects: [
+        {
+          type: "strike",
+          ticks: [
+            { atMs: 840, coefficient: 0.96 },
+            { atMs: 900, coefficient: 0.96 },
+            { atMs: 960, coefficient: 0.96 },
+          ],
+          timingAnchor: "castStart",
+          timingScale: "cast",
+          name: "Offensive Protocol: Shred",
+          actorType: "player",
+        },
+        {
+          type: "condition",
+          condition: "Immobilized",
+          stacks: 1,
+          duration: 3,
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 2,
+    },
+    [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: {
+      implemented: true,
+      handlerId: "engineer.amalgam-morph",
+      castTimeMs: 0,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 1,
+          hits: 1,
+          name: "Initial Damage",
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 3,
+    },
+    [ID.LOCKED_ID_77107]: {
+      implemented: true,
+      castTimeMs: 0,
+      cooldown: 0,
+      effects: [],
+    },
+    [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: {
+      implemented: true,
+      handlerId: "engineer.amalgam-morph",
+      castTimeMs: 0,
+      cooldown: 20,
+      effects: [
+        {
+          type: "strike",
+          coefficient: 1,
+          hits: 1,
+          name: "Initial Damage",
+          actorType: "player",
+        },
+      ],
+      mechanicSlot: 2,
+    },
+    [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203]: {
+      implemented: true,
+      castTimeMs: 1500,
+      cooldown: 20,
+      effects: [],
+      mechanicSlot: 3,
+    },
+    [ID.PLASMATIC_STATE]: {
+      implemented: true,
+      handlerId: "engineer.plasmatic-state",
+      castTimeMs: 720,
+      quicknessCastTimeMs: 480,
+      aftercastMs: 660,
+      quicknessAftercastMs: 440,
+      cooldown: 25,
+      effects: [
+        {
+          type: "strike",
+          ticks: [
+            { atMs: 640, coefficient: 2.25 },
+            { atMs: 1180, coefficient: 2.25 },
+          ],
+          timingAnchor: "castStart",
+          timingScale: "cast",
+          name: "Plasmatic State",
+          actorType: "player",
+          persistsAfterInterrupt: true,
+        },
+        {
+          type: "condition",
+          ticks: [
+            { atMs: 640, condition: "Burning", stacks: 2, duration: 5 },
+            { atMs: 1180, condition: "Burning", stacks: 2, duration: 5 },
+          ],
+          timingAnchor: "castStart",
+          timingScale: "cast",
+          actorType: "player",
+          persistsAfterInterrupt: true,
+        },
+      ],
+    },
+    [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285]: {
+      implemented: true,
+      castTimeMs: 0,
+      cooldown: 20,
+      effects: [
+        {
+          type: "boon",
+          boon: "protection",
+          duration: 3,
+          stacks: 1,
+        },
+      ],
+      mechanicSlot: 3,
+    },
+    [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358]: {
+      implemented: true,
+      castTimeMs: 1500,
+      cooldown: 20,
+      effects: [],
+      mechanicSlot: 4,
+    },
+    [ID.LOCKED_ID_77388]: {
+      implemented: true,
+      castTimeMs: 0,
+      cooldown: 0,
+      effects: [],
+    },
+  });
