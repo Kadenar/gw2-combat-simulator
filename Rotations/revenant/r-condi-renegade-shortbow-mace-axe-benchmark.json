@@ -9,10 +9,13 @@
     },
     {
       "name": "Razorclaw's Rage",
-      "skillId": 42949
+      "skillId": 42949,
+      "offset": 400
     },
     {
-      "name": "Swap Legends"
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 100
     },
     {
       "name": "Embrace the Darkness"
@@ -137,10 +140,13 @@
     },
     {
       "name": "Razorclaw's Rage",
-      "skillId": 42949
+      "skillId": 42949,
+      "offset": 100
     },
     {
-      "name": "Swap Legends"
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 100
     },
     {
       "name": "Embrace the Darkness"
@@ -265,10 +271,13 @@
     },
     {
       "name": "Razorclaw's Rage",
-      "skillId": 42949
+      "skillId": 42949,
+      "offset": 100
     },
     {
-      "name": "Swap Legends"
+      "name": "Swap Legends",
+      "skillId": -4,
+      "offset": 100
     },
     {
       "name": "Embrace the Darkness"
@@ -415,11 +424,13 @@
     },
     {
       "name": "Razorclaw's Rage",
-      "skillId": 42949
+      "skillId": 42949,
+      "offset": 100
     },
     {
       "name": "Swap Legends",
-      "skillId": -4
+      "skillId": -4,
+      "offset": 100
     },
     {
       "name": "Embrace the Darkness",
@@ -583,11 +594,13 @@
     },
     {
       "name": "Razorclaw's Rage",
-      "skillId": 42949
+      "skillId": 42949,
+      "offset": 200
     },
     {
       "name": "Swap Legends",
-      "skillId": -4
+      "skillId": -4,
+      "offset": 100
     },
     {
       "name": "Embrace the Darkness",
@@ -674,32 +687,25 @@
       "skillId": -4
     },
     {
-      "name": "Citadel Bombardment",
-      "skillId": 42836
-    },
-    {
       "name": "Icerazor's Ire",
       "skillId": 40485
+    },
+    {
+      "name": "Citadel Bombardment",
+      "skillId": 42836
     },
     {
       "name": "Bloodbane Path",
       "skillId": 40175
     },
     {
+      "name": "Shattershot",
+      "skillId": 40497
+    },
+    {
       "name": "Razorclaw's Rage",
-      "skillId": 42949
-    },
-    {
-      "name": "Shattershot",
-      "skillId": 40497
-    },
-    {
-      "name": "Shattershot",
-      "skillId": 40497
-    },
-    {
-      "name": "Shattershot",
-      "skillId": 40497
+      "skillId": 42949,
+      "offset": 100
     }
   ]
 }

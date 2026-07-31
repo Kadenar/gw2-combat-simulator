@@ -54,7 +54,7 @@
         "label": "Condition",
         "build": "Builds/necromancer/b-condi-harbinger.json",
         "rotation": "Rotations/necromancer/r-condi-harbinger-bench.json",
-        "benchmarkDps": 45192
+        "benchmarkDps": 45492
       }
     ]
   }

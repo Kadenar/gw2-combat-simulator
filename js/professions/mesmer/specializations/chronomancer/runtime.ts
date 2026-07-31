@@ -43,6 +43,11 @@ export function initializeChronomancerRuntime(
   for (const id of MESMER_CHRONOMANCER_PEITHA_SKILLS) {
     runtime.peithaSkills.add(id);
   }
+  for (const skill of context.catalog.skills) {
+    if (context.maximumAmmoFor(skill) > 0) {
+      context.cooldownController.ensureAmmo(skill, 0);
+    }
+  }
   runtime.continuum = createContinuumController({
     state: context.state,
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,

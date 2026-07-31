@@ -119,10 +119,10 @@
       "name": "Blood Is Power"
     },
     {
-      "name": "Elixir of Promise"
+      "name": "Plague Signet"
     },
     {
-      "name": "Plague Signet"
+      "name": "Elixir of Promise"
     },
     {
       "name": "Vile Blast"
@@ -235,10 +235,10 @@
       "name": "Elixir of Risk"
     },
     {
-      "name": "Blood Is Power"
+      "name": "Elixir of Promise"
     },
     {
-      "name": "Elixir of Promise"
+      "name": "Blood Is Power"
     },
     {
       "name": "Plague Signet"
@@ -338,6 +338,9 @@
       "name": "Harrowing Wave"
     },
     {
+      "name": "Oppressive Collapse"
+    },
+    {
       "name": "Blood Is Power"
     },
     {
@@ -348,9 +351,6 @@
     },
     {
       "name": "Plague Signet"
-    },
-    {
-      "name": "Oppressive Collapse"
     },
     {
       "name": "Weeping Shots"
@@ -439,7 +439,10 @@
       "name": "Devouring Darkness"
     },
     {
-      "name": "Grasping Dead"
+      "name": "Blood Is Power"
+    },
+    {
+      "name": "Plague Signet"
     },
     {
       "name": "Swap Weapons"
@@ -448,22 +451,16 @@
       "name": "Vile Blast"
     },
     {
-      "name": "Blood Is Power"
-    },
-    {
-      "name": "Plague Signet"
+      "name": "Harrowing Wave"
     },
     {
       "name": "Weeping Shots"
     },
     {
-      "name": "Harrowing Wave"
+      "name": "Elixir of Promise"
     },
     {
       "name": "Oppressive Collapse"
-    },
-    {
-      "name": "Elixir of Promise"
     }
   ]
 }

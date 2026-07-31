@@ -597,7 +597,7 @@
         {
           "__order": 2,
           "activationId": "cast:1",
-          "at": 2.751,
+          "at": 2.96,
           "complete": true,
           "count": 1,
           "name": "Phantasmal Duelist",
@@ -611,7 +611,7 @@
           "__order": 13,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.751,
+          "at": 2.96,
           "blade": false,
           "coefficient": 0.115,
           "hitIndex": 1,
@@ -632,7 +632,7 @@
           "__order": 21,
           "activationId": "cast:1",
           "actorType": "summon",
-          "at": 2.751,
+          "at": 2.96,
           "condition": "Bleeding",
           "duration": 4,
           "name": "Phantasmal Duelist — Bleeding",
@@ -647,7 +647,7 @@
         {
           "__order": 34,
           "amount": 1,
-          "at": 3.3341000000000003,
+          "at": 3.4401,
           "created": [],
           "reason": "Phantasmal Duelist phantasm conversion",
           "resource": "blades",
@@ -1388,7 +1388,7 @@
           "__order": 13,
           "activationId": "cast:1",
           "actorType": "phantasm",
-          "at": 2.751,
+          "at": 2.96,
           "blade": false,
           "coefficient": 0.115,
           "criticalChance": 0.6214285714285714,
@@ -1413,30 +1413,30 @@
         {
           "__order": 21,
           "activationId": "cast:1",
-          "activeDuration": 2.8090000000000006,
+          "activeDuration": 2.6000000000000005,
           "actorType": "summon",
-          "at": 2.751,
+          "at": 2.96,
           "condition": "Bleeding",
           "damageTicks": [
             {
-              "at": 3.751,
+              "at": 3.96,
               "fraction": 1
             },
             {
-              "at": 4.7509999999999994,
+              "at": 4.96,
               "fraction": 1
             },
             {
               "at": 5.5600000000000005,
-              "fraction": 0.8090000000000006
+              "fraction": 0.6000000000000005
             }
           ],
-          "damagingStackSeconds": 2.8090000000000006,
+          "damagingStackSeconds": 2.6000000000000005,
           "duration": 4,
           "effectiveDuration": 5.333333333333333,
           "expiresAt": 5.5600000000000005,
           "name": "Phantasmal Duelist — Bleeding",
-          "naturalExpiresAt": 8.084333333333333,
+          "naturalExpiresAt": 8.293333333333333,
           "schemaVersion": 1,
           "skillId": null,
           "skillName": "Phantasmal Duelist",
@@ -1466,8 +1466,8 @@
       "warnings": []
     },
     "damage": {
-      "conditionDamage": 8356.996875,
-      "dps": 3951.564063150157,
+      "conditionDamage": 8315.5234375,
+      "dps": 3943.603710463017,
       "events": [
         {},
         {},
@@ -1736,7 +1736,7 @@
           "damage": 1026.4736408166705
         },
         {
-          "damage": 557.4109375000002,
+          "damage": 515.9375000000001,
           "damageTicks": [
             {
               "damage": 198.4375
@@ -1745,7 +1745,7 @@
               "damage": 198.4375
             },
             {
-              "damage": 160.53593750000013
+              "damage": 119.0625000000001
             }
           ]
         }
@@ -1755,7 +1755,7 @@
         {}
       ],
       "strikeDamage": 12230.65189401232,
-      "totalDamage": 20587.64876901232
+      "totalDamage": 20546.17533151232
     }
   }
 }

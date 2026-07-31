@@ -195,21 +195,21 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
 
 test('measured phantasm endpoints match the supplied cast, damage, and spawn table', () => {
     const expected = {
-        [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 4200, 4960],
-        [ID.PHANTASMAL_BERSERKER]: [560, 1480, 2560, 4680, 5920],
-        [ID.PHANTASMAL_DEFENDER]: [770, 3800, 4510, 8800, 9520],
-        [ID.PHANTASMAL_DISENCHANTER]: [760, 1150, 1840, 4040, 4720],
-        [ID.PHANTASMAL_DUELIST]: [560, 2751, 3334, 6440, 7040],
-        [ID.PHANTASMAL_MAGE]: [800, 2270, 2520, 5320, 5560],
+        [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 2950, 3710],
+        [ID.PHANTASMAL_BERSERKER]: [560, 1480, 2560, 3430, 4670],
+        [ID.PHANTASMAL_DEFENDER]: [780, 3800, 4510, 7550, 8270],
+        [ID.PHANTASMAL_DISENCHANTER]: [760, 1150, 1840, 3240, 3930],
+        [ID.PHANTASMAL_DUELIST]: [560, 2400, 2880, 5190, 5790],
+        [ID.PHANTASMAL_MAGE]: [800, 2270, 2520, 4070, 4310],
         [ID.PHANTASMAL_SWORDSMAN]: [
             880,
-            3159,
-            4284,
-            7120,
-            8270,
+            2279,
+            3600,
+            5870,
+            7020,
         ],
-        [ID.PHANTASMAL_WARDEN]: [460, 5040, 7240, 13200, 15320],
-        [ID.PHANTASMAL_WARLOCK]: [780, 2960, 4240, 8560, 9840],
+        [ID.PHANTASMAL_WARDEN]: [460, 5040, 7240, 11950, 14070],
+        [ID.PHANTASMAL_WARLOCK]: [780, 2960, 4240, 7310, 8590],
     };
 
     for (const [skillId, values] of Object.entries(expected)) {
@@ -562,7 +562,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
         'Ether Clone': 0.75,
         Counterspell: 0.1,
         'Confusing Images': 5.32,
-        'Gravity Well': 3.2,
+        'Gravity Well': 5.4,
         'Mind Slash': 1,
         'Mind Gash': 1,
         'Blurred Frenzy': 3.6,
@@ -653,8 +653,8 @@ test('supplied shatter and instrument coefficient tables are preserved', () => {
         [ID.CRY_OF_FRUSTRATION]: [0.42, 0.84, 1.25, 1.67],
         [ID.DIVERSION]: [0, 0, 0, 0],
         [ID.DISTORTION]: [0, 0, 0, 0],
-        [ID.SPLIT_SECOND]: [1.534, 3.22, 3.86, 4.51],
-        [ID.REWINDER]: [0.42, 0.84, 1.25, 1.67],
+        [ID.SPLIT_SECOND]: [1.53, 3.07, 3.68, 4.3],
+        [ID.REWINDER]: [0.38, 0.76, 1.14, 1.52],
         [ID.TIME_SINK]: [0, 0, 0, 0],
         [ID.BLADESONG_HARMONY]: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
         [ID.BLADESONG_SORROW]: [0, 0.42, 0.84, 1.25, 1.67, 2.09],

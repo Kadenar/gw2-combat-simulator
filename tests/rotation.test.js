@@ -575,7 +575,7 @@ test('the supplied condition Virtuoso build uses the profession-mechanic midpoin
     });
 
     assert.equal(result.warnings.length, 0);
-    assert.ok(Math.abs(result.dps - 40155.29093362511) < 1e-6);
+    assert.ok(Math.abs(result.dps - 40134.37928219095) < 1e-6);
 });
 
 test('Phantasmal Swordsman independently gates its summon and player hit', () => {
@@ -739,12 +739,12 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
 
     assert.equal(normalConversions.length, 1);
     assert.equal(normalConversions[0].amount, 2);
-    assert.ok(Math.abs(normalConversions[0].at - 4.2401) < 0.00001);
+    assert.ok(Math.abs(normalConversions[0].at - 5.1201) < 0.00001);
     assert.equal(chronoConversions.length, 1);
     assert.equal(chronoConversions[0].amount, 2);
-    assert.ok(Math.abs(proc.at - 4.24) < 0.00001);
-    assert.ok(Math.abs(repeat.at - 8.56) < 0.00001);
-    assert.ok(Math.abs(chronoConversions[0].at - 9.8401) < 0.00001);
+    assert.ok(Math.abs(proc.at - 5.12) < 0.00001);
+    assert.ok(Math.abs(repeat.at - 8.19) < 0.00001);
+    assert.ok(Math.abs(chronoConversions[0].at - 9.4701) < 0.00001);
 
     const normalDamage = normal.resolvedEvents.filter(event =>
         event.type === 'damage' && event.name === 'Phantasmal Warlock');
@@ -857,7 +857,7 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
 
     assert.deepEqual(
         triggers.map(event => Number(event.at.toFixed(4))),
-        [0.78, 4.24, 9.8401],
+        [0.88, 5.12, 9.4701],
     );
 });
 
@@ -936,7 +936,7 @@ test('Winds of Chaos uses its measured 760ms Quickness cast time', () => {
     assert.equal(result.steps[0].end - result.steps[0].start, 760);
 });
 
-test('Phantasmal Warlock uses its measured 780ms Quickness cast time', () => {
+test('Phantasmal Warlock uses its measured 880ms Quickness cast time', () => {
     const result = simulateMesmer(
         ['Phantasmal Warlock'],
         defaultSimulationConfig({
@@ -946,7 +946,7 @@ test('Phantasmal Warlock uses its measured 780ms Quickness cast time', () => {
         }),
     );
 
-    assert.equal(result.steps[0].end - result.steps[0].start, 780);
+    assert.equal(result.steps[0].end - result.steps[0].start, 880);
 });
 
 test('corrected Mesmer skills use their measured Quickness cast times', () => {
@@ -1169,11 +1169,11 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
     );
 
     assert.equal(normalConversion.amount, 1);
-    assert.ok(Math.abs(normalConversion.at - 3.3341) < 0.00001);
-    assert.ok(Math.abs(resummon.at - 3.334) < 0.00001);
-    assert.ok(Math.abs(repeat.at - 6.44) < 0.00001);
+    assert.ok(Math.abs(normalConversion.at - 3.4401) < 0.00001);
+    assert.ok(Math.abs(resummon.at - 3.44) < 0.00001);
+    assert.ok(Math.abs(repeat.at - 5.75) < 0.00001);
     assert.equal(chronoConversion.amount, 1);
-    assert.ok(Math.abs(chronoConversion.at - 7.0401) < 0.00001);
+    assert.ok(Math.abs(chronoConversion.at - 6.3501) < 0.00001);
 });
 
 test('condition-bearing clone autoattacks apply their damaging conditions', () => {
@@ -1662,10 +1662,10 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
         Math.abs(event.at - 0.56) < 0.00001
         && event.description === 'PHANTASM SUMMONED Phantasmal Duelist x1'));
     assert.ok(log.some(event =>
-        Math.abs(event.at - 2.751) < 0.00001
+        Math.abs(event.at - 2.96) < 0.00001
         && event.description === 'PHANTASM DAMAGE COMPLETE Phantasmal Duelist x1'));
     assert.ok(log.some(event =>
-        Math.abs(event.at - 3.3341) < 0.00001
+        Math.abs(event.at - 3.4401) < 0.00001
         && event.description.includes('CLONE SPAWNED x1')
         && event.description.includes('Phantasmal Duelist phantasm conversion')));
     assert.match(simulationEventLogCsv(log), /Phantasmal Duelist phantasm conversion/);
@@ -2791,6 +2791,24 @@ test('Shatter Storm gives Split Second two ammo charges', () => {
     );
 });
 
+test('Shatter Storm initializes Split Second ammo before first cast', () => {
+    const result = simulateMesmer(
+        [],
+        defaultSimulationConfig({
+            specialization: 'Chronomancer',
+            selectedTraits: ['Shatter Storm'],
+            initialResource: 0,
+        }),
+    );
+    assert.deepEqual(
+        {
+            charges: result.endState.ammo['Split Second'].charges,
+            maximum: result.endState.ammo['Split Second'].maximum,
+        },
+        { charges: 2, maximum: 2 },
+    );
+});
+
 test('Power Spike opens with two charges and reverts to Mantra of Pain when spent', () => {
     const result = simulateMesmer(
         ['Power Spike', 'Power Spike', 'Power Spike'],
@@ -3796,7 +3814,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
     );
     assert.deepEqual(
         times('Phantasm'),
-        [1.351, 1.551, 1.75, 1.95, 2.151, 2.35, 2.55, 2.751],
+        [1.351, 1.551, 1.75, 1.95, 2.151, 2.35, 2.55, 2.96],
     );
     assert.ok(
         result.resolvedEvents
@@ -3970,8 +3988,8 @@ test('Bountiful Blades stocks each Berserker blade independently', () => {
     );
 
     assert.deepEqual(conversions.map(event => event.amount), [1, 1]);
-    assert.ok(Math.abs(conversions[0].at - 3.1201) < 0.00001);
-    assert.ok(Math.abs(conversions[1].at - 3.4401) < 0.00001);
+    assert.ok(Math.abs(conversions[0].at - 3.6801) < 0.00001);
+    assert.ok(Math.abs(conversions[1].at - 4.0001) < 0.00001);
 });
 
 test('Virtuoso cast-end blade spends retain timeline metadata', () => {
@@ -4100,7 +4118,7 @@ test('concurrent Continuum Split excludes the still-casting skill from its snaps
             secondaryWeapon: '',
         }),
     );
-    assert.equal(result.steps[0].end, 780);
+    assert.equal(result.steps[0].end, 880);
     assert.equal(result.steps[1].start, 100);
     assert.equal(result.steps[3].start, result.steps[2].end);
 });

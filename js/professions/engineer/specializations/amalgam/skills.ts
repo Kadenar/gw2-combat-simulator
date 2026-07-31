@@ -90,8 +90,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       castTimeMs: DEMOLISH_CAST_TIME_MS,
       quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
       cooldown: 20,
-      finisherType: "Blast",
-      finisherValue: 1,
       effects: [
         {
           type: "strike",
@@ -101,6 +99,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           intervalMs: 417,
           timingAnchor: "castStart",
           timingScale: "cast",
+          metadata: { finisherType: "Whirl", finisherValue: 1 },
           name: "Offensive Protocol: Demolish — Packet 1",
           actorType: "player",
         },
@@ -108,6 +107,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 2.25,
           hits: 1,
+          metadata: { finisherType: "Blast", finisherValue: 1 },
           name: "Smash Damage",
           actorType: "player",
         },
@@ -338,8 +338,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       castTimeMs: DEMOLISH_CAST_TIME_MS,
       quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
       cooldown: 20,
-      finisherType: "Blast",
-      finisherValue: 1,
       effects: [
         {
           type: "strike",
@@ -349,6 +347,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           intervalMs: 417,
           timingAnchor: "castStart",
           timingScale: "cast",
+          metadata: { finisherType: "Whirl", finisherValue: 1 },
           name: "Offensive Protocol: Demolish — Packet 1",
           actorType: "player",
         },
@@ -356,6 +355,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 2.25,
           hits: 1,
+          metadata: { finisherType: "Blast", finisherValue: 1 },
           name: "Smash Damage",
           actorType: "player",
         },
@@ -367,8 +367,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       castTimeMs: DEMOLISH_CAST_TIME_MS,
       quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
       cooldown: 20,
-      finisherType: "Blast",
-      finisherValue: 1,
       effects: [
         {
           type: "strike",
@@ -378,6 +376,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           intervalMs: 417,
           timingAnchor: "castStart",
           timingScale: "cast",
+          metadata: { finisherType: "Whirl", finisherValue: 1 },
           name: "Offensive Protocol: Demolish — Packet 1",
           actorType: "player",
         },
@@ -385,6 +384,7 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 2.25,
           hits: 1,
+          metadata: { finisherType: "Blast", finisherValue: 1 },
           name: "Smash Damage",
           actorType: "player",
         },
