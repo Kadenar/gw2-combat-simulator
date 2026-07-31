@@ -40,6 +40,21 @@ engine consumers load a profession without pulling in application rendering,
 storage, and modifier-contribution dependencies. Elementalist remains a
 standalone legacy application and does not use this native composition pattern.
 
+Necromancer's stable `definition.ts` re-exports `family.ts`. Its Core module is
+under `core/`; Reaper, Scourge, Harbinger, and Ritualist modules are under
+`specializations/<elite>/`. Each directory owns `module.ts`, `state.ts`,
+`skills.ts`, `handlers.ts`, `rules.ts`, and `ui.ts`. The family retains the
+full catalog for build editing, while simulation composes a smaller immutable
+catalog, state factory, handler registries, modifier-rule set, and UI contract
+for the active elite. `platform/engine/profession.ts` owns the generic
+family/module composition and collision validation.
+
+Revenant follows the same family boundary. `core/` owns common energy, legend,
+weapon, upkeep, and trait behavior; `specializations/herald`, `renegade`,
+`vindicator`, and `conduit` own complete elite vertical slices. The root
+catalog, handler, resolver, state, and UI modules are application compatibility
+facades, while simulation composes Core with only the active elite.
+
 ### Profession composition (`js/app/profession/`)
 
 [registry.js](js/app/profession/registry.js) is the single lazy manifest for
@@ -290,12 +305,16 @@ Every native profession uses the same files for shared concepts:
   metadata only.
 - `data/trait-coverage.js` — one validated, non-pending disposition per catalog
   trait, with structured behavioral test evidence for implemented effects.
-- `mechanics/skill-mechanics.js` — shared-schema declarative skill mechanics.
-- `mechanics/handler-mechanics.js` — optional profession-specific triggered
-  effect and state-machine formulas.
+- `mechanics/skill-mechanics.js` — shared-schema declarative skill mechanics
+  for legacy professions; a composition facade over module-owned `skills.js`
+  fragments for migrated families.
+- `mechanics/handler-mechanics.js` — optional legacy profession-wide triggered
+  effect and state-machine formulas. Migrated families use owner-local
+  `mechanics.js` files instead of a mixed runtime aggregate.
 - `catalog.js` — canonical autoattack-chain derivation plus any profession
   additions or exclusions.
-- `mechanics/handlers.js` — explicit augment/replace runtime strategies.
+- `mechanics/handlers.js` — explicit augment/replace runtime strategies for
+  legacy professions. Migrated modules own local handler registries.
 
 Each native `definition.js` is composed through
 `platform/engine/profession.js`. That module owns the complete UI callback

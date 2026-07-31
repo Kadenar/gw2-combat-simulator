@@ -1362,6 +1362,27 @@ header .accent {
     padding: 14px 16px 16px;
 }
 
+.skills-panel-left.skills-panel-split {
+    display: grid;
+    grid-template-columns: minmax(380px, 2fr) minmax(0, 3fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.skill-bar-column {
+    min-width: 0;
+}
+
+.weapon-bar-column .weapon-bar {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    margin-bottom: 0;
+}
+
+.equipped-skill-bar-column .skill-bar {
+    align-content: flex-start;
+}
+
 .skills-panel-right {
     min-width: 0;
     padding: 0 16px 8px;
@@ -1489,6 +1510,20 @@ header .accent {
     opacity: 1;
 }
 
+.weapon-chain-step {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.weapon-chain-arrow {
+    width: 11px;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1;
+    text-align: center;
+}
+
 .wslot-num {
     position: absolute;
     bottom: 0;
@@ -1540,6 +1575,48 @@ header .accent {
     flex-wrap: wrap;
     gap: 8px 14px;
     width: 100%;
+}
+
+.skill-bar-inspection.guardian-tomes {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
+    justify-content: center;
+    align-items: start;
+    gap: 8px 12px;
+}
+
+.guardian-tomes .guardian-tome-f-keys {
+    grid-column: 1 / -1;
+    justify-self: center;
+}
+
+.guardian-tomes .guardian-tome-chapters {
+    grid-row: 2;
+}
+
+.guardian-tomes .guardian-tome-chapters .sbar-icon {
+    width: 38px;
+    height: 38px;
+}
+
+.skill-bar-inspection.necromancer-shroud {
+    display: grid;
+    justify-content: center;
+    align-items: start;
+    gap: 8px;
+}
+
+.skill-bar-inspection.thief-shadow-shroud {
+    display: grid;
+    justify-content: center;
+    align-items: start;
+    gap: 8px;
+}
+
+.necromancer-shroud .necromancer-shroud-f-keys,
+.necromancer-shroud .necromancer-shroud-skills {
+    justify-self: center;
 }
 
 .skill-bar-inspection-group {
@@ -3838,6 +3915,11 @@ header .accent {
         grid-template-columns: 1fr;
     }
 
+    .skills-panel-left.skills-panel-split {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
     .gear-columns {
         grid-template-columns: 1fr;
     }
@@ -3881,7 +3963,7 @@ header .accent {
 
 .weapon-set-preview {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     min-height: 68px;
     padding: 5px 9px 5px 7px;
@@ -4085,6 +4167,73 @@ header .accent {
     height: 100%;
     background: var(--accent);
     box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.fixed-loadout-pairs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.fixed-loadout-pair {
+    display: grid;
+    min-width: 0;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: rgba(8, 8, 16, .45);
+}
+
+.fixed-loadout-pair .fixed-loadout-icon-options {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 2px;
+}
+
+.fixed-loadout-pair .fixed-loadout-bar {
+    display: grid;
+    grid-template-columns: repeat(5, max-content);
+    justify-content: start;
+}
+
+.fixed-loadout-skill-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.fixed-loadout-chain-step {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.fixed-loadout-chain-step .skill-bar-slot.child-skill .sbar-icon {
+    width: 30px;
+    height: 30px;
+    border-width: 1px;
+    opacity: .72;
+}
+
+.fixed-loadout-chain-step .skill-bar-slot.child-skill .sbar-icon:hover {
+    opacity: 1;
+}
+
+.fixed-loadout-bar-label {
+    grid-column: 1 / -1;
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+}
+
+.fixed-loadout-pair .fixed-loadout-bar .sbar-icon {
+    width: 48px;
+    height: 48px;
 }
 
 .active-resource-bar.endurance {
@@ -4742,6 +4891,10 @@ header .accent {
     .landing-info-grid,
     .technical-grid {
         grid-template-columns: 1fr;
+    }
+
+    .fixed-loadout-pairs {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .technical-card {

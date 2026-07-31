@@ -11,9 +11,7 @@ import {
   validateSimulationRandomnessAssumptions,
 } from "../../app/simulation/randomness.js";
 import { mesmerCatalog } from "./catalog.js";
-import {
-  resolveMesmerLegacySkillId,
-} from "./data/legacy-skill-resolver.js";
+import { resolveMesmerLegacySkillId } from "./data/legacy-skill-resolver.js";
 import type { SchedulerRecord } from "../../platform/engine/types.js";
 import type { MesmerCanonicalBuild } from "./types.js";
 
@@ -143,9 +141,7 @@ const mesmerBuildCodec = createGw2BuildCodec({
   normalizeExtra(build, { saved }) {
     return {
       ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(
-        build.assumptions,
-      ),
+      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
       initialResource: Math.max(
         0,
         Math.min(5, Number(saved.initialResource ?? 5) || 0),
@@ -155,8 +151,9 @@ const mesmerBuildCodec = createGw2BuildCodec({
   validateExtra(build) {
     const errors = validateSimulationRandomnessAssumptions(build.assumptions);
     if (
-      !(Number(build.initialResource) >= 0 &&
-        Number(build.initialResource) <= 5)
+      !(
+        Number(build.initialResource) >= 0 && Number(build.initialResource) <= 5
+      )
     ) {
       errors.push("initialResource must be between 0 and 5.");
     }

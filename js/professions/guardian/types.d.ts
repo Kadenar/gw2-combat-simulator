@@ -57,7 +57,7 @@ export interface GuardianLightField {
   readonly endsAt: number;
 }
 
-export interface GuardianState extends SchedulerRecord {
+export interface GuardianCoreState extends SchedulerRecord {
   justiceArmed: boolean;
   justiceActiveArmed: boolean;
   justiceHitCount: number;
@@ -65,8 +65,23 @@ export interface GuardianState extends SchedulerRecord {
   justiceActiveBurns: number;
   justicePassiveBurns: number;
   virtueReadyAt: Record<"justice" | "resolve" | "courage", number>;
+  lastVirtue: string;
+  lastVirtuePassiveWasReady: boolean;
   autoattackChains: Record<string, SkillId>;
   availableFlips: Record<string, number>;
+  symbolicAvengerStacks: number;
+  symbolicAvengerUntil: number;
+  zealotsResolutionReadyAt: number;
+  resolutionUntil: number;
+  righteousNextMightAt: number;
+  furiousFocusReadyAt: number;
+  spearIlluminatedArmed: boolean;
+  spearIlluminatedUntil: number;
+  spearLuminanceUntil: number;
+  daybreakingSlashChainStep: number;
+}
+
+export interface GuardianFirebrandState extends SchedulerRecord {
   activeTome: string;
   tomePages: number;
   maximumTomePages: number;
@@ -74,6 +89,16 @@ export interface GuardianState extends SchedulerRecord {
   nextTomePageAt: number;
   ashesCharges: number;
   ashesNextTriggerAt: number;
+  ashesExpiresAt: number;
+  nextCourageAegisAt: number;
+  swiftScholarTome: string;
+  swiftScholarCount: number;
+  liberatorsVowReadyAt: number;
+  stalwartSpeedReadyAt: number;
+  quickfireReadyAt: number;
+}
+
+export interface GuardianLuminaryState extends SchedulerRecord {
   radiantForge: boolean;
   radiantForgeEndsAt: number;
   radiantForgeEnteredAt: number;
@@ -83,21 +108,24 @@ export interface GuardianState extends SchedulerRecord {
   piercingStanceUntil: number;
   lightAuraUntil: number;
   lightFields: GuardianLightField[];
-  furiousFocusReadyAt: number;
   radiantJusticeArmed: boolean;
   radiantCourageSwordArmed: boolean;
   radiantCourageShieldArmed: boolean;
-  symbolicAvengerStacks: number;
-  symbolicAvengerUntil: number;
-  zealotsResolutionReadyAt: number;
-  resolutionUntil: number;
-  righteousNextMightAt: number;
   effulgentActiveUntil: number;
   effulgentStacks: number;
-  spearIlluminatedArmed: boolean;
-  spearIlluminatedUntil: number;
-  spearLuminanceUntil: number;
-  daybreakingSlashChainStep: number;
+}
+
+export interface GuardianState
+  extends GuardianCoreState, GuardianFirebrandState, GuardianLuminaryState {}
+
+export interface GuardianRuntimeState extends SchedulerRecord {
+  core: GuardianCoreState;
+  specialization:
+    | { kind: "Core"; state: Record<string, never> }
+    | { kind: "Dragonhunter"; state: Record<string, never> }
+    | { kind: "Firebrand"; state: GuardianFirebrandState }
+    | { kind: "Willbender"; state: Record<string, never> }
+    | { kind: "Luminary"; state: GuardianLuminaryState };
 }
 
 export type GuardianSchedulerContext = SchedulerContext<GuardianState> & {
@@ -163,6 +191,7 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly activeTome?: string;
   readonly ashesCharges?: number;
   readonly ashesNextTriggerAt?: number;
+  readonly ashesExpiresAt?: number;
   readonly automatic?: boolean;
   readonly isSymbol?: boolean;
   readonly nextTomePageAt?: number;

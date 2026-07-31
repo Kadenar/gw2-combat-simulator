@@ -4,6 +4,19 @@ The Revenant implementation uses the checked-in Guild Wars 2 API identity
 snapshot from July 28, 2026 plus manually reviewed PvE mechanics encoded in
 the profession modules.
 
+## Runtime architecture
+
+The stable definition exports a profession family. `core/` owns the
+always-active energy, legend, weapon, upkeep, trait, handler, state, rules, and
+UI behavior. `specializations/herald`, `renegade`, `vindicator`, and `conduit`
+each own a complete vertical module with their skill mechanics, state,
+handlers, formulas, rules, and UI additions.
+
+Simulation composes Core with only the selected elite module. Inactive elite
+skills, traits, handlers, tasks, event reactions, UI resources, and state are
+absent from that runtime. The root catalog, handler, resolver, state, and UI
+files remain application-facing compatibility facades.
+
 ## Implemented systems
 
 - Ten terrestrial weapon families, cooldowns, ammo, chains, and current damage,

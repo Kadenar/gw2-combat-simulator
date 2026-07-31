@@ -10,6 +10,9 @@ import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,
 } from "./data/ids.js";
+import {
+  spearChainStageForSkill,
+} from "./core/conditions.js";
 
 /**
  * Thief adapter for the shared simulator UI.
@@ -81,6 +84,24 @@ function skillBarGroups(context) {
         label: "Defensive Artifacts",
         skillIds: [...THIEF_ARTIFACT_IDS.DEFENSIVE],
         color: "#6f9cb8",
+      },
+    ];
+  }
+  if (specialization === "Specter") {
+    return [
+      {
+        id: "specter-f-keys",
+        label: "F Keys",
+        skillIds: professionIds(context),
+        color: "#9a535c",
+        layout: "thief-shadow-shroud",
+      },
+      {
+        id: "specter-shadow-shroud",
+        label: "Shadow Shroud",
+        skillIds: shadowShroudSkillIds(),
+        color: "#6b9988",
+        layout: "thief-shadow-shroud",
       },
     ];
   }
@@ -163,6 +184,16 @@ function thiefPaletteSkillAvailability(context = {}, skill) {
   const stealthed =
     Number(state.stealthUntil || 0) > Number(context.time || 0)
     && Number(state.revealedUntil || 0) <= Number(context.time || 0);
+  const spearChainStage = spearChainStageForSkill(skill.id);
+  if (
+    spearChainStage != null
+    && Number(state.spearChainStage || 0) !== spearChainStage
+  ) {
+    return {
+      available: false,
+      message: `Advance the spear chain to stage ${spearChainStage + 1}`,
+    };
+  }
   if (
     skill.dualWieldFollowup
     && !state.availableFlips?.[skill.id]

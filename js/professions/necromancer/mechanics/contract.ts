@@ -11,19 +11,19 @@ import {
 import {
   advanceNecromancerState,
   finalizeNecromancerCast,
-  gainNecromancerLifeForce,
-} from "./specific/handlers.js";
-import { transferNecromancerSelfConditions } from "./specific/conditions.js";
+} from "../core/life-force.js";
+import { gainNecromancerLifeForce } from "../core/shared.js";
+import { transferNecromancerSelfConditions } from "../core/conditions.js";
 import {
   addCarapace,
   emitBuff,
   emitCondition,
   emitDamage,
   hasTrait,
-} from "./specific/shared.js";
+} from "../core/shared.js";
 import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
-import { necromancerWeaponTaskHandlers } from "./specific/weapons.js";
-import { necromancerMinionTaskHandlers } from "./specific/minions.js";
+import { necromancerWeaponTaskHandlers } from "../core/weapons.js";
+import { necromancerMinionTaskHandlers } from "../core/minions.js";
 import {
   EXIT_IDS,
   necromancerCastAvailability,
@@ -38,33 +38,8 @@ import type {
 } from "../types.js";
 
 /**
- * Reduces every active Reaper shroud-skill cooldown by one second without
- * moving a cooldown before the triggering hit.
- *
- * @param {object} context Scheduler context.
- * @param {number} at Life Reap hit timestamp.
- * @returns {void}
- */
-function reduceReaperShroudCooldowns(
-  context: NecromancerSchedulerContext,
-  at: number,
-): void {
-  for (const candidate of context.catalog.skills || []) {
-    if (candidate.shroud !== "reaper") continue;
-    const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
-    if (!(readyAt > at + context.epsilon)) continue;
-    const reduced = Math.max(at, readyAt - 1);
-    if (reduced <= at + context.epsilon) {
-      context.state.cooldowns.delete(candidate.id);
-    } else {
-      context.state.cooldowns.set(candidate.id, reduced);
-    }
-  }
-}
-
-/**
- * Updates Reaper cooldown traits, autoattack chains, flip availability, and
- * completion-gated life-force traits for one cast.
+ * Updates autoattack chains, flip availability, and completion-gated Core
+ * life-force traits for one cast.
  *
  * @param {object} context Scheduler after-cast context.
  * @param {object} skill Completed or interrupted skill.
@@ -74,14 +49,6 @@ function updateNecromancerCastState(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): void {
-  if (skill.id === ID.LIFE_REAP && hasTrait(context, TRAIT.REAPERS_ONSLAUGHT)) {
-    // Life Reap lands halfway through its activation. Its hit still commits
-    // when the trailing aftercast is cancelled, as in the benchmark rotation.
-    const hitAt = context.start + (context.fullEnd - context.start) / 2;
-    if (context.effectiveEnd >= hitAt - context.epsilon) {
-      reduceReaperShroudCooldowns(context, hitAt);
-    }
-  }
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = context.state.profession;
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
@@ -137,23 +104,6 @@ function updateNecromancerCastState(
     );
     state.fearOfDeathReadyAt = context.effectiveEnd + 4;
   }
-  if (
-    hasTrait(context, TRAIT.CHILLING_VICTORY) &&
-    requiredShroud(skill) === "reaper" &&
-    isInternalCooldownReady(
-      context.effectiveEnd,
-      Number(state.traitProcReadyAt.chillingVictory || 0),
-    ) &&
-    context.config?.target?.conditions?.Chilled
-  ) {
-    gainNecromancerLifeForce(
-      context,
-      1,
-      context.effectiveEnd,
-      "chilling-victory",
-    );
-    state.traitProcReadyAt.chillingVictory = context.effectiveEnd + 1;
-  }
 }
 
 /**
@@ -169,32 +119,6 @@ function afterCast(
   skill: NecromancerSkill,
 ): void {
   updateNecromancerCastState(context, skill);
-  if (skill.id === ID.DARK_BARRAGE && hasTrait(context, TRAIT.DEATHLY_HASTE)) {
-    context.emit({
-      type: "buff",
-      at: context.effectiveEnd,
-      source: "Trait",
-      sourceId: TRAIT.DEATHLY_HASTE,
-      actorType: "player",
-      skillId: skill.id,
-      skillName: skill.name,
-      kind: "quickness",
-      duration: 4,
-      stacks: 1,
-    });
-    context.emit({
-      type: "buff",
-      at: context.effectiveEnd,
-      source: "Trait",
-      sourceId: TRAIT.DEATHLY_HASTE,
-      actorType: "player",
-      skillId: skill.id,
-      skillName: skill.name,
-      kind: "fury",
-      duration: 4,
-      stacks: 1,
-    });
-  }
   const state = context.state.profession;
   if (
     skill.type === "Heal" &&
@@ -217,24 +141,6 @@ function afterCast(
       skillWeapon: "Unequipped",
       metadata: {
         flatStrikeBase: 1413,
-        noCrit: true,
-        damageKind: "life-steal",
-      },
-    });
-  }
-  if (
-    skill.categories?.includes("Shout") &&
-    hasTrait(context, TRAIT.AUGURY_OF_DEATH)
-  ) {
-    emitDamage(context, skill, 0, {
-      name: "Augury of Death",
-      source: "Trait",
-      sourceId: TRAIT.AUGURY_OF_DEATH,
-      actorType: "effect",
-      skillWeapon: "Unequipped",
-      metadata: {
-        flatStrikeBase: 276,
-        flatStrikePowerCoeff: 0.02,
         noCrit: true,
         damageKind: "life-steal",
       },
@@ -289,8 +195,7 @@ function afterCast(
 }
 
 /**
- * Reacts to newly scheduled Burning, boon, and player-damage events for
- * Nourishing Ashes, Blighter's Boon, and Plague Sending.
+ * Reacts to newly scheduled player-damage events for Plague Sending.
  *
  * @param {object} context Scheduler event-observer context.
  * @param {object} event Newly scheduled event.
@@ -309,14 +214,6 @@ function onEventScheduled(
   ) {
     state.traitProcReadyAt.nourishingAshes = event.at + 3;
     gainNecromancerLifeForce(context, 5, event.at, "nourishing-ashes");
-  }
-  if (
-    event.type === "buff" &&
-    event.actorType === "player" &&
-    event.kind !== "target-vulnerability" &&
-    hasTrait(context, TRAIT.BLIGHTERS_BOON)
-  ) {
-    gainNecromancerLifeForce(context, 1, event.at, "blighters-boon");
   }
   if (
     !state.plagueSendingArmed ||
@@ -346,11 +243,8 @@ function onEventScheduled(
 
 /**
  * Resets Gravedigger when its completed strike lands after the target crossed
- * the below-half-health threshold.
- *
- * @param {object} context Scheduler cast-completion context.
- * @param {object} skill Completed skill.
- * @returns {void}
+ * the below-half-health threshold. This remains Core because Weaponmaster
+ * Training makes greatsword available to every specialization.
  */
 function onCastComplete(
   context: NecromancerCastContext,
@@ -360,11 +254,7 @@ function onCastComplete(
   const schedulerFeedback = context.config._schedulerFeedback as
     | { readonly targetBelowHalfAt?: number }
     | undefined;
-  const targetBelowHalfAt = Number(
-    schedulerFeedback?.targetBelowHalfAt,
-  );
-  // The threshold timestamp is the packet that pushed the target below 50%.
-  // Gravedigger must land after it, because its own hit checks pre-hit health.
+  const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
   if (
     Number.isFinite(targetBelowHalfAt) &&
     context.effectiveEnd > targetBelowHalfAt + context.epsilon

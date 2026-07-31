@@ -41,12 +41,12 @@ const LICH_SKILL_IDS: ReadonlySet<SkillId> = new Set([
   ID.EXIT_LICH_FORM,
 ]);
 const SHROUD_FOR_SPECIALIZATION: Readonly<Record<string, string>> =
-Object.freeze({
-  Core: "death",
-  Reaper: "reaper",
-  Harbinger: "harbinger",
-  Ritualist: "ritualist",
-});
+  Object.freeze({
+    Core: "death",
+    Reaper: "reaper",
+    Harbinger: "harbinger",
+    Ritualist: "ritualist",
+  });
 const INNERVATE_SPIRIT: ReadonlyMap<SkillId, string> = new Map([
   [ID.INNERVATE_ANGUISH, "anguish"],
   [ID.INNERVATE_WANDERLUST, "wanderlust"],
@@ -174,9 +174,10 @@ function shroudExitGate(
   { state, activeShroud }: AvailabilityEnvironment,
 ): AvailabilityVerdict {
   if (!EXIT_IDS.has(skill.id)) return null;
-  const parent = skill.flipParentId == null
-    ? undefined
-    : context.catalog.skillsById.get(skill.flipParentId);
+  const parent =
+    skill.flipParentId == null
+      ? undefined
+      : context.catalog.skillsById.get(skill.flipParentId);
   const parentShroud = parent
     ? ENTRY_SHROUD_BY_ID[parent.id] || requiredShroud(parent)
     : "";
@@ -244,11 +245,7 @@ function spiritGate(
   if (!spirit) return null;
   return Boolean(state.activeSpirits?.[spirit])
     ? READY
-    : deny(
-        skill,
-        "necromancer.spirit",
-        `requires an active ${spirit} spirit.`,
-      );
+    : deny(skill, "necromancer.spirit", `requires an active ${spirit} spirit.`);
 }
 
 function activeMinionGate(
@@ -276,19 +273,15 @@ function selectedSlotSkillGate(
   skill: NecromancerSkill,
 ): AvailabilityVerdict {
   if (
-    !["Heal", "Utility", "Elite"].includes(String(skill.type || ""))
-    || skill.flipParentId != null
+    !["Heal", "Utility", "Elite"].includes(String(skill.type || "")) ||
+    skill.flipParentId != null
   ) {
     return null;
   }
   const source = context.config?.selectedSkills || [];
   const selected = Array.isArray(source) ? source : Object.values(source);
   if (!selected.length || selected.includes(skill.name)) return null;
-  return deny(
-    skill,
-    "necromancer.slot-skill",
-    "the skill is not equipped.",
-  );
+  return deny(skill, "necromancer.slot-skill", "the skill is not equipped.");
 }
 
 // Terminal gate for ordinary out-of-shroud skills. Always yields a verdict.

@@ -344,6 +344,9 @@ test("the generic landing page and profession simulators have separate entries",
       assert.match(source, new RegExp(`data-profession="${entry.id}"`));
       assert.match(source, /js\/app\/app\.js/);
       assert.match(source, /id="rotation-warnings"/);
+      assert.match(source, /skills-panel-left skills-panel-split/);
+      assert.match(source, /skill-bar-column weapon-bar-column/);
+      assert.match(source, /skill-bar-column equipped-skill-bar-column/);
       assert.doesNotMatch(source, /id="skill-info-table"/);
       assert.doesNotMatch(source, /selected-skills-panel/);
     }

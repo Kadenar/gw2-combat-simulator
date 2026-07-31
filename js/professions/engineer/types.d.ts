@@ -91,10 +91,29 @@ export interface EngineerComboField extends SchedulerRecord {
   readonly skillName?: string;
 }
 
-export interface EngineerState extends SchedulerRecord {
+export interface EngineerCoreState extends SchedulerRecord {
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
+  activeKit: string;
+  fireProjectileFinisherProgress: number;
+  completedBlastFinisherActivations: Record<string, boolean>;
+  activeComboFields: EngineerComboField[];
+  availableFlips: Record<string, boolean>;
+  autoattackChains: Record<string, SkillId>;
+  focusedUntil: number;
+  lightningRodActivationId: string;
+  lightningRodChargeExpiries: number[];
+  electricArtilleryAvailable: boolean;
+  electricArtilleryReadyAt: number;
+  electricArtilleryExpiresAt: number;
+  kineticCharges: number;
+  traitProcReadyAt: Record<string, number | boolean>;
+}
+
+export interface ScrapperState extends SchedulerRecord {}
+
+export interface HolosmithState extends SchedulerRecord {
   heat: number;
   maximumHeat: number;
   heatUpdatedAt: number;
@@ -106,21 +125,15 @@ export interface EngineerState extends SchedulerRecord {
   solarFocusingLensUntil: number;
   enhancedCapacityMightReadyAt: number | null;
   kitLockoutUntil: number;
-  activeKit: string;
-  fireProjectileFinisherProgress: number;
-  completedBlastFinisherActivations: Record<string, boolean>;
-  activeComboFields: EngineerComboField[];
-  availableFlips: Record<string, boolean>;
-  autoattackChains: Record<string, SkillId>;
+}
+
+export interface MechanistState extends SchedulerRecord {
   mech: EngineerMechState;
+}
+
+export interface AmalgamState extends SchedulerRecord {
   selectedMorphSkillIds: number[];
   evolvedUntil: number;
-  focusedUntil: number;
-  lightningRodActivationId: string;
-  lightningRodChargeExpiries: number[];
-  electricArtilleryAvailable: boolean;
-  electricArtilleryReadyAt: number;
-  electricArtilleryExpiresAt: number;
   willingHostUntil: number;
   plasmaticStateUntil: number;
   plasmaticLockoutUntil: number;
@@ -130,8 +143,24 @@ export interface EngineerState extends SchedulerRecord {
   titanicUntil: number;
   berserkerUntil: number;
   activeStances: Record<string, number | boolean>;
-  kineticCharges: number;
-  traitProcReadyAt: Record<string, number | boolean>;
+}
+
+export interface EngineerState
+  extends
+    EngineerCoreState,
+    ScrapperState,
+    HolosmithState,
+    MechanistState,
+    AmalgamState {}
+
+export interface EngineerRuntimeState extends SchedulerRecord {
+  core: EngineerCoreState;
+  specialization:
+    | { kind: "Core"; state: Record<string, never> }
+    | { kind: "Scrapper"; state: ScrapperState }
+    | { kind: "Holosmith"; state: HolosmithState }
+    | { kind: "Mechanist"; state: MechanistState }
+    | { kind: "Amalgam"; state: AmalgamState };
 }
 
 export interface EngineerSkill extends Skill {
@@ -185,6 +214,7 @@ export type EngineerSimulationEvent = SimulationEvent & {
   readonly enhancedCapacityTier?: boolean;
   readonly engineerMech?: boolean;
   readonly expiresAt?: number;
+  readonly extraBlades?: number;
   readonly fieldType?: string;
   readonly finisherType?: string;
   readonly finisherValue?: number;
@@ -214,6 +244,7 @@ export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly enhancedCapacityTier?: boolean;
   readonly explosion?: boolean;
   readonly expiresAt?: number;
+  readonly extraBlades?: number;
   readonly fieldType?: string;
   readonly finisherType?: string;
   readonly finisherValue?: number;

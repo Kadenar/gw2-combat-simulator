@@ -1,6 +1,4 @@
-import {
-  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-} from "../../app/simulation/randomness.js";
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../app/simulation/randomness.js";
 import { MECHANIC_SKILLS } from "./mechanics/skill-mechanics.js";
 import {
   isMesmerBuildSkillAvailable,
@@ -11,6 +9,7 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
+  ProfessionSkillBarGroup,
   ProfessionUiContract,
   SchedulerRecord,
   Skill,
@@ -65,6 +64,27 @@ export function mesmerPaletteGroups(
   ];
 }
 
+export function mesmerSkillBarGroups(
+  context: MesmerUiContext = {},
+): ProfessionSkillBarGroup[] {
+  const specialization =
+    context.specialization || context.config?.specialization || "Core";
+  const label =
+    specialization === "Virtuoso"
+      ? "Bladesongs"
+      : specialization === "Troubadour"
+        ? "Instruments"
+        : "Shatters";
+  return [
+    {
+      id: `mesmer-${label.toLowerCase()}`,
+      label,
+      skillIds: [...(MECHANIC_SKILLS[specialization] || MECHANIC_SKILLS.Core)],
+      color: "#9b73c7",
+    },
+  ];
+}
+
 export function mesmerResourceView(
   context: MesmerUiContext = {},
 ): ProfessionResourceView {
@@ -87,10 +107,7 @@ export function mesmerResourceView(
 }
 
 const MESMER_EVENT_ROWS: Readonly<
-  Record<
-    string,
-    (event: MesmerResolverEvent) => ProfessionEventLogDescriptor
-  >
+  Record<string, (event: MesmerResolverEvent) => ProfessionEventLogDescriptor>
 > = Object.freeze({
   "mesmer.phantasm-summoned": (event) => ({
     type: event.type,
@@ -161,8 +178,7 @@ export function isMesmerPaletteSkillAvailable(
     return false;
   }
   return (
-    Number(state.resource ?? Infinity) >=
-    mesmerMinimumResource(mesmerSkill)
+    Number(state.resource ?? Infinity) >= mesmerMinimumResource(mesmerSkill)
   );
 }
 
@@ -201,12 +217,11 @@ export function mesmerPaletteSkillUnavailableMessage(
 
 export const mesmerUi: Partial<ProfessionUiContract> & SchedulerRecord =
   Object.freeze({
-  assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-  eventLogRow: mesmerEventLogRow,
-  paletteGroups: mesmerPaletteGroups,
-  isPaletteSkillAvailable: isMesmerPaletteSkillAvailable,
-  paletteSkillUnavailableMessage: mesmerPaletteSkillUnavailableMessage,
-  resourceViews: (context: MesmerUiContext) => [
-    mesmerResourceView(context),
-  ],
-});
+    assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+    eventLogRow: mesmerEventLogRow,
+    paletteGroups: mesmerPaletteGroups,
+    skillBarGroups: mesmerSkillBarGroups,
+    isPaletteSkillAvailable: isMesmerPaletteSkillAvailable,
+    paletteSkillUnavailableMessage: mesmerPaletteSkillUnavailableMessage,
+    resourceViews: (context: MesmerUiContext) => [mesmerResourceView(context)],
+  });

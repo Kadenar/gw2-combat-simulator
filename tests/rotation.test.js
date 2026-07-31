@@ -220,7 +220,7 @@ test('Flow of Time increases clone critical chance while alacrity is active', ()
     const result = simulateMesmer(
         ['Phase Retreat', { name: '__wait', waitMs: 2600 }],
         defaultSimulationConfig({
-            specialization: 'Core',
+            specialization: 'Chronomancer',
             selectedTraits: ['Flow of Time'],
             primaryWeapon: 'Staff',
             secondaryWeapon: '',

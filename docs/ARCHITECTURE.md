@@ -80,18 +80,25 @@ Every native profession uses the same module roles:
   behavioral evidence or an explicit out-of-model reason.
 - `data/traits-data.js` is the only module that exports the flattened runtime
   `TRAITS` collection; it derives that view from specialization metadata.
-- `mechanics/skill-mechanics.js` is the authoritative ID-keyed source for
-  shared declarative skill and effect fields.
-- `mechanics/handler-mechanics.js`, when needed, owns profession-specific
-  formulas for triggered effects and state machines without widening the
-  shared skill schema.
+- Legacy professions keep authoritative ID-keyed declarative skill fields in
+  `mechanics/skill-mechanics.js`. Migrated families move those declarations
+  into Core/specialization `skills.js`; the root file only normalizes and
+  composes the complete application catalog.
+- Legacy `mechanics/handler-mechanics.js` files may own profession-specific
+  formulas for triggered effects and state machines. Migrated families keep
+  those formulas in owner-local `mechanics.js` files and avoid a mixed runtime
+  aggregate.
 - `catalog.js` derives and indexes autoattack chains, with profession-specific
   additions or exclusions supplied as catalog options.
 - `handlers.js`, when needed, registers explicit `augment` or `replace`
   strategies for behavior that cannot be represented by declarative effects.
+  Migrated runtime modules use their local registry; a root registry is an
+  application-catalog facade only.
 
 Profession-specific state machines remain in named feature modules beside
 these boundaries. Skill entries reference those handlers explicitly.
+The repeatable migration requirements are defined in
+`docs/SPECIALIZATION-MODULE-MIGRATION.md`.
 
 ## Profession contract
 
@@ -146,6 +153,28 @@ hooks return their input, and other hooks are no-ops. Scheduler hooks and
 resolver event reactions accept
 `{ id, order, handler }`; lower order runs first and declaration order breaks
 ties deterministically.
+
+Migrated professions use `defineProfessionFamily()` and
+`defineProfessionModule()`. A family keeps the complete application-facing
+catalog, build codec, and UI surface. `resolveRuntime(config)` returns a cached
+normalized contract containing Core plus only the selected elite module.
+`simulateGw2()`, the direct scheduler, and the direct resolver normalize family
+sources before constructing runtime state. Legacy `defineProfession()`
+contracts pass through unchanged.
+
+Module composition rejects duplicate hook IDs, skill IDs, trait IDs,
+specialization IDs, task handlers, event handlers, skill handlers, and
+weapon-hand declarations. Runtime state is stored as
+`{ core, specialization: { kind, state } }`; the compatibility adapter exposes
+active flat fields to mechanics during migration without allocating sibling
+state. Missing or `Core` specialization selects Core alone; unknown elite names
+fail explicitly.
+
+Modules may contribute inert `attributeRules.modifierRules` declarations.
+Exactly one module supplies `compileModifierRules`; the family merges Core and
+active-specialization declarations and compiles them once. This preserves the
+single GW2 additive-damage bucket while excluding inactive specialization
+modifier declarations.
 
 `defineProfession()` validates every supported callback type and normalizes
 palette availability into one `{ available, message }` result. Compatibility
@@ -400,10 +429,17 @@ wrong-profession and future-version errors.
   API snapshot, API-omitted shroud/Lich/Ritualist supplements, life force,
   Reaper/Harbinger/Ritualist shrouds, Scourge shades, blight, minions,
   spirits, trait reactions, build validation, and a shared-shell application.
+  Its stable definition exports a profession family: runtime catalogs,
+  handlers, UI resources, and state contain Core plus at most one of Reaper,
+  Scourge, Harbinger, or Ritualist. Elite weapon skills remain in Core because
+  Weaponmaster Training makes them profession-wide.
 - `engineer`: native shared-engine implementation for kits, tool-belt skills,
   Photon Forge heat, Mechanist commands, and Amalgam morph state.
 - `revenant`: native shared-engine implementation for fixed legend bars,
   energy and upkeep, legend swaps, Vindicator dodges, and Conduit affinity.
+  Its stable definition exports a profession family: runtime catalogs,
+  handlers, hooks, UI resources, and state contain Core plus at most one of
+  Herald, Renegade, Vindicator, or Conduit.
 - `thief`: native shared-engine implementation for initiative, stealth and
   revealed state, stolen skills, malice, Shadow Shroud, and Antiquary
   artifacts.

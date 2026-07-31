@@ -270,6 +270,8 @@ export interface Skill extends CatalogSkill {
   readonly flipParentId?: SkillId | null;
   readonly flipSkillId?: SkillId | null;
   readonly nextChainId?: SkillId | null;
+  readonly weaponBarChainRootId?: SkillId | null;
+  readonly weaponBarChainStep?: number | null;
   readonly tags?: readonly string[];
   readonly categories?: readonly string[];
   readonly resource?: unknown;
@@ -680,6 +682,8 @@ export interface ProfessionSkillBarGroup extends SchedulerRecord {
   readonly selectionKey?: string;
   readonly selectionIndex?: number;
   readonly color?: string;
+  readonly className?: string;
+  readonly layout?: string;
 }
 
 export interface PaletteSkillAvailability {
@@ -825,6 +829,56 @@ export interface ProfessionDefinition<
   readonly eventReactions?: Readonly<Record<string, unknown>>;
 }
 
+export interface ProfessionModuleCatalogFragment {
+  readonly skills?: readonly Skill[];
+  readonly skillHandlers?:
+    | ReadonlyMap<string, unknown>
+    | Readonly<Record<string, unknown>>;
+  readonly traits?: readonly CatalogEntity[];
+  readonly specializations?: readonly CatalogEntity[];
+  readonly weapons?: readonly string[];
+  readonly weaponHands?:
+    | ReadonlyMap<string, string>
+    | Readonly<Record<string, string>>;
+  readonly autoattackChains?: {
+    readonly additional?: readonly (readonly SkillId[])[];
+    readonly excludeSkillIds?: readonly SkillId[];
+  };
+}
+
+export interface ProfessionModuleDefinition<
+  TProfessionState extends object = SchedulerRecord,
+> {
+  readonly id: string;
+  readonly catalog?: ProfessionModuleCatalogFragment;
+  readonly resources?: ProfessionResourceDefinition<TProfessionState>;
+  readonly attributeRules?: SchedulerRecord;
+  readonly castRules?: SchedulerRecord;
+  readonly schedulerHooks?: ProfessionSchedulerHookDefinition;
+  readonly resolverHooks?: ProfessionResolverHookDefinition;
+  readonly ui?: Partial<ProfessionUiContract> & SchedulerRecord;
+}
+
+export interface ComposedProfessionState<
+  TCoreState extends object = SchedulerRecord,
+  TSpecializationState extends object = SchedulerRecord,
+> {
+  readonly core: TCoreState;
+  readonly specialization: {
+    readonly kind: string;
+    readonly state: TSpecializationState;
+  };
+}
+
+export interface ProfessionFamilyDefinition<
+  TProfessionState extends object = SchedulerRecord,
+> extends ProfessionDefinition<TProfessionState> {
+  readonly core: ProfessionModuleDefinition<TProfessionState>;
+  readonly specializations: Readonly<
+    Record<string, ProfessionModuleDefinition<TProfessionState>>
+  >;
+}
+
 export interface NormalizedProfessionContract<
   TProfessionState extends object = SchedulerRecord,
 > {
@@ -958,6 +1012,20 @@ export interface NormalizedProfessionContract<
     context: SchedulerRecord,
   ) => ProfessionResourceView[];
 }
+
+export interface ProfessionFamilyContract<
+  TProfessionState extends object = SchedulerRecord,
+> extends NormalizedProfessionContract<TProfessionState> {
+  readonly resolveRuntime: (
+    config: Readonly<SchedulerConfig>,
+  ) => Readonly<NormalizedProfessionContract<TProfessionState>>;
+}
+
+export type ProfessionSource<
+  TProfessionState extends object = SchedulerRecord,
+> =
+  | NormalizedProfessionContract<TProfessionState>
+  | ProfessionFamilyContract<TProfessionState>;
 
 export interface CastCommand {
   readonly type: "cast";

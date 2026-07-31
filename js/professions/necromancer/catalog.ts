@@ -7,14 +7,13 @@ import {
   NECROMANCER_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
 import { NECROMANCER_SKILL_IDS } from "./data/ids.js";
-import { necromancerSkillHandlers } from "./mechanics/specific/handlers.js";
+import { necromancerSkillHandlers } from "./handlers.js";
 import type {
+  ProfessionModuleCatalogFragment,
   Skill,
   SkillId,
 } from "../../platform/engine/types.js";
-import type {
-  NecromancerSkill,
-} from "./types.js";
+import type { NecromancerSkill } from "./types.js";
 
 export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
   new Set([
@@ -32,8 +31,8 @@ export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
 
 const CANONICAL_ALIAS_ID_BY_NAME: Readonly<Record<string, SkillId>> =
   Object.freeze({
-  "Manifest Sand Shade": NECROMANCER_SKILL_IDS.MANIFEST_SAND_SHADE,
-});
+    "Manifest Sand Shade": NECROMANCER_SKILL_IDS.MANIFEST_SAND_SHADE,
+  });
 const STATIC_REPLACEMENT_PAIRS = new Set<string>([
   `${NECROMANCER_SKILL_IDS.LIFE_BLAST}:${NECROMANCER_SKILL_IDS.DHUUMFIRE_BLAST}`,
   `${NECROMANCER_SKILL_IDS.FEAST_OF_CORRUPTION}:${NECROMANCER_SKILL_IDS.DEVOURING_DARKNESS}`,
@@ -49,13 +48,15 @@ const UNSUPPORTED_SKILL_IDS = new Set<SkillId>([
 
 const allSkills: readonly Skill[] = Object.freeze(
   [...SKILLS, ...NECROMANCER_SUPPLEMENTAL_SKILLS]
-    .filter(skill => !UNSUPPORTED_SKILL_IDS.has(skill.id))
+    .filter((skill) => !UNSUPPORTED_SKILL_IDS.has(skill.id))
     .sort((left, right) => {
       const leftCanonical =
         CANONICAL_ALIAS_ID_BY_NAME[left.name] === left.id ? 0 : 1;
       const rightCanonical =
         CANONICAL_ALIAS_ID_BY_NAME[right.name] === right.id ? 0 : 1;
-      return leftCanonical - rightCanonical || Number(left.id) - Number(right.id);
+      return (
+        leftCanonical - rightCanonical || Number(left.id) - Number(right.id)
+      );
     }),
 );
 const generatedById = new Map<SkillId, Skill>(
@@ -100,8 +101,7 @@ const generated = allSkills.map((skill) => {
   };
 });
 
-export const necromancerCatalog =
-  createCanonicalCatalog({
+export const necromancerCatalog = createCanonicalCatalog({
   generated,
   mechanics: NECROMANCER_SKILL_MECHANICS,
   extraSkills: NECROMANCER_EXTRA_SKILLS,
@@ -148,6 +148,88 @@ export const necromancerCatalog =
     Torch: "oh",
     Warhorn: "oh",
   },
-  });
+});
 
 export const NECROMANCER_SKILLS = necromancerCatalog.skills;
+
+export const NECROMANCER_ELITE_SPECIALIZATIONS = Object.freeze([
+  "Reaper",
+  "Scourge",
+  "Harbinger",
+  "Ritualist",
+]);
+
+const eliteSpecializations = new Set(NECROMANCER_ELITE_SPECIALIZATIONS);
+const coreRuntimeSkills = necromancerCatalog.skills.filter(
+  (skill) =>
+    skill.simulatorAliasOfId == null &&
+    (skill.type === "Weapon" ||
+      !eliteSpecializations.has(String(skill.specialization || ""))),
+);
+const fragmentCache = new Map<string, ProfessionModuleCatalogFragment>();
+
+/**
+ * Returns the inert catalog slice owned by Core or one elite module. Elite
+ * weapon skills stay in Core because Weaponmaster Training makes them
+ * profession-wide; elite profession/slot skills remain module-local.
+ */
+export function necromancerModuleCatalog(
+  moduleId: string,
+): Readonly<ProfessionModuleCatalogFragment> {
+  const cached = fragmentCache.get(moduleId);
+  if (cached) return cached;
+  if (moduleId !== "Core" && !eliteSpecializations.has(moduleId)) {
+    throw new Error(`Unknown Necromancer catalog module ${moduleId}.`);
+  }
+  const core = moduleId === "Core";
+  const skills = core
+    ? coreRuntimeSkills
+    : necromancerCatalog.skills.filter(
+        (skill) =>
+          skill.simulatorAliasOfId == null &&
+          skill.type !== "Weapon" &&
+          skill.specialization === moduleId,
+      );
+  const traits = necromancerCatalog.traits.filter((trait) =>
+    core
+      ? !eliteSpecializations.has(String(trait.specialization || ""))
+      : trait.specialization === moduleId,
+  );
+  const specializations = necromancerCatalog.specializations.filter(
+    (specialization) =>
+      core ? !specialization.elite : specialization.name === moduleId,
+  );
+  const fragment: ProfessionModuleCatalogFragment = Object.freeze({
+    skills: Object.freeze([...skills]),
+    traits: Object.freeze([...traits]),
+    specializations: Object.freeze([...specializations]),
+    ...(core
+      ? {
+          weapons: Object.freeze([...necromancerCatalog.weapons]),
+          weaponHands: new Map(necromancerCatalog.weaponHands),
+          autoattackChains: {
+            additional: [
+              [
+                NECROMANCER_SKILL_IDS.ENERVATION_BLADE,
+                NECROMANCER_SKILL_IDS.ENERVATION_ECHO,
+              ],
+            ],
+          },
+        }
+      : moduleId === "Reaper"
+        ? {
+            autoattackChains: {
+              additional: [
+                [
+                  NECROMANCER_SKILL_IDS.LIFE_REND,
+                  NECROMANCER_SKILL_IDS.LIFE_SLASH,
+                  NECROMANCER_SKILL_IDS.LIFE_REAP,
+                ],
+              ],
+            },
+          }
+        : {}),
+  });
+  fragmentCache.set(moduleId, fragment);
+  return fragment;
+}

@@ -173,6 +173,15 @@ export function calculateCommonAttributes(
   const food = foodData[build.food || ""];
   addAttributes(food?.isConverted ? foodConverted : foodBuff, food?.stats);
   addAttributes(foodDurations, food?.durations);
+  for (const infusion of build.infusions || []) {
+    if (infusion?.stat && Number(infusion.count) > 0) {
+      addAttribute(
+        infusions,
+        infusion.stat,
+        Number(infusion.count) * infusionBonus,
+      );
+    }
+  }
 
   const conversionPool: Gw2NumericAttributes = {};
   const conversionPoolNoFood: Gw2NumericAttributes = {};
@@ -184,11 +193,13 @@ export function calculateCommonAttributes(
       (gear[stat] || 0) +
       (runes[stat] || 0) +
       (foodConverted[stat] || 0) +
+      (infusions[stat] || 0) +
       (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
     conversionPoolNoFood[stat] =
       (baseStats[stat] || 0) +
       (gear[stat] || 0) +
       (runes[stat] || 0) +
+      (infusions[stat] || 0) +
       (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
   }
   for (const conversion of utilityData[build.utility || ""] || []) {
@@ -235,16 +246,6 @@ export function calculateCommonAttributes(
     }
     sigilCriticalChance += Number(sigil.criticalChance || 0);
   }
-  for (const infusion of build.infusions || []) {
-    if (infusion?.stat && Number(infusion.count) > 0) {
-      addAttribute(
-        infusions,
-        infusion.stat,
-        Number(infusion.count) * infusionBonus,
-      );
-    }
-  }
-
   const attributes: Gw2AttributeMap = {};
   // First build primary attributes and their complete source attribution.
   for (const stat of PRIMARY_ATTRIBUTES) {

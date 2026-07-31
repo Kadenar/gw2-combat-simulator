@@ -566,7 +566,7 @@ test("Scrapper F skills follow selected skill-slot order", () => {
   assert.deepEqual(group.skillIds.map(id =>
     engineerCatalog.skillsById.get(id).name), expected);
   const core = simulate("Core", ["Function Gyro"]);
-  assert.match(core.warnings[0], /requires Scrapper/);
+  assert.match(core.warnings[0], /Unknown skill id Function Gyro/);
   const skillBarGroups = engineerProfession.ui.skillBarGroups(context);
   assert.deepEqual(skillBarGroups.map(candidate => candidate.label), [
     "F1",
@@ -619,6 +619,24 @@ test("Core and Mechanist skill bars expose their derived F skills", () => {
     "Barrier Burst",
     "Recall Mech",
   ]);
+
+  const holosmith = engineerProfession.ui.skillBarGroups({
+    specialization: "Holosmith",
+    build: { selectedSkills },
+    professionState: {},
+  });
+  assert.equal(holosmith.at(-1).label, "Photon Forge");
+  assert.deepEqual(
+    holosmith.at(-1).skillIds.map(id =>
+      engineerCatalog.skillsById.get(id).name),
+    [
+      "Light Strike",
+      "Holo Leap",
+      "Corona Burst",
+      "Photon Blitz",
+      "Holographic Shockwave",
+    ],
+  );
 });
 
 test("Engineer slot selection excludes contextual and unsupported utilities", () => {

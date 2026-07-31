@@ -6,8 +6,10 @@ import {
   REVENANT_EXTRA_SKILLS,
   REVENANT_SKILL_MECHANICS,
 } from "./mechanics/skill-mechanics.js";
-import { revenantSkillHandlers } from "./mechanics/specific/handlers.js";
+import { REVENANT_SKILL_IDS as ID } from "./data/ids.js";
+import { revenantSkillHandlers } from "./handlers.js";
 import type {
+  ProfessionModuleCatalogFragment,
   Skill,
   SkillId,
 } from "../../platform/engine/types.js";
@@ -87,3 +89,80 @@ export const revenantCatalog = createCanonicalCatalog({
 });
 
 export const REVENANT_SKILLS = revenantCatalog.skills;
+
+export const REVENANT_ELITE_SPECIALIZATIONS = Object.freeze([
+  "Herald",
+  "Renegade",
+  "Vindicator",
+  "Conduit",
+]);
+
+const eliteSpecializations = new Set(REVENANT_ELITE_SPECIALIZATIONS);
+const explicitSkillOwners = new Map<SkillId, string>([
+  [ID.FACET_OF_NATURE, "Herald"],
+  [ID.TRUE_NATURE, "Herald"],
+  [ID.TRUE_NATURE_ID_51675, "Herald"],
+  [ID.TRUE_NATURE_ID_51696, "Herald"],
+  [ID.TRUE_NATURE_ID_51713, "Herald"],
+  [ID.TRUE_NATURE_ID_51714, "Herald"],
+  [ID.HEROIC_COMMAND, "Renegade"],
+  [ID.CITADEL_BOMBARDMENT, "Renegade"],
+  [ID.ORDERS_FROM_ABOVE, "Renegade"],
+  [ID.ALLIANCE_TACTICS, "Vindicator"],
+  [ID.ENERGY_MELD, "Vindicator"],
+  [ID.ENERGY_MELD_ID_72058, "Vindicator"],
+  [ID.COSMIC_WISDOM, "Conduit"],
+  [ID.RELEASE_POTENTIAL_MONK, "Conduit"],
+  [ID.RELEASE_POTENTIAL_MESMER, "Conduit"],
+  [ID.RELEASE_POTENTIAL_DERVISH, "Conduit"],
+  [ID.RELEASE_POTENTIAL_ASSASSIN, "Conduit"],
+  [ID.RELEASE_POTENTIAL_WARRIOR, "Conduit"],
+]);
+const fragmentCache = new Map<string, ProfessionModuleCatalogFragment>();
+
+function skillOwner(skill: Skill): string {
+  const explicit = explicitSkillOwners.get(skill.id);
+  if (explicit) return explicit;
+  if (skill.type === "Weapon") return "Core";
+  const specialization = String(skill.specialization || "");
+  return eliteSpecializations.has(specialization)
+    ? specialization
+    : "Core";
+}
+
+/** Returns the inert catalog slice owned by Core or one elite module. */
+export function revenantModuleCatalog(
+  moduleId: string,
+): Readonly<ProfessionModuleCatalogFragment> {
+  const cached = fragmentCache.get(moduleId);
+  if (cached) return cached;
+  if (moduleId !== "Core" && !eliteSpecializations.has(moduleId)) {
+    throw new Error(`Unknown Revenant catalog module ${moduleId}.`);
+  }
+  const core = moduleId === "Core";
+  const fragment: ProfessionModuleCatalogFragment = Object.freeze({
+    skills: Object.freeze(
+      revenantCatalog.skills.filter((skill) => skillOwner(skill) === moduleId),
+    ),
+    traits: Object.freeze(
+      revenantCatalog.traits.filter((trait) =>
+        core
+          ? !eliteSpecializations.has(String(trait.specialization || ""))
+          : trait.specialization === moduleId,
+      ),
+    ),
+    specializations: Object.freeze(
+      revenantCatalog.specializations.filter((specialization) =>
+        core ? !specialization.elite : specialization.name === moduleId,
+      ),
+    ),
+    ...(core
+      ? {
+          weapons: Object.freeze([...revenantCatalog.weapons]),
+          weaponHands: new Map(revenantCatalog.weaponHands),
+        }
+      : {}),
+  });
+  fragmentCache.set(moduleId, fragment);
+  return fragment;
+}

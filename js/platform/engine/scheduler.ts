@@ -6,6 +6,10 @@ import { buildScheduledEventStream } from "./scheduled-event-stream.js";
 import { sortQueuedEvents } from "./event-queue.js";
 import { createTaskQueue } from "./task-queue.js";
 import {
+  cloneProfessionState,
+  resolveProfessionRuntime,
+} from "./profession.js";
+import {
   resolveSkillHandlerMode,
   SKILL_HANDLER_MODES,
 } from "./skill-handlers.js";
@@ -18,6 +22,7 @@ import type {
   CastLifecycleContext,
   CooldownController,
   NormalizedProfessionContract,
+  ProfessionSource,
   ScheduledTask,
   ScheduledTaskHandler,
   ScheduledTaskInput,
@@ -52,7 +57,7 @@ interface CastReservation<TProfessionState extends object> {
 }
 
 interface CreateSchedulerOptions<TProfessionState extends object> {
-  readonly profession?: NormalizedProfessionContract<TProfessionState>;
+  readonly profession?: ProfessionSource<TProfessionState>;
   readonly config?: SchedulerConfig;
   readonly catalog?: CanonicalCatalog;
   readonly startingTime?: number;
@@ -381,7 +386,7 @@ function combineAvailability(
  *
  * @template {object} TProfessionState
  * @param {{
- *   profession?: NormalizedProfessionContract<TProfessionState>,
+ *   profession?: ProfessionSource<TProfessionState>,
  *   config?: SchedulerConfig,
  *   catalog?: CanonicalCatalog,
  *   startingTime?: number,
@@ -395,13 +400,13 @@ export function createScheduler<
 >({
   profession,
   config = {},
-  catalog = profession?.catalog,
+  catalog,
   startingTime = 0,
   epsilon = 0.0001,
   schedulerPolicy = {},
 }: CreateSchedulerOptions<TProfessionState> = {}): Scheduler<TProfessionState> {
   if (!profession?.id) throw new TypeError("Scheduler requires a profession.");
-  const activeProfession = profession;
+  const activeProfession = resolveProfessionRuntime(profession, config);
   const activeCatalog = catalog ?? activeProfession.catalog;
   const initialWeaponSet =
     schedulerPolicy.initialWeaponSet?.({
@@ -1376,7 +1381,9 @@ export function createScheduler<
     steps.sort((left, right) => left.ri - right.ri);
     sortQueuedEvents(events);
     const snapshot =
-      activeProfession.snapshot(context) ?? structuredClone(state.profession);
+      activeProfession.snapshot(context) ?? cloneProfessionState(
+        state.profession,
+      );
     const persistentEffectEnd = events
       .filter(
         (event) =>

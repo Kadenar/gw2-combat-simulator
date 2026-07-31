@@ -170,6 +170,12 @@ test("new Necromancer rotation presets execute without warnings", async () => {
       ...savedBuild,
       rotation: savedRotation.rotation,
     });
+    if (buildFile === "b-condi-harbinger.json") {
+      assert.deepEqual(build.weaponSigils, [
+        ["Demons", "Torment"],
+        ["Demons", "Bursting"],
+      ]);
+    }
     const app = {
       build,
       skillByName: necromancerCatalog.skillsByName,

@@ -465,6 +465,10 @@
       "name": "Life Reap"
     },
     {
+      "name": "Death's Charge",
+      "skillId": 30825
+    },
+    {
       "name": "Soul Spiral",
       "interruptMs": 1912
     },

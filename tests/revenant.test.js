@@ -56,8 +56,20 @@ import {
   REVENANT_SKILL_MECHANICS,
 } from "../js/professions/revenant/mechanics/skill-mechanics.js";
 import {
-  REVENANT_HANDLER_MECHANICS,
-} from "../js/professions/revenant/mechanics/handler-mechanics.js";
+  REVENANT_CORE_MECHANICS,
+} from "../js/professions/revenant/core/mechanics.js";
+import {
+  CONDUIT_MECHANICS,
+} from "../js/professions/revenant/specializations/conduit/mechanics.js";
+import {
+  HERALD_MECHANICS,
+} from "../js/professions/revenant/specializations/herald/mechanics.js";
+import {
+  RENEGADE_MECHANICS,
+} from "../js/professions/revenant/specializations/renegade/mechanics.js";
+import {
+  VINDICATOR_MECHANICS,
+} from "../js/professions/revenant/specializations/vindicator/mechanics.js";
 import {
   revenantProfession,
 } from "../js/professions/revenant/definition.js";
@@ -71,6 +83,33 @@ import {
   REVENANT_LEGENDS,
   revenantLegendLoadout,
 } from "../js/professions/revenant/legend-loadout.js";
+
+const REVENANT_HANDLER_MECHANICS = Object.freeze({
+  ...REVENANT_CORE_MECHANICS,
+  ...RENEGADE_MECHANICS,
+  ...VINDICATOR_MECHANICS,
+  ...CONDUIT_MECHANICS,
+  legendInvocation: Object.freeze({
+    ...REVENANT_CORE_MECHANICS.legendInvocation,
+    ...CONDUIT_MECHANICS.legendInvocation,
+    spiritBoons: Object.freeze({
+      ...REVENANT_CORE_MECHANICS.legendInvocation.spiritBoons,
+      [LEGEND.DRAGON]: HERALD_MECHANICS.legendInvocation.spiritBoon,
+      [LEGEND.RENEGADE]: RENEGADE_MECHANICS.legendInvocation.spiritBoon,
+      [LEGEND.ALLIANCE]: VINDICATOR_MECHANICS.legendInvocation.spiritBoon,
+    }),
+    songs: Object.freeze({
+      ...REVENANT_CORE_MECHANICS.legendInvocation.songs,
+      [LEGEND.DRAGON]: HERALD_MECHANICS.legendInvocation.song,
+      [LEGEND.RENEGADE]: RENEGADE_MECHANICS.legendInvocation.song,
+      [LEGEND.ALLIANCE]: VINDICATOR_MECHANICS.legendInvocation.song,
+    }),
+  }),
+  upkeep: Object.freeze({
+    ...REVENANT_CORE_MECHANICS.upkeep,
+    ...HERALD_MECHANICS,
+  }),
+});
 
 const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
@@ -246,7 +285,8 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
 });
 
 test("Revenant mechanics modules preserve the declarative contract", async () => {
-  const [ids, skillMechanics, handlerMechanics, catalog] = await Promise.all([
+  const [ids, skillMechanics, coreSkills, localMechanics, catalog] =
+    await Promise.all([
     readFile(new URL(
       "../js/professions/revenant/data/ids.ts",
       import.meta.url,
@@ -256,9 +296,19 @@ test("Revenant mechanics modules preserve the declarative contract", async () =>
       import.meta.url,
     ), "utf8"),
     readFile(new URL(
-      "../js/professions/revenant/mechanics/handler-mechanics.ts",
+      "../js/professions/revenant/core/skills.ts",
       import.meta.url,
     ), "utf8"),
+    Promise.all([
+      "core",
+      "specializations/herald",
+      "specializations/renegade",
+      "specializations/vindicator",
+      "specializations/conduit",
+    ].map(directory => readFile(new URL(
+      `../js/professions/revenant/${directory}/mechanics.ts`,
+      import.meta.url,
+    ), "utf8"))),
     readFile(new URL(
       "../js/professions/revenant/catalog.ts",
       import.meta.url,
@@ -267,9 +317,11 @@ test("Revenant mechanics modules preserve the declarative contract", async () =>
 
   assert.doesNotMatch(ids, /^import\b/m);
   assert.match(ids, /REVENANT_SKILL_IDS = Object\.freeze/);
-  assert.match(skillMechanics, /REVENANT_BASE_SKILL_MECHANICS/);
+  assert.match(skillMechanics, /REVENANT_CORE_BASE_SKILL_MECHANICS/);
   assert.match(skillMechanics, /REVENANT_IMPLEMENTED_SKILL_IDS/);
-  assert.match(handlerMechanics, /REVENANT_HANDLER_MECHANICS/);
+  assert.match(coreSkills, /REVENANT_CORE_BASE_SKILL_MECHANICS/);
+  assert.ok(localMechanics.every(source => /export const \w+_MECHANICS/.test(source)));
+  assert.ok(localMechanics.every(source => !/HANDLER_MECHANICS/.test(source)));
   assert.doesNotMatch(catalog, /DYNAMIC_EFFECT_HANDLER_IDS/);
   assert.match(catalog, /mechanics: REVENANT_SKILL_MECHANICS/);
 });
@@ -316,6 +368,18 @@ test("legend palette renders both selected legends through shared swap cooldown"
   );
   assert.ok(revenantLegendLoadout.paletteGroups(context).every(group =>
     Array.isArray(group.reservedSkillIds)));
+  assert.deepEqual(
+    revenantLegendLoadout.skillChildren(context, SKILL.FACET_OF_ELEMENTS),
+    [SKILL.ELEMENTAL_BLAST],
+  );
+  assert.deepEqual(
+    revenantLegendLoadout.skillChildren(context, SKILL.FACET_OF_STRENGTH),
+    [SKILL.BURST_OF_STRENGTH],
+  );
+  assert.deepEqual(
+    revenantLegendLoadout.skillChildren(context, SKILL.CALL_TO_ANGUISH),
+    [SKILL.UNYIELDING_IMPACT],
+  );
   const rotationGroups = rotationPaletteGroups(
     { profession: revenantProfession },
     context,

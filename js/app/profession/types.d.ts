@@ -229,6 +229,10 @@ export interface ProfessionSlotLoadout extends SchedulerRecord {
     readonly professionState?: unknown;
     readonly catalog: CanonicalCatalog;
   }): readonly SkillId[];
+  skillChildren?(
+    context: ProfessionSlotLoadoutContext,
+    skillId: SkillId,
+  ): readonly SkillId[];
   paletteGroups(
     context: ProfessionSlotLoadoutContext,
   ): import("../../platform/engine/types.js").ProfessionPaletteGroup[];

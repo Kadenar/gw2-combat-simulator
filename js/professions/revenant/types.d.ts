@@ -37,11 +37,21 @@ export interface RevenantSkill extends Skill {
   readonly displayName?: string;
   readonly energyCost?: number;
   readonly facet?: boolean;
+  readonly freeWithTraitId?: number;
+  readonly freeWhenStatePositive?: string;
   readonly legendId?: string;
   readonly manualReleaseCooldown?: number;
   readonly paletteLegendId?: string;
   readonly starvationCooldown?: number;
   readonly upkeepCost?: number;
+  readonly upkeepConsumeByLegendId?: Readonly<Record<string, SkillId>>;
+  readonly upkeepConsumeId?: SkillId;
+  readonly upkeepPulse?: {
+    readonly kind: string;
+    readonly duration: number;
+    readonly stacks: number;
+  };
+  readonly upkeepPulseInterval?: number;
 }
 
 export type RevenantDodge =
@@ -119,7 +129,7 @@ export interface RevenantSelfCondition extends SchedulerRecord {
   readonly skillName: string;
 }
 
-export interface RevenantState extends SchedulerRecord {
+export interface RevenantCoreState extends SchedulerRecord {
   energy: number;
   maximumEnergy: number;
   energyUpdatedAt: number;
@@ -131,25 +141,10 @@ export interface RevenantState extends SchedulerRecord {
   availableFlips: Record<string, boolean>;
   autoattackChains: Record<string, SkillId>;
   abyssalStrikeSecondCast: boolean;
-  allianceSide: RevenantAllianceSide;
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
-  selectedDodge: RevenantDodge;
-  reaversCurseUntil: number;
-  forerunnerOfDeathUntil: number;
-  affinity: number;
-  cosmicWisdomUntil: number;
-  conduitForm: string;
-  beguilingHazeCharges: number;
-  beguilingHazeReadyAt: number;
-  beguilingHazeMainReservations: string[];
-  bandTogetherReady: boolean;
-  bandTogetherExpiresAt: number;
-  kallasFervor: RevenantTimedStack[];
-  renegadeCriticalProgress: number;
   enchantedDaggers: RevenantChargeState;
-  razorclawsRage: RevenantChargeState;
   battleScars: RevenantTimedStack[];
   crushingAbyss: number[];
   combatBeganAt: number | null;
@@ -160,6 +155,51 @@ export interface RevenantState extends SchedulerRecord {
   selfConditionCount: number;
   activeLegendSummons: Record<string, number>;
   traitProcReadyAt: Record<string, number | boolean>;
+}
+
+export interface HeraldState extends SchedulerRecord {}
+
+export interface RenegadeState extends SchedulerRecord {
+  bandTogetherReady: boolean;
+  bandTogetherExpiresAt: number;
+  kallasFervor: RevenantTimedStack[];
+  renegadeCriticalProgress: number;
+  razorclawsRage: RevenantChargeState;
+}
+
+export interface VindicatorState extends SchedulerRecord {
+  allianceSide: RevenantAllianceSide;
+  selectedDodge: RevenantDodge;
+  reaversCurseUntil: number;
+  forerunnerOfDeathUntil: number;
+}
+
+export interface ConduitState extends SchedulerRecord {
+  affinity: number;
+  cosmicWisdomUntil: number;
+  conduitForm: string;
+  beguilingHazeCharges: number;
+  beguilingHazeReadyAt: number;
+  beguilingHazeMainReservations: string[];
+  energyCostOverrides: Record<string, number>;
+}
+
+export interface RevenantState
+  extends
+    RevenantCoreState,
+    HeraldState,
+    RenegadeState,
+    VindicatorState,
+    ConduitState {}
+
+export interface RevenantRuntimeState extends SchedulerRecord {
+  core: RevenantCoreState;
+  specialization:
+    | { kind: "Core"; state: Record<string, never> }
+    | { kind: "Herald"; state: HeraldState }
+    | { kind: "Renegade"; state: RenegadeState }
+    | { kind: "Vindicator"; state: VindicatorState }
+    | { kind: "Conduit"; state: ConduitState };
 }
 
 export type RevenantSchedulerContext = SchedulerContext<RevenantState> & {

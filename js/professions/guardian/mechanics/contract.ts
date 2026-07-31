@@ -1,128 +1,46 @@
 /**
- * @fileoverview Composes Guardian cast validation and scheduler lifecycle
- * callbacks in deterministic feature order for the shared profession engine.
+ * Stable full-roster facade retained for application imports. Simulations use
+ * the module-local rule and scheduler-hook fragments.
  */
+import {
+  guardianCoreCastRules,
+  guardianCoreSchedulerHooks,
+} from "../core/rules.js";
+import {
+  firebrandCastRules,
+  firebrandSchedulerHooks,
+} from "../specializations/firebrand/rules.js";
+import {
+  luminaryCastRules,
+  luminarySchedulerHooks,
+} from "../specializations/luminary/rules.js";
 
-import { validateGuardianAvailability } from "./availability.js";
-import {
-  advanceRadiantForgeState,
-  clearRadiantForgeEntryCooldown,
-  validateRadiantForgeCast,
-} from "./specific/radiant-forge.js";
-import {
-  advanceTomeState,
-  tomePageAvailability,
-  validateTomeCast,
-} from "./specific/tomes.js";
-import { validateVirtueCast } from "./specific/virtues.js";
-import {
-  advanceSpearIlluminationState,
-  updateSpearIlluminationState,
-} from "./specific/spear.js";
-import {
-  updateWeaponCastState,
-  validateWeaponState,
-} from "./specific/weapon-state.js";
-import {
-  observeGuardianScheduledEvent,
-  updateGuardianTraitCastState,
-} from "./specific/traits.js";
-
-/**
- * Ordered Guardian availability and cast-validation rules.
- *
- * Page availability can return a retry time, while validation progressively
- * checks profession selection, virtue variants, tome state, Radiant Forge,
- * and the normal weapon bar.
- */
 export const guardianCastRules = Object.freeze({
-  availability: Object.freeze([
-    {
-      id: "guardian.tome-pages",
-      order: 30,
-      handler: tomePageAvailability,
-    },
-  ]),
+  availability: Object.freeze([...(firebrandCastRules.availability || [])]),
   validateCast: Object.freeze([
-    {
-      id: "guardian.availability",
-      order: 10,
-      handler: validateGuardianAvailability,
-    },
-    {
-      id: "guardian.virtues",
-      order: 20,
-      handler: validateVirtueCast,
-    },
-    {
-      id: "guardian.tomes",
-      order: 30,
-      handler: validateTomeCast,
-    },
-    {
-      id: "guardian.radiant-forge",
-      order: 40,
-      handler: validateRadiantForgeCast,
-    },
-    {
-      id: "guardian.weapon-state",
-      order: 50,
-      handler: validateWeaponState,
-    },
+    ...(guardianCoreCastRules.validateCast || []),
+    ...(firebrandCastRules.validateCast || []),
+    ...(luminaryCastRules.validateCast || []),
   ]),
 });
 
-/**
- * Ordered Guardian time-advancement, cast-lifecycle, and event-observation
- * hooks.
- */
 export const guardianSchedulerHooks = Object.freeze({
   advance: Object.freeze([
-    {
-      id: "guardian.tomes",
-      order: 10,
-      handler: advanceTomeState,
-    },
-    {
-      id: "guardian.radiant-forge",
-      order: 20,
-      handler: advanceRadiantForgeState,
-    },
-    {
-      id: "guardian.spear",
-      order: 30,
-      handler: advanceSpearIlluminationState,
-    },
+    ...(guardianCoreSchedulerHooks.advance || []),
+    ...(firebrandSchedulerHooks.advance || []),
+    ...(luminarySchedulerHooks.advance || []),
   ]),
   afterCast: Object.freeze([
-    {
-      id: "guardian.weapon-state",
-      order: 10,
-      handler: updateWeaponCastState,
-    },
-    {
-      id: "guardian.spear",
-      order: 20,
-      handler: updateSpearIlluminationState,
-    },
-    {
-      id: "guardian.traits",
-      order: 30,
-      handler: updateGuardianTraitCastState,
-    },
+    ...(guardianCoreSchedulerHooks.afterCast || []),
+    ...(firebrandSchedulerHooks.afterCast || []),
+    ...(luminarySchedulerHooks.afterCast || []),
   ]),
   onCastComplete: Object.freeze([
-    {
-      id: "guardian.radiant-forge",
-      order: 10,
-      handler: clearRadiantForgeEntryCooldown,
-    },
+    ...(luminarySchedulerHooks.onCastComplete || []),
   ]),
   onEventScheduled: Object.freeze([
-    {
-      id: "guardian.traits",
-      order: 10,
-      handler: observeGuardianScheduledEvent,
-    },
+    ...(guardianCoreSchedulerHooks.onEventScheduled || []),
+    ...(firebrandSchedulerHooks.onEventScheduled || []),
+    ...(luminarySchedulerHooks.onEventScheduled || []),
   ]),
 });
