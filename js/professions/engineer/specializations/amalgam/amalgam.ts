@@ -289,27 +289,12 @@ export function evolveAmalgam(context: EngineerCastContext): void {
     }
   }
   if (hasEngineerTrait(context.config, TRAIT.SYMBIOTIC_SYNERGY)) {
-    let cooldownReduction = 0;
+    // Evolve recharges its morph skills as part of its traited kit. This is not
+    // a discrete trait proc, so the reset is applied silently. Emitting a proc
+    // here misreported it as a single ~43s cooldown reduction (the summed
+    // remaining recharge of the three morphs) attributed to Evolve.
     for (const skillId of state.selectedMorphSkillIds) {
-      const id = Number(skillId);
-      const readyAt = Number(context.state.cooldowns.get(id) || 0);
-      if (readyAt > at + context.epsilon) {
-        cooldownReduction += readyAt - at;
-      }
-      context.state.cooldowns.delete(id);
-    }
-    if (cooldownReduction > 0) {
-      context.emit({
-        type: "proc",
-        at,
-        source: "Trait",
-        sourceId: TRAIT.SYMBIOTIC_SYNERGY,
-        actorType: "effect",
-        name: "Symbiotic Synergy",
-        procType: "trait",
-        sourceSkill: "Evolve",
-        cooldownReduction,
-      });
+      context.state.cooldowns.delete(Number(skillId));
     }
   }
   if (hasEngineerTrait(context.config, TRAIT.HARDENED_CHROME)) {
