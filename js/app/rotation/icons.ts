@@ -126,6 +126,16 @@ export function resultSkillIcon(
   row: ResultIconRow,
 ): string {
   if (row.icon) return String(row.icon);
+  // Modifier-contribution rows for traits carry a "Trait:<name>" id. Prefer the
+  // trait's own icon; otherwise a matching cooldown-reduction proc below wins
+  // and paints the generic refresh-arrow icon instead (e.g. Symbiotic Synergy,
+  // Mercurial Tendencies).
+  if (String(row.id).startsWith("Trait:")) {
+    const traitIcon = (app.attributeData?.activeTraits || []).find(
+      (candidate) => candidate.name === row.name,
+    )?.icon;
+    if (traitIcon) return String(traitIcon);
+  }
   for (const id of [row.skillId, row.sourceId]) {
     if (id == null) continue;
     const skill =
