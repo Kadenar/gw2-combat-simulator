@@ -93,7 +93,14 @@ function holosmithEventLogRow(
   context: EngineerUiContext,
   event: EngineerResolverEvent,
 ): ProfessionEventLogDescriptor | null | undefined {
-  if (engineerUiSpecialization(context) !== "Holosmith") return undefined;
+  const buildSpecializations = Array.isArray(context.build?.specializations)
+    ? context.build.specializations
+    : [];
+  const isHolosmith = engineerUiSpecialization(context) === "Holosmith"
+    || buildSpecializations.some(specialization =>
+      String(specialization?.name || specialization) === "Holosmith"
+    );
+  if (!isHolosmith) return undefined;
   if (HOLOSMITH_PACKET_EVENTS.has(event?.type)) return null;
   if (
     event?.type !== "engineer.state"
