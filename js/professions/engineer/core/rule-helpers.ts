@@ -113,11 +113,7 @@ export function targetHealthFraction(context: Gw2ModifierContext): number {
   if (Number.isFinite(configured)) {
     return Math.max(0, Math.min(1, configured));
   }
-  const maximum = Number(
-    context.config?.target?.health
-      ?? context.config?.targetHP
-      ?? 0,
-  );
+  const maximum = Number(context.config?.target?.health ?? 0);
   if (!(maximum > 0)) return 1;
   const totals = context.runtime?.totals as
     | { readonly strike?: number; readonly condition?: number }

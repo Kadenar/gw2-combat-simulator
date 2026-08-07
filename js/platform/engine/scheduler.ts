@@ -1,6 +1,10 @@
 import { ACTION_SAFETY_LIMIT, EPSILON } from "./clock.js";
 import { foldAvailability } from "./availability.js";
 import { createEvent } from "./events.js";
+import {
+  effectFirstAt,
+  materializeSkillEffectApplications,
+} from "./effect-materializer.js";
 import { createCooldownController } from "./cooldown-controller.js";
 import { normalizeRotation } from "./rotation-commands.js";
 import { createSchedulerState } from "./scheduler-state.js";
@@ -82,26 +86,6 @@ function baseDurationSeconds(skill: Skill): number {
 }
 
 /**
- * Resolves the first timestamp at which an effect should fire.
- *
- * @param {number} start
- * @param {number} fullEnd
- * @param {SkillEffect} effect
- */
-function effectAt(
-  start: number,
-  fullEnd: number,
-  effect: SkillEffect,
-): number {
-  const origin = effect.timingAnchor === "castEnd" ? fullEnd : start;
-  if (Array.isArray(effect.ticks) && effect.ticks.length) {
-    return origin + Number(effect.ticks[0].atMs) / 1000;
-  }
-  if (effect.atMs != null) return origin + Number(effect.atMs) / 1000;
-  return fullEnd;
-}
-
-/**
  * @template {object} TProfessionState
  */
 function cancelledBeforeInterruptCommit<
@@ -164,7 +148,7 @@ function scheduleDeclarativeEffects<
         skill,
         effect,
       ) ?? effect;
-    const firstAt = effectAt(start, fullEnd, timing);
+    const firstAt = effectFirstAt(start, fullEnd, timing);
     const cancelPendingEffects =
       interrupted
       && (
@@ -187,157 +171,28 @@ function scheduleDeclarativeEffects<
         ? { persistsAfterInterrupt: true }
         : {}),
     };
-    // Each effect type expands into an ordered list of applications; the shared
-    // loop below owns the single interrupt cancel-guard and emission, so the
-    // per-type branches only describe what to emit and when.
-    const applications: { at: number; event: SimulationEventInput }[] = [];
-    if (effect.type === "strike") {
-      const ticks = Array.isArray(timing.ticks) ? timing.ticks : null;
-      const hits =
-        ticks?.length || Math.max(1, Math.trunc(Number(effect.hits || 1)));
-      // A strike effect stores its total coefficient. Unless per-tick
-      // coefficients are supplied, divide it evenly across emitted hits.
-      const equalCoefficient = Number(effect.coefficient || 0) / hits;
-      const interval = Math.max(0, Number(timing.intervalMs || 0)) / 1000;
-      for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-        const tick = ticks?.[hitIndex - 1];
-        const origin = timing.timingAnchor === "castEnd" ? fullEnd : start;
-        const at = tick
-          ? origin + Number(tick.atMs) / 1000
-          : firstAt + (hitIndex - 1) * interval;
-        applications.push({
-          at,
-          event: {
-            ...base,
-            type: "damage",
-            at,
-            name: effect.name || skill.name,
-            coefficient: tick ? Number(tick.coefficient) : equalCoefficient,
-            hits: 1,
-            hitIndex,
-            totalHits: hits,
-            skillWeapon:
-              effect.weapon ||
-              skill.weapon ||
-              skill.skillWeapon ||
-              (slotSkill ? "Unequipped" : ""),
-            weaponStrength: effect.weaponStrength,
-            weaponStrengthProfileId: effect.weaponStrengthProfileId,
-            canCrit: effect.canCrit !== false,
-            ...(effect.coefficientModifiers
-              ? { coefficientModifiers: effect.coefficientModifiers }
-              : {}),
-            ...(effect.metadata || {}),
-          },
-        });
-      }
-    } else if (effect.type === "condition") {
-      if (Array.isArray(timing.ticks)) {
-        const origin = timing.timingAnchor === "castEnd" ? fullEnd : start;
-        const ticks = timing.ticks;
-        for (
-          let applicationIndex = 1;
-          applicationIndex <= ticks.length;
-          applicationIndex += 1
-        ) {
-          const tick = ticks[applicationIndex - 1];
-          const at = origin + Number(tick.atMs) / 1000;
-          applications.push({
-            at,
-            event: {
-              ...base,
-              at,
-              type: "condition",
-              name: effect.name || `${skill.name} — ${tick.condition}`,
-              condition: tick.condition,
-              stacks: Number(tick.stacks),
-              duration: Number(tick.duration),
-              applicationIndex,
-              totalApplications: ticks.length,
-              ...(effect.metadata || {}),
-            },
-          });
-        }
-      } else {
-        const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
-        const interval = Math.max(0, Number(timing.intervalMs || 0)) / 1000;
-        for (
-          let applicationIndex = 1;
-          applicationIndex <= count;
-          applicationIndex += 1
-        ) {
-          const at = firstAt + (applicationIndex - 1) * interval;
-          applications.push({
-            at,
-            event: {
-              ...base,
-              at,
-              type: "condition",
-              name: `${skill.name} — ${effect.condition}`,
-              condition: effect.condition,
-              stacks: Number(effect.stacks),
-              duration: Number(effect.duration),
-              applicationIndex,
-              totalApplications: count,
-              ...(effect.metadata || {}),
-            },
-          });
-        }
-      }
-    } else if (effect.type === "control" || effect.type === "blind") {
-      const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
-      const interval = Math.max(0, Number(timing.intervalMs || 0)) / 1000;
-      for (
-        let applicationIndex = 1;
-        applicationIndex <= count;
-        applicationIndex += 1
-      ) {
-        const at = firstAt + (applicationIndex - 1) * interval;
-        applications.push({
-          at,
-          event: {
-            ...base,
-            at,
-            type: effect.type,
-            applicationIndex,
-            totalApplications: count,
-            ...(effect.metadata || {}),
-          },
-        });
-      }
-    } else if (effect.type === "boon" || effect.type === "buff") {
-      const baseDuration = Math.max(0, Number(effect.duration || 0));
-      const duration =
-        context.schedulerPolicy.effectDuration?.(
-          context,
-          skill,
-          effect,
-          baseDuration,
-        ) ?? baseDuration;
-      applications.push({
-        at: firstAt,
-        event: {
-          ...base,
-          at: firstAt,
-          type: "buff",
-          kind: String(
-            effect.boon || effect.kind || effect.name || "",
-          ).toLowerCase(),
-          stacks: Math.max(1, Number(effect.stacks || 1)),
-          duration: Math.max(0, Number(duration || 0)),
-        },
-      });
-    } else if (effect.type === "custom") {
-      applications.push({
-        at: firstAt,
-        event: {
-          ...base,
-          at: firstAt,
-          ...effect.event,
-          type: effect.eventType,
-        },
-      });
-    }
+    const baseDuration =
+      effect.type === "boon" || effect.type === "buff"
+        ? Math.max(0, Number(effect.duration || 0))
+        : undefined;
+    const duration =
+      baseDuration == null
+        ? undefined
+        : context.schedulerPolicy.effectDuration?.(
+            context,
+            skill,
+            effect,
+            baseDuration,
+          ) ?? baseDuration;
+    const applications = materializeSkillEffectApplications({
+      skill,
+      effect: timing,
+      start,
+      fullEnd,
+      baseEvent: base,
+      skillWeaponFallback: slotSkill ? "Unequipped" : "",
+      statusDuration: duration,
+    });
 
     // An interrupt only suppresses applications that have not fired yet. Earlier
     // ticks remain in the stream even when the full cast never completes; a

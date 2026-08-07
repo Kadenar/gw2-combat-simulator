@@ -2,13 +2,13 @@ import {
   createGw2TriggerMaterializer,
   GW2_MATERIALIZE_EVENT_TASK,
 } from "./proc-materializer.js";
+import { createGw2EventPreparer } from "./event-preparer.js";
 import type {
   CanonicalCatalog,
   CastContext,
   SchedulerContext,
   SchedulerRecord,
   SimulationEvent,
-  SimulationEventInput,
   Skill,
   SkillEffect,
 } from "../../engine/types.js";
@@ -16,7 +16,6 @@ import {
   defaultWeaponSkillMatchesSet,
   weaponSkillMatchesSet,
 } from "../weapon-skill-matcher.js";
-import { weaponStrengthProfileIdForEvent } from "../weapon-strength.js";
 import type {
   Gw2Config,
   Gw2SchedulerPolicy,
@@ -116,9 +115,7 @@ export function isGw2WeaponSkillEquipped(
   );
 }
 
-/**
- * Supplies shared GW2 timing rules without coupling platform/engine to GW2.
- */
+/** Composes the shared GW2 scheduler policy around the neutral engine. */
 export function createGw2SchedulerPolicy(
   config: Gw2Config = {},
   {
@@ -128,7 +125,7 @@ export function createGw2SchedulerPolicy(
   }: CreateGw2SchedulerPolicyOptions = {},
 ): Readonly<Gw2SchedulerPolicy> {
   const materializer = createGw2TriggerMaterializer(config, { traits });
-  const triggeredActivationIds = new Map<string, string>();
+  const eventPreparer = createGw2EventPreparer();
   const policy: Gw2SchedulerPolicy = {
     taskHandlers: Object.freeze({
       [GW2_MATERIALIZE_EVENT_TASK]: (context, task) =>
@@ -139,58 +136,8 @@ export function createGw2SchedulerPolicy(
       materializer.initialize(context);
     },
 
-    prepareEvent(context, event: SimulationEventInput) {
-      const coefficientBasedDamage =
-        event.type === "damage" &&
-        Number(event.coefficient) > 0 &&
-        !Number.isFinite(event.flatDamage) &&
-        !Number.isFinite(event.flatStrikeBase) &&
-        !Number.isFinite(event.flatStrikePowerCoeff) &&
-        event.independentSummonStrike !== true;
-      const action = event.type === "action";
-      if (!coefficientBasedDamage && !action) return event;
-
-      const skill =
-        context.catalog?.skillsById?.get(event.skillId ?? event.sourceId) ||
-        context.catalog?.skillsByName?.get(event.skillName || "") ||
-        null;
-      const profileId = Number.isFinite(event.weaponStrength)
-        ? null
-        : weaponStrengthProfileIdForEvent(event, {
-            skill,
-            state: context.state as unknown as Record<string, unknown>,
-            config: context.config as Gw2Config,
-          });
-      const triggeredEffect =
-        coefficientBasedDamage &&
-        String(event.activationId || "").startsWith("cast:") &&
-        (event.actorType === "effect" ||
-          /^(trait|sigil|relic|food|equipment)$/i.test(
-            String(event.source || ""),
-          ));
-      let activationId = event.activationId;
-      if (triggeredEffect) {
-        const key = [
-          activationId,
-          event.sourceId,
-          event.skillName || event.name,
-          event.triggeredBy,
-        ].join("|");
-        activationId = triggeredActivationIds.get(key);
-        if (!activationId) {
-          activationId = context.createActivationId("effect");
-          triggeredActivationIds.set(key, activationId);
-        }
-      } else if (coefficientBasedDamage && !activationId) {
-        activationId = context.createActivationId(
-          event.actorType === "summon" ? "summon-attack" : "effect",
-        );
-      }
-      return {
-        ...event,
-        ...(activationId ? { activationId } : {}),
-        ...(profileId ? { weaponStrengthProfileId: profileId } : {}),
-      };
+    prepareEvent(context, event) {
+      return eventPreparer.prepare(context, event);
     },
 
     onEventScheduled(context, event: SimulationEvent) {

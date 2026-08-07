@@ -49,7 +49,13 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
       kind: "blade-requiem",
       coefficients: [0, 0.5, 1, 1.5, 2, 2.5],
       resourceSpendProgress: 1,
-      packetDelays: [1, 2, 3, 4, 5],
+      ticks: [
+        { atMs: 1000 },
+        { atMs: 2000 },
+        { atMs: 3000 },
+        { atMs: 4000 },
+        { atMs: 5000 },
+      ],
     },
     [ID.BLADESONG_DISSONANCE]: {
       slot: 3,
@@ -62,14 +68,26 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
       kind: "blade-confusion",
       coefficients: [0, 0.42, 0.84, 1.25, 1.67, 2.09],
       resourceSpendProgress: 1,
-      packetDelays: [0.442, 0.517, 0.601, 0.675, 0.675],
+      ticks: [
+        { atMs: 442 },
+        { atMs: 517 },
+        { atMs: 601 },
+        { atMs: 675 },
+        { atMs: 675 },
+      ],
     },
     [ID.BLADESONG_HARMONY]: {
       slot: 1,
       kind: "blade-power",
       coefficients: [0, 0.7, 1.4, 2.1, 2.8, 3.5],
       resourceSpendProgress: 1,
-      packetDelays: [0.05, 0.208, 0.367, 0.534, 0.684],
+      ticks: [
+        { atMs: 50 },
+        { atMs: 208 },
+        { atMs: 367 },
+        { atMs: 534 },
+        { atMs: 684 },
+      ],
     },
     [ID.BLADESONG_DISTORTION]: {
       slot: 4,

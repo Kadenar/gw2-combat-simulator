@@ -9,25 +9,25 @@ import type {
   SchedulerState,
   SimulationEvent,
   SimulationEventInput,
+  SimulationActorType,
+  ConditionTick,
   ConditionEffect,
   SkillEffect,
   StrikeEffect,
+  StrikeTick,
   Skill,
   SkillFragment,
   SkillId,
 } from "../../platform/engine/types.js";
 import type {
-  Gw2ConditionApplication,
   Gw2Build,
   Gw2BuildAttributeRuleContext,
   Gw2CanonicalBuild,
   Gw2Config,
   Gw2ConditionResolution,
   Gw2CriticalResult,
-  Gw2DamageGroup,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
-  Gw2SchedulerEventFactory,
 } from "../../platform/gw2/types.js";
 import type { ProfessionApplicationBuild } from "../../app/profession/types.js";
 
@@ -284,21 +284,42 @@ export interface MesmerConditionEffect extends ConditionEffect {
   readonly packetLabel?: string;
 }
 
+export type MesmerDamageGroup = Partial<MesmerStrikeEffect> & {
+  readonly type?: "strike";
+};
+
+export interface MesmerConditionApplication extends SchedulerRecord {
+  readonly name: string;
+  readonly duration: number;
+  readonly stacks?: number;
+  readonly applications?: number;
+  readonly atMs?: number;
+  readonly intervalMs?: number;
+  readonly timingAnchor?: "castStart" | "castEnd";
+  readonly timingScale?: "cast" | "fixed";
+  readonly ticks?: readonly ConditionTick[];
+}
+
+export interface MesmerEventExtra extends SchedulerRecord {
+  readonly name?: string;
+  readonly source?: string;
+  readonly sourceId?: SkillId;
+  readonly skillId?: SkillId | null;
+  readonly actorType?: SimulationActorType;
+}
+
 export type MesmerSkillEffect =
   | MesmerStrikeEffect
   | MesmerConditionEffect
   | Exclude<SkillEffect, StrikeEffect | ConditionEffect>;
 
-export interface MesmerTrackedHitDamage extends Gw2DamageGroup {
+export type MesmerTrackedHitDamage = MesmerDamageGroup & {
   readonly duration: number;
   readonly hitsRequired: number;
   readonly name: string;
   readonly skillId?: SkillId;
-  readonly ticks?: readonly {
-    readonly atMs: number;
-    readonly coefficient: number;
-  }[];
-}
+  readonly ticks?: readonly StrikeTick[];
+};
 
 /**
  * Catalog skill augmented with the Mesmer-specific identity fields consulted by
@@ -452,10 +473,34 @@ export type MesmerCastContext = MesmerPrecastContext & {
  * Shared event callbacks passed from the scheduler integration layer into the
  * focused Mesmer mechanic controllers.
  */
-export type MesmerAddEvent = Gw2SchedulerEventFactory["addEvent"];
-export type MesmerAddTraitProc = Gw2SchedulerEventFactory["addTraitProc"];
-export type MesmerAddCondition = Gw2SchedulerEventFactory["addCondition"];
-export type MesmerAddDamage = Gw2SchedulerEventFactory["addDamage"];
+export type MesmerAddEvent = (
+  event: SchedulerRecord & {
+    readonly type: string;
+    readonly at: number;
+    readonly source?: string;
+    readonly sourceId?: SkillId;
+  },
+) => SimulationEvent | null;
+export type MesmerAddTraitProc = (
+  name: string,
+  at: number,
+  sourceSkill?: string,
+  detail?: string,
+) => SimulationEvent | null;
+export type MesmerAddCondition = (
+  skillName: string,
+  at: number,
+  condition: MesmerConditionApplication,
+  source?: string,
+  label?: string,
+  extra?: MesmerEventExtra,
+) => readonly SimulationEvent[];
+export type MesmerAddDamage = (
+  skill: Skill,
+  at: number,
+  group: MesmerDamageGroup,
+  extra?: MesmerEventExtra,
+) => readonly SimulationEvent[];
 export type MesmerActivePrimaryWeapon = () => string;
 export type MesmerCurrentResource = () => number;
 export type MesmerDestroyClone = (clone: MesmerClone, at: number) => void;
@@ -647,7 +692,7 @@ export interface MesmerMaximumAmmoContext extends SchedulerRecord {
 /**
  * One condition or boon packet attached to an illusion attack.
  */
-export interface MesmerAttackStatus extends Gw2ConditionApplication {
+export interface MesmerAttackStatus extends MesmerConditionApplication {
   readonly stacks?: number;
 }
 
@@ -655,7 +700,7 @@ export interface MesmerCloneAttackStep {
   readonly name?: string;
   readonly coefficient: number;
   readonly hits: number;
-  readonly hitOffsets?: number[];
+  readonly ticks?: readonly StrikeTick[];
   /** The interval between hit ticks, if applicable. */
   readonly interval: number;
   readonly conditions?: readonly MesmerAttackStatus[];
@@ -729,7 +774,7 @@ export interface MesmerPhantasmAttackTiming {
 export interface MesmerTraitDamage {
   readonly coefficient: number;
   readonly hits: number;
-  readonly interval?: number;
+  readonly intervalMs?: number;
   readonly cooldown?: number;
   readonly weaponStrength?: number;
   readonly duration?: number;
@@ -742,7 +787,7 @@ export interface MesmerShatter {
   readonly coefficients: readonly number[];
   readonly rechargeReductionPerSource?: number;
   readonly resourceSpendProgress?: number;
-  readonly packetDelays?: readonly number[];
+  readonly ticks?: readonly MesmerAttackTimingTick[];
 }
 
 export interface MesmerInstrument {

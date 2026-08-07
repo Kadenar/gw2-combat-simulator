@@ -37,7 +37,7 @@ export function createGw2ResolverHandlerRegistry({
 }
 
 function targetHealth(ctx: Gw2ResolverRuntime): number {
-  const value = Number(ctx.config.target?.health ?? ctx.config.targetHP ?? 0);
+  const value = Number(ctx.config.target?.health ?? 0);
   return value > 0 ? value : Infinity;
 }
 

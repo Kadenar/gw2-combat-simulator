@@ -363,9 +363,7 @@ function reactToZealotsResolution(
   event: GuardianResolverEvent,
 ): void {
   const state = resolverState(context);
-  const targetHealth = Number(
-    context.config.target?.health ?? context.config.targetHP ?? 0,
-  );
+  const targetHealth = Number(context.config.target?.health ?? 0);
   const damageDone =
     Number(context.totals?.strike || 0) +
     Number(context.totals?.condition || 0);

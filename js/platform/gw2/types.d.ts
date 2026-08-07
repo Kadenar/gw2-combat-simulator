@@ -11,7 +11,6 @@ import type {
   SimulationRandomnessConfig,
   SimulationActorType,
   SimulationEvent,
-  SimulationEventInput,
   Skill,
   ScheduledTask,
   SchedulerContext,
@@ -99,7 +98,6 @@ export interface Gw2Config extends SchedulerRecord {
   readonly selectedTraits?: readonly (string | number)[];
   readonly relic?: string;
   readonly food?: string;
-  readonly targetHP?: number;
   readonly randomness?: SimulationRandomnessConfig;
   readonly attributeProvenance?: Partial<Gw2AttributeProvenance>;
   readonly alacrityRechargeRate?: number;
@@ -191,17 +189,6 @@ export interface Gw2EventDraft extends SchedulerRecord {
   readonly stacks?: number;
   readonly condition?: string;
   readonly fixedDuration?: boolean;
-}
-
-export interface Gw2SchedulerEventDraft extends SchedulerRecord {
-  readonly type: string;
-  readonly at: number;
-  readonly source?: string;
-  readonly sourceId?: import("../engine/types.js").SkillId;
-  readonly actorType?: SimulationActorType;
-  readonly name?: string;
-  readonly skillName?: string;
-  readonly skillId?: import("../engine/types.js").SkillId | null;
 }
 
 export type Gw2ApplyCondition = (
@@ -425,57 +412,6 @@ export type Gw2WeaponSkillMatcher = (
   weaponSet?: readonly (string | undefined)[],
   context?: Gw2WeaponMatcherContext,
 ) => boolean;
-
-export interface Gw2ConditionApplication extends SchedulerRecord {
-  readonly name: string;
-  readonly duration: number;
-  readonly stacks?: number;
-}
-
-export interface Gw2DamageGroup extends SchedulerRecord {
-  readonly coefficient?: number;
-  readonly hits?: number;
-  readonly hitOffsets?: number[];
-  readonly source?: string;
-  readonly actorType?: SimulationActorType;
-  readonly weapon?: string;
-  readonly weaponStrength?: number;
-  readonly weaponStrengthProfileId?: string;
-}
-
-export interface Gw2EventExtra extends SchedulerRecord {
-  readonly name?: string;
-  readonly source?: string;
-  readonly sourceId?: import("../engine/types.js").SkillId;
-  readonly skillId?: import("../engine/types.js").SkillId | null;
-  readonly actorType?: SimulationActorType;
-}
-
-export interface Gw2SchedulerEventFactory {
-  addEvent(
-    event: Gw2SchedulerEventDraft,
-  ): SimulationEventInput | SimulationEvent | null;
-  addTraitProc(
-    name: string,
-    at: number,
-    sourceSkill?: string,
-    detail?: string,
-  ): SimulationEventInput | SimulationEvent | null;
-  addCondition(
-    skillName: string,
-    at: number,
-    condition: Gw2ConditionApplication,
-    source?: string,
-    label?: string,
-    extra?: Gw2EventExtra,
-  ): SimulationEventInput | SimulationEvent | null;
-  addDamage(
-    skill: Skill,
-    at: number,
-    group: Gw2DamageGroup,
-    extra?: Gw2EventExtra,
-  ): void;
-}
 
 export type Gw2ResolverEvent = SimulationEvent & {
   readonly causalOrder?: number;

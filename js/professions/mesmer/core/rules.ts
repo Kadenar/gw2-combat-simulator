@@ -14,8 +14,6 @@ import {
   gw2EffectiveCooldown,
   gw2RechargeRate,
 } from "../../../platform/gw2/runtime-rules.js";
-import { createGw2SchedulerEventFactory } from "../../../platform/gw2/scheduler/event-factory.js";
-import { CONDITION_FORMULAS } from "../../../platform/gw2/condition-formulas.js";
 import {
   MESMER_CORE_AMBUSH_ATTACKS,
   MESMER_CORE_ARISTOCRACY_SKILLS,
@@ -36,6 +34,7 @@ import {
 import { createCloneAttackScheduler } from "./clone-attacks.js";
 import { createProfessionActionController } from "./profession-actions.js";
 import { createExpectedProcTracker } from "./expected-procs.js";
+import { createMesmerEventMaterializer } from "./event-materializer.js";
 import { createResourceController } from "./resources.js";
 import { createSkillEffectController } from "./skill-effects.js";
 import { mesmerResourceDefinition } from "./state.js";
@@ -101,18 +100,6 @@ const SIGNET_ILLUSIONS_OWNER = "mesmer.signet-illusions-passive";
  */
 const clamp = (value: number, minimum: number, maximum: number): number =>
   Math.max(minimum, Math.min(maximum, value));
-
-/**
- * Converts condition aliases to the canonical event display name.
- *
- * @param {unknown} value Condition name or alias.
- * @returns {string} Canonical condition name.
- */
-function conditionName(value: unknown): string {
-  const normalized = String(value || "").toLowerCase();
-  if (normalized === "poison" || normalized === "poisoned") return "Poisoned";
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-}
 
 /**
  * Builds a mixed trait set containing both numeric IDs and names so
@@ -231,7 +218,7 @@ function restartSignetIllusionsPassive(
 /**
  * Creates and connects all Mesmer feature controllers for one simulation.
  *
- * The returned runtime centralizes normalized traits, event factories,
+ * The returned runtime centralizes normalized traits, event materialization,
  * resource and illusion controllers, cast-local details, and helper functions
  * shared by lifecycle hooks and task handlers.
  *
@@ -310,30 +297,10 @@ function createMesmerRuntime(
     });
   };
   const { addEvent, addTraitProc, addCondition, addDamage } =
-    createGw2SchedulerEventFactory({
-      events: context.events,
+    createMesmerEventMaterializer({
       emit,
-      defaultSource: "Mesmer",
-      horizon: Infinity,
-      epsilon: EPSILON,
-      conditionName,
-      conditionFormulas: CONDITION_FORMULAS,
       activePrimaryWeapon,
-      activeWeaponSet: () => state.activeWeaponSet,
-      decorateDamageEvent(event, { skill, extra }) {
-        const explicit = String(event.weapon || "");
-        const normalized =
-          explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
-        const independentStrength =
-          event.actorType === "phantasm" || event.actorType === "summon"
-            ? runtime.weaponStrength[normalized]
-            : undefined;
-        return {
-          ...event,
-          blade: Boolean(extra.blade ?? skill.blade),
-          weaponStrength: event.weaponStrength ?? independentStrength,
-        };
-      },
+      weaponStrength: runtime.weaponStrength,
     });
 
   const scheduleCloneTask = (clone: MesmerClone, at: number) =>

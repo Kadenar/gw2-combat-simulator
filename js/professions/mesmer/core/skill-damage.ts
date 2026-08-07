@@ -1,6 +1,5 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
-import type { Gw2DamageGroup } from "../../../platform/gw2/types.js";
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -8,6 +7,7 @@ import type {
   MesmerAddTraitProc,
   MesmerConditionEffect,
   MesmerConfig,
+  MesmerDamageGroup,
   MesmerRuntimeState,
   MesmerSkill,
   MesmerStrikeEffect,
@@ -61,68 +61,86 @@ export function createSkillDamageController({
   const schedulePlayerStrike = (
     skill: MesmerSkill,
     group: MesmerStrikeEffect,
-    selectedGroup: Gw2DamageGroup,
+    selectedGroup: MesmerDamageGroup,
     at: number,
     castStart: number,
     pulseTimes: readonly number[],
   ): readonly number[] => {
-    const damageGroup: Gw2DamageGroup = {
+    const damageGroup: MesmerDamageGroup = {
       ...selectedGroup,
       source: "Player",
     };
     const fixedTicks = group.ticks?.length ? group.ticks : null;
-    const interval = Number(group.intervalMs || 0) / 1000;
-    const hitTimes: number[] = [];
+    const interval = Number(group.intervalMs || 0);
+    const emittedAt = (
+      origin: number,
+      effect: MesmerDamageGroup,
+    ): readonly number[] => addDamage(skill, origin, effect).map(
+      (event) => event.at,
+    );
     if (fixedTicks?.length) {
       const hits = Math.max(
         1,
         Math.trunc(Number(damageGroup.hits || fixedTicks.length || 1)),
       );
       const timingAnchorAt = group.timingAnchor === "castStart" ? castStart : at;
-      for (let index = 0; index < hits; index += 1) {
+      const ticks = Array.from({ length: hits }, (_, index) => {
         const packet = fixedTicks[index % fixedTicks.length];
-        const packetAt = timingAnchorAt + Number(packet.atMs) / 1000;
-        hitTimes.push(packetAt);
-        addDamage(skill, packetAt, {
-          ...damageGroup,
+        return {
+          ...packet,
           coefficient: Number(packet.coefficient),
-          hits: 1,
-        });
-      }
-    } else if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
-      const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || 1)));
+        };
+      });
+      return emittedAt(timingAnchorAt, {
+        ...damageGroup,
+        coefficient: undefined,
+        hits: undefined,
+        atMs: undefined,
+        intervalMs: undefined,
+        ticks,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      });
+    }
+    if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
       const timingAnchorAt = group.timingAnchor === "castStart" ? castStart : at;
-      for (let index = 0; index < hits; index += 1) {
-        const packetAt =
-          timingAnchorAt + Number(group.atMs || 0) / 1000 + index * interval;
-        hitTimes.push(packetAt);
-        addDamage(skill, packetAt, {
-          ...damageGroup,
-          coefficient: Number(damageGroup.coefficient || 0) / hits,
-          hits: 1,
-        });
-      }
-    } else if (
+      return emittedAt(timingAnchorAt, damageGroup);
+    }
+    if (
       pulseTimes.length > 0
       && Number(damageGroup.hits || 1) === pulseTimes.length
     ) {
-      for (const pulseAt of pulseTimes) {
-        hitTimes.push(pulseAt);
-        addDamage(skill, pulseAt, {
-          ...damageGroup,
-          coefficient:
-            Number(damageGroup.coefficient || 0) / pulseTimes.length,
-          hits: 1,
-        });
-      }
-    } else {
+      const origin = Math.min(...pulseTimes);
+      const coefficient =
+        Number(damageGroup.coefficient || 0) / pulseTimes.length;
+      return emittedAt(origin, {
+        ...damageGroup,
+        coefficient: undefined,
+        hits: undefined,
+        atMs: undefined,
+        intervalMs: undefined,
+        ticks: pulseTimes.map((pulseAt) => ({
+          atMs: (pulseAt - origin) * 1000,
+          coefficient,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      });
+    }
+    if (group.castProgress != null) {
       const hitAt = group.castProgress != null
         ? castStart + (at - castStart) * Number(group.castProgress)
-        : at + Number(group.atMs || 0) / 1000;
-      hitTimes.push(hitAt);
-      addDamage(skill, hitAt, damageGroup);
+        : at;
+      return emittedAt(hitAt, {
+        ...damageGroup,
+        atMs: undefined,
+        intervalMs: undefined,
+        timingAnchor: undefined,
+        timingScale: undefined,
+      });
     }
-    return hitTimes;
+    const timingAnchorAt = group.timingAnchor === "castStart" ? castStart : at;
+    return emittedAt(timingAnchorAt, damageGroup);
   };
 
   const scheduleTrackedHits = (
@@ -146,37 +164,26 @@ export function createSkillDamageController({
       while (recentHits.length >= required) {
         const triggerHits = recentHits.splice(0, required);
         const triggerAt = triggerHits[triggerHits.length - 1];
-        const ticks = tracking.ticks;
-        if (Array.isArray(ticks) && ticks.length > 0) {
-          for (const tick of ticks) {
-            addDamage(
-              skill,
-              triggerAt + Number(tick.atMs) / 1000,
-              {
-                ...tracking,
-                coefficient: Number(tick.coefficient),
-                hits: 1,
-              },
-              {
-                blade: skill.blade,
-                name: tracking.name,
-                skillName: tracking.name,
-                parentSkillName: skill.name,
-                sourceId: tracking.skillId ?? skill.id,
-                skillId: tracking.skillId ?? skill.id,
-              },
-            );
-          }
-        } else {
-          addDamage(skill, triggerAt, tracking, {
-            blade: skill.blade,
-            name: tracking.name,
-            skillName: tracking.name,
-            parentSkillName: skill.name,
-            sourceId: tracking.skillId ?? skill.id,
-            skillId: tracking.skillId ?? skill.id,
-          });
-        }
+        const hasTicks = Array.isArray(tracking.ticks)
+          && tracking.ticks.length > 0;
+        addDamage(skill, triggerAt, {
+          ...tracking,
+          ...(hasTicks
+            ? {
+                coefficient: undefined,
+                hits: undefined,
+                timingAnchor: "castStart" as const,
+                timingScale: "fixed" as const,
+              }
+            : {}),
+        }, {
+          blade: skill.blade,
+          name: tracking.name,
+          skillName: tracking.name,
+          parentSkillName: skill.name,
+          sourceId: tracking.skillId ?? skill.id,
+          skillId: tracking.skillId ?? skill.id,
+        });
       }
     }
     professionCoreState(state).trackedSkillHits[skill.id] = recentHits;
@@ -194,9 +201,19 @@ export function createSkillDamageController({
         pulseTimes.length > 0
         && Number(condition.stacks || 1) === pulseTimes.length
       ) {
-        for (const pulseAt of pulseTimes) {
-          addCondition(skill.name, pulseAt, { ...condition, stacks: 1 });
-        }
+        const origin = Math.min(...pulseTimes);
+        addCondition(skill.name, origin, {
+          ...condition,
+          stacks: undefined,
+          ticks: pulseTimes.map((pulseAt) => ({
+            atMs: (pulseAt - origin) * 1000,
+            condition: condition.name,
+            duration: condition.duration,
+            stacks: 1,
+          })),
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+        });
       } else {
         addCondition(skill.name, at, condition, "Player");
       }
@@ -257,7 +274,7 @@ export function createSkillDamageController({
     );
     for (const group of strikeEffects) {
       if (group.requiredTrait && !traits.has(group.requiredTrait)) continue;
-      const selectedGroup: Gw2DamageGroup =
+      const selectedGroup: MesmerDamageGroup =
         skill.boonlessCoefficient && config.target?.boonless
           ? { ...group, coefficient: skill.boonlessCoefficient }
           : group;
