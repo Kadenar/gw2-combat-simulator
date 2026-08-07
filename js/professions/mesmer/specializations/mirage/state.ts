@@ -12,6 +12,7 @@ export function createMirageState(
     ambushSource: "",
     cloneAmbushUntil: 0,
     riddleOfSandReady: false,
+    mirrors: [],
   };
 }
 

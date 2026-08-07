@@ -14,6 +14,8 @@ import {
   weaponSkills,
 } from "../../../js/app/rotation/palette-model.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import { createGw2CombatQuery } from "../../../js/platform/gw2/query.js";
+import { resolveProfessionRuntime } from "../../../js/platform/engine/profession.js";
 import { resourceDisplayViews } from "../../../js/platform/ui/resource-display.js";
 import {
   createThiefBuildDefaults,
@@ -112,7 +114,8 @@ test("Thief catalog pins API identity and explicit terrestrial mechanics", () =>
   assert.equal(thiefCatalog.skillsById.has(40436), true);
   assert.equal(thiefCatalog.skillsById.has(80278), false);
   assert.equal(thiefCatalog.skillsByName.get("Death Blossom").initiativeCost, 4);
-  assert.equal(THIEF_SKILL_MECHANICS[13006].castTimeMs, 500);
+  assert.equal(THIEF_SKILL_MECHANICS[13006].castTimeMs, 1560);
+  assert.equal(THIEF_SKILL_MECHANICS[13006].quicknessCastTimeMs, 1040);
   assert.equal(THIEF_SKILL_MECHANICS[13006].effects[0].hits, 3);
   assert.equal(THIEF_SKILL_MECHANICS[13006].effects[1].condition, "Bleeding");
   for (const excludedName of [
@@ -403,7 +406,7 @@ test("initiative regenerates at exact boundaries and ignores Alacrity", () => {
   });
   assert.equal(boundary.warnings.length, 0);
   assert.equal(boundary.steps[0].start, 1000);
-  assert.equal(boundary.endState.profession.initiative, 0.5);
+  assert.equal(boundary.endState.profession.initiative, 1.56);
 
   for (const alacrity of [false, true]) {
     const result = simulate("Core", [
@@ -722,6 +725,364 @@ test("Specter shadow force is 69% of health and drains 2% per second", () => {
   assert.equal(drained.shadowForce, 98);
 });
 
+test("Dagger uses the supplied Quickness timings and total multi-hit coefficients", () => {
+  const expectedQuicknessTimes = new Map([
+    [ID.DOUBLE_STRIKE, 360],
+    [ID.WILD_STRIKE, 400],
+    [ID.LOTUS_STRIKE, 440],
+    [ID.HEARTSEEKER, 600],
+    [ID.DEATH_BLOSSOM, 1040],
+    [ID.DANCING_DAGGER, 500],
+    [ID.CLOAK_AND_DAGGER, 600],
+    [ID.MALICIOUS_BACKSTAB, 440],
+  ]);
+  for (const [skillId, quicknessTime] of expectedQuicknessTimes) {
+    const skill = thiefCatalog.skillsById.get(skillId);
+    assert.equal(skill.quicknessCastTimeMs, quicknessTime, skill.name);
+    assert.equal(skill.castTimeMs, quicknessTime * 1.5, skill.name);
+  }
+
+  const expectedPackets = [
+    ["Double Strike", 2, 0.8],
+    ["Twisting Fangs", 2, 0.63],
+    ["Death Blossom", 3, 0.63],
+  ];
+  for (const [name, hits, totalCoefficient] of expectedPackets) {
+    const strike = thiefCatalog.skillsByName.get(name).effects.find(effect =>
+      effect.type === "strike");
+    assert.equal(strike.hits, hits, name);
+    assert.equal(strike.coefficient, totalCoefficient, name);
+  }
+
+  const heartseeker = thiefCatalog.skillsByName.get("Heartseeker");
+  const heartseekerStrike = heartseeker.effects.find(effect =>
+    effect.type === "strike");
+  assert.equal(heartseekerStrike.coefficient, 1);
+  assert.deepEqual(heartseekerStrike.coefficientModifiers, [
+    { kind: "target-health-below", threshold: 0.25, multiplier: 2.22 },
+    { kind: "target-health-below", threshold: 0.5, multiplier: 1.6 },
+  ]);
+
+  const deathBlossom = thiefCatalog.skillsByName.get("Death Blossom");
+  assert.equal(deathBlossom.finisherType, "Whirl");
+  assert.equal(deathBlossom.finisherValue, 1);
+  const backstab = thiefCatalog.skillsByName.get("Backstab");
+  const malicious = thiefCatalog.skillsByName.get("Malicious Backstab");
+  assert.equal(backstab.effects[0].coefficient, 1.5);
+  assert.equal(malicious.effects[0].coefficient, 1.5);
+  assert.equal(backstab.cooldown, 1);
+  assert.equal(malicious.cooldown, 1);
+});
+
+test("Dagger runtime applies endurance, shadowstep, and per-packet mechanics", () => {
+  const chain = simulate("Core", [
+    "Dodge",
+    "Double Strike",
+    "Wild Strike",
+    "Lotus Strike",
+  ], {
+    boons: { quickness: true },
+  });
+  assert.deepEqual(
+    chain.steps.slice(1).map(step => step.fullCastMs),
+    [360, 400, 440],
+  );
+  const thiefStates = chain.events.filter(event => event.type === "thief.state");
+  const wildStrikeStateIndex = thiefStates.findIndex(event =>
+    event.reason === "Wild Strike");
+  assert.equal(
+    thiefStates[wildStrikeStateIndex].state.endurance
+      - thiefStates[wildStrikeStateIndex - 1].state.endurance,
+    10,
+  );
+  const doubleStrikeHits = chain.events.filter(event =>
+    event.type === "damage" && event.skillName === "Double Strike");
+  assert.deepEqual(doubleStrikeHits.map(event => event.coefficient), [0.4, 0.4]);
+
+  const shadowShot = simulate("Core", ["Shadow Shot"], {
+    primaryWeapon: "Dagger",
+    secondaryWeapon: "Pistol",
+    relic: "Peitha",
+  });
+  assert.ok(shadowShot.events.some(event =>
+    event.type === "peitha" && event.skillName === "Shadow Shot"));
+  assert.equal(
+    shadowShot.events.find(event =>
+      event.type === "blind" && event.skillName === "Shadow Shot").duration,
+    5,
+  );
+});
+
+test("Backstab positioning and Malicious Backstab malice scaling use supplied values", () => {
+  const front = simulate("Core", ["Cloak and Dagger", "Backstab"], {
+    target: { defiant: false, behind: false },
+  });
+  const behind = simulate("Core", ["Cloak and Dagger", "Backstab"], {
+    target: { defiant: false, behind: true },
+  });
+  const skillDamage = (result, name) => result.breakdown.find(entry =>
+    entry.sourceSkill === name)?.damage || 0;
+  assert.ok(Math.abs(
+    skillDamage(behind, "Backstab") / skillDamage(front, "Backstab") - 2,
+  ) < 1e-9);
+
+  const unmarked = simulate("Deadeye", [
+    "Cloak and Dagger",
+    "Malicious Backstab",
+  ]);
+  const marked = simulate("Deadeye", [
+    "Deadeye's Mark",
+    "Death Blossom",
+    "Cloak and Dagger",
+    "Malicious Backstab",
+  ]);
+  assert.ok(Math.abs(
+    skillDamage(marked, "Malicious Backstab")
+      / skillDamage(unmarked, "Malicious Backstab") - 1.2,
+  ) < 1e-9);
+  assert.equal(marked.endState.profession.malice, 0);
+});
+
+test("Specter uses the supplied measured Quickness cast times", () => {
+  const expected = new Map([
+    [ID.SIPHON, 520],
+    [ID.HAUNT_SHOT, 640],
+    [ID.GRASPING_SHADOWS, 240],
+    [ID.DAWNS_REPOSE, 520],
+    [ID.ETERNAL_NIGHT, 1920],
+    [ID.MIND_SHOCK, 360],
+    [ID.SHADOW_BOLT, 520],
+    [ID.DOUBLE_BOLT, 640],
+    [ID.TRIPLE_BOLT, 1080],
+    [ID.SHADOWSQUALL, 1960],
+    [ID.SHADOW_SAP, 600],
+    [ID.TWILIGHT_COMBO, 400],
+    [ID.MEASURED_SHOT, 560],
+    [ID.ENDLESS_NIGHT, 1920],
+    [ID.WELL_OF_BOUNTY, 400],
+    [ID.WELL_OF_SORROW, 880],
+    [ID.WELL_OF_TEARS, 600],
+  ]);
+  for (const [skillId, duration] of expected) {
+    const skill = thiefCatalog.skillsById.get(skillId);
+    assert.equal(skill.quicknessCastTimeMs, duration, skill.name);
+    assert.equal(skill.castTimeMs, duration * 1.5, skill.name);
+  }
+
+  const quickSiphon = simulate("Specter", ["Siphon"], {
+    boons: { quickness: true },
+  });
+  assert.equal(quickSiphon.steps[0].fullCastMs, 520);
+});
+
+test("Specter scepter and shroud packets apply their conditions per hit", () => {
+  const expectedPackets = [
+    ["Double Bolt", 2, 0.375, "Torment"],
+    ["Triple Bolt", 3, 0.45, "Torment"],
+    ["Triple Threat", 3, 0.45, "Torment"],
+    ["Shadowsquall", 8, 0.2, "Poisoned"],
+    ["Endless Night", 7, 0.33, "Torment"],
+  ];
+  for (const [name, count, coefficient, condition] of expectedPackets) {
+    const skill = thiefCatalog.skillsByName.get(name);
+    const strike = skill.effects.find(effect => effect.type === "strike");
+    const applications = skill.effects.find(effect =>
+      effect.type === "condition" && Array.isArray(effect.ticks));
+    assert.equal(strike.hits, count, name);
+    assert.ok(Math.abs(strike.coefficient / count - coefficient) < 1e-12, name);
+    assert.equal(applications.ticks.length, count, name);
+    assert.ok(applications.ticks.every(tick => tick.condition === condition), name);
+  }
+
+  const eternal = simulate("Specter", [
+    "Enter Shadow Shroud",
+    "Eternal Night",
+  ], {
+    initialShadowForce: 100,
+    boons: { quickness: true },
+  });
+  const eternalHits = eternal.events.filter(event =>
+    event.type === "damage" && event.skillName === "Eternal Night");
+  assert.deepEqual(eternalHits.map(event => event.at), [0.96, 1.92]);
+  assert.ok(eternalHits.every(event => event.coefficient === 1.75));
+  const eternalConditions = eternal.events.filter(event =>
+    event.type === "condition" && event.skillName === "Eternal Night");
+  assert.deepEqual(
+    eternalConditions.map(event => [event.at, event.condition, event.stacks]),
+    [
+      [0.96, "Chilled", 1],
+      [0.96, "Poisoned", 2],
+      [1.92, "Weakness", 1],
+      [1.92, "Poisoned", 2],
+    ],
+  );
+
+  const mindShock = simulate("Specter", [
+    "Enter Shadow Shroud",
+    "Mind Shock",
+  ], {
+    initialShadowForce: 100,
+    boons: { quickness: true },
+  });
+  assert.equal(mindShock.steps[1].fullCastMs, 360);
+  assert.equal(
+    mindShock.events.find(event =>
+      event.type === "buff" && event.kind === "stability").at,
+    0.36,
+  );
+  assert.equal(
+    mindShock.events.find(event =>
+      event.type === "damage" && event.skillName === "Mind Shock").at,
+    3.36,
+  );
+  const stun = mindShock.events.find(event =>
+    event.type === "control" && event.skillName === "Mind Shock");
+  assert.equal(stun.at, 3.36);
+  assert.equal(stun.controlKind, "stun");
+});
+
+test("Specter wells preserve one-second pulse intervals and ordered effects", () => {
+  const sorrow = simulate("Specter", ["Well of Sorrow"], {
+    selectedSkills: ["Well of Sorrow"],
+    boons: { quickness: true },
+  });
+  assert.equal(sorrow.steps[0].fullCastMs, 880);
+  assert.deepEqual(
+    sorrow.events.filter(event =>
+      event.type === "damage" && event.skillName === "Well of Sorrow")
+      .map(event => [event.at, Number(event.coefficient.toFixed(3))]),
+    [[0.88, 0.222], [1.88, 0.222], [2.88, 0.222], [3.88, 0.222], [4.88, 0.222]],
+  );
+  assert.deepEqual(
+    sorrow.events.filter(event =>
+      event.type === "condition" && event.skillName === "Well of Sorrow")
+      .map(event => [event.at, event.condition, event.stacks]),
+    [
+      [0.88, "Torment", 2],
+      [1.88, "Bleeding", 3],
+      [2.88, "Torment", 2],
+      [3.88, "Poisoned", 3],
+      [4.88, "Torment", 2],
+    ],
+  );
+
+  const tears = simulate("Specter", ["Well of Tears"], {
+    selectedSkills: ["Well of Tears"],
+    boons: { quickness: true },
+  });
+  assert.deepEqual(
+    tears.events.filter(event =>
+      event.type === "damage" && event.skillName === "Well of Tears")
+      .map(event => [event.at, event.coefficient]),
+    [[0.6, 1], [1.6, 1], [2.6, 1], [3.6, 1], [4.6, 1]],
+  );
+
+  const bounty = simulate("Specter", ["Well of Bounty"], {
+    selectedSkills: ["Well of Bounty"],
+    boons: { quickness: true },
+  });
+  assert.deepEqual(
+    bounty.events.filter(event =>
+      event.type === "buff" && event.skillName === "Well of Bounty")
+      .map(event => [event.at, event.kind, event.stacks, event.duration]),
+    [
+      [0.4, "stability", 2, 5],
+      [1.4, "might", 8, 15],
+      [2.4, "fury", 1, 5],
+      [3.4, "vigor", 1, 8],
+      [4.4, "regeneration", 1, 12],
+    ],
+  );
+});
+
+test("Specter shadow-force and recharge traits use supplied values", () => {
+  const baseline = simulate("Specter", ["Siphon"]);
+  const amplified = simulate("Specter", ["Siphon"], {
+    selectedTraitIds: [TRAIT.AMPLIFIED_SIPHONING],
+  });
+  assert.equal(baseline.endState.profession.shadowForce, 25);
+  assert.equal(amplified.endState.profession.shadowForce, 27.5);
+
+  const initiative = simulate("Specter", ["Shadow Sap"], {
+    primaryWeapon: "Scepter",
+    secondaryWeapon: "Dagger",
+  });
+  assert.equal(initiative.endState.profession.shadowForce, 4);
+
+  const reduced = simulate("Specter", ["Siphon"], {
+    selectedTraitIds: [TRAIT.LEAD_ATTACKS, TRAIT.SLEIGHT_OF_HAND],
+  });
+  assert.equal(reduced.endState.cooldowns.Siphon.remaining, 11700);
+
+  const larcenous = simulate("Specter", ["Twilight Combo"], {
+    initialShadowForce: 0,
+    primaryWeapon: "Scepter",
+    secondaryWeapon: "Dagger",
+    selectedTraitIds: [TRAIT.LARCENOUS_TORMENT],
+    boons: { quickness: true },
+  });
+  assert.equal(larcenous.endState.profession.shadowForce, 5.5);
+  assert.equal(
+    larcenous.resolvedEvents.filter(event =>
+      event.type === "damage"
+      && event.skillName === "Larcenous Torment").length,
+    3,
+  );
+});
+
+test("Specter attribute, ally, and shadowstep traits resolve explicitly", () => {
+  const attributeConfig = {
+    specialization: "Specter",
+      primaryWeapon: "Scepter",
+      secondaryWeapon: "Dagger",
+      selectedTraitIds: [TRAIT.SECOND_OPINION, TRAIT.STRENGTH_OF_SHADOWS],
+      stats: {
+        conditionDamage: 1000,
+        healingPower: 100,
+        vitality: 1000,
+        expertise: 0,
+      },
+  };
+  const query = createGw2CombatQuery({
+    profession: resolveProfessionRuntime(thiefProfession, attributeConfig),
+    config: attributeConfig,
+  });
+  const stats = query.statsAt(0);
+  assert.equal(stats.conditionDamage, 1180);
+  assert.equal(stats.healingPower, 170);
+  assert.equal(stats.expertise, 130);
+
+  const allies = simulate("Specter", [
+    "Enter Shadow Shroud",
+    "Dawn's Repose",
+  ], {
+    initialShadowForce: 100,
+    selectedTraitIds: [TRAIT.SHADESTEP],
+    allies: { count: 2, strikesPerSecond: 1 },
+    boons: { quickness: true },
+  });
+  const protection = allies.events.find(event =>
+    event.type === "buff" && event.skillName === "Dawn's Repose"
+    && event.kind === "protection");
+  assert.equal(protection.duration, 5);
+  assert.equal(protection.recipientCount, 3);
+  assert.equal(
+    allies.events.filter(event =>
+      event.type === "condition"
+      && event.skillName === "Rot Wallow Venom"
+      && event.condition === "Torment").length,
+    2,
+  );
+
+  const peitha = simulate("Specter", ["Well of Tears"], {
+    selectedSkills: ["Well of Tears"],
+    relic: "Peitha",
+    boons: { quickness: true },
+  });
+  assert.ok(peitha.events.some(event =>
+    event.type === "peitha" && event.skillName === "Well of Tears"));
+});
+
 test("Spear slots 2 and 3 shift through lead, follow-up, and finisher skills", () => {
   const chainSkills = [
     "Mantis Sting",
@@ -856,7 +1217,7 @@ test("Spider Venom grants six independent charges to the player and allies", () 
     event.type === "condition"
     && event.skillId === ID.SPIDER_VENOM
     && !event.triggeredByAlly);
-  assert.equal(personalPoisons.length, 3);
+  assert.equal(personalPoisons.length, 1);
 });
 
 test("Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic", () => {

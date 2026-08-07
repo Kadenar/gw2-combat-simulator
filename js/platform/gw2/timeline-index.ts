@@ -99,7 +99,9 @@ export function createGw2TimelineIndex({
       bucket = { all: [], summon: [], summonTrait: [] };
       indexedBuffs.set(kind, bucket);
     }
-    insertOrdered(bucket.all, event);
+    if (buffMatchesAudience(event, "all")) {
+      insertOrdered(bucket.all, event);
+    }
     if (buffMatchesAudience(event, "summon")) {
       insertOrdered(bucket.summon, event);
     }

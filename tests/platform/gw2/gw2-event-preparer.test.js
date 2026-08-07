@@ -97,3 +97,32 @@ test("event preparation groups related triggered packets per simulation pass", (
   };
   assert.equal(preparer.prepare(context, marker), marker);
 });
+
+test("event preparation resolves capped boon recipients before handoff", () => {
+  const context = {
+    catalog: { skillsById: new Map(), skillsByName: new Map() },
+    config: {
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
+    },
+    state: { activeWeaponSet: 1, profession: {} },
+    createActivationId: () => "unused",
+  };
+  const prepared = createGw2EventPreparer().prepare(context, {
+    type: "buff",
+    at: 1,
+    source: "Player",
+    sourceId: "party-fury",
+    kind: "fury",
+    duration: 5,
+    recipients: "party",
+    maximumRecipients: 5,
+    companionIds: ["summon:one", "summon:two"],
+  });
+
+  assert.equal(prepared.affectsSelf, true);
+  assert.equal(prepared.alliedPlayerCount, 4);
+  assert.deepEqual(prepared.companionIds, []);
+  assert.equal(prepared.affectsSummons, false);
+  assert.equal(prepared.recipientCount, 5);
+});

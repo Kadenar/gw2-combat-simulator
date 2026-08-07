@@ -48,7 +48,7 @@ export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
         Number(
           thiefRuntimeSpecializationState(context, "Deadeye").malice || 0,
         ),
-      ) * 0.15,
+      ) * 0.1,
     when: context =>
       thiefPlayerEvent(context)
       && Boolean(thiefEventSkill(context)?.malicious)

@@ -312,6 +312,18 @@ test("Mesmer instrument checks skip other specializations and index events once"
         at: 0,
         expiresAt: 10,
       },
+      {
+        type: "mesmer.instrument",
+        instrument: "Lute",
+        at: 1,
+        expiresAt: 10,
+      },
+      {
+        type: "mesmer.instrument",
+        instrument: "Drum",
+        at: 0,
+        expiresAt: 10,
+      },
     ], {
       get(target, property, receiver) {
         if (typeof property === "string" && /^\d+$/.test(property)) {
@@ -340,12 +352,27 @@ test("Mesmer instrument checks skip other specializations and index events once"
   });
   const attributes = mesmerRules("Troubadour").modifyAttributes(
     troubadour,
-    { power: 100 },
+    {
+      power: 100,
+      precision: 100,
+      toughness: 100,
+      vitality: 100,
+      ferocity: 100,
+      conditionDamage: 100,
+      expertise: 100,
+      concentration: 100,
+      healingPower: 100,
+    },
   );
   const first = mesmerRules("Troubadour").modifyStrikeDamage(troubadour, 1.08);
   const second = mesmerRules("Troubadour").modifyStrikeDamage(troubadour, 1.08);
 
-  assert.equal(attributes.power, 104);
+  for (const attribute of [
+    "power", "precision", "toughness", "vitality", "ferocity",
+    "conditionDamage", "expertise", "concentration", "healingPower",
+  ]) {
+    assert.equal(attributes[attribute], 108, attribute);
+  }
   assert.equal(first, second);
   assert.equal(relevant.reads(), relevant.events.length);
 });

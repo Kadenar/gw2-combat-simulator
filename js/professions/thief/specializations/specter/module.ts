@@ -1,4 +1,7 @@
-import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import {
+  defineNativeModule,
+  onConditionApplied,
+} from "../../../../platform/gw2/native-profession.js";
 import { createThiefModuleData } from "../../catalog-data.js";
 import {
   specterSchedulerHooks,
@@ -11,6 +14,7 @@ import {
 import { specterState } from "./state.js";
 import { specterUi } from "./ui.js";
 import { SPECTER_SKILL_MECHANICS } from "./skills.js";
+import { applyLarcenousTorment } from "./traits.js";
 
 export const specterModule = defineNativeModule({
   id: "Specter",
@@ -23,6 +27,12 @@ export const specterModule = defineNativeModule({
     modifiers: specterAttributeRules,
     castRules: specterCastRules,
     schedulerHooks: specterSchedulerHooks,
+    reactions: [
+      onConditionApplied({
+        id: "thief.specter.larcenous-torment",
+        handler: applyLarcenousTorment,
+      }),
+    ],
   },
   presentation: specterUi,
 });

@@ -143,7 +143,11 @@ export interface Gw2TimedBuffApplication {
   readonly expiresAt: number;
   readonly stacks: number;
   readonly source?: string;
+  readonly affectsSelf?: boolean;
   readonly affectsSummons?: boolean;
+  readonly alliedPlayerCount?: number;
+  readonly companionIds?: readonly string[];
+  readonly recipientCount?: number;
 }
 
 export interface Gw2RelicState extends SchedulerRecord {

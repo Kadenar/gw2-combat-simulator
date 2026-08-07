@@ -1,4 +1,7 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
+import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
+import { isGw2PlayerActorEvent } from
+  "../../../platform/gw2/event-ownership.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import type {
   SchedulerState,
@@ -8,7 +11,7 @@ import type {
   MesmerActivePrimaryWeapon,
   MesmerAddTraitProc,
   MesmerConfig,
-  MesmerEmitDerivedCondition,
+  MesmerEmitDerivedEvent,
   MesmerExpectedProcCandidate,
   MesmerExpectedProcTracker,
   MesmerRuntimeState,
@@ -25,7 +28,8 @@ interface ExpectedProcTrackerOptions {
   readonly criticalChance: (event: SimulationEvent) => number;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
-  readonly emitCondition: MesmerEmitDerivedCondition;
+  readonly emitEvent: MesmerEmitDerivedEvent;
+  readonly boonDuration: (boon: string, baseDuration: number) => number;
   readonly addTraitProc: MesmerAddTraitProc;
 }
 
@@ -42,7 +46,8 @@ export function createExpectedProcTracker({
   criticalChance,
   activePrimaryWeapon,
   queueResources,
-  emitCondition,
+  emitEvent,
+  boonDuration,
   addTraitProc,
 }: ExpectedProcTrackerOptions): Readonly<MesmerExpectedProcTracker> {
   const stochastic = config.randomness?.mode === "stochastic";
@@ -75,8 +80,73 @@ export function createExpectedProcTracker({
     }
   };
 
+  const materializeMasterFencer = (
+    event: SimulationEvent,
+    chance: number,
+  ): void => {
+    if (
+      !traits.has(TRAIT.MASTER_FENCER) ||
+      !isGw2PlayerActorEvent(event) ||
+      !(Number(event.coefficient) > 0) ||
+      event.noCrit === true ||
+      event.canCrit === false
+    ) {
+      return;
+    }
+    const core = professionCoreState(state);
+    const criticals = stochastic
+      ? sampledCritical(event)
+        ? 1
+        : 0
+      : Math.floor(
+          (core.masterFencerProgress += chance) + PROC_PROGRESS_TOLERANCE,
+        );
+    if (!stochastic && criticals > 0) {
+      core.masterFencerProgress -= criticals;
+    }
+    const readyAt = Number(core.traitReadyAt[TRAIT.MASTER_FENCER] || 0);
+    if (
+      criticals <= 0 ||
+      !isInternalCooldownReady(event.at, readyAt)
+    ) {
+      return;
+    }
+
+    core.traitReadyAt[TRAIT.MASTER_FENCER] = event.at + 8;
+    addTraitProc(
+      "Master Fencer",
+      event.at,
+      event.skillName,
+      "8s self fury, 4s allied fury",
+    );
+    for (const application of [
+      { recipients: "self", duration: 8 },
+      { recipients: "allies", duration: 4 },
+    ] as const) {
+      emitEvent(event, {
+        type: "buff",
+        at: event.at,
+        source: "Trait",
+        sourceId: TRAIT.MASTER_FENCER,
+        actorType: "player",
+        skillId: TRAIT.MASTER_FENCER,
+        skillName: "Master Fencer",
+        name: `Master Fencer — ${application.recipients} fury`,
+        kind: "fury",
+        duration: boonDuration("fury", application.duration),
+        stacks: 1,
+        recipients: application.recipients,
+        affectsSelf: application.recipients === "self",
+        affectsSummons:
+          application.recipients === "allies" &&
+          config.sharePlayerBoonsWithSummons !== false,
+      });
+    }
+  };
+
   const materializeCriticalTraits = (event: SimulationEvent) => {
     const chance = Number(criticalChance(event) || 0);
+    materializeMasterFencer(event, chance);
     if (
       traits.has(TRAIT.SHARPER_IMAGES) &&
       (event.source === "Clone" || event.source === "Phantasm")
@@ -95,7 +165,7 @@ export function createExpectedProcTracker({
         if (!stochastic) {
           professionCoreState(state).sharperImagesProgress -= procCount;
         }
-        emitCondition(event, {
+        emitEvent(event, {
           type: "condition",
           at: event.at,
           name: `${event.name} — Sharper Images`,
@@ -123,7 +193,7 @@ export function createExpectedProcTracker({
           : 0
         : chance;
       if (!(jaggedMindStacks > 0)) return;
-      emitCondition(event, {
+      emitEvent(event, {
         type: "condition",
         at: event.at,
         name: `${event.name} — Jagged Mind`,

@@ -34,6 +34,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<
     "specialization": "Mirage",
     "environment": "Terrestrial",
     "castTimeMs": 600,
+    "quicknessCastTimeMs": 371,
     "cooldown": 20,
     "phantasm": false,
     "resource": null,
@@ -44,6 +45,9 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<
         "type": "strike",
         "coefficient": 2.4,
         "hits": 6,
+        "atMs": 320,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed",
         "name": "Damage",
         "actorType": "player",
         "weapon": "utility"
@@ -52,7 +56,10 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<
         "type": "condition",
         "condition": "confusion",
         "duration": 4,
-        "stacks": 1
+        "stacks": 6,
+        "atMs": 320,
+        "timingAnchor": "castEnd",
+        "timingScale": "fixed"
       }
     ]
   },
@@ -147,7 +154,7 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.CHAOS_VORTEX]: {
     "castTimeMs": 1000,
-    "quicknessCastTimeMs": 666.666666667,
+    "quicknessCastTimeMs": 719,
     "cooldown": 1,
     "phantasm": false,
     "resource": null,
@@ -179,6 +186,7 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
   },
   [ID.IMAGINARY_AXES]: {
     "castTimeMs": 780,
+    "quicknessCastTimeMs": 441,
     "cooldown": 1,
     "phantasm": false,
     "resource": null,
@@ -242,10 +250,24 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly Skill[] = Object.freeze(
     "icon": "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
     "type": "Action",
     "slot": "Action",
+    "specialization": "Mirage",
     "castTimeMs": 0,
     "rechargeAnchor": "castStart",
     "cooldown": 10,
     "ammo": 2,
+    "implemented": true,
+    "effects": []
+  },
+  {
+    "id": ID.PICK_UP_MIRAGE_MIRROR,
+    "name": "Pick Up Mirage Mirror",
+    "description": "Pick up an available Mirage Mirror, damaging nearby enemies and gaining Mirage Cloak.",
+    "icon": "https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png",
+    "type": "Action",
+    "slot": "Action",
+    "specialization": "Mirage",
+    "castTimeMs": 0,
+    "cooldown": 0,
     "implemented": true,
     "effects": []
   }

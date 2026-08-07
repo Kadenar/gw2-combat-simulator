@@ -62,6 +62,7 @@ export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> =
       kind: "blade-control",
       coefficients: [0, 1, 1, 1, 1, 1],
       resourceSpendProgress: 1,
+      damageAtMs: 400,
     },
     [ID.BLADESONG_SORROW]: {
       slot: 2,

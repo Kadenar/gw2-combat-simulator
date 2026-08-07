@@ -32,9 +32,9 @@ const DUPLICATE_FAMILIES: Readonly<Record<string, DuplicateFamily>> =
       }),
     }),
     "Lively Lute": Object.freeze({
-      defaultId: ID.LIVELY_LUTE_ALTERNATE,
+      defaultId: ID.LIVELY_LUTE,
       bySpecialization: Object.freeze({
-        Troubadour: ID.LIVELY_LUTE_ALTERNATE,
+        Troubadour: ID.LIVELY_LUTE,
       }),
       requiresSpecialization: true,
     }),

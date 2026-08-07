@@ -1,4 +1,7 @@
-import type { LegacyRotationItem } from "../../platform/engine/types.js";
+import type {
+  LegacyRotationItem,
+  SchedulerRecord,
+} from "../../platform/engine/types.js";
 import type {
   Gw2ProcStep,
   Gw2SimulationResult,
@@ -37,6 +40,12 @@ export function procFilterLabel(proc: Gw2ProcStep): string {
         ? "Skill"
         : "Trait";
   return `${proc.skill} (${type})`;
+}
+
+export function rotationSkillHighlightKey(
+  entry: LegacyRotationItem | SchedulerRecord,
+): string {
+  return `skill:${rotationEntryName(entry)}`;
 }
 
 export function procStackLabel(proc: Gw2ProcStep): string {

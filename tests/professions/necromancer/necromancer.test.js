@@ -223,6 +223,222 @@ test("measured Quickness cast times remain exact", () => {
   }
 });
 
+test("EVTC-derived Necromancer multi-hit packet timings remain exact", () => {
+  const weepingShots = simulate("Harbinger", ["Weeping Shots"], {
+    boons: { quickness: true },
+    primaryWeapon: "Pistol",
+  });
+  const vitalDraw = simulate("Harbinger", [
+    "Harbinger Shroud",
+    "Vital Draw",
+  ], { boons: { quickness: true } });
+  const taintedBolts = simulate("Harbinger", [
+    "Harbinger Shroud",
+    "Tainted Bolts",
+  ], { boons: { quickness: true } });
+  const darkBarrage = simulate("Harbinger", [
+    "Harbinger Shroud",
+    "Dark Barrage",
+  ], { boons: { quickness: true } });
+  const deathsCharge = simulate("Reaper", [
+    "Reaper's Shroud",
+    "Death's Charge",
+  ], { boons: { quickness: true } });
+  const soulSpiral = simulate("Reaper", [
+    "Reaper's Shroud",
+    "Soul Spiral",
+  ], { boons: { quickness: true } });
+  const anguish = simulate("Ritualist", [
+    "Ritualist's Shroud",
+    "Anguish",
+  ], { boons: { quickness: true } });
+  const wanderlust = simulate("Ritualist", [
+    "Ritualist's Shroud",
+    "Wanderlust",
+  ], { boons: { quickness: true } });
+  const offsets = (result, skillName, skillId, type = "damage") => {
+    const start = result.steps.find(step => step.skill === skillName)?.start;
+    assert.notEqual(start, undefined, skillName);
+    return result.events
+      .filter(event => event.type === type && event.skillId === skillId)
+      .map(event => Math.round(event.at * 1000 - start));
+  };
+
+  assert.deepEqual(
+    offsets(weepingShots, "Weeping Shots", ID.WEEPING_SHOTS),
+    [240, 360, 520, 640, 760, 880],
+  );
+  assert.deepEqual(
+    offsets(weepingShots, "Weeping Shots", ID.WEEPING_SHOTS, "condition"),
+    [240, 360, 520, 640, 760, 880],
+  );
+  assert.deepEqual(
+    offsets(vitalDraw, "Vital Draw", ID.VITAL_DRAW),
+    [760, 1760, 2760],
+  );
+  assert.deepEqual(
+    offsets(taintedBolts, "Tainted Bolts", ID.TAINTED_BOLTS),
+    [320, 600],
+  );
+  assert.deepEqual(
+    offsets(taintedBolts, "Tainted Bolts", ID.TAINTED_BOLTS, "condition"),
+    [320, 600],
+  );
+  assert.deepEqual(
+    offsets(darkBarrage, "Dark Barrage", ID.DARK_BARRAGE),
+    [600, 680, 680, 800, 800, 800],
+  );
+  assert.deepEqual(
+    offsets(darkBarrage, "Dark Barrage", ID.DARK_BARRAGE, "condition"),
+    [600, 680, 680, 800, 800, 800],
+  );
+  assert.deepEqual(
+    offsets(deathsCharge, "Death's Charge", ID.DEATHS_CHARGE),
+    [40, 160, 280, 400, 520, 640, 760, 880, 960, 1160],
+  );
+  assert.deepEqual(
+    offsets(soulSpiral, "Soul Spiral", ID.SOUL_SPIRAL),
+    [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040],
+  );
+  assert.deepEqual(
+    offsets(soulSpiral, "Soul Spiral", ID.SOUL_SPIRAL, "condition"),
+    [240, 440, 560, 760, 880, 1080, 1200, 1400, 1520, 1720, 1840, 2040],
+  );
+  assert.deepEqual(
+    offsets(anguish, "Anguish", ID.ANGUISH),
+    [1360, 1520, 1560, 1640, 1680, 1720, 1760],
+  );
+  assert.deepEqual(
+    offsets(wanderlust, "Wanderlust", ID.WANDERLUST),
+    [720, 2760, 3760, 4760, 5760],
+  );
+});
+
+test("EVTC-derived Necromancer single-hit offsets remain exact", () => {
+  const declarativeOffsets = new Map([
+    [ID.DARK_PACT, 640],
+    [ID.GRASPING_DEAD, 560],
+    [ID.BLOOD_IS_POWER, 560],
+    [ID.PUTRID_CURSE, 360],
+    [ID.SIGNET_OF_SPITE, 560],
+    [ID.BLOOD_CURSE, 360],
+    [ID.RENDING_CURSE, 440],
+    [ID.NECROTIC_STAB, 160],
+    [ID.ENFEEBLING_BLOOD, 1200],
+    [ID.CHILLING_SCYTHE, 720],
+    [ID.GRAVEDIGGER, 840],
+    [ID.FADING_TWILIGHT, 520],
+    [ID.OPPRESSIVE_COLLAPSE, 560],
+    [ID.HARROWING_WAVE, 320],
+    [ID.VILE_BLAST, 560],
+    [ID.VICIOUS_SHOT, 360],
+    [ID.DEVOURING_VISAGE, 480],
+    [ID.DARK_SLASH, 480],
+    [ID.ADDLE, 240],
+    [ID.DEADLY_SLICE, 400],
+    [ID.SINISTER_STAB, 520],
+    [ID.ISOLATE, 440],
+    [ID.LIFE_SLASH, 400],
+  ]);
+
+  for (const [skillId, expectedOffset] of declarativeOffsets) {
+    const skill = necromancerCatalog.skillsById.get(skillId);
+    const strike = skill.effects.find(effect => effect.type === "strike");
+    assert.equal(strike?.timingAnchor, "castStart", skill.name);
+    assert.equal(strike?.timingScale, "cast", skill.name);
+    assert.equal(
+      Math.round(
+        strike.atMs * skill.quicknessCastTimeMs / skill.castTimeMs,
+      ),
+      expectedOffset,
+      skill.name,
+    );
+  }
+
+  const devouringDarkness = simulate("Core", ["Devouring Darkness"], {
+    boons: { quickness: true },
+    primaryWeapon: "Scepter",
+    selectedTraitIds: [TRAIT.LINGERING_CURSE],
+  });
+  const essenceBlast = simulate("Ritualist", [
+    "Ritualist's Shroud",
+    "Essence Blast",
+  ], { boons: { quickness: true } });
+  const elixirs = simulate("Harbinger", [
+    "Elixir of Promise",
+    "Elixir of Risk",
+    "Elixir of Ambition",
+  ], {
+    boons: { quickness: true },
+    initialBlight: 25,
+    selectedSkills: [
+      "Elixir of Promise",
+      "Elixir of Risk",
+      "Elixir of Ambition",
+    ],
+  });
+  const blightSkills = simulate("Harbinger", [
+    "Harbinger Shroud",
+    "Devouring Cut",
+    "Voracious Arc",
+  ], {
+    boons: { quickness: true },
+    initialBlight: 25,
+  });
+  const manifestShade = simulate("Scourge", ["Manifest Sand Shade"], {
+    boons: { quickness: true },
+  });
+  const customOffset = (result, skillName, skillId) => {
+    const start = result.steps.find(step => step.skill === skillName)?.start;
+    const hit = result.events.find(event =>
+      event.type === "damage" && event.skillId === skillId);
+    assert.notEqual(start, undefined, skillName);
+    assert.ok(hit, skillName);
+    return Math.round(hit.at * 1000 - start);
+  };
+
+  assert.equal(
+    customOffset(
+      devouringDarkness,
+      "Devouring Darkness",
+      ID.DEVOURING_DARKNESS,
+    ),
+    480,
+  );
+  assert.equal(
+    customOffset(essenceBlast, "Essence Blast", ID.ESSENCE_BLAST),
+    560,
+  );
+  assert.equal(
+    customOffset(elixirs, "Elixir of Promise", ID.ELIXIR_OF_PROMISE),
+    400,
+  );
+  assert.equal(
+    customOffset(elixirs, "Elixir of Risk", ID.ELIXIR_OF_RISK),
+    400,
+  );
+  assert.equal(
+    customOffset(elixirs, "Elixir of Ambition", ID.ELIXIR_OF_AMBITION),
+    400,
+  );
+  assert.equal(
+    customOffset(blightSkills, "Devouring Cut", ID.DEVOURING_CUT),
+    360,
+  );
+  assert.equal(
+    customOffset(blightSkills, "Voracious Arc", ID.VORACIOUS_ARC),
+    800,
+  );
+  assert.equal(
+    customOffset(
+      manifestShade,
+      "Manifest Sand Shade",
+      ID.MANIFEST_SAND_SHADE,
+    ),
+    440,
+  );
+});
+
 test("Signet of Spite follows its live passive and active profile", () => {
   const withSignet = simulate("Core", [
     "Rending Claws",
@@ -1218,7 +1434,7 @@ test("Isolate and Distress expose the follow-up and reset Perforate", () => {
   });
   const delayedHitWindow = simulate("Harbinger", [
     "Isolate",
-    { type: "wait", durationMs: 3200 },
+    { type: "wait", durationMs: 2800 },
     "Distress",
   ], {
     boons: { quickness: true },
@@ -1233,13 +1449,13 @@ test("Isolate and Distress expose the follow-up and reset Perforate", () => {
         event.type === "damage" && event.skillId === ID.ISOLATE
       ).at * 1000,
     ),
-    720,
+    440,
   );
   assert.equal(
     delayedHitWindow.events.find(event =>
       event.type === "action" && event.skillId === ID.ISOLATE
     ).rechargeReadyAt,
-    18.72,
+    18.44,
   );
   assert.equal(result.steps[3].start < 8000, true);
   assert.equal(
@@ -3709,7 +3925,7 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
     result.resolvedEvents.filter(event =>
       event.type === "condition"
       && event.sourceId === TRAIT.DEATHLY_CHILL).length,
-    158,
+    160,
   );
   assert.equal(
     result.procSteps.filter(step => step.skill === "Sigil of Geomancy").length,
@@ -3780,7 +3996,7 @@ test("Condition Scourge benchmark preset reconstructs hidden shade casts", async
       && event.condition === "Bleeding").length,
     95,
   );
-  assert.equal(conditionStacks("Bleeding"), 225);
+  assert.equal(conditionStacks("Bleeding"), 221);
   assert.ok(strikeError("Manifest Sand Shade", 28_886) < 0.04);
   assert.ok(strikeError("Manifest Sand Shade (F1/F5)", 17_633) < 0.02);
   assert.ok(strikeError("Desert Shroud", 34_552) < 0.01);

@@ -2572,6 +2572,18 @@ header .accent {
     opacity: 0.8;
 }
 
+.rot-skill.skill-faded,
+.rot-skill.skill-faded:hover {
+    opacity: 0.25;
+    filter: grayscale(0.65);
+}
+
+.rot-skill.skill-highlight {
+    opacity: 1;
+    border-color: var(--att-border, var(--border-light));
+    box-shadow: 0 0 0 2px var(--att-border, var(--border-light));
+}
+
 .rot-invalid-badge {
     position: absolute;
     top: -5px;
@@ -4262,6 +4274,41 @@ header .accent {
 
 .active-resource-stack .active-resource-group {
     margin: 0;
+}
+
+.active-resource-statuses {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-left: 6px;
+    border-left: 1px solid var(--border-light);
+}
+
+.active-resource-statuses-label {
+    color: var(--text-dim);
+    font-size: 8px;
+    letter-spacing: .45px;
+    text-transform: uppercase;
+}
+
+.active-resource-status {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 2px 5px;
+    border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg-dark));
+    color: var(--text);
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+.active-resource-status strong {
+    color: #d8c1f4;
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
 }
 
 .active-resource-pips {

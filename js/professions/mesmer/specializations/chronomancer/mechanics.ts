@@ -24,24 +24,85 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
   Record<number, Partial<MesmerPhantasmAttackTiming>>
 > = Object.freeze({
   [ID.PHANTASMAL_SWORDSMAN]: {
-    chronophantasmaDamageAtMs: 6330,
+    chronophantasmaDamageAtMs: 5920,
     chronophantasmaSpawnAtMs: 7450,
+    chronophantasmaDamageTicks: {
+      "Phantasm leap": [{ atMs: 4474 }],
+      "Phantasm Blurred Frenzy": [
+        { atMs: 4960 },
+        { atMs: 5002 },
+        { atMs: 5277 },
+        { atMs: 5319 },
+        { atMs: 5559 },
+        { atMs: 5602 },
+        { atMs: 5876 },
+        { atMs: 5920 },
+      ],
+    },
   },
   [ID.PHANTASMAL_DUELIST]: {
-    chronophantasmaDamageAtMs: 5530,
+    chronophantasmaDamageAtMs: 5380,
     chronophantasmaSpawnAtMs: 6010,
+    chronophantasmaDamageTicks: {
+      "Illusion Damage": [
+        { atMs: 3972 },
+        { atMs: 4173 },
+        { atMs: 4372 },
+        { atMs: 4571 },
+        { atMs: 4771 },
+        { atMs: 4973 },
+        { atMs: 5171 },
+        { atMs: 5380 },
+      ],
+    },
   },
   [ID.PHANTASMAL_MAGE]: {
     chronophantasmaDamageAtMs: 5040,
     chronophantasmaSpawnAtMs: 5290,
   },
   [ID.PHANTASMAL_WARLOCK]: {
-    chronophantasmaDamageAtMs: 7450,
+    chronophantasmaDamageAtMs: 7243,
+    chronophantasmaDamageAtMsByEntity: [7085, 7243],
     chronophantasmaSpawnAtMs: 8730,
+    chronophantasmaDamageTicksByEntity: [
+      {
+        "One warlock": [
+          { atMs: 5484 },
+          { atMs: 6280 },
+          { atMs: 7085 },
+        ],
+      },
+      {
+        "One warlock": [
+          { atMs: 5642 },
+          { atMs: 6441 },
+          { atMs: 7243 },
+        ],
+      },
+    ],
   },
   [ID.PHANTASMAL_BERSERKER]: {
-    chronophantasmaDamageAtMs: 4290,
+    chronophantasmaDamageAtMs: 3721,
+    chronophantasmaDamageAtMsByEntity: [3544, 3721],
     chronophantasmaSpawnAtMs: 5370,
+    chronophantasmaDamageTicksByEntity: [
+      {
+        "One berserker": [
+          { atMs: 3186 },
+          { atMs: 3302 },
+          { atMs: 3427 },
+          { atMs: 3544 },
+        ],
+      },
+      {
+        "One berserker": [
+          { atMs: 3362 },
+          { atMs: 3480 },
+          { atMs: 3595 },
+          { atMs: 3721 },
+        ],
+      },
+    ],
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
     chronophantasmaDamageAtMs: 3240,

@@ -1,4 +1,5 @@
 import { isGw2NonWeaponEffectEvent } from "../event-ownership.js";
+import { gw2BoonApplicationRecipients } from "../allied-players.js";
 import { weaponStrengthProfileIdForEvent } from "../weapon-strength.js";
 
 import type {
@@ -36,6 +37,20 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
     context: SchedulerContext,
     event: SimulationEventInput,
   ): SimulationEventInput => {
+    if (event.type === "buff") {
+      const recipients = gw2BoonApplicationRecipients(
+        context.config as Gw2Config,
+        event,
+      );
+      return {
+        ...event,
+        affectsSelf: recipients.affectsSelf,
+        affectsSummons: recipients.affectsSummons,
+        alliedPlayerCount: recipients.alliedPlayerCount,
+        companionIds: recipients.companionIds,
+        recipientCount: recipients.recipientCount,
+      };
+    }
     const coefficientBasedDamage = isCoefficientBasedDamage(event);
     if (!coefficientBasedDamage && event.type !== "action") return event;
 

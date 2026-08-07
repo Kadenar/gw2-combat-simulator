@@ -120,7 +120,11 @@ export function updateDeadeyeMalice(
     }
     emitThiefState(context, at, "malice");
   }
-  if (skill.malicious) {
+  if (
+    skill.malicious
+    && state.markedTargetId
+    && context.effectiveEnd >= context.fullEnd - context.epsilon
+  ) {
     state.malice = 0;
     state.maleficentSevenTriggered = false;
     emitThiefState(context, at, "malice-spent");

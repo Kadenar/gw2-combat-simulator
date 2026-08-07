@@ -19,7 +19,8 @@ export const VINDICATOR_DODGE_AUTO_ACTION = "__vindicator_dodge_auto";
 const PALETTE_ACTION_ORDER = new Map<string, number>([
   ["Dodge", 0],
   ["Dodge / Mirage Cloak", 0],
-  ["Swap Weapons", 1],
+  ["Pick Up Mirage Mirror", 1],
+  ["Swap Weapons", 2],
 ]);
 
 export function uniqueByName(skills: readonly Skill[]): Skill[] {

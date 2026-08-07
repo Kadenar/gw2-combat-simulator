@@ -241,7 +241,7 @@ export const MECHANIC_SKILLS: Readonly<Record<string, readonly number[]>> =
       ID.BLADETURN_REQUIEM,
     ]),
     Troubadour: Object.freeze([
-      ID.LIVELY_LUTE_ALTERNATE,
+      ID.LIVELY_LUTE,
       ID.FLUSTERING_FLUTE,
       ID.DEAFENING_DRUM,
       ID.HARMONIOUS_HARP_ALTERNATE,

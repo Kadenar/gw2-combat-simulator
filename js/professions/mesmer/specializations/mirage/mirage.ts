@@ -79,6 +79,22 @@ export function createMirageActionController({
   queueResources,
   currentResource,
 }: MirageActionControllerOptions): MesmerMirageController {
+  const createMirrors = (
+    at: number,
+    count: number,
+    source: string,
+    delay = 0,
+  ) => {
+    const availableAt = at + Math.max(0, delay);
+    for (let index = 0; index < Math.max(0, count); index += 1) {
+      mirageState.from(state).mirrors.push({
+        availableAt,
+        expiresAt: availableAt + 8,
+        source,
+      });
+    }
+  };
+
   const addBoon = (
     at: number,
     boon: MesmerAttackStatus,
@@ -240,7 +256,11 @@ export function createMirageActionController({
     }
   };
 
-  const executePlayerAmbush = (skill: MesmerSkill, at: number) => {
+  const executePlayerAmbush = (
+    skill: MesmerSkill,
+    at: number,
+    castStart = at,
+  ) => {
     const weapon = activePrimaryWeapon();
     const ambush = ambushAttacks[weapon];
     if (!ambush || skill.id !== ambush.id) return;
@@ -250,13 +270,16 @@ export function createMirageActionController({
       weapon,
       blade: false,
     };
-    addDamage(pseudo, at, {
+    const impactAt = ambush.player.damageAtMs == null
+      ? at
+      : castStart + Number(ambush.player.damageAtMs) / 1000;
+    addDamage(pseudo, impactAt, {
       coefficient: ambush.player.coefficient,
       hits: ambush.player.hits,
       source: "Player",
     });
     for (const condition of ambush.player.conditions || []) {
-      addCondition(ambush.name, at, condition);
+      addCondition(ambush.name, impactAt, condition);
     }
     if (
       mirageState.from(state).riddleOfSandReady &&
@@ -264,25 +287,24 @@ export function createMirageActionController({
     ) {
       addCondition(
         ambush.name,
-        at,
+        impactAt,
         { name: "Confusion", duration: 4, stacks: 2 },
         "Player",
         `${ambush.name} — Riddle of Sand`,
       );
-      addTraitProc("Riddle of Sand", at, ambush.name, "2 confusion");
+      addTraitProc("Riddle of Sand", impactAt, ambush.name, "2 confusion");
       mirageState.from(state).riddleOfSandReady = false;
     }
     for (const boon of ambush.playerBoons || []) {
-      addBoon(at, boon, ambush.name);
+      addBoon(impactAt, boon, ambush.name);
     }
     if (traits.has(TRAIT.MIRAGE_MANTLE)) {
-      addBoon(at, { name: "Alacrity", duration: 4 }, ambush.name);
-      addBoon(at, { name: "Vigor", duration: 3 }, ambush.name);
-      addTraitProc("Mirage Mantle", at, ambush.name, "4s alacrity, 3s vigor");
+      addBoon(impactAt, { name: "Alacrity", duration: 4 }, ambush.name);
+      addTraitProc("Mirage Mantle", impactAt, ambush.name, "4s alacrity");
     }
-    addAmbushVulnerability(at, ambush);
+    addAmbushVulnerability(impactAt, ambush);
     if (ambush.createsClone) {
-      queueResources(at + epsilon, 1, weapon, ambush.name, {
+      queueResources(impactAt + epsilon, 1, weapon, ambush.name, {
         sourceSkillId: skill.id,
       });
     }
@@ -306,6 +328,7 @@ export function createMirageActionController({
     }
     if (skill.id === ID.DISTORTION && traits.has(TRAIT.DESERT_DISTORTION)) {
       grantAmbushWindow(at, "Desert Distortion");
+      createMirrors(at, spent, "Desert Distortion");
       addTraitProc(
         "Desert Distortion",
         at,
@@ -319,6 +342,11 @@ export function createMirageActionController({
   };
 
   const handlePostSkill = (skill: MesmerSkill, at: number) => {
+    if (skill.id === ID.CRYSTAL_SANDS) {
+      // The supplied EVTC places the strike and mirror roughly 0.32s after
+      // Crystal Sands completes, rather than at cast completion.
+      createMirrors(at, 1, skill.name, 0.32);
+    }
     if (MIRAGE_CLOAK_SKILLS.has(skill.id)) {
       grantMirageCloak(at, skill.name);
     }
@@ -341,11 +369,41 @@ export function createMirageActionController({
     }
   };
 
+  const pickUpMirror = (at: number, source: string) => {
+    const mirrors = mirageState.from(state).mirrors;
+    const index = mirrors.findIndex(
+      (mirror) =>
+        mirror.availableAt <= at + epsilon && mirror.expiresAt > at + epsilon,
+    );
+    if (index < 0) return false;
+    mirrors.splice(index, 1);
+    const pseudo = {
+      id: ID.MIRAGE_MIRROR_DAMAGE,
+      name: "Mirage Mirror",
+      weapon: activePrimaryWeapon(),
+      blade: false,
+    };
+    addDamage(pseudo, at, {
+      coefficient: 0.6,
+      hits: 1,
+      source: "Player",
+    });
+    addEvent({
+      type: "weakness_vulnerability",
+      at,
+      skillName: source,
+    });
+    grantMirageCloak(at, source);
+    return true;
+  };
+
   return {
+    createMirrors,
     executeCloneAmbushes,
     executePlayerAmbush,
     grantMirageCloak,
     handleMirageShatter,
     handlePostSkill,
+    pickUpMirror,
   };
 }

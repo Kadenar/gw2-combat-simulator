@@ -361,6 +361,7 @@ export interface ProfessionAppState {
   procVisibilityKeys?: Set<string>;
   procFilterOpen?: boolean;
   procHighlightKey?: string | null;
+  rotationSkillHighlightKey?: string | null;
   _skillBreakdownState?: {
     readonly skillRows: readonly SchedulerRecord[];
   };

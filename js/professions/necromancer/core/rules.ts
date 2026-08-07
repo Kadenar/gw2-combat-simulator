@@ -423,10 +423,16 @@ function modifyNecromancerRechargeStart(
   },
   rechargeStart: number,
 ): number {
-  return context.skill?.id === ID.ISOLATE &&
-    context.skill.flipActivationAtMs != null
-    ? context.start + Number(context.skill.flipActivationAtMs) / 1000
-    : rechargeStart;
+  if (
+    context.skill?.id !== ID.ISOLATE
+    || context.skill.flipActivationAtMs == null
+  ) return rechargeStart;
+  const baseCastMs = Number(context.skill.castTimeMs || 0);
+  const activationProgress = baseCastMs > 0
+    ? Number(context.skill.flipActivationAtMs) / baseCastMs
+    : 1;
+  return context.start
+    + (rechargeStart - context.start) * activationProgress;
 }
 
 export const necromancerCoreAttributeRules = Object.freeze({

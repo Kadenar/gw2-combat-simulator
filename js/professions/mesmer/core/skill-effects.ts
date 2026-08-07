@@ -112,6 +112,7 @@ export function createSkillEffectController({
     allSkills,
     addEvent,
     addTraitProc,
+    addCondition,
     addDamage,
     traitDamage,
     shatters,
@@ -137,18 +138,22 @@ export function createSkillEffectController({
         )
       : [];
     const cloneAtMaximum = illusionResources.cloneAtMaximum(skill);
-    const phantasm = phantasms.prepare(
+    const phantasmExecutions = phantasms.prepare(
       skill,
       castStart,
       phantasmSummonAt,
       clarityConsumed,
     );
-    if (phantasm) phantasms.scheduleLifecycle(phantasm);
+    phantasms.scheduleLifecycle(phantasmExecutions);
     const conditions = cloneAtMaximum
       ? skill.maxCloneEffects || []
       : (skill.effects || []).filter(
           (effect): effect is MesmerConditionEffect =>
-            effect.type === "condition",
+            effect.type === "condition"
+            && (
+              effect.requiredTrait == null
+              || traits.has(Number(effect.requiredTrait))
+            ),
         );
     const damageResult = damage.schedule(
       skill,
@@ -157,16 +162,16 @@ export function createSkillEffectController({
       playerEffectEnd,
       pulseTimes,
       conditions,
-      phantasm,
+      phantasmExecutions,
     );
     illusionResources.schedule(
       skill,
       at,
       castStart,
       cloneAtMaximum,
-      phantasm,
+      phantasmExecutions,
     );
-    specialEffects.apply(skill, at);
+    specialEffects.apply(skill, at, castStart);
     damage.finish(skill, damageResult);
     return clarityConsumed;
   };

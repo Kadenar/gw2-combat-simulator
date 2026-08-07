@@ -11,8 +11,15 @@ import type {
 } from "../../../../platform/engine/types.js";
 import type { MesmerResolverEvent, MesmerUiContext } from "../../types.js";
 
+interface TroubadourUiState {
+  readonly activeInstruments?: readonly {
+    readonly name: string;
+    readonly remaining: number;
+  }[];
+}
+
 const TROUBADOUR_MECHANIC_SKILLS = Object.freeze([
-  ID.LIVELY_LUTE_ALTERNATE,
+  ID.LIVELY_LUTE,
   ID.FLUSTERING_FLUTE,
   ID.DEAFENING_DRUM,
   ID.HARMONIOUS_HARP_ALTERNATE,
@@ -44,11 +51,27 @@ export const troubadourUi: Partial<ProfessionUiContract> & SchedulerRecord =
       mesmerMechanicPaletteGroups(context, TROUBADOUR_MECHANIC_SKILLS),
     skillBarGroups: () =>
       mesmerMechanicSkillBarGroups("Instruments", TROUBADOUR_MECHANIC_SKILLS),
-    resourceViews: (context: MesmerUiContext) =>
-      mesmerResourceViews(context, {
+    resourceViews: (context: MesmerUiContext) => {
+      const activeInstruments = (
+        context.professionState as TroubadourUiState | undefined
+      )?.activeInstruments || [];
+      return mesmerResourceViews(context, {
         id: "notes",
         singular: "note",
         plural: "notes",
         maximum: 3,
-      }),
+      }).map((view) => ({
+        ...view,
+        statusItemsLabel: "Playing",
+        statusItems: activeInstruments.map((instrument) => {
+          const remaining = `${(instrument.remaining / 1000).toFixed(1)}s`;
+          return {
+            id: instrument.name.toLowerCase(),
+            label: instrument.name,
+            valueLabel: remaining,
+            title: `${instrument.name} playing — ${remaining} remaining`,
+          };
+        }),
+      }));
+    },
   });

@@ -18,7 +18,7 @@ export interface MesmerIllusionResourceController {
     at: number,
     castStart: number,
     cloneAtMaximum: boolean,
-    phantasm: MesmerPhantasmExecution | null,
+    phantasms: readonly MesmerPhantasmExecution[],
   ): void;
 }
 
@@ -49,7 +49,7 @@ export function createIllusionResourceController({
     at: number,
     castStart: number,
     atMaximum: boolean,
-    phantasm: MesmerPhantasmExecution | null,
+    phantasmExecutions: readonly MesmerPhantasmExecution[],
   ): void => {
     if (skill.resource?.mode === "fill") {
       queueResources(
@@ -74,7 +74,16 @@ export function createIllusionResourceController({
       );
       return;
     }
-    if (phantasm) phantasms.queueConversion(phantasm);
+    const conversionGroups = new Map<number, MesmerPhantasmExecution[]>();
+    for (const phantasm of phantasmExecutions) {
+      const conversionAt = phantasm.virtuosoBladeAt ?? phantasm.conversionAt;
+      const group = conversionGroups.get(conversionAt) || [];
+      group.push(phantasm);
+      conversionGroups.set(conversionAt, group);
+    }
+    for (const group of conversionGroups.values()) {
+      phantasms.queueConversion(group[0], group.length);
+    }
   };
 
   return { cloneAtMaximum, schedule };

@@ -37,16 +37,16 @@ function instrumentChecksEnabled(context: Gw2ModifierContext): boolean {
 
 function activeInstrumentCount(context: Gw2ModifierContext): number {
   if (!instrumentChecksEnabled(context)) return 0;
-  let count = 0;
+  const active = new Set<string>();
   for (const event of instrumentEvents(context)) {
     if (
       event.at <= context.time + EPSILON &&
       Number(event.expiresAt || 0) > context.time
     ) {
-      count += 1;
+      active.add(String(event.instrument || ""));
     }
   }
-  return count;
+  return active.size;
 }
 
 function hasLute(context: Gw2ModifierContext): boolean {
@@ -72,9 +72,13 @@ export function applyTroubadourAttributes(
     ...attributes,
     power: Number(attributes.power || 0) * fortissimo,
     precision: Number(attributes.precision || 0) * fortissimo,
+    toughness: Number(attributes.toughness || 0) * fortissimo,
+    vitality: Number(attributes.vitality || 0) * fortissimo,
     ferocity: Number(attributes.ferocity || 0) * fortissimo,
     conditionDamage: Number(attributes.conditionDamage || 0) * fortissimo,
     expertise: Number(attributes.expertise || 0) * fortissimo,
+    concentration: Number(attributes.concentration || 0) * fortissimo,
+    healingPower: Number(attributes.healingPower || 0) * fortissimo,
   };
 }
 

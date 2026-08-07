@@ -37,10 +37,12 @@ import {
 import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
+  rotationSkillHighlightKey,
   targetHealthTimelineMarkers,
   timelineWeaponRows,
 } from "../../js/app/rotation/timeline-model.js";
 import {
+  ACTION_ICONS,
   resolveProcIcon,
   resultSkillIcon,
 } from "../../js/app/rotation/icons.js";
@@ -101,6 +103,15 @@ test("proc display groups only consecutive occurrences of the same proc", () => 
       },
     ],
   );
+});
+
+test("rotation skill highlights group occurrences by displayed skill", () => {
+  assert.equal(rotationSkillHighlightKey("Whirling Axe"), "skill:Whirling Axe");
+  assert.equal(
+    rotationSkillHighlightKey({ name: "Whirling Axe", interruptMs: 500 }),
+    "skill:Whirling Axe",
+  );
+  assert.equal(rotationSkillHighlightKey("Dodge"), "skill:Dodge");
 });
 
 test("cooldown-reduction procs use a refresh icon and reduction badge", () => {
@@ -363,7 +374,13 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
 
   assert.deepEqual(
     presets.map(preset => preset.label),
-    ["Power", "Condition", "Condition"],
+    [
+      "Power",
+      "Condition",
+      "Condition - Dune Cloak",
+      "Condition",
+      "Power (Dagger-Sword / Spear)",
+    ],
   );
   for (const preset of presets) {
     const saved = JSON.parse(await readFile(
@@ -1107,9 +1124,32 @@ test("weapon actions stay ordered beside the stacked weapon sets", () => {
       isSkillAvailable: () => true,
     },
   };
+  const mesmerActions = paletteActionSkills(mesmer);
   assert.deepEqual(
-    paletteActionSkills(mesmer).map(skill => skill.name),
-    ["Dodge / Mirage Cloak", "Swap Weapons"],
+    mesmerActions.map(skill => skill.name),
+    [
+      "Dodge / Mirage Cloak",
+      "Pick Up Mirage Mirror",
+      "Swap Weapons",
+    ],
+  );
+  const mirrorIcon =
+    "https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png";
+  assert.equal(
+    mesmerActions.find(skill => skill.name === "Pick Up Mirage Mirror")?.icon,
+    mirrorIcon,
+  );
+  assert.equal(ACTION_ICONS["Pick Up Mirage Mirror"], mirrorIcon);
+  const troubadour = {
+    ...mesmer,
+    adapter: {
+      ...mesmer.adapter,
+      eliteSpecialization: () => "Troubadour",
+    },
+  };
+  assert.deepEqual(
+    paletteActionSkills(troubadour).map(skill => skill.name),
+    ["Dodge", "Swap Weapons"],
   );
   assert.deepEqual(
     paletteActionSkills(guardian).map(skill => skill.name),

@@ -3,6 +3,7 @@ import { THIEF_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasThiefTrait } from "./state.js";
 import {
   emitThiefState,
+  gainThiefEndurance,
   gainThiefInitiative,
 } from "./shared.js";
 import { updateSpearChainState } from "./conditions.js";
@@ -63,6 +64,7 @@ export function updateThiefWeaponState(
 ): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
+  const completed = context.effectiveEnd >= context.fullEnd - context.epsilon;
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (chain) {
     if (chain.next == null) delete state.autoattackChains[chain.root];
@@ -70,7 +72,26 @@ export function updateThiefWeaponState(
   } else if (skill.type === "Weapon") {
     state.autoattackChains = {};
   }
-  enterStealthFromSkill(context, skill, at);
+  if (completed) enterStealthFromSkill(context, skill, at);
+  if (completed && Number(skill.enduranceGain || 0) > 0) {
+    gainThiefEndurance(context, Number(skill.enduranceGain), at, skill.name);
+  }
+  if (
+    skill.shadowstepSkill
+    && context.config.relic === "Peitha"
+    && completed
+  ) {
+    context.emit({
+      type: "peitha",
+      at,
+      source: "thief",
+      sourceId: skill.id,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: "Relic of Peitha",
+    });
+  }
   updateSpearChainState(context, skill, at);
   if (skill.dualWieldOpener && skill.flipSkillId != null) {
     state.availableFlips[skill.flipSkillId] = at + 4;

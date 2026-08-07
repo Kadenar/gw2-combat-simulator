@@ -6,9 +6,9 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.SIPHON]: {
       "implemented": true,
-      "movementSkill": true,
       "handlerId": "thief.siphon",
-      "castTimeMs": 500,
+      "castTimeMs": 780,
+      "quicknessCastTimeMs": 520,
       "cooldown": 18,
       "initiativeCost": 0,
       "effects": [
@@ -31,18 +31,30 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
     },
   [ID.ETERNAL_NIGHT]: {
       "implemented": true,
-      "castTimeMs": 1000,
+      "handlerId": "thief.shadow-shroud-skill",
+      "castTimeMs": 2880,
+      "quicknessCastTimeMs": 1920,
       "cooldown": 8,
       "initiativeCost": 0,
       "effects": [
         {
           "type": "strike",
-          "coefficient": 7,
+          "coefficient": 3.5,
           "hits": 2,
           "name": "Eternal Night",
           "actorType": "player",
-          "atMs": 500,
-          "intervalMs": 500,
+          "atMs": 1440,
+          "intervalMs": 1440,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
+        },
+        {
+          "type": "condition",
+          "condition": "Chilled",
+          "stacks": 1,
+          "duration": 2,
+          "actorType": "player",
+          "atMs": 1440,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -51,27 +63,35 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "condition": "Weakness",
           "stacks": 1,
           "duration": 4,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 2880,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         },
         {
           "type": "condition",
-          "condition": "Poisoned",
-          "stacks": 2,
-          "duration": 4,
-          "actorType": "player"
+          "ticks": [
+            { "atMs": 1440, "condition": "Poisoned", "stacks": 2, "duration": 4 },
+            { "atMs": 2880, "condition": "Poisoned", "stacks": 2, "duration": 4 }
+          ],
+          "actorType": "player",
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         }
       ],
       "shadowShroudSkill": true,
     },
   [ID.GRASPING_SHADOWS]: {
       "implemented": true,
-      "castTimeMs": 250,
+      "handlerId": "thief.shadow-shroud-skill",
+      "castTimeMs": 360,
+      "quicknessCastTimeMs": 240,
       "cooldown": 3,
       "initiativeCost": 0,
       "effects": [
         {
           "type": "strike",
-          "coefficient": 1.666,
+          "coefficient": 1.66,
           "hits": 1,
           "name": "Grasping Shadows",
           "actorType": "player"
@@ -91,11 +111,15 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "actorType": "player"
         }
       ],
+      "finisherType": "Blast",
+      "finisherValue": 1,
       "shadowShroudSkill": true,
     },
   [ID.DAWNS_REPOSE]: {
       "implemented": true,
-      "castTimeMs": 750,
+      "handlerId": "thief.shadow-shroud-skill",
+      "castTimeMs": 780,
+      "quicknessCastTimeMs": 520,
       "cooldown": 8,
       "initiativeCost": 0,
       "effects": [
@@ -105,8 +129,18 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "hits": 1,
           "name": "Dawn's Repose",
           "actorType": "player"
+        },
+        {
+          "type": "control",
+          "actorType": "player",
+          "metadata": {
+            "controlKind": "fear",
+            "duration": 1
+          }
         }
       ],
+      "finisherType": "Leap",
+      "finisherValue": 1,
       "shadowShroudSkill": true,
     },
   [ID.WELL_OF_SILENCE]: {
@@ -128,7 +162,9 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
     },
   [ID.MIND_SHOCK]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "handlerId": "thief.shadow-shroud-skill",
+      "castTimeMs": 540,
+      "quicknessCastTimeMs": 360,
       "cooldown": 16,
       "initiativeCost": 0,
       "effects": [
@@ -137,7 +173,15 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "coefficient": 2,
           "hits": 1,
           "name": "Mind Shock",
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 3000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "metadata": {
+            "extendsResolutionHorizon": true,
+            "finisherType": "Blast",
+            "finisherValue": 1
+          }
         },
         {
           "type": "boon",
@@ -148,12 +192,17 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
         {
           "type": "control",
           "actorType": "player",
+          "atMs": 3000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
           "metadata": {
             "controlKind": "stun",
-            "duration": 1.5
+            "extendsResolutionHorizon": true
           }
         }
       ],
+      "finisherType": "Blast",
+      "finisherValue": 1,
       "shadowShroudSkill": true,
     },
   [ID.EXIT_SHADOW_SHROUD]: {
@@ -202,7 +251,9 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
   [ID.WELL_OF_SORROW]: {
       "implemented": true,
       "movementSkill": true,
-      "castTimeMs": 750,
+      "shadowstepSkill": true,
+      "castTimeMs": 1320,
+      "quicknessCastTimeMs": 880,
       "cooldown": 20,
       "initiativeCost": 0,
       "effects": [
@@ -212,31 +263,27 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "hits": 5,
           "name": "Well of Sorrow",
           "actorType": "player",
-          "atMs": 150,
-          "intervalMs": 150,
-          "timingAnchor": "castStart",
-          "timingScale": "cast"
+          "atMs": 0,
+          "intervalMs": 1000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "persistsAfterInterrupt": true,
+          "metadata": { "extendsResolutionHorizon": true }
         },
         {
           "type": "condition",
-          "condition": "Torment",
-          "stacks": 2,
-          "duration": 6,
-          "actorType": "player"
-        },
-        {
-          "type": "condition",
-          "condition": "Bleeding",
-          "stacks": 3,
-          "duration": 6,
-          "actorType": "player"
-        },
-        {
-          "type": "condition",
-          "condition": "Poisoned",
-          "stacks": 3,
-          "duration": 6,
-          "actorType": "player"
+          "ticks": [
+            { "atMs": 0, "condition": "Torment", "stacks": 2, "duration": 6 },
+            { "atMs": 1000, "condition": "Bleeding", "stacks": 3, "duration": 6 },
+            { "atMs": 2000, "condition": "Torment", "stacks": 2, "duration": 6 },
+            { "atMs": 3000, "condition": "Poisoned", "stacks": 3, "duration": 6 },
+            { "atMs": 4000, "condition": "Torment", "stacks": 2, "duration": 6 }
+          ],
+          "actorType": "player",
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "persistsAfterInterrupt": true,
+          "metadata": { "extendsResolutionHorizon": true }
         }
       ],
     },
@@ -259,7 +306,9 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
   [ID.WELL_OF_TEARS]: {
       "implemented": true,
       "movementSkill": true,
-      "castTimeMs": 750,
+      "shadowstepSkill": true,
+      "castTimeMs": 900,
+      "quicknessCastTimeMs": 600,
       "cooldown": 20,
       "initiativeCost": 0,
       "effects": [
@@ -269,17 +318,21 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "hits": 5,
           "name": "Well of Tears",
           "actorType": "player",
-          "atMs": 150,
-          "intervalMs": 150,
-          "timingAnchor": "castStart",
-          "timingScale": "cast"
+          "atMs": 0,
+          "intervalMs": 1000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "persistsAfterInterrupt": true,
+          "metadata": { "extendsResolutionHorizon": true }
         }
       ],
     },
   [ID.WELL_OF_BOUNTY]: {
       "implemented": true,
       "movementSkill": true,
-      "castTimeMs": 500,
+      "shadowstepSkill": true,
+      "castTimeMs": 600,
+      "quicknessCastTimeMs": 400,
       "cooldown": 20,
       "initiativeCost": 0,
       "effects": [
@@ -287,37 +340,59 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "type": "boon",
           "boon": "stability",
           "duration": 5,
-          "stacks": 2
+          "stacks": 2,
+          "atMs": 0,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "persistsAfterInterrupt": true
         },
         {
           "type": "boon",
           "boon": "might",
           "duration": 15,
-          "stacks": 8
+          "stacks": 8,
+          "atMs": 1000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "persistsAfterInterrupt": true
         },
         {
           "type": "boon",
           "boon": "fury",
           "duration": 5,
-          "stacks": 1
+          "stacks": 1,
+          "atMs": 2000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "persistsAfterInterrupt": true
         },
         {
           "type": "boon",
           "boon": "vigor",
           "duration": 8,
-          "stacks": 1
+          "stacks": 1,
+          "atMs": 3000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "persistsAfterInterrupt": true
         },
         {
           "type": "boon",
           "boon": "regeneration",
           "duration": 12,
-          "stacks": 1
+          "stacks": 1,
+          "atMs": 4000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "persistsAfterInterrupt": true
         }
       ],
     },
   [ID.HAUNT_SHOT]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "handlerId": "thief.shadow-shroud-skill",
+      "castTimeMs": 960,
+      "quicknessCastTimeMs": 640,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [

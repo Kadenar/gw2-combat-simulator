@@ -1,7 +1,5 @@
 import { materializeSkillEffectApplications } from
   "../../../platform/engine/effect-materializer.js";
-import { CONDITION_FORMULAS } from
-  "../../../platform/gw2/condition-formulas.js";
 import { gw2ActorTypeForSource } from
   "../../../platform/gw2/event-ownership.js";
 
@@ -83,9 +81,7 @@ export function createMesmerEventMaterializer({
     extra = {},
   ) => {
     const name = conditionName(condition.name);
-    if (!Object.hasOwn(CONDITION_FORMULAS, name) || !condition.duration) {
-      return [];
-    }
+    if (!condition.duration) return [];
     const eventSource = String(extra.source || source);
     const sourceId = extra.sourceId ?? skillName;
     const actorType = extra.actorType || gw2ActorTypeForSource(eventSource);

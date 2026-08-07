@@ -363,7 +363,7 @@ test("Condition Conduit Mistfire preset matches its benchmark", async () => {
   recalculateRevenant(app);
   const result = runRevenantSimulation(app);
 
-  assert.equal(preset.benchmarkDps, 40034);
+  assert.equal(preset.benchmarkDps, 39960);
   assert.equal(preset.upToDate, true);
   assert.deepEqual(result.warnings, []);
   assert.equal(Math.round(result.dps), preset.benchmarkDps);
@@ -404,7 +404,7 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
       {
         section: "Chronomancer",
         label: "Power",
-        rotation: "Rotations/mesmer/r-power-chronomancer-bench.json",
+        rotation: "Rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
       },
       {
         section: "Chronomancer",
@@ -412,9 +412,19 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
         rotation: "Rotations/mesmer/r-condi-chronomancer-bench.json",
       },
       {
+        section: "Mirage",
+        label: "Condition - Dune Cloak",
+        rotation: "Rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
+      },
+      {
         section: "Virtuoso",
         label: "Condition",
         rotation: "Rotations/mesmer/r-condi-virtuoso-bench.json",
+      },
+      {
+        section: "Troubadour",
+        label: "Power (Dagger-Sword / Spear)",
+        rotation: "Rotations/mesmer/r-power-troubadour-bench.json",
       },
     ],
   );
@@ -430,5 +440,11 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
     ));
     assert.ok(Array.isArray(savedRotation.rotation));
     assert.ok(savedRotation.rotation.length > 0);
+    if (rotationPath.endsWith("r-power-chronomancer-evtc-rebuild.json")) {
+      assert.equal(
+        savedRotation.rotation.some(step => step.name === "__wait"),
+        false,
+      );
+    }
   }
 });

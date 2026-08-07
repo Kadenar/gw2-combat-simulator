@@ -18,6 +18,7 @@ export function createSpecterState(
       maximumHealth * SHADOW_FORCE_HEALTH_MULTIPLIER,
     shadowShroudActive: false,
     shadowForceUpdatedAt: 0,
+    darkSentryReadyAt: 0,
   };
 }
 

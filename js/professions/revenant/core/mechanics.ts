@@ -44,6 +44,7 @@ export const REVENANT_CORE_MECHANICS = freeze({
   spear: freeze({
     abyssalRaze: freeze({
       coefficient: 1,
+      impactDelay: 0.559,
       damageIncreasePerStack: 0.33,
       baseTormentStacks: 1,
       baseTormentDuration: 5,
@@ -162,6 +163,7 @@ export const REVENANT_CORE_MECHANICS = freeze({
     }),
     embraceTheDarkness: freeze({
       coefficient: 0.3,
+      initialStrikeDelay: 0.362,
       tormentStacks: 1,
       empoweredTormentStacks: 2,
       tormentDuration: 5,

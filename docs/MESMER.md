@@ -1,6 +1,6 @@
 # Mesmer implementation and modeling notes
 
-Data snapshot: **2026-07-25**
+Data snapshot: **2026-08-07**
 
 ## Architecture
 
@@ -70,8 +70,8 @@ per-skill rotation table.
 | --- | ---: |
 | Mesmer skills from the checked-in official API snapshot | 119 |
 | Positive-ID supplemental skills | 15 |
-| Negative-ID simulator actions | 3 |
-| Canonical catalog skills | 137 |
+| Negative-ID simulator actions | 4 |
+| Canonical catalog skills | 138 |
 | Skills with modeled strike coefficients | 78 |
 | Skills with modeled damaging conditions | 25 |
 | Core trait lines | 5 |
@@ -121,12 +121,45 @@ one PvE scenario rather than adding mutually exclusive values:
 - Chaos Storm is represented as six strike pulses and one expected poison
   application.
 - Flying Cutter adds Cutter Burst every third cast.
-- Axe clones preserve the supplied Lacerating Chop, Ethereal Chop, and Mirror
-  Strikes coefficients and measured attack timings instead of collapsing the
-  chain into one periodic event.
+- Axe clones repeat Lacerating Chop. The supplied benchmark EVTC measures a
+  1.52s clone cast, a hit 0.52s after cast start, and roughly 1.2s from clone
+  creation to the first cast. Each hit applies one second each of bleeding and
+  torment. Axes of Symmetry snapshots the axe clones present at cast start;
+  their packets land about 40ms before cast end, while the player packet lands
+  about 80ms before cast end.
+- Lingering Thoughts has two charges with a six-second count recharge and a
+  0.25-second recharge gate. It creates a clone 160ms after cast end and emits
+  three strike packets totaling a 1.2 coefficient, two whirl finishers, three
+  stacks of torment for four seconds, and three stacks of cripple for eleven
+  seconds.
+- Crystal Sands and Desert Distortion create eight-second Mirage Mirrors.
+  `Pick Up Mirage Mirror` consumes one available mirror, deals the mirror
+  strike, and grants Mirage Cloak and its ambush window.
+- The Mirage preset keeps the requested three-clone Dune Cloak gate. Its first
+  18 shatters spend three clones and grant Mirage Cloak; the final two spend
+  two clones and do not. The replay completes without rotation warnings at
+  38,842 DPS and 3.843 million damage over 99.852 seconds, compared with the
+  supplied EVTC's 40,936 DPS and 3.948 million damage over 96.439 seconds.
 - Unstable Bladestorm uses four storm pulses and four launched blades.
 - Resource-scaled shatter, bladesong, instrument, and Crescendo coefficients
   use the supplied benchmark coefficient table.
+- Troubadour instrument and Crescendo cast and packet timings use the supplied
+  May 7, 2026 power benchmark. Instrument strikes use the profession-mechanic
+  1034–1166 weapon-strength profile. Tale of the Tortured Mastermind uses four
+  one-second-spaced 1.0 packets, matching the live PvE log, with Torment on
+  every hit and its Weakness, Vulnerability, and final disable packets.
+- Troubadour notes, performance windows, tale boons, Harmonize, Mayhem,
+  Raconteur, Syncopate, Shredding, Life of the Party, Fortissimo, Call and
+  Response, and Altered Chord are scheduled explicitly. Afterimages are summon
+  attacks: they do not enter clone or phantasm state.
+- The Power Troubadour preset reconstructs the supplied 94.235-second EVTC
+  activation order on dagger/sword and spear, including precast Mimic and
+  Unstable Bladestorm, eight weapon swaps, interrupted filler attacks, and the
+  recorded instrument, Tale, and Power Spike counts. The deterministic model
+  currently produces 40,647 DPS against the log's 42,509 reference DPS.
+- Mimic arms a ten-second window and clears the recharge of the next completed
+  non-flip utility skill, allowing each recorded Tale pair to execute without
+  an artificial cooldown stall.
 
 Mesmer weapon swapping is represented by a ten-second base-recharge action.
 Using it toggles the active weapon set and immediately replaces the weapon
@@ -215,14 +248,13 @@ References:
   each five-stack threshold.
 - Continuum Split restores cooldown state. It does not restore clones because
   the live mechanic does not restore illusions.
-- Troubadour Call and Response is cataloged but not simulated. Its effect
-  depends on instrument performance interactions that the available benchmark
-  data does not define reliably.
-- Boon generation, healing, barriers, control damage, stealth, distortion,
-  aegis, and defensive traits are outside the damage total.
+- Ally healing, barriers, control damage, stealth, and defensive consequences
+  remain outside the damage total. Relevant boon and distortion applications
+  are still emitted on the timeline.
 - Damage-affecting Air, Torment, Earth, Blight, Doom, Geomancy, Hydromancy,
-  and Severance sigil procs are resolved with their trigger cooldowns. Energy
-  remains outside the damage total because endurance is not simulated.
+  and Severance sigil procs are resolved with their trigger cooldowns. Full
+  continuous endurance is not simulated; dodge charges model the relevant
+  Mirage and Troubadour endurance interactions.
 - Competitive PvP and WvW splits are intentionally excluded.
 
 When live balance changes, regenerate the metadata-only

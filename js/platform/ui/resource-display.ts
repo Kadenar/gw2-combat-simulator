@@ -22,6 +22,14 @@ function normalizeResourceView(
   const pipStyle = String(view.pipStyle || "")
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "");
+  const statusItems = Array.isArray(view.statusItems)
+    ? view.statusItems.map((item) => ({
+        id: String(item.id || item.label || "status"),
+        label: String(item.label || item.id || "Status"),
+        valueLabel: String(item.valueLabel || ""),
+        title: String(item.title || ""),
+      }))
+    : [];
   return {
     id: String(view.id || "resource"),
     singular: String(view.singular || "resource"),
@@ -48,6 +56,8 @@ function normalizeResourceView(
     ),
     shortLabel: String(view.shortLabel || view.singular || "Res"),
     statusLabel: String(view.statusLabel || "Current"),
+    statusItemsLabel: String(view.statusItemsLabel || ""),
+    statusItems,
   };
 }
 

@@ -686,7 +686,7 @@ test("Abyssal Strike uses 520ms Quickness timing for both spear swings", () => {
   assert.match(hidden.warnings[0], /use Abyssal Strike/);
 });
 
-test("Abyssal Strike commits at 420ms without advancing on an earlier cancel", () => {
+test("Abyssal Strike commits with its 396ms impact", () => {
   const config = {
     primaryWeapon: "Spear",
     secondaryWeapon: "",
@@ -700,22 +700,22 @@ test("Abyssal Strike commits at 420ms without advancing on an earlier cancel", (
     event.skillName === "Abyssal Strike"
     && (event.type === "damage" || event.type === "condition"));
 
-  const cancelled = interruptAt(419);
-  const committed = interruptAt(420);
+  const cancelled = interruptAt(395);
+  const committed = interruptAt(396);
 
   assert.equal(cancelled.steps[0].fullCastMs, 520);
-  assert.equal(cancelled.steps[0].end, 419);
+  assert.equal(cancelled.steps[0].end, 395);
   assert.deepEqual(packets(cancelled), []);
   assert.equal(cancelled.endState.profession.abyssalStrikeSecondCast, false);
 
   assert.equal(committed.steps[0].fullCastMs, 520);
-  assert.equal(committed.steps[0].end, 420);
+  assert.equal(committed.steps[0].end, 396);
   assert.equal(packets(committed).length, 3);
-  assert.ok(packets(committed).every(event => event.at === 0.52));
+  assert.ok(packets(committed).every(event => event.at === 0.396));
   assert.equal(committed.endState.profession.abyssalStrikeSecondCast, true);
 
   const afterCancel = simulate("Core", [
-    { name: "Abyssal Strike", interruptMs: 419 },
+    { name: "Abyssal Strike", interruptMs: 395 },
     "Abyssal Strike",
   ], config);
   assert.equal(afterCancel.steps[1].fullCastMs, 520);
@@ -772,7 +772,7 @@ test("Searing Fissure resolves its initial packet and three field pulses", () =>
         && event.skillName === "Twin Moon Sweep"
         && event.condition === "Burning")
       .map(event => [event.at, event.stacks, event.duration]),
-    [[2.04, 1, 1], [2.04, 1, 1]],
+    [[1.67, 1, 1], [1.67, 1, 1]],
   );
 
   const noField = simulate("Conduit", ["Twin Moon Sweep"], {
@@ -871,6 +871,7 @@ test("Revenant spear packets reduce Abyssal Raze count recharge on hit", () => {
     "Abyssal Force",
     "Abyssal Blitz",
     "Abyssal Blot",
+    { type: "wait", durationMs: 2500 },
   ], {
     primaryWeapon: "Spear",
     secondaryWeapon: "",
@@ -879,23 +880,36 @@ test("Revenant spear packets reduce Abyssal Raze count recharge on hit", () => {
   });
 
   assert.equal(result.warnings.length, 0);
+  const damageOffsets = skillName => {
+    const start = result.steps.find(step => step.skill === skillName).start;
+    return result.events
+      .filter(event => event.type === "damage" && event.skillName === skillName)
+      .map(event => Math.round(event.at * 1000 - start));
+  };
+  assert.deepEqual(damageOffsets("Abyssal Raze"), [559]);
+  assert.deepEqual(damageOffsets("Abyssal Force"), [1162]);
+  assert.deepEqual(damageOffsets("Abyssal Blitz"), [560, 720, 960]);
+  assert.deepEqual(
+    damageOffsets("Abyssal Blot"),
+    [960, 1240, 1520, 1800, 2080],
+  );
   const rechargeProcs = result.procSteps
     .filter(proc => proc.skill.endsWith("Abyssal Raze recharge"));
   assert.deepEqual(
     rechargeProcs.map(proc => proc.detail),
-    ["1s", "1s", "5s", "3s", "2s"],
+    ["1s", "1s", "3s", "5s", "1.96s"],
   );
   assert.deepEqual(
     rechargeProcs.map(proc => proc.cooldownReduction),
-    [1, 1, 5, 3, 2],
+    [1, 1, 3, 5, 1.96],
   );
   assert.deepEqual(
     rechargeProcs.map(proc => [proc.sourceSkill, proc.icon]),
     [
       SKILL.ABYSSAL_STRIKE,
       SKILL.ABYSSAL_STRIKE,
-      SKILL.ABYSSAL_FORCE,
       SKILL.ABYSSAL_BLITZ,
+      SKILL.ABYSSAL_FORCE,
       SKILL.ABYSSAL_BLOT,
     ].map(skillId => {
       const skill = revenantCatalog.skillsById.get(skillId);
@@ -903,8 +917,8 @@ test("Revenant spear packets reduce Abyssal Raze count recharge on hit", () => {
     }),
   );
   const ammo = result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE);
-  assert.equal(ammo.charges, 2);
-  assert.ok(Math.abs(ammo.nextRechargeAt - 3.6) < 1e-9);
+  assert.equal(ammo.charges, 3);
+  assert.equal(ammo.nextRechargeAt, null);
 
   const blitzMines = result.events.filter(event =>
     event.type === "damage"
@@ -2138,6 +2152,12 @@ test("Demon skills use their current projectile and condition packets", () => {
   assert.ok(banishEvents
     .filter(event => event.type === "damage")
     .every(event => Math.abs(event.coefficient - 0.4) < 1e-9));
+  assert.deepEqual(
+    banishEvents
+      .filter(event => event.type === "damage")
+      .map(event => Math.round(event.at * 1000)),
+    [402, 521, 640],
+  );
   assert.equal(
     banishEvents.filter(event =>
       event.type === "condition"
@@ -2165,20 +2185,21 @@ test("Demon skills use their current projectile and condition packets", () => {
     event.type === "damage"
     && event.skillName === "Call to Anguish"
     && event.coefficient === 1.2
-    && event.at === 0));
+    && event.at === 0.804));
   assert.ok(anguish.events.some(event =>
     event.skillName === "Call to Anguish"
     && event.condition === "Chilled"
     && event.duration === 2
-    && event.at === 0));
+    && event.at === 0.804));
   assert.ok(anguish.events.some(event =>
     event.type === "control"
     && event.skillName === "Call to Anguish"
-    && event.at === 0));
+    && event.at === 0.804));
   assert.ok(anguish.events.some(event =>
     event.type === "damage"
     && event.skillName === "Unyielding Impact"
-    && event.coefficient === 1));
+    && event.coefficient === 1
+    && event.at === 1.307));
   assert.deepEqual(
     anguish.events
       .filter(event =>
@@ -2209,6 +2230,7 @@ test("Embrace the Darkness empowers only the next pulse and releases", () => {
     && event.condition === "Torment");
   assert.equal(baselinePulse.stacks, 1);
   assert.equal(baselinePulse.duration, 5);
+  assert.equal(baselinePulse.at, 0.362);
   assert.ok(baseline.events.some(event =>
     event.type === "damage"
     && event.skillName === "Embrace the Darkness"
@@ -3733,8 +3755,8 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
   assert.deepEqual(
     damageTimeline(deathstrike, "Deathstrike"),
     [
-      [360, "Initial Damage", 0.45],
-      [720, "Final Damage", 2.67],
+      [320, "Initial Damage", 0.45],
+      [600, "Final Damage", 2.67],
     ],
   );
   assert.deepEqual(
@@ -3779,8 +3801,8 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
   assert.deepEqual(
     damageTimeline(chilling, "Chilling Isolation"),
     [
-      [400, "Chilling Isolation — Packet 1", 0.8],
-      [600, "Isolated Damage", 1.6],
+      [280, "Chilling Isolation — Packet 1", 0.8],
+      [480, "Isolated Damage", 1.6],
     ],
   );
   const interruptedChilling = simulate("Conduit", [{
@@ -3792,10 +3814,48 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
   assert.deepEqual(
     damageTimeline(interruptedChilling, "Chilling Isolation"),
     [
-      [400, "Chilling Isolation — Packet 1", 0.8],
-      [600, "Isolated Damage", 1.6],
+      [280, "Chilling Isolation — Packet 1", 0.8],
+      [480, "Isolated Damage", 1.6],
     ],
   );
+
+  const swordAutos = simulate(
+    "Conduit",
+    ["Preparation Thrust", "Brutal Blade"],
+    config,
+  );
+  assert.deepEqual(
+    swordAutos.events
+      .filter(event =>
+        event.type === "damage"
+        && ["Preparation Thrust", "Brutal Blade"].includes(event.skillName))
+      .map(event => [event.skillName, Math.round(event.at * 1000)]),
+    [["Preparation Thrust", 320], ["Brutal Blade", 840]],
+  );
+
+  for (const [name, impactMs] of [
+    ["Mist Slash", 400],
+    ["Arcing Mists", 440],
+  ]) {
+    assert.equal(
+      skill(name).effects.find(effect => effect.type === "strike").atMs,
+      impactMs,
+      `${name} impact`,
+    );
+  }
+
+  for (const [name, impactMs] of [
+    ["Hammer Bolt", 481],
+    ["Coalescence of Ruin", 561],
+    ["Field of the Mists", 560],
+    ["Drop the Hammer", 1639],
+  ]) {
+    assert.equal(
+      skill(name).effects.find(effect => effect.type === "strike").atMs,
+      impactMs,
+      `${name} impact`,
+    );
+  }
 
   const onslaught = simulate("Vindicator", ["Phantom's Onslaught"], {
     ...config,
@@ -3857,9 +3917,17 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
     secondaryWeapon: "",
   });
   assert.deepEqual(
-    damageTimeline(requiem, "Eternity's Requiem")
-      .map(([, , coefficient]) => coefficient),
-    [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3],
+    damageTimeline(requiem, "Eternity's Requiem"),
+    [
+      [1163, "Eternity's Requiem", 1],
+      [1241, "Eternity's Requiem", 0.9],
+      [1361, "Eternity's Requiem", 0.8],
+      [1445, "Eternity's Requiem", 0.7],
+      [1486, "Eternity's Requiem", 0.6],
+      [1562, "Eternity's Requiem", 0.5],
+      [1678, "Eternity's Requiem", 0.4],
+      [1762, "Eternity's Requiem", 0.3],
+    ],
   );
 });
 
@@ -4076,8 +4144,8 @@ test("Conduit entity skills apply follow-ups and Shared Wisdom effects", () => {
       .filter(event =>
         event.type === "damage"
         && event.skillName === "Beguiling Haze")
-      .map(event => event.coefficient),
-    [2.2, 0.6, 0.6],
+      .map(event => [Math.round(event.at * 1000), event.coefficient]),
+    [[522, 2.2], [850, 0.6], [1100, 0.6]],
   );
   assert.deepEqual(
     beguiling.steps.map(step => step.fullCastMs),
@@ -4093,7 +4161,7 @@ test("Conduit entity skills apply follow-ups and Shared Wisdom effects", () => {
     beguilingAmmo.nextRechargeAt,
     beguiling.endState.profession.beguilingHazeReadyAt,
   );
-  assert.equal(beguiling.endState.profession.energy, 82.5);
+  assert.ok(Math.abs(beguiling.endState.profession.energy - 83.14) < 1e-9);
 
   const recharged = simulate("Conduit", [
     "Beguiling Haze",
@@ -4158,8 +4226,8 @@ test("Conduit entity skills apply follow-ups and Shared Wisdom effects", () => {
       .filter(event =>
         event.type === "damage"
         && event.skillName === "Hex-Eater Vortex")
-      .map(event => event.coefficient),
-    Array(6).fill(0.2),
+      .map(event => [Math.round(event.at * 1000), event.coefficient]),
+    [443, 562, 682, 802, 920, 1039].map(at => [at, 0.2]),
   );
   assert.ok(vortex.events.some(event =>
     event.type === "buff"
@@ -4178,6 +4246,7 @@ test("Twin Moon Sweep resolves both attackers and legend resonance", () => {
     && event.skillName === "Twin Moon Sweep");
   assert.deepEqual(strikes.map(event => event.coefficient), [2.5, 2.5]);
   assert.deepEqual(strikes.map(event => event.actorType), ["player", "player"]);
+  assert.deepEqual(strikes.map(event => event.at), [0.88, 0.88]);
   assert.equal(
     assassin.events
       .filter(event => event.condition === "Bleeding")
@@ -4199,8 +4268,8 @@ test("Twin Moon Sweep resolves both attackers and legend resonance", () => {
       .filter(event =>
         event.type === "damage"
         && /Shatter/.test(event.name))
-      .map(event => event.coefficient),
-    [0.2, 0.2],
+      .map(event => [event.at, event.coefficient]),
+    [[1.402, 0.2], [1.402, 0.2]],
   );
   assert.equal(
     demon.events
@@ -4222,7 +4291,7 @@ test("Twin Moon Sweep resolves both attackers and legend resonance", () => {
     event.type === "revenant.state"
     && event.reason === "enigmatic-connection-hit");
   assert.equal(swappedBeforeImpact.steps[1].start, 100);
-  assert.equal(affinityAtImpact.at, 0.92);
+  assert.equal(affinityAtImpact.at, 0.88);
   assert.equal(affinityAtImpact.state.activeLegendId, LEGEND.ASSASSIN);
   assert.equal(affinityAtImpact.state.affinity, 2);
   assert.equal(swappedBeforeImpact.endState.profession.affinity, 2);
@@ -4341,6 +4410,28 @@ test("Conduit form attacks carry usable icons into skill breakdowns", () => {
 });
 
 test("Release Potential variants use affinity and equipped-legend effects", () => {
+  for (const [legend, name, expected] of [
+    [LEGEND.DEMON, "Release Potential: Mesmer", [280]],
+    [LEGEND.ENTITY, "Release Potential: Dervish", [560]],
+    [LEGEND.ASSASSIN, "Release Potential: Assassin", [160, 480, 800]],
+  ]) {
+    const timing = simulate("Conduit", [name], {
+      selectedLegends: legend === LEGEND.ENTITY
+        ? [LEGEND.ENTITY, LEGEND.ASSASSIN]
+        : [legend, LEGEND.ENTITY],
+      startingLegend: legend,
+      initialEnergy: 100,
+      boons: { quickness: true },
+    });
+    assert.deepEqual(
+      timing.events
+        .filter(event => event.type === "damage" && event.skillName === name)
+        .map(event => Math.round(event.at * 1000)),
+      expected,
+      name,
+    );
+  }
+
   const mesmer = simulate("Conduit", [
     "Pain Absorption",
     "Banish Enchantment",

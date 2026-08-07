@@ -126,6 +126,15 @@ function elixir(
   skill: NecromancerSkill,
 ): boolean {
   const at = context.effectiveEnd;
+  const impactProgress = (
+    {
+      [ID.ELIXIR_OF_PROMISE]: 10 / 17,
+      [ID.ELIXIR_OF_RISK]: 20 / 27,
+      [ID.ELIXIR_OF_AMBITION]: 10 / 17,
+    } as Readonly<Record<string | number, number>>
+  )[skill.id] ?? 1;
+  const impactAt = context.start
+    + (context.fullEnd - context.start) * impactProgress;
   const state = harbingerState.from(context);
   const ambition = skill.id === ID.ELIXIR_OF_AMBITION;
   const threshold = ambition ? 10 : 5;
@@ -150,6 +159,7 @@ function elixir(
     coefficient *
       (empowered ? elixirMechanics.empoweredCoefficientMultiplier : 1),
     {
+      at: impactAt,
       metadata: {
         blightEmpowered: empowered,
         necromancerBlight: state.blight,
@@ -168,6 +178,7 @@ function elixir(
       String(name),
       Number(stacks),
       Number(duration) * durationMultiplier,
+      { at: impactAt },
     );
   } else if (skill.id === ID.ELIXIR_OF_RISK) {
     const [name, stacks, duration] = (
@@ -181,8 +192,16 @@ function elixir(
       String(name),
       Number(stacks),
       Number(duration) * durationMultiplier,
+      { at: impactAt },
     );
-    emitCondition(context, skill, "Weakness", 1, 5 * durationMultiplier);
+    emitCondition(
+      context,
+      skill,
+      "Weakness",
+      1,
+      5 * durationMultiplier,
+      { at: impactAt },
+    );
     emitBuff(context, skill, "might", 10, 10);
     emitBuff(context, skill, "fury", 10);
   } else if (skill.id === ID.ELIXIR_OF_IGNORANCE) {
@@ -205,6 +224,7 @@ function elixir(
         name,
         elixirMechanics.ambitionConditionStacks,
         elixirMechanics.ambitionConditionDuration * durationMultiplier,
+        { at: impactAt },
       );
     }
     emitBuff(context, skill, "might", 5, 25);
@@ -222,6 +242,13 @@ function blightSkill(
   skill: NecromancerSkill,
 ): boolean {
   const at = context.effectiveEnd;
+  const impactProgress = skill.id === ID.DEVOURING_CUT
+    ? 0.75
+    : skill.id === ID.VORACIOUS_ARC
+      ? 20 / 21
+      : 1;
+  const impactAt = context.start
+    + (context.fullEnd - context.start) * impactProgress;
   const state = harbingerState.from(context);
   const empowered = state.blight >= 5;
   const consumed = empowered ? consumeBlight(state, 5, at) : 0;
@@ -250,6 +277,7 @@ function blightSkill(
       ? skillMechanics.empoweredCoefficient
       : skillMechanics.coefficient,
     {
+      at: impactAt,
       metadata: {
         blightEmpowered: empowered,
         necromancerBlight: damageBlight,
@@ -264,6 +292,7 @@ function blightSkill(
       String(name),
       Number(stacks),
       Number(duration),
+      { at: impactAt },
     );
   }
   if (skill.id !== ID.DEVOURING_CUT) {
@@ -271,7 +300,7 @@ function blightSkill(
       context,
       skill,
       hasTrait(context, TRAIT.DOOM_APPROACHES) ? "fear" : "daze",
-      at,
+      impactAt,
       0.5,
     );
   }

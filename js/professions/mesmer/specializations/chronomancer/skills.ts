@@ -155,7 +155,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "weapon": "",
     "specialization": "Chronomancer",
     "environment": "Terrestrial",
-    "castTimeMs": 1200,
+    "castTimeMs": 950,
     "cooldown": 20,
     "phantasm": false,
     "resource": null,
@@ -164,13 +164,15 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "effects": [
       {
         "type": "strike",
-        "coefficient": 3.9,
-        "hits": 3,
+        "ticks": [
+          { "atMs": 559, "coefficient": 1.3 },
+          { "atMs": 1559, "coefficient": 1.3 },
+          { "atMs": 2561, "coefficient": 1.3 }
+        ],
         "name": "Pulse damage",
         "actorType": "player",
         "weapon": "utility",
-        "intervalMs": 1000,
-        "timingAnchor": "castEnd",
+        "timingAnchor": "castStart",
         "timingScale": "fixed"
       },
       {
@@ -180,8 +182,8 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
         "name": "Final damage",
         "actorType": "player",
         "weapon": "utility",
-        "atMs": 3000,
-        "timingAnchor": "castEnd",
+        "atMs": 3554,
+        "timingAnchor": "castStart",
         "timingScale": "fixed"
       }
     ]
