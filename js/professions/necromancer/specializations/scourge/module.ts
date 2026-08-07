@@ -1,7 +1,6 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
 import {
   scourgeEventReactions,
-  scourgeSkillHandlers,
 } from "./handlers.js";
 import {
   scourgeAttributeRules,
@@ -14,10 +13,7 @@ import type { ScourgeState } from "../../types.js";
 
 export const scourgeModule = defineProfessionModule<ScourgeState>({
   id: "Scourge",
-  catalog: {
-    ...necromancerModuleCatalog("Scourge"),
-    skillHandlers: scourgeSkillHandlers,
-  },
+  catalog: necromancerModuleCatalog("Scourge"),
   resources: {
     createProfessionState: createScourgeState,
     createResolverState: createScourgeState,

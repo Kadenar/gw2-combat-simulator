@@ -3,7 +3,6 @@ import { engineerModuleCatalog } from "../../catalog.js";
 import {
   mechanistEventReactions,
   mechanistSchedulerHooks,
-  mechanistSkillHandlers,
 } from "./handlers.js";
 import {
   mechanistAttributeRules,
@@ -15,10 +14,7 @@ import type { MechanistState } from "../../types.js";
 
 export const mechanistModule = defineProfessionModule<MechanistState>({
   id: "Mechanist",
-  catalog: {
-    ...engineerModuleCatalog("Mechanist"),
-    skillHandlers: mechanistSkillHandlers,
-  },
+  catalog: engineerModuleCatalog("Mechanist"),
   resources: {
     createProfessionState: createMechanistState,
     createResolverState: createMechanistState,

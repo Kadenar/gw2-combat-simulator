@@ -7,7 +7,6 @@ import {
 import {
   necromancerCoreEventHandlers,
   necromancerCoreEventReactions,
-  necromancerCoreSkillHandlers,
 } from "./handlers.js";
 import { necromancerModuleCatalog } from "../catalog.js";
 import {
@@ -24,10 +23,7 @@ import type {
 export const necromancerCoreModule =
   defineProfessionModule<NecromancerCoreState>({
   id: "Core",
-  catalog: {
-    ...necromancerModuleCatalog("Core"),
-    skillHandlers: necromancerCoreSkillHandlers,
-  },
+  catalog: necromancerModuleCatalog("Core"),
   resources: {
     createProfessionState: createNecromancerCoreState,
     createResolverState: createNecromancerCoreState,

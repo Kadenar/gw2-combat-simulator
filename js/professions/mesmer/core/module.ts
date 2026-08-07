@@ -1,7 +1,6 @@
 import { defineProfessionModule } from "../../../platform/engine/profession.js";
 import { mesmerCoreAttributeRules } from "./attribute-rules.js";
 import { mesmerModuleCatalog } from "../catalog.js";
-import { mesmerCoreSkillHandlers } from "./handlers.js";
 import {
   mesmerCastRules,
   mesmerCoreSchedulerHooks,
@@ -24,10 +23,7 @@ import type {
 
 export const mesmerCoreModule = defineProfessionModule<MesmerCoreState>({
   id: "Core",
-  catalog: {
-    ...mesmerModuleCatalog("Core"),
-    skillHandlers: mesmerCoreSkillHandlers,
-  },
+  catalog: mesmerModuleCatalog("Core"),
   resources: {
     createProfessionState: createMesmerCoreState,
     createResolverState: createMesmerCoreResolverState,

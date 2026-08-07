@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { defaultSimulationConfig } from "./helpers/fixture-harness-core.js";
 import {
@@ -20,7 +21,36 @@ import {
 } from "../js/platform/engine/simulation-random.js";
 import {
   createCloneAttackScheduler,
-} from "../js/professions/mesmer/core/illusions.js";
+} from "../js/professions/mesmer/core/clone-attacks.js";
+
+test("Mesmer skill damage scheduling is split into focused modules", () => {
+  const core = new URL("../js/professions/mesmer/core/", import.meta.url);
+  for (const filename of [
+    "clone-attacks.ts",
+    "phantasms.ts",
+    "skill-damage.ts",
+    "illusion-resources.ts",
+    "skill-special-effects.ts",
+    "skill-effects.ts",
+  ]) {
+    assert.equal(existsSync(new URL(filename, core)), true, filename);
+  }
+  assert.equal(existsSync(new URL("illusions.ts", core)), false);
+
+  const pipeline = readFileSync(new URL("skill-effects.ts", core), "utf8");
+  assert.match(pipeline, /createPhantasmEffectController/);
+  assert.match(pipeline, /createSkillDamageController/);
+  assert.match(pipeline, /createIllusionResourceController/);
+  assert.match(pipeline, /createSkillSpecialEffectController/);
+  assert.doesNotMatch(pipeline, /\baddDamage\s*\(/);
+  assert.doesNotMatch(pipeline, /mesmer\.phantasm-(?:summoned|attack)/);
+
+  const phantasms = readFileSync(new URL("phantasms.ts", core), "utf8");
+  const clones = readFileSync(new URL("clone-attacks.ts", core), "utf8");
+  assert.match(phantasms, /mesmer\.phantasm-summoned/);
+  assert.match(phantasms, /\baddDamage\s*\(/);
+  assert.match(clones, /\baddDamage\s*\(/);
+});
 
 test("clone attacks are scheduled lazily as the timeline advances", () => {
   const state = { clones: [] };

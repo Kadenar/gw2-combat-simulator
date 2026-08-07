@@ -3,7 +3,6 @@ import { revenantModuleCatalog } from "../catalog.js";
 import {
   revenantCoreEventHandlers,
   revenantCoreEventReactions,
-  revenantCoreSkillHandlers,
 } from "./handlers.js";
 import { revenantCoreAttributeRules } from "./attribute-rules.js";
 import {
@@ -23,10 +22,7 @@ import type {
 
 export const revenantCoreModule = defineProfessionModule<RevenantCoreState>({
   id: "Core",
-  catalog: {
-    ...revenantModuleCatalog("Core"),
-    skillHandlers: revenantCoreSkillHandlers,
-  },
+  catalog: revenantModuleCatalog("Core"),
   resources: {
     createProfessionState: createRevenantCoreState,
     createResolverState: createRevenantCoreState,

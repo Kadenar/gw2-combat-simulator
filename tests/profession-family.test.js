@@ -16,6 +16,7 @@ import {
   assertProfessionFamilyConformance,
 } from "./helpers/profession-family-conformance.js";
 import {
+  engineerCatalogOwnership,
   ENGINEER_ELITE_SPECIALIZATIONS,
   engineerCatalog,
 } from "../js/professions/engineer/catalog.js";
@@ -32,6 +33,7 @@ import { MECHANIST_SKILL_MECHANICS } from "../js/professions/engineer/specializa
 import { scrapperModule } from "../js/professions/engineer/specializations/scrapper/module.js";
 import { SCRAPPER_SKILL_MECHANICS } from "../js/professions/engineer/specializations/scrapper/skills.js";
 import {
+  necromancerCatalogOwnership,
   NECROMANCER_ELITE_SPECIALIZATIONS,
   necromancerCatalog,
 } from "../js/professions/necromancer/catalog.js";
@@ -42,9 +44,9 @@ import { reaperModule } from "../js/professions/necromancer/specializations/reap
 import { ritualistModule } from "../js/professions/necromancer/specializations/ritualist/module.js";
 import { scourgeModule } from "../js/professions/necromancer/specializations/scourge/module.js";
 import {
+  guardianCatalogOwnership,
   GUARDIAN_ELITE_SPECIALIZATIONS,
   guardianCatalog,
-  guardianSkillRuntimeOwner,
 } from "../js/professions/guardian/catalog.js";
 import { guardianProfession } from "../js/professions/guardian/definition.js";
 import { guardianCoreModule } from "../js/professions/guardian/core/module.js";
@@ -53,6 +55,7 @@ import { firebrandModule } from "../js/professions/guardian/specializations/fire
 import { luminaryModule } from "../js/professions/guardian/specializations/luminary/module.js";
 import { willbenderModule } from "../js/professions/guardian/specializations/willbender/module.js";
 import {
+  mesmerCatalogOwnership,
   MESMER_ELITE_SPECIALIZATIONS,
   mesmerCatalog,
 } from "../js/professions/mesmer/catalog.js";
@@ -63,6 +66,7 @@ import { mirageModule } from "../js/professions/mesmer/specializations/mirage/mo
 import { troubadourModule } from "../js/professions/mesmer/specializations/troubadour/module.js";
 import { virtuosoModule } from "../js/professions/mesmer/specializations/virtuoso/module.js";
 import {
+  revenantCatalogOwnership,
   REVENANT_ELITE_SPECIALIZATIONS,
   revenantCatalog,
 } from "../js/professions/revenant/catalog.js";
@@ -73,6 +77,10 @@ import { heraldModule } from "../js/professions/revenant/specializations/herald/
 import { renegadeModule } from "../js/professions/revenant/specializations/renegade/module.js";
 import { vindicatorModule } from "../js/professions/revenant/specializations/vindicator/module.js";
 import { thiefProfession } from "../js/professions/thief/definition.js";
+import {
+  thiefCatalog,
+  thiefCatalogOwnership,
+} from "../js/professions/thief/catalog.js";
 import { thiefCoreModule } from "../js/professions/thief/core/module.js";
 import { antiquaryModule as thiefAntiquaryModule } from "../js/professions/thief/specializations/antiquary/module.js";
 import { daredevilModule as thiefDaredevilModule } from "../js/professions/thief/specializations/daredevil/module.js";
@@ -143,6 +151,149 @@ test("all migrated profession families share one conformance harness", () => {
     },
   ]) {
     assertProfessionFamilyConformance(fixture);
+  }
+});
+
+test("profession catalog ownership is disjoint and lossless", () => {
+  const fixtures = [
+    {
+      name: "Engineer",
+      catalog: engineerCatalog,
+      ownership: engineerCatalogOwnership,
+      modules: [
+        engineerCoreModule,
+        scrapperModule,
+        holosmithModule,
+        mechanistModule,
+        amalgamModule,
+      ],
+    },
+    {
+      name: "Guardian",
+      catalog: guardianCatalog,
+      ownership: guardianCatalogOwnership,
+      modules: [
+        guardianCoreModule,
+        dragonhunterModule,
+        firebrandModule,
+        willbenderModule,
+        luminaryModule,
+      ],
+    },
+    {
+      name: "Mesmer",
+      catalog: mesmerCatalog,
+      ownership: mesmerCatalogOwnership,
+      modules: [
+        mesmerCoreModule,
+        chronomancerModule,
+        mirageModule,
+        virtuosoModule,
+        troubadourModule,
+      ],
+    },
+    {
+      name: "Necromancer",
+      catalog: necromancerCatalog,
+      ownership: necromancerCatalogOwnership,
+      modules: [
+        necromancerCoreModule,
+        reaperModule,
+        scourgeModule,
+        harbingerModule,
+        ritualistModule,
+      ],
+    },
+    {
+      name: "Revenant",
+      catalog: revenantCatalog,
+      ownership: revenantCatalogOwnership,
+      modules: [
+        revenantCoreModule,
+        heraldModule,
+        renegadeModule,
+        vindicatorModule,
+        conduitModule,
+      ],
+    },
+    {
+      name: "Thief",
+      catalog: thiefCatalog,
+      ownership: thiefCatalogOwnership,
+      modules: [
+        thiefCoreModule,
+        thiefDaredevilModule,
+        thiefDeadeyeModule,
+        thiefSpecterModule,
+        thiefAntiquaryModule,
+      ],
+    },
+  ];
+
+  for (const { name, catalog, ownership, modules } of fixtures) {
+    const owners = {
+      skills: new Map(),
+      traits: new Map(),
+      specializations: new Map(),
+      handlers: new Map(),
+    };
+    for (const module of modules) {
+      const fragment = ownership.fragment(module.id);
+      assert.deepEqual(module.catalog.skills, fragment.skills, name);
+      assert.deepEqual(module.catalog.traits, fragment.traits, name);
+      assert.deepEqual(
+        module.catalog.specializations,
+        fragment.specializations,
+        name,
+      );
+      assert.deepEqual(
+        [...module.catalog.skillHandlers],
+        [...fragment.skillHandlers],
+        name,
+      );
+      for (const [kind, entries, ownerMap, manifestOwners] of [
+        ["skills", module.catalog.skills, owners.skills, ownership.skillOwners],
+        ["traits", module.catalog.traits, owners.traits, ownership.traitOwners],
+        [
+          "specializations",
+          module.catalog.specializations,
+          owners.specializations,
+          ownership.specializationOwners,
+        ],
+      ]) {
+        for (const entry of entries) {
+          assert.equal(ownerMap.has(entry.id), false, `${name}:${kind}:${entry.id}`);
+          assert.equal(manifestOwners.get(entry.id), module.id);
+          ownerMap.set(entry.id, module.id);
+        }
+      }
+      for (const handlerId of module.catalog.skillHandlers.keys()) {
+        assert.equal(
+          owners.handlers.has(handlerId),
+          false,
+          `${name}:handler:${handlerId}`,
+        );
+        assert.equal(ownership.handlerOwners.get(handlerId), module.id);
+        owners.handlers.set(handlerId, module.id);
+      }
+    }
+    for (const [kind, entries] of [
+      ["skills", catalog.skills],
+      ["traits", catalog.traits],
+      ["specializations", catalog.specializations],
+    ]) {
+      assert.deepEqual(
+        [...owners[kind].keys()].sort((left, right) => Number(left) - Number(right)),
+        entries.map((entry) => entry.id)
+          .sort((left, right) => Number(left) - Number(right)),
+        `${name}:${kind}`,
+      );
+    }
+    assert.deepEqual(
+      [...owners.handlers.keys()].sort(),
+      [...catalog.skillHandlers.keys()].sort(),
+      `${name}:handlers`,
+    );
   }
 });
 
@@ -469,9 +620,6 @@ test("Necromancer modules contain complete vertical slices", () => {
     ["specializations/ritualist", ritualistModule],
   ];
   const modifierRuleOwners = new Map();
-  const skillOwners = new Map();
-  const traitOwners = new Map();
-  const specializationOwners = new Map();
   for (const [directory, module] of slices) {
     for (const filename of [
       "module.ts",
@@ -520,20 +668,6 @@ test("Necromancer modules contain complete vertical slices", () => {
     assert.ok(module.catalog?.skills?.length > 0);
     assert.ok(module.catalog?.skillHandlers instanceof Map);
     assert.equal(typeof module.ui?.paletteGroups, "function");
-    for (const [kind, entries, owners] of [
-      ["skill", module.catalog.skills || [], skillOwners],
-      ["trait", module.catalog.traits || [], traitOwners],
-      [
-        "specialization",
-        module.catalog.specializations || [],
-        specializationOwners,
-      ],
-    ]) {
-      for (const entry of entries) {
-        assert.equal(owners.has(entry.id), false, `${kind}:${entry.id}`);
-        owners.set(entry.id, module.id);
-      }
-    }
     for (const rule of module.attributeRules?.modifierRules || []) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
@@ -555,18 +689,6 @@ test("Necromancer modules contain complete vertical slices", () => {
   assert.equal(
     modifierRuleOwners.get("necromancer.spirits-strength"),
     "Ritualist",
-  );
-  assert.deepEqual(
-    [...skillOwners.keys()].sort((left, right) => Number(left) - Number(right)),
-    necromancerCatalog.skills
-      .filter(skill => skill.simulatorAliasOfId == null)
-      .map(skill => skill.id)
-      .sort((left, right) => Number(left) - Number(right)),
-  );
-  assert.equal(traitOwners.size, necromancerCatalog.traits.length);
-  assert.equal(
-    specializationOwners.size,
-    necromancerCatalog.specializations.length,
   );
   const sharedAttributeFacade = readFileSync(
     new URL(
@@ -741,9 +863,6 @@ test("Guardian modules own disjoint vertical slices", () => {
     ["specializations/willbender", willbenderModule],
     ["specializations/luminary", luminaryModule],
   ];
-  const skillOwners = new Map();
-  const traitOwners = new Map();
-  const specializationOwners = new Map();
   const modifierRuleOwners = new Map();
   for (const [directory, module] of slices) {
     for (const filename of [
@@ -777,36 +896,11 @@ test("Guardian modules own disjoint vertical slices", () => {
     }
     assert.equal(typeof module.resources?.createProfessionState, "function");
     assert.ok(module.catalog?.skills?.length > 0);
-    for (const [kind, entries, owners] of [
-      ["skill", module.catalog.skills || [], skillOwners],
-      ["trait", module.catalog.traits || [], traitOwners],
-      [
-        "specialization",
-        module.catalog.specializations || [],
-        specializationOwners,
-      ],
-    ]) {
-      for (const entry of entries) {
-        assert.equal(owners.has(entry.id), false, `${kind}:${entry.id}`);
-        owners.set(entry.id, module.id);
-      }
-    }
     for (const rule of module.attributeRules?.modifierRules || []) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
     }
   }
-  assert.deepEqual(
-    [...skillOwners.keys()].sort((left, right) => Number(left) - Number(right)),
-    guardianCatalog.skills
-      .map(skill => skill.id)
-      .sort((left, right) => Number(left) - Number(right)),
-  );
-  assert.equal(traitOwners.size, guardianCatalog.traits.length);
-  assert.equal(
-    specializationOwners.size,
-    guardianCatalog.specializations.length,
-  );
   assert.equal(
     modifierRuleOwners.get("guardian.empowered-armaments"),
     "Luminary",
@@ -838,8 +932,8 @@ test("Guardian runtimes exclude inactive elite catalogs, registries, and state",
     assert.equal(
       runtime.catalog.skills.some(
         skill =>
-          guardianSkillRuntimeOwner(skill) !== "Core" &&
-          guardianSkillRuntimeOwner(skill) !== activeElite,
+          guardianCatalogOwnership.skillOwners.get(skill.id) !== "Core" &&
+          guardianCatalogOwnership.skillOwners.get(skill.id) !== activeElite,
       ),
       false,
       active,
@@ -944,9 +1038,6 @@ test("Mesmer modules are vertical slices with disjoint catalog ownership", () =>
     );
   }
 
-  const skillOwners = new Map();
-  const traitOwners = new Map();
-  const specializationOwners = new Map();
   const modifierRuleOwners = new Map();
   for (const [directory, module] of mesmerSlices) {
     for (const filename of [
@@ -998,37 +1089,11 @@ test("Mesmer modules are vertical slices with disjoint catalog ownership", () =>
 
     assert.equal(typeof module.resources?.createProfessionState, "function");
     assert.ok(module.catalog?.skills?.length > 0);
-    for (const [kind, entries, owners] of [
-      ["skill", module.catalog.skills || [], skillOwners],
-      ["trait", module.catalog.traits || [], traitOwners],
-      [
-        "specialization",
-        module.catalog.specializations || [],
-        specializationOwners,
-      ],
-    ]) {
-      for (const entry of entries) {
-        assert.equal(owners.has(entry.id), false, `${kind}:${entry.id}`);
-        owners.set(entry.id, module.id);
-      }
-    }
     for (const rule of module.attributeRules?.modifierRules || []) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
     }
   }
-
-  assert.deepEqual(
-    [...skillOwners.keys()].sort((left, right) => Number(left) - Number(right)),
-    mesmerCatalog.skills
-      .map(skill => skill.id)
-      .sort((left, right) => Number(left) - Number(right)),
-  );
-  assert.equal(traitOwners.size, mesmerCatalog.traits.length);
-  assert.equal(
-    specializationOwners.size,
-    mesmerCatalog.specializations.length,
-  );
 
   const coreSources = [
     "module.ts",
@@ -1187,9 +1252,6 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
     );
   }
 
-  const skillOwners = new Map();
-  const traitOwners = new Map();
-  const specializationOwners = new Map();
   const modifierRuleOwners = new Map();
   for (const [directory, module] of revenantSlices) {
     for (const filename of [
@@ -1234,37 +1296,12 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
     assert.ok(module.catalog?.skills?.length > 0);
     assert.ok(module.catalog?.skillHandlers instanceof Map);
     assert.equal(typeof module.ui?.paletteGroups, "function");
-    for (const [kind, entries, owners] of [
-      ["skill", module.catalog.skills || [], skillOwners],
-      ["trait", module.catalog.traits || [], traitOwners],
-      [
-        "specialization",
-        module.catalog.specializations || [],
-        specializationOwners,
-      ],
-    ]) {
-      for (const entry of entries) {
-        assert.equal(owners.has(entry.id), false, `${kind}:${entry.id}`);
-        owners.set(entry.id, module.id);
-      }
-    }
     for (const rule of module.attributeRules?.modifierRules || []) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
     }
   }
 
-  assert.deepEqual(
-    [...skillOwners.keys()].sort((left, right) => Number(left) - Number(right)),
-    revenantCatalog.skills
-      .map(skill => skill.id)
-      .sort((left, right) => Number(left) - Number(right)),
-  );
-  assert.equal(traitOwners.size, revenantCatalog.traits.length);
-  assert.equal(
-    specializationOwners.size,
-    revenantCatalog.specializations.length,
-  );
   assert.equal(
     modifierRuleOwners.get("revenant.reinforced-potency"),
     "Herald",
@@ -1425,9 +1462,6 @@ test("Engineer modules are vertical slices with disjoint ownership", () => {
     );
   }
 
-  const skillOwners = new Map();
-  const traitOwners = new Map();
-  const specializationOwners = new Map();
   const modifierRuleOwners = new Map();
   for (const [directory, module] of engineerSlices) {
     for (const filename of [
@@ -1469,38 +1503,12 @@ test("Engineer modules are vertical slices with disjoint ownership", () => {
     assert.ok(module.catalog?.skills?.length > 0);
     assert.equal(typeof module.catalog?.skillHandlers, "object");
     assert.equal(typeof module.ui?.paletteGroups, "function");
-    for (const [kind, entries, owners] of [
-      ["skill", module.catalog.skills || [], skillOwners],
-      ["trait", module.catalog.traits || [], traitOwners],
-      [
-        "specialization",
-        module.catalog.specializations || [],
-        specializationOwners,
-      ],
-    ]) {
-      for (const entry of entries) {
-        assert.equal(owners.has(entry.id), false, `${kind}:${entry.id}`);
-        owners.set(entry.id, module.id);
-      }
-    }
     for (const rule of module.attributeRules?.modifierRules || []) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
     }
   }
 
-  assert.deepEqual(
-    [...skillOwners.keys()].sort((left, right) => Number(left) - Number(right)),
-    engineerCatalog.skills
-      .filter(skill => skill.simulatorAliasOfId == null)
-      .map(skill => skill.id)
-      .sort((left, right) => Number(left) - Number(right)),
-  );
-  assert.equal(traitOwners.size, engineerCatalog.traits.length);
-  assert.equal(
-    specializationOwners.size,
-    engineerCatalog.specializations.length,
-  );
   assert.equal(
     modifierRuleOwners.get("engineer.object-in-motion"),
     "Scrapper",

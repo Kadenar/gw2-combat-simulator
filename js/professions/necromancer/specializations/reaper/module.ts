@@ -2,7 +2,6 @@ import { defineProfessionModule } from "../../../../platform/engine/profession.j
 import {
   reaperEventReactions,
   reaperSchedulerHooks,
-  reaperSkillHandlers,
 } from "./handlers.js";
 import {
   reaperAttributeRules,
@@ -15,10 +14,7 @@ import type { ReaperState } from "../../types.js";
 
 export const reaperModule = defineProfessionModule<ReaperState>({
   id: "Reaper",
-  catalog: {
-    ...necromancerModuleCatalog("Reaper"),
-    skillHandlers: reaperSkillHandlers,
-  },
+  catalog: necromancerModuleCatalog("Reaper"),
   resources: {
     createProfessionState: createReaperState,
     createResolverState: createReaperState,

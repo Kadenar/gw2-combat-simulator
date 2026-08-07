@@ -1,6 +1,5 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
 import { mesmerModuleCatalog } from "../../catalog.js";
-import { virtuosoSkillHandlers } from "./handlers.js";
 import { virtuosoAttributeRules, virtuosoRuntimeHooks } from "./rules.js";
 import { createVirtuosoResolverState, createVirtuosoState } from "./state.js";
 import { virtuosoUi } from "./ui.js";
@@ -8,10 +7,7 @@ import type { MesmerVirtuosoState } from "../../types.js";
 
 export const virtuosoModule = defineProfessionModule<MesmerVirtuosoState>({
   id: "Virtuoso",
-  catalog: {
-    ...mesmerModuleCatalog("Virtuoso"),
-    skillHandlers: virtuosoSkillHandlers,
-  },
+  catalog: mesmerModuleCatalog("Virtuoso"),
   resources: {
     createProfessionState: createVirtuosoState,
     createResolverState: createVirtuosoResolverState,

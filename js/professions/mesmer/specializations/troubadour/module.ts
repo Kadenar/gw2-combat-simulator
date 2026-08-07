@@ -1,6 +1,5 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
 import { mesmerModuleCatalog } from "../../catalog.js";
-import { troubadourSkillHandlers } from "./handlers.js";
 import { troubadourAttributeRules, troubadourSchedulerHooks } from "./rules.js";
 import { troubadourEventHandlers } from "./resolver.js";
 import {
@@ -13,10 +12,7 @@ import type { MesmerTroubadourState } from "../../types.js";
 export const troubadourModule =
   defineProfessionModule<MesmerTroubadourState>({
   id: "Troubadour",
-  catalog: {
-    ...mesmerModuleCatalog("Troubadour"),
-    skillHandlers: troubadourSkillHandlers,
-  },
+  catalog: mesmerModuleCatalog("Troubadour"),
   resources: {
     createProfessionState: createTroubadourState,
     createResolverState: createTroubadourResolverState,

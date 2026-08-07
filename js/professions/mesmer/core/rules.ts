@@ -33,7 +33,7 @@ import {
   MESMER_SKILL_IDS as ID,
   MESMER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
-import { createCloneAttackScheduler } from "./illusions.js";
+import { createCloneAttackScheduler } from "./clone-attacks.js";
 import { createProfessionActionController } from "./profession-actions.js";
 import { createExpectedProcTracker } from "./expected-procs.js";
 import { createResourceController } from "./resources.js";
@@ -620,7 +620,7 @@ function completeMesmerSkill(
       runtime.actions.handleCrescendo(skill, at);
     } else {
       if (skill.mesmerEffects) {
-        clarityConsumed = runtime.skillEffects.handleExceptionalProfile(
+        clarityConsumed = runtime.skillEffects.schedule(
           { ...skill, effects: skill.mesmerEffects },
           at,
           context.start,

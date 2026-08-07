@@ -4,7 +4,6 @@ import { guardianModuleCatalog } from "../../catalog.js";
 import {
   luminaryEventHandlers,
   luminaryEventReactions,
-  luminarySkillHandlers,
 } from "./handlers.js";
 import {
   luminaryAttributeRules,
@@ -17,10 +16,7 @@ import { luminaryUi } from "./ui.js";
 export const luminaryModule =
   defineProfessionModule<GuardianLuminaryState>({
   id: "Luminary",
-  catalog: {
-    ...guardianModuleCatalog("Luminary"),
-    skillHandlers: luminarySkillHandlers,
-  },
+  catalog: guardianModuleCatalog("Luminary"),
   resources: {
     createProfessionState: createLuminaryState,
     createResolverState: createLuminaryState,

@@ -3,7 +3,6 @@ import { engineerModuleCatalog } from "../../catalog.js";
 import {
   holosmithEventHandlers,
   holosmithSchedulerHooks,
-  holosmithSkillHandlers,
 } from "./handlers.js";
 import {
   holosmithAttributeRules,
@@ -15,10 +14,7 @@ import type { HolosmithState } from "../../types.js";
 
 export const holosmithModule = defineProfessionModule<HolosmithState>({
   id: "Holosmith",
-  catalog: {
-    ...engineerModuleCatalog("Holosmith"),
-    skillHandlers: holosmithSkillHandlers,
-  },
+  catalog: engineerModuleCatalog("Holosmith"),
   resources: {
     createProfessionState: createHolosmithState,
     createResolverState: createHolosmithState,

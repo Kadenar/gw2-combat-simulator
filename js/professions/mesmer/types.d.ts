@@ -530,7 +530,7 @@ export interface MesmerExceptionalProfileOptions {
 }
 
 export interface MesmerSkillEffectController {
-  handleExceptionalProfile(
+  schedule(
     skill: MesmerSkill,
     at: number,
     castStart?: number,
@@ -655,6 +655,8 @@ export interface MesmerCloneAttackStep {
   readonly name?: string;
   readonly coefficient: number;
   readonly hits: number;
+  readonly hitOffsets?: number[];
+  /** The interval between hit ticks, if applicable. */
   readonly interval: number;
   readonly conditions?: readonly MesmerAttackStatus[];
 }

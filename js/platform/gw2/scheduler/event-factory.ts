@@ -155,6 +155,8 @@ export function createGw2SchedulerEventFactory({
     extra: Gw2EventExtra = {},
   ): void => {
     const hits = Math.max(1, Math.trunc(Number(group.hits || 1)));
+    const hitOffsets = group.hitOffsets ?? [];
+
     const coefficient = Number(group.coefficient || 0) / hits;
     const source = group.source || extra.source || "Player";
     const actorType =
@@ -164,11 +166,13 @@ export function createGw2SchedulerEventFactory({
       skill.type === "Utility" ||
       skill.type === "Elite";
     for (let index = 0; index < hits; index += 1) {
+      const hitAt = at + Number(hitOffsets[index] ?? 0);
+
       const event = addEvent(
         decorateDamageEvent(
           {
             type: "damage",
-            at,
+            at: hitAt,
             name: extra.name || skill.name,
             skillName: skill.name,
             coefficient,

@@ -3,7 +3,6 @@ import { engineerModuleCatalog } from "../../catalog.js";
 import {
   amalgamEventReactions,
   amalgamSchedulerHooks,
-  amalgamSkillHandlers,
 } from "./handlers.js";
 import {
   amalgamAttributeRules,
@@ -15,10 +14,7 @@ import type { AmalgamState } from "../../types.js";
 
 export const amalgamModule = defineProfessionModule<AmalgamState>({
   id: "Amalgam",
-  catalog: {
-    ...engineerModuleCatalog("Amalgam"),
-    skillHandlers: amalgamSkillHandlers,
-  },
+  catalog: engineerModuleCatalog("Amalgam"),
   resources: {
     createProfessionState: createAmalgamState,
     createResolverState: createAmalgamState,

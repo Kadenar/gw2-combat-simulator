@@ -1,4 +1,7 @@
 import { createCanonicalCatalog } from "../../platform/engine/catalog.js";
+import {
+  defineCatalogOwnership,
+} from "../../platform/engine/catalog-ownership.js";
 import { flattenProfessionState } from "../../platform/engine/profession.js";
 import {
   SKILLS,
@@ -199,87 +202,55 @@ export const THIEF_ELITE_SPECIALIZATIONS = Object.freeze([
   "Antiquary",
 ]);
 
-const eliteSpecializations = new Set(THIEF_ELITE_SPECIALIZATIONS);
-const ANTIQUARY_HANDLER_IDS = new Set([
-  "thief.artifact",
-  "thief.forged-surfer",
-  "thief.double-edge",
-  "thief.reshuffle",
-  "thief.skritt-scuffle",
-  "thief.skritt-swipe",
-]);
-const SPECTER_HANDLER_IDS = new Set([
-  "thief.siphon",
-  "thief.shadow-shroud-enter",
-  "thief.shadow-shroud-exit",
-]);
-
-function explicitThiefSkillRuntimeOwner(skill) {
-  if (
-    skill.artifactKind
-    || skill.backfire
-    || ANTIQUARY_HANDLER_IDS.has(String(skill.handlerId || ""))
-  ) return "Antiquary";
-  if (skill.id === ID.DEADEYES_MARK || skill.malicious) return "Deadeye";
-  if (
-    skill.shadowShroudSkill
-    || SPECTER_HANDLER_IDS.has(String(skill.handlerId || ""))
-  ) return "Specter";
-  if (
-    skill.type !== "Weapon"
-    && eliteSpecializations.has(String(skill.specialization || ""))
-  ) {
-    return String(skill.specialization);
-  }
-  return "Core";
-}
-
-const eliteOwnerBySkillName = new Map();
-for (const skill of thiefCatalog.skills) {
-  const owner = explicitThiefSkillRuntimeOwner(skill);
-  if (owner !== "Core") eliteOwnerBySkillName.set(skill.name, owner);
-}
+export const thiefCatalogOwnership = defineCatalogOwnership({
+  catalog: thiefCatalog,
+  modules: ["Core", ...THIEF_ELITE_SPECIALIZATIONS],
+  skillOverrides: {
+    [ID.DEADEYES_MARK]: "Deadeye",
+    [ID.MALICIOUS_DEATHS_JUDGMENT]: "Deadeye",
+    [ID.MALICIOUS_ASHEN_ASSAULT]: "Deadeye",
+    [ID.MALICIOUS_SURPRISE_SHOT]: "Deadeye",
+    [ID.MALICIOUS_SNEAK_ATTACK]: "Deadeye",
+    [ID.MALICIOUS_BACKSTAB]: "Deadeye",
+    [ID.MALICIOUS_TACTICAL_STRIKE]: "Deadeye",
+    [ID.MALICIOUS_SHADOWSQUALL]: "Deadeye",
+    [ID.MALICIOUS_HOOK_STRIKE]: "Deadeye",
+    [ID.MALICIOUS_CUNNING_SALVO]: "Deadeye",
+    [ID.ETERNAL_NIGHT]: "Specter",
+    [ID.GRASPING_SHADOWS]: "Specter",
+    [ID.DAWNS_REPOSE]: "Specter",
+    [ID.MIND_SHOCK]: "Specter",
+    [ID.HAUNT_SHOT]: "Specter",
+    [ID.FORGED_SURFER_DASH_ID_76633]: "Antiquary",
+    [ID.HOLO_DANCER_DECOY]: "Antiquary",
+    [ID.EXALTED_HAMMER_ID_76702]: "Antiquary",
+    [ID.CHAK_SHIELD]: "Antiquary",
+    [ID.ZEPHYRITE_SUN_CRYSTAL]: "Antiquary",
+    [ID.UNSTABLE_SKRITT_BOMB]: "Antiquary",
+    [ID.RESHUFFLE]: "Antiquary",
+    [ID.SUMMON_KRYPTIS_TURRET_ID_77192]: "Antiquary",
+    [ID.MISTBURN_MORTAR]: "Antiquary",
+    [ID.SKRITT_SWIPE]: "Antiquary",
+    [ID.ZEPHYRITE_SUN_CRYSTAL_ID_78309]: "Antiquary",
+  },
+  handlerOwners: {
+    "thief.deadeyes-mark": "Deadeye",
+    "thief.deadeye-spear-stealth-attack": "Deadeye",
+    "thief.siphon": "Specter",
+    "thief.shadow-shroud-enter": "Specter",
+    "thief.shadow-shroud-exit": "Specter",
+    "thief.skritt-swipe": "Antiquary",
+    "thief.artifact": "Antiquary",
+    "thief.forged-surfer": "Antiquary",
+    "thief.reshuffle": "Antiquary",
+    "thief.double-edge": "Antiquary",
+    "thief.skritt-scuffle": "Antiquary",
+  },
+  core: { ownsWeapons: true },
+});
 
 export function thiefSkillRuntimeOwner(skill) {
-  return explicitThiefSkillRuntimeOwner(skill)
-    === "Core"
-    ? eliteOwnerBySkillName.get(skill.name) || "Core"
-    : explicitThiefSkillRuntimeOwner(skill);
+  return thiefCatalogOwnership.skillOwners.get(skill.id) || "Core";
 }
 
-const moduleCatalogCache = new Map();
-
-export function thiefModuleCatalog(moduleId) {
-  const cached = moduleCatalogCache.get(moduleId);
-  if (cached) return cached;
-  if (moduleId !== "Core" && !eliteSpecializations.has(moduleId)) {
-    throw new Error(`Unknown Thief catalog module ${moduleId}.`);
-  }
-  const core = moduleId === "Core";
-  const fragment = Object.freeze({
-    skills: Object.freeze(
-      thiefCatalog.skills.filter(skill =>
-        thiefSkillRuntimeOwner(skill) === moduleId),
-    ),
-    traits: Object.freeze(
-      thiefCatalog.traits.filter(trait =>
-        core
-          ? !eliteSpecializations.has(String(trait.specialization || ""))
-          : trait.specialization === moduleId),
-    ),
-    specializations: Object.freeze(
-      thiefCatalog.specializations.filter(specialization =>
-        core
-          ? !specialization.elite
-          : specialization.name === moduleId),
-    ),
-    ...(core
-      ? {
-          weapons: Object.freeze([...thiefCatalog.weapons]),
-          weaponHands: new Map(thiefCatalog.weaponHands),
-        }
-      : {}),
-  });
-  moduleCatalogCache.set(moduleId, fragment);
-  return fragment;
-}
+export const thiefModuleCatalog = thiefCatalogOwnership.fragment;

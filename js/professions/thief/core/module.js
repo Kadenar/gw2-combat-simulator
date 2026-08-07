@@ -1,9 +1,6 @@
 import { defineProfessionModule } from "../../../platform/engine/profession.js";
 import { thiefModuleCatalog } from "../catalog.js";
 import {
-  thiefCoreSkillHandlers,
-} from "./handlers.js";
-import {
   thiefCoreResolverEventHandlers,
   thiefCoreResolverEventReactions,
 } from "./resolver.js";
@@ -20,10 +17,7 @@ import { thiefCoreUi } from "./ui.js";
 
 export const thiefCoreModule = defineProfessionModule({
   id: "Core",
-  catalog: {
-    ...thiefModuleCatalog("Core"),
-    skillHandlers: thiefCoreSkillHandlers,
-  },
+  catalog: thiefModuleCatalog("Core"),
   resources: {
     createProfessionState: createThiefCoreState,
     createResolverState: createThiefCoreState,

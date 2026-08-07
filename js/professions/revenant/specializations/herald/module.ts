@@ -3,7 +3,6 @@ import { revenantModuleCatalog } from "../../catalog.js";
 import {
   heraldEventHandlers,
   heraldEventReactions,
-  heraldSkillHandlers,
 } from "./handlers.js";
 import {
   heraldAttributeRules,
@@ -16,10 +15,7 @@ import type { HeraldState } from "../../types.js";
 
 export const heraldModule = defineProfessionModule<HeraldState>({
   id: "Herald",
-  catalog: {
-    ...revenantModuleCatalog("Herald"),
-    skillHandlers: heraldSkillHandlers,
-  },
+  catalog: revenantModuleCatalog("Herald"),
   resources: {
     createProfessionState: createHeraldState,
     createResolverState: createHeraldState,

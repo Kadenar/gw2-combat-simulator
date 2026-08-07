@@ -17,8 +17,10 @@ import {
 } from "./mechanics/handler-mechanics.js";
 import { mesmerSkillHandlers } from "./handlers.js";
 import { createCanonicalCatalog } from "../../platform/engine/catalog.js";
+import {
+  defineCatalogOwnership,
+} from "../../platform/engine/catalog-ownership.js";
 import type {
-  ProfessionModuleCatalogFragment,
   Skill,
   SkillFragment,
   SkillId,
@@ -122,63 +124,31 @@ export const MESMER_ELITE_SPECIALIZATIONS = Object.freeze([
   "Troubadour",
 ]);
 
-const eliteSpecializations = new Set(MESMER_ELITE_SPECIALIZATIONS);
-const coreRuntimeSkills = mesmerCatalog.skills.filter(
-  (skill) =>
-    skill.id === -3 ||
-    (skill.id !== -1 &&
-      skill.id !== -4 &&
-      skill.id !== ID.TROUBADOUR_BLADECALL &&
-      !skill.ambush &&
-      (skill.type === "Weapon" ||
-        !eliteSpecializations.has(String(skill.specialization || "")))),
-);
-const fragmentCache = new Map<string, ProfessionModuleCatalogFragment>();
+export const mesmerCatalogOwnership = defineCatalogOwnership({
+  catalog: mesmerCatalog,
+  modules: ["Core", ...MESMER_ELITE_SPECIALIZATIONS],
+  skillOverrides: {
+    [ID.DODGE_MIRAGE_CLOAK]: "Mirage",
+    [ID.ETHER_BARRAGE]: "Mirage",
+    [ID.IMAGINARY_AXES]: "Mirage",
+    [ID.MIRAGE_THRUST]: "Mirage",
+    [ID.PHANTOM_RAZOR]: "Mirage",
+    [ID.EFFERVESCENCE]: "Mirage",
+    [ID.FRACTURED_GLASS]: "Mirage",
+    [ID.SPLIT_SURGE]: "Mirage",
+    [ID.CHAOS_VORTEX]: "Mirage",
+    [ID.TROUBADOUR_BLADECALL]: "Troubadour",
+  },
+  handlerOwners: {
+    "mesmer.continuum-shift": "Chronomancer",
+    "mesmer.continuum-split": "Chronomancer",
+    "mesmer.mirage-dodge": "Mirage",
+    "mesmer.ambush": "Mirage",
+    "mesmer.bladesong": "Virtuoso",
+    "mesmer.instrument": "Troubadour",
+    "mesmer.crescendo": "Troubadour",
+  },
+  core: { ownsWeapons: true },
+});
 
-export function mesmerModuleCatalog(
-  moduleId: string,
-): Readonly<ProfessionModuleCatalogFragment> {
-  const cached = fragmentCache.get(moduleId);
-  if (cached) return cached;
-  if (moduleId !== "Core" && !eliteSpecializations.has(moduleId)) {
-    throw new Error(`Unknown Mesmer catalog module ${moduleId}.`);
-  }
-  const core = moduleId === "Core";
-  const skills = core
-    ? coreRuntimeSkills
-    : mesmerCatalog.skills.filter((skill) =>
-        moduleId === "Mirage"
-          ? skill.id === -1 ||
-            skill.ambush ||
-            (skill.type !== "Weapon" && skill.specialization === moduleId)
-          : moduleId === "Chronomancer"
-            ? skill.id === -4 ||
-              (skill.type !== "Weapon" && skill.specialization === moduleId)
-            : moduleId === "Troubadour"
-              ? skill.id === ID.TROUBADOUR_BLADECALL ||
-                (skill.type !== "Weapon" && skill.specialization === moduleId)
-              : skill.type !== "Weapon" && skill.specialization === moduleId,
-      );
-  const traits = mesmerCatalog.traits.filter((trait) =>
-    core
-      ? !eliteSpecializations.has(String(trait.specialization || ""))
-      : trait.specialization === moduleId,
-  );
-  const specializations = mesmerCatalog.specializations.filter(
-    (specialization) =>
-      core ? !specialization.elite : specialization.name === moduleId,
-  );
-  const fragment = Object.freeze({
-    skills: Object.freeze([...skills]),
-    traits: Object.freeze([...traits]),
-    specializations: Object.freeze([...specializations]),
-    ...(core
-      ? {
-          weapons: Object.freeze([...mesmerCatalog.weapons]),
-          weaponHands: new Map(mesmerCatalog.weaponHands),
-        }
-      : {}),
-  });
-  fragmentCache.set(moduleId, fragment);
-  return fragment;
-}
+export const mesmerModuleCatalog = mesmerCatalogOwnership.fragment;

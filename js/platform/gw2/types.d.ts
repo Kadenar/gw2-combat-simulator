@@ -435,6 +435,7 @@ export interface Gw2ConditionApplication extends SchedulerRecord {
 export interface Gw2DamageGroup extends SchedulerRecord {
   readonly coefficient?: number;
   readonly hits?: number;
+  readonly hitOffsets?: number[];
   readonly source?: string;
   readonly actorType?: SimulationActorType;
   readonly weapon?: string;

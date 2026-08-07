@@ -2,7 +2,6 @@ import { defineProfessionModule } from "../../../../platform/engine/profession.j
 import { thiefModuleCatalog } from "../../catalog.js";
 import {
   deadeyeSchedulerHooks,
-  deadeyeSkillHandlers,
 } from "./handlers.js";
 import {
   deadeyeAttributeRules,
@@ -13,10 +12,7 @@ import { deadeyeUi } from "./ui.js";
 
 export const deadeyeModule = defineProfessionModule({
   id: "Deadeye",
-  catalog: {
-    ...thiefModuleCatalog("Deadeye"),
-    skillHandlers: deadeyeSkillHandlers,
-  },
+  catalog: thiefModuleCatalog("Deadeye"),
   resources: {
     createProfessionState: createDeadeyeState,
     createResolverState: createDeadeyeState,

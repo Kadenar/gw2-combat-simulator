@@ -2,7 +2,6 @@ import { defineProfessionModule } from "../../../../platform/engine/profession.j
 import { thiefModuleCatalog } from "../../catalog.js";
 import {
   antiquarySchedulerHooks,
-  antiquarySkillHandlers,
 } from "./handlers.js";
 import { antiquaryResolverEventReactions } from "./resolver.js";
 import {
@@ -14,10 +13,7 @@ import { antiquaryUi } from "./ui.js";
 
 export const antiquaryModule = defineProfessionModule({
   id: "Antiquary",
-  catalog: {
-    ...thiefModuleCatalog("Antiquary"),
-    skillHandlers: antiquarySkillHandlers,
-  },
+  catalog: thiefModuleCatalog("Antiquary"),
   resources: {
     createProfessionState: createAntiquaryState,
     createResolverState: createAntiquaryState,
