@@ -2547,7 +2547,7 @@ test("obsolete compatibility trees are removed", async () => {
     "revenant",
     "thief",
   ]) {
-    const extension = profession === "thief" ? "js" : "ts";
+    const extension = "ts";
     for (const facade of ["attribute-rules", "resolver", "state", "ui"]) {
       await assert.rejects(
         readFile(
@@ -2635,7 +2635,7 @@ test("specialization state factories and accessors stay owner-local", async () =
     });
     for (const directory of directories.filter(entry => entry.isDirectory())) {
       const root = path.join(specializationsRoot, directory.name);
-      const extension = profession === "thief" ? "js" : "ts";
+      const extension = "ts";
       const stateSource = await readFile(
         path.join(root, `state.${extension}`),
         "utf8",

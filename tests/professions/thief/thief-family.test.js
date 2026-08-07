@@ -94,7 +94,7 @@ test("Thief modules own vertical source slices", () => {
       import.meta.url,
     );
     for (const entry of readdirSync(directoryUrl, { withFileTypes: true })) {
-      if (!entry.isFile() || !entry.name.endsWith(".js")) continue;
+      if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
       const source = readFileSync(new URL(entry.name, directoryUrl), "utf8");
       if (directory === "core") {
         assert.doesNotMatch(source, /from\s+["'][^"']*specializations\//);
@@ -113,7 +113,7 @@ test("Thief modules own vertical source slices", () => {
         rootFacadeImport,
         `${directory}/${entry.name} imports an application facade`,
       );
-      if (entry.name !== "module.js") {
+      if (entry.name !== "module.ts") {
         assert.doesNotMatch(
           source,
           directory === "core"
@@ -123,7 +123,7 @@ test("Thief modules own vertical source slices", () => {
         );
       }
     }
-    for (const filename of ["module.js", "state.js", "skills.js"]) {
+    for (const filename of ["module.ts", "state.ts", "skills.ts"]) {
       const url = new URL(
         `../../../js/professions/thief/${directory}/${filename}`,
         import.meta.url,
@@ -135,7 +135,7 @@ test("Thief modules own vertical source slices", () => {
         /specializations\/(?:daredevil|deadeye|specter|antiquary)\//,
         `${directory}/${filename} imports a sibling specialization`,
       );
-      if (filename === "skills.js") {
+      if (filename === "skills.ts") {
         assert.match(source, /_SKILL_MECHANICS\b/);
         assert.doesNotMatch(source, /from\s+["'][^"']*catalog\.js["']/);
       }
@@ -163,12 +163,12 @@ test("Thief modules own vertical source slices", () => {
   );
 
   const coreSources = [
-    "module.js",
-    "state.js",
-    "skills.js",
-    "handlers.js",
-    "rules.js",
-    "ui.js",
+    "module.ts",
+    "state.ts",
+    "skills.ts",
+    "handlers.ts",
+    "rules.ts",
+    "ui.ts",
   ].map(filename =>
     readFileSync(
       new URL(`../../../js/professions/thief/core/${filename}`, import.meta.url),
@@ -179,7 +179,7 @@ test("Thief modules own vertical source slices", () => {
   assert.doesNotMatch(
     readFileSync(
       new URL(
-        "../../../js/professions/thief/mechanics/skill-mechanics.js",
+        "../../../js/professions/thief/mechanics/skill-mechanics.ts",
         import.meta.url,
       ),
       "utf8",
