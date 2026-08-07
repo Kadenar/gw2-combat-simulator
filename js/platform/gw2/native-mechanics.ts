@@ -1,0 +1,264 @@
+import { isInternalCooldownReady } from "../engine/clock.js";
+import {
+  augmentSkillHandler,
+  replaceSkillHandler,
+} from "../engine/skill-handlers.js";
+import type {
+  SkillHandlerStrategy,
+  SkillId,
+} from "../engine/types.js";
+import type {
+  NativeResolvedDamageDetails,
+  NativeResolvedReaction,
+  NativeSchedulerMechanic,
+} from "./native-module-types.js";
+import type {
+  Gw2ResolverEvent,
+  Gw2ResolverRuntime,
+} from "./types.js";
+
+type OrderedEscapeHandler = Readonly<{
+  id: string;
+  order?: number;
+  handler: (...args: never[]) => object | boolean | number | string | null | void;
+}>;
+
+function resolvedReaction<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object,
+>(
+  eventType: string,
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (
+      context: TContext,
+      event: TEvent,
+      details?: TDetails,
+    ) => object | void;
+  }>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  if (!String(declaration.id || "").trim() ||
+    typeof declaration.handler !== "function") {
+    throw new TypeError(`${eventType} resolver reaction requires id and handler.`);
+  }
+  return Object.freeze({
+    phase: "resolver",
+    eventType,
+    id: declaration.id,
+    order: Number(declaration.order || 0),
+    handler: declaration.handler,
+  });
+}
+
+export function onResolvedDamage<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object = NativeResolvedDamageDetails,
+>(declaration: Readonly<{
+  id: string;
+  order?: number;
+  handler: (
+    context: TContext,
+    event: TEvent,
+    details?: TDetails,
+  ) => object | void;
+}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  return resolvedReaction("damage", declaration);
+}
+
+export function onResolvedControl<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object = object,
+>(declaration: Readonly<{
+  id: string;
+  order?: number;
+  handler: (
+    context: TContext,
+    event: TEvent,
+    details?: TDetails,
+  ) => object | void;
+}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  return resolvedReaction("control", declaration);
+}
+
+export function onResolvedBlind<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object = object,
+>(declaration: Readonly<{
+  id: string;
+  order?: number;
+  handler: (
+    context: TContext,
+    event: TEvent,
+    details?: TDetails,
+  ) => object | void;
+}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  return resolvedReaction("blind", declaration);
+}
+
+export interface ResolvedCriticalHitOptions<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends NativeResolvedDamageDetails,
+> {
+  readonly id: string;
+  readonly order?: number;
+  readonly chanceOnCriticalHit?: number | ((
+    context: TContext,
+    event: TEvent,
+  ) => number);
+  readonly actorTypes?: readonly ("player" | "summon" | "effect" | "unknown")[];
+  readonly sourceIds?: readonly SkillId[];
+  readonly when?: (
+    context: TContext,
+    event: TEvent,
+    details: TDetails,
+  ) => boolean;
+  readonly expectedProgress: {
+    readonly get: (context: TContext) => number;
+    readonly set: (context: TContext, value: number) => void;
+  };
+  readonly internalCooldown?: {
+    readonly duration: number;
+    readonly readyAt: (context: TContext) => number;
+    readonly setReadyAt: (context: TContext, readyAt: number) => void;
+  };
+  readonly randomStream?: string;
+  readonly attribution: {
+    readonly kind: "trait" | "skill" | "effect";
+    readonly id: SkillId;
+  };
+  readonly handler: (
+    context: TContext,
+    event: TEvent,
+    details: TDetails,
+  ) => object | void;
+}
+
+/**
+ * Runs a resolved critical-hit reaction without rerolling the canonical hit.
+ * Deterministic mode accumulates expected critical probability; stochastic
+ * mode consumes `didCrit` and a stable secondary random stream.
+ */
+export function onResolvedPlayerCriticalHit<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends NativeResolvedDamageDetails,
+>(
+  options: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> & {
+  readonly attribution: ResolvedCriticalHitOptions<
+    TContext,
+    TEvent,
+    TDetails
+  >["attribution"];
+} {
+  const actorTypes = new Set(options.actorTypes || ["player"]);
+  const sourceIds = options.sourceIds == null
+    ? null
+    : new Set(options.sourceIds.map(String));
+  const chanceFor = (context: TContext, event: TEvent): number => {
+    const raw = typeof options.chanceOnCriticalHit === "function"
+      ? options.chanceOnCriticalHit(context, event)
+      : options.chanceOnCriticalHit ?? 1;
+    const chance = Number(raw);
+    if (!Number.isFinite(chance) || chance < 0 || chance > 1) {
+      throw new TypeError(`${options.id} critical proc chance must be 0..1.`);
+    }
+    return chance;
+  };
+  const reaction = onResolvedDamage<TContext, TEvent, TDetails>({
+    id: options.id,
+    order: options.order,
+    handler(context, event, details = {} as TDetails) {
+      if (!actorTypes.has(event.actorType || "unknown")) return;
+      if (sourceIds && !sourceIds.has(String(event.sourceId ?? ""))) return;
+      if (options.when?.(context, event, details) === false) return;
+      const chanceOnCritical = chanceFor(context, event);
+      if (!(chanceOnCritical > 0)) return;
+      const readyAt = options.internalCooldown?.readyAt(context) ?? -Infinity;
+      if (context.random.stochastic) {
+        if (details.hitContext?.critical?.didCrit !== true ||
+          !isInternalCooldownReady(event.at, readyAt)) return;
+        if (chanceOnCritical < 1 && !context.random.roll(
+          chanceOnCritical,
+          options.randomStream || options.id,
+        )) return;
+        options.handler(context, event, details);
+        if (options.internalCooldown) {
+          options.internalCooldown.setReadyAt(
+            context,
+            event.at + options.internalCooldown.duration,
+          );
+        }
+        return;
+      }
+      const criticalChance = Number(
+        details.hitContext?.critical?.chance ?? details.criticalChance ?? 0,
+      );
+      let progress = options.expectedProgress.get(context) +
+        criticalChance * chanceOnCritical;
+      options.expectedProgress.set(context, progress);
+      while (progress >= 1 && isInternalCooldownReady(event.at, readyAt)) {
+        progress -= 1;
+        options.expectedProgress.set(context, progress);
+        options.handler(context, event, details);
+        if (options.internalCooldown) {
+          options.internalCooldown.setReadyAt(
+            context,
+            event.at + options.internalCooldown.duration,
+          );
+          break;
+        }
+      }
+    },
+  });
+  return Object.freeze({ ...reaction, attribution: options.attribution });
+}
+
+function schedulerMechanic(
+  hook: NativeSchedulerMechanic["hook"],
+  declaration: OrderedEscapeHandler,
+): NativeSchedulerMechanic {
+  if (!String(declaration.id || "").trim() ||
+    typeof declaration.handler !== "function") {
+    throw new TypeError(`${hook} scheduler mechanic requires id and handler.`);
+  }
+  return Object.freeze({
+    phase: "scheduler",
+    hook,
+    id: declaration.id,
+    order: Number(declaration.order || 0),
+    handler: declaration.handler,
+  });
+}
+
+export function skillAvailability(
+  declaration: OrderedEscapeHandler,
+): NativeSchedulerMechanic {
+  return schedulerMechanic("availability", declaration);
+}
+
+export function afterSkillEffects(
+  declaration: OrderedEscapeHandler,
+): NativeSchedulerMechanic {
+  return schedulerMechanic("afterCast", declaration);
+}
+
+export function augmentSkill<TContext extends object>(
+  phases: Omit<Partial<SkillHandlerStrategy<TContext>>, "mode">,
+): Readonly<SkillHandlerStrategy<TContext>> {
+  const { beforeEffects = null, ...options } = phases;
+  return augmentSkillHandler(beforeEffects, options);
+}
+
+export function replaceSkill<TContext extends object>(
+  phases: Omit<Partial<SkillHandlerStrategy<TContext>>, "mode">,
+): Readonly<SkillHandlerStrategy<TContext>> {
+  const { beforeEffects = null, ...options } = phases;
+  return replaceSkillHandler(beforeEffects, options);
+}

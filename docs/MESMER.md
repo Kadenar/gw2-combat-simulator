@@ -179,7 +179,9 @@ The rotation engine models these damage relics:
   The disabling hit itself is resolved before the buff activates.
 - Relic of the Fractal: the PvE burning and torment application at the
   documented threshold and internal cooldown.
-- Relic of Mistburn: 10% critical chance while at 10 or more Might.
+- Relic of Mistburn: granting yourself Might grants 1 additional Might for 8
+  seconds on a 1-second internal cooldown, and grants 10% critical chance while
+  at 10 or more Might.
 - Relic of the Mist Stranger: 105 life-siphon damage per player hit; clone and
   phantasm hits do not trigger it.
 - Relic of Peitha: qualifying Mesmer shadowsteps and Deception skills apply

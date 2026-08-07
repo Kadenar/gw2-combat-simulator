@@ -3,8 +3,8 @@ import test from "node:test";
 
 import { createEngineerBuildDefaults } from "../js/professions/engineer/build.js";
 import {
-  engineerAttributeRules,
-} from "../js/professions/engineer/attribute-rules.js";
+  engineerProfession,
+} from "../js/professions/engineer/definition.js";
 import {
   ENGINEER_TRAIT_IDS,
 } from "../js/professions/engineer/data/ids.js";
@@ -13,8 +13,8 @@ import {
 } from "../js/professions/engineer/app/app-definition.js";
 import { createGuardianBuildDefaults } from "../js/professions/guardian/build.js";
 import {
-  guardianAttributeRules,
-} from "../js/professions/guardian/attribute-rules.js";
+  guardianProfession,
+} from "../js/professions/guardian/definition.js";
 import {
   GUARDIAN_TRAIT_IDS,
 } from "../js/professions/guardian/data/ids.js";
@@ -30,8 +30,8 @@ import {
   calculateAttributes as calculateNecromancerAttributes,
 } from "../js/professions/necromancer/app/app-definition.js";
 import {
-  necromancerAttributeRules,
-} from "../js/professions/necromancer/attribute-rules.js";
+  necromancerProfession,
+} from "../js/professions/necromancer/definition.js";
 import {
   NECROMANCER_TRAIT_IDS,
 } from "../js/professions/necromancer/data/ids.js";
@@ -44,8 +44,8 @@ import {
   recalculate as recalculateRevenant,
 } from "../js/professions/revenant/app/app-definition.js";
 import {
-  revenantAttributeRules,
-} from "../js/professions/revenant/attribute-rules.js";
+  revenantProfession,
+} from "../js/professions/revenant/definition.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT,
@@ -58,6 +58,17 @@ import {
   THIEF_TRAIT_IDS,
 } from "../js/professions/thief/data/ids.js";
 import { createThiefCoreState } from "../js/professions/thief/core/state.js";
+
+const engineerCoreRules = engineerProfession.resolveRuntime({});
+const guardianCoreRules = guardianProfession.resolveRuntime({});
+const necromancerCoreRules = necromancerProfession.resolveRuntime({});
+const revenantCoreRules = revenantProfession.resolveRuntime({});
+const revenantRenegadeRules = revenantProfession.resolveRuntime({
+  specialization: "Renegade",
+});
+const revenantConduitRules = revenantProfession.resolveRuntime({
+  specialization: "Conduit",
+});
 
 function traitDelta(
   calculate,
@@ -86,10 +97,10 @@ test("shared attribute provenance applies profession static rules once", () => {
     },
   };
 
-  const engineerDirect = engineerAttributeRules.modifyAttributes({
+  const engineerDirect = engineerCoreRules.modifyAttributes({
     config: { traitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS] },
   }, { conditionDamage: 1000 });
-  const engineerBrowser = engineerAttributeRules.modifyAttributes({
+  const engineerBrowser = engineerCoreRules.modifyAttributes({
     config: {
       ...applied,
       traitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS],
@@ -98,11 +109,11 @@ test("shared attribute provenance applies profession static rules once", () => {
   assert.equal(engineerDirect.conditionDamage, 1120);
   assert.equal(engineerBrowser.conditionDamage, engineerDirect.conditionDamage);
 
-  const guardianDirect = guardianAttributeRules.modifyAttributes({
+  const guardianDirect = guardianCoreRules.modifyAttributes({
     config: { traitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE] },
     event: { skillWeapon: "Greatsword" },
   }, { power: 1000, precision: 1000, ferocity: 0, vitality: 1000 });
-  const guardianBrowser = guardianAttributeRules.modifyAttributes({
+  const guardianBrowser = guardianCoreRules.modifyAttributes({
     config: {
       ...applied,
       traitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE],
@@ -112,10 +123,10 @@ test("shared attribute provenance applies profession static rules once", () => {
   assert.equal(guardianDirect.power, 1240);
   assert.equal(guardianBrowser.power, guardianDirect.power);
 
-  const necromancerDirect = necromancerAttributeRules.modifyAttributes({
+  const necromancerDirect = necromancerCoreRules.modifyAttributes({
     config: { traitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE] },
   }, { precision: 1000 });
-  const necromancerBrowser = necromancerAttributeRules.modifyAttributes({
+  const necromancerBrowser = necromancerCoreRules.modifyAttributes({
     config: {
       ...applied,
       traitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE],
@@ -141,11 +152,11 @@ test("shared attribute provenance applies profession static rules once", () => {
     necromancerDirectState.maximumHealth,
   );
 
-  const revenantDirect = revenantAttributeRules.modifyConditionDuration({
+  const revenantDirect = revenantCoreRules.modifyConditionDuration({
     config: { traitIds: [TRAIT.PACT_OF_PAIN] },
     condition: "Torment",
   }, 1);
-  const revenantBrowser = revenantAttributeRules.modifyConditionDuration({
+  const revenantBrowser = revenantCoreRules.modifyConditionDuration({
     config: {
       ...applied,
       traitIds: [TRAIT.PACT_OF_PAIN],
@@ -411,12 +422,12 @@ test("Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy", () =>
   };
 
   assert.deepEqual(
-    revenantAttributeRules.modifyAttributes(context, attributes),
+    revenantConduitRules.modifyAttributes(context, attributes),
     attributes,
   );
 
   context.runtime.profession.cosmicWisdomUntil = 5;
-  const cosmic = revenantAttributeRules.modifyAttributes(context, attributes);
+  const cosmic = revenantConduitRules.modifyAttributes(context, attributes);
   assert.equal(cosmic.power, 1300);
   assert.equal(cosmic.precision, 1150);
   assert.equal(cosmic.ferocity, 300);
@@ -492,7 +503,7 @@ test("Brutal Momentum exposes its unconditional critical chance", () => {
     10,
   );
 
-  const runtime = revenantAttributeRules.modifyCriticalChance({
+  const runtime = revenantRenegadeRules.modifyCriticalChance({
     config: {
       specialization: "Renegade",
       attributeProvenance: {

@@ -1,11 +1,19 @@
+import { buffMatchesAudience, sumActiveStacks } from "./boon-state.js";
 import { criticalChance, criticalDamageMultiplier } from "./damage.js";
 import { gw2EventActorType } from "./event-ownership.js";
-import { relicConditionDurationBonus } from "./relic-rules.js";
+import { clamp } from "./numeric.js";
+import {
+  createRelicTimelineRuntime,
+  relicConditionDurationBonus,
+  relicCriticalChanceBonus,
+} from "./relic-rules.js";
 import {
   gw2ConditionDurationMultiplier,
   gw2SigilSet,
   gw2StaticAttributes,
+  MIGHT_ATTRIBUTE_BONUS_PER_STACK,
 } from "./runtime-rules.js";
+import { sigilCriticalContribution } from "./sigil-rules.js";
 import {
   canonicalTargetConditionName,
   permanentTargetConditionStacks,
@@ -21,6 +29,7 @@ import type {
   SimulationEvent,
 } from "../engine/types.js";
 import type {
+  Gw2BuffAudience,
   Gw2CombatQuery,
   Gw2Config,
   Gw2QueryRuntime,
@@ -81,8 +90,8 @@ export function selectedGw2TraitValues(
 /**
  * Builds the timestamp-aware combat facts shared by scheduling and resolution.
  * A supplied runtime makes same-timestamp buffs, weapon sets, profession state,
- * conditions, and Severance chronological instead of looking ahead in the
- * completed event stream.
+ * conditions, and active equipment effects chronological instead of looking
+ * ahead in the completed event stream.
  *
  * @template {object} TProfessionState
  * @param {{
@@ -106,6 +115,9 @@ export function createGw2CombatQuery<
   }
   const activeProfession = profession;
   const timeline = createGw2TimelineIndex({ config, events });
+  const historicalRelicContext = Object.freeze({
+    relic: createRelicTimelineRuntime(config.relic, events),
+  });
   const configWithBaselineStats: Gw2Config = {
     ...config,
     stats: {
@@ -131,49 +143,49 @@ export function createGw2CombatQuery<
   let query: Readonly<Gw2CombatQuery> | null = null;
 
   /**
-   * Sums the stack weights of every active application, then clamps to a boon's
-   * range. Shared by the runtime-application and scheduled-event stack queries
-   * so the "filter to the active window, sum stacks, clamp" shape lives once.
-   *
-   * @template T
-   * @param {Iterable<T>} items
-   * @param {(item: T) => boolean} isActive
-   * @param {(item: T) => number} weight
-   * @param {number} maximum
-   */
-  const sumActiveStacks = <T>(
-    items: Iterable<T>,
-    isActive: (item: T) => boolean,
-    weight: (item: T) => number,
-    maximum: number,
-  ): number => {
-    let stacks = 0;
-    for (const item of items) {
-      if (isActive(item)) stacks += weight(item);
-    }
-    return Math.max(0, Math.min(maximum, stacks));
-  };
-  /**
    * @param {Gw2QueryRuntime | null | undefined} runtime
    * @param {string} kind
    * @param {number} time
    * @param {number} maximum
+   * @param {Gw2BuffAudience} [audience]
    */
   const runtimeBuffStacks = (
     runtime: Gw2QueryRuntime | null | undefined,
     kind: string,
     time: number,
     maximum: number,
+    audience: Gw2BuffAudience = "all",
   ): number | null =>
     runtime
       ? sumActiveStacks(
           runtime.boons?.get(kind) || [],
           (application) =>
-            application.at <= time && application.expiresAt > time,
+            buffMatchesAudience(application, audience) &&
+            application.at <= time &&
+            application.expiresAt > time,
           (application) => Number(application.stacks || 1),
           maximum,
+          (application) => application.at > time,
         )
       : null;
+
+  /** Uses chronological runtime state when present, otherwise scheduled state. */
+  const dynamicBoonStacksAt = (
+    kind: string,
+    time: number,
+    maximum: number,
+    runtime: Gw2QueryRuntime | null | undefined,
+    audience: Gw2BuffAudience = "all",
+    fallbackDuration = 0,
+  ): number =>
+    runtimeBuffStacks(runtime, kind, time, maximum, audience) ??
+    timeline.buffStacksAt(
+      kind,
+      time,
+      fallbackDuration,
+      maximum,
+      audience,
+    );
   /**
    * Player-configured permanent boons do not apply to ordinary summons.
    * Explicitly inherited companion profiles retain their existing behavior.
@@ -186,31 +198,6 @@ export function createGw2CombatQuery<
     gw2EventActorType(event) === "summon" &&
     event?.summonInheritsAttributes !== true &&
     event?.source !== "Phantasm";
-  /**
-   * Counts explicitly summon-targeted trait boons. These remain available when
-   * ordinary player-to-summon boon sharing is disabled.
-   *
-   * @param {string} kind
-   * @param {number} time
-   * @param {number} maximum
-   */
-  const summonTraitBoonStacksAt = (
-    kind: string,
-    time: number,
-    maximum: number,
-  ): number =>
-    sumActiveStacks(
-      events,
-      (event) =>
-        event.type === "buff" &&
-        String(event.kind || "").toLowerCase() === kind &&
-        event.source === "Trait" &&
-        event.affectsSummons === true &&
-        event.at <= time &&
-        event.at + Number(event.duration || 0) > time,
-      (event) => Number(event.stacks || 1),
-      maximum,
-    );
   /**
    * @param {string} kind
    * @param {number} time
@@ -228,14 +215,23 @@ export function createGw2CombatQuery<
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
     const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
     if (isolatedSummon && config.sharePlayerBoonsWithSummons === false) {
-      return summonTraitBoonStacksAt(kind, time, maximum);
+      return dynamicBoonStacksAt(
+        kind,
+        time,
+        maximum,
+        runtime,
+        "summon-trait",
+      );
     }
-    const runtimeStacks = runtimeBuffStacks(runtime, kind, time, maximum);
-    const dynamic =
-      runtimeStacks == null
-        ? timeline.timedStacks(kind, time, 1, maximum)
-        : runtimeStacks;
-    return Math.max(0, Math.min(maximum, configured + dynamic));
+    const dynamic = dynamicBoonStacksAt(
+      kind,
+      time,
+      maximum,
+      runtime,
+      "all",
+      1,
+    );
+    return clamp(configured + dynamic, 0, maximum);
   };
   /**
    * @param {number} time
@@ -265,25 +261,33 @@ export function createGw2CombatQuery<
       event?.source === "Clone" || event?.source === "Phantasm";
     if (!isolatedSummon && !illusionEvent && config.boons?.fury) return true;
     if (isolatedSummon && config.sharePlayerBoonsWithSummons === false) {
-      return summonTraitBoonStacksAt("fury", time, 1) > 0;
+      return (
+        dynamicBoonStacksAt(
+          "fury",
+          time,
+          1,
+          runtime,
+          "summon-trait",
+        ) > 0
+      );
     }
-    const dynamic = runtimeBuffStacks(runtime, "fury", time, 1);
-    return dynamic == null ? timeline.timedActive("fury", time) : dynamic > 0;
+    return dynamicBoonStacksAt("fury", time, 1, runtime) > 0;
   };
-  /** @param {number} time */
-  const summonMightStacksAt = (time: number): number =>
-    sumActiveStacks(
-      events,
-      (event) =>
-        event.type === "buff" &&
-        String(event.kind || "").toLowerCase() === "might" &&
-        event.affectsSummons === true &&
-        (config.sharePlayerBoonsWithSummons !== false ||
-          event.source === "Trait") &&
-        event.at <= time &&
-        event.at + Number(event.duration || 0) > time,
-      (event) => Number(event.stacks || 1),
+  /**
+   * Independent summons consume only explicitly summon-targeted applications.
+   */
+  const summonMightStacksAt = (
+    time: number,
+    runtime: Gw2QueryRuntime | null | undefined,
+  ): number =>
+    dynamicBoonStacksAt(
+      "might",
+      time,
       25,
+      runtime,
+      config.sharePlayerBoonsWithSummons === false
+        ? "summon-trait"
+        : "summon",
     );
   /**
    * @param {number} time
@@ -292,27 +296,21 @@ export function createGw2CombatQuery<
   const vulnerabilityStacksAt = (
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
-  ): number => {
-    const buffStacks = runtimeBuffStacks(
-      runtime,
-      "target-vulnerability",
-      time,
-      25,
-    );
-    if (buffStacks == null) {
-      return Math.min(
-        25,
-        timeline.vulnerabilityStacksAt(time) +
-          runtimeTargetConditionStacks(runtime, "Vulnerability", time),
-      );
-    }
-    return Math.min(
-      25,
+  ): number =>
+    clamp(
       permanentTargetConditionStacks(config, "Vulnerability") +
         runtimeTargetConditionStacks(runtime, "Vulnerability", time) +
-        buffStacks,
+        dynamicBoonStacksAt(
+          "target-vulnerability",
+          time,
+          25,
+          runtime,
+          "all",
+          1,
+        ),
+      0,
+      25,
     );
-  };
   /**
    * @param {string} condition
    * @param {number} time
@@ -327,17 +325,7 @@ export function createGw2CombatQuery<
     const permanent = permanentTargetConditionStacks(config, name);
     const runtimeStacks = runtimeTargetConditionStacks(runtime, name, time);
     if (name === "Vulnerability") {
-      const dynamic = runtimeBuffStacks(
-        runtime,
-        "target-vulnerability",
-        time,
-        25,
-      );
-      const buffStacks =
-        dynamic == null
-          ? timeline.timedStacks("target-vulnerability", time, 1, 25)
-          : dynamic;
-      return Math.min(25, permanent + runtimeStacks + buffStacks);
+      return vulnerabilityStacksAt(time, runtime);
     }
     return permanent + runtimeStacks;
   };
@@ -405,7 +393,10 @@ export function createGw2CombatQuery<
     ) {
       return {
         ...stats,
-        power: Number(event.summonBasePower) + summonMightStacksAt(time) * 30,
+        power:
+          Number(event.summonBasePower) +
+          summonMightStacksAt(time, runtime) *
+            MIGHT_ATTRIBUTE_BONUS_PER_STACK,
         precision: 1000,
         ferocity: 0,
       };
@@ -415,6 +406,9 @@ export function createGw2CombatQuery<
 
   const completedQuery: Readonly<Gw2CombatQuery> = Object.freeze({
     statsAt,
+    mightStacksAt,
+    furyActiveAt,
+    vulnerabilityStacksAt,
     critical(
       event: SimulationEvent,
       time: number,
@@ -428,10 +422,7 @@ export function createGw2CombatQuery<
           chance:
             event.canCrit === false || event.noCrit
               ? 0
-              : Math.max(
-                  0,
-                  Math.min(1, Number(event.summonCriticalChance ?? 0.05)),
-                ),
+              : clamp(Number(event.summonCriticalChance ?? 0.05), 0, 1),
           damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5)),
         };
       }
@@ -453,18 +444,22 @@ export function createGw2CombatQuery<
         hookContext(time, { event, runtime }),
         chance,
       );
+      chance += relicCriticalChanceBonus(
+        runtime?.relic ? runtime : historicalRelicContext,
+        event,
+        mightStacksAt(time, runtime, event),
+      );
       let damage = criticalDamageMultiplier(stats.ferocity);
       damage = activeProfession.modifyCriticalDamage(
         hookContext(time, { event, runtime }),
         damage,
       );
-      if (Number(runtime?.sigil?.severanceUntil || 0) > time) {
-        chance += 250 / 2100;
-        damage += 250 / 1500;
-      }
+      const sigilCritical = sigilCriticalContribution(runtime, time);
+      chance += sigilCritical.chance;
+      damage += sigilCritical.damage;
       if (event.canCrit === false || event.noCrit) chance = 0;
       return {
-        chance: Math.max(0, Math.min(1, chance)),
+        chance: clamp(chance, 0, 1),
         damage: Math.max(1, Number(damage || 1)),
       };
     },
@@ -522,11 +517,10 @@ export function createGw2CombatQuery<
         (Number(sigils.conditionDurationBonus || 0) +
           Number(sigils.conditionDurationBonuses?.[name] || 0)) /
         100;
-      const relicBonus =
-        relicConditionDurationBonus(runtime, time) +
-        (config.relic === "Aristocracy"
-          ? timeline.aristocracyStacksAt(time) * 0.03
-          : 0);
+      const relicBonus = relicConditionDurationBonus(
+        runtime?.relic ? runtime : historicalRelicContext,
+        time,
+      );
       const base = gw2ConditionDurationMultiplier(
         name,
         stats,
@@ -540,7 +534,7 @@ export function createGw2CombatQuery<
         }),
         base,
       );
-      return Math.max(1, Math.min(2, Number(modified || 1)));
+      return clamp(Number(modified || 1), 1, 2);
     },
     conditionBaseDurationMultiplier(
       name: string,

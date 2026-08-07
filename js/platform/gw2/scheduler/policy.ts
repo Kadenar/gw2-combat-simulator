@@ -3,6 +3,7 @@ import {
   GW2_MATERIALIZE_EVENT_TASK,
 } from "./proc-materializer.js";
 import { createGw2EventPreparer } from "./event-preparer.js";
+import { clamp } from "../numeric.js";
 import type {
   CanonicalCatalog,
   CastContext,
@@ -181,7 +182,7 @@ export function createGw2SchedulerPolicy(
         Number(config.stats?.boonDurationBonuses?.[name] || 0) / 100 +
         Number(sigils.boonDurationBonus || 0) / 100;
       // GW2 boon duration cannot be reduced below base here and caps at +100%.
-      return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
+      return baseDuration * clamp(1 + bonus, 1, 2);
     },
 
     castDuration(context, skill, baseDuration) {

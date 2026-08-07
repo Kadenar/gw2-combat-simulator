@@ -8,6 +8,8 @@ export interface Gw2SigilDataEntry {
   readonly poisonDuration?: number;
   readonly tormentDuration?: number;
   readonly boonDuration?: number;
+  readonly procPrecision?: number;
+  readonly procFerocity?: number;
   readonly icon: string;
   readonly [field: string]: unknown;
 }
@@ -74,6 +76,8 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
     icon: "https://render.guildwars2.com/file/B5F3E2021863079919299707290698504B5C7E90/220689.png",
   },
   Severance: {
+    procPrecision: 250,
+    procFerocity: 250,
     icon: "https://render.guildwars2.com/file/396D7A5DBFA03BC49C12DAB532C4E34D342F0B51/1766396.png",
   },
   Concentration: {

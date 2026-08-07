@@ -1,4 +1,5 @@
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
+import { clamp } from "../../../platform/gw2/numeric.js";
 import {
   SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
 } from "../../../app/simulation/randomness.js";
@@ -80,7 +81,7 @@ export function mesmerResourceViews(
       : Number(state.numericResource || context.value || 0);
   return [{
     ...definition,
-    value: Math.max(0, Math.min(definition.maximum, value)),
+    value: clamp(value, 0, definition.maximum),
     canStart: definition.id !== "clones",
     shortLabel:
       definition.id === "clones" ? "Cln" : definition.singular.slice(0, 3),
@@ -101,14 +102,6 @@ const MESMER_EVENT_ROWS: Readonly<
     order: 20,
     flags: ["phantasm-clone"],
   }),
-  "mesmer.phantasm-resummoned": (event) => ({
-    type: event.type,
-    description:
-      `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
-    className: "phantasm",
-    order: 21,
-    flags: ["phantasm-clone"],
-  }),
   "mesmer.phantasm-attack": (event) => ({
     type: event.type,
     description:
@@ -117,17 +110,6 @@ const MESMER_EVENT_ROWS: Readonly<
     className: "phantasm",
     order: 22,
     flags: ["phantasm-clone"],
-  }),
-  "mesmer.instrument": (event) => ({
-    type: "trigger",
-    description:
-      `INSTRUMENT ${event.instrument}` +
-      `${
-        event.expiresAt ? ` until ${Number(event.expiresAt).toFixed(3)}s` : ""
-      }`,
-    className: "trigger",
-    order: 55,
-    flags: [],
   }),
 });
 

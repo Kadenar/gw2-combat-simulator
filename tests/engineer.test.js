@@ -44,7 +44,6 @@ import {
   engineerMechAttributes,
 } from "../js/professions/engineer/specializations/mechanist/state.js";
 import {
-  engineerEventLogRow,
   engineerWeaponSkillMatchesSet,
 } from "../js/professions/engineer/core/ui.js";
 import {
@@ -247,19 +246,24 @@ test("Engineer event log exposes Heat only for Holosmith heat transitions", () =
     reason: "heat",
     state: { heat: 25 },
   };
-  assert.equal(engineerEventLogRow({
-    build: { specializations: [{ name: "Amalgam" }] },
-  }, event), null);
-  assert.equal(engineerEventLogRow({
-    build: { specializations: [{ name: "Holosmith" }] },
-  }, {
+  const eventLogRow = (specialization, value) => {
+    const config = { specialization };
+    const runtime = engineerProfession.resolveRuntime(config);
+    return runtime.ui.eventLogRow(
+      {
+        config,
+        state: { profession: runtime.createProfessionState(config) },
+      },
+      value,
+    );
+  };
+  assert.equal(eventLogRow("Amalgam", event), null);
+  assert.equal(eventLogRow("Holosmith", {
     ...event,
     reason: "equip-kit",
   }), null);
   assert.equal(
-    engineerEventLogRow({
-      build: { specializations: [{ name: "Holosmith" }] },
-    }, event).description,
+    eventLogRow("Holosmith", event).description,
     "heat - Heat 25.0",
   );
 });

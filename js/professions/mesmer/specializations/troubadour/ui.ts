@@ -5,10 +5,11 @@ import {
   mesmerResourceViews,
 } from "../../core/ui.js";
 import type {
+  ProfessionEventLogDescriptor,
   ProfessionUiContract,
   SchedulerRecord,
 } from "../../../../platform/engine/types.js";
-import type { MesmerUiContext } from "../../types.js";
+import type { MesmerResolverEvent, MesmerUiContext } from "../../types.js";
 
 const TROUBADOUR_MECHANIC_SKILLS = Object.freeze([
   ID.LIVELY_LUTE_ALTERNATE,
@@ -18,8 +19,27 @@ const TROUBADOUR_MECHANIC_SKILLS = Object.freeze([
   ID.CRESCENDO,
 ]);
 
+function troubadourEventLogRow(
+  _context: SchedulerRecord,
+  event: MesmerResolverEvent,
+): ProfessionEventLogDescriptor | undefined {
+  if (event?.type !== "mesmer.instrument") return undefined;
+  return {
+    type: "trigger",
+    description:
+      `INSTRUMENT ${event.instrument}` +
+      `${
+        event.expiresAt ? ` until ${Number(event.expiresAt).toFixed(3)}s` : ""
+      }`,
+    className: "trigger",
+    order: 55,
+    flags: [],
+  };
+}
+
 export const troubadourUi: Partial<ProfessionUiContract> & SchedulerRecord =
   Object.freeze({
+    eventLogRow: troubadourEventLogRow,
     paletteGroups: (context: MesmerUiContext) =>
       mesmerMechanicPaletteGroups(context, TROUBADOUR_MECHANIC_SKILLS),
     skillBarGroups: () =>

@@ -1,3 +1,5 @@
+import { clamp } from '../../../../platform/gw2/numeric.js';
+
 import type {
     ElementalistCatalystState,
     ElementalistEvokerState,
@@ -24,8 +26,8 @@ export function createEvokerState(
 ): ElementalistEvokerState {
     return {
         element: (eliteSpec === 'Evoker' && startEvokerElement) ? startEvokerElement : null,
-        charges: eliteSpec === 'Evoker' ? Math.max(0, Math.min(6, startEvokerCharges)) : 0,
-        empowered: eliteSpec === 'Evoker' ? Math.max(0, Math.min(3, startEvokerEmpowered)) : 0,
+        charges: eliteSpec === 'Evoker' ? clamp(startEvokerCharges, 0, 6) : 0,
+        empowered: eliteSpec === 'Evoker' ? clamp(startEvokerEmpowered, 0, 3) : 0,
         igniteStep: 0,
         igniteLastUse: -Infinity,
         elemBalanceCount: 0,

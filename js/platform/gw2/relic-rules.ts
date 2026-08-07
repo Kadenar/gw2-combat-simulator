@@ -13,8 +13,10 @@ import type {
   Gw2ApplyCondition,
   Gw2ConditionHelpers,
   Gw2RelicContext,
+  Gw2RelicMaterializerContext,
   Gw2RelicRule,
   Gw2RelicRuntime,
+  Gw2RelicRuntimeContext,
   Gw2RelicState,
 } from "./types.js";
 
@@ -24,11 +26,126 @@ interface TimedBuffProcOptions {
   readonly detail?: string | null;
 }
 
-interface RelicRuntimeContext {
-  readonly relic?: Gw2RelicRuntime;
+const STATELESS_RELIC: Readonly<Gw2RelicRule> = Object.freeze({});
+
+const ARISTOCRACY_BONUS_PER_STACK = 0.03;
+const ARISTOCRACY_DURATION = 8;
+const ARISTOCRACY_INTERNAL_COOLDOWN = 1;
+const ARISTOCRACY_MAX_STACKS = 5;
+
+interface AristocracyActivation {
+  readonly at: number;
+  readonly expiresAt: number;
+  readonly stacks: number;
+  readonly event: SimulationEvent;
 }
 
-const STATELESS_RELIC: Readonly<Gw2RelicRule> = Object.freeze({});
+interface AristocracyState extends Gw2RelicState {
+  readyAt: number;
+  stacks: number;
+  expiresAt: number;
+  activations: AristocracyActivation[];
+  timelineEvents?: readonly SimulationEvent[];
+  timelineLength?: number;
+}
+
+function createAristocracyState(): AristocracyState {
+  return {
+    readyAt: 0,
+    stacks: 0,
+    expiresAt: 0,
+    activations: [],
+  };
+}
+
+function compareTimelineEvents(
+  left: SimulationEvent,
+  right: SimulationEvent,
+): number {
+  return (
+    left.at - right.at ||
+    Number(left.causalOrder ?? left.__order ?? 0) -
+      Number(right.causalOrder ?? right.__order ?? 0)
+  );
+}
+
+function applyAristocracyTrigger(
+  state: AristocracyState,
+  event: SimulationEvent,
+): AristocracyActivation | null {
+  if (
+    event.type !== "weakness_vulnerability" ||
+    !isInternalCooldownReady(event.at, state.readyAt)
+  ) {
+    return null;
+  }
+  if (event.at >= state.expiresAt - EPSILON) state.stacks = 0;
+  state.stacks = Math.min(ARISTOCRACY_MAX_STACKS, state.stacks + 1);
+  state.expiresAt = event.at + ARISTOCRACY_DURATION;
+  state.readyAt = event.at + ARISTOCRACY_INTERNAL_COOLDOWN;
+  const activation = {
+    at: event.at,
+    expiresAt: state.expiresAt,
+    stacks: state.stacks,
+    event,
+  };
+  state.activations.push(activation);
+  return activation;
+}
+
+function replayAristocracyTimeline(
+  events: readonly SimulationEvent[],
+  combatStartTime: number,
+): AristocracyState {
+  const state = createAristocracyState();
+  const ordered = [...events]
+    .filter(
+      (event) =>
+        event.type === "weakness_vulnerability" &&
+        event.at >= combatStartTime - EPSILON,
+    )
+    .sort(compareTimelineEvents);
+  for (const event of ordered) applyAristocracyTrigger(state, event);
+  return state;
+}
+
+function explicitCombatStartTime(events: readonly SimulationEvent[]): number {
+  let combatStartTime = Infinity;
+  for (const event of events) {
+    if (event.type === "combat_start") {
+      combatStartTime = Math.min(combatStartTime, event.at);
+    }
+  }
+  return combatStartTime === Infinity ? -Infinity : combatStartTime;
+}
+
+function syncAristocracyTimeline(state: AristocracyState): void {
+  const events = state.timelineEvents;
+  if (!events || state.timelineLength === events.length) return;
+  const replay = replayAristocracyTimeline(
+    events,
+    explicitCombatStartTime(events),
+  );
+  state.readyAt = replay.readyAt;
+  state.stacks = replay.stacks;
+  state.expiresAt = replay.expiresAt;
+  state.activations = replay.activations;
+  state.timelineLength = events.length;
+}
+
+function aristocracyActivationAt(
+  state: AristocracyState,
+  at: number,
+): AristocracyActivation | null {
+  syncAristocracyTimeline(state);
+  for (let index = state.activations.length - 1; index >= 0; index -= 1) {
+    const activation = state.activations[index];
+    // A triggering application cannot benefit from its own same-time stack.
+    if (activation.at >= at - EPSILON) continue;
+    return at < activation.expiresAt - EPSILON ? activation : null;
+  }
+  return null;
+}
 
 /**
  * @param {Gw2RelicRule} rules
@@ -123,31 +240,39 @@ const RELIC_RULES: Readonly<
   }),
 
   Aristocracy: defineRelic({
+    createState: createAristocracyState,
+    weaknessVulnerability(ctx, state, event) {
+      if (
+        ctx.combatStartTime != null &&
+        event.at < ctx.combatStartTime - EPSILON
+      ) {
+        return;
+      }
+      applyAristocracyTrigger(state as AristocracyState, event);
+    },
     timeline(ctx, _state, events) {
-      let readyAt = 0;
-      let stacks = 0;
-      let expiresAt = -Infinity;
-      for (const event of events) {
-        if (
-          event.type !== "weakness_vulnerability" ||
-          (ctx.combatStartTime != null &&
-            event.at < ctx.combatStartTime - EPSILON) ||
-          !isInternalCooldownReady(event.at, readyAt)
-        ) {
-          continue;
-        }
-        if (event.at >= expiresAt - EPSILON) stacks = 0;
-        stacks = Math.min(5, stacks + 1);
-        expiresAt = event.at + 8;
-        readyAt = event.at + 1;
+      const replay = replayAristocracyTimeline(
+        events,
+        ctx.combatStartTime ?? -Infinity,
+      );
+      for (const activation of replay.activations) {
         ctx.recordProc(
           "relic",
           "Relic of Aristocracy",
-          event.at,
-          event.skillName,
-          `${stacks}/5 stacks`,
+          activation.at,
+          activation.event.skillName,
+          `${activation.stacks}/${ARISTOCRACY_MAX_STACKS} stacks`,
         );
       }
+    },
+    conditionDurationBonus(_ctx, state, at) {
+      const activation = aristocracyActivationAt(
+        state as AristocracyState,
+        at,
+      );
+      return activation
+        ? activation.stacks * ARISTOCRACY_BONUS_PER_STACK
+        : 0;
     },
   }),
 
@@ -417,6 +542,54 @@ const RELIC_RULES: Readonly<
     },
   }),
 
+  Mistburn: defineRelic({
+    createState: () => ({ readyAt: 0 }),
+    materializeBoon(ctx, state, event) {
+      const kind = String(event.kind || "").toLowerCase();
+      if (
+        kind !== "might" ||
+        !isGw2PlayerActorEvent(event) ||
+        event.recipients === "allies" ||
+        !(Number(event.duration) > 0) ||
+        !(Number(event.stacks ?? 1) > 0) ||
+        !isInternalCooldownReady(event.at, state.readyAt)
+      ) {
+        return;
+      }
+
+      state.readyAt = event.at + 1;
+      ctx.emitDerived(event, {
+        type: "buff",
+        at: event.at,
+        name: "Relic of Mistburn - Might",
+        skillName: "Relic of Mistburn",
+        kind: "might",
+        duration: 8,
+        stacks: 1,
+        source: "Relic",
+        sourceId: "relic.mistburn",
+        actorType: "effect",
+      });
+    },
+    boon(ctx, _state, event) {
+      if (
+        event.type !== "buff" ||
+        event.sourceId !== "relic.mistburn"
+      ) {
+        return;
+      }
+      ctx.recordProc(
+        "relic",
+        "Relic of Mistburn",
+        event.at,
+        event.triggeredBy || event.skillName,
+      );
+    },
+    criticalChanceBonus(_ctx, _state, event, mightStacks) {
+      return isGw2PlayerActorEvent(event) && mightStacks >= 10 ? 0.1 : 0;
+    },
+  }),
+
   "Mist Stranger": defineRelic({
     damageResolved(ctx, _state, event) {
       if (!isGw2PlayerActorEvent(event)) return;
@@ -593,13 +766,24 @@ export function createRelicRuntime(
   });
 }
 
+/** Creates a rule-owned historical runtime for queries without live state. */
+export function createRelicTimelineRuntime(
+  name: unknown,
+  events: readonly SimulationEvent[],
+): Readonly<Gw2RelicRuntime> {
+  const runtime = createRelicRuntime(name);
+  runtime.state.timelineEvents = events;
+  runtime.state.timelineLength = -1;
+  return runtime;
+}
+
 /**
  * @param {{readonly relic?: Gw2RelicRuntime} | null | undefined} ctx
  * @param {keyof Gw2RelicRule} hook
  * @param {unknown[]} args
  */
 function invokeRelicHook(
-  ctx: RelicRuntimeContext | null | undefined,
+  ctx: Gw2RelicRuntimeContext | null | undefined,
   hook: keyof Gw2RelicRule,
   ...args: unknown[]
 ): unknown {
@@ -623,6 +807,28 @@ export function relicStrikeMultiplier(
   event: SimulationEvent,
 ): number {
   return Number(invokeRelicHook(ctx, "strikeMultiplier", event) ?? 1);
+}
+
+/** Materializes boon applications created by the selected relic. */
+export function materializeBoonRelics(
+  ctx: Gw2RelicMaterializerContext,
+  relic: Gw2RelicRuntime,
+  event: SimulationEvent,
+): void {
+  const handler = relic.rules.materializeBoon;
+  if (typeof handler !== "function") return;
+  handler(ctx, relic.state, event);
+}
+
+/** Returns the selected relic's additive critical-strike chance bonus. */
+export function relicCriticalChanceBonus(
+  ctx: Gw2RelicRuntimeContext | null | undefined,
+  event: SimulationEvent,
+  mightStacks: number,
+): number {
+  return Number(
+    invokeRelicHook(ctx, "criticalChanceBonus", event, mightStacks) ?? 0,
+  );
 }
 
 /**
@@ -681,10 +887,18 @@ export function handleConditionRelics(
  * Returns the selected relic's additive condition-duration bonus.
  */
 export function relicConditionDurationBonus(
-  ctx: RelicRuntimeContext | null | undefined,
+  ctx: Gw2RelicRuntimeContext | null | undefined,
   at: number,
 ): number {
   return Number(invokeRelicHook(ctx, "conditionDurationBonus", at) ?? 0);
+}
+
+/** Applies the selected relic's weakness/vulnerability trigger, if any. */
+export function handleWeaknessVulnerabilityRelic(
+  ctx: Gw2RelicRuntimeContext,
+  event: SimulationEvent,
+): void {
+  invokeRelicHook(ctx, "weaknessVulnerability", event);
 }
 
 /**

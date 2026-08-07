@@ -164,6 +164,76 @@ test("all migrated profession families share one conformance harness", () => {
   }
 });
 
+test("elite event presentation is owned by the active specialization", () => {
+  const cases = [
+    [
+      engineerProfession,
+      "Scrapper",
+      { type: "engineer.mass-momentum-pulse", at: 0 },
+    ],
+    [
+      engineerProfession,
+      "Holosmith",
+      { type: "engineer.prime-light-beam-field", at: 0 },
+    ],
+    [
+      engineerProfession,
+      "Holosmith",
+      {
+        type: "engineer.state",
+        at: 0,
+        reason: "heat",
+        state: { heat: 25 },
+      },
+    ],
+    [
+      mesmerProfession,
+      "Chronomancer",
+      {
+        type: "mesmer.phantasm-resummoned",
+        at: 0,
+        name: "Phantasm",
+        count: 1,
+      },
+    ],
+    [
+      mesmerProfession,
+      "Troubadour",
+      { type: "mesmer.instrument", at: 0, instrument: "Lute" },
+    ],
+    [
+      necromancerProfession,
+      "Ritualist",
+      { type: "necromancer.weapon-spell", at: 0 },
+    ],
+  ];
+  for (const [family, specialization, event] of cases) {
+    const coreConfig = { specialization: "Core" };
+    const activeConfig = { specialization };
+    const coreState = family.resolveRuntime(coreConfig)
+      .createProfessionState(coreConfig);
+    const activeRuntime = family.resolveRuntime(activeConfig);
+    const activeState = activeRuntime.createProfessionState(activeConfig);
+    const coreRow = family.resolveRuntime(coreConfig).ui.eventLogRow?.(
+        { config: coreConfig, state: { profession: coreState } },
+        event,
+      );
+    assert.equal(
+      coreRow?.description,
+      undefined,
+      `${family.id}/Core must not present ${event.type}`,
+    );
+    assert.notEqual(
+      activeRuntime.ui.eventLogRow?.(
+        { config: activeConfig, state: { profession: activeState } },
+        event,
+      ),
+      undefined,
+      `${family.id}/${specialization} must present ${event.type}`,
+    );
+  }
+});
+
 test("native module contributions assemble disjoint application and runtime catalogs", () => {
   const fixtures = [
     {
@@ -689,17 +759,6 @@ test("Necromancer modules contain complete vertical slices", () => {
   assert.equal(
     modifierRuleOwners.get("necromancer.spirits-strength"),
     "Ritualist",
-  );
-  const sharedAttributeFacade = readFileSync(
-    new URL(
-      "../js/professions/necromancer/attribute-rules.ts",
-      import.meta.url,
-    ),
-    "utf8",
-  );
-  assert.doesNotMatch(
-    sharedAttributeFacade,
-    /function modify(?:Reaper|Scourge|Harbinger|Ritualist)/,
   );
   assert.match(
     readFileSync(

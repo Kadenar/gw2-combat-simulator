@@ -1,6 +1,7 @@
 import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
-import { conditionTickDamage } from "../damage.js";
+import { conditionTickDamage } from "../condition-formulas.js";
+import { clamp } from "../numeric.js";
 import { handleConditionRelics } from "../relic-rules.js";
 import { permanentTargetConditionStacks } from "../target-state.js";
 
@@ -216,7 +217,7 @@ export function createGw2ConditionResolution({
     event: Gw2ResolverEvent,
   ): Gw2ConditionTickResult | null {
     const application = event.application;
-    const fraction = Math.max(0, Math.min(1, Number(event.fraction || 0)));
+    const fraction = clamp(Number(event.fraction || 0), 0, 1);
     if (!application || !fraction) return null;
     const condition = event.condition || application.condition;
 

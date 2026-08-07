@@ -1,10 +1,14 @@
 import {
   defineNativeModule,
   defineNativeProfession,
+} from "./native-profession.js";
+import {
   onResolvedDamage,
   skillAvailability,
-  type NativeProfessionRuntimeState,
-} from "./native-profession.js";
+} from "./native-mechanics.js";
+import type {
+  NativeProfessionRuntimeState,
+} from "./native-module-types.js";
 import type { Gw2ResolverEvent, Gw2ResolverRuntime } from "./types.js";
 
 type Assert<T extends true> = T;

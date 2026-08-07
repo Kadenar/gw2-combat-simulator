@@ -8,6 +8,7 @@ import {
   handlePeithaRelic,
   handleRelicDamageResolved,
   handleRelicsAfterHit,
+  handleWeaknessVulnerabilityRelic,
 } from "../relic-rules.js";
 import { isGw2PlayerActorEvent } from "../event-ownership.js";
 import { skillForEvent } from "./event-skill.js";
@@ -59,6 +60,8 @@ function handleBuff(
     at: event.at,
     expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
     stacks: Math.max(1, Number(event.stacks || 1)),
+    source: event.source,
+    affectsSummons: event.affectsSummons === true,
   });
   ctx.boons.set(kind, applications);
   // Keep expired applications for historical timestamp queries, but report
@@ -182,7 +185,9 @@ export function createGw2ResolverEventHandlers({
     buff(ctx, event) {
       handleBuff(ctx, event, eventReactions);
     },
-    weakness_vulnerability: noop,
+    weakness_vulnerability(ctx, event) {
+      handleWeaknessVulnerabilityRelic(ctx, event);
+    },
 
     damage(ctx, event) {
       const hitContext = buildHitResolutionContext(ctx, event);

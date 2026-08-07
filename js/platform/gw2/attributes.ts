@@ -11,6 +11,11 @@ import {
   UTILITY_DATA,
   WEAPON_DATA,
 } from "./gear-data.js";
+import {
+  conditionDurationPercentFromExpertise,
+  criticalChancePercentFromPrecision,
+  criticalDamagePercentFromFerocity,
+} from "./stat-scaling.js";
 import { normalizeWeaponSigils, weaponSigilsForSet } from "./weapon-sigils.js";
 
 import type { Skill } from "../engine/types.js";
@@ -131,9 +136,9 @@ interface RecomputeDerivedOptions {
  * terms default to zero, and because `x + 0 === x` for finite floats, the
  * common pass produces results identical to the prior inlined block.
  *
- * Critical chance/damage keep their percent-form expressions rather than
- * reusing damage.js fraction-form primitives so the exact values asserted by
- * the attribute tests do not shift under a different evaluation order.
+ * Derived stats use percent-form scaling helpers so the exact values asserted
+ * by the attribute tests do not shift under the fraction form's different
+ * evaluation order.
  */
 function recomputeDerivedAttributes(
   attributes: Gw2AttributeMap,
@@ -154,11 +159,15 @@ function recomputeDerivedAttributes(
   const expertise = attributes.Expertise.final;
   const traitCrit = Number(traitCriticalChance || 0);
   attributes["Critical Chance"] = derivedAttribute(
-    (precision - 895) / 21 + traitCrit + sigilCriticalChance,
+    criticalChancePercentFromPrecision(precision) +
+      traitCrit +
+      sigilCriticalChance,
     traitCrit,
     sigilCriticalChance,
   );
-  attributes["Critical Damage"] = derivedAttribute(150 + ferocity / 15);
+  attributes["Critical Damage"] = derivedAttribute(
+    criticalDamagePercentFromFerocity(ferocity),
+  );
   attributes["Boon Duration"] = derivedAttribute(
     concentration / 15 +
       (runeDurations["Boon Duration"] || 0) +
@@ -171,7 +180,7 @@ function recomputeDerivedAttributes(
     foodDurations["Boon Duration"] || 0,
   );
   attributes["Condition Duration"] = derivedAttribute(
-    expertise / 15 +
+    conditionDurationPercentFromExpertise(expertise) +
       (runeDurations["Condition Duration"] || 0) +
       (traitDurations["Condition Duration"] || 0) +
       (foodDurations["Condition Duration"] || 0) +

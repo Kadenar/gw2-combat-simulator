@@ -1,10 +1,10 @@
 export * from "./attributes.js";
 export * from "./attribute-provenance.js";
 export * from "./build-codec.js";
-// `conditionTickDamage` is exported by both condition-formulas and damage; the
-// damage layer's wrapper is canonical, so re-export the rest explicitly to
-// avoid an ambiguous star-export collision.
-export { CONDITION_FORMULAS } from "./condition-formulas.js";
+export {
+  CONDITION_FORMULAS,
+  conditionTickDamage,
+} from "./condition-formulas.js";
 export type { ConditionFormula } from "./condition-formulas.js";
 export * from "./damage.js";
 export * from "./declarative-simulation.js";
@@ -12,9 +12,11 @@ export * from "./event-ownership.js";
 export * from "./gear-data.js";
 export * from "./modifier-rules.js";
 export * from "./native-profession.js";
+export * from "./numeric.js";
 export * from "./query.js";
 export * from "./relic-rules.js";
 export * from "./runtime-rules.js";
+export * from "./sigil-rules.js";
 export * from "./resolver/index.js";
 export * from "./scheduler/index.js";
 export * from "./simulate.js";

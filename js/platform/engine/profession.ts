@@ -1136,7 +1136,7 @@ function composeModuleUi(
   if (owns("eventLogRow")) {
     ui.eventLogRow = (...args: unknown[]) =>
       firstUiMatch(
-        slices,
+        reversed,
         "eventLogRow",
         args,
         (result) => result !== undefined,
@@ -1389,7 +1389,7 @@ export function createProfessionFamilyUi(
     event: Parameters<NonNullable<ProfessionUiContract["eventLogRow"]>>[1],
   ) =>
     firstUiMatch(
-      [...allSlices, family],
+      [...allSlices.slice().reverse(), family],
       "eventLogRow",
       [context, event],
       (result) => result !== undefined,

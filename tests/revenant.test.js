@@ -33,9 +33,6 @@ import {
 import {
   calculateAttributes as calculateRevenantAttributes,
 } from "../js/professions/revenant/app/app-definition.js";
-import {
-  revenantAttributeRules,
-} from "../js/professions/revenant/attribute-rules.js";
 import { revenantCatalog } from "../js/professions/revenant/catalog.js";
 import {
   DATA_SNAPSHOT,
@@ -83,6 +80,29 @@ import {
   REVENANT_LEGENDS,
   revenantLegendLoadout,
 } from "../js/professions/revenant/legend-loadout.js";
+
+const revenantAttributeRules = Object.freeze({
+  modifyAttributes(context, value) {
+    return revenantProfession.resolveRuntime(context?.config || {})
+      .modifyAttributes(context, value);
+  },
+  modifyCriticalChance(context, value) {
+    return revenantProfession.resolveRuntime(context?.config || {})
+      .modifyCriticalChance(context, value);
+  },
+  modifyStrikeDamage(context, value) {
+    return revenantProfession.resolveRuntime(context?.config || {})
+      .modifyStrikeDamage(context, value);
+  },
+  modifyConditionDamage(context, value) {
+    return revenantProfession.resolveRuntime(context?.config || {})
+      .modifyConditionDamage(context, value);
+  },
+  modifyConditionDuration(context, value) {
+    return revenantProfession.resolveRuntime(context?.config || {})
+      .modifyConditionDuration(context, value);
+  },
+});
 
 const REVENANT_HANDLER_MECHANICS = Object.freeze({
   ...REVENANT_CORE_MECHANICS,
@@ -2060,6 +2080,7 @@ test("Herald consume skills apply their full outgoing profiles", () => {
   );
   const reinforcedPotencyContext = {
     config: {
+      specialization: "Herald",
       selectedTraitIds: [TRAIT.REINFORCED_POTENCY],
       boons: {
         aegis: true,
@@ -2530,7 +2551,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   assert.equal(nourishment.damage, 406.25);
 
   const modifierContext = (traitIds, condition = null) => ({
-    config: { traitIds, boons: {} },
+    config: { specialization: "Renegade", traitIds, boons: {} },
     event: { actorType: "player" },
     condition,
     time: 1,
@@ -2644,6 +2665,7 @@ test("Renegade critical traits and Blood Fury use their supplied intervals", () 
   assert.equal(
     revenantAttributeRules.modifyConditionDuration({
       config: {
+        specialization: "Renegade",
         traitIds: [
           TRAIT.PACT_OF_PAIN,
           TRAIT.YEARNING_EMPOWERMENT,
@@ -2660,6 +2682,7 @@ test("Renegade critical traits and Blood Fury use their supplied intervals", () 
   assert.equal(
     revenantAttributeRules.modifyConditionDuration({
       config: {
+        specialization: "Renegade",
         traitIds: [TRAIT.PACT_OF_PAIN],
         attributeProvenance: {
           professionStaticRulesApplied: true,
@@ -2709,7 +2732,12 @@ test("Renegade critical traits consume seeded critical outcomes", () => {
 
 test("Heartpiercer and Brutal Momentum apply multiplicative combat bonuses", () => {
   const context = (traitId, extra = {}) => ({
-    config: { traitIds: [traitId], boons: {}, ...(extra.config || {}) },
+    config: {
+      specialization: "Renegade",
+      traitIds: [traitId],
+      boons: {},
+      ...(extra.config || {}),
+    },
     event: { actorType: "player" },
     condition: extra.condition,
     time: 1,
@@ -3232,6 +3260,7 @@ test("Vindicator dodge traits apply current endurance and damage behavior", () =
   assert.equal(
     revenantAttributeRules.modifyStrikeDamage({
       config: {
+        specialization: "Vindicator",
         traitIds: [
           TRAIT.FEROCIOUS_AGGRESSION,
           TRAIT.FORERUNNER_OF_DEATH,
