@@ -3,7 +3,7 @@ import test from "node:test";
 
 import {
   isInternalCooldownReady,
-} from "../js/platform/engine/internal-cooldown.js";
+} from "../js/platform/engine/clock.js";
 import {
   armRelicIcd,
   isRelicIcdReady,

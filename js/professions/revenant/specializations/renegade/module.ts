@@ -1,5 +1,5 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { revenantModuleCatalog } from "../../catalog.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createRevenantModuleData } from "../../catalog-data.js";
 import {
   renegadeEventHandlers,
   renegadeEventReactions,
@@ -11,21 +11,24 @@ import {
 } from "./rules.js";
 import { createRenegadeState } from "./state.js";
 import { renegadeUi } from "./ui.js";
-import type { RenegadeState } from "../../types.js";
+import { RENEGADE_BASE_SKILL_MECHANICS } from "./skills.js";
+import { renegadeSkillHandlers } from "./handlers.js";
 
-export const renegadeModule = defineProfessionModule<RenegadeState>({
+export const renegadeModule = defineNativeModule({
   id: "Renegade",
-  catalog: revenantModuleCatalog("Renegade"),
-  resources: {
-    createProfessionState: createRenegadeState,
-    createResolverState: createRenegadeState,
+  data: createRevenantModuleData("Renegade", {
+    skillMechanics: RENEGADE_BASE_SKILL_MECHANICS,
+    handlers: renegadeSkillHandlers,
+  }),
+  state: { scheduler: createRenegadeState, resolver: createRenegadeState },
+  mechanics: {
+    modifiers: renegadeAttributeRules,
+    castRules: renegadeCastRules,
+    schedulerHooks: renegadeSchedulerHooks,
+    resolverHooks: {
+      eventHandlers: renegadeEventHandlers,
+      eventReactions: renegadeEventReactions,
+    },
   },
-  attributeRules: renegadeAttributeRules,
-  castRules: renegadeCastRules,
-  schedulerHooks: renegadeSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: renegadeEventHandlers,
-    eventReactions: renegadeEventReactions,
-  },
-  ui: renegadeUi,
+  presentation: renegadeUi,
 });

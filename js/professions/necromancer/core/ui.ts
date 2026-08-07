@@ -1,9 +1,9 @@
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../../app/simulation/randomness.js";
-import { necromancerCatalog } from "../catalog.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../data/ids.js";
 import { getActiveTraits } from "../data/traits-data.js";
 import type {
+  CanonicalCatalog,
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
@@ -19,6 +19,8 @@ import type {
   NecromancerState,
   NecromancerUiContext,
 } from "../types.js";
+
+let necromancerCatalog: Readonly<CanonicalCatalog>;
 
 const LICH_SKILLS: readonly SkillId[] = Object.freeze([
   ID.DEATHLY_CLAWS,
@@ -458,3 +460,10 @@ export const necromancerCoreUi: Partial<ProfessionUiContract> &
   resourceViews: necromancerCoreResourceViews,
   paletteSkillAvailability: necromancerCorePaletteAvailability,
 });
+
+export function bindNecromancerCoreUi(
+  catalog: Readonly<CanonicalCatalog>,
+): typeof necromancerCoreUi {
+  necromancerCatalog = catalog;
+  return necromancerCoreUi;
+}

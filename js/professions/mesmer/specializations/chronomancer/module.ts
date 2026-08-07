@@ -1,5 +1,5 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { mesmerModuleCatalog } from "../../catalog.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createMesmerModuleData } from "../../catalog-data.js";
 import {
   chronomancerAttributeRules,
   chronomancerCastRules,
@@ -10,18 +10,30 @@ import {
   createChronomancerState,
 } from "./state.js";
 import { chronomancerUi } from "./ui.js";
-import type { MesmerChronomancerState } from "../../types.js";
+import {
+  MESMER_CHRONOMANCER_EXTRA_SKILLS,
+  MESMER_CHRONOMANCER_SKILL_MECHANICS,
+  MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
+} from "./skills.js";
+import { chronomancerSkillHandlers } from "./handlers.js";
 
 export const chronomancerModule =
-  defineProfessionModule<MesmerChronomancerState>({
+  defineNativeModule({
   id: "Chronomancer",
-  catalog: mesmerModuleCatalog("Chronomancer"),
-  resources: {
-    createProfessionState: createChronomancerState,
-    createResolverState: createChronomancerResolverState,
+  data: createMesmerModuleData("Chronomancer", {
+    skillMechanics: MESMER_CHRONOMANCER_SKILL_MECHANICS,
+    supplementalSkillMechanics: MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
+    extraSkills: MESMER_CHRONOMANCER_EXTRA_SKILLS,
+    handlers: chronomancerSkillHandlers,
+  }),
+  state: {
+    scheduler: createChronomancerState,
+    resolver: createChronomancerResolverState,
   },
-  attributeRules: chronomancerAttributeRules,
-  castRules: chronomancerCastRules,
-  schedulerHooks: chronomancerRuntimeHooks,
-  ui: chronomancerUi,
+  mechanics: {
+    modifiers: chronomancerAttributeRules,
+    castRules: chronomancerCastRules,
+    schedulerHooks: chronomancerRuntimeHooks,
+  },
+  presentation: chronomancerUi,
   });

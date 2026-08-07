@@ -1,9 +1,9 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import { defineProfessionModule } from "../../../platform/engine/profession.js";
-import { guardianModuleCatalog } from "../catalog.js";
+import { defineNativeModule } from "../../../platform/gw2/native-profession.js";
+import { createGuardianModuleData } from "../catalog-data.js";
 import {
   guardianCoreEventHandlers,
   guardianCoreEventReactions,
+  guardianCoreSkillHandlers,
 } from "./handlers.js";
 import {
   guardianCoreAttributeRules,
@@ -11,34 +11,41 @@ import {
   guardianCoreSchedulerHooks,
 } from "./rules.js";
 import {
+  GUARDIAN_CORE_EXTRA_SKILLS,
+  GUARDIAN_CORE_SKILL_MECHANICS,
+} from "./skills.js";
+import {
   createGuardianCoreState,
   projectGuardianEndState,
   snapshotGuardianState,
 } from "./state.js";
-import { guardianCoreUi } from "./ui.js";
-import type {
-  GuardianCoreState,
-  GuardianSchedulerContext,
-} from "../types.js";
+import { bindGuardianCoreUi } from "./ui.js";
+import type { GuardianSchedulerContext } from "../types.js";
 
-export const guardianCoreModule = defineProfessionModule<GuardianCoreState>({
+export const guardianCoreModule = defineNativeModule({
   id: "Core",
-  catalog: guardianModuleCatalog("Core"),
-  resources: {
-    createProfessionState: createGuardianCoreState,
-    createResolverState: createGuardianCoreState,
-    projectEndState: projectGuardianEndState,
+  data: createGuardianModuleData("Core", {
+    skillMechanics: GUARDIAN_CORE_SKILL_MECHANICS,
+    extraSkills: GUARDIAN_CORE_EXTRA_SKILLS,
+    handlers: guardianCoreSkillHandlers,
+  }),
+  state: {
+    scheduler: createGuardianCoreState,
+    resolver: createGuardianCoreState,
+    project: projectGuardianEndState,
   },
-  attributeRules: guardianCoreAttributeRules,
-  castRules: guardianCoreCastRules,
-  schedulerHooks: {
-    ...guardianCoreSchedulerHooks,
-    snapshot: (context: GuardianSchedulerContext) =>
-      snapshotGuardianState(context.state.profession),
+  mechanics: {
+    modifiers: guardianCoreAttributeRules,
+    castRules: guardianCoreCastRules,
+    schedulerHooks: {
+      ...guardianCoreSchedulerHooks,
+      snapshot: (context: GuardianSchedulerContext) =>
+        snapshotGuardianState(context.state.profession),
+    },
+    resolverHooks: {
+      eventHandlers: guardianCoreEventHandlers,
+      eventReactions: guardianCoreEventReactions,
+    },
   },
-  resolverHooks: {
-    eventHandlers: guardianCoreEventHandlers,
-    eventReactions: guardianCoreEventReactions,
-  },
-  ui: guardianCoreUi,
+  presentation: bindGuardianCoreUi,
 });

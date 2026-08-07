@@ -1,6 +1,5 @@
-import { EPSILON } from "../../engine/clock.js";
+import { EPSILON, isInternalCooldownReady } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
-import { isInternalCooldownReady } from "../../engine/internal-cooldown.js";
 import { FOOD_DATA, NOURISHMENT_ICON } from "../gear-data.js";
 import {
   handleBlastComboRelic,
@@ -10,11 +9,7 @@ import {
   handleRelicDamageResolved,
   handleRelicsAfterHit,
 } from "../relic-rules.js";
-import {
-  GW2_EVENT_ACTOR_TYPES,
-  gw2EventActorType,
-  isGw2PlayerActorEvent,
-} from "../event-ownership.js";
+import { isGw2PlayerActorEvent } from "../event-ownership.js";
 
 import type { Skill } from "../../engine/types.js";
 import type {
@@ -116,15 +111,24 @@ function handleCriticalFood(
   const proc = FOOD_DATA[String(ctx.config.food || "")]?.proc;
   if (proc?.type !== "critStrike" || hitContext.critical.chance <= 0) return;
 
-  // Expected-value procs use a deterministic accumulator. A 25% expected proc
-  // contributes 0.25 per eligible hit and fires whenever progress reaches one.
-  ctx.food.criticalProgress += hitContext.critical.chance * proc.chance;
-  if (ctx.food.criticalProgress < 1 - EPSILON) return;
-  // Progress is retained while the ICD is closed, so the next eligible hit can
-  // consume the proc instead of discarding accumulated expected probability.
-  if (!isInternalCooldownReady(event.at, ctx.food.readyAt)) return;
-
-  ctx.food.criticalProgress -= 1;
+  if (ctx.random.stochastic) {
+    if (
+      hitContext.critical.didCrit !== true ||
+      !isInternalCooldownReady(event.at, ctx.food.readyAt) ||
+      !ctx.random.roll(proc.chance, "food.critical-strike")
+    ) {
+      return;
+    }
+  } else {
+    // Expected-value procs use a deterministic accumulator. A 25% expected
+    // proc contributes 0.25 per eligible hit and fires at one.
+    ctx.food.criticalProgress += hitContext.critical.chance * proc.chance;
+    if (ctx.food.criticalProgress < 1 - EPSILON) return;
+    // Progress is retained while the ICD is closed, so the next eligible hit
+    // can consume it rather than discarding expected probability.
+    if (!isInternalCooldownReady(event.at, ctx.food.readyAt)) return;
+    ctx.food.criticalProgress -= 1;
+  }
   ctx.food.readyAt = event.at + Number(proc.icdMs || 0) / 1000;
   const foodEvent = {
     type: "damage",
@@ -160,21 +164,6 @@ function handleCriticalFood(
     "",
     NOURISHMENT_ICON,
   );
-}
-
-function markCombatActive(
-  ctx: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): void {
-  const actorType = gw2EventActorType(event);
-  // Player and summon output starts combat. Passive equipment/food effects do
-  // not bootstrap combat by themselves.
-  if (
-    actorType === GW2_EVENT_ACTOR_TYPES.PLAYER ||
-    actorType === GW2_EVENT_ACTOR_TYPES.SUMMON
-  ) {
-    ctx.combatActive = true;
-  }
 }
 
 /**
@@ -216,9 +205,7 @@ export function createGw2ResolverEventHandlers({
     // numeric effect. Keeping explicit handlers prevents them being mistaken
     // for unsupported required events by the resolver loop.
     action: noop,
-    combat_start(ctx) {
-      ctx.combatActive = true;
-    },
+    combat_start: noop,
     marker: noop,
     proc: noop,
     resource: noop,
@@ -231,7 +218,6 @@ export function createGw2ResolverEventHandlers({
     weakness_vulnerability: noop,
 
     damage(ctx, event) {
-      markCombatActive(ctx, event);
       const hitContext = buildHitResolutionContext(ctx, event);
       // Ordering matters: apply the base hit first, then profession reactions,
       // expected food procs, and finally relic after-hit rules.
@@ -246,7 +232,6 @@ export function createGw2ResolverEventHandlers({
     },
 
     condition(ctx, event) {
-      markCombatActive(ctx, event);
       // applyCondition schedules future tick events; it does not charge the
       // condition's full damage at application time.
       applyCondition(ctx, event);
@@ -258,7 +243,6 @@ export function createGw2ResolverEventHandlers({
     },
 
     control(ctx, event) {
-      markCombatActive(ctx, event);
       handleControlRelics(ctx, event, {
         activeConditionStackCount,
         applyCondition: applyRelicCondition,
@@ -267,7 +251,6 @@ export function createGw2ResolverEventHandlers({
     },
 
     blind(ctx, event) {
-      markCombatActive(ctx, event);
       reactionFor(eventReactions, "blind")(ctx, event, { applyCondition });
     },
 

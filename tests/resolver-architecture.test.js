@@ -800,6 +800,144 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
   }
 });
 
+test("Mesmer critical traits consume seeded hit outcomes in stochastic mode", () => {
+  const defaults = defaultSimulationConfig();
+  const rotation = [];
+  for (let index = 0; index < 6; index += 1) {
+    rotation.push("Flying Cutter");
+    if (index < 5) rotation.push({ name: "__wait", waitMs: 5100 });
+  }
+  const config = defaultSimulationConfig({
+    specialization: "Virtuoso",
+    selectedTraits: ["Jagged Mind", "Deadly Blades"],
+    stats: {
+      ...defaults.stats,
+      precision: 1945,
+    },
+    boons: {
+      ...defaults.boons,
+      fury: false,
+    },
+    sigilSets: [
+      { names: [], strike: 1, condition: 1 },
+      { names: [], strike: 1, condition: 1 },
+    ],
+  });
+  const run = (mode, seed = 37) => simulateMesmer(rotation, {
+    ...config,
+    randomness: { mode, seed },
+  });
+
+  const stochastic = run("stochastic");
+  const hits = stochastic.events.filter(event =>
+    event.type === "damage" && event.skillName === "Flying Cutter"
+  );
+  const criticals = hits.filter(event => event.didCrit).length;
+  const jaggedMind = stochastic.events.filter(event =>
+    event.type === "condition" && event.name.includes("Jagged Mind")
+  );
+  const deadlyBlades = stochastic.events.filter(event =>
+    event.type === "buff" &&
+    event.kind === "target-vulnerability" &&
+    event.sourceSkill === "Flying Cutter"
+  );
+  assert.ok(criticals > 0 && criticals < hits.length);
+  assert.equal(jaggedMind.length, criticals);
+  assert.ok(jaggedMind.every(event => event.stacks === 1));
+  assert.equal(deadlyBlades.length, criticals);
+  assert.ok(deadlyBlades.every(event => event.stacks === 1));
+  assert.deepEqual(
+    run("stochastic").events.filter(event =>
+      event.type === "condition" && event.name.includes("Jagged Mind")
+    ),
+    jaggedMind,
+  );
+
+  const deterministic = run("deterministic");
+  const expectedJaggedMind = deterministic.events.filter(event =>
+    event.type === "condition" && event.name.includes("Jagged Mind")
+  );
+  assert.equal(expectedJaggedMind.length, hits.length);
+  assert.ok(expectedJaggedMind.every(event => event.stacks === 0.5));
+});
+
+test("Sharper Images samples illusion criticals instead of accumulating expected procs", () => {
+  const defaults = defaultSimulationConfig();
+  const config = defaultSimulationConfig({
+    specialization: "Core",
+    selectedTraits: ["Sharper Images"],
+    initialResource: 0,
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Pistol",
+    stats: {
+      ...defaults.stats,
+      precision: 1945,
+    },
+    boons: {
+      ...defaults.boons,
+      fury: false,
+    },
+  });
+  const result = simulateMesmer(
+    ["Phantasmal Duelist", { name: "__wait", waitMs: 4000 }],
+    { ...config, randomness: { mode: "stochastic", seed: 91 } },
+  );
+  const illusionHits = result.events.filter(event =>
+    event.type === "damage" && event.source === "Phantasm"
+  );
+  const criticals = illusionHits.filter(event => event.didCrit).length;
+  const sharperImages = result.events.filter(event =>
+    event.type === "condition" && event.name.includes("Sharper Images")
+  );
+
+  assert.ok(illusionHits.length > 1);
+  assert.ok(criticals > 0 && criticals < illusionHits.length);
+  assert.equal(sharperImages.length, criticals);
+  assert.ok(sharperImages.every(event => event.stacks === 1));
+});
+
+test("critical-strike food consumes seeded crit and proc outcomes in stochastic mode", () => {
+  const defaults = defaultSimulationConfig();
+  const rotation = [];
+  for (let index = 0; index < 6; index += 1) {
+    rotation.push("Flying Cutter");
+    if (index < 5) rotation.push({ name: "__wait", waitMs: 2100 });
+  }
+  const seed = 117;
+  const result = simulateMesmer(
+    rotation,
+    defaultSimulationConfig({
+      food: "Cilantro Lime Sous-Vide Steak",
+      stats: {
+        ...defaults.stats,
+        precision: 1945,
+      },
+      boons: {
+        ...defaults.boons,
+        fury: false,
+      },
+      randomness: { mode: "stochastic", seed },
+    }),
+  );
+  const sourceHits = result.events.filter(event =>
+    event.type === "damage" && event.skillName === "Flying Cutter"
+  );
+  const procRandom = createSimulationRandom({ mode: "stochastic", seed });
+  let expectedProcs = 0;
+  let foodReadyAt = -Infinity;
+  for (const event of sourceHits) {
+    if (event.didCrit !== true || event.at < foodReadyAt) continue;
+    if (!procRandom.roll(0.66, "food.critical-strike")) continue;
+    expectedProcs += 1;
+    foodReadyAt = event.at + 2;
+  }
+  const nourishment = result.resolvedEvents.filter(event =>
+    event.type === "damage" && event.skillName === "Nourishment"
+  );
+
+  assert.equal(nourishment.length, expectedProcs);
+});
+
 test("Earth bleeding grants a scheduler-visible Bloodsong blade", () => {
   const defaults = defaultSimulationConfig();
   const flyingCutters = [];

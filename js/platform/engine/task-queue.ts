@@ -1,11 +1,10 @@
+import { ACTION_SAFETY_LIMIT, EPSILON } from "./clock.js";
 import type {
   ScheduledTask,
   ScheduledTaskHandler,
   ScheduledTaskInput,
   TaskQueue,
 } from "./types.js";
-
-const DEFAULT_LIMIT = 100_000;
 
 function assertSerializable(value: unknown, label: string): void {
   try {
@@ -30,8 +29,8 @@ function assertSerializable(value: unknown, label: string): void {
  */
 export function createTaskQueue<TContext, TPayload>({
   handlers = {},
-  epsilon = 0.0001,
-  safetyLimit = DEFAULT_LIMIT,
+  epsilon = EPSILON,
+  safetyLimit = ACTION_SAFETY_LIMIT,
 }: {
   readonly handlers?: Readonly<
     Record<string, ScheduledTaskHandler<TContext, TPayload>>

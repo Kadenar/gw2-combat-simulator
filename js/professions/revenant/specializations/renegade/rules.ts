@@ -25,10 +25,12 @@ import { revenantCombatActive } from "../../core/legend.js";
 import { hasRevenantTrait } from "../../core/state.js";
 import { grantKallasFervor } from "./renegade.js";
 import {
+  handleRenegadeCriticalTraitsTask,
   initializeRenegadeTraits,
   modifyRenegadeCastDuration,
   modifyRenegadeRechargeDuration,
   observeRenegadeTraits,
+  RENEGADE_CRITICAL_TRAITS_TASK,
 } from "./traits.js";
 import type {
   Gw2ModifierContext,
@@ -304,4 +306,7 @@ export const renegadeSchedulerHooks = Object.freeze({
       observeRenegadeEvent(context, event);
     },
   },
+  taskHandlers: Object.freeze({
+    [RENEGADE_CRITICAL_TRAITS_TASK]: handleRenegadeCriticalTraitsTask,
+  }),
 });

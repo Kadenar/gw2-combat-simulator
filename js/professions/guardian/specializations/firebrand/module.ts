@@ -1,32 +1,43 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { GuardianFirebrandState } from "../../types.js";
-import { guardianModuleCatalog } from "../../catalog.js";
+import {
+  defineNativeModule,
+  onResolvedDamage,
+  skillAvailability,
+} from "../../../../platform/gw2/native-profession.js";
+import { createGuardianModuleData } from "../../catalog-data.js";
 import {
   firebrandEventHandlers,
   firebrandEventReactions,
+  firebrandSkillHandlers,
 } from "./handlers.js";
 import {
   firebrandAttributeRules,
   firebrandCastRules,
   firebrandSchedulerHooks,
 } from "./rules.js";
+import { FIREBRAND_SKILL_MECHANICS } from "./skills.js";
 import { createFirebrandState } from "./state.js";
 import { firebrandUi } from "./ui.js";
 
-export const firebrandModule =
-  defineProfessionModule<GuardianFirebrandState>({
+export const firebrandModule = defineNativeModule({
   id: "Firebrand",
-  catalog: guardianModuleCatalog("Firebrand"),
-  resources: {
-    createProfessionState: createFirebrandState,
-    createResolverState: createFirebrandState,
+  data: createGuardianModuleData("Firebrand", {
+    skillMechanics: FIREBRAND_SKILL_MECHANICS,
+    handlers: firebrandSkillHandlers,
+  }),
+  state: {
+    scheduler: createFirebrandState,
+    resolver: createFirebrandState,
   },
-  attributeRules: firebrandAttributeRules,
-  castRules: firebrandCastRules,
-  schedulerHooks: firebrandSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: firebrandEventHandlers,
-    eventReactions: firebrandEventReactions,
+  mechanics: {
+    modifiers: firebrandAttributeRules,
+    availability: firebrandCastRules.availability.map(skillAvailability),
+    castRules: { validateCast: firebrandCastRules.validateCast },
+    schedulerHooks: firebrandSchedulerHooks,
+    reactions: firebrandEventReactions.damage.map(onResolvedDamage),
+    resolverHooks: {
+      eventHandlers: firebrandEventHandlers,
+      eventReactions: { buff: firebrandEventReactions.buff },
+    },
   },
-  ui: firebrandUi,
-  });
+  presentation: firebrandUi,
+});

@@ -1,5 +1,5 @@
 import { createFixedSlotLoadout } from "../../app/profession/slot-loadout.js";
-import { revenantCatalog } from "./catalog.js";
+import { REVENANT_DECLARED_SKILLS } from "./catalog-data.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
@@ -40,20 +40,20 @@ function id(
   legendId: string,
   preferredId: SkillId | null = null,
 ): SkillId | undefined {
-  const matches = revenantCatalog.skills.filter(
+  const matches = REVENANT_DECLARED_SKILLS.filter(
     (skill) =>
       skill.name === name && (!legendId || skill.legendId === legendId),
   );
   return (
     matches.find((skill) => skill.id === preferredId) ||
     matches[0] ||
-    revenantCatalog.skillsByName.get(name)
+    REVENANT_DECLARED_SKILLS.find((skill) => skill.name === name)
   )?.id;
 }
 
 function icon(name: string): string {
   return (
-    revenantCatalog.skills.find((skill) => skill.name === name && skill.icon)
+    REVENANT_DECLARED_SKILLS.find((skill) => skill.name === name && skill.icon)
       ?.icon || ""
   );
 }

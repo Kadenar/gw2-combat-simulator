@@ -285,7 +285,7 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
 });
 
 test("Revenant mechanics modules preserve the declarative contract", async () => {
-  const [ids, skillMechanics, coreSkills, localMechanics, catalog] =
+  const [ids, skillMechanics, coreSkills, localMechanics, catalog, modules] =
     await Promise.all([
     readFile(new URL(
       "../js/professions/revenant/data/ids.ts",
@@ -313,6 +313,10 @@ test("Revenant mechanics modules preserve the declarative contract", async () =>
       "../js/professions/revenant/catalog.ts",
       import.meta.url,
     ), "utf8"),
+    readFile(new URL(
+      "../js/professions/revenant/modules.ts",
+      import.meta.url,
+    ), "utf8"),
   ]);
 
   assert.doesNotMatch(ids, /^import\b/m);
@@ -323,7 +327,10 @@ test("Revenant mechanics modules preserve the declarative contract", async () =>
   assert.ok(localMechanics.every(source => /export const \w+_MECHANICS/.test(source)));
   assert.ok(localMechanics.every(source => !/HANDLER_MECHANICS/.test(source)));
   assert.doesNotMatch(catalog, /DYNAMIC_EFFECT_HANDLER_IDS/);
-  assert.match(catalog, /mechanics: REVENANT_SKILL_MECHANICS/);
+  assert.match(catalog, /assembleNativeApplicationCatalog/);
+  assert.match(catalog, /revenantNativeModules/);
+  assert.match(modules, /revenantCoreModule/);
+  assert.doesNotMatch(catalog, /REVENANT_SKILL_MECHANICS/);
 });
 
 test("legend palette renders both selected legends through shared swap cooldown", () => {
@@ -2664,6 +2671,40 @@ test("Renegade critical traits and Blood Fury use their supplied intervals", () 
     }, 1.15),
     1.15,
   );
+});
+
+test("Renegade critical traits consume seeded critical outcomes", () => {
+  const run = seed => simulate("Renegade", ["Phase Traversal"], {
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.ASSASSIN,
+    selectedTraitIds: [TRAIT.AMBUSH_COMMANDER, TRAIT.ENDLESS_ENMITY],
+    target: { defiant: false, flanking: false, behind: false },
+    boons: { fury: false },
+    stats: { precision: 1945 },
+    initialEnergy: 100,
+    randomness: { mode: "stochastic", seed },
+  });
+  const signature = result => {
+    const hit = result.events.find(event =>
+      event.type === "damage" && event.skillName === "Phase Traversal"
+    );
+    const ambushCommander = result.events.some(event =>
+      event.type === "buff" && event.skillName === "Ambush Commander"
+    );
+    const endlessEnmity = result.events.some(event =>
+      event.type === "buff" && event.skillName === "Endless Enmity"
+    );
+    assert.equal(ambushCommander, hit.didCrit);
+    assert.equal(endlessEnmity, hit.didCrit);
+    return [hit.didCrit, ambushCommander, endlessEnmity];
+  };
+
+  assert.deepEqual(signature(run(7)), signature(run(7)));
+  const criticalOutcomes = new Set();
+  for (let seed = 1; seed <= 32; seed += 1) {
+    criticalOutcomes.add(signature(run(seed))[0]);
+  }
+  assert.deepEqual([...criticalOutcomes].sort(), [false, true]);
 });
 
 test("Heartpiercer and Brutal Momentum apply multiplicative combat bonuses", () => {

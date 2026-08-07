@@ -14,7 +14,7 @@ import {
   gainNecromancerLifeForce,
   hasTrait,
 } from "../../core/shared.js";
-import { isInternalCooldownReady } from "../../../../platform/engine/internal-cooldown.js";
+import { isInternalCooldownReady } from "../../../../platform/engine/clock.js";
 import { augmentSkillHandler } from "../../../../platform/engine/skill-handlers.js";
 import type {
   NecromancerCastContext,

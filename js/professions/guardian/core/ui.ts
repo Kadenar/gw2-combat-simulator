@@ -1,7 +1,7 @@
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../../app/simulation/randomness.js";
-import { guardianCatalog } from "../catalog.js";
 import type {
+  CanonicalCatalog,
   ProfessionEventLogDescriptor,
   ProfessionUiContract,
   SchedulerRecord,
@@ -12,6 +12,8 @@ import type {
   GuardianSkill,
   GuardianUiContext,
 } from "../types.js";
+
+let guardianCatalog: Readonly<CanonicalCatalog>;
 
 export function guardianUiSpecialization(
   context: GuardianUiContext = {},
@@ -113,3 +115,10 @@ export const guardianCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
           ]
         : [],
   });
+
+export function bindGuardianCoreUi(
+  catalog: Readonly<CanonicalCatalog>,
+): typeof guardianCoreUi {
+  guardianCatalog = catalog;
+  return guardianCoreUi;
+}

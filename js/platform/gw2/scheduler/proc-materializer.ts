@@ -1,4 +1,4 @@
-import { isInternalCooldownReady } from "../../engine/internal-cooldown.js";
+import { isInternalCooldownReady } from "../../engine/clock.js";
 import { createSimulationRandom } from "../../engine/simulation-random.js";
 import type {
   ScheduledTask,
@@ -8,7 +8,7 @@ import type {
   SimulationEvent,
   SimulationRandom,
 } from "../../engine/types.js";
-import { SIGIL_PROCS } from "../gear-data.js";
+import { FOOD_DATA, SIGIL_PROCS } from "../gear-data.js";
 import { createRelicRuntime } from "../relic-rules.js";
 import {
   GW2_EVENT_ACTOR_TYPES,
@@ -107,6 +107,9 @@ export function createGw2TriggerMaterializer(
   const hasCriticalSigils = [...configuredProcNames].some(
     (name) => SIGIL_PROC_LOOKUP[name].trigger === "crit",
   );
+  const hasStochasticCriticalFood =
+    config.randomness?.mode === "stochastic" &&
+    FOOD_DATA[String(config.food || "")]?.proc?.type === "critStrike";
   const hasSwapSigils = [...configuredProcNames].some(
     (name) => SIGIL_PROC_LOOKUP[name].trigger === "swap",
   );
@@ -121,7 +124,7 @@ export function createGw2TriggerMaterializer(
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
     combatActive: false,
     combatBeganAt: null,
-    criticalFactsRequired: hasCriticalSigils,
+    criticalFactsRequired: hasCriticalSigils || hasStochasticCriticalFood,
     boons: new Map(),
     conditionState: new Map(),
     totals: { strike: 0, condition: 0 },
@@ -302,13 +305,11 @@ export function createGw2TriggerMaterializer(
     context: SchedulerContext,
     event: SimulationEvent,
   ): void => {
-    if (
-      (!isGw2PlayerActorEvent(event) &&
-        event.canTriggerCriticalSigils !== true) ||
-      !(Number(event.coefficient) > 0)
-    )
+    if (!(Number(event.coefficient) > 0) || !state.criticalFactsRequired) {
       return;
-    if (!state.criticalFactsRequired) return;
+    }
+    const canTriggerCriticalSigils =
+      isGw2PlayerActorEvent(event) || event.canTriggerCriticalSigils === true;
     const query = state.query!;
     const critical = query.critical(event, event.at, state);
     let cause = event;
@@ -326,8 +327,9 @@ export function createGw2TriggerMaterializer(
           (candidate) => candidate.__order === event.__order,
         ) || event;
       cause = context.replaceEvent(canonicalEvent, { didCrit });
-      if (!didCrit) return;
+      if (!didCrit || !canTriggerCriticalSigils) return;
     } else {
+      if (!canTriggerCriticalSigils) return;
       if (!(critical.chance > 0)) return;
       // Deterministic mode retains expected-critical accumulation.
       state.sigil.criticalProgress += critical.chance;

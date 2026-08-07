@@ -42,6 +42,20 @@ function targetHealth(ctx: Gw2ResolverRuntime): number {
 }
 
 /**
+ * Events suppressed before an explicit Combat Start: outgoing damage/condition
+ * output plus target vulnerability, which scales that output. Bookkeeping
+ * events still process so state stays consistent across the gate.
+ */
+function isCombatGatedEvent(event: Gw2ResolverEvent): boolean {
+  return (
+    event.type === "damage" ||
+    event.type === "condition" ||
+    event.type === "condition_tick" ||
+    (event.type === "buff" && event.kind === "target-vulnerability")
+  );
+}
+
+/**
  * Drains a GW2 resolver queue. Professions may filter their own actor events,
  * but time ordering, encounter bounds, combat start, target death, and handler
  * dispatch remain common.
@@ -67,10 +81,7 @@ export function runGw2ResolverEventLoop(
     if (
       ctx.combatStartTime != null &&
       event.at < ctx.combatStartTime - EPSILON &&
-      (event.type === "damage" ||
-        event.type === "condition" ||
-        event.type === "condition_tick" ||
-        (event.type === "buff" && event.kind === "target-vulnerability"))
+      isCombatGatedEvent(event)
     )
       continue;
 

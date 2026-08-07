@@ -48,7 +48,6 @@ export function createGw2ResolverRuntimeState({
     firstHitTime: null,
     lastHitTime: null,
     deathTime: null,
-    combatActive: false,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
     relic: createRelicRuntime(config.relic),
     profession: professionState,

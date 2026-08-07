@@ -1,5 +1,5 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { thiefModuleCatalog } from "../../catalog.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createThiefModuleData } from "../../catalog-data.js";
 import {
   antiquarySchedulerHooks,
 } from "./handlers.js";
@@ -10,19 +10,21 @@ import {
 } from "./rules.js";
 import { createAntiquaryState } from "./state.js";
 import { antiquaryUi } from "./ui.js";
+import { ANTIQUARY_SKILL_MECHANICS } from "./skills.js";
+import { antiquarySkillHandlers } from "./handlers.js";
 
-export const antiquaryModule = defineProfessionModule({
+export const antiquaryModule = defineNativeModule({
   id: "Antiquary",
-  catalog: thiefModuleCatalog("Antiquary"),
-  resources: {
-    createProfessionState: createAntiquaryState,
-    createResolverState: createAntiquaryState,
+  data: createThiefModuleData("Antiquary", {
+    skillMechanics: ANTIQUARY_SKILL_MECHANICS,
+    handlers: antiquarySkillHandlers,
+  }),
+  state: { scheduler: createAntiquaryState, resolver: createAntiquaryState },
+  mechanics: {
+    modifiers: antiquaryAttributeRules,
+    castRules: antiquaryCastRules,
+    schedulerHooks: antiquarySchedulerHooks,
+    resolverHooks: { eventReactions: antiquaryResolverEventReactions },
   },
-  attributeRules: antiquaryAttributeRules,
-  castRules: antiquaryCastRules,
-  schedulerHooks: antiquarySchedulerHooks,
-  resolverHooks: {
-    eventReactions: antiquaryResolverEventReactions,
-  },
-  ui: antiquaryUi,
+  presentation: antiquaryUi,
 });

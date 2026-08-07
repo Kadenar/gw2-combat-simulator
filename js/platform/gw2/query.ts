@@ -131,6 +131,29 @@ export function createGw2CombatQuery<
   let query: Readonly<Gw2CombatQuery> | null = null;
 
   /**
+   * Sums the stack weights of every active application, then clamps to a boon's
+   * range. Shared by the runtime-application and scheduled-event stack queries
+   * so the "filter to the active window, sum stacks, clamp" shape lives once.
+   *
+   * @template T
+   * @param {Iterable<T>} items
+   * @param {(item: T) => boolean} isActive
+   * @param {(item: T) => number} weight
+   * @param {number} maximum
+   */
+  const sumActiveStacks = <T>(
+    items: Iterable<T>,
+    isActive: (item: T) => boolean,
+    weight: (item: T) => number,
+    maximum: number,
+  ): number => {
+    let stacks = 0;
+    for (const item of items) {
+      if (isActive(item)) stacks += weight(item);
+    }
+    return Math.max(0, Math.min(maximum, stacks));
+  };
+  /**
    * @param {Gw2QueryRuntime | null | undefined} runtime
    * @param {string} kind
    * @param {number} time
@@ -141,24 +164,16 @@ export function createGw2CombatQuery<
     kind: string,
     time: number,
     maximum: number,
-  ): number | null => {
-    if (!runtime) return null;
-    return Math.max(
-      0,
-      Math.min(
-        maximum,
-        (runtime.boons?.get(kind) || [])
-          .filter(
-            (application) =>
-              application.at <= time && application.expiresAt > time,
-          )
-          .reduce(
-            (sum, application) => sum + Number(application.stacks || 1),
-            0,
-          ),
-      ),
-    );
-  };
+  ): number | null =>
+    runtime
+      ? sumActiveStacks(
+          runtime.boons?.get(kind) || [],
+          (application) =>
+            application.at <= time && application.expiresAt > time,
+          (application) => Number(application.stacks || 1),
+          maximum,
+        )
+      : null;
   /**
    * Player-configured permanent boons do not apply to ordinary summons.
    * Explicitly inherited companion profiles retain their existing behavior.
@@ -184,22 +199,17 @@ export function createGw2CombatQuery<
     time: number,
     maximum: number,
   ): number =>
-    Math.max(
-      0,
-      Math.min(
-        maximum,
-        events
-          .filter(
-            (event) =>
-              event.type === "buff" &&
-              String(event.kind || "").toLowerCase() === kind &&
-              event.source === "Trait" &&
-              event.affectsSummons === true &&
-              event.at <= time &&
-              event.at + Number(event.duration || 0) > time,
-          )
-          .reduce((sum, event) => sum + Number(event.stacks || 1), 0),
-      ),
+    sumActiveStacks(
+      events,
+      (event) =>
+        event.type === "buff" &&
+        String(event.kind || "").toLowerCase() === kind &&
+        event.source === "Trait" &&
+        event.affectsSummons === true &&
+        event.at <= time &&
+        event.at + Number(event.duration || 0) > time,
+      (event) => Number(event.stacks || 1),
+      maximum,
     );
   /**
    * @param {string} kind
@@ -262,20 +272,18 @@ export function createGw2CombatQuery<
   };
   /** @param {number} time */
   const summonMightStacksAt = (time: number): number =>
-    Math.min(
+    sumActiveStacks(
+      events,
+      (event) =>
+        event.type === "buff" &&
+        String(event.kind || "").toLowerCase() === "might" &&
+        event.affectsSummons === true &&
+        (config.sharePlayerBoonsWithSummons !== false ||
+          event.source === "Trait") &&
+        event.at <= time &&
+        event.at + Number(event.duration || 0) > time,
+      (event) => Number(event.stacks || 1),
       25,
-      events
-        .filter(
-          (event) =>
-            event.type === "buff" &&
-            String(event.kind || "").toLowerCase() === "might" &&
-            event.affectsSummons === true &&
-            (config.sharePlayerBoonsWithSummons !== false ||
-              event.source === "Trait") &&
-            event.at <= time &&
-            event.at + Number(event.duration || 0) > time,
-        )
-        .reduce((sum, event) => sum + Number(event.stacks || 1), 0),
     );
   /**
    * @param {number} time

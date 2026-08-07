@@ -935,7 +935,7 @@ export function advanceMesmerScheduler(
 
 /**
  * Observes combat-start, bleeding, and critical-hit candidates and schedules
- * chronological expected-proc processing where required.
+ * chronological critical-proc processing where required.
  *
  * @param {object} context Scheduler event-observer context.
  * @param {object} event Newly scheduled event.
@@ -1023,8 +1023,8 @@ export function handleResourceGainTask(
 }
 
 /**
- * Resolves delayed expected-value trait procs, including Deadly Blades
- * vulnerability derived from critical-hit probability.
+ * Resolves delayed critical trait procs. Deterministic mode uses critical-hit
+ * probability; stochastic mode consumes the canonical sampled hit fact.
  *
  * @param {object} context Scheduler task context.
  * @param {object} task Expected-proc task.
@@ -1035,7 +1035,19 @@ export function handleExpectedProcTask(
   task: MesmerSchedulerTask<"expectedProc">,
 ): void {
   const runtime = mesmerRuntimeFor(context);
-  const event = task.payload.type === "hit" ? task.payload.event : null;
+  const payloadEvent =
+    task.payload.type === "hit" ? task.payload.event : null;
+  const canonicalEvent = payloadEvent
+    ? context.events.find(
+        (candidate) => candidate.__order === payloadEvent.__order,
+      )
+    : null;
+  // The trigger materializer runs first and replaces the canonical event with
+  // its sampled `didCrit` fact. Preserve Mesmer-only annotations from the
+  // original candidate (such as a skill-derived `blade` flag).
+  const event = payloadEvent
+    ? { ...payloadEvent, ...(canonicalEvent || {}) }
+    : null;
   if (
     event?.blade &&
     !event.noCrit &&
@@ -1043,7 +1055,11 @@ export function handleExpectedProcTask(
     runtime.traits.has(TRAIT.DEADLY_BLADES)
   ) {
     const vulnerabilityStacks =
-      context.schedulerPolicy.critical?.(context, event)?.chance || 0;
+      context.config.randomness?.mode === "stochastic"
+        ? event.didCrit
+          ? 1
+          : 0
+        : context.schedulerPolicy.critical?.(context, event)?.chance || 0;
     if (vulnerabilityStacks > EPSILON) {
       context.emitDerived(event, {
         type: "buff",
@@ -1064,7 +1080,11 @@ export function handleExpectedProcTask(
       });
     }
   }
-  runtime.expected.process(task.payload);
+  runtime.expected.process(
+    task.payload.type === "hit" && event
+      ? { ...task.payload, event }
+      : task.payload,
+  );
 }
 
 /**

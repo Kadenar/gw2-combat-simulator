@@ -2,7 +2,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from "../data/ids.js";
 import { SPECIALIZATIONS } from "../data/guardian-api-metadata.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
-import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
+import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
 import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js";
 import { buildGuardianStrike } from "./events.js";
 import type {

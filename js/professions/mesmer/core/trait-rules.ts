@@ -6,7 +6,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
 
 import {
   isInternalCooldownReady,
-} from "../../../platform/engine/internal-cooldown.js";
+} from "../../../platform/engine/clock.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import type {
   MesmerApplyCondition,

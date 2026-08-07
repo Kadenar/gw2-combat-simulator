@@ -1,5 +1,5 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { thiefModuleCatalog } from "../../catalog.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createThiefModuleData } from "../../catalog-data.js";
 import {
   specterSchedulerHooks,
 } from "./handlers.js";
@@ -9,16 +9,20 @@ import {
 } from "./rules.js";
 import { createSpecterState } from "./state.js";
 import { specterUi } from "./ui.js";
+import { SPECTER_SKILL_MECHANICS } from "./skills.js";
+import { specterSkillHandlers } from "./handlers.js";
 
-export const specterModule = defineProfessionModule({
+export const specterModule = defineNativeModule({
   id: "Specter",
-  catalog: thiefModuleCatalog("Specter"),
-  resources: {
-    createProfessionState: createSpecterState,
-    createResolverState: createSpecterState,
+  data: createThiefModuleData("Specter", {
+    skillMechanics: SPECTER_SKILL_MECHANICS,
+    handlers: specterSkillHandlers,
+  }),
+  state: { scheduler: createSpecterState, resolver: createSpecterState },
+  mechanics: {
+    modifiers: specterAttributeRules,
+    castRules: specterCastRules,
+    schedulerHooks: specterSchedulerHooks,
   },
-  attributeRules: specterAttributeRules,
-  castRules: specterCastRules,
-  schedulerHooks: specterSchedulerHooks,
-  ui: specterUi,
+  presentation: specterUi,
 });
