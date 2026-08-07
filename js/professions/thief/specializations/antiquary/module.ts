@@ -5,6 +5,7 @@ import {
 import { createThiefModuleData } from "../../catalog-data.js";
 import {
   antiquarySchedulerHooks,
+  antiquarySkillHandlers,
 } from "./handlers.js";
 import { antiquaryResolverEventReactions } from "./resolver.js";
 import {
@@ -14,7 +15,6 @@ import {
 import { antiquaryState } from "./state.js";
 import { antiquaryUi } from "./ui.js";
 import { ANTIQUARY_SKILL_MECHANICS } from "./skills.js";
-import { antiquarySkillHandlers } from "./handlers.js";
 
 export const antiquaryModule = defineNativeModule({
   id: "Antiquary",
