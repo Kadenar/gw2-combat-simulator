@@ -1,6 +1,6 @@
+import { firebrandState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { isInternalCooldownReady } from "../../../../platform/engine/clock.js";
@@ -56,7 +56,7 @@ export function updateFirebrandCastState(
   skill: GuardianSkill,
 ): void {
   const at = context.effectiveEnd;
-  const state = professionSpecializationState(context, "Firebrand");
+  const state = firebrandState.from(context);
   const coreState = professionCoreState(context);
   const virtue = virtueFor(skill);
   if (virtue) {
@@ -138,7 +138,7 @@ export function observeFirebrandScheduledEvent(
   event: GuardianResolverEvent,
 ): void {
   const kind = String(event.kind || "").toLowerCase();
-  const state = professionSpecializationState(context, "Firebrand");
+  const state = firebrandState.from(context);
   if (
     event.type === "buff" &&
     ["aegis", "stability"].includes(kind) &&
@@ -236,7 +236,7 @@ export function handleFirebrandVirtueActivation(
 ): void {
   const virtue = event.virtue;
   if (!virtue) return;
-  professionSpecializationState(context, "Firebrand").activeTome = virtue;
+  firebrandState.from(context).activeTome = virtue;
   professionCoreState(context).virtueReadyAt[virtue] = Number(
     event.passiveReadyAt,
   );
@@ -261,7 +261,7 @@ export function reactToFirebrandBuffTraits(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  const state = professionSpecializationState(context, "Firebrand");
+  const state = firebrandState.from(context);
   if (
     String(event.kind || "").toLowerCase() !== "quickness" ||
     !hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE) ||

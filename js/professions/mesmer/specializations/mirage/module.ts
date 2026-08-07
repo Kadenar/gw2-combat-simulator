@@ -7,7 +7,7 @@ import {
 } from "./rules.js";
 import {
   createMirageResolverState,
-  createMirageState,
+  mirageState,
 } from "./state.js";
 import { mirageUi } from "./ui.js";
 import {
@@ -26,7 +26,7 @@ export const mirageModule = defineNativeModule({
     handlers: mirageSkillHandlers,
   }),
   state: {
-    scheduler: createMirageState,
+    scheduler: mirageState.create,
     resolver: createMirageResolverState,
   },
   mechanics: {

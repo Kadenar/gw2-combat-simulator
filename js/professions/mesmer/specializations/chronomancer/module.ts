@@ -5,10 +5,7 @@ import {
   chronomancerCastRules,
   chronomancerRuntimeHooks,
 } from "./rules.js";
-import {
-  createChronomancerResolverState,
-  createChronomancerState,
-} from "./state.js";
+import { createChronomancerResolverState, chronomancerState } from "./state.js";
 import { chronomancerUi } from "./ui.js";
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
@@ -17,23 +14,28 @@ import {
 } from "./skills.js";
 import { chronomancerSkillHandlers } from "./handlers.js";
 
-export const chronomancerModule =
-  defineNativeModule({
+const chronomancerEventHandlers = Object.freeze({
+  "mesmer.phantasm-resummoned": (): void => {},
+});
+
+export const chronomancerModule = defineNativeModule({
   id: "Chronomancer",
   data: createMesmerModuleData("Chronomancer", {
     skillMechanics: MESMER_CHRONOMANCER_SKILL_MECHANICS,
-    supplementalSkillMechanics: MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
+    supplementalSkillMechanics:
+      MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
     extraSkills: MESMER_CHRONOMANCER_EXTRA_SKILLS,
     handlers: chronomancerSkillHandlers,
   }),
   state: {
-    scheduler: createChronomancerState,
+    scheduler: chronomancerState.create,
     resolver: createChronomancerResolverState,
   },
   mechanics: {
     modifiers: chronomancerAttributeRules,
     castRules: chronomancerCastRules,
     schedulerHooks: chronomancerRuntimeHooks,
+    resolverHooks: { eventHandlers: chronomancerEventHandlers },
   },
   presentation: chronomancerUi,
-  });
+});

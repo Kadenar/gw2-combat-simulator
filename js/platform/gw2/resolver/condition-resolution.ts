@@ -2,11 +2,9 @@ import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
 import { conditionTickDamage } from "../condition-formulas.js";
 import { clamp } from "../numeric.js";
-import { handleConditionRelics } from "../relic-rules.js";
 import { permanentTargetConditionStacks } from "../target-state.js";
 
 import type {
-  Gw2ApplyCondition,
   Gw2ConditionResolution,
   Gw2ConditionTickResult,
   Gw2EventDraft,
@@ -14,14 +12,12 @@ import type {
   Gw2ResolverConditionStack,
   Gw2ResolverConditionState,
   Gw2ResolverEvent,
+  Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime,
 } from "../types.js";
 
 interface CreateGw2ConditionResolutionOptions {
-  readonly onConditionApplied?: (
-    context: Gw2ResolverRuntime,
-    application: Gw2ResolvedConditionApplication,
-  ) => unknown;
+  readonly reactions: Gw2ResolverReactionRegistry;
 }
 
 const MOVING_TORMENT = Object.freeze({ base: 22, scaling: 0.06 });
@@ -29,12 +25,11 @@ const CONFUSION_ACTIVATION = Object.freeze({ base: 16.24, scaling: 0.0325 });
 
 /**
  * Creates timestamp-aware condition resolution shared by GW2 professions.
- * Profession effects subscribe through onConditionApplied instead of being
- * embedded in the common condition pipeline.
+ * Successful applications dispatch after state insertion and tick scheduling.
  */
 export function createGw2ConditionResolution({
-  onConditionApplied = () => {},
-}: CreateGw2ConditionResolutionOptions = {}): Readonly<Gw2ConditionResolution> {
+  reactions,
+}: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
   function activeStacks(
     ctx: Gw2ResolverRuntime,
     name: string,
@@ -201,16 +196,13 @@ export function createGw2ConditionResolution({
     });
     scheduleApplicationTicks(ctx, application);
 
-    onConditionApplied(ctx, application);
-    handleConditionRelics(ctx, application, {
+    reactions.dispatch("condition.applied", ctx, application, {
+      application,
       activeConditionStackCount,
-      applyCondition: applyRelicCondition,
+      applyCondition,
     });
     return application;
   }
-
-  const applyRelicCondition: Gw2ApplyCondition = (context, event) =>
-    applyCondition(context as Gw2ResolverRuntime, event);
 
   function handleConditionTick(
     ctx: Gw2ResolverRuntime,

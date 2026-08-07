@@ -10,7 +10,7 @@ import {
 } from "./handlers.js";
 import { amalgamAttributeRules, amalgamCastRules } from "./rules.js";
 import { AMALGAM_SKILL_MECHANICS } from "./skills.js";
-import { createAmalgamState } from "./state.js";
+import { amalgamState } from "./state.js";
 import { bindAmalgamUi } from "./ui.js";
 
 export const amalgamModule = defineNativeModule({
@@ -19,7 +19,7 @@ export const amalgamModule = defineNativeModule({
     skillMechanics: AMALGAM_SKILL_MECHANICS,
     handlers: amalgamSkillHandlers,
   }),
-  state: { scheduler: createAmalgamState, resolver: createAmalgamState },
+  state: { scheduler: amalgamState.create, resolver: amalgamState.create },
   mechanics: {
     modifiers: amalgamAttributeRules,
     castRules: amalgamCastRules,

@@ -102,10 +102,8 @@ function holosmithEventLogRow(
     );
   if (!isHolosmith) return undefined;
   if (HOLOSMITH_PACKET_EVENTS.has(event?.type)) return null;
-  if (
-    event?.type !== "engineer.state"
-    || !HEAT_STATE_REASONS.has(String(event.reason || ""))
-  ) return undefined;
+  if (event?.type !== "engineer.state") return undefined;
+  if (!HEAT_STATE_REASONS.has(String(event.reason || ""))) return null;
   return {
     type: event.type,
     description:

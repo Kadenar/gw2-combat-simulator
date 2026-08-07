@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { daredevilState } from "./state.js";
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
@@ -11,7 +11,7 @@ import {
 import { DAREDEVIL_DODGE_EFFECTS } from "./mechanics.js";
 
 function emitDodgeEffect(context, skill, effect) {
-  const state = professionSpecializationState(context, "Daredevil");
+  const state = daredevilState.from(context);
   const common = {
     at: context.start + 0.8,
     source: "Trait",
@@ -55,7 +55,7 @@ function emitDodgeEffect(context, skill, effect) {
 
 export function applyDaredevilDodge(context, skill) {
   if (skill.id !== ID.DODGE) return;
-  const state = professionSpecializationState(context, "Daredevil");
+  const state = daredevilState.from(context);
   if (state.selectedDodge === "Bounding Dodger") {
     state.boundingDamageUntil = context.start + 4;
   }

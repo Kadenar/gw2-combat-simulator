@@ -119,30 +119,30 @@ function implementedEvidence(
 ): { readonly file: string; readonly name: string } {
   if (["Compounding Chemicals", "Hybrid Vigor"].includes(trait.name)) {
     return {
-      file: "tests/native-build-attributes.test.js",
+      file: "tests/professions/native-build-attributes.test.js",
       name: "Engineer exposes current unconditional trait attributes",
     };
   }
   if (trait.specialization === "Mechanist") {
     return {
-      file: "tests/engineer.test.js",
+      file: "tests/professions/engineer/engineer.test.js",
       name: "Mechanist commands are selected by traits and mech attacks persist",
     };
   }
   if (trait.specialization === "Holosmith") {
     return {
-      file: "tests/engineer.test.js",
+      file: "tests/professions/engineer/engineer.test.js",
       name: "Photon Forge overheats at its trait-adjusted maximum",
     };
   }
   if (trait.specialization === "Amalgam") {
     return {
-      file: "tests/engineer.test.js",
+      file: "tests/professions/engineer/engineer.test.js",
       name: "benchmark Amalgam traits activate on morph and Evolve chronology",
     };
   }
   return {
-    file: "tests/engineer.test.js",
+    file: "tests/professions/engineer/engineer.test.js",
     name: "benchmark Explosives and Firearms traits materialize offensive effects",
   };
 }

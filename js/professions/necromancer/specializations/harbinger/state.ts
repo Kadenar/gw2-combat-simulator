@@ -2,6 +2,7 @@ import type {
   HarbingerState,
   NecromancerConfig,
 } from "../../types.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 export function createHarbingerState(
   config: NecromancerConfig = {},
@@ -18,3 +19,8 @@ export function createHarbingerState(
     meltdownUntil: 0,
   };
 }
+
+export const harbingerState = defineProfessionSpecializationState(
+  "Harbinger",
+  createHarbingerState,
+);

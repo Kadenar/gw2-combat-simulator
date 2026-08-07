@@ -1,8 +1,4 @@
-/** Renegade handler profiles owned by the Renegade Revenant module. */
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_SKILL_IDS as ID,
-} from "../../data/ids.js";
+/** Renegade mechanics constants owned by the Renegade Revenant module. */
 
 const freeze = <T>(value: T): Readonly<T> => Object.freeze(value);
 

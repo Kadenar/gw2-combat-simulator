@@ -1,6 +1,5 @@
 import {
-  professionCoreState,
-  professionSpecializationState,
+  professionCoreState
 } from "../../../../platform/engine/profession.js";
 import { reaperResolverEventReactions } from "./resolver.js";
 import { executionersScythe, soulSpiral } from "./shroud.js";

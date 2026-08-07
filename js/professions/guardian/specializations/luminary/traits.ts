@@ -1,6 +1,6 @@
+import { luminaryState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { isGw2PlayerActorEvent } from "../../../../platform/gw2/event-ownership.js";
@@ -75,7 +75,7 @@ function detonateLightAura(
   skill: GuardianSkill,
   at: number,
 ): boolean {
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   if (!lightAuraActive(state, at, context.epsilon)) return false;
   state.lightAuraUntil = 0;
   context.emit(
@@ -107,12 +107,12 @@ function grantLightAura(
   at: number,
 ): void {
   if (
-    lightAuraActive(professionSpecializationState(context, "Luminary"), at, context.epsilon) &&
+    lightAuraActive(luminaryState.from(context), at, context.epsilon) &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
   ) {
     detonateLightAura(context, skill, at);
   }
-  professionSpecializationState(context, "Luminary").lightAuraUntil = at + 4;
+  luminaryState.from(context).lightAuraUntil = at + 4;
 }
 
 function isLuminaryDetonator(skill: GuardianSkill): boolean {
@@ -138,7 +138,7 @@ function processLightAuraAndFields(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): void {
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   const activationAt = context.start;
   const impactAt = context.effectiveEnd;
   const sovereign = hasGuardianTrait(
@@ -193,7 +193,7 @@ function processStanceDamageBuffs(
   context: GuardianCastContext,
   skill: GuardianSkill,
 ): void {
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   if (skill.id === GUARDIAN_SKILL_IDS.PIERCING_STANCE) {
     const at = context.start;
     const wasActive =
@@ -257,7 +257,7 @@ export function handleRadiantWeaponEquipped(
 ): void {
   if (!skill.radiantWeapon || skill.flipParentId != null) return;
   const at = context.effectiveEnd + 0.001;
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   const weapon = skill.radiantWeapon;
   state.radiantWeaponsUsed[weapon] = true;
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
@@ -345,7 +345,7 @@ function handleLuminaryVirtueTraits(
   const virtue = virtueFor(skill);
   if (!virtue) return;
   const at = context.effectiveEnd;
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   if (
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS) &&
     resetRadiantWeaponCooldowns(context, virtue)
@@ -408,7 +408,7 @@ export function observeLuminaryScheduledEvent(
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES &&
     Number(event.hitIndex || 0) === 1
   ) {
-    addLightField(professionSpecializationState(context, "Luminary"), event.at, 4);
+    addLightField(luminaryState.from(context), event.at, 4);
   }
   if (
     event.type === "damage" &&
@@ -444,7 +444,7 @@ export function reactToEffulgentStrike(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   const guardianOwnedStrike =
     isGw2PlayerActorEvent(event) ||
     (event.source === "guardian" && event.actorType === "effect");
@@ -469,15 +469,15 @@ export function handleEffulgentActivated(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  professionSpecializationState(context, "Luminary").effulgentActiveUntil = event.at + 4;
-  professionSpecializationState(context, "Luminary").effulgentStacks = 0;
+  luminaryState.from(context).effulgentActiveUntil = event.at + 4;
+  luminaryState.from(context).effulgentStacks = 0;
 }
 
 export function handleEffulgentDetonate(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   const stacks = Math.max(0, Math.min(10, Number(state.effulgentStacks || 0)));
   state.effulgentActiveUntil = 0;
   state.effulgentStacks = 0;

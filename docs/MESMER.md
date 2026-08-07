@@ -12,11 +12,12 @@ ambushes, flips, resources, and Continuum actions select registered
 `mesmer.*` handler strategies by stable ID.
 
 The shared scheduler owns casts, cooldowns, ammo, weapon sets, and canonical
-events. Mesmer state machines remain in `mechanics/specific/` and publish
-future changes through `mesmer.*` typed tasks. Each simulation receives its
-controllers explicitly through scheduler context; there is no module-level
-runtime registry. The shared resolver owns standard damage and conditions,
-while Mesmer resolver reactions only add profession-specific reactions.
+events. Mesmer state machines live in `core/` or the owning
+`specializations/<elite>/` slice and publish future changes through typed
+tasks. Each simulation receives its controllers explicitly through scheduler
+context; there is no module-level runtime registry. The shared resolver owns
+standard damage and conditions, while Mesmer resolver reactions only add
+profession-specific reactions.
 
 Display names are labels. Runtime routing, resource causes, flip
 relationships, trait decisions, palette mechanics, and timing tables use skill

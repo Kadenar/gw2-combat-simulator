@@ -94,7 +94,7 @@ output; ally positioning, incoming damage, revival, and other encounter-side
 support effects remain outside its damage model.
 
 Uncompressed ArcDPS EVTC logs can be inspected with
-`node scripts/analyze-evtc.mjs <log.evtc> --summary`. Add
+`node scripts/analysis/analyze-evtc.mjs <log.evtc> --summary`. Add
 `--window=<seconds>` to compare a rotation prefix without treating it as a
 full-benchmark DPS result.
 

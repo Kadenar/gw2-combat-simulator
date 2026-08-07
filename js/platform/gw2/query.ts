@@ -33,6 +33,7 @@ import type {
   Gw2CombatQuery,
   Gw2Config,
   Gw2QueryRuntime,
+  Gw2ResolverExtensions,
   Gw2ResolvedStats,
 } from "./types.js";
 
@@ -45,6 +46,7 @@ interface CreateGw2CombatQueryOptions<TProfessionState extends object> {
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
   readonly traits?: ReadonlySet<string | number>;
+  readonly conditionDurationBonus?: Gw2ResolverExtensions["conditionDurationBonus"];
 }
 
 interface HookContextOptions {
@@ -109,6 +111,7 @@ export function createGw2CombatQuery<
   config = {},
   events = [],
   traits = selectedGw2TraitValues(config, profession?.catalog),
+  conditionDurationBonus,
 }: CreateGw2CombatQueryOptions<TProfessionState> = {}): Readonly<Gw2CombatQuery> {
   if (!profession?.id) {
     throw new TypeError("GW2 combat query requires a profession.");
@@ -118,6 +121,15 @@ export function createGw2CombatQuery<
   const historicalRelicContext = Object.freeze({
     relic: createRelicTimelineRuntime(config.relic, events),
   });
+  // Keep the exported standalone query backward compatible. Production
+  // resolver composition supplies this capability explicitly.
+  const equipmentConditionDurationBonus =
+    conditionDurationBonus ||
+    ((runtime: Gw2QueryRuntime | null | undefined, at: number): number =>
+      relicConditionDurationBonus(
+        runtime?.relic ? runtime : historicalRelicContext,
+        at,
+      ));
   const configWithBaselineStats: Gw2Config = {
     ...config,
     stats: {
@@ -517,10 +529,7 @@ export function createGw2CombatQuery<
         (Number(sigils.conditionDurationBonus || 0) +
           Number(sigils.conditionDurationBonuses?.[name] || 0)) /
         100;
-      const relicBonus = relicConditionDurationBonus(
-        runtime?.relic ? runtime : historicalRelicContext,
-        time,
-      );
+      const relicBonus = equipmentConditionDurationBonus(runtime, time);
       const base = gw2ConditionDurationMultiplier(
         name,
         stats,

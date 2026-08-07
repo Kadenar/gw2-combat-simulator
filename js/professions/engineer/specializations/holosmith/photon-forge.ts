@@ -1,6 +1,6 @@
+import { holosmithState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import {
   ENGINEER_SKILL_IDS as ID,
@@ -102,7 +102,7 @@ function coolInactiveForge(
   target: number,
   segments: HeatSegment[],
 ): void {
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   if (state.photonForgeActive || state.heat <= 0) return;
   const exit = Number(state.forgeExitedAt ?? state.heatUpdatedAt);
   const from = Math.max(Number(state.heatUpdatedAt || 0), exit);
@@ -211,7 +211,7 @@ function materializeEnhancedCapacityMight(
       TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
     )
   ) return;
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   let readyAt = state.enhancedCapacityMightReadyAt;
   for (const segment of segments) {
     const interval = highHeatInterval(segment);
@@ -239,7 +239,7 @@ function triggerInstantEnhancedCapacityMight(
   at: number,
   previousHeat: number,
 ): void {
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   if (
     !hasEngineerTrait(
       context.config,
@@ -258,7 +258,7 @@ export function grantSolarFocusingLens(
   stacks: number,
 ): void {
   if (!hasEngineerTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)) return;
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   state.solarFocusingLensStacks = stacks;
   state.solarFocusingLensReadyAt = at;
   state.solarFocusingLensUntil = at + SOLAR_FOCUSING_LENS_DURATION;
@@ -343,7 +343,7 @@ function forceOverheat(
   context: EngineerSchedulerContext,
   at: number,
 ): void {
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   const photonicBlastingModule = hasEngineerTrait(
     context.config,
     TRAIT.PHOTONIC_BLASTING_MODULE,
@@ -375,7 +375,7 @@ export function advancePhotonForgeState(
   context: EngineerSchedulerContext,
   target: number,
 ): void {
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   const from = Number(state.heatUpdatedAt || 0);
   if (target <= from) return;
   const previousHeat = state.heat;
@@ -414,7 +414,7 @@ function enterPhotonForge(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   const coreState = professionCoreState(context);
   const at = context.effectiveEnd;
   coreState.activeKit = "";
@@ -430,7 +430,7 @@ function exitPhotonForge(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   const at = context.effectiveEnd;
   state.photonForgeActive = false;
   state.forgeExitedAt = at;
@@ -462,7 +462,7 @@ function applyHeat(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   if (!state.photonForgeActive || !(Number(skill.heatGain) > 0)) return;
   const elapsedMs = Math.max(
     0,
@@ -507,7 +507,7 @@ export function handlePhotonForgeHeat(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<PhotonForgeHeatPayload>,
 ): void {
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   if (
     !state.photonForgeActive
     && task.payload?.persistsOutsideForge !== true
@@ -533,7 +533,7 @@ export function triggerThermalReleaseValve(
   if (
     !hasEngineerTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)
   ) return;
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   context.emit({
     type: "buff",
     at,
@@ -605,11 +605,11 @@ export function handleHolosmithKitEquip(
 ): void {
   if (
     skill.handlerId !== "engineer.kit-equip"
-    || !professionSpecializationState(context, "Holosmith").photonForgeActive
+    || !holosmithState.from(context).photonForgeActive
   ) return;
   const at = context.effectiveEnd;
-  professionSpecializationState(context, "Holosmith").photonForgeActive = false;
-  professionSpecializationState(context, "Holosmith").forgeExitedAt = at;
+  holosmithState.from(context).photonForgeActive = false;
+  holosmithState.from(context).forgeExitedAt = at;
   grantSolarFocusingLens(context, at, 2);
 }
 
@@ -621,7 +621,7 @@ export function observeHolosmithScheduledEvent(
     event.type === "engineer.radiant-arc-quickness"
     || event.type === "engineer.refraction-cutter-extra-blades"
   ) {
-    const heat = Number(professionSpecializationState(context, "Holosmith").heat || 0);
+    const heat = Number(holosmithState.from(context).heat || 0);
     const enhancedCapacityTier =
       heat >= 100
       && hasEngineerTrait(
@@ -646,7 +646,7 @@ export function observeHolosmithScheduledEvent(
     || !(Number(event.coefficient) > 0)
     || !hasEngineerTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)
   ) return;
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   if (
     Number(state.solarFocusingLensStacks || 0) <= 0
     || event.at < Number(state.solarFocusingLensReadyAt || 0) - context.epsilon

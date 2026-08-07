@@ -1,5 +1,8 @@
 import { EPSILON } from "../../../../platform/engine/clock.js";
-import { mesmerRuntimeFor } from "../../core/runtime.js";
+import {
+  applyMesmerRuntimeManifest,
+  mesmerRuntimeFor,
+} from "../../core/runtime.js";
 import { createMirageActionController } from "./mirage.js";
 import {
   MESMER_MIRAGE_AMBUSH_ATTACKS,
@@ -17,22 +20,16 @@ export function initializeMirageRuntime(
   context: MesmerSchedulerContext,
 ): void {
   const runtime = mesmerRuntimeFor(context);
-  Object.assign(runtime.ambushAttacks, MESMER_MIRAGE_AMBUSH_ATTACKS);
-  Object.assign(runtime.shatters, MESMER_MIRAGE_SHATTERS);
-  Object.assign(runtime.instruments, MESMER_MIRAGE_INSTRUMENTS);
-  Object.assign(runtime.traitDamage, MESMER_MIRAGE_TRAIT_DAMAGE);
-  for (const id of MESMER_MIRAGE_CONTROL_SKILLS) {
-    runtime.controlSkills.add(id);
-  }
-  for (const id of MESMER_MIRAGE_BLIND_SKILLS) {
-    runtime.blindSkills.add(id);
-  }
-  for (const id of MESMER_MIRAGE_ARISTOCRACY_SKILLS) {
-    runtime.aristocracySkills.add(id);
-  }
-  for (const id of MESMER_MIRAGE_PEITHA_SKILLS) {
-    runtime.peithaSkills.add(id);
-  }
+  applyMesmerRuntimeManifest(runtime, {
+    ambushAttacks: MESMER_MIRAGE_AMBUSH_ATTACKS,
+    shatters: MESMER_MIRAGE_SHATTERS,
+    instruments: MESMER_MIRAGE_INSTRUMENTS,
+    traitDamage: MESMER_MIRAGE_TRAIT_DAMAGE,
+    controlSkills: MESMER_MIRAGE_CONTROL_SKILLS,
+    blindSkills: MESMER_MIRAGE_BLIND_SKILLS,
+    aristocracySkills: MESMER_MIRAGE_ARISTOCRACY_SKILLS,
+    peithaSkills: MESMER_MIRAGE_PEITHA_SKILLS,
+  });
   runtime.mirage = createMirageActionController({
     state: context.state,
     config: context.config,

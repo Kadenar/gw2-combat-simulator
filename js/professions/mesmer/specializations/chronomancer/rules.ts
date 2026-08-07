@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { chronomancerState } from "./state.js";
 import { MESMER_SKILL_IDS as ID } from "../../data/ids.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { EPSILON } from "../../../../platform/engine/clock.js";
@@ -24,7 +24,7 @@ function chronomancerAvailability(
 ): AvailabilityResult {
   if (
     skill.id !== ID.CONTINUUM_SHIFT
-    || professionSpecializationState(context, "Chronomancer").continuum
+    || chronomancerState.from(context).continuum
   ) {
     return { ready: true };
   }
@@ -82,7 +82,7 @@ export function handleContinuumExpiryTask(
   context: MesmerSchedulerContext,
   task: MesmerSchedulerTask<"continuumExpire">,
 ): void {
-  const active = professionSpecializationState(context, "Chronomancer").continuum;
+  const active = chronomancerState.from(context).continuum;
   if (!active || Math.abs(active.expiresAt - task.payload.expiresAt) > EPSILON)
     return;
   mesmerRuntimeFor(context).continuum.restoreContinuum(

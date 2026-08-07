@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { mirageState } from "./state.js";
 import { EPSILON } from "../../../../platform/engine/clock.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
@@ -17,7 +17,7 @@ function mirageAvailability(
   if (!skill.ambush) return { ready: true };
   const runtime = mesmerRuntimeFor(context);
   const activeAmbush = runtime.ambushAttacks[runtime.activePrimaryWeapon()];
-  const state = professionSpecializationState(context, "Mirage");
+  const state = mirageState.from(context);
   if (
     activeAmbush
     && activeAmbush.name === skill.name

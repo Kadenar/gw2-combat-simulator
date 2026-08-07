@@ -1,7 +1,7 @@
 import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
 import { createMesmerModuleData } from "../../catalog-data.js";
 import { virtuosoAttributeRules, virtuosoRuntimeHooks } from "./rules.js";
-import { createVirtuosoResolverState, createVirtuosoState } from "./state.js";
+import { createVirtuosoResolverState, virtuosoState } from "./state.js";
 import { virtuosoUi } from "./ui.js";
 import {
   MESMER_VIRTUOSO_EXTRA_SKILLS,
@@ -19,7 +19,7 @@ export const virtuosoModule = defineNativeModule({
     handlers: virtuosoSkillHandlers,
   }),
   state: {
-    scheduler: createVirtuosoState,
+    scheduler: virtuosoState.create,
     resolver: createVirtuosoResolverState,
   },
   mechanics: {

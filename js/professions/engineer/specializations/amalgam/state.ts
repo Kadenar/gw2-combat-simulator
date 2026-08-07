@@ -2,6 +2,7 @@ import type {
   AmalgamState,
   EngineerConfig,
 } from "../../types.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 export function createAmalgamState(
   config: EngineerConfig = {},
@@ -20,3 +21,8 @@ export function createAmalgamState(
     activeStances: {},
   };
 }
+
+export const amalgamState = defineProfessionSpecializationState(
+  "Amalgam",
+  createAmalgamState,
+);

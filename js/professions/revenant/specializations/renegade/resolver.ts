@@ -1,6 +1,6 @@
+import { renegadeState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { RENEGADE_MECHANICS as MECHANICS } from "./mechanics.js";
@@ -41,7 +41,7 @@ function kallasFervorLifeSiphonMultiplier(
   context: RevenantResolverContext,
   at: number,
 ): number {
-  const stacks = activeKallasFervorStacks(professionSpecializationState(context, "Renegade"), at);
+  const stacks = activeKallasFervorStacks(renegadeState.from(context), at);
   if (!stacks) return 1;
   const profile = MECHANICS.renegade.kallasFervor;
   const perStack = hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)

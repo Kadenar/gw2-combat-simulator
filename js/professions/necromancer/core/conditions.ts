@@ -14,6 +14,10 @@ import {
   selectedGw2TraitValues,
 } from "../../../platform/gw2/query.js";
 import {
+  createRelicTimelineRuntime,
+  relicConditionDurationBonus,
+} from "../../../platform/gw2/relic-rules.js";
+import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
@@ -83,11 +87,19 @@ function conditionDurationMultiplier(
     context.config,
     context.catalog,
   );
+  const historicalRelicContext = {
+    relic: createRelicTimelineRuntime(context.config.relic, context.events),
+  };
   const query = createGw2CombatQuery({
     profession: context.profession,
     config: context.config,
     events: context.events,
     traits,
+    conditionDurationBonus: (runtime, time) =>
+      relicConditionDurationBonus(
+        runtime?.relic ? runtime : historicalRelicContext,
+        time,
+      ),
   });
   // Expertise does not extend Necromancer self-inflicted conditions. Other
   // duration bonuses still apply, matching the in-game corruption behavior.

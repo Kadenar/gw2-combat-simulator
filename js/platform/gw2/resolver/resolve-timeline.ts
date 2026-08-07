@@ -1,7 +1,6 @@
 import { EPSILON } from "../../engine/clock.js";
 import { createEventQueue } from "../../engine/event-queue.js";
 import { assertScheduledEventStream as assertPlatformStream } from "../../engine/scheduled-event-stream.js";
-import { recordPassiveRelicTimeline } from "../relic-rules.js";
 import {
   createGw2ResolverHandlerRegistry,
   runGw2ResolverEventLoop,
@@ -129,6 +128,7 @@ export function resolveGw2Timeline({
   helpers,
   createRuntimeState,
   commonHandlers,
+  beforeResolveTimeline,
   professionHandlers = {},
   professionState = {},
   eventFilterState = {},
@@ -157,7 +157,7 @@ export function resolveGw2Timeline({
     ctx.combatStartTime = handoff.combatStartTime;
   }
 
-  recordPassiveRelicTimeline(ctx, scheduled.events, scheduled.rotationEndTime);
+  beforeResolveTimeline(ctx, scheduled.events, scheduled.rotationEndTime);
 
   for (const event of scheduled.events) {
     if (event.type === "proc") {

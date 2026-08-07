@@ -1,6 +1,6 @@
+import { renegadeState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 /**
  * Renegade runtime mechanics.
@@ -74,7 +74,7 @@ function replacesBandTogetherEffects(
 ): boolean {
   return (
     skill.id === ID.ICERAZORS_IRE &&
-    isBandTogetherReady(professionSpecializationState(context, "Renegade"), context.start)
+    isBandTogetherReady(renegadeState.from(context), context.start)
   );
 }
 
@@ -124,7 +124,7 @@ export function grantKallasFervor(
     sourceName?: string;
   } = {},
 ): boolean {
-  const state = professionSpecializationState(context, "Renegade");
+  const state = renegadeState.from(context);
   const profile = MECHANICS.renegade.kallasFervor;
   pruneKallasFervor(state, at);
   if (activeKallasFervorStacks(state, at) >= profile.maximumStacks)
@@ -152,7 +152,7 @@ function refreshKallasFervor(
   context: RevenantSchedulerContext,
   at: number,
 ): number {
-  const state = professionSpecializationState(context, "Renegade");
+  const state = renegadeState.from(context);
   pruneKallasFervor(state, at);
   const duration = fervorDuration(context);
   for (const application of state.kallasFervor) {
@@ -265,7 +265,7 @@ export function beginBandTogether(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): BandTogetherState {
-  const profession = professionSpecializationState(context, "Renegade");
+  const profession = renegadeState.from(context);
   const enhanced = isBandTogetherReady(profession, context.start);
   profession.bandTogetherReady = false;
   profession.bandTogetherExpiresAt = 0;
@@ -369,7 +369,7 @@ function grantRazorclawsRage(
   const profile = MECHANICS.bandTogether.razorclaw;
   const at = context.effectiveEnd;
   const party = gw2AlliedPlayerAssumptions(context.config);
-  professionSpecializationState(context, "Renegade").razorclawsRage = {
+  renegadeState.from(context).razorclawsRage = {
     charges: profile.charges,
     expiresAt: at + profile.duration,
     readyAt: at,
@@ -454,8 +454,8 @@ export function completeBandTogether(
     }
   }
   if (!state.enhanced) {
-    professionSpecializationState(context, "Renegade").bandTogetherReady = true;
-    professionSpecializationState(context, "Renegade").bandTogetherExpiresAt =
+    renegadeState.from(context).bandTogetherReady = true;
+    renegadeState.from(context).bandTogetherExpiresAt =
       context.effectiveEnd + MECHANICS.bandTogether.duration;
     emitRevenantState(context, context.effectiveEnd, "band-together");
   }

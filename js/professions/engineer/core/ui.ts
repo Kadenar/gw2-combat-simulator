@@ -74,6 +74,22 @@ const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
   ID.REFRACTION_CUTTER_ID_71121,
 ]);
 
+const CORE_STATE_REASONS = new Set<string>([
+  "arm-flip",
+  "consume-flip",
+  "equip-kit",
+  "stow-kit",
+  "dodge",
+  "resources",
+  "lightning-rod-active",
+  "conduit-surge",
+  "electric-artillery-consumed",
+  "electric-artillery-ready",
+  "electric-artillery-expired",
+  "kinetic-battery",
+  "deploy-turret",
+]);
+
 let engineerSkills: readonly EngineerSkill[] = [];
 let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
 let engineerTraits: readonly CatalogEntity[] = [];
@@ -89,7 +105,12 @@ export function engineerUiState(
 export function engineerUiSpecialization(
   context: EngineerUiContext = {},
 ): string {
-  return context.specialization || context.config?.specialization || "Core";
+  return String(
+    context.specialization
+    || context.config?.specialization
+    || context.build?.specialization
+    || "Core",
+  );
 }
 
 function selectedNames(context: EngineerUiContext = {}): Set<string> {
@@ -338,7 +359,13 @@ export function engineerEventLogRow(
     // damage, and condition rows already present their user-visible effects.
     return null;
   }
-  if (event?.type === "engineer.state") return null;
+  if (
+    event?.type === "engineer.state"
+    && (
+      engineerUiSpecialization(context) === "Core"
+      || CORE_STATE_REASONS.has(String(event.reason))
+    )
+  ) return null;
   return undefined;
 }
 
@@ -352,17 +379,7 @@ Object.freeze({
       ? engineerSkillBarGroups(context)
       : [],
   paletteGroups: (context: EngineerUiContext) => {
-    const groups: ProfessionPaletteGroup[] =
-      engineerUiSpecialization(context) === "Core"
-        ? [{
-            id: "engineer-profession",
-            label: "F",
-            skillIds: uniqueIdsBySkillName(professionSkills(context)),
-            color: "#b88a35",
-            resourceAnchor: true,
-            includeActionSkills: true,
-          }]
-        : [];
+    const groups: ProfessionPaletteGroup[] = [];
     for (const kit of selectedKitNames(context)) {
       const kitSkills = uniqueSkillsByName(
         engineerSkills.filter(skill => skill.kit === kit),
@@ -377,6 +394,16 @@ Object.freeze({
           .map(skill => skill.id),
         color: "#9d762e",
         stackId: "engineer-kits",
+      });
+    }
+    if (engineerUiSpecialization(context) === "Core") {
+      groups.push({
+        id: "engineer-profession",
+        label: "F",
+        skillIds: uniqueIdsBySkillName(professionSkills(context)),
+        color: "#b88a35",
+        resourceAnchor: true,
+        includeActionSkills: true,
       });
     }
     return groups;

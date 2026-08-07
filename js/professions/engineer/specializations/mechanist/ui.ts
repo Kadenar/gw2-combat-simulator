@@ -10,7 +10,10 @@ import type {
   ProfessionUiContract,
   SchedulerRecord,
 } from "../../../../platform/engine/types.js";
-import type { EngineerUiContext } from "../../types.js";
+import type {
+  EngineerResolverEvent,
+  EngineerUiContext,
+} from "../../types.js";
 
 function mechanistProfessionSkills(
   context: EngineerUiContext,
@@ -30,6 +33,11 @@ function mechanistProfessionSkills(
 
 export const mechanistUi:
 Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  eventLogRow: (
+    _context: EngineerUiContext,
+    event: EngineerResolverEvent,
+  ) =>
+    event?.type === "engineer.state" ? null : undefined,
   skillBarGroups: (context: EngineerUiContext) =>
     engineerFSkillBarGroups(mechanistProfessionSkills(context)),
   paletteGroups: (context: EngineerUiContext) => [{

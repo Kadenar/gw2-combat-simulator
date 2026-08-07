@@ -1,4 +1,5 @@
 import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 import {
   hasThiefTrait,
   selectedThiefTraits,
@@ -20,3 +21,8 @@ export function createDaredevilState(config = {}) {
     boundingDamageUntil: 0,
   };
 }
+
+export const daredevilState = defineProfessionSpecializationState(
+  "Daredevil",
+  createDaredevilState,
+);

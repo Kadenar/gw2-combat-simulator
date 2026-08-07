@@ -82,9 +82,11 @@ particular, No Scope's 150 Ferocity is removed from the inherited pool and
 Hematic Focus's additional Fury critical chance applies only to player
 strikes. Mech Arms: Jade Cannons independently adds 20% mech critical chance.
 
-The implementation is in `js/professions/engineer/state.js` and
-`js/professions/engineer/attribute-rules.js`. Cap, frame-trait, post-cap Might,
-and critical-stat regressions are in `tests/engineer.test.js`.
+The implementation is in
+`js/professions/engineer/specializations/mechanist/state.ts` and
+`js/professions/engineer/specializations/mechanist/rules.ts`. Cap, frame-trait,
+post-cap Might, and critical-stat regressions are in
+`tests/professions/engineer/engineer.test.js`.
 
 ### Persistent mech attacks
 
@@ -215,18 +217,19 @@ Refresh API identity data with:
 npm run update:profession-data -- --profession Engineer
 ```
 
-This runs `scripts/update-profession-api-data.mjs`. Runtime simulation is
+This runs `scripts/data/update-profession-api-data.mjs`. Runtime simulation is
 network-free. Non-API coefficients and state-machine rules are manually
 reviewed and checked into the mechanics modules; the repository does not
 currently track per-record Wiki revision metadata.
 
 The authoritative implementation locations are:
 
-- `js/professions/engineer/state.js` for resource and mech attribute state;
-- `js/professions/engineer/attribute-rules.js` for inherited attributes and
-  damage modifiers;
-- `js/professions/engineer/mechanics/specific/mech.js` for persistent attacks,
-  command busy time, Rocket Punch, and Jade Buster Cannon;
-- `js/professions/engineer/mechanics/skill-mechanics.js` for skill packets,
-  cooldowns, and timings; and
-- `js/professions/engineer/resolver/event-handlers.js` for trait reactions.
+- `js/professions/engineer/core/state.ts` and each specialization's `state.ts`
+  for their owned state fragments;
+- `js/professions/engineer/core/rules.ts` and each specialization's `rules.ts`
+  for attributes and damage modifiers;
+- `js/professions/engineer/specializations/mechanist/mech.ts` for persistent
+  attacks, command busy time, Rocket Punch, and Jade Buster Cannon;
+- each module's `skills.ts` for skill packets, cooldowns, and timings; and
+- `js/professions/engineer/core/resolver.ts` plus specialization-owned
+  `resolver.ts` files for trait reactions.

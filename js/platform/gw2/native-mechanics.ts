@@ -15,6 +15,7 @@ import type {
 import type {
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
+  Gw2ResolverStage,
 } from "./types.js";
 
 type OrderedEscapeHandler = Readonly<{
@@ -28,7 +29,7 @@ function resolvedReaction<
   TEvent extends Gw2ResolverEvent,
   TDetails extends object,
 >(
-  eventType: string,
+  stage: Gw2ResolverStage,
   declaration: Readonly<{
     id: string;
     order?: number;
@@ -41,11 +42,11 @@ function resolvedReaction<
 ): NativeResolvedReaction<TContext, TEvent, TDetails> {
   if (!String(declaration.id || "").trim() ||
     typeof declaration.handler !== "function") {
-    throw new TypeError(`${eventType} resolver reaction requires id and handler.`);
+    throw new TypeError(`${stage} resolver reaction requires id and handler.`);
   }
   return Object.freeze({
     phase: "resolver",
-    eventType,
+    stage,
     id: declaration.id,
     order: Number(declaration.order || 0),
     handler: declaration.handler,
@@ -65,7 +66,7 @@ export function onResolvedDamage<
     details?: TDetails,
   ) => object | void;
 }>): NativeResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction("damage", declaration);
+  return resolvedReaction("damage.resolved", declaration);
 }
 
 export function onResolvedControl<
@@ -81,7 +82,7 @@ export function onResolvedControl<
     details?: TDetails,
   ) => object | void;
 }>): NativeResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction("control", declaration);
+  return resolvedReaction("control.resolved", declaration);
 }
 
 export function onResolvedBlind<
@@ -97,7 +98,55 @@ export function onResolvedBlind<
     details?: TDetails,
   ) => object | void;
 }>): NativeResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction("blind", declaration);
+  return resolvedReaction("blind.resolved", declaration);
+}
+
+export function onConditionApplied<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object = object,
+>(declaration: Readonly<{
+  id: string;
+  order?: number;
+  handler: (
+    context: TContext,
+    event: TEvent,
+    details?: TDetails,
+  ) => object | void;
+}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  return resolvedReaction("condition.applied", declaration);
+}
+
+export function onBuffApplied<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object = object,
+>(declaration: Readonly<{
+  id: string;
+  order?: number;
+  handler: (
+    context: TContext,
+    event: TEvent,
+    details?: TDetails,
+  ) => object | void;
+}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  return resolvedReaction("buff.applied", declaration);
+}
+
+export function onFoodProcCreated<
+  TContext extends Gw2ResolverRuntime,
+  TEvent extends Gw2ResolverEvent,
+  TDetails extends object = object,
+>(declaration: Readonly<{
+  id: string;
+  order?: number;
+  handler: (
+    context: TContext,
+    event: TEvent,
+    details?: TDetails,
+  ) => object | void;
+}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+  return resolvedReaction("food-proc.created", declaration);
 }
 
 export interface ResolvedCriticalHitOptions<

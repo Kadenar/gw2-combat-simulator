@@ -1,5 +1,6 @@
 import {
   defineNativeModule,
+  onBuffApplied,
   onResolvedDamage,
   skillAvailability,
 } from "../../../../platform/gw2/native-profession.js";
@@ -15,7 +16,7 @@ import {
   firebrandSchedulerHooks,
 } from "./rules.js";
 import { FIREBRAND_SKILL_MECHANICS } from "./skills.js";
-import { createFirebrandState } from "./state.js";
+import { firebrandState } from "./state.js";
 import { firebrandUi } from "./ui.js";
 
 export const firebrandModule = defineNativeModule({
@@ -25,18 +26,20 @@ export const firebrandModule = defineNativeModule({
     handlers: firebrandSkillHandlers,
   }),
   state: {
-    scheduler: createFirebrandState,
-    resolver: createFirebrandState,
+    scheduler: firebrandState.create,
+    resolver: firebrandState.create,
   },
   mechanics: {
     modifiers: firebrandAttributeRules,
     availability: firebrandCastRules.availability.map(skillAvailability),
     castRules: { validateCast: firebrandCastRules.validateCast },
     schedulerHooks: firebrandSchedulerHooks,
-    reactions: firebrandEventReactions.damage.map(onResolvedDamage),
+    reactions: [
+      ...firebrandEventReactions.damage.map(onResolvedDamage),
+      ...firebrandEventReactions.buff.map(onBuffApplied),
+    ],
     resolverHooks: {
       eventHandlers: firebrandEventHandlers,
-      eventReactions: { buff: firebrandEventReactions.buff },
     },
   },
   presentation: firebrandUi,

@@ -30,7 +30,7 @@ scenario choices; simulation never uses unseeded randomness.
 
 Refresh API identity data with
 `npm run update:profession-data -- --profession Thief`, which runs
-`scripts/update-profession-api-data.mjs`. Runtime simulation is network-free.
+`scripts/data/update-profession-api-data.mjs`. Runtime simulation is network-free.
 Initiative and other non-API mechanics are manually reviewed and checked into
 the mechanics modules; the repository does not currently track per-record
 Wiki revision metadata.

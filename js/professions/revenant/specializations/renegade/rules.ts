@@ -1,9 +1,7 @@
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
-import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
 import { gw2AlliedPlayerAssumptions } from "../../../../platform/gw2/allied-players.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {

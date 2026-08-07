@@ -73,9 +73,12 @@ function implementedEvidence(trait) {
   const specializationTest =
     EVIDENCE_BY_SPECIALIZATION[trait.specialization];
   return specializationTest
-    ? { file: "tests/thief.test.js", name: specializationTest }
+    ? {
+        file: "tests/professions/thief/thief.test.js",
+        name: specializationTest,
+      }
     : {
-        file: "tests/native-build-attributes.test.js",
+        file: "tests/professions/native-build-attributes.test.js",
         name: "Thief uses current flat trait and conversion values",
       };
 }

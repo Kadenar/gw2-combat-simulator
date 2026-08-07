@@ -2,7 +2,6 @@ import { defineNativeModule } from "../../../platform/gw2/native-profession.js";
 import { createRevenantModuleData } from "../catalog-data.js";
 import {
   revenantCoreEventHandlers,
-  revenantCoreEventReactions,
 } from "./handlers.js";
 import { revenantCoreAttributeRules } from "./attribute-rules.js";
 import {
@@ -41,7 +40,6 @@ export const revenantCoreModule = defineNativeModule({
     },
     resolverHooks: {
       eventHandlers: revenantCoreEventHandlers,
-      eventReactions: revenantCoreEventReactions,
     },
   },
   presentation: revenantCoreUi,

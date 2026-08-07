@@ -210,8 +210,8 @@ function compileNativeModule(
     Gw2ResolverEvent,
     object
   >[]) {
-    const existing = reactions[declaration.eventType];
-    reactions[declaration.eventType] = [
+    const existing = reactions[declaration.stage];
+    reactions[declaration.stage] = [
       ...(existing == null ? [] : Array.isArray(existing) ? existing : [existing]),
       {
         id: declaration.id,

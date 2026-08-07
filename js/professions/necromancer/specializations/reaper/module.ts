@@ -1,5 +1,6 @@
 import {
   defineNativeModule,
+  onConditionApplied,
   onResolvedControl,
   onResolvedDamage,
 } from "../../../../platform/gw2/native-profession.js";
@@ -12,7 +13,7 @@ import {
   reaperAttributeRules,
   reaperCastRules,
 } from "./rules.js";
-import { createReaperState } from "./state.js";
+import { reaperState } from "./state.js";
 import { reaperUi } from "./ui.js";
 import {
   REAPER_BASE_SKILL_MECHANICS,
@@ -31,14 +32,14 @@ export const reaperModule = defineNativeModule({
       additional: [[ID.LIFE_REND, ID.LIFE_SLASH, ID.LIFE_REAP]],
     },
   }),
-  state: { scheduler: createReaperState, resolver: createReaperState },
+  state: { scheduler: reaperState.create, resolver: reaperState.create },
   mechanics: {
     modifiers: reaperAttributeRules,
     castRules: reaperCastRules,
     reactions: [
       onResolvedDamage({ id: "necromancer.reaper.damage", handler: reaperEventReactions.damage }),
       onResolvedControl({ id: "necromancer.reaper.control", handler: reaperEventReactions.control }),
-      { phase: "resolver" as const, eventType: "condition", id: "necromancer.reaper.condition", order: 0, handler: reaperEventReactions.condition },
+      onConditionApplied({ id: "necromancer.reaper.condition", handler: reaperEventReactions.condition }),
     ],
     schedulerHooks: reaperSchedulerHooks,
   },

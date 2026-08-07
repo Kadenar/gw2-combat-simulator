@@ -1,11 +1,7 @@
 import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
 import { createMesmerModuleData } from "../../catalog-data.js";
 import { troubadourAttributeRules, troubadourSchedulerHooks } from "./rules.js";
-import { troubadourEventHandlers } from "./resolver.js";
-import {
-  createTroubadourResolverState,
-  createTroubadourState,
-} from "./state.js";
+import { createTroubadourResolverState, troubadourState } from "./state.js";
 import { troubadourUi } from "./ui.js";
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
@@ -14,8 +10,11 @@ import {
 } from "./skills.js";
 import { troubadourSkillHandlers } from "./handlers.js";
 
-export const troubadourModule =
-  defineNativeModule({
+const troubadourEventHandlers = Object.freeze({
+  "mesmer.instrument": (): void => {},
+});
+
+export const troubadourModule = defineNativeModule({
   id: "Troubadour",
   data: createMesmerModuleData("Troubadour", {
     skillMechanics: MESMER_TROUBADOUR_SKILL_MECHANICS,
@@ -24,7 +23,7 @@ export const troubadourModule =
     handlers: troubadourSkillHandlers,
   }),
   state: {
-    scheduler: createTroubadourState,
+    scheduler: troubadourState.create,
     resolver: createTroubadourResolverState,
   },
   mechanics: {
@@ -33,4 +32,4 @@ export const troubadourModule =
     resolverHooks: { eventHandlers: troubadourEventHandlers },
   },
   presentation: troubadourUi,
-  });
+});

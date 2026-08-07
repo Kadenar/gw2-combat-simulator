@@ -129,7 +129,7 @@ function normalizeTestEvidence(
   const name = normalizedText(evidence.name);
   if (!/^tests\/.+\.test\.js$/.test(file)) {
     throw new TypeError(
-      `Trait ${trait.id} test evidence ${index + 1} needs a tests/*.test.js file.`,
+      `Trait ${trait.id} test evidence ${index + 1} needs a tests/**/*.test.js file.`,
     );
   }
   if (!name) {

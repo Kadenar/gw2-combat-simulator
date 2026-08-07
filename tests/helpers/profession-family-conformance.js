@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { nativeSkillRuntimeOwner } from "../../js/platform/gw2/native-profession.js";
+import { GW2_RESOLVER_STAGES } from "../../js/platform/gw2/resolver/reaction-registry.js";
 import { simulateGw2 } from "../../js/platform/gw2/simulate.js";
 
 const EXECUTABLE_FAMILY_KEYS = Object.freeze([
@@ -21,6 +22,8 @@ const UI_LIST_CALLBACKS = Object.freeze([
   "skillBarGroups",
   "targetHealthThresholds",
 ]);
+
+const CANONICAL_REACTION_STAGES = new Set(GW2_RESOLVER_STAGES);
 
 function sortedIds(entries) {
   return entries.map(entry => String(entry.id)).sort();
@@ -45,7 +48,7 @@ function reactionKeys(...modules) {
     ...Object.keys(
       module?.mechanics?.resolverHooks?.eventReactions || {},
     ),
-    ...(module?.mechanics?.reactions || []).map(reaction => reaction.eventType),
+    ...(module?.mechanics?.reactions || []).map(reaction => reaction.stage),
   ]))].sort();
 }
 
@@ -172,6 +175,12 @@ export function assertProfessionFamilyConformance({
       Object.keys(runtime.eventReactions).sort(),
       reactionKeys(core, specialization),
       `${family.id}/${name} event reactions`,
+    );
+    assert.equal(
+      Object.keys(runtime.eventReactions).every(stage =>
+        CANONICAL_REACTION_STAGES.has(stage)),
+      true,
+      `${family.id}/${name} canonical resolver stages`,
     );
 
     const context = {

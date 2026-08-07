@@ -2,17 +2,16 @@ import { defineNativeModule } from "../../../../platform/gw2/native-profession.j
 import { createRevenantModuleData } from "../../catalog-data.js";
 import {
   conduitEventHandlers,
-  conduitEventReactions,
+  conduitSkillHandlers,
 } from "./handlers.js";
 import {
   conduitAttributeRules,
   conduitCastRules,
   conduitSchedulerHooks,
 } from "./rules.js";
-import { createConduitState } from "./state.js";
+import { conduitState } from "./state.js";
 import { conduitUi } from "./ui.js";
 import { CONDUIT_BASE_SKILL_MECHANICS } from "./skills.js";
-import { conduitSkillHandlers } from "./handlers.js";
 
 export const conduitModule = defineNativeModule({
   id: "Conduit",
@@ -20,14 +19,13 @@ export const conduitModule = defineNativeModule({
     skillMechanics: CONDUIT_BASE_SKILL_MECHANICS,
     handlers: conduitSkillHandlers,
   }),
-  state: { scheduler: createConduitState, resolver: createConduitState },
+  state: { scheduler: conduitState.create, resolver: conduitState.create },
   mechanics: {
     modifiers: conduitAttributeRules,
     castRules: conduitCastRules,
     schedulerHooks: conduitSchedulerHooks,
     resolverHooks: {
       eventHandlers: conduitEventHandlers,
-      eventReactions: conduitEventReactions,
     },
   },
   presentation: conduitUi,

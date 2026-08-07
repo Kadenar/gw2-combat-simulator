@@ -1,4 +1,5 @@
 import type { GuardianLuminaryState } from "../../types.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 export function createLuminaryState(): GuardianLuminaryState {
   return {
@@ -18,3 +19,8 @@ export function createLuminaryState(): GuardianLuminaryState {
     effulgentStacks: 0,
   };
 }
+
+export const luminaryState = defineProfessionSpecializationState(
+  "Luminary",
+  createLuminaryState,
+);

@@ -1,6 +1,6 @@
+import { renegadeState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import {
   REVENANT_SKILL_IDS as ID,
@@ -56,7 +56,7 @@ function criticalCount(
     }
     return event.didCrit ? 1 : 0;
   }
-  const state = professionSpecializationState(context, "Renegade");
+  const state = renegadeState.from(context);
   const chance = Number(
     context.schedulerPolicy.critical?.(context, event)?.chance || 0,
   );
@@ -151,7 +151,7 @@ function applyKallasFervorLifeSiphon(
     return;
   }
   if (!/siphon/i.test(`${event.name || ""} ${event.skillName || ""}`)) return;
-  const stacks = activeKallasFervorStacks(professionSpecializationState(context, "Renegade"), event.at);
+  const stacks = activeKallasFervorStacks(renegadeState.from(context), event.at);
   if (!stacks) return;
   const profile = MECHANICS.renegade.kallasFervor;
   const perStack = hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
@@ -195,7 +195,7 @@ export function modifyRenegadeCastDuration(
   duration: number,
 ): number {
   return context.skill?.handlerId === "revenant.band-together" &&
-      isBandTogetherReady(professionSpecializationState(context, "Renegade"), context.start)
+      isBandTogetherReady(renegadeState.from(context), context.start)
     ? 0
     : duration;
 }
@@ -206,7 +206,7 @@ export function modifyRenegadeRechargeDuration(
 ): number {
   return context.skill?.handlerId === "revenant.band-together" &&
       isBandTogetherReady(
-        professionSpecializationState(context, "Renegade"),
+        renegadeState.from(context),
         Number(context.start ?? context.at),
       ) &&
       hasRevenantTrait(context.config, TRAIT.ALL_FOR_ONE)
@@ -218,7 +218,7 @@ export function observeRenegadeTraits(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
-  const state = professionSpecializationState(context, "Renegade");
+  const state = renegadeState.from(context);
   const coreState = professionCoreState(context);
   if (
     event.type === "buff" &&

@@ -65,7 +65,7 @@ builds.
 - A profession may import engine and shared GW2 modules.
 - `app` is the composition root and may import every layer.
 
-`tests/platform-architecture.test.js` enforces these rules and rejects
+`tests/platform/platform-architecture.test.js` enforces these rules and rejects
 profession terminology inside the platform tree.
 
 ## Declarative profession mechanics layout

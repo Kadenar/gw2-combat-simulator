@@ -1,10 +1,10 @@
 import { expectedCritMultiplier, strikeDamage } from "../damage.js";
-import { relicStrikeMultiplier } from "../relic-rules.js";
 import { resolvedWeaponStrength } from "./weapon-strength-resolution.js";
 
 import type {
   Gw2HitResolution,
   Gw2HitResolutionContext,
+  Gw2ResolverExtensions,
   Gw2ResolvedWeaponStrength,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
@@ -22,7 +22,11 @@ interface ResolvedStrikeParts {
 /**
  * Creates timestamp-aware strike resolution shared by GW2 professions.
  */
-export function createGw2HitResolution(): Readonly<Gw2HitResolution> {
+export function createGw2HitResolution({
+  strikeMultiplier: equipmentStrikeMultiplier = () => 1,
+}: {
+  readonly strikeMultiplier?: Gw2ResolverExtensions["strikeMultiplier"];
+} = {}): Readonly<Gw2HitResolution> {
   // Remaining target health as a fraction, or null when the encounter has no
   // configured target health. Shared by every "target-health-below" gate.
   function currentHealthFraction(ctx: Gw2ResolverRuntime): number | null {
@@ -120,7 +124,7 @@ export function createGw2HitResolution(): Readonly<Gw2HitResolution> {
     );
     const outgoingMultiplier =
       ctx.query.strikeMultiplier(event, event.at, ctx) *
-      relicStrikeMultiplier(ctx, event);
+      equipmentStrikeMultiplier(ctx, event);
     const targetArmor = targetArmorFor(ctx);
 
     const summonDamagePerCoefficient = Number(event.summonDamagePerCoefficient);
