@@ -1,6 +1,6 @@
+import { renegadeState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import {
   REVENANT_SKILL_IDS as ID,
@@ -17,10 +17,14 @@ import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
   RevenantPrecastContext,
   RevenantRechargeContext,
+  RevenantScheduledTask,
   RevenantSchedulerContext,
   RevenantSimulationEvent,
   RevenantSkill,
 } from "../../types.js";
+
+export const RENEGADE_CRITICAL_TRAITS_TASK =
+  "revenant.renegade-critical-traits";
 
 function scaledBoonDuration(
   context: RevenantSchedulerContext,
@@ -38,11 +42,21 @@ function scaledBoonDuration(
   );
 }
 
-function expectedCriticals(
+function criticalCount(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): number {
-  const state = professionSpecializationState(context, "Renegade");
+  if (context.config.randomness?.mode === "stochastic") {
+    if (typeof event.didCrit !== "boolean") {
+      throw new Error(
+        `Missing sampled critical outcome for Renegade event ${String(
+          event.skillName || event.name || event.sourceId,
+        )}.`,
+      );
+    }
+    return event.didCrit ? 1 : 0;
+  }
+  const state = renegadeState.from(context);
   const chance = Number(
     context.schedulerPolicy.critical?.(context, event)?.chance || 0,
   );
@@ -60,7 +74,7 @@ function applyCriticalTraits(
   const ambush = hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER);
   const enmity = hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY);
   if (!ambush && !enmity) return;
-  const criticals = expectedCriticals(context, event);
+  const criticals = criticalCount(context, event);
   const positionalTrigger = Boolean(
     context.config.target?.flanking ||
     context.config.target?.behind ||
@@ -137,7 +151,7 @@ function applyKallasFervorLifeSiphon(
     return;
   }
   if (!/siphon/i.test(`${event.name || ""} ${event.skillName || ""}`)) return;
-  const stacks = activeKallasFervorStacks(professionSpecializationState(context, "Renegade"), event.at);
+  const stacks = activeKallasFervorStacks(renegadeState.from(context), event.at);
   if (!stacks) return;
   const profile = MECHANICS.renegade.kallasFervor;
   const perStack = hasRevenantTrait(context.config, TRAIT.LASTING_LEGACY)
@@ -160,12 +174,28 @@ export function initializeRenegadeTraits(
   }
 }
 
+export function handleRenegadeCriticalTraitsTask(
+  context: RevenantSchedulerContext,
+  task: RevenantScheduledTask<{ readonly eventOrder: number }>,
+): void {
+  const eventOrder = Number(task.payload?.eventOrder);
+  const event = context.events.find(
+    (candidate) => candidate.__order === eventOrder,
+  ) as RevenantSimulationEvent | undefined;
+  if (!event) {
+    throw new Error(
+      `Missing Renegade critical event ${String(eventOrder)}.`,
+    );
+  }
+  applyCriticalTraits(context, event);
+}
+
 export function modifyRenegadeCastDuration(
   context: RevenantPrecastContext,
   duration: number,
 ): number {
   return context.skill?.handlerId === "revenant.band-together" &&
-      isBandTogetherReady(professionSpecializationState(context, "Renegade"), context.start)
+      isBandTogetherReady(renegadeState.from(context), context.start)
     ? 0
     : duration;
 }
@@ -176,7 +206,7 @@ export function modifyRenegadeRechargeDuration(
 ): number {
   return context.skill?.handlerId === "revenant.band-together" &&
       isBandTogetherReady(
-        professionSpecializationState(context, "Renegade"),
+        renegadeState.from(context),
         Number(context.start ?? context.at),
       ) &&
       hasRevenantTrait(context.config, TRAIT.ALL_FOR_ONE)
@@ -188,7 +218,7 @@ export function observeRenegadeTraits(
   context: RevenantSchedulerContext,
   event: RevenantSimulationEvent,
 ): void {
-  const state = professionSpecializationState(context, "Renegade");
+  const state = renegadeState.from(context);
   const coreState = professionCoreState(context);
   if (
     event.type === "buff" &&
@@ -216,7 +246,23 @@ export function observeRenegadeTraits(
   ) {
     return;
   }
-  applyCriticalTraits(context, event);
+  const tracksCriticalTraits =
+    hasRevenantTrait(context.config, TRAIT.AMBUSH_COMMANDER) ||
+    hasRevenantTrait(context.config, TRAIT.ENDLESS_ENMITY);
+  if (tracksCriticalTraits) {
+    if (context.config.randomness?.mode === "stochastic") {
+      // Shared critical materialization runs at priority -60. Resolve
+      // Renegade's scheduler effects afterwards using that same hit fact.
+      context.tasks.schedule({
+        type: RENEGADE_CRITICAL_TRAITS_TASK,
+        at: Math.max(context.state.time, event.at),
+        priority: -40,
+        payload: { eventOrder: Number(event.__order) },
+      });
+    } else {
+      applyCriticalTraits(context, event);
+    }
+  }
   const razorclaw = state.razorclawsRage;
   if (
     event.skillId === ID.RAZORCLAWS_RAGE ||

@@ -1,20 +1,21 @@
-import { defineProfessionFamily } from "../../platform/engine/profession.js";
+import {
+  assembleNativeApplicationCatalog,
+  defineNativeProfession,
+} from "../../platform/gw2/native-profession.js";
 import {
   createMesmerBuildDefaults,
   migrateMesmerBuild,
   validateMesmerBuild,
 } from "./build.js";
-import { mesmerCatalog } from "./catalog.js";
-import { mesmerCoreModule } from "./core/module.js";
-import { chronomancerModule } from "./specializations/chronomancer/module.js";
-import { mirageModule } from "./specializations/mirage/module.js";
-import { troubadourModule } from "./specializations/troubadour/module.js";
-import { virtuosoModule } from "./specializations/virtuoso/module.js";
+import { MESMER_NATIVE_CATALOG_OPTIONS } from "./catalog-data.js";
+import { mesmerNativeModules } from "./modules.js";
 import type { SchedulerRecord } from "../../platform/engine/types.js";
-import type {
-  MesmerRuntimeState,
-  MesmerSchedulerContext,
-} from "./types.js";
+import type { MesmerSchedulerContext } from "./types.js";
+
+const applicationCatalog = assembleNativeApplicationCatalog(
+  mesmerNativeModules,
+  MESMER_NATIVE_CATALOG_OPTIONS,
+);
 
 function projectMesmerSimulationEndState({
   schedulerContext,
@@ -30,7 +31,7 @@ function projectMesmerSimulationEndState({
     schedulerContext.catalog.skills.map((skill) => String(skill.id)),
   );
   const ammo = Object.fromEntries(
-    mesmerCatalog.skills.flatMap((skill) => {
+    applicationCatalog.skills.flatMap((skill) => {
       const maximum = schedulerContext.maximumAmmoFor(skill);
       if (!(maximum > 0)) return [];
       const existing = schedulerState.ammo.get(skill.id);
@@ -52,22 +53,16 @@ function projectMesmerSimulationEndState({
   return { ammo };
 }
 
-export const mesmerProfession = defineProfessionFamily<MesmerRuntimeState>({
+export const mesmerProfession = defineNativeProfession({
   id: "mesmer",
   name: "Mesmer",
-  catalog: mesmerCatalog,
+  catalog: MESMER_NATIVE_CATALOG_OPTIONS,
   build: {
     createBuildDefaults: createMesmerBuildDefaults,
     migrateBuild: migrateMesmerBuild,
     validateBuild: validateMesmerBuild,
   },
-  core: mesmerCoreModule,
-  specializations: {
-    Chronomancer: chronomancerModule,
-    Mirage: mirageModule,
-    Virtuoso: virtuosoModule,
-    Troubadour: troubadourModule,
-  },
+  modules: mesmerNativeModules,
   simulation: Object.freeze({
     projectEndState: projectMesmerSimulationEndState,
   }) as SchedulerRecord,

@@ -1,7 +1,7 @@
 import {
-  augmentSkillHandler,
-  replaceSkillHandler,
-} from "../../../platform/engine/skill-handlers.js";
+  augmentSkill,
+  replaceSkill,
+} from "../../../platform/gw2/native-profession.js";
 import {
   MESMER_CORE_WEAPON_STRENGTH,
 } from "./mechanics.js";
@@ -80,15 +80,15 @@ function observeDeclarativeEffect(
 }
 
 export const mesmerReplaceProfile =
-  replaceSkillHandler<MesmerHandlerContext>(() => null);
+  replaceSkill<MesmerHandlerContext>({ beforeEffects: () => null });
 
 export const mesmerCoreSkillHandlers: Readonly<
   Record<string, Readonly<SkillHandlerStrategy<MesmerHandlerContext>>>
 > = Object.freeze({
-  "mesmer.declarative": augmentSkillHandler<MesmerHandlerContext>(
-    () => null,
-    { afterEffect: observeDeclarativeEffect },
-  ),
+  "mesmer.declarative": augmentSkill<MesmerHandlerContext>({
+    beforeEffects: () => null,
+    afterEffect: observeDeclarativeEffect,
+  }),
   "mesmer.weapon-swap": mesmerReplaceProfile,
   "mesmer.shatter": mesmerReplaceProfile,
   "mesmer.phantasm": mesmerReplaceProfile,

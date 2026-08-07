@@ -1,6 +1,6 @@
+import { amalgamState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { hasEngineerTrait } from "../../core/state.js";
@@ -89,7 +89,7 @@ function selectedMorphNames(
   context: EngineerSchedulerContext,
 ): Set<string> {
   return new Set(
-    professionSpecializationState(context, "Amalgam").selectedMorphSkillIds
+    amalgamState.from(context).selectedMorphSkillIds
       .map(id => context.catalog.skillsById.get(Number(id))?.name)
       .filter((name): name is string => Boolean(name)),
   );
@@ -100,7 +100,7 @@ function applyAmalgamStrain(
   morphName: string,
   at: number,
 ): void {
-  const state = professionSpecializationState(context, "Amalgam");
+  const state = amalgamState.from(context);
   if (morphName === "Defensive Protocol: Protect") {
     emitBuff(context, at, {
       kind: "resistance",
@@ -211,7 +211,7 @@ export function activateAmalgamMorph(
   skill: EngineerSkill,
 ): void {
   const at = context.effectiveEnd;
-  const state = professionSpecializationState(context, "Amalgam");
+  const state = amalgamState.from(context);
   if (skill.name === "Defensive Protocol: Thorns") {
     state.thornsUntil = Math.max(state.thornsUntil, at + 6);
     scheduleThornsRetaliation(context, skill, at);
@@ -265,10 +265,10 @@ export function activatePlasmaticState(
   const aftercastMs = context.hasBuff("quickness", context.start)
     ? skill.quicknessAftercastMs
     : skill.aftercastMs;
-  professionSpecializationState(context, "Amalgam").plasmaticLockoutUntil =
+  amalgamState.from(context).plasmaticLockoutUntil =
     context.effectiveEnd + Math.max(0, Number(aftercastMs || 0)) / 1000;
-  professionSpecializationState(context, "Amalgam").plasmaticStateUntil = Math.max(
-    professionSpecializationState(context, "Amalgam").plasmaticStateUntil,
+  amalgamState.from(context).plasmaticStateUntil = Math.max(
+    amalgamState.from(context).plasmaticStateUntil,
     at + 6,
   );
   emitEngineerState(context, at, "plasmatic-state");
@@ -279,7 +279,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
   // EVTC applies Evolved and all three strain buffs roughly 520 ms into the
   // measured 640 ms Quickness animation.
   const at = context.start + castDuration * (520 / 640);
-  const state = professionSpecializationState(context, "Amalgam");
+  const state = amalgamState.from(context);
   const selected = selectedMorphNames(context);
   state.evolvedUntil = at + 8;
 
@@ -333,7 +333,6 @@ export function handleMercurialTendencies(
   task: EngineerScheduledTask<MercurialTendenciesPayload>,
 ): void {
   const at = task.at;
-  const state = professionSpecializationState(context, "Amalgam");
   const coreState = professionCoreState(context);
   const readyAt = Number(
     coreState.traitProcReadyAt.mercurialTendencies || 0,

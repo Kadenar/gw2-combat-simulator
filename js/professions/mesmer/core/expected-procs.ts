@@ -30,8 +30,9 @@ interface ExpectedProcTrackerOptions {
 }
 
 /**
- * Materializes deterministic Mesmer critical bleeding and reduces all
- * canonical bleeding events into the scheduler-authoritative Bloodsong state.
+ * Materializes Mesmer critical bleeding from deterministic expected frequency
+ * or stochastic hit facts, then reduces all canonical bleeding events into
+ * the scheduler-authoritative Bloodsong state.
  */
 export function createExpectedProcTracker({
   state,
@@ -44,6 +45,18 @@ export function createExpectedProcTracker({
   emitCondition,
   addTraitProc,
 }: ExpectedProcTrackerOptions): Readonly<MesmerExpectedProcTracker> {
+  const stochastic = config.randomness?.mode === "stochastic";
+  const sampledCritical = (event: SimulationEvent): boolean => {
+    if (typeof event.didCrit !== "boolean") {
+      throw new Error(
+        `Missing sampled critical outcome for Mesmer event ${String(
+          event.skillName || event.name || event.sourceId,
+        )}.`,
+      );
+    }
+    return event.didCrit;
+  };
+
   const trackBloodsong = (at: number, bleedingStacks: number) => {
     if (config.specialization !== "Virtuoso" || !traits.has(TRAIT.BLOODSONG))
       return;
@@ -68,12 +81,20 @@ export function createExpectedProcTracker({
       traits.has(TRAIT.SHARPER_IMAGES) &&
       (event.source === "Clone" || event.source === "Phantasm")
     ) {
-      professionCoreState(state).sharperImagesProgress += chance;
-      const procCount = Math.floor(
-        professionCoreState(state).sharperImagesProgress + PROC_PROGRESS_TOLERANCE,
-      );
+      let procCount = 0;
+      if (stochastic) {
+        procCount = sampledCritical(event) ? 1 : 0;
+      } else {
+        professionCoreState(state).sharperImagesProgress += chance;
+        procCount = Math.floor(
+          professionCoreState(state).sharperImagesProgress +
+            PROC_PROGRESS_TOLERANCE,
+        );
+      }
       if (procCount > 0) {
-        professionCoreState(state).sharperImagesProgress -= procCount;
+        if (!stochastic) {
+          professionCoreState(state).sharperImagesProgress -= procCount;
+        }
         emitCondition(event, {
           type: "condition",
           at: event.at,
@@ -95,7 +116,13 @@ export function createExpectedProcTracker({
       }
     }
 
-    if (traits.has(TRAIT.JAGGED_MIND) && event.blade && chance > 0) {
+    if (traits.has(TRAIT.JAGGED_MIND) && event.blade) {
+      const jaggedMindStacks = stochastic
+        ? sampledCritical(event)
+          ? 1
+          : 0
+        : chance;
+      if (!(jaggedMindStacks > 0)) return;
       emitCondition(event, {
         type: "condition",
         at: event.at,
@@ -104,7 +131,7 @@ export function createExpectedProcTracker({
         parentSkillName: event.parentSkillName,
         condition: "Bleeding",
         duration: 4,
-        stacks: chance,
+        stacks: jaggedMindStacks,
         source: event.source,
         sourceId: TRAIT.JAGGED_MIND,
         actorType: event.actorType,

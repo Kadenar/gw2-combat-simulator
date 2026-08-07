@@ -1,33 +1,36 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { engineerModuleCatalog } from "../../catalog.js";
+import {
+  afterSkillEffects,
+  defineNativeModule,
+} from "../../../../platform/gw2/native-profession.js";
+import { createEngineerModuleData } from "../../catalog-data.js";
 import {
   holosmithEventHandlers,
   holosmithSchedulerHooks,
   holosmithSkillHandlers,
 } from "./handlers.js";
-import {
-  holosmithAttributeRules,
-  holosmithCastRules,
-} from "./rules.js";
-import { createHolosmithState } from "./state.js";
-import { holosmithUi } from "./ui.js";
-import type { HolosmithState } from "../../types.js";
+import { holosmithAttributeRules, holosmithCastRules } from "./rules.js";
+import { HOLOSMITH_SKILL_MECHANICS } from "./skills.js";
+import { holosmithState } from "./state.js";
+import { bindHolosmithUi } from "./ui.js";
 
-export const holosmithModule = defineProfessionModule<HolosmithState>({
+const {
+  afterCast: holosmithAfterCast,
+  ...holosmithAdvancedSchedulerHooks
+} = holosmithSchedulerHooks;
+
+export const holosmithModule = defineNativeModule({
   id: "Holosmith",
-  catalog: {
-    ...engineerModuleCatalog("Holosmith"),
-    skillHandlers: holosmithSkillHandlers,
+  data: createEngineerModuleData("Holosmith", {
+    skillMechanics: HOLOSMITH_SKILL_MECHANICS,
+    handlers: holosmithSkillHandlers,
+  }),
+  state: { scheduler: holosmithState.create, resolver: holosmithState.create },
+  mechanics: {
+    modifiers: holosmithAttributeRules,
+    castRules: holosmithCastRules,
+    castLifecycle: [afterSkillEffects(holosmithAfterCast)],
+    schedulerHooks: holosmithAdvancedSchedulerHooks,
+    resolverHooks: { eventHandlers: holosmithEventHandlers },
   },
-  resources: {
-    createProfessionState: createHolosmithState,
-    createResolverState: createHolosmithState,
-  },
-  attributeRules: holosmithAttributeRules,
-  castRules: holosmithCastRules,
-  schedulerHooks: holosmithSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: holosmithEventHandlers,
-  },
-  ui: holosmithUi,
+  presentation: bindHolosmithUi,
 });

@@ -1,3 +1,4 @@
+import { EPSILON } from "./clock.js";
 import type {
   AmmoState,
   CooldownController,
@@ -23,7 +24,7 @@ export function createCooldownController<
   TProfessionState extends object,
 >({
   state,
-  epsilon = 0.0001,
+  epsilon = EPSILON,
   rechargeDuration,
   maximumAmmo = (skill) => Number(skill.ammo || 0),
 }: CooldownControllerOptions<TProfessionState>): Readonly<CooldownController> {

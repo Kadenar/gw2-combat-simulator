@@ -5,7 +5,7 @@ import {
   takeNextEvent,
 } from "./event-queue.js";
 import {
-  cloneMutableProfessionState,
+  cloneProfessionState,
   resolveProfessionRuntime,
 } from "./profession.js";
 
@@ -110,7 +110,7 @@ export function createResolverState<TProfessionState extends object>({
   return {
     time: 0,
     config,
-    profession: cloneMutableProfessionState(
+    profession: cloneProfessionState(
       typeof activeProfession.createResolverState === "function"
         ? activeProfession.createResolverState(config)
         : activeProfession.createProfessionState(config),

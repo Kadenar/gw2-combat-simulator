@@ -22,7 +22,7 @@ import {
   emitDamage,
   hasTrait,
 } from "./shared.js";
-import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
+import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
 import { necromancerWeaponTaskHandlers } from "./weapons.js";
 import { necromancerMinionTaskHandlers } from "./minions.js";
 import {

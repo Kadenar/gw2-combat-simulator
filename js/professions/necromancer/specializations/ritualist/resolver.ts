@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { ritualistState } from "./state.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
@@ -141,7 +141,7 @@ function reactToDamage(
   const keys = recipientKeys(event);
   if (!keys.length) return;
   for (const spell of ["nightmare", "splinter"]) {
-    const active = professionSpecializationState(context, "Ritualist").weaponSpells?.[spell];
+    const active = ritualistState.from(context).weaponSpells?.[spell];
     if (!active || Number(active.expiresAt || 0) <= event.at) continue;
     const definition = (
       MECHANICS.weaponSpells as Readonly<Record<string, WeaponSpellDefinition>>

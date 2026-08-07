@@ -1,7 +1,10 @@
-import { defineProfessionModule } from "../../../platform/engine/profession.js";
+import {
+  defineNativeModule,
+  onResolvedBlind,
+  onResolvedControl,
+} from "../../../platform/gw2/native-profession.js";
+import { createMesmerModuleData } from "../catalog-data.js";
 import { mesmerCoreAttributeRules } from "./attribute-rules.js";
-import { mesmerModuleCatalog } from "../catalog.js";
-import { mesmerCoreSkillHandlers } from "./handlers.js";
 import {
   mesmerCastRules,
   mesmerCoreSchedulerHooks,
@@ -17,32 +20,48 @@ import {
   snapshotMesmerState,
 } from "./state.js";
 import { mesmerCoreUi } from "./ui.js";
-import type {
-  MesmerCoreState,
-  MesmerSchedulerContext,
-} from "../types.js";
+import {
+  MESMER_CORE_EXTRA_SKILLS,
+  MESMER_CORE_SKILL_MECHANICS,
+  MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
+} from "./skills.js";
+import { mesmerCoreSkillHandlers } from "./handlers.js";
+import type { MesmerSchedulerContext } from "../types.js";
 
-export const mesmerCoreModule = defineProfessionModule<MesmerCoreState>({
+export const mesmerCoreModule = defineNativeModule({
   id: "Core",
-  catalog: {
-    ...mesmerModuleCatalog("Core"),
-    skillHandlers: mesmerCoreSkillHandlers,
+  data: createMesmerModuleData("Core", {
+    skillMechanics: MESMER_CORE_SKILL_MECHANICS,
+    supplementalSkillMechanics: MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS,
+    extraSkills: MESMER_CORE_EXTRA_SKILLS,
+    handlers: mesmerCoreSkillHandlers,
+  }),
+  state: {
+    scheduler: createMesmerCoreState,
+    resolver: createMesmerCoreResolverState,
+    project: projectMesmerEndState,
   },
-  resources: {
-    createProfessionState: createMesmerCoreState,
-    createResolverState: createMesmerCoreResolverState,
-    projectEndState: projectMesmerEndState,
+  mechanics: {
+    modifiers: mesmerCoreAttributeRules,
+    castRules: mesmerCastRules,
+    schedulerHooks: {
+      ...mesmerCoreSchedulerHooks,
+      snapshot: (context: MesmerSchedulerContext) =>
+        snapshotMesmerState(context.state.profession),
+    },
+    reactions: [
+      onResolvedControl({
+        id: "mesmer.core.control",
+        handler: mesmerCoreEventReactions.control,
+      }),
+      onResolvedBlind({
+        id: "mesmer.core.blind",
+        handler: mesmerCoreEventReactions.blind,
+      }),
+    ],
+    resolverHooks: {
+      eventHandlers: mesmerCoreEventHandlers,
+    },
   },
-  attributeRules: mesmerCoreAttributeRules,
-  castRules: mesmerCastRules,
-  schedulerHooks: {
-    ...mesmerCoreSchedulerHooks,
-    snapshot: (context: MesmerSchedulerContext) =>
-      snapshotMesmerState(context.state.profession),
-  },
-  resolverHooks: {
-    eventHandlers: mesmerCoreEventHandlers,
-    eventReactions: mesmerCoreEventReactions,
-  },
-  ui: mesmerCoreUi,
+  presentation: mesmerCoreUi,
 });

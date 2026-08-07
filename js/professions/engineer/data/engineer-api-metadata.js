@@ -1,5 +1,5 @@
 // Generated Guild Wars 2 API metadata for engineer.
-// Snapshot: 2026-07-28. Run scripts/update-profession-api-data.mjs --profession Engineer to refresh.
+// Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Engineer to refresh.
 // Simulator mechanics are maintained under engineer/mechanics/.
 
 export const DATA_SNAPSHOT = "2026-07-28";

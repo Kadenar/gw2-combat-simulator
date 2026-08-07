@@ -37,8 +37,22 @@ export function createGw2ResolverHandlerRegistry({
 }
 
 function targetHealth(ctx: Gw2ResolverRuntime): number {
-  const value = Number(ctx.config.target?.health ?? ctx.config.targetHP ?? 0);
+  const value = Number(ctx.config.target?.health ?? 0);
   return value > 0 ? value : Infinity;
+}
+
+/**
+ * Events suppressed before an explicit Combat Start: outgoing damage/condition
+ * output plus target vulnerability, which scales that output. Bookkeeping
+ * events still process so state stays consistent across the gate.
+ */
+function isCombatGatedEvent(event: Gw2ResolverEvent): boolean {
+  return (
+    event.type === "damage" ||
+    event.type === "condition" ||
+    event.type === "condition_tick" ||
+    (event.type === "buff" && event.kind === "target-vulnerability")
+  );
 }
 
 /**
@@ -67,10 +81,7 @@ export function runGw2ResolverEventLoop(
     if (
       ctx.combatStartTime != null &&
       event.at < ctx.combatStartTime - EPSILON &&
-      (event.type === "damage" ||
-        event.type === "condition" ||
-        event.type === "condition_tick" ||
-        (event.type === "buff" && event.kind === "target-vulnerability"))
+      isCombatGatedEvent(event)
     )
       continue;
 

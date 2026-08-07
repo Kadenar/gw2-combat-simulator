@@ -844,6 +844,8 @@ export interface ProfessionModuleCatalogFragment {
     readonly additional?: readonly (readonly SkillId[])[];
     readonly excludeSkillIds?: readonly SkillId[];
   };
+  readonly skillNameCollision?: "first" | "last";
+  readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
 
 export interface ProfessionModuleDefinition<

@@ -1,6 +1,6 @@
 import {
     isInternalCooldownReady,
-} from '../../../../platform/engine/internal-cooldown.js';
+} from '../../../../platform/engine/clock.js';
 import type {
     ElementalistLegacyRuntimeState,
 } from "../../types.js";

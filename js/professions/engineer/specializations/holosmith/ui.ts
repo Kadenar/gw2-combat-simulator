@@ -1,25 +1,45 @@
-import { engineerCatalog } from "../../catalog.js";
 import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import {
   engineerFSkillBarGroups,
   engineerToolbeltSkillIds,
+  engineerUiSpecialization,
   engineerUiState,
   hasActiveTrait,
   namedSkillId,
   uniqueIdsBySkillName,
 } from "../../core/ui.js";
 import type {
+  CanonicalCatalog,
   PaletteSkillAvailability,
+  ProfessionEventLogDescriptor,
   ProfessionResourceView,
   ProfessionUiContract,
   SchedulerRecord,
+  SkillId,
 } from "../../../../platform/engine/types.js";
 import type {
+  EngineerResolverEvent,
   EngineerSkill,
   EngineerUiContext,
 } from "../../types.js";
 
-const engineerSkills = engineerCatalog.skills as readonly EngineerSkill[];
+const HEAT_STATE_REASONS = new Set<string>([
+  "enter-forge",
+  "exit-forge",
+  "heat",
+  "overheat",
+  "passive-heat",
+  "thermal-release-valve",
+]);
+
+const HOLOSMITH_PACKET_EVENTS = new Set<string>([
+  "engineer.prime-light-beam-field",
+  "engineer.laser-disk",
+  "engineer.launch-wall",
+]);
+
+let engineerSkills: readonly EngineerSkill[] = [];
+let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
 
 function holosmithForgeSkillIds(
   context: EngineerUiContext,
@@ -31,7 +51,7 @@ function holosmithForgeSkillIds(
     ID.CORONA_BURST,
     ID.PHOTON_BLITZ,
     ID.HOLOGRAPHIC_SHOCKWAVE,
-  ].filter((skillId) => engineerCatalog.skillsById.has(skillId));
+  ].filter((skillId) => engineerSkillsById.has(skillId));
 }
 
 function holosmithProfessionSkills(
@@ -69,8 +89,35 @@ function holosmithPaletteAvailability(
   return { available: true, message: "" };
 }
 
+function holosmithEventLogRow(
+  context: EngineerUiContext,
+  event: EngineerResolverEvent,
+): ProfessionEventLogDescriptor | null | undefined {
+  const buildSpecializations = Array.isArray(context.build?.specializations)
+    ? context.build.specializations
+    : [];
+  const isHolosmith = engineerUiSpecialization(context) === "Holosmith"
+    || buildSpecializations.some(specialization =>
+      String(specialization?.name || specialization) === "Holosmith"
+    );
+  if (!isHolosmith) return undefined;
+  if (HOLOSMITH_PACKET_EVENTS.has(event?.type)) return null;
+  if (event?.type !== "engineer.state") return undefined;
+  if (!HEAT_STATE_REASONS.has(String(event.reason || ""))) return null;
+  return {
+    type: event.type,
+    description:
+      `${event.reason || "State"} - ` +
+      `Heat ${Number(event.state?.heat || 0).toFixed(1)}`,
+    className: "resource",
+    order: 30,
+    flags: [],
+  };
+}
+
 export const holosmithUi:
 Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  eventLogRow: holosmithEventLogRow,
   skillBarGroups: (context: EngineerUiContext) => [
     ...engineerFSkillBarGroups(holosmithProfessionSkills(context)),
     {
@@ -130,3 +177,12 @@ Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   },
   paletteSkillAvailability: holosmithPaletteAvailability,
 });
+
+export function bindHolosmithUi(
+  catalog: Readonly<CanonicalCatalog>,
+): typeof holosmithUi {
+  engineerSkills = catalog.skills as readonly EngineerSkill[];
+  engineerSkillsById =
+    catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+  return holosmithUi;
+}

@@ -1,0 +1,104 @@
+import { createNativeModuleData } from "../../platform/gw2/native-profession.js";
+import { SKILLS, SPECIALIZATIONS } from "./data/revenant-api-metadata.js";
+import { REVENANT_SKILL_IDS as ID } from "./data/ids.js";
+import { REVENANT_SUPPLEMENTAL_SKILLS } from "./data/revenant-supplemental-skills.js";
+import { TRAITS } from "./data/traits-data.js";
+import type {
+  CatalogEntity,
+  Skill,
+  SkillFragment,
+  SkillHandlerStrategy,
+  SkillId,
+} from "../../platform/engine/types.js";
+
+const generatedSource = SKILLS
+  .filter((skill) => skill.name !== "Duelist's Preparation")
+  .map((skill) => ({ ...skill }));
+const allDeclared: readonly Skill[] = [
+  ...generatedSource,
+  ...REVENANT_SUPPLEMENTAL_SKILLS,
+];
+const byId = new Map<SkillId, Skill>(allDeclared.map((skill) => [skill.id, skill]));
+const flipParentById = new Map<SkillId, SkillId>();
+for (const skill of allDeclared) {
+  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId &&
+    byId.has(skill.flipSkillId)) {
+    flipParentById.set(skill.flipSkillId, skill.id);
+  }
+}
+const normalize = (skill: Skill): Skill => ({
+  ...skill,
+  simulatorExcluded: false,
+  ...(skill.recharge == null && skill.ammoRecharge == null ? {} : {
+    cooldown: Number(skill.ammo) > 0
+      ? skill.ammoRecharge || skill.recharge
+      : skill.recharge,
+  }),
+  flipParentId: flipParentById.get(skill.id) ?? skill.flipParentId ?? null,
+});
+const generated = generatedSource.map((skill) => ({
+  ...normalize(skill),
+  implemented: false,
+  effects: [],
+}));
+const supplemental = REVENANT_SUPPLEMENTAL_SKILLS.map(normalize);
+export const REVENANT_DECLARED_SKILLS: readonly Skill[] = Object.freeze([
+  ...generated,
+  ...supplemental,
+]);
+
+const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
+  Object.freeze({
+    Herald: [
+      ID.FACET_OF_NATURE, ID.TRUE_NATURE, ID.TRUE_NATURE_ID_51675,
+      ID.TRUE_NATURE_ID_51696, ID.TRUE_NATURE_ID_51713,
+      ID.TRUE_NATURE_ID_51714,
+    ],
+    Renegade: [ID.HEROIC_COMMAND, ID.CITADEL_BOMBARDMENT, ID.ORDERS_FROM_ABOVE],
+    Vindicator: [ID.ALLIANCE_TACTICS, ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058],
+    Conduit: [
+      ID.COSMIC_WISDOM, ID.RELEASE_POTENTIAL_MONK,
+      ID.RELEASE_POTENTIAL_MESMER, ID.RELEASE_POTENTIAL_DERVISH,
+      ID.RELEASE_POTENTIAL_ASSASSIN, ID.RELEASE_POTENTIAL_WARRIOR,
+    ],
+  });
+const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(Object.fromEntries(
+  Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
+    skillIds.map((skillId) => [String(skillId), owner])
+  ),
+));
+const WEAPONS = Object.freeze([
+  "Axe", "Greatsword", "Hammer", "Mace", "Scepter", "Shield", "Shortbow",
+  "Spear", "Staff", "Sword",
+]);
+const WEAPON_HANDS = Object.freeze({
+  Axe: "oh", Greatsword: "2h", Hammer: "2h", Mace: "mh", Scepter: "mh",
+  Shield: "oh", Shortbow: "2h", Spear: "2h", Staff: "2h", Sword: "mh+oh",
+});
+
+interface RevenantModuleDataOptions {
+  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+  readonly extraSkills?: readonly Skill[];
+  readonly handlers?:
+    | ReadonlyMap<string, SkillHandlerStrategy<never>>
+    | Readonly<Record<string, SkillHandlerStrategy<never>>>;
+}
+
+export function createRevenantModuleData(
+  id: string,
+  { skillMechanics, extraSkills = [], handlers }: RevenantModuleDataOptions,
+) {
+  return createNativeModuleData<never>({
+    id,
+    generatedSkills: generated,
+    sharedExtraSkills: supplemental,
+    skillMechanics,
+    extraSkills,
+    handlers,
+    traits: TRAITS as readonly CatalogEntity[],
+    specializations: SPECIALIZATIONS,
+    specializationOnlySkillIds: SPECIALIZATION_ONLY_SKILLS[id] || [],
+    specializationOnlySkillOwners: SPECIALIZATION_ONLY_SKILL_OWNERS,
+    ...(id === "Core" ? { weapons: WEAPONS, weaponHands: WEAPON_HANDS } : {}),
+  });
+}

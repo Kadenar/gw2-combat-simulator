@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { reaperState } from "./state.js";
 import type {
   NecromancerCastContext,
   NecromancerSimulationEvent,
@@ -14,7 +14,7 @@ export function executionersScythe(
     event?.type !== "damage"
     || Number(event.hitIndex || 1) !== 1
   ) return;
-  professionSpecializationState(context, "Reaper").executionersIceFieldUntil = event.at + 4;
+  reaperState.from(context).executionersIceFieldUntil = event.at + 4;
 }
 
 const SOUL_SPIRAL_ICE_COMBO_HITS = new Set([2, 4, 6, 8, 10, 11, 12]);
@@ -27,7 +27,7 @@ export function soulSpiral(
   if (
     event?.type !== "damage"
     || !SOUL_SPIRAL_ICE_COMBO_HITS.has(Number(event.hitIndex || 1))
-    || Number(professionSpecializationState(context, "Reaper").executionersIceFieldUntil || 0)
+    || Number(reaperState.from(context).executionersIceFieldUntil || 0)
       < event.at - context.epsilon
   ) return;
   context.emit({

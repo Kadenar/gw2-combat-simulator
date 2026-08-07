@@ -1,6 +1,6 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
-import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
+import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
@@ -13,6 +13,7 @@ import {
 import { NECROMANCER_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
 import { addCarapace } from "./shared.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
+import { onResolvedPlayerCriticalHit } from "../../../platform/gw2/native-profession.js";
 import type { SkillId } from "../../../platform/engine/types.js";
 import type { Gw2EventDraft } from "../../../platform/gw2/types.js";
 import type {
@@ -334,28 +335,7 @@ export function reactToNecromancerCoreDamage(
       MECHANICS.traitProcs[TRAIT.UNYIELDING_BLAST],
     );
   }
-  if (hasTrait(context, TRAIT.BARBED_PRECISION)) {
-    const proc = MECHANICS.traitProcs[TRAIT.BARBED_PRECISION];
-    if (usesRandomTraitProcs(context)) {
-      if (
-        rolledCritical(details) &&
-        context.random.roll(
-          proc.chanceOnCriticalHit,
-          "necromancer.barbed-precision",
-        )
-      ) {
-        applyTraitCondition(details, context, event, proc);
-      }
-    } else {
-      professionCoreState(context).barbedPrecisionProgress +=
-        Number(details.hitContext?.critical?.chance || 0) *
-        proc.chanceOnCriticalHit;
-      while (professionCoreState(context).barbedPrecisionProgress >= 1) {
-        professionCoreState(context).barbedPrecisionProgress -= 1;
-        applyTraitCondition(details, context, event, proc);
-      }
-    }
-  }
+  necromancerBarbedPrecisionReaction.handler(context, event, details);
   if (
     hasTrait(context, TRAIT.VAMPIRIC_PRESENCE) &&
     isInternalCooldownReady(
@@ -379,6 +359,32 @@ export function reactToNecromancerCoreDamage(
     });
   }
 }
+
+const barbedPrecision = MECHANICS.traitProcs[TRAIT.BARBED_PRECISION];
+export const necromancerBarbedPrecisionReaction =
+  onResolvedPlayerCriticalHit<
+    NecromancerResolverContext,
+    NecromancerResolverEvent,
+    NecromancerResolverReactionDetails
+  >({
+    id: "necromancer.barbed-precision",
+    order: 0,
+    actorTypes: ["player", "summon", "unknown"],
+    chanceOnCriticalHit: barbedPrecision.chanceOnCriticalHit,
+    randomStream: "necromancer.barbed-precision",
+    when: (context, event) =>
+      Number(event.coefficient) > 0 &&
+      hasTrait(context, TRAIT.BARBED_PRECISION),
+    expectedProgress: {
+      get: (context) => professionCoreState(context).barbedPrecisionProgress,
+      set: (context, value) => {
+        professionCoreState(context).barbedPrecisionProgress = value;
+      },
+    },
+    attribution: { kind: "trait", id: TRAIT.BARBED_PRECISION },
+    handler: (context, event, details) =>
+      applyTraitCondition(details, context, event, barbedPrecision),
+  });
 
 export function reactToNecromancerCoreCondition(
   context: NecromancerResolverContext,

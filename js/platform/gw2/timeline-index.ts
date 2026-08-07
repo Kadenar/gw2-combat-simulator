@@ -1,10 +1,14 @@
 import { EPSILON } from "../engine/clock.js";
-import { isInternalCooldownReady } from "../engine/internal-cooldown.js";
-import { permanentTargetConditionStacks } from "./target-state.js";
+import { buffMatchesAudience, sumActiveStacks } from "./boon-state.js";
 import { gw2SigilSet } from "./runtime-rules.js";
 
 import type { SimulationEvent, SkillId } from "../engine/types.js";
-import type { Gw2Config, Gw2SigilSet, Gw2TimelineIndex } from "./types.js";
+import type {
+  Gw2BuffAudience,
+  Gw2Config,
+  Gw2SigilSet,
+  Gw2TimelineIndex,
+} from "./types.js";
 
 interface CreateGw2TimelineIndexOptions {
   readonly config?: Gw2Config;
@@ -12,47 +16,12 @@ interface CreateGw2TimelineIndexOptions {
   readonly sigilSet?: (config: Gw2Config, weaponSet: number) => Gw2SigilSet;
 }
 
-type IndexedEvents = Record<
-  "buff" | "weaponSet" | "cooldown" | "combatStart" | "weaknessVulnerability",
-  SimulationEvent[]
->;
+type IndexedEvents = Record<"weaponSet" | "cooldown", SimulationEvent[]>;
 
-/**
- * @param {number} value
- * @param {number} minimum
- * @param {number} maximum
- */
-const clamp = (value: number, minimum: number, maximum: number): number =>
-  Math.max(minimum, Math.min(maximum, value));
-
-/**
- * @param {readonly SimulationEvent[]} events
- * @param {string} type
- * @param {number} cooldown
- * @param {number} [earliestAt]
- * @returns {SimulationEvent[]}
- */
-function qualifyingIcdEvents(
-  events: readonly SimulationEvent[],
-  type: string,
-  cooldown: number,
-  earliestAt = -Infinity,
-): SimulationEvent[] {
-  // Input is chronological; accepting an event advances the shared ICD window
-  // before later candidates are considered.
-  const activations: SimulationEvent[] = [];
-  let readyAt = 0;
-  for (const event of events) {
-    if (
-      event.type !== type ||
-      event.at < earliestAt - EPSILON ||
-      !isInternalCooldownReady(event.at, readyAt)
-    )
-      continue;
-    activations.push(event);
-    readyAt = event.at + cooldown;
-  }
-  return activations;
+interface IndexedBuffEvents {
+  readonly all: SimulationEvent[];
+  readonly summon: SimulationEvent[];
+  readonly summonTrait: SimulationEvent[];
 }
 
 /**
@@ -113,19 +82,30 @@ export function createGw2TimelineIndex({
     target.splice(low, 0, event);
   };
   const indexed: IndexedEvents = {
-    buff: [],
     weaponSet: [],
     cooldown: [],
-    combatStart: [],
-    weaknessVulnerability: [],
   };
+  const indexedBuffs = new Map<string, IndexedBuffEvents>();
   let indexedLength = 0;
-  let revision = 0;
-  let aristocracyRevision = -1;
-  let cachedAristocracyTriggers: SimulationEvent[] = [];
   const resetIndex = (): void => {
     for (const values of Object.values(indexed)) values.length = 0;
+    indexedBuffs.clear();
     indexedLength = 0;
+  };
+  const indexBuff = (event: SimulationEvent): void => {
+    const kind = String(event.kind || "").toLowerCase();
+    let bucket = indexedBuffs.get(kind);
+    if (!bucket) {
+      bucket = { all: [], summon: [], summonTrait: [] };
+      indexedBuffs.set(kind, bucket);
+    }
+    insertOrdered(bucket.all, event);
+    if (buffMatchesAudience(event, "summon")) {
+      insertOrdered(bucket.summon, event);
+    }
+    if (buffMatchesAudience(event, "summon-trait")) {
+      insertOrdered(bucket.summonTrait, event);
+    }
   };
   const refreshIndex = (): void => {
     // The source array is append-oriented. Shrinking it signals replacement and
@@ -135,7 +115,7 @@ export function createGw2TimelineIndex({
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
       if (event.type === "buff") {
-        insertOrdered(indexed.buff, event);
+        indexBuff(event);
       }
       if (event.type === "weapon_set") {
         insertOrdered(indexed.weaponSet, event);
@@ -143,47 +123,7 @@ export function createGw2TimelineIndex({
       if (event.type === "action" || event.type === "cooldown_snapshot") {
         insertOrdered(indexed.cooldown, event);
       }
-      if (event.type === "combat_start") {
-        insertOrdered(indexed.combatStart, event);
-      }
-      if (event.type === "weakness_vulnerability") {
-        insertOrdered(indexed.weaknessVulnerability, event);
-      }
     }
-    revision += 1;
-  };
-  const aristocracyTriggers = (): SimulationEvent[] => {
-    refreshIndex();
-    if (aristocracyRevision === revision) {
-      return cachedAristocracyTriggers;
-    }
-    // Pre-combat weakness/vulnerability events cannot arm Aristocracy once an
-    // explicit combat-start marker exists.
-    const combatStartAt = indexed.combatStart[0]?.at ?? -Infinity;
-    cachedAristocracyTriggers = qualifyingIcdEvents(
-      indexed.weaknessVulnerability,
-      "weakness_vulnerability",
-      1,
-      combatStartAt,
-    );
-    aristocracyRevision = revision;
-    return cachedAristocracyTriggers;
-  };
-
-  /** @param {number} time */
-  const aristocracyStacksAt = (time: number): number => {
-    let stacks = 0;
-    let expiresAt = -Infinity;
-    for (const trigger of aristocracyTriggers()) {
-      // Use state strictly before time. This prevents an event from benefiting
-      // from a stack it is itself in the process of triggering.
-      if (trigger.at >= time - EPSILON) break;
-      if (trigger.at >= expiresAt - EPSILON) stacks = 0;
-      // Each proc refreshes the eight-second window and caps at five stacks.
-      stacks = Math.min(5, stacks + 1);
-      expiresAt = trigger.at + 8;
-    }
-    return time < expiresAt - EPSILON ? stacks : 0;
   };
 
   /**
@@ -191,27 +131,39 @@ export function createGw2TimelineIndex({
    * @param {number} time
    * @param {number} duration
    * @param {number} maximum
+   * @param {Gw2BuffAudience} [audience]
    */
+  const buffStacksAt = (
+    kind: string,
+    time: number,
+    duration: number,
+    maximum: number,
+    audience: Gw2BuffAudience = "all",
+  ): number => {
+    refreshIndex();
+    const bucket = indexedBuffs.get(String(kind || "").toLowerCase());
+    const applications =
+      audience === "summon-trait"
+        ? bucket?.summonTrait
+        : audience === "summon"
+          ? bucket?.summon
+          : bucket?.all;
+    return sumActiveStacks(
+      applications || [],
+      // Event duration wins; duration is a fallback for compact buff records.
+      (event) => event.at + Number(event.duration || duration) > time,
+      (event) => Number(event.stacks || 1),
+      maximum,
+      (event) => event.at > time + EPSILON,
+    );
+  };
+
   const timedStacks = (
     kind: string,
     time: number,
     duration: number,
     maximum: number,
-  ): number => {
-    refreshIndex();
-    let stacks = 0;
-    for (const event of indexed.buff) {
-      if (event.at > time + EPSILON) break;
-      if (
-        event.kind === kind &&
-        // Event duration wins; duration is a fallback for compact buff records.
-        event.at + Number(event.duration || duration) > time
-      ) {
-        stacks += Number(event.stacks || 1);
-      }
-    }
-    return clamp(stacks, 0, maximum);
-  };
+  ): number => buffStacksAt(kind, time, duration, maximum);
 
   /**
    * @param {string} kind
@@ -219,39 +171,18 @@ export function createGw2TimelineIndex({
    */
   const timedActive = (kind: string, time: number): boolean => {
     refreshIndex();
-    for (const event of indexed.buff) {
+    const applications =
+      indexedBuffs.get(String(kind || "").toLowerCase())?.all || [];
+    for (const event of applications) {
       if (event.at > time + EPSILON) break;
-      if (
-        event.kind === kind &&
-        event.at + Number(event.duration || 0) > time
-      ) {
-        return true;
-      }
+      if (event.at + Number(event.duration || 0) > time) return true;
     }
     return false;
   };
 
   /** @param {number} time */
-  const mightStacksAt = (time: number): number =>
-    clamp(
-      Number(config.boons?.might || 0) + timedStacks("might", time, 1, 25),
-      0,
-      25,
-    );
-  /** @param {number} time */
-  const furyActiveAt = (time: number): boolean =>
-    Boolean(config.boons?.fury) || timedActive("fury", time);
-  /** @param {number} time */
   const vigorActiveAt = (time: number): boolean =>
     Boolean(config.boons?.vigor) || timedActive("vigor", time);
-  /** @param {number} time */
-  const vulnerabilityStacksAt = (time: number): number =>
-    clamp(
-      permanentTargetConditionStacks(config, "Vulnerability") +
-        timedStacks("target-vulnerability", time, 1, 25),
-      0,
-      25,
-    );
 
   /** @param {number} time */
   const activeWeaponSetAt = (time: number): number => {
@@ -295,13 +226,10 @@ export function createGw2TimelineIndex({
   };
 
   return Object.freeze({
-    aristocracyStacksAt,
+    buffStacksAt,
     timedStacks,
     timedActive,
-    mightStacksAt,
-    furyActiveAt,
     vigorActiveAt,
-    vulnerabilityStacksAt,
     activeWeaponSetAt,
     activeSigilSetAt,
     skillOnCooldownAt,

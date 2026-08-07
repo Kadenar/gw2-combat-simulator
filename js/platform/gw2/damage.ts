@@ -3,8 +3,13 @@
 
 import {
     CONDITION_FORMULAS,
-    conditionTickDamage as sharedConditionTickDamage,
+    conditionTickDamage,
 } from './condition-formulas.js';
+import { clamp } from './numeric.js';
+import {
+    criticalChanceFractionFromPrecision,
+    criticalDamageMultiplierFromFerocity,
+} from './stat-scaling.js';
 
 interface AttributeValue {
     readonly final?: number;
@@ -70,23 +75,17 @@ export function expectedCritMultiplier(
     return 1 + cc * (cd - 1);
 }
 
-// Condition damage per second: base + scaling coefficient multiplied by condition damage stat
-export function conditionTickDamage(
-    conditionType: string,
-    conditionDamage: number,
-): number {
-    return sharedConditionTickDamage(conditionType, conditionDamage);
-}
-
 export function criticalChance(precision: number): number {
     // Fraction-form API used by the resolver. Precision below the level-80
     // baseline is clamped rather than producing a negative chance.
-    return Math.max(0, Math.min(1, 0.05 + (Number(precision) - 1000) / 2100));
+    return clamp(criticalChanceFractionFromPrecision(Number(precision)), 0, 1);
 }
 
 export function criticalDamageMultiplier(ferocity: number): number {
     // Returns a factor (1.5 means 150%), unlike the percentage-form helper above.
-    return 1.5 + Math.max(0, Number(ferocity)) / 1500;
+    return criticalDamageMultiplierFromFerocity(
+        Math.max(0, Number(ferocity)),
+    );
 }
 
 export function expectedCriticalMultiplier(
@@ -94,7 +93,7 @@ export function expectedCriticalMultiplier(
     multiplier: number,
 ): number {
     // Fraction-form companion to expectedCritMultiplier.
-    const normalizedChance = Math.max(0, Math.min(1, Number(chance)));
+    const normalizedChance = clamp(Number(chance), 0, 1);
     return 1 + normalizedChance * (Number(multiplier) - 1);
 }
 

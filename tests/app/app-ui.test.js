@@ -1,0 +1,1377 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+import {
+  groupedOptions,
+  option,
+  PERMANENT_TARGET_CONDITIONS,
+  PRIMARY_ATTRIBUTES,
+  STACKING_TARGET_CONDITIONS,
+  TARGET_CONDITION_GROUPS,
+} from "../../js/app/build/options.js";
+import { getBuildExportPayload } from "../../js/app/build/files.js";
+import {
+  createDefaultBuild,
+  replaceBuildConfiguration,
+} from "../../js/app/build/persistence.js";
+import {
+  loadProfessionAppAdapter,
+  nativeProfessionRegistry,
+  PROFESSION_APPLICATION_KINDS,
+  professionOptions,
+  professionRegistry,
+} from "../../js/app/profession/registry.js";
+import {
+  professionRoute,
+} from "../../js/app/profession/selector.js";
+import {
+  autoattackChainSkillAvailable,
+  paletteActionSkills,
+  rotationUtilityFlipByParent,
+  weaponSkills,
+  weaponPaletteSectionHtml,
+  weaponPaletteStackHtml,
+  weaponPaletteRows,
+} from "../../js/app/rotation/palette-model.js";
+import {
+  groupConsecutiveProcSteps,
+  procBadgeLabel,
+  targetHealthTimelineMarkers,
+  timelineWeaponRows,
+} from "../../js/app/rotation/timeline-model.js";
+import {
+  resolveProcIcon,
+  resultSkillIcon,
+} from "../../js/app/rotation/icons.js";
+import {
+  PREFIXES,
+  PREFIX_GROUPS,
+  SIGIL_GROUPS,
+  SIGIL_NAMES,
+  WEAPON_DATA,
+  createProfessionWeaponData,
+} from "../../js/platform/gw2/gear-data.js";
+import {
+  createGuardianBuildDefaults,
+} from "../../js/professions/guardian/build.js";
+import {
+  createEngineerBuildDefaults,
+} from "../../js/professions/engineer/build.js";
+import {
+  guardianProfession,
+} from "../../js/professions/guardian/definition.js";
+import {
+  createMesmerBuildDefaults,
+} from "../../js/professions/mesmer/build.js";
+import {
+  mesmerProfession,
+} from "../../js/professions/mesmer/definition.js";
+import {
+  createDefaultConfig,
+  simulateMesmer,
+} from "../helpers/mesmer-simulation.js";
+
+test("proc display groups only consecutive occurrences of the same proc", () => {
+  const proc = (type, skill, start) => ({ type, skill, start });
+  const groups = groupConsecutiveProcSteps([
+    proc("relic_proc", "Relic of Fireworks", 480),
+    proc("relic_proc", "Relic of Fireworks", 1280),
+    proc("trait_proc", "Sharper Images", 1400),
+    proc("relic_proc", "Relic of Fireworks", 2200),
+  ]);
+
+  assert.deepEqual(
+    groups.map(group => ({
+      key: group.key,
+      starts: group.steps.map(step => step.start),
+    })),
+    [
+      {
+        key: "relic_proc:Relic of Fireworks",
+        starts: [480, 1280],
+      },
+      {
+        key: "trait_proc:Sharper Images",
+        starts: [1400],
+      },
+      {
+        key: "relic_proc:Relic of Fireworks",
+        starts: [2200],
+      },
+    ],
+  );
+});
+
+test("cooldown-reduction procs use a refresh icon and reduction badge", () => {
+  const sourceIcon = "https://example.com/source-skill.png";
+  const app = {
+    attributeData: { activeTraits: [] },
+    skillByName: new Map([["Abyssal Strike", { icon: sourceIcon }]]),
+  };
+  const proc = {
+    type: "skill_proc",
+    skill: "Abyssal Strike — Abyssal Raze recharge",
+    sourceSkill: "Abyssal Strike",
+    icon: sourceIcon,
+    cooldownReduction: 1,
+  };
+
+  assert.match(resolveProcIcon(app, proc), /^data:image\/svg\+xml/);
+  assert.notEqual(resolveProcIcon(app, proc), sourceIcon);
+  assert.equal(procBadgeLabel([proc]), "-1s");
+  assert.equal(procBadgeLabel([proc, proc]), "-2s");
+  assert.equal(
+    procBadgeLabel([
+      { type: "trait_proc", skill: "Sharper Images" },
+      { type: "trait_proc", skill: "Sharper Images" },
+    ]),
+    "×2",
+  );
+});
+
+test("shared app options escape labels and preserve selection state", () => {
+  assert.equal(
+    option("a&b", "a&b", "<label>", true),
+    '<option value="a&amp;b" selected disabled>&lt;label&gt;</option>',
+  );
+  assert.equal(
+    groupedOptions(
+      [{ label: "Damage & support", items: ["Power"] }],
+      "Power",
+      value => `${value} <stat>`,
+    ),
+    '<optgroup label="Damage &amp; support"><option value="Power" selected>Power &lt;stat&gt;</option></optgroup>',
+  );
+});
+
+test("gear prefixes and sigils are sorted into Power and Condition groups", () => {
+  assert.deepEqual(PREFIX_GROUPS, [
+    {
+      label: "Power",
+      items: ["Assassin's", "Berserker's", "Diviner's", "Dragon's"],
+    },
+    {
+      label: "Condition",
+      items: [
+        "Celestial",
+        "Dire",
+        "Grieving",
+        "Rabid",
+        "Rampager's",
+        "Ritualist's",
+        "Sinister",
+        "Trailblazer's",
+        "Viper's",
+      ],
+    },
+  ]);
+  assert.deepEqual(SIGIL_GROUPS, [
+    {
+      label: "Power",
+      items: [
+        "Accuracy",
+        "Air",
+        "Concentration",
+        "Energy",
+        "Force",
+        "Hydromancy",
+        "Impact",
+        "Severance",
+      ],
+    },
+    {
+      label: "Condition",
+      items: [
+        "Agony",
+        "Blight",
+        "Bursting",
+        "Demons",
+        "Doom",
+        "Earth",
+        "Geomancy",
+        "Malice",
+        "Smoldering",
+        "Torment",
+        "Venom",
+      ],
+    },
+  ]);
+  assert.deepEqual(
+    PREFIX_GROUPS.flatMap(group => group.items).sort(),
+    PREFIXES,
+  );
+  assert.deepEqual(
+    SIGIL_GROUPS.flatMap(group => group.items).sort(),
+    SIGIL_NAMES,
+  );
+});
+
+test("grouped options can disable items without losing the selection", () => {
+  assert.equal(
+    groupedOptions(
+      [{ label: "Power", items: ["Force", "Impact"] }],
+      "Force",
+      value => value,
+      value => value === "Impact",
+    ),
+    '<optgroup label="Power"><option value="Force" selected>Force</option><option value="Impact" disabled>Impact</option></optgroup>',
+  );
+});
+
+test("shared app metadata owns common attributes and target conditions", () => {
+  assert.equal(PRIMARY_ATTRIBUTES.includes("Condition Damage"), true);
+  assert.equal(PERMANENT_TARGET_CONDITIONS.includes("Vulnerability"), true);
+  assert.equal(STACKING_TARGET_CONDITIONS.has("Vulnerability"), true);
+  assert.equal(STACKING_TARGET_CONDITIONS.has("Burning"), false);
+  assert.deepEqual(
+    TARGET_CONDITION_GROUPS.map(group => [
+      group.label,
+      [...group.conditions],
+    ]),
+    [
+      [
+        "Damaging",
+        ["Burning", "Bleeding", "Torment", "Confusion", "Poisoned"],
+      ],
+      [
+        "Control",
+        [
+          "Vulnerability",
+          "Weakness",
+          "Blindness",
+          "Slow",
+          "Chilled",
+          "Cripple",
+          "Immobilize",
+        ],
+      ],
+    ],
+  );
+  assert.deepEqual(
+    PERMANENT_TARGET_CONDITIONS,
+    TARGET_CONDITION_GROUPS.flatMap(group => group.conditions),
+  );
+});
+
+test("shared app and platform helpers are profession neutral", async () => {
+  const sources = await Promise.all([
+    readFile(
+      new URL("../../js/app/simulation/modifier-contributions.ts", import.meta.url),
+      "utf8",
+    ),
+    readFile(new URL("../../js/app/build/persistence.ts", import.meta.url), "utf8"),
+    readFile(new URL("../../js/app/app.ts", import.meta.url), "utf8"),
+    readFile(
+      new URL("../../js/app/simulation/config.ts", import.meta.url),
+      "utf8",
+    ),
+    readFile(
+      new URL("../../js/app/simulation/modifier-contribution-worker.ts", import.meta.url),
+      "utf8",
+    ),
+    readFile(new URL("../../js/platform/ui/rotation-results.ts", import.meta.url), "utf8"),
+  ]);
+  const professionTerms = nativeProfessionRegistry.flatMap((entry) => [
+    entry.id,
+    entry.name,
+  ]);
+
+  for (const source of sources) {
+    for (const term of professionTerms) {
+      assert.equal(
+        source.toLowerCase().includes(term.toLowerCase()),
+        false,
+        term,
+      );
+    }
+  }
+});
+
+test("Guardian is exposed by the profession selector and app composition", async () => {
+  const guardianPage = await readFile(
+    new URL("../../guardian.html", import.meta.url),
+    "utf8",
+  );
+  assert.equal(
+    professionOptions.some(option => option.id === "guardian"),
+    true,
+  );
+  assert.equal(professionRoute("guardian"), "guardian.html");
+  assert.equal(
+    (await loadProfessionAppAdapter("guardian"))?.id,
+    "guardian",
+  );
+  assert.match(guardianPage, /data-profession="guardian"/);
+  assert.match(guardianPage, /data-active-profession="guardian"/);
+});
+
+test("the generic landing page and profession simulators have separate entries", async () => {
+  const landingPage = await readFile(
+    new URL("../../index.html", import.meta.url),
+    "utf8",
+  );
+  const professionPages = await Promise.all(
+    professionRegistry.map(async (entry) => ({
+      entry,
+      source: await readFile(
+        new URL(`../../${entry.route}`, import.meta.url),
+        "utf8",
+      ),
+    })),
+  );
+
+  assert.match(landingPage, /<body class="landing-page">/);
+  assert.match(landingPage, /data-profession-grid/);
+  assert.doesNotMatch(landingPage, /profession-card-mesmer/);
+  assert.deepEqual(
+    professionOptions,
+    professionRegistry.map(({ id, name }) => ({ id, name })),
+  );
+  assert.equal(
+    new Set(professionRegistry.map((entry) => entry.route)).size,
+    professionRegistry.length,
+  );
+  assert.doesNotMatch(landingPage, /js\/app\/app\.js/);
+  assert.doesNotMatch(landingPage, /ARCHITECTURE\.md/);
+  for (const { entry, source } of professionPages) {
+    assert.match(
+      source,
+      /<a class="home-link" href="index\.html">← All professions<\/a>/,
+    );
+    assert.equal(professionRoute(entry.id), entry.route);
+    if (entry.applicationKind === PROFESSION_APPLICATION_KINDS.NATIVE) {
+      assert.match(source, new RegExp(`data-profession="${entry.id}"`));
+      assert.match(source, /js\/app\/app\.js/);
+      assert.match(source, /id="rotation-warnings"/);
+      assert.match(source, /skills-panel-left skills-panel-split/);
+      assert.match(source, /skill-bar-column weapon-bar-column/);
+      assert.match(source, /skill-bar-column equipped-skill-bar-column/);
+      assert.doesNotMatch(source, /id="skill-info-table"/);
+      assert.doesNotMatch(source, /selected-skills-panel/);
+    }
+  }
+});
+
+test("Mesmer default builds resolve without embedded rotations", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/mesmer/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("mesmer");
+  const presets = manifest.flatMap(section => section.presets);
+
+  assert.deepEqual(
+    presets.map(preset => preset.label),
+    ["Power", "Condition", "Condition"],
+  );
+  for (const preset of presets) {
+    const saved = JSON.parse(await readFile(
+      new URL(`../../${preset.build}`, import.meta.url),
+      "utf8",
+    ));
+    const build = adapter.toApplicationBuild(saved);
+    assert.equal(Object.hasOwn(saved, "rotation"), false);
+    assert.equal(build.schemaVersion, 3);
+    assert.equal(build.profession, "mesmer");
+    assert.equal(build.specializations.length, 3);
+  }
+});
+
+test("Guardian Power Luminary default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/guardian/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("guardian");
+  const [section] = manifest;
+  const [preset] = section.presets;
+  const saved = JSON.parse(await readFile(
+    new URL(`../../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(section.section, "Luminary");
+  assert.equal(preset.label, "Power");
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "guardian");
+  assert.equal(build.specializations[2].name, "Luminary");
+  assert.deepEqual(build.weapons, ["Greatsword", ""]);
+  assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
+  assert.equal(build.startingWeaponSet, 2);
+});
+
+test("Revenant Power Renegade Greatsword default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const renegade = manifest.find(section => section.section === "Renegade");
+  const [preset] = renegade.presets;
+  const saved = JSON.parse(await readFile(
+    new URL(`../../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(preset.label, "Power (Greatsword / SwSw)");
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "revenant");
+  assert.equal(build.specializations[2].name, "Renegade");
+  assert.deepEqual(build.weapons, ["Greatsword", ""]);
+  assert.deepEqual(build.alternateWeapons, ["Sword", "Sword"]);
+  assert.deepEqual(build.selectedLegends, [
+    "LegendaryAssassin",
+    "LegendaryRenegade",
+  ]);
+  assert.equal(build.startingLegend, "LegendaryRenegade");
+});
+
+test("Revenant Power Renegade Hammer default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const renegade = manifest.find(section => section.section === "Renegade");
+  const preset = renegade.presets.find(
+    candidate => candidate.label === "Power Renegade (Hammer / SwSw)",
+  );
+  const saved = JSON.parse(await readFile(
+    new URL(`../../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(
+    preset.build,
+    "Builds/revenant/b-power-renegade-hammer.json",
+  );
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "revenant");
+  assert.equal(build.specializations[2].name, "Renegade");
+  assert.deepEqual(build.weapons, ["Hammer", ""]);
+  assert.deepEqual(build.alternateWeapons, ["Sword", "Sword"]);
+  assert.equal(build.relic, "Brawler");
+  assert.deepEqual(build.selectedLegends, [
+    "LegendaryAssassin",
+    "LegendaryRenegade",
+  ]);
+  assert.equal(build.startingLegend, "LegendaryRenegade");
+});
+
+test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const vindicator = manifest.find(
+    section => section.section === "Vindicator",
+  );
+  const energyPreset = vindicator.presets.find(
+    candidate => candidate.label === "Power (Greatsword / SwSw - Energy)",
+  );
+  const hydroPreset = vindicator.presets.find(
+    candidate => candidate.label === "Power (Greatsword / SwSw - Hydro)",
+  );
+  const [energySaved, hydroSaved, replay] = await Promise.all([
+    readFile(new URL(`../../${energyPreset.build}`, import.meta.url), "utf8")
+      .then(JSON.parse),
+    readFile(new URL(`../../${hydroPreset.build}`, import.meta.url), "utf8")
+      .then(JSON.parse),
+    readFile(new URL(`../../${energyPreset.rotation}`, import.meta.url), "utf8")
+      .then(JSON.parse),
+  ]);
+  const energyBuild = adapter.toApplicationBuild(energySaved);
+  const hydroBuild = adapter.toApplicationBuild(hydroSaved);
+  const dodgeCount = replay.rotation.filter(
+    entry => (entry.name || entry) === "Dodge",
+  ).length;
+
+  assert.equal(
+    energyPreset.build,
+    "Builds/revenant/b-power-vindicator-greatsword-energy.json",
+  );
+  assert.equal(
+    hydroPreset.build,
+    "Builds/revenant/b-power-vindicator-greatsword-hydro.json",
+  );
+  assert.equal(
+    energyPreset.rotation,
+    "Rotations/revenant/r-power-vindicator-greatsword-benchmark.json",
+  );
+  assert.equal(Object.hasOwn(hydroPreset, "rotation"), false);
+  assert.equal(Object.hasOwn(energySaved, "rotation"), false);
+  assert.equal(Object.hasOwn(hydroSaved, "rotation"), false);
+  assert.equal(energyBuild.profession, "revenant");
+  assert.deepEqual(energyBuild.specializations, [
+    { name: "Devastation", traits: "2-2-2" },
+    { name: "Invocation", traits: "2-1-3" },
+    { name: "Vindicator", traits: "1-1-1" },
+  ]);
+  assert.deepEqual(energyBuild.weapons, ["Sword", "Sword"]);
+  assert.deepEqual(energyBuild.alternateWeapons, ["Greatsword", ""]);
+  assert.deepEqual(energyBuild.weaponSigils, [
+    ["Force", "Air"],
+    ["Force", "Energy"],
+  ]);
+  assert.deepEqual(hydroBuild.weaponSigils, [
+    ["Force", "Air"],
+    ["Force", "Hydromancy"],
+  ]);
+  assert.deepEqual(energySaved.gear, hydroSaved.gear);
+  assert.deepEqual(energySaved.gear, {
+    Helm: "Berserker's",
+    Shoulders: "Berserker's",
+    Chest: "Berserker's",
+    Gloves: "Berserker's",
+    Leggins: "Berserker's",
+    Boots: "Berserker's",
+    Amulet: "Berserker's",
+    Ring1: "Berserker's",
+    Ring2: "Berserker's",
+    Accessory1: "Berserker's",
+    Accessory2: "Berserker's",
+    Back: "Dragon's",
+    Weapon1: "Berserker's",
+    Weapon2: "Berserker's",
+  });
+  assert.equal(energyBuild.relic, "Thief");
+  assert.equal(hydroBuild.relic, "Thief");
+  assert.deepEqual(energyBuild.selectedLegends, [
+    "LegendaryAlliance",
+    "LegendaryAssassin",
+  ]);
+  assert.equal(energyBuild.startingLegend, "LegendaryAlliance");
+  assert.equal(energyBuild.startingWeaponSet, 1);
+  assert.equal(dodgeCount, 25);
+  assert.deepEqual(replay.rotation.slice(6, 9), [
+    { name: "__wait", waitMs: 40 },
+    "Dodge",
+    { name: "Mist Swing", skillId: 62913, offset: 41 },
+  ]);
+});
+
+test("Revenant Condition Renegade Shortbow default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const renegade = manifest.find(section => section.section === "Renegade");
+  const preset = renegade.presets.find(
+    candidate => candidate.label === "Condition (Shortbow / Mace-Axe)",
+  );
+  const saved = JSON.parse(await readFile(
+    new URL(`../../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(
+    preset.build,
+    "Builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
+  );
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "revenant");
+  assert.deepEqual(build.specializations, [
+    { name: "Corruption", traits: "1-3-1" },
+    { name: "Invocation", traits: "2-1-2" },
+    { name: "Renegade", traits: "2-2-2" },
+  ]);
+  assert.deepEqual(build.weapons, ["Shortbow", ""]);
+  assert.deepEqual(build.alternateWeapons, ["Mace", "Axe"]);
+  assert.deepEqual(build.selectedLegends, [
+    "LegendaryRenegade",
+    "LegendaryDemon",
+  ]);
+  assert.equal(build.startingLegend, "LegendaryRenegade");
+  assert.equal(build.startingWeaponSet, 2);
+});
+
+test("Revenant Condition Renegade Spear default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const renegade = manifest.find(section => section.section === "Renegade");
+  const preset = renegade.presets.find(
+    candidate => candidate.label === "Condition (Mace-Axe / Spear)",
+  );
+  const saved = JSON.parse(await readFile(
+    new URL(`../../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(
+    preset.build,
+    "Builds/revenant/b-condi-renegade-spear-mace-axe.json",
+  );
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "revenant");
+  assert.deepEqual(build.specializations, [
+    { name: "Corruption", traits: "1-3-1" },
+    { name: "Invocation", traits: "2-1-2" },
+    { name: "Renegade", traits: "2-2-2" },
+  ]);
+  assert.deepEqual(build.weapons, ["Mace", "Axe"]);
+  assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
+  assert.deepEqual(build.weaponSigils, [
+    ["Geomancy", "Torment"],
+    ["Doom", "Earth"],
+  ]);
+  assert.deepEqual(build.selectedLegends, [
+    "LegendaryRenegade",
+    "LegendaryDemon",
+  ]);
+  assert.equal(build.startingLegend, "LegendaryRenegade");
+  assert.equal(build.startingWeaponSet, 1);
+});
+
+test("Revenant Condition Quickness Herald default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const herald = manifest.find(section => section.section === "Herald");
+  const preset = herald.presets.find(
+    candidate =>
+      candidate.label === "Condition Quickness (Shortbow / Mace-Axe)",
+  );
+  const saved = JSON.parse(await readFile(
+    new URL(`../../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(
+    preset.build,
+    "Builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
+  );
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "revenant");
+  assert.deepEqual(build.specializations, [
+    { name: "Corruption", traits: "1-3-1" },
+    { name: "Invocation", traits: "2-1-1" },
+    { name: "Herald", traits: "2-1-1" },
+  ]);
+  assert.deepEqual(build.weapons, ["Shortbow", ""]);
+  assert.deepEqual(build.alternateWeapons, ["Mace", "Axe"]);
+  assert.deepEqual(build.weaponSigils, [
+    ["Geomancy", "Doom"],
+    ["Torment", "Earth"],
+  ]);
+  assert.deepEqual(build.selectedLegends, [
+    "LegendaryDragon",
+    "LegendaryDemon",
+  ]);
+  assert.equal(build.startingLegend, "LegendaryDragon");
+  assert.equal(build.startingWeaponSet, 1);
+
+  const contributionApp = {
+    build,
+    profession: adapter.profession,
+    skillByName: adapter.profession.catalog.skillsByName,
+    attributeWeaponSet: 1,
+    results: null,
+  };
+  adapter.recalculate(contributionApp);
+  assert.deepEqual(
+    adapter.modifierContributionRequest(contributionApp).comparisons
+      .filter(({ modifier }) => modifier.type === "Trait")
+      .map(({ modifier }) => modifier.name),
+    [
+      "Invoking Torment",
+      "Seething Malice",
+      "Yearning Empowerment",
+      "Acolyte of Torment",
+      "Pact of Pain",
+      "Diabolic Inferno",
+      "Ferocious Aggression",
+      "Rising Tide",
+      "Spirit Boon",
+      "Song of the Mists",
+      "Reinforced Potency",
+    ],
+  );
+});
+
+test("Revenant Condition Conduit Mistfire default build resolves", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("revenant");
+  const conduit = manifest.find(section => section.section === "Conduit");
+  const preset = conduit.presets.find(
+    candidate => candidate.label === "Condition (Mistfire)",
+  );
+  const saved = JSON.parse(await readFile(
+    new URL(`../../${preset.build}`, import.meta.url),
+    "utf8",
+  ));
+  const build = adapter.toApplicationBuild(saved);
+
+  assert.equal(
+    preset.build,
+    "Builds/revenant/b-condi-conduit-mistfire.json",
+  );
+  assert.equal(Object.hasOwn(saved, "rotation"), false);
+  assert.equal(build.profession, "revenant");
+  assert.deepEqual(build.specializations, [
+    { name: "Corruption", traits: "1-1-1" },
+    { name: "Invocation", traits: "2-2-2" },
+    { name: "Conduit", traits: "3-2-1" },
+  ]);
+  assert.deepEqual(build.weapons, ["Spear", ""]);
+  assert.deepEqual(build.alternateWeapons, ["Mace", "Axe"]);
+  assert.deepEqual(build.selectedLegends, [
+    "LegendaryDemon",
+    "LegendaryEntity",
+  ]);
+  assert.equal(build.startingLegend, "LegendaryEntity");
+  assert.equal(build.startingWeaponSet, 2);
+});
+
+test("Necromancer preset builds keep rotation data separate", async () => {
+  const manifest = JSON.parse(await readFile(
+    new URL("../../Builds/necromancer/manifest.json", import.meta.url),
+    "utf8",
+  ));
+  const adapter = await loadProfessionAppAdapter("necromancer");
+  const presets = manifest.flatMap(section =>
+    section.presets.map(preset => ({
+      ...preset,
+      section: section.section,
+    })));
+  const harbingerPresets =
+    manifest.find(section => section.section === "Harbinger").presets;
+
+  assert.deepEqual(
+    manifest.map(section => section.section),
+    ["Scourge", "Reaper", "Ritualist", "Harbinger"],
+  );
+  assert.deepEqual(
+    presets.map(preset => preset.label),
+    [
+      "Condition",
+      "Power",
+      "Condition",
+      "Power (Greatsword / Spear)",
+      "Power",
+      "Condition",
+    ],
+  );
+  for (const preset of presets) {
+    const saved = JSON.parse(await readFile(
+      new URL(`../../${preset.build}`, import.meta.url),
+      "utf8",
+    ));
+    const build = adapter.toApplicationBuild(saved);
+    assert.equal(Object.hasOwn(saved, "rotation"), false);
+    assert.equal(build.profession, "necromancer");
+    assert.equal(
+      build.specializations[2].name,
+      preset.section,
+    );
+    assert.equal(build.weapons.length, 2);
+    assert.equal(build.alternateWeapons.length, 2);
+  }
+  const power = JSON.parse(await readFile(
+    new URL(`../../${harbingerPresets[0].build}`, import.meta.url),
+    "utf8",
+  ));
+  assert.deepEqual(power.weapons, ["Greatsword", ""]);
+  assert.deepEqual(power.alternateWeapons, ["Spear", ""]);
+  assert.equal(power.rune, "Dragonhunter");
+  assert.deepEqual(power.weaponSigils, [
+    ["Force", "Accuracy"],
+    ["Force", "Accuracy"],
+  ]);
+  assert.equal(power.selectedSkills.Utility1, "Well of Suffering");
+  assert.equal(power.selectedSkills.Utility2, "Well of Darkness");
+});
+
+test("template preview DPS matches each deterministic saved rotation", async () => {
+  for (const professionId of [
+    "guardian",
+    "mesmer",
+    "necromancer",
+    "revenant",
+  ]) {
+    const manifest = JSON.parse(await readFile(
+      new URL(`../../Builds/${professionId}/manifest.json`, import.meta.url),
+      "utf8",
+    ));
+    const adapter = await loadProfessionAppAdapter(professionId);
+
+    for (const section of manifest) {
+      for (const preset of section.presets) {
+        assert.ok(
+          Number.isFinite(preset.benchmarkDps) && preset.benchmarkDps > 0,
+          `${professionId}: ${section.section} ${preset.label}`,
+        );
+        if (!preset.rotation) continue;
+        const savedBuild = JSON.parse(await readFile(
+          new URL(`../../${preset.build}`, import.meta.url),
+          "utf8",
+        ));
+        const savedRotation = JSON.parse(await readFile(
+          new URL(`../../${preset.rotation}`, import.meta.url),
+          "utf8",
+        ));
+        const build = adapter.toApplicationBuild({
+          ...savedBuild,
+          rotation: savedRotation.rotation ?? savedRotation,
+        });
+        const app = {
+          build,
+          skillByName: adapter.profession.catalog.skillsByName,
+          attributeWeaponSet: 1,
+        };
+
+        adapter.recalculate(app);
+        const result = adapter.runSimulation(app);
+        assert.equal(
+          preset.benchmarkDps,
+          Math.round(result.dps),
+          `${professionId}: ${section.section} ${preset.label}`,
+        );
+      }
+    }
+  }
+});
+
+test("build import and export leave rotation state separate", async () => {
+  const adapter = await loadProfessionAppAdapter("mesmer");
+  const current = createDefaultBuild(adapter);
+  current.rotation = ["Keep this rotation"];
+  const imported = {
+    ...createDefaultBuild(adapter),
+    rune: "Krait",
+    rotation: ["Do not import this rotation"],
+  };
+
+  const loaded = replaceBuildConfiguration(imported, current, adapter);
+  const exported = getBuildExportPayload(loaded);
+
+  assert.deepEqual(loaded.rotation, ["Keep this rotation"]);
+  assert.equal(loaded.rune, "Krait");
+  assert.equal(Object.hasOwn(exported, "rotation"), false);
+  assert.deepEqual(current.rotation, ["Keep this rotation"]);
+});
+
+test("Mesmer and Guardian palettes show only equipped weapon-set rows", () => {
+  const appFor = (profession, build) => ({
+    profession,
+    build,
+    skills: profession.catalog.skills,
+    adapter: {
+      eliteSpecialization: () => "",
+      isSkillAvailable: () => true,
+    },
+    weaponData: createProfessionWeaponData(
+      profession.catalog,
+      { weaponData: WEAPON_DATA },
+    ),
+  });
+  for (const app of [
+    appFor(mesmerProfession, createMesmerBuildDefaults()),
+    appFor(guardianProfession, createGuardianBuildDefaults()),
+  ]) {
+    const setOne = weaponPaletteRows(app, 1);
+    const setTwo = weaponPaletteRows(app, 2);
+    assert.deepEqual(setOne.map(row => row.label), ["W1", "W2"]);
+    assert.deepEqual(setTwo.map(row => row.label), ["W1", "W2"]);
+    assert.deepEqual(setOne.map(row => row.active), [true, false]);
+    assert.deepEqual(setTwo.map(row => row.active), [false, true]);
+    assert.equal(setOne.every(row => row.skills.length > 0), true);
+
+    app.build.alternateWeapons = ["", ""];
+    assert.deepEqual(
+      weaponPaletteRows(app, 1).map(row => row.label),
+      ["W1"],
+    );
+    assert.equal(
+      paletteActionSkills(app).some(skill => skill.name === "Swap Weapons"),
+      false,
+    );
+  }
+});
+
+test("Mesmer palette advances through autoattack chain skills", () => {
+  const config = {
+    ...createDefaultConfig(),
+    specialization: "Core",
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Focus",
+    initialResource: 0,
+  };
+  const skill = name => mesmerProfession.catalog.skillsByName.get(name);
+  const availabilityAfter = rotation => {
+    const result = simulateMesmer(rotation, config);
+    const chainState = result.endState.profession.autoattackChains;
+    return ["Mind Slash", "Mind Gash", "Mind Spike"].map(name =>
+      autoattackChainSkillAvailable(skill(name), chainState));
+  };
+
+  assert.deepEqual(availabilityAfter(["Mind Slash"]), [false, true, false]);
+  assert.deepEqual(
+    availabilityAfter(["Mind Slash", "Mind Gash"]),
+    [false, false, true],
+  );
+});
+
+test("damage result rows reuse the icons shown for generated procs", () => {
+  const earthIcon = "earth.png";
+  const nourishmentIcon = "nourishment.png";
+  const phantasmalBladesIcon = "phantasmal-blades.png";
+  const meltdownIcon = "meltdown.png";
+  const explicitIcon = "soul-shards.png";
+  const app = {
+    attributeData: {
+      activeTraits: [{
+        name: "Phantasmal Blades",
+        icon: phantasmalBladesIcon,
+      }],
+    },
+    results: {
+      procSteps: [
+        {
+          type: "sigil_proc",
+          skill: "Sigil of Earth",
+          sourceSkill: "Bladecall",
+          icon: earthIcon,
+        },
+        {
+          type: "food_proc",
+          skill: "Nourishment",
+          sourceSkill: "Bladecall",
+          icon: nourishmentIcon,
+        },
+        {
+          type: "trait_proc",
+          skill: "Phantasmal Blades",
+          sourceSkill: "Phantasmal Lancer",
+        },
+        {
+          type: "trait_proc",
+          skill: "Meltdown",
+          sourceSkill: "Devouring Cut",
+          icon: meltdownIcon,
+        },
+      ],
+    },
+    skillByName: new Map(),
+    skills: [],
+  };
+
+  assert.equal(
+    resultSkillIcon(app, { name: "Sigil of Earth" }),
+    earthIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Nourishment" }),
+    nourishmentIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Phantasmal Blade" }),
+    phantasmalBladesIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Cascading Corruption" }),
+    meltdownIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Soul Shards", icon: explicitIcon }),
+    explicitIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Relic of the Shackles" }),
+    "https://render.guildwars2.com/file/7946A50DBDC2E45E004AAA801904015C50CC22B3/3745069.png",
+  );
+});
+
+test("clone attack damage rows use their weapon skill icons", () => {
+  const windsIcon = "winds-of-chaos.png";
+  const etherBoltIcon = "ether-bolt.png";
+  const app = {
+    attributeData: { activeTraits: [] },
+    results: { procSteps: [] },
+    skillByName: new Map([
+      ["Winds of Chaos", { icon: windsIcon }],
+      ["Ether Bolt", { icon: etherBoltIcon }],
+    ]),
+    skills: [],
+  };
+
+  assert.equal(
+    resultSkillIcon(app, { name: "Clone: Winds of Chaos" }),
+    windsIcon,
+  );
+  assert.equal(
+    resultSkillIcon(app, { name: "Clone: Ether Bolt" }),
+    etherBoltIcon,
+  );
+});
+
+test("Mesmer weapon palette orders autoattack chains by chain step", () => {
+  const build = createMesmerBuildDefaults();
+  build.specializations[2] = { name: "Mirage", traits: "1-1-1" };
+  build.weapons = ["Axe", "Sword"];
+  const app = {
+    profession: mesmerProfession,
+    build,
+    skills: mesmerProfession.catalog.skills,
+    adapter: {
+      eliteSpecialization: () => "Mirage",
+      isSkillAvailable: () => true,
+    },
+    weaponData: createProfessionWeaponData(
+      mesmerProfession.catalog,
+      { weaponData: WEAPON_DATA },
+    ),
+  };
+
+  assert.deepEqual(
+    weaponPaletteRows(app, 1)[0].skills
+      .filter(skill => skill.chainRoot === 44791)
+      .map(skill => skill.name),
+    ["Lacerating Chop", "Ethereal Chop", "Mirror Strikes"],
+  );
+});
+
+test("target-health timeline markers are inserted after the crossing hit", () => {
+  const result = {
+    steps: [
+      { ri: 0, start: 0 },
+      { ri: 1, start: 1000 },
+      { ri: 2, start: 2000 },
+    ],
+    resolvedEvents: [
+      { type: "damage", at: 0.5, damage: 400 },
+      { type: "damage", at: 1.5, damage: 200 },
+    ],
+  };
+
+  assert.deepEqual(
+    targetHealthTimelineMarkers(result, 1000, [0.5], 3),
+    [{
+      insertionIndex: 2,
+      healthPercent: 50,
+      start: 1500,
+      damage: 600,
+    }],
+  );
+  assert.deepEqual(
+    targetHealthTimelineMarkers(result, 1000, [], 3),
+    [],
+  );
+});
+
+test("weapon-set palette groups render vertically in set order", () => {
+  const html = weaponPaletteStackHtml([
+    '<div data-weapon-set="1">W1</div>',
+    '<div data-weapon-set="2">W2</div>',
+  ]);
+  assert.match(html, /data-role="weapon-set-stack"/);
+  assert.match(html, /flex-direction:column/);
+  assert.equal(
+    html.indexOf('data-weapon-set="1"') < html.indexOf('data-weapon-set="2"'),
+    true,
+  );
+});
+
+test("weapon actions stay ordered beside the stacked weapon sets", () => {
+  const mesmer = {
+    profession: mesmerProfession,
+    build: createMesmerBuildDefaults(),
+    skills: mesmerProfession.catalog.skills,
+    adapter: {
+      eliteSpecialization: () => "Mirage",
+      isSkillAvailable: () => true,
+    },
+  };
+  const guardian = {
+    profession: guardianProfession,
+    build: createGuardianBuildDefaults(),
+    skills: guardianProfession.catalog.skills,
+    adapter: {
+      eliteSpecialization: () => "Firebrand",
+      isSkillAvailable: () => true,
+    },
+  };
+  assert.deepEqual(
+    paletteActionSkills(mesmer).map(skill => skill.name),
+    ["Dodge / Mirage Cloak", "Swap Weapons"],
+  );
+  assert.deepEqual(
+    paletteActionSkills(guardian).map(skill => skill.name),
+    ["Swap Weapons"],
+  );
+
+  const html = weaponPaletteSectionHtml(
+    ["<div>W1</div>", "<div>W2</div>"],
+    "<div>Act</div>",
+    "<div>Legends</div>",
+  );
+  assert.match(html, /data-role="weapon-palette-section"/);
+  assert.equal(html.indexOf("weapon-set-stack") < html.indexOf("Act"), true);
+  assert.equal(html.indexOf("Act") < html.indexOf("Legends"), true);
+});
+
+test("Engineer weapon swap stays visible as a state-gated kit exit", async () => {
+  const adapter = await loadProfessionAppAdapter("engineer");
+  const engineer = {
+    profession: adapter.profession,
+    build: createEngineerBuildDefaults(),
+    skills: adapter.profession.catalog.skills,
+    skillById: adapter.profession.catalog.skillsById,
+    skillByName: adapter.profession.catalog.skillsByName,
+    adapter,
+  };
+  assert.equal(
+    paletteActionSkills(engineer).some(skill => skill.name === "Swap Weapons"),
+    true,
+  );
+  const swapWeapons = engineer.skillById.get(-3);
+  assert.equal(
+    engineer.adapter.isSkillAvailable(
+      engineer.skillByName.get("Rifle Burst Grenade"),
+      { specialization: "Core" },
+    ),
+    false,
+  );
+  assert.equal(
+    engineer.profession.ui.isPaletteSkillAvailable(
+      { professionState: { activeKit: "" } },
+      swapWeapons,
+    ),
+    false,
+  );
+  engineer.results = {
+    endState: {
+      profession: { activeKit: "Grenade Kit" },
+    },
+  };
+  assert.equal(
+    paletteActionSkills(engineer).some(skill => skill.name === "Swap Weapons"),
+    true,
+  );
+  assert.equal(
+    engineer.profession.ui.isPaletteSkillAvailable(
+      { professionState: { activeKit: "Grenade Kit" } },
+      swapWeapons,
+    ),
+    true,
+  );
+  assert.equal(
+    resultSkillIcon(engineer, { name: "Jade Energy Shot" }),
+    "https://render.guildwars2.com/file/"
+      + "73600241FA662501C5D617719A7B4792F30B2846/2503622.png",
+  );
+  assert.equal(
+    resultSkillIcon(engineer, {
+      name: "Mech trait strike",
+      skillId: 63185,
+    }),
+    "https://render.guildwars2.com/file/"
+      + "02DA2C9899B63DE522020824C67D05951F40CA4A/2503679.png",
+  );
+  assert.equal(
+    resultSkillIcon(engineer, {
+      name: "Bloodstone Explosion",
+      sourceId: "relic.bloodstone",
+    }),
+    "https://render.guildwars2.com/file/"
+      + "A7327A7EDB4705EA05261110526D72AFEAF7DAB4/3629397.png",
+  );
+  engineer.results = {
+    ...engineer.results,
+    procSteps: [{
+      type: "trait_proc",
+      skill: "Orbital Command Strike",
+      sourceSkill: "Shrapnel Grenade",
+    }],
+  };
+  assert.equal(
+    resultSkillIcon(engineer, { name: "Orbital Command Strike" }),
+    engineer.skillByName.get("Orbital Command Strike").icon,
+  );
+  assert.notEqual(
+    resultSkillIcon(engineer, { name: "Orbital Command Strike" }),
+    engineer.skillByName.get("Shrapnel Grenade").icon,
+  );
+  assert.equal(
+    resolveProcIcon(engineer, {
+      type: "trait_proc",
+      skill: "Rapacious Strain",
+      sourceSkill: "Flux State",
+      icon: "https://render.guildwars2.com/file/"
+        + "5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png",
+    }),
+    "https://render.guildwars2.com/file/"
+      + "5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png",
+  );
+  assert.deepEqual(
+    timelineWeaponRows(
+      ["Grenade Kit", "Swap Weapons", "Blunderbuss"],
+      { startingWeaponSet: 1, weaponSwapChangesSet: false },
+    ).map(row => row.weaponSet),
+    [1, 1],
+  );
+  const flips = rotationUtilityFlipByParent(engineer);
+  for (const [parent, flip] of [
+    ["Throw Mine", "Detonate"],
+    ["Rifle Turret", "Detonate Rifle Turret"],
+    ["Flame Turret", "Detonate Flame Turret"],
+    ["Net Turret", "Detonate Net Turret"],
+    ["Thumper Turret", "Detonate Thumper Turret"],
+    ["Healing Turret", "Detonate Healing Turret"],
+    ["Rocket Turret", "Detonate Rocket Turret"],
+  ]) {
+    assert.equal(flips.get(parent)?.name, flip, parent);
+  }
+  assert.equal(flips.has("Grenade Kit"), false);
+});
+
+test("Engineer kits register distinct weapon lines in the timeline", async () => {
+  const adapter = await loadProfessionAppAdapter("engineer");
+  const build = createEngineerBuildDefaults();
+  const skillByName = adapter.profession.catalog.skillsByName;
+  const rotation = [
+    "Grenade Kit",
+    "Shrapnel Grenade",
+    "Flamethrower",
+    "Flame Blast",
+    "Stow Flamethrower",
+    "Blunderbuss",
+  ];
+  const rows = timelineWeaponRows(rotation, {
+    startingWeaponSet: 1,
+    weaponSwapChangesSet: false,
+    weaponLineTransition(entry, current) {
+      const name = typeof entry === "string" ? entry : entry.name;
+      return adapter.profession.ui.timelineWeaponLineTransition({
+        entry: { name },
+        skill: skillByName.get(name),
+        build,
+        ...current,
+      });
+    },
+  });
+
+  assert.deepEqual(
+    rows.map(row => row.weaponLine),
+    [null, "Grenade Kit", "Flamethrower", null],
+  );
+  assert.deepEqual(
+    rows.map(row => row.skills.map(skill => skill.index)),
+    [[0], [1, 2], [3, 4], [5]],
+  );
+  assert.ok(rows.every(row => row.weaponSet === 1));
+});
+
+test("shared palettes reject supplemental effects from weapon and action rows", () => {
+  const app = {
+    profession: {
+      catalog: {
+        weaponHands: new Map([["Rifle", "2h"]]),
+      },
+    },
+    build: {
+      weapons: ["Rifle", ""],
+      alternateWeapons: ["", ""],
+    },
+    skills: [
+      {
+        id: 1,
+        name: "Rifle Shot",
+        type: "Weapon",
+        slot: "Weapon_1",
+        weapon: "Rifle",
+      },
+      {
+        id: 2,
+        name: "Temporary Bundle Shot",
+        type: "Weapon",
+        slot: "Weapon_1",
+        weapon: "",
+      },
+      {
+        id: 3,
+        name: "Trait Proc",
+        type: "Action",
+        slot: "Action",
+      },
+      {
+        id: -3,
+        name: "Swap Weapons",
+        type: "Action",
+        slot: "Action",
+      },
+    ],
+    adapter: {
+      eliteSpecialization: () => "Core",
+      isSkillAvailable: () => true,
+    },
+  };
+
+  assert.deepEqual(
+    weaponSkills(app).map(skill => skill.name),
+    ["Rifle Shot"],
+  );
+  assert.deepEqual(
+    paletteActionSkills(app).map(skill => skill.name),
+    [],
+  );
+});
+
+test("weaponmaster palettes keep the active spec's weapon-skill variant", () => {
+  // Both Bladecall variants share a slot and pass availability under
+  // weaponmaster training; the off-spec Troubadour rework (62560) sorts first
+  // in catalog order but is absent from a non-Troubadour runtime catalog, so it
+  // must not win the name-dedup and poison the rotation with an unknown id.
+  const skills = [
+    {
+      id: 62560,
+      name: "Bladecall",
+      type: "Weapon",
+      slot: "Weapon_2",
+      weapon: "Dagger",
+      specialization: "Troubadour",
+    },
+    {
+      id: 69311,
+      name: "Bladecall",
+      type: "Weapon",
+      slot: "Weapon_2",
+      weapon: "Dagger",
+      specialization: "",
+    },
+  ];
+  const makeApp = specialization => ({
+    profession: { catalog: { weaponHands: new Map([["Dagger", "mh"]]) } },
+    build: { weapons: ["Dagger", ""], alternateWeapons: ["", ""] },
+    skills,
+    adapter: {
+      eliteSpecialization: () => specialization,
+      isSkillAvailable: () => true,
+    },
+  });
+
+  assert.deepEqual(
+    weaponSkills(makeApp("Chronomancer")).map(skill => skill.id),
+    [69311],
+  );
+  assert.deepEqual(
+    weaponSkills(makeApp("Troubadour")).map(skill => skill.id),
+    [62560],
+  );
+});

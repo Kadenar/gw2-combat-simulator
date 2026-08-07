@@ -12,7 +12,6 @@ import type {
   ProfessionDefinition,
   ProfessionFamilyContract,
   ProfessionFamilyDefinition,
-  ProfessionModuleCatalogFragment,
   ProfessionModuleDefinition,
   ProfessionSource,
   ProfessionUiContract,
@@ -22,6 +21,14 @@ import type {
   SkillId,
 } from "./types.js";
 import { createCanonicalCatalog } from "./catalog.js";
+import { toEntries } from "./collections.js";
+import { foldAvailability } from "./availability.js";
+import {
+  everyUiSlice,
+  firstUiMatch,
+  mergeUiList,
+  someUiSlice,
+} from "./ui-combinators.js";
 
 type ComposableHook = (...args: any[]) => unknown;
 
@@ -37,31 +44,51 @@ type EventReaction = (
   event: SchedulerRecord,
   details?: SchedulerRecord,
 ) => unknown;
-const HOOK_NAMES = Object.freeze([
-  "initialize",
-  "availability",
-  "validateCast",
-  "scheduleSkill",
-  "afterCast",
-  "advance",
-  "snapshot",
-  "projectEndState",
-  "onCastStart",
-  "onCastComplete",
-  "onCooldownReset",
-  "onEventScheduled",
-  "modifyCastDuration",
-  "modifyRechargeDuration",
-  "modifyRechargeStart",
-  "modifyMaximumAmmo",
-  "modifyAttributes",
-  "modifyCriticalChance",
-  "modifyCriticalDamage",
-  "modifyStrikeDamage",
-  "modifyConditionDamage",
-  "modifyConditionBaseDuration",
-  "modifyConditionDuration",
-]);
+type HookCategory = "scheduler" | "cast" | "attribute";
+
+/**
+ * Single source of truth for hook names and the composition families each one
+ * belongs to. Array order defines PROFESSION_HOOK_ORDER; the family arrays below
+ * are derived, so adding a hook can no longer silently miss a subset list.
+ */
+const HOOK_DEFINITIONS: readonly (readonly [string, readonly HookCategory[]])[] =
+  Object.freeze([
+    ["initialize", ["scheduler"]],
+    ["availability", ["scheduler", "cast"]],
+    ["validateCast", ["scheduler", "cast"]],
+    ["scheduleSkill", ["scheduler", "cast"]],
+    ["afterCast", ["scheduler"]],
+    ["advance", ["scheduler"]],
+    ["snapshot", ["scheduler"]],
+    ["projectEndState", ["scheduler"]],
+    ["onCastStart", ["scheduler"]],
+    ["onCastComplete", ["scheduler"]],
+    ["onCooldownReset", ["scheduler"]],
+    ["onEventScheduled", ["scheduler"]],
+    ["modifyCastDuration", ["scheduler", "cast"]],
+    ["modifyRechargeDuration", ["scheduler", "cast"]],
+    ["modifyRechargeStart", ["scheduler", "cast"]],
+    ["modifyMaximumAmmo", ["scheduler", "cast"]],
+    ["modifyAttributes", ["attribute"]],
+    ["modifyCriticalChance", ["attribute"]],
+    ["modifyCriticalDamage", ["attribute"]],
+    ["modifyStrikeDamage", ["attribute"]],
+    ["modifyConditionDamage", ["attribute"]],
+    ["modifyConditionBaseDuration", ["attribute"]],
+    ["modifyConditionDuration", ["attribute"]],
+  ]);
+
+const hookNamesWith = (category: HookCategory): readonly string[] =>
+  Object.freeze(
+    HOOK_DEFINITIONS
+      .filter(([, categories]) => categories.includes(category))
+      .map(([name]) => name),
+  );
+
+const HOOK_NAMES = Object.freeze(HOOK_DEFINITIONS.map(([name]) => name));
+const SCHEDULER_HOOK_NAMES = hookNamesWith("scheduler");
+const CAST_HOOK_NAMES = hookNamesWith("cast");
+const ATTRIBUTE_HOOK_NAMES = hookNamesWith("attribute");
 
 const NOOP: ComposableHook = (..._args) => undefined;
 const IDENTITY_SECOND_ARGUMENT: ComposableHook = (...args) => args[1];
@@ -147,50 +174,51 @@ function composeHooks(
   const hooks = orderedHooks(value, hookName);
   if (!hooks.length) return fallback;
   if (hookName === "availability") {
-    return (context: SchedulerRecord, skill: Skill) => {
-      let result: AvailabilityResult = { ready: true };
-      for (const hook of hooks) {
-        const next = hook.handler(context, skill);
-        if (next == null || next === true) continue;
-        const availability =
-          next === false
-            ? {
+    return (context: SchedulerRecord, skill: Skill) =>
+      foldAvailability(
+        (function* () {
+          for (const hook of hooks) {
+            const next = hook.handler(context, skill);
+            if (next == null || next === true) continue;
+            const availability =
+              next === false
+                ? {
+                    ready: false,
+                    retryAt: null,
+                    code: `${hook.id}.unavailable`,
+                    reason: `${skill.name} is unavailable.`,
+                  }
+                : next as AvailabilityResult;
+            if (availability.ready !== false) continue;
+            if (availability.retryAt == null) {
+              yield {
                 ready: false,
                 retryAt: null,
-                code: `${hook.id}.unavailable`,
-                reason: `${skill.name} is unavailable.`,
-              }
-            : next as AvailabilityResult;
-        if (availability.ready !== false) continue;
-        if (availability.retryAt == null)
-          return {
-            ready: false,
-            retryAt: null,
-            code: String(availability.code || `${hook.id}.unavailable`),
-            reason: String(
-              availability.reason || `${skill.name} is unavailable.`,
-            ),
-          };
-        const retryAt = Number(availability.retryAt);
-        if (!Number.isFinite(retryAt)) {
-          throw new TypeError(
-            `${hook.id} returned a non-finite cast retry time.`,
-          );
-        }
-        if (result.ready || retryAt > Number(result.retryAt ?? -Infinity)) {
-          result = {
-            ready: false,
-            retryAt,
-            code: String(availability.code || `${hook.id}.not-ready`),
-            reason: String(
-              availability.reason ||
-                `${skill.name} is not ready until ${retryAt.toFixed(3)}.`,
-            ),
-          };
-        }
-      }
-      return result;
-    };
+                code: String(availability.code || `${hook.id}.unavailable`),
+                reason: String(
+                  availability.reason || `${skill.name} is unavailable.`,
+                ),
+              };
+              continue;
+            }
+            const retryAt = Number(availability.retryAt);
+            if (!Number.isFinite(retryAt)) {
+              throw new TypeError(
+                `${hook.id} returned a non-finite cast retry time.`,
+              );
+            }
+            yield {
+              ready: false,
+              retryAt,
+              code: String(availability.code || `${hook.id}.not-ready`),
+              reason: String(
+                availability.reason ||
+                  `${skill.name} is not ready until ${retryAt.toFixed(3)}.`,
+              ),
+            };
+          }
+        })(),
+      );
   }
   if (hookName === "validateCast") {
     return (context: SchedulerRecord, skill: Skill) =>
@@ -626,42 +654,6 @@ export function defineProfession<
   >;
 }
 
-const ATTRIBUTE_HOOK_NAMES = Object.freeze([
-  "modifyAttributes",
-  "modifyCriticalChance",
-  "modifyCriticalDamage",
-  "modifyStrikeDamage",
-  "modifyConditionDamage",
-  "modifyConditionBaseDuration",
-  "modifyConditionDuration",
-]);
-const CAST_HOOK_NAMES = Object.freeze([
-  "availability",
-  "validateCast",
-  "scheduleSkill",
-  "modifyCastDuration",
-  "modifyRechargeDuration",
-  "modifyRechargeStart",
-  "modifyMaximumAmmo",
-]);
-const SCHEDULER_HOOK_NAMES = Object.freeze([
-  "initialize",
-  "availability",
-  "validateCast",
-  "scheduleSkill",
-  "afterCast",
-  "advance",
-  "snapshot",
-  "projectEndState",
-  "onCastStart",
-  "onCastComplete",
-  "onCooldownReset",
-  "onEventScheduled",
-  "modifyCastDuration",
-  "modifyRechargeDuration",
-  "modifyRechargeStart",
-  "modifyMaximumAmmo",
-]);
 const UI_LIST_CALLBACK_NAMES = Object.freeze([
   "paletteGroups",
   "resourceViews",
@@ -730,14 +722,6 @@ function mergeUniqueEntries<T>(
   return result;
 }
 
-function handlerEntries(
-  value: ProfessionModuleCatalogFragment["skillHandlers"],
-): [string, unknown][] {
-  return value instanceof Map
-    ? [...value.entries()].map(([id, handler]) => [String(id), handler])
-    : Object.entries(value || {});
-}
-
 function composeModuleCatalog(
   modules: readonly NamedModule<object>[],
 ): Readonly<CanonicalCatalog> {
@@ -765,10 +749,12 @@ function composeModuleCatalog(
   const weaponHands = new Map<string, string>();
   const additionalChains: SkillId[][] = [];
   const excludedSkillIds = new Set<SkillId>();
+  let skillNameCollision: "first" | "last" = "first";
+  const skillNameOverrides = new Map<string, SkillId>();
 
   for (const entry of modules) {
     const fragment = entry.module.catalog || {};
-    for (const [id, handler] of handlerEntries(fragment.skillHandlers)) {
+    for (const [id, handler] of toEntries(fragment.skillHandlers)) {
       const previous = handlerOwners.get(id);
       if (previous) {
         throw new TypeError(
@@ -779,10 +765,7 @@ function composeModuleCatalog(
       handlers.set(id, handler);
     }
     for (const weapon of fragment.weapons || []) weapons.add(weapon);
-    const hands = fragment.weaponHands instanceof Map
-      ? fragment.weaponHands.entries()
-      : Object.entries(fragment.weaponHands || {});
-    for (const [weapon, hand] of hands) {
+    for (const [weapon, hand] of toEntries(fragment.weaponHands)) {
       if (weaponHands.has(weapon)) {
         throw new TypeError(
           `Duplicate weapon-hand entry ${weapon} in ${entry.name}.`,
@@ -796,9 +779,20 @@ function composeModuleCatalog(
     for (const skillId of fragment.autoattackChains?.excludeSkillIds || []) {
       excludedSkillIds.add(skillId);
     }
+    if (fragment.skillNameCollision != null) {
+      skillNameCollision = fragment.skillNameCollision;
+    }
+    for (const [name, skillId] of Object.entries(
+      fragment.skillNameOverrides || {},
+    )) {
+      if (skillNameOverrides.has(name)) {
+        throw new TypeError(`Duplicate skill-name override ${name}.`);
+      }
+      skillNameOverrides.set(name, skillId);
+    }
   }
 
-  return createCanonicalCatalog({
+  const catalog = createCanonicalCatalog({
     generated: skills,
     skillHandlers: handlers,
     traits,
@@ -809,7 +803,19 @@ function composeModuleCatalog(
       additional: additionalChains,
       excludeSkillIds: [...excludedSkillIds],
     },
+    skillNameCollision,
   });
+  for (const [name, skillId] of skillNameOverrides) {
+    const skill = catalog.skillsById.get(skillId);
+    if (!skill) continue;
+    if (skill.name !== name) {
+      throw new TypeError(
+        `Skill-name override ${name} points to ${skill.name} (${String(skillId)}).`,
+      );
+    }
+    (catalog.skillsByName as Map<string, Skill>).set(name, skill);
+  }
+  return catalog;
 }
 
 function hookValues(
@@ -1045,7 +1051,7 @@ export function professionCoreState<TContext>(
  * Returns the active specialization state after validating its discriminant.
  * Module mechanics use this accessor instead of a flat family-state view.
  */
-export function professionSpecializationState<
+function specializationStateForKind<
   TContext,
   TRuntimeState = ProfessionRuntimeFromContext<TContext>,
   TKind extends RuntimeSpecializationKind<TRuntimeState> =
@@ -1078,11 +1084,45 @@ export function professionSpecializationState<
   return active.state as RuntimeSpecializationState<TRuntimeState, TKind>;
 }
 
-export function cloneProfessionState(value: unknown): unknown {
-  return structuredClone(value);
+export interface ProfessionSpecializationStateDefinition<
+  TKind extends string,
+  TState extends object,
+  TArguments extends readonly unknown[],
+> {
+  readonly kind: TKind;
+  readonly create: (...args: TArguments) => TState;
+  readonly from: <TContext>(context: TContext) => TState;
 }
 
-export function cloneMutableProfessionState(value: unknown): unknown {
+/**
+ * Defines the state owned by one specialization and returns its only accessor.
+ * Keeping the factory and accessor together makes the returned fragment type
+ * owner-local instead of deriving it from the profession-wide runtime union.
+ */
+export function defineProfessionSpecializationState<
+  const TKind extends string,
+  TArguments extends readonly unknown[],
+  TState extends object,
+>(
+  kind: TKind,
+  create: ((...args: TArguments) => TState) &
+    (TState extends readonly unknown[] ? never : unknown),
+): ProfessionSpecializationStateDefinition<TKind, TState, TArguments> {
+  return Object.freeze({
+    kind,
+    create,
+    from<TContext>(context: TContext): TState {
+      return specializationStateForKind(
+        context,
+        kind as unknown as RuntimeSpecializationKind<
+          ProfessionRuntimeFromContext<TContext>
+        >,
+      ) as TState;
+    },
+  });
+}
+
+export function cloneProfessionState(value: unknown): unknown {
   return structuredClone(value);
 }
 
@@ -1105,97 +1145,73 @@ function composeModuleUi(
   familyUi: Partial<ProfessionUiContract> | undefined = undefined,
 ): Partial<ProfessionUiContract> & SchedulerRecord {
   const ui: SchedulerRecord = {};
+  const slices = modules
+    .map((entry) => entry.module.ui)
+    .filter((slice) => slice != null) as UiSlice[];
+  // Only callbacks whose policy gives the active elite precedence use this.
+  const reversed = slices.slice().reverse();
+  const owns = (name: string): boolean =>
+    slices.some((slice) => typeof slice[name] === "function");
+
   ui.assumptionControls = Object.freeze(
-    modules.flatMap((entry) => entry.module.ui?.assumptionControls || []),
+    slices.flatMap((slice) => slice.assumptionControls || []),
   );
   for (const name of UI_LIST_CALLBACK_NAMES) {
-    const callbacks = modules
-      .map((entry) => entry.module.ui?.[name])
-      .filter((value): value is (...args: unknown[]) => unknown[] =>
-        typeof value === "function"
-      );
-    if (callbacks.length) {
-      ui[name] = (...args: unknown[]) =>
-        callbacks.flatMap((callback) => callback(...args) || []);
+    if (owns(name)) {
+      ui[name] = (...args: unknown[]) => mergeUiList(slices, name, args);
     }
   }
-  const availabilityCallbacks = modules
-    .map((entry) => entry.module.ui?.paletteSkillAvailability)
-    .filter((value): value is (...args: unknown[]) => PaletteSkillAvailability =>
-      typeof value === "function"
-    );
-  if (availabilityCallbacks.length) {
-    ui.paletteSkillAvailability = (...args: unknown[]) => {
-      for (const callback of availabilityCallbacks) {
-        const result = callback(...args);
-        if (result?.available === false) return result;
-      }
-      return { available: true, message: "" };
-    };
+  if (owns("paletteSkillAvailability")) {
+    ui.paletteSkillAvailability = (...args: unknown[]) =>
+      firstUiMatch(
+        slices,
+        "paletteSkillAvailability",
+        args,
+        (result) => (result as PaletteSkillAvailability)?.available === false,
+        { available: true, message: "" },
+      );
   }
-  const eventLogCallbacks = modules
-    .map((entry) => entry.module.ui?.eventLogRow)
-    .filter((value): value is NonNullable<ProfessionUiContract["eventLogRow"]> =>
-      typeof value === "function"
-    );
-  if (eventLogCallbacks.length) {
-    ui.eventLogRow = (...args: Parameters<NonNullable<
-      ProfessionUiContract["eventLogRow"]
-    >>) => {
-      for (const callback of eventLogCallbacks) {
-        const result = callback(...args);
-        if (result !== undefined) return result;
-      }
-      return undefined;
-    };
+  if (owns("eventLogRow")) {
+    ui.eventLogRow = (...args: unknown[]) =>
+      firstUiMatch(
+        slices,
+        "eventLogRow",
+        args,
+        (result) => result !== undefined,
+        undefined,
+      );
   }
-  const instantCallbacks = modules
-    .map((entry) => entry.module.ui?.isPaletteSkillInstant)
-    .filter((value): value is ProfessionUiContract["isPaletteSkillInstant"] =>
-      typeof value === "function"
-    );
-  if (instantCallbacks.length) {
-    ui.isPaletteSkillInstant = (...args: Parameters<
-      ProfessionUiContract["isPaletteSkillInstant"]
-    >) => instantCallbacks.some((callback) => callback(...args));
+  if (owns("isPaletteSkillInstant")) {
+    ui.isPaletteSkillInstant = (...args: unknown[]) =>
+      someUiSlice(slices, "isPaletteSkillInstant", args, (result) =>
+        Boolean(result),
+      );
   }
-  const selectableCallbacks = modules
-    .map((entry) => entry.module.ui?.isSlotSkillSelectable)
-    .filter((value): value is ProfessionUiContract["isSlotSkillSelectable"] =>
-      typeof value === "function"
-    );
-  if (selectableCallbacks.length) {
-    ui.isSlotSkillSelectable = (...args: Parameters<
-      ProfessionUiContract["isSlotSkillSelectable"]
-    >) => selectableCallbacks.every((callback) => callback(...args));
+  if (owns("isSlotSkillSelectable")) {
+    ui.isSlotSkillSelectable = (...args: unknown[]) =>
+      everyUiSlice(slices, "isSlotSkillSelectable", args, (result) =>
+        Boolean(result),
+      );
   }
-  const selectionCallbacks = modules
-    .map((entry) => entry.module.ui?.updateSkillBarSelection)
-    .filter((value): value is ProfessionUiContract["updateSkillBarSelection"] =>
-      typeof value === "function"
-    )
-    .reverse();
-  if (selectionCallbacks.length) {
-    ui.updateSkillBarSelection = (...args: Parameters<
-      ProfessionUiContract["updateSkillBarSelection"]
-    >) => selectionCallbacks.some((callback) => callback(...args));
+  if (owns("updateSkillBarSelection")) {
+    ui.updateSkillBarSelection = (...args: unknown[]) =>
+      someUiSlice(reversed, "updateSkillBarSelection", args, (result) =>
+        Boolean(result),
+      );
   }
   for (const name of [
     "timelineWeaponLineTransition",
     "timelineSkillIcon",
   ] as const) {
-    const callbacks = modules
-      .map((entry) => entry.module.ui?.[name])
-      .filter((value) => typeof value === "function")
-      .reverse() as ((...args: any[]) => unknown)[];
-    if (!callbacks.length) continue;
-    ui[name] = (...args: unknown[]) => {
-      for (const callback of callbacks) {
-        const result = callback(...args);
-        if (result !== undefined && result !== "") return result;
-      }
-      return name === "timelineSkillIcon" ? "" : undefined;
-    };
+    if (!owns(name)) continue;
+    ui[name] = (...args: unknown[]) =>
+      firstUiMatch(
+        reversed,
+        name,
+        args,
+        (result) => result !== undefined && result !== "",
+        name === "timelineSkillIcon" ? "" : undefined,
+      );
   }
   for (const name of UI_SINGLE_CALLBACK_NAMES) {
     const familyCallback = (familyUi as SchedulerRecord | undefined)?.[name];
@@ -1236,7 +1252,13 @@ function uiSpecialization(context: unknown): string {
   if (!context || typeof context !== "object") return "Core";
   const candidate = context as SchedulerRecord;
   const config = candidate.config as SchedulerRecord | undefined;
-  return String(candidate.specialization || config?.specialization || "Core")
+  const build = candidate.build as SchedulerRecord | undefined;
+  return String(
+    candidate.specialization
+      || config?.specialization
+      || build?.specialization
+      || "Core",
+  )
     .trim() || "Core";
 }
 
@@ -1244,7 +1266,10 @@ function explicitUiSpecialization(context: unknown): string | null {
   if (!context || typeof context !== "object") return null;
   const candidate = context as SchedulerRecord;
   const config = candidate.config as SchedulerRecord | undefined;
-  const value = candidate.specialization ?? config?.specialization;
+  const build = candidate.build as SchedulerRecord | undefined;
+  const value = candidate.specialization
+    ?? config?.specialization
+    ?? build?.specialization;
   if (value == null || !String(value).trim()) return null;
   return String(value).trim();
 }
@@ -1358,7 +1383,13 @@ export function createProfessionFamilyUi(
     context: unknown,
     skill?: Skill,
   ): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
-    if (explicitUiSpecialization(context)) return active(context);
+    if (explicitUiSpecialization(context)) {
+      const selected = active(context);
+      return {
+        context: selected.context,
+        slices: [...selected.slices, family],
+      };
+    }
     const skillSpecialization = String(skill?.specialization || "").trim();
     const specialization = definition.specializations[skillSpecialization];
     if (specialization && eliteNames.has(skillSpecialization)) {
@@ -1387,55 +1418,54 @@ export function createProfessionFamilyUi(
   for (const name of UI_LIST_CALLBACK_NAMES) {
     ui[name] = (context: unknown) => {
       const selected = active(context);
-      const values = [
-        ...selected.slices,
-        family,
-      ].flatMap((slice) => {
-        const callback = slice[name];
-        return typeof callback === "function"
-          ? (callback(selected.context) || [])
-          : [];
-      });
+      const values = mergeUiList(
+        [...selected.slices, family],
+        name,
+        [selected.context],
+      );
       return normalizeApplicationUiList(values, name);
     };
   }
 
   ui.paletteSkillAvailability = (context: unknown, skill: Skill) => {
     const selected = scalarSlices(context, skill);
-    for (const slice of selected.slices) {
-      const callback = slice.paletteSkillAvailability;
-      if (typeof callback !== "function") continue;
-      const result = callback(selected.context, skill);
-      if (result?.available === false) return result;
-    }
-    return { available: true, message: "" };
+    return firstUiMatch(
+      selected.slices,
+      "paletteSkillAvailability",
+      [selected.context, skill],
+      (result) => (result as PaletteSkillAvailability)?.available === false,
+      { available: true, message: "" },
+    );
   };
   ui.eventLogRow = (
     context: SchedulerRecord,
     event: Parameters<NonNullable<ProfessionUiContract["eventLogRow"]>>[1],
   ) => {
-    const selected = {
-      context,
-      slices: [...allSlices, family],
-    };
-    for (const slice of selected.slices) {
-      const callback = slice.eventLogRow;
-      if (typeof callback !== "function") continue;
-      const result = callback(selected.context, event);
-      if (result !== undefined) return result;
-    }
-    return undefined;
+    const selected = active(context);
+    return firstUiMatch(
+      [...selected.slices, family],
+      "eventLogRow",
+      [selected.context, event],
+      (result) => result !== undefined,
+      undefined,
+    );
   };
   ui.isPaletteSkillInstant = (context: SchedulerRecord, skill: Skill) => {
     const selected = scalarSlices(context, skill);
-    return selected.slices.some((slice) =>
-      slice.isPaletteSkillInstant?.(selected.context, skill) === true
+    return someUiSlice(
+      selected.slices,
+      "isPaletteSkillInstant",
+      [selected.context, skill],
+      (result) => result === true,
     );
   };
   ui.isSlotSkillSelectable = (context: SchedulerRecord, skill: Skill) => {
     const selected = scalarSlices(context, skill);
-    return selected.slices.every((slice) =>
-      slice.isSlotSkillSelectable?.(selected.context, skill) !== false
+    return everyUiSlice(
+      selected.slices,
+      "isSlotSkillSelectable",
+      [selected.context, skill],
+      (result) => result !== false,
     );
   };
   ui.updateSkillBarSelection = (
@@ -1443,15 +1473,12 @@ export function createProfessionFamilyUi(
     selection: SchedulerRecord,
   ) => {
     const selected = active(context);
-    for (const slice of [
-      ...selected.slices.slice().reverse(),
-      family,
-    ]) {
-      if (slice.updateSkillBarSelection?.(selected.context, selection)) {
-        return true;
-      }
-    }
-    return false;
+    return someUiSlice(
+      [...selected.slices.slice().reverse(), family],
+      "updateSkillBarSelection",
+      [selected.context, selection],
+      (result) => Boolean(result),
+    );
   };
   for (const name of [
     "timelineWeaponLineTransition",
@@ -1459,16 +1486,13 @@ export function createProfessionFamilyUi(
   ] as const) {
     ui[name] = (context: SchedulerRecord) => {
       const selected = active(context);
-      for (const slice of [
-        ...selected.slices.slice().reverse(),
-        family,
-      ]) {
-        const callback = slice[name];
-        if (typeof callback !== "function") continue;
-        const result = callback(selected.context);
-        if (result !== undefined && result !== "") return result;
-      }
-      return name === "timelineSkillIcon" ? "" : undefined;
+      return firstUiMatch(
+        [...selected.slices.slice().reverse(), family],
+        name,
+        [selected.context],
+        (result) => result !== undefined && result !== "",
+        name === "timelineSkillIcon" ? "" : undefined,
+      );
     };
   }
 

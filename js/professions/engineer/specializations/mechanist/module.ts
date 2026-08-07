@@ -1,33 +1,40 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { engineerModuleCatalog } from "../../catalog.js";
+import {
+  afterSkillEffects,
+  defineNativeModule,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
+import { createEngineerModuleData } from "../../catalog-data.js";
 import {
   mechanistEventReactions,
   mechanistSchedulerHooks,
   mechanistSkillHandlers,
 } from "./handlers.js";
-import {
-  mechanistAttributeRules,
-  mechanistCastRules,
-} from "./rules.js";
-import { createMechanistState } from "./state.js";
+import { mechanistAttributeRules, mechanistCastRules } from "./rules.js";
+import { MECHANIST_SKILL_MECHANICS } from "./skills.js";
+import { mechanistState } from "./state.js";
 import { mechanistUi } from "./ui.js";
-import type { MechanistState } from "../../types.js";
 
-export const mechanistModule = defineProfessionModule<MechanistState>({
+const {
+  afterCast: mechanistAfterCast,
+  ...mechanistAdvancedSchedulerHooks
+} = mechanistSchedulerHooks;
+
+export const mechanistModule = defineNativeModule({
   id: "Mechanist",
-  catalog: {
-    ...engineerModuleCatalog("Mechanist"),
-    skillHandlers: mechanistSkillHandlers,
+  data: createEngineerModuleData("Mechanist", {
+    skillMechanics: MECHANIST_SKILL_MECHANICS,
+    handlers: mechanistSkillHandlers,
+  }),
+  state: { scheduler: mechanistState.create, resolver: mechanistState.create },
+  mechanics: {
+    modifiers: mechanistAttributeRules,
+    castRules: mechanistCastRules,
+    castLifecycle: [afterSkillEffects(mechanistAfterCast)],
+    schedulerHooks: mechanistAdvancedSchedulerHooks,
+    reactions: [onResolvedDamage({
+      id: "engineer.mechanist.damage",
+      handler: mechanistEventReactions.damage,
+    })],
   },
-  resources: {
-    createProfessionState: createMechanistState,
-    createResolverState: createMechanistState,
-  },
-  attributeRules: mechanistAttributeRules,
-  castRules: mechanistCastRules,
-  schedulerHooks: mechanistSchedulerHooks,
-  resolverHooks: {
-    eventReactions: mechanistEventReactions,
-  },
-  ui: mechanistUi,
+  presentation: mechanistUi,
 });

@@ -1,6 +1,6 @@
+import { mechanistState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import { emitEngineerState } from "../../core/events.js";
 import {
@@ -200,7 +200,7 @@ function scheduleMechAttack(
   at: number,
   payload: MechAttackPayload,
 ): void {
-  professionSpecializationState(context, "Mechanist").mech.nextAttackAt = at;
+  mechanistState.from(context).mech.nextAttackAt = at;
   context.tasks.schedule({
     type: "engineer.mech-attack",
     at,
@@ -211,13 +211,13 @@ function scheduleMechAttack(
 
 function summonMech(context: EngineerCastContext): void {
   const at = context.effectiveEnd;
-  professionSpecializationState(context, "Mechanist").mech.active = true;
+  mechanistState.from(context).mech.active = true;
   emitEngineerState(context, at, "summon-mech");
 }
 
 function recallMech(context: EngineerCastContext): void {
   const at = context.effectiveEnd;
-  professionSpecializationState(context, "Mechanist").mech.active = false;
+  mechanistState.from(context).mech.active = false;
   emitEngineerState(context, at, "recall-mech");
 }
 
@@ -293,7 +293,7 @@ export function applyEngineerMechCastTraits(
   skill: EngineerSkill,
 ): void {
   if (context.config.specialization !== "Mechanist") return;
-  const state = professionSpecializationState(context, "Mechanist");
+  const state = mechanistState.from(context);
   const at = context.effectiveEnd;
 
   if (state.mech.active && isEngineerMechCommand(skill)) {
@@ -341,7 +341,7 @@ export function applyEngineerMechCastTraits(
 export function initializeEngineerMech(
   context: EngineerSchedulerContext,
 ): void {
-  const state = professionSpecializationState(context, "Mechanist");
+  const state = mechanistState.from(context);
   if (!state.mech.enabled || !state.mech.active) return;
   scheduleMechAttack(context, 1, { phase: 0 });
 }
@@ -350,7 +350,7 @@ export function handleEngineerMechAttack(
   context: EngineerSchedulerContext,
   task: EngineerScheduledTask<MechAttackPayload>,
 ): void {
-  const state = professionSpecializationState(context, "Mechanist");
+  const state = mechanistState.from(context);
   if (!state.mech.enabled) return;
   if (!state.mech.active) {
     scheduleMechAttack(context, task.at + 1, { phase: 0 });
@@ -421,7 +421,7 @@ export function activateOverclockSignet(
   context: EngineerCastContext,
   skill: EngineerSkill,
 ): void {
-  const state = professionSpecializationState(context, "Mechanist");
+  const state = mechanistState.from(context);
   if (!state.mech?.active) return;
   const at = context.effectiveEnd;
   const interval = 0.65;

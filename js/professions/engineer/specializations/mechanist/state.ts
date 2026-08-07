@@ -2,6 +2,7 @@ import {
   ENGINEER_SKILL_IDS as ID,
   ENGINEER_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 import {
   hasEngineerTrait,
   selectedEngineerTraits,
@@ -134,3 +135,8 @@ export function createMechanistState(
     },
   };
 }
+
+export const mechanistState = defineProfessionSpecializationState(
+  "Mechanist",
+  createMechanistState,
+);

@@ -14,8 +14,7 @@ import {
   gw2EffectiveCooldown,
   gw2RechargeRate,
 } from "../../../platform/gw2/runtime-rules.js";
-import { createGw2SchedulerEventFactory } from "../../../platform/gw2/scheduler/event-factory.js";
-import { CONDITION_FORMULAS } from "../../../platform/gw2/condition-formulas.js";
+import { clamp } from "../../../platform/gw2/numeric.js";
 import {
   MESMER_CORE_AMBUSH_ATTACKS,
   MESMER_CORE_ARISTOCRACY_SKILLS,
@@ -33,9 +32,10 @@ import {
   MESMER_SKILL_IDS as ID,
   MESMER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
-import { createCloneAttackScheduler } from "./illusions.js";
+import { createCloneAttackScheduler } from "./clone-attacks.js";
 import { createProfessionActionController } from "./profession-actions.js";
 import { createExpectedProcTracker } from "./expected-procs.js";
+import { createMesmerEventMaterializer } from "./event-materializer.js";
 import { createResourceController } from "./resources.js";
 import { createSkillEffectController } from "./skill-effects.js";
 import { mesmerResourceDefinition } from "./state.js";
@@ -91,29 +91,6 @@ const PRESERVED_WEAPON_CHAIN_ROOT_IDS = new Set<number>([ID.ETHER_BOLT]);
 const SIGNET_ETHER_RELOCK_DELAY = 0.3;
 const SIGNET_ILLUSIONS_INTERVAL = 10;
 const SIGNET_ILLUSIONS_OWNER = "mesmer.signet-illusions-passive";
-/**
- * Restricts a numeric value to an inclusive range.
- *
- * @param {number} value Candidate value.
- * @param {number} minimum Inclusive lower bound.
- * @param {number} maximum Inclusive upper bound.
- * @returns {number} Clamped value.
- */
-const clamp = (value: number, minimum: number, maximum: number): number =>
-  Math.max(minimum, Math.min(maximum, value));
-
-/**
- * Converts condition aliases to the canonical event display name.
- *
- * @param {unknown} value Condition name or alias.
- * @returns {string} Canonical condition name.
- */
-function conditionName(value: unknown): string {
-  const normalized = String(value || "").toLowerCase();
-  if (normalized === "poison" || normalized === "poisoned") return "Poisoned";
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-}
-
 /**
  * Builds a mixed trait set containing both numeric IDs and names so
  * ID-oriented scheduler code and name-oriented data tables share one lookup.
@@ -231,7 +208,7 @@ function restartSignetIllusionsPassive(
 /**
  * Creates and connects all Mesmer feature controllers for one simulation.
  *
- * The returned runtime centralizes normalized traits, event factories,
+ * The returned runtime centralizes normalized traits, event materialization,
  * resource and illusion controllers, cast-local details, and helper functions
  * shared by lifecycle hooks and task handlers.
  *
@@ -310,30 +287,10 @@ function createMesmerRuntime(
     });
   };
   const { addEvent, addTraitProc, addCondition, addDamage } =
-    createGw2SchedulerEventFactory({
-      events: context.events,
+    createMesmerEventMaterializer({
       emit,
-      defaultSource: "Mesmer",
-      horizon: Infinity,
-      epsilon: EPSILON,
-      conditionName,
-      conditionFormulas: CONDITION_FORMULAS,
       activePrimaryWeapon,
-      activeWeaponSet: () => state.activeWeaponSet,
-      decorateDamageEvent(event, { skill, extra }) {
-        const explicit = String(event.weapon || "");
-        const normalized =
-          explicit.charAt(0).toUpperCase() + explicit.slice(1).toLowerCase();
-        const independentStrength =
-          event.actorType === "phantasm" || event.actorType === "summon"
-            ? runtime.weaponStrength[normalized]
-            : undefined;
-        return {
-          ...event,
-          blade: Boolean(extra.blade ?? skill.blade),
-          weaponStrength: event.weaponStrength ?? independentStrength,
-        };
-      },
+      weaponStrength: runtime.weaponStrength,
     });
 
   const scheduleCloneTask = (clone: MesmerClone, at: number) =>
@@ -620,7 +577,7 @@ function completeMesmerSkill(
       runtime.actions.handleCrescendo(skill, at);
     } else {
       if (skill.mesmerEffects) {
-        clarityConsumed = runtime.skillEffects.handleExceptionalProfile(
+        clarityConsumed = runtime.skillEffects.schedule(
           { ...skill, effects: skill.mesmerEffects },
           at,
           context.start,
@@ -935,7 +892,7 @@ export function advanceMesmerScheduler(
 
 /**
  * Observes combat-start, bleeding, and critical-hit candidates and schedules
- * chronological expected-proc processing where required.
+ * chronological critical-proc processing where required.
  *
  * @param {object} context Scheduler event-observer context.
  * @param {object} event Newly scheduled event.
@@ -1023,8 +980,8 @@ export function handleResourceGainTask(
 }
 
 /**
- * Resolves delayed expected-value trait procs, including Deadly Blades
- * vulnerability derived from critical-hit probability.
+ * Resolves delayed critical trait procs. Deterministic mode uses critical-hit
+ * probability; stochastic mode consumes the canonical sampled hit fact.
  *
  * @param {object} context Scheduler task context.
  * @param {object} task Expected-proc task.
@@ -1035,7 +992,19 @@ export function handleExpectedProcTask(
   task: MesmerSchedulerTask<"expectedProc">,
 ): void {
   const runtime = mesmerRuntimeFor(context);
-  const event = task.payload.type === "hit" ? task.payload.event : null;
+  const payloadEvent =
+    task.payload.type === "hit" ? task.payload.event : null;
+  const canonicalEvent = payloadEvent
+    ? context.events.find(
+        (candidate) => candidate.__order === payloadEvent.__order,
+      )
+    : null;
+  // The trigger materializer runs first and replaces the canonical event with
+  // its sampled `didCrit` fact. Preserve Mesmer-only annotations from the
+  // original candidate (such as a skill-derived `blade` flag).
+  const event = payloadEvent
+    ? { ...payloadEvent, ...(canonicalEvent || {}) }
+    : null;
   if (
     event?.blade &&
     !event.noCrit &&
@@ -1043,7 +1012,11 @@ export function handleExpectedProcTask(
     runtime.traits.has(TRAIT.DEADLY_BLADES)
   ) {
     const vulnerabilityStacks =
-      context.schedulerPolicy.critical?.(context, event)?.chance || 0;
+      context.config.randomness?.mode === "stochastic"
+        ? event.didCrit
+          ? 1
+          : 0
+        : context.schedulerPolicy.critical?.(context, event)?.chance || 0;
     if (vulnerabilityStacks > EPSILON) {
       context.emitDerived(event, {
         type: "buff",
@@ -1064,7 +1037,11 @@ export function handleExpectedProcTask(
       });
     }
   }
-  runtime.expected.process(task.payload);
+  runtime.expected.process(
+    task.payload.type === "hit" && event
+      ? { ...task.payload, event }
+      : task.payload,
+  );
 }
 
 /**

@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { ritualistState } from "./state.js";
 import { EPSILON } from "../../../../platform/engine/clock.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { RITUALIST_MECHANICS as MECHANICS } from "./mechanics.js";
@@ -13,14 +13,15 @@ export function handleNecromancerPainfulBond(
   event: NecromancerResolverEvent,
 ): void {
   const definition = MECHANICS.painfulBond;
+  const state = ritualistState.from(context);
   if (event.mode === "apply") {
-    professionSpecializationState(context, "Ritualist").painfulBondUntil = Math.max(
-      Number(professionSpecializationState(context, "Ritualist").painfulBondUntil || 0),
+    state.painfulBondUntil = Math.max(
+      Number(state.painfulBondUntil || 0),
       event.at + Number(event.duration || definition.duration),
     );
-    if (!Number.isFinite(professionSpecializationState(context, "Ritualist").painfulBondPulseAnchorAt)) {
+    if (!Number.isFinite(state.painfulBondPulseAnchorAt)) {
       const firstPulseAt = event.at + Number(definition.firstPulseDelay || 0);
-      professionSpecializationState(context, "Ritualist").painfulBondPulseAnchorAt = firstPulseAt;
+      state.painfulBondPulseAnchorAt = firstPulseAt;
       enqueueOrdered(context.queue, {
         ...event,
         at: firstPulseAt,
@@ -31,7 +32,7 @@ export function handleNecromancerPainfulBond(
   }
   if (event.mode !== "tick") return;
 
-  if (event.at < Number(professionSpecializationState(context, "Ritualist").painfulBondUntil || 0) - EPSILON) {
+  if (event.at < Number(state.painfulBondUntil || 0) - EPSILON) {
     enqueueOrdered(context.queue, {
       type: "damage",
       at: event.at,
@@ -80,7 +81,7 @@ export function handleNecromancerWeaponSpell(
       nextAt: 0,
     };
   }
-  professionSpecializationState(context, "Ritualist").weaponSpells[event.spell] = {
+  ritualistState.from(context).weaponSpells[event.spell] = {
     skillId: event.skillId ?? undefined,
     skillName: event.skillName,
     appliedAt: event.at,

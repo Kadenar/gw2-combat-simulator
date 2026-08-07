@@ -81,7 +81,7 @@
           "remaining": 17000
         }
       },
-      "dpsWindow": 2.3199,
+      "dpsWindow": 1.8399,
       "duration": 3,
       "events": [
         {
@@ -128,10 +128,10 @@
           "__order": 2,
           "activationId": "summon-attack:3",
           "actorType": "summon",
-          "at": 0.6801,
+          "at": 1.1601,
           "blade": false,
           "cloneId": 1,
-          "coefficient": 0.7,
+          "coefficient": 0.5,
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
@@ -150,10 +150,10 @@
           "__order": 3,
           "activationId": "summon-attack:6",
           "actorType": "summon",
-          "at": 0.6802,
+          "at": 1.1602,
           "blade": false,
           "cloneId": 2,
-          "coefficient": 0.7,
+          "coefficient": 0.5,
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
@@ -172,10 +172,10 @@
           "__order": 4,
           "activationId": "summon-attack:9",
           "actorType": "summon",
-          "at": 1.3601,
+          "at": 2.7601,
           "blade": false,
           "cloneId": 1,
-          "coefficient": 0.7,
+          "coefficient": 0.5,
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
@@ -194,10 +194,10 @@
           "__order": 5,
           "activationId": "summon-attack:12",
           "actorType": "summon",
-          "at": 1.3602,
+          "at": 2.7602,
           "blade": false,
           "cloneId": 2,
-          "coefficient": 0.7,
+          "coefficient": 0.5,
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Flying Cutter",
@@ -214,94 +214,6 @@
         },
         {
           "__order": 6,
-          "activationId": "summon-attack:15",
-          "actorType": "summon",
-          "at": 2.0401000000000002,
-          "blade": false,
-          "cloneId": 1,
-          "coefficient": 0.7,
-          "hitIndex": 1,
-          "hits": 1,
-          "name": "Clone: Flying Cutter",
-          "schemaVersion": 1,
-          "skillId": "Clone: Flying Cutter",
-          "skillName": "Clone: Flying Cutter",
-          "skillWeapon": "Dagger",
-          "source": "Clone",
-          "sourceId": "Clone: Flying Cutter",
-          "totalHits": 1,
-          "type": "damage",
-          "weapon": "",
-          "weaponStrength": 26.5
-        },
-        {
-          "__order": 7,
-          "activationId": "summon-attack:18",
-          "actorType": "summon",
-          "at": 2.0402,
-          "blade": false,
-          "cloneId": 2,
-          "coefficient": 0.7,
-          "hitIndex": 1,
-          "hits": 1,
-          "name": "Clone: Flying Cutter",
-          "schemaVersion": 1,
-          "skillId": "Clone: Flying Cutter",
-          "skillName": "Clone: Flying Cutter",
-          "skillWeapon": "Dagger",
-          "source": "Clone",
-          "sourceId": "Clone: Flying Cutter",
-          "totalHits": 1,
-          "type": "damage",
-          "weapon": "",
-          "weaponStrength": 26.5
-        },
-        {
-          "__order": 8,
-          "activationId": "summon-attack:21",
-          "actorType": "summon",
-          "at": 2.7201000000000004,
-          "blade": false,
-          "cloneId": 1,
-          "coefficient": 0.7,
-          "hitIndex": 1,
-          "hits": 1,
-          "name": "Clone: Flying Cutter",
-          "schemaVersion": 1,
-          "skillId": "Clone: Flying Cutter",
-          "skillName": "Clone: Flying Cutter",
-          "skillWeapon": "Dagger",
-          "source": "Clone",
-          "sourceId": "Clone: Flying Cutter",
-          "totalHits": 1,
-          "type": "damage",
-          "weapon": "",
-          "weaponStrength": 26.5
-        },
-        {
-          "__order": 9,
-          "activationId": "summon-attack:24",
-          "actorType": "summon",
-          "at": 2.7202,
-          "blade": false,
-          "cloneId": 2,
-          "coefficient": 0.7,
-          "hitIndex": 1,
-          "hits": 1,
-          "name": "Clone: Flying Cutter",
-          "schemaVersion": 1,
-          "skillId": "Clone: Flying Cutter",
-          "skillName": "Clone: Flying Cutter",
-          "skillWeapon": "Dagger",
-          "source": "Clone",
-          "sourceId": "Clone: Flying Cutter",
-          "totalHits": 1,
-          "type": "damage",
-          "weapon": "",
-          "weaponStrength": 26.5
-        },
-        {
-          "__order": 10,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -319,7 +231,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 11,
+          "__order": 7,
           "amount": -2,
           "at": 3,
           "reason": "profession mechanic",
@@ -333,7 +245,7 @@
           "value": 0
         },
         {
-          "__order": 12,
+          "__order": 8,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -355,7 +267,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 13,
+          "__order": 9,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -377,7 +289,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 14,
+          "__order": 10,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -399,7 +311,7 @@
           "weaponStrengthProfileId": "nonweapon.profession-mechanic"
         },
         {
-          "__order": 15,
+          "__order": 11,
           "activationId": "cast:2",
           "at": 3,
           "detail": "2 clones spent",
@@ -442,10 +354,10 @@
           "__order": 2,
           "activationId": "summon-attack:3",
           "actorType": "summon",
-          "at": 0.6801,
+          "at": 1.1601,
           "blade": false,
           "cloneId": 1,
-          "coefficient": 0.7,
+          "coefficient": 0.5,
           "criticalChance": 0.6214285714285714,
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
@@ -469,10 +381,10 @@
           "__order": 3,
           "activationId": "summon-attack:6",
           "actorType": "summon",
-          "at": 0.6802,
+          "at": 1.1602,
           "blade": false,
           "cloneId": 2,
-          "coefficient": 0.7,
+          "coefficient": 0.5,
           "criticalChance": 0.6214285714285714,
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
@@ -496,10 +408,10 @@
           "__order": 4,
           "activationId": "summon-attack:9",
           "actorType": "summon",
-          "at": 1.3601,
+          "at": 2.7601,
           "blade": false,
           "cloneId": 1,
-          "coefficient": 0.7,
+          "coefficient": 0.5,
           "criticalChance": 0.6214285714285714,
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
@@ -523,64 +435,10 @@
           "__order": 5,
           "activationId": "summon-attack:12",
           "actorType": "summon",
-          "at": 1.3602,
+          "at": 2.7602,
           "blade": false,
           "cloneId": 2,
-          "coefficient": 0.7,
-          "criticalChance": 0.6214285714285714,
-          "criticalDamage": 2.4333333333333336,
-          "hitIndex": 1,
-          "hits": 1,
-          "name": "Clone: Flying Cutter",
-          "resolvedWeaponStrength": 26.5,
-          "schemaVersion": 1,
-          "skillId": "Clone: Flying Cutter",
-          "skillName": "Clone: Flying Cutter",
-          "skillWeapon": "Dagger",
-          "source": "Clone",
-          "sourceId": "Clone: Flying Cutter",
-          "totalHits": 1,
-          "type": "damage",
-          "weapon": "",
-          "weaponStrength": 26.5,
-          "weaponStrengthProfileId": "fixed",
-          "weaponStrengthSampled": false
-        },
-        {
-          "__order": 6,
-          "activationId": "summon-attack:15",
-          "actorType": "summon",
-          "at": 2.0401000000000002,
-          "blade": false,
-          "cloneId": 1,
-          "coefficient": 0.7,
-          "criticalChance": 0.6214285714285714,
-          "criticalDamage": 2.4333333333333336,
-          "hitIndex": 1,
-          "hits": 1,
-          "name": "Clone: Flying Cutter",
-          "resolvedWeaponStrength": 26.5,
-          "schemaVersion": 1,
-          "skillId": "Clone: Flying Cutter",
-          "skillName": "Clone: Flying Cutter",
-          "skillWeapon": "Dagger",
-          "source": "Clone",
-          "sourceId": "Clone: Flying Cutter",
-          "totalHits": 1,
-          "type": "damage",
-          "weapon": "",
-          "weaponStrength": 26.5,
-          "weaponStrengthProfileId": "fixed",
-          "weaponStrengthSampled": false
-        },
-        {
-          "__order": 7,
-          "activationId": "summon-attack:18",
-          "actorType": "summon",
-          "at": 2.0402,
-          "blade": false,
-          "cloneId": 2,
-          "coefficient": 0.7,
+          "coefficient": 0.5,
           "criticalChance": 0.6214285714285714,
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
@@ -602,60 +460,6 @@
         },
         {
           "__order": 8,
-          "activationId": "summon-attack:21",
-          "actorType": "summon",
-          "at": 2.7201000000000004,
-          "blade": false,
-          "cloneId": 1,
-          "coefficient": 0.7,
-          "criticalChance": 0.6214285714285714,
-          "criticalDamage": 2.4333333333333336,
-          "hitIndex": 1,
-          "hits": 1,
-          "name": "Clone: Flying Cutter",
-          "resolvedWeaponStrength": 26.5,
-          "schemaVersion": 1,
-          "skillId": "Clone: Flying Cutter",
-          "skillName": "Clone: Flying Cutter",
-          "skillWeapon": "Dagger",
-          "source": "Clone",
-          "sourceId": "Clone: Flying Cutter",
-          "totalHits": 1,
-          "type": "damage",
-          "weapon": "",
-          "weaponStrength": 26.5,
-          "weaponStrengthProfileId": "fixed",
-          "weaponStrengthSampled": false
-        },
-        {
-          "__order": 9,
-          "activationId": "summon-attack:24",
-          "actorType": "summon",
-          "at": 2.7202,
-          "blade": false,
-          "cloneId": 2,
-          "coefficient": 0.7,
-          "criticalChance": 0.6214285714285714,
-          "criticalDamage": 2.4333333333333336,
-          "hitIndex": 1,
-          "hits": 1,
-          "name": "Clone: Flying Cutter",
-          "resolvedWeaponStrength": 26.5,
-          "schemaVersion": 1,
-          "skillId": "Clone: Flying Cutter",
-          "skillName": "Clone: Flying Cutter",
-          "skillWeapon": "Dagger",
-          "source": "Clone",
-          "sourceId": "Clone: Flying Cutter",
-          "totalHits": 1,
-          "type": "damage",
-          "weapon": "",
-          "weaponStrength": 26.5,
-          "weaponStrengthProfileId": "fixed",
-          "weaponStrengthSampled": false
-        },
-        {
-          "__order": 12,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -681,7 +485,7 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 13,
+          "__order": 9,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -707,7 +511,7 @@
           "weaponStrengthSampled": false
         },
         {
-          "__order": 14,
+          "__order": 10,
           "activationId": "cast:2",
           "actorType": "player",
           "at": 3,
@@ -763,7 +567,7 @@
     },
     "damage": {
       "conditionDamage": 0,
-      "dps": 4832.720592554814,
+      "dps": 5951.939215886358,
       "events": [
         {},
         {
@@ -781,36 +585,20 @@
         {},
         {},
         {},
-        {},
-        {},
-        {},
-        {},
         {}
       ],
       "resolvedEvents": [
         {
-          "damage": 50.64413265306123
+          "damage": 36.17438046647231
         },
         {
-          "damage": 50.64413265306123
+          "damage": 36.17438046647231
         },
         {
-          "damage": 50.64413265306123
+          "damage": 36.17438046647231
         },
         {
-          "damage": 50.64413265306123
-        },
-        {
-          "damage": 50.64413265306123
-        },
-        {
-          "damage": 50.64413265306123
-        },
-        {
-          "damage": 50.64413265306123
-        },
-        {
-          "damage": 50.64413265306123
+          "damage": 36.17438046647231
         },
         {
           "damage": 3602.0918138144743
@@ -827,8 +615,8 @@
         {},
         {}
       ],
-      "strikeDamage": 11211.428502667914,
-      "totalDamage": 11211.428502667914
+      "strikeDamage": 10950.972963309312,
+      "totalDamage": 10950.972963309312
     }
   }
 }

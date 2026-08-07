@@ -1,6 +1,10 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { GuardianFirebrandState } from "../../types.js";
-import { guardianModuleCatalog } from "../../catalog.js";
+import {
+  defineNativeModule,
+  onBuffApplied,
+  onResolvedDamage,
+  skillAvailability,
+} from "../../../../platform/gw2/native-profession.js";
+import { createGuardianModuleData } from "../../catalog-data.js";
 import {
   firebrandEventHandlers,
   firebrandEventReactions,
@@ -11,26 +15,32 @@ import {
   firebrandCastRules,
   firebrandSchedulerHooks,
 } from "./rules.js";
-import { createFirebrandState } from "./state.js";
+import { FIREBRAND_SKILL_MECHANICS } from "./skills.js";
+import { firebrandState } from "./state.js";
 import { firebrandUi } from "./ui.js";
 
-export const firebrandModule =
-  defineProfessionModule<GuardianFirebrandState>({
+export const firebrandModule = defineNativeModule({
   id: "Firebrand",
-  catalog: {
-    ...guardianModuleCatalog("Firebrand"),
-    skillHandlers: firebrandSkillHandlers,
+  data: createGuardianModuleData("Firebrand", {
+    skillMechanics: FIREBRAND_SKILL_MECHANICS,
+    handlers: firebrandSkillHandlers,
+  }),
+  state: {
+    scheduler: firebrandState.create,
+    resolver: firebrandState.create,
   },
-  resources: {
-    createProfessionState: createFirebrandState,
-    createResolverState: createFirebrandState,
+  mechanics: {
+    modifiers: firebrandAttributeRules,
+    availability: firebrandCastRules.availability.map(skillAvailability),
+    castRules: { validateCast: firebrandCastRules.validateCast },
+    schedulerHooks: firebrandSchedulerHooks,
+    reactions: [
+      ...firebrandEventReactions.damage.map(onResolvedDamage),
+      ...firebrandEventReactions.buff.map(onBuffApplied),
+    ],
+    resolverHooks: {
+      eventHandlers: firebrandEventHandlers,
+    },
   },
-  attributeRules: firebrandAttributeRules,
-  castRules: firebrandCastRules,
-  schedulerHooks: firebrandSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: firebrandEventHandlers,
-    eventReactions: firebrandEventReactions,
-  },
-  ui: firebrandUi,
-  });
+  presentation: firebrandUi,
+});

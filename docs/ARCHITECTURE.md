@@ -65,12 +65,57 @@ builds.
 - A profession may import engine and shared GW2 modules.
 - `app` is the composition root and may import every layer.
 
-`tests/platform-architecture.test.js` enforces these rules and rejects
+`tests/platform/platform-architecture.test.js` enforces these rules and rejects
 profession terminology inside the platform tree.
 
 ## Declarative profession mechanics layout
 
-Every native profession uses the same module roles:
+Engineer, Guardian, Mesmer, Necromancer, Revenant, and Thief use the typed
+authoring layer in `platform/gw2/native-profession.ts`. Elementalist is not part
+of this architecture. A native module is a vertical slice with four explicit
+sections:
+
+- `data` owns generated identities, skill mechanics and overrides, extra
+  skills, traits, specialization metadata, handlers, weapon hands, and chain
+  exceptions;
+- `state.scheduler` creates scheduler state, optional `state.resolver` creates
+  distinct resolver state, and optional `state.project` defines the public
+  end-state projection;
+- `mechanics` owns modifiers, availability, cast lifecycle declarations, and
+  resolved-event reactions; and
+- `presentation` owns UI contributions. It may be a catalog-aware factory when
+  labels or palettes require the complete application catalog.
+
+`defineNativeModule()` retains each module's literal ID and inferred state
+type. `defineNativeProfession()` requires Core first, infers the active-state
+union and specialization IDs, and compiles to the existing engine
+`defineProfessionFamily()` contract. The engine contract remains the execution
+boundary; the native layer is authoring syntax, validation, and assembly.
+
+Catalog ownership is module-first. `createNativeModuleData()` selects generated
+metadata for one semantic owner and combines it with locally authored
+mechanics. `assembleNativeApplicationCatalog()` derives the complete editor and
+build catalog from all modules. Runtime catalog fragments are derived from the
+same contributions and contain Core plus only the selected specialization.
+There is no second ownership table to synchronize. Duplicate IDs, handlers,
+weapon hands, invalid specialization-only IDs, unused handlers, and handlers
+owned by the wrong runtime slice fail during assembly. Weapon skills default to
+Core runtime ownership for Weaponmaster-style access; a module may explicitly
+declare exceptions in `specializationOnlySkillIds`.
+
+The normal author workflow is:
+
+1. Author raw mechanics and feature behavior in the owning Core or elite
+   directory.
+2. Build the slice's `data` with `createNativeModuleData()` and declare state,
+   mechanics, and presentation with `defineNativeModule()`.
+3. Add the module to the profession's Core-first tuple in `modules.ts`.
+4. Export `assembleNativeApplicationCatalog(modules, options)` through the
+   stable root `catalog.ts`; do not hand-build runtime fragments.
+5. Keep browser persistence and rendering composition in
+   `app/app-definition`, separate from the engine-facing family definition.
+
+Every native profession otherwise uses the same source roles:
 
 - `data/<profession>-api-metadata.js` is generated presentation and identity
   metadata. It is never a source of coefficients or damaging conditions.
@@ -85,12 +130,14 @@ Every native profession uses the same module roles:
   remain only as inert composition for the complete application catalog.
 - Triggered effects and state machines live in owner-local `mechanics.js`
   files; families do not use mixed profession-wide runtime aggregates.
-- `catalog.js` derives and indexes autoattack chains, with profession-specific
-  additions or exclusions supplied as catalog options.
-- `handlers.js`, when needed, registers explicit `augment` or `replace`
-  strategies for behavior that cannot be represented by declarative effects.
-  Family runtime modules use their local registry; a root registry may remain
-  only as an inert application-catalog facade.
+- `catalog-data.js` owns inert profession-wide generated metadata and catalog
+  options used by module data selectors.
+- `catalog.js` is a stable application-facing export of the catalog assembled
+  from modules. Runtime modules do not import it.
+- owner-local `handlers.js`, when needed, registers `augmentSkill()` or
+  `replaceSkill()` strategies for behavior that cannot be represented by
+  declarative effects. Root handler aggregates are unnecessary because the
+  application catalog is assembled from module contributions.
 
 Profession-specific state machines remain in named feature modules beside
 these boundaries. Skill entries reference those handlers explicitly.
@@ -152,9 +199,10 @@ resolver event reactions accept
 ties deterministically.
 
 Engineer, Guardian, Mesmer, Necromancer, Revenant, and Thief use
-`defineProfessionFamily()` and `defineProfessionModule()`. A family is an
-application contract: it exposes identity, the complete catalog, build codec,
-normalized application UI, optional simulation refinement, and
+`defineNativeProfession()` and `defineNativeModule()`, which compile to the
+engine's `defineProfessionFamily()` and `defineProfessionModule()` boundary. A
+family is an application contract: it exposes identity, the complete catalog,
+build codec, normalized application UI, optional simulation refinement, and
 `resolveRuntime(config)`. It does not expose runtime handlers, hooks, rules, or
 mutable state. `resolveRuntime(config)` returns the cached executable contract
 containing Core plus only the selected elite module.
@@ -200,6 +248,32 @@ outgoing additive-damage bucket rebuild; profession modules own predicates and
 runtime state. Ordered attribute conversions remain narrow imperative hooks.
 Elementalist is excluded until its resolver path adopts the shared GW2
 profession hooks.
+
+## Phase-explicit native helpers
+
+Native helpers name the execution phase in which behavior runs:
+
+- scheduler: `skillAvailability()` and `afterSkillEffects()`;
+- resolver: `onResolvedDamage()`, `onResolvedControl()`,
+  and `onResolvedBlind()`;
+- resolved critical procs: `onResolvedPlayerCriticalHit()` consumes the
+  canonical hit result in stochastic mode and accumulates expected probability
+  in deterministic mode; and
+- skill handlers: `augmentSkill()` observes or decorates declarative effects,
+  while `replaceSkill()` owns a skill whose declarative effects are empty.
+
+All ordered helpers require stable IDs and accept explicit order values. They
+compile into existing scheduler cast rules/hooks or resolver reactions; they do
+not merge the scheduling and resolution phases.
+
+The higher-level helpers intentionally cover only recurring, order-sensitive
+mechanics. Raw `mechanics.castRules`, `mechanics.schedulerHooks`, and
+`mechanics.resolverHooks` remain escape hatches for typed tasks, custom event
+types, complex cooldown/ammo policy, multi-event state machines, and existing
+hook bundles that do not become clearer when split. Raw modifier hook bundles
+are also supported beside typed modifier-rule arrays. Escape hatches must stay
+owner-local and must not import inactive
+specialization behavior.
 
 Shared scheduler state is limited to time, cooldowns, ammo, weapon set, skill
 uses, pending events, and `profession`. For families, Core resources live under
@@ -460,10 +534,11 @@ documentation must not maintain a separate profession count.
 
 ## Adding another profession
 
-1. Add `js/professions/<id>/` with a complete application catalog and build
-   codec, a Core module, owner-local elite modules, and a
-   `defineProfessionFamily()` composition. Use `defineProfession()` only for a
-   profession that intentionally has no family split.
+1. Add `js/professions/<id>/` with a build codec, a Core module, owner-local
+   elite modules, and a Core-first `defineNativeProfession()` composition.
+   Each module contributes its own catalog data; export
+   `assembleNativeApplicationCatalog(modules)` through the stable root catalog.
+   Use `defineProfession()` only for an intentionally standalone architecture.
 2. Register stable skill/trait IDs, namespaced custom event handlers, and only
    the standard event reactions the profession needs.
    Declare exact hand availability in `weaponHands` and register callable
@@ -477,9 +552,9 @@ documentation must not maintain a separate profession count.
 5. Run `npm test` and `npm run check`.
 
 No engine, GW2, or shared UI branch should be needed. New professions should
-use `platform/engine` scheduler state/cooldowns and the `platform/gw2`
-scheduler event factory and resolver. If a new rule is truly shared by
-multiple professions, add it to `platform/gw2`; otherwise keep it in the
+use the `platform/engine` scheduler, canonical effects, shared effect
+materializer, and the `platform/gw2` resolver. If a new rule is truly shared
+by multiple professions, add it to `platform/gw2`; otherwise keep it in the
 profession module as a scheduler mechanic or resolver reaction.
 
 Elementalist currently remains `standalone`. Its eventual shared-engine

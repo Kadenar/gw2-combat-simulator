@@ -1,7 +1,7 @@
 import {
-  augmentSkillHandler,
-  replaceSkillHandler,
-} from "../../../../platform/engine/skill-handlers.js";
+  augmentSkill,
+  replaceSkill,
+} from "../../../../platform/gw2/native-profession.js";
 import {
   guardianRadiantForgeEventHandlers,
   guardianRadiantForgeSkillHandlers,
@@ -14,15 +14,15 @@ import {
 } from "./traits.js";
 
 export const luminarySkillHandlers = Object.freeze({
-  "guardian.radiant-forge": replaceSkillHandler(
-    guardianRadiantForgeSkillHandlers["guardian.radiant-forge"],
-  ),
-  "guardian.radiant-weapon": augmentSkillHandler(
-    guardianRadiantForgeSkillHandlers["guardian.radiant-weapon"],
-  ),
-  "guardian.glaring-burst": replaceSkillHandler(
-    guardianRadiantForgeSkillHandlers["guardian.glaring-burst"],
-  ),
+  "guardian.radiant-forge": replaceSkill({
+    beforeEffects: guardianRadiantForgeSkillHandlers["guardian.radiant-forge"],
+  }),
+  "guardian.radiant-weapon": augmentSkill({
+    beforeEffects: guardianRadiantForgeSkillHandlers["guardian.radiant-weapon"],
+  }),
+  "guardian.glaring-burst": replaceSkill({
+    beforeEffects: guardianRadiantForgeSkillHandlers["guardian.glaring-burst"],
+  }),
 });
 
 export const luminaryEventHandlers = Object.freeze({

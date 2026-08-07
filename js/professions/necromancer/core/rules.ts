@@ -240,7 +240,13 @@ export function modifyNecromancerCoreAttributes(
   }
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
     result.power +=
-      Number(context.timeline?.mightStacksAt(context.time) || 0) * 10;
+      Number(
+        context.query?.mightStacksAt(
+          context.time,
+          context.runtime,
+          context.event,
+        ) || 0,
+      ) * 10;
   }
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)) {

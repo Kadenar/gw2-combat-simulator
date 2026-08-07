@@ -1,7 +1,6 @@
 import { EPSILON } from "../../engine/clock.js";
 import { createEventQueue } from "../../engine/event-queue.js";
 import { assertScheduledEventStream as assertPlatformStream } from "../../engine/scheduled-event-stream.js";
-import { recordPassiveRelicTimeline } from "../relic-rules.js";
 import {
   createGw2ResolverHandlerRegistry,
   runGw2ResolverEventLoop,
@@ -20,90 +19,47 @@ interface Gw2ResolverHandoff {
   readonly combatStartTime?: number | null;
 }
 
+interface CastCount {
+  readonly name: string;
+  count: number;
+}
+
 function addCastsToBreakdown(
   ctx: Gw2ResolverRuntime,
   events: readonly Gw2ResolverEvent[],
   effectiveEnd: number,
-): Map<string, number> {
-  const casts = new Map<string, number>();
+): Map<string, CastCount> {
+  const countsById = new Map<string, number>();
+  const output = new Map<string, CastCount>();
   for (const event of events) {
     if (event.type !== "action" || event.at > effectiveEnd + EPSILON) continue;
+    const id = String(event.skillId ?? event.sourceId);
     const name = event.name || event.skillName || String(event.sourceId);
-    casts.set(name, (casts.get(name) || 0) + 1);
+    countsById.set(id, (countsById.get(id) || 0) + 1);
+    const row = output.get(name);
+    if (row) row.count += 1;
+    else output.set(name, { name, count: 1 });
   }
+  // Match each breakdown row to its caster by stable id (breakdown keys already
+  // carry skillId/sourceId). The display-name fallback covers effect/summon
+  // rows whose events have no catalog skill id.
   for (const entry of ctx.breakdown.values()) {
-    const sourceSkill = entry.sourceSkill || entry.name;
+    const identityId = String(entry.skillId ?? entry.sourceId);
     entry.casts =
-      casts.get(sourceSkill) ||
-      casts.get(entry.name) ||
-      casts.get(entry.name.split(" — ")[0]) ||
-      0;
+      countsById.get(identityId) ?? output.get(entry.name)?.count ?? 0;
   }
-  return casts;
+  return output;
 }
 
 /**
- * Resolves a scheduled GW2 event stream using common handlers plus exclusive
- * profession-owned custom handlers.
+ * Shapes the resolver result from drained runtime state: DPS window, sorted
+ * breakdowns, effective-window event/proc filtering, and cast counts.
  */
-export function resolveGw2Timeline({
-  stream,
-  config,
-  traits,
-  query,
-  helpers,
-  createRuntimeState,
-  commonHandlers,
-  professionHandlers = {},
-  professionState = {},
-  eventFilterState = {},
-  shouldSkipEvent,
-}: ResolveGw2TimelineOptions): Gw2ResolverResult {
-  if (typeof createRuntimeState !== "function") {
-    throw new TypeError("GW2 timeline resolver requires createRuntimeState.");
-  }
-  const scheduled = assertPlatformStream(stream);
-  const queue = createEventQueue(
-    scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent),
-  );
-  const handoff = scheduled.resolverHandoff as Readonly<Gw2ResolverHandoff>;
-  const ctx = createRuntimeState({
-    config,
-    traits,
-    horizon: scheduled.rotationEndTime,
-    query,
-    helpers,
-    queue,
-    professionState,
-    eventFilterState,
-    warnings: [...(handoff.warnings || [])],
-  });
-  if (handoff.hasExplicitCombatStart) {
-    ctx.combatStartTime = handoff.combatStartTime;
-  }
-
-  recordPassiveRelicTimeline(ctx, scheduled.events, scheduled.rotationEndTime);
-
-  for (const event of scheduled.events) {
-    if (event.type === "proc") {
-      ctx.recordProc(
-        event.procType || "proc",
-        event.name || String(event.sourceId),
-        event.at,
-        event.sourceSkill,
-        event.detail,
-        event.icon,
-        event.cooldownReduction,
-      );
-    }
-  }
-
-  const registry = createGw2ResolverHandlerRegistry({
-    commonHandlers,
-    professionHandlers,
-  });
-  runGw2ResolverEventLoop(ctx, registry, { shouldSkipEvent });
-
+function buildResolverResult(
+  ctx: Gw2ResolverRuntime,
+  scheduled: ReturnType<typeof assertPlatformStream>,
+  handoff: Readonly<Gw2ResolverHandoff>,
+): Gw2ResolverResult {
   const totalDamage = ctx.totals.strike + ctx.totals.condition;
   const effectiveEnd = ctx.deathTime ?? scheduled.rotationEndTime;
   const effectiveEvents = scheduled.events.filter(
@@ -149,8 +105,8 @@ export function resolveGw2Timeline({
       .filter((step) => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
       .sort((left, right) => left.start - right.start),
     warnings: [...new Set(ctx.warnings)],
-    casts: [...casts.entries()]
-      .map(([name, count]) => ({ name, count }))
+    casts: [...casts.values()]
+      .map(({ name, count }) => ({ name, count }))
       .sort((left, right) => right.count - left.count),
     randomness: {
       mode: ctx.random.mode,
@@ -158,4 +114,70 @@ export function resolveGw2Timeline({
     },
     profession: ctx.profession,
   };
+}
+
+/**
+ * Resolves a scheduled GW2 event stream using common handlers plus exclusive
+ * profession-owned custom handlers.
+ */
+export function resolveGw2Timeline({
+  stream,
+  config,
+  traits,
+  query,
+  helpers,
+  createRuntimeState,
+  commonHandlers,
+  beforeResolveTimeline,
+  professionHandlers = {},
+  professionState = {},
+  eventFilterState = {},
+  shouldSkipEvent,
+}: ResolveGw2TimelineOptions): Gw2ResolverResult {
+  if (typeof createRuntimeState !== "function") {
+    throw new TypeError("GW2 timeline resolver requires createRuntimeState.");
+  }
+  const scheduled = assertPlatformStream(stream);
+  const queue = createEventQueue(
+    scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent),
+  );
+  const handoff = scheduled.resolverHandoff as Readonly<Gw2ResolverHandoff>;
+  const ctx = createRuntimeState({
+    config,
+    traits,
+    horizon: scheduled.rotationEndTime,
+    query,
+    helpers,
+    queue,
+    professionState,
+    eventFilterState,
+    warnings: [...(handoff.warnings || [])],
+  });
+  if (handoff.hasExplicitCombatStart) {
+    ctx.combatStartTime = handoff.combatStartTime;
+  }
+
+  beforeResolveTimeline(ctx, scheduled.events, scheduled.rotationEndTime);
+
+  for (const event of scheduled.events) {
+    if (event.type === "proc") {
+      ctx.recordProc(
+        event.procType || "proc",
+        event.name || String(event.sourceId),
+        event.at,
+        event.sourceSkill,
+        event.detail,
+        event.icon,
+        event.cooldownReduction,
+      );
+    }
+  }
+
+  const registry = createGw2ResolverHandlerRegistry({
+    commonHandlers,
+    professionHandlers,
+  });
+  runGw2ResolverEventLoop(ctx, registry, { shouldSkipEvent });
+
+  return buildResolverResult(ctx, scheduled, handoff);
 }

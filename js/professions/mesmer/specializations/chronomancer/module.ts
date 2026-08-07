@@ -1,31 +1,41 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { mesmerModuleCatalog } from "../../catalog.js";
-import { chronomancerSkillHandlers } from "./handlers.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createMesmerModuleData } from "../../catalog-data.js";
 import {
   chronomancerAttributeRules,
   chronomancerCastRules,
   chronomancerRuntimeHooks,
 } from "./rules.js";
-import {
-  createChronomancerResolverState,
-  createChronomancerState,
-} from "./state.js";
+import { createChronomancerResolverState, chronomancerState } from "./state.js";
 import { chronomancerUi } from "./ui.js";
-import type { MesmerChronomancerState } from "../../types.js";
+import {
+  MESMER_CHRONOMANCER_EXTRA_SKILLS,
+  MESMER_CHRONOMANCER_SKILL_MECHANICS,
+  MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
+} from "./skills.js";
+import { chronomancerSkillHandlers } from "./handlers.js";
 
-export const chronomancerModule =
-  defineProfessionModule<MesmerChronomancerState>({
+const chronomancerEventHandlers = Object.freeze({
+  "mesmer.phantasm-resummoned": (): void => {},
+});
+
+export const chronomancerModule = defineNativeModule({
   id: "Chronomancer",
-  catalog: {
-    ...mesmerModuleCatalog("Chronomancer"),
-    skillHandlers: chronomancerSkillHandlers,
+  data: createMesmerModuleData("Chronomancer", {
+    skillMechanics: MESMER_CHRONOMANCER_SKILL_MECHANICS,
+    supplementalSkillMechanics:
+      MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
+    extraSkills: MESMER_CHRONOMANCER_EXTRA_SKILLS,
+    handlers: chronomancerSkillHandlers,
+  }),
+  state: {
+    scheduler: chronomancerState.create,
+    resolver: createChronomancerResolverState,
   },
-  resources: {
-    createProfessionState: createChronomancerState,
-    createResolverState: createChronomancerResolverState,
+  mechanics: {
+    modifiers: chronomancerAttributeRules,
+    castRules: chronomancerCastRules,
+    schedulerHooks: chronomancerRuntimeHooks,
+    resolverHooks: { eventHandlers: chronomancerEventHandlers },
   },
-  attributeRules: chronomancerAttributeRules,
-  castRules: chronomancerCastRules,
-  schedulerHooks: chronomancerRuntimeHooks,
-  ui: chronomancerUi,
-  });
+  presentation: chronomancerUi,
+});

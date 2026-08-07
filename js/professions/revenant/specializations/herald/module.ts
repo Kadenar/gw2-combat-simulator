@@ -1,8 +1,7 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { revenantModuleCatalog } from "../../catalog.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createRevenantModuleData } from "../../catalog-data.js";
 import {
   heraldEventHandlers,
-  heraldEventReactions,
   heraldSkillHandlers,
 } from "./handlers.js";
 import {
@@ -10,26 +9,24 @@ import {
   heraldCastRules,
   heraldSchedulerHooks,
 } from "./rules.js";
-import { createHeraldState } from "./state.js";
+import { heraldState } from "./state.js";
 import { heraldUi } from "./ui.js";
-import type { HeraldState } from "../../types.js";
+import { HERALD_BASE_SKILL_MECHANICS } from "./skills.js";
 
-export const heraldModule = defineProfessionModule<HeraldState>({
+export const heraldModule = defineNativeModule({
   id: "Herald",
-  catalog: {
-    ...revenantModuleCatalog("Herald"),
-    skillHandlers: heraldSkillHandlers,
+  data: createRevenantModuleData("Herald", {
+    skillMechanics: HERALD_BASE_SKILL_MECHANICS,
+    handlers: heraldSkillHandlers,
+  }),
+  state: { scheduler: heraldState.create, resolver: heraldState.create },
+  mechanics: {
+    modifiers: heraldAttributeRules,
+    castRules: heraldCastRules,
+    schedulerHooks: heraldSchedulerHooks,
+    resolverHooks: {
+      eventHandlers: heraldEventHandlers,
+    },
   },
-  resources: {
-    createProfessionState: createHeraldState,
-    createResolverState: createHeraldState,
-  },
-  attributeRules: heraldAttributeRules,
-  castRules: heraldCastRules,
-  schedulerHooks: heraldSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: heraldEventHandlers,
-    eventReactions: heraldEventReactions,
-  },
-  ui: heraldUi,
+  presentation: heraldUi,
 });

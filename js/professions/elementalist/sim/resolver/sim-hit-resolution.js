@@ -1,4 +1,5 @@
 import { expectedCritMultiplier } from '../../../../platform/gw2/damage.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '../../../../platform/gw2/runtime-rules.js';
 import { getEvokerState } from '../state/sim-specialization-state.js';
 import { getActiveConditionStacks } from '../state/sim-runtime-state.js';
 import { applyRuntimeAction } from '../shared/sim-deferred-runtime-actions.js';
@@ -97,7 +98,9 @@ function buildPowerAndCritContext(ctx, ev, {
     const conjurePrec = ev.conjure === 'Lightning Hammer' ? 180 / 21 : 0;
 
     const hitCondDmg = condDmg + conjureCondDmgBonus;
-    const power = basePower + might * 30 + empFlame + powOvr + polyPow + empPow + conjurePow;
+    const power = basePower
+        + might * MIGHT_ATTRIBUTE_BONUS_PER_STACK
+        + empFlame + powOvr + polyPow + empPow + conjurePow;
 
     const fury = skipFury ? false : ctx.hasFuryAt(ev.time);
     const ragingFerocity = (S._hasRagingStorm && fury) ? 12 : 0;

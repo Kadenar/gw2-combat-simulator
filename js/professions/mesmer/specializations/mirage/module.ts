@@ -1,6 +1,5 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { mesmerModuleCatalog } from "../../catalog.js";
-import { mirageSkillHandlers } from "./handlers.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createMesmerModuleData } from "../../catalog-data.js";
 import {
   mirageAttributeRules,
   mirageCastRules,
@@ -8,23 +7,32 @@ import {
 } from "./rules.js";
 import {
   createMirageResolverState,
-  createMirageState,
+  mirageState,
 } from "./state.js";
 import { mirageUi } from "./ui.js";
-import type { MesmerMirageState } from "../../types.js";
+import {
+  MESMER_MIRAGE_EXTRA_SKILLS,
+  MESMER_MIRAGE_SKILL_MECHANICS,
+  MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS,
+} from "./skills.js";
+import { mirageSkillHandlers } from "./handlers.js";
 
-export const mirageModule = defineProfessionModule<MesmerMirageState>({
+export const mirageModule = defineNativeModule({
   id: "Mirage",
-  catalog: {
-    ...mesmerModuleCatalog("Mirage"),
-    skillHandlers: mirageSkillHandlers,
+  data: createMesmerModuleData("Mirage", {
+    skillMechanics: MESMER_MIRAGE_SKILL_MECHANICS,
+    supplementalSkillMechanics: MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS,
+    extraSkills: MESMER_MIRAGE_EXTRA_SKILLS,
+    handlers: mirageSkillHandlers,
+  }),
+  state: {
+    scheduler: mirageState.create,
+    resolver: createMirageResolverState,
   },
-  resources: {
-    createProfessionState: createMirageState,
-    createResolverState: createMirageResolverState,
+  mechanics: {
+    modifiers: mirageAttributeRules,
+    castRules: mirageCastRules,
+    schedulerHooks: mirageSchedulerHooks,
   },
-  attributeRules: mirageAttributeRules,
-  castRules: mirageCastRules,
-  schedulerHooks: mirageSchedulerHooks,
-  ui: mirageUi,
+  presentation: mirageUi,
 });

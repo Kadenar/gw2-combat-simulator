@@ -1,33 +1,33 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { engineerModuleCatalog } from "../../catalog.js";
+import {
+  defineNativeModule,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
+import { createEngineerModuleData } from "../../catalog-data.js";
 import {
   amalgamEventReactions,
   amalgamSchedulerHooks,
   amalgamSkillHandlers,
 } from "./handlers.js";
-import {
-  amalgamAttributeRules,
-  amalgamCastRules,
-} from "./rules.js";
-import { createAmalgamState } from "./state.js";
-import { amalgamUi } from "./ui.js";
-import type { AmalgamState } from "../../types.js";
+import { amalgamAttributeRules, amalgamCastRules } from "./rules.js";
+import { AMALGAM_SKILL_MECHANICS } from "./skills.js";
+import { amalgamState } from "./state.js";
+import { bindAmalgamUi } from "./ui.js";
 
-export const amalgamModule = defineProfessionModule<AmalgamState>({
+export const amalgamModule = defineNativeModule({
   id: "Amalgam",
-  catalog: {
-    ...engineerModuleCatalog("Amalgam"),
-    skillHandlers: amalgamSkillHandlers,
+  data: createEngineerModuleData("Amalgam", {
+    skillMechanics: AMALGAM_SKILL_MECHANICS,
+    handlers: amalgamSkillHandlers,
+  }),
+  state: { scheduler: amalgamState.create, resolver: amalgamState.create },
+  mechanics: {
+    modifiers: amalgamAttributeRules,
+    castRules: amalgamCastRules,
+    schedulerHooks: amalgamSchedulerHooks,
+    reactions: [onResolvedDamage({
+      id: "engineer.amalgam.damage",
+      handler: amalgamEventReactions.damage,
+    })],
   },
-  resources: {
-    createProfessionState: createAmalgamState,
-    createResolverState: createAmalgamState,
-  },
-  attributeRules: amalgamAttributeRules,
-  castRules: amalgamCastRules,
-  schedulerHooks: amalgamSchedulerHooks,
-  resolverHooks: {
-    eventReactions: amalgamEventReactions,
-  },
-  ui: amalgamUi,
+  presentation: bindAmalgamUi,
 });

@@ -44,11 +44,12 @@ Engineer, Guardian, Mesmer, Necromancer, Revenant, and Thief share the family
 boundary. `core/` owns always-active behavior;
 `specializations/<elite>/` owns each elite vertical slice. A slice normally
 contains `module`, `state`, `skills`, `handlers`, `mechanics`, `rules`, and
-`ui`. `family` imports only the complete catalog, build behavior, Core, the
-elite roster, optional application callbacks, and optional simulation
-refinement. `platform/engine/profession.ts` owns catalog and hook composition,
-collision validation, cached runtime resolution, and generic application UI
-dispatch.
+`ui`. `modules` owns the single Core-first module tuple; `family` passes it to
+`defineNativeProfession()`. The full application catalog and active runtime
+fragments are derived from those modules. `platform/gw2/native-profession.ts`
+owns the typed authoring API and catalog derivation, while
+`platform/engine/profession.ts` remains responsible for hook composition,
+cached runtime resolution, and generic application UI dispatch.
 
 ### Profession composition (`js/app/profession/`)
 
@@ -157,8 +158,9 @@ each profession's `app/` directory.
 Static Guild Wars 2 game data and lookups live with their owning layer.
 
 - Generated profession API metadata lives in each profession's
-  `data/<profession>-api-metadata.js`; authoritative skill formulas live in
-  `mechanics/skill-mechanics.js`.
+  `data/<profession>-api-metadata.js`; authoritative formulas live in
+  owner-local Core or elite `skills.js`. A root
+  `mechanics/skill-mechanics.js` is an inert compatibility aggregate only.
 - [Shared gear data](js/platform/gw2/gear-data.js) contains equipment,
   consumable, infusion, weapon, sigil, rune, and relic lookups.
 - [weapon-strength.js](js/platform/gw2/weapon-strength.js) owns canonical
@@ -171,6 +173,35 @@ Static Guild Wars 2 game data and lookups live with their owning layer.
 ## Shared GW2 Mechanics (`js/platform/gw2/`)
 
 Attribute calculations and damage formulas.
+
+### [native-profession.ts](js/platform/gw2/native-profession.ts)
+
+Strongly typed native-profession authoring layer. `defineNativeModule()` groups
+one vertical slice as `data`, `state`, `mechanics`, and `presentation` while
+retaining its literal ID and inferred scheduler/resolver state.
+`defineNativeProfession()` requires a Core-first module tuple and derives the
+specialization union before compiling to the existing engine family contract.
+
+`createNativeModuleData()` selects generated identity metadata for one module
+and combines it with locally owned mechanics, handlers, traits, weapons, and
+chains. `assembleNativeApplicationCatalog()` derives the complete build/editor
+catalog. The same assembly derives Core-plus-active-specialization runtime
+catalogs and validates collisions and handler ownership. Root `catalog.js`
+files remain stable exports; modules never import them, which avoids a
+catalog-to-module cycle.
+
+Recurring mechanics use phase-explicit helpers. Scheduler helpers are
+`skillAvailability()` and `afterSkillEffects()`. Resolver helpers are
+`onResolvedDamage()`, `onResolvedControl()`, `onResolvedBlind()`, and the
+deterministic/stochastic `onResolvedPlayerCriticalHit()`. `augmentSkill()` and
+`replaceSkill()` cover the usual handler declarations; modifier-rule arrays
+are already strongly typed and need no wrapper.
+
+Complex typed tasks, custom resolver events, unusual cast policies, and
+existing multi-hook state machines may use the low-level
+`mechanics.schedulerHooks`, `mechanics.resolverHooks`, `mechanics.castRules`,
+or imperative modifier bundle escape hatches. Those hooks remain scheduler- or
+resolver-specific; the two phases never share live mutable state.
 
 ### [build-codec.js](js/platform/gw2/build-codec.js)
 Factory for the common native-profession build persistence contract.
@@ -255,6 +286,8 @@ critical traits, and Bloodsong.
 - [effect-factories.js](js/platform/engine/effect-factories.js) — shared
   declarative strike, condition, timeline, control, and custom-effect
   constructors.
+- [effect-materializer.js](js/platform/engine/effect-materializer.js) — shared
+  expansion of canonical effects into damage, condition, and status events.
 - [skill-factories.js](js/platform/engine/skill-factories.js) — shared
   canonical skill-mechanic constructors.
 - [autoattack-chains.js](js/platform/engine/autoattack-chains.js) — shared
@@ -263,7 +296,6 @@ critical traits, and Bloodsong.
 - [cooldown-controller.js](js/platform/engine/cooldown-controller.js) — shared cooldown and ammo state machine.
 - [GW2 scheduler policy](js/platform/gw2/scheduler/policy.js) — Quickness,
   Alacrity, and starting-weapon-set policy injected into the neutral scheduler.
-- [event-factory.js](js/platform/gw2/scheduler/event-factory.js) — canonical GW2 scheduler events.
 - Owner-local Core and elite `rules.js` modules supply availability,
   lifecycle hooks, task handlers, and end-state projection.
 
@@ -292,25 +324,27 @@ critical traits, and Bloodsong.
 
 Every family module uses the same roles for shared concepts:
 
-- `rules.js` — owner-local predicates, declarative scalar modifier rules,
-  cast rules, scheduler hooks, and exceptional ordered transforms.
-- `build-attributes.js` — profession-owned trait delta and conversion
-  calculation before shared finalization.
-- `data/<profession>-api-metadata.js` — generated identity and presentation
-  metadata only.
-- `data/trait-coverage.js` — one validated, non-pending disposition per catalog
-  trait, with structured behavioral test evidence for implemented effects.
-- `mechanics/skill-mechanics.js` — optional inert application-catalog
-  composition over module-owned `skills.js` fragments.
-- `mechanics.js` — owner-local triggered effects and state-machine formulas.
-- `catalog.js` — canonical autoattack-chain derivation plus any profession
-  additions or exclusions.
-- `handlers.js` — owner-local augment/replace strategies and event/task
+- `module.js` declares `data`, `state`, `mechanics`, and `presentation` with
+  `defineNativeModule()`; it does not import the root catalog.
+- `rules.js` owns predicates, declarative scalar modifier rules, cast rules,
+  scheduler hooks, and exceptional ordered transforms.
+- `build-attributes.js` owns profession trait deltas and conversions before
+  shared finalization.
+- `data/<profession>-api-metadata.js` contains generated identity and
+  presentation metadata only.
+- `data/trait-coverage.js` records one validated disposition per catalog trait.
+- `skills.js` owns authoritative local mechanics; a root
+  `mechanics/skill-mechanics.js` may remain as an inert compatibility view.
+- `mechanics.js` owns local triggered effects and state-machine formulas.
+- `catalog-data.js` contains inert generated inputs and exceptional ownership
+  options; `catalog.js` exports the complete catalog derived from modules.
+- `handlers.js` owns local augment/replace strategies and event/task
   registries.
 
-Each family `definition.js` resolves through `platform/engine/profession.js`.
-That module composes the complete application UI from Core plus the selected
-elite and composes a separate executable runtime. Scheduler snapshots remain
+Each family `definition.js` resolves through the native authoring layer and
+then `platform/engine/profession.js`. The engine composes the complete
+application UI from Core plus the selected elite and creates a separate
+executable runtime. Scheduler snapshots remain
 profession-internal; `resources.projectEndState` publishes an explicit
 allowlisted public state object.
 
@@ -322,7 +356,7 @@ build calculation and which weapon set supplied those attributes.
 
 `tsconfig.build.json` and `jsconfig.typed.json` include `js/**/*.ts` instead of
 enumerating profession files. New TypeScript module files are built and checked
-automatically. `scripts/check-dist.mjs` verifies that every non-declaration
+automatically. `scripts/build/check-dist.mjs` verifies that every non-declaration
 TypeScript source has one compiled output, that no generated JavaScript sits
 beside a TypeScript source, and that `dist` has no stale output.
 

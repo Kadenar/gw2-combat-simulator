@@ -1,6 +1,6 @@
+import { scourgeState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 /**
  * Scourge sand shade handlers.
@@ -91,7 +91,7 @@ function shade(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const state = professionSpecializationState(context, "Scourge");
+  const state = scourgeState.from(context);
   const at = context.effectiveEnd;
   const shadeMechanics = MECHANICS.shade;
   if (skill.id === ID.MANIFEST_SAND_SHADE) {

@@ -252,7 +252,13 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] =
       amount: 0.1,
       when: (context) =>
         hasTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS) &&
-        Boolean(context.timeline?.furyActiveAt(context.time)),
+        Boolean(
+          context.query?.furyActiveAt(
+            context.time,
+            context.runtime,
+            context.event,
+          ),
+        ),
     },
     {
       id: "guardian.symbolic-avenger",

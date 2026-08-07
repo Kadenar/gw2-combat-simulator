@@ -1,33 +1,31 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
+import { defineNativeModule, onResolvedDamage } from "../../../../platform/gw2/native-profession.js";
+import { createNecromancerModuleData } from "../../catalog-data.js";
 import {
   harbingerEventReactions,
   harbingerSchedulerHooks,
-  harbingerSkillHandlers,
 } from "./handlers.js";
 import {
   harbingerAttributeRules,
   harbingerCastRules,
 } from "./rules.js";
-import { necromancerModuleCatalog } from "../../catalog.js";
-import { createHarbingerState } from "./state.js";
+import { harbingerState } from "./state.js";
 import { harbingerUi } from "./ui.js";
-import type { HarbingerState } from "../../types.js";
+import { HARBINGER_BASE_SKILL_MECHANICS, HARBINGER_QUICKNESS_CAST_TIMES_MS } from "./skills.js";
+import { harbingerSkillHandlers } from "./handlers.js";
 
-export const harbingerModule = defineProfessionModule<HarbingerState>({
+export const harbingerModule = defineNativeModule({
   id: "Harbinger",
-  catalog: {
-    ...necromancerModuleCatalog("Harbinger"),
-    skillHandlers: harbingerSkillHandlers,
+  data: createNecromancerModuleData("Harbinger", {
+    skillMechanics: HARBINGER_BASE_SKILL_MECHANICS,
+    quicknessCastTimes: HARBINGER_QUICKNESS_CAST_TIMES_MS,
+    handlers: harbingerSkillHandlers,
+  }),
+  state: { scheduler: harbingerState.create, resolver: harbingerState.create },
+  mechanics: {
+    modifiers: harbingerAttributeRules,
+    castRules: harbingerCastRules,
+    reactions: [onResolvedDamage({ id: "necromancer.harbinger.damage", handler: harbingerEventReactions.damage })],
+    schedulerHooks: harbingerSchedulerHooks,
   },
-  resources: {
-    createProfessionState: createHarbingerState,
-    createResolverState: createHarbingerState,
-  },
-  attributeRules: harbingerAttributeRules,
-  castRules: harbingerCastRules,
-  resolverHooks: {
-    eventReactions: harbingerEventReactions,
-  },
-  schedulerHooks: harbingerSchedulerHooks,
-  ui: harbingerUi,
+  presentation: harbingerUi,
 });
