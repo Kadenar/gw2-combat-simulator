@@ -11,6 +11,11 @@ import {
   UTILITY_DATA,
   WEAPON_DATA,
 } from "./gear-data.js";
+import {
+  conditionDurationPercentFromExpertise,
+  criticalChancePercentFromPrecision,
+  criticalDamagePercentFromFerocity,
+} from "./stat-scaling.js";
 import { normalizeWeaponSigils, weaponSigilsForSet } from "./weapon-sigils.js";
 
 import type { Skill } from "../engine/types.js";
@@ -112,6 +117,99 @@ export function derivedAttribute(
     sigils,
     infusions: 0,
   };
+}
+
+interface RecomputeDerivedOptions {
+  readonly runeDurations: Readonly<Gw2NumericAttributes>;
+  readonly foodDurations: Readonly<Gw2NumericAttributes>;
+  readonly sigilDurations: Readonly<Gw2NumericAttributes>;
+  readonly sigilCriticalChance: number;
+  readonly traitCriticalChance?: number;
+  readonly traitDurations?: Readonly<Gw2NumericAttributes>;
+  readonly specificKeys: readonly string[];
+  readonly pruneZeros?: boolean;
+}
+
+/**
+ * Rebuilds every percentage-derived attribute from the current finalized
+ * primaries. Shared by the pre-trait common pass and the finalized pass: trait
+ * terms default to zero, and because `x + 0 === x` for finite floats, the
+ * common pass produces results identical to the prior inlined block.
+ *
+ * Derived stats use percent-form scaling helpers so the exact values asserted
+ * by the attribute tests do not shift under the fraction form's different
+ * evaluation order.
+ */
+function recomputeDerivedAttributes(
+  attributes: Gw2AttributeMap,
+  {
+    runeDurations,
+    foodDurations,
+    sigilDurations,
+    sigilCriticalChance,
+    traitCriticalChance = 0,
+    traitDurations = {},
+    specificKeys,
+    pruneZeros = false,
+  }: RecomputeDerivedOptions,
+): void {
+  const precision = attributes.Precision.final;
+  const ferocity = attributes.Ferocity.final;
+  const concentration = attributes.Concentration.final;
+  const expertise = attributes.Expertise.final;
+  const traitCrit = Number(traitCriticalChance || 0);
+  attributes["Critical Chance"] = derivedAttribute(
+    criticalChancePercentFromPrecision(precision) +
+      traitCrit +
+      sigilCriticalChance,
+    traitCrit,
+    sigilCriticalChance,
+  );
+  attributes["Critical Damage"] = derivedAttribute(
+    criticalDamagePercentFromFerocity(ferocity),
+  );
+  attributes["Boon Duration"] = derivedAttribute(
+    concentration / 15 +
+      (runeDurations["Boon Duration"] || 0) +
+      (traitDurations["Boon Duration"] || 0) +
+      (foodDurations["Boon Duration"] || 0) +
+      (sigilDurations["Boon Duration"] || 0),
+    traitDurations["Boon Duration"] || 0,
+    sigilDurations["Boon Duration"] || 0,
+    runeDurations["Boon Duration"] || 0,
+    foodDurations["Boon Duration"] || 0,
+  );
+  attributes["Condition Duration"] = derivedAttribute(
+    conditionDurationPercentFromExpertise(expertise) +
+      (runeDurations["Condition Duration"] || 0) +
+      (traitDurations["Condition Duration"] || 0) +
+      (foodDurations["Condition Duration"] || 0) +
+      (sigilDurations["Condition Duration"] || 0),
+    traitDurations["Condition Duration"] || 0,
+    sigilDurations["Condition Duration"] || 0,
+    runeDurations["Condition Duration"] || 0,
+    foodDurations["Condition Duration"] || 0,
+  );
+  for (const key of specificKeys) {
+    const value =
+      (runeDurations[key] || 0) +
+      (traitDurations[key] || 0) +
+      (foodDurations[key] || 0) +
+      (sigilDurations[key] || 0);
+    if (!value) {
+      // Finalize prunes zero-valued provisional entries to keep the public
+      // result sparse; the common pass simply never adds them.
+      if (pruneZeros) delete attributes[key];
+      continue;
+    }
+    attributes[key] = derivedAttribute(
+      value,
+      traitDurations[key] || 0,
+      sigilDurations[key] || 0,
+      runeDurations[key] || 0,
+      foodDurations[key] || 0,
+    );
+  }
 }
 
 export function calculateCommonAttributes(
@@ -267,53 +365,15 @@ export function calculateCommonAttributes(
     );
     attributes[stat] = breakdown;
   }
-  const precision = attributes.Precision.final;
-  const ferocity = attributes.Ferocity.final;
-  const concentration = attributes.Concentration.final;
-  const expertise = attributes.Expertise.final;
-  // Derived values are percentages. Trait bonuses are added in finalize after
-  // profession rules have resolved their active selections.
-  attributes["Critical Chance"] = derivedAttribute(
-    (precision - 895) / 21 + sigilCriticalChance,
-    0,
+  // Derived percentages are rebuilt from finalized primaries; trait bonuses are
+  // applied later in finalizeBuildAttributes once profession rules resolve.
+  recomputeDerivedAttributes(attributes, {
+    runeDurations,
+    foodDurations,
+    sigilDurations,
     sigilCriticalChance,
-  );
-  attributes["Critical Damage"] = derivedAttribute(150 + ferocity / 15);
-  attributes["Boon Duration"] = derivedAttribute(
-    concentration / 15 +
-      (runeDurations["Boon Duration"] || 0) +
-      (foodDurations["Boon Duration"] || 0) +
-      (sigilDurations["Boon Duration"] || 0),
-    0,
-    sigilDurations["Boon Duration"] || 0,
-    runeDurations["Boon Duration"] || 0,
-    foodDurations["Boon Duration"] || 0,
-  );
-  attributes["Condition Duration"] = derivedAttribute(
-    expertise / 15 +
-      (runeDurations["Condition Duration"] || 0) +
-      (foodDurations["Condition Duration"] || 0) +
-      (sigilDurations["Condition Duration"] || 0),
-    0,
-    sigilDurations["Condition Duration"] || 0,
-    runeDurations["Condition Duration"] || 0,
-    foodDurations["Condition Duration"] || 0,
-  );
-  for (const key of SPECIFIC_DURATION_ATTRIBUTES) {
-    const value =
-      (runeDurations[key] || 0) +
-      (foodDurations[key] || 0) +
-      (sigilDurations[key] || 0);
-    if (value) {
-      attributes[key] = derivedAttribute(
-        value,
-        0,
-        sigilDurations[key] || 0,
-        runeDurations[key] || 0,
-        foodDurations[key] || 0,
-      );
-    }
-  }
+    specificKeys: SPECIFIC_DURATION_ATTRIBUTES,
+  });
   return {
     attributes,
     gear: { ...(build.gear || {}) },
@@ -362,61 +422,18 @@ export function finalizeBuildAttributes(
 
   const { runeDurations, foodDurations, sigilDurations, sigilCriticalChance } =
     common.commonContext;
-  const precision = attributes.Precision.final;
-  const ferocity = attributes.Ferocity.final;
-  const concentration = attributes.Concentration.final;
-  const expertise = attributes.Expertise.final;
   // Trait stat changes can affect every derived percentage, so recompute them
   // from finalized primaries instead of incrementally patching prior results.
-  attributes["Critical Chance"] = derivedAttribute(
-    (precision - 895) / 21 +
-      Number(traitCriticalChance || 0) +
-      sigilCriticalChance,
-    Number(traitCriticalChance || 0),
+  recomputeDerivedAttributes(attributes, {
+    runeDurations,
+    foodDurations,
+    sigilDurations,
     sigilCriticalChance,
-  );
-  attributes["Critical Damage"] = derivedAttribute(150 + ferocity / 15);
-  attributes["Boon Duration"] = derivedAttribute(
-    concentration / 15 +
-      (runeDurations["Boon Duration"] || 0) +
-      (traitDurations["Boon Duration"] || 0) +
-      (foodDurations["Boon Duration"] || 0) +
-      (sigilDurations["Boon Duration"] || 0),
-    traitDurations["Boon Duration"] || 0,
-    sigilDurations["Boon Duration"] || 0,
-    runeDurations["Boon Duration"] || 0,
-    foodDurations["Boon Duration"] || 0,
-  );
-  attributes["Condition Duration"] = derivedAttribute(
-    expertise / 15 +
-      (runeDurations["Condition Duration"] || 0) +
-      (traitDurations["Condition Duration"] || 0) +
-      (foodDurations["Condition Duration"] || 0) +
-      (sigilDurations["Condition Duration"] || 0),
-    traitDurations["Condition Duration"] || 0,
-    sigilDurations["Condition Duration"] || 0,
-    runeDurations["Condition Duration"] || 0,
-    foodDurations["Condition Duration"] || 0,
-  );
-  for (const key of CONDITION_DURATION_ATTRIBUTES) {
-    const value =
-      (runeDurations[key] || 0) +
-      (traitDurations[key] || 0) +
-      (foodDurations[key] || 0) +
-      (sigilDurations[key] || 0);
-    if (!value) {
-      // Remove zero-valued provisional entries to keep the public result sparse.
-      delete attributes[key];
-      continue;
-    }
-    attributes[key] = derivedAttribute(
-      value,
-      traitDurations[key] || 0,
-      sigilDurations[key] || 0,
-      runeDurations[key] || 0,
-      foodDurations[key] || 0,
-    );
-  }
+    traitCriticalChance,
+    traitDurations,
+    specificKeys: CONDITION_DURATION_ATTRIBUTES,
+    pruneZeros: true,
+  });
 
   const { commonContext, ...result } = common;
   // commonContext is an implementation handoff, not part of the public build.

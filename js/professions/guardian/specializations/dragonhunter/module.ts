@@ -1,19 +1,24 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { guardianModuleCatalog } from "../../catalog.js";
+import {
+  defineNativeModule,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
+import { createGuardianModuleData } from "../../catalog-data.js";
 import { dragonhunterEventReactions } from "./handlers.js";
-import { createDragonhunterState } from "./state.js";
+import { DRAGONHUNTER_SKILL_MECHANICS } from "./skills.js";
+import { dragonhunterState } from "./state.js";
 import { dragonhunterUi } from "./ui.js";
 
-export const dragonhunterModule =
-  defineProfessionModule<Record<string, never>>({
+export const dragonhunterModule = defineNativeModule({
   id: "Dragonhunter",
-  catalog: guardianModuleCatalog("Dragonhunter"),
-  resources: {
-    createProfessionState: createDragonhunterState,
-    createResolverState: createDragonhunterState,
+  data: createGuardianModuleData("Dragonhunter", {
+    skillMechanics: DRAGONHUNTER_SKILL_MECHANICS,
+  }),
+  state: {
+    scheduler: dragonhunterState.create,
+    resolver: dragonhunterState.create,
   },
-  resolverHooks: {
-    eventReactions: dragonhunterEventReactions,
+  mechanics: {
+    reactions: dragonhunterEventReactions.damage.map(onResolvedDamage),
   },
-  ui: dragonhunterUi,
-  });
+  presentation: dragonhunterUi,
+});

@@ -8,6 +8,9 @@ import {
   createGw2HitResolution,
 } from "../../js/platform/gw2/resolver/hit-resolution.js";
 import {
+  createGw2ResolverExtensions,
+} from "../../js/platform/gw2/resolver/extensions.js";
+import {
   resolveGw2Timeline,
 } from "../../js/platform/gw2/resolver/resolve-timeline.js";
 import {
@@ -25,8 +28,16 @@ export function resolveTestGw2Stream({
   query,
   helpers,
 }) {
-  const hits = createGw2HitResolution();
-  const conditions = createGw2ConditionResolution();
+  const extensions = createGw2ResolverExtensions({
+    config,
+    events: stream.events,
+  });
+  const hits = createGw2HitResolution({
+    strikeMultiplier: extensions.strikeMultiplier,
+  });
+  const conditions = createGw2ConditionResolution({
+    reactions: extensions.reactions,
+  });
   const commonHandlers = createGw2ResolverEventHandlers({
     hitResolution: {
       buildContext: hits.buildHitResolutionContext,
@@ -37,7 +48,7 @@ export function resolveTestGw2Stream({
       apply: conditions.applyCondition,
       tick: conditions.handleConditionTick,
     },
-    eventReactions: {},
+    reactions: extensions.reactions,
   });
   return resolveGw2Timeline({
     stream,
@@ -45,7 +56,11 @@ export function resolveTestGw2Stream({
     traits,
     query,
     helpers,
-    createRuntimeState: createGw2ResolverRuntimeState,
+    createRuntimeState: options => createGw2ResolverRuntimeState({
+      ...options,
+      createEquipmentState: extensions.createEquipmentState,
+    }),
     commonHandlers,
+    beforeResolveTimeline: extensions.beforeResolveTimeline,
   });
 }

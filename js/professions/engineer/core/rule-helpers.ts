@@ -1,4 +1,5 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
+import { clamp } from "../../../platform/gw2/numeric.js";
 import { CANONICAL_TARGET_CONDITIONS } from "../../../platform/gw2/target-state.js";
 import type {
   SchedulerRecord,
@@ -111,13 +112,9 @@ export function targetHealthFraction(context: Gw2ModifierContext): number {
       ?? context.config?.target?.healthFraction,
   );
   if (Number.isFinite(configured)) {
-    return Math.max(0, Math.min(1, configured));
+    return clamp(configured, 0, 1);
   }
-  const maximum = Number(
-    context.config?.target?.health
-      ?? context.config?.targetHP
-      ?? 0,
-  );
+  const maximum = Number(context.config?.target?.health ?? 0);
   if (!(maximum > 0)) return 1;
   const totals = context.runtime?.totals as
     | { readonly strike?: number; readonly condition?: number }
@@ -125,7 +122,7 @@ export function targetHealthFraction(context: Gw2ModifierContext): number {
   const damage =
     Number(totals?.strike || 0)
     + Number(totals?.condition || 0);
-  return Math.max(0, Math.min(1, 1 - damage / maximum));
+  return clamp(1 - damage / maximum, 0, 1);
 }
 
 export function heavyMetalBonus(context: Gw2ModifierContext): number {
@@ -157,7 +154,7 @@ export function activeBoonStacks(
       (sum, application) => sum + Number(application.stacks || 1),
       0,
     );
-  return Math.max(0, Math.min(maximum, base + dynamic));
+  return clamp(base + dynamic, 0, maximum);
 }
 
 export function activeEngineerSpecializationState(

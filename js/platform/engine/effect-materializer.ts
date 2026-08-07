@@ -1,0 +1,212 @@
+import type {
+  SchedulerRecord,
+  SimulationActorType,
+  SimulationEventInput,
+  Skill,
+  SkillEffect,
+  SkillId,
+} from "./types.js";
+
+export interface EffectEventBase extends SchedulerRecord {
+  readonly source: string;
+  readonly sourceId: SkillId;
+  readonly actorType?: SimulationActorType;
+  readonly skillId?: SkillId | null;
+  readonly skillName?: string;
+  readonly activationId?: string;
+}
+
+export interface MaterializedEffectApplication {
+  readonly at: number;
+  readonly event: SimulationEventInput;
+}
+
+export interface MaterializeSkillEffectOptions {
+  readonly skill: Skill;
+  readonly effect: SkillEffect;
+  readonly start: number;
+  readonly fullEnd: number;
+  readonly baseEvent: EffectEventBase;
+  readonly skillWeaponFallback?: string;
+  readonly statusDuration?: number;
+}
+
+/** Resolves the first timestamp at which an effect should fire. */
+export function effectFirstAt(
+  start: number,
+  fullEnd: number,
+  effect: SkillEffect,
+): number {
+  const origin = effect.timingAnchor === "castEnd" ? fullEnd : start;
+  if (Array.isArray(effect.ticks) && effect.ticks.length) {
+    return origin + Number(effect.ticks[0].atMs) / 1000;
+  }
+  if (effect.atMs != null) return origin + Number(effect.atMs) / 1000;
+  return fullEnd;
+}
+
+/**
+ * Expands one canonical skill effect into its ordered event applications.
+ * Cast interruption and actual event emission remain scheduler concerns.
+ */
+export function materializeSkillEffectApplications({
+  skill,
+  effect,
+  start,
+  fullEnd,
+  baseEvent,
+  skillWeaponFallback = "",
+  statusDuration,
+}: MaterializeSkillEffectOptions): readonly MaterializedEffectApplication[] {
+  const firstAt = effectFirstAt(start, fullEnd, effect);
+  const applications: MaterializedEffectApplication[] = [];
+
+  if (effect.type === "strike") {
+    const ticks = Array.isArray(effect.ticks) ? effect.ticks : null;
+    const hits =
+      ticks?.length || Math.max(1, Math.trunc(Number(effect.hits || 1)));
+    const equalCoefficient = Number(effect.coefficient || 0) / hits;
+    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    const origin = effect.timingAnchor === "castEnd" ? fullEnd : start;
+    for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
+      const tick = ticks?.[hitIndex - 1];
+      const at = tick
+        ? origin + Number(tick.atMs) / 1000
+        : firstAt + (hitIndex - 1) * interval;
+      applications.push({
+        at,
+        event: {
+          ...baseEvent,
+          type: "damage",
+          at,
+          name: effect.name || skill.name,
+          coefficient: tick ? Number(tick.coefficient) : equalCoefficient,
+          hits: 1,
+          hitIndex,
+          totalHits: hits,
+          skillWeapon:
+            effect.weapon ||
+            skill.weapon ||
+            skill.skillWeapon ||
+            skillWeaponFallback,
+          weaponStrength: effect.weaponStrength,
+          weaponStrengthProfileId: effect.weaponStrengthProfileId,
+          canCrit: effect.canCrit !== false,
+          ...(effect.coefficientModifiers
+            ? { coefficientModifiers: effect.coefficientModifiers }
+            : {}),
+          ...(effect.metadata || {}),
+        },
+      });
+    }
+  } else if (effect.type === "condition") {
+    if (Array.isArray(effect.ticks)) {
+      const origin = effect.timingAnchor === "castEnd" ? fullEnd : start;
+      const ticks = effect.ticks;
+      for (
+        let applicationIndex = 1;
+        applicationIndex <= ticks.length;
+        applicationIndex += 1
+      ) {
+        const tick = ticks[applicationIndex - 1];
+        const at = origin + Number(tick.atMs) / 1000;
+        applications.push({
+          at,
+          event: {
+            ...baseEvent,
+            at,
+            type: "condition",
+            name: effect.name || `${skill.name} — ${tick.condition}`,
+            condition: tick.condition,
+            stacks: Number(tick.stacks),
+            duration: Number(tick.duration),
+            applicationIndex,
+            totalApplications: ticks.length,
+            ...(effect.metadata || {}),
+          },
+        });
+      }
+    } else {
+      const count = Math.max(
+        1,
+        Math.trunc(Number(effect.applications || 1)),
+      );
+      const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+      for (
+        let applicationIndex = 1;
+        applicationIndex <= count;
+        applicationIndex += 1
+      ) {
+        const at = firstAt + (applicationIndex - 1) * interval;
+        applications.push({
+          at,
+          event: {
+            ...baseEvent,
+            at,
+            type: "condition",
+            name: effect.name || `${skill.name} — ${effect.condition}`,
+            condition: effect.condition,
+            stacks: Number(effect.stacks),
+            duration: Number(effect.duration),
+            applicationIndex,
+            totalApplications: count,
+            ...(effect.metadata || {}),
+          },
+        });
+      }
+    }
+  } else if (effect.type === "control" || effect.type === "blind") {
+    const count = Math.max(
+      1,
+      Math.trunc(Number(effect.applications || 1)),
+    );
+    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    for (
+      let applicationIndex = 1;
+      applicationIndex <= count;
+      applicationIndex += 1
+    ) {
+      const at = firstAt + (applicationIndex - 1) * interval;
+      applications.push({
+        at,
+        event: {
+          ...baseEvent,
+          at,
+          type: effect.type,
+          applicationIndex,
+          totalApplications: count,
+          ...(effect.metadata || {}),
+        },
+      });
+    }
+  } else if (effect.type === "boon" || effect.type === "buff") {
+    applications.push({
+      at: firstAt,
+      event: {
+        ...baseEvent,
+        at: firstAt,
+        type: "buff",
+        kind: String(
+          effect.boon || effect.kind || effect.name || "",
+        ).toLowerCase(),
+        stacks: Math.max(1, Number(effect.stacks || 1)),
+        duration: Math.max(
+          0,
+          Number(statusDuration ?? effect.duration ?? 0),
+        ),
+      },
+    });
+  } else if (effect.type === "custom") {
+    applications.push({
+      at: firstAt,
+      event: {
+        ...baseEvent,
+        at: firstAt,
+        ...effect.event,
+        type: effect.eventType,
+      },
+    });
+  }
+
+  return applications;
+}

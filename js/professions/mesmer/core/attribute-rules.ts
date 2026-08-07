@@ -101,16 +101,6 @@ function resolvedTotalDamage(context: Gw2ModifierContext): number {
 export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
   Object.freeze([
   {
-    id: "mesmer.mistburn-critical-chance",
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: "add",
-    amount: 0.1,
-    when: (context) =>
-      !illusionSource(context) &&
-      context.config?.relic === "Mistburn" &&
-      Number(context.timeline?.mightStacksAt(context.time) || 0) >= 10,
-  },
-  {
     id: "mesmer.phantasmal-fury-critical-chance",
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: "add",
@@ -126,8 +116,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
     operation: "multiply",
     factor: superiorityComplexFactor,
     when: (context) =>
-      hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) &&
-      context.event?.source !== "Phantasm",
+      hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) && !illusionSource(context)
   },
   {
     id: "mesmer.compounding-power",
@@ -151,7 +140,13 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
     operation: "multiply",
     factor: (context) =>
       1 +
-      Number(context.timeline?.vulnerabilityStacksAt(context.time) || 0) * 0.01,
+      Number(
+        context.query?.vulnerabilityStacksAt(
+          context.time,
+          context.runtime,
+        ) || 0,
+      ) *
+        0.01,
     order: 100,
     when: (context) => context.event?.skillName === "Mind Stab",
   },
@@ -161,12 +156,17 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
     operation: "multiply",
     factor: (context) =>
       1 +
-      Number(context.timeline?.vulnerabilityStacksAt(context.time) || 0) *
+      Number(
+        context.query?.vulnerabilityStacksAt(
+          context.time,
+          context.runtime,
+        ) || 0,
+      ) *
         0.005,
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.FRAGILITY) &&
-      context.event?.source !== "Phantasm",
+      !illusionSource(context),
   },
   {
     id: "mesmer.vicious-expression",
@@ -191,7 +191,13 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
     factor: (context) =>
-      1 + context.timeline!.mightStacksAt(context.time) * 0.01,
+      1 +
+      context.query!.mightStacksAt(
+        context.time,
+        context.runtime,
+        context.event,
+      ) *
+        0.01,
     order: 100,
     when: (context) =>
       context.event?.source === "Phantasm" &&
@@ -216,7 +222,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.EGOTISM) &&
-      context.event?.source !== "Phantasm" &&
+      !illusionSource(context) &&
       Number(context.config?.target?.health || 0) > 0 &&
       resolvedTotalDamage(context) > 0,
   },

@@ -1,4 +1,5 @@
 import type { ConduitState } from "../../types.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 export function createConduitState(): ConduitState {
   return {
@@ -11,3 +12,8 @@ export function createConduitState(): ConduitState {
     energyCostOverrides: {},
   };
 }
+
+export const conduitState = defineProfessionSpecializationState(
+  "Conduit",
+  createConduitState,
+);

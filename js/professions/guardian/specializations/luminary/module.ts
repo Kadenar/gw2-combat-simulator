@@ -1,6 +1,8 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import type { GuardianLuminaryState } from "../../types.js";
-import { guardianModuleCatalog } from "../../catalog.js";
+import {
+  defineNativeModule,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
+import { createGuardianModuleData } from "../../catalog-data.js";
 import {
   luminaryEventHandlers,
   luminaryEventReactions,
@@ -11,26 +13,26 @@ import {
   luminaryCastRules,
   luminarySchedulerHooks,
 } from "./rules.js";
-import { createLuminaryState } from "./state.js";
+import { LUMINARY_SKILL_MECHANICS } from "./skills.js";
+import { luminaryState } from "./state.js";
 import { luminaryUi } from "./ui.js";
 
-export const luminaryModule =
-  defineProfessionModule<GuardianLuminaryState>({
+export const luminaryModule = defineNativeModule({
   id: "Luminary",
-  catalog: {
-    ...guardianModuleCatalog("Luminary"),
-    skillHandlers: luminarySkillHandlers,
+  data: createGuardianModuleData("Luminary", {
+    skillMechanics: LUMINARY_SKILL_MECHANICS,
+    handlers: luminarySkillHandlers,
+  }),
+  state: {
+    scheduler: luminaryState.create,
+    resolver: luminaryState.create,
   },
-  resources: {
-    createProfessionState: createLuminaryState,
-    createResolverState: createLuminaryState,
+  mechanics: {
+    modifiers: luminaryAttributeRules,
+    castRules: luminaryCastRules,
+    schedulerHooks: luminarySchedulerHooks,
+    reactions: luminaryEventReactions.damage.map(onResolvedDamage),
+    resolverHooks: { eventHandlers: luminaryEventHandlers },
   },
-  attributeRules: luminaryAttributeRules,
-  castRules: luminaryCastRules,
-  schedulerHooks: luminarySchedulerHooks,
-  resolverHooks: {
-    eventHandlers: luminaryEventHandlers,
-    eventReactions: luminaryEventReactions,
-  },
-  ui: luminaryUi,
-  });
+  presentation: luminaryUi,
+});

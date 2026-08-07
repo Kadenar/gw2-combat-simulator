@@ -1,8 +1,7 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { revenantModuleCatalog } from "../../catalog.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createRevenantModuleData } from "../../catalog-data.js";
 import {
   conduitEventHandlers,
-  conduitEventReactions,
   conduitSkillHandlers,
 } from "./handlers.js";
 import {
@@ -10,26 +9,24 @@ import {
   conduitCastRules,
   conduitSchedulerHooks,
 } from "./rules.js";
-import { createConduitState } from "./state.js";
+import { conduitState } from "./state.js";
 import { conduitUi } from "./ui.js";
-import type { ConduitState } from "../../types.js";
+import { CONDUIT_BASE_SKILL_MECHANICS } from "./skills.js";
 
-export const conduitModule = defineProfessionModule<ConduitState>({
+export const conduitModule = defineNativeModule({
   id: "Conduit",
-  catalog: {
-    ...revenantModuleCatalog("Conduit"),
-    skillHandlers: conduitSkillHandlers,
+  data: createRevenantModuleData("Conduit", {
+    skillMechanics: CONDUIT_BASE_SKILL_MECHANICS,
+    handlers: conduitSkillHandlers,
+  }),
+  state: { scheduler: conduitState.create, resolver: conduitState.create },
+  mechanics: {
+    modifiers: conduitAttributeRules,
+    castRules: conduitCastRules,
+    schedulerHooks: conduitSchedulerHooks,
+    resolverHooks: {
+      eventHandlers: conduitEventHandlers,
+    },
   },
-  resources: {
-    createProfessionState: createConduitState,
-    createResolverState: createConduitState,
-  },
-  attributeRules: conduitAttributeRules,
-  castRules: conduitCastRules,
-  schedulerHooks: conduitSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: conduitEventHandlers,
-    eventReactions: conduitEventReactions,
-  },
-  ui: conduitUi,
+  presentation: conduitUi,
 });

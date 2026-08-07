@@ -1,6 +1,10 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
-import { defineProfessionModule } from "../../../platform/engine/profession.js";
-import { engineerModuleCatalog } from "../catalog.js";
+import {
+  defineNativeModule,
+  onConditionApplied,
+  onResolvedDamage,
+} from "../../../platform/gw2/native-profession.js";
+import { createEngineerModuleData } from "../catalog-data.js";
+import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import {
   engineerCoreEventHandlers,
   engineerCoreEventReactions,
@@ -12,37 +16,51 @@ import {
   engineerCoreSchedulerHooks,
 } from "./rules.js";
 import {
+  ENGINEER_CORE_EXTRA_SKILLS,
+  ENGINEER_CORE_SKILL_MECHANICS,
+} from "./skills.js";
+import {
   createEngineerCoreState,
   projectEngineerEndState,
   snapshotEngineerState,
 } from "./state.js";
-import { engineerCoreUi } from "./ui.js";
-import type {
-  EngineerCoreState,
-  EngineerSchedulerContext,
-} from "../types.js";
+import { bindEngineerCoreUi } from "./ui.js";
+import type { EngineerSchedulerContext } from "../types.js";
 
-export const engineerCoreModule = defineProfessionModule<EngineerCoreState>({
+export const engineerCoreModule = defineNativeModule({
   id: "Core",
-  catalog: {
-    ...engineerModuleCatalog("Core"),
-    skillHandlers: engineerCoreSkillHandlers,
+  data: createEngineerModuleData("Core", {
+    skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
+    extraSkills: ENGINEER_CORE_EXTRA_SKILLS,
+    handlers: engineerCoreSkillHandlers,
+    autoattackChains: { excludeSkillIds: [ID.RIFLE_BURST_GRENADE] },
+  }),
+  state: {
+    scheduler: createEngineerCoreState,
+    resolver: createEngineerCoreState,
+    project: projectEngineerEndState,
   },
-  resources: {
-    createProfessionState: createEngineerCoreState,
-    createResolverState: createEngineerCoreState,
-    projectEndState: projectEngineerEndState,
+  mechanics: {
+    modifiers: engineerCoreAttributeRules,
+    castRules: engineerCoreCastRules,
+    schedulerHooks: {
+      ...engineerCoreSchedulerHooks,
+      snapshot: (context: EngineerSchedulerContext) =>
+        snapshotEngineerState(context.state.profession),
+    },
+    reactions: [
+      onResolvedDamage({
+        id: "engineer.core.damage",
+        handler: engineerCoreEventReactions.damage,
+      }),
+      onConditionApplied({
+        id: "engineer.core.condition",
+        handler: engineerCoreEventReactions.condition,
+      }),
+    ],
+    resolverHooks: {
+      eventHandlers: engineerCoreEventHandlers,
+    },
   },
-  attributeRules: engineerCoreAttributeRules,
-  castRules: engineerCoreCastRules,
-  schedulerHooks: {
-    ...engineerCoreSchedulerHooks,
-    snapshot: (context: EngineerSchedulerContext) =>
-      snapshotEngineerState(context.state.profession),
-  },
-  resolverHooks: {
-    eventHandlers: engineerCoreEventHandlers,
-    eventReactions: engineerCoreEventReactions,
-  },
-  ui: engineerCoreUi,
+  presentation: bindEngineerCoreUi,
 });

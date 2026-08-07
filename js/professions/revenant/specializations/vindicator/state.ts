@@ -2,6 +2,7 @@ import type {
   RevenantConfig,
   VindicatorState,
 } from "../../types.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 export function createVindicatorState(
   config: RevenantConfig = {},
@@ -13,3 +14,8 @@ export function createVindicatorState(
     forerunnerOfDeathUntil: 0,
   };
 }
+
+export const vindicatorState = defineProfessionSpecializationState(
+  "Vindicator",
+  createVindicatorState,
+);

@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { amalgamState } from "./state.js";
 import {
   denyEngineerCast,
 } from "../../core/availability.js";
@@ -15,7 +15,7 @@ export function amalgamCastAvailability(
   skill: EngineerSkill,
 ): AvailabilityResult {
   if (context.config.specialization !== "Amalgam") return { ready: true };
-  const state = professionSpecializationState(context, "Amalgam");
+  const state = amalgamState.from(context);
   if (Number(state.plasmaticLockoutUntil || 0) > context.start) {
     return denyEngineerCast(
       skill,

@@ -1,5 +1,4 @@
 import {
-  flattenProfessionState,
   professionCoreState,
 } from "../../../platform/engine/profession.js";
 /**
@@ -20,7 +19,7 @@ import type {
   RevenantPrecastContext,
   RevenantSchedulerContext,
   RevenantSkill,
-  RevenantState,
+  RevenantRuntimeState,
 } from "../types.js";
 
 const MECHANICS = REVENANT_CORE_MECHANICS;
@@ -146,22 +145,51 @@ export function advanceRevenantEnergy(
 }
 
 /** Resolves state-dependent Energy overrides shared by UI and scheduling. */
-export function effectiveRevenantEnergyCost(
+interface RevenantEnergyCostState {
+  readonly activeUpkeeps?: RevenantCoreState["activeUpkeeps"];
+  readonly beguilingHazeCharges?: number;
+  readonly energyCostOverrides?: Readonly<Record<string, number>>;
+}
+
+function energyCostStateSlices(
   context: RevenantEnergyContext,
-  skill: RevenantSkill,
-): number {
+): {
+  readonly core: RevenantEnergyCostState;
+  readonly specialization: RevenantEnergyCostState;
+} {
   const schedulerState =
     context.state && "profession" in context.state
       ? context.state
       : undefined;
-  const state: Partial<RevenantState> = schedulerState
-    ? flattenProfessionState(schedulerState.profession)
-    : (
-      context.professionState
-      || context.state as Partial<RevenantState> | undefined
-      || {}
-    ) as Partial<RevenantState>;
-  const active = (state.activeUpkeeps || []).some(
+  const candidate = schedulerState?.profession
+    ?? context.professionState
+    ?? context.state
+    ?? {};
+  if (
+    candidate
+    && typeof candidate === "object"
+    && "core" in candidate
+    && "specialization" in candidate
+  ) {
+    const runtime = candidate as RevenantRuntimeState;
+    return {
+      core: runtime.core,
+      specialization:
+        runtime.specialization.state as unknown as RevenantEnergyCostState,
+    };
+  }
+  // Application UI callers may supply the stable flat public projection.
+  // Runtime scheduler callers always take the explicit nested branch above.
+  const applicationState = candidate as RevenantEnergyCostState;
+  return { core: applicationState, specialization: applicationState };
+}
+
+export function effectiveRevenantEnergyCost(
+  context: RevenantEnergyContext,
+  skill: RevenantSkill,
+): number {
+  const state = energyCostStateSlices(context);
+  const active = (state.core.activeUpkeeps || []).some(
     (upkeep) => upkeep.skillId === skill.id,
   );
   if (active) return 0;
@@ -174,7 +202,7 @@ export function effectiveRevenantEnergyCost(
   if (
     skill.freeWhenStatePositive &&
     Number(
-      (state as unknown as Record<string, unknown>)[
+      (state.specialization as unknown as Record<string, unknown>)[
         skill.freeWhenStatePositive
       ] || 0,
     ) > 0
@@ -182,7 +210,7 @@ export function effectiveRevenantEnergyCost(
     return 0;
   }
   const override = (
-    state.energyCostOverrides as Record<string, number> | undefined
+    state.specialization.energyCostOverrides
   )?.[String(skill.id)];
   if (override != null) return Math.max(0, Number(override));
   return Math.max(0, Number(skill.energyCost || 0));

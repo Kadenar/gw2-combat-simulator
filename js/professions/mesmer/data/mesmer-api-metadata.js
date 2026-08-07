@@ -1,5 +1,5 @@
 // Generated Guild Wars 2 API metadata for mesmer.
-// Snapshot: 2026-07-25. Run scripts/update-profession-api-data.mjs --profession Mesmer to refresh.
+// Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Mesmer to refresh.
 // Simulator mechanics are maintained under mesmer/mechanics/.
 
 export const DATA_SNAPSHOT = "2026-07-25";

@@ -73,7 +73,7 @@ function implementedEvidence(
   trait: CatalogEntity,
 ): { readonly file: string; readonly name: string } {
   return {
-    file: "tests/revenant.test.js",
+    file: "tests/professions/revenant/revenant.test.js",
     name:
       EVIDENCE_BY_SPECIALIZATION[String(trait.specialization || "")]
       || "Retribution and Invocation traits use live combat state",

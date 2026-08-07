@@ -1,22 +1,15 @@
-import { defineProfessionFamily } from "../../platform/engine/profession.js";
+import { defineNativeProfession } from "../../platform/gw2/native-profession.js";
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild,
 } from "./build.js";
-import { necromancerCatalog } from "./catalog.js";
-import { necromancerCoreModule } from "./core/module.js";
 import "./data/trait-coverage.js";
-import { harbingerModule } from "./specializations/harbinger/module.js";
-import { reaperModule } from "./specializations/reaper/module.js";
-import { ritualistModule } from "./specializations/ritualist/module.js";
-import { scourgeModule } from "./specializations/scourge/module.js";
+import { necromancerNativeModules } from "./modules.js";
 import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
-import type { SchedulerRecord } from "../../platform/engine/types.js";
 import type {
   NecromancerConfig,
   NecromancerResolverEvent,
-  NecromancerRuntimeState,
 } from "./types.js";
 
 function targetBelowHalfAt(
@@ -74,22 +67,15 @@ function refineNecromancerSchedulerConfig(
 }
 
 export const necromancerProfession =
-  defineProfessionFamily<NecromancerRuntimeState>({
+  defineNativeProfession({
     id: "necromancer",
     name: "Necromancer",
-    catalog: necromancerCatalog,
     build: {
       createBuildDefaults: createNecromancerBuildDefaults,
       migrateBuild: migrateNecromancerBuild,
       validateBuild: validateNecromancerBuild,
     },
-    core: necromancerCoreModule,
-    specializations: {
-      Reaper: reaperModule,
-      Scourge: scourgeModule,
-      Harbinger: harbingerModule,
-      Ritualist: ritualistModule,
-    },
+    modules: necromancerNativeModules,
     simulation: Object.freeze({
       refineSchedulerConfig: refineNecromancerSchedulerConfig,
     }),

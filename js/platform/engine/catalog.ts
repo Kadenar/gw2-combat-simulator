@@ -11,6 +11,7 @@ import {
   deriveAutoattackChains,
   indexAutoattackChains,
 } from "./autoattack-chains.js";
+import { toEntries } from "./collections.js";
 import type {
   AutoattackChainPosition,
   CanonicalCatalog,
@@ -137,13 +138,11 @@ function normalizeSkillHandlers(
     | null
     | undefined,
 ): Map<string, SkillHandlerStrategy<SchedulerRecord>> {
-  const entries =
-    value instanceof Map ? [...value.entries()] : Object.entries(value || {});
   return new Map(
-    entries.map(([id, handler]) => {
-      const normalizedId = String(id);
-      return [normalizedId, normalizeSkillHandler(normalizedId, handler)];
-    }),
+    toEntries(value).map(([id, handler]) => [
+      id,
+      normalizeSkillHandler(id, handler),
+    ]),
   );
 }
 

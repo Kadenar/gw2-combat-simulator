@@ -1,4 +1,8 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
+import {
+  defineNativeModule,
+  onConditionApplied,
+} from "../../../../platform/gw2/native-profession.js";
+import { createNecromancerModuleData } from "../../catalog-data.js";
 import {
   scourgeEventReactions,
   scourgeSkillHandlers,
@@ -7,25 +11,25 @@ import {
   scourgeAttributeRules,
   scourgeCastRules,
 } from "./rules.js";
-import { necromancerModuleCatalog } from "../../catalog.js";
-import { createScourgeState } from "./state.js";
+import { scourgeState } from "./state.js";
 import { scourgeUi } from "./ui.js";
-import type { ScourgeState } from "../../types.js";
+import { SCOURGE_BASE_SKILL_MECHANICS, SCOURGE_QUICKNESS_CAST_TIMES_MS } from "./skills.js";
 
-export const scourgeModule = defineProfessionModule<ScourgeState>({
+export const scourgeModule = defineNativeModule({
   id: "Scourge",
-  catalog: {
-    ...necromancerModuleCatalog("Scourge"),
-    skillHandlers: scourgeSkillHandlers,
+  data: createNecromancerModuleData("Scourge", {
+    skillMechanics: SCOURGE_BASE_SKILL_MECHANICS,
+    quicknessCastTimes: SCOURGE_QUICKNESS_CAST_TIMES_MS,
+    handlers: scourgeSkillHandlers,
+  }),
+  state: { scheduler: scourgeState.create, resolver: scourgeState.create },
+  mechanics: {
+    modifiers: scourgeAttributeRules,
+    castRules: scourgeCastRules,
+    reactions: [onConditionApplied({
+      id: "necromancer.scourge.condition",
+      handler: scourgeEventReactions.condition,
+    })],
   },
-  resources: {
-    createProfessionState: createScourgeState,
-    createResolverState: createScourgeState,
-  },
-  attributeRules: scourgeAttributeRules,
-  castRules: scourgeCastRules,
-  resolverHooks: {
-    eventReactions: scourgeEventReactions,
-  },
-  ui: scourgeUi,
+  presentation: scourgeUi,
 });

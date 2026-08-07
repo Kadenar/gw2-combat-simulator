@@ -73,7 +73,7 @@ export const testProfession = defineProfession({
       },
     },
     eventReactions: {
-      control: context => {
+      "control.resolved": context => {
         context.profession.controlEvents += 1;
       },
     },

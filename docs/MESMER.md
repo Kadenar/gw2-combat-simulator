@@ -12,11 +12,12 @@ ambushes, flips, resources, and Continuum actions select registered
 `mesmer.*` handler strategies by stable ID.
 
 The shared scheduler owns casts, cooldowns, ammo, weapon sets, and canonical
-events. Mesmer state machines remain in `mechanics/specific/` and publish
-future changes through `mesmer.*` typed tasks. Each simulation receives its
-controllers explicitly through scheduler context; there is no module-level
-runtime registry. The shared resolver owns standard damage and conditions,
-while Mesmer resolver reactions only add profession-specific reactions.
+events. Mesmer state machines live in `core/` or the owning
+`specializations/<elite>/` slice and publish future changes through typed
+tasks. Each simulation receives its controllers explicitly through scheduler
+context; there is no module-level runtime registry. The shared resolver owns
+standard damage and conditions, while Mesmer resolver reactions only add
+profession-specific reactions.
 
 Display names are labels. Runtime routing, resource causes, flip
 relationships, trait decisions, palette mechanics, and timing tables use skill
@@ -179,7 +180,9 @@ The rotation engine models these damage relics:
   The disabling hit itself is resolved before the buff activates.
 - Relic of the Fractal: the PvE burning and torment application at the
   documented threshold and internal cooldown.
-- Relic of Mistburn: 10% critical chance while at 10 or more Might.
+- Relic of Mistburn: granting yourself Might grants 1 additional Might for 8
+  seconds on a 1-second internal cooldown, and grants 10% critical chance while
+  at 10 or more Might.
 - Relic of the Mist Stranger: 105 life-siphon damage per player hit; clone and
   phantasm hits do not trigger it.
 - Relic of Peitha: qualifying Mesmer shadowsteps and Deception skills apply

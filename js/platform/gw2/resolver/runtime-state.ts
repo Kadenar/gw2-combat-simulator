@@ -1,5 +1,4 @@
 import { createSimulationRandom } from "../../engine/simulation-random.js";
-import { createRelicRuntime } from "../relic-rules.js";
 
 import type {
   CreateGw2ResolverRuntimeStateOptions,
@@ -23,7 +22,9 @@ export function createGw2ResolverRuntimeState({
   professionState = {},
   warnings = [],
   eventFilterState = {},
+  createEquipmentState,
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
+  const equipment = createEquipmentState(config);
   const runtime: Gw2ResolverRuntime = {
     config,
     traits,
@@ -48,17 +49,11 @@ export function createGw2ResolverRuntimeState({
     firstHitTime: null,
     lastHitTime: null,
     deathTime: null,
-    combatActive: false,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
-    relic: createRelicRuntime(config.relic),
+    relic: equipment.relic,
     profession: professionState,
-    sigil: {
-      severanceUntil: 0,
-    },
-    food: {
-      criticalProgress: 0,
-      readyAt: 0,
-    },
+    sigil: equipment.sigil,
+    food: equipment.food,
     random: createSimulationRandom(config.randomness),
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,

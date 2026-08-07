@@ -1,7 +1,4 @@
-import {
-  professionCoreState,
-  professionSpecializationState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 /**
  * Ritualist weapon-spell applications.
  *

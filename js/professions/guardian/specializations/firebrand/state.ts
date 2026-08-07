@@ -1,4 +1,5 @@
 import { GUARDIAN_TRAIT_IDS } from "../../data/ids.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 import type {
   GuardianConfig,
   GuardianFirebrandState,
@@ -47,3 +48,8 @@ export function createFirebrandState(
     quickfireReadyAt: 0,
   };
 }
+
+export const firebrandState = defineProfessionSpecializationState(
+  "Firebrand",
+  createFirebrandState,
+);

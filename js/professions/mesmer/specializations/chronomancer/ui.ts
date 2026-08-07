@@ -5,10 +5,11 @@ import {
   mesmerResourceViews,
 } from "../../core/ui.js";
 import type {
+  ProfessionEventLogDescriptor,
   ProfessionUiContract,
   SchedulerRecord,
 } from "../../../../platform/engine/types.js";
-import type { MesmerUiContext } from "../../types.js";
+import type { MesmerResolverEvent, MesmerUiContext } from "../../types.js";
 
 const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([
   ID.SPLIT_SECOND,
@@ -18,8 +19,24 @@ const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([
   ID.CONTINUUM_SPLIT,
 ]);
 
+function chronomancerEventLogRow(
+  _context: SchedulerRecord,
+  event: MesmerResolverEvent,
+): ProfessionEventLogDescriptor | undefined {
+  if (event?.type !== "mesmer.phantasm-resummoned") return undefined;
+  return {
+    type: event.type,
+    description:
+      `PHANTASM RESUMMONED ${event.name} x${event.count} [Chronophantasma]`,
+    className: "phantasm",
+    order: 21,
+    flags: ["phantasm-clone"],
+  };
+}
+
 export const chronomancerUi: Partial<ProfessionUiContract> & SchedulerRecord =
   Object.freeze({
+    eventLogRow: chronomancerEventLogRow,
     paletteGroups: (context: MesmerUiContext) =>
       mesmerMechanicPaletteGroups(context, CHRONOMANCER_MECHANIC_SKILLS),
     skillBarGroups: () =>

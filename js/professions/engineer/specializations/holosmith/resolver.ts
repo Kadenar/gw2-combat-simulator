@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { holosmithState } from "./state.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
@@ -12,7 +12,7 @@ function handlePrimeLightBeamField(
   event: EngineerResolverEvent,
 ): void {
   const heat = Number(
-    professionSpecializationState(context, "Holosmith").heat || 0,
+    holosmithState.from(context).heat || 0,
   );
   if (heat <= 50) return;
   const enhancedCapacityTier =
@@ -61,7 +61,7 @@ function handleLaserDisk(
   event: EngineerResolverEvent,
 ): void {
   const heat = Number(
-    professionSpecializationState(context, "Holosmith").heat || 0,
+    holosmithState.from(context).heat || 0,
   );
   const pulses = heat > 50 ? 18 : 12;
   const enhancedCapacityTier =
@@ -108,7 +108,7 @@ function handleLaunchWall(
   event: EngineerResolverEvent,
 ): void {
   const heat = Number(
-    professionSpecializationState(context, "Holosmith").heat || 0,
+    holosmithState.from(context).heat || 0,
   );
   const walls = heat > 50 ? 3 : 1;
   const enhancedCapacityTier =

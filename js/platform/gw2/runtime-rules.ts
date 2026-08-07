@@ -1,4 +1,6 @@
 import type { SimulationEventInput, Skill } from "../engine/types.js";
+import { clamp } from "./numeric.js";
+import { conditionDurationFractionFromExpertise } from "./stat-scaling.js";
 import type {
   Gw2Config,
   Gw2ResolvedStats,
@@ -24,6 +26,9 @@ interface WeaponStrengthOptions {
 // Small, side-effect-free GW2 rules shared by schedulers, resolvers, and
 // profession adapters.
 
+/** Power and Condition Damage granted by one stack of Might. */
+export const MIGHT_ATTRIBUTE_BONUS_PER_STACK = 30;
+
 /**
  * @param {Gw2Config} config
  * @param {number} [weaponSet]
@@ -43,8 +48,8 @@ export function gw2StaticAttributes(
   config: Gw2Config,
   mightStacks: number | boolean | undefined = config.boons?.might,
 ): Gw2ResolvedStats {
-  // Each Might stack adds 30 to both Power and Condition Damage.
-  const mightBonus = 30 * Number(mightStacks || 0);
+  const mightBonus =
+    MIGHT_ATTRIBUTE_BONUS_PER_STACK * Number(mightStacks || 0);
   return {
     power: Number(config.stats?.power || 0) + mightBonus,
     precision: Number(config.stats?.precision || 0),
@@ -130,10 +135,10 @@ export function gw2ConditionDurationMultiplier(
   extraBonus = 0,
 ): number {
   const bonus =
-    Number(stats.expertise || 0) / 1500 +
+    conditionDurationFractionFromExpertise(Number(stats.expertise || 0)) +
     Number(stats.conditionDurationBonus || 0) / 100 +
     Number(stats.conditionDurationBonuses?.[condition] || 0) / 100 +
     Number(extraBonus || 0);
   // This helper models duration extensions only and enforces GW2's +100% cap.
-  return Math.max(1, Math.min(2, 1 + bonus));
+  return clamp(1 + bonus, 1, 2);
 }

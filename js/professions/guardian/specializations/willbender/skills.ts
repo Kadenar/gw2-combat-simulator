@@ -1,5 +1,4 @@
 import { GUARDIAN_SKILL_IDS as ID } from "../../data/ids.js";
-import { strikeTimeline } from "../../../../platform/engine/effect-factories.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
 
 export const WILLBENDER_SKILL_MECHANICS: Readonly<

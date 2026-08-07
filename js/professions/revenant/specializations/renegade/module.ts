@@ -1,5 +1,9 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { revenantModuleCatalog } from "../../catalog.js";
+import {
+  defineNativeModule,
+  onFoodProcCreated,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
+import { createRevenantModuleData } from "../../catalog-data.js";
 import {
   renegadeEventHandlers,
   renegadeEventReactions,
@@ -10,26 +14,34 @@ import {
   renegadeCastRules,
   renegadeSchedulerHooks,
 } from "./rules.js";
-import { createRenegadeState } from "./state.js";
+import { renegadeState } from "./state.js";
 import { renegadeUi } from "./ui.js";
-import type { RenegadeState } from "../../types.js";
+import { RENEGADE_BASE_SKILL_MECHANICS } from "./skills.js";
 
-export const renegadeModule = defineProfessionModule<RenegadeState>({
+export const renegadeModule = defineNativeModule({
   id: "Renegade",
-  catalog: {
-    ...revenantModuleCatalog("Renegade"),
-    skillHandlers: renegadeSkillHandlers,
+  data: createRevenantModuleData("Renegade", {
+    skillMechanics: RENEGADE_BASE_SKILL_MECHANICS,
+    handlers: renegadeSkillHandlers,
+  }),
+  state: { scheduler: renegadeState.create, resolver: renegadeState.create },
+  mechanics: {
+    modifiers: renegadeAttributeRules,
+    castRules: renegadeCastRules,
+    schedulerHooks: renegadeSchedulerHooks,
+    reactions: [
+      onResolvedDamage({
+        id: "revenant.renegade.damage",
+        handler: renegadeEventReactions.damage,
+      }),
+      onFoodProcCreated({
+        id: "revenant.renegade.food-proc",
+        handler: renegadeEventReactions.food_proc,
+      }),
+    ],
+    resolverHooks: {
+      eventHandlers: renegadeEventHandlers,
+    },
   },
-  resources: {
-    createProfessionState: createRenegadeState,
-    createResolverState: createRenegadeState,
-  },
-  attributeRules: renegadeAttributeRules,
-  castRules: renegadeCastRules,
-  schedulerHooks: renegadeSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: renegadeEventHandlers,
-    eventReactions: renegadeEventReactions,
-  },
-  ui: renegadeUi,
+  presentation: renegadeUi,
 });

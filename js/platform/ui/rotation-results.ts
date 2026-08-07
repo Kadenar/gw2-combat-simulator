@@ -69,6 +69,22 @@ export interface ResultRandomDistribution {
   readonly p50: number;
   readonly p90: number;
   readonly p99: number;
+  readonly explanation?: {
+    readonly cohortPercent: number;
+    readonly lowDpsMean: number;
+    readonly highDpsMean: number;
+    readonly drivers: readonly {
+      readonly id: string;
+      readonly label: string;
+      readonly category: string;
+      readonly unit: "count" | "stacks" | "value";
+      readonly lowAverage: number;
+      readonly overallAverage: number;
+      readonly highAverage: number;
+      readonly delta: number;
+      readonly correlation: number;
+    }[];
+  };
 }
 
 export interface ResultRandomDistributionProgress {
@@ -180,6 +196,54 @@ function signedFixed(value: unknown, digits = 2): string {
   const threshold = 0.5 / (10 ** digits);
   const normalized = Math.abs(numeric) < threshold ? 0 : numeric;
   return `${normalized > 0 ? "+" : ""}${normalized.toFixed(digits)}`;
+}
+
+function randomDriverNumber(
+  value: unknown,
+  unit: "count" | "stacks" | "value",
+): string {
+  const numeric = Number(value || 0);
+  if (unit === "value") return number(numeric);
+  return numeric.toLocaleString(undefined, {
+    minimumFractionDigits: Math.abs(numeric) < 10 ? 1 : 0,
+    maximumFractionDigits: 1,
+  });
+}
+
+function randomDistributionExplanationHtml(
+  distribution: ResultRandomDistribution,
+): string {
+  const explanation = distribution.explanation;
+  if (!explanation?.drivers?.length) return "";
+  const cohort = Math.max(1, Math.round(explanation.cohortPercent || 10));
+  const cohortSize = Math.max(
+    1,
+    Math.ceil(Number(distribution.trials || 0) * (cohort / 100)),
+  );
+  return `<div class="rng-explanation">
+    <div class="rng-explanation-heading">
+      <strong>What was different in the highest-DPS simulations?</strong>
+      <span>${number(cohortSize)} highest vs ${number(cohortSize)} lowest</span>
+    </div>
+    <p>The ${number(cohortSize)} highest-DPS simulations averaged ${number(explanation.highDpsMean)} DPS. The ${number(cohortSize)} lowest-DPS simulations averaged ${number(explanation.lowDpsMean)} DPS.</p>
+    <div class="rng-driver-list">
+      ${explanation.drivers.map((driver) => {
+        const positive = Number(driver.delta) >= 0;
+        return `<div class="rng-driver">
+          <span class="rng-driver-label">
+            <strong>${escapeHtml(driver.label)}</strong>
+            <small>Highest-DPS group: ${randomDriverNumber(driver.highAverage, driver.unit)} average per simulation</small>
+            <small>Lowest-DPS group: ${randomDriverNumber(driver.lowAverage, driver.unit)} average per simulation</small>
+          </span>
+          <span class="rng-driver-delta">
+            <strong>${positive ? "+" : "&minus;"}${randomDriverNumber(Math.abs(driver.delta), driver.unit)}</strong>
+            <small>difference</small>
+          </span>
+        </div>`;
+      }).join("")}
+    </div>
+    <p class="rng-explanation-note">These are averages across each group, not counts from one simulation. Related rows can come from the same proc chain, so do not add them together.</p>
+  </div>`;
 }
 
 function skillCellHtml(
@@ -416,7 +480,8 @@ export function mountRotationResults(
               <strong>${number(randomDistribution.p99)}</strong>
               <small>P99 DPS</small>
             </div>
-          </div>`
+          </div>
+          ${randomDistributionExplanationHtml(randomDistribution)}`
           : `<div class="rng-distribution-manual">
               <span>Run the distribution when the rotation is ready.</span>
               <button type="button" data-role="rng-run">

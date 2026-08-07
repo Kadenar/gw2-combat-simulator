@@ -121,6 +121,53 @@ export interface RandomDistributionProgress {
   readonly percent: number;
 }
 
+export type RandomDistributionMetricCategory =
+  | "critical"
+  | "condition"
+  | "proc"
+  | "effect"
+  | "weapon-strength";
+
+export type RandomDistributionMetricUnit =
+  | "count"
+  | "stacks"
+  | "value";
+
+/** One compact, profession-neutral observation collected from an RNG trial. */
+export interface RandomDistributionMetricSample {
+  readonly id: string;
+  readonly group: string;
+  readonly label: string;
+  readonly category: RandomDistributionMetricCategory;
+  readonly unit: RandomDistributionMetricUnit;
+  readonly value: number;
+}
+
+/** Internal worker payload used to merge explanation data across trial batches. */
+export interface RandomDistributionOutcome {
+  readonly dps: number;
+  readonly metrics: readonly RandomDistributionMetricSample[];
+}
+
+export interface RandomDistributionDriver {
+  readonly id: string;
+  readonly label: string;
+  readonly category: RandomDistributionMetricCategory;
+  readonly unit: RandomDistributionMetricUnit;
+  readonly lowAverage: number;
+  readonly overallAverage: number;
+  readonly highAverage: number;
+  readonly delta: number;
+  readonly correlation: number;
+}
+
+export interface RandomDistributionExplanation {
+  readonly cohortPercent: number;
+  readonly lowDpsMean: number;
+  readonly highDpsMean: number;
+  readonly drivers: readonly RandomDistributionDriver[];
+}
+
 export interface RandomDistributionSummary {
   readonly trials: number;
   readonly mean: number;
@@ -130,6 +177,8 @@ export interface RandomDistributionSummary {
   readonly p90: number;
   readonly p99: number;
   readonly samples?: readonly number[];
+  readonly outcomes?: readonly RandomDistributionOutcome[];
+  readonly explanation?: RandomDistributionExplanation;
 }
 
 export interface BuildTemplatePreset extends SchedulerRecord {

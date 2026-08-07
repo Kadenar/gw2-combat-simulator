@@ -1,7 +1,7 @@
 import {
-  augmentSkillHandler,
-  replaceSkillHandler,
-} from "../../../../platform/engine/skill-handlers.js";
+  augmentSkill,
+  replaceSkill,
+} from "../../../../platform/gw2/native-profession.js";
 import {
   guardianTomeEventHandlers,
   guardianTomeSkillHandlers,
@@ -14,12 +14,12 @@ import {
 } from "./traits.js";
 
 export const firebrandSkillHandlers = Object.freeze({
-  "guardian.stow-tome": replaceSkillHandler(
-    guardianTomeSkillHandlers["guardian.stow-tome"],
-  ),
-  "guardian.tome-page": augmentSkillHandler(
-    guardianTomeSkillHandlers["guardian.tome-page"],
-  ),
+  "guardian.stow-tome": replaceSkill({
+    beforeEffects: guardianTomeSkillHandlers["guardian.stow-tome"],
+  }),
+  "guardian.tome-page": augmentSkill({
+    beforeEffects: guardianTomeSkillHandlers["guardian.tome-page"],
+  }),
 });
 
 export const firebrandEventHandlers = Object.freeze({

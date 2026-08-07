@@ -68,18 +68,18 @@ function implementedEvidence(
 ): { readonly file: string; readonly name: string } {
   if (trait.specialization === "Mirage") {
     return {
-      file: "tests/rotation.test.js",
+      file: "tests/professions/mesmer/rotation.test.js",
       name: "Mirage support and cloak traits emit their current effects",
     };
   }
   if (trait.specialization === "Chronomancer") {
     return {
-      file: "tests/rotation.test.js",
+      file: "tests/professions/mesmer/rotation.test.js",
       name: "Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it first",
     };
   }
   return {
-    file: "tests/rotation.test.js",
+    file: "tests/professions/mesmer/rotation.test.js",
     name: "supplied trait attacks execute with their exact coefficients",
   };
 }

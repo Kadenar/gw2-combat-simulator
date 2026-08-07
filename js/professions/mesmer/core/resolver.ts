@@ -44,6 +44,5 @@ export const mesmerCoreEventReactions = Object.freeze({
 
 export const mesmerCoreEventHandlers = Object.freeze({
   "mesmer.phantasm-summoned": noop,
-  "mesmer.phantasm-resummoned": noop,
   "mesmer.phantasm-attack": noop,
 });

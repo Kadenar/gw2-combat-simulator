@@ -6,6 +6,7 @@
  */
 
 import type { SimulationEventInput, Skill } from "../engine/types.js";
+import { isGw2NonWeaponEffectEvent } from "./event-ownership.js";
 import type { Gw2Config, Gw2WeaponStrengthProfile } from "./types.js";
 
 const PROFILE_ROWS: ReadonlyArray<readonly [string, number, number]> =
@@ -212,10 +213,7 @@ export function weaponStrengthProfileIdForEvent(
     if (profile) return profile.id;
   }
 
-  if (
-    event.actorType === "effect" ||
-    /^(trait|sigil|relic|food|equipment)$/i.test(String(event.source || ""))
-  ) {
+  if (isGw2NonWeaponEffectEvent(event)) {
     return "nonweapon.unequipped";
   }
 

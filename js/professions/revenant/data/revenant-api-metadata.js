@@ -1,5 +1,5 @@
 // Generated Guild Wars 2 API metadata for revenant.
-// Snapshot: 2026-07-28. Run scripts/update-profession-api-data.mjs --profession Revenant to refresh.
+// Snapshot: 2026-07-28. Run scripts/data/update-profession-api-data.mjs --profession Revenant to refresh.
 // Simulator mechanics are maintained under revenant/mechanics/.
 
 export const DATA_SNAPSHOT = "2026-07-28";

@@ -1244,8 +1244,8 @@ export const WEAPON_DATA: Readonly<
 // ─── Sigil Data ───────────────────────────────────────────────────────────────
 // Stat values are percentages stored as numbers (e.g. 7 = 7%).
 // Only non-zero fields are listed; all others default to 0 when accessed with ||0.
-// Sigils with no stat effect (proc-only: Air, Blight, Earth, Torment, Doom,
-// Energy, Geomancy, Hydromancy, Severance) have icons but no numeric effect fields.
+// Proc-only sigils have no passive numeric fields. Their active effect values
+// remain in sigil data/rules rather than being folded into aggregate stats.
 const CONDITION_SIGILS = new Set([
   "Agony",
   "Blight",
@@ -1379,7 +1379,10 @@ export const RELIC_DATA = {
     cooldown: 0,
     icon: "https://render.guildwars2.com/file/2999CCF7C94267B2EE3DDA7459050864622927C9/3122349.png",
   },
-  Mistburn: { trigger: "At least 10 Might stacks", cooldown: 0 },
+  Mistburn: {
+    trigger: "Grant yourself Might; +10% critical chance at 10+ Might",
+    cooldown: 1,
+  },
   "Mist Stranger": { trigger: "Extra flat damage on every hit", cooldown: 0 },
   Peitha: {
     trigger: "Shadowstep or deception skill",

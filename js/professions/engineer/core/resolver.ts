@@ -1,5 +1,6 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
+import { clamp } from "../../../platform/gw2/numeric.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import {
   ENGINEER_SKILL_IDS as ID,
@@ -362,7 +363,7 @@ export function activeBoonStacks(
       (sum, application) => sum + Number(application.stacks || 1),
       0,
     );
-  return Math.max(0, Math.min(maximum, base + dynamic));
+  return clamp(base + dynamic, 0, maximum);
 }
 
 function usesRandomTraitProcs(context: EngineerResolverContext): boolean {

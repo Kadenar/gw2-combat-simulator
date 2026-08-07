@@ -1,5 +1,5 @@
 import { professionCoreState } from "../../../../platform/engine/profession.js";
-import { isInternalCooldownReady } from "../../../../platform/engine/internal-cooldown.js";
+import { isInternalCooldownReady } from "../../../../platform/engine/clock.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { NECROMANCER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { SCOURGE_MECHANICS as MECHANICS } from "./mechanics.js";

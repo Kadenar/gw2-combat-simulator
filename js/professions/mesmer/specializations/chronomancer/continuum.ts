@@ -1,6 +1,6 @@
+import { chronomancerState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
@@ -50,10 +50,7 @@ export function createContinuumController({
   scheduleExpiry = null,
 }: ContinuumControllerOptions): ContinuumController {
   const restoreContinuum = (at: number, reason: string) => {
-    const chronomancer = professionSpecializationState(
-      state,
-      "Chronomancer",
-    );
+    const chronomancer = chronomancerState.from(state);
     const continuum = chronomancer.continuum;
     if (!continuum) return;
     const splitReady = continuum.splitReady;
@@ -128,10 +125,7 @@ export function createContinuumController({
         },
       ]),
     );
-    const chronomancer = professionSpecializationState(
-      state,
-      "Chronomancer",
-    );
+    const chronomancer = chronomancerState.from(state);
     chronomancer.continuum = {
       splitId: skill.id,
       splitReady: state.cooldowns.get(skill.id),

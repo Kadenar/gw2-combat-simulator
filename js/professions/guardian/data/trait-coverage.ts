@@ -80,13 +80,13 @@ function implementedEvidence(trait: CatalogEntity): {
 } {
   if (trait.specialization === "Firebrand") {
     return {
-      file: "tests/guardian.test.js",
+      file: "tests/professions/guardian/guardian.test.js",
       name: "Firebrand page exhaustion stows the tome and pages regenerate",
     };
   }
   if (trait.specialization === "Luminary") {
     return {
-      file: "tests/guardian.test.js",
+      file: "tests/professions/guardian/guardian.test.js",
       name: "Luminary recharge traits alter the intended cooldown families",
     };
   }
@@ -110,12 +110,12 @@ function implementedEvidence(trait: CatalogEntity): {
     ].includes(trait.name)
   ) {
     return {
-      file: "tests/guardian.test.js",
+      file: "tests/professions/guardian/guardian.test.js",
       name: "Guardian build attributes expose static Zeal and Radiance bonuses",
     };
   }
   return {
-    file: "tests/guardian.test.js",
+    file: "tests/professions/guardian/guardian.test.js",
     name: "Zeal symbol traits emit their full profiles and stack damage",
   };
 }

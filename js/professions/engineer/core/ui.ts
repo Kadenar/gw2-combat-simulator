@@ -5,11 +5,12 @@ import {
   defaultWeaponSkillMatchesSet,
 } from "../../../platform/gw2/weapon-skill-matcher.js";
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
-import { engineerCatalog } from "../catalog.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import { getActiveTraits } from "../data/traits-data.js";
 import type {
   PaletteSkillAvailability,
+  CanonicalCatalog,
+  CatalogEntity,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
@@ -38,15 +39,6 @@ const KIT_ORDER = new Map<string, number>([
   ["Tool Kit", 4],
   ["Elixir Gun", 5],
   ["Elite Mortar Kit", 6],
-]);
-
-const HEAT_STATE_REASONS = new Set<string>([
-  "enter-forge",
-  "exit-forge",
-  "heat",
-  "overheat",
-  "passive-heat",
-  "thermal-release-valve",
 ]);
 
 const SKILL_SLOT_ORDER: readonly string[] = Object.freeze([
@@ -82,10 +74,25 @@ const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
   ID.REFRACTION_CUTTER_ID_71121,
 ]);
 
-const engineerSkills =
-  engineerCatalog.skills as readonly EngineerSkill[];
-const engineerSkillsById =
-  engineerCatalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+const CORE_STATE_REASONS = new Set<string>([
+  "arm-flip",
+  "consume-flip",
+  "equip-kit",
+  "stow-kit",
+  "dodge",
+  "resources",
+  "lightning-rod-active",
+  "conduit-surge",
+  "electric-artillery-consumed",
+  "electric-artillery-ready",
+  "electric-artillery-expired",
+  "kinetic-battery",
+  "deploy-turret",
+]);
+
+let engineerSkills: readonly EngineerSkill[] = [];
+let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
+let engineerTraits: readonly CatalogEntity[] = [];
 
 export function engineerUiState(
   context: EngineerUiContext = {},
@@ -98,7 +105,12 @@ export function engineerUiState(
 export function engineerUiSpecialization(
   context: EngineerUiContext = {},
 ): string {
-  return context.specialization || context.config?.specialization || "Core";
+  return String(
+    context.specialization
+    || context.config?.specialization
+    || context.build?.specialization
+    || "Core",
+  );
 }
 
 function selectedNames(context: EngineerUiContext = {}): Set<string> {
@@ -187,7 +199,7 @@ function usesToolsTraitline(context: EngineerUiContext): boolean {
     ...(context.config?.selectedTraitIds || []),
     ...(context.config?.selectedTraits || []),
   ].map(value => String(value)));
-  return engineerCatalog.traits.some(trait =>
+  return engineerTraits.some(trait =>
     trait.specialization === "Tools"
     && (
       selected.has(String(trait.id))
@@ -337,40 +349,24 @@ export function engineerEventLogRow(
   if ([
     "engineer.combo-field",
     "engineer.dodge",
-    "engineer.mass-momentum-pulse",
     "engineer.lightning-rod-pulse",
     "engineer.conduit-surge",
     "engineer.electric-artillery",
     "engineer.radiant-arc-quickness",
-    "engineer.prime-light-beam-field",
-    "engineer.laser-disk",
-    "engineer.launch-wall",
     "engineer.refraction-cutter-extra-blades",
   ].includes(event?.type)) {
     // These resolver events materialize skill packets. The ordinary action,
     // damage, and condition rows already present their user-visible effects.
     return null;
   }
-  if (event?.type !== "engineer.state") return undefined;
-  const buildSpecializations = Array.isArray(context?.build?.specializations)
-    ? context.build.specializations
-    : [];
-  const isHolosmith = buildSpecializations.some(specialization =>
-    String(specialization?.name || specialization) === "Holosmith")
-    || String(context?.build?.specialization || "") === "Holosmith";
   if (
-    !isHolosmith
-    || !HEAT_STATE_REASONS.has(String(event.reason || ""))
+    event?.type === "engineer.state"
+    && (
+      engineerUiSpecialization(context) === "Core"
+      || CORE_STATE_REASONS.has(String(event.reason))
+    )
   ) return null;
-  return {
-    type: event.type,
-    description:
-      `${event.reason || "State"} - ` +
-      `Heat ${Number(event.state?.heat || 0).toFixed(1)}`,
-    className: "resource",
-    order: 30,
-    flags: [],
-  };
+  return undefined;
 }
 
 export const engineerCoreUi:
@@ -383,17 +379,7 @@ Object.freeze({
       ? engineerSkillBarGroups(context)
       : [],
   paletteGroups: (context: EngineerUiContext) => {
-    const groups: ProfessionPaletteGroup[] =
-      engineerUiSpecialization(context) === "Core"
-        ? [{
-            id: "engineer-profession",
-            label: "F",
-            skillIds: uniqueIdsBySkillName(professionSkills(context)),
-            color: "#b88a35",
-            resourceAnchor: true,
-            includeActionSkills: true,
-          }]
-        : [];
+    const groups: ProfessionPaletteGroup[] = [];
     for (const kit of selectedKitNames(context)) {
       const kitSkills = uniqueSkillsByName(
         engineerSkills.filter(skill => skill.kit === kit),
@@ -408,6 +394,16 @@ Object.freeze({
           .map(skill => skill.id),
         color: "#9d762e",
         stackId: "engineer-kits",
+      });
+    }
+    if (engineerUiSpecialization(context) === "Core") {
+      groups.push({
+        id: "engineer-profession",
+        label: "F",
+        skillIds: uniqueIdsBySkillName(professionSkills(context)),
+        color: "#b88a35",
+        resourceAnchor: true,
+        includeActionSkills: true,
       });
     }
     return groups;
@@ -467,3 +463,13 @@ Object.freeze({
   weaponSwapChangesSet: false,
   eventLogRow: engineerEventLogRow,
 });
+
+export function bindEngineerCoreUi(
+  catalog: Readonly<CanonicalCatalog>,
+): typeof engineerCoreUi {
+  engineerSkills = catalog.skills as readonly EngineerSkill[];
+  engineerSkillsById =
+    catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+  engineerTraits = catalog.traits;
+  return engineerCoreUi;
+}

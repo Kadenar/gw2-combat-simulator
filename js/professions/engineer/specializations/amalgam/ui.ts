@@ -1,7 +1,6 @@
 import {
   createProfessionAssumptionControls,
 } from "../../../../app/profession/assumptions.js";
-import { engineerCatalog } from "../../catalog.js";
 import {
   engineerFSkillBarGroups,
   engineerToolbeltSkillIds,
@@ -10,20 +9,20 @@ import {
   uniqueIdsBySkillName,
 } from "../../core/ui.js";
 import type {
+  CanonicalCatalog,
   ProfessionUiContract,
   SchedulerRecord,
   SkillId,
 } from "../../../../platform/engine/types.js";
 import type {
+  EngineerResolverEvent,
   EngineerSkill,
   EngineerUiContext,
   EngineerUiSelection,
 } from "../../types.js";
 
-const engineerSkills =
-  engineerCatalog.skills as readonly EngineerSkill[];
-const engineerSkillsById =
-  engineerCatalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+let engineerSkills: readonly EngineerSkill[] = [];
+let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
 const AMALGAM_PROTOCOL_ORDER = new Map<string, number>([
   ["Offensive Protocol: Shred", 0],
   ["Offensive Protocol: Demolish", 1],
@@ -144,6 +143,11 @@ function updateAmalgamSkillBarSelection(
 
 export const amalgamUi:
 Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  eventLogRow: (
+    _context: EngineerUiContext,
+    event: EngineerResolverEvent,
+  ) =>
+    event?.type === "engineer.state" ? null : undefined,
   assumptionControls: AMALGAM_ASSUMPTION_CONTROLS,
   skillBarGroups: amalgamSkillBarGroups,
   updateSkillBarSelection: updateAmalgamSkillBarSelection,
@@ -158,3 +162,12 @@ Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
     includeActionSkills: true,
   }],
 });
+
+export function bindAmalgamUi(
+  catalog: Readonly<CanonicalCatalog>,
+): typeof amalgamUi {
+  engineerSkills = catalog.skills as readonly EngineerSkill[];
+  engineerSkillsById =
+    catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+  return amalgamUi;
+}

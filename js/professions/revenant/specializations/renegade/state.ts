@@ -1,4 +1,5 @@
 import type { RenegadeState } from "../../types.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 export function createRenegadeState(): RenegadeState {
   return {
@@ -13,3 +14,8 @@ export function createRenegadeState(): RenegadeState {
     },
   };
 }
+
+export const renegadeState = defineProfessionSpecializationState(
+  "Renegade",
+  createRenegadeState,
+);
