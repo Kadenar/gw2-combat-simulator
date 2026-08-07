@@ -4,13 +4,13 @@ import test from "node:test";
 
 import {
   assertMesmerResultParity,
-} from "mesmer-simulation-oracle.js";
+} from "../../helpers/mesmer-simulation-oracle.js";
 import {
   defaultSimulationConfig,
-} from "fixture-harness-core.js";
+} from "../../helpers/fixture-harness-core.js";
 import {
   simulateMesmer,
-} from "mesmer-simulation.js";
+} from "../../helpers/mesmer-simulation.js";
 
 const fixtureDirectory = path.resolve(
   "tests",

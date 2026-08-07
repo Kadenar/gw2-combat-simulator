@@ -3,11 +3,11 @@ import test from "node:test";
 
 import {
   isInternalCooldownReady,
-} from "js/platform/engine/clock.js";
+} from "../../../js/platform/engine/clock.js";
 import {
   armRelicIcd,
   isRelicIcdReady,
-} from "js/professions/elementalist/sim/state/sim-icd-state.js";
+} from "../../../js/professions/elementalist/sim/state/sim-icd-state.js";
 
 test("internal cooldowns remain active through their boundary timestamp", () => {
   assert.equal(isInternalCooldownReady(0, 0), true);

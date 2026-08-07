@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
     createDefaultBuild as createDefaultBuildFor,
     replaceBuild as replaceBuildFor,
-} from 'js/app/build/persistence.js';
+} from '../../../js/app/build/persistence.js';
 import {
     calculateAttributes as calculateMesmerAttributes,
     calculateModifierContributions,
@@ -12,21 +12,21 @@ import {
     modifierContributionRequest,
     runSimulation,
     simulationConfig,
-} from 'js/professions/mesmer/app/app-definition.js';
+} from '../../../js/professions/mesmer/app/app-definition.js';
 import {
     calculateCommonAttributes,
     finalizeBuildAttributes,
-} from 'js/platform/gw2/attributes.js';
+} from '../../../js/platform/gw2/attributes.js';
 import {
     calculateContributionComparisons,
     mergeModifierContributions,
     modifierContributionWorkerCount,
     partitionModifierComparisons,
-} from 'js/app/simulation/modifier-contributions.js';
+} from '../../../js/app/simulation/modifier-contributions.js';
 import {
     aggregateSigilSet,
     setWeaponSigil,
-} from 'js/platform/gw2/weapon-sigils.js';
+} from '../../../js/platform/gw2/weapon-sigils.js';
 
 const calcAttributes = calculateMesmerAttributes;
 const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);

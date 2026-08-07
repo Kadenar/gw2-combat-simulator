@@ -3,12 +3,12 @@ import test from 'node:test';
 import {
     SKILLS,
     SPECIALIZATIONS,
-} from "js/professions/mesmer/data/mesmer-api-metadata.js";
+} from "../../../js/professions/mesmer/data/mesmer-api-metadata.js";
 import {
     SKILLS as GUARDIAN_API_SKILLS,
-} from "js/professions/guardian/data/guardian-api-metadata.js";
-import { RELIC_NAMES } from 'js/platform/gw2/gear-data.js';
-import { TRAITS } from 'js/professions/mesmer/data/traits-data.js';
+} from "../../../js/professions/guardian/data/guardian-api-metadata.js";
+import { RELIC_NAMES } from '../../../js/platform/gw2/gear-data.js';
+import { TRAITS } from '../../../js/professions/mesmer/data/traits-data.js';
 import {
     AMBUSH_ATTACKS,
     AMBUSH_SKILLS,
@@ -21,21 +21,21 @@ import {
     MESMER_SUPPLEMENTAL_SKILL_MECHANICS,
     SHATTERS,
     TRAIT_DAMAGE,
-} from "js/professions/mesmer/mechanics/skill-mechanics.js";
-import { mesmerCatalog } from 'js/professions/mesmer/catalog.js';
-import { mesmerProfession } from 'js/professions/mesmer/definition.js';
-import { MESMER_SKILL_IDS as ID } from 'js/professions/mesmer/data/ids.js';
+} from "../../../js/professions/mesmer/mechanics/skill-mechanics.js";
+import { mesmerCatalog } from '../../../js/professions/mesmer/catalog.js';
+import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';
+import { MESMER_SKILL_IDS as ID } from '../../../js/professions/mesmer/data/ids.js';
 import {
     MESMER_SUPPLEMENTAL_SKILLS,
-} from 'js/professions/mesmer/data/mesmer-supplemental-skills.js';
+} from '../../../js/professions/mesmer/data/mesmer-supplemental-skills.js';
 import {
     MESMER_TRAIT_COVERAGE,
-} from 'js/professions/mesmer/data/trait-coverage.js';
+} from '../../../js/professions/mesmer/data/trait-coverage.js';
 import {
     defaultMesmerLegacySkillId,
     MESMER_DUPLICATE_SKILL_NAMES,
     resolveMesmerLegacySkillId,
-} from 'js/professions/mesmer/data/legacy-skill-resolver.js';
+} from '../../../js/professions/mesmer/data/legacy-skill-resolver.js';
 
 const catalogSkill = name => mesmerCatalog.skillsByName.get(name);
 const profileEffects = skill =>

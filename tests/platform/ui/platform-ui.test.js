@@ -5,31 +5,31 @@ import {
   buildPhaseDpsSeries,
   chartValueAt,
   mountTimeSeriesCharts,
-} from "js/platform/ui/charts.js";
+} from "../../../js/platform/ui/charts.js";
 import {
   eventLogCsv,
   eventLogRows,
   mountEventLog,
-} from "js/platform/ui/event-log.js";
+} from "../../../js/platform/ui/event-log.js";
 import {
   paletteGroupHtml,
   paletteSkillHtml,
   virtualPaletteSkillHtml,
-} from "js/platform/ui/palette.js";
+} from "../../../js/platform/ui/palette.js";
 import {
   escapeHtml,
   gw2ApiText,
-} from "js/platform/ui/html.js";
+} from "../../../js/platform/ui/html.js";
 import {
   targetHealthBreakpointSnapshots,
-} from "js/platform/ui/result-transform.js";
+} from "../../../js/platform/ui/result-transform.js";
 import {
   mountRotationWarnings,
   mountRotationResults,
   nextResultSortState,
   SKILL_COLS,
   sortResultRows,
-} from "js/platform/ui/rotation-results.js";
+} from "../../../js/platform/ui/rotation-results.js";
 import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
@@ -42,7 +42,7 @@ import {
   rotationEntryName,
   timelineSkillCastOrdinals,
   updateRotationEntry,
-} from "js/platform/ui/timeline.js";
+} from "../../../js/platform/ui/timeline.js";
 
 function inertContainer() {
   return {

@@ -4,24 +4,24 @@ import test from "node:test";
 
 import {
   migrateNecromancerBuild,
-} from "js/professions/necromancer/build.js";
+} from "../../js/professions/necromancer/build.js";
 import {
   necromancerCatalog,
-} from "js/professions/necromancer/catalog.js";
+} from "../../js/professions/necromancer/catalog.js";
 import {
   recalculate,
   runSimulation,
-} from "js/professions/necromancer/app/app-definition.js";
+} from "../../js/professions/necromancer/app/app-definition.js";
 import {
   recalculate as recalculateRevenant,
   runSimulation as runRevenantSimulation,
-} from "js/professions/revenant/app/app-definition.js";
+} from "../../js/professions/revenant/app/app-definition.js";
 import {
   migrateRevenantBuild,
-} from "js/professions/revenant/build.js";
+} from "../../js/professions/revenant/build.js";
 import {
   revenantCatalog,
-} from "js/professions/revenant/catalog.js";
+} from "../../js/professions/revenant/catalog.js";
 
 test("native build manifests and assets stay profession-scoped", async () => {
   const professions = [
@@ -34,7 +34,7 @@ test("native build manifests and assets stay profession-scoped", async () => {
 
   for (const profession of professions) {
     const manifest = JSON.parse(await readFile(
-      new URL(`Builds/${profession}/manifest.json`, import.meta.url),
+      new URL(`../../Builds/${profession}/manifest.json`, import.meta.url),
       "utf8",
     ));
     const presets = manifest.flatMap((section) => section.presets);
@@ -46,7 +46,7 @@ test("native build manifests and assets stay profession-scoped", async () => {
         new RegExp(`^Builds/${profession}/[^/]+\\.json$`),
       );
       const build = JSON.parse(await readFile(
-        new URL(`${preset.build}`, import.meta.url),
+        new URL(`../../${preset.build}`, import.meta.url),
         "utf8",
       ));
       if (build.profession) {
@@ -58,7 +58,7 @@ test("native build manifests and assets stay profession-scoped", async () => {
           new RegExp(`^Rotations/${profession}/[^/]+\\.json$`),
         );
         const rotation = JSON.parse(await readFile(
-          new URL(`${preset.rotation}`, import.meta.url),
+          new URL(`../../${preset.rotation}`, import.meta.url),
           "utf8",
         ));
         assert.ok(Array.isArray(rotation.rotation));
@@ -71,11 +71,11 @@ test("native build manifests and assets stay profession-scoped", async () => {
 test("Necromancer rotation presets stay separate from Elementalist presets", async () => {
   const [necromancerManifest, elementalistManifest] = await Promise.all([
     readFile(
-      new URL("Builds/necromancer/manifest.json", import.meta.url),
+      new URL("../../Builds/necromancer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("Builds/manifest.json", import.meta.url),
+      new URL("../../Builds/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -140,7 +140,7 @@ test("Necromancer rotation presets stay separate from Elementalist presets", asy
     assert.equal(elementalistPresetPaths.has(preset.rotation), false);
 
     const savedRotation = JSON.parse(await readFile(
-      new URL(`${preset.rotation}`, import.meta.url),
+      new URL(`../../${preset.rotation}`, import.meta.url),
       "utf8",
     ));
     assert.ok(Array.isArray(savedRotation.rotation));
@@ -151,11 +151,11 @@ test("Necromancer rotation presets stay separate from Elementalist presets", asy
 test("Necromancer and Thief displayed benchmark DPS stays current", async () => {
   const [necromancerManifest, thiefManifest] = await Promise.all([
     readFile(
-      new URL("Builds/necromancer/manifest.json", import.meta.url),
+      new URL("../../Builds/necromancer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("Builds/thief/manifest.json", import.meta.url),
+      new URL("../../Builds/thief/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -183,7 +183,7 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
 
 test("new Necromancer rotation presets execute without warnings", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/necromancer/manifest.json", import.meta.url),
+    new URL("../../Builds/necromancer/manifest.json", import.meta.url),
     "utf8",
   ));
   const conditionHarbinger = manifest
@@ -200,11 +200,11 @@ test("new Necromancer rotation presets execute without warnings", async () => {
   for (const [buildFile, rotationFile] of presets) {
     const [savedBuild, savedRotation] = await Promise.all([
       readFile(
-        new URL(`Builds/necromancer/${buildFile}`, import.meta.url),
+        new URL(`../../Builds/necromancer/${buildFile}`, import.meta.url),
         "utf8",
       ).then(JSON.parse),
       readFile(
-        new URL(`Rotations/necromancer/${rotationFile}`, import.meta.url),
+        new URL(`../../Rotations/necromancer/${rotationFile}`, import.meta.url),
         "utf8",
       ).then(JSON.parse),
     ]);
@@ -237,7 +237,7 @@ test("new Necromancer rotation presets execute without warnings", async () => {
 
 test("all Revenant default rotations are surfaced from its own directory", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/revenant/manifest.json", import.meta.url),
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const presets = manifest.flatMap((section) =>
@@ -290,7 +290,7 @@ test("all Revenant default rotations are surfaced from its own directory", async
 
   for (const preset of presets) {
     const savedRotation = JSON.parse(await readFile(
-      new URL(`${preset.rotation}`, import.meta.url),
+      new URL(`../../${preset.rotation}`, import.meta.url),
       "utf8",
     ));
     assert.ok(Array.isArray(savedRotation.rotation));
@@ -302,14 +302,14 @@ test("Power Conduit preset executes without warnings", async () => {
   const [savedBuild, savedRotation] = await Promise.all([
     readFile(
       new URL(
-        "Builds/revenant/b-power-conduit.json",
+        "../../Builds/revenant/b-power-conduit.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
       new URL(
-        "Rotations/revenant/r-power-conduit-bench.json",
+        "../../Rotations/revenant/r-power-conduit-bench.json",
         import.meta.url,
       ),
       "utf8",
@@ -334,7 +334,7 @@ test("Power Conduit preset executes without warnings", async () => {
 
 test("Condition Conduit Mistfire preset matches its benchmark", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/revenant/manifest.json", import.meta.url),
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const preset = manifest
@@ -342,11 +342,11 @@ test("Condition Conduit Mistfire preset matches its benchmark", async () => {
     ?.presets.find((candidate) => candidate.label === "Condition (Mistfire)");
   const [savedBuild, savedRotation] = await Promise.all([
     readFile(
-      new URL(`${preset.build}`, import.meta.url),
+      new URL(`../../${preset.build}`, import.meta.url),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL(`${preset.rotation}`, import.meta.url),
+      new URL(`../../${preset.rotation}`, import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -372,11 +372,11 @@ test("Condition Conduit Mistfire preset matches its benchmark", async () => {
 test("Guardian and Mesmer rotations are paired with their build templates", async () => {
   const [guardianManifest, mesmerManifest] = await Promise.all([
     readFile(
-      new URL("Builds/guardian/manifest.json", import.meta.url),
+      new URL("../../Builds/guardian/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("Builds/mesmer/manifest.json", import.meta.url),
+      new URL("../../Builds/mesmer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -425,7 +425,7 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
   ];
   for (const rotationPath of allPaths) {
     const savedRotation = JSON.parse(await readFile(
-      new URL(`${rotationPath}`, import.meta.url),
+      new URL(`../../${rotationPath}`, import.meta.url),
       "utf8",
     ));
     assert.ok(Array.isArray(savedRotation.rotation));

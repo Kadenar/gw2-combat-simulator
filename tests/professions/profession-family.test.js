@@ -2,87 +2,87 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
-import { createCanonicalCatalog } from "js/platform/engine/catalog.js";
+import { createCanonicalCatalog } from "../../js/platform/engine/catalog.js";
 import {
   defineProfession,
   defineProfessionFamily,
   defineProfessionModule,
   resolveProfessionRuntime,
-} from "js/platform/engine/profession.js";
+} from "../../js/platform/engine/profession.js";
 import {
   nativeSkillRuntimeOwner,
-} from "js/platform/gw2/native-profession.js";
-import { createResolverState } from "js/platform/engine/resolver.js";
-import { createScheduler } from "js/platform/engine/scheduler.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
+} from "../../js/platform/gw2/native-profession.js";
+import { createResolverState } from "../../js/platform/engine/resolver.js";
+import { createScheduler } from "../../js/platform/engine/scheduler.js";
+import { simulateGw2 } from "../../js/platform/gw2/simulate.js";
 import {
   assertProfessionFamilyConformance,
-} from "profession-family-conformance.js";
+} from "../helpers/profession-family-conformance.js";
 import {
   ENGINEER_ELITE_SPECIALIZATIONS,
   engineerCatalog,
-} from "js/professions/engineer/catalog.js";
-import { engineerProfession } from "js/professions/engineer/definition.js";
-import { engineerCoreModule } from "js/professions/engineer/core/module.js";
-import { ENGINEER_CORE_SKILL_MECHANICS } from "js/professions/engineer/core/skills.js";
-import { ENGINEER_SKILL_MECHANICS } from "js/professions/engineer/mechanics/skill-mechanics.js";
-import { amalgamModule } from "js/professions/engineer/specializations/amalgam/module.js";
-import { AMALGAM_SKILL_MECHANICS } from "js/professions/engineer/specializations/amalgam/skills.js";
-import { holosmithModule } from "js/professions/engineer/specializations/holosmith/module.js";
-import { HOLOSMITH_SKILL_MECHANICS } from "js/professions/engineer/specializations/holosmith/skills.js";
-import { mechanistModule } from "js/professions/engineer/specializations/mechanist/module.js";
-import { MECHANIST_SKILL_MECHANICS } from "js/professions/engineer/specializations/mechanist/skills.js";
-import { scrapperModule } from "js/professions/engineer/specializations/scrapper/module.js";
-import { SCRAPPER_SKILL_MECHANICS } from "js/professions/engineer/specializations/scrapper/skills.js";
+} from "../../js/professions/engineer/catalog.js";
+import { engineerProfession } from "../../js/professions/engineer/definition.js";
+import { engineerCoreModule } from "../../js/professions/engineer/core/module.js";
+import { ENGINEER_CORE_SKILL_MECHANICS } from "../../js/professions/engineer/core/skills.js";
+import { ENGINEER_SKILL_MECHANICS } from "../../js/professions/engineer/mechanics/skill-mechanics.js";
+import { amalgamModule } from "../../js/professions/engineer/specializations/amalgam/module.js";
+import { AMALGAM_SKILL_MECHANICS } from "../../js/professions/engineer/specializations/amalgam/skills.js";
+import { holosmithModule } from "../../js/professions/engineer/specializations/holosmith/module.js";
+import { HOLOSMITH_SKILL_MECHANICS } from "../../js/professions/engineer/specializations/holosmith/skills.js";
+import { mechanistModule } from "../../js/professions/engineer/specializations/mechanist/module.js";
+import { MECHANIST_SKILL_MECHANICS } from "../../js/professions/engineer/specializations/mechanist/skills.js";
+import { scrapperModule } from "../../js/professions/engineer/specializations/scrapper/module.js";
+import { SCRAPPER_SKILL_MECHANICS } from "../../js/professions/engineer/specializations/scrapper/skills.js";
 import {
   NECROMANCER_ELITE_SPECIALIZATIONS,
   necromancerCatalog,
-} from "js/professions/necromancer/catalog.js";
-import { necromancerProfession } from "js/professions/necromancer/definition.js";
-import { necromancerCoreModule } from "js/professions/necromancer/core/module.js";
-import { harbingerModule } from "js/professions/necromancer/specializations/harbinger/module.js";
-import { reaperModule } from "js/professions/necromancer/specializations/reaper/module.js";
-import { ritualistModule } from "js/professions/necromancer/specializations/ritualist/module.js";
-import { scourgeModule } from "js/professions/necromancer/specializations/scourge/module.js";
+} from "../../js/professions/necromancer/catalog.js";
+import { necromancerProfession } from "../../js/professions/necromancer/definition.js";
+import { necromancerCoreModule } from "../../js/professions/necromancer/core/module.js";
+import { harbingerModule } from "../../js/professions/necromancer/specializations/harbinger/module.js";
+import { reaperModule } from "../../js/professions/necromancer/specializations/reaper/module.js";
+import { ritualistModule } from "../../js/professions/necromancer/specializations/ritualist/module.js";
+import { scourgeModule } from "../../js/professions/necromancer/specializations/scourge/module.js";
 import {
   GUARDIAN_ELITE_SPECIALIZATIONS,
   guardianCatalog,
-} from "js/professions/guardian/catalog.js";
-import { guardianProfession } from "js/professions/guardian/definition.js";
-import { guardianCoreModule } from "js/professions/guardian/core/module.js";
-import { dragonhunterModule } from "js/professions/guardian/specializations/dragonhunter/module.js";
-import { firebrandModule } from "js/professions/guardian/specializations/firebrand/module.js";
-import { luminaryModule } from "js/professions/guardian/specializations/luminary/module.js";
-import { willbenderModule } from "js/professions/guardian/specializations/willbender/module.js";
+} from "../../js/professions/guardian/catalog.js";
+import { guardianProfession } from "../../js/professions/guardian/definition.js";
+import { guardianCoreModule } from "../../js/professions/guardian/core/module.js";
+import { dragonhunterModule } from "../../js/professions/guardian/specializations/dragonhunter/module.js";
+import { firebrandModule } from "../../js/professions/guardian/specializations/firebrand/module.js";
+import { luminaryModule } from "../../js/professions/guardian/specializations/luminary/module.js";
+import { willbenderModule } from "../../js/professions/guardian/specializations/willbender/module.js";
 import {
   MESMER_ELITE_SPECIALIZATIONS,
   mesmerCatalog,
-} from "js/professions/mesmer/catalog.js";
-import { mesmerProfession } from "js/professions/mesmer/definition.js";
-import { mesmerCoreModule } from "js/professions/mesmer/core/module.js";
-import { chronomancerModule } from "js/professions/mesmer/specializations/chronomancer/module.js";
-import { mirageModule } from "js/professions/mesmer/specializations/mirage/module.js";
-import { troubadourModule } from "js/professions/mesmer/specializations/troubadour/module.js";
-import { virtuosoModule } from "js/professions/mesmer/specializations/virtuoso/module.js";
+} from "../../js/professions/mesmer/catalog.js";
+import { mesmerProfession } from "../../js/professions/mesmer/definition.js";
+import { mesmerCoreModule } from "../../js/professions/mesmer/core/module.js";
+import { chronomancerModule } from "../../js/professions/mesmer/specializations/chronomancer/module.js";
+import { mirageModule } from "../../js/professions/mesmer/specializations/mirage/module.js";
+import { troubadourModule } from "../../js/professions/mesmer/specializations/troubadour/module.js";
+import { virtuosoModule } from "../../js/professions/mesmer/specializations/virtuoso/module.js";
 import {
   REVENANT_ELITE_SPECIALIZATIONS,
   revenantCatalog,
-} from "js/professions/revenant/catalog.js";
-import { revenantProfession } from "js/professions/revenant/definition.js";
-import { revenantCoreModule } from "js/professions/revenant/core/module.js";
-import { conduitModule } from "js/professions/revenant/specializations/conduit/module.js";
-import { heraldModule } from "js/professions/revenant/specializations/herald/module.js";
-import { renegadeModule } from "js/professions/revenant/specializations/renegade/module.js";
-import { vindicatorModule } from "js/professions/revenant/specializations/vindicator/module.js";
-import { thiefProfession } from "js/professions/thief/definition.js";
+} from "../../js/professions/revenant/catalog.js";
+import { revenantProfession } from "../../js/professions/revenant/definition.js";
+import { revenantCoreModule } from "../../js/professions/revenant/core/module.js";
+import { conduitModule } from "../../js/professions/revenant/specializations/conduit/module.js";
+import { heraldModule } from "../../js/professions/revenant/specializations/herald/module.js";
+import { renegadeModule } from "../../js/professions/revenant/specializations/renegade/module.js";
+import { vindicatorModule } from "../../js/professions/revenant/specializations/vindicator/module.js";
+import { thiefProfession } from "../../js/professions/thief/definition.js";
 import {
   thiefCatalog,
-} from "js/professions/thief/catalog.js";
-import { thiefCoreModule } from "js/professions/thief/core/module.js";
-import { antiquaryModule as thiefAntiquaryModule } from "js/professions/thief/specializations/antiquary/module.js";
-import { daredevilModule as thiefDaredevilModule } from "js/professions/thief/specializations/daredevil/module.js";
-import { deadeyeModule as thiefDeadeyeModule } from "js/professions/thief/specializations/deadeye/module.js";
-import { specterModule as thiefSpecterModule } from "js/professions/thief/specializations/specter/module.js";
+} from "../../js/professions/thief/catalog.js";
+import { thiefCoreModule } from "../../js/professions/thief/core/module.js";
+import { antiquaryModule as thiefAntiquaryModule } from "../../js/professions/thief/specializations/antiquary/module.js";
+import { daredevilModule as thiefDaredevilModule } from "../../js/professions/thief/specializations/daredevil/module.js";
+import { deadeyeModule as thiefDeadeyeModule } from "../../js/professions/thief/specializations/deadeye/module.js";
+import { specterModule as thiefSpecterModule } from "../../js/professions/thief/specializations/specter/module.js";
 
 function nativeModifierRules(module) {
   const modifiers = module.mechanics?.modifiers;
@@ -718,7 +718,7 @@ test("Necromancer modules contain complete vertical slices", () => {
   assert.equal(
     existsSync(
       new URL(
-        "js/professions/necromancer/mechanics/specific",
+        "../../js/professions/necromancer/mechanics/specific",
         import.meta.url,
       ),
     ),
@@ -728,7 +728,7 @@ test("Necromancer modules contain complete vertical slices", () => {
   assert.equal(
     existsSync(
       new URL(
-        "js/professions/necromancer/mechanics/handler-mechanics.ts",
+        "../../js/professions/necromancer/mechanics/handler-mechanics.ts",
         import.meta.url,
       ),
     ),
@@ -750,7 +750,7 @@ test("Necromancer modules contain complete vertical slices", () => {
   ]) {
     assert.equal(
       existsSync(
-        new URL(`js/professions/necromancer/${relative}`, import.meta.url),
+        new URL(`../../js/professions/necromancer/${relative}`, import.meta.url),
       ),
       true,
       relative,
@@ -775,7 +775,7 @@ test("Necromancer modules contain complete vertical slices", () => {
       "ui.ts",
     ]) {
       const url = new URL(
-        `js/professions/necromancer/${directory}/${filename}`,
+        `../../js/professions/necromancer/${directory}/${filename}`,
         import.meta.url,
       );
       assert.equal(existsSync(url), true, `${directory}/${filename}`);
@@ -837,7 +837,7 @@ test("Necromancer modules contain complete vertical slices", () => {
   assert.match(
     readFileSync(
       new URL(
-        "js/professions/necromancer/specializations/reaper/rules.ts",
+        "../../js/professions/necromancer/specializations/reaper/rules.ts",
         import.meta.url,
       ),
       "utf8",
@@ -983,7 +983,7 @@ test("Guardian modules own disjoint vertical slices", () => {
   ]) {
     assert.equal(
       existsSync(
-        new URL(`js/professions/guardian/${obsolete}`, import.meta.url),
+        new URL(`../../js/professions/guardian/${obsolete}`, import.meta.url),
       ),
       false,
       obsolete,
@@ -1006,7 +1006,7 @@ test("Guardian modules own disjoint vertical slices", () => {
       "ui.ts",
     ]) {
       const url = new URL(
-        `js/professions/guardian/${directory}/${filename}`,
+        `../../js/professions/guardian/${directory}/${filename}`,
         import.meta.url,
       );
       assert.equal(existsSync(url), true, `${directory}/${filename}`);
@@ -1171,7 +1171,7 @@ test("Mesmer modules are vertical slices with disjoint catalog ownership", () =>
   ]) {
     assert.equal(
       existsSync(
-        new URL(`js/professions/mesmer/${obsolete}`, import.meta.url),
+        new URL(`../../js/professions/mesmer/${obsolete}`, import.meta.url),
       ),
       false,
       obsolete,
@@ -1190,7 +1190,7 @@ test("Mesmer modules are vertical slices with disjoint catalog ownership", () =>
       "ui.ts",
     ]) {
       const url = new URL(
-        `js/professions/mesmer/${directory}/${filename}`,
+        `../../js/professions/mesmer/${directory}/${filename}`,
         import.meta.url,
       );
       assert.equal(existsSync(url), true, `${directory}/${filename}`);
@@ -1245,7 +1245,7 @@ test("Mesmer modules are vertical slices with disjoint catalog ownership", () =>
     "ui.ts",
   ].map(filename =>
     readFileSync(
-      new URL(`js/professions/mesmer/core/${filename}`, import.meta.url),
+      new URL(`../../js/professions/mesmer/core/${filename}`, import.meta.url),
       "utf8",
     ),
   ).join("\n");
@@ -1381,7 +1381,7 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
   ]) {
     assert.equal(
       existsSync(
-        new URL(`js/professions/revenant/${obsolete}`, import.meta.url),
+        new URL(`../../js/professions/revenant/${obsolete}`, import.meta.url),
       ),
       false,
       obsolete,
@@ -1400,7 +1400,7 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
       "ui.ts",
     ]) {
       const url = new URL(
-        `js/professions/revenant/${directory}/${filename}`,
+        `../../js/professions/revenant/${directory}/${filename}`,
         import.meta.url,
       );
       assert.equal(existsSync(url), true, `${directory}/${filename}`);
@@ -1465,7 +1465,7 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
     "ui.ts",
   ].map(filename =>
     readFileSync(
-      new URL(`js/professions/revenant/core/${filename}`, import.meta.url),
+      new URL(`../../js/professions/revenant/core/${filename}`, import.meta.url),
       "utf8",
     ),
   ).join("\n");
@@ -1587,7 +1587,7 @@ test("Engineer modules are vertical slices with disjoint ownership", () => {
   ]) {
     assert.equal(
       existsSync(
-        new URL(`js/professions/engineer/${obsolete}`, import.meta.url),
+        new URL(`../../js/professions/engineer/${obsolete}`, import.meta.url),
       ),
       false,
       obsolete,
@@ -1606,7 +1606,7 @@ test("Engineer modules are vertical slices with disjoint ownership", () => {
       "ui.ts",
     ]) {
       const url = new URL(
-        `js/professions/engineer/${directory}/${filename}`,
+        `../../js/professions/engineer/${directory}/${filename}`,
         import.meta.url,
       );
       assert.equal(existsSync(url), true, `${directory}/${filename}`);
@@ -1668,7 +1668,7 @@ test("Engineer modules are vertical slices with disjoint ownership", () => {
     "ui.ts",
   ].map(filename =>
     readFileSync(
-      new URL(`js/professions/engineer/core/${filename}`, import.meta.url),
+      new URL(`../../js/professions/engineer/core/${filename}`, import.meta.url),
       "utf8",
     ),
   ).join("\n");

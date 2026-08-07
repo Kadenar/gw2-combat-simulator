@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { defaultSimulationConfig } from "fixture-harness-core.js";
-import { simulateMesmer } from "mesmer-simulation.js";
+import { defaultSimulationConfig } from "../../helpers/fixture-harness-core.js";
+import { simulateMesmer } from "../../helpers/mesmer-simulation.js";
 import {
   SIGIL_DATA,
   SIGIL_NAMES,
   SIGIL_PROCS,
-} from "js/platform/gw2/gear-data.js";
+} from "../../../js/platform/gw2/gear-data.js";
 
 const EXPECTED_SIGIL_ICONS = {
   Accuracy: "https://render.guildwars2.com/file/4B0EFF29FD064E5E93E4F8616BE309A451450AED/220661.png",

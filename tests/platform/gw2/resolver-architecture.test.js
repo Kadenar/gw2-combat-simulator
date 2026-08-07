@@ -1,30 +1,30 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
-import { defaultSimulationConfig } from "fixture-harness-core.js";
+import { defaultSimulationConfig } from "../../helpers/fixture-harness-core.js";
 import {
   simulateMesmer,
-} from "mesmer-simulation.js";
+} from "../../helpers/mesmer-simulation.js";
 import {
   resolveTestGw2Stream,
-} from "gw2-resolver.js";
+} from "../../helpers/gw2-resolver.js";
 import {
   createEventQueue,
   enqueueOrdered,
   takeNextEvent,
-} from "js/platform/engine/event-queue.js";
+} from "../../../js/platform/engine/event-queue.js";
 import {
   buildScheduledEventStream,
-} from "js/platform/engine/scheduled-event-stream.js";
+} from "../../../js/platform/engine/scheduled-event-stream.js";
 import {
   createSimulationRandom,
-} from "js/platform/engine/simulation-random.js";
+} from "../../../js/platform/engine/simulation-random.js";
 import {
   createCloneAttackScheduler,
-} from "js/professions/mesmer/core/clone-attacks.js";
+} from "../../../js/professions/mesmer/core/clone-attacks.js";
 
 test("Mesmer skill damage scheduling is split into focused modules", () => {
-  const core = new URL("js/professions/mesmer/core/", import.meta.url);
+  const core = new URL("../../../js/professions/mesmer/core/", import.meta.url);
   for (const filename of [
     "clone-attacks.ts",
     "phantasms.ts",

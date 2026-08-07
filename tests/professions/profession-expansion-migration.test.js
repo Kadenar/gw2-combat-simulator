@@ -9,52 +9,52 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { replaceBuild } from "js/app/build/persistence.js";
-import { createCanonicalCatalog } from "js/platform/engine/catalog.js";
+import { replaceBuild } from "../../js/app/build/persistence.js";
+import { createCanonicalCatalog } from "../../js/platform/engine/catalog.js";
 import {
   custom,
   strikeTimeline,
-} from "js/platform/engine/effect-factories.js";
-import { COMMON_EVENT_TYPES } from "js/platform/engine/events.js";
-import { defineProfession } from "js/platform/engine/profession.js";
-import { SKILL_HANDLER_MODES } from "js/platform/engine/skill-handlers.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
+} from "../../js/platform/engine/effect-factories.js";
+import { COMMON_EVENT_TYPES } from "../../js/platform/engine/events.js";
+import { defineProfession } from "../../js/platform/engine/profession.js";
+import { SKILL_HANDLER_MODES } from "../../js/platform/engine/skill-handlers.js";
+import { simulateGw2 } from "../../js/platform/gw2/simulate.js";
 import {
   TRAIT_COVERAGE_STATUSES,
-} from "js/platform/gw2/trait-coverage.js";
+} from "../../js/platform/gw2/trait-coverage.js";
 import {
   ENGINEER_TRAIT_COVERAGE,
-} from "js/professions/engineer/data/trait-coverage.js";
+} from "../../js/professions/engineer/data/trait-coverage.js";
 import {
   ENGINEER_PUBLIC_END_STATE_KEYS,
-} from "js/professions/engineer/core/state.js";
+} from "../../js/professions/engineer/core/state.js";
 import {
   GUARDIAN_TRAIT_COVERAGE,
-} from "js/professions/guardian/data/trait-coverage.js";
+} from "../../js/professions/guardian/data/trait-coverage.js";
 import {
   GUARDIAN_PUBLIC_END_STATE_KEYS,
-} from "js/professions/guardian/core/state.js";
+} from "../../js/professions/guardian/core/state.js";
 import {
   MESMER_TRAIT_COVERAGE,
-} from "js/professions/mesmer/data/trait-coverage.js";
+} from "../../js/professions/mesmer/data/trait-coverage.js";
 import {
   NECROMANCER_TRAIT_COVERAGE,
-} from "js/professions/necromancer/data/trait-coverage.js";
+} from "../../js/professions/necromancer/data/trait-coverage.js";
 import {
   NECROMANCER_PUBLIC_END_STATE_KEYS,
-} from "js/professions/necromancer/core/state.js";
+} from "../../js/professions/necromancer/core/state.js";
 import {
   REVENANT_TRAIT_COVERAGE,
-} from "js/professions/revenant/data/trait-coverage.js";
+} from "../../js/professions/revenant/data/trait-coverage.js";
 import {
   REVENANT_PUBLIC_END_STATE_KEYS,
-} from "js/professions/revenant/core/state.js";
+} from "../../js/professions/revenant/core/state.js";
 import {
   THIEF_TRAIT_COVERAGE,
-} from "js/professions/thief/data/trait-coverage.js";
+} from "../../js/professions/thief/data/trait-coverage.js";
 import {
   THIEF_PUBLIC_END_STATE_KEYS,
-} from "js/professions/thief/core/state.js";
+} from "../../js/professions/thief/core/state.js";
 import {
   nativeProfessionRegistry,
   PROFESSION_APPLICATION_KINDS,
@@ -62,7 +62,7 @@ import {
   PROFESSION_ROUTES,
   standaloneProfessionRegistry,
   validateProfessionRegistryEntries,
-} from "js/app/profession/registry.js";
+} from "../../js/app/profession/registry.js";
 import {
   createProfessionSnapshot,
   DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
@@ -70,15 +70,15 @@ import {
   GW2_SKILL_FLAGS,
   isTerrestrialSkill,
   serializeProfessionSnapshot,
-} from "scripts/data/lib/gw2-profession-snapshot.mjs";
+} from "../../scripts/data/lib/gw2-profession-snapshot.mjs";
 import {
   updateProfessionApiData,
-} from "scripts/data/update-profession-api-data.mjs";
+} from "../../scripts/data/update-profession-api-data.mjs";
 
 const apiFixture = JSON.parse(
   await readFile(
     new URL(
-      "gw2-api/profession-snapshot.json",
+      "../fixtures/gw2-api/profession-snapshot.json",
       import.meta.url,
     ),
     "utf8",
@@ -350,7 +350,7 @@ test("native profession registry entries conform to the shared contracts", async
       entry.applicationKind,
       PROFESSION_APPLICATION_KINDS.NATIVE,
     );
-    await access(new URL(`${entry.route}`, import.meta.url));
+    await access(new URL(`../../${entry.route}`, import.meta.url));
     const [profession, adapter] = await Promise.all([
       entry.loadProfession(),
       entry.loadAppAdapter(),
@@ -527,7 +527,7 @@ test("ready native professions have complete trait evidence with no pending entr
           testFiles.set(
             evidence.file,
             await readFile(
-              new URL(`${evidence.file}`, import.meta.url),
+              new URL(`../../${evidence.file}`, import.meta.url),
               "utf8",
             ),
           );

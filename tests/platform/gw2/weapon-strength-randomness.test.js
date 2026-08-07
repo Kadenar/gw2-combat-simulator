@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createCanonicalCatalog } from "js/platform/engine/catalog.js";
-import { defineProfession } from "js/platform/engine/profession.js";
+import { createCanonicalCatalog } from "../../../js/platform/engine/catalog.js";
+import { defineProfession } from "../../../js/platform/engine/profession.js";
 import {
   createSimulationRandom,
-} from "js/platform/engine/simulation-random.js";
-import { WEAPON_DATA } from "js/platform/gw2/gear-data.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
+} from "../../../js/platform/engine/simulation-random.js";
+import { WEAPON_DATA } from "../../../js/platform/gw2/gear-data.js";
+import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
   WEAPON_STRENGTH_PROFILES,
   sampleWeaponStrength,
@@ -16,7 +16,7 @@ import {
   weaponStrengthProfile,
   weaponStrengthProfileForName,
   weaponStrengthProfileIdForEvent,
-} from "js/platform/gw2/weapon-strength.js";
+} from "../../../js/platform/gw2/weapon-strength.js";
 
 const EXPECTED_PROFILES = Object.freeze({
   "weapon.axe": [900, 1100, 1000],

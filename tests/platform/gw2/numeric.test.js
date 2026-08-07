@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { clamp, finiteNumber } from "js/platform/gw2/numeric.js";
+import { clamp, finiteNumber } from "../../../js/platform/gw2/numeric.js";
 
 test("clamp restricts values to an inclusive range", () => {
   assert.equal(clamp(-1, 0, 10), 0);

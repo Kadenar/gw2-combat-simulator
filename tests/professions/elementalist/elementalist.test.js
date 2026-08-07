@@ -7,48 +7,48 @@ import {
   loadProfession,
   professionOptions,
   professionRegistry,
-} from "js/app/profession/registry.js";
+} from "../../../js/app/profession/registry.js";
 import {
   PROFESSION_ROUTES,
   professionRoute,
-} from "js/app/profession/selector.js";
+} from "../../../js/app/profession/selector.js";
 import {
   createElementalistBuildDefaults,
   migrateElementalistBuild,
   validateElementalistBuild,
-} from "js/professions/elementalist/build.js";
+} from "../../../js/professions/elementalist/build.js";
 import {
   createDefaultPermaBoons,
-} from "js/professions/elementalist/app/app-state.js";
+} from "../../../js/professions/elementalist/app/app-state.js";
 import {
   loadSkillHits,
   loadSkills,
-} from "js/professions/elementalist/data/csv-loader.js";
+} from "../../../js/professions/elementalist/data/csv-loader.js";
 import {
   calcBuildAttributes,
   createSimulationEngine,
   runSimulationContributions,
-} from "js/professions/elementalist/sim/run/sim-runner.js";
+} from "../../../js/professions/elementalist/sim/run/sim-runner.js";
 import {
   checkRelicOnHit,
-} from "js/professions/elementalist/sim/mechanics/sim-relic-helpers.js";
+} from "../../../js/professions/elementalist/sim/mechanics/sim-relic-helpers.js";
 import {
   getRelicState,
-} from "js/professions/elementalist/sim/state/sim-relic-state.js";
+} from "../../../js/professions/elementalist/sim/state/sim-relic-state.js";
 import {
   RELIC_PROCS,
-} from "js/professions/elementalist/simulation.js";
+} from "../../../js/professions/elementalist/simulation.js";
 
 const skillsCsv = new URL(
-  "csv input/Tool_Elementalist - Skills_data.csv",
+  "../../../csv input/Tool_Elementalist - Skills_data.csv",
   import.meta.url,
 );
 const hitsCsv = new URL(
-  "csv input/Tool_Elementalist - Skill_hits_data.csv",
+  "../../../csv input/Tool_Elementalist - Skill_hits_data.csv",
   import.meta.url,
 );
 const professionRoot = new URL(
-  "js/professions/elementalist/",
+  "../../../js/professions/elementalist/",
   import.meta.url,
 );
 

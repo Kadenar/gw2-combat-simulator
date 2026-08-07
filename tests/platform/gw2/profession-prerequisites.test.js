@@ -3,45 +3,45 @@ import test from "node:test";
 
 import {
   simulationEventLogRows,
-} from "js/app/rotation/event-log.js";
+} from "../../../js/app/rotation/event-log.js";
 import {
   createFixedSlotLoadout,
-} from "js/app/profession/slot-loadout.js";
+} from "../../../js/app/profession/slot-loadout.js";
 import {
   createProfessionAssumptionControls,
   normalizeProfessionAssumptions,
   STANDARD_POSITION_ASSUMPTION_CONTROLS,
   validateProfessionAssumptions,
-} from "js/app/profession/assumptions.js";
-import { defineProfession } from "js/platform/engine/profession.js";
-import { createGw2CombatQuery } from "js/platform/gw2/query.js";
+} from "../../../js/app/profession/assumptions.js";
+import { defineProfession } from "../../../js/platform/engine/profession.js";
+import { createGw2CombatQuery } from "../../../js/platform/gw2/query.js";
 import {
   createGw2TimelineIndex,
-} from "js/platform/gw2/timeline-index.js";
+} from "../../../js/platform/gw2/timeline-index.js";
 import {
   canonicalTargetConditionName,
-} from "js/platform/gw2/target-state.js";
+} from "../../../js/platform/gw2/target-state.js";
 import {
   validateTraitCoverageManifest,
-} from "js/platform/gw2/trait-coverage.js";
+} from "../../../js/platform/gw2/trait-coverage.js";
 import {
   defaultWeaponSkillMatchesSet,
-} from "js/platform/gw2/weapon-skill-matcher.js";
+} from "../../../js/platform/gw2/weapon-skill-matcher.js";
 import {
   isGw2WeaponSkillEquipped,
-} from "js/platform/gw2/scheduler/policy.js";
+} from "../../../js/platform/gw2/scheduler/policy.js";
 import {
   engineerProfession,
-} from "js/professions/engineer/definition.js";
+} from "../../../js/professions/engineer/definition.js";
 import {
   guardianProfession,
-} from "js/professions/guardian/definition.js";
+} from "../../../js/professions/guardian/definition.js";
 import {
   necromancerProfession,
-} from "js/professions/necromancer/definition.js";
+} from "../../../js/professions/necromancer/definition.js";
 import {
   thiefProfession,
-} from "js/professions/thief/definition.js";
+} from "../../../js/professions/thief/definition.js";
 
 const queryProfession = defineProfession({
   id: "query-fixture",

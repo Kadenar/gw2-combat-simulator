@@ -6,50 +6,50 @@ import {
   loadProfession,
   loadProfessionAppAdapter,
   professionRoute,
-} from "js/app/profession/registry.js";
+} from "../../../js/app/profession/registry.js";
 import {
   simulationEventLogRows,
-} from "js/app/rotation/event-log.js";
+} from "../../../js/app/rotation/event-log.js";
 import {
   skillBreakdownRows,
-} from "js/app/rotation/result-model.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
+} from "../../../js/app/rotation/result-model.js";
+import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   toApplicationBuild,
   validateEngineerBuild,
-} from "js/professions/engineer/build.js";
-import { engineerCatalog } from "js/professions/engineer/catalog.js";
+} from "../../../js/professions/engineer/build.js";
+import { engineerCatalog } from "../../../js/professions/engineer/catalog.js";
 import {
   DATA_SNAPSHOT,
-} from "js/professions/engineer/data/engineer-api-metadata.js";
+} from "../../../js/professions/engineer/data/engineer-api-metadata.js";
 import {
   ENGINEER_SUPPLEMENTAL_SKILLS,
-} from "js/professions/engineer/data/engineer-supplemental-skills.js";
+} from "../../../js/professions/engineer/data/engineer-supplemental-skills.js";
 import {
   ENGINEER_TRAIT_COVERAGE,
-} from "js/professions/engineer/data/trait-coverage.js";
+} from "../../../js/professions/engineer/data/trait-coverage.js";
 import {
   ENGINEER_SKILL_IDS as ID,
   ENGINEER_TRAIT_IDS as TRAIT,
-} from "js/professions/engineer/data/ids.js";
+} from "../../../js/professions/engineer/data/ids.js";
 import {
   ENGINEER_SKILL_MECHANICS,
-} from "js/professions/engineer/mechanics/skill-mechanics.js";
+} from "../../../js/professions/engineer/mechanics/skill-mechanics.js";
 import {
   engineerProfession,
-} from "js/professions/engineer/definition.js";
+} from "../../../js/professions/engineer/definition.js";
 import {
   engineerMechAttributes,
-} from "js/professions/engineer/specializations/mechanist/state.js";
+} from "../../../js/professions/engineer/specializations/mechanist/state.js";
 import {
   engineerWeaponSkillMatchesSet,
-} from "js/professions/engineer/core/ui.js";
+} from "../../../js/professions/engineer/core/ui.js";
 import {
   recalculate,
   runSimulation,
-} from "js/professions/engineer/app/app-definition.js";
+} from "../../../js/professions/engineer/app/app-definition.js";
 
 const baseConfig = Object.freeze({
   selectedSkills: [
@@ -316,34 +316,34 @@ test("power Mechanist benchmark builds are valid default selections", async () =
   ] = await Promise.all([
     readFile(
       new URL(
-        "Builds/engineer/b-power-mechanist-sword-pistol.json",
+        "../../../Builds/engineer/b-power-mechanist-sword-pistol.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
       new URL(
-        "Builds/engineer/b-power-mechanist-rifle.json",
+        "../../../Builds/engineer/b-power-mechanist-rifle.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
       new URL(
-        "Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
+        "../../../Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
       new URL(
-        "Rotations/engineer/r-power-mechanist-rifle-bench.json",
+        "../../../Rotations/engineer/r-power-mechanist-rifle-bench.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("Builds/engineer/manifest.json", import.meta.url),
+      new URL("../../../Builds/engineer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -386,12 +386,12 @@ test("power Mechanist benchmark builds are valid default selections", async () =
     [
       [
         "Power (Sword / Pistol)",
-        "Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
+        "../../../Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
         41140,
       ],
       [
         "Power (Rifle)",
-        "Rotations/engineer/r-power-mechanist-rifle-bench.json",
+        "../../../Rotations/engineer/r-power-mechanist-rifle-bench.json",
         38474,
       ],
     ],
@@ -3893,20 +3893,20 @@ test("power Holosmith sword-pistol preset preserves the supplied build", async (
   const [raw, savedRotation, manifest] = await Promise.all([
     readFile(
       new URL(
-        "Builds/engineer/b-power-holosmith-sword-pistol.json",
+        "../../../Builds/engineer/b-power-holosmith-sword-pistol.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
       new URL(
-        "Rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
+        "../../../Rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("Builds/engineer/manifest.json", import.meta.url),
+      new URL("../../../Builds/engineer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -4016,20 +4016,20 @@ test("condition Holosmith pistol benchmark preserves the supplied log", async ()
   const [raw, savedRotation, manifest] = await Promise.all([
     readFile(
       new URL(
-        "Builds/engineer/b-condi-holosmith-pistol-pistol.json",
+        "../../../Builds/engineer/b-condi-holosmith-pistol-pistol.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
       new URL(
-        "Rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
+        "../../../Rotations/engineer/r-condi-holosmith-pistol-pistol-bench.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("Builds/engineer/manifest.json", import.meta.url),
+      new URL("../../../Builds/engineer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -4156,20 +4156,20 @@ test("power Amalgam hammer Symbiotic preset preserves supplied build and log", a
   const [raw, savedRotation, manifest] = await Promise.all([
     readFile(
       new URL(
-        "Builds/engineer/b-power-amalgam-hammer-symbiotic.json",
+        "../../../Builds/engineer/b-power-amalgam-hammer-symbiotic.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
       new URL(
-        "Rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
+        "../../../Rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("Builds/engineer/manifest.json", import.meta.url),
+      new URL("../../../Builds/engineer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -4274,20 +4274,20 @@ test("condition alacrity Amalgam benchmark preset preserves supplied build", asy
   const [raw, savedRotation, manifest] = await Promise.all([
     readFile(
       new URL(
-        "Builds/engineer/b-condi-alac-amalgam-2kit.json",
+        "../../../Builds/engineer/b-condi-alac-amalgam-2kit.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
       new URL(
-        "Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
+        "../../../Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("Builds/engineer/manifest.json", import.meta.url),
+      new URL("../../../Builds/engineer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -4392,20 +4392,20 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
   const [raw, savedRotation, manifest] = await Promise.all([
     readFile(
       new URL(
-        "Builds/engineer/b-condi-amalgam-3kit.json",
+        "../../../Builds/engineer/b-condi-amalgam-3kit.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
       new URL(
-        "Rotations/engineer/r-condi-amalgam-3kit-bench.json",
+        "../../../Rotations/engineer/r-condi-amalgam-3kit-bench.json",
         import.meta.url,
       ),
       "utf8",
     ).then(JSON.parse),
     readFile(
-      new URL("Builds/engineer/manifest.json", import.meta.url),
+      new URL("../../../Builds/engineer/manifest.json", import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ]);
@@ -4524,7 +4524,7 @@ test("Engineer is a loadable native application", async () => {
   assert.equal(professionRoute("engineer"), "engineer.html");
   assert.equal((await loadProfession("engineer")).id, "engineer");
   assert.equal((await loadProfessionAppAdapter("engineer")).profession.id, "engineer");
-  const html = await readFile(new URL("engineer.html", import.meta.url), "utf8");
+  const html = await readFile(new URL("../../../engineer.html", import.meta.url), "utf8");
   assert.match(html, /data-profession="engineer"/);
   assert.match(html, /Engineer<\/span> Rotation Simulator/);
 });

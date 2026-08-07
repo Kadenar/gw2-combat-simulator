@@ -6,61 +6,61 @@ import {
   loadProfession,
   loadProfessionAppAdapter,
   professionOptions,
-} from "js/app/profession/registry.js";
-import { professionRoute } from "js/app/profession/selector.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
-import { skillBreakdownRows } from "js/platform/ui/result-tables.js";
+} from "../../../js/app/profession/registry.js";
+import { professionRoute } from "../../../js/app/profession/selector.js";
+import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import { skillBreakdownRows } from "../../../js/platform/ui/result-tables.js";
 import {
   buildChartSeries,
-} from "js/app/rotation/result-model.js";
+} from "../../../js/app/rotation/result-model.js";
 import {
   formatResourceValue,
-} from "js/app/rotation/resource-view.js";
+} from "../../../js/app/rotation/resource-view.js";
 import {
   simulationEventLogRows,
-} from "js/app/rotation/event-log.js";
+} from "../../../js/app/rotation/event-log.js";
 import {
   weaponSkills,
-} from "js/app/rotation/palette-model.js";
+} from "../../../js/app/rotation/palette-model.js";
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild,
-} from "js/professions/necromancer/build.js";
+} from "../../../js/professions/necromancer/build.js";
 import {
   necromancerCatalog,
   NECROMANCER_NON_DPS_SKILL_NAMES,
-} from "js/professions/necromancer/catalog.js";
+} from "../../../js/professions/necromancer/catalog.js";
 import {
   DATA_SNAPSHOT,
-} from "js/professions/necromancer/data/necromancer-api-metadata.js";
+} from "../../../js/professions/necromancer/data/necromancer-api-metadata.js";
 import {
   necromancerProfession,
-} from "js/professions/necromancer/definition.js";
+} from "../../../js/professions/necromancer/definition.js";
 import {
   NECROMANCER_QUICKNESS_CAST_TIMES_MS,
-} from "js/professions/necromancer/mechanics/skill-mechanics.js";
+} from "../../../js/professions/necromancer/mechanics/skill-mechanics.js";
 import {
   SCOURGE_MECHANICS,
-} from "js/professions/necromancer/specializations/scourge/mechanics.js";
+} from "../../../js/professions/necromancer/specializations/scourge/mechanics.js";
 import {
   RITUALIST_MECHANICS,
-} from "js/professions/necromancer/specializations/ritualist/mechanics.js";
+} from "../../../js/professions/necromancer/specializations/ritualist/mechanics.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
-} from "js/professions/necromancer/data/ids.js";
+} from "../../../js/professions/necromancer/data/ids.js";
 import {
   actualNecromancerLifeForceCost,
   normalizedNecromancerLifeForceCost,
-} from "js/professions/necromancer/core/state.js";
+} from "../../../js/professions/necromancer/core/state.js";
 import {
   calculateModifierContributions,
   modifierCandidates,
   modifierContributionRequest,
   recalculate,
   runSimulation,
-} from "js/professions/necromancer/app/app-definition.js";
+} from "../../../js/professions/necromancer/app/app-definition.js";
 
 const baseConfig = Object.freeze({
   stats: {
@@ -3519,12 +3519,12 @@ test("Necromancer builds migrate and validate against canonical metadata", () =>
 
 test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   const savedBuild = JSON.parse(await readFile(
-    new URL("Builds/necromancer/b-power-ritualist.json", import.meta.url),
+    new URL("../../../Builds/necromancer/b-power-ritualist.json", import.meta.url),
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
     new URL(
-      "Rotations/necromancer/r-power-ritualist-bench.json",
+      "../../../Rotations/necromancer/r-power-ritualist-bench.json",
       import.meta.url,
     ),
     "utf8",
@@ -3649,12 +3649,12 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
 
 test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", async () => {
   const savedBuild = JSON.parse(await readFile(
-    new URL("Builds/necromancer/b-condi-reaper.json", import.meta.url),
+    new URL("../../../Builds/necromancer/b-condi-reaper.json", import.meta.url),
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
     new URL(
-      "Rotations/necromancer/r-condi-reaper-bench.json",
+      "../../../Rotations/necromancer/r-condi-reaper-bench.json",
       import.meta.url,
     ),
     "utf8",
@@ -3727,12 +3727,12 @@ test("Condition Reaper benchmark preset stays aligned with the supplied EVTC", a
 
 test("Condition Scourge benchmark preset reconstructs hidden shade casts", async () => {
   const savedBuild = JSON.parse(await readFile(
-    new URL("Builds/necromancer/b-condi-scourge.json", import.meta.url),
+    new URL("../../../Builds/necromancer/b-condi-scourge.json", import.meta.url),
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
     new URL(
-      "Rotations/necromancer/r-condi-scourge-bench.json",
+      "../../../Rotations/necromancer/r-condi-scourge-bench.json",
       import.meta.url,
     ),
     "utf8",
@@ -3794,7 +3794,7 @@ test("Condition Scourge benchmark preset reconstructs hidden shade casts", async
 
 test("Necromancer is wired through the selector and application adapter", async () => {
   const page = await readFile(
-    new URL("necromancer.html", import.meta.url),
+    new URL("../../../necromancer.html", import.meta.url),
     "utf8",
   );
   assert.equal(

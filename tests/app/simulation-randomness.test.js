@@ -1,58 +1,58 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createGw2SimulationConfig } from "js/app/simulation/config.js";
+import { createGw2SimulationConfig } from "../../js/app/simulation/config.js";
 import {
   createSimulationRandom,
-} from "js/platform/engine/simulation-random.js";
+} from "../../js/platform/engine/simulation-random.js";
 import {
   calculateRandomDistribution,
   partitionRandomDistributionTrials,
   randomDistributionWorkerCount,
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes,
-} from "js/app/simulation/random-distribution.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
+} from "../../js/app/simulation/random-distribution.js";
+import { simulateGw2 } from "../../js/platform/gw2/simulate.js";
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   validateEngineerBuild,
-} from "js/professions/engineer/build.js";
+} from "../../js/professions/engineer/build.js";
 import {
   engineerAppAdapter,
-} from "js/professions/engineer/app/app-definition.js";
-import { engineerProfession } from "js/professions/engineer/definition.js";
+} from "../../js/professions/engineer/app/app-definition.js";
+import { engineerProfession } from "../../js/professions/engineer/definition.js";
 import {
   ENGINEER_TRAIT_IDS as ENGINEER_TRAIT,
-} from "js/professions/engineer/data/ids.js";
-import { guardianProfession } from "js/professions/guardian/definition.js";
+} from "../../js/professions/engineer/data/ids.js";
+import { guardianProfession } from "../../js/professions/guardian/definition.js";
 import {
   createGuardianBuildDefaults,
-} from "js/professions/guardian/build.js";
-import { mesmerProfession } from "js/professions/mesmer/definition.js";
+} from "../../js/professions/guardian/build.js";
+import { mesmerProfession } from "../../js/professions/mesmer/definition.js";
 import {
   createMesmerBuildDefaults,
-} from "js/professions/mesmer/build.js";
+} from "../../js/professions/mesmer/build.js";
 import {
   MESMER_TRAIT_IDS as MESMER_TRAIT,
-} from "js/professions/mesmer/data/ids.js";
+} from "../../js/professions/mesmer/data/ids.js";
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild,
-} from "js/professions/necromancer/build.js";
-import { necromancerProfession } from "js/professions/necromancer/definition.js";
+} from "../../js/professions/necromancer/build.js";
+import { necromancerProfession } from "../../js/professions/necromancer/definition.js";
 import {
   NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT,
-} from "js/professions/necromancer/data/ids.js";
-import { revenantProfession } from "js/professions/revenant/definition.js";
+} from "../../js/professions/necromancer/data/ids.js";
+import { revenantProfession } from "../../js/professions/revenant/definition.js";
 import {
   createRevenantBuildDefaults,
-} from "js/professions/revenant/build.js";
-import { thiefProfession } from "js/professions/thief/definition.js";
+} from "../../js/professions/revenant/build.js";
+import { thiefProfession } from "../../js/professions/thief/definition.js";
 import {
   createThiefBuildDefaults,
-} from "js/professions/thief/build.js";
+} from "../../js/professions/thief/build.js";
 
 function minimalAttributeData() {
   return { attributes: {}, activeTraits: [] };

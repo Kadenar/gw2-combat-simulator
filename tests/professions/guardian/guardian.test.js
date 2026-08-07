@@ -1,29 +1,29 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { loadProfession } from "js/app/profession/registry.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
+import { loadProfession } from "../../../js/app/profession/registry.js";
+import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
   validateGuardianBuild,
-} from "js/professions/guardian/build.js";
+} from "../../../js/professions/guardian/build.js";
 import {
   guardianCatalog,
-} from "js/professions/guardian/catalog.js";
+} from "../../../js/professions/guardian/catalog.js";
 import {
   DATA_SNAPSHOT,
-} from "js/professions/guardian/data/guardian-api-metadata.js";
+} from "../../../js/professions/guardian/data/guardian-api-metadata.js";
 import {
   guardianProfession,
-} from "js/professions/guardian/definition.js";
+} from "../../../js/professions/guardian/definition.js";
 import {
   calculateAttributes as calculateGuardianAttributes,
-} from "js/professions/guardian/app/app-definition.js";
+} from "../../../js/professions/guardian/app/app-definition.js";
 import {
   GUARDIAN_SKILL_IDS,
   GUARDIAN_TRAIT_IDS,
-} from "js/professions/guardian/data/ids.js";
+} from "../../../js/professions/guardian/data/ids.js";
 
 const config = {
   stats: {

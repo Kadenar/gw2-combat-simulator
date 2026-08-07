@@ -9,22 +9,22 @@ import {
   PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
   TARGET_CONDITION_GROUPS,
-} from "js/app/build/options.js";
-import { getBuildExportPayload } from "js/app/build/files.js";
+} from "../../js/app/build/options.js";
+import { getBuildExportPayload } from "../../js/app/build/files.js";
 import {
   createDefaultBuild,
   replaceBuildConfiguration,
-} from "js/app/build/persistence.js";
+} from "../../js/app/build/persistence.js";
 import {
   loadProfessionAppAdapter,
   nativeProfessionRegistry,
   PROFESSION_APPLICATION_KINDS,
   professionOptions,
   professionRegistry,
-} from "js/app/profession/registry.js";
+} from "../../js/app/profession/registry.js";
 import {
   professionRoute,
-} from "js/app/profession/selector.js";
+} from "../../js/app/profession/selector.js";
 import {
   autoattackChainSkillAvailable,
   paletteActionSkills,
@@ -33,17 +33,17 @@ import {
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
   weaponPaletteRows,
-} from "js/app/rotation/palette-model.js";
+} from "../../js/app/rotation/palette-model.js";
 import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
   targetHealthTimelineMarkers,
   timelineWeaponRows,
-} from "js/app/rotation/timeline-model.js";
+} from "../../js/app/rotation/timeline-model.js";
 import {
   resolveProcIcon,
   resultSkillIcon,
-} from "js/app/rotation/icons.js";
+} from "../../js/app/rotation/icons.js";
 import {
   PREFIXES,
   PREFIX_GROUPS,
@@ -51,26 +51,26 @@ import {
   SIGIL_NAMES,
   WEAPON_DATA,
   createProfessionWeaponData,
-} from "js/platform/gw2/gear-data.js";
+} from "../../js/platform/gw2/gear-data.js";
 import {
   createGuardianBuildDefaults,
-} from "js/professions/guardian/build.js";
+} from "../../js/professions/guardian/build.js";
 import {
   createEngineerBuildDefaults,
-} from "js/professions/engineer/build.js";
+} from "../../js/professions/engineer/build.js";
 import {
   guardianProfession,
-} from "js/professions/guardian/definition.js";
+} from "../../js/professions/guardian/definition.js";
 import {
   createMesmerBuildDefaults,
-} from "js/professions/mesmer/build.js";
+} from "../../js/professions/mesmer/build.js";
 import {
   mesmerProfession,
-} from "js/professions/mesmer/definition.js";
+} from "../../js/professions/mesmer/definition.js";
 import {
   createDefaultConfig,
   simulateMesmer,
-} from "mesmer-simulation.js";
+} from "../helpers/mesmer-simulation.js";
 
 test("proc display groups only consecutive occurrences of the same proc", () => {
   const proc = (type, skill, start) => ({ type, skill, start });
@@ -257,20 +257,20 @@ test("shared app metadata owns common attributes and target conditions", () => {
 test("shared app and platform helpers are profession neutral", async () => {
   const sources = await Promise.all([
     readFile(
-      new URL("js/app/simulation/modifier-contributions.ts", import.meta.url),
+      new URL("../../js/app/simulation/modifier-contributions.ts", import.meta.url),
       "utf8",
     ),
-    readFile(new URL("js/app/build/persistence.ts", import.meta.url), "utf8"),
-    readFile(new URL("js/app/app.ts", import.meta.url), "utf8"),
+    readFile(new URL("../../js/app/build/persistence.ts", import.meta.url), "utf8"),
+    readFile(new URL("../../js/app/app.ts", import.meta.url), "utf8"),
     readFile(
-      new URL("js/app/simulation/config.ts", import.meta.url),
+      new URL("../../js/app/simulation/config.ts", import.meta.url),
       "utf8",
     ),
     readFile(
-      new URL("js/app/simulation/modifier-contribution-worker.ts", import.meta.url),
+      new URL("../../js/app/simulation/modifier-contribution-worker.ts", import.meta.url),
       "utf8",
     ),
-    readFile(new URL("js/platform/ui/rotation-results.ts", import.meta.url), "utf8"),
+    readFile(new URL("../../js/platform/ui/rotation-results.ts", import.meta.url), "utf8"),
   ]);
   const professionTerms = nativeProfessionRegistry.flatMap((entry) => [
     entry.id,
@@ -290,7 +290,7 @@ test("shared app and platform helpers are profession neutral", async () => {
 
 test("Guardian is exposed by the profession selector and app composition", async () => {
   const guardianPage = await readFile(
-    new URL("guardian.html", import.meta.url),
+    new URL("../../guardian.html", import.meta.url),
     "utf8",
   );
   assert.equal(
@@ -308,14 +308,14 @@ test("Guardian is exposed by the profession selector and app composition", async
 
 test("the generic landing page and profession simulators have separate entries", async () => {
   const landingPage = await readFile(
-    new URL("index.html", import.meta.url),
+    new URL("../../index.html", import.meta.url),
     "utf8",
   );
   const professionPages = await Promise.all(
     professionRegistry.map(async (entry) => ({
       entry,
       source: await readFile(
-        new URL(`${entry.route}`, import.meta.url),
+        new URL(`../../${entry.route}`, import.meta.url),
         "utf8",
       ),
     })),
@@ -355,7 +355,7 @@ test("the generic landing page and profession simulators have separate entries",
 
 test("Mesmer default builds resolve without embedded rotations", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/mesmer/manifest.json", import.meta.url),
+    new URL("../../Builds/mesmer/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("mesmer");
@@ -367,7 +367,7 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
   );
   for (const preset of presets) {
     const saved = JSON.parse(await readFile(
-      new URL(`${preset.build}`, import.meta.url),
+      new URL(`../../${preset.build}`, import.meta.url),
       "utf8",
     ));
     const build = adapter.toApplicationBuild(saved);
@@ -380,14 +380,14 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
 
 test("Guardian Power Luminary default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/guardian/manifest.json", import.meta.url),
+    new URL("../../Builds/guardian/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("guardian");
   const [section] = manifest;
   const [preset] = section.presets;
   const saved = JSON.parse(await readFile(
-    new URL(`${preset.build}`, import.meta.url),
+    new URL(`../../${preset.build}`, import.meta.url),
     "utf8",
   ));
   const build = adapter.toApplicationBuild(saved);
@@ -404,14 +404,14 @@ test("Guardian Power Luminary default build resolves", async () => {
 
 test("Revenant Power Renegade Greatsword default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/revenant/manifest.json", import.meta.url),
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
   const renegade = manifest.find(section => section.section === "Renegade");
   const [preset] = renegade.presets;
   const saved = JSON.parse(await readFile(
-    new URL(`${preset.build}`, import.meta.url),
+    new URL(`../../${preset.build}`, import.meta.url),
     "utf8",
   ));
   const build = adapter.toApplicationBuild(saved);
@@ -431,7 +431,7 @@ test("Revenant Power Renegade Greatsword default build resolves", async () => {
 
 test("Revenant Power Renegade Hammer default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/revenant/manifest.json", import.meta.url),
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -440,7 +440,7 @@ test("Revenant Power Renegade Hammer default build resolves", async () => {
     candidate => candidate.label === "Power Renegade (Hammer / SwSw)",
   );
   const saved = JSON.parse(await readFile(
-    new URL(`${preset.build}`, import.meta.url),
+    new URL(`../../${preset.build}`, import.meta.url),
     "utf8",
   ));
   const build = adapter.toApplicationBuild(saved);
@@ -464,7 +464,7 @@ test("Revenant Power Renegade Hammer default build resolves", async () => {
 
 test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/revenant/manifest.json", import.meta.url),
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -478,11 +478,11 @@ test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
     candidate => candidate.label === "Power (Greatsword / SwSw - Hydro)",
   );
   const [energySaved, hydroSaved, replay] = await Promise.all([
-    readFile(new URL(`${energyPreset.build}`, import.meta.url), "utf8")
+    readFile(new URL(`../../${energyPreset.build}`, import.meta.url), "utf8")
       .then(JSON.parse),
-    readFile(new URL(`${hydroPreset.build}`, import.meta.url), "utf8")
+    readFile(new URL(`../../${hydroPreset.build}`, import.meta.url), "utf8")
       .then(JSON.parse),
-    readFile(new URL(`${energyPreset.rotation}`, import.meta.url), "utf8")
+    readFile(new URL(`../../${energyPreset.rotation}`, import.meta.url), "utf8")
       .then(JSON.parse),
   ]);
   const energyBuild = adapter.toApplicationBuild(energySaved);
@@ -557,7 +557,7 @@ test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
 
 test("Revenant Condition Renegade Shortbow default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/revenant/manifest.json", import.meta.url),
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -566,7 +566,7 @@ test("Revenant Condition Renegade Shortbow default build resolves", async () => 
     candidate => candidate.label === "Condition (Shortbow / Mace-Axe)",
   );
   const saved = JSON.parse(await readFile(
-    new URL(`${preset.build}`, import.meta.url),
+    new URL(`../../${preset.build}`, import.meta.url),
     "utf8",
   ));
   const build = adapter.toApplicationBuild(saved);
@@ -594,7 +594,7 @@ test("Revenant Condition Renegade Shortbow default build resolves", async () => 
 
 test("Revenant Condition Renegade Spear default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/revenant/manifest.json", import.meta.url),
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -603,7 +603,7 @@ test("Revenant Condition Renegade Spear default build resolves", async () => {
     candidate => candidate.label === "Condition (Mace-Axe / Spear)",
   );
   const saved = JSON.parse(await readFile(
-    new URL(`${preset.build}`, import.meta.url),
+    new URL(`../../${preset.build}`, import.meta.url),
     "utf8",
   ));
   const build = adapter.toApplicationBuild(saved);
@@ -635,7 +635,7 @@ test("Revenant Condition Renegade Spear default build resolves", async () => {
 
 test("Revenant Condition Quickness Herald default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/revenant/manifest.json", import.meta.url),
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -645,7 +645,7 @@ test("Revenant Condition Quickness Herald default build resolves", async () => {
       candidate.label === "Condition Quickness (Shortbow / Mace-Axe)",
   );
   const saved = JSON.parse(await readFile(
-    new URL(`${preset.build}`, import.meta.url),
+    new URL(`../../${preset.build}`, import.meta.url),
     "utf8",
   ));
   const build = adapter.toApplicationBuild(saved);
@@ -704,7 +704,7 @@ test("Revenant Condition Quickness Herald default build resolves", async () => {
 
 test("Revenant Condition Conduit Mistfire default build resolves", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/revenant/manifest.json", import.meta.url),
+    new URL("../../Builds/revenant/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("revenant");
@@ -713,7 +713,7 @@ test("Revenant Condition Conduit Mistfire default build resolves", async () => {
     candidate => candidate.label === "Condition (Mistfire)",
   );
   const saved = JSON.parse(await readFile(
-    new URL(`${preset.build}`, import.meta.url),
+    new URL(`../../${preset.build}`, import.meta.url),
     "utf8",
   ));
   const build = adapter.toApplicationBuild(saved);
@@ -741,7 +741,7 @@ test("Revenant Condition Conduit Mistfire default build resolves", async () => {
 
 test("Necromancer preset builds keep rotation data separate", async () => {
   const manifest = JSON.parse(await readFile(
-    new URL("Builds/necromancer/manifest.json", import.meta.url),
+    new URL("../../Builds/necromancer/manifest.json", import.meta.url),
     "utf8",
   ));
   const adapter = await loadProfessionAppAdapter("necromancer");
@@ -770,7 +770,7 @@ test("Necromancer preset builds keep rotation data separate", async () => {
   );
   for (const preset of presets) {
     const saved = JSON.parse(await readFile(
-      new URL(`${preset.build}`, import.meta.url),
+      new URL(`../../${preset.build}`, import.meta.url),
       "utf8",
     ));
     const build = adapter.toApplicationBuild(saved);
@@ -784,7 +784,7 @@ test("Necromancer preset builds keep rotation data separate", async () => {
     assert.equal(build.alternateWeapons.length, 2);
   }
   const power = JSON.parse(await readFile(
-    new URL(`${harbingerPresets[0].build}`, import.meta.url),
+    new URL(`../../${harbingerPresets[0].build}`, import.meta.url),
     "utf8",
   ));
   assert.deepEqual(power.weapons, ["Greatsword", ""]);
@@ -806,7 +806,7 @@ test("template preview DPS matches each deterministic saved rotation", async () 
     "revenant",
   ]) {
     const manifest = JSON.parse(await readFile(
-      new URL(`Builds/${professionId}/manifest.json`, import.meta.url),
+      new URL(`../../Builds/${professionId}/manifest.json`, import.meta.url),
       "utf8",
     ));
     const adapter = await loadProfessionAppAdapter(professionId);
@@ -819,11 +819,11 @@ test("template preview DPS matches each deterministic saved rotation", async () 
         );
         if (!preset.rotation) continue;
         const savedBuild = JSON.parse(await readFile(
-          new URL(`${preset.build}`, import.meta.url),
+          new URL(`../../${preset.build}`, import.meta.url),
           "utf8",
         ));
         const savedRotation = JSON.parse(await readFile(
-          new URL(`${preset.rotation}`, import.meta.url),
+          new URL(`../../${preset.rotation}`, import.meta.url),
           "utf8",
         ));
         const build = adapter.toApplicationBuild({

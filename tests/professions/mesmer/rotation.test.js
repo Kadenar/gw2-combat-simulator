@@ -1,50 +1,50 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { defaultSimulationConfig } from 'fixture-harness-core.js';
+import { defaultSimulationConfig } from '../../helpers/fixture-harness-core.js';
 import {
     createDefaultConfig,
     simulateMesmer,
-} from 'mesmer-simulation.js';
-import { chartValueAt } from 'js/platform/ui/charts.js';
+} from '../../helpers/mesmer-simulation.js';
+import { chartValueAt } from '../../../js/platform/ui/charts.js';
 import {
     formatConcurrentTimelineBadge,
     formatInterruptTimelineBadge,
     formatTimelineCastDetails,
     moveRotationEntry,
-} from 'js/platform/ui/timeline.js';
+} from '../../../js/platform/ui/timeline.js';
 import {
     nextResultSortState,
     sortResultRows,
-} from 'js/platform/ui/rotation-results.js';
+} from '../../../js/platform/ui/rotation-results.js';
 import {
     buildChartSeries,
     formatResultTimelineTime,
     resultSummaryMetrics,
     skillBreakdownRows,
-} from 'js/app/rotation/result-model.js';
+} from '../../../js/app/rotation/result-model.js';
 import {
     continuumEndTimelineMarkers,
     shatterResourceSpends,
     timelineWeaponRows,
-} from 'js/app/rotation/timeline-model.js';
+} from '../../../js/app/rotation/timeline-model.js';
 import {
     simulationEventLogCsv,
     simulationEventLogRows,
-} from 'js/app/rotation/event-log.js';
-import { rotationWarningItems } from 'js/app/rotation/warnings.js';
-import { RELIC_DATA } from 'js/platform/gw2/gear-data.js';
+} from '../../../js/app/rotation/event-log.js';
+import { rotationWarningItems } from '../../../js/app/rotation/warnings.js';
+import { RELIC_DATA } from '../../../js/platform/gw2/gear-data.js';
 import {
     MESMER_SKILL_IDS as ID,
     MESMER_TRAIT_IDS as TRAIT,
-} from 'js/professions/mesmer/data/ids.js';
-import { mesmerCatalog } from 'js/professions/mesmer/catalog.js';
-import { mesmerProfession } from 'js/professions/mesmer/definition.js';
-import { toApplicationBuild } from 'js/professions/mesmer/build.js';
+} from '../../../js/professions/mesmer/data/ids.js';
+import { mesmerCatalog } from '../../../js/professions/mesmer/catalog.js';
+import { mesmerProfession } from '../../../js/professions/mesmer/definition.js';
+import { toApplicationBuild } from '../../../js/professions/mesmer/build.js';
 import {
     recalculate,
     simulationConfig,
-} from 'js/professions/mesmer/app/app-definition.js';
+} from '../../../js/professions/mesmer/app/app-definition.js';
 
 test('Relic of the Claw uses its relic icon in the proc timeline', () => {
     assert.equal(
@@ -1331,7 +1331,7 @@ test('Ineptitude intervals only interrupt-generated blinds on defiant targets', 
 
 test('condition Chronomancer preset retains multi-hit Ineptitude', () => {
     const saved = JSON.parse(readFileSync(
-        new URL('Builds/mesmer/b-condi-chronomancer.json', import.meta.url),
+        new URL('../../../Builds/mesmer/b-condi-chronomancer.json', import.meta.url),
         'utf8',
     ));
     const build = toApplicationBuild({
@@ -3867,7 +3867,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
 
 test('the supplied condition Virtuoso build tracks cast-end blade spends', () => {
     const build = JSON.parse(readFileSync(
-        new URL('cvirt-bench-build.json', import.meta.url),
+        new URL('../../fixtures/cvirt-bench-build.json', import.meta.url),
         'utf8',
     ));
     const app = {

@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   gw2AlliedEffectRecipients,
   gw2AlliedPlayerProcTimeline,
-} from "js/platform/gw2/allied-players.js";
+} from "../../../js/platform/gw2/allied-players.js";
 
 test("allied effect recipients prioritize players before companions", () => {
   const partialParty = gw2AlliedEffectRecipients(

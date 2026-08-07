@@ -6,7 +6,7 @@ import {
   loadProfession,
   loadProfessionAppAdapter,
   professionRoute,
-} from "js/app/profession/registry.js";
+} from "../../../js/app/profession/registry.js";
 import {
   appendVindicatorDodgeAuto,
   currentAutoattackSkill,
@@ -18,68 +18,68 @@ import {
   vindicatorDodgeAutoPaletteSkill,
   vindicatorDodgeAutoRotationEntries,
   weaponSkills,
-} from "js/app/rotation/palette-model.js";
-import { paletteSkillView } from "js/app/rotation/palette-view.js";
+} from "../../../js/app/rotation/palette-model.js";
+import { paletteSkillView } from "../../../js/app/rotation/palette-view.js";
 import {
   simulationEventLogRows,
-} from "js/app/rotation/event-log.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
-import { skillBreakdownRows } from "js/platform/ui/result-tables.js";
+} from "../../../js/app/rotation/event-log.js";
+import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import { skillBreakdownRows } from "../../../js/platform/ui/result-tables.js";
 import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,
   validateRevenantBuild,
-} from "js/professions/revenant/build.js";
+} from "../../../js/professions/revenant/build.js";
 import {
   calculateAttributes as calculateRevenantAttributes,
-} from "js/professions/revenant/app/app-definition.js";
-import { revenantCatalog } from "js/professions/revenant/catalog.js";
+} from "../../../js/professions/revenant/app/app-definition.js";
+import { revenantCatalog } from "../../../js/professions/revenant/catalog.js";
 import {
   DATA_SNAPSHOT,
-} from "js/professions/revenant/data/revenant-api-metadata.js";
+} from "../../../js/professions/revenant/data/revenant-api-metadata.js";
 import {
   REVENANT_SUPPLEMENTAL_SKILLS,
-} from "js/professions/revenant/data/revenant-supplemental-skills.js";
+} from "../../../js/professions/revenant/data/revenant-supplemental-skills.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT,
-} from "js/professions/revenant/data/ids.js";
+} from "../../../js/professions/revenant/data/ids.js";
 import {
   REVENANT_TRAIT_COVERAGE,
-} from "js/professions/revenant/data/trait-coverage.js";
+} from "../../../js/professions/revenant/data/trait-coverage.js";
 import {
   REVENANT_IMPLEMENTED_SKILL_IDS,
   REVENANT_SKILL_MECHANICS,
-} from "js/professions/revenant/mechanics/skill-mechanics.js";
+} from "../../../js/professions/revenant/mechanics/skill-mechanics.js";
 import {
   REVENANT_CORE_MECHANICS,
-} from "js/professions/revenant/core/mechanics.js";
+} from "../../../js/professions/revenant/core/mechanics.js";
 import {
   CONDUIT_MECHANICS,
-} from "js/professions/revenant/specializations/conduit/mechanics.js";
+} from "../../../js/professions/revenant/specializations/conduit/mechanics.js";
 import {
   HERALD_MECHANICS,
-} from "js/professions/revenant/specializations/herald/mechanics.js";
+} from "../../../js/professions/revenant/specializations/herald/mechanics.js";
 import {
   RENEGADE_MECHANICS,
-} from "js/professions/revenant/specializations/renegade/mechanics.js";
+} from "../../../js/professions/revenant/specializations/renegade/mechanics.js";
 import {
   VINDICATOR_MECHANICS,
-} from "js/professions/revenant/specializations/vindicator/mechanics.js";
+} from "../../../js/professions/revenant/specializations/vindicator/mechanics.js";
 import {
   revenantProfession,
-} from "js/professions/revenant/definition.js";
+} from "../../../js/professions/revenant/definition.js";
 import {
   legalRevenantLegendIds,
   REVENANT_CORE_LEGEND_IDS,
   REVENANT_ELITE_LEGEND_BY_SPECIALIZATION,
   REVENANT_RELEASE_POTENTIAL_BY_LEGEND,
-} from "js/professions/revenant/legend-rules.js";
+} from "../../../js/professions/revenant/legend-rules.js";
 import {
   REVENANT_LEGENDS,
   revenantLegendLoadout,
-} from "js/professions/revenant/legend-loadout.js";
+} from "../../../js/professions/revenant/legend-loadout.js";
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
@@ -308,15 +308,15 @@ test("Revenant mechanics modules preserve the declarative contract", async () =>
   const [ids, skillMechanics, coreSkills, localMechanics, catalog, modules] =
     await Promise.all([
     readFile(new URL(
-      "js/professions/revenant/data/ids.ts",
+      "../../../js/professions/revenant/data/ids.ts",
       import.meta.url,
     ), "utf8"),
     readFile(new URL(
-      "js/professions/revenant/mechanics/skill-mechanics.ts",
+      "../../../js/professions/revenant/mechanics/skill-mechanics.ts",
       import.meta.url,
     ), "utf8"),
     readFile(new URL(
-      "js/professions/revenant/core/skills.ts",
+      "../../../js/professions/revenant/core/skills.ts",
       import.meta.url,
     ), "utf8"),
     Promise.all([
@@ -326,15 +326,15 @@ test("Revenant mechanics modules preserve the declarative contract", async () =>
       "specializations/vindicator",
       "specializations/conduit",
     ].map(directory => readFile(new URL(
-      `js/professions/revenant/${directory}/mechanics.ts`,
+      `../../../js/professions/revenant/${directory}/mechanics.ts`,
       import.meta.url,
     ), "utf8"))),
     readFile(new URL(
-      "js/professions/revenant/catalog.ts",
+      "../../../js/professions/revenant/catalog.ts",
       import.meta.url,
     ), "utf8"),
     readFile(new URL(
-      "js/professions/revenant/modules.ts",
+      "../../../js/professions/revenant/modules.ts",
       import.meta.url,
     ), "utf8"),
   ]);
@@ -1463,7 +1463,7 @@ test("Corruption traits update attributes, duration, and chill triggers", () => 
 
 test("Notoriety applies its Might conversion at runtime without negative UI attributes", async () => {
   const saved = JSON.parse(await readFile(
-    new URL("Builds/revenant/b-power-conduit.json", import.meta.url),
+    new URL("../../../Builds/revenant/b-power-conduit.json", import.meta.url),
     "utf8",
   ));
   const attributes = calculateRevenantAttributes(
@@ -4737,6 +4737,6 @@ test("Revenant is a loadable native fixed-bar application", async () => {
   const adapter = await loadProfessionAppAdapter("revenant");
   assert.equal(adapter.profession.id, "revenant");
   assert.equal(adapter.slotLoadout.id, "revenant-legends");
-  const html = await readFile(new URL("revenant.html", import.meta.url), "utf8");
+  const html = await readFile(new URL("../../../revenant.html", import.meta.url), "utf8");
   assert.match(html, /data-profession="revenant"/);
 });

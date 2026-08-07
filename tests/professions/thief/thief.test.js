@@ -6,49 +6,49 @@ import {
   loadProfession,
   loadProfessionAppAdapter,
   professionRoute,
-} from "js/app/profession/registry.js";
+} from "../../../js/app/profession/registry.js";
 import {
   assumptionControlsForSpecialization,
-} from "js/app/profession/assumptions.js";
+} from "../../../js/app/profession/assumptions.js";
 import {
   weaponSkills,
-} from "js/app/rotation/palette-model.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
-import { resourceDisplayViews } from "js/platform/ui/resource-display.js";
+} from "../../../js/app/rotation/palette-model.js";
+import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import { resourceDisplayViews } from "../../../js/platform/ui/resource-display.js";
 import {
   createThiefBuildDefaults,
   migrateThiefBuild,
   validateThiefBuild,
-} from "js/professions/thief/build.js";
+} from "../../../js/professions/thief/build.js";
 import {
   thiefCatalog,
   thiefWeaponSkillMatchesSet,
-} from "js/professions/thief/catalog.js";
+} from "../../../js/professions/thief/catalog.js";
 import {
   DATA_SNAPSHOT,
-} from "js/professions/thief/data/thief-api-metadata.js";
+} from "../../../js/professions/thief/data/thief-api-metadata.js";
 import {
   THIEF_SUPPLEMENTAL_SKILLS,
-} from "js/professions/thief/data/thief-supplemental-skills.js";
+} from "../../../js/professions/thief/data/thief-supplemental-skills.js";
 import {
   THIEF_TRAIT_COVERAGE,
-} from "js/professions/thief/data/trait-coverage.js";
+} from "../../../js/professions/thief/data/trait-coverage.js";
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
-} from "js/professions/thief/data/ids.js";
+} from "../../../js/professions/thief/data/ids.js";
 import {
   THIEF_SKILL_MECHANICS,
-} from "js/professions/thief/mechanics/skill-mechanics.js";
+} from "../../../js/professions/thief/mechanics/skill-mechanics.js";
 import {
   recalculate,
   runSimulation,
   thiefAppAdapter,
-} from "js/professions/thief/app/app-definition.js";
+} from "../../../js/professions/thief/app/app-definition.js";
 import {
   thiefProfession,
-} from "js/professions/thief/definition.js";
+} from "../../../js/professions/thief/definition.js";
 
 const baseConfig = Object.freeze({
   selectedSkills: [
@@ -1101,14 +1101,14 @@ test("Antiquary skill bar previews wiki-categorized artifacts", () => {
 test("Power Antiquary benchmark preset matches the supplied EVTC", async () => {
   const savedBuild = JSON.parse(await readFile(
     new URL(
-      "Builds/thief/b-power-antiquary-sword-pistol.json",
+      "../../../Builds/thief/b-power-antiquary-sword-pistol.json",
       import.meta.url,
     ),
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
     new URL(
-      "Rotations/thief/r-power-antiquary-sword-pistol-bench.json",
+      "../../../Rotations/thief/r-power-antiquary-sword-pistol-bench.json",
       import.meta.url,
     ),
     "utf8",
@@ -1160,14 +1160,14 @@ test("Power Antiquary benchmark preset matches the supplied EVTC", async () => {
 test("Condition Antiquary spear preset matches the supplied EVTC", async () => {
   const savedBuild = JSON.parse(await readFile(
     new URL(
-      "Builds/thief/b-condi-antiquary-spear.json",
+      "../../../Builds/thief/b-condi-antiquary-spear.json",
       import.meta.url,
     ),
     "utf8",
   ));
   const savedRotation = JSON.parse(await readFile(
     new URL(
-      "Rotations/thief/r-condi-antiquary-spear-bench.json",
+      "../../../Rotations/thief/r-condi-antiquary-spear-bench.json",
       import.meta.url,
     ),
     "utf8",
@@ -1249,7 +1249,7 @@ test("Thief is a loadable native application", async () => {
   assert.equal(adapter.profession.id, "thief");
   assert.equal(adapter.weaponSkillMatchesSet, thiefWeaponSkillMatchesSet);
   assert.ok(adapter.assumptionControls.length >= 7);
-  const html = await readFile(new URL("thief.html", import.meta.url), "utf8");
+  const html = await readFile(new URL("../../../thief.html", import.meta.url), "utf8");
   assert.match(html, /data-profession="thief"/);
   assert.match(html, /Thief<\/span> Rotation Simulator/);
 });

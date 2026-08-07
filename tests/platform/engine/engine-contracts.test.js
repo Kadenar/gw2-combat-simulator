@@ -4,11 +4,11 @@ import test from "node:test";
 import {
   assertSimulationEvent,
   createEvent,
-} from "js/platform/engine/events.js";
+} from "../../../js/platform/engine/events.js";
 import {
   assertScheduledEventStream,
   buildScheduledEventStream,
-} from "js/platform/engine/scheduled-event-stream.js";
+} from "../../../js/platform/engine/scheduled-event-stream.js";
 
 test("typed event boundary rejects values outside the declared contract", () => {
   assert.throws(
