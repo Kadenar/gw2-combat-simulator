@@ -2,6 +2,7 @@ import { defineNativeModule } from "../../../../platform/gw2/native-profession.j
 import { createThiefModuleData } from "../../catalog-data.js";
 import {
   deadeyeSchedulerHooks,
+  deadeyeSkillHandlers,
 } from "./handlers.js";
 import {
   deadeyeAttributeRules,
@@ -10,7 +11,6 @@ import {
 import { deadeyeState } from "./state.js";
 import { deadeyeUi } from "./ui.js";
 import { DEADEYE_SKILL_MECHANICS } from "./skills.js";
-import { deadeyeSkillHandlers } from "./handlers.js";
 
 export const deadeyeModule = defineNativeModule({
   id: "Deadeye",

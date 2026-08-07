@@ -2,6 +2,7 @@ import { defineNativeModule } from "../../../../platform/gw2/native-profession.j
 import { createThiefModuleData } from "../../catalog-data.js";
 import {
   specterSchedulerHooks,
+  specterSkillHandlers,
 } from "./handlers.js";
 import {
   specterAttributeRules,
@@ -10,7 +11,6 @@ import {
 import { specterState } from "./state.js";
 import { specterUi } from "./ui.js";
 import { SPECTER_SKILL_MECHANICS } from "./skills.js";
-import { specterSkillHandlers } from "./handlers.js";
 
 export const specterModule = defineNativeModule({
   id: "Specter",
