@@ -7,7 +7,7 @@ import {
   specterAttributeRules,
   specterCastRules,
 } from "./rules.js";
-import { createSpecterState } from "./state.js";
+import { specterState } from "./state.js";
 import { specterUi } from "./ui.js";
 import { SPECTER_SKILL_MECHANICS } from "./skills.js";
 import { specterSkillHandlers } from "./handlers.js";
@@ -18,7 +18,7 @@ export const specterModule = defineNativeModule({
     skillMechanics: SPECTER_SKILL_MECHANICS,
     handlers: specterSkillHandlers,
   }),
-  state: { scheduler: createSpecterState, resolver: createSpecterState },
+  state: { scheduler: specterState.create, resolver: specterState.create },
   mechanics: {
     modifiers: specterAttributeRules,
     castRules: specterCastRules,

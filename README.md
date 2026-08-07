@@ -94,7 +94,10 @@ gw2-combat-simulator/
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the profession contract and
 import boundaries, and [docs/MODULES.md](docs/MODULES.md) for module
-responsibilities and public contracts. Profession-specific documentation:
+responsibilities and public contracts. Headless use of the same simulation API
+called by the test suite is described in
+[docs/PROGRAMMATIC-SIMULATION.md](docs/PROGRAMMATIC-SIMULATION.md).
+Profession-specific documentation:
 
 - Mesmer architecture and modeling assumptions: [docs/MESMER.md](docs/MESMER.md)
 - Elementalist implementation details: [docs/ELEMENTALIST.md](docs/ELEMENTALIST.md)

@@ -1,6 +1,6 @@
+import { conduitState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
@@ -183,7 +183,7 @@ function conduitCastAvailability(
   context: RevenantPrecastContext,
   skill: RevenantSkill,
 ) {
-  const state = professionSpecializationState(context, "Conduit");
+  const state = conduitState.from(context);
   if (
     skill.handlerId === "revenant.beguiling-haze" &&
     Number(state.beguilingHazeCharges || 0) <= 0 &&
@@ -255,7 +255,7 @@ function advanceConduitUpkeep(
   context: RevenantSchedulerContext,
   target: number,
 ): void {
-  const state = professionSpecializationState(context, "Conduit");
+  const state = conduitState.from(context);
   if (state.cosmicWisdomUntil > 0 && target >= state.cosmicWisdomUntil) {
     state.cosmicWisdomUntil = 0;
     state.conduitForm = "";
@@ -317,7 +317,7 @@ function observeConduitEvent(
   event: RevenantSimulationEvent,
 ): void {
   if (event.type !== "sigil_swap") return;
-  const state = professionSpecializationState(context, "Conduit");
+  const state = conduitState.from(context);
   const cosmicWisdomActive = state.cosmicWisdomUntil > event.at;
   state.affinity = 0;
   if (
@@ -394,7 +394,7 @@ export const conduitSchedulerHooks = Object.freeze({
     id: "revenant.conduit-cooldown-reset",
     order: 20,
     handler: (context: RevenantSchedulerContext): void => {
-      professionSpecializationState(context, "Conduit").beguilingHazeReadyAt = context.state.time;
+      conduitState.from(context).beguilingHazeReadyAt = context.state.time;
     },
   },
   taskHandlers: Object.freeze({

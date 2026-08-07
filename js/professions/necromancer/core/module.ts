@@ -1,5 +1,6 @@
 import {
   defineNativeModule,
+  onConditionApplied,
   onResolvedBlind,
   onResolvedControl,
   onResolvedDamage,
@@ -68,13 +69,10 @@ export const necromancerCoreModule =
         id: "necromancer.core.control",
         handler: necromancerCoreEventReactions.control,
       }),
-      {
-        phase: "resolver" as const,
-        eventType: "condition",
+      onConditionApplied({
         id: "necromancer.core.condition",
-        order: 0,
         handler: necromancerCoreEventReactions.condition,
-      },
+      }),
     ],
   },
   presentation: bindNecromancerCoreUi,

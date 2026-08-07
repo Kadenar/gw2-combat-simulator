@@ -5,7 +5,7 @@ import {
 import { createGuardianModuleData } from "../../catalog-data.js";
 import { dragonhunterEventReactions } from "./handlers.js";
 import { DRAGONHUNTER_SKILL_MECHANICS } from "./skills.js";
-import { createDragonhunterState } from "./state.js";
+import { dragonhunterState } from "./state.js";
 import { dragonhunterUi } from "./ui.js";
 
 export const dragonhunterModule = defineNativeModule({
@@ -14,8 +14,8 @@ export const dragonhunterModule = defineNativeModule({
     skillMechanics: DRAGONHUNTER_SKILL_MECHANICS,
   }),
   state: {
-    scheduler: createDragonhunterState,
-    resolver: createDragonhunterState,
+    scheduler: dragonhunterState.create,
+    resolver: dragonhunterState.create,
   },
   mechanics: {
     reactions: dragonhunterEventReactions.damage.map(onResolvedDamage),

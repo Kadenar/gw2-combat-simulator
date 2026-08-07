@@ -1,4 +1,5 @@
 import { THIEF_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 import {
   hasThiefTrait,
   selectedThiefTraits,
@@ -14,3 +15,8 @@ export function createDeadeyeState(config = {}) {
     maleficentSevenTriggered: false,
   };
 }
+
+export const deadeyeState = defineProfessionSpecializationState(
+  "Deadeye",
+  createDeadeyeState,
+);

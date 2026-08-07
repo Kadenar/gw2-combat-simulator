@@ -27,7 +27,10 @@ function scrapperEventLogRow(
   _context: EngineerUiContext,
   event: EngineerResolverEvent,
 ): ProfessionEventLogDescriptor | null | undefined {
-  return event?.type === "engineer.mass-momentum-pulse" ? null : undefined;
+  return [
+    "engineer.mass-momentum-pulse",
+    "engineer.state",
+  ].includes(event?.type) ? null : undefined;
 }
 
 export const scrapperUi:

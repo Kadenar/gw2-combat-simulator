@@ -1,6 +1,6 @@
+import { holosmithState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { hasEngineerTrait } from "../../core/state.js";
@@ -21,7 +21,7 @@ export function holosmithCastAvailability(
   skill: EngineerSkill,
 ): AvailabilityResult {
   if (context.config.specialization !== "Holosmith") return { ready: true };
-  const state = professionSpecializationState(context, "Holosmith");
+  const state = holosmithState.from(context);
   if (skill.forgeSkill && skill.slot === "Weapon_1") {
     const stormSelected = hasEngineerTrait(
       context.config,

@@ -1,6 +1,6 @@
+import { vindicatorState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 /**
  * Revenant dodge execution.
@@ -27,7 +27,7 @@ export function performEnergyMeld(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const state = professionSpecializationState(context, "Vindicator");
+  const state = vindicatorState.from(context);
   const coreState = professionCoreState(context);
   const profile = MECHANICS.endurance.energyMeld;
   const at = context.effectiveEnd;
@@ -74,7 +74,7 @@ export function performEnergyMeld(
 export function switchAllianceTactics(
   context: RevenantCastContext,
 ): void {
-  const state = professionSpecializationState(context, "Vindicator");
+  const state = vindicatorState.from(context);
   const at = context.effectiveEnd;
   state.allianceSide = state.allianceSide === "luxon" ? "kurzick" : "luxon";
   emitRevenantState(context, at, "alliance-tactics");
@@ -86,7 +86,7 @@ export function completeVindicatorDodge(
   skill: RevenantSkill,
   start: number,
 ): void {
-  const state = professionSpecializationState(context, "Vindicator");
+  const state = vindicatorState.from(context);
   const dodge = state.selectedDodge;
   const dodgeByName = MECHANICS.endurance.dodgeByName as Partial<
     Record<RevenantDodge, { readonly coefficient: number; readonly hits: number }>

@@ -6,7 +6,7 @@ import {
   ritualistSchedulerHooks,
 } from "./handlers.js";
 import { ritualistAttributeRules } from "./rules.js";
-import { createRitualistState } from "./state.js";
+import { ritualistState } from "./state.js";
 import { ritualistUi } from "./ui.js";
 import { RITUALIST_BASE_SKILL_MECHANICS, RITUALIST_QUICKNESS_CAST_TIMES_MS } from "./skills.js";
 import { ritualistSkillHandlers } from "./handlers.js";
@@ -18,7 +18,7 @@ export const ritualistModule = defineNativeModule({
     quicknessCastTimes: RITUALIST_QUICKNESS_CAST_TIMES_MS,
     handlers: ritualistSkillHandlers,
   }),
-  state: { scheduler: createRitualistState, resolver: createRitualistState },
+  state: { scheduler: ritualistState.create, resolver: ritualistState.create },
   mechanics: {
     modifiers: ritualistAttributeRules,
     resolverHooks: { eventHandlers: ritualistEventHandlers },

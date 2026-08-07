@@ -1,6 +1,6 @@
+import { luminaryState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 /**
  * @fileoverview Implements Luminary Radiant Forge cast validation, mode
@@ -76,22 +76,22 @@ export function validateRadiantForgeCast(
   context: GuardianPrecastContext,
   skill: GuardianSkill,
 ): boolean | undefined {
-  if (skill.type === "Weapon" && professionSpecializationState(context, "Luminary").radiantForge) {
+  if (skill.type === "Weapon" && luminaryState.from(context).radiantForge) {
     return false;
   }
   if (skill.radiantForgeSkill) {
-    return Boolean(professionSpecializationState(context, "Luminary").radiantForge);
+    return Boolean(luminaryState.from(context).radiantForge);
   }
   if (skill.name === "Enter Radiant Forge") {
     return (
       selectedGuardianSpecialization(context) === "Luminary" &&
-      !professionSpecializationState(context, "Luminary").radiantForge
+      !luminaryState.from(context).radiantForge
     );
   }
   if (skill.name === "Exit Radiant Forge") {
     return (
       selectedGuardianSpecialization(context) === "Luminary" &&
-      professionSpecializationState(context, "Luminary").radiantForge
+      luminaryState.from(context).radiantForge
     );
   }
 }
@@ -109,7 +109,7 @@ function radiantForge(
   skill: GuardianSkill,
 ): boolean {
   const entering = skill.name === "Enter Radiant Forge";
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   if (!entering) {
     finalizeRadiantForgeCooldown(context, context.effectiveEnd);
   }
@@ -153,15 +153,15 @@ function radiantWeapon(
 ): boolean {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return true;
   if (skill.radiantWeapon && skill.flipParentId == null) {
-    professionSpecializationState(context, "Luminary").radiantWeapon = skill.radiantWeapon;
+    luminaryState.from(context).radiantWeapon = skill.radiantWeapon;
     handleRadiantWeaponEquipped(context, skill);
     emitForgeWeaponSwap(context, skill);
   }
   if (
     skill.id === GUARDIAN_SKILL_IDS.DAZZLING_HAMMER &&
-    professionSpecializationState(context, "Luminary").radiantJusticeArmed
+    luminaryState.from(context).radiantJusticeArmed
   ) {
-    professionSpecializationState(context, "Luminary").radiantJusticeArmed = false;
+    luminaryState.from(context).radiantJusticeArmed = false;
     context.emit(
       buildGuardianStrike({
         at: context.effectiveEnd + 0.75,
@@ -187,9 +187,9 @@ function radiantWeapon(
   }
   if (
     skill.id === GUARDIAN_SKILL_IDS.GLEAMING_BLADE &&
-    professionSpecializationState(context, "Luminary").radiantCourageSwordArmed
+    luminaryState.from(context).radiantCourageSwordArmed
   ) {
-    professionSpecializationState(context, "Luminary").radiantCourageSwordArmed = false;
+    luminaryState.from(context).radiantCourageSwordArmed = false;
     context.emit({
       type: "buff",
       at: context.effectiveEnd,
@@ -205,9 +205,9 @@ function radiantWeapon(
   }
   if (
     skill.id === GUARDIAN_SKILL_IDS.RADIANT_BULWARK &&
-    professionSpecializationState(context, "Luminary").radiantCourageShieldArmed
+    luminaryState.from(context).radiantCourageShieldArmed
   ) {
-    professionSpecializationState(context, "Luminary").radiantCourageShieldArmed = false;
+    luminaryState.from(context).radiantCourageShieldArmed = false;
   }
   return false;
 }
@@ -224,7 +224,7 @@ function glaringBurst(
   skill: GuardianSkill,
 ): void {
   if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
-  const radiantWeapon = professionSpecializationState(context, "Luminary").radiantWeapon;
+  const radiantWeapon = luminaryState.from(context).radiantWeapon;
   const coefficient = radiantWeapon === "hammer" || radiantWeapon === "blade"
     ? LUMINARY_MECHANICS.radiantForge
       .glaringBurstCoefficientByWeapon[radiantWeapon]
@@ -255,7 +255,7 @@ function finalizeRadiantForgeCooldown(
   context: GuardianSchedulerContext,
   at: number,
 ): void {
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   const enter = context.catalog.skillsById.get(
     GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE,
   );
@@ -312,13 +312,13 @@ function handleRadiantForgeTransition(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
 ): void {
-  professionSpecializationState(context, "Luminary").radiantForge = Boolean(event.radiantForge);
-  professionSpecializationState(context, "Luminary").radiantForgeEndsAt = Number(event.radiantForgeEndsAt || 0);
-  professionSpecializationState(context, "Luminary").radiantForgeEnteredAt = Number(
+  luminaryState.from(context).radiantForge = Boolean(event.radiantForge);
+  luminaryState.from(context).radiantForgeEndsAt = Number(event.radiantForgeEndsAt || 0);
+  luminaryState.from(context).radiantForgeEnteredAt = Number(
     event.radiantForgeEnteredAt || 0,
   );
-  professionSpecializationState(context, "Luminary").radiantWeapon = String(event.radiantWeapon || "");
-  if (!professionSpecializationState(context, "Luminary").radiantForge) {
+  luminaryState.from(context).radiantWeapon = String(event.radiantWeapon || "");
+  if (!luminaryState.from(context).radiantForge) {
     professionCoreState(context).availableFlips = {};
   }
 }
@@ -343,7 +343,7 @@ export function advanceRadiantForgeState(
   context: GuardianSchedulerContext,
   target: number,
 ): void {
-  const state = professionSpecializationState(context, "Luminary");
+  const state = luminaryState.from(context);
   if (
     state.radiantForge &&
     state.radiantForgeEndsAt <= target + context.epsilon

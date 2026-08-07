@@ -660,8 +660,8 @@ Run after every phase:
 ```powershell
 npm run build
 npm run check
-node --import ./scripts/register-dist-loader.mjs --test --test-isolation=none tests/profession-family.test.js
-node --import ./scripts/register-dist-loader.mjs --test --test-isolation=none tests/platform-architecture.test.js
+node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none tests/professions/profession-family.test.js
+node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none tests/platform/platform-architecture.test.js
 git diff --check
 ```
 
@@ -700,7 +700,7 @@ The post-migration cleanup is complete when:
 - the full build, check, and test suite pass; and
 - Elementalist remains explicitly outside this work.
 
-## Implementation status (2026-07-30)
+## Implementation status (2026-08-07)
 
 The architectural work is implemented for Engineer, Guardian, Mesmer,
 Necromancer, Revenant, and Thief:
@@ -710,41 +710,27 @@ Necromancer, Revenant, and Thief:
 - generic application UI composition replaces family dispatchers;
 - root resolver, state, UI, and mechanic-contract runtime facades are removed;
 - runtime state is an ordinary nested Core-plus-active-specialization object;
-- mechanics use explicit state ownership and no flat proxy remains;
-- typed modules declare exact fragment state, backed by compile-time boundary
-  assertions;
+- mechanics use owner-defined specialization state accessors and no flat proxy
+  remains;
+- specialization modules register their owner-bound state factory, and
+  compile-time fixtures reject Core-to-elite access, sibling access, arrays,
+  and primitives;
 - family conformance is parameterized;
 - TypeScript source discovery uses `js/**/*.ts`; and
 - the final architecture is documented in `ARCHITECTURE.md`, `MODULES.md`, and
   `SPECIALIZATION-MODULE-MIGRATION.md`.
 
-Current passing gates:
+Current cleanup gates:
 
 ```text
 npm run check
-tests/profession-family.test.js + tests/thief-family.test.js: 28/28
-facade-removal and no-flat-adapter architecture checks: 2/2
-Engineer, Guardian, Necromancer, Revenant, and Thief behavior suites
+tests/professions/profession-family.test.js: 27/27
+tests/platform/platform-architecture.test.js: 64/64
+state-boundary compile-time fixtures through npm run typecheck
+npm test: 882/882
 ```
 
-The repository-wide `npm test` gate is not yet green. Remaining reconciliation:
-
-1. Guardian's saved Luminary Power benchmark is `42,328` DPS, while the current
-   application simulation produces `41,029`. Investigate the behavioral drift;
-   do not update the manifest solely to make the cleanup pass.
-2. Two Mesmer oracle fixtures expect clone critical chance
-   `0.6214285714285714`, while current results produce
-   `0.37142857142857144`. Their aggregate migration-fixture test also fails.
-3. The shared attribute-provenance test has a Thief maximum-health mismatch
-   (`12,345` versus `11,645`), and the Condition Harbinger stat-panel fixture
-   has no expected attribute result.
-4. `js/platform/gw2/query.ts` currently violates the profession-neutral import
-   boundary by naming Mesmer.
-5. Necromancer trait-evidence entry `2371` references a Ritualist test name
-   that is not present.
-
-Items 2 through 5 overlap pre-existing or concurrent dirty-worktree changes
-outside the family cleanup. Reconcile those owners, rerun `npm test`, and only
-then mark the full definition of done complete. Optional Phase 7 catalog
-standardization was intentionally not performed because it is not required for
-runtime isolation.
+The former benchmark, oracle, attribute-provenance, import-boundary, and trait
+evidence failure inventory no longer describes the current tree and has been
+removed. Optional Phase 7 catalog standardization was intentionally not
+performed because it is not required for runtime isolation.

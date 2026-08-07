@@ -1,4 +1,5 @@
 import { thiefBaseMaximumHealth } from "../../core/state.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 const SHADOW_FORCE_HEALTH_MULTIPLIER = 0.69;
 
@@ -16,3 +17,8 @@ export function createSpecterState(config = {}) {
     shadowForceUpdatedAt: 0,
   };
 }
+
+export const specterState = defineProfessionSpecializationState(
+  "Specter",
+  createSpecterState,
+);

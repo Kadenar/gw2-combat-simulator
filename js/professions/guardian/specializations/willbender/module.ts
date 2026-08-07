@@ -5,7 +5,7 @@ import {
 import { createGuardianModuleData } from "../../catalog-data.js";
 import { willbenderEventReactions } from "./handlers.js";
 import { WILLBENDER_SKILL_MECHANICS } from "./skills.js";
-import { createWillbenderState } from "./state.js";
+import { willbenderState } from "./state.js";
 import { willbenderUi } from "./ui.js";
 
 export const willbenderModule = defineNativeModule({
@@ -14,8 +14,8 @@ export const willbenderModule = defineNativeModule({
     skillMechanics: WILLBENDER_SKILL_MECHANICS,
   }),
   state: {
-    scheduler: createWillbenderState,
-    resolver: createWillbenderState,
+    scheduler: willbenderState.create,
+    resolver: willbenderState.create,
   },
   mechanics: {
     reactions: willbenderEventReactions.damage.map(onResolvedDamage),

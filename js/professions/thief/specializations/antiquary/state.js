@@ -1,6 +1,7 @@
 import {
   THIEF_ARTIFACT_IDS,
 } from "../../data/ids.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 function artifactSequence(config) {
   const offensive = [...THIEF_ARTIFACT_IDS.OFFENSIVE];
@@ -61,3 +62,8 @@ export function createAntiquaryState(config = {}) {
     canachCoinIndex: 0,
   };
 }
+
+export const antiquaryState = defineProfessionSpecializationState(
+  "Antiquary",
+  createAntiquaryState,
+);

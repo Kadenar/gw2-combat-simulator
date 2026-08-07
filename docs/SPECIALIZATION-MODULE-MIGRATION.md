@@ -679,10 +679,10 @@ Run:
 
 ```powershell
 npm run build
-node --import ./scripts/register-dist-loader.mjs --test --test-isolation=none `
-  tests/<profession>.test.js `
-  tests/profession-family.test.js `
-  tests/platform-architecture.test.js
+node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none `
+  tests/professions/<profession>/<profession>.test.js `
+  tests/professions/profession-family.test.js `
+  tests/platform/platform-architecture.test.js
 npm run check
 npm test
 git diff --check

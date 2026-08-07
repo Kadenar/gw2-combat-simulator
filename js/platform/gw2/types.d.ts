@@ -705,9 +705,61 @@ export type Gw2ResolverReaction = (
   details?: SchedulerRecord,
 ) => SchedulerRecord | void;
 
+export type Gw2ResolverStage =
+  | "blast-combo.resolved"
+  | "buff.applied"
+  | "damage.resolved"
+  | "condition.applied"
+  | "condition-tick.resolved"
+  | "control.resolved"
+  | "blind.resolved"
+  | "peitha.resolved"
+  | "weakness-vulnerability.resolved"
+  | "weapon-set.changed"
+  | "food-proc.created";
+
 export type Gw2ResolverReactions = Readonly<
-  Record<string, Gw2ResolverReaction>
+  Partial<Record<Gw2ResolverStage, Gw2ResolverReaction>>
 >;
+
+export interface Gw2ResolverReactionHook {
+  readonly id: string;
+  readonly order: number;
+  readonly handler: Gw2ResolverReaction;
+}
+
+export type Gw2ResolverReactionContributions = Readonly<
+  Partial<Record<Gw2ResolverStage, readonly Gw2ResolverReactionHook[]>>
+>;
+
+export interface Gw2ResolverReactionRegistry {
+  dispatch(
+    stage: Gw2ResolverStage,
+    context: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+    details?: SchedulerRecord,
+  ): SchedulerRecord | void;
+}
+
+export interface Gw2ResolverExtensions {
+  readonly reactions: Gw2ResolverReactionRegistry;
+  readonly createEquipmentState: (
+    config: Gw2Config,
+  ) => Pick<Gw2ResolverRuntime, "relic" | "sigil" | "food">;
+  readonly strikeMultiplier: (
+    context: Gw2ResolverRuntime,
+    event: Gw2ResolverEvent,
+  ) => number;
+  readonly conditionDurationBonus: (
+    context: Gw2QueryRuntime | null | undefined,
+    at: number,
+  ) => number;
+  readonly beforeResolveTimeline: (
+    context: Gw2ResolverRuntime,
+    events: readonly Gw2ResolverEvent[],
+    rotationEndTime: number,
+  ) => void;
+}
 
 export interface Gw2ResolverResult extends SchedulerRecord {
   readonly duration: number;
@@ -746,9 +798,13 @@ export interface ResolveGw2TimelineOptions {
   readonly query: Readonly<Gw2CombatQuery>;
   readonly helpers: Gw2ResolverHelpers;
   readonly createRuntimeState: (
-    options: CreateGw2ResolverRuntimeStateOptions,
+    options: Omit<
+      CreateGw2ResolverRuntimeStateOptions,
+      "createEquipmentState"
+    >,
   ) => Gw2ResolverRuntime;
   readonly commonHandlers: Gw2ResolverEventHandlers;
+  readonly beforeResolveTimeline: Gw2ResolverExtensions["beforeResolveTimeline"];
   readonly professionHandlers?: Gw2ResolverEventHandlers;
   readonly professionState?: object;
   readonly eventFilterState?: object;
@@ -768,6 +824,7 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly professionState?: object;
   readonly warnings?: string[];
   readonly eventFilterState?: object;
+  readonly createEquipmentState: Gw2ResolverExtensions["createEquipmentState"];
 }
 
 export interface Gw2ProfessionContract

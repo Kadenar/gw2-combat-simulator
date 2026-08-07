@@ -1,6 +1,6 @@
+import { vindicatorState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
@@ -106,7 +106,7 @@ function observeVindicatorEvent(
     return;
   }
   if (event.type !== "sigil_swap") return;
-  const state = professionSpecializationState(context, "Vindicator");
+  const state = vindicatorState.from(context);
   const coreState = professionCoreState(context);
   if (coreState.activeLegendId === LEGEND.ALLIANCE) {
     state.allianceSide =
@@ -188,7 +188,7 @@ function vindicatorCastAvailability(
   context: RevenantPrecastContext,
   skill: RevenantSkill,
 ) {
-  const state = professionSpecializationState(context, "Vindicator");
+  const state = vindicatorState.from(context);
   const wrongSide =
     professionCoreState(context).activeLegendId === LEGEND.ALLIANCE &&
     (

@@ -26,12 +26,10 @@ Core mechanics live under `core/`; specialization mechanics are colocated with
 their owner: Reaper shroud combos, Scourge shades, Harbinger Blight and Dark
 Barrage, and Ritualist spirits, weapon spells, and resolver events. The former
 `mechanics/specific/` ownership bucket and its profession-wide handler
-aggregator have been removed. Top-level `handlers.ts` and `resolver.ts` are
-application-catalog facades only; active simulation runtimes compose the local
-Core and selected-specialization registries directly.
-The stable top-level `state.ts` and `ui.ts` files are compatibility facades:
-state preserves the legacy flat factory and public result projection, while UI
-dispatches application callbacks to Core plus the selected module.
+aggregator have been removed. Active simulation runtimes compose the local Core
+and selected-specialization registries directly. The platform family composer
+dispatches application UI to Core plus the selected module; there are no
+top-level handler, resolver, state, or UI compatibility facades.
 
 Core runtime catalogs include all ordinary Necromancer mechanics and all
 weapon skills, including elite weapons available through Weaponmaster

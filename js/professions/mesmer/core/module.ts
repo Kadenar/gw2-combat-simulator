@@ -1,4 +1,8 @@
-import { defineNativeModule } from "../../../platform/gw2/native-profession.js";
+import {
+  defineNativeModule,
+  onResolvedBlind,
+  onResolvedControl,
+} from "../../../platform/gw2/native-profession.js";
 import { createMesmerModuleData } from "../catalog-data.js";
 import { mesmerCoreAttributeRules } from "./attribute-rules.js";
 import {
@@ -45,9 +49,18 @@ export const mesmerCoreModule = defineNativeModule({
       snapshot: (context: MesmerSchedulerContext) =>
         snapshotMesmerState(context.state.profession),
     },
+    reactions: [
+      onResolvedControl({
+        id: "mesmer.core.control",
+        handler: mesmerCoreEventReactions.control,
+      }),
+      onResolvedBlind({
+        id: "mesmer.core.blind",
+        handler: mesmerCoreEventReactions.blind,
+      }),
+    ],
     resolverHooks: {
       eventHandlers: mesmerCoreEventHandlers,
-      eventReactions: mesmerCoreEventReactions,
     },
   },
   presentation: mesmerCoreUi,

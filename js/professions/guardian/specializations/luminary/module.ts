@@ -14,7 +14,7 @@ import {
   luminarySchedulerHooks,
 } from "./rules.js";
 import { LUMINARY_SKILL_MECHANICS } from "./skills.js";
-import { createLuminaryState } from "./state.js";
+import { luminaryState } from "./state.js";
 import { luminaryUi } from "./ui.js";
 
 export const luminaryModule = defineNativeModule({
@@ -24,8 +24,8 @@ export const luminaryModule = defineNativeModule({
     handlers: luminarySkillHandlers,
   }),
   state: {
-    scheduler: createLuminaryState,
-    resolver: createLuminaryState,
+    scheduler: luminaryState.create,
+    resolver: luminaryState.create,
   },
   mechanics: {
     modifiers: luminaryAttributeRules,

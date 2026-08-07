@@ -10,7 +10,7 @@ import {
 } from "./handlers.js";
 import { holosmithAttributeRules, holosmithCastRules } from "./rules.js";
 import { HOLOSMITH_SKILL_MECHANICS } from "./skills.js";
-import { createHolosmithState } from "./state.js";
+import { holosmithState } from "./state.js";
 import { bindHolosmithUi } from "./ui.js";
 
 const {
@@ -24,7 +24,7 @@ export const holosmithModule = defineNativeModule({
     skillMechanics: HOLOSMITH_SKILL_MECHANICS,
     handlers: holosmithSkillHandlers,
   }),
-  state: { scheduler: createHolosmithState, resolver: createHolosmithState },
+  state: { scheduler: holosmithState.create, resolver: holosmithState.create },
   mechanics: {
     modifiers: holosmithAttributeRules,
     castRules: holosmithCastRules,

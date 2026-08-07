@@ -194,7 +194,7 @@ const EVIDENCE_BY_TRAIT: Readonly<Record<string, string>> = Object.freeze({
 
 function implementedEvidence(trait: CatalogEntity) {
   return {
-    file: "tests/necromancer.test.js",
+    file: "tests/professions/necromancer/necromancer.test.js",
     name:
       EVIDENCE_BY_TRAIT[trait.name] ||
       EVIDENCE_BY_SPECIALIZATION[String(trait.specialization || "")],

@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { antiquaryState } from "./state.js";
 import { THIEF_SKILL_IDS as ID } from "../../data/ids.js";
 
 function deny(skill, code, cause, retryAt = null) {
@@ -11,7 +11,7 @@ function deny(skill, code, cause, retryAt = null) {
 }
 
 export function antiquaryCastAvailability(context, skill) {
-  const state = professionSpecializationState(context, "Antiquary");
+  const state = antiquaryState.from(context);
   if (skill.artifactKind) {
     if (
       state.artifactUsesRemaining <= 0

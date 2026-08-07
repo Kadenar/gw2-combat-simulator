@@ -11,6 +11,7 @@ import type {
 } from "../engine/types.js";
 import { createGw2ConditionResolution } from "./resolver/condition-resolution.js";
 import { createGw2ResolverEventHandlers } from "./resolver/event-handlers.js";
+import { createGw2ResolverExtensions } from "./resolver/extensions.js";
 import { createGw2HitResolution } from "./resolver/hit-resolution.js";
 import { resolveGw2Timeline } from "./resolver/resolve-timeline.js";
 import { createGw2ResolverRuntimeState } from "./resolver/runtime-state.js";
@@ -128,21 +129,23 @@ function simulateDeclarativeGw2Pass({
           | undefined,
     }),
   }).run(rotation);
+  const extensions = createGw2ResolverExtensions({
+    config,
+    events: scheduled.stream.events,
+    professionReactions: runtimeProfession.eventReactions,
+  });
   const query = createGw2CombatQuery({
     profession: engineProfession,
     config,
     events: scheduled.stream.events,
     traits,
+    conditionDurationBonus: extensions.conditionDurationBonus,
   });
-  const hitResolution = createGw2HitResolution();
+  const hitResolution = createGw2HitResolution({
+    strikeMultiplier: extensions.strikeMultiplier,
+  });
   const conditionResolution = createGw2ConditionResolution({
-    onConditionApplied(ctx, application) {
-      // Application reactions run after state insertion, allowing traits to
-      // query the newly applied stack count.
-      runtimeProfession.eventReactions.condition?.(ctx, application, {
-        application,
-      });
-    },
+    reactions: extensions.reactions,
   });
   const commonHandlers = createGw2ResolverEventHandlers({
     hitResolution: {
@@ -154,7 +157,7 @@ function simulateDeclarativeGw2Pass({
       apply: conditionResolution.applyCondition,
       tick: conditionResolution.handleConditionTick,
     },
-    eventReactions: runtimeProfession.eventReactions,
+    reactions: extensions.reactions,
   });
   const resolved = resolveGw2Timeline({
     stream: scheduled.stream,
@@ -171,9 +174,13 @@ function simulateDeclarativeGw2Pass({
         }),
     },
     createRuntimeState(options) {
-      return createGw2ResolverRuntimeState(options);
+      return createGw2ResolverRuntimeState({
+        ...options,
+        createEquipmentState: extensions.createEquipmentState,
+      });
     },
     commonHandlers,
+    beforeResolveTimeline: extensions.beforeResolveTimeline,
     professionHandlers: runtimeProfession.eventHandlers,
     professionState:
       // Resolver state is always time-zero state. Scheduler changes that matter

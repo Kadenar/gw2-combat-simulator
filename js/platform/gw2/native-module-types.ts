@@ -15,6 +15,7 @@ import type {
   Gw2ModifierRule,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
+  Gw2ResolverStage,
 } from "./types.js";
 
 export interface NativeAutoattackChains {
@@ -82,7 +83,7 @@ export interface NativeResolvedReaction<
   TDetails extends object,
 > {
   readonly phase: "resolver";
-  readonly eventType: string;
+  readonly stage: Gw2ResolverStage;
   readonly id: string;
   readonly order: number;
   readonly handler: (
@@ -94,7 +95,7 @@ export interface NativeResolvedReaction<
 
 export interface NativeResolverMechanic {
   readonly phase: "resolver";
-  readonly eventType: string;
+  readonly stage: Gw2ResolverStage;
   readonly id: string;
   readonly order: number;
   readonly handler: (...args: never[]) => object | void;

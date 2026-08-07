@@ -1,4 +1,8 @@
-import { defineNativeModule } from "../../../platform/gw2/native-profession.js";
+import {
+  defineNativeModule,
+  onBuffApplied,
+  onResolvedDamage,
+} from "../../../platform/gw2/native-profession.js";
 import { createGuardianModuleData } from "../catalog-data.js";
 import {
   guardianCoreEventHandlers,
@@ -42,9 +46,12 @@ export const guardianCoreModule = defineNativeModule({
       snapshot: (context: GuardianSchedulerContext) =>
         snapshotGuardianState(context.state.profession),
     },
+    reactions: [
+      ...guardianCoreEventReactions.damage.map(onResolvedDamage),
+      ...guardianCoreEventReactions.buff.map(onBuffApplied),
+    ],
     resolverHooks: {
       eventHandlers: guardianCoreEventHandlers,
-      eventReactions: guardianCoreEventReactions,
     },
   },
   presentation: bindGuardianCoreUi,

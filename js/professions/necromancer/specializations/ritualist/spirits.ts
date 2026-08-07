@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { ritualistState } from "./state.js";
 /**
  * Ritualist spirits, spirit actives, and innervations.
  *
@@ -143,7 +143,7 @@ function queueSpiritAutoattacks(
   at: number,
 ): void {
   if (!(spirit.attackCoefficient > 0)) return;
-  const state = professionSpecializationState(context, "Ritualist");
+  const state = ritualistState.from(context);
   const generation = Number(state.spiritGenerations[spirit.key] || 0);
   const horizon = at + Math.max(180, Number(context.config.duration || 0));
   for (
@@ -334,7 +334,7 @@ function summonSpirit(
   spirit: SpiritDefinition,
   at: number,
 ): void {
-  const state = professionSpecializationState(context, "Ritualist");
+  const state = ritualistState.from(context);
   state.activeSpirits[spirit.key] = true;
   state.spiritGenerations[spirit.key] =
     Number(state.spiritGenerations[spirit.key] || 0) + 1;
@@ -365,7 +365,7 @@ function summonSpirits(
   skill: NecromancerSkill,
   at: number,
 ): void {
-  const state = professionSpecializationState(context, "Ritualist");
+  const state = ritualistState.from(context);
   for (const spirit of Object.values(SPIRITS)) {
     if (
       !state.activeSpirits[spirit.key]
@@ -414,7 +414,7 @@ function ritualist(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const state = professionSpecializationState(context, "Ritualist");
+  const state = ritualistState.from(context);
   const at = context.effectiveEnd;
   if (skill.id === ID.ESSENCE_BLAST) {
     const spirits = Object.keys(state.activeSpirits).length;

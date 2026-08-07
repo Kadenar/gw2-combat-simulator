@@ -14,8 +14,9 @@ handlers, formulas, rules, and UI additions.
 
 Simulation composes Core with only the selected elite module. Inactive elite
 skills, traits, handlers, tasks, event reactions, UI resources, and state are
-absent from that runtime. The root catalog, handler, resolver, state, and UI
-files remain application-facing compatibility facades.
+absent from that runtime. The root catalog and build/family definitions remain
+application boundaries; executable handlers, resolver behavior, state, and UI
+are owned by Core or one specialization module.
 
 ## Implemented systems
 
@@ -37,7 +38,7 @@ files remain application-facing compatibility facades.
 
 Refresh API identity data with
 `npm run update:profession-data -- --profession Revenant`, which runs
-`scripts/update-profession-api-data.mjs`. Runtime simulation is network-free.
+`scripts/data/update-profession-api-data.mjs`. Runtime simulation is network-free.
 Energy, upkeep, and other non-API mechanics are manually reviewed and checked
 into the mechanics modules; the repository does not currently track
 per-record Wiki revision metadata.

@@ -1,4 +1,5 @@
 import type { RitualistState } from "../../types.js";
+import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
 export function createRitualistState(): RitualistState {
   return {
@@ -14,3 +15,8 @@ export function createRitualistState(): RitualistState {
     painfulBondPulseAnchorAt: Number.NaN,
   };
 }
+
+export const ritualistState = defineProfessionSpecializationState(
+  "Ritualist",
+  createRitualistState,
+);

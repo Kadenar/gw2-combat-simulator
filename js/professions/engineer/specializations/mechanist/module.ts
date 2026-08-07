@@ -11,7 +11,7 @@ import {
 } from "./handlers.js";
 import { mechanistAttributeRules, mechanistCastRules } from "./rules.js";
 import { MECHANIST_SKILL_MECHANICS } from "./skills.js";
-import { createMechanistState } from "./state.js";
+import { mechanistState } from "./state.js";
 import { mechanistUi } from "./ui.js";
 
 const {
@@ -25,7 +25,7 @@ export const mechanistModule = defineNativeModule({
     skillMechanics: MECHANIST_SKILL_MECHANICS,
     handlers: mechanistSkillHandlers,
   }),
-  state: { scheduler: createMechanistState, resolver: createMechanistState },
+  state: { scheduler: mechanistState.create, resolver: mechanistState.create },
   mechanics: {
     modifiers: mechanistAttributeRules,
     castRules: mechanistCastRules,

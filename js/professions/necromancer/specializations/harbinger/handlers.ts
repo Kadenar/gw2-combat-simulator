@@ -1,6 +1,6 @@
+import { harbingerState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 import {
   NECROMANCER_SKILL_IDS as ID,
@@ -54,7 +54,7 @@ function afterCast(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): void {
-  const state = professionSpecializationState(context, "Harbinger");
+  const state = harbingerState.from(context);
   const at = context.effectiveEnd;
   advanceHarbingerBlight(context, at);
   if (
@@ -74,22 +74,10 @@ function afterCast(
       emitBuff(context, skill, "implacable-foe", 2);
     }
   }
-  if (skill.id !== ID.DARK_BARRAGE || !hasTrait(context, TRAIT.DEATHLY_HASTE)) {
-    return;
-  }
-  for (const kind of ["quickness", "fury"]) {
-    context.emit({
-      type: "buff",
-      at,
-      source: "Trait",
-      sourceId: TRAIT.DEATHLY_HASTE,
-      actorType: "player",
-      skillId: skill.id,
-      skillName: skill.name,
-      kind,
-      duration: 4,
-      stacks: 1,
-    });
+  if (skill.id === ID.DARK_BARRAGE && hasTrait(context, TRAIT.DEATHLY_HASTE)) {
+    const deathlyHaste = { source: "Trait", sourceId: TRAIT.DEATHLY_HASTE };
+    emitBuff(context, skill, "quickness", 4, 1, { at, metadata: deathlyHaste });
+    emitBuff(context, skill, "fury", 4, 1, { at, metadata: deathlyHaste });
   }
 }
 

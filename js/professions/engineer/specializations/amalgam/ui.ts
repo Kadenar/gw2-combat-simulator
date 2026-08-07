@@ -15,6 +15,7 @@ import type {
   SkillId,
 } from "../../../../platform/engine/types.js";
 import type {
+  EngineerResolverEvent,
   EngineerSkill,
   EngineerUiContext,
   EngineerUiSelection,
@@ -142,6 +143,11 @@ function updateAmalgamSkillBarSelection(
 
 export const amalgamUi:
 Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  eventLogRow: (
+    _context: EngineerUiContext,
+    event: EngineerResolverEvent,
+  ) =>
+    event?.type === "engineer.state" ? null : undefined,
   assumptionControls: AMALGAM_ASSUMPTION_CONTROLS,
   skillBarGroups: amalgamSkillBarGroups,
   updateSkillBarSelection: updateAmalgamSkillBarSelection,

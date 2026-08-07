@@ -8,6 +8,7 @@ import { createGw2CombatQuery, selectedGw2TraitValues } from "../query.js";
 import {
   handleWeaknessVulnerabilityRelic,
   materializeBoonRelics,
+  relicConditionDurationBonus,
 } from "../relic-rules.js";
 import type {
   Gw2Config,
@@ -157,6 +158,7 @@ export function createGw2TriggerMaterializer(
         config,
         events: context.events,
         traits: state.traits,
+        conditionDurationBonus: relicConditionDurationBonus,
       });
     },
     onEventScheduled(context, event) {

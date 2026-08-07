@@ -356,7 +356,7 @@ build calculation and which weapon set supplied those attributes.
 
 `tsconfig.build.json` and `jsconfig.typed.json` include `js/**/*.ts` instead of
 enumerating profession files. New TypeScript module files are built and checked
-automatically. `scripts/check-dist.mjs` verifies that every non-declaration
+automatically. `scripts/build/check-dist.mjs` verifies that every non-declaration
 TypeScript source has one compiled output, that no generated JavaScript sits
 beside a TypeScript source, and that `dist` has no stale output.
 

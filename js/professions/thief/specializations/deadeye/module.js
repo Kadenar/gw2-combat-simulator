@@ -7,7 +7,7 @@ import {
   deadeyeAttributeRules,
   deadeyeCastRules,
 } from "./rules.js";
-import { createDeadeyeState } from "./state.js";
+import { deadeyeState } from "./state.js";
 import { deadeyeUi } from "./ui.js";
 import { DEADEYE_SKILL_MECHANICS } from "./skills.js";
 import { deadeyeSkillHandlers } from "./handlers.js";
@@ -18,7 +18,7 @@ export const deadeyeModule = defineNativeModule({
     skillMechanics: DEADEYE_SKILL_MECHANICS,
     handlers: deadeyeSkillHandlers,
   }),
-  state: { scheduler: createDeadeyeState, resolver: createDeadeyeState },
+  state: { scheduler: deadeyeState.create, resolver: deadeyeState.create },
   mechanics: {
     modifiers: deadeyeAttributeRules,
     castRules: deadeyeCastRules,

@@ -1,4 +1,8 @@
-import { defineNativeModule } from "../../../platform/gw2/native-profession.js";
+import {
+  defineNativeModule,
+  onConditionApplied,
+  onResolvedDamage,
+} from "../../../platform/gw2/native-profession.js";
 import { createThiefModuleData } from "../catalog-data.js";
 import {
   thiefCoreResolverEventHandlers,
@@ -33,9 +37,18 @@ export const thiefCoreModule = defineNativeModule({
     modifiers: thiefCoreAttributeRules,
     castRules: thiefCoreCastRules,
     schedulerHooks: thiefCoreSchedulerHooks,
+    reactions: [
+      onResolvedDamage({
+        id: "thief.core.damage",
+        handler: thiefCoreResolverEventReactions.damage,
+      }),
+      onConditionApplied({
+        id: "thief.core.condition",
+        handler: thiefCoreResolverEventReactions.condition,
+      }),
+    ],
     resolverHooks: {
       eventHandlers: thiefCoreResolverEventHandlers,
-      eventReactions: thiefCoreResolverEventReactions,
     },
   },
   presentation: thiefCoreUi,

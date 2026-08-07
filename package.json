@@ -4,19 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "clean": "node scripts/clean-dist.mjs",
+    "clean": "node scripts/build/clean-dist.mjs",
     "build": "npm run clean && tsc -p tsconfig.build.json",
     "prestart": "npm run build",
     "start": "node server.mjs",
     "pretest": "npm run build",
-    "test": "node --import ./scripts/register-dist-loader.mjs --test --test-isolation=none",
+    "test": "node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none",
     "typecheck": "tsc -p jsconfig.typed.json",
-    "check": "npm run build && npm run typecheck && node scripts/check-js.mjs && node scripts/check-dist.mjs",
-    "update:profession-data": "node scripts/update-profession-api-data.mjs",
-    "update:mesmer-data": "node scripts/update-mesmer-api-data.mjs",
-    "update:guardian-data": "node scripts/update-guardian-api-data.mjs",
-    "update:necromancer-data": "node scripts/update-necromancer-api-data.mjs",
-    "generate:revenant-ids": "node scripts/generate-revenant-ids.mjs"
+    "check": "npm run build && npm run typecheck && node scripts/build/check-js.mjs && node scripts/build/check-dist.mjs",
+    "update:profession-data": "node scripts/data/update-profession-api-data.mjs",
+    "update:mesmer-data": "node scripts/data/update-mesmer-api-data.mjs",
+    "update:guardian-data": "node scripts/data/update-guardian-api-data.mjs",
+    "update:necromancer-data": "node scripts/data/update-necromancer-api-data.mjs",
+    "generate:revenant-ids": "node scripts/data/generate-revenant-ids.mjs"
   },
   "engines": {
     "node": ">=20"

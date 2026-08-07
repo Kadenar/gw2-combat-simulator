@@ -1,4 +1,8 @@
-import { defineNativeModule } from "../../../platform/gw2/native-profession.js";
+import {
+  defineNativeModule,
+  onConditionApplied,
+  onResolvedDamage,
+} from "../../../platform/gw2/native-profession.js";
 import { createEngineerModuleData } from "../catalog-data.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import {
@@ -44,9 +48,18 @@ export const engineerCoreModule = defineNativeModule({
       snapshot: (context: EngineerSchedulerContext) =>
         snapshotEngineerState(context.state.profession),
     },
+    reactions: [
+      onResolvedDamage({
+        id: "engineer.core.damage",
+        handler: engineerCoreEventReactions.damage,
+      }),
+      onConditionApplied({
+        id: "engineer.core.condition",
+        handler: engineerCoreEventReactions.condition,
+      }),
+    ],
     resolverHooks: {
       eventHandlers: engineerCoreEventHandlers,
-      eventReactions: engineerCoreEventReactions,
     },
   },
   presentation: bindEngineerCoreUi,

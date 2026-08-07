@@ -2,17 +2,16 @@ import { defineNativeModule } from "../../../../platform/gw2/native-profession.j
 import { createRevenantModuleData } from "../../catalog-data.js";
 import {
   heraldEventHandlers,
-  heraldEventReactions,
+  heraldSkillHandlers,
 } from "./handlers.js";
 import {
   heraldAttributeRules,
   heraldCastRules,
   heraldSchedulerHooks,
 } from "./rules.js";
-import { createHeraldState } from "./state.js";
+import { heraldState } from "./state.js";
 import { heraldUi } from "./ui.js";
 import { HERALD_BASE_SKILL_MECHANICS } from "./skills.js";
-import { heraldSkillHandlers } from "./handlers.js";
 
 export const heraldModule = defineNativeModule({
   id: "Herald",
@@ -20,14 +19,13 @@ export const heraldModule = defineNativeModule({
     skillMechanics: HERALD_BASE_SKILL_MECHANICS,
     handlers: heraldSkillHandlers,
   }),
-  state: { scheduler: createHeraldState, resolver: createHeraldState },
+  state: { scheduler: heraldState.create, resolver: heraldState.create },
   mechanics: {
     modifiers: heraldAttributeRules,
     castRules: heraldCastRules,
     schedulerHooks: heraldSchedulerHooks,
     resolverHooks: {
       eventHandlers: heraldEventHandlers,
-      eventReactions: heraldEventReactions,
     },
   },
   presentation: heraldUi,

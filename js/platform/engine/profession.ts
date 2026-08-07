@@ -1051,7 +1051,7 @@ export function professionCoreState<TContext>(
  * Returns the active specialization state after validating its discriminant.
  * Module mechanics use this accessor instead of a flat family-state view.
  */
-export function professionSpecializationState<
+function specializationStateForKind<
   TContext,
   TRuntimeState = ProfessionRuntimeFromContext<TContext>,
   TKind extends RuntimeSpecializationKind<TRuntimeState> =
@@ -1084,6 +1084,44 @@ export function professionSpecializationState<
   return active.state as RuntimeSpecializationState<TRuntimeState, TKind>;
 }
 
+export interface ProfessionSpecializationStateDefinition<
+  TKind extends string,
+  TState extends object,
+  TArguments extends readonly unknown[],
+> {
+  readonly kind: TKind;
+  readonly create: (...args: TArguments) => TState;
+  readonly from: <TContext>(context: TContext) => TState;
+}
+
+/**
+ * Defines the state owned by one specialization and returns its only accessor.
+ * Keeping the factory and accessor together makes the returned fragment type
+ * owner-local instead of deriving it from the profession-wide runtime union.
+ */
+export function defineProfessionSpecializationState<
+  const TKind extends string,
+  TArguments extends readonly unknown[],
+  TState extends object,
+>(
+  kind: TKind,
+  create: ((...args: TArguments) => TState) &
+    (TState extends readonly unknown[] ? never : unknown),
+): ProfessionSpecializationStateDefinition<TKind, TState, TArguments> {
+  return Object.freeze({
+    kind,
+    create,
+    from<TContext>(context: TContext): TState {
+      return specializationStateForKind(
+        context,
+        kind as unknown as RuntimeSpecializationKind<
+          ProfessionRuntimeFromContext<TContext>
+        >,
+      ) as TState;
+    },
+  });
+}
+
 export function cloneProfessionState(value: unknown): unknown {
   return structuredClone(value);
 }
@@ -1110,7 +1148,7 @@ function composeModuleUi(
   const slices = modules
     .map((entry) => entry.module.ui)
     .filter((slice) => slice != null) as UiSlice[];
-  // Later modules override earlier ones for first-match callbacks.
+  // Only callbacks whose policy gives the active elite precedence use this.
   const reversed = slices.slice().reverse();
   const owns = (name: string): boolean =>
     slices.some((slice) => typeof slice[name] === "function");
@@ -1136,7 +1174,7 @@ function composeModuleUi(
   if (owns("eventLogRow")) {
     ui.eventLogRow = (...args: unknown[]) =>
       firstUiMatch(
-        reversed,
+        slices,
         "eventLogRow",
         args,
         (result) => result !== undefined,
@@ -1214,7 +1252,13 @@ function uiSpecialization(context: unknown): string {
   if (!context || typeof context !== "object") return "Core";
   const candidate = context as SchedulerRecord;
   const config = candidate.config as SchedulerRecord | undefined;
-  return String(candidate.specialization || config?.specialization || "Core")
+  const build = candidate.build as SchedulerRecord | undefined;
+  return String(
+    candidate.specialization
+      || config?.specialization
+      || build?.specialization
+      || "Core",
+  )
     .trim() || "Core";
 }
 
@@ -1222,7 +1266,10 @@ function explicitUiSpecialization(context: unknown): string | null {
   if (!context || typeof context !== "object") return null;
   const candidate = context as SchedulerRecord;
   const config = candidate.config as SchedulerRecord | undefined;
-  const value = candidate.specialization ?? config?.specialization;
+  const build = candidate.build as SchedulerRecord | undefined;
+  const value = candidate.specialization
+    ?? config?.specialization
+    ?? build?.specialization;
   if (value == null || !String(value).trim()) return null;
   return String(value).trim();
 }
@@ -1336,7 +1383,13 @@ export function createProfessionFamilyUi(
     context: unknown,
     skill?: Skill,
   ): { readonly context: SchedulerRecord; readonly slices: UiSlice[] } => {
-    if (explicitUiSpecialization(context)) return active(context);
+    if (explicitUiSpecialization(context)) {
+      const selected = active(context);
+      return {
+        context: selected.context,
+        slices: [...selected.slices, family],
+      };
+    }
     const skillSpecialization = String(skill?.specialization || "").trim();
     const specialization = definition.specializations[skillSpecialization];
     if (specialization && eliteNames.has(skillSpecialization)) {
@@ -1387,14 +1440,16 @@ export function createProfessionFamilyUi(
   ui.eventLogRow = (
     context: SchedulerRecord,
     event: Parameters<NonNullable<ProfessionUiContract["eventLogRow"]>>[1],
-  ) =>
-    firstUiMatch(
-      [...allSlices.slice().reverse(), family],
+  ) => {
+    const selected = active(context);
+    return firstUiMatch(
+      [...selected.slices, family],
       "eventLogRow",
-      [context, event],
+      [selected.context, event],
       (result) => result !== undefined,
       undefined,
     );
+  };
   ui.isPaletteSkillInstant = (context: SchedulerRecord, skill: Skill) => {
     const selected = scalarSlices(context, skill);
     return someUiSlice(

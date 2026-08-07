@@ -1,6 +1,6 @@
+import { mirageState } from "./state.js";
 import {
   professionCoreState,
-  professionSpecializationState,
 } from "../../../../platform/engine/profession.js";
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import {
@@ -178,11 +178,11 @@ export function createMirageActionController({
     duration = 1.5,
   ) => {
     if (config.specialization !== "Mirage") return;
-    professionSpecializationState(state, "Mirage").ambushUntil = Math.max(
-      professionSpecializationState(state, "Mirage").ambushUntil,
+    mirageState.from(state).ambushUntil = Math.max(
+      mirageState.from(state).ambushUntil,
       at + duration,
     );
-    professionSpecializationState(state, "Mirage").ambushSource = source;
+    mirageState.from(state).ambushSource = source;
     addEvent({
       type: "marker",
       at,
@@ -235,7 +235,7 @@ export function createMirageActionController({
     }
     reduceDuneCloakShatters(at, source);
     if (grantCloneCloak && traits.has(TRAIT.INFINITE_HORIZON)) {
-      professionSpecializationState(state, "Mirage").cloneAmbushUntil = at + duration;
+      mirageState.from(state).cloneAmbushUntil = at + duration;
       executeCloneAmbushes(at, professionCoreState(state).clones);
     }
   };
@@ -259,7 +259,7 @@ export function createMirageActionController({
       addCondition(ambush.name, at, condition);
     }
     if (
-      professionSpecializationState(state, "Mirage").riddleOfSandReady &&
+      mirageState.from(state).riddleOfSandReady &&
       traits.has(TRAIT.RIDDLE_OF_SAND)
     ) {
       addCondition(
@@ -270,7 +270,7 @@ export function createMirageActionController({
         `${ambush.name} — Riddle of Sand`,
       );
       addTraitProc("Riddle of Sand", at, ambush.name, "2 confusion");
-      professionSpecializationState(state, "Mirage").riddleOfSandReady = false;
+      mirageState.from(state).riddleOfSandReady = false;
     }
     for (const boon of ambush.playerBoons || []) {
       addBoon(at, boon, ambush.name);
@@ -286,8 +286,8 @@ export function createMirageActionController({
         sourceSkillId: skill.id,
       });
     }
-    professionSpecializationState(state, "Mirage").ambushUntil = 0;
-    professionSpecializationState(state, "Mirage").ambushSource = "";
+    mirageState.from(state).ambushUntil = 0;
+    mirageState.from(state).ambushSource = "";
   };
 
   const handleMirageShatter = (
@@ -297,7 +297,7 @@ export function createMirageActionController({
   ) => {
     if (config.specialization !== "Mirage") return;
     if (traits.has(TRAIT.RIDDLE_OF_SAND)) {
-      professionSpecializationState(state, "Mirage").riddleOfSandReady = true;
+      mirageState.from(state).riddleOfSandReady = true;
       addTraitProc("Riddle of Sand", at, skill.name, "ambush primed");
     }
     if (traits.has(TRAIT.NOMADS_ENDURANCE)) {

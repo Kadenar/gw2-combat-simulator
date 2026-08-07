@@ -1,4 +1,4 @@
-import { professionSpecializationState } from "../../../../platform/engine/profession.js";
+import { antiquaryState } from "./state.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
@@ -132,7 +132,7 @@ export const antiquaryAttributeRules = Object.freeze({
 });
 
 function modifyAntiquaryRechargeDuration(context, duration) {
-  const state = professionSpecializationState(context, "Antiquary");
+  const state = antiquaryState.from(context);
   const expirations = (
     state.holoUtilityCooldownReductionExpirations || []
   ).filter(expiresAt => Number(expiresAt) > context.start);

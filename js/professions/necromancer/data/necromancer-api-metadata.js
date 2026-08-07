@@ -1,5 +1,5 @@
 // Generated Guild Wars 2 API metadata for necromancer.
-// Snapshot: 2026-07-25. Run scripts/update-profession-api-data.mjs --profession Necromancer to refresh.
+// Snapshot: 2026-07-25. Run scripts/data/update-profession-api-data.mjs --profession Necromancer to refresh.
 // Simulator mechanics are maintained under necromancer/mechanics/.
 
 export const DATA_SNAPSHOT = "2026-07-25";
