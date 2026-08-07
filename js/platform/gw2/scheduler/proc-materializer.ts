@@ -5,6 +5,10 @@ import type {
   SimulationEvent,
 } from "../../engine/types.js";
 import { createGw2CombatQuery, selectedGw2TraitValues } from "../query.js";
+import {
+  handleWeaknessVulnerabilityRelic,
+  materializeBoonRelics,
+} from "../relic-rules.js";
 import type {
   Gw2Config,
   Gw2TriggerMaterializer,
@@ -29,8 +33,10 @@ interface CreateGw2TriggerMaterializerOptions {
 
 type MaterializerCapability =
   | "combatTracking"
+  | "buffFacts"
   | "criticalFacts"
   | "procSigils"
+  | "relicTriggers"
   | "swapSigils";
 
 // This is the single source of truth for which canonical event types the
@@ -43,9 +49,10 @@ const EVENT_REQUIRED_CAPABILITY: Readonly<
   condition: "combatTracking",
   control: "combatTracking",
   blind: "combatTracking",
-  buff: "criticalFacts",
+  buff: "buffFacts",
   weapon_set: "procSigils",
   sigil_swap: "swapSigils",
+  weakness_vulnerability: "relicTriggers",
 });
 
 export const GW2_MATERIALIZE_EVENT_TASK = "platform.gw2.materialize-event";
@@ -75,8 +82,13 @@ export function createGw2TriggerMaterializer(
     Record<MaterializerCapability, () => boolean>
   > = Object.freeze({
     combatTracking: () => true,
+    buffFacts: () =>
+      state.criticalFactsRequired ||
+      typeof state.relic.rules.materializeBoon === "function",
     criticalFacts: () => state.criticalFactsRequired,
     procSigils: () => sigilSupport.anyProc,
+    relicTriggers: () =>
+      typeof state.relic.rules.weaknessVulnerability === "function",
     swapSigils: () => sigilSupport.swap,
   });
 
@@ -87,6 +99,9 @@ export function createGw2TriggerMaterializer(
     observer.observe(context, event);
 
     switch (event.type) {
+      case "buff":
+        materializeBoonRelics(context, state.relic, event);
+        break;
       case "damage": {
         if (!state.combatActive) break;
         const criticalCause = resolveCriticalTrigger(context, event, state);
@@ -99,6 +114,22 @@ export function createGw2TriggerMaterializer(
       case "control":
         if (state.combatActive) {
           sigils.materialize("control", context, event);
+        }
+        break;
+      case "weakness_vulnerability":
+        if (
+          !context.hasExplicitCombatStart ||
+          context.combatStartTime != null
+        ) {
+          handleWeaknessVulnerabilityRelic(
+            {
+              relic: state.relic,
+              combatStartTime: context.hasExplicitCombatStart
+                ? context.combatStartTime
+                : null,
+            },
+            event,
+          );
         }
         break;
       case "weapon_set":

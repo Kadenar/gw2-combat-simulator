@@ -83,13 +83,17 @@ export function createMirageActionController({
     at: number,
     boon: MesmerAttackStatus,
     sourceSkill: string,
+    actorType: "player" | "summon" = "player",
   ) => {
     addEvent({
       type: "buff",
       at,
+      source: actorType === "summon" ? "Clone" : "Player",
+      actorType,
       kind: String(boon.name || "").toLowerCase(),
       stacks: Number(boon.stacks || 1),
       duration: Number(boon.duration || 0),
+      skillName: sourceSkill,
       sourceSkill,
     });
   };
@@ -163,7 +167,7 @@ export function createMirageActionController({
         );
       }
       for (const boon of ambush.cloneBoons || []) {
-        addBoon(impactAt, boon, `${ambush.name} — Clone`);
+        addBoon(impactAt, boon, `${ambush.name} — Clone`, "summon");
       }
     }
   };

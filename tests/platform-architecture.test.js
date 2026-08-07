@@ -48,6 +48,18 @@ import {
   createGw2ResolverRuntimeState,
 } from "../js/platform/gw2/resolver/runtime-state.js";
 import {
+  createRelicRuntime,
+  createRelicTimelineRuntime,
+  handleWeaknessVulnerabilityRelic,
+  materializeBoonRelics,
+  relicConditionDurationBonus,
+} from "../js/platform/gw2/relic-rules.js";
+import { sigilCriticalContribution } from "../js/platform/gw2/sigil-rules.js";
+import {
+  FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
+  PRECISION_PER_CRITICAL_CHANCE_FRACTION,
+} from "../js/platform/gw2/stat-scaling.js";
+import {
   GW2_SKILL_FLAGS,
 } from "../scripts/lib/gw2-profession-snapshot.mjs";
 import {
@@ -1562,11 +1574,77 @@ test("resolver runtime creates state only for the selected relic", () => {
   assert.equal(thief.relic.name, "Thief");
   assert.deepEqual(thief.relic.state, { stacks: 0, expiresAt: 0 });
   assert.deepEqual(brawler.relic.state, { readyAt: 0, buffUntil: 0 });
-  assert.deepEqual(aristocracy.relic.state, {});
+  assert.deepEqual(aristocracy.relic.state, {
+    readyAt: 0,
+    stacks: 0,
+    expiresAt: 0,
+    activations: [],
+  });
   assert.notEqual(thief.relic.state, anotherThief.relic.state);
 
   thief.relic.state.stacks = 3;
   assert.equal(anotherThief.relic.state.stacks, 0);
+});
+
+test("Severance critical contributions are data-driven and expire exactly", () => {
+  assert.deepEqual(sigilCriticalContribution(null, 0), {
+    chance: 0,
+    damage: 0,
+  });
+  const runtime = { sigil: { severanceUntil: 4 } };
+  assert.deepEqual(sigilCriticalContribution(runtime, 3.999), {
+    chance: 250 / PRECISION_PER_CRITICAL_CHANCE_FRACTION,
+    damage: 250 / FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
+  });
+  assert.deepEqual(sigilCriticalContribution(runtime, 4), {
+    chance: 0,
+    damage: 0,
+  });
+});
+
+test("Aristocracy rule state owns strict ICD, stack cap, and expiry", () => {
+  const relic = createRelicRuntime("Aristocracy");
+  const context = { relic };
+  const trigger = at => handleWeaknessVulnerabilityRelic(context, {
+    type: "weakness_vulnerability",
+    at,
+    skillName: `Trigger ${at}`,
+  });
+
+  trigger(0);
+  assert.equal(relicConditionDurationBonus(context, 0), 0);
+  assert.equal(relicConditionDurationBonus(context, 0.001), 0.03);
+  trigger(1);
+  assert.equal(relic.state.stacks, 1);
+  for (const at of [1.001, 2.002, 3.003, 4.004, 5.005]) trigger(at);
+  assert.equal(relic.state.stacks, 5);
+  assert.equal(relicConditionDurationBonus(context, 5.006), 0.15);
+  assert.equal(relicConditionDurationBonus(context, 13.005), 0);
+});
+
+test("Aristocracy historical queries preserve combat and timestamp boundaries", () => {
+  const events = [
+    { type: "weakness_vulnerability", at: 1.001, skillName: "Second" },
+    { type: "weakness_vulnerability", at: -1, skillName: "Precombat" },
+    { type: "combat_start", at: 0 },
+    { type: "weakness_vulnerability", at: 0, skillName: "First" },
+    { type: "weakness_vulnerability", at: 1, skillName: "Blocked" },
+  ];
+  const context = {
+    relic: createRelicTimelineRuntime("Aristocracy", events),
+  };
+
+  assert.equal(relicConditionDurationBonus(context, 0), 0);
+  assert.equal(relicConditionDurationBonus(context, 0.001), 0.03);
+  assert.equal(relicConditionDurationBonus(context, 1.002), 0.06);
+});
+
+test("generic combat query modules contain no equipment-specific policy", async () => {
+  const root = new URL("../js/platform/gw2/", import.meta.url);
+  for (const filename of ["query.ts", "timeline-index.ts"]) {
+    const source = await readFile(new URL(filename, root), "utf8");
+    assert.doesNotMatch(source, /Aristocracy|Severance/, filename);
+  }
 });
 
 test("Relic of the Brawler grants four seconds of strike damage with a strict eight-second ICD", () => {
@@ -1638,6 +1716,102 @@ test("Relic of the Brawler grants four seconds of strike damage with a strict ei
   assert.ok(Math.abs(strikes[0].damage / strikes[1].damage - 1.1) < 1e-12);
   assert.equal(strikes[2].damage, strikes[1].damage);
   assert.ok(Math.abs(strikes[3].damage / strikes[1].damage - 1.1) < 1e-12);
+});
+
+test("Relic of Mistburn grants one Might for eight seconds and applies its critical chance at ten stacks", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930009,
+        name: "Grant Might",
+        type: "Utility",
+        castTimeMs: 0,
+        effects: [boon("Might", 20)],
+      },
+      {
+        id: 930010,
+        name: "Mistburn Fixture Strike",
+        type: "Weapon",
+        castTimeMs: 0,
+        effects: [strike(1)],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "mistburn-fixture",
+    name: "Mistburn Fixture",
+    catalog,
+  });
+  const result = simulateGw2({
+    profession,
+    rotation: [
+      "Grant Might",
+      { type: "wait", durationMs: 7999 },
+      "Mistburn Fixture Strike",
+      { type: "wait", durationMs: 1 },
+      "Mistburn Fixture Strike",
+    ],
+    config: {
+      relic: "Mistburn",
+      stats: { power: 1000, precision: 1000, ferocity: 0 },
+      boons: { might: 8, fury: false },
+    },
+  });
+  const bonusMight = result.events.filter(
+    event => event.sourceId === "relic.mistburn",
+  );
+  const strikes = result.resolvedEvents.filter(
+    event => event.skillName === "Mistburn Fixture Strike",
+  );
+
+  assert.deepEqual(
+    bonusMight.map(({ at, duration, stacks }) => ({ at, duration, stacks })),
+    [{ at: 0, duration: 8, stacks: 1 }],
+  );
+  assert.ok(Math.abs(strikes[0].criticalChance - 0.15) < 1e-12);
+  assert.ok(Math.abs(strikes[1].criticalChance - 0.05) < 1e-12);
+  assert.deepEqual(
+    result.procSteps
+      .filter(step => step.skill === "Relic of Mistburn")
+      .map(step => ({ start: step.start, sourceSkill: step.sourceSkill })),
+    [{ start: 0, sourceSkill: "Grant Might" }],
+  );
+});
+
+test("Relic of Mistburn uses a strict one-second internal cooldown", () => {
+  const relic = createRelicRuntime("Mistburn");
+  const emitted = [];
+  const context = {
+    emitDerived(cause, event) {
+      emitted.push({ ...event, triggeredBy: cause.skillName });
+    },
+  };
+  const grantMight = (at, extra = {}) => materializeBoonRelics(
+    context,
+    relic,
+    {
+      type: "buff",
+      at,
+      skillName: `Grant Might ${at}`,
+      kind: "might",
+      duration: 5,
+      stacks: 1,
+      source: "fixture",
+      actorType: "player",
+      ...extra,
+    },
+  );
+
+  grantMight(0, { recipients: "allies" });
+  grantMight(0);
+  grantMight(1);
+  grantMight(1.001);
+  grantMight(2.002, { source: "Relic", actorType: "effect" });
+
+  assert.deepEqual(
+    emitted.map(event => ({ at: event.at, duration: event.duration })),
+    [{ at: 0, duration: 8 }, { at: 1.001, duration: 8 }],
+  );
 });
 
 test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () => {
@@ -2370,7 +2544,7 @@ test("obsolete compatibility trees are removed", async () => {
     "thief",
   ]) {
     const extension = profession === "thief" ? "js" : "ts";
-    for (const facade of ["resolver", "state", "ui"]) {
+    for (const facade of ["attribute-rules", "resolver", "state", "ui"]) {
       await assert.rejects(
         readFile(
           path.join(

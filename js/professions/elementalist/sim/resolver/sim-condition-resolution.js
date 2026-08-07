@@ -1,4 +1,6 @@
-import { conditionTickDamage, getConditionDurationBonus } from '../../../../platform/gw2/damage.js';
+import { conditionTickDamage } from '../../../../platform/gw2/condition-formulas.js';
+import { getConditionDurationBonus } from '../../../../platform/gw2/damage.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '../../../../platform/gw2/runtime-rules.js';
 import { grantPersistingFlames } from '../mechanics/sim-elemental-traits.js';
 import { getEmpowermentMultiplier, trackEffect } from '../mechanics/sim-effect-state.js';
 import { trackBlightbringerPoison } from '../mechanics/sim-relic-helpers.js';
@@ -83,7 +85,9 @@ function buildInfernoPower(ctx, ev, {
     }
 
     const empowermentPower = Math.round((S._empPool?.Power || 0) * empMul);
-    return basePower + might * 30 + empFlame + powerOverwhelming + elementalPolyphonyPower + empowermentPower;
+    return basePower
+        + might * MIGHT_ATTRIBUTE_BONUS_PER_STACK
+        + empFlame + powerOverwhelming + elementalPolyphonyPower + empowermentPower;
 }
 
 function buildConditionTickContext(ctx, ev, {

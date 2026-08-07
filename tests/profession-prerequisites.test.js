@@ -16,6 +16,9 @@ import {
 import { defineProfession } from "../js/platform/engine/profession.js";
 import { createGw2CombatQuery } from "../js/platform/gw2/query.js";
 import {
+  createGw2TimelineIndex,
+} from "../js/platform/gw2/timeline-index.js";
+import {
   canonicalTargetConditionName,
 } from "../js/platform/gw2/target-state.js";
 import {
@@ -156,6 +159,108 @@ test("same-time target-condition visibility follows runtime insertion order", ()
   assert.equal(query.targetHasCondition("Weakness", 3, runtime), false);
 });
 
+test("timeline indexes buff stacks by kind and summon audience", () => {
+  const timeline = createGw2TimelineIndex({
+    events: [{
+      type: "buff",
+      at: 0,
+      source: "Player",
+      sourceId: "player-might",
+      kind: "MIGHT",
+      duration: 2,
+      stacks: 3,
+    }, {
+      type: "buff",
+      at: 0,
+      source: "Player",
+      sourceId: "shared-might",
+      kind: "might",
+      duration: 2,
+      stacks: 4,
+      affectsSummons: true,
+    }, {
+      type: "buff",
+      at: 0,
+      source: "Trait",
+      sourceId: "trait-might",
+      kind: "might",
+      duration: 2,
+      stacks: 2,
+      affectsSummons: true,
+    }],
+  });
+
+  assert.equal(timeline.buffStacksAt("might", 1, 0, 25), 9);
+  assert.equal(timeline.buffStacksAt("Might", 1, 0, 25, "summon"), 6);
+  assert.equal(
+    timeline.buffStacksAt("might", 1, 0, 25, "summon-trait"),
+    2,
+  );
+  assert.equal(timeline.buffStacksAt("might", 1, 0, 5), 5);
+  assert.equal(timeline.buffStacksAt("might", 2, 0, 25), 0);
+});
+
+test("effective boon queries replace scheduled buffs with runtime state", () => {
+  const events = [{
+    type: "buff",
+    at: 1,
+    source: "Player",
+    sourceId: "might",
+    kind: "might",
+    duration: 5,
+    stacks: 5,
+  }, {
+    type: "buff",
+    at: 1,
+    source: "Player",
+    sourceId: "fury",
+    kind: "fury",
+    duration: 5,
+    stacks: 1,
+  }, {
+    type: "buff",
+    at: 1,
+    source: "Player",
+    sourceId: "vulnerability",
+    kind: "target-vulnerability",
+    duration: 5,
+    stacks: 3,
+  }];
+  const query = createGw2CombatQuery({
+    profession: queryProfession,
+    config: {
+      boons: { might: 2, fury: false },
+      target: { vulnerability: 1 },
+    },
+    events,
+  });
+  const runtime = { boons: new Map(), conditionState: new Map() };
+  const event = {
+    type: "damage",
+    at: 1,
+    source: "Player",
+    sourceId: "hit",
+    actorType: "player",
+  };
+
+  assert.equal(query.mightStacksAt(1, runtime, event), 2);
+  assert.equal(query.furyActiveAt(1, runtime, event), false);
+  assert.equal(query.vulnerabilityStacksAt(1, runtime), 1);
+  assert.equal(query.mightStacksAt(1, null, event), 7);
+  assert.equal(query.furyActiveAt(1, null, event), true);
+  assert.equal(query.vulnerabilityStacksAt(1, null), 4);
+
+  runtime.boons.set("might", [{ at: 1, expiresAt: 6, stacks: 5 }]);
+  runtime.boons.set("fury", [{ at: 1, expiresAt: 6, stacks: 1 }]);
+  runtime.boons.set("target-vulnerability", [
+    { at: 1, expiresAt: 6, stacks: 3 },
+  ]);
+
+  assert.equal(query.mightStacksAt(1, runtime, event), 7);
+  assert.equal(query.furyActiveAt(1, runtime, event), true);
+  assert.equal(query.vulnerabilityStacksAt(1, runtime), 4);
+});
+
 test("player boon sharing can exclude non-mech summons", () => {
   const events = [{
     type: "buff",
@@ -288,6 +393,17 @@ test("summon-targeted trait boons bypass disabled player boon sharing", () => {
   };
 
   assert.equal(query.statsAt(1, summonEvent).power, 1060);
+
+  const runtime = { boons: new Map() };
+  assert.equal(query.statsAt(1, summonEvent, runtime).power, 1000);
+  runtime.boons.set("might", [{
+    at: 0,
+    expiresAt: 10,
+    stacks: 2,
+    source: "Trait",
+    affectsSummons: true,
+  }]);
+  assert.equal(query.statsAt(1, summonEvent, runtime).power, 1060);
 });
 
 test("trait coverage validates complete, behavioral, mixed-effect manifests", () => {

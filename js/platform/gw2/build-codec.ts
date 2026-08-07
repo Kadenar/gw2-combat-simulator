@@ -12,6 +12,7 @@ import {
   SIGIL_NAMES,
   UTILITY_NAMES,
 } from "./gear-data.js";
+import { clamp, finiteNumber } from "./numeric.js";
 import { normalizeWeaponSigils } from "./weapon-sigils.js";
 import type {
   CanonicalCatalog,
@@ -268,15 +269,6 @@ function clone<T>(value: T): T {
 }
 
 /**
- * @param {unknown} value
- * @param {number} fallback
- */
-function finiteNumber(value: unknown, fallback: number): number {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : fallback;
-}
-
-/**
  * @param {readonly string[]} names
  * @param {unknown} value
  * @returns {value is string}
@@ -493,9 +485,10 @@ function normalizeInfusions(
     )
     .map((entry) => {
       const infusion = entry as SchedulerRecord;
-      const count = Math.max(
+      const count = clamp(
+        Math.trunc(Number(infusion.count) || 0),
         0,
-        Math.min(remaining, Math.trunc(Number(infusion.count) || 0)),
+        remaining,
       );
       remaining -= count;
       return { stat: infusion.stat as string, count };

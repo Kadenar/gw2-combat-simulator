@@ -14,6 +14,7 @@ import {
   gw2EffectiveCooldown,
   gw2RechargeRate,
 } from "../../../platform/gw2/runtime-rules.js";
+import { clamp } from "../../../platform/gw2/numeric.js";
 import {
   MESMER_CORE_AMBUSH_ATTACKS,
   MESMER_CORE_ARISTOCRACY_SKILLS,
@@ -90,17 +91,6 @@ const PRESERVED_WEAPON_CHAIN_ROOT_IDS = new Set<number>([ID.ETHER_BOLT]);
 const SIGNET_ETHER_RELOCK_DELAY = 0.3;
 const SIGNET_ILLUSIONS_INTERVAL = 10;
 const SIGNET_ILLUSIONS_OWNER = "mesmer.signet-illusions-passive";
-/**
- * Restricts a numeric value to an inclusive range.
- *
- * @param {number} value Candidate value.
- * @param {number} minimum Inclusive lower bound.
- * @param {number} maximum Inclusive upper bound.
- * @returns {number} Clamped value.
- */
-const clamp = (value: number, minimum: number, maximum: number): number =>
-  Math.max(minimum, Math.min(maximum, value));
-
 /**
  * Builds a mixed trait set containing both numeric IDs and names so
  * ID-oriented scheduler code and name-oriented data tables share one lookup.

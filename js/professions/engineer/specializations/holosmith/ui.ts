@@ -2,6 +2,7 @@ import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import {
   engineerFSkillBarGroups,
   engineerToolbeltSkillIds,
+  engineerUiSpecialization,
   engineerUiState,
   hasActiveTrait,
   namedSkillId,
@@ -10,15 +11,32 @@ import {
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
+  ProfessionEventLogDescriptor,
   ProfessionResourceView,
   ProfessionUiContract,
   SchedulerRecord,
   SkillId,
 } from "../../../../platform/engine/types.js";
 import type {
+  EngineerResolverEvent,
   EngineerSkill,
   EngineerUiContext,
 } from "../../types.js";
+
+const HEAT_STATE_REASONS = new Set<string>([
+  "enter-forge",
+  "exit-forge",
+  "heat",
+  "overheat",
+  "passive-heat",
+  "thermal-release-valve",
+]);
+
+const HOLOSMITH_PACKET_EVENTS = new Set<string>([
+  "engineer.prime-light-beam-field",
+  "engineer.laser-disk",
+  "engineer.launch-wall",
+]);
 
 let engineerSkills: readonly EngineerSkill[] = [];
 let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
@@ -71,8 +89,30 @@ function holosmithPaletteAvailability(
   return { available: true, message: "" };
 }
 
+function holosmithEventLogRow(
+  context: EngineerUiContext,
+  event: EngineerResolverEvent,
+): ProfessionEventLogDescriptor | null | undefined {
+  if (engineerUiSpecialization(context) !== "Holosmith") return undefined;
+  if (HOLOSMITH_PACKET_EVENTS.has(event?.type)) return null;
+  if (
+    event?.type !== "engineer.state"
+    || !HEAT_STATE_REASONS.has(String(event.reason || ""))
+  ) return undefined;
+  return {
+    type: event.type,
+    description:
+      `${event.reason || "State"} - ` +
+      `Heat ${Number(event.state?.heat || 0).toFixed(1)}`,
+    className: "resource",
+    order: 30,
+    flags: [],
+  };
+}
+
 export const holosmithUi:
 Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
+  eventLogRow: holosmithEventLogRow,
   skillBarGroups: (context: EngineerUiContext) => [
     ...engineerFSkillBarGroups(holosmithProfessionSkills(context)),
     {

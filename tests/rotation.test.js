@@ -2931,6 +2931,34 @@ test('all terrestrial Mirage weapons execute their correct ambush', () => {
     }
 });
 
+test('Mirage self-Might triggers Relic of Mistburn', () => {
+    const result = simulateMesmer(
+        ['Dodge / Mirage Cloak', 'Split Surge'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: '',
+            initialResource: 0,
+            relic: 'Mistburn',
+            boons: {
+                ...defaultSimulationConfig().boons,
+                might: 0,
+            },
+        }),
+    );
+    const bonusMight = result.events.filter(event =>
+        event.sourceId === 'relic.mistburn');
+
+    assert.deepEqual(
+        bonusMight.map(event => ({
+            duration: event.duration,
+            stacks: event.stacks,
+            triggeredBy: event.triggeredBy,
+        })),
+        [{ duration: 8, stacks: 1, triggeredBy: 'Split Surge' }],
+    );
+});
+
 test('Riddle of Sand applies to the first ambush and refreshes on shatter', () => {
     const result = simulateMesmer(
         [

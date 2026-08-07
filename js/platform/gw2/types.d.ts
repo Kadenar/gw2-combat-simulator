@@ -108,6 +108,8 @@ export interface Gw2Config extends SchedulerRecord {
   };
 }
 
+export type Gw2BuffAudience = "all" | "summon" | "summon-trait";
+
 export interface Gw2TargetConfig extends SchedulerRecord {
   readonly vulnerability?: number | boolean;
   readonly slowed?: number | boolean;
@@ -140,6 +142,8 @@ export interface Gw2TimedBuffApplication {
   readonly at: number;
   readonly expiresAt: number;
   readonly stacks: number;
+  readonly source?: string;
+  readonly affectsSummons?: boolean;
 }
 
 export interface Gw2RelicState extends SchedulerRecord {
@@ -147,6 +151,18 @@ export interface Gw2RelicState extends SchedulerRecord {
   buffUntil?: number;
   stacks?: number;
   expiresAt?: number;
+}
+
+export interface Gw2RelicRuntimeContext extends SchedulerRecord {
+  readonly combatStartTime?: number | null;
+  readonly relic?: Gw2RelicRuntime;
+}
+
+export interface Gw2RelicMaterializerContext {
+  emitDerived(
+    cause: SimulationEvent,
+    event: Gw2EventDraft,
+  ): SimulationEvent;
 }
 
 export interface Gw2RelicContext extends SchedulerRecord {
@@ -207,6 +223,11 @@ export interface Gw2ConditionHelpers {
 
 export interface Gw2RelicRule {
   readonly createState?: () => Gw2RelicState;
+  readonly materializeBoon?: (
+    context: Gw2RelicMaterializerContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+  ) => unknown;
   readonly control?: (
     context: Gw2RelicContext,
     state: Gw2RelicState,
@@ -218,6 +239,11 @@ export interface Gw2RelicRule {
     state: Gw2RelicState,
     events: readonly SimulationEvent[],
     rotationEndTime: number,
+  ) => unknown;
+  readonly weaknessVulnerability?: (
+    context: Gw2RelicRuntimeContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
   ) => unknown;
   readonly boon?: (
     context: Gw2RelicContext,
@@ -233,6 +259,12 @@ export interface Gw2RelicRule {
     context: Gw2RelicContext,
     state: Gw2RelicState,
     event: SimulationEvent,
+  ) => number;
+  readonly criticalChanceBonus?: (
+    context: Gw2RelicRuntimeContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+    mightStacks: number,
   ) => number;
   readonly afterHit?: (
     context: Gw2RelicContext,
@@ -290,6 +322,20 @@ export interface Gw2CombatQuery {
     event?: SimulationEvent | null,
     runtime?: Gw2QueryRuntime | null,
   ): Gw2ResolvedStats;
+  mightStacksAt(
+    time: number,
+    runtime?: Gw2QueryRuntime | null,
+    event?: SimulationEvent | null,
+  ): number;
+  furyActiveAt(
+    time: number,
+    runtime?: Gw2QueryRuntime | null,
+    event?: SimulationEvent | null,
+  ): boolean;
+  vulnerabilityStacksAt(
+    time: number,
+    runtime?: Gw2QueryRuntime | null,
+  ): number;
   critical(
     event: SimulationEvent,
     time: number,
@@ -377,7 +423,13 @@ export interface Gw2ResolvedStats extends SchedulerRecord {
 }
 
 export interface Gw2TimelineIndex {
-  aristocracyStacksAt(time: number): number;
+  buffStacksAt(
+    kind: string,
+    time: number,
+    duration: number,
+    maximum: number,
+    audience?: Gw2BuffAudience,
+  ): number;
   timedStacks(
     kind: string,
     time: number,
@@ -385,10 +437,7 @@ export interface Gw2TimelineIndex {
     maximum: number,
   ): number;
   timedActive(kind: string, time: number): boolean;
-  mightStacksAt(time: number): number;
-  furyActiveAt(time: number): boolean;
   vigorActiveAt(time: number): boolean;
-  vulnerabilityStacksAt(time: number): number;
   activeWeaponSetAt(time: number): number;
   activeSigilSetAt(time: number): Gw2SigilSet;
   skillOnCooldownAt(

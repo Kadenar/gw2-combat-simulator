@@ -1,3 +1,5 @@
+import { clamp } from "./numeric.js";
+
 /**
  * Normalized allied party assumptions. Allied strikes only exist as proc
  * triggers; they never contribute their own damage.
@@ -60,11 +62,8 @@ export function gw2AlliedPlayerAssumptions(
 ): Gw2AlliedPlayerAssumptions {
   const allies = config.allies || {};
   return Object.freeze({
-    count: Math.max(0, Math.min(4, Math.trunc(Number(allies.count || 0)))),
-    strikesPerSecond: Math.max(
-      0,
-      Math.min(10, Number(allies.strikesPerSecond || 0)),
-    ),
+    count: clamp(Math.trunc(Number(allies.count || 0)), 0, 4),
+    strikesPerSecond: clamp(Number(allies.strikesPerSecond || 0), 0, 10),
   });
 }
 
@@ -84,9 +83,10 @@ export function gw2AlliedEffectRecipients(
   const party = gw2AlliedPlayerAssumptions(config);
   const limit = Math.max(0, Math.trunc(Number(maximumRecipients || 0)));
   const includesSelf = includeSelf && limit > 0;
-  const alliedPlayerCount = Math.min(
+  const alliedPlayerCount = clamp(
+    limit - Number(includesSelf),
+    0,
     party.count,
-    Math.max(0, limit - Number(includesSelf)),
   );
   const remaining =
     limit - Number(includesSelf) - alliedPlayerCount;
@@ -117,9 +117,10 @@ export function gw2AlliedPlayerProcTimeline(
   }: Gw2AlliedPlayerProcOptions,
 ): Gw2AlliedPlayerProc[] {
   const assumptions = gw2AlliedPlayerAssumptions(config);
-  const allyCount = Math.min(
+  const allyCount = clamp(
+    Math.trunc(Number(maximumAllies)),
+    0,
     assumptions.count,
-    Math.max(0, Math.trunc(Number(maximumAllies))),
   );
   if (!allyCount || !assumptions.strikesPerSecond) return [];
   const interval = Math.max(

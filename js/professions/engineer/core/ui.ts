@@ -41,15 +41,6 @@ const KIT_ORDER = new Map<string, number>([
   ["Elite Mortar Kit", 6],
 ]);
 
-const HEAT_STATE_REASONS = new Set<string>([
-  "enter-forge",
-  "exit-forge",
-  "heat",
-  "overheat",
-  "passive-heat",
-  "thermal-release-valve",
-]);
-
 const SKILL_SLOT_ORDER: readonly string[] = Object.freeze([
   "Heal",
   "Utility1",
@@ -337,40 +328,18 @@ export function engineerEventLogRow(
   if ([
     "engineer.combo-field",
     "engineer.dodge",
-    "engineer.mass-momentum-pulse",
     "engineer.lightning-rod-pulse",
     "engineer.conduit-surge",
     "engineer.electric-artillery",
     "engineer.radiant-arc-quickness",
-    "engineer.prime-light-beam-field",
-    "engineer.laser-disk",
-    "engineer.launch-wall",
     "engineer.refraction-cutter-extra-blades",
   ].includes(event?.type)) {
     // These resolver events materialize skill packets. The ordinary action,
     // damage, and condition rows already present their user-visible effects.
     return null;
   }
-  if (event?.type !== "engineer.state") return undefined;
-  const buildSpecializations = Array.isArray(context?.build?.specializations)
-    ? context.build.specializations
-    : [];
-  const isHolosmith = buildSpecializations.some(specialization =>
-    String(specialization?.name || specialization) === "Holosmith")
-    || String(context?.build?.specialization || "") === "Holosmith";
-  if (
-    !isHolosmith
-    || !HEAT_STATE_REASONS.has(String(event.reason || ""))
-  ) return null;
-  return {
-    type: event.type,
-    description:
-      `${event.reason || "State"} - ` +
-      `Heat ${Number(event.state?.heat || 0).toFixed(1)}`,
-    className: "resource",
-    order: 30,
-    flags: [],
-  };
+  if (event?.type === "engineer.state") return null;
+  return undefined;
 }
 
 export const engineerCoreUi:

@@ -1,4 +1,5 @@
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from "../../../../platform/gw2/runtime-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import {
   ENGINEER_SKILL_IDS as ID,
@@ -121,7 +122,8 @@ function modifyMechanistAttributes(
     ...modified,
     power: Math.max(
       0,
-      Number(modified.power || 0) - mightStacks * 30,
+      Number(modified.power || 0) -
+        mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
     ),
     ferocity: Math.max(
       0,
@@ -134,13 +136,14 @@ function modifyMechanistAttributes(
     ),
     conditionDamage: Math.max(
       0,
-      Number(modified.conditionDamage || 0) - mightStacks * 30,
+      Number(modified.conditionDamage || 0) -
+        mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
     ),
   };
   const mech = engineerMechAttributes(context.config, inheritedSource);
   if (selectedSignet(context, "Shift Signet")) {
-    mech.power += mightStacks * 30;
-    mech.conditionDamage += mightStacks * 30;
+    mech.power += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
+    mech.conditionDamage += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
   }
   return mech;
 }

@@ -320,10 +320,7 @@ export function necromancerEventLogRow(
   }
   if (
     [
-      "necromancer.painful-bond",
       "necromancer.summon-attack",
-      "necromancer.weapon-spell",
-      "necromancer.weapon-spell-ally-trigger",
     ].includes(event?.type)
   ) {
     return null;

@@ -19,7 +19,13 @@ export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       !illusionSource(context) &&
       hasTrait(context, TRAIT.QUIET_INTENSITY) &&
-      Boolean(context.timeline?.furyActiveAt(context.time)),
+      Boolean(
+        context.query?.furyActiveAt(
+          context.time,
+          context.runtime,
+          context.event,
+        ),
+      ),
   },
   {
     id: "mesmer.deadly-blades",
