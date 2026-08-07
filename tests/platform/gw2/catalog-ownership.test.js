@@ -4,15 +4,15 @@ import test from "node:test";
 import {
   assembleNativeApplicationCatalog,
   nativeSkillRuntimeOwner,
-} from "js/platform/gw2/native-catalog-assembly.js";
+} from "../../../js/platform/gw2/native-catalog-assembly.js";
 import {
   onResolvedDamage,
   onResolvedPlayerCriticalHit,
-} from "js/platform/gw2/native-mechanics.js";
+} from "../../../js/platform/gw2/native-mechanics.js";
 import {
   defineNativeModule,
   defineNativeProfession,
-} from "js/platform/gw2/native-profession.js";
+} from "../../../js/platform/gw2/native-profession.js";
 
 const replaceHandler = Object.freeze({
   mode: "replace",

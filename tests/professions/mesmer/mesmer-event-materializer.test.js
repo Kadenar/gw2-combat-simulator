@@ -3,7 +3,7 @@ import test from "node:test";
 
 import {
   createMesmerEventMaterializer,
-} from "js/professions/mesmer/core/event-materializer.js";
+} from "../../../js/professions/mesmer/core/event-materializer.js";
 
 function createFixture() {
   const events = [];

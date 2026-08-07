@@ -4,11 +4,11 @@ import path from "node:path";
 import ts from "typescript";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { createCanonicalCatalog } from "js/platform/engine/catalog.js";
+import { createCanonicalCatalog } from "../../js/platform/engine/catalog.js";
 import {
   deriveAutoattackChains,
   indexAutoattackChains,
-} from "js/platform/engine/autoattack-chains.js";
+} from "../../js/platform/engine/autoattack-chains.js";
 import {
   blind,
   boon,
@@ -21,68 +21,68 @@ import {
   strike,
   strikePackets,
   strikeTimeline,
-} from "js/platform/engine/effect-factories.js";
-import { COMMON_EVENT_TYPES } from "js/platform/engine/events.js";
-import { HandlerRegistry } from "js/platform/engine/handler-registry.js";
-import { defineProfession } from "js/platform/engine/profession.js";
-import { resolveScheduledStream } from "js/platform/engine/resolver.js";
-import { normalizeRotation } from "js/platform/engine/rotation-commands.js";
-import { createSchedulerState } from "js/platform/engine/scheduler-state.js";
-import { createScheduler } from "js/platform/engine/scheduler.js";
-import { buildScheduledEventStream } from "js/platform/engine/scheduled-event-stream.js";
+} from "../../js/platform/engine/effect-factories.js";
+import { COMMON_EVENT_TYPES } from "../../js/platform/engine/events.js";
+import { HandlerRegistry } from "../../js/platform/engine/handler-registry.js";
+import { defineProfession } from "../../js/platform/engine/profession.js";
+import { resolveScheduledStream } from "../../js/platform/engine/resolver.js";
+import { normalizeRotation } from "../../js/platform/engine/rotation-commands.js";
+import { createSchedulerState } from "../../js/platform/engine/scheduler-state.js";
+import { createScheduler } from "../../js/platform/engine/scheduler.js";
+import { buildScheduledEventStream } from "../../js/platform/engine/scheduled-event-stream.js";
 import {
   augmentSkillHandler,
   replaceSkillHandler,
   SKILL_HANDLER_MODES,
-} from "js/platform/engine/skill-handlers.js";
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
+} from "../../js/platform/engine/skill-handlers.js";
+import { simulateGw2 } from "../../js/platform/gw2/simulate.js";
 import {
   nativeProfessionRegistry,
   professionRegistry,
-} from "js/app/profession/registry.js";
+} from "../../js/app/profession/registry.js";
 import {
   createProfessionWeaponData,
   WEAPON_DATA,
-} from "js/platform/gw2/gear-data.js";
+} from "../../js/platform/gw2/gear-data.js";
 import {
   createGw2ResolverExtensions,
-} from "js/platform/gw2/resolver/extensions.js";
+} from "../../js/platform/gw2/resolver/extensions.js";
 import {
   createRelicRuntime,
   createRelicTimelineRuntime,
   handleWeaknessVulnerabilityRelic,
   materializeBoonRelics,
   relicConditionDurationBonus,
-} from "js/platform/gw2/relic-rules.js";
-import { sigilCriticalContribution } from "js/platform/gw2/sigil-rules.js";
+} from "../../js/platform/gw2/relic-rules.js";
+import { sigilCriticalContribution } from "../../js/platform/gw2/sigil-rules.js";
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION,
-} from "js/platform/gw2/stat-scaling.js";
+} from "../../js/platform/gw2/stat-scaling.js";
 import {
   GW2_SKILL_FLAGS,
-} from "scripts/data/lib/gw2-profession-snapshot.mjs";
+} from "../../scripts/data/lib/gw2-profession-snapshot.mjs";
 import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
   validateMesmerBuild,
-} from "js/professions/mesmer/build.js";
-import { mesmerCatalog } from "js/professions/mesmer/catalog.js";
-import { mesmerProfession } from "js/professions/mesmer/definition.js";
+} from "../../js/professions/mesmer/build.js";
+import { mesmerCatalog } from "../../js/professions/mesmer/catalog.js";
+import { mesmerProfession } from "../../js/professions/mesmer/definition.js";
 import {
   MESMER_TRAIT_COVERAGE,
-} from "js/professions/mesmer/data/trait-coverage.js";
+} from "../../js/professions/mesmer/data/trait-coverage.js";
 import {
   MECHANIC_SKILLS,
-} from "js/professions/mesmer/mechanics/skill-mechanics.js";
-import { guardianCatalog } from "js/professions/guardian/catalog.js";
-import { necromancerCatalog } from "js/professions/necromancer/catalog.js";
+} from "../../js/professions/mesmer/mechanics/skill-mechanics.js";
+import { guardianCatalog } from "../../js/professions/guardian/catalog.js";
+import { necromancerCatalog } from "../../js/professions/necromancer/catalog.js";
 import {
   createDefaultConfig,
   simulateMesmer,
-} from "mesmer-simulation.js";
-import { snapshotMesmerState } from "js/professions/mesmer/core/state.js";
-import { testProfession } from "test-profession.js";
+} from "../helpers/mesmer-simulation.js";
+import { snapshotMesmerState } from "../../js/professions/mesmer/core/state.js";
+import { testProfession } from "../fixtures/test-profession.js";
 
 test("native professions share one skill timing contract", async () => {
   for (const entry of nativeProfessionRegistry) {
@@ -1641,7 +1641,7 @@ test("Aristocracy historical queries preserve combat and timestamp boundaries", 
 });
 
 test("generic combat query modules contain no equipment-specific policy", async () => {
-  const root = new URL("js/platform/gw2/", import.meta.url);
+  const root = new URL("../../js/platform/gw2/", import.meta.url);
   for (const filename of ["query.ts", "timeline-index.ts"]) {
     const source = await readFile(new URL(filename, root), "utf8");
     assert.doesNotMatch(source, /Aristocracy|Severance/, filename);
@@ -2122,7 +2122,7 @@ test("Mesmer conforms to native handler, identity, and state boundaries", async 
 
   const mesmerRoot = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "js/professions/mesmer",
+    "../../js/professions/mesmer",
   );
   await assert.rejects(
     readFile(path.join(mesmerRoot, "mechanics", "contract.ts"), "utf8"),
@@ -2153,7 +2153,7 @@ test("Mesmer conforms to native handler, identity, and state boundaries", async 
 test("platform import boundaries are profession neutral", async () => {
   const root = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "js/platform",
+    "../../js/platform",
   );
   for (const file of await javascriptFiles(root)) {
     const source = await readFile(file, "utf8");
@@ -2189,7 +2189,7 @@ test("platform import boundaries are profession neutral", async () => {
 
 test("test profession fixture has no native profession dependency", async () => {
   const source = await readFile(
-    fileURLToPath(new URL("test-profession.js", import.meta.url)),
+    fileURLToPath(new URL("../fixtures/test-profession.js", import.meta.url)),
     "utf8",
   );
   for (const entry of nativeProfessionRegistry) {
@@ -2274,7 +2274,7 @@ async function readSourceModule(file) {
 test("native registry loaders do not pull another profession module graph", async () => {
   const root = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "js",
+    "../../js",
   );
   for (const entry of nativeProfessionRegistry) {
     const graph = await relativeModuleGraph([
@@ -2298,7 +2298,7 @@ test("native registry loaders do not pull another profession module graph", asyn
 test("declarative professions use the standard mechanics module roles", async () => {
   const root = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "js/professions",
+    "../../js/professions",
   );
   for (const profession of nativeProfessionRegistry.map(entry => entry.id)) {
     const mechanicsRoot = path.join(root, profession, "mechanics");
@@ -2524,7 +2524,7 @@ test("declarative professions use the standard mechanics module roles", async ()
 test("obsolete compatibility trees are removed", async () => {
   const root = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "js",
+    "../../js",
   );
   for (const directory of ["core", "data", "sim"]) {
     await assert.rejects(
@@ -2581,7 +2581,7 @@ test("obsolete compatibility trees are removed", async () => {
 test("profession family state composition has no flat runtime adapters", async () => {
   const jsRoot = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "js",
+    "../../js",
   );
   const engineSource = await readFile(
     path.join(jsRoot, "platform", "engine", "profession.ts"),
@@ -2615,7 +2615,7 @@ test("profession family state composition has no flat runtime adapters", async (
 test("specialization state factories and accessors stay owner-local", async () => {
   const professionRoot = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "js/professions",
+    "../../js/professions",
   );
   for (const profession of [
     "engineer",
@@ -2669,7 +2669,7 @@ test("specialization state factories and accessors stay owner-local", async () =
 test("application shell uses feature-owned modules without legacy facades", async () => {
   const appRoot = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "js/app",
+    "../../js/app",
   );
   const entries = await readdir(appRoot, { withFileTypes: true });
   const topLevelFiles = entries
@@ -2698,7 +2698,7 @@ test("application shell uses feature-owned modules without legacy facades", asyn
 test("profession sources persist terrestrial skill data only", async () => {
   const root = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    "js/professions",
+    "../../js/professions",
   );
   const forbiddenPersistedMetadata = new RegExp([
     JSON.stringify(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY),

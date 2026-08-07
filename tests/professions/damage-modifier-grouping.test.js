@@ -3,22 +3,22 @@ import test from "node:test";
 
 import {
   guardianProfession,
-} from "js/professions/guardian/definition.js";
+} from "../../js/professions/guardian/definition.js";
 import {
   GUARDIAN_TRAIT_IDS as GUARDIAN,
-} from "js/professions/guardian/data/ids.js";
+} from "../../js/professions/guardian/data/ids.js";
 import {
   mesmerProfession,
-} from "js/professions/mesmer/definition.js";
+} from "../../js/professions/mesmer/definition.js";
 import {
   MESMER_TRAIT_IDS as MESMER,
-} from "js/professions/mesmer/data/ids.js";
+} from "../../js/professions/mesmer/data/ids.js";
 import {
   necromancerProfession,
-} from "js/professions/necromancer/definition.js";
+} from "../../js/professions/necromancer/definition.js";
 import {
   NECROMANCER_TRAIT_IDS as NECROMANCER,
-} from "js/professions/necromancer/data/ids.js";
+} from "../../js/professions/necromancer/data/ids.js";
 
 const guardianLuminaryRules = guardianProfession.resolveRuntime({
   specialization: "Luminary",

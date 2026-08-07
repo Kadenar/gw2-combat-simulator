@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { implemented } from "js/platform/engine/skill-factories.js";
+import { implemented } from "../../../js/platform/engine/skill-factories.js";
 
 test("implemented returns a new fragment with its fields and a true marker", () => {
   const definition = {

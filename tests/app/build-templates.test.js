@@ -5,7 +5,7 @@ import {
   initBuildTemplates,
   loadTemplateAction,
   undoTemplateLoad,
-} from "js/app/build/presets.js";
+} from "../../js/app/build/presets.js";
 
 function createApp() {
   return {

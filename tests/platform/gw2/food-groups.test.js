@@ -4,7 +4,7 @@ import {
   FOOD_DATA,
   FOOD_GROUPS,
   FOOD_NAMES,
-} from "js/platform/gw2/gear-data.js";
+} from "../../../js/platform/gw2/gear-data.js";
 
 test("food exports retain a complete flat lookup and grouped display list", () => {
   const groupedNames = FOOD_GROUPS.flatMap(group => group.items);

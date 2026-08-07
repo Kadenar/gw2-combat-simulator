@@ -3,11 +3,11 @@ import test from "node:test";
 
 import {
   resultSkillIcon,
-} from "js/app/rotation/icons.js";
+} from "../../js/app/rotation/icons.js";
 import {
   NOURISHMENT_ICON,
   SIGIL_DATA,
-} from "js/platform/gw2/gear-data.js";
+} from "../../js/platform/gw2/gear-data.js";
 
 const app = {
   attributeData: { activeTraits: [] },

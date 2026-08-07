@@ -3,8 +3,8 @@ import test from "node:test";
 import {
   criticalChance,
   criticalDamageMultiplier,
-} from "js/platform/gw2/damage.js";
-import { gw2ConditionDurationMultiplier } from "js/platform/gw2/runtime-rules.js";
+} from "../../../js/platform/gw2/damage.js";
+import { gw2ConditionDurationMultiplier } from "../../../js/platform/gw2/runtime-rules.js";
 import {
   conditionDurationFractionFromExpertise,
   conditionDurationPercentFromExpertise,
@@ -12,7 +12,7 @@ import {
   criticalChancePercentFromPrecision,
   criticalDamageMultiplierFromFerocity,
   criticalDamagePercentFromFerocity,
-} from "js/platform/gw2/stat-scaling.js";
+} from "../../../js/platform/gw2/stat-scaling.js";
 
 test("stat scaling preserves exact percent- and fraction-form values", () => {
   assert.equal(criticalChancePercentFromPrecision(896), 0.047619047619047616);

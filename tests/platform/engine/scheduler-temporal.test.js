@@ -3,19 +3,19 @@ import test from "node:test";
 
 import {
   createCanonicalCatalog,
-} from "js/platform/engine/catalog.js";
+} from "../../../js/platform/engine/catalog.js";
 import {
   createCooldownController,
-} from "js/platform/engine/cooldown-controller.js";
+} from "../../../js/platform/engine/cooldown-controller.js";
 import {
   defineProfession,
-} from "js/platform/engine/profession.js";
+} from "../../../js/platform/engine/profession.js";
 import {
   createScheduler,
-} from "js/platform/engine/scheduler.js";
+} from "../../../js/platform/engine/scheduler.js";
 import {
   createTaskQueue,
-} from "js/platform/engine/task-queue.js";
+} from "../../../js/platform/engine/task-queue.js";
 
 test("ammo recharge reductions carry overflow until maximum charges", () => {
   const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };

@@ -333,7 +333,6 @@ export function handleMercurialTendencies(
   task: EngineerScheduledTask<MercurialTendenciesPayload>,
 ): void {
   const at = task.at;
-  const state = amalgamState.from(context);
   const coreState = professionCoreState(context);
   const readyAt = Number(
     coreState.traitProcReadyAt.mercurialTendencies || 0,

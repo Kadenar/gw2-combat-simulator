@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { resultSkillIcon } from "js/app/rotation/icons.js";
-import { revenantCatalog } from "js/professions/revenant/catalog.js";
+import { resultSkillIcon } from "../../../js/app/rotation/icons.js";
+import { revenantCatalog } from "../../../js/professions/revenant/catalog.js";
 import {
   REVENANT_SKILL_IDS as SKILL,
-} from "js/professions/revenant/data/ids.js";
+} from "../../../js/professions/revenant/data/ids.js";
 
 const EXPECTED_CALL_ICONS = new Map([
   [

@@ -1,63 +1,63 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createEngineerBuildDefaults } from "js/professions/engineer/build.js";
+import { createEngineerBuildDefaults } from "../../js/professions/engineer/build.js";
 import {
   engineerProfession,
-} from "js/professions/engineer/definition.js";
+} from "../../js/professions/engineer/definition.js";
 import {
   ENGINEER_TRAIT_IDS,
-} from "js/professions/engineer/data/ids.js";
+} from "../../js/professions/engineer/data/ids.js";
 import {
   calculateAttributes as calculateEngineerAttributes,
-} from "js/professions/engineer/app/app-definition.js";
-import { createGuardianBuildDefaults } from "js/professions/guardian/build.js";
+} from "../../js/professions/engineer/app/app-definition.js";
+import { createGuardianBuildDefaults } from "../../js/professions/guardian/build.js";
 import {
   guardianProfession,
-} from "js/professions/guardian/definition.js";
+} from "../../js/professions/guardian/definition.js";
 import {
   GUARDIAN_TRAIT_IDS,
-} from "js/professions/guardian/data/ids.js";
+} from "../../js/professions/guardian/data/ids.js";
 import {
   calculateAttributes as calculateGuardianAttributes,
-} from "js/professions/guardian/app/app-definition.js";
-import { createMesmerBuildDefaults } from "js/professions/mesmer/build.js";
+} from "../../js/professions/guardian/app/app-definition.js";
+import { createMesmerBuildDefaults } from "../../js/professions/mesmer/build.js";
 import {
   calculateAttributes as calculateMesmerAttributes,
-} from "js/professions/mesmer/app/app-definition.js";
-import { createNecromancerBuildDefaults } from "js/professions/necromancer/build.js";
+} from "../../js/professions/mesmer/app/app-definition.js";
+import { createNecromancerBuildDefaults } from "../../js/professions/necromancer/build.js";
 import {
   calculateAttributes as calculateNecromancerAttributes,
-} from "js/professions/necromancer/app/app-definition.js";
+} from "../../js/professions/necromancer/app/app-definition.js";
 import {
   necromancerProfession,
-} from "js/professions/necromancer/definition.js";
+} from "../../js/professions/necromancer/definition.js";
 import {
   NECROMANCER_TRAIT_IDS,
-} from "js/professions/necromancer/data/ids.js";
+} from "../../js/professions/necromancer/data/ids.js";
 import {
   createNecromancerCoreState,
-} from "js/professions/necromancer/core/state.js";
-import { createRevenantBuildDefaults } from "js/professions/revenant/build.js";
+} from "../../js/professions/necromancer/core/state.js";
+import { createRevenantBuildDefaults } from "../../js/professions/revenant/build.js";
 import {
   calculateAttributes as calculateRevenantAttributes,
   recalculate as recalculateRevenant,
-} from "js/professions/revenant/app/app-definition.js";
+} from "../../js/professions/revenant/app/app-definition.js";
 import {
   revenantProfession,
-} from "js/professions/revenant/definition.js";
+} from "../../js/professions/revenant/definition.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT,
-} from "js/professions/revenant/data/ids.js";
-import { createThiefBuildDefaults } from "js/professions/thief/build.js";
+} from "../../js/professions/revenant/data/ids.js";
+import { createThiefBuildDefaults } from "../../js/professions/thief/build.js";
 import {
   calculateAttributes as calculateThiefAttributes,
-} from "js/professions/thief/app/app-definition.js";
+} from "../../js/professions/thief/app/app-definition.js";
 import {
   THIEF_TRAIT_IDS,
-} from "js/professions/thief/data/ids.js";
-import { createThiefCoreState } from "js/professions/thief/core/state.js";
+} from "../../js/professions/thief/data/ids.js";
+import { createThiefCoreState } from "../../js/professions/thief/core/state.js";
 
 const engineerCoreRules = engineerProfession.resolveRuntime({});
 const guardianCoreRules = guardianProfession.resolveRuntime({});

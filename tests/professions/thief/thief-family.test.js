@@ -2,20 +2,20 @@ import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 
-import { simulateGw2 } from "js/platform/gw2/simulate.js";
+import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
   THIEF_ELITE_SPECIALIZATIONS,
   thiefCatalog,
   thiefSkillRuntimeOwner,
-} from "js/professions/thief/catalog.js";
-import { thiefCoreModule } from "js/professions/thief/core/module.js";
+} from "../../../js/professions/thief/catalog.js";
+import { thiefCoreModule } from "../../../js/professions/thief/core/module.js";
 import {
   THIEF_CORE_SKILL_MECHANICS,
-} from "js/professions/thief/core/skills.js";
-import { thiefProfession } from "js/professions/thief/definition.js";
+} from "../../../js/professions/thief/core/skills.js";
+import { thiefProfession } from "../../../js/professions/thief/definition.js";
 import {
   THIEF_SKILL_MECHANICS,
-} from "js/professions/thief/mechanics/skill-mechanics.js";
+} from "../../../js/professions/thief/mechanics/skill-mechanics.js";
 
 function nativeModifierRules(module) {
   const modifiers = module.mechanics?.modifiers;
@@ -23,23 +23,23 @@ function nativeModifierRules(module) {
 }
 import {
   THIEF_SKILL_IDS as ID,
-} from "js/professions/thief/data/ids.js";
-import { antiquaryModule } from "js/professions/thief/specializations/antiquary/module.js";
+} from "../../../js/professions/thief/data/ids.js";
+import { antiquaryModule } from "../../../js/professions/thief/specializations/antiquary/module.js";
 import {
   ANTIQUARY_SKILL_MECHANICS,
-} from "js/professions/thief/specializations/antiquary/skills.js";
-import { daredevilModule } from "js/professions/thief/specializations/daredevil/module.js";
+} from "../../../js/professions/thief/specializations/antiquary/skills.js";
+import { daredevilModule } from "../../../js/professions/thief/specializations/daredevil/module.js";
 import {
   DAREDEVIL_SKILL_MECHANICS,
-} from "js/professions/thief/specializations/daredevil/skills.js";
-import { deadeyeModule } from "js/professions/thief/specializations/deadeye/module.js";
+} from "../../../js/professions/thief/specializations/daredevil/skills.js";
+import { deadeyeModule } from "../../../js/professions/thief/specializations/deadeye/module.js";
 import {
   DEADEYE_SKILL_MECHANICS,
-} from "js/professions/thief/specializations/deadeye/skills.js";
-import { specterModule } from "js/professions/thief/specializations/specter/module.js";
+} from "../../../js/professions/thief/specializations/deadeye/skills.js";
+import { specterModule } from "../../../js/professions/thief/specializations/specter/module.js";
 import {
   SPECTER_SKILL_MECHANICS,
-} from "js/professions/thief/specializations/specter/skills.js";
+} from "../../../js/professions/thief/specializations/specter/skills.js";
 
 const slices = Object.freeze([
   ["core", thiefCoreModule],
@@ -80,7 +80,7 @@ test("Thief modules own vertical source slices", () => {
   ]) {
     assert.equal(
       existsSync(
-        new URL(`js/professions/thief/${obsolete}`, import.meta.url),
+        new URL(`../../../js/professions/thief/${obsolete}`, import.meta.url),
       ),
       false,
       obsolete,
@@ -90,7 +90,7 @@ test("Thief modules own vertical source slices", () => {
   const modifierRuleOwners = new Map();
   for (const [directory, module] of slices) {
     const directoryUrl = new URL(
-      `js/professions/thief/${directory}/`,
+      `../../../js/professions/thief/${directory}/`,
       import.meta.url,
     );
     for (const entry of readdirSync(directoryUrl, { withFileTypes: true })) {
@@ -125,7 +125,7 @@ test("Thief modules own vertical source slices", () => {
     }
     for (const filename of ["module.js", "state.js", "skills.js"]) {
       const url = new URL(
-        `js/professions/thief/${directory}/${filename}`,
+        `../../../js/professions/thief/${directory}/${filename}`,
         import.meta.url,
       );
       assert.equal(existsSync(url), true, `${directory}/${filename}`);
@@ -171,7 +171,7 @@ test("Thief modules own vertical source slices", () => {
     "ui.js",
   ].map(filename =>
     readFileSync(
-      new URL(`js/professions/thief/core/${filename}`, import.meta.url),
+      new URL(`../../../js/professions/thief/core/${filename}`, import.meta.url),
       "utf8",
     ),
   ).join("\n");
@@ -179,7 +179,7 @@ test("Thief modules own vertical source slices", () => {
   assert.doesNotMatch(
     readFileSync(
       new URL(
-        "js/professions/thief/mechanics/skill-mechanics.js",
+        "../../../js/professions/thief/mechanics/skill-mechanics.js",
         import.meta.url,
       ),
       "utf8",
