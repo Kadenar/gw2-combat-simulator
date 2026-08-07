@@ -1,18 +1,30 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { mesmerModuleCatalog } from "../../catalog.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createMesmerModuleData } from "../../catalog-data.js";
 import { virtuosoAttributeRules, virtuosoRuntimeHooks } from "./rules.js";
 import { createVirtuosoResolverState, createVirtuosoState } from "./state.js";
 import { virtuosoUi } from "./ui.js";
-import type { MesmerVirtuosoState } from "../../types.js";
+import {
+  MESMER_VIRTUOSO_EXTRA_SKILLS,
+  MESMER_VIRTUOSO_SKILL_MECHANICS,
+  MESMER_VIRTUOSO_SUPPLEMENTAL_SKILL_MECHANICS,
+} from "./skills.js";
+import { virtuosoSkillHandlers } from "./handlers.js";
 
-export const virtuosoModule = defineProfessionModule<MesmerVirtuosoState>({
+export const virtuosoModule = defineNativeModule({
   id: "Virtuoso",
-  catalog: mesmerModuleCatalog("Virtuoso"),
-  resources: {
-    createProfessionState: createVirtuosoState,
-    createResolverState: createVirtuosoResolverState,
+  data: createMesmerModuleData("Virtuoso", {
+    skillMechanics: MESMER_VIRTUOSO_SKILL_MECHANICS,
+    supplementalSkillMechanics: MESMER_VIRTUOSO_SUPPLEMENTAL_SKILL_MECHANICS,
+    extraSkills: MESMER_VIRTUOSO_EXTRA_SKILLS,
+    handlers: virtuosoSkillHandlers,
+  }),
+  state: {
+    scheduler: createVirtuosoState,
+    resolver: createVirtuosoResolverState,
   },
-  attributeRules: virtuosoAttributeRules,
-  schedulerHooks: virtuosoRuntimeHooks,
-  ui: virtuosoUi,
+  mechanics: {
+    modifiers: virtuosoAttributeRules,
+    schedulerHooks: virtuosoRuntimeHooks,
+  },
+  presentation: virtuosoUi,
 });

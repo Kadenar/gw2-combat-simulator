@@ -1,5 +1,4 @@
-import { EPSILON } from "../engine/clock.js";
-import { isInternalCooldownReady } from "../engine/internal-cooldown.js";
+import { EPSILON, isInternalCooldownReady } from "../engine/clock.js";
 import { permanentTargetConditionStacks } from "./target-state.js";
 import { gw2SigilSet } from "./runtime-rules.js";
 

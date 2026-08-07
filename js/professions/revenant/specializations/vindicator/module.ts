@@ -1,5 +1,5 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { revenantModuleCatalog } from "../../catalog.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createRevenantModuleData } from "../../catalog-data.js";
 import {
   vindicatorEventHandlers,
   vindicatorEventReactions,
@@ -11,21 +11,24 @@ import {
 } from "./rules.js";
 import { createVindicatorState } from "./state.js";
 import { vindicatorUi } from "./ui.js";
-import type { VindicatorState } from "../../types.js";
+import { VINDICATOR_BASE_SKILL_MECHANICS } from "./skills.js";
+import { vindicatorSkillHandlers } from "./handlers.js";
 
-export const vindicatorModule = defineProfessionModule<VindicatorState>({
+export const vindicatorModule = defineNativeModule({
   id: "Vindicator",
-  catalog: revenantModuleCatalog("Vindicator"),
-  resources: {
-    createProfessionState: createVindicatorState,
-    createResolverState: createVindicatorState,
+  data: createRevenantModuleData("Vindicator", {
+    skillMechanics: VINDICATOR_BASE_SKILL_MECHANICS,
+    handlers: vindicatorSkillHandlers,
+  }),
+  state: { scheduler: createVindicatorState, resolver: createVindicatorState },
+  mechanics: {
+    modifiers: vindicatorAttributeRules,
+    castRules: vindicatorCastRules,
+    schedulerHooks: vindicatorSchedulerHooks,
+    resolverHooks: {
+      eventHandlers: vindicatorEventHandlers,
+      eventReactions: vindicatorEventReactions,
+    },
   },
-  attributeRules: vindicatorAttributeRules,
-  castRules: vindicatorCastRules,
-  schedulerHooks: vindicatorSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: vindicatorEventHandlers,
-    eventReactions: vindicatorEventReactions,
-  },
-  ui: vindicatorUi,
+  presentation: vindicatorUi,
 });

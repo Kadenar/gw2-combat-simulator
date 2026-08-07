@@ -3041,6 +3041,96 @@ header .accent {
     color: var(--health);
 }
 
+.rng-explanation {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.rng-explanation-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.rng-explanation-heading strong {
+    color: var(--text-bright);
+    font-size: 11px;
+}
+
+.rng-explanation-heading span,
+.rng-explanation > p {
+    color: var(--text-dim);
+    font-size: 9px;
+}
+
+.rng-explanation > p {
+    margin: 3px 0 8px;
+}
+
+.rng-driver-list {
+    display: grid;
+    gap: 5px;
+}
+
+.rng-driver {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    padding: 7px 9px;
+    background: var(--bg-card);
+    border-radius: 5px;
+}
+
+.rng-driver-label {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
+}
+
+.rng-driver-label strong {
+    overflow: hidden;
+    color: var(--text);
+    font-size: 10px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rng-driver-label small {
+    color: var(--text-dim);
+    font-size: 9px;
+}
+
+.rng-driver-delta {
+    display: flex;
+    flex: none;
+    align-items: end;
+    flex-direction: column;
+    gap: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.rng-driver-delta small {
+    color: var(--text-dim);
+    font-size: 9px;
+}
+
+.rng-driver-delta strong {
+    min-width: 62px;
+    color: var(--health);
+    font-size: 12px;
+    text-align: right;
+}
+
+.rng-explanation > .rng-explanation-note {
+    margin: 7px 0 0;
+}
+
 .rng-distribution-status {
     padding: 10px;
     background: var(--bg-card);
@@ -3115,6 +3205,26 @@ header .accent {
 
 .rng-distribution-error {
     color: #e58b70;
+}
+
+@media (max-width: 620px) {
+    .rng-driver {
+        align-items: start;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .rng-driver-delta {
+        align-items: baseline;
+        flex-direction: row;
+        gap: 4px;
+        width: 100%;
+    }
+
+    .rng-driver-delta strong {
+        min-width: 0;
+        text-align: left;
+    }
 }
 
 .res-breakpoints {

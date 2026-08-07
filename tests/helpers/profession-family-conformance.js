@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { nativeSkillRuntimeOwner } from "../../js/platform/gw2/native-profession.js";
 
 const EXECUTABLE_FAMILY_KEYS = Object.freeze([
   "createProfessionState",
@@ -17,17 +18,10 @@ function sortedIds(entries) {
   return entries.map(entry => String(entry.id)).sort();
 }
 
-function moduleEntries(core, specialization, key) {
-  return [
-    ...(core.catalog?.[key] || []),
-    ...(specialization?.catalog?.[key] || []),
-  ];
-}
-
 function registryKeys(core, specialization, container, key) {
   return [
-    ...Object.keys(core[container]?.[key] || {}),
-    ...Object.keys(specialization?.[container]?.[key] || {}),
+    ...Object.keys(core.mechanics?.[container]?.[key] || {}),
+    ...Object.keys(specialization?.mechanics?.[container]?.[key] || {}),
   ].sort();
 }
 
@@ -37,6 +31,7 @@ export function assertProfessionFamilyConformance({
   specializations,
 }) {
   assert.equal(typeof family.resolveRuntime, "function");
+  const modules = [core, ...Object.values(specializations)];
   for (const key of EXECUTABLE_FAMILY_KEYS) {
     assert.equal(Object.hasOwn(family, key), false, `${family.id}.${key}`);
   }
@@ -52,12 +47,18 @@ export function assertProfessionFamilyConformance({
     assert.equal(runtime.createProfessionState(config).specialization.kind, name);
     assert.deepEqual(
       sortedIds(runtime.catalog.skills),
-      sortedIds(moduleEntries(core, specialization, "skills")),
+      sortedIds(family.catalog.skills.filter(skill => {
+        const owner = nativeSkillRuntimeOwner(modules, skill);
+        return owner === "Core" || owner === name;
+      })),
       `${family.id}/${name} skills`,
     );
     assert.deepEqual(
       sortedIds(runtime.catalog.traits),
-      sortedIds(moduleEntries(core, specialization, "traits")),
+      sortedIds([
+        ...(core.data.traits || []),
+        ...(specialization?.data.traits || []),
+      ]),
       `${family.id}/${name} traits`,
     );
     assert.deepEqual(

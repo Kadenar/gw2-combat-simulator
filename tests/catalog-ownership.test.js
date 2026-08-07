@@ -2,176 +2,188 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  defineCatalogOwnership,
-} from "../js/platform/engine/catalog-ownership.js";
-import { createCanonicalCatalog } from "../js/platform/engine/catalog.js";
+  assembleNativeApplicationCatalog,
+  defineNativeModule,
+  defineNativeProfession,
+  nativeSkillRuntimeOwner,
+  onResolvedDamage,
+  onResolvedPlayerCriticalHit,
+} from "../js/platform/gw2/native-profession.js";
 
 const replaceHandler = Object.freeze({
   mode: "replace",
   beforeEffects: () => undefined,
 });
-
-function ownershipCatalog(skills = [
-  {
-    id: 1,
-    name: "Core Weapon",
-    type: "Weapon",
-    handlerId: "test.core",
-    implemented: true,
-    castTimeMs: 0,
-    effects: [],
-  },
-  {
-    id: 2,
-    name: "Elite Skill",
-    specialization: "Elite",
-    handlerId: "test.elite",
-    implemented: true,
-    castTimeMs: 0,
-    effects: [],
-  },
-  {
-    id: 3,
-    name: "Elite Mechanic Weapon",
-    type: "Weapon",
-    specialization: "Elite",
-    handlerId: "test.elite",
-    implemented: true,
-    castTimeMs: 0,
-    effects: [],
-  },
-]) {
-  return createCanonicalCatalog({
-    generated: skills,
-    skillHandlers: {
-      "test.core": replaceHandler,
-      "test.elite": replaceHandler,
-    },
-    traits: [
-      { id: 10, name: "Core Trait", specialization: "Core Line" },
-      { id: 11, name: "Elite Trait", specialization: "Elite" },
-    ],
-    specializations: [
-      { id: 20, name: "Core Line", elite: false },
-      { id: 21, name: "Elite", elite: true },
-    ],
+const skill = (id, name, extra = {}) => Object.freeze({
+  id,
+  name,
+  implemented: true,
+  castTimeMs: 0,
+  effects: [],
+  ...extra,
+});
+const coreModule = () => defineNativeModule({
+  id: "Core",
+  data: {
+    generatedSkills: [skill(1, "Core Skill", { handlerId: "test.core" })],
+    traits: [{ id: 10, name: "Core Trait", specialization: "Core Line" }],
+    specializations: [{ id: 20, name: "Core Line", elite: false }],
+    handlers: { "test.core": replaceHandler },
     weapons: ["Sword"],
     weaponHands: { Sword: "mh" },
-  });
-}
-
-test("catalog ownership materializes cached, disjoint runtime fragments", () => {
-  const catalog = ownershipCatalog();
-  const ownership = defineCatalogOwnership({
-    catalog,
-    modules: ["Core", "Elite"],
-    skillOverrides: { 3: "Elite" },
-    handlerOwners: { "test.elite": "Elite" },
-    core: { ownsWeapons: true },
-  });
-
-  const core = ownership.fragment("Core");
-  const elite = ownership.fragment("Elite");
-  assert.equal(core, ownership.fragment("Core"));
-  assert.deepEqual(core.skills.map((skill) => skill.id), [1]);
-  assert.deepEqual(elite.skills.map((skill) => skill.id), [2, 3]);
-  assert.deepEqual(core.traits.map((trait) => trait.id), [10]);
-  assert.deepEqual(elite.traits.map((trait) => trait.id), [11]);
-  assert.deepEqual(core.specializations.map((line) => line.id), [20]);
-  assert.deepEqual(elite.specializations.map((line) => line.id), [21]);
-  assert.deepEqual([...core.skillHandlers.keys()], ["test.core"]);
-  assert.deepEqual([...elite.skillHandlers.keys()], ["test.elite"]);
-  assert.deepEqual(core.weapons, ["Sword"]);
-  assert.equal(core.weaponHands.get("Sword"), "mh");
-  assert.throws(() => ownership.fragment("Missing"), /Unknown catalog module/);
+  },
+  state: { scheduler: () => ({ coreValue: 1 }) },
+});
+const eliteModule = () => defineNativeModule({
+  id: "Elite",
+  data: {
+    generatedSkills: [
+      skill(2, "Elite Skill", {
+        specialization: "Elite",
+        handlerId: "test.elite",
+      }),
+      skill(3, "Elite Mechanic Weapon", {
+        type: "Weapon",
+        specialization: "Elite",
+      }),
+    ],
+    traits: [{ id: 11, name: "Elite Trait", specialization: "Elite" }],
+    specializations: [{ id: 21, name: "Elite", elite: true }],
+    handlers: { "test.elite": replaceHandler },
+  },
+  state: { scheduler: () => ({ eliteValue: 2 }) },
 });
 
-test("catalog ownership rejects incomplete and unknown owners", () => {
-  const catalog = ownershipCatalog();
+test("module-first assembly derives application and active runtime catalogs", () => {
+  const modules = [coreModule(), eliteModule()];
+  const catalog = assembleNativeApplicationCatalog(modules);
+  const family = defineNativeProfession({ id: "fixture", name: "Fixture", modules });
+
+  assert.equal(family.catalog, catalog);
+  assert.deepEqual(catalog.skills.map(({ id }) => id).sort(), [1, 2, 3]);
+  assert.equal(nativeSkillRuntimeOwner(modules, catalog.skillsById.get(3)), "Core");
+  assert.deepEqual(
+    family.resolveRuntime({ specialization: "Core" }).catalog.skills.map(({ id }) => id),
+    [1, 3],
+  );
+  assert.deepEqual(
+    family.resolveRuntime({ specialization: "Elite" }).catalog.skills.map(({ id }) => id).sort(),
+    [1, 2, 3],
+  );
+  assert.deepEqual(family.specializationIds, ["Elite"]);
+  assert.equal(family.resolveRuntime({ specialization: "Core" }).catalog.skillHandlers.has("test.elite"), false);
+  assert.equal(family.resolveRuntime({ specialization: "Elite" }).catalog.skillHandlers.has("test.elite"), true);
+});
+
+test("module-first assembly rejects duplicate and incomplete contributions", () => {
+  const core = coreModule();
   assert.throws(
-    () => defineCatalogOwnership({
-      catalog,
-      modules: ["Core", "Elite"],
-      defaultSkillOwner: () => undefined,
-    }),
-    /Skill 1 has no owner/,
+    () => assembleNativeApplicationCatalog([core, defineNativeModule({
+      id: "Duplicate",
+      data: { generatedSkills: [skill(1, "Duplicate")] },
+      state: { scheduler: () => ({}) },
+    })]),
+    /Duplicate generated skill id 1/,
   );
   assert.throws(
-    () => defineCatalogOwnership({
-      catalog,
-      modules: ["Core", "Elite"],
-      defaultSkillOwner: () => "Missing",
-    }),
-    /Skill 1 has unknown owner "Missing"/,
+    () => assembleNativeApplicationCatalog([core, defineNativeModule({
+      id: "DuplicateHand",
+      data: { weapons: ["Sword"], weaponHands: { Sword: "oh" } },
+      state: { scheduler: () => ({}) },
+    })]),
+    /Duplicate weapon-hand entry Sword/,
   );
   assert.throws(
-    () => defineCatalogOwnership({
-      catalog,
-      modules: ["Core", "Elite"],
-      skillOverrides: { 999: "Core" },
-    }),
-    /Unknown skill ownership override 999/,
+    () => assembleNativeApplicationCatalog([core, defineNativeModule({
+      id: "UnusedHandler",
+      data: { handlers: { "test.unused": replaceHandler } },
+      state: { scheduler: () => ({}) },
+    })]),
+    /Skill handler test\.unused is unused/,
+  );
+  assert.throws(
+    () => defineNativeModule({ id: "Broken", data: {}, state: {} }),
+    /Broken\.state\.scheduler must be a function/,
   );
 });
 
-test("catalog ownership rejects duplicate claims and fragment drift", () => {
-  const catalog = ownershipCatalog();
-  const base = {
-    catalog,
-    modules: ["Core", "Elite"],
-    skillOverrides: { 3: "Elite" },
-    handlerOwners: { "test.elite": "Elite" },
+test("phase-explicit reactions retain stable order", () => {
+  const calls = [];
+  const core = defineNativeModule({
+    id: "Core",
+    data: {},
+    state: { scheduler: () => ({}) },
+    mechanics: {
+      reactions: [
+        onResolvedDamage({ id: "later", order: 20, handler: () => calls.push("later") }),
+        onResolvedDamage({ id: "first", order: -10, handler: () => calls.push("first") }),
+        onResolvedDamage({ id: "middle", order: 0, handler: () => calls.push("middle") }),
+      ],
+    },
+  });
+  const runtime = defineNativeProfession({
+    id: "ordered",
+    name: "Ordered",
+    modules: [core],
+  }).resolveRuntime({ specialization: "Core" });
+  runtime.eventReactions.damage({}, { type: "damage", at: 0 }, {});
+  assert.deepEqual(calls, ["first", "middle", "later"]);
+});
+
+test("critical-hit helper preserves deterministic and stochastic semantics", () => {
+  const state = { progress: 0, readyAt: 0, procs: 0, rolls: 0 };
+  const context = {
+    random: {
+      stochastic: false,
+      roll: (chance, stream) => {
+        state.rolls += 1;
+        assert.equal(chance, 0.5);
+        assert.equal(stream, "fixture.critical");
+        return true;
+      },
+    },
   };
-  assert.throws(
-    () => defineCatalogOwnership({
-      ...base,
-      moduleFragments: {
-        Elite: { skills: [catalog.skillsById.get(1)] },
-      },
-    }),
-    /Skill 1 is claimed by Core and Elite/,
-  );
-  assert.throws(
-    () => defineCatalogOwnership({
-      ...base,
-      moduleFragments: {
-        Elite: {
-          skills: [{
-            id: 999,
-            name: "Foreign Skill",
-            implemented: true,
-            castTimeMs: 0,
-            effects: [],
-          }],
-        },
-      },
-    }),
-    /Skill fragment union contains unknown entity 999/,
-  );
-});
+  const reaction = onResolvedPlayerCriticalHit({
+    id: "fixture.critical",
+    chanceOnCriticalHit: 0.5,
+    sourceIds: [7],
+    expectedProgress: {
+      get: () => state.progress,
+      set: (_context, value) => { state.progress = value; },
+    },
+    internalCooldown: {
+      duration: 1,
+      readyAt: () => state.readyAt,
+      setReadyAt: (_context, value) => { state.readyAt = value; },
+    },
+    attribution: { kind: "trait", id: 99 },
+    handler: () => { state.procs += 1; },
+  });
+  const event = { type: "damage", at: 0, actorType: "player", sourceId: 7 };
+  const deterministic = { hitContext: { critical: { chance: 0.5 } } };
+  for (let index = 0; index < 8; index += 1) {
+    reaction.handler(context, { ...event, at: index / 4 }, deterministic);
+  }
+  assert.equal(state.procs, 1);
+  assert.equal(state.rolls, 0);
+  assert.equal(state.progress, 1);
 
-test("catalog ownership validates handler and Weaponmaster registration", () => {
-  const catalog = ownershipCatalog();
-  assert.throws(
-    () => defineCatalogOwnership({
-      catalog,
-      modules: ["Core", "Elite"],
-      skillOverrides: { 3: "Elite" },
-      core: { ownsWeapons: true },
-    }),
-    /Handler test\.elite is registered by Core/,
-  );
-  assert.throws(
-    () => defineCatalogOwnership({
-      catalog,
-      modules: ["Core", "Elite"],
-      defaultSkillOwner: () => "Elite",
-      handlerOwners: {
-        "test.core": "Elite",
-        "test.elite": "Elite",
-      },
-      core: { ownsWeapons: true },
-    }),
-    /Weaponmaster skill 1 must be Core-owned or explicitly overridden/,
-  );
+  context.random.stochastic = true;
+  reaction.handler(context, { ...event, at: 2 }, {
+    hitContext: { critical: { chance: 0.5, didCrit: false } },
+  });
+  reaction.handler(context, { ...event, at: 2 }, {
+    hitContext: { critical: { chance: 0.5, didCrit: true } },
+  });
+  assert.equal(state.procs, 2);
+  assert.equal(state.rolls, 1);
+  assert.deepEqual(reaction.attribution, { kind: "trait", id: 99 });
+
+  reaction.handler(context, { ...event, at: 3, actorType: "summon" }, {
+    hitContext: { critical: { chance: 1, didCrit: true } },
+  });
+  reaction.handler(context, { ...event, at: 3, sourceId: 8 }, {
+    hitContext: { critical: { chance: 1, didCrit: true } },
+  });
+  assert.equal(state.procs, 2);
 });

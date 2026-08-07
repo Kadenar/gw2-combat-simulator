@@ -12,10 +12,9 @@ profession from a profession-wide runtime contract into:
 1. one always-active Core module; and
 2. at most one active elite-specialization module.
 
-Necromancer is the reference implementation. The remaining professions must be
-migrated one profession at a time. Within a profession, extract one elite
-folder at a time, but do not mark the profession migrated until Core and every
-supported elite satisfy this specification.
+The six native families now satisfy this specification through the shared
+native authoring layer. The procedure remains as history and as a checklist
+for future family migrations; Elementalist is explicitly excluded.
 
 This is a separation-of-concerns migration. Unless separately approved, it must
 not change damage, timing, cooldowns, resources, build persistence, selectable
@@ -76,12 +75,20 @@ or document why the correction is inseparable from the migration.
 
 ## Existing platform contract
 
-The family infrastructure already exists. Do not create a second composition
-system.
+The native authoring infrastructure already exists. Do not create a second
+composition system or call the engine family builders from profession code.
 
-- `defineProfessionModule()` validates and freezes one module definition.
-- `defineProfessionFamily()` keeps the complete application surface and caches
+- `defineNativeModule()` validates and freezes one typed vertical slice.
+- `defineNativeProfession()` derives the application and runtime catalogs,
+  compiles modules to the engine family boundary, and caches
   Core-plus-active-elite runtime contracts.
+- `createNativeModuleData()` selects generated metadata for one owner while
+  retaining locally authored skill mechanics, handlers, traits, and catalog
+  exceptions.
+- `assembleNativeApplicationCatalog()` derives the complete application
+  catalog from the same Core-first module tuple.
+- `defineProfessionModule()` and `defineProfessionFamily()` remain engine
+  compilation boundaries, not native profession authoring APIs.
 - `resolveProfessionRuntime()` passes legacy contracts through and resolves
   family contracts.
 - scheduler, resolver, and canonical simulation entry points normalize the
@@ -156,7 +163,9 @@ js/professions/<profession>/
       rules.ts
       ui.ts
       <feature>.ts
+  modules.ts
   family.ts
+  catalog-data.ts
   catalog.ts
   definition.ts
   handlers.ts
@@ -180,27 +189,31 @@ beside `.ts` sources and do not commit generated `dist/` output.
 ### `module.ts`
 
 `module.ts` is composition only. It wires local exports into
-`defineProfessionModule()`:
+`defineNativeModule()`:
 
 ```ts
-export const eliteModule = defineProfessionModule({
+export const eliteModule = defineNativeModule({
   id: "Elite",
-  catalog: {
-    ...professionModuleCatalog("Elite"),
-    skillHandlers: eliteSkillHandlers,
+  data: createNativeModuleData({
+    id: "Elite",
+    generatedSkills: PROFESSION_API_SKILLS,
+    skillMechanics: ELITE_SKILL_MECHANICS,
+    handlers: eliteSkillHandlers,
+    traits: PROFESSION_TRAITS,
+    specializations: PROFESSION_SPECIALIZATIONS,
+  }),
+  state: {
+    scheduler: createEliteState,
+    resolver: createEliteResolverState,
+    project: projectEliteEndState,
   },
-  resources: {
-    createProfessionState: createEliteState,
-    createResolverState: createEliteResolverState,
+  mechanics: {
+    modifiers: eliteModifierRules,
+    availability: eliteAvailability,
+    castLifecycle: eliteCastLifecycle,
+    reactions: eliteReactions,
   },
-  attributeRules: eliteAttributeRules,
-  castRules: eliteCastRules,
-  schedulerHooks: eliteSchedulerHooks,
-  resolverHooks: {
-    eventHandlers: eliteEventHandlers,
-    eventReactions: eliteEventReactions,
-  },
-  ui: eliteUi,
+  presentation: eliteUi,
 });
 ```
 
@@ -215,11 +228,11 @@ not type or initialize sibling state.
 ### `skills.ts`
 
 Owns raw declarative skill mechanics, measured cast timings, and local extra
-skill definitions. It must not be a wrapper around
-`professionModuleCatalog("Elite")`.
+skill definitions. It must not be a wrapper around assembled catalog data.
 
-The catalog-slice call belongs in `module.ts`. The full application catalog
-imports the raw mechanics fragments from `skills.ts`.
+The local skill mechanics are passed through `data` in `module.ts`. The full
+application catalog is derived from modules and never imports raw mechanics
+separately.
 
 ### `handlers.ts`
 
@@ -250,21 +263,19 @@ assumptions contributed by the slice. It must not reproduce runtime mechanics.
 
 Root facades exist only for stable imports or the complete application surface:
 
-- `family.ts` is the only file that knows the complete elite module roster.
-- `catalog.ts` builds the full application catalog and returns inert
-  module-specific catalog slices.
+- `modules.ts` is the only file that knows the complete elite module roster.
+- `family.ts` passes that tuple to `defineNativeProfession()`.
+- `catalog-data.ts` owns inert generated inputs and exceptional catalog options.
+- `catalog.ts` exports `assembleNativeApplicationCatalog(modules, options)`.
 - `mechanics/skill-mechanics.ts` may normalize and merge module-owned raw skill
-  fragments.
-- `handlers.ts` may merge inert skill-handler strategies required by the
-  complete application catalog.
+  fragments only as a compatibility surface.
 - public end-state projection remains in Core state ownership.
 - root `resolver`, full-state factory, and UI dispatch facades are removed;
   runtime resolution and application UI composition are platform-owned.
 
 Core and elite feature files must not import executable application facades.
-The composition-only `module.ts` may import the inert catalog-slice function;
-this is the intentional exception. A facade must not regain executable
-ownership.
+`module.ts` imports inert inputs from `catalog-data.ts`, never the assembled
+root catalog. A facade must not regain executable ownership.
 
 ## Dependency rules
 
@@ -288,10 +299,12 @@ Therefore:
 - Core must not import an elite.
 - Runtime feature files must not import root application handler, resolver,
   state, or UI facades.
-- `module.ts` may import the inert module-catalog slicer from `catalog.ts`.
+- `module.ts` may import inert generated data and options from
+  `catalog-data.ts`.
 - `skills.ts` must not import `catalog.ts`; this would reverse catalog
   ownership and commonly creates a cycle.
-- `catalog.ts` may import raw skill fragments but must not import `module.ts`.
+- `catalog.ts` imports the shared module tuple and assembles the application
+  catalog; module files must not import it.
 
 Use architecture tests to enforce these boundaries.
 
@@ -370,27 +383,34 @@ export const ELITE_QUICKNESS_CAST_TIMES_MS = Object.freeze({
 });
 ```
 
-The root facade merges fragments and applies shared normalization:
+The owning module contributes those mechanics with generated identity data:
 
 ```ts
-const BASE_SKILL_MECHANICS = Object.freeze({
-  ...CORE_BASE_SKILL_MECHANICS,
-  ...ELITE_ONE_BASE_SKILL_MECHANICS,
-  ...ELITE_TWO_BASE_SKILL_MECHANICS,
+export const eliteModule = defineNativeModule({
+  id: "Elite",
+  data: createNativeModuleData({
+    id: "Elite",
+    generatedSkills: PROFESSION_API_SKILLS,
+    skillMechanics: ELITE_SKILL_MECHANICS,
+    specializations: PROFESSION_SPECIALIZATIONS,
+  }),
+  state: { scheduler: createEliteState },
 });
-
-export const PROFESSION_SKILL_MECHANICS =
-  normalizeSkillMechanics(BASE_SKILL_MECHANICS);
 ```
+
+`modules.ts` owns one Core-first module tuple. `catalog.ts` passes that tuple to
+`assembleNativeApplicationCatalog()`. The assembler derives both the complete
+application catalog and each active runtime fragment, so there is no separate
+ownership map or hand-maintained slice function.
 
 Requirements:
 
 - preserve each mechanics entry and measured timing;
 - move local extra skills with their owner;
-- retain one full application-facing aggregate;
+- retain one stable full application-facing catalog export;
 - keep shared normalization in one place;
 - reject duplicate IDs;
-- prove that the fragment union loses no mechanics;
+- prove that module contributions lose or duplicate no mechanics;
 - keep all profession-wide weapon skills in Core, regardless of original elite
   introduction; and
 - do not let runtime modules import the aggregate facade.
@@ -462,6 +482,25 @@ the GW2 additive and multiplicative buckets remain unchanged.
 
 Do not leave generic-looking functions in a root rule file when they encode
 one elite's IDs or policy. Generic naming does not make behavior shared.
+
+Prefer the phase-explicit native helpers for recurring mechanics:
+
+- scheduler availability and lifecycle: `skillAvailability()` and
+  `afterSkillEffects()`;
+- resolved standard events: `onResolvedDamage()`, `onResolvedControl()`,
+  and `onResolvedBlind()`;
+- player critical procs: `onResolvedPlayerCriticalHit()`, which consumes the
+  canonical stochastic critical result and accumulates deterministic expected
+  progress; and
+- handler declarations: `augmentSkill()` and `replaceSkill()`; modifier-rule
+  arrays are already typed and need no wrapper.
+
+These helpers require stable IDs and preserve explicit ordering. Do not add a
+helper merely to rename a one-off callback. Complex typed scheduler tasks,
+custom resolver event types, compound state machines, and exceptional
+cooldown/ammo policies should remain in the low-level `castRules`,
+`schedulerHooks`, or `resolverHooks` escape hatches. The escape hatch must
+still be phase-specific and owner-local.
 
 ## UI composition
 
@@ -556,7 +595,8 @@ Specifically inventory:
 - Create Core and elite directories.
 - Create composition-only `module.ts` files.
 - Keep `definition.ts` as the stable export.
-- Create `family.ts` as the only full-roster module.
+- Create `modules.ts` as the only full-roster module and keep `family.ts` as
+  profession composition.
 - Establish state fragments and compatibility projection.
 - Resolve Core and every elite before moving behavior, using temporary
   delegation only when necessary.
@@ -568,8 +608,9 @@ Temporary delegation must be removed before completion.
 - Move raw skill entries and measured timings into owner `skills.ts` files.
 - Move extra skills to their owner.
 - Keep profession-wide weapon families in Core.
-- Convert the root skill-mechanics file to merge and normalize fragments.
-- Put `professionModuleCatalog("Owner")` in `module.ts`.
+- Keep a root skill-mechanics aggregate only for stable compatibility imports.
+- Put `createNativeModuleData({ id: "Owner", ... })` in `module.ts`.
+- Derive the application catalog from the Core-first module tuple.
 - Remove catalog imports from `skills.ts`.
 - Add no-loss/no-duplicate coverage.
 
@@ -687,7 +728,8 @@ Architecture tests must additionally assert:
 - Core imports no elite;
 - elites import no siblings;
 - runtime feature files import no executable application facade;
-- each `module.ts` imports at most the permitted inert catalog slicer;
+- each `module.ts` imports inert inputs from `catalog-data.ts`, not
+  `catalog.ts`;
 - each `skills.ts` owns raw mechanics and imports no root catalog;
 - the root skill-mechanics file declares no individual skill behavior;
 - runtime handlers import local/Core mechanics, not an aggregate

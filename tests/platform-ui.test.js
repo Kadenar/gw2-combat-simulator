@@ -399,6 +399,24 @@ test("shared results render summaries, totals, contributions, and icons", () => 
       p50: 1225,
       p90: 1350,
       p99: 1500,
+      explanation: {
+        cohortPercent: 10,
+        lowDpsMean: 1040,
+        highDpsMean: 1460,
+        drivers: [
+          {
+            id: "critical:illusion",
+            label: "Illusion critical hits",
+            category: "critical",
+            unit: "count",
+            lowAverage: 18.2,
+            overallAverage: 21.5,
+            highAverage: 25.4,
+            delta: 7.2,
+            correlation: 0.84,
+          },
+        ],
+      },
     },
   }, {
     resolveSkillIcon: row => {
@@ -435,6 +453,26 @@ test("shared results render summaries, totals, contributions, and icons", () => 
   assert.match(container.innerHTML, /Very lucky/);
   assert.match(container.innerHTML, /P99 DPS/);
   assert.match(container.innerHTML, /1,100&ndash;1,350/);
+  assert.match(
+    container.innerHTML,
+    /What was different in the highest-DPS simulations\?/,
+  );
+  assert.match(container.innerHTML, /50 highest vs 50 lowest/);
+  assert.match(
+    container.innerHTML,
+    /The 50 highest-DPS simulations averaged 1,460 DPS/,
+  );
+  assert.match(
+    container.innerHTML,
+    /The 50 lowest-DPS simulations averaged 1,040 DPS/,
+  );
+  assert.match(container.innerHTML, /Illusion critical hits/);
+  assert.match(container.innerHTML, /Highest-DPS group: 25\.4 average per simulation/);
+  assert.match(container.innerHTML, /Lowest-DPS group: 18\.2 average per simulation/);
+  assert.match(container.innerHTML, /\+7\.2/);
+  assert.match(container.innerHTML, /difference/);
+  assert.match(container.innerHTML, /averages across each group/);
+  assert.match(container.innerHTML, /do not add them together/);
   assert.ok(
     container.innerHTML.indexOf("DPS snapshots")
     < container.innerHTML.indexOf("Simulation RNG distribution"),

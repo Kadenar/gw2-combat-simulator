@@ -17,7 +17,6 @@ import type {
 } from "../types.js";
 
 interface CreateGw2ConditionResolutionOptions {
-  readonly targetHealthMultiplier?: (context: Gw2ResolverRuntime) => number;
   readonly onConditionApplied?: (
     context: Gw2ResolverRuntime,
     application: Gw2ResolvedConditionApplication,
@@ -33,7 +32,6 @@ const CONFUSION_ACTIVATION = Object.freeze({ base: 16.24, scaling: 0.0325 });
  * embedded in the common condition pipeline.
  */
 export function createGw2ConditionResolution({
-  targetHealthMultiplier = () => 1,
   onConditionApplied = () => {},
 }: CreateGw2ConditionResolutionOptions = {}): Readonly<Gw2ConditionResolution> {
   function activeStacks(
@@ -227,8 +225,7 @@ export function createGw2ConditionResolution({
     // at tick time rather than frozen with the application.
     const perStack =
       conditionRate(ctx, condition, stats.conditionDamage) *
-      ctx.query.conditionMultiplier(condition, event.at, application, ctx) *
-      targetHealthMultiplier(ctx);
+      ctx.query.conditionMultiplier(condition, event.at, application, ctx);
     const stackSeconds = application.stacks * fraction;
     const damage = perStack * stackSeconds;
     application.damage += damage;

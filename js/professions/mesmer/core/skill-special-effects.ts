@@ -1,5 +1,5 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
-import { isInternalCooldownReady } from "../../../platform/engine/internal-cooldown.js";
+import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
 import {
   MESMER_SKILL_IDS as ID,
   MESMER_TRAIT_IDS as TRAIT,

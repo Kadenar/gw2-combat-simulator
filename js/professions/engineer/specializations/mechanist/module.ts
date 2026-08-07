@@ -1,29 +1,40 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { engineerModuleCatalog } from "../../catalog.js";
+import {
+  afterSkillEffects,
+  defineNativeModule,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
+import { createEngineerModuleData } from "../../catalog-data.js";
 import {
   mechanistEventReactions,
   mechanistSchedulerHooks,
+  mechanistSkillHandlers,
 } from "./handlers.js";
-import {
-  mechanistAttributeRules,
-  mechanistCastRules,
-} from "./rules.js";
+import { mechanistAttributeRules, mechanistCastRules } from "./rules.js";
+import { MECHANIST_SKILL_MECHANICS } from "./skills.js";
 import { createMechanistState } from "./state.js";
 import { mechanistUi } from "./ui.js";
-import type { MechanistState } from "../../types.js";
 
-export const mechanistModule = defineProfessionModule<MechanistState>({
+const {
+  afterCast: mechanistAfterCast,
+  ...mechanistAdvancedSchedulerHooks
+} = mechanistSchedulerHooks;
+
+export const mechanistModule = defineNativeModule({
   id: "Mechanist",
-  catalog: engineerModuleCatalog("Mechanist"),
-  resources: {
-    createProfessionState: createMechanistState,
-    createResolverState: createMechanistState,
+  data: createEngineerModuleData("Mechanist", {
+    skillMechanics: MECHANIST_SKILL_MECHANICS,
+    handlers: mechanistSkillHandlers,
+  }),
+  state: { scheduler: createMechanistState, resolver: createMechanistState },
+  mechanics: {
+    modifiers: mechanistAttributeRules,
+    castRules: mechanistCastRules,
+    castLifecycle: [afterSkillEffects(mechanistAfterCast)],
+    schedulerHooks: mechanistAdvancedSchedulerHooks,
+    reactions: [onResolvedDamage({
+      id: "engineer.mechanist.damage",
+      handler: mechanistEventReactions.damage,
+    })],
   },
-  attributeRules: mechanistAttributeRules,
-  castRules: mechanistCastRules,
-  schedulerHooks: mechanistSchedulerHooks,
-  resolverHooks: {
-    eventReactions: mechanistEventReactions,
-  },
-  ui: mechanistUi,
+  presentation: mechanistUi,
 });

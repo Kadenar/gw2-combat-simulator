@@ -1,3 +1,5 @@
+import { ACTION_SAFETY_LIMIT, EPSILON } from "./clock.js";
+import { foldAvailability } from "./availability.js";
 import { createEvent } from "./events.js";
 import { createCooldownController } from "./cooldown-controller.js";
 import { normalizeRotation } from "./rotation-commands.js";
@@ -185,6 +187,10 @@ function scheduleDeclarativeEffects<
         ? { persistsAfterInterrupt: true }
         : {}),
     };
+    // Each effect type expands into an ordered list of applications; the shared
+    // loop below owns the single interrupt cancel-guard and emission, so the
+    // per-type branches only describe what to emit and when.
+    const applications: { at: number; event: SimulationEventInput }[] = [];
     if (effect.type === "strike") {
       const ticks = Array.isArray(timing.ticks) ? timing.ticks : null;
       const hits =
@@ -199,107 +205,105 @@ function scheduleDeclarativeEffects<
         const at = tick
           ? origin + Number(tick.atMs) / 1000
           : firstAt + (hitIndex - 1) * interval;
-        if (cancelPendingEffects && at > effectiveEnd + context.epsilon) break;
-        const emitted = context.emit({
-          ...base,
-          type: "damage",
+        applications.push({
           at,
-          name: effect.name || skill.name,
-          coefficient: tick ? Number(tick.coefficient) : equalCoefficient,
-          hits: 1,
-          hitIndex,
-          totalHits: hits,
-          skillWeapon:
-            effect.weapon ||
-            skill.weapon ||
-            skill.skillWeapon ||
-            (slotSkill ? "Unequipped" : ""),
-          weaponStrength: effect.weaponStrength,
-          weaponStrengthProfileId: effect.weaponStrengthProfileId,
-          canCrit: effect.canCrit !== false,
-          ...(effect.coefficientModifiers
-            ? { coefficientModifiers: effect.coefficientModifiers }
-            : {}),
-          ...(effect.metadata || {}),
+          event: {
+            ...base,
+            type: "damage",
+            at,
+            name: effect.name || skill.name,
+            coefficient: tick ? Number(tick.coefficient) : equalCoefficient,
+            hits: 1,
+            hitIndex,
+            totalHits: hits,
+            skillWeapon:
+              effect.weapon ||
+              skill.weapon ||
+              skill.skillWeapon ||
+              (slotSkill ? "Unequipped" : ""),
+            weaponStrength: effect.weaponStrength,
+            weaponStrengthProfileId: effect.weaponStrengthProfileId,
+            canCrit: effect.canCrit !== false,
+            ...(effect.coefficientModifiers
+              ? { coefficientModifiers: effect.coefficientModifiers }
+              : {}),
+            ...(effect.metadata || {}),
+          },
         });
-        observeEffect(emitted, effect, index);
       }
     } else if (effect.type === "condition") {
       if (Array.isArray(timing.ticks)) {
         const origin = timing.timingAnchor === "castEnd" ? fullEnd : start;
+        const ticks = timing.ticks;
         for (
           let applicationIndex = 1;
-          applicationIndex <= timing.ticks.length;
+          applicationIndex <= ticks.length;
           applicationIndex += 1
         ) {
-          const tick = timing.ticks[applicationIndex - 1];
+          const tick = ticks[applicationIndex - 1];
           const at = origin + Number(tick.atMs) / 1000;
-          if (cancelPendingEffects && at > effectiveEnd + context.epsilon)
-            break;
-          const emitted = context.emit({
-            ...base,
+          applications.push({
             at,
-            type: "condition",
-            name: effect.name || `${skill.name} — ${tick.condition}`,
-            condition: tick.condition,
-            stacks: Number(tick.stacks),
-            duration: Number(tick.duration),
-            applicationIndex,
-            totalApplications: timing.ticks.length,
-            ...(effect.metadata || {}),
+            event: {
+              ...base,
+              at,
+              type: "condition",
+              name: effect.name || `${skill.name} — ${tick.condition}`,
+              condition: tick.condition,
+              stacks: Number(tick.stacks),
+              duration: Number(tick.duration),
+              applicationIndex,
+              totalApplications: ticks.length,
+              ...(effect.metadata || {}),
+            },
           });
-          observeEffect(emitted, effect, index);
         }
-        continue;
-      }
-      const applications = Math.max(
-        1,
-        Math.trunc(Number(effect.applications || 1)),
-      );
-      const interval = Math.max(0, Number(timing.intervalMs || 0)) / 1000;
-      for (
-        let applicationIndex = 1;
-        applicationIndex <= applications;
-        applicationIndex += 1
-      ) {
-        const at = firstAt + (applicationIndex - 1) * interval;
-        if (cancelPendingEffects && at > effectiveEnd + context.epsilon) break;
-        const emitted = context.emit({
-          ...base,
-          at,
-          type: "condition",
-          name: `${skill.name} — ${effect.condition}`,
-          condition: effect.condition,
-          stacks: Number(effect.stacks),
-          duration: Number(effect.duration),
-          applicationIndex,
-          totalApplications: applications,
-          ...(effect.metadata || {}),
-        });
-        observeEffect(emitted, effect, index);
+      } else {
+        const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
+        const interval = Math.max(0, Number(timing.intervalMs || 0)) / 1000;
+        for (
+          let applicationIndex = 1;
+          applicationIndex <= count;
+          applicationIndex += 1
+        ) {
+          const at = firstAt + (applicationIndex - 1) * interval;
+          applications.push({
+            at,
+            event: {
+              ...base,
+              at,
+              type: "condition",
+              name: `${skill.name} — ${effect.condition}`,
+              condition: effect.condition,
+              stacks: Number(effect.stacks),
+              duration: Number(effect.duration),
+              applicationIndex,
+              totalApplications: count,
+              ...(effect.metadata || {}),
+            },
+          });
+        }
       }
     } else if (effect.type === "control" || effect.type === "blind") {
-      const applications = Math.max(
-        1,
-        Math.trunc(Number(effect.applications || 1)),
-      );
+      const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
       const interval = Math.max(0, Number(timing.intervalMs || 0)) / 1000;
       for (
         let applicationIndex = 1;
-        applicationIndex <= applications;
+        applicationIndex <= count;
         applicationIndex += 1
       ) {
         const at = firstAt + (applicationIndex - 1) * interval;
-        if (cancelPendingEffects && at > effectiveEnd + context.epsilon) break;
-        const emitted = context.emit({
-          ...base,
+        applications.push({
           at,
-          type: effect.type,
-          applicationIndex,
-          totalApplications: applications,
-          ...(effect.metadata || {}),
+          event: {
+            ...base,
+            at,
+            type: effect.type,
+            applicationIndex,
+            totalApplications: count,
+            ...(effect.metadata || {}),
+          },
         });
-        observeEffect(emitted, effect, index);
       }
     } else if (effect.type === "boon" || effect.type === "buff") {
       const baseDuration = Math.max(0, Number(effect.duration || 0));
@@ -310,31 +314,46 @@ function scheduleDeclarativeEffects<
           effect,
           baseDuration,
         ) ?? baseDuration;
-      const emitted = context.emit({
-        ...base,
+      applications.push({
         at: firstAt,
-        type: "buff",
-        kind: String(
-          effect.boon || effect.kind || effect.name || "",
-        ).toLowerCase(),
-        stacks: Math.max(1, Number(effect.stacks || 1)),
-        duration: Math.max(0, Number(duration || 0)),
+        event: {
+          ...base,
+          at: firstAt,
+          type: "buff",
+          kind: String(
+            effect.boon || effect.kind || effect.name || "",
+          ).toLowerCase(),
+          stacks: Math.max(1, Number(effect.stacks || 1)),
+          duration: Math.max(0, Number(duration || 0)),
+        },
       });
-      observeEffect(emitted, effect, index);
     } else if (effect.type === "custom") {
-      const emitted = context.emit({
-        ...base,
+      applications.push({
         at: firstAt,
-        ...effect.event,
-        type: effect.eventType,
+        event: {
+          ...base,
+          at: firstAt,
+          ...effect.event,
+          type: effect.eventType,
+        },
       });
-      observeEffect(emitted, effect, index);
+    }
+
+    // An interrupt only suppresses applications that have not fired yet. Earlier
+    // ticks remain in the stream even when the full cast never completes; a
+    // committed channel can explicitly keep its remaining packets.
+    for (const application of applications) {
+      if (
+        cancelPendingEffects
+        && application.at > effectiveEnd + context.epsilon
+      )
+        break;
+      observeEffect(context.emit(application.event), effect, index);
     }
   }
 }
 
 const CORE_CAST_COMPLETE = "platform.cast-complete";
-const ACTION_SAFETY_LIMIT = 100_000;
 
 /**
  * @param {string} reason
@@ -362,23 +381,16 @@ function combineAvailability(
     | undefined
   )[],
 ): AvailabilityResult {
-  // A non-retryable denial is final. Otherwise all constraints must be ready,
-  // so the scheduler waits for the latest retry timestamp.
-  let combined: AvailabilityResult = { ready: true };
-  for (const result of results) {
-    if (result == null || result === true) continue;
-    if (result === false) return unavailable("The skill is unavailable.");
-    if (result.ready !== false) continue;
-    if (result.retryAt == null) return result;
-    const retryAt = Number(result.retryAt);
-    if (!Number.isFinite(retryAt)) {
-      throw new TypeError("Cast availability retryAt must be finite or null.");
-    }
-    if (combined.ready || retryAt > Number(combined.retryAt ?? -Infinity)) {
-      combined = { ...result, retryAt };
-    }
-  }
-  return combined;
+  return foldAvailability(
+    (function* () {
+      for (const result of results) {
+        if (result == null || result === true) continue;
+        yield result === false
+          ? unavailable("The skill is unavailable.")
+          : result;
+      }
+    })(),
+  );
 }
 
 /**
@@ -402,7 +414,7 @@ export function createScheduler<
   config = {},
   catalog,
   startingTime = 0,
-  epsilon = 0.0001,
+  epsilon = EPSILON,
   schedulerPolicy = {},
 }: CreateSchedulerOptions<TProfessionState> = {}): Scheduler<TProfessionState> {
   if (!profession?.id) throw new TypeError("Scheduler requires a profession.");
@@ -437,6 +449,25 @@ export function createScheduler<
   // Derived events share their cause's integer order and use fractional
   // suffixes, keeping them adjacent to the cause at equal timestamps.
   const derivedEventCounts = new Map<number, number>();
+  // Buff events are indexed by lowercased kind so buffStacks/hasBuff scan only
+  // the relevant buffs instead of the entire event log on every query.
+  const buffIndex = new Map<string, SimulationEvent[]>();
+  const buffKindKey = (event: SimulationEvent): string | null =>
+    event.type === "buff" ? String(event.kind || "").toLowerCase() : null;
+  const indexBuffEvent = (event: SimulationEvent): void => {
+    const key = buffKindKey(event);
+    if (key == null) return;
+    const bucket = buffIndex.get(key);
+    if (bucket) bucket.push(event);
+    else buffIndex.set(key, [event]);
+  };
+  const deindexBuffEvent = (event: SimulationEvent): void => {
+    const key = buffKindKey(event);
+    if (key == null) return;
+    const bucket = buffIndex.get(key);
+    const at = bucket?.indexOf(event) ?? -1;
+    if (bucket && at >= 0) bucket.splice(at, 1);
+  };
   let reservationOrder = 0;
   let activationOrder = 0;
   let previousCastStart = state.time;
@@ -485,6 +516,7 @@ export function createScheduler<
         __order: eventOrder++,
       });
       events.push(normalized);
+      indexBuffEvent(normalized);
       state.pendingEvents.push(normalized);
       observationQueue.push(normalized);
       if (!observingEvents) {
@@ -517,9 +549,11 @@ export function createScheduler<
         const index = collection.indexOf(event);
         if (index >= 0) collection[index] = replacement;
       };
+      deindexBuffEvent(event);
       replaceReference(events);
       replaceReference(state.pendingEvents);
       replaceReference(observationQueue);
+      indexBuffEvent(replacement);
       return replacement;
     },
     emitDerived(
@@ -546,15 +580,19 @@ export function createScheduler<
       const base = permanent === true ? 1 : Number(permanent || 0);
       // Scheduled buff events are already known even if the scheduler clock has
       // not reached them, so both their start and half-open expiry are checked.
-      return events
-        .filter(
-          (event) =>
-            event.type === "buff" &&
-            String(event.kind || "").toLowerCase() === normalized &&
-            event.at <= at + epsilon &&
-            event.at + Number(event.duration || 0) > at + epsilon,
-        )
-        .reduce((sum, event) => sum + Number(event.stacks || 1), base);
+      // Only this kind's indexed buffs are scanned, not the entire event log.
+      const bucket = buffIndex.get(normalized);
+      if (!bucket) return base;
+      let stacks = base;
+      for (const event of bucket) {
+        if (
+          event.at <= at + epsilon &&
+          event.at + Number(event.duration || 0) > at + epsilon
+        ) {
+          stacks += Number(event.stacks || 1);
+        }
+      }
+      return stacks;
     },
     hasBuff(/** @type {string} */ kind, at = state.time) {
       return context.buffStacks(kind, at) > 0;

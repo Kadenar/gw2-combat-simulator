@@ -1,5 +1,5 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { thiefModuleCatalog } from "../../catalog.js";
+import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import { createThiefModuleData } from "../../catalog-data.js";
 import {
   deadeyeSchedulerHooks,
 } from "./handlers.js";
@@ -9,16 +9,20 @@ import {
 } from "./rules.js";
 import { createDeadeyeState } from "./state.js";
 import { deadeyeUi } from "./ui.js";
+import { DEADEYE_SKILL_MECHANICS } from "./skills.js";
+import { deadeyeSkillHandlers } from "./handlers.js";
 
-export const deadeyeModule = defineProfessionModule({
+export const deadeyeModule = defineNativeModule({
   id: "Deadeye",
-  catalog: thiefModuleCatalog("Deadeye"),
-  resources: {
-    createProfessionState: createDeadeyeState,
-    createResolverState: createDeadeyeState,
+  data: createThiefModuleData("Deadeye", {
+    skillMechanics: DEADEYE_SKILL_MECHANICS,
+    handlers: deadeyeSkillHandlers,
+  }),
+  state: { scheduler: createDeadeyeState, resolver: createDeadeyeState },
+  mechanics: {
+    modifiers: deadeyeAttributeRules,
+    castRules: deadeyeCastRules,
+    schedulerHooks: deadeyeSchedulerHooks,
   },
-  attributeRules: deadeyeAttributeRules,
-  castRules: deadeyeCastRules,
-  schedulerHooks: deadeyeSchedulerHooks,
-  ui: deadeyeUi,
+  presentation: deadeyeUi,
 });

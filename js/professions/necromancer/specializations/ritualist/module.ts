@@ -1,27 +1,29 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
+import { defineNativeModule, onResolvedDamage } from "../../../../platform/gw2/native-profession.js";
+import { createNecromancerModuleData } from "../../catalog-data.js";
 import {
   ritualistEventHandlers,
   ritualistEventReactions,
   ritualistSchedulerHooks,
 } from "./handlers.js";
 import { ritualistAttributeRules } from "./rules.js";
-import { necromancerModuleCatalog } from "../../catalog.js";
 import { createRitualistState } from "./state.js";
 import { ritualistUi } from "./ui.js";
-import type { RitualistState } from "../../types.js";
+import { RITUALIST_BASE_SKILL_MECHANICS, RITUALIST_QUICKNESS_CAST_TIMES_MS } from "./skills.js";
+import { ritualistSkillHandlers } from "./handlers.js";
 
-export const ritualistModule = defineProfessionModule<RitualistState>({
+export const ritualistModule = defineNativeModule({
   id: "Ritualist",
-  catalog: necromancerModuleCatalog("Ritualist"),
-  resources: {
-    createProfessionState: createRitualistState,
-    createResolverState: createRitualistState,
+  data: createNecromancerModuleData("Ritualist", {
+    skillMechanics: RITUALIST_BASE_SKILL_MECHANICS,
+    quicknessCastTimes: RITUALIST_QUICKNESS_CAST_TIMES_MS,
+    handlers: ritualistSkillHandlers,
+  }),
+  state: { scheduler: createRitualistState, resolver: createRitualistState },
+  mechanics: {
+    modifiers: ritualistAttributeRules,
+    resolverHooks: { eventHandlers: ritualistEventHandlers },
+    reactions: [onResolvedDamage({ id: "necromancer.ritualist.damage", handler: ritualistEventReactions.damage })],
+    schedulerHooks: ritualistSchedulerHooks,
   },
-  attributeRules: ritualistAttributeRules,
-  resolverHooks: {
-    eventHandlers: ritualistEventHandlers,
-    eventReactions: ritualistEventReactions,
-  },
-  schedulerHooks: ritualistSchedulerHooks,
-  ui: ritualistUi,
+  presentation: ritualistUi,
 });

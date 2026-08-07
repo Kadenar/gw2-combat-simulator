@@ -1,7 +1,6 @@
 import {
   createProfessionAssumptionControls,
 } from "../../../../app/profession/assumptions.js";
-import { engineerCatalog } from "../../catalog.js";
 import {
   engineerFSkillBarGroups,
   engineerToolbeltSkillIds,
@@ -10,6 +9,7 @@ import {
   uniqueIdsBySkillName,
 } from "../../core/ui.js";
 import type {
+  CanonicalCatalog,
   ProfessionUiContract,
   SchedulerRecord,
   SkillId,
@@ -20,10 +20,8 @@ import type {
   EngineerUiSelection,
 } from "../../types.js";
 
-const engineerSkills =
-  engineerCatalog.skills as readonly EngineerSkill[];
-const engineerSkillsById =
-  engineerCatalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+let engineerSkills: readonly EngineerSkill[] = [];
+let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
 const AMALGAM_PROTOCOL_ORDER = new Map<string, number>([
   ["Offensive Protocol: Shred", 0],
   ["Offensive Protocol: Demolish", 1],
@@ -158,3 +156,12 @@ Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
     includeActionSkills: true,
   }],
 });
+
+export function bindAmalgamUi(
+  catalog: Readonly<CanonicalCatalog>,
+): typeof amalgamUi {
+  engineerSkills = catalog.skills as readonly EngineerSkill[];
+  engineerSkillsById =
+    catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+  return amalgamUi;
+}

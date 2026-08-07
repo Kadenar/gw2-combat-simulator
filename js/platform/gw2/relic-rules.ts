@@ -4,9 +4,8 @@
  * only the mutable state required by that relic.
  */
 
-import { EPSILON } from "../engine/clock.js";
+import { EPSILON, isInternalCooldownReady } from "../engine/clock.js";
 import { enqueueOrdered } from "../engine/event-queue.js";
-import { isInternalCooldownReady } from "../engine/internal-cooldown.js";
 import { isGw2PlayerActorEvent } from "./event-ownership.js";
 
 import type { SimulationEvent, Skill } from "../engine/types.js";
@@ -61,6 +60,22 @@ function recordTimedBuffProc(
     event.skillName,
     detail ?? (wasActive ? "refreshed" : "activated"),
   );
+}
+
+/**
+ * Builds a strikeMultiplier hook returning `multiplier` while the relic's timed
+ * buff window is open and 1 otherwise. An optional predicate further gates the
+ * bonus (e.g. player-only strikes).
+ */
+function timedStrikeBuff(
+  multiplier: number,
+  predicate?: (event: SimulationEvent) => boolean,
+): NonNullable<Gw2RelicRule["strikeMultiplier"]> {
+  return (_ctx, state, event) =>
+    Number(state.buffUntil || 0) > event.at &&
+    (predicate ? predicate(event) : true)
+      ? multiplier
+      : 1;
 }
 
 const RELIC_RULES: Readonly<
@@ -260,12 +275,7 @@ const RELIC_RULES: Readonly<
         triggeredBy: event.skillName,
       });
     },
-    strikeMultiplier(_ctx, state, event) {
-      return (
-        Number(state.buffUntil || 0) > event.at
-        && isGw2PlayerActorEvent(event)
-      ) ? 1.07 : 1;
-    },
+    strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerActorEvent),
   }),
 
   Brawler: defineRelic({
@@ -292,9 +302,7 @@ const RELIC_RULES: Readonly<
         "activated",
       );
     },
-    strikeMultiplier(_ctx, state, event) {
-      return Number(state.buffUntil || 0) > event.at ? 1.1 : 1;
-    },
+    strikeMultiplier: timedStrikeBuff(1.1),
   }),
 
   Claw: defineRelic({
@@ -305,9 +313,7 @@ const RELIC_RULES: Readonly<
         name: "Relic of the Claw",
       });
     },
-    strikeMultiplier(_ctx, state, event) {
-      return Number(state.buffUntil || 0) > event.at ? 1.07 : 1;
-    },
+    strikeMultiplier: timedStrikeBuff(1.07),
   }),
 
   Dragonhunter: defineRelic({
@@ -327,9 +333,7 @@ const RELIC_RULES: Readonly<
     conditionDurationBonus(_ctx, state, at) {
       return Number(state.buffUntil || 0) > at ? 0.1 : 0;
     },
-    strikeMultiplier(_ctx, state, event) {
-      return Number(state.buffUntil || 0) > event.at ? 1.1 : 1;
-    },
+    strikeMultiplier: timedStrikeBuff(1.1),
   }),
 
   Eagle: defineRelic({
@@ -360,9 +364,7 @@ const RELIC_RULES: Readonly<
         name: "Relic of Fireworks",
       });
     },
-    strikeMultiplier(_ctx, state, event) {
-      return Number(state.buffUntil || 0) > event.at ? 1.07 : 1;
-    },
+    strikeMultiplier: timedStrikeBuff(1.07),
   }),
 
   Fractal: defineRelic({
@@ -464,9 +466,7 @@ const RELIC_RULES: Readonly<
         source: "Relic",
       });
     },
-    strikeMultiplier(_ctx, state, event) {
-      return Number(state.buffUntil || 0) > event.at ? 1.1 : 1;
-    },
+    strikeMultiplier: timedStrikeBuff(1.1),
   }),
 
   Shackles: defineRelic({

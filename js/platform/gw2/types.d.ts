@@ -624,7 +624,6 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
   lastHitTime: number | null;
   deathTime: number | null;
   combatStartTime?: number | null;
-  combatActive: boolean;
   activeWeaponSet: number;
   relic: Gw2RelicRuntime;
   profession: object;

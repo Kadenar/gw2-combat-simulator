@@ -16,6 +16,11 @@ import { thiefProfession } from "../js/professions/thief/definition.js";
 import {
   THIEF_SKILL_MECHANICS,
 } from "../js/professions/thief/mechanics/skill-mechanics.js";
+
+function nativeModifierRules(module) {
+  const modifiers = module.mechanics?.modifiers;
+  return Array.isArray(modifiers) ? modifiers : modifiers?.modifierRules || [];
+}
 import {
   THIEF_SKILL_IDS as ID,
 } from "../js/professions/thief/data/ids.js";
@@ -135,9 +140,9 @@ test("Thief modules own vertical source slices", () => {
         assert.doesNotMatch(source, /from\s+["'][^"']*catalog\.js["']/);
       }
     }
-    assert.equal(typeof module.resources?.createProfessionState, "function");
-    assert.ok(module.catalog?.skills?.length > 0);
-    for (const rule of module.attributeRules?.modifierRules || []) {
+    assert.equal(typeof module.state?.scheduler, "function");
+    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
     }

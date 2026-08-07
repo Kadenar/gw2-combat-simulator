@@ -2,9 +2,11 @@ import {
   partitionRandomDistributionTrials,
   randomDistributionWorkerCount,
   summarizeRandomDistribution,
+  summarizeRandomDistributionOutcomes,
 } from "./random-distribution.js";
 import type {
   ProfessionAppState,
+  RandomDistributionOutcome,
   RandomDistributionProgress,
   RandomDistributionSummary,
 } from "../profession/types.js";
@@ -13,7 +15,10 @@ interface RandomDistributionWorkerMessage {
   readonly requestId: number;
   readonly progress?: { readonly completed?: number };
   readonly error?: unknown;
-  readonly distribution?: { readonly samples?: number[] };
+  readonly distribution?: {
+    readonly samples?: readonly number[];
+    readonly outcomes?: readonly RandomDistributionOutcome[];
+  };
 }
 
 export class RandomDistributionRunner {
@@ -152,6 +157,9 @@ export class RandomDistributionRunner {
         const completedSamples: Array<readonly number[] | null> = batches.map(
           () => null,
         );
+        const completedOutcomes: Array<
+          readonly RandomDistributionOutcome[] | null
+        > = batches.map(() => null);
         let completedWorkers = 0;
         let failed = false;
 
@@ -199,13 +207,18 @@ export class RandomDistributionRunner {
                 return;
               }
               completedSamples[batchIndex] = data.distribution?.samples || [];
+              completedOutcomes[batchIndex] =
+                data.distribution?.outcomes || [];
               completedWorkers += 1;
               if (completedWorkers === batches.length) {
-                applyDistribution(
-                  summarizeRandomDistribution(
-                    completedSamples.flatMap((samples) => samples || []),
-                  ),
+                const outcomes = completedOutcomes.flatMap(
+                  (batchOutcomes) => batchOutcomes || [],
                 );
+                applyDistribution(outcomes.length
+                  ? summarizeRandomDistributionOutcomes(outcomes)
+                  : summarizeRandomDistribution(
+                      completedSamples.flatMap((samples) => samples || []),
+                    ));
               }
             },
           );

@@ -1,19 +1,24 @@
-import { defineProfessionModule } from "../../../../platform/engine/profession.js";
-import { guardianModuleCatalog } from "../../catalog.js";
+import {
+  defineNativeModule,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
+import { createGuardianModuleData } from "../../catalog-data.js";
 import { willbenderEventReactions } from "./handlers.js";
+import { WILLBENDER_SKILL_MECHANICS } from "./skills.js";
 import { createWillbenderState } from "./state.js";
 import { willbenderUi } from "./ui.js";
 
-export const willbenderModule =
-  defineProfessionModule<Record<string, never>>({
+export const willbenderModule = defineNativeModule({
   id: "Willbender",
-  catalog: guardianModuleCatalog("Willbender"),
-  resources: {
-    createProfessionState: createWillbenderState,
-    createResolverState: createWillbenderState,
+  data: createGuardianModuleData("Willbender", {
+    skillMechanics: WILLBENDER_SKILL_MECHANICS,
+  }),
+  state: {
+    scheduler: createWillbenderState,
+    resolver: createWillbenderState,
   },
-  resolverHooks: {
-    eventReactions: willbenderEventReactions,
+  mechanics: {
+    reactions: willbenderEventReactions.damage.map(onResolvedDamage),
   },
-  ui: willbenderUi,
-  });
+  presentation: willbenderUi,
+});

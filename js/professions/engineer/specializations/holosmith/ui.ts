@@ -1,4 +1,3 @@
-import { engineerCatalog } from "../../catalog.js";
 import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import {
   engineerFSkillBarGroups,
@@ -9,17 +8,20 @@ import {
   uniqueIdsBySkillName,
 } from "../../core/ui.js";
 import type {
+  CanonicalCatalog,
   PaletteSkillAvailability,
   ProfessionResourceView,
   ProfessionUiContract,
   SchedulerRecord,
+  SkillId,
 } from "../../../../platform/engine/types.js";
 import type {
   EngineerSkill,
   EngineerUiContext,
 } from "../../types.js";
 
-const engineerSkills = engineerCatalog.skills as readonly EngineerSkill[];
+let engineerSkills: readonly EngineerSkill[] = [];
+let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
 
 function holosmithForgeSkillIds(
   context: EngineerUiContext,
@@ -31,7 +33,7 @@ function holosmithForgeSkillIds(
     ID.CORONA_BURST,
     ID.PHOTON_BLITZ,
     ID.HOLOGRAPHIC_SHOCKWAVE,
-  ].filter((skillId) => engineerCatalog.skillsById.has(skillId));
+  ].filter((skillId) => engineerSkillsById.has(skillId));
 }
 
 function holosmithProfessionSkills(
@@ -130,3 +132,12 @@ Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
   },
   paletteSkillAvailability: holosmithPaletteAvailability,
 });
+
+export function bindHolosmithUi(
+  catalog: Readonly<CanonicalCatalog>,
+): typeof holosmithUi {
+  engineerSkills = catalog.skills as readonly EngineerSkill[];
+  engineerSkillsById =
+    catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+  return holosmithUi;
+}

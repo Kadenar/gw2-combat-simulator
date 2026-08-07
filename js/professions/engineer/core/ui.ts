@@ -5,11 +5,12 @@ import {
   defaultWeaponSkillMatchesSet,
 } from "../../../platform/gw2/weapon-skill-matcher.js";
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
-import { engineerCatalog } from "../catalog.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
 import { getActiveTraits } from "../data/traits-data.js";
 import type {
   PaletteSkillAvailability,
+  CanonicalCatalog,
+  CatalogEntity,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
@@ -82,10 +83,9 @@ const NON_HOLOSMITH_SWORD_SKILL_IDS = new Set<SkillId>([
   ID.REFRACTION_CUTTER_ID_71121,
 ]);
 
-const engineerSkills =
-  engineerCatalog.skills as readonly EngineerSkill[];
-const engineerSkillsById =
-  engineerCatalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+let engineerSkills: readonly EngineerSkill[] = [];
+let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
+let engineerTraits: readonly CatalogEntity[] = [];
 
 export function engineerUiState(
   context: EngineerUiContext = {},
@@ -187,7 +187,7 @@ function usesToolsTraitline(context: EngineerUiContext): boolean {
     ...(context.config?.selectedTraitIds || []),
     ...(context.config?.selectedTraits || []),
   ].map(value => String(value)));
-  return engineerCatalog.traits.some(trait =>
+  return engineerTraits.some(trait =>
     trait.specialization === "Tools"
     && (
       selected.has(String(trait.id))
@@ -467,3 +467,13 @@ Object.freeze({
   weaponSwapChangesSet: false,
   eventLogRow: engineerEventLogRow,
 });
+
+export function bindEngineerCoreUi(
+  catalog: Readonly<CanonicalCatalog>,
+): typeof engineerCoreUi {
+  engineerSkills = catalog.skills as readonly EngineerSkill[];
+  engineerSkillsById =
+    catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+  engineerTraits = catalog.traits;
+  return engineerCoreUi;
+}

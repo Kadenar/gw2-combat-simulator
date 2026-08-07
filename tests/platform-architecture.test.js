@@ -2202,8 +2202,8 @@ test("declarative professions use the standard mechanics module roles", async ()
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
-      assert.match(handlers, /augmentSkillHandler/);
-      assert.match(handlers, /replaceSkillHandler/);
+      assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
+      assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     } else if (profession === "guardian") {
       const localMechanics = await Promise.all([
         path.join(root, profession, "core", "mechanics.js"),
@@ -2246,8 +2246,8 @@ test("declarative professions use the standard mechanics module roles", async ()
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
-      assert.match(handlers, /augmentSkillHandler/);
-      assert.match(handlers, /replaceSkillHandler/);
+      assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
+      assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     } else if (profession === "mesmer") {
       const sliceDirectories = [
         "core",
@@ -2277,8 +2277,8 @@ test("declarative professions use the standard mechanics module roles", async ()
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
-      assert.match(handlers, /augmentSkillHandler/);
-      assert.match(handlers, /replaceSkillHandler/);
+      assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
+      assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     } else if (profession === "revenant") {
       const sliceDirectories = [
         "core",
@@ -2308,14 +2308,24 @@ test("declarative professions use the standard mechanics module roles", async ()
         assert.doesNotMatch(source, /HANDLER_MECHANICS/);
       }
       assert.doesNotMatch(mechanics, /HANDLER_MECHANICS/);
-      assert.match(handlers, /augmentSkillHandler/);
-      assert.match(handlers, /replaceSkillHandler/);
+      assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
+      assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     }
 
     const catalog = await readSourceModule(
       path.join(root, profession, "catalog.js"),
     );
-    assert.match(catalog, /mechanics\/skill-mechanics\.js/);
+    const catalogData = await readSourceModule(
+      path.join(root, profession, "catalog-data.js"),
+    );
+    const family = await readSourceModule(
+      path.join(root, profession, "family.js"),
+    );
+    assert.match(catalog, /assembleNativeApplicationCatalog/);
+    assert.doesNotMatch(catalog, /mechanics\/skill-mechanics\.js/);
+    assert.match(catalogData, /createNativeModuleData/);
+    assert.match(family, /defineNativeProfession/);
+    assert.doesNotMatch(family, /from\s+["'][^"']*catalog\.js["']/);
     assert.doesNotMatch(catalog, /mechanics\/skill-(?:defaults|overrides)\.js/);
 
     const metadata = await readFile(
@@ -2328,7 +2338,7 @@ test("declarative professions use the standard mechanics module roles", async ()
     );
     if (profession !== "mesmer") {
       assert.doesNotMatch(metadata, /export const TRAITS\b/);
-      assert.match(catalog, /data\/traits-data\.js/);
+      assert.match(catalogData, /data\/traits-data\.js/);
     }
   }
 });
