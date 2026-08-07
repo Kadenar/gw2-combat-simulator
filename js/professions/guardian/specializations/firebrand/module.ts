@@ -4,7 +4,6 @@ import { guardianModuleCatalog } from "../../catalog.js";
 import {
   firebrandEventHandlers,
   firebrandEventReactions,
-  firebrandSkillHandlers,
 } from "./handlers.js";
 import {
   firebrandAttributeRules,
@@ -17,10 +16,7 @@ import { firebrandUi } from "./ui.js";
 export const firebrandModule =
   defineProfessionModule<GuardianFirebrandState>({
   id: "Firebrand",
-  catalog: {
-    ...guardianModuleCatalog("Firebrand"),
-    skillHandlers: firebrandSkillHandlers,
-  },
+  catalog: guardianModuleCatalog("Firebrand"),
   resources: {
     createProfessionState: createFirebrandState,
     createResolverState: createFirebrandState,

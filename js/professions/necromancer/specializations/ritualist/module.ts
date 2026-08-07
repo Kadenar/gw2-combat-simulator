@@ -3,7 +3,6 @@ import {
   ritualistEventHandlers,
   ritualistEventReactions,
   ritualistSchedulerHooks,
-  ritualistSkillHandlers,
 } from "./handlers.js";
 import { ritualistAttributeRules } from "./rules.js";
 import { necromancerModuleCatalog } from "../../catalog.js";
@@ -13,10 +12,7 @@ import type { RitualistState } from "../../types.js";
 
 export const ritualistModule = defineProfessionModule<RitualistState>({
   id: "Ritualist",
-  catalog: {
-    ...necromancerModuleCatalog("Ritualist"),
-    skillHandlers: ritualistSkillHandlers,
-  },
+  catalog: necromancerModuleCatalog("Ritualist"),
   resources: {
     createProfessionState: createRitualistState,
     createResolverState: createRitualistState,

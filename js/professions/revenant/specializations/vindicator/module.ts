@@ -3,7 +3,6 @@ import { revenantModuleCatalog } from "../../catalog.js";
 import {
   vindicatorEventHandlers,
   vindicatorEventReactions,
-  vindicatorSkillHandlers,
 } from "./handlers.js";
 import {
   vindicatorAttributeRules,
@@ -16,10 +15,7 @@ import type { VindicatorState } from "../../types.js";
 
 export const vindicatorModule = defineProfessionModule<VindicatorState>({
   id: "Vindicator",
-  catalog: {
-    ...revenantModuleCatalog("Vindicator"),
-    skillHandlers: vindicatorSkillHandlers,
-  },
+  catalog: revenantModuleCatalog("Vindicator"),
   resources: {
     createProfessionState: createVindicatorState,
     createResolverState: createVindicatorState,

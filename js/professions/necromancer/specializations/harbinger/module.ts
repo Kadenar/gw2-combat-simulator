@@ -2,7 +2,6 @@ import { defineProfessionModule } from "../../../../platform/engine/profession.j
 import {
   harbingerEventReactions,
   harbingerSchedulerHooks,
-  harbingerSkillHandlers,
 } from "./handlers.js";
 import {
   harbingerAttributeRules,
@@ -15,10 +14,7 @@ import type { HarbingerState } from "../../types.js";
 
 export const harbingerModule = defineProfessionModule<HarbingerState>({
   id: "Harbinger",
-  catalog: {
-    ...necromancerModuleCatalog("Harbinger"),
-    skillHandlers: harbingerSkillHandlers,
-  },
+  catalog: necromancerModuleCatalog("Harbinger"),
   resources: {
     createProfessionState: createHarbingerState,
     createResolverState: createHarbingerState,

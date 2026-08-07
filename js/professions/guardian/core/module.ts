@@ -4,7 +4,6 @@ import { guardianModuleCatalog } from "../catalog.js";
 import {
   guardianCoreEventHandlers,
   guardianCoreEventReactions,
-  guardianCoreSkillHandlers,
 } from "./handlers.js";
 import {
   guardianCoreAttributeRules,
@@ -24,10 +23,7 @@ import type {
 
 export const guardianCoreModule = defineProfessionModule<GuardianCoreState>({
   id: "Core",
-  catalog: {
-    ...guardianModuleCatalog("Core"),
-    skillHandlers: guardianCoreSkillHandlers,
-  },
+  catalog: guardianModuleCatalog("Core"),
   resources: {
     createProfessionState: createGuardianCoreState,
     createResolverState: createGuardianCoreState,

@@ -4,7 +4,6 @@ import {
   scrapperEventHandlers,
   scrapperEventReactions,
   scrapperSchedulerHooks,
-  scrapperSkillHandlers,
 } from "./handlers.js";
 import {
   scrapperAttributeRules,
@@ -16,10 +15,7 @@ import type { ScrapperState } from "../../types.js";
 
 export const scrapperModule = defineProfessionModule<ScrapperState>({
   id: "Scrapper",
-  catalog: {
-    ...engineerModuleCatalog("Scrapper"),
-    skillHandlers: scrapperSkillHandlers,
-  },
+  catalog: engineerModuleCatalog("Scrapper"),
   resources: {
     createProfessionState: createScrapperState,
     createResolverState: createScrapperState,

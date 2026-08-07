@@ -1,5 +1,8 @@
 import { createCanonicalCatalog } from "../../platform/engine/catalog.js";
 import {
+  defineCatalogOwnership,
+} from "../../platform/engine/catalog-ownership.js";
+import {
   SKILLS,
   SPECIALIZATIONS,
 } from "./data/engineer-api-metadata.js";
@@ -16,12 +19,10 @@ import {
   engineerSkillHandlers,
 } from "./handlers.js";
 import type {
-  ProfessionModuleCatalogFragment,
   Skill,
   SkillFragment,
   SkillId,
 } from "../../platform/engine/types.js";
-import type { EngineerSkill } from "./types.js";
 
 const AMALGAM_PROTOCOL_ICONS = new Map<string, string>([
   ["Defensive Protocol: Cleanse", "https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png"],
@@ -168,93 +169,51 @@ export const ENGINEER_ELITE_SPECIALIZATIONS = Object.freeze([
   "Amalgam",
 ]);
 
-const eliteSpecializations = new Set(ENGINEER_ELITE_SPECIALIZATIONS);
-const fragmentCache = new Map<string, ProfessionModuleCatalogFragment>();
+export const engineerCatalogOwnership = defineCatalogOwnership({
+  catalog: engineerCatalog,
+  modules: ["Core", ...ENGINEER_ELITE_SPECIALIZATIONS],
+  skillOverrides: {
+    [ID.DEACTIVATE_PHOTON_FORGE]: "Holosmith",
+    [ID.ENGAGE_PHOTON_FORGE]: "Holosmith",
+    [ID.FLASH_CUTTER_STORM]: "Holosmith",
+    [ID.BRIGHT_SLASH_STORM]: "Holosmith",
+    [ID.HOLOGRAPHIC_SHOCKWAVE]: "Holosmith",
+    [ID.HOLO_LEAP]: "Holosmith",
+    [ID.LIGHT_STRIKE_STORM]: "Holosmith",
+    [ID.CORONA_BURST]: "Holosmith",
+    [ID.LIGHT_STRIKE]: "Holosmith",
+    [ID.BRIGHT_SLASH]: "Holosmith",
+    [ID.PHOTON_BLITZ]: "Holosmith",
+    [ID.FLASH_CUTTER]: "Holosmith",
+    [ID.FUNCTION_GYRO]: "Scrapper",
+    [ID.FUNCTION_GYRO_ID_72103]: "Scrapper",
+    [ID.FUNCTION_GYRO_ID_72114]: "Scrapper",
+    [ID.CRASH_DOWN]: "Mechanist",
+    [ID.RECALL_MECH]: "Mechanist",
+    [ID.MECH_SUPPORT_DEPTH_CHARGES]: "Mechanist",
+    [ID.EVOLVE]: "Amalgam",
+    [ID.EVOLVE_ID_76651]: "Amalgam",
+    [ID.LOCKED]: "Amalgam",
+    [ID.LOCKED_ID_77107]: "Amalgam",
+    [ID.LOCKED_ID_77388]: "Amalgam",
+  },
+  handlerOwners: {
+    "engineer.photon-forge-enter": "Holosmith",
+    "engineer.photon-forge-exit": "Holosmith",
+    "engineer.heat": "Holosmith",
+    "engineer.mech-summon": "Mechanist",
+    "engineer.mech-recall": "Mechanist",
+    "engineer.overclock-signet": "Mechanist",
+    "engineer.amalgam-morph": "Amalgam",
+    "engineer.evolve": "Amalgam",
+    "engineer.plasmatic-state": "Amalgam",
+  },
+  core: {
+    ownsWeapons: true,
+    autoattackChains: {
+      excludeSkillIds: [ID.RIFLE_BURST_GRENADE],
+    },
+  },
+});
 
-function engineerSkillRuntimeOwner(skill: EngineerSkill): string {
-  const handlerId = String(skill.handlerId || "");
-  if (
-    skill.forgeSkill
-    || skill.name === "Engage Photon Forge"
-    || skill.name.startsWith("Deactivate Photon Forge")
-    || handlerId === "engineer.photon-forge-enter"
-    || handlerId === "engineer.photon-forge-exit"
-    || handlerId === "engineer.heat"
-  ) {
-    return "Holosmith";
-  }
-  if (
-    skill.name === "Crash Down"
-    || skill.name.startsWith("Recall Mech")
-    || skill.name === "Mech Support: Depth Charges"
-    || handlerId === "engineer.mech-summon"
-    || handlerId === "engineer.mech-recall"
-    || handlerId === "engineer.overclock-signet"
-  ) {
-    return "Mechanist";
-  }
-  if (
-    skill.name === "Evolve"
-    || skill.name === "Locked"
-    || skill.categories?.includes("Morph")
-    || handlerId === "engineer.amalgam-morph"
-    || handlerId === "engineer.evolve"
-    || handlerId === "engineer.plasmatic-state"
-  ) {
-    return "Amalgam";
-  }
-  if (skill.name.startsWith("Function Gyro")) return "Scrapper";
-  if (skill.type === "Weapon") return "Core";
-  const specialization = String(skill.specialization || "").toLowerCase();
-  const elite = ENGINEER_ELITE_SPECIALIZATIONS.find(
-    (name) => name.toLowerCase() === specialization,
-  );
-  return elite || "Core";
-}
-
-/**
- * Returns the inert catalog slice owned by Core or one elite module. Physical
- * weapon skills remain Core-owned because Weaponmaster Training makes them
- * profession-wide; elite profession and slot skills stay module-local.
- */
-export function engineerModuleCatalog(
-  moduleId: string,
-): Readonly<ProfessionModuleCatalogFragment> {
-  const cached = fragmentCache.get(moduleId);
-  if (cached) return cached;
-  if (moduleId !== "Core" && !eliteSpecializations.has(moduleId)) {
-    throw new Error(`Unknown Engineer catalog module ${moduleId}.`);
-  }
-  const skills = engineerCatalog.skills.filter(
-    (skill) =>
-      skill.simulatorAliasOfId == null
-      && engineerSkillRuntimeOwner(skill as EngineerSkill) === moduleId,
-  );
-  const traits = engineerCatalog.traits.filter((trait) =>
-    moduleId === "Core"
-      ? !eliteSpecializations.has(String(trait.specialization || ""))
-      : trait.specialization === moduleId,
-  );
-  const specializations = engineerCatalog.specializations.filter(
-    (specialization) =>
-      moduleId === "Core"
-        ? !specialization.elite
-        : specialization.name === moduleId,
-  );
-  const fragment: ProfessionModuleCatalogFragment = Object.freeze({
-    skills: Object.freeze([...skills]),
-    traits: Object.freeze([...traits]),
-    specializations: Object.freeze([...specializations]),
-    ...(moduleId === "Core"
-      ? {
-          weapons: Object.freeze([...engineerCatalog.weapons]),
-          weaponHands: new Map(engineerCatalog.weaponHands),
-          autoattackChains: {
-            excludeSkillIds: [ID.RIFLE_BURST_GRENADE],
-          },
-        }
-      : {}),
-  });
-  fragmentCache.set(moduleId, fragment);
-  return fragment;
-}
+export const engineerModuleCatalog = engineerCatalogOwnership.fragment;

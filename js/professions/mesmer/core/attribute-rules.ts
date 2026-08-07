@@ -126,8 +126,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
     operation: "multiply",
     factor: superiorityComplexFactor,
     when: (context) =>
-      hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) &&
-      context.event?.source !== "Phantasm",
+      hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) && !illusionSource(context)
   },
   {
     id: "mesmer.compounding-power",
@@ -166,7 +165,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.FRAGILITY) &&
-      context.event?.source !== "Phantasm",
+      !illusionSource(context),
   },
   {
     id: "mesmer.vicious-expression",
@@ -216,7 +215,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.EGOTISM) &&
-      context.event?.source !== "Phantasm" &&
+      !illusionSource(context) &&
       Number(context.config?.target?.health || 0) > 0 &&
       resolvedTotalDamage(context) > 0,
   },

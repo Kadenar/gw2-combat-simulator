@@ -4,7 +4,6 @@ import { engineerModuleCatalog } from "../catalog.js";
 import {
   engineerCoreEventHandlers,
   engineerCoreEventReactions,
-  engineerCoreSkillHandlers,
 } from "./handlers.js";
 import {
   engineerCoreAttributeRules,
@@ -24,10 +23,7 @@ import type {
 
 export const engineerCoreModule = defineProfessionModule<EngineerCoreState>({
   id: "Core",
-  catalog: {
-    ...engineerModuleCatalog("Core"),
-    skillHandlers: engineerCoreSkillHandlers,
-  },
+  catalog: engineerModuleCatalog("Core"),
   resources: {
     createProfessionState: createEngineerCoreState,
     createResolverState: createEngineerCoreState,

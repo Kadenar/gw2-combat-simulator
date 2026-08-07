@@ -3,7 +3,6 @@ import { revenantModuleCatalog } from "../../catalog.js";
 import {
   renegadeEventHandlers,
   renegadeEventReactions,
-  renegadeSkillHandlers,
 } from "./handlers.js";
 import {
   renegadeAttributeRules,
@@ -16,10 +15,7 @@ import type { RenegadeState } from "../../types.js";
 
 export const renegadeModule = defineProfessionModule<RenegadeState>({
   id: "Renegade",
-  catalog: {
-    ...revenantModuleCatalog("Renegade"),
-    skillHandlers: renegadeSkillHandlers,
-  },
+  catalog: revenantModuleCatalog("Renegade"),
   resources: {
     createProfessionState: createRenegadeState,
     createResolverState: createRenegadeState,

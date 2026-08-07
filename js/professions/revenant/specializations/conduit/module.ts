@@ -3,7 +3,6 @@ import { revenantModuleCatalog } from "../../catalog.js";
 import {
   conduitEventHandlers,
   conduitEventReactions,
-  conduitSkillHandlers,
 } from "./handlers.js";
 import {
   conduitAttributeRules,
@@ -16,10 +15,7 @@ import type { ConduitState } from "../../types.js";
 
 export const conduitModule = defineProfessionModule<ConduitState>({
   id: "Conduit",
-  catalog: {
-    ...revenantModuleCatalog("Conduit"),
-    skillHandlers: conduitSkillHandlers,
-  },
+  catalog: revenantModuleCatalog("Conduit"),
   resources: {
     createProfessionState: createConduitState,
     createResolverState: createConduitState,

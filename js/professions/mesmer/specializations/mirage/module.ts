@@ -1,6 +1,5 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
 import { mesmerModuleCatalog } from "../../catalog.js";
-import { mirageSkillHandlers } from "./handlers.js";
 import {
   mirageAttributeRules,
   mirageCastRules,
@@ -15,10 +14,7 @@ import type { MesmerMirageState } from "../../types.js";
 
 export const mirageModule = defineProfessionModule<MesmerMirageState>({
   id: "Mirage",
-  catalog: {
-    ...mesmerModuleCatalog("Mirage"),
-    skillHandlers: mirageSkillHandlers,
-  },
+  catalog: mesmerModuleCatalog("Mirage"),
   resources: {
     createProfessionState: createMirageState,
     createResolverState: createMirageResolverState,

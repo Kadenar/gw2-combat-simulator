@@ -1,4 +1,7 @@
 import { createCanonicalCatalog } from "../../platform/engine/catalog.js";
+import {
+  defineCatalogOwnership,
+} from "../../platform/engine/catalog-ownership.js";
 import { SKILLS, SPECIALIZATIONS } from "./data/necromancer-api-metadata.js";
 import { TRAITS } from "./data/traits-data.js";
 import { NECROMANCER_SUPPLEMENTAL_SKILLS } from "./data/necromancer-supplemental-skills.js";
@@ -9,11 +12,9 @@ import {
 import { NECROMANCER_SKILL_IDS } from "./data/ids.js";
 import { necromancerSkillHandlers } from "./handlers.js";
 import type {
-  ProfessionModuleCatalogFragment,
   Skill,
   SkillId,
 } from "../../platform/engine/types.js";
-import type { NecromancerSkill } from "./types.js";
 
 export const NECROMANCER_NON_DPS_SKILL_NAMES = Object.freeze(
   new Set([
@@ -159,77 +160,51 @@ export const NECROMANCER_ELITE_SPECIALIZATIONS = Object.freeze([
   "Ritualist",
 ]);
 
-const eliteSpecializations = new Set(NECROMANCER_ELITE_SPECIALIZATIONS);
-const coreRuntimeSkills = necromancerCatalog.skills.filter(
-  (skill) =>
-    skill.simulatorAliasOfId == null &&
-    (skill.type === "Weapon" ||
-      !eliteSpecializations.has(String(skill.specialization || ""))),
-);
-const fragmentCache = new Map<string, ProfessionModuleCatalogFragment>();
+export const necromancerCatalogOwnership = defineCatalogOwnership({
+  catalog: necromancerCatalog,
+  modules: ["Core", ...NECROMANCER_ELITE_SPECIALIZATIONS],
+  skillOverrides: {
+    [NECROMANCER_SKILL_IDS.MANIFEST_SAND_SHADE_ID_42297]: "Scourge",
+    [NECROMANCER_SKILL_IDS.MANIFEST_SAND_SHADE_ID_46473]: "Scourge",
+    [NECROMANCER_SKILL_IDS.MANIFEST_SAND_SHADE_ID_46474]: "Scourge",
+  },
+  handlerOwners: {
+    "necromancer.executioners-scythe": "Reaper",
+    "necromancer.soul-spiral": "Reaper",
+    "necromancer.shade": "Scourge",
+    "necromancer.barrier": "Scourge",
+    "necromancer.elixir": "Harbinger",
+    "necromancer.blight-skill": "Harbinger",
+    "necromancer.dark-barrage": "Harbinger",
+    "necromancer.ritualist": "Ritualist",
+    "necromancer.innervate": "Ritualist",
+    "necromancer.weapon-spell": "Ritualist",
+  },
+  core: {
+    ownsWeapons: true,
+    autoattackChains: {
+      additional: [
+        [
+          NECROMANCER_SKILL_IDS.ENERVATION_BLADE,
+          NECROMANCER_SKILL_IDS.ENERVATION_ECHO,
+        ],
+      ],
+    },
+  },
+  moduleFragments: {
+    Reaper: {
+      autoattackChains: {
+        additional: [
+          [
+            NECROMANCER_SKILL_IDS.LIFE_REND,
+            NECROMANCER_SKILL_IDS.LIFE_SLASH,
+            NECROMANCER_SKILL_IDS.LIFE_REAP,
+          ],
+        ],
+      },
+    },
+  },
+});
 
-/**
- * Returns the inert catalog slice owned by Core or one elite module. Elite
- * weapon skills stay in Core because Weaponmaster Training makes them
- * profession-wide; elite profession/slot skills remain module-local.
- */
-export function necromancerModuleCatalog(
-  moduleId: string,
-): Readonly<ProfessionModuleCatalogFragment> {
-  const cached = fragmentCache.get(moduleId);
-  if (cached) return cached;
-  if (moduleId !== "Core" && !eliteSpecializations.has(moduleId)) {
-    throw new Error(`Unknown Necromancer catalog module ${moduleId}.`);
-  }
-  const core = moduleId === "Core";
-  const skills = core
-    ? coreRuntimeSkills
-    : necromancerCatalog.skills.filter(
-        (skill) =>
-          skill.simulatorAliasOfId == null &&
-          skill.type !== "Weapon" &&
-          skill.specialization === moduleId,
-      );
-  const traits = necromancerCatalog.traits.filter((trait) =>
-    core
-      ? !eliteSpecializations.has(String(trait.specialization || ""))
-      : trait.specialization === moduleId,
-  );
-  const specializations = necromancerCatalog.specializations.filter(
-    (specialization) =>
-      core ? !specialization.elite : specialization.name === moduleId,
-  );
-  const fragment: ProfessionModuleCatalogFragment = Object.freeze({
-    skills: Object.freeze([...skills]),
-    traits: Object.freeze([...traits]),
-    specializations: Object.freeze([...specializations]),
-    ...(core
-      ? {
-          weapons: Object.freeze([...necromancerCatalog.weapons]),
-          weaponHands: new Map(necromancerCatalog.weaponHands),
-          autoattackChains: {
-            additional: [
-              [
-                NECROMANCER_SKILL_IDS.ENERVATION_BLADE,
-                NECROMANCER_SKILL_IDS.ENERVATION_ECHO,
-              ],
-            ],
-          },
-        }
-      : moduleId === "Reaper"
-        ? {
-            autoattackChains: {
-              additional: [
-                [
-                  NECROMANCER_SKILL_IDS.LIFE_REND,
-                  NECROMANCER_SKILL_IDS.LIFE_SLASH,
-                  NECROMANCER_SKILL_IDS.LIFE_REAP,
-                ],
-              ],
-            },
-          }
-        : {}),
-  });
-  fragmentCache.set(moduleId, fragment);
-  return fragment;
-}
+export const necromancerModuleCatalog =
+  necromancerCatalogOwnership.fragment;

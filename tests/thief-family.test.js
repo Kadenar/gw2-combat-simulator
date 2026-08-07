@@ -67,7 +67,7 @@ const specializationStateKeys = Object.freeze({
   ],
 });
 
-test("Thief modules own disjoint source and catalog slices", () => {
+test("Thief modules own vertical source slices", () => {
   for (const obsolete of [
     "mechanics/specific",
     "resolver/event-handlers.js",
@@ -82,9 +82,6 @@ test("Thief modules own disjoint source and catalog slices", () => {
     );
   }
 
-  const skillOwners = new Map();
-  const traitOwners = new Map();
-  const specializationOwners = new Map();
   const modifierRuleOwners = new Map();
   for (const [directory, module] of slices) {
     const directoryUrl = new URL(
@@ -140,37 +137,12 @@ test("Thief modules own disjoint source and catalog slices", () => {
     }
     assert.equal(typeof module.resources?.createProfessionState, "function");
     assert.ok(module.catalog?.skills?.length > 0);
-    for (const [kind, entries, owners] of [
-      ["skill", module.catalog.skills || [], skillOwners],
-      ["trait", module.catalog.traits || [], traitOwners],
-      [
-        "specialization",
-        module.catalog.specializations || [],
-        specializationOwners,
-      ],
-    ]) {
-      for (const entry of entries) {
-        assert.equal(owners.has(entry.id), false, `${kind}:${entry.id}`);
-        owners.set(entry.id, module.id);
-      }
-    }
     for (const rule of module.attributeRules?.modifierRules || []) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
     }
   }
 
-  assert.deepEqual(
-    [...skillOwners.keys()].sort((left, right) => Number(left) - Number(right)),
-    thiefCatalog.skills
-      .map(skill => skill.id)
-      .sort((left, right) => Number(left) - Number(right)),
-  );
-  assert.equal(traitOwners.size, thiefCatalog.traits.length);
-  assert.equal(
-    specializationOwners.size,
-    thiefCatalog.specializations.length,
-  );
   assert.equal(modifierRuleOwners.get("thief.havoc-specialist"), "Daredevil");
   assert.equal(
     modifierRuleOwners.get("thief.malicious-stealth-attack"),

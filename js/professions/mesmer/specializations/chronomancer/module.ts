@@ -1,6 +1,5 @@
 import { defineProfessionModule } from "../../../../platform/engine/profession.js";
 import { mesmerModuleCatalog } from "../../catalog.js";
-import { chronomancerSkillHandlers } from "./handlers.js";
 import {
   chronomancerAttributeRules,
   chronomancerCastRules,
@@ -16,10 +15,7 @@ import type { MesmerChronomancerState } from "../../types.js";
 export const chronomancerModule =
   defineProfessionModule<MesmerChronomancerState>({
   id: "Chronomancer",
-  catalog: {
-    ...mesmerModuleCatalog("Chronomancer"),
-    skillHandlers: chronomancerSkillHandlers,
-  },
+  catalog: mesmerModuleCatalog("Chronomancer"),
   resources: {
     createProfessionState: createChronomancerState,
     createResolverState: createChronomancerResolverState,

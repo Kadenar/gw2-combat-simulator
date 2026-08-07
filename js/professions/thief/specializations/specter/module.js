@@ -2,7 +2,6 @@ import { defineProfessionModule } from "../../../../platform/engine/profession.j
 import { thiefModuleCatalog } from "../../catalog.js";
 import {
   specterSchedulerHooks,
-  specterSkillHandlers,
 } from "./handlers.js";
 import {
   specterAttributeRules,
@@ -13,10 +12,7 @@ import { specterUi } from "./ui.js";
 
 export const specterModule = defineProfessionModule({
   id: "Specter",
-  catalog: {
-    ...thiefModuleCatalog("Specter"),
-    skillHandlers: specterSkillHandlers,
-  },
+  catalog: thiefModuleCatalog("Specter"),
   resources: {
     createProfessionState: createSpecterState,
     createResolverState: createSpecterState,
