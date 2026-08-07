@@ -744,13 +744,14 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.DOUBLE_STRIKE]: {
       "implemented": true,
-      "castTimeMs": 0,
+      "castTimeMs": 540,
+      "quicknessCastTimeMs": 360,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
         {
           "type": "strike",
-          "coefficient": 1.6,
+          "coefficient": 0.8,
           "hits": 2,
           "name": "Double Strike",
           "actorType": "player"
@@ -778,18 +779,19 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
   [ID.DEATH_BLOSSOM]: {
       "implemented": true,
       "movementSkill": true,
-      "castTimeMs": 500,
+      "castTimeMs": 1560,
+      "quicknessCastTimeMs": 1040,
       "cooldown": 0,
       "initiativeCost": 4,
       "effects": [
         {
           "type": "strike",
-          "coefficient": 1.8900000000000001,
+          "coefficient": 0.63,
           "hits": 3,
           "name": "Death Blossom",
           "actorType": "player",
-          "atMs": 167,
-          "intervalMs": 167,
+          "atMs": 520,
+          "intervalMs": 520,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -801,6 +803,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "actorType": "player"
         }
       ],
+      "finisherType": "Whirl",
+      "finisherValue": 1,
       "requiredMainHand": "Dagger",
       "requiredOffHand": "Dagger",
     },
@@ -995,7 +999,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.DANCING_DAGGER]: {
       "implemented": true,
-      "castTimeMs": 250,
+      "castTimeMs": 750,
+      "quicknessCastTimeMs": 500,
       "cooldown": 0,
       "initiativeCost": 3,
       "effects": [
@@ -1167,6 +1172,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.SHADOW_SHOT]: {
       "implemented": true,
+      "movementSkill": true,
+      "shadowstepSkill": true,
       "castTimeMs": 0,
       "cooldown": 0,
       "initiativeCost": 4,
@@ -1180,7 +1187,10 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         },
         {
           "type": "blind",
-          "actorType": "player"
+          "actorType": "player",
+          "metadata": {
+            "duration": 5
+          }
         }
       ],
       "requiredMainHand": "Dagger",
@@ -1643,9 +1653,11 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.WILD_STRIKE]: {
       "implemented": true,
-      "castTimeMs": 0,
+      "castTimeMs": 600,
+      "quicknessCastTimeMs": 400,
       "cooldown": 0,
       "initiativeCost": 0,
+      "enduranceGain": 10,
       "effects": [
         {
           "type": "strike",
@@ -1711,7 +1723,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
   [ID.HEARTSEEKER]: {
       "implemented": true,
       "movementSkill": true,
-      "castTimeMs": 750,
+      "castTimeMs": 900,
+      "quicknessCastTimeMs": 600,
       "cooldown": 0,
       "initiativeCost": 3,
       "effects": [
@@ -1719,28 +1732,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "type": "strike",
           "coefficient": 1,
           "hits": 1,
-          "name": "Above 50%",
-          "actorType": "player"
-        },
-        {
-          "type": "strike",
-          "coefficient": 1.6,
-          "hits": 1,
-          "name": "Below 50%",
-          "actorType": "player"
-        },
-        {
-          "type": "strike",
-          "coefficient": 2.2,
-          "hits": 1,
-          "name": "Below 25%",
-          "actorType": "player"
+          "name": "Heartseeker",
+          "actorType": "player",
+          "coefficientModifiers": [
+            {
+              "kind": "target-health-below",
+              "threshold": 0.25,
+              "multiplier": 2.22
+            },
+            {
+              "kind": "target-health-below",
+              "threshold": 0.5,
+              "multiplier": 1.6
+            }
+          ]
         }
       ],
     },
   [ID.LOTUS_STRIKE]: {
       "implemented": true,
-      "castTimeMs": 250,
+      "castTimeMs": 660,
+      "quicknessCastTimeMs": 440,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
@@ -1776,7 +1788,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
       "effects": [
         {
           "type": "strike",
-          "coefficient": 1.26,
+          "coefficient": 0.63,
           "hits": 2,
           "name": "Twisting Fangs",
           "actorType": "player",
@@ -2122,7 +2134,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.CLOAK_AND_DAGGER]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "castTimeMs": 900,
+      "quicknessCastTimeMs": 600,
       "cooldown": 0,
       "initiativeCost": 5,
       "effects": [
@@ -3114,7 +3127,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.SHADOW_BOLT]: {
       "implemented": true,
-      "castTimeMs": 750,
+      "castTimeMs": 780,
+      "quicknessCastTimeMs": 520,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
@@ -3136,7 +3150,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.ENDLESS_NIGHT]: {
       "implemented": true,
-      "castTimeMs": 2250,
+      "castTimeMs": 2880,
+      "quicknessCastTimeMs": 1920,
       "cooldown": 0,
       "initiativeCost": 3,
       "effects": [
@@ -3146,8 +3161,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "hits": 7,
           "name": "Endless Night",
           "actorType": "player",
-          "atMs": 321,
-          "intervalMs": 321,
+          "atMs": 411.42857142857144,
+          "intervalMs": 411.42857142857144,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -3156,26 +3171,25 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "condition": "Slow",
           "stacks": 1,
           "duration": 1.5,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 411.42857142857144,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         },
         {
           "type": "condition",
-          "condition": "Torment",
-          "stacks": 1,
-          "duration": 6,
-          "actorType": "player"
-        },
-        {
-          "type": "boon",
-          "boon": "regeneration",
-          "duration": 3,
-          "stacks": 1
-        },
-        {
-          "type": "boon",
-          "boon": "vigor",
-          "duration": 1,
-          "stacks": 1
+          "ticks": [
+            { "atMs": 411.42857142857144, "condition": "Torment", "stacks": 1, "duration": 6 },
+            { "atMs": 822.8571428571429, "condition": "Torment", "stacks": 1, "duration": 6 },
+            { "atMs": 1234.2857142857142, "condition": "Torment", "stacks": 1, "duration": 6 },
+            { "atMs": 1645.7142857142858, "condition": "Torment", "stacks": 1, "duration": 6 },
+            { "atMs": 2057.1428571428573, "condition": "Torment", "stacks": 1, "duration": 6 },
+            { "atMs": 2468.5714285714284, "condition": "Torment", "stacks": 1, "duration": 6 },
+            { "atMs": 2880, "condition": "Torment", "stacks": 1, "duration": 6 }
+          ],
+          "actorType": "player",
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         }
       ],
       "requiredMainHand": "Scepter",
@@ -3183,7 +3197,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.TRIPLE_BOLT]: {
       "implemented": true,
-      "castTimeMs": 1500,
+      "castTimeMs": 1620,
+      "quicknessCastTimeMs": 1080,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
@@ -3193,17 +3208,21 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "hits": 3,
           "name": "Triple Bolt",
           "actorType": "player",
-          "atMs": 500,
-          "intervalMs": 500,
+          "atMs": 540,
+          "intervalMs": 540,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
         {
           "type": "condition",
-          "condition": "Torment",
-          "stacks": 1,
-          "duration": 5,
-          "actorType": "player"
+          "ticks": [
+            { "atMs": 540, "condition": "Torment", "stacks": 1, "duration": 5 },
+            { "atMs": 1080, "condition": "Torment", "stacks": 1, "duration": 5 },
+            { "atMs": 1620, "condition": "Torment", "stacks": 1, "duration": 5 }
+          ],
+          "actorType": "player",
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         }
       ],
     },
@@ -3226,10 +3245,14 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         },
         {
           "type": "condition",
-          "condition": "Torment",
-          "stacks": 1,
-          "duration": 4,
-          "actorType": "player"
+          "ticks": [
+            { "atMs": 500, "condition": "Torment", "stacks": 1, "duration": 4 },
+            { "atMs": 1000, "condition": "Torment", "stacks": 1, "duration": 4 },
+            { "atMs": 1500, "condition": "Torment", "stacks": 1, "duration": 4 }
+          ],
+          "actorType": "player",
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         }
       ],
       "requiredMainHand": "Scepter",
@@ -3237,7 +3260,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.DOUBLE_BOLT]: {
       "implemented": true,
-      "castTimeMs": 750,
+      "castTimeMs": 960,
+      "quicknessCastTimeMs": 640,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
@@ -3247,23 +3271,27 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "hits": 2,
           "name": "Double Bolt",
           "actorType": "player",
-          "atMs": 375,
-          "intervalMs": 375,
+          "atMs": 480,
+          "intervalMs": 480,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
         {
           "type": "condition",
-          "condition": "Torment",
-          "stacks": 1,
-          "duration": 4,
-          "actorType": "player"
+          "ticks": [
+            { "atMs": 480, "condition": "Torment", "stacks": 1, "duration": 4 },
+            { "atMs": 960, "condition": "Torment", "stacks": 1, "duration": 4 }
+          ],
+          "actorType": "player",
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         }
       ],
     },
   [ID.TWILIGHT_COMBO]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "castTimeMs": 600,
+      "quicknessCastTimeMs": 400,
       "cooldown": 0,
       "initiativeCost": 4,
       "effects": [
@@ -3272,34 +3300,50 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "coefficient": 1,
           "hits": 1,
           "name": "Initial Attack",
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 300,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         },
         {
           "type": "strike",
           "coefficient": 0.5,
           "hits": 1,
           "name": "Secondary Attack",
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 600,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
+        },
+        {
+          "type": "condition",
+          "condition": "Chilled",
+          "stacks": 1,
+          "duration": 3,
+          "actorType": "player",
+          "atMs": 300,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         },
         {
           "type": "condition",
           "condition": "Poisoned",
           "stacks": 1,
           "duration": 5,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 300,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         },
         {
           "type": "condition",
           "condition": "Torment",
           "stacks": 3,
           "duration": 5,
-          "actorType": "player"
-        },
-        {
-          "type": "boon",
-          "boon": "swiftness",
-          "duration": 5,
-          "stacks": 1
+          "actorType": "player",
+          "atMs": 600,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         }
       ],
       "requiredMainHand": "Scepter",
@@ -3307,7 +3351,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.MEASURED_SHOT]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "castTimeMs": 840,
+      "quicknessCastTimeMs": 560,
       "cooldown": 0,
       "initiativeCost": 4,
       "effects": [
@@ -3317,15 +3362,25 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "hits": 1,
           "name": "Measured Shot",
           "actorType": "player"
+        },
+        {
+          "type": "condition",
+          "condition": "Immobilized",
+          "stacks": 1,
+          "duration": 1,
+          "actorType": "player"
         }
       ],
+      "movementSkill": true,
+      "shadowstepSkill": true,
       "requiredMainHand": "Scepter",
       "requiredOffHand": "Pistol",
     },
   [ID.SHADOWSQUALL]: {
       "implemented": true,
       "handlerId": "thief.stealth-attack",
-      "castTimeMs": 2500,
+      "castTimeMs": 2940,
+      "quicknessCastTimeMs": 1960,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
@@ -3335,23 +3390,26 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "hits": 8,
           "name": "Shadowsquall",
           "actorType": "player",
-          "atMs": 313,
-          "intervalMs": 313,
+          "atMs": 367.5,
+          "intervalMs": 367.5,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
         {
           "type": "condition",
-          "condition": "Poisoned",
-          "stacks": 1,
-          "duration": 3,
-          "actorType": "player"
-        },
-        {
-          "type": "boon",
-          "boon": "regeneration",
-          "duration": 2.5,
-          "stacks": 1
+          "ticks": [
+            { "atMs": 367.5, "condition": "Poisoned", "stacks": 1, "duration": 3 },
+            { "atMs": 735, "condition": "Poisoned", "stacks": 1, "duration": 3 },
+            { "atMs": 1102.5, "condition": "Poisoned", "stacks": 1, "duration": 3 },
+            { "atMs": 1470, "condition": "Poisoned", "stacks": 1, "duration": 3 },
+            { "atMs": 1837.5, "condition": "Poisoned", "stacks": 1, "duration": 3 },
+            { "atMs": 2205, "condition": "Poisoned", "stacks": 1, "duration": 3 },
+            { "atMs": 2572.5, "condition": "Poisoned", "stacks": 1, "duration": 3 },
+            { "atMs": 2940, "condition": "Poisoned", "stacks": 1, "duration": 3 }
+          ],
+          "actorType": "player",
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         }
       ],
       "requiredMainHand": "Scepter",
@@ -3359,7 +3417,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.SHADOW_SAP]: {
       "implemented": true,
-      "castTimeMs": 750,
+      "castTimeMs": 900,
+      "quicknessCastTimeMs": 600,
       "cooldown": 0,
       "initiativeCost": 4,
       "effects": [
@@ -3383,6 +3442,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "stacks": 1
         }
       ],
+      "finisherType": "Blast",
+      "finisherValue": 1,
     },
   [ID.SNIPERS_COVER]: {
       "implemented": true,

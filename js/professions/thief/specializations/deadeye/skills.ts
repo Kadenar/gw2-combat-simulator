@@ -545,7 +545,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<
   [ID.MALICIOUS_BACKSTAB]: {
       "implemented": true,
       "handlerId": "thief.stealth-attack",
-      "castTimeMs": 250,
+      "castTimeMs": 660,
+      "quicknessCastTimeMs": 440,
       "cooldown": 1,
       "initiativeCost": 0,
       "effects": [

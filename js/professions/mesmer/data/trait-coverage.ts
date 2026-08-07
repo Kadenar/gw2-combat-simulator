@@ -8,6 +8,7 @@ import type { CatalogEntity } from "../../../platform/engine/types.js";
 
 const IMPLEMENTED: ReadonlySet<number> = new Set([
   TRAIT.ALTERED_CHORD,
+  TRAIT.CALL_AND_RESPONSE,
   TRAIT.BLINDING_DISSIPATION,
   TRAIT.BLOODSONG,
   TRAIT.BOUNTIFUL_BLADES,
@@ -36,6 +37,8 @@ const IMPLEMENTED: ReadonlySet<number> = new Set([
   TRAIT.JAGGED_MIND,
   TRAIT.MAIM_THE_DISILLUSIONED,
   TRAIT.MALICIOUS_SORCERY,
+  TRAIT.MASTER_FENCER,
+  TRAIT.MAYHEM,
   TRAIT.MASTER_OF_MISDIRECTION,
   TRAIT.MENTAL_ANGUISH,
   TRAIT.MENTAL_FOCUS,
@@ -56,6 +59,9 @@ const IMPLEMENTED: ReadonlySet<number> = new Set([
   TRAIT.SHREDDING,
   TRAIT.SUPERIORITY_COMPLEX,
   TRAIT.SYNCOPATE,
+  TRAIT.RACONTEUR,
+  TRAIT.LIFE_OF_THE_PARTY,
+  TRAIT.HARMONIZE,
   TRAIT.TIME_BOMB,
   TRAIT.VICIOUS_EXPRESSION,
 ]);
@@ -66,6 +72,12 @@ const OUT_OF_MODEL_REASON =
 function implementedEvidence(
   trait: CatalogEntity,
 ): { readonly file: string; readonly name: string } {
+  if (Number(trait.id) === TRAIT.MASTER_FENCER) {
+    return {
+      file: "tests/platform/gw2/resolver-architecture.test.js",
+      name: "Master Fencer grants self and allied fury on critical hits with an eight-second ICD",
+    };
+  }
   if (trait.specialization === "Mirage") {
     return {
       file: "tests/professions/mesmer/rotation.test.js",

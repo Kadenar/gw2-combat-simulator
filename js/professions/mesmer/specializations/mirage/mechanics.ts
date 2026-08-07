@@ -29,11 +29,12 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<
     "player": {
       "coefficient": 1,
       "hits": 2,
+      "damageAtMs": 360,
       "conditions": [
         {
           "name": "Torment",
           "duration": 3.5,
-          "stacks": 3
+          "stacks": 6
         }
       ]
     },

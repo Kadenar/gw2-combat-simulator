@@ -28,11 +28,12 @@ const generated: readonly Skill[] = [
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
   Object.freeze({
     Mirage: [
-      ID.DODGE_MIRAGE_CLOAK, ID.ETHER_BARRAGE, ID.IMAGINARY_AXES,
+      ID.DODGE_MIRAGE_CLOAK, ID.PICK_UP_MIRAGE_MIRROR,
+      ID.ETHER_BARRAGE, ID.IMAGINARY_AXES,
       ID.MIRAGE_THRUST, ID.PHANTOM_RAZOR, ID.EFFERVESCENCE,
       ID.FRACTURED_GLASS, ID.SPLIT_SURGE, ID.CHAOS_VORTEX,
     ],
-    Troubadour: [ID.TROUBADOUR_BLADECALL],
+    Troubadour: [ID.TROUBADOUR_BLADECALL, ID.DODGE_TROUBADOUR],
   });
 const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(Object.fromEntries(
   Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>

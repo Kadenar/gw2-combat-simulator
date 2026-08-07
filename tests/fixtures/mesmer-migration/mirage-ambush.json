@@ -205,6 +205,7 @@
           "73154": 73154
         },
         "availableAmbush": null,
+        "availableMirrors": 0,
         "availableFlips": {
           "Power Spike": {
             "availableAt": 0,

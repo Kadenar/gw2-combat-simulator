@@ -38,6 +38,8 @@ export const VINDICATOR_DODGE_AUTO_ICON =
 export const ACTION_ICONS: Readonly<Record<string, string>> = {
   Dodge: "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
   "Dodge / Mirage Cloak": "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
+  "Pick Up Mirage Mirror":
+    "https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png",
   "Swap Weapons":
     "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
   "Continuum Shift":

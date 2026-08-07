@@ -52,6 +52,25 @@ function resourcePipsHtml(
   }${pipClass} pip-rows-${pipRows}">${content}</div>`;
 }
 
+function resourceStatusItemsHtml(
+  definition: ProfessionResourceView,
+): string {
+  const items = definition.statusItems || [];
+  if (!items.length) return "";
+  const label = definition.statusItemsLabel || "Active";
+  return `<div class="active-resource-statuses"
+      aria-label="${esc(label)}">
+      <span class="active-resource-statuses-label">${esc(label)}</span>
+      ${items.map((item) => {
+        const title = item.title || `${item.label} ${item.valueLabel || ""}`;
+        return `<span class="active-resource-status" title="${esc(title.trim())}">
+          <span>${esc(item.label)}</span>
+          ${item.valueLabel ? `<strong>${esc(item.valueLabel)}</strong>` : ""}
+        </span>`;
+      }).join("")}
+    </div>`;
+}
+
 export function activeResourceGroup(app: ProfessionAppState): string {
   const professionState = professionEndState(app.results);
   const definitions = resourceDisplayViews(app.profession, {
@@ -88,6 +107,7 @@ export function activeResourceGroup(app: ProfessionAppState): string {
                 ${indicator}
                 <strong>${displayValue}/${definition.maximum}</strong>
             </div>
+            ${resourceStatusItemsHtml(definition)}
         </div>`;
     })
     .join("");

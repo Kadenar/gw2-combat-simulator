@@ -53,7 +53,19 @@ export function createGw2CombatObserver(
       expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
       stacks: Math.max(1, Number(event.stacks || 1)),
       source: event.source,
+      affectsSelf: event.affectsSelf !== false,
       affectsSummons: event.affectsSummons === true,
+      alliedPlayerCount: Math.max(
+        0,
+        Math.trunc(Number(event.alliedPlayerCount || 0)),
+      ),
+      companionIds: Array.isArray(event.companionIds)
+        ? event.companionIds.map(String)
+        : [],
+      recipientCount: Math.max(
+        0,
+        Math.trunc(Number(event.recipientCount || 0)),
+      ),
     });
     // Historical applications stay in the map because combat queries ask about
     // arbitrary event timestamps, not only the scheduler's current clock.

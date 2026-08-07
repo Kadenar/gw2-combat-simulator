@@ -12,10 +12,25 @@ the profession modules.
   swap preservation, Preparedness, and initiative-gain traits.
 - Stealth stacking, Revealed, active-weapon stealth attacks, and Deadeye
   malicious stealth attacks.
+- Dagger cast timings measured under Quickness, per-hit strike packets,
+  Heartseeker health thresholds, Wild Strike endurance, Death Blossom's whirl
+  finisher, shadowstep triggers, and Deadeye's 10%-per-malice Backstab scaling.
 - Core/Daredevil stolen skills, Deadeye-specific stolen skills and
   Mark/malice/Kneel, Daredevil endurance and dodge replacements, and Specter
   Shadow Force and Shadow Shroud transitions. The maximum Shadow Force pool is
   69% of maximum health and drains by 2% of that pool per second in shroud.
+- Specter's measured Quickness cast times, Scepter and Shadow Shroud hit
+  packets, per-hit conditions, combo-finisher metadata, delayed Mind Shock,
+  and one-second Well of Bounty/Sorrow/Tears pulse sequences.
+- Specter initiative spending grants 1% Shadow Force per point. Siphon grants
+  25%, or 27.5% with Amplified Siphoning, and combines Lead Attacks with
+  Sleight of Hand additively. Larcenous Torment resolves once per torment
+  stack, including its 0.5% Shadow Force gain and life siphon.
+- Second Opinion, Dark Sentry/Rot Wallow Venom, Strength of Shadows, and
+  Shadestep ally boons. Ally-triggered Rot Wallow packets use the configured
+  allied-player count and strike rate. Shallow Grave, Consume Shadows,
+  Traversing Dusk, Panaku's Ambition, and Hungering Darkness remain outside
+  the implemented model.
 - Antiquary artifact slots, deterministic or player-choice artifact draws,
   Double Edge outcomes, Reshuffle, backfire state, and persistent Antiquary
   summons.

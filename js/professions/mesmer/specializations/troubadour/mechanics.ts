@@ -50,12 +50,15 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<
     instrument: "Lute",
     coefficient: 3,
     hits: 3,
+    damageAtMs: 435,
+    intervalMs: 200,
   },
   [ID.FLUSTERING_FLUTE]: {
     slot: 2,
     instrument: "Flute",
     coefficient: 1,
     hits: 1,
+    damageAtMs: 367,
     conditions: [
       {
         name: "Confusion",
@@ -81,11 +84,14 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<
     instrument: "Drum",
     coefficient: 2,
     hits: 1,
+    damageAtMs: 518,
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
     slot: 1,
     instrument: "Lute",
     coefficient: 3,
     hits: 3,
+    damageAtMs: 435,
+    intervalMs: 200,
   },
 });

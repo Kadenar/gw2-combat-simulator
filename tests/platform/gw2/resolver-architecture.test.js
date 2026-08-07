@@ -22,6 +22,9 @@ import {
 import {
   createCloneAttackScheduler,
 } from "../../../js/professions/mesmer/core/clone-attacks.js";
+import {
+  createGw2ResolverEventHandlers,
+} from "../../../js/platform/gw2/resolver/event-handlers.js";
 
 test("Mesmer skill damage scheduling is split into focused modules", () => {
   const core = new URL("../../../js/professions/mesmer/core/", import.meta.url);
@@ -175,6 +178,48 @@ test("condition applications shorter than one second deal fractional damage", ()
   assert.equal(result.resolvedEvents[0].damageTicks.length, 1);
   assert.equal(result.resolvedEvents[0].damageTicks[0].fraction, 0.5);
   assert.deepEqual(result.warnings, ["resolver handoff warning"]);
+});
+
+test("shared buff handling prioritizes allied players over summon recipients", () => {
+  const handlers = createGw2ResolverEventHandlers({
+    hitResolution: {
+      buildContext: () => ({}),
+      apply: () => {},
+    },
+    conditions: {
+      activeStackCount: () => 0,
+      apply: () => {},
+      tick: () => ({}),
+    },
+    reactions: { dispatch: () => {} },
+  });
+  const context = {
+    config: {
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
+    },
+    boons: new Map(),
+  };
+  const application = {
+    type: "buff",
+    at: 0,
+    source: "Player",
+    sourceId: "party-might",
+    actorType: "player",
+    kind: "might",
+    duration: 10,
+    stacks: 1,
+    recipients: "party",
+    maximumRecipients: 5,
+    companionIds: ["clone:one", "clone:two"],
+  };
+  handlers.buff(context, application);
+
+  assert.equal(application.affectsSelf, true);
+  assert.equal(application.alliedPlayerCount, 4);
+  assert.deepEqual(application.companionIds, []);
+  assert.equal(application.affectsSummons, false);
+  assert.equal(application.recipientCount, 5);
 });
 
 test("permanent damaging target conditions are assumptions, not player damage", () => {
@@ -859,6 +904,101 @@ test("Mesmer critical traits consume seeded hit outcomes in stochastic mode", ()
   );
   assert.equal(expectedJaggedMind.length, hits.length);
   assert.ok(expectedJaggedMind.every(event => event.stacks === 0.5));
+});
+
+test("Master Fencer grants self and allied fury on critical hits with an eight-second ICD", () => {
+  const defaults = defaultSimulationConfig();
+  const result = simulateMesmer(
+    [
+      "Flying Cutter",
+      { name: "__wait", waitMs: 1000 },
+      "Flying Cutter",
+      { name: "__wait", waitMs: 9000 },
+      "Flying Cutter",
+    ],
+    defaultSimulationConfig({
+      selectedTraits: ["Master Fencer"],
+      stats: {
+        ...defaults.stats,
+        precision: 2995,
+      },
+      boons: {
+        ...defaults.boons,
+        fury: false,
+        quickness: false,
+        alacrity: false,
+      },
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
+      randomness: { mode: "stochastic", seed: 1 },
+    }),
+  );
+  const hits = result.events.filter(event =>
+    event.type === "damage" && event.skillName === "Flying Cutter"
+  );
+  const procs = result.events.filter(event =>
+    event.type === "proc" && event.name === "Master Fencer"
+  );
+  const fury = result.events.filter(event =>
+    event.type === "buff" && event.skillName === "Master Fencer"
+  );
+
+  assert.equal(hits.length, 3);
+  assert.ok(hits.every(event => event.didCrit === true));
+  assert.equal(procs.length, 2);
+  assert.equal(procs[0].at, hits[0].at);
+  assert.equal(procs[1].at, hits[2].at);
+  assert.ok(hits[1].at <= hits[0].at + 8);
+  assert.ok(hits[2].at > hits[0].at + 8);
+  assert.deepEqual(
+    fury.filter(event => event.recipients === "self")
+      .map(event => [
+        event.duration,
+        event.affectsSelf,
+        event.affectsSummons,
+      ]),
+    [[8, true, false], [8, true, false]],
+  );
+  assert.deepEqual(
+    fury.filter(event => event.recipients === "allies")
+      .map(event => [
+        event.duration,
+        event.affectsSelf,
+        event.affectsSummons,
+      ]),
+    [[4, false, true], [4, false, true]],
+  );
+
+  const isolated = simulateMesmer(
+    ["Flying Cutter"],
+    defaultSimulationConfig({
+      selectedTraits: ["Master Fencer"],
+      stats: {
+        ...defaults.stats,
+        precision: 2995,
+      },
+      boons: {
+        ...defaults.boons,
+        fury: false,
+      },
+      sharePlayerBoonsWithSummons: false,
+      randomness: { mode: "stochastic", seed: 1 },
+    }),
+  );
+  const isolatedFury = isolated.events.filter(event =>
+    event.type === "buff" && event.skillName === "Master Fencer"
+  );
+  assert.equal(isolatedFury.length, 2);
+  assert.equal(
+    isolatedFury.find(event => event.recipients === "self")
+      ?.affectsSummons,
+    false,
+  );
+  assert.equal(
+    isolatedFury.find(event => event.recipients === "allies")
+      ?.affectsSummons,
+    false,
+  );
 });
 
 test("Sharper Images samples illusion criticals instead of accumulating expected procs", () => {

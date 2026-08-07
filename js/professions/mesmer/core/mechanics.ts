@@ -37,50 +37,24 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<
 > = Object.freeze({
   Axe: {
     weaponStrength: 28.5,
-    sequence: [
+    id: ID.LACERATING_CHOP,
+    name: "Clone: Lacerating Chop",
+    coefficient: 0.55,
+    hits: 1,
+    firstAttackDelay: 1.2,
+    castTimeMs: 1520,
+    damageAtMs: 520,
+    interval: 1.56,
+    conditions: [
       {
-        name: "Clone: Lacerating Chop",
-        coefficient: 0.55,
-        hits: 1,
-        interval: 1.51,
-        conditions: [
-          {
-            name: "Bleeding",
-            duration: 2,
-            stacks: 1,
-          },
-        ],
+        name: "Bleeding",
+        duration: 1,
+        stacks: 1,
       },
       {
-        name: "Clone: Ethereal Chop",
-        coefficient: 0.55,
-        hits: 1,
-        interval: 1.61,
-        conditions: [
-          {
-            name: "Torment",
-            duration: 2,
-            stacks: 1,
-          },
-        ],
-      },
-      {
-        name: "Clone: Mirror Strikes",
-        coefficient: 1.1,
-        hits: 2,
-        interval: 1.17,
-        conditions: [
-          {
-            name: "Bleeding",
-            duration: 6,
-            stacks: 1,
-          },
-          {
-            name: "Torment",
-            duration: 6,
-            stacks: 1,
-          },
-        ],
+        name: "Torment",
+        duration: 1,
+        stacks: 1,
       },
     ],
   },
@@ -239,33 +213,33 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<
   },
   [ID.PHANTASMAL_DUELIST]: {
     castTimeMs: 560,
-    damageAtMs: 2400,
+    damageAtMs: 2283,
     spawnAtMs: 2880,
     damageTicks: {
       "Illusion Damage": [
         {
-          atMs: 791,
+          atMs: 883,
         },
         {
-          atMs: 991,
+          atMs: 1083,
         },
         {
-          atMs: 1190,
+          atMs: 1283,
         },
         {
-          atMs: 1390,
+          atMs: 1483,
         },
         {
-          atMs: 1591,
+          atMs: 1683,
         },
         {
-          atMs: 1790,
+          atMs: 1883,
         },
         {
-          atMs: 1990,
+          atMs: 2083,
         },
         {
-          atMs: 2400,
+          atMs: 2283,
         },
       ],
     },
@@ -278,17 +252,45 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<
   },
   [ID.PHANTASMAL_WARLOCK]: {
     castTimeMs: 780,
-    damageAtMs: 2960,
+    damageAtMs: 2766,
+    damageAtMsByEntity: [2722, 2766],
     spawnAtMs: 4240,
+    damageTicksByEntity: [
+      {
+        "One warlock": [{ atMs: 1117 }, { atMs: 1918 }, { atMs: 2722 }],
+      },
+      {
+        "One warlock": [{ atMs: 1160 }, { atMs: 1960 }, { atMs: 2766 }],
+      },
+    ],
   },
   [ID.PHANTASMAL_BERSERKER]: {
     castTimeMs: 560,
-    damageAtMs: 1480,
+    damageAtMs: 1251,
+    damageAtMsByEntity: [1085, 1251],
     spawnAtMs: 2560,
+    damageTicksByEntity: [
+      {
+        "One berserker": [
+          { atMs: 717 },
+          { atMs: 834 },
+          { atMs: 951 },
+          { atMs: 1085 },
+        ],
+      },
+      {
+        "One berserker": [
+          { atMs: 883 },
+          { atMs: 1000 },
+          { atMs: 1117 },
+          { atMs: 1251 },
+        ],
+      },
+    ],
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
     castTimeMs: 760,
-    damageAtMs: 1150,
+    damageAtMs: 1400,
     spawnAtMs: 1840,
   },
   [ID.PHANTASMAL_WARDEN]: {

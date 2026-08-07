@@ -370,15 +370,16 @@ function devouringDarkness(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
+  const impactAt = context.start + (context.fullEnd - context.start) * 0.8;
   const count = Math.min(
     5,
     Object.values(context.config.target?.conditions || {}).filter(
       (value) => value === true || Number(value) > 0,
     ).length,
   );
-  emitDamage(context, skill, 1.16);
+  emitDamage(context, skill, 1.16, { at: impactAt });
   if (count > 0) {
-    emitCondition(context, skill, "Torment", count, 4);
+    emitCondition(context, skill, "Torment", count, 4, { at: impactAt });
   }
   return true;
 }

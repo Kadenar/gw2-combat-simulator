@@ -30,7 +30,7 @@ export interface MesmerSkillDamageController {
     playerEffectEnd: number,
     pulseTimes: readonly number[],
     conditions: readonly MesmerConditionEffect[],
-    phantasm: MesmerPhantasmExecution | null,
+    phantasms: readonly MesmerPhantasmExecution[],
   ): MesmerSkillDamageResult;
   finish(skill: MesmerSkill, result: MesmerSkillDamageResult): void;
 }
@@ -227,7 +227,7 @@ export function createSkillDamageController({
     playerEffectEnd: number,
     pulseTimes: readonly number[],
     conditions: readonly MesmerConditionEffect[],
-    phantasm: MesmerPhantasmExecution | null,
+    phantasmExecutions: readonly MesmerPhantasmExecution[],
   ): MesmerSkillDamageResult => {
     const playerHitTimes: number[] = [];
     let firstFencerTriggerAt = Infinity;
@@ -279,21 +279,21 @@ export function createSkillDamageController({
           ? { ...group, coefficient: skill.boonlessCoefficient }
           : group;
       if (group.actorType === "phantasm") {
-        if (!phantasm) {
+        if (phantasmExecutions.length === 0) {
           throw new TypeError(
             `Phantasm strike ${skill.id} requires phantasm resource metadata.`,
           );
         }
-        const result = phantasms.scheduleStrike(
-          phantasm,
-          group,
-          selectedGroup,
-          at,
-          castStart,
-        );
-        addFencerStacks(result.initialHitTimes, result.damageGroup.hits);
-        if (phantasm.hasChronophantasma) {
-          addFencerStacks([phantasm.repeatDamageAt], result.damageGroup.hits);
+        for (const phantasm of phantasmExecutions) {
+          const result = phantasms.scheduleStrike(
+            phantasm,
+            group,
+            selectedGroup,
+            at,
+            castStart,
+          );
+          addFencerStacks(result.initialHitTimes, result.damageGroup.hits);
+          addFencerStacks(result.repeatHitTimes, result.damageGroup.hits);
         }
         continue;
       }
@@ -315,8 +315,17 @@ export function createSkillDamageController({
       }
     }
     scheduleTrackedHits(skill, playerHitTimes);
-    if (phantasm) {
-      phantasms.scheduleConditions(phantasm, conditions);
+    if (phantasmExecutions.length > 0) {
+      const playerConditions = conditions.filter(
+        (effect) => effect.actorType === "player",
+      );
+      const phantasmConditions = conditions.filter(
+        (effect) => effect.actorType !== "player",
+      );
+      schedulePlayerConditions(skill, at, pulseTimes, playerConditions);
+      for (const phantasm of phantasmExecutions) {
+        phantasms.scheduleConditions(phantasm, phantasmConditions);
+      }
     } else {
       schedulePlayerConditions(skill, at, pulseTimes, conditions);
     }

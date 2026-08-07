@@ -4,8 +4,10 @@ import {
   MESMER_SKILL_IDS as ID,
   MESMER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
+import { MESMER_CORE_CLONE_ATTACKS } from "./mechanics.js";
 import type { SchedulerState } from "../../../platform/engine/types.js";
 import type {
+  MesmerAddCondition,
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
@@ -31,7 +33,7 @@ const SIGNET_ILLUSIONS_RESET_EXCLUSIONS = new Set<number>([
 
 export interface MesmerSkillSpecialEffectController {
   consumeClarity(skill: MesmerSkill, castStart: number): boolean;
-  apply(skill: MesmerSkill, at: number): void;
+  apply(skill: MesmerSkill, at: number, castStart?: number): void;
 }
 
 interface SkillSpecialEffectControllerOptions {
@@ -40,6 +42,7 @@ interface SkillSpecialEffectControllerOptions {
   readonly allSkills: readonly MesmerSkill[];
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
+  readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
   readonly shatters: Readonly<Record<number, MesmerShatter>>;
@@ -52,6 +55,7 @@ export function createSkillSpecialEffectController({
   allSkills,
   addEvent,
   addTraitProc,
+  addCondition,
   addDamage,
   traitDamage,
   shatters,
@@ -70,7 +74,48 @@ export function createSkillSpecialEffectController({
     return consumed;
   };
 
-  const apply = (skill: MesmerSkill, at: number): void => {
+  const apply = (
+    skill: MesmerSkill,
+    at: number,
+    castStart = at,
+  ): void => {
+    if (skill.id === ID.AXES_OF_SYMMETRY) {
+      const axeClones = professionCoreState(state).clones.filter(
+        (clone) =>
+          clone.weapon === "Axe" && clone.createdAt <= castStart + 0.0001,
+      );
+      for (const clone of axeClones) {
+        const impactAt = at - 0.04;
+        addDamage(
+          {
+            id: ID.AXES_OF_SYMMETRY,
+            name: `${skill.name} — Clone`,
+            weapon: "Axe",
+            blade: false,
+          },
+          impactAt,
+          {
+            coefficient: 1.75,
+            hits: 1,
+            source: "Clone",
+            weaponStrength: MESMER_CORE_CLONE_ATTACKS.Axe.weaponStrength,
+          },
+          {
+            cloneId: clone.id,
+            source: "Clone",
+            name: `${skill.name} — Clone`,
+          },
+        );
+        addCondition(
+          skill.name,
+          impactAt,
+          { name: "Confusion", duration: 6, stacks: 1 },
+          "Clone",
+          `${skill.name} — Clone`,
+          { cloneId: clone.id, skillId: skill.id },
+        );
+      }
+    }
     if (skill.id === ID.MIND_THE_GAP) {
       professionCoreState(state).clarityUntil = at + CLARITY_DURATION;
       addEvent({

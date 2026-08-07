@@ -65,14 +65,15 @@ export function createCloneAttackScheduler({
     const step = sequenceStep(clone, attack);
     const skillName = step.name || `${clone.weapon} Clone`;
     const cloneSkill = {
-      id: skillName,
+      id: step.id ?? skillName,
       name: skillName,
       weapon: clone.weapon,
       blade: false,
     };
+    const impactAt = at + Number(step.damageAtMs || 0) / 1000;
     addDamage(
       cloneSkill,
-      at,
+      impactAt,
       {
         ...(step.ticks?.length
           ? {
@@ -90,8 +91,9 @@ export function createCloneAttackScheduler({
       { cloneId: clone.id, source: "Clone" },
     );
     for (const condition of step.conditions || []) {
-      addCondition(skillName, at, condition, "Clone", "", {
+      addCondition(skillName, impactAt, condition, "Clone", "", {
         cloneId: clone.id,
+        skillId: step.id,
       });
     }
     if (Array.isArray(attack.sequence) && attack.sequence.length > 0) {

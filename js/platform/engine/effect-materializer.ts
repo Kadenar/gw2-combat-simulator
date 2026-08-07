@@ -194,6 +194,7 @@ export function materializeSkillEffectApplications({
           0,
           Number(statusDuration ?? effect.duration ?? 0),
         ),
+        ...(effect.metadata || {}),
       },
     });
   } else if (effect.type === "custom") {

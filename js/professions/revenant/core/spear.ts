@@ -120,7 +120,7 @@ export function castAbyssalRaze(
   context: RevenantCastContext,
   skill: RevenantSkill,
 ): void {
-  const at = context.effectiveEnd;
+  const at = context.start + MECHANICS.spear.abyssalRaze.impactDelay;
   const stacks = crushingAbyssStacksAt(professionCoreState(context), at);
   emitAbyssalRazePackets(context, skill, at, stacks);
   context.tasks.schedule({

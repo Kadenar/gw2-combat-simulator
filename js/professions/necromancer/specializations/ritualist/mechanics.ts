@@ -11,8 +11,15 @@ export const RITUALIST_MECHANICS = Object.freeze({
       // The live barrage packet does not use the spirit autoattack's 1000
       // weapon strength. The supplied EVTC resolves it at ~805 instead.
       summonWeaponStrength: 805,
-      summonDelay: 0.68,
-      summonInterval: 0.067,
+      summonHitDelays: Object.freeze([
+        0.8,
+        0.96,
+        1,
+        1.08,
+        1.12,
+        1.16,
+        1.2,
+      ]),
       activeCoefficient: 2.5,
       activeHits: 4,
       activeDelay: 0.36,
@@ -27,7 +34,7 @@ export const RITUALIST_MECHANICS = Object.freeze({
       lingeringCoefficient: 1.8,
       lingeringHits: 4,
       lingeringInterval: 1,
-      lingeringDelay: 1.877,
+      lingeringDelay: 2,
       activeCoefficient: 3.7,
       activeHits: 1,
       activeDelay: 0.84,

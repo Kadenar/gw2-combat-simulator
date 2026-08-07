@@ -172,7 +172,12 @@ export function toggleRevenantUpkeep(
       : context.catalog.skillsById.get(skill.flipSkillId);
   if (release) state.availableFlips[release.id] = true;
   if (skill.id === ID.EMBRACE_THE_DARKNESS) {
-    emitEmbraceTheDarknessPulse(context, skill, active, at);
+    emitEmbraceTheDarknessPulse(
+      context,
+      skill,
+      active,
+      context.start + MECHANICS.upkeep.embraceTheDarkness.initialStrikeDelay,
+    );
   }
   context.tasks.schedule({
     type: "revenant.upkeep-pulse",

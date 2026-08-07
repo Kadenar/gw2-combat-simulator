@@ -1,6 +1,9 @@
 import { mirageState } from "./state.js";
 import { EPSILON } from "../../../../platform/engine/clock.js";
-import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import {
+  MESMER_SKILL_IDS as ID,
+  MESMER_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { timedStacks } from "../../core/attribute-rules.js";
@@ -14,6 +17,29 @@ function mirageAvailability(
   context: MesmerPrecastContext,
   skill: MesmerSkill,
 ): AvailabilityResult {
+  if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
+    const mirrors = mirageState.from(context).mirrors;
+    if (
+      mirrors.some(
+        (mirror) =>
+          mirror.availableAt <= context.start + EPSILON &&
+          mirror.expiresAt > context.start + EPSILON,
+      )
+    ) {
+      return { ready: true };
+    }
+    const retryAt = Math.min(
+      ...mirrors
+        .filter((mirror) => mirror.expiresAt > context.start + EPSILON)
+        .map((mirror) => mirror.availableAt),
+    );
+    return {
+      ready: false,
+      retryAt: Number.isFinite(retryAt) ? retryAt : null,
+      code: "mesmer.mirage-mirror",
+      reason: "No Mirage Mirror is available to pick up.",
+    };
+  }
   if (!skill.ambush) return { ready: true };
   const runtime = mesmerRuntimeFor(context);
   const activeAmbush = runtime.ambushAttacks[runtime.activePrimaryWeapon()];

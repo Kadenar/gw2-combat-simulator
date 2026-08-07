@@ -4,6 +4,7 @@ import type { Gw2BuffAudience } from "./types.js";
 
 interface BuffAudienceMetadata {
   readonly source?: unknown;
+  readonly affectsSelf?: unknown;
   readonly affectsSummons?: unknown;
 }
 
@@ -12,7 +13,7 @@ export function buffMatchesAudience(
   application: BuffAudienceMetadata,
   audience: Gw2BuffAudience,
 ): boolean {
-  if (audience === "all") return true;
+  if (audience === "all") return application.affectsSelf !== false;
   if (application.affectsSummons !== true) return false;
   return audience !== "summon-trait" || application.source === "Trait";
 }

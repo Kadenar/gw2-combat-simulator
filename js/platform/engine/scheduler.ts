@@ -308,7 +308,9 @@ export function createScheduler<
   // the relevant buffs instead of the entire event log on every query.
   const buffIndex = new Map<string, SimulationEvent[]>();
   const buffKindKey = (event: SimulationEvent): string | null =>
-    event.type === "buff" ? String(event.kind || "").toLowerCase() : null;
+    event.type === "buff" && event.affectsSelf !== false
+      ? String(event.kind || "").toLowerCase()
+      : null;
   const indexBuffEvent = (event: SimulationEvent): void => {
     const key = buffKindKey(event);
     if (key == null) return;

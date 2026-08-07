@@ -50,6 +50,7 @@ export interface SimulationEventBase<
   readonly kind?: string;
   readonly duration?: number;
   readonly stacks?: number;
+  readonly affectsSelf?: boolean;
   readonly weaponSet?: number;
   readonly procType?: string;
   readonly sourceSkill?: string;
@@ -644,6 +645,13 @@ export interface ProfessionEventLogDescriptor {
   readonly flags?: readonly string[];
 }
 
+export interface ProfessionResourceStatusItem {
+  readonly id: string;
+  readonly label: string;
+  readonly valueLabel?: string;
+  readonly title?: string;
+}
+
 export interface ProfessionResourceView {
   readonly id: string;
   readonly singular: string;
@@ -660,6 +668,8 @@ export interface ProfessionResourceView {
   readonly displayMode?: string;
   readonly pipStyle?: string;
   readonly pipRows?: number;
+  readonly statusItemsLabel?: string;
+  readonly statusItems?: readonly ProfessionResourceStatusItem[];
 }
 
 export interface ProfessionPaletteGroup {

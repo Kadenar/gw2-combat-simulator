@@ -187,14 +187,24 @@ test("timeline indexes buff stacks by kind and summon audience", () => {
       duration: 2,
       stacks: 2,
       affectsSummons: true,
+    }, {
+      type: "buff",
+      at: 0,
+      source: "Trait",
+      sourceId: "summon-only-might",
+      kind: "might",
+      duration: 2,
+      stacks: 5,
+      affectsSelf: false,
+      affectsSummons: true,
     }],
   });
 
   assert.equal(timeline.buffStacksAt("might", 1, 0, 25), 9);
-  assert.equal(timeline.buffStacksAt("Might", 1, 0, 25, "summon"), 6);
+  assert.equal(timeline.buffStacksAt("Might", 1, 0, 25, "summon"), 11);
   assert.equal(
     timeline.buffStacksAt("might", 1, 0, 25, "summon-trait"),
-    2,
+    7,
   );
   assert.equal(timeline.buffStacksAt("might", 1, 0, 5), 5);
   assert.equal(timeline.buffStacksAt("might", 2, 0, 25), 0);
@@ -373,12 +383,34 @@ test("summon-targeted trait boons bypass disabled player boon sharing", () => {
     duration: 10,
     stacks: 2,
     affectsSummons: true,
+  }, {
+    type: "buff",
+    at: 0,
+    source: "Trait",
+    sourceId: "self-fury",
+    actorType: "effect",
+    kind: "fury",
+    duration: 8,
+    stacks: 1,
+    affectsSelf: true,
+    affectsSummons: false,
+  }, {
+    type: "buff",
+    at: 0,
+    source: "Trait",
+    sourceId: "allied-fury",
+    actorType: "effect",
+    kind: "fury",
+    duration: 4,
+    stacks: 1,
+    affectsSelf: false,
+    affectsSummons: true,
   }];
   const query = createGw2CombatQuery({
     profession: queryProfession,
     config: {
-      stats: { power: 1000 },
-      boons: { might: 25 },
+      stats: { power: 1000, precision: 1000 },
+      boons: { might: 25, fury: false },
       sharePlayerBoonsWithSummons: false,
     },
     events,
@@ -393,6 +425,13 @@ test("summon-targeted trait boons bypass disabled player boon sharing", () => {
   };
 
   assert.equal(query.statsAt(1, summonEvent).power, 1060);
+  assert.equal(query.critical(summonEvent, 1).chance, 0.3);
+  assert.equal(query.critical(summonEvent, 5).chance, 0.05);
+  assert.equal(query.critical({
+    ...summonEvent,
+    source: "Player",
+    actorType: "player",
+  }, 5).chance, 0.3);
 
   const runtime = { boons: new Map() };
   assert.equal(query.statsAt(1, summonEvent, runtime).power, 1000);

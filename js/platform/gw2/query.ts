@@ -272,6 +272,19 @@ export function createGw2CombatQuery<
     const illusionEvent =
       event?.source === "Clone" || event?.source === "Phantasm";
     if (!isolatedSummon && !illusionEvent && config.boons?.fury) return true;
+    if (illusionEvent) {
+      return (
+        dynamicBoonStacksAt(
+          "fury",
+          time,
+          1,
+          runtime,
+          config.sharePlayerBoonsWithSummons === false
+            ? "summon-trait"
+            : "summon",
+        ) > 0
+      );
+    }
     if (isolatedSummon && config.sharePlayerBoonsWithSummons === false) {
       return (
         dynamicBoonStacksAt(

@@ -153,6 +153,7 @@ export interface MesmerCoreState {
   availableFlips: Record<string, MesmerAvailableFlip>;
   autoattackChains: Record<string, SkillId>;
   sharperImagesProgress: number;
+  masterFencerProgress: number;
   ineptitudeReadyAt: number;
   clarityUntil: number;
   hasExplicitCombatStart: boolean;
@@ -169,6 +170,13 @@ export interface MesmerMirageState {
   ambushSource: string;
   cloneAmbushUntil: number;
   riddleOfSandReady: boolean;
+  mirrors: MesmerMirageMirror[];
+}
+
+export interface MesmerMirageMirror {
+  availableAt: number;
+  expiresAt: number;
+  source: string;
 }
 
 export interface MesmerVirtuosoState {
@@ -249,9 +257,11 @@ export interface MesmerStateSnapshot {
   nextForgeAt: number;
   bloodsongProgress: number;
   sharperImagesProgress: number;
+  masterFencerProgress: number;
   ineptitudeReadyAt: number;
   clarityUntil: number;
   ambushUntil: number;
+  mirrors: MesmerMirageMirror[];
   riddleOfSandReady: boolean;
   timeBombUntil: number;
 }
@@ -558,8 +568,18 @@ export interface MesmerMirageCloakOptions {
 }
 
 export interface MesmerMirageController {
+  createMirrors(
+    at: number,
+    count: number,
+    source: string,
+    delay?: number,
+  ): void;
   executeCloneAmbushes(at: number, clones?: readonly MesmerClone[]): void;
-  executePlayerAmbush(skill: MesmerSkill, at: number): void;
+  executePlayerAmbush(
+    skill: MesmerSkill,
+    at: number,
+    castStart?: number,
+  ): void;
   grantMirageCloak(
     at: number,
     source: string,
@@ -567,6 +587,7 @@ export interface MesmerMirageController {
   ): void;
   handleMirageShatter(skill: MesmerSkill, at: number, spent: number): void;
   handlePostSkill(skill: MesmerSkill, at: number): void;
+  pickUpMirror(at: number, source: string): boolean;
 }
 
 export interface MesmerExceptionalProfileOptions {
@@ -600,12 +621,19 @@ export interface MesmerProfessionActionController {
   ): number;
   consumeResources(at: number, details?: MesmerResourceSpendDetails): number;
   currentResource(): number;
-  handleCrescendo(skill: MesmerSkill, at: number): void;
-  handleInstrument(skill: MesmerSkill, at: number): void;
+  handleCrescendo(skill: MesmerSkill, at: number, castStart?: number): void;
+  handleInstrument(
+    skill: MesmerSkill,
+    at: number,
+    castStart?: number,
+    spendDetails?: MesmerResourceSpendDetails,
+  ): void;
+  handleTale(skill: MesmerSkill, at: number, castStart?: number): void;
   handleShatter(
     skill: MesmerSkill,
     at: number,
     resourcesSpent?: number | null,
+    castStart?: number,
   ): boolean;
   reserveResources(): number;
   restoreReservedResources(spent: number): void;
@@ -618,7 +646,7 @@ export interface MesmerProfessionActionController {
   ): void;
 }
 
-export type MesmerEmitDerivedCondition = (
+export type MesmerEmitDerivedEvent = (
   cause: SimulationEvent,
   event: SimulationEventInput,
 ) => unknown;
@@ -639,6 +667,12 @@ export interface MesmerProjectedFlip {
   readonly persistent: boolean;
 }
 
+export interface MesmerProjectedInstrument {
+  readonly name: string;
+  readonly expiresAt: number;
+  readonly remaining: number;
+}
+
 export interface MesmerEndState extends SchedulerRecord {
   readonly resource: number;
   readonly resourceDefinition: MesmerResourceDefinition;
@@ -650,6 +684,8 @@ export interface MesmerEndState extends SchedulerRecord {
     readonly expiresAt: number;
     readonly remaining: number;
   } | null;
+  readonly availableMirrors?: number;
+  readonly activeInstruments?: readonly MesmerProjectedInstrument[];
   readonly availableFlips: Readonly<Record<string, MesmerProjectedFlip>>;
   readonly autoattackChains: Readonly<Record<string, SkillId>>;
   readonly continuumActive: boolean;
@@ -697,9 +733,14 @@ export interface MesmerAttackStatus extends MesmerConditionApplication {
 }
 
 export interface MesmerCloneAttackStep {
+  readonly id?: SkillId;
   readonly name?: string;
   readonly coefficient: number;
   readonly hits: number;
+  /** Observed clone cast duration, in milliseconds. */
+  readonly castTimeMs?: number;
+  /** Damage offset from clone cast start, in milliseconds. */
+  readonly damageAtMs?: number;
   readonly ticks?: readonly StrikeTick[];
   /** The interval between hit ticks, if applicable. */
   readonly interval: number;
@@ -731,6 +772,7 @@ export interface MesmerAmbushStrike {
   readonly coefficient: number;
   readonly hits: number;
   readonly castTimeMs?: number;
+  readonly damageAtMs?: number;
   readonly conditions?: readonly MesmerAttackStatus[];
 }
 
@@ -760,13 +802,24 @@ export interface MesmerAttackTimingTick {
 export interface MesmerPhantasmAttackTiming {
   readonly castTimeMs: number;
   readonly damageAtMs: number;
+  readonly damageAtMsByEntity?: readonly number[];
   readonly spawnAtMs: number;
   readonly chronophantasmaDamageAtMs: number;
+  readonly chronophantasmaDamageAtMsByEntity?: readonly number[];
   readonly chronophantasmaSpawnAtMs: number;
   readonly virtuosoBladeTicks?: readonly MesmerAttackTimingTick[];
   readonly damageTicks?: Readonly<
     Record<string, readonly MesmerAttackTimingTick[]>
   >;
+  readonly damageTicksByEntity?: readonly Readonly<
+    Record<string, readonly MesmerAttackTimingTick[]>
+  >[];
+  readonly chronophantasmaDamageTicks?: Readonly<
+    Record<string, readonly MesmerAttackTimingTick[]>
+  >;
+  readonly chronophantasmaDamageTicksByEntity?: readonly Readonly<
+    Record<string, readonly MesmerAttackTimingTick[]>
+  >[];
   readonly phantasmalBladeDelayAfterSpawnMs?: number;
   readonly estimated?: boolean;
 }
@@ -787,6 +840,7 @@ export interface MesmerShatter {
   readonly coefficients: readonly number[];
   readonly rechargeReductionPerSource?: number;
   readonly resourceSpendProgress?: number;
+  readonly damageAtMs?: number;
   readonly ticks?: readonly MesmerAttackTimingTick[];
 }
 
@@ -795,5 +849,7 @@ export interface MesmerInstrument {
   readonly instrument: string;
   readonly coefficient: number;
   readonly hits: number;
+  readonly damageAtMs?: number;
+  readonly intervalMs?: number;
   readonly conditions?: readonly MesmerAttackStatus[];
 }

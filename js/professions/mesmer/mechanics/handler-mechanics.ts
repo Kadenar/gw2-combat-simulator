@@ -68,6 +68,7 @@ export function mesmerHandlerIdFor(
       : null;
   if (id === ID.SWAP_WEAPONS) return "mesmer.weapon-swap";
   if (id === ID.DODGE_MIRAGE_CLOAK) return "mesmer.mirage-dodge";
+  if (id === ID.PICK_UP_MIRAGE_MIRROR) return "mesmer.mirage-dodge";
   if (id === ID.CONTINUUM_SHIFT) return "mesmer.continuum-shift";
   if (id === ID.CONTINUUM_SPLIT) return "mesmer.continuum-split";
   if (SHATTER_SKILL_IDS.has(id)) {

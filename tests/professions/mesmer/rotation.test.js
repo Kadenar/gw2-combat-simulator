@@ -23,6 +23,7 @@ import {
     resultSummaryMetrics,
     skillBreakdownRows,
 } from '../../../js/app/rotation/result-model.js';
+import { activeResourceGroup } from '../../../js/app/rotation/resource-view.js';
 import {
     continuumEndTimelineMarkers,
     shatterResourceSpends,
@@ -79,7 +80,11 @@ test('queueing a cooling-down icon waits until it is available', () => {
 test('Lingering Thoughts recharges one ammo count every six seconds', () => {
     const defaults = defaultSimulationConfig();
     const result = simulateMesmer(
-        ['Lingering Thoughts', 'Lingering Thoughts', 'Lingering Thoughts'],
+        [
+            { name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS },
+            { name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS },
+            { name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS },
+        ],
         defaultSimulationConfig({
             specialization: 'Mirage',
             initialResource: 0,
@@ -100,6 +105,44 @@ test('Lingering Thoughts recharges one ammo count every six seconds', () => {
         result.endState.ammo['Lingering Thoughts'].rechargeDuration,
         6,
     );
+});
+
+test('Lingering Thoughts applies its packets and grants its clone 160ms later', () => {
+    const result = simulateMesmer(
+        [
+            { name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS },
+            { name: '__wait', waitMs: 200 },
+        ],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: [],
+            primaryWeapon: 'Axe',
+            secondaryWeapon: 'Torch',
+            initialResource: 0,
+        }),
+    );
+    const step = result.steps[0];
+    const strikes = result.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Lingering Thoughts');
+    const conditions = result.resolvedEvents.filter(event =>
+        event.type === 'condition'
+        && event.skillName === 'Lingering Thoughts');
+    const clone = result.events.find(event =>
+        event.type === 'resource'
+        && event.reason === 'Lingering Thoughts');
+
+    assert.equal(step.end - step.start, 921);
+    assert.equal(
+        strikes.reduce((sum, event) => sum + event.coefficient, 0),
+        1.2,
+    );
+    assert.equal(strikes.reduce((sum, event) => sum + event.hits, 0), 3);
+    assert.deepEqual(
+        conditions.map(event =>
+            [event.condition, event.stacks, event.duration]),
+        [['Torment', 3, 4], ['Crippled', 3, 11]],
+    );
+    assert.equal(Math.round((clone.at - step.end / 1000) * 1000), 160);
 });
 
 test('Rewinder cooldown applies shatter CDR, source refunds, then Alacrity', () => {
@@ -390,7 +433,7 @@ test('Confusing Images applies seven timed confusion pulses and loses later puls
     assert.equal(interruptedApplications.length, 3);
 });
 
-test('Chaos Storm and Lesser Chaos Storm deal six strikes at one-second intervals', () => {
+test('Chaos Storm uses its EVTC pulse offsets and Lesser Chaos Storm stays periodic', () => {
     const damageEvents = (result, skillName) => result.resolvedEvents.filter(event =>
         event.type === 'damage' && event.skillName === skillName);
     const assertSixPulses = events => {
@@ -410,7 +453,11 @@ test('Chaos Storm and Lesser Chaos Storm deal six strikes at one-second interval
             initialResource: 0,
         }),
     );
-    assertSixPulses(damageEvents(chaosStorm, 'Chaos Storm'));
+    assert.deepEqual(
+        damageEvents(chaosStorm, 'Chaos Storm')
+            .map(event => Math.round(event.at * 1000)),
+        [281, 1279, 2280, 3282, 4279, 5280],
+    );
 
     const lesserChaosStorm = simulateMesmer(
         ['Ether Feast', { name: '__wait', waitMs: 5000 }],
@@ -439,8 +486,8 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
         config,
     );
 
-    assert.equal(full.steps[0].end, 1850);
-    assert.equal(full.steps[1].start, 9050);
+    assert.equal(full.steps[0].end, 1920);
+    assert.equal(full.steps[1].start, 9120);
     assert.equal(interrupted.endState.cooldowns['Confusing Images'].readyAt, 7450);
 });
 
@@ -575,7 +622,7 @@ test('the supplied condition Virtuoso build uses the profession-mechanic midpoin
     });
 
     assert.equal(result.warnings.length, 0);
-    assert.ok(Math.abs(result.dps - 40134.37928219095) < 1e-6);
+    assert.ok(Math.abs(result.dps - 40108.204257585676) < 1e-6);
 });
 
 test('Phantasmal Swordsman independently gates its summon and player hit', () => {
@@ -739,22 +786,22 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
 
     assert.equal(normalConversions.length, 1);
     assert.equal(normalConversions[0].amount, 2);
-    assert.ok(Math.abs(normalConversions[0].at - 5.1201) < 0.00001);
+    assert.ok(Math.abs(normalConversions[0].at - 4.9841) < 0.00001);
     assert.equal(chronoConversions.length, 1);
     assert.equal(chronoConversions[0].amount, 2);
-    assert.ok(Math.abs(proc.at - 5.12) < 0.00001);
-    assert.ok(Math.abs(repeat.at - 8.33) < 0.00001);
-    assert.ok(Math.abs(chronoConversions[0].at - 9.6101) < 0.00001);
+    assert.ok(Math.abs(proc.at - 4.984) < 0.00001);
+    assert.ok(Math.abs(repeat.at - 6.228) < 0.00001);
+    assert.ok(Math.abs(chronoConversions[0].at - 9.4741) < 0.00001);
 
     const normalDamage = normal.resolvedEvents.filter(event =>
         event.type === 'damage' && event.name === 'Phantasmal Warlock');
-    const normalTorment = normal.resolvedEvents.find(event =>
+    const normalTorment = normal.resolvedEvents.filter(event =>
         event.type === 'condition'
         && event.name === 'Phantasmal Warlock — Torment');
     const repeatedDamage = chronophantasma.resolvedEvents.filter(event =>
         event.type === 'damage'
         && event.name === 'Phantasmal Warlock - Chronophantasma');
-    const repeatedTorment = chronophantasma.resolvedEvents.find(event =>
+    const repeatedTorment = chronophantasma.resolvedEvents.filter(event =>
         event.type === 'condition'
         && event.name === 'Phantasmal Warlock - Chronophantasma');
 
@@ -766,8 +813,8 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
         { coefficient: 0.9, hits: 6 },
     );
     assert.ok(normalDamage.every(event => event.weaponStrength === 2877));
-    assert.equal(normalTorment.stacks, 12);
-    assert.equal(normalTorment.source, 'Phantasm');
+    assert.deepEqual(normalTorment.map(event => event.stacks), [6, 6]);
+    assert.ok(normalTorment.every(event => event.source === 'Phantasm'));
     assert.deepEqual(
         {
             coefficient: repeatedDamage.reduce((sum, event) => sum + event.coefficient, 0),
@@ -776,8 +823,8 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
         { coefficient: 0.9, hits: 6 },
     );
     assert.ok(repeatedDamage.every(event => event.weaponStrength === 2877));
-    assert.equal(repeatedTorment.stacks, 12);
-    assert.equal(repeatedTorment.source, 'Phantasm');
+    assert.deepEqual(repeatedTorment.map(event => event.stacks), [6, 6]);
+    assert.ok(repeatedTorment.every(event => event.source === 'Phantasm'));
 });
 
 test('phantasm conditions use the summoner condition sigil modifiers', () => {
@@ -839,6 +886,39 @@ test('phantasm conditions use the summoner condition sigil modifiers', () => {
     );
 });
 
+test('Phantasmal Mage separates player, Pledge, and phantasm conditions', () => {
+    const result = simulateMesmer(
+        ['Phantasmal Mage', { name: '__wait', waitMs: 5000 }],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: ['The Pledge'],
+            primaryWeapon: 'Axe',
+            secondaryWeapon: 'Torch',
+            initialResource: 0,
+        }),
+    );
+    const playerBurning = result.resolvedEvents.filter(event =>
+        event.type === 'condition'
+        && event.skillName === 'Phantasmal Mage'
+        && event.condition === 'Burning'
+        && event.source === 'Player');
+    const phantasmConditions = result.resolvedEvents.filter(event =>
+        event.type === 'condition'
+        && event.skillName === 'Phantasmal Mage'
+        && event.source === 'Phantasm');
+
+    assert.equal(result.steps[0].end, 786);
+    assert.deepEqual(
+        playerBurning.map(event => [event.stacks, event.duration, event.at]),
+        [[1, 6, 0.786], [2, 3, 0.786]],
+    );
+    assert.deepEqual(
+        phantasmConditions.map(event =>
+            [event.condition, event.stacks, event.duration]),
+        [['Burning', 1, 9], ['Confusion', 3, 3]],
+    );
+});
+
 test('Compounding Power triggers for both phantasm summons and clone conversion', () => {
     const result = simulateMesmer(
         ['Phantasmal Warlock', { name: '__wait', waitMs: 11000 }],
@@ -857,7 +937,7 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
 
     assert.deepEqual(
         triggers.map(event => Number(event.at.toFixed(4))),
-        [0.88, 5.12, 9.6101],
+        [0.744, 4.984, 9.4741],
     );
 });
 
@@ -923,7 +1003,7 @@ test('Compounding Power gives player strikes two percent and conditions one perc
     ) < 1e-12);
 });
 
-test('Winds of Chaos uses its measured 760ms Quickness cast time', () => {
+test('Winds of Chaos uses its measured 747ms Quickness cast time', () => {
     const result = simulateMesmer(
         ['Winds of Chaos'],
         defaultSimulationConfig({
@@ -933,10 +1013,10 @@ test('Winds of Chaos uses its measured 760ms Quickness cast time', () => {
         }),
     );
 
-    assert.equal(result.steps[0].end - result.steps[0].start, 760);
+    assert.equal(result.steps[0].end - result.steps[0].start, 747);
 });
 
-test('Phantasmal Warlock uses its measured 880ms Quickness cast time', () => {
+test('Phantasmal Warlock uses its measured 744ms Quickness cast time', () => {
     const result = simulateMesmer(
         ['Phantasmal Warlock'],
         defaultSimulationConfig({
@@ -946,7 +1026,7 @@ test('Phantasmal Warlock uses its measured 880ms Quickness cast time', () => {
         }),
     );
 
-    assert.equal(result.steps[0].end - result.steps[0].start, 880);
+    assert.equal(result.steps[0].end - result.steps[0].start, 744);
 });
 
 test('corrected Mesmer skills use their measured Quickness cast times', () => {
@@ -968,7 +1048,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
         ['Signet of the Ether'],
         defaultSimulationConfig(coreConfig),
     );
-    assert.equal(signet.steps[0].end - signet.steps[0].start, 920);
+    assert.equal(signet.steps[0].end - signet.steps[0].start, 919);
 
     const chaosStorm = simulateMesmer(
         ['Chaos Storm'],
@@ -978,7 +1058,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
             secondaryWeapon: '',
         }),
     );
-    assert.equal(chaosStorm.steps[0].end - chaosStorm.steps[0].start, 480);
+    assert.equal(chaosStorm.steps[0].end - chaosStorm.steps[0].start, 456);
 
     const scepterChain = simulateMesmer(
         ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
@@ -1003,7 +1083,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
     );
     assert.equal(
         confusingImages.steps[0].end - confusingImages.steps[0].start,
-        1850,
+        1920,
     );
 
     const pistolSkills = simulateMesmer(
@@ -1050,7 +1130,7 @@ test('corrected Mesmer skills use their measured Quickness cast times', () => {
     );
     assert.deepEqual(
         greatswordSkills.steps.map(step => step.end - step.start),
-        [360, 560, 640],
+        [320, 560, 640],
     );
 });
 
@@ -1171,9 +1251,182 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
     assert.equal(normalConversion.amount, 1);
     assert.ok(Math.abs(normalConversion.at - 3.4401) < 0.00001);
     assert.ok(Math.abs(resummon.at - 3.44) < 0.00001);
-    assert.ok(Math.abs(repeat.at - 6.09) < 0.00001);
+    assert.ok(Math.abs(repeat.at - 5.94) < 0.00001);
     assert.equal(chronoConversion.amount, 1);
     assert.ok(Math.abs(chronoConversion.at - 6.5701) < 0.00001);
+});
+
+test('Mimic resets the next utility skill within its ten-second window', () => {
+    const result = simulateMesmer(
+        [
+            'Mimic',
+            'Tale of the Tortured Mastermind',
+            'Tale of the Tortured Mastermind',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            selectedSkills: [
+                'Mimic',
+                'Tale of the Tortured Mastermind',
+            ],
+            initialResource: 0,
+        }),
+    );
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.steps[0].end, 640);
+    assert.equal(result.steps[1].start, 640);
+    assert.equal(result.steps[2].start, 1040);
+    assert.ok(result.events.some(event =>
+        event.type === 'proc'
+        && event.source === 'Mimic'
+        && event.targetSkillName === 'Tale of the Tortured Mastermind'));
+});
+
+test('phantasms and Chronophantasma repeats use per-entity EVTC packet cadences', () => {
+    const cases = [
+        {
+            skill: 'Phantasmal Swordsman',
+            primaryWeapon: 'Sword',
+            secondaryWeapon: 'Sword',
+            initial: [845, 1321, 1362, 1645, 1679, 1920, 1962, 2246, 2279],
+            repeat: [4474, 4960, 5002, 5277, 5319, 5559, 5602, 5876, 5920],
+        },
+        {
+            skill: 'Phantasmal Duelist',
+            primaryWeapon: 'Scepter',
+            secondaryWeapon: 'Pistol',
+            initial: [883, 1083, 1283, 1483, 1683, 1883, 2083, 2283],
+            repeat: [3972, 4173, 4372, 4571, 4771, 4973, 5171, 5380],
+        },
+        {
+            skill: 'Phantasmal Berserker',
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: 'Sword',
+            traits: ['Chronophantasma', 'Bountiful Blades'],
+            initial: [717, 834, 883, 951, 1000, 1085, 1117, 1251],
+            repeat: [3186, 3302, 3362, 3427, 3480, 3544, 3595, 3721],
+        },
+        {
+            skill: 'Phantasmal Warlock',
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
+            initial: [1117, 1160, 1918, 1960, 2722, 2766],
+            repeat: [5484, 5642, 6280, 6441, 7085, 7243],
+        },
+    ];
+
+    for (const testCase of cases) {
+        const result = simulateMesmer(
+            [testCase.skill, { name: '__wait', waitMs: 9000 }],
+            defaultSimulationConfig({
+                specialization: 'Chronomancer',
+                selectedTraits: testCase.traits || ['Chronophantasma'],
+                primaryWeapon: testCase.primaryWeapon,
+                secondaryWeapon: testCase.secondaryWeapon,
+                initialResource: 0,
+            }),
+        );
+        const castEnd = result.steps[0].end / 1000;
+        const initialEvents = result.events.filter(event =>
+            event.type === 'damage'
+            && event.source === 'Phantasm'
+            && event.name === testCase.skill);
+        const repeatEvents = result.events.filter(event =>
+            event.type === 'damage'
+            && event.source === 'Phantasm'
+            && event.name === `${testCase.skill} - Chronophantasma`);
+        const offsets = events => events
+            .map(event => Math.round((event.at - castEnd) * 1000))
+            .sort((a, b) => a - b);
+
+        assert.deepEqual(offsets(initialEvents), testCase.initial, `${testCase.skill} initial`);
+        assert.deepEqual(offsets(repeatEvents), testCase.repeat, `${testCase.skill} repeat`);
+    }
+});
+
+test('direct Mesmer strikes use the supplied EVTC offsets from cast start', () => {
+    const assertOffsets = (rotation, config, expectations) => {
+        const result = simulateMesmer(
+            [...rotation, { name: '__wait', waitMs: 6000 }],
+            defaultSimulationConfig(config),
+        );
+        for (const [skill, stepIndex, expected] of expectations) {
+            const castStart = result.steps[stepIndex].start / 1000;
+            const offsets = result.resolvedEvents
+                .filter(event =>
+                    event.type === 'damage'
+                    && event.source === 'Player'
+                    && event.skillName === skill)
+                .map(event => Math.round((event.at - castStart) * 1000));
+            assert.deepEqual(offsets, expected, skill);
+        }
+    };
+
+    assertOffsets(
+        ['Chaos Storm'],
+        { specialization: 'Chronomancer', primaryWeapon: 'Staff', secondaryWeapon: '' },
+        [['Chaos Storm', 0, [281, 1279, 2280, 3282, 4279, 5280]]],
+    );
+    assertOffsets(
+        ['Confusing Images'],
+        { specialization: 'Chronomancer', primaryWeapon: 'Scepter', secondaryWeapon: 'Pistol' },
+        [['Confusing Images', 0, [921, 1081, 1199, 1441, 1560, 1679, 1841]]],
+    );
+    assertOffsets(
+        ['Winds of Chaos'],
+        { specialization: 'Chronomancer', primaryWeapon: 'Staff', secondaryWeapon: '' },
+        [['Winds of Chaos', 0, [533, 623]]],
+    );
+    assertOffsets(
+        ['Illusionary Wave', 'Mind Stab', 'Mirror Blade', 'Spatial Surge'],
+        {
+            specialization: 'Chronomancer',
+            selectedTraits: ['Bountiful Blades'],
+            primaryWeapon: 'Greatsword',
+            secondaryWeapon: 'Sword',
+        },
+        [
+            ['Illusionary Wave', 0, [401]],
+            ['Mind Stab', 1, [200]],
+            ['Mirror Blade', 2, [602, 767, 918, 1084]],
+            ['Spatial Surge', 3, [366, 518, 684]],
+        ],
+    );
+    assertOffsets(
+        ['Well of Calamity'],
+        { specialization: 'Chronomancer', selectedSkills: ['Well of Calamity'] },
+        [['Well of Calamity', 0, [559, 1559, 2561, 3554]]],
+    );
+    assertOffsets(
+        ['Bladesong Dissonance'],
+        { specialization: 'Virtuoso', initialResource: 5 },
+        [['Bladesong Dissonance', 0, [400]]],
+    );
+    assertOffsets(
+        ['Illusionary Counter', 'Counterspell'],
+        { specialization: 'Chronomancer', primaryWeapon: 'Scepter', secondaryWeapon: 'Sword' },
+        [['Counterspell', 1, [322]]],
+    );
+    assertOffsets(
+        ['Illusionary Riposte', 'Counter Blade'],
+        { specialization: 'Chronomancer', primaryWeapon: 'Sword', secondaryWeapon: 'Sword' },
+        [['Counter Blade', 1, [484]]],
+    );
+    assertOffsets(
+        ['Ether Bolt', 'Ether Blast', 'Ether Clone'],
+        { specialization: 'Chronomancer', primaryWeapon: 'Scepter', secondaryWeapon: 'Sword' },
+        [
+            ['Ether Bolt', 0, [400]],
+            ['Ether Blast', 1, [481]],
+            ['Ether Clone', 2, [442]],
+        ],
+    );
+    assertOffsets(
+        ['Magic Bullet'],
+        { specialization: 'Chronomancer', primaryWeapon: 'Scepter', secondaryWeapon: 'Pistol' },
+        [['Magic Bullet', 0, [362]]],
+    );
 });
 
 test('condition-bearing clone autoattacks apply their damaging conditions', () => {
@@ -1190,10 +1443,22 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
     const axeConditions = axe.resolvedEvents.filter(event =>
         event.type === 'condition'
         && event.skillName.startsWith('Clone: '));
-    assert.ok(axeConditions.some(event =>
-        event.condition === 'Bleeding' && event.duration === 6));
-    assert.ok(axeConditions.some(event =>
-        event.condition === 'Torment' && event.duration === 6));
+    assert.ok(axeConditions.length > 0);
+    assert.deepEqual(
+        [...new Set(axeConditions.map(event =>
+            `${event.condition}:${event.duration}`))].sort(),
+        ['Bleeding:1', 'Torment:1'],
+    );
+    const axeHits = axe.events.filter(event =>
+        event.type === 'damage'
+        && event.skillName === 'Clone: Lacerating Chop');
+    assert.deepEqual(
+        [...new Set(axeHits.map(event => Number(event.at.toFixed(3))))],
+        [1.72, 3.28, 4.84],
+    );
+    assert.ok(!axe.events.some(event =>
+        event.skillName === 'Clone: Ethereal Chop'
+        || event.skillName === 'Clone: Mirror Strikes'));
 
     const staff = simulateMesmer(
         ['Phase Retreat', { name: '__wait', waitMs: 2500 }],
@@ -1236,6 +1501,96 @@ test('condition-bearing clone autoattacks apply their damaging conditions', () =
         && event.condition === 'Torment');
     assert.equal(scepterTorment.length, 2);
     assert.ok(scepterTorment.every(event => event.duration === 4));
+});
+
+test('axe clone attacks and Axes of Symmetry use EVTC cast-start snapshots', () => {
+    const config = defaultSimulationConfig({
+        specialization: 'Mirage',
+        selectedSkills: ['Mirror Images'],
+        selectedTraits: [],
+        primaryWeapon: 'Axe',
+        secondaryWeapon: 'Torch',
+        initialResource: 0,
+    });
+    const existingClones = simulateMesmer(
+        [
+            'Mirror Images',
+            { name: '__wait', waitMs: 1 },
+            { name: 'Axes of Symmetry', skillId: ID.AXES_OF_SYMMETRY },
+        ],
+        config,
+    );
+    const axesStep = existingClones.steps.find(step =>
+        step.skill === 'Axes of Symmetry');
+    const axesStart = axesStep.start / 1000;
+    const playerHit = existingClones.resolvedEvents.find(event =>
+        event.type === 'damage'
+        && event.skillName === 'Axes of Symmetry'
+        && event.source === 'Player');
+    const cloneHits = existingClones.resolvedEvents.filter(event =>
+        event.type === 'damage'
+        && event.name.includes('Axes of Symmetry')
+        && event.source === 'Clone');
+    const cloneConfusion = existingClones.resolvedEvents.filter(event =>
+        event.type === 'condition'
+        && event.skillName === 'Axes of Symmetry'
+        && event.source === 'Clone');
+
+    assert.equal(axesStep.end - axesStep.start, 998);
+    assert.equal(Math.round((playerHit.at - axesStart) * 1000), 918);
+    assert.deepEqual(
+        cloneHits.map(event => Math.round((event.at - axesStart) * 1000)),
+        [958, 958],
+    );
+    assert.ok(cloneHits.every(event =>
+        event.coefficient === 1.75 && event.weaponStrength === 28.5));
+    assert.equal(cloneConfusion.length, 2);
+
+    const spawnedDuringCast = simulateMesmer(
+        [
+            { name: 'Lingering Thoughts', skillId: ID.LINGERING_THOUGHTS },
+            { name: 'Axes of Symmetry', skillId: ID.AXES_OF_SYMMETRY },
+        ],
+        config,
+    );
+    assert.equal(
+        spawnedDuringCast.resolvedEvents.some(event =>
+            event.type === 'damage'
+            && event.name.includes('Axes of Symmetry')
+            && event.source === 'Clone'),
+        false,
+    );
+});
+
+test('Imaginary Axes lands 360ms from cast start with both torment hits', () => {
+    const result = simulateMesmer(
+        [
+            'Dodge / Mirage Cloak',
+            { name: 'Imaginary Axes', skillId: ID.IMAGINARY_AXES },
+        ],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: [],
+            primaryWeapon: 'Axe',
+            secondaryWeapon: 'Torch',
+            initialResource: 0,
+        }),
+    );
+    const step = result.steps[1];
+    const strike = result.resolvedEvents.find(event =>
+        event.type === 'damage'
+        && event.skillName === 'Imaginary Axes'
+        && event.source === 'Player');
+    const torment = result.resolvedEvents.find(event =>
+        event.type === 'condition'
+        && event.skillName === 'Imaginary Axes'
+        && event.source === 'Player');
+
+    assert.equal(step.end - step.start, 441);
+    assert.equal(Math.round((strike.at - step.start / 1000) * 1000), 360);
+    assert.equal(torment.at, strike.at);
+    assert.equal(torment.stacks, 6);
+    assert.equal(torment.duration, 3.5);
 });
 
 test('destroyed clones do not apply prescheduled autoattack conditions', () => {
@@ -1353,6 +1708,148 @@ test('condition Chronomancer preset retains multi-hit Ineptitude', () => {
 
     assert.equal(config.target.defiant, true);
     assert.equal(ineptitude?.stacks, 6);
+});
+
+test('condition Dune Cloak Mirage preset matches the supplied equipment', () => {
+    const saved = JSON.parse(readFileSync(
+        new URL(
+            '../../../Builds/mesmer/b-condi-mirage-dune-cloak.json',
+            import.meta.url,
+        ),
+        'utf8',
+    ));
+    const savedRotation = JSON.parse(readFileSync(
+        new URL(
+            '../../../Rotations/mesmer/r-condi-mirage-dune-cloak-bench.json',
+            import.meta.url,
+        ),
+        'utf8',
+    ));
+    const build = toApplicationBuild({
+        ...saved,
+        rotation: savedRotation.rotation,
+    });
+    const app = {
+        build,
+        skillByName: mesmerCatalog.skillsByName,
+        attributeWeaponSet: 1,
+    };
+    recalculate(app);
+
+    assert.deepEqual(
+        ['Power', 'Precision', 'Condition Damage', 'Expertise'].map(
+            attribute => app.attributeData.attributes[attribute].final,
+        ),
+        [2172, 1633, 1941, 898],
+    );
+    assert.equal(
+        app.attributeData.attributes['Condition Duration'].final,
+        74.86666666666667,
+    );
+    assert.deepEqual(build.weapons, ['Staff', '']);
+    assert.deepEqual(build.alternateWeapons, ['Axe', 'Torch']);
+    assert.deepEqual(build.weaponSigils, [
+        ['Demons', 'Energy'],
+        ['Demons', 'Energy'],
+    ]);
+    assert.equal(build.relic, 'Peitha');
+    assert.deepEqual(savedRotation.metadata, {
+        log: 'condi mirage bench.zevtc',
+        benchmarkDurationSeconds: 96.439,
+        benchmarkDamage: 3947813,
+        benchmarkDps: 40935.8558,
+    });
+    const result = simulateMesmer(build.rotation, simulationConfig(app));
+    assert.deepEqual(result.warnings, []);
+    assert.equal(Math.round(result.dps), 38842);
+});
+
+test('power Troubadour benchmark preset preserves the supplied build and log', () => {
+    const saved = JSON.parse(readFileSync(
+        new URL(
+            '../../../Builds/mesmer/b-power-troubadour.json',
+            import.meta.url,
+        ),
+        'utf8',
+    ));
+    const savedRotation = JSON.parse(readFileSync(
+        new URL(
+            '../../../Rotations/mesmer/r-power-troubadour-bench.json',
+            import.meta.url,
+        ),
+        'utf8',
+    ));
+    const build = toApplicationBuild({
+        ...saved,
+        rotation: savedRotation.rotation,
+    });
+    const app = {
+        build,
+        skillByName: mesmerCatalog.skillsByName,
+        attributeWeaponSet: 1,
+    };
+    recalculate(app);
+
+    assert.deepEqual(build.weapons, ['Dagger', 'Sword']);
+    assert.deepEqual(build.alternateWeapons, ['Spear', '']);
+    assert.ok(Object.values(build.gear).every(stat => stat === "Berserker's"));
+    assert.deepEqual(build.specializations, [
+        { name: 'Domination', traits: '2-2-1' },
+        { name: 'Dueling', traits: '1-3-1' },
+        { name: 'Troubadour', traits: '3-1-1' },
+    ]);
+    assert.deepEqual(build.selectedSkills, {
+        Heal: 'Signet of the Ether',
+        Utility1: 'Tale of the Tortured Mastermind',
+        Utility2: 'Mimic',
+        Utility3: 'Mantra of Pain',
+        Elite: 'Signet of Humility',
+    });
+    assert.deepEqual(build.weaponSigils, [
+        ['Force', 'Accuracy'],
+        ['Force', 'Accuracy'],
+    ]);
+    assert.equal(build.rune, 'Dragonhunter');
+    assert.equal(build.relic, 'Shackles');
+    assert.equal(build.food, 'Cilantro Lime Sous-Vide Steak');
+    assert.equal(build.utility, 'Superior Sharpening Stone');
+    assert.equal(build.initialResource, 3);
+    assert.deepEqual(build.infusions.slice(0, 2), [
+        { stat: 'Power', count: 14 },
+        { stat: 'Precision', count: 4 },
+    ]);
+    assert.deepEqual(savedRotation.metadata, {
+        log: 'power troubadour bench.zevtc',
+        benchmarkDurationSeconds: 94.235,
+        benchmarkDamage: 4005841,
+        benchmarkDps: 42509.0571,
+        source: 'EVTC activation order reconstructed from the supplied benchmark',
+    });
+    assert.equal(
+        savedRotation.rotation.some(entry => entry.waitMs === 800),
+        false,
+    );
+    const powerSpikeIndices = savedRotation.rotation
+        .map((entry, index) => entry.name === 'Power Spike' ? index : -1)
+        .filter(index => index >= 0);
+    assert.equal(
+        savedRotation.rotation[powerSpikeIndices[1] - 1].name,
+        'Phantasmal Lancer',
+    );
+
+    const result = simulateMesmer(build.rotation, simulationConfig(app));
+    const count = name => result.steps.filter(step => step.skill === name).length;
+    assert.deepEqual(result.warnings, []);
+    assert.equal(Math.round(result.dps), 41137);
+    assert.equal(count('Lively Lute'), 9);
+    assert.equal(count('Flustering Flute'), 6);
+    assert.equal(count('Deafening Drum'), 5);
+    assert.equal(count('Harmonious Harp'), 4);
+    assert.equal(count('Crescendo'), 4);
+    assert.equal(count('Tale of the Tortured Mastermind'), 8);
+    assert.equal(count('Mimic'), 3);
+    assert.equal(count('Power Spike'), 11);
+    assert.equal(count('Swap Weapons'), 8);
 });
 
 test('Chaos Armor applies three base confusion plus two from Ineptitude', () => {
@@ -1662,7 +2159,7 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
         Math.abs(event.at - 0.56) < 0.00001
         && event.description === 'PHANTASM SUMMONED Phantasmal Duelist x1'));
     assert.ok(log.some(event =>
-        Math.abs(event.at - 2.96) < 0.00001
+        Math.abs(event.at - 2.843) < 0.00001
         && event.description === 'PHANTASM DAMAGE COMPLETE Phantasmal Duelist x1'));
     assert.ok(log.some(event =>
         Math.abs(event.at - 3.4401) < 0.00001
@@ -3060,6 +3557,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
         }),
     );
     assert.equal(distortion.endState.profession.availableAmbush.source, 'Desert Distortion');
+    assert.equal(distortion.endState.profession.availableMirrors, 2);
     assert.ok(distortion.procSteps.some(proc =>
         proc.skill === 'Desert Distortion'));
 
@@ -3077,6 +3575,16 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
     );
     assert.equal(dune.endState.profession.availableAmbush.source, 'Dune Cloak');
     assert.equal(dune.endState.cooldowns['Mind Wrack'].readyAt, 11000);
+
+    const twoClones = simulateMesmer(
+        ['Mind Wrack'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedTraits: ['Dune Cloak'],
+            initialResource: 2,
+        }),
+    );
+    assert.equal(twoClones.endState.profession.availableAmbush, null);
 });
 
 test('Mirage support and cloak traits emit their current effects', () => {
@@ -3102,11 +3610,79 @@ test('Mirage support and cloak traits emit their current effects', () => {
         event.type === 'buff'
         && event.kind === 'alacrity'
         && event.duration === 4));
-    assert.ok(result.events.some(event =>
+    assert.ok(!result.events.some(event =>
         event.type === 'buff'
         && event.kind === 'vigor'
         && event.duration === 3));
     assert.ok(result.procSteps.some(proc => proc.skill === 'Elusive Mind'));
+});
+
+test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', () => {
+    const result = simulateMesmer(
+        ['Crystal Sands', 'Pick Up Mirage Mirror'],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            selectedSkills: ['Crystal Sands'],
+            selectedTraits: ['Dune Cloak'],
+            primaryWeapon: 'Axe',
+            secondaryWeapon: 'Torch',
+            initialResource: 0,
+        }),
+    );
+    const crystal = result.events.find(event =>
+        event.type === 'damage' && event.skillName === 'Crystal Sands');
+    const mirror = result.events.find(event =>
+        event.type === 'damage' && event.skillName === 'Mirage Mirror');
+    const confusion = result.resolvedEvents.find(event =>
+        event.type === 'condition'
+        && event.skillName === 'Crystal Sands'
+        && event.condition === 'Confusion');
+
+    assert.deepEqual(result.warnings, []);
+    assert.ok(Math.abs(crystal.at - 0.691) < 0.00001);
+    assert.ok(Math.abs(mirror.at - 0.691) < 0.00001);
+    assert.equal(confusion.at, crystal.at);
+    assert.equal(confusion.stacks, 6);
+    assert.equal(confusion.duration, 4);
+    assert.equal(mirror.coefficient, 0.6);
+    assert.equal(result.endState.profession.availableMirrors, 0);
+    assert.equal(
+        result.endState.profession.availableAmbush.source,
+        'Pick Up Mirage Mirror',
+    );
+});
+
+test('Sigil of Energy restores one Mirage dodge charge on weapon swap', () => {
+    const result = simulateMesmer(
+        [
+            '__combat_start',
+            'Dodge / Mirage Cloak',
+            'Dodge / Mirage Cloak',
+            'Swap Weapons',
+            'Dodge / Mirage Cloak',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Mirage',
+            primaryWeapon: 'Staff',
+            secondaryWeapon: '',
+            weaponSet2Primary: 'Axe',
+            weaponSet2Secondary: 'Torch',
+            sigilSets: [
+                { names: ['Energy'] },
+                { names: ['Energy'] },
+            ],
+            initialResource: 0,
+        }),
+    );
+    const dodges = result.steps.filter(step =>
+        step.skill === 'Dodge / Mirage Cloak' && !step.invalid);
+    const energy = result.events.find(event =>
+        event.type === 'proc' && event.sourceId === 'sigil.energy');
+
+    assert.deepEqual(result.warnings, []);
+    assert.equal(dodges.length, 3);
+    assert.ok(energy);
+    assert.equal(dodges[2].start, energy.at * 1000);
 });
 
 test("Nomad's Endurance grants vigor on shatter and uses it for damage", () => {
@@ -3842,7 +4418,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
     );
     assert.deepEqual(
         times('Phantasm'),
-        [1.351, 1.551, 1.75, 1.95, 2.151, 2.35, 2.55, 2.96],
+        [1.443, 1.643, 1.843, 2.043, 2.243, 2.443, 2.643, 2.843],
     );
     assert.ok(
         result.resolvedEvents
@@ -3861,7 +4437,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
                 && event.condition === 'Bleeding'
             )
             .map(event => Number(event.at.toFixed(3))),
-        [1.351, 1.551, 1.75, 1.95, 2.151, 2.35, 2.55, 2.96],
+        [1.443, 1.643, 1.843, 2.043, 2.243, 2.443, 2.643, 2.843],
     );
 });
 
@@ -3902,7 +4478,7 @@ test('the supplied condition Virtuoso build tracks cast-end blade spends', () =>
     };
     assert.deepEqual(
         [relativeStart(9), relativeStart(11), relativeStart(29)],
-        [2.12, 3.68, 12.88],
+        [2.12, 3.679, 12.879],
     );
     const firstHarmony = result.events.find(event =>
         event.type === 'action' && event.name === 'Bladesong Harmony'
@@ -3997,6 +4573,448 @@ test('supplied trait attacks execute with their exact coefficients', () => {
         }),
     );
     assert.equal(coefficient(timeBomb, 'Time Bomb'), 3);
+});
+
+test('Troubadour benchmark instruments use measured packets and normalized strength', () => {
+    const defaults = defaultSimulationConfig();
+    const config = defaultSimulationConfig({
+        specialization: 'Troubadour',
+        initialResource: 3,
+        selectedTraits: ['Syncopate', 'Shredding', 'Fortissimo'],
+        boons: { ...defaults.boons, quickness: true, alacrity: true },
+    });
+    const lute = simulateMesmer(
+        ['Lively Lute', { name: '__wait', waitMs: 1000 }],
+        config,
+    );
+    const luteHits = lute.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillId === ID.LIVELY_LUTE
+    );
+    assert.equal(lute.steps[0].end, 560);
+    assert.deepEqual(
+        luteHits.map(event => Number(event.at.toFixed(3))),
+        [0.435, 0.635, 0.835, 1.035],
+    );
+    assert.deepEqual(luteHits.map(event => event.coefficient), [1, 1, 1, 1]);
+    assert.ok(luteHits.every(event =>
+        event.weaponStrengthProfileId === 'nonweapon.profession-mechanic'));
+
+    const drum = simulateMesmer(
+        ['Deafening Drum', { name: '__wait', waitMs: 4000 }],
+        config,
+    );
+    const drumHit = drum.resolvedEvents.find(event =>
+        event.type === 'damage' && event.skillName === 'Deafening Drum');
+    const syncopate = drum.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Syncopate');
+    assert.equal(drum.steps[0].end, 680);
+    assert.equal(drumHit.at, 0.518);
+    assert.equal(drumHit.coefficient, 2);
+    assert.equal(
+        drumHit.weaponStrengthProfileId,
+        'nonweapon.profession-mechanic',
+    );
+    assert.deepEqual(syncopate.map(event => event.at), [0.518, 3.518, 3.518]);
+    assert.deepEqual(syncopate.map(event => event.coefficient), [0.75, 0.75, 0.75]);
+    assert.deepEqual(syncopate.map(event => event.weaponStrengthProfileId), [
+        'nonweapon.unequipped',
+        'nonweapon.profession-mechanic',
+        'nonweapon.unequipped',
+    ]);
+});
+
+test('Troubadour skills use measured Quickness cast times', () => {
+    const result = simulateMesmer(
+        [
+            'Flustering Flute',
+            'Lively Lute',
+            'Crescendo',
+            'Harmonious Harp',
+            'Mimic',
+            'Tale of the Tortured Mastermind',
+            'Deafening Drum',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            selectedSkills: ['Mimic', 'Tale of the Tortured Mastermind'],
+            boons: { quickness: true },
+            initialResource: 3,
+        }),
+    );
+
+    assert.deepEqual(
+        result.steps.map(step => step.end - step.start),
+        [560, 560, 1000, 480, 640, 400, 680],
+    );
+});
+
+test('ordinary Lively Lute has one charge unless Shatter Storm is selected', () => {
+    const config = selectedTraits => defaultSimulationConfig({
+        specialization: 'Troubadour',
+        initialResource: 3,
+        selectedTraits,
+    });
+    const ordinary = simulateMesmer(
+        ['Lively Lute', 'Lively Lute'],
+        config([]),
+    );
+    const shatterStorm = simulateMesmer(
+        ['Lively Lute', 'Lively Lute'],
+        config(['Shatter Storm']),
+    );
+
+    assert.ok(ordinary.steps[1].start > 9000);
+    assert.equal(shatterStorm.steps[1].start, 560);
+});
+
+test('Tortured Mastermind follows the benchmark four-hit condition timeline', () => {
+    const result = simulateMesmer(
+        [
+            'Flustering Flute',
+            'Tale of the Tortured Mastermind',
+            { name: '__wait', waitMs: 4000 },
+        ],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 3,
+            selectedTraits: ['Syncopate', 'Dazzling'],
+        }),
+    );
+    const taleHits = result.resolvedEvents.filter(event =>
+        event.type === 'damage'
+        && event.skillName === 'Tale of the Tortured Mastermind');
+    const taleConditions = result.resolvedEvents.filter(event =>
+        event.type === 'condition'
+        && event.skillName === 'Tale of the Tortured Mastermind');
+
+    assert.equal(result.steps[1].start, 560);
+    assert.equal(result.steps[1].end, 960);
+    assert.deepEqual(
+        taleHits.map(event => Number(event.at.toFixed(3))),
+        [0.91, 1.91, 2.91, 3.91],
+    );
+    assert.deepEqual(taleHits.map(event => event.coefficient), [1, 1, 1, 1]);
+    assert.deepEqual(
+        taleConditions.filter(event => event.condition === 'Torment')
+            .map(event => [
+                Number(event.at.toFixed(3)), event.stacks, event.duration,
+            ]),
+        [[0.91, 1, 8], [1.91, 1, 8], [2.91, 1, 8], [3.91, 1, 8]],
+    );
+    assert.deepEqual(
+        taleConditions.filter(event => event.condition !== 'Torment')
+            .map(event => [
+                event.condition,
+                Number(event.at.toFixed(3)),
+                event.stacks,
+                event.duration,
+            ]),
+        [
+            ['Weakness', 0.91, 1, 5],
+            ['Vulnerability', 1.91, 10, 4],
+        ],
+    );
+    assert.ok(result.events.some(event =>
+        event.type === 'control'
+        && event.skillName === 'Tale of the Tortured Mastermind'
+        && event.at === 3.91));
+    assert.ok(result.resolvedEvents.some(event =>
+        event.type === 'damage'
+        && event.skillName === 'Syncopate'
+        && event.at === 3.91));
+    assert.equal(result.endState.profession.resource, 1);
+});
+
+test('Troubadour tales grant their boons and instrument-specific notes', () => {
+    const cases = [
+        ['Lively Lute', 'Tale of the Soulkeeper', 2, [
+            ['might', 10, 15], ['fury', 1, 10], ['quickness', 1, 4],
+        ]],
+        ['Deafening Drum', 'Tale of the Honorable Rogue', 1, [
+            ['aegis', 1, 4],
+        ]],
+        ['Harmonious Harp', 'Tale of the Valiant Marshal', 1, [
+            ['stability', 5, 4], ['resistance', 1, 3],
+        ]],
+    ];
+    for (const [instrument, tale, expectedNotes, expectedBoons] of cases) {
+        const result = simulateMesmer(
+            [instrument, tale, { name: '__wait', waitMs: 100 }],
+            defaultSimulationConfig({
+                specialization: 'Troubadour',
+                initialResource: 3,
+            }),
+        );
+        assert.equal(result.endState.profession.resource, expectedNotes, tale);
+        assert.ok(result.events.some(event =>
+            event.type === 'mesmer.instrument'
+            && instrument.includes(event.instrument)));
+        const boons = result.events
+            .filter(event => event.type === 'buff' && event.skillName === tale)
+            .map(event => [event.kind, event.stacks, event.duration]);
+        assert.deepEqual(boons, expectedBoons, tale);
+        if (instrument === 'Harmonious Harp') {
+            assert.ok(result.events.some(event =>
+                event.type === 'buff'
+                && event.kind === 'distortion'
+                && event.duration === 2));
+        }
+    }
+});
+
+test('Troubadour instrument note spends retain rotation timeline metadata', () => {
+    const result = simulateMesmer(
+        [
+            'Lively Lute',
+            'Tale of the Soulkeeper',
+            'Flustering Flute',
+        ],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 3,
+        }),
+    );
+    const spends = shatterResourceSpends(result);
+
+    assert.deepEqual(spends.get(0), {
+        count: 3,
+        resource: 'notes',
+        sourceSkill: 'Lively Lute',
+    });
+    assert.deepEqual(spends.get(2), {
+        count: 2,
+        resource: 'notes',
+        sourceSkill: 'Flustering Flute',
+    });
+    assert.deepEqual(
+        result.endState.profession.activeInstruments.map(instrument =>
+            instrument.name),
+        ['Lute', 'Flute'],
+    );
+    const resourceView = mesmerProfession.resolveRuntime({
+        specialization: 'Troubadour',
+    }).ui.resourceViews({
+        specialization: 'Troubadour',
+        professionState: result.endState.profession,
+    })[0];
+    assert.equal(resourceView.statusItemsLabel, 'Playing');
+    assert.deepEqual(
+        resourceView.statusItems.map(item => item.label),
+        ['Lute', 'Flute'],
+    );
+    assert.ok(resourceView.statusItems.every(item =>
+        /^\d+\.\d+s$/.test(item.valueLabel)));
+    const resourceHtml = activeResourceGroup({
+        profession: mesmerProfession,
+        adapter: { eliteSpecialization: () => 'Troubadour' },
+        build: { initialResource: 0 },
+        results: result,
+    });
+    assert.match(resourceHtml, /active-resource-statuses/);
+    assert.match(resourceHtml, />Lute</);
+    assert.match(resourceHtml, />Flute</);
+    for (const index of [0, 2]) {
+        const spend = result.events.find(event =>
+            event.type === 'resource'
+            && event.reason === 'profession mechanic'
+            && event.rotationIndex === index);
+        assert.ok(spend);
+        const action = result.events.find(event =>
+            event.type === 'action' && event.name === spend.sourceSkill);
+        assert.ok(action);
+        assert.equal(spend.sourceSkill, action.name);
+        assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001);
+    }
+
+    const empty = simulateMesmer(
+        ['Deafening Drum'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 0,
+        }),
+    );
+    assert.deepEqual(shatterResourceSpends(empty).get(0), {
+        count: 0,
+        resource: 'notes',
+        sourceSkill: 'Deafening Drum',
+    });
+});
+
+test('Troubadour adept and support traits emit their modeled effects', () => {
+    const resonance = simulateMesmer(
+        ['Flustering Flute', 'Dodge', 'Dodge', 'Dodge'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 3,
+        }),
+    );
+    assert.equal(resonance.steps[3].start, 8560);
+
+    const mayhem = simulateMesmer(
+        ['Flustering Flute', 'Dodge', 'Flustering Flute'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 0,
+            selectedTraits: ['Mayhem'],
+        }),
+    );
+    const torment = mayhem.resolvedEvents.filter(event =>
+        event.type === 'condition'
+        && event.condition === 'Torment'
+        && event.name.includes('Mayhem'));
+    assert.deepEqual(torment.map(event => [event.stacks, event.duration]), [
+        [4, 5], [4, 5],
+    ]);
+    assert.equal(mayhem.steps[2].start, 15060);
+
+    const rogueEndurance = simulateMesmer(
+        ['Dodge', 'Dodge', 'Tale of the Honorable Rogue', 'Dodge'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 0,
+        }),
+    );
+    assert.equal(rogueEndurance.steps[3].start, 0);
+
+    const raconteur = simulateMesmer(
+        ['Tale of the Soulkeeper'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            selectedTraits: ['Raconteur'],
+        }),
+    );
+    assert.ok(raconteur.events.some(event =>
+        event.type === 'buff'
+        && event.kind === 'protection'
+        && event.duration === 3));
+
+    const party = simulateMesmer(
+        ['Lively Lute', 'Crescendo'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 1,
+            selectedTraits: ['Life of the Party'],
+        }),
+    );
+    const partyBoons = party.events.filter(event =>
+        event.type === 'buff'
+        && ['quickness', 'might', 'fury'].includes(event.kind));
+    assert.ok(partyBoons.some(event =>
+        event.kind === 'quickness' && event.duration === 6));
+    assert.ok(partyBoons.some(event =>
+        event.kind === 'might' && event.stacks === 5 && event.duration === 8));
+    assert.ok(partyBoons.some(event =>
+        event.kind === 'quickness' && event.duration === 8));
+    assert.ok(partyBoons.some(event =>
+        event.kind === 'might' && event.stacks === 8 && event.duration === 15));
+    assert.ok(partyBoons.some(event =>
+        event.kind === 'fury' && event.duration === 8));
+});
+
+test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () => {
+    const harmonize = simulateMesmer(
+        ['Phantasmal Swordsman', { name: '__wait', waitMs: 4000 }],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 0,
+        }),
+    );
+    assert.deepEqual(
+        harmonize.events.filter(event => event.type === 'resource')
+            .map(event => event.reason),
+        ['Harmonize', 'Phantasmal Swordsman phantasm conversion'],
+    );
+    assert.equal(harmonize.endState.profession.resource, 2);
+
+    const response = simulateMesmer(
+        ['Lively Lute', { name: '__wait', waitMs: 2500 }],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 3,
+            selectedTraits: ['Call and Response'],
+        }),
+    );
+    const afterimageHits = response.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.source === 'Afterimage');
+    assert.deepEqual(
+        afterimageHits.map(event => Number(event.at.toFixed(3))),
+        [2.06, 2.26, 2.46],
+    );
+    assert.ok(afterimageHits.every(event => event.actorType === 'summon'));
+    assert.ok(response.events.some(event =>
+        event.type === 'proc'
+        && event.name === 'Call and Response'
+        && event.at === 2.06));
+
+    const fortissimo = simulateMesmer(
+        ['Crescendo', { name: '__wait', waitMs: 5100 }],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 0,
+            selectedTraits: ['Fortissimo'],
+        }),
+    );
+    assert.deepEqual(
+        fortissimo.events.filter(event =>
+            event.type === 'resource' && event.reason === 'Fortissimo')
+            .map(event => event.at),
+        [2, 3, 4],
+    );
+
+    const altered = simulateMesmer(
+        ['Deafening Drum', 'Crescendo', { name: '__wait', waitMs: 3000 }],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 1,
+            selectedTraits: ['Altered Chord', 'Syncopate'],
+        }),
+    );
+    assert.ok(altered.events.some(event =>
+        event.type === 'control'
+        && event.skillName === 'Crescendo'
+        && event.at === 1.53));
+    assert.ok(altered.resolvedEvents.some(event =>
+        event.type === 'damage'
+        && event.skillName === 'Crescendo'
+        && event.at === 1.53));
+
+    const luteSpotlight = simulateMesmer(
+        ['Lively Lute', 'Crescendo'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 1,
+            selectedTraits: ['Altered Chord'],
+        }),
+    );
+    assert.ok(luteSpotlight.events.some(event =>
+        event.type === 'buff'
+        && event.kind === 'altered-chord'
+        && event.duration === 10));
+
+    const fluteSpotlight = simulateMesmer(
+        ['Flustering Flute', 'Crescendo'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource: 1,
+            selectedTraits: ['Altered Chord'],
+        }),
+    );
+    assert.ok(fluteSpotlight.resolvedEvents.some(event =>
+        event.type === 'condition'
+        && event.name.includes('Altered Chord')
+        && event.condition === 'Confusion'
+        && event.stacks === 5
+        && event.duration === 8));
+
+    const crescendoReadyAt = initialResource => simulateMesmer(
+        ['Crescendo', 'Lively Lute'],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            initialResource,
+            selectedTraits: ['Altered Chord'],
+        }),
+    ).endState.cooldowns.Crescendo.readyAt;
+    assert.equal(crescendoReadyAt(0) - crescendoReadyAt(1), 2000);
 });
 
 test('Bountiful Blades stocks each Berserker blade independently', () => {
@@ -4146,7 +5164,7 @@ test('concurrent Continuum Split excludes the still-casting skill from its snaps
             secondaryWeapon: '',
         }),
     );
-    assert.equal(result.steps[0].end, 880);
+    assert.equal(result.steps[0].end, 744);
     assert.equal(result.steps[1].start, 100);
     assert.equal(result.steps[3].start, result.steps[2].end);
 });
@@ -4169,7 +5187,7 @@ test('mid-rotation concurrent Continuum Split does not restore expired cooldowns
         }),
     );
 
-    assert.equal(result.steps[3].start, 14580);
+    assert.equal(result.steps[3].start, 14556);
     assert.equal(result.steps[5].start, result.steps[4].end);
 });
 
@@ -4303,7 +5321,7 @@ test('a delayed Combat Start suppresses earlier damage without moving display ze
     assert.ok(result.resolvedEvents
         .filter(event => event.type === 'damage')
         .every(event => event.at >= 0.5));
-    assert.ok(Math.abs(result.dpsStartTime - 1.28) < 1e-12);
+    assert.ok(Math.abs(result.dpsStartTime - 1.002) < 1e-12);
 });
 
 test('event log timestamps use the same explicit Combat Start origin as rotation tiles', () => {

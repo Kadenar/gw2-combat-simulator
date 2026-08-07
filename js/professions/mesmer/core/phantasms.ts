@@ -19,7 +19,7 @@ import type {
 
 export interface MesmerPhantasmExecution {
   readonly skill: MesmerSkill;
-  readonly count: number;
+  readonly entityIndex: number;
   readonly damageMultiplier: number;
   readonly summonAt: number;
   readonly damageAt: number;
@@ -28,15 +28,15 @@ export interface MesmerPhantasmExecution {
   readonly conversionAt: number;
   readonly initialBladeAt: number;
   readonly hasChronophantasma: boolean;
-  readonly virtuosoBladeTicks: readonly { readonly atMs: number }[] | null;
+  readonly virtuosoBladeAt: number | null;
   readonly timing: MesmerPhantasmAttackTiming;
   readonly endpoint: (atMs: number | undefined) => number;
-  chronophantasmaProc: boolean;
 }
 
 export interface MesmerPhantasmStrikeResult {
   readonly damageGroup: MesmerDamageGroup;
   readonly initialHitTimes: readonly number[];
+  readonly repeatHitTimes: readonly number[];
 }
 
 export interface MesmerPhantasmEffectController {
@@ -45,8 +45,8 @@ export interface MesmerPhantasmEffectController {
     castStart: number,
     summonAt: number,
     clarityConsumed: boolean,
-  ): MesmerPhantasmExecution | null;
-  scheduleLifecycle(execution: MesmerPhantasmExecution): void;
+  ): readonly MesmerPhantasmExecution[];
+  scheduleLifecycle(executions: readonly MesmerPhantasmExecution[]): void;
   scheduleStrike(
     execution: MesmerPhantasmExecution,
     group: MesmerStrikeEffect,
@@ -58,7 +58,7 @@ export interface MesmerPhantasmEffectController {
     execution: MesmerPhantasmExecution,
     conditions: readonly MesmerConditionEffect[],
   ): void;
-  queueConversion(execution: MesmerPhantasmExecution): void;
+  queueConversion(execution: MesmerPhantasmExecution, amount?: number): void;
 }
 
 interface PhantasmEffectControllerOptions {
@@ -95,8 +95,8 @@ export function createPhantasmEffectController({
     castStart: number,
     summonAt: number,
     clarityConsumed: boolean,
-  ): MesmerPhantasmExecution | null => {
-    if (skill.resource?.mode !== "phantasm") return null;
+  ): readonly MesmerPhantasmExecution[] => {
+    if (skill.resource?.mode !== "phantasm") return [];
     const bountifulBerserker =
       skill.id === ID.PHANTASMAL_BERSERKER
       && traits.has(TRAIT.BOUNTIFUL_BLADES);
@@ -116,43 +116,51 @@ export function createPhantasmEffectController({
       const actualCastTime = summonAt - castStart;
       return castStart + actualCastTime + measuredPostCast / speed;
     };
-    const damageAt = endpoint(timing?.damageAtMs);
-    const spawnAt = endpoint(timing?.spawnAtMs);
-    const repeatDamageAt = endpoint(timing?.chronophantasmaDamageAtMs);
     const hasChronophantasma = traits.has(TRAIT.CHRONOPHANTASMA);
-    return {
-      skill,
-      count,
-      damageMultiplier: bountifulBerserker ? 0.66 : 1,
-      summonAt,
-      damageAt,
-      spawnAt,
-      repeatDamageAt,
-      conversionAt: hasChronophantasma
-        ? endpoint(timing?.chronophantasmaSpawnAtMs)
-        : spawnAt,
-      initialBladeAt:
-        timing?.phantasmalBladeDelayAfterSpawnMs != null
-          ? spawnAt
-            + Number(timing.phantasmalBladeDelayAfterSpawnMs) / 1000
-          : damageAt,
-      hasChronophantasma,
-      virtuosoBladeTicks:
-        resourceDefinition.singular === "blade"
-        && !hasChronophantasma
-        && Array.isArray(timing?.virtuosoBladeTicks)
-          ? timing.virtuosoBladeTicks
-          : null,
-      timing,
-      endpoint,
-      chronophantasmaProc: false,
-    };
+    return Array.from({ length: count }, (_, entityIndex) => {
+      const damageAt = endpoint(
+        timing.damageAtMsByEntity?.[entityIndex] ?? timing.damageAtMs,
+      );
+      const spawnAt = endpoint(timing.spawnAtMs);
+      const repeatDamageAt = endpoint(
+        timing.chronophantasmaDamageAtMsByEntity?.[entityIndex]
+          ?? timing.chronophantasmaDamageAtMs,
+      );
+      const virtuosoBladeTick = timing.virtuosoBladeTicks?.[
+        Math.min(entityIndex, timing.virtuosoBladeTicks.length - 1)
+      ];
+      return {
+        skill,
+        entityIndex,
+        damageMultiplier: bountifulBerserker ? 0.66 : 1,
+        summonAt,
+        damageAt,
+        spawnAt,
+        repeatDamageAt,
+        conversionAt: hasChronophantasma
+          ? endpoint(timing.chronophantasmaSpawnAtMs)
+          : spawnAt,
+        initialBladeAt:
+          timing.phantasmalBladeDelayAfterSpawnMs != null
+            ? spawnAt
+              + Number(timing.phantasmalBladeDelayAfterSpawnMs) / 1000
+            : damageAt,
+        hasChronophantasma,
+        virtuosoBladeAt:
+          resourceDefinition.singular === "blade"
+          && !hasChronophantasma
+          && virtuosoBladeTick
+            ? endpoint(virtuosoBladeTick.atMs)
+            : null,
+        timing,
+        endpoint,
+      };
+    });
   };
 
   const addPhantasmalBlade = (
     execution: MesmerPhantasmExecution,
     at: number,
-    sourceSkill: string,
   ): void => {
     const blade = traitDamage["Phantasmal Blade"];
     addDamage(
@@ -164,17 +172,28 @@ export function createPhantasmEffectController({
       },
       at,
       {
-        coefficient: blade.coefficient * execution.count,
-        hits: blade.hits * execution.count,
+        coefficient: blade.coefficient,
+        hits: blade.hits,
         source: "Player",
         weaponStrength: blade.weaponStrength,
       },
     );
-    addTraitProc("Phantasmal Blades", at, sourceSkill);
   };
 
-  const scheduleLifecycle = (execution: MesmerPhantasmExecution): void => {
-    const { skill, count } = execution;
+  const scheduleLifecycle = (
+    executions: readonly MesmerPhantasmExecution[],
+  ): void => {
+    const execution = executions[0];
+    if (!execution) return;
+    const { skill } = execution;
+    const count = executions.length;
+    const damageAt = Math.max(...executions.map((item) => item.damageAt));
+    const repeatDamageAt = Math.max(
+      ...executions.map((item) => item.repeatDamageAt),
+    );
+    const initialBladeAt = Math.max(
+      ...executions.map((item) => item.initialBladeAt),
+    );
     if (traits.has(TRAIT.COMPOUNDING_POWER)) {
       markCompounding(execution.summonAt, count);
       addTraitProc(
@@ -192,14 +211,17 @@ export function createPhantasmEffectController({
     });
     addEvent({
       type: "mesmer.phantasm-attack",
-      at: execution.damageAt,
+      at: damageAt,
       name: skill.name,
       count,
       repeat: false,
       complete: true,
     });
     if (traits.has(TRAIT.PHANTASMAL_BLADES)) {
-      addPhantasmalBlade(execution, execution.initialBladeAt, skill.name);
+      for (const item of executions) {
+        addPhantasmalBlade(item, item.initialBladeAt);
+      }
+      addTraitProc("Phantasmal Blades", initialBladeAt, skill.name);
     }
     if (!execution.hasChronophantasma) return;
     if (traits.has(TRAIT.COMPOUNDING_POWER)) {
@@ -219,19 +241,26 @@ export function createPhantasmEffectController({
     });
     addEvent({
       type: "mesmer.phantasm-attack",
-      at: execution.repeatDamageAt,
+      at: repeatDamageAt,
       name: skill.name,
       count,
       repeat: true,
       complete: true,
     });
     if (traits.has(TRAIT.PHANTASMAL_BLADES)) {
-      addPhantasmalBlade(
-        execution,
-        execution.repeatDamageAt,
+      for (const item of executions) {
+        addPhantasmalBlade(
+          item,
+          item.repeatDamageAt,
+        );
+      }
+      addTraitProc(
+        "Phantasmal Blades",
+        repeatDamageAt,
         `${skill.name} - Chronophantasma`,
       );
     }
+    addTraitProc("Chronophantasma", execution.spawnAt, skill.name);
   };
 
   const scheduleStrike = (
@@ -259,19 +288,21 @@ export function createPhantasmEffectController({
     const damageGroup: MesmerDamageGroup = {
       ...sourcedGroup,
       ticks: undefined,
-      coefficient:
-        baseCoefficient * execution.count * execution.damageMultiplier,
-      hits: baseHits * execution.count,
+      coefficient: baseCoefficient * execution.damageMultiplier,
+      hits: baseHits,
     };
     const groupName = group.name || "";
     const measuredTicks =
-      Array.isArray(execution.timing?.damageTicks?.[groupName])
-        ? execution.timing?.damageTicks?.[groupName]
-        : null;
+      execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[
+        groupName
+      ]
+      ?? (Array.isArray(execution.timing.damageTicks?.[groupName])
+        ? execution.timing.damageTicks[groupName]
+        : null);
     const fixedTicks = group.ticks?.length ? group.ticks : null;
     const packets = measuredTicks?.length ? measuredTicks : fixedTicks;
     const interval = Number(group.intervalMs || 0);
-    let initialHitTimes: readonly number[];
+    let initialEvents: ReturnType<MesmerAddDamage>;
     if (packets?.length) {
       const hits = Math.max(
         1,
@@ -287,12 +318,12 @@ export function createPhantasmEffectController({
           : timingAnchorAt + Number(packet.atMs) / 1000;
         return {
           atMs: (packetAt - timingAnchorAt) * 1000,
-          coefficient: fixedTicks?.length
-            ? Number(packet.coefficient) * execution.damageMultiplier
-            : Number(damageGroup.coefficient || 0) / hits,
+          coefficient: measuredTicks?.length
+            ? Number(damageGroup.coefficient || 0) / hits
+            : Number(packet.coefficient) * execution.damageMultiplier,
         };
       });
-      initialHitTimes = addDamage(execution.skill, timingAnchorAt, {
+      initialEvents = addDamage(execution.skill, timingAnchorAt, {
         ...damageGroup,
         coefficient: undefined,
         hits: undefined,
@@ -301,44 +332,83 @@ export function createPhantasmEffectController({
         ticks,
         timingAnchor: "castStart",
         timingScale: "fixed",
-      }).map((event) => event.at);
+      });
     } else if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
       const timingAnchorAt = group.timingAnchor === "castStart" ? castStart : at;
-      initialHitTimes = addDamage(
+      initialEvents = addDamage(
         execution.skill,
         timingAnchorAt,
         damageGroup,
-      ).map((event) => event.at);
+      );
     } else {
-      initialHitTimes = addDamage(execution.skill, execution.damageAt, {
+      initialEvents = addDamage(execution.skill, execution.damageAt, {
         ...damageGroup,
         atMs: undefined,
         intervalMs: undefined,
         timingAnchor: undefined,
         timingScale: undefined,
-      }).map((event) => event.at);
-    }
-    if (execution.hasChronophantasma) {
-      addDamage(execution.skill, execution.repeatDamageAt, {
-        ...damageGroup,
-        atMs: undefined,
-        intervalMs: undefined,
-        timingAnchor: undefined,
-        timingScale: undefined,
-      }, {
-        name: `${execution.skill.name} - Chronophantasma`,
-        multiplier: 1.05,
       });
-      if (!execution.chronophantasmaProc) {
-        addTraitProc(
-          "Chronophantasma",
-          execution.spawnAt,
-          execution.skill.name,
+    }
+    const initialHitTimes = initialEvents.map((event) => event.at);
+    let repeatHitTimes: readonly number[] = [];
+    if (execution.hasChronophantasma) {
+      const repeatMeasuredTicks =
+        execution.timing.chronophantasmaDamageTicksByEntity?.[
+          execution.entityIndex
+        ]?.[groupName]
+        ?? execution.timing.chronophantasmaDamageTicks?.[groupName]
+        ?? null;
+      if (repeatMeasuredTicks?.length) {
+        const hits = Math.max(
+          1,
+          Math.trunc(Number(damageGroup.hits || 1)),
         );
-        execution.chronophantasmaProc = true;
+        repeatHitTimes = addDamage(execution.skill, castStart, {
+          ...damageGroup,
+          coefficient: undefined,
+          hits: undefined,
+          atMs: undefined,
+          intervalMs: undefined,
+          ticks: Array.from({ length: hits }, (_, index) => ({
+            atMs:
+              (execution.endpoint(
+                repeatMeasuredTicks[index % repeatMeasuredTicks.length].atMs,
+              ) - castStart) * 1000,
+            coefficient: Number(damageGroup.coefficient || 0) / hits,
+          })),
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+        }, {
+          name: `${execution.skill.name} - Chronophantasma`,
+          multiplier: 1.05,
+        }).map((event) => event.at);
+      } else {
+        const repeatOffset = execution.repeatDamageAt - execution.damageAt;
+        const shiftedHitTimes = initialHitTimes.map(
+          (hitAt) => hitAt + repeatOffset,
+        );
+        if (shiftedHitTimes.length > 0) {
+          const repeatOrigin = Math.min(...shiftedHitTimes);
+          repeatHitTimes = addDamage(execution.skill, repeatOrigin, {
+            ...damageGroup,
+            coefficient: undefined,
+            hits: undefined,
+            atMs: undefined,
+            intervalMs: undefined,
+            ticks: initialEvents.map((event, index) => ({
+              atMs: (shiftedHitTimes[index] - repeatOrigin) * 1000,
+              coefficient: Number(event.coefficient || 0),
+            })),
+            timingAnchor: "castStart",
+            timingScale: "fixed",
+          }, {
+            name: `${execution.skill.name} - Chronophantasma`,
+            multiplier: 1.05,
+          }).map((event) => event.at);
+        }
       }
     }
-    return { damageGroup, initialHitTimes };
+    return { damageGroup, initialHitTimes, repeatHitTimes };
   };
 
   const scheduleConditions = (
@@ -347,33 +417,27 @@ export function createPhantasmEffectController({
   ): void => {
     for (const effect of conditions) {
       const condition = { ...effect, name: effect.condition };
-      const scaledCondition = execution.count > 1
-        ? {
-            ...condition,
-            stacks: Number(condition.stacks || 1) * execution.count,
-          }
-        : condition;
-      const conditionTicks =
-        condition.packetLabel
-        && Array.isArray(
-          execution.timing?.damageTicks?.[condition.packetLabel],
-        )
-          ? execution.timing?.damageTicks?.[condition.packetLabel]
-          : null;
+      const conditionTicks = condition.packetLabel
+        ? execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[
+            condition.packetLabel
+          ]
+          ?? execution.timing.damageTicks?.[condition.packetLabel]
+          ?? null
+        : null;
       if (conditionTicks && conditionTicks.length > 0) {
         const packetStacks =
-          Number(scaledCondition.stacks || 1) / conditionTicks.length;
+          Number(condition.stacks || 1) / conditionTicks.length;
         const applicationTimes = conditionTicks.map((tick) =>
           execution.endpoint(tick.atMs)
         );
         const conditionOrigin = Math.min(...applicationTimes);
         addCondition(execution.skill.name, conditionOrigin, {
-          ...scaledCondition,
+          ...condition,
           stacks: undefined,
           ticks: applicationTimes.map((applicationAt) => ({
             atMs: (applicationAt - conditionOrigin) * 1000,
-            condition: scaledCondition.name,
-            duration: scaledCondition.duration,
+            condition: condition.name,
+            duration: condition.duration,
             stacks: packetStacks,
           })),
           timingAnchor: "castStart",
@@ -383,52 +447,87 @@ export function createPhantasmEffectController({
         addCondition(
           execution.skill.name,
           execution.damageAt,
-          scaledCondition,
+          condition,
           "Phantasm",
         );
       }
     }
     if (!execution.hasChronophantasma || conditions.length === 0) return;
+    const repeatOffset = execution.repeatDamageAt - execution.damageAt;
     for (const effect of conditions) {
       const condition = { ...effect, name: effect.condition };
-      const scaledCondition = execution.count > 1
-        ? {
-            ...condition,
-            stacks: Number(condition.stacks || 1) * execution.count,
-          }
-        : condition;
-      addCondition(
-        execution.skill.name,
-        execution.repeatDamageAt,
-        scaledCondition,
-        "Phantasm",
-        `${execution.skill.name} - Chronophantasma`,
-      );
+      const initialConditionTicks =
+        condition.packetLabel
+          ? execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[
+              condition.packetLabel
+            ]
+            ?? execution.timing.damageTicks?.[condition.packetLabel]
+            ?? null
+          : null;
+      const repeatConditionTicks =
+        condition.packetLabel
+          ? execution.timing.chronophantasmaDamageTicksByEntity?.[
+              execution.entityIndex
+            ]?.[condition.packetLabel]
+            ?? execution.timing.chronophantasmaDamageTicks?.[
+              condition.packetLabel
+            ]
+            ?? null
+          : null;
+      const conditionTicks = repeatConditionTicks ?? initialConditionTicks;
+      if (conditionTicks && conditionTicks.length > 0) {
+        const packetStacks =
+          Number(condition.stacks || 1) / conditionTicks.length;
+        const applicationTimes = conditionTicks.map((tick) =>
+          repeatConditionTicks
+            ? execution.endpoint(tick.atMs)
+            : execution.endpoint(tick.atMs) + repeatOffset
+        );
+        const conditionOrigin = Math.min(...applicationTimes);
+        addCondition(execution.skill.name, conditionOrigin, {
+          ...condition,
+          stacks: undefined,
+          ticks: applicationTimes.map((applicationAt) => ({
+            atMs: (applicationAt - conditionOrigin) * 1000,
+            condition: condition.name,
+            duration: condition.duration,
+            stacks: packetStacks,
+          })),
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+        }, "Phantasm", `${execution.skill.name} - Chronophantasma`);
+      } else {
+        addCondition(
+          execution.skill.name,
+          execution.repeatDamageAt,
+          condition,
+          "Phantasm",
+          `${execution.skill.name} - Chronophantasma`,
+        );
+      }
     }
   };
 
-  const queueConversion = (execution: MesmerPhantasmExecution): void => {
-    if (execution.virtuosoBladeTicks) {
-      for (let index = 0; index < execution.count; index += 1) {
-        const tick = execution.virtuosoBladeTicks[
-          Math.min(index, execution.virtuosoBladeTicks.length - 1)
-        ];
-        queueResources(
-          execution.endpoint(tick.atMs) + epsilon,
-          1,
-          null,
-          `${execution.skill.name} phantasm conversion`,
-          {
-            kind: "phantasm-conversion",
-            sourceSkillId: execution.skill.id,
-          },
-        );
-      }
+  const queueConversion = (
+    execution: MesmerPhantasmExecution,
+    amount = 1,
+  ): void => {
+    if (execution.virtuosoBladeAt != null) {
+      queueResources(
+        execution.virtuosoBladeAt + epsilon,
+        amount,
+        null,
+        `${execution.skill.name} phantasm conversion`,
+        {
+          kind: "phantasm-conversion",
+          sourceSkillId: execution.skill.id,
+        },
+      );
       return;
     }
     queueResources(
       execution.conversionAt + epsilon,
-      execution.count,
+      amount,
       null,
       `${execution.skill.name} phantasm conversion`,
       { kind: "phantasm-conversion", sourceSkillId: execution.skill.id },

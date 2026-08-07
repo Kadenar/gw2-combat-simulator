@@ -93,6 +93,9 @@ function shade(
 ): boolean {
   const state = scourgeState.from(context);
   const at = context.effectiveEnd;
+  const impactAt = skill.id === ID.MANIFEST_SAND_SHADE
+    ? context.start + (context.fullEnd - context.start) * (11 / 12)
+    : at;
   const shadeMechanics = MECHANICS.shade;
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
     const maximum = hasTrait(context, TRAIT.SAND_SAVANT) ? 1 : 3;
@@ -146,6 +149,7 @@ function shade(
       ? "Manifest Sand Shade"
       : "Manifest Sand Shade (F1/F5)";
   emitDamage(context, skill, shadeMechanics.manifest.coefficient, {
+    at: impactAt,
     name: "Sand Shade — Strike",
     sourceId: ID.MANIFEST_SAND_SHADE,
     skillWeapon: "Unequipped",
@@ -158,6 +162,7 @@ function shade(
     },
   });
   emitShadeCondition(context, skill, shadeMechanics.manifest.condition, {
+    at: impactAt,
     sourceId: ID.MANIFEST_SAND_SHADE,
   });
 

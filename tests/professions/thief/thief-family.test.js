@@ -62,6 +62,7 @@ const specializationStateKeys = Object.freeze({
     "maximumShadowForce",
     "shadowForcePoolCapacity",
     "shadowShroudActive",
+    "darkSentryReadyAt",
   ],
   Antiquary: [
     "artifactSlots",

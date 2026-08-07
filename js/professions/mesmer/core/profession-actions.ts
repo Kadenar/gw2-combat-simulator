@@ -240,6 +240,7 @@ export function createProfessionActionController({
     skill: MesmerSkill,
     at: number,
     resourcesSpent: number | null = null,
+    castStart = at,
   ): boolean => {
     const shatter = shatters[skill.id];
     if (!shatter) {
@@ -314,6 +315,15 @@ export function createProfessionActionController({
         duration: traits.has(TRAIT.CRY_OF_PAIN) ? 4 : 3,
         stacks: sources * cryBonus,
       });
+      if (traits.has(TRAIT.BLINDING_DISSIPATION)) {
+        addEvent({
+          type: "blind",
+          at,
+          skillName: skill.name,
+          count: sources,
+        });
+        addTraitProc("Blinding Dissipation", at, skill.name);
+      }
     } else if (shatter.kind === "chrono-power") {
       addDamage(
         skill,
@@ -377,9 +387,12 @@ export function createProfessionActionController({
       });
       for (const tick of ticks) addMaimOnHit(at + tick.atMs / 1000);
     } else if (shatter.kind === "blade-control") {
+      const damageAt = shatter.damageAtMs == null
+        ? at
+        : castStart + Number(shatter.damageAtMs) / 1000;
       addDamage(
         skill,
-        at,
+        damageAt,
         {
           coefficient: shatter.coefficients[spent],
           hits: 1,
@@ -388,7 +401,7 @@ export function createProfessionActionController({
         },
         { shatter: true, blade: true },
       );
-      addMaimOnHit(at);
+      addMaimOnHit(damageAt);
     } else if (shatter.kind === "blade-requiem") {
       const ticks = bladePacketTicks((index) => (index + 1) * 1000);
       addBladeDamage(ticks);
@@ -455,25 +468,130 @@ export function createProfessionActionController({
     return true;
   };
 
-  const handleInstrument = (skill: MesmerSkill, at: number): void => {
-    const data = instruments[skill.id];
-    if (!data) {
-      throw new Error(`Missing Mesmer instrument data for ${skill.name}.`);
-    }
-    const spent = consumeResources(at);
+  const instrumentAttack = (
+    skill: MesmerSkill,
+    data: MesmerInstrument,
+    damageAt: number,
+    source = "Player",
+    actorType: "player" | "summon" = "player",
+  ): void => {
     if (data.coefficient) {
       const coefficient =
         data.coefficient +
         (data.instrument === "Lute" && traits.has(TRAIT.SHREDDING) ? 1 : 0);
-      addDamage(skill, at, {
-        coefficient,
-        hits: data.hits + (coefficient > data.coefficient ? 1 : 0),
-        source: "Player",
-      });
+      addDamage(
+        skill,
+        damageAt,
+        {
+          coefficient,
+          hits: data.hits + (coefficient > data.coefficient ? 1 : 0),
+          intervalMs: data.intervalMs,
+          source,
+          actorType,
+          weaponStrengthProfileId: "nonweapon.profession-mechanic",
+        },
+        { source, sourceId: skill.id, skillId: skill.id, actorType },
+      );
     }
     for (const condition of data.conditions || []) {
-      addCondition(skill.name, at, condition);
+      addCondition(skill.name, damageAt, condition, source, "", {
+        source,
+        sourceId: skill.id,
+        skillId: skill.id,
+        actorType,
+      });
     }
+    if (data.instrument === "Flute" && traits.has(TRAIT.MAYHEM)) {
+      addCondition(
+        skill.name,
+        damageAt,
+        { name: "Torment", duration: 5, stacks: 4 },
+        source,
+        "Mayhem — Torment",
+        { source, sourceId: TRAIT.MAYHEM, skillId: skill.id, actorType },
+      );
+    }
+    if (data.instrument === "Flute" || data.instrument === "Drum") {
+      addEvent({
+        type: "control",
+        at: damageAt,
+        skillId: skill.id,
+        skillName: skill.name,
+        source,
+        sourceId: skill.id,
+        actorType,
+      });
+    }
+    if (data.instrument === "Drum" && traits.has(TRAIT.SYNCOPATE)) {
+      const delayedAt = damageAt + 3;
+      const delayedWave = traitDamage.Syncopate;
+      addDamage(
+        {
+          id: "Syncopate delayed wave",
+          name: "Syncopate",
+          weapon: "Utility",
+          blade: false,
+        },
+        delayedAt,
+        {
+          coefficient: delayedWave.coefficient,
+          hits: delayedWave.hits,
+          source,
+          actorType,
+          weaponStrengthProfileId: "nonweapon.profession-mechanic",
+        },
+        {
+          source,
+          sourceId: TRAIT.SYNCOPATE,
+          skillId: skill.id,
+          actorType,
+          name: "Syncopate — delayed wave",
+        },
+      );
+      addEvent({
+        type: "control",
+        at: delayedAt,
+        skillId: skill.id,
+        skillName: "Syncopate",
+        source,
+        sourceId: TRAIT.SYNCOPATE,
+        actorType,
+      });
+      addTraitProc("Syncopate", delayedAt, skill.name, "delayed drum wave");
+    }
+    if (traits.has(TRAIT.LIFE_OF_THE_PARTY) && data.instrument === "Lute") {
+      addEvent({
+        type: "buff",
+        at: damageAt,
+        kind: "quickness",
+        stacks: 1,
+        duration: 6,
+        sourceSkill: skill.name,
+      });
+      addEvent({
+        type: "buff",
+        at: damageAt,
+        kind: "might",
+        stacks: 5,
+        duration: 8,
+        sourceSkill: skill.name,
+      });
+    }
+  };
+
+  const handleInstrument = (
+    skill: MesmerSkill,
+    at: number,
+    castStart = at,
+    spendDetails: MesmerResourceSpendDetails = {},
+  ): void => {
+    const data = instruments[skill.id];
+    if (!data) {
+      throw new Error(`Missing Mesmer instrument data for ${skill.name}.`);
+    }
+    const spent = consumeResources(at, spendDetails);
+    const damageAt = castStart + Number(data.damageAtMs || 0) / 1000;
+    instrumentAttack(skill, data, damageAt);
     const expiresAt = at + 5 + spent * 5;
     troubadourState().instruments[data.instrument] = expiresAt;
     troubadourState().lastInstrument = data.instrument;
@@ -483,6 +601,23 @@ export function createProfessionActionController({
       instrument: data.instrument,
       expiresAt,
     });
+
+    if (data.instrument === "Harp") {
+      addEvent({
+        type: "buff",
+        at: castStart,
+        kind: "distortion",
+        stacks: 1,
+        duration: 2,
+        sourceSkill: skill.name,
+      });
+    }
+
+    if (traits.has(TRAIT.CALL_AND_RESPONSE) && spent === 3) {
+      const afterimageAt = at + 1.5;
+      instrumentAttack(skill, data, afterimageAt, "Afterimage", "summon");
+      addTraitProc("Call and Response", afterimageAt, skill.name);
+    }
     addEvent({
       type: "marker",
       at,
@@ -499,11 +634,16 @@ export function createProfessionActionController({
     }
   };
 
-  const handleCrescendo = (skill: MesmerSkill, at: number): void => {
+  const handleCrescendo = (
+    skill: MesmerSkill,
+    at: number,
+    castStart = at,
+  ): void => {
+    const damageAt = castStart + Number(skill.damageAtMs || 0) / 1000;
     const activeInstruments = Object.entries(
       troubadourState().instruments,
-    ).filter(([, expiresAt]) => expiresAt > at);
-    addDamage(skill, at, {
+    ).filter(([, expiresAt]) => expiresAt > damageAt);
+    addDamage(skill, damageAt, {
       coefficient:
         Number(skill.baseCoefficient || 0) *
         (1 +
@@ -511,27 +651,56 @@ export function createProfessionActionController({
             Number(skill.instrumentDamageIncrease || 0)),
       hits: 1,
       source: "Player",
+      weaponStrengthProfileId: "nonweapon.profession-mechanic",
     });
+
+    if (traits.has(TRAIT.LIFE_OF_THE_PARTY)) {
+      for (const [kind, stacks, duration] of [
+        ["quickness", 1, 8],
+        ["might", 8, 15],
+        ["fury", 1, 8],
+      ] as const) {
+        addEvent({
+          type: "buff",
+          at: damageAt,
+          kind,
+          stacks,
+          duration,
+          sourceSkill: skill.name,
+        });
+      }
+    }
 
     if (traits.has(TRAIT.ALTERED_CHORD)) {
       if (troubadourState().lastInstrument === "Lute") {
         addEvent({
           type: "buff",
-          at: at + epsilon,
+          at: damageAt + epsilon,
           kind: "altered-chord",
           stacks: 1,
           duration: 10,
         });
-        addTraitProc("Altered Chord", at + epsilon, skill.name, "Lute");
+        addTraitProc("Altered Chord", damageAt + epsilon, skill.name, "Lute");
       } else if (troubadourState().lastInstrument === "Flute") {
         addCondition(
           skill.name,
-          at,
+          damageAt,
           { name: "Confusion", duration: 8, stacks: 5 },
           "Player",
           "Altered Chord — Confusion",
         );
-        addTraitProc("Altered Chord", at, skill.name, "Flute");
+        addTraitProc("Altered Chord", damageAt, skill.name, "Flute");
+      } else if (troubadourState().lastInstrument === "Drum") {
+        addEvent({
+          type: "control",
+          at: damageAt,
+          skillId: skill.id,
+          skillName: skill.name,
+          source: "Player",
+          sourceId: TRAIT.ALTERED_CHORD,
+          actorType: "player",
+        });
+        addTraitProc("Altered Chord", damageAt, skill.name, "Drum");
       }
     }
     if (traits.has(TRAIT.FORTISSIMO)) {
@@ -544,12 +713,52 @@ export function createProfessionActionController({
     }
   };
 
+  const handleTale = (
+    skill: MesmerSkill,
+    at: number,
+    castStart = at,
+  ): void => {
+    const requiredInstrument = new Map<number, string>([
+      [ID.TALE_OF_THE_SOULKEEPER, "Lute"],
+      [ID.TALE_OF_THE_HONORABLE_ROGUE, "Drum"],
+      [ID.TALE_OF_THE_VALIANT_MARSHAL, "Harp"],
+      [ID.TALE_OF_THE_TORTURED_MASTERMIND, "Flute"],
+    ]).get(skill.id);
+    if (
+      requiredInstrument &&
+      Number(troubadourState().instruments[requiredInstrument] || 0) > castStart
+    ) {
+      const count = skill.id === ID.TALE_OF_THE_SOULKEEPER ? 2 : 1;
+      queueResources(at + epsilon, count, activePrimaryWeapon(), skill.name);
+    }
+    if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {
+      addEvent({
+        type: "marker",
+        at,
+        name: skill.name,
+        detail: "50 endurance restored",
+      });
+    }
+    if (traits.has(TRAIT.RACONTEUR)) {
+      addEvent({
+        type: "buff",
+        at,
+        kind: "protection",
+        stacks: 1,
+        duration: 3,
+        sourceSkill: skill.name,
+      });
+      addTraitProc("Raconteur", at, skill.name);
+    }
+  };
+
   return {
     commitReservedResources,
     consumeResources,
     currentResource,
     handleCrescendo,
     handleInstrument,
+    handleTale,
     handleShatter,
     reserveResources,
     restoreReservedResources,

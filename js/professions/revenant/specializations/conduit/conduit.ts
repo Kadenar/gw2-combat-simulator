@@ -50,6 +50,7 @@ interface ConduitDamageOptions {
   readonly hitIndex?: number;
   readonly totalHits?: number;
   readonly affinityOnHit?: boolean;
+  readonly extendsResolutionHorizon?: boolean;
 }
 
 interface ConduitConditionOptions {
@@ -58,6 +59,7 @@ interface ConduitConditionOptions {
   readonly stacks?: number;
   readonly duration: number;
   readonly name?: string;
+  readonly extendsResolutionHorizon?: boolean;
 }
 
 interface ConduitAffinityTaskPayload extends SchedulerRecord {
@@ -65,6 +67,8 @@ interface ConduitAffinityTaskPayload extends SchedulerRecord {
 }
 
 interface ReleasePotentialProfile extends SchedulerRecord {
+  readonly impactDelay?: number;
+  readonly hitDelays?: readonly number[];
   readonly resistanceDuration: number;
   readonly regenerationDuration: number;
   readonly coefficient: number;
@@ -170,6 +174,7 @@ function emitDamage(
     hitIndex = 1,
     totalHits = 1,
     affinityOnHit = false,
+    extendsResolutionHorizon = false,
   } = options;
   context.emit({
     type: "damage",
@@ -184,6 +189,7 @@ function emitDamage(
     hits: 1,
     hitIndex,
     totalHits,
+    ...(extendsResolutionHorizon ? { extendsResolutionHorizon: true } : {}),
     ...(affinityOnHit ? { affinityOnHit: true } : {}),
     // Utility, elite, and triggered attacks use GW2's standard level-based
     // strength. Profession mechanic attacks use the active weapon.
@@ -310,6 +316,7 @@ function emitCondition(
     stacks = 1,
     duration,
     name = `${skill.name} — ${condition}`,
+    extendsResolutionHorizon = false,
   } = options;
   context.emit({
     type: "condition",
@@ -323,6 +330,7 @@ function emitCondition(
     condition,
     stacks,
     duration,
+    ...(extendsResolutionHorizon ? { extendsResolutionHorizon: true } : {}),
   });
 }
 
@@ -331,10 +339,11 @@ function emitControl(
   skill: RevenantSkill,
   controlKind: string,
   duration: number,
+  at = context.effectiveEnd,
 ): void {
   context.emit({
     type: "control",
-    at: context.effectiveEnd,
+    at,
     source: "revenant",
     sourceId: skill.id,
     actorType: "player",
@@ -443,15 +452,20 @@ export function castBeguilingHaze(
   const profile = MECHANICS.conduit.beguilingHaze;
   const state = conduitState.from(context);
   const followUp = Number(state.beguilingHazeCharges || 0) > 0;
+  const at = context.start + (followUp
+    ? profile.followUpImpactDelay
+    : profile.mainImpactDelay);
   if (followUp) {
     state.beguilingHazeCharges -= 1;
     emitDamage(context, skill, {
+      at,
       coefficient: profile.followUpCoefficient,
       name: "Beguiling Haze — Follow-Up",
     });
   } else {
     state.beguilingHazeMainReservations.push(context.reservationId);
     emitDamage(context, skill, {
+      at,
       coefficient: profile.mainCoefficient,
       name: "Beguiling Haze",
     });
@@ -540,19 +554,23 @@ export function castHexEaterVortex(
     state.selfConditions.splice(0, conditionsRemoved - configuredRemoved);
   }
   for (let index = 0; index < projectileCount; index += 1) {
+    const projectileAt =
+      context.start + profile.projectileDelays[index];
     emitDamage(context, skill, {
-      at,
+      at: projectileAt,
       coefficient: profile.projectileCoefficient,
       name: `Hex-Eater Vortex — Projectile ${index + 1}`,
       hitIndex: index + 1,
       totalHits: projectileCount,
+      extendsResolutionHorizon: true,
     });
     emitCondition(context, skill, {
-      at,
+      at: projectileAt,
       condition: "Torment",
       stacks: profile.tormentStacks,
       duration: profile.tormentDuration,
       name: `Hex-Eater Vortex — Projectile ${index + 1}`,
+      extendsResolutionHorizon: true,
     });
   }
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
@@ -596,7 +614,7 @@ export function castTwinMoonSweep(
   skill: RevenantSkill,
 ): void {
   const profile = MECHANICS.conduit.twinMoonSweep;
-  const at = context.effectiveEnd;
+  const at = context.start + profile.impactDelay;
   emitDamage(context, skill, {
     at,
     coefficient: profile.playerCoefficient,
@@ -635,26 +653,30 @@ export function castTwinMoonSweep(
   }
   if (hasLegend(context, LEGEND.ASSASSIN)) {
     emitCondition(context, skill, {
+      at,
       condition: "Immobilized",
       stacks: 1,
       duration: profile.assassinImmobilize,
     });
   }
   if (hasLegend(context, LEGEND.DEMON)) {
+    const shatterAt = context.start + profile.demonShatterDelay;
     for (let index = 0; index < profile.packets; index += 1) {
       emitDamage(context, skill, {
-        at,
+        at: shatterAt,
         coefficient: profile.demonShatterCoefficient,
         name: `Twin Moon Sweep — Shatter ${index + 1}`,
         hitIndex: index + 1,
         totalHits: profile.packets,
+        extendsResolutionHorizon: true,
       });
       emitCondition(context, skill, {
-        at,
+        at: shatterAt,
         condition: "Confusion",
         stacks: profile.demonConfusionStacks,
         duration: profile.demonConfusionDuration,
         name: `Twin Moon Sweep — Confusion ${index + 1}`,
+        extendsResolutionHorizon: true,
       });
     }
   }
@@ -715,10 +737,15 @@ export function castReleasePotential(
         profile.regenerationDuration,
       );
       break;
-    case ID.RELEASE_POTENTIAL_DERVISH:
-      emitDamage(context, skill, { coefficient: profile.coefficient });
+    case ID.RELEASE_POTENTIAL_DERVISH: {
+      const impactAt = context.start + Number(profile.impactDelay || 0);
+      emitDamage(context, skill, {
+        at: impactAt,
+        coefficient: profile.coefficient,
+      });
       if (hasLegend(context, LEGEND.DEMON) || allLegendEffects) {
         emitCondition(context, skill, {
+          at: impactAt,
           condition: "Bleeding",
           stacks: profile.demonBleedStacks,
           duration: profile.demonBleedDuration,
@@ -731,13 +758,27 @@ export function castReleasePotential(
           "might",
           profile.centaurMightDuration,
           profile.centaurMightStacks,
+          { at: impactAt },
         );
-        emitRevenantBoon(context, skill, "fury", profile.centaurFuryDuration);
+        emitRevenantBoon(
+          context,
+          skill,
+          "fury",
+          profile.centaurFuryDuration,
+          1,
+          { at: impactAt },
+        );
       }
       break;
+    }
     case ID.RELEASE_POTENTIAL_MESMER: {
-      emitDamage(context, skill, { coefficient: profile.coefficient });
+      const impactAt = context.start + Number(profile.impactDelay || 0);
+      emitDamage(context, skill, {
+        at: impactAt,
+        coefficient: profile.coefficient,
+      });
       emitCondition(context, skill, {
+        at: impactAt,
         condition: "Torment",
         stacks: profile.tormentStacks,
         duration:
@@ -752,40 +793,46 @@ export function castReleasePotential(
         professionCoreState(context).selfConditions.push({
           condition: "Torment",
           stacks: 1,
-          at: context.effectiveEnd,
-          expiresAt: context.effectiveEnd + selfDuration,
+          at: impactAt,
+          expiresAt: impactAt + selfDuration,
           sourceId: skill.id,
           skillName: skill.name,
         });
       }
-      emitControl(context, skill, "daze", profile.dazeDuration);
+      emitControl(context, skill, "daze", profile.dazeDuration, impactAt);
       break;
     }
     case ID.RELEASE_POTENTIAL_ASSASSIN:
       for (let index = 0; index < profile.hits; index += 1) {
         emitDamage(context, skill, {
-          at:
-            context.start +
-            ((context.effectiveEnd - context.start) * (index + 1)) /
-              profile.hits,
+          at: context.start + Number(
+            profile.hitDelays?.[index] ??
+              ((context.effectiveEnd - context.start) * (index + 1)) /
+                profile.hits,
+          ),
           coefficient: profile.coefficientPerHit,
           hitIndex: index + 1,
           totalHits: profile.hits,
+          extendsResolutionHorizon: true,
         });
       }
       emitCondition(context, skill, {
+        at: context.start + Number(profile.hitDelays?.at(-1) || 0),
         condition: "Crippled",
         stacks: 1,
         duration:
           profile.conditionBaseDuration *
           (1 + affinity * profile.conditionDurationPerAffinity),
+        extendsResolutionHorizon: true,
       });
       emitCondition(context, skill, {
+        at: context.start + Number(profile.hitDelays?.at(-1) || 0),
         condition: "Immobilized",
         stacks: 1,
         duration:
           profile.conditionBaseDuration *
           (1 + affinity * profile.conditionDurationPerAffinity),
+        extendsResolutionHorizon: true,
       });
       break;
     case ID.RELEASE_POTENTIAL_WARRIOR:

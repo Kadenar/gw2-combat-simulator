@@ -7,6 +7,7 @@ import { normalizeMesmerResult } from "../../tests/helpers/mesmer-simulation-ora
 import { simulateMesmer } from "../../tests/helpers/mesmer-simulation.js";
 
 const FIXTURE_DIRECTORY = path.resolve("tests", "fixtures", "mesmer-migration");
+const requestedFiles = new Set(process.argv.slice(2));
 
 const wait = (durationMs) => ({ type: "wait", durationMs });
 const combatStart = () => ({ type: "combat-start" });
@@ -143,6 +144,7 @@ const fixtures = [
 
 await mkdir(FIXTURE_DIRECTORY, { recursive: true });
 for (const fixture of fixtures) {
+  if (requestedFiles.size && !requestedFiles.has(fixture.file)) continue;
   const config = defaultSimulationConfig(fixture.config);
   const expected = normalizeMesmerResult(
     simulateMesmer(fixture.rotation, config),

@@ -26,6 +26,7 @@ import {
   procFilterKey,
   procFilterLabel,
   procStackLabel,
+  rotationSkillHighlightKey,
   shatterResourceSpends,
   targetHealthTimelineMarkers,
   timelineWeaponRows,
@@ -139,6 +140,7 @@ export function renderTimeline(app: ProfessionAppState): void {
   element.ondragleave = null;
   element.ondrop = null;
   if (!app.build.rotation.length) {
+    app.rotationSkillHighlightKey = null;
     element.classList.add("is-empty");
     element.innerHTML = `<div class="rot-empty">
             <strong>Build your rotation</strong>
@@ -262,6 +264,7 @@ export function renderTimeline(app: ProfessionAppState): void {
           rowItems.push(renderContinuumEnd(marker));
         }
         const item = timelineItem(entry);
+        const highlightKey = rotationSkillHighlightKey(entry);
         const explicitSkillId =
           item.skillId == null ? null : Number(item.skillId);
         const skill =
@@ -303,7 +306,10 @@ export function renderTimeline(app: ProfessionAppState): void {
           ? resourceSpend.resource.slice(0, -1)
           : resourceSpend?.resource;
         const resourceSpendTiming =
-          resourceSpend?.resource === "blades" ? "cast end" : "cast start";
+          resourceSpend?.resource === "blades" ||
+          resourceSpend?.resource === "notes"
+            ? "cast end"
+            : "cast start";
         const resourceLabel = resourceSpend
           ? `${resourceSpend.count} ${
               resourceSpend.count === 1
@@ -317,7 +323,9 @@ export function renderTimeline(app: ProfessionAppState): void {
                 ? "B"
                 : resourceSpend.resource === "clones"
                   ? "C"
-                  : "R"
+                  : resourceSpend.resource === "notes"
+                    ? "N"
+                    : "R"
             }`
           : "";
         const skillTooltip =
@@ -351,7 +359,7 @@ export function renderTimeline(app: ProfessionAppState): void {
             ? formatInterruptTimelineBadge(item.interruptMs, time)
             : "";
         rowItems.push(`<div class="rot-skill${item.offset != null ? " rot-concurrent" : ""}${invalid ? " rot-invalid" : ""}" draggable="true"
-                    data-idx="${index}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
+                    data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ""}
@@ -491,6 +499,35 @@ export function renderTimeline(app: ProfessionAppState): void {
         </details>`;
   } else if (procElement) procElement.innerHTML = "";
   element.innerHTML = timelineHtml;
+
+  const applySkillHighlight = (): void => {
+    const skills = [
+      ...element.querySelectorAll<HTMLElement>(
+        ".rot-skill[data-skill-highlight-key]",
+      ),
+    ];
+    const key = app.rotationSkillHighlightKey;
+    const active = !!key && skills.some(
+      (skill) => skill.dataset.skillHighlightKey === key,
+    );
+    if (!active) app.rotationSkillHighlightKey = null;
+    skills.forEach((skill) => {
+      const match = active && skill.dataset.skillHighlightKey === key;
+      skill.classList.toggle("skill-highlight", match);
+      skill.classList.toggle("skill-faded", active && !match);
+    });
+  };
+  element
+    .querySelectorAll<HTMLElement>(".rot-skill[data-skill-highlight-key]")
+    .forEach((skill) => {
+      skill.addEventListener("click", () => {
+        const key = skill.dataset.skillHighlightKey;
+        app.rotationSkillHighlightKey =
+          app.rotationSkillHighlightKey === key ? null : key;
+        applySkillHighlight();
+      });
+    });
+  applySkillHighlight();
 
   const procFilter =
     procElement?.querySelector<HTMLDetailsElement>(".proc-filter") || null;

@@ -196,20 +196,20 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
 test('measured phantasm endpoints match the supplied cast, damage, and spawn table', () => {
     const expected = {
         [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 2950, 3710],
-        [ID.PHANTASMAL_BERSERKER]: [560, 1480, 2560, 4290, 5370],
+        [ID.PHANTASMAL_BERSERKER]: [560, 1251, 2560, 3721, 5370],
         [ID.PHANTASMAL_DEFENDER]: [780, 3800, 4510, 8560, 9270],
-        [ID.PHANTASMAL_DISENCHANTER]: [760, 1150, 1840, 3240, 3930],
-        [ID.PHANTASMAL_DUELIST]: [560, 2400, 2880, 5530, 6010],
+        [ID.PHANTASMAL_DISENCHANTER]: [760, 1400, 1840, 3240, 3930],
+        [ID.PHANTASMAL_DUELIST]: [560, 2283, 2880, 5380, 6010],
         [ID.PHANTASMAL_MAGE]: [800, 2270, 2520, 5040, 5290],
         [ID.PHANTASMAL_SWORDSMAN]: [
             880,
             2279,
             3600,
-            6330,
+            5920,
             7450,
         ],
         [ID.PHANTASMAL_WARDEN]: [460, 5040, 7240, 12530, 14730],
-        [ID.PHANTASMAL_WARLOCK]: [780, 2960, 4240, 7450, 8730],
+        [ID.PHANTASMAL_WARLOCK]: [780, 2766, 4240, 7243, 8730],
     };
     const catalogCastTimeMs = {
         [ID.PHANTASMAL_DEFENDER]: 1155,
@@ -362,8 +362,14 @@ test('requested rifle, focus, and sword sequence flips are cataloged', () => {
 
 test('rotation actions use the requested icons without a duplicate fixed wait', () => {
     const dodge = PSEUDO_SKILLS.find(skill => skill.name === 'Dodge / Mirage Cloak');
+    const mirror = PSEUDO_SKILLS.find(skill =>
+        skill.name === 'Pick Up Mirage Mirror');
     const shift = PSEUDO_SKILLS.find(skill => skill.name === 'Continuum Shift');
     assert.equal(dodge.icon, 'https://wiki.guildwars2.com/images/b/b2/Dodge.png');
+    assert.equal(
+        mirror.icon,
+        'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
+    );
     assert.equal(shift.icon, 'https://wiki.guildwars2.com/images/d/d7/Continuum_Shift.png');
     assert.equal(PSEUDO_SKILLS.some(skill => skill.name === 'Wait 1 second'), false);
 });
@@ -393,7 +399,8 @@ test('Mirage ambush data uses current player and clone variants', () => {
     assert.deepEqual(AMBUSH_ATTACKS.Axe.player, {
         coefficient: 1,
         hits: 2,
-        conditions: [{ name: 'Torment', duration: 3.5, stacks: 3 }],
+        damageAtMs: 360,
+        conditions: [{ name: 'Torment', duration: 3.5, stacks: 6 }],
     });
     assert.equal(AMBUSH_ATTACKS.Dagger.name, 'Phantom Razor');
     assert.equal(AMBUSH_ATTACKS.Dagger.player.coefficient, 3);
@@ -422,7 +429,7 @@ test('supplied player and clone coefficient table is preserved', () => {
         ['Mirror Strikes', 1.1, 0.72],
         ['Lingering Thoughts', 1.2, 0.93],
         ['Axes of Symmetry', 1.75, 1.02],
-        ['Mind Stab', 1.8, 0.36],
+        ['Mind Stab', 1.8, 0.32],
         ['Phantasmal Berserker', 2.4, 0.56],
         ['Illusionary Wave', 0.3, 0.64],
         ['Unstable Bladestorm', 3, 0.44],
@@ -437,16 +444,22 @@ test('supplied player and clone coefficient table is preserved', () => {
     assert.equal(AMBUSH_ATTACKS.Axe.player.coefficient, 1);
     assert.equal(AMBUSH_ATTACKS.Axe.castTimeMs / 1500, 0.52);
     assert.deepEqual(
-        CLONE_ATTACKS.Axe.sequence.map(step => [
-            step.name,
-            step.coefficient,
-            step.interval,
-        ]),
-        [
-            ['Clone: Lacerating Chop', 0.55, 1.51],
-            ['Clone: Ethereal Chop', 0.55, 1.61],
-            ['Clone: Mirror Strikes', 1.1, 1.17],
-        ],
+        {
+            name: CLONE_ATTACKS.Axe.name,
+            coefficient: CLONE_ATTACKS.Axe.coefficient,
+            firstAttackDelay: CLONE_ATTACKS.Axe.firstAttackDelay,
+            castTimeMs: CLONE_ATTACKS.Axe.castTimeMs,
+            damageAtMs: CLONE_ATTACKS.Axe.damageAtMs,
+            interval: CLONE_ATTACKS.Axe.interval,
+        },
+        {
+            name: 'Clone: Lacerating Chop',
+            coefficient: 0.55,
+            firstAttackDelay: 1.2,
+            castTimeMs: 1520,
+            damageAtMs: 520,
+            interval: 1.56,
+        },
     );
     assert.equal(CLONE_ATTACKS.Dagger.coefficient, 0.5);
     assert.deepEqual(
@@ -468,6 +481,31 @@ test('Lingering Thoughts variants use the six-second count recharge', () => {
         assert.equal(skill.ammo, 2);
         assert.equal(skill.ammoRecharge, 6);
     }
+});
+
+test('Lingering Thoughts models the supplied clone, packets, conditions, and finishers', () => {
+    const skill = mesmerCatalog.skillsById.get(ID.LINGERING_THOUGHTS);
+    assert.equal(skill.cooldown, 0.25);
+    assert.equal(skill.ammo, 2);
+    assert.equal(skill.ammoRecharge, 6);
+    assert.equal(skill.finisherType, 'Whirl');
+    assert.equal(skill.finisherValue, 2);
+    assert.deepEqual(skill.resource, {
+        mode: 'add',
+        count: 1,
+        timingAnchor: 'castEnd',
+        atMs: 160,
+    });
+    assert.deepEqual(
+        profileEffects(skill).map(effect => effect.type === 'strike'
+            ? [effect.type, effect.coefficient, effect.hits]
+            : [effect.type, effect.condition, effect.stacks, effect.duration]),
+        [
+            ['strike', 1.2, 3],
+            ['condition', 'Torment', 3, 4],
+            ['condition', 'Crippled', 3, 11],
+        ],
+    );
 });
 
 test('supplied utility, spear, staff, and phantasm coefficients are preserved', () => {
@@ -757,7 +795,7 @@ test('legacy duplicate Mesmer names resolve explicitly by specialization', () =>
         ],
         ['Bladecall', 'Virtuoso', ID.BLADECALL],
         ['Bladecall', 'Troubadour', ID.TROUBADOUR_BLADECALL],
-        ['Lively Lute', 'Troubadour', ID.LIVELY_LUTE_ALTERNATE],
+        ['Lively Lute', 'Troubadour', ID.LIVELY_LUTE],
         ['Harmonious Harp', 'Troubadour', ID.HARMONIOUS_HARP_ALTERNATE],
     ];
     for (const [name, specialization, expectedId] of specializationCases) {

@@ -140,6 +140,7 @@ export interface SpecterState {
   shadowForcePoolCapacity: number;
   shadowShroudActive: boolean;
   shadowForceUpdatedAt: number;
+  darkSentryReadyAt: number;
 }
 
 export type ThiefArtifactKind = "offensive" | "defensive";
@@ -236,11 +237,15 @@ export interface ThiefSkill extends Skill {
   readonly backfire?: boolean;
   readonly dualWieldFollowup?: boolean;
   readonly dualWieldOpener?: boolean;
+  readonly enduranceGain?: number;
+  readonly finisherType?: string;
+  readonly finisherValue?: number;
   readonly ignoresStealthWeaponReplacement?: boolean;
   readonly initiativeCost?: number;
   readonly kneelSkill?: boolean;
   readonly malicious?: boolean;
   readonly movementSkill?: boolean;
+  readonly shadowstepSkill?: boolean;
   readonly preservesStealth?: boolean;
   readonly shadowShroudSkill?: boolean;
   readonly spearStealthAttack?: boolean;

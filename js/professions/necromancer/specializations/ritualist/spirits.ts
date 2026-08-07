@@ -41,6 +41,7 @@ interface SpiritDefinition {
   readonly summonWeaponStrength?: number;
   readonly summonDelay?: number;
   readonly summonInterval?: number;
+  readonly summonHitDelays?: readonly number[];
   readonly lingeringCoefficient?: number;
   readonly lingeringHits?: number;
   readonly lingeringInterval?: number;
@@ -253,20 +254,28 @@ function emitAnguishInitial(
     duration: 10,
     stacks: 8,
   });
-  const impactAt = at + Number(spirit.summonDelay || 0);
-  emitPainfulBond(context, skill, impactAt);
-  emitDamage(context, skill, spirit.summonCoefficient, {
-    at: impactAt,
-    hits: Number(spirit.summonHits || 1),
-    interval: Number(spirit.summonInterval || 0),
-    name: skill.name,
-    source: "Spirit",
-    actorType: "player",
-    metadata: spiritMetadata("anguish", "initial", {
-      anguishConditionalDamage: true,
-      weaponStrength: spirit.summonWeaponStrength,
-    }),
-  });
+  const hitCount = Number(spirit.summonHits || 1);
+  const hitDelays = spirit.summonHitDelays || Array.from(
+    { length: hitCount },
+    (_, index) => Number(spirit.summonDelay || 0)
+      + index * Number(spirit.summonInterval || 0),
+  );
+  emitPainfulBond(context, skill, at + Number(hitDelays[0] || 0));
+  for (let index = 0; index < hitDelays.length; index += 1) {
+    emitDamage(context, skill, spirit.summonCoefficient / hitCount, {
+      at: at + Number(hitDelays[index]),
+      name: skill.name,
+      source: "Spirit",
+      actorType: "player",
+      metadata: spiritMetadata("anguish", "initial", {
+        anguishConditionalDamage: true,
+        weaponStrength: spirit.summonWeaponStrength,
+        hitIndex: index + 1,
+        totalHits: hitCount,
+        extendsResolutionHorizon: true,
+      }),
+    });
+  }
 }
 
 function emitWanderlustInitial(
@@ -287,7 +296,9 @@ function emitWanderlustInitial(
     name: "Spirit of Wanderlust — Initial Attack",
     source: "Spirit",
     actorType: "player",
-    metadata: spiritMetadata("wanderlust", "initial"),
+    metadata: spiritMetadata("wanderlust", "initial", {
+      extendsResolutionHorizon: true,
+    }),
   });
   emitCondition(context, skill, "Chilled", 1, 2, { at: fieldAt });
   context.emit({
@@ -419,11 +430,14 @@ function ritualist(
   if (skill.id === ID.ESSENCE_BLAST) {
     const spirits = Object.keys(state.activeSpirits).length;
     const essence = MECHANICS.essenceBlast;
+    const impactAt = context.start
+      + (context.fullEnd - context.start) * (14 / 15);
     emitDamage(
       context,
       skill,
       essence.coefficient,
       {
+        at: impactAt,
         skillWeapon: activePrimaryWeapon(context),
         metadata: {
           activeSpirits: spirits,

@@ -5,14 +5,26 @@
       {
         "label": "Power",
         "build": "Builds/mesmer/b-power-chronomancer.json",
-        "rotation": "Rotations/mesmer/r-power-chronomancer-bench.json",
-        "benchmarkDps": 43936
+        "rotation": "Rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
+        "benchmarkDps": 44450
       },
       {
         "label": "Condition",
         "build": "Builds/mesmer/b-condi-chronomancer.json",
         "rotation": "Rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 45987
+        "benchmarkDps": 46753
+      }
+    ]
+  },
+  {
+    "section": "Mirage",
+    "presets": [
+      {
+        "label": "Condition - Dune Cloak",
+        "build": "Builds/mesmer/b-condi-mirage-dune-cloak.json",
+        "rotation": "Rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
+        "benchmarkDps": 38842,
+        "referenceDps": 40936
       }
     ]
   },
@@ -23,7 +35,19 @@
         "label": "Condition",
         "build": "Builds/mesmer/b-condi-virtuoso.json",
         "rotation": "Rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 39902
+        "benchmarkDps": 39903
+      }
+    ]
+  },
+  {
+    "section": "Troubadour",
+    "presets": [
+      {
+        "label": "Power (Dagger-Sword / Spear)",
+        "build": "Builds/mesmer/b-power-troubadour.json",
+        "rotation": "Rotations/mesmer/r-power-troubadour-bench.json",
+        "benchmarkDps": 40647,
+        "referenceDps": 42509
       }
     ]
   }

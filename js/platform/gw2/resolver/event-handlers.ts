@@ -7,6 +7,7 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverRuntime,
 } from "../types.js";
+import { gw2BoonApplicationRecipients } from "../allied-players.js";
 
 interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: {
@@ -28,6 +29,14 @@ function handleBuff(
   event: Gw2ResolverEvent,
   reactions: Gw2ResolverReactionRegistry,
 ): void {
+  const recipients = gw2BoonApplicationRecipients(ctx.config, event);
+  Object.assign(event, {
+    affectsSelf: recipients.affectsSelf,
+    affectsSummons: recipients.affectsSummons,
+    alliedPlayerCount: recipients.alliedPlayerCount,
+    companionIds: recipients.companionIds,
+    recipientCount: recipients.recipientCount,
+  });
   const kind = String(event.kind || "").toLowerCase();
   const applications = ctx.boons.get(kind) || [];
   applications.push({
@@ -35,13 +44,19 @@ function handleBuff(
     expiresAt: event.at + Math.max(0, Number(event.duration || 0)),
     stacks: Math.max(1, Number(event.stacks || 1)),
     source: event.source,
-    affectsSummons: event.affectsSummons === true,
+    affectsSelf: recipients.affectsSelf,
+    affectsSummons: recipients.affectsSummons,
+    alliedPlayerCount: recipients.alliedPlayerCount,
+    companionIds: recipients.companionIds,
+    recipientCount: recipients.recipientCount,
   });
   ctx.boons.set(kind, applications);
   // Keep expired applications for historical timestamp queries, but report
   // only stacks active immediately after this application.
   const activeStacks = applications
-    .filter((application) => application.expiresAt > event.at)
+    .filter((application) =>
+      application.affectsSelf !== false && application.expiresAt > event.at
+    )
     .reduce((sum, application) => sum + application.stacks, 0);
   reactions.dispatch("buff.applied", ctx, event, {
     activeStacks,
