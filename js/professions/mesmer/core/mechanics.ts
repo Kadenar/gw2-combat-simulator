@@ -96,7 +96,11 @@ export const MESMER_CORE_CLONE_ATTACKS: Readonly<
     coefficient: 0.8,
     hits: 3,
     firstAttackDelay: 1.14,
-    hitOffsets: [0.518, 0.760, 1.000],
+    ticks: [
+      { atMs: 518, coefficient: 0.8 / 3 },
+      { atMs: 760, coefficient: 0.8 / 3 },
+      { atMs: 1000, coefficient: 0.8 / 3 },
+    ],
     interval: 3.44,
     weaponStrength: 26.5,
   },
@@ -321,7 +325,7 @@ export const MESMER_CORE_TRAIT_DAMAGE: Readonly<
   "Lesser Chaos Storm": {
     coefficient: 1.98,
     hits: 6,
-    interval: 1,
+    intervalMs: 1000,
     cooldown: 28,
   },
 });

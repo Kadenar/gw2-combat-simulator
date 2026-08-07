@@ -24,6 +24,13 @@ const SUMMON_SOURCES = new Set([
 ]);
 
 const EFFECT_SOURCES = new Set(["Food", "Relic", "Sigil", "Trait"]);
+const NON_WEAPON_EFFECT_SOURCES = new Set([
+  "equipment",
+  "food",
+  "relic",
+  "sigil",
+  "trait",
+]);
 
 /**
  * Classifies legacy source labels while new events migrate to actorType.
@@ -71,4 +78,18 @@ export function isGw2PlayerActorEvent(
   // UNKNOWN is conservative: unclassified effects must not trigger player-only
   // sigils, food, or profession hit rules.
   return gw2EventActorType(event) === GW2_EVENT_ACTOR_TYPES.PLAYER;
+}
+
+/**
+ * Identifies effect-owned damage that must not inherit a weapon profile from
+ * the cast which triggered it. Source matching preserves compatibility for
+ * older events without canonical actor ownership.
+ */
+export function isGw2NonWeaponEffectEvent(
+  event: Partial<SimulationEventInput> | null | undefined,
+): boolean {
+  return (
+    event?.actorType === GW2_EVENT_ACTOR_TYPES.EFFECT ||
+    NON_WEAPON_EFFECT_SOURCES.has(String(event?.source || "").toLowerCase())
+  );
 }

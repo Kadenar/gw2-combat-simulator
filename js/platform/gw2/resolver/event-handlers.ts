@@ -10,8 +10,8 @@ import {
   handleRelicsAfterHit,
 } from "../relic-rules.js";
 import { isGw2PlayerActorEvent } from "../event-ownership.js";
+import { skillForEvent } from "./event-skill.js";
 
-import type { Skill } from "../../engine/types.js";
 import type {
   Gw2ApplyCondition,
   Gw2ConditionResolution,
@@ -25,14 +25,14 @@ import type {
 } from "../types.js";
 
 interface CreateGw2ResolverEventHandlersOptions {
-  readonly hitResolution?: {
-    readonly buildContext?: Gw2HitResolution["buildHitResolutionContext"];
-    readonly apply?: Gw2HitResolution["applyResolvedHit"];
+  readonly hitResolution: {
+    readonly buildContext: Gw2HitResolution["buildHitResolutionContext"];
+    readonly apply: Gw2HitResolution["applyResolvedHit"];
   };
-  readonly conditions?: {
-    readonly activeStackCount?: Gw2ConditionResolution["activeConditionStackCount"];
-    readonly apply?: Gw2ConditionResolution["applyCondition"];
-    readonly tick?: Gw2ConditionResolution["handleConditionTick"];
+  readonly conditions: {
+    readonly activeStackCount: Gw2ConditionResolution["activeConditionStackCount"];
+    readonly apply: Gw2ConditionResolution["applyCondition"];
+    readonly tick: Gw2ConditionResolution["handleConditionTick"];
   };
   readonly eventReactions?: Gw2ResolverReactions;
 }
@@ -77,28 +77,6 @@ function handleBuff(
     activeStacks,
     applications,
   });
-}
-
-function requireFunction(
-  value: unknown,
-  name: string,
-): (...args: never[]) => unknown {
-  if (typeof value !== "function") {
-    throw new TypeError(`GW2 resolver handlers require ${name}.`);
-  }
-  return value as (...args: never[]) => unknown;
-}
-
-function triggeringSkill(
-  ctx: Gw2ResolverRuntime,
-  event: Gw2ResolverEvent,
-): Skill | undefined {
-  // Scheduled events normally carry an id; name lookup supports older streams
-  // and generated events whose source id is not a catalog skill id.
-  return (
-    ctx.helpers.skillsById?.get(event.skillId ?? event.sourceId) ??
-    ctx.helpers.skillsByName?.get(event.skillName || "")
-  );
 }
 
 function handleCriticalFood(
@@ -176,27 +154,16 @@ export function createGw2ResolverEventHandlers({
   hitResolution,
   conditions,
   eventReactions = {},
-}: CreateGw2ResolverEventHandlersOptions = {}): Gw2ResolverEventHandlers {
-  const buildHitResolutionContext = requireFunction(
-    hitResolution?.buildContext,
-    "hitResolution.buildContext",
-  ) as Gw2HitResolution["buildHitResolutionContext"];
-  const applyResolvedHit = requireFunction(
-    hitResolution?.apply,
-    "hitResolution.apply",
-  ) as Gw2HitResolution["applyResolvedHit"];
-  const activeConditionStackCount = requireFunction(
-    conditions?.activeStackCount,
-    "conditions.activeStackCount",
-  ) as Gw2ConditionResolution["activeConditionStackCount"];
-  const applyCondition = requireFunction(
-    conditions?.apply,
-    "conditions.apply",
-  ) as Gw2ConditionResolution["applyCondition"];
-  const handleConditionTick = requireFunction(
-    conditions?.tick,
-    "conditions.tick",
-  ) as Gw2ConditionResolution["handleConditionTick"];
+}: CreateGw2ResolverEventHandlersOptions): Gw2ResolverEventHandlers {
+  const {
+    buildContext: buildHitResolutionContext,
+    apply: applyResolvedHit,
+  } = hitResolution;
+  const {
+    activeStackCount: activeConditionStackCount,
+    apply: applyCondition,
+    tick: handleConditionTick,
+  } = conditions;
   const applyRelicCondition: Gw2ApplyCondition = (context, event) =>
     applyCondition(context as Gw2ResolverRuntime, event);
 
@@ -228,7 +195,7 @@ export function createGw2ResolverEventHandlers({
         applyCondition,
       });
       handleCriticalFood(ctx, event, hitContext, eventReactions);
-      handleRelicsAfterHit(ctx, event, triggeringSkill(ctx, event));
+      handleRelicsAfterHit(ctx, event, skillForEvent(ctx.helpers, event));
     },
 
     condition(ctx, event) {

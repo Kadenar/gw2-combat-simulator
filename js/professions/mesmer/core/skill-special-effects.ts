@@ -139,24 +139,24 @@ export function createSkillSpecialEffectController({
       professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
     if (!isInternalCooldownReady(at, readyAt)) return;
     const hits = Math.max(1, Math.trunc(Number(storm.hits || 1)));
-    const interval = Math.max(0, Number(storm.interval || 0));
-    for (let index = 0; index < hits; index += 1) {
-      addDamage(
-        {
-          id: "Lesser Chaos Storm",
-          name: "Lesser Chaos Storm",
-          weapon: "Utility",
-          blade: false,
-        },
-        at + index * interval,
-        {
-          coefficient: Number(storm.coefficient || 0) / hits,
-          hits: 1,
-          source: "Player",
-          weapon: "utility",
-        },
-      );
-    }
+    addDamage(
+      {
+        id: "Lesser Chaos Storm",
+        name: "Lesser Chaos Storm",
+        weapon: "Utility",
+        blade: false,
+      },
+      at,
+      {
+        coefficient: Number(storm.coefficient || 0),
+        hits,
+        intervalMs: Math.max(0, Number(storm.intervalMs || 0)),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        source: "Player",
+        weapon: "utility",
+      },
+    );
     addTraitProc("Method of Madness", at, skill.name);
     professionCoreState(state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] =
       at + Number(storm.cooldown || 0);

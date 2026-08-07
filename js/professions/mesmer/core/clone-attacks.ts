@@ -74,9 +74,16 @@ export function createCloneAttackScheduler({
       cloneSkill,
       at,
       {
-        coefficient: step.coefficient,
-        hits: step.hits,
-        hitOffsets: step.hitOffsets,
+        ...(step.ticks?.length
+          ? {
+              ticks: step.ticks,
+              timingAnchor: "castStart" as const,
+              timingScale: "fixed" as const,
+            }
+          : {
+              coefficient: step.coefficient,
+              hits: step.hits,
+            }),
         source: "Clone",
         weaponStrength: attack.weaponStrength,
       },

@@ -435,7 +435,7 @@
           "at": 2,
           "blade": false,
           "cloneId": 1,
-          "coefficient": 0.3,
+          "coefficient": 0.5,
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Ether Bolt",
@@ -473,7 +473,7 @@
           "at": 2.0001,
           "blade": false,
           "cloneId": 2,
-          "coefficient": 0.3,
+          "coefficient": 0.5,
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Ether Bolt",
@@ -511,7 +511,7 @@
           "at": 2.0002,
           "blade": false,
           "cloneId": 3,
-          "coefficient": 0.3,
+          "coefficient": 0.5,
           "hitIndex": 1,
           "hits": 1,
           "name": "Clone: Ether Bolt",
@@ -630,7 +630,7 @@
           "at": 2,
           "blade": false,
           "cloneId": 1,
-          "coefficient": 0.3,
+          "coefficient": 0.5,
           "criticalChance": 0.6214285714285714,
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
@@ -684,7 +684,7 @@
           "at": 2.0001,
           "blade": false,
           "cloneId": 2,
-          "coefficient": 0.3,
+          "coefficient": 0.5,
           "criticalChance": 0.6214285714285714,
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
@@ -738,7 +738,7 @@
           "at": 2.0002,
           "blade": false,
           "cloneId": 3,
-          "coefficient": 0.3,
+          "coefficient": 0.5,
           "criticalChance": 0.6214285714285714,
           "criticalDamage": 2.4333333333333336,
           "hitIndex": 1,
@@ -822,7 +822,7 @@
     },
     "damage": {
       "conditionDamage": 90.10041875000002,
-      "dps": 13035.321362551575,
+      "dps": 13258.100943386602,
       "events": [
         {
           "created": [
@@ -869,7 +869,7 @@
           ]
         },
         {
-          "damage": 27.84744760437868
+          "damage": 46.41241267396447
         },
         {
           "damage": 15.225000000000014,
@@ -880,7 +880,7 @@
           ]
         },
         {
-          "damage": 27.84744760437868
+          "damage": 46.41241267396447
         },
         {
           "damage": 15.209774999999981,
@@ -891,7 +891,7 @@
           ]
         },
         {
-          "damage": 27.84744760437868
+          "damage": 46.41241267396447
         },
         {
           "damage": 15.194550000000017,
@@ -908,8 +908,8 @@
         {},
         {}
       ],
-      "strikeDamage": 3168.729921887894,
-      "totalDamage": 3258.8303406378936
+      "strikeDamage": 3224.4248170966503,
+      "totalDamage": 3314.5252358466505
     }
   }
 }

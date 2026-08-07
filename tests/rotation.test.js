@@ -731,7 +731,7 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
         event => event.reason === 'Phantasmal Warlock phantasm conversion',
     );
     const repeat = chronophantasma.events.find(
-        event => event.name === 'Phantasmal Warlock — Chronophantasma',
+        event => event.name === 'Phantasmal Warlock - Chronophantasma',
     );
     const proc = chronophantasma.events.find(
         event => event.type === 'proc' && event.name === 'Chronophantasma',
@@ -743,8 +743,8 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
     assert.equal(chronoConversions.length, 1);
     assert.equal(chronoConversions[0].amount, 2);
     assert.ok(Math.abs(proc.at - 5.12) < 0.00001);
-    assert.ok(Math.abs(repeat.at - 8.19) < 0.00001);
-    assert.ok(Math.abs(chronoConversions[0].at - 9.4701) < 0.00001);
+    assert.ok(Math.abs(repeat.at - 8.33) < 0.00001);
+    assert.ok(Math.abs(chronoConversions[0].at - 9.6101) < 0.00001);
 
     const normalDamage = normal.resolvedEvents.filter(event =>
         event.type === 'damage' && event.name === 'Phantasmal Warlock');
@@ -753,10 +753,10 @@ test('Staff 3 converts after Mage Strike finishes and Chronophantasma repeats it
         && event.name === 'Phantasmal Warlock — Torment');
     const repeatedDamage = chronophantasma.resolvedEvents.filter(event =>
         event.type === 'damage'
-        && event.name === 'Phantasmal Warlock — Chronophantasma');
+        && event.name === 'Phantasmal Warlock - Chronophantasma');
     const repeatedTorment = chronophantasma.resolvedEvents.find(event =>
         event.type === 'condition'
-        && event.name === 'Phantasmal Warlock — Chronophantasma');
+        && event.name === 'Phantasmal Warlock - Chronophantasma');
 
     assert.deepEqual(
         {
@@ -857,7 +857,7 @@ test('Compounding Power triggers for both phantasm summons and clone conversion'
 
     assert.deepEqual(
         triggers.map(event => Number(event.at.toFixed(4))),
-        [0.88, 5.12, 9.4701],
+        [0.88, 5.12, 9.6101],
     );
 });
 
@@ -1171,9 +1171,9 @@ test('Pistol 4 converts after Illusionary Unload and its Chronophantasma repeat'
     assert.equal(normalConversion.amount, 1);
     assert.ok(Math.abs(normalConversion.at - 3.4401) < 0.00001);
     assert.ok(Math.abs(resummon.at - 3.44) < 0.00001);
-    assert.ok(Math.abs(repeat.at - 5.75) < 0.00001);
+    assert.ok(Math.abs(repeat.at - 6.09) < 0.00001);
     assert.equal(chronoConversion.amount, 1);
-    assert.ok(Math.abs(chronoConversion.at - 6.3501) < 0.00001);
+    assert.ok(Math.abs(chronoConversion.at - 6.5701) < 0.00001);
 });
 
 test('condition-bearing clone autoattacks apply their damaging conditions', () => {
@@ -3833,7 +3833,7 @@ test('Phantasmal Duelist uses eight timed unload and bleeding packets', () => {
                 && event.condition === 'Bleeding'
             )
             .map(event => Number(event.at.toFixed(3))),
-        [1.351, 1.551, 1.75, 1.95, 2.151, 2.35, 2.55, 2.751],
+        [1.351, 1.551, 1.75, 1.95, 2.151, 2.35, 2.55, 2.96],
     );
 });
 

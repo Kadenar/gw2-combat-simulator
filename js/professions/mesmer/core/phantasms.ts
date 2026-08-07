@@ -2,13 +2,13 @@ import {
   MESMER_SKILL_IDS as ID,
   MESMER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
-import type { Gw2DamageGroup } from "../../../platform/gw2/types.js";
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerConditionEffect,
+  MesmerDamageGroup,
   MesmerPhantasmAttackTiming,
   MesmerQueueResources,
   MesmerResourceDefinition,
@@ -35,7 +35,7 @@ export interface MesmerPhantasmExecution {
 }
 
 export interface MesmerPhantasmStrikeResult {
-  readonly damageGroup: Gw2DamageGroup;
+  readonly damageGroup: MesmerDamageGroup;
   readonly initialHitTimes: readonly number[];
 }
 
@@ -50,7 +50,7 @@ export interface MesmerPhantasmEffectController {
   scheduleStrike(
     execution: MesmerPhantasmExecution,
     group: MesmerStrikeEffect,
-    selectedGroup: Gw2DamageGroup,
+    selectedGroup: MesmerDamageGroup,
     at: number,
     castStart: number,
   ): MesmerPhantasmStrikeResult;
@@ -207,7 +207,7 @@ export function createPhantasmEffectController({
       addTraitProc(
         "Compounding Power",
         execution.spawnAt,
-        `${skill.name} â€” Chronophantasma`,
+        `${skill.name} - Chronophantasma`,
         `${count} phantasm${count === 1 ? "" : "s"}`,
       );
     }
@@ -229,7 +229,7 @@ export function createPhantasmEffectController({
       addPhantasmalBlade(
         execution,
         execution.repeatDamageAt,
-        `${skill.name} â€” Chronophantasma`,
+        `${skill.name} - Chronophantasma`,
       );
     }
   };
@@ -237,24 +237,32 @@ export function createPhantasmEffectController({
   const scheduleStrike = (
     execution: MesmerPhantasmExecution,
     group: MesmerStrikeEffect,
-    selectedGroup: Gw2DamageGroup,
+    selectedGroup: MesmerDamageGroup,
     at: number,
     castStart: number,
   ): MesmerPhantasmStrikeResult => {
-    const sourcedGroup: Gw2DamageGroup = {
+    const sourcedGroup: MesmerDamageGroup = {
       ...selectedGroup,
       source: "Phantasm",
     };
-    const damageGroup: Gw2DamageGroup = execution.count > 1
-      ? {
-          ...sourcedGroup,
-          coefficient:
-            Number(sourcedGroup.coefficient || 0)
-            * execution.count
-            * execution.damageMultiplier,
-          hits: Number(sourcedGroup.hits || 1) * execution.count,
-        }
-      : sourcedGroup;
+    const baseTicks = Array.isArray(sourcedGroup.ticks)
+      ? sourcedGroup.ticks
+      : null;
+    const baseHits = baseTicks?.length
+      || Math.max(1, Math.trunc(Number(sourcedGroup.hits || 1)));
+    const baseCoefficient = baseTicks
+      ? baseTicks.reduce(
+          (total, tick) => total + Number(tick.coefficient),
+          0,
+        )
+      : Number(sourcedGroup.coefficient || 0);
+    const damageGroup: MesmerDamageGroup = {
+      ...sourcedGroup,
+      ticks: undefined,
+      coefficient:
+        baseCoefficient * execution.count * execution.damageMultiplier,
+      hits: baseHits * execution.count,
+    };
     const groupName = group.name || "";
     const measuredTicks =
       Array.isArray(execution.timing?.damageTicks?.[groupName])
@@ -262,48 +270,63 @@ export function createPhantasmEffectController({
         : null;
     const fixedTicks = group.ticks?.length ? group.ticks : null;
     const packets = measuredTicks?.length ? measuredTicks : fixedTicks;
-    const interval = Number(group.intervalMs || 0) / 1000;
-    const initialHitTimes: number[] = [];
+    const interval = Number(group.intervalMs || 0);
+    let initialHitTimes: readonly number[];
     if (packets?.length) {
       const hits = Math.max(
         1,
-        Math.trunc(Number(damageGroup.hits || fixedTicks?.length || 1)),
+        Math.trunc(Number(damageGroup.hits || 1)),
       );
-      const timingAnchorAt = group.timingAnchor === "castStart" ? castStart : at;
-      for (let index = 0; index < hits; index += 1) {
+      const timingAnchorAt = measuredTicks?.length
+        ? castStart
+        : group.timingAnchor === "castStart" ? castStart : at;
+      const ticks = Array.from({ length: hits }, (_, index) => {
         const packet = packets[index % packets.length];
         const packetAt = measuredTicks?.length
           ? execution.endpoint(packet.atMs)
           : timingAnchorAt + Number(packet.atMs) / 1000;
-        initialHitTimes.push(packetAt);
-        addDamage(execution.skill, packetAt, {
-          ...damageGroup,
+        return {
+          atMs: (packetAt - timingAnchorAt) * 1000,
           coefficient: fixedTicks?.length
-            ? Number(packet.coefficient)
+            ? Number(packet.coefficient) * execution.damageMultiplier
             : Number(damageGroup.coefficient || 0) / hits,
-          hits: 1,
-        });
-      }
+        };
+      });
+      initialHitTimes = addDamage(execution.skill, timingAnchorAt, {
+        ...damageGroup,
+        coefficient: undefined,
+        hits: undefined,
+        atMs: undefined,
+        intervalMs: undefined,
+        ticks,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      }).map((event) => event.at);
     } else if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
-      const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || 1)));
       const timingAnchorAt = group.timingAnchor === "castStart" ? castStart : at;
-      for (let index = 0; index < hits; index += 1) {
-        const packetAt =
-          timingAnchorAt + Number(group.atMs || 0) / 1000 + index * interval;
-        initialHitTimes.push(packetAt);
-        addDamage(execution.skill, packetAt, {
-          ...damageGroup,
-          coefficient: Number(damageGroup.coefficient || 0) / hits,
-          hits: 1,
-        });
-      }
+      initialHitTimes = addDamage(
+        execution.skill,
+        timingAnchorAt,
+        damageGroup,
+      ).map((event) => event.at);
     } else {
-      initialHitTimes.push(execution.damageAt);
-      addDamage(execution.skill, execution.damageAt, damageGroup);
+      initialHitTimes = addDamage(execution.skill, execution.damageAt, {
+        ...damageGroup,
+        atMs: undefined,
+        intervalMs: undefined,
+        timingAnchor: undefined,
+        timingScale: undefined,
+      }).map((event) => event.at);
     }
     if (execution.hasChronophantasma) {
-      addDamage(execution.skill, execution.repeatDamageAt, damageGroup, {
-        name: `${execution.skill.name} â€” Chronophantasma`,
+      addDamage(execution.skill, execution.repeatDamageAt, {
+        ...damageGroup,
+        atMs: undefined,
+        intervalMs: undefined,
+        timingAnchor: undefined,
+        timingScale: undefined,
+      }, {
+        name: `${execution.skill.name} - Chronophantasma`,
         multiplier: 1.05,
       });
       if (!execution.chronophantasmaProc) {
@@ -340,14 +363,22 @@ export function createPhantasmEffectController({
       if (conditionTicks && conditionTicks.length > 0) {
         const packetStacks =
           Number(scaledCondition.stacks || 1) / conditionTicks.length;
-        for (const tick of conditionTicks) {
-          addCondition(
-            execution.skill.name,
-            execution.endpoint(tick.atMs),
-            { ...scaledCondition, stacks: packetStacks },
-            "Phantasm",
-          );
-        }
+        const applicationTimes = conditionTicks.map((tick) =>
+          execution.endpoint(tick.atMs)
+        );
+        const conditionOrigin = Math.min(...applicationTimes);
+        addCondition(execution.skill.name, conditionOrigin, {
+          ...scaledCondition,
+          stacks: undefined,
+          ticks: applicationTimes.map((applicationAt) => ({
+            atMs: (applicationAt - conditionOrigin) * 1000,
+            condition: scaledCondition.name,
+            duration: scaledCondition.duration,
+            stacks: packetStacks,
+          })),
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+        }, "Phantasm");
       } else {
         addCondition(
           execution.skill.name,
@@ -371,7 +402,7 @@ export function createPhantasmEffectController({
         execution.repeatDamageAt,
         scaledCondition,
         "Phantasm",
-        `${execution.skill.name} â€” Chronophantasma`,
+        `${execution.skill.name} - Chronophantasma`,
       );
     }
   };

@@ -5,6 +5,7 @@ export * from "./cooldown-controller.js";
 export * from "./event-queue.js";
 export * from "./events.js";
 export * from "./effect-factories.js";
+export * from "./effect-materializer.js";
 export * from "./handler-registry.js";
 export * from "./profession.js";
 export * from "./prepare-config.js";

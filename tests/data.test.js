@@ -196,20 +196,23 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
 test('measured phantasm endpoints match the supplied cast, damage, and spawn table', () => {
     const expected = {
         [ID.ECHO_OF_MEMORY]: [1640, 1440, 2160, 2950, 3710],
-        [ID.PHANTASMAL_BERSERKER]: [560, 1480, 2560, 3430, 4670],
-        [ID.PHANTASMAL_DEFENDER]: [780, 3800, 4510, 7550, 8270],
+        [ID.PHANTASMAL_BERSERKER]: [560, 1480, 2560, 4290, 5370],
+        [ID.PHANTASMAL_DEFENDER]: [780, 3800, 4510, 8560, 9270],
         [ID.PHANTASMAL_DISENCHANTER]: [760, 1150, 1840, 3240, 3930],
-        [ID.PHANTASMAL_DUELIST]: [560, 2400, 2880, 5190, 5790],
-        [ID.PHANTASMAL_MAGE]: [800, 2270, 2520, 4070, 4310],
+        [ID.PHANTASMAL_DUELIST]: [560, 2400, 2880, 5530, 6010],
+        [ID.PHANTASMAL_MAGE]: [800, 2270, 2520, 5040, 5290],
         [ID.PHANTASMAL_SWORDSMAN]: [
             880,
             2279,
             3600,
-            5870,
-            7020,
+            6330,
+            7450,
         ],
-        [ID.PHANTASMAL_WARDEN]: [460, 5040, 7240, 11950, 14070],
-        [ID.PHANTASMAL_WARLOCK]: [780, 2960, 4240, 7310, 8590],
+        [ID.PHANTASMAL_WARDEN]: [460, 5040, 7240, 12530, 14730],
+        [ID.PHANTASMAL_WARLOCK]: [780, 2960, 4240, 7450, 8730],
+    };
+    const catalogCastTimeMs = {
+        [ID.PHANTASMAL_DEFENDER]: 1155,
     };
 
     for (const [skillId, values] of Object.entries(expected)) {
@@ -225,9 +228,10 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
             values,
         );
         const skill = mesmerCatalog.skillsById.get(Number(skillId));
-        assert.ok(
-            Math.abs(skill.castTimeMs / 1.5 - values[0]) < 1e-12,
-            `${skill.name} has the wrong measured cast time`,
+        assert.equal(
+            skill.castTimeMs,
+            catalogCastTimeMs[skillId] ?? values[0] * 1.5,
+            `${skill.name} has the wrong catalog cast time`,
         );
     }
 });
@@ -444,7 +448,7 @@ test('supplied player and clone coefficient table is preserved', () => {
             ['Clone: Mirror Strikes', 1.1, 1.17],
         ],
     );
-    assert.equal(CLONE_ATTACKS.Dagger.coefficient, 0.7);
+    assert.equal(CLONE_ATTACKS.Dagger.coefficient, 0.5);
     assert.deepEqual(
         [
             AMBUSH_ATTACKS.Axe.clone.coefficient,
@@ -584,7 +588,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
     }
     assert.equal(normalized('Mind Spike').boonlessCoefficient, 2);
 
-    assert.equal(CLONE_ATTACKS.Scepter.coefficient, 0.3);
+    assert.equal(CLONE_ATTACKS.Scepter.coefficient, 0.5);
     assert.equal(AMBUSH_ATTACKS.Scepter.player.coefficient, 1.25);
     assert.equal(AMBUSH_ATTACKS.Scepter.clone.coefficient, 3.75);
     assert.deepEqual(

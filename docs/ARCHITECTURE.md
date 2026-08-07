@@ -552,9 +552,9 @@ documentation must not maintain a separate profession count.
 5. Run `npm test` and `npm run check`.
 
 No engine, GW2, or shared UI branch should be needed. New professions should
-use `platform/engine` scheduler state/cooldowns and the `platform/gw2`
-scheduler event factory and resolver. If a new rule is truly shared by
-multiple professions, add it to `platform/gw2`; otherwise keep it in the
+use the `platform/engine` scheduler, canonical effects, shared effect
+materializer, and the `platform/gw2` resolver. If a new rule is truly shared
+by multiple professions, add it to `platform/gw2`; otherwise keep it in the
 profession module as a scheduler mechanic or resolver reaction.
 
 Elementalist currently remains `standalone`. Its eventual shared-engine

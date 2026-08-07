@@ -286,6 +286,8 @@ critical traits, and Bloodsong.
 - [effect-factories.js](js/platform/engine/effect-factories.js) — shared
   declarative strike, condition, timeline, control, and custom-effect
   constructors.
+- [effect-materializer.js](js/platform/engine/effect-materializer.js) — shared
+  expansion of canonical effects into damage, condition, and status events.
 - [skill-factories.js](js/platform/engine/skill-factories.js) — shared
   canonical skill-mechanic constructors.
 - [autoattack-chains.js](js/platform/engine/autoattack-chains.js) — shared
@@ -294,7 +296,6 @@ critical traits, and Bloodsong.
 - [cooldown-controller.js](js/platform/engine/cooldown-controller.js) — shared cooldown and ammo state machine.
 - [GW2 scheduler policy](js/platform/gw2/scheduler/policy.js) — Quickness,
   Alacrity, and starting-weapon-set policy injected into the neutral scheduler.
-- [event-factory.js](js/platform/gw2/scheduler/event-factory.js) — canonical GW2 scheduler events.
 - Owner-local Core and elite `rules.js` modules supply availability,
   lifecycle hooks, task handlers, and end-state projection.
 

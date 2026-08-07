@@ -264,6 +264,25 @@ export function createProfessionActionController({
     }
     const spent = resourcesSpent ?? consumeResources(at);
     const sources = spent + 1;
+    const bladePacketTicks = (fallback: (index: number) => number) =>
+      Array.from({ length: spent }, (_, index) => ({
+        atMs: Number(shatter.ticks?.[index]?.atMs ?? fallback(index)),
+        coefficient: shatter.coefficients[spent] / spent,
+      }));
+    const addBladeDamage = (
+      ticks: readonly { readonly atMs: number; readonly coefficient: number }[],
+    ) => addDamage(
+      skill,
+      at,
+      {
+        ticks,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        source: "Player",
+        weaponStrengthProfileId: "nonweapon.profession-mechanic",
+      },
+      { shatter: true, blade: true },
+    );
 
     if (shatter.kind === "core-power") {
       addDamage(
@@ -335,45 +354,28 @@ export function createProfessionActionController({
         addTraitProc("Blinding Dissipation", at, skill.name);
       }
     } else if (shatter.kind === "blade-power") {
-      const packetDelays = shatter.packetDelays || [];
-      for (let index = 0; index < spent; index += 1) {
-        const packetAt = at + Number(packetDelays[index] || 0);
-        addDamage(
-          skill,
-          packetAt,
-          {
-            coefficient: shatter.coefficients[spent] / spent,
-            hits: 1,
-            source: "Player",
-            weaponStrengthProfileId: "nonweapon.profession-mechanic",
-          },
-          { shatter: true, blade: true },
-        );
-        addMaimOnHit(packetAt);
-      }
+      const ticks = bladePacketTicks(() => 0);
+      addBladeDamage(ticks);
+      for (const tick of ticks) addMaimOnHit(at + tick.atMs / 1000);
     } else if (shatter.kind === "blade-confusion") {
-      const packetDelays = shatter.packetDelays || [];
       const hasCryOfPain = traits.has(TRAIT.CRY_OF_PAIN);
-      for (let index = 0; index < spent; index += 1) {
-        const packetAt = at + Number(packetDelays[index] || 0);
-        addDamage(
-          skill,
-          packetAt,
-          {
-            coefficient: shatter.coefficients[spent] / spent,
-            hits: 1,
-            source: "Player",
-            weaponStrengthProfileId: "nonweapon.profession-mechanic",
-          },
-          { shatter: true, blade: true },
-        );
-        addCondition(skill.name, packetAt, {
-          name: "Confusion",
-          duration: hasCryOfPain ? 4 : 3,
-          stacks: hasCryOfPain ? 2 : 1,
-        });
-        addMaimOnHit(packetAt);
-      }
+      const duration = hasCryOfPain ? 4 : 3;
+      const stacks = hasCryOfPain ? 2 : 1;
+      const ticks = bladePacketTicks(() => 0);
+      addBladeDamage(ticks);
+      addCondition(skill.name, at, {
+        name: "Confusion",
+        duration,
+        ticks: ticks.map((tick) => ({
+          atMs: tick.atMs,
+          condition: "Confusion",
+          duration,
+          stacks,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      });
+      for (const tick of ticks) addMaimOnHit(at + tick.atMs / 1000);
     } else if (shatter.kind === "blade-control") {
       addDamage(
         skill,
@@ -388,22 +390,9 @@ export function createProfessionActionController({
       );
       addMaimOnHit(at);
     } else if (shatter.kind === "blade-requiem") {
-      const packetDelays = shatter.packetDelays || [];
-      for (let index = 0; index < spent; index += 1) {
-        const packetAt = at + Number(packetDelays[index] ?? index + 1);
-        addDamage(
-          skill,
-          packetAt,
-          {
-            coefficient: shatter.coefficients[spent] / spent,
-            hits: 1,
-            source: "Player",
-            weaponStrengthProfileId: "nonweapon.profession-mechanic",
-          },
-          { shatter: true, blade: true },
-        );
-        addMaimOnHit(packetAt);
-      }
+      const ticks = bladePacketTicks((index) => (index + 1) * 1000);
+      addBladeDamage(ticks);
+      for (const tick of ticks) addMaimOnHit(at + tick.atMs / 1000);
     }
 
     if (maimTriggered) {

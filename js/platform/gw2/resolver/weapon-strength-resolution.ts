@@ -4,6 +4,7 @@ import {
   weaponStrengthProfile,
   weaponStrengthProfileIdForEvent,
 } from "../weapon-strength.js";
+import { skillForEvent } from "./event-skill.js";
 
 import type {
   Gw2ResolvedWeaponStrength,
@@ -42,10 +43,7 @@ export function resolvedWeaponStrength(
     };
   }
 
-  const skill =
-    context.helpers.skillsById?.get(event.skillId ?? event.sourceId) ||
-    context.helpers.skillsByName?.get(event.skillName || "") ||
-    null;
+  const skill = skillForEvent(context.helpers, event) ?? null;
   const profileId = weaponStrengthProfileIdForEvent(event, { skill });
   if (!profileId) {
     const fallback = Number(
