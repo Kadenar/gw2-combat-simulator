@@ -386,12 +386,12 @@ test("power Mechanist benchmark builds are valid default selections", async () =
     [
       [
         "Power (Sword / Pistol)",
-        "../../../Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
+        "Rotations/engineer/r-power-mechanist-sword-pistol-bench.json",
         41140,
       ],
       [
         "Power (Rifle)",
-        "../../../Rotations/engineer/r-power-mechanist-rifle-bench.json",
+        "Rotations/engineer/r-power-mechanist-rifle-bench.json",
         38474,
       ],
     ],
