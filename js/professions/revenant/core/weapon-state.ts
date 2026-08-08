@@ -33,6 +33,7 @@ export function updateRevenantWeaponState(
     else state.autoattackChains[chain.root] = chain.next;
   } else if (
     skill.id === ID.DODGE ||
+    skill.id === ID.CITADEL_BOMBARDMENT ||
     skill.handlerId === "revenant.beguiling-haze"
   ) {
     state.autoattackChains = {};

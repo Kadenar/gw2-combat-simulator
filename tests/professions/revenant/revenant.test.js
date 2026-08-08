@@ -545,6 +545,40 @@ test("Beguiling Haze resets the Sword autoattack chain", () => {
   );
 });
 
+test("Citadel Bombardment resets the Renegade autoattack chain", () => {
+  const result = simulate(
+    "Renegade",
+    [
+      "Preparation Thrust",
+      "Brutal Blade",
+      "Citadel Bombardment",
+      "Preparation Thrust",
+    ],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+      primaryWeapon: "Sword",
+      secondaryWeapon: "Sword",
+    },
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.steps.map((step) => step.skill),
+    [
+      "Preparation Thrust",
+      "Brutal Blade",
+      "Citadel Bombardment",
+      "Preparation Thrust",
+    ],
+  );
+  assert.equal(
+    result.endState.profession.autoattackChains[SKILL.PREPARATION_THRUST],
+    SKILL.BRUTAL_BLADE,
+  );
+});
+
 test("Renegade shortbow skills use supplied casts, packets, and combo data", () => {
   const expectedSkills = [
     [SKILL.SHATTERSHOT, 480, 0.65, 1],
