@@ -13,6 +13,10 @@ import {
   suggestedActivationInterruptMs,
 } from "../../platform/ui/activation-editor.js";
 import { escapeHtml as esc } from "../../platform/ui/html.js";
+import {
+  mountRotationInsertionCursor,
+  rotationInsertionGapHtml,
+} from "../../platform/ui/insertion-cursor.js";
 import { activeSpecialization, professionEndState } from "./context.js";
 import {
   ACTION_ICONS,
@@ -170,7 +174,10 @@ function timelineInteractionOptions(
         Number.isFinite(parsedSkillId) ? parsedSkillId : null,
       );
     },
-    onChanged: () => app.changed(false),
+    onChanged: () => {
+      app.rotationInsertionIndex = null;
+      app.changed(false);
+    },
     onRemove: (index) => app.build.rotation.splice(index, 1),
     onTruncate: (index) => app.build.rotation.splice(index),
     onEditOffset: (index) =>
@@ -207,6 +214,19 @@ export function renderTimeline(app: ProfessionAppState): void {
             <span>Click or drag skills from the palette above</span>
         </div>`;
     if (procElement) procElement.innerHTML = "";
+    app.rotationInsertionIndex = mountRotationInsertionCursor({
+      root: element,
+      insertionIndex: app.rotationInsertionIndex,
+      rotationLength: 0,
+      onSelect(index) {
+        app.rotationInsertionIndex = index;
+        renderTimeline(app);
+      },
+      onClear() {
+        app.rotationInsertionIndex = null;
+        renderTimeline(app);
+      },
+    });
     bindTimelineInteractions(element, timelineInteractionOptions(app));
     return;
   }
@@ -323,6 +343,9 @@ export function renderTimeline(app: ProfessionAppState): void {
         for (const marker of continuumEndsByIndex.get(index) || []) {
           rowItems.push(renderContinuumEnd(marker));
         }
+        rowItems.push(
+          rotationInsertionGapHtml(index, app.rotationInsertionIndex),
+        );
         const item = timelineItem(entry);
         const highlightKey = rotationSkillHighlightKey(entry);
         const explicitSkillId =
@@ -458,6 +481,12 @@ export function renderTimeline(app: ProfessionAppState): void {
                 </div>`);
       });
       if (rowNumber === rows.length - 1) {
+        rowItems.push(
+          rotationInsertionGapHtml(
+            app.build.rotation.length,
+            app.rotationInsertionIndex,
+          ),
+        );
         for (const marker of healthMarkersByIndex.get(
           app.build.rotation.length,
         ) || []) {
@@ -469,12 +498,7 @@ export function renderTimeline(app: ProfessionAppState): void {
           rowItems.push(renderContinuumEnd(marker));
         }
       }
-      const skills = rowItems
-        .map(
-          (item, index) =>
-            `${index ? '<span class="rot-arrow">→</span>' : ""}${item}`,
-        )
-        .join("");
+      const skills = rowItems.join("");
       const finalSkill = row.skills.at(-1);
       const insertAt = finalSkill ? finalSkill.index + 1 : 0;
       return `<div class="rot-row" style="--row-color:#9d7bd0">
@@ -571,6 +595,19 @@ export function renderTimeline(app: ProfessionAppState): void {
         </details>`;
   } else if (procElement) procElement.innerHTML = "";
   element.innerHTML = timelineHtml;
+  app.rotationInsertionIndex = mountRotationInsertionCursor({
+    root: element,
+    insertionIndex: app.rotationInsertionIndex,
+    rotationLength: app.build.rotation.length,
+    onSelect(index) {
+      app.rotationInsertionIndex = index;
+      renderTimeline(app);
+    },
+    onClear() {
+      app.rotationInsertionIndex = null;
+      renderTimeline(app);
+    },
+  });
 
   const applySkillHighlight = (): void => {
     const skills = [

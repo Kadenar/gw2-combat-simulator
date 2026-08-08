@@ -21,6 +21,10 @@ import {
   virtualPaletteSkillHtml,
 } from "../../../js/platform/ui/palette.js";
 import { escapeHtml, gw2ApiText } from "../../../js/platform/ui/html.js";
+import {
+  normalizeRotationInsertionIndex,
+  rotationInsertionGapHtml,
+} from "../../../js/platform/ui/insertion-cursor.js";
 import { targetHealthBreakpointSnapshots } from "../../../js/platform/ui/result-transform.js";
 import {
   mountRotationWarnings,
@@ -66,6 +70,21 @@ test("activation editor suggests and validates manual interruption times", () =>
   assert.equal(validateActivationInterruptMs("", 920).valid, false);
   assert.equal(validateActivationInterruptMs(0, 920).valid, false);
   assert.equal(validateActivationInterruptMs(920, 920).valid, false);
+});
+
+test("rotation insertion cursors validate positions and expose accessible gaps", () => {
+  assert.equal(normalizeRotationInsertionIndex(0, 3), 0);
+  assert.equal(normalizeRotationInsertionIndex(3, 3), 3);
+  assert.equal(normalizeRotationInsertionIndex(4, 3), null);
+  assert.equal(normalizeRotationInsertionIndex(1.5, 3), null);
+  assert.equal(normalizeRotationInsertionIndex(null, 3), null);
+  assert.equal(normalizeRotationInsertionIndex(undefined, 3), null);
+
+  assert.match(
+    rotationInsertionGapHtml(2, 2),
+    /class="rot-insertion-gap active"/,
+  );
+  assert.match(rotationInsertionGapHtml(2, null), /Insert at position 3/);
 });
 
 test("timeline cast details include start, end, and elapsed cast time", () => {

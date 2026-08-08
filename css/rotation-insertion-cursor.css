@@ -1,0 +1,118 @@
+.rotation-insertion-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 9%, var(--bg-panel));
+  color: var(--text);
+  font-size: 12px;
+}
+
+.rotation-insertion-status[hidden] {
+  display: none;
+}
+
+.rotation-insertion-status strong {
+  color: var(--text-bright);
+}
+
+.rotation-insertion-status button {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.rotation-insertion-status button:hover {
+  color: var(--text-bright);
+  text-decoration: underline;
+}
+
+.rot-insertion-gap {
+  position: relative;
+  align-self: stretch;
+  flex: 0 0 12px;
+  min-width: 12px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.rot-insertion-arrow {
+  position: absolute;
+  top: 17px;
+  left: 50%;
+  font-size: 10px;
+  line-height: 1;
+  transform: translateX(-50%);
+  transition: opacity 0.12s;
+}
+
+.rot-insertion-gap[data-insertion-index="0"] .rot-insertion-arrow {
+  visibility: hidden;
+}
+
+.rot-insertion-marker {
+  position: absolute;
+  inset: 2px 50% 2px auto;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transform: translateX(50%);
+  transition: opacity 0.12s;
+}
+
+.rot-insertion-marker::before {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  display: grid;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg-dark);
+  content: "+";
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  place-items: center;
+  transform: translate(-50%, -50%);
+}
+
+.rot-insertion-gap:hover .rot-insertion-arrow,
+.rot-insertion-gap.active .rot-insertion-arrow {
+  opacity: 0;
+}
+
+.rot-insertion-gap:hover .rot-insertion-marker,
+.rot-insertion-gap:focus-visible .rot-insertion-marker,
+.rot-insertion-gap.active .rot-insertion-marker {
+  opacity: 1;
+}
+
+.rot-insertion-gap:focus-visible {
+  outline: 1px dashed var(--accent);
+  outline-offset: 1px;
+}
+
+.rot-insertion-gap.active {
+  flex-basis: 20px;
+  min-width: 20px;
+}
+
+@media (max-width: 640px) {
+  .rotation-insertion-status {
+    align-items: flex-start;
+  }
+}

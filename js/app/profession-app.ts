@@ -48,6 +48,7 @@ export class ProfessionApp implements ProfessionAppState {
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;
   dragState: ProfessionRotationDragState | null;
+  rotationInsertionIndex: number | null;
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
@@ -76,6 +77,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.attributeData = null;
     this.results = null;
     this.dragState = null;
+    this.rotationInsertionIndex = null;
     this.templatePresets = [];
     this.templateContainer = null;
     this.currentTemplate = null;
