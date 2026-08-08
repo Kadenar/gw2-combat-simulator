@@ -51,6 +51,9 @@ import {
 import {
   thiefProfession,
 } from "../../../js/professions/thief/definition.js";
+import {
+  daredevilModifierRules,
+} from "../../../js/professions/thief/specializations/daredevil/rules.js";
 
 const baseConfig = Object.freeze({
   selectedSkills: [
@@ -561,6 +564,176 @@ test("Daredevil capacity and every dodge replacement resolve explicitly", () => 
   }
 });
 
+test("Daredevil benchmark skills and endurance traits use supplied values", () => {
+  const expectedQuicknessTimes = new Map([
+    [ID.DODGE, 800],
+    [ID.BACKSTAB, 320],
+    [ID.FIST_FLURRY, 680],
+    [ID.IMPAIRING_DAGGERS, 480],
+    [ID.PALM_STRIKE, 480],
+  ]);
+  for (const [skillId, duration] of expectedQuicknessTimes) {
+    assert.equal(
+      thiefCatalog.skillsById.get(skillId).quicknessCastTimeMs,
+      duration,
+    );
+  }
+
+  const totalCoefficient = name => {
+    const strike = thiefCatalog.skillsByName.get(name).effects.find(effect =>
+      effect.type === "strike");
+    return strike.ticks
+      ? strike.ticks.reduce((sum, tick) => sum + tick.coefficient, 0)
+      : strike.coefficient;
+  };
+  assert.equal(totalCoefficient("Fist Flurry"), 3.75);
+  assert.equal(totalCoefficient("Impairing Daggers"), 2.25);
+
+  const directPalm = simulate("Daredevil", ["Palm Strike"]);
+  assert.match(directPalm.warnings[0], /Fist Flurry must connect/i);
+
+  const traits = [
+    TRAIT.BRAWLERS_TENACITY,
+    TRAIT.WEAKENING_STRIKES,
+    TRAIT.BOUNDING_DODGER,
+  ];
+  const skillSequence = [
+    "Dodge",
+    "Fist Flurry",
+    "Palm Strike",
+    { name: "__wait", waitMs: 2100 },
+  ];
+  const base = simulate("Daredevil", skillSequence, {
+    selectedDodge: "Bounding Dodger",
+    selectedTraitIds: traits.filter(id => id !== TRAIT.BRAWLERS_TENACITY),
+  });
+  const brawler = simulate(
+    "Daredevil",
+    skillSequence,
+    {
+      selectedDodge: "Bounding Dodger",
+      selectedTraitIds: traits,
+    },
+  );
+  assert.deepEqual(brawler.warnings, []);
+  assert.ok(Math.abs(
+    brawler.endState.profession.endurance
+    - base.endState.profession.endurance
+    - 15
+  ) < 1e-9);
+  assert.ok(brawler.resolvedEvents.some(event =>
+    event.type === "condition"
+    && event.condition === "Weakness"
+    && event.sourceId === TRAIT.WEAKENING_STRIKES));
+  const palm = brawler.resolvedEvents.find(event =>
+    event.type === "damage" && event.name === "Palm Strike");
+  const pulmonary = brawler.resolvedEvents.filter(event =>
+    event.type === "damage" && event.name === "Pulmonary Impact");
+  assert.equal(pulmonary.length, 2);
+  assert.ok(pulmonary.every(event =>
+    event.canCrit === false && Math.abs(event.at - palm.at - 2) < 1e-9));
+
+  const withoutSteal = simulate("Daredevil", ["Dodge", "Dodge", "Steal"]);
+  const withSteal = simulate("Daredevil", ["Dodge", "Dodge", "Steal"], {
+    selectedTraitIds: [TRAIT.ENDURANCE_THIEF],
+  });
+  assert.ok(Math.abs(
+    withSteal.endState.profession.endurance
+    - withoutSteal.endState.profession.endurance
+    - 50
+  ) < 1e-9);
+
+  const havoc = daredevilModifierRules.find(rule =>
+    rule.id === "thief.havoc-specialist");
+  const weakening = daredevilModifierRules.find(rule =>
+    rule.id === "thief.weakening-strikes");
+  assert.equal(havoc.operation, "multiply");
+  assert.equal(havoc.factor, 1.15);
+  assert.equal(weakening.operation, "multiply");
+  assert.equal(weakening.factor, 1.1);
+});
+
+test("Daredevil Staff skills use supplied coefficients and effects", () => {
+  const expected = [
+    ["Staff Strike", 0.85, 1, 0],
+    ["Staff Bash", 0.9, 1, 0],
+    ["Punishing Strikes", 2.1, 4, 0],
+    ["Hook Strike", 0.65, 1, 0],
+    ["Weakening Whirl", 2.22, 3, 3],
+    ["Debilitating Arc", 1, 1, 3],
+    ["Helmet Breaker", 1.25, 1, 1],
+    ["Dust Strike", 1.8, 3, 4],
+    ["Vault", 2.25, 1, 5],
+  ];
+  for (const [name, coefficient, hits, initiativeCost] of expected) {
+    const skill = thiefCatalog.skillsByName.get(name);
+    const strike = skill.effects.find(effect => effect.type === "strike");
+    assert.equal(skill.weapon, "Staff", name);
+    assert.equal(strike.coefficient, coefficient, name);
+    assert.equal(strike.hits, hits, name);
+    assert.equal(skill.initiativeCost, initiativeCost, name);
+  }
+
+  const expectedQuicknessTimes = [
+    ["Staff Strike", 360],
+    ["Staff Bash", 360],
+    ["Punishing Strikes", 760],
+    ["Weakening Whirl", 720],
+    ["Debilitating Arc", 200],
+    ["Hook Strike", 640],
+  ];
+  for (const [name, quicknessCastTimeMs] of expectedQuicknessTimes) {
+    const skill = thiefCatalog.skillsByName.get(name);
+    assert.equal(skill.quicknessCastTimeMs, quicknessCastTimeMs, name);
+    assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5, name);
+  }
+
+  for (const name of ["Punishing Strikes", "Weakening Whirl"]) {
+    const skill = thiefCatalog.skillsByName.get(name);
+    assert.equal(skill.finisherType, "Whirl", name);
+    assert.equal(skill.finisherValue, 1, name);
+  }
+
+  const impalingLotus = thiefCatalog.skillsByName.get("Impaling Lotus");
+  assert.equal(impalingLotus.finisherType, "Whirl");
+  assert.equal(impalingLotus.finisherValue, 1);
+
+  const punishing = thiefCatalog.skillsByName.get("Punishing Strikes");
+  const vulnerability = punishing.effects.find(effect =>
+    effect.type === "condition");
+  assert.deepEqual(
+    [vulnerability.condition, vulnerability.stacks, vulnerability.duration],
+    ["Vulnerability", 4, 8],
+  );
+
+  const weakening = thiefCatalog.skillsByName.get("Weakening Whirl");
+  const weakness = weakening.effects.find(effect => effect.type === "condition");
+  assert.deepEqual(
+    [weakness.condition, weakness.stacks, weakness.duration],
+    ["Weakness", 1, 2],
+  );
+
+  const arc = thiefCatalog.skillsByName.get("Debilitating Arc");
+  const cripple = arc.effects.find(effect => effect.type === "condition");
+  assert.deepEqual(
+    [cripple.condition, cripple.stacks, cripple.duration],
+    ["Crippled", 1, 6],
+  );
+
+  const hook = thiefCatalog.skillsByName.get("Hook Strike");
+  const hookControl = hook.effects.find(effect => effect.type === "control");
+  assert.equal(hook.stealthAttack, true);
+  assert.equal(hookControl.metadata.controlKind, "knockdown");
+
+  const helmet = thiefCatalog.skillsByName.get("Helmet Breaker");
+  const helmetControl = helmet.effects.find(effect => effect.type === "control");
+  assert.equal(helmetControl.metadata.controlKind, "daze");
+
+  const dust = thiefCatalog.skillsByName.get("Dust Strike");
+  const blind = dust.effects.find(effect => effect.type === "blind");
+  assert.equal(blind.metadata.duration, 1);
+});
+
 test("Deadeye Mark grants malice once per initiative skill use", () => {
   const result = simulate("Deadeye", [
     "Deadeye's Mark",
@@ -849,18 +1022,18 @@ test("Specter uses the supplied measured Quickness cast times", () => {
     [ID.HAUNT_SHOT, 640],
     [ID.GRASPING_SHADOWS, 240],
     [ID.DAWNS_REPOSE, 520],
-    [ID.ETERNAL_NIGHT, 1920],
+    [ID.ETERNAL_NIGHT, 740],
     [ID.MIND_SHOCK, 360],
     [ID.SHADOW_BOLT, 520],
     [ID.DOUBLE_BOLT, 640],
     [ID.TRIPLE_BOLT, 1080],
     [ID.SHADOWSQUALL, 1960],
     [ID.SHADOW_SAP, 600],
-    [ID.TWILIGHT_COMBO, 400],
+    [ID.TWILIGHT_COMBO, 760],
     [ID.MEASURED_SHOT, 560],
     [ID.ENDLESS_NIGHT, 1920],
     [ID.WELL_OF_BOUNTY, 400],
-    [ID.WELL_OF_SORROW, 880],
+    [ID.WELL_OF_SORROW, 600],
     [ID.WELL_OF_TEARS, 600],
   ]);
   for (const [skillId, duration] of expected) {
@@ -885,14 +1058,59 @@ test("Specter scepter and shroud packets apply their conditions per hit", () => 
   ];
   for (const [name, count, coefficient, condition] of expectedPackets) {
     const skill = thiefCatalog.skillsByName.get(name);
-    const strike = skill.effects.find(effect => effect.type === "strike");
+    const strikes = skill.effects.filter(effect => effect.type === "strike");
     const applications = skill.effects.find(effect =>
       effect.type === "condition" && Array.isArray(effect.ticks));
-    assert.equal(strike.hits, count, name);
-    assert.ok(Math.abs(strike.coefficient / count - coefficient) < 1e-12, name);
+    const hits = strikes.reduce((sum, strike) => sum + strike.hits, 0);
+    const totalCoefficient = strikes.reduce(
+      (sum, strike) => sum + strike.coefficient,
+      0,
+    );
+    assert.equal(hits, count, name);
+    assert.ok(Math.abs(totalCoefficient / count - coefficient) < 1e-12, name);
     assert.equal(applications.ticks.length, count, name);
     assert.ok(applications.ticks.every(tick => tick.condition === condition), name);
   }
+
+  const twilight = simulate("Specter", ["Twilight Combo"], {
+    primaryWeapon: "Scepter",
+    secondaryWeapon: "Dagger",
+    boons: { quickness: true },
+  });
+  assert.equal(twilight.steps[0].fullCastMs, 760);
+  assert.deepEqual(
+    twilight.events.filter(event =>
+      event.type === "damage" && event.skillName === "Twilight Combo")
+      .map(event => [event.at, event.name]),
+    [[0.64, "Initial Attack"], [0.8, "Secondary Attack"]],
+  );
+  assert.deepEqual(
+    twilight.events.filter(event =>
+      event.type === "condition" && event.skillName === "Twilight Combo")
+      .map(event => [event.at, event.condition, event.stacks]),
+    [
+      [0.64, "Chilled", 1],
+      [0.64, "Poisoned", 1],
+      [0.8, "Torment", 3],
+    ],
+  );
+
+  const deadlyAmbition = simulate("Specter", ["Twilight Combo"], {
+    primaryWeapon: "Scepter",
+    secondaryWeapon: "Dagger",
+    selectedTraitIds: [TRAIT.DEADLY_AMBITION],
+    boons: { quickness: true },
+  });
+  const deadlyAmbitionPoisons = deadlyAmbition.events.filter(event =>
+    event.type === "condition"
+      && event.sourceId === TRAIT.DEADLY_AMBITION
+      && event.skillName === "Twilight Combo");
+  assert.ok(
+    thiefCatalog.skillsByName.get("Twilight Combo").categories.includes("DualWield"),
+  );
+  assert.equal(deadlyAmbitionPoisons.length, 1);
+  assert.equal(deadlyAmbitionPoisons[0].condition, "Poisoned");
+  assert.equal(deadlyAmbitionPoisons[0].stacks, 1);
 
   const eternal = simulate("Specter", [
     "Enter Shadow Shroud",
@@ -903,17 +1121,20 @@ test("Specter scepter and shroud packets apply their conditions per hit", () => 
   });
   const eternalHits = eternal.events.filter(event =>
     event.type === "damage" && event.skillName === "Eternal Night");
-  assert.deepEqual(eternalHits.map(event => event.at), [0.96, 1.92]);
+  assert.deepEqual(
+    eternalHits.map(event => Number(event.at.toFixed(2))),
+    [0.36, 0.68],
+  );
   assert.ok(eternalHits.every(event => event.coefficient === 1.75));
   const eternalConditions = eternal.events.filter(event =>
     event.type === "condition" && event.skillName === "Eternal Night");
   assert.deepEqual(
     eternalConditions.map(event => [event.at, event.condition, event.stacks]),
     [
-      [0.96, "Chilled", 1],
-      [0.96, "Poisoned", 2],
-      [1.92, "Weakness", 1],
-      [1.92, "Poisoned", 2],
+      [0.36, "Chilled", 1],
+      [0.36, "Poisoned", 2],
+      [0.68, "Weakness", 1],
+      [0.68, "Poisoned", 2],
     ],
   );
 
@@ -941,28 +1162,74 @@ test("Specter scepter and shroud packets apply their conditions per hit", () => 
   assert.equal(stun.controlKind, "stun");
 });
 
+test("Specter EVTC packet offsets match scepter and shroud impacts", () => {
+  const packetOffsets = (result, skillName) => {
+    const step = result.steps.find(entry => entry.skill === skillName);
+    return result.events.filter(event =>
+      event.type === "damage" && event.skillName === skillName)
+      .map(event => Number((event.at - step.start / 1000).toFixed(3)));
+  };
+
+  const bolts = simulate("Specter", [
+    "Shadow Bolt",
+    "Double Bolt",
+    "Triple Bolt",
+  ], {
+    primaryWeapon: "Scepter",
+    secondaryWeapon: "Dagger",
+    boons: { quickness: true },
+  });
+  assert.deepEqual(packetOffsets(bolts, "Shadow Bolt"), [0.52]);
+  assert.deepEqual(packetOffsets(bolts, "Double Bolt"), [0.32, 0.6]);
+  assert.deepEqual(packetOffsets(bolts, "Triple Bolt"), [0.32, 0.64, 1.04]);
+
+  const shroud = simulate("Specter", [
+    "Enter Shadow Shroud",
+    "Grasping Shadows",
+    "Eternal Night",
+    "Haunt Shot",
+  ], {
+    initialShadowForce: 100,
+    boons: { quickness: true },
+  });
+  assert.deepEqual(packetOffsets(shroud, "Grasping Shadows"), [1.24]);
+  assert.deepEqual(packetOffsets(shroud, "Eternal Night"), [0.36, 0.68]);
+  assert.deepEqual(packetOffsets(shroud, "Haunt Shot"), [0.567]);
+
+  const needles = simulate("Specter", [
+    "Prepare Thousand Needles",
+    { name: "__wait", waitMs: 3000 },
+    "Thousand Needles",
+    { name: "__wait", waitMs: 4000 },
+  ], {
+    selectedSkills: ["Prepare Thousand Needles"],
+    boons: { quickness: true },
+  });
+  assert.deepEqual(packetOffsets(needles, "Thousand Needles"), [0, 1, 2, 3, 4]);
+});
+
 test("Specter wells preserve one-second pulse intervals and ordered effects", () => {
   const sorrow = simulate("Specter", ["Well of Sorrow"], {
     selectedSkills: ["Well of Sorrow"],
     boons: { quickness: true },
   });
-  assert.equal(sorrow.steps[0].fullCastMs, 880);
+  assert.equal(sorrow.steps[0].fullCastMs, 600);
   assert.deepEqual(
     sorrow.events.filter(event =>
       event.type === "damage" && event.skillName === "Well of Sorrow")
       .map(event => [event.at, Number(event.coefficient.toFixed(3))]),
-    [[0.88, 0.222], [1.88, 0.222], [2.88, 0.222], [3.88, 0.222], [4.88, 0.222]],
+    [[1, 0.222], [2, 0.222], [3, 0.222], [4, 0.222], [5, 0.222]],
   );
   assert.deepEqual(
     sorrow.events.filter(event =>
       event.type === "condition" && event.skillName === "Well of Sorrow")
       .map(event => [event.at, event.condition, event.stacks]),
     [
-      [0.88, "Torment", 2],
-      [1.88, "Bleeding", 3],
-      [2.88, "Torment", 2],
-      [3.88, "Poisoned", 3],
-      [4.88, "Torment", 2],
+      [1, "Torment", 2],
+      [2, "Bleeding", 3],
+      [3, "Torment", 2],
+      [4, "Poisoned", 3],
+      [5, "Torment", 2],
     ],
   );
 
@@ -1021,7 +1288,7 @@ test("Specter shadow-force and recharge traits use supplied values", () => {
     selectedTraitIds: [TRAIT.LARCENOUS_TORMENT],
     boons: { quickness: true },
   });
-  assert.equal(larcenous.endState.profession.shadowForce, 5.5);
+  assert.equal(larcenous.profession.shadowForce, 5.5);
   assert.equal(
     larcenous.resolvedEvents.filter(event =>
       event.type === "damage"
@@ -1055,6 +1322,7 @@ test("Specter attribute, ally, and shadowstep traits resolve explicitly", () => 
   const allies = simulate("Specter", [
     "Enter Shadow Shroud",
     "Dawn's Repose",
+    { name: "__wait", waitMs: 1000 },
   ], {
     initialShadowForce: 100,
     selectedTraitIds: [TRAIT.SHADESTEP],
@@ -1066,6 +1334,20 @@ test("Specter attribute, ally, and shadowstep traits resolve explicitly", () => 
     && event.kind === "protection");
   assert.equal(protection.duration, 5);
   assert.equal(protection.recipientCount, 3);
+  const barrier = allies.events.find(event =>
+    event.type === "buff" && event.skillName === "Enter Shadow Shroud"
+    && event.kind === "barrier");
+  assert.equal(barrier.recipientCount, 1);
+  const dawnBarrier = allies.events.find(event =>
+    event.type === "buff" && event.skillName === "Dawn's Repose"
+    && event.kind === "barrier");
+  assert.equal(dawnBarrier.recipientCount, 2);
+  assert.deepEqual(
+    allies.events.filter(event =>
+      event.type === "buff" && event.kind === "rot-wallow-venom")
+      .map(event => [event.at, event.duration, event.recipientCount]),
+    [[0, 10, 1], [0.52, 10, 1]],
+  );
   assert.equal(
     allies.events.filter(event =>
       event.type === "condition"
@@ -1267,7 +1549,54 @@ test("Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic
   });
   assert.ok(guild.resolvedEvents.some(event =>
     event.actorType === "summon"
-    && event.skillName === "Thieves Guild — Skritt"));
+    && event.skillName === "Thieves Guild — Sword/Dagger Skritt"));
+});
+
+test("Thieves Guild summons three specialization-specific thieves for 24 seconds", () => {
+  assert.equal(thiefCatalog.skillsByName.get("Thieves Guild").cooldown, 120);
+  assert.equal(
+    thiefCatalog.skillsByName.get("Thieves Guild").summonAttack.duration,
+    24,
+  );
+  const expectedThirdSummon = new Map([
+    ["Core", "Sword Thief"],
+    ["Daredevil", "Staff Daredevil"],
+    ["Deadeye", "Rifle Deadeye"],
+    ["Specter", "Scepter Specter"],
+    ["Antiquary", "Sword/Dagger Skritt"],
+  ]);
+  for (const [specialization, thirdSummon] of expectedThirdSummon) {
+    const result = simulate(specialization, [
+      "Thieves Guild",
+      { type: "wait", durationMs: 1100 },
+    ]);
+    assert.deepEqual(
+      result.resolvedEvents.filter(event =>
+        event.actorType === "summon"
+        && event.sourceId === "thief.thieves-guild")
+        .map(event => event.skillName),
+      [
+        "Thieves Guild — Male Dual-Pistol Thief",
+        "Thieves Guild — Female Dual-Dagger Thief",
+        `Thieves Guild — ${thirdSummon}`,
+      ],
+      specialization,
+    );
+  }
+
+  const lifetime = simulate("Specter", [
+    "Thieves Guild",
+    { type: "wait", durationMs: 26000 },
+  ]);
+  const summonPackets = lifetime.resolvedEvents.filter(event =>
+    event.actorType === "summon"
+    && event.sourceId === "thief.thieves-guild");
+  assert.equal(summonPackets.length, 72);
+  assert.equal(lifetime.endState.profession.activeThievesGuild, null);
+  assert.deepEqual(
+    [...new Set(summonPackets.map(event => event.skillWeapon))],
+    ["Pistol", "Dagger", "Scepter"],
+  );
 });
 
 test("Antiquary choice mode exposes every artifact from Swipe and Scuffle", () => {
@@ -1516,6 +1845,68 @@ test("Power Antiquary benchmark preset matches the supplied EVTC", async () => {
     result.dps,
     savedRotation.metadata.benchmarkDps,
   ) < 0.01);
+
+});
+
+test("Power Daredevil dagger-dagger preset matches the supplied EVTC", async () => {
+  const savedBuild = JSON.parse(await readFile(
+    new URL(
+      "../../../Builds/thief/b-power-daredevil-dagger-dagger.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ));
+  const savedRotation = JSON.parse(await readFile(
+    new URL(
+      "../../../Rotations/thief/r-power-daredevil-dagger-dagger-bench.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ));
+  const build = migrateThiefBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    adapter: thiefAppAdapter,
+    profession: thiefProfession,
+    skillById: thiefCatalog.skillsById,
+    skillByName: thiefCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const castCount = name => result.steps.filter(step =>
+    step.skill === name && !step.invalid).length;
+  const hitCount = name => result.breakdown
+    .filter(entry => entry.name === name)
+    .reduce((sum, entry) => sum + entry.hits, 0);
+  const relativeError = (actual, expected) =>
+    Math.abs(actual - expected) / expected;
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(build.weapons, ["Dagger", "Dagger"]);
+  assert.equal(build.relic, "Eagle");
+  assert.equal(castCount("Dodge"), 30);
+  assert.equal(castCount("Fist Flurry"), 7);
+  assert.equal(castCount("Impairing Daggers"), 7);
+  assert.equal(castCount("Palm Strike"), 7);
+  assert.equal(castCount("Cloak and Dagger"), 19);
+  assert.equal(castCount("Backstab"), 19);
+  assert.equal(castCount("Double Strike"), 33);
+  assert.equal(castCount("Wild Strike"), 33);
+  assert.equal(castCount("Lotus Strike"), 32);
+  assert.equal(hitCount("Bound"), 30);
+  assert.equal(hitCount("Pulmonary Impact"), 14);
+  assert.ok(relativeError(
+    result.totalDamage,
+    savedRotation.metadata.benchmarkDamage,
+  ) < 0.05);
+  assert.ok(relativeError(
+    result.dps,
+    savedRotation.metadata.benchmarkDps,
+  ) < 0.05);
 });
 
 test("Condition Antiquary spear preset matches the supplied EVTC", async () => {
@@ -1571,6 +1962,109 @@ test("Condition Antiquary spear preset matches the supplied EVTC", async () => {
     result.dps,
     savedRotation.metadata.benchmarkDps,
   ) < 0.01);
+});
+
+test("Condition Specter scepter-dagger preset matches the supplied EVTC", async () => {
+  const savedBuild = JSON.parse(await readFile(
+    new URL(
+      "../../../Builds/thief/b-condi-specter-scepter-dagger.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ));
+  const savedRotation = JSON.parse(await readFile(
+    new URL(
+      "../../../Rotations/thief/r-condi-specter-scepter-dagger-bench.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ));
+  const build = migrateThiefBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    adapter: thiefAppAdapter,
+    profession: thiefProfession,
+    skillById: thiefCatalog.skillsById,
+    skillByName: thiefCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const castCount = name => result.steps.filter(step =>
+    step.skill === name && !step.invalid).length;
+  const hitCount = sourceSkill => result.breakdown
+    .filter(entry => entry.sourceSkill === sourceSkill)
+    .reduce((sum, entry) => sum + entry.hits, 0);
+  const relativeError = (actual, expected) =>
+    Math.abs(actual - expected) / expected;
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(build.weapons, ["Scepter", "Dagger"]);
+  assert.deepEqual(build.alternateWeapons, ["Scepter", "Dagger"]);
+  assert.deepEqual(build.weaponSigils, [
+    ["Doom", "Earth"],
+    ["Torment", "Geomancy"],
+  ]);
+  assert.equal(build.initialShadowForce, 100);
+  assert.equal(castCount("Cooldown Reset"), 1);
+  assert.equal(castCount("Twilight Combo"), 34);
+  assert.equal(castCount("Enter Shadow Shroud"), 11);
+  assert.equal(castCount("Exit Shadow Shroud"), 11);
+  assert.equal(castCount("Thousand Needles"), 6);
+  assert.equal(castCount("Well of Sorrow"), 7);
+  assert.equal(hitCount("Thousand Needles"), 30);
+  assert.equal(hitCount("Well of Sorrow"), 35);
+  assert.ok(relativeError(
+    result.totalDamage,
+    savedRotation.metadata.benchmarkDamage,
+  ) < 0.02);
+  assert.ok(relativeError(
+    result.dps,
+    savedRotation.metadata.benchmarkDps,
+  ) < 0.01);
+
+  const alliedBuild = migrateThiefBuild({
+    ...savedBuild,
+    assumptions: {
+      ...savedBuild.assumptions,
+      alliedPlayerCount: 4,
+    },
+    rotation: savedRotation.rotation,
+  });
+  const alliedApp = {
+    ...app,
+    build: alliedBuild,
+  };
+  recalculate(alliedApp);
+  const alliedResult = runSimulation(alliedApp);
+  const allySpiderPoisons = alliedResult.resolvedEvents.filter(event =>
+    event.type === "condition"
+    && event.skillName === "Spider Venom"
+    && event.triggeredByAlly
+  );
+  const allySpiderCounts = [1, 2, 3, 4].map(allyIndex =>
+    allySpiderPoisons.filter(event =>
+      event.triggeredByAlly === allyIndex).length);
+  const rotWallowTorments = alliedResult.resolvedEvents.filter(event =>
+    event.type === "condition"
+    && event.skillName === "Rot Wallow Venom"
+    && event.condition === "Torment"
+  );
+  const rotWallowIcon =
+    "https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png";
+  const rotWallowBreakdown = alliedResult.breakdown.filter(entry =>
+    entry.sourceSkill === "Rot Wallow Venom");
+
+  assert.deepEqual(alliedResult.warnings, []);
+  assert.deepEqual(allySpiderCounts, [28, 28, 28, 28]);
+  assert.equal(rotWallowTorments.length, 10);
+  assert.ok(rotWallowTorments.every(event => event.icon === rotWallowIcon));
+  assert.ok(rotWallowBreakdown.length > 0);
+  assert.ok(rotWallowBreakdown.every(entry => entry.icon === rotWallowIcon));
+  assert.ok(relativeError(alliedResult.dps, 38396.86446449375) < 0.01);
 });
 
 test("Thief skill bar previews specialization-specific stolen skills", () => {

@@ -6,6 +6,7 @@ import {
 import { hasThiefTrait } from "../../core/state.js";
 import {
   emitThiefState,
+  emitThiefCondition,
   gainThiefEndurance,
 } from "../../core/shared.js";
 import { DAREDEVIL_DODGE_EFFECTS } from "./mechanics.js";
@@ -18,14 +19,19 @@ function emitDodgeEffect(
   effect: DaredevilDodgeEffect,
 ): void {
   const state = daredevilState.from(context);
+  const dodgeSkillName = state.selectedDodge === "Bounding Dodger"
+    ? "Bound"
+    : state.selectedDodge === "Lotus Training"
+      ? "Impaling Lotus"
+      : state.selectedDodge;
   const common = {
-    at: context.start + 0.8,
+    at: context.effectiveEnd,
     source: "Trait",
     sourceId: effect.sourceId,
     actorType: "player",
     skillId: skill.id,
-    skillName: state.selectedDodge,
-    name: state.selectedDodge,
+    skillName: dodgeSkillName,
+    name: dodgeSkillName,
   } as const;
   if (effect.type === "strike") {
     context.emit({
@@ -42,7 +48,7 @@ function emitDodgeEffect(
     context.emit({
       ...common,
       type: "condition",
-      name: `${state.selectedDodge} — ${effect.condition}`,
+      name: `${dodgeSkillName} — ${effect.condition}`,
       condition: effect.condition,
       stacks: Number(effect.stacks || 1),
       duration: Number(effect.duration || 0),
@@ -51,7 +57,7 @@ function emitDodgeEffect(
     context.emit({
       ...common,
       type: "boon",
-      name: `${state.selectedDodge} — ${effect.boon}`,
+      name: `${dodgeSkillName} — ${effect.boon}`,
       boon: effect.boon,
       stacks: Number(effect.stacks || 1),
       duration: Number(effect.duration || 0),
@@ -66,7 +72,13 @@ export function applyDaredevilDodge(
   if (skill.id !== ID.DODGE) return;
   const state = daredevilState.from(context);
   if (state.selectedDodge === "Bounding Dodger") {
-    state.boundingDamageUntil = context.start + 4;
+    state.boundingDamageUntil = context.effectiveEnd + 6;
+  }
+  if (state.selectedDodge === "Lotus Training") {
+    state.lotusConditionDamageUntil = context.effectiveEnd + 6;
+  }
+  if (hasThiefTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
+    state.weakeningStrikeReady = true;
   }
   for (const effect of DAREDEVIL_DODGE_EFFECTS[state.selectedDodge] || []) {
     emitDodgeEffect(context, skill, effect);
@@ -89,17 +101,70 @@ export function spendDaredevilResources(
   if (
     (skill.categories || []).some(category =>
       String(category).toLowerCase().includes("physical"))
+    && skill.id !== ID.PALM_STRIKE
     && hasThiefTrait(context.config, TRAIT.BRAWLERS_TENACITY)
   ) {
-    gainThiefEndurance(context, 10, context.start, "brawlers-tenacity");
+    gainThiefEndurance(context, 15, context.start, "brawlers-tenacity");
   }
 }
 
+function skillAttacks(skill: ThiefSkill): boolean {
+  return skill.id !== ID.DODGE && (skill.effects || []).some(effect =>
+    effect.type === "strike" || effect.type === "condition");
+}
+
+export function applyWeakeningStrike(
+  context: ThiefCastContext,
+  skill: ThiefSkill,
+): void {
+  const state = daredevilState.from(context);
+  if (!state.weakeningStrikeReady || !skillAttacks(skill)) return;
+  state.weakeningStrikeReady = false;
+  emitThiefCondition(context, {
+    at: context.start,
+    condition: "Weakness",
+    duration: 3,
+    stacks: 1,
+    sourceId: TRAIT.WEAKENING_STRIKES,
+    name: "Weakening Strikes — Weakness",
+  });
+  emitThiefState(context, context.start, "weakening-strikes");
+}
+
+export function updatePalmStrikeWindow(
+  context: ThiefCastContext,
+  skill: ThiefSkill,
+): void {
+  const state = daredevilState.from(context);
+  if (skill.id === ID.FIST_FLURRY) {
+    state.palmStrikeUntil = context.effectiveEnd + 5;
+    emitThiefState(context, context.effectiveEnd, "palm-strike-ready");
+  } else if (skill.id === ID.PALM_STRIKE) {
+    state.palmStrikeUntil = 0;
+    emitThiefState(context, context.effectiveEnd, "palm-strike-used");
+  }
+}
+
+function beginDaredevilCast(
+  context: ThiefCastContext,
+  skill: ThiefSkill,
+): void {
+  spendDaredevilResources(context, skill);
+  applyWeakeningStrike(context, skill);
+}
+
 export const daredevilSchedulerHooks = Object.freeze({
-  onCastStart: spendDaredevilResources,
-  afterCast: Object.freeze([{
-    id: "thief.daredevil-dodge",
-    order: 30,
-    handler: applyDaredevilDodge,
-  }]),
+  onCastStart: beginDaredevilCast,
+  afterCast: Object.freeze([
+    {
+      id: "thief.daredevil-dodge",
+      order: 30,
+      handler: applyDaredevilDodge,
+    },
+    {
+      id: "thief.daredevil-palm-strike",
+      order: 40,
+      handler: updatePalmStrikeWindow,
+    },
+  ]),
 });

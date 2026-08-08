@@ -18,9 +18,16 @@ import type {
 const LARCENOUS_TORMENT_SHADOW_FORCE_PER_STACK = 0.5;
 const LARCENOUS_TORMENT_SIPHON_COEFFICIENT = 0.005;
 const DARK_SENTRY_INTERNAL_COOLDOWN = 1;
+const ROT_WALLOW_VENOM_ICON =
+  "https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png";
 
 interface LarcenousTormentTaskPayload extends Record<string, unknown> {
   readonly stacks: number;
+}
+
+interface DarkSentryTaskPayload extends Record<string, unknown> {
+  readonly maximumRecipients?: number;
+  readonly allyIndices?: readonly number[];
 }
 
 function emitShadeStepBoon(
@@ -62,13 +69,39 @@ export function completeShadowShroudSkill(
       emitShadeStepBoon(context, "aegis", 4);
     }
   }
-  // Dawn's Repose is the supplied shroud skill that grants nearby allies
-  // barrier. Dark Sentry is a mandatory Specter minor trait.
+  // Dawn's Repose grants barrier to the tethered ally and nearby allies.
+  // Dark Sentry is a mandatory Specter minor trait.
   if (skill.id === ID.DAWNS_REPOSE) {
+    const alliedRecipients = Math.min(
+      4,
+      gw2AlliedPlayerAssumptions(context.config).count,
+    );
+    if (!alliedRecipients) return;
+    const allyIndices = Array.from(
+      { length: alliedRecipients },
+      (_, index) => index + 1,
+    );
+    context.emit({
+      type: "buff",
+      at: context.effectiveEnd,
+      source: "thief",
+      sourceId: skill.id,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: "Dawn's Repose - Barrier",
+      kind: "barrier",
+      duration: 5,
+      stacks: 1,
+      affectsSelf: false,
+      recipients: "allies",
+      recipientCount: alliedRecipients,
+      maximumRecipients: alliedRecipients,
+    });
     context.tasks.schedule({
       type: "thief.specter-dark-sentry",
       at: context.effectiveEnd,
-      payload: {},
+      payload: { allyIndices },
     });
   }
 }
@@ -108,13 +141,37 @@ export function handleLarcenousTorment(
 
 export function handleDarkSentry(
   context: ThiefSchedulerContext,
-  task: ThiefScheduledTask,
+  task: ThiefScheduledTask<DarkSentryTaskPayload>,
 ): void {
   const state = specterState.from(context);
-  if (task.at + context.epsilon < state.darkSentryReadyAt) return;
   const party = gw2AlliedPlayerAssumptions(context.config);
-  if (!party.count) return;
-  state.darkSentryReadyAt = task.at + DARK_SENTRY_INTERNAL_COOLDOWN;
+  const maximumRecipients = Math.min(
+    party.count,
+    Math.max(0, Math.trunc(Number(
+      task.payload.maximumRecipients ?? party.count,
+    ))),
+  );
+  const requestedAllies = task.payload.allyIndices
+    ? [...new Set(task.payload.allyIndices
+        .map(Number)
+        .filter(allyIndex =>
+          Number.isInteger(allyIndex)
+          && allyIndex >= 1
+          && allyIndex <= party.count))]
+    : Array.from({ length: maximumRecipients }, (_, index) => index + 1);
+  const eligibleAllies = requestedAllies.filter(allyIndex =>
+    task.at + context.epsilon
+      >= Number(state.darkSentryReadyAtByAlly[String(allyIndex)] || 0));
+  const recipientCount = eligibleAllies.length;
+  if (!recipientCount) return;
+  for (const allyIndex of eligibleAllies) {
+    state.darkSentryReadyAtByAlly[String(allyIndex)] =
+      task.at + DARK_SENTRY_INTERNAL_COOLDOWN;
+  }
+  state.darkSentryReadyAt = Math.max(
+    0,
+    ...Object.values(state.darkSentryReadyAtByAlly),
+  );
   context.emit({
     type: "buff",
     at: task.at,
@@ -124,16 +181,18 @@ export function handleDarkSentry(
     skillId: TRAIT.DARK_SENTRY,
     skillName: "Dark Sentry",
     name: "Rot Wallow Venom",
+    icon: ROT_WALLOW_VENOM_ICON,
     kind: "rot-wallow-venom",
-    duration: 30,
+    duration: 10,
     stacks: 1,
     affectsSelf: false,
     recipients: "allies",
-    recipientCount: party.count,
+    recipientCount,
+    maximumRecipients: recipientCount,
   });
   if (party.strikesPerSecond > 0) {
     const procAt = task.at + 1 / party.strikesPerSecond;
-    for (let allyIndex = 1; allyIndex <= party.count; allyIndex += 1) {
+    for (const allyIndex of eligibleAllies) {
       context.emit({
         type: "condition",
         at: procAt,
@@ -143,6 +202,7 @@ export function handleDarkSentry(
         skillId: TRAIT.DARK_SENTRY,
         skillName: "Rot Wallow Venom",
         name: `Rot Wallow Venom - Ally ${allyIndex} Torment`,
+        icon: ROT_WALLOW_VENOM_ICON,
         condition: "Torment",
         stacks: 1,
         duration: 2,

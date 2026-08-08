@@ -19,6 +19,10 @@ the profession modules.
   Mark/malice/Kneel, Daredevil endurance and dodge replacements, and Specter
   Shadow Force and Shadow Shroud transitions. The maximum Shadow Force pool is
   69% of maximum health and drains by 2% of that pool per second in shroud.
+- Daredevil's EVTC-measured dagger benchmark timings, physical-skill endurance,
+  Fist Flurry/Palm Strike window, delayed Pulmonary Impact, Weakening Strikes,
+  Havoc Specialist, six-second Bound/Impaling Lotus damage windows, and Staff
+  strike packets, conditions, control effects, and combo finishers.
 - Specter's measured Quickness cast times, Scepter and Shadow Shroud hit
   packets, per-hit conditions, combo-finisher metadata, delayed Mind Shock,
   and one-second Well of Bounty/Sorrow/Tears pulse sequences.

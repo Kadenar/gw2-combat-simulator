@@ -19,6 +19,7 @@ export function createSpecterState(
     shadowShroudActive: false,
     shadowForceUpdatedAt: 0,
     darkSentryReadyAt: 0,
+    darkSentryReadyAtByAlly: {},
   };
 }
 

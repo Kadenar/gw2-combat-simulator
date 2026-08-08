@@ -67,18 +67,20 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
     },
   [ID.IMPAIRING_DAGGERS]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "castTimeMs": 720,
+      "quicknessCastTimeMs": 480,
       "cooldown": 15,
       "initiativeCost": 0,
       "effects": [
         {
           "type": "strike",
-          "coefficient": 6.75,
-          "hits": 3,
+          "ticks": [
+            { "atMs": 540, "coefficient": 0.75 },
+            { "atMs": 660, "coefficient": 0.75 },
+            { "atMs": 780, "coefficient": 0.75 }
+          ],
           "name": "Impairing Daggers",
           "actorType": "player",
-          "atMs": 167,
-          "intervalMs": 167,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -87,21 +89,30 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
           "condition": "Poisoned",
           "stacks": 3,
           "duration": 10,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 540,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         },
         {
           "type": "condition",
           "condition": "Slow",
           "stacks": 1,
           "duration": 5,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 660,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         },
         {
           "type": "condition",
           "condition": "Immobilized",
           "stacks": 1,
           "duration": 2,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 780,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         }
       ],
     },
@@ -168,7 +179,8 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
     },
   [ID.PALM_STRIKE]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "castTimeMs": 720,
+      "quicknessCastTimeMs": 480,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
@@ -176,15 +188,19 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
           "type": "strike",
           "coefficient": 1.75,
           "hits": 1,
-          "name": "Palm Strike — Packet 1",
+          "name": "Palm Strike",
           "actorType": "player"
         },
         {
           "type": "strike",
-          "coefficient": 3.28,
-          "hits": 1,
-          "name": "Second Strike Damage",
-          "actorType": "player"
+          "coefficient": 6.56,
+          "hits": 2,
+          "name": "Pulmonary Impact",
+          "actorType": "player",
+          "canCrit": false,
+          "atMs": 2000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed"
         },
         {
           "type": "control",
@@ -213,18 +229,22 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
     },
   [ID.FIST_FLURRY]: {
       "implemented": true,
-      "castTimeMs": 1000,
+      "castTimeMs": 1020,
+      "quicknessCastTimeMs": 680,
       "cooldown": 16,
       "initiativeCost": 0,
       "effects": [
         {
           "type": "strike",
-          "coefficient": 18.75,
-          "hits": 5,
+          "ticks": [
+            { "atMs": 180, "coefficient": 0.75 },
+            { "atMs": 420, "coefficient": 0.75 },
+            { "atMs": 600, "coefficient": 0.75 },
+            { "atMs": 840, "coefficient": 0.75 },
+            { "atMs": 1020, "coefficient": 0.75 }
+          ],
           "name": "Fist Flurry",
           "actorType": "player",
-          "atMs": 200,
-          "intervalMs": 200,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -233,7 +253,10 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
           "condition": "Vulnerability",
           "stacks": 1,
           "duration": 5,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 180,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         }
       ],
     },
@@ -301,5 +324,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
           "actorType": "player"
         }
       ],
+      "finisherType": "Whirl",
+      "finisherValue": 1,
     },
 });

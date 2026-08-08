@@ -29,6 +29,9 @@ export function createDaredevilState(
   return {
     selectedDodge: selectedDodge(config, traits),
     boundingDamageUntil: 0,
+    lotusConditionDamageUntil: 0,
+    palmStrikeUntil: 0,
+    weakeningStrikeReady: false,
   };
 }
 

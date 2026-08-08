@@ -12,6 +12,7 @@ import {
   SIPHON_BASE_SHADOW_FORCE,
 } from "./mechanics.js";
 import { completeStealWithStoredSkill } from "../../core/steal.js";
+import { gw2AlliedPlayerAssumptions } from "../../../../platform/gw2/allied-players.js";
 import type {
   ThiefCastContext,
   ThiefSchedulerContext,
@@ -39,6 +40,34 @@ export function enterShadowShroud(
   const at = context.effectiveEnd;
   state.shadowShroudActive = true;
   state.shadowForceUpdatedAt = at;
+  const alliedRecipients = Math.min(
+    1,
+    gw2AlliedPlayerAssumptions(context.config).count,
+  );
+  if (alliedRecipients > 0) {
+    context.emit({
+      type: "buff",
+      at,
+      source: "thief",
+      sourceId: skill.id,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: "Enter Shadow Shroud - Barrier",
+      kind: "barrier",
+      duration: 5,
+      stacks: 1,
+      affectsSelf: false,
+      recipients: "allies",
+      recipientCount: alliedRecipients,
+      maximumRecipients: alliedRecipients,
+    });
+    context.tasks.schedule({
+      type: "thief.specter-dark-sentry",
+      at,
+      payload: { allyIndices: [1] },
+    });
+  }
   emitThiefShroudSwap(context, skill, at);
   emitThiefState(context, at, "enter-shadow-shroud");
 }

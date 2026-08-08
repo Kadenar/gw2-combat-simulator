@@ -46,9 +46,10 @@ export function updateThiefTraitCastState(
       emitThiefState(context, at, "fluid-strikes");
     }
   }
+  const isDualWieldAttack = skill.categories?.includes("DualWield")
+    || Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === "string");
   if (
-    skill.requiredMainHand
-    && skill.requiredOffHand != null
+    isDualWieldAttack
     && hasThiefTrait(context.config, TRAIT.DEADLY_AMBITION)
   ) {
     const potentPoison = hasThiefTrait(

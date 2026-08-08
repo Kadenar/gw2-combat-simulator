@@ -8,13 +8,14 @@ import {
   thiefTargetHasCondition,
 } from "../../core/rules.js";
 import type { Gw2ModifierRule } from "../../../../platform/gw2/types.js";
+import { daredevilCastAvailability } from "./availability.js";
 
 export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: "thief.weakening-strikes",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
-    amount: 0.1,
+    operation: "multiply",
+    factor: 1.1,
     when: context =>
       thiefPlayerEvent(context)
       && hasTrait(context, TRAIT.WEAKENING_STRIKES)
@@ -23,20 +24,19 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
   {
     id: "thief.havoc-specialist",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
-    amount: context => {
-      const state = thiefRuntimeState(context);
-      const maximum = Math.max(1, Number(state.maximumEndurance || 100));
-      return (1 - Number(state.endurance || 0) / maximum) * 0.15;
-    },
+    operation: "multiply",
+    factor: 1.15,
     when: context =>
-      thiefPlayerEvent(context) && hasTrait(context, TRAIT.HAVOC_SPECIALIST),
+      thiefPlayerEvent(context)
+      && hasTrait(context, TRAIT.HAVOC_SPECIALIST)
+      && Number(thiefRuntimeState(context).endurance || 0)
+        < Number(thiefRuntimeState(context).maximumEndurance || 100),
   },
   {
     id: "thief.bounding-dodger",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
-    amount: 0.1,
+    amount: 0.15,
     when: context =>
       thiefPlayerEvent(context)
       && hasTrait(context, TRAIT.BOUNDING_DODGER)
@@ -46,8 +46,29 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       )
         > context.time,
   },
+  {
+    id: "thief.lotus-training",
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.15,
+    when: context =>
+      thiefPlayerEvent(context)
+      && hasTrait(context, TRAIT.LOTUS_TRAINING)
+      && Number(
+        thiefRuntimeSpecializationState(context, "Daredevil")
+          .lotusConditionDamageUntil || 0,
+      ) > context.time,
+  },
 ]);
 
 export const daredevilAttributeRules = Object.freeze({
   modifierRules: daredevilModifierRules,
+});
+
+export const daredevilCastRules = Object.freeze({
+  availability: {
+    id: "thief.daredevil-availability",
+    order: 20,
+    handler: daredevilCastAvailability,
+  },
 });

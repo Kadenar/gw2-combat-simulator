@@ -17,5 +17,29 @@
         "upToDate": true
       }
     ]
+  },
+  {
+    "section": "Specter",
+    "presets": [
+      {
+        "label": "Condition (Scepter / Dagger)",
+        "build": "Builds/thief/b-condi-specter-scepter-dagger.json",
+        "rotation": "Rotations/thief/r-condi-specter-scepter-dagger-bench.json",
+        "benchmarkDps": 36275,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Daredevil",
+    "presets": [
+      {
+        "label": "Power (Dagger / Dagger)",
+        "build": "Builds/thief/b-power-daredevil-dagger-dagger.json",
+        "rotation": "Rotations/thief/r-power-daredevil-dagger-dagger-bench.json",
+        "benchmarkDps": 43036,
+        "upToDate": true
+      }
+    ]
   }
 ]
