@@ -43,6 +43,72 @@ function availableSlotSkills(app: ProfessionAppState, type: string): Skill[] {
   ];
 }
 
+export interface SkillBarInspectionStack {
+  readonly root: Skill;
+  readonly children: readonly Skill[];
+}
+
+export function skillBarInspectionStacks(
+  skills: readonly Skill[],
+): SkillBarInspectionStack[] {
+  const visibleSkillIds = new Set(skills.map((skill) => Number(skill.id)));
+  const childrenByRoot = new Map<number, Skill[]>();
+  const childSkillIds = new Set<number>();
+
+  for (const skill of skills) {
+    const rootId = Number(skill.chainRoot);
+    if (
+      !Number.isFinite(rootId) ||
+      rootId === Number(skill.id) ||
+      !visibleSkillIds.has(rootId)
+    ) {
+      continue;
+    }
+    if (!childrenByRoot.has(rootId)) childrenByRoot.set(rootId, []);
+    childrenByRoot.get(rootId)?.push(skill);
+    childSkillIds.add(Number(skill.id));
+  }
+
+  return skills
+    .filter((skill) => !childSkillIds.has(Number(skill.id)))
+    .map((root) => ({
+      root,
+      children: (childrenByRoot.get(Number(root.id)) || []).sort(
+        (left, right) =>
+          Number(left.chainStep ?? Number.MAX_SAFE_INTEGER) -
+          Number(right.chainStep ?? Number.MAX_SAFE_INTEGER),
+      ),
+    }));
+}
+
+function inspectionSkillSlotHtml(skill: Skill, child = false): string {
+  return `<div class="skill-bar-inspection-slot${child ? " child-skill" : ""}">
+      <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}">
+          <img src="${esc(skill.icon || "")}" alt="">
+      </div>
+  </div>`;
+}
+
+function inspectionSkillStacksHtml(skills: readonly Skill[]): string {
+  return skillBarInspectionStacks(skills)
+    .map(
+      ({ root, children }) =>
+        `<div class="skill-bar-inspection-skill-stack">
+          ${inspectionSkillSlotHtml(root)}
+          ${children
+            .map(
+              (child) =>
+                `<div class="skill-bar-inspection-chain-step">
+                  <span class="weapon-chain-arrow" aria-hidden="true">&#8627;</span>
+                  ${inspectionSkillSlotHtml(child, true)}
+                </div>`,
+            )
+            .join("")}
+        </div>`,
+    )
+    .join("");
+}
+
 function multiSelectionInspectionGroupHtml(
   app: ProfessionAppState,
   group: ProfessionSkillBarGroup,
@@ -98,20 +164,12 @@ function multiSelectionInspectionGroupHtml(
     .join("");
   const skillSlots = group.skillIds
     .map((id) => app.skillById.get(Number(id)))
-    .filter((skill) => skill != null)
-    .map(
-      (skill) => `<div class="skill-bar-inspection-slot">
-          <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}">
-              <img src="${esc(skill.icon || "")}" alt="">
-          </div>
-      </div>`,
-    )
-    .join("");
+    .filter((skill): skill is Skill => skill != null);
   return `<div class="skill-bar-inspection-group${
     group.className ? ` ${esc(group.className)}` : ""
   }" style="--inspection-color:${esc(group.color || "var(--accent)")}">
       <span class="skill-bar-inspection-label">${esc(group.label)}</span>
-      <div class="skill-bar-inspection-skills">${selectionSlots}${skillSlots}</div>
+      <div class="skill-bar-inspection-skills">${selectionSlots}${inspectionSkillStacksHtml(skillSlots)}</div>
   </div>`;
 }
 
@@ -158,7 +216,7 @@ export function renderSkills(app: ProfessionAppState): void {
   const set2Skills = skillsForSet(app.build.alternateWeapons);
   const weaponIcon = (skill: Skill, chained = false): string =>
     `<div class="wskill ${chained ? "chain-skill" : "main"}" title="${esc(skill.name)}\n${esc(gw2ApiText(skill.description))}">
-            <img src="${esc(skill.icon)}" alt=""><span class="wslot-num">${esc(String(skill.slot).replace("Weapon_", ""))}</span>
+            <img src="${esc(skill.icon)}" alt="">${skill.variantBadge ? `<span class="skill-variant-badge wskill-variant-badge">${esc(skill.variantBadge)}</span>` : ""}<span class="wslot-num">${esc(String(skill.slot).replace("Weapon_", ""))}</span>
         </div>`;
   const weaponSlots = (skills: readonly Skill[]): string => {
     const bySlot = new Map<string, Skill[]>();
@@ -257,6 +315,9 @@ export function renderSkills(app: ProfessionAppState): void {
                       (entry) =>
                         String(entry.value) === String(group.selectionValue),
                     );
+                    const displaySkills = group.skillIds
+                      .map((id) => app.skillById.get(Number(id)))
+                      .filter((skill): skill is Skill => skill != null);
                     const displayEntries = selectedEntry
                       ? [
                           {
@@ -265,9 +326,7 @@ export function renderSkills(app: ProfessionAppState): void {
                             description: selectedEntry.description,
                           },
                         ]
-                      : group.skillIds
-                          .map((id) => app.skillById.get(Number(id)))
-                          .filter((skill) => skill != null);
+                      : displaySkills;
                     const selectable =
                       group.selectionKey &&
                       Number.isInteger(Number(group.selectionIndex)) &&
@@ -277,16 +336,21 @@ export function renderSkills(app: ProfessionAppState): void {
                     }"
                         style="--inspection-color:${esc(group.color || "var(--accent)")}">
                         <span class="skill-bar-inspection-label">${esc(group.label)}</span>
-                        <div class="skill-bar-inspection-skills">${displayEntries
-                          .map(
-                            (skill) => `<div class="skill-bar-inspection-slot${
-                              selectable ? " selectable" : ""
-                            }"${
-                              selectable
-                                ? ` data-selection-key="${esc(group.selectionKey)}"
+                        <div class="skill-bar-inspection-skills">${
+                          !selectable && !selectedEntry
+                            ? inspectionSkillStacksHtml(displaySkills)
+                            : displayEntries
+                                .map(
+                                  (
+                                    skill,
+                                  ) => `<div class="skill-bar-inspection-slot${
+                                    selectable ? " selectable" : ""
+                                  }"${
+                                    selectable
+                                      ? ` data-selection-key="${esc(group.selectionKey)}"
                                     data-selection-index="${Number(group.selectionIndex)}"`
-                                : ""
-                            }>
+                                      : ""
+                                  }>
                                 <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}">
                                     <img src="${esc(skill.icon || "")}" alt="">
                                 </div>
@@ -309,8 +373,9 @@ export function renderSkills(app: ProfessionAppState): void {
                                     : ""
                                 }
                             </div>`,
-                          )
-                          .join("")}
+                                )
+                                .join("")
+                        }
                         </div>
                     </div>`;
                   })

@@ -281,6 +281,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.DECAPITATE]: {
     implemented: true,
+    cooldown: 0,
+    recharge: 0,
     castTimeMs: 750,
     effects: [
       {

@@ -41,12 +41,17 @@ export interface WarriorCoreState {
   resource: number;
   maximumAdrenaline: number;
   lastResourceAt: number;
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
   autoattackChains: Record<string, SkillId>;
   availableFlips: Record<string, number | boolean | SchedulerRecord>;
   burstPowerExpiries: number[];
   signetMasteryExpiries: number[];
   targetControlledUntil: number;
   soldierFocusReadyAt: number;
+  empowerAlliesNextAt: number;
+  burstHitActivations: Record<string, boolean>;
   traitProcReadyAt: Record<string, number>;
 }
 
@@ -64,13 +69,29 @@ export interface BladeswornState {
   flow: number;
   maximumFlow: number;
   flowUpdatedAt: number;
+  flowStabilizerUntil: number;
+  traitPositiveFlowUntil: number;
+  gunsaberSwapTraitReadyAt: number;
   gunsaberActive: boolean;
   dragonTriggerActive: boolean;
   dragonTriggerStartedAt: number;
+  dragonTriggerChargeDeadline: number;
   nextDragonChargeAt: number;
   dragonCharges: number;
+  dragonChargesPerInterval: number;
+  tacticalReloadUntil: number;
+  overchargedCartridgeWindows: Array<{
+    startedAt: number;
+    expiresAt: number;
+    damageBonus: number;
+    burningDuration: number;
+    supercharged: boolean;
+  }>;
   fierceAsFireExpiries: number[];
   gunsAndGloryUntil: number;
+  ammoRoundsSpentByActivation: Record<string, number>;
+  ammoStartedFullByActivation: Record<string, boolean>;
+  dragonChargesSpentByActivation: Record<string, number>;
 }
 
 export interface ParagonState {
@@ -106,7 +127,10 @@ export interface WarriorSkill extends Skill {
   readonly burstTier?: number;
   readonly primalBurst?: boolean;
   readonly gunsaberSkill?: boolean;
+  readonly dragonTriggerSkill?: boolean;
+  readonly shadowstepSkill?: boolean;
   readonly dragonSlash?: boolean;
+  readonly dragonSlashMinimumCoefficient?: number;
   readonly dragonSlashMaximumCoefficient?: number;
 }
 

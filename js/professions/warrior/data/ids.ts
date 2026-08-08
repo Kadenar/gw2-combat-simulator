@@ -2,6 +2,7 @@
 // Committed constants keep mechanic references independent from metadata loading.
 
 export const WARRIOR_SKILL_IDS = Object.freeze({
+  DODGE: -5,
   SWAP_WEAPONS: -3,
   EVISCERATE: 14353, // Eviscerate
   THROW_BOLAS: 14354, // Throw Bolas

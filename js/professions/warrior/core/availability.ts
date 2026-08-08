@@ -1,4 +1,6 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
+import { WARRIOR_SKILL_IDS as ID } from "../data/ids.js";
+import { warriorEnduranceReadyAt } from "./resources.js";
 import type { AvailabilityResult } from "../../../platform/engine/types.js";
 import type { WarriorCastContext, WarriorSkill } from "../types.js";
 
@@ -8,6 +10,16 @@ export function warriorCastAvailability(
 ): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = String(context.config.specialization || "Core");
+  if (skill.id === ID.DODGE) {
+    return state.endurance + context.epsilon >= 50
+      ? { ready: true }
+      : {
+          ready: false,
+          retryAt: warriorEnduranceReadyAt(context, 50),
+          code: "warrior.endurance",
+          reason: "Dodge requires 50 endurance.",
+        };
+  }
   if (skill.primalBurst) {
     const active =
       context.state.profession.specialization.kind === "Berserker" &&
@@ -36,6 +48,19 @@ export function warriorCastAvailability(
       code: "warrior.flow",
       reason: "Bladesworn replaces weapon bursts with Dragon Slash.",
     };
+  }
+  const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
+  if (chain) {
+    const expected = state.autoattackChains[chain.root] || chain.root;
+    if (expected !== skill.id) {
+      const expectedSkill = context.catalog.skillsById.get(expected);
+      return {
+        ready: false,
+        retryAt: null,
+        code: "warrior.autoattack-chain",
+        reason: `Cast ${expectedSkill?.name || "the earlier chain skill"} first.`,
+      };
+    }
   }
   const cost = Number(skill.adrenalineCost || 0);
   if (cost > Number(state.adrenaline || 0) + context.epsilon) {

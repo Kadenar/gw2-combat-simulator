@@ -1,0 +1,14 @@
+[
+  {
+    "section": "Bladesworn",
+    "presets": [
+      {
+        "label": "Power (Axe / Pistol)",
+        "build": "Builds/warrior/b-power-bladesworn-axe-pistol.json",
+        "rotation": "Rotations/warrior/r-power-bladesworn-axe-pistol-bench.json",
+        "benchmarkDps": 41535,
+        "upToDate": true
+      }
+    ]
+  }
+]

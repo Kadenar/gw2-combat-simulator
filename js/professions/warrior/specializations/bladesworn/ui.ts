@@ -14,10 +14,13 @@ const PROFESSION_SKILLS = Object.freeze([
   ID.UNSHEATHE_GUNSABER,
   ID.SHEATHE_GUNSABER,
   ID.DRAGON_TRIGGER,
+]);
+const DRAGON_SLASH_SKILLS = Object.freeze([
   ID.DRAGON_SLASH_FORCE,
   ID.DRAGON_SLASH_BOOST,
   ID.DRAGON_SLASH_REACH,
 ]);
+const DRAGON_TRIGGER_SKILLS = Object.freeze([ID.TRIGGERGUARD, ID.FLICKER_STEP]);
 const GUNSABER_SKILLS = Object.freeze([
   ID.SWIFT_CUT,
   ID.STEEL_DIVIDE,
@@ -53,6 +56,18 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
   paletteGroups: (context: WarriorUiContext) => [
     ...warriorPaletteGroups(context, PROFESSION_SKILLS),
     {
+      id: "dragon-slash",
+      label: "Dgn",
+      skillIds: DRAGON_SLASH_SKILLS,
+      color: "#d56f55",
+    },
+    {
+      id: "dragon-trigger",
+      label: "Dgn+",
+      skillIds: DRAGON_TRIGGER_SKILLS,
+      color: "#ba5f5f",
+    },
+    {
       id: "gunsaber",
       label: "Gun",
       skillIds: GUNSABER_SKILLS,
@@ -61,6 +76,18 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
   ],
   skillBarGroups: (context: WarriorUiContext) => [
     ...warriorSkillBarGroups(context, PROFESSION_SKILLS),
+    {
+      id: "warrior-dragon-slash",
+      label: "Dragon Slash",
+      skillIds: DRAGON_SLASH_SKILLS,
+      color: "#d56f55",
+    },
+    {
+      id: "warrior-dragon-trigger",
+      label: "Dragon Trigger",
+      skillIds: DRAGON_TRIGGER_SKILLS,
+      color: "#ba5f5f",
+    },
     {
       id: "warrior-gunsaber",
       label: "Gunsaber",

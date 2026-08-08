@@ -8,6 +8,8 @@ import {
   professionOptions,
 } from "../../../js/app/profession/registry.js";
 import { professionRoute } from "../../../js/app/profession/selector.js";
+import { skillBarInspectionStacks } from "../../../js/app/build/skills-panel.js";
+import { autoattackChainSkillAvailable } from "../../../js/app/rotation/palette-model.js";
 import { activeResourceGroup } from "../../../js/app/rotation/resource-view.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
@@ -20,6 +22,10 @@ import {
   warriorCatalog,
 } from "../../../js/professions/warrior/catalog.js";
 import { warriorCoreModule } from "../../../js/professions/warrior/core/module.js";
+import {
+  recalculate,
+  runSimulation,
+} from "../../../js/professions/warrior/app/app-definition.js";
 import { createWarriorCoreState } from "../../../js/professions/warrior/core/state.js";
 import { DATA_SNAPSHOT } from "../../../js/professions/warrior/data/warrior-api-metadata.js";
 import {
@@ -71,7 +77,7 @@ test("Warrior catalog pins the API snapshot and all elite specializations", () =
   assert.equal(DATA_SNAPSHOT, "2026-08-08");
   assert.equal(warriorCatalog.specializations.length, 9);
   assert.equal(warriorCatalog.traits.length, 108);
-  assert.equal(warriorCatalog.skills.length, 208);
+  assert.equal(warriorCatalog.skills.length, 209);
   assert.deepEqual(WARRIOR_ELITE_SPECIALIZATIONS, [
     "Berserker",
     "Spellbreaker",
@@ -197,9 +203,13 @@ test("Warrior F keys follow the selected primary weapons", () => {
         alternateWeapons,
       },
     };
+    const paletteGroups = warriorProfession.ui.paletteGroups(context);
+    const skillBarGroups = warriorProfession.ui.skillBarGroups(context);
     return {
-      palette: warriorProfession.ui.paletteGroups(context)[0].skillIds,
-      skillBar: warriorProfession.ui.skillBarGroups(context)[0].skillIds,
+      palette: paletteGroups[0].skillIds,
+      paletteGroups,
+      skillBar: skillBarGroups[0].skillIds,
+      skillBarGroups,
     };
   };
 
@@ -242,11 +252,24 @@ test("Warrior F keys follow the selected primary weapons", () => {
     ID.UNSHEATHE_GUNSABER,
     ID.SHEATHE_GUNSABER,
     ID.DRAGON_TRIGGER,
+  ]);
+  assert.deepEqual(bladesworn.skillBar, bladesworn.palette);
+  const dragonSlashSkills = [
     ID.DRAGON_SLASH_FORCE,
     ID.DRAGON_SLASH_BOOST,
     ID.DRAGON_SLASH_REACH,
-  ]);
-  assert.deepEqual(bladesworn.skillBar, bladesworn.palette);
+  ];
+  assert.deepEqual(
+    bladesworn.paletteGroups.find((group) => group.id === "dragon-slash")
+      .skillIds,
+    dragonSlashSkills,
+  );
+  assert.deepEqual(
+    bladesworn.skillBarGroups.find(
+      (group) => group.id === "warrior-dragon-slash",
+    ).skillIds,
+    dragonSlashSkills,
+  );
 
   const duplicate = groups("Core", ["Sword", "Sword"], ["Sword", ""]);
   assert.deepEqual(duplicate.palette, [ID.BLOODTHIRSTER]);
@@ -343,6 +366,86 @@ test("Bladesworn palette availability follows gunsaber and Dragon Trigger state"
     availability(charging.endState.profession, ID.DRAGON_SLASH_FORCE),
     { available: true, message: "" },
   );
+});
+
+test("Bladesworn gunsaber autos follow the standard autoattack chain display", () => {
+  const chain = [ID.SWIFT_CUT, ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST];
+  assert.deepEqual(
+    warriorCatalog.autoattackChains.find(
+      (candidate) => candidate[0] === ID.SWIFT_CUT,
+    ),
+    chain,
+  );
+  const gunsaberGroup = warriorProfession.ui
+    .skillBarGroups({
+      specialization: "Bladesworn",
+      build: createWarriorBuildDefaults(),
+    })
+    .find((group) => group.id === "warrior-gunsaber");
+  assert.deepEqual(
+    skillBarInspectionStacks(
+      gunsaberGroup.skillIds.map((skillId) =>
+        warriorCatalog.skillsById.get(skillId),
+      ),
+    ).map(({ root, children }) => [root.id, children.map((skill) => skill.id)]),
+    [
+      [ID.SWIFT_CUT, [ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST]],
+      [ID.BLOOMING_FIRE, []],
+      [ID.ARTILLERY_SLASH, []],
+      [ID.CYCLONE_TRIGGER, []],
+      [ID.BREAK_STEP, []],
+    ],
+  );
+
+  const displayedSteps = (rotation) => {
+    const result = simulate("Bladesworn", ["Unsheathe Gunsaber", ...rotation], {
+      initialResource: 100,
+    });
+    return chain.map((skillId) =>
+      autoattackChainSkillAvailable(
+        warriorCatalog.skillsById.get(skillId),
+        result.endState.profession.autoattackChains,
+      ),
+    );
+  };
+
+  assert.deepEqual(displayedSteps([]), [true, false, false]);
+  assert.deepEqual(displayedSteps(["Swift Cut"]), [false, true, false]);
+  assert.deepEqual(displayedSteps(["Swift Cut", "Steel Divide"]), [
+    false,
+    false,
+    true,
+  ]);
+  assert.deepEqual(
+    displayedSteps(["Swift Cut", "Steel Divide", "Explosive Thrust"]),
+    [true, false, false],
+  );
+  assert.deepEqual(displayedSteps(["Swift Cut", "Blooming Fire"]), [
+    true,
+    false,
+    false,
+  ]);
+
+  const skippedFirstStep = simulate(
+    "Bladesworn",
+    ["Unsheathe Gunsaber", "Steel Divide"],
+    { initialResource: 100 },
+  );
+  assert.match(skippedFirstStep.warnings[0], /Cast Swift Cut first/);
+
+  const skippedSecondStep = simulate(
+    "Bladesworn",
+    ["Unsheathe Gunsaber", "Swift Cut", "Explosive Thrust"],
+    { initialResource: 100 },
+  );
+  assert.match(skippedSecondStep.warnings[0], /Cast Steel Divide first/);
+
+  const resetChain = simulate(
+    "Bladesworn",
+    ["Unsheathe Gunsaber", "Swift Cut", "Blooming Fire", "Steel Divide"],
+    { initialResource: 100 },
+  );
+  assert.match(resetChain.warnings[0], /Cast Swift Cut first/);
 });
 
 test("Warrior adrenaline renders one bar for each ten adrenaline", () => {
@@ -463,7 +566,7 @@ test("Bladesworn gates gunsaber and Dragon Slash state", () => {
   assert.equal(result.totalDamage > 0, true);
   assert.equal(
     result.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    5750,
+    3709,
   );
 });
 
@@ -476,7 +579,7 @@ test("Bladesworn automatically releases Dragon Slash at the requested charge cou
   assert.deepEqual(full.warnings, []);
   assert.equal(
     full.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    5250,
+    2750,
   );
   assert.equal(
     full.events.find(
@@ -494,14 +597,15 @@ test("Bladesworn automatically releases Dragon Slash at the requested charge cou
   assert.deepEqual(partial.warnings, []);
   assert.equal(
     partial.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    1750,
+    1000,
   );
   assert.ok(
     Math.abs(
       partial.events.find(
         (event) =>
           event.type === "damage" && event.skillId === ID.DRAGON_SLASH_FORCE,
-      ).coefficient - 6.12,
+      ).coefficient -
+        (1.16 + (20.4 - 1.16) * (2 / 9)),
     ) < 1e-9,
   );
 });
@@ -515,7 +619,7 @@ test("Daring Dragon automatically releases at its five-charge maximum", () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(
     result.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    2750,
+    1500,
   );
   assert.equal(
     result.events.find(
@@ -533,14 +637,16 @@ test("Bladesworn reports when the requested Dragon Slash charge is unreachable",
     { initialResource: 30 },
   );
   assert.equal(result.warnings.length, 1);
-  assert.match(result.warnings[0], /needs 100 Flow to reach 10 charges/);
+  assert.match(result.warnings[0], /could not reach 10 charges/);
+  assert.match(result.warnings[0], /reached 7/);
 });
 
 test("Bladesworn preserves partial charge time across fragmented advancement", () => {
   const state = createBladeswornState({ initialResource: 100 });
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = 0;
-  state.nextDragonChargeAt = 0.5;
+  state.dragonTriggerChargeDeadline = 2.5;
+  state.nextDragonChargeAt = 0.25;
   const context = {
     epsilon: 1e-9,
     config: {},
@@ -551,17 +657,17 @@ test("Bladesworn preserves partial charge time across fragmented advancement", (
     },
   };
 
-  for (const target of [0.1, 0.2, 0.3, 0.4, 0.49]) {
+  for (const target of [0.05, 0.1, 0.15, 0.2, 0.24]) {
     advanceBladesworn(context, target);
   }
   assert.equal(state.dragonCharges, 0);
-  advanceBladesworn(context, 0.5);
+  advanceBladesworn(context, 0.25);
   assert.equal(state.dragonCharges, 1);
-  for (let target = 0.6; target <= 5; target += 0.1) {
-    advanceBladesworn(context, Number(target.toFixed(1)));
+  for (let target = 0.5; target <= 2.5; target += 0.25) {
+    advanceBladesworn(context, Number(target.toFixed(2)));
   }
   assert.equal(state.dragonCharges, 10);
-  assert.equal(state.flow, 0);
+  assert.equal(state.flow, 54.5);
 });
 
 test("Bladesworn gunsaber skills expose icons and current PvE ammo", () => {
@@ -591,6 +697,8 @@ test("Bladesworn gunsaber skills expose icons and current PvE ammo", () => {
     [ID.ARTILLERY_SLASH, 2, 15],
     [ID.CYCLONE_TRIGGER, 2, 20],
     [ID.BREAK_STEP, 2, 20],
+    [ID.FLICKER_STEP, 3, 20],
+    [ID.TRIGGERGUARD, 2, 30],
   ]) {
     const skill = warriorCatalog.skillsById.get(skillId);
     assert.equal(skill.ammo, ammo);
@@ -608,7 +716,307 @@ test("Bladesworn gunsaber skills expose icons and current PvE ammo", () => {
     ammoResult.steps
       .filter((step) => step.skill === "Blooming Fire")
       .map((step) => step.start),
-    [0, 750, 10_750],
+    [0, 2903, 10_903],
+  );
+});
+
+test("Bladesworn gunsaber packets use the requested coefficients and explosion tag", () => {
+  const result = simulate(
+    "Bladesworn",
+    [
+      ID.UNSHEATHE_GUNSABER,
+      ID.SWIFT_CUT,
+      ID.STEEL_DIVIDE,
+      ID.EXPLOSIVE_THRUST,
+      ID.BLOOMING_FIRE,
+      ID.CYCLONE_TRIGGER,
+      ID.BREAK_STEP,
+    ],
+    { initialResource: 100 },
+  );
+  assert.deepEqual(result.warnings, []);
+  const damage = result.events.filter((event) => event.type === "damage");
+  assert.deepEqual(
+    damage.map((event) => Number(event.coefficient.toFixed(6))),
+    [0.9, 0.255, 1.1, 0.255, 1.35, 0.408, 0.8, 0.4, 0.4, 0.4, 2.5, 0.5],
+  );
+  assert.equal(
+    damage.every((event) => event.damageKind === "explosion"),
+    true,
+  );
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.type === "buff" && event.kind === "aegis" && event.duration === 3,
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.type === "buff" && event.kind === "fury" && event.duration === 5,
+    ),
+    true,
+  );
+});
+
+test("Bladesworn ammo lockouts, all-count attacks, and reloads are modeled", () => {
+  const artillery = simulate(
+    "Bladesworn",
+    [
+      ID.UNSHEATHE_GUNSABER,
+      ID.ARTILLERY_SLASH,
+      ID.TACTICAL_RELOAD,
+      ID.ARTILLERY_SLASH,
+    ],
+    { initialResource: 100 },
+  );
+  assert.deepEqual(artillery.warnings, []);
+  assert.deepEqual(
+    artillery.steps
+      .filter((step) => step.skill === "Artillery Slash")
+      .map((step) => step.start),
+    [0, 3022],
+  );
+  assert.deepEqual(
+    artillery.events
+      .filter(
+        (event) =>
+          event.type === "damage" && event.skillId === ID.ARTILLERY_SLASH,
+      )
+      .map((event) => event.coefficient),
+    [3, 2],
+  );
+  assert.equal(
+    artillery.events.some(
+      (event) =>
+        event.type === "control" &&
+        event.skillId === ID.ARTILLERY_SLASH &&
+        event.controlKind === "daze",
+    ),
+    true,
+  );
+  assert.equal(
+    artillery.events.find(
+      (event) =>
+        event.type === "action" && event.skillId === ID.ARTILLERY_SLASH,
+    ).rechargeReadyAt,
+    16.022,
+  );
+
+  const pistol = simulate(
+    "Bladesworn",
+    [ID.DRAGONS_ROAR, ID.GUNSTINGER, ID.DRAGONS_ROAR],
+    { primaryWeapon: "Pistol", secondaryWeapon: "Pistol" },
+  );
+  assert.deepEqual(pistol.warnings, []);
+  assert.deepEqual(
+    pistol.steps.map((step) => step.start),
+    [0, 840, 1840],
+  );
+  const roarPackets = pistol.events.filter(
+    (event) => event.type === "damage" && event.skillId === ID.DRAGONS_ROAR,
+  );
+  assert.equal(roarPackets.length, 9);
+  assert.equal(
+    roarPackets.every(
+      (event) => event.coefficient === 0.75 && event.damageKind === "explosion",
+    ),
+    true,
+  );
+  assert.equal(
+    pistol.events.find(
+      (event) => event.type === "action" && event.skillId === ID.DRAGONS_ROAR,
+    ).rechargeReadyAt,
+    5.84,
+  );
+  assert.equal(
+    pistol.events.some(
+      (event) =>
+        event.type === "condition" &&
+        event.skillId === ID.GUNSTINGER &&
+        event.condition === "Vulnerability" &&
+        event.stacks === 5 &&
+        event.duration === 8,
+    ),
+    true,
+  );
+  assert.equal(warriorCatalog.skillsById.get(ID.GUNSTINGER).cooldown, 15);
+  assert.equal(warriorCatalog.skillsById.get(ID.GUNSTINGER).ammo, 0);
+});
+
+test("Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow", () => {
+  const baseline = simulate(
+    "Bladesworn",
+    [{ type: "wait", durationMs: 9000 }],
+    { initialResource: 0 },
+  );
+  assert.equal(baseline.endState.profession.flow, 18);
+
+  const stabilized = simulate(
+    "Bladesworn",
+    [ID.FLOW_STABILIZER, { type: "wait", durationMs: 8500 }],
+    { initialResource: 0 },
+  );
+  assert.equal(stabilized.endState.profession.flow, 50);
+  assert.equal(
+    stabilized.events.some(
+      (event) =>
+        event.type === "buff" &&
+        event.kind === "positive-flow" &&
+        event.stacks === 2 &&
+        event.duration === 8,
+    ),
+    true,
+  );
+
+  const converted = simulate("Bladesworn", [ID.SIGNET_OF_FURY], {
+    initialResource: 0,
+  });
+  assert.equal(converted.endState.profession.flow, 31);
+
+  const accelerated = simulate(
+    "Bladesworn",
+    [ID.TACTICAL_RELOAD, ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE],
+    { initialResource: 100 },
+  );
+  assert.deepEqual(accelerated.warnings, []);
+  assert.equal(
+    accelerated.steps.find((step) => step.skill.startsWith("Dragon Slash"))
+      .start,
+    2328,
+  );
+});
+
+test("Dragon Slash scales from each minimum to maximum coefficient", () => {
+  for (const [skillId, minimum, maximum] of [
+    [ID.DRAGON_SLASH_FORCE, 1.16, 20.4],
+    [ID.DRAGON_SLASH_BOOST, 0.92, 16.3],
+    [ID.DRAGON_SLASH_REACH, 0.56, 10.21],
+  ]) {
+    const partial = simulate(
+      "Bladesworn",
+      [ID.DRAGON_TRIGGER, { skillId, releaseAtCharges: 1 }],
+      { initialResource: 100 },
+    );
+    const full = simulate("Bladesworn", [ID.DRAGON_TRIGGER, skillId], {
+      initialResource: 100,
+    });
+    assert.equal(
+      partial.events.find(
+        (event) => event.type === "damage" && event.skillId === skillId,
+      ).coefficient,
+      minimum,
+    );
+    assert.equal(
+      full.events.find(
+        (event) => event.type === "damage" && event.skillId === skillId,
+      ).coefficient,
+      maximum,
+    );
+  }
+});
+
+test("Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown reset", () => {
+  const utility = simulate(
+    "Bladesworn",
+    [ID.DRAGON_TRIGGER, ID.TRIGGERGUARD, ID.FLICKER_STEP],
+    { initialResource: 100 },
+  );
+  assert.deepEqual(utility.warnings, []);
+  assert.equal(
+    utility.events.some(
+      (event) =>
+        event.type === "buff" && event.kind === "aegis" && event.duration === 2,
+    ),
+    true,
+  );
+  assert.equal(
+    warriorCatalog.skillsById.get(ID.FLICKER_STEP).shadowstepSkill,
+    true,
+  );
+
+  const reset = simulate(
+    "Bladesworn",
+    [
+      ID.DRAGON_TRIGGER,
+      { skillId: ID.DRAGON_SLASH_FORCE, releaseAtCharges: 1 },
+      ID.DRAGONSPIKE_MINE,
+      ID.DRAGON_TRIGGER,
+      { skillId: ID.DRAGON_SLASH_FORCE, releaseAtCharges: 1 },
+    ],
+    { initialResource: 100 },
+  );
+  assert.deepEqual(reset.warnings, []);
+  assert.deepEqual(
+    reset.steps
+      .filter((step) => step.skill === "Dragon Trigger")
+      .map((step) => step.start),
+    [0, 3021],
+  );
+  assert.equal(
+    reset.events.some(
+      (event) =>
+        event.type === "damage" &&
+        event.skillId === ID.DRAGONSPIKE_MINE &&
+        event.damageKind === "explosion",
+    ),
+    true,
+  );
+});
+
+test("Overcharged Cartridges buffs explosion damage and burning", () => {
+  const strikeDamage = (result) =>
+    result.resolvedEvents
+      .filter(
+        (event) => event.type === "damage" && event.skillId === ID.SWIFT_CUT,
+      )
+      .reduce((sum, event) => sum + event.damage, 0);
+  const base = simulate("Bladesworn", [ID.UNSHEATHE_GUNSABER, ID.SWIFT_CUT], {
+    initialResource: 100,
+    stats: { precision: 0, ferocity: 0 },
+    target: { conditions: {} },
+  });
+  const overcharged = simulate(
+    "Bladesworn",
+    [ID.OVERCHARGED_CARTRIDGES, ID.UNSHEATHE_GUNSABER, ID.SWIFT_CUT],
+    {
+      initialResource: 100,
+      stats: { precision: 0, ferocity: 0 },
+      target: { conditions: {} },
+    },
+  );
+  const supercharged = simulate(
+    "Bladesworn",
+    [
+      ID.OVERCHARGED_CARTRIDGES,
+      ID.OVERCHARGED_CARTRIDGES,
+      ID.UNSHEATHE_GUNSABER,
+      ID.SWIFT_CUT,
+    ],
+    {
+      initialResource: 100,
+      stats: { precision: 0, ferocity: 0 },
+      target: { conditions: {} },
+    },
+  );
+  assert.ok(
+    Math.abs(strikeDamage(overcharged) / strikeDamage(base) - 1.15) < 1e-9,
+  );
+  assert.ok(
+    Math.abs(strikeDamage(supercharged) / strikeDamage(base) - 1.2) < 1e-9,
+  );
+  assert.deepEqual(
+    overcharged.events
+      .filter((event) => event.condition === "Burning")
+      .map((event) => event.duration),
+    [3, 3],
+  );
+  assert.deepEqual(
+    supercharged.events
+      .filter((event) => event.condition === "Burning")
+      .map((event) => event.duration),
+    [5, 5],
   );
 });
 
@@ -621,6 +1029,276 @@ test("Paragon chants consume adrenaline and start a refrain", () => {
   assert.equal(result.endState.profession.adrenaline, 0);
   assert.equal(result.endState.profession.motivation, 2);
   assert.equal(result.endState.profession.activeRefrain, "Chant of Action");
+});
+
+test("Bladesworn swap and Dragon Trigger traits use supplied behavior", () => {
+  const swap = simulate(
+    "Bladesworn",
+    ["Unsheathe Gunsaber", { type: "wait", durationMs: 5000 }],
+    {
+      initialResource: 0,
+      selectedTraitIds: [TRAIT.UNSEEN_SWORD],
+    },
+  );
+  assert.equal(
+    swap.events.find((event) => event.name === "Unseen Sword").coefficient,
+    1.2,
+  );
+  assert.equal(
+    swap.events.find((event) => event.kind === "positive-flow").duration,
+    5,
+  );
+  assert.equal(swap.endState.profession.flow, 20);
+
+  const trigger = simulate(
+    "Bladesworn",
+    ["Dragon Trigger", "Dragon Slash—Force"],
+    {
+      initialResource: 100,
+      selectedTraitIds: [
+        TRAIT.DRAGONSCALE_DEFENSE,
+        TRAIT.UNYIELDING_DRAGON,
+        TRAIT.DARING_DRAGON,
+      ],
+    },
+  );
+  assert.deepEqual(trigger.warnings, []);
+  assert.equal(
+    trigger.events.some(
+      (event) => event.kind === "stability" && event.duration === 3,
+    ),
+    true,
+  );
+  assert.equal(
+    trigger.events.some(
+      (event) => event.controlKind === "stun" && event.duration === 1,
+    ),
+    true,
+  );
+  assert.equal(
+    trigger.events.some(
+      (event) =>
+        event.kind === "alacrity" &&
+        event.duration === 10 &&
+        event.recipients === "party",
+    ),
+    true,
+  );
+});
+
+test("Bladesworn ammunition and explosion traits retain stack chronology", () => {
+  const result = simulate(
+    "Bladesworn",
+    ["Unsheathe Gunsaber", "Blooming Fire"],
+    {
+      initialResource: 100,
+      selectedTraitIds: [
+        TRAIT.FIERCE_AS_FIRE,
+        TRAIT.LUSH_FOREST,
+        TRAIT.GUNS_AND_GLORY,
+      ],
+    },
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.kind === "fierce-as-fire" &&
+        event.stacks === 1 &&
+        event.duration === 15,
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.type === "proc" && event.sourceId === TRAIT.LUSH_FOREST,
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.filter((event) => event.kind === "guns-and-glory").at(-1)
+      .duration,
+    12,
+  );
+});
+
+test("Strength and Tactics traits react to dodge, burst, cripple, and control", () => {
+  const result = simulate(
+    "Core",
+    ["Dodge", "Eviscerate", "Throw Bolas", "Stomp"],
+    {
+      initialResource: 30,
+      selectedTraitIds: [
+        TRAIT.RECKLESS_DODGE,
+        TRAIT.BUILDING_MOMENTUM,
+        TRAIT.BERSERKERS_POWER,
+        TRAIT.MARCHING_ORDERS,
+        TRAIT.SOLDIERS_COMFORT,
+        TRAIT.LEG_SPECIALIST,
+        TRAIT.BODY_BLOW,
+        TRAIT.AGGRESSIVE_ONSLAUGHT,
+      ],
+    },
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.find((event) => event.name === "Reckless Dodge").coefficient,
+    1.5,
+  );
+  assert.equal(
+    result.events.find(
+      (event) => event.type === "damage" && event.skillId === ID.EVISCERATE,
+    ).coefficient,
+    3,
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.kind === "berserkers-power" && event.stacks === 4,
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.name === "Soldier's Focus — Might" && event.stacks === 3,
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.name === "Soldier's Comfort" && event.duration === 4,
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.name === "Body Blow — Weakness" && event.duration === 3,
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.some(
+      (event) => event.name === "Aggressive Onslaught" && event.duration === 3,
+    ),
+    true,
+  );
+  assert.ok(result.endState.profession.endurance > 50);
+});
+
+test("Axe packets and burst coefficients use the supplied PvE values", () => {
+  assert.deepEqual(
+    [ID.CHOP, ID.DOUBLE_CHOP, ID.TRIPLE_CHOP].map((skillId) =>
+      warriorCatalog.skillsById
+        .get(skillId)
+        .effects.filter((effect) => effect.type === "strike")
+        .map((effect) => [effect.coefficient, effect.hits]),
+    ),
+    [
+      [[0.7, 1]],
+      [
+        [0.45, 1],
+        [1.05, 1],
+      ],
+      [
+        [1.5, 2],
+        [1.6, 1],
+      ],
+    ],
+  );
+  const throwAxe = warriorCatalog.skillsById.get(ID.THROW_AXE);
+  assert.deepEqual(
+    [throwAxe.ammo, throwAxe.recharge, throwAxe.ammoRecharge],
+    [2, 1, 10],
+  );
+  assert.equal(warriorCatalog.skillsById.get(ID.CYCLONE_AXE).cooldown, 6);
+  assert.equal(warriorCatalog.skillsById.get(ID.DUAL_STRIKE).cooldown, 12);
+  assert.equal(
+    warriorCatalog.skillsById
+      .get(ID.DUAL_STRIKE)
+      .effects.find((effect) => effect.type === "boon")?.stacks,
+    1,
+  );
+  assert.equal(warriorCatalog.skillsById.get(ID.WHIRLING_AXE).cooldown, 15);
+  assert.equal(warriorCatalog.skillsById.get(ID.EVISCERATE).cooldown, 8);
+  assert.equal(
+    warriorCatalog.skillsById.get(ID.EVISCERATE_ID_14422).cooldown,
+    8,
+  );
+  assert.equal(warriorCatalog.skillsById.get(ID.DECAPITATE).cooldown, 0);
+
+  for (const [resource, coefficient] of [
+    [10, 2],
+    [20, 2.5],
+    [30, 3],
+  ]) {
+    const result = simulate("Core", ["Eviscerate"], {
+      initialResource: resource,
+    });
+    assert.equal(
+      result.events.find((event) => event.type === "damage").coefficient,
+      coefficient,
+    );
+  }
+});
+
+test("Power Bladesworn preset preserves the requested build and executes", async () => {
+  const [raw, savedRotation, manifest] = await Promise.all([
+    readFile(
+      new URL(
+        "../../../Builds/warrior/b-power-bladesworn-axe-pistol.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../../../Rotations/warrior/r-power-bladesworn-axe-pistol-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL("../../../Builds/warrior/manifest.json", import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+  assert.deepEqual(validateWarriorBuild(raw), { valid: true, errors: [] });
+  assert.deepEqual(raw.weapons, ["Axe", "Pistol"]);
+  assert.equal(raw.gear.Leggins, "Assassin's");
+  assert.equal(raw.rune, "Infiltration");
+  assert.equal(raw.relic, "Peitha");
+  assert.equal(raw.food, "Plate of Truffle Steak");
+  assert.equal(raw.utility, "Furious Sharpening Stone");
+  assert.deepEqual(raw.infusions.slice(0, 2), [
+    { stat: "Power", count: 17 },
+    { stat: "Precision", count: 1 },
+  ]);
+  assert.deepEqual(
+    raw.specializations.map(({ name, traits }) => [name, traits]),
+    [
+      ["Strength", "3-3-1"],
+      ["Tactics", "1-1-1"],
+      ["Bladesworn", "1-2-2"],
+    ],
+  );
+  assert.equal(manifest[0].presets[0].benchmarkDps, 41535);
+
+  const build = migrateWarriorBuild({
+    ...raw,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: warriorCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.steps.filter((step) => step.skill === "Dragon Slash—Force").length,
+    14,
+  );
+  assert.ok(result.dps > 0);
 });
 
 test("Warrior is exposed through the shared application registry", async () => {

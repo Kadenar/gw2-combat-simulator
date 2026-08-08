@@ -121,6 +121,12 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
       : "Pig";
     return {
       ...build,
+      rotation: build.rotation.filter(
+        (command) =>
+          command.type !== "cast" ||
+          (command.skillId !== ID.OVERBEARING_SMASH_SECOND_STRIKE &&
+            command.skillId !== "Overbearing Smash (Follow-Up)"),
+      ),
       assumptions,
       selectedPet,
       selectedHammerSkillIds: normalizeRangerHammerSkillIds(

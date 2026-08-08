@@ -93,6 +93,14 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
     rangerCatalog.skillsById.has(ID.OVERBEARING_SMASH_SECOND_STRIKE),
     false,
   );
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.PATH_OF_SCARS_MAX_RANGE).variantBadge,
+    "MAX",
+  );
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.PATH_OF_SCARS).variantBadge,
+    undefined,
+  );
   assert.equal(RANGER_PETS.length, 66);
   assert.equal(
     RANGER_PETS.every(
@@ -221,6 +229,19 @@ test("Ranger builds migrate and validate against the canonical catalog", () => {
   assert.throws(
     () => migrateRangerBuild({ profession: "necromancer" }),
     /Cannot load necromancer build as Ranger/,
+  );
+
+  const withoutLegacyOverbearingStage = migrateRangerBuild({
+    ...defaults,
+    rotation: [
+      "Hammer Strike",
+      { name: "Overbearing Smash (Follow-Up)", skillId: 63201 },
+      "Hammer Slam",
+    ],
+  });
+  assert.deepEqual(
+    withoutLegacyOverbearingStage.rotation.map((command) => command.skillId),
+    [ID.HAMMER_STRIKE, ID.HAMMER_SLAM],
   );
 });
 

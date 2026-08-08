@@ -246,6 +246,7 @@ export function paletteSkillView(
     name: skill.name,
     skillId: skill.id,
     icon: skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON,
+    variantBadge: String(skill.variantBadge || ""),
     title,
     color: unavailable ? "#625a73" : highlighted ? "#f0c766" : "#a88be8",
     disabled: unavailable,

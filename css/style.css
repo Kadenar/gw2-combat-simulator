@@ -1471,7 +1471,8 @@ header .accent {
   margin-bottom: 18px;
 }
 
-.weapon-slot {
+.weapon-slot,
+.skill-bar-inspection-skill-stack {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1523,7 +1524,8 @@ header .accent {
   opacity: 1;
 }
 
-.weapon-chain-step {
+.weapon-chain-step,
+.skill-bar-inspection-chain-step {
   display: flex;
   align-items: center;
   gap: 3px;
@@ -1547,6 +1549,11 @@ header .accent {
   padding: 0 3px;
   border-radius: 3px 0 0 0;
   line-height: 1.3;
+}
+
+.wskill-variant-badge {
+  top: 2px;
+  left: 2px;
 }
 
 /* Skill Bar */
@@ -1717,6 +1724,21 @@ header .accent {
   width: 44px;
   height: 44px;
   border-color: var(--inspection-color);
+}
+
+.skill-bar-inspection-chain-step
+  .skill-bar-inspection-slot.child-skill
+  .sbar-icon {
+  width: 30px;
+  height: 30px;
+  border-width: 1px;
+  opacity: 0.7;
+}
+
+.skill-bar-inspection-chain-step
+  .skill-bar-inspection-slot.child-skill
+  .sbar-icon:hover {
+  opacity: 1;
 }
 
 .skill-bar-inspection-slot.selectable {
@@ -2042,6 +2064,27 @@ header .accent {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.skill-variant-badge {
+  position: absolute;
+  z-index: 3;
+  padding: 1px 3px;
+  border: 1px solid rgba(170, 235, 255, 0.8);
+  border-radius: 3px;
+  background: rgba(9, 44, 62, 0.92);
+  color: #b9efff;
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 9px;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.pal-variant-badge {
+  bottom: 1px;
+  left: 1px;
 }
 
 .pal-skill:hover {
@@ -2541,6 +2584,11 @@ header .accent {
   aspect-ratio: 1;
   display: block;
   border-radius: 3px;
+}
+
+.rot-variant-badge {
+  top: 25px;
+  left: 1px;
 }
 
 .rot-skill:hover {

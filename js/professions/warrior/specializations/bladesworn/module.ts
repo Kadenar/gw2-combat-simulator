@@ -8,12 +8,16 @@ import {
 import { bladeswornAttributeRules, bladeswornCastRules } from "./rules.js";
 import { bladeswornState } from "./state.js";
 import { bladeswornUi } from "./ui.js";
+import { WARRIOR_SKILL_IDS as ID } from "../../data/ids.js";
 
 export const bladeswornModule = defineNativeModule({
   id: "Bladesworn",
   data: createWarriorModuleData("Bladesworn", {
     skillMechanics: BLADESWORN_SKILL_MECHANICS,
     handlers: bladeswornSkillHandlers,
+    autoattackChains: {
+      additional: [[ID.SWIFT_CUT, ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST]],
+    },
   }),
   state: {
     scheduler: bladeswornState.create,

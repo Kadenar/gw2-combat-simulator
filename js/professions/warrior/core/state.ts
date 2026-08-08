@@ -26,12 +26,17 @@ export function createWarriorCoreState(
     resource: adrenaline,
     maximumAdrenaline,
     lastResourceAt: 0,
+    endurance: 100,
+    maximumEndurance: 100,
+    enduranceUpdatedAt: 0,
     autoattackChains: {},
     availableFlips: {},
     burstPowerExpiries: [],
     signetMasteryExpiries: [],
     targetControlledUntil: 0,
     soldierFocusReadyAt: 0,
+    empowerAlliesNextAt: 0,
+    burstHitActivations: {},
     traitProcReadyAt: {},
   };
 }
@@ -47,6 +52,8 @@ export const WARRIOR_PUBLIC_END_STATE_KEYS: readonly (keyof WarriorState)[] =
     "adrenaline",
     "resource",
     "maximumAdrenaline",
+    "endurance",
+    "maximumEndurance",
     "autoattackChains",
     "availableFlips",
     "berserkActive",
@@ -76,6 +83,8 @@ const INACTIVE_DEFAULTS: Readonly<Partial<WarriorState>> = Object.freeze({
   motivation: 0,
   maximumMotivation: 10,
   activeRefrain: "",
+  endurance: 100,
+  maximumEndurance: 100,
 });
 
 export function projectWarriorEndState({

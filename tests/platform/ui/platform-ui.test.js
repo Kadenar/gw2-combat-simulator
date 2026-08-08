@@ -673,6 +673,7 @@ test("palette primitives escape values and render state, ammo, cooldowns, and gr
     skillId: 12345,
     title: 'Title"><bad>',
     icon: 'icon" onerror="bad',
+    variantBadge: "<MAX>",
     color: "#abc",
     disabled: true,
     draggable: true,
@@ -686,6 +687,8 @@ test("palette primitives escape values and render state, ammo, cooldowns, and gr
   assert.match(html, /&lt;5s/);
   assert.match(html, /data-fallback-icon="data:image\/svg\+xml/);
   assert.match(html, /data-skill-id="12345"/);
+  assert.match(html, /skill-variant-badge pal-variant-badge/);
+  assert.match(html, /&lt;MAX&gt;/);
   assert.doesNotMatch(html, /<bad>/);
   assert.doesNotMatch(html, /onerror="bad"/);
   assert.match(
