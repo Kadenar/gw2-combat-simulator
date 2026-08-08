@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  suggestedActivationInterruptMs,
+  validateActivationInterruptMs,
+} from "../../../js/platform/ui/activation-editor.js";
+import {
   buildChartSeries,
   buildPhaseDpsSeries,
   chartValueAt,
@@ -46,6 +50,23 @@ function inertContainer() {
     querySelectorAll: () => [],
   };
 }
+
+test("activation editor suggests and validates manual interruption times", () => {
+  assert.equal(suggestedActivationInterruptMs(920, 1200), 919);
+  assert.equal(suggestedActivationInterruptMs(null, 500), 499);
+  assert.equal(suggestedActivationInterruptMs(0, 0), 1);
+  assert.deepEqual(validateActivationInterruptMs("640", 920), {
+    valid: true,
+    value: 640,
+  });
+  assert.deepEqual(validateActivationInterruptMs("640.4", 920), {
+    valid: true,
+    value: 640,
+  });
+  assert.equal(validateActivationInterruptMs("", 920).valid, false);
+  assert.equal(validateActivationInterruptMs(0, 920).valid, false);
+  assert.equal(validateActivationInterruptMs(920, 920).valid, false);
+});
 
 test("timeline cast details include start, end, and elapsed cast time", () => {
   assert.equal(
@@ -686,6 +707,15 @@ test("timeline canonical entries update, simplify, insert, and reject invalid mo
   });
   assert.equal(
     removeRotationEntryOptions({ name: "One", offset: 100 }, ["offset"]),
+    "One",
+  );
+  assert.equal(
+    updateRotationEntry(
+      { name: "One", interruptMs: 250 },
+      {
+        interruptMs: undefined,
+      },
+    ),
     "One",
   );
 

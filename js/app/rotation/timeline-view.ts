@@ -7,6 +7,11 @@ import {
   timelineSkillCastOrdinals,
   updateRotationEntry,
 } from "../../platform/ui/timeline.js";
+import {
+  closeActivationEditor,
+  openActivationEditor,
+  suggestedActivationInterruptMs,
+} from "../../platform/ui/activation-editor.js";
 import { escapeHtml as esc } from "../../platform/ui/html.js";
 import { activeSpecialization, professionEndState } from "./context.js";
 import {
@@ -94,6 +99,60 @@ function editRotationOption(
   return true;
 }
 
+function editRotationActivation(
+  app: ProfessionAppState,
+  index: number,
+  event?: Event,
+): boolean {
+  const entry = app.build.rotation[index];
+  if (entry === undefined) return false;
+  const item = timelineItem(entry);
+  const explicitSkillId = item.skillId == null ? null : Number(item.skillId);
+  const skill =
+    explicitSkillId !== null && Number.isFinite(explicitSkillId)
+      ? app.skillById.get(explicitSkillId)
+      : app.skillByName.get(item.name);
+  if (!skill) return false;
+
+  const step = app.results?.steps?.find(
+    (candidate) => candidate.ri === index && !candidate.invalid,
+  );
+  const catalogCastMs = Math.round(Number(skill.castTimeMs) || 0);
+  const fullCastMs = Math.round(Number(step?.fullCastMs) || catalogCastMs);
+  const eventTarget = event?.currentTarget;
+  const eventElement = eventTarget instanceof HTMLElement ? eventTarget : null;
+  const anchor =
+    eventElement?.closest<HTMLElement>(".rot-skill") ||
+    document.querySelector<HTMLElement>(
+      `#rotation-timeline .rot-skill[data-idx="${index}"]`,
+    );
+  if (!anchor) return false;
+
+  openActivationEditor({
+    anchor,
+    skillName: String(skill.displayName || skill.name),
+    icon:
+      anchor.querySelector<HTMLImageElement>("img")?.getAttribute("src") ||
+      skill.icon ||
+      undefined,
+    interruptMs: item.interruptMs == null ? null : Number(item.interruptMs),
+    fullCastMs,
+    suggestedInterruptMs: suggestedActivationInterruptMs(
+      fullCastMs,
+      catalogCastMs,
+    ),
+    onApply(interruptMs) {
+      const currentEntry = app.build.rotation[index];
+      if (currentEntry === undefined) return;
+      app.build.rotation[index] = updateRotationEntry(currentEntry, {
+        interruptMs: interruptMs ?? undefined,
+      }) as LegacyRotationItem;
+      app.changed(false);
+    },
+  });
+  return false;
+}
+
 function timelineInteractionOptions(
   app: ProfessionAppState,
 ): TimelineInteractionOptions {
@@ -121,14 +180,15 @@ function timelineInteractionOptions(
         "offset",
         "Offset (ms) from the start of the preceding cast:",
       ),
-    onEditInterrupt: (index) =>
-      editRotationOption(app, index, "interruptMs", "Interrupt time (ms):"),
+    onEditActivation: (index, event) =>
+      editRotationActivation(app, index, event),
     onEditWait: (index) =>
       editRotationOption(app, index, "waitMs", "Wait duration (ms):"),
   };
 }
 
 export function renderTimeline(app: ProfessionAppState): void {
+  closeActivationEditor();
   const element = document.getElementById("rotation-timeline");
   const procElement = document.getElementById("rotation-procs");
   if (!element) return;
@@ -358,9 +418,21 @@ export function renderTimeline(app: ProfessionAppState): void {
           item.interruptMs != null
             ? formatInterruptTimelineBadge(item.interruptMs, time)
             : "";
+        const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
+        const fullCastMs = Math.round(
+          Number(step?.fullCastMs) || catalogCastMs,
+        );
+        const canEditActivation =
+          item.interruptMs != null || fullCastMs > 0 || catalogCastMs > 0;
         rowItems.push(`<div class="rot-skill${item.offset != null ? " rot-concurrent" : ""}${invalid ? " rot-invalid" : ""}" draggable="true"
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
+                    ${
+                      canEditActivation
+                        ? `<button type="button" class="rot-edit-activation" data-idx="${index}"
+                        title="Edit cast behavior" aria-label="Edit ${esc(display)} cast behavior" aria-haspopup="dialog">&#9998;</button>`
+                        : ""
+                    }
                     <span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ""}
                     ${
@@ -507,9 +579,8 @@ export function renderTimeline(app: ProfessionAppState): void {
       ),
     ];
     const key = app.rotationSkillHighlightKey;
-    const active = !!key && skills.some(
-      (skill) => skill.dataset.skillHighlightKey === key,
-    );
+    const active =
+      !!key && skills.some((skill) => skill.dataset.skillHighlightKey === key);
     if (!active) app.rotationSkillHighlightKey = null;
     skills.forEach((skill) => {
       const match = active && skill.dataset.skillHighlightKey === key;

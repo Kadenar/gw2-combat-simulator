@@ -1,7 +1,5 @@
 import { renegadeState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 /**
  * Renegade runtime mechanics.
  *
@@ -285,7 +283,10 @@ export function beginBandTogether(
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       context.emit({
         type: "damage",
-        at: context.start + (hitIndex - 1) * profile.packetInterval,
+        at:
+          context.start +
+          profile.enhancedFirstImpactDelay +
+          (hitIndex - 1) * profile.packetInterval,
         source: "revenant",
         sourceId: skill.id,
         actorType: "player",
@@ -307,9 +308,8 @@ export function beginBandTogether(
       emitCondition(context, skill, {
         at:
           context.start +
-          (effect.condition === "Immobilized"
-            ? profile.enhancedImpactDelay
-            : 0),
+          profile.enhancedFirstImpactDelay +
+          (effect.condition === "Immobilized" ? profile.enhancedImpactSpan : 0),
         condition: String(effect.condition || ""),
         stacks: Number(effect.stacks || 0),
         duration: Number(effect.duration || 0),
@@ -333,11 +333,12 @@ export function observeBandTogetherEffect(
     context.replaceEvent(event, {
       at:
         context.start +
+        profile.enhancedFirstImpactDelay +
         (event.type === "damage"
           ? Math.max(0, Number(event.hitIndex || 1) - 1) *
             profile.packetInterval
           : event.condition === "Immobilized"
-            ? profile.enhancedImpactDelay
+            ? profile.enhancedImpactSpan
             : 0),
     });
     return;
@@ -436,7 +437,10 @@ export function completeBandTogether(
       const profile = MECHANICS.bandTogether.icerazor;
       for (let hitIndex = 0; hitIndex < 3; hitIndex += 1) {
         emitCondition(context, skill, {
-          at: context.start + hitIndex * profile.packetInterval,
+          at:
+            context.start +
+            profile.enhancedFirstImpactDelay +
+            hitIndex * profile.packetInterval,
           condition: "Chilled",
           stacks: 1,
           duration: profile.enhancedChill,

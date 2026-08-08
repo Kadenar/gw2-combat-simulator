@@ -42,7 +42,8 @@ export function swapRevenantLegend(
   );
   state.activeLegendId = other || state.activeLegendId;
   state.activeLoadoutId = state.activeLegendId;
-  state.legendSwapReadyAt = at + Number(context.rechargeDuration || 10);
+  state.legendSwapReadyAt =
+    at + Math.max(0, Number(context.rechargeDuration ?? 10));
   state.energy =
     previousEnergy <= MECHANICS.energy.chargedMistsThreshold &&
     hasRevenantTrait(context.config, TRAIT.CHARGED_MISTS)

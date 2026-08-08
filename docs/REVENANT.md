@@ -24,8 +24,9 @@ are owned by Core or one specialization module.
   condition, control, and boon packets.
 - A profession-owned fixed-bar loadout with exactly two stable legend IDs and
   a validated starting legend.
-- Legend-bar replacement, a ten-second legend-swap cooldown, 50-energy reset,
-  Charged Mists, and swap-sigil triggers that do not change weapon set.
+- Legend-bar replacement, a ten-second in-combat legend-swap cooldown with no
+  cooldown out of combat, 50-energy reset, Charged Mists, and swap-sigil
+  triggers that do not change weapon set.
 - Continuous five-energy-per-second regeneration, explicit skill costs,
   concurrent upkeep, and timestamped starvation cancellation.
 - Herald facet upkeep and consume flips.

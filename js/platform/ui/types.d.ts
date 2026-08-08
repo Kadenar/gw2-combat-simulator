@@ -34,8 +34,10 @@ export interface PaletteGroupView {
   readonly skills?: readonly PaletteSkillView[];
 }
 
-export interface NormalizedPaletteGroup
-  extends Omit<ProfessionPaletteGroup, "skillEntries"> {
+export interface NormalizedPaletteGroup extends Omit<
+  ProfessionPaletteGroup,
+  "skillEntries"
+> {
   readonly skillEntries: SchedulerRecord[];
   readonly reservedSkillIds: readonly number[];
   readonly color: string;
@@ -53,18 +55,9 @@ export type PaletteDragEvent = DragEvent & {
 };
 
 export interface PaletteInteractionHandlers {
-  readonly onActivate?: (
-    name: string,
-    event: PaletteMouseEvent,
-  ) => unknown;
-  readonly onDragStart?: (
-    name: string,
-    event: PaletteDragEvent,
-  ) => unknown;
-  readonly onDragEnd?: (
-    name: string,
-    event: PaletteDragEvent,
-  ) => unknown;
+  readonly onActivate?: (name: string, event: PaletteMouseEvent) => unknown;
+  readonly onDragStart?: (name: string, event: PaletteDragEvent) => unknown;
+  readonly onDragEnd?: (name: string, event: PaletteDragEvent) => unknown;
 }
 
 export interface EventLogDescriptor {
@@ -75,8 +68,7 @@ export interface EventLogDescriptor {
   readonly flags?: string[];
 }
 
-export interface NormalizedEventLogDescriptor
-  extends EventLogDescriptor {
+export interface NormalizedEventLogDescriptor extends EventLogDescriptor {
   readonly className: string;
   readonly order: number;
   readonly flags: string[];
@@ -111,9 +103,7 @@ export interface RotationDragState extends SchedulerRecord {
 export interface TimelineInteractionOptions {
   readonly rotation: Array<LegacyRotationItem | SchedulerRecord>;
   readonly getDragState: () => RotationDragState | null | undefined;
-  readonly setDragState: (
-    value: RotationDragState | null,
-  ) => void;
+  readonly setDragState: (value: RotationDragState | null) => void;
   readonly resolvePaletteEntry?: (
     name: string,
     drag: RotationDragState | null | undefined,
@@ -127,6 +117,7 @@ export interface TimelineInteractionOptions {
   readonly onRemove?: (index: number, event?: Event) => unknown;
   readonly onTruncate?: (index: number, event?: Event) => unknown;
   readonly onEditOffset?: (index: number, event?: Event) => unknown;
+  readonly onEditActivation?: (index: number, event?: Event) => unknown;
   readonly onEditInterrupt?: (index: number, event?: Event) => unknown;
   readonly onEditWait?: (index: number, event?: Event) => unknown;
 }

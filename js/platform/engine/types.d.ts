@@ -261,6 +261,7 @@ export interface Skill extends CatalogSkill {
   readonly ammo?: number;
   readonly ammoRecharge?: number;
   readonly defaultInterruptMs?: number;
+  readonly paletteInterruptMs?: number;
   readonly interruptCommitMs?: number;
   readonly effects?: readonly SkillEffect[];
   readonly handlerId?: string;

@@ -66,6 +66,7 @@ const QUICKNESS_ACTION_RATE = 1.5;
 const ACTION_TICK_MS = 40;
 /** Alacrity increases recharge rate by 25%, so duration is divided by 1.25. */
 const ALACRITY_RECHARGE_RATE = 1.25;
+const OUT_OF_COMBAT_SWAP_SKILLS = new Set(["Swap Weapons", "Swap Legends"]);
 
 /** Rounds a positive duration up to the next server/action interval. */
 function quantizeUp(value: number, interval: number): number {
@@ -248,10 +249,16 @@ export function createGw2SchedulerPolicy(
       return scaleCastBoundTiming(context, skill, effect);
     },
 
-    rechargeDuration(context, _skill, baseDuration) {
+    rechargeDuration(context, skill, baseDuration) {
       const at = Number(
         context.at ?? context.effectiveEnd ?? context.start ?? 0,
       );
+      if (
+        OUT_OF_COMBAT_SWAP_SKILLS.has(skill.name) &&
+        !materializer.isCombatActive()
+      ) {
+        return 0;
+      }
       const rate = context.hasBuff("alacrity", at)
         ? Number(config.alacrityRechargeRate || ALACRITY_RECHARGE_RATE)
         : 1;
