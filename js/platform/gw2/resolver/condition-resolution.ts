@@ -18,7 +18,7 @@ import type {
 
 interface CreateGw2ConditionResolutionOptions {
   readonly reactions: Gw2ResolverReactionRegistry;
-  readonly config: Gw2ResolverRuntime["config"];
+  readonly config?: Gw2ResolverRuntime["config"];
 }
 
 const MOVING_TORMENT = Object.freeze({ base: 22, scaling: 0.06 });
@@ -30,7 +30,7 @@ const CONFUSION_ACTIVATION = Object.freeze({ base: 16.24, scaling: 0.0325 });
  */
 export function createGw2ConditionResolution({
   reactions,
-  config,
+  config = {},
 }: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
   const permanentTargetConditionStacks =
     createPermanentTargetConditionStacks(config);
