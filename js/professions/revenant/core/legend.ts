@@ -45,7 +45,7 @@ export function swapRevenantLegend(
   state.legendSwapReadyAt =
     at + Math.max(0, Number(context.rechargeDuration ?? 10));
   state.energy =
-    previousEnergy <= MECHANICS.energy.chargedMistsThreshold &&
+    Math.floor(previousEnergy) <= MECHANICS.energy.chargedMistsThreshold &&
     hasRevenantTrait(context.config, TRAIT.CHARGED_MISTS)
       ? MECHANICS.energy.chargedMistsSwap
       : MECHANICS.energy.legendSwap;

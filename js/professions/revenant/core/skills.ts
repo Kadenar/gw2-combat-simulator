@@ -2469,8 +2469,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ARCING_MISTS]: {
     implemented: true,
-    castTimeMs: 600,
-    quicknessCastTimeMs: 600,
+    castTimeMs: 680,
+    quicknessCastTimeMs: 680,
     cooldown: 0,
     energyCost: 0,
     effects: [
