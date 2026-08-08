@@ -292,6 +292,8 @@ export interface MesmerConditionEffect extends ConditionEffect {
   readonly condition: string;
   readonly duration: number;
   readonly packetLabel?: string;
+  /** Restricts a phantasm-owned condition to one summoned entity. */
+  readonly phantasmEntityIndex?: number;
 }
 
 export type MesmerDamageGroup = Partial<MesmerStrikeEffect> & {

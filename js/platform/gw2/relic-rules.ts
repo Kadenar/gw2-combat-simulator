@@ -6,7 +6,11 @@
 
 import { EPSILON, isInternalCooldownReady } from "../engine/clock.js";
 import { enqueueOrdered } from "../engine/event-queue.js";
-import { isGw2PlayerActorEvent } from "./event-ownership.js";
+import {
+  GW2_EVENT_ACTOR_TYPES,
+  gw2EventActorType,
+  isGw2PlayerActorEvent,
+} from "./event-ownership.js";
 
 import type { SimulationEvent, Skill } from "../engine/types.js";
 import type {
@@ -644,24 +648,30 @@ const RELIC_RULES: Readonly<
 
   Shackles: defineRelic({
     createState: () => ({ readyAt: 0 }),
-    condition(ctx, state, application) {
+    materializeCondition(ctx, state, application) {
+      const actorType = gw2EventActorType(application);
       if (
         application?.condition !== "Immobilized" ||
-        !isGw2PlayerActorEvent(application) ||
+        (actorType !== GW2_EVENT_ACTOR_TYPES.PLAYER &&
+          actorType !== GW2_EVENT_ACTOR_TYPES.SUMMON) ||
         !isInternalCooldownReady(application.at, state.readyAt)
       ) {
         return;
       }
 
       state.readyAt = application.at + 10;
-      ctx.recordProc(
-        "relic",
-        "Relic of the Shackles",
-        application.at,
-        application.skillName,
-        "tethered",
-      );
-      enqueueOrdered(ctx.queue, {
+      ctx.emitDerived(application, {
+        type: "proc",
+        procType: "relic",
+        at: application.at,
+        name: "Relic of the Shackles",
+        sourceSkill: application.skillName,
+        detail: "tethered",
+        source: "Relic",
+        sourceId: "relic.shackles",
+        actorType: "effect",
+      });
+      ctx.emitDerived(application, {
         type: "damage",
         at: application.at + 5,
         name: "Relic of the Shackles",
@@ -675,6 +685,18 @@ const RELIC_RULES: Readonly<
         actorType: "effect",
         skillWeapon: "Unequipped",
         canCrit: true,
+        triggeredBy: application.skillName,
+      });
+      ctx.emitDerived(application, {
+        type: "control",
+        at: application.at + 5,
+        name: "Relic of the Shackles",
+        skillName: "Relic of the Shackles",
+        controlKind: "stun",
+        duration: 1,
+        source: "Relic",
+        sourceId: "relic.shackles",
+        actorType: "effect",
         triggeredBy: application.skillName,
       });
     },
@@ -816,6 +838,17 @@ export function materializeBoonRelics(
   event: SimulationEvent,
 ): void {
   const handler = relic.rules.materializeBoon;
+  if (typeof handler !== "function") return;
+  handler(ctx, relic.state, event);
+}
+
+/** Materializes condition-triggered effects created by the selected relic. */
+export function materializeConditionRelics(
+  ctx: Gw2RelicMaterializerContext,
+  relic: Gw2RelicRuntime,
+  event: SimulationEvent,
+): void {
+  const handler = relic.rules.materializeCondition;
   if (typeof handler !== "function") return;
   handler(ctx, relic.state, event);
 }

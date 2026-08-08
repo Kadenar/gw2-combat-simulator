@@ -174,7 +174,8 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
     operation: "multiply",
     factor: (context) => (context.config?.target?.boonless ? 1.15 : 1.1),
     order: 100,
-    when: (context) => hasTrait(context, TRAIT.VICIOUS_EXPRESSION),
+    when: (context) =>
+      hasTrait(context, TRAIT.VICIOUS_EXPRESSION) && !illusionSource(context),
   },
   {
     id: "mesmer.empowered-illusions",

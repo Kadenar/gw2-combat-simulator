@@ -232,6 +232,11 @@ export interface Gw2RelicRule {
     state: Gw2RelicState,
     event: SimulationEvent,
   ) => unknown;
+  readonly materializeCondition?: (
+    context: Gw2RelicMaterializerContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+  ) => unknown;
   readonly control?: (
     context: Gw2RelicContext,
     state: Gw2RelicState,

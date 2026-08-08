@@ -1939,6 +1939,11 @@ test("Relic of the Shackles strikes five seconds after immobilize with a strict 
       event.type === "damage"
       && event.skillName === "Relic of the Shackles",
   );
+  const stuns = result.events.filter(
+    event =>
+      event.type === "control"
+      && event.skillName === "Relic of the Shackles",
+  );
 
   assert.deepEqual(
     procs.map(step => ({
@@ -1986,6 +1991,31 @@ test("Relic of the Shackles strikes five seconds after immobilize with a strict 
       {
         at: 15.001,
         coefficient: 3,
+        source: "Relic",
+        triggeredBy: "Fixture Immobilize",
+      },
+    ],
+  );
+  assert.deepEqual(
+    stuns.map(event => ({
+      at: event.at,
+      controlKind: event.controlKind,
+      duration: event.duration,
+      source: event.source,
+      triggeredBy: event.triggeredBy,
+    })),
+    [
+      {
+        at: 5,
+        controlKind: "stun",
+        duration: 1,
+        source: "Relic",
+        triggeredBy: "Fixture Immobilize",
+      },
+      {
+        at: 15.001,
+        controlKind: "stun",
+        duration: 1,
         source: "Relic",
         triggeredBy: "Fixture Immobilize",
       },

@@ -30,7 +30,8 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIFE_REND]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 600,
+    quicknessCastTimeMs: 400,
     effects: [
       {
         type: "strike",
@@ -46,7 +47,8 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIFE_SLASH]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 900,
+    quicknessCastTimeMs: 600,
     effects: [
       {
         type: "strike",
@@ -82,7 +84,8 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.TERRIFY]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 480,
+    quicknessCastTimeMs: 320,
     effects: [
       {
         type: "control",
@@ -135,7 +138,8 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIFE_REAP]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 840,
+    quicknessCastTimeMs: 560,
     effects: [
       {
         type: "strike",
@@ -167,7 +171,8 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SOUL_SPIRAL]: {
     implemented: true,
-    castTimeMs: 2750,
+    castTimeMs: 3240,
+    quicknessCastTimeMs: 2160,
     effects: [
       {
         type: "strike",
@@ -219,7 +224,8 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.EXECUTIONERS_SCYTHE]: {
     implemented: true,
-    castTimeMs: 1250,
+    castTimeMs: 1980,
+    quicknessCastTimeMs: 1320,
     effects: [
       {
         type: "strike",
@@ -276,7 +282,8 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SUFFER]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 0,
+    quicknessCastTimeMs: 0,
     effects: [
       {
         type: "strike",
@@ -314,7 +321,8 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEATHS_CHARGE]: {
     implemented: true,
-    castTimeMs: 1250,
+    castTimeMs: 1800,
+    quicknessCastTimeMs: 1200,
     effects: [
       {
         type: "strike",
@@ -362,17 +370,4 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
     specialization: "Reaper",
     handlerId: "necromancer.shroud",
   },
-});
-
-export const REAPER_QUICKNESS_CAST_TIMES_MS: Readonly<
-  Record<string, number>
-> = Object.freeze({
-  [ID.LIFE_REND]: 400,
-  [ID.SOUL_SPIRAL]: 2160,
-  [ID.LIFE_SLASH]: 600,
-  [ID.LIFE_REAP]: 560,
-  [ID.DEATHS_CHARGE]: 1200,
-  [ID.EXECUTIONERS_SCYTHE]: 1320,
-  [ID.TERRIFY]: 320,
-  [ID.SUFFER]: 0,
 });

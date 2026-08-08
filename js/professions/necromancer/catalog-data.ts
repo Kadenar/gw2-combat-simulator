@@ -97,7 +97,6 @@ const WEAPON_HANDS = Object.freeze({
 
 interface NecromancerModuleDataOptions {
   readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
-  readonly quicknessCastTimes?: Readonly<Record<string, number>>;
   readonly extraSkills?: readonly Skill[];
   readonly handlers?:
     | ReadonlyMap<string, SkillHandlerStrategy<never>>
@@ -105,23 +104,17 @@ interface NecromancerModuleDataOptions {
   readonly autoattackChains?: NativeAutoattackChains;
 }
 
-function normalizeSkillMechanics(
+function applyNecromancerSkillDefaults(
   mechanicsById: Readonly<Record<string, SkillFragment>>,
-  quicknessCastTimesById: Readonly<Record<string, number>>,
 ): Readonly<Record<string, SkillFragment>> {
   return Object.freeze(Object.fromEntries(
     Object.entries(mechanicsById).map(([skillId, mechanics]) => {
-      const quicknessCastTimeMs = quicknessCastTimesById[skillId];
       const shroudSkillWeapon = ["death", "reaper", "harbinger"].includes(
         String(mechanics.shroud || ""),
       ) ? "Hammer" : null;
       return [skillId, {
         ...mechanics,
         ...(shroudSkillWeapon ? { skillWeapon: shroudSkillWeapon } : {}),
-        ...(quicknessCastTimeMs == null ? {} : {
-          castTimeMs: quicknessCastTimeMs * 1.5,
-          quicknessCastTimeMs,
-        }),
       }];
     }),
   ));
@@ -131,7 +124,6 @@ export function createNecromancerModuleData(
   id: string,
   {
     skillMechanics,
-    quicknessCastTimes = {},
     extraSkills = [],
     handlers,
     autoattackChains,
@@ -140,7 +132,7 @@ export function createNecromancerModuleData(
   return createNativeModuleData<never>({
     id,
     generatedSkills: generated,
-    skillMechanics: normalizeSkillMechanics(skillMechanics, quicknessCastTimes),
+    skillMechanics: applyNecromancerSkillDefaults(skillMechanics),
     extraSkills,
     handlers,
     traits: TRAITS as readonly CatalogEntity[],

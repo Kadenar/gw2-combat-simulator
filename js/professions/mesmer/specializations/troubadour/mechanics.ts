@@ -30,6 +30,10 @@ export const MESMER_TROUBADOUR_TRAIT_DAMAGE: Readonly<
     coefficient: 0.75,
     hits: 1,
   },
+  SyncopateDelayedWave: {
+    coefficient: 1,
+    hits: 1,
+  },
 });
 export const MESMER_TROUBADOUR_SHATTERS: Readonly<
   Record<number, MesmerShatter>

@@ -684,6 +684,7 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
             'Lesser Chaos Storm': 1.98,
             'Phantasmal Blade': 0.7,
             Syncopate: 0.75,
+            SyncopateDelayedWave: 1,
             'Time Bomb': 3,
         },
     );
