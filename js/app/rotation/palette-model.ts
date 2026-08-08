@@ -11,7 +11,11 @@ import type {
   ProfessionAppState,
   ProfessionSlotLoadoutContext,
 } from "../profession/types.js";
-import { activeSpecialization } from "./context.js";
+import {
+  activeSpecialization,
+  paletteEndState,
+  paletteProfessionState,
+} from "./context.js";
 import { VINDICATOR_DODGE_AUTO_ICON } from "./icons.js";
 import { insertRotationItems } from "./actions.js";
 
@@ -84,7 +88,7 @@ export function weaponSkills(app: ProfessionAppState, weaponSet = 1): Skill[] {
       )(skill, [mainHand, offHand], {
         build: app.build,
         specialization: activeSpecialization(app),
-        professionState: app.results?.endState?.profession,
+        professionState: paletteProfessionState(app),
         catalog:
           app.profession?.catalog || app.adapter?.profession?.catalog || null,
         weaponData: app.weaponData,
@@ -161,14 +165,11 @@ export function autoattackChainSkillAvailable(
 }
 
 export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {
+  const endState = paletteEndState(app);
   const activeWeaponSet = Number(
-    app.results?.endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
+    endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
   );
-  const professionValue = app.results?.endState?.profession;
-  const professionState =
-    professionValue && typeof professionValue === "object"
-      ? (professionValue as SchedulerRecord)
-      : {};
+  const professionState = paletteProfessionState(app);
   const autoattackChains = professionState.autoattackChains;
   const chainState =
     autoattackChains && typeof autoattackChains === "object"
@@ -251,7 +252,7 @@ export function paletteActionSkills(
         app.adapter.isSkillAvailable(skill, {
           build: app.build,
           specialization,
-          professionState: app.results?.endState?.profession,
+          professionState: paletteProfessionState(app),
         }),
     ),
   ).sort(

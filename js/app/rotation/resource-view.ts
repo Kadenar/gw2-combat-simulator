@@ -15,7 +15,11 @@ import type { ProfessionResourceView } from "../../platform/engine/types.js";
 import type { ProfessionAppState } from "../profession/types.js";
 import { resourceDisplayViews } from "../../platform/ui/resource-display.js";
 import { escapeHtml as esc } from "../../platform/ui/html.js";
-import { activeSpecialization, professionEndState } from "./context.js";
+import {
+  activeSpecialization,
+  paletteProfessionState,
+  professionEndState,
+} from "./context.js";
 
 /** Formats a finite resource value with at most three decimal places. */
 export function formatResourceValue(value: unknown): string {
@@ -110,7 +114,7 @@ function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
  * Multiple resource views are wrapped in an `active-resource-stack`.
  */
 export function activeResourceGroup(app: ProfessionAppState): string {
-  const professionState = professionEndState(app.results);
+  const professionState = paletteProfessionState(app);
   const definitions = resourceDisplayViews(app.profession, {
     specialization: activeSpecialization(app),
     value: professionState.resource ?? app.build.initialResource,
