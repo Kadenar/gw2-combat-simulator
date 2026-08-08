@@ -13,8 +13,8 @@ import {
 import { RANGER_ASSUMPTION_CONTROLS } from "./assumptions.js";
 import { rangerCatalog } from "./catalog.js";
 import { RANGER_PETS } from "./data/ranger-pet-data.js";
+import { RANGER_SKILL_IDS as ID } from "./data/ids.js";
 import {
-  DEFAULT_RANGER_HAMMER_SKILL_IDS,
   normalizeRangerHammerSkillIds,
   RANGER_HAMMER_VARIANT_PAIRS,
 } from "./core/hammer.js";
@@ -30,14 +30,14 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
     schemaVersion: RANGER_BUILD_SCHEMA_VERSION,
     profession: RANGER_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
-    weapons: ["Axe", "Axe"],
-    alternateWeapons: ["Hammer", ""],
+    weapons: ["Hammer", ""],
+    alternateWeapons: ["Axe", "Axe"],
     rune: "Scholar",
     weaponSigils: normalizeWeaponSigils([
-      ["Force", "Impact"],
+      ["Force", "Air"],
       ["Force", "Impact"],
     ]),
-    relic: "Fireworks",
+    relic: "Claw",
     food: "Cilantro Lime Sous-Vide Steak",
     utility: "Superior Sharpening Stone",
     jadeBotCore: true,
@@ -47,9 +47,9 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
       { stat: "Condition Damage", count: 0 },
     ],
     specializations: [
-      { name: "Marksmanship", traits: "2-2-1" },
-      { name: "Skirmishing", traits: "1-3-3" },
-      { name: "Soulbeast", traits: "3-1-1" },
+      { name: "Skirmishing", traits: "1-2-3" },
+      { name: "Beastmastery", traits: "3-3-3" },
+      { name: "Soulbeast", traits: "2-2-3" },
     ],
     selectedSkills: {
       Heal: '"We Heal As One!"',
@@ -58,8 +58,13 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
       Utility3: "Signet of the Wild",
       Elite: "One Wolf Pack",
     },
-    selectedPet: "Lynx",
-    selectedHammerSkillIds: [...DEFAULT_RANGER_HAMMER_SKILL_IDS],
+    selectedPet: "Pig",
+    selectedHammerSkillIds: [
+      ID.UNLEASHED_WILD_SWING,
+      ID.OVERBEARING_SMASH,
+      ID.UNLEASHED_SAVAGE_SHOCK_WAVE,
+      ID.UNLEASHED_THUMP,
+    ],
     initialUntamedState: "Pet",
     assumptions: {
       ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
@@ -109,11 +114,11 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
       RANGER_ASSUMPTION_CONTROLS,
     );
     const requestedPet = String(
-      saved.selectedPet ?? savedAssumptions.selectedPet ?? "Lynx",
+      saved.selectedPet ?? savedAssumptions.selectedPet ?? "Pig",
     );
     const selectedPet = RANGER_PETS.some((pet) => pet.name === requestedPet)
       ? requestedPet
-      : "Lynx";
+      : "Pig";
     return {
       ...build,
       assumptions,

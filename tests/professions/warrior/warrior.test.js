@@ -22,10 +22,15 @@ import {
 import { warriorCoreModule } from "../../../js/professions/warrior/core/module.js";
 import { createWarriorCoreState } from "../../../js/professions/warrior/core/state.js";
 import { DATA_SNAPSHOT } from "../../../js/professions/warrior/data/warrior-api-metadata.js";
-import { WARRIOR_SKILL_IDS as ID } from "../../../js/professions/warrior/data/ids.js";
+import {
+  WARRIOR_SKILL_IDS as ID,
+  WARRIOR_TRAIT_IDS as TRAIT,
+} from "../../../js/professions/warrior/data/ids.js";
 import { warriorProfession } from "../../../js/professions/warrior/definition.js";
 import { berserkerModule } from "../../../js/professions/warrior/specializations/berserker/module.js";
 import { bladeswornModule } from "../../../js/professions/warrior/specializations/bladesworn/module.js";
+import { advanceBladesworn } from "../../../js/professions/warrior/specializations/bladesworn/handlers.js";
+import { createBladeswornState } from "../../../js/professions/warrior/specializations/bladesworn/state.js";
 import { paragonModule } from "../../../js/professions/warrior/specializations/paragon/module.js";
 import { spellbreakerModule } from "../../../js/professions/warrior/specializations/spellbreaker/module.js";
 import { assertProfessionFamilyConformance } from "../../helpers/profession-family-conformance.js";
@@ -123,6 +128,23 @@ test("Warrior builds migrate and validate against the canonical catalog", () => 
     valid: true,
     errors: [],
   });
+  const chargedRelease = migrateWarriorBuild({
+    rotation: [{ name: "Dragon Slash—Force", releaseAtCharges: 3 }],
+  });
+  assert.equal(chargedRelease.rotation[0].releaseAtCharges, 3);
+  assert.equal(validateWarriorBuild(chargedRelease).valid, true);
+  assert.match(
+    validateWarriorBuild({
+      ...chargedRelease,
+      rotation: [
+        {
+          ...chargedRelease.rotation[0],
+          releaseAtCharges: 0,
+        },
+      ],
+    }).errors.join(" "),
+    /releaseAtCharges must be a positive whole number/,
+  );
   assert.throws(
     () => migrateWarriorBuild({ profession: "necromancer" }),
     /Cannot load necromancer build as Warrior/,
@@ -264,44 +286,63 @@ test("Warrior rotation F keys follow the active weapon set", () => {
   });
 });
 
-test("Bladesworn palette availability follows gunsaber state", () => {
-  const availability = (gunsaberActive, skillId) =>
+test("Bladesworn palette availability follows gunsaber and Dragon Trigger state", () => {
+  const availability = (professionState, skillId) =>
     warriorProfession.ui.paletteSkillAvailability(
       {
         specialization: "Bladesworn",
-        professionState: { gunsaberActive },
+        professionState,
       },
       warriorCatalog.skillsById.get(skillId),
     );
 
-  assert.deepEqual(availability(false, ID.CHOP), {
+  assert.deepEqual(availability({ gunsaberActive: false }, ID.CHOP), {
     available: true,
     message: "",
   });
-  assert.deepEqual(availability(false, ID.BLOOMING_FIRE), {
+  assert.deepEqual(availability({ gunsaberActive: false }, ID.BLOOMING_FIRE), {
     available: false,
     message: "Unsheathe the gunsaber first",
   });
-  assert.deepEqual(availability(false, ID.SHEATHE_GUNSABER), {
-    available: false,
-    message: "Gunsaber is not active",
-  });
-  assert.deepEqual(availability(false, ID.DRAGON_SLASH_FORCE), {
-    available: false,
-    message: "Charge Dragon Trigger first",
-  });
-  assert.deepEqual(availability(true, ID.CHOP), {
+  assert.deepEqual(
+    availability({ gunsaberActive: false }, ID.SHEATHE_GUNSABER),
+    {
+      available: false,
+      message: "Gunsaber is not active",
+    },
+  );
+  assert.deepEqual(
+    availability({ gunsaberActive: false }, ID.DRAGON_SLASH_FORCE),
+    {
+      available: false,
+      message: "Enter Dragon Trigger first",
+    },
+  );
+  assert.deepEqual(availability({ gunsaberActive: true }, ID.CHOP), {
     available: false,
     message: "Sheathe the gunsaber first",
   });
-  assert.deepEqual(availability(true, ID.BLOOMING_FIRE), {
+  assert.deepEqual(availability({ gunsaberActive: true }, ID.BLOOMING_FIRE), {
     available: true,
     message: "",
   });
-  assert.deepEqual(availability(true, ID.UNSHEATHE_GUNSABER), {
-    available: false,
-    message: "Gunsaber is already active",
+  assert.deepEqual(
+    availability({ gunsaberActive: true }, ID.UNSHEATHE_GUNSABER),
+    {
+      available: false,
+      message: "Gunsaber is already active",
+    },
+  );
+
+  const charging = simulate("Bladesworn", ["Dragon Trigger"], {
+    initialResource: 100,
   });
+  assert.equal(charging.endState.profession.dragonTriggerActive, true);
+  assert.equal(charging.endState.profession.dragonCharges, 0);
+  assert.deepEqual(
+    availability(charging.endState.profession, ID.DRAGON_SLASH_FORCE),
+    { available: true, message: "" },
+  );
 });
 
 test("Warrior adrenaline renders one bar for each ten adrenaline", () => {
@@ -412,13 +453,7 @@ test("Bladesworn gates gunsaber and Dragon Slash state", () => {
 
   const result = simulate(
     "Bladesworn",
-    [
-      "Unsheathe Gunsaber",
-      "Swift Cut",
-      "Dragon Trigger",
-      { name: "__wait", waitMs: 500 },
-      "Dragon Slash—Force",
-    ],
+    ["Unsheathe Gunsaber", "Swift Cut", "Dragon Trigger", "Dragon Slash—Force"],
     { initialResource: 100 },
   );
   assert.deepEqual(result.warnings, []);
@@ -426,6 +461,107 @@ test("Bladesworn gates gunsaber and Dragon Slash state", () => {
   assert.equal(result.endState.profession.dragonTriggerActive, false);
   assert.equal(result.endState.profession.maximumAdrenaline, 0);
   assert.equal(result.totalDamage > 0, true);
+  assert.equal(
+    result.steps.find((step) => step.skill === "Dragon Slash—Force").start,
+    5750,
+  );
+});
+
+test("Bladesworn automatically releases Dragon Slash at the requested charge count", () => {
+  const full = simulate(
+    "Bladesworn",
+    ["Dragon Trigger", "Dragon Slash—Force"],
+    { initialResource: 100 },
+  );
+  assert.deepEqual(full.warnings, []);
+  assert.equal(
+    full.steps.find((step) => step.skill === "Dragon Slash—Force").start,
+    5250,
+  );
+  assert.equal(
+    full.events.find(
+      (event) =>
+        event.type === "damage" && event.skillId === ID.DRAGON_SLASH_FORCE,
+    ).coefficient,
+    20.4,
+  );
+
+  const partial = simulate(
+    "Bladesworn",
+    ["Dragon Trigger", { name: "Dragon Slash—Force", releaseAtCharges: 3 }],
+    { initialResource: 100 },
+  );
+  assert.deepEqual(partial.warnings, []);
+  assert.equal(
+    partial.steps.find((step) => step.skill === "Dragon Slash—Force").start,
+    1750,
+  );
+  assert.ok(
+    Math.abs(
+      partial.events.find(
+        (event) =>
+          event.type === "damage" && event.skillId === ID.DRAGON_SLASH_FORCE,
+      ).coefficient - 6.12,
+    ) < 1e-9,
+  );
+});
+
+test("Daring Dragon automatically releases at its five-charge maximum", () => {
+  const result = simulate(
+    "Bladesworn",
+    ["Dragon Trigger", { name: "Dragon Slash—Force", releaseAtCharges: 10 }],
+    { initialResource: 100, selectedTraitIds: [TRAIT.DARING_DRAGON] },
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.steps.find((step) => step.skill === "Dragon Slash—Force").start,
+    2750,
+  );
+  assert.equal(
+    result.events.find(
+      (event) =>
+        event.type === "damage" && event.skillId === ID.DRAGON_SLASH_FORCE,
+    ).coefficient,
+    20.4,
+  );
+});
+
+test("Bladesworn reports when the requested Dragon Slash charge is unreachable", () => {
+  const result = simulate(
+    "Bladesworn",
+    ["Dragon Trigger", "Dragon Slash—Force"],
+    { initialResource: 30 },
+  );
+  assert.equal(result.warnings.length, 1);
+  assert.match(result.warnings[0], /needs 100 Flow to reach 10 charges/);
+});
+
+test("Bladesworn preserves partial charge time across fragmented advancement", () => {
+  const state = createBladeswornState({ initialResource: 100 });
+  state.dragonTriggerActive = true;
+  state.dragonTriggerStartedAt = 0;
+  state.nextDragonChargeAt = 0.5;
+  const context = {
+    epsilon: 1e-9,
+    config: {},
+    state: {
+      profession: {
+        specialization: { kind: "Bladesworn", state },
+      },
+    },
+  };
+
+  for (const target of [0.1, 0.2, 0.3, 0.4, 0.49]) {
+    advanceBladesworn(context, target);
+  }
+  assert.equal(state.dragonCharges, 0);
+  advanceBladesworn(context, 0.5);
+  assert.equal(state.dragonCharges, 1);
+  for (let target = 0.6; target <= 5; target += 0.1) {
+    advanceBladesworn(context, Number(target.toFixed(1)));
+  }
+  assert.equal(state.dragonCharges, 10);
+  assert.equal(state.flow, 0);
 });
 
 test("Bladesworn gunsaber skills expose icons and current PvE ammo", () => {

@@ -1060,6 +1060,7 @@ export interface CastCommand {
   readonly skillId: SkillId;
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
+  readonly releaseAtCharges?: number;
 }
 
 export interface WaitCommand {
@@ -1084,6 +1085,7 @@ export interface LegacyRotationEntry {
   skillId?: SkillId | null;
   offset?: number;
   interruptMs?: number | null;
+  releaseAtCharges?: number | null;
   waitMs?: number;
 }
 

@@ -642,6 +642,15 @@ function validCanonicalMilliseconds(
   return Number.isFinite(value) && value >= 0;
 }
 
+function validCanonicalPositiveInteger(
+  command: SchedulerRecord,
+  field: string,
+): boolean {
+  if (!Object.hasOwn(command, field)) return true;
+  const value = Number(command[field]);
+  return Number.isInteger(value) && value >= 1;
+}
+
 /**
  * @param {unknown} command
  * @param {CanonicalCatalog} catalog
@@ -667,11 +676,20 @@ function validateRotationCommand(
   ) {
     errors.push("rotation timing fields must be non-negative numbers.");
   }
+  if (!validCanonicalPositiveInteger(candidate, "releaseAtCharges")) {
+    errors.push("releaseAtCharges must be a positive whole number.");
+  }
   if (
     candidate.type !== "cast" &&
     Object.hasOwn(candidate, "interruptAfterMs")
   ) {
     errors.push("only cast commands may contain interruptAfterMs.");
+  }
+  if (
+    candidate.type !== "cast" &&
+    Object.hasOwn(candidate, "releaseAtCharges")
+  ) {
+    errors.push("only cast commands may contain releaseAtCharges.");
   }
   if (candidate.type === "wait") {
     if (

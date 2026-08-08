@@ -210,11 +210,8 @@ function availability(
   if (skill.gunsaberSkill) {
     if (specialization !== "Bladesworn")
       return { available: false, message: "Requires Bladesworn" };
-    if (
-      skill.dragonSlash &&
-      (!state.dragonTriggerActive || Number(state.dragonCharges || 0) < 1)
-    ) {
-      return { available: false, message: "Charge Dragon Trigger first" };
+    if (skill.dragonSlash && !state.dragonTriggerActive) {
+      return { available: false, message: "Enter Dragon Trigger first" };
     }
     if (!skill.dragonSlash && !state.gunsaberActive)
       return { available: false, message: "Unsheathe the gunsaber first" };

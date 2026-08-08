@@ -28,12 +28,33 @@ export function applyRangerBuildAttributeRules(
   const traitDurations: Record<string, number> = {};
   const weapons =
     weaponSet === 2 ? rangerBuild.alternateWeapons : rangerBuild.weapons;
+  const soulbeast = rangerBuild.specializations?.some(
+    (specialization) => specialization.name === "Soulbeast",
+  );
 
   if (hasTrait("Strider's Strength")) {
     addAttribute(traitStats, "Power", weapons?.includes("Sword") ? 240 : 120);
   }
   if (hasTrait("Honed Axes")) {
     addAttribute(traitStats, "Ferocity", weapons?.includes("Axe") ? 240 : 120);
+  }
+  if (soulbeast && hasTrait("Pack Alpha")) {
+    for (const attribute of [
+      "Power",
+      "Precision",
+      "Toughness",
+      "Vitality",
+      "Ferocity",
+      "Condition Damage",
+      "Expertise",
+      "Concentration",
+      "Healing Power",
+    ]) {
+      addAttribute(traitStats, attribute, 150);
+    }
+  }
+  if (soulbeast && hasTrait("Pet's Prowess")) {
+    addAttribute(traitStats, "Ferocity", 300);
   }
   if (hasTrait("Ambidexterity")) {
     const favored = weapons?.some((weapon) =>

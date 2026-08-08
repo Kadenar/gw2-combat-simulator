@@ -30,16 +30,10 @@ npm run build
 Create `run-engineer.mjs` in the repository root:
 
 ```js
-import {
-  prepareSimulationConfig,
-} from "./js/platform/engine/prepare-config.js";
+import { prepareSimulationConfig } from "./js/platform/engine/prepare-config.js";
 import { simulateGw2 } from "./js/platform/gw2/simulate.js";
-import {
-  skillBreakdownRows,
-} from "./js/platform/ui/result-tables.js";
-import {
-  engineerProfession,
-} from "./js/professions/engineer/definition.js";
+import { skillBreakdownRows } from "./js/platform/ui/result-tables.js";
+import { engineerProfession } from "./js/professions/engineer/definition.js";
 
 const baseConfig = Object.freeze({
   selectedSkills: [
@@ -66,10 +60,10 @@ const baseConfig = Object.freeze({
 });
 
 function simulate(specialization, rotation, overrides = {}) {
-  const config = prepareSimulationConfig(
-    baseConfig,
-    { ...overrides, specialization },
-  );
+  const config = prepareSimulationConfig(baseConfig, {
+    ...overrides,
+    specialization,
+  });
 
   return simulateGw2({
     profession: engineerProfession,
@@ -80,11 +74,7 @@ function simulate(specialization, rotation, overrides = {}) {
 
 const result = simulate(
   "Core",
-  [
-    "Grenade Kit",
-    "Grenade",
-    { type: "wait", durationMs: 1000 },
-  ],
+  ["Grenade Kit", "Grenade", { type: "wait", durationMs: 1000 }],
   {
     stats: { power: 2500 },
     boons: { might: 25, fury: true, quickness: true },
@@ -99,13 +89,15 @@ console.table({
   conditionDamage: Math.round(result.conditionDamage),
 });
 
-console.table(skillBreakdownRows(result).map(row => ({
-  skill: row.name,
-  casts: row.casts,
-  hits: row.hits,
-  damage: Math.round(row.total),
-  dps: Math.round(row.dps),
-})));
+console.table(
+  skillBreakdownRows(result).map((row) => ({
+    skill: row.name,
+    casts: row.casts,
+    hits: row.hits,
+    damage: Math.round(row.total),
+    dps: Math.round(row.dps),
+  })),
+);
 
 if (result.warnings.length > 0) {
   console.warn("Simulation warnings:", result.warnings);
@@ -131,9 +123,7 @@ For that reason, a headless script should use source-looking imports:
 
 ```js
 import { simulateGw2 } from "./js/platform/gw2/simulate.js";
-import {
-  engineerProfession,
-} from "./js/professions/engineer/definition.js";
+import { engineerProfession } from "./js/professions/engineer/definition.js";
 ```
 
 Run it after building:
@@ -156,10 +146,10 @@ function simulate(specialization, rotation, overrides = {}) {
   return simulateGw2({
     profession: engineerProfession,
     rotation,
-    config: prepareSimulationConfig(
-      baseConfig,
-      { ...overrides, specialization },
-    ),
+    config: prepareSimulationConfig(baseConfig, {
+      ...overrides,
+      specialization,
+    }),
   });
 }
 ```
@@ -192,12 +182,13 @@ skill name or a canonical command:
 
 ```js
 const rotation = [
-  "Grenade Kit",                            // cast by skill name
-  5882,                                     // cast by numeric skill ID
-  { type: "cast", skillId: 5882 },          // explicit cast
-  { type: "wait", durationMs: 1000 },        // explicit delay
-  { type: "combat-start" },                  // DPS/display reference marker
-  { type: "cooldown-reset" },                // reset for isolated experiments
+  "Grenade Kit", // cast by skill name
+  5882, // cast by numeric skill ID
+  { type: "cast", skillId: 5882 }, // explicit cast
+  { type: "cast", skillId: 62797, releaseAtCharges: 3 }, // charged release target
+  { type: "wait", durationMs: 1000 }, // explicit delay
+  { type: "combat-start" }, // DPS/display reference marker
+  { type: "cooldown-reset" }, // reset for isolated experiments
 ];
 ```
 
@@ -229,20 +220,20 @@ result the caller expected. Always inspect `result.warnings`.
 The direct API consumes resolved combat values. It does not calculate stats
 from armor, upgrades, runes, or infusions.
 
-| Field | Purpose |
-| --- | --- |
-| `specialization` | `Core` or the exact elite-specialization name |
-| `selectedTraitIds` | Active trait IDs |
-| `selectedSkills` | Equipped heal, utility, and elite skill names |
-| `primaryWeapon`, `secondaryWeapon` | First weapon set |
-| `weaponSet2Primary`, `weaponSet2Secondary` | Second weapon set |
-| `startingWeaponSet` | `1` or `2` |
-| `stats` | Final power, precision, ferocity, condition damage, expertise, and related attributes |
-| `boons` | Might stacks and boolean boon assumptions |
-| `target` | Armor, health, movement, defiance, and existing conditions |
-| `sigilSets`, `relic`, `food` | Optional common GW2 effects |
-| `randomness` | Deterministic or seeded stochastic resolution |
-| `duration` | Optional simulation horizon in seconds |
+| Field                                      | Purpose                                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `specialization`                           | `Core` or the exact elite-specialization name                                         |
+| `selectedTraitIds`                         | Active trait IDs                                                                      |
+| `selectedSkills`                           | Equipped heal, utility, and elite skill names                                         |
+| `primaryWeapon`, `secondaryWeapon`         | First weapon set                                                                      |
+| `weaponSet2Primary`, `weaponSet2Secondary` | Second weapon set                                                                     |
+| `startingWeaponSet`                        | `1` or `2`                                                                            |
+| `stats`                                    | Final power, precision, ferocity, condition damage, expertise, and related attributes |
+| `boons`                                    | Might stacks and boolean boon assumptions                                             |
+| `target`                                   | Armor, health, movement, defiance, and existing conditions                            |
+| `sigilSets`, `relic`, `food`               | Optional common GW2 effects                                                           |
+| `randomness`                               | Deterministic or seeded stochastic resolution                                         |
+| `duration`                                 | Optional simulation horizon in seconds                                                |
 
 Professions also accept their own resource and loadout fields. Existing tests
 are the most direct examples:
@@ -263,9 +254,7 @@ Use the registry when the profession is selected by a command-line argument or
 configuration file:
 
 ```js
-import {
-  loadProfession,
-} from "./js/app/profession/registry.js";
+import { loadProfession } from "./js/app/profession/registry.js";
 import { simulateGw2 } from "./js/platform/gw2/simulate.js";
 
 const profession = await loadProfession("engineer");
@@ -290,19 +279,19 @@ config; loading the contract does not create a build or copy UI defaults.
 
 The commonly useful result fields are:
 
-| Field | Meaning |
-| --- | --- |
-| `duration` | Resolved simulation duration in seconds |
-| `dpsStartTime`, `dpsWindow` | Reference time and measured DPS window |
-| `firstHitTime`, `lastHitTime`, `deathTime` | Damage and target-death timing |
-| `totalDamage`, `dps` | Overall result |
-| `strikeDamage`, `conditionDamage` | Damage split |
-| `breakdown`, `conditionBreakdown` | Raw contribution data |
-| `casts` | Aggregate cast counts |
-| `events`, `resolvedEvents` | Scheduler and resolver timelines |
-| `warnings` | Invalid or constrained rotation behavior |
-| `endState` | Ending time, cooldowns, ammo, weapon set, and profession resources |
-| `randomness` | Actual resolution mode and seed |
+| Field                                      | Meaning                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| `duration`                                 | Resolved simulation duration in seconds                            |
+| `dpsStartTime`, `dpsWindow`                | Reference time and measured DPS window                             |
+| `firstHitTime`, `lastHitTime`, `deathTime` | Damage and target-death timing                                     |
+| `totalDamage`, `dps`                       | Overall result                                                     |
+| `strikeDamage`, `conditionDamage`          | Damage split                                                       |
+| `breakdown`, `conditionBreakdown`          | Raw contribution data                                              |
+| `casts`                                    | Aggregate cast counts                                              |
+| `events`, `resolvedEvents`                 | Scheduler and resolver timelines                                   |
+| `warnings`                                 | Invalid or constrained rotation behavior                           |
+| `endState`                                 | Ending time, cooldowns, ammo, weapon set, and profession resources |
+| `randomness`                               | Actual resolution mode and seed                                    |
 
 Use `skillBreakdownRows(result)` for a stable per-skill table instead of
 reimplementing aggregation over raw events.
@@ -311,12 +300,8 @@ For UI-equivalent formatted data, the existing transforms are also callable
 headlessly:
 
 ```js
-import {
-  resultSummaryMetrics,
-} from "./js/app/rotation/result-model.js";
-import {
-  simulationEventLogRows,
-} from "./js/app/rotation/event-log.js";
+import { resultSummaryMetrics } from "./js/app/rotation/result-model.js";
+import { simulationEventLogRows } from "./js/app/rotation/event-log.js";
 
 console.table(resultSummaryMetrics(result));
 console.table(simulationEventLogRows(result, null, engineerProfession));

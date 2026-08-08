@@ -54,6 +54,7 @@ type TimelineItem = SchedulerRecord & {
   skillId?: unknown;
   offset?: unknown;
   interruptMs?: unknown;
+  releaseAtCharges?: unknown;
   waitMs?: unknown;
 };
 
@@ -99,6 +100,30 @@ function editRotationOption(
   if (raw == null || Number(raw) < 1) return false;
   app.build.rotation[index] = updateRotationEntry(entry, {
     [key]: Math.round(Number(raw)),
+  }) as LegacyRotationItem;
+  return true;
+}
+
+function editReleaseAtCharges(app: ProfessionAppState, index: number): boolean {
+  const entry = app.build.rotation[index];
+  if (entry === undefined) return false;
+  const item = timelineItem(entry);
+  const raw = prompt(
+    "Release at charges (1-10; blank for maximum):",
+    String(item.releaseAtCharges ?? ""),
+  );
+  if (raw == null) return false;
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    app.build.rotation[index] = updateRotationEntry(entry, {
+      releaseAtCharges: undefined,
+    }) as LegacyRotationItem;
+    return true;
+  }
+  const value = Number(trimmed);
+  if (!Number.isInteger(value) || value < 1 || value > 10) return false;
+  app.build.rotation[index] = updateRotationEntry(entry, {
+    releaseAtCharges: value,
   }) as LegacyRotationItem;
   return true;
 }
@@ -189,6 +214,7 @@ function timelineInteractionOptions(
       ),
     onEditActivation: (index, event) =>
       editRotationActivation(app, index, event),
+    onEditReleaseAtCharges: (index) => editReleaseAtCharges(app, index),
     onEditWait: (index) =>
       editRotationOption(app, index, "waitMs", "Wait duration (ms):"),
   };
@@ -443,6 +469,9 @@ export function renderTimeline(app: ProfessionAppState): void {
           item.interruptMs != null
             ? formatInterruptTimelineBadge(item.interruptMs, time)
             : "";
+        const chargeReleaseLabel = skill?.dragonSlash
+          ? `⚡${item.releaseAtCharges == null ? "Max" : Number(item.releaseAtCharges)}${time ? `\n${time}` : ""}`
+          : "";
         const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
         const fullCastMs = Math.round(
           Number(step?.fullCastMs) || catalogCastMs,
@@ -466,7 +495,7 @@ export function renderTimeline(app: ProfessionAppState): void {
                         title="${esc(resourceLabel)}" aria-label="${esc(resourceLabel)}">${esc(resourceShortLabel)}</span>`
                         : ""
                     }
-                    ${time && item.offset == null && item.interruptMs == null ? `<span class="rot-time">${time}</span>` : ""}
+                    ${time && item.offset == null && item.interruptMs == null && !skill?.dragonSlash ? `<span class="rot-time">${time}</span>` : ""}
                     ${
                       item.offset != null
                         ? `<span class="rot-offset-badge rot-timed-action-badge" data-idx="${index}"
@@ -477,6 +506,12 @@ export function renderTimeline(app: ProfessionAppState): void {
                       item.interruptMs != null
                         ? `<span class="rot-gapfill-badge rot-interrupt-badge rot-timed-action-badge"
                         data-idx="${index}" title="Interrupt after ${item.interruptMs}ms; cast at ${esc(time)}">${esc(interruptLabel)}</span>`
+                        : ""
+                    }
+                    ${
+                      skill?.dragonSlash
+                        ? `<span class="rot-gapfill-badge rot-charge-release-badge rot-timed-action-badge"
+                        data-idx="${index}" title="Release at ${item.releaseAtCharges == null ? "maximum" : item.releaseAtCharges} charges; cast at ${esc(time)}">${esc(chargeReleaseLabel)}</span>`
                         : ""
                     }
                     ${item.waitMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.waitMs}ms</span>` : ""}

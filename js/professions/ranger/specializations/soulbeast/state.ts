@@ -11,6 +11,13 @@ export function createSoulbeastState(
     archetype: pet?.archetype || "",
     oneWolfPackUntil: 0,
     oneWolfPackReadyAt: 0,
+    goForTheEyesReadyAt: 0,
+    beastlyWardenReadyAt: 0,
+    goForTheThroatReadyAt: 0,
+    bestialRageReadyAt: 0,
+    essenceOfSpeedReadyAt: 0,
+    vultureStanceReadyAt: 0,
+    beastAbilityActivations: {},
   };
 }
 

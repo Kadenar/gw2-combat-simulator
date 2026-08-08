@@ -8,7 +8,7 @@ import type {
 } from "../types.js";
 
 export function selectedRangerPet(config: RangerConfig = {}) {
-  const selected = String(config.selectedPet || "Lynx");
+  const selected = String(config.selectedPet || "Pig");
   return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
 }
 
@@ -21,6 +21,14 @@ export function createRangerCoreState(
     activePetSkillIds: [...(pet?.skillIds || [])],
     availableFlips: {},
     autoattackChains: {},
+    winterBiteReady: false,
+    tailWindReadyAt: 0,
+    furiousGripReadyAt: 0,
+    sharpenedEdgesProgress: 0,
+    quickDrawReadyAt: 0,
+    quickDrawUntil: 0,
+    trapCrippleActivations: {},
+    bloodThirstCharges: 0,
   };
 }
 
@@ -36,6 +44,14 @@ export const RANGER_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
     "activePetSkillIds",
     "availableFlips",
     "autoattackChains",
+    "winterBiteReady",
+    "tailWindReadyAt",
+    "furiousGripReadyAt",
+    "sharpenedEdgesProgress",
+    "quickDrawReadyAt",
+    "quickDrawUntil",
+    "trapCrippleActivations",
+    "bloodThirstCharges",
     "astralForce",
     "maximumAstralForce",
     "celestialAvatarActive",

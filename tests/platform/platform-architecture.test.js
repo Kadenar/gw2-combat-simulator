@@ -26,7 +26,10 @@ import { COMMON_EVENT_TYPES } from "../../js/platform/engine/events.js";
 import { HandlerRegistry } from "../../js/platform/engine/handler-registry.js";
 import { defineProfession } from "../../js/platform/engine/profession.js";
 import { resolveScheduledStream } from "../../js/platform/engine/resolver.js";
-import { normalizeRotation } from "../../js/platform/engine/rotation-commands.js";
+import {
+  normalizeRotation,
+  toLegacyRotationEntry,
+} from "../../js/platform/engine/rotation-commands.js";
 import { createSchedulerState } from "../../js/platform/engine/scheduler-state.js";
 import { createScheduler } from "../../js/platform/engine/scheduler.js";
 import { buildScheduledEventStream } from "../../js/platform/engine/scheduled-event-stream.js";
@@ -410,13 +413,18 @@ test("generic scheduler state contains no profession-specific fields", () => {
   assert.equal(Object.hasOwn(state, "numericResource"), false);
 });
 
-test("normalized commands migrate legacy casts, waits, concurrency, and interrupts", () => {
+test("normalized commands migrate legacy timing and charge-release options", () => {
   assert.deepEqual(
     normalizeRotation(
       [
         "Fixture Slash",
         { name: "__wait", waitMs: 250 },
-        { name: "Fixture Charge", offset: 100, interruptMs: 50 },
+        {
+          name: "Fixture Charge",
+          offset: 100,
+          interruptMs: 50,
+          releaseAtCharges: 3,
+        },
         "__cooldown_reset",
         "__combat_start",
       ],
@@ -430,10 +438,31 @@ test("normalized commands migrate legacy casts, waits, concurrency, and interrup
         skillId: 900002,
         concurrentOffsetMs: 100,
         interruptAfterMs: 50,
+        releaseAtCharges: 3,
       },
       { type: "cooldown-reset" },
       { type: "combat-start" },
     ],
+  );
+  assert.deepEqual(
+    toLegacyRotationEntry(
+      {
+        type: "cast",
+        skillId: 900002,
+        releaseAtCharges: 3,
+      },
+      testProfession.catalog,
+    ),
+    { name: "Fixture Charge", releaseAtCharges: 3 },
+  );
+  assert.throws(
+    () =>
+      normalizeRotation(
+        [{ name: "Fixture Charge", releaseAtCharges: 0 }],
+        testProfession.catalog,
+        { strict: true },
+      ),
+    /positive whole number/,
   );
 });
 

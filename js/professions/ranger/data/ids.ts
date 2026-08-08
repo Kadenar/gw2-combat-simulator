@@ -3,6 +3,7 @@
 
 export const RANGER_SKILL_IDS = Object.freeze({
   SWAP_WEAPONS: -3,
+  PATH_OF_SCARS_MAX_RANGE: -1001,
   RICOCHET: 12466, // Ricochet
   POISON_VOLLEY: 12468, // Poison Volley
   BARRAGE: 12469, // Barrage
@@ -131,6 +132,8 @@ export const RANGER_SKILL_IDS = Object.freeze({
   GROUNDWORK_GOUGE: 45426, // Groundwork Gouge
   SHARPEN_SPINES: 45479, // Sharpen Spines
   ONE_WOLF_PACK: 45717, // One Wolf Pack
+  ONE_WOLF_PACK_STRIKE: 42145,
+  LESSER_SIC_EM: 79348,
   CHARGE: 45743, // Charge
   DOLYAK_STANCE: 45789, // Dolyak Stance
   UNFLINCHING_FORTITUDE: 45797, // Unflinching Fortitude
@@ -149,6 +152,7 @@ export const RANGER_SKILL_IDS = Object.freeze({
   FORESTS_FORTIFICATION: 63163, // Forest's Fortification
   UNNATURAL_TRAVERSAL: 63195, // Unnatural Traversal
   UNLEASHED_OVERBEARING_SMASH: 63197, // Unleashed Overbearing Smash
+  OVERBEARING_SMASH_SECOND_STRIKE: 63201,
   UNLEASHED_THUMP: 63208, // Unleashed Thump
   VENOMOUS_OUTBURST: 63209, // Venomous Outburst
   HAMMER_SLAM: 63222, // Hammer Slam

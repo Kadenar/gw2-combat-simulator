@@ -161,13 +161,13 @@ export const exampleProfession = defineProfession({
   resources: {
     createProfessionState,
     createResolverState, // optional clean resolver-time initial state
-    projectEndState,      // optional public profession-state projection
+    projectEndState, // optional public profession-state projection
   },
   attributeRules,
   castRules,
   schedulerHooks,
   resolverHooks: {
-    eventHandlers,  // exclusive custom event types
+    eventHandlers, // exclusive custom event types
     eventReactions, // reactions to standard GW2 event types
   },
   ui: {
@@ -453,6 +453,7 @@ Normalized rotations use:
 { type: "combat-start" }
 { type: "cast", skillId, concurrentOffsetMs: 100 }
 { type: "cast", skillId, interruptAfterMs: 500 }
+{ type: "cast", skillId, releaseAtCharges: 3 }
 ```
 
 Legacy display-name entries are converted at the application boundary.
@@ -466,6 +467,11 @@ invalid. Once a queued command advances to its ready time, later rotation
 commands proceed from that chronological point. Cast completion and typed
 tasks run chronologically, and availability is reevaluated after intermediate
 tasks.
+
+`releaseAtCharges` is an optional positive-integer cast target used by charged
+skills. A profession may return retryable availability until that target is
+reached. Omitting it leaves the target to profession policy, such as
+Bladesworn's maximum-charge Dragon Slash release.
 
 Declarative multi-hit effects emit one canonical damage event per hit. Optional
 hit intervals preserve channels and persistent attacks, including effects that

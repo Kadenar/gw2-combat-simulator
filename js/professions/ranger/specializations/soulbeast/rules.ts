@@ -6,7 +6,10 @@ import {
 } from "../../data/ids.js";
 import { selectedRangerPet } from "../../core/state.js";
 import type { AvailabilityResult } from "../../../../platform/engine/types.js";
-import type { Gw2ModifierRule } from "../../../../platform/gw2/types.js";
+import type {
+  Gw2ModifierContext,
+  Gw2ModifierRule,
+} from "../../../../platform/gw2/types.js";
 import type { RangerPrecastContext, RangerSkill } from "../../types.js";
 import { soulbeastState } from "./state.js";
 
@@ -20,6 +23,37 @@ function deny(
     code,
     reason: `${skill.name} is unavailable - ${cause}`,
   };
+}
+
+function activeBuff(context: Gw2ModifierContext, kind: string): boolean {
+  if (context.config?.boons?.[kind]) return true;
+  if (context.timeline?.timedActive(kind, context.time)) return true;
+  return (context.runtime?.boons?.get(kind) || []).some(
+    (application: { at: number; expiresAt: number; stacks: number }) =>
+      application.at <= context.time &&
+      application.expiresAt > context.time &&
+      application.stacks > 0,
+  );
+}
+
+function targetHealthFraction(context: Gw2ModifierContext): number {
+  const maximum = Number(context.config?.target?.health || 0);
+  if (!(maximum > 0)) return 1;
+  const totals = context.runtime?.totals as
+    { strike?: number; condition?: number } | undefined;
+  return Math.max(
+    0,
+    1 -
+      (Number(totals?.strike || 0) + Number(totals?.condition || 0)) / maximum,
+  );
+}
+
+function oppressiveSuperiorityActive(context: Gw2ModifierContext): boolean {
+  return (
+    hasTrait(context, TRAIT.OPPRESSIVE_SUPERIORITY) &&
+    targetHealthFraction(context) <
+      Number(context.config?.playerHealthFraction ?? 1)
+  );
 }
 
 export function soulbeastCastAvailability(
@@ -65,25 +99,57 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       id: "ranger.furious-strength",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: 0.1,
+      amount: 0.15,
       when: (context) =>
         hasTrait(context, TRAIT.FURIOUS_STRENGTH) &&
-        Boolean(context.config?.boons?.fury),
+        activeBuff(context, "fury"),
+    },
+    {
+      id: "ranger.sic-em-player",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.25,
+      when: (context) => activeBuff(context, "sic-em"),
+    },
+    {
+      id: "ranger.lesser-sic-em-player",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.15,
+      when: (context) => activeBuff(context, "lesser-sic-em"),
+    },
+    {
+      id: "ranger.twice-as-vicious-strike",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.07,
+      when: (context) => activeBuff(context, "twice-as-vicious"),
+    },
+    {
+      id: "ranger.twice-as-vicious-condition",
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.1,
+      when: (context) => activeBuff(context, "twice-as-vicious"),
     },
     {
       id: "ranger.oppressive-superiority",
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: "damage-additive",
       amount: 0.1,
-      when: (context) =>
-        hasTrait(context, TRAIT.OPPRESSIVE_SUPERIORITY) &&
-        Number(context.config?.playerHealthFraction ?? 1) > 0.5,
+      when: oppressiveSuperiorityActive,
     },
   ],
 );
 
 export const soulbeastAttributeRules = Object.freeze({
   modifierRules: soulbeastModifierRules,
+  modifyConditionBaseDuration(
+    context: Gw2ModifierContext,
+    duration: number,
+  ): number {
+    return oppressiveSuperiorityActive(context) ? duration * 1.1 : duration;
+  },
 });
 export const soulbeastCastRules = Object.freeze({
   availability: {

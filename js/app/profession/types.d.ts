@@ -189,6 +189,7 @@ export interface BuildTemplateSelection {
 export interface RotationActionOptions extends SchedulerRecord {
   readonly skillId?: SkillId | null;
   readonly interruptMs?: number | null;
+  readonly releaseAtCharges?: number | null;
 }
 
 export interface ProfessionAssumptionOption {
