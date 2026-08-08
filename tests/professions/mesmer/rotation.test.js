@@ -1866,7 +1866,7 @@ test('condition Dune Cloak Mirage preset matches the supplied equipment', () => 
     });
     const result = simulateMesmer(build.rotation, simulationConfig(app));
     assert.deepEqual(result.warnings, []);
-    assert.equal(Math.round(result.dps), 39914);
+    assert.equal(Math.round(result.dps), 41188);
     assert.ok(
         Math.abs(result.totalDamage - savedRotation.metadata.benchmarkDamage)
             / savedRotation.metadata.benchmarkDamage < 0.01,
@@ -1880,18 +1880,27 @@ test('condition Dune Cloak Mirage preset matches the supplied equipment', () => 
     assert.deepEqual(
         result.steps.filter(step => step.skill === 'Chaos Armor')
             .map(relativeStart),
-        [0, 13.32, 38.829, 65.729, 91.018],
+        [0, 12.8, 38.309, 62.738, 87.947],
     );
     assert.ok(
         result.steps.filter(step => step.skill === 'Distortion')
             .map(relativeStart)
-            .includes(42.836),
+            .includes(42.869),
     );
-    const firstAxes = result.steps.find(step =>
-        step.skill === 'Axes of Symmetry');
     assert.ok(result.procSteps.some(step =>
         step.skill === 'Relic of Peitha'
-        && step.start === firstAxes.start));
+        && step.sourceSkill === 'Axes of Symmetry'
+        && result.steps.some(cast =>
+            cast.skill === 'Axes of Symmetry'
+            && step.start === cast.start + 519)));
+    assert.equal(
+        result.procSteps.filter(step => step.skill === 'Relic of Peitha').length,
+        19,
+    );
+    assert.ok(Math.abs(
+        result.conditionBreakdown.find(row => row.name === 'Torment')
+            .averageStacks - 47.807,
+    ) < 0.01);
 
     const conditionApplications = condition => result.resolvedEvents
         .filter(event =>
@@ -3771,22 +3780,66 @@ test('Infinite Horizon axe clones each apply one 4-second Torment', () => {
         event.stacks === 1 && event.duration === 4));
 });
 
-test('Axes of Symmetry triggers Relic of Peitha at cast start', () => {
+test('Mesmer Peitha triggers share cast-start ICD logic with measured travel delays', () => {
+    const cases = [
+        ['Phase Retreat', ID.PHASE_RETREAT, 'Staff', 856],
+        ['Crystal Sands', ID.CRYSTAL_SANDS, 'Axe', 241],
+        ['Jaunt', ID.JAUNT, 'Axe', 241],
+        ['Axes of Symmetry', ID.AXES_OF_SYMMETRY, 'Axe', 519],
+    ];
+    for (const [skillName, skillId, primaryWeapon, delayMs] of cases) {
+        const result = simulateMesmer(
+            [{ name: skillName, skillId }],
+            defaultSimulationConfig({
+                specialization: 'Mirage',
+                selectedSkills: ['Crystal Sands', 'Jaunt'],
+                primaryWeapon,
+                secondaryWeapon: primaryWeapon === 'Axe' ? 'Torch' : '',
+                initialResource: 0,
+                relic: 'Peitha',
+            }),
+        );
+        const cast = result.steps.find(step => step.skill === skillName);
+        const peitha = result.events.find(event =>
+            event.type === 'peitha' && event.skillName === skillName);
+        const torment = result.resolvedEvents.find(event =>
+            event.type === 'condition'
+            && event.skillName === 'Relic of Peitha'
+            && event.condition === 'Torment');
+
+        assert.ok(peitha, `${skillName} trigger event`);
+        assert.ok(torment, `${skillName} Peitha Torment`);
+        assert.equal(peitha.at * 1000, cast.start, `${skillName} trigger`);
+        assert.equal(peitha.projectileDelay * 1000, delayMs, skillName);
+        assert.ok(
+            Math.abs(torment.at * 1000 - cast.start - delayMs) < 1e-9,
+            `${skillName} impact`,
+        );
+    }
+});
+
+test('Axes and Crystal Sands share Peitha trigger-time cooldown state', () => {
     const result = simulateMesmer(
-        [{ name: 'Axes of Symmetry', skillId: ID.AXES_OF_SYMMETRY }],
+        [
+            { name: 'Axes of Symmetry', skillId: ID.AXES_OF_SYMMETRY },
+            { name: '__wait', waitMs: 3001 },
+            { name: 'Crystal Sands', skillId: ID.CRYSTAL_SANDS },
+        ],
         defaultSimulationConfig({
             specialization: 'Mirage',
+            selectedSkills: ['Crystal Sands'],
             primaryWeapon: 'Axe',
             secondaryWeapon: 'Torch',
             initialResource: 0,
             relic: 'Peitha',
         }),
     );
-    const cast = result.steps.find(step => step.skill === 'Axes of Symmetry');
-    const peitha = result.events.find(event =>
-        event.type === 'peitha'
-        && event.skillName === 'Axes of Symmetry');
-    assert.equal(peitha.at * 1000, cast.start);
+    assert.deepEqual(
+        result.procSteps
+            .filter(step => step.skill === 'Relic of Peitha')
+            .map(step => step.sourceSkill),
+        ['Axes of Symmetry', 'Crystal Sands'],
+    );
 });
 
 test('The Prestige has a 40ms quickness activation and explodes 3s later', () => {
@@ -3851,6 +3904,7 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
             primaryWeapon: 'Axe',
             secondaryWeapon: 'Torch',
             initialResource: 0,
+            relic: 'Peitha',
         }),
     );
     const crystal = result.events.find(event =>
@@ -3873,6 +3927,12 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
     assert.equal(
         result.endState.profession.availableAmbush.source,
         'Pick Up Mirage Mirror',
+    );
+    assert.deepEqual(
+        result.events
+            .filter(event => event.type === 'peitha')
+            .map(event => event.skillName),
+        ['Crystal Sands'],
     );
 });
 

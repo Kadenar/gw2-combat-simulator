@@ -193,6 +193,7 @@ function timedStrikeBuff(
   predicate?: (event: SimulationEvent) => boolean,
 ): NonNullable<Gw2RelicRule["strikeMultiplier"]> {
   return (_ctx, state, event) =>
+    Number(state.buffFrom ?? -Infinity) <= event.at &&
     Number(state.buffUntil || 0) > event.at &&
     (predicate ? predicate(event) : true)
       ? multiplier
@@ -626,15 +627,21 @@ const RELIC_RULES: Readonly<
   }),
 
   Peitha: defineRelic({
-    createState: () => ({ readyAt: 0, buffUntil: 0 }),
+    createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
     peitha(ctx, state, event, applyCondition) {
-      if (!isInternalCooldownReady(event.at, state.readyAt)) return;
-      state.readyAt = event.at + 4;
-      state.buffUntil = event.at + 4;
-      ctx.recordProc("relic", "Relic of Peitha", event.at, event.skillName);
+      const triggerAt = event.at;
+      if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
+      state.readyAt = triggerAt + 4;
+      const combatStart = Number(ctx.combatStartTime ?? -Infinity);
+      const impactAt = triggerAt < combatStart
+        ? combatStart
+        : triggerAt + Math.max(0, Number(event.projectileDelay || 0));
+      state.buffFrom = impactAt;
+      state.buffUntil = impactAt + 4;
+      ctx.recordProc("relic", "Relic of Peitha", impactAt, event.skillName);
       applyCondition(ctx, {
         type: "condition",
-        at: event.at,
+        at: impactAt,
         name: "Relic of Peitha — Torment",
         skillName: "Relic of Peitha",
         condition: "Torment",
