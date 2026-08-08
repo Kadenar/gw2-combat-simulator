@@ -157,7 +157,7 @@ export function completeStealWithStoredSkill(
     gainThiefInitiative(context, 2, at, "kleptomaniac");
   }
   if (hasThiefTrait(context.config, TRAIT.ENDURANCE_THIEF)) {
-    gainThiefEndurance(context, 25, at, "endurance-thief");
+    gainThiefEndurance(context, 50, at, "endurance-thief");
   }
   emitThiefState(context, at, "steal");
 }

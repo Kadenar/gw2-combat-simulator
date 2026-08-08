@@ -761,7 +761,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
   [ID.BACKSTAB]: {
       "implemented": true,
       "handlerId": "thief.stealth-attack",
-      "castTimeMs": 250,
+      "castTimeMs": 480,
+      "quicknessCastTimeMs": 320,
       "cooldown": 1,
       "initiativeCost": 0,
       "effects": [
@@ -1573,9 +1574,9 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
       "effects": [],
       "summonAttack": {
         "coefficient": 1.2,
-        "hits": 3,
+        "hits": 1,
         "interval": 1,
-        "duration": 30
+        "duration": 24
       },
     },
   [ID.DISABLING_SHOT]: {
@@ -2196,13 +2197,14 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.WEAKENING_WHIRL]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "castTimeMs": 1080,
+      "quicknessCastTimeMs": 720,
       "cooldown": 0,
       "initiativeCost": 3,
       "effects": [
         {
           "type": "strike",
-          "coefficient": 6.66,
+          "coefficient": 2.22,
           "hits": 3,
           "name": "Weakening Whirl",
           "actorType": "player",
@@ -2219,10 +2221,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "actorType": "player"
         }
       ],
+      "finisherType": "Whirl",
+      "finisherValue": 1,
     },
   [ID.STAFF_BASH]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "castTimeMs": 540,
+      "quicknessCastTimeMs": 360,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
@@ -2238,7 +2243,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
   [ID.HOOK_STRIKE]: {
       "implemented": true,
       "handlerId": "thief.stealth-attack",
-      "castTimeMs": 750,
+      "castTimeMs": 960,
+      "quicknessCastTimeMs": 640,
       "cooldown": 1,
       "initiativeCost": 0,
       "effects": [
@@ -2289,13 +2295,14 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.PUNISHING_STRIKES]: {
       "implemented": true,
-      "castTimeMs": 1000,
+      "castTimeMs": 1140,
+      "quicknessCastTimeMs": 760,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
         {
           "type": "strike",
-          "coefficient": 8.4,
+          "coefficient": 2.1,
           "hits": 4,
           "name": "Punishing Strikes",
           "actorType": "player",
@@ -2312,10 +2319,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "actorType": "player"
         }
       ],
+      "finisherType": "Whirl",
+      "finisherValue": 1,
     },
   [ID.DEBILITATING_ARC]: {
       "implemented": true,
-      "castTimeMs": 0,
+      "castTimeMs": 300,
+      "quicknessCastTimeMs": 200,
       "cooldown": 0,
       "initiativeCost": 3,
       "effects": [
@@ -2352,7 +2362,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.STAFF_STRIKE]: {
       "implemented": true,
-      "castTimeMs": 500,
+      "castTimeMs": 540,
+      "quicknessCastTimeMs": 360,
       "cooldown": 0,
       "initiativeCost": 0,
       "effects": [
@@ -2373,7 +2384,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
       "effects": [
         {
           "type": "strike",
-          "coefficient": 5.4,
+          "coefficient": 1.8,
           "hits": 3,
           "name": "Dust Strike",
           "actorType": "player",
@@ -2384,7 +2395,10 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
         },
         {
           "type": "blind",
-          "actorType": "player"
+          "actorType": "player",
+          "metadata": {
+            "duration": 1
+          }
         }
       ],
     },
@@ -3204,21 +3218,40 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
       "effects": [
         {
           "type": "strike",
-          "coefficient": 1.35,
-          "hits": 3,
+          "coefficient": 0.45,
+          "hits": 1,
           "name": "Triple Bolt",
           "actorType": "player",
-          "atMs": 540,
-          "intervalMs": 540,
+          "atMs": 480,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
+        },
+        {
+          "type": "strike",
+          "coefficient": 0.45,
+          "hits": 1,
+          "name": "Triple Bolt",
+          "actorType": "player",
+          "atMs": 960,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
+        },
+        {
+          "type": "strike",
+          "coefficient": 0.45,
+          "hits": 1,
+          "name": "Triple Bolt",
+          "actorType": "player",
+          "atMs": 1560,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
         {
           "type": "condition",
           "ticks": [
-            { "atMs": 540, "condition": "Torment", "stacks": 1, "duration": 5 },
-            { "atMs": 1080, "condition": "Torment", "stacks": 1, "duration": 5 },
-            { "atMs": 1620, "condition": "Torment", "stacks": 1, "duration": 5 }
+            { "atMs": 480, "condition": "Torment", "stacks": 1, "duration": 5 },
+            { "atMs": 960, "condition": "Torment", "stacks": 1, "duration": 5 },
+            { "atMs": 1560, "condition": "Torment", "stacks": 1, "duration": 5 }
           ],
           "actorType": "player",
           "timingAnchor": "castStart",
@@ -3267,12 +3300,21 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
       "effects": [
         {
           "type": "strike",
-          "coefficient": 0.75,
-          "hits": 2,
+          "coefficient": 0.375,
+          "hits": 1,
           "name": "Double Bolt",
           "actorType": "player",
           "atMs": 480,
-          "intervalMs": 480,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
+        },
+        {
+          "type": "strike",
+          "coefficient": 0.375,
+          "hits": 1,
+          "name": "Double Bolt",
+          "actorType": "player",
+          "atMs": 900,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -3280,7 +3322,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "type": "condition",
           "ticks": [
             { "atMs": 480, "condition": "Torment", "stacks": 1, "duration": 4 },
-            { "atMs": 960, "condition": "Torment", "stacks": 1, "duration": 4 }
+            { "atMs": 900, "condition": "Torment", "stacks": 1, "duration": 4 }
           ],
           "actorType": "player",
           "timingAnchor": "castStart",
@@ -3290,8 +3332,8 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
     },
   [ID.TWILIGHT_COMBO]: {
       "implemented": true,
-      "castTimeMs": 600,
-      "quicknessCastTimeMs": 400,
+      "castTimeMs": 1140,
+      "quicknessCastTimeMs": 760,
       "cooldown": 0,
       "initiativeCost": 4,
       "effects": [
@@ -3301,7 +3343,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "hits": 1,
           "name": "Initial Attack",
           "actorType": "player",
-          "atMs": 300,
+          "atMs": 960,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -3311,9 +3353,10 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "hits": 1,
           "name": "Secondary Attack",
           "actorType": "player",
-          "atMs": 600,
+          "atMs": 1200,
           "timingAnchor": "castStart",
-          "timingScale": "cast"
+          "timingScale": "cast",
+          "metadata": { "extendsResolutionHorizon": true }
         },
         {
           "type": "condition",
@@ -3321,7 +3364,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "stacks": 1,
           "duration": 3,
           "actorType": "player",
-          "atMs": 300,
+          "atMs": 960,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -3331,7 +3374,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "stacks": 1,
           "duration": 5,
           "actorType": "player",
-          "atMs": 300,
+          "atMs": 960,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -3341,9 +3384,10 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
           "stacks": 3,
           "duration": 5,
           "actorType": "player",
-          "atMs": 600,
+          "atMs": 1200,
           "timingAnchor": "castStart",
-          "timingScale": "cast"
+          "timingScale": "cast",
+          "metadata": { "extendsResolutionHorizon": true }
         }
       ],
       "requiredMainHand": "Scepter",
@@ -4042,6 +4086,7 @@ export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
     type: "Action",
     slot: "Action",
     castTimeMs: 800,
+    quicknessCastTimeMs: 800,
     cooldown: 0,
     implemented: true,
     effects: [],

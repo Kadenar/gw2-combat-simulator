@@ -54,6 +54,7 @@ const CONDITION_NAMES = new Set([
 // stage. Keep it available to debug output, but do not count it as another
 // player-initiated cast.
 const SECONDARY_CAST_ACTIVATIONS = new Set([
+  63181, // Twilight Combo, accelerating follow-up shot
   77307, // Plasmatic State, second strike/stage
 ]);
 const windowSeconds = Number(

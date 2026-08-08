@@ -32,8 +32,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
   [ID.ETERNAL_NIGHT]: {
       "implemented": true,
       "handlerId": "thief.shadow-shroud-skill",
-      "castTimeMs": 2880,
-      "quicknessCastTimeMs": 1920,
+      "castTimeMs": 1110,
+      "quicknessCastTimeMs": 740,
       "cooldown": 8,
       "initiativeCost": 0,
       "effects": [
@@ -43,8 +43,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "hits": 2,
           "name": "Eternal Night",
           "actorType": "player",
-          "atMs": 1440,
-          "intervalMs": 1440,
+          "atMs": 540,
+          "intervalMs": 480,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -54,7 +54,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "stacks": 1,
           "duration": 2,
           "actorType": "player",
-          "atMs": 1440,
+          "atMs": 540,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
@@ -64,15 +64,15 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "stacks": 1,
           "duration": 4,
           "actorType": "player",
-          "atMs": 2880,
+          "atMs": 1020,
           "timingAnchor": "castStart",
           "timingScale": "cast"
         },
         {
           "type": "condition",
           "ticks": [
-            { "atMs": 1440, "condition": "Poisoned", "stacks": 2, "duration": 4 },
-            { "atMs": 2880, "condition": "Poisoned", "stacks": 2, "duration": 4 }
+            { "atMs": 540, "condition": "Poisoned", "stacks": 2, "duration": 4 },
+            { "atMs": 1020, "condition": "Poisoned", "stacks": 2, "duration": 4 }
           ],
           "actorType": "player",
           "timingAnchor": "castStart",
@@ -94,21 +94,31 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "coefficient": 1.66,
           "hits": 1,
           "name": "Grasping Shadows",
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 1000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed",
+          "metadata": { "extendsResolutionHorizon": true }
         },
         {
           "type": "condition",
           "condition": "Crippled",
           "stacks": 1,
           "duration": 3,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 1000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed"
         },
         {
           "type": "condition",
           "condition": "Torment",
           "stacks": 2,
           "duration": 6,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 1000,
+          "timingAnchor": "castEnd",
+          "timingScale": "fixed"
         }
       ],
       "finisherType": "Blast",
@@ -252,8 +262,8 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
       "implemented": true,
       "movementSkill": true,
       "shadowstepSkill": true,
-      "castTimeMs": 1320,
-      "quicknessCastTimeMs": 880,
+      "castTimeMs": 900,
+      "quicknessCastTimeMs": 600,
       "cooldown": 20,
       "initiativeCost": 0,
       "effects": [
@@ -263,7 +273,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "hits": 5,
           "name": "Well of Sorrow",
           "actorType": "player",
-          "atMs": 0,
+          "atMs": 400,
           "intervalMs": 1000,
           "timingAnchor": "castEnd",
           "timingScale": "fixed",
@@ -273,11 +283,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
         {
           "type": "condition",
           "ticks": [
-            { "atMs": 0, "condition": "Torment", "stacks": 2, "duration": 6 },
-            { "atMs": 1000, "condition": "Bleeding", "stacks": 3, "duration": 6 },
-            { "atMs": 2000, "condition": "Torment", "stacks": 2, "duration": 6 },
-            { "atMs": 3000, "condition": "Poisoned", "stacks": 3, "duration": 6 },
-            { "atMs": 4000, "condition": "Torment", "stacks": 2, "duration": 6 }
+            { "atMs": 400, "condition": "Torment", "stacks": 2, "duration": 6 },
+            { "atMs": 1400, "condition": "Bleeding", "stacks": 3, "duration": 6 },
+            { "atMs": 2400, "condition": "Torment", "stacks": 2, "duration": 6 },
+            { "atMs": 3400, "condition": "Poisoned", "stacks": 3, "duration": 6 },
+            { "atMs": 4400, "condition": "Torment", "stacks": 2, "duration": 6 }
           ],
           "actorType": "player",
           "timingAnchor": "castEnd",
@@ -401,14 +411,20 @@ export const SPECTER_SKILL_MECHANICS: Readonly<
           "coefficient": 1.075,
           "hits": 1,
           "name": "Haunt Shot",
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 850,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         },
         {
           "type": "condition",
           "condition": "Torment",
           "stacks": 1,
           "duration": 6,
-          "actorType": "player"
+          "actorType": "player",
+          "atMs": 850,
+          "timingAnchor": "castStart",
+          "timingScale": "cast"
         },
         {
           "type": "boon",

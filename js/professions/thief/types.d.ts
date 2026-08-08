@@ -124,6 +124,9 @@ export interface ThiefCoreState {
 export interface DaredevilState {
   selectedDodge: ThiefDodge;
   boundingDamageUntil: number;
+  lotusConditionDamageUntil: number;
+  palmStrikeUntil: number;
+  weakeningStrikeReady: boolean;
 }
 
 export interface DeadeyeState {
@@ -141,6 +144,7 @@ export interface SpecterState {
   shadowShroudActive: boolean;
   shadowForceUpdatedAt: number;
   darkSentryReadyAt: number;
+  darkSentryReadyAtByAlly: Record<string, number>;
 }
 
 export type ThiefArtifactKind = "offensive" | "defensive";

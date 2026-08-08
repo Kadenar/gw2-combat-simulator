@@ -31,23 +31,29 @@ export const DAREDEVIL_DODGE_EFFECTS: Readonly<
     Object.freeze({
       type: "strike",
       sourceId: TRAIT.BOUNDING_DODGER,
-      coefficient: 1.33,
+      coefficient: 3.5,
       hits: 1,
     }),
   ]),
   "Lotus Training": Object.freeze([
     Object.freeze({
+      type: "strike",
+      sourceId: TRAIT.LOTUS_TRAINING,
+      coefficient: 0.5625,
+      hits: 3,
+    }),
+    Object.freeze({
       type: "condition",
       sourceId: TRAIT.LOTUS_TRAINING,
       condition: "Bleeding",
-      stacks: 1,
+      stacks: 6,
       duration: 4,
     }),
     Object.freeze({
       type: "condition",
       sourceId: TRAIT.LOTUS_TRAINING,
       condition: "Torment",
-      stacks: 1,
+      stacks: 3,
       duration: 4,
     }),
     Object.freeze({
@@ -55,7 +61,7 @@ export const DAREDEVIL_DODGE_EFFECTS: Readonly<
       sourceId: TRAIT.LOTUS_TRAINING,
       condition: "Crippled",
       stacks: 1,
-      duration: 2,
+      duration: 3,
     }),
   ]),
   "Unhindered Combatant": Object.freeze([

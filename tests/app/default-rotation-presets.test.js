@@ -30,6 +30,7 @@ test("native build manifests and assets stay profession-scoped", async () => {
     "mesmer",
     "necromancer",
     "revenant",
+    "thief",
   ];
 
   for (const profession of professions) {
@@ -177,7 +178,7 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
   assert.deepEqual(
     thiefManifest.flatMap(section => section.presets)
       .map(preset => preset.benchmarkDps),
-    [43248, 40790],
+    [43248, 40790, 36275, 43036],
   );
 });
 

@@ -50,7 +50,13 @@ const slices = Object.freeze([
 ]);
 
 const specializationStateKeys = Object.freeze({
-  Daredevil: ["selectedDodge", "boundingDamageUntil"],
+  Daredevil: [
+    "selectedDodge",
+    "boundingDamageUntil",
+    "lotusConditionDamageUntil",
+    "palmStrikeUntil",
+    "weakeningStrikeReady",
+  ],
   Deadeye: [
     "markedTargetId",
     "malice",

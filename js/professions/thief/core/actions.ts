@@ -19,7 +19,29 @@ import type {
 interface ThievesGuildTaskPayload extends Record<string, unknown> {
   readonly attack: ThiefSummonAttack;
   readonly expiresAt: number;
-  readonly variant: string;
+  readonly summons: readonly ThievesGuildSummon[];
+}
+
+interface ThievesGuildSummon extends Record<string, unknown> {
+  readonly name: string;
+  readonly weapon: string;
+}
+
+function thievesGuildSummons(variant: string): readonly ThievesGuildSummon[] {
+  const specialized = variant === "Daredevil"
+    ? { name: "Staff Daredevil", weapon: "Staff" }
+    : variant === "Deadeye"
+      ? { name: "Rifle Deadeye", weapon: "Rifle" }
+      : variant === "Specter"
+        ? { name: "Scepter Specter", weapon: "Scepter" }
+        : variant === "Skritt"
+          ? { name: "Sword/Dagger Skritt", weapon: "Sword" }
+          : { name: "Sword Thief", weapon: "Sword" };
+  return [
+    { name: "Male Dual-Pistol Thief", weapon: "Pistol" },
+    { name: "Female Dual-Dagger Thief", weapon: "Dagger" },
+    specialized,
+  ];
 }
 
 export function summonThievesGuild(
@@ -29,9 +51,10 @@ export function summonThievesGuild(
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   const variant = state.thievesGuildVariant || "Core Thief";
+  const summons = thievesGuildSummons(variant);
   const attack = skill.summonAttack || {};
   state.activeThievesGuild = {
-    variant,
+    variant: summons[2].name,
     expiresAt: at + Number(attack.duration || 0),
   };
   context.tasks.cancelOwner("thief.thieves-guild");
@@ -42,7 +65,7 @@ export function summonThievesGuild(
     payload: {
       attack,
       expiresAt: at + Number(attack.duration || 0),
-      variant,
+      summons,
     },
   });
   emitThiefState(context, at, "thieves-guild");
@@ -54,23 +77,31 @@ export function handleThievesGuildAttack(
 ): void {
   if (task.at > Number(task.payload.expiresAt || 0)) return;
   const attack = task.payload.attack || {};
-  context.emit({
-    type: "damage",
-    at: task.at,
-    source: "thief",
-    sourceId: "thief.thieves-guild",
-    actorType: "summon",
-    skillName: `Thieves Guild — ${task.payload.variant}`,
-    name: `Thieves Guild — ${task.payload.variant}`,
-    coefficient: Number(attack.coefficient || 0),
-    hits: Number(attack.hits || 1),
-    hitIndex: 1,
-    totalHits: Number(attack.hits || 1),
-    skillWeapon: "Unequipped",
-  });
+  for (const summon of task.payload.summons) {
+    context.emit({
+      type: "damage",
+      at: task.at,
+      source: "thief",
+      sourceId: "thief.thieves-guild",
+      actorType: "summon",
+      skillName: `Thieves Guild — ${summon.name}`,
+      name: `Thieves Guild — ${summon.name}`,
+      coefficient: Number(attack.coefficient || 0),
+      hits: Number(attack.hits || 1),
+      hitIndex: 1,
+      totalHits: Number(attack.hits || 1),
+      skillWeapon: summon.weapon,
+    });
+  }
+  const nextAt = task.at + Number(attack.interval || 1);
+  if (nextAt > Number(task.payload.expiresAt || 0)) {
+    professionCoreState(context).activeThievesGuild = null;
+    emitThiefState(context, task.at, "thieves-guild-expired");
+    return;
+  }
   context.tasks.schedule({
     ...task,
-    at: task.at + Number(attack.interval || 1),
+    at: nextAt,
   });
 }
 
