@@ -51,38 +51,40 @@ type HookCategory = "scheduler" | "cast" | "attribute";
  * belongs to. Array order defines PROFESSION_HOOK_ORDER; the family arrays below
  * are derived, so adding a hook can no longer silently miss a subset list.
  */
-const HOOK_DEFINITIONS: readonly (readonly [string, readonly HookCategory[]])[] =
-  Object.freeze([
-    ["initialize", ["scheduler"]],
-    ["availability", ["scheduler", "cast"]],
-    ["validateCast", ["scheduler", "cast"]],
-    ["scheduleSkill", ["scheduler", "cast"]],
-    ["afterCast", ["scheduler"]],
-    ["advance", ["scheduler"]],
-    ["snapshot", ["scheduler"]],
-    ["projectEndState", ["scheduler"]],
-    ["onCastStart", ["scheduler"]],
-    ["onCastComplete", ["scheduler"]],
-    ["onCooldownReset", ["scheduler"]],
-    ["onEventScheduled", ["scheduler"]],
-    ["modifyCastDuration", ["scheduler", "cast"]],
-    ["modifyRechargeDuration", ["scheduler", "cast"]],
-    ["modifyRechargeStart", ["scheduler", "cast"]],
-    ["modifyMaximumAmmo", ["scheduler", "cast"]],
-    ["modifyAttributes", ["attribute"]],
-    ["modifyCriticalChance", ["attribute"]],
-    ["modifyCriticalDamage", ["attribute"]],
-    ["modifyStrikeDamage", ["attribute"]],
-    ["modifyConditionDamage", ["attribute"]],
-    ["modifyConditionBaseDuration", ["attribute"]],
-    ["modifyConditionDuration", ["attribute"]],
-  ]);
+const HOOK_DEFINITIONS: readonly (readonly [
+  string,
+  readonly HookCategory[],
+])[] = Object.freeze([
+  ["initialize", ["scheduler"]],
+  ["availability", ["scheduler", "cast"]],
+  ["validateCast", ["scheduler", "cast"]],
+  ["scheduleSkill", ["scheduler", "cast"]],
+  ["afterCast", ["scheduler"]],
+  ["advance", ["scheduler"]],
+  ["snapshot", ["scheduler"]],
+  ["projectEndState", ["scheduler"]],
+  ["onCastStart", ["scheduler"]],
+  ["onCastComplete", ["scheduler"]],
+  ["onCooldownReset", ["scheduler"]],
+  ["onEventScheduled", ["scheduler"]],
+  ["modifyCastDuration", ["scheduler", "cast"]],
+  ["modifyRechargeDuration", ["scheduler", "cast"]],
+  ["modifyRechargeStart", ["scheduler", "cast"]],
+  ["modifyMaximumAmmo", ["scheduler", "cast"]],
+  ["modifyAttributes", ["attribute"]],
+  ["modifyCriticalChance", ["attribute"]],
+  ["modifyCriticalDamage", ["attribute"]],
+  ["modifyStrikeDamage", ["attribute"]],
+  ["modifyConditionDamage", ["attribute"]],
+  ["modifyConditionBaseDuration", ["attribute"]],
+  ["modifyConditionDuration", ["attribute"]],
+]);
 
 const hookNamesWith = (category: HookCategory): readonly string[] =>
   Object.freeze(
-    HOOK_DEFINITIONS
-      .filter(([, categories]) => categories.includes(category))
-      .map(([name]) => name),
+    HOOK_DEFINITIONS.filter(([, categories]) =>
+      categories.includes(category),
+    ).map(([name]) => name),
   );
 
 const HOOK_NAMES = Object.freeze(HOOK_DEFINITIONS.map(([name]) => name));
@@ -106,6 +108,7 @@ const UI_CALLBACK_NAMES = Object.freeze([
   "resourceView",
   "resourceViews",
   "skillBarGroups",
+  "startControls",
   "targetHealthThresholds",
   "timelineWeaponLineTransition",
   "timelineSkillIcon",
@@ -116,10 +119,7 @@ const UI_CALLBACK_NAMES = Object.freeze([
 /**
  * Normalizes one hook or hook list into an order-stable array.
  */
-function orderedHooks(
-  value: unknown,
-  hookName: string,
-): OrderedHook[] {
+function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
   const entries = value == null ? [] : Array.isArray(value) ? value : [value];
   const hooks = entries
     .map((entry, index) => {
@@ -188,7 +188,7 @@ function composeHooks(
                     code: `${hook.id}.unavailable`,
                     reason: `${skill.name} is unavailable.`,
                   }
-                : next as AvailabilityResult;
+                : (next as AvailabilityResult);
             if (availability.ready !== false) continue;
             if (availability.retryAt == null) {
               yield {
@@ -312,30 +312,24 @@ function assertCallbackContainer(
 
 function assertUiDefinition(ui: SchedulerRecord): void {
   assertCallbackContainer(ui, [...UI_CALLBACK_NAMES], "ui");
-  if (
-    ui.assumptionControls != null
-    && !Array.isArray(ui.assumptionControls)
-  ) {
+  if (ui.assumptionControls != null && !Array.isArray(ui.assumptionControls)) {
     throw new TypeError("ui.assumptionControls must be an array.");
   }
   if (
-    ui.slotLoadout != null
-    && (typeof ui.slotLoadout !== "object" || Array.isArray(ui.slotLoadout))
+    ui.slotLoadout != null &&
+    (typeof ui.slotLoadout !== "object" || Array.isArray(ui.slotLoadout))
   ) {
     throw new TypeError("ui.slotLoadout must be an object.");
   }
   if (
-    ui.weaponSwapChangesSet != null
-    && typeof ui.weaponSwapChangesSet !== "boolean"
+    ui.weaponSwapChangesSet != null &&
+    typeof ui.weaponSwapChangesSet !== "boolean"
   ) {
     throw new TypeError("ui.weaponSwapChangesSet must be a boolean.");
   }
 }
 
-function assertHandlerMap(
-  value: unknown,
-  scope: string,
-): void {
+function assertHandlerMap(value: unknown, scope: string): void {
   if (value == null) return;
   if (typeof value !== "object" || Array.isArray(value)) {
     throw new TypeError(`${scope} must be an object.`);
@@ -381,9 +375,9 @@ function assertShallowUnchanged(
   const keys = Object.keys(value);
   const priorKeys = Object.keys(snapshot);
   if (
-    keys.length !== priorKeys.length
-    || keys.some((key) => !Object.hasOwn(snapshot, key))
-    || priorKeys.some((key) => value[key] !== snapshot[key])
+    keys.length !== priorKeys.length ||
+    keys.some((key) => !Object.hasOwn(snapshot, key)) ||
+    priorKeys.some((key) => value[key] !== snapshot[key])
   ) {
     throw new TypeError(
       `simulation.refineSchedulerConfig must not mutate prior ${label}.`,
@@ -398,16 +392,8 @@ function normalizeSimulation(
   if (typeof simulation !== "object" || Array.isArray(simulation)) {
     throw new TypeError("simulation must be an object.");
   }
-  assertOptionalCallback(
-    simulation,
-    "refineSchedulerConfig",
-    "simulation",
-  );
-  assertOptionalCallback(
-    simulation,
-    "projectEndState",
-    "simulation",
-  );
+  assertOptionalCallback(simulation, "refineSchedulerConfig", "simulation");
+  assertOptionalCallback(simulation, "projectEndState", "simulation");
   if (!simulation.refineSchedulerConfig) {
     return Object.freeze({ ...simulation });
   }
@@ -417,15 +403,12 @@ function normalizeSimulation(
   ) => unknown;
   return Object.freeze({
     ...simulation,
-    refineSchedulerConfig(
-      config: SchedulerRecord,
-      result: SchedulerRecord,
-    ) {
+    refineSchedulerConfig(config: SchedulerRecord, result: SchedulerRecord) {
       if (
-        !config
-        || typeof config !== "object"
-        || !result
-        || typeof result !== "object"
+        !config ||
+        typeof config !== "object" ||
+        !result ||
+        typeof result !== "object"
       ) {
         throw new TypeError(
           "simulation.refineSchedulerConfig requires config and result objects.",
@@ -462,9 +445,7 @@ function normalizeSimulation(
  * @param {ProfessionDefinition<TProfessionState>} definition
  * @returns {Readonly<NormalizedProfessionContract<TProfessionState>>}
  */
-export function defineProfession<
-  TProfessionState extends object,
->(
+export function defineProfession<TProfessionState extends object>(
   definition: ProfessionDefinition<TProfessionState>,
 ): Readonly<NormalizedProfessionContract<TProfessionState>> {
   assertDefinition(definition);
@@ -482,11 +463,7 @@ export function defineProfession<
   );
   assertCallbackContainer(
     resources,
-    [
-      "createProfessionState",
-      "createResolverState",
-      "projectEndState",
-    ],
+    ["createProfessionState", "createResolverState", "projectEndState"],
     "resources",
   );
   assertOptionalCallback(
@@ -500,10 +477,7 @@ export function defineProfession<
     "definition",
   );
   assertUiDefinition(ui);
-  assertHandlerMap(
-    schedulerHooks.taskHandlers,
-    "schedulerHooks.taskHandlers",
-  );
+  assertHandlerMap(schedulerHooks.taskHandlers, "schedulerHooks.taskHandlers");
   assertHandlerMap(
     resolverHooks.eventHandlers || definition.eventHandlers,
     "resolverHooks.eventHandlers",
@@ -521,14 +495,13 @@ export function defineProfession<
     });
   const structuredPaletteAvailability = ui.paletteSkillAvailability;
   const paletteSkillAvailability = structuredPaletteAvailability
-      ? (context: SchedulerRecord, skill: Skill) =>
+    ? (context: SchedulerRecord, skill: Skill) =>
         normalizePaletteAvailability(
-        structuredPaletteAvailability(context, skill),
-        definition.id,
-      )
+          structuredPaletteAvailability(context, skill),
+          definition.id,
+        )
     : (context: SchedulerRecord, skill: Skill) => ({
-        available:
-          ui.isPaletteSkillAvailable?.(context, skill) !== false,
+        available: ui.isPaletteSkillAvailable?.(context, skill) !== false,
         message: String(
           ui.paletteSkillUnavailableMessage?.(context, skill) || "",
         ),
@@ -542,25 +515,19 @@ export function defineProfession<
     resourceViews,
     isPaletteSkillInstant: ui.isPaletteSkillInstant || (() => false),
     paletteSkillAvailability,
-    isPaletteSkillAvailable: (
-      context: SchedulerRecord,
-      skill: Skill,
-    ) =>
+    isPaletteSkillAvailable: (context: SchedulerRecord, skill: Skill) =>
       paletteSkillAvailability(context, skill).available,
     isSlotSkillSelectable: ui.isSlotSkillSelectable || (() => true),
-    paletteSkillUnavailableMessage: (
-      context: SchedulerRecord,
-      skill: Skill,
-    ) =>
+    paletteSkillUnavailableMessage: (context: SchedulerRecord, skill: Skill) =>
       paletteSkillAvailability(context, skill).message,
     skillBarGroups: ui.skillBarGroups || (() => []),
+    startControls: ui.startControls || (() => []),
     slotLoadout: ui.slotLoadout || null,
     targetHealthThresholds: ui.targetHealthThresholds || (() => []),
     timelineWeaponLineTransition:
       ui.timelineWeaponLineTransition || (() => undefined),
     timelineSkillIcon: ui.timelineSkillIcon || (() => ""),
-    updateSkillBarSelection:
-      ui.updateSkillBarSelection || (() => false),
+    updateSkillBarSelection: ui.updateSkillBarSelection || (() => false),
     weaponSwapChangesSet: ui.weaponSwapChangesSet !== false,
   };
   const sources: SchedulerRecord = {
@@ -590,8 +557,7 @@ export function defineProfession<
     modifyCriticalDamage: attributeRules.modifyCriticalDamage,
     modifyStrikeDamage: attributeRules.modifyStrikeDamage,
     modifyConditionDamage: attributeRules.modifyConditionDamage,
-    modifyConditionBaseDuration:
-      attributeRules.modifyConditionBaseDuration,
+    modifyConditionBaseDuration: attributeRules.modifyConditionBaseDuration,
     modifyConditionDuration: attributeRules.modifyConditionDuration,
   };
   const hooks: SchedulerRecord = {};
@@ -623,8 +589,7 @@ export function defineProfession<
         schemaVersion: 3,
         profession: definition.id,
       })),
-    migrateBuild:
-      build.migrateBuild || ((saved: SchedulerRecord) => saved),
+    migrateBuild: build.migrateBuild || ((saved: SchedulerRecord) => saved),
     validateBuild: build.validateBuild || (() => ({ valid: true, errors: [] })),
     createProfessionState:
       resources.createProfessionState ||
@@ -658,21 +623,22 @@ const UI_LIST_CALLBACK_NAMES = Object.freeze([
   "paletteGroups",
   "resourceViews",
   "skillBarGroups",
+  "startControls",
   "targetHealthThresholds",
 ]);
-const UI_SINGLE_CALLBACK_NAMES = Object.freeze([
-  "weaponSkillMatchesSet",
-]);
+const UI_SINGLE_CALLBACK_NAMES = Object.freeze(["weaponSkillMatchesSet"]);
 
 interface NamedModule<TModuleState extends object = SchedulerRecord> {
   readonly name: string;
   readonly module: ProfessionModuleDefinition<TModuleState>;
 }
 
-function assertModuleDefinition(
-  definition: unknown,
-): void {
-  if (!definition || typeof definition !== "object" || Array.isArray(definition)) {
+function assertModuleDefinition(definition: unknown): void {
+  if (
+    !definition ||
+    typeof definition !== "object" ||
+    Array.isArray(definition)
+  ) {
     throw new TypeError("A profession module must be an object.");
   }
   const candidate = definition as SchedulerRecord;
@@ -845,10 +811,10 @@ function composeHookContainer(
 
 function mergeHandlerRegistries(
   modules: readonly NamedModule<object>[],
-  select: (module: ProfessionModuleDefinition<any>) =>
-    | Readonly<Record<string, (...args: never[]) => unknown>>
-    | null
-    | undefined,
+  select: (
+    module: ProfessionModuleDefinition<any>,
+  ) =>
+    Readonly<Record<string, (...args: never[]) => unknown>> | null | undefined,
   label: string,
 ): Readonly<Record<string, (...args: never[]) => unknown>> {
   const result: Record<string, (...args: never[]) => unknown> = {};
@@ -884,8 +850,7 @@ function composeEventReactions(
       [...eventTypes].map((eventType) => [
         eventType,
         modules.flatMap((entry) => {
-          const value =
-            entry.module.resolverHooks?.eventReactions?.[eventType];
+          const value = entry.module.resolverHooks?.eventReactions?.[eventType];
           return value == null ? [] : Array.isArray(value) ? value : [value];
         }),
       ]),
@@ -952,9 +917,7 @@ function composeStateFragments(
   return createComposedState(
     core,
     specialization?.name || "Core",
-    specialization
-      ? createStateFragment(specialization, config, resolver)
-      : {},
+    specialization ? createStateFragment(specialization, config, resolver) : {},
   );
 }
 
@@ -968,17 +931,16 @@ export function flattenProfessionState(
   if (!professionState || typeof professionState !== "object") return {};
   const runtime = professionState as SchedulerRecord;
   const specialization = runtime.specialization as
-    | { readonly state?: unknown }
-    | undefined;
+    { readonly state?: unknown } | undefined;
   if (
-    runtime.core
-    && typeof runtime.core === "object"
-    && specialization?.state
-    && typeof specialization.state === "object"
+    runtime.core &&
+    typeof runtime.core === "object" &&
+    specialization?.state &&
+    typeof specialization.state === "object"
   ) {
     return {
-      ...runtime.core as SchedulerRecord,
-      ...specialization.state as SchedulerRecord,
+      ...(runtime.core as SchedulerRecord),
+      ...(specialization.state as SchedulerRecord),
     };
   }
   return { ...runtime };
@@ -1001,30 +963,30 @@ type ProfessionRuntimeFromContext<TContext> =
       ? TRuntimeState
       : never;
 
-type RuntimeCoreState<TRuntimeState> =
-  TRuntimeState extends { readonly core: infer TCoreState }
-    ? TCoreState
-    : never;
+type RuntimeCoreState<TRuntimeState> = TRuntimeState extends {
+  readonly core: infer TCoreState;
+}
+  ? TCoreState
+  : never;
 
-type RuntimeSpecialization<TRuntimeState> =
-  TRuntimeState extends { readonly specialization: infer TSpecialization }
-    ? TSpecialization
-    : never;
+type RuntimeSpecialization<TRuntimeState> = TRuntimeState extends {
+  readonly specialization: infer TSpecialization;
+}
+  ? TSpecialization
+  : never;
 
 type RuntimeSpecializationKind<TRuntimeState> =
   RuntimeSpecialization<TRuntimeState> extends { readonly kind: infer TKind }
     ? TKind & string
     : never;
 
-type RuntimeSpecializationState<
-  TRuntimeState,
-  TKind extends string,
-> = Extract<
-  RuntimeSpecialization<TRuntimeState>,
-  { readonly kind: TKind }
-> extends { readonly state: infer TState }
-  ? TState
-  : never;
+type RuntimeSpecializationState<TRuntimeState, TKind extends string> =
+  Extract<
+    RuntimeSpecialization<TRuntimeState>,
+    { readonly kind: TKind }
+  > extends { readonly state: infer TState }
+    ? TState
+    : never;
 
 /**
  * Returns the explicitly owned Core state slice for a family runtime.
@@ -1037,11 +999,9 @@ export function professionCoreState<TContext>(
     readonly runtime?: { readonly profession?: unknown };
     readonly profession?: unknown;
   };
-  const runtime = (
-    candidate.state?.profession
-    ?? candidate.runtime?.profession
-    ?? candidate.profession
-  ) as { readonly core: unknown };
+  const runtime = (candidate.state?.profession ??
+    candidate.runtime?.profession ??
+    candidate.profession) as { readonly core: unknown };
   return runtime.core as RuntimeCoreState<
     ProfessionRuntimeFromContext<TContext>
   >;
@@ -1065,11 +1025,9 @@ function specializationStateForKind<
     readonly runtime?: { readonly profession?: unknown };
     readonly profession?: unknown;
   };
-  const runtime = (
-    candidate.state?.profession
-    ?? candidate.runtime?.profession
-    ?? candidate.profession
-  ) as {
+  const runtime = (candidate.state?.profession ??
+    candidate.runtime?.profession ??
+    candidate.profession) as {
     readonly specialization: {
       readonly kind: string;
       readonly state: object;
@@ -1215,11 +1173,9 @@ function composeModuleUi(
   }
   for (const name of UI_SINGLE_CALLBACK_NAMES) {
     const familyCallback = (familyUi as SchedulerRecord | undefined)?.[name];
-    const callback = familyCallback ?? singleOwnerValue(
-        modules,
-        (module) => module.ui?.[name],
-        `ui.${name}`,
-      );
+    const callback =
+      familyCallback ??
+      singleOwnerValue(modules, (module) => module.ui?.[name], `ui.${name}`);
     if (callback != null) ui[name] = callback;
   }
   const slotLoadout = singleOwnerValue(
@@ -1253,13 +1209,14 @@ function uiSpecialization(context: unknown): string {
   const candidate = context as SchedulerRecord;
   const config = candidate.config as SchedulerRecord | undefined;
   const build = candidate.build as SchedulerRecord | undefined;
-  return String(
-    candidate.specialization
-      || config?.specialization
-      || build?.specialization
-      || "Core",
-  )
-    .trim() || "Core";
+  return (
+    String(
+      candidate.specialization ||
+        config?.specialization ||
+        build?.specialization ||
+        "Core",
+    ).trim() || "Core"
+  );
 }
 
 function explicitUiSpecialization(context: unknown): string | null {
@@ -1267,16 +1224,13 @@ function explicitUiSpecialization(context: unknown): string | null {
   const candidate = context as SchedulerRecord;
   const config = candidate.config as SchedulerRecord | undefined;
   const build = candidate.build as SchedulerRecord | undefined;
-  const value = candidate.specialization
-    ?? config?.specialization
-    ?? build?.specialization;
+  const value =
+    candidate.specialization ?? config?.specialization ?? build?.specialization;
   if (value == null || !String(value).trim()) return null;
   return String(value).trim();
 }
 
-function normalizedCoreUiContext(
-  context: unknown,
-): SchedulerRecord {
+function normalizedCoreUiContext(context: unknown): SchedulerRecord {
   if (!context || typeof context !== "object") {
     return { specialization: "Core", config: { specialization: "Core" } };
   }
@@ -1320,11 +1274,11 @@ function normalizeApplicationUiList(
   }
   const groups = [...values];
   const anchorIndexes = groups.flatMap((value, index) =>
-    value
-      && typeof value === "object"
-      && (value as SchedulerRecord).resourceAnchor
+    value &&
+    typeof value === "object" &&
+    (value as SchedulerRecord).resourceAnchor
       ? [index]
-      : []
+      : [],
   );
   if (anchorIndexes.length > 1) {
     const firstIndex = anchorIndexes[0];
@@ -1369,9 +1323,10 @@ export function createProfessionFamilyUi(
       };
     }
     return {
-      context: requested === "Core"
-        ? (context as SchedulerRecord)
-        : normalizedCoreUiContext(context),
+      context:
+        requested === "Core"
+          ? (context as SchedulerRecord)
+          : normalizedCoreUiContext(context),
       slices: [definition.core],
     };
   };
@@ -1418,11 +1373,9 @@ export function createProfessionFamilyUi(
   for (const name of UI_LIST_CALLBACK_NAMES) {
     ui[name] = (context: unknown) => {
       const selected = active(context);
-      const values = mergeUiList(
-        [...selected.slices, family],
-        name,
-        [selected.context],
-      );
+      const values = mergeUiList([...selected.slices, family], name, [
+        selected.context,
+      ]);
       return normalizeApplicationUiList(values, name);
     };
   }
@@ -1505,14 +1458,16 @@ export function createProfessionFamilyUi(
     }
     if (owners.length) ui[name] = owners[0][name];
   }
-  const weaponMatcher = family.weaponSkillMatchesSet || singleOwnerValue(
-    allSlices.map((slice, index) => ({
-      name: index === 0 ? "Core" : `Specialization ${index}`,
-      module: { id: `ui-${index}`, ui: slice },
-    })),
-    (module) => module.ui?.weaponSkillMatchesSet,
-    "ui.weaponSkillMatchesSet",
-  );
+  const weaponMatcher =
+    family.weaponSkillMatchesSet ||
+    singleOwnerValue(
+      allSlices.map((slice, index) => ({
+        name: index === 0 ? "Core" : `Specialization ${index}`,
+        module: { id: `ui-${index}`, ui: slice },
+      })),
+      (module) => module.ui?.weaponSkillMatchesSet,
+      "ui.weaponSkillMatchesSet",
+    );
   if (weaponMatcher != null) ui.weaponSkillMatchesSet = weaponMatcher;
   return Object.freeze(ui) as UiSlice;
 }
@@ -1560,10 +1515,7 @@ function composeModuleAttributeRules(
   for (const name of ATTRIBUTE_HOOK_NAMES) {
     const hook = (compiled as SchedulerRecord)[name];
     if (hook == null) continue;
-    result[name] = [
-      ...((result[name] as unknown[] | undefined) || []),
-      hook,
-    ];
+    result[name] = [...((result[name] as unknown[] | undefined) || []), hook];
   }
   return result;
 }
@@ -1600,7 +1552,11 @@ function composeRuntimeDefinition<TProfessionState extends object>(
     build: definition.build,
     resources: {
       createProfessionState: (config) =>
-        composeStateFragments(genericModules, config, false) as TProfessionState,
+        composeStateFragments(
+          genericModules,
+          config,
+          false,
+        ) as TProfessionState,
       createResolverState: (config) =>
         composeStateFragments(genericModules, config, true),
       ...(projectEndState == null ? {} : { projectEndState }),
@@ -1687,7 +1643,10 @@ export function defineProfessionFamily<
   ): Readonly<NormalizedProfessionContract<TProfessionState>> => {
     const specialization =
       String(config.specialization || "Core").trim() || "Core";
-    if (specialization !== "Core" && !specializationModules.has(specialization)) {
+    if (
+      specialization !== "Core" &&
+      !specializationModules.has(specialization)
+    ) {
       throw new Error(
         `Unknown ${definition.name} elite specialization "${specialization}". ` +
           `Expected Core or one of: ${[...specializationModules.keys()].join(", ")}.`,
@@ -1695,9 +1654,7 @@ export function defineProfessionFamily<
     }
     const cached = cache.get(specialization);
     if (cached) return cached;
-    const modules: NamedModule[] = [
-      { name: "Core", module: core },
-    ];
+    const modules: NamedModule[] = [{ name: "Core", module: core }];
     const specializationModule = specializationModules.get(specialization);
     if (specializationModule) {
       modules.push({ name: specialization, module: specializationModule });
@@ -1736,9 +1693,10 @@ export function resolveProfessionRuntime<
   }
   return typeof (profession as ProfessionFamilyContract<TProfessionState>)
     .resolveRuntime === "function"
-    ? (profession as ProfessionFamilyContract<TProfessionState>)
-      .resolveRuntime(config)
-    : profession as Readonly<NormalizedProfessionContract<TProfessionState>>;
+    ? (profession as ProfessionFamilyContract<TProfessionState>).resolveRuntime(
+        config,
+      )
+    : (profession as Readonly<NormalizedProfessionContract<TProfessionState>>);
 }
 
 /**

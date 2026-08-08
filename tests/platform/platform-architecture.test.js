@@ -44,9 +44,7 @@ import {
   createProfessionWeaponData,
   WEAPON_DATA,
 } from "../../js/platform/gw2/gear-data.js";
-import {
-  createGw2ResolverExtensions,
-} from "../../js/platform/gw2/resolver/extensions.js";
+import { createGw2ResolverExtensions } from "../../js/platform/gw2/resolver/extensions.js";
 import {
   createRelicRuntime,
   createRelicTimelineRuntime,
@@ -59,9 +57,7 @@ import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION,
 } from "../../js/platform/gw2/stat-scaling.js";
-import {
-  GW2_SKILL_FLAGS,
-} from "../../scripts/data/lib/gw2-profession-snapshot.mjs";
+import { GW2_SKILL_FLAGS } from "../../scripts/data/lib/gw2-profession-snapshot.mjs";
 import {
   BUILD_SCHEMA_VERSION,
   migrateMesmerBuild,
@@ -69,12 +65,8 @@ import {
 } from "../../js/professions/mesmer/build.js";
 import { mesmerCatalog } from "../../js/professions/mesmer/catalog.js";
 import { mesmerProfession } from "../../js/professions/mesmer/definition.js";
-import {
-  MESMER_TRAIT_COVERAGE,
-} from "../../js/professions/mesmer/data/trait-coverage.js";
-import {
-  MECHANIC_SKILLS,
-} from "../../js/professions/mesmer/mechanics/skill-mechanics.js";
+import { MESMER_TRAIT_COVERAGE } from "../../js/professions/mesmer/data/trait-coverage.js";
+import { MECHANIC_SKILLS } from "../../js/professions/mesmer/mechanics/skill-mechanics.js";
 import { guardianCatalog } from "../../js/professions/guardian/catalog.js";
 import { necromancerCatalog } from "../../js/professions/necromancer/catalog.js";
 import {
@@ -97,9 +89,9 @@ test("native professions share one skill timing contract", async () => {
         assert.equal("packetOffsets" in effect, false, skill.name);
         assert.equal("atCastEndOffsetMs" in effect, false, skill.name);
         const explicitlyTimed =
-          effect.atMs != null
-          || effect.intervalMs != null
-          || effect.ticks != null;
+          effect.atMs != null ||
+          effect.intervalMs != null ||
+          effect.ticks != null;
         assert.equal(
           explicitlyTimed,
           effect.timingAnchor != null && effect.timingScale != null,
@@ -152,10 +144,13 @@ test("profession contract supplies defaults and deterministic hook ordering", ()
   profession.initialize({});
   assert.deepEqual(calls, ["first", "same", "later"]);
   profession.eventReactions.control({}, { type: "control" });
-  assert.deepEqual(
-    calls,
-    ["first", "same", "later", "first-control", "later-control"],
-  );
+  assert.deepEqual(calls, [
+    "first",
+    "same",
+    "later",
+    "first-control",
+    "later-control",
+  ]);
   assert.equal(profession.validateCast({}, {}), true);
   assert.deepEqual(profession.createProfessionState({}), {});
   assert.equal(profession.modifyStrikeDamage({}, 12), 12);
@@ -222,7 +217,10 @@ test("canonical catalogs own derived and exceptional autoattack chains", () => {
     },
   });
 
-  assert.deepEqual(catalog.autoattackChains, [[1, 2, 3], [6, 7]]);
+  assert.deepEqual(catalog.autoattackChains, [
+    [1, 2, 3],
+    [6, 7],
+  ]);
   assert.deepEqual(catalog.autoattackChainPositions.get(2), {
     root: 1,
     index: 1,
@@ -276,18 +274,24 @@ test("shared declarative factories preserve generic effect options", () => {
       firstAtMs: 100,
       intervalMs: 200,
       source: "Effect",
-    }).map(effect => [effect.atMs, effect.source]),
-    [[100, "Effect"], [300, "Effect"]],
+    }).map((effect) => [effect.atMs, effect.source]),
+    [
+      [100, "Effect"],
+      [300, "Effect"],
+    ],
   );
-  assert.deepEqual(control("fear", 300, {
-    source: "Effect",
-    metadata: { breakbar: 100 },
-  }), {
-    type: "control",
-    atMs: 300,
-    source: "Effect",
-    metadata: { controlKind: "fear", breakbar: 100 },
-  });
+  assert.deepEqual(
+    control("fear", 300, {
+      source: "Effect",
+      metadata: { breakbar: 100 },
+    }),
+    {
+      type: "control",
+      atMs: 300,
+      source: "Effect",
+      metadata: { controlKind: "fear", breakbar: 100 },
+    },
+  );
   assert.deepEqual(blind(350, { source: "Effect" }), {
     type: "blind",
     atMs: 350,
@@ -320,12 +324,14 @@ test("declarative boons can gate dynamic skill availability", () => {
         id: 920001,
         name: "Grant Aegis",
         castTimeMs: 0,
-        effects: [{
-          type: "boon",
-          boon: "aegis",
-          duration: 2,
-          stacks: 1,
-        }],
+        effects: [
+          {
+            type: "boon",
+            boon: "aegis",
+            duration: 2,
+            stacks: 1,
+          },
+        ],
       },
       {
         id: 920002,
@@ -340,7 +346,7 @@ test("declarative boons can gate dynamic skill availability", () => {
     name: "Boon Gated",
     catalog,
     castRules: {
-      validateCast: context =>
+      validateCast: (context) =>
         context.skill.id !== 920002 || context.hasBuff("aegis"),
     },
   });
@@ -405,34 +411,43 @@ test("generic scheduler state contains no profession-specific fields", () => {
 });
 
 test("normalized commands migrate legacy casts, waits, concurrency, and interrupts", () => {
-  assert.deepEqual(normalizeRotation([
-    "Fixture Slash",
-    { name: "__wait", waitMs: 250 },
-    { name: "Fixture Charge", offset: 100, interruptMs: 50 },
-    "__cooldown_reset",
-    "__combat_start",
-  ], testProfession.catalog), [
-    { type: "cast", skillId: 900001 },
-    { type: "wait", durationMs: 250 },
-    {
-      type: "cast",
-      skillId: 900002,
-      concurrentOffsetMs: 100,
-      interruptAfterMs: 50,
-    },
-    { type: "cooldown-reset" },
-    { type: "combat-start" },
-  ]);
+  assert.deepEqual(
+    normalizeRotation(
+      [
+        "Fixture Slash",
+        { name: "__wait", waitMs: 250 },
+        { name: "Fixture Charge", offset: 100, interruptMs: 50 },
+        "__cooldown_reset",
+        "__combat_start",
+      ],
+      testProfession.catalog,
+    ),
+    [
+      { type: "cast", skillId: 900001 },
+      { type: "wait", durationMs: 250 },
+      {
+        type: "cast",
+        skillId: 900002,
+        concurrentOffsetMs: 100,
+        interruptAfterMs: 50,
+      },
+      { type: "cooldown-reset" },
+      { type: "combat-start" },
+    ],
+  );
 });
 
 test("normalized commands preserve delayed combat-start offsets", () => {
-  assert.deepEqual(normalizeRotation([
-    "Fixture Slash",
-    { name: "__combat_start", offset: 100 },
-  ], testProfession.catalog), [
-    { type: "cast", skillId: 900001 },
-    { type: "combat-start", concurrentOffsetMs: 100 },
-  ]);
+  assert.deepEqual(
+    normalizeRotation(
+      ["Fixture Slash", { name: "__combat_start", offset: 100 }],
+      testProfession.catalog,
+    ),
+    [
+      { type: "cast", skillId: 900001 },
+      { type: "combat-start", concurrentOffsetMs: 100 },
+    ],
+  );
 });
 
 test("generic simulation starts combat at a delayed marker within a cast", () => {
@@ -454,7 +469,7 @@ test("generic simulation starts combat at a delayed marker within a cast", () =>
       weaponStrength: 1000,
     },
   });
-  const marker = result.events.find(event => event.type === "combat_start");
+  const marker = result.events.find((event) => event.type === "combat_start");
 
   assert.equal(marker.at, 0.1);
   assert.equal(result.firstHitTime, 1);
@@ -495,17 +510,63 @@ test("concurrent and interrupted casts are first-class scheduler commands", () =
     { type: "cast", skillId: 900001, interruptAfterMs: 400 },
     { type: "cast", skillId: 900002, concurrentOffsetMs: 100 },
   ]);
-  const slash = result.events.find(event => event.sourceId === 900001);
-  const charge = result.events.find(event =>
-    event.type === "action" && event.sourceId === 900002);
+  const slash = result.events.find((event) => event.sourceId === 900001);
+  const charge = result.events.find(
+    (event) => event.type === "action" && event.sourceId === 900002,
+  );
   assert.equal(slash.endsAt, 0.4);
   assert.equal(slash.interrupted, true);
   assert.equal(charge.at, 0.1);
   assert.equal(
-    result.events.some(event =>
-      event.type === "damage" && event.sourceId === 900001),
+    result.events.some(
+      (event) => event.type === "damage" && event.sourceId === 900001,
+    ),
     false,
   );
+});
+
+test("independent casts use a separate serial cast lane", () => {
+  const profession = defineProfession({
+    id: "independent-casts",
+    name: "Independent Casts",
+    catalog: createCanonicalCatalog({
+      generated: [
+        {
+          id: 910001,
+          name: "Player Cast One",
+          castTimeMs: 1000,
+          effects: [],
+        },
+        {
+          id: 910002,
+          name: "Companion Cast",
+          castTimeMs: 2000,
+          independentCast: true,
+          effects: [],
+        },
+        {
+          id: 910003,
+          name: "Player Cast Two",
+          castTimeMs: 500,
+          effects: [],
+        },
+      ],
+    }),
+  });
+  const result = createScheduler({ profession }).run([
+    "Player Cast One",
+    "Companion Cast",
+    "Player Cast Two",
+  ]);
+  const [first, companion, second] = result.steps;
+
+  assert.equal(first.start, 0);
+  assert.equal(first.end, 1000);
+  assert.equal(companion.start, 0);
+  assert.equal(companion.end, 2000);
+  assert.equal(second.start, 1000);
+  assert.equal(second.end, 1500);
+  assert.equal(result.state.time, 2);
 });
 
 test("test profession runs end to end without importing Mesmer", () => {
@@ -545,22 +606,32 @@ test("test profession runs end to end without importing Mesmer", () => {
   assert.equal(base.profession.charge, 1);
   assert.equal(base.profession.controlEvents, 1);
   assert.equal(base.schedulerState.profession.charge, 0);
-  assert.equal(base.events.every(event =>
-    event.type && Number.isFinite(event.at) && event.source && event.sourceId != null), true);
+  assert.equal(
+    base.events.every(
+      (event) =>
+        event.type &&
+        Number.isFinite(event.at) &&
+        event.source &&
+        event.sourceId != null,
+    ),
+    true,
+  );
 });
 
 test("declarative ammo consumes and recharges shared charges", () => {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930001,
-      name: "Fixture Ammo",
-      castTimeMs: 0,
-      cooldown: 0.25,
-      recharge: 0.25,
-      ammo: 2,
-      ammoRecharge: 5,
-      effects: [{ type: "strike", coefficient: 1 }],
-    }],
+    generated: [
+      {
+        id: 930001,
+        name: "Fixture Ammo",
+        castTimeMs: 0,
+        cooldown: 0.25,
+        recharge: 0.25,
+        ammo: 2,
+        ammoRecharge: 5,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+    ],
   });
   const profession = defineProfession({
     id: "ammo-fixture",
@@ -577,13 +648,13 @@ test("declarative ammo consumes and recharges shared charges", () => {
   });
 
   assert.equal(
-    result.resolvedEvents.filter(event => event.type === "damage").length,
+    result.resolvedEvents.filter((event) => event.type === "damage").length,
     2,
   );
   assert.deepEqual(
     result.events
-      .filter(event => event.type === "action")
-      .map(event => event.at),
+      .filter((event) => event.type === "action")
+      .map((event) => event.at),
     [0, 0.25],
   );
   assert.deepEqual(result.endState.ammo["Fixture Ammo"], {
@@ -596,13 +667,15 @@ test("declarative ammo consumes and recharges shared charges", () => {
 
 test("shared scheduler waits until a skill's exact cooldown expiry", () => {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930002,
-      name: "Fixture Cooldown",
-      castTimeMs: 0,
-      cooldown: 0.3,
-      effects: [{ type: "strike", coefficient: 1 }],
-    }],
+    generated: [
+      {
+        id: 930002,
+        name: "Fixture Cooldown",
+        castTimeMs: 0,
+        cooldown: 0.3,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+    ],
   });
   const profession = defineProfession({
     id: "cooldown-fixture",
@@ -613,11 +686,16 @@ test("shared scheduler waits until a skill's exact cooldown expiry", () => {
     profession,
     rotation: ["Fixture Cooldown", "Fixture Cooldown"],
   });
-  const actions = result.events.filter(event =>
-    event.type === "action");
+  const actions = result.events.filter((event) => event.type === "action");
 
-  assert.deepEqual(actions.map(event => event.at), [0, 0.3]);
-  assert.deepEqual(result.steps.map(step => step.start), [0, 300]);
+  assert.deepEqual(
+    actions.map((event) => event.at),
+    [0, 0.3],
+  );
+  assert.deepEqual(
+    result.steps.map((step) => step.start),
+    [0, 300],
+  );
   assert.equal(result.endState.time, 300);
   assert.equal(result.endState.cooldowns["Fixture Cooldown"].readyAt, 600);
   assert.deepEqual(result.warnings, []);
@@ -625,28 +703,33 @@ test("shared scheduler waits until a skill's exact cooldown expiry", () => {
 
 test("declarative multi-hit and delayed effects preserve individual events", () => {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930010,
-      name: "Fixture Flurry",
-      type: "Weapon",
-      weapon: "Greatsword",
-      castTimeMs: 300,
-      effects: [{
-        type: "strike",
-        coefficient: 3,
-        hits: 3,
-        atMs: 100,
-        intervalMs: 100,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      }, {
-        type: "strike",
-        coefficient: 1,
-        atMs: 1000,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      }],
-    }],
+    generated: [
+      {
+        id: 930010,
+        name: "Fixture Flurry",
+        type: "Weapon",
+        weapon: "Greatsword",
+        castTimeMs: 300,
+        effects: [
+          {
+            type: "strike",
+            coefficient: 3,
+            hits: 3,
+            atMs: 100,
+            intervalMs: 100,
+            timingAnchor: "castStart",
+            timingScale: "cast",
+          },
+          {
+            type: "strike",
+            coefficient: 1,
+            atMs: 1000,
+            timingAnchor: "castStart",
+            timingScale: "fixed",
+          },
+        ],
+      },
+    ],
     weapons: ["Greatsword"],
     weaponHands: { Greatsword: "2h" },
   });
@@ -659,7 +742,7 @@ test("declarative multi-hit and delayed effects preserve individual events", () 
     },
     resolverHooks: {
       eventReactions: {
-        "damage.resolved": context => {
+        "damage.resolved": (context) => {
           context.profession.hits += 1;
         },
       },
@@ -667,19 +750,20 @@ test("declarative multi-hit and delayed effects preserve individual events", () 
   });
   const result = simulateGw2({
     profession,
-    rotation: [
-      "Fixture Flurry",
-      { type: "wait", durationMs: 1000 },
-    ],
+    rotation: ["Fixture Flurry", { type: "wait", durationMs: 1000 }],
   });
-  const events = result.resolvedEvents.filter(event =>
-    event.type === "damage");
+  const events = result.resolvedEvents.filter(
+    (event) => event.type === "damage",
+  );
 
   assert.deepEqual(
-    events.map(event => Number(event.at.toFixed(3))),
+    events.map((event) => Number(event.at.toFixed(3))),
     [0.1, 0.2, 0.3, 1],
   );
-  assert.deepEqual(events.map(event => event.hitIndex), [1, 2, 3, 1]);
+  assert.deepEqual(
+    events.map((event) => event.hitIndex),
+    [1, 2, 3, 1],
+  );
   assert.equal(result.endState.profession.hits, 4);
 });
 
@@ -693,21 +777,26 @@ test("declarative repeated statuses keep fixed pulse intervals", () => {
     timingScale: "cast",
   };
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930037,
-      name: "Fixture Pulses",
-      castTimeMs: 600,
-      effects: [{
-        type: "blind",
-        ...timing,
-      }, {
-        type: "condition",
-        condition: "Crippled",
-        stacks: 1,
-        duration: 2,
-        ...timing,
-      }],
-    }],
+    generated: [
+      {
+        id: 930037,
+        name: "Fixture Pulses",
+        castTimeMs: 600,
+        effects: [
+          {
+            type: "blind",
+            ...timing,
+          },
+          {
+            type: "condition",
+            condition: "Crippled",
+            stacks: 1,
+            duration: 2,
+            ...timing,
+          },
+        ],
+      },
+    ],
   });
   const profession = defineProfession({
     id: "pulse-fixture",
@@ -716,15 +805,13 @@ test("declarative repeated statuses keep fixed pulse intervals", () => {
   });
   const result = simulateGw2({
     profession,
-    rotation: [
-      "Fixture Pulses",
-      { type: "wait", durationMs: 2500 },
-    ],
+    rotation: ["Fixture Pulses", { type: "wait", durationMs: 2500 }],
     config: { boons: { quickness: true } },
   });
-  const timestamps = type => result.events
-    .filter(event => event.type === type)
-    .map(event => Math.round(event.at * 1000));
+  const timestamps = (type) =>
+    result.events
+      .filter((event) => event.type === type)
+      .map((event) => Math.round(event.at * 1000));
 
   assert.deepEqual(timestamps("blind"), [200, 1200, 2200]);
   assert.deepEqual(timestamps("condition"), [200, 1200, 2200]);
@@ -746,56 +833,70 @@ test("declarative strike timelines preserve per-hit coefficients and shared time
     { atMs: 4000, coefficient: 0.5 },
   ];
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930023,
-      name: "Fixture Variable Hits",
-      castTimeMs: 4000,
-      effects: [strikeTimeline(ticks, {
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      })],
-    }],
+    generated: [
+      {
+        id: 930023,
+        name: "Fixture Variable Hits",
+        castTimeMs: 4000,
+        effects: [
+          strikeTimeline(ticks, {
+            timingAnchor: "castStart",
+            timingScale: "cast",
+          }),
+        ],
+      },
+    ],
   });
   const profession = defineProfession({
     id: "variable-hit-fixture",
     name: "Variable Hit Fixture",
     catalog,
   });
-  const simulate = quickness => simulateGw2({
-    profession,
-    rotation: ["Fixture Variable Hits"],
-    config: { boons: { quickness } },
-  });
+  const simulate = (quickness) =>
+    simulateGw2({
+      profession,
+      rotation: ["Fixture Variable Hits"],
+      config: { boons: { quickness } },
+    });
   const normal = simulate(false);
   const quick = simulate(true);
-  const normalHits = normal.resolvedEvents.filter(event =>
-    event.type === "damage");
-  const quickHits = quick.resolvedEvents.filter(event =>
-    event.type === "damage");
-  const quickAction = quick.events.find(event => event.type === "action");
+  const normalHits = normal.resolvedEvents.filter(
+    (event) => event.type === "damage",
+  );
+  const quickHits = quick.resolvedEvents.filter(
+    (event) => event.type === "damage",
+  );
+  const quickAction = quick.events.find((event) => event.type === "action");
 
   assert.deepEqual(
-    normalHits.map(event => Math.round(event.at * 1000)),
-    ticks.map(tick => tick.atMs),
+    normalHits.map((event) => Math.round(event.at * 1000)),
+    ticks.map((tick) => tick.atMs),
   );
   assert.deepEqual(
-    normalHits.map(event => event.coefficient),
-    ticks.map(tick => tick.coefficient),
+    normalHits.map((event) => event.coefficient),
+    ticks.map((tick) => tick.coefficient),
   );
   assert.deepEqual(
-    normalHits.slice(-2).map(event => [event.at, event.coefficient]),
-    [[4, 0.2], [4, 0.5]],
+    normalHits.slice(-2).map((event) => [event.at, event.coefficient]),
+    [
+      [4, 0.2],
+      [4, 0.5],
+    ],
   );
-  assert.ok(Math.abs(
-    normalHits.reduce((sum, event) => sum + event.coefficient, 0) - 3.6,
-  ) < 1e-12);
+  assert.ok(
+    Math.abs(
+      normalHits.reduce((sum, event) => sum + event.coefficient, 0) - 3.6,
+    ) < 1e-12,
+  );
   assert.equal(Math.round((quickAction.endsAt - quickAction.at) * 1000), 2680);
   assert.deepEqual(
-    quickHits.slice(-2).map(event => [
-      Math.round(event.at * 1000),
-      event.coefficient,
-    ]),
-    [[2680, 0.2], [2680, 0.5]],
+    quickHits
+      .slice(-2)
+      .map((event) => [Math.round(event.at * 1000), event.coefficient]),
+    [
+      [2680, 0.2],
+      [2680, 0.5],
+    ],
   );
 });
 
@@ -827,36 +928,43 @@ test("declarative condition timelines preserve each application", () => {
     },
   ];
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930025,
-      name: "Fixture Variable Conditions",
-      castTimeMs: 2000,
-      effects: [conditionTimeline(ticks, {
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      })],
-    }],
+    generated: [
+      {
+        id: 930025,
+        name: "Fixture Variable Conditions",
+        castTimeMs: 2000,
+        effects: [
+          conditionTimeline(ticks, {
+            timingAnchor: "castStart",
+            timingScale: "cast",
+          }),
+        ],
+      },
+    ],
   });
   const profession = defineProfession({
     id: "condition-timeline-fixture",
     name: "Condition Timeline Fixture",
     catalog,
   });
-  const simulate = quickness => simulateGw2({
-    profession,
-    rotation: ["Fixture Variable Conditions"],
-    config: { boons: { quickness } },
-  });
+  const simulate = (quickness) =>
+    simulateGw2({
+      profession,
+      rotation: ["Fixture Variable Conditions"],
+      config: { boons: { quickness } },
+    });
   const normal = simulate(false);
   const quick = simulate(true);
-  const normalApplications = normal.resolvedEvents.filter(event =>
-    event.type === "condition");
-  const quickApplications = quick.resolvedEvents.filter(event =>
-    event.type === "condition");
-  const quickAction = quick.events.find(event => event.type === "action");
+  const normalApplications = normal.resolvedEvents.filter(
+    (event) => event.type === "condition",
+  );
+  const quickApplications = quick.resolvedEvents.filter(
+    (event) => event.type === "condition",
+  );
+  const quickAction = quick.events.find((event) => event.type === "action");
 
   assert.deepEqual(
-    normalApplications.map(event => ({
+    normalApplications.map((event) => ({
       atMs: Math.round(event.at * 1000),
       condition: event.condition,
       stacks: event.stacks,
@@ -865,151 +973,193 @@ test("declarative condition timelines preserve each application", () => {
     ticks,
   );
   assert.deepEqual(
-    normalApplications.slice(-2).map(event => [event.at, event.condition]),
-    [[2, "Poisoned"], [2, "Burning"]],
+    normalApplications.slice(-2).map((event) => [event.at, event.condition]),
+    [
+      [2, "Poisoned"],
+      [2, "Burning"],
+    ],
   );
   assert.ok(normal.conditionDamage > 0);
   assert.equal(Math.round((quickAction.endsAt - quickAction.at) * 1000), 1360);
   assert.deepEqual(
-    quickApplications.slice(-2).map(event => [
-      Math.round(event.at * 1000),
-      event.condition,
-    ]),
-    [[1360, "Poisoned"], [1360, "Burning"]],
+    quickApplications
+      .slice(-2)
+      .map((event) => [Math.round(event.at * 1000), event.condition]),
+    [
+      [1360, "Poisoned"],
+      [1360, "Burning"],
+    ],
   );
 });
 
 test("canonical strike timelines reject invalid or ambiguous hits", () => {
-  const skillWithTicks = ticks => ({
+  const skillWithTicks = (ticks) => ({
     id: 930024,
     name: "Invalid Tick Fixture",
-    effects: [{
-      type: "strike",
-      ticks,
-      timingAnchor: "castStart",
-      timingScale: "fixed",
-    }],
+    effects: [
+      {
+        type: "strike",
+        ticks,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+    ],
   });
 
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [skillWithTicks([
-        { atMs: 100, coefficient: 0.2 },
-        { atMs: 50, coefficient: 0.5 },
-      ])],
-    }),
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          skillWithTicks([
+            { atMs: 100, coefficient: 0.2 },
+            { atMs: 50, coefficient: 0.5 },
+          ]),
+        ],
+      }),
     /chronological/,
   );
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [skillWithTicks([{ atMs: 0, coefficient: -0.2 }])],
-    }),
+    () =>
+      createCanonicalCatalog({
+        generated: [skillWithTicks([{ atMs: 0, coefficient: -0.2 }])],
+      }),
     /non-negative coefficient/,
   );
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [{
-        ...skillWithTicks([{ atMs: 0, coefficient: 0.2 }]),
-        effects: [{
-          type: "strike",
-          coefficient: 0.2,
-          ticks: [{ atMs: 0, coefficient: 0.2 }],
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-        }],
-      }],
-    }),
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            ...skillWithTicks([{ atMs: 0, coefficient: 0.2 }]),
+            effects: [
+              {
+                type: "strike",
+                coefficient: 0.2,
+                ticks: [{ atMs: 0, coefficient: 0.2 }],
+                timingAnchor: "castStart",
+                timingScale: "fixed",
+              },
+            ],
+          },
+        ],
+      }),
     /cannot use aggregate/,
   );
 });
 
 test("canonical condition timelines reject invalid or ambiguous applications", () => {
-  const skillWithTicks = ticks => ({
+  const skillWithTicks = (ticks) => ({
     id: 930026,
     name: "Invalid Condition Timeline Fixture",
-    effects: [{
-      type: "condition",
-      ticks,
-      timingAnchor: "castStart",
-      timingScale: "fixed",
-    }],
+    effects: [
+      {
+        type: "condition",
+        ticks,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+    ],
   });
 
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [skillWithTicks([{
-        atMs: 0,
-        condition: "Burning",
-        stacks: 0,
-        duration: 2,
-      }])],
-    }),
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          skillWithTicks([
+            {
+              atMs: 0,
+              condition: "Burning",
+              stacks: 0,
+              duration: 2,
+            },
+          ]),
+        ],
+      }),
     /positive stacks/,
   );
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [{
-        ...skillWithTicks([{
-          atMs: 0,
-          condition: "Burning",
-          stacks: 1,
-          duration: 2,
-        }]),
-        effects: [{
-          type: "condition",
-          condition: "Burning",
-          ticks: [{
-            atMs: 0,
-            condition: "Burning",
-            stacks: 1,
-            duration: 2,
-          }],
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-        }],
-      }],
-    }),
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            ...skillWithTicks([
+              {
+                atMs: 0,
+                condition: "Burning",
+                stacks: 1,
+                duration: 2,
+              },
+            ]),
+            effects: [
+              {
+                type: "condition",
+                condition: "Burning",
+                ticks: [
+                  {
+                    atMs: 0,
+                    condition: "Burning",
+                    stacks: 1,
+                    duration: 2,
+                  },
+                ],
+                timingAnchor: "castStart",
+                timingScale: "fixed",
+              },
+            ],
+          },
+        ],
+      }),
     /cannot use aggregate/,
   );
 });
 
 test("GW2 Quickness quantizes casts and scales explicit cast timing", () => {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930020,
-      name: "Fixture Timeline",
-      castTimeMs: 2200,
-      effects: [strikePackets(4, [550, 1100, 1650, 2200], {
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      })],
-    }, {
-      id: 930021,
-      name: "Fixture Channel",
-      castTimeMs: 600,
-      effects: [{
-        type: "strike",
-        coefficient: 3,
-        hits: 3,
-        atMs: 200,
-        intervalMs: 200,
-        timingAnchor: "castStart",
-        timingScale: "cast",
-      }],
-    }, {
-      id: 930022,
-      name: "Fixture Field",
-      castTimeMs: 600,
-      effects: [{
-        type: "strike",
-        coefficient: 3,
-        hits: 3,
-        atMs: 1000,
-        intervalMs: 1000,
-        timingAnchor: "castEnd",
-        timingScale: "fixed",
-      }],
-    }],
+    generated: [
+      {
+        id: 930020,
+        name: "Fixture Timeline",
+        castTimeMs: 2200,
+        effects: [
+          strikePackets(4, [550, 1100, 1650, 2200], {
+            timingAnchor: "castStart",
+            timingScale: "cast",
+          }),
+        ],
+      },
+      {
+        id: 930021,
+        name: "Fixture Channel",
+        castTimeMs: 600,
+        effects: [
+          {
+            type: "strike",
+            coefficient: 3,
+            hits: 3,
+            atMs: 200,
+            intervalMs: 200,
+            timingAnchor: "castStart",
+            timingScale: "cast",
+          },
+        ],
+      },
+      {
+        id: 930022,
+        name: "Fixture Field",
+        castTimeMs: 600,
+        effects: [
+          {
+            type: "strike",
+            coefficient: 3,
+            hits: 3,
+            atMs: 1000,
+            intervalMs: 1000,
+            timingAnchor: "castEnd",
+            timingScale: "fixed",
+          },
+        ],
+      },
+    ],
   });
   const profession = defineProfession({
     id: "quickness-fixture",
@@ -1026,15 +1176,17 @@ test("GW2 Quickness quantizes casts and scales explicit cast timing", () => {
     ],
     config: { boons: { quickness: true } },
   });
-  const profile = skillName => {
-    const action = result.events.find(event =>
-      event.type === "action" && event.skillName === skillName);
+  const profile = (skillName) => {
+    const action = result.events.find(
+      (event) => event.type === "action" && event.skillName === skillName,
+    );
     return {
       cast: Math.round((action.endsAt - action.at) * 1000),
       ticks: result.resolvedEvents
-        .filter(event =>
-          event.type === "damage" && event.skillName === skillName)
-        .map(event => Math.round((event.at - action.at) * 1000)),
+        .filter(
+          (event) => event.type === "damage" && event.skillName === skillName,
+        )
+        .map((event) => Math.round((event.at - action.at) * 1000)),
     };
   };
 
@@ -1101,17 +1253,21 @@ test("GW2 declarative policy enforces active weapons and skill weapon strength",
 
 test("profession condition-duration hooks remain under the GW2 cap", () => {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930013,
-      name: "Fixture Burn",
-      castTimeMs: 0,
-      effects: [{
-        type: "condition",
-        condition: "Burning",
-        stacks: 1,
-        duration: 1,
-      }],
-    }],
+    generated: [
+      {
+        id: 930013,
+        name: "Fixture Burn",
+        castTimeMs: 0,
+        effects: [
+          {
+            type: "condition",
+            condition: "Burning",
+            stacks: 1,
+            duration: 1,
+          },
+        ],
+      },
+    ],
   });
   const profession = defineProfession({
     id: "duration-cap-fixture",
@@ -1123,26 +1279,26 @@ test("profession condition-duration hooks remain under the GW2 cap", () => {
   });
   const result = simulateGw2({
     profession,
-    rotation: [
-      "Fixture Burn",
-      { type: "wait", durationMs: 2000 },
-    ],
+    rotation: ["Fixture Burn", { type: "wait", durationMs: 2000 }],
     config: { stats: { expertise: 1500 } },
   });
-  const burning = result.resolvedEvents.find(event =>
-    event.type === "condition");
+  const burning = result.resolvedEvents.find(
+    (event) => event.type === "condition",
+  );
 
   assert.equal(burning.effectiveDuration, 2);
 });
 
 test("resolver modifiers receive stable trait, event, and runtime context", () => {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930002,
-      name: "Context Strike",
-      castTimeMs: 0,
-      effects: [{ type: "strike", coefficient: 1 }],
-    }],
+    generated: [
+      {
+        id: 930002,
+        name: "Context Strike",
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 1 }],
+      },
+    ],
   });
   let observed = null;
   const profession = defineProfession({
@@ -1213,38 +1369,43 @@ test("Mesmer production simulation is reached through simulateGw2", () => {
 
 test("unknown required custom events fail clearly", () => {
   const stream = buildScheduledEventStream({
-    events: [{
-      type: "fixture.missing",
-      at: 0,
-      source: "fixture",
-      sourceId: 1,
-    }],
+    events: [
+      {
+        type: "fixture.missing",
+        at: 0,
+        source: "fixture",
+        sourceId: 1,
+      },
+    ],
     rotationEndTime: 1,
   });
   assert.throws(
-    () => resolveScheduledStream({
-      stream,
-      profession: testProfession,
-      handlerRegistry: new HandlerRegistry(),
-    }),
+    () =>
+      resolveScheduledStream({
+        stream,
+        profession: testProfession,
+        handlerRegistry: new HandlerRegistry(),
+      }),
     /Missing required event handler/,
   );
 });
 
 test("canonical catalog validation rejects duplicate ids and missing handlers", () => {
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [
-        { id: 1, name: "One", effects: [] },
-        { id: 1, name: "Two", effects: [] },
-      ],
-    }),
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          { id: 1, name: "One", effects: [] },
+          { id: 1, name: "Two", effects: [] },
+        ],
+      }),
     /Duplicate/,
   );
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [{ id: 1, name: "One", handlerId: "missing", effects: [] }],
-    }),
+    () =>
+      createCanonicalCatalog({
+        generated: [{ id: 1, name: "One", handlerId: "missing", effects: [] }],
+      }),
     /missing handler/,
   );
   assert.equal(mesmerCatalog.skillsById.size, mesmerCatalog.skills.length);
@@ -1270,30 +1431,35 @@ test("canonical catalogs carry validated traits and specializations", () => {
   assert.equal(catalog.traits[0].name, "Fixture Trait");
   assert.equal(catalog.specializations[0].name, "Fixture Line");
   assert.throws(
-    () => createCanonicalCatalog({
-      traits: [
-        { id: 1, name: "One" },
-        { id: 1, name: "Two" },
-      ],
-    }),
+    () =>
+      createCanonicalCatalog({
+        traits: [
+          { id: 1, name: "One" },
+          { id: 1, name: "Two" },
+        ],
+      }),
     /Duplicate or missing trait/,
   );
 });
 
 test("canonical catalogs validate and freeze skill-group lockouts", () => {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930030,
-      name: "Lockout Fixture",
-      lockouts: [{ group: "fixture.family", durationMs: 50 }],
-      effects: [],
-    }],
+    generated: [
+      {
+        id: 930030,
+        name: "Lockout Fixture",
+        lockouts: [{ group: "fixture.family", durationMs: 50 }],
+        effects: [],
+      },
+    ],
   });
   const skill = catalog.skillsById.get(930030);
-  assert.deepEqual(skill.lockouts, [{
-    group: "fixture.family",
-    durationMs: 50,
-  }]);
+  assert.deepEqual(skill.lockouts, [
+    {
+      group: "fixture.family",
+      durationMs: 50,
+    },
+  ]);
   assert.equal(Object.isFrozen(skill.lockouts), true);
   assert.equal(Object.isFrozen(skill.lockouts[0]), true);
 
@@ -1308,14 +1474,17 @@ test("canonical catalogs validate and freeze skill-group lockouts", () => {
     ],
   ]) {
     assert.throws(
-      () => createCanonicalCatalog({
-        generated: [{
-          id: 930031,
-          name: "Invalid Lockout Fixture",
-          lockouts,
-          effects: [],
-        }],
-      }),
+      () =>
+        createCanonicalCatalog({
+          generated: [
+            {
+              id: 930031,
+              name: "Invalid Lockout Fixture",
+              lockouts,
+              effects: [],
+            },
+          ],
+        }),
       /lockout/i,
     );
   }
@@ -1324,16 +1493,18 @@ test("canonical catalogs validate and freeze skill-group lockouts", () => {
 test("catalog skill handlers receive calculated recharge timing", () => {
   let observedReadyAt = null;
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930014,
-      name: "Timed Handler",
-      cooldown: 20,
-      castTimeMs: 1000,
-      handlerId: "fixture.timed",
-      effects: [],
-    }],
+    generated: [
+      {
+        id: 930014,
+        name: "Timed Handler",
+        cooldown: 20,
+        castTimeMs: 1000,
+        handlerId: "fixture.timed",
+        effects: [],
+      },
+    ],
     skillHandlers: {
-      "fixture.timed": replaceSkillHandler(context => {
+      "fixture.timed": replaceSkillHandler((context) => {
         observedReadyAt = context.rechargeReadyAt;
       }),
     },
@@ -1355,13 +1526,15 @@ test("catalog skill handlers receive calculated recharge timing", () => {
 test("canonical augmenting skill handlers observe declarative effects", () => {
   let handled = 0;
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930003,
-      name: "Handled Skill",
-      handlerId: "fixture.handled",
-      castTimeMs: 0,
-      effects: [{ type: "strike", coefficient: 10 }],
-    }],
+    generated: [
+      {
+        id: 930003,
+        name: "Handled Skill",
+        handlerId: "fixture.handled",
+        castTimeMs: 0,
+        effects: [{ type: "strike", coefficient: 10 }],
+      },
+    ],
     skillHandlers: {
       "fixture.handled": augmentSkillHandler(null, {
         afterEffect: (_context, _skill, event) => {
@@ -1387,67 +1560,80 @@ test("canonical augmenting skill handlers observe declarative effects", () => {
 
 test("replacing skill handlers require empty declarative effects", () => {
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [{
-        id: 930032,
-        name: "Invalid Replacing Skill",
-        handlerId: "fixture.replacing",
-        castTimeMs: 0,
-        effects: [{ type: "strike", coefficient: 10 }],
-      }],
-      skillHandlers: {
-        "fixture.replacing": replaceSkillHandler(() => {}),
-      },
-    }),
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            id: 930032,
+            name: "Invalid Replacing Skill",
+            handlerId: "fixture.replacing",
+            castTimeMs: 0,
+            effects: [{ type: "strike", coefficient: 10 }],
+          },
+        ],
+        skillHandlers: {
+          "fixture.replacing": replaceSkillHandler(() => {}),
+        },
+      }),
     /empty effects list/,
   );
 });
 
 test("the shared handler contract rejects undeclared strategy fields", () => {
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [{
-        id: 930036,
-        name: "Drifting Handler",
-        handlerId: "fixture.drifting-handler",
-        castTimeMs: 0,
-        effects: [],
-      }],
-      skillHandlers: {
-        "fixture.drifting-handler": {
-          mode: "replace",
-          beforeEffects: () => {},
-          necromancerState: true,
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            id: 930036,
+            name: "Drifting Handler",
+            handlerId: "fixture.drifting-handler",
+            castTimeMs: 0,
+            effects: [],
+          },
+        ],
+        skillHandlers: {
+          "fixture.drifting-handler": {
+            mode: "replace",
+            beforeEffects: () => {},
+            necromancerState: true,
+          },
         },
-      },
-    }),
+      }),
     /unsupported field.*necromancerState/,
   );
 });
 
 test("the shared effect contract rejects undeclared simulation fields", () => {
   assert.throws(
-    () => createCanonicalCatalog({
-      generated: [{
-        id: 930033,
-        name: "Drifting Effect",
-        effects: [{
-          type: "strike",
-          coefficient: 1,
-          necromancerOnlyCoefficient: 2,
-        }],
-      }],
-    }),
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            id: 930033,
+            name: "Drifting Effect",
+            effects: [
+              {
+                type: "strike",
+                coefficient: 1,
+                necromancerOnlyCoefficient: 2,
+              },
+            ],
+          },
+        ],
+      }),
     /unsupported field.*necromancerOnlyCoefficient/,
   );
 });
 
 test("target-health coefficient modifiers are shared and resolve per hit", () => {
-  const thresholdModifier = Object.freeze([{
-    kind: "target-health-below",
-    threshold: 0.5,
-    multiplier: 2,
-  }]);
+  const thresholdModifier = Object.freeze([
+    {
+      kind: "target-health-below",
+      threshold: 0.5,
+      multiplier: 2,
+    },
+  ]);
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -1460,11 +1646,13 @@ test("target-health coefficient modifiers are shared and resolve per hit", () =>
         id: 930035,
         name: "Threshold Strike",
         castTimeMs: 0,
-        effects: [{
-          type: "strike",
-          coefficient: 1,
-          coefficientModifiers: thresholdModifier,
-        }],
+        effects: [
+          {
+            type: "strike",
+            coefficient: 1,
+            coefficientModifiers: thresholdModifier,
+          },
+        ],
       },
     ],
   });
@@ -1477,8 +1665,9 @@ test("target-health coefficient modifiers are shared and resolve per hit", () =>
     profession,
     rotation: ["Opening Strike"],
   });
-  const openingDamage = opening.resolvedEvents.find(event =>
-    event.type === "damage")?.damage;
+  const openingDamage = opening.resolvedEvents.find(
+    (event) => event.type === "damage",
+  )?.damage;
   const result = simulateGw2({
     profession,
     rotation: ["Opening Strike", "Threshold Strike"],
@@ -1489,8 +1678,9 @@ test("target-health coefficient modifiers are shared and resolve per hit", () =>
       },
     },
   });
-  const thresholdDamage = result.resolvedEvents.find(event =>
-    event.skillId === 930035)?.damage;
+  const thresholdDamage = result.resolvedEvents.find(
+    (event) => event.skillId === 930035,
+  )?.damage;
 
   assert.ok(Math.abs(thresholdDamage / openingDamage - 2) < 1e-12);
 });
@@ -1499,10 +1689,12 @@ test("the handler strategy contract accepts canonical Mesmer skill data", () => 
   const source = mesmerCatalog.skillsByName.get("Mind Stab");
   let observed = 0;
   const catalog = createCanonicalCatalog({
-    generated: [{
-      ...source,
-      handlerId: "mesmer.fixture-augment",
-    }],
+    generated: [
+      {
+        ...source,
+        handlerId: "mesmer.fixture-augment",
+      },
+    ],
     skillHandlers: {
       "mesmer.fixture-augment": augmentSkillHandler(null, {
         afterEffect: () => {
@@ -1558,15 +1750,16 @@ test("shared relic behavior resolves triggering skills by stable id", () => {
   });
 
   assert.equal(
-    result.procSteps.some(step => step.skill === "Relic of Fireworks"),
+    result.procSteps.some((step) => step.skill === "Relic of Fireworks"),
     true,
   );
 });
 
 test("resolver extensions create isolated state only for the selected relic", () => {
   const createRuntime = (relic) =>
-    createGw2ResolverExtensions({ config: { relic } })
-      .createEquipmentState({ relic });
+    createGw2ResolverExtensions({ config: { relic } }).createEquipmentState({
+      relic,
+    });
   const thief = createRuntime("Thief");
   const anotherThief = createRuntime("Thief");
   const brawler = createRuntime("Brawler");
@@ -1606,11 +1799,12 @@ test("Severance critical contributions are data-driven and expire exactly", () =
 test("Aristocracy rule state owns strict ICD, stack cap, and expiry", () => {
   const relic = createRelicRuntime("Aristocracy");
   const context = { relic };
-  const trigger = at => handleWeaknessVulnerabilityRelic(context, {
-    type: "weakness_vulnerability",
-    at,
-    skillName: `Trigger ${at}`,
-  });
+  const trigger = (at) =>
+    handleWeaknessVulnerabilityRelic(context, {
+      type: "weakness_vulnerability",
+      at,
+      skillName: `Trigger ${at}`,
+    });
 
   trigger(0);
   assert.equal(relicConditionDurationBonus(context, 0), 0);
@@ -1699,19 +1893,22 @@ test("Relic of the Brawler grants four seconds of strike damage with a strict ei
     config: { relic: "Brawler" },
   });
   const procs = result.procSteps.filter(
-    step => step.skill === "Relic of the Brawler",
+    (step) => step.skill === "Relic of the Brawler",
   );
   const strikes = result.resolvedEvents.filter(
-    event => event.skillName === "Brawler Fixture Strike",
+    (event) => event.skillName === "Brawler Fixture Strike",
   );
 
-  assert.deepEqual(procs.map(step => step.start), [0, 8002]);
   assert.deepEqual(
-    procs.map(step => step.sourceSkill),
+    procs.map((step) => step.start),
+    [0, 8002],
+  );
+  assert.deepEqual(
+    procs.map((step) => step.sourceSkill),
     ["Grant Protection", "Grant Protection"],
   );
   assert.deepEqual(
-    strikes.map(event => Math.round(event.at * 1000)),
+    strikes.map((event) => Math.round(event.at * 1000)),
     [1000, 4001, 8001, 8003],
   );
   assert.ok(Math.abs(strikes[0].damage / strikes[1].damage - 1.1) < 1e-12);
@@ -1759,10 +1956,10 @@ test("Relic of Mistburn grants one Might for eight seconds and applies its criti
     },
   });
   const bonusMight = result.events.filter(
-    event => event.sourceId === "relic.mistburn",
+    (event) => event.sourceId === "relic.mistburn",
   );
   const strikes = result.resolvedEvents.filter(
-    event => event.skillName === "Mistburn Fixture Strike",
+    (event) => event.skillName === "Mistburn Fixture Strike",
   );
 
   assert.deepEqual(
@@ -1773,8 +1970,8 @@ test("Relic of Mistburn grants one Might for eight seconds and applies its criti
   assert.ok(Math.abs(strikes[1].criticalChance - 0.05) < 1e-12);
   assert.deepEqual(
     result.procSteps
-      .filter(step => step.skill === "Relic of Mistburn")
-      .map(step => ({ start: step.start, sourceSkill: step.sourceSkill })),
+      .filter((step) => step.skill === "Relic of Mistburn")
+      .map((step) => ({ start: step.start, sourceSkill: step.sourceSkill })),
     [{ start: 0, sourceSkill: "Grant Might" }],
   );
 });
@@ -1787,10 +1984,8 @@ test("Relic of Mistburn uses a strict one-second internal cooldown", () => {
       emitted.push({ ...event, triggeredBy: cause.skillName });
     },
   };
-  const grantMight = (at, extra = {}) => materializeBoonRelics(
-    context,
-    relic,
-    {
+  const grantMight = (at, extra = {}) =>
+    materializeBoonRelics(context, relic, {
       type: "buff",
       at,
       skillName: `Grant Might ${at}`,
@@ -1800,8 +1995,7 @@ test("Relic of Mistburn uses a strict one-second internal cooldown", () => {
       source: "fixture",
       actorType: "player",
       ...extra,
-    },
-  );
+    });
 
   grantMight(0, { recipients: "allies" });
   grantMight(0);
@@ -1810,8 +2004,11 @@ test("Relic of Mistburn uses a strict one-second internal cooldown", () => {
   grantMight(2.002, { source: "Relic", actorType: "effect" });
 
   assert.deepEqual(
-    emitted.map(event => ({ at: event.at, duration: event.duration })),
-    [{ at: 0, duration: 8 }, { at: 1.001, duration: 8 }],
+    emitted.map((event) => ({ at: event.at, duration: event.duration })),
+    [
+      { at: 0, duration: 8 },
+      { at: 1.001, duration: 8 },
+    ],
   );
 });
 
@@ -1869,31 +2066,30 @@ test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () =>
     config,
   });
   const volatility = result.procSteps.filter(
-    step => step.skill === "Bloodstone Volatility",
+    (step) => step.skill === "Bloodstone Volatility",
   );
   const fervor = result.procSteps.filter(
-    step => step.skill === "Relic of Bloodstone",
+    (step) => step.skill === "Relic of Bloodstone",
   );
   const strikes = result.resolvedEvents.filter(
-    event => event.skillName === "Bloodstone Fixture Strike",
+    (event) => event.skillName === "Bloodstone Fixture Strike",
   );
   const explosion = result.resolvedEvents.find(
-    event =>
-      event.type === "damage"
-      && event.skillName === "Bloodstone Explosion",
+    (event) =>
+      event.type === "damage" && event.skillName === "Bloodstone Explosion",
   );
   const bleeding = result.resolvedEvents.find(
-    event =>
-      event.type === "condition"
-      && event.skillName === "Bloodstone Explosion",
+    (event) =>
+      event.type === "condition" && event.skillName === "Bloodstone Explosion",
   );
 
   // Consecutive identical proc rows are intentionally grouped for display.
-  assert.deepEqual(volatility.map(step => step.detail), ["1/3 stacks"]);
+  assert.deepEqual(
+    volatility.map((step) => step.detail),
+    ["1/3 stacks"],
+  );
   assert.equal(
-    threeBlasts.procSteps.some(
-      step => step.skill === "Relic of Bloodstone",
-    ),
+    threeBlasts.procSteps.some((step) => step.skill === "Relic of Bloodstone"),
     false,
   );
   assert.equal(fervor.length, 1);
@@ -1906,13 +2102,15 @@ test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () =>
 
 test("Relic of the Shackles strikes five seconds after immobilize with a strict ten-second ICD", () => {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 930009,
-      name: "Fixture Immobilize",
-      type: "Utility",
-      castTimeMs: 0,
-      effects: [condition("Immobilized", 1, 1)],
-    }],
+    generated: [
+      {
+        id: 930009,
+        name: "Fixture Immobilize",
+        type: "Utility",
+        castTimeMs: 0,
+        effects: [condition("Immobilized", 1, 1)],
+      },
+    ],
   });
   const profession = defineProfession({
     id: "shackles-fixture",
@@ -1932,21 +2130,19 @@ test("Relic of the Shackles strikes five seconds after immobilize with a strict 
     config: { relic: "Shackles" },
   });
   const procs = result.procSteps.filter(
-    step => step.skill === "Relic of the Shackles",
+    (step) => step.skill === "Relic of the Shackles",
   );
   const strikes = result.resolvedEvents.filter(
-    event =>
-      event.type === "damage"
-      && event.skillName === "Relic of the Shackles",
+    (event) =>
+      event.type === "damage" && event.skillName === "Relic of the Shackles",
   );
   const stuns = result.events.filter(
-    event =>
-      event.type === "control"
-      && event.skillName === "Relic of the Shackles",
+    (event) =>
+      event.type === "control" && event.skillName === "Relic of the Shackles",
   );
 
   assert.deepEqual(
-    procs.map(step => ({
+    procs.map((step) => ({
       start: step.start,
       detail: step.detail,
       sourceSkill: step.sourceSkill,
@@ -1975,7 +2171,7 @@ test("Relic of the Shackles strikes five seconds after immobilize with a strict 
     ],
   );
   assert.deepEqual(
-    strikes.map(event => ({
+    strikes.map((event) => ({
       at: event.at,
       coefficient: event.coefficient,
       source: event.source,
@@ -1997,7 +2193,7 @@ test("Relic of the Shackles strikes five seconds after immobilize with a strict 
     ],
   );
   assert.deepEqual(
-    stuns.map(event => ({
+    stuns.map((event) => ({
       at: event.at,
       controlKind: event.controlKind,
       duration: event.duration,
@@ -2044,9 +2240,7 @@ test("Mesmer build migrations produce validated schema version 3 data", () => {
 });
 
 test("common weapon data includes Guardian weapon families", () => {
-  const guardianWeapons = createProfessionWeaponData(
-    guardianCatalog,
-  );
+  const guardianWeapons = createProfessionWeaponData(guardianCatalog);
   const mesmerWeapons = createProfessionWeaponData(mesmerCatalog);
   assert.equal(guardianWeapons.Mace.wielding, "mh");
   assert.equal(guardianWeapons.Sword.wielding, "mh+oh");
@@ -2084,33 +2278,32 @@ test("Mesmer state creation and snapshots are profession owned", () => {
   assert.equal(Object.hasOwn(virtuosoRuntime.eventHandlers, "damage"), false);
   assert.equal(Object.hasOwn(virtuosoRuntime.eventHandlers, "control"), false);
   assert.equal(
-    Object.keys(virtuosoRuntime.eventHandlers)
-      .every(type => type.startsWith("mesmer.")),
+    Object.keys(virtuosoRuntime.eventHandlers).every((type) =>
+      type.startsWith("mesmer."),
+    ),
     true,
   );
   assert.equal(
-    COMMON_EVENT_TYPES.some(type =>
-      Object.hasOwn(virtuosoRuntime.eventHandlers, type)),
+    COMMON_EVENT_TYPES.some((type) =>
+      Object.hasOwn(virtuosoRuntime.eventHandlers, type),
+    ),
     false,
   );
 });
 
 async function javascriptFiles(root) {
   const entries = await readdir(root, { withFileTypes: true });
-  const nested = await Promise.all(entries.map(entry => {
-    const target = path.join(root, entry.name);
-    return entry.isDirectory()
-      ? javascriptFiles(target)
-      : (
-          entry.name.endsWith(".js") ||
-          (
-            entry.name.endsWith(".ts") &&
-            !entry.name.endsWith(".d.ts")
-          )
-        )
-        ? [target]
-        : [];
-  }));
+  const nested = await Promise.all(
+    entries.map((entry) => {
+      const target = path.join(root, entry.name);
+      return entry.isDirectory()
+        ? javascriptFiles(target)
+        : entry.name.endsWith(".js") ||
+            (entry.name.endsWith(".ts") && !entry.name.endsWith(".d.ts"))
+          ? [target]
+          : [];
+    }),
+  );
   return nested.flat();
 }
 
@@ -2118,8 +2311,8 @@ test("Mesmer conforms to native handler, identity, and state boundaries", async 
   for (const [handlerId, strategy] of mesmerCatalog.skillHandlers) {
     assert.ok(handlerId.startsWith("mesmer."));
     assert.ok(
-      strategy.mode === SKILL_HANDLER_MODES.AUGMENT
-      || strategy.mode === SKILL_HANDLER_MODES.REPLACE,
+      strategy.mode === SKILL_HANDLER_MODES.AUGMENT ||
+        strategy.mode === SKILL_HANDLER_MODES.REPLACE,
     );
   }
   for (const skill of mesmerCatalog.skills) {
@@ -2133,15 +2326,14 @@ test("Mesmer conforms to native handler, identity, and state boundaries", async 
   assert.ok(
     Object.values(MECHANIC_SKILLS)
       .flat()
-      .every(skillId => mesmerCatalog.skillsById.has(skillId)),
+      .every((skillId) => mesmerCatalog.skillsById.has(skillId)),
   );
   assert.equal(MESMER_TRAIT_COVERAGE.length, mesmerCatalog.traits.length);
   assert.ok(
     Object.keys(
       mesmerProfession.resolveRuntime({ specialization: "Chronomancer" })
         .taskHandlers,
-    )
-      .every(type => type.startsWith("mesmer.")),
+    ).every((type) => type.startsWith("mesmer.")),
   );
 
   const projected = simulateMesmer(
@@ -2156,11 +2348,11 @@ test("Mesmer conforms to native handler, identity, and state boundaries", async 
   );
   await assert.rejects(
     readFile(path.join(mesmerRoot, "mechanics", "contract.ts"), "utf8"),
-    error => error?.code === "ENOENT",
+    (error) => error?.code === "ENOENT",
   );
   await assert.rejects(
     readFile(path.join(mesmerRoot, "mechanics", "runtime.js"), "utf8"),
-    error => error?.code === "ENOENT",
+    (error) => error?.code === "ENOENT",
   );
 
   const behavioralRoots = [
@@ -2192,13 +2384,20 @@ test("platform import boundaries are profession neutral", async () => {
     for (const entry of nativeProfessionRegistry) {
       for (const term of [entry.id, entry.name]) {
         if (
-          entry.id === "thief"
-          && [
+          entry.id === "thief" &&
+          [
             "gw2/gear-data",
             "gw2/relic-rules",
             "gw2/resolver/runtime-state",
           ].includes(modulePath)
-        ) continue;
+        )
+          continue;
+        if (
+          entry.id === "ranger" &&
+          ["gw2/gear-data", "gw2/relic-rules"].includes(modulePath)
+        ) {
+          continue;
+        }
         assert.equal(
           source.toLowerCase().includes(term.toLowerCase()),
           false,
@@ -2207,12 +2406,24 @@ test("platform import boundaries are profession neutral", async () => {
       }
     }
     if (relative.startsWith("engine/")) {
-      assert.doesNotMatch(source, /(?:\.\.\/)+gw2\//, `${relative} imports GW2`);
+      assert.doesNotMatch(
+        source,
+        /(?:\.\.\/)+gw2\//,
+        `${relative} imports GW2`,
+      );
       assert.doesNotMatch(source, /(?:\.\.\/)+ui\//, `${relative} imports UI`);
-      assert.doesNotMatch(source, /professions\//, `${relative} imports a profession`);
+      assert.doesNotMatch(
+        source,
+        /professions\//,
+        `${relative} imports a profession`,
+      );
     }
     if (relative.startsWith("gw2/") || relative.startsWith("ui/")) {
-      assert.doesNotMatch(source, /professions\//, `${relative} imports a profession`);
+      assert.doesNotMatch(
+        source,
+        /professions\//,
+        `${relative} imports a profession`,
+      );
     }
   }
 });
@@ -2223,11 +2434,7 @@ test("test profession fixture has no native profession dependency", async () => 
     "utf8",
   );
   for (const entry of nativeProfessionRegistry) {
-    assert.equal(
-      source.toLowerCase().includes(entry.id),
-      false,
-      entry.id,
-    );
+    assert.equal(source.toLowerCase().includes(entry.id), false, entry.id);
   }
 });
 
@@ -2249,18 +2456,9 @@ async function relativeModuleGraph(entryFiles) {
     const specifiers = [];
     const visit = (node) => {
       if (
-        (
-          ts.isImportDeclaration(node) ||
-          ts.isExportDeclaration(node)
-        ) &&
-        !(
-          ts.isImportDeclaration(node) &&
-          node.importClause?.isTypeOnly
-        ) &&
-        !(
-          ts.isExportDeclaration(node) &&
-          node.isTypeOnly
-        ) &&
+        (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+        !(ts.isImportDeclaration(node) && node.importClause?.isTypeOnly) &&
+        !(ts.isExportDeclaration(node) && node.isTypeOnly) &&
         node.moduleSpecifier &&
         ts.isStringLiteralLike(node.moduleSpecifier)
       ) {
@@ -2330,80 +2528,85 @@ test("declarative professions use the standard mechanics module roles", async ()
     path.dirname(fileURLToPath(import.meta.url)),
     "../../js/professions",
   );
-  for (const profession of nativeProfessionRegistry.map(entry => entry.id)) {
+  for (const profession of nativeProfessionRegistry.map((entry) => entry.id)) {
     const mechanicsRoot = path.join(root, profession, "mechanics");
     const prefix = profession.toUpperCase();
     const mechanics = await readSourceModule(
       path.join(mechanicsRoot, "skill-mechanics.js"),
     );
-    assert.match(mechanics, new RegExp(
-      `export const ${prefix}_SKILL_MECHANICS\\b`,
-    ));
+    assert.match(
+      mechanics,
+      new RegExp(`export const ${prefix}_SKILL_MECHANICS\\b`),
+    );
     assert.doesNotMatch(mechanics, /apiDamage|apiConditions/);
     if (profession === "necromancer") {
-      const localMechanics = await Promise.all([
-        path.join(root, profession, "core", "mechanics.js"),
-        path.join(
-          root,
-          profession,
-          "specializations",
-          "reaper",
-          "mechanics.js",
-        ),
-        path.join(
-          root,
-          profession,
-          "specializations",
-          "scourge",
-          "mechanics.js",
-        ),
-        path.join(
-          root,
-          profession,
-          "specializations",
-          "harbinger",
-          "mechanics.js",
-        ),
-        path.join(
-          root,
-          profession,
-          "specializations",
-          "ritualist",
-          "mechanics.js",
-        ),
-      ].map(readSourceModule));
-      const handlers = (
-        await Promise.all([
-          path.join(root, profession, "core", "handlers.js"),
+      const localMechanics = await Promise.all(
+        [
+          path.join(root, profession, "core", "mechanics.js"),
           path.join(
             root,
             profession,
             "specializations",
             "reaper",
-            "handlers.js",
+            "mechanics.js",
           ),
           path.join(
             root,
             profession,
             "specializations",
             "scourge",
-            "handlers.js",
+            "mechanics.js",
           ),
           path.join(
             root,
             profession,
             "specializations",
             "harbinger",
-            "handlers.js",
+            "mechanics.js",
           ),
           path.join(
             root,
             profession,
             "specializations",
             "ritualist",
-            "handlers.js",
+            "mechanics.js",
           ),
-        ].map(readSourceModule))
+        ].map(readSourceModule),
+      );
+      const handlers = (
+        await Promise.all(
+          [
+            path.join(root, profession, "core", "handlers.js"),
+            path.join(
+              root,
+              profession,
+              "specializations",
+              "reaper",
+              "handlers.js",
+            ),
+            path.join(
+              root,
+              profession,
+              "specializations",
+              "scourge",
+              "handlers.js",
+            ),
+            path.join(
+              root,
+              profession,
+              "specializations",
+              "harbinger",
+              "handlers.js",
+            ),
+            path.join(
+              root,
+              profession,
+              "specializations",
+              "ritualist",
+              "handlers.js",
+            ),
+          ].map(readSourceModule),
+        )
       ).join("\n");
       for (const source of localMechanics) {
         assert.match(source, /export const \w+_MECHANICS\b/);
@@ -2413,41 +2616,45 @@ test("declarative professions use the standard mechanics module roles", async ()
       assert.match(handlers, /\baugmentSkill(?:Handler)?\b/);
       assert.match(handlers, /\breplaceSkill(?:Handler)?\b/);
     } else if (profession === "guardian") {
-      const localMechanics = await Promise.all([
-        path.join(root, profession, "core", "mechanics.js"),
-        path.join(
-          root,
-          profession,
-          "specializations",
-          "firebrand",
-          "mechanics.js",
-        ),
-        path.join(
-          root,
-          profession,
-          "specializations",
-          "luminary",
-          "mechanics.js",
-        ),
-      ].map(readSourceModule));
-      const handlers = (
-        await Promise.all([
-          path.join(root, profession, "core", "handlers.js"),
+      const localMechanics = await Promise.all(
+        [
+          path.join(root, profession, "core", "mechanics.js"),
           path.join(
             root,
             profession,
             "specializations",
             "firebrand",
-            "handlers.js",
+            "mechanics.js",
           ),
           path.join(
             root,
             profession,
             "specializations",
             "luminary",
-            "handlers.js",
+            "mechanics.js",
           ),
-        ].map(readSourceModule))
+        ].map(readSourceModule),
+      );
+      const handlers = (
+        await Promise.all(
+          [
+            path.join(root, profession, "core", "handlers.js"),
+            path.join(
+              root,
+              profession,
+              "specializations",
+              "firebrand",
+              "handlers.js",
+            ),
+            path.join(
+              root,
+              profession,
+              "specializations",
+              "luminary",
+              "handlers.js",
+            ),
+          ].map(readSourceModule),
+        )
       ).join("\n");
       for (const source of localMechanics) {
         assert.match(source, /export const \w+_MECHANICS\b/);
@@ -2465,18 +2672,18 @@ test("declarative professions use the standard mechanics module roles", async ()
         "specializations/troubadour",
       ];
       const localMechanics = await Promise.all(
-        sliceDirectories.map(directory =>
+        sliceDirectories.map((directory) =>
           readSourceModule(
             path.join(root, profession, directory, "mechanics.js"),
-          )
+          ),
         ),
       );
       const handlers = (
         await Promise.all(
-          sliceDirectories.map(directory =>
+          sliceDirectories.map((directory) =>
             readSourceModule(
               path.join(root, profession, directory, "handlers.js"),
-            )
+            ),
           ),
         )
       ).join("\n");
@@ -2496,18 +2703,18 @@ test("declarative professions use the standard mechanics module roles", async ()
         "specializations/conduit",
       ];
       const localMechanics = await Promise.all(
-        sliceDirectories.map(directory =>
+        sliceDirectories.map((directory) =>
           readSourceModule(
             path.join(root, profession, directory, "mechanics.js"),
-          )
+          ),
         ),
       );
       const handlers = (
         await Promise.all(
-          sliceDirectories.map(directory =>
+          sliceDirectories.map((directory) =>
             readSourceModule(
               path.join(root, profession, directory, "handlers.js"),
-            )
+            ),
           ),
         )
       ).join("\n");
@@ -2559,7 +2766,7 @@ test("obsolete compatibility trees are removed", async () => {
   for (const directory of ["core", "data", "sim"]) {
     await assert.rejects(
       readdir(path.join(root, directory)),
-      error => error?.code === "ENOENT",
+      (error) => error?.code === "ENOENT",
     );
   }
   await assert.rejects(
@@ -2567,7 +2774,7 @@ test("obsolete compatibility trees are removed", async () => {
       path.join(root, "professions", "mesmer", "app", "app-rotation-ui.js"),
       "utf8",
     ),
-    error => error?.code === "ENOENT",
+    (error) => error?.code === "ENOENT",
   );
   for (const profession of [
     "engineer",
@@ -2581,24 +2788,14 @@ test("obsolete compatibility trees are removed", async () => {
     for (const facade of ["attribute-rules", "resolver", "state", "ui"]) {
       await assert.rejects(
         readFile(
-          path.join(
-            root,
-            "professions",
-            profession,
-            `${facade}.${extension}`,
-          ),
+          path.join(root, "professions", profession, `${facade}.${extension}`),
           "utf8",
         ),
-        error => error?.code === "ENOENT",
+        (error) => error?.code === "ENOENT",
       );
     }
     const family = await readFile(
-      path.join(
-        root,
-        "professions",
-        profession,
-        `family.${extension}`,
-      ),
+      path.join(root, "professions", profession, `family.${extension}`),
       "utf8",
     );
     assert.doesNotMatch(
@@ -2663,7 +2860,9 @@ test("specialization state factories and accessors stay owner-local", async () =
     const directories = await readdir(specializationsRoot, {
       withFileTypes: true,
     });
-    for (const directory of directories.filter(entry => entry.isDirectory())) {
+    for (const directory of directories.filter((entry) =>
+      entry.isDirectory(),
+    )) {
       const root = path.join(specializationsRoot, directory.name);
       const extension = "ts";
       const stateSource = await readFile(
@@ -2703,8 +2902,8 @@ test("application shell uses feature-owned modules without legacy facades", asyn
   );
   const entries = await readdir(appRoot, { withFileTypes: true });
   const topLevelFiles = entries
-    .filter(entry => entry.isFile())
-    .map(entry => entry.name)
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name)
     .sort();
   assert.deepEqual(topLevelFiles, [
     "app.ts",
@@ -2713,12 +2912,14 @@ test("application shell uses feature-owned modules without legacy facades", asyn
   ]);
 
   const directories = new Set(
-    entries.filter(entry => entry.isDirectory()).map(entry => entry.name),
+    entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name),
   );
-  assert.deepEqual(
-    [...directories].sort(),
-    ["build", "profession", "rotation", "simulation"],
-  );
+  assert.deepEqual([...directories].sort(), [
+    "build",
+    "profession",
+    "rotation",
+    "simulation",
+  ]);
 
   const appEntry = await readFile(path.join(appRoot, "app.ts"), "utf8");
   assert.match(appEntry, /bootstrapProfessionApp/);
@@ -2730,13 +2931,15 @@ test("profession sources persist terrestrial skill data only", async () => {
     path.dirname(fileURLToPath(import.meta.url)),
     "../../js/professions",
   );
-  const forbiddenPersistedMetadata = new RegExp([
-    JSON.stringify(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY),
-    '"weapon": "(?:Trident|Speargun)"',
-    'weapon:\\s*"(?:Trident|Speargun)"',
-    'environment:\\s*"Aquatic"',
-    '"name": "Use Trident"',
-  ].join("|"));
+  const forbiddenPersistedMetadata = new RegExp(
+    [
+      JSON.stringify(GW2_SKILL_FLAGS.TERRESTRIAL_ONLY),
+      '"weapon": "(?:Trident|Speargun)"',
+      'weapon:\\s*"(?:Trident|Speargun)"',
+      'environment:\\s*"Aquatic"',
+      '"name": "Use Trident"',
+    ].join("|"),
+  );
   for (const file of await javascriptFiles(root)) {
     const source = await readFile(file, "utf8");
     assert.doesNotMatch(

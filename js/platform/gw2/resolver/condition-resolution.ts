@@ -2,7 +2,7 @@ import { EPSILON } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
 import { conditionTickDamage } from "../condition-formulas.js";
 import { clamp } from "../numeric.js";
-import { permanentTargetConditionStacks } from "../target-state.js";
+import { createPermanentTargetConditionStacks } from "../target-state.js";
 
 import type {
   Gw2ConditionResolution,
@@ -18,6 +18,7 @@ import type {
 
 interface CreateGw2ConditionResolutionOptions {
   readonly reactions: Gw2ResolverReactionRegistry;
+  readonly config: Gw2ResolverRuntime["config"];
 }
 
 const MOVING_TORMENT = Object.freeze({ base: 22, scaling: 0.06 });
@@ -29,7 +30,10 @@ const CONFUSION_ACTIVATION = Object.freeze({ base: 16.24, scaling: 0.0325 });
  */
 export function createGw2ConditionResolution({
   reactions,
+  config,
 }: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
+  const permanentTargetConditionStacks =
+    createPermanentTargetConditionStacks(config);
   function activeStacks(
     ctx: Gw2ResolverRuntime,
     name: string,
@@ -54,7 +58,7 @@ export function createGw2ConditionResolution({
     // Target configuration represents ambient stacks that have no application
     // event, so it is added separately from player-created stack state.
     return (
-      permanentTargetConditionStacks(ctx.config, name) +
+      permanentTargetConditionStacks(name) +
       activeStacks(ctx, name, at).reduce(
         (total, stack) => total + stack.weight,
         0,

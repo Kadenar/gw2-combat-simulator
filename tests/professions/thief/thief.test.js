@@ -561,7 +561,37 @@ test("Daredevil capacity and every dodge replacement resolve explicitly", () => 
     });
     assert.equal(result.endState.profession.maximumEndurance, 150);
     assert.ok(result.events.some(event => event.type === eventType));
+    if (selectedDodge === "Bounding Dodger") {
+      const stateIndex = result.events.findIndex(event =>
+        event.type === "thief.state"
+        && event.reason === "daredevil-dodge");
+      const boundIndex = result.events.findIndex(event =>
+        event.type === "damage" && event.name === "Bound");
+      assert.ok(stateIndex >= 0 && stateIndex < boundIndex);
+    }
   }
+});
+
+test("Exposed Weakness multiplies separately from additive strike bonuses", () => {
+  const config = {
+    selectedTraitIds: [TRAIT.EXPOSED_WEAKNESS],
+    sigilSets: [
+      { names: ["Test"], strike: 1.08, strikeAdd: 0.08 },
+      { names: [], strike: 1, strikeAdd: 0 },
+    ],
+    target: {
+      conditions: { Vulnerability: 25, Weakness: true },
+    },
+  };
+  const exposed = simulate("Core", ["Double Strike"], config);
+  const baseline = simulate("Core", ["Double Strike"], {
+    ...config,
+    selectedTraitIds: [],
+  });
+  const damage = result => result.breakdown.find(entry =>
+    entry.name === "Double Strike").damage;
+
+  assert.ok(Math.abs(damage(exposed) / damage(baseline) - 1.04) < 1e-12);
 });
 
 test("Daredevil benchmark skills and endurance traits use supplied values", () => {
@@ -587,7 +617,13 @@ test("Daredevil benchmark skills and endurance traits use supplied values", () =
       : strike.coefficient;
   };
   assert.equal(totalCoefficient("Fist Flurry"), 3.75);
-  assert.equal(totalCoefficient("Impairing Daggers"), 2.25);
+  assert.equal(totalCoefficient("Impairing Daggers"), 2.5);
+  assert.deepEqual(
+    thiefCatalog.skillsByName.get("Impairing Daggers").effects
+      .find(effect => effect.type === "strike").ticks
+      .map(tick => tick.coefficient),
+    [0.75, 0.75, 1],
+  );
 
   const directPalm = simulate("Daredevil", ["Palm Strike"]);
   assert.match(directPalm.warnings[0], /Fist Flurry must connect/i);

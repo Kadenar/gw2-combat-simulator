@@ -1,0 +1,26 @@
+import type { Skill } from "../../../platform/engine/types.js";
+
+export const WARRIOR_SWAP_WEAPONS: Skill = Object.freeze({
+  id: -3,
+  name: "Swap Weapons",
+  description: "Swap to the other equipped weapon set.",
+  icon: "",
+  type: "Action",
+  weapon: "",
+  slot: "Action",
+  specialization: "",
+  categories: [],
+  recharge: 10,
+  cooldown: 10,
+  ammo: 0,
+  ammoRecharge: 0,
+  nextChainId: null,
+  flipSkillId: null,
+  castTimeMs: 0,
+  quicknessCastTimeMs: 0,
+  rechargeAnchor: "castStart",
+  implemented: true,
+  simulatorExcluded: false,
+  handlerId: "warrior.weapon-swap",
+  effects: [],
+});

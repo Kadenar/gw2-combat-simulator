@@ -1,21 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  createCanonicalCatalog,
-} from "../../../js/platform/engine/catalog.js";
-import {
-  createCooldownController,
-} from "../../../js/platform/engine/cooldown-controller.js";
-import {
-  defineProfession,
-} from "../../../js/platform/engine/profession.js";
-import {
-  createScheduler,
-} from "../../../js/platform/engine/scheduler.js";
-import {
-  createTaskQueue,
-} from "../../../js/platform/engine/task-queue.js";
+import { createCanonicalCatalog } from "../../../js/platform/engine/catalog.js";
+import { createCooldownController } from "../../../js/platform/engine/cooldown-controller.js";
+import { defineProfession } from "../../../js/platform/engine/profession.js";
+import { createScheduler } from "../../../js/platform/engine/scheduler.js";
+import { createTaskQueue } from "../../../js/platform/engine/task-queue.js";
 
 test("ammo recharge reductions carry overflow until maximum charges", () => {
   const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };
@@ -120,11 +110,14 @@ test("tasks during a cast run before a later concurrent command", () => {
     { name: "Instant Cast", offset: 500 },
   ]);
 
+  assert.deepEqual(scheduled.state.profession.log, [
+    "task",
+    "concurrent-start",
+  ]);
   assert.deepEqual(
-    scheduled.state.profession.log,
-    ["task", "concurrent-start"],
+    scheduled.steps.map((step) => step.start),
+    [0, 500],
   );
-  assert.deepEqual(scheduled.steps.map(step => step.start), [0, 500]);
 });
 
 test("an intermediate task can make a waiting cast available", () => {
@@ -157,7 +150,7 @@ test("an intermediate task can make a waiting cast available", () => {
         });
       },
       taskHandlers: {
-        "fixture.ready": context => {
+        "fixture.ready": (context) => {
           context.state.profession.ready = true;
         },
       },
@@ -183,22 +176,21 @@ test("a concurrent instant waits until its finite cooldown expires", () => {
   const queued = createScheduler({
     profession,
     config: { readyAt: 0.6 },
-  }).run([
-    "Long Cast",
-    { name: "Instant Cast", offset: 100 },
-  ]);
+  }).run(["Long Cast", { name: "Instant Cast", offset: 100 }]);
   const afterParent = createScheduler({
     profession,
     config: { readyAt: 1.2 },
-  }).run([
-    "Long Cast",
-    { name: "Instant Cast", offset: 100 },
-    "Gated Cast",
-  ]);
+  }).run(["Long Cast", { name: "Instant Cast", offset: 100 }, "Gated Cast"]);
 
-  assert.deepEqual(queued.steps.map(step => step.start), [0, 600]);
+  assert.deepEqual(
+    queued.steps.map((step) => step.start),
+    [0, 600],
+  );
   assert.deepEqual(queued.warnings, []);
-  assert.deepEqual(afterParent.steps.map(step => step.start), [0, 1200, 1200]);
+  assert.deepEqual(
+    afterParent.steps.map((step) => step.start),
+    [0, 1200, 1200],
+  );
   assert.deepEqual(afterParent.warnings, []);
 });
 
@@ -241,7 +233,7 @@ test("skill-group lockouts block only skills in the same group", () => {
   ]);
 
   assert.deepEqual(
-    scheduled.steps.map(step => ({
+    scheduled.steps.map((step) => ({
       skill: step.skill,
       start: step.start,
       end: step.end,
@@ -296,11 +288,13 @@ test("interrupted casts complete at their effective end", () => {
 
   assert.equal(scheduled.steps[0].end, 250);
   assert.equal(scheduled.steps[0].interrupted, true);
-  assert.deepEqual(scheduled.state.profession.completions, [{
-    skill: "Long Cast",
-    clock: 0.25,
-    effectiveEnd: 0.25,
-  }]);
+  assert.deepEqual(scheduled.state.profession.completions, [
+    {
+      skill: "Long Cast",
+      clock: 0.25,
+      effectiveEnd: 0.25,
+    },
+  ]);
 });
 
 test("scheduler policies own chronological tasks and causal derivatives", () => {
@@ -358,20 +352,15 @@ test("scheduler policies own chronological tasks and causal derivatives", () => 
     schedulerPolicy,
   }).run(["Long Cast"]);
 
-  assert.deepEqual(
-    scheduled.state.profession.lifecycle,
-    ["policy", "profession"],
-  );
+  assert.deepEqual(scheduled.state.profession.lifecycle, [
+    "policy",
+    "profession",
+  ]);
   assert.deepEqual(
     scheduled.events
-      .filter(event => event.at === 0)
-      .map(event => event.name),
-    [
-      "Long Cast",
-      "derived-one",
-      "derived-two",
-      "original-after-action",
-    ],
+      .filter((event) => event.at === 0)
+      .map((event) => event.name),
+    ["Long Cast", "derived-one", "derived-two", "original-after-action"],
   );
 });
 
@@ -405,7 +394,10 @@ test("typed tasks order deterministically and reject zero-time loops", () => {
 });
 
 test("typed tasks require registered handlers and serializable payloads", () => {
-  const queue = createTaskQueue({ handlers: { fixture: () => {} } });
+  const seen = [];
+  const queue = createTaskQueue({
+    handlers: { fixture: (_context, task) => seen.push(task.payload) },
+  });
   assert.throws(
     () => queue.schedule({ type: "missing", at: 0, payload: {} }),
     /No scheduled task handler/,
@@ -414,6 +406,12 @@ test("typed tasks require registered handlers and serializable payloads", () => 
     () => queue.schedule({ type: "fixture", at: 0, payload: { fn() {} } }),
     /serializable data/,
   );
+
+  const payload = { nested: { value: "scheduled" } };
+  queue.schedule({ type: "fixture", at: 1, payload });
+  payload.nested.value = "mutated";
+  queue.drainThrough(1, {});
+  assert.deepEqual(seen, [{ nested: { value: "scheduled" } }]);
 });
 
 test("owner cancellation removes queued work without banning future owners", () => {

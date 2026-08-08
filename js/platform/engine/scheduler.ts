@@ -88,9 +88,7 @@ function baseDurationSeconds(skill: Skill): number {
 /**
  * @template {object} TProfessionState
  */
-function cancelledBeforeInterruptCommit<
-  TProfessionState extends object,
->(
+function cancelledBeforeInterruptCommit<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   skill: Skill,
   start: number,
@@ -98,14 +96,12 @@ function cancelledBeforeInterruptCommit<
   effectiveEnd: number,
 ): boolean {
   if (
-    skill.interruptCommitMs == null
-    || effectiveEnd >= fullEnd - context.epsilon
-  ) return false;
+    skill.interruptCommitMs == null ||
+    effectiveEnd >= fullEnd - context.epsilon
+  )
+    return false;
   const elapsedMs = (effectiveEnd - start) * 1000;
-  return (
-    elapsedMs + context.epsilon * 1000
-    < Number(skill.interruptCommitMs)
-  );
+  return elapsedMs + context.epsilon * 1000 < Number(skill.interruptCommitMs);
 }
 
 /**
@@ -114,9 +110,7 @@ function cancelledBeforeInterruptCommit<
  *
  * @template {object} TProfessionState
  */
-function scheduleDeclarativeEffects<
-  TProfessionState extends object,
->(
+function scheduleDeclarativeEffects<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
   skill: Skill,
   activationId: string,
@@ -150,11 +144,8 @@ function scheduleDeclarativeEffects<
       ) ?? effect;
     const firstAt = effectFirstAt(start, fullEnd, timing);
     const cancelPendingEffects =
-      interrupted
-      && (
-        cancelledBeforeCommit
-        || effect.persistsAfterInterrupt !== true
-      );
+      interrupted &&
+      (cancelledBeforeCommit || effect.persistsAfterInterrupt !== true);
     // An interrupt only suppresses effects that have not fired yet. Earlier
     // ticks remain in the stream even when the full cast never completes.
     // A committed channel can explicitly keep its remaining packets.
@@ -178,12 +169,12 @@ function scheduleDeclarativeEffects<
     const duration =
       baseDuration == null
         ? undefined
-        : context.schedulerPolicy.effectDuration?.(
+        : (context.schedulerPolicy.effectDuration?.(
             context,
             skill,
             effect,
             baseDuration,
-          ) ?? baseDuration;
+          ) ?? baseDuration);
     const applications = materializeSkillEffectApplications({
       skill,
       effect: timing,
@@ -199,8 +190,8 @@ function scheduleDeclarativeEffects<
     // committed channel can explicitly keep its remaining packets.
     for (const application of applications) {
       if (
-        cancelPendingEffects
-        && application.at > effectiveEnd + context.epsilon
+        cancelPendingEffects &&
+        application.at > effectiveEnd + context.epsilon
       )
         break;
       observeEffect(context.emit(application.event), effect, index);
@@ -229,12 +220,7 @@ function unavailable(
  * @returns {AvailabilityResult}
  */
 function combineAvailability(
-  results: readonly (
-    | AvailabilityResult
-    | boolean
-    | null
-    | undefined
-  )[],
+  results: readonly (AvailabilityResult | boolean | null | undefined)[],
 ): AvailabilityResult {
   return foldAvailability(
     (function* () {
@@ -293,8 +279,7 @@ export function createScheduler<
   // committed cooldown/ammo state". inFlight provides a skill-keyed lookup;
   // reservations retains the lifecycle data used by the completion task.
   const inFlight = new Map<SkillId, Set<string>>();
-  const reservations =
-    new Map<string, CastReservation<TProfessionState>>();
+  const reservations = new Map<string, CastReservation<TProfessionState>>();
   // Scheduling hooks may emit more events. A FIFO observation queue flattens
   // that recursion so every event is observed exactly once in causal order.
   const observationQueue: SimulationEvent[] = [];
@@ -328,16 +313,16 @@ export function createScheduler<
   let reservationOrder = 0;
   let activationOrder = 0;
   let previousCastStart = state.time;
-  // serialReadyAt controls ordinary rotation sequencing. latestReservedEnd
-  // prevents waits and later serial casts from passing concurrent reservations.
+  // serialReadyAt and latestBlockingEnd control the player's cast lane.
+  // Independent skills use their own serial lane while latestReservedEnd keeps
+  // waits and the final simulation horizon behind every outstanding cast.
   let serialReadyAt = state.time;
+  let independentReadyAt = state.time;
+  let latestBlockingEnd = state.time;
   let latestReservedEnd = state.time;
   let hasPreviousCast = false;
   let combatStartTime: number | null = null;
-  let taskQueue: TaskQueue<
-    SchedulerContext<TProfessionState>,
-    SchedulerRecord
-  >;
+  let taskQueue: TaskQueue<SchedulerContext<TProfessionState>, SchedulerRecord>;
 
   const skillFor = (skillId: SkillId): Skill | undefined =>
     activeCatalog?.skillsById?.get(skillId) ||
@@ -366,8 +351,7 @@ export function createScheduler<
       return `${prefix}:${++activationOrder}`;
     },
     emit(/** @type {SimulationEventInput} */ event) {
-      const prepared =
-        schedulerPolicy.prepareEvent?.(context, event) ?? event;
+      const prepared = schedulerPolicy.prepareEvent?.(context, event) ?? event;
       const normalized = createEvent({
         ...prepared,
         __order: eventOrder++,
@@ -633,10 +617,7 @@ export function createScheduler<
   };
   const taskHandlers: Record<
     string,
-    ScheduledTaskHandler<
-      SchedulerContext<TProfessionState>,
-      SchedulerRecord
-    >
+    ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>
   > = {
     [CORE_CAST_COMPLETE]: completeReservation,
     ...(schedulerPolicy.taskHandlers || {}),
@@ -644,10 +625,7 @@ export function createScheduler<
   };
   const activationAwareTaskHandlers: Record<
     string,
-    ScheduledTaskHandler<
-      SchedulerContext<TProfessionState>,
-      SchedulerRecord
-    >
+    ScheduledTaskHandler<SchedulerContext<TProfessionState>, SchedulerRecord>
   > = Object.fromEntries(
     Object.entries(taskHandlers).map(([type, handler]) => [
       type,
@@ -765,8 +743,9 @@ export function createScheduler<
       ? [...active]
           .map((id) => reservations.get(id))
           .filter(
-            (/** @type {CastReservation<TProfessionState> | undefined} */ reservation) =>
-              reservation != null,
+            (
+              /** @type {CastReservation<TProfessionState> | undefined} */ reservation,
+            ) => reservation != null,
           )
       : [];
     const reservedUntil = activeReservations.length
@@ -781,11 +760,8 @@ export function createScheduler<
     // cannot reuse the same skill while its reservation still owns recharge.
     const result: AvailabilityResult[] = [];
     if (
-      (
-        readyAt > at + epsilon
-        && skill.usableWhileRecharging !== true
-      )
-      || (ammo && ammo.charges <= 0)
+      (readyAt > at + epsilon && skill.usableWhileRecharging !== true) ||
+      (ammo && ammo.charges <= 0)
     ) {
       result.push(
         unavailable(
@@ -912,10 +888,7 @@ export function createScheduler<
    * @param {number} [commandIndex]
    * @returns {boolean}
    */
-  function cast(
-    command: CastCommand,
-    commandIndex = steps.length,
-  ): boolean {
+  function cast(command: CastCommand, commandIndex = steps.length): boolean {
     const skill = skillFor(command.skillId);
     if (!skill) {
       const reason = `Unknown skill id ${command.skillId}.`;
@@ -931,11 +904,14 @@ export function createScheduler<
       return false;
     }
     const concurrent = command.concurrentOffsetMs != null;
+    const independent = skill.independentCast === true;
     // Concurrent offsets are relative to the previous cast's start, not the
     // current clock. This models instant/concurrent actions embedded in a cast.
     let start = concurrent
       ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
-      : Math.max(state.time, serialReadyAt, latestReservedEnd);
+      : independent
+        ? Math.max(state.time, independentReadyAt)
+        : Math.max(state.time, serialReadyAt, latestBlockingEnd);
     if (start < state.time - epsilon) {
       recordInvalid(
         commandIndex,
@@ -1162,10 +1138,15 @@ export function createScheduler<
       fullCastMs: Math.round((fullEnd - start) * 1000),
       interrupted: effectiveEnd < fullEnd - epsilon,
     });
-    previousCastStart = start;
-    hasPreviousCast = true;
     latestReservedEnd = Math.max(latestReservedEnd, effectiveEnd);
-    if (!concurrent) serialReadyAt = effectiveEnd;
+    if (independent) {
+      independentReadyAt = Math.max(independentReadyAt, effectiveEnd);
+    } else {
+      previousCastStart = start;
+      hasPreviousCast = true;
+      latestBlockingEnd = Math.max(latestBlockingEnd, effectiveEnd);
+      if (!concurrent) serialReadyAt = effectiveEnd;
+    }
     return true;
   }
 
@@ -1276,9 +1257,8 @@ export function createScheduler<
     steps.sort((left, right) => left.ri - right.ri);
     sortQueuedEvents(events);
     const snapshot =
-      activeProfession.snapshot(context) ?? cloneProfessionState(
-        state.profession,
-      );
+      activeProfession.snapshot(context) ??
+      cloneProfessionState(state.profession);
     const persistentEffectEnd = events
       .filter(
         (event) =>

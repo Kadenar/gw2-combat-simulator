@@ -150,6 +150,43 @@ const entries: ProfessionRegistryEntry[] = [
     },
   },
   {
+    id: "ranger",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    name: "Ranger",
+    icon: "https://render.guildwars2.com/file/49B10316B424F4E20139EB5E51ADCF24A8724E9B/156640.png",
+    route: "ranger.html",
+    themeClass: "ranger-theme",
+    specializationSummary: "Core · Druid · Soulbeast · Untamed · Galeshot",
+    loadProfession: async () => {
+      const module = await import("../../professions/ranger/definition.js");
+      return module.rangerProfession;
+    },
+    loadAppAdapter: async () => {
+      const module =
+        await import("../../professions/ranger/app/app-definition.js");
+      return module.rangerAppAdapter;
+    },
+  },
+  {
+    id: "warrior",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    name: "Warrior",
+    icon: "https://render.guildwars2.com/file/0A97E13F29B3597A447EEC04A09BE5BD699A2250/156643.png",
+    route: "warrior.html",
+    themeClass: "warrior-theme",
+    specializationSummary:
+      "Core · Berserker · Spellbreaker · Bladesworn · Paragon",
+    loadProfession: async () => {
+      const module = await import("../../professions/warrior/definition.js");
+      return module.warriorProfession;
+    },
+    loadAppAdapter: async () => {
+      const module =
+        await import("../../professions/warrior/app/app-definition.js");
+      return module.warriorAppAdapter;
+    },
+  },
+  {
     id: "thief",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
     name: "Thief",

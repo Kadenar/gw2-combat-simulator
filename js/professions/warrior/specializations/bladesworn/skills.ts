@@ -1,0 +1,300 @@
+/** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
+import { WARRIOR_SKILL_IDS as ID } from "../../data/ids.js";
+import type { SkillFragment } from "../../../../platform/engine/types.js";
+
+export const BLADESWORN_SKILL_MECHANICS: Readonly<
+  Record<number, SkillFragment>
+> = Object.freeze({
+  [ID.UNSHEATHE_GUNSABER]: {
+    implemented: true,
+    castTimeMs: 0,
+    effects: [],
+    handlerId: "warrior.gunsaber-enter",
+  },
+  [ID.DRAGON_TRIGGER]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [],
+    quicknessCastTimeMs: 167,
+    handlerId: "warrior.dragon-trigger",
+  },
+  [ID.ELECTRIC_FENCE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 5,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SHEATHE_GUNSABER]: {
+    implemented: true,
+    castTimeMs: 0,
+    effects: [],
+    handlerId: "warrior.gunsaber-exit",
+  },
+  [ID.TACTICAL_RELOAD]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.DRAGONSPIKE_MINE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.5,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 5,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 3,
+        duration: 6,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.FLOW_STABILIZER]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 8,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.COMBAT_STIMULANT]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "boon",
+        boon: "quickness",
+        duration: 5,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 10,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "vigor",
+        duration: 10,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.OVERCHARGED_CARTRIDGES]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "condition",
+        condition: "Burning",
+        stacks: 1,
+        duration: 3,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SWIFT_CUT]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        name: "Swift Cut — Blade",
+        coefficient: 0.9,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        name: "Swift Cut — Shot",
+        coefficient: 0.75,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+  },
+  [ID.STEEL_DIVIDE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        name: "Steel Divide — Blade",
+        coefficient: 1.1,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        name: "Steel Divide — Shot",
+        coefficient: 0.75,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+  },
+  [ID.EXPLOSIVE_THRUST]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        name: "Explosive Thrust — Blade",
+        coefficient: 1.35,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        name: "Explosive Thrust — Explosion",
+        coefficient: 1.2,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+  },
+  [ID.BLOOMING_FIRE]: {
+    implemented: true,
+    ammo: 2,
+    ammoRecharge: 10,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 4,
+        hits: 5,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+  },
+  [ID.ARTILLERY_SLASH]: {
+    implemented: true,
+    ammo: 2,
+    ammoRecharge: 15,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 3,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+  },
+  [ID.CYCLONE_TRIGGER]: {
+    implemented: true,
+    ammo: 2,
+    ammoRecharge: 20,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.5,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+  },
+  [ID.BREAK_STEP]: {
+    implemented: true,
+    ammo: 2,
+    ammoRecharge: 20,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.5,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+  },
+  [ID.DRAGON_SLASH_FORCE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    burst: true,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+    dragonSlash: true,
+    dragonSlashMaximumCoefficient: 20.4,
+    handlerId: "warrior.dragon-slash",
+  },
+  [ID.DRAGON_SLASH_BOOST]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    burst: true,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+    dragonSlash: true,
+    dragonSlashMaximumCoefficient: 17,
+    handlerId: "warrior.dragon-slash",
+  },
+  [ID.DRAGON_SLASH_REACH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    burst: true,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+    dragonSlash: true,
+    dragonSlashMaximumCoefficient: 17,
+    handlerId: "warrior.dragon-slash",
+  },
+  [ID.FLICKER_STEP]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+  },
+  [ID.TRIGGERGUARD]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    gunsaberSkill: true,
+    skillWeapon: "Gunsaber",
+  },
+});

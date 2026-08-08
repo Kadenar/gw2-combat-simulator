@@ -52,14 +52,15 @@ export const troubadourUi: Partial<ProfessionUiContract> & SchedulerRecord =
     skillBarGroups: () =>
       mesmerMechanicSkillBarGroups("Instruments", TROUBADOUR_MECHANIC_SKILLS),
     resourceViews: (context: MesmerUiContext) => {
-      const activeInstruments = (
-        context.professionState as TroubadourUiState | undefined
-      )?.activeInstruments || [];
+      const activeInstruments =
+        (context.professionState as TroubadourUiState | undefined)
+          ?.activeInstruments || [];
       return mesmerResourceViews(context, {
         id: "notes",
         singular: "note",
         plural: "notes",
         maximum: 3,
+        pipStyle: "mesmer-notes",
       }).map((view) => ({
         ...view,
         statusItemsLabel: "Playing",

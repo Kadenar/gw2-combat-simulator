@@ -1,3 +1,15 @@
+/**
+ * Renders and binds the rotation builder's skill palette.
+ *
+ * Palette models supply profession, loadout, weapon, utility, and virtual
+ * actions. This module combines them with the latest simulation state to
+ * resolve cooldowns, ammo, flips, ambushes, autoattack chains, and profession
+ * availability, then delegates generic skill markup and pointer handling to
+ * `platform/ui/palette`.
+ *
+ * The palette is rebuilt after application changes; event handlers therefore
+ * read current build and result state instead of retaining DOM-local state.
+ */
 import { ammoDisplayView } from "../../platform/ui/ammo-display.js";
 import {
   bindPaletteInteractions,
@@ -79,6 +91,11 @@ function rotationItem(
     : name;
 }
 
+/**
+ * Converts a dragged palette identity into one or more rotation entries.
+ * Returns `null` for cancelled waits, empty names, and duplicate combat-start
+ * markers. Composite actions may return multiple entries.
+ */
 export function resolvePaletteDropItem(
   app: ProfessionAppState,
   name: string,
@@ -161,6 +178,11 @@ function addGroup(
   });
 }
 
+/**
+ * Projects a skill and the latest simulation state into generic palette UI.
+ * `contextAvailable` represents profession or loadout rules; cooldown and ammo
+ * state are derived here so disabled styling and tooltips share one decision.
+ */
 export function paletteSkillView(
   app: ProfessionAppState,
   skill: Skill,
@@ -222,6 +244,14 @@ export function paletteSkillView(
   };
 }
 
+/**
+ * Replaces the rotation palette markup and binds activation and drag behavior.
+ *
+ * Groups are ordered as profession mechanics/resources, fixed loadouts,
+ * weapons/actions, selected slot skills, and timeline-only controls. Skill
+ * activation supports Shift-click concurrent instants and Ctrl-click cast
+ * interrupts before delegating the mutation to the application.
+ */
 export function renderPalette(app: ProfessionAppState): void {
   const element = document.getElementById("rotation-palette");
   if (!element) return;

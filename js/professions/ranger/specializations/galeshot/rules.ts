@@ -1,0 +1,118 @@
+import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
+import { hasTrait } from "../../../../platform/gw2/trait-state.js";
+import {
+  RANGER_SKILL_IDS as ID,
+  RANGER_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
+import type { AvailabilityResult } from "../../../../platform/engine/types.js";
+import type {
+  Gw2ModifierContext,
+  Gw2ModifierRule,
+} from "../../../../platform/gw2/types.js";
+import type { RangerPrecastContext, RangerSkill } from "../../types.js";
+import { galeshotState } from "./state.js";
+
+function deny(
+  skill: RangerSkill,
+  code: string,
+  cause: string,
+): AvailabilityResult {
+  return {
+    ready: false,
+    code,
+    reason: `${skill.name} is unavailable - ${cause}`,
+  };
+}
+
+export function galeshotCastAvailability(
+  context: RangerPrecastContext,
+  skill: RangerSkill,
+): AvailabilityResult {
+  const state = galeshotState.from(context);
+  if (skill.cycloneBowSkill && !state.cycloneBowActive) {
+    return deny(
+      skill,
+      "ranger.cyclone-bow-inactive",
+      "summon the Cyclone Bow first.",
+    );
+  }
+  if (skill.id === ID.SUMMON_CYCLONE_BOW && state.cycloneBowActive) {
+    return deny(
+      skill,
+      "ranger.cyclone-bow-active",
+      "the Cyclone Bow is already active.",
+    );
+  }
+  if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {
+    return deny(
+      skill,
+      "ranger.cyclone-bow-inactive",
+      "the Cyclone Bow is not active.",
+    );
+  }
+  if (Number(skill.arrowCost || 0) > state.arrows) {
+    return deny(skill, "ranger.arrows", `requires ${skill.arrowCost} arrows.`);
+  }
+  if (skill.id === ID.HAWKEYE && state.windForce < 5) {
+    return deny(skill, "ranger.wind-force", "requires 5 Wind Force.");
+  }
+  if (skill.id === ID.KEEN_SHOT && state.windForce >= 5) {
+    return deny(
+      skill,
+      "ranger.hawkeye-ready",
+      "Hawkeye replaces Keen Shot at 5 Wind Force.",
+    );
+  }
+  if (
+    state.cycloneBowActive &&
+    skill.type === "Weapon" &&
+    !skill.cycloneBowSkill
+  ) {
+    return deny(
+      skill,
+      "ranger.cyclone-bow-weapon-bar",
+      "the Cyclone Bow replaces weapon skills.",
+    );
+  }
+  return { ready: true };
+}
+
+function windForce(context: Gw2ModifierContext): number {
+  const profession = context.runtime?.profession as
+    | { specialization?: { kind?: string; state?: { windForce?: number } } }
+    | undefined;
+  return profession?.specialization?.kind === "Galeshot"
+    ? Number(profession.specialization.state?.windForce || 0)
+    : 0;
+}
+
+export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: "ranger.bird-of-prey",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: 0.1,
+    when: (context) =>
+      hasTrait(context, TRAIT.BIRD_OF_PREY) &&
+      Boolean(context.config?.boons?.swiftness),
+  },
+  {
+    id: "ranger.gale-force",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: (context) => windForce(context) * 0.02,
+    when: (context) =>
+      hasTrait(context, TRAIT.GALE_FORCE) && windForce(context) > 0,
+  },
+]);
+
+export const galeshotAttributeRules = Object.freeze({
+  modifierRules: galeshotModifierRules,
+});
+export const galeshotCastRules = Object.freeze({
+  availability: {
+    id: "ranger.galeshot-availability",
+    order: 20,
+    handler: galeshotCastAvailability,
+  },
+});

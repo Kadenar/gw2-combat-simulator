@@ -1,9 +1,23 @@
+/**
+ * Renders normalized profession resource views in the rotation builder.
+ *
+ * `activeResourceGroup` creates the read-only post-simulation display shown in
+ * the palette. `renderStartResource` mounts the editable starting-resource,
+ * weapon-set, and fixed-loadout controls. Profession modules provide the view
+ * models; `resourceDisplayViews` clamps their values and supplies defaults
+ * before this module turns them into bars or pips.
+ *
+ * A resource's sanitized `pipStyle` becomes a CSS class on its pip container
+ * or bars. This is the supported hook for profession-specific visuals such as
+ * Mesmer notes and Revenant affinity emblems.
+ */
 import type { ProfessionResourceView } from "../../platform/engine/types.js";
 import type { ProfessionAppState } from "../profession/types.js";
 import { resourceDisplayViews } from "../../platform/ui/resource-display.js";
 import { escapeHtml as esc } from "../../platform/ui/html.js";
 import { activeSpecialization, professionEndState } from "./context.js";
 
+/** Formats a finite resource value with at most three decimal places. */
 export function formatResourceValue(value: unknown): string {
   const numeric = Number(value || 0);
   if (!Number.isFinite(numeric)) return "0";
@@ -52,25 +66,49 @@ function resourcePipsHtml(
   }${pipClass} pip-rows-${pipRows}">${content}</div>`;
 }
 
-function resourceStatusItemsHtml(
+function resourceBarsHtml(
   definition: ProfessionResourceView,
+  value: number,
 ): string {
+  const segmentCount = Math.max(1, Number(definition.barSegments || 1));
+  const segmentMaximum = definition.maximum / segmentCount;
+  const barClass = definition.pipStyle ? ` ${esc(definition.pipStyle)}` : "";
+  const bars = Array.from({ length: segmentCount }, (_, index) => {
+    const segmentValue = Math.max(
+      0,
+      Math.min(segmentMaximum, value - index * segmentMaximum),
+    );
+    const width = segmentMaximum ? (segmentValue / segmentMaximum) * 100 : 0;
+    return `<div class="active-resource-bar${barClass}"><span style="width:${width}%"></span></div>`;
+  }).join("");
+  return segmentCount > 1
+    ? `<div class="active-resource-bars" style="--resource-bar-segments:${segmentCount}">${bars}</div>`
+    : bars;
+}
+
+function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
   const items = definition.statusItems || [];
   if (!items.length) return "";
   const label = definition.statusItemsLabel || "Active";
   return `<div class="active-resource-statuses"
       aria-label="${esc(label)}">
       <span class="active-resource-statuses-label">${esc(label)}</span>
-      ${items.map((item) => {
-        const title = item.title || `${item.label} ${item.valueLabel || ""}`;
-        return `<span class="active-resource-status" title="${esc(title.trim())}">
+      ${items
+        .map((item) => {
+          const title = item.title || `${item.label} ${item.valueLabel || ""}`;
+          return `<span class="active-resource-status" title="${esc(title.trim())}">
           <span>${esc(item.label)}</span>
           ${item.valueLabel ? `<strong>${esc(item.valueLabel)}</strong>` : ""}
         </span>`;
-      }).join("")}
+        })
+        .join("")}
     </div>`;
 }
 
+/**
+ * Returns the read-only resource HTML for the latest simulation end state.
+ * Multiple resource views are wrapped in an `active-resource-stack`.
+ */
 export function activeResourceGroup(app: ProfessionAppState): string {
   const professionState = professionEndState(app.results);
   const definitions = resourceDisplayViews(app.profession, {
@@ -93,11 +131,7 @@ export function activeResourceGroup(app: ProfessionAppState): string {
       const title = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
       const indicator =
         definition.displayMode === "bar"
-          ? `<div class="active-resource-bar${
-              definition.pipStyle ? ` ${esc(definition.pipStyle)}` : ""
-            }"><span style="width:${
-              definition.maximum ? (value / definition.maximum) * 100 : 0
-            }%"></span></div>`
+          ? resourceBarsHtml(definition, value)
           : resourcePipsHtml(definition, value);
       return `<div class="pal-group active-resource-group">
             <div class="pal-label" style="color:#c49cff">${esc(definition.shortLabel)}</div>
@@ -116,6 +150,14 @@ export function activeResourceGroup(app: ProfessionAppState): string {
     : groups;
 }
 
+/**
+ * Mounts starting-state controls and binds them to the application build.
+ *
+ * Startable bars use numeric inputs; startable pips use count buttons. A
+ * resource with `canStart: false` remains visible in the live display but has
+ * no starting control. Every accepted change calls `app.changed()` so the
+ * simulation and both resource displays refresh together.
+ */
 export function renderStartResource(app: ProfessionAppState): void {
   const element = document.getElementById("start-att-selector");
   if (!element) return;
@@ -127,6 +169,31 @@ export function renderStartResource(app: ProfessionAppState): void {
     initialResource: app.build.initialResource,
     initialBlight: app.build.initialBlight,
   });
+  const startControls = app.profession.ui.startControls({
+    build: app.build,
+    specialization: activeSpecialization(app),
+    professionState,
+    catalog: app.profession.catalog,
+  });
+  const startControlsHtml = startControls
+    .map(
+      (control) => `<div class="start-resource-control">
+          <span class="start-att-label">${esc(control.label)}:</span>
+          <div class="start-state-toggle">${control.options
+            .map(
+              (option) => `<button class="start-att-btn start-state-btn${
+                option.value === control.value ? " active" : ""
+              }" data-start-control-key="${esc(control.buildKey)}"
+                  data-start-control-value="${esc(option.value)}"
+                  style="--att-c:${esc(control.color || "var(--accent)")}"
+                  title="${esc(option.description || option.label)}">
+                  <img src="${esc(option.icon || "")}" alt="">
+              </button>`,
+            )
+            .join("")}</div>
+      </div>`,
+    )
+    .join("");
   const hasSecondSet = Boolean(app.build.alternateWeapons?.[0]);
   const startSet = app.build.startingWeaponSet === 2 && hasSecondSet ? 2 : 1;
   const weaponControl = hasSecondSet
@@ -185,8 +252,21 @@ export function renderStartResource(app: ProfessionAppState): void {
         });
       });
   };
+  const bindStartControls = (): void => {
+    element
+      .querySelectorAll<HTMLElement>(".start-state-btn")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          const key = button.dataset.startControlKey;
+          const value = button.dataset.startControlValue;
+          if (!key || value == null) return;
+          app.build[key] = value;
+          app.changed();
+        });
+      });
+  };
   if (!definitions.length) {
-    element.innerHTML = `${weaponControl}${loadoutControl}`;
+    element.innerHTML = `${weaponControl}${loadoutControl}${startControlsHtml}`;
     element
       .querySelectorAll<HTMLElement>(".weapon-set-btn")
       .forEach((button) => {
@@ -196,6 +276,7 @@ export function renderStartResource(app: ProfessionAppState): void {
         });
       });
     bindStartingLoadout();
+    bindStartControls();
     return;
   }
   const resourceControls = definitions
@@ -225,7 +306,7 @@ export function renderStartResource(app: ProfessionAppState): void {
         </div>`;
     })
     .join("");
-  element.innerHTML = `${weaponControl}${loadoutControl}${resourceControls}`;
+  element.innerHTML = `${weaponControl}${loadoutControl}${startControlsHtml}${resourceControls}`;
   element.querySelectorAll<HTMLElement>(".resource-pip").forEach((button) => {
     button.addEventListener("click", () => {
       const count = Number(button.dataset.count);
@@ -253,4 +334,5 @@ export function renderStartResource(app: ProfessionAppState): void {
     });
   });
   bindStartingLoadout();
+  bindStartControls();
 }

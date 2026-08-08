@@ -6,9 +6,9 @@ import type {
   TaskQueue,
 } from "./types.js";
 
-function assertSerializable(value: unknown, label: string): void {
+function cloneSerializable<T>(value: T, label: string): T {
   try {
-    structuredClone(value);
+    return structuredClone(value);
   } catch {
     throw new TypeError(`${label} must contain only serializable data.`);
   }
@@ -38,10 +38,9 @@ export function createTaskQueue<TContext, TPayload>({
   readonly epsilon?: number;
   readonly safetyLimit?: number;
 } = {}): Readonly<TaskQueue<TContext, TPayload>> {
-  const registered = new Map<
-    string,
-    ScheduledTaskHandler<TContext, TPayload>
-  >(Object.entries(handlers));
+  const registered = new Map<string, ScheduledTaskHandler<TContext, TPayload>>(
+    Object.entries(handlers),
+  );
   const queue: ScheduledTask<TPayload>[] = [];
   const cancelledIds = new Set<string>();
   let sequence = 0;
@@ -89,14 +88,17 @@ export function createTaskQueue<TContext, TPayload>({
         `No scheduled task handler is registered for "${normalizedType}".`,
       );
     }
-    assertSerializable(payload, `Scheduled task "${normalizedType}" payload`);
+    const clonedPayload = cloneSerializable(
+      payload,
+      `Scheduled task "${normalizedType}" payload`,
+    );
     const task: ScheduledTask<TPayload> = Object.freeze({
       id: String(id || `task:${sequence + 1}`),
       type: normalizedType,
       at: normalizedAt,
       priority: Number(priority || 0),
       ownerId: ownerId == null ? null : String(ownerId),
-      payload: structuredClone(payload),
+      payload: clonedPayload,
       order: sequence++,
     });
     insertTask(task);

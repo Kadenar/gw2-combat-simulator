@@ -2,9 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createGw2SimulationConfig } from "../../js/app/simulation/config.js";
-import {
-  createSimulationRandom,
-} from "../../js/platform/engine/simulation-random.js";
+import { createSimulationRandom } from "../../js/platform/engine/simulation-random.js";
 import {
   calculateRandomDistribution,
   partitionRandomDistributionTrials,
@@ -18,41 +16,25 @@ import {
   migrateEngineerBuild,
   validateEngineerBuild,
 } from "../../js/professions/engineer/build.js";
-import {
-  engineerAppAdapter,
-} from "../../js/professions/engineer/app/app-definition.js";
+import { engineerAppAdapter } from "../../js/professions/engineer/app/app-definition.js";
 import { engineerProfession } from "../../js/professions/engineer/definition.js";
-import {
-  ENGINEER_TRAIT_IDS as ENGINEER_TRAIT,
-} from "../../js/professions/engineer/data/ids.js";
+import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from "../../js/professions/engineer/data/ids.js";
 import { guardianProfession } from "../../js/professions/guardian/definition.js";
-import {
-  createGuardianBuildDefaults,
-} from "../../js/professions/guardian/build.js";
+import { createGuardianBuildDefaults } from "../../js/professions/guardian/build.js";
 import { mesmerProfession } from "../../js/professions/mesmer/definition.js";
-import {
-  createMesmerBuildDefaults,
-} from "../../js/professions/mesmer/build.js";
-import {
-  MESMER_TRAIT_IDS as MESMER_TRAIT,
-} from "../../js/professions/mesmer/data/ids.js";
+import { createMesmerBuildDefaults } from "../../js/professions/mesmer/build.js";
+import { MESMER_TRAIT_IDS as MESMER_TRAIT } from "../../js/professions/mesmer/data/ids.js";
 import {
   createNecromancerBuildDefaults,
   migrateNecromancerBuild,
   validateNecromancerBuild,
 } from "../../js/professions/necromancer/build.js";
 import { necromancerProfession } from "../../js/professions/necromancer/definition.js";
-import {
-  NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT,
-} from "../../js/professions/necromancer/data/ids.js";
+import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from "../../js/professions/necromancer/data/ids.js";
 import { revenantProfession } from "../../js/professions/revenant/definition.js";
-import {
-  createRevenantBuildDefaults,
-} from "../../js/professions/revenant/build.js";
+import { createRevenantBuildDefaults } from "../../js/professions/revenant/build.js";
 import { thiefProfession } from "../../js/professions/thief/definition.js";
-import {
-  createThiefBuildDefaults,
-} from "../../js/professions/thief/build.js";
+import { createThiefBuildDefaults } from "../../js/professions/thief/build.js";
 
 function minimalAttributeData() {
   return { attributes: {}, activeTraits: [] };
@@ -98,8 +80,9 @@ test("seeded simulation random streams are reproducible and independent", () => 
   const isolated = createSimulationRandom({ mode: "stochastic", seed: 42 });
   assert.equal(
     isolated.next("engineer.shrapnel"),
-    createSimulationRandom({ mode: "stochastic", seed: 42 })
-      .next("engineer.shrapnel"),
+    createSimulationRandom({ mode: "stochastic", seed: 42 }).next(
+      "engineer.shrapnel",
+    ),
   );
 });
 
@@ -121,7 +104,7 @@ test("every native profession exposes persisted simulation randomness", () => {
     );
     assert.equal(
       profession.ui.assumptionControls.find(
-        control => control.key === "simulationMode",
+        (control) => control.key === "simulationMode",
       )?.label,
       "Simulation randomness",
     );
@@ -137,10 +120,7 @@ test("every native profession exposes persisted simulation randomness", () => {
   ];
   for (const build of builds) {
     assert.equal(build.assumptions.simulationMode, "deterministic");
-    assert.equal(
-      Object.hasOwn(build.assumptions, "simulationSeed"),
-      false,
-    );
+    assert.equal(Object.hasOwn(build.assumptions, "simulationSeed"), false);
   }
 
   const engineer = createEngineerBuildDefaults();
@@ -158,13 +138,16 @@ test("every native profession exposes persisted simulation randomness", () => {
     Object.hasOwn(migratedEngineer.assumptions, "simulationSeed"),
     false,
   );
-  assert.equal(validateEngineerBuild({
-    ...engineer,
-    assumptions: {
-      ...engineer.assumptions,
-      simulationMode: "invalid",
-    },
-  }).valid, false);
+  assert.equal(
+    validateEngineerBuild({
+      ...engineer,
+      assumptions: {
+        ...engineer.assumptions,
+        simulationMode: "invalid",
+      },
+    }).valid,
+    false,
+  );
   assert.equal(
     migrateNecromancerBuild(necromancer).assumptions.simulationMode,
     "deterministic",
@@ -269,12 +252,12 @@ test("RNG explanations compare variable combat facts in low and high DPS cohorts
   assert.equal(distribution.explanation.lowDpsMean, 1005);
   assert.equal(distribution.explanation.highDpsMean, 1185);
   assert.deepEqual(
-    distribution.explanation.drivers.map(driver => driver.label),
+    distribution.explanation.drivers.map((driver) => driver.label),
     ["Player critical hits", "Jagged Mind bleeding stacks applied"],
   );
   assert.equal(
-    distribution.explanation.drivers.some(driver =>
-      driver.label === "Fixed activations"
+    distribution.explanation.drivers.some(
+      (driver) => driver.label === "Fixed activations",
     ),
     false,
   );
@@ -285,9 +268,11 @@ test("RNG explanations compare variable combat facts in low and high DPS cohorts
 });
 
 test("RNG trials partition across available worker cores without changing seeds", () => {
-  assert.equal(randomDistributionWorkerCount(500, 8), 4);
+  assert.equal(randomDistributionWorkerCount(500, 16), 8);
+  assert.equal(randomDistributionWorkerCount(500, 8), 7);
   assert.equal(randomDistributionWorkerCount(500, 4), 3);
   assert.equal(randomDistributionWorkerCount(500, 2), 1);
+  assert.equal(randomDistributionWorkerCount(500, 0), 4);
   assert.equal(randomDistributionWorkerCount(0, 8), 0);
   assert.deepEqual(partitionRandomDistributionTrials(10, 3), [
     { trials: 4, seedStart: 1 },
@@ -325,40 +310,45 @@ test("distribution mode keeps detailed Engineer results stable and samples separ
   assert.equal(Number.isFinite(distribution.mean), true);
   assert.equal(distribution.p01 <= distribution.p99, true);
   assert.ok(distribution.explanation?.drivers.length > 0);
-  assert.ok(distribution.explanation.drivers.some(driver =>
-    /critical hits|weapon strength/i.test(driver.label)
-  ));
+  assert.ok(
+    distribution.explanation.drivers.some((driver) =>
+      /critical hits|weapon strength/i.test(driver.label),
+    ),
+  );
 });
 
 test("Mesmer distributions explain illusion criticals and their bleeding", () => {
-  const rotation = [
-    "Phantasmal Duelist",
-    { name: "__wait", waitMs: 4000 },
-  ];
-  const distribution = calculateRandomDistribution({
-    rotation,
-    baseConfig: {
-      specialization: "Core",
-      primaryWeapon: "Sword",
-      secondaryWeapon: "Pistol",
-      selectedTraitIds: [MESMER_TRAIT.SHARPER_IMAGES],
-      stats: {
-        power: 2000,
-        precision: 1945,
-        ferocity: 750,
-        conditionDamage: 1000,
-        expertise: 0,
+  const rotation = ["Phantasmal Duelist", { name: "__wait", waitMs: 4000 }];
+  const distribution = calculateRandomDistribution(
+    {
+      rotation,
+      baseConfig: {
+        specialization: "Core",
+        primaryWeapon: "Sword",
+        secondaryWeapon: "Pistol",
+        selectedTraitIds: [MESMER_TRAIT.SHARPER_IMAGES],
+        stats: {
+          power: 2000,
+          precision: 1945,
+          ferocity: 750,
+          conditionDamage: 1000,
+          expertise: 0,
+        },
+        boons: { fury: false },
+        target: { armor: 2597 },
       },
-      boons: { fury: false },
-      target: { armor: 2597 },
+      trials: 32,
     },
-    trials: 32,
-  }, (trialRotation, config) => simulateGw2({
-    profession: mesmerProfession,
-    rotation: trialRotation,
-    config,
-  }));
-  const labels = distribution.explanation?.drivers.map(driver => driver.label);
+    (trialRotation, config) =>
+      simulateGw2({
+        profession: mesmerProfession,
+        rotation: trialRotation,
+        config,
+      }),
+  );
+  const labels = distribution.explanation?.drivers.map(
+    (driver) => driver.label,
+  );
 
   assert.ok(labels?.includes("Illusion critical hits"));
   assert.ok(labels?.includes("Sharper Images bleeding stacks applied"));
@@ -387,14 +377,15 @@ test("Engineer random trait procs repeat by seed and vary across seeds", () => {
       conditions: { Vulnerability: 25 },
     },
   };
-  const run = (seed) => simulateGw2({
-    profession: engineerProfession,
-    rotation,
-    config: {
-      ...config,
-      randomness: { mode: "stochastic", seed },
-    },
-  });
+  const run = (seed) =>
+    simulateGw2({
+      profession: engineerProfession,
+      rotation,
+      config: {
+        ...config,
+        randomness: { mode: "stochastic", seed },
+      },
+    });
   const signature = (result) => [
     traitConditionCount(result, ENGINEER_TRAIT.SHRAPNEL),
     traitConditionCount(result, ENGINEER_TRAIT.SERRATED_STEEL),
@@ -421,17 +412,18 @@ test("Necromancer randomizes Barbed Precision and Chilling Nova by seed", () => 
       conditions: { Chilled: true, Vulnerability: 25 },
     },
   };
-  const barbed = (seed) => simulateGw2({
-    profession: necromancerProfession,
-    rotation: ["Weeping Shots", { type: "wait", durationMs: 4100 }],
-    config: {
-      ...common,
-      specialization: "Harbinger",
-      primaryWeapon: "Pistol",
-      selectedTraitIds: [NECROMANCER_TRAIT.BARBED_PRECISION],
-      randomness: { mode: "stochastic", seed },
-    },
-  });
+  const barbed = (seed) =>
+    simulateGw2({
+      profession: necromancerProfession,
+      rotation: ["Weeping Shots", { type: "wait", durationMs: 4100 }],
+      config: {
+        ...common,
+        specialization: "Harbinger",
+        primaryWeapon: "Pistol",
+        selectedTraitIds: [NECROMANCER_TRAIT.BARBED_PRECISION],
+        randomness: { mode: "stochastic", seed },
+      },
+    });
   assert.equal(
     traitConditionCount(barbed(1), NECROMANCER_TRAIT.BARBED_PRECISION),
     traitConditionCount(barbed(1), NECROMANCER_TRAIT.BARBED_PRECISION),
@@ -441,22 +433,23 @@ test("Necromancer randomizes Barbed Precision and Chilling Nova by seed", () => 
     traitConditionCount(barbed(2), NECROMANCER_TRAIT.BARBED_PRECISION),
   );
 
-  const chillingNova = (seed) => simulateGw2({
-    profession: necromancerProfession,
-    rotation: ["Reaper's Shroud", "Life Rend"],
-    config: {
-      ...common,
-      specialization: "Reaper",
-      selectedTraitIds: [NECROMANCER_TRAIT.CHILLING_NOVA],
-      stats: { ...common.stats, precision: 2000 },
-      initialResource: 100,
-      randomness: { mode: "stochastic", seed },
-    },
-  }).resolvedEvents.some(
-    (event) =>
-      event.type === "damage" &&
-      event.sourceId === NECROMANCER_TRAIT.CHILLING_NOVA,
-  );
+  const chillingNova = (seed) =>
+    simulateGw2({
+      profession: necromancerProfession,
+      rotation: ["Reaper's Shroud", "Life Rend"],
+      config: {
+        ...common,
+        specialization: "Reaper",
+        selectedTraitIds: [NECROMANCER_TRAIT.CHILLING_NOVA],
+        stats: { ...common.stats, precision: 2000 },
+        initialResource: 100,
+        randomness: { mode: "stochastic", seed },
+      },
+    }).resolvedEvents.some(
+      (event) =>
+        event.type === "damage" &&
+        event.sourceId === NECROMANCER_TRAIT.CHILLING_NOVA,
+    );
   assert.equal(chillingNova(1), true);
   assert.equal(chillingNova(3), false);
 });
