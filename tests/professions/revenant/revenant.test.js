@@ -1600,6 +1600,16 @@ test("Charged Mists uses the low-energy legend reset", () => {
     selectedTraitIds: [TRAIT.CHARGED_MISTS],
   });
   assert.equal(charged.endState.profession.energy, 75);
+  const chargedFractional = simulate("Core", ["Swap Legends"], {
+    initialEnergy: 10.7,
+    selectedTraitIds: [TRAIT.CHARGED_MISTS],
+  });
+  assert.equal(chargedFractional.endState.profession.energy, 75);
+  const aboveThreshold = simulate("Core", ["Swap Legends"], {
+    initialEnergy: 11,
+    selectedTraitIds: [TRAIT.CHARGED_MISTS],
+  });
+  assert.equal(aboveThreshold.endState.profession.energy, 50);
 });
 
 test("legend invocation traits resolve after swap effects", () => {
@@ -4208,7 +4218,7 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
     ["Brutal Blade", 750, 0.8],
     ["Mist Swing", 400, 0.7],
     ["Mist Slash", 600, 0.8],
-    ["Arcing Mists", 600, 1.2],
+    ["Arcing Mists", 680, 1.2],
     ["Mist Unleashed", 500, 1.6],
     ["Phantom's Onslaught", 650, 1.6],
   ]) {
@@ -4223,7 +4233,7 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
   for (const [name, quicknessCastTimeMs] of [
     ["Mist Swing", 400],
     ["Mist Slash", 600],
-    ["Arcing Mists", 600],
+    ["Arcing Mists", 680],
   ]) {
     assert.equal(
       skill(name).quicknessCastTimeMs,
