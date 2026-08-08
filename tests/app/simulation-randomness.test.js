@@ -265,6 +265,7 @@ test("RNG explanations compare variable combat facts in low and high DPS cohorts
   assert.equal(distribution.explanation.drivers[0].highAverage, 18.5);
   assert.equal(distribution.explanation.drivers[0].delta, 18);
   assert.ok(distribution.explanation.drivers[0].correlation > 0.99);
+  assert.equal(distribution.explanation.drivers[0].estimatedDpsDelta, 180);
 });
 
 test("RNG trials partition across available worker cores without changing seeds", () => {

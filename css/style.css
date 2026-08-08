@@ -3205,7 +3205,8 @@ header .accent {
   font-size: 9px;
 }
 
-.rng-driver-delta {
+.rng-driver-delta,
+.rng-driver-impact {
   display: flex;
   flex: none;
   align-items: end;
@@ -3214,16 +3215,23 @@ header .accent {
   font-variant-numeric: tabular-nums;
 }
 
-.rng-driver-delta small {
+.rng-driver-delta small,
+.rng-driver-impact small {
   color: var(--text-dim);
   font-size: 9px;
 }
 
-.rng-driver-delta strong {
+.rng-driver-delta strong,
+.rng-driver-impact strong {
   min-width: 62px;
   color: var(--health);
   font-size: 12px;
   text-align: right;
+}
+
+.rng-driver-impact strong {
+  min-width: 94px;
+  color: var(--text-bright);
 }
 
 .rng-explanation > .rng-explanation-note {
@@ -3313,14 +3321,16 @@ header .accent {
     gap: 3px;
   }
 
-  .rng-driver-delta {
+  .rng-driver-delta,
+  .rng-driver-impact {
     align-items: baseline;
     flex-direction: row;
     gap: 4px;
     width: 100%;
   }
 
-  .rng-driver-delta strong {
+  .rng-driver-delta strong,
+  .rng-driver-impact strong {
     min-width: 0;
     text-align: left;
   }

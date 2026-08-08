@@ -1,7 +1,4 @@
-import type {
-  ChartOptions,
-  ChartSeries,
-} from "./charts.js";
+import type { ChartOptions, ChartSeries } from "./charts.js";
 import { mountTimeSeriesCharts } from "./charts.js";
 import { escapeHtml } from "./html.js";
 export { mountRotationWarnings } from "./rotation-warnings.js";
@@ -83,6 +80,7 @@ export interface ResultRandomDistribution {
       readonly highAverage: number;
       readonly delta: number;
       readonly correlation: number;
+      readonly estimatedDpsDelta: number;
     }[];
   };
 }
@@ -143,9 +141,12 @@ export function nextResultSortState(
   if (currentColumn !== column) {
     return { column, direction: "desc" };
   }
-  const direction: ResultSortDirection = currentDirection === "desc"
-    ? "asc"
-    : currentDirection === "asc" ? null : "desc";
+  const direction: ResultSortDirection =
+    currentDirection === "desc"
+      ? "asc"
+      : currentDirection === "asc"
+        ? null
+        : "desc";
   return {
     column: direction ? column : null,
     direction,
@@ -162,12 +163,12 @@ export function sortResultRows(
   const sorted = [...rows];
   if (!column || !direction) {
     // "Unsorted" means the useful default of highest total damage first.
-    return sorted.sort((left, right) =>
-      Number(right.total || 0) - Number(left.total || 0)
+    return sorted.sort(
+      (left, right) => Number(right.total || 0) - Number(left.total || 0),
     );
   }
 
-  const definition = columns.find(candidate => candidate.key === column);
+  const definition = columns.find((candidate) => candidate.key === column);
   if (definition?.numeric) {
     return sorted.sort((left, right) => {
       const leftValue = left[column] ?? -Infinity;
@@ -177,9 +178,11 @@ export function sortResultRows(
         : Number(rightValue) - Number(leftValue);
     });
   }
-  return sorted.sort((left, right) => direction === "asc"
-    ? String(left[column] ?? "").localeCompare(String(right[column] ?? ""))
-    : String(right[column] ?? "").localeCompare(String(left[column] ?? "")));
+  return sorted.sort((left, right) =>
+    direction === "asc"
+      ? String(left[column] ?? "").localeCompare(String(right[column] ?? ""))
+      : String(right[column] ?? "").localeCompare(String(left[column] ?? "")),
+  );
 }
 
 const number = (value: unknown): string =>
@@ -193,7 +196,7 @@ function signedInteger(value: unknown): string {
 
 function signedFixed(value: unknown, digits = 2): string {
   const numeric = Number(value || 0);
-  const threshold = 0.5 / (10 ** digits);
+  const threshold = 0.5 / 10 ** digits;
   const normalized = Math.abs(numeric) < threshold ? 0 : numeric;
   return `${normalized > 0 ? "+" : ""}${normalized.toFixed(digits)}`;
 }
@@ -227,9 +230,10 @@ function randomDistributionExplanationHtml(
     </div>
     <p>The ${number(cohortSize)} highest-DPS simulations averaged ${number(explanation.highDpsMean)} DPS. The ${number(cohortSize)} lowest-DPS simulations averaged ${number(explanation.lowDpsMean)} DPS.</p>
     <div class="rng-driver-list">
-      ${explanation.drivers.map((driver) => {
-        const positive = Number(driver.delta) >= 0;
-        return `<div class="rng-driver">
+      ${explanation.drivers
+        .map((driver) => {
+          const positive = Number(driver.delta) >= 0;
+          return `<div class="rng-driver">
           <span class="rng-driver-label">
             <strong>${escapeHtml(driver.label)}</strong>
             <small>Highest-DPS group: ${randomDriverNumber(driver.highAverage, driver.unit)} average per simulation</small>
@@ -239,10 +243,15 @@ function randomDistributionExplanationHtml(
             <strong>${positive ? "+" : "&minus;"}${randomDriverNumber(Math.abs(driver.delta), driver.unit)}</strong>
             <small>difference</small>
           </span>
+          <span class="rng-driver-impact">
+            <strong>&asymp; ${signedInteger(driver.estimatedDpsDelta)} DPS</strong>
+            <small>estimated DPS difference</small>
+          </span>
         </div>`;
-      }).join("")}
+        })
+        .join("")}
     </div>
-    <p class="rng-explanation-note">These are averages across each group, not counts from one simulation. Related rows can come from the same proc chain, so do not add them together.</p>
+    <p class="rng-explanation-note">These are averages across each group, not counts from one simulation. DPS differences are single-variable trend estimates across all outcomes. Related rows can come from the same proc chain, so do not add them together.</p>
   </div>`;
 }
 
@@ -273,9 +282,9 @@ function skillRowHtml(
   columns: readonly ResultColumn[],
   options: RotationResultsOptions,
 ): string {
-  return `<div class="res-row">${columns.map(column =>
-    skillCellHtml(row, column, options)
-  ).join("")}</div>`;
+  return `<div class="res-row">${columns
+    .map((column) => skillCellHtml(row, column, options))
+    .join("")}</div>`;
 }
 
 function skillRowsHtml(
@@ -283,11 +292,11 @@ function skillRowsHtml(
   columns: readonly ResultColumn[],
   options: RotationResultsOptions,
 ): string {
-  const hasGroups = rows.some(row =>
-    typeof row.group === "string" && row.group.trim()
+  const hasGroups = rows.some(
+    (row) => typeof row.group === "string" && row.group.trim(),
   );
   if (!hasGroups) {
-    return rows.map(row => skillRowHtml(row, columns, options)).join("");
+    return rows.map((row) => skillRowHtml(row, columns, options)).join("");
   }
 
   const grouped = new Map<string, ResultRow[]>();
@@ -305,34 +314,42 @@ function skillRowsHtml(
     ["Entities", 1],
     ["Other", 2],
   ]);
-  const groupNames = [...grouped.keys()].sort((left, right) =>
-    (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3)
+  const groupNames = [...grouped.keys()].sort(
+    (left, right) =>
+      (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3),
   );
-  return groupNames.map(group => {
-    const groupRows = grouped.get(group) || [];
-    const total = groupRows.reduce(
-      (sum, row) => sum + Number(row.total || 0),
-      0,
-    );
-    return `<div class="res-skill-group-heading" data-skill-group="${escapeHtml(group)}">
+  return groupNames
+    .map((group) => {
+      const groupRows = grouped.get(group) || [];
+      const total = groupRows.reduce(
+        (sum, row) => sum + Number(row.total || 0),
+        0,
+      );
+      return `<div class="res-skill-group-heading" data-skill-group="${escapeHtml(group)}">
       <span>${escapeHtml(group)}</span>
       <span>${number(total)} total</span>
-    </div>${groupRows.map(row =>
-      skillRowHtml(row, columns, options)
-    ).join("")}`;
-  }).join("");
+    </div>${groupRows
+      .map((row) => skillRowHtml(row, columns, options))
+      .join("")}`;
+    })
+    .join("");
 }
 
 function skillHeaderHtml(
   columns: readonly ResultColumn[],
   sortState: ResultSortState,
 ): string {
-  return columns.map(column => {
-    const indicator = sortState.column === column.key
-      ? (sortState.direction === "asc" ? " ▲" : " ▼")
-      : "";
-    return `<span data-sort-col="${escapeHtml(column.key)}">${escapeHtml(column.label || column.key)}${indicator}</span>`;
-  }).join("");
+  return columns
+    .map((column) => {
+      const indicator =
+        sortState.column === column.key
+          ? sortState.direction === "asc"
+            ? " ▲"
+            : " ▼"
+          : "";
+      return `<span data-sort-col="${escapeHtml(column.key)}">${escapeHtml(column.label || column.key)}${indicator}</span>`;
+    })
+    .join("");
 }
 
 export function mountRotationResults(
@@ -372,17 +389,13 @@ export function mountRotationResults(
       100,
       Number(
         randomDistributionProgress.percent ??
-          (
-            randomDistributionTrials > 0
-              ? (randomDistributionCompleted / randomDistributionTrials) * 100
-              : 0
-          ),
+          (randomDistributionTrials > 0
+            ? (randomDistributionCompleted / randomDistributionTrials) * 100
+            : 0),
       ),
     ),
   );
-  const randomDistributionError = String(
-    model.randomDistributionError || "",
-  );
+  const randomDistributionError = String(model.randomDistributionError || "");
   const chartSeries = model.chartSeries || null;
   let sortState: ResultSortState = {
     column: options.sortState?.column || null,
@@ -399,18 +412,26 @@ export function mountRotationResults(
 
   // Replacing the subtree gives every mount a clean DOM/event-handler slate.
   container.innerHTML = `<div class="res-summary">
-    ${metrics.map(metric => `<div class="res-stat">
+    ${metrics
+      .map(
+        (metric) => `<div class="res-stat">
       <span class="res-label">${escapeHtml(metric.label)}</span>
       <span class="res-val${metric.className ? ` ${escapeHtml(metric.className)}` : ""}">${escapeHtml(metric.value)}</span>
-    </div>`).join("")}
+    </div>`,
+      )
+      .join("")}
   </div>
-  ${breakpoints.length ? `<details class="res-breakpoints">
+  ${
+    breakpoints.length
+      ? `<details class="res-breakpoints">
     <summary>
       <span class="res-breakpoints-heading">DPS snapshots</span>
       <span class="res-breakpoints-description">Average DPS at 20% target-health intervals</span>
     </summary>
     <div class="res-breakpoint-grid">
-      ${breakpoints.map(breakpoint => `<div class="res-breakpoint">
+      ${breakpoints
+        .map(
+          (breakpoint) => `<div class="res-breakpoint">
         <div class="res-breakpoint-meta">
           <span class="res-breakpoint-label">
             <b>${number(breakpoint.healthPercent)}%</b> target health
@@ -421,21 +442,30 @@ export function mountRotationResults(
           <strong>${number(breakpoint.dps)}</strong>
           <span>DPS</span>
         </div>
-      </div>`).join("")}
+      </div>`,
+        )
+        .join("")}
     </div>
-  </details>` : ""}
-  ${randomDistributionRequested ? `<section class="rng-distribution">
+  </details>`
+      : ""
+  }
+  ${
+    randomDistributionRequested
+      ? `<section class="rng-distribution">
     <div class="rng-distribution-heading">
       <div>
         <h4>Simulation RNG distribution</h4>
         <p>Use Expected for planning. P1 and P99 show rare unlucky and lucky outcomes. Other result panels use the deterministic baseline.</p>
       </div>
-      ${randomDistributionTrials
-        ? `<span>${number(randomDistributionTrials)} outcomes per run</span>`
-        : ""}
+      ${
+        randomDistributionTrials
+          ? `<span>${number(randomDistributionTrials)} outcomes per run</span>`
+          : ""
+      }
     </div>
-    ${randomDistributionStale
-      ? `<div class="rng-distribution-progress"
+    ${
+      randomDistributionStale
+        ? `<div class="rng-distribution-progress"
           data-role="rng-progress"
           role="progressbar"
           aria-label="Calculating RNG outcomes"
@@ -445,16 +475,16 @@ export function mountRotationResults(
           <div class="rng-distribution-progress-track">
             <span data-role="rng-progress-bar" style="width: ${randomDistributionPercent}%"></span>
           </div>
-          <span data-role="rng-progress-label">${
-            number(randomDistributionCompleted)
-          } / ${number(randomDistributionTrials)} outcomes (${
-            Math.round(randomDistributionPercent)
-          }%)</span>
+          <span data-role="rng-progress-label">${number(
+            randomDistributionCompleted,
+          )} / ${number(randomDistributionTrials)} outcomes (${Math.round(
+            randomDistributionPercent,
+          )}%)</span>
         </div>`
-      : randomDistributionError
-        ? `<div class="rng-distribution-status rng-distribution-error">${escapeHtml(randomDistributionError)}</div>`
-        : randomDistribution
-          ? `<div class="rng-distribution-grid">
+        : randomDistributionError
+          ? `<div class="rng-distribution-status rng-distribution-error">${escapeHtml(randomDistributionError)}</div>`
+          : randomDistribution
+            ? `<div class="rng-distribution-grid">
             <div class="rng-distribution-stat">
               <span>Expected</span>
               <strong>${number(randomDistribution.mean)}</strong>
@@ -482,52 +512,80 @@ export function mountRotationResults(
             </div>
           </div>
           ${randomDistributionExplanationHtml(randomDistribution)}`
-          : `<div class="rng-distribution-manual">
+            : `<div class="rng-distribution-manual">
               <span>Run the distribution when the rotation is ready.</span>
               <button type="button" data-role="rng-run">
                 Run ${number(randomDistributionTrials)} outcomes
               </button>
-            </div>`}
-  </section>` : ""}
-  ${skillColumns.length ? `<div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
+            </div>`
+    }
+  </section>`
+      : ""
+  }
+  ${
+    skillColumns.length
+      ? `<div class="res-breakdown ${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
     <div class="res-hdr res-hdr-sortable" data-role="skill-header">
       ${skillHeaderHtml(skillColumns, sortState)}
     </div>
-    <div class="res-skill-rows" data-role="skill-rows">${
-      skillRowsHtml(initialSkillRows, skillColumns, options)
-    }</div>
-  </div>` : ""}
-  ${conditions.length ? `<div class="res-breakdown cond-breakdown">
+    <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(
+      initialSkillRows,
+      skillColumns,
+      options,
+    )}</div>
+  </div>`
+      : ""
+  }
+  ${
+    conditions.length
+      ? `<div class="res-breakdown cond-breakdown">
     <div class="res-hdr cond-hdr">
       <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
     </div>
-    ${conditions.map(condition => `<div class="res-row">
+    ${conditions
+      .map(
+        (condition) => `<div class="res-row">
       <span class="res-skill condi">${escapeHtml(condition.name)}</span>
       <span class="condi">${number(condition.damage)}</span>
       <span class="dps">${number(condition.dps)}</span>
       <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
-    </div>`).join("")}
-    ${model.conditionTotal ? `<div class="res-row res-total">
+    </div>`,
+      )
+      .join("")}
+    ${
+      model.conditionTotal
+        ? `<div class="res-row res-total">
       <span class="res-skill"><b>${escapeHtml(model.conditionTotal.label || "Total Conditions")}</b></span>
       <span class="condi"><b>${number(model.conditionTotal.damage)}</b></span>
       <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
       <span></span>
-    </div>` : ""}
-  </div>` : ""}
+    </div>`
+        : ""
+    }
+  </div>`
+      : ""
+  }
   ${chartSeries ? '<div data-role="result-charts"></div>' : ""}
-  ${contributions.length || contributionsStale ? `<div class="res-contributions">
+  ${
+    contributions.length || contributionsStale
+      ? `<div class="res-contributions">
     <h4>
       <span>Modifier Contributions</span>
-      ${contributionsStale
-        ? '<span class="contrib-status">Recalculating</span>'
-        : ""}
+      ${
+        contributionsStale
+          ? '<span class="contrib-status">Recalculating</span>'
+          : ""
+      }
     </h4>
-    ${contributions.length ? `<div class="contrib-table">
+    ${
+      contributions.length
+        ? `<div class="contrib-table">
       <div class="contrib-hdr">
         <span>Modifier</span><span>DPS Increase</span><span>% Increase</span>
       </div>
-      ${contributions.map(contribution => {
-        return `<div class="contrib-row">
+      ${contributions
+        .map((contribution) => {
+          return `<div class="contrib-row">
           <span class="contrib-name">${
             contribution.icon
               ? `<img src="${escapeHtml(contribution.icon)}" alt="" />`
@@ -536,9 +594,14 @@ export function mountRotationResults(
           <span class="contrib-val">${signedInteger(contribution.dpsIncrease)}</span>
           <span class="contrib-pct">${signedFixed(contribution.pctIncrease)}%</span>
         </div>`;
-      }).join("")}
-    </div>` : '<div class="contrib-pending">Calculating modifier contributions…</div>'}
-  </div>` : ""}`;
+        })
+        .join("")}
+    </div>`
+        : '<div class="contrib-pending">Calculating modifier contributions…</div>'
+    }
+  </div>`
+      : ""
+  }`;
 
   const renderSortedRows = (): void => {
     const sorted = sortResultRows(
@@ -587,14 +650,10 @@ export function mountRotationResults(
   );
   if (chartContainer && chartSeries) {
     // Charts mount only when the transformed model supplies sampled series.
-    mountTimeSeriesCharts(
-      chartContainer,
-      chartSeries,
-      {
-        ...(options.chartOptions || {}),
-        healthBreakpoints: breakpoints,
-      },
-    );
+    mountTimeSeriesCharts(chartContainer, chartSeries, {
+      ...(options.chartOptions || {}),
+      healthBreakpoints: breakpoints,
+    });
   }
   const runRandomDistribution = container.querySelector<HTMLElement>(
     '[data-role="rng-run"]',
