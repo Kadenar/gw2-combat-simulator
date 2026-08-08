@@ -34,7 +34,8 @@ export const MESMER_MIRAGE_AMBUSH_ATTACKS: Readonly<
         {
           "name": "Torment",
           "duration": 3.5,
-          "stacks": 6
+          "stacks": 3,
+          "applications": 2
         }
       ]
     },

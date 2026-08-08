@@ -1140,6 +1140,11 @@ test("weapon actions stay ordered beside the stacked weapon sets", () => {
     mirrorIcon,
   );
   assert.equal(ACTION_ICONS["Pick Up Mirage Mirror"], mirrorIcon);
+  assert.equal(ACTION_ICONS["Mirage Mirror"], mirrorIcon);
+  assert.equal(
+    resultSkillIcon(mesmer, { name: "Mirage Mirror", skillId: 44677 }),
+    mirrorIcon,
+  );
   const troubadour = {
     ...mesmer,
     adapter: {

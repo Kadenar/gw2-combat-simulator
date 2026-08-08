@@ -24,7 +24,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Thousand_Cuts",
     effects: [
       {
         type: "strike",
@@ -90,7 +89,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Sword_of_Decimation",
     effects: [
       {
         type: "strike",
@@ -117,7 +115,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
       count: 5,
     },
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Blade_Renewal",
     effects: [],
   },
   [ID.RAIN_OF_SWORDS]: {
@@ -131,7 +128,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Rain_of_Swords",
     effects: [
       {
         type: "strike",
@@ -155,7 +151,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Twin_Blade_Restoration",
     effects: [
       {
         type: "strike",
@@ -179,7 +174,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Psychic_Force",
     effects: [
       {
         type: "strike",
@@ -208,7 +202,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Bladeturn_Requiem",
     effects: [],
   },
   [ID.BLADESONG_DISSONANCE]: {
@@ -228,7 +221,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Bladesong_Dissonance",
     effects: [],
   },
   [ID.BLADESONG_SORROW]: {
@@ -248,7 +240,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Bladesong_Sorrow",
     effects: [],
   },
   [ID.BLADESONG_HARMONY]: {
@@ -268,7 +259,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Bladesong_Harmony",
     effects: [],
   },
   [ID.BLADESONG_DISTORTION]: {
@@ -289,7 +279,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Bladesong_Distortion",
     effects: [],
   },
 });

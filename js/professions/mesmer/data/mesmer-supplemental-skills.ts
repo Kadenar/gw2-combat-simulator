@@ -16,7 +16,6 @@ export interface MesmerSupplementalSkill {
   readonly environment: string;
   readonly ambush?: boolean;
   readonly flipParentId?: number;
-  readonly wikiUrl: string;
 }
 
 const supplementalSkills: MesmerSupplementalSkill[] = [
@@ -32,7 +31,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "Mirage",
     environment: "Terrestrial",
     ambush: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Imaginary_Axes",
   },
   {
     id: ID.PHANTOM_RAZOR,
@@ -46,7 +44,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "Mirage",
     environment: "Terrestrial",
     ambush: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantom_Razor",
   },
   {
     id: ID.SPLIT_SURGE,
@@ -60,7 +57,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "Mirage",
     environment: "Terrestrial",
     ambush: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Split_Surge",
   },
   {
     id: ID.EFFERVESCENCE,
@@ -74,7 +70,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "Mirage",
     environment: "Terrestrial",
     ambush: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Effervescence",
   },
   {
     id: ID.ETHER_BARRAGE,
@@ -88,7 +83,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "Mirage",
     environment: "Terrestrial",
     ambush: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Ether_Barrage",
   },
   {
     id: ID.FRACTURED_GLASS,
@@ -102,7 +96,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "Mirage",
     environment: "Terrestrial",
     ambush: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Fractured_Glass",
   },
   {
     id: ID.CHAOS_VORTEX,
@@ -116,7 +109,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "Mirage",
     environment: "Terrestrial",
     ambush: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Chaos_Vortex",
   },
   {
     id: ID.MIRAGE_THRUST,
@@ -130,7 +122,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "Mirage",
     environment: "Terrestrial",
     ambush: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mirage_Thrust",
   },
   {
     id: ID.COUNTERSPELL,
@@ -143,7 +134,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     slot: "Weapon_2",
     environment: "Terrestrial",
     flipParentId: ID.ILLUSIONARY_COUNTER,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Counterspell",
   },
   {
     id: ID.POWER_SPIKE,
@@ -157,7 +147,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "",
     environment: "Terrestrial",
     flipParentId: ID.MANTRA_OF_PAIN,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Power_Spike",
   },
   {
     id: ID.DIMENSIONAL_APERTURE,
@@ -171,7 +160,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "",
     environment: "Terrestrial",
     flipParentId: ID.SINGULARITY_SHOT,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Dimensional_Aperture",
   },
   {
     id: ID.ABSTRACTION,
@@ -185,7 +173,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "",
     environment: "Terrestrial",
     flipParentId: ID.INSPIRING_IMAGERY,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Abstraction",
   },
   {
     id: ID.INTO_THE_VOID,
@@ -199,7 +186,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "",
     environment: "Terrestrial",
     flipParentId: ID.TEMPORAL_CURTAIN,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Into_the_Void",
   },
   {
     id: ID.COUNTER_BLADE,
@@ -212,7 +198,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "",
     environment: "Terrestrial",
     flipParentId: ID.ILLUSIONARY_RIPOSTE,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Counter_Blade",
   },
   {
     id: ID.SWAP,
@@ -225,7 +210,6 @@ const supplementalSkills: MesmerSupplementalSkill[] = [
     specialization: "",
     environment: "Terrestrial",
     flipParentId: ID.ILLUSIONARY_LEAP,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Swap",
   },
 ];
 

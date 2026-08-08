@@ -24,7 +24,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/False_Oasis",
     "effects": []
   },
   [ID.CRYSTAL_SANDS]: {
@@ -39,7 +38,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Crystal_Sands",
     "effects": [
       {
         "type": "strike",
@@ -75,7 +73,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Mirage_Advance",
     "effects": [
       {
         "type": "strike",
@@ -99,7 +96,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Sand_through_Glass",
     "effects": []
   },
   [ID.ILLUSIONARY_AMBUSH]: {
@@ -114,7 +110,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Illusionary_Ambush",
     "effects": []
   },
   [ID.JAUNT]: {
@@ -129,7 +124,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Jaunt",
     "effects": [
       {
         "type": "strike",
@@ -154,7 +148,7 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.CHAOS_VORTEX]: {
     "castTimeMs": 1000,
-    "quicknessCastTimeMs": 719,
+    "quicknessCastTimeMs": 720,
     "cooldown": 1,
     "phantasm": false,
     "resource": null,
@@ -186,7 +180,7 @@ export const MESMER_MIRAGE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<
   },
   [ID.IMAGINARY_AXES]: {
     "castTimeMs": 780,
-    "quicknessCastTimeMs": 441,
+    "quicknessCastTimeMs": 440,
     "cooldown": 1,
     "phantasm": false,
     "resource": null,

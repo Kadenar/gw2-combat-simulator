@@ -192,6 +192,7 @@ export function createSkillDamageController({
   const schedulePlayerConditions = (
     skill: MesmerSkill,
     at: number,
+    castStart: number,
     pulseTimes: readonly number[],
     conditions: readonly MesmerConditionEffect[],
   ): void => {
@@ -215,7 +216,10 @@ export function createSkillDamageController({
           timingScale: "fixed",
         });
       } else {
-        addCondition(skill.name, at, condition, "Player");
+        const timingAnchorAt = effect.timingAnchor === "castStart"
+          ? castStart
+          : at;
+        addCondition(skill.name, timingAnchorAt, condition, "Player");
       }
     }
   };
@@ -322,12 +326,12 @@ export function createSkillDamageController({
       const phantasmConditions = conditions.filter(
         (effect) => effect.actorType !== "player",
       );
-      schedulePlayerConditions(skill, at, pulseTimes, playerConditions);
+      schedulePlayerConditions(skill, at, castStart, pulseTimes, playerConditions);
       for (const phantasm of phantasmExecutions) {
         phantasms.scheduleConditions(phantasm, phantasmConditions);
       }
     } else {
-      schedulePlayerConditions(skill, at, pulseTimes, conditions);
+      schedulePlayerConditions(skill, at, castStart, pulseTimes, conditions);
     }
     return { firstFencerTriggerAt };
   };
