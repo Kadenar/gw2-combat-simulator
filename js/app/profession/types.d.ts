@@ -53,18 +53,12 @@ export interface ProfessionAppContract {
   migrateBuild(saved: SchedulerRecord): SchedulerRecord;
 }
 
-export interface ProfessionAttributeData
-  extends Gw2FinalizedAttributeResult {
+export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
   activeTraits: CatalogEntity[];
 }
 
 export type ProfessionModifierType =
-  | "Boon"
-  | "Target"
-  | "Sigil"
-  | "Relic"
-  | "Food"
-  | "Trait";
+  "Boon" | "Target" | "Sigil" | "Relic" | "Food" | "Trait";
 
 export interface ProfessionModifier {
   readonly id: string;
@@ -100,8 +94,7 @@ export interface RandomDistributionRequest {
   readonly seedStart?: number;
 }
 
-export interface RandomDistributionJobRequest
-  extends RandomDistributionRequest {
+export interface RandomDistributionJobRequest extends RandomDistributionRequest {
   readonly professionId: string;
   readonly trials: number;
 }
@@ -122,16 +115,9 @@ export interface RandomDistributionProgress {
 }
 
 export type RandomDistributionMetricCategory =
-  | "critical"
-  | "condition"
-  | "proc"
-  | "effect"
-  | "weapon-strength";
+  "critical" | "condition" | "proc" | "effect" | "weapon-strength";
 
-export type RandomDistributionMetricUnit =
-  | "count"
-  | "stacks"
-  | "value";
+export type RandomDistributionMetricUnit = "count" | "stacks" | "value";
 
 /** One compact, profession-neutral observation collected from an RNG trial. */
 export interface RandomDistributionMetricSample {
@@ -159,6 +145,7 @@ export interface RandomDistributionDriver {
   readonly highAverage: number;
   readonly delta: number;
   readonly correlation: number;
+  readonly estimatedDpsDelta: number;
 }
 
 export interface RandomDistributionExplanation {
@@ -256,9 +243,7 @@ export interface ProfessionSpecialization extends CatalogEntity {
   readonly icon: string;
   readonly elite: boolean;
   readonly minorTraits: readonly ProfessionSpecializationTrait[];
-  readonly majorTraits: readonly (
-    readonly ProfessionSpecializationTrait[]
-  )[];
+  readonly majorTraits: readonly (readonly ProfessionSpecializationTrait[])[];
 }
 
 export interface ProfessionSlotLoadout extends SchedulerRecord {
@@ -347,12 +332,8 @@ export interface ProfessionAppState {
   weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>;
   relicNames: readonly string[];
   specializations: CanonicalCatalog["specializations"];
-  resourceDefinitions(
-    specialization: string,
-  ): ProfessionResourceView[];
-  resourceDefinition(
-    specialization: string,
-  ): ProfessionResourceView | null;
+  resourceDefinitions(specialization: string): ProfessionResourceView[];
+  resourceDefinition(specialization: string): ProfessionResourceView | null;
   attributeWeaponSet: number;
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;
@@ -450,17 +431,14 @@ export interface ProfessionRuntimeOverrides {
     app: ProfessionAppState,
     context: ProfessionRuntimeConfigContext,
   ) => SchedulerRecord;
-  readonly buildConfigExtras?: (
-    app: ProfessionAppState,
-  ) => SchedulerRecord;
+  readonly buildConfigExtras?: (app: ProfessionAppState) => SchedulerRecord;
   readonly isContributionTrait?: (
     trait: CatalogEntity,
     app: ProfessionAppState,
   ) => boolean;
 }
 
-export interface ProfessionRuntimeOptions
-  extends ProfessionRuntimeOverrides {
+export interface ProfessionRuntimeOptions extends ProfessionRuntimeOverrides {
   readonly profession: ProfessionAppContract;
   readonly calculateAttributes: Gw2CalculateAttributes;
 }
@@ -476,18 +454,14 @@ export interface ProfessionRuntimeApi {
     app: ProfessionAppState,
     disabled?: ProfessionModifier | null,
   ): Gw2Config;
-  modifierCandidates(
-    app: ProfessionAppState,
-  ): ProfessionModifier[];
+  modifierCandidates(app: ProfessionAppState): ProfessionModifier[];
   modifierContributionRequest(
     app: ProfessionAppState,
   ): ModifierContributionRequest;
   calculateModifierContributions(
     request: ModifierContributionRequest,
   ): ModifierContribution[];
-  computeModifierContributions(
-    app: ProfessionAppState,
-  ): ModifierContribution[];
+  computeModifierContributions(app: ProfessionAppState): ModifierContribution[];
   randomDistributionRequest(
     app: ProfessionAppState,
   ): RandomDistributionJobRequest | null;
@@ -509,21 +483,14 @@ export interface Gw2AppAdapterOptions {
     string,
     number | boolean
   >;
-  readonly toApplicationBuild: (
-    build: unknown,
-  ) => ProfessionApplicationBuild;
-  readonly eliteSpecialization:
-    ProfessionRuntimeApi["eliteSpecialization"];
+  readonly toApplicationBuild: (build: unknown) => ProfessionApplicationBuild;
+  readonly eliteSpecialization: ProfessionRuntimeApi["eliteSpecialization"];
   readonly recalculate: ProfessionRuntimeApi["recalculate"];
   readonly runSimulation: ProfessionRuntimeApi["runSimulation"];
-  readonly modifierContributionRequest:
-    ProfessionRuntimeApi["modifierContributionRequest"];
-  readonly calculateModifierContributions:
-    ProfessionRuntimeApi["calculateModifierContributions"];
-  readonly randomDistributionRequest:
-    ProfessionRuntimeApi["randomDistributionRequest"];
-  readonly calculateRandomDistribution:
-    ProfessionRuntimeApi["calculateRandomDistribution"];
+  readonly modifierContributionRequest: ProfessionRuntimeApi["modifierContributionRequest"];
+  readonly calculateModifierContributions: ProfessionRuntimeApi["calculateModifierContributions"];
+  readonly randomDistributionRequest: ProfessionRuntimeApi["randomDistributionRequest"];
+  readonly calculateRandomDistribution: ProfessionRuntimeApi["calculateRandomDistribution"];
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
   readonly defaultOffhand: ProfessionDefaultOffhand;
 }
@@ -531,8 +498,7 @@ export interface Gw2AppAdapterOptions {
 export interface Gw2AppAdapter extends Gw2AppAdapterOptions {
   readonly id: string;
   readonly name: string;
-  readonly specializations:
-    CanonicalCatalog["specializations"];
+  readonly specializations: CanonicalCatalog["specializations"];
   readonly weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>;
   readonly relicNames: readonly string[];
   readonly renderResults: (app: ProfessionAppState) => void;
@@ -551,9 +517,7 @@ export interface DefineProfessionAppOptions {
     string,
     number | boolean
   >;
-  readonly toApplicationBuild: (
-    build: unknown,
-  ) => ProfessionApplicationBuild;
+  readonly toApplicationBuild: (build: unknown) => ProfessionApplicationBuild;
   readonly specializationFallback: string;
   readonly storageVersion?: number;
   readonly storageKey?: string;

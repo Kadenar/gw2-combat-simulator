@@ -376,11 +376,18 @@ function average(values: readonly number[]): number {
     : 0;
 }
 
-function pearsonCorrelation(
+interface LinearRelationship {
+  readonly correlation: number;
+  readonly slope: number;
+}
+
+function linearRelationship(
   leftValues: readonly number[],
   rightValues: readonly number[],
-): number {
-  if (!leftValues.length || leftValues.length !== rightValues.length) return 0;
+): LinearRelationship {
+  if (!leftValues.length || leftValues.length !== rightValues.length) {
+    return { correlation: 0, slope: 0 };
+  }
   const leftMean = average(leftValues);
   const rightMean = average(rightValues);
   let numerator = 0;
@@ -394,7 +401,10 @@ function pearsonCorrelation(
     rightVariance += rightDelta ** 2;
   }
   const denominator = Math.sqrt(leftVariance * rightVariance);
-  return denominator > 0 ? numerator / denominator : 0;
+  return {
+    correlation: denominator > 0 ? numerator / denominator : 0,
+    slope: leftVariance > 0 ? numerator / leftVariance : 0,
+  };
 }
 
 interface RankedDriver {
@@ -453,7 +463,7 @@ export function summarizeRandomDistributionOutcomes(
     const highAverage = average(valuesFor(high, id));
     const delta = highAverage - lowAverage;
     if (!(delta > 1e-9)) continue;
-    const correlation = pearsonCorrelation(values, dpsValues);
+    const { correlation, slope } = linearRelationship(values, dpsValues);
     if (correlation < MIN_EXPLANATION_CORRELATION) continue;
     const valueMean = average(values);
     const deviation = Math.sqrt(
@@ -473,6 +483,7 @@ export function summarizeRandomDistributionOutcomes(
         highAverage,
         delta,
         correlation,
+        estimatedDpsDelta: slope * delta,
       },
     });
   }
