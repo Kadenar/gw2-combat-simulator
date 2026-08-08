@@ -40,6 +40,8 @@ export const ACTION_ICONS: Readonly<Record<string, string>> = {
   "Dodge / Mirage Cloak": "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
   "Pick Up Mirage Mirror":
     "https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png",
+  "Mirage Mirror":
+    "https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png",
   "Swap Weapons":
     "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
   "Continuum Shift":
@@ -146,6 +148,8 @@ export function resultSkillIcon(
     if (skill?.icon) return String(skill.icon);
   }
   const breakdownName = baseBreakdownName(row.name);
+  const actionIcon = ACTION_ICONS[row.name] || ACTION_ICONS[breakdownName];
+  if (actionIcon) return actionIcon;
   const cloneAttackName = breakdownName.startsWith("Clone: ")
     ? breakdownName.slice("Clone: ".length)
     : "";

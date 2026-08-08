@@ -498,6 +498,30 @@ function updateAutoattackChains(
   }
 }
 
+/** Returns whether a completed Mesmer field of the requested type is active. */
+function activeComboField(
+  context: MesmerCastContext,
+  type: string,
+  at: number,
+): boolean {
+  return context.events.some((event) => {
+    if (
+      event.type !== "action" ||
+      event.cancelled === true ||
+      Number(event.endsAt) > at + EPSILON ||
+      event.skillId == null
+    ) {
+      return false;
+    }
+    const field = context.catalog.skillsById.get(event.skillId);
+    return (
+      field?.comboField === type &&
+      Number(field.duration || 0) > 0 &&
+      Number(event.endsAt) + Number(field.duration) >= at - EPSILON
+    );
+  });
+}
+
 /**
  * Commits all completion-time Mesmer mechanics for a skill.
  *
@@ -625,6 +649,24 @@ function completeMesmerSkill(
                 playerEffectEnd: context.effectiveEnd,
               }
             : undefined,
+          );
+      }
+      if (
+        skill.id === ID.LINGERING_THOUGHTS &&
+        activeComboField(context, "Ethereal", at)
+      ) {
+        runtime.addCondition(
+          skill.name,
+          at,
+          {
+            name: "Confusion",
+            duration: 5,
+            stacks: 1,
+            applications: 2,
+          },
+          "Player",
+          `${skill.name} — Confounding Bolts`,
+          { skillId: skill.id, sourceId: skill.id },
         );
       }
       runtime.mirage.handlePostSkill(skill, at);
@@ -767,7 +809,12 @@ function completeMesmerSkill(
       });
     }
     if (runtime.peithaSkills.has(skill.id)) {
-      runtime.addEvent({ type: "peitha", at, skillName: skill.name });
+      // Axes of Symmetry shadowsteps at activation. Its damage lands near the
+      // end of the cast, but Peitha's shadowstep trigger does not wait for it.
+      const peithaAt = skill.id === ID.AXES_OF_SYMMETRY
+        ? context.start
+        : at;
+      runtime.addEvent({ type: "peitha", at: peithaAt, skillName: skill.name });
     }
   } finally {
     runtime.activeEmission = null;

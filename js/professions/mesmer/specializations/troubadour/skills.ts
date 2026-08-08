@@ -26,7 +26,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Bladecall",
     effects: [
       {
         type: "strike",
@@ -87,7 +86,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Lively_Lute",
     effects: [],
   },
   [ID.TALE_OF_THE_HONORABLE_ROGUE]: {
@@ -102,7 +100,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Tale_of_the_Honorable_Rogue",
     effects: [
       { type: "boon", boon: "Aegis", duration: 4 },
     ],
@@ -119,7 +116,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Tale_of_the_Second_Scion",
     effects: [],
   },
   [ID.FLUSTERING_FLUTE]: {
@@ -134,7 +130,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Flustering_Flute",
     effects: [],
   },
   [ID.TALE_OF_THE_SOULKEEPER]: {
@@ -149,7 +144,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Tale_of_the_Soulkeeper",
     effects: [
       { type: "boon", boon: "Might", duration: 15, stacks: 10 },
       { type: "boon", boon: "Fury", duration: 10 },
@@ -171,7 +165,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Crescendo",
     effects: [],
   },
   [ID.HARMONIOUS_HARP]: {
@@ -186,7 +179,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Harmonious_Harp",
     effects: [],
   },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
@@ -201,7 +193,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Tale_of_the_August_Queen",
     effects: [],
   },
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
@@ -216,7 +207,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Tale_of_the_Tortured_Mastermind",
     effects: [
       {
         type: "strike",
@@ -281,7 +271,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Harmonious_Harp",
     effects: [],
   },
   [ID.DEAFENING_DRUM]: {
@@ -296,7 +285,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Deafening_Drum",
     effects: [],
   },
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: {
@@ -311,7 +299,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Tale_of_the_Valiant_Marshal",
     effects: [
       { type: "boon", boon: "Stability", duration: 4, stacks: 5 },
       { type: "boon", boon: "Resistance", duration: 3 },
@@ -329,7 +316,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Lively_Lute",
     effects: [],
   },
 });

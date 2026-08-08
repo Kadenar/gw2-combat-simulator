@@ -26,7 +26,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Confusing_Images",
     effects: [
       {
         type: "strike",
@@ -66,7 +65,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Chaos_Storm",
+    comboField: "Ethereal",
+    duration: 5,
     effects: [
       {
         type: "strike",
@@ -91,7 +91,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     castTimeMs: 720,
-    quicknessCastTimeMs: 456,
+    quicknessCastTimeMs: 480,
   },
   [ID.MIND_SLASH]: {
     implemented: true,
@@ -103,7 +103,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Slash",
     nextChainId: ID.MIND_GASH,
     effects: [
       {
@@ -128,7 +127,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Gash",
     nextChainId: ID.MIND_SPIKE,
     effects: [
       {
@@ -153,7 +151,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     resource: null,
     blade: false,
     boonlessCoefficient: 2,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Spike",
     nextChainId: null,
     effects: [
       {
@@ -180,7 +177,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Illusionary_Leap",
     effects: [
       {
         type: "strike",
@@ -206,7 +202,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     },
     phantasmSummonProgress: 0.8181818181818182,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Swordsman",
     effects: [
       {
         type: "strike",
@@ -249,7 +244,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Duelist",
     effects: [
       {
         type: "strike",
@@ -303,7 +297,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Ether_Feast",
     effects: [],
   },
   [ID.MIRROR]: {
@@ -318,7 +311,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mirror",
     effects: [],
   },
   [ID.TEMPORAL_CURTAIN]: {
@@ -333,7 +325,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Temporal_Curtain",
     effects: [],
   },
   [ID.PHANTASMAL_MAGE]: {
@@ -349,7 +340,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Mage",
     effects: [
       {
         type: "strike",
@@ -396,8 +386,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
         stacks: 3,
       },
     ],
-    castTimeMs: 1200,
-    quicknessCastTimeMs: 786,
+    castTimeMs: 1140,
+    quicknessCastTimeMs: 760,
   },
   [ID.CRY_OF_FRUSTRATION]: {
     implemented: true,
@@ -417,7 +407,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Cry_of_Frustration",
     effects: [],
   },
   [ID.MIND_WRACK]: {
@@ -438,7 +427,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Wrack",
     effects: [],
   },
   [ID.DISTORTION]: {
@@ -459,7 +447,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Distortion",
     effects: [],
   },
   [ID.PORTAL_ENTRE]: {
@@ -474,7 +461,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Portal_Entre",
     effects: [],
   },
   [ID.BLINK]: {
@@ -489,7 +475,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Blink",
     effects: [],
   },
   [ID.DECOY]: {
@@ -507,7 +492,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Decoy",
     effects: [],
   },
   [ID.MIRROR_IMAGES]: {
@@ -525,7 +509,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 2,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mirror_Images",
     effects: [],
   },
   [ID.NULL_FIELD]: {
@@ -540,7 +523,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Null_Field",
     effects: [],
   },
   [ID.MANTRA_OF_PAIN]: {
@@ -555,7 +537,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mantra_of_Pain",
     effects: [],
   },
   [ID.MANTRA_OF_RECOVERY]: {
@@ -570,7 +551,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mantra_of_Recovery",
     effects: [],
   },
   [ID.PHANTASMAL_WARLOCK]: {
@@ -585,8 +565,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       mode: "phantasm",
       count: 2,
     },
+    phantasmSummonProgress: 0.7619047619047619,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Warlock",
     effects: [
       {
         type: "strike",
@@ -603,8 +583,8 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
         stacks: 6,
       },
     ],
-    castTimeMs: 1170,
-    quicknessCastTimeMs: 744,
+    castTimeMs: 1260,
+    quicknessCastTimeMs: 840,
   },
   [ID.MIND_STAB]: {
     implemented: true,
@@ -616,7 +596,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Stab",
     effects: [
       {
         type: "strike",
@@ -644,7 +623,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Spatial_Surge",
     effects: [
       {
         type: "strike",
@@ -672,7 +650,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Illusionary_Wave",
     effects: [
       {
         type: "strike",
@@ -700,7 +677,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Berserker",
     effects: [
       {
         type: "strike",
@@ -731,7 +707,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Magic_Bullet",
     effects: [
       {
         type: "strike",
@@ -765,7 +740,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Signet_of_Domination",
     effects: [],
   },
   [ID.SIGNET_OF_MIDNIGHT]: {
@@ -780,7 +754,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Signet_of_Midnight",
     effects: [],
   },
   [ID.SIGNET_OF_INSPIRATION]: {
@@ -795,7 +768,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Signet_of_Inspiration",
     effects: [],
   },
   [ID.MASS_INVISIBILITY]: {
@@ -810,7 +782,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mass_Invisibility",
     effects: [],
   },
   [ID.SIGNET_OF_ILLUSIONS]: {
@@ -824,7 +795,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Signet_of_Illusions",
     effects: [],
   },
   [ID.PHANTASMAL_DISENCHANTER]: {
@@ -840,7 +810,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Disenchanter",
     effects: [
       {
         type: "strike",
@@ -863,7 +832,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Winds_of_Chaos",
     effects: [
       {
         type: "strike",
@@ -891,7 +859,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     castTimeMs: 1140,
-    quicknessCastTimeMs: 747,
+    quicknessCastTimeMs: 760,
   },
   [ID.ILLUSIONARY_COUNTER]: {
     implemented: true,
@@ -904,7 +872,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     cooldown: 6,
     phantasm: false,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Illusionary_Counter",
     effects: [],
     resource: null,
     defaultInterruptMs: 120,
@@ -924,7 +891,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Illusionary_Riposte",
     effects: [
       {
         type: "strike",
@@ -950,7 +916,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Warden",
     effects: [
       {
         type: "strike",
@@ -970,19 +935,20 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     weapon: "Torch",
     specialization: "",
     environment: "Terrestrial",
-    castTimeMs: 0,
+    castTimeMs: 60,
+    quicknessCastTimeMs: 40,
     rechargeAnchor: "castStart",
     cooldown: 20,
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/The_Prestige",
     effects: [
       {
         type: "strike",
         coefficient: 1,
         hits: 1,
         atMs: 3000,
+        timingAnchor: "castStart",
         name: "Damage",
         actorType: "player",
         weapon: "torch",
@@ -993,6 +959,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
         duration: 9,
         stacks: 1,
         atMs: 3000,
+        timingAnchor: "castStart",
       },
       {
         type: "condition",
@@ -1000,6 +967,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
         duration: 3,
         stacks: 2,
         atMs: 3000,
+        timingAnchor: "castStart",
         requiredTrait: TRAIT.THE_PLEDGE,
       },
     ],
@@ -1022,7 +990,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Diversion",
     effects: [],
   },
   [ID.ETHER_BOLT]: {
@@ -1035,7 +1002,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Ether_Bolt",
     nextChainId: ID.ETHER_BLAST,
     effects: [
       {
@@ -1069,7 +1035,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Ether_Blast",
     nextChainId: ID.ETHER_CLONE,
     effects: [
       {
@@ -1113,7 +1078,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Ether_Clone",
     nextChainId: null,
     effects: [
       {
@@ -1141,7 +1105,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Feedback",
     effects: [],
   },
   [ID.PHASE_RETREAT]: {
@@ -1159,7 +1122,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phase_Retreat",
     effects: [],
   },
   [ID.TIME_WARP]: {
@@ -1173,7 +1135,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Time_Warp",
     effects: [],
   },
   [ID.CHAOS_ARMOR]: {
@@ -1188,7 +1149,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Chaos_Armor",
     effects: [
       {
         type: "condition",
@@ -1212,7 +1172,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mirror_Blade",
     effects: [
       {
         type: "strike",
@@ -1272,7 +1231,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Blurred_Frenzy",
     effects: [
       {
         type: "strike",
@@ -1297,7 +1255,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Defender",
     effects: [
       {
         type: "strike",
@@ -1320,7 +1277,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     cooldown: 30,
     phantasm: false,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Signet_of_the_Ether",
     effects: [],
     resource: null,
     castTimeMs: 1380,
@@ -1338,7 +1294,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Signet_of_Humility",
     effects: [],
   },
   [ID.MIMIC]: {
@@ -1353,7 +1308,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mimic",
     effects: [],
   },
   [ID.TIDES_OF_TIME]: {
@@ -1367,7 +1321,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Tides_of_Time",
     effects: [
       {
         type: "strike",
@@ -1392,7 +1345,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Echo_of_Memory",
     effects: [
       {
         type: "strike",
@@ -1416,7 +1368,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mirror_Strikes",
     nextChainId: null,
     effects: [
       {
@@ -1451,7 +1402,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Axes_of_Symmetry",
     effects: [
       {
         type: "strike",
@@ -1471,7 +1421,7 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     castTimeMs: 1530,
-    quicknessCastTimeMs: 998,
+    quicknessCastTimeMs: 1000,
   },
   [ID.LACERATING_CHOP]: {
     implemented: true,
@@ -1483,7 +1433,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Lacerating_Chop",
     nextChainId: ID.ETHEREAL_CHOP,
     effects: [
       {
@@ -1516,7 +1465,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Ethereal_Chop",
     nextChainId: ID.MIRROR_STRIKES,
     effects: [
       {
@@ -1554,7 +1502,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       atMs: 160,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Lingering_Thoughts",
     effects: [
       {
         type: "strike",
@@ -1573,12 +1520,12 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       {
         type: "condition",
         condition: "Crippled",
-        duration: 11,
+        duration: 1,
         stacks: 3,
       },
     ],
-    castTimeMs: 1395,
-    quicknessCastTimeMs: 921,
+    castTimeMs: 1380,
+    quicknessCastTimeMs: 920,
   },
   [ID.FLYING_CUTTER]: {
     implemented: true,
@@ -1591,7 +1538,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Flying_Cutter",
     effects: [
       {
         type: "strike",
@@ -1606,7 +1552,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       hitsRequired: 3,
       duration: 5,
       skillId: ID.CUTTER_BURST,
-      wikiUrl: "https://wiki.guildwars2.com/wiki/Cutter_Burst",
       name: "Cutter Burst",
       actorType: "player",
       ticks: [
@@ -1640,7 +1585,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Blade_Leap",
     effects: [
       {
         type: "strike",
@@ -1663,7 +1607,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Unstable_Bladestorm",
     effects: [
       {
         type: "strike",
@@ -1704,7 +1647,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       atMs: 199,
     },
     blade: true,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Bladecall",
     effects: [
       {
         type: "strike",
@@ -1766,7 +1708,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Lingering_Thoughts",
     effects: [
       {
         type: "strike",
@@ -1796,7 +1737,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Axes_of_Symmetry",
     effects: [
       {
         type: "strike",
@@ -1834,7 +1774,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Friendly_Fire",
     effects: [
       {
         type: "strike",
@@ -1861,7 +1800,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Journey",
     effects: [
       {
         type: "strike",
@@ -1885,7 +1823,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Inspiring_Imagery",
     effects: [],
   },
   [ID.PHANTASMAL_SHARPSHOOTER]: {
@@ -1903,7 +1840,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Sharpshooter",
     effects: [
       {
         type: "strike",
@@ -1927,7 +1863,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Singularity_Shot",
     effects: [],
   },
   [ID.PHANTASMAL_LANCER]: {
@@ -1940,7 +1875,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     quicknessCastTimeMs: 520,
     cooldown: 12,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Phantasmal_Lancer",
     effects: [
       {
         type: "strike",
@@ -1991,7 +1925,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mental_Collapse",
     effects: [
       {
         type: "strike",
@@ -2015,7 +1948,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Psystrike",
     nextChainId: ID.MIND_PIERCE,
     effects: [
       {
@@ -2043,7 +1975,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
       count: 1,
     },
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_the_Gap",
     effects: [
       {
         type: "strike",
@@ -2067,7 +1998,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Mind_Pierce",
     nextChainId: null,
     effects: [
       {
@@ -2092,7 +2022,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Imaginary_Inversion",
     effects: [
       {
         type: "strike",
@@ -2114,7 +2043,6 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    wikiUrl: "https://wiki.guildwars2.com/wiki/Psycut",
     nextChainId: ID.PSYSTRIKE,
     effects: [
       {

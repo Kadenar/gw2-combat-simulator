@@ -25,7 +25,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Precognition",
     "effects": []
   },
   [ID.CONTINUUM_SPLIT]: {
@@ -46,7 +45,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Continuum_Split",
     "effects": []
   },
   [ID.WELL_OF_SENILITY]: {
@@ -60,7 +58,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Senility",
     "effects": [
       {
         "type": "strike",
@@ -84,7 +81,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Eternity",
     "effects": []
   },
   [ID.GRAVITY_WELL]: {
@@ -99,7 +95,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Gravity_Well",
     "effects": [
       {
         "type": "strike",
@@ -160,7 +155,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Calamity",
     "effects": [
       {
         "type": "strike",
@@ -199,7 +193,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Well_of_Action",
     "effects": [
       {
         "type": "strike",
@@ -229,7 +222,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Time_Sink",
     "effects": []
   },
   [ID.REWINDER]: {
@@ -250,7 +242,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Rewinder",
     "effects": []
   },
   [ID.SPLIT_SECOND]: {
@@ -271,7 +262,6 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<
     "phantasm": false,
     "resource": null,
     "blade": false,
-    "wikiUrl": "https://wiki.guildwars2.com/wiki/Split_Second",
     "effects": []
   }
 });

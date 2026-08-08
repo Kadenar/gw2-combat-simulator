@@ -340,6 +340,10 @@ export type MesmerTrackedHitDamage = MesmerDamageGroup & {
 export interface MesmerSkill extends Skill {
   readonly id: number;
   readonly ambush?: boolean;
+  readonly comboField?: string;
+  readonly duration?: number;
+  readonly finisherType?: string;
+  readonly finisherValue?: number;
   readonly phantasm?: boolean;
   readonly blade?: boolean;
   readonly pulseCount?: number;

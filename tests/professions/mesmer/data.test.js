@@ -213,6 +213,8 @@ test('measured phantasm endpoints match the supplied cast, damage, and spawn tab
     };
     const catalogCastTimeMs = {
         [ID.PHANTASMAL_DEFENDER]: 1155,
+        [ID.PHANTASMAL_MAGE]: 1140,
+        [ID.PHANTASMAL_WARLOCK]: 1260,
     };
 
     for (const [skillId, values] of Object.entries(expected)) {
@@ -263,7 +265,6 @@ test('Mesmer instant-cast skills have zero cast time', () => {
         'Decoy',
         'Mirror Images',
         'Signet of Midnight',
-        'The Prestige',
         'Diversion',
         'Feedback',
         'Phase Retreat',
@@ -295,6 +296,9 @@ test('Mesmer instant-cast skills have zero cast time', () => {
         assert.equal(skill.castTimeMs, 0, name);
         assert.equal(skill.quicknessCastTimeMs ?? 0, 0, name);
     }
+    const prestige = catalogSkill('The Prestige');
+    assert.equal(prestige.castTimeMs, 60);
+    assert.equal(prestige.quicknessCastTimeMs, 40);
 });
 
 test('Mesmer shatters share only the shatter-family lockout', () => {
@@ -400,7 +404,12 @@ test('Mirage ambush data uses current player and clone variants', () => {
         coefficient: 1,
         hits: 2,
         damageAtMs: 360,
-        conditions: [{ name: 'Torment', duration: 3.5, stacks: 6 }],
+        conditions: [{
+            name: 'Torment',
+            duration: 3.5,
+            stacks: 3,
+            applications: 2,
+        }],
     });
     assert.equal(AMBUSH_ATTACKS.Dagger.name, 'Phantom Razor');
     assert.equal(AMBUSH_ATTACKS.Dagger.player.coefficient, 3);
@@ -503,7 +512,7 @@ test('Lingering Thoughts models the supplied clone, packets, conditions, and fin
         [
             ['strike', 1.2, 3],
             ['condition', 'Torment', 3, 4],
-            ['condition', 'Crippled', 3, 11],
+            ['condition', 'Crippled', 3, 1],
         ],
     );
 });
@@ -652,7 +661,6 @@ test('latest supplied weapon, clone, ambush, and trait coefficients are preserve
         hitsRequired: 3,
         duration: 5,
         skillId: ID.CUTTER_BURST,
-        wikiUrl: 'https://wiki.guildwars2.com/wiki/Cutter_Burst',
         name: 'Cutter Burst',
         actorType: 'player',
         ticks: [
@@ -753,7 +761,6 @@ test('Mesmer supplemental identities, handler profiles, and trait coverage are e
         'weapon',
         'specialization',
         'environment',
-        'wikiUrl',
         'flipParent',
     ];
     assert.ok(
