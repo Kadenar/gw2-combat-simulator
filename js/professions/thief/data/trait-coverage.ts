@@ -66,14 +66,20 @@ const IMPLEMENTED = new Set([
 const reason =
   "This healing, barrier, ally-only, movement, incoming-hit, defensive, revival, or competitive-only effect does not change the deterministic single-target damage model.";
 
-const EVIDENCE_BY_SPECIALIZATION: Readonly<Record<string, string>> = Object.freeze({
-  Daredevil: "Daredevil capacity and every dodge replacement resolve explicitly",
-  Deadeye: "Deadeye Mark grants malice once per initiative skill use",
-  Specter: "Specter Siphon, initiative spending, and Shadow Shroud share force",
-  Antiquary: "Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic",
-});
+const EVIDENCE_BY_SPECIALIZATION: Readonly<Record<string, string>> =
+  Object.freeze({
+    Daredevil:
+      "Daredevil capacity and every dodge replacement resolve explicitly",
+    Deadeye: "Deadeye Mark grants malice once per initiative skill use",
+    Specter:
+      "Specter Siphon, initiative spending, and Shadow Shroud share force",
+    Antiquary:
+      "Antiquary artifacts, Reshuffle, Double Edge, and summons are deterministic",
+  });
 
-function implementedEvidence(trait: CatalogEntity & { specialization?: string }) {
+function implementedEvidence(
+  trait: CatalogEntity & { specialization?: string },
+) {
   const specializationTest =
     EVIDENCE_BY_SPECIALIZATION[trait.specialization || ""];
   return specializationTest
@@ -87,7 +93,7 @@ function implementedEvidence(trait: CatalogEntity & { specialization?: string })
       };
 }
 
-const manifest = thiefCatalog.traits.map(trait => {
+const manifest = thiefCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
     ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED
@@ -95,15 +101,16 @@ const manifest = thiefCatalog.traits.map(trait => {
   return {
     traitId: trait.id,
     status,
-    effects: [{
-      description: String(trait.description || "").trim()
-        || `Reviewed combat behavior for ${trait.name}.`,
-      status,
-      ...(implemented ? {} : { reason }),
-    }],
-    ...(implemented
-      ? { tests: [implementedEvidence(trait)] }
-      : { reason }),
+    effects: [
+      {
+        description:
+          String(trait.description || "").trim() ||
+          `Reviewed combat behavior for ${trait.name}.`,
+        status,
+        ...(implemented ? {} : { reason }),
+      },
+    ],
+    ...(implemented ? { tests: [implementedEvidence(trait)] } : { reason }),
   };
 });
 

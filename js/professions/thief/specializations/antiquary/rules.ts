@@ -16,6 +16,14 @@ import type {
 } from "../../../../platform/gw2/types.js";
 import type { ThiefPrecastContext } from "../../types.js";
 
+const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
+  ID.METAL_LEGION_GUITAR,
+  ID.MISTBURN_MORTAR,
+  ID.CHAK_SHIELD,
+  ID.SUMMON_KRYPTIS_TURRET_ID_77192,
+  ID.HOLO_DANCER_DECOY,
+]);
+
 function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): number {
   const event = context.event;
   if (event?.skillId === ID.METAL_LEGION_GUITAR) {
@@ -101,13 +109,7 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     when: context =>
       thiefPlayerEvent(context)
       && hasTrait(context, TRAIT.METICULOUS_CUSTODIAN)
-      && [
-        ID.METAL_LEGION_GUITAR,
-        ID.MISTBURN_MORTAR,
-        ID.CHAK_SHIELD,
-        ID.SUMMON_KRYPTIS_TURRET_ID_77192,
-        ID.HOLO_DANCER_DECOY,
-      ].includes(Number(context.event?.skillId)),
+      && METICULOUS_ARTIFACT_STRIKE_IDS.has(Number(context.event?.skillId)),
   },
   {
     id: "thief.meticulous-custodian-mortar-burning",

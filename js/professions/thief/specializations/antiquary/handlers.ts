@@ -54,9 +54,9 @@ export const antiquarySkillHandlers = Object.freeze({
   "thief.double-edge": skillHandler({
     mode: SKILL_HANDLER_MODES.AUGMENT,
     resolveMode: (context, skill) =>
-      skill.id === ID.STONE_SUMMIT_CANNON
-      || skill.id === ID.CANACH_COIN_TOSS_ID_77230
-      || peekDoubleEdgeOutcome(context, skill) === "backfire"
+      skill.id === ID.STONE_SUMMIT_CANNON ||
+      skill.id === ID.CANACH_COIN_TOSS_ID_77230 ||
+      peekDoubleEdgeOutcome(context, skill) === "backfire"
         ? SKILL_HANDLER_MODES.REPLACE
         : SKILL_HANDLER_MODES.AUGMENT,
     beforeEffects: resolveDoubleEdge,

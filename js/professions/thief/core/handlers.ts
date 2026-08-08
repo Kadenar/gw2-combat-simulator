@@ -20,6 +20,7 @@ import {
 } from "./conditions.js";
 import {
   activateAssassinsSignet,
+  expireThievesGuild,
   handleThievesGuildAttack,
   kneel,
   stand,
@@ -75,6 +76,7 @@ export const thiefCoreSkillHandlers = Object.freeze({
 
 export const thiefCoreTaskHandlers = Object.freeze({
   "thief.thieves-guild-attack": handleThievesGuildAttack,
+  "thief.thieves-guild-expire": expireThievesGuild,
   "thief.thousand-needles-pulse": handleThousandNeedlesPulse,
   "thief.caltrops-pulse": handleCaltropsPulse,
 });
