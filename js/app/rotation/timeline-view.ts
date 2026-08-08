@@ -26,7 +26,7 @@ import {
   WAIT_ICON,
   resolveProcIcon,
 } from "./icons.js";
-import { resolvePaletteDropItem } from "./palette-view.js";
+import { renderPalette, resolvePaletteDropItem } from "./palette-view.js";
 import { formatResultTimelineTime } from "./result-model.js";
 import {
   continuumEndTimelineMarkers,
@@ -220,10 +220,12 @@ export function renderTimeline(app: ProfessionAppState): void {
       rotationLength: 0,
       onSelect(index) {
         app.rotationInsertionIndex = index;
+        renderPalette(app);
         renderTimeline(app);
       },
       onClear() {
         app.rotationInsertionIndex = null;
+        renderPalette(app);
         renderTimeline(app);
       },
     });
@@ -601,10 +603,12 @@ export function renderTimeline(app: ProfessionAppState): void {
     rotationLength: app.build.rotation.length,
     onSelect(index) {
       app.rotationInsertionIndex = index;
+      renderPalette(app);
       renderTimeline(app);
     },
     onClear() {
       app.rotationInsertionIndex = null;
+      renderPalette(app);
       renderTimeline(app);
     },
   });

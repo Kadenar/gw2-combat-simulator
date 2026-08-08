@@ -348,21 +348,42 @@ export function createProfessionRuntime({
     return calculateDistribution(request, simulateBuild, options);
   }
 
-  function runSimulation(app: ProfessionAppState): Gw2SimulationResult {
+  function baselineSimulationConfig(app: ProfessionAppState): Gw2Config {
     const config = simulationConfig(app);
     // Detailed tables and timelines need one stable run. When distribution
     // mode is selected, keep that baseline deterministic and calculate RNG
     // percentiles separately.
-    const baselineConfig =
-      config.randomness?.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
-        ? {
-            ...config,
-            randomness: {
-              ...config.randomness,
-              mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC,
-            },
-          }
-        : config;
+    return config.randomness?.mode === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
+      ? {
+          ...config,
+          randomness: {
+            ...config.randomness,
+            mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC,
+          },
+        }
+      : config;
+  }
+
+  function rotationEndStateAt(
+    app: ProfessionAppState,
+    insertionIndex: number,
+  ): Gw2SimulationResult["endState"] {
+    const rotation = app.build.rotation;
+    const index = Math.max(
+      0,
+      Math.min(Math.floor(Number(insertionIndex) || 0), rotation.length),
+    );
+    if (index === rotation.length && app.results?.endState) {
+      return app.results.endState;
+    }
+    return simulateBuild(
+      rotation.slice(0, index),
+      baselineSimulationConfig(app),
+    ).endState;
+  }
+
+  function runSimulation(app: ProfessionAppState): Gw2SimulationResult {
+    const baselineConfig = baselineSimulationConfig(app);
     app.results = simulateBuild(app.build.rotation, baselineConfig);
     return app.results;
   }
@@ -378,6 +399,7 @@ export function createProfessionRuntime({
     computeModifierContributions,
     randomDistributionRequest,
     calculateRandomDistribution,
+    rotationEndStateAt,
     runSimulation,
   };
   return api;

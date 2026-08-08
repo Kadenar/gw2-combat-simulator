@@ -470,6 +470,10 @@ export interface ProfessionRuntimeApi {
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions,
   ): RandomDistributionSummary;
+  rotationEndStateAt(
+    app: ProfessionAppState,
+    insertionIndex: number,
+  ): Gw2SimulationResult["endState"];
   runSimulation(app: ProfessionAppState): Gw2SimulationResult;
 }
 
@@ -487,6 +491,7 @@ export interface Gw2AppAdapterOptions {
   readonly toApplicationBuild: (build: unknown) => ProfessionApplicationBuild;
   readonly eliteSpecialization: ProfessionRuntimeApi["eliteSpecialization"];
   readonly recalculate: ProfessionRuntimeApi["recalculate"];
+  readonly rotationEndStateAt: ProfessionRuntimeApi["rotationEndStateAt"];
   readonly runSimulation: ProfessionRuntimeApi["runSimulation"];
   readonly modifierContributionRequest: ProfessionRuntimeApi["modifierContributionRequest"];
   readonly calculateModifierContributions: ProfessionRuntimeApi["calculateModifierContributions"];

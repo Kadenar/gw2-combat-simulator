@@ -24,7 +24,8 @@ import {
 import { escapeHtml as esc, gw2ApiText } from "../../platform/ui/html.js";
 import {
   activeSpecialization,
-  professionEndState,
+  paletteEndState,
+  paletteProfessionState,
   seconds,
 } from "./context.js";
 import {
@@ -138,7 +139,7 @@ function currentCooldown(
   name: string,
 ): { readonly remaining: number; readonly readyAt: number } {
   return (
-    app.results?.endState?.cooldowns?.[name] || { remaining: 0, readyAt: 0 }
+    paletteEndState(app)?.cooldowns?.[name] || { remaining: 0, readyAt: 0 }
   );
 }
 
@@ -146,7 +147,8 @@ function currentAmmo(
   app: ProfessionAppState,
   name: string,
 ): SchedulerRecord | null {
-  const rawAmmo = app.results?.endState?.ammo?.[name];
+  const endState = paletteEndState(app);
+  const rawAmmo = endState?.ammo?.[name];
   if (!rawAmmo || typeof rawAmmo !== "object") return null;
   const ammo = rawAmmo as SchedulerRecord;
   if (ammo.remaining != null) return ammo;
@@ -160,7 +162,7 @@ function currentAmmo(
     ...ammo,
     nextChargeAt,
     remaining: nextChargeAt
-      ? Math.max(0, nextChargeAt - Number(app.results?.endState?.time || 0))
+      ? Math.max(0, nextChargeAt - Number(endState?.time || 0))
       : 0,
   };
 }
@@ -268,16 +270,16 @@ export function renderPalette(app: ProfessionAppState): void {
   const element = document.getElementById("rotation-palette");
   if (!element) return;
   const spec = activeSpecialization(app);
+  const endState = paletteEndState(app);
+  const professionState = paletteProfessionState(app);
   const paletteContext = {
     specialization: spec,
     catalog: app.profession.catalog,
-    professionState: professionEndState(app.results),
-    cooldowns: app.results?.endState?.cooldowns || {},
+    professionState,
+    cooldowns: endState?.cooldowns || {},
     activeWeaponSet:
-      app.results?.endState?.activeWeaponSet ||
-      app.build.startingWeaponSet ||
-      1,
-    time: Number(app.results?.endState?.time || 0) / 1000,
+      endState?.activeWeaponSet || app.build.startingWeaponSet || 1,
+    time: Number(endState?.time || 0) / 1000,
     build: app.build,
   };
   const professionGroups = rotationPaletteGroups(app, paletteContext);
@@ -343,8 +345,7 @@ export function renderPalette(app: ProfessionAppState): void {
     const dodgeIndex = actions.findIndex((skill) => skill.name === "Dodge");
     actions.splice(dodgeIndex < 0 ? 0 : dodgeIndex + 1, 0, dodgeAuto);
   }
-  const activeWeaponSet = app.results?.endState?.activeWeaponSet || 1;
-  const professionState = professionEndState(app.results);
+  const activeWeaponSet = endState?.activeWeaponSet || 1;
   const availableFlips =
     professionState.availableFlips &&
     typeof professionState.availableFlips === "object"
