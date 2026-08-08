@@ -3354,6 +3354,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     description:
       "Throw your axe from maximum range so its returning strike lands later.",
     icon: "https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png",
+    variantBadge: "MAX",
     type: "Weapon",
     weapon: "Axe",
     slot: "Weapon_4",

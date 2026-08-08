@@ -14,13 +14,13 @@ import {
 } from "./state.js";
 import { bindWarriorCoreUi } from "./ui.js";
 import type { WarriorSchedulerContext } from "../types.js";
-import { WARRIOR_SWAP_WEAPONS } from "./actions.js";
+import { WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from "./actions.js";
 
 export const warriorCoreModule = defineNativeModule({
   id: "Core",
   data: createWarriorModuleData("Core", {
     skillMechanics: WARRIOR_CORE_SKILL_MECHANICS,
-    extraSkills: [WARRIOR_SWAP_WEAPONS],
+    extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS],
     handlers: warriorCoreSkillHandlers,
   }),
   state: {

@@ -41,6 +41,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62930,
     {
       icon: "https://wiki.guildwars2.com/images/d/d0/Blooming_Fire.png",
+      recharge: 2,
       ammo: 2,
       ammoRecharge: 10,
     },
@@ -49,6 +50,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62732,
     {
       icon: "https://wiki.guildwars2.com/images/6/68/Artillery_Slash.png",
+      recharge: 2,
       ammo: 2,
       ammoRecharge: 15,
     },
@@ -57,6 +59,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62789,
     {
       icon: "https://wiki.guildwars2.com/images/6/6c/Cyclone_Trigger.png",
+      recharge: 1,
       ammo: 2,
       ammoRecharge: 20,
     },
@@ -65,6 +68,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62885,
     {
       icon: "https://wiki.guildwars2.com/images/7/76/Break_Step.png",
+      recharge: 1,
       ammo: 2,
       ammoRecharge: 20,
     },
@@ -87,8 +91,24 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
       icon: "https://wiki.guildwars2.com/images/e/eb/Dragon_Slash%E2%80%94Reach.png",
     },
   ],
-  [62926, { icon: "https://wiki.guildwars2.com/images/d/de/Flicker_Step.png" }],
-  [62893, { icon: "https://wiki.guildwars2.com/images/4/4e/Triggerguard.png" }],
+  [
+    62926,
+    {
+      icon: "https://wiki.guildwars2.com/images/d/de/Flicker_Step.png",
+      recharge: 0.5,
+      ammo: 3,
+      ammoRecharge: 20,
+    },
+  ],
+  [
+    62893,
+    {
+      icon: "https://wiki.guildwars2.com/images/4/4e/Triggerguard.png",
+      recharge: 1,
+      ammo: 2,
+      ammoRecharge: 30,
+    },
+  ],
 ]);
 const BOONS = new Set([
   "Aegis",
@@ -246,7 +266,7 @@ function normalizeRawSkill(raw, identity) {
       slot: dragonSlash ? "Weapon_1" : "Weapon_1",
       specialization: "Bladesworn",
       categories: dragonSlash ? ["Burst", "DragonSlash"] : [],
-      recharge: dragonSlash ? 1 : 0,
+      recharge: Number(overrides.recharge ?? (dragonSlash ? 1 : 0)),
       ammo: Number(overrides.ammo || 0),
       ammoRecharge: Number(overrides.ammoRecharge || 0),
       nextChainId: null,
@@ -383,9 +403,12 @@ function ownerOf(identity, raw) {
 function handlerId(identity, raw) {
   if ([30185, 30435].includes(identity.id)) return "warrior.berserk";
   if (identity.id === 44165) return "warrior.full-counter";
+  if (identity.id === 62697) return "warrior.gunstinger";
+  if (identity.id === 62800) return "warrior.dragons-roar";
   if (identity.id === 62745) return "warrior.gunsaber-enter";
   if (identity.id === 62861) return "warrior.gunsaber-exit";
   if (identity.id === 62803) return "warrior.dragon-trigger";
+  if (identity.id === 62732) return "warrior.artillery-slash";
   if (identity.name.startsWith("Dragon Slash")) return "warrior.dragon-slash";
   if ([76782, 77155, 77342].includes(identity.id)) return "warrior.chant";
   if (Number(raw.cost || 0) > 0 || fact(raw, "Adrenaline", "Number")) {
@@ -429,7 +452,62 @@ const activationById = new Map(
   ]),
 );
 
-const supplementalMechanics = new Map([
+const skillMechanicOverrides = new Map([
+  [
+    62697,
+    {
+      ammo: 0,
+      ammoRecharge: 0,
+      cooldown: 15,
+      recharge: 15,
+      effects: [
+        { type: "strike", coefficient: 0.9, hits: 1 },
+        {
+          type: "condition",
+          condition: "Vulnerability",
+          stacks: 5,
+          duration: 8,
+        },
+        { type: "boon", boon: "aegis", duration: 3, stacks: 1 },
+      ],
+    },
+  ],
+  [62800, { effects: [] }],
+  [
+    62960,
+    {
+      effects: [
+        {
+          type: "strike",
+          coefficient: 1.5,
+          hits: 1,
+          metadata: { damageKind: "explosion" },
+        },
+        {
+          type: "condition",
+          condition: "Crippled",
+          stacks: 1,
+          duration: 5,
+        },
+        {
+          type: "condition",
+          condition: "Bleeding",
+          stacks: 3,
+          duration: 6,
+        },
+      ],
+    },
+  ],
+  [
+    62967,
+    {
+      effects: [
+        { type: "boon", boon: "fury", duration: 8, stacks: 1 },
+        { type: "buff", kind: "positive-flow", duration: 8, stacks: 2 },
+      ],
+    },
+  ],
+  [68085, { effects: [] }],
   [
     62966,
     {
@@ -439,12 +517,14 @@ const supplementalMechanics = new Map([
           name: "Swift Cut — Blade",
           coefficient: 0.9,
           hits: 1,
+          metadata: { damageKind: "explosion" },
         },
         {
           type: "strike",
           name: "Swift Cut — Shot",
-          coefficient: 0.75,
+          coefficient: 0.75 * 0.34,
           hits: 1,
+          metadata: { damageKind: "explosion" },
         },
       ],
     },
@@ -458,12 +538,14 @@ const supplementalMechanics = new Map([
           name: "Steel Divide — Blade",
           coefficient: 1.1,
           hits: 1,
+          metadata: { damageKind: "explosion" },
         },
         {
           type: "strike",
           name: "Steel Divide — Shot",
-          coefficient: 0.75,
+          coefficient: 0.75 * 0.34,
           hits: 1,
+          metadata: { damageKind: "explosion" },
         },
       ],
     },
@@ -477,25 +559,100 @@ const supplementalMechanics = new Map([
           name: "Explosive Thrust — Blade",
           coefficient: 1.35,
           hits: 1,
+          metadata: { damageKind: "explosion" },
         },
         {
           type: "strike",
           name: "Explosive Thrust — Explosion",
-          coefficient: 1.2,
+          coefficient: 1.2 * 0.34,
           hits: 1,
+          metadata: { damageKind: "explosion" },
         },
       ],
     },
   ],
-  [62930, { effects: [{ type: "strike", coefficient: 4, hits: 5 }] }],
-  [62732, { effects: [{ type: "strike", coefficient: 3, hits: 1 }] }],
-  [62789, { effects: [{ type: "strike", coefficient: 2.5, hits: 1 }] }],
-  [62885, { effects: [{ type: "strike", coefficient: 1.5, hits: 1 }] }],
-  [62797, { effects: [], dragonSlashMaximumCoefficient: 20.4 }],
-  [62980, { effects: [], dragonSlashMaximumCoefficient: 17 }],
-  [62951, { effects: [], dragonSlashMaximumCoefficient: 17 }],
-  [62926, { effects: [] }],
-  [62893, { effects: [] }],
+  [
+    62930,
+    {
+      effects: [
+        {
+          type: "strike",
+          name: "Blooming Fire — Blade",
+          coefficient: 0.8,
+          hits: 1,
+          metadata: { damageKind: "explosion" },
+        },
+        {
+          type: "strike",
+          name: "Blooming Fire — Explosion",
+          coefficient: 1.2,
+          hits: 3,
+          metadata: { damageKind: "explosion" },
+        },
+      ],
+    },
+  ],
+  [62732, { effects: [] }],
+  [
+    62789,
+    {
+      effects: [
+        {
+          type: "strike",
+          coefficient: 2.5,
+          hits: 1,
+          metadata: { damageKind: "explosion" },
+        },
+        { type: "boon", boon: "aegis", duration: 3, stacks: 1 },
+      ],
+    },
+  ],
+  [
+    62885,
+    {
+      effects: [
+        {
+          type: "strike",
+          coefficient: 0.5,
+          hits: 1,
+          metadata: { damageKind: "explosion" },
+        },
+        { type: "boon", boon: "fury", duration: 5, stacks: 1 },
+      ],
+    },
+  ],
+  [
+    62797,
+    {
+      effects: [],
+      dragonSlashMinimumCoefficient: 1.16,
+      dragonSlashMaximumCoefficient: 20.4,
+    },
+  ],
+  [
+    62980,
+    {
+      effects: [],
+      dragonSlashMinimumCoefficient: 0.92,
+      dragonSlashMaximumCoefficient: 16.3,
+    },
+  ],
+  [
+    62951,
+    {
+      effects: [],
+      dragonSlashMinimumCoefficient: 0.56,
+      dragonSlashMaximumCoefficient: 10.21,
+    },
+  ],
+  [62926, { effects: [], dragonTriggerSkill: true, shadowstepSkill: true }],
+  [
+    62893,
+    {
+      effects: [{ type: "boon", boon: "aegis", duration: 2, stacks: 1 }],
+      dragonTriggerSkill: true,
+    },
+  ],
 ]);
 
 const declarations = {
@@ -527,7 +684,8 @@ for (const identity of identities) {
   const mechanics = {
     implemented: true,
     castTimeMs,
-    effects: supplementalMechanics.get(identity.id)?.effects || effectsFor(raw),
+    effects:
+      skillMechanicOverrides.get(identity.id)?.effects || effectsFor(raw),
     ...(castTimeMs > 0
       ? { quicknessCastTimeMs: Math.round(castTimeMs / 1.5) }
       : {}),
@@ -544,7 +702,7 @@ for (const identity of identities) {
       ? { gunsaberSkill: true, skillWeapon: "Gunsaber" }
       : {}),
     ...(identity.name.startsWith("Dragon Slash") ? { dragonSlash: true } : {}),
-    ...(supplementalMechanics.get(identity.id) || {}),
+    ...(skillMechanicOverrides.get(identity.id) || {}),
     ...(handler ? { handlerId: handler } : {}),
   };
   declarations[ownerOf(identity, raw)].push({
@@ -621,7 +779,10 @@ const idsSource = [
   "// Generated by scripts/data/generate-warrior-data.mjs.",
   "// Committed constants keep mechanic references independent from metadata loading.",
   "",
-  declaration("WARRIOR_SKILL_IDS", entries, ["SWAP_WEAPONS: -3,"]),
+  declaration("WARRIOR_SKILL_IDS", entries, [
+    "DODGE: -5,",
+    "SWAP_WEAPONS: -3,",
+  ]),
   "",
   declaration("WARRIOR_TRAIT_IDS", traits),
   "",

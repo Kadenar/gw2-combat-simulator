@@ -6,6 +6,64 @@ import type {
   WarriorSkill,
 } from "../types.js";
 
+const WARRIOR_ENDURANCE_PER_SECOND = 5;
+const WARRIOR_VIGOR_REGENERATION_BONUS = 0.5;
+
+function warriorEnduranceRegenerationRate(
+  context: WarriorSchedulerContext,
+  at: number,
+): number {
+  const vigor = Boolean(
+    context.config.boons?.vigor || context.hasBuff?.("vigor", at),
+  );
+  return (
+    WARRIOR_ENDURANCE_PER_SECOND *
+    (1 + (vigor ? WARRIOR_VIGOR_REGENERATION_BONUS : 0))
+  );
+}
+
+export function advanceWarriorResources(
+  context: WarriorSchedulerContext,
+  target: number,
+): void {
+  const state = professionCoreState(context);
+  const from = Number(state.enduranceUpdatedAt || 0);
+  if (target <= from) return;
+  state.endurance = Math.min(
+    state.maximumEndurance,
+    state.endurance +
+      (target - from) *
+        warriorEnduranceRegenerationRate(context, (from + target) / 2),
+  );
+  state.enduranceUpdatedAt = target;
+}
+
+export function warriorEnduranceReadyAt(
+  context: WarriorCastContext,
+  cost: number,
+): number | null {
+  const missing = Math.max(
+    0,
+    Number(cost || 0) - professionCoreState(context).endurance,
+  );
+  if (missing <= context.epsilon) return context.start;
+  const rate = warriorEnduranceRegenerationRate(context, context.start);
+  return rate > 0 ? context.start + missing / rate : null;
+}
+
+export function gainWarriorEndurance(
+  context: WarriorSchedulerContext,
+  amount: number,
+  at = context.state.time,
+): void {
+  const state = professionCoreState(context);
+  state.endurance = Math.min(
+    state.maximumEndurance,
+    state.endurance + Math.max(0, Number(amount || 0)),
+  );
+  state.enduranceUpdatedAt = Math.max(state.enduranceUpdatedAt, at);
+}
+
 export function syncWarriorAdrenaline(context: WarriorSchedulerContext): void {
   const state = professionCoreState(context);
   state.adrenaline = Math.max(
@@ -19,6 +77,17 @@ export function gainWarriorAdrenaline(
   context: WarriorSchedulerContext,
   amount: number,
 ): void {
+  if (
+    context.config.specialization === "Bladesworn" &&
+    context.state.profession.specialization.kind === "Bladesworn"
+  ) {
+    const state = context.state.profession.specialization.state;
+    state.flow = Math.min(
+      state.maximumFlow,
+      state.flow + Math.max(0, Number(amount || 0)),
+    );
+    return;
+  }
   const state = professionCoreState(context);
   state.adrenaline += Math.max(0, Number(amount || 0));
   syncWarriorAdrenaline(context);

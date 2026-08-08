@@ -228,6 +228,7 @@ export type SkillEffect =
 export interface Skill extends CatalogSkill {
   readonly description?: string;
   readonly icon?: string;
+  readonly variantBadge?: string;
   readonly type?: string;
   readonly slot?: string | number;
   readonly weapon?: string;

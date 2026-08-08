@@ -1,9 +1,5 @@
-import type {
-  SchedulerRecord,
-} from "../engine/types.js";
-import type {
-  ProfessionAppContract,
-} from "../../app/profession/types.js";
+import type { SchedulerRecord } from "../engine/types.js";
+import type { ProfessionAppContract } from "../../app/profession/types.js";
 import type {
   AmmoView,
   NormalizedPaletteGroup,
@@ -30,12 +26,12 @@ export function paletteView(
   }
   // Copy and normalize the profession boundary so renderers never mutate
   // catalog-owned group definitions.
-  return groups.map(group => ({
+  return groups.map((group) => ({
     id: String(group.id),
     label: String(group.label || group.id),
     skillIds: [...(group.skillIds || [])],
     reservedSkillIds: [...(group.reservedSkillIds || [])],
-    skillEntries: (group.skillEntries || []).map(entry => ({ ...entry })),
+    skillEntries: (group.skillEntries || []).map((entry) => ({ ...entry })),
     color: String(group.color || ""),
     className: String(group.className || ""),
     stackId: String(group.stackId || ""),
@@ -44,9 +40,7 @@ export function paletteView(
   }));
 }
 
-function ammoView(
-  ammo: AmmoView | null | undefined,
-): {
+function ammoView(ammo: AmmoView | null | undefined): {
   readonly current: number;
   readonly maximum: number;
   readonly pips: readonly boolean[];
@@ -55,9 +49,9 @@ function ammoView(
   const maximum = Math.max(0, Number(ammo.maximum || 0));
   const current = Math.max(0, Math.min(maximum, Number(ammo.current || 0)));
   const pips = Array.isArray(ammo.pips)
-    // A caller may provide nonstandard pip availability; otherwise derive the
-    // usual left-to-right filled state from current charges.
-    ? ammo.pips
+    ? // A caller may provide nonstandard pip availability; otherwise derive the
+      // usual left-to-right filled state from current charges.
+      ammo.pips
     : Array.from({ length: maximum }, (_, index) => index < current);
   return { current, maximum, pips };
 }
@@ -78,12 +72,17 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
     view.highlighted ? "pal-ambush-active" : "",
     ammo ? "pal-has-ammo" : "",
     ammo && ammo.current > 0 ? "pal-ammo-available" : "",
-  ].filter(Boolean).join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
   const ammoIndicator = ammo
     ? `<span class="pal-charges">${ammo.current}/${ammo.maximum}</span>
-      <span class="pal-ammo-pips" aria-hidden="true">${ammo.pips.map(filled =>
-        `<span class="pal-ammo-pip${filled ? " filled" : ""}"></span>`
-      ).join("")}</span>`
+      <span class="pal-ammo-pips" aria-hidden="true">${ammo.pips
+        .map(
+          (filled) =>
+            `<span class="pal-ammo-pip${filled ? " filled" : ""}"></span>`,
+        )
+        .join("")}</span>`
     : "";
   const ariaLabel = ammo
     ? `${view.name || ""}: ${ammo.current}/${ammo.maximum} charges`
@@ -95,14 +94,13 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
     style="--att-border:${escapeHtml(view.color || "#a88be8")}">
     <img src="${escapeHtml(view.icon || PALETTE_PLACEHOLDER_ICON)}" alt=""
       data-fallback-icon="${escapeHtml(PALETTE_PLACEHOLDER_ICON)}" />
+    ${view.variantBadge ? `<span class="skill-variant-badge pal-variant-badge">${escapeHtml(view.variantBadge)}</span>` : ""}
     ${view.cooldownLabel ? `<span class="pal-cd">${escapeHtml(view.cooldownLabel)}</span>` : ""}
     ${ammoIndicator}
   </div>`;
 }
 
-export function virtualPaletteSkillHtml(
-  view: PaletteSkillView = {},
-): string {
+export function virtualPaletteSkillHtml(view: PaletteSkillView = {}): string {
   // Virtual actions get neutral defaults while retaining full caller override.
   return paletteSkillHtml({
     color: "#8d7a57",
@@ -117,9 +115,13 @@ export function paletteGroupHtml(view: PaletteGroupView = {}): string {
   if (!skills.length) return "";
   return `<div class="pal-group${view.className ? ` ${escapeHtml(view.className)}` : ""}">
     <div class="pal-label" style="color:${escapeHtml(view.color || "#a88be8")}">${escapeHtml(view.label)}</div>
-    <div class="pal-row">${skills.map(skill =>
-      skill?.virtual ? virtualPaletteSkillHtml(skill) : paletteSkillHtml(skill)
-    ).join("")}</div>
+    <div class="pal-row">${skills
+      .map((skill) =>
+        skill?.virtual
+          ? virtualPaletteSkillHtml(skill)
+          : paletteSkillHtml(skill),
+      )
+      .join("")}</div>
   </div>`;
 }
 
@@ -146,24 +148,16 @@ export function bindPaletteInteractions(
       image.onerror = useFallback;
       if (image.complete && image.naturalWidth === 0) useFallback();
     }
-    icon.onclick = event => {
+    icon.onclick = (event) => {
       if (icon.classList.contains("pal-context-disabled")) return;
-      handlers.onActivate?.(
-        name,
-        event as unknown as PaletteMouseEvent,
-      );
+      handlers.onActivate?.(name, event as unknown as PaletteMouseEvent);
     };
-    icon.ondragstart = event => {
+    icon.ondragstart = (event) => {
       if (!draggable) {
         event.preventDefault();
         return;
       }
-      if (
-        handlers.onDragStart?.(
-          name,
-          event as PaletteDragEvent,
-        ) === false
-      ) {
+      if (handlers.onDragStart?.(name, event as PaletteDragEvent) === false) {
         event.preventDefault();
         return;
       }
@@ -171,12 +165,9 @@ export function bindPaletteInteractions(
       event.dataTransfer?.setData("text/plain", name);
       if (event.dataTransfer) event.dataTransfer.effectAllowed = "copy";
     };
-    icon.ondragend = event => {
+    icon.ondragend = (event) => {
       icon.classList.remove("dragging");
-      handlers.onDragEnd?.(
-        name,
-        event as PaletteDragEvent,
-      );
+      handlers.onDragEnd?.(name, event as PaletteDragEvent);
     };
   }
 }

@@ -16,6 +16,7 @@ export interface PaletteSkillView extends SchedulerRecord {
   readonly skillId?: SkillId | null;
   readonly title?: string;
   readonly icon?: string;
+  readonly variantBadge?: string;
   readonly color?: string;
   readonly disabled?: boolean;
   readonly contextDisabled?: boolean;

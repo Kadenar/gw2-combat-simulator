@@ -1,5 +1,30 @@
 import type { Skill } from "../../../platform/engine/types.js";
 
+export const WARRIOR_DODGE: Skill = Object.freeze({
+  id: -5,
+  name: "Dodge",
+  description: "Perform a dodge roll.",
+  icon: "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
+  type: "Action",
+  weapon: "",
+  slot: "Action",
+  specialization: "",
+  categories: [],
+  recharge: 0,
+  cooldown: 0,
+  ammo: 0,
+  ammoRecharge: 0,
+  nextChainId: null,
+  flipSkillId: null,
+  castTimeMs: 800,
+  quicknessCastTimeMs: 800,
+  rechargeAnchor: "castStart",
+  implemented: true,
+  simulatorExcluded: false,
+  handlerId: "warrior.dodge",
+  effects: [],
+});
+
 export const WARRIOR_SWAP_WEAPONS: Skill = Object.freeze({
   id: -3,
   name: "Swap Weapons",

@@ -5,10 +5,21 @@ import {
 } from "../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import { targetHasCondition } from "../../../platform/gw2/target-state.js";
-import { WARRIOR_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import {
+  WARRIOR_SKILL_IDS as ID,
+  WARRIOR_TRAIT_IDS as TRAIT,
+} from "../data/ids.js";
 import { warriorCastAvailability } from "./availability.js";
-import { observeWarriorEvent, updateWarriorCastState } from "./handlers.js";
-import { handleWarriorAdrenalineTask } from "./resources.js";
+import {
+  advanceWarriorTraits,
+  completeWarriorSkill,
+  observeWarriorEvent,
+  updateWarriorCastState,
+} from "./handlers.js";
+import {
+  advanceWarriorResources,
+  handleWarriorAdrenalineTask,
+} from "./resources.js";
 import type {
   SchedulerRecord,
   SkillId,
@@ -68,7 +79,64 @@ function targetControlled(context: Gw2ModifierContext): boolean {
 }
 
 function boonActive(context: Gw2ModifierContext, boon: string): boolean {
-  return Boolean(context.config?.boons?.[boon]);
+  if (context.config?.boons?.[boon]) return true;
+  return (context.runtime?.boons?.get(boon) || []).some(
+    (application) =>
+      application.affectsSelf !== false &&
+      application.at <= context.time &&
+      application.expiresAt > context.time,
+  );
+}
+
+function activeBuffStacks(
+  context: Gw2ModifierContext,
+  kind: string,
+  maximum: number,
+): number {
+  const stacks = (context.runtime?.boons?.get(kind) || [])
+    .filter(
+      (application) =>
+        application.affectsSelf !== false &&
+        application.at <= context.time &&
+        application.expiresAt > context.time,
+    )
+    .reduce((total, application) => total + application.stacks, 0);
+  return Math.min(maximum, stacks);
+}
+
+const WARRIOR_BOONS = Object.freeze([
+  "aegis",
+  "alacrity",
+  "fury",
+  "might",
+  "protection",
+  "quickness",
+  "regeneration",
+  "resistance",
+  "resolution",
+  "stability",
+  "swiftness",
+  "vigor",
+]);
+
+function activeBoonCount(context: Gw2ModifierContext): number {
+  return WARRIOR_BOONS.filter((boon) => boonActive(context, boon)).length;
+}
+
+function wieldingGreatsword(context: Gw2ModifierContext): boolean {
+  if (eventSkill(context)?.weapon === "Greatsword") return true;
+  const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
+  const primary = String(
+    weaponSet === 1
+      ? context.config?.primaryWeapon || ""
+      : context.config?.weaponSet2Primary || "",
+  );
+  const secondary = String(
+    weaponSet === 1
+      ? context.config?.secondaryWeapon || ""
+      : context.config?.weaponSet2Secondary || "",
+  );
+  return primary === "Greatsword" || secondary === "Greatsword";
 }
 
 function modifyWarriorAttributes(
@@ -80,14 +148,19 @@ function modifyWarriorAttributes(
     precision: number;
     ferocity: number;
     conditionDamage: number;
+    vitality: number;
+    healingPower: number;
+    concentration: number;
   };
   const state = coreState(context);
-  const burstPower = (state.burstPowerExpiries || []).filter(
-    (expiresAt: number) => expiresAt > context.time,
-  ).length;
   const signetStacks = (state.signetMasteryExpiries || []).filter(
     (expiresAt: number) => expiresAt > context.time,
   ).length;
+  result.power = Number(result.power || 0);
+  result.ferocity = Number(result.ferocity || 0);
+  result.vitality = Number(result.vitality || 0);
+  result.healingPower = Number(result.healingPower || 0);
+  result.concentration = Number(result.concentration || 0);
   if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
     result.power +=
       Number(
@@ -98,15 +171,38 @@ function modifyWarriorAttributes(
         ) || 0,
       ) * 10;
   }
+  if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD)) {
+    result.power += wieldingGreatsword(context) ? 240 : 120;
+  }
+  if (hasTrait(context, TRAIT.ROARING_REVEILLE)) {
+    result.concentration += 120;
+  }
   if (hasTrait(context, TRAIT.SIGNET_MASTERY))
     result.ferocity += signetStacks * 50;
-  if (hasTrait(context, TRAIT.BERSERKERS_POWER) && burstPower > 0) {
-    result.power += burstPower * 35;
+  if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
+    result.vitality += result.power * 0.1;
+    result.ferocity += result.power * 0.1;
+  }
+  if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS)) {
+    result.healingPower += result.power * 0.13;
   }
   return result;
 }
 
 const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: "warrior.throw-axe-health-threshold",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: (context) =>
+      targetHealthFraction(context) <= 0.25
+        ? 2
+        : targetHealthFraction(context) <= 0.5
+          ? 1.5
+          : 1,
+    order: 100,
+    when: (context) => eventSkill(context)?.id === ID.THROW_AXE,
+  },
   {
     id: "warrior.pinnacle-critical-chance",
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
@@ -116,19 +212,32 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   },
   {
     id: "warrior.berserkers-power",
-    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
     amount: (context) =>
-      (coreState(context).burstPowerExpiries || []).filter(
-        (expiresAt: number) => expiresAt > context.time,
-      ).length * 0.07,
+      activeBuffStacks(context, "berserkers-power", 4) * 0.0375,
     when: (context) => hasTrait(context, TRAIT.BERSERKERS_POWER),
+  },
+  {
+    id: "warrior.peak-performance",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: (context) =>
+      0.05 + (activeBuffStacks(context, "peak-performance", 1) ? 0.1 : 0),
+    when: (context) => hasTrait(context, TRAIT.PEAK_PERFORMANCE),
+  },
+  {
+    id: "warrior.empowered",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "damage-additive",
+    amount: (context) => activeBoonCount(context) * 0.01,
+    when: (context) => hasTrait(context, TRAIT.EMPOWERED),
   },
   {
     id: "warrior.leg-specialist",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: 1.1,
+    factor: 1.05,
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.LEG_SPECIALIST) &&
@@ -145,7 +254,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "warrior.warriors-cunning",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: 1.1,
+    factor: 1.25,
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.WARRIORS_CUNNING) &&
@@ -266,6 +375,14 @@ export const warriorCoreCastRules = Object.freeze({
 });
 
 export const warriorCoreSchedulerHooks = Object.freeze({
+  advance: {
+    id: "warrior.core-resources-and-traits",
+    order: 10,
+    handler: (context: WarriorSchedulerContext, target: number) => {
+      advanceWarriorResources(context, target);
+      advanceWarriorTraits(context, target);
+    },
+  },
   afterCast: {
     id: "warrior.weapon-state",
     order: 10,
@@ -275,6 +392,11 @@ export const warriorCoreSchedulerHooks = Object.freeze({
     id: "warrior.adrenaline",
     order: 10,
     handler: observeWarriorEvent,
+  },
+  onCastComplete: {
+    id: "warrior.core-skill-completion",
+    order: 10,
+    handler: completeWarriorSkill,
   },
   taskHandlers: Object.freeze({
     "warrior.adrenaline-hit": handleWarriorAdrenalineTask,

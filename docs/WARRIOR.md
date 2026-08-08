@@ -12,22 +12,28 @@ weapon state, shared traits, and profession actions live under `core/`.
 ## Implemented systems
 
 - Core adrenaline generation on player strike packets, a 30-point cap, burst
-  availability and spending, three-level burst traits, weapon swapping, and
-  current Warrior weapon families.
+  availability and spending, three-level burst traits, weapon swapping,
+  endurance and Dodge, and current Warrior weapon families.
 - Berserker's Berserk entry cost and duration, Primal Burst gating, Rage-skill
   duration extensions, and specialization damage, cast-speed, and attribute
   traits.
 - Spellbreaker's 20-point adrenaline cap, Full Counter, control tracking,
   Attacker's Insight, Pure Strike, and Sun and Moon Style.
 - Bladesworn's replacement of adrenaline with flow, gunsaber entry and exit,
-  gunsaber skill gating,
-  Dragon Trigger charge conversion, scaling Dragon Slash packets, and its
-  modeled damage traits. Normal weapon swapping is disabled for Bladesworn.
+  gunsaber skill gating, gunsaber and pistol ammo, armament reloads and buffs,
+  Dragon Trigger utilities, charge conversion, scaling Dragon Slash packets,
+  ammunition traits, gunsaber-swap traits, and Dragon Slash grandmasters.
+  Normal weapon swapping is disabled for Bladesworn.
+- Strength and Tactics support includes outgoing attribute and damage
+  modifiers, Soldier's Focus, party boon applications, ammo and physical-skill
+  procs, movement-skill adrenaline, control reactions, and burst/dodge
+  endurance interactions. Traits explicitly supplied as unimplemented remain
+  excluded.
 - Paragon's 10-point adrenaline cap, chants, motivation, active refrains,
   periodic motivation drain, and modeled refrain traits.
-- A validated disposition for all 108 traits. Defensive, ally-only, movement,
-  and other behavior outside the deterministic outgoing-damage model is marked
-  out of model rather than silently treated as implemented.
+- A validated disposition for all 108 traits. Remaining incoming-damage,
+  healing, and other behavior outside the deterministic model is marked out of
+  model rather than silently treated as implemented.
 
 ## Dragon Trigger rotations
 
@@ -48,9 +54,40 @@ Daring Dragon's five-charge maximum.
 ["Dragon Trigger", { name: "Dragon Slash—Force", releaseAtCharges: 3 }];
 ```
 
-Charging consumes 10 Flow every 500 ms. If the remaining Flow cannot reach the
-requested count, the slash is rejected with a resource warning instead of
-waiting indefinitely.
+Flow increases by 2 per second in combat. Flow Stabilizer adds two Positive
+Flow stacks, increasing that rate by another 4 per second for 8 seconds.
+Adrenaline gains convert to Flow, while ordinary attack hits do not generate
+it.
+
+Dragon Trigger consumes 5 Flow every 250 ms and continues gaining passive Flow
+during the channel. A normal channel gains one charge per interval for up to 10
+charges in 2.5 seconds. Tactical Reload makes the next channel gain two charges
+per interval without increasing its Flow cost. If the requested count cannot
+be reached by the end of the channel, the slash is rejected with a resource
+warning instead of waiting indefinitely.
+
+Daring Dragon caps the channel at 5 charges and consumes 10 Flow per interval.
+Its five-charge interpolation still reaches the listed maximum Dragon Slash
+coefficient and grants 10 seconds of Alacrity to the party.
+
+Dragon Slash coefficients interpolate from their one-charge minimum to their
+maximum at the active charge cap. Gunsaber attacks are tagged as explosions;
+Overcharged Cartridges therefore increases their strike damage and applies
+Burning while its 8-second buff is active.
+
+## Power Bladesworn preset
+
+The Bladesworn preset uses the requested Axe/Pistol, Berserker gear with
+Assassin leggings, Infiltration runes, Force/Accuracy sigils, Peitha, Plate of
+Truffle Steak, Furious Sharpening Stone, 17 Power infusions, and 1 Precision
+infusion. It selects Strength `3-3-1`, Tactics `1-1-1`, and Bladesworn `1-2-2`.
+
+The supplied EVTC records 3,972,566 damage over 95.644 seconds (41,534.92 DPS).
+Its non-gunsaber weapon windows contain Sword autoattacks, despite the requested
+Axe/Pistol build. The saved preset therefore preserves the EVTC gunsaber order
+and measured Quickness activation durations while replacing those Sword
+windows with the requested Axe skills. It is an executable Axe/Pistol
+reconstruction, not an exact replay of the mismatched weapon packets.
 
 ## Data
 

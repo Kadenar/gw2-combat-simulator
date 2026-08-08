@@ -136,7 +136,7 @@ export function warriorPaletteGroups(
     {
       id: "warrior-actions",
       label: "Act",
-      skillIds: [ID.SWAP_WEAPONS],
+      skillIds: [ID.DODGE, ID.SWAP_WEAPONS],
       color: "#e0ad70",
     },
   ];
@@ -159,8 +159,22 @@ export function warriorSkillBarGroups(
 }
 
 function resourceViews(context: WarriorUiContext): ProfessionResourceView[] {
-  if (warriorUiSpecialization(context) === "Bladesworn") return [];
   const state = warriorUiState(context);
+  const endurance: ProfessionResourceView = {
+    id: "endurance",
+    singular: "endurance",
+    plural: "endurance",
+    maximum: Number(state.maximumEndurance || 100),
+    value: Number(state.endurance ?? 100),
+    startMaximum: 100,
+    startValue: 100,
+    canStart: false,
+    step: 1,
+    displayMode: "bar",
+    shortLabel: "End",
+    statusLabel: "Current",
+  };
+  if (warriorUiSpecialization(context) === "Bladesworn") return [endurance];
   return [
     {
       id: "adrenaline",
@@ -181,6 +195,7 @@ function resourceViews(context: WarriorUiContext): ProfessionResourceView[] {
       shortLabel: "Adr",
       statusLabel: "Current",
     },
+    endurance,
   ];
 }
 
@@ -210,15 +225,29 @@ function availability(
   if (skill.gunsaberSkill) {
     if (specialization !== "Bladesworn")
       return { available: false, message: "Requires Bladesworn" };
-    if (skill.dragonSlash && !state.dragonTriggerActive) {
+    if (
+      (skill.dragonSlash || skill.dragonTriggerSkill) &&
+      !state.dragonTriggerActive
+    ) {
       return { available: false, message: "Enter Dragon Trigger first" };
     }
-    if (!skill.dragonSlash && !state.gunsaberActive)
+    if (
+      !skill.dragonSlash &&
+      !skill.dragonTriggerSkill &&
+      !state.gunsaberActive
+    )
       return { available: false, message: "Unsheathe the gunsaber first" };
+    if (
+      state.dragonTriggerActive &&
+      !skill.dragonSlash &&
+      !skill.dragonTriggerSkill
+    ) {
+      return { available: false, message: "Finish Dragon Trigger first" };
+    }
   }
   if (
     specialization === "Bladesworn" &&
-    state.gunsaberActive &&
+    (state.gunsaberActive || state.dragonTriggerActive) &&
     skill.type === "Weapon" &&
     Boolean(skill.weapon)
   ) {

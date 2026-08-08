@@ -7,6 +7,8 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.EVISCERATE]: {
     implemented: true,
+    cooldown: 8,
+    recharge: 8,
     castTimeMs: 0,
     effects: [
       {
@@ -592,6 +594,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.THROW_AXE]: {
     implemented: true,
+    ammo: 2,
+    ammoRecharge: 10,
+    cooldown: 10,
+    recharge: 1,
     castTimeMs: 250,
     effects: [
       {
@@ -610,12 +616,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.WHIRLING_AXE]: {
     implemented: true,
+    cooldown: 15,
+    recharge: 15,
     castTimeMs: 3500,
     effects: [
       {
         type: "strike",
         coefficient: 8.388,
         hits: 15,
+        metadata: { finisherType: "whirl" },
       },
     ],
     quicknessCastTimeMs: 2333,
@@ -640,9 +649,9 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.MENDING]: {
     implemented: true,
-    castTimeMs: 1000,
+    castTimeMs: 1380,
     effects: [],
-    quicknessCastTimeMs: 667,
+    quicknessCastTimeMs: 920,
   },
   [ID.TO_THE_LIMIT]: {
     implemented: true,
@@ -875,6 +884,8 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.DUAL_STRIKE]: {
     implemented: true,
+    cooldown: 12,
+    recharge: 12,
     castTimeMs: 500,
     effects: [
       {
@@ -886,7 +897,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         type: "boon",
         boon: "quickness",
         duration: 2,
-        stacks: 2,
+        stacks: 1,
       },
     ],
     quicknessCastTimeMs: 333,
@@ -923,12 +934,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.CYCLONE_AXE]: {
     implemented: true,
+    cooldown: 6,
+    recharge: 6,
     castTimeMs: 500,
     effects: [
       {
         type: "strike",
         coefficient: 1.76,
         hits: 2,
+        metadata: { finisherType: "whirl" },
       },
       {
         type: "boon",
@@ -947,6 +961,8 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.EVISCERATE_ID_14422]: {
     implemented: true,
+    cooldown: 8,
+    recharge: 8,
     castTimeMs: 0,
     effects: [
       {
@@ -965,6 +981,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
+    handlerId: "warrior.resource",
   },
   [ID.SKULL_CRACK_ID_14425]: {
     implemented: true,
@@ -1799,6 +1816,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.GUNSTINGER]: {
     implemented: true,
+    ammo: 0,
+    ammoRecharge: 0,
+    cooldown: 15,
+    recharge: 15,
     castTimeMs: 500,
     effects: [
       {
@@ -1820,19 +1841,18 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 333,
+    handlerId: "warrior.gunstinger",
   },
   [ID.DRAGONS_ROAR]: {
     implemented: true,
-    castTimeMs: 500,
-    effects: [
-      {
-        type: "strike",
-        coefficient: 0.75,
-        hits: 1,
-        name: "Dragon's Roar — Damage per Bullet",
-      },
-    ],
-    quicknessCastTimeMs: 333,
+    ammo: 6,
+    ammoRecharge: 5,
+    cooldown: 5,
+    recharge: 1,
+    castTimeMs: 840,
+    effects: [],
+    quicknessCastTimeMs: 560,
+    handlerId: "warrior.dragons-roar",
   },
   [ID.BREACHING_STRIKE_ID_69433]: {
     implemented: true,
