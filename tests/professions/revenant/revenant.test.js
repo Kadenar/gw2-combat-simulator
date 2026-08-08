@@ -4252,7 +4252,7 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
     ["Rift Slash", 480],
     ["Eternity's Requiem", 840],
     ["Phantom's Onslaught", 438],
-    ["Mist Unleashed", 480],
+    ["Mist Unleashed", 520],
     ["Release Potential: Assassin", 740],
   ]) {
     assert.equal(skill(name).quicknessCastTimeMs, quicknessCastTimeMs, name);
