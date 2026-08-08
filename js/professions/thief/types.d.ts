@@ -229,11 +229,37 @@ export interface ThiefRuntimeState {
     | { kind: "Antiquary"; state: AntiquaryState };
 }
 
-export interface ThiefSummonAttack extends SchedulerRecord {
-  readonly coefficient?: number;
-  readonly duration?: number;
+export interface ThiefSummonCondition extends SchedulerRecord {
+  readonly condition: string;
+  readonly duration: number;
+  readonly stacks: number;
+}
+
+export interface ThiefSummonStrike extends SchedulerRecord {
+  readonly name: string;
+  readonly coefficientPerHit: number;
   readonly hits?: number;
+  readonly initialDelay: number;
   readonly interval?: number;
+  readonly skillId?: SkillId;
+  readonly conditions?: readonly ThiefSummonCondition[];
+}
+
+export interface ThiefSummonDefinition extends SchedulerRecord {
+  readonly name: string;
+  readonly variant?: string;
+  readonly weapon: string;
+  readonly weaponStrengthProfileId: string;
+  readonly attacks?: readonly ThiefSummonStrike[];
+}
+
+export interface ThiefSummonAttack extends SchedulerRecord {
+  readonly basePower: number;
+  readonly criticalChance: number;
+  readonly criticalDamage: number;
+  readonly duration: number;
+  readonly fallbackAttacks?: readonly ThiefSummonStrike[];
+  readonly summons: readonly ThiefSummonDefinition[];
 }
 
 export interface ThiefSkill extends Skill {

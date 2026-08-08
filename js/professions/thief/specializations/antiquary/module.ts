@@ -3,15 +3,9 @@ import {
   onResolvedDamage,
 } from "../../../../platform/gw2/native-profession.js";
 import { createThiefModuleData } from "../../catalog-data.js";
-import {
-  antiquarySchedulerHooks,
-  antiquarySkillHandlers,
-} from "./handlers.js";
+import { antiquarySchedulerHooks, antiquarySkillHandlers } from "./handlers.js";
 import { antiquaryResolverEventReactions } from "./resolver.js";
-import {
-  antiquaryAttributeRules,
-  antiquaryCastRules,
-} from "./rules.js";
+import { antiquaryAttributeRules, antiquaryCastRules } from "./rules.js";
 import { antiquaryState } from "./state.js";
 import { antiquaryUi } from "./ui.js";
 import { ANTIQUARY_SKILL_MECHANICS } from "./skills.js";
@@ -27,10 +21,12 @@ export const antiquaryModule = defineNativeModule({
     modifiers: antiquaryAttributeRules,
     castRules: antiquaryCastRules,
     schedulerHooks: antiquarySchedulerHooks,
-    reactions: [onResolvedDamage({
-      id: "thief.antiquary.damage",
-      handler: antiquaryResolverEventReactions.damage,
-    })],
+    reactions: [
+      onResolvedDamage({
+        id: "thief.antiquary.damage",
+        handler: antiquaryResolverEventReactions.damage,
+      }),
+    ],
   },
   presentation: antiquaryUi,
 });

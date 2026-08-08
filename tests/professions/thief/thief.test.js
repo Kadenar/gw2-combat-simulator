@@ -1568,18 +1568,19 @@ test("Thieves Guild summons three specialization-specific thieves for 24 seconds
   for (const [specialization, thirdSummon] of expectedThirdSummon) {
     const result = simulate(specialization, [
       "Thieves Guild",
-      { type: "wait", durationMs: 1100 },
+      { type: "wait", durationMs: 1800 },
     ]);
     assert.deepEqual(
-      result.resolvedEvents.filter(event =>
-        event.actorType === "summon"
+      [...new Set(result.resolvedEvents.filter(event =>
+        event.type === "damage"
+        && event.actorType === "summon"
         && event.sourceId === "thief.thieves-guild")
-        .map(event => event.skillName),
+        .map(event => event.skillName))].sort(),
       [
         "Thieves Guild — Male Dual-Pistol Thief",
         "Thieves Guild — Female Dual-Dagger Thief",
         `Thieves Guild — ${thirdSummon}`,
-      ],
+      ].sort(),
       specialization,
     );
   }
@@ -1589,14 +1590,80 @@ test("Thieves Guild summons three specialization-specific thieves for 24 seconds
     { type: "wait", durationMs: 26000 },
   ]);
   const summonPackets = lifetime.resolvedEvents.filter(event =>
-    event.actorType === "summon"
+    event.type === "damage"
+    && event.actorType === "summon"
     && event.sourceId === "thief.thieves-guild");
-  assert.equal(summonPackets.length, 72);
+  assert.equal(summonPackets.length, 52);
   assert.equal(lifetime.endState.profession.activeThievesGuild, null);
   assert.deepEqual(
-    [...new Set(summonPackets.map(event => event.skillWeapon))],
-    ["Pistol", "Dagger", "Scepter"],
+    [...new Set(summonPackets.map(event => event.skillWeapon))].sort(),
+    ["Pistol", "Dagger", "Scepter"].sort(),
   );
+});
+
+test("Thieves Guild uses independent summon weapons and attack profiles", () => {
+  const rotation = [
+    "Thieves Guild",
+    { type: "wait", durationMs: 26000 },
+  ];
+  const result = simulate("Daredevil", rotation);
+  const strikes = result.resolvedEvents.filter(event =>
+    event.type === "damage"
+    && event.actorType === "summon"
+    && event.sourceId === "thief.thieves-guild");
+  const profile = name => strikes.filter(event =>
+    event.skillName.includes(name));
+  const summarize = name => {
+    const events = profile(name);
+    return {
+      coefficient: Number(events.reduce(
+        (total, event) => total + Number(event.coefficient || 0),
+        0,
+      ).toFixed(3)),
+      hits: events.reduce(
+        (total, event) => total + Number(event.hits || 0),
+        0,
+      ),
+      weaponStrengthProfiles: [
+        ...new Set(events.map(event => event.weaponStrengthProfileId)),
+      ],
+    };
+  };
+
+  assert.deepEqual(summarize("Male Dual-Pistol Thief"), {
+    coefficient: 9.2,
+    hits: 49,
+    weaponStrengthProfiles: ["weapon.pistol"],
+  });
+  assert.deepEqual(summarize("Female Dual-Dagger Thief"), {
+    coefficient: 43.9,
+    hits: 33,
+    weaponStrengthProfiles: ["weapon.dagger"],
+  });
+  assert.deepEqual(summarize("Staff Daredevil"), {
+    coefficient: 10.95,
+    hits: 17,
+    weaponStrengthProfiles: ["weapon.staff"],
+  });
+  assert.ok(strikes.every(event =>
+    event.independentSummonStrike === true
+    && event.summonBasePower === 1750
+    && event.criticalChance === 0.2
+    && event.criticalDamage === 1.5));
+
+  const summonStrikeDamage = simulation => simulation.resolvedEvents
+    .filter(event =>
+      event.type === "damage"
+      && event.actorType === "summon"
+      && event.sourceId === "thief.thieves-guild")
+    .reduce((total, event) => total + Number(event.damage || 0), 0);
+  const lowPower = simulate("Daredevil", rotation, {
+    stats: { power: 1000, precision: 1000, ferocity: 0 },
+  });
+  const highPower = simulate("Daredevil", rotation, {
+    stats: { power: 4000, precision: 3000, ferocity: 1500 },
+  });
+  assert.equal(summonStrikeDamage(lowPower), summonStrikeDamage(highPower));
 });
 
 test("Antiquary choice mode exposes every artifact from Swipe and Scuffle", () => {

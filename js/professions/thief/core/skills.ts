@@ -1573,10 +1573,165 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
       "initiativeCost": 0,
       "effects": [],
       "summonAttack": {
-        "coefficient": 1.2,
-        "hits": 1,
-        "interval": 1,
-        "duration": 24
+        "basePower": 1750,
+        "criticalChance": 0.2,
+        "criticalDamage": 1.5,
+        "duration": 24,
+        "fallbackAttacks": [
+          {
+            "name": "Basic Attack",
+            "coefficientPerHit": 1.2,
+            "hits": 1,
+            "initialDelay": 1,
+            "interval": 1
+          }
+        ],
+        "summons": [
+          {
+            "name": "Male Dual-Pistol Thief",
+            "weapon": "Pistol",
+            "weaponStrengthProfileId": "weapon.pistol",
+            "attacks": [
+              {
+                "name": "Black Powder",
+                "skillId": 3669,
+                "coefficientPerHit": 0.8,
+                "hits": 1,
+                "initialDelay": 1.44
+              },
+              {
+                "name": "Unload",
+                "skillId": 3666,
+                "coefficientPerHit": 0.175,
+                "hits": 12,
+                "initialDelay": 3.56,
+                "interval": 5.8
+              }
+            ]
+          },
+          {
+            "name": "Female Dual-Dagger Thief",
+            "weapon": "Dagger",
+            "weaponStrengthProfileId": "weapon.dagger",
+            "attacks": [
+              {
+                "name": "Scorpion Wire",
+                "skillId": 3665,
+                "coefficientPerHit": 1.5,
+                "hits": 1,
+                "initialDelay": 1.72,
+                "conditions": [
+                  {
+                    "condition": "Poisoned",
+                    "stacks": 2,
+                    "duration": 10
+                  },
+                  {
+                    "condition": "Weakness",
+                    "stacks": 1,
+                    "duration": 4
+                  }
+                ]
+              },
+              {
+                "name": "Twisting Fang I",
+                "skillId": 3661,
+                "coefficientPerHit": 0.6,
+                "hits": 2,
+                "initialDelay": 2.52,
+                "interval": 2.68
+              },
+              {
+                "name": "Twisting Fang II",
+                "skillId": 3662,
+                "coefficientPerHit": 1.6,
+                "hits": 1,
+                "initialDelay": 3.08,
+                "interval": 2.68
+              },
+              {
+                "name": "Twisting Fang III",
+                "skillId": 3663,
+                "coefficientPerHit": 2.5,
+                "hits": 1,
+                "initialDelay": 3.72,
+                "interval": 2.68
+              }
+            ]
+          },
+          {
+            "name": "Staff Daredevil",
+            "variant": "Daredevil",
+            "weapon": "Staff",
+            "weaponStrengthProfileId": "weapon.staff",
+            "attacks": [
+              {
+                "name": "Vault",
+                "skillId": 41056,
+                "coefficientPerHit": 2.4,
+                "hits": 1,
+                "initialDelay": 1.72,
+                "interval": 11.36
+              },
+              {
+                "name": "Impairing Daggers",
+                "skillId": 40482,
+                "coefficientPerHit": 0.25,
+                "hits": 3,
+                "initialDelay": 2.72,
+                "conditions": [
+                  {
+                    "condition": "Poisoned",
+                    "stacks": 3,
+                    "duration": 8
+                  },
+                  {
+                    "condition": "Slow",
+                    "stacks": 1,
+                    "duration": 4
+                  },
+                  {
+                    "condition": "Immobilized",
+                    "stacks": 1,
+                    "duration": 2
+                  }
+                ]
+              },
+              {
+                "name": "Weakening Charge",
+                "skillId": 40005,
+                "coefficientPerHit": 0.45,
+                "hits": 2,
+                "initialDelay": 4.04,
+                "interval": 3.36
+              }
+            ]
+          },
+          {
+            "name": "Rifle Deadeye",
+            "variant": "Deadeye",
+            "weapon": "Rifle",
+            "weaponStrengthProfileId": "weapon.rifle"
+          },
+          {
+            "name": "Scepter Specter",
+            "variant": "Specter",
+            "weapon": "Scepter",
+            "weaponStrengthProfileId": "weapon.scepter"
+          },
+          {
+            "name": "Sword/Dagger Skritt",
+            "variant": "Skritt",
+            "weapon": "Sword",
+            "weaponStrengthProfileId": "weapon.sword"
+          },
+          {
+            "name": "Sword Thief",
+            "variant": "Core Thief",
+            "weapon": "Sword",
+            "weaponStrengthProfileId": "weapon.sword"
+          }
+        ]
       },
     },
   [ID.DISABLING_SHOT]: {

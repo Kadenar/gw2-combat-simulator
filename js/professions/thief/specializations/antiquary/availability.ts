@@ -24,12 +24,13 @@ export function antiquaryCastAvailability(
   const state = antiquaryState.from(context);
   if (skill.artifactKind) {
     if (
-      state.artifactUsesRemaining <= 0
-      || !state.artifactSlots.some(slot => slot.skillId === skill.id)
+      state.artifactUsesRemaining <= 0 ||
+      !state.artifactSlots.some((slot) => slot.skillId === skill.id)
     ) {
       const retryAt =
-        context.config.deterministicChoices?.artifactDrawSequence === "choose"
-        && Number(state.nextSkrittScufflePilferAt || 0) > context.start
+        context.config.deterministicChoices?.artifactDrawSequence ===
+          "choose" &&
+        Number(state.nextSkrittScufflePilferAt || 0) > context.start
           ? Number(state.nextSkrittScufflePilferAt)
           : null;
       return deny(
@@ -48,11 +49,8 @@ export function antiquaryCastAvailability(
     );
   }
   if (
-    skill.id === ID.RESHUFFLE
-    && (
-      state.artifactUsesRemaining <= 0
-      || state.artifactSlots.length === 0
-    )
+    skill.id === ID.RESHUFFLE &&
+    (state.artifactUsesRemaining <= 0 || state.artifactSlots.length === 0)
   ) {
     return deny(skill, "thief.artifact", "pilfer artifacts first.");
   }

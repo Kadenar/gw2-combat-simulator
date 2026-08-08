@@ -16,15 +16,17 @@ function applyMistburnCharge(
   details: ThiefResolverReactionDetails = {},
 ): void {
   if (
-    event.actorType !== "player"
-    || event.coefficient == null
-    || event.skillId === ID.MISTBURN_MORTAR
-  ) return;
+    event.actorType !== "player" ||
+    event.coefficient == null ||
+    event.skillId === ID.MISTBURN_MORTAR
+  )
+    return;
   const state = antiquaryState.from(context);
   if (
-    Number(state.mistburnCharges || 0) <= 0
-    || Number(state.mistburnExpiresAt || 0) <= event.at
-  ) return;
+    Number(state.mistburnCharges || 0) <= 0 ||
+    Number(state.mistburnExpiresAt || 0) <= event.at
+  )
+    return;
   state.mistburnCharges -= 1;
   details.applyCondition?.(context, {
     type: "condition",
@@ -48,11 +50,12 @@ function applyMeticulousSunCrystal(
   details: ThiefResolverReactionDetails = {},
 ): void {
   if (
-    event.actorType !== "player"
-    || event.skillId !== ID.ZEPHYRITE_SUN_CRYSTAL
-    || event.coefficient == null
-    || !hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
-  ) return;
+    event.actorType !== "player" ||
+    event.skillId !== ID.ZEPHYRITE_SUN_CRYSTAL ||
+    event.coefficient == null ||
+    !hasThiefTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
+  )
+    return;
   details.applyCondition?.(context, {
     type: "condition",
     at: event.at,
