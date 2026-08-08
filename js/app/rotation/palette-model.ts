@@ -13,6 +13,7 @@ import type {
 } from "../profession/types.js";
 import { activeSpecialization } from "./context.js";
 import { VINDICATOR_DODGE_AUTO_ICON } from "./icons.js";
+import { insertRotationItems } from "./actions.js";
 
 export const VINDICATOR_DODGE_AUTO_ACTION = "__vindicator_dodge_auto";
 
@@ -207,10 +208,7 @@ export function appendVindicatorDodgeAuto(
   offsetMs = 0,
 ): boolean {
   const entries = vindicatorDodgeAutoRotationEntries(app, offsetMs);
-  if (!entries.length) return false;
-  app.build.rotation.push(...entries);
-  app.changed(false);
-  return true;
+  return insertRotationItems(app, entries);
 }
 
 export function vindicatorDodgeAutoPaletteSkill(

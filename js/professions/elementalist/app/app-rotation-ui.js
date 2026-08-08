@@ -14,6 +14,11 @@ import {
   suggestedActivationInterruptMs,
 } from "../../../platform/ui/activation-editor.js";
 import { escapeHtml as esc } from "../../../platform/ui/html.js";
+import {
+  mountRotationInsertionCursor,
+  normalizeRotationInsertionIndex,
+  rotationInsertionGapHtml,
+} from "../../../platform/ui/insertion-cursor.js";
 
 const DEFAULT_CONCURRENT_OFFSET_MS = 100;
 const MIN_CONCURRENT_OFFSET_MS = 1;
@@ -102,6 +107,7 @@ function applyTimelineDrop(app, insertAt) {
   if (!drag) return false;
 
   if (drag.source === "timeline") {
+    app.rotationInsertionIndex = null;
     app._moveRotationItem(drag.idx, insertAt);
     app.dragState = null;
     return true;
@@ -111,11 +117,43 @@ function applyTimelineDrop(app, insertAt) {
     const payload = resolvePaletteDropItem(app, drag.skillName);
     app.dragState = null;
     if (!payload) return false;
+    app.rotationInsertionIndex = null;
     app._insertIntoRotation(insertAt, payload.skillName, payload.options);
     return true;
   }
 
   return false;
+}
+
+function addPaletteRotationItem(app, skillName, options = {}) {
+  const insertionIndex = normalizeRotationInsertionIndex(
+    app.rotationInsertionIndex,
+    app.sim?.rotation.length || 0,
+  );
+  if (insertionIndex === null) {
+    app.rotationInsertionIndex = null;
+    app._addToRotation(skillName, options);
+    return;
+  }
+
+  app.rotationInsertionIndex = insertionIndex + 1;
+  app._insertIntoRotation(insertionIndex, skillName, options);
+}
+
+function mountInsertionCursor(app, root) {
+  app.rotationInsertionIndex = mountRotationInsertionCursor({
+    root,
+    insertionIndex: app.rotationInsertionIndex,
+    rotationLength: app.sim?.rotation.length || 0,
+    onSelect(index) {
+      app.rotationInsertionIndex = index;
+      app._renderTimeline();
+    },
+    onClear() {
+      app.rotationInsertionIndex = null;
+      app._renderTimeline();
+    },
+  });
 }
 
 export function renderRotationBuilder(app) {
@@ -549,21 +587,25 @@ export function renderPalette(
       if (skillName === "__wait") {
         const wait = promptWaitMs();
         if (wait.cancelled || wait.invalid) return;
-        app._addToRotation(skillName, { waitMs: wait.value });
+        addPaletteRotationItem(app, skillName, { waitMs: wait.value });
         return;
       }
       const sk = app.data.skills.find((s) => s.name === skillName);
       const isInstant =
         skillName === "__combat_start" || (sk && (sk.castTime || 0) === 0);
       if (e.shiftKey && isInstant && app.sim?.rotation.length > 0) {
-        app._addToRotation(skillName, { offset: DEFAULT_CONCURRENT_OFFSET_MS });
+        addPaletteRotationItem(app, skillName, {
+          offset: DEFAULT_CONCURRENT_OFFSET_MS,
+        });
       } else if (e.ctrlKey && !isInstant) {
         const interrupt = promptInterruptMs(sk);
         if (interrupt.cancelled || interrupt.cleared || interrupt.invalid)
           return;
-        app._addToRotation(skillName, { interruptMs: interrupt.value });
+        addPaletteRotationItem(app, skillName, {
+          interruptMs: interrupt.value,
+        });
       } else {
-        app._addToRotation(skillName);
+        addPaletteRotationItem(app, skillName);
       }
     });
     p.addEventListener("dragstart", (e) => {
@@ -751,6 +793,7 @@ export function renderTimeline(
       el.classList.remove("drag-over-empty");
       applyTimelineDrop(app, 0);
     };
+    mountInsertionCursor(app, el);
     return;
   }
 
@@ -800,100 +843,94 @@ export function renderTimeline(
   }
 
   let tlHtml = rows
-    .map((row) => {
+    .map((row, rowIndex) => {
       const color = ATTUNEMENT_COLORS[row.att] || "var(--border-light)";
       const label =
         isWeaver && row.att2 ? `${row.att[0]}/${row.att2[0]}` : row.att;
       const skillsHtml = row.skills
-        .map(
-          ({ name, idx, step, offset, interruptMs, waitMs, isGapFill }, si) => {
-            const skill = app.data.skills.find((s) => s.name === name);
-            let icon;
-            let displayName;
-            if (name === "__drop_bundle") {
-              icon = DROP_BUNDLE_ICON;
-              displayName = "Drop Bundle";
-            } else if (name === "__combat_start") {
-              icon = COMBAT_START_ICON;
-              displayName = "Combat Start";
-            } else if (name === "__wait") {
-              icon = WAIT_ICON;
-              displayName = "Wait";
-            } else if (name.startsWith("__pickup_")) {
-              const pw = name.slice(9);
-              const conjName = Object.entries(CONJURE_MAP).find(
-                ([, v]) => v === pw,
-              )?.[0];
-              icon = conjName ? app.api.getSkillIcon(conjName) : null;
-              displayName = `Pick up ${pw}`;
-            } else if (
-              skill?.type === "Dodge" ||
-              skill?.slot === "Dodge" ||
-              name === "Dodge"
-            ) {
-              icon = DODGE_ICON;
-              displayName = "Dodge";
-            } else {
-              icon = app.api.getSkillIcon(name);
-              displayName = name;
-            }
-            const c = app._skillColor(skill, name);
-            const pf = step?.partialFill;
-            const ts = pf
-              ? app._formatResultsTimeMs(pf.startMs, 2)
-              : step
-                ? app._formatResultsTimeMs(step.start, 2)
-                : "";
-            const castInfo = step
-              ? `\n${formatTimelineCastDetails(step, (time) =>
-                  app._formatResultsTimeMs(time, 2),
-                )}`
+        .map(({ name, idx, step, offset, interruptMs, waitMs, isGapFill }) => {
+          const skill = app.data.skills.find((s) => s.name === name);
+          let icon;
+          let displayName;
+          if (name === "__drop_bundle") {
+            icon = DROP_BUNDLE_ICON;
+            displayName = "Drop Bundle";
+          } else if (name === "__combat_start") {
+            icon = COMBAT_START_ICON;
+            displayName = "Combat Start";
+          } else if (name === "__wait") {
+            icon = WAIT_ICON;
+            displayName = "Wait";
+          } else if (name.startsWith("__pickup_")) {
+            const pw = name.slice(9);
+            const conjName = Object.entries(CONJURE_MAP).find(
+              ([, v]) => v === pw,
+            )?.[0];
+            icon = conjName ? app.api.getSkillIcon(conjName) : null;
+            displayName = `Pick up ${pw}`;
+          } else if (
+            skill?.type === "Dodge" ||
+            skill?.slot === "Dodge" ||
+            name === "Dodge"
+          ) {
+            icon = DODGE_ICON;
+            displayName = "Dodge";
+          } else {
+            icon = app.api.getSkillIcon(name);
+            displayName = name;
+          }
+          const c = app._skillColor(skill, name);
+          const pf = step?.partialFill;
+          const ts = pf
+            ? app._formatResultsTimeMs(pf.startMs, 2)
+            : step
+              ? app._formatResultsTimeMs(step.start, 2)
               : "";
-            const isConcurrent = offset !== undefined;
-            const offsetBadge = isConcurrent
-              ? `<span class="rot-offset-badge rot-timed-action-badge" data-idx="${idx}" title="Fires ${offset}ms into previous cast at ${esc(ts)} (click to edit)">${esc(formatConcurrentTimelineBadge(offset, ts))}</span>`
+          const castInfo = step
+            ? `\n${formatTimelineCastDetails(step, (time) =>
+                app._formatResultsTimeMs(time, 2),
+              )}`
+            : "";
+          const isConcurrent = offset !== undefined;
+          const offsetBadge = isConcurrent
+            ? `<span class="rot-offset-badge rot-timed-action-badge" data-idx="${idx}" title="Fires ${offset}ms into previous cast at ${esc(ts)} (click to edit)">${esc(formatConcurrentTimelineBadge(offset, ts))}</span>`
+            : "";
+          const interruptBadge =
+            interruptMs !== undefined
+              ? `<span class="rot-gapfill-badge rot-interrupt-badge rot-timed-action-badge" data-idx="${idx}" title="Interrupt at ${interruptMs}ms from cast start at ${esc(ts)} (click to edit)">${esc(formatInterruptTimelineBadge(interruptMs, ts))}</span>`
               : "";
-            const interruptBadge =
-              interruptMs !== undefined
-                ? `<span class="rot-gapfill-badge rot-interrupt-badge rot-timed-action-badge" data-idx="${idx}" title="Interrupt at ${interruptMs}ms from cast start at ${esc(ts)} (click to edit)">${esc(formatInterruptTimelineBadge(interruptMs, ts))}</span>`
-                : "";
-            const waitBadge =
-              waitMs !== undefined
-                ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${idx}" title="Wait ${waitMs}ms (click to edit)">⌛${waitMs}ms</span>`
-                : "";
-            const gapFillBadge = isGapFill
-              ? `<span class="rot-gapfill-badge" title="${pf ? `${pf.durationMs}ms of ${pf.skill} filled gap` : "Gap-fill: channels filler until this skill is ready"}">⟳${pf ? pf.durationMs + "ms" : ""}</span>`
+          const waitBadge =
+            waitMs !== undefined
+              ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${idx}" title="Wait ${waitMs}ms (click to edit)">⌛${waitMs}ms</span>`
               : "";
-            const concurClass = isConcurrent ? " rot-concurrent" : "";
-            const gapFillClass = isGapFill ? " rot-gapfill" : "";
-            const concurInfo = isConcurrent
-              ? `\n⊙ Fires ${offset}ms into previous cast`
+          const gapFillBadge = isGapFill
+            ? `<span class="rot-gapfill-badge" title="${pf ? `${pf.durationMs}ms of ${pf.skill} filled gap` : "Gap-fill: channels filler until this skill is ready"}">⟳${pf ? pf.durationMs + "ms" : ""}</span>`
+            : "";
+          const concurClass = isConcurrent ? " rot-concurrent" : "";
+          const gapFillClass = isGapFill ? " rot-gapfill" : "";
+          const concurInfo = isConcurrent
+            ? `\n⊙ Fires ${offset}ms into previous cast`
+            : "";
+          const interruptInfo =
+            interruptMs !== undefined
+              ? `\n✂ Interrupt at ${interruptMs}ms from cast start${step?.interrupted ? ` (full cast ${step.fullCastMs}ms)` : ""}`
               : "";
-            const interruptInfo =
-              interruptMs !== undefined
-                ? `\n✂ Interrupt at ${interruptMs}ms from cast start${step?.interrupted ? ` (full cast ${step.fullCastMs}ms)` : ""}`
-                : "";
-            const waitInfo =
-              waitMs !== undefined ? `\n⌛ Wait ${waitMs}ms` : "";
-            const gapFillInfo = pf
-              ? `\n⟳ ${pf.durationMs}ms of ${pf.skill} filled gap before cast`
-              : isGapFill
-                ? "\n⟳ Gap-fill enabled (no gap at sim time)"
-                : "";
-            const catalogCastMs = Math.round(
-              Number(skill?.castTime || 0) * 1000,
-            );
-            const fullCastMs = Math.round(
-              Number(step?.fullCastMs) || catalogCastMs,
-            );
-            const canEditActivation =
-              Boolean(skill) &&
-              (interruptMs !== undefined ||
-                fullCastMs > 0 ||
-                catalogCastMs > 0);
-            return (
-              (si > 0 ? '<span class="rot-arrow">→</span>' : "") +
-              `<div class="rot-skill${concurClass}${gapFillClass}" draggable="true" data-idx="${idx}" title="${esc(displayName)}${castInfo}${concurInfo}${interruptInfo}${waitInfo}${gapFillInfo}" style="--att-border:${c}">
+          const waitInfo = waitMs !== undefined ? `\n⌛ Wait ${waitMs}ms` : "";
+          const gapFillInfo = pf
+            ? `\n⟳ ${pf.durationMs}ms of ${pf.skill} filled gap before cast`
+            : isGapFill
+              ? "\n⟳ Gap-fill enabled (no gap at sim time)"
+              : "";
+          const catalogCastMs = Math.round(Number(skill?.castTime || 0) * 1000);
+          const fullCastMs = Math.round(
+            Number(step?.fullCastMs) || catalogCastMs,
+          );
+          const canEditActivation =
+            Boolean(skill) &&
+            (interruptMs !== undefined || fullCastMs > 0 || catalogCastMs > 0);
+          return (
+            rotationInsertionGapHtml(idx, app.rotationInsertionIndex) +
+            `<div class="rot-skill${concurClass}${gapFillClass}" draggable="true" data-idx="${idx}" title="${esc(displayName)}${castInfo}${concurInfo}${interruptInfo}${waitInfo}${gapFillInfo}" style="--att-border:${c}">
                     <img src="${icon || PLACEHOLDER_ICON}" />
                     ${
                       canEditActivation
@@ -905,15 +942,21 @@ export function renderTimeline(
                     ${ts && !isConcurrent && interruptMs === undefined ? `<span class="rot-time">${ts}</span>` : ""}
                     ${offsetBadge}${interruptBadge}${waitBadge}${gapFillBadge}
                 </div>`
-            );
-          },
-        )
+          );
+        })
         .join("");
+      const finalGap =
+        rowIndex === rows.length - 1
+          ? rotationInsertionGapHtml(
+              app.sim.rotation.length,
+              app.rotationInsertionIndex,
+            )
+          : "";
       const rowInsertIdx =
         row.skills.length > 0 ? row.skills[row.skills.length - 1].idx + 1 : 0;
       return `<div class="rot-row" style="--row-color:${color}">
             <div class="rot-row-label">${label}</div>
-            <div class="rot-row-skills" data-insert-idx="${rowInsertIdx}">${skillsHtml}</div>
+            <div class="rot-row-skills" data-insert-idx="${rowInsertIdx}">${skillsHtml}${finalGap}</div>
         </div>`;
     })
     .join("");
@@ -966,6 +1009,7 @@ export function renderTimeline(
   }
 
   el.innerHTML = tlHtml;
+  mountInsertionCursor(app, el);
   clearTimelineDropIndicators(el);
 
   el.querySelectorAll(".rot-offset-badge").forEach((badge) => {
@@ -1038,6 +1082,7 @@ export function renderTimeline(
       removeBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
+        app.rotationInsertionIndex = null;
         if (e.shiftKey) app._truncateRotationAfter(idx);
         else app._removeFromRotation(idx);
       });

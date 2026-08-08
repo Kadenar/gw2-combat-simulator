@@ -338,6 +338,7 @@ export interface ProfessionAppState {
   attributeData: ProfessionAttributeData | null;
   results: ProfessionAppResult | null;
   dragState: ProfessionRotationDragState | null;
+  rotationInsertionIndex?: number | null;
   procVisibility?: Set<string>;
   procVisibilityKeys?: Set<string>;
   procFilterOpen?: boolean;

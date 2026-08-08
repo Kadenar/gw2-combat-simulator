@@ -3,6 +3,27 @@ import type {
   ProfessionAppState,
   RotationActionOptions,
 } from "../profession/types.js";
+import { normalizeRotationInsertionIndex } from "../../platform/ui/insertion-cursor.js";
+
+export function insertRotationItems(
+  app: ProfessionAppState,
+  items: readonly LegacyRotationItem[],
+): boolean {
+  if (!items.length) return false;
+  const insertionIndex = normalizeRotationInsertionIndex(
+    app.rotationInsertionIndex,
+    app.build.rotation.length,
+  );
+  if (insertionIndex === null) {
+    app.rotationInsertionIndex = null;
+    app.build.rotation.push(...items);
+  } else {
+    app.build.rotation.splice(insertionIndex, 0, ...items);
+    app.rotationInsertionIndex = insertionIndex + items.length;
+  }
+  app.changed(false);
+  return true;
+}
 
 export function addRotation(
   app: ProfessionAppState,
@@ -22,6 +43,5 @@ export function addRotation(
   const item: LegacyRotationItem = Object.keys(resolvedOptions).length
     ? { name, ...resolvedOptions }
     : name;
-  app.build.rotation.push(item);
-  app.changed(false);
+  insertRotationItems(app, [item]);
 }

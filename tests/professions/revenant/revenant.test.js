@@ -3993,6 +3993,24 @@ test("Vindicator Dodge + Auto palette action uses the current chain step", () =>
   ]);
   assert.equal(changeCount, 1);
 
+  app.build.rotation = ["Tail"];
+  app.rotationInsertionIndex = 0;
+  assert.equal(appendVindicatorDodgeAuto(app), true);
+  assert.deepEqual(app.build.rotation, [
+    {
+      name: "Preparation Thrust",
+      skillId: SKILL.PREPARATION_THRUST,
+    },
+    {
+      name: "Dodge",
+      skillId: -5,
+      offset: 0,
+    },
+    "Tail",
+  ]);
+  assert.equal(app.rotationInsertionIndex, 2);
+  assert.equal(changeCount, 2);
+
   app.results.endState.profession.autoattackChains[SKILL.PREPARATION_THRUST] =
     SKILL.BRUTAL_BLADE;
   assert.equal(currentAutoattackSkill(app).name, "Brutal Blade");
