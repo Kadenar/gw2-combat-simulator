@@ -23,7 +23,7 @@
         "label": "Condition - Dune Cloak",
         "build": "Builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "Rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 38842,
+        "benchmarkDps": 41188,
         "referenceDps": 40936
       }
     ]

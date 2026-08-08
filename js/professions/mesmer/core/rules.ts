@@ -87,6 +87,17 @@ const TASK = Object.freeze({
   signetEtherRelock: "mesmer.signet-ether-relock",
   signetIllusionsPassive: "mesmer.signet-illusions-passive",
 });
+
+// Peitha checks its ICD when the movement/deception activates, while the
+// projectile impact varies with the ending distance from the target. These
+// benchmark delays are characterized from the supplied EVTC.
+const PEITHA_PROJECTILE_DELAYS: Readonly<Record<number, number>> =
+  Object.freeze({
+    [ID.CRYSTAL_SANDS]: 0.241,
+    [ID.JAUNT]: 0.241,
+    [ID.AXES_OF_SYMMETRY]: 0.519,
+    [ID.PHASE_RETREAT]: 0.856,
+  });
 const PRESERVED_WEAPON_CHAIN_ROOT_IDS = new Set<number>([ID.ETHER_BOLT]);
 // Delay before Signet of the Ether's in-game bug re-applies its own cooldown
 // after the cast finishes.
@@ -809,12 +820,14 @@ function completeMesmerSkill(
       });
     }
     if (runtime.peithaSkills.has(skill.id)) {
-      // Axes of Symmetry shadowsteps at activation. Its damage lands near the
-      // end of the cast, but Peitha's shadowstep trigger does not wait for it.
-      const peithaAt = skill.id === ID.AXES_OF_SYMMETRY
-        ? context.start
-        : at;
-      runtime.addEvent({ type: "peitha", at: peithaAt, skillName: skill.name });
+      // Shadowsteps and deception skills trigger Peitha on activation, not at
+      // cast end or when a Mirage Mirror is collected.
+      runtime.addEvent({
+        type: "peitha",
+        at: context.start,
+        projectileDelay: PEITHA_PROJECTILE_DELAYS[skill.id] ?? 0,
+        skillName: skill.name,
+      });
     }
   } finally {
     runtime.activeEmission = null;
