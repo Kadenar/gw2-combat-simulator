@@ -2396,7 +2396,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.MIST_UNLEASHED]: {
     implemented: true,
     castTimeMs: 500,
-    quicknessCastTimeMs: 480,
+    quicknessCastTimeMs: 520,
     cooldown: 3,
     energyCost: 5,
     effects: [
