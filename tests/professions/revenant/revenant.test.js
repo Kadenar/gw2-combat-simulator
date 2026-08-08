@@ -19,7 +19,10 @@ import {
   vindicatorDodgeAutoRotationEntries,
   weaponSkills,
 } from "../../../js/app/rotation/palette-model.js";
-import { paletteSkillView } from "../../../js/app/rotation/palette-view.js";
+import {
+  paletteSkillView,
+  suggestedPaletteInterruptMs,
+} from "../../../js/app/rotation/palette-view.js";
 import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import { skillBreakdownRows } from "../../../js/platform/ui/result-tables.js";
@@ -1490,13 +1493,26 @@ test("legend swap replaces the fixed bar, resets energy, and triggers sigils", (
   assert.ok(result.endState.profession.legendSwapReadyAt >= 10);
   assert.ok(result.totalDamage > 0);
 
-  const unavailable = simulate("Core", ["Swap Legends", "Swap Legends"]);
-  assert.equal(unavailable.warnings.length, 0);
-  assert.ok(unavailable.duration >= 10);
-  assert.equal(
-    unavailable.casts.find((cast) => cast.name === "Swap Legends")?.count,
-    2,
+  const precombat = simulate("Core", ["Swap Legends", "Swap Legends"]);
+  assert.equal(precombat.warnings.length, 0);
+  assert.deepEqual(
+    precombat.steps.map((step) => step.start),
+    [0, 0],
   );
+  assert.equal(precombat.endState.profession.legendSwapReadyAt, 0);
+
+  const inCombat = simulate("Core", [
+    "__combat_start",
+    "Swap Legends",
+    "Swap Legends",
+  ]);
+  assert.deepEqual(
+    inCombat.steps
+      .filter((step) => step.skill === "Swap Legends")
+      .map((step) => step.start),
+    [0, 10000],
+  );
+  assert.equal(inCombat.endState.profession.legendSwapReadyAt, 20);
 
   const sigilResult = simulate("Core", ["__combat_start", "Swap Legends"], {
     sigilSets: [
@@ -3235,7 +3251,7 @@ test("Band Together makes the next Renegade summon instant and enhanced", () => 
     quickIcerazorHits.map((event) =>
       Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000),
     ),
-    [0, 161, 322],
+    [1200, 1361, 1522],
   );
   assert.ok(
     quickEnhanced.events
@@ -3269,7 +3285,7 @@ test("Band Together makes the next Renegade summon instant and enhanced", () => 
       .map((event) =>
         Math.round((event.at - quickEnhanced.steps[1].start / 1000) * 1000),
       ),
-    [0, 161, 322],
+    [1200, 1361, 1522],
   );
 
   const enhancedDarkrazor = simulate(
@@ -4164,7 +4180,7 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
     );
   }
   for (const [name, quicknessCastTimeMs] of [
-    ["Chilling Isolation", 480],
+    ["Chilling Isolation", 680],
     ["Release Potential: Dervish", 680],
     ["Shackling Wave", 800],
     ["Deathstrike", 720],
@@ -4180,6 +4196,8 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
     assert.equal(skill(name).quicknessCastTimeMs, quicknessCastTimeMs, name);
   }
   assert.equal(skill("Chilling Isolation").defaultInterruptMs, undefined);
+  assert.equal(skill("Chilling Isolation").paletteInterruptMs, 480);
+  assert.equal(suggestedPaletteInterruptMs(skill("Chilling Isolation")), 480);
   assert.equal(skill("Deathstrike").rechargeAnchor, "castStart");
   assert.equal(skill("Deathstrike").rechargeOffsetMs, 420);
   assert.equal(skill("Phantom's Onslaught").dashTimeMs, 38);
@@ -4268,26 +4286,60 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
     );
   }
   const chilling = simulate("Conduit", ["Chilling Isolation"], config);
-  assert.equal(chilling.steps[0].fullCastMs, 480);
-  assert.equal(chilling.steps[0].end, 480);
+  assert.equal(chilling.steps[0].fullCastMs, 680);
+  assert.equal(chilling.steps[0].end, 680);
   assert.equal(chilling.steps[0].interrupted, false);
   assert.deepEqual(damageTimeline(chilling, "Chilling Isolation"), [
     [280, "Chilling Isolation — Packet 1", 0.8],
     [480, "Isolated Damage", 1.6],
   ]);
+
+  const paletteChilling = simulate(
+    "Conduit",
+    [
+      {
+        name: "Chilling Isolation",
+        interruptMs: skill("Chilling Isolation").paletteInterruptMs,
+      },
+    ],
+    config,
+  );
+  assert.equal(paletteChilling.steps[0].end, 480);
+  assert.equal(paletteChilling.steps[0].interrupted, true);
   const interruptedChilling = simulate(
     "Conduit",
     [
       {
         name: "Chilling Isolation",
-        interruptMs: 400,
+        interruptMs: 420,
       },
     ],
     config,
   );
-  assert.equal(interruptedChilling.steps[0].end, 400);
+  assert.equal(interruptedChilling.steps[0].end, 420);
   assert.equal(interruptedChilling.steps[0].interrupted, true);
   assert.deepEqual(damageTimeline(interruptedChilling, "Chilling Isolation"), [
+    [280, "Chilling Isolation — Packet 1", 0.8],
+    [480, "Isolated Damage", 1.6],
+  ]);
+
+  const earlyChilling = simulate(
+    "Conduit",
+    [{ name: "Chilling Isolation", interruptMs: 419 }],
+    config,
+  );
+  assert.deepEqual(damageTimeline(earlyChilling, "Chilling Isolation"), [
+    [280, "Chilling Isolation — Packet 1", 0.8],
+  ]);
+
+  const fullChilling = simulate(
+    "Conduit",
+    [{ name: "Chilling Isolation", interruptMs: 680 }],
+    config,
+  );
+  assert.equal(fullChilling.steps[0].end, 680);
+  assert.equal(fullChilling.steps[0].interrupted, false);
+  assert.deepEqual(damageTimeline(fullChilling, "Chilling Isolation"), [
     [280, "Chilling Isolation — Packet 1", 0.8],
     [480, "Isolated Damage", 1.6],
   ]);
@@ -5180,7 +5232,12 @@ test("Conduit grandmasters alter release, invocation, and Cosmic Wisdom", () => 
 
   const cosmic = simulate(
     "Conduit",
-    ["Cosmic Wisdom", "Swap Legends", "Release Potential: Mesmer"],
+    [
+      "__combat_start",
+      "Cosmic Wisdom",
+      "Swap Legends",
+      "Release Potential: Mesmer",
+    ],
     {
       selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
       startingLegend: LEGEND.ENTITY,
@@ -5365,15 +5422,27 @@ test("Alacrity does not reduce Revenant legend or weapon swap cooldowns", () => 
     weaponSet2Secondary: "Axe",
     boons: { alacrity: true },
   };
-  const legends = simulate("Core", ["Swap Legends", "Swap Legends"], config);
+  const legends = simulate(
+    "Core",
+    ["__combat_start", "Swap Legends", "Swap Legends"],
+    config,
+  );
   assert.deepEqual(
-    legends.steps.map((step) => step.start),
+    legends.steps
+      .filter((step) => step.skill === "Swap Legends")
+      .map((step) => step.start),
     [0, 10000],
   );
 
-  const weapons = simulate("Core", ["Swap Weapons", "Swap Weapons"], config);
+  const weapons = simulate(
+    "Core",
+    ["__combat_start", "Swap Weapons", "Swap Weapons"],
+    config,
+  );
   assert.deepEqual(
-    weapons.steps.map((step) => step.start),
+    weapons.steps
+      .filter((step) => step.skill === "Swap Weapons")
+      .map((step) => step.start),
     [0, 10000],
   );
 });

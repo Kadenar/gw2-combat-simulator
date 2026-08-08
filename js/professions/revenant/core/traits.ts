@@ -236,8 +236,8 @@ function consumeBattleScar(
 
 function isLegendaryStanceSkill(skill: RevenantSkill): boolean {
   if (
-    ["Heal", "Utility", "Elite"].includes(String(skill.slot || ""))
-    && skill.legendId
+    ["Heal", "Utility", "Elite"].includes(String(skill.slot || "")) &&
+    skill.legendId
   ) {
     return true;
   }
@@ -265,13 +265,12 @@ export function modifyRevenantRechargeDuration(
   const skill = context.skill;
   if (
     skill &&
-    ([ID.SWAP_LEGENDS, ID.SWAP_WEAPONS] as readonly number[])
-      .includes(Number(skill.id))
+    ([ID.SWAP_LEGENDS, ID.SWAP_WEAPONS] as readonly number[]).includes(
+      Number(skill.id),
+    )
   ) {
-    return Math.max(
-      0,
-      Number(skill.cooldown ?? skill.recharge ?? duration),
-    );
+    if (duration === 0) return 0;
+    return Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration));
   }
   return duration;
 }
@@ -312,8 +311,9 @@ export function afterRevenantCast(
     );
   }
   if (
-    !([ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[])
-      .includes(Number(skill.id))
+    !(
+      [ID.EMBRACE_THE_DARKNESS, ID.RESIST_THE_DARKNESS] as readonly number[]
+    ).includes(Number(skill.id))
   ) {
     const embrace = professionCoreState(context).activeUpkeeps.find(
       (upkeep) => upkeep.skillId === ID.EMBRACE_THE_DARKNESS,
@@ -366,7 +366,8 @@ export function observeRevenantEvent(
   ) {
     const profile = MECHANICS.traitProcs.brutality;
     const at = Number(event.endsAt ?? event.at);
-    professionCoreState(context).traitProcReadyAt.brutality = at + profile.interval;
+    professionCoreState(context).traitProcReadyAt.brutality =
+      at + profile.interval;
     context.emitDerived(event, {
       type: "buff",
       at,

@@ -41,7 +41,8 @@ export const RENEGADE_MECHANICS = freeze({
       enhancedChill: 1.5,
       packetInterval: 0.161,
       normalImpactDelay: 0.5,
-      enhancedImpactDelay: 0.322,
+      enhancedFirstImpactDelay: 1.2,
+      enhancedImpactSpan: 0.322,
     }),
     razorclaw: freeze({
       charges: 4,

@@ -1,3 +1,4 @@
+export * from "./activation-editor.js";
 export * from "./charts.js";
 export * from "./event-log.js";
 export * from "./html.js";

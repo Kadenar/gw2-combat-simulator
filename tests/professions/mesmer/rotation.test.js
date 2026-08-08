@@ -3160,22 +3160,35 @@ test("Relic of Thorns uses the deterministic incoming-hit assumption", () => {
   );
 });
 
-test("weapon swap changes sets and observes its cooldown before swapping back", () => {
-  const result = simulateMesmer(
-    ["Swap Weapons", "Swap Weapons"],
-    defaultSimulationConfig({
-      specialization: "Core",
-      initialResource: 0,
-      primaryWeapon: "Scepter",
-      secondaryWeapon: "Sword",
-      weaponSet2Primary: "Spear",
-      weaponSet2Secondary: "",
-    }),
+test("weapon swap only starts its cooldown in combat", () => {
+  const config = defaultSimulationConfig({
+    specialization: "Core",
+    initialResource: 0,
+    primaryWeapon: "Scepter",
+    secondaryWeapon: "Sword",
+    weaponSet2Primary: "Spear",
+    weaponSet2Secondary: "",
+  });
+  const precombat = simulateMesmer(["Swap Weapons", "Swap Weapons"], config);
+  assert.deepEqual(
+    precombat.steps.map((step) => step.start),
+    [0, 0],
   );
-  assert.equal(result.steps[0].start, 0);
-  assert.equal(result.steps[1].start, 10000);
-  assert.equal(result.endState.activeWeaponSet, 1);
-  assert.equal(result.endState.cooldowns["Swap Weapons"].readyAt, 20000);
+  assert.equal(precombat.endState.activeWeaponSet, 1);
+  assert.equal(precombat.endState.cooldowns["Swap Weapons"], undefined);
+
+  const inCombat = simulateMesmer(
+    ["__combat_start", "Swap Weapons", "Swap Weapons"],
+    config,
+  );
+  assert.deepEqual(
+    inCombat.steps
+      .filter((step) => step.skill === "Swap Weapons")
+      .map((step) => step.start),
+    [0, 10000],
+  );
+  assert.equal(inCombat.endState.activeWeaponSet, 1);
+  assert.equal(inCombat.endState.cooldowns["Swap Weapons"].readyAt, 20000);
 });
 
 test("weapon swaps start new weapon-set rows in the rotation timeline", () => {
@@ -6533,6 +6546,7 @@ test("Continuum Split does not restore weapon-swap cooldown", () => {
   });
   const result = simulateMesmer(
     [
+      "__combat_start",
       "Continuum Split",
       "Swap Weapons",
       { name: "__wait", waitMs: 1000 },
@@ -6541,8 +6555,12 @@ test("Continuum Split does not restore weapon-swap cooldown", () => {
     ],
     config,
   );
-  assert.equal(result.steps[1].start, 0);
-  assert.equal(result.steps[4].start, 10000);
+  assert.deepEqual(
+    result.steps
+      .filter((step) => step.skill === "Swap Weapons")
+      .map((step) => step.start),
+    [0, 10000],
+  );
 });
 
 test("Continuum Split does not extend an existing weapon-swap cooldown", () => {
@@ -6556,6 +6574,7 @@ test("Continuum Split does not extend an existing weapon-swap cooldown", () => {
   });
   const result = simulateMesmer(
     [
+      "__combat_start",
       "Swap Weapons",
       "Continuum Split",
       { name: "__wait", waitMs: 1000 },

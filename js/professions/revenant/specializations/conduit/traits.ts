@@ -1,7 +1,5 @@
 import { conduitState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -13,9 +11,7 @@ import {
   hasRevenantTrait,
   revenantConduitFormIsActive,
 } from "../../core/state.js";
-import {
-  applyCosmicWisdomAfterCast,
-} from "./conduit.js";
+import { applyCosmicWisdomAfterCast } from "./conduit.js";
 import { CONDUIT_MECHANICS as MECHANICS } from "./mechanics.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
 import type {
@@ -39,7 +35,9 @@ export function modifyConduitCastDuration(
   if (context.skill?.handlerId !== "revenant.beguiling-haze") return duration;
   const quickness = context.hasBuff?.("quickness", context.start);
   return Number(conduitState.from(context).beguilingHazeCharges || 0) > 0
-    ? quickness ? 0.24 : 0.25
+    ? quickness
+      ? 0.24
+      : 0.25
     : duration + (quickness ? 0.36 : 0.4);
 }
 
@@ -48,36 +46,37 @@ export function modifyConduitRechargeDuration(
   duration: number,
 ): number {
   const skill = context.skill;
+  if (duration === 0 && skill?.id === ID.SWAP_LEGENDS) return 0;
   if (
     skill?.id === ID.SWAP_LEGENDS &&
     revenantCombatActive(context, context.at) &&
     hasRevenantTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
   ) {
-    return Math.max(
-      0,
-      Number(skill.cooldown ?? skill.recharge ?? duration),
-    ) * 0.6;
+    return (
+      Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration)) * 0.6
+    );
   }
   if (
-    ([
-      ID.BANISH_ENCHANTMENT,
-      ID.BANISH_ENCHANTMENT_ID_78587,
-    ] as readonly number[]).includes(Number(skill?.id)) &&
+    (
+      [
+        ID.BANISH_ENCHANTMENT,
+        ID.BANISH_ENCHANTMENT_ID_78587,
+      ] as readonly number[]
+    ).includes(Number(skill?.id)) &&
     revenantConduitFormIsActive(
       conduitState.from(context),
       "Mesmer",
       context.start ?? context.at,
     )
   ) {
-    const base = MECHANICS.conduit.formOfTheMesmer
-      .banishEnchantmentCooldown;
+    const base = MECHANICS.conduit.formOfTheMesmer.banishEnchantmentCooldown;
     const rate = context.hasBuff?.("alacrity", context.at)
       ? Number(context.config.alacrityRechargeRate || 1.25)
       : 1;
     return base / rate;
   }
   return skill?.handlerId === "revenant.release-potential" &&
-      hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
+    hasRevenantTrait(context.config, TRAIT.KINETIC_INSIGHT)
     ? duration * 0.8
     : duration;
 }
@@ -105,9 +104,10 @@ export function observeConduitTraits(
   event: RevenantSimulationEvent,
 ): void {
   if (event.type === "damage" && event.affinityOnHit === true) {
-    const skill = event.skillId == null
-      ? undefined
-      : context.catalog.skillsById.get(event.skillId);
+    const skill =
+      event.skillId == null
+        ? undefined
+        : context.catalog.skillsById.get(event.skillId);
     const cost = Number(skill?.energyCost || 0);
     context.tasks.schedule({
       id: `revenant.affinity-hit:${event.__order}`,

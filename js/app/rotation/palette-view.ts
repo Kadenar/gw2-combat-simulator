@@ -71,6 +71,18 @@ const CONCURRENT_OFFSET_MS = 100;
 
 type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: Skill[] };
 
+export function suggestedPaletteInterruptMs(
+  skill: Skill | null | undefined,
+): number {
+  const fullCastMs = Math.round(Number(skill?.castTimeMs || 0));
+  const configured = Number(skill?.paletteInterruptMs);
+  return Number.isFinite(configured) &&
+    configured >= 1 &&
+    configured < fullCastMs
+    ? Math.round(configured)
+    : Math.max(1, fullCastMs - 1);
+}
+
 function rotationItem(
   app: ProfessionAppState,
   name: string,
@@ -630,10 +642,9 @@ export function renderPalette(app: ProfessionAppState): void {
           offset: CONCURRENT_OFFSET_MS,
         });
       } else if (event.ctrlKey && !instant) {
-        const full = Math.round(Number(skill?.castTimeMs || 0));
         const raw = prompt(
           `Interrupt ${name} after how many ms?`,
-          String(Math.max(1, full - 1)),
+          String(suggestedPaletteInterruptMs(skill)),
         );
         if (raw == null || Number(raw) < 1) return;
         app.addRotation(name, {

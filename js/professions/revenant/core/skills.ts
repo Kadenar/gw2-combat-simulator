@@ -1385,8 +1385,10 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CHILLING_ISOLATION]: {
     implemented: true,
-    castTimeMs: 500,
-    quicknessCastTimeMs: 480,
+    castTimeMs: 680,
+    quicknessCastTimeMs: 680,
+    paletteInterruptMs: 480,
+    interruptCommitMs: 420,
     cooldown: 5,
     energyCost: 5,
     effects: [

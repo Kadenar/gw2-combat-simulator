@@ -32,6 +32,8 @@
  * @property {number} [ammoRecharge] Per-charge recharge duration in seconds.
  * @property {number} [defaultInterruptMs] Default interruption point in
  * milliseconds.
+ * @property {number} [paletteInterruptMs] Suggested interruption point when
+ * adding the skill through the rotation palette's interrupt action.
  * @property {number} [interruptCommitMs] Minimum interrupted-cast duration
  * required for persistent effects to resolve.
  * @property {readonly object[]} [effects] Declarative effects created by
@@ -91,9 +93,7 @@
  * @param {Definition} definition Skill metadata/mechanics to mark implemented.
  * @returns {Definition & {implemented: true}}
  */
-export const implemented = <
-  Definition extends SkillFragment,
->(
+export const implemented = <Definition extends SkillFragment>(
   definition: Definition,
 ): Definition & { implemented: true } => ({
   ...definition,

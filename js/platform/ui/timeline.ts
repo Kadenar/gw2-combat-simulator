@@ -425,6 +425,19 @@ export function bindTimelineInteractions(
         changed();
       };
     }
+    const editActivation = item.querySelector<HTMLElement>(
+      ".rot-edit-activation",
+    );
+    if (editActivation) {
+      editActivation.setAttribute("draggable", "false");
+      editActivation.onmousedown = (event) => {
+        event.stopPropagation();
+      };
+      editActivation.ondragstart = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+    }
     item.ondragstart = (event) => {
       if (!Number.isInteger(index)) {
         event.preventDefault();
@@ -504,18 +517,22 @@ export function bindTimelineInteractions(
     selector: string,
     callback: ((index: number, event?: Event) => unknown) | undefined,
   ): void => {
+    if (!callback) return;
     for (const badge of root.querySelectorAll<HTMLElement>(selector)) {
       badge.onclick = (event) => {
         event.stopPropagation();
         const index = Number(badge.dataset.idx);
         if (!Number.isInteger(index)) return;
         // Returning false means the editor cancelled and no rerender is needed.
-        if (callback?.(index, event) !== false) changed();
+        if (callback(index, event) !== false) changed();
       };
     }
   };
   bindEdit(".rot-offset-badge", options.onEditOffset);
-  bindEdit(".rot-interrupt-badge", options.onEditInterrupt);
+  bindEdit(
+    ".rot-edit-activation, .rot-interrupt-badge",
+    options.onEditActivation || options.onEditInterrupt,
+  );
   bindEdit(".rot-wait-badge", options.onEditWait);
 
   return { applyDrop, cleanup };

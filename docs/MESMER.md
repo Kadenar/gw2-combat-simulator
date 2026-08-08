@@ -66,17 +66,17 @@ per-skill rotation table.
 
 ## Catalog coverage
 
-| Area | Count |
-| --- | ---: |
-| Mesmer skills from the checked-in official API snapshot | 119 |
-| Positive-ID supplemental skills | 15 |
-| Negative-ID simulator actions | 4 |
-| Canonical catalog skills | 138 |
-| Skills with modeled strike coefficients | 78 |
-| Skills with modeled damaging conditions | 25 |
-| Core trait lines | 5 |
-| Elite specializations | 4 |
-| Total traits | 108 |
+| Area                                                    | Count |
+| ------------------------------------------------------- | ----: |
+| Mesmer skills from the checked-in official API snapshot |   119 |
+| Positive-ID supplemental skills                         |    15 |
+| Negative-ID simulator actions                           |     4 |
+| Canonical catalog skills                                |   138 |
+| Skills with modeled strike coefficients                 |    78 |
+| Skills with modeled damaging conditions                 |    25 |
+| Core trait lines                                        |     5 |
+| Elite specializations                                   |     4 |
+| Total traits                                            |   108 |
 
 The current trait lines are Domination, Dueling, Chaos, Inspiration, Illusions,
 Chronomancer, Mirage, Virtuoso, and Troubadour.
@@ -161,9 +161,9 @@ one PvE scenario rather than adding mutually exclusive values:
   non-flip utility skill, allowing each recorded Tale pair to execute without
   an artificial cooldown stall.
 
-Mesmer weapon swapping is represented by a ten-second base-recharge action.
-Using it toggles the active weapon set and immediately replaces the weapon
-skill palette. Each swap also starts a new weapon-set row in the rotation
+Mesmer weapon swapping has no recharge out of combat and a ten-second base
+recharge in combat. Using it toggles the active weapon set and immediately
+replaces the weapon-skill palette. Each swap also starts a new weapon-set row in the rotation
 timeline. Its icon is the Wiki's Weapon Swap Button asset.
 
 Shatter coefficients are resource-sensitive. Core and Chronomancer shatters
