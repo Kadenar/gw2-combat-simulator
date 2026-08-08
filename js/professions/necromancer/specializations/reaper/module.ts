@@ -15,10 +15,7 @@ import {
 } from "./rules.js";
 import { reaperState } from "./state.js";
 import { reaperUi } from "./ui.js";
-import {
-  REAPER_BASE_SKILL_MECHANICS,
-  REAPER_QUICKNESS_CAST_TIMES_MS,
-} from "./skills.js";
+import { REAPER_BASE_SKILL_MECHANICS } from "./skills.js";
 import { reaperSkillHandlers } from "./handlers.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
 
@@ -26,7 +23,6 @@ export const reaperModule = defineNativeModule({
   id: "Reaper",
   data: createNecromancerModuleData("Reaper", {
     skillMechanics: REAPER_BASE_SKILL_MECHANICS,
-    quicknessCastTimes: REAPER_QUICKNESS_CAST_TIMES_MS,
     handlers: reaperSkillHandlers,
     autoattackChains: {
       additional: [[ID.LIFE_REND, ID.LIFE_SLASH, ID.LIFE_REAP]],

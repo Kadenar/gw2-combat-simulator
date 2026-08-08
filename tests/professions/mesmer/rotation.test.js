@@ -1839,8 +1839,15 @@ test('power Troubadour benchmark preset preserves the supplied build and log', (
 
     const result = simulateMesmer(build.rotation, simulationConfig(app));
     const count = name => result.steps.filter(step => step.skill === name).length;
+    const damageEvents = name => result.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === name);
+    const totalDamage = events => events.reduce(
+        (total, event) => total + event.damage,
+        0,
+    );
+    const swordsman = damageEvents('Phantasmal Swordsman');
     assert.deepEqual(result.warnings, []);
-    assert.equal(Math.round(result.dps), 41137);
+    assert.equal(Math.round(result.dps), 42443);
     assert.equal(count('Lively Lute'), 9);
     assert.equal(count('Flustering Flute'), 6);
     assert.equal(count('Deafening Drum'), 5);
@@ -1850,6 +1857,23 @@ test('power Troubadour benchmark preset preserves the supplied build and log', (
     assert.equal(count('Mimic'), 3);
     assert.equal(count('Power Spike'), 11);
     assert.equal(count('Swap Weapons'), 8);
+    const syncopate = damageEvents('Syncopate');
+    assert.equal(syncopate.length, 41);
+    assert.equal(syncopate.filter(event =>
+        event.name === 'Syncopate').length, 36);
+    assert.equal(syncopate.filter(event =>
+        event.name === 'Syncopate — delayed wave').length, 5);
+    assert.equal(damageEvents('Relic of the Shackles').length, 8);
+    assert.equal(
+        Math.round(totalDamage(swordsman.filter(event =>
+            event.source === 'Player'))),
+        40448,
+    );
+    assert.equal(
+        Math.round(totalDamage(swordsman.filter(event =>
+            event.source === 'Phantasm'))),
+        260321,
+    );
 });
 
 test('Chaos Armor applies three base confusion plus two from Ineptitude', () => {
@@ -4615,10 +4639,10 @@ test('Troubadour benchmark instruments use measured packets and normalized stren
         'nonweapon.profession-mechanic',
     );
     assert.deepEqual(syncopate.map(event => event.at), [0.518, 3.518, 3.518]);
-    assert.deepEqual(syncopate.map(event => event.coefficient), [0.75, 0.75, 0.75]);
+    assert.deepEqual(syncopate.map(event => event.coefficient), [0.75, 1, 0.75]);
     assert.deepEqual(syncopate.map(event => event.weaponStrengthProfileId), [
         'nonweapon.unequipped',
-        'nonweapon.profession-mechanic',
+        'nonweapon.unequipped',
         'nonweapon.unequipped',
     ]);
 });
@@ -5129,6 +5153,61 @@ test('Clarity makes only an empowered Mental Collapse a control skill', () => {
     assert.equal(hasMentalCollapseControl(empowered), true);
     assert.equal(hasMentalCollapseControl(activeNearExpiry), true);
     assert.equal(hasMentalCollapseControl(expired), false);
+});
+
+test('Shackles converts Lancer immobilize into a stun that triggers Syncopate', () => {
+    const result = simulateMesmer(
+        [
+            'Mind the Gap',
+            'Phantasmal Lancer',
+            { name: '__wait', waitMs: 6100 },
+        ],
+        defaultSimulationConfig({
+            specialization: 'Troubadour',
+            primaryWeapon: 'Spear',
+            secondaryWeapon: '',
+            initialResource: 0,
+            selectedTraits: ['Syncopate'],
+            relic: 'Shackles',
+        }),
+    );
+    const lancerConditions = result.resolvedEvents.filter(event =>
+        event.type === 'condition'
+        && event.skillName === 'Phantasmal Lancer'
+        && ['Crippled', 'Immobilized'].includes(event.condition));
+    const syncopate = result.resolvedEvents.filter(event =>
+        event.type === 'damage' && event.skillName === 'Syncopate');
+    const shackles = result.resolvedEvents.filter(event =>
+        event.type === 'damage'
+        && event.skillName === 'Relic of the Shackles');
+    const shacklesStuns = result.events.filter(event =>
+        event.type === 'control'
+        && event.skillName === 'Relic of the Shackles');
+
+    assert.deepEqual(
+        lancerConditions.map(event => [
+            event.condition,
+            event.duration,
+            event.source,
+            event.actorType,
+        ]),
+        [
+            ['Crippled', 3, 'Phantasm', 'summon'],
+            ['Immobilized', 2, 'Phantasm', 'summon'],
+        ],
+    );
+    assert.equal(shackles.length, 1);
+    assert.equal(shackles[0].at, lancerConditions[1].at + 5);
+    assert.deepEqual(
+        shacklesStuns.map(event => [
+            event.at,
+            event.controlKind,
+            event.duration,
+        ]),
+        [[lancerConditions[1].at + 5, 'stun', 1]],
+    );
+    assert.equal(syncopate.length, 1);
+    assert.equal(syncopate[0].at, shacklesStuns[0].at);
 });
 
 test('Signet of the Ether does not generate a clone', () => {

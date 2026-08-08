@@ -30,7 +30,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PRESERVATION]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 720,
+    quicknessCastTimeMs: 480,
     effects: [],
     type: "Profession",
     slot: "Weapon_4",
@@ -48,6 +49,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   [ID.NIGHTMARE_WEAPON]: {
     implemented: true,
     castTimeMs: 360,
+    quicknessCastTimeMs: 240,
     effects: [],
     handlerId: "necromancer.weapon-spell",
   },
@@ -65,7 +67,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ANGUISH]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 840,
+    quicknessCastTimeMs: 560,
     effects: [],
     type: "Profession",
     slot: "Weapon_2",
@@ -96,7 +99,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WANDERLUST]: {
     implemented: true,
-    castTimeMs: 1000,
+    castTimeMs: 1140,
+    quicknessCastTimeMs: 760,
     effects: [],
     type: "Profession",
     slot: "Weapon_3",
@@ -108,6 +112,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   [ID.SPLINTER_WEAPON]: {
     implemented: true,
     castTimeMs: 360,
+    quicknessCastTimeMs: 240,
     effects: [],
     handlerId: "necromancer.weapon-spell",
   },
@@ -124,7 +129,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ESSENCE_BLAST]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 900,
+    quicknessCastTimeMs: 600,
     effects: [],
     type: "Profession",
     slot: "Weapon_1",
@@ -147,15 +153,4 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
     effects: [],
     handlerId: "necromancer.weapon-spell",
   },
-});
-
-export const RITUALIST_QUICKNESS_CAST_TIMES_MS: Readonly<
-  Record<string, number>
-> = Object.freeze({
-  [ID.NIGHTMARE_WEAPON]: 240,
-  [ID.SPLINTER_WEAPON]: 240,
-  [ID.ANGUISH]: 560,
-  [ID.WANDERLUST]: 760,
-  [ID.PRESERVATION]: 480,
-  [ID.ESSENCE_BLAST]: 600,
 });

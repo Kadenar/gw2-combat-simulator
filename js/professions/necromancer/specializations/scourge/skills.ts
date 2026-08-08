@@ -169,7 +169,8 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MANIFEST_SAND_SHADE]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 720,
+    quicknessCastTimeMs: 480,
     effects: [],
     cooldown: 15,
     ammo: 3,
@@ -186,10 +187,4 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<
     handlerId: "necromancer.shade",
     flipParentId: null,
   },
-});
-
-export const SCOURGE_QUICKNESS_CAST_TIMES_MS: Readonly<
-  Record<string, number>
-> = Object.freeze({
-  [ID.MANIFEST_SAND_SHADE]: 480,
 });

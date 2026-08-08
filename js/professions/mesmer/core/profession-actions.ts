@@ -524,7 +524,7 @@ export function createProfessionActionController({
     }
     if (data.instrument === "Drum" && traits.has(TRAIT.SYNCOPATE)) {
       const delayedAt = damageAt + 3;
-      const delayedWave = traitDamage.Syncopate;
+      const delayedWave = traitDamage.SyncopateDelayedWave;
       addDamage(
         {
           id: "Syncopate delayed wave",
@@ -538,7 +538,7 @@ export function createProfessionActionController({
           hits: delayedWave.hits,
           source,
           actorType,
-          weaponStrengthProfileId: "nonweapon.profession-mechanic",
+          weaponStrengthProfileId: "nonweapon.unequipped",
         },
         {
           source,
@@ -552,7 +552,8 @@ export function createProfessionActionController({
         type: "control",
         at: delayedAt,
         skillId: skill.id,
-        skillName: "Syncopate",
+        skillName: "Syncopate — delayed wave",
+        controlKind: "daze",
         source,
         sourceId: TRAIT.SYNCOPATE,
         actorType,

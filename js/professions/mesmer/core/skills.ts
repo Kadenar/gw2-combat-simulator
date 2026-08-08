@@ -1958,6 +1958,20 @@ export const MESMER_CORE_SKILL_MECHANICS: Readonly<
         actorType: "phantasm",
         weapon: "spear",
       },
+      {
+        type: "condition",
+        condition: "Crippled",
+        duration: 3,
+        actorType: "phantasm",
+        phantasmEntityIndex: 0,
+      },
+      {
+        type: "condition",
+        condition: "Immobilized",
+        duration: 2,
+        actorType: "phantasm",
+        phantasmEntityIndex: 1,
+      },
     ],
     phantasm: true,
     resource: {

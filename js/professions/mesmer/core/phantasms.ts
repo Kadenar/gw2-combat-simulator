@@ -415,7 +415,18 @@ export function createPhantasmEffectController({
     execution: MesmerPhantasmExecution,
     conditions: readonly MesmerConditionEffect[],
   ): void => {
-    for (const effect of conditions) {
+    const entityConditions = conditions.filter(
+      (effect) =>
+        effect.phantasmEntityIndex == null ||
+        effect.phantasmEntityIndex === execution.entityIndex,
+    );
+    const conditionEventExtra = {
+      source: "Phantasm",
+      sourceId: execution.skill.id,
+      skillId: execution.skill.id,
+      actorType: "summon" as const,
+    };
+    for (const effect of entityConditions) {
       const condition = { ...effect, name: effect.condition };
       const conditionTicks = condition.packetLabel
         ? execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[
@@ -442,19 +453,21 @@ export function createPhantasmEffectController({
           })),
           timingAnchor: "castStart",
           timingScale: "fixed",
-        }, "Phantasm");
+        }, "Phantasm", "", conditionEventExtra);
       } else {
         addCondition(
           execution.skill.name,
           execution.damageAt,
           condition,
           "Phantasm",
+          "",
+          conditionEventExtra,
         );
       }
     }
-    if (!execution.hasChronophantasma || conditions.length === 0) return;
+    if (!execution.hasChronophantasma || entityConditions.length === 0) return;
     const repeatOffset = execution.repeatDamageAt - execution.damageAt;
-    for (const effect of conditions) {
+    for (const effect of entityConditions) {
       const condition = { ...effect, name: effect.condition };
       const initialConditionTicks =
         condition.packetLabel
@@ -495,7 +508,8 @@ export function createPhantasmEffectController({
           })),
           timingAnchor: "castStart",
           timingScale: "fixed",
-        }, "Phantasm", `${execution.skill.name} - Chronophantasma`);
+        }, "Phantasm", `${execution.skill.name} - Chronophantasma`,
+        conditionEventExtra);
       } else {
         addCondition(
           execution.skill.name,
@@ -503,6 +517,7 @@ export function createPhantasmEffectController({
           condition,
           "Phantasm",
           `${execution.skill.name} - Chronophantasma`,
+          conditionEventExtra,
         );
       }
     }

@@ -8,14 +8,13 @@ import {
 import { ritualistAttributeRules } from "./rules.js";
 import { ritualistState } from "./state.js";
 import { ritualistUi } from "./ui.js";
-import { RITUALIST_BASE_SKILL_MECHANICS, RITUALIST_QUICKNESS_CAST_TIMES_MS } from "./skills.js";
+import { RITUALIST_BASE_SKILL_MECHANICS } from "./skills.js";
 import { ritualistSkillHandlers } from "./handlers.js";
 
 export const ritualistModule = defineNativeModule({
   id: "Ritualist",
   data: createNecromancerModuleData("Ritualist", {
     skillMechanics: RITUALIST_BASE_SKILL_MECHANICS,
-    quicknessCastTimes: RITUALIST_QUICKNESS_CAST_TIMES_MS,
     handlers: ritualistSkillHandlers,
   }),
   state: { scheduler: ritualistState.create, resolver: ritualistState.create },

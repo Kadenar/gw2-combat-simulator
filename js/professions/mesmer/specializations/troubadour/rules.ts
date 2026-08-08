@@ -1,7 +1,10 @@
 import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import { timedActive } from "../../core/attribute-rules.js";
+import {
+  illusionSource,
+  timedActive,
+} from "../../core/attribute-rules.js";
 import { initializeTroubadourRuntime } from "./runtime.js";
 import type { SimulationEvent } from "../../../../platform/engine/types.js";
 import type {
@@ -96,14 +99,18 @@ export const troubadourModifierRules: readonly Gw2ModifierRule[] =
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: "damage-additive",
       amount: 0.15,
-      when: (context) => hasTrait(context, TRAIT.SHREDDING) && hasLute(context),
+      when: (context) =>
+        hasTrait(context, TRAIT.SHREDDING) &&
+        hasLute(context) &&
+        !illusionSource(context),
     },
     {
       id: "mesmer.altered-chord",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
       amount: 0.25,
-      when: (context) => timedActive(context, "altered-chord"),
+      when: (context) =>
+        timedActive(context, "altered-chord") && !illusionSource(context),
     },
   ]);
 

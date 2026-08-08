@@ -974,6 +974,34 @@ export function observeMesmerEvent(
 ): void {
   const runtime = context.mesmerRuntime;
   if (!runtime) return;
+  const triggerSyncopate = (skillName: string): void => {
+    if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
+    const damage = runtime.traitDamage.Syncopate;
+    if (!damage) return;
+    runtime.addDamage(
+      {
+        id: "Syncopate",
+        name: "Syncopate",
+        weapon: "Utility",
+        blade: false,
+      },
+      event.at,
+      {
+        coefficient: damage.coefficient,
+        hits: damage.hits,
+        source: "Player",
+        actorType: "player",
+        weapon: "utility",
+        weaponStrengthProfileId: "nonweapon.unequipped",
+      },
+      {
+        source: "Player",
+        sourceId: TRAIT.SYNCOPATE,
+        actorType: "player",
+      },
+    );
+    runtime.addTraitProc("Syncopate", event.at, skillName);
+  };
   if (event.type === "control") {
     const skillId = Number(event.skillId);
     const skillName = String(event.skillName || event.name || "Control effect");
@@ -991,34 +1019,7 @@ export function observeMesmerEvent(
       });
       runtime.addTraitProc("Danger Time", event.at, skillName);
     }
-    if (runtime.traits.has(TRAIT.SYNCOPATE)) {
-      const damage = runtime.traitDamage.Syncopate;
-      if (damage) {
-        runtime.addDamage(
-          {
-            id: "Syncopate",
-            name: "Syncopate",
-            weapon: "Utility",
-            blade: false,
-          },
-          event.at,
-          {
-            coefficient: damage.coefficient,
-            hits: damage.hits,
-            source: "Player",
-            actorType: "player",
-            weapon: "utility",
-            weaponStrengthProfileId: "nonweapon.unequipped",
-          },
-          {
-            source: "Player",
-            sourceId: TRAIT.SYNCOPATE,
-            actorType: "player",
-          },
-        );
-        runtime.addTraitProc("Syncopate", event.at, skillName);
-      }
-    }
+    triggerSyncopate(skillName);
     if (runtime.traits.has(TRAIT.DAZZLING)) {
       runtime.addEvent({
         type: "weakness_vulnerability",

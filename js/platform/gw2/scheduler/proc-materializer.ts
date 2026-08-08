@@ -8,6 +8,7 @@ import { createGw2CombatQuery, selectedGw2TraitValues } from "../query.js";
 import {
   handleWeaknessVulnerabilityRelic,
   materializeBoonRelics,
+  materializeConditionRelics,
   relicConditionDurationBonus,
 } from "../relic-rules.js";
 import type {
@@ -102,6 +103,9 @@ export function createGw2TriggerMaterializer(
     switch (event.type) {
       case "buff":
         materializeBoonRelics(context, state.relic, event);
+        break;
+      case "condition":
+        materializeConditionRelics(context, state.relic, event);
         break;
       case "damage": {
         if (!state.combatActive) break;

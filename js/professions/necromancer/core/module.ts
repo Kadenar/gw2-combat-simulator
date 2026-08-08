@@ -24,7 +24,6 @@ import { bindNecromancerCoreUi } from "./ui.js";
 import {
   NECROMANCER_CORE_BASE_SKILL_MECHANICS,
   NECROMANCER_CORE_EXTRA_SKILLS,
-  NECROMANCER_CORE_QUICKNESS_CAST_TIMES_MS,
 } from "./skills.js";
 import { necromancerCoreSkillHandlers } from "./handlers.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../data/ids.js";
@@ -35,7 +34,6 @@ export const necromancerCoreModule =
   id: "Core",
   data: createNecromancerModuleData("Core", {
     skillMechanics: NECROMANCER_CORE_BASE_SKILL_MECHANICS,
-    quicknessCastTimes: NECROMANCER_CORE_QUICKNESS_CAST_TIMES_MS,
     extraSkills: NECROMANCER_CORE_EXTRA_SKILLS,
     handlers: necromancerCoreSkillHandlers,
     autoattackChains: {

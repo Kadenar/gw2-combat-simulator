@@ -19,14 +19,16 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ELIXIR_OF_RISK]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 810,
+    quicknessCastTimeMs: 540,
     effects: [],
     cooldown: 20,
     handlerId: "necromancer.elixir",
   },
   [ID.VORACIOUS_ARC]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 1260,
+    quicknessCastTimeMs: 840,
     effects: [],
     type: "Profession",
     slot: "Weapon_4",
@@ -45,7 +47,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.VITAL_DRAW]: {
     implemented: true,
-    castTimeMs: 1000,
+    castTimeMs: 1200,
+    quicknessCastTimeMs: 800,
     effects: [
       {
         type: "strike",
@@ -91,7 +94,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   [ID.TAINTED_BOLTS]: {
     implemented: true,
     dhuumfireDuration: 1,
-    castTimeMs: 500,
+    castTimeMs: 900,
+    quicknessCastTimeMs: 600,
     effects: [
       {
         type: "strike",
@@ -130,7 +134,8 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DARK_BARRAGE]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 1380,
+    quicknessCastTimeMs: 920,
     effects: [
       {
         type: "strike",
@@ -174,25 +179,29 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ELIXIR_OF_AMBITION]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 1020,
+    quicknessCastTimeMs: 680,
     effects: [],
     handlerId: "necromancer.elixir",
   },
   [ID.ELIXIR_OF_ANGUISH]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 1020,
+    quicknessCastTimeMs: 680,
     effects: [],
     handlerId: "necromancer.elixir",
   },
   [ID.ELIXIR_OF_PROMISE]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 1020,
+    quicknessCastTimeMs: 680,
     effects: [],
     handlerId: "necromancer.elixir",
   },
   [ID.DEVOURING_CUT]: {
     implemented: true,
-    castTimeMs: 1000,
+    castTimeMs: 720,
+    quicknessCastTimeMs: 480,
     effects: [],
     type: "Profession",
     slot: "Weapon_3",
@@ -201,18 +210,4 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
     specialization: "Harbinger",
     handlerId: "necromancer.blight-skill",
   },
-});
-
-export const HARBINGER_QUICKNESS_CAST_TIMES_MS: Readonly<
-  Record<string, number>
-> = Object.freeze({
-  [ID.ELIXIR_OF_PROMISE]: 680,
-  [ID.ELIXIR_OF_ANGUISH]: 680,
-  [ID.DARK_BARRAGE]: 920,
-  [ID.VORACIOUS_ARC]: 840,
-  [ID.DEVOURING_CUT]: 480,
-  [ID.TAINTED_BOLTS]: 600,
-  [ID.ELIXIR_OF_RISK]: 540,
-  [ID.VITAL_DRAW]: 800,
-  [ID.ELIXIR_OF_AMBITION]: 680,
 });
