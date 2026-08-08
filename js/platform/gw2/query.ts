@@ -16,7 +16,7 @@ import {
 import { sigilCriticalContribution } from "./sigil-rules.js";
 import {
   canonicalTargetConditionName,
-  permanentTargetConditionStacks,
+  createPermanentTargetConditionStacks,
   runtimeTargetConditionStacks,
 } from "./target-state.js";
 import { createGw2TimelineIndex } from "./timeline-index.js";
@@ -117,6 +117,8 @@ export function createGw2CombatQuery<
     throw new TypeError("GW2 combat query requires a profession.");
   }
   const activeProfession = profession;
+  const configuredTargetConditionStacks =
+    createPermanentTargetConditionStacks(config);
   const timeline = createGw2TimelineIndex({ config, events });
   const historicalRelicContext = Object.freeze({
     relic: createRelicTimelineRuntime(config.relic, events),
@@ -191,13 +193,7 @@ export function createGw2CombatQuery<
     fallbackDuration = 0,
   ): number =>
     runtimeBuffStacks(runtime, kind, time, maximum, audience) ??
-    timeline.buffStacksAt(
-      kind,
-      time,
-      fallbackDuration,
-      maximum,
-      audience,
-    );
+    timeline.buffStacksAt(kind, time, fallbackDuration, maximum, audience);
   /**
    * Player-configured permanent boons do not apply to ordinary summons.
    * Explicitly inherited companion profiles retain their existing behavior.
@@ -227,22 +223,9 @@ export function createGw2CombatQuery<
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
     const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
     if (isolatedSummon && config.sharePlayerBoonsWithSummons === false) {
-      return dynamicBoonStacksAt(
-        kind,
-        time,
-        maximum,
-        runtime,
-        "summon-trait",
-      );
+      return dynamicBoonStacksAt(kind, time, maximum, runtime, "summon-trait");
     }
-    const dynamic = dynamicBoonStacksAt(
-      kind,
-      time,
-      maximum,
-      runtime,
-      "all",
-      1,
-    );
+    const dynamic = dynamicBoonStacksAt(kind, time, maximum, runtime, "all", 1);
     return clamp(configured + dynamic, 0, maximum);
   };
   /**
@@ -286,15 +269,7 @@ export function createGw2CombatQuery<
       );
     }
     if (isolatedSummon && config.sharePlayerBoonsWithSummons === false) {
-      return (
-        dynamicBoonStacksAt(
-          "fury",
-          time,
-          1,
-          runtime,
-          "summon-trait",
-        ) > 0
-      );
+      return dynamicBoonStacksAt("fury", time, 1, runtime, "summon-trait") > 0;
     }
     return dynamicBoonStacksAt("fury", time, 1, runtime) > 0;
   };
@@ -310,9 +285,7 @@ export function createGw2CombatQuery<
       time,
       25,
       runtime,
-      config.sharePlayerBoonsWithSummons === false
-        ? "summon-trait"
-        : "summon",
+      config.sharePlayerBoonsWithSummons === false ? "summon-trait" : "summon",
     );
   /**
    * @param {number} time
@@ -323,7 +296,7 @@ export function createGw2CombatQuery<
     runtime: Gw2QueryRuntime | null | undefined,
   ): number =>
     clamp(
-      permanentTargetConditionStacks(config, "Vulnerability") +
+      configuredTargetConditionStacks("Vulnerability") +
         runtimeTargetConditionStacks(runtime, "Vulnerability", time) +
         dynamicBoonStacksAt(
           "target-vulnerability",
@@ -347,7 +320,7 @@ export function createGw2CombatQuery<
     runtime: Gw2QueryRuntime | null = null,
   ): number => {
     const name = canonicalTargetConditionName(condition);
-    const permanent = permanentTargetConditionStacks(config, name);
+    const permanent = configuredTargetConditionStacks(name);
     const runtimeStacks = runtimeTargetConditionStacks(runtime, name, time);
     if (name === "Vulnerability") {
       return vulnerabilityStacksAt(time, runtime);
@@ -420,8 +393,7 @@ export function createGw2CombatQuery<
         ...stats,
         power:
           Number(event.summonBasePower) +
-          summonMightStacksAt(time, runtime) *
-            MIGHT_ATTRIBUTE_BONUS_PER_STACK,
+          summonMightStacksAt(time, runtime) * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
         precision: 1000,
         ferocity: 0,
       };

@@ -60,6 +60,17 @@ export function canonicalTargetConditionName(value: unknown): string {
   );
 }
 
+function normalizeTargetConditions(
+  conditions: Readonly<Record<string, number | boolean>>,
+): ReadonlyMap<string, number | boolean> {
+  const normalized = new Map<string, number | boolean>();
+  for (const [condition, value] of Object.entries(conditions)) {
+    const name = canonicalTargetConditionName(condition);
+    if (!normalized.has(name)) normalized.set(name, value);
+  }
+  return normalized;
+}
+
 /**
  * Resolves condition value from config, checking legacy fields first,
  * then modern conditions object with case-insensitive matching.
@@ -71,6 +82,7 @@ export function canonicalTargetConditionName(value: unknown): string {
 function configuredConditionValue(
   config: Gw2Config,
   name: string,
+  normalizedConditions: ReadonlyMap<string, number | boolean> | null = null,
 ): number | boolean {
   const canonicalName = canonicalTargetConditionName(name);
   const legacyField = LEGACY_TARGET_FIELDS[canonicalName];
@@ -82,12 +94,28 @@ function configuredConditionValue(
   if (Object.hasOwn(conditions, canonicalName)) {
     return conditions[canonicalName];
   }
+  if (normalizedConditions) {
+    return normalizedConditions.get(canonicalName) ?? 0;
+  }
   const entry = Object.entries(conditions).find(
     ([condition]) => canonicalTargetConditionName(condition) === canonicalName,
   );
   if (entry) return entry[1];
 
   return 0;
+}
+
+export function createPermanentTargetConditionStacks(
+  config: Gw2Config,
+): (name: string) => number {
+  const normalizedConditions = normalizeTargetConditions(
+    config.target?.conditions || {},
+  );
+  return (name: string): number => {
+    const value = configuredConditionValue(config, name, normalizedConditions);
+    if (value === true) return 1;
+    return Math.max(0, Number(value) || 0);
+  };
 }
 
 /**

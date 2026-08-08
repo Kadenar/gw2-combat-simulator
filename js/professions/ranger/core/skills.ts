@@ -1,0 +1,3261 @@
+/** Explicit PvE skill mechanics owned by the Core Ranger module. */
+import { RANGER_SKILL_IDS as ID } from "../data/ids.js";
+import type { Skill, SkillFragment } from "../../../platform/engine/types.js";
+
+export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
+  Record<number, SkillFragment>
+> = Object.freeze({
+  [ID.RICOCHET]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.9,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "might",
+        duration: 5,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.POISON_VOLLEY]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.5,
+        hits: 5,
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 5,
+        duration: 5,
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 5,
+        duration: 7,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.BARRAGE]: {
+    implemented: true,
+    castTimeMs: 2250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 6,
+        hits: 12,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 12,
+        duration: 1,
+      },
+    ],
+    quicknessCastTimeMs: 1500,
+  },
+  [ID.CROSSFIRE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 1,
+        duration: 3,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 1,
+        duration: 2,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SLASH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.9,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.CRIPPLING_THRUST]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.9,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 2,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.PRECISION_SWIPE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.4,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "might",
+        duration: 10,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.SLASH_ID_12474]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.88,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.HILT_BASH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.5,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        coefficient: 2.5,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SPIKE_TRAP]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.2,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 6,
+        duration: 6,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.CRIPPLING_TALON]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.9,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 3,
+        duration: 6,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 4,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.STALKERS_STRIKE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.6,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 3,
+        duration: 8,
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 2,
+        duration: 8,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SPLITBLADE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.5,
+        hits: 5,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 5,
+        duration: 6,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.SERPENTS_STRIKE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 3,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 3,
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 6,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.TROLL_UNGUENT]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.SLICE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.1,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.ENDURING_SWING]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.76,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.HEALING_SPRING]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "regeneration",
+        duration: 3,
+        stacks: 6,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.WINTERS_BITE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.8,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 3,
+        duration: 12,
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 4,
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 10,
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 4,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SIGNET_OF_THE_WILD]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 4,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.FROST_TRAP]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 2,
+      },
+      {
+        type: "strike",
+        coefficient: 5,
+        hits: 5,
+      },
+      {
+        type: "strike",
+        coefficient: 2.5,
+        hits: 5,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.STORM_SPIRIT]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 10,
+        duration: 10,
+      },
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 2,
+        stacks: 4,
+      },
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 2,
+        stacks: 4,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.LIGHTNING_REFLEXES]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "vigor",
+        duration: 10,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.STONE_SPIRIT]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "boon",
+        boon: "aegis",
+        duration: 5,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 2,
+        stacks: 4,
+      },
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 2,
+        stacks: 4,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.VIPERS_NEST]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8999999999999999,
+        hits: 3,
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 2,
+        duration: 8,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.FROST_SPIRIT]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "boon",
+        boon: "resistance",
+        duration: 4,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "resolution",
+        duration: 2,
+        stacks: 4,
+      },
+      {
+        type: "boon",
+        boon: "resolution",
+        duration: 2,
+        stacks: 4,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.SUN_SPIRIT]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "boon",
+        boon: "might",
+        duration: 15,
+        stacks: 8,
+      },
+      {
+        type: "boon",
+        boon: "might",
+        duration: 8,
+        stacks: 8,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.FLAME_TRAP]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.3,
+        hits: 1,
+        name: "Flame Trap - Damage per Pulse",
+      },
+      {
+        type: "condition",
+        condition: "Burning",
+        stacks: 1,
+        duration: 3,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SIGNET_OF_STONE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.MUDDY_TERRAIN]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 2,
+      },
+      {
+        type: "condition",
+        condition: "Slow",
+        stacks: 1,
+        duration: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.SIGNET_OF_RENEWAL]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "resistance",
+        duration: 3,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "resolution",
+        duration: 3,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.BONFIRE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.9,
+        hits: 9,
+      },
+      {
+        type: "condition",
+        condition: "Burning",
+        stacks: 3,
+        duration: 5,
+      },
+      {
+        type: "condition",
+        condition: "Burning",
+        stacks: 8,
+        duration: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.CRIPPLING_SHOT]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 1,
+        duration: 15,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 4,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.CONCUSSION_SHOT]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.4,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.RAPID_FIRE]: {
+    implemented: true,
+    castTimeMs: 2500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 6,
+        hits: 10,
+      },
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 10,
+        duration: 10,
+      },
+    ],
+    quicknessCastTimeMs: 1667,
+  },
+  [ID.LONG_RANGE_SHOT]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.5,
+        hits: 1,
+        name: "Long Range Shot - Maximum Damage",
+      },
+      {
+        type: "strike",
+        coefficient: 1.33,
+        hits: 1,
+        name: "Long Range Shot - Minimum Damage",
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.POINT_BLANK_SHOT]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.STRENGTH_OF_THE_PACK]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 12,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "stability",
+        duration: 8,
+        stacks: 10,
+      },
+      {
+        type: "boon",
+        boon: "stability",
+        duration: 6,
+        stacks: 10,
+      },
+      {
+        type: "boon",
+        boon: "swiftness",
+        duration: 12,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "might",
+        duration: 10,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 667,
+  },
+  [ID.QUICK_SHOT]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "swiftness",
+        duration: 9,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.SWOOP]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.4,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.COUNTERATTACK]: {
+    implemented: true,
+    castTimeMs: 3000,
+    effects: [],
+    quicknessCastTimeMs: 2000,
+  },
+  [ID.COUNTERATTACK_KICK]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.5,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        coefficient: 2.5,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.MAUL]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.2,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        coefficient: 2.2,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 5,
+        duration: 8,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SHARPENING_STONE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 1,
+        duration: 8,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SIGNET_OF_THE_HUNT]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.QUICKENING_ZEPHYR]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "quickness",
+        duration: 6,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SPIRIT_OF_NATURE]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "boon",
+        boon: "regeneration",
+        duration: 3,
+        stacks: 4,
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+  },
+  [ID.HUNTERS_SHOT]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.4,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "swiftness",
+        duration: 10,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.ENTANGLE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 4,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 5,
+        duration: 8,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.SOLAR_FLARE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "condition",
+        condition: "Burning",
+        stacks: 3,
+        duration: 6,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.CALL_LIGHTNING]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.QUAKE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 6,
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 6,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.COLD_SNAP]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.NATURES_RENEWAL]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.HUNTERS_CALL]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.4,
+        hits: 16,
+      },
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 16,
+        duration: 5,
+      },
+    ],
+    quicknessCastTimeMs: 667,
+  },
+  [ID.CALL_OF_THE_WILD]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 12,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 6,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "might",
+        duration: 12,
+        stacks: 6,
+      },
+      {
+        type: "boon",
+        boon: "swiftness",
+        duration: 12,
+        stacks: 1,
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 5,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.PROTECT_ME]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 4,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.GUARD]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "might",
+        duration: 10,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.SIC_EM]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.THROW_TORCH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.666,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Burning",
+        stacks: 1,
+        duration: 10,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.PATH_OF_SCARS]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.2,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.WHIRLING_DEFENSE]: {
+    implemented: true,
+    castTimeMs: 3250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 7.92,
+        hits: 12,
+      },
+      {
+        type: "boon",
+        boon: "resolution",
+        duration: 4,
+        stacks: 1,
+      },
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 12,
+        duration: 10,
+      },
+    ],
+    quicknessCastTimeMs: 2167,
+  },
+  [ID.WATER_SPIRIT]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "boon",
+        boon: "vigor",
+        duration: 2,
+        stacks: 4,
+      },
+      {
+        type: "boon",
+        boon: "vigor",
+        duration: 1,
+        stacks: 4,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.AQUA_SURGE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.SUBLIME_CONVERSION]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "regeneration",
+        duration: 5,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.ANCESTRAL_GRACE]: {
+    implemented: true,
+    castTimeMs: 1250,
+    effects: [
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 3,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 833,
+  },
+  [ID.VINE_SURGE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.SOLAR_BEAM]: {
+    implemented: true,
+    castTimeMs: 1250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.3,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 833,
+  },
+  [ID.ASTRAL_WISP]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.WE_HEAL_AS_ONE]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "boon",
+        boon: "aegis",
+        duration: 5,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "alacrity",
+        duration: 3,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 3,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "might",
+        duration: 10,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "might",
+        duration: 5,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 2,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "quickness",
+        duration: 2,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "regeneration",
+        duration: 5,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "regeneration",
+        duration: 3,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "resistance",
+        duration: 2,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "resolution",
+        duration: 5,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "stability",
+        duration: 3,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "swiftness",
+        duration: 3,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "vigor",
+        duration: 3,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 667,
+  },
+  [ID.SEARCH_AND_RESCUE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "regeneration",
+        duration: 8,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.LEADING_SWIPE]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 1,
+        duration: 4,
+      },
+      {
+        type: "strike",
+        coefficient: 0.42,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.SERPENT_STAB]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 4,
+      },
+      {
+        type: "strike",
+        coefficient: 0.44,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.DOUBLE_ARC]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 6,
+        duration: 6,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 4,
+        duration: 6,
+      },
+      {
+        type: "strike",
+        coefficient: 1.6,
+        hits: 2,
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 6,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.DEADLY_DELIVERY]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 1,
+        duration: 4,
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 1,
+        duration: 4,
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 4,
+      },
+      {
+        type: "strike",
+        coefficient: 0.88,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.GROUNDWORK_GOUGE]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 1,
+        duration: 4,
+      },
+      {
+        type: "strike",
+        coefficient: 0.4,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.INSTINCTIVE_ENGAGE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "quickness",
+        duration: 3,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "quickness",
+        duration: 2,
+        stacks: 1,
+      },
+      {
+        type: "condition",
+        condition: "Slow",
+        stacks: 1,
+        duration: 3,
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 4,
+        duration: 8,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.MAUL_ID_46629]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.2,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 5,
+        duration: 8,
+      },
+      {
+        type: "strike",
+        coefficient: 2.2,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.HAMMER_STRIKE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.UNLEASHED_OVERBEARING_SMASH]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.75,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        coefficient: 1.5,
+        hits: 1,
+        name: "Unleashed Overbearing Smash - Follow-Up Damage",
+      },
+      {
+        type: "strike",
+        coefficient: 1.3,
+        hits: 1,
+        name: "Unleashed Overbearing Smash - Follow-Up Damage",
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.UNLEASHED_THUMP]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.3,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "might",
+        duration: 6,
+        stacks: 6,
+      },
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 6,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "might",
+        duration: 6,
+        stacks: 1,
+      },
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 1,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.HAMMER_SLAM]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.UNLEASHED_WILD_SWING]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.HEAVY_SMASH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.4,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.WILD_SWING]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.5,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 5,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.POUNCE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "vigor",
+        duration: 3,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.THUMP]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.25,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.OVERBEARING_SMASH]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.4,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 1,
+        name: "Overbearing Smash - Follow-Up Damage",
+      },
+    ],
+    quicknessCastTimeMs: 167,
+  },
+  [ID.SAVAGE_SHOCK_WAVE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 3,
+        stacks: 1,
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 4,
+      },
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 8,
+        duration: 6,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.WILD_STRIKES]: {
+    implemented: true,
+    castTimeMs: 1750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.85,
+        hits: 1,
+      },
+      {
+        type: "strike",
+        coefficient: 1.7,
+        hits: 1,
+        name: "Wild Strikes - Final Slam Damage",
+      },
+    ],
+    quicknessCastTimeMs: 1167,
+  },
+  [ID.CULTIVATE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.4,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "vigor",
+        duration: 3,
+        stacks: 1,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 2,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.THISTLEGUARD]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.2,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "stability",
+        duration: 1,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.OAKEN_CUDGEL]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 4,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.FLOURISH]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.85,
+        hits: 1,
+        name: "Flourish - Initial Damage",
+      },
+      {
+        type: "strike",
+        coefficient: 1.275,
+        hits: 1,
+        name: "Flourish - Delayed Damage",
+      },
+      {
+        type: "boon",
+        boon: "regeneration",
+        duration: 4,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.BURGEON]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.1,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.GERMINATE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.9,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.DRAKES_SWIPE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.1,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.FALCONS_STOOP]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.95,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 4,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.PANTHERS_PROWL]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "swiftness",
+        duration: 6,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.WARCLAWS_ENGAGE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.75,
+        hits: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.CHEETAHS_STRIKE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.8,
+        hits: 1,
+      },
+      {
+        type: "boon",
+        boon: "swiftness",
+        duration: 3,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 500,
+  },
+  [ID.MONGOOSES_FRENZY]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.5,
+        hits: 2,
+      },
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 8,
+        duration: 8,
+      },
+    ],
+    quicknessCastTimeMs: 667,
+  },
+  [ID.WYVERNS_LASH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.4,
+        hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 2,
+      },
+    ],
+    quicknessCastTimeMs: 333,
+  },
+  [ID.MIGHTY_ROAR]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "might",
+        duration: 15,
+        stacks: 8,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.FORAGE_ROCK]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.RENDING_POUNCE]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 4,
+        duration: 6,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.INTIMIDATING_HOWL]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.SHAKE_IT_OFF]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.PURGE_CONDITIONS]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.POISONOUS_CLOUD]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.2,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 6,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.REGENERATE]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "regeneration",
+        duration: 15,
+        stacks: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.FIRE_BREATH]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.25,
+        hits: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Burning",
+        stacks: 5,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.BOIL]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.2,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.CHILLING_HOWL]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.ICY_POUNCE]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 2,
+        duration: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.ICY_BITE]: {
+    implemented: true,
+    castTimeMs: 250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 167,
+    petSkill: true,
+  },
+  [ID.BLINDING_SLASH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.STALK]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.INSECT_SWARM]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.25,
+        hits: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 5,
+        duration: 4,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.POISON_CLOUD]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 4,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.PROTECTING_SCREECH]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 4,
+        stacks: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.ICY_SCREECH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.DAZING_SCREECH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.DAZING_SCREECH_ID_12709]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.FURIOUS_SCREECH]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 15,
+        stacks: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.FROST_BREATH]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.25,
+        hits: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 5,
+        duration: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.FROST_NOVA]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.2,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.LIGHTNING_BREATH]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.6500000000000001,
+        hits: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.ELECTROCUTE_ID_12699]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.POISON_CLOUD_ID_12687]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.1,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 4,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.POISONOUS_MAUL]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 12,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.FEEDING_FRENZY]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "quickness",
+        duration: 10,
+        stacks: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 1,
+        duration: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.REGENERATE_ID_12717]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "regeneration",
+        duration: 6,
+        stacks: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.ENFEEBLING_MAUL]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.ENFEEBLING_ROAR]: {
+    implemented: true,
+    castTimeMs: 1250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 4,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 833,
+    petSkill: true,
+  },
+  [ID.ICY_ROAR]: {
+    implemented: true,
+    castTimeMs: 1250,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 833,
+    petSkill: true,
+  },
+  [ID.ICY_MAUL]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.RENDING_MAUL]: {
+    implemented: true,
+    castTimeMs: 1750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.34,
+        hits: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 4,
+        duration: 6,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1167,
+    petSkill: true,
+  },
+  [ID.POISON_CLOUD_ID_12702]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.2,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 1,
+        duration: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.POISON_BARBS]: {
+    implemented: true,
+    castTimeMs: 2500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.65,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 4,
+        duration: 6,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1667,
+    petSkill: true,
+  },
+  [ID.LASHTAIL_VENOM]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.RENDING_BARBS]: {
+    implemented: true,
+    castTimeMs: 4000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.7999999999999998,
+        hits: 6,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 6,
+        duration: 8,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 2667,
+    petSkill: true,
+  },
+  [ID.HOWL_OF_THE_PACK]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.TERRIFYING_HOWL]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.CHILLING_SLASH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.BRASH_SLASH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.DEADLY_VENOM]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "condition",
+        condition: "Poisoned",
+        stacks: 2,
+        duration: 6,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.PARALYZING_VENOM]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.WEAKENING_VENOM]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 5,
+        duration: 10,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 5,
+        duration: 6,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.FORAGE_SCALE]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.FORAGE_FEATHERS]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.FORAGE_SWORD]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.STUNNING_RUSH]: {
+    implemented: true,
+    castTimeMs: 2750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1833,
+    petSkill: true,
+  },
+  [ID.CHILLING_WHIRL]: {
+    implemented: true,
+    castTimeMs: 2750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.6,
+        hits: 4,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 4,
+        duration: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1833,
+    petSkill: true,
+  },
+  [ID.IMMOBILIZING_WHIRL]: {
+    implemented: true,
+    castTimeMs: 2750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.6,
+        hits: 4,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1833,
+    petSkill: true,
+  },
+  [ID.LACERATING_SLASH]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 6,
+        duration: 15,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 4,
+        duration: 15,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.SONIC_SHRIEK]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.25,
+        hits: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Confusion",
+        stacks: 10,
+        duration: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Confusion",
+        stacks: 10,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.SONIC_BARRIER]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.SMOKE_CLOUD]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [],
+    quicknessCastTimeMs: 500,
+    petSkill: true,
+  },
+  [ID.FURIOUS_POUNCE]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "boon",
+        boon: "fury",
+        duration: 10,
+        stacks: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.LIGHTNING_ASSAULT]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.6,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.CONSUMING_FLAME]: {
+    implemented: true,
+    castTimeMs: 2500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.2,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Burning",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1667,
+    petSkill: true,
+  },
+  [ID.SPIKE_BARRAGE]: {
+    implemented: true,
+    castTimeMs: 2000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 2.2,
+        hits: 10,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 10,
+        duration: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1333,
+    petSkill: true,
+  },
+  [ID.SAVANNAH_STRIKE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "boon",
+        boon: "swiftness",
+        duration: 5,
+        stacks: 2,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 500,
+    petSkill: true,
+  },
+  [ID.BLINDING_ROAR]: {
+    implemented: true,
+    castTimeMs: 1500,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.0499999999999998,
+        hits: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1000,
+    petSkill: true,
+  },
+  [ID.JACARANDAS_EMBRACE]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 5,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Vulnerability",
+        stacks: 5,
+        duration: 8,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.HEAD_TOSS]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1.11,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 500,
+    petSkill: true,
+  },
+  [ID.FANG_GRAPPLE]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.2,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.GUARDIANS_ROAR]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "aegis",
+        duration: 5,
+        stacks: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.BLOODTHIRSTY_CHARGE]: {
+    implemented: true,
+    castTimeMs: 1750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Bleeding",
+        stacks: 2,
+        duration: 8,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1167,
+    petSkill: true,
+  },
+  [ID.GALE_BREATH]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.HUNKER_DOWN]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [
+      {
+        type: "boon",
+        boon: "protection",
+        duration: 2,
+        stacks: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.DIMENSION_BREACH]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.7,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.LEY_ENERGY_PULSE]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.8,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 500,
+    petSkill: true,
+  },
+  [ID.PANOPTICON]: {
+    implemented: true,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 667,
+    petSkill: true,
+  },
+  [ID.RALLYING_ROAR]: {
+    implemented: true,
+    castTimeMs: 500,
+    effects: [],
+    quicknessCastTimeMs: 333,
+    petSkill: true,
+  },
+  [ID.HONEY_TOSS]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.5,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Slow",
+        stacks: 1,
+        duration: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 500,
+    petSkill: true,
+  },
+  [ID.PIERCING_SHRIEK]: {
+    implemented: true,
+    castTimeMs: 750,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.25,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        condition: "Torment",
+        stacks: 2,
+        duration: 8,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 500,
+    petSkill: true,
+  },
+  [ID.INNOCENT_DISPLAY]: {
+    implemented: true,
+    castTimeMs: 1750,
+    effects: [
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 3,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 1167,
+    petSkill: true,
+  },
+});
+
+export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  {
+    id: ID.SWAP_WEAPONS,
+    name: "Swap Weapons",
+    description: "Swap to your alternate weapon set.",
+    icon: "https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png",
+    type: "Action",
+    slot: "Action",
+    castTimeMs: 0,
+    quicknessCastTimeMs: 0,
+    rechargeAnchor: "castStart",
+    cooldown: 10,
+    implemented: true,
+    handlerId: "ranger.weapon-swap",
+    effects: [],
+  },
+]);

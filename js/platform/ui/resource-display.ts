@@ -2,9 +2,7 @@ import type {
   ProfessionResourceView,
   SchedulerRecord,
 } from "../engine/types.js";
-import type {
-  ProfessionAppContract,
-} from "../../app/profession/types.js";
+import type { ProfessionAppContract } from "../../app/profession/types.js";
 
 function normalizeResourceView(
   view: ProfessionResourceView,
@@ -14,11 +12,10 @@ function normalizeResourceView(
     typeof view.displayMode === "string" &&
     ["bar", "pips"].includes(view.displayMode)
       ? view.displayMode
-      : maximum > 20 ? "bar" : "pips";
-  const value = Math.max(
-    0,
-    Math.min(maximum, Number(view.value || 0)),
-  );
+      : maximum > 20
+        ? "bar"
+        : "pips";
+  const value = Math.max(0, Math.min(maximum, Number(view.value || 0)));
   const pipStyle = String(view.pipStyle || "")
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "");
@@ -36,19 +33,17 @@ function normalizeResourceView(
     plural: String(view.plural || `${view.singular || "resource"}s`),
     maximum,
     value: displayMode === "pips" ? Math.floor(value) : value,
-    startMaximum: Math.max(
-      0,
-      Number(view.startMaximum ?? maximum),
-    ),
-    startValue: Math.max(
-      0,
-      Number(view.startValue ?? view.value ?? 0),
-    ),
+    startMaximum: Math.max(0, Number(view.startMaximum ?? maximum)),
+    startValue: Math.max(0, Number(view.startValue ?? view.value ?? 0)),
     canStart: view.canStart !== false,
     buildKey: String(view.buildKey || "initialResource"),
     step: Math.max(0.01, Number(view.step || 1)),
     // Dense resources default to a bar; small discrete resources use pips.
     displayMode,
+    barSegments: Math.max(
+      1,
+      Math.min(maximum || 1, Math.round(Number(view.barSegments || 1))),
+    ),
     pipStyle,
     pipRows: Math.max(
       1,

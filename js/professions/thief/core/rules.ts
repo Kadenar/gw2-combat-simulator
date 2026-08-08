@@ -155,8 +155,8 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
   {
     id: "thief.exposed-weakness",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
-    amount: context => targetConditionCount(context) * 0.02,
+    operation: "multiply",
+    factor: context => 1 + targetConditionCount(context) * 0.02,
     when: context => thiefPlayerEvent(context) && hasTrait(
       context,
       TRAIT.EXPOSED_WEAKNESS,

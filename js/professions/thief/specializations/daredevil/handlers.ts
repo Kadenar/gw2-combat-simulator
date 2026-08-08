@@ -80,10 +80,10 @@ export function applyDaredevilDodge(
   if (hasThiefTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
     state.weakeningStrikeReady = true;
   }
+  emitThiefState(context, context.effectiveEnd, "daredevil-dodge");
   for (const effect of DAREDEVIL_DODGE_EFFECTS[state.selectedDodge] || []) {
     emitDodgeEffect(context, skill, effect);
   }
-  emitThiefState(context, context.effectiveEnd, "daredevil-dodge");
 }
 
 export function spendDaredevilResources(

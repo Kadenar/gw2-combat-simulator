@@ -16,6 +16,8 @@
     "update:mesmer-data": "node scripts/data/update-mesmer-api-data.mjs",
     "update:guardian-data": "node scripts/data/update-guardian-api-data.mjs",
     "update:necromancer-data": "node scripts/data/update-necromancer-api-data.mjs",
+    "update:warrior-data": "node scripts/data/update-warrior-api-data.mjs && node scripts/data/generate-warrior-data.mjs",
+    "update:ranger-data": "node scripts/data/update-profession-api-data.mjs --profession Ranger && node scripts/data/generate-ranger-ids.mjs && node scripts/data/generate-ranger-pet-data.mjs && node scripts/data/generate-ranger-skill-mechanics.mjs",
     "generate:revenant-ids": "node scripts/data/generate-revenant-ids.mjs"
   },
   "engines": {

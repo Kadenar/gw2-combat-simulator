@@ -1,0 +1,105 @@
+import {
+  TRAIT_COVERAGE_STATUSES,
+  validateTraitCoverageManifest,
+} from "../../../platform/gw2/trait-coverage.js";
+import { warriorCatalog } from "../catalog.js";
+import type { CatalogEntity } from "../../../platform/engine/types.js";
+
+const IMPLEMENTED = new Set([
+  "Pinnacle of Strength",
+  "Forceful Greatsword",
+  "Great Fortitude",
+  "Berserker's Power",
+  "Leg Specialist",
+  "Roaring Reveille",
+  "Warrior's Cunning",
+  "Vigorous Shouts",
+  "Cull the Weak",
+  "Merciless Hammer",
+  "Deep Strikes",
+  "Bloodlust",
+  "Wounding Precision",
+  "Signet Mastery",
+  "Unsuspecting Foe",
+  "Blademaster",
+  "Burst Precision",
+  "Versatile Rage",
+  "Versatile Power",
+  "Warrior's Sprint",
+  "Axe Mastery",
+  "Burst Mastery",
+  "Smash Brawler",
+  "Last Blaze",
+  "Blood Reaction",
+  "Bloody Roar",
+  "King of Fires",
+  "Attacker's Insight",
+  "Pure Strike",
+  "Sun and Moon Style",
+  "Guns and Glory",
+  "Fierce as Fire",
+  "Daring Dragon",
+  "Inspiring Implements",
+  "Brisk Pacing",
+  "Enduring Refrain",
+]);
+
+const REASONS = Object.freeze({
+  defensive:
+    "Incoming damage, blocking, healing, barrier, revival, and condition cleansing are outside the outgoing single-target damage model.",
+  ally: "Ally-only boon, healing, and group-support effects are outside the single-player target model.",
+  movement:
+    "Movement, dodge, and positioning effects are not represented by the stationary target model.",
+  missing:
+    "The public skill data does not provide enough deterministic numeric detail for this effect.",
+});
+
+function outOfModelReason(trait: CatalogEntity): string {
+  const description = String(trait.description || "").toLowerCase();
+  if (/ally|allies|nearby|reviv/.test(description)) return REASONS.ally;
+  if (
+    /heal|barrier|incoming|block|condition.*remove|damage.*reduced/.test(
+      description,
+    )
+  )
+    return REASONS.defensive;
+  if (/movement|dodge|endurance/.test(description)) return REASONS.movement;
+  return REASONS.missing;
+}
+
+const manifest = warriorCatalog.traits.map((trait) => {
+  const implemented = IMPLEMENTED.has(trait.name);
+  const status = implemented
+    ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED
+    : TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL;
+  const reason = outOfModelReason(trait);
+  return {
+    traitId: trait.id,
+    status,
+    effects: [
+      {
+        description:
+          String(trait.description || "").trim() ||
+          `Reviewed combat behavior for ${trait.name}.`,
+        status,
+        ...(implemented ? {} : { reason }),
+      },
+    ],
+    ...(implemented
+      ? {
+          tests: [
+            {
+              file: "tests/professions/warrior/warrior.test.js",
+              name: "Warrior core and elite profession resources remain isolated",
+            },
+          ],
+        }
+      : { reason }),
+  };
+});
+
+export const WARRIOR_TRAIT_COVERAGE = validateTraitCoverageManifest(
+  warriorCatalog,
+  manifest,
+  { professionId: "warrior" },
+);

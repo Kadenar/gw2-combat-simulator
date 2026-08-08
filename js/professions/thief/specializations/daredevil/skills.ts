@@ -77,7 +77,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<
           "ticks": [
             { "atMs": 540, "coefficient": 0.75 },
             { "atMs": 660, "coefficient": 0.75 },
-            { "atMs": 780, "coefficient": 0.75 }
+            { "atMs": 780, "coefficient": 1 }
           ],
           "name": "Impairing Daggers",
           "actorType": "player",

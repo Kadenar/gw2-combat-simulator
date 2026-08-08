@@ -1,8 +1,6 @@
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { clamp } from "../../../platform/gw2/numeric.js";
-import {
-  SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-} from "../../../app/simulation/randomness.js";
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../../app/simulation/randomness.js";
 import {
   isMesmerBuildSkillAvailable,
   isMesmerContinuumSkillAvailable,
@@ -31,6 +29,7 @@ export interface MesmerUiResourceDefinition {
   readonly singular: string;
   readonly plural: string;
   readonly maximum: number;
+  readonly pipStyle?: string;
 }
 
 type MesmerUiState = Partial<MesmerProfessionState> & {
@@ -38,9 +37,7 @@ type MesmerUiState = Partial<MesmerProfessionState> & {
   readonly continuumActive?: boolean;
 };
 
-export function mesmerUiSpecialization(
-  context: MesmerUiContext = {},
-): string {
+export function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
   return context.specialization || context.config?.specialization || "Core";
 }
 
@@ -48,24 +45,28 @@ export function mesmerMechanicPaletteGroups(
   context: MesmerUiContext,
   skillIds: readonly SkillId[],
 ): ProfessionPaletteGroup[] {
-  return [{
-    id: "profession",
-    label: "Profession",
-    skillIds: skillIds.filter((id) => context.catalog?.skillsById?.has(id)),
-    resourceAnchor: true,
-  }];
+  return [
+    {
+      id: "profession",
+      label: "Profession",
+      skillIds: skillIds.filter((id) => context.catalog?.skillsById?.has(id)),
+      resourceAnchor: true,
+    },
+  ];
 }
 
 export function mesmerMechanicSkillBarGroups(
   label: string,
   skillIds: readonly SkillId[],
 ): ProfessionSkillBarGroup[] {
-  return [{
-    id: `mesmer-${label.toLowerCase()}`,
-    label,
-    skillIds: [...skillIds],
-    color: "#9b73c7",
-  }];
+  return [
+    {
+      id: `mesmer-${label.toLowerCase()}`,
+      label,
+      skillIds: [...skillIds],
+      color: "#9b73c7",
+    },
+  ];
 }
 
 export function mesmerResourceViews(
@@ -79,21 +80,20 @@ export function mesmerResourceViews(
     definition.id === "clones"
       ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
       : Number(state.numericResource || context.value || 0);
-  return [{
-    ...definition,
-    value: clamp(value, 0, definition.maximum),
-    canStart: definition.id !== "clones",
-    shortLabel:
-      definition.id === "clones" ? "Cln" : definition.singular.slice(0, 3),
-    statusLabel: definition.id === "clones" ? "Active" : "Current",
-  }];
+  return [
+    {
+      ...definition,
+      value: clamp(value, 0, definition.maximum),
+      canStart: definition.id !== "clones",
+      shortLabel:
+        definition.id === "clones" ? "Cln" : definition.singular.slice(0, 3),
+      statusLabel: definition.id === "clones" ? "Active" : "Current",
+    },
+  ];
 }
 
 const MESMER_EVENT_ROWS: Readonly<
-  Record<
-    string,
-    (event: MesmerResolverEvent) => ProfessionEventLogDescriptor
-  >
+  Record<string, (event: MesmerResolverEvent) => ProfessionEventLogDescriptor>
 > = Object.freeze({
   "mesmer.phantasm-summoned": (event) => ({
     type: event.type,

@@ -12,6 +12,8 @@ Choose a profession from the landing page or the shared simulator header:
 - **Necromancer**: Core, Reaper, Scourge, Harbinger, and Ritualist.
 - **Engineer**: Core, Scrapper, Holosmith, Mechanist, and Amalgam.
 - **Revenant**: Core, Herald, Renegade, Vindicator, and Conduit.
+- **Ranger**: Core, Druid, Soulbeast, Untamed, and Galeshot.
+- **Warrior**: Core, Berserker, Spellbreaker, Bladesworn, and Paragon.
 - **Thief**: Core, Daredevil, Deadeye, Specter, and Antiquary.
 
 The Elementalist package is a direct port of the reference
@@ -59,6 +61,8 @@ central allowlist. Existing compatibility wrappers remain available:
 npm run update:mesmer-data
 npm run update:guardian-data
 npm run update:necromancer-data
+npm run update:warrior-data
+npm run update:ranger-data
 ```
 
 ## Layout
@@ -74,7 +78,9 @@ gw2-combat-simulator/
       necromancer/             Necromancer data, shrouds, summons, and rules
       engineer/                Engineer kits, heat, mech, and Amalgam rules
       revenant/                Revenant legends, energy, and Conduit rules
+      warrior/                 Warrior adrenaline, bursts, and elite rules
       thief/                   Thief initiative, stealth, and artifact rules
+      ranger/                  Ranger pets, Beastmode, Unleash, and Cyclone Bow
     app/                       shared browser shell and composition
   Builds/                      build presets and manifests
     manifest.json              Elementalist preset manifest
@@ -89,7 +95,9 @@ gw2-combat-simulator/
   necromancer.html             Necromancer application
   engineer.html                Engineer application
   revenant.html                Revenant application
+  warrior.html                 Warrior application
   thief.html                   Thief application
+  ranger.html                  Ranger application
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the profession contract and
@@ -106,3 +114,4 @@ Profession-specific documentation:
 - Engineer status: [docs/ENGINEER.md](docs/ENGINEER.md)
 - Revenant status: [docs/REVENANT.md](docs/REVENANT.md)
 - Thief status: [docs/THIEF.md](docs/THIEF.md)
+- Warrior status: [docs/WARRIOR.md](docs/WARRIOR.md)

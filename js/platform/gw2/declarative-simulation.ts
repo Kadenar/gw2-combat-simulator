@@ -79,15 +79,16 @@ function endState(
     schedulerState: scheduled.state,
     resolverState: resolved.profession,
   });
-  const simulationProjection = profession.simulation?.projectEndState?.({
-    config,
-    schedulerContext: scheduled.context,
-    schedulerState: scheduled.state,
-    resolverState: resolved.profession,
-    cooldowns,
-    ammo,
-    profession: projected ?? resolved.profession,
-  }) || {};
+  const simulationProjection =
+    profession.simulation?.projectEndState?.({
+      config,
+      schedulerContext: scheduled.context,
+      schedulerState: scheduled.state,
+      resolverState: resolved.profession,
+      cooldowns,
+      ammo,
+      profession: projected ?? resolved.profession,
+    }) || {};
   return {
     time: Math.round(endTime * 1000),
     cooldowns: simulationProjection.cooldowns || cooldowns,
@@ -123,10 +124,8 @@ function simulateDeclarativeGw2Pass({
     schedulerPolicy: createGw2SchedulerPolicy(config, {
       traits,
       catalog: runtimeProfession.catalog,
-      weaponSkillMatchesSet:
-        runtimeProfession.ui.weaponSkillMatchesSet as
-          | Gw2WeaponSkillMatcher
-          | undefined,
+      weaponSkillMatchesSet: runtimeProfession.ui.weaponSkillMatchesSet as
+        Gw2WeaponSkillMatcher | undefined,
     }),
   }).run(rotation);
   const extensions = createGw2ResolverExtensions({
@@ -146,6 +145,7 @@ function simulateDeclarativeGw2Pass({
   });
   const conditionResolution = createGw2ConditionResolution({
     reactions: extensions.reactions,
+    config,
   });
   const commonHandlers = createGw2ResolverEventHandlers({
     hitResolution: {
@@ -191,9 +191,7 @@ function simulateDeclarativeGw2Pass({
   });
   return {
     ...resolved,
-    profession: structuredClone(
-      flattenProfessionState(resolved.profession),
-    ),
+    profession: structuredClone(flattenProfessionState(resolved.profession)),
     steps: scheduled.steps,
     endState: endState(runtimeProfession, config, scheduled, resolved),
     schedulerState: scheduled.state,
@@ -213,15 +211,10 @@ export function simulateDeclarativeGw2(
 ): Gw2SimulationResult {
   let config = options.config || {};
   let result = simulateDeclarativeGw2Pass({ ...options, config });
-  const refineConfig =
-    options.profession?.simulation?.refineSchedulerConfig;
+  const refineConfig = options.profession?.simulation?.refineSchedulerConfig;
   if (typeof refineConfig !== "function") return result;
 
-  for (
-    let pass = 0;
-    pass < MAX_SCHEDULER_REFINEMENT_PASSES;
-    pass += 1
-  ) {
+  for (let pass = 0; pass < MAX_SCHEDULER_REFINEMENT_PASSES; pass += 1) {
     const refined = refineConfig(config, result);
     if (!refined) break;
     config = refined;

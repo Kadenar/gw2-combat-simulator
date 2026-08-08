@@ -24,7 +24,10 @@ export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;
 export const MAX_RANDOM_DISTRIBUTION_TRIALS = 10_000;
 
 /** Maximum number of distribution workers used by the application shell. */
-export const MAX_RANDOM_DISTRIBUTION_WORKERS = 4;
+export const MAX_RANDOM_DISTRIBUTION_WORKERS = 8;
+
+/** Conservative worker count when the browser does not expose CPU capacity. */
+export const DEFAULT_RANDOM_DISTRIBUTION_WORKERS = 4;
 
 const EXPLANATION_COHORT_PERCENT = 10;
 const MAX_EXPLANATION_DRIVERS = 5;
@@ -57,7 +60,9 @@ export function randomDistributionWorkerCount(
   if (!trials) return 0;
   const hardware = Math.trunc(Number(hardwareConcurrency) || 0);
   const availableWorkers =
-    hardware > 0 ? Math.max(1, hardware - 1) : MAX_RANDOM_DISTRIBUTION_WORKERS;
+    hardware > 0
+      ? Math.max(1, hardware - 1)
+      : DEFAULT_RANDOM_DISTRIBUTION_WORKERS;
   return Math.min(trials, MAX_RANDOM_DISTRIBUTION_WORKERS, availableWorkers);
 }
 
@@ -226,18 +231,19 @@ export function randomDistributionMetrics(
 
   for (const event of result.resolvedEvents || []) {
     if (event.type === "damage") {
-      if (
-        Number(event.coefficient) > 0 &&
-        event.didCrit === true
-      ) {
+      if (Number(event.coefficient) > 0 && event.didCrit === true) {
         const critical = criticalMetric(event);
-        addMetric(metrics, {
-          id: `critical:${critical.id}`,
-          group: `critical:${critical.id}`,
-          label: critical.label,
-          category: "critical",
-          unit: "count",
-        }, Number(event.hits || 1));
+        addMetric(
+          metrics,
+          {
+            id: `critical:${critical.id}`,
+            group: `critical:${critical.id}`,
+            label: critical.label,
+            category: "critical",
+            unit: "count",
+          },
+          Number(event.hits || 1),
+        );
       }
 
       if (
@@ -269,13 +275,17 @@ export function randomDistributionMetrics(
       if (triggeredEffect && hasStrikePayload(event)) {
         const name = effectName(event);
         const group = `effect:${metricSlug(name)}`;
-        addMetric(metrics, {
-          id: `effect-hit:${String(event.sourceId)}:${metricSlug(name)}`,
-          group,
-          label: `${name} hits`,
-          category: "effect",
-          unit: "count",
-        }, Number(event.hits || 1));
+        addMetric(
+          metrics,
+          {
+            id: `effect-hit:${String(event.sourceId)}:${metricSlug(name)}`,
+            group,
+            label: `${name} hits`,
+            category: "effect",
+            unit: "count",
+          },
+          Number(event.hits || 1),
+        );
       }
       continue;
     }
@@ -284,29 +294,38 @@ export function randomDistributionMetrics(
       const name = effectName(event);
       const condition = String(event.condition || "Condition");
       const group = `effect:${metricSlug(name)}`;
-      const label = name.toLowerCase() === condition.toLowerCase()
-        ? `${condition} stacks applied`
-        : `${name} ${condition.toLowerCase()} stacks applied`;
-      addMetric(metrics, {
-        id: `condition:${String(event.sourceId)}:${metricSlug(name)}:${metricSlug(condition)}`,
-        group,
-        label,
-        category: "condition",
-        unit: "stacks",
-      }, Number(event.stacks));
+      const label =
+        name.toLowerCase() === condition.toLowerCase()
+          ? `${condition} stacks applied`
+          : `${name} ${condition.toLowerCase()} stacks applied`;
+      addMetric(
+        metrics,
+        {
+          id: `condition:${String(event.sourceId)}:${metricSlug(name)}:${metricSlug(condition)}`,
+          group,
+          label,
+          category: "condition",
+          unit: "stacks",
+        },
+        Number(event.stacks),
+      );
     }
   }
 
   for (const [profileId, sample] of weaponSamples) {
     if (!(sample.count > 0)) continue;
     const name = readableProfileName(profileId);
-    addMetric(metrics, {
-      id: `weapon-strength:${profileId}`,
-      group: `weapon-strength:${profileId}`,
-      label: `Average ${name} weapon strength`,
-      category: "weapon-strength",
-      unit: "value",
-    }, sample.total / sample.count);
+    addMetric(
+      metrics,
+      {
+        id: `weapon-strength:${profileId}`,
+        group: `weapon-strength:${profileId}`,
+        label: `Average ${name} weapon strength`,
+        category: "weapon-strength",
+        unit: "value",
+      },
+      sample.total / sample.count,
+    );
   }
 
   const seenProcs = new Set<string>();
@@ -322,13 +341,17 @@ export function randomDistributionMetrics(
     if (seenProcs.has(key)) return;
     seenProcs.add(key);
     const group = `effect:${metricSlug(name)}`;
-    addMetric(metrics, {
-      id: `proc:${metricSlug(name)}`,
-      group,
-      label: `${name} activations`,
-      category: "proc",
-      unit: "count",
-    }, 1);
+    addMetric(
+      metrics,
+      {
+        id: `proc:${metricSlug(name)}`,
+        group,
+        label: `${name} activations`,
+        category: "proc",
+        unit: "count",
+      },
+      1,
+    );
   };
   for (const event of result.events || []) {
     if (event.type !== "proc") continue;
@@ -343,7 +366,7 @@ export function randomDistributionMetrics(
   }
 
   return [...metrics.values()].sort((left, right) =>
-    left.id.localeCompare(right.id)
+    left.id.localeCompare(right.id),
   );
 }
 
@@ -388,9 +411,11 @@ export function summarizeRandomDistributionOutcomes(
   rawOutcomes: readonly RandomDistributionOutcome[] = [],
 ): RandomDistributionSummary {
   const outcomes = rawOutcomes.filter((outcome) =>
-    Number.isFinite(Number(outcome?.dps))
+    Number.isFinite(Number(outcome?.dps)),
   );
-  const base = summarizeRandomDistribution(outcomes.map((outcome) => outcome.dps));
+  const base = summarizeRandomDistribution(
+    outcomes.map((outcome) => outcome.dps),
+  );
   if (outcomes.length < 2 || base.p01 === base.p99) return base;
 
   const ordered = [...outcomes].sort((left, right) => left.dps - right.dps);
@@ -412,9 +437,10 @@ export function summarizeRandomDistributionOutcomes(
   const valuesFor = (
     cohort: readonly RandomDistributionOutcome[],
     id: string,
-  ): number[] => cohort.map((outcome) =>
-    Number(outcome.metrics.find((metric) => metric.id === id)?.value || 0)
-  );
+  ): number[] =>
+    cohort.map((outcome) =>
+      Number(outcome.metrics.find((metric) => metric.id === id)?.value || 0),
+    );
   const dpsValues = outcomes.map((outcome) => Number(outcome.dps));
   const ranked: RankedDriver[] = [];
 
@@ -430,9 +456,9 @@ export function summarizeRandomDistributionOutcomes(
     const correlation = pearsonCorrelation(values, dpsValues);
     if (correlation < MIN_EXPLANATION_CORRELATION) continue;
     const valueMean = average(values);
-    const deviation = Math.sqrt(average(values.map((value) =>
-      (value - valueMean) ** 2
-    )));
+    const deviation = Math.sqrt(
+      average(values.map((value) => (value - valueMean) ** 2)),
+    );
     const effectSize = deviation > 0 ? Math.abs(delta) / deviation : 0;
     ranked.push({
       group: metric.group,
@@ -451,11 +477,12 @@ export function summarizeRandomDistributionOutcomes(
     });
   }
 
-  ranked.sort((left, right) =>
-    right.score - left.score ||
-    Number(DRIVER_CATEGORY_PRIORITY[left.driver.category] || 0) -
-      Number(DRIVER_CATEGORY_PRIORITY[right.driver.category] || 0) ||
-    left.driver.label.localeCompare(right.driver.label)
+  ranked.sort(
+    (left, right) =>
+      right.score - left.score ||
+      Number(DRIVER_CATEGORY_PRIORITY[left.driver.category] || 0) -
+        Number(DRIVER_CATEGORY_PRIORITY[right.driver.category] || 0) ||
+      left.driver.label.localeCompare(right.driver.label),
   );
   const usedGroups = new Set<string>();
   const drivers: RandomDistributionDriver[] = [];

@@ -1,0 +1,68 @@
+import {
+  addAttribute,
+  finalizeBuildAttributes,
+} from "../../platform/gw2/attributes.js";
+import { getActiveTraits } from "./data/traits-data.js";
+import type {
+  Gw2BuildAttributeRuleContext,
+  Gw2CommonAttributeResult,
+  Gw2FinalizedAttributeResult,
+  Gw2NumericAttributes,
+} from "../../platform/gw2/types.js";
+import type { WarriorSpecializationSelection } from "./data/traits-data.js";
+
+export function applyWarriorBuildAttributeRules(
+  common: Gw2CommonAttributeResult,
+  { build, disabledTrait = null }: Gw2BuildAttributeRuleContext,
+): Gw2FinalizedAttributeResult {
+  const attributes = common.attributes;
+  const activeTraits = getActiveTraits(
+    (build.specializations || []) as WarriorSpecializationSelection[],
+  ).filter((trait) => trait.name !== disabledTrait);
+  const hasTrait = (name: string) =>
+    activeTraits.some((trait) => trait.name === name);
+  const weapons = [...(build.weapons || []), ...(build.alternateWeapons || [])];
+  const traitStats: Gw2NumericAttributes = {};
+  const traitDurations: Gw2NumericAttributes = {};
+
+  if (hasTrait("Forceful Greatsword")) {
+    addAttribute(
+      traitStats,
+      "Power",
+      weapons.includes("Greatsword") ? 240 : 120,
+    );
+  }
+  if (hasTrait("Great Fortitude")) {
+    const power = attributes.Power.final + Number(traitStats.Power || 0);
+    addAttribute(traitStats, "Vitality", power * 0.1);
+    addAttribute(traitStats, "Ferocity", power * 0.1);
+  }
+  if (hasTrait("Roaring Reveille"))
+    addAttribute(traitStats, "Concentration", 120);
+  if (hasTrait("Vigorous Shouts")) {
+    addAttribute(traitStats, "Healing Power", attributes.Power.final * 0.1);
+  }
+  if (hasTrait("Deep Strikes"))
+    addAttribute(traitStats, "Condition Damage", 180);
+  if (hasTrait("Wounding Precision")) {
+    addAttribute(traitStats, "Expertise", attributes.Precision.final * 0.07);
+  }
+  if (hasTrait("Blademaster")) {
+    addAttribute(traitStats, "Expertise", 120);
+    if (weapons.includes("Sword"))
+      addAttribute(traitStats, "Condition Damage", 120);
+  }
+  if (hasTrait("Axe Mastery")) {
+    addAttribute(traitStats, "Ferocity", weapons.includes("Axe") ? 240 : 120);
+  }
+  if (hasTrait("Inspiring Implements"))
+    addAttribute(traitStats, "Concentration", 120);
+  if (hasTrait("Bloodlust")) traitDurations["Bleeding Duration"] = 20;
+  if (hasTrait("King of Fires")) traitDurations["Burning Duration"] = 20;
+
+  return finalizeBuildAttributes(common, {
+    activeTraits,
+    traitStats,
+    traitDurations,
+  });
+}

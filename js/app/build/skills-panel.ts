@@ -1,7 +1,10 @@
 import { escapeHtml as esc, gw2ApiText } from "../../platform/ui/html.js";
 import { isSlotSkillSelectable } from "./selection.js";
 
-import type { Skill } from "../../platform/engine/types.js";
+import type {
+  ProfessionSkillBarGroup,
+  Skill,
+} from "../../platform/engine/types.js";
 import type {
   ProfessionAppState,
   ProfessionSlotLoadoutBar,
@@ -38,6 +41,78 @@ function availableSlotSkills(app: ProfessionAppState, type: string): Skill[] {
         .map((skill) => [skill.name, skill]),
     ).values(),
   ];
+}
+
+function multiSelectionInspectionGroupHtml(
+  app: ProfessionAppState,
+  group: ProfessionSkillBarGroup,
+): string {
+  const selectionSlots = (group.selections || [])
+    .map((selection) => {
+      const optionSkills = (selection.optionSkillIds || [])
+        .map((id) => app.skillById.get(Number(id)))
+        .filter((skill) => skill != null);
+      const options = selection.optionEntries?.length
+        ? selection.optionEntries
+        : optionSkills.map((skill) => ({
+            value: String(skill.id),
+            label: skill.name,
+            icon: skill.icon,
+            description: skill.description,
+            skillId: skill.id,
+          }));
+      const selectedEntry = selection.optionEntries?.find(
+        (entry) => String(entry.value) === String(selection.selectionValue),
+      );
+      const selectedSkill = app.skillById.get(Number(selection.skillId));
+      const display = selectedEntry
+        ? {
+            name: selectedEntry.label,
+            icon: selectedEntry.icon,
+            description: selectedEntry.description,
+          }
+        : selectedSkill;
+      if (!display || !options.length) return "";
+      return `<div class="skill-bar-inspection-slot selectable"
+          data-selection-key="${esc(selection.selectionKey)}"
+          data-selection-index="${selection.selectionIndex}">
+          <div class="sbar-icon" title="${esc(`${display.name}\n${gw2ApiText(display.description)}`)}">
+              <img src="${esc(display.icon || "")}" alt="">
+          </div>
+          <div class="sbar-arrow">&#9660;</div>
+          <div class="sbar-dropdown">${options
+            .map(
+              (option) =>
+                `<div class="dd-item" data-selection-value="${esc(option.value)}"${
+                  option.skillId == null
+                    ? ""
+                    : ` data-skill-id="${esc(option.skillId)}"`
+                }>
+                  <img src="${esc(option.icon || "")}" alt="">
+                  <span>${esc(option.label)}</span>
+              </div>`,
+            )
+            .join("")}</div>
+      </div>`;
+    })
+    .join("");
+  const skillSlots = group.skillIds
+    .map((id) => app.skillById.get(Number(id)))
+    .filter((skill) => skill != null)
+    .map(
+      (skill) => `<div class="skill-bar-inspection-slot">
+          <div class="sbar-icon" title="${esc(`${skill.name}\n${gw2ApiText(skill.description)}`)}">
+              <img src="${esc(skill.icon || "")}" alt="">
+          </div>
+      </div>`,
+    )
+    .join("");
+  return `<div class="skill-bar-inspection-group${
+    group.className ? ` ${esc(group.className)}` : ""
+  }" style="--inspection-color:${esc(group.color || "var(--accent)")}">
+      <span class="skill-bar-inspection-label">${esc(group.label)}</span>
+      <div class="skill-bar-inspection-skills">${selectionSlots}${skillSlots}</div>
+  </div>`;
 }
 
 /**
@@ -163,21 +238,46 @@ export function renderSkills(app: ProfessionAppState): void {
                     : ""
                 }>${inspectionGroups
                   .map((group) => {
+                    if (group.selections?.length) {
+                      return multiSelectionInspectionGroupHtml(app, group);
+                    }
                     const optionSkills = (group.optionSkillIds || [])
                       .map((id) => app.skillById.get(Number(id)))
                       .filter((skill) => skill != null);
+                    const optionEntries = group.optionEntries?.length
+                      ? group.optionEntries
+                      : optionSkills.map((skill) => ({
+                          value: String(skill.id),
+                          label: skill.name,
+                          icon: skill.icon,
+                          description: skill.description,
+                          skillId: skill.id,
+                        }));
+                    const selectedEntry = group.optionEntries?.find(
+                      (entry) =>
+                        String(entry.value) === String(group.selectionValue),
+                    );
+                    const displayEntries = selectedEntry
+                      ? [
+                          {
+                            name: selectedEntry.label,
+                            icon: selectedEntry.icon,
+                            description: selectedEntry.description,
+                          },
+                        ]
+                      : group.skillIds
+                          .map((id) => app.skillById.get(Number(id)))
+                          .filter((skill) => skill != null);
                     const selectable =
                       group.selectionKey &&
                       Number.isInteger(Number(group.selectionIndex)) &&
-                      optionSkills.length > 0;
+                      optionEntries.length > 0;
                     return `<div class="skill-bar-inspection-group${
                       group.className ? ` ${esc(group.className)}` : ""
                     }"
                         style="--inspection-color:${esc(group.color || "var(--accent)")}">
                         <span class="skill-bar-inspection-label">${esc(group.label)}</span>
-                        <div class="skill-bar-inspection-skills">${group.skillIds
-                          .map((id) => app.skillById.get(Number(id)))
-                          .filter((skill) => skill != null)
+                        <div class="skill-bar-inspection-skills">${displayEntries
                           .map(
                             (skill) => `<div class="skill-bar-inspection-slot${
                               selectable ? " selectable" : ""
@@ -193,12 +293,16 @@ export function renderSkills(app: ProfessionAppState): void {
                                 ${
                                   selectable
                                     ? `<div class="sbar-arrow">▼</div>
-                                    <div class="sbar-dropdown">${optionSkills
+                                    <div class="sbar-dropdown">${optionEntries
                                       .map(
-                                        (optionSkill) =>
-                                          `<div class="dd-item" data-skill-id="${optionSkill.id}">
-                                            <img src="${esc(optionSkill.icon || "")}" alt="">
-                                            <span>${esc(optionSkill.name)}</span>
+                                        (option) =>
+                                          `<div class="dd-item" data-selection-value="${esc(option.value)}"${
+                                            option.skillId == null
+                                              ? ""
+                                              : ` data-skill-id="${esc(option.skillId)}"`
+                                          }>
+                                            <img src="${esc(option.icon || "")}" alt="">
+                                            <span>${esc(option.label)}</span>
                                         </div>`,
                                       )
                                       .join("")}</div>`
@@ -257,8 +361,15 @@ export function renderSkills(app: ProfessionAppState): void {
           event.stopPropagation();
           const key = slot.dataset.selectionKey;
           const index = Number(slot.dataset.selectionIndex);
-          const skillId = Number(item.dataset.skillId);
-          if (!key || !Number.isInteger(index) || !Number.isFinite(skillId)) {
+          const rawSkillId = item.dataset.skillId;
+          const skillId = Number(rawSkillId);
+          const value = item.dataset.selectionValue;
+          if (
+            !key ||
+            !Number.isInteger(index) ||
+            (rawSkillId == null && value == null) ||
+            (rawSkillId != null && !Number.isFinite(skillId))
+          ) {
             return;
           }
           if (app.profession.ui.updateSkillBarSelection) {
@@ -269,9 +380,14 @@ export function renderSkills(app: ProfessionAppState): void {
                 professionState: app.results?.endState?.profession,
                 catalog: app.profession.catalog,
               },
-              { key, index, skillId },
+              {
+                key,
+                index,
+                ...(rawSkillId == null ? {} : { skillId }),
+                ...(value == null ? {} : { value }),
+              },
             );
-          } else {
+          } else if (rawSkillId != null) {
             const values = Array.isArray(app.build[key])
               ? [...app.build[key]]
               : [];
