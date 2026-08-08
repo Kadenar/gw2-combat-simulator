@@ -67,6 +67,7 @@ export interface BladeswornState {
   gunsaberActive: boolean;
   dragonTriggerActive: boolean;
   dragonTriggerStartedAt: number;
+  nextDragonChargeAt: number;
   dragonCharges: number;
   fierceAsFireExpiries: number[];
   gunsAndGloryUntil: number;

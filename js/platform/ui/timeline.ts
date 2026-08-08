@@ -533,6 +533,7 @@ export function bindTimelineInteractions(
     ".rot-edit-activation, .rot-interrupt-badge",
     options.onEditActivation || options.onEditInterrupt,
   );
+  bindEdit(".rot-charge-release-badge", options.onEditReleaseAtCharges);
   bindEdit(".rot-wait-badge", options.onEditWait);
 
   return { applyDrop, cleanup };

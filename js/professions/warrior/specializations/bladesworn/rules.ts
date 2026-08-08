@@ -13,6 +13,12 @@ import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
+import {
+  DRAGON_CHARGE_INTERVAL_SECONDS,
+  DRAGON_FLOW_PER_CHARGE,
+  maximumDragonCharges,
+  requestedDragonCharges,
+} from "./dragon-trigger.js";
 import type { WarriorCastContext, WarriorSkill } from "../../types.js";
 
 function specState(context: Gw2ModifierContext) {
@@ -98,16 +104,41 @@ function availability(
       reason: "Sheathe the gunsaber before using standard weapon skills.",
     };
   }
-  if (
-    skill.dragonSlash &&
-    (!state.dragonTriggerActive || state.dragonCharges < 1)
-  ) {
+  if (skill.dragonSlash && !state.dragonTriggerActive) {
     return {
       ready: false,
       retryAt: null,
       code: "warrior.dragon-trigger",
-      reason: "Charge Dragon Trigger before using Dragon Slash.",
+      reason: "Enter Dragon Trigger before using Dragon Slash.",
     };
+  }
+  if (skill.dragonSlash) {
+    const maximumCharges = maximumDragonCharges(context);
+    const releaseAtCharges = requestedDragonCharges(context, maximumCharges);
+    const missingCharges = releaseAtCharges - state.dragonCharges;
+    if (missingCharges > 0) {
+      const requiredFlow = missingCharges * DRAGON_FLOW_PER_CHARGE;
+      if (state.flow + context.epsilon < requiredFlow) {
+        return {
+          ready: false,
+          retryAt: null,
+          code: "warrior.flow",
+          reason:
+            `Dragon Slash needs ${requiredFlow} Flow to reach ` +
+            `${releaseAtCharges} charges; ${state.flow} Flow remains.`,
+        };
+      }
+      const nextChargeAt =
+        state.nextDragonChargeAt > context.start + context.epsilon
+          ? state.nextDragonChargeAt
+          : context.start + DRAGON_CHARGE_INTERVAL_SECONDS;
+      return {
+        ready: false,
+        retryAt: nextChargeAt,
+        code: "warrior.dragon-trigger-charging",
+        reason: `Dragon Trigger is charging to ${releaseAtCharges} charges.`,
+      };
+    }
   }
   if (skill.gunsaberSkill && !skill.dragonSlash && !state.gunsaberActive) {
     return {
@@ -115,6 +146,14 @@ function availability(
       retryAt: null,
       code: "warrior.gunsaber",
       reason: "Unsheathe the gunsaber first.",
+    };
+  }
+  if (skill.id === ID.DRAGON_TRIGGER && state.dragonTriggerActive) {
+    return {
+      ready: false,
+      retryAt: null,
+      code: "warrior.dragon-trigger",
+      reason: "Dragon Trigger is already active.",
     };
   }
   if (skill.id === ID.DRAGON_TRIGGER && state.flow < 10) {

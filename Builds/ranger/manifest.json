@@ -1,0 +1,14 @@
+[
+  {
+    "section": "Soulbeast",
+    "presets": [
+      {
+        "label": "Power (Hammer / Axe-Axe)",
+        "build": "Builds/ranger/b-power-soulbeast-hammer-axe.json",
+        "rotation": "Rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
+        "benchmarkDps": 43222,
+        "upToDate": true
+      }
+    ]
+  }
+]

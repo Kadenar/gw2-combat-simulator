@@ -4,6 +4,11 @@ import {
 } from "../../../../platform/engine/skill-handlers.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { WARRIOR_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import {
+  DRAGON_CHARGE_INTERVAL_SECONDS,
+  DRAGON_FLOW_PER_CHARGE,
+  maximumDragonCharges,
+} from "./dragon-trigger.js";
 import { bladeswornState } from "./state.js";
 import type {
   WarriorCastContext,
@@ -24,6 +29,8 @@ function enterDragonTrigger(context: WarriorCastContext): void {
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = context.effectiveEnd;
   state.flowUpdatedAt = context.effectiveEnd;
+  state.nextDragonChargeAt =
+    context.effectiveEnd + DRAGON_CHARGE_INTERVAL_SECONDS;
   state.dragonCharges = 0;
 }
 
@@ -32,7 +39,7 @@ function useDragonSlash(
   skill: WarriorSkill,
 ): void {
   const state = bladeswornState.from(context);
-  const maximumCharges = hasTrait(context, TRAIT.DARING_DRAGON) ? 5 : 10;
+  const maximumCharges = maximumDragonCharges(context);
   const charges = Math.max(1, Math.min(maximumCharges, state.dragonCharges));
   const coefficient =
     Number(skill.dragonSlashMaximumCoefficient || 17) *
@@ -50,6 +57,7 @@ function useDragonSlash(
   });
   state.dragonTriggerActive = false;
   state.dragonTriggerStartedAt = 0;
+  state.nextDragonChargeAt = 0;
   state.dragonCharges = 0;
 }
 
@@ -74,15 +82,15 @@ export function advanceBladesworn(
     state.flowUpdatedAt = target;
     return;
   }
-  const maximumCharges = hasTrait(context, TRAIT.DARING_DRAGON) ? 5 : 10;
+  const maximumCharges = maximumDragonCharges(context);
   while (
-    state.flowUpdatedAt + 0.5 <= target &&
-    state.flow >= 10 &&
+    state.nextDragonChargeAt <= target + context.epsilon &&
+    state.flow >= DRAGON_FLOW_PER_CHARGE &&
     state.dragonCharges < maximumCharges
   ) {
-    state.flow -= 10;
+    state.flow -= DRAGON_FLOW_PER_CHARGE;
     state.dragonCharges += 1;
-    state.flowUpdatedAt += 0.5;
+    state.nextDragonChargeAt += DRAGON_CHARGE_INTERVAL_SECONDS;
   }
   state.flowUpdatedAt = target;
 }

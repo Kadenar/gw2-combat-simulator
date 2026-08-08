@@ -29,6 +29,29 @@ weapon state, shared traits, and profession actions live under `core/`.
   and other behavior outside the deterministic outgoing-damage model is marked
   out of model rather than silently treated as implemented.
 
+## Dragon Trigger rotations
+
+Queue Dragon Slash directly after Dragon Trigger. The scheduler waits for the
+specialization's current maximum charge count automatically, so the rotation
+does not need a guessed Wait entry:
+
+```js
+["Dragon Trigger", "Dragon Slash—Force"];
+```
+
+Set `releaseAtCharges` on the Dragon Slash cast to release early. The timeline's
+`⚡Max` badge edits the same value; clearing it restores maximum-charge release.
+The requested value is capped to the active specialization maximum, including
+Daring Dragon's five-charge maximum.
+
+```js
+["Dragon Trigger", { name: "Dragon Slash—Force", releaseAtCharges: 3 }];
+```
+
+Charging consumes 10 Flow every 500 ms. If the remaining Flow cannot reach the
+requested count, the slash is rejected with a resource warning instead of
+waiting indefinitely.
+
 ## Data
 
 The August 8, 2026 snapshot contains 195 API skills, 108 traits, and all nine

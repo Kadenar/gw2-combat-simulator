@@ -15,6 +15,14 @@ function finiteMilliseconds(value: unknown, field: string): number {
   return number;
 }
 
+function positiveInteger(value: unknown, field: string): number {
+  const number = Number(value);
+  if (!Number.isInteger(number) || number < 1) {
+    throw new TypeError(`${field} must be a positive whole number.`);
+  }
+  return number;
+}
+
 /**
  * Converts one rotation entry into the canonical scheduler command shape.
  *
@@ -54,8 +62,7 @@ export function normalizeRotationCommand(
     candidate.type === "combat-start" ||
     candidate.name === "__combat_start"
   ) {
-    const concurrent =
-      candidate.concurrentOffsetMs ?? candidate.offset;
+    const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
     return concurrent == null
       ? { type: "combat-start" }
       : {
@@ -78,11 +85,9 @@ export function normalizeRotationCommand(
   const skillId =
     candidate.skillId ??
     candidate.id ??
-    (
-      typeof candidate.name === "string"
-        ? catalog?.skillsByName?.get(candidate.name)?.id
-        : undefined
-    ) ??
+    (typeof candidate.name === "string"
+      ? catalog?.skillsByName?.get(candidate.name)?.id
+      : undefined) ??
     candidate.name;
   if (skillId === undefined || skillId === null || skillId === "") {
     throw new TypeError("Cast command requires skillId.");
@@ -90,10 +95,9 @@ export function normalizeRotationCommand(
   if (typeof skillId !== "number" && typeof skillId !== "string") {
     throw new TypeError("Cast command skillId must be a string or number.");
   }
-  const concurrent =
-    candidate.concurrentOffsetMs ?? candidate.offset;
-  const interrupt =
-    candidate.interruptAfterMs ?? candidate.interruptMs;
+  const concurrent = candidate.concurrentOffsetMs ?? candidate.offset;
+  const interrupt = candidate.interruptAfterMs ?? candidate.interruptMs;
+  const releaseAtCharges = candidate.releaseAtCharges;
   return {
     type: "cast",
     skillId,
@@ -108,9 +112,14 @@ export function normalizeRotationCommand(
     ...(interrupt == null
       ? {}
       : {
-          interruptAfterMs: finiteMilliseconds(
-            interrupt,
-            "Interrupt duration",
+          interruptAfterMs: finiteMilliseconds(interrupt, "Interrupt duration"),
+        }),
+    ...(releaseAtCharges == null
+      ? {}
+      : {
+          releaseAtCharges: positiveInteger(
+            releaseAtCharges,
+            "Release-at charge count",
           ),
         }),
   };
@@ -174,9 +183,10 @@ export function toLegacyRotationEntry(
     name: skill?.name ?? command.skillId,
   };
   if (
-    skill
-    && catalog?.skills?.some((candidate) =>
-      candidate.id !== skill.id && candidate.name === skill.name)
+    skill &&
+    catalog?.skills?.some(
+      (candidate) => candidate.id !== skill.id && candidate.name === skill.name,
+    )
   ) {
     entry.skillId = command.skillId;
   }
@@ -184,5 +194,7 @@ export function toLegacyRotationEntry(
     entry.offset = command.concurrentOffsetMs;
   if (command.interruptAfterMs != null)
     entry.interruptMs = command.interruptAfterMs;
+  if (command.releaseAtCharges != null)
+    entry.releaseAtCharges = command.releaseAtCharges;
   return entry;
 }

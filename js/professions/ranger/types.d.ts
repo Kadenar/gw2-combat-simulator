@@ -79,8 +79,16 @@ export interface RangerPetDefinition {
 export interface RangerCoreState {
   activePet: string;
   activePetSkillIds: SkillId[];
-  availableFlips: Record<string, SkillId>;
+  availableFlips: Record<string, number>;
   autoattackChains: Record<string, SkillId>;
+  winterBiteReady: boolean;
+  tailWindReadyAt: number;
+  furiousGripReadyAt: number;
+  sharpenedEdgesProgress: number;
+  quickDrawReadyAt: number;
+  quickDrawUntil: number;
+  trapCrippleActivations: Record<string, boolean>;
+  bloodThirstCharges: number;
 }
 
 export interface DruidState {
@@ -95,6 +103,13 @@ export interface SoulbeastState {
   archetype: string;
   oneWolfPackUntil: number;
   oneWolfPackReadyAt: number;
+  goForTheEyesReadyAt: number;
+  beastlyWardenReadyAt: number;
+  goForTheThroatReadyAt: number;
+  bestialRageReadyAt: number;
+  essenceOfSpeedReadyAt: number;
+  vultureStanceReadyAt: number;
+  beastAbilityActivations: Record<string, boolean>;
 }
 
 export interface UntamedState {

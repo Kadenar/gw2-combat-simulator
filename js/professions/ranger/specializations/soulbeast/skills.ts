@@ -58,22 +58,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.VULTURE_STANCE]: {
     implemented: true,
-    castTimeMs: 500,
-    effects: [
-      {
-        type: "boon",
-        boon: "might",
-        duration: 4,
-        stacks: 1,
-      },
-      {
-        type: "condition",
-        condition: "Poisoned",
-        stacks: 1,
-        duration: 4,
-      },
-    ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 0,
+    effects: [],
+    quicknessCastTimeMs: 0,
+    handlerId: "ranger.vulture-stance",
   },
   [ID.PRIMAL_CRY]: {
     implemented: true,
@@ -118,15 +106,16 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WORLDLY_IMPACT]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 1020,
     effects: [
       {
         type: "strike",
-        coefficient: 1.89,
-        hits: 1,
+        ticks: [{ atMs: 520, coefficient: 1.89 }],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 680,
   },
   [ID.RAIN_OF_SPIKES]: {
     implemented: true,
@@ -147,20 +136,28 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MAUL_ID_41406]: {
     implemented: true,
-    castTimeMs: 0,
+    castTimeMs: 840,
     effects: [
       {
         type: "strike",
-        coefficient: 2.2,
-        hits: 2,
+        ticks: [
+          { atMs: 400, coefficient: 1.11 },
+          { atMs: 440, coefficient: 1.11 },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
       {
         type: "condition",
         condition: "Bleeding",
         stacks: 2,
         duration: 6,
+        atMs: 400,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
+    quicknessCastTimeMs: 560,
   },
   [ID.DEVOURER_RETREAT]: {
     implemented: true,
@@ -599,9 +596,9 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ONE_WOLF_PACK]: {
     implemented: true,
-    castTimeMs: 0,
+    castTimeMs: 540,
     effects: [],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 360,
     handlerId: "ranger.one-wolf-pack",
   },
   [ID.CHARGE]: {
@@ -697,6 +694,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 0.67,
         hits: 1,
+      },
+      {
+        type: "control",
+        metadata: { controlKind: "knockdown" },
       },
     ],
   },

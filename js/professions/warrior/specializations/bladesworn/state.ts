@@ -11,6 +11,7 @@ export function createBladeswornState(
     gunsaberActive: false,
     dragonTriggerActive: false,
     dragonTriggerStartedAt: 0,
+    nextDragonChargeAt: 0,
     dragonCharges: 0,
     fierceAsFireExpiries: [],
     gunsAndGloryUntil: 0,

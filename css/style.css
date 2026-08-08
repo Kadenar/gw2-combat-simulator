@@ -2703,6 +2703,17 @@ header .accent {
   pointer-events: none;
 }
 
+.rot-charge-release-badge {
+  color: #ffb454;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.rot-charge-release-badge:hover {
+  background: #a46020;
+  color: #fff;
+}
+
 /* Proc panel */
 .rotation-procs {
   flex: 0 0 auto;
