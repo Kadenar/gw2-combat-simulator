@@ -924,6 +924,16 @@ test("Bloodlust handles deterministic progress and stochastic proc rolls", () =>
     ),
     3,
   );
+  assert.equal(
+    bleedingStacks(
+      simulate("Spellbreaker", rotation.slice(0, 8), {
+        ...config,
+        stats: { precision: 1945 },
+        randomness: { mode: "deterministic", seed: 7 },
+      }),
+    ),
+    1,
+  );
 
   const seed = 1;
   const random = createSimulationRandom({ mode: "stochastic", seed });
@@ -945,7 +955,7 @@ test("Bloodlust handles deterministic progress and stochastic proc rolls", () =>
   );
 });
 
-test("precombat Kick receives a sampled critical outcome in stochastic mode", () => {
+test("precombat Kick samples stochastic crits without advancing deterministic sigils", () => {
   const result = simulate("Spellbreaker", ["Kick", "__combat_start"], {
     selectedTraitIds: [TRAIT.BLOODLUST],
     stats: { precision: 10000 },
@@ -956,6 +966,27 @@ test("precombat Kick receives a sampled critical outcome in stochastic mode", ()
   );
 
   assert.equal(kick.didCrit, true);
+
+  const deterministic = simulate(
+    "Spellbreaker",
+    ["Kick", "__combat_start", "Precise Cut"],
+    {
+      primaryWeapon: "Dagger",
+      secondaryWeapon: "Mace",
+      stats: { precision: 1945 },
+      randomness: { mode: "deterministic", seed: 7 },
+      sigilSets: [
+        { names: ["Air"], strike: 1, condition: 1 },
+        { names: [], strike: 1, condition: 1 },
+      ],
+    },
+  );
+  assert.equal(
+    deterministic.events.some(
+      (event) => event.source === "Sigil" && event.skillName === "Sigil of Air",
+    ),
+    false,
+  );
 });
 
 test("Spellbreaker offensive traits use multiplicative damage modifiers", () => {
