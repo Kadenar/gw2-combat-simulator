@@ -1106,7 +1106,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 440,
-    handlerId: "ranger.path-of-scars",
   },
   [ID.WHIRLING_DEFENSE]: {
     implemented: true,
@@ -3401,7 +3400,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     rechargeAnchor: "castStart",
     cooldown: 15,
     implemented: true,
-    handlerId: "ranger.path-of-scars",
     effects: [
       {
         type: "strike",

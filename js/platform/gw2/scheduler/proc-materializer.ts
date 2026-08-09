@@ -105,8 +105,13 @@ export function createGw2TriggerMaterializer(
         materializeConditionRelics(context, state.relic, event);
         break;
       case "damage": {
+        if (!state.combatActive) {
+          if (state.random.stochastic) {
+            resolveCriticalTrigger(context, event, state);
+          }
+          break;
+        }
         const criticalCause = resolveCriticalTrigger(context, event, state);
-        if (!state.combatActive) break;
         if (criticalCause) {
           sigils.materialize("crit", context, event, criticalCause);
         }

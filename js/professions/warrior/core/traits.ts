@@ -9,7 +9,6 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  */
 import type { ScheduledTask } from "../../../platform/engine/types.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
-import type { Gw2SchedulerPolicy } from "../../../platform/gw2/types.js";
 import {
   WARRIOR_SKILL_IDS as ID,
   WARRIOR_TRAIT_IDS as TRAIT,
@@ -290,10 +289,13 @@ function armsCriticalCount(
 
 function bloodlustProcCount(
   context: WarriorSchedulerContext,
+  event: WarriorSimulationEvent,
   criticals: number,
 ): number {
   if (context.config.randomness?.mode === "stochastic") {
-    const policy = context.schedulerPolicy as Gw2SchedulerPolicy;
+    const policy = context.schedulerPolicy as unknown as {
+      rollRandom(probability: number, stream?: string): boolean;
+    };
     let count = 0;
     for (let critical = 0; critical < criticals; critical += 1) {
       if (policy.rollRandom(0.33, "warrior.bloodlust")) count += 1;
@@ -302,7 +304,15 @@ function bloodlustProcCount(
   }
 
   const state = professionCoreState(context);
-  state.bloodlustProgress += criticals * 0.33;
+  const policy = context.schedulerPolicy as unknown as {
+    critical?: (
+      schedulerContext: WarriorSchedulerContext,
+      simulationEvent: WarriorSimulationEvent,
+    ) => { chance?: number };
+  };
+  const hits = Math.max(1, Number(event.hits || 1));
+  const criticalChance = Number(policy.critical?.(context, event)?.chance || 0);
+  state.bloodlustProgress += criticalChance * hits * 0.33;
   const count = Math.floor(state.bloodlustProgress + 1e-9);
   state.bloodlustProgress -= count;
   return count;
@@ -325,8 +335,8 @@ function applyArmsCriticalTraits(
     );
   }
   const state = professionCoreState(context);
-  if (hasTrait(context, TRAIT.BLOODLUST) && criticals > 0) {
-    const bleeding = bloodlustProcCount(context, criticals);
+  if (hasTrait(context, TRAIT.BLOODLUST)) {
+    const bleeding = bloodlustProcCount(context, event, criticals);
     if (bleeding > 0) {
       context.emitDerived(event, {
         type: "condition",

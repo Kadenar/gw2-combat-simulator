@@ -391,9 +391,6 @@ export const rangerCoreSkillHandlers = Object.freeze({
       });
     },
   },
-  "ranger.path-of-scars": {
-    mode: "augment" as const,
-  },
   "ranger.sic-em": {
     mode: "augment" as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
