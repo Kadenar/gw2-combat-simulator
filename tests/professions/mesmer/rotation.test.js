@@ -1030,6 +1030,116 @@ test("Compounding Power does not increase illusion attack damage", () => {
   );
 });
 
+test("Vicious Expression and Empowered Illusions respect illusion ownership", () => {
+  const assertMultiplier = (withTrait, baseline, expected) => {
+    assert.ok(Math.abs(withTrait / baseline - expected) < 1e-12);
+  };
+  const damageBySource = (result, skillName, source) =>
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "damage" &&
+          event.skillName === skillName &&
+          event.source === source,
+      )
+      .reduce((sum, event) => sum + event.damage, 0);
+  const simulateTroubadour = (selectedTraits) =>
+    simulateMesmer(
+      ["Phantasmal Swordsman", "Lively Lute", { name: "__wait", waitMs: 4000 }],
+      defaultSimulationConfig({
+        specialization: "Troubadour",
+        selectedTraits,
+        primaryWeapon: "Sword",
+        secondaryWeapon: "Sword",
+        initialResource: 3,
+      }),
+    );
+  const baseline = simulateTroubadour([]);
+  const vicious = simulateTroubadour(["Vicious Expression"]);
+  const empowered = simulateTroubadour(["Empowered Illusions"]);
+  const both = simulateTroubadour([
+    "Vicious Expression",
+    "Empowered Illusions",
+  ]);
+  const swordsmanDamage = (result, source) =>
+    damageBySource(result, "Phantasmal Swordsman", source);
+  const luteDamage = (result) =>
+    damageBySource(result, "Lively Lute", "Player");
+
+  assertMultiplier(
+    swordsmanDamage(vicious, "Phantasm"),
+    swordsmanDamage(baseline, "Phantasm"),
+    1.15,
+  );
+  assertMultiplier(
+    swordsmanDamage(empowered, "Phantasm"),
+    swordsmanDamage(baseline, "Phantasm"),
+    1.15,
+  );
+  assertMultiplier(
+    swordsmanDamage(both, "Phantasm"),
+    swordsmanDamage(baseline, "Phantasm"),
+    1.15 * 1.15,
+  );
+  assertMultiplier(
+    swordsmanDamage(vicious, "Player"),
+    swordsmanDamage(baseline, "Player"),
+    1.15,
+  );
+  assert.equal(
+    swordsmanDamage(empowered, "Player"),
+    swordsmanDamage(baseline, "Player"),
+  );
+  assertMultiplier(luteDamage(vicious), luteDamage(baseline), 1.15);
+  assert.equal(luteDamage(empowered), luteDamage(baseline));
+  assertMultiplier(luteDamage(both), luteDamage(baseline), 1.15);
+
+  const simulateClone = (selectedTraits) =>
+    simulateMesmer(
+      [
+        "Mirror Images",
+        { name: "__wait", waitMs: 1 },
+        { name: "Axes of Symmetry", skillId: ID.AXES_OF_SYMMETRY },
+      ],
+      defaultSimulationConfig({
+        specialization: "Mirage",
+        selectedSkills: ["Mirror Images"],
+        selectedTraits,
+        primaryWeapon: "Axe",
+        secondaryWeapon: "Torch",
+        initialResource: 0,
+      }),
+    );
+  const cloneBaseline = simulateClone([]);
+  const cloneVicious = simulateClone(["Vicious Expression"]);
+  const cloneEmpowered = simulateClone(["Empowered Illusions"]);
+  const cloneBoth = simulateClone([
+    "Vicious Expression",
+    "Empowered Illusions",
+  ]);
+  const cloneDamage = (result) =>
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "damage" &&
+          event.name.includes("Axes of Symmetry") &&
+          event.source === "Clone",
+      )
+      .reduce((sum, event) => sum + event.damage, 0);
+
+  assertMultiplier(cloneDamage(cloneVicious), cloneDamage(cloneBaseline), 1.15);
+  assertMultiplier(
+    cloneDamage(cloneEmpowered),
+    cloneDamage(cloneBaseline),
+    1.15,
+  );
+  assertMultiplier(
+    cloneDamage(cloneBoth),
+    cloneDamage(cloneBaseline),
+    1.15 * 1.15,
+  );
+});
+
 test("Compounding Power gives player strikes two percent and conditions one percent per stack", () => {
   const simulate = (selectedTraits) =>
     simulateMesmer(
@@ -2154,7 +2264,7 @@ test("power Troubadour benchmark preset preserves the supplied build and log", (
     events.reduce((total, event) => total + event.damage, 0);
   const swordsman = damageEvents("Phantasmal Swordsman");
   assert.deepEqual(result.warnings, []);
-  assert.equal(Math.round(result.dps), 42443);
+  assert.equal(Math.round(result.dps), 42703);
   assert.equal(count("Lively Lute"), 9);
   assert.equal(count("Flustering Flute"), 6);
   assert.equal(count("Deafening Drum"), 5);
@@ -2165,28 +2275,28 @@ test("power Troubadour benchmark preset preserves the supplied build and log", (
   assert.equal(count("Power Spike"), 11);
   assert.equal(count("Swap Weapons"), 8);
   const syncopate = damageEvents("Syncopate");
-  assert.equal(syncopate.length, 41);
+  assert.equal(syncopate.length, 39);
   assert.equal(
     syncopate.filter((event) => event.name === "Syncopate").length,
-    36,
+    35,
   );
   assert.equal(
     syncopate.filter((event) => event.name === "Syncopate — delayed wave")
       .length,
-    5,
+    4,
   );
   assert.equal(damageEvents("Relic of the Shackles").length, 8);
   assert.equal(
     Math.round(
       totalDamage(swordsman.filter((event) => event.source === "Player")),
     ),
-    40448,
+    40868,
   );
   assert.equal(
     Math.round(
       totalDamage(swordsman.filter((event) => event.source === "Phantasm")),
     ),
-    260321,
+    299369,
   );
 });
 

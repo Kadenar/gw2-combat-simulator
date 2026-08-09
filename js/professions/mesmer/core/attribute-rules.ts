@@ -100,150 +100,144 @@ function resolvedTotalDamage(context: Gw2ModifierContext): number {
 
 export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
   Object.freeze([
-  {
-    id: "mesmer.phantasmal-fury-critical-chance",
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: "add",
-    amount: (context) =>
-      context.config?.specialization === "Virtuoso" ? 0.4 : 0.25,
-    when: (context) =>
-      context.event?.source === "Phantasm" &&
-      hasTrait(context, TRAIT.PHANTASMAL_FURY),
-  },
-  {
-    id: "mesmer.superiority-complex",
-    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-    operation: "multiply",
-    factor: superiorityComplexFactor,
-    when: (context) =>
-      hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) && !illusionSource(context)
-  },
-  {
-    id: "mesmer.compounding-power",
-    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: "damage-additive",
-    amount: (context, target) =>
-      timedStacks(context, "compounding", 8, 5) *
-      (target === MODIFIER_TARGET.STRIKE_DAMAGE ? 0.02 : 0.01),
-    when: (context) => !illusionSource(context),
-  },
-  {
-    id: "mesmer.illusionary-membrane",
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: "damage-additive",
-    amount: 0.07,
-    when: (context) => timedActive(context, "illusionary-membrane"),
-  },
-  {
-    id: "mesmer.mind-stab-vulnerability",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: (context) =>
-      1 +
-      Number(
-        context.query?.vulnerabilityStacksAt(
+    {
+      id: "mesmer.phantasmal-fury-critical-chance",
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: "add",
+      amount: (context) =>
+        context.config?.specialization === "Virtuoso" ? 0.4 : 0.25,
+      when: (context) =>
+        context.event?.source === "Phantasm" &&
+        hasTrait(context, TRAIT.PHANTASMAL_FURY),
+    },
+    {
+      id: "mesmer.superiority-complex",
+      target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+      operation: "multiply",
+      factor: superiorityComplexFactor,
+      when: (context) =>
+        hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) &&
+        !illusionSource(context),
+    },
+    {
+      id: "mesmer.compounding-power",
+      target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+      operation: "damage-additive",
+      amount: (context, target) =>
+        timedStacks(context, "compounding", 8, 5) *
+        (target === MODIFIER_TARGET.STRIKE_DAMAGE ? 0.02 : 0.01),
+      when: (context) => !illusionSource(context),
+    },
+    {
+      id: "mesmer.illusionary-membrane",
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.07,
+      when: (context) => timedActive(context, "illusionary-membrane"),
+    },
+    {
+      id: "mesmer.mind-stab-vulnerability",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) =>
+        1 +
+        Number(
+          context.query?.vulnerabilityStacksAt(context.time, context.runtime) ||
+            0,
+        ) *
+          0.01,
+      order: 100,
+      when: (context) => context.event?.skillName === "Mind Stab",
+    },
+    {
+      id: "mesmer.fragility",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) =>
+        1 +
+        Number(
+          context.query?.vulnerabilityStacksAt(context.time, context.runtime) ||
+            0,
+        ) *
+          0.005,
+      order: 100,
+      when: (context) =>
+        hasTrait(context, TRAIT.FRAGILITY) && !illusionSource(context),
+    },
+    {
+      id: "mesmer.vicious-expression",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) => (context.config?.target?.boonless ? 1.15 : 1.1),
+      order: 100,
+      when: (context) => hasTrait(context, TRAIT.VICIOUS_EXPRESSION),
+    },
+    {
+      id: "mesmer.empowered-illusions",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.15,
+      order: 100,
+      when: (context) =>
+        illusionSource(context) && hasTrait(context, TRAIT.EMPOWERED_ILLUSIONS),
+    },
+    {
+      id: "mesmer.phantasmal-force",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) =>
+        1 +
+        context.query!.mightStacksAt(
           context.time,
           context.runtime,
-        ) || 0,
-      ) *
-        0.01,
-    order: 100,
-    when: (context) => context.event?.skillName === "Mind Stab",
-  },
-  {
-    id: "mesmer.fragility",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: (context) =>
-      1 +
-      Number(
-        context.query?.vulnerabilityStacksAt(
-          context.time,
-          context.runtime,
-        ) || 0,
-      ) *
-        0.005,
-    order: 100,
-    when: (context) =>
-      hasTrait(context, TRAIT.FRAGILITY) &&
-      !illusionSource(context),
-  },
-  {
-    id: "mesmer.vicious-expression",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: (context) => (context.config?.target?.boonless ? 1.15 : 1.1),
-    order: 100,
-    when: (context) =>
-      hasTrait(context, TRAIT.VICIOUS_EXPRESSION) && !illusionSource(context),
-  },
-  {
-    id: "mesmer.empowered-illusions",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: 1.15,
-    order: 100,
-    when: (context) =>
-      context.event?.source === "Phantasm" &&
-      hasTrait(context, TRAIT.EMPOWERED_ILLUSIONS),
-  },
-  {
-    id: "mesmer.phantasmal-force",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: (context) =>
-      1 +
-      context.query!.mightStacksAt(
-        context.time,
-        context.runtime,
-        context.event,
-      ) *
-        0.01,
-    order: 100,
-    when: (context) =>
-      context.event?.source === "Phantasm" &&
-      hasTrait(context, TRAIT.PHANTASMAL_FORCE),
-  },
-  {
-    id: "mesmer.mental-anguish",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: (context) =>
-      context.config?.target?.activatingSkills ? 1.25 : 1.5,
-    order: 100,
-    when: (context) =>
-      Boolean(context.event?.shatter) &&
-      hasTrait(context, TRAIT.MENTAL_ANGUISH),
-  },
-  {
-    id: "mesmer.egotism",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: 1.1,
-    order: 100,
-    when: (context) =>
-      hasTrait(context, TRAIT.EGOTISM) &&
-      !illusionSource(context) &&
-      Number(context.config?.target?.health || 0) > 0 &&
-      resolvedTotalDamage(context) > 0,
-  },
-  {
-    id: "mesmer.event-final-multiplier",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: (context) => Number(context.event?.multiplier || 1),
-    order: 1000,
-  },
-  {
-    id: "mesmer.malicious-sorcery",
-    target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: "add",
-    amount: 0.25,
-    when: (context) =>
-      context.condition === "Confusion" &&
-      hasTrait(context, TRAIT.MALICIOUS_SORCERY),
-  },
-]);
+          context.event,
+        ) *
+          0.01,
+      order: 100,
+      when: (context) =>
+        context.event?.source === "Phantasm" &&
+        hasTrait(context, TRAIT.PHANTASMAL_FORCE),
+    },
+    {
+      id: "mesmer.mental-anguish",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) =>
+        context.config?.target?.activatingSkills ? 1.25 : 1.5,
+      order: 100,
+      when: (context) =>
+        Boolean(context.event?.shatter) &&
+        hasTrait(context, TRAIT.MENTAL_ANGUISH),
+    },
+    {
+      id: "mesmer.egotism",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.1,
+      order: 100,
+      when: (context) =>
+        hasTrait(context, TRAIT.EGOTISM) &&
+        !illusionSource(context) &&
+        Number(context.config?.target?.health || 0) > 0 &&
+        resolvedTotalDamage(context) > 0,
+    },
+    {
+      id: "mesmer.event-final-multiplier",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) => Number(context.event?.multiplier || 1),
+      order: 1000,
+    },
+    {
+      id: "mesmer.malicious-sorcery",
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: "add",
+      amount: 0.25,
+      when: (context) =>
+        context.condition === "Confusion" &&
+        hasTrait(context, TRAIT.MALICIOUS_SORCERY),
+    },
+  ]);
 
 export function compileMesmerModifierRules(
   rules: readonly Gw2ModifierRule[],
