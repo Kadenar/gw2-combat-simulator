@@ -1027,8 +1027,81 @@ test("Paragon chants consume adrenaline and start a refrain", () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.maximumAdrenaline, 10);
   assert.equal(result.endState.profession.adrenaline, 0);
-  assert.equal(result.endState.profession.motivation, 2);
+  assert.equal(result.endState.profession.motivation, 4);
   assert.equal(result.endState.profession.activeRefrain, "Chant of Action");
+});
+
+test("Warrior signets use the supplied active effects and passive downtime", () => {
+  const fury = warriorCatalog.skillsById.get(ID.SIGNET_OF_FURY);
+  const might = warriorCatalog.skillsById.get(ID.SIGNET_OF_MIGHT);
+  const rage = warriorCatalog.skillsById.get(ID.SIGNET_OF_RAGE);
+  assert.equal(fury.cooldown, 16);
+  assert.equal(fury.adrenalineGain, 30);
+  assert.deepEqual(fury.effects, [
+    {
+      type: "buff",
+      kind: "signet-of-fury-active",
+      duration: 4,
+      stacks: 1,
+    },
+  ]);
+  assert.equal(might.cooldown, 20);
+  assert.equal(
+    might.effects.some(
+      (effect) =>
+        effect.type === "boon" &&
+        effect.boon === "might" &&
+        effect.stacks === 10 &&
+        effect.duration === 6,
+    ),
+    true,
+  );
+  assert.equal(rage.cooldown, 40);
+  assert.equal(rage.adrenalineGain, undefined);
+
+  const result = simulate(
+    "Core",
+    [
+      "__combat_start",
+      { type: "wait", durationMs: 3000 },
+      "Signet of Rage",
+      { type: "wait", durationMs: 42000 },
+    ],
+    { initialResource: 0, selectedSkills: ["Signet of Rage"] },
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.endState.profession.adrenaline, 4);
+  assert.deepEqual(
+    result.events
+      .filter(
+        (event) =>
+          event.type === "buff" && event.skillName === "Signet of Rage",
+      )
+      .map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),
+    [
+      { kind: "fury", stacks: 1, duration: 25 },
+      { kind: "might", stacks: 5, duration: 25 },
+      { kind: "swiftness", stacks: 1, duration: 25 },
+    ],
+  );
+});
+
+test("Burst Precision duration follows the adrenaline stage", () => {
+  for (const [initialResource, duration] of [
+    [10, 2],
+    [20, 2],
+    [30, 4],
+  ]) {
+    const result = simulate("Core", ["Eviscerate"], {
+      initialResource,
+      selectedTraitIds: [TRAIT.BURST_PRECISION],
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.events.find((event) => event.kind === "burst-precision").duration,
+      duration,
+    );
+  }
 });
 
 test("Bladesworn swap and Dragon Trigger traits use supplied behavior", () => {
@@ -1299,6 +1372,88 @@ test("Power Bladesworn preset preserves the requested build and executes", async
     14,
   );
   assert.ok(result.dps > 0);
+});
+
+test("Power Paragon preset preserves the EVTC build and executes", async () => {
+  const [raw, savedRotation, manifest] = await Promise.all([
+    readFile(
+      new URL(
+        "../../../Builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../../../Rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL("../../../Builds/warrior/manifest.json", import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+  assert.deepEqual(validateWarriorBuild(raw), { valid: true, errors: [] });
+  assert.deepEqual(raw.weapons, ["Sword", "Axe"]);
+  assert.deepEqual(raw.alternateWeapons, ["Dagger", "Mace"]);
+  assert.deepEqual(raw.weaponSigils, [
+    ["Force", "Hydromancy"],
+    ["Force", "Air"],
+  ]);
+  assert.equal(raw.rune, "Scholar");
+  assert.equal(raw.relic, "Claw");
+  assert.equal(raw.food, "Cilantro Lime Sous-Vide Steak");
+  assert.equal(raw.utility, "Superior Sharpening Stone");
+  assert.deepEqual(raw.infusions, [{ stat: "Power", count: 18 }]);
+  assert.deepEqual(
+    raw.specializations.map(({ name, traits }) => [name, traits]),
+    [
+      ["Arms", "2-1-3"],
+      ["Strength", "3-3-1"],
+      ["Paragon", "1-1-2"],
+    ],
+  );
+  assert.deepEqual(Object.values(raw.selectedSkills), [
+    "Healing Signet",
+    "Bull's Charge",
+    "Signet of Fury",
+    "Signet of Might",
+    "Signet of Rage",
+  ]);
+  assert.equal(
+    manifest.find((section) => section.section === "Paragon").presets[0]
+      .benchmarkDps,
+    42115,
+  );
+  assert.equal(savedRotation.metadata.benchmarkDamage, 3957198);
+
+  const build = migrateWarriorBuild({
+    ...raw,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: warriorCatalog.skillsByName,
+    attributeWeaponSet: 2,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  assert.deepEqual(result.warnings, []);
+  const hitCounts = new Map(
+    result.breakdown.map((entry) => [entry.name, entry.hits]),
+  );
+  assert.equal(hitCounts.get("Breaching Strike"), 13);
+  assert.equal(hitCounts.get("Crushing Blow"), 14);
+  assert.equal(hitCounts.get("Tremor"), 14);
+  assert.equal(hitCounts.get("Precise Cut"), 43);
+  assert.equal(hitCounts.get("Focused Slash"), 39);
+  assert.equal(hitCounts.get("Keen Strike"), 39);
+  assert.equal(hitCounts.get("Sever Artery"), 12);
+  assert.equal(hitCounts.get("Gash"), 12);
+  assert.equal(hitCounts.get("Hamstring"), 12);
+  assert.ok(Math.abs(result.dps - 42115) < 3000);
 });
 
 test("Warrior is exposed through the shared application registry", async () => {

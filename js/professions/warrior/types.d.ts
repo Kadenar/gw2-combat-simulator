@@ -48,11 +48,16 @@ export interface WarriorCoreState {
   availableFlips: Record<string, number | boolean | SchedulerRecord>;
   burstPowerExpiries: number[];
   signetMasteryExpiries: number[];
+  signetOfRageNextAt: number;
   targetControlledUntil: number;
   soldierFocusReadyAt: number;
   empowerAlliesNextAt: number;
   burstHitActivations: Record<string, boolean>;
+  burstPrecisionDurations: Record<string, number>;
   traitProcReadyAt: Record<string, number>;
+  armsCriticalProgress: number;
+  bloodlustProgress: number;
+  furiousSurgeExpiries: number[];
 }
 
 export interface BerserkerState {
@@ -99,6 +104,15 @@ export interface ParagonState {
   maximumMotivation: number;
   activeRefrain: string;
   nextRefrainAt: number;
+  inspiringImplementsReadyAt: number;
+  callToActionActivated: boolean;
+  commandEchoSequence: number;
+  pendingCommandEchoes: Array<{
+    id: number;
+    skillId: SkillId;
+    dueAt: number;
+    repeats: number;
+  }>;
 }
 
 export interface WarriorState

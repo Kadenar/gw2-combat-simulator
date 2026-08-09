@@ -344,6 +344,8 @@ export interface ProfessionAppState {
   procVisibilityKeys?: Set<string>;
   procFilterOpen?: boolean;
   procHighlightKey?: string | null;
+  overlaySigilProcs?: boolean;
+  overlayRelicProcs?: boolean;
   rotationSkillHighlightKey?: string | null;
   _skillBreakdownState?: {
     readonly skillRows: readonly SchedulerRecord[];

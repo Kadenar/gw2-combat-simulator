@@ -10,5 +10,17 @@
         "upToDate": true
       }
     ]
+  },
+  {
+    "section": "Paragon",
+    "presets": [
+      {
+        "label": "Power (Sword/Axe + Dagger/Mace)",
+        "build": "Builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
+        "rotation": "Rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
+        "benchmarkDps": 42115,
+        "upToDate": true
+      }
+    ]
   }
 ]

@@ -2061,6 +2061,12 @@ test("minion attacks use their canonical cadence, coefficients, and icons", () =
   ], {
     selectedSkills: ["Summon Blood Fiend"],
   });
+  const boneMinions = simulate("Core", [
+    "Summon Bone Minions",
+    { type: "wait", durationMs: 4000 },
+  ], {
+    selectedSkills: ["Summon Bone Minions"],
+  });
   const fleshGolem = simulate("Core", [
     "Summon Flesh Golem",
     { type: "wait", durationMs: 6500 },
@@ -2070,6 +2076,9 @@ test("minion attacks use their canonical cadence, coefficients, and icons", () =
   const bloodAttacks = bloodFiend.resolvedEvents.filter(event =>
     event.type === "damage"
     && event.skillName === "Summon Blood Fiend — Minion Attack");
+  const boneAttacks = boneMinions.resolvedEvents.filter(event =>
+    event.type === "damage"
+    && event.skillName === "Summon Bone Minions — Minion Attack");
   const golemAttacks = fleshGolem.resolvedEvents.filter(event =>
     event.type === "damage"
     && event.parentSkillName === "Summon Flesh Golem");
@@ -2079,20 +2088,111 @@ test("minion attacks use their canonical cadence, coefficients, and icons", () =
   assert.ok(bloodAttacks.length >= 2);
   assert.equal(bloodAttacks.every(event => event.coefficient === 0.065), true);
   assert.ok(Math.abs(bloodAttacks[1].at - bloodAttacks[0].at - 3.1) < 1e-12);
+  assert.equal(bloodAttacks[0].summonBasePower, 2400);
+  assert.equal(bloodAttacks[0].summonDamagePerCoefficient, 4338);
+  assert.equal(bloodAttacks[0].weaponStrength, undefined);
+  assert.equal(boneAttacks.length, 2);
+  assert.equal(boneAttacks[0].summonBasePower, 2250);
+  assert.equal(boneAttacks[0].summonDamagePerCoefficient, 4750);
+  assert.equal(boneAttacks[0].weaponStrength, undefined);
   assert.deepEqual(
     golemAttacks.slice(0, 3).map(event => [
       event.skillId,
       event.skillName,
       event.coefficient,
+      event.summonBasePower,
+      event.summonDamagePerCoefficient,
       event.weaponStrength,
       event.icon,
     ]),
     [
-      [3653, "Slash", 0.18, 900, golemIcon],
-      [3654, "Slash", 0.18, 900, golemIcon],
-      [3655, "Fist", 0.29, 931, golemIcon],
+      [3653, "Slash", 0.18, 2500, 3744, undefined, golemIcon],
+      [3654, "Slash", 0.18, 2500, 3744, undefined, golemIcon],
+      [3655, "Fist", 0.29, 2500, 3952, undefined, golemIcon],
     ],
   );
+});
+
+test("calibrated minion strikes ignore player Power and Signet of Spite", () => {
+  for (const summon of [
+    "Summon Blood Fiend",
+    "Summon Bone Minions",
+    "Summon Flesh Golem",
+  ]) {
+    const rotation = [summon, { type: "wait", durationMs: 6500 }];
+    const minionDamage = result => result.resolvedEvents
+      .filter(event => event.type === "damage" && event.source === "Minion")
+      .map(event => event.damage);
+    const lowPower = simulate("Core", rotation, {
+      selectedSkills: [summon],
+      stats: { power: 1000 },
+    });
+    const highPower = simulate("Core", rotation, {
+      selectedSkills: [summon],
+      stats: { power: 3000 },
+    });
+    const signet = simulate("Core", rotation, {
+      selectedSkills: [summon, "Signet of Spite"],
+      stats: { power: 1000 },
+    });
+
+    assert.deepEqual(minionDamage(highPower), minionDamage(lowPower), summon);
+    assert.deepEqual(minionDamage(signet), minionDamage(lowPower), summon);
+  }
+
+  const rotation = [
+    "Summon Blood Fiend",
+    { type: "wait", durationMs: 6500 },
+  ];
+  const totalMinionDamage = result => result.resolvedEvents
+    .filter(event => event.type === "damage" && event.source === "Minion")
+    .reduce((sum, event) => sum + event.damage, 0);
+  const base = simulate("Core", rotation, {
+    selectedSkills: ["Summon Blood Fiend"],
+  });
+  const corruption = simulate("Core", rotation, {
+    selectedSkills: ["Summon Blood Fiend"],
+    selectedTraitIds: [TRAIT.NECROMANTIC_CORRUPTION],
+  });
+  const strength = simulate("Ritualist", rotation, {
+    selectedSkills: ["Summon Blood Fiend"],
+    selectedTraitIds: [TRAIT.SPIRITS_STRENGTH],
+  });
+
+  assert.ok(
+    Math.abs(totalMinionDamage(corruption) / totalMinionDamage(base) - 1.25)
+      < 1e-12,
+  );
+  assert.ok(
+    Math.abs(totalMinionDamage(strength) / totalMinionDamage(base) - 1.5)
+      < 1e-12,
+  );
+});
+
+test("independent minions inherit dynamically shared Fury", () => {
+  const rotation = [
+    "Summon Blood Fiend",
+    "Ritualist's Shroud",
+    "Wanderlust",
+    "Exit Ritualist's Shroud",
+    { type: "wait", durationMs: 6500 },
+  ];
+  const firstBloodFiendAttack = result => result.resolvedEvents.find(event =>
+    event.type === "damage"
+    && event.source === "Minion"
+    && event.skillId === ID.SUMMON_BLOOD_FIEND);
+  const base = simulate("Ritualist", rotation, {
+    initialResource: 100,
+    selectedSkills: ["Summon Blood Fiend"],
+  });
+  const empowered = simulate("Ritualist", rotation, {
+    initialResource: 100,
+    selectedSkills: ["Summon Blood Fiend"],
+    selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
+  });
+
+  assert.equal(firstBloodFiendAttack(base).criticalChance, 0.05);
+  assert.equal(firstBloodFiendAttack(empowered).criticalChance, 0.3);
 });
 
 test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
@@ -3803,7 +3903,7 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   // Autonomous summon attacks intentionally do not inherit console Might.
   assert.ok(packetError("Preservation Autoattack", 61_304) < 0.015);
   assert.ok(packetError("Slash", 67_582) < 0.03);
-  assert.ok(packetError("Fist", 55_310) < 0.03);
+  assert.ok(packetError("Fist", 57_943) < 0.03);
   assert.ok(packetError("Perforate", 299_894) < 0.01);
   assert.ok(packetError("Summon Spirits", 441_885) < 0.025);
   assert.equal(

@@ -215,7 +215,7 @@ export function modifyNecromancerCoreAttributes(
   const result = cloneNecromancerAttributes(attributes);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (selectedSkill(context, "Signet of Spite")) {
-    const passiveActive = signetOfSpitePassiveActive(context);
+    const passiveActive = context.actorType !== "summon" && signetOfSpitePassiveActive(context);
     if (staticRulesApplied) {
       if (!passiveActive) result.power -= 180;
     } else if (passiveActive) {

@@ -2784,7 +2784,7 @@ test("Citadel Orders preserve their packet, pulse, cost, and recharge profiles",
   assert.ok(firstBombardmentHits.every((event) => event.coefficient === 0.6));
   assert.deepEqual(
     firstBombardmentHits.map((event) => Math.round(event.at * 1000)),
-    [874, 1007, 1080, 1195, 1285, 1405, 1474, 1600, 1674, 1812],
+    [845, 959, 1073, 1159, 1245, 1360, 1447, 1559, 1675, 1796],
   );
   const firstBurns = bombardment.events.filter(
     (event) =>
@@ -2894,7 +2894,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     base.endState.profession.kallasFervor.map((application) =>
       Math.round(application.expiresAt * 1000),
     ),
-    [9100, 9100, 9100, 9195, 9285],
+    [9100, 9100, 9100, 9159, 9245],
   );
   assert.ok(
     base.events.some(
@@ -2919,7 +2919,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     improved.endState.profession.kallasFervor.map((application) =>
       Math.round(application.expiresAt * 1000),
     ),
-    [13100, 13100, 13100, 13195, 13285],
+    [13100, 13100, 13100, 13159, 13245],
   );
   assert.ok(
     improved.events.some(
@@ -2949,7 +2949,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
       event.skillName === "Soulcleave's Summit" &&
       /Life Siphon/.test(event.name),
   );
-  assert.equal(siphon.flatStrikeMultiplier, 1.25);
+  assert.equal(siphon.flatStrikeMultiplier, 1.15);
 
   const nourishment = simulate(
     "Renegade",
@@ -2963,8 +2963,8 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   )
     .resolvedEvents.filter((event) => event.skillName === "Nourishment")
     .at(-1);
-  assert.equal(nourishment.flatStrikeMultiplier, 1.25);
-  assert.equal(nourishment.damage, 406.25);
+  assert.equal(nourishment.flatStrikeMultiplier, 1.15);
+  assert.ok(Math.abs(nourishment.damage - 373.75) < 1e-9);
 
   const modifierContext = (traitIds, condition = null) => ({
     config: { specialization: "Renegade", traitIds, boons: {} },
@@ -2996,7 +2996,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   });
   assert.equal(
     revenantAttributeRules.modifyStrikeDamage(modifierContext([]), 1),
-    1.15,
+    1.1,
   );
   assert.equal(
     revenantAttributeRules.modifyConditionDamage(
@@ -3249,6 +3249,73 @@ test("Band Together makes the next Renegade summon instant and enhanced", () => 
   assert.equal(
     base.events.some((event) => event.condition === "Chilled"),
     false,
+  );
+
+  const darkrazor = simulate(
+    "Renegade",
+    ["Darkrazor's Daring", { type: "wait", durationMs: 1600 }],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+      boons: { quickness: true },
+    },
+  );
+  assert.equal(darkrazor.steps[0].fullCastMs, 500);
+  assert.deepEqual(
+    darkrazor.events
+      .filter(
+        (event) =>
+          event.skillName === "Darkrazor's Daring" &&
+          (event.type === "damage" || event.type === "control"),
+      )
+      .map((event) => [
+        event.type,
+        Math.round((event.at - darkrazor.steps[0].end / 1000) * 1000),
+        event.actorType,
+      ]),
+    [
+      ["damage", 1000, "player"],
+      ["control", 1000, "player"],
+    ],
+  );
+  assert.deepEqual(
+    darkrazor.events
+      .filter(
+        (event) =>
+          event.skillName === "Darkrazor's Daring" &&
+          event.type === "buff" &&
+          event.kind === "stability",
+      )
+      .map((event) => [
+        event.duration,
+        event.stacks,
+        event.recipients,
+        Math.round((event.at - darkrazor.steps[0].end / 1000) * 1000),
+      ]),
+    [
+      [1, 1, "self", 0],
+      [6, 3, "allies", 1000],
+    ],
+  );
+
+  const enhancedRazorclaw = simulate(
+    "Renegade",
+    ["Icerazor's Ire", "Razorclaw's Rage", { type: "wait", durationMs: 1000 }],
+    {
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100,
+    },
+  );
+  assert.equal(
+    enhancedRazorclaw.events.find(
+      (event) =>
+        event.skillName === "Razorclaw's Rage" &&
+        event.type === "condition" &&
+        event.condition === "Torment",
+    )?.actorType,
+    "player",
   );
 
   const enhanced = simulate(

@@ -9,21 +9,29 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       castTimeMs: 1000,
       effects: [],
       quicknessCastTimeMs: 667,
+      categories: ["Command"],
+      handlerId: "warrior.command",
     },
     [ID.WE_SHALL_RETURN]: {
       implemented: true,
+      cooldown: 20,
+      recharge: 20,
       castTimeMs: 1000,
       effects: [],
       quicknessCastTimeMs: 667,
+      categories: ["Command"],
+      handlerId: "warrior.command",
     },
     [ID.NEVER_SURRENDER]: {
       implemented: true,
+      cooldown: 20,
+      recharge: 20,
       castTimeMs: 500,
       effects: [
         {
           type: "boon",
           boon: "resistance",
-          duration: 4,
+          duration: 6,
           stacks: 1,
         },
         {
@@ -32,20 +40,10 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           duration: 3,
           stacks: 1,
         },
-        {
-          type: "boon",
-          boon: "resolution",
-          duration: 4,
-          stacks: 1,
-        },
-        {
-          type: "boon",
-          boon: "regeneration",
-          duration: 4,
-          stacks: 1,
-        },
       ],
       quicknessCastTimeMs: 333,
+      categories: ["Command"],
+      handlerId: "warrior.command",
     },
     [ID.CHANT_OF_RECUPERATION]: {
       implemented: true,
@@ -55,25 +53,30 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       adrenalineCost: 10,
       burstTier: 1,
       burst: true,
+      categories: ["Burst", "Chant"],
       handlerId: "warrior.chant",
     },
     [ID.BRACE_YOURSELVES]: {
       implemented: true,
+      cooldown: 20,
+      recharge: 20,
       castTimeMs: 250,
       effects: [
         {
           type: "boon",
           boon: "protection",
-          duration: 5,
+          duration: 3,
           stacks: 1,
         },
       ],
       quicknessCastTimeMs: 167,
-      adrenalineGain: 10,
-      handlerId: "warrior.resource",
+      categories: ["Command"],
+      handlerId: "warrior.command",
     },
     [ID.FIND_THEIR_WEAKNESS]: {
       implemented: true,
+      cooldown: 15,
+      recharge: 15,
       castTimeMs: 500,
       effects: [
         {
@@ -91,13 +94,17 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           type: "boon",
           boon: "might",
           duration: 10,
-          stacks: 5,
+          stacks: 7,
         },
       ],
       quicknessCastTimeMs: 333,
+      categories: ["Command"],
+      handlerId: "warrior.command",
     },
     [ID.ON_YOUR_KNEES]: {
       implemented: true,
+      cooldown: 15,
+      recharge: 15,
       castTimeMs: 250,
       effects: [
         {
@@ -119,6 +126,8 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         },
       ],
       quicknessCastTimeMs: 167,
+      categories: ["Command"],
+      handlerId: "warrior.command",
     },
     [ID.CHANT_OF_FREEDOM]: {
       implemented: true,
@@ -128,6 +137,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       adrenalineCost: 10,
       burstTier: 1,
       burst: true,
+      categories: ["Burst", "Chant"],
       handlerId: "warrior.chant",
     },
     [ID.CHANT_OF_ACTION]: {
@@ -138,6 +148,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
       adrenalineCost: 10,
       burstTier: 1,
       burst: true,
+      categories: ["Burst", "Chant"],
       handlerId: "warrior.chant",
     },
   });

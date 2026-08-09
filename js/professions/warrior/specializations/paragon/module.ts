@@ -5,6 +5,7 @@ import { paragonSkillHandlers, paragonSchedulerHooks } from "./handlers.js";
 import { paragonAttributeRules } from "./rules.js";
 import { paragonState } from "./state.js";
 import { paragonUi } from "./ui.js";
+import { paragonResolverEventHandlers } from "./resolver.js";
 
 export const paragonModule = defineNativeModule({
   id: "Paragon",
@@ -16,6 +17,7 @@ export const paragonModule = defineNativeModule({
   mechanics: {
     modifiers: paragonAttributeRules,
     schedulerHooks: paragonSchedulerHooks,
+    resolverHooks: { eventHandlers: paragonResolverEventHandlers },
   },
   presentation: paragonUi,
 });

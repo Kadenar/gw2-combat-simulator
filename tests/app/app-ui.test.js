@@ -35,7 +35,10 @@ import {
 import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
+  procFilterLabel,
+  relicProcTimelineMarkers,
   rotationSkillHighlightKey,
+  sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineWeaponRows,
 } from "../../js/app/rotation/timeline-model.js";
@@ -95,6 +98,88 @@ test("proc display groups only consecutive occurrences of the same proc", () => 
       },
     ],
   );
+});
+
+test("equipment proc timeline markers follow their simulated activation times", () => {
+  const result = {
+    steps: [
+      { ri: 0, skill: "Opening Strike", start: 0, end: 600 },
+      { ri: 1, skill: "Follow-up", start: 700, end: 1200 },
+      { ri: 2, skill: "Finisher", start: 1300, end: 1800 },
+    ],
+    procSteps: [
+      {
+        ri: -1,
+        type: "sigil_proc",
+        skill: "Sigil of Air",
+        sourceSkill: "Opening Strike",
+        detail: "",
+        icon: "air.png",
+        start: 0,
+        end: 0,
+      },
+      {
+        ri: -1,
+        type: "sigil_proc",
+        skill: "Sigil of Air",
+        sourceSkill: "Opening Strike",
+        detail: "",
+        icon: "air.png",
+        start: 400,
+        end: 400,
+      },
+      {
+        ri: -1,
+        type: "trait_proc",
+        skill: "Trait Proc",
+        sourceSkill: "Follow-up",
+        detail: "",
+        icon: "trait.png",
+        start: 800,
+        end: 800,
+      },
+      {
+        ri: -1,
+        type: "relic_proc",
+        skill: "Relic of Fireworks",
+        sourceSkill: "Follow-up",
+        detail: "",
+        icon: "fireworks.png",
+        start: 700,
+        end: 700,
+      },
+      {
+        ri: -1,
+        type: "sigil_proc",
+        skill: "Sigil of Earth",
+        sourceSkill: "Follow-up",
+        detail: "",
+        icon: "earth.png",
+        start: 900,
+        end: 900,
+      },
+    ],
+  };
+
+  assert.deepEqual(
+    sigilProcTimelineMarkers(result, 3).map((marker) => ({
+      skill: marker.skill,
+      insertionIndex: marker.insertionIndex,
+      activations: marker.activations.length,
+    })),
+    [
+      { skill: "Sigil of Air", insertionIndex: 1, activations: 2 },
+      { skill: "Sigil of Earth", insertionIndex: 2, activations: 1 },
+    ],
+  );
+  assert.deepEqual(
+    relicProcTimelineMarkers(result, 3).map((marker) => ({
+      skill: marker.skill,
+      insertionIndex: marker.insertionIndex,
+    })),
+    [{ skill: "Relic of Fireworks", insertionIndex: 2 }],
+  );
+  assert.equal(procFilterLabel(result.procSteps[0]), "Sigil of Air (Sigil)");
 });
 
 test("rotation skill highlights group occurrences by displayed skill", () => {

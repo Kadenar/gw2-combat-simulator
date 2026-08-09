@@ -83,6 +83,11 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
     [ID.SUMMON_BLOOD_FIEND]: Object.freeze({
       key: "blood-fiend",
       count: 1,
+      // Calibrated from Fiend Leech hits in the Power Ritualist benchmark.
+      basePower: 2400,
+      damagePerCoefficient: 4338,
+      criticalChance: 0.05,
+      criticalDamage: 1.5,
       coefficient: 0.065,
       interval: 3.1,
       commandId: ID.TASTE_OF_DEATH,
@@ -97,6 +102,11 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
     [ID.SUMMON_BONE_MINIONS]: Object.freeze({
       key: "bone-minion",
       count: 2,
+      // Calibrated from Bone Minion Slash hits in the Power Ritualist benchmark.
+      basePower: 2250,
+      damagePerCoefficient: 4750,
+      criticalChance: 0.05,
+      criticalDamage: 1.5,
       coefficient: 0.04,
       interval: 3.52,
       commandId: ID.PUTRID_EXPLOSION,
@@ -125,33 +135,34 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
     [ID.SUMMON_FLESH_GOLEM]: Object.freeze({
       key: "flesh-golem",
       count: 1,
-      weaponStrength: 900,
+      // Slash and Fist have distinct coefficient-normalized damage profiles.
+      basePower: 2500,
+      damagePerCoefficient: 3744,
+      criticalChance: 0.05,
+      criticalDamage: 1.5,
       initialDelay: 2.2,
       interval: 4,
       attacks: Object.freeze([
         Object.freeze({
           skillId: 3653,
           name: "Slash",
-          icon:
-            "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png",
+          icon: "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png",
           coefficient: 0.18,
           offset: 0,
         }),
         Object.freeze({
           skillId: 3654,
           name: "Slash",
-          icon:
-            "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png",
+          icon: "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png",
           coefficient: 0.18,
           offset: 1.28,
         }),
         Object.freeze({
           skillId: 3655,
           name: "Fist",
-          icon:
-            "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png",
+          icon: "https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png",
           coefficient: 0.29,
-          weaponStrength: 931,
+          damagePerCoefficient: 3952,
           offset: 2.56,
         }),
       ]),

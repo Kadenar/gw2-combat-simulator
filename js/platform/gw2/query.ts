@@ -415,11 +415,16 @@ export function createGw2CombatQuery<
         event?.independentSummonStrike === true &&
         event?.summonInheritsAttributes !== true
       ) {
+        const summonFuryBonus = furyActiveAt(time, runtime, event) ? 0.25 : 0;
         return {
           chance:
             event.canCrit === false || event.noCrit
               ? 0
-              : clamp(Number(event.summonCriticalChance ?? 0.05), 0, 1),
+              : clamp(
+                  Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus,
+                  0,
+                  1,
+                ),
           damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5)),
         };
       }
@@ -466,7 +471,9 @@ export function createGw2CombatQuery<
       runtime: Gw2QueryRuntime | null = null,
     ) {
       if (event?.independentSummonStrike === true) {
-        const base = 1 + vulnerabilityStacksAt(time, runtime) / 100;
+        const base =
+          (1 + vulnerabilityStacksAt(time, runtime) / 100) *
+          Number(event.summonStrikeMultiplier ?? 1);
         return event?.summonUsesProfessionModifiers === true
           ? activeProfession.modifyStrikeDamage(
               hookContext(time, { event, runtime }),

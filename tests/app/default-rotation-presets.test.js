@@ -264,6 +264,12 @@ test("all Revenant default rotations are surfaced from its own directory", async
   assert.deepEqual(presets, [
     {
       section: "Renegade",
+      label: "Power Alacrity (Sword / Sword)",
+      rotation:
+        "Rotations/revenant/r-power-alac-renegade-sword-sword-benchmark.json",
+    },
+    {
+      section: "Renegade",
       label: "Condition (Shortbow / Mace-Axe)",
       rotation:
         "Rotations/revenant/r-condi-renegade-shortbow-mace-axe-benchmark.json",
@@ -308,6 +314,63 @@ test("all Revenant default rotations are surfaced from its own directory", async
     assert.ok(Array.isArray(savedRotation.rotation));
     assert.ok(savedRotation.rotation.length > 0);
   }
+});
+
+test("Power Alacrity Sword Renegade preset executes without warnings", async () => {
+  const manifest = JSON.parse(
+    await readFile(
+      new URL("../../Builds/revenant/manifest.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const preset = manifest
+    .find((section) => section.section === "Renegade")
+    ?.presets.find(
+      (candidate) => candidate.label === "Power Alacrity (Sword / Sword)",
+    );
+  const [savedBuild, savedRotation] = await Promise.all([
+    readFile(new URL(`../../${preset.build}`, import.meta.url), "utf8").then(
+      JSON.parse,
+    ),
+    readFile(new URL(`../../${preset.rotation}`, import.meta.url), "utf8").then(
+      JSON.parse,
+    ),
+  ]);
+  const build = migrateRevenantBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: revenantCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+
+  recalculateRevenant(app);
+  const result = runRevenantSimulation(app);
+
+  assert.equal(preset.benchmarkDps, 34209);
+  assert.equal(savedRotation.rotation.length, 262);
+  assert.deepEqual(build.weapons, ["Sword", "Sword"]);
+  assert.equal(build.specializations[2].name, "Renegade");
+  assert.deepEqual(result.warnings, []);
+  assert.equal(Math.round(result.dps), preset.benchmarkDps);
+  assert.equal(
+    result.events.filter(
+      (event) =>
+        event.type === "action" && event.skillName === "Shackling Wave",
+    ).length,
+    8,
+  );
+  assert.equal(
+    result.resolvedEvents.filter(
+      (event) =>
+        event.type === "damage" &&
+        event.skillName === "Shackling Wave" &&
+        event.damage > 0,
+    ).length,
+    48,
+  );
 });
 
 test("Power Conduit preset executes without warnings", async () => {

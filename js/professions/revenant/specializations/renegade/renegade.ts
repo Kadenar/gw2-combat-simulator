@@ -432,6 +432,7 @@ export function completeBandTogether(
         condition: "Torment",
         stacks: profile.enhancedTormentStacks,
         duration: profile.enhancedTormentDuration,
+        actorType: "player",
       });
     } else if (skill.id === ID.ICERAZORS_IRE) {
       const profile = MECHANICS.bandTogether.icerazor;
