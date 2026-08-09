@@ -30,6 +30,7 @@ import { rangerProfession } from "../../../js/professions/ranger/definition.js";
 import { RANGER_SKILL_MECHANICS } from "../../../js/professions/ranger/mechanics/skill-mechanics.js";
 import {
   rangerAppAdapter,
+  calculateAttributes,
   recalculate,
   runSimulation,
 } from "../../../js/professions/ranger/app/app-definition.js";
@@ -87,8 +88,8 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
   assert.equal(DATA_SNAPSHOT, "2026-08-08");
   assert.equal(rangerCatalog.specializations.length, 9);
   assert.equal(rangerCatalog.traits.length, 108);
-  assert.equal(rangerCatalog.skills.length, 292);
-  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 289);
+  assert.equal(rangerCatalog.skills.length, 296);
+  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 291);
   assert.equal(
     rangerCatalog.skillsById.has(ID.OVERBEARING_SMASH_SECOND_STRIKE),
     false,
@@ -766,7 +767,7 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
   assert.equal(
     RANGER_TRAIT_COVERAGE.filter((entry) => entry.status === "implemented")
       .length,
-    37,
+    53,
   );
 
   const baseline = simulate("Core", ["Rapid Fire"], {
@@ -777,6 +778,76 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
     selectedTraitIds: [TRAIT.FARSIGHTED],
   });
   assert.equal(farsighted.totalDamage > baseline.totalDamage, true);
+
+  const cycloneRotation = [
+    "Summon Cyclone Bow",
+    "Bluster",
+    "Fleeting Zephyr",
+    "Quarry's Peril",
+    "Pelt",
+  ];
+  const cyclone = simulate("Galeshot", cycloneRotation);
+  const farsightedCyclone = simulate("Galeshot", cycloneRotation, {
+    selectedTraitIds: [TRAIT.FARSIGHTED],
+  });
+  assert.equal(farsightedCyclone.totalDamage, cyclone.totalDamage);
+
+  const boonConfig = {
+    primaryWeapon: "Longbow",
+    boons: { alacrity: true, fury: true, regeneration: true },
+  };
+  const boonBaseline = simulate("Core", ["Rapid Fire"], boonConfig);
+  const bountiful = simulate("Core", ["Rapid Fire"], {
+    ...boonConfig,
+    selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER],
+  });
+  assert.ok(Math.abs(bountiful.totalDamage / boonBaseline.totalDamage - 1.03) < 1e-9);
+
+  const survival = simulate("Core", ["Rapid Fire"], {
+    primaryWeapon: "Longbow",
+    selectedTraitIds: [TRAIT.SURVIVAL_INSTINCTS],
+  });
+  const predator = simulate("Core", ["Rapid Fire"], {
+    primaryWeapon: "Longbow",
+    selectedTraitIds: [TRAIT.PREDATORS_ONSLAUGHT],
+  });
+  const wolfsong = simulate("Core", ["Rapid Fire"], {
+    primaryWeapon: "Longbow",
+    selectedTraitIds: [TRAIT.WOLFSONG],
+  });
+  assert.ok(Math.abs(survival.totalDamage / baseline.totalDamage - 1.15) < 1e-9);
+  assert.ok(Math.abs(predator.totalDamage / baseline.totalDamage - 1.1) < 1e-9);
+  assert.ok(Math.abs(wolfsong.totalDamage / baseline.totalDamage - 1.1) < 1e-9);
+
+  const daggerBaseline = simulate("Core", ["Double Arc"], {
+    primaryWeapon: "Dagger",
+  });
+  const ambidexterity = simulate("Core", ["Double Arc"], {
+    primaryWeapon: "Dagger",
+    selectedTraitIds: [TRAIT.AMBIDEXTERITY],
+  });
+  assert.ok(
+    ambidexterity.endState.cooldowns["Double Arc"].readyAt <
+      daggerBaseline.endState.cooldowns["Double Arc"].readyAt,
+  );
+
+  const poisonBaseline = simulate(
+    "Core",
+    ["Poison Volley", { type: "wait", durationMs: 10000 }],
+    { primaryWeapon: "Shortbow" },
+  );
+  const strongerPoison = simulate(
+    "Core",
+    ["Poison Volley", { type: "wait", durationMs: 10000 }],
+    {
+      primaryWeapon: "Shortbow",
+      selectedTraitIds: [TRAIT.POISON_MASTER],
+    },
+  );
+  assert.ok(
+    Math.abs(strongerPoison.conditionDamage / poisonBaseline.conditionDamage - 1.25) <
+      1e-9,
+  );
 
   const skirmishing = simulate(
     "Soulbeast",
@@ -815,6 +886,373 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
         entry.name === "Sharpened Edges — Bleeding" && entry.damage > 0,
     ),
     true,
+  );
+});
+
+test("Ranger Nature Magic traits grant support and share boons with pets", () => {
+  const healing = simulate("Core", [
+    "Troll Unguent",
+    "Hunter's Call",
+    { type: "wait", durationMs: 10000 },
+  ], {
+    primaryWeapon: "Axe",
+    secondaryWeapon: "Warhorn",
+    selectedTraitIds: [
+      TRAIT.WELLSPRING,
+      TRAIT.CHILD_OF_EARTH,
+      TRAIT.WINDBORNE_NOTES,
+      TRAIT.LINGERING_MAGIC,
+    ],
+  });
+  const wells = healing.events.find(
+    (event) => event.sourceId === TRAIT.WELLSPRING,
+  );
+  const notes = healing.events.find(
+    (event) => event.sourceId === TRAIT.WINDBORNE_NOTES,
+  );
+  assert.equal(wells.kind, "regeneration");
+  assert.equal(notes.kind, "regeneration");
+  assert.ok(Math.abs(wells.duration - 6.96) < 1e-9);
+  assert.ok(Math.abs(notes.duration - 6.96) < 1e-9);
+  assert.equal(
+    healing.events.filter(
+      (event) =>
+        event.sourceId === TRAIT.CHILD_OF_EARTH &&
+        event.condition === "Crippled",
+    ).length,
+    5,
+  );
+  assert.equal(
+    healing.events.filter(
+      (event) =>
+        event.sourceId === TRAIT.CHILD_OF_EARTH &&
+        event.condition === "Slow",
+    ).length,
+    5,
+  );
+  assert.equal(
+    healing.events.filter(
+      (event) =>
+        event.sourceId === TRAIT.CHILD_OF_EARTH &&
+        event.condition === "Immobilized",
+    ).length,
+    1,
+  );
+
+  const beast = simulate("Core", ["Intimidating Howl"], {
+    selectedPet: "Krytan Drakehound",
+    selectedTraitIds: [
+      TRAIT.REJUVENATION,
+      TRAIT.WOLFSONG,
+      TRAIT.LINGERING_MAGIC,
+    ],
+  });
+  const rejuvenation = beast.events.find(
+    (event) => event.sourceId === TRAIT.REJUVENATION,
+  );
+  assert.ok(Math.abs(rejuvenation.duration - 11.6) < 1e-9);
+  assert.equal(
+    beast.events.some(
+      (event) =>
+        event.sourceId === TRAIT.WOLFSONG &&
+        event.kind === "target-vulnerability" &&
+        event.stacks === 6 &&
+        event.duration === 6,
+    ),
+    true,
+  );
+
+  const unshared = simulate("Core", ["Call of the Wild", "Intimidating Howl"], {
+    primaryWeapon: "Axe",
+    secondaryWeapon: "Warhorn",
+    selectedPet: "Krytan Drakehound",
+    sharePlayerBoonsWithSummons: false,
+  });
+  const shared = simulate("Core", ["Call of the Wild", "Intimidating Howl"], {
+    primaryWeapon: "Axe",
+    secondaryWeapon: "Warhorn",
+    selectedPet: "Krytan Drakehound",
+    sharePlayerBoonsWithSummons: false,
+    selectedTraitIds: [TRAIT.FORTIFYING_BOND],
+  });
+  const petHit = (result) =>
+    result.resolvedEvents.find(
+      (event) => event.skillId === ID.INTIMIDATING_HOWL,
+    ).damage;
+  assert.equal(petHit(shared) > petHit(unshared), true);
+
+  const permanentBoons = {
+    selectedPet: "Krytan Drakehound",
+    sharePlayerBoonsWithSummons: false,
+    boons: { fury: true, might: 6, regeneration: true },
+    selectedTraitIds: [TRAIT.FORTIFYING_BOND],
+  };
+  const fortified = simulate("Core", ["Intimidating Howl"], permanentBoons);
+  const fortifiedWithoutFury = simulate("Core", ["Intimidating Howl"], {
+    ...permanentBoons,
+    boons: { might: 6, regeneration: true },
+  });
+  const fortifiedBountiful = simulate("Core", ["Intimidating Howl"], {
+    ...permanentBoons,
+    selectedTraitIds: [TRAIT.FORTIFYING_BOND, TRAIT.BOUNTIFUL_HUNTER],
+  });
+  const fortifiedHit = fortified.resolvedEvents.find(
+    (event) => event.skillId === ID.INTIMIDATING_HOWL,
+  );
+  const fortifiedHitWithoutFury = fortifiedWithoutFury.resolvedEvents.find(
+    (event) => event.skillId === ID.INTIMIDATING_HOWL,
+  );
+  assert.ok(
+    Math.abs(
+      fortifiedHit.criticalChance -
+        fortifiedHitWithoutFury.criticalChance -
+        0.25,
+    ) < 1e-9,
+  );
+  assert.ok(
+    Math.abs(petHit(fortifiedBountiful) / petHit(fortified) - 1.03) < 1e-9,
+  );
+  const merged = simulate("Soulbeast", ["Call of the Wild"], {
+    primaryWeapon: "Axe",
+    secondaryWeapon: "Warhorn",
+    selectedTraitIds: [TRAIT.FORTIFYING_BOND],
+  });
+  assert.equal(
+    merged.resolvedEvents.some(
+      (event) => event.sourceId === TRAIT.FORTIFYING_BOND,
+    ),
+    false,
+  );
+});
+
+test("Ranger pet-swap and Marksmanship traits resolve at their combat timings", () => {
+  const swapped = simulate("Core", ["__combat_start", "Swap Pets"], {
+    selectedTraitIds: [TRAIT.SPIRITED_ARRIVAL, TRAIT.CLARION_BOND],
+  });
+  assert.deepEqual(swapped.warnings, []);
+  assert.equal(swapped.endState.profession.petSwapCount, 1);
+  assert.equal(
+    swapped.events.some(
+      (event) =>
+        event.sourceId === TRAIT.SPIRITED_ARRIVAL &&
+        event.kind === "might" &&
+        event.stacks === 6 &&
+        event.duration === 12,
+    ),
+    true,
+  );
+  assert.equal(
+    swapped.events.some(
+      (event) =>
+        event.sourceId === TRAIT.SPIRITED_ARRIVAL &&
+        event.kind === "fury" &&
+        event.duration === 8,
+    ),
+    true,
+  );
+  assert.equal(
+    swapped.events.some(
+      (event) =>
+        event.sourceId === TRAIT.CLARION_BOND &&
+        event.type === "blast_combo",
+    ),
+    true,
+  );
+  assert.equal(
+    swapped.events.some(
+      (event) =>
+        event.sourceId === TRAIT.CLARION_BOND &&
+        event.condition === "Weakness" &&
+        event.duration === 5,
+    ),
+    true,
+  );
+
+  const opening = simulate("Core", ["Rapid Fire"], {
+    primaryWeapon: "Longbow",
+    selectedTraitIds: [
+      TRAIT.OPENING_STRIKE,
+      TRAIT.ALPHA_FOCUS,
+      TRAIT.PRECISE_STRIKE,
+      TRAIT.REMORSELESS,
+    ],
+  });
+  const rapidHits = opening.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.skillId === ID.RAPID_FIRE,
+  );
+  assert.equal(rapidHits[0].criticalChance, 1);
+  assert.equal(rapidHits[1].criticalChance < 1, true);
+  assert.equal(
+    opening.resolvedEvents.some(
+      (event) =>
+        event.sourceId === TRAIT.OPENING_STRIKE &&
+        event.condition === "Vulnerability" &&
+        event.stacks === 5,
+    ),
+    true,
+  );
+
+  const openingWithoutRemorseless = simulate("Core", ["Rapid Fire"], {
+    primaryWeapon: "Longbow",
+    selectedTraitIds: [TRAIT.OPENING_STRIKE, TRAIT.PRECISE_STRIKE],
+  });
+  const firstOpeningHit = (result) =>
+    result.resolvedEvents.find(
+      (event) => event.type === "damage" && event.skillId === ID.RAPID_FIRE,
+    ).damage;
+  assert.ok(
+    Math.abs(
+      firstOpeningHit(opening) / firstOpeningHit(openingWithoutRemorseless) -
+        1.25,
+    ) < 1e-9,
+  );
+
+  const rearmed = simulate(
+    "Core",
+    ["Rapid Fire", "Swap Weapons", "Call of the Wild", "Winter's Bite"],
+    {
+      primaryWeapon: "Longbow",
+      weaponSet2Primary: "Axe",
+      weaponSet2Secondary: "Warhorn",
+      selectedTraitIds: [TRAIT.OPENING_STRIKE, TRAIT.REMORSELESS],
+    },
+  );
+  assert.equal(
+    rearmed.resolvedEvents.filter(
+      (event) => event.sourceId === TRAIT.OPENING_STRIKE,
+    ).length,
+    2,
+  );
+  assert.equal(
+    opening.resolvedEvents.some(
+      (event) =>
+        event.sourceId === TRAIT.ALPHA_FOCUS &&
+        event.condition === "Crippled",
+    ),
+    true,
+  );
+
+  const gaze = simulate("Core", ["Rapid Fire"], {
+    primaryWeapon: "Longbow",
+    target: { health: 1 },
+    selectedTraitIds: [TRAIT.HUNTERS_GAZE],
+  });
+  const gazeApplications = gaze.procSteps.filter(
+    (step) => step.skill === "Hunter's Gaze",
+  );
+  assert.equal(gazeApplications.length, 1);
+  assert.equal(gazeApplications[0].detail, "3 might");
+});
+
+test("Ranger Wilderness Survival traits cover endurance, poison, and disables", () => {
+  const baseDodge = simulate("Core", ["Dodge", "Dodge", "Dodge"]);
+  const naturalVigor = simulate("Core", ["Dodge", "Dodge", "Dodge"], {
+    selectedTraitIds: [TRAIT.NATURAL_VIGOR],
+  });
+  assert.equal(naturalVigor.steps[2].start < baseDodge.steps[2].start, true);
+
+  const carnivore = simulate("Core", ["Concussion Shot"], {
+    primaryWeapon: "Shortbow",
+    selectedTraitIds: [TRAIT.CARNIVORE],
+  });
+  const stolen = carnivore.resolvedEvents.find(
+    (event) => event.sourceId === TRAIT.CARNIVORE,
+  );
+  assert.equal(stolen.damageKind, "life-steal");
+  assert.equal(stolen.coefficient, 0.05);
+
+  const spider = simulate(
+    "Core",
+    ["Spit", { type: "wait", durationMs: 4000 }],
+    {
+      selectedPet: "Forest Spider",
+      selectedTraitIds: [TRAIT.ARACHNOPHOBIA],
+    },
+  );
+  const devourer = simulate(
+    "Core",
+    ["Twin Darts", { type: "wait", durationMs: 4000 }],
+    {
+      selectedPet: "Carrion Devourer",
+      selectedTraitIds: [TRAIT.ARACHNOPHOBIA],
+    },
+  );
+  for (const result of [spider, devourer]) {
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.resolvedEvents.some(
+        (event) =>
+          event.sourceId === TRAIT.ARACHNOPHOBIA &&
+          event.condition === "Torment" &&
+          event.stacks === 1 &&
+          event.duration === 3,
+      ),
+      true,
+    );
+  }
+
+  const poisonMaster = simulate(
+    "Core",
+    [
+      "__combat_start",
+      "Intimidating Howl",
+      { type: "wait", durationMs: 20500 },
+      "Intimidating Howl",
+    ],
+    {
+      selectedPet: "Krytan Drakehound",
+      selectedTraitIds: [TRAIT.POISON_MASTER],
+    },
+  );
+  assert.equal(
+    poisonMaster.resolvedEvents.some(
+      (event) =>
+        event.sourceId === TRAIT.POISON_MASTER &&
+        event.condition === "Poisoned" &&
+        event.stacks === 2 &&
+        event.duration === 8,
+    ),
+    true,
+  );
+
+  const build = createRangerBuildDefaults();
+  build.specializations = [
+    { name: "Nature Magic", traits: "2-1-1" },
+    { name: "Wilderness Survival", traits: "3-1-1" },
+  ];
+  build.weapons = ["Dagger", "Torch"];
+  const attributes = calculateAttributes(build).attributes;
+  const withoutWellspring = calculateAttributes(
+    build,
+    [],
+    1,
+    "Wellspring",
+  ).attributes;
+  const withoutArachnophobia = calculateAttributes(
+    build,
+    [],
+    1,
+    "Arachnophobia",
+  ).attributes;
+  const withoutAmbidexterity = calculateAttributes(
+    build,
+    [],
+    1,
+    "Ambidexterity",
+  ).attributes;
+  assert.equal(
+    attributes.Expertise.final - withoutArachnophobia.Expertise.final,
+    150,
+  );
+  assert.equal(
+    attributes["Condition Damage"].final -
+      withoutAmbidexterity["Condition Damage"].final,
+    240,
+  );
+  assert.equal(
+    attributes["Healing Power"].final -
+      withoutWellspring["Healing Power"].final,
+    attributes.Power.final * 0.07,
   );
 });
 

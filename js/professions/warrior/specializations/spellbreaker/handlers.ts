@@ -1,6 +1,9 @@
 import { augmentSkillHandler } from "../../../../platform/engine/skill-handlers.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import { WARRIOR_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import {
+  WARRIOR_SKILL_IDS as ID,
+  WARRIOR_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
 import { applyWarriorSkillResource } from "../../core/resources.js";
 import { spellbreakerState } from "./state.js";
 import type {
@@ -20,11 +23,25 @@ const MAGEBANE_TETHER_COOLDOWN = 12;
 function gainAttackersInsight(
   state: { attackerInsightExpiries: number[] },
   at: number,
+  applications = 1,
 ): void {
+  const expiries = Array.from(
+    { length: Math.max(1, Math.trunc(applications)) },
+    () => at + ATTACKERS_INSIGHT_DURATION,
+  );
   state.attackerInsightExpiries = state.attackerInsightExpiries
     .filter((expiresAt) => expiresAt > at)
-    .concat(at + ATTACKERS_INSIGHT_DURATION)
+    .concat(expiries)
     .slice(-ATTACKERS_INSIGHT_MAXIMUM);
+}
+
+function attackerInsightApplications(
+  context: WarriorSchedulerContext | WarriorResolverContext,
+  event: WarriorSimulationEvent | WarriorResolverEvent,
+): number {
+  return event.skillId === ID.KICK && context.config.target?.defiant === true
+    ? 2
+    : 1;
 }
 
 function triggerMagebaneTether(
@@ -57,7 +74,11 @@ export function observeSpellbreakerEvent(
   if (event.actorType !== "player") return;
   if (event.type === "control") {
     if (hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
-      gainAttackersInsight(spellbreakerState.from(context), event.at);
+      gainAttackersInsight(
+        spellbreakerState.from(context),
+        event.at,
+        attackerInsightApplications(context, event),
+      );
     }
     if (
       hasTrait(context, TRAIT.NO_ESCAPE) &&
@@ -103,7 +124,11 @@ export function reactToSpellbreakerControl(
     event.actorType === "player" &&
     hasTrait(context, TRAIT.ATTACKERS_INSIGHT)
   ) {
-    gainAttackersInsight(spellbreakerState.from(context), event.at);
+    gainAttackersInsight(
+      spellbreakerState.from(context),
+      event.at,
+      attackerInsightApplications(context, event),
+    );
   }
 }
 

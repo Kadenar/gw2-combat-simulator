@@ -19,6 +19,7 @@ export function applyRangerBuildAttributeRules(
   }: Gw2BuildAttributeRuleContext,
 ) {
   const rangerBuild = build as RangerBuild;
+  const attributes = common.attributes;
   const activeTraits = getActiveTraits(
     rangerBuild.specializations || [],
   ).filter((trait) => trait.name !== disabledTrait);
@@ -62,9 +63,16 @@ export function applyRangerBuildAttributeRules(
     );
     addAttribute(traitStats, "Condition Damage", favored ? 240 : 120);
   }
-  if (hasTrait("Arachnophobia")) addAttribute(traitStats, "Expertise", 120);
+  if (hasTrait("Arachnophobia")) addAttribute(traitStats, "Expertise", 150);
   if (hasTrait("Lingering Magic"))
     addAttribute(traitStats, "Concentration", 240);
+  if (hasTrait("Wellspring")) {
+    addAttribute(
+      traitStats,
+      "Healing Power",
+      Number(attributes.Power?.final || 0) * 0.07,
+    );
+  }
   if (hasTrait("Vicious Quarry") && rangerBuild.assumptions?.fury !== false) {
     addAttribute(traitStats, "Ferocity", 250);
   }

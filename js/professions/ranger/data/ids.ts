@@ -2,6 +2,8 @@
 // Committed constants keep mechanic references independent from metadata loading.
 
 export const RANGER_SKILL_IDS = Object.freeze({
+  DODGE: -5,
+  PET_SWAP: -4,
   SWAP_WEAPONS: -3,
   PATH_OF_SCARS_MAX_RANGE: -1001,
   RICOCHET: 12466, // Ricochet
@@ -66,6 +68,8 @@ export const RANGER_SKILL_IDS = Object.freeze({
   THROW_TORCH: 12635, // Throw Torch
   PATH_OF_SCARS: 12638, // Path of Scars
   WHIRLING_DEFENSE: 12639, // Whirling Defense
+  TWIN_DARTS: 12676, // Twin Darts
+  SPIT: 12724, // Spit
   WATER_SPIRIT: 21773, // Water Spirit
   AQUA_SURGE: 21776, // Aqua Surge
   GLYPH_OF_THE_TIDES: 30238, // Glyph of the Tides

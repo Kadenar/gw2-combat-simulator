@@ -84,10 +84,67 @@ function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   );
 }
 
+const BOON_KINDS = Object.freeze([
+  "aegis",
+  "alacrity",
+  "fury",
+  "might",
+  "protection",
+  "quickness",
+  "regeneration",
+  "resistance",
+  "resolution",
+  "stability",
+  "swiftness",
+  "vigor",
+]);
+
+function petBoonActive(context: Gw2ModifierContext, boon: string): boolean {
+  if (
+    !beastmodeActive(context) &&
+    hasTrait(context, TRAIT.FORTIFYING_BOND) &&
+    context.config?.boons?.[boon]
+  ) {
+    return true;
+  }
+  if (context.timeline?.buffStacksAt(boon, context.time, 0, 25, "summon")) {
+    return true;
+  }
+  return (context.runtime?.boons?.get(boon) || []).some(
+    (application) =>
+      application.affectsSummons === true &&
+      application.at <= context.time &&
+      application.expiresAt > context.time,
+  );
+}
+
+function activeBoonCount(
+  context: Gw2ModifierContext,
+  audience: "player" | "pet",
+): number {
+  return BOON_KINDS.filter((boon) =>
+    audience === "pet"
+      ? petBoonActive(context, boon)
+      : boonActive(context, boon),
+  ).length;
+}
+
 function activePrimaryWeapon(context: Gw2ModifierContext): string {
   return Number(context.runtime?.activeWeaponSet) === 2
     ? String(context.config?.weaponSet2Primary || "")
     : String(context.config?.primaryWeapon || "");
+}
+
+function weaponSetIncludes(
+  context: Gw2ModifierContext,
+  weaponSet: number,
+  names: readonly string[],
+): boolean {
+  const weapons =
+    weaponSet === 2
+      ? [context.config?.weaponSet2Primary, context.config?.weaponSet2Secondary]
+      : [context.config?.primaryWeapon, context.config?.secondaryWeapon];
+  return weapons.some((weapon) => names.includes(String(weapon || "")));
 }
 
 function selectedSkill(context: Gw2ModifierContext, name: string): boolean {
@@ -105,6 +162,24 @@ function eventSkill(context: Gw2ModifierContext): RangerSkill | undefined {
   );
 }
 
+function openingStrikeReady(context: Gw2ModifierContext): boolean {
+  const core = (
+    context.runtime as
+      | {
+          profession?: {
+            core?: {
+              playerOpeningStrikeReady?: boolean;
+              petOpeningStrikeReady?: boolean;
+            };
+          };
+        }
+      | undefined
+  )?.profession?.core;
+  return petEvent(context)
+    ? core?.petOpeningStrikeReady === true
+    : playerEvent(context) && core?.playerOpeningStrikeReady === true;
+}
+
 function modifyRangerAttributes(
   context: Gw2ModifierContext,
   attributes: Gw2ResolvedStats,
@@ -114,6 +189,10 @@ function modifyRangerAttributes(
   const calculatedWeapon = String(
     context.config?.attributeProvenance?.calculatedPrimaryWeapon || "",
   );
+  const calculatedWeaponSet =
+    Number(context.config?.attributeProvenance?.calculatedWeaponSet) === 2
+      ? 2
+      : 1;
   const merged = beastmodeActive(context);
   const adjust = (attribute: keyof Gw2ResolvedStats, amount: number): void => {
     result[attribute] = Number(result[attribute] || 0) + amount;
@@ -124,6 +203,18 @@ function modifyRangerAttributes(
       adjust("precision", 420);
       adjust("ferocity", 450);
     }
+  }
+  if (petEvent(context) && hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
+    const family = selectedRangerPet(context.config).family;
+    if (["spider", "devourer"].includes(family)) adjust("expertise", 225);
+  }
+  if (
+    petEvent(context) &&
+    !merged &&
+    hasTrait(context, TRAIT.FORTIFYING_BOND)
+  ) {
+    adjust("power", Number(context.config?.boons?.might || 0) * 30);
+    adjust("conditionDamage", Number(context.config?.boons?.might || 0) * 30);
   }
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
@@ -162,6 +253,25 @@ function modifyRangerAttributes(
     if (merged && hasTrait(context, TRAIT.PETS_PROWESS)) {
       adjust("ferocity", 300);
     }
+    if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) adjust("expertise", 150);
+    if (hasTrait(context, TRAIT.LINGERING_MAGIC)) {
+      adjust("concentration", 240);
+    }
+    if (hasTrait(context, TRAIT.AMBIDEXTERITY)) {
+      adjust(
+        "conditionDamage",
+        weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), [
+          "Dagger",
+          "Mace",
+          "Torch",
+        ])
+          ? 240
+          : 120,
+      );
+    }
+    if (hasTrait(context, TRAIT.WELLSPRING)) {
+      adjust("healingPower", Number(result.power || 0) * 0.07);
+    }
   } else if (!merged) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
       for (const attribute of [
@@ -195,6 +305,18 @@ function modifyRangerAttributes(
     calculatedWeapon !== "Sword"
   ) {
     result.power = Number(result.power || 0) + 120;
+  }
+  if (staticRulesApplied && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
+    const favored = ["Dagger", "Mace", "Torch"];
+    const active = weaponSetIncludes(
+      context,
+      Number(context.runtime?.activeWeaponSet),
+      favored,
+    );
+    const calculated = weaponSetIncludes(context, calculatedWeaponSet, favored);
+    if (active !== calculated) {
+      adjust("conditionDamage", active ? 120 : -120);
+    }
   }
   if (selectedSkill(context, "Signet of the Wild")) {
     const active = !context.timeline?.skillOnCooldownAt(
@@ -244,8 +366,14 @@ function positional(context: Gw2ModifierContext): boolean {
 }
 
 function targetImpaired(context: Gw2ModifierContext): boolean {
-  if (context.config?.target?.defiant) return true;
-  return ["Chilled", "Crippled", "Immobilized", "Taunt", "Fear", "Slow"].some(
+  if (
+    context.config?.target?.defiant ||
+    context.config?.target?.disabled ||
+    context.config?.target?.defianceBroken
+  ) {
+    return true;
+  }
+  return ["Chilled", "Crippled", "Immobilized", "Taunt", "Fear"].some(
     (condition) =>
       Boolean(
         context.query?.targetHasCondition(
@@ -254,6 +382,17 @@ function targetImpaired(context: Gw2ModifierContext): boolean {
           context.runtime,
         ),
       ),
+  );
+}
+
+function targetVulnerable(context: Gw2ModifierContext): boolean {
+  return (
+    Number(
+      context.query?.vulnerabilityStacksAt(
+        context.time,
+        context.runtime || undefined,
+      ) || 0,
+    ) > 0
   );
 }
 
@@ -293,7 +432,63 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "damage-additive",
       amount: 0.1,
       when: (context) =>
-        playerEvent(context) && hasTrait(context, TRAIT.FARSIGHTED),
+        playerEvent(context) &&
+        eventSkill(context)?.type === "Weapon" &&
+        !eventSkill(context)?.cycloneBowSkill &&
+        hasTrait(context, TRAIT.FARSIGHTED),
+    },
+    {
+      id: "ranger.bountiful-hunter-player",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: (context) => activeBoonCount(context, "player") * 0.01,
+      when: (context) =>
+        playerEvent(context) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER),
+    },
+    {
+      id: "ranger.bountiful-hunter-pet",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: (context) => activeBoonCount(context, "pet") * 0.01,
+      when: (context) =>
+        petEvent(context) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER),
+    },
+    {
+      id: "ranger.fortifying-bond-configured-pet-fury",
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: "add",
+      amount: 0.25,
+      when: (context) =>
+        petEvent(context) &&
+        !beastmodeActive(context) &&
+        Boolean(context.config?.boons?.fury) &&
+        hasTrait(context, TRAIT.FORTIFYING_BOND),
+    },
+    {
+      id: "ranger.wolfsong",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.1,
+      when: (context) =>
+        playerEvent(context) &&
+        targetVulnerable(context) &&
+        hasTrait(context, TRAIT.WOLFSONG),
+    },
+    {
+      id: "ranger.remorseless",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.25,
+      when: (context) =>
+        openingStrikeReady(context) && hasTrait(context, TRAIT.REMORSELESS),
+    },
+    {
+      id: "ranger.precise-strike",
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: "add",
+      amount: 1,
+      when: (context) =>
+        openingStrikeReady(context) && hasTrait(context, TRAIT.PRECISE_STRIKE),
     },
     {
       id: "ranger.predators-onslaught-player",
@@ -328,7 +523,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "ranger.poison-master",
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "multiply",
-      factor: 1.2,
+      factor: 1.25,
       when: (context) =>
         context.condition === "Poisoned" &&
         hasTrait(context, TRAIT.POISON_MASTER),
@@ -337,7 +532,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
       id: "ranger.survival-instincts",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "damage-additive",
-      amount: 0.1,
+      amount: 0.15,
       when: (context) =>
         playerEvent(context) && hasTrait(context, TRAIT.SURVIVAL_INSTINCTS),
     },
@@ -429,6 +624,12 @@ export const rangerCoreCastRules = Object.freeze({
         context as unknown as Gw2ModifierContext,
         TRAIT.LIGHT_ON_YOUR_FEET,
       )
+    ) {
+      result *= 0.8;
+    }
+    if (
+      ["Dagger", "Torch"].includes(String(skill?.weapon || "")) &&
+      hasTrait(context as unknown as Gw2ModifierContext, TRAIT.AMBIDEXTERITY)
     ) {
       result *= 0.8;
     }

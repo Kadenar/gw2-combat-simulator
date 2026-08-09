@@ -125,6 +125,16 @@ test("equipment proc timeline markers follow their simulated activation times", 
         sourceSkill: "Opening Strike",
         detail: "",
         icon: "air.png",
+        start: 0,
+        end: 0,
+      },
+      {
+        ri: -1,
+        type: "sigil_proc",
+        skill: "Sigil of Air",
+        sourceSkill: "Opening Strike",
+        detail: "",
+        icon: "air.png",
         start: 400,
         end: 400,
       },
@@ -164,12 +174,29 @@ test("equipment proc timeline markers follow their simulated activation times", 
   assert.deepEqual(
     sigilProcTimelineMarkers(result, 3).map((marker) => ({
       skill: marker.skill,
+      start: marker.start,
       insertionIndex: marker.insertionIndex,
       activations: marker.activations.length,
     })),
     [
-      { skill: "Sigil of Air", insertionIndex: 1, activations: 2 },
-      { skill: "Sigil of Earth", insertionIndex: 2, activations: 1 },
+      {
+        skill: "Sigil of Air",
+        start: 0,
+        insertionIndex: 1,
+        activations: 2,
+      },
+      {
+        skill: "Sigil of Air",
+        start: 400,
+        insertionIndex: 1,
+        activations: 1,
+      },
+      {
+        skill: "Sigil of Earth",
+        start: 900,
+        insertionIndex: 2,
+        activations: 1,
+      },
     ],
   );
   assert.deepEqual(

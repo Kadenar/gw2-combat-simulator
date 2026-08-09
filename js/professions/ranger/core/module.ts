@@ -1,5 +1,7 @@
 import {
   defineNativeModule,
+  onBuffApplied,
+  onResolvedControl,
   onResolvedDamage,
   onResolvedPlayerCriticalHit,
 } from "../../../platform/gw2/native-profession.js";
@@ -18,6 +20,8 @@ import { bindRangerCoreUi } from "./ui.js";
 import {
   rangerCoreCriticalReactions,
   rangerCoreEventHandlers,
+  reactToRangerCoreBuff,
+  reactToRangerCoreControl,
   reactToRangerCoreDamage,
 } from "./reactions.js";
 
@@ -44,6 +48,16 @@ export const rangerCoreModule = defineNativeModule({
         id: "ranger.core-damage",
         order: 10,
         handler: reactToRangerCoreDamage,
+      }),
+      onResolvedControl({
+        id: "ranger.core-control",
+        order: 10,
+        handler: reactToRangerCoreControl,
+      }),
+      onBuffApplied({
+        id: "ranger.core-buff",
+        order: 10,
+        handler: reactToRangerCoreBuff,
       }),
     ],
   },

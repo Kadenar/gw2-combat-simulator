@@ -6,6 +6,8 @@ import {
 } from "../../js/professions/ranger/data/ranger-api-metadata.js";
 
 const SUPPLEMENTAL_SKILLS = [
+  ["Twin Darts", 12676],
+  ["Spit", 12724],
   ["Cosmic Ray", 31796],
   ["Seed of Life", 31406],
   ["Lunar Impact", 31318],

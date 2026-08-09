@@ -57,22 +57,26 @@ function matchingProcTimelineMarkers(
   const steps = (result?.steps || [])
     .filter((step) => step.ri >= 0 && !step.invalid)
     .sort((left, right) => left.start - right.start || left.ri - right.ri);
-  const procGroups = groupConsecutiveProcSteps(
-    [...(result?.procSteps || [])].sort(
-      (left, right) => left.start - right.start,
-    ),
-  );
-  return procGroups
-    .filter((group) => group.steps[0]?.type === procType)
-    .map((group) => {
-      const proc = group.steps[0] as Gw2ProcStep;
+  const activationGroups = new Map<string, Gw2ProcStep[]>();
+  for (const proc of [...(result?.procSteps || [])].sort(
+    (left, right) => left.start - right.start,
+  )) {
+    const activationKey = `${procFilterKey(proc)}:${proc.start}`;
+    const activations = activationGroups.get(activationKey) || [];
+    activations.push(proc);
+    activationGroups.set(activationKey, activations);
+  }
+  return [...activationGroups.values()]
+    .filter((activations) => activations[0]?.type === procType)
+    .map((activations) => {
+      const proc = activations[0] as Gw2ProcStep;
       // A proc at cast start belongs after that cast. Later procs are placed
       // immediately before the next command that has not started yet.
       const next = steps.find((step) => step.start > proc.start);
       return {
         ...proc,
         insertionIndex: next?.ri ?? rotationLength,
-        activations: group.steps,
+        activations,
       };
     })
     .sort((left, right) => left.start - right.start);
