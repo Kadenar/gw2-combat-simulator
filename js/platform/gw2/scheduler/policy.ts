@@ -218,7 +218,10 @@ export function createGw2SchedulerPolicy(
     },
 
     effectDuration(_context, _skill, effect, baseDuration) {
-      if (effect.type !== "boon" && effect.type !== "buff") {
+      if (
+        (effect.type !== "boon" && effect.type !== "buff") ||
+        effect.durationScale === "fixed"
+      ) {
         return baseDuration;
       }
       const name = titleCase(effect.boon || effect.kind || effect.name);

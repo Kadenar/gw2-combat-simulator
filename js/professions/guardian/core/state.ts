@@ -2,12 +2,21 @@ import type { SchedulerRecord } from "../../../platform/engine/types.js";
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import type {
   GuardianCoreState,
+  GuardianConfig,
   GuardianEndStateProjectionOptions,
   GuardianState,
 } from "../types.js";
 
-export function createGuardianCoreState(): GuardianCoreState {
+export function createGuardianCoreState(
+  config: GuardianConfig = {},
+): GuardianCoreState {
   return {
+    endurance: Math.max(
+      0,
+      Math.min(100, Number(config.initialEndurance ?? 100)),
+    ),
+    maximumEndurance: 100,
+    enduranceUpdatedAt: 0,
     justiceArmed: false,
     justiceActiveArmed: false,
     justiceHitCount: 0,
@@ -43,6 +52,8 @@ export function snapshotGuardianState(state: unknown): GuardianState {
 }
 
 export const GUARDIAN_PUBLIC_END_STATE_KEYS = Object.freeze([
+  "endurance",
+  "maximumEndurance",
   "justiceArmed",
   "justiceActiveArmed",
   "justiceHitCount",
@@ -52,6 +63,8 @@ export const GUARDIAN_PUBLIC_END_STATE_KEYS = Object.freeze([
   "virtueReadyAt",
   "autoattackChains",
   "availableFlips",
+  "tetherUntil",
+  "heavyLightReadyAt",
   "activeTome",
   "tomePages",
   "maximumTomePages",
@@ -114,6 +127,10 @@ const GUARDIAN_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
   radiantCourageShieldArmed: false,
   effulgentActiveUntil: 0,
   effulgentStacks: 0,
+  tetherUntil: 0,
+  heavyLightReadyAt: 0,
+  endurance: 100,
+  maximumEndurance: 100,
 });
 
 export function projectGuardianEndState({
@@ -147,15 +164,15 @@ export function projectGuardianEndState({
     "righteousNextMightAt",
     "effulgentActiveUntil",
     "effulgentStacks",
+    "tetherUntil",
+    "heavyLightReadyAt",
   ]) {
     if (Object.hasOwn(resolver, key)) mutableState[key] = resolver[key];
   }
   return Object.fromEntries(
     GUARDIAN_PUBLIC_END_STATE_KEYS.map((key) => [
       key,
-      structuredClone(
-        mutableState[key] ?? inactiveDefaults[key],
-      ),
+      structuredClone(mutableState[key] ?? inactiveDefaults[key]),
     ]),
   );
 }

@@ -222,6 +222,13 @@ function availability(
   }
   if (skill.primalBurst && !state.berserkActive)
     return { available: false, message: "Enter berserk mode first" };
+  // Keep the stow action usable while authoring or inserting rotation steps.
+  // The scheduler still rejects an attempted stow when Gunsaber is inactive.
+  if (skill.id === ID.SHEATHE_GUNSABER) {
+    return specialization === "Bladesworn"
+      ? { available: true, message: "" }
+      : { available: false, message: "Requires Bladesworn" };
+  }
   if (skill.gunsaberSkill) {
     if (specialization !== "Bladesworn")
       return { available: false, message: "Requires Bladesworn" };
@@ -255,9 +262,6 @@ function availability(
   }
   if (skill.id === ID.UNSHEATHE_GUNSABER && state.gunsaberActive) {
     return { available: false, message: "Gunsaber is already active" };
-  }
-  if (skill.id === ID.SHEATHE_GUNSABER && !state.gunsaberActive) {
-    return { available: false, message: "Gunsaber is not active" };
   }
   return { available: true, message: "" };
 }

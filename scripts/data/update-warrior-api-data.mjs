@@ -8,6 +8,9 @@ export async function updateWarriorApiData(options = {}) {
     ...options,
     snapshotConfig: {
       excludedIds: [62857],
+      skillOverrides: {
+        30185: { recharge: 8 },
+      },
       repairSkill(skill) {
         return skill.id === 62803 ? { ...skill, flip_skill: null } : skill;
       },

@@ -465,9 +465,20 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
 
   assert.deepEqual(guardianTemplates, [
     {
+      section: "Dragonhunter",
+      label: "Power (Spear / Greatsword)",
+      rotation:
+        "Rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
+    },
+    {
       section: "Luminary",
       label: "Power",
       rotation: "Rotations/guardian/r-power-luminary-bench.json",
+    },
+    {
+      section: "Luminary",
+      label: "Power Alacrity (Greatsword / Spear)",
+      rotation: "Rotations/guardian/r-power-alac-luminary-bench.json",
     },
   ]);
   assert.deepEqual(mesmerTemplates, [

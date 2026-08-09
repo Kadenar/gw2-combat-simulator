@@ -164,14 +164,121 @@ export function updateGuardianTraitCastState(
   skill: GuardianSkill,
 ): void {
   const at = context.effectiveEnd;
+  const virtueSlot = skill.categories?.includes("Virtue")
+    ? String(skill.slot || "")
+    : "";
+  if (virtueSlot) {
+    const boonDuration = (boon: string, duration: number): number => {
+      return (
+        context.schedulerPolicy.effectDuration?.(
+          context,
+          skill,
+          { type: "boon", boon, duration },
+          duration,
+        ) ?? duration
+      );
+    };
+    if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)) {
+      const inspired =
+        virtueSlot === "Profession_1"
+          ? { boon: "might", duration: 5, stacks: 3 }
+          : virtueSlot === "Profession_2"
+            ? { boon: "regeneration", duration: 5, stacks: 1 }
+            : { boon: "protection", duration: 5, stacks: 1 };
+      emitGuardianBuff(
+        context,
+        skill,
+        at,
+        inspired.boon,
+        boonDuration(inspired.boon, inspired.duration),
+        {
+          stacks: inspired.stacks,
+          sourceId: GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
+          name: "Inspired Virtue",
+        },
+      );
+    }
+    if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)) {
+      emitGuardianBuff(
+        context,
+        skill,
+        at,
+        "resolution",
+        boonDuration("resolution", 3),
+        {
+          sourceId: GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
+          name: "Virtue of Resolution",
+        },
+      );
+    }
+    if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE)) {
+      emitGuardianBuff(context, skill, at, "guardian-inspiring-virtue", 6, {
+        sourceId: GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
+        name: "Inspiring Virtue",
+      });
+    }
+    if (
+      virtueSlot === "Profession_3" &&
+      hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
+    ) {
+      emitGuardianBuff(
+        context,
+        skill,
+        at,
+        "stability",
+        boonDuration("stability", 4),
+        {
+          stacks: 3,
+          sourceId: GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
+          name: "Indomitable Courage",
+        },
+      );
+    }
+  }
   if (
-    skill.categories?.includes("Virtue") &&
-    String(skill.slot) === "Profession_1" &&
+    virtueSlot === "Profession_1" &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS) &&
-    isInternalCooldownReady(at, professionCoreState(context).furiousFocusReadyAt)
+    isInternalCooldownReady(
+      at,
+      professionCoreState(context).furiousFocusReadyAt,
+    )
   ) {
     professionCoreState(context).furiousFocusReadyAt = at + 10;
     emitLesserSymbolOfBlades(context, skill, at);
+  }
+  if (
+    skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES &&
+    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS)
+  ) {
+    for (let index = 0; index < 2; index += 1) {
+      const pulseAt = context.start + 6.25 + index;
+      context.emit(
+        buildGuardianStrike({
+          at: pulseAt,
+          sourceId: skill.id,
+          skillId: skill.id,
+          skillName: skill.name,
+          name: skill.name,
+          coefficient: 0.2,
+          skillWeapon: "Unequipped",
+          hitIndex: 7 + index,
+          totalHits: 8,
+        }),
+      );
+      context.emit({
+        type: "condition",
+        at: pulseAt,
+        source: "guardian",
+        sourceId: skill.id,
+        actorType: "player",
+        skillId: skill.id,
+        skillName: skill.name,
+        name: `${skill.name} — Burning`,
+        condition: "Burning",
+        stacks: 1,
+        duration: 2,
+      });
+    }
   }
 }
 
@@ -179,6 +286,17 @@ export function observeGuardianScheduledEvent(
   context: GuardianSchedulerContext,
   event: GuardianResolverEvent,
 ): void {
+  if (
+    event.type === "buff" &&
+    String(event.kind || "").toLowerCase() === "resolution" &&
+    Number(event.duration || 0) > 0 &&
+    hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)
+  ) {
+    context.replaceEvent(event, {
+      duration: Number(event.duration) * 1.25,
+    });
+    return;
+  }
   if (event.type !== "damage") return;
   const skillId = event.skillId;
   const skill =

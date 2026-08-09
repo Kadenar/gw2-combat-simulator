@@ -1,24 +1,103 @@
 import { augmentSkillHandler } from "../../../../platform/engine/skill-handlers.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import { WARRIOR_TRAIT_IDS as TRAIT } from "../../data/ids.js";
-import { applyWarriorSkillResource } from "../../core/resources.js";
+import {
+  WARRIOR_SKILL_IDS as ID,
+  WARRIOR_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
+import {
+  applyWarriorSkillResource,
+  syncWarriorAdrenaline,
+} from "../../core/resources.js";
 import { berserkerState } from "./state.js";
 import type {
   WarriorCastContext,
   WarriorSchedulerContext,
+  WarriorSimulationEvent,
   WarriorSkill,
 } from "../../types.js";
 
+function emitBoon(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+  name: string,
+  boon: string,
+  duration: number,
+  stacks = 1,
+  recipients?: string,
+): void {
+  context.emit({
+    type: "buff",
+    at: context.effectiveEnd,
+    source: "Trait",
+    sourceId:
+      name === "Burst of Aggression"
+        ? TRAIT.BURST_OF_AGGRESSION
+        : name === "Bloody Roar"
+          ? TRAIT.BLOODY_ROAR
+          : TRAIT.HEAT_THE_SOUL,
+    actorType: "effect",
+    skillId: skill.id,
+    skillName: skill.name,
+    name,
+    kind: boon,
+    boon,
+    duration,
+    stacks,
+    ...(recipients ? { recipients } : {}),
+  });
+}
+
+function emitBerserkMarker(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+): void {
+  const state = berserkerState.from(context);
+  context.emit({
+    type: "buff",
+    at: context.effectiveEnd,
+    source: "Berserker",
+    sourceId: ID.BERSERK,
+    actorType: "effect",
+    skillId: skill.id,
+    skillName: skill.name,
+    name: "Berserk",
+    kind: "berserk",
+    stacks: 1,
+    duration: Math.max(0, state.berserkUntil - context.effectiveEnd),
+  });
+}
+
 function enterBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   applyWarriorSkillResource(context, skill);
+  const core = professionCoreState(context);
+  core.maximumAdrenaline = 10;
+  syncWarriorAdrenaline(context);
   const state = berserkerState.from(context);
   state.berserkActive = true;
   state.berserkUntil =
     context.effectiveEnd + (hasTrait(context, TRAIT.SMASH_BRAWLER) ? 20 : 15);
+  emitBerserkMarker(context, skill);
+  emitBoon(context, skill, "Burst of Aggression", "quickness", 3);
+  emitBoon(context, skill, "Burst of Aggression", "fury", 8);
+  if (hasTrait(context, TRAIT.BLOODY_ROAR)) {
+    emitBoon(context, skill, "Bloody Roar", "resistance", 3.5);
+  }
+}
+
+function useBloodReckoning(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+): void {
+  applyWarriorSkillResource(context, skill);
+  for (const candidate of context.catalog.skills) {
+    if (candidate.primalBurst) context.state.cooldowns.delete(candidate.id);
+  }
 }
 
 export const berserkerSkillHandlers = Object.freeze({
   "warrior.berserk": augmentSkillHandler(enterBerserk),
+  "warrior.blood-reckoning": augmentSkillHandler(useBloodReckoning),
 });
 
 export function advanceBerserker(
@@ -29,20 +108,175 @@ export function advanceBerserker(
   if (state.berserkActive && state.berserkUntil <= target) {
     state.berserkActive = false;
     state.berserkUntil = 0;
+    const core = professionCoreState(context);
+    core.maximumAdrenaline = 30;
+    syncWarriorAdrenaline(context);
   }
 }
 
-export function extendBerserk(
+function isComplete(context: WarriorCastContext): boolean {
+  return context.effectiveEnd >= context.fullEnd - context.epsilon;
+}
+
+function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
+  const state = berserkerState.from(context);
+  if (!state.berserkActive || !isComplete(context)) return;
+  const previousUntil = state.berserkUntil;
+  if (skill.primalBurst && hasTrait(context, TRAIT.SMASH_BRAWLER)) {
+    state.berserkUntil += skill.id === ID.DECAPITATE ? 1 : 2;
+  }
+  if (skill.categories?.includes("Rage")) {
+    const baseExtension =
+      skill.id === ID.BERSERK || skill.id === ID.BERSERK_ID_30435
+        ? 0
+        : skill.id === ID.OUTRAGE
+          ? 3
+          : 2;
+    state.berserkUntil +=
+      baseExtension + (hasTrait(context, TRAIT.LAST_BLAZE) ? 1 : 0);
+  }
+  if (state.berserkUntil > previousUntil) emitBerserkMarker(context, skill);
+}
+
+function applyBerserkerTraits(
   context: WarriorCastContext,
   skill: WarriorSkill,
 ): void {
-  const state = berserkerState.from(context);
-  if (!state.berserkActive) return;
-  if (skill.primalBurst && hasTrait(context, TRAIT.SMASH_BRAWLER))
-    state.berserkUntil += 2;
-  if (skill.categories?.includes("Rage")) {
-    state.berserkUntil += hasTrait(context, TRAIT.LAST_BLAZE) ? 3 : 2;
+  if (!isComplete(context)) return;
+  if (
+    skill.categories?.includes("Rage") &&
+    hasTrait(context, TRAIT.LAST_BLAZE)
+  ) {
+    context.emit({
+      type: "condition",
+      at: context.effectiveEnd,
+      source: "Trait",
+      sourceId: TRAIT.LAST_BLAZE,
+      actorType: "effect",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: "Last Blaze — Burning",
+      condition: "Burning",
+      stacks: 1,
+      duration: 4,
+    });
   }
+  if (skill.primalBurst && hasTrait(context, TRAIT.HEAT_THE_SOUL)) {
+    emitBoon(
+      context,
+      skill,
+      "Heat the Soul — Quickness",
+      "quickness",
+      skill.id === ID.DECAPITATE ? 2 : 5,
+      1,
+      "party",
+    );
+    emitBoon(context, skill, "Heat the Soul — Fury", "fury", 5, 1, "party");
+    emitBoon(context, skill, "Heat the Soul — Might", "might", 5, 3, "party");
+  }
+
+  const state = berserkerState.from(context);
+  const berserkerSkill =
+    skill.primalBurst ||
+    skill.categories?.includes("Rage") ||
+    skill.specialization === "Berserker";
+  if (
+    berserkerSkill &&
+    hasTrait(context, TRAIT.KING_OF_FIRES) &&
+    state.fireAuraUntil > context.effectiveEnd + context.epsilon
+  ) {
+    state.fireAuraUntil = 0;
+    context.emit({
+      type: "damage",
+      at: context.effectiveEnd,
+      source: "Trait",
+      sourceId: TRAIT.KING_OF_FIRES,
+      actorType: "effect",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: "King of Fires — Fire Aura Detonation",
+      coefficient: 0.7,
+    });
+    context.emit({
+      type: "condition",
+      at: context.effectiveEnd,
+      source: "Trait",
+      sourceId: TRAIT.KING_OF_FIRES,
+      actorType: "effect",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: "King of Fires — Burning",
+      condition: "Burning",
+      stacks: 3,
+      duration: 3,
+    });
+  }
+}
+
+function criticalCount(
+  context: WarriorSchedulerContext,
+  event: WarriorSimulationEvent,
+): number {
+  if (context.config.randomness?.mode === "stochastic") {
+    return event.didCrit === true ? 1 : 0;
+  }
+  const criticalPolicy = context.schedulerPolicy as unknown as {
+    critical?: (
+      schedulerContext: WarriorSchedulerContext,
+      simulationEvent: WarriorSimulationEvent,
+    ) => { chance?: number };
+  };
+  const state = berserkerState.from(context);
+  state.kingOfFiresCriticalProgress += Number(
+    criticalPolicy.critical?.(context, event)?.chance || 0,
+  );
+  const count = Math.floor(state.kingOfFiresCriticalProgress + 1e-9);
+  state.kingOfFiresCriticalProgress -= count;
+  return count;
+}
+
+function observeBerserkerEvent(
+  context: WarriorSchedulerContext,
+  event: WarriorSimulationEvent,
+): void {
+  if (
+    event.type !== "damage" ||
+    event.actorType !== "player" ||
+    !(Number(event.coefficient) > 0) ||
+    !hasTrait(context, TRAIT.KING_OF_FIRES)
+  ) {
+    return;
+  }
+  const state = berserkerState.from(context);
+  if (
+    event.at + context.epsilon < state.kingOfFiresReadyAt ||
+    criticalCount(context, event) === 0
+  ) {
+    return;
+  }
+  state.fireAuraUntil = event.at + 5;
+  state.kingOfFiresReadyAt = event.at + 15;
+  context.emitDerived(event, {
+    type: "buff",
+    at: event.at,
+    source: "Trait",
+    sourceId: TRAIT.KING_OF_FIRES,
+    actorType: "effect",
+    skillId: event.skillId,
+    skillName: event.skillName,
+    name: "King of Fires — Fire Aura",
+    kind: "fire-aura",
+    stacks: 1,
+    duration: 5,
+  });
+}
+
+function finishBerserkerCast(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+): void {
+  extendBerserk(context, skill);
+  applyBerserkerTraits(context, skill);
 }
 
 export const berserkerSchedulerHooks = Object.freeze({
@@ -54,6 +288,11 @@ export const berserkerSchedulerHooks = Object.freeze({
   afterCast: {
     id: "warrior.berserker-duration",
     order: 20,
-    handler: extendBerserk,
+    handler: finishBerserkerCast,
+  },
+  onEventScheduled: {
+    id: "warrior.king-of-fires",
+    order: 20,
+    handler: observeBerserkerEvent,
   },
 });

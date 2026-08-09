@@ -157,6 +157,7 @@ export type SkillHandlerMode = "augment" | "replace";
 export interface StrikeTick {
   readonly atMs: number;
   readonly coefficient: number;
+  readonly metadata?: Readonly<Record<string, unknown>>;
   readonly [field: string]: unknown;
 }
 
@@ -174,6 +175,7 @@ export interface SkillEffectBase {
   readonly intervalMs?: number;
   readonly timingAnchor?: "castStart" | "castEnd";
   readonly timingScale?: "cast" | "fixed";
+  readonly durationScale?: "boon" | "fixed";
   readonly applications?: number;
   readonly persistsAfterInterrupt?: boolean;
   readonly source?: string;

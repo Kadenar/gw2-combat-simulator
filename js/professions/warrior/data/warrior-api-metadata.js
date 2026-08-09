@@ -3073,7 +3073,7 @@ export const SKILLS = [
     slot: "Profession_2",
     specialization: "",
     categories: ["Rage"],
-    recharge: 15,
+    recharge: 8,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,

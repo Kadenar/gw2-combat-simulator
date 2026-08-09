@@ -4669,6 +4669,42 @@ header .accent {
   width: auto;
 }
 
+.active-resource-counter {
+  position: relative;
+  display: grid;
+  width: 50px;
+  height: 34px;
+  flex: 0 0 50px;
+  place-items: center;
+}
+
+.active-resource-counter.warrior-motivation {
+  background: url("../assets/warrior-motivation-badge.svg") center / contain
+    no-repeat;
+  isolation: isolate;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+}
+
+.warrior-motivation span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 20px;
+  height: 28px;
+  color: #f8f3dc;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  place-items: center;
+  text-shadow:
+    -1px -1px 1px #111,
+    1px -1px 1px #111,
+    -1px 1px 1px #111,
+    1px 1px 1px #111;
+  transform: translateY(-1px);
+}
+
 .fixed-loadout-pairs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

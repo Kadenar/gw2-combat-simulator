@@ -3,10 +3,22 @@
     "section": "Bladesworn",
     "presets": [
       {
-        "label": "Power (Axe / Pistol)",
-        "build": "Builds/warrior/b-power-bladesworn-axe-pistol.json",
-        "rotation": "Rotations/warrior/r-power-bladesworn-axe-pistol-bench.json",
+        "label": "Power (Sword / Pistol)",
+        "build": "Builds/warrior/b-power-bladesworn-sword-pistol.json",
+        "rotation": "Rotations/warrior/r-power-bladesworn-sword-pistol-bench.json",
         "benchmarkDps": 41535,
+        "upToDate": true
+      }
+    ]
+  },
+  {
+    "section": "Berserker",
+    "presets": [
+      {
+        "label": "Power (Spear + Greatsword)",
+        "build": "Builds/warrior/b-power-berserker-spear-greatsword.json",
+        "rotation": "Rotations/warrior/r-power-berserker-spear-greatsword-bench.json",
+        "benchmarkDps": 41063,
         "upToDate": true
       }
     ]

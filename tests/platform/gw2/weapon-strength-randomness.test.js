@@ -3,9 +3,7 @@ import test from "node:test";
 
 import { createCanonicalCatalog } from "../../../js/platform/engine/catalog.js";
 import { defineProfession } from "../../../js/platform/engine/profession.js";
-import {
-  createSimulationRandom,
-} from "../../../js/platform/engine/simulation-random.js";
+import { createSimulationRandom } from "../../../js/platform/engine/simulation-random.js";
 import { WEAPON_DATA } from "../../../js/platform/gw2/gear-data.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
@@ -67,14 +65,12 @@ test("canonical weapon-strength bounds derive every documented midpoint", () => 
     assert.equal(weaponStrengthHalfRange(profile), (max - min) / 2);
     assert.equal(Object.isFrozen(profile), true);
   }
-  assert.equal(weaponStrengthHalfRange(
-    weaponStrengthProfile("bundle.ascended"),
-  ), 48.5);
-  assert.equal(WEAPON_DATA.Longbow.weaponStrength, 1050);
   assert.equal(
-    WEAPON_DATA.Longbow.weaponStrengthProfileId,
-    "weapon.longbow",
+    weaponStrengthHalfRange(weaponStrengthProfile("bundle.ascended")),
+    48.5,
   );
+  assert.equal(WEAPON_DATA.Longbow.weaponStrength, 1050);
+  assert.equal(WEAPON_DATA.Longbow.weaponStrengthProfileId, "weapon.longbow");
 });
 
 test("profile lookup and continuous sampling validate their inputs", () => {
@@ -83,6 +79,7 @@ test("profile lookup and continuous sampling validate their inputs", () => {
     weaponStrengthProfileForName("Profession mechanic")?.id,
     "nonweapon.profession-mechanic",
   );
+  assert.equal(weaponStrengthProfileForName("Gunsaber")?.id, "bundle.ascended");
   assert.equal(weaponStrengthProfileForName("unknown"), null);
   assert.throws(() => weaponStrengthProfile("weapon.unknown"), /Unknown/);
   const rifle = weaponStrengthProfile("weapon.rifle");
@@ -136,23 +133,27 @@ test("skill metadata classifies transforms, kits, shrouds, and effects", () => {
 
 function fixtureProfession() {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 990001,
-      name: "Dagger Flurry",
-      type: "Weapon",
-      weapon: "Dagger",
-      castTimeMs: 300,
-      cooldown: 0,
-      effects: [{
-        type: "strike",
-        coefficient: 3,
-        hits: 3,
-        atMs: 100,
-        intervalMs: 100,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      }],
-    }],
+    generated: [
+      {
+        id: 990001,
+        name: "Dagger Flurry",
+        type: "Weapon",
+        weapon: "Dagger",
+        castTimeMs: 300,
+        cooldown: 0,
+        effects: [
+          {
+            type: "strike",
+            coefficient: 3,
+            hits: 3,
+            atMs: 100,
+            intervalMs: 100,
+            timingAnchor: "castStart",
+            timingScale: "fixed",
+          },
+        ],
+      },
+    ],
     weapons: ["Dagger"],
     weaponHands: { Dagger: "mh+oh" },
   });
@@ -183,24 +184,26 @@ function simulateFixture(mode, seed = 1, casts = 1) {
 
 test("deterministic strikes expose the exact profile midpoint", () => {
   const result = simulateFixture("deterministic");
-  const hits = result.resolvedEvents.filter(event => event.type === "damage");
+  const hits = result.resolvedEvents.filter((event) => event.type === "damage");
   assert.equal(hits.length, 3);
-  assert.equal(new Set(hits.map(event => event.activationId)).size, 1);
+  assert.equal(new Set(hits.map((event) => event.activationId)).size, 1);
   assert.deepEqual(
-    [...new Set(hits.map(event => event.resolvedWeaponStrength))],
+    [...new Set(hits.map((event) => event.resolvedWeaponStrength))],
     [1000],
   );
-  assert.ok(hits.every(
-    event =>
-      event.weaponStrengthProfileId === "weapon.dagger" &&
-      event.weaponStrengthSampled === false,
-  ));
+  assert.ok(
+    hits.every(
+      (event) =>
+        event.weaponStrengthProfileId === "weapon.dagger" &&
+        event.weaponStrengthSampled === false,
+    ),
+  );
 });
 
 test("stochastic casts share one roll per activation and reroll per cast", () => {
   const seed = 2468;
   const result = simulateFixture("stochastic", seed, 2);
-  const hits = result.resolvedEvents.filter(event => event.type === "damage");
+  const hits = result.resolvedEvents.filter((event) => event.type === "damage");
   const byActivation = new Map();
   for (const hit of hits) {
     const activationHits = byActivation.get(hit.activationId) || [];
@@ -215,27 +218,20 @@ test("stochastic casts share one roll per activation and reroll per cast", () =>
   });
   const dagger = weaponStrengthProfile("weapon.dagger");
   const expected = [
-    sampleWeaponStrength(
-      dagger,
-      expectedRandom.next("weapon-strength:player"),
-    ),
-    sampleWeaponStrength(
-      dagger,
-      expectedRandom.next("weapon-strength:player"),
-    ),
+    sampleWeaponStrength(dagger, expectedRandom.next("weapon-strength:player")),
+    sampleWeaponStrength(dagger, expectedRandom.next("weapon-strength:player")),
   ];
   assert.deepEqual(
-    [...byActivation.values()].map(activationHits => {
+    [...byActivation.values()].map((activationHits) => {
       assert.equal(activationHits.length, 3);
       assert.equal(
-        new Set(
-          activationHits.map(event => event.resolvedWeaponStrength),
-        ).size,
+        new Set(activationHits.map((event) => event.resolvedWeaponStrength))
+          .size,
         1,
       );
-      assert.ok(activationHits.every(
-        event => event.weaponStrengthSampled === true,
-      ));
+      assert.ok(
+        activationHits.every((event) => event.weaponStrengthSampled === true),
+      );
       return activationHits[0].resolvedWeaponStrength;
     }),
     expected,
@@ -256,24 +252,29 @@ test("weapon-strength draws do not advance critical or trait streams", () => {
   withTrait.next("engineer.shrapnel");
   assert.equal(
     withTrait.next("weapon-strength:player"),
-    createSimulationRandom({ mode: "stochastic", seed })
-      .next("weapon-strength:player"),
+    createSimulationRandom({ mode: "stochastic", seed }).next(
+      "weapon-strength:player",
+    ),
   );
 });
 
 test("explicit fixed strength remains exempt from stochastic sampling", () => {
   const catalog = createCanonicalCatalog({
-    generated: [{
-      id: 990002,
-      name: "Fixed Strike",
-      type: "Utility",
-      castTimeMs: 0,
-      effects: [{
-        type: "strike",
-        coefficient: 1,
-        weaponStrength: 777,
-      }],
-    }],
+    generated: [
+      {
+        id: 990002,
+        name: "Fixed Strike",
+        type: "Utility",
+        castTimeMs: 0,
+        effects: [
+          {
+            type: "strike",
+            coefficient: 1,
+            weaponStrength: 777,
+          },
+        ],
+      },
+    ],
   });
   const result = simulateGw2({
     profession: defineProfession({
@@ -284,7 +285,7 @@ test("explicit fixed strength remains exempt from stochastic sampling", () => {
     rotation: ["Fixed Strike"],
     config: { randomness: { mode: "stochastic", seed: 9 } },
   });
-  const hit = result.resolvedEvents.find(event => event.type === "damage");
+  const hit = result.resolvedEvents.find((event) => event.type === "damage");
   assert.equal(hit.weaponStrengthProfileId, "fixed");
   assert.equal(hit.resolvedWeaponStrength, 777);
   assert.equal(hit.weaponStrengthSampled, false);

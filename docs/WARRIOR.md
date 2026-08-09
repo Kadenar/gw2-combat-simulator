@@ -80,17 +80,19 @@ Burning while its 8-second buff is active.
 
 ## Power Bladesworn preset
 
-The Bladesworn preset uses the requested Axe/Pistol, Berserker gear with
+The Bladesworn preset uses Sword/Pistol, Berserker gear with
 Assassin leggings, Infiltration runes, Force/Accuracy sigils, Peitha, Plate of
 Truffle Steak, Furious Sharpening Stone, 17 Power infusions, and 1 Precision
 infusion. It selects Strength `3-3-1`, Tactics `1-1-1`, and Bladesworn `1-2-2`.
 
 The supplied EVTC records 3,972,566 damage over 95.644 seconds (41,534.92 DPS).
-Its non-gunsaber weapon windows contain Sword autoattacks, despite the requested
-Axe/Pistol build. The saved preset therefore preserves the EVTC gunsaber order
-and measured Quickness activation durations while replacing those Sword
-windows with the requested Axe skills. It is an executable Axe/Pistol
-reconstruction, not an exact replay of the mismatched weapon packets.
+The saved rotation uses the observed Sword windows: Rend's initial and delayed
+follow-up stages followed by the Sever Artery, Gash, and Hamstring chain. Its
+opener precasts Break Step,
+stows the gunsaber, uses Overcharged Cartridges and Flow Stabilizer, casts
+Tactical Reload, Mending, Flow Stabilizer and Overcharged Cartridges again, then
+starts combat with Dragon's Roar and Dragon Trigger. Triggerguard and Flicker
+Step placements are inferred from the log's Aegis and Peitha applications.
 
 ## Power Spellbreaker presets
 

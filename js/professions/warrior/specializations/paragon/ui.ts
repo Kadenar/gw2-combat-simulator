@@ -7,6 +7,7 @@ import {
 import type {
   ProfessionResourceView,
   ProfessionUiContract,
+  SimulationEvent,
 } from "../../../../platform/engine/types.js";
 import type { WarriorUiContext } from "../../types.js";
 
@@ -27,7 +28,8 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       value: Number(state.motivation || 0),
       canStart: false,
       step: 1,
-      displayMode: "bar",
+      displayMode: "counter",
+      pipStyle: "warrior-motivation",
       shortLabel: "Mot",
       statusLabel: "Current",
     },
@@ -40,4 +42,6 @@ export const paragonUi: Partial<ProfessionUiContract> = Object.freeze({
   skillBarGroups: (context: WarriorUiContext) =>
     warriorSkillBarGroups(context, CHANTS),
   resourceViews: resources,
+  eventLogRow: (_context: WarriorUiContext, event: SimulationEvent) =>
+    event.type === "paragon.state" ? null : undefined,
 });

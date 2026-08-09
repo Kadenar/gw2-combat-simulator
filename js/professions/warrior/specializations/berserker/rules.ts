@@ -10,6 +10,11 @@ import type {
 import type { WarriorCastContext } from "../../types.js";
 
 function active(context: Gw2ModifierContext): boolean {
+  if (
+    (context.timeline?.buffStacksAt("berserk", context.time, 0, 1) || 0) > 0
+  ) {
+    return true;
+  }
   const runtime = (
     context.runtime as
       | {
@@ -40,22 +45,34 @@ function modifyAttributes(
   };
   if (active(context)) {
     result.power += 300;
-    result.conditionDamage += 300;
+    result.conditionDamage += 150;
+    if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
+      result.vitality = Number(result.vitality || 0) + 30;
+      result.ferocity += 30;
+    }
   }
   if (hasTrait(context, TRAIT.BLOOD_REACTION)) {
-    const factor = active(context) ? 0.14 : 0.07;
-    result.ferocity += Number(result.precision || 0) * factor;
-    result.conditionDamage += Number(result.power || 0) * factor;
+    const conversion = active(context) ? 0.24 : 0.12;
+    result.ferocity += Number(result.precision || 0) * conversion;
+    result.conditionDamage += Number(result.power || 0) * conversion;
   }
   return result;
 }
 
 const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
+    id: "warrior.smash-brawler-critical-chance",
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: "add",
+    amount: 0.15,
+    when: (context) =>
+      hasTrait(context, TRAIT.SMASH_BRAWLER) && active(context),
+  },
+  {
     id: "warrior.bloody-roar",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: 1.15,
+    factor: 1.1,
     order: 100,
     when: (context) => hasTrait(context, TRAIT.BLOODY_ROAR) && active(context),
   },

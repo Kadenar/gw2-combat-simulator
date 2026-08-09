@@ -197,9 +197,12 @@ function modifyWarriorAttributes(
   }
   if (hasTrait(context, TRAIT.SIGNET_MASTERY))
     result.ferocity += signetStacks * 100;
-  if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
-    result.vitality += result.power * 0.1;
-    result.ferocity += result.power * 0.1;
+  if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
+    const convertedPower = staticRulesApplied
+      ? result.power - Number(context.config?.stats?.power || 0)
+      : result.power;
+    result.vitality += convertedPower * 0.1;
+    result.ferocity += convertedPower * 0.1;
   }
   if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS) && !staticRulesApplied) {
     result.healingPower += result.power * 0.13;

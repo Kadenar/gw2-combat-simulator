@@ -5,10 +5,10 @@
  * the palette. `renderStartResource` mounts the editable starting-resource,
  * weapon-set, and fixed-loadout controls. Profession modules provide the view
  * models; `resourceDisplayViews` clamps their values and supplies defaults
- * before this module turns them into bars or pips.
+ * before this module turns them into bars, counters, or pips.
  *
- * A resource's sanitized `pipStyle` becomes a CSS class on its pip container
- * or bars. This is the supported hook for profession-specific visuals such as
+ * A resource's sanitized `pipStyle` becomes a CSS class on its pips, bars, or
+ * counter. This is the supported hook for profession-specific visuals such as
  * Mesmer notes and Revenant affinity emblems.
  */
 import type { ProfessionResourceView } from "../../platform/engine/types.js";
@@ -90,6 +90,18 @@ function resourceBarsHtml(
     : bars;
 }
 
+function resourceCounterHtml(
+  definition: ProfessionResourceView,
+  value: number,
+): string {
+  const counterClass = definition.pipStyle
+    ? ` ${esc(definition.pipStyle)}`
+    : "";
+  return `<div class="active-resource-counter${counterClass}" aria-hidden="true">
+      <span>${esc(formatResourceValue(value))}</span>
+    </div>`;
+}
+
 function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
   const items = definition.statusItems || [];
   if (!items.length) return "";
@@ -136,14 +148,16 @@ export function activeResourceGroup(app: ProfessionAppState): string {
       const indicator =
         definition.displayMode === "bar"
           ? resourceBarsHtml(definition, value)
-          : resourcePipsHtml(definition, value);
+          : definition.displayMode === "counter"
+            ? resourceCounterHtml(definition, value)
+            : resourcePipsHtml(definition, value);
       return `<div class="pal-group active-resource-group">
             <div class="pal-label" style="color:#c49cff">${esc(definition.shortLabel)}</div>
             <div class="active-resource" data-resource-id="${esc(definition.id)}"
                 data-resource-count="${value}" title="${esc(title)}"
                 aria-label="${esc(title)}">
                 ${indicator}
-                <strong>${displayValue}/${definition.maximum}</strong>
+                ${definition.displayMode === "counter" ? "" : `<strong>${displayValue}/${definition.maximum}</strong>`}
             </div>
             ${resourceStatusItemsHtml(definition)}
         </div>`;
@@ -157,7 +171,8 @@ export function activeResourceGroup(app: ProfessionAppState): string {
 /**
  * Mounts starting-state controls and binds them to the application build.
  *
- * Startable bars use numeric inputs; startable pips use count buttons. A
+ * Startable bars and counters use numeric inputs; startable pips use count
+ * buttons. A
  * resource with `canStart: false` remains visible in the live display but has
  * no starting control. Every accepted change calls `app.changed()` so the
  * simulation and both resource displays refresh together.
@@ -294,7 +309,10 @@ export function renderStartResource(app: ProfessionAppState): void {
         0,
         Math.min(startMaximum, Number(app.build[key] || 0)),
       );
-      if (definition.displayMode === "bar") {
+      if (
+        definition.displayMode === "bar" ||
+        definition.displayMode === "counter"
+      ) {
         return `<div class="start-resource-control start-resource-number">
                 <label class="start-att-label">
                     Start ${esc(definition.plural)}:

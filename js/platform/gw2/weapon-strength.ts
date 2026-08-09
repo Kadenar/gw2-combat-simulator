@@ -94,6 +94,9 @@ const NAME_TO_PROFILE_ID: Readonly<Record<string, string>> = Object.freeze({
   unequipped: "nonweapon.unequipped",
   utility: "nonweapon.unequipped",
   "profession mechanic": "nonweapon.profession-mechanic",
+  // Gunsaber and Dragon Trigger are bundle skill sets, despite replacing the
+  // Bladesworn's weapon-swap profession mechanic.
+  gunsaber: "bundle.ascended",
   "ascended bundle": "bundle.ascended",
   bundle: "bundle.ascended",
   kit: "bundle.ascended",

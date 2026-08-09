@@ -20,27 +20,11 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
   },
   [ID.SPEAR_OF_JUSTICE]: {
     implemented: true,
-    castTimeMs: 0,
-    handlerId: "guardian.virtue",
-    effects: [
-      {
-        type: "strike",
-        coefficient: 0.8,
-        hits: 1,
-      },
-      {
-        type: "condition",
-        condition: "Burning",
-        stacks: 1,
-        duration: 4,
-      },
-      {
-        type: "condition",
-        condition: "Burning",
-        stacks: 1,
-        duration: 2,
-      },
-    ],
+    castTimeMs: 800,
+    quicknessCastTimeMs: 560,
+    cooldown: 20,
+    handlerId: "guardian.dragonhunter-justice",
+    effects: [],
   },
   [ID.PURIFICATION]: {
     implemented: true,
@@ -57,6 +41,9 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
       },
       {
         type: "blind",
+        metadata: {
+          duration: 6,
+        },
       },
     ],
   },
@@ -69,7 +56,8 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
   [ID.WINGS_OF_RESOLVE]: {
     implemented: true,
     castTimeMs: 0,
-    handlerId: "guardian.virtue",
+    cooldown: 25,
+    handlerId: "guardian.dragonhunter-virtue",
     effects: [],
   },
   [ID.DRAGONS_MAW]: {
@@ -87,8 +75,26 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
       {
         type: "control",
         metadata: {
-          controlKind: "control",
+          controlKind: "pull",
         },
+      },
+      {
+        type: "condition",
+        condition: "Slow",
+        stacks: 1,
+        duration: 4,
+        atMs: 500,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "boon",
+        boon: "Might",
+        stacks: 10,
+        duration: 8,
+        atMs: 500,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
   },
@@ -130,7 +136,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
       {
         type: "control",
         metadata: {
-          controlKind: "control",
+          controlKind: "pull",
         },
       },
     ],
@@ -138,11 +144,13 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
   [ID.HUNTERS_VERDICT]: {
     implemented: true,
     castTimeMs: 0,
+    cooldown: 40,
+    handlerId: "guardian.hunters-verdict",
     effects: [
       {
         type: "control",
         metadata: {
-          controlKind: "control",
+          controlKind: "pull",
         },
       },
     ],
@@ -163,5 +171,5 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-  }
+  },
 });

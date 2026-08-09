@@ -186,6 +186,7 @@ export const WARRIOR_SKILL_IDS = Object.freeze({
   HARRIERS_TOSS_ID_73024: 73024, // Harrier's Toss
   HARRIERS_TOSS_ID_73042: 73042, // Harrier's Toss
   WILD_THROW: 73103, // Wild Throw
+  WILD_THROW_ALTERNATE: 73131, // Wild Throw (alternating projectile packet)
   WE_WILL_NEVER_YIELD: 76562, // "We Will Never Yield!"
   WE_SHALL_RETURN: 76755, // "We Shall Return!"
   NEVER_SURRENDER: 76769, // "Never Surrender!"

@@ -284,6 +284,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         entry: item,
         skill,
         build: app.build,
+        specialization: activeSpecialization(app),
         ...current,
       });
     },

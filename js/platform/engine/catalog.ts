@@ -39,14 +39,12 @@ interface CanonicalCatalogOptions {
   readonly extraSkills?: readonly Skill[];
   readonly autoattackChains?: AutoattackChainOptions;
   readonly skillHandlers?:
-    | ReadonlyMap<string, unknown>
-    | Readonly<Record<string, unknown>>;
+    ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?:
-    | ReadonlyMap<string, string>
-    | Readonly<Record<string, string>>;
+    ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly skillNameCollision?: "first" | "last";
 }
 
@@ -66,6 +64,7 @@ const EFFECT_TYPES = new Set([
 ]);
 const TIMING_ANCHORS = new Set(["castStart", "castEnd"]);
 const TIMING_SCALES = new Set(["cast", "fixed"]);
+const DURATION_SCALES = new Set(["boon", "fixed"]);
 const RECHARGE_ANCHORS = new Set(["castStart", "castEnd"]);
 const EFFECT_FIELDS = new Set([
   "type",
@@ -77,6 +76,7 @@ const EFFECT_FIELDS = new Set([
   "condition",
   "stacks",
   "duration",
+  "durationScale",
   "boon",
   "kind",
   "name",
@@ -298,7 +298,7 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
 function normalizeEffect(effect: unknown): SkillEffect {
   const candidate =
     effect && typeof effect === "object" && !Array.isArray(effect)
-      ? effect as SchedulerRecord
+      ? (effect as SchedulerRecord)
       : null;
   if (
     !candidate ||
@@ -316,6 +316,12 @@ function normalizeEffect(effect: unknown): SkillEffect {
       `Skill effect has unsupported field${unknownFields.length === 1 ? "" : "s"}: ` +
         unknownFields.join(", "),
     );
+  }
+  if (
+    normalizedEffect.durationScale != null &&
+    !DURATION_SCALES.has(String(normalizedEffect.durationScale))
+  ) {
+    throw new TypeError("Effect durationScale must be boon or fixed.");
   }
   if (
     normalizedEffect.metadata != null &&
@@ -446,11 +452,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
         "Cast-scaled effect timing must be anchored to castStart.",
       );
     }
-    if (
-      !hasTicks &&
-      !hasAtMs &&
-      normalizedEffect.timingAnchor !== "castEnd"
-    ) {
+    if (!hasTicks && !hasAtMs && normalizedEffect.timingAnchor !== "castEnd") {
       throw new TypeError(
         "An interval without atMs must be anchored to castEnd.",
       );
@@ -539,10 +541,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
       );
     }
   }
-  if (
-    normalizedEffect.type === "boon" ||
-    normalizedEffect.type === "buff"
-  ) {
+  if (normalizedEffect.type === "boon" || normalizedEffect.type === "buff") {
     if (
       !String(
         normalizedEffect.boon ||
@@ -560,9 +559,7 @@ function normalizeEffect(effect: unknown): SkillEffect {
   return Object.freeze({
     ...normalizedEffect,
     ...(hasAtMs ? { atMs: Number(normalizedEffect.atMs) } : {}),
-    ...(hasInterval
-      ? { intervalMs: Number(normalizedEffect.intervalMs) }
-      : {}),
+    ...(hasInterval ? { intervalMs: Number(normalizedEffect.intervalMs) } : {}),
     ...(applications ? { applications } : {}),
     ...(strikeTicks ? { ticks: strikeTicks } : {}),
     ...(conditionTicks ? { ticks: conditionTicks } : {}),
@@ -730,9 +727,7 @@ export function createCanonicalCatalog({
     autoattackChains,
   );
   const skills = normalizedSkills.map((skill) => {
-    const position = normalizedAutoattacks.positions.get(
-      Number(skill.id),
-    );
+    const position = normalizedAutoattacks.positions.get(Number(skill.id));
     return Object.freeze({
       ...skill,
       chainRoot: position?.root ?? null,

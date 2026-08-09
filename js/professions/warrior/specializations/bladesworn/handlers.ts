@@ -90,23 +90,43 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
   });
 }
 
-function enterGunsaber(context: WarriorCastContext): void {
-  bladeswornState.from(context).gunsaberActive = true;
+function emitGunsaberWeaponSwap(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+): void {
+  professionCoreState(context).autoattackChains = {};
   if (hasTrait(context, TRAIT.MARTIAL_CADENCE)) {
     professionCoreState(context).soldierFocusReadyAt = context.effectiveEnd;
   }
+  context.emit({
+    type: "sigil_swap",
+    at: context.effectiveEnd,
+    source: "warrior",
+    sourceId: skill.id,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: skill.name,
+    weaponSet: context.state.activeWeaponSet,
+  });
+}
+
+function enterGunsaber(context: WarriorCastContext, skill: WarriorSkill): void {
+  bladeswornState.from(context).gunsaberActive = true;
+  emitGunsaberWeaponSwap(context, skill);
   emitGunsaberSwapTrait(context, context.effectiveEnd);
 }
 
-function exitGunsaber(context: WarriorCastContext): void {
+function exitGunsaber(context: WarriorCastContext, skill: WarriorSkill): void {
   bladeswornState.from(context).gunsaberActive = false;
-  if (hasTrait(context, TRAIT.MARTIAL_CADENCE)) {
-    professionCoreState(context).soldierFocusReadyAt = context.effectiveEnd;
-  }
+  emitGunsaberWeaponSwap(context, skill);
 }
 
-function enterDragonTrigger(context: WarriorCastContext): void {
+function enterDragonTrigger(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+): void {
   const state = bladeswornState.from(context);
+  if (!state.gunsaberActive) enterGunsaber(context, skill);
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = context.effectiveEnd;
   state.dragonTriggerChargeDeadline =
@@ -312,10 +332,7 @@ export function advanceBladesworn(
   ) {
     gainPassiveFlow(context, state.flowUpdatedAt, state.nextDragonChargeAt);
     state.flowUpdatedAt = state.nextDragonChargeAt;
-    if (
-      state.flow + context.epsilon >= flowPerInterval &&
-      state.dragonCharges < maximumCharges
-    ) {
+    if (state.dragonCharges < maximumCharges) {
       state.flow = Math.max(0, state.flow - flowPerInterval);
       state.dragonCharges = Math.min(
         maximumCharges,

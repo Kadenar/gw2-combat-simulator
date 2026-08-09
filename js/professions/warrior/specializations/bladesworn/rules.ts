@@ -80,8 +80,8 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: "warrior.overcharged-cartridges",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
-    amount: cartridgeDamageBonus,
+    operation: "multiply",
+    factor: (context) => 1 + cartridgeDamageBonus(context),
     when: (context) =>
       context.event?.damageKind === "explosion" &&
       cartridgeDamageBonus(context) > 0,

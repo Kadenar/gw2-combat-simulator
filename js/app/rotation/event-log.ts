@@ -29,6 +29,16 @@ export function simulationEventLogRows(
   const professionUi = profession?.ui;
   const displayReferenceSeconds = resultCombatReferenceMs(result) / 1000;
   const endState = professionEndState(result);
+  const eliteNames = new Set(
+    (profession?.catalog?.specializations || [])
+      .filter((specialization) => specialization.elite)
+      .map((specialization) => specialization.name),
+  );
+  const specialization =
+    String(build?.specialization || "").trim() ||
+    build?.specializations?.find((selection) => eliteNames.has(selection.name))
+      ?.name ||
+    "Core";
   const resourceDefinition =
     endState.resourceDefinition &&
     typeof endState.resourceDefinition === "object"
@@ -59,6 +69,7 @@ export function simulationEventLogRows(
           result,
           build,
           profession,
+          specialization,
           displayReferenceSeconds,
           maximumResource,
         },
