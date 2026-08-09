@@ -569,6 +569,105 @@ test("Spellbreaker Winds and Kick use the supplied PvE mechanics", () => {
   );
 });
 
+test("Warrior dagger attacks and bursts use the supplied PvE mechanics", () => {
+  const wastrelsRuin = warriorCatalog.skillsById.get(ID.WASTRELS_RUIN);
+  const hushblade = warriorCatalog.skillsById.get(ID.HUSHBLADE);
+  const breachingStrike = warriorCatalog.skillsById.get(ID.BREACHING_STRIKE);
+  const slicingMaelstrom = warriorCatalog.skillsById.get(ID.SLICING_MAELSTROM);
+  const strikeCoefficient = (skill) =>
+    skill.effects.find((effect) => effect.type === "strike")?.coefficient;
+  const damage = (result, name) =>
+    result.breakdown.find((entry) => entry.name === name)?.damage || 0;
+
+  assert.deepEqual(
+    [wastrelsRuin.cooldown, strikeCoefficient(wastrelsRuin)],
+    [12, 1.5],
+  );
+  assert.deepEqual(
+    [
+      hushblade.ammo,
+      hushblade.recharge,
+      hushblade.ammoRecharge,
+      strikeCoefficient(hushblade),
+      hushblade.effects.find((effect) => effect.type === "control")?.metadata
+        .controlKind,
+    ],
+    [2, 1, 12, 1.5, "daze"],
+  );
+  assert.deepEqual(
+    [breachingStrike.cooldown, strikeCoefficient(breachingStrike)],
+    [8, 2.5],
+  );
+  assert.deepEqual(
+    [slicingMaelstrom.cooldown, strikeCoefficient(slicingMaelstrom)],
+    [5, 2.5],
+  );
+
+  const normalWastrel = simulate("Spellbreaker", ["Wastrel's Ruin"], {
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Dagger",
+    target: { defiant: false },
+  });
+  const defiantWastrel = simulate("Spellbreaker", ["Wastrel's Ruin"], {
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Dagger",
+    target: { defiant: true },
+  });
+  assert.ok(
+    Math.abs(
+      damage(defiantWastrel, "Wastrel's Ruin") /
+        damage(normalWastrel, "Wastrel's Ruin") -
+        2,
+    ) < 1e-9,
+  );
+
+  const breachingDamage = (boonless) =>
+    simulate("Spellbreaker", ["Breaching Strike"], {
+      initialResource: 10,
+      primaryWeapon: "Dagger",
+      secondaryWeapon: "Mace",
+      target: { boonless },
+    }).strikeDamage;
+  assert.ok(
+    Math.abs(breachingDamage(true) / breachingDamage(false) - 1.5) < 1e-9,
+  );
+
+  const fixedBreaching = simulate("Spellbreaker", ["Breaching Strike"], {
+    initialResource: 10,
+    primaryWeapon: "Dagger",
+    secondaryWeapon: "Mace",
+    boons: { quickness: true },
+    selectedTraitIds: [TRAIT.DUAL_WIELDING],
+  });
+  assert.equal(
+    fixedBreaching.steps[0].end - fixedBreaching.steps[0].start,
+    842,
+  );
+
+  const slicingDamage = (boonless) =>
+    simulate("Berserker", ["Berserk", "Slicing Maelstrom"], {
+      initialResource: 30,
+      primaryWeapon: "Dagger",
+      secondaryWeapon: "Mace",
+      boons: { quickness: true },
+      selectedTraitIds: [TRAIT.DUAL_WIELDING],
+      target: { boonless },
+    });
+  const normalSlicing = slicingDamage(false);
+  const boonlessSlicing = slicingDamage(true);
+  const slicingStep = boonlessSlicing.steps.find(
+    (step) => step.skill === "Slicing Maelstrom",
+  );
+  assert.equal(slicingStep.end - slicingStep.start, 400);
+  assert.ok(
+    Math.abs(
+      damage(boonlessSlicing, "Slicing Maelstrom") /
+        damage(normalSlicing, "Slicing Maelstrom") -
+        1.5,
+    ) < 1e-9,
+  );
+});
+
 test("Spellbreaker control grants independent Insight stacks and No Escape", () => {
   const result = simulate("Spellbreaker", ["Disrupting Stab"], {
     primaryWeapon: "Dagger",
@@ -1596,6 +1695,77 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
   assert.equal(hitCounts.get("Kick"), 7);
   assert.equal(hitCounts.get("Crushing Blow"), 14);
   assert.ok(Math.abs(result.dps - 42690) < 3000);
+});
+
+test("Sword/Dagger Spellbreaker preset preserves the supplied build and EVTC", async () => {
+  const [raw, referenceBuild, savedRotation, manifest] = await Promise.all([
+    readFile(
+      new URL(
+        "../../../Builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../../../Builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../../../Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL("../../../Builds/warrior/manifest.json", import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+
+  assert.deepEqual(validateWarriorBuild(raw), { valid: true, errors: [] });
+  assert.deepEqual(raw, {
+    ...referenceBuild,
+    alternateWeapons: ["Sword", "Dagger"],
+  });
+  const preset = manifest
+    .find((section) => section.section === "Spellbreaker")
+    .presets.find((entry) => entry.build.endsWith("sword-dagger.json"));
+  assert.equal(preset.benchmarkDps, 42828);
+  assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 92.406);
+  assert.equal(savedRotation.metadata.benchmarkDamage, 3957534);
+  assert.equal(savedRotation.metadata.benchmarkDps, 42827.673527693005);
+
+  const build = migrateWarriorBuild({
+    ...raw,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: warriorCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  assert.deepEqual(result.warnings, []);
+  const hitCounts = new Map(
+    result.breakdown.map((entry) => [entry.name, entry.hits]),
+  );
+  assert.equal(hitCounts.get("Winds of Disenchantment"), 5);
+  assert.equal(hitCounts.get("Kick"), 7);
+  assert.equal(hitCounts.get("Crushing Blow"), 14);
+  assert.equal(hitCounts.get("Wastrel's Ruin"), 7);
+  assert.equal(hitCounts.get("Hushblade"), 9);
+  assert.equal(hitCounts.get("Precise Cut"), 36);
+  assert.equal(hitCounts.get("Focused Slash"), 36);
+  assert.equal(hitCounts.get("Keen Strike"), 36);
+  assert.equal(hitCounts.get("Sever Artery"), 23);
+  assert.equal(hitCounts.get("Gash"), 20);
+  assert.equal(hitCounts.get("Hamstring"), 20);
+  assert.ok(Math.abs(result.dps - 42828) < 3000);
 });
 
 test("Power Paragon preset preserves the EVTC build and executes", async () => {

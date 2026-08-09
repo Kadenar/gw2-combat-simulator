@@ -410,7 +410,9 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.BREACHING_STRIKE_ID_69297]: {
     implemented: true,
-    castTimeMs: 750,
+    cooldown: 8,
+    recharge: 8,
+    castTimeMs: 842,
     effects: [
       {
         type: "strike",
@@ -418,7 +420,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 842,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

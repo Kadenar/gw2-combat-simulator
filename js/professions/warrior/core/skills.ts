@@ -1746,7 +1746,9 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.WASTRELS_RUIN]: {
     implemented: true,
-    castTimeMs: 500,
+    cooldown: 12,
+    recharge: 12,
+    castTimeMs: 600,
     effects: [
       {
         type: "strike",
@@ -1754,7 +1756,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 400,
   },
   [ID.DISRUPTING_STAB]: {
     implemented: true,
@@ -1776,7 +1778,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.HUSHBLADE]: {
     implemented: true,
-    castTimeMs: 500,
+    ammo: 2,
+    ammoRecharge: 12,
+    cooldown: 12,
+    recharge: 1,
+    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1787,15 +1793,16 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         type: "control",
         metadata: {
           controlKind: "daze",
-          duration: 2,
         },
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 500,
   },
   [ID.BREACHING_STRIKE]: {
     implemented: true,
-    castTimeMs: 1575,
+    cooldown: 8,
+    recharge: 8,
+    castTimeMs: 842,
     effects: [
       {
         type: "strike",
@@ -1803,7 +1810,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 1050,
+    quicknessCastTimeMs: 842,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -1869,7 +1876,9 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BREACHING_STRIKE_ID_69433]: {
     implemented: true,
-    castTimeMs: 750,
+    cooldown: 8,
+    recharge: 8,
+    castTimeMs: 842,
     effects: [
       {
         type: "strike",
@@ -1877,7 +1886,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 842,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

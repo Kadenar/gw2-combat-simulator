@@ -382,7 +382,9 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.SLICING_MAELSTROM]: {
     implemented: true,
-    castTimeMs: 500,
+    cooldown: 5,
+    recharge: 5,
+    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -390,7 +392,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
