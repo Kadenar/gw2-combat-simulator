@@ -16,6 +16,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     recharge: 0,
     cooldown: 0,
     petSkill: true,
+    petFamilySkill: true,
     petNames: ["Carrion Devourer", "Whiptail Devourer", "Lashtail Devourer"],
   },
   {
@@ -30,6 +31,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     recharge: 0,
     cooldown: 0,
     petSkill: true,
+    petFamilySkill: true,
     petNames: [
       "Forest Spider",
       "Jungle Spider",

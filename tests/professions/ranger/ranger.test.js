@@ -27,6 +27,7 @@ import {
 import { RANGER_PETS } from "../../../js/professions/ranger/data/ranger-pet-data.js";
 import { RANGER_TRAIT_COVERAGE } from "../../../js/professions/ranger/data/trait-coverage.js";
 import { rangerProfession } from "../../../js/professions/ranger/definition.js";
+import { rangerCoreAttributeRules } from "../../../js/professions/ranger/core/rules.js";
 import { RANGER_SKILL_MECHANICS } from "../../../js/professions/ranger/mechanics/skill-mechanics.js";
 import {
   rangerAppAdapter,
@@ -767,7 +768,7 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
   assert.equal(
     RANGER_TRAIT_COVERAGE.filter((entry) => entry.status === "implemented")
       .length,
-    53,
+    52,
   );
 
   const baseline = simulate("Core", ["Rapid Fire"], {
@@ -801,7 +802,9 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
     ...boonConfig,
     selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER],
   });
-  assert.ok(Math.abs(bountiful.totalDamage / boonBaseline.totalDamage - 1.03) < 1e-9);
+  assert.ok(
+    Math.abs(bountiful.totalDamage / boonBaseline.totalDamage - 1.03) < 1e-9,
+  );
 
   const survival = simulate("Core", ["Rapid Fire"], {
     primaryWeapon: "Longbow",
@@ -815,7 +818,9 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
     primaryWeapon: "Longbow",
     selectedTraitIds: [TRAIT.WOLFSONG],
   });
-  assert.ok(Math.abs(survival.totalDamage / baseline.totalDamage - 1.15) < 1e-9);
+  assert.ok(
+    Math.abs(survival.totalDamage / baseline.totalDamage - 1.15) < 1e-9,
+  );
   assert.ok(Math.abs(predator.totalDamage / baseline.totalDamage - 1.1) < 1e-9);
   assert.ok(Math.abs(wolfsong.totalDamage / baseline.totalDamage - 1.1) < 1e-9);
 
@@ -845,8 +850,9 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
     },
   );
   assert.ok(
-    Math.abs(strongerPoison.conditionDamage / poisonBaseline.conditionDamage - 1.25) <
-      1e-9,
+    Math.abs(
+      strongerPoison.conditionDamage / poisonBaseline.conditionDamage - 1.25,
+    ) < 1e-9,
   );
 
   const skirmishing = simulate(
@@ -889,21 +895,21 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
   );
 });
 
-test("Ranger Nature Magic traits grant support and share boons with pets", () => {
-  const healing = simulate("Core", [
-    "Troll Unguent",
-    "Hunter's Call",
-    { type: "wait", durationMs: 10000 },
-  ], {
-    primaryWeapon: "Axe",
-    secondaryWeapon: "Warhorn",
-    selectedTraitIds: [
-      TRAIT.WELLSPRING,
-      TRAIT.CHILD_OF_EARTH,
-      TRAIT.WINDBORNE_NOTES,
-      TRAIT.LINGERING_MAGIC,
-    ],
-  });
+test("Ranger Nature Magic traits grant support and scale with boons", () => {
+  const healing = simulate(
+    "Core",
+    ["Troll Unguent", "Hunter's Call", { type: "wait", durationMs: 10000 }],
+    {
+      primaryWeapon: "Axe",
+      secondaryWeapon: "Warhorn",
+      selectedTraitIds: [
+        TRAIT.WELLSPRING,
+        TRAIT.CHILD_OF_EARTH,
+        TRAIT.WINDBORNE_NOTES,
+        TRAIT.LINGERING_MAGIC,
+      ],
+    },
+  );
   const wells = healing.events.find(
     (event) => event.sourceId === TRAIT.WELLSPRING,
   );
@@ -925,8 +931,7 @@ test("Ranger Nature Magic traits grant support and share boons with pets", () =>
   assert.equal(
     healing.events.filter(
       (event) =>
-        event.sourceId === TRAIT.CHILD_OF_EARTH &&
-        event.condition === "Slow",
+        event.sourceId === TRAIT.CHILD_OF_EARTH && event.condition === "Slow",
     ).length,
     5,
   );
@@ -962,66 +967,36 @@ test("Ranger Nature Magic traits grant support and share boons with pets", () =>
     true,
   );
 
-  const unshared = simulate("Core", ["Call of the Wild", "Intimidating Howl"], {
-    primaryWeapon: "Axe",
-    secondaryWeapon: "Warhorn",
-    selectedPet: "Krytan Drakehound",
-    sharePlayerBoonsWithSummons: false,
-  });
-  const shared = simulate("Core", ["Call of the Wild", "Intimidating Howl"], {
-    primaryWeapon: "Axe",
-    secondaryWeapon: "Warhorn",
-    selectedPet: "Krytan Drakehound",
-    sharePlayerBoonsWithSummons: false,
-    selectedTraitIds: [TRAIT.FORTIFYING_BOND],
-  });
+  const petBoonBaseline = simulate(
+    "Core",
+    ["Call of the Wild", "Intimidating Howl"],
+    {
+      primaryWeapon: "Axe",
+      secondaryWeapon: "Warhorn",
+      selectedPet: "Krytan Drakehound",
+    },
+  );
+  const petBountiful = simulate(
+    "Core",
+    ["Call of the Wild", "Intimidating Howl"],
+    {
+      primaryWeapon: "Axe",
+      secondaryWeapon: "Warhorn",
+      selectedPet: "Krytan Drakehound",
+      selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER],
+    },
+  );
   const petHit = (result) =>
     result.resolvedEvents.find(
       (event) => event.skillId === ID.INTIMIDATING_HOWL,
     ).damage;
-  assert.equal(petHit(shared) > petHit(unshared), true);
-
-  const permanentBoons = {
-    selectedPet: "Krytan Drakehound",
-    sharePlayerBoonsWithSummons: false,
-    boons: { fury: true, might: 6, regeneration: true },
-    selectedTraitIds: [TRAIT.FORTIFYING_BOND],
-  };
-  const fortified = simulate("Core", ["Intimidating Howl"], permanentBoons);
-  const fortifiedWithoutFury = simulate("Core", ["Intimidating Howl"], {
-    ...permanentBoons,
-    boons: { might: 6, regeneration: true },
-  });
-  const fortifiedBountiful = simulate("Core", ["Intimidating Howl"], {
-    ...permanentBoons,
-    selectedTraitIds: [TRAIT.FORTIFYING_BOND, TRAIT.BOUNTIFUL_HUNTER],
-  });
-  const fortifiedHit = fortified.resolvedEvents.find(
-    (event) => event.skillId === ID.INTIMIDATING_HOWL,
-  );
-  const fortifiedHitWithoutFury = fortifiedWithoutFury.resolvedEvents.find(
-    (event) => event.skillId === ID.INTIMIDATING_HOWL,
-  );
   assert.ok(
-    Math.abs(
-      fortifiedHit.criticalChance -
-        fortifiedHitWithoutFury.criticalChance -
-        0.25,
-    ) < 1e-9,
-  );
-  assert.ok(
-    Math.abs(petHit(fortifiedBountiful) / petHit(fortified) - 1.03) < 1e-9,
-  );
-  const merged = simulate("Soulbeast", ["Call of the Wild"], {
-    primaryWeapon: "Axe",
-    secondaryWeapon: "Warhorn",
-    selectedTraitIds: [TRAIT.FORTIFYING_BOND],
-  });
-  assert.equal(
-    merged.resolvedEvents.some(
-      (event) => event.sourceId === TRAIT.FORTIFYING_BOND,
-    ),
-    false,
+    Math.abs(petHit(petBountiful) / petHit(petBoonBaseline) - 1.03) < 1e-9,
+    JSON.stringify({
+      baseline: petHit(petBoonBaseline),
+      bountiful: petHit(petBountiful),
+      ratio: petHit(petBountiful) / petHit(petBoonBaseline),
+    }),
   );
 });
 
@@ -1053,8 +1028,7 @@ test("Ranger pet-swap and Marksmanship traits resolve at their combat timings", 
   assert.equal(
     swapped.events.some(
       (event) =>
-        event.sourceId === TRAIT.CLARION_BOND &&
-        event.type === "blast_combo",
+        event.sourceId === TRAIT.CLARION_BOND && event.type === "blast_combo",
     ),
     true,
   );
@@ -1126,8 +1100,7 @@ test("Ranger pet-swap and Marksmanship traits resolve at their combat timings", 
   assert.equal(
     opening.resolvedEvents.some(
       (event) =>
-        event.sourceId === TRAIT.ALPHA_FOCUS &&
-        event.condition === "Crippled",
+        event.sourceId === TRAIT.ALPHA_FOCUS && event.condition === "Crippled",
     ),
     true,
   );
@@ -1190,6 +1163,43 @@ test("Ranger Wilderness Survival traits cover endurance, poison, and disables", 
       true,
     );
   }
+
+  const familyAttackDoesNotArmPoisonMaster = simulate(
+    "Core",
+    ["__combat_start", "Spit", { type: "wait", durationMs: 4000 }],
+    {
+      selectedPet: "Forest Spider",
+      selectedTraitIds: [TRAIT.POISON_MASTER],
+    },
+  );
+  assert.equal(
+    familyAttackDoesNotArmPoisonMaster.resolvedEvents.some(
+      (event) => event.sourceId === TRAIT.POISON_MASTER,
+    ),
+    false,
+  );
+  const armedSpider = simulate(
+    "Core",
+    [
+      "__combat_start",
+      "Deadly Venom",
+      "Spit",
+      { type: "wait", durationMs: 8000 },
+    ],
+    {
+      selectedPet: "Forest Spider",
+      selectedTraitIds: [TRAIT.POISON_MASTER],
+    },
+  );
+  assert.equal(
+    armedSpider.resolvedEvents.some(
+      (event) =>
+        event.sourceId === TRAIT.POISON_MASTER &&
+        event.condition === "Poisoned" &&
+        event.stacks === 2,
+    ),
+    true,
+  );
 
   const poisonMaster = simulate(
     "Core",
@@ -1254,6 +1264,40 @@ test("Ranger Wilderness Survival traits cover endurance, poison, and disables", 
       withoutWellspring["Healing Power"].final,
     attributes.Power.final * 0.07,
   );
+
+  const petTraitContext = {
+    config: { selectedPet: "Forest Spider", stats: { power: 2000 } },
+    traits: new Set([
+      TRAIT.ARACHNOPHOBIA,
+      TRAIT.LINGERING_MAGIC,
+      TRAIT.WELLSPRING,
+    ]),
+    event: {
+      actorType: "summon",
+      source: "ranger-pet",
+      summonBasePower: 1500,
+    },
+    time: 0,
+    runtime: { activeWeaponSet: 1 },
+    query: { mightStacksAt: () => 0 },
+  };
+  const petAttributes = rangerCoreAttributeRules.modifyAttributes(
+    petTraitContext,
+    {
+      power: 2000,
+      precision: 1000,
+      toughness: 1000,
+      vitality: 1000,
+      ferocity: 0,
+      conditionDamage: 1000,
+      expertise: 0,
+      concentration: 0,
+      healingPower: 0,
+    },
+  );
+  assert.equal(petAttributes.expertise, 375);
+  assert.equal(petAttributes.concentration, 240);
+  assert.ok(Math.abs(petAttributes.healingPower - 105) < 1e-9);
 });
 
 test("Ranger is wired through the selector and application adapter", async () => {

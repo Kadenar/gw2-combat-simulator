@@ -65,7 +65,7 @@ function emitPartyBoon(
 
 function isBeastSkill(skill: RangerSkill): boolean {
   return Boolean(
-    skill.petSkill ||
+    (skill.petSkill && !skill.petFamilySkill) ||
     (skill.beastmodeSkill &&
       skill.id !== ID.BEASTMODE &&
       skill.id !== ID.LEAVE_BEASTMODE),

@@ -11,6 +11,7 @@ import { professionRoute } from "../../../js/app/profession/selector.js";
 import { skillBarInspectionStacks } from "../../../js/app/build/skills-panel.js";
 import { autoattackChainSkillAvailable } from "../../../js/app/rotation/palette-model.js";
 import { activeResourceGroup } from "../../../js/app/rotation/resource-view.js";
+import { createSimulationRandom } from "../../../js/platform/engine/simulation-random.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
 import {
   createWarriorBuildDefaults,
@@ -25,6 +26,7 @@ import { warriorCoreModule } from "../../../js/professions/warrior/core/module.j
 import {
   recalculate,
   runSimulation,
+  warriorAppAdapter,
 } from "../../../js/professions/warrior/app/app-definition.js";
 import { createWarriorCoreState } from "../../../js/professions/warrior/core/state.js";
 import { DATA_SNAPSHOT } from "../../../js/professions/warrior/data/warrior-api-metadata.js";
@@ -881,6 +883,79 @@ test("Peak Performance buffs Kick and Leg Specialist requires impairment", () =>
   assert.ok(
     Math.abs(legDamage({ Chilled: true }) / legDamage({}) - 1.05) < 1e-9,
   );
+});
+
+test("Bloodlust handles deterministic progress and stochastic proc rolls", () => {
+  const rotation = [
+    "__combat_start",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+  ];
+  const config = {
+    primaryWeapon: "Dagger",
+    secondaryWeapon: "Mace",
+    selectedTraitIds: [TRAIT.BLOODLUST],
+    stats: { precision: 10000 },
+  };
+  const bleedingStacks = (result) =>
+    result.events
+      .filter(
+        (event) =>
+          event.type === "condition" && event.sourceId === TRAIT.BLOODLUST,
+      )
+      .reduce((total, event) => total + Number(event.stacks || 0), 0);
+
+  assert.equal(
+    bleedingStacks(
+      simulate("Spellbreaker", rotation, {
+        ...config,
+        randomness: { mode: "deterministic", seed: 7 },
+      }),
+    ),
+    3,
+  );
+
+  const seed = 1;
+  const random = createSimulationRandom({ mode: "stochastic", seed });
+  const expectedStochasticStacks = Array.from({ length: 12 }, () =>
+    random.roll(0.33, "warrior.bloodlust"),
+  ).filter(Boolean).length;
+  const stochastic = simulate("Spellbreaker", rotation, {
+    ...config,
+    randomness: { mode: "stochastic", seed },
+  });
+  assert.equal(bleedingStacks(stochastic), expectedStochasticStacks);
+  assert.deepEqual(
+    stochastic.events
+      .filter(
+        (event) => event.type === "damage" && event.actorType === "player",
+      )
+      .map((event) => event.didCrit),
+    Array(12).fill(true),
+  );
+});
+
+test("precombat Kick receives a sampled critical outcome in stochastic mode", () => {
+  const result = simulate("Spellbreaker", ["Kick", "__combat_start"], {
+    selectedTraitIds: [TRAIT.BLOODLUST],
+    stats: { precision: 10000 },
+    randomness: { mode: "stochastic", seed: 7 },
+  });
+  const kick = result.events.find(
+    (event) => event.type === "damage" && event.skillId === ID.KICK,
+  );
+
+  assert.equal(kick.didCrit, true);
 });
 
 test("Spellbreaker offensive traits use multiplicative damage modifiers", () => {
@@ -1999,6 +2074,23 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
     .reduce((total, entry) => total + entry.strikeDamage, 0);
   assert.ok(Math.abs(rendDamage - 246978) / 246978 < 0.02);
   assert.ok(Math.abs(result.dps - 42690) < 3000);
+
+  const randomApp = {
+    ...app,
+    build: {
+      ...build,
+      assumptions: { ...build.assumptions, simulationMode: "stochastic" },
+    },
+  };
+  recalculate(randomApp);
+  const request = warriorAppAdapter.randomDistributionRequest(randomApp);
+  assert.ok(request);
+  const distribution = warriorAppAdapter.calculateRandomDistribution({
+    ...request,
+    trials: 3,
+  });
+  assert.equal(distribution.trials, 3);
+  assert.equal(Number.isFinite(distribution.mean), true);
 });
 
 test("Sword/Dagger Spellbreaker preset preserves the supplied build and EVTC", async () => {

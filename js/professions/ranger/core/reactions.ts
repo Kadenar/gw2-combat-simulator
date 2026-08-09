@@ -392,21 +392,6 @@ export function reactToRangerCoreControl(
   });
 }
 
-const SHAREABLE_BOONS = new Set([
-  "aegis",
-  "alacrity",
-  "fury",
-  "might",
-  "protection",
-  "quickness",
-  "regeneration",
-  "resistance",
-  "resolution",
-  "stability",
-  "swiftness",
-  "vigor",
-]);
-
 export function reactToRangerCoreBuff(
   context: RangerResolverContext,
   event: RangerResolverEvent,
@@ -418,34 +403,4 @@ export function reactToRangerCoreBuff(
     state.playerOpeningStrikeReady = true;
     state.petOpeningStrikeReady = true;
   }
-  const source = String(event.source || "").toLowerCase();
-  if (
-    !SHAREABLE_BOONS.has(kind) ||
-    !affectsSelf ||
-    event.affectsSummons === true ||
-    event.actorType === "summon" ||
-    source.includes("npc") ||
-    beastmodeActive(context) ||
-    !hasTrait(context, TRAIT.FORTIFYING_BOND)
-  ) {
-    return;
-  }
-  enqueueOrdered(context.queue, {
-    type: "buff",
-    at: event.at,
-    source: "Trait",
-    sourceId: TRAIT.FORTIFYING_BOND,
-    actorType: "effect",
-    skillId: TRAIT.FORTIFYING_BOND,
-    skillName: "Fortifying Bond",
-    name: `Fortifying Bond - ${kind}`,
-    kind,
-    duration: Number(event.duration || 0),
-    stacks: Number(event.stacks || 1),
-    affectsSelf: false,
-    affectsSummons: true,
-    recipients: "summon",
-    maximumRecipients: 1,
-    triggeredBy: event.skillName,
-  });
 }

@@ -11,10 +11,7 @@ import {
   materializeConditionRelics,
   relicConditionDurationBonus,
 } from "../relic-rules.js";
-import type {
-  Gw2Config,
-  Gw2TriggerMaterializer,
-} from "../types.js";
+import type { Gw2Config, Gw2TriggerMaterializer } from "../types.js";
 import { createGw2CombatObserver } from "./combat-observer.js";
 import {
   hasStochasticCriticalFood,
@@ -108,8 +105,8 @@ export function createGw2TriggerMaterializer(
         materializeConditionRelics(context, state.relic, event);
         break;
       case "damage": {
-        if (!state.combatActive) break;
         const criticalCause = resolveCriticalTrigger(context, event, state);
+        if (!state.combatActive) break;
         if (criticalCause) {
           sigils.materialize("crit", context, event, criticalCause);
         }
@@ -182,6 +179,9 @@ export function createGw2TriggerMaterializer(
     },
     critical(event) {
       return state.query!.critical(event, event.at, state);
+    },
+    rollRandom(probability, stream) {
+      return state.random.roll(probability, stream);
     },
     isCombatActive() {
       return state.combatActive;
