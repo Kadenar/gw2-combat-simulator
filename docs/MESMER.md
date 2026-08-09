@@ -156,7 +156,7 @@ one PvE scenario rather than adding mutually exclusive values:
   activation order on dagger/sword and spear, including precast Mimic and
   Unstable Bladestorm, eight weapon swaps, interrupted filler attacks, and the
   recorded instrument, Tale, and Power Spike counts. The deterministic model
-  currently produces 40,647 DPS against the log's 42,509 reference DPS.
+  currently produces 42,703 DPS against the log's 42,509 reference DPS.
 - Mimic arms a ten-second window and clears the recharge of the next completed
   non-flip utility skill, allowing each recorded Tale pair to execute without
   an artificial cooldown stall.

@@ -12,7 +12,7 @@
         "label": "Condition",
         "build": "Builds/mesmer/b-condi-chronomancer.json",
         "rotation": "Rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 46753
+        "benchmarkDps": 46909
       }
     ]
   },
@@ -46,7 +46,7 @@
         "label": "Power (Dagger-Sword / Spear)",
         "build": "Builds/mesmer/b-power-troubadour.json",
         "rotation": "Rotations/mesmer/r-power-troubadour-bench.json",
-        "benchmarkDps": 40647,
+        "benchmarkDps": 42703,
         "referenceDps": 42509
       }
     ]
