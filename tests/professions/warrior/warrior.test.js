@@ -39,6 +39,7 @@ import { advanceBladesworn } from "../../../js/professions/warrior/specializatio
 import { createBladeswornState } from "../../../js/professions/warrior/specializations/bladesworn/state.js";
 import { paragonModule } from "../../../js/professions/warrior/specializations/paragon/module.js";
 import { spellbreakerModule } from "../../../js/professions/warrior/specializations/spellbreaker/module.js";
+import { spellbreakerAttributeRules } from "../../../js/professions/warrior/specializations/spellbreaker/rules.js";
 import { assertProfessionFamilyConformance } from "../../helpers/profession-family-conformance.js";
 
 const baseConfig = Object.freeze({
@@ -534,6 +535,150 @@ test("Spellbreaker uses its reduced adrenaline cap for Full Counter", () => {
   assert.equal(result.endState.profession.maximumAdrenaline, 20);
   assert.equal(result.endState.profession.adrenaline < 20, true);
   assert.equal(result.totalDamage > 0, true);
+});
+
+test("Spellbreaker Winds and Kick use the supplied PvE mechanics", () => {
+  const winds = warriorCatalog.skillsById.get(ID.WINDS_OF_DISENCHANTMENT);
+  const kick = warriorCatalog.skillsById.get(ID.KICK);
+  const windsStrike = winds.effects.find((effect) => effect.type === "strike");
+  const kickStrike = kick.effects.find((effect) => effect.type === "strike");
+  const kickControl = kick.effects.find((effect) => effect.type === "control");
+
+  assert.equal(windsStrike.coefficient, 2.25);
+  assert.equal(windsStrike.hits, 5);
+  assert.equal(windsStrike.intervalMs, 1000);
+  assert.equal(windsStrike.coefficient / windsStrike.hits, 0.45);
+  assert.equal(kick.ammo, 3);
+  assert.equal(kick.recharge, 3);
+  assert.equal(kick.ammoRecharge, 20);
+  assert.equal(kickStrike.coefficient, 1);
+  assert.equal(kickControl.metadata.controlKind, "knockback");
+
+  const result = simulate("Spellbreaker", ["Winds of Disenchantment"]);
+  const pulses = result.events.filter(
+    (event) =>
+      event.type === "damage" && event.skillId === ID.WINDS_OF_DISENCHANTMENT,
+  );
+  assert.deepEqual(
+    pulses.map(({ coefficient }) => coefficient),
+    [0.45, 0.45, 0.45, 0.45, 0.45],
+  );
+  assert.deepEqual(
+    pulses.slice(1).map((pulse, index) => pulse.at - pulses[index].at),
+    [1, 1, 1, 1],
+  );
+});
+
+test("Spellbreaker control grants independent Insight stacks and No Escape", () => {
+  const result = simulate("Spellbreaker", ["Disrupting Stab"], {
+    primaryWeapon: "Dagger",
+    secondaryWeapon: "Mace",
+    selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT, TRAIT.NO_ESCAPE],
+  });
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.profession.attackerInsightExpiries.length, 1);
+  assert.equal(result.endState.profession.attackerInsightExpiries.length, 1);
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.type === "condition" &&
+        event.condition === "Immobilized" &&
+        event.duration === 1 &&
+        event.sourceId === TRAIT.NO_ESCAPE,
+    ),
+    true,
+  );
+
+  const attributes = spellbreakerAttributeRules.modifyAttributes(
+    {
+      time: 10,
+      runtime: {
+        profession: {
+          specialization: {
+            kind: "Spellbreaker",
+            state: {
+              attackerInsightExpiries: [11, 12, 13, 14, 15],
+            },
+          },
+        },
+      },
+    },
+    { power: 1000, precision: 1000, ferocity: 0 },
+  );
+  assert.deepEqual(attributes, {
+    power: 1250,
+    precision: 1250,
+    ferocity: 250,
+  });
+});
+
+test("Spellbreaker offensive traits use multiplicative damage modifiers", () => {
+  const damage = (result, name) =>
+    result.breakdown.find((entry) => entry.name === name)?.damage || 0;
+  const traitStrike = (selectedTraitIds, targetBoonless, primaryWeapon) =>
+    simulate("Spellbreaker", ["Throw Bolas"], {
+      selectedTraitIds,
+      primaryWeapon,
+      secondaryWeapon: "Mace",
+      stats: { precision: 4000 },
+      target: { boonless: targetBoonless },
+    }).strikeDamage;
+
+  const boonlessBase = traitStrike([], true, "Dagger");
+  const boonlessPure = traitStrike([TRAIT.PURE_STRIKE], true, "Dagger");
+  const boonedBase = traitStrike([], false, "Dagger");
+  const boonedPure = traitStrike([TRAIT.PURE_STRIKE], false, "Dagger");
+  const daggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, "Dagger");
+  const swordStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, "Sword");
+  assert.ok(Math.abs(boonlessPure / boonlessBase - 1.1) < 1e-9);
+  assert.ok(Math.abs(boonedPure / boonedBase - 1.05) < 1e-9);
+  assert.ok(Math.abs(daggerStyle / boonlessBase - 1.1) < 1e-9);
+  assert.ok(Math.abs(swordStyle / boonlessBase - 1) < 1e-9);
+
+  const base = simulate("Spellbreaker", ["Breaching Strike", "Kick"], {
+    initialResource: 10,
+    primaryWeapon: "Dagger",
+    secondaryWeapon: "Mace",
+  });
+  const tethered = simulate("Spellbreaker", ["Breaching Strike", "Kick"], {
+    initialResource: 10,
+    primaryWeapon: "Dagger",
+    secondaryWeapon: "Mace",
+    selectedTraitIds: [TRAIT.MAGEBANE_TETHER],
+  });
+  assert.ok(
+    Math.abs(damage(tethered, "Kick") / damage(base, "Kick") - 1.15) < 1e-9,
+  );
+  assert.equal(
+    tethered.procSteps.filter((step) => step.skill === "Magebane Tether")
+      .length,
+    1,
+  );
+
+  const internalCooldown = simulate(
+    "Spellbreaker",
+    [
+      "Breaching Strike",
+      { type: "wait", durationMs: 7500 },
+      "Breaching Strike",
+    ],
+    {
+      initialResource: 20,
+      primaryWeapon: "Dagger",
+      secondaryWeapon: "Mace",
+      selectedTraitIds: [TRAIT.MAGEBANE_TETHER],
+    },
+  );
+  assert.equal(
+    internalCooldown.procSteps.filter(
+      (step) => step.skill === "Magebane Tether",
+    ).length,
+    1,
+  );
+  assert.ok(
+    internalCooldown.profession.magebaneTetherUntil < internalCooldown.duration,
+  );
 });
 
 test("Bladesworn gates gunsaber and Dragon Slash state", () => {
@@ -1372,6 +1517,85 @@ test("Power Bladesworn preset preserves the requested build and executes", async
     14,
   );
   assert.ok(result.dps > 0);
+});
+
+test("Power Spellbreaker preset preserves the supplied build and EVTC", async () => {
+  const [raw, savedRotation, manifest] = await Promise.all([
+    readFile(
+      new URL(
+        "../../../Builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../../../Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL("../../../Builds/warrior/manifest.json", import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+
+  assert.deepEqual(validateWarriorBuild(raw), { valid: true, errors: [] });
+  assert.deepEqual(raw.weapons, ["Dagger", "Mace"]);
+  assert.deepEqual(raw.alternateWeapons, ["Sword", "Axe"]);
+  assert.deepEqual(raw.weaponSigils, [
+    ["Force", "Air"],
+    ["Force", "Hydromancy"],
+  ]);
+  assert.equal(raw.rune, "Scholar");
+  assert.equal(raw.relic, "Claw");
+  assert.equal(raw.food, "Cilantro Lime Sous-Vide Steak");
+  assert.equal(raw.utility, "Superior Sharpening Stone");
+  assert.deepEqual(raw.infusions, [{ stat: "Power", count: 18 }]);
+  assert.deepEqual(
+    raw.specializations.map(({ name, traits }) => [name, traits]),
+    [
+      ["Arms", "2-3-3"],
+      ["Strength", "3-3-1"],
+      ["Spellbreaker", "1-3-3"],
+    ],
+  );
+  assert.deepEqual(Object.values(raw.selectedSkills), [
+    "Healing Signet",
+    "Kick",
+    "Signet of Fury",
+    "Signet of Might",
+    "Winds of Disenchantment",
+  ]);
+  assert.equal(
+    manifest.find((section) => section.section === "Spellbreaker").presets[0]
+      .benchmarkDps,
+    42690,
+  );
+  assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 92.521);
+  assert.equal(savedRotation.metadata.benchmarkDamage, 3949729);
+  assert.equal(savedRotation.metadata.benchmarkDps, 42690.08117076123);
+
+  const build = migrateWarriorBuild({
+    ...raw,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    skillByName: warriorCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  assert.deepEqual(result.warnings, []);
+  const hitCounts = new Map(
+    result.breakdown.map((entry) => [entry.name, entry.hits]),
+  );
+  assert.equal(hitCounts.get("Winds of Disenchantment"), 5);
+  assert.equal(hitCounts.get("Kick"), 7);
+  assert.equal(hitCounts.get("Crushing Blow"), 14);
+  assert.ok(Math.abs(result.dps - 42690) < 3000);
 });
 
 test("Power Paragon preset preserves the EVTC build and executes", async () => {

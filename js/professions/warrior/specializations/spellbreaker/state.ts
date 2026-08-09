@@ -2,7 +2,12 @@ import { defineProfessionSpecializationState } from "../../../../platform/engine
 import type { SpellbreakerState } from "../../types.js";
 
 export function createSpellbreakerState(): SpellbreakerState {
-  return { attackerInsightExpiries: [], fullCounterActiveUntil: 0 };
+  return {
+    attackerInsightExpiries: [],
+    fullCounterActiveUntil: 0,
+    magebaneTetherUntil: 0,
+    magebaneTetherReadyAt: 0,
+  };
 }
 
 export const spellbreakerState = defineProfessionSpecializationState(

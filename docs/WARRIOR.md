@@ -17,8 +17,9 @@ weapon state, shared traits, and profession actions live under `core/`.
 - Berserker's Berserk entry cost and duration, Primal Burst gating, Rage-skill
   duration extensions, and specialization damage, cast-speed, and attribute
   traits.
-- Spellbreaker's 20-point adrenaline cap, Full Counter, control tracking,
-  Attacker's Insight, Pure Strike, and Sun and Moon Style.
+- Spellbreaker's 20-point adrenaline cap, level-one bursts, Full Counter,
+  control tracking, Attacker's Insight, Pure Strike, No Escape, Sun and Moon
+  Style, Magebane Tether, and Winds of Disenchantment pulses.
 - Bladesworn's replacement of adrenaline with flow, gunsaber entry and exit,
   gunsaber skill gating, gunsaber and pistol ammo, armament reloads and buffs,
   Dragon Trigger utilities, charge conversion, scaling Dragon Slash packets,
@@ -88,6 +89,20 @@ Axe/Pistol build. The saved preset therefore preserves the EVTC gunsaber order
 and measured Quickness activation durations while replacing those Sword
 windows with the requested Axe skills. It is an executable Axe/Pistol
 reconstruction, not an exact replay of the mismatched weapon packets.
+
+## Power Spellbreaker preset
+
+The Spellbreaker preset uses Dagger/Mace with Force/Air and Sword/Axe with
+Force/Hydromancy. It has full Berserker gear, Scholar runes, Relic of the Claw,
+Cilantro Lime Sous-Vide Steak, Superior Sharpening Stone, and 18 Power
+infusions. It selects Arms `2-3-3`, Strength `3-3-1`, and Spellbreaker `1-3-3`,
+with Healing Signet, Kick, Signet of Fury, Signet of Might, and Winds of
+Disenchantment.
+
+The supplied EVTC records 3,949,729 damage over a 92.521-second damage window
+(42,690.08 DPS). The saved rotation precasts Winds and preserves its five
+one-second pulses, seven Kick casts, fourteen Crushing Blow hits, and the
+Dagger/Mace and Sword/Axe weapon windows.
 
 ## Data
 

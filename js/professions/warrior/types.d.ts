@@ -68,6 +68,8 @@ export interface BerserkerState {
 export interface SpellbreakerState {
   attackerInsightExpiries: number[];
   fullCounterActiveUntil: number;
+  magebaneTetherUntil: number;
+  magebaneTetherReadyAt: number;
 }
 
 export interface BladeswornState {

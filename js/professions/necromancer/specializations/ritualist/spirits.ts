@@ -23,9 +23,7 @@ import {
   registerCreatureSummonReaction,
   runCreatureSummonReactions,
 } from "../../core/shared.js";
-import type {
-  SkillId,
-} from "../../../../platform/engine/types.js";
+import type { SkillId } from "../../../../platform/engine/types.js";
 import type {
   NecromancerCastContext,
   NecromancerSchedulerContext,
@@ -63,25 +61,20 @@ function applyRitualistCreatureSummonTraits(
     gainNecromancerLifeForce(context, 10 * count, at);
   }
   if (!hasTrait(context, TRAIT.EXPLOSIVE_GROWTH)) return;
-  emitDamage(
-    context,
-    skill,
-    MECHANICS.explosiveGrowthCoefficient * count,
-    {
-      at,
-      name: "Explosive Growth",
-      source: "Trait",
-      sourceId: TRAIT.EXPLOSIVE_GROWTH,
-      actorType: "effect",
-      skillWeapon: "Unequipped",
-      metadata: {
-        skillId: TRAIT.EXPLOSIVE_GROWTH,
-        skillName: "Explosive Growth",
-        parentSkillName: skill.name,
-        triggeredBy: skill.name,
-      },
+  emitDamage(context, skill, MECHANICS.explosiveGrowthCoefficient * count, {
+    at,
+    name: "Explosive Growth",
+    source: "Trait",
+    sourceId: TRAIT.EXPLOSIVE_GROWTH,
+    actorType: "effect",
+    skillWeapon: "Unequipped",
+    metadata: {
+      skillId: TRAIT.EXPLOSIVE_GROWTH,
+      skillName: "Explosive Growth",
+      parentSkillName: skill.name,
+      triggeredBy: skill.name,
     },
-  );
+  });
 }
 
 export const ritualistSchedulerHooks = Object.freeze({
@@ -102,9 +95,11 @@ const SPIRITS = MECHANICS.spirits as unknown as Readonly<
 >;
 
 function activePrimaryWeapon(context: NecromancerCastContext): string {
-  return String(context.state.activeWeaponSet === 2
-    ? context.config.weaponSet2Primary || context.config.primaryWeapon || ""
-    : context.config.primaryWeapon || "");
+  return String(
+    context.state.activeWeaponSet === 2
+      ? context.config.weaponSet2Primary || context.config.primaryWeapon || ""
+      : context.config.primaryWeapon || "",
+  );
 }
 
 function spiritMetadata(
@@ -122,19 +117,16 @@ function spiritMetadata(
   };
 }
 
-function nextSpiritPulse(
-  state: RitualistState,
-  at: number,
-): number {
+function nextSpiritPulse(state: RitualistState, at: number): number {
   if (!Number.isFinite(state.spiritAutoAnchorAt)) {
     state.spiritAutoAnchorAt = at + MECHANICS.firstSpiritAttackDelay;
   }
   const interval = MECHANICS.spiritAttackInterval;
   return state.spiritAutoAnchorAt > at
     ? state.spiritAutoAnchorAt
-    : state.spiritAutoAnchorAt
-      + Math.ceil((at - state.spiritAutoAnchorAt + Number.EPSILON) / interval)
-        * interval;
+    : state.spiritAutoAnchorAt +
+        Math.ceil((at - state.spiritAutoAnchorAt + Number.EPSILON) / interval) *
+          interval;
 }
 
 function queueSpiritAutoattacks(
@@ -194,11 +186,10 @@ function emitEmpoweringSpirits(
 function painfulBondDuration(context: NecromancerCastContext): number {
   const stats = context.config.stats || {};
   const bonus =
-    Number(stats.concentration || 0) / 1500
-    + Number(stats.boonDurationBonus || 0) / 100
-    + Number(stats.boonDurationBonuses?.["Painful Bond"] || 0) / 100;
-  return MECHANICS.painfulBond.duration
-    * Math.max(1, Math.min(2, 1 + bonus));
+    Number(stats.concentration || 0) / 1500 +
+    Number(stats.boonDurationBonus || 0) / 100 +
+    Number(stats.boonDurationBonuses?.["Painful Bond"] || 0) / 100;
+  return MECHANICS.painfulBond.duration * Math.max(1, Math.min(2, 1 + bonus));
 }
 
 function emitPainfulBond(
@@ -255,11 +246,14 @@ function emitAnguishInitial(
     stacks: 8,
   });
   const hitCount = Number(spirit.summonHits || 1);
-  const hitDelays = spirit.summonHitDelays || Array.from(
-    { length: hitCount },
-    (_, index) => Number(spirit.summonDelay || 0)
-      + index * Number(spirit.summonInterval || 0),
-  );
+  const hitDelays =
+    spirit.summonHitDelays ||
+    Array.from(
+      { length: hitCount },
+      (_, index) =>
+        Number(spirit.summonDelay || 0) +
+        index * Number(spirit.summonInterval || 0),
+    );
   emitPainfulBond(context, skill, at + Number(hitDelays[0] || 0));
   for (let index = 0; index < hitDelays.length; index += 1) {
     emitDamage(context, skill, spirit.summonCoefficient / hitCount, {
@@ -326,17 +320,6 @@ function emitWanderlustInitial(
     actorType: "player",
     metadata: spiritMetadata("wanderlust", "initial"),
   });
-  context.emit({
-    type: "control",
-    at: fieldAt + 3,
-    source: "Spirit",
-    sourceId: skill.id,
-    actorType: "player",
-    skillId: skill.id,
-    skillName: skill.name,
-    controlKind: "knockdown",
-    ...spiritMetadata("wanderlust", "initial"),
-  });
 }
 
 function summonSpirit(
@@ -379,9 +362,10 @@ function summonSpirits(
   const state = ritualistState.from(context);
   for (const spirit of Object.values(SPIRITS)) {
     if (
-      !state.activeSpirits[spirit.key]
-      || Number(state.spiritInitialUntil[spirit.key] || 0) > at
-    ) continue;
+      !state.activeSpirits[spirit.key] ||
+      Number(state.spiritInitialUntil[spirit.key] || 0) > at
+    )
+      continue;
     if (spirit.activeCoefficient > 0 && spirit.activeHits > 0) {
       emitDamage(context, skill, spirit.activeCoefficient, {
         at: at + spirit.activeDelay,
@@ -412,11 +396,10 @@ function summonSpirits(
         ...spiritMetadata(spirit.key, "summon-spirits"),
       });
     }
-    state.spiritBusyUntil[spirit.key] =
-      Math.max(
-        Number(state.spiritBusyUntil[spirit.key] || 0),
-        at + spirit.activeDuration,
-      );
+    state.spiritBusyUntil[spirit.key] = Math.max(
+      Number(state.spiritBusyUntil[spirit.key] || 0),
+      at + spirit.activeDuration,
+    );
   }
   emitState(context, at, "summon-spirits");
 }
@@ -430,21 +413,16 @@ function ritualist(
   if (skill.id === ID.ESSENCE_BLAST) {
     const spirits = Object.keys(state.activeSpirits).length;
     const essence = MECHANICS.essenceBlast;
-    const impactAt = context.start
-      + (context.fullEnd - context.start) * (14 / 15);
-    emitDamage(
-      context,
-      skill,
-      essence.coefficient,
-      {
-        at: impactAt,
-        skillWeapon: activePrimaryWeapon(context),
-        metadata: {
-          activeSpirits: spirits,
-          essenceBlastDamagePerSpirit: essence.damagePerSpirit,
-        },
+    const impactAt =
+      context.start + (context.fullEnd - context.start) * (14 / 15);
+    emitDamage(context, skill, essence.coefficient, {
+      at: impactAt,
+      skillWeapon: activePrimaryWeapon(context),
+      metadata: {
+        activeSpirits: spirits,
+        essenceBlastDamagePerSpirit: essence.damagePerSpirit,
       },
-    );
+    });
     return true;
   }
   if (skill.id === ID.SUMMON_SPIRITS) {
