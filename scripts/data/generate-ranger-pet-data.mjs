@@ -41,6 +41,9 @@ const SIMULATED_FAMILY_SKILL_IDS = Object.freeze({
   devourer: [12676],
   spider: [12724],
 });
+const simulatedFamilySkillIds = new Set(
+  Object.values(SIMULATED_FAMILY_SKILL_IDS).flat(),
+);
 
 const SOULBEAST_PET_FAMILY_OVERRIDES = Object.freeze({
   "Aether Hunter": "aether hunter",
@@ -178,6 +181,7 @@ const skillLines = skills.map((skill) => {
     recharge: ${Number(recharge)},
     cooldown: ${Number(recharge)},
     petSkill: true,
+    petFamilySkill: ${simulatedFamilySkillIds.has(skill.id)},
     petNames: ${JSON.stringify(petNames)},
   },`;
 });

@@ -185,6 +185,7 @@ export interface RangerEndStateProjectionOptions {
 
 export interface RangerSkill extends Skill {
   readonly petSkill?: boolean;
+  readonly petFamilySkill?: boolean;
   readonly celestialAvatarSkill?: boolean;
   readonly beastmodeSkill?: boolean;
   readonly unleashedPetSkill?: boolean;

@@ -163,10 +163,7 @@ export interface Gw2RelicRuntimeContext extends SchedulerRecord {
 }
 
 export interface Gw2RelicMaterializerContext {
-  emitDerived(
-    cause: SimulationEvent,
-    event: Gw2EventDraft,
-  ): SimulationEvent;
+  emitDerived(cause: SimulationEvent, event: Gw2EventDraft): SimulationEvent;
 }
 
 export interface Gw2RelicContext extends SchedulerRecord {
@@ -341,10 +338,7 @@ export interface Gw2CombatQuery {
     runtime?: Gw2QueryRuntime | null,
     event?: SimulationEvent | null,
   ): boolean;
-  vulnerabilityStacksAt(
-    time: number,
-    runtime?: Gw2QueryRuntime | null,
-  ): number;
+  vulnerabilityStacksAt(time: number, runtime?: Gw2QueryRuntime | null): number;
   critical(
     event: SimulationEvent,
     time: number,
@@ -393,15 +387,13 @@ export interface Gw2CombatQuery {
 export interface Gw2TriggerMaterializer {
   readonly state: SchedulerRecord;
   initialize(context: SchedulerContext): void;
-  onEventScheduled(
-    context: SchedulerContext,
-    event: SimulationEvent,
-  ): void;
+  onEventScheduled(context: SchedulerContext, event: SimulationEvent): void;
   handleTask(
     context: SchedulerContext,
     task: ScheduledTask<SchedulerRecord>,
   ): void;
   critical(event: SimulationEvent): Gw2CriticalResult;
+  rollRandom(probability: number, stream?: string): boolean;
   isCombatActive(): boolean;
   combatBeganAt(): number | null;
   requireCriticalFacts(): void;
@@ -412,6 +404,7 @@ export interface Gw2SchedulerPolicy extends SchedulerPolicy {
     context: SchedulerContext,
     event: SimulationEvent,
   ): Gw2CriticalResult;
+  rollRandom(probability: number, stream?: string): boolean;
   isCombatActive(): boolean;
   combatBeganAt(): number | null;
   requireCriticalFacts(): void;
@@ -535,16 +528,14 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   }>;
 };
 
-export interface Gw2ResolverConditionStack
-  extends Gw2RuntimeConditionStack {
+export interface Gw2ResolverConditionStack extends Gw2RuntimeConditionStack {
   appliedAt: number;
   expiresAt: number;
   weight: number;
   application: Gw2ResolvedConditionApplication;
 }
 
-export interface Gw2ResolverConditionState
-  extends Gw2RuntimeConditionEntry {
+export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
   stacks: Gw2ResolverConditionStack[];
 }
 
@@ -593,8 +584,7 @@ export interface Gw2ResolverHelpers extends SchedulerRecord {
 }
 
 export type Gw2EventQueue =
-  | Gw2ResolverEvent[]
-  | StableEventQueue<Gw2ResolverEvent>;
+  Gw2ResolverEvent[] | StableEventQueue<Gw2ResolverEvent>;
 
 export interface Gw2ResolverRuntime extends SchedulerRecord {
   config: Gw2Config;
@@ -624,10 +614,7 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
   sigil: { severanceUntil: number };
   food: { criticalProgress: number; readyAt: number };
   random: Readonly<SimulationRandom>;
-  weaponStrengthRolls: Map<
-    string,
-    { profileId: string; value: number }
-  >;
+  weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
   recordProc(
     type: string,
@@ -807,10 +794,7 @@ export interface ResolveGw2TimelineOptions {
   readonly query: Readonly<Gw2CombatQuery>;
   readonly helpers: Gw2ResolverHelpers;
   readonly createRuntimeState: (
-    options: Omit<
-      CreateGw2ResolverRuntimeStateOptions,
-      "createEquipmentState"
-    >,
+    options: Omit<CreateGw2ResolverRuntimeStateOptions, "createEquipmentState">,
   ) => Gw2ResolverRuntime;
   readonly commonHandlers: Gw2ResolverEventHandlers;
   readonly beforeResolveTimeline: Gw2ResolverExtensions["beforeResolveTimeline"];
@@ -836,38 +820,34 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly createEquipmentState: Gw2ResolverExtensions["createEquipmentState"];
 }
 
-export interface Gw2ProfessionContract
-  extends Omit<
-    NormalizedProfessionContract,
-    | "eventHandlers"
-    | "eventReactions"
-    | "simulation"
-    | "projectEndState"
-  > {
+export interface Gw2ProfessionContract extends Omit<
+  NormalizedProfessionContract,
+  "eventHandlers" | "eventReactions" | "simulation" | "projectEndState"
+> {
   readonly eventHandlers: Gw2ResolverEventHandlers;
   readonly eventReactions: Gw2ResolverReactions;
   readonly simulation:
     | (SchedulerRecord & {
-      readonly refineSchedulerConfig?: (
-        config: Gw2Config,
-        result: Gw2SimulationResult,
-      ) => Gw2Config | null | undefined;
-      readonly projectEndState?: (options: {
-        readonly config: Gw2Config;
-        readonly schedulerContext: SchedulerContext;
-        readonly schedulerState: SchedulerState;
-        readonly resolverState: object;
-        readonly cooldowns: Gw2SimulationEndState["cooldowns"];
-        readonly ammo: Gw2SimulationEndState["ammo"];
-        readonly profession: unknown;
-      }) =>
-        | {
-            readonly cooldowns?: Gw2SimulationEndState["cooldowns"];
-            readonly ammo?: Gw2SimulationEndState["ammo"];
-            readonly profession?: unknown;
-          }
-        | null
-        | undefined;
+        readonly refineSchedulerConfig?: (
+          config: Gw2Config,
+          result: Gw2SimulationResult,
+        ) => Gw2Config | null | undefined;
+        readonly projectEndState?: (options: {
+          readonly config: Gw2Config;
+          readonly schedulerContext: SchedulerContext;
+          readonly schedulerState: SchedulerState;
+          readonly resolverState: object;
+          readonly cooldowns: Gw2SimulationEndState["cooldowns"];
+          readonly ammo: Gw2SimulationEndState["ammo"];
+          readonly profession: unknown;
+        }) =>
+          | {
+              readonly cooldowns?: Gw2SimulationEndState["cooldowns"];
+              readonly ammo?: Gw2SimulationEndState["ammo"];
+              readonly profession?: unknown;
+            }
+          | null
+          | undefined;
       })
     | null;
   readonly projectEndState: (options: {
@@ -1016,11 +996,7 @@ export interface Gw2BuildCodecOptions<
   ) => TBuild;
   readonly validateExtra?: (
     build: TBuild,
-  ) =>
-    | unknown[]
-    | { readonly errors?: readonly unknown[] }
-    | null
-    | undefined;
+  ) => unknown[] | { readonly errors?: readonly unknown[] } | null | undefined;
   readonly legacyGearAliases?: Readonly<Record<string, string>>;
   readonly slotLoadout?: Gw2SlotLoadout<TBuild> | null;
 }
@@ -1062,10 +1038,7 @@ export interface Gw2BuildValidationOptions {
   readonly slotLoadout?: Gw2SlotLoadout | null;
 }
 
-export type Gw2TraitCoverageStatus =
-  | "implemented"
-  | "out-of-model"
-  | "pending";
+export type Gw2TraitCoverageStatus = "implemented" | "out-of-model" | "pending";
 
 export interface Gw2TraitCoverageEffectInput extends SchedulerRecord {
   readonly description?: unknown;
@@ -1157,10 +1130,7 @@ export interface Gw2AttributeData {
   >;
   GEAR_SLOTS?: readonly string[];
   GEAR_STATS?: Readonly<
-    Record<
-      string,
-      Readonly<Record<string, Readonly<Gw2NumericAttributes>>>
-    >
+    Record<string, Readonly<Record<string, Readonly<Gw2NumericAttributes>>>>
   >;
   INFUSION_BONUS?: number;
   JBC_BONUS?: Readonly<Gw2NumericAttributes>;
@@ -1191,10 +1161,7 @@ export interface Gw2AttributeData {
   >;
   UTILITY_CONVERSION_RATES?: Readonly<Gw2NumericAttributes>;
   UTILITY_DATA?: Readonly<
-    Record<
-      string,
-      readonly { readonly from: string; readonly to: string }[]
-    >
+    Record<string, readonly { readonly from: string; readonly to: string }[]>
   >;
   WEAPON_DATA?: Readonly<Record<string, Gw2WeaponDataEntry>>;
 }
@@ -1225,14 +1192,9 @@ export type Gw2ModifierTarget =
   | "conditionDamage"
   | "conditionDuration";
 
-export type Gw2DamageModifierTarget =
-  | "strikeDamage"
-  | "conditionDamage";
+export type Gw2DamageModifierTarget = "strikeDamage" | "conditionDamage";
 
-export type Gw2ModifierOperation =
-  | "add"
-  | "damage-additive"
-  | "multiply";
+export type Gw2ModifierOperation = "add" | "damage-additive" | "multiply";
 
 export interface Gw2ModifierContext extends SchedulerRecord {
   readonly config?: Gw2Config;
@@ -1258,9 +1220,7 @@ export type Gw2ModifierNumericResolver = (
 
 export interface Gw2ModifierRule {
   readonly id: string;
-  readonly target:
-    | Gw2ModifierTarget
-    | readonly Gw2ModifierTarget[];
+  readonly target: Gw2ModifierTarget | readonly Gw2ModifierTarget[];
   readonly operation: Gw2ModifierOperation;
   readonly amount?: number | Gw2ModifierNumericResolver;
   readonly factor?: number | Gw2ModifierNumericResolver;
@@ -1280,8 +1240,7 @@ export interface Gw2NormalizedModifierRule {
 }
 
 export type Gw2IncludeSigilPolicy =
-  | boolean
-  | ((context: Gw2ModifierContext) => boolean);
+  boolean | ((context: Gw2ModifierContext) => boolean);
 
 export interface Gw2DamageBucketPolicy {
   readonly includeSigil: Gw2IncludeSigilPolicy;

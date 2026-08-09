@@ -193,6 +193,10 @@ export function createGw2SchedulerPolicy(
       return materializer.critical(event);
     },
 
+    rollRandom(probability, stream) {
+      return materializer.rollRandom(probability, stream);
+    },
+
     isCombatActive() {
       return materializer.isCombatActive();
     },

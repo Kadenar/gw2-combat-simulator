@@ -70,7 +70,8 @@ export function applyRangerBuildAttributeRules(
     addAttribute(
       traitStats,
       "Healing Power",
-      Number(attributes.Power?.final || 0) * 0.07,
+      (Number(attributes.Power?.final || 0) + Number(traitStats.Power || 0)) *
+        0.07,
     );
   }
   if (hasTrait("Vicious Quarry") && rangerBuild.assumptions?.fury !== false) {

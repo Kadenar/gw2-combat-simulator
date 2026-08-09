@@ -100,19 +100,20 @@ const BOON_KINDS = Object.freeze([
 ]);
 
 function petBoonActive(context: Gw2ModifierContext, boon: string): boolean {
-  if (
-    !beastmodeActive(context) &&
-    hasTrait(context, TRAIT.FORTIFYING_BOND) &&
-    context.config?.boons?.[boon]
-  ) {
+  if (context.timeline?.buffStacksAt(boon, context.time, 0, 25, "summon")) {
     return true;
   }
-  if (context.timeline?.buffStacksAt(boon, context.time, 0, 25, "summon")) {
+  if (
+    context.config?.sharePlayerBoonsWithSummons !== false &&
+    context.timeline?.buffStacksAt(boon, context.time, 0, 25, "all")
+  ) {
     return true;
   }
   return (context.runtime?.boons?.get(boon) || []).some(
     (application) =>
-      application.affectsSummons === true &&
+      (application.affectsSummons === true ||
+        (context.config?.sharePlayerBoonsWithSummons !== false &&
+          application.affectsSelf !== false)) &&
       application.at <= context.time &&
       application.expiresAt > context.time,
   );
@@ -208,14 +209,6 @@ function modifyRangerAttributes(
     const family = selectedRangerPet(context.config).family;
     if (["spider", "devourer"].includes(family)) adjust("expertise", 225);
   }
-  if (
-    petEvent(context) &&
-    !merged &&
-    hasTrait(context, TRAIT.FORTIFYING_BOND)
-  ) {
-    adjust("power", Number(context.config?.boons?.might || 0) * 30);
-    adjust("conditionDamage", Number(context.config?.boons?.might || 0) * 30);
-  }
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
       adjust(
@@ -269,7 +262,7 @@ function modifyRangerAttributes(
           : 120,
       );
     }
-    if (hasTrait(context, TRAIT.WELLSPRING)) {
+    if (hasTrait(context, TRAIT.WELLSPRING) && !petEvent(context)) {
       adjust("healingPower", Number(result.power || 0) * 0.07);
     }
   } else if (!merged) {
@@ -317,6 +310,23 @@ function modifyRangerAttributes(
     if (active !== calculated) {
       adjust("conditionDamage", active ? 120 : -120);
     }
+  }
+  if (petEvent(context) && hasTrait(context, TRAIT.WELLSPRING)) {
+    if (staticRulesApplied) {
+      adjust("healingPower", -Number(context.config?.stats?.power || 0) * 0.07);
+    }
+    const summonBasePower = Number(context.event?.summonBasePower);
+    const petPower =
+      Number.isFinite(summonBasePower) && summonBasePower > 0
+        ? summonBasePower +
+          (context.query?.mightStacksAt(
+            context.time,
+            context.runtime || undefined,
+            context.event || undefined,
+          ) || 0) *
+            30
+        : Number(result.power || 0);
+    adjust("healingPower", petPower * 0.07);
   }
   if (selectedSkill(context, "Signet of the Wild")) {
     const active = !context.timeline?.skillOnCooldownAt(
@@ -452,17 +462,6 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
       amount: (context) => activeBoonCount(context, "pet") * 0.01,
       when: (context) =>
         petEvent(context) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER),
-    },
-    {
-      id: "ranger.fortifying-bond-configured-pet-fury",
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: "add",
-      amount: 0.25,
-      when: (context) =>
-        petEvent(context) &&
-        !beastmodeActive(context) &&
-        Boolean(context.config?.boons?.fury) &&
-        hasTrait(context, TRAIT.FORTIFYING_BOND),
     },
     {
       id: "ranger.wolfsong",

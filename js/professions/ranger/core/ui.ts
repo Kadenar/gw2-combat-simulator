@@ -27,6 +27,12 @@ import {
 
 let rangerCatalog: Readonly<CanonicalCatalog>;
 
+const RANGER_HIDDEN_EVENT_TYPES = new Set([
+  "ranger.beast-skill-used",
+  "ranger.blood-thirst",
+  "ranger.winter-bite-ready",
+]);
+
 export function rangerUiState(context: RangerUiContext): SchedulerRecord {
   return flattenProfessionState(
     context.state?.profession || context.professionState || {},
@@ -156,7 +162,9 @@ function rangerCorePaletteAvailability(
   const available = activePetSkillIds(context).includes(skill.id);
   return {
     available,
-    message: available ? "" : "Select the pet that owns this Beast skill",
+    message: available
+      ? ""
+      : `Select the pet that owns this ${skill.petFamilySkill ? "family attack" : "Beast skill"}`,
   };
 }
 
@@ -259,6 +267,8 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
     },
     paletteSkillAvailability: rangerCorePaletteAvailability,
     weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
+    eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
+      RANGER_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined,
   });
 
 export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog>) {

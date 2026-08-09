@@ -20,7 +20,6 @@ const IMPLEMENTED = new Set([
   "Predator's Onslaught",
   "Remorseless",
   "Rejuvenation",
-  "Fortifying Bond",
   "Bountiful Hunter",
   "Wellspring",
   "Spirited Arrival",

@@ -9,6 +9,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  */
 import type { ScheduledTask } from "../../../platform/engine/types.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
+import type { Gw2SchedulerPolicy } from "../../../platform/gw2/types.js";
 import {
   WARRIOR_SKILL_IDS as ID,
   WARRIOR_TRAIT_IDS as TRAIT,
@@ -287,6 +288,26 @@ function armsCriticalCount(
   return count;
 }
 
+function bloodlustProcCount(
+  context: WarriorSchedulerContext,
+  criticals: number,
+): number {
+  if (context.config.randomness?.mode === "stochastic") {
+    const policy = context.schedulerPolicy as Gw2SchedulerPolicy;
+    let count = 0;
+    for (let critical = 0; critical < criticals; critical += 1) {
+      if (policy.rollRandom(0.33, "warrior.bloodlust")) count += 1;
+    }
+    return count;
+  }
+
+  const state = professionCoreState(context);
+  state.bloodlustProgress += criticals * 0.33;
+  const count = Math.floor(state.bloodlustProgress + 1e-9);
+  state.bloodlustProgress -= count;
+  return count;
+}
+
 function applyArmsCriticalTraits(
   context: WarriorSchedulerContext,
   event: WarriorSimulationEvent,
@@ -305,9 +326,7 @@ function applyArmsCriticalTraits(
   }
   const state = professionCoreState(context);
   if (hasTrait(context, TRAIT.BLOODLUST) && criticals > 0) {
-    state.bloodlustProgress += criticals * 0.33;
-    const bleeding = Math.floor(state.bloodlustProgress + 1e-9);
-    state.bloodlustProgress -= bleeding;
+    const bleeding = bloodlustProcCount(context, criticals);
     if (bleeding > 0) {
       context.emitDerived(event, {
         type: "condition",
