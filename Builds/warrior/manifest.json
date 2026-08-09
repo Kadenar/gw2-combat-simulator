@@ -12,6 +12,18 @@
     ]
   },
   {
+    "section": "Spellbreaker",
+    "presets": [
+      {
+        "label": "Power (Dagger/Mace + Sword/Axe)",
+        "build": "Builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
+        "rotation": "Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
+        "benchmarkDps": 42690,
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Paragon",
     "presets": [
       {

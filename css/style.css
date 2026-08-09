@@ -2669,6 +2669,10 @@ header .accent {
   border-style: dotted;
 }
 
+.rot-proc-overlay .proc-count {
+  top: 8px;
+}
+
 .rot-sigil-proc .rot-injected-badge {
   right: -5px;
   background: #4488cc;

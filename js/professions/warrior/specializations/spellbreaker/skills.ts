@@ -361,8 +361,15 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 0.2,
-        hits: 1,
+        coefficient: 2.25,
+        hits: 5,
+        intervalMs: 1000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
+        metadata: {
+          extendsResolutionHorizon: true,
+        },
       },
     ],
     quicknessCastTimeMs: 1000,

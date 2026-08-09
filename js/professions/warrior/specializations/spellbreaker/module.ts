@@ -1,7 +1,13 @@
-import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
+import {
+  defineNativeModule,
+  onResolvedControl,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
 import { createWarriorModuleData } from "../../catalog-data.js";
 import { SPELLBREAKER_SKILL_MECHANICS } from "./skills.js";
 import {
+  reactToSpellbreakerControl,
+  reactToSpellbreakerDamage,
   spellbreakerSkillHandlers,
   spellbreakerSchedulerHooks,
 } from "./handlers.js";
@@ -22,6 +28,16 @@ export const spellbreakerModule = defineNativeModule({
   mechanics: {
     modifiers: spellbreakerAttributeRules,
     schedulerHooks: spellbreakerSchedulerHooks,
+    reactions: [
+      onResolvedControl({
+        id: "warrior.spellbreaker-control",
+        handler: reactToSpellbreakerControl,
+      }),
+      onResolvedDamage({
+        id: "warrior.spellbreaker-damage",
+        handler: reactToSpellbreakerDamage,
+      }),
+    ],
   },
   presentation: spellbreakerUi,
 });
