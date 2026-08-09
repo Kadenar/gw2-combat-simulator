@@ -13,7 +13,11 @@ import type { WarriorSpecializationSelection } from "./data/traits-data.js";
 
 export function applyWarriorBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, disabledTrait = null }: Gw2BuildAttributeRuleContext,
+  {
+    build,
+    selectedSkills = [],
+    disabledTrait = null,
+  }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
   const attributes = common.attributes;
   const activeTraits = getActiveTraits(
@@ -25,6 +29,12 @@ export function applyWarriorBuildAttributeRules(
   const traitStats: Gw2NumericAttributes = {};
   const traitDurations: Gw2NumericAttributes = {};
 
+  if (selectedSkills.some((skill) => skill.name === "Signet of Might")) {
+    addAttribute(traitStats, "Power", 180);
+  }
+  if (selectedSkills.some((skill) => skill.name === "Signet of Fury")) {
+    addAttribute(traitStats, "Precision", 180);
+  }
   if (hasTrait("Forceful Greatsword")) {
     addAttribute(
       traitStats,
@@ -42,22 +52,27 @@ export function applyWarriorBuildAttributeRules(
   if (hasTrait("Vigorous Shouts")) {
     addAttribute(traitStats, "Healing Power", attributes.Power.final * 0.1);
   }
-  if (hasTrait("Deep Strikes"))
+  if (
+    hasTrait("Deep Strikes") &&
+    Boolean((build.assumptions as Record<string, unknown> | undefined)?.fury)
+  )
     addAttribute(traitStats, "Condition Damage", 180);
   if (hasTrait("Wounding Precision")) {
-    addAttribute(traitStats, "Expertise", attributes.Precision.final * 0.07);
+    addAttribute(
+      traitStats,
+      "Expertise",
+      (attributes.Precision.final + Number(traitStats.Precision || 0)) * 0.07,
+    );
   }
   if (hasTrait("Blademaster")) {
     addAttribute(traitStats, "Expertise", 120);
-    if (weapons.includes("Sword"))
-      addAttribute(traitStats, "Condition Damage", 120);
   }
   if (hasTrait("Axe Mastery")) {
     addAttribute(traitStats, "Ferocity", weapons.includes("Axe") ? 240 : 120);
   }
   if (hasTrait("Inspiring Implements"))
-    addAttribute(traitStats, "Concentration", 120);
-  if (hasTrait("Bloodlust")) traitDurations["Bleeding Duration"] = 20;
+    addAttribute(traitStats, "Concentration", 180);
+  if (hasTrait("Bloodlust")) traitDurations["Bleeding Duration"] = 33;
   if (hasTrait("King of Fires")) traitDurations["Burning Duration"] = 20;
 
   return finalizeBuildAttributes(common, {

@@ -49,6 +49,8 @@ export class ProfessionApp implements ProfessionAppState {
   results: ProfessionAppResult | null;
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex: number | null;
+  overlaySigilProcs: boolean;
+  overlayRelicProcs: boolean;
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
@@ -78,6 +80,8 @@ export class ProfessionApp implements ProfessionAppState {
     this.results = null;
     this.dragState = null;
     this.rotationInsertionIndex = null;
+    this.overlaySigilProcs = false;
+    this.overlayRelicProcs = false;
     this.templatePresets = [];
     this.templateContainer = null;
     this.currentTemplate = null;

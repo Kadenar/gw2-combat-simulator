@@ -2664,6 +2664,23 @@ header .accent {
   cursor: default;
 }
 
+.rot-proc-overlay {
+  width: 34px;
+  border-style: dotted;
+}
+
+.rot-sigil-proc .rot-injected-badge {
+  right: -5px;
+  background: #4488cc;
+  color: #fff;
+}
+
+.rot-relic-proc .rot-injected-badge {
+  right: -5px;
+  background: #ddaa33;
+  color: #201b28;
+}
+
 .rot-injected-badge {
   position: absolute;
   top: -6px;
@@ -2852,6 +2869,34 @@ header .accent {
   overflow-y: auto;
   padding: 8px 10px 10px;
   border-top: 1px solid var(--border);
+}
+
+.proc-overlay-toggles {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.proc-overlay-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 20px;
+  color: var(--text);
+  font-size: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.proc-overlay-toggle:has(input:disabled) {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.proc-overlay-toggle input {
+  margin: 0;
 }
 
 .proc-icons-row {

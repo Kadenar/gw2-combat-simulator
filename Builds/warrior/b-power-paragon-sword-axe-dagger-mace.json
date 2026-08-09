@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 3,
+  "profession": "warrior",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "weapons": ["Sword", "Axe"],
+  "alternateWeapons": ["Dagger", "Mace"],
+  "rune": "Scholar",
+  "weaponSigils": [
+    ["Force", "Hydromancy"],
+    ["Force", "Air"]
+  ],
+  "relic": "Claw",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [{ "stat": "Power", "count": 18 }],
+  "specializations": [
+    { "name": "Arms", "traits": "2-1-3" },
+    { "name": "Strength", "traits": "3-3-1" },
+    { "name": "Paragon", "traits": "1-1-2" }
+  ],
+  "selectedSkills": {
+    "Heal": "Healing Signet",
+    "Utility1": "Bull's Charge",
+    "Utility2": "Signet of Fury",
+    "Utility3": "Signet of Might",
+    "Elite": "Signet of Rage"
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "initialResource": 10,
+  "startingWeaponSet": 2,
+  "targetHealth": 3970000,
+  "targetArmor": 2597,
+  "rotation": []
+}

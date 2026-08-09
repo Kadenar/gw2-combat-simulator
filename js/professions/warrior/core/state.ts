@@ -33,11 +33,16 @@ export function createWarriorCoreState(
     availableFlips: {},
     burstPowerExpiries: [],
     signetMasteryExpiries: [],
+    signetOfRageNextAt: 0,
     targetControlledUntil: 0,
     soldierFocusReadyAt: 0,
     empowerAlliesNextAt: 0,
     burstHitActivations: {},
+    burstPrecisionDurations: {},
     traitProcReadyAt: {},
+    armsCriticalProgress: 0,
+    bloodlustProgress: 0,
+    furiousSurgeExpiries: [],
   };
 }
 

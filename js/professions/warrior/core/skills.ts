@@ -65,8 +65,6 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 167,
-    adrenalineGain: 2,
-    handlerId: "warrior.resource",
   },
   [ID.GREATSWORD_SWING]: {
     implemented: true,
@@ -161,7 +159,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.HAMSTRING]: {
     implemented: true,
-    castTimeMs: 250,
+    castTimeMs: 450,
     effects: [
       {
         type: "strike",
@@ -181,11 +179,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         duration: 1,
       },
     ],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 300,
   },
   [ID.SEVER_ARTERY]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 525,
     effects: [
       {
         type: "strike",
@@ -199,11 +197,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         duration: 6,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 350,
   },
   [ID.GASH]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 675,
     effects: [
       {
         type: "strike",
@@ -217,7 +215,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         duration: 6,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 450,
   },
   [ID.SAVAGE_LEAP]: {
     implemented: true,
@@ -237,7 +235,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       {
         type: "condition",
         condition: "Bleeding",
-        stacks: 3,
+        stacks: 1,
         duration: 5,
       },
     ],
@@ -618,33 +616,25 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     cooldown: 15,
     recharge: 15,
-    castTimeMs: 3500,
+    castTimeMs: 3750,
     effects: [
       {
         type: "strike",
-        coefficient: 8.388,
-        hits: 15,
+        ticks: Array.from({ length: 15 }, (_, index) => ({
+          atMs: 450 + index * 225,
+          coefficient: 0.5592,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "cast",
         metadata: { finisherType: "whirl" },
       },
     ],
-    quicknessCastTimeMs: 2333,
+    quicknessCastTimeMs: 2500,
   },
   [ID.RIPOSTE]: {
     implemented: true,
     castTimeMs: 2250,
-    effects: [
-      {
-        type: "strike",
-        coefficient: 1,
-        hits: 1,
-      },
-      {
-        type: "condition",
-        condition: "Bleeding",
-        stacks: 8,
-        duration: 8,
-      },
-    ],
+    effects: [],
     quicknessCastTimeMs: 1500,
   },
   [ID.MENDING]: {
@@ -682,6 +672,8 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SIGNET_OF_MIGHT]: {
     implemented: true,
+    cooldown: 20,
+    recharge: 20,
     castTimeMs: 500,
     effects: [
       {
@@ -797,9 +789,18 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SIGNET_OF_FURY]: {
     implemented: true,
+    cooldown: 16,
+    recharge: 16,
     castTimeMs: 500,
-    effects: [],
-    quicknessCastTimeMs: 333,
+    effects: [
+      {
+        type: "buff",
+        kind: "signet-of-fury-active",
+        duration: 4,
+        stacks: 1,
+      },
+    ],
+    quicknessCastTimeMs: 350,
     adrenalineGain: 30,
     handlerId: "warrior.resource",
   },
@@ -857,8 +858,8 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 1.25,
-        hits: 1,
+        coefficient: 2.5,
+        hits: 2,
       },
       {
         type: "control",
@@ -868,7 +869,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 500,
   },
   [ID.VOLLEY]: {
     implemented: true,
@@ -900,7 +901,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         stacks: 1,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 500,
   },
   [ID.BATTLE_STANDARD]: {
     implemented: true,
@@ -1217,8 +1218,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       {
         type: "condition",
         condition: "Crippled",
-        stacks: 5,
+        stacks: 1,
         duration: 1,
+        applications: 5,
+        intervalMs: 1000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
       },
     ],
     quicknessCastTimeMs: 333,
@@ -1405,7 +1410,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BULLS_CHARGE]: {
     implemented: true,
-    castTimeMs: 1000,
+    castTimeMs: 1200,
     effects: [
       {
         type: "strike",
@@ -1420,7 +1425,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 667,
+    quicknessCastTimeMs: 800,
   },
   [ID.CRUSHING_BLOW]: {
     implemented: true,
@@ -1428,14 +1433,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 2.25,
-        hits: 1,
+        ticks: [{ atMs: 625, coefficient: 2.25 }],
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
       {
         type: "boon",
         boon: "might",
         duration: 6,
-        stacks: 3,
+        stacks: 5,
       },
       {
         type: "condition",
@@ -1605,7 +1611,13 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   [ID.ADRENALINE_RUSH]: {
     implemented: true,
     castTimeMs: 500,
-    effects: [],
+    effects: [
+      {
+        type: "strike",
+        coefficient: 1,
+        hits: 1,
+      },
+    ],
     quicknessCastTimeMs: 333,
     adrenalineGain: 3,
     handlerId: "warrior.resource",
@@ -1691,7 +1703,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.KEEN_STRIKE]: {
     implemented: true,
-    castTimeMs: 250,
+    castTimeMs: 600,
     effects: [
       {
         type: "strike",
@@ -1705,11 +1717,11 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         stacks: 1,
       },
     ],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 400,
   },
   [ID.FOCUSED_SLASH]: {
     implemented: true,
-    castTimeMs: 250,
+    castTimeMs: 450,
     effects: [
       {
         type: "strike",
@@ -1717,19 +1729,20 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 300,
   },
   [ID.PRECISE_CUT]: {
     implemented: true,
-    castTimeMs: 250,
+    castTimeMs: 450,
     effects: [
       {
         type: "strike",
-        coefficient: 0.6,
-        hits: 1,
+        ticks: [{ atMs: 94, coefficient: 0.6 }],
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
     ],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 300,
   },
   [ID.WASTRELS_RUIN]: {
     implemented: true,
@@ -1745,7 +1758,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.DISRUPTING_STAB]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 600,
     effects: [
       {
         type: "strike",
@@ -1759,7 +1772,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 400,
   },
   [ID.HUSHBLADE]: {
     implemented: true,
@@ -1782,7 +1795,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BREACHING_STRIKE]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 1575,
     effects: [
       {
         type: "strike",
@@ -1790,7 +1803,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 1050,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -1809,10 +1822,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         type: "condition",
         condition: "Slow",
         stacks: 1,
-        duration: 2,
+        duration: 1.5,
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 750,
   },
   [ID.GUNSTINGER]: {
     implemented: true,
@@ -2266,7 +2279,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOODTHIRSTER]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -2280,7 +2293,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         duration: 6,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -2288,27 +2301,45 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.REND]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 1350,
     effects: [
       {
         type: "strike",
         coefficient: 0.5,
         hits: 1,
+        atMs: 675,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
       {
         type: "strike",
         coefficient: 2.5,
         hits: 1,
         name: "Rend — Follow-Up Damage",
+        atMs: 1350,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        condition: "Immobilized",
+        stacks: 1,
+        duration: 2,
+        atMs: 675,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
       {
         type: "condition",
         condition: "Bleeding",
         stacks: 6,
         duration: 6,
+        atMs: 1350,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 900,
   },
   [ID.BLOODTHIRSTER_ID_80263]: {
     implemented: true,

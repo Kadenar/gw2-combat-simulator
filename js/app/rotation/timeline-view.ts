@@ -35,8 +35,10 @@ import {
   procFilterKey,
   procFilterLabel,
   procStackLabel,
+  relicProcTimelineMarkers,
   rotationSkillHighlightKey,
   shatterResourceSpends,
+  sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineWeaponRows,
 } from "./timeline-model.js";
@@ -288,6 +290,35 @@ export function renderTimeline(app: ProfessionAppState): void {
   });
   const formatTime = (timeMs: number): string =>
     formatResultTimelineTime(timeMs, app.results);
+  const procColors: Readonly<Record<string, string>> = {
+    relic_proc: "#ddaa33",
+    sigil_proc: "#4488cc",
+    trait_proc: "#77cc77",
+    skill_proc: "#bb88ff",
+  };
+  const procSteps = [...(app.results?.procSteps || [])].sort(
+    (a, b) => a.start - b.start,
+  );
+  const procVisibility = procSteps.length
+    ? syncProcVisibility(app, procSteps)
+    : new Set<string>();
+  const overlayProcMarkers = [
+    ...(app.overlaySigilProcs
+      ? sigilProcTimelineMarkers(app.results, app.build.rotation.length)
+      : []),
+    ...(app.overlayRelicProcs
+      ? relicProcTimelineMarkers(app.results, app.build.rotation.length)
+      : []),
+  ].sort((left, right) => left.start - right.start);
+  const overlayProcMarkersByIndex = new Map<
+    number,
+    typeof overlayProcMarkers
+  >();
+  for (const marker of overlayProcMarkers) {
+    const markers = overlayProcMarkersByIndex.get(marker.insertionIndex) || [];
+    markers.push(marker);
+    overlayProcMarkersByIndex.set(marker.insertionIndex, markers);
+  }
 
   const continuumEnds = continuumEndTimelineMarkers(
     app.results,
@@ -350,6 +381,50 @@ export function renderTimeline(app: ProfessionAppState): void {
             <span class="rot-time">${time}</span>
         </div>`;
   };
+  const renderOverlayProcMarker = (
+    marker: (typeof overlayProcMarkers)[number],
+  ): string => {
+    const key = procFilterKey(marker);
+    const time = formatTime(marker.start);
+    const icon = resolveProcIcon(app, marker) || PLACEHOLDER_ICON;
+    const isRelic = marker.type === "relic_proc";
+    const type = isRelic ? "Relic" : "Sigil";
+    const color = procColors[marker.type] || "#9d7bd0";
+    const count = marker.activations.length;
+    const badgeLabel = procBadgeLabel(marker.activations);
+    const detail =
+      count === 1
+        ? [
+            marker.skill,
+            `${type} proc at ${time}`,
+            marker.sourceSkill ? `Triggered by ${marker.sourceSkill}` : "",
+            marker.detail || "",
+          ]
+            .filter(Boolean)
+            .join("\n")
+        : [
+            marker.skill,
+            `${type} proc x${count}`,
+            ...marker.activations.map((activation, index) =>
+              [
+                `${index + 1}. ${formatTime(activation.start)}`,
+                activation.sourceSkill
+                  ? `Triggered by ${activation.sourceSkill}`
+                  : "",
+                activation.detail || "",
+              ]
+                .filter(Boolean)
+                .join(" - "),
+            ),
+          ].join("\n");
+    return `<div class="rot-skill rot-injected rot-proc-overlay ${isRelic ? "rot-relic-proc" : "rot-sigil-proc"}" data-proc-key="${esc(key)}"${procVisibility.has(key) ? "" : " hidden"}
+            title="${esc(detail)}" style="--att-border:${color};--proc-color:${color}">
+            <img src="${esc(icon)}" alt="" />
+            ${badgeLabel ? `<span class="proc-count">${esc(badgeLabel)}</span>` : ""}
+            <span class="rot-injected-badge">${type.toUpperCase()}</span>
+            <span class="rot-time">${time}</span>
+        </div>`;
+  };
 
   let timelineHtml = rows
     .map((row, rowNumber) => {
@@ -365,6 +440,9 @@ export function renderTimeline(app: ProfessionAppState): void {
         : `Weapon set ${row.weaponSet}: ${weaponLabel}`;
       const rowItems: string[] = [];
       row.skills.forEach(({ entry, index }) => {
+        for (const marker of overlayProcMarkersByIndex.get(index) || []) {
+          rowItems.push(renderOverlayProcMarker(marker));
+        }
         for (const marker of healthMarkersByIndex.get(index) || []) {
           rowItems.push(renderHealthMarker(marker));
         }
@@ -519,6 +597,11 @@ export function renderTimeline(app: ProfessionAppState): void {
                 </div>`);
       });
       if (rowNumber === rows.length - 1) {
+        for (const marker of overlayProcMarkersByIndex.get(
+          app.build.rotation.length,
+        ) || []) {
+          rowItems.push(renderOverlayProcMarker(marker));
+        }
         rowItems.push(
           rotationInsertionGapHtml(
             app.build.rotation.length,
@@ -546,16 +629,7 @@ export function renderTimeline(app: ProfessionAppState): void {
     })
     .join("");
 
-  const procColors: Readonly<Record<string, string>> = {
-    relic_proc: "#ddaa33",
-    trait_proc: "#77cc77",
-    skill_proc: "#bb88ff",
-  };
-  const procSteps = [...(app.results?.procSteps || [])].sort(
-    (a, b) => a.start - b.start,
-  );
   if (procSteps.length) {
-    const procVisibility = syncProcVisibility(app, procSteps);
     const procOptions = [
       ...new Map(procSteps.map((proc) => [procFilterKey(proc), proc])).values(),
     ].sort((a, b) => procFilterLabel(a).localeCompare(procFilterLabel(b)));
@@ -571,9 +645,11 @@ export function renderTimeline(app: ProfessionAppState): void {
         const type =
           proc.type === "relic_proc"
             ? "Relic"
-            : proc.type === "skill_proc"
-              ? "Skill"
-              : "Trait";
+            : proc.type === "sigil_proc"
+              ? "Sigil"
+              : proc.type === "skill_proc"
+                ? "Skill"
+                : "Trait";
         const time = formatTime(proc.start);
         const count = group.steps.length;
         const badgeLabel = procBadgeLabel(group.steps);
@@ -614,6 +690,16 @@ export function renderTimeline(app: ProfessionAppState): void {
       procElement.innerHTML = `<details class="rotation-procs-wrap"${procPanelWasOpen ? " open" : ""}>
             <summary>Procs (${procSteps.length} activation${procSteps.length === 1 ? "" : "s"})</summary>
             <div class="rotation-procs-content">
+                <div class="proc-overlay-toggles">
+                    <label class="proc-overlay-toggle" title="Show sigil activations at their simulated positions in the rotation">
+                        <input type="checkbox" data-overlay-proc-type="sigil"${app.overlaySigilProcs ? " checked" : ""}${procSteps.some((proc) => proc.type === "sigil_proc") ? "" : " disabled"}>
+                        <span>Overlay sigils</span>
+                    </label>
+                    <label class="proc-overlay-toggle" title="Show relic activations at their simulated positions in the rotation">
+                        <input type="checkbox" data-overlay-proc-type="relic"${app.overlayRelicProcs ? " checked" : ""}${procSteps.some((proc) => proc.type === "relic_proc") ? "" : " disabled"}>
+                        <span>Overlay relics</span>
+                    </label>
+                </div>
                 <details class="proc-filter"${app.procFilterOpen ? " open" : ""}>
                     <summary title="Choose which proc types are shown">Visible <span class="proc-filter-count">${visibleProcCount}/${procOptions.length}</span></summary>
                     <div class="proc-filter-menu">
@@ -679,6 +765,18 @@ export function renderTimeline(app: ProfessionAppState): void {
 
   const procFilter =
     procElement?.querySelector<HTMLDetailsElement>(".proc-filter") || null;
+  procElement
+    ?.querySelectorAll<HTMLInputElement>("input[data-overlay-proc-type]")
+    .forEach((procOverlayToggle) => {
+      procOverlayToggle.addEventListener("change", () => {
+        if (procOverlayToggle.dataset.overlayProcType === "relic") {
+          app.overlayRelicProcs = procOverlayToggle.checked;
+        } else {
+          app.overlaySigilProcs = procOverlayToggle.checked;
+        }
+        renderTimeline(app);
+      });
+    });
   const activeProcVisibility = app.procVisibility || new Set();
   if (procFilter && procElement) {
     procFilter.addEventListener("toggle", () => {
@@ -693,6 +791,14 @@ export function renderTimeline(app: ProfessionAppState): void {
         app.procFilterOpen = true;
         procElement
           .querySelectorAll(".proc-icon[data-proc-key]")
+          .forEach((procIcon) => {
+            if (!(procIcon instanceof HTMLElement)) return;
+            procIcon.hidden = !activeProcVisibility.has(
+              procIcon.dataset.procKey || "",
+            );
+          });
+        element
+          .querySelectorAll(".rot-proc-overlay[data-proc-key]")
           .forEach((procIcon) => {
             if (!(procIcon instanceof HTMLElement)) return;
             procIcon.hidden = !activeProcVisibility.has(

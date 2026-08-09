@@ -7,6 +7,10 @@ export function createParagonState(): ParagonState {
     maximumMotivation: 10,
     activeRefrain: "",
     nextRefrainAt: 0,
+    inspiringImplementsReadyAt: 0,
+    callToActionActivated: false,
+    commandEchoSequence: 0,
+    pendingCommandEchoes: [],
   };
 }
 

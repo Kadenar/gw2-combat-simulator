@@ -1,0 +1,844 @@
+{
+  "rotation": [
+    {
+      "name": "Enchanted Daggers"
+    },
+    {
+      "name": "Swap Legends"
+    },
+    {
+      "name": "Breakrazor's Bastion",
+      "skillId": 45686
+    },
+    {
+      "name": "__wait",
+      "waitMs": 500
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "__combat_start",
+      "offset": 600
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485,
+      "offset": 600
+    },
+    {
+      "name": "Orders from Above",
+      "offset": 100
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Impossible Odds"
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Orders from Above",
+      "offset": 100
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Impossible Odds"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Orders from Above",
+      "offset": 100
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949,
+      "offset": 100
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 100
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Orders from Above",
+      "offset": 100
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949,
+      "offset": 100
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 100
+    },
+    {
+      "name": "Orders from Above",
+      "offset": 100
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Orders from Above",
+      "offset": 100
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade",
+      "skillId": 29256
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 100
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Razorclaw's Rage",
+      "skillId": 42949,
+      "offset": 100
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Orders from Above",
+      "offset": 100
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Darkrazor's Daring",
+      "skillId": 41220
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Icerazor's Ire",
+      "skillId": 40485,
+      "offset": 100
+    },
+    {
+      "name": "Swap Legends",
+      "offset": 100
+    },
+    {
+      "name": "Chilling Isolation"
+    },
+    {
+      "name": "Impossible Odds",
+      "offset": 100
+    },
+    {
+      "name": "Citadel Bombardment"
+    },
+    {
+      "name": "Shackling Wave"
+    },
+    {
+      "name": "Deathstrike",
+      "skillId": 27074
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    },
+    {
+      "name": "Brutal Blade"
+    },
+    {
+      "name": "Rift Slash"
+    },
+    {
+      "name": "Preparation Thrust"
+    }
+  ]
+}

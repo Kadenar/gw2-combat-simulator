@@ -1,4 +1,5 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
+import { professionStaticRulesApplied } from "../../../platform/gw2/attribute-provenance.js";
 import {
   createModifierHooks,
   MODIFIER_TARGET,
@@ -13,6 +14,8 @@ import { warriorCastAvailability } from "./availability.js";
 import {
   advanceWarriorTraits,
   completeWarriorSkill,
+  handleWarriorArmsCriticalTask,
+  initializeWarriorTraits,
   observeWarriorEvent,
   updateWarriorCastState,
 } from "./handlers.js";
@@ -123,8 +126,8 @@ function activeBoonCount(context: Gw2ModifierContext): number {
   return WARRIOR_BOONS.filter((boon) => boonActive(context, boon)).length;
 }
 
-function wieldingGreatsword(context: Gw2ModifierContext): boolean {
-  if (eventSkill(context)?.weapon === "Greatsword") return true;
+function wieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
+  if (eventSkill(context)?.weapon === weapon) return true;
   const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
   const primary = String(
     weaponSet === 1
@@ -136,7 +139,13 @@ function wieldingGreatsword(context: Gw2ModifierContext): boolean {
       ? context.config?.secondaryWeapon || ""
       : context.config?.weaponSet2Secondary || "",
   );
-  return primary === "Greatsword" || secondary === "Greatsword";
+  return primary === weapon || secondary === weapon;
+}
+
+function selectedSkill(context: Gw2ModifierContext, name: string): boolean {
+  const source = context.config?.selectedSkills || [];
+  const selected = Array.isArray(source) ? source : Object.values(source);
+  return selected.map(String).includes(name);
 }
 
 function modifyWarriorAttributes(
@@ -148,16 +157,18 @@ function modifyWarriorAttributes(
     precision: number;
     ferocity: number;
     conditionDamage: number;
+    expertise: number;
     vitality: number;
     healingPower: number;
     concentration: number;
   };
-  const state = coreState(context);
-  const signetStacks = (state.signetMasteryExpiries || []).filter(
-    (expiresAt: number) => expiresAt > context.time,
-  ).length;
+  const staticRulesApplied = professionStaticRulesApplied(context.config);
+  const signetStacks = activeBuffStacks(context, "signet-mastery", 5);
   result.power = Number(result.power || 0);
+  result.precision = Number(result.precision || 0);
   result.ferocity = Number(result.ferocity || 0);
+  result.conditionDamage = Number(result.conditionDamage || 0);
+  result.expertise = Number(result.expertise || 0);
   result.vitality = Number(result.vitality || 0);
   result.healingPower = Number(result.healingPower || 0);
   result.concentration = Number(result.concentration || 0);
@@ -171,20 +182,74 @@ function modifyWarriorAttributes(
         ) || 0,
       ) * 10;
   }
-  if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD)) {
-    result.power += wieldingGreatsword(context) ? 240 : 120;
+  if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) && !staticRulesApplied) {
+    result.power += wieldingWeapon(context, "Greatsword") ? 240 : 120;
   }
-  if (hasTrait(context, TRAIT.ROARING_REVEILLE)) {
+  if (hasTrait(context, TRAIT.ROARING_REVEILLE) && !staticRulesApplied) {
     result.concentration += 120;
   }
   if (hasTrait(context, TRAIT.SIGNET_MASTERY))
-    result.ferocity += signetStacks * 50;
-  if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
+    result.ferocity += signetStacks * 100;
+  if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
     result.vitality += result.power * 0.1;
     result.ferocity += result.power * 0.1;
   }
-  if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS)) {
+  if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS) && !staticRulesApplied) {
     result.healingPower += result.power * 0.13;
+  }
+  if (
+    hasTrait(context, TRAIT.DEEP_STRIKES) &&
+    boonActive(context, "fury") &&
+    !(staticRulesApplied && Boolean(context.config?.boons?.fury))
+  ) {
+    result.conditionDamage += 180;
+  }
+  if (
+    hasTrait(context, TRAIT.BLADEMASTER) &&
+    wieldingWeapon(context, "Sword")
+  ) {
+    result.conditionDamage += 120;
+  }
+  result.conditionDamage += activeBuffStacks(context, "furious-surge", 25) * 15;
+  if (
+    hasTrait(context, TRAIT.BURST_PRECISION) &&
+    (Boolean(eventSkill(context)?.burst) ||
+      activeBuffStacks(context, "burst-precision", 1) > 0)
+  ) {
+    result.ferocity += 250;
+  }
+  if (activeBuffStacks(context, "signet-of-fury-active", 1) > 0) {
+    result.precision += 360;
+    result.ferocity += 360;
+    if (hasTrait(context, TRAIT.WOUNDING_PRECISION)) {
+      result.expertise += 360 * 0.07;
+    }
+  }
+  for (const [name, id, attribute] of [
+    ["Signet of Might", ID.SIGNET_OF_MIGHT, "power"],
+    ["Signet of Fury", ID.SIGNET_OF_FURY, "precision"],
+  ] as const) {
+    if (!selectedSkill(context, name)) continue;
+    const onCooldown = Boolean(
+      context.timeline?.skillOnCooldownAt(id, context.time),
+    );
+    if (staticRulesApplied ? onCooldown : !onCooldown) {
+      const delta = staticRulesApplied ? -180 : 180;
+      result[attribute] += delta;
+      if (
+        id === ID.SIGNET_OF_FURY &&
+        hasTrait(context, TRAIT.WOUNDING_PRECISION)
+      ) {
+        result.expertise += delta * 0.07;
+      }
+      if (
+        id === ID.SIGNET_OF_MIGHT &&
+        hasTrait(context, TRAIT.GREAT_FORTITUDE)
+      ) {
+        result.vitality += delta * 0.1;
+        result.ferocity += delta * 0.1;
+      }
+    }
   }
   return result;
 }
@@ -287,10 +352,18 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       targetControlled(context),
   },
   {
+    id: "warrior.furious-burst-fury-critical-chance",
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: "add",
+    amount: 0.05,
+    when: (context) =>
+      hasTrait(context, TRAIT.FURIOUS_BURST) && boonActive(context, "fury"),
+  },
+  {
     id: "warrior.deep-strikes",
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: "add",
-    amount: 0.1,
+    amount: 0.05,
     when: (context) =>
       hasTrait(context, TRAIT.DEEP_STRIKES) &&
       targetHasCondition(
@@ -304,7 +377,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "warrior.unsuspecting-foe",
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: "add",
-    amount: 0.5,
+    amount: 0.25,
     when: (context) =>
       hasTrait(context, TRAIT.UNSUSPECTING_FOE) && targetControlled(context),
   },
@@ -315,7 +388,29 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     amount: 1,
     when: (context) =>
       hasTrait(context, TRAIT.BURST_PRECISION) &&
-      Boolean(eventSkill(context)?.burst),
+      (Boolean(eventSkill(context)?.burst) ||
+        activeBuffStacks(context, "burst-precision", 1) > 0),
+  },
+  {
+    id: "warrior.dagger-auto-critical-damage",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.15,
+    order: 100,
+    when: (context) => {
+      const skillId = Number(eventSkill(context)?.id);
+      return skillId === ID.PRECISE_CUT || skillId === ID.FOCUSED_SLASH;
+    },
+  },
+  {
+    id: "warrior.breaching-strike-boonless",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.5,
+    order: 100,
+    when: (context) =>
+      eventSkill(context)?.id === ID.BREACHING_STRIKE &&
+      context.config?.target?.boonless === true,
   },
   {
     id: "warrior.warriors-sprint",
@@ -344,6 +439,7 @@ function modifyRechargeDuration(
   duration: number,
 ): number {
   const skill = context.skill;
+  if (skill?.id === ID.SWAP_WEAPONS) return 5;
   let result = duration;
   if (skill?.burst && hasTrait(context, TRAIT.VERSATILE_POWER)) result *= 0.85;
   if (
@@ -356,6 +452,29 @@ function modifyRechargeDuration(
   if (skill?.weapon === "Axe" && hasTrait(context, TRAIT.AXE_MASTERY))
     result *= 0.8;
   return result;
+}
+
+const DUAL_WIELD_OFFHANDS = new Set(["Axe", "Dagger", "Mace", "Sword"]);
+
+function modifyCastDuration(
+  context: WarriorCastContext,
+  duration: number,
+): number {
+  const skill = context.skill;
+  const offhand = String(
+    context.state.activeWeaponSet === 2
+      ? context.config.weaponSet2Secondary || ""
+      : context.config.secondaryWeapon || "",
+  );
+  return hasTrait(context, TRAIT.DUAL_WIELDING) &&
+    DUAL_WIELD_OFFHANDS.has(offhand) &&
+    skill.id !== ID.AURA_SLICER &&
+    (skill.type === "Weapon" ||
+      skill.type === "Utility" ||
+      Boolean(skill.weapon) ||
+      Boolean(skill.burst))
+    ? duration / 1.25
+    : duration;
 }
 
 export const warriorCoreAttributeRules = Object.freeze({
@@ -371,10 +490,12 @@ export const warriorCoreCastRules = Object.freeze({
     order: 10,
     handler: warriorCastAvailability,
   },
+  modifyCastDuration,
   modifyRechargeDuration,
 });
 
 export const warriorCoreSchedulerHooks = Object.freeze({
+  initialize: initializeWarriorTraits,
   advance: {
     id: "warrior.core-resources-and-traits",
     order: 10,
@@ -400,5 +521,6 @@ export const warriorCoreSchedulerHooks = Object.freeze({
   },
   taskHandlers: Object.freeze({
     "warrior.adrenaline-hit": handleWarriorAdrenalineTask,
+    "warrior.arms-critical": handleWarriorArmsCriticalTask,
   }),
 });

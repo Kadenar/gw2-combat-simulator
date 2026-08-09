@@ -36,10 +36,60 @@ export function procFilterLabel(proc: Gw2ProcStep): string {
   const type =
     proc.type === "relic_proc"
       ? "Relic"
-      : proc.type === "skill_proc"
-        ? "Skill"
-        : "Trait";
+      : proc.type === "sigil_proc"
+        ? "Sigil"
+        : proc.type === "skill_proc"
+          ? "Skill"
+          : "Trait";
   return `${proc.skill} (${type})`;
+}
+
+export interface ProcTimelineMarker extends Gw2ProcStep {
+  readonly insertionIndex: number;
+  readonly activations: readonly Gw2ProcStep[];
+}
+
+function matchingProcTimelineMarkers(
+  result: Gw2SimulationResult | null | undefined,
+  procType: string,
+  rotationLength = 0,
+): ProcTimelineMarker[] {
+  const steps = (result?.steps || [])
+    .filter((step) => step.ri >= 0 && !step.invalid)
+    .sort((left, right) => left.start - right.start || left.ri - right.ri);
+  const procGroups = groupConsecutiveProcSteps(
+    [...(result?.procSteps || [])].sort(
+      (left, right) => left.start - right.start,
+    ),
+  );
+  return procGroups
+    .filter((group) => group.steps[0]?.type === procType)
+    .map((group) => {
+      const proc = group.steps[0] as Gw2ProcStep;
+      // A proc at cast start belongs after that cast. Later procs are placed
+      // immediately before the next command that has not started yet.
+      const next = steps.find((step) => step.start > proc.start);
+      return {
+        ...proc,
+        insertionIndex: next?.ri ?? rotationLength,
+        activations: group.steps,
+      };
+    })
+    .sort((left, right) => left.start - right.start);
+}
+
+export function sigilProcTimelineMarkers(
+  result: Gw2SimulationResult | null | undefined,
+  rotationLength = 0,
+): ProcTimelineMarker[] {
+  return matchingProcTimelineMarkers(result, "sigil_proc", rotationLength);
+}
+
+export function relicProcTimelineMarkers(
+  result: Gw2SimulationResult | null | undefined,
+  rotationLength = 0,
+): ProcTimelineMarker[] {
+  return matchingProcTimelineMarkers(result, "relic_proc", rotationLength);
 }
 
 export function rotationSkillHighlightKey(

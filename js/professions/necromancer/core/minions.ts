@@ -9,6 +9,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * Unstable Horrors (attack + explosion per summon). Exports
  * `necromancerMinionSkillHandlers`.
  */
+import { NECROMANCER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { NECROMANCER_CORE_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
   emitCondition,
@@ -17,6 +18,7 @@ import {
   emitDamage,
   emitState,
   gainNecromancerLifeForce,
+  hasTrait,
 } from "./shared.js";
 import type { ScheduledTask, SkillId } from "../../../platform/engine/types.js";
 import type { NecromancerCastContext, NecromancerSkill } from "../types.js";
@@ -28,6 +30,7 @@ interface MinionAttack {
   readonly skillId?: SkillId;
   readonly icon?: string;
   readonly weaponStrength?: number;
+  readonly damagePerCoefficient?: number;
 }
 
 interface MinionDefinition {
@@ -72,20 +75,25 @@ function minionDefinitionFor(key: string): MinionDefinition | undefined {
 }
 
 function summonStrikeMetadata(
+  context: NecromancerCastContext,
   definition?: MinionDefinition,
+  damagePerCoefficient = definition?.damagePerCoefficient,
 ): Readonly<Record<string, number | boolean>> {
   if (
     !definition ||
     !Number.isFinite(Number(definition.basePower)) ||
-    !Number.isFinite(Number(definition.damagePerCoefficient))
+    !Number.isFinite(Number(damagePerCoefficient))
   ) {
     return {};
   }
   return {
     summonBasePower: Number(definition.basePower),
-    summonDamagePerCoefficient: Number(definition.damagePerCoefficient),
+    summonDamagePerCoefficient: Number(damagePerCoefficient),
     summonCriticalChance: Number(definition.criticalChance ?? 0.05),
     summonCriticalDamage: Number(definition.criticalDamage ?? 1.5),
+    summonStrikeMultiplier:
+      (hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION) ? 1.25 : 1) *
+      (hasTrait(context, TRAIT.SPIRITS_STRENGTH) ? 1.5 : 1),
     independentSummonStrike: true,
   };
 }
@@ -121,6 +129,8 @@ function queueSummonAttacks(
     cycleAt += definition.interval
   ) {
     for (const attack of attacks) {
+      const damagePerCoefficient =
+        attack.damagePerCoefficient ?? definition.damagePerCoefficient;
       for (let index = 0; index < definition.count; index += 1) {
         context.emit({
           type: "necromancer.summon-attack",
@@ -134,7 +144,7 @@ function queueSummonAttacks(
           name: attack.name,
           icon: attack.icon || skill.icon || "",
           coefficient: attack.coefficient,
-          ...(Number.isFinite(Number(definition.damagePerCoefficient))
+          ...(Number.isFinite(Number(damagePerCoefficient))
             ? {}
             : {
                 weaponStrength:
@@ -150,7 +160,7 @@ function queueSummonAttacks(
           summonCount: 1,
           summonOwner: `minion:${definition.key}:${index}`,
           summonOwnerBase: `minion:${definition.key}`,
-          ...summonStrikeMetadata(definition),
+          ...summonStrikeMetadata(context, definition, damagePerCoefficient),
         });
       }
     }
@@ -200,7 +210,7 @@ function emitMinionCommandEffects(
       actorType: "summon",
       metadata: {
         summonKind: "minion",
-        ...summonStrikeMetadata(minion),
+        ...summonStrikeMetadata(context, minion),
       },
     });
   }
@@ -281,8 +291,9 @@ function minionCommand(
   if (definition.consumes) {
     const remaining = Math.max(
       0,
-      Number(professionCoreState(context).activeMinions[definition.minion] || 0) -
-        definition.consumes,
+      Number(
+        professionCoreState(context).activeMinions[definition.minion] || 0,
+      ) - definition.consumes,
     );
     if (remaining) {
       professionCoreState(context).activeMinions[definition.minion] = remaining;
@@ -310,7 +321,8 @@ function minionCommand(
       }
     }
   } else if (
-    Number(professionCoreState(context).activeMinions[definition.minion] || 0) > 0
+    Number(professionCoreState(context).activeMinions[definition.minion] || 0) >
+    0
   ) {
     professionCoreState(context).availableFlips[skill.id] =
       Number.POSITIVE_INFINITY;
@@ -330,7 +342,9 @@ function handleMinionCommandImpact(
     !skill ||
     !definition ||
     !(
-      Number(professionCoreState(context).activeMinions[definition.minion] || 0) > 0
+      Number(
+        professionCoreState(context).activeMinions[definition.minion] || 0,
+      ) > 0
     )
   )
     return;
