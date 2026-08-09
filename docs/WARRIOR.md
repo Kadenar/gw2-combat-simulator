@@ -16,10 +16,12 @@ weapon state, shared traits, and profession actions live under `core/`.
   endurance and Dodge, and current Warrior weapon families.
 - Berserker's Berserk entry cost and duration, Primal Burst gating, Rage-skill
   duration extensions, and specialization damage, cast-speed, and attribute
-  traits.
+  traits, including Slicing Maelstrom's boonless modifier and measured
+  Quickness timing.
 - Spellbreaker's 20-point adrenaline cap, level-one bursts, Full Counter,
   control tracking, Attacker's Insight, Pure Strike, No Escape, Sun and Moon
-  Style, Magebane Tether, and Winds of Disenchantment pulses.
+  Style, Magebane Tether, Winds of Disenchantment pulses, Wastrel's Ruin and
+  Breaching Strike target modifiers, and fixed Breaching Strike timing.
 - Bladesworn's replacement of adrenaline with flow, gunsaber entry and exit,
   gunsaber skill gating, gunsaber and pistol ammo, armament reloads and buffs,
   Dragon Trigger utilities, charge conversion, scaling Dragon Slash packets,
@@ -90,19 +92,22 @@ and measured Quickness activation durations while replacing those Sword
 windows with the requested Axe skills. It is an executable Axe/Pistol
 reconstruction, not an exact replay of the mismatched weapon packets.
 
-## Power Spellbreaker preset
+## Power Spellbreaker presets
 
-The Spellbreaker preset uses Dagger/Mace with Force/Air and Sword/Axe with
-Force/Hydromancy. It has full Berserker gear, Scholar runes, Relic of the Claw,
-Cilantro Lime Sous-Vide Steak, Superior Sharpening Stone, and 18 Power
-infusions. It selects Arms `2-3-3`, Strength `3-3-1`, and Spellbreaker `1-3-3`,
-with Healing Signet, Kick, Signet of Fury, Signet of Might, and Winds of
-Disenchantment.
+Both Spellbreaker presets use Dagger/Mace with Force/Air. Their alternate set
+is either Sword/Axe or Sword/Dagger with Force/Hydromancy. They have full
+Berserker gear, Scholar runes, Relic of the Claw, Cilantro Lime Sous-Vide
+Steak, Superior Sharpening Stone, and 18 Power infusions. Both select Arms
+`2-3-3`, Strength `3-3-1`, and Spellbreaker `1-3-3`, with Healing Signet, Kick,
+Signet of Fury, Signet of Might, and Winds of Disenchantment.
 
-The supplied EVTC records 3,949,729 damage over a 92.521-second damage window
-(42,690.08 DPS). The saved rotation precasts Winds and preserves its five
-one-second pulses, seven Kick casts, fourteen Crushing Blow hits, and the
-Dagger/Mace and Sword/Axe weapon windows.
+The Sword/Axe EVTC records 3,949,729 damage over a 92.521-second damage window
+(42,690.08 DPS). The Sword/Dagger EVTC records 3,957,534 damage over 92.406
+seconds (42,827.67 DPS). Both saved rotations precast Winds and preserve its
+five one-second pulses, seven Kick casts, fourteen Crushing Blow hits, and the
+weapon-window activation order. The Sword/Dagger rotation additionally
+preserves seven Wastrel's Ruin hits, nine Hushblade hits, and its measured
+autoattack packet counts.
 
 ## Data
 

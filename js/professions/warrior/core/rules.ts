@@ -81,6 +81,12 @@ function targetControlled(context: Gw2ModifierContext): boolean {
   );
 }
 
+const BREACHING_STRIKE_IDS = new Set<number>([
+  ID.BREACHING_STRIKE,
+  ID.BREACHING_STRIKE_ID_69297,
+  ID.BREACHING_STRIKE_ID_69433,
+]);
+
 function boonActive(context: Gw2ModifierContext, boon: string): boolean {
   if (context.config?.boons?.[boon]) return true;
   return (context.runtime?.boons?.get(boon) || []).some(
@@ -403,13 +409,33 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     },
   },
   {
+    id: "warrior.wastrels-ruin-defiant",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 2,
+    order: 100,
+    when: (context) =>
+      eventSkill(context)?.id === ID.WASTRELS_RUIN &&
+      context.config?.target?.defiant === true,
+  },
+  {
     id: "warrior.breaching-strike-boonless",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
     factor: 1.5,
     order: 100,
     when: (context) =>
-      eventSkill(context)?.id === ID.BREACHING_STRIKE &&
+      BREACHING_STRIKE_IDS.has(Number(eventSkill(context)?.id)) &&
+      context.config?.target?.boonless === true,
+  },
+  {
+    id: "warrior.slicing-maelstrom-boonless",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.5,
+    order: 100,
+    when: (context) =>
+      eventSkill(context)?.id === ID.SLICING_MAELSTROM &&
       context.config?.target?.boonless === true,
   },
   {
@@ -455,6 +481,10 @@ function modifyRechargeDuration(
 }
 
 const DUAL_WIELD_OFFHANDS = new Set(["Axe", "Dagger", "Mace", "Sword"]);
+const DUAL_WIELDING_EXCLUDED_SKILL_IDS = new Set<number>([
+  ID.AURA_SLICER,
+  ...BREACHING_STRIKE_IDS,
+]);
 
 function modifyCastDuration(
   context: WarriorCastContext,
@@ -468,7 +498,7 @@ function modifyCastDuration(
   );
   return hasTrait(context, TRAIT.DUAL_WIELDING) &&
     DUAL_WIELD_OFFHANDS.has(offhand) &&
-    skill.id !== ID.AURA_SLICER &&
+    !DUAL_WIELDING_EXCLUDED_SKILL_IDS.has(Number(skill.id)) &&
     (skill.type === "Weapon" ||
       skill.type === "Utility" ||
       Boolean(skill.weapon) ||
