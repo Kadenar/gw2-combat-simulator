@@ -567,6 +567,16 @@ test("Spellbreaker Winds and Kick use the supplied PvE mechanics", () => {
     pulses.slice(1).map((pulse, index) => pulse.at - pulses[index].at),
     [1, 1, 1, 1],
   );
+  assert.equal(
+    Math.round(
+      (pulses[0].at -
+        result.steps.find((step) => step.skill === "Winds of Disenchantment")
+          .end /
+          1000) *
+        1000,
+    ),
+    800,
+  );
 });
 
 test("Warrior dagger attacks and bursts use the supplied PvE mechanics", () => {
@@ -595,8 +605,12 @@ test("Warrior dagger attacks and bursts use the supplied PvE mechanics", () => {
     [2, 1, 12, 1.5, "daze"],
   );
   assert.deepEqual(
-    [breachingStrike.cooldown, strikeCoefficient(breachingStrike)],
-    [8, 2.5],
+    [
+      breachingStrike.cooldown,
+      strikeCoefficient(breachingStrike),
+      breachingStrike.skillWeapon,
+    ],
+    [8, 2.5, "Dagger"],
   );
   assert.deepEqual(
     [slicingMaelstrom.cooldown, strikeCoefficient(slicingMaelstrom)],
@@ -643,6 +657,11 @@ test("Warrior dagger attacks and bursts use the supplied PvE mechanics", () => {
     fixedBreaching.steps[0].end - fixedBreaching.steps[0].start,
     842,
   );
+  const resolvedBreaching = fixedBreaching.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillId === ID.BREACHING_STRIKE,
+  );
+  assert.equal(resolvedBreaching.weaponStrengthProfileId, "weapon.dagger");
+  assert.equal(resolvedBreaching.resolvedWeaponStrength, 1000);
 
   const slicingDamage = (boonless) =>
     simulate("Berserker", ["Berserk", "Slicing Maelstrom"], {
@@ -710,16 +729,173 @@ test("Spellbreaker control grants independent Insight stacks and No Escape", () 
     precision: 1250,
     ferocity: 250,
   });
+
+  const kick = simulate("Spellbreaker", ["Kick"], {
+    selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT],
+    target: { defiant: true },
+  });
+  assert.equal(kick.profession.attackerInsightExpiries.length, 2);
+  assert.equal(kick.endState.profession.attackerInsightExpiries.length, 2);
+});
+
+test("Warrior benchmark packets use their measured Quickness offsets", () => {
+  const packetOffsets = (skillName, config = {}) => {
+    const rotation =
+      skillName === "Focused Slash"
+        ? ["Precise Cut", skillName]
+        : skillName === "Keen Strike"
+          ? ["Precise Cut", "Focused Slash", skillName]
+          : skillName === "Hamstring"
+            ? ["Sever Artery", "Gash", skillName]
+            : [skillName];
+    const result = simulate("Spellbreaker", rotation, {
+      boons: { quickness: true },
+      selectedTraitIds: [TRAIT.DUAL_WIELDING],
+      ...config,
+    });
+    const action = result.events.find(
+      (event) => event.type === "action" && event.skillName === skillName,
+    );
+    return result.events
+      .filter(
+        (event) =>
+          event.type === "damage" && event.activationId === action.activationId,
+      )
+      .map((event) => Math.round((event.at - action.at) * 1000));
+  };
+
+  const daggerMace = {
+    primaryWeapon: "Dagger",
+    secondaryWeapon: "Mace",
+    initialResource: 10,
+  };
+  const swordAxe = {
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Axe",
+    initialResource: 10,
+  };
+  assert.deepEqual(packetOffsets("Crushing Blow", daggerMace), [320]);
+  assert.deepEqual(packetOffsets("Tremor", daggerMace), [320, 360]);
+  assert.deepEqual(packetOffsets("Disrupting Stab", daggerMace), [120]);
+  assert.deepEqual(packetOffsets("Precise Cut", daggerMace), [200]);
+  assert.deepEqual(packetOffsets("Focused Slash", daggerMace), [200]);
+  assert.deepEqual(packetOffsets("Keen Strike", daggerMace), [200]);
+  assert.deepEqual(packetOffsets("Breaching Strike", daggerMace), [758]);
+  assert.deepEqual(packetOffsets("Kick", daggerMace), [441]);
+  assert.deepEqual(packetOffsets("Bloodthirster", swordAxe), [320]);
+  assert.deepEqual(packetOffsets("Dual Strike", swordAxe), [280, 280]);
+  assert.deepEqual(packetOffsets("Rend", swordAxe), [320, 640]);
+  assert.deepEqual(packetOffsets("Hamstring", swordAxe), [160]);
+  assert.deepEqual(
+    packetOffsets("Whirling Axe", swordAxe),
+    [
+      240, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320, 1440, 1560, 1680,
+      1800, 1920,
+    ],
+  );
+});
+
+test("Precise Cut lands at 200 ms and only buffs critical damage", () => {
+  const damage = (skillName, precision) => {
+    const rotation =
+      skillName === "Focused Slash"
+        ? ["Precise Cut", skillName]
+        : skillName === "Keen Strike"
+          ? ["Precise Cut", "Focused Slash", skillName]
+          : [skillName];
+    const result = simulate("Spellbreaker", rotation, {
+      primaryWeapon: "Dagger",
+      secondaryWeapon: "Mace",
+      stats: { precision, ferocity: 1000 },
+      boons: { fury: false },
+    });
+    return (
+      result.breakdown.find((entry) => entry.name === skillName)
+        ?.strikeDamage || 0
+    );
+  };
+  const normalized = (skillName, coefficient, precision) =>
+    damage(skillName, precision) / coefficient;
+
+  assert.ok(
+    Math.abs(
+      normalized("Precise Cut", 0.6, 0) / normalized("Keen Strike", 1.05, 0) -
+        1,
+    ) < 1e-9,
+  );
+  assert.ok(
+    Math.abs(
+      normalized("Precise Cut", 0.6, 10000) /
+        normalized("Keen Strike", 1.05, 10000) -
+        1.15,
+    ) < 1e-9,
+  );
+  assert.ok(
+    Math.abs(
+      normalized("Focused Slash", 0.65, 10000) /
+        normalized("Keen Strike", 1.05, 10000) -
+        1.15,
+    ) < 1e-9,
+  );
+
+  const interrupted = (interruptMs) =>
+    simulate("Spellbreaker", [{ name: "Precise Cut", interruptMs }], {
+      primaryWeapon: "Dagger",
+      secondaryWeapon: "Mace",
+      boons: { quickness: true },
+      selectedTraitIds: [TRAIT.DUAL_WIELDING],
+    });
+  assert.equal(
+    interrupted(159).events.filter(
+      (event) => event.type === "damage" && event.skillId === ID.PRECISE_CUT,
+    ).length,
+    0,
+  );
+  assert.equal(
+    interrupted(233).events.filter(
+      (event) => event.type === "damage" && event.skillId === ID.PRECISE_CUT,
+    ).length,
+    1,
+  );
+});
+
+test("Peak Performance buffs Kick and Leg Specialist requires impairment", () => {
+  const strikeDamage = (selectedTraitIds, target = {}) =>
+    simulate("Spellbreaker", ["Kick"], {
+      selectedTraitIds,
+      stats: { precision: 0 },
+      target,
+    }).strikeDamage;
+  const baseKick = strikeDamage([]);
+  const peakKick = strikeDamage([TRAIT.PEAK_PERFORMANCE]);
+  assert.ok(Math.abs(peakKick / baseKick - 1.15) < 1e-9);
+
+  const legDamage = (conditions) =>
+    simulate("Spellbreaker", ["Precise Cut", "Focused Slash", "Keen Strike"], {
+      primaryWeapon: "Dagger",
+      secondaryWeapon: "Mace",
+      selectedTraitIds: [TRAIT.LEG_SPECIALIST],
+      target: { conditions },
+    }).breakdown.find((entry) => entry.name === "Keen Strike")?.strikeDamage ||
+    0;
+  assert.ok(
+    Math.abs(legDamage({ Chilled: true }) / legDamage({}) - 1.05) < 1e-9,
+  );
 });
 
 test("Spellbreaker offensive traits use multiplicative damage modifiers", () => {
   const damage = (result, name) =>
     result.breakdown.find((entry) => entry.name === name)?.damage || 0;
-  const traitStrike = (selectedTraitIds, targetBoonless, primaryWeapon) =>
+  const traitStrike = (
+    selectedTraitIds,
+    targetBoonless,
+    primaryWeapon,
+    secondaryWeapon = "Mace",
+  ) =>
     simulate("Spellbreaker", ["Throw Bolas"], {
       selectedTraitIds,
       primaryWeapon,
-      secondaryWeapon: "Mace",
+      secondaryWeapon,
       stats: { precision: 4000 },
       target: { boonless: targetBoonless },
     }).strikeDamage;
@@ -730,10 +906,17 @@ test("Spellbreaker offensive traits use multiplicative damage modifiers", () => 
   const boonedPure = traitStrike([TRAIT.PURE_STRIKE], false, "Dagger");
   const daggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, "Dagger");
   const swordStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, "Sword");
+  const offhandDaggerStyle = traitStrike(
+    [TRAIT.SUN_AND_MOON_STYLE],
+    true,
+    "Sword",
+    "Dagger",
+  );
   assert.ok(Math.abs(boonlessPure / boonlessBase - 1.1) < 1e-9);
   assert.ok(Math.abs(boonedPure / boonedBase - 1.05) < 1e-9);
   assert.ok(Math.abs(daggerStyle / boonlessBase - 1.1) < 1e-9);
   assert.ok(Math.abs(swordStyle / boonlessBase - 1) < 1e-9);
+  assert.ok(Math.abs(offhandDaggerStyle / boonlessBase - 1) < 1e-9);
 
   const base = simulate("Spellbreaker", ["Breaching Strike", "Kick"], {
     initialResource: 10,
@@ -746,6 +929,12 @@ test("Spellbreaker offensive traits use multiplicative damage modifiers", () => 
     secondaryWeapon: "Mace",
     selectedTraitIds: [TRAIT.MAGEBANE_TETHER],
   });
+  assert.ok(
+    Math.abs(
+      damage(tethered, "Breaching Strike") / damage(base, "Breaching Strike") -
+        1,
+    ) < 1e-9,
+  );
   assert.ok(
     Math.abs(damage(tethered, "Kick") / damage(base, "Kick") - 1.15) < 1e-9,
   );
@@ -1330,6 +1519,21 @@ test("Warrior signets use the supplied active effects and passive downtime", () 
   );
 });
 
+test("Lesser Signet of Might procs use the signet skill icon", () => {
+  const result = simulate("Core", ["Throw Bolas"], {
+    selectedTraitIds: [TRAIT.SIGNET_MASTERY],
+    target: { health: 1 },
+  });
+  const proc = result.procSteps.find(
+    (step) => step.skill === "Lesser Signet of Might",
+  );
+
+  assert.equal(
+    proc?.icon,
+    warriorCatalog.skillsById.get(ID.SIGNET_OF_MIGHT).icon,
+  );
+});
+
 test("Burst Precision duration follows the adrenaline stage", () => {
   for (const [initialResource, duration] of [
     [10, 2],
@@ -1346,6 +1550,23 @@ test("Burst Precision duration follows the adrenaline stage", () => {
       duration,
     );
   }
+
+  const result = simulate("Core", ["Eviscerate", "Throw Bolas"], {
+    initialResource: 30,
+    selectedTraitIds: [TRAIT.BURST_PRECISION],
+    stats: { precision: 0, ferocity: 1000 },
+  });
+  const eviscerate = result.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillId === ID.EVISCERATE,
+  );
+  const followUp = result.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillId === ID.THROW_BOLAS,
+  );
+  assert.equal(eviscerate.criticalChance, 1);
+  assert.ok(
+    Math.abs(followUp.criticalDamage - eviscerate.criticalDamage - 250 / 1500) <
+      1e-9,
+  );
 });
 
 test("Bladesworn swap and Dragon Trigger traits use supplied behavior", () => {
@@ -1468,11 +1689,12 @@ test("Strength and Tactics traits react to dodge, burst, cripple, and control", 
     ).coefficient,
     3,
   );
-  assert.equal(
-    result.events.some(
-      (event) => event.kind === "berserkers-power" && event.stacks === 4,
-    ),
-    true,
+  const berserkersPower = result.events.find(
+    (event) => event.kind === "berserkers-power",
+  );
+  assert.deepEqual(
+    { stacks: berserkersPower.stacks, duration: berserkersPower.duration },
+    { stacks: 4, duration: 15 },
   );
   assert.equal(
     result.events.some(
@@ -1499,6 +1721,48 @@ test("Strength and Tactics traits react to dodge, burst, cripple, and control", 
     true,
   );
   assert.ok(result.endState.profession.endurance > 50);
+});
+
+test("Berserker's Power retains applications beyond its visible stack cap", () => {
+  const rotation = [
+    "Eviscerate",
+    "Signet of Fury",
+    "Eviscerate",
+    "Throw Bolas",
+    { type: "wait", durationMs: 7000 },
+    "Throw Bolas",
+  ];
+  const config = { initialResource: 30 };
+  const result = simulate("Core", rotation, {
+    ...config,
+    selectedTraitIds: [TRAIT.BERSERKERS_POWER],
+  });
+  const baseline = simulate("Core", rotation, config);
+  const applications = result.events.filter(
+    (event) => event.kind === "berserkers-power",
+  );
+  const bolasHits = result.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.skillId === ID.THROW_BOLAS,
+  );
+  const baselineBolasHits = baseline.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.skillId === ID.THROW_BOLAS,
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    applications.map(({ stacks, duration }) => [stacks, duration]),
+    [
+      [4, 15],
+      [4, 15],
+    ],
+  );
+  assert.equal(bolasHits.length, 2);
+  assert.deepEqual(
+    bolasHits.map((hit, index) =>
+      Number((hit.damage / baselineBolasHits[index].damage).toFixed(9)),
+    ),
+    [1.15, 1.15],
+  );
 });
 
 test("Axe packets and burst coefficients use the supplied PvE values", () => {
@@ -1669,12 +1933,22 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
   ]);
   assert.equal(
     manifest.find((section) => section.section === "Spellbreaker").presets[0]
+      .rotation,
+    "Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
+  );
+  assert.equal(
+    manifest.find((section) => section.section === "Spellbreaker").presets[0]
       .benchmarkDps,
     42690,
   );
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 92.521);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3949729);
   assert.equal(savedRotation.metadata.benchmarkDps, 42690.08117076123);
+  assert.equal(savedRotation.rotation.length, 242);
+  assert.deepEqual(savedRotation.rotation[6], {
+    name: "__combat_start",
+    offset: 100,
+  });
 
   const build = migrateWarriorBuild({
     ...raw,
@@ -1692,8 +1966,38 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
     result.breakdown.map((entry) => [entry.name, entry.hits]),
   );
   assert.equal(hitCounts.get("Winds of Disenchantment"), 5);
+  assert.equal(hitCounts.get("Whirling Axe"), 90);
   assert.equal(hitCounts.get("Kick"), 7);
   assert.equal(hitCounts.get("Crushing Blow"), 14);
+  assert.equal(hitCounts.get("Precise Cut"), 37);
+  assert.equal(hitCounts.get("Focused Slash"), 36);
+  assert.equal(hitCounts.get("Keen Strike"), 36);
+  assert.equal(hitCounts.get("Tremor"), 14);
+  assert.equal(hitCounts.get("Rend"), 7);
+  assert.equal(hitCounts.get("Rend \u2014 Follow-Up Damage"), 7);
+  assert.equal(hitCounts.get("Dual Strike"), 14);
+  assert.equal(hitCounts.get("Bloodthirster"), 7);
+  assert.equal(hitCounts.get("Hamstring"), 11);
+  assert.equal(hitCounts.get("Disrupting Stab"), 7);
+  assert.deepEqual(
+    result.steps.slice(0, 7).map((step) => step.skill),
+    [
+      "Healing Signet",
+      "Signet of Might",
+      "Kick",
+      "Signet of Fury",
+      "Winds of Disenchantment",
+      "Breaching Strike",
+      "Combat Start",
+    ],
+  );
+  const rendDamage = result.breakdown
+    .filter(
+      (entry) =>
+        entry.name === "Rend" || entry.name === "Rend \u2014 Follow-Up Damage",
+    )
+    .reduce((total, entry) => total + entry.strikeDamage, 0);
+  assert.ok(Math.abs(rendDamage - 246978) / 246978 < 0.02);
   assert.ok(Math.abs(result.dps - 42690) < 3000);
 });
 
@@ -1841,7 +2145,8 @@ test("Power Paragon preset preserves the EVTC build and executes", async () => {
   assert.equal(hitCounts.get("Breaching Strike"), 13);
   assert.equal(hitCounts.get("Crushing Blow"), 14);
   assert.equal(hitCounts.get("Tremor"), 14);
-  assert.equal(hitCounts.get("Precise Cut"), 43);
+  // Four authored 83 ms interruptions end before Precise Cut's 200 ms packet.
+  assert.equal(hitCounts.get("Precise Cut"), 39);
   assert.equal(hitCounts.get("Focused Slash"), 39);
   assert.equal(hitCounts.get("Keen Strike"), 39);
   assert.equal(hitCounts.get("Sever Artery"), 12);

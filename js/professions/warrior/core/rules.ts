@@ -13,12 +13,13 @@ import {
 import { warriorCastAvailability } from "./availability.js";
 import {
   advanceWarriorTraits,
+  beginWarriorSkill,
   completeWarriorSkill,
   handleWarriorArmsCriticalTask,
   initializeWarriorTraits,
   observeWarriorEvent,
   updateWarriorCastState,
-} from "./handlers.js";
+} from "./traits.js";
 import {
   advanceWarriorResources,
   handleWarriorAdrenalineTask,
@@ -219,8 +220,7 @@ function modifyWarriorAttributes(
   result.conditionDamage += activeBuffStacks(context, "furious-surge", 25) * 15;
   if (
     hasTrait(context, TRAIT.BURST_PRECISION) &&
-    (Boolean(eventSkill(context)?.burst) ||
-      activeBuffStacks(context, "burst-precision", 1) > 0)
+    activeBuffStacks(context, "burst-precision", 1) > 0
   ) {
     result.ferocity += 250;
   }
@@ -286,7 +286,8 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
     amount: (context) =>
-      activeBuffStacks(context, "berserkers-power", 4) * 0.0375,
+      (context.timeline?.buffStacksAt("berserkers-power", context.time, 0, 4) ??
+        activeBuffStacks(context, "berserkers-power", 4)) * 0.0375,
     when: (context) => hasTrait(context, TRAIT.BERSERKERS_POWER),
   },
   {
@@ -399,7 +400,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   },
   {
     id: "warrior.dagger-auto-critical-damage",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: "multiply",
     factor: 1.15,
     order: 100,
@@ -483,6 +484,7 @@ function modifyRechargeDuration(
 const DUAL_WIELD_OFFHANDS = new Set(["Axe", "Dagger", "Mace", "Sword"]);
 const DUAL_WIELDING_EXCLUDED_SKILL_IDS = new Set<number>([
   ID.AURA_SLICER,
+  ID.KICK,
   ...BREACHING_STRIKE_IDS,
 ]);
 
@@ -526,6 +528,7 @@ export const warriorCoreCastRules = Object.freeze({
 
 export const warriorCoreSchedulerHooks = Object.freeze({
   initialize: initializeWarriorTraits,
+  onCastStart: beginWarriorSkill,
   advance: {
     id: "warrior.core-resources-and-traits",
     order: 10,

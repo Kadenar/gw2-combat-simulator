@@ -5,6 +5,39 @@ import type { RangerPetDefinition, RangerSkill } from "../types.js";
 
 export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
   {
+    id: ID.TWIN_DARTS,
+    name: "Twin Darts",
+    description: "Fire two shots from your tail that bleed your enemy.",
+    icon: "",
+    type: "Profession",
+    slot: "Profession_2",
+    categories: ["Pet"],
+    specialization: "",
+    recharge: 0,
+    cooldown: 0,
+    petSkill: true,
+    petNames: ["Carrion Devourer", "Whiptail Devourer", "Lashtail Devourer"],
+  },
+  {
+    id: ID.SPIT,
+    name: "Spit",
+    description: "Spit at your foe.",
+    icon: "",
+    type: "Profession",
+    slot: "Profession_2",
+    categories: ["Pet"],
+    specialization: "",
+    recharge: 0,
+    cooldown: 0,
+    petSkill: true,
+    petNames: [
+      "Forest Spider",
+      "Jungle Spider",
+      "Cave Spider",
+      "Black Widow Spider",
+    ],
+  },
+  {
     id: ID.MIGHTY_ROAR,
     name: "Mighty Roar",
     description: "Beast. Give extreme might to nearby allies.",
@@ -1160,7 +1193,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "This carrion devourer is a deadly, ruthless predator. It poisons its foes from a distance, hides underground to ambush them, and can bite them to replenish its health. —Acht",
     family: "devourer",
     archetype: "Deadly",
-    skillIds: [ID.POISONOUS_CLOUD, ID.REGENERATE],
+    skillIds: [ID.TWIN_DARTS, ID.POISONOUS_CLOUD, ID.REGENERATE],
     beastmodeSkillIds: [ID.TAIL_LASH, ID.DEVOURER_RETREAT, ID.PRIMAL_CRY],
   },
   {
@@ -1404,7 +1437,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "Whiptail devourers are especially deadly ranged attackers, using poison and a volley of tail spikes to take down prey from a distance. —Acht",
     family: "devourer",
     archetype: "Versatile",
-    skillIds: [ID.POISON_CLOUD_ID_12702, ID.POISON_BARBS],
+    skillIds: [ID.TWIN_DARTS, ID.POISON_CLOUD_ID_12702, ID.POISON_BARBS],
     beastmodeSkillIds: [ID.TAIL_LASH, ID.DEVOURER_RETREAT, ID.PRELUDE_LASH],
   },
   {
@@ -1415,7 +1448,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "Lashtail devourers are fortunately uncommon, as their tactic of ambushing foes and unleashing a flurry of tail strikes that immobilize their prey make them especially deadly. —Acht",
     family: "devourer",
     archetype: "Ferocious",
-    skillIds: [ID.LASHTAIL_VENOM, ID.RENDING_BARBS],
+    skillIds: [ID.TWIN_DARTS, ID.LASHTAIL_VENOM, ID.RENDING_BARBS],
     beastmodeSkillIds: [ID.TAIL_LASH, ID.DEVOURER_RETREAT, ID.WORLDLY_IMPACT],
   },
   {
@@ -1493,7 +1526,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "While other spiders use debilitating or paralyzing poison, forest-spider poison is simply corrosive and destructive. Fortunately they are immune to the acidic qualities of their own poison, but they do need to eat quickly. —Acht",
     family: "spider",
     archetype: "Deadly",
-    skillIds: [ID.DEADLY_VENOM],
+    skillIds: [ID.SPIT, ID.DEADLY_VENOM],
     beastmodeSkillIds: [ID.ENTANGLING_WEB, ID.POISON_GAS, ID.PRIMAL_CRY],
   },
   {
@@ -1504,7 +1537,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "It takes a particular frame of mind to have a giant spider as a pet—especially a rare jungle spider. Fortunately, they're capable of feeding themselves, disabling foes with a poison spit that can paralyze foes temporarily. —Acht",
     family: "spider",
     archetype: "Versatile",
-    skillIds: [ID.PARALYZING_VENOM],
+    skillIds: [ID.SPIT, ID.PARALYZING_VENOM],
     beastmodeSkillIds: [ID.ENTANGLING_WEB, ID.POISON_GAS, ID.PRELUDE_LASH],
   },
   {
@@ -1515,7 +1548,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "The wily cave spider is a deadly predator that uses debilitating poison to weaken its foes' offenses and defenses as it brings them down. They make surprisingly affectionate pets, though rangers should not eat creatures they bring as gifts. —Acht",
     family: "spider",
     archetype: "Ferocious",
-    skillIds: [ID.WEAKENING_VENOM],
+    skillIds: [ID.SPIT, ID.WEAKENING_VENOM],
     beastmodeSkillIds: [ID.ENTANGLING_WEB, ID.POISON_GAS, ID.WORLDLY_IMPACT],
   },
   {
@@ -1526,7 +1559,7 @@ export const RANGER_PETS: readonly RangerPetDefinition[] = Object.freeze([
       "The black widow is the rarest variety of spider. Like other spiders, they can throw poison and spin webs to immobilize their foes. Black widows can also use a special poison that paralyzes foes in their tracks. —Acht",
     family: "spider",
     archetype: "Versatile",
-    skillIds: [ID.PARALYZING_VENOM],
+    skillIds: [ID.SPIT, ID.PARALYZING_VENOM],
     beastmodeSkillIds: [ID.ENTANGLING_WEB, ID.POISON_GAS, ID.PRELUDE_LASH],
   },
   {

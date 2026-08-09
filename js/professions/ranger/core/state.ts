@@ -19,6 +19,9 @@ export function createRangerCoreState(
   return {
     activePet: pet?.name || "",
     activePetSkillIds: [...(pet?.skillIds || [])],
+    endurance: 100,
+    maximumEndurance: 100,
+    enduranceUpdatedAt: 0,
     availableFlips: {},
     autoattackChains: {},
     winterBiteReady: false,
@@ -29,6 +32,15 @@ export function createRangerCoreState(
     quickDrawUntil: 0,
     trapCrippleActivations: {},
     bloodThirstCharges: 0,
+    rejuvenationReadyAt: 0,
+    childOfEarthReadyAt: 0,
+    clarionBondReadyAt: 0,
+    carnivoreReadyAt: 0,
+    huntersGazeReadyAt: 0,
+    playerOpeningStrikeReady: true,
+    petOpeningStrikeReady: true,
+    poisonMasterPetAttackReady: false,
+    petSwapCount: 0,
   };
 }
 
@@ -42,6 +54,8 @@ export const RANGER_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   Object.freeze([
     "activePet",
     "activePetSkillIds",
+    "endurance",
+    "maximumEndurance",
     "availableFlips",
     "autoattackChains",
     "winterBiteReady",
@@ -52,6 +66,10 @@ export const RANGER_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
     "quickDrawUntil",
     "trapCrippleActivations",
     "bloodThirstCharges",
+    "rejuvenationReadyAt",
+    "childOfEarthReadyAt",
+    "clarionBondReadyAt",
+    "petSwapCount",
     "astralForce",
     "maximumAstralForce",
     "celestialAvatarActive",

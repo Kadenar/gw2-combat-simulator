@@ -1,7 +1,10 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
-import { WARRIOR_TRAIT_IDS as TRAIT } from "../data/ids.js";
+import {
+  WARRIOR_SKILL_IDS as ID,
+  WARRIOR_TRAIT_IDS as TRAIT,
+} from "../data/ids.js";
 import type { WarriorResolverContext, WarriorResolverEvent } from "../types.js";
 
 export function reactToWarriorDamage(
@@ -47,5 +50,6 @@ export function reactToWarriorDamage(
     event.at,
     event.skillName,
     "10 might; Signet Mastery stack",
+    String(context.helpers.skillsById?.get(ID.SIGNET_OF_MIGHT)?.icon || ""),
   );
 }

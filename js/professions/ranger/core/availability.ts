@@ -1,4 +1,7 @@
-import { flattenProfessionState } from "../../../platform/engine/profession.js";
+import {
+  flattenProfessionState,
+  professionCoreState,
+} from "../../../platform/engine/profession.js";
 import { RANGER_SKILL_IDS as ID } from "../data/ids.js";
 import type { AvailabilityResult } from "../../../platform/engine/types.js";
 import type { RangerPrecastContext, RangerSkill } from "../types.js";
@@ -6,6 +9,7 @@ import {
   isRangerHammerVariant,
   normalizeRangerHammerSkillIds,
 } from "./hammer.js";
+import { rangerEnduranceReadyAt } from "./resources.js";
 
 function deny(
   skill: RangerSkill,
@@ -23,6 +27,22 @@ export function rangerCoreCastAvailability(
   context: RangerPrecastContext,
   skill: RangerSkill,
 ): AvailabilityResult {
+  if (skill.id === ID.DODGE) {
+    return professionCoreState(context).endurance + context.epsilon >= 50
+      ? { ready: true }
+      : {
+          ready: false,
+          retryAt: rangerEnduranceReadyAt(context, 50),
+          code: "ranger.endurance",
+          reason: "Dodge requires 50 endurance.",
+        };
+  }
+  if (
+    skill.id === ID.PET_SWAP &&
+    flattenProfessionState(context.state.profession).beastmodeActive
+  ) {
+    return deny(skill, "ranger.pet-merged", "leave Beastmode first.");
+  }
   if (
     isRangerHammerVariant(skill.id) &&
     !normalizeRangerHammerSkillIds(

@@ -44,6 +44,199 @@ function queueBleeding(
   });
 }
 
+function queueCondition(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+  condition: string,
+  duration: number,
+  stacks: number,
+  sourceId: number,
+  name: string,
+): void {
+  const petSource = isPetStrike(event);
+  enqueueOrdered(context.queue, {
+    type: "condition",
+    at: event.at,
+    source: petSource ? "ranger-pet" : "Trait",
+    sourceId,
+    actorType: petSource ? "summon" : "effect",
+    skillId: sourceId,
+    skillName: name,
+    name: `${name} - ${condition}`,
+    condition,
+    duration,
+    stacks,
+    triggeredBy: event.skillName,
+  });
+}
+
+function rangerBoonDuration(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+  kind: string,
+  baseDuration: number,
+): number {
+  const name = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
+  const stats = context.query.statsAt(event.at, event, context);
+  const sigil = context.query.activeSigilSetAt(event.at);
+  const bonus =
+    Number(stats.concentration || 0) / 1500 +
+    Number(context.config.stats?.boonDurationBonus || 0) / 100 +
+    Number(context.config.stats?.boonDurationBonuses?.[name] || 0) / 100 +
+    Number(sigil?.boonDurationBonus || 0) / 100;
+  return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
+}
+
+function isPetStrike(event: RangerResolverEvent): boolean {
+  return event.actorType === "summon" && event.source === "ranger-pet";
+}
+
+function isPlayerStrike(event: RangerResolverEvent): boolean {
+  return event.actorType === "player";
+}
+
+function beastmodeActive(context: RangerResolverContext): boolean {
+  return Boolean(
+    context.profession.specialization.kind === "Soulbeast" &&
+    context.profession.specialization.state.beastmodeActive,
+  );
+}
+
+function targetHealthFraction(context: RangerResolverContext): number {
+  const maximum = Number(context.config.target?.health || 0);
+  if (!(maximum > 0)) return 1;
+  return Math.max(
+    0,
+    1 -
+      (Number(context.totals.strike || 0) +
+        Number(context.totals.condition || 0)) /
+        maximum,
+  );
+}
+
+function consumeOpeningStrike(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  if (!hasTrait(context, TRAIT.OPENING_STRIKE)) return;
+  const state = professionCoreState(context);
+  const player = isPlayerStrike(event);
+  const pet = isPetStrike(event);
+  if ((!player && !pet) || !(Number(event.coefficient) > 0)) return;
+  const ready = player
+    ? state.playerOpeningStrikeReady
+    : state.petOpeningStrikeReady;
+  if (!ready) return;
+  if (player) state.playerOpeningStrikeReady = false;
+  else state.petOpeningStrikeReady = false;
+  enqueueOrdered(context.queue, {
+    type: "condition",
+    at: event.at,
+    source: "Trait",
+    sourceId: TRAIT.OPENING_STRIKE,
+    actorType: "effect",
+    skillId: TRAIT.OPENING_STRIKE,
+    skillName: "Opening Strike",
+    name: "Opening Strike - Vulnerability",
+    condition: "Vulnerability",
+    duration: 5,
+    stacks: 5,
+    triggeredBy: event.skillName,
+  });
+  if (hasTrait(context, TRAIT.ALPHA_FOCUS)) {
+    queueCondition(
+      context,
+      event,
+      "Crippled",
+      2,
+      1,
+      TRAIT.ALPHA_FOCUS,
+      "Alpha Focus",
+    );
+  }
+}
+
+function triggerHuntersGaze(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  if (!isPlayerStrike(event) || !hasTrait(context, TRAIT.HUNTERS_GAZE)) return;
+  const state = professionCoreState(context);
+  if (event.at < state.huntersGazeReadyAt) return;
+  const health = targetHealthFraction(context);
+  const stacks = health < 0.25 ? 3 : health < 0.5 ? 2 : health < 0.75 ? 1 : 0;
+  if (!stacks) return;
+  state.huntersGazeReadyAt = event.at + 1;
+  context.recordProc(
+    "trait",
+    "Hunter's Gaze",
+    event.at,
+    event.skillName,
+    `${stacks} might`,
+    context.helpers.skillsById?.get(TRAIT.HUNTERS_GAZE)?.icon || "",
+  );
+  enqueueOrdered(context.queue, {
+    type: "buff",
+    at: event.at,
+    source: "Trait",
+    sourceId: TRAIT.HUNTERS_GAZE,
+    actorType: "effect",
+    skillId: TRAIT.HUNTERS_GAZE,
+    skillName: "Hunter's Gaze",
+    name: "Hunter's Gaze - Might",
+    kind: "might",
+    duration: rangerBoonDuration(context, event, "might", 5),
+    stacks,
+    triggeredBy: event.skillName,
+  });
+}
+
+function triggerPoisonMaster(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  const state = professionCoreState(context);
+  if (
+    !state.poisonMasterPetAttackReady ||
+    !isPetStrike(event) ||
+    !(Number(event.coefficient) > 0)
+  ) {
+    return;
+  }
+  state.poisonMasterPetAttackReady = false;
+  queueCondition(
+    context,
+    event,
+    "Poisoned",
+    8,
+    2,
+    TRAIT.POISON_MASTER,
+    "Poison Master",
+  );
+}
+
+function triggerArachnophobia(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  if (
+    !isPetStrike(event) ||
+    !hasTrait(context, TRAIT.ARACHNOPHOBIA) ||
+    (event.skillId !== ID.SPIT && event.skillId !== ID.TWIN_DARTS)
+  ) {
+    return;
+  }
+  queueCondition(
+    context,
+    event,
+    "Torment",
+    3,
+    1,
+    TRAIT.ARACHNOPHOBIA,
+    "Arachnophobia",
+  );
+}
+
 export const rangerCoreCriticalReactions = Object.freeze({
   id: "ranger.sharpened-edges",
   order: 20,
@@ -89,9 +282,19 @@ export function handleRangerWinterBiteReady(
   professionCoreState(context).winterBiteReady = true;
 }
 
+export function handleRangerBeastSkillUsed(
+  context: RangerResolverContext,
+  _event: RangerResolverEvent,
+): void {
+  if (hasTrait(context, TRAIT.POISON_MASTER) && !beastmodeActive(context)) {
+    professionCoreState(context).poisonMasterPetAttackReady = true;
+  }
+}
+
 export const rangerCoreEventHandlers = Object.freeze({
   "ranger.blood-thirst": handleRangerBloodThirst,
   "ranger.winter-bite-ready": handleRangerWinterBiteReady,
+  "ranger.beast-skill-used": handleRangerBeastSkillUsed,
 });
 
 export function reactToRangerCoreDamage(
@@ -101,6 +304,10 @@ export function reactToRangerCoreDamage(
   if (!(Number(event.coefficient) > 0) || event.actorType === "effect") return;
   const state = professionCoreState(context);
   const skill = eventSkill(context, event);
+  consumeOpeningStrike(context, event);
+  triggerHuntersGaze(context, event);
+  triggerPoisonMaster(context, event);
+  triggerArachnophobia(context, event);
   if (
     skill?.categories?.includes("Trap") &&
     event.activationId &&
@@ -150,4 +357,95 @@ export function reactToRangerCoreDamage(
       triggeredBy: event.skillName,
     });
   }
+}
+
+export function reactToRangerCoreControl(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  const state = professionCoreState(context);
+  if (
+    !hasTrait(context, TRAIT.CARNIVORE) ||
+    (!isPlayerStrike(event) && !isPetStrike(event)) ||
+    event.at < state.carnivoreReadyAt
+  ) {
+    return;
+  }
+  state.carnivoreReadyAt = event.at + 0.25;
+  enqueueOrdered(context.queue, {
+    type: "damage",
+    at: event.at,
+    source: "Trait",
+    sourceId: TRAIT.CARNIVORE,
+    actorType: "effect",
+    skillId: TRAIT.CARNIVORE,
+    skillName: "Carnivore",
+    name: "Carnivore",
+    coefficient: 0.05,
+    hits: 1,
+    hitIndex: 1,
+    totalHits: 1,
+    skillWeapon: "Unequipped",
+    canCrit: false,
+    damageKind: "life-steal",
+    triggeredBy: event.skillName,
+  });
+}
+
+const SHAREABLE_BOONS = new Set([
+  "aegis",
+  "alacrity",
+  "fury",
+  "might",
+  "protection",
+  "quickness",
+  "regeneration",
+  "resistance",
+  "resolution",
+  "stability",
+  "swiftness",
+  "vigor",
+]);
+
+export function reactToRangerCoreBuff(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  const kind = String(event.kind || "").toLowerCase();
+  const affectsSelf = event.affectsSelf !== false;
+  if (kind === "fury" && affectsSelf && hasTrait(context, TRAIT.REMORSELESS)) {
+    const state = professionCoreState(context);
+    state.playerOpeningStrikeReady = true;
+    state.petOpeningStrikeReady = true;
+  }
+  const source = String(event.source || "").toLowerCase();
+  if (
+    !SHAREABLE_BOONS.has(kind) ||
+    !affectsSelf ||
+    event.affectsSummons === true ||
+    event.actorType === "summon" ||
+    source.includes("npc") ||
+    beastmodeActive(context) ||
+    !hasTrait(context, TRAIT.FORTIFYING_BOND)
+  ) {
+    return;
+  }
+  enqueueOrdered(context.queue, {
+    type: "buff",
+    at: event.at,
+    source: "Trait",
+    sourceId: TRAIT.FORTIFYING_BOND,
+    actorType: "effect",
+    skillId: TRAIT.FORTIFYING_BOND,
+    skillName: "Fortifying Bond",
+    name: `Fortifying Bond - ${kind}`,
+    kind,
+    duration: Number(event.duration || 0),
+    stacks: Number(event.stacks || 1),
+    affectsSelf: false,
+    affectsSummons: true,
+    recipients: "summon",
+    maximumRecipients: 1,
+    triggeredBy: event.skillName,
+  });
 }

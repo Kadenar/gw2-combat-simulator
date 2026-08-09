@@ -37,6 +37,11 @@ const SOULBEAST_FAMILY_SKILL_IDS = Object.freeze({
   "river otter": [80035, 80031],
 });
 
+const SIMULATED_FAMILY_SKILL_IDS = Object.freeze({
+  devourer: [12676],
+  spider: [12724],
+});
+
 const SOULBEAST_PET_FAMILY_OVERRIDES = Object.freeze({
   "Aether Hunter": "aether hunter",
   "Armor Fish": "armor fish",
@@ -146,7 +151,10 @@ const petIds = await fetchJson("/pets");
 const pets = await fetchMany("pets", petIds);
 const wikiMetadata = await mapConcurrent(pets, 8, fetchWikiPetMetadata);
 const petSkillIds = [
-  ...new Set(pets.flatMap((pet) => pet.skills.map((skill) => skill.id))),
+  ...new Set([
+    ...pets.flatMap((pet) => pet.skills.map((skill) => skill.id)),
+    ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat(),
+  ]),
 ];
 const skills = await fetchMany("skills", petSkillIds);
 for (const skill of skills) keyFor(skill);
@@ -199,7 +207,12 @@ const petLines = pets.map((pet, index) => {
     description: ${JSON.stringify(pet.description || "")},
     family: ${JSON.stringify(family)},
     archetype: ${JSON.stringify(archetype)},
-    skillIds: [${pet.skills.map((skill) => `ID.${keyById.get(skill.id)}`).join(", ")}],
+    skillIds: [${[
+      ...(SIMULATED_FAMILY_SKILL_IDS[family] || []),
+      ...pet.skills.map((skill) => skill.id),
+    ]
+      .map((id) => `ID.${keyById.get(id)}`)
+      .join(", ")}],
     beastmodeSkillIds: [${beastmodeSkillIds.map((id) => `ID.${keyById.get(id)}`).join(", ")}],
   },`;
 });

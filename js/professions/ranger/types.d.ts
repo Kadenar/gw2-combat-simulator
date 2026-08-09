@@ -79,6 +79,9 @@ export interface RangerPetDefinition {
 export interface RangerCoreState {
   activePet: string;
   activePetSkillIds: SkillId[];
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
   availableFlips: Record<string, number>;
   autoattackChains: Record<string, SkillId>;
   winterBiteReady: boolean;
@@ -89,6 +92,15 @@ export interface RangerCoreState {
   quickDrawUntil: number;
   trapCrippleActivations: Record<string, boolean>;
   bloodThirstCharges: number;
+  rejuvenationReadyAt: number;
+  childOfEarthReadyAt: number;
+  clarionBondReadyAt: number;
+  carnivoreReadyAt: number;
+  huntersGazeReadyAt: number;
+  playerOpeningStrikeReady: boolean;
+  petOpeningStrikeReady: boolean;
+  poisonMasterPetAttackReady: boolean;
+  petSwapCount: number;
 }
 
 export interface DruidState {

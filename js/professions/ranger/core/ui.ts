@@ -7,6 +7,7 @@ import { RANGER_PETS } from "../data/ranger-pet-data.js";
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
+  ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionUiContract,
   SchedulerRecord,
@@ -233,10 +234,29 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
       {
         id: "ranger-actions",
         label: "Actions",
-        skillIds: [ID.SWAP_WEAPONS],
+        skillIds: [ID.DODGE, ID.PET_SWAP, ID.SWAP_WEAPONS],
         color: "#7ca64a",
       },
     ],
+    resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
+      const state = rangerUiState(context);
+      return [
+        {
+          id: "endurance",
+          singular: "endurance",
+          plural: "endurance",
+          maximum: Number(state.maximumEndurance || 100),
+          value: Number(state.endurance ?? 100),
+          startMaximum: 100,
+          startValue: 100,
+          canStart: false,
+          step: 1,
+          displayMode: "bar",
+          shortLabel: "End",
+          statusLabel: "Current",
+        },
+      ];
+    },
     paletteSkillAvailability: rangerCorePaletteAvailability,
     weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
   });
