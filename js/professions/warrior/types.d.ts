@@ -63,6 +63,9 @@ export interface WarriorCoreState {
 export interface BerserkerState {
   berserkActive: boolean;
   berserkUntil: number;
+  fireAuraUntil: number;
+  kingOfFiresReadyAt: number;
+  kingOfFiresCriticalProgress: number;
 }
 
 export interface SpellbreakerState {

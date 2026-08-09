@@ -33,6 +33,8 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   },
   [ID.SHEATHE_GUNSABER]: {
     implemented: true,
+    cooldown: 0,
+    recharge: 0,
     castTimeMs: 0,
     effects: [],
     handlerId: "warrior.gunsaber-exit",
@@ -72,7 +74,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   },
   [ID.FLOW_STABILIZER]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 0,
     effects: [
       {
         type: "boon",
@@ -87,7 +89,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
         stacks: 2,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 0,
   },
   [ID.COMBAT_STIMULANT]: {
     implemented: true,
@@ -362,7 +364,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
     ammoRecharge: 30,
     cooldown: 30,
     recharge: 1,
-    castTimeMs: 500,
+    castTimeMs: 0,
     effects: [
       {
         type: "boon",
@@ -371,7 +373,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
         stacks: 1,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 0,
     gunsaberSkill: true,
     dragonTriggerSkill: true,
     skillWeapon: "Gunsaber",

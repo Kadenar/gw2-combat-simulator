@@ -4,10 +4,10 @@ import { inflateRawSync } from "node:zlib";
 const input = process.argv[2];
 if (!input) {
   console.error(
-    "Usage: node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.zevtc> "
-      + "[--summary] [--condition-events] [--window=<seconds>] "
-      + "[--debug-skill=<ids>] [--debug-name=<fragment>] "
-      + "[--debug-state=<ids>]",
+    "Usage: node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.zevtc> " +
+      "[--summary] [--condition-events] [--window=<seconds>] " +
+      "[--debug-skill=<ids>] [--debug-name=<fragment>] " +
+      "[--debug-state=<ids>]",
   );
   process.exit(1);
 }
@@ -15,25 +15,29 @@ const summaryOnly = process.argv.includes("--summary");
 const includeConditionEvents = process.argv.includes("--condition-events");
 const debugSkillIds = new Set(
   process.argv
-    .filter(argument => argument.startsWith("--debug-skill="))
-    .flatMap(argument => argument
-      .slice("--debug-skill=".length)
-      .split(",")
-      .map(Number)
-      .filter(Number.isFinite)),
+    .filter((argument) => argument.startsWith("--debug-skill="))
+    .flatMap((argument) =>
+      argument
+        .slice("--debug-skill=".length)
+        .split(",")
+        .map(Number)
+        .filter(Number.isFinite),
+    ),
 );
 const debugSkillNames = process.argv
-  .filter(argument => argument.startsWith("--debug-name="))
-  .map(argument => argument.slice("--debug-name=".length).toLowerCase())
+  .filter((argument) => argument.startsWith("--debug-name="))
+  .map((argument) => argument.slice("--debug-name=".length).toLowerCase())
   .filter(Boolean);
 const debugStateChanges = new Set(
   process.argv
-    .filter(argument => argument.startsWith("--debug-state="))
-    .flatMap(argument => argument
-      .slice("--debug-state=".length)
-      .split(",")
-      .map(Number)
-      .filter(Number.isFinite)),
+    .filter((argument) => argument.startsWith("--debug-state="))
+    .flatMap((argument) =>
+      argument
+        .slice("--debug-state=".length)
+        .split(",")
+        .map(Number)
+        .filter(Number.isFinite),
+    ),
 );
 const CONDITION_NAMES = new Set([
   "Bleeding",
@@ -56,10 +60,11 @@ const CONDITION_NAMES = new Set([
 const SECONDARY_CAST_ACTIVATIONS = new Set([
   63181, // Twilight Combo, accelerating follow-up shot
   77307, // Plasmatic State, second strike/stage
+  80224, // Rend, delayed follow-up strike
 ]);
 const windowSeconds = Number(
   process.argv
-    .find(argument => argument.startsWith("--window="))
+    .find((argument) => argument.startsWith("--window="))
     ?.slice("--window=".length),
 );
 
@@ -79,11 +84,12 @@ function readEvtc(path) {
     payloadStart,
     payloadStart + compressedSize,
   );
-  const result = compressionMethod === 0
-    ? Buffer.from(payload)
-    : compressionMethod === 8
-      ? inflateRawSync(payload)
-      : null;
+  const result =
+    compressionMethod === 0
+      ? Buffer.from(payload)
+      : compressionMethod === 8
+        ? inflateRawSync(payload)
+        : null;
   if (!result) {
     throw new Error(
       `${path} uses unsupported ZIP compression method ${compressionMethod}.`,
@@ -168,14 +174,14 @@ while (offset + 64 <= data.length) {
   offset += 64;
 }
 
-const players = agents.filter(agent =>
-  agent.account.startsWith(":")
-  || (
-    agent.profession >= 1
-    && agent.profession <= 9
-    && agent.elite !== 0xffffffff
-  ));
-const playerAddresses = new Set(players.map(player => player.address));
+const players = agents.filter(
+  (agent) =>
+    agent.account.startsWith(":") ||
+    (agent.profession >= 1 &&
+      agent.profession <= 9 &&
+      agent.elite !== 0xffffffff),
+);
+const playerAddresses = new Set(players.map((player) => player.address));
 const playerInstances = new Set();
 for (const event of events) {
   if (playerAddresses.has(event.source) && event.sourceInstance) {
@@ -185,32 +191,32 @@ for (const event of events) {
     playerInstances.add(event.targetInstance);
   }
 }
-const isPlayerOwnedSource = event =>
-  playerAddresses.has(event.source)
-  || (
-    event.sourceMasterInstance > 0
-    && playerInstances.has(event.sourceMasterInstance)
-  );
-const timelineEvents = events.filter(event =>
-  event.time > 0
-  && (
-    event.stateChange === 0
-    || event.stateChange === 9
-    || event.stateChange === 10
-  ));
-const startTime = Math.min(...timelineEvents.map(event => event.time));
-const relative = time => Number(((time - startTime) / 1000).toFixed(3));
-const skillName = id => skills.get(id) || `Unknown ${id}`;
-const agentByAddress = new Map(agents.map(agent => [agent.address, agent]));
+const isPlayerOwnedSource = (event) =>
+  playerAddresses.has(event.source) ||
+  (event.sourceMasterInstance > 0 &&
+    playerInstances.has(event.sourceMasterInstance));
+const timelineEvents = events.filter(
+  (event) =>
+    event.time > 0 &&
+    (event.stateChange === 0 ||
+      event.stateChange === 9 ||
+      event.stateChange === 10),
+);
+const startTime = Math.min(...timelineEvents.map((event) => event.time));
+const relative = (time) => Number(((time - startTime) / 1000).toFixed(3));
+const skillName = (id) => skills.get(id) || `Unknown ${id}`;
+const agentByAddress = new Map(agents.map((agent) => [agent.address, agent]));
 
 const casts = events
-  .filter(event =>
-    playerAddresses.has(event.source)
-    && (event.stateChange === 0 || event.stateChange === 68)
-    && !SECONDARY_CAST_ACTIVATIONS.has(event.skillId)
-    && event.value > 0
-    && event.activation === 3)
-  .map(event => ({
+  .filter(
+    (event) =>
+      playerAddresses.has(event.source) &&
+      (event.stateChange === 0 || event.stateChange === 68) &&
+      !SECONDARY_CAST_ACTIVATIONS.has(event.skillId) &&
+      event.value > 0 &&
+      event.activation === 3,
+  )
+  .map((event) => ({
     at: relative(event.time),
     skillId: event.skillId,
     skill: skillName(event.skillId),
@@ -221,13 +227,14 @@ const casts = events
 const outgoing = new Map();
 for (const event of events) {
   if (
-    !isPlayerOwnedSource(event)
-    || playerAddresses.has(event.target)
-    || event.iff !== 1
-    || event.stateChange !== 0
-    || event.activation !== 0
-    || (event.buff === 1 && event.buffRemove !== 0)
-  ) continue;
+    !isPlayerOwnedSource(event) ||
+    playerAddresses.has(event.target) ||
+    event.iff !== 1 ||
+    event.stateChange !== 0 ||
+    event.activation !== 0 ||
+    (event.buff === 1 && event.buffRemove !== 0)
+  )
+    continue;
   const strike = event.buff === 0 ? Math.max(0, event.value) : 0;
   const condition = event.buff === 1 ? Math.max(0, event.buffDamage) : 0;
   if (!strike && !condition) continue;
@@ -259,13 +266,14 @@ for (const event of events) {
 const buffs = new Map();
 for (const event of events) {
   if (
-    !playerAddresses.has(event.target)
-    || event.buff !== 1
-    || event.stateChange !== 0
-    || event.activation !== 0
-    || event.buffRemove !== 0
-    || event.value <= 0
-  ) continue;
+    !playerAddresses.has(event.target) ||
+    event.buff !== 1 ||
+    event.stateChange !== 0 ||
+    event.activation !== 0 ||
+    event.buffRemove !== 0 ||
+    event.value <= 0
+  )
+    continue;
   const current = buffs.get(event.skillId) || {
     skillId: event.skillId,
     skill: skillName(event.skillId),
@@ -286,16 +294,17 @@ function collectConditionApplications({ self }) {
     const playerSource = isPlayerOwnedSource(event);
     const playerTarget = playerAddresses.has(event.target);
     if (
-      !playerSource
-      || playerTarget !== self
-      || event.buff !== 1
-      || (event.stateChange !== 0 && event.stateChange !== 69)
-      || event.activation !== 0
-      || event.buffRemove !== 0
-      || event.value <= 0
-      || event.buffDamage !== 0
-      || !CONDITION_NAMES.has(skillName(event.skillId))
-    ) continue;
+      !playerSource ||
+      playerTarget !== self ||
+      event.buff !== 1 ||
+      (event.stateChange !== 0 && event.stateChange !== 69) ||
+      event.activation !== 0 ||
+      event.buffRemove !== 0 ||
+      event.value <= 0 ||
+      event.buffDamage !== 0 ||
+      !CONDITION_NAMES.has(skillName(event.skillId))
+    )
+      continue;
     const current = applications.get(event.skillId) || {
       skillId: event.skillId,
       skill: skillName(event.skillId),
@@ -318,57 +327,64 @@ function collectConditionApplications({ self }) {
     }
     applications.set(event.skillId, current);
   }
-  return [...applications.values()]
-    .sort((left, right) => right.applications - left.applications);
+  return [...applications.values()].sort(
+    (left, right) => right.applications - left.applications,
+  );
 }
 
-const outgoingConditionApplications =
-  collectConditionApplications({ self: false });
-const selfConditionApplications =
-  collectConditionApplications({ self: true });
-const playerStrikeEvents = events.filter(event =>
-  playerAddresses.has(event.source)
-  && !playerAddresses.has(event.target)
-  && event.iff === 1
-  && event.buff === 0
-  && event.stateChange === 0
-  && event.activation === 0
-  && event.value > 0);
+const outgoingConditionApplications = collectConditionApplications({
+  self: false,
+});
+const selfConditionApplications = collectConditionApplications({ self: true });
+const playerStrikeEvents = events.filter(
+  (event) =>
+    playerAddresses.has(event.source) &&
+    !playerAddresses.has(event.target) &&
+    event.iff === 1 &&
+    event.buff === 0 &&
+    event.stateChange === 0 &&
+    event.activation === 0 &&
+    event.value > 0,
+);
 const playerCriticalSummary = {
   hits: playerStrikeEvents.length,
-  criticalHits: playerStrikeEvents.filter(event => event.result === 1).length,
-  bySkill: [...playerStrikeEvents.reduce((entries, event) => {
-    const current = entries.get(event.skillId) || {
-      skillId: event.skillId,
-      skill: skillName(event.skillId),
-      hits: 0,
-      criticalHits: 0,
-    };
-    current.hits += 1;
-    current.criticalHits += event.result === 1 ? 1 : 0;
-    entries.set(event.skillId, current);
-    return entries;
-  }, new Map()).values()]
-    .sort((left, right) => right.hits - left.hits),
+  criticalHits: playerStrikeEvents.filter((event) => event.result === 1).length,
+  bySkill: [
+    ...playerStrikeEvents
+      .reduce((entries, event) => {
+        const current = entries.get(event.skillId) || {
+          skillId: event.skillId,
+          skill: skillName(event.skillId),
+          hits: 0,
+          criticalHits: 0,
+        };
+        current.hits += 1;
+        current.criticalHits += event.result === 1 ? 1 : 0;
+        entries.set(event.skillId, current);
+        return entries;
+      }, new Map())
+      .values(),
+  ].sort((left, right) => right.hits - left.hits),
 };
 
-const damage = [...outgoing.values()]
-  .sort((left, right) =>
-    right.strikeDamage + right.conditionDamage
-    - left.strikeDamage - left.conditionDamage);
+const damage = [...outgoing.values()].sort(
+  (left, right) =>
+    right.strikeDamage +
+    right.conditionDamage -
+    left.strikeDamage -
+    left.conditionDamage,
+);
 const totalDamage = damage.reduce(
   (sum, entry) => sum + entry.strikeDamage + entry.conditionDamage,
   0,
 );
 const targetExitAt = events
-  .filter(event =>
-    event.stateChange === 2
-    && event.value === encounterId)
-  .map(event => relative(event.time))
+  .filter((event) => event.stateChange === 2 && event.value === encounterId)
+  .map((event) => relative(event.time))
   .sort((left, right) => left - right)[0];
 const lastDamageAt = Math.max(
   0,
-  ...damage.flatMap(entry => entry.packets.map(packet => packet.at)),
+  ...damage.flatMap((entry) => entry.packets.map((packet) => packet.at)),
 );
 const combatDuration = Number.isFinite(targetExitAt)
   ? targetExitAt
@@ -388,10 +404,11 @@ function median(values) {
 }
 
 const spiritAutoattacks = damage
-  .filter(entry => /autoattack/i.test(entry.skill))
-  .map(entry => {
-    const times = [...new Set(entry.packets.map(packet => packet.at))]
-      .sort((left, right) => left - right);
+  .filter((entry) => /autoattack/i.test(entry.skill))
+  .map((entry) => {
+    const times = [...new Set(entry.packets.map((packet) => packet.at))].sort(
+      (left, right) => left - right,
+    );
     const intervals = times
       .slice(1)
       .map((time, index) => Number((time - times[index]).toFixed(3)));
@@ -406,8 +423,8 @@ const spiritAutoattacks = damage
     };
   });
 const summonSpiritVariants = damage
-  .filter(entry => entry.skill === "Summon Spirits")
-  .map(entry => ({
+  .filter((entry) => entry.skill === "Summon Spirits")
+  .map((entry) => ({
     skillId: entry.skillId,
     hits: entry.strikeHits,
     damage: entry.strikeDamage,
@@ -420,8 +437,8 @@ const summonMetadata = {
     uses: summonSpiritVariants.length
       ? Math.min(
           ...summonSpiritVariants
-            .map(entry => entry.hits)
-            .filter(hits => hits > 0),
+            .map((entry) => entry.hits)
+            .filter((hits) => hits > 0),
         )
       : 0,
     variants: summonSpiritVariants,
@@ -435,19 +452,21 @@ const report = {
     agentCount,
     skillCount,
     eventCount: events.length,
-    duration: relative(Math.max(...timelineEvents.map(event => event.time))),
+    duration: relative(Math.max(...timelineEvents.map((event) => event.time))),
   },
   players: players.map(({ address, ...player }) => player),
   activationCounts: Object.fromEntries(
-    [...events.reduce((counts, event) => {
-      counts.set(event.activation, (counts.get(event.activation) || 0) + 1);
-      return counts;
-    }, new Map())].sort((left, right) => left[0] - right[0]),
+    [
+      ...events.reduce((counts, event) => {
+        counts.set(event.activation, (counts.get(event.activation) || 0) + 1);
+        return counts;
+      }, new Map()),
+    ].sort((left, right) => left[0] - right[0]),
   ),
   activationSamples: events
-    .filter(event => event.activation !== 0)
+    .filter((event) => event.activation !== 0)
     .slice(0, 20)
-    .map(event => ({
+    .map((event) => ({
       at: relative(event.time),
       activation: event.activation,
       stateChange: event.stateChange,
@@ -466,13 +485,14 @@ const report = {
   summonMetadata,
   casts,
   damage,
-  buffs: [...buffs.values()]
-    .sort((left, right) => right.applications - left.applications),
+  buffs: [...buffs.values()].sort(
+    (left, right) => right.applications - left.applications,
+  ),
   outgoingConditionApplications,
   selfConditionApplications,
   ...(debugSkillIds.size || debugSkillNames.length || debugStateChanges.size
     ? {
-        debugAgents: agents.map(agent => ({
+        debugAgents: agents.map((agent) => ({
           addressHex: agent.addressHex,
           profession: agent.profession,
           elite: agent.elite,
@@ -481,18 +501,24 @@ const report = {
           subgroup: agent.subgroup,
         })),
         debugSkills: [...skills]
-          .filter(([id, name]) =>
-            debugSkillIds.has(id)
-            || debugSkillNames.some(fragment =>
-              name.toLowerCase().includes(fragment)))
+          .filter(
+            ([id, name]) =>
+              debugSkillIds.has(id) ||
+              debugSkillNames.some((fragment) =>
+                name.toLowerCase().includes(fragment),
+              ),
+          )
           .map(([id, name]) => ({ id, name })),
         debugSkillEvents: events
-          .filter(event =>
-            debugSkillIds.has(event.skillId)
-            || debugStateChanges.has(event.stateChange)
-            || debugSkillNames.some(fragment =>
-              skillName(event.skillId).toLowerCase().includes(fragment)))
-          .map(event => ({
+          .filter(
+            (event) =>
+              debugSkillIds.has(event.skillId) ||
+              debugStateChanges.has(event.stateChange) ||
+              debugSkillNames.some((fragment) =>
+                skillName(event.skillId).toLowerCase().includes(fragment),
+              ),
+          )
+          .map((event) => ({
             at: relative(event.time),
             source: `0x${event.source.toString(16)}`,
             target: `0x${event.target.toString(16)}`,
@@ -514,10 +540,16 @@ const report = {
   ...(includeConditionEvents
     ? {
         conditionEvents: events
-          .filter(event =>
-            ["Bleeding", "Burning", "Poisoned", "Torment", "Confusion"]
-              .includes(skillName(event.skillId)))
-          .map(event => ({
+          .filter((event) =>
+            [
+              "Bleeding",
+              "Burning",
+              "Poisoned",
+              "Torment",
+              "Confusion",
+            ].includes(skillName(event.skillId)),
+          )
+          .map((event) => ({
             at: relative(event.time),
             skillId: event.skillId,
             skill: skillName(event.skillId),
@@ -545,20 +577,23 @@ const summary = {
   combatWindow,
   playerCriticalSummary,
   summonMetadata,
-  casts: [...casts.reduce((counts, cast) => {
-    const current = counts.get(cast.skill) || {
-      skill: cast.skill,
-      casts: 0,
-      averageDurationMs: 0,
-    };
-    current.averageDurationMs = (
-      current.averageDurationMs * current.casts + cast.durationMs
-    ) / (current.casts + 1);
-    current.casts += 1;
-    counts.set(cast.skill, current);
-    return counts;
-  }, new Map()).values()]
-    .sort((left, right) => right.casts - left.casts),
+  casts: [
+    ...casts
+      .reduce((counts, cast) => {
+        const current = counts.get(cast.skill) || {
+          skill: cast.skill,
+          casts: 0,
+          averageDurationMs: 0,
+        };
+        current.averageDurationMs =
+          (current.averageDurationMs * current.casts + cast.durationMs) /
+          (current.casts + 1);
+        current.casts += 1;
+        counts.set(cast.skill, current);
+        return counts;
+      }, new Map())
+      .values(),
+  ].sort((left, right) => right.casts - left.casts),
   damage: damage.map(({ packets, ...entry }) => ({
     ...entry,
     totalDamage: entry.strikeDamage + entry.conditionDamage,
@@ -574,30 +609,31 @@ const summary = {
         window: {
           duration: windowSeconds,
           totalDamage: damage.reduce(
-            (sum, entry) => sum + entry.packets
-              .filter(packet => packet.at <= windowSeconds)
-              .reduce(
-                (packetSum, packet) =>
-                  packetSum + packet.strike + packet.condition,
-                0,
-              ),
+            (sum, entry) =>
+              sum +
+              entry.packets
+                .filter((packet) => packet.at <= windowSeconds)
+                .reduce(
+                  (packetSum, packet) =>
+                    packetSum + packet.strike + packet.condition,
+                  0,
+                ),
             0,
           ),
           damage: damage
-            .map(entry => ({
+            .map((entry) => ({
               skillId: entry.skillId,
               skill: entry.skill,
               damage: entry.packets
-                .filter(packet => packet.at <= windowSeconds)
+                .filter((packet) => packet.at <= windowSeconds)
                 .reduce(
-                  (sum, packet) =>
-                    sum + packet.strike + packet.condition,
+                  (sum, packet) => sum + packet.strike + packet.condition,
                   0,
                 ),
-              hits: entry.packets
-                .filter(packet => packet.at <= windowSeconds).length,
+              hits: entry.packets.filter((packet) => packet.at <= windowSeconds)
+                .length,
             }))
-            .filter(entry => entry.damage > 0)
+            .filter((entry) => entry.damage > 0)
             .sort((left, right) => right.damage - left.damage),
         },
       }
@@ -605,8 +641,7 @@ const summary = {
 };
 
 if (summary.window) {
-  summary.window.dps =
-    summary.window.totalDamage / summary.window.duration;
+  summary.window.dps = summary.window.totalDamage / summary.window.duration;
 }
 
 console.log(JSON.stringify(summaryOnly ? summary : report, null, 2));

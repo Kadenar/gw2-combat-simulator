@@ -532,7 +532,7 @@ test("Mesmer default builds resolve without embedded rotations", async () => {
   }
 });
 
-test("Guardian Power Luminary default build resolves", async () => {
+test("Guardian Power Luminary default builds resolve", async () => {
   const manifest = JSON.parse(
     await readFile(
       new URL("../../Builds/guardian/manifest.json", import.meta.url),
@@ -540,21 +540,89 @@ test("Guardian Power Luminary default build resolves", async () => {
     ),
   );
   const adapter = await loadProfessionAppAdapter("guardian");
-  const [section] = manifest;
-  const [preset] = section.presets;
-  const saved = JSON.parse(
-    await readFile(new URL(`../../${preset.build}`, import.meta.url), "utf8"),
+  const section = manifest.find(
+    (candidate) => candidate.section === "Luminary",
   );
+  const powerPreset = section.presets.find(
+    (preset) => preset.label === "Power",
+  );
+  const alacrityPreset = section.presets.find(
+    (preset) => preset.label === "Power Alacrity (Greatsword / Spear)",
+  );
+  const [saved, savedAlacrity, powerRotation, alacrityRotation] =
+    await Promise.all(
+      [
+        powerPreset.build,
+        alacrityPreset.build,
+        powerPreset.rotation,
+        alacrityPreset.rotation,
+      ].map((path) =>
+        readFile(new URL(`../../${path}`, import.meta.url), "utf8").then(
+          JSON.parse,
+        ),
+      ),
+    );
   const build = adapter.toApplicationBuild(saved);
+  const alacrityBuild = adapter.toApplicationBuild(savedAlacrity);
+  const radiantBulwarks = alacrityRotation.rotation.filter(
+    (step) =>
+      (typeof step === "string" ? step : step.name) === "Radiant Bulwark",
+  );
 
   assert.equal(section.section, "Luminary");
-  assert.equal(preset.label, "Power");
+  assert.equal(powerPreset.label, "Power");
   assert.equal(Object.hasOwn(saved, "rotation"), false);
   assert.equal(build.profession, "guardian");
   assert.equal(build.specializations[2].name, "Luminary");
   assert.deepEqual(build.weapons, ["Greatsword", ""]);
   assert.deepEqual(build.alternateWeapons, ["Spear", ""]);
   assert.equal(build.startingWeaponSet, 2);
+
+  assert.equal(alacrityPreset.benchmarkDps, 38224);
+  assert.equal(Object.hasOwn(savedAlacrity, "rotation"), false);
+  assert.deepEqual(alacrityBuild.weapons, ["Greatsword", ""]);
+  assert.deepEqual(alacrityBuild.alternateWeapons, ["Spear", ""]);
+  assert.deepEqual(alacrityBuild.gear, {
+    Helm: "Berserker's",
+    Shoulders: "Berserker's",
+    Chest: "Diviner's",
+    Gloves: "Berserker's",
+    Leggins: "Dragon's",
+    Boots: "Berserker's",
+    Amulet: "Dragon's",
+    Ring1: "Dragon's",
+    Ring2: "Dragon's",
+    Accessory1: "Dragon's",
+    Accessory2: "Dragon's",
+    Back: "Dragon's",
+    Weapon1: "Dragon's",
+    Weapon2: "Diviner's",
+  });
+  assert.deepEqual(alacrityBuild.weaponSigils, [
+    ["Force", "Impact"],
+    ["Force", "Concentration"],
+  ]);
+  assert.deepEqual(alacrityBuild.specializations[2], {
+    name: "Luminary",
+    traits: "3-1-2",
+  });
+  assert.deepEqual(alacrityBuild.infusions, [
+    { stat: "Power", count: 18 },
+    { stat: "Precision", count: 0 },
+    { stat: "Condition Damage", count: 0 },
+  ]);
+  assert.deepEqual(
+    alacrityRotation.rotation.filter(
+      (step) =>
+        (typeof step === "string" ? step : step.name) !== "Radiant Bulwark",
+    ),
+    powerRotation.rotation,
+  );
+  assert.deepEqual(
+    radiantBulwarks.map((step) => step.interruptMs),
+    [241, 201, 199, 195, 200],
+  );
+  assert.equal(alacrityRotation.metadata.benchmarkDamage, 3975695);
 });
 
 test("Revenant Power Renegade Greatsword default build resolves", async () => {

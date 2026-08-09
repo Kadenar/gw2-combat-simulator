@@ -95,5 +95,20 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
       color: "#c97645",
     },
   ],
+  timelineWeaponLineTransition: (context: WarriorUiContext) => {
+    const skillId = Number(
+      (context.skill as { readonly id?: number } | undefined)?.id,
+    );
+    if (
+      (skillId === ID.UNSHEATHE_GUNSABER || skillId === ID.DRAGON_TRIGGER) &&
+      context.weaponLine !== "Gunsaber"
+    ) {
+      return "Gunsaber";
+    }
+    if (skillId === ID.SHEATHE_GUNSABER && context.weaponLine === "Gunsaber") {
+      return null;
+    }
+    return undefined;
+  },
   resourceViews: resources,
 });

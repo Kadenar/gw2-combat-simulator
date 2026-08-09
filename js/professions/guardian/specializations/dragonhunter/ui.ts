@@ -1,5 +1,17 @@
 import { guardianUiSkillIdsByName } from "../../core/ui.js";
-import type { GuardianUiContext } from "../../types.js";
+import type {
+  ProfessionEventLogDescriptor,
+  SchedulerRecord,
+} from "../../../../platform/engine/types.js";
+import type { GuardianResolverEvent, GuardianUiContext } from "../../types.js";
+
+function dragonhunterEventLogRow(
+  _context: SchedulerRecord,
+  event: GuardianResolverEvent,
+): ProfessionEventLogDescriptor | null | undefined {
+  if (event.type.startsWith("guardian.dragonhunter-")) return null;
+  return undefined;
+}
 
 const VIRTUE_NAMES = Object.freeze([
   "Spear of Justice",
@@ -8,6 +20,7 @@ const VIRTUE_NAMES = Object.freeze([
 ]);
 
 export const dragonhunterUi = Object.freeze({
+  eventLogRow: dragonhunterEventLogRow,
   skillBarGroups: (context: GuardianUiContext) => [
     {
       id: "guardian-f-keys",

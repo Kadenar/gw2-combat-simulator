@@ -110,15 +110,19 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.ARC_DIVIDER]: {
     implemented: true,
-    castTimeMs: 750,
+    skillWeapon: "Greatsword",
+    castTimeMs: 1040,
     effects: [
       {
         type: "strike",
         coefficient: 3.5,
         hits: 1,
+        atMs: 900,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 680,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -212,23 +216,22 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOOD_RECKONING]: {
     implemented: true,
-    castTimeMs: 250,
+    castTimeMs: 440,
     effects: [],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 280,
     adrenalineGain: 10,
-    handlerId: "warrior.resource",
+    handlerId: "warrior.blood-reckoning",
   },
   [ID.OUTRAGE]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 0,
     effects: [],
-    quicknessCastTimeMs: 333,
     adrenalineGain: 10,
     handlerId: "warrior.resource",
   },
   [ID.HEAD_BUTT]: {
     implemented: true,
-    castTimeMs: 750,
+    castTimeMs: 1200,
     effects: [
       {
         type: "strike",
@@ -243,7 +246,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 800,
     adrenalineGain: 30,
     handlerId: "warrior.resource",
   },
@@ -306,12 +309,22 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.RUPTURING_SMASH]: {
     implemented: true,
+    skillWeapon: "Spear",
     castTimeMs: 750,
     effects: [
       {
         type: "strike",
         coefficient: 2.75,
         hits: 1,
+        metadata: {
+          finisherType: "blast",
+        },
+      },
+      {
+        type: "condition",
+        condition: "Immobilized",
+        stacks: 1,
+        duration: 2,
       },
       {
         type: "control",
@@ -424,12 +437,34 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.WILD_THROW]: {
     implemented: true,
-    castTimeMs: 1750,
+    skillWeapon: "Spear",
+    castTimeMs: 1920,
     effects: [
       {
         type: "strike",
-        coefficient: 5.25,
-        hits: 7,
+        ticks: [
+          { atMs: 350, coefficient: 0.75 },
+          {
+            atMs: 650,
+            coefficient: 0.75,
+            metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE },
+          },
+          { atMs: 900, coefficient: 0.75 },
+          {
+            atMs: 1200,
+            coefficient: 0.75,
+            metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE },
+          },
+          { atMs: 1450, coefficient: 0.75 },
+          {
+            atMs: 1750,
+            coefficient: 0.75,
+            metadata: { evtcSkillId: ID.WILD_THROW_ALTERNATE },
+          },
+          { atMs: 1920, coefficient: 0.75 },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
       {
         type: "condition",
@@ -438,7 +473,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         duration: 5,
       },
     ],
-    quicknessCastTimeMs: 1167,
+    quicknessCastTimeMs: 1280,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

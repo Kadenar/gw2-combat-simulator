@@ -26,8 +26,23 @@ const IMPLEMENTED = new Set([
   "Stalwart Defender",
   "Honorable Staff",
   "Force of Will",
+  "Inspired Virtue",
+  "Virtue of Resolution",
+  "Unscathed Contender",
+  "Master of Consecrations",
+  "Inspiring Virtue",
+  "Glacial Heart",
   "Power of the Virtuous",
+  "Indomitable Courage",
   "Defender's Dogma",
+  "Pure of Sight",
+  "Hunter's Premonition",
+  "Dulled Senses",
+  "Soaring Devastation",
+  "Hunter's Determination",
+  "Zealot's Aggression",
+  "Heavy Light",
+  "Big Game Hunter",
   "Imbued Haste",
   "Searing Pact",
   "Power for Power",
@@ -78,6 +93,32 @@ function implementedEvidence(trait: CatalogEntity): {
   readonly file: string;
   readonly name: string;
 } {
+  if (trait.specialization === "Dragonhunter") {
+    return {
+      file: "tests/professions/guardian/guardian.test.js",
+      name: "Dragonhunter traps and control traits apply their complete effects",
+    };
+  }
+  if (
+    [
+      "Inspired Virtue",
+      "Virtue of Resolution",
+      "Unscathed Contender",
+      "Inspiring Virtue",
+      "Indomitable Courage",
+    ].includes(trait.name)
+  ) {
+    return {
+      file: "tests/professions/guardian/guardian.test.js",
+      name: "Dragonhunter virtues apply tether, passive aegis, and virtue traits",
+    };
+  }
+  if (["Master of Consecrations", "Glacial Heart"].includes(trait.name)) {
+    return {
+      file: "tests/professions/guardian/guardian.test.js",
+      name: "Glacial Heart and Master of Consecrations replace their numeric effects",
+    };
+  }
   if (trait.specialization === "Firebrand") {
     return {
       file: "tests/professions/guardian/guardian.test.js",

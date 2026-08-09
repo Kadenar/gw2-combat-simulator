@@ -73,7 +73,7 @@ export function applyWarriorBuildAttributeRules(
   if (hasTrait("Inspiring Implements"))
     addAttribute(traitStats, "Concentration", 180);
   if (hasTrait("Bloodlust")) traitDurations["Bleeding Duration"] = 33;
-  if (hasTrait("King of Fires")) traitDurations["Burning Duration"] = 20;
+  if (hasTrait("King of Fires")) traitDurations["Burning Duration"] = 33;
 
   return finalizeBuildAttributes(common, {
     activeTraits,

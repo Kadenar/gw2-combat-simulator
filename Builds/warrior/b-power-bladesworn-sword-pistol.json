@@ -17,7 +17,7 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
-  "weapons": ["Axe", "Pistol"],
+  "weapons": ["Sword", "Pistol"],
   "alternateWeapons": ["", ""],
   "rune": "Infiltration",
   "weaponSigils": [

@@ -748,6 +748,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   [ID.MIGHTY_BLOW]: {
     implemented: true,
     castTimeMs: 750,
+    handlerId: "guardian.blast-finisher",
     effects: [
       {
         type: "strike",
@@ -1188,11 +1189,18 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   [ID.GLACIAL_BLOW]: {
     implemented: true,
     castTimeMs: 750,
+    handlerId: "guardian.blast-finisher",
     effects: [
       {
         type: "strike",
         coefficient: 2.5,
         hits: 1,
+      },
+      {
+        type: "condition",
+        condition: "Chilled",
+        stacks: 1,
+        duration: 2.5,
       },
     ],
   },

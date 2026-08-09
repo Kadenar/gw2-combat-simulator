@@ -96,6 +96,7 @@ export function materializeSkillEffectApplications({
             ? { coefficientModifiers: effect.coefficientModifiers }
             : {}),
           ...(effect.metadata || {}),
+          ...(tick?.metadata || {}),
         },
       });
     }
@@ -127,10 +128,7 @@ export function materializeSkillEffectApplications({
         });
       }
     } else {
-      const count = Math.max(
-        1,
-        Math.trunc(Number(effect.applications || 1)),
-      );
+      const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
       const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
       for (
         let applicationIndex = 1;
@@ -156,10 +154,7 @@ export function materializeSkillEffectApplications({
       }
     }
   } else if (effect.type === "control" || effect.type === "blind") {
-    const count = Math.max(
-      1,
-      Math.trunc(Number(effect.applications || 1)),
-    );
+    const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
     const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
     for (
       let applicationIndex = 1;
@@ -190,10 +185,7 @@ export function materializeSkillEffectApplications({
           effect.boon || effect.kind || effect.name || "",
         ).toLowerCase(),
         stacks: Math.max(1, Number(effect.stacks || 1)),
-        duration: Math.max(
-          0,
-          Number(statusDuration ?? effect.duration ?? 0),
-        ),
+        duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
         ...(effect.metadata || {}),
       },
     });

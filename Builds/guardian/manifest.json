@@ -1,5 +1,19 @@
 [
   {
+    "section": "Dragonhunter",
+    "presets": [
+      {
+        "label": "Power (Spear / Greatsword)",
+        "build": "Builds/guardian/b-power-dragonhunter-spear-greatsword.json",
+        "rotation": "Rotations/guardian/r-power-dragonhunter-spear-greatsword-bench.json",
+        "benchmarkDps": 41476,
+        "sourceBenchmarkDps": 41853,
+        "dpsReportUrl": "https://dps.report/so5x-20260418-005724_golem",
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Luminary",
     "presets": [
       {
@@ -7,6 +21,12 @@
         "build": "Builds/guardian/b-power-luminary.json",
         "rotation": "Rotations/guardian/r-power-luminary-bench.json",
         "benchmarkDps": 42328
+      },
+      {
+        "label": "Power Alacrity (Greatsword / Spear)",
+        "build": "Builds/guardian/b-power-alac-luminary.json",
+        "rotation": "Rotations/guardian/r-power-alac-luminary-bench.json",
+        "benchmarkDps": 38224
       }
     ]
   }

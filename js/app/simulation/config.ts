@@ -1,6 +1,4 @@
-import type {
-  SkillId,
-} from "../../platform/engine/types.js";
+import type { SkillId } from "../../platform/engine/types.js";
 import type {
   Gw2AttributeBreakdown,
   Gw2Config,
@@ -51,11 +49,11 @@ export function createGw2SimulationConfig({
     delete targetConditions.Vulnerability;
   }
   const sigilSets = [1, 2]
-    .map(setNumber => weaponSigilsForSet(app.build, setNumber))
-    .map(names =>
+    .map((setNumber) => weaponSigilsForSet(app.build, setNumber))
+    .map((names) =>
       disabled?.type === "Sigil"
-        ? names.filter(name => name !== disabled.name)
-        : names
+        ? names.filter((name) => name !== disabled.name)
+        : names,
     )
     .map(aggregateSigilSet);
   const displayedConditionDuration = breakdown("Condition Duration");
@@ -73,10 +71,7 @@ export function createGw2SimulationConfig({
           name,
           Number(duration.final || 0) - Number(duration.sigils || 0),
         );
-        return [
-          name === "Poison" ? "Poisoned" : name,
-          Math.max(0, bonus),
-        ];
+        return [name === "Poison" ? "Poisoned" : name, Math.max(0, bonus)];
       })
       .filter(([, bonus]) => bonus > 0),
   );
@@ -121,7 +116,7 @@ export function createGw2SimulationConfig({
             professionState: app.results?.endState?.profession,
             catalog: app.profession.catalog,
           })
-          .map(id => app.skillById.get(Number(id))?.name)
+          .map((id) => app.skillById.get(Number(id))?.name)
           .filter((name): name is string => name != null)
       : Object.values(app.build.selectedSkills),
     primaryWeapon: app.build.weapons[0],
@@ -141,15 +136,16 @@ export function createGw2SimulationConfig({
     ),
     deterministicChoices: Object.fromEntries(
       professionAssumptionControls
-        .filter(control =>
-          control.type === "select" &&
-          !isSimulationRandomnessControl(control)
+        .filter(
+          (control) =>
+            control.type === "select" &&
+            !isSimulationRandomnessControl(control),
         )
-        .map(control => [control.key, assumptions[control.key]]),
+        .map((control) => [control.key, assumptions[control.key]]),
     ),
     randomness: simulationRandomnessFromAssumptions(assumptions),
     professionAssumptions: Object.fromEntries(
-      professionAssumptionControls.map(control => [
+      professionAssumptionControls.map((control) => [
         control.key,
         assumptions[control.key] ?? control.defaultValue,
       ]),
@@ -201,6 +197,7 @@ export function createGw2SimulationConfig({
     target: {
       armor: app.build.targetArmor,
       health: Math.max(0, Number(app.build.targetHealth) || 0),
+      count: Math.max(1, Math.trunc(Number(assumptions.targetCount) || 1)),
       // Existing professions retain the historical defiant-golem default.
       defiant: Boolean(assumptions.targetDefiant ?? true),
       flanking: Boolean(assumptions.flanking),

@@ -19,29 +19,54 @@ import type {
 function afterResourceSkill(
   context: WarriorCastContext,
   skill: WarriorSkill,
-): number {
+): { spent: number; berserkersPowerGranted: boolean } {
   const spent = applyWarriorSkillResource(context, skill);
   const state = professionCoreState(context);
   if (skill.burst && spent > 0 && hasTrait(context, TRAIT.BURST_PRECISION)) {
     state.burstPrecisionDurations[context.reservationId] = spent >= 30 ? 4 : 2;
   }
-  if (skill.burst && spent > 0 && hasTrait(context, TRAIT.BERSERKERS_POWER)) {
-    const stacks =
-      skill.primalBurst || context.config.specialization === "Spellbreaker"
-        ? 2
-        : spent >= 30
-          ? 4
-          : spent >= 20
-            ? 3
-            : 2;
-    grantBerserkersPower(
-      context,
-      stacks,
-      context.effectiveEnd + context.epsilon,
-      skill,
-    );
+  return { spent, berserkersPowerGranted: false };
+}
+
+function berserkersPowerStacks(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+  spent: number,
+): number {
+  if (
+    !skill.burst ||
+    spent <= 0 ||
+    !hasTrait(context, TRAIT.BERSERKERS_POWER)
+  ) {
+    return 0;
   }
-  return spent;
+  return skill.primalBurst || context.config.specialization === "Spellbreaker"
+    ? 2
+    : spent >= 30
+      ? 4
+      : spent >= 20
+        ? 3
+        : 2;
+}
+
+function grantBerserkersPowerOnFirstHit(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+  event: WarriorSimulationEvent,
+  handlerState: { spent: number; berserkersPowerGranted: boolean },
+): void {
+  if (
+    handlerState.berserkersPowerGranted ||
+    event.type !== "damage" ||
+    !(Number(event.coefficient) > 0)
+  ) {
+    return;
+  }
+  const stacks = berserkersPowerStacks(context, skill, handlerState.spent);
+  if (stacks > 0) {
+    handlerState.berserkersPowerGranted = true;
+    grantBerserkersPower(context, stacks, event.at + context.epsilon, skill);
+  }
 }
 
 function adjustResourceSkillEffect(
@@ -50,7 +75,12 @@ function adjustResourceSkillEffect(
   event: WarriorSimulationEvent,
   handlerState: unknown,
 ): void {
-  const spent = Number(handlerState || 0);
+  const state = handlerState as {
+    spent: number;
+    berserkersPowerGranted: boolean;
+  };
+  const spent = Number(state?.spent || 0);
+  grantBerserkersPowerOnFirstHit(context, skill, event, state);
   if (
     skill.id === ID.BLOODTHIRSTER &&
     event.type === "condition" &&
@@ -70,6 +100,22 @@ function adjustResourceSkillEffect(
     coefficient: spent >= 30 ? 3 : spent >= 20 ? 2.5 : 2,
     name: `Eviscerate — Level ${spent >= 30 ? 3 : spent >= 20 ? 2 : 1} Damage`,
   });
+}
+
+function adjustMightyThrowTarget(
+  context: WarriorCastContext,
+  _skill: WarriorSkill,
+  event: WarriorSimulationEvent,
+): void {
+  if (
+    event.name === "Mighty Throw — Shard Damage" &&
+    Math.max(1, Number(context.config.target?.count || 1)) === 1
+  ) {
+    context.replaceEvent(event, {
+      coefficient: 0,
+      secondaryTargetOnly: true,
+    });
+  }
 }
 
 function swapWarriorWeapons(
@@ -100,6 +146,9 @@ function consumeDragonRoarAmmo(
   skill: WarriorSkill,
 ): void {
   const bullets = Math.max(1, Number(context.ammo?.charges || 1));
+  const castDuration = Math.max(0, context.effectiveEnd - context.start);
+  const firstBulletAt = context.start + (castDuration * 6) / 7;
+  const bulletInterval = (castDuration * 2) / 7;
   if (context.state.profession.specialization.kind === "Bladesworn") {
     const state = context.state.profession.specialization.state;
     state.ammoRoundsSpentByActivation[context.reservationId] = bullets;
@@ -115,7 +164,7 @@ function consumeDragonRoarAmmo(
   for (let hitIndex = 1; hitIndex <= bullets; hitIndex += 1) {
     context.emit({
       type: "damage",
-      at: context.effectiveEnd,
+      at: firstBulletAt + (hitIndex - 1) * bulletInterval,
       source: "Warrior",
       sourceId: skill.id,
       actorType: "player",
@@ -172,6 +221,9 @@ function performWarriorDodge(
 export const warriorCoreSkillHandlers = Object.freeze({
   "warrior.resource": augmentSkillHandler(afterResourceSkill, {
     afterEffect: adjustResourceSkillEffect,
+  }),
+  "warrior.mighty-throw": augmentSkillHandler(null, {
+    afterEffect: adjustMightyThrowTarget,
   }),
   "warrior.weapon-swap": replaceSkillHandler(swapWarriorWeapons),
   "warrior.gunstinger": augmentSkillHandler(null),

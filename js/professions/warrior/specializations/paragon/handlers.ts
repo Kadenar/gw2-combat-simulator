@@ -299,14 +299,6 @@ export function updateParagonCast(
   skill: WarriorSkill,
 ): void {
   const state = paragonState.from(context);
-  if (
-    skill.burst &&
-    skill.handlerId !== "warrior.chant" &&
-    state.activeRefrain
-  ) {
-    gainMotivation(context, 4);
-    emitParagonState(context, context.effectiveEnd + context.epsilon, "rally");
-  }
   if (skill.burst && state.pendingCommandEchoes.length) {
     for (const echo of [...state.pendingCommandEchoes]) {
       executePendingEcho(context, echo.id, context.effectiveEnd);
@@ -328,6 +320,23 @@ export function updateParagonCast(
   }
 }
 
+export function beginParagonCast(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+): void {
+  const state = paragonState.from(context);
+  if (
+    !skill.burst ||
+    skill.handlerId === "warrior.chant" ||
+    !hasTrait(context, TRAIT.RALLY_THE_VALIANT) ||
+    !state.activeRefrain
+  ) {
+    return;
+  }
+  gainMotivation(context, 4);
+  emitParagonState(context, context.start + context.epsilon, "rally");
+}
+
 export function handleParagonCommandEchoTask(
   context: WarriorSchedulerContext,
   task: ScheduledTask,
@@ -337,6 +346,7 @@ export function handleParagonCommandEchoTask(
 }
 
 export const paragonSchedulerHooks = Object.freeze({
+  onCastStart: beginParagonCast,
   advance: {
     id: "warrior.paragon-refrain",
     order: 20,

@@ -155,25 +155,6 @@ export function completeWarriorSkill(
     const dragonsRoar = context.catalog.skillsById.get(ID.DRAGONS_ROAR);
     if (dragonsRoar) restoreAmmo(context, dragonsRoar, 3, at);
   }
-  if (
-    skill.categories?.includes("Physical") &&
-    skill.id !== ID.KICK &&
-    hasTrait(context, TRAIT.PEAK_PERFORMANCE)
-  ) {
-    context.emit({
-      type: "buff",
-      at,
-      source: "Trait",
-      sourceId: TRAIT.PEAK_PERFORMANCE,
-      actorType: "effect",
-      skillId: skill.id,
-      skillName: skill.name,
-      name: "Peak Performance",
-      kind: "peak-performance",
-      stacks: 1,
-      duration: 6,
-    });
-  }
   if (skill.shadowstepSkill && context.config.relic === "Peitha") {
     context.emit({
       type: "peitha",
@@ -226,23 +207,25 @@ export function beginWarriorSkill(
   skill: WarriorSkill,
 ): void {
   if (
-    skill.id !== ID.KICK ||
     !skill.categories?.includes("Physical") ||
     !hasTrait(context, TRAIT.PEAK_PERFORMANCE)
   ) {
     return;
   }
-  const strike = skill.effects?.find((effect) => effect.type === "strike");
-  const authoredOffsetMs = Number(
-    strike?.ticks?.[0]?.atMs ?? strike?.atMs ?? skill.castTimeMs ?? 0,
-  );
-  const baseCastMs = Math.max(1, Number(skill.castTimeMs || 0));
-  const runtimeCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
-  const offsetMs =
-    strike?.timingScale === "cast"
-      ? authoredOffsetMs * (runtimeCastMs / baseCastMs)
-      : authoredOffsetMs;
-  const at = Math.min(context.effectiveEnd, context.start + offsetMs / 1000);
+  let at = context.start;
+  if (skill.id === ID.KICK) {
+    const strike = skill.effects?.find((effect) => effect.type === "strike");
+    const authoredOffsetMs = Number(
+      strike?.ticks?.[0]?.atMs ?? strike?.atMs ?? skill.castTimeMs ?? 0,
+    );
+    const baseCastMs = Math.max(1, Number(skill.castTimeMs || 0));
+    const runtimeCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
+    const offsetMs =
+      strike?.timingScale === "cast"
+        ? authoredOffsetMs * (runtimeCastMs / baseCastMs)
+        : authoredOffsetMs;
+    at = Math.min(context.effectiveEnd, context.start + offsetMs / 1000);
+  }
   context.emit({
     type: "buff",
     at,

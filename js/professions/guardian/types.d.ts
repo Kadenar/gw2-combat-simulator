@@ -37,10 +37,8 @@ export interface GuardianApplicationBuild extends ProfessionApplicationBuild {
   initialTomePages: number;
 }
 
-export interface GuardianBuildAttributeRuleContext extends Omit<
-  Gw2BuildAttributeRuleContext,
-  "build"
-> {
+export interface GuardianBuildAttributeRuleContext
+  extends Omit<Gw2BuildAttributeRuleContext, "build"> {
   readonly build: GuardianBuild;
 }
 
@@ -48,6 +46,7 @@ export interface GuardianConfig extends Gw2Config {
   readonly selectedTraitIds?: readonly (string | number)[];
   readonly maximumTomePages?: number;
   readonly initialTomePages?: number;
+  readonly initialEndurance?: number;
   readonly specialization?: string;
   readonly specializations?: readonly (string | { readonly name?: string })[];
 }
@@ -58,6 +57,9 @@ export interface GuardianLightField {
 }
 
 export interface GuardianCoreState {
+  endurance: number;
+  maximumEndurance: number;
+  enduranceUpdatedAt: number;
   justiceArmed: boolean;
   justiceActiveArmed: boolean;
   justiceHitCount: number;
@@ -115,22 +117,32 @@ export interface GuardianLuminaryState {
   effulgentStacks: number;
 }
 
+export interface GuardianDragonhunterState {
+  tetherUntil: number;
+  nextCourageAegisAt: number;
+  heavyLightReadyAt: number;
+}
+
 export interface GuardianState
-  extends GuardianCoreState, GuardianFirebrandState, GuardianLuminaryState {}
+  extends GuardianCoreState,
+    GuardianDragonhunterState,
+    GuardianFirebrandState,
+    GuardianLuminaryState {}
 
 export interface GuardianRuntimeState {
   core: GuardianCoreState;
   specialization:
     | { kind: "Core"; state: Record<string, never> }
-    | { kind: "Dragonhunter"; state: Record<string, never> }
+    | { kind: "Dragonhunter"; state: GuardianDragonhunterState }
     | { kind: "Firebrand"; state: GuardianFirebrandState }
     | { kind: "Willbender"; state: Record<string, never> }
     | { kind: "Luminary"; state: GuardianLuminaryState };
 }
 
-export type GuardianSchedulerContext = SchedulerContext<GuardianRuntimeState> & {
-  readonly config: GuardianConfig;
-};
+export type GuardianSchedulerContext =
+  SchedulerContext<GuardianRuntimeState> & {
+    readonly config: GuardianConfig;
+  };
 
 export type GuardianCastContext = CastLifecycleContext<GuardianRuntimeState> & {
   readonly config: GuardianConfig;
@@ -203,6 +215,7 @@ export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly radiantForgeEnteredAt?: number;
   readonly radiantWeapon?: string;
   readonly specialization?: string;
+  readonly tetherUntil?: number;
   readonly virtue?: GuardianVirtue;
 };
 

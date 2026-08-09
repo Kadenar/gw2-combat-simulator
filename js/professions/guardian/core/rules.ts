@@ -18,6 +18,7 @@ import type {
 } from "../../../platform/gw2/types.js";
 import type {
   GuardianCastContext,
+  GuardianPrecastContext,
   GuardianSchedulerContext,
   GuardianSkill,
   GuardianState,
@@ -54,7 +55,7 @@ export function guardianRuntimeState(
     | undefined;
   return state && "core" in state && state.core
     ? state.core
-    : state as Partial<GuardianState> || {};
+    : (state as Partial<GuardianState>) || {};
 }
 
 /** @param {Gw2ModifierContext} context */
@@ -160,6 +161,7 @@ export function latestGuardianTimedBuff(
 export function guardianTargetDisabled(context: Gw2ModifierContext): boolean {
   if (
     context.config?.target?.disabled ||
+    context.config?.target?.defiant ||
     context.config?.target?.defianceBroken
   )
     return true;
@@ -210,14 +212,64 @@ function modifyGuardianAttributes(
   if (!staticApplied && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)) {
     result.ferocity += 150;
   }
-  if (hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)) {
-    result.conditionDamage += Number(result.vitality || 0) * 0.13;
+  if (
+    !staticApplied &&
+    hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
+  ) {
+    result.conditionDamage += Number(result.vitality || 0) * 0.07;
   }
   return result;
 }
 
 export const guardianCoreModifierRules: readonly Gw2ModifierRule[] =
   Object.freeze([
+    {
+      id: "guardian.inspired-virtue",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: (context) =>
+        [
+          "aegis",
+          "alacrity",
+          "fury",
+          "might",
+          "protection",
+          "quickness",
+          "regeneration",
+          "resistance",
+          "resolution",
+          "stability",
+          "swiftness",
+          "vigor",
+        ].filter((boon) => guardianBoonActive(context, boon)).length * 0.005,
+      when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE),
+    },
+    {
+      id: "guardian.unscathed-contender-health",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.05,
+      when: (context) =>
+        hasTrait(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER),
+    },
+    {
+      id: "guardian.unscathed-contender-aegis",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.05,
+      when: (context) =>
+        hasTrait(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER) &&
+        guardianBoonActive(context, "aegis"),
+    },
+    {
+      id: "guardian.inspiring-virtue",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.1,
+      when: (context) =>
+        hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE) &&
+        guardianTimedBuffActive(context, "guardian-inspiring-virtue"),
+    },
     {
       id: "guardian.radiant-power-critical-chance",
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
@@ -363,11 +415,8 @@ function modifyGuardianRechargeDuration(
     result *= 0.8;
   }
   if (
-    [
-      GUARDIAN_SKILL_IDS.JUSTICE,
-      GUARDIAN_SKILL_IDS.RESOLVE,
-      GUARDIAN_SKILL_IDS.COURAGE,
-    ].some((skillId) => skillId === skill?.id) &&
+    skill?.categories?.includes("Virtue") &&
+    /^Profession_[1-3]$/.test(String(skill.slot || "")) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
   ) {
     result *= 0.85;
@@ -403,7 +452,8 @@ function modifyGuardianCastDuration(
   ) {
     return duration;
   }
-  return Number(professionCoreState(context).daybreakingSlashChainStep || 0) === 0
+  return Number(professionCoreState(context).daybreakingSlashChainStep || 0) ===
+    0
     ? 0.52
     : 0.44;
 }
@@ -425,6 +475,18 @@ export const guardianCoreCastRules = Object.freeze({
       id: "guardian.virtues",
       order: 20,
       handler: validateVirtueCast,
+    },
+    {
+      id: "guardian.glacial-heart",
+      order: 30,
+      handler: (context: GuardianPrecastContext, skill: GuardianSkill) => {
+        if (skill.id === GUARDIAN_SKILL_IDS.MIGHTY_BLOW) {
+          return !hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
+        }
+        if (skill.id === GUARDIAN_SKILL_IDS.GLACIAL_BLOW) {
+          return hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
+        }
+      },
     },
     {
       id: "guardian.weapon-state",

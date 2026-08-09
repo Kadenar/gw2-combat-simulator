@@ -13,21 +13,23 @@ import type {
 import type { NativeAutoattackChains } from "../../platform/gw2/native-profession.js";
 import type { GuardianSkill } from "./types.js";
 
-export const GUARDIAN_NON_DPS_SKILL_NAMES = Object.freeze(new Set([
-  '"Advance!"',
-  '"Save Yourselves!"',
-  '"Hold the Line!"',
-  "Signet of Mercy",
-  "Merciful Intervention",
-  "Wall of Reflection",
-  "Contemplation of Purity",
-  '"Stand Your Ground!"',
-  "Valorous Stance",
-  "Stalwart Stance",
-  "Mantra of Lore",
-  "Hallowed Ground",
-  "Bow of Truth",
-]));
+export const GUARDIAN_NON_DPS_SKILL_NAMES = Object.freeze(
+  new Set([
+    '"Advance!"',
+    '"Save Yourselves!"',
+    '"Hold the Line!"',
+    "Signet of Mercy",
+    "Merciful Intervention",
+    "Wall of Reflection",
+    "Contemplation of Purity",
+    '"Stand Your Ground!"',
+    "Valorous Stance",
+    "Stalwart Stance",
+    "Mantra of Lore",
+    "Hallowed Ground",
+    "Bow of Truth",
+  ]),
+);
 
 const allSkills: readonly GuardianSkill[] = Object.freeze([
   ...SKILLS,
@@ -39,6 +41,7 @@ for (const skill of allSkills) {
   if (
     skill.flipSkillId != null &&
     skill.flipSkillId !== skill.nextChainId &&
+    skill.flipSkillId !== ID.GLACIAL_BLOW &&
     generatedById.has(skill.flipSkillId) &&
     generatedById.get(skill.flipSkillId)?.name !== skill.name &&
     !generatedById.get(skill.flipSkillId)?.categories?.includes("Virtue")
@@ -51,13 +54,13 @@ const generated: readonly Skill[] = allSkills.map((skill) => {
   const flipParentId = flipParentById.get(skill.id);
   return {
     ...skill,
-    cooldown: Number(skill.ammo || 0) > 0
-      ? skill.ammoRecharge || skill.recharge
-      : skill.recharge,
+    cooldown:
+      Number(skill.ammo || 0) > 0
+        ? skill.ammoRecharge || skill.recharge
+        : skill.recharge,
     flipParentId: flipParentId ?? null,
-    flipParent: flipParentId == null
-      ? ""
-      : generatedById.get(flipParentId)?.name || "",
+    flipParent:
+      flipParentId == null ? "" : generatedById.get(flipParentId)?.name || "",
     simulatorExcluded: GUARDIAN_NON_DPS_SKILL_NAMES.has(skill.name),
     implemented: false,
     effects: [],
@@ -95,15 +98,28 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
       ID.RADIANT_JUSTICE,
     ],
   });
-const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(Object.fromEntries(
-  Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
-    skillIds.map((skillId) => [String(skillId), owner])
+const SPECIALIZATION_ONLY_SKILL_OWNERS = Object.freeze(
+  Object.fromEntries(
+    Object.entries(SPECIALIZATION_ONLY_SKILLS).flatMap(([owner, skillIds]) =>
+      skillIds.map((skillId) => [String(skillId), owner]),
+    ),
   ),
-));
+);
 
 const WEAPONS = Object.freeze([
-  "Axe", "Focus", "Greatsword", "Hammer", "Longbow", "Mace", "Pistol",
-  "Scepter", "Shield", "Spear", "Staff", "Sword", "Torch",
+  "Axe",
+  "Focus",
+  "Greatsword",
+  "Hammer",
+  "Longbow",
+  "Mace",
+  "Pistol",
+  "Scepter",
+  "Shield",
+  "Spear",
+  "Staff",
+  "Sword",
+  "Torch",
 ]);
 const WEAPON_HANDS = Object.freeze({
   Axe: "mh",

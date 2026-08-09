@@ -68,7 +68,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.GREATSWORD_SWING]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 600,
     effects: [
       {
         type: "strike",
@@ -82,7 +82,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         duration: 8,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 400,
   },
   [ID.HAMMER_SWING]: {
     implemented: true,
@@ -648,9 +648,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.MENDING]: {
     implemented: true,
+    cooldown: 12,
+    recharge: 12,
     castTimeMs: 1380,
     effects: [],
     quicknessCastTimeMs: 920,
+    categories: ["Physical"],
   },
   [ID.TO_THE_LIMIT]: {
     implemented: true,
@@ -806,6 +809,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         type: "buff",
         kind: "signet-of-fury-active",
         duration: 4,
+        durationScale: "fixed",
+        atMs: 40,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         stacks: 1,
       },
     ],
@@ -1070,7 +1077,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.RUSH]: {
     implemented: true,
-    castTimeMs: 2000,
+    castTimeMs: 1520,
     effects: [
       {
         type: "strike",
@@ -1078,7 +1085,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 1333,
+    quicknessCastTimeMs: 1000,
   },
   [ID.WHIRLWIND_ATTACK]: {
     implemented: true,
@@ -1393,15 +1400,19 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLADETRAIL]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 840,
     effects: [
       {
         type: "strike",
-        coefficient: 1.5,
-        hits: 1,
+        ticks: [
+          { atMs: 517, coefficient: 1.5 },
+          { atMs: 1517, coefficient: 1.5 },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 560,
   },
   [ID.BACKBREAKER]: {
     implemented: true,
@@ -1439,7 +1450,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BULLS_CHARGE]: {
     implemented: true,
-    castTimeMs: 1200,
+    castTimeMs: 960,
     effects: [
       {
         type: "strike",
@@ -1454,7 +1465,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 800,
+    quicknessCastTimeMs: 640,
   },
   [ID.CRUSHING_BLOW]: {
     implemented: true,
@@ -1629,21 +1640,30 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.HUNDRED_BLADES]: {
     implemented: true,
-    castTimeMs: 3500,
+    castTimeMs: 3680,
     effects: [
       {
         type: "strike",
-        coefficient: 6.2,
-        hits: 8,
-      },
-      {
-        type: "strike",
-        coefficient: 1.5,
-        hits: 1,
-        name: "Hundred Blades — Final Strike Damage",
+        ticks: [
+          { atMs: 475, coefficient: 0.775 },
+          { atMs: 725, coefficient: 0.775 },
+          { atMs: 1025, coefficient: 0.775 },
+          { atMs: 1325, coefficient: 0.775 },
+          { atMs: 1750, coefficient: 0.775 },
+          { atMs: 1975, coefficient: 0.775 },
+          { atMs: 2350, coefficient: 0.775 },
+          { atMs: 2700, coefficient: 0.775 },
+          {
+            atMs: 3425,
+            coefficient: 1.5,
+            name: "Hundred Blades — Final Strike Damage",
+          },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
     ],
-    quicknessCastTimeMs: 2333,
+    quicknessCastTimeMs: 2440,
   },
   [ID.ADRENALINE_RUSH]: {
     implemented: true,
@@ -2166,19 +2186,28 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.MAIMING_SPEAR]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 720,
     effects: [
       {
         type: "strike",
         coefficient: 1.1,
         hits: 1,
         name: "Maiming Spear — Initial Strike Damage",
+        atMs: 1000,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
       {
         type: "strike",
-        coefficient: 0.75,
+        coefficient: 0.9,
         hits: 1,
         name: "Maiming Spear — Aftershock Damage",
+        atMs: 1517,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: {
+          finisherType: "blast",
+        },
       },
       {
         type: "condition",
@@ -2187,7 +2216,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         duration: 3,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 480,
   },
   [ID.HARRIERS_TOSS]: {
     implemented: true,
@@ -2212,31 +2241,47 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.MIGHTY_THROW]: {
     implemented: true,
-    castTimeMs: 500,
+    handlerId: "warrior.mighty-throw",
+    castTimeMs: 960,
     effects: [
       {
         type: "strike",
         coefficient: 1.2,
         hits: 1,
         name: "Mighty Throw — Spear Damage",
+        atMs: 720,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
       {
         type: "strike",
         coefficient: 0.9,
         hits: 1,
         name: "Mighty Throw — Shard Damage",
+        atMs: 700,
+        timingAnchor: "castStart",
+        timingScale: "cast",
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 640,
   },
   [ID.DISRUPTING_THROW]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 800,
     effects: [
       {
         type: "strike",
         coefficient: 2,
         hits: 1,
+        atMs: 615,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        condition: "Immobilized",
+        stacks: 1,
+        duration: 2,
       },
       {
         type: "control",
@@ -2246,19 +2291,28 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 520,
   },
   [ID.SPEARMARSHALS_SUPPORT]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 800,
     effects: [
       {
         type: "strike",
-        coefficient: 2.8000000000000003,
-        hits: 7,
+        ticks: [
+          { atMs: 967, coefficient: 0.5 },
+          { atMs: 1167, coefficient: 0.5 },
+          { atMs: 1367, coefficient: 0.5 },
+          { atMs: 1567, coefficient: 0.5 },
+          { atMs: 1767, coefficient: 0.5 },
+          { atMs: 1967, coefficient: 0.5 },
+          { atMs: 2167, coefficient: 0.5 },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 520,
   },
   [ID.HARRIERS_TOSS_ID_73006]: {
     implemented: true,
@@ -2285,12 +2339,6 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 750,
     effects: [
-      {
-        type: "control",
-        metadata: {
-          controlKind: "knockback",
-        },
-      },
       {
         type: "control",
         metadata: {

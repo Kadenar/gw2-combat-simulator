@@ -10,7 +10,7 @@ function normalizeResourceView(
   const maximum = Math.max(0, Number(view.maximum || 0));
   const displayMode =
     typeof view.displayMode === "string" &&
-    ["bar", "pips"].includes(view.displayMode)
+    ["bar", "counter", "pips"].includes(view.displayMode)
       ? view.displayMode
       : maximum > 20
         ? "bar"

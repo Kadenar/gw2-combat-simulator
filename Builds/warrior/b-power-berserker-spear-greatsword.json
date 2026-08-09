@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 3,
+  "profession": "warrior",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "weapons": ["Spear", ""],
+  "alternateWeapons": ["Greatsword", ""],
+  "rune": "Scholar",
+  "weaponSigils": [
+    ["Force", "Air"],
+    ["Force", "Hydromancy"]
+  ],
+  "relic": "Claw",
+  "food": "Plate of Coq Au Vin with Salsa",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    { "stat": "Precision", "count": 4 },
+    { "stat": "Power", "count": 14 }
+  ],
+  "specializations": [
+    { "name": "Strength", "traits": "3-3-1" },
+    { "name": "Tactics", "traits": "1-1-1" },
+    { "name": "Berserker", "traits": "1-1-1" }
+  ],
+  "selectedSkills": {
+    "Heal": "Blood Reckoning",
+    "Utility1": "Bull's Charge",
+    "Utility2": "Signet of Might",
+    "Utility3": "Outrage",
+    "Elite": "Head Butt"
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "initialResource": 30,
+  "startingWeaponSet": 1,
+  "targetHealth": 3970000,
+  "targetArmor": 2597,
+  "rotation": []
+}
