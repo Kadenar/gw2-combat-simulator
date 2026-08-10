@@ -599,6 +599,10 @@ function activateOverchargedCartridges(
 ): void {
   const state = bladeswornState.from(context);
   const active = activeCartridgeWindow(state, at);
+  // Ammo is reserved before this handler runs. Casting again while the
+  // cartridges are already supercharged therefore spends the charge without
+  // refreshing or replacing the active window.
+  if (active?.supercharged) return;
   if (active) active.expiresAt = at;
   const supercharged = Boolean(active);
   state.overchargedCartridgeWindows.push({
