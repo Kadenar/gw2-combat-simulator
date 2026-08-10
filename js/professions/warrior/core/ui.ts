@@ -4,12 +4,18 @@ import { WARRIOR_SKILL_IDS as ID } from "../data/ids.js";
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
+  ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionUiContract,
 } from "../../../platform/engine/types.js";
-import type { WarriorSkill, WarriorState, WarriorUiContext } from "../types.js";
+import type {
+  WarriorSimulationEvent,
+  WarriorSkill,
+  WarriorState,
+  WarriorUiContext,
+} from "../types.js";
 
 let warriorCatalog: Readonly<CanonicalCatalog>;
 
@@ -276,8 +282,36 @@ function availability(
   return { available: true, message: "" };
 }
 
+/**
+ * Presents boon-removal effects (e.g. Breaching Strike) in the event log for
+ * every warrior specialization. Returning `undefined` for other custom events
+ * lets a specialization slice present or suppress its own event types.
+ */
+function warriorEventLogRow(
+  _context: WarriorUiContext,
+  event: WarriorSimulationEvent,
+): ProfessionEventLogDescriptor | null | undefined {
+  if (event?.type !== "warrior.boon-removal") return undefined;
+  const attempted = Math.max(
+    1,
+    Math.trunc(Number(event.attemptedBoonRemovals) || 1),
+  );
+  const removed =
+    event.boonsRemoved == null ? null : Math.max(0, Number(event.boonsRemoved));
+  const source = event.skillName || event.name || "Boon removal";
+  const detail = removed == null ? `x${attempted}` : `${removed}/${attempted}`;
+  return {
+    type: event.type,
+    description: `BOON REMOVAL ${source} (${detail})`,
+    className: "trigger",
+    order: 55,
+    flags: [],
+  };
+}
+
 export const warriorCoreUi: Partial<ProfessionUiContract> = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+  eventLogRow: warriorEventLogRow,
   paletteGroups: (context) =>
     warriorUiSpecialization(context) === "Core"
       ? warriorPaletteGroups(context)
