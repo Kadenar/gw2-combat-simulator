@@ -2304,6 +2304,20 @@ test("Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow", (
       [4, 2, 8],
     ],
   );
+  const positiveFlowState = warriorProfession.ui
+    .rotationStateSnapshot({
+      specialization: "Bladesworn",
+      professionState: overlapping.endState.profession,
+      atSeconds: overlapping.endState.time / 1000,
+      result: overlapping,
+    })
+    .find((item) => item.id === "positive-flow");
+  assert.deepEqual(positiveFlowState, {
+    id: "positive-flow",
+    label: "Positive Flow",
+    value: "4 stacks · 2.0s",
+    title: "Positive Flow active (4 stacks; time until the next stack expires)",
+  });
 
   const firstCast = simulate("Bladesworn", [ID.FLOW_STABILIZER], {
     initialResource: 0,
@@ -2522,6 +2536,19 @@ test("Overcharged Cartridges buffs explosion damage and burning", () => {
       ["overcharged-cartridges", 0.28],
       ["supercharged-cartridges", 1.88],
     ],
+  );
+  const cartridgeState = warriorProfession.ui
+    .rotationStateSnapshot({
+      specialization: "Bladesworn",
+      professionState: timed.endState.profession,
+      atSeconds: timed.endState.time / 1000,
+      result: timed,
+    })
+    .find((item) => item.id === "supercharged-cartridges");
+  assert.equal(cartridgeState.label, "Supercharged Cartridges");
+  assert.equal(
+    cartridgeState.title,
+    "Supercharged Cartridges active (+20% damage)",
   );
 });
 
