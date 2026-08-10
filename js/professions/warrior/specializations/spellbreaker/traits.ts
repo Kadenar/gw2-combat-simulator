@@ -3,6 +3,7 @@ import {
   WARRIOR_SKILL_IDS as ID,
   WARRIOR_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
+import { warriorBoonRemovalCounts } from "../../core/resolver.js";
 import { spellbreakerState } from "./state.js";
 import type {
   WarriorResolverContext,
@@ -42,29 +43,11 @@ function attackerInsightApplications(
     : 1;
 }
 
-function configuredTargetBoonCount(
-  context: WarriorSchedulerContext | WarriorResolverContext,
-): number {
-  const target = context.config.target;
-  if (target?.boonless === true) return 0;
-  if (Array.isArray(target?.boons)) {
-    return new Set(target.boons.map(String)).size;
-  }
-  if (target?.boonCount != null) {
-    return Math.max(0, Math.trunc(Number(target.boonCount) || 0));
-  }
-  return target?.boonless === false ? 1 : 0;
-}
-
 function attackerInsightFromBoonRemoval(
   context: WarriorSchedulerContext | WarriorResolverContext,
   event: WarriorSimulationEvent | WarriorResolverEvent,
 ): { attempted: number; removed: number; applications: number } {
-  const attempted = Math.max(
-    1,
-    Math.trunc(Number(event.attemptedBoonRemovals) || 1),
-  );
-  const removed = Math.min(attempted, configuredTargetBoonCount(context));
+  const { attempted, removed } = warriorBoonRemovalCounts(context, event);
   return { attempted, removed, applications: removed };
 }
 
@@ -201,32 +184,6 @@ export function observeSpellbreakerEvent(
       : context.catalog.skillsById.get(event.skillId);
   if (skill?.burst) {
     triggerMagebaneTether(spellbreakerState.from(context), event.at);
-  }
-}
-
-export function reactToSpellbreakerBoonRemoval(
-  context: WarriorResolverContext,
-  event: WarriorResolverEvent,
-): void {
-  const { attempted, removed, applications } = attackerInsightFromBoonRemoval(
-    context,
-    event,
-  );
-  Object.assign(event, {
-    attemptedBoonRemovals: attempted,
-    boonsRemoved: removed,
-  });
-  context.resolved.push(event);
-  if (
-    event.actorType === "player" &&
-    applications > 0 &&
-    hasTrait(context, TRAIT.ATTACKERS_INSIGHT)
-  ) {
-    gainAttackersInsight(
-      spellbreakerState.from(context),
-      event.at,
-      applications,
-    );
   }
 }
 

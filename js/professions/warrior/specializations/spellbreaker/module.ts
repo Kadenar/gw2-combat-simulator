@@ -9,7 +9,6 @@ import { spellbreakerSkillHandlers } from "./handlers.js";
 import {
   reactToSpellbreakerControl,
   reactToSpellbreakerDamage,
-  spellbreakerResolverEventHandlers,
 } from "./resolver.js";
 import {
   spellbreakerAttributeRules,
@@ -31,7 +30,6 @@ export const spellbreakerModule = defineNativeModule({
   mechanics: {
     modifiers: spellbreakerAttributeRules,
     schedulerHooks: spellbreakerSchedulerHooks,
-    resolverHooks: { eventHandlers: spellbreakerResolverEventHandlers },
     reactions: [
       onResolvedControl({
         id: "warrior.spellbreaker-control",

@@ -18,7 +18,7 @@ import {
 import { createWarriorCoreState, projectWarriorEndState } from "./state.js";
 import { bindWarriorCoreUi } from "./ui.js";
 import type { WarriorSchedulerContext } from "../types.js";
-import { reactToWarriorDamage } from "./resolver.js";
+import { reactToWarriorBoonRemoval, reactToWarriorDamage } from "./resolver.js";
 
 export const warriorCoreModule = defineNativeModule({
   id: "Core",
@@ -39,6 +39,9 @@ export const warriorCoreModule = defineNativeModule({
       ...warriorCoreSchedulerHooks,
       snapshot: (context: WarriorSchedulerContext) =>
         snapshotWarriorState(context.state.profession),
+    },
+    resolverHooks: {
+      eventHandlers: { "warrior.boon-removal": reactToWarriorBoonRemoval },
     },
     reactions: [
       onResolvedDamage({
