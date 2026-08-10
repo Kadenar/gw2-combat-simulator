@@ -19,6 +19,7 @@ import {
   necromancerEventSkill,
   necromancerTargetChilled,
 } from "../../core/rules.js";
+import { iceFieldComboFinishers } from "./shroud.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
   Gw2ModifierContext,
@@ -105,6 +106,7 @@ function onEventScheduled(
   context: NecromancerSchedulerContext,
   event: NecromancerSimulationEvent,
 ): void {
+  iceFieldComboFinishers(context, event);
   if (
     event.type === "buff" &&
     event.actorType === "player" &&

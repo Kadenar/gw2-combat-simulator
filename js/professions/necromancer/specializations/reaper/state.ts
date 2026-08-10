@@ -4,6 +4,7 @@ import { defineProfessionSpecializationState } from "../../../../platform/engine
 export function createReaperState(): ReaperState {
   return {
     executionersIceFieldUntil: 0,
+    projectileFinisherChillProgress: 0,
   };
 }
 
