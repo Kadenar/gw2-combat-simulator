@@ -221,6 +221,8 @@ export function renderAssumptions(app: ProfessionAppState): void {
             <div class="perma-group"><span class="perma-group-label">Boons</span>${boonItems}</div>
             ${conditionGroups}
             <div class="perma-group"><span class="perma-group-label">Target</span>
+                <label class="boon-control">Target HP <input id="target-hp" type="number" min="0" step="100000" value="${Number(app.build.targetHealth)}"></label>
+                <label class="boon-control">Target armor <input id="target-armor" type="number" min="1" value="${Number(app.build.targetArmor)}"></label>
                 <label class="boon-control">Skill activations/s <input id="target-skill-activations" type="number" min="0" max="10" step="0.1" value="${a.targetSkillActivationsPerSecond}"></label>
                 <label class="boon-control"><input id="target-moving" type="checkbox"${a.targetMoving ? " checked" : ""}> Moving</label>
                 ${professionAssumptionItems}
@@ -375,6 +377,15 @@ export function renderAssumptions(app: ProfessionAppState): void {
         app.changed();
       });
     });
-  requiredInput("target-hp").value = String(app.build.targetHealth);
-  requiredInput("target-armor").value = String(app.build.targetArmor);
+  const targetHealth = requiredInput("target-hp");
+  targetHealth.addEventListener("change", () => {
+    app.build.targetHealth = Math.max(0, Number(targetHealth.value) || 0);
+    targetHealth.value = String(app.build.targetHealth);
+    app.changed();
+  });
+  const targetArmor = requiredInput("target-armor");
+  targetArmor.addEventListener("change", () => {
+    app.build.targetArmor = Math.max(1, Number(targetArmor.value) || 2597);
+    app.changed();
+  });
 }

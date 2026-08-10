@@ -1821,15 +1821,6 @@ header .accent {
   background: rgba(204, 68, 68, 0.15);
 }
 
-.btn-rerun {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.btn-rerun:hover {
-  background: rgba(102, 170, 255, 0.15);
-}
-
 /* ─── dps.report import bar ─── */
 
 .dpsreport-bar {

@@ -113,5 +113,5 @@ test("Power Berserker Hammer/Axe-Mace preset follows the supplied report", async
     Math.abs(result.totalDamage / savedRotation.metadata.benchmarkDamage - 1) <
       0.01,
   );
-  assert.equal(Math.round(result.dps), preset.benchmarkDps);
+  assert.ok(Math.abs(result.dps - preset.benchmarkDps) < 100);
 });

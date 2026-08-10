@@ -338,10 +338,6 @@ class App {
         this._initOptimizer();
 
         document.getElementById('btn-sim-clear').addEventListener('click', () => this._clearRotation());
-        document.getElementById('btn-sim-rerun').addEventListener('click', () => {
-            if (this.sim?.rotation.length > 0) this._autoRun();
-            this.render();
-        });
         document.getElementById('btn-export-rotation').addEventListener('click', () => this._exportRotation());
         document.getElementById('btn-import-rotation').addEventListener('click', () => {
             document.getElementById('rotation-file-input').click();

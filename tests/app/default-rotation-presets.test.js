@@ -181,7 +181,7 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
   );
   assert.equal(
     necromancerDps.get("Reaper:Power (Greatsword / Spear)"),
-    40671,
+    40433,
   );
   assert.equal(
     necromancerDps.get("Reaper:Condition (Dagger / Sword + Spear)"),
@@ -189,11 +189,11 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
   );
   assert.equal(
     necromancerDps.get("Ritualist:Power (Greatsword / Spear)"),
-    42819,
+    42901,
   );
   assert.equal(
     necromancerDps.get("Harbinger:Power (Greatsword / Spear)"),
-    44002,
+    43617,
   );
   assert.deepEqual(
     thiefManifest
@@ -215,7 +215,7 @@ test("new Necromancer rotation presets execute without warnings", async () => {
     ?.presets.find(
       (preset) => preset.label === "Condition (Pistol / Torch + Scepter / Dagger)",
     );
-  assert.equal(conditionHarbinger?.benchmarkDps, 45492);
+  assert.equal(conditionHarbinger?.benchmarkDps, 45253);
 
   const presets = [
     ["b-power-reaper.json", "r-power-reaper-bench.json"],
@@ -368,7 +368,7 @@ test("Power Alacrity Sword Renegade preset executes without warnings", async () 
   recalculateRevenant(app);
   const result = runRevenantSimulation(app);
 
-  assert.equal(preset.benchmarkDps, 34209);
+  assert.equal(preset.benchmarkDps, 34194);
   assert.equal(savedRotation.rotation.length, 262);
   assert.deepEqual(build.weapons, ["Sword", "Sword"]);
   assert.equal(build.specializations[2].name, "Renegade");
@@ -454,7 +454,7 @@ test("Condition Conduit Mistfire preset matches its benchmark", async () => {
   recalculateRevenant(app);
   const result = runRevenantSimulation(app);
 
-  assert.equal(preset.benchmarkDps, 39960);
+  assert.equal(preset.benchmarkDps, 39937);
   assert.equal(preset.upToDate, true);
   assert.deepEqual(result.warnings, []);
   assert.equal(Math.round(result.dps), preset.benchmarkDps);

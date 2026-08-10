@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 3,
+  "profession": "warrior",
+  "gear": {
+    "Helm": "Grieving",
+    "Shoulders": "Viper's",
+    "Chest": "Viper's",
+    "Gloves": "Viper's",
+    "Leggins": "Viper's",
+    "Boots": "Viper's",
+    "Amulet": "Viper's",
+    "Ring1": "Viper's",
+    "Ring2": "Viper's",
+    "Accessory1": "Viper's",
+    "Accessory2": "Viper's",
+    "Back": "Viper's",
+    "Weapon1": "Viper's",
+    "Weapon2": "Viper's"
+  },
+  "weapons": ["Longbow", ""],
+  "alternateWeapons": ["Sword", "Torch"],
+  "rune": "Trapper",
+  "weaponSigils": [
+    ["Doom", "Earth"],
+    ["Geomancy", "Torment"]
+  ],
+  "relic": "Fractal",
+  "food": "Cilantro and Cured Meat Flatbread",
+  "utility": "Toxic Tuning Crystal",
+  "jadeBotCore": true,
+  "infusions": [{ "stat": "Condition Damage", "count": 18 }],
+  "specializations": [
+    { "name": "Arms", "traits": "1-1-2" },
+    { "name": "Strength", "traits": "3-3-1" },
+    { "name": "Berserker", "traits": "2-1-2" }
+  ],
+  "selectedSkills": {
+    "Heal": "Blood Reckoning",
+    "Utility1": "Shattering Blow",
+    "Utility2": "Outrage",
+    "Utility3": "Sundering Leap",
+    "Elite": "Head Butt"
+  },
+  "assumptions": {
+    "simulationMode": "deterministic",
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": true,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "initialResource": 30,
+  "startingWeaponSet": 2,
+  "targetHealth": 3970000,
+  "targetArmor": 2597,
+  "rotation": []
+}
