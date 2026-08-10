@@ -7,19 +7,16 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.GLYPH_OF_THE_TIDES]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
   [ID.GLYPH_OF_ALIGNMENT]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
   [ID.GLYPH_OF_REJUVENATION]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
@@ -31,19 +28,16 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GLYPH_OF_BURGEONING]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
   [ID.GLYPH_OF_THE_STARS]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [],
     quicknessCastTimeMs: 667,
   },
   [ID.GLYPH_OF_EQUALITY]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
@@ -55,13 +49,11 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.COSMIC_RAY]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
   [ID.SEED_OF_LIFE]: {
     implemented: true,
-    castTimeMs: 0,
     effects: [
       {
         type: "blind",
@@ -71,7 +63,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LUNAR_IMPACT]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "control",
@@ -81,7 +72,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.REJUVENATING_TIDES]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -94,7 +84,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.NATURAL_CONVERGENCE]: {
     implemented: true,
-    castTimeMs: 2500,
     effects: [
       {
         type: "strike",

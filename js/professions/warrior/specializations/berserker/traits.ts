@@ -62,6 +62,27 @@ function isComplete(context: WarriorCastContext): boolean {
   return context.effectiveEnd >= context.fullEnd - context.epsilon;
 }
 
+/**
+ * Base berserk-duration extension (seconds) granted by each rage skill on hit,
+ * before the Last Blaze bonus. Entering berserk (Berserk itself) grants none;
+ * unlisted rage skills use the shared default.
+ */
+function rageBerserkExtension(skill: WarriorSkill): number {
+  switch (skill.id) {
+    case ID.BERSERK:
+    case ID.BERSERK_ID_30435:
+      return 0;
+    case ID.WILD_BLOW:
+      return 5;
+    case ID.SUNDERING_LEAP:
+    case ID.SHATTERING_BLOW:
+    case ID.OUTRAGE:
+      return 3;
+    default:
+      return 2;
+  }
+}
+
 function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   const state = berserkerState.from(context);
   if (!state.berserkActive || !isComplete(context)) return;
@@ -70,14 +91,9 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
     state.berserkUntil += skill.id === ID.DECAPITATE ? 1 : 2;
   }
   if (skill.categories?.includes("Rage")) {
-    const baseExtension =
-      skill.id === ID.BERSERK || skill.id === ID.BERSERK_ID_30435
-        ? 0
-        : skill.id === ID.OUTRAGE
-          ? 3
-          : 2;
     state.berserkUntil +=
-      baseExtension + (hasTrait(context, TRAIT.LAST_BLAZE) ? 1 : 0);
+      rageBerserkExtension(skill) +
+      (hasTrait(context, TRAIT.LAST_BLAZE) ? 1 : 0);
   }
   if (state.berserkUntil > previousUntil) emitBerserkMarker(context, skill);
 }

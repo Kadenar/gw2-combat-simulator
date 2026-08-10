@@ -78,40 +78,6 @@ maximum at the active charge cap. Gunsaber attacks are tagged as explosions;
 Overcharged Cartridges therefore increases their strike damage and applies
 Burning while its 8-second buff is active.
 
-## Power Bladesworn preset
-
-The Bladesworn preset uses Sword/Pistol, Berserker gear with
-Assassin leggings, Infiltration runes, Force/Accuracy sigils, Peitha, Cilantro
-Lime Sous-Vide Steak, Furious Sharpening Stone, 17 Power infusions, and 1
-Precision infusion. It selects Strength `3-3-1`, Tactics `1-1-1`, and
-Bladesworn `1-2-2`.
-
-The supplied EVTC records 3,972,566 damage over 95.644 seconds (41,534.92 DPS).
-The saved rotation uses the observed Sword windows: Rend's initial and delayed
-follow-up stages followed by the Sever Artery, Gash, and Hamstring chain. Its
-opener precasts Break Step,
-stows the gunsaber, uses Overcharged Cartridges and Flow Stabilizer, casts
-Tactical Reload, Mending, Flow Stabilizer and Overcharged Cartridges again, then
-starts combat with Dragon's Roar and Dragon Trigger. Triggerguard and Flicker
-Step placements are inferred from the log's Aegis and Peitha applications.
-
-## Power Spellbreaker presets
-
-Both Spellbreaker presets use Dagger/Mace with Force/Air. Their alternate set
-is either Sword/Axe or Sword/Dagger with Force/Hydromancy. They have full
-Berserker gear, Scholar runes, Relic of the Claw, Cilantro Lime Sous-Vide
-Steak, Superior Sharpening Stone, and 18 Power infusions. Both select Arms
-`2-3-3`, Strength `3-3-1`, and Spellbreaker `1-3-3`, with Healing Signet, Kick,
-Signet of Fury, Signet of Might, and Winds of Disenchantment.
-
-The Sword/Axe EVTC records 3,949,729 damage over a 92.521-second damage window
-(42,690.08 DPS). The Sword/Dagger EVTC records 3,957,534 damage over 92.406
-seconds (42,827.67 DPS). Both saved rotations precast Winds and preserve its
-five one-second pulses, seven Kick casts, fourteen Crushing Blow hits, and the
-weapon-window activation order. The Sword/Dagger rotation additionally
-preserves seven Wastrel's Ruin hits, nine Hushblade hits, and its measured
-autoattack packet counts.
-
 ## Data
 
 The August 8, 2026 snapshot contains 195 API skills, 108 traits, and all nine

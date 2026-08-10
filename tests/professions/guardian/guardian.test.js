@@ -183,7 +183,7 @@ test("Guardian greatsword uses the reference cast and strike profiles", () => {
     ["Strike", "Vengeful Strike", "Wrathful Strike"].map(
       (name) => profile(normal, name).cast,
     ),
-    [600, 840, 1000],
+    [600, 900, 1000],
   );
   assert.deepEqual(
     ["Strike", "Vengeful Strike", "Wrathful Strike"].map(
@@ -287,7 +287,7 @@ test("Guardian utilities and traps use the reference damage timelines", () => {
 
   assert.deepEqual(
     skillNames.map((name) => normal[name].cast),
-    [900, 660, 750, 660, 660, 0],
+    [900, 660, 750, 660, 900, 0],
   );
   assert.deepEqual(
     skillNames.map((name) => quick[name].cast),
@@ -1934,14 +1934,14 @@ test("Radiant Forge recharge starts on exit and uses equipped weapons", () => {
   assert.equal(
     hammerOnly.steps.filter((step) => step.skill === "Enter Radiant Forge")[1]
       .start,
-    6200,
+    6440,
   );
   assert.equal(
     allWeapons.steps.filter((step) => step.skill === "Enter Radiant Forge")[1]
       .start,
-    14350,
+    14820,
   );
-  assert.equal(allWeapons.endState.profession.radiantForgeEndsAt, 34.35);
+  assert.equal(allWeapons.endState.profession.radiantForgeEndsAt, 34.82);
 });
 
 test("Radiant Forge recharge starts when its automatic exit occurs", () => {
@@ -2021,8 +2021,8 @@ test("Radiant Forge transitions emit the current set and trigger swap sigils", (
         event.condition === condition,
     );
 
-  assert.deepEqual(procTimes("Hydromancy"), [1250, 11250]);
-  assert.deepEqual(procTimes("Geomancy"), [1250, 11250]);
+  assert.deepEqual(procTimes("Hydromancy"), [1300, 11300]);
+  assert.deepEqual(procTimes("Geomancy"), [1300, 11300]);
   assert.deepEqual(
     result.events
       .filter((event) => event.type === "weapon_set")
@@ -2087,8 +2087,8 @@ test("Radiant Forge transitions emit the current set and trigger swap sigils", (
       .filter((step) => step.skill === "Sigil of Hydromancy")
       .map((step) => [step.start, step.sourceSkill]),
     [
-      [1250, "Enter Radiant Forge"],
-      [11250, "Exit Radiant Forge"],
+      [1300, "Enter Radiant Forge"],
+      [11300, "Exit Radiant Forge"],
     ],
   );
 
@@ -2118,8 +2118,8 @@ test("Radiant Forge transitions emit the current set and trigger swap sigils", (
       .filter((step) => step.skill === "Sigil of Geomancy")
       .map((step) => [step.start, step.sourceSkill]),
     [
-      [1250, "Enter Radiant Forge"],
-      [21250, "Exit Radiant Forge"],
+      [1300, "Enter Radiant Forge"],
+      [21300, "Exit Radiant Forge"],
     ],
   );
   assert.deepEqual(
@@ -2165,8 +2165,8 @@ test("Radiant Forge transitions emit the current set and trigger swap sigils", (
       .filter((step) => step.skill === "Sigil of Hydromancy")
       .map((step) => [step.start, step.sourceSkill]),
     [
-      [1250, "Enter Radiant Forge"],
-      [11850, "Dazzling Hammer"],
+      [1300, "Enter Radiant Forge"],
+      [12020, "Dazzling Hammer"],
     ],
   );
   assert.equal(
@@ -2700,12 +2700,12 @@ test("Luminary recharge traits alter the intended cooldown families", () => {
   assert.equal(
     withMaster.steps.filter((step) => step.skill === "Dazzling Hammer")[1]
       .start,
-    5600,
+    5720,
   );
   assert.equal(
     withoutMaster.steps.filter((step) => step.skill === "Dazzling Hammer")[1]
       .start,
-    7600,
+    7720,
   );
   assert.equal(
     withInspiration.steps.filter((step) => step.skill === "Radiant Justice")[1]

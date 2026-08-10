@@ -169,7 +169,6 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MANIFEST_SAND_SHADE]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [],
     cooldown: 15,

@@ -78,7 +78,13 @@ test("hammer and dagger/mace timings preserve the 40 ms EVTC measurements", () =
     [ID.BREACHING_STRIKE_ID_69297, 840, 760],
   ]) {
     const skill = warriorCatalog.skillsById.get(skillId);
-    assert.equal(skill.quicknessCastTimeMs, castMs, skill.name);
+    if (skillId === ID.BREACHING_STRIKE_ID_69297) {
+      assert.equal(skill.castTimeMs, castMs, skill.name);
+      assert.equal(skill.unaffectedByQuickness, true, skill.name);
+      assert.equal(skill.quicknessCastTimeMs, undefined, skill.name);
+    } else {
+      assert.equal(skill.quicknessCastTimeMs, castMs, skill.name);
+    }
     const usesHammer = [
       ID.HAMMER_SWING,
       ID.HAMMER_BASH,
@@ -145,7 +151,8 @@ test("hammer cooldowns, conditional damage, recharge, and Defense traits work", 
     [ID.TO_THE_LIMIT, 24],
   ]) {
     const skill = warriorCatalog.skillsById.get(skillId);
-    assert.deepEqual([skill.cooldown, skill.recharge], [cooldown, cooldown]);
+    assert.equal(skill.cooldown, cooldown);
+    assert.equal(Object.hasOwn(skill, "recharge"), false);
   }
 
   const fierceCoefficient = (defiant) =>

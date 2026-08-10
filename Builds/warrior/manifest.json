@@ -20,6 +20,14 @@
         "rotation": "Rotations/warrior/r-power-berserker-spear-greatsword-bench.json",
         "benchmarkDps": 41063,
         "upToDate": true
+      },
+      {
+        "label": "Power (Hammer + Axe/Mace)",
+        "build": "Builds/warrior/b-power-berserker-hammer-axe-mace.json",
+        "rotation": "Rotations/warrior/r-power-berserker-hammer-axe-mace-bench.json",
+        "dpsReportUrl": "https://dps.report/HQq4-20260716-224707_golem",
+        "benchmarkDps": 43869,
+        "upToDate": true
       }
     ]
   },

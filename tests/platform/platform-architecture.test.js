@@ -86,6 +86,16 @@ test("native professions share one skill timing contract", async () => {
       assert.equal("activation" in skill, false, skill.name);
       assert.equal("castTime" in skill, false, skill.name);
       assert.ok(Number.isFinite(skill.castTimeMs), skill.name);
+      if (skill.quicknessCastTimeMs != null) {
+        assert.equal(
+          skill.castTimeMs,
+          skill.quicknessCastTimeMs * 1.5,
+          skill.name,
+        );
+      }
+      if (skill.unaffectedByQuickness) {
+        assert.equal(skill.quicknessCastTimeMs, undefined, skill.name);
+      }
       assert.ok(Array.isArray(skill.lockouts), skill.name);
       for (const effect of skill.effects) {
         assert.equal("atMsList" in effect, false, skill.name);
@@ -105,12 +115,118 @@ test("native professions share one skill timing contract", async () => {
   }
 });
 
+test("native skill authoring uses one cast timing source", async () => {
+  const professionsRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../js/professions",
+  );
+
+  for (const entry of nativeProfessionRegistry) {
+    const files = await javascriptFiles(path.join(professionsRoot, entry.id));
+    for (const file of files) {
+      const source = ts.createSourceFile(
+        file,
+        await readFile(file, "utf8"),
+        ts.ScriptTarget.Latest,
+        true,
+      );
+
+      function visit(node) {
+        if (ts.isObjectLiteralExpression(node)) {
+          const propertyNames = new Set(
+            node.properties.flatMap((property) => {
+              if (!ts.isPropertyAssignment(property)) return [];
+              if (
+                !ts.isIdentifier(property.name) &&
+                !ts.isStringLiteral(property.name)
+              ) {
+                return [];
+              }
+              return [property.name.text];
+            }),
+          );
+          const hasBaseCast = propertyNames.has("castTimeMs");
+          const hasQuicknessCast = propertyNames.has("quicknessCastTimeMs");
+          const hasQuicknessImmunity = propertyNames.has(
+            "unaffectedByQuickness",
+          );
+          const line =
+            source.getLineAndCharacterOfPosition(node.getStart(source)).line +
+            1;
+          assert.equal(
+            hasBaseCast && hasQuicknessCast,
+            false,
+            `${path.relative(professionsRoot, file)}:${line}`,
+          );
+          assert.equal(
+            hasQuicknessCast && hasQuicknessImmunity,
+            false,
+            `${path.relative(professionsRoot, file)}:${line}`,
+          );
+        }
+        ts.forEachChild(node, visit);
+      }
+      visit(source);
+    }
+  }
+});
+
+test("canonical skills derive base casts and can opt out of Quickness", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930000,
+        name: "Derived Base Cast",
+        quicknessCastTimeMs: 600,
+        effects: [],
+      },
+      {
+        id: 930001,
+        name: "Quickness Immune Cast",
+        castTimeMs: 700,
+        unaffectedByQuickness: true,
+        effects: [],
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    [
+      catalog.skillsById.get(930000).castTimeMs,
+      catalog.skillsById.get(930000).quicknessCastTimeMs,
+    ],
+    [900, 600],
+  );
+  assert.deepEqual(
+    [
+      catalog.skillsById.get(930001).castTimeMs,
+      catalog.skillsById.get(930001).unaffectedByQuickness,
+    ],
+    [700, true],
+  );
+  assert.throws(
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          {
+            id: 930002,
+            name: "Conflicting Quickness Cast",
+            castTimeMs: 700,
+            quicknessCastTimeMs: 500,
+            unaffectedByQuickness: true,
+          },
+        ],
+      }),
+    /cannot specify quicknessCastTimeMs/,
+  );
+});
+
 test("native profession weapon swaps share timing policy", async () => {
   for (const entry of nativeProfessionRegistry) {
     const catalog = (await entry.loadProfession()).catalog;
     const skill = catalog.skillsByName.get("Swap Weapons");
     assert.equal(skill.castTimeMs, 0, catalog.id);
-    assert.equal(skill.quicknessCastTimeMs, 0, catalog.id);
+    assert.equal(Number(skill.quicknessCastTimeMs || 0), 0, catalog.id);
     assert.equal(skill.rechargeAnchor, "castStart", catalog.id);
   }
 });
@@ -1188,6 +1304,21 @@ test("GW2 Quickness quantizes casts and scales explicit cast timing", () => {
           },
         ],
       },
+      {
+        id: 930023,
+        name: "Fixture Quickness Immune",
+        castTimeMs: 600,
+        unaffectedByQuickness: true,
+        effects: [
+          {
+            type: "strike",
+            coefficient: 1,
+            atMs: 600,
+            timingAnchor: "castStart",
+            timingScale: "cast",
+          },
+        ],
+      },
     ],
   });
   const profession = defineProfession({
@@ -1201,6 +1332,7 @@ test("GW2 Quickness quantizes casts and scales explicit cast timing", () => {
       "Fixture Timeline",
       "Fixture Channel",
       "Fixture Field",
+      "Fixture Quickness Immune",
       { type: "wait", durationMs: 4000 },
     ],
     config: { boons: { quickness: true } },
@@ -1230,6 +1362,10 @@ test("GW2 Quickness quantizes casts and scales explicit cast timing", () => {
   assert.deepEqual(profile("Fixture Field"), {
     cast: 400,
     ticks: [1400, 2400, 3400],
+  });
+  assert.deepEqual(profile("Fixture Quickness Immune"), {
+    cast: 600,
+    ticks: [600],
   });
 });
 

@@ -57,13 +57,22 @@ for (const skill of allSkills) {
 }
 const generated: readonly Skill[] = Object.freeze(
   allSkills.map((skill) => {
+    const { recharge: legacyRecharge, ...sourceSkill } = skill;
     const canonicalId = canonicalIdByName.get(skill.name)!;
+    const maximumAmmo = Number(skill.ammo || 0);
+    const ammoRecharge = Number(skill.ammoRecharge || 0);
+    const cooldown =
+      maximumAmmo > 0
+        ? Number(ammoRecharge || skill.cooldown || legacyRecharge || 0)
+        : Number(skill.cooldown || legacyRecharge || 0);
+    const ammoCastLockout =
+      maximumAmmo > 0
+        ? Number(skill.ammoCastLockout ?? legacyRecharge ?? 0)
+        : 0;
     return {
-      ...skill,
-      cooldown:
-        Number(skill.ammo || 0) > 0
-          ? Number(skill.ammoRecharge || skill.recharge || 0)
-          : Number(skill.recharge || 0),
+      ...sourceSkill,
+      cooldown,
+      ...(ammoCastLockout > 0 ? { ammoCastLockout } : {}),
       flipParentId: flipParentById.get(skill.id) ?? null,
       simulatorAliasOfId: canonicalId === skill.id ? null : canonicalId,
       simulatorExcluded:

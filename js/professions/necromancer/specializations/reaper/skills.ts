@@ -30,7 +30,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIFE_REND]: {
     implemented: true,
-    castTimeMs: 600,
     quicknessCastTimeMs: 400,
     effects: [
       {
@@ -47,7 +46,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIFE_SLASH]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -84,7 +82,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.TERRIFY]: {
     implemented: true,
-    castTimeMs: 480,
     quicknessCastTimeMs: 320,
     effects: [
       {
@@ -138,7 +135,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIFE_REAP]: {
     implemented: true,
-    castTimeMs: 840,
     quicknessCastTimeMs: 560,
     effects: [
       {
@@ -171,7 +167,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SOUL_SPIRAL]: {
     implemented: true,
-    castTimeMs: 3240,
     quicknessCastTimeMs: 2160,
     effects: [
       {
@@ -224,7 +219,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.EXECUTIONERS_SCYTHE]: {
     implemented: true,
-    castTimeMs: 1980,
     quicknessCastTimeMs: 1320,
     effects: [
       {
@@ -283,7 +277,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   [ID.SUFFER]: {
     implemented: true,
     castTimeMs: 0,
-    quicknessCastTimeMs: 0,
     effects: [
       {
         type: "strike",
@@ -321,7 +314,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEATHS_CHARGE]: {
     implemented: true,
-    castTimeMs: 1800,
     quicknessCastTimeMs: 1200,
     effects: [
       {

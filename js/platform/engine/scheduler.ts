@@ -484,13 +484,14 @@ export function createScheduler<
     };
     const ammoRecharge = Number(skill.ammoRecharge || 0);
     // Ammo skills have two independent timings: per-charge recharge and an
-    // optional post-cast lockout based on the skill's normal recharge field.
+    // optional post-cast lockout. `recharge` remains a fallback for catalogs
+    // that have not migrated to the explicit ammo field yet.
     const baseDuration = Math.max(
       0,
       Number(
         details.ammoCastLockout
           ? Number(skill.ammo || 0) > 0
-            ? (skill.recharge ?? 0)
+            ? (skill.ammoCastLockout ?? skill.recharge ?? 0)
             : 0
           : Number(skill.ammo || 0) > 0 && ammoRecharge > 0
             ? ammoRecharge
@@ -913,8 +914,7 @@ export function createScheduler<
     // Instant-cast skills (Berserk, signets, most profession keys) are not held
     // by a self-stun; only skills that occupy the cast bar are. A stunbreak also
     // bypasses (and clears) the stun. Everything else waits it out.
-    const bypassesSelfStun =
-      stunbreak || Number(skill.castTimeMs) === 0;
+    const bypassesSelfStun = stunbreak || Number(skill.castTimeMs) === 0;
     // Concurrent offsets are relative to the previous cast's start, not the
     // current clock. This models instant/concurrent actions embedded in a cast.
     let start = concurrent
@@ -923,7 +923,12 @@ export function createScheduler<
         ? Math.max(state.time, independentReadyAt)
         : bypassesSelfStun
           ? Math.max(state.time, serialReadyAt, latestBlockingEnd)
-          : Math.max(state.time, serialReadyAt, latestBlockingEnd, selfStunUntil);
+          : Math.max(
+              state.time,
+              serialReadyAt,
+              latestBlockingEnd,
+              selfStunUntil,
+            );
     if (start < state.time - epsilon) {
       recordInvalid(
         commandIndex,
@@ -1163,7 +1168,10 @@ export function createScheduler<
       if (stunbreak) selfStunUntil = state.time;
       const selfStunMs = Number(skill.selfStunMs || 0);
       if (selfStunMs > 0 && !context.hasBuff("stability", effectiveEnd)) {
-        selfStunUntil = Math.max(selfStunUntil, effectiveEnd + selfStunMs / 1000);
+        selfStunUntil = Math.max(
+          selfStunUntil,
+          effectiveEnd + selfStunMs / 1000,
+        );
       }
     }
     return true;

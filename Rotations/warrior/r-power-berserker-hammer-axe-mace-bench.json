@@ -1,0 +1,625 @@
+{
+  "metadata": {
+    "log": "20260716-224707.zevtc",
+    "report": "https://dps.report/HQq4-20260716-224707_golem",
+    "benchmarkDurationSeconds": 94.55,
+    "benchmarkDamage": 3966807,
+    "benchmarkDps": 41954.59545214172,
+    "timingSource": "Supplied rotation audited against Elite Insights activation and damage distributions",
+    "note": "Decapitate dealt 893,575 damage across 29 hits in the report. It uses the axe weapon-strength profile; its 3.0 coefficient is unchanged."
+  },
+  "rotation": [
+    {
+      "name": "Head Butt"
+    },
+    {
+      "name": "Berserk",
+      "skillId": 30185
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Wild Blow"
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Crushing Blow"
+    },
+    {
+      "name": "Outrage"
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Tremor"
+    },
+    {
+      "name": "Crushing Blow"
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Fierce Blow"
+    },
+    {
+      "name": "Hammer Shock"
+    },
+    {
+      "name": "Staggering Blow"
+    },
+    {
+      "name": "Rupturing Smash"
+    },
+    {
+      "name": "Blood Reckoning"
+    },
+    {
+      "name": "Rupturing Smash"
+    },
+    {
+      "name": "Hammer Swing"
+    },
+    {
+      "name": "Hammer Bash"
+    },
+    {
+      "name": "Hammer Smash"
+    },
+    {
+      "name": "Fierce Blow"
+    },
+    {
+      "name": "Backbreaker"
+    },
+    {
+      "name": "Fierce Blow"
+    },
+    {
+      "name": "Rupturing Smash"
+    },
+    {
+      "name": "Hammer Shock"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Cyclone Axe"
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Crushing Blow"
+    },
+    {
+      "name": "Outrage",
+      "offset": 100
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Wild Blow"
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Head Butt"
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Throw Axe"
+    },
+    {
+      "name": "Tremor"
+    },
+    {
+      "name": "Cyclone Axe"
+    },
+    {
+      "name": "Crushing Blow"
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Fierce Blow"
+    },
+    {
+      "name": "Hammer Shock"
+    },
+    {
+      "name": "Outrage",
+      "offset": 100
+    },
+    {
+      "name": "Rupturing Smash"
+    },
+    {
+      "name": "Staggering Blow"
+    },
+    {
+      "name": "Hammer Swing"
+    },
+    {
+      "name": "Hammer Bash"
+    },
+    {
+      "name": "Hammer Smash"
+    },
+    {
+      "name": "Hammer Swing"
+    },
+    {
+      "name": "Hammer Bash"
+    },
+    {
+      "name": "Hammer Smash"
+    },
+    {
+      "name": "Fierce Blow"
+    },
+    {
+      "name": "Rupturing Smash"
+    },
+    {
+      "name": "Hammer Shock"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Cyclone Axe"
+    },
+    {
+      "name": "Decapitate"
+    },
+    {
+      "name": "Crushing Blow",
+      "skillId": 14518
+    },
+    {
+      "name": "Outrage",
+      "skillId": 30258,
+      "offset": 100
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Throw Axe",
+      "skillId": 14398
+    },
+    {
+      "name": "Wild Blow",
+      "skillId": 29941
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Head Butt",
+      "skillId": 30343
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Tremor",
+      "skillId": 14415
+    },
+    {
+      "name": "Cyclone Axe",
+      "skillId": 14421
+    },
+    {
+      "name": "Crushing Blow",
+      "skillId": 14518
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Fierce Blow",
+      "skillId": 14386
+    },
+    {
+      "name": "Hammer Shock",
+      "skillId": 14482
+    },
+    {
+      "name": "Staggering Blow",
+      "skillId": 14359
+    },
+    {
+      "name": "Rupturing Smash",
+      "skillId": 30879
+    },
+    {
+      "name": "Blood Reckoning",
+      "skillId": 30189
+    },
+    {
+      "name": "Rupturing Smash",
+      "skillId": 30879
+    },
+    {
+      "name": "Hammer Swing",
+      "skillId": 14358
+    },
+    {
+      "name": "Hammer Bash",
+      "skillId": 14384
+    },
+    {
+      "name": "Hammer Smash",
+      "skillId": 14385
+    },
+    {
+      "name": "Fierce Blow",
+      "skillId": 14386
+    },
+    {
+      "name": "Backbreaker",
+      "skillId": 14511
+    },
+    {
+      "name": "Fierce Blow",
+      "skillId": 14386
+    },
+    {
+      "name": "Rupturing Smash",
+      "skillId": 30879
+    },
+    {
+      "name": "Hammer Shock",
+      "skillId": 14482
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Cyclone Axe",
+      "skillId": 14421
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Crushing Blow",
+      "skillId": 14518
+    },
+    {
+      "name": "Outrage",
+      "skillId": 30258,
+      "offset": 100
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Wild Blow",
+      "skillId": 29941
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Head Butt",
+      "skillId": 30343
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Tremor",
+      "skillId": 14415
+    },
+    {
+      "name": "Cyclone Axe",
+      "skillId": 14421
+    },
+    {
+      "name": "Throw Axe",
+      "skillId": 14398
+    },
+    {
+      "name": "Crushing Blow",
+      "skillId": 14518
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Fierce Blow",
+      "skillId": 14386
+    },
+    {
+      "name": "Hammer Shock",
+      "skillId": 14482
+    },
+    {
+      "name": "Outrage",
+      "skillId": 30258
+    },
+    {
+      "name": "Rupturing Smash",
+      "skillId": 30879
+    },
+    {
+      "name": "Staggering Blow",
+      "skillId": 14359
+    },
+    {
+      "name": "Hammer Swing",
+      "skillId": 14358
+    },
+    {
+      "name": "Hammer Bash",
+      "skillId": 14384
+    },
+    {
+      "name": "Hammer Smash",
+      "skillId": 14385
+    },
+    {
+      "name": "Hammer Swing",
+      "skillId": 14358
+    },
+    {
+      "name": "Hammer Bash",
+      "skillId": 14384
+    },
+    {
+      "name": "Hammer Smash",
+      "skillId": 14385
+    },
+    {
+      "name": "Fierce Blow",
+      "skillId": 14386
+    },
+    {
+      "name": "Rupturing Smash",
+      "skillId": 30879
+    },
+    {
+      "name": "Hammer Shock",
+      "skillId": 14482
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Cyclone Axe",
+      "skillId": 14421
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Crushing Blow",
+      "skillId": 14518
+    },
+    {
+      "name": "Outrage",
+      "skillId": 30258,
+      "offset": 100
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Throw Axe",
+      "skillId": 14398
+    },
+    {
+      "name": "Wild Blow",
+      "skillId": 29941
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Head Butt",
+      "skillId": 30343
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Tremor",
+      "skillId": 14415
+    },
+    {
+      "name": "Throw Axe",
+      "skillId": 14398
+    },
+    {
+      "name": "Cyclone Axe",
+      "skillId": 14421
+    },
+    {
+      "name": "Crushing Blow",
+      "skillId": 14518
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Fierce Blow",
+      "skillId": 14386
+    },
+    {
+      "name": "Hammer Shock",
+      "skillId": 14482
+    },
+    {
+      "name": "Staggering Blow",
+      "skillId": 14359
+    },
+    {
+      "name": "Rupturing Smash",
+      "skillId": 30879
+    },
+    {
+      "name": "Blood Reckoning",
+      "skillId": 30189
+    },
+    {
+      "name": "Rupturing Smash",
+      "skillId": 30879
+    },
+    {
+      "name": "Hammer Swing",
+      "skillId": 14358
+    },
+    {
+      "name": "Hammer Bash",
+      "skillId": 14384
+    },
+    {
+      "name": "Hammer Smash",
+      "skillId": 14385
+    },
+    {
+      "name": "Fierce Blow",
+      "skillId": 14386
+    },
+    {
+      "name": "Backbreaker",
+      "skillId": 14511
+    },
+    {
+      "name": "Fierce Blow",
+      "skillId": 14386
+    },
+    {
+      "name": "Rupturing Smash",
+      "skillId": 30879
+    },
+    {
+      "name": "Hammer Shock",
+      "skillId": 14482
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Cyclone Axe",
+      "skillId": 14421
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Crushing Blow",
+      "skillId": 14518
+    },
+    {
+      "name": "Outrage",
+      "skillId": 30258,
+      "offset": 100
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Throw Axe",
+      "skillId": 14398
+    },
+    {
+      "name": "Wild Blow",
+      "skillId": 29941
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Throw Axe",
+      "skillId": 14398
+    },
+    {
+      "name": "Head Butt",
+      "skillId": 30343
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Tremor",
+      "skillId": 14415
+    },
+    {
+      "name": "Cyclone Axe",
+      "skillId": 14421
+    },
+    {
+      "name": "Crushing Blow",
+      "skillId": 14518
+    },
+    {
+      "name": "Decapitate",
+      "skillId": 30851
+    },
+    {
+      "name": "Swap Weapons",
+      "skillId": -3
+    },
+    {
+      "name": "Fierce Blow",
+      "skillId": 14386
+    },
+    {
+      "name": "Hammer Shock",
+      "skillId": 14482
+    }
+  ]
+}

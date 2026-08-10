@@ -2,7 +2,10 @@
 // Elementalist keeps only its profession-specific weapon and relic options.
 import {
   FOOD_DATA,
+  FOOD_GROUPS as SHARED_FOOD_GROUPS,
   RUNE_DATA,
+  SIGIL_GROUPS as SHARED_SIGIL_GROUPS,
+  SIGIL_NAMES as SHARED_SIGIL_NAMES,
   WEAPON_DATA as SHARED_WEAPON_DATA,
 } from "../../../platform/gw2/gear-data.js";
 
@@ -10,7 +13,6 @@ export {
   BASE_STATS,
   effectiveSlotToGearSlot,
   FOOD_DATA,
-  FOOD_GROUPS,
   GEAR_SLOTS,
   GEAR_STATS,
   getActiveGearSlots,
@@ -22,8 +24,6 @@ export {
   RUNE_DATA,
   RUNE_GROUPS,
   SIGIL_DATA,
-  SIGIL_GROUPS,
-  SIGIL_NAMES,
   UTILITY_CONVERSION_RATES,
   UTILITY_DATA,
   UTILITY_NAMES,
@@ -31,13 +31,35 @@ export {
 } from "../../../platform/gw2/gear-data.js";
 
 const sortNames = (values: readonly string[]): string[] =>
-  [...values].sort((left, right) =>
-  left.localeCompare(right));
+  [...values].sort((left, right) => left.localeCompare(right));
+
+// The legacy engine does not consume the shared day/night simulation setting.
+const DAY_NIGHT_FOODS = new Set(["Ghost Pepper Popper"]);
+const DAY_NIGHT_SIGILS = new Set(["Night"]);
 
 // Keep derived display lists local so an older cached copy of the shared module
 // remains compatible while a GitHub Pages deployment propagates.
-export const FOOD_NAMES = Object.freeze(sortNames(Object.keys(FOOD_DATA)));
+export const FOOD_NAMES = Object.freeze(
+  sortNames(
+    Object.keys(FOOD_DATA).filter((name) => !DAY_NIGHT_FOODS.has(name)),
+  ),
+);
+export const FOOD_GROUPS = Object.freeze(
+  SHARED_FOOD_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((name) => !DAY_NIGHT_FOODS.has(name)),
+  })).filter((group) => group.items.length > 0),
+);
 export const RUNE_NAMES = Object.freeze(sortNames(Object.keys(RUNE_DATA)));
+export const SIGIL_NAMES = Object.freeze(
+  SHARED_SIGIL_NAMES.filter((name) => !DAY_NIGHT_SIGILS.has(name)),
+);
+export const SIGIL_GROUPS = Object.freeze(
+  SHARED_SIGIL_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((name) => !DAY_NIGHT_SIGILS.has(name)),
+  })).filter((group) => group.items.length > 0),
+);
 
 export const WEAPON_DATA = Object.freeze({
   Pistol: { ...SHARED_WEAPON_DATA.Pistol, wielding: "mh" },

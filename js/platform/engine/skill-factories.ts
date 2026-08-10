@@ -18,7 +18,10 @@
  * @property {string} [specialization] Required specialization name.
  * @property {number} [castTimeMs] Base cast duration in milliseconds.
  * @property {number} [quicknessCastTimeMs] Measured Quickness cast duration in
- * milliseconds; when omitted, the GW2 scheduler calculates it.
+ * milliseconds; when supplied without `castTimeMs`, the canonical catalog
+ * derives the base duration by multiplying it by 1.5.
+ * @property {boolean} [unaffectedByQuickness] Whether Quickness leaves the cast
+ * duration and cast-bound effect timing unchanged.
  * @property {readonly {group: string, durationMs: number}[]} [lockouts]
  * Skill-family availability lockouts applied at activation. Only skills
  * declaring the same group block one another.
@@ -30,6 +33,8 @@
  * @property {number} [recharge] Legacy alias for `cooldown`.
  * @property {number} [ammo] Maximum charge count.
  * @property {number} [ammoRecharge] Per-charge recharge duration in seconds.
+ * @property {number} [ammoCastLockout] Minimum delay between consecutive ammo
+ * skill casts in seconds.
  * @property {number} [defaultInterruptMs] Default interruption point in
  * milliseconds.
  * @property {number} [paletteInterruptMs] Suggested interruption point when

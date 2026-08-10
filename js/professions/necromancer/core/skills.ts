@@ -18,7 +18,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GHASTLY_CLAWS]: {
     implemented: true,
-    castTimeMs: 2160,
     quicknessCastTimeMs: 1440,
     effects: [
       {
@@ -35,7 +34,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DARK_PACT]: {
     implemented: true,
-    castTimeMs: 1020,
     quicknessCastTimeMs: 680,
     effects: [
       {
@@ -60,7 +58,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GRASPING_DEAD]: {
     implemented: true,
-    castTimeMs: 1320,
     quicknessCastTimeMs: 880,
     effects: [
       {
@@ -104,7 +101,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOOD_IS_POWER]: {
     implemented: true,
-    castTimeMs: 1320,
     quicknessCastTimeMs: 880,
     effects: [
       {
@@ -144,7 +140,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WELL_OF_SUFFERING]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -183,7 +178,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PLAGUELANDS]: {
     implemented: true,
-    castTimeMs: 1380,
     quicknessCastTimeMs: 920,
     effects: [
       {
@@ -366,7 +360,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PUTRID_CURSE]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -399,7 +392,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIFE_BLAST]: {
     implemented: true,
-    castTimeMs: 1380,
     quicknessCastTimeMs: 920,
     effects: [
       {
@@ -417,7 +409,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPINAL_SHIVERS]: {
     implemented: true,
-    castTimeMs: 1200,
     quicknessCastTimeMs: 800,
     effects: [
       {
@@ -455,7 +446,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WAIL_OF_DOOM]: {
     implemented: true,
-    castTimeMs: 1500,
     quicknessCastTimeMs: 1000,
     effects: [
       {
@@ -468,7 +458,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LOCUST_SWARM]: {
     implemented: true,
-    castTimeMs: 660,
     quicknessCastTimeMs: 440,
     effects: [
       {
@@ -626,7 +615,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.RENDING_CLAWS]: {
     implemented: true,
-    castTimeMs: 930,
     quicknessCastTimeMs: 620,
     effects: [
       {
@@ -688,7 +676,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DOOM]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -724,7 +711,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIFE_TRANSFER]: {
     implemented: true,
-    castTimeMs: 4380,
     quicknessCastTimeMs: 2920,
     effects: [
       {
@@ -827,7 +813,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.NECROTIC_GRASP]: {
     implemented: true,
-    castTimeMs: 1320,
     quicknessCastTimeMs: 880,
     effects: [
       {
@@ -841,7 +826,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DARK_PATH]: {
     implemented: true,
-    castTimeMs: 1320,
     quicknessCastTimeMs: 880,
     effects: [
       {
@@ -872,7 +856,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CHILLBLAINS]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -897,7 +880,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WELL_OF_DARKNESS]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -974,7 +956,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPECTRAL_GRASP]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -989,7 +970,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SIGNET_OF_SPITE]: {
     implemented: true,
-    castTimeMs: 1320,
     quicknessCastTimeMs: 880,
     effects: [
       {
@@ -1239,7 +1219,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -1253,7 +1232,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOOD_CURSE]: {
     implemented: true,
-    castTimeMs: 660,
     quicknessCastTimeMs: 440,
     effects: [
       {
@@ -1277,7 +1255,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.RENDING_CURSE]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -1312,7 +1289,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.NECROTIC_SLASH]: {
     implemented: true,
-    castTimeMs: 540,
     quicknessCastTimeMs: 360,
     effects: [
       {
@@ -1324,7 +1300,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.NECROTIC_STAB]: {
     implemented: true,
-    castTimeMs: 600,
     quicknessCastTimeMs: 400,
     effects: [
       {
@@ -1340,7 +1315,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.NECROTIC_BITE]: {
     implemented: true,
-    castTimeMs: 960,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -1353,7 +1327,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEATHLY_SWARM]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -1369,7 +1342,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ENFEEBLING_BLOOD]: {
     implemented: true,
-    castTimeMs: 1260,
     quicknessCastTimeMs: 840,
     effects: [
       {
@@ -1396,7 +1368,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FEAST_OF_CORRUPTION]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -1416,7 +1387,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DHUUMFIRE_BLAST]: {
     implemented: true,
-    castTimeMs: 1380,
     quicknessCastTimeMs: 920,
     effects: [
       {
@@ -1441,7 +1411,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.REAPERS_MARK]: {
     implemented: true,
-    castTimeMs: 780,
     quicknessCastTimeMs: 520,
     effects: [
       {
@@ -1459,7 +1428,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PUTRID_MARK]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -1472,7 +1440,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MARK_OF_BLOOD]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -1545,14 +1512,12 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
     implemented: true,
-    castTimeMs: 1320,
     quicknessCastTimeMs: 880,
     effects: [],
     handlerId: "necromancer.signet-vampirism",
   },
   [ID.DUSK_STRIKE]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -1565,7 +1530,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GRASPING_DARKNESS]: {
     implemented: true,
-    castTimeMs: 780,
     quicknessCastTimeMs: 520,
     effects: [
       {
@@ -1603,7 +1567,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.NIGHTFALL]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -1645,7 +1608,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CHILLING_SCYTHE]: {
     implemented: true,
-    castTimeMs: 1380,
     quicknessCastTimeMs: 920,
     effects: [
       {
@@ -1672,7 +1634,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GRAVEDIGGER]: {
     implemented: true,
-    castTimeMs: 1620,
     quicknessCastTimeMs: 1080,
     effects: [
       {
@@ -1687,7 +1648,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FADING_TWILIGHT]: {
     implemented: true,
-    castTimeMs: 960,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -1703,7 +1663,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEATH_SPIRAL]: {
     implemented: true,
-    castTimeMs: 1080,
     quicknessCastTimeMs: 720,
     effects: [
       {
@@ -1753,7 +1712,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.OPPRESSIVE_COLLAPSE]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -1792,7 +1750,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HARROWING_WAVE]: {
     implemented: true,
-    castTimeMs: 660,
     quicknessCastTimeMs: 440,
     effects: [
       {
@@ -1866,7 +1823,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEVOURING_DARKNESS]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [],
     lifeForceGain: 8,
@@ -1875,7 +1831,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SOUL_GRASP]: {
     implemented: true,
-    castTimeMs: 780,
     quicknessCastTimeMs: 520,
     effects: [
       {
@@ -1900,7 +1855,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.VILE_BLAST]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -1934,7 +1888,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WEEPING_SHOTS]: {
     implemented: true,
-    castTimeMs: 1260,
     quicknessCastTimeMs: 840,
     effects: [
       {
@@ -1977,7 +1930,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.VICIOUS_SHOT]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -2001,7 +1953,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIFE_SIPHON]: {
     implemented: true,
-    castTimeMs: 840,
     quicknessCastTimeMs: 560,
     effects: [
       {
@@ -2034,7 +1985,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HUNGERING_MAELSTROM]: {
     implemented: true,
-    castTimeMs: 960,
     quicknessCastTimeMs: 640,
     effects: [
       {
@@ -2105,7 +2055,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CONSUME]: {
     implemented: true,
-    castTimeMs: 780,
     quicknessCastTimeMs: 520,
     effects: [
       {
@@ -2157,7 +2106,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEVOURING_VISAGE]: {
     implemented: true,
-    castTimeMs: 1020,
     quicknessCastTimeMs: 680,
     effects: [
       {
@@ -2183,7 +2131,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GORMANDIZE]: {
     implemented: true,
-    castTimeMs: 660,
     quicknessCastTimeMs: 440,
     effects: [
       {
@@ -2217,7 +2164,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.EXTIRPATE]: {
     implemented: true,
-    castTimeMs: 1260,
     quicknessCastTimeMs: 840,
     effects: [
       {
@@ -2261,7 +2207,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DARK_SLASH]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -2276,7 +2221,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ADDLE]: {
     implemented: true,
-    castTimeMs: 540,
     quicknessCastTimeMs: 360,
     effects: [
       {
@@ -2293,7 +2237,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEADLY_SLICE]: {
     implemented: true,
-    castTimeMs: 780,
     quicknessCastTimeMs: 520,
     effects: [
       {
@@ -2309,7 +2252,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SINISTER_STAB]: {
     implemented: true,
-    castTimeMs: 840,
     quicknessCastTimeMs: 560,
     effects: [
       {
@@ -2336,7 +2278,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PERFORATE]: {
     implemented: true,
-    castTimeMs: 1260,
     quicknessCastTimeMs: 840,
     effects: [
       {
@@ -2386,7 +2327,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ISOLATE]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -2428,7 +2368,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
 });
 
-
 export const NECROMANCER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   Object.freeze({
     id: ID.SWAP_WEAPONS,
@@ -2438,7 +2377,6 @@ export const NECROMANCER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: "Action",
     slot: "Action",
     castTimeMs: 0,
-    quicknessCastTimeMs: 0,
     rechargeAnchor: "castStart",
     cooldown: 10,
     implemented: true,

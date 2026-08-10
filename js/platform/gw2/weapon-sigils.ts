@@ -78,6 +78,7 @@ interface MutableSigilSet {
   criticalChanceBonus: number;
   strikeAdd: number;
   strike: number;
+  nightStrikeMultiplier: number;
   conditionAdd: number;
   condition: number;
   conditionDurationBonus: number;
@@ -93,6 +94,7 @@ export function aggregateSigilSet(
     criticalChanceBonus: 0,
     strikeAdd: 0,
     strike: 1,
+    nightStrikeMultiplier: 1,
     conditionAdd: 0,
     condition: 1,
     conditionDurationBonus: 0,
@@ -111,6 +113,8 @@ export function aggregateSigilSet(
     if (!sigil) continue;
     effects.criticalChanceBonus += Number(sigil.criticalChance || 0);
     effects.strikeAdd += Number(sigil.strikeDamageA || 0) / 100;
+    effects.nightStrikeMultiplier *=
+      1 + Number(sigil.nightStrikeDamageM || 0) / 100;
     effects.conditionAdd += Number(sigil.conditionDamageA || 0) / 100;
     effects.conditionDurationBonus += Number(sigil.conditionDuration || 0);
     effects.boonDurationBonus += Number(sigil.boonDuration || 0);

@@ -60,12 +60,10 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 0,
     effects: [],
-    quicknessCastTimeMs: 0,
     handlerId: "ranger.vulture-stance",
   },
   [ID.PRIMAL_CRY]: {
     implemented: true,
-    castTimeMs: 1250,
     effects: [
       {
         type: "condition",
@@ -106,7 +104,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WORLDLY_IMPACT]: {
     implemented: true,
-    castTimeMs: 1020,
     effects: [
       {
         type: "strike",
@@ -136,7 +133,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MAUL_ID_41406]: {
     implemented: true,
-    castTimeMs: 840,
     effects: [
       {
         type: "strike",
@@ -274,7 +270,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WORLDLY_IMPACT_ID_42809]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -365,7 +360,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PRELUDE_LASH]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -518,7 +512,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPIRITUAL_REPRIEVE]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "boon",
@@ -542,7 +535,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BEAR_STANCE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
   },
@@ -565,7 +557,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GRIFFON_STANCE]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "boon",
@@ -596,7 +587,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ONE_WOLF_PACK]: {
     implemented: true,
-    castTimeMs: 540,
     effects: [],
     quicknessCastTimeMs: 360,
     handlerId: "ranger.one-wolf-pack",
@@ -621,7 +611,6 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DOLYAK_STANCE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -634,13 +623,11 @@ export const SOULBEAST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.UNFLINCHING_FORTITUDE]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [],
     quicknessCastTimeMs: 167,
   },
   [ID.MOA_STANCE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",

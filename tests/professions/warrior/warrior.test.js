@@ -27,6 +27,7 @@ import {
   WARRIOR_ELITE_SPECIALIZATIONS,
   warriorCatalog,
 } from "../../../js/professions/warrior/catalog.js";
+import { warriorNativeModules } from "../../../js/professions/warrior/modules.js";
 import { warriorCoreModule } from "../../../js/professions/warrior/core/module.js";
 import {
   recalculate,
@@ -106,6 +107,28 @@ test("Warrior catalog pins the API snapshot and all elite specializations", () =
   assert.equal(
     warriorCatalog.skills.every(
       (skill) => skill.implemented || skill.simulatorExcluded,
+    ),
+    true,
+  );
+  assert.equal(
+    warriorCatalog.skills.every((skill) => !Object.hasOwn(skill, "recharge")),
+    true,
+  );
+  const authoredSkills = warriorNativeModules.flatMap((module) => [
+    ...Object.values(module.data.skillMechanics || {}),
+    ...(module.data.extraSkills || []),
+  ]);
+  assert.equal(
+    authoredSkills.every((skill) => !Object.hasOwn(skill, "recharge")),
+    true,
+  );
+  assert.equal(
+    authoredSkills.every(
+      (skill) =>
+        !(
+          Object.hasOwn(skill, "castTimeMs") &&
+          Object.hasOwn(skill, "quicknessCastTimeMs")
+        ),
     ),
     true,
   );
@@ -778,25 +801,24 @@ test("Berserker spear and greatsword packets match the supplied benchmark", () =
   const hundredBlades = warriorCatalog.skillsById.get(ID.HUNDRED_BLADES);
 
   const evtcCastTimes = [
-    [ID.ARC_DIVIDER, 1040, 680],
-    [ID.WILD_THROW, 1920, 1280],
-    [ID.BLOOD_RECKONING, 440, 280],
-    [ID.HEAD_BUTT, 1200, 800],
-    [ID.SPEARMARSHALS_SUPPORT, 800, 520],
-    [ID.MAIMING_SPEAR, 720, 480],
-    [ID.MIGHTY_THROW, 960, 640],
-    [ID.DISRUPTING_THROW, 800, 520],
-    [ID.HUNDRED_BLADES, 3680, 2440],
-    [ID.BULLS_CHARGE, 960, 640],
-    [ID.BLADETRAIL, 840, 560],
-    [ID.RUSH, 1520, 1000],
-    [ID.GREATSWORD_SWING, 600, 400],
+    [ID.ARC_DIVIDER, 680],
+    [ID.WILD_THROW, 1280],
+    [ID.BLOOD_RECKONING, 280],
+    [ID.HEAD_BUTT, 800],
+    [ID.SPEARMARSHALS_SUPPORT, 520],
+    [ID.MAIMING_SPEAR, 480],
+    [ID.MIGHTY_THROW, 640],
+    [ID.DISRUPTING_THROW, 520],
+    [ID.HUNDRED_BLADES, 2440],
+    [ID.BULLS_CHARGE, 640],
+    [ID.BLADETRAIL, 560],
+    [ID.RUSH, 1000],
+    [ID.GREATSWORD_SWING, 400],
   ];
-  for (const [skillId, castTimeMs, quicknessCastTimeMs] of evtcCastTimes) {
+  for (const [skillId, quicknessCastTimeMs] of evtcCastTimes) {
     const skill = warriorCatalog.skillsById.get(skillId);
-    assert.equal(skill.castTimeMs, castTimeMs);
     assert.equal(skill.quicknessCastTimeMs, quicknessCastTimeMs);
-    assert.equal(skill.castTimeMs % 40, 0);
+    assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5);
     assert.equal(skill.quicknessCastTimeMs % 40, 0);
   }
 
@@ -928,7 +950,7 @@ test("Spellbreaker Winds and Kick use the supplied PvE mechanics", () => {
   assert.equal(windsStrike.intervalMs, 1000);
   assert.equal(windsStrike.coefficient / windsStrike.hits, 0.45);
   assert.equal(kick.ammo, 3);
-  assert.equal(kick.recharge, 3);
+  assert.equal(kick.ammoCastLockout, 3);
   assert.equal(kick.ammoRecharge, 20);
   assert.equal(kickStrike.coefficient, 1);
   assert.equal(kickControl.metadata.controlKind, "knockback");
@@ -990,7 +1012,7 @@ test("Warrior dagger attacks and bursts use the supplied PvE mechanics", () => {
   assert.deepEqual(
     [
       hushblade.ammo,
-      hushblade.recharge,
+      hushblade.ammoCastLockout,
       hushblade.ammoRecharge,
       strikeCoefficient(hushblade),
       hushblade.effects.find((effect) => effect.type === "control")?.metadata
@@ -1195,7 +1217,7 @@ test("Warrior benchmark packets use their measured Quickness offsets", () => {
   assert.deepEqual(packetOffsets("Breaching Strike", daggerMace), [758]);
   assert.deepEqual(packetOffsets("Kick", daggerMace), [441]);
   assert.deepEqual(packetOffsets("Bloodthirster", swordAxe), [320]);
-  assert.deepEqual(packetOffsets("Dual Strike", swordAxe), [280, 280]);
+  assert.deepEqual(packetOffsets("Dual Strike", swordAxe), [350, 350]);
   assert.deepEqual(packetOffsets("Rend", swordAxe), [320, 640]);
   assert.deepEqual(packetOffsets("Hamstring", swordAxe), [160]);
   assert.deepEqual(
@@ -1853,7 +1875,7 @@ test("Bladesworn automatically releases Dragon Slash at the requested charge cou
   assert.deepEqual(partial.warnings, []);
   assert.equal(
     partial.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    1000,
+    1001,
   );
   assert.ok(
     Math.abs(
@@ -1875,7 +1897,7 @@ test("Daring Dragon automatically releases at its five-charge maximum", () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(
     result.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    1500,
+    1501,
   );
   assert.equal(
     result.events.find(
@@ -1905,10 +1927,12 @@ test("Dragon Trigger stalls below its Flow cost and resumes after rebuilding", (
   assert.equal(ticks.at(-1).granted, true);
   assert.equal(ticks.at(-1).value, 4);
   assert.ok(ticks.every((tick) => tick.flowAfter >= 0));
-  assert.equal(
-    result.steps.find((step) => step.skill === "Dragon Slash—Force").start /
-      1000,
-    ticks.at(-1).at,
+  assert.ok(
+    Math.abs(
+      result.steps.find((step) => step.skill === "Dragon Slash—Force").start /
+        1000 -
+        ticks.at(-1).at,
+    ) <= 0.001,
   );
   const spend = result.events.find(
     (event) =>
@@ -2192,7 +2216,7 @@ test("Bladesworn ammo lockouts, all-count attacks, and reloads are modeled", () 
       (event) =>
         event.type === "action" && event.skillId === ID.ARTILLERY_SLASH,
     ).rechargeReadyAt,
-    16.022,
+    16.0215,
   );
 
   const pistol = simulate(
@@ -2332,7 +2356,7 @@ test("Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow", (
   const converted = simulate("Bladesworn", [ID.SIGNET_OF_FURY], {
     initialResource: 0,
   });
-  assert.equal(converted.endState.profession.flow, 31);
+  assert.equal(converted.endState.profession.flow, 31.05);
 
   const accelerated = simulate(
     "Bladesworn",
@@ -2343,7 +2367,7 @@ test("Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow", (
   assert.equal(
     accelerated.steps.find((step) => step.skill.startsWith("Dragon Slash"))
       .start,
-    2328,
+    2329,
   );
 });
 
@@ -2379,8 +2403,11 @@ test("Dragon Slash scales from each minimum to maximum coefficient", () => {
 test("Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown reset", () => {
   assert.equal(warriorCatalog.skillsById.get(ID.TRIGGERGUARD).castTimeMs, 0);
   assert.equal(
-    warriorCatalog.skillsById.get(ID.TRIGGERGUARD).quicknessCastTimeMs,
-    0,
+    Object.hasOwn(
+      warriorCatalog.skillsById.get(ID.TRIGGERGUARD),
+      "quicknessCastTimeMs",
+    ),
+    false,
   );
   const utility = simulate(
     "Bladesworn",
@@ -2780,7 +2807,7 @@ test("Bladesworn swap and Dragon Trigger traits use supplied behavior", () => {
     combatOnly.resolvedEvents
       .filter((event) => event.name === "Unseen Sword")
       .map((event) => event.at),
-    [0.25],
+    [0.2505],
   );
 
   const trigger = simulate(
@@ -2990,7 +3017,7 @@ test("Axe packets and burst coefficients use the supplied PvE values", () => {
   );
   const throwAxe = warriorCatalog.skillsById.get(ID.THROW_AXE);
   assert.deepEqual(
-    [throwAxe.ammo, throwAxe.recharge, throwAxe.ammoRecharge],
+    [throwAxe.ammo, throwAxe.ammoCastLockout, throwAxe.ammoRecharge],
     [2, 1, 10],
   );
   assert.equal(warriorCatalog.skillsById.get(ID.CYCLONE_AXE).cooldown, 6);

@@ -70,7 +70,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   [ID.ELEMENTAL_BLAST]: {
     implemented: true,
     handlerId: "revenant.elemental-blast",
-    castTimeMs: 250,
     quicknessCastTimeMs: 480,
     cooldown: 12,
     energyCost: 0,
@@ -119,7 +118,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   [ID.CHAOTIC_RELEASE]: {
     implemented: true,
     handlerId: "revenant.facet-consume",
-    castTimeMs: 750,
     quicknessCastTimeMs: 600,
     cooldown: 20,
     energyCost: 0,
@@ -161,7 +159,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   [ID.BURST_OF_STRENGTH]: {
     implemented: true,
     handlerId: "revenant.facet-consume",
-    castTimeMs: 1000,
     quicknessCastTimeMs: 840,
     cooldown: 12,
     energyCost: 0,
@@ -226,7 +223,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   [ID.TRUE_NATURE]: {
     implemented: true,
     handlerId: "revenant.facet-consume",
-    castTimeMs: 250,
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,
@@ -245,7 +241,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   [ID.TRUE_NATURE_ID_51675]: {
     implemented: true,
     handlerId: "revenant.facet-consume",
-    castTimeMs: 250,
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,
@@ -263,7 +258,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   [ID.TRUE_NATURE_ID_51696]: {
     implemented: true,
     handlerId: "revenant.facet-consume",
-    castTimeMs: 250,
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,
@@ -274,7 +268,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   [ID.TRUE_NATURE_ID_51713]: {
     implemented: true,
     handlerId: "revenant.facet-consume",
-    castTimeMs: 250,
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,
@@ -285,7 +278,6 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<
   [ID.TRUE_NATURE_ID_51714]: {
     implemented: true,
     handlerId: "revenant.facet-consume",
-    castTimeMs: 250,
     quicknessCastTimeMs: 480,
     cooldown: 20,
     energyCost: 0,

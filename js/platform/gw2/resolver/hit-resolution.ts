@@ -196,7 +196,9 @@ export function createGw2HitResolution({
       weaponStrength: strike.weaponStrength,
       baseDamage: strike.baseDamage,
       damage:
-        strike.baseDamage * strike.criticalMultiplier * strike.outgoingMultiplier,
+        strike.baseDamage *
+        strike.criticalMultiplier *
+        strike.outgoingMultiplier,
     };
   }
 
@@ -230,6 +232,8 @@ export function createGw2HitResolution({
         : {}),
       damage,
       criticalChance: hitContext.critical.chance,
+      criticalChanceBeforeCap: hitContext.critical.chanceBeforeCap,
+      criticalChanceContributors: hitContext.critical.contributors,
       criticalDamage: hitContext.critical.damage,
       critEligible: hitContext.critEligible,
     } as Gw2ResolverEvent;

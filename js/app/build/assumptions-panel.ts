@@ -125,9 +125,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
                 ${conditionItems}
             </div>`;
   }).join("");
-  const assumptionOptionIcon = (
-    option: ProfessionAssumptionOption,
-  ): string =>
+  const assumptionOptionIcon = (option: ProfessionAssumptionOption): string =>
     option.icon || app.skillById.get(Number(option.skillId))?.icon || "";
   const professionAssumptionItem = (
     control: ProfessionAssumptionControl,
@@ -232,6 +230,12 @@ export function renderAssumptions(app: ProfessionAppState): void {
                 <label class="boon-control">Additional allied players <input id="allied-player-count" type="number" min="0" max="4" step="1" value="${Number(a.alliedPlayerCount || 0)}"></label>
             </div>
             <div class="perma-group"><span class="perma-group-label">Simulation</span>
+                <label class="boon-control">Time of day
+                    <select class="gear-select" id="time-of-day">
+                        <option value="day"${a.timeOfDay === "night" ? "" : " selected"}>Day</option>
+                        <option value="night"${a.timeOfDay === "night" ? " selected" : ""}>Night</option>
+                    </select>
+                </label>
                 <label class="boon-control" title="Controls minions, clones, turrets, and other ordinary summons. Mesmer phantasms and the Mechanist mech are unchanged.">
                     <input id="share-player-boons-with-summons" type="checkbox"${a.sharePlayerBoonsWithSummons !== false ? " checked" : ""}>
                     Share player boons with summons
@@ -315,6 +319,14 @@ export function renderAssumptions(app: ProfessionAppState): void {
   );
   sharePlayerBoonsWithSummons.addEventListener("change", () => {
     a.sharePlayerBoonsWithSummons = sharePlayerBoonsWithSummons.checked;
+    app.changed();
+  });
+  const timeOfDay = document.getElementById("time-of-day");
+  if (!(timeOfDay instanceof HTMLSelectElement)) {
+    throw new Error("Required assumption select #time-of-day is missing.");
+  }
+  timeOfDay.addEventListener("change", () => {
+    a.timeOfDay = timeOfDay.value === "night" ? "night" : "day";
     app.changed();
   });
   container.querySelectorAll("[data-assumption-key]").forEach((control) => {

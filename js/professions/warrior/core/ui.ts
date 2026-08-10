@@ -238,6 +238,8 @@ function availability(
   }
   if (skill.primalBurst && !state.berserkActive)
     return { available: false, message: "Enter berserk mode first" };
+  if (skill.handlerId === "warrior.berserk" && state.berserkActive)
+    return { available: false, message: "Already in berserk mode" };
   // Keep the stow action usable while authoring or inserting rotation steps.
   // The scheduler still rejects an attempted stow when Gunsaber is inactive.
   if (skill.id === ID.SHEATHE_GUNSABER) {

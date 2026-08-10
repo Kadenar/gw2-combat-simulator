@@ -189,32 +189,36 @@ test("Revenant catalog pins API identity and explicit skill mechanics", () => {
       .map((effect) => [effect.coefficient, effect.hits]),
     [[1, 1]],
   );
-  for (const [skillId, castTimeMs, quicknessCastTimeMs] of [
-    [SKILL.HEX_EATER_VORTEX, 520, 526],
-    [SKILL.FRIGID_BLITZ, 500, 681],
-    [SKILL.SEARING_FISSURE, 750, 600],
-    [SKILL.TEMPORAL_RIFT, 500, 560],
-    [SKILL.ECHOING_ERUPTION, 750, 960],
-    [SKILL.MISERY_SWIPE, 250, 440],
-    [SKILL.ANGUISH_SWIPE, 500, 360],
-    [SKILL.MANIFEST_TOXIN, 500, 560],
-    [SKILL.ABYSSAL_RAZE, 750, 600],
-    [SKILL.ABYSSAL_BLOT, 1000, 800],
-    [SKILL.CALL_TO_ANGUISH, 750, 820],
-    [SKILL.RELEASE_POTENTIAL_MESMER, 500, 440],
-    [SKILL.EMBRACE_THE_DARKNESS, 500, 440],
-    [SKILL.BANISH_ENCHANTMENT, 500, 440],
-    [SKILL.UNYIELDING_IMPACT, 1000, 920],
-    [SKILL.ABYSSAL_STRIKE, 500, 520],
-    [SKILL.ABYSSAL_BLITZ, 500, 520],
-    [SKILL.ABYSSAL_FORCE, 500, 520],
-    [SKILL.ELEMENTAL_BLAST, 250, 480],
-    [SKILL.BURST_OF_STRENGTH, 1000, 840],
-    [SKILL.CHAOTIC_RELEASE, 750, 600],
-    [SKILL.TRUE_NATURE_ID_51696, 250, 480],
+  for (const [skillId, quicknessCastTimeMs] of [
+    [SKILL.HEX_EATER_VORTEX, 526],
+    [SKILL.FRIGID_BLITZ, 681],
+    [SKILL.SEARING_FISSURE, 600],
+    [SKILL.TEMPORAL_RIFT, 560],
+    [SKILL.ECHOING_ERUPTION, 960],
+    [SKILL.MISERY_SWIPE, 440],
+    [SKILL.ANGUISH_SWIPE, 360],
+    [SKILL.MANIFEST_TOXIN, 560],
+    [SKILL.ABYSSAL_RAZE, 600],
+    [SKILL.ABYSSAL_BLOT, 800],
+    [SKILL.CALL_TO_ANGUISH, 820],
+    [SKILL.RELEASE_POTENTIAL_MESMER, 440],
+    [SKILL.EMBRACE_THE_DARKNESS, 440],
+    [SKILL.BANISH_ENCHANTMENT, 440],
+    [SKILL.UNYIELDING_IMPACT, 920],
+    [SKILL.ABYSSAL_STRIKE, 520],
+    [SKILL.ABYSSAL_BLITZ, 520],
+    [SKILL.ABYSSAL_FORCE, 520],
+    [SKILL.ELEMENTAL_BLAST, 480],
+    [SKILL.BURST_OF_STRENGTH, 840],
+    [SKILL.CHAOTIC_RELEASE, 600],
+    [SKILL.TRUE_NATURE_ID_51696, 480],
   ]) {
     const skill = revenantCatalog.skillsById.get(skillId);
-    assert.equal(skill.castTimeMs, castTimeMs, `${skill.name} base timing`);
+    assert.equal(
+      skill.castTimeMs,
+      quicknessCastTimeMs * 1.5,
+      `${skill.name} base timing`,
+    );
     assert.equal(
       skill.quicknessCastTimeMs,
       quicknessCastTimeMs,
@@ -603,10 +607,10 @@ test("Renegade shortbow skills use supplied casts, packets, and combo data", () 
     [SKILL.SEVENSHOT, 440],
     [SKILL.SPIRITCRUSH, 400],
   ]) {
-    assert.equal(
-      revenantCatalog.skillsById.get(skillId).quicknessCastTimeMs,
-      quicknessCastTimeMs,
-    );
+    const skill = revenantCatalog.skillsById.get(skillId);
+    assert.equal(skill.castTimeMs, quicknessCastTimeMs);
+    assert.equal(skill.quicknessCastTimeMs, undefined);
+    assert.equal(skill.unaffectedByQuickness, true);
   }
 
   for (const skillId of [SKILL.SHATTERSHOT, SKILL.SEVENSHOT]) {
@@ -869,8 +873,8 @@ test("Searing Fissure resolves its initial packet and three field pulses", () =>
       )
       .map((event) => [event.at, event.stacks, event.duration]),
     [
-      [1.67, 1, 1],
-      [1.67, 1, 1],
+      [1.82, 1, 1],
+      [1.82, 1, 1],
     ],
   );
 
@@ -1143,20 +1147,20 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   assert.deepEqual(
     result.steps.map((step) => [step.skill, step.start, step.end]),
     [
-      ["Abyssal Raze", 0, 750],
-      ["Abyssal Raze", 1750, 2500],
-      ["Abyssal Raze", 3500, 4250],
-      ["Wait", 4250, 13350],
-      ["Abyssal Strike", 13350, 13850],
+      ["Abyssal Raze", 0, 900],
+      ["Abyssal Raze", 1900, 2800],
+      ["Abyssal Raze", 3800, 4700],
+      ["Wait", 4700, 13800],
+      ["Abyssal Strike", 13800, 14580],
     ],
   );
   assert.equal(
     result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt,
-    14.75,
+    14.9,
   );
   assert.deepEqual(result.endState.cooldowns["Abyssal Raze"], {
-    readyAt: 14750,
-    remaining: 900,
+    readyAt: 14900,
+    remaining: 320,
   });
 });
 
@@ -1185,7 +1189,7 @@ test("Abyssal Raze recharge reduction carries overflow into the next count", () 
     charges: 1,
     maximum: 3,
     rechargeDuration: 15,
-    nextRechargeAt: 29.75,
+    nextRechargeAt: 29.9,
   });
   assert.equal(result.endState.cooldowns["Abyssal Raze"], undefined);
 });
@@ -2142,7 +2146,7 @@ test("Call to Anguish arms Unyielding Impact in the rotation palette", () => {
   const insufficient = simulate(
     "Core",
     ["Call to Anguish", "Unyielding Impact"],
-    { ...config, initialEnergy: 30, boons: {} },
+    { ...config, initialEnergy: 30 },
   );
   assert.match(insufficient.warnings[0], /requires 5 energy/);
 });
@@ -2477,7 +2481,7 @@ test("Demon skills use their current projectile and condition packets", () => {
         event.type === "damage" &&
         event.skillName === "Unyielding Impact" &&
         event.coefficient === 1 &&
-        event.at === 1.307,
+        event.at === 1.787,
     ),
   );
   assert.deepEqual(
@@ -3740,7 +3744,8 @@ test("Vindicator Luxon skills use supplied combat mechanics", () => {
   assert.equal(nomad.cooldown, 3);
   assert.equal(nomad.energyCost, 10);
   assert.equal(nomad.castTimeMs, 960);
-  assert.equal(nomad.quicknessCastTimeMs, 960);
+  assert.equal(nomad.quicknessCastTimeMs, undefined);
+  assert.equal(nomad.unaffectedByQuickness, true);
   assert.equal(nomad.effects[0].coefficient, 4);
   assert.deepEqual(
     nomad.effects
@@ -3786,7 +3791,7 @@ test("Vindicator Luxon skills use supplied combat mechanics", () => {
   const spear = skill("Spear of Archemorus");
   assert.equal(spear.cooldown, 12);
   assert.equal(spear.energyCost, 20);
-  assert.equal(spear.castTimeMs, 600);
+  assert.equal(spear.castTimeMs, 720);
   assert.equal(spear.quicknessCastTimeMs, 480);
   assert.equal(spear.effects[0].coefficient, 5);
   assert.equal(spear.effects[0].atMs, 2960);
@@ -3809,14 +3814,15 @@ test("Vindicator Luxon skills use supplied combat mechanics", () => {
     initialEnergy: 100,
     boons: { quickness: true },
   });
-  assert.equal(normal.steps[0].fullCastMs, 600);
+  assert.equal(normal.steps[0].fullCastMs, 720);
   assert.equal(quick.steps[0].fullCastMs, 480);
-  assert.equal(
-    normal.events.find(
-      (event) =>
-        event.type === "damage" && event.skillName === "Spear of Archemorus",
-    )?.at,
-    3.56,
+  assert.ok(
+    Math.abs(
+      normal.events.find(
+        (event) =>
+          event.type === "damage" && event.skillName === "Spear of Archemorus",
+      )?.at - 3.68,
+    ) < 1e-12,
   );
 });
 
@@ -4257,7 +4263,7 @@ test("Deathstrike weapon palette keeps the primary skill timing on cooldown", ()
   );
 
   assert.equal(deathstrike.id, SKILL.DEATHSTRIKE);
-  assert.match(paletteSkillView(app, deathstrike).title, /Cast: 1\.00s/);
+  assert.match(paletteSkillView(app, deathstrike).title, /Cast: 1\.08s/);
   assert.doesNotMatch(paletteSkillView(app, deathstrike).title, /Instant cast/);
 });
 
@@ -4281,13 +4287,13 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
     assert.equal(skill(name).cooldown, cooldown, name);
   }
   for (const [name, castTimeMs, coefficient] of [
-    ["Preparation Thrust", 500, 0.75],
-    ["Brutal Blade", 750, 0.8],
+    ["Preparation Thrust", 540, 0.75],
+    ["Brutal Blade", 840, 0.8],
     ["Mist Swing", 400, 0.7],
     ["Mist Slash", 600, 0.8],
     ["Arcing Mists", 680, 1.2],
-    ["Mist Unleashed", 500, 1.6],
-    ["Phantom's Onslaught", 650, 1.6],
+    ["Mist Unleashed", 780, 1.6],
+    ["Phantom's Onslaught", 657, 1.6],
   ]) {
     assert.equal(skill(name).castTimeMs, castTimeMs, name);
     assert.equal(
@@ -4297,19 +4303,16 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
       name,
     );
   }
-  for (const [name, quicknessCastTimeMs] of [
+  for (const [name, castTimeMs] of [
     ["Mist Swing", 400],
     ["Mist Slash", 600],
     ["Arcing Mists", 680],
   ]) {
-    assert.equal(
-      skill(name).quicknessCastTimeMs,
-      quicknessCastTimeMs,
-      `${name} Quickness timing`,
-    );
+    assert.equal(skill(name).castTimeMs, castTimeMs, `${name} cast timing`);
+    assert.equal(skill(name).quicknessCastTimeMs, undefined, name);
+    assert.equal(skill(name).unaffectedByQuickness, true, name);
   }
   for (const [name, quicknessCastTimeMs] of [
-    ["Chilling Isolation", 680],
     ["Release Potential: Dervish", 680],
     ["Shackling Wave", 800],
     ["Deathstrike", 720],
@@ -4324,6 +4327,9 @@ test("Power Conduit skill profiles retain their impact timing, coefficients, and
   ]) {
     assert.equal(skill(name).quicknessCastTimeMs, quicknessCastTimeMs, name);
   }
+  assert.equal(skill("Chilling Isolation").castTimeMs, 680);
+  assert.equal(skill("Chilling Isolation").quicknessCastTimeMs, undefined);
+  assert.equal(skill("Chilling Isolation").unaffectedByQuickness, true);
   assert.equal(skill("Chilling Isolation").defaultInterruptMs, undefined);
   assert.equal(skill("Chilling Isolation").paletteInterruptMs, 480);
   assert.equal(suggestedPaletteInterruptMs(skill("Chilling Isolation")), 480);

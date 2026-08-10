@@ -8,10 +8,11 @@
  *
  * ## Cast and effect timing
  *
- * `skill.castTimeMs` is the unquickened baseline. When Quickness is present at
- * cast start, `skill.quicknessCastTimeMs` is used when supplied. Otherwise the
- * baseline is divided by the 1.5 action-rate multiplier and rounded up to the
- * next 40 ms action tick.
+ * `skill.castTimeMs` is the canonical unquickened baseline. The catalog can
+ * derive it from `quicknessCastTimeMs`. When Quickness is present at cast start,
+ * the measured Quickness duration is used when supplied. Otherwise the baseline
+ * is divided by the 1.5 action-rate multiplier and rounded up to the next 40 ms
+ * action tick.
  *
  * Explicit effect offsets are also authored against the unquickened timeline:
  *
@@ -237,6 +238,7 @@ export function createGw2SchedulerPolicy(
     },
 
     castDuration(context, skill, baseDuration) {
+      if (skill.unaffectedByQuickness) return baseDuration;
       // Quickness is snapshotted at cast start for both the action and any
       // cast-scaled effect offsets belonging to that action.
       if (!context.hasBuff("quickness", context.start)) return baseDuration;
@@ -250,6 +252,7 @@ export function createGw2SchedulerPolicy(
     },
 
     effectTiming(context, skill, effect) {
+      if (skill.unaffectedByQuickness) return effect;
       if (!context.hasBuff("quickness", context.start)) return effect;
       // The helper leaves fixed effects untouched and scales opted-in offsets,
       // tick arrays, and non-fixed intervals without mutating catalog metadata.

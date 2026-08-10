@@ -28,7 +28,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.POISON_GRENADE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 680,
     cooldown: 20,
     finisherType: "Projectile",
@@ -66,7 +65,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SHRAPNEL_GRENADE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 680,
     cooldown: 5,
     finisherType: "Projectile",
@@ -132,7 +130,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.FREEZE_GRENADE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 680,
     cooldown: 20,
     finisherType: "Projectile",
@@ -169,7 +166,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.GRENADE_BARRAGE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 680,
     cooldown: 25,
     finisherType: "Projectile",
@@ -179,8 +175,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 3.6,
         hits: 6,
-        atMs: 83,
-        intervalMs: 83,
+        atMs: 169.32,
+        intervalMs: 169.32,
         timingAnchor: "castStart",
         timingScale: "cast",
         name: "Grenade Barrage",
@@ -226,7 +222,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BIG_OL_BOMB]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 600,
     cooldown: 20,
     finisherType: "Blast",
@@ -343,7 +338,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.GALVANIC_BOMB]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 600,
     cooldown: 16,
     finisherType: "Blast",
@@ -391,7 +385,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.FIRE_BOMB]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 600,
     cooldown: 8,
     comboField: "Fire",
@@ -468,7 +461,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.FRAGMENTATION_SHOT]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 520,
     cooldown: 0,
     finisherType: "Projectile",
@@ -495,7 +487,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.POISON_DART_VOLLEY]: {
     implemented: true,
-    castTimeMs: 1250,
     quicknessCastTimeMs: 840,
     cooldown: 8,
     finisherType: "Projectile",
@@ -505,8 +496,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 2,
         hits: 5,
-        atMs: 250,
-        intervalMs: 250,
+        atMs: 252,
+        intervalMs: 252,
         timingAnchor: "castStart",
         timingScale: "cast",
         name: "Poison Dart Volley",
@@ -518,11 +509,11 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
       {
         type: "condition",
         ticks: [
-          { atMs: 250, condition: "Poisoned", stacks: 1, duration: 7 },
-          { atMs: 500, condition: "Poisoned", stacks: 1, duration: 7 },
-          { atMs: 750, condition: "Poisoned", stacks: 1, duration: 7 },
-          { atMs: 1000, condition: "Poisoned", stacks: 1, duration: 7 },
-          { atMs: 1250, condition: "Poisoned", stacks: 1, duration: 7 },
+          { atMs: 252, condition: "Poisoned", stacks: 1, duration: 7 },
+          { atMs: 504, condition: "Poisoned", stacks: 1, duration: 7 },
+          { atMs: 756, condition: "Poisoned", stacks: 1, duration: 7 },
+          { atMs: 1008, condition: "Poisoned", stacks: 1, duration: 7 },
+          { atMs: 1260, condition: "Poisoned", stacks: 1, duration: 7 },
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
@@ -532,7 +523,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.STATIC_SHOT]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 320,
     cooldown: 12,
     finisherType: "Projectile",
@@ -563,7 +553,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.GLUE_SHOT]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 560,
     cooldown: 20,
     duration: 5,
@@ -603,7 +592,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOWTORCH]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 560,
     cooldown: 12,
     effects: [
@@ -865,7 +853,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.GRENADE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 680,
     cooldown: 0,
     finisherType: "Projectile",
@@ -1071,7 +1058,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.NAPALM]: {
     implemented: true,
-    castTimeMs: 2250,
     quicknessCastTimeMs: 1760,
     cooldown: 25,
     effects: [
@@ -1079,8 +1065,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 5,
         hits: 10,
-        atMs: 225,
-        intervalMs: 225,
+        atMs: 264,
+        intervalMs: 264,
         timingAnchor: "castStart",
         timingScale: "cast",
         name: "Napalm",
@@ -1089,16 +1075,16 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
       {
         type: "condition",
         ticks: [
-          { atMs: 225, condition: "Burning", stacks: 1, duration: 3.25 },
-          { atMs: 450, condition: "Burning", stacks: 1, duration: 3.25 },
-          { atMs: 675, condition: "Burning", stacks: 1, duration: 3.25 },
-          { atMs: 900, condition: "Burning", stacks: 1, duration: 3.25 },
-          { atMs: 1125, condition: "Burning", stacks: 1, duration: 3.25 },
-          { atMs: 1350, condition: "Burning", stacks: 1, duration: 3.25 },
-          { atMs: 1575, condition: "Burning", stacks: 1, duration: 3.25 },
-          { atMs: 1800, condition: "Burning", stacks: 1, duration: 3.25 },
-          { atMs: 2025, condition: "Burning", stacks: 1, duration: 3.25 },
-          { atMs: 2250, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 264, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 528, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 792, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 1056, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 1320, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 1584, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 1848, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 2112, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 2376, condition: "Burning", stacks: 1, duration: 3.25 },
+          { atMs: 2640, condition: "Burning", stacks: 1, duration: 3.25 },
         ],
         timingAnchor: "castStart",
         timingScale: "cast",
@@ -1109,7 +1095,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.AIR_BLAST]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 360,
     cooldown: 15,
     effects: [
@@ -1133,7 +1118,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.FLAME_BLAST]: {
     implemented: true,
-    castTimeMs: 1170,
     quicknessCastTimeMs: 800,
     measuredCancelMs: 480,
     cooldown: 6,
@@ -1678,7 +1662,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.RIFLE_BURST]: {
     implemented: true,
-    castTimeMs: 1250,
     quicknessCastTimeMs: 835,
     cooldown: 0,
     effects: [
@@ -1715,7 +1698,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.NET_SHOT]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 570,
     cooldown: 9,
     effects: [
@@ -1757,7 +1739,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   [ID.JUMP_SHOT]: {
     implemented: true,
     castTimeMs: 1000,
-    quicknessCastTimeMs: 1000,
+    unaffectedByQuickness: true,
     cooldown: 18,
     effects: [
       {
@@ -2111,7 +2093,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLUNDERBUSS]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 400,
     cooldown: 6,
     effects: [
@@ -2148,7 +2129,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.OVERCHARGED_SHOT]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 400,
     cooldown: 14,
     effects: [
@@ -2829,7 +2809,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.STATIC_SHOCK]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 680,
     cooldown: 20,
     effects: [
@@ -3486,7 +3465,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.RADIANT_ARC]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 840,
     cooldown: 12,
     effects: [
@@ -3565,7 +3543,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SUN_EDGE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     effects: [
@@ -3587,7 +3564,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.REFRACTION_CUTTER]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 520,
     cooldown: 6,
     effects: [
@@ -3660,7 +3636,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SUN_RIPPER]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 480,
     cooldown: 0,
     effects: [
@@ -3703,7 +3678,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   [ID.GLEAM_SABER]: {
     implemented: true,
     handlerId: "engineer.gleam-saber",
-    castTimeMs: 750,
     quicknessCastTimeMs: 720,
     cooldown: 0,
     effects: [
@@ -3929,7 +3903,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.RADIANT_ARC_ID_69565]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 840,
     cooldown: 14,
     finisherType: "Leap",
@@ -3959,7 +3932,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SUN_RIPPER_ID_69906]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 480,
     cooldown: 0,
     effects: [
@@ -3981,7 +3953,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.SUN_EDGE_ID_70514]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     effects: [
@@ -4004,7 +3975,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   [ID.GLEAM_SABER_ID_70771]: {
     implemented: true,
     handlerId: "engineer.gleam-saber",
-    castTimeMs: 750,
     quicknessCastTimeMs: 720,
     cooldown: 0,
     effects: [
@@ -4019,7 +3989,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.REFRACTION_CUTTER_ID_71121]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 520,
     cooldown: 6,
     effects: [
@@ -4196,7 +4165,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.PUNCTURING_JAB]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     effects: [
@@ -4220,7 +4188,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     handlerId: "engineer.devastator",
     castTimeMs: 1000,
-    quicknessCastTimeMs: 1000,
+    unaffectedByQuickness: true,
     cooldown: 20,
     effects: [
       {
@@ -4265,7 +4233,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.AMPLIFYING_SLICE]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 640,
     cooldown: 0,
     effects: [
@@ -4296,7 +4263,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     handlerId: "engineer.lightning-rod",
     castTimeMs: 400,
-    quicknessCastTimeMs: 400,
+    unaffectedByQuickness: true,
     cooldown: 12,
     effects: [],
   },
@@ -4323,7 +4290,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.RENDING_STRIKE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 520,
     cooldown: 0,
     effects: [
@@ -4354,21 +4320,19 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     handlerId: "engineer.conduit-surge",
     castTimeMs: 520,
-    quicknessCastTimeMs: 520,
+    unaffectedByQuickness: true,
     cooldown: 5,
     effects: [],
   },
   [ID.ELECTRIC_ARTILLERY]: {
     implemented: true,
     handlerId: "engineer.electric-artillery",
-    castTimeMs: 780,
     quicknessCastTimeMs: 520,
     cooldown: 1,
     effects: [],
   },
   [ID.STOKE_THE_FLAMES]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 20,
     comboField: "Fire",
@@ -4405,7 +4369,6 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.MAGNETIC_BOMB]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 480,
     cooldown: 20,
     effects: [
@@ -4481,7 +4444,6 @@ const extraSkills: Skill[] = [
     slot: "Action",
     handlerId: "engineer.kit-stow",
     castTimeMs: 0,
-    quicknessCastTimeMs: 0,
     cooldown: 0,
     rechargeAnchor: "castStart",
     implemented: true,

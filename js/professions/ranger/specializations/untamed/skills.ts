@@ -29,7 +29,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.NATURES_BINDING]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
   },
@@ -41,7 +40,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.EXPLODING_SPORES]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -59,7 +57,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FORESTS_FORTIFICATION]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "boon",
@@ -84,7 +81,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.UNNATURAL_TRAVERSAL]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "condition",
@@ -137,7 +133,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MUTATE_CONDITIONS]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "condition",
@@ -172,7 +167,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PERILOUS_GIFT]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
   },

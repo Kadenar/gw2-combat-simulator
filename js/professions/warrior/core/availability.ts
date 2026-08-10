@@ -33,13 +33,24 @@ export function warriorCastAvailability(
       };
     }
   }
-  if (skill.handlerId === "warrior.berserk" && specialization !== "Berserker") {
-    return {
-      ready: false,
-      retryAt: null,
-      code: "warrior.specialization",
-      reason: "Berserk requires the Berserker specialization.",
-    };
+  if (skill.handlerId === "warrior.berserk") {
+    if (specialization !== "Berserker") {
+      return {
+        ready: false,
+        retryAt: null,
+        code: "warrior.specialization",
+        reason: "Berserk requires the Berserker specialization.",
+      };
+    }
+    const spec = context.state.profession.specialization;
+    if (spec.kind === "Berserker" && spec.state.berserkActive) {
+      return {
+        ready: false,
+        retryAt: spec.state.berserkUntil,
+        code: "warrior.berserk-active",
+        reason: "Already in berserk mode.",
+      };
+    }
   }
   if (skill.burst && specialization === "Bladesworn" && !skill.dragonSlash) {
     return {

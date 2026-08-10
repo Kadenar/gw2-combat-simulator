@@ -3,10 +3,7 @@ import {
   augmentSkillHandler,
   replaceSkillHandler,
 } from "../engine/skill-handlers.js";
-import type {
-  SkillHandlerStrategy,
-  SkillId,
-} from "../engine/types.js";
+import type { SkillHandlerStrategy, SkillId } from "../engine/types.js";
 import type {
   NativeResolvedDamageDetails,
   NativeResolvedReaction,
@@ -21,7 +18,9 @@ import type {
 type OrderedEscapeHandler = Readonly<{
   id: string;
   order?: number;
-  handler: (...args: never[]) => object | boolean | number | string | null | void;
+  handler: (
+    ...args: never[]
+  ) => object | boolean | number | string | null | void;
 }>;
 
 function resolvedReaction<
@@ -40,8 +39,10 @@ function resolvedReaction<
     ) => object | void;
   }>,
 ): NativeResolvedReaction<TContext, TEvent, TDetails> {
-  if (!String(declaration.id || "").trim() ||
-    typeof declaration.handler !== "function") {
+  if (
+    !String(declaration.id || "").trim() ||
+    typeof declaration.handler !== "function"
+  ) {
     throw new TypeError(`${stage} resolver reaction requires id and handler.`);
   }
   return Object.freeze({
@@ -57,15 +58,17 @@ export function onResolvedDamage<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,
   TDetails extends object = NativeResolvedDamageDetails,
->(declaration: Readonly<{
-  id: string;
-  order?: number;
-  handler: (
-    context: TContext,
-    event: TEvent,
-    details?: TDetails,
-  ) => object | void;
-}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+>(
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (
+      context: TContext,
+      event: TEvent,
+      details?: TDetails,
+    ) => object | void;
+  }>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction("damage.resolved", declaration);
 }
 
@@ -73,15 +76,17 @@ export function onResolvedControl<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,
   TDetails extends object = object,
->(declaration: Readonly<{
-  id: string;
-  order?: number;
-  handler: (
-    context: TContext,
-    event: TEvent,
-    details?: TDetails,
-  ) => object | void;
-}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+>(
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (
+      context: TContext,
+      event: TEvent,
+      details?: TDetails,
+    ) => object | void;
+  }>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction("control.resolved", declaration);
 }
 
@@ -89,15 +94,17 @@ export function onResolvedBlind<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,
   TDetails extends object = object,
->(declaration: Readonly<{
-  id: string;
-  order?: number;
-  handler: (
-    context: TContext,
-    event: TEvent,
-    details?: TDetails,
-  ) => object | void;
-}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+>(
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (
+      context: TContext,
+      event: TEvent,
+      details?: TDetails,
+    ) => object | void;
+  }>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction("blind.resolved", declaration);
 }
 
@@ -105,15 +112,17 @@ export function onConditionApplied<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,
   TDetails extends object = object,
->(declaration: Readonly<{
-  id: string;
-  order?: number;
-  handler: (
-    context: TContext,
-    event: TEvent,
-    details?: TDetails,
-  ) => object | void;
-}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+>(
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (
+      context: TContext,
+      event: TEvent,
+      details?: TDetails,
+    ) => object | void;
+  }>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction("condition.applied", declaration);
 }
 
@@ -121,15 +130,17 @@ export function onBuffApplied<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,
   TDetails extends object = object,
->(declaration: Readonly<{
-  id: string;
-  order?: number;
-  handler: (
-    context: TContext,
-    event: TEvent,
-    details?: TDetails,
-  ) => object | void;
-}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+>(
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (
+      context: TContext,
+      event: TEvent,
+      details?: TDetails,
+    ) => object | void;
+  }>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction("buff.applied", declaration);
 }
 
@@ -137,15 +148,17 @@ export function onFoodProcCreated<
   TContext extends Gw2ResolverRuntime,
   TEvent extends Gw2ResolverEvent,
   TDetails extends object = object,
->(declaration: Readonly<{
-  id: string;
-  order?: number;
-  handler: (
-    context: TContext,
-    event: TEvent,
-    details?: TDetails,
-  ) => object | void;
-}>): NativeResolvedReaction<TContext, TEvent, TDetails> {
+>(
+  declaration: Readonly<{
+    id: string;
+    order?: number;
+    handler: (
+      context: TContext,
+      event: TEvent,
+      details?: TDetails,
+    ) => object | void;
+  }>,
+): NativeResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction("food-proc.created", declaration);
 }
 
@@ -156,10 +169,8 @@ export interface ResolvedCriticalHitOptions<
 > {
   readonly id: string;
   readonly order?: number;
-  readonly chanceOnCriticalHit?: number | ((
-    context: TContext,
-    event: TEvent,
-  ) => number);
+  readonly chanceOnCriticalHit?:
+    number | ((context: TContext, event: TEvent) => number);
   readonly actorTypes?: readonly ("player" | "summon" | "effect" | "unknown")[];
   readonly sourceIds?: readonly SkillId[];
   readonly when?: (
@@ -172,7 +183,9 @@ export interface ResolvedCriticalHitOptions<
     readonly set: (context: TContext, value: number) => void;
   };
   readonly internalCooldown?: {
-    readonly duration: number;
+    readonly duration:
+      | number
+      | ((context: TContext, event: TEvent, details: TDetails) => number);
     readonly readyAt: (context: TContext) => number;
     readonly setReadyAt: (context: TContext, readyAt: number) => void;
   };
@@ -207,13 +220,13 @@ export function onResolvedPlayerCriticalHit<
   >["attribution"];
 } {
   const actorTypes = new Set(options.actorTypes || ["player"]);
-  const sourceIds = options.sourceIds == null
-    ? null
-    : new Set(options.sourceIds.map(String));
+  const sourceIds =
+    options.sourceIds == null ? null : new Set(options.sourceIds.map(String));
   const chanceFor = (context: TContext, event: TEvent): number => {
-    const raw = typeof options.chanceOnCriticalHit === "function"
-      ? options.chanceOnCriticalHit(context, event)
-      : options.chanceOnCriticalHit ?? 1;
+    const raw =
+      typeof options.chanceOnCriticalHit === "function"
+        ? options.chanceOnCriticalHit(context, event)
+        : (options.chanceOnCriticalHit ?? 1);
     const chance = Number(raw);
     if (!Number.isFinite(chance) || chance < 0 || chance > 1) {
       throw new TypeError(`${options.id} critical proc chance must be 0..1.`);
@@ -230,18 +243,31 @@ export function onResolvedPlayerCriticalHit<
       const chanceOnCritical = chanceFor(context, event);
       if (!(chanceOnCritical > 0)) return;
       const readyAt = options.internalCooldown?.readyAt(context) ?? -Infinity;
+      // Hits while an effect is on ICD are ineligible. They must not roll in
+      // stochastic mode or bank expected proc progress in deterministic mode.
+      if (!isInternalCooldownReady(event.at, readyAt)) return;
+      const internalCooldownDuration = options.internalCooldown
+        ? Number(
+            typeof options.internalCooldown.duration === "function"
+              ? options.internalCooldown.duration(context, event, details)
+              : options.internalCooldown.duration,
+          )
+        : 0;
       if (context.random.stochastic) {
-        if (details.hitContext?.critical?.didCrit !== true ||
-          !isInternalCooldownReady(event.at, readyAt)) return;
-        if (chanceOnCritical < 1 && !context.random.roll(
-          chanceOnCritical,
-          options.randomStream || options.id,
-        )) return;
+        if (details.hitContext?.critical?.didCrit !== true) return;
+        if (
+          chanceOnCritical < 1 &&
+          !context.random.roll(
+            chanceOnCritical,
+            options.randomStream || options.id,
+          )
+        )
+          return;
         options.handler(context, event, details);
         if (options.internalCooldown) {
           options.internalCooldown.setReadyAt(
             context,
-            event.at + options.internalCooldown.duration,
+            event.at + internalCooldownDuration,
           );
         }
         return;
@@ -249,7 +275,8 @@ export function onResolvedPlayerCriticalHit<
       const criticalChance = Number(
         details.hitContext?.critical?.chance ?? details.criticalChance ?? 0,
       );
-      let progress = options.expectedProgress.get(context) +
+      let progress =
+        options.expectedProgress.get(context) +
         criticalChance * chanceOnCritical;
       options.expectedProgress.set(context, progress);
       while (progress >= 1 && isInternalCooldownReady(event.at, readyAt)) {
@@ -259,7 +286,7 @@ export function onResolvedPlayerCriticalHit<
         if (options.internalCooldown) {
           options.internalCooldown.setReadyAt(
             context,
-            event.at + options.internalCooldown.duration,
+            event.at + internalCooldownDuration,
           );
           break;
         }
@@ -273,8 +300,10 @@ function schedulerMechanic(
   hook: NativeSchedulerMechanic["hook"],
   declaration: OrderedEscapeHandler,
 ): NativeSchedulerMechanic {
-  if (!String(declaration.id || "").trim() ||
-    typeof declaration.handler !== "function") {
+  if (
+    !String(declaration.id || "").trim() ||
+    typeof declaration.handler !== "function"
+  ) {
     throw new TypeError(`${hook} scheduler mechanic requires id and handler.`);
   }
   return Object.freeze({

@@ -26,7 +26,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MANIFEST_TOXIN]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 560,
     cooldown: 0,
     energyCost: 0,
@@ -120,7 +119,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ANGUISH_SWIPE]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 360,
     cooldown: 0,
     energyCost: 0,
@@ -185,7 +183,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MISERY_SWIPE]: {
     implemented: true,
-    castTimeMs: 250,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     energyCost: 0,
@@ -214,7 +211,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEATHSTRIKE]: {
     implemented: true,
-    castTimeMs: 1000,
     quicknessCastTimeMs: 720,
     cooldown: 15,
     rechargeAnchor: "castStart",
@@ -346,7 +342,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BANISH_ENCHANTMENT]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 0,
     energyCost: 20,
@@ -453,7 +448,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CALL_TO_ANGUISH]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 820,
     cooldown: 3,
     energyCost: 30,
@@ -504,7 +498,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ECHOING_ERUPTION]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 960,
     cooldown: 8,
     ammo: 0,
@@ -586,7 +579,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FRIGID_BLITZ]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 681,
     cooldown: 10,
     energyCost: 10,
@@ -753,7 +745,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.EMBRACE_THE_DARKNESS]: {
     implemented: true,
     handlerId: "revenant.upkeep",
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 3,
     energyCost: 5,
@@ -763,7 +754,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SEARING_FISSURE]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 600,
     interruptCommitMs: 480,
     cooldown: 3,
@@ -864,7 +854,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.TEMPORAL_RIFT]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 560,
     cooldown: 15,
     energyCost: 10,
@@ -919,7 +908,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SHACKLING_WAVE]: {
     implemented: true,
-    castTimeMs: 1000,
     quicknessCastTimeMs: 800,
     cooldown: 15,
     energyCost: 10,
@@ -1179,7 +1167,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.RIFT_SLASH]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 480,
     cooldown: 0,
     energyCost: 0,
@@ -1257,7 +1244,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PREPARATION_THRUST]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 360,
     cooldown: 0,
     energyCost: 0,
@@ -1386,7 +1372,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.CHILLING_ISOLATION]: {
     implemented: true,
     castTimeMs: 680,
-    quicknessCastTimeMs: 680,
+    unaffectedByQuickness: true,
     paletteInterruptMs: 480,
     interruptCommitMs: 420,
     cooldown: 5,
@@ -1430,7 +1416,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BRUTAL_BLADE]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 560,
     cooldown: 0,
     energyCost: 0,
@@ -1584,7 +1569,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.BLOODBANE_PATH]: {
     implemented: true,
     castTimeMs: 760,
-    quicknessCastTimeMs: 760,
+    unaffectedByQuickness: true,
     cooldown: 3,
     energyCost: 4,
     effects: [
@@ -1612,7 +1597,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.SHATTERSHOT]: {
     implemented: true,
     castTimeMs: 480,
-    quicknessCastTimeMs: 480,
+    unaffectedByQuickness: true,
     cooldown: 0,
     energyCost: 0,
     finisherType: "Projectile",
@@ -1679,7 +1664,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.SEVENSHOT]: {
     implemented: true,
     castTimeMs: 440,
-    quicknessCastTimeMs: 440,
+    unaffectedByQuickness: true,
     cooldown: 7,
     energyCost: 7,
     finisherType: "Projectile",
@@ -1728,7 +1713,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.SPIRITCRUSH]: {
     implemented: true,
     castTimeMs: 400,
-    quicknessCastTimeMs: 400,
+    unaffectedByQuickness: true,
     cooldown: 9,
     energyCost: 12,
     comboField: "Fire",
@@ -2367,7 +2352,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.MIST_SLASH]: {
     implemented: true,
     castTimeMs: 600,
-    quicknessCastTimeMs: 600,
+    unaffectedByQuickness: true,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -2395,7 +2380,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MIST_UNLEASHED]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 520,
     cooldown: 3,
     energyCost: 5,
@@ -2436,7 +2420,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PHANTOMS_ONSLAUGHT_ID_62713]: {
     implemented: true,
-    castTimeMs: 500,
     quicknessCastTimeMs: 438,
     dashTimeMs: 38,
     hitDelayMs: 400,
@@ -2470,7 +2453,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.ARCING_MISTS]: {
     implemented: true,
     castTimeMs: 680,
-    quicknessCastTimeMs: 680,
+    unaffectedByQuickness: true,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -2530,7 +2513,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PHANTOMS_ONSLAUGHT]: {
     implemented: true,
-    castTimeMs: 650,
     quicknessCastTimeMs: 438,
     dashTimeMs: 38,
     hitDelayMs: 400,
@@ -2564,7 +2546,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.MIST_SWING]: {
     implemented: true,
     castTimeMs: 400,
-    quicknessCastTimeMs: 400,
+    unaffectedByQuickness: true,
     cooldown: 0,
     energyCost: 0,
     effects: [
@@ -2580,7 +2562,7 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.IMPERIAL_GUARD]: {
     implemented: true,
     castTimeMs: 2000,
-    quicknessCastTimeMs: 2000,
+    unaffectedByQuickness: true,
     defaultInterruptMs: 80,
     cooldown: 12,
     energyCost: 10,
@@ -2588,7 +2570,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ETERNITYS_REQUIEM]: {
     implemented: true,
-    castTimeMs: 1000,
     quicknessCastTimeMs: 840,
     cooldown: 15,
     energyCost: 10,
@@ -2782,7 +2763,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
     implemented: true,
     handlerId: "revenant.spear-recharge",
     simulatorExcluded: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 460,
     cooldown: 0,
     energyCost: 0,
@@ -2814,7 +2794,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.ABYSSAL_BLITZ]: {
     implemented: true,
     handlerId: "revenant.spear-recharge",
-    castTimeMs: 500,
     quicknessCastTimeMs: 520,
     cooldown: 10,
     energyCost: 10,
@@ -2885,7 +2864,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.ABYSSAL_BLOT]: {
     implemented: true,
     handlerId: "revenant.spear-recharge",
-    castTimeMs: 1000,
     quicknessCastTimeMs: 800,
     cooldown: 15,
     energyCost: 12,
@@ -2953,7 +2931,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.ABYSSAL_FORCE]: {
     implemented: true,
     handlerId: "revenant.spear-recharge",
-    castTimeMs: 500,
     quicknessCastTimeMs: 520,
     cooldown: 6,
     energyCost: 4,
@@ -2999,7 +2976,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.ABYSSAL_STRIKE]: {
     implemented: true,
     handlerId: "revenant.spear-recharge",
-    castTimeMs: 500,
     quicknessCastTimeMs: 520,
     interruptCommitMs: 396,
     cooldown: 0,
@@ -3044,7 +3020,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.ABYSSAL_RAZE]: {
     implemented: true,
     handlerId: "revenant.abyssal-raze",
-    castTimeMs: 750,
     quicknessCastTimeMs: 600,
     cooldown: 1,
     recharge: 1,
@@ -3099,7 +3074,6 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.UNYIELDING_IMPACT]: {
     implemented: true,
-    castTimeMs: 1000,
     quicknessCastTimeMs: 920,
     cooldown: 0,
     energyCost: 5,
@@ -3187,7 +3161,6 @@ const extraSkills: readonly Skill[] = [
     type: "Action",
     slot: "Action",
     castTimeMs: 0,
-    quicknessCastTimeMs: 0,
     cooldown: 10,
     rechargeAnchor: "castStart",
     implemented: true,

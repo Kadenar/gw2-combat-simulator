@@ -280,6 +280,7 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] =
     },
     {
       id: "necromancer.target-the-weak-critical-chance",
+      label: "Target the Weak",
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: "add",
       amount: (context) => necromancerTargetConditionCount(context) * 0.02,
@@ -287,6 +288,7 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] =
     },
     {
       id: "necromancer.death-perception-critical-chance",
+      label: "Death Perception",
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: "add",
       amount: 0.15,

@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { resultSkillIcon } from "../../js/app/rotation/icons.js";
 import {
-  resultSkillIcon,
-} from "../../js/app/rotation/icons.js";
-import {
+  FOOD_DATA,
   NOURISHMENT_ICON,
   SIGIL_DATA,
 } from "../../js/platform/gw2/gear-data.js";
@@ -49,5 +48,12 @@ test("common modifier contributions use their canonical icons", () => {
       name: "Food: Nourishment",
     }),
     NOURISHMENT_ICON,
+  );
+  assert.equal(
+    resultSkillIcon(app, {
+      id: "Food:Ghost Pepper Popper",
+      name: "Food: Ghost Pepper Popper",
+    }),
+    FOOD_DATA["Ghost Pepper Popper"].icon,
   );
 });

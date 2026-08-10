@@ -19,7 +19,7 @@ type GuardianSpearEffect = SkillEffect & { readonly at?: number };
 /**
  * Spear "Illuminated" mechanic (Janthir Wilds guardian spear).
  *
- * Model (see GUARDIAN.md "Spear Illuminated" for how this differs from the
+ * Model (see docs/professions/GUARDIAN.md "Spear Illuminated" for how this differs from the
  * reference build JSON, which used separate hand-picked "… Illuminated" skills):
  *
  * - Helio Rush (spear 2), Gleaming Disc (spear 3) and Solar Storm (spear 4)

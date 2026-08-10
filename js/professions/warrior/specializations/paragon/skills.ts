@@ -6,7 +6,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   Object.freeze({
     [ID.WE_WILL_NEVER_YIELD]: {
       implemented: true,
-      castTimeMs: 1000,
       effects: [],
       quicknessCastTimeMs: 667,
       categories: ["Command"],
@@ -15,8 +14,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     [ID.WE_SHALL_RETURN]: {
       implemented: true,
       cooldown: 20,
-      recharge: 20,
-      castTimeMs: 1000,
       effects: [],
       quicknessCastTimeMs: 667,
       categories: ["Command"],
@@ -25,8 +22,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     [ID.NEVER_SURRENDER]: {
       implemented: true,
       cooldown: 20,
-      recharge: 20,
-      castTimeMs: 500,
       effects: [
         {
           type: "boon",
@@ -47,7 +42,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.CHANT_OF_RECUPERATION]: {
       implemented: true,
-      castTimeMs: 250,
       effects: [],
       quicknessCastTimeMs: 167,
       adrenalineCost: 10,
@@ -59,8 +53,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     [ID.BRACE_YOURSELVES]: {
       implemented: true,
       cooldown: 20,
-      recharge: 20,
-      castTimeMs: 250,
       effects: [
         {
           type: "boon",
@@ -76,8 +68,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     [ID.FIND_THEIR_WEAKNESS]: {
       implemented: true,
       cooldown: 15,
-      recharge: 15,
-      castTimeMs: 500,
       effects: [
         {
           type: "strike",
@@ -104,8 +94,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     [ID.ON_YOUR_KNEES]: {
       implemented: true,
       cooldown: 15,
-      recharge: 15,
-      castTimeMs: 250,
       effects: [
         {
           type: "strike",
@@ -131,7 +119,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.CHANT_OF_FREEDOM]: {
       implemented: true,
-      castTimeMs: 250,
       effects: [],
       quicknessCastTimeMs: 167,
       adrenalineCost: 10,
@@ -142,7 +129,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.CHANT_OF_ACTION]: {
       implemented: true,
-      castTimeMs: 250,
       effects: [],
       quicknessCastTimeMs: 167,
       adrenalineCost: 10,
