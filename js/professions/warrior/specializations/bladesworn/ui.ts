@@ -119,21 +119,61 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
+    const items: RotationStateSnapshotItem[] = [];
     const window = (state.overchargedCartridgeWindows || []).find(
       (candidate) =>
         Number(candidate.startedAt) <= at && Number(candidate.expiresAt) > at,
     );
-    if (!window) return [];
-    const items: RotationStateSnapshotItem[] = [
-      {
-        id: "overcharged-cartridges",
-        label: "Overcharged Cartridges",
+    if (window) {
+      const name = window.supercharged
+        ? "Supercharged Cartridges"
+        : "Overcharged Cartridges";
+      items.push({
+        id: window.supercharged
+          ? "supercharged-cartridges"
+          : "overcharged-cartridges",
+        label: name,
         value: formatSecondsRemaining(Number(window.expiresAt) - at),
-        title: `Overcharged cartridges active (+${Math.round(
+        title: `${name} active (+${Math.round(
           Number(window.damageBonus || 0) * 100,
         )}% damage)`,
-      },
-    ];
+      });
+    }
+
+    const positiveFlowSources = (state.flowStabilizerWindows || [])
+      .filter(
+        (candidate) =>
+          Number(candidate.startedAt) <= at && Number(candidate.expiresAt) > at,
+      )
+      .map((candidate) => ({
+        stacks: 2,
+        expiresAt: Number(candidate.expiresAt),
+      }));
+    if (
+      Number(state.traitPositiveFlowStartedAt || 0) <= at &&
+      Number(state.traitPositiveFlowUntil || 0) > at
+    ) {
+      positiveFlowSources.push({
+        stacks: 1,
+        expiresAt: Number(state.traitPositiveFlowUntil),
+      });
+    }
+    if (positiveFlowSources.length) {
+      const stacks = positiveFlowSources.reduce(
+        (total, source) => total + source.stacks,
+        0,
+      );
+      const remaining =
+        Math.min(...positiveFlowSources.map((source) => source.expiresAt)) - at;
+      const stackLabel = `${stacks} ${stacks === 1 ? "stack" : "stacks"}`;
+      items.push({
+        id: "positive-flow",
+        label: "Positive Flow",
+        value: `${stackLabel} · ${formatSecondsRemaining(remaining)}`,
+        title: `Positive Flow active (${stackLabel}; time until the next stack expires)`,
+      });
+    }
+
     return items;
   },
 });
