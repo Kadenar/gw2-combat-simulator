@@ -2550,6 +2550,36 @@ test("Overcharged Cartridges buffs explosion damage and burning", () => {
     cartridgeState.title,
     "Supercharged Cartridges active (+20% damage)",
   );
+
+  const locked = simulate(
+    "Bladesworn",
+    [
+      ID.OVERCHARGED_CARTRIDGES,
+      ID.OVERCHARGED_CARTRIDGES,
+      ID.TACTICAL_RELOAD,
+      ID.OVERCHARGED_CARTRIDGES,
+    ],
+    { boons: { quickness: true } },
+  );
+  const lockedBuffs = locked.events.filter((event) =>
+    ["overcharged-cartridges", "supercharged-cartridges"].includes(event.kind),
+  );
+  assert.deepEqual(
+    lockedBuffs.map((event) => event.kind),
+    ["overcharged-cartridges", "supercharged-cartridges"],
+  );
+  assert.equal(
+    locked.steps.filter((step) => step.skill === "Overcharged Cartridges")
+      .length,
+    3,
+  );
+  assert.equal(locked.endState.ammo["Overcharged Cartridges"].charges, 0);
+  assert.equal(
+    locked.endState.profession.overchargedCartridgeWindows.find(
+      (window) => window.supercharged,
+    ).expiresAt,
+    lockedBuffs[1].at + 8,
+  );
 });
 
 test("Paragon chants consume adrenaline and start a refrain", () => {
