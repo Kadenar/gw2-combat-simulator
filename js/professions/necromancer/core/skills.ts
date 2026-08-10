@@ -1336,6 +1336,9 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
       {
         type: "blind",
+        metadata: {
+          duration: 6,
+        },
       },
     ],
     handlerId: "necromancer.condition-transfer",
@@ -1360,6 +1363,15 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         condition: "Bleeding",
         stacks: 3,
         duration: 10,
+        atMs: 1800,
+        timingAnchor: "castStart",
+        timingScale: "cast",
+      },
+      {
+        type: "condition",
+        condition: "Weakness",
+        stacks: 1,
+        duration: 6,
         atMs: 1800,
         timingAnchor: "castStart",
         timingScale: "cast",

@@ -6,7 +6,7 @@
         "label": "Condition",
         "build": "Builds/necromancer/b-condi-scourge.json",
         "rotation": "Rotations/necromancer/r-condi-scourge-bench.json",
-        "benchmarkDps": 39612,
+        "benchmarkDps": 39301,
         "upToDate": true
       }
     ]
@@ -24,7 +24,7 @@
         "label": "Condition",
         "build": "Builds/necromancer/b-condi-reaper.json",
         "rotation": "Rotations/necromancer/r-condi-reaper-bench.json",
-        "benchmarkDps": 44284,
+        "benchmarkDps": 44175,
         "upToDate": true
       }
     ]

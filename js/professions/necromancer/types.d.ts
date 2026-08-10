@@ -43,6 +43,7 @@ export interface NecromancerConfig extends Gw2Config {
   readonly selectedSkills?:
     | readonly string[]
     | Readonly<Record<string, string>>;
+  readonly professionAssumptions?: Readonly<Record<string, unknown>>;
 }
 
 export interface NecromancerSelfCondition extends SchedulerRecord {
@@ -106,6 +107,7 @@ export interface NecromancerCoreState {
 
 export interface ReaperState {
   executionersIceFieldUntil: number;
+  projectileFinisherChillProgress: number;
 }
 
 export interface ScourgeState {

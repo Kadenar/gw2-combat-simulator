@@ -215,7 +215,6 @@ export const REAPER_BASE_SKILL_MECHANICS: Readonly<
     shroud: "reaper",
     shroudSlot: 4,
     specialization: "Reaper",
-    handlerId: "necromancer.soul-spiral",
   },
   [ID.EXECUTIONERS_SCYTHE]: {
     implemented: true,

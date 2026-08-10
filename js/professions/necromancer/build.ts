@@ -73,6 +73,7 @@ export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {
       aegis: false,
       targetMoving: false,
       targetBoonless: true,
+      permanentIceField: false,
       targetConditions: createDefaultTargetConditions(),
       targetSkillActivationsPerSecond: 0,
     },

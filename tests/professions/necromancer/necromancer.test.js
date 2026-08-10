@@ -1883,7 +1883,7 @@ test("Plaguelands, chill fields, and the benchmark reset retain live behavior", 
       (event) =>
         event.type === "condition" && event.sourceId === TRAIT.DEATHLY_CHILL,
     ).length,
-    12,
+    9,
   );
 });
 
