@@ -9,7 +9,12 @@ import type {
 } from "../../../../platform/gw2/types.js";
 import type { WarriorCastContext } from "../../types.js";
 import { advanceBerserker } from "./mechanics.js";
-import { finishBerserkerCast, observeBerserkerEvent } from "./traits.js";
+import {
+  finishBerserkerCast,
+  handleKingOfFiresDetonationTask,
+  handleKingOfFiresHitTask,
+  observeBerserkerEvent,
+} from "./traits.js";
 
 export const berserkerSchedulerHooks = Object.freeze({
   advance: {
@@ -27,6 +32,10 @@ export const berserkerSchedulerHooks = Object.freeze({
     order: 20,
     handler: observeBerserkerEvent,
   },
+  taskHandlers: Object.freeze({
+    "warrior.king-of-fires-hit": handleKingOfFiresHitTask,
+    "warrior.king-of-fires-detonation": handleKingOfFiresDetonationTask,
+  }),
 });
 
 function active(context: Gw2ModifierContext): boolean {
@@ -57,6 +66,12 @@ function modifyAttributes(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord,
 ): SchedulerRecord {
+  const conversionPower = Number(
+    context.config?.stats?.power ?? attributes.power ?? 0,
+  );
+  const conversionPrecision = Number(
+    context.config?.stats?.precision ?? attributes.precision ?? 0,
+  );
   const result = { ...attributes } as SchedulerRecord & {
     power: number;
     precision: number;
@@ -73,8 +88,8 @@ function modifyAttributes(
   }
   if (hasTrait(context, TRAIT.BLOOD_REACTION)) {
     const conversion = active(context) ? 0.24 : 0.12;
-    result.ferocity += Number(result.precision || 0) * conversion;
-    result.conditionDamage += Number(result.power || 0) * conversion;
+    result.ferocity += conversionPrecision * conversion;
+    result.conditionDamage += conversionPower * conversion;
   }
   return result;
 }

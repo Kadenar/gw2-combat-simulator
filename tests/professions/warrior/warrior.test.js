@@ -568,9 +568,19 @@ test("Core bursts require and consume adrenaline", () => {
 });
 
 test("Core Warrior weapon swap toggles the active set", () => {
-  const result = simulate("Core", ["Swap Weapons"]);
+  const precombat = simulate("Core", ["Swap Weapons", "Swap Weapons"]);
+  assert.deepEqual(precombat.warnings, []);
+  assert.deepEqual(
+    precombat.steps.map((step) => step.start),
+    [0, 0],
+  );
+  assert.equal(precombat.endState.activeWeaponSet, 1);
+  assert.equal(precombat.endState.cooldowns["Swap Weapons"], undefined);
+
+  const result = simulate("Core", ["__combat_start", "Swap Weapons"]);
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.activeWeaponSet, 2);
+  assert.equal(result.endState.cooldowns["Swap Weapons"].readyAt, 5000);
   assert.equal(
     result.events.some(
       (event) => event.type === "weapon_set" && event.weaponSet === 2,
@@ -647,7 +657,7 @@ test("Berserker mode applies the supplied cap, duration, buffs, and modifiers", 
     power: 1300,
     precision: 1000,
     ferocity: 240,
-    conditionDamage: 462,
+    conditionDamage: 390,
   });
 
   const bloodReactionOutsideBerserk = berserkerAttributeRules.modifyAttributes(
@@ -3296,7 +3306,7 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
     result.breakdown.find(
       (entry) => entry.name === "Dragon's Roar — Damage per Bullet",
     ).hits,
-    27,
+    28,
   );
   assert.equal(
     result.breakdown.find((entry) => entry.name === "Unseen Sword").hits,
@@ -3452,7 +3462,7 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
   assert.equal(hitCounts.get("Tremor"), 14);
   assert.equal(hitCounts.get("Rend"), 6);
   assert.equal(hitCounts.get("Rend \u2014 Follow-Up Damage"), 6);
-  assert.equal(hitCounts.get("Dual Strike"), 12);
+  assert.equal(hitCounts.get("Dual Strike"), 14);
   assert.equal(hitCounts.get("Bloodthirster"), 7);
   assert.equal(hitCounts.get("Hamstring"), 11);
   assert.equal(hitCounts.get("Disrupting Stab"), 7);
@@ -3484,7 +3494,7 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
     ["Bloodthirster", strikeDamageByName.get("Bloodthirster"), 169255],
     [
       "Dual Strike per hit",
-      strikeDamageByName.get("Dual Strike") / 12,
+      strikeDamageByName.get("Dual Strike") / 14,
       193586 / 14,
     ],
     ["Rend (first six casts)", rendDamage, 212432],

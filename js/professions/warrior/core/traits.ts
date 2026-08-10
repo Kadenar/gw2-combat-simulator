@@ -533,7 +533,8 @@ export function initializeWarriorTraits(
     weapons.includes("Dagger") ||
     hasTrait(context, TRAIT.BLOODLUST) ||
     hasTrait(context, TRAIT.FURIOUS) ||
-    hasTrait(context, TRAIT.SUNDERING_BURST)
+    hasTrait(context, TRAIT.SUNDERING_BURST) ||
+    hasTrait(context, TRAIT.KING_OF_FIRES)
   ) {
     (
       context.schedulerPolicy as unknown as {
@@ -709,7 +710,7 @@ export function observeWarriorEvent(
   }
   if (
     event.type === "damage" &&
-    event.actorType === "player" &&
+    (event.actorType === "player" || event.canTriggerCriticalTraits === true) &&
     Number(event.coefficient) > 0
   ) {
     const skill =

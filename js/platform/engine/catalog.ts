@@ -112,6 +112,7 @@ const EFFECT_METADATA_FIELDS = new Set([
   "bonusDefianceBreak",
   "damageKind",
   "extendsResolutionHorizon",
+  "extendsProfessionTaskHorizon",
   "flatDamage",
   "flatStrikeBase",
   "flatStrikePowerCoeff",

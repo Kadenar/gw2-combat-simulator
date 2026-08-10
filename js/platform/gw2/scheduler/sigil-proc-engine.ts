@@ -1,8 +1,5 @@
 import { isInternalCooldownReady } from "../../engine/clock.js";
-import type {
-  SchedulerContext,
-  SimulationEvent,
-} from "../../engine/types.js";
+import type { SchedulerContext, SimulationEvent } from "../../engine/types.js";
 import { SIGIL_PROCS } from "../gear-data.js";
 import { isGw2PlayerActorEvent } from "../event-ownership.js";
 import type { Gw2Config, Gw2SigilProc } from "../types.js";
@@ -45,9 +42,7 @@ interface SigilTriggerRule {
   sourceSkill(event: SimulationEvent): string;
 }
 
-const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<
-  Record<string, Gw2SigilProc>
->;
+const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<Record<string, Gw2SigilProc>>;
 
 const TRIGGER_RULES: Readonly<Record<SigilTrigger, SigilTriggerRule>> =
   Object.freeze({
@@ -94,9 +89,7 @@ export function sigilCapabilities(config: Gw2Config): SigilCapabilities {
     critical: [...names].some(
       (name) => SIGIL_PROC_LOOKUP[name].trigger === "crit",
     ),
-    swap: [...names].some(
-      (name) => SIGIL_PROC_LOOKUP[name].trigger === "swap",
-    ),
+    swap: [...names].some((name) => SIGIL_PROC_LOOKUP[name].trigger === "swap"),
     strike: [...names].some(
       (name) => SIGIL_PROC_LOOKUP[name].trigger === "strike",
     ),
@@ -153,12 +146,7 @@ export function createSigilProcEngine(
     });
   };
 
-  const emitStrike: SigilEffectHandler = ({
-    context,
-    cause,
-    name,
-    proc,
-  }) => {
+  const emitStrike: SigilEffectHandler = ({ context, cause, name, proc }) => {
     context.emitDerived(cause, {
       type: "damage",
       at: cause.at,
@@ -174,6 +162,8 @@ export function createSigilProcEngine(
       weaponStrength: proc.weaponStrength,
       skillWeapon: "Unequipped",
       noCrit: !proc.canCrit,
+      canTriggerCriticalSigils: proc.canCrit === true,
+      canTriggerCriticalTraits: proc.canCrit === true,
     });
   };
 

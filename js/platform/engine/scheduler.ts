@@ -1281,6 +1281,15 @@ export function createScheduler<
     if (taskQueue.nextAt() <= rotationEnd + epsilon) {
       advanceTo(taskQueue.nextAt());
     }
+    const professionTaskEnd = events
+      .filter((event) => event.extendsProfessionTaskHorizon === true)
+      .reduce(
+        (latest, event) => Math.max(latest, Number(event.at)),
+        rotationEnd,
+      );
+    while (taskQueue.nextAt() <= professionTaskEnd + epsilon) {
+      advanceTo(taskQueue.nextAt());
+    }
     steps.sort((left, right) => left.ri - right.ri);
     sortQueuedEvents(events);
     const snapshot =
