@@ -32,6 +32,7 @@ import type {
   Gw2BuffAudience,
   Gw2CombatQuery,
   Gw2Config,
+  Gw2CriticalChanceContributor,
   Gw2QueryRuntime,
   Gw2ResolverExtensions,
   Gw2ResolvedStats,
@@ -53,6 +54,7 @@ interface HookContextOptions {
   readonly event?: SimulationEvent | null;
   readonly condition?: string | null;
   readonly runtime?: Gw2QueryRuntime | null;
+  readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
 }
 
 /**
@@ -350,7 +352,12 @@ export function createGw2CombatQuery<
   ) => gw2SigilSet(config, activeWeaponSetAt(time, runtime));
   const hookContext = (
     time: number,
-    { event = null, condition = null, runtime = null }: HookContextOptions = {},
+    {
+      event = null,
+      condition = null,
+      runtime = null,
+      criticalChanceContributors,
+    }: HookContextOptions = {},
   ): SchedulerRecord => ({
     profession: activeProfession,
     config,
@@ -365,6 +372,7 @@ export function createGw2CombatQuery<
     timeline,
     events,
     runtime,
+    criticalChanceContributors,
   });
   /**
    * @param {number} time
@@ -429,28 +437,60 @@ export function createGw2CombatQuery<
         };
       }
       const stats = statsAt(time, event, runtime);
+      let contributors: Gw2CriticalChanceContributor[] = [];
+      const addContributor = (id: string, label: string, amount: number) => {
+        if (Math.abs(amount) <= Number.EPSILON) return;
+        contributors.push({ id, label, amount });
+      };
       let chance = criticalChance(stats.precision);
+      addContributor("precision", "Precision", chance);
       // Illusions inherit only the summoner's base (precision-derived) crit
       // chance. Player-only gear bonuses — configured crit-chance and weapon
       // sigils — do not carry over to them.
       const illusionEvent =
         event?.source === "Clone" || event?.source === "Phantasm";
       if (!illusionEvent) {
-        chance += Number(config.stats?.criticalChanceBonus || 0) / 100;
-        chance +=
+        const configuredBonus =
+          Number(config.stats?.criticalChanceBonus || 0) / 100;
+        chance += configuredBonus;
+        addContributor("configured-bonus", "Configured bonus", configuredBonus);
+        const sigilBonus =
           Number(activeSigilSetAt(time, runtime).criticalChanceBonus || 0) /
           100;
+        chance += sigilBonus;
+        addContributor("active-sigils", "Active weapon sigils", sigilBonus);
       }
-      if (furyActiveAt(time, runtime, event)) chance += 0.25;
+      if (furyActiveAt(time, runtime, event)) {
+        chance += 0.25;
+        addContributor("fury", "Fury", 0.25);
+      }
+      const professionContributors: Gw2CriticalChanceContributor[] = [];
+      const beforeProfession = chance;
       chance = activeProfession.modifyCriticalChance(
-        hookContext(time, { event, runtime }),
+        hookContext(time, {
+          event,
+          runtime,
+          criticalChanceContributors: professionContributors,
+        }),
         chance,
       );
-      chance += relicCriticalChanceBonus(
+      const tracedProfessionAmount = professionContributors.reduce(
+        (sum, contributor) => sum + contributor.amount,
+        0,
+      );
+      contributors.push(...professionContributors);
+      addContributor(
+        "profession-effects",
+        "Other profession effects",
+        chance - beforeProfession - tracedProfessionAmount,
+      );
+      const relicBonus = relicCriticalChanceBonus(
         runtime?.relic ? runtime : historicalRelicContext,
         event,
         mightStacksAt(time, runtime, event),
       );
+      chance += relicBonus;
+      addContributor("relic", "Relic", relicBonus);
       let damage = criticalDamageMultiplier(stats.ferocity);
       damage = activeProfession.modifyCriticalDamage(
         hookContext(time, { event, runtime }),
@@ -458,10 +498,31 @@ export function createGw2CombatQuery<
       );
       const sigilCritical = sigilCriticalContribution(runtime, time);
       chance += sigilCritical.chance;
+      addContributor(
+        "sigil-severance",
+        "Sigil of Severance",
+        sigilCritical.chance,
+      );
       damage += sigilCritical.damage;
+      let chanceBeforeCap = chance;
       if (event.canCrit === false || event.noCrit) chance = 0;
+      // Skills flagged forceCrit (e.g. Wild Blow) always land a critical hit,
+      // independent of precision. This overrides every other crit gate.
+      if (event.forceCrit) {
+        chance = 1;
+        chanceBeforeCap = 1;
+        contributors = [
+          {
+            id: "forced-critical-hit",
+            label: "Forced critical hit",
+            amount: 1,
+          },
+        ];
+      }
       return {
         chance: clamp(chance, 0, 1),
+        chanceBeforeCap,
+        contributors,
         damage: Math.max(1, Number(damage || 1)),
       };
     },
@@ -481,9 +542,15 @@ export function createGw2CombatQuery<
             )
           : base;
       }
+      const sigils = activeSigilSetAt(time, runtime);
+      const timeOfDayMultiplier =
+        config.timeOfDay === "night"
+          ? Number(sigils.nightStrikeMultiplier || 1)
+          : 1;
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-        Number(activeSigilSetAt(time, runtime).strike || 1) *
+        Number(sigils.strike || 1) *
+        timeOfDayMultiplier *
         Number(config.modifiers?.strike || 1);
       return activeProfession.modifyStrikeDamage(
         hookContext(time, { event, runtime }),

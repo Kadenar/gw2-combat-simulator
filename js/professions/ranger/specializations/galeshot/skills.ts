@@ -7,13 +7,11 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.WHIRLWIND]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
   },
   [ID.MISTRAL]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -42,7 +40,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PERFECT_STORM]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -63,7 +60,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WIND_SHEAR]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -87,7 +83,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PIERCING_GALES]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -105,13 +100,11 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SOOTHING_BREEZE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
   },
   [ID.KEEN_SHOT]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -124,7 +117,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HAWKEYE]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -138,7 +130,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLUSTER]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -152,7 +143,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FLEETING_ZEPHYR]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -172,7 +162,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.QUARRYS_PERIL]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -192,7 +181,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PELT]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -206,7 +194,6 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SUPERSONIC_ARROW]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",

@@ -385,6 +385,46 @@ const declarations = {
   Untamed: [],
   Galeshot: [],
 };
+
+function normalizeCastTiming(mechanics) {
+  if (mechanics.castTimeMs == null || mechanics.quicknessCastTimeMs == null) {
+    return mechanics;
+  }
+
+  const castTimeMs = Number(mechanics.castTimeMs);
+  const quicknessCastTimeMs = Number(mechanics.quicknessCastTimeMs);
+  if (castTimeMs === quicknessCastTimeMs) {
+    const { quicknessCastTimeMs: _quicknessCastTimeMs, ...normalized } =
+      mechanics;
+    return castTimeMs > 0
+      ? { ...normalized, unaffectedByQuickness: true }
+      : normalized;
+  }
+
+  const scale = (quicknessCastTimeMs * 1.5) / castTimeMs;
+  const scaleTiming = (value) => Number((Number(value) * scale).toFixed(12));
+  const effects = mechanics.effects?.map((effect) => {
+    if (effect.timingScale !== "cast") return effect;
+    return {
+      ...effect,
+      ...(Array.isArray(effect.ticks)
+        ? {
+            ticks: effect.ticks.map((tick) => ({
+              ...tick,
+              atMs: scaleTiming(tick.atMs),
+            })),
+          }
+        : {}),
+      ...(effect.atMs == null ? {} : { atMs: scaleTiming(effect.atMs) }),
+      ...(effect.intervalMs == null || effect.intervalTimingScale === "fixed"
+        ? {}
+        : { intervalMs: scaleTiming(effect.intervalMs) }),
+    };
+  });
+  const { castTimeMs: _castTimeMs, ...normalized } = mechanics;
+  return effects ? { ...normalized, effects } : normalized;
+}
+
 for (const identity of identities) {
   const raw = rawById.get(identity.id) || identity;
   const petSkill = petSet.has(identity.id);
@@ -395,7 +435,7 @@ for (const identity of identities) {
     castTimeMs,
     effects: effectsFor(raw, petSkill),
   };
-  const mechanics = {
+  const mechanics = normalizeCastTiming({
     implemented: true,
     ...base,
     ...(castTimeMs > 0
@@ -403,7 +443,7 @@ for (const identity of identities) {
       : {}),
     ...(petSkill ? { petSkill: true } : {}),
     ...(overrides.get(identity.id) || {}),
-  };
+  });
   declarations[ownerOf(identity, petSet)].push({
     key: keyById.get(identity.id),
     mechanics,
@@ -436,6 +476,72 @@ for (const [owner, entries] of Object.entries(declarations)) {
 
 export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
+    id: ID.PATH_OF_SCARS_MAX_RANGE,
+    name: "Path of Scars (Max Range)",
+    description:
+      "Throw your axe from maximum range so its returning strike lands later.",
+    icon: "https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png",
+    variantBadge: "MAX",
+    type: "Weapon",
+    weapon: "Axe",
+    slot: "Weapon_4",
+    quicknessCastTimeMs: 440,
+    rechargeAnchor: "castStart",
+    cooldown: 15,
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [
+          { atMs: 400, coefficient: 1.2 },
+          { atMs: 1640, coefficient: 1.2 },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
+      },
+      {
+        type: "control",
+        atMs: 1640,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
+        metadata: { controlKind: "pull" },
+      },
+    ],
+  },
+  {
+    id: ID.DODGE,
+    name: "Dodge",
+    description: "Perform a dodge roll.",
+    icon: "https://wiki.guildwars2.com/images/b/b2/Dodge.png",
+    type: "Action",
+    weapon: "",
+    slot: "Action",
+    castTimeMs: 800,
+    unaffectedByQuickness: true,
+    rechargeAnchor: "castStart",
+    cooldown: 0,
+    implemented: true,
+    handlerId: "ranger.dodge",
+    effects: [],
+  },
+  {
+    id: ID.PET_SWAP,
+    name: "Swap Pets",
+    description: "Swap your active pet and trigger pet-swap traits.",
+    icon: "",
+    type: "Action",
+    weapon: "",
+    slot: "Action",
+    castTimeMs: 0,
+    rechargeAnchor: "castStart",
+    cooldown: 20,
+    implemented: true,
+    handlerId: "ranger.pet-swap",
+    effects: [],
+  },
+  {
     id: ID.SWAP_WEAPONS,
     name: "Swap Weapons",
     description: "Swap to your alternate weapon set.",
@@ -443,7 +549,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: "Action",
     slot: "Action",
     castTimeMs: 0,
-    quicknessCastTimeMs: 0,
     rechargeAnchor: "castStart",
     cooldown: 10,
     implemented: true,

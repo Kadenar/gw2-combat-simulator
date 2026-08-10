@@ -1,8 +1,9 @@
-import { EPSILON, isInternalCooldownReady } from "../../engine/clock.js";
 import { enqueueOrdered } from "../../engine/event-queue.js";
 import type { SchedulerRecord } from "../../engine/types.js";
 import { isGw2PlayerActorEvent } from "../event-ownership.js";
 import { FOOD_DATA, NOURISHMENT_ICON } from "../gear-data.js";
+import { onResolvedPlayerCriticalHit } from "../native-mechanics.js";
+import { clamp } from "../numeric.js";
 import {
   handleBlastComboRelic,
   handleBoonRelics,
@@ -15,10 +16,10 @@ import {
 } from "../relic-rules.js";
 import { skillForEvent } from "./event-skill.js";
 
+import type { NativeResolvedDamageDetails } from "../native-module-types.js";
 import type {
   Gw2ApplyCondition,
   Gw2ConditionResolution,
-  Gw2HitResolutionContext,
   Gw2ResolverEvent,
   Gw2ResolverReactionContributions,
   Gw2ResolverReactionRegistry,
@@ -35,9 +36,24 @@ export const GW2_REACTION_ORDER = Object.freeze({
 
 type Dispatch = Gw2ResolverReactionRegistry["dispatch"];
 
-function conditionHelpers(
-  details: SchedulerRecord,
-): {
+interface CriticalFoodEffect {
+  readonly type: "boon" | "condition";
+  readonly name: string;
+  readonly stacks: number;
+  readonly duration: number;
+}
+
+interface CriticalFoodProc {
+  readonly type: string;
+  readonly chance: number;
+  readonly icdMs?: number;
+  readonly flatDamage?: number;
+  readonly name: string;
+  readonly dayEffect?: CriticalFoodEffect;
+  readonly nightEffect?: CriticalFoodEffect;
+}
+
+function conditionHelpers(details: SchedulerRecord): {
   activeConditionStackCount: Gw2ConditionResolution["activeConditionStackCount"];
   applyCondition: Gw2ApplyCondition;
 } {
@@ -52,55 +68,76 @@ function conditionHelpers(
   };
 }
 
-function handleCriticalFood(
+function criticalFoodProc(
+  ctx: Gw2ResolverRuntime,
+): CriticalFoodProc | undefined {
+  const proc = FOOD_DATA[String(ctx.config.food || "")]?.proc as
+    CriticalFoodProc | undefined;
+  return proc?.type === "critStrike" ? proc : undefined;
+}
+
+function createCriticalFoodEffect(
   dispatch: Dispatch,
   ctx: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
-  details: SchedulerRecord,
 ): void {
-  const hitContext = details.hitContext as Gw2HitResolutionContext;
-  if (!isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
-  const proc = FOOD_DATA[String(ctx.config.food || "")]?.proc;
-  if (proc?.type !== "critStrike" || hitContext.critical.chance <= 0) return;
-
-  if (ctx.random.stochastic) {
-    if (
-      hitContext.critical.didCrit !== true ||
-      !isInternalCooldownReady(event.at, ctx.food.readyAt) ||
-      !ctx.random.roll(proc.chance, "food.critical-strike")
-    ) {
-      return;
-    }
-  } else {
-    ctx.food.criticalProgress += hitContext.critical.chance * proc.chance;
-    if (ctx.food.criticalProgress < 1 - EPSILON) return;
-    if (!isInternalCooldownReady(event.at, ctx.food.readyAt)) return;
-    ctx.food.criticalProgress -= 1;
-  }
-  ctx.food.readyAt = event.at + Number(proc.icdMs || 0) / 1000;
-  const foodEvent = {
-    type: "damage",
+  const proc = criticalFoodProc(ctx);
+  if (!proc) return;
+  const conditionalEffect =
+    ctx.config.timeOfDay === "night" ? proc.nightEffect : proc.dayEffect;
+  const commonEvent = {
     at: event.at,
-    name: proc.name,
     skillName: proc.name,
-    coefficient: 0,
-    flatDamage: proc.flatDamage,
-    lifeSiphon: true,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
     source: "Food",
     sourceId: `food.${String(proc.name || "proc").toLowerCase()}`,
     actorType: "effect",
-    noCrit: true,
     triggeredBy: event.skillName,
-  } as Gw2ResolverEvent;
-  const professionUpdates = dispatch(
-    "food-proc.created",
-    ctx,
-    foodEvent,
-    { proc, triggeringEvent: event },
-  ) || {};
+  } as const;
+  let foodEvent: Gw2ResolverEvent;
+  if (conditionalEffect?.type === "boon") {
+    const name = conditionalEffect.name;
+    const sigils = ctx.query.activeSigilSetAt(event.at);
+    const bonus =
+      Number(ctx.config.stats?.concentration || 0) / 1500 +
+      Number(ctx.config.stats?.boonDurationBonus || 0) / 100 +
+      Number(ctx.config.stats?.boonDurationBonuses?.[name] || 0) / 100 +
+      Number(sigils.boonDurationBonus || 0) / 100;
+    foodEvent = {
+      ...commonEvent,
+      type: "buff",
+      name: `${proc.name} — ${name}`,
+      kind: name.toLowerCase(),
+      stacks: conditionalEffect.stacks,
+      duration: conditionalEffect.duration * clamp(1 + bonus, 1, 2),
+    } as Gw2ResolverEvent;
+  } else if (conditionalEffect?.type === "condition") {
+    foodEvent = {
+      ...commonEvent,
+      type: "condition",
+      name: `${proc.name} — ${conditionalEffect.name}`,
+      condition: conditionalEffect.name,
+      stacks: conditionalEffect.stacks,
+      duration: conditionalEffect.duration,
+    } as Gw2ResolverEvent;
+  } else {
+    foodEvent = {
+      ...commonEvent,
+      type: "damage",
+      name: proc.name,
+      coefficient: 0,
+      flatDamage: proc.flatDamage,
+      lifeSiphon: true,
+      hits: 1,
+      hitIndex: 1,
+      totalHits: 1,
+      noCrit: true,
+    } as Gw2ResolverEvent;
+  }
+  const professionUpdates =
+    dispatch("food-proc.created", ctx, foodEvent, {
+      proc,
+      triggeringEvent: event,
+    }) || {};
   enqueueOrdered(ctx.queue, { ...foodEvent, ...professionUpdates });
   ctx.recordProc(
     "food",
@@ -108,7 +145,7 @@ function handleCriticalFood(
     event.at,
     event.skillName,
     "",
-    NOURISHMENT_ICON,
+    String(FOOD_DATA[String(ctx.config.food || "")]?.icon || NOURISHMENT_ICON),
   );
 }
 
@@ -118,76 +155,120 @@ export function createGw2EquipmentReactionContributions({
 }: {
   readonly dispatch: Dispatch;
 }): Gw2ResolverReactionContributions {
+  const criticalFoodReaction = onResolvedPlayerCriticalHit<
+    Gw2ResolverRuntime,
+    Gw2ResolverEvent,
+    NativeResolvedDamageDetails
+  >({
+    id: "food.critical-strike",
+    chanceOnCriticalHit: (ctx) => criticalFoodProc(ctx)?.chance || 0,
+    actorTypes: ["player"],
+    when: (ctx, event) =>
+      isGw2PlayerActorEvent(event) &&
+      Number(event.coefficient) > 0 &&
+      criticalFoodProc(ctx) != null,
+    expectedProgress: {
+      get: (ctx) => ctx.food.criticalProgress,
+      set: (ctx, value) => {
+        ctx.food.criticalProgress = value;
+      },
+    },
+    internalCooldown: {
+      duration: (ctx) => Number(criticalFoodProc(ctx)?.icdMs || 0) / 1000,
+      readyAt: (ctx) => ctx.food.readyAt,
+      setReadyAt: (ctx, readyAt) => {
+        ctx.food.readyAt = readyAt;
+      },
+    },
+    randomStream: "food.critical-strike",
+    attribution: { kind: "effect", id: "food.critical-strike" },
+    handler: (ctx, event) => createCriticalFoodEffect(dispatch, ctx, event),
+  });
+
   return Object.freeze({
-    "blast-combo.resolved": [{
-      id: "relic.blast-combo",
-      order: GW2_REACTION_ORDER.COMMON,
-      handler: (ctx, event) => handleBlastComboRelic(ctx, event),
-    }],
-    "buff.applied": [{
-      id: "sigil.severance",
-      order: GW2_REACTION_ORDER.EARLY_COMMON,
-      handler(ctx, event) {
-        if (String(event.kind || "").toLowerCase() !== "sigil-severance") return;
-        ctx.sigil.severanceUntil = Math.max(
-          ctx.sigil.severanceUntil,
-          event.at + Math.max(0, Number(event.duration || 0)),
-        );
+    "blast-combo.resolved": [
+      {
+        id: "relic.blast-combo",
+        order: GW2_REACTION_ORDER.COMMON,
+        handler: (ctx, event) => handleBlastComboRelic(ctx, event),
       },
-    }, {
-      id: "relic.boon",
-      order: GW2_REACTION_ORDER.COMMON,
-      handler: (ctx, event) => handleBoonRelics(ctx, event),
-    }],
-    "damage.resolved": [{
-      id: "relic.damage-resolved",
-      order: GW2_REACTION_ORDER.COMMON,
-      handler: (ctx, event) => handleRelicDamageResolved(ctx, event),
-    }, {
-      id: "food.critical-strike",
-      order: GW2_REACTION_ORDER.LATE_COMMON,
-      handler: (ctx, event, details = {}) =>
-        handleCriticalFood(dispatch, ctx, event, details),
-    }, {
-      id: "relic.after-hit",
-      order: GW2_REACTION_ORDER.FINAL_COMMON,
-      handler: (ctx, event) =>
-        handleRelicsAfterHit(ctx, event, skillForEvent(ctx.helpers, event)),
-    }],
-    "condition.applied": [{
-      id: "relic.condition",
-      order: GW2_REACTION_ORDER.LATE_COMMON,
-      handler(ctx, application, details = {}) {
-        handleConditionRelics(
-          ctx,
-          application,
-          conditionHelpers(details),
-        );
+    ],
+    "buff.applied": [
+      {
+        id: "sigil.severance",
+        order: GW2_REACTION_ORDER.EARLY_COMMON,
+        handler(ctx, event) {
+          if (String(event.kind || "").toLowerCase() !== "sigil-severance")
+            return;
+          ctx.sigil.severanceUntil = Math.max(
+            ctx.sigil.severanceUntil,
+            event.at + Math.max(0, Number(event.duration || 0)),
+          );
+        },
       },
-    }],
-    "control.resolved": [{
-      id: "relic.control",
-      order: GW2_REACTION_ORDER.COMMON,
-      handler(ctx, event, details = {}) {
-        handleControlRelics(ctx, event, conditionHelpers(details));
+      {
+        id: "relic.boon",
+        order: GW2_REACTION_ORDER.COMMON,
+        handler: (ctx, event) => handleBoonRelics(ctx, event),
       },
-    }],
-    "peitha.resolved": [{
-      id: "relic.peitha",
-      order: GW2_REACTION_ORDER.COMMON,
-      handler(ctx, event, details = {}) {
-        handlePeithaRelic(
-          ctx,
-          event,
-          conditionHelpers(details).applyCondition,
-        );
+    ],
+    "damage.resolved": [
+      {
+        id: "relic.damage-resolved",
+        order: GW2_REACTION_ORDER.COMMON,
+        handler: (ctx, event) => handleRelicDamageResolved(ctx, event),
       },
-    }],
-    "weakness-vulnerability.resolved": [{
-      id: "relic.weakness-vulnerability",
-      order: GW2_REACTION_ORDER.COMMON,
-      handler: (ctx, event) =>
-        handleWeaknessVulnerabilityRelic(ctx, event),
-    }],
+      {
+        id: "food.critical-strike",
+        order: GW2_REACTION_ORDER.LATE_COMMON,
+        handler(ctx, event, details = {}) {
+          criticalFoodReaction.handler(ctx, event, details);
+        },
+      },
+      {
+        id: "relic.after-hit",
+        order: GW2_REACTION_ORDER.FINAL_COMMON,
+        handler: (ctx, event) =>
+          handleRelicsAfterHit(ctx, event, skillForEvent(ctx.helpers, event)),
+      },
+    ],
+    "condition.applied": [
+      {
+        id: "relic.condition",
+        order: GW2_REACTION_ORDER.LATE_COMMON,
+        handler(ctx, application, details = {}) {
+          handleConditionRelics(ctx, application, conditionHelpers(details));
+        },
+      },
+    ],
+    "control.resolved": [
+      {
+        id: "relic.control",
+        order: GW2_REACTION_ORDER.COMMON,
+        handler(ctx, event, details = {}) {
+          handleControlRelics(ctx, event, conditionHelpers(details));
+        },
+      },
+    ],
+    "peitha.resolved": [
+      {
+        id: "relic.peitha",
+        order: GW2_REACTION_ORDER.COMMON,
+        handler(ctx, event, details = {}) {
+          handlePeithaRelic(
+            ctx,
+            event,
+            conditionHelpers(details).applyCondition,
+          );
+        },
+      },
+    ],
+    "weakness-vulnerability.resolved": [
+      {
+        id: "relic.weakness-vulnerability",
+        order: GW2_REACTION_ORDER.COMMON,
+        handler: (ctx, event) => handleWeaknessVulnerabilityRelic(ctx, event),
+      },
+    ],
   });
 }

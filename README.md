@@ -100,18 +100,20 @@ gw2-combat-simulator/
   ranger.html                  Ranger application
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the profession contract and
-import boundaries, and [docs/MODULES.md](docs/MODULES.md) for module
-responsibilities and public contracts. Headless use of the same simulation API
-called by the test suite is described in
-[docs/PROGRAMMATIC-SIMULATION.md](docs/PROGRAMMATIC-SIMULATION.md).
-Profession-specific documentation:
+Architecture and usage docs live in [docs/architecture/](docs/architecture/):
+[ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) for the profession contract
+and import boundaries, [MODULES.md](docs/architecture/MODULES.md) for module
+responsibilities and public contracts, and
+[PROGRAMMATIC-SIMULATION.md](docs/architecture/PROGRAMMATIC-SIMULATION.md) for
+headless use of the same simulation API called by the test suite.
 
-- Mesmer architecture and modeling assumptions: [docs/MESMER.md](docs/MESMER.md)
-- Elementalist implementation details: [docs/ELEMENTALIST.md](docs/ELEMENTALIST.md)
-- Guardian status: [docs/GUARDIAN.md](docs/GUARDIAN.md)
-- Necromancer status: [docs/NECROMANCER.md](docs/NECROMANCER.md)
-- Engineer status: [docs/ENGINEER.md](docs/ENGINEER.md)
-- Revenant status: [docs/REVENANT.md](docs/REVENANT.md)
-- Thief status: [docs/THIEF.md](docs/THIEF.md)
-- Warrior status: [docs/WARRIOR.md](docs/WARRIOR.md)
+Per-profession documentation lives in [docs/professions/](docs/professions/):
+
+- Mesmer architecture and modeling assumptions: [MESMER.md](docs/professions/MESMER.md)
+- Elementalist implementation details: [ELEMENTALIST.md](docs/professions/ELEMENTALIST.md)
+- Guardian status: [GUARDIAN.md](docs/professions/GUARDIAN.md)
+- Necromancer status: [NECROMANCER.md](docs/professions/NECROMANCER.md)
+- Engineer status: [ENGINEER.md](docs/professions/ENGINEER.md)
+- Revenant status: [REVENANT.md](docs/professions/REVENANT.md)
+- Thief status: [THIEF.md](docs/professions/THIEF.md)
+- Warrior status: [WARRIOR.md](docs/professions/WARRIOR.md)

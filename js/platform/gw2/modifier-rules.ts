@@ -174,6 +174,10 @@ function normalizeRule(
       "id is required.",
     );
   }
+  const label = typeof rule.label === "string" ? rule.label.trim() : "";
+  if (Object.hasOwn(rule, "label") && !label) {
+    throw ruleError(id, "label must be a non-empty string.");
+  }
   const operation = rule.operation;
   if (typeof operation !== "string" || !OPERATIONS.has(operation)) {
     throw ruleError(id, `unknown operation "${String(operation || "")}".`);
@@ -202,6 +206,7 @@ function normalizeRule(
 
   const normalized = {
     id,
+    label: label || null,
     targets,
     operation,
     when: rule.when || null,
@@ -364,10 +369,31 @@ function createScalarHook(
       // add-then-multiply differ from multiply-then-add.
       for (const rule of rules) {
         if (rule.when && !rule.when(context)) continue;
+        const previous = result;
         if (rule.operation === "add") {
           result += resolveNumeric(rule, "amount", context, target);
         } else {
           result *= resolveNumeric(rule, "factor", context, target);
+        }
+        const contribution = result - previous;
+        if (
+          target === MODIFIER_TARGET.CRITICAL_CHANCE &&
+          context.criticalChanceContributors &&
+          Math.abs(contribution) > Number.EPSILON
+        ) {
+          const fallbackLabel = rule.id
+            .split(".")
+            .at(-1)!
+            .replace(/-critical-chance$/, "")
+            .split("-")
+            .filter(Boolean)
+            .map((part) => part[0].toUpperCase() + part.slice(1))
+            .join(" ");
+          context.criticalChanceContributors.push({
+            id: rule.id,
+            label: rule.label || fallbackLabel,
+            amount: contribution,
+          });
         }
       }
       return result;

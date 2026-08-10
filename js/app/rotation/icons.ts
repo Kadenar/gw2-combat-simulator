@@ -1,6 +1,7 @@
 import type { SchedulerRecord, SkillId } from "../../platform/engine/types.js";
 import type { Gw2ProcStep } from "../../platform/gw2/types.js";
 import {
+  FOOD_DATA,
   NOURISHMENT_ICON,
   RELIC_DATA,
   SIGIL_DATA,
@@ -95,6 +96,12 @@ function resolveModifierIcon(row: ResultIconRow): string {
     return String(SIGIL_DATA[sigilName]?.icon);
   }
 
+  const foodName = id.startsWith("Food:")
+    ? id.slice("Food:".length)
+    : label.match(/^Food: (.+)$/)?.[1];
+  if (foodName && FOOD_DATA[foodName]?.icon) {
+    return String(FOOD_DATA[foodName].icon);
+  }
   if (label === "Nourishment" || label === "Food: Nourishment") {
     return NOURISHMENT_ICON;
   }

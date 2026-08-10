@@ -84,6 +84,7 @@ export type DamageEvent = SimulationEventBase<"damage"> &
     }>;
     readonly hits?: number;
     readonly canCrit?: boolean;
+    readonly forceCrit?: boolean;
     readonly canTriggerCriticalSigils?: boolean;
     readonly didCrit?: boolean;
   };
@@ -245,6 +246,8 @@ export interface Skill extends CatalogSkill {
   };
   readonly castTimeMs?: number;
   readonly quicknessCastTimeMs?: number;
+  /** The cast duration and cast-bound effect timing ignore Quickness. */
+  readonly unaffectedByQuickness?: boolean;
   /**
    * Casts on a separate actor lane. Independent casts remain serial with one
    * another but do not reserve or delay the player's ordinary cast lane.
@@ -276,6 +279,8 @@ export interface Skill extends CatalogSkill {
   readonly stunbreak?: boolean;
   readonly ammo?: number;
   readonly ammoRecharge?: number;
+  /** Minimum delay between consecutive casts of an ammo skill, in seconds. */
+  readonly ammoCastLockout?: number;
   readonly defaultInterruptMs?: number;
   readonly paletteInterruptMs?: number;
   readonly interruptCommitMs?: number;

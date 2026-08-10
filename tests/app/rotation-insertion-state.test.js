@@ -11,6 +11,10 @@ import {
   paletteProfessionState,
 } from "../../js/app/rotation/context.js";
 import { paletteSkillView } from "../../js/app/rotation/palette-view.js";
+import {
+  criticalChanceAt,
+  criticalChanceTooltip,
+} from "../../js/app/rotation/state-snapshot-view.js";
 
 function endState(overrides = {}) {
   return {
@@ -22,6 +26,44 @@ function endState(overrides = {}) {
     ...overrides,
   };
 }
+
+test("active-state critical chance hover lists contributors and the cap", () => {
+  const event = {
+    type: "damage",
+    at: 1,
+    actorType: "player",
+    criticalChance: 1,
+    criticalChanceBeforeCap: 1.0371,
+    criticalChanceContributors: [
+      { id: "precision", label: "Precision", amount: 0.4371 },
+      { id: "fury", label: "Fury", amount: 0.25 },
+      {
+        id: "necromancer.death-perception-critical-chance",
+        label: "Death Perception",
+        amount: 0.15,
+      },
+      {
+        id: "necromancer.target-the-weak-critical-chance",
+        label: "Target the Weak",
+        amount: 0.2,
+      },
+    ],
+  };
+
+  assert.equal(criticalChanceAt({ resolvedEvents: [event] }, 1000), 1);
+  assert.equal(
+    criticalChanceTooltip(event, "Critical strike chance"),
+    [
+      "Critical strike chance",
+      "Precision: 43.71%",
+      "Fury: +25%",
+      "Death Perception: +15%",
+      "Target the Weak: +20%",
+      "Before cap: 103.71%",
+      "Final: 100%",
+    ].join("\n"),
+  );
+});
 
 test("palette state uses and caches the selected insertion checkpoint", () => {
   const finalState = endState({

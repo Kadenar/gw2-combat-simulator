@@ -2,21 +2,15 @@ import {
   addAttribute,
   finalizeBuildAttributes,
 } from "../../platform/gw2/attributes.js";
-import {
-  getActiveTraits,
-} from "./data/traits-data.js";
-import type {
-  Skill,
-} from "../../platform/engine/types.js";
+import { getActiveTraits } from "./data/traits-data.js";
+import type { Skill } from "../../platform/engine/types.js";
 import type {
   Gw2BuildAttributeRuleContext,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes,
 } from "../../platform/gw2/types.js";
-import type {
-  NecromancerSpecializationSelection,
-} from "./data/traits-data.js";
+import type { NecromancerSpecializationSelection } from "./data/traits-data.js";
 
 function selectedSkill(skills: readonly Skill[], name: string): boolean {
   return (skills || []).some((skill) => skill?.name === name);
@@ -33,9 +27,7 @@ export function applyNecromancerBuildAttributeRules(
   const attributes = common.attributes;
   const activeTraits = getActiveTraits(
     (build.specializations || []) as NecromancerSpecializationSelection[],
-  ).filter(
-    (trait) => trait.name !== disabledTrait,
-  );
+  ).filter((trait) => trait.name !== disabledTrait);
   const hasTrait = (name: string) =>
     activeTraits.some((trait) => trait.name === name);
   const traitStats: Gw2NumericAttributes = {};
@@ -72,11 +64,7 @@ export function applyNecromancerBuildAttributeRules(
   if (hasTrait("Target the Weak")) {
     const precision =
       attributes.Precision.final + Number(traitStats.Precision || 0);
-    addAttribute(
-      traitStats,
-      "Condition Damage",
-      Math.floor(precision * 0.13),
-    );
+    addAttribute(traitStats, "Condition Damage", Math.floor(precision * 0.13));
   }
   if (hasTrait("Fell Beacon")) {
     addAttribute(
@@ -93,10 +81,12 @@ export function applyNecromancerBuildAttributeRules(
   if (hasTrait("Barbed Precision")) {
     traitDurations["Bleeding Duration"] = 20;
   }
+  const traitCriticalChance = hasTrait("Death Perception") ? 15 : 0;
 
   return finalizeBuildAttributes(common, {
     activeTraits,
     traitStats,
     traitDurations,
+    traitCriticalChance,
   });
 }

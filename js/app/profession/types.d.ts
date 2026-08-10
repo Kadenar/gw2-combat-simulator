@@ -40,6 +40,7 @@ export interface ProfessionBuildAssumptions extends SchedulerRecord {
   targetBoonless?: boolean;
   targetSkillActivationsPerSecond?: number;
   targetConditions?: Record<string, number | boolean>;
+  timeOfDay?: "day" | "night";
 }
 
 export type ProfessionApplicationBuild = Gw2ApplicationBuild;

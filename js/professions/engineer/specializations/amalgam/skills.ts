@@ -7,14 +7,12 @@
 import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
 
-const DEMOLISH_CAST_TIME_MS = 1250 + 700;
 const DEMOLISH_QUICKNESS_CAST_TIME_MS = 1000 + 560;
 
 export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   Object.freeze({
     [ID.OFFENSIVE_PROTOCOL_SHRED]: {
       implemented: true,
-      castTimeMs: 1000,
       quicknessCastTimeMs: 760,
       cooldown: 20,
       finisherType: "Projectile",
@@ -23,9 +21,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
         {
           type: "strike",
           ticks: [
-            { atMs: 840, coefficient: 0.96 },
-            { atMs: 900, coefficient: 0.96 },
-            { atMs: 960, coefficient: 0.96 },
+            { atMs: 957.6, coefficient: 0.96 },
+            { atMs: 1026, coefficient: 0.96 },
+            { atMs: 1094.4, coefficient: 0.96 },
           ],
           timingAnchor: "castStart",
           timingScale: "cast",
@@ -69,7 +67,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     [ID.EVOLVE]: {
       implemented: true,
       handlerId: "engineer.evolve",
-      castTimeMs: 750,
       quicknessCastTimeMs: 640,
       cooldown: 40,
       effects: [],
@@ -78,7 +75,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     [ID.EVOLVE_ID_76651]: {
       implemented: true,
       handlerId: "engineer.evolve",
-      castTimeMs: 750,
       quicknessCastTimeMs: 640,
       cooldown: 40,
       ammo: 2,
@@ -87,7 +83,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: {
       implemented: true,
-      castTimeMs: DEMOLISH_CAST_TIME_MS,
       quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
       cooldown: 20,
       effects: [
@@ -95,8 +90,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 2.7,
           hits: 3,
-          atMs: 417,
-          intervalMs: 417,
+          atMs: 500.4,
+          intervalMs: 500.4,
           timingAnchor: "castStart",
           timingScale: "cast",
           metadata: { finisherType: "Whirl", finisherValue: 1 },
@@ -116,7 +111,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: {
       implemented: true,
-      castTimeMs: 1200,
       quicknessCastTimeMs: 800,
       cooldown: 20,
       effects: [
@@ -185,7 +179,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: {
       implemented: true,
-      castTimeMs: 1200,
       quicknessCastTimeMs: 800,
       cooldown: 20,
       effects: [
@@ -244,7 +237,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: {
       implemented: true,
-      castTimeMs: 1000,
       quicknessCastTimeMs: 760,
       cooldown: 20,
       finisherType: "Projectile",
@@ -253,9 +245,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
         {
           type: "strike",
           ticks: [
-            { atMs: 840, coefficient: 0.96 },
-            { atMs: 900, coefficient: 0.96 },
-            { atMs: 960, coefficient: 0.96 },
+            { atMs: 957.6, coefficient: 0.96 },
+            { atMs: 1026, coefficient: 0.96 },
+            { atMs: 1094.4, coefficient: 0.96 },
           ],
           timingAnchor: "castStart",
           timingScale: "cast",
@@ -274,7 +266,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: {
       implemented: true,
-      castTimeMs: 1200,
       quicknessCastTimeMs: 800,
       cooldown: 20,
       effects: [
@@ -335,7 +326,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: {
       implemented: true,
-      castTimeMs: DEMOLISH_CAST_TIME_MS,
       quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
       cooldown: 20,
       effects: [
@@ -343,8 +333,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 2.7,
           hits: 3,
-          atMs: 417,
-          intervalMs: 417,
+          atMs: 500.4,
+          intervalMs: 500.4,
           timingAnchor: "castStart",
           timingScale: "cast",
           metadata: { finisherType: "Whirl", finisherValue: 1 },
@@ -364,7 +354,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: {
       implemented: true,
-      castTimeMs: DEMOLISH_CAST_TIME_MS,
       quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
       cooldown: 20,
       effects: [
@@ -372,8 +361,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
           type: "strike",
           coefficient: 2.7,
           hits: 3,
-          atMs: 417,
-          intervalMs: 417,
+          atMs: 500.4,
+          intervalMs: 500.4,
           timingAnchor: "castStart",
           timingScale: "cast",
           metadata: { finisherType: "Whirl", finisherValue: 1 },
@@ -400,7 +389,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.FLUX_STATE]: {
       implemented: true,
-      castTimeMs: 750,
       quicknessCastTimeMs: 640,
       cooldown: 50,
       effects: [
@@ -549,7 +537,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     },
     [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: {
       implemented: true,
-      castTimeMs: 1000,
       quicknessCastTimeMs: 760,
       cooldown: 20,
       finisherType: "Projectile",
@@ -558,9 +545,9 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
         {
           type: "strike",
           ticks: [
-            { atMs: 840, coefficient: 0.96 },
-            { atMs: 900, coefficient: 0.96 },
-            { atMs: 960, coefficient: 0.96 },
+            { atMs: 957.6, coefficient: 0.96 },
+            { atMs: 1026, coefficient: 0.96 },
+            { atMs: 1094.4, coefficient: 0.96 },
           ],
           timingAnchor: "castStart",
           timingScale: "cast",
@@ -625,7 +612,6 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     [ID.PLASMATIC_STATE]: {
       implemented: true,
       handlerId: "engineer.plasmatic-state",
-      castTimeMs: 720,
       quicknessCastTimeMs: 480,
       aftercastMs: 660,
       quicknessAftercastMs: 440,

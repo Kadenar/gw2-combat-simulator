@@ -30,7 +30,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PRESERVATION]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [],
     type: "Profession",
@@ -48,7 +47,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.NIGHTMARE_WEAPON]: {
     implemented: true,
-    castTimeMs: 360,
     quicknessCastTimeMs: 240,
     effects: [],
     handlerId: "necromancer.weapon-spell",
@@ -67,7 +65,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ANGUISH]: {
     implemented: true,
-    castTimeMs: 840,
     quicknessCastTimeMs: 560,
     effects: [],
     type: "Profession",
@@ -99,7 +96,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WANDERLUST]: {
     implemented: true,
-    castTimeMs: 1140,
     quicknessCastTimeMs: 760,
     effects: [],
     type: "Profession",
@@ -111,7 +107,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPLINTER_WEAPON]: {
     implemented: true,
-    castTimeMs: 360,
     quicknessCastTimeMs: 240,
     effects: [],
     handlerId: "necromancer.weapon-spell",
@@ -129,7 +124,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ESSENCE_BLAST]: {
     implemented: true,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [],
     type: "Profession",

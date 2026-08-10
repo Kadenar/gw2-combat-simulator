@@ -147,9 +147,7 @@ Same-name API mode aliases resolve to one canonical selectable skill.
   canonical ID rotations, independent browser storage, and Life Force/Blight
   start controls. Life Force values are rounded for display, and Blight is
   stacked below Life Force rather than extending the palette horizontally.
-- The benchmark-backed Condition Scourge, Power/Condition Reaper, and Power
-  Ritualist presets are loaded through `Builds/necromancer/manifest.json`.
-  Build files remain rotation-free and load their rotations separately.
+- Build files remain rotation-free and load their rotations separately.
   Meltdown uses its wiki effect icon in proc results and modifier
   contributions.
 

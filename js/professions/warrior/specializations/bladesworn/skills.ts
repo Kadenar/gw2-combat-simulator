@@ -13,14 +13,12 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   },
   [ID.DRAGON_TRIGGER]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [],
     quicknessCastTimeMs: 167,
     handlerId: "warrior.dragon-trigger",
   },
   [ID.ELECTRIC_FENCE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "condition",
@@ -34,20 +32,17 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   [ID.SHEATHE_GUNSABER]: {
     implemented: true,
     cooldown: 0,
-    recharge: 0,
     castTimeMs: 0,
     effects: [],
     handlerId: "warrior.gunsaber-exit",
   },
   [ID.TACTICAL_RELOAD]: {
     implemented: true,
-    castTimeMs: 828,
     effects: [],
     quicknessCastTimeMs: 552,
   },
   [ID.DRAGONSPIKE_MINE]: {
     implemented: true,
-    castTimeMs: 962,
     effects: [
       {
         type: "strike",
@@ -89,11 +84,9 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
         stacks: 2,
       },
     ],
-    quicknessCastTimeMs: 0,
   },
   [ID.COMBAT_STIMULANT]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "boon",
@@ -121,15 +114,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
     ammo: 2,
     ammoRecharge: 20,
     cooldown: 20,
-    recharge: 1,
-    castTimeMs: 900,
+    ammoCastLockout: 1,
     effects: [],
     quicknessCastTimeMs: 600,
     handlerId: "warrior.overcharged-cartridges",
   },
   [ID.SWIFT_CUT]: {
     implemented: true,
-    castTimeMs: 959,
     effects: [
       {
         type: "strike",
@@ -156,7 +147,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   },
   [ID.STEEL_DIVIDE]: {
     implemented: true,
-    castTimeMs: 903,
     effects: [
       {
         type: "strike",
@@ -183,7 +173,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   },
   [ID.EXPLOSIVE_THRUST]: {
     implemented: true,
-    castTimeMs: 659,
     effects: [
       {
         type: "strike",
@@ -213,8 +202,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
     ammo: 2,
     ammoRecharge: 10,
     cooldown: 10,
-    recharge: 2,
-    castTimeMs: 903,
+    ammoCastLockout: 2,
     effects: [
       {
         type: "strike",
@@ -244,8 +232,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
     ammo: 2,
     ammoRecharge: 15,
     cooldown: 15,
-    recharge: 2,
-    castTimeMs: 1022,
+    ammoCastLockout: 2,
     effects: [],
     quicknessCastTimeMs: 681,
     gunsaberSkill: true,
@@ -257,8 +244,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
     ammo: 2,
     ammoRecharge: 20,
     cooldown: 20,
-    recharge: 1,
-    castTimeMs: 600,
+    ammoCastLockout: 1,
     effects: [
       {
         type: "strike",
@@ -284,8 +270,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
     ammo: 2,
     ammoRecharge: 20,
     cooldown: 20,
-    recharge: 1,
-    castTimeMs: 500,
+    ammoCastLockout: 1,
     effects: [
       {
         type: "strike",
@@ -308,7 +293,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   },
   [ID.DRAGON_SLASH_FORCE]: {
     implemented: true,
-    castTimeMs: 1559,
     effects: [],
     quicknessCastTimeMs: 1039,
     burst: true,
@@ -321,7 +305,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   },
   [ID.DRAGON_SLASH_BOOST]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     burst: true,
@@ -334,7 +317,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   },
   [ID.DRAGON_SLASH_REACH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     burst: true,
@@ -350,10 +332,9 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
     ammo: 3,
     ammoRecharge: 20,
     cooldown: 20,
-    recharge: 0.5,
+    ammoCastLockout: 0.5,
     castTimeMs: 0,
     effects: [],
-    quicknessCastTimeMs: 0,
     gunsaberSkill: true,
     dragonTriggerSkill: true,
     shadowstepSkill: true,
@@ -364,7 +345,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
     ammo: 2,
     ammoRecharge: 30,
     cooldown: 30,
-    recharge: 1,
+    ammoCastLockout: 1,
     castTimeMs: 0,
     effects: [
       {
@@ -374,7 +355,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
         stacks: 1,
       },
     ],
-    quicknessCastTimeMs: 0,
     gunsaberSkill: true,
     dragonTriggerSkill: true,
     skillWeapon: "Gunsaber",

@@ -66,6 +66,7 @@ const TIMING_ANCHORS = new Set(["castStart", "castEnd"]);
 const TIMING_SCALES = new Set(["cast", "fixed"]);
 const DURATION_SCALES = new Set(["boon", "fixed"]);
 const RECHARGE_ANCHORS = new Set(["castStart", "castEnd"]);
+const QUICKNESS_ACTION_RATE = 1.5;
 const EFFECT_FIELDS = new Set([
   "type",
   "coefficient",
@@ -118,6 +119,7 @@ const EFFECT_METADATA_FIELDS = new Set([
   "flatStrikeHealthThreshold",
   "flatStrikeThresholdMultiplier",
   "noCrit",
+  "forceCrit",
   "projectile",
   "finisherType",
   "finisherValue",
@@ -668,12 +670,6 @@ export function createCanonicalCatalog({
         `Skill ${id} uses legacy cast timing; use castTimeMs.`,
       );
     }
-    const castTimeMs = Number(merged.castTimeMs ?? 0);
-    if (!(castTimeMs >= 0) || !Number.isFinite(castTimeMs)) {
-      throw new TypeError(
-        `Skill ${id} requires a non-negative finite castTimeMs.`,
-      );
-    }
     const quicknessCastTimeMs =
       merged.quicknessCastTimeMs == null
         ? null
@@ -683,6 +679,28 @@ export function createCanonicalCatalog({
       (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))
     ) {
       throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);
+    }
+    const castTimeMs = Number(
+      merged.castTimeMs ??
+        (quicknessCastTimeMs == null
+          ? 0
+          : quicknessCastTimeMs * QUICKNESS_ACTION_RATE),
+    );
+    if (!(castTimeMs >= 0) || !Number.isFinite(castTimeMs)) {
+      throw new TypeError(
+        `Skill ${id} requires a non-negative finite castTimeMs.`,
+      );
+    }
+    if (
+      merged.unaffectedByQuickness != null &&
+      typeof merged.unaffectedByQuickness !== "boolean"
+    ) {
+      throw new TypeError(`Skill ${id} has an invalid unaffectedByQuickness.`);
+    }
+    if (merged.unaffectedByQuickness && quicknessCastTimeMs != null) {
+      throw new TypeError(
+        `Skill ${id} cannot specify quicknessCastTimeMs when unaffectedByQuickness is true.`,
+      );
     }
     const interruptCommitMs =
       merged.interruptCommitMs == null

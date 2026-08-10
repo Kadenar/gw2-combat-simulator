@@ -51,7 +51,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
   [ID.TWIN_MOON_SWEEP]: {
     implemented: true,
     handlerId: "revenant.twin-moon-sweep",
-    castTimeMs: 1250,
     quicknessCastTimeMs: 920,
     cooldown: 3,
     energyCost: 25,
@@ -64,7 +63,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
   [ID.TWIN_MOON_SWEEP_ID_77001]: {
     implemented: true,
     handlerId: "revenant.twin-moon-sweep",
-    castTimeMs: 1250,
     quicknessCastTimeMs: 920,
     cooldown: 3,
     energyCost: 25,
@@ -126,7 +124,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
   [ID.HEX_EATER_VORTEX]: {
     implemented: true,
     handlerId: "revenant.hex-eater-vortex",
-    castTimeMs: 520,
     quicknessCastTimeMs: 526,
     cooldown: 5,
     energyCost: 15,
@@ -177,7 +174,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
   [ID.RELEASE_POTENTIAL_MESMER]: {
     implemented: true,
     handlerId: "revenant.release-potential",
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 10,
     energyCost: 0,
@@ -186,7 +182,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
   [ID.RELEASE_POTENTIAL_DERVISH]: {
     implemented: true,
     handlerId: "revenant.release-potential",
-    castTimeMs: 750,
     quicknessCastTimeMs: 680,
     cooldown: 10,
     energyCost: 0,
@@ -195,7 +190,6 @@ export const CONDUIT_BASE_SKILL_MECHANICS: Readonly<
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
     implemented: true,
     handlerId: "revenant.release-potential",
-    castTimeMs: 750,
     quicknessCastTimeMs: 740,
     cooldown: 10,
     energyCost: 0,

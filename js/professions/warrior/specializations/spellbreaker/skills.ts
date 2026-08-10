@@ -32,8 +32,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
     implemented: true,
     skillWeapon: "Hammer",
     cooldown: 8,
-    recharge: 8,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -65,13 +63,11 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.NATURAL_HEALING]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [],
     quicknessCastTimeMs: 667,
   },
   [ID.SKULL_CRACK_ID_41110]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -109,7 +105,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.FORCEFUL_SHOT_ID_41330]: {
     implemented: true,
-    castTimeMs: 1750,
     effects: [
       {
         type: "strike",
@@ -152,7 +147,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.WHIRLING_STRIKE_ID_41746]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -175,7 +169,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.IMMINENT_THREAT]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "boon",
@@ -190,7 +183,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.KILL_SHOT_ID_42041]: {
     implemented: true,
-    castTimeMs: 1250,
     effects: [
       {
         type: "strike",
@@ -206,7 +198,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.ARCING_SLICE_ID_42707]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -235,7 +226,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.COMBUSTIVE_SHOT_ID_42803]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -257,7 +247,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.BREAK_ENCHANTMENTS]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -319,13 +308,11 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.SIGHT_BEYOND_SIGHT]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
   [ID.FULL_COUNTER]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -378,7 +365,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
     implemented: true,
     comboField: "Lightning",
     duration: 5,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -411,7 +397,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.FEATHERFOOT_GRACE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -449,7 +434,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
     finisherType: "Leap",
     finisherValue: 1,
     cooldown: 8,
-    recharge: 8,
     castTimeMs: 840,
     effects: [
       {
@@ -471,7 +455,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 840,
+    unaffectedByQuickness: true,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -479,7 +463,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.PATH_TO_VICTORY_ID_72089]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -501,7 +484,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.HARRIERS_TOSS_ID_73014]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "condition",
@@ -524,7 +506,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   [ID.BLOODTHIRSTER_ID_80252]: {
     implemented: true,
     skillWeapon: "Sword",
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",

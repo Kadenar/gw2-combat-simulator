@@ -1,6 +1,7 @@
 export interface Gw2SigilDataEntry {
   readonly criticalChance?: number;
   readonly strikeDamageA?: number;
+  readonly nightStrikeDamageM?: number;
   readonly conditionDamageA?: number;
   readonly conditionDuration?: number;
   readonly bleedingDuration?: number;
@@ -51,6 +52,11 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
     strikeDamageA: 3,
     icon: "https://render.guildwars2.com/file/D9ACA0C94D90A76B1C500D5DE6D62B6820FEDAE2/221170.png",
   },
+  Night: {
+    strikeDamageA: 3,
+    nightStrikeDamageM: 7,
+    icon: "https://render.guildwars2.com/file/CFDC642093029E790C03381D73C703BDFFA9CDFF/499391.png",
+  },
   Air: {
     icon: "https://render.guildwars2.com/file/C337CC61DF2F5EE44B7D053EFF33059111024444/220676.png",
   },
@@ -86,5 +92,6 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
   },
 };
 
-export const SIGIL_NAMES: readonly string[] = Object.keys(SIGIL_DATA)
-  .sort((left, right) => left.localeCompare(right));
+export const SIGIL_NAMES: readonly string[] = Object.keys(SIGIL_DATA).sort(
+  (left, right) => left.localeCompare(right),
+);

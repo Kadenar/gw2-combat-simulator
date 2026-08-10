@@ -11,7 +11,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<
     implemented: true,
     handlerId: "revenant.band-together",
     castTimeMs: 520,
-    quicknessCastTimeMs: 520,
+    unaffectedByQuickness: true,
     cooldown: 10,
     energyCost: 20,
     effects: [
@@ -77,7 +77,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<
     implemented: true,
     handlerId: "revenant.band-together",
     castTimeMs: 500,
-    quicknessCastTimeMs: 500,
+    unaffectedByQuickness: true,
     cooldown: 12,
     energyCost: 25,
     effects: [
@@ -134,7 +134,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<
   [ID.CITADEL_BOMBARDMENT]: {
     implemented: true,
     castTimeMs: 600,
-    quicknessCastTimeMs: 600,
+    unaffectedByQuickness: true,
     cooldown: 15,
     energyCost: 35,
     effects: [
@@ -257,7 +257,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<
   [ID.ICERAZORS_IRE_ID_72359]: {
     implemented: true,
     castTimeMs: 520,
-    quicknessCastTimeMs: 520,
+    unaffectedByQuickness: true,
     cooldown: 10,
     energyCost: 20,
     effects: [
@@ -349,7 +349,7 @@ export const RENEGADE_BASE_SKILL_MECHANICS: Readonly<
   [ID.DARKRAZORS_DARING_ID_72366]: {
     implemented: true,
     castTimeMs: 500,
-    quicknessCastTimeMs: 500,
+    unaffectedByQuickness: true,
     cooldown: 12,
     energyCost: 25,
     effects: [

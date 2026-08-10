@@ -7,7 +7,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.LEAP_OF_FAITH]: {
     implemented: true,
-    castTimeMs: 1000,
     quicknessCastTimeMs: 720,
     effects: [
       {
@@ -163,7 +162,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BANE_SIGNET]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -432,7 +430,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.GREAT_SWORD_VENGEFUL_STRIKE]: {
     implemented: true,
-    castTimeMs: 840,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -486,7 +483,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   [ID.SYMBOL_OF_RESOLUTION]: {
     implemented: true,
     castTimeMs: 280,
-    quicknessCastTimeMs: 280,
+    unaffectedByQuickness: true,
     effects: [
       {
         type: "strike",
@@ -508,14 +505,13 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BINDING_BLADE]: {
     implemented: true,
-    castTimeMs: 750,
     quicknessCastTimeMs: 480,
     effects: [
       {
         type: "strike",
         coefficient: 2.5,
         hits: 1,
-        atMs: 750,
+        atMs: 720,
         timingAnchor: "castStart",
         timingScale: "cast",
       },
@@ -1436,7 +1432,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.HELIO_RUSH]: {
     implemented: true,
-    castTimeMs: 480,
     quicknessCastTimeMs: 320,
     cooldown: 6.4,
     ammo: 2,
@@ -1461,7 +1456,6 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.GLEAMING_DISC]: {
     implemented: true,
-    castTimeMs: 840,
     quicknessCastTimeMs: 560,
     cooldown: 9.6,
     effects: [
@@ -1491,7 +1485,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   [ID.SOLAR_STORM]: {
     implemented: true,
     castTimeMs: 560,
-    quicknessCastTimeMs: 560,
+    unaffectedByQuickness: true,
     cooldown: 15,
     effects: [
       {
@@ -1526,7 +1520,7 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<
   [ID.SYMBOL_OF_LUMINANCE]: {
     implemented: true,
     castTimeMs: 440,
-    quicknessCastTimeMs: 440,
+    unaffectedByQuickness: true,
     cooldown: 15,
     effects: [
       {
@@ -1568,7 +1562,6 @@ export const GUARDIAN_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     nextChainId: null,
     flipSkillId: null,
     castTimeMs: 0,
-    quicknessCastTimeMs: 0,
     rechargeAnchor: "castStart",
     cooldown: 10,
     implemented: true,

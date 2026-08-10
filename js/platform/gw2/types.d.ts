@@ -42,6 +42,7 @@ export interface Gw2SigilSet extends SchedulerRecord {
   readonly criticalChanceBonus?: number;
   readonly strikeAdd?: number;
   readonly strike?: number;
+  readonly nightStrikeMultiplier?: number;
   readonly conditionAdd?: number;
   readonly condition?: number;
   readonly conditionDurationBonus?: number;
@@ -98,6 +99,7 @@ export interface Gw2Config extends SchedulerRecord {
   readonly selectedTraits?: readonly (string | number)[];
   readonly relic?: string;
   readonly food?: string;
+  readonly timeOfDay?: "day" | "night";
   readonly randomness?: SimulationRandomnessConfig;
   readonly attributeProvenance?: Partial<Gw2AttributeProvenance>;
   readonly alacrityRechargeRate?: number;
@@ -316,10 +318,18 @@ export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
   readonly profession?: object | null;
 }
 
+export interface Gw2CriticalChanceContributor {
+  readonly id: string;
+  readonly label: string;
+  readonly amount: number;
+}
+
 export interface Gw2CriticalResult {
   chance: number;
   damage: number;
   didCrit?: boolean | null;
+  readonly chanceBeforeCap?: number;
+  readonly contributors?: readonly Gw2CriticalChanceContributor[];
 }
 
 export interface Gw2CombatQuery {
@@ -497,6 +507,7 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly summonInheritsAttributes?: boolean;
   readonly summonUsesProfessionModifiers?: boolean;
   readonly noCrit?: boolean;
+  readonly forceCrit?: boolean;
   /**
    * Resolver's derived verdict on whether the strike could crit: false for flat
    * strikes and for `noCrit`/`canCrit:false` hits. Consumers should read this
@@ -504,6 +515,8 @@ export type Gw2ResolverEvent = SimulationEvent & {
    */
   readonly critEligible?: boolean;
   readonly criticalChance?: number;
+  readonly criticalChanceBeforeCap?: number;
+  readonly criticalChanceContributors?: readonly Gw2CriticalChanceContributor[];
   readonly criticalDamage?: number;
   readonly didCrit?: boolean;
   readonly hits?: number;
@@ -1166,6 +1179,7 @@ export interface Gw2AttributeData {
       {
         readonly criticalChance?: number;
         readonly strikeDamageA?: number;
+        readonly nightStrikeDamageM?: number;
         readonly conditionDamageA?: number;
         readonly conditionDuration?: number;
         readonly bleedingDuration?: number;
@@ -1223,6 +1237,7 @@ export interface Gw2ModifierContext extends SchedulerRecord {
   readonly timeline?: Readonly<Gw2TimelineIndex>;
   readonly events?: readonly SimulationEvent[];
   readonly runtime?: Gw2QueryRuntime | null;
+  readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
 }
 
 export interface Gw2TraitContext extends SchedulerRecord {
@@ -1237,6 +1252,7 @@ export type Gw2ModifierNumericResolver = (
 
 export interface Gw2ModifierRule {
   readonly id: string;
+  readonly label?: string;
   readonly target: Gw2ModifierTarget | readonly Gw2ModifierTarget[];
   readonly operation: Gw2ModifierOperation;
   readonly amount?: number | Gw2ModifierNumericResolver;
@@ -1247,6 +1263,7 @@ export interface Gw2ModifierRule {
 
 export interface Gw2NormalizedModifierRule {
   readonly id: string;
+  readonly label: string | null;
   readonly targets: readonly Gw2ModifierTarget[];
   readonly operation: Gw2ModifierOperation;
   readonly amount?: number | Gw2ModifierNumericResolver;

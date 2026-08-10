@@ -7,20 +7,10 @@ import {
   weaponStrengthMidpoint,
   weaponStrengthProfile,
 } from "./weapon-strength.js";
-import type {
-  CanonicalCatalog,
-} from "../engine/types.js";
-import type {
-  Gw2WeaponDataEntry,
-} from "./types.js";
-export {
-  SIGIL_DATA,
-  SIGIL_NAMES,
-} from "./sigil-data.js";
-import {
-  SIGIL_DATA,
-  SIGIL_NAMES,
-} from "./sigil-data.js";
+import type { CanonicalCatalog } from "../engine/types.js";
+import type { Gw2WeaponDataEntry } from "./types.js";
+export { SIGIL_DATA, SIGIL_NAMES } from "./sigil-data.js";
+import { SIGIL_DATA, SIGIL_NAMES } from "./sigil-data.js";
 
 export const GEAR_SLOTS = [
   "Helm",
@@ -962,6 +952,30 @@ const FOOD_CATALOG = {
     },
   },
   Condition: {
+    "Ghost Pepper Popper": {
+      icon: "https://render.guildwars2.com/file/1C1D9D0407CD96F3E80266DEBD2B544E799AF658/433666.png",
+      isConverted: true,
+      stats: {},
+      durations: {},
+      proc: {
+        type: "critStrike",
+        chance: 0.4,
+        icdMs: 1000,
+        name: "Ghost Pepper Popper",
+        dayEffect: {
+          type: "boon",
+          name: "Might",
+          stacks: 1,
+          duration: 5,
+        },
+        nightEffect: {
+          type: "condition",
+          name: "Chilled",
+          stacks: 1,
+          duration: 1,
+        },
+      },
+    },
     "Plate of Beef Rendang": {
       isConverted: true,
       stats: { "Condition Damage": 100, Expertise: 70 },
@@ -1235,10 +1249,7 @@ export const WEAPON_DATA: Readonly<
   Staff: weaponData("2h", "weapon.staff"),
   // Special / internal
   Unequipped: weaponData("-", "nonweapon.unequipped"),
-  "Profession mechanic": weaponData(
-    "-",
-    "nonweapon.profession-mechanic",
-  ),
+  "Profession mechanic": weaponData("-", "nonweapon.profession-mechanic"),
 };
 
 // ─── Sigil Data ───────────────────────────────────────────────────────────────

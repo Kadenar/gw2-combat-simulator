@@ -41,7 +41,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62930,
     {
       icon: "https://wiki.guildwars2.com/images/d/d0/Blooming_Fire.png",
-      recharge: 2,
+      ammoCastLockout: 2,
       ammo: 2,
       ammoRecharge: 10,
     },
@@ -50,7 +50,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62732,
     {
       icon: "https://wiki.guildwars2.com/images/6/68/Artillery_Slash.png",
-      recharge: 2,
+      ammoCastLockout: 2,
       ammo: 2,
       ammoRecharge: 15,
     },
@@ -59,7 +59,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62789,
     {
       icon: "https://wiki.guildwars2.com/images/6/6c/Cyclone_Trigger.png",
-      recharge: 1,
+      ammoCastLockout: 1,
       ammo: 2,
       ammoRecharge: 20,
     },
@@ -68,7 +68,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62885,
     {
       icon: "https://wiki.guildwars2.com/images/7/76/Break_Step.png",
-      recharge: 1,
+      ammoCastLockout: 1,
       ammo: 2,
       ammoRecharge: 20,
     },
@@ -95,7 +95,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62926,
     {
       icon: "https://wiki.guildwars2.com/images/d/de/Flicker_Step.png",
-      recharge: 0.5,
+      ammoCastLockout: 0.5,
       ammo: 3,
       ammoRecharge: 20,
     },
@@ -104,7 +104,7 @@ const SUPPLEMENTAL_OVERRIDES_BY_ID = new Map([
     62893,
     {
       icon: "https://wiki.guildwars2.com/images/4/4e/Triggerguard.png",
-      recharge: 1,
+      ammoCastLockout: 1,
       ammo: 2,
       ammoRecharge: 30,
     },
@@ -148,6 +148,9 @@ const CONTROL_TYPES = new Set([
   "Sink",
   "Stun",
   "Taunt",
+]);
+const QUICKNESS_UNAFFECTED_SKILL_IDS = new Set([
+  14418, 45252, 46233, 69297, 69433,
 ]);
 
 async function fetchJson(url) {
@@ -256,6 +259,10 @@ function normalizeRawSkill(raw, identity) {
   const overrides = SUPPLEMENTAL_OVERRIDES_BY_ID.get(identity.id) || {};
   if (!raw) {
     const dragonSlash = identity.name.startsWith("Dragon Slash");
+    const ammo = Number(overrides.ammo || 0);
+    const ammoRecharge = Number(overrides.ammoRecharge || 0);
+    const cooldown = Number(ammo > 0 ? ammoRecharge : dragonSlash ? 1 : 0);
+    const ammoCastLockout = Number(overrides.ammoCastLockout || 0);
     return {
       id: identity.id,
       name: identity.name,
@@ -266,9 +273,10 @@ function normalizeRawSkill(raw, identity) {
       slot: dragonSlash ? "Weapon_1" : "Weapon_1",
       specialization: "Bladesworn",
       categories: dragonSlash ? ["Burst", "DragonSlash"] : [],
-      recharge: Number(overrides.recharge ?? (dragonSlash ? 1 : 0)),
-      ammo: Number(overrides.ammo || 0),
-      ammoRecharge: Number(overrides.ammoRecharge || 0),
+      cooldown,
+      ammo,
+      ammoRecharge,
+      ...(ammoCastLockout > 0 ? { ammoCastLockout } : {}),
       nextChainId: null,
       flipSkillId: null,
       simulatorExcluded: false,
@@ -280,6 +288,9 @@ function normalizeRawSkill(raw, identity) {
       (candidate) =>
         candidate.text === "Count Recharge" && candidate.type === "Time",
     )?.duration || 0;
+  const ammo = Number(overrides.ammo ?? maximumCount);
+  const ammoRecharge = Number(overrides.ammoRecharge ?? countRecharge);
+  const sourceRecharge = Number(fact(raw, "Recharge", "Recharge")?.value || 0);
   return {
     id: raw.id,
     name: raw.name,
@@ -290,9 +301,12 @@ function normalizeRawSkill(raw, identity) {
     slot: raw.slot || "Weapon_1",
     specialization: "Bladesworn",
     categories: raw.categories || [],
-    recharge: Number(fact(raw, "Recharge", "Recharge")?.value || 0),
-    ammo: Number(overrides.ammo ?? maximumCount),
-    ammoRecharge: Number(overrides.ammoRecharge ?? countRecharge),
+    cooldown: ammo > 0 ? ammoRecharge : sourceRecharge,
+    ammo,
+    ammoRecharge,
+    ...(ammo > 0 && sourceRecharge > 0
+      ? { ammoCastLockout: sourceRecharge }
+      : {}),
     nextChainId: raw.next_chain || null,
     flipSkillId: raw.flip_skill || null,
     simulatorExcluded: false,
@@ -459,7 +473,6 @@ const skillMechanicOverrides = new Map([
       ammo: 0,
       ammoRecharge: 0,
       cooldown: 15,
-      recharge: 15,
       effects: [
         { type: "strike", coefficient: 0.9, hits: 1 },
         {
@@ -681,14 +694,16 @@ for (const identity of identities) {
   );
   const flowGain = Math.max(0, Number(fact(raw, "Flow", "Number")?.value || 0));
   const handler = handlerId(identity, raw);
+  const unaffectedByQuickness = QUICKNESS_UNAFFECTED_SKILL_IDS.has(identity.id);
   const mechanics = {
     implemented: true,
-    castTimeMs,
+    ...(unaffectedByQuickness
+      ? { castTimeMs, unaffectedByQuickness: true }
+      : castTimeMs > 0
+        ? { quicknessCastTimeMs: Math.round(castTimeMs / 1.5) }
+        : { castTimeMs: 0 }),
     effects:
       skillMechanicOverrides.get(identity.id)?.effects || effectsFor(raw),
-    ...(castTimeMs > 0
-      ? { quicknessCastTimeMs: Math.round(castTimeMs / 1.5) }
-      : {}),
     ...(cost > 0
       ? { adrenalineCost: cost, burstTier: Math.max(1, Math.ceil(cost / 10)) }
       : {}),

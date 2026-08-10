@@ -7,7 +7,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.RICOCHET]: {
     implemented: true,
-    castTimeMs: 900,
     effects: [
       {
         type: "strike",
@@ -29,7 +28,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.POISON_VOLLEY]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -47,7 +45,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BARRAGE]: {
     implemented: true,
-    castTimeMs: 2250,
     effects: [
       {
         type: "strike",
@@ -65,7 +62,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CROSSFIRE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -83,7 +79,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SLASH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -95,7 +90,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CRIPPLING_THRUST]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -113,7 +107,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PRECISION_SWIPE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -131,7 +124,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SLASH_ID_12474]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -143,7 +135,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HILT_BASH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -160,7 +151,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPIKE_TRAP]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -178,7 +168,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CRIPPLING_TALON]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -202,7 +191,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.STALKERS_STRIKE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -226,7 +214,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPLITBLADE]: {
     implemented: true,
-    castTimeMs: 900,
     effects: [
       {
         type: "strike",
@@ -255,7 +242,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SERPENTS_STRIKE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -279,13 +265,11 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.TROLL_UNGUENT]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
   },
   [ID.SLICE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -297,7 +281,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ENDURING_SWING]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -309,7 +292,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HEALING_SPRING]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -322,7 +304,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WINTERS_BITE]: {
     implemented: true,
-    castTimeMs: 780,
     effects: [
       {
         type: "strike",
@@ -354,7 +335,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SIGNET_OF_THE_WILD]: {
     implemented: true,
-    castTimeMs: 780,
     effects: [
       {
         type: "strike",
@@ -381,7 +361,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FROST_TRAP]: {
     implemented: true,
-    castTimeMs: 780,
     effects: [
       {
         type: "condition",
@@ -410,7 +389,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.STORM_SPIRIT]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "condition",
@@ -435,7 +413,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIGHTNING_REFLEXES]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -453,7 +430,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.STONE_SPIRIT]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "boon",
@@ -478,7 +454,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.VIPERS_NEST]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -496,7 +471,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FROST_SPIRIT]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "boon",
@@ -521,7 +495,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SUN_SPIRIT]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "boon",
@@ -540,7 +513,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FLAME_TRAP]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -559,13 +531,11 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SIGNET_OF_STONE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
   [ID.MUDDY_TERRAIN]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "condition",
@@ -584,7 +554,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SIGNET_OF_RENEWAL]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -603,7 +572,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BONFIRE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -627,7 +595,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CRIPPLING_SHOT]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -658,7 +625,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CONCUSSION_SHOT]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -674,7 +640,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.RAPID_FIRE]: {
     implemented: true,
-    castTimeMs: 2500,
     effects: [
       {
         type: "strike",
@@ -692,7 +657,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LONG_RANGE_SHOT]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -711,7 +675,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.POINT_BLANK_SHOT]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -723,7 +686,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.STRENGTH_OF_THE_PACK]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "boon",
@@ -760,7 +722,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.QUICK_SHOT]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -778,7 +739,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SWOOP]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -795,13 +755,11 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.COUNTERATTACK]: {
     implemented: true,
-    castTimeMs: 3000,
     effects: [],
     quicknessCastTimeMs: 2000,
   },
   [ID.COUNTERATTACK_KICK]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -818,7 +776,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MAUL]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -841,7 +798,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SHARPENING_STONE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "condition",
@@ -854,13 +810,11 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SIGNET_OF_THE_HUNT]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
   [ID.QUICKENING_ZEPHYR]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -873,7 +827,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPIRIT_OF_NATURE]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "boon",
@@ -886,7 +839,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HUNTERS_SHOT]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -904,7 +856,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ENTANGLE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -922,7 +873,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SOLAR_FLARE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "condition",
@@ -935,7 +885,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CALL_LIGHTNING]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -947,7 +896,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.QUAKE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "condition",
@@ -966,19 +914,16 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.COLD_SNAP]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
   },
   [ID.NATURES_RENEWAL]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
   },
   [ID.HUNTERS_CALL]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -996,7 +941,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CALL_OF_THE_WILD]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "boon",
@@ -1033,7 +977,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PROTECT_ME]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -1046,7 +989,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GUARD]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -1061,12 +1003,10 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 0,
     effects: [],
-    quicknessCastTimeMs: 0,
     handlerId: "ranger.sic-em",
   },
   [ID.THROW_TORCH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -1084,7 +1024,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PATH_OF_SCARS]: {
     implemented: true,
-    castTimeMs: 660,
     effects: [
       {
         type: "strike",
@@ -1109,7 +1048,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WHIRLING_DEFENSE]: {
     implemented: true,
-    castTimeMs: 3960,
     effects: [
       {
         type: "strike",
@@ -1139,7 +1077,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WATER_SPIRIT]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "boon",
@@ -1158,13 +1095,11 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.AQUA_SURGE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
   },
   [ID.SUBLIME_CONVERSION]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -1177,7 +1112,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ANCESTRAL_GRACE]: {
     implemented: true,
-    castTimeMs: 1250,
     effects: [
       {
         type: "boon",
@@ -1190,7 +1124,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.VINE_SURGE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1202,7 +1135,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SOLAR_BEAM]: {
     implemented: true,
-    castTimeMs: 1250,
     effects: [
       {
         type: "strike",
@@ -1214,13 +1146,11 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ASTRAL_WISP]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
   },
   [ID.WE_HEAL_AS_ONE]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "boon",
@@ -1311,7 +1241,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SEARCH_AND_RESCUE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -1324,7 +1253,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LEADING_SWIPE]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "condition",
@@ -1342,7 +1270,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SERPENT_STAB]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "condition",
@@ -1360,7 +1287,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DOUBLE_ARC]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "condition",
@@ -1390,7 +1316,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEADLY_DELIVERY]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "condition",
@@ -1420,7 +1345,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GROUNDWORK_GOUGE]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "condition",
@@ -1438,7 +1362,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.INSTINCTIVE_ENGAGE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1474,7 +1397,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MAUL_ID_46629]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -1497,7 +1419,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HAMMER_STRIKE]: {
     implemented: true,
-    castTimeMs: 720,
     effects: [
       {
         type: "strike",
@@ -1510,7 +1431,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: {
     implemented: true,
-    castTimeMs: 840,
     effects: [
       {
         type: "strike",
@@ -1530,7 +1450,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.UNLEASHED_OVERBEARING_SMASH]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -1554,7 +1473,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.UNLEASHED_THUMP]: {
     implemented: true,
-    castTimeMs: 1440,
     effects: [
       {
         type: "strike",
@@ -1585,7 +1503,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HAMMER_SLAM]: {
     implemented: true,
-    castTimeMs: 960,
     effects: [
       {
         type: "strike",
@@ -1598,7 +1515,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.UNLEASHED_WILD_SWING]: {
     implemented: true,
-    castTimeMs: 720,
     effects: [
       {
         type: "strike",
@@ -1612,7 +1528,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HEAVY_SMASH]: {
     implemented: true,
-    castTimeMs: 660,
     effects: [
       {
         type: "strike",
@@ -1625,7 +1540,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WILD_SWING]: {
     implemented: true,
-    castTimeMs: 720,
     effects: [
       {
         type: "strike",
@@ -1647,7 +1561,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.POUNCE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1665,7 +1578,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.THUMP]: {
     implemented: true,
-    castTimeMs: 1440,
     effects: [
       {
         type: "strike",
@@ -1685,7 +1597,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.OVERBEARING_SMASH]: {
     implemented: true,
-    castTimeMs: 1440,
     effects: [
       {
         type: "strike",
@@ -1720,7 +1631,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SAVAGE_SHOCK_WAVE]: {
     implemented: true,
-    castTimeMs: 840,
     effects: [
       {
         type: "strike",
@@ -1766,7 +1676,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WILD_STRIKES]: {
     implemented: true,
-    castTimeMs: 1750,
     effects: [
       {
         type: "strike",
@@ -1784,7 +1693,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CULTIVATE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1808,7 +1716,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.THISTLEGUARD]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -1826,7 +1733,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.OAKEN_CUDGEL]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1844,7 +1750,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FLOURISH]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1869,7 +1774,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BURGEON]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -1881,7 +1785,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GERMINATE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -1893,7 +1796,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DRAKES_SWIPE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -1905,7 +1807,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FALCONS_STOOP]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1923,7 +1824,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PANTHERS_PROWL]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -1936,7 +1836,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WARCLAWS_ENGAGE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1948,7 +1847,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CHEETAHS_STRIKE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -1966,7 +1864,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MONGOOSES_FRENZY]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -1984,7 +1881,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.WYVERNS_LASH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2002,7 +1898,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MIGHTY_ROAR]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -2018,14 +1913,12 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FORAGE_ROCK]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [],
     quicknessCastTimeMs: 667,
     petSkill: true,
   },
   [ID.RENDING_POUNCE]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2048,7 +1941,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.INTIMIDATING_HOWL]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2063,21 +1955,18 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SHAKE_IT_OFF]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true,
   },
   [ID.PURGE_CONDITIONS]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true,
   },
   [ID.POISONOUS_CLOUD]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -2100,7 +1989,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.REGENERATE]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -2116,7 +2004,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FIRE_BREATH]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2139,7 +2026,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BOIL]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2154,7 +2040,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CHILLING_HOWL]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2177,7 +2062,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ICY_POUNCE]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2200,7 +2084,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ICY_BITE]: {
     implemented: true,
-    castTimeMs: 250,
     effects: [
       {
         type: "strike",
@@ -2223,7 +2106,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLINDING_SLASH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2238,14 +2120,12 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.STALK]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true,
   },
   [ID.INSECT_SWARM]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2268,7 +2148,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.POISON_CLOUD]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "condition",
@@ -2284,7 +2163,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PROTECTING_SCREECH]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "boon",
@@ -2300,14 +2178,12 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ICY_SCREECH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true,
   },
   [ID.DAZING_SCREECH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2322,7 +2198,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DAZING_SCREECH_ID_12709]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2337,7 +2212,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FURIOUS_SCREECH]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "boon",
@@ -2353,7 +2227,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FROST_BREATH]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2376,7 +2249,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FROST_NOVA]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2399,7 +2271,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIGHTNING_BREATH]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2414,7 +2285,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ELECTROCUTE_ID_12699]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2429,7 +2299,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.POISON_CLOUD_ID_12687]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2452,7 +2321,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.POISONOUS_MAUL]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2475,7 +2343,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FEEDING_FRENZY]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -2499,7 +2366,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.REGENERATE_ID_12717]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -2515,7 +2381,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ENFEEBLING_MAUL]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2538,7 +2403,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ENFEEBLING_ROAR]: {
     implemented: true,
-    castTimeMs: 1250,
     effects: [
       {
         type: "strike",
@@ -2561,7 +2425,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ICY_ROAR]: {
     implemented: true,
-    castTimeMs: 1250,
     effects: [
       {
         type: "strike",
@@ -2584,7 +2447,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ICY_MAUL]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2607,7 +2469,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.RENDING_MAUL]: {
     implemented: true,
-    castTimeMs: 1750,
     effects: [
       {
         type: "strike",
@@ -2630,7 +2491,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.POISON_CLOUD_ID_12702]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2653,7 +2513,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.POISON_BARBS]: {
     implemented: true,
-    castTimeMs: 2500,
     effects: [
       {
         type: "strike",
@@ -2676,14 +2535,12 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LASHTAIL_VENOM]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true,
   },
   [ID.RENDING_BARBS]: {
     implemented: true,
-    castTimeMs: 4000,
     effects: [
       {
         type: "strike",
@@ -2706,14 +2563,12 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HOWL_OF_THE_PACK]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [],
     quicknessCastTimeMs: 1000,
     petSkill: true,
   },
   [ID.TERRIFYING_HOWL]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2728,7 +2583,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CHILLING_SLASH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2751,7 +2605,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BRASH_SLASH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2774,7 +2627,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEADLY_VENOM]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "condition",
@@ -2790,14 +2642,12 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PARALYZING_VENOM]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true,
   },
   [ID.WEAKENING_VENOM]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "condition",
@@ -2829,28 +2679,24 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FORAGE_SCALE]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [],
     quicknessCastTimeMs: 667,
     petSkill: true,
   },
   [ID.FORAGE_FEATHERS]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [],
     quicknessCastTimeMs: 667,
     petSkill: true,
   },
   [ID.FORAGE_SWORD]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [],
     quicknessCastTimeMs: 667,
     petSkill: true,
   },
   [ID.STUNNING_RUSH]: {
     implemented: true,
-    castTimeMs: 2750,
     effects: [
       {
         type: "strike",
@@ -2865,7 +2711,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CHILLING_WHIRL]: {
     implemented: true,
-    castTimeMs: 2750,
     effects: [
       {
         type: "strike",
@@ -2888,7 +2733,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.IMMOBILIZING_WHIRL]: {
     implemented: true,
-    castTimeMs: 2750,
     effects: [
       {
         type: "strike",
@@ -2903,7 +2747,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LACERATING_SLASH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -2934,7 +2777,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SONIC_SHRIEK]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -2965,21 +2807,18 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SONIC_BARRIER]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true,
   },
   [ID.SMOKE_CLOUD]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [],
     quicknessCastTimeMs: 500,
     petSkill: true,
   },
   [ID.FURIOUS_POUNCE]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -3002,7 +2841,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LIGHTNING_ASSAULT]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -3017,7 +2855,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.CONSUMING_FLAME]: {
     implemented: true,
-    castTimeMs: 2500,
     effects: [
       {
         type: "strike",
@@ -3040,7 +2877,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPIKE_BARRAGE]: {
     implemented: true,
-    castTimeMs: 2000,
     effects: [
       {
         type: "strike",
@@ -3063,7 +2899,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SAVANNAH_STRIKE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -3086,7 +2921,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLINDING_ROAR]: {
     implemented: true,
-    castTimeMs: 1500,
     effects: [
       {
         type: "strike",
@@ -3101,7 +2935,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.JACARANDAS_EMBRACE]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -3124,7 +2957,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HEAD_TOSS]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -3139,7 +2971,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.FANG_GRAPPLE]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -3154,7 +2985,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GUARDIANS_ROAR]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -3170,7 +3000,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOODTHIRSTY_CHARGE]: {
     implemented: true,
-    castTimeMs: 1750,
     effects: [
       {
         type: "strike",
@@ -3193,7 +3022,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.GALE_BREATH]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -3208,7 +3036,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.HUNKER_DOWN]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "boon",
@@ -3224,7 +3051,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DIMENSION_BREACH]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -3239,7 +3065,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.LEY_ENERGY_PULSE]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -3254,7 +3079,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PANOPTICON]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -3269,14 +3093,12 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.RALLYING_ROAR]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [],
     quicknessCastTimeMs: 333,
     petSkill: true,
   },
   [ID.HONEY_TOSS]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -3307,7 +3129,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.PIERCING_SHRIEK]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -3330,7 +3151,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.INNOCENT_DISPLAY]: {
     implemented: true,
-    castTimeMs: 1750,
     effects: [
       {
         type: "condition",
@@ -3346,7 +3166,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.TWIN_DARTS]: {
     implemented: true,
-    castTimeMs: 1000,
     effects: [
       {
         type: "strike",
@@ -3369,7 +3188,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPIT]: {
     implemented: true,
-    castTimeMs: 1250,
     effects: [
       {
         type: "strike",
@@ -3395,7 +3213,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: "Weapon",
     weapon: "Axe",
     slot: "Weapon_4",
-    castTimeMs: 660,
     quicknessCastTimeMs: 440,
     rechargeAnchor: "castStart",
     cooldown: 15,
@@ -3430,7 +3247,7 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     weapon: "",
     slot: "Action",
     castTimeMs: 800,
-    quicknessCastTimeMs: 800,
+    unaffectedByQuickness: true,
     rechargeAnchor: "castStart",
     cooldown: 0,
     implemented: true,
@@ -3446,7 +3263,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     weapon: "",
     slot: "Action",
     castTimeMs: 0,
-    quicknessCastTimeMs: 0,
     rechargeAnchor: "castStart",
     cooldown: 20,
     implemented: true,
@@ -3461,7 +3277,6 @@ export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     type: "Action",
     slot: "Action",
     castTimeMs: 0,
-    quicknessCastTimeMs: 0,
     rechargeAnchor: "castStart",
     cooldown: 10,
     implemented: true,

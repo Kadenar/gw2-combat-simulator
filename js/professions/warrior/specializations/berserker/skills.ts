@@ -7,7 +7,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
 > = Object.freeze({
   [ID.SUNDERING_LEAP]: {
     implemented: true,
-    castTimeMs: 750,
+    finisherType: "Leap",
+    finisherValue: 1,
     effects: [
       {
         type: "strike",
@@ -39,7 +40,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.GUN_FLAME]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -68,7 +68,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.SKULL_GRINDER]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -111,13 +110,12 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   [ID.ARC_DIVIDER]: {
     implemented: true,
     skillWeapon: "Greatsword",
-    castTimeMs: 1040,
     effects: [
       {
         type: "strike",
         coefficient: 3.5,
         hits: 1,
-        atMs: 900,
+        atMs: 882.692307692308,
         timingAnchor: "castStart",
         timingScale: "cast",
       },
@@ -131,7 +129,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.SCORCHED_EARTH]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -154,12 +151,15 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.WILD_BLOW]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
         coefficient: 2.5,
         hits: 1,
+        // Wild Blow always critically hits, regardless of precision.
+        metadata: {
+          forceCrit: true,
+        },
       },
       {
         type: "control",
@@ -175,13 +175,12 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         stacks: 1,
       },
     ],
-    quicknessCastTimeMs: 500,
-    adrenalineGain: 10,
+    quicknessCastTimeMs: 600,
+    adrenalineGain: 5,
     handlerId: "warrior.resource",
   },
   [ID.SHATTERING_BLOW]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -202,7 +201,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 333,
-    adrenalineGain: 10,
+    adrenalineGain: 5,
     handlerId: "warrior.resource",
   },
   [ID.BERSERK]: {
@@ -216,7 +215,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOOD_RECKONING]: {
     implemented: true,
-    castTimeMs: 440,
     effects: [],
     quicknessCastTimeMs: 280,
     adrenalineGain: 10,
@@ -232,7 +230,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.HEAD_BUTT]: {
     implemented: true,
-    castTimeMs: 1200,
     effects: [
       {
         type: "strike",
@@ -265,7 +262,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.FLAMING_FLURRY]: {
     implemented: true,
-    castTimeMs: 2000,
     effects: [
       {
         type: "strike",
@@ -288,9 +284,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.DECAPITATE]: {
     implemented: true,
+    skillWeapon: "Axe",
     cooldown: 0,
-    recharge: 0,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -304,7 +299,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         stacks: 5,
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 720,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -315,8 +310,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
     implemented: true,
     skillWeapon: "Hammer",
     cooldown: 5,
-    recharge: 5,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -340,7 +333,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 480,
+    quicknessCastTimeMs: 920,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -349,7 +342,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.BURNING_SHACKLES]: {
     implemented: true,
-    castTimeMs: 1750,
     effects: [
       {
         type: "strike",
@@ -372,7 +364,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.WILD_WHIRL]: {
     implemented: true,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -402,8 +393,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   [ID.SLICING_MAELSTROM]: {
     implemented: true,
     cooldown: 5,
-    recharge: 5,
-    castTimeMs: 750,
     effects: [
       {
         type: "strike",
@@ -420,7 +409,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.RAMPART_SPLITTER]: {
     implemented: true,
-    castTimeMs: 500,
     effects: [
       {
         type: "strike",
@@ -444,7 +432,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   [ID.WILD_THROW]: {
     implemented: true,
     skillWeapon: "Spear",
-    castTimeMs: 1920,
     effects: [
       {
         type: "strike",

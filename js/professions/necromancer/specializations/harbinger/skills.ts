@@ -19,7 +19,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ELIXIR_OF_RISK]: {
     implemented: true,
-    castTimeMs: 810,
     quicknessCastTimeMs: 540,
     effects: [],
     cooldown: 20,
@@ -27,7 +26,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.VORACIOUS_ARC]: {
     implemented: true,
-    castTimeMs: 1260,
     quicknessCastTimeMs: 840,
     effects: [],
     type: "Profession",
@@ -47,7 +45,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.VITAL_DRAW]: {
     implemented: true,
-    castTimeMs: 1200,
     quicknessCastTimeMs: 800,
     effects: [
       {
@@ -94,7 +91,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   [ID.TAINTED_BOLTS]: {
     implemented: true,
     dhuumfireDuration: 1,
-    castTimeMs: 900,
     quicknessCastTimeMs: 600,
     effects: [
       {
@@ -134,7 +130,6 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.DARK_BARRAGE]: {
     implemented: true,
-    castTimeMs: 1380,
     quicknessCastTimeMs: 920,
     effects: [
       {
@@ -179,28 +174,24 @@ export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.ELIXIR_OF_AMBITION]: {
     implemented: true,
-    castTimeMs: 1020,
     quicknessCastTimeMs: 680,
     effects: [],
     handlerId: "necromancer.elixir",
   },
   [ID.ELIXIR_OF_ANGUISH]: {
     implemented: true,
-    castTimeMs: 1020,
     quicknessCastTimeMs: 680,
     effects: [],
     handlerId: "necromancer.elixir",
   },
   [ID.ELIXIR_OF_PROMISE]: {
     implemented: true,
-    castTimeMs: 1020,
     quicknessCastTimeMs: 680,
     effects: [],
     handlerId: "necromancer.elixir",
   },
   [ID.DEVOURING_CUT]: {
     implemented: true,
-    castTimeMs: 720,
     quicknessCastTimeMs: 480,
     effects: [],
     type: "Profession",

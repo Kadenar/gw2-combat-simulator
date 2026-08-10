@@ -16,7 +16,10 @@
 import { activeSpecialization, paletteEndState } from "./context.js";
 import { formatResultTimelineTime } from "./result-model.js";
 import { escapeHtml as esc } from "../../platform/ui/html.js";
-import type { Gw2SimulationResult } from "../../platform/gw2/types.js";
+import type {
+  Gw2ResolverEvent,
+  Gw2SimulationResult,
+} from "../../platform/gw2/types.js";
 import type {
   RotationStateSnapshotItem,
   SimulationEvent,
@@ -30,14 +33,14 @@ import type { ProfessionAppState } from "../profession/types.js";
  * illusion strikes are excluded so the value reflects the player. Returns `null`
  * when the rotation has no player strikes.
  */
-export function criticalChanceAt(
+function criticalChanceEventAt(
   result: Gw2SimulationResult | null | undefined,
   timeMs: number,
-): number | null {
+): Gw2ResolverEvent | null {
   const seconds = Number(timeMs || 0) / 1000;
-  let after: number | null = null;
+  let after: Gw2ResolverEvent | null = null;
   let afterAt = Infinity;
-  let before: number | null = null;
+  let before: Gw2ResolverEvent | null = null;
   let beforeAt = -Infinity;
   for (const event of result?.resolvedEvents || []) {
     if (event.independentSummonStrike === true) continue;
@@ -53,14 +56,52 @@ export function criticalChanceAt(
     if (at >= seconds) {
       if (at < afterAt) {
         afterAt = at;
-        after = chance;
+        after = event;
       }
     } else if (at > beforeAt) {
       beforeAt = at;
-      before = chance;
+      before = event;
     }
   }
   return after ?? before;
+}
+
+export function criticalChanceAt(
+  result: Gw2SimulationResult | null | undefined,
+  timeMs: number,
+): number | null {
+  const event = criticalChanceEventAt(result, timeMs);
+  return event ? Number(event.criticalChance) : null;
+}
+
+function percent(value: number, signed = false): string {
+  const numeric = Number(value || 0) * 100;
+  const rounded = numeric
+    .toFixed(2)
+    .replace(/\.00$/, "")
+    .replace(/(\.\d)0$/, "$1");
+  return `${signed && numeric > 0 ? "+" : ""}${rounded}%`;
+}
+
+export function criticalChanceTooltip(
+  event: Gw2ResolverEvent,
+  heading: string,
+): string {
+  const lines = [heading];
+  for (const [index, contributor] of (
+    event.criticalChanceContributors || []
+  ).entries()) {
+    lines.push(
+      `${contributor.label}: ${percent(contributor.amount, index > 0)}`,
+    );
+  }
+  const finalChance = Number(event.criticalChance || 0);
+  const beforeCap = Number(event.criticalChanceBeforeCap ?? finalChance);
+  if (Math.abs(beforeCap - finalChance) > 1e-12) {
+    lines.push(`Before cap: ${percent(beforeCap)}`);
+  }
+  lines.push(`Final: ${percent(finalChance)}`);
+  return lines.join("\n");
 }
 
 /**
@@ -73,7 +114,8 @@ export function criticalChanceAt(
  * such buff is active.
  *
  * Shared so any profession's `rotationStateSnapshot` slice can surface a buff
- * timer without re-implementing the scan. See ROTATION_STATE_SNAPSHOT.md.
+ * timer without re-implementing the scan. See
+ * docs/architecture/ROTATION_STATE_SNAPSHOT.md.
  */
 export function timedBuffAt(
   result: Gw2SimulationResult | null | undefined,
@@ -107,15 +149,17 @@ function snapshotItems(app: ProfessionAppState): {
     app.rotationInsertionIndex !== rotationLength;
 
   const items: RotationStateSnapshotItem[] = [];
-  const critical = criticalChanceAt(result, timeMs);
-  if (critical != null) {
+  const criticalEvent = criticalChanceEventAt(result, timeMs);
+  if (criticalEvent) {
+    const critical = Number(criticalEvent.criticalChance);
+    const heading = atInsertion
+      ? "Critical strike chance of the next strike at the insertion point"
+      : "Critical strike chance of the last strike in the rotation";
     items.push({
       id: "critical-chance",
       label: "Crit chance",
       value: `${Math.round(critical * 100)}%`,
-      title: atInsertion
-        ? "Critical strike chance of the next strike at the insertion point"
-        : "Critical strike chance of the last strike in the rotation",
+      title: criticalChanceTooltip(criticalEvent, heading),
     });
   }
   items.push(

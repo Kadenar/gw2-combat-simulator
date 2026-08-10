@@ -20,7 +20,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
   },
   [ID.SPEAR_OF_JUSTICE]: {
     implemented: true,
-    castTimeMs: 800,
     quicknessCastTimeMs: 560,
     cooldown: 20,
     handlerId: "guardian.dragonhunter-justice",
@@ -28,7 +27,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<
   },
   [ID.PURIFICATION]: {
     implemented: true,
-    castTimeMs: 660,
     quicknessCastTimeMs: 600,
     effects: [
       {

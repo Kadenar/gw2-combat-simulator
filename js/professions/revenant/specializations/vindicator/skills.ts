@@ -165,7 +165,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<
   [ID.ENERGY_MELD]: {
     implemented: true,
     handlerId: "revenant.energy-meld",
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 20,
     energyCost: 10,
@@ -197,7 +196,7 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<
   [ID.NOMADS_ADVANCE]: {
     implemented: true,
     castTimeMs: 960,
-    quicknessCastTimeMs: 960,
+    unaffectedByQuickness: true,
     cooldown: 3,
     energyCost: 10,
     effects: [
@@ -303,7 +302,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SPEAR_OF_ARCHEMORUS]: {
     implemented: true,
-    castTimeMs: 600,
     quicknessCastTimeMs: 480,
     cooldown: 12,
     energyCost: 20,
@@ -371,7 +369,6 @@ export const VINDICATOR_BASE_SKILL_MECHANICS: Readonly<
   [ID.ENERGY_MELD_ID_72058]: {
     implemented: true,
     handlerId: "revenant.energy-meld",
-    castTimeMs: 500,
     quicknessCastTimeMs: 440,
     cooldown: 20,
     energyCost: 10,
