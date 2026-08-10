@@ -1,0 +1,429 @@
+{
+  "rotation": [
+    {
+      "name": "Summon Bone Fiend"
+    },
+    {
+      "name": "Plaguelands"
+    },
+    {
+      "name": "__combat_start",
+      "offset": 100
+    },
+    {
+      "name": "Well of Darkness"
+    },
+    {
+      "name": "Grasping Darkness",
+      "interruptMs": 120
+    },
+    {
+      "name": "Reaper's Shroud"
+    },
+    {
+      "name": "Executioner's Scythe"
+    },
+    {
+      "name": "Exit Reaper's Shroud"
+    },
+    {
+      "name": "Rigor Mortis"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "\"Suffer!\"",
+      "offset": 100
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Vile Blast"
+    },
+    {
+      "name": "Harrowing Wave"
+    },
+    {
+      "name": "Oppressive Collapse"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Reaper's Shroud"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Infusing Terror",
+      "offset": 100
+    },
+    {
+      "name": "Terrify"
+    },
+    {
+      "name": "Soul Spiral"
+    },
+    {
+      "name": "Exit Reaper's Shroud"
+    },
+    {
+      "name": "Vile Blast"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "\"Suffer!\"",
+      "offset": 100
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Dusk Strike"
+    },
+    {
+      "name": "Fading Twilight"
+    },
+    {
+      "name": "Chilling Scythe"
+    },
+    {
+      "name": "Well of Darkness"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Dusk Strike"
+    },
+    {
+      "name": "Grasping Darkness",
+      "interruptMs": 120
+    },
+    {
+      "name": "Reaper's Shroud"
+    },
+    {
+      "name": "Executioner's Scythe",
+      "interruptMs": 1000
+    },
+    {
+      "name": "Exit Reaper's Shroud"
+    },
+    {
+      "name": "Dusk Strike"
+    },
+    {
+      "name": "Fading Twilight"
+    },
+    {
+      "name": "Chilling Scythe"
+    },
+    {
+      "name": "Death Spiral"
+    },
+    {
+      "name": "Gravedigger"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Vile Blast"
+    },
+    {
+      "name": "\"Suffer!\""
+    },
+    {
+      "name": "Harrowing Wave"
+    },
+    {
+      "name": "Oppressive Collapse"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Vicious Shot"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Reaper's Shroud"
+    },
+    {
+      "name": "Death's Charge"
+    },
+    {
+      "name": "Infusing Terror",
+      "offset": 100
+    },
+    {
+      "name": "Terrify"
+    },
+    {
+      "name": "Soul Spiral"
+    },
+    {
+      "name": "Exit Reaper's Shroud"
+    },
+    {
+      "name": "Vile Blast"
+    },
+    {
+      "name": "Weeping Shots"
+    },
+    {
+      "name": "Swap Weapons"
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Death Spiral",
+      "skillId": 30860
+    },
+    {
+      "name": "Well of Darkness",
+      "skillId": 10607
+    },
+    {
+      "name": "\"Suffer!\"",
+      "skillId": 30670,
+      "offset": 100
+    },
+    {
+      "name": "Rigor Mortis",
+      "skillId": 10570,
+      "offset": 100
+    },
+    {
+      "name": "Dusk Strike",
+      "skillId": 29705
+    },
+    {
+      "name": "Fading Twilight",
+      "skillId": 30799
+    },
+    {
+      "name": "Chilling Scythe",
+      "skillId": 29867
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Grasping Darkness",
+      "skillId": 29740,
+      "interruptMs": 120
+    },
+    {
+      "name": "Reaper's Shroud",
+      "skillId": 30792
+    },
+    {
+      "name": "Executioner's Scythe",
+      "skillId": 30557
+    },
+    {
+      "name": "Exit Reaper's Shroud",
+      "skillId": 30961
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Plaguelands",
+      "skillId": 10549
+    },
+    {
+      "name": "Death Spiral",
+      "skillId": 30860
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "\"Suffer!\"",
+      "skillId": 30670,
+      "offset": 100
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Reaper's Shroud",
+      "skillId": 30792
+    },
+    {
+      "name": "Soul Spiral",
+      "skillId": 30504
+    },
+    {
+      "name": "Exit Reaper's Shroud",
+      "skillId": 30961
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Death Spiral",
+      "skillId": 30860
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Well of Darkness",
+      "skillId": 10607
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "\"Suffer!\"",
+      "skillId": 30670,
+      "offset": 100
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Grasping Darkness",
+      "skillId": 29740,
+      "interruptMs": 120
+    },
+    {
+      "name": "Reaper's Shroud",
+      "skillId": 30792
+    },
+    {
+      "name": "Executioner's Scythe",
+      "skillId": 30557
+    },
+    {
+      "name": "Exit Reaper's Shroud",
+      "skillId": 30961
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Death Spiral",
+      "skillId": 30860
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    },
+    {
+      "name": "Gravedigger",
+      "skillId": 30163
+    }
+  ]
+}

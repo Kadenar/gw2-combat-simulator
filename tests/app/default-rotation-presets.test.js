@@ -97,18 +97,23 @@ test("Necromancer rotation presets stay separate from Elementalist presets", asy
     [
       {
         section: "Scourge",
-        label: "Condition",
+        label: "Condition (Pistol / Torch + Scepter / Torch)",
         rotation: "Rotations/necromancer/r-condi-scourge-bench.json",
       },
       {
         section: "Reaper",
-        label: "Power",
+        label: "Power (Greatsword / Spear)",
         rotation: "Rotations/necromancer/r-power-reaper-bench.json",
       },
       {
         section: "Reaper",
-        label: "Condition",
+        label: "Condition (Dagger / Sword + Spear)",
         rotation: "Rotations/necromancer/r-condi-reaper-bench.json",
+      },
+      {
+        section: "Reaper",
+        label: "Condition (Fields - Pistol / Torch + Greatsword)",
+        rotation: "Rotations/necromancer/r-condi-fields-reaper-bench.json",
       },
       {
         section: "Ritualist",
@@ -117,12 +122,12 @@ test("Necromancer rotation presets stay separate from Elementalist presets", asy
       },
       {
         section: "Harbinger",
-        label: "Power",
+        label: "Power (Greatsword / Spear)",
         rotation: "Rotations/necromancer/r-power-harbinger-bench.json",
       },
       {
         section: "Harbinger",
-        label: "Condition",
+        label: "Condition (Pistol / Torch + Scepter / Dagger)",
         rotation: "Rotations/necromancer/r-condi-harbinger-bench.json",
       },
     ],
@@ -170,14 +175,26 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
     ),
   );
 
-  assert.equal(necromancerDps.get("Scourge:Condition"), 39612);
-  assert.equal(necromancerDps.get("Reaper:Power"), 40671);
-  assert.equal(necromancerDps.get("Reaper:Condition"), 44284);
+  assert.equal(
+    necromancerDps.get("Scourge:Condition (Pistol / Torch + Scepter / Torch)"),
+    39301,
+  );
+  assert.equal(
+    necromancerDps.get("Reaper:Power (Greatsword / Spear)"),
+    40671,
+  );
+  assert.equal(
+    necromancerDps.get("Reaper:Condition (Dagger / Sword + Spear)"),
+    44175,
+  );
   assert.equal(
     necromancerDps.get("Ritualist:Power (Greatsword / Spear)"),
     42819,
   );
-  assert.equal(necromancerDps.get("Harbinger:Power"), 44002);
+  assert.equal(
+    necromancerDps.get("Harbinger:Power (Greatsword / Spear)"),
+    44002,
+  );
   assert.deepEqual(
     thiefManifest
       .flatMap((section) => section.presets)
@@ -195,7 +212,9 @@ test("new Necromancer rotation presets execute without warnings", async () => {
   );
   const conditionHarbinger = manifest
     .find((section) => section.section === "Harbinger")
-    ?.presets.find((preset) => preset.label === "Condition");
+    ?.presets.find(
+      (preset) => preset.label === "Condition (Pistol / Torch + Scepter / Dagger)",
+    );
   assert.equal(conditionHarbinger?.benchmarkDps, 45492);
 
   const presets = [
