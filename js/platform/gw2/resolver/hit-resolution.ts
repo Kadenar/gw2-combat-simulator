@@ -231,6 +231,7 @@ export function createGw2HitResolution({
       damage,
       criticalChance: hitContext.critical.chance,
       criticalDamage: hitContext.critical.damage,
+      critEligible: hitContext.critEligible,
     } as Gw2ResolverEvent;
     ctx.resolved.push(resolved);
     return resolved;

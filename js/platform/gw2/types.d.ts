@@ -497,6 +497,14 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly summonInheritsAttributes?: boolean;
   readonly summonUsesProfessionModifiers?: boolean;
   readonly noCrit?: boolean;
+  /**
+   * Resolver's derived verdict on whether the strike could crit: false for flat
+   * strikes and for `noCrit`/`canCrit:false` hits. Consumers should read this
+   * rather than re-deriving from the raw input flags.
+   */
+  readonly critEligible?: boolean;
+  readonly criticalChance?: number;
+  readonly criticalDamage?: number;
   readonly didCrit?: boolean;
   readonly hits?: number;
   readonly weaponSet?: number;
