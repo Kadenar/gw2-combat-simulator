@@ -8,6 +8,7 @@
  * document automatically; importing it outside a browser has no side effect.
  */
 
+import { embedRoute, isEmbedded } from "../embed.js";
 import {
   getProfessionEntry,
   professionRegistry,
@@ -55,7 +56,7 @@ function renderProfessionCards(root: Document): void {
   for (const entry of professionRegistry) {
     const card = root.createElement("a");
     card.className = `profession-card profession-card-${entry.id}`;
-    card.href = entry.route;
+    card.href = isEmbedded() ? embedRoute(entry.route) : entry.route;
 
     const mark = root.createElement("span");
     mark.className = "profession-mark";
@@ -123,7 +124,9 @@ export function bindProfessionSelector(root: Document = document): void {
     const route = professionRoute(select.value);
     const current =
       globalThis.location?.pathname?.split("/").pop() || "index.html";
-    if (current !== route) globalThis.location.assign(route);
+    if (current !== route) {
+      globalThis.location.assign(isEmbedded() ? embedRoute(route) : route);
+    }
   });
 }
 

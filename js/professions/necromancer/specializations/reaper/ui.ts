@@ -28,6 +28,7 @@ export const reaperUi: Partial<ProfessionUiContract> & SchedulerRecord =
       necromancerTransformPaletteGroups(context, {
         entryId: ID.REAPERS_SHROUD,
         shroud: "reaper",
+        stackId: "reaper-profession",
       }),
     skillBarGroups: (context: NecromancerUiContext) =>
       necromancerTransformSkillBarGroups(context, {

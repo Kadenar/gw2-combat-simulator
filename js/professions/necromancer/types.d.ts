@@ -41,8 +41,7 @@ export interface NecromancerConfig extends Gw2Config {
   readonly initialBlight?: number;
   readonly duration?: number;
   readonly selectedSkills?:
-    | readonly string[]
-    | Readonly<Record<string, string>>;
+    readonly string[] | Readonly<Record<string, string>>;
   readonly professionAssumptions?: Readonly<Record<string, unknown>>;
 }
 
@@ -84,6 +83,8 @@ export interface NecromancerCoreState {
   activeMinions: Record<string, number>;
   minionGenerations: Record<string, number>;
   minionAttackGenerations: Record<string, number>;
+  minionAttackAnchors: Record<string, number>;
+  minionAttackCycleOffsets: Record<string, number>;
   availableFlips: Record<string, boolean | number | SchedulerRecord>;
   autoattackChains: Record<string, SkillId>;
   selfConditions: NecromancerSelfCondition[];
@@ -165,15 +166,17 @@ export interface NecromancerSkill extends Skill {
   readonly slotSelectable?: boolean;
 }
 
-export type NecromancerSchedulerContext = SchedulerContext<NecromancerRuntimeState> & {
-  readonly catalog: CanonicalCatalog<NecromancerSkill>;
-  readonly config: NecromancerConfig;
-};
+export type NecromancerSchedulerContext =
+  SchedulerContext<NecromancerRuntimeState> & {
+    readonly catalog: CanonicalCatalog<NecromancerSkill>;
+    readonly config: NecromancerConfig;
+  };
 
-export type NecromancerCastContext = CastLifecycleContext<NecromancerRuntimeState> & {
-  readonly catalog: CanonicalCatalog<NecromancerSkill>;
-  readonly config: NecromancerConfig;
-};
+export type NecromancerCastContext =
+  CastLifecycleContext<NecromancerRuntimeState> & {
+    readonly catalog: CanonicalCatalog<NecromancerSkill>;
+    readonly config: NecromancerConfig;
+  };
 
 export type NecromancerEmissionContext = NecromancerSchedulerContext & {
   readonly effectiveEnd?: number;
@@ -287,9 +290,7 @@ export interface NecromancerResolverReactionDetails extends SchedulerRecord {
 
 export type NecromancerQueryRuntime = Gw2QueryRuntime & {
   readonly profession?:
-    | NecromancerRuntimeState
-    | Partial<NecromancerState>
-    | null;
+    NecromancerRuntimeState | Partial<NecromancerState> | null;
   readonly totals?: {
     readonly strike?: number;
     readonly condition?: number;

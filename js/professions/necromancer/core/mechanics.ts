@@ -95,8 +95,58 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
     [ID.SUMMON_BONE_FIEND]: Object.freeze({
       key: "bone-fiend",
       count: 1,
-      coefficient: 0.4,
-      interval: 2.4,
+      // Bone Shard fires two physical projectiles per volley. EVTC samples put
+      // the ordinary volley near a 3.1s cadence and show every projectile as a
+      // 100% finisher. Every fourth volley is the 10s-recharge crippling
+      // variant (skill 3644), with 0.4 total coefficient and two Cripple
+      // applications. The independent attribute profile is calibrated from
+      // the same samples and the in-game 572 / 0.4 damage fact.
+      basePower: 1500,
+      damagePerCoefficient: 1430,
+      criticalChance: 0.05,
+      criticalDamage: 1.5,
+      coefficient: 0.2,
+      interval: 3.08,
+      commandRecoveryDelay: 2.12,
+      attacks: Object.freeze([
+        Object.freeze({
+          skillId: 3633,
+          name: "Bone Shard",
+          coefficient: 0.1,
+          offset: 0,
+          finisherType: "Projectile",
+          finisherValue: 1,
+        }),
+        Object.freeze({
+          skillId: 3633,
+          name: "Bone Shard",
+          coefficient: 0.1,
+          offset: 0.04,
+          finisherType: "Projectile",
+          finisherValue: 1,
+        }),
+      ]),
+      alternateEvery: 4,
+      alternateAttacks: Object.freeze([
+        Object.freeze({
+          skillId: 3644,
+          name: "Bone Shard — Crippling Volley",
+          coefficient: 0.2,
+          offset: 0,
+          finisherType: "Projectile",
+          finisherValue: 1,
+          condition: Object.freeze(["Crippled", 1, 2]),
+        }),
+        Object.freeze({
+          skillId: 3644,
+          name: "Bone Shard — Crippling Volley",
+          coefficient: 0.2,
+          offset: 0.04,
+          finisherType: "Projectile",
+          finisherValue: 1,
+          condition: Object.freeze(["Crippled", 1, 2]),
+        }),
+      ]),
       commandId: ID.RIGOR_MORTIS,
     }),
     [ID.SUMMON_BONE_MINIONS]: Object.freeze({
@@ -174,6 +224,30 @@ export const NECROMANCER_CORE_MECHANICS = Object.freeze({
       minion: "bone-fiend",
       coefficient: 0.5,
       control: "immobilize",
+      controlDuration: 2,
+      controlWindow: 4,
+      attacks: Object.freeze([
+        Object.freeze({
+          skillId: 3634,
+          name: "Rigor Mortis — Bone Shard",
+          coefficient: 0.25,
+          offset: 0.72,
+          finisherType: "Projectile",
+          finisherValue: 1,
+          controlKind: "immobilize",
+          controlDuration: 2,
+        }),
+        Object.freeze({
+          skillId: 3634,
+          name: "Rigor Mortis — Bone Shard",
+          coefficient: 0.25,
+          offset: 0.76,
+          finisherType: "Projectile",
+          finisherValue: 1,
+          controlKind: "immobilize",
+          controlDuration: 2,
+        }),
+      ]),
     }),
     [ID.PUTRID_EXPLOSION]: Object.freeze({
       minion: "bone-minion",

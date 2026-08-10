@@ -33,6 +33,7 @@ const EXPECTED_SIGIL_ICONS = {
     "https://render.guildwars2.com/file/B79B430645DDF54E6792909A52F5CA40A4911407/220687.png",
   Hydromancy:
     "https://render.guildwars2.com/file/B5F3E2021863079919299707290698504B5C7E90/220689.png",
+  Ice: "https://render.guildwars2.com/file/10E0D93F4B303CD03F6FEE0C5AAEEB070E0EFAC1/220680.png",
   Impact:
     "https://render.guildwars2.com/file/D9ACA0C94D90A76B1C500D5DE6D62B6820FEDAE2/221170.png",
   Malice:

@@ -40,7 +40,8 @@ import type {
 
 /**
  * Updates autoattack chains, flip availability, and completion-gated Core
- * life-force traits for one cast.
+ * life-force traits for one cast. Chain interruption happens even when the
+ * current cast is interrupted; all other state changes require completion.
  *
  * @param {object} context Scheduler after-cast context.
  * @param {object} skill Completed or interrupted skill.
@@ -50,18 +51,23 @@ function updateNecromancerCastState(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): void {
-  if (context.effectiveEnd < context.fullEnd - context.epsilon) return;
   const state = professionCoreState(context);
+  const completed = context.effectiveEnd >= context.fullEnd - context.epsilon;
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (chain) {
-    if (chain.next == null) {
+    if (!completed || chain.next == null) {
       delete state.autoattackChains[chain.root];
     } else {
       state.autoattackChains[chain.root] = chain.next;
     }
-  } else if (skill.type === "Weapon" || requiredShroud(skill)) {
+  } else if (
+    skill.type === "Weapon" ||
+    requiredShroud(skill) ||
+    skill.handlerId === "necromancer.shroud"
+  ) {
     state.autoattackChains = {};
   }
+  if (!completed) return;
 
   if (
     skill.flipSkillId != null &&
@@ -223,13 +229,12 @@ function onEventScheduled(
     !(Number(event.coefficient) > 0)
   )
     return;
-  const skill = event.skillId == null
-    ? undefined
-    : context.catalog.skillsById.get(event.skillId);
+  const skill =
+    event.skillId == null
+      ? undefined
+      : context.catalog.skillsById.get(event.skillId);
   if (!skill) return;
-  if (
-    Number(state.plagueSendingEntrySkillId) === Number(event.skillId)
-  ) return;
+  if (Number(state.plagueSendingEntrySkillId) === Number(event.skillId)) return;
   const transferred = transferNecromancerSelfConditions(
     context,
     skill,
@@ -253,8 +258,7 @@ function onCastComplete(
 ): void {
   if (skill.id !== ID.GRAVEDIGGER) return;
   const schedulerFeedback = context.config._schedulerFeedback as
-    | { readonly targetBelowHalfAt?: number }
-    | undefined;
+    { readonly targetBelowHalfAt?: number } | undefined;
   const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
   if (
     Number.isFinite(targetBelowHalfAt) &&

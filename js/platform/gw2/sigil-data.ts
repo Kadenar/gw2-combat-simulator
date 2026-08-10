@@ -81,6 +81,9 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
   Hydromancy: {
     icon: "https://render.guildwars2.com/file/B5F3E2021863079919299707290698504B5C7E90/220689.png",
   },
+  Ice: {
+    icon: "https://render.guildwars2.com/file/10E0D93F4B303CD03F6FEE0C5AAEEB070E0EFAC1/220680.png",
+  },
   Severance: {
     procPrecision: 250,
     procFerocity: 250,

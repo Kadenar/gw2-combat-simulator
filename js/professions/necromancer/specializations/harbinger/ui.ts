@@ -18,6 +18,7 @@ export const harbingerUi:
       necromancerTransformPaletteGroups(context, {
         entryId: ID.HARBINGER_SHROUD,
         shroud: "harbinger",
+        stackId: "harbinger-profession",
       }),
     skillBarGroups: (context: NecromancerUiContext) =>
       necromancerTransformSkillBarGroups(context, {

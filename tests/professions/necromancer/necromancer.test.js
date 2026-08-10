@@ -867,6 +867,49 @@ test("Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigg
   );
 });
 
+test("interrupted weapon skills and shroud entry reset Reaper's greatsword chain", () => {
+  const config = {
+    initialResource: 100,
+    primaryWeapon: "Greatsword",
+    target: { conditions: {} },
+  };
+  const interrupted = simulate(
+    "Reaper",
+    [
+      "Dusk Strike",
+      { name: "Grasping Darkness", interruptMs: 120 },
+      "Dusk Strike",
+    ],
+    config,
+  );
+  const enteredShroud = simulate(
+    "Reaper",
+    ["Dusk Strike", "Reaper's Shroud"],
+    config,
+  );
+  const shrouded = simulate(
+    "Reaper",
+    ["Dusk Strike", "Reaper's Shroud", "Exit Reaper's Shroud", "Dusk Strike"],
+    config,
+  );
+
+  assert.deepEqual(interrupted.warnings, []);
+  assert.deepEqual(
+    interrupted.steps.map((step) => step.skill),
+    ["Dusk Strike", "Grasping Darkness", "Dusk Strike"],
+  );
+  assert.equal(interrupted.steps[1].interrupted, true);
+  assert.equal(
+    enteredShroud.endState.profession.autoattackChains[ID.DUSK_STRIKE],
+    undefined,
+  );
+  assert.deepEqual(shrouded.warnings, []);
+  assert.deepEqual(
+    shrouded.steps.map((step) => step.skill),
+    ["Dusk Strike", "Reaper's Shroud", "Exit Reaper's Shroud", "Dusk Strike"],
+  );
+});
+
 test("Gravedigger fully recharges when it hits below 50% target health", () => {
   const setup = simulate("Reaper", ["Dusk Strike"], {
     primaryWeapon: "Greatsword",
@@ -2089,18 +2132,214 @@ test("minion summons persist, attack, and unlock their command", () => {
     "Summon Bone Fiend",
     { type: "wait", durationMs: 4000 },
     "Rigor Mortis",
+    { type: "wait", durationMs: 1000 },
   ]);
   const invalid = simulate("Core", ["Rigor Mortis"]);
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.activeMinions["bone-fiend"], 1);
+  assert.ok(result.breakdown.some((entry) => entry.name === "Bone Shard"));
   assert.ok(
     result.breakdown.some(
-      (entry) => entry.name === "Summon Bone Fiend — Minion Attack",
+      (entry) => entry.name === "Rigor Mortis — Bone Shard",
     ),
   );
-  assert.ok(result.breakdown.some((entry) => entry.name === "Rigor Mortis"));
   assert.match(invalid.warnings.join(" "), /Rigor Mortis is unavailable/);
+});
+
+test("Bone Fiend uses paired Bone Shards and its fourth crippling volley", () => {
+  const result = simulate(
+    "Core",
+    ["Summon Bone Fiend", { type: "wait", durationMs: 14_000 }],
+    { selectedSkills: ["Summon Bone Fiend"] },
+  );
+  const attacks = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "damage" &&
+      event.source === "Minion" &&
+      [3633, 3644].includes(event.skillId),
+  );
+  const ordinary = attacks.filter((event) => event.skillId === 3633);
+  const crippling = attacks.filter((event) => event.skillId === 3644);
+  const cripples = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "condition" &&
+      event.skillId === 3644 &&
+      event.condition === "Crippled",
+  );
+
+  assert.deepEqual(
+    attacks.map((event) => event.skillId),
+    [3633, 3633, 3633, 3633, 3633, 3633, 3644, 3644],
+  );
+  assert.equal(
+    ordinary.every((event) => event.coefficient === 0.1),
+    true,
+  );
+  assert.equal(
+    crippling.every((event) => event.coefficient === 0.2),
+    true,
+  );
+  assert.equal(
+    attacks.every(
+      (event) =>
+        event.finisherType === "Projectile" && event.finisherValue === 1,
+    ),
+    true,
+  );
+  assert.ok(Math.abs(ordinary[1].at - ordinary[0].at - 0.04) < 1e-12);
+  assert.ok(Math.abs(ordinary[2].at - ordinary[0].at - 3.08) < 1e-12);
+  assert.equal(attacks[0].summonBasePower, 1500);
+  assert.equal(attacks[0].summonDamagePerCoefficient, 1430);
+  assert.equal(attacks[0].weaponStrength, undefined);
+  assert.deepEqual(
+    cripples.map((event) => [event.stacks, event.duration]),
+    [
+      [1, 2],
+      [1, 2],
+    ],
+  );
+});
+
+test("Rigor Mortis is instant and fires two immobilizing projectile finishers", () => {
+  const result = simulate(
+    "Core",
+    ["Summon Bone Fiend", "Rigor Mortis", { type: "wait", durationMs: 4000 }],
+    {
+      selectedSkills: ["Summon Bone Fiend"],
+      selectedTraitIds: [TRAIT.INSIDIOUS_DISRUPTION],
+    },
+  );
+  const preservedChain = simulate(
+    "Core",
+    [
+      "Summon Bone Fiend",
+      { type: "wait", durationMs: 9500 },
+      "Rigor Mortis",
+      { type: "wait", durationMs: 3000 },
+    ],
+    { selectedSkills: ["Summon Bone Fiend"] },
+  );
+  const rigorStep = result.steps.find((step) => step.skill === "Rigor Mortis");
+  const attacks = result.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.skillId === 3634,
+  );
+  const controls = result.events.filter(
+    (event) =>
+      event.type === "necromancer.summon-attack" &&
+      event.skillId === 3634 &&
+      event.controlKind === "immobilize",
+  );
+  const controlledFollowup = result.events.filter(
+    (event) =>
+      event.type === "necromancer.summon-attack" &&
+      event.skillId === 3633 &&
+      event.controlKind === "immobilize",
+  );
+  const disruptionTorment = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "condition" &&
+      event.sourceId === TRAIT.INSIDIOUS_DISRUPTION,
+  );
+  const preservedRigorStep = preservedChain.steps.find(
+    (step) => step.skill === "Rigor Mortis",
+  );
+  const firstFollowup = preservedChain.resolvedEvents.find(
+    (event) =>
+      event.type === "damage" &&
+      [3633, 3644].includes(event.skillId) &&
+      event.at * 1000 > preservedRigorStep.start,
+  );
+
+  assert.equal(
+    necromancerCatalog.skillsByName.get("Rigor Mortis").recharge,
+    50,
+  );
+  assert.equal(rigorStep.fullCastMs, 0);
+  assert.deepEqual(
+    attacks.map((event) => [event.coefficient, event.finisherValue]),
+    [
+      [0.25, 1],
+      [0.25, 1],
+    ],
+  );
+  assert.equal(
+    attacks.every((event) => event.finisherType === "Projectile"),
+    true,
+  );
+  assert.deepEqual(
+    controls.map((event) => [event.controlKind, event.controlDuration]),
+    [
+      ["immobilize", 2],
+      ["immobilize", 2],
+    ],
+  );
+  assert.equal(controlledFollowup.length, 2);
+  assert.equal(disruptionTorment.length, 4);
+  assert.equal(firstFollowup.skillId, 3644);
+});
+
+test("Bone Fiend projectile finishers create Chilling Bolts, not Frost Aura", () => {
+  const executionerField = simulate(
+    "Reaper",
+    [
+      "Summon Bone Fiend",
+      "Reaper's Shroud",
+      "Executioner's Scythe",
+      "Exit Reaper's Shroud",
+      { type: "wait", durationMs: 4000 },
+    ],
+    {
+      initialResource: 100,
+      selectedSkills: ["Summon Bone Fiend"],
+      selectedTraitIds: [TRAIT.DEATHLY_CHILL],
+    },
+  );
+  const result = simulate(
+    "Reaper",
+    ["Summon Bone Fiend", "Rigor Mortis", { type: "wait", durationMs: 14_000 }],
+    {
+      selectedSkills: ["Summon Bone Fiend"],
+      selectedTraitIds: [TRAIT.DEATHLY_CHILL],
+      professionAssumptions: { permanentIceField: true },
+    },
+  );
+  const boneShards = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "damage" && [3633, 3634, 3644].includes(event.skillId),
+  );
+  const chillingBolts = result.procSteps.filter(
+    (step) =>
+      step.skill === "Deathly Chill" &&
+      String(step.sourceSkill).includes("Chilling Bolts"),
+  );
+  const deathlyChill = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "condition" && event.sourceId === TRAIT.DEATHLY_CHILL,
+  );
+  const executionerBolts = executionerField.procSteps.filter(
+    (step) =>
+      step.skill === "Deathly Chill" &&
+      String(step.sourceSkill).includes("Bone Shard — Chilling Bolts"),
+  );
+
+  assert.equal(executionerBolts.length, 2);
+  assert.equal(chillingBolts.length, boneShards.length);
+  assert.equal(
+    chillingBolts.filter((step) =>
+      String(step.sourceSkill).startsWith("Rigor Mortis"),
+    ).length,
+    2,
+  );
+  assert.equal(deathlyChill.length, boneShards.length);
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        String(event.kind).toLowerCase().includes("frost") ||
+        String(event.name).toLowerCase().includes("frost aura"),
+    ),
+    false,
+  );
 });
 
 test("player boon sharing can be disabled for Necromancer minions", () => {
@@ -2127,7 +2366,7 @@ test("player boon sharing can be disabled for Necromancer minions", () => {
         (event) =>
           event.type === "damage" &&
           event.source === "Minion" &&
-          event.skillName.includes("Summon Bone Fiend"),
+          event.parentSkillName === "Summon Bone Fiend",
       )
       .reduce((sum, event) => sum + event.damage, 0);
 
@@ -2294,6 +2533,7 @@ test("minion attacks use their canonical cadence, coefficients, and icons", () =
 test("calibrated minion strikes ignore player Power and Signet of Spite", () => {
   for (const summon of [
     "Summon Blood Fiend",
+    "Summon Bone Fiend",
     "Summon Bone Minions",
     "Summon Flesh Golem",
   ]) {
@@ -3759,6 +3999,14 @@ test("Necromancer resources and palette change with specialization state", () =>
   assert.deepEqual(reaperEntry, [ID.REAPERS_SHROUD]);
   assert.equal(reaperBar[0].skillIds.includes(ID.EXIT_REAPERS_SHROUD), true);
   assert.equal(reaperBar[1].skillIds.includes(ID.LIFE_REND), true);
+  assert.deepEqual(
+    reaperBar[1].skillIds.filter((id) =>
+      [ID.INFUSING_TERROR, ID.TERRIFY].includes(id),
+    ),
+    [ID.INFUSING_TERROR, ID.TERRIFY],
+  );
+  assert.equal(reaperBar[0].stackId, "reaper-profession");
+  assert.equal(reaperBar[1].stackId, "reaper-profession");
   assert.equal(ritualistPalette[0].stackId, "ritualist-profession");
   assert.deepEqual(ritualistPalette[0].skillIds, [
     ID.RITUALISTS_SHROUD,

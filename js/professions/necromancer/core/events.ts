@@ -62,13 +62,14 @@ export function handleNecromancerStateEvent(
     spitefulFortitudeLifeForce: core.spitefulFortitudeLifeForce,
     traitProcReadyAt: core.traitProcReadyAt,
   };
-  const ritualistOnly = active.kind === "Ritualist"
-    ? {
-      painfulBondUntil: active.state.painfulBondUntil,
-      painfulBondPulseAnchorAt: active.state.painfulBondPulseAnchorAt,
-      weaponSpells: active.state.weaponSpells,
-    }
-    : null;
+  const ritualistOnly =
+    active.kind === "Ritualist"
+      ? {
+          painfulBondUntil: active.state.painfulBondUntil,
+          painfulBondPulseAnchorAt: active.state.painfulBondPulseAnchorAt,
+          weaponSpells: active.state.weaponSpells,
+        }
+      : null;
   for (const key of coreKeys) delete mutableCore[key];
   for (const key of specializationKeys) delete specializationState[key];
   for (const [key, value] of Object.entries(event.state || {})) {
@@ -138,16 +139,20 @@ export function handleNecromancerSummonAttack(
   if (
     event.requiresMinion &&
     !(
-      Number(professionCoreState(context).activeMinions?.[event.requiresMinion]) >
-        Number(event.requiresMinionIndex || 0) &&
+      Number(
+        professionCoreState(context).activeMinions?.[event.requiresMinion],
+      ) > Number(event.requiresMinionIndex || 0) &&
       (event.requiresMinionGeneration == null ||
         Number(
-          professionCoreState(context).minionGenerations?.[event.requiresMinion] || 0,
+          professionCoreState(context).minionGenerations?.[
+            event.requiresMinion
+          ] || 0,
         ) === Number(event.requiresMinionGeneration)) &&
       (event.requiresMinionAttackGeneration == null ||
         Number(
-          professionCoreState(context).minionAttackGenerations?.[event.requiresMinion] ||
-            0,
+          professionCoreState(context).minionAttackGenerations?.[
+            event.requiresMinion
+          ] || 0,
         ) === Number(event.requiresMinionAttackGeneration))
     )
   )
@@ -158,13 +163,12 @@ export function handleNecromancerSummonAttack(
       const active = context.profession.specialization;
       if (active.kind !== "Ritualist") return false;
       return (
-      active.state.activeSpirits[event.requiresSpirit] &&
-      (event.requiresSpiritGeneration == null ||
-        Number(
-          active.state.spiritGenerations[event.requiresSpirit] || 0,
-        ) === Number(event.requiresSpiritGeneration)) &&
-      Number(active.state.spiritBusyUntil[event.requiresSpirit] || 0) <=
-        event.at
+        active.state.activeSpirits[event.requiresSpirit] &&
+        (event.requiresSpiritGeneration == null ||
+          Number(active.state.spiritGenerations[event.requiresSpirit] || 0) ===
+            Number(event.requiresSpiritGeneration)) &&
+        Number(active.state.spiritBusyUntil[event.requiresSpirit] || 0) <=
+          event.at
       );
     })()
   )
@@ -181,6 +185,8 @@ export function handleNecromancerSummonAttack(
     name: event.name,
     icon: event.icon,
     coefficient: Number(event.coefficient || 0),
+    finisherType: event.finisherType,
+    finisherValue: event.finisherValue,
     hits: 1,
     hitIndex: 1,
     totalHits: 1,
@@ -201,4 +207,36 @@ export function handleNecromancerSummonAttack(
     spiritAttackType: event.spiritAttackType,
     anguishConditionalDamage: event.anguishConditionalDamage,
   });
+  if (Array.isArray(event.onHitCondition)) {
+    const [condition, stacks, duration] = event.onHitCondition;
+    enqueueOrdered(context.queue, {
+      type: "condition",
+      at: event.at,
+      source: event.source,
+      sourceId: event.sourceId,
+      actorType: "summon",
+      skillId: event.skillId,
+      skillName: event.skillName,
+      parentSkillName: event.parentSkillName,
+      name: `${event.skillName || event.name || "Minion Attack"} — ${String(condition)}`,
+      condition: String(condition),
+      stacks: Number(stacks || 0),
+      duration: Number(duration || 0),
+    });
+  }
+  if (event.controlKind) {
+    enqueueOrdered(context.queue, {
+      type: "control",
+      at: event.at,
+      source: event.source,
+      sourceId: event.sourceId,
+      actorType: "summon",
+      skillId: event.skillId,
+      skillName: event.skillName,
+      parentSkillName: event.parentSkillName,
+      name: event.skillName || event.name,
+      controlKind: event.controlKind,
+      duration: Number(event.controlDuration || 0),
+    });
+  }
 }
