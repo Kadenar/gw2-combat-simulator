@@ -30,7 +30,11 @@ export function createWarriorBuildDefaults(): WarriorCanonicalBuild {
     food: "Bowl of Sweet and Spicy Butternut Squash Soup",
     utility: "Superior Sharpening Stone",
     jadeBotCore: true,
-    infusions: [{ stat: "Power", count: 18 }],
+    infusions: [
+      { stat: "Power", count: 18 },
+      { stat: "Precision", count: 0 },
+      { stat: "Condition Damage", count: 0 },
+    ],
     specializations: [
       { name: "Strength", traits: "1-1-1" },
       { name: "Discipline", traits: "2-3-3" },

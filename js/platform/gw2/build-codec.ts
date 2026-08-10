@@ -493,7 +493,17 @@ function normalizeInfusions(
       remaining -= count;
       return { stat: infusion.stat as string, count };
     });
-  return infusions.length ? infusions : clone([...fallback]);
+  if (!infusions.length) return clone([...fallback]);
+  // Ensure the canonical stat rows are always present (count 0 when absent)
+  // so the gear panel never collapses to a single infusion type.
+  const present = new Set(infusions.map((infusion) => infusion.stat));
+  for (const entry of fallback) {
+    if (!present.has(entry.stat)) {
+      infusions.push({ stat: entry.stat, count: 0 });
+      present.add(entry.stat);
+    }
+  }
+  return infusions;
 }
 
 function migrateVersionedBuild(
