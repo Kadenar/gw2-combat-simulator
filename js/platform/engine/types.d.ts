@@ -53,6 +53,7 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly detail?: string;
   readonly triggeredBy?: string;
   readonly activationId?: string;
+  readonly extendsProfessionTaskHorizon?: boolean;
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
@@ -86,6 +87,7 @@ export type DamageEvent = SimulationEventBase<"damage"> &
     readonly canCrit?: boolean;
     readonly forceCrit?: boolean;
     readonly canTriggerCriticalSigils?: boolean;
+    readonly canTriggerCriticalTraits?: boolean;
     readonly didCrit?: boolean;
   };
 

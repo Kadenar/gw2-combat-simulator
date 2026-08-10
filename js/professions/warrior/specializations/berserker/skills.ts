@@ -141,6 +141,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.SCORCHED_EARTH]: {
     implemented: true,
+    skillWeapon: "Longbow",
     comboField: "Fire",
     duration: 4,
     effects: [
@@ -154,6 +155,9 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
+        metadata: {
+          extendsProfessionTaskHorizon: true,
+        },
       },
       {
         type: "condition",
@@ -317,6 +321,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.FLAMING_FLURRY]: {
     implemented: true,
+    skillWeapon: "Sword",
     effects: [
       {
         type: "strike",
@@ -338,37 +343,37 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
             atMs: 400,
             condition: "Burning",
             stacks: 1,
-            duration: 4,
+            duration: 3.5,
           },
           {
             atMs: 640,
             condition: "Burning",
             stacks: 1,
-            duration: 4,
+            duration: 3.5,
           },
           {
             atMs: 880,
             condition: "Burning",
             stacks: 1,
-            duration: 4,
+            duration: 3.5,
           },
           {
             atMs: 1120,
             condition: "Burning",
             stacks: 1,
-            duration: 4,
+            duration: 3.5,
           },
           {
             atMs: 1320,
             condition: "Burning",
             stacks: 1,
-            duration: 4,
+            duration: 3.5,
           },
           {
             atMs: 1560,
             condition: "Burning",
             stacks: 1,
-            duration: 4,
+            duration: 3.5,
           },
         ],
         timingAnchor: "castStart",

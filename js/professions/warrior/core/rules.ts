@@ -510,7 +510,7 @@ function modifyRechargeDuration(
   duration: number,
 ): number {
   const skill = context.skill;
-  if (skill?.id === ID.SWAP_WEAPONS) return 5;
+  if (skill?.id === ID.SWAP_WEAPONS) return duration > 0 ? 5 : 0;
   let result = duration;
   if (skill?.burst && hasTrait(context, TRAIT.VERSATILE_POWER)) result *= 0.85;
   if (

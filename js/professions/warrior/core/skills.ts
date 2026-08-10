@@ -269,7 +269,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       {
         type: "condition",
         condition: "Bleeding",
-        stacks: 1,
+        stacks: 3,
         duration: 5,
         atMs: 800,
         timingAnchor: "castStart",
@@ -451,6 +451,15 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 2.5,
         hits: 1,
+        atMs: 600,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+      },
+      {
+        type: "condition",
+        condition: "Burning",
+        stacks: 1,
+        duration: 5,
         atMs: 600,
         timingAnchor: "castStart",
         timingScale: "fixed",
@@ -1753,6 +1762,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLAZE_BREAKER]: {
     implemented: true,
+    cooldown: 12,
+    finisherType: "Blast",
+    finisherValue: 1,
+    waves: 5,
+    totalCoefficient: 2,
+    maximumHitsPerTarget: 1,
     effects: [
       {
         type: "strike",
@@ -1785,6 +1800,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.FLAMES_OF_WAR]: {
     implemented: true,
+    cooldown: 20,
     comboField: "Fire",
     duration: 5,
     effects: [
@@ -1796,13 +1812,50 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
+        metadata: {
+          extendsProfessionTaskHorizon: true,
+        },
       },
       {
         type: "condition",
-        condition: "Burning",
-        stacks: 1,
-        duration: 2,
-        atMs: 5480,
+        ticks: [
+          {
+            atMs: 480,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 1480,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 2480,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 3480,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 4480,
+            condition: "Burning",
+            stacks: 1,
+            duration: 2,
+          },
+          {
+            atMs: 5480,
+            condition: "Burning",
+            stacks: 2,
+            duration: 6,
+          },
+        ],
         timingAnchor: "castStart",
         timingScale: "fixed",
         persistsAfterInterrupt: true,
@@ -2528,7 +2581,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         persistsAfterInterrupt: true,
       },
     ],
-    quicknessCastTimeMs: 480,
+    quicknessCastTimeMs: 960,
   },
   [ID.BLOODTHIRSTER_ID_80263]: {
     implemented: true,
