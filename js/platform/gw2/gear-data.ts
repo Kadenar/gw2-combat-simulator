@@ -1265,6 +1265,7 @@ const CONDITION_SIGILS = new Set([
   "Doom",
   "Earth",
   "Geomancy",
+  "Ice",
   "Malice",
   "Smoldering",
   "Torment",
@@ -1348,6 +1349,17 @@ export const SIGIL_PROCS = Object.freeze({
     stacks: 1,
     duration: 2,
     icon: SIGIL_DATA.Hydromancy.icon,
+  },
+  Ice: {
+    // "Chill a foe for 2s after striking ... when they are defiant." The sim
+    // target is always defiant, so any player strike arms the 10s cooldown.
+    trigger: "strike",
+    cooldown: 10,
+    effect: "condition",
+    condition: "Chilled",
+    stacks: 1,
+    duration: 2,
+    icon: SIGIL_DATA.Ice.icon,
   },
   Energy: {
     trigger: "swap",

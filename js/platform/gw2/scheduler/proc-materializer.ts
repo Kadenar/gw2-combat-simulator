@@ -4,6 +4,7 @@ import type {
   SchedulerRecord,
   SimulationEvent,
 } from "../../engine/types.js";
+import { isGw2PlayerActorEvent } from "../event-ownership.js";
 import { createGw2CombatQuery, selectedGw2TraitValues } from "../query.js";
 import {
   handleWeaknessVulnerabilityRelic,
@@ -116,6 +117,13 @@ export function createGw2TriggerMaterializer(
           sigils.materialize("crit", context, event, criticalCause);
         }
         sigils.consumeDoom(context, event);
+        if (
+          sigilSupport.strike &&
+          isGw2PlayerActorEvent(event) &&
+          Number(event.coefficient) > 0
+        ) {
+          sigils.materialize("strike", context, event);
+        }
         break;
       }
       case "control":

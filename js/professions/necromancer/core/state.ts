@@ -139,6 +139,8 @@ export function createNecromancerCoreState(
     activeMinions: {},
     minionGenerations: {},
     minionAttackGenerations: {},
+    minionAttackAnchors: {},
+    minionAttackCycleOffsets: {},
     availableFlips: {},
     autoattackChains: {},
     selfConditions: [],
@@ -160,11 +162,10 @@ export function createNecromancerCoreState(
   });
 }
 
-export function snapshotNecromancerState(
-  state: unknown,
-): NecromancerState {
-  const flattened =
-    flattenProfessionState(state) as unknown as NecromancerState;
+export function snapshotNecromancerState(state: unknown): NecromancerState {
+  const flattened = flattenProfessionState(
+    state,
+  ) as unknown as NecromancerState;
   syncNecromancerResources(flattened);
   return structuredClone(flattened) as NecromancerState;
 }

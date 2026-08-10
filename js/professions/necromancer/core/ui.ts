@@ -74,13 +74,14 @@ const SHROUD_SKILL_BAR_IDS: Readonly<Record<string, readonly SkillId[]>> =
       ID.SUMMON_SPIRITS,
     ]),
   });
-const SHROUD_SKILL_BAR_LABELS: Readonly<Record<string, string>> =
-  Object.freeze({
+const SHROUD_SKILL_BAR_LABELS: Readonly<Record<string, string>> = Object.freeze(
+  {
     death: "Death Shroud",
     reaper: "Reaper's Shroud",
     harbinger: "Harbinger Shroud",
     ritualist: "Ritualist's Shroud",
-  });
+  },
+);
 const HALF_HEALTH_TRAITS = new Set([
   "Siphoned Power",
   "Spiteful Fortitude",
@@ -110,11 +111,14 @@ function shroudSkillIds(shroud: string): SkillId[] {
         skill.implemented &&
         !skill.simulatorExcluded,
     )
-    .sort(
-      (left, right) =>
-        Number(left.shroudSlot || 0) - Number(right.shroudSlot || 0) ||
-        Number(left.id) - Number(right.id),
-    )
+    .sort((left, right) => {
+      const slotOrder =
+        Number(left.shroudSlot || 0) - Number(right.shroudSlot || 0);
+      if (slotOrder) return slotOrder;
+      if (left.flipParentId === right.id) return 1;
+      if (right.flipParentId === left.id) return -1;
+      return Number(left.id) - Number(right.id);
+    })
     .map((skill) => skill.id);
 }
 
@@ -318,11 +322,7 @@ export function necromancerEventLogRow(
       flags: [],
     };
   }
-  if (
-    [
-      "necromancer.summon-attack",
-    ].includes(event?.type)
-  ) {
+  if (["necromancer.summon-attack"].includes(event?.type)) {
     return null;
   }
   if (event?.type !== "necromancer.state") return undefined;
@@ -445,6 +445,7 @@ export const necromancerCoreUi: Partial<ProfessionUiContract> &
       ? necromancerTransformPaletteGroups(context, {
           entryId: ID.DEATH_SHROUD,
           shroud: "death",
+          stackId: "core-profession",
         })
       : [],
   skillBarGroups: (context: NecromancerUiContext) =>

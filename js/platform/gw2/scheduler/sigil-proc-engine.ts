@@ -11,12 +11,13 @@ import type {
   MaterializerState,
 } from "./materializer-state.js";
 
-export type SigilTrigger = "crit" | "swap" | "control";
+export type SigilTrigger = "crit" | "swap" | "control" | "strike";
 
 export interface SigilCapabilities {
   readonly anyProc: boolean;
   readonly critical: boolean;
   readonly swap: boolean;
+  readonly strike: boolean;
 }
 
 export interface SigilProcEngine {
@@ -69,6 +70,10 @@ const TRIGGER_RULES: Readonly<Record<SigilTrigger, SigilTriggerRule>> =
       weaponSet: (_event, state) => state.activeWeaponSet,
       sourceSkill: (event) => event.skillName || "",
     },
+    strike: {
+      weaponSet: (_event, state) => state.activeWeaponSet,
+      sourceSkill: (event) => event.skillName || "",
+    },
   });
 
 function activeSigilNames(
@@ -91,6 +96,9 @@ export function sigilCapabilities(config: Gw2Config): SigilCapabilities {
     ),
     swap: [...names].some(
       (name) => SIGIL_PROC_LOOKUP[name].trigger === "swap",
+    ),
+    strike: [...names].some(
+      (name) => SIGIL_PROC_LOOKUP[name].trigger === "strike",
     ),
   });
 }

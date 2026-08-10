@@ -31,6 +31,11 @@ interface MinionAttack {
   readonly icon?: string;
   readonly weaponStrength?: number;
   readonly damagePerCoefficient?: number;
+  readonly finisherType?: string;
+  readonly finisherValue?: number;
+  readonly condition?: readonly (string | number)[];
+  readonly controlKind?: string;
+  readonly controlDuration?: number;
 }
 
 interface MinionDefinition {
@@ -48,6 +53,8 @@ interface MinionDefinition {
   readonly criticalDamage?: number;
   readonly commandRecoveryDelay?: number;
   readonly attacks?: readonly MinionAttack[];
+  readonly alternateEvery?: number;
+  readonly alternateAttacks?: readonly MinionAttack[];
 }
 
 interface MinionCommandDefinition {
@@ -56,10 +63,13 @@ interface MinionCommandDefinition {
   readonly condition?: readonly (string | number)[];
   readonly conditions?: readonly (readonly (string | number)[])[];
   readonly control?: string;
+  readonly controlDuration?: number;
+  readonly controlWindow?: number;
   readonly blindDuration?: number;
   readonly impactDelay?: number;
   readonly consumes?: number;
   readonly lifeForceGain?: number;
+  readonly attacks?: readonly MinionAttack[];
 }
 
 const MINIONS = MECHANICS.minions as unknown as Readonly<
@@ -105,8 +115,16 @@ function queueSummonAttacks(
   at: number,
   {
     initialDelay = definition.initialDelay ?? definition.interval,
+    controlUntil = 0,
+    controlKind,
+    controlDuration = 0,
+    initialCycleIndex = 0,
   }: {
     readonly initialDelay?: number;
+    readonly controlUntil?: number;
+    readonly controlKind?: string;
+    readonly controlDuration?: number;
+    readonly initialCycleIndex?: number;
   } = {},
 ): void {
   const generation = Number(
@@ -116,18 +134,27 @@ function queueSummonAttacks(
     professionCoreState(context).minionAttackGenerations[definition.key] || 0,
   );
   const horizon = at + Math.max(180, Number(context.config.duration || 0));
-  const attacks = definition.attacks || [
+  const defaultAttacks = definition.attacks || [
     {
       name: `${skill.name} — Minion Attack`,
       coefficient: definition.coefficient,
       offset: 0,
     },
   ];
+  let cycleIndex = initialCycleIndex;
   for (
     let cycleAt = at + Number(initialDelay);
     cycleAt <= horizon;
     cycleAt += definition.interval
   ) {
+    cycleIndex += 1;
+    const alternateEvery = Number(definition.alternateEvery || 0);
+    const attacks =
+      definition.alternateAttacks?.length &&
+      alternateEvery > 0 &&
+      cycleIndex % alternateEvery === 0
+        ? definition.alternateAttacks
+        : defaultAttacks;
     for (const attack of attacks) {
       const damagePerCoefficient =
         attack.damagePerCoefficient ?? definition.damagePerCoefficient;
@@ -144,6 +171,19 @@ function queueSummonAttacks(
           name: attack.name,
           icon: attack.icon || skill.icon || "",
           coefficient: attack.coefficient,
+          finisherType: attack.finisherType,
+          finisherValue: attack.finisherValue,
+          onHitCondition: attack.condition,
+          controlKind:
+            attack.controlKind ||
+            (cycleAt <= controlUntil + context.epsilon
+              ? controlKind
+              : undefined),
+          controlDuration:
+            attack.controlDuration ||
+            (cycleAt <= controlUntil + context.epsilon
+              ? controlDuration
+              : undefined),
           ...(Number.isFinite(Number(damagePerCoefficient))
             ? {}
             : {
@@ -167,6 +207,61 @@ function queueSummonAttacks(
   }
 }
 
+function queueMinionCommandAttacks(
+  context: NecromancerCastContext,
+  skill: NecromancerSkill,
+  definition: MinionCommandDefinition,
+): void {
+  const minion = minionDefinitionFor(definition.minion);
+  if (!minion || !definition.attacks?.length) return;
+  const state = professionCoreState(context);
+  const generation = Number(state.minionGenerations[minion.key] || 0);
+  const attackGeneration = Number(
+    state.minionAttackGenerations[minion.key] || 0,
+  );
+  for (const attack of definition.attacks) {
+    const damagePerCoefficient =
+      attack.damagePerCoefficient ?? minion.damagePerCoefficient;
+    for (let index = 0; index < minion.count; index += 1) {
+      context.emit({
+        type: "necromancer.summon-attack",
+        at: context.effectiveEnd + Number(attack.offset || 0),
+        source: "Minion",
+        sourceId: attack.skillId ?? skill.id,
+        actorType: "summon",
+        skillId: attack.skillId ?? skill.id,
+        skillName: attack.name,
+        parentSkillName: skill.name,
+        name: attack.name,
+        icon: attack.icon || skill.icon || "",
+        coefficient: attack.coefficient,
+        finisherType: attack.finisherType,
+        finisherValue: attack.finisherValue,
+        onHitCondition: attack.condition,
+        controlKind: attack.controlKind,
+        controlDuration: attack.controlDuration,
+        ...(Number.isFinite(Number(damagePerCoefficient))
+          ? {}
+          : {
+              weaponStrength:
+                attack.weaponStrength ??
+                minion.weaponStrength ??
+                MECHANICS.summonWeaponStrength,
+            }),
+        requiresMinion: minion.key,
+        requiresMinionIndex: index,
+        requiresMinionGeneration: generation,
+        requiresMinionAttackGeneration: attackGeneration,
+        summonKind: "minion",
+        summonCount: 1,
+        summonOwner: `minion:${minion.key}:${index}`,
+        summonOwnerBase: `minion:${minion.key}`,
+        ...summonStrikeMetadata(context, minion, damagePerCoefficient),
+      });
+    }
+  }
+}
+
 function summonMinion(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
@@ -179,6 +274,10 @@ function summonMinion(
     Number(state.minionGenerations[definition.key] || 0) + 1;
   state.minionAttackGenerations[definition.key] =
     Number(state.minionAttackGenerations[definition.key] || 0) + 1;
+  state.minionAttackAnchors[definition.key] =
+    context.effectiveEnd +
+    Number(definition.initialDelay ?? definition.interval);
+  state.minionAttackCycleOffsets[definition.key] = 0;
   if (definition.commandId) {
     state.availableFlips[definition.commandId] = Number.POSITIVE_INFINITY;
   }
@@ -259,13 +358,34 @@ function restartMinionAttacks(
   const minion = minionDefinitionFor(definition.minion);
   if (!minion || !Number.isFinite(Number(minion.commandRecoveryDelay))) return;
   const state = professionCoreState(context);
+  const previousAnchor = Number(
+    state.minionAttackAnchors[minion.key] || context.effectiveEnd,
+  );
+  const previousOffset = Number(
+    state.minionAttackCycleOffsets[minion.key] || 0,
+  );
+  const completedSinceAnchor =
+    context.effectiveEnd + context.epsilon >= previousAnchor
+      ? Math.floor(
+          (context.effectiveEnd - previousAnchor + context.epsilon) /
+            minion.interval,
+        ) + 1
+      : 0;
+  const nextCycleIndex = previousOffset + completedSinceAnchor;
   state.minionAttackGenerations[minion.key] =
     Number(state.minionAttackGenerations[minion.key] || 0) + 1;
   if (skill.flipParentId == null) return;
   const summonSkill = context.catalog.skillsById.get(skill.flipParentId);
   if (!summonSkill) return;
+  state.minionAttackAnchors[minion.key] =
+    context.effectiveEnd + Number(minion.commandRecoveryDelay);
+  state.minionAttackCycleOffsets[minion.key] = nextCycleIndex;
   queueSummonAttacks(context, summonSkill, minion, context.effectiveEnd, {
     initialDelay: minion.commandRecoveryDelay,
+    controlUntil: context.effectiveEnd + Number(definition.controlWindow || 0),
+    controlKind: definition.control,
+    controlDuration: Number(definition.controlDuration || 0),
+    initialCycleIndex: nextCycleIndex,
   });
 }
 
@@ -277,7 +397,9 @@ function minionCommand(
   if (!definition) return false;
   restartMinionAttacks(context, skill, definition);
   const impactDelay = Math.max(0, Number(definition.impactDelay || 0));
-  if (impactDelay > 0) {
+  if (definition.attacks?.length) {
+    queueMinionCommandAttacks(context, skill, definition);
+  } else if (impactDelay > 0) {
     context.tasks.schedule({
       id: `${context.reservationId}:minion-command-impact`,
       type: MINION_COMMAND_IMPACT_TASK,

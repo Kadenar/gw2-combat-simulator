@@ -638,7 +638,7 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.RIGOR_MORTIS]: {
     implemented: true,
-    castTimeMs: 500,
+    castTimeMs: 0,
     effects: [],
     handlerId: "necromancer.minion-command",
   },
@@ -1901,6 +1901,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.WEEPING_SHOTS]: {
     implemented: true,
     quicknessCastTimeMs: 840,
+    finisherType: "Projectile",
+    finisherValue: 0.2,
     effects: [
       {
         type: "strike",
@@ -1943,6 +1945,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
   [ID.VICIOUS_SHOT]: {
     implemented: true,
     quicknessCastTimeMs: 600,
+    finisherType: "Projectile",
+    finisherValue: 0.2,
     effects: [
       {
         type: "strike",

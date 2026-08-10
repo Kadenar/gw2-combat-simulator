@@ -5690,3 +5690,27 @@ header .accent {
     flex-direction: column;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Embedded mode (?embed=1) — strips standalone-site chrome so the tool blends
+   into a host page (e.g. an iframe on another site). Tune the hidden set here.
+   --------------------------------------------------------------------------- */
+
+/* Landing page: keep only the profession picker; drop hero, marketing, footer. */
+.embed .landing-header,
+.embed .landing-footer,
+.embed .landing-section:not(:has(.profession-grid)) {
+  display: none;
+}
+
+/* Profession pages: drop the standalone hero title and the long "About" box;
+   keep the profession selector, snapshot note, and the simulator itself. */
+.embed header h1,
+.embed .about-box {
+  display: none;
+}
+
+.embed .landing-shell,
+.embed #app {
+  padding-top: 0;
+}

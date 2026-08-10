@@ -454,3 +454,39 @@ test("Necromancer randomizes Barbed Precision and Chilling Nova by seed", () => 
   assert.equal(chillingNova(1), true);
   assert.equal(chillingNova(3), false);
 });
+
+test("Reaper rolls ice-field projectile finishers per bullet by seed", () => {
+  const boltCount = (mode, seed) =>
+    simulateGw2({
+      profession: necromancerProfession,
+      rotation: ["Weeping Shots", "Vicious Shot", { type: "wait", durationMs: 2000 }],
+      config: {
+        specialization: "Reaper",
+        primaryWeapon: "Pistol",
+        professionAssumptions: { permanentIceField: true },
+        stats: {
+          power: 2000,
+          precision: 2000,
+          ferocity: 1000,
+          conditionDamage: 1000,
+        },
+        target: { armor: 2597 },
+        randomness: { mode, seed },
+      },
+    }).events.filter((event) => event.type === "necromancer.chill").length;
+
+  // Deterministic mode banks the expected chance across all seven projectiles
+  // (Weeping Shots' six bullets plus Vicious Shot's one), so it is seed-stable.
+  assert.equal(boltCount("deterministic", 1), boltCount("deterministic", 9));
+
+  // Stochastic mode rolls each bullet separately: outcomes vary across seeds and
+  // reproduce for a fixed seed. A dud seed can also land zero bolts.
+  const seeds = [1, 2, 3, 4, 5];
+  const counts = seeds.map((seed) => boltCount("stochastic", seed));
+  assert.equal(boltCount("stochastic", 1), counts[0]);
+  assert.ok(new Set(counts).size > 1, "per-bullet rolls should vary by seed");
+  assert.ok(
+    counts.some((count) => count === 0),
+    "some seed should roll no finishers",
+  );
+});
