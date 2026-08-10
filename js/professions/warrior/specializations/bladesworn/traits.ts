@@ -27,7 +27,16 @@ import type {
   WarriorSkill,
 } from "../../types.js";
 
+const UNSEEN_SWORD_STRIKE_ID = 62847;
+
 function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
+  if (
+    context.hasExplicitCombatStart &&
+    (context.combatStartTime == null ||
+      at + context.epsilon < context.combatStartTime)
+  ) {
+    return;
+  }
   const state = bladeswornState.from(context);
   if (at + context.epsilon < state.gunsaberSwapTraitReadyAt) return;
   let traitId = 0;
@@ -39,8 +48,9 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
       source: "Trait",
       sourceId: traitId,
       actorType: "player",
-      skillId: ID.UNSHEATHE_GUNSABER,
-      skillName: "Unsheathe Gunsaber",
+      skillId: UNSEEN_SWORD_STRIKE_ID,
+      skillName: "Unseen Sword",
+      parentSkillName: context.skill.name,
       name: "Unseen Sword",
       coefficient: 1.2,
     });
@@ -205,6 +215,10 @@ export function useDragonSlash(
     charges,
     maximumCharges,
   );
+  const impactAt =
+    skill.id === ID.DRAGON_SLASH_FORCE
+      ? context.start + (context.effectiveEnd - context.start) / 2
+      : context.effectiveEnd;
   const adrenalineSpent = dragonChargesToAdrenalineSpent(charges);
   applyWarriorBurstSpendTraits(
     context,
@@ -236,7 +250,7 @@ export function useDragonSlash(
   });
   context.emit({
     type: "damage",
-    at: context.effectiveEnd,
+    at: impactAt,
     skillId: skill.id,
     sourceId: skill.id,
     skillName: skill.name,
@@ -250,7 +264,7 @@ export function useDragonSlash(
   if (hasTrait(context, TRAIT.UNYIELDING_DRAGON)) {
     context.emit({
       type: "control",
-      at: context.effectiveEnd,
+      at: impactAt,
       skillId: skill.id,
       sourceId: TRAIT.UNYIELDING_DRAGON,
       skillName: skill.name,
@@ -609,6 +623,17 @@ function activateOverchargedCartridges(
   });
 }
 
+export function useOverchargedCartridges(
+  context: WarriorCastContext,
+  _skill: WarriorSkill,
+): void {
+  const castDuration = Math.max(0, context.fullEnd - context.start);
+  activateOverchargedCartridges(
+    context,
+    context.start + castDuration * (420 / 900),
+  );
+}
+
 export function trackBladeswornAmmoCast(
   context: WarriorCastContext,
   skill: WarriorSkill,
@@ -769,9 +794,6 @@ export function completeBladeswornSkill(
       stacks: 1,
       duration: 10,
     });
-  }
-  if (skill.id === ID.OVERCHARGED_CARTRIDGES) {
-    activateOverchargedCartridges(context, at);
   }
   if (skill.id === ID.DRAGONSPIKE_MINE) {
     context.state.cooldowns.delete(ID.DRAGON_TRIGGER);
