@@ -1,4 +1,5 @@
 @import url("./rotation-activation-editor.css");
+@import url("./charge-release-editor.css");
 @import url("./rotation-insertion-cursor.css");
 
 :root {
@@ -2470,6 +2471,45 @@ header .accent {
     border: 1px dashed var(--border);
 } */
 
+/* Reads active state (crit chance, profession timers, target debuffs) at the
+   current rotation point — or at the insertion cursor when one is set. Sits
+   above the internally-scrolling timeline so it stays visible. */
+.rotation-active-buffs {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 4px;
+  padding: 5px 9px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.rotation-active-buffs[hidden] {
+  display: none;
+}
+
+.rotation-active-buffs .rot-state-label {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+}
+
+.rotation-active-buffs .rot-state-item {
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+
+.rotation-active-buffs .rot-state-item strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .rotation-timeline {
   flex: 0 1 auto;
   min-height: 52px;
@@ -2784,6 +2824,16 @@ header .accent {
 
 .rot-charge-release-badge:hover {
   background: #a46020;
+  color: #fff;
+}
+
+.rot-skill.rot-charge-mismatch {
+  border-color: #ff7c55;
+  box-shadow: 0 0 0 2px #ff7c5577;
+}
+
+.rot-skill.rot-charge-mismatch .rot-charge-release-badge {
+  background: #8d3325;
   color: #fff;
 }
 

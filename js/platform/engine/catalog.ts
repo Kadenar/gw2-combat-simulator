@@ -381,7 +381,8 @@ function normalizeEffect(effect: unknown): SkillEffect {
     if (
       normalizedEffect.type !== "condition" &&
       normalizedEffect.type !== "control" &&
-      normalizedEffect.type !== "blind"
+      normalizedEffect.type !== "blind" &&
+      normalizedEffect.type !== "custom"
     ) {
       throw new TypeError(
         `Effect type ${normalizedEffect.type} does not support repeated applications.`,

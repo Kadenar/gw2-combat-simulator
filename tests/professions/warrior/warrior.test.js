@@ -11,6 +11,7 @@ import { professionRoute } from "../../../js/app/profession/selector.js";
 import { skillBarInspectionStacks } from "../../../js/app/build/skills-panel.js";
 import { autoattackChainSkillAvailable } from "../../../js/app/rotation/palette-model.js";
 import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
+import { buildChartSeries } from "../../../js/app/rotation/result-model.js";
 import { activeResourceGroup } from "../../../js/app/rotation/resource-view.js";
 import { createSimulationRandom } from "../../../js/platform/engine/simulation-random.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
@@ -30,6 +31,7 @@ import {
   warriorAppAdapter,
 } from "../../../js/professions/warrior/app/app-definition.js";
 import { createWarriorCoreState } from "../../../js/professions/warrior/core/state.js";
+import { BRAVE_STRIDE_MOVEMENT_SKILL_IDS } from "../../../js/professions/warrior/core/traits.js";
 import { DATA_SNAPSHOT } from "../../../js/professions/warrior/data/warrior-api-metadata.js";
 import {
   WARRIOR_SKILL_IDS as ID,
@@ -39,6 +41,13 @@ import { warriorProfession } from "../../../js/professions/warrior/definition.js
 import { berserkerModule } from "../../../js/professions/warrior/specializations/berserker/module.js";
 import { berserkerAttributeRules } from "../../../js/professions/warrior/specializations/berserker/rules.js";
 import { bladeswornModule } from "../../../js/professions/warrior/specializations/bladesworn/module.js";
+import {
+  DRAGON_TRIGGER_DURATION_SECONDS,
+  DRAGON_TRIGGER_FLOW_COST,
+  DRAGON_TRIGGER_TICK_RESOURCE_REASON,
+  dragonChargesToAdrenalineSpent,
+  projectDragonCharges,
+} from "../../../js/professions/warrior/specializations/bladesworn/dragon-trigger.js";
 import { advanceBladesworn } from "../../../js/professions/warrior/specializations/bladesworn/traits.js";
 import { createBladeswornState } from "../../../js/professions/warrior/specializations/bladesworn/state.js";
 import { paragonModule } from "../../../js/professions/warrior/specializations/paragon/module.js";
@@ -1174,12 +1183,12 @@ test("Warrior benchmark packets use their measured Quickness offsets", () => {
     secondaryWeapon: "Axe",
     initialResource: 10,
   };
-  assert.deepEqual(packetOffsets("Crushing Blow", daggerMace), [320]);
-  assert.deepEqual(packetOffsets("Tremor", daggerMace), [320, 360]);
-  assert.deepEqual(packetOffsets("Disrupting Stab", daggerMace), [120]);
-  assert.deepEqual(packetOffsets("Precise Cut", daggerMace), [200]);
-  assert.deepEqual(packetOffsets("Focused Slash", daggerMace), [200]);
-  assert.deepEqual(packetOffsets("Keen Strike", daggerMace), [200]);
+  assert.deepEqual(packetOffsets("Crushing Blow", daggerMace), [352]);
+  assert.deepEqual(packetOffsets("Tremor", daggerMace), [352, 384]);
+  assert.deepEqual(packetOffsets("Disrupting Stab", daggerMace), [128]);
+  assert.deepEqual(packetOffsets("Precise Cut", daggerMace), [224]);
+  assert.deepEqual(packetOffsets("Focused Slash", daggerMace), [224]);
+  assert.deepEqual(packetOffsets("Keen Strike", daggerMace), [224]);
   assert.deepEqual(packetOffsets("Breaching Strike", daggerMace), [758]);
   assert.deepEqual(packetOffsets("Kick", daggerMace), [441]);
   assert.deepEqual(packetOffsets("Bloodthirster", swordAxe), [320]);
@@ -1616,6 +1625,204 @@ test("Bladesworn gates gunsaber and Dragon Slash state", () => {
   );
 });
 
+test("Dragon Trigger requires 15 Flow and expires after 30 seconds", () => {
+  const blocked = simulate("Bladesworn", ["Dragon Trigger"], {
+    initialResource: DRAGON_TRIGGER_FLOW_COST - 1,
+  });
+  assert.match(blocked.warnings[0], /requires at least 15 flow/);
+
+  const active = simulate("Bladesworn", ["Dragon Trigger"], {
+    initialResource: DRAGON_TRIGGER_FLOW_COST,
+  });
+  assert.deepEqual(active.warnings, []);
+  const entry = active.events.find(
+    (event) =>
+      event.type === "resource" && event.reason === "dragon trigger entry",
+  );
+  assert.equal(entry.maximumFlow, 100);
+  assert.equal(entry.deadline - entry.at, DRAGON_TRIGGER_DURATION_SECONDS);
+
+  const expired = simulate(
+    "Bladesworn",
+    ["Dragon Trigger", { type: "wait", durationMs: 30001 }],
+    { initialResource: 100 },
+  );
+  assert.equal(expired.endState.profession.dragonTriggerActive, false);
+  assert.equal(expired.endState.profession.dragonCharges, 0);
+});
+
+test("projectDragonCharges covers exact-fit, stalled, and accelerated windows", () => {
+  const project = (overrides = {}) =>
+    projectDragonCharges({
+      startTime: 0,
+      flow: 50,
+      maximumFlow: 100,
+      maximumCharges: 10,
+      chargesPerInterval: 1,
+      flowPerInterval: 5,
+      flowRateSegments: [],
+      deadline: 2.5,
+      ...overrides,
+    });
+
+  const exactFit = project();
+  assert.equal(exactFit.length, 10);
+  assert.deepEqual(exactFit.at(-1), {
+    at: 2.5,
+    charges: 10,
+    flowAfter: 0,
+    granted: true,
+  });
+
+  const stalled = project({
+    flow: 3,
+    maximumCharges: 1,
+    flowRateSegments: [{ start: 0, end: 2.5, flowPerSecond: 4 }],
+  });
+  assert.deepEqual(stalled.slice(0, 2), [
+    { at: 0.25, charges: 0, flowAfter: 4, granted: false },
+    { at: 0.5, charges: 1, flowAfter: 0, granted: true },
+  ]);
+
+  const daringDragon = project({
+    maximumCharges: 5,
+    flowPerInterval: 10,
+  });
+  assert.equal(daringDragon.length, 5);
+  assert.equal(daringDragon.at(-1).at, 1.25);
+  assert.equal(daringDragon.at(-1).charges, 5);
+
+  const tacticalReload = project({
+    flow: 25,
+    chargesPerInterval: 2,
+  });
+  assert.equal(tacticalReload.length, 5);
+  assert.equal(tacticalReload.at(-1).at, 1.25);
+  assert.equal(tacticalReload.at(-1).charges, 10);
+
+  const empty = project({ flow: 0, flowRateSegments: [] });
+  assert.equal(
+    empty.every((tick) => tick.flowAfter === 0),
+    true,
+  );
+  assert.equal(
+    empty.every((tick) => tick.granted === false),
+    true,
+  );
+});
+
+test("Dragon charges map to adrenaline-spend trait tiers", () => {
+  assert.deepEqual(
+    [0, 1, 4, 5, 9, 10].map(dragonChargesToAdrenalineSpent),
+    [0, 10, 10, 20, 20, 30],
+  );
+});
+
+test("Dragon Slash charge tiers drive adrenaline-spend traits", () => {
+  for (const [charges, bars, powerStacks, precisionDuration] of [
+    [4, 1, 2, 2],
+    [5, 2, 3, 2],
+    [10, 3, 4, 4],
+  ]) {
+    const result = simulate(
+      "Bladesworn",
+      [
+        "Dragon Trigger",
+        { name: "Dragon Slash—Force", releaseAtCharges: charges },
+      ],
+      {
+        initialResource: 100,
+        selectedTraitIds: [TRAIT.BERSERKERS_POWER, TRAIT.BURST_PRECISION],
+      },
+    );
+    assert.deepEqual(result.warnings, []);
+    const spend = result.events.find(
+      (event) =>
+        event.type === "resource" &&
+        event.resource === "dragon charges" &&
+        event.reason === "profession mechanic",
+    );
+    assert.equal(spend.adrenalineBarsSpent, bars);
+    assert.equal(
+      result.events.find(
+        (event) => event.type === "buff" && event.name === "Berserker's Power",
+      ).stacks,
+      powerStacks,
+    );
+    assert.equal(
+      result.events.find(
+        (event) => event.type === "buff" && event.name === "Burst Precision",
+      ).duration,
+      precisionDuration,
+    );
+  }
+});
+
+test("Burst Mastery restores twenty percent of Dragon Slash Flow spent", () => {
+  const rotation = [
+    "Dragon Trigger",
+    { name: "Dragon Slash—Force", releaseAtCharges: 4 },
+  ];
+  const baseline = simulate("Bladesworn", rotation, { initialResource: 100 });
+  const mastered = simulate("Bladesworn", rotation, {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.BURST_MASTERY],
+  });
+  assert.equal(
+    mastered.endState.profession.flow - baseline.endState.profession.flow,
+    4,
+  );
+  assert.equal(
+    mastered.events.some(
+      (event) =>
+        event.type === "buff" &&
+        event.name === "Burst Mastery — Swiftness" &&
+        event.duration === 3,
+    ),
+    true,
+  );
+});
+
+test("Brave Stride grants five Flow for every supported movement skill", () => {
+  assert.deepEqual(BRAVE_STRIDE_MOVEMENT_SKILL_IDS, [
+    ID.SAVAGE_LEAP,
+    ID.WHIRLWIND_ATTACK,
+    ID.RUSH,
+    ID.BRUTAL_SHOT,
+    ID.VALIANT_LEAP,
+    ID.LINE_BREAKER,
+    ID.SPEAR_SWIPE,
+    ID.AURA_SLICER,
+    ID.GUNSTINGER,
+    ID.DRAGONS_ROAR,
+    ID.BREAK_STEP,
+    ID.DRAGON_SLASH_BOOST,
+    ID.BULLS_CHARGE,
+    ID.KICK,
+    ID.STOMP,
+    ID.SUNDERING_LEAP,
+    ID.DRAGONSPIKE_MINE,
+    ID.HEAD_BUTT,
+    ID.EVISCERATE,
+    ID.BREACHING_STRIKE,
+    ID.EARTHSHAKER,
+    ID.RUPTURING_SMASH,
+  ]);
+
+  const rotation = [ID.UNSHEATHE_GUNSABER, ID.BREAK_STEP];
+  const baseline = simulate("Bladesworn", rotation, { initialResource: 20 });
+  const braveStride = simulate("Bladesworn", rotation, {
+    initialResource: 20,
+    selectedTraitIds: [TRAIT.BRAVE_STRIDE],
+  });
+  assert.deepEqual(baseline.warnings, []);
+  assert.deepEqual(braveStride.warnings, []);
+  assert.equal(
+    braveStride.endState.profession.flow - baseline.endState.profession.flow,
+    5,
+  );
+});
+
 test("Bladesworn automatically releases Dragon Slash at the requested charge count", () => {
   const full = simulate(
     "Bladesworn",
@@ -1676,21 +1883,109 @@ test("Daring Dragon automatically releases at its five-charge maximum", () => {
   );
 });
 
-test("Bladesworn continues charging after Flow reaches zero", () => {
+test("Dragon Trigger stalls below its Flow cost and resumes after rebuilding", () => {
   const result = simulate(
     "Bladesworn",
-    ["Dragon Trigger", "Dragon Slash—Force"],
-    { initialResource: 10 },
+    ["Dragon Trigger", { name: "Dragon Slash—Force", releaseAtCharges: 4 }],
+    { initialResource: 15 },
   );
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.endState.profession.flow > 0);
-  assert.ok(result.endState.profession.flow < 5);
+  const ticks = result.events.filter(
+    (event) =>
+      event.type === "resource" &&
+      event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON,
+  );
   assert.equal(
-    result.events.find(
+    ticks.some((tick) => tick.granted === false),
+    true,
+  );
+  assert.equal(ticks.at(-1).granted, true);
+  assert.equal(ticks.at(-1).value, 4);
+  assert.ok(ticks.every((tick) => tick.flowAfter >= 0));
+  assert.equal(
+    result.steps.find((step) => step.skill === "Dragon Slash—Force").start /
+      1000,
+    ticks.at(-1).at,
+  );
+  const spend = result.events.find(
+    (event) =>
+      event.type === "resource" &&
+      event.reason === "profession mechanic" &&
+      event.sourceSkill === "Dragon Slash—Force",
+  );
+  assert.equal(spend.amount, -4);
+  assert.equal(spend.rotationIndex, 1);
+  assert.equal(spend.flowSpent, 20);
+  assert.equal(spend.adrenalineBarsSpent, 1);
+});
+
+test("Dragon Slash reports unreachable Flow-gated requests", () => {
+  const result = simulate(
+    "Bladesworn",
+    [
+      "Dragon Trigger",
+      { name: "Dragon Slash—Force", releaseAtCharges: 4 },
+      "__combat_start",
+    ],
+    { initialResource: 15 },
+  );
+  const slash = result.steps.find(
+    (step) => step.skill === "Dragon Slash—Force",
+  );
+  assert.equal(slash.invalid, true);
+  assert.match(slash.invalidReason, /could not reach 4 charges/);
+  assert.match(slash.invalidReason, /it reached 3/);
+  assert.equal(
+    result.events.some(
       (event) =>
         event.type === "damage" && event.skillId === ID.DRAGON_SLASH_FORCE,
-    ).coefficient,
-    20.4,
+    ),
+    false,
+  );
+});
+
+test("Dragon Trigger resource ticks match the shared projection", () => {
+  const result = simulate(
+    "Bladesworn",
+    [
+      "Dragon Trigger",
+      "Flow Stabilizer",
+      { name: "Dragon Slash—Force", releaseAtCharges: 4 },
+    ],
+    { initialResource: 15 },
+  );
+  assert.deepEqual(result.warnings, []);
+  const entry = result.events.find(
+    (event) =>
+      event.type === "resource" && event.reason === "dragon trigger entry",
+  );
+  const actual = result.events
+    .filter(
+      (event) =>
+        event.type === "resource" &&
+        event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON,
+    )
+    .map(({ at, value, flowAfter, granted }) => ({
+      at,
+      charges: value,
+      flowAfter,
+      granted,
+    }));
+  const projected = projectDragonCharges({
+    startTime: entry.at,
+    firstTickAt: entry.nextChargeAt,
+    flow: entry.value,
+    maximumFlow: entry.maximumFlow,
+    maximumCharges: entry.maximumCharges,
+    chargesPerInterval: entry.chargesPerInterval,
+    flowPerInterval: entry.flowPerInterval,
+    flowRateSegments: entry.flowRateSegments,
+    deadline: entry.deadline,
+  }).slice(0, actual.length);
+  assert.deepEqual(actual, projected);
+  assert.equal(
+    entry.flowRateSegments.some((segment) => segment.flowPerSecond === 6),
+    true,
   );
 });
 
@@ -1703,6 +1998,12 @@ test("Bladesworn preserves partial charge time across fragmented advancement", (
   const context = {
     epsilon: 1e-9,
     config: {},
+    events: [],
+    emit(event) {
+      this.events.push(event);
+      return event;
+    },
+    hasExplicitCombatStart: false,
     state: {
       profession: {
         specialization: { kind: "Bladesworn", state },
@@ -1721,6 +2022,29 @@ test("Bladesworn preserves partial charge time across fragmented advancement", (
   }
   assert.equal(state.dragonCharges, 10);
   assert.equal(state.flow, 54.5);
+  assert.deepEqual(
+    context.events.map(({ at, value, flowAfter, granted }) => ({
+      at,
+      value,
+      flowAfter,
+      granted,
+    })),
+    projectDragonCharges({
+      startTime: 0,
+      flow: 100,
+      maximumFlow: 100,
+      maximumCharges: 10,
+      chargesPerInterval: 1,
+      flowPerInterval: 5,
+      flowRateSegments: [{ start: 0, end: 2.5, flowPerSecond: 2 }],
+      deadline: 2.5,
+    }).map(({ at, charges, flowAfter, granted }) => ({
+      at,
+      value: charges,
+      flowAfter,
+      granted,
+    })),
+  );
 });
 
 test("Bladesworn gunsaber skills expose icons and current PvE ammo", () => {
@@ -1931,8 +2255,18 @@ test("Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow", (
     [ID.FLOW_STABILIZER, { type: "wait", durationMs: 8500 }],
     { initialResource: 0 },
   );
+  const unstabilized = simulate(
+    "Bladesworn",
+    [{ type: "wait", durationMs: 8500 }],
+    { initialResource: 0 },
+  );
   assert.equal(warriorCatalog.skillsById.get(ID.FLOW_STABILIZER).castTimeMs, 0);
   assert.equal(stabilized.endState.profession.flow, 49);
+  assert.equal(unstabilized.endState.profession.flow, 17);
+  assert.equal(
+    stabilized.endState.profession.flow - unstabilized.endState.profession.flow,
+    32,
+  );
   assert.equal(
     stabilized.events.some(
       (event) =>
@@ -1943,6 +2277,40 @@ test("Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow", (
     ),
     true,
   );
+
+  const overlapping = simulate(
+    "Bladesworn",
+    [
+      { type: "wait", durationMs: 2000 },
+      ID.FLOW_STABILIZER,
+      { type: "wait", durationMs: 2000 },
+      ID.FLOW_STABILIZER,
+      { type: "wait", durationMs: 4000 },
+    ],
+    { initialResource: 0 },
+  );
+  assert.equal(overlapping.endState.profession.flow, 71);
+  assert.deepEqual(
+    overlapping.events
+      .filter(
+        (event) => event.type === "buff" && event.kind === "positive-flow",
+      )
+      .map((event) => [event.at, event.stacks, event.duration]),
+    [
+      [2, 2, 8],
+      [4, 2, 8],
+    ],
+  );
+
+  const firstCast = simulate("Bladesworn", [ID.FLOW_STABILIZER], {
+    initialResource: 0,
+  });
+  const castWithFury = simulate("Bladesworn", [ID.FLOW_STABILIZER], {
+    initialResource: 0,
+    boons: { fury: true },
+  });
+  assert.equal(firstCast.endState.profession.flow, 0);
+  assert.equal(castWithFury.endState.profession.flow, 15);
 
   const converted = simulate("Bladesworn", [ID.SIGNET_OF_FURY], {
     initialResource: 0,
@@ -2481,6 +2849,14 @@ test("Berserker's Power retains applications beyond its visible stack cap", () =
       Number((hit.damage / baselineBolasHits[index].damage).toFixed(9)),
     ),
     [1.15, 1.15],
+  );
+  assert.equal(
+    Math.max(
+      ...buildChartSeries(result, 100).effects["Berserker's Power"].map(
+        (point) => point.v,
+      ),
+    ),
+    4,
   );
 });
 

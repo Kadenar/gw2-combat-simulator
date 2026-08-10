@@ -39,6 +39,14 @@
         "rotation": "Rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
         "benchmarkDps": 42828,
         "upToDate": true
+      },
+      {
+        "label": "Power (Hammer + Dagger/Mace)",
+        "build": "Builds/warrior/b-power-spellbreaker-hammer-dagger-mace.json",
+        "rotation": "Rotations/warrior/r-power-spellbreaker-hammer-dagger-mace-bench.json",
+        "dpsReportUrl": "https://dps.report/dzrB-20260721-123458_golem",
+        "benchmarkDps": 42532,
+        "upToDate": true
       }
     ]
   },

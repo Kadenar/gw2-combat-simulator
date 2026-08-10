@@ -15,6 +15,7 @@ import type {
 } from "../../../../platform/gw2/types.js";
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
+  DRAGON_TRIGGER_FLOW_COST,
   maximumDragonCharges,
   requestedDragonCharges,
 } from "./dragon-trigger.js";
@@ -25,6 +26,9 @@ import {
   observeBladeswornEvent,
   trackBladeswornAmmoCast,
 } from "./traits.js";
+
+export const ENTER_DRAGON_TRIGGER_REASON =
+  "Enter Dragon Trigger before using this skill.";
 
 export const bladeswornSchedulerHooks = Object.freeze({
   advance: { id: "warrior.flow", order: 20, handler: advanceBladesworn },
@@ -162,7 +166,7 @@ function availability(
       ready: false,
       retryAt: null,
       code: "warrior.dragon-trigger",
-      reason: "Enter Dragon Trigger before using this skill.",
+      reason: ENTER_DRAGON_TRIGGER_REASON,
     };
   }
   if (skill.dragonSlash) {
@@ -226,12 +230,15 @@ function availability(
       reason: "Dragon Trigger is already active.",
     };
   }
-  if (skill.id === ID.DRAGON_TRIGGER && state.flow < 10) {
+  if (
+    skill.id === ID.DRAGON_TRIGGER &&
+    state.flow + context.epsilon < DRAGON_TRIGGER_FLOW_COST
+  ) {
     return {
       ready: false,
       retryAt: null,
       code: "warrior.flow",
-      reason: "Dragon Trigger requires at least 10 flow.",
+      reason: `Dragon Trigger requires at least ${DRAGON_TRIGGER_FLOW_COST} flow.`,
     };
   }
   return { ready: true };

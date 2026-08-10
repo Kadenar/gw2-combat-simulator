@@ -320,6 +320,10 @@ export function createScheduler<
   let independentReadyAt = state.time;
   let latestBlockingEnd = state.time;
   let latestReservedEnd = state.time;
+  // A self-stunning skill (e.g. Head Butt) blocks the serial cast lane until
+  // this time. Non-stunbreak serial casts wait for it; a stunbreak ignores and
+  // clears it. Stability at cast end prevents the stun from being set at all.
+  let selfStunUntil = state.time;
   let hasPreviousCast = false;
   let combatStartTime: number | null = null;
   let taskQueue: TaskQueue<SchedulerContext<TProfessionState>, SchedulerRecord>;
@@ -905,13 +909,21 @@ export function createScheduler<
     }
     const concurrent = command.concurrentOffsetMs != null;
     const independent = skill.independentCast === true;
+    const stunbreak = skill.stunbreak === true;
+    // Instant-cast skills (Berserk, signets, most profession keys) are not held
+    // by a self-stun; only skills that occupy the cast bar are. A stunbreak also
+    // bypasses (and clears) the stun. Everything else waits it out.
+    const bypassesSelfStun =
+      stunbreak || Number(skill.castTimeMs) === 0;
     // Concurrent offsets are relative to the previous cast's start, not the
     // current clock. This models instant/concurrent actions embedded in a cast.
     let start = concurrent
       ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
       : independent
         ? Math.max(state.time, independentReadyAt)
-        : Math.max(state.time, serialReadyAt, latestBlockingEnd);
+        : bypassesSelfStun
+          ? Math.max(state.time, serialReadyAt, latestBlockingEnd)
+          : Math.max(state.time, serialReadyAt, latestBlockingEnd, selfStunUntil);
     if (start < state.time - epsilon) {
       recordInvalid(
         commandIndex,
@@ -1146,6 +1158,13 @@ export function createScheduler<
       hasPreviousCast = true;
       latestBlockingEnd = Math.max(latestBlockingEnd, effectiveEnd);
       if (!concurrent) serialReadyAt = effectiveEnd;
+      // A stunbreak clears any pending self-stun; a self-stunning skill sets a
+      // fresh one, unless stability is up when the cast ends.
+      if (stunbreak) selfStunUntil = state.time;
+      const selfStunMs = Number(skill.selfStunMs || 0);
+      if (selfStunMs > 0 && !context.hasBuff("stability", effectiveEnd)) {
+        selfStunUntil = Math.max(selfStunUntil, effectiveEnd + selfStunMs / 1000);
+      }
     }
     return true;
   }

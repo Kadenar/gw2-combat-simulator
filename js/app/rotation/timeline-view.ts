@@ -12,6 +12,7 @@ import {
   openActivationEditor,
   suggestedActivationInterruptMs,
 } from "../../platform/ui/activation-editor.js";
+import { closeChargeReleaseEditor } from "../../platform/ui/charge-release-editor.js";
 import { escapeHtml as esc } from "../../platform/ui/html.js";
 import {
   mountRotationInsertionCursor,
@@ -27,6 +28,9 @@ import {
   resolveProcIcon,
 } from "./icons.js";
 import { renderPalette, resolvePaletteDropItem } from "./palette-view.js";
+import { renderRotationStateSnapshot } from "./state-snapshot-view.js";
+import { createRotationItem } from "./actions.js";
+import { openDragonSlashReleaseEditor } from "./charge-release.js";
 import { formatResultTimelineTime } from "./result-model.js";
 import {
   continuumEndTimelineMarkers,
@@ -103,28 +107,44 @@ function editRotationOption(
   return true;
 }
 
-function editReleaseAtCharges(app: ProfessionAppState, index: number): boolean {
+function editReleaseAtCharges(
+  app: ProfessionAppState,
+  index: number,
+  event?: Event,
+): boolean {
   const entry = app.build.rotation[index];
   if (entry === undefined) return false;
   const item = timelineItem(entry);
-  const raw = prompt(
-    "Release at charges (1-10; blank for maximum):",
-    String(item.releaseAtCharges ?? ""),
-  );
-  if (raw == null) return false;
-  const trimmed = raw.trim();
-  if (!trimmed) {
-    app.build.rotation[index] = updateRotationEntry(entry, {
-      releaseAtCharges: undefined,
-    }) as LegacyRotationItem;
-    return true;
-  }
-  const value = Number(trimmed);
-  if (!Number.isInteger(value) || value < 1 || value > 10) return false;
-  app.build.rotation[index] = updateRotationEntry(entry, {
-    releaseAtCharges: value,
-  }) as LegacyRotationItem;
-  return true;
+  const explicitSkillId = item.skillId == null ? null : Number(item.skillId);
+  const skill =
+    explicitSkillId !== null && Number.isFinite(explicitSkillId)
+      ? app.skillById.get(explicitSkillId)
+      : app.skillByName.get(item.name);
+  if (!skill?.dragonSlash) return false;
+  const eventTarget = event?.currentTarget;
+  const anchor =
+    (eventTarget instanceof HTMLElement ? eventTarget : null) ||
+    document.querySelector<HTMLElement>(
+      `#rotation-timeline .rot-charge-release-badge[data-idx="${index}"]`,
+    );
+  if (!anchor) return false;
+  openDragonSlashReleaseEditor({
+    app,
+    anchor,
+    skill,
+    insertionIndex: index,
+    currentReleaseAtCharges:
+      item.releaseAtCharges == null ? null : Number(item.releaseAtCharges),
+    onApply(releaseAtCharges) {
+      const currentEntry = app.build.rotation[index];
+      if (currentEntry === undefined) return;
+      app.build.rotation[index] = updateRotationEntry(currentEntry, {
+        releaseAtCharges,
+      }) as LegacyRotationItem;
+      app.changed(false);
+    },
+  });
+  return false;
 }
 
 function editRotationActivation(
@@ -190,8 +210,42 @@ function timelineInteractionOptions(
     setDragState: (value) => {
       app.dragState = value;
     },
-    resolvePaletteEntry: (name, drag) => {
+    resolvePaletteEntry: (name, drag, insertAt) => {
       const parsedSkillId = Number(drag?.skillId);
+      const skill = Number.isFinite(parsedSkillId)
+        ? app.skillById.get(parsedSkillId)
+        : app.skillByName.get(name);
+      if (skill?.dragonSlash) {
+        const anchor =
+          document.querySelector<HTMLElement>(
+            "#rotation-palette .pal-skill.dragging",
+          ) ||
+          [
+            ...document.querySelectorAll<HTMLElement>(
+              "#rotation-palette .pal-skill[data-skill]",
+            ),
+          ].find((element) => element.dataset.skill === name) ||
+          null;
+        if (!anchor) return null;
+        openDragonSlashReleaseEditor({
+          app,
+          anchor,
+          skill,
+          insertionIndex: insertAt,
+          onApply(releaseAtCharges) {
+            const item = createRotationItem(app, name, {
+              ...(Number.isFinite(parsedSkillId)
+                ? { skillId: parsedSkillId }
+                : {}),
+              ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
+            });
+            app.build.rotation.splice(insertAt, 0, item);
+            app.rotationInsertionIndex = null;
+            app.changed(false);
+          },
+        });
+        return null;
+      }
       return resolvePaletteDropItem(
         app,
         name,
@@ -213,7 +267,8 @@ function timelineInteractionOptions(
       ),
     onEditActivation: (index, event) =>
       editRotationActivation(app, index, event),
-    onEditReleaseAtCharges: (index) => editReleaseAtCharges(app, index),
+    onEditReleaseAtCharges: (index, event) =>
+      editReleaseAtCharges(app, index, event),
     onEditWait: (index) =>
       editRotationOption(app, index, "waitMs", "Wait duration (ms):"),
   };
@@ -221,6 +276,7 @@ function timelineInteractionOptions(
 
 export function renderTimeline(app: ProfessionAppState): void {
   closeActivationEditor();
+  closeChargeReleaseEditor();
   const element = document.getElementById("rotation-timeline");
   const procElement = document.getElementById("rotation-procs");
   if (!element) return;
@@ -247,11 +303,13 @@ export function renderTimeline(app: ProfessionAppState): void {
         app.rotationInsertionIndex = index;
         renderPalette(app);
         renderTimeline(app);
+        renderRotationStateSnapshot(app);
       },
       onClear() {
         app.rotationInsertionIndex = null;
         renderPalette(app);
         renderTimeline(app);
+        renderRotationStateSnapshot(app);
       },
     });
     bindTimelineInteractions(element, timelineInteractionOptions(app));
@@ -505,16 +563,39 @@ export function renderTimeline(app: ProfessionAppState): void {
             } consumed at ${resourceSpendTiming}`
           : "";
         const resourceShortLabel = resourceSpend
-          ? `${resourceSpend.count}${
-              resourceSpend.resource === "blades"
-                ? "B"
-                : resourceSpend.resource === "clones"
-                  ? "C"
-                  : resourceSpend.resource === "notes"
-                    ? "N"
-                    : "R"
-            }`
+          ? resourceSpend.resource === "dragon charges"
+            ? `⚡${resourceSpend.count}`
+            : `${resourceSpend.count}${
+                resourceSpend.resource === "blades"
+                  ? "B"
+                  : resourceSpend.resource === "clones"
+                    ? "C"
+                    : resourceSpend.resource === "notes"
+                      ? "N"
+                      : "R"
+              }`
           : "";
+        const dragonOutcome =
+          resourceSpend?.resource === "dragon charges" ? resourceSpend : null;
+        const requestedCharges =
+          item.releaseAtCharges == null
+            ? Number(dragonOutcome?.maximumCharges)
+            : Number(item.releaseAtCharges);
+        const actualCharges = Number(
+          dragonOutcome?.chargesReached ?? dragonOutcome?.count,
+        );
+        const chargeMismatch =
+          Boolean(dragonOutcome) &&
+          Number.isFinite(requestedCharges) &&
+          Number.isFinite(actualCharges) &&
+          requestedCharges !== actualCharges;
+        const chargeOutcomeDetails = dragonOutcome
+          ? [
+              `Charges reached: ${actualCharges}`,
+              `Time spent charging: ${Number(dragonOutcome.chargingSeconds || 0).toFixed(3)}s`,
+              `Flow spent: ${Number(dragonOutcome.flowSpent || 0).toFixed(2)}`,
+            ]
+          : [];
         const skillTooltip =
           step &&
           !invalid &&
@@ -526,6 +607,7 @@ export function renderTimeline(app: ProfessionAppState): void {
                 step,
                 castOrdinals.get(index),
                 formatTime,
+                chargeOutcomeDetails,
               )
             : display;
         const titleSuffix = invalid
@@ -554,7 +636,7 @@ export function renderTimeline(app: ProfessionAppState): void {
         );
         const canEditActivation =
           item.interruptMs != null || fullCastMs > 0 || catalogCastMs > 0;
-        rowItems.push(`<div class="rot-skill${item.offset != null ? " rot-concurrent" : ""}${invalid ? " rot-invalid" : ""}" draggable="true"
+        rowItems.push(`<div class="rot-skill${item.offset != null ? " rot-concurrent" : ""}${invalid ? " rot-invalid" : ""}${chargeMismatch ? " rot-charge-mismatch" : ""}" draggable="true"
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ""}
@@ -725,11 +807,13 @@ export function renderTimeline(app: ProfessionAppState): void {
       app.rotationInsertionIndex = index;
       renderPalette(app);
       renderTimeline(app);
+      renderRotationStateSnapshot(app);
     },
     onClear() {
       app.rotationInsertionIndex = null;
       renderPalette(app);
       renderTimeline(app);
+      renderRotationStateSnapshot(app);
     },
   });
 

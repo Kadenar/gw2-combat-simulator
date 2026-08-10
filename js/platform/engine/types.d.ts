@@ -261,6 +261,19 @@ export interface Skill extends CatalogSkill {
    * resolving the alternate outcome and preserving the original recharge.
    */
   readonly usableWhileRecharging?: boolean;
+  /**
+   * Self-inflicted stun applied to the player when this serial cast completes
+   * (e.g. Berserker Head Butt). The player's cast lane is blocked for this many
+   * milliseconds after the cast unless the next serial skill is a `stunbreak`,
+   * or the player has stability when the cast ends.
+   */
+  readonly selfStunMs?: number;
+  /**
+   * Marks this skill as a stunbreak. A stunbreak may be cast during an active
+   * self-stun (see `selfStunMs`) and clears it, letting the player act again
+   * immediately instead of waiting out the stun.
+   */
+  readonly stunbreak?: boolean;
   readonly ammo?: number;
   readonly ammoRecharge?: number;
   readonly defaultInterruptMs?: number;
@@ -718,8 +731,27 @@ export interface PaletteSkillAvailability {
   readonly message: string;
 }
 
+/**
+ * One inspectable value in the rotation "active state" bar (crit chance, a
+ * profession timer such as Berserk, a target debuff, etc.). Rendered as text at
+ * the current point in the rotation, or at the insertion cursor when one is set.
+ * Professions contribute cherry-picked items; each `id` must be unique across
+ * the merged set for the active specialization.
+ */
+export interface RotationStateSnapshotItem {
+  readonly id: string;
+  readonly label: string;
+  readonly value: string;
+  /** When `false`, the item is omitted from the bar. Defaults to shown. */
+  readonly active?: boolean;
+  readonly title?: string;
+}
+
 export interface ProfessionUiContract {
   readonly assumptionControls: readonly SchedulerRecord[];
+  readonly chargeReleaseProjection: (
+    context: SchedulerRecord,
+  ) => SchedulerRecord | null;
   readonly eventLogRow?: (
     context: SchedulerRecord,
     event: SimulationEvent,
@@ -761,6 +793,9 @@ export interface ProfessionUiContract {
   ) => ProfessionStartControl[];
   readonly slotLoadout: SchedulerRecord | null;
   readonly targetHealthThresholds: (context: SchedulerRecord) => number[];
+  readonly rotationStateSnapshot: (
+    context: SchedulerRecord,
+  ) => RotationStateSnapshotItem[];
   readonly timelineWeaponLineTransition: (
     context: SchedulerRecord,
   ) => string | null | undefined;

@@ -21,7 +21,7 @@ import type {
   WarriorSkill,
 } from "../types.js";
 
-const MOVEMENT_SKILL_IDS = new Set<number>([
+export const BRAVE_STRIDE_MOVEMENT_SKILL_IDS = Object.freeze([
   ID.SAVAGE_LEAP,
   ID.WHIRLWIND_ATTACK,
   ID.RUSH,
@@ -45,6 +45,7 @@ const MOVEMENT_SKILL_IDS = new Set<number>([
   ID.EARTHSHAKER,
   ID.RUPTURING_SMASH,
 ]);
+const MOVEMENT_SKILL_IDS = new Set<number>(BRAVE_STRIDE_MOVEMENT_SKILL_IDS);
 
 const BODY_BLOW_CONTROL_KINDS = new Set([
   "stun",
@@ -65,6 +66,42 @@ export function armBurstPrecision(
   }
   professionCoreState(context).burstPrecisionDurations[context.reservationId] =
     spent >= 30 ? 4 : 2;
+}
+
+export function applyWarriorBurstSpendTraits(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+  adrenalineSpent: number,
+  resourceSpent = adrenalineSpent,
+): void {
+  armBurstPrecision(context, skill, adrenalineSpent);
+  if (
+    !skill.burst ||
+    adrenalineSpent <= 0 ||
+    !hasTrait(context, TRAIT.BURST_MASTERY)
+  ) {
+    return;
+  }
+  const bladesworn =
+    context.state.profession.specialization.kind === "Bladesworn";
+  gainWarriorAdrenaline(
+    context,
+    Math.max(0, resourceSpent) * (bladesworn ? 0.2 : 0.33),
+  );
+  context.emit({
+    type: "buff",
+    at: context.effectiveEnd + context.epsilon,
+    source: "Trait",
+    sourceId: TRAIT.BURST_MASTERY,
+    actorType: "effect",
+    skillId: skill.id,
+    skillName: skill.name,
+    name: "Burst Mastery — Swiftness",
+    kind: "swiftness",
+    boon: "swiftness",
+    stacks: 1,
+    duration: 3,
+  });
 }
 
 function berserkersPowerStacks(
@@ -237,6 +274,12 @@ export function completeWarriorSkill(
   if (skill.id === ID.TREMOR) {
     context.state.cooldowns.delete(ID.CRUSHING_BLOW);
   }
+  if (skill.id === ID.BACKBREAKER) {
+    context.state.cooldowns.delete(ID.FIERCE_BLOW);
+  }
+  if (skill.id === ID.TO_THE_LIMIT) {
+    gainWarriorEndurance(context, 100, at);
+  }
   if (skill.id === ID.GUNSTINGER) {
     const dragonsRoar = context.catalog.skillsById.get(ID.DRAGONS_ROAR);
     if (dragonsRoar) restoreAmmo(context, dragonsRoar, 3, at);
@@ -292,6 +335,22 @@ export function beginWarriorSkill(
   context: WarriorCastContext,
   skill: WarriorSkill,
 ): void {
+  if (skill.type === "Heal" && hasTrait(context, TRAIT.THICK_SKIN)) {
+    context.emit({
+      type: "buff",
+      at: context.start,
+      source: "Trait",
+      sourceId: TRAIT.THICK_SKIN,
+      actorType: "effect",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: "Thick Skin",
+      kind: "protection",
+      boon: "protection",
+      stacks: 1,
+      duration: 3,
+    });
+  }
   if (
     !skill.categories?.includes("Physical") ||
     !hasTrait(context, TRAIT.PEAK_PERFORMANCE)
@@ -663,6 +722,26 @@ export function observeWarriorEvent(
       );
       if (!state.burstHitActivations[activationKey]) {
         state.burstHitActivations[activationKey] = true;
+        if (
+          hasTrait(context, TRAIT.CULL_THE_WEAK) &&
+          event.at + context.epsilon >=
+            Number(state.traitProcReadyAt.cullTheWeak || 0)
+        ) {
+          state.traitProcReadyAt.cullTheWeak = event.at + 5;
+          context.emitDerived(event, {
+            type: "condition",
+            at: event.at,
+            source: "Trait",
+            sourceId: TRAIT.CULL_THE_WEAK,
+            actorType: "effect",
+            skillId: event.skillId,
+            skillName: event.skillName,
+            name: "Cull the Weak — Weakness",
+            condition: "Weakness",
+            stacks: 1,
+            duration: 3.5,
+          });
+        }
         if (hasTrait(context, TRAIT.BURST_PRECISION)) {
           const duration = Number(
             state.burstPrecisionDurations[activationKey] ||

@@ -30,22 +30,34 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.EARTHSHAKER_ID_40601]: {
     implemented: true,
+    skillWeapon: "Hammer",
+    cooldown: 8,
+    recharge: 8,
     castTimeMs: 750,
     effects: [
       {
         type: "strike",
         coefficient: 2.75,
         hits: 1,
+        atMs: 840,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: {
+          finisherType: "blast",
+        },
       },
       {
         type: "control",
+        atMs: 840,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         metadata: {
           controlKind: "stun",
           duration: 1,
         },
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 1000,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -252,6 +264,13 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
         coefficient: 1.5,
         hits: 1,
       },
+      {
+        type: "custom",
+        eventType: "warrior.boon-removal",
+        event: {
+          attemptedBoonRemovals: 4,
+        },
+      },
     ],
     quicknessCastTimeMs: 167,
   },
@@ -357,6 +376,8 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
     implemented: true,
+    comboField: "Lightning",
+    duration: 5,
     castTimeMs: 1500,
     effects: [
       {
@@ -370,6 +391,19 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
         persistsAfterInterrupt: true,
         metadata: {
           extendsResolutionHorizon: true,
+        },
+      },
+      {
+        type: "custom",
+        eventType: "warrior.boon-removal",
+        atMs: 800,
+        intervalMs: 1000,
+        applications: 5,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
+        event: {
+          attemptedBoonRemovals: 1,
         },
       },
     ],
@@ -412,20 +446,32 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   [ID.BREACHING_STRIKE_ID_69297]: {
     implemented: true,
     skillWeapon: "Dagger",
+    finisherType: "Leap",
+    finisherValue: 1,
     cooldown: 8,
     recharge: 8,
-    castTimeMs: 842,
+    castTimeMs: 840,
     effects: [
       {
         type: "strike",
         coefficient: 2.5,
         hits: 1,
-        atMs: 758,
+        atMs: 760,
         timingAnchor: "castStart",
         timingScale: "fixed",
       },
+      {
+        type: "custom",
+        eventType: "warrior.boon-removal",
+        atMs: 760,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        event: {
+          attemptedBoonRemovals: 2,
+        },
+      },
     ],
-    quicknessCastTimeMs: 842,
+    quicknessCastTimeMs: 840,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

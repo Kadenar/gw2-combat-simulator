@@ -227,6 +227,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
     castTimeMs: 0,
     effects: [],
     adrenalineGain: 10,
+    stunbreak: true,
     handlerId: "warrior.resource",
   },
   [ID.HEAD_BUTT]: {
@@ -248,6 +249,9 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
     ],
     quicknessCastTimeMs: 800,
     adrenalineGain: 30,
+    // Head Butt stuns both the foe and the player. The self-stun holds the cast
+    // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
+    selfStunMs: 1000,
     handlerId: "warrior.resource",
   },
   [ID.BERSERK_ID_30435]: {
@@ -309,7 +313,9 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
   },
   [ID.RUPTURING_SMASH]: {
     implemented: true,
-    skillWeapon: "Spear",
+    skillWeapon: "Hammer",
+    cooldown: 5,
+    recharge: 5,
     castTimeMs: 750,
     effects: [
       {
@@ -334,7 +340,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 480,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

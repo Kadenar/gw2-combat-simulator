@@ -98,6 +98,7 @@ const VALID_CAST: ComposableHook = (..._args) => true;
 const READY_CAST: ComposableHook = (..._args) => ({ ready: true });
 
 const UI_CALLBACK_NAMES = Object.freeze([
+  "chargeReleaseProjection",
   "eventLogRow",
   "isPaletteSkillInstant",
   "paletteSkillAvailability",
@@ -110,6 +111,7 @@ const UI_CALLBACK_NAMES = Object.freeze([
   "skillBarGroups",
   "startControls",
   "targetHealthThresholds",
+  "rotationStateSnapshot",
   "timelineWeaponLineTransition",
   "timelineSkillIcon",
   "updateSkillBarSelection",
@@ -509,6 +511,7 @@ export function defineProfession<TProfessionState extends object>(
   const normalizedUi: ProfessionUiContract = {
     ...ui,
     assumptionControls: Object.freeze([...(ui.assumptionControls || [])]),
+    chargeReleaseProjection: ui.chargeReleaseProjection || (() => null),
     paletteGroups: ui.paletteGroups || (() => []),
     resourceView: (context: SchedulerRecord) =>
       resourceViews(context)[0] || null,
@@ -524,6 +527,7 @@ export function defineProfession<TProfessionState extends object>(
     startControls: ui.startControls || (() => []),
     slotLoadout: ui.slotLoadout || null,
     targetHealthThresholds: ui.targetHealthThresholds || (() => []),
+    rotationStateSnapshot: ui.rotationStateSnapshot || (() => []),
     timelineWeaponLineTransition:
       ui.timelineWeaponLineTransition || (() => undefined),
     timelineSkillIcon: ui.timelineSkillIcon || (() => ""),
@@ -625,6 +629,7 @@ const UI_LIST_CALLBACK_NAMES = Object.freeze([
   "skillBarGroups",
   "startControls",
   "targetHealthThresholds",
+  "rotationStateSnapshot",
 ]);
 const UI_SINGLE_CALLBACK_NAMES = Object.freeze(["weaponSkillMatchesSet"]);
 
@@ -1401,6 +1406,16 @@ export function createProfessionFamilyUi(
       [selected.context, event],
       (result) => result !== undefined,
       undefined,
+    );
+  };
+  ui.chargeReleaseProjection = (context: SchedulerRecord) => {
+    const selected = scalarSlices(context, context.skill as Skill);
+    return firstUiMatch(
+      selected.slices,
+      "chargeReleaseProjection",
+      [selected.context],
+      (result) => result !== undefined && result !== null,
+      null,
     );
   };
   ui.isPaletteSkillInstant = (context: SchedulerRecord, skill: Skill) => {

@@ -111,6 +111,7 @@ export function formatTimelineSkillTooltip(
   step: SchedulerStep | null | undefined,
   ordinal: TimelineCastOrdinal | null | undefined,
   formatTime: (time: number) => string,
+  details: readonly string[] = [],
 ): string {
   if (!step || step.invalid || !ordinal) return String(name || "");
   const duration = Math.max(
@@ -121,6 +122,7 @@ export function formatTimelineSkillTooltip(
     `${name} at ${formatTime(step.start)} for ${duration}ms`,
     `${name} cast ${ordinal.matchingIndex} of ${ordinal.matchingTotal}`,
     `Skill cast ${ordinal.skillIndex} of ${ordinal.skillTotal}`,
+    ...details,
   ].join("\n");
 }
 
@@ -376,7 +378,7 @@ export function bindTimelineInteractions(
     }
     if (drag.source === "palette") {
       const name = String(drag.name ?? drag.skillName ?? "");
-      const resolved = options.resolvePaletteEntry?.(name, drag);
+      const resolved = options.resolvePaletteEntry?.(name, drag, insertAt);
       // Palette macros may resolve to multiple adjacent entries.
       const inserted = Array.isArray(resolved)
         ? insertRotationEntries(rotation, resolved, insertAt)

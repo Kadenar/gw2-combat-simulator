@@ -26,6 +26,7 @@ const IMPLEMENTED = new Set([
   "Martial Cadence",
   "Vigorous Shouts",
   "Phalanx Strength",
+  "Thick Skin",
   "Cull the Weak",
   "Merciless Hammer",
   "Stalwart Strength",

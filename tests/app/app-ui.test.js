@@ -32,12 +32,14 @@ import {
   weaponPaletteStackHtml,
   weaponPaletteRows,
 } from "../../js/app/rotation/palette-model.js";
+import { dragonChargeReleaseProjection } from "../../js/professions/warrior/specializations/bladesworn/charge-release.js";
 import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
   procFilterLabel,
   relicProcTimelineMarkers,
   rotationSkillHighlightKey,
+  shatterResourceSpends,
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
   timelineWeaponRows,
@@ -245,6 +247,85 @@ test("palette additions insert at an armed cursor and advance it", () => {
   ]);
   assert.equal(app.rotationInsertionIndex, 4);
   assert.equal(changeCount, 2);
+});
+
+test("Dragon Slash release projections respect Flow and traited charge caps", () => {
+  const skill = {
+    id: 1,
+    name: "Dragon Slash—Force",
+    dragonSlashMinimumCoefficient: 1.16,
+    dragonSlashMaximumCoefficient: 20.4,
+  };
+  const entry = {
+    type: "resource",
+    at: 1,
+    source: "Warrior",
+    sourceId: 2,
+    reason: "dragon trigger entry",
+    rotationIndex: 0,
+    value: 10,
+    maximumFlow: 100,
+    maximumCharges: 5,
+    chargesPerInterval: 1,
+    flowPerInterval: 10,
+    nextChargeAt: 1.25,
+    deadline: 3.5,
+    flowRateSegments: [],
+  };
+  const projection = dragonChargeReleaseProjection({
+    events: [entry],
+    insertionIndex: 1,
+    skill,
+  });
+
+  assert.equal(projection.unavailableMessage, undefined);
+  assert.deepEqual(
+    projection.rows.map((row) => row.charges),
+    [1, 2, 3, 4, 5],
+  );
+  assert.equal(projection.rows[0].disabled, false);
+  assert.equal(projection.rows[0].flowAfter, 0);
+  assert.equal(projection.rows[1].disabled, true);
+  assert.match(projection.rows[1].reason, /Insufficient Flow/);
+  assert.equal(projection.rows.at(-1).coefficient, 20.4);
+  assert.equal(
+    dragonChargeReleaseProjection({
+      events: [],
+      insertionIndex: 1,
+      skill,
+    }).unavailableMessage,
+    "Enter Dragon Trigger before using this skill.",
+  );
+});
+
+test("Dragon Slash resource spends preserve charge outcome details", () => {
+  const spends = shatterResourceSpends({
+    events: [
+      {
+        type: "resource",
+        reason: "profession mechanic",
+        rotationIndex: 4,
+        amount: -4,
+        resource: "dragon charges",
+        sourceSkill: "Dragon Slash—Force",
+        requestedCharges: 3,
+        maximumCharges: 10,
+        chargesReached: 4,
+        chargingSeconds: 0.75,
+        flowSpent: 10,
+      },
+    ],
+  });
+  assert.deepEqual(spends.get(4), {
+    count: 4,
+    resource: "dragon charges",
+    sourceSkill: "Dragon Slash—Force",
+    requestedCharges: 3,
+    maximumCharges: 10,
+    chargesReached: 4,
+    chargingSeconds: 0.75,
+    flowSpent: 10,
+  });
 });
 
 test("proc visibility remains hidden after its first render", () => {

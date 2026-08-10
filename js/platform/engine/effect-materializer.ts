@@ -190,15 +190,26 @@ export function materializeSkillEffectApplications({
       },
     });
   } else if (effect.type === "custom") {
-    applications.push({
-      at: firstAt,
-      event: {
-        ...baseEvent,
-        at: firstAt,
-        ...effect.event,
-        type: effect.eventType,
-      },
-    });
+    const count = Math.max(1, Math.trunc(Number(effect.applications || 1)));
+    const interval = Math.max(0, Number(effect.intervalMs || 0)) / 1000;
+    for (
+      let applicationIndex = 1;
+      applicationIndex <= count;
+      applicationIndex += 1
+    ) {
+      const at = firstAt + (applicationIndex - 1) * interval;
+      applications.push({
+        at,
+        event: {
+          ...baseEvent,
+          at,
+          ...effect.event,
+          type: effect.eventType,
+          applicationIndex,
+          totalApplications: count,
+        },
+      });
+    }
   }
 
   return applications;

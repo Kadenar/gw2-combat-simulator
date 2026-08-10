@@ -108,6 +108,7 @@ export interface TimelineInteractionOptions {
   readonly resolvePaletteEntry?: (
     name: string,
     drag: RotationDragState | null | undefined,
+    insertAt: number,
   ) =>
     | LegacyRotationItem
     | SchedulerRecord
