@@ -3,20 +3,17 @@ import {
   defineNativeModule,
 } from "../../../../platform/gw2/native-profession.js";
 import { createEngineerModuleData } from "../../catalog-data.js";
+import { holosmithSkillHandlers } from "./handlers.js";
+import { holosmithResolverEventHandlers } from "./resolver.js";
 import {
-  holosmithEventHandlers,
-  holosmithSchedulerHooks,
-  holosmithSkillHandlers,
-} from "./handlers.js";
-import { holosmithAttributeRules, holosmithCastRules } from "./rules.js";
+  holosmithAdvancedSchedulerHooks,
+  holosmithAfterCast,
+  holosmithAttributeRules,
+  holosmithCastRules,
+} from "./rules.js";
 import { HOLOSMITH_SKILL_MECHANICS } from "./skills.js";
 import { holosmithState } from "./state.js";
 import { bindHolosmithUi } from "./ui.js";
-
-const {
-  afterCast: holosmithAfterCast,
-  ...holosmithAdvancedSchedulerHooks
-} = holosmithSchedulerHooks;
 
 export const holosmithModule = defineNativeModule({
   id: "Holosmith",
@@ -30,7 +27,7 @@ export const holosmithModule = defineNativeModule({
     castRules: holosmithCastRules,
     castLifecycle: [afterSkillEffects(holosmithAfterCast)],
     schedulerHooks: holosmithAdvancedSchedulerHooks,
-    resolverHooks: { eventHandlers: holosmithEventHandlers },
+    resolverHooks: { eventHandlers: holosmithResolverEventHandlers },
   },
   presentation: bindHolosmithUi,
 });

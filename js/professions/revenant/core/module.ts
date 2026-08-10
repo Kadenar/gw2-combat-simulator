@@ -1,20 +1,18 @@
 import { defineNativeModule } from "../../../platform/gw2/native-profession.js";
 import { createRevenantModuleData } from "../catalog-data.js";
+import { revenantCoreResolverEventHandlers } from "./resolver.js";
 import {
-  revenantCoreEventHandlers,
-} from "./handlers.js";
-import { revenantCoreAttributeRules } from "./attribute-rules.js";
-import {
+  revenantCoreAttributeRules,
   revenantCastRules,
   revenantSchedulerHooks,
-} from "./rules.js";
-import {
-  createRevenantCoreState,
-  projectRevenantEndState,
   snapshotRevenantState,
-} from "./state.js";
+} from "./rules.js";
+import { createRevenantCoreState, projectRevenantEndState } from "./state.js";
 import { revenantCoreUi } from "./ui.js";
-import { REVENANT_CORE_BASE_SKILL_MECHANICS, REVENANT_CORE_EXTRA_SKILLS } from "./skills.js";
+import {
+  REVENANT_CORE_BASE_SKILL_MECHANICS,
+  REVENANT_CORE_EXTRA_SKILLS,
+} from "./skills.js";
 import { revenantCoreSkillHandlers } from "./handlers.js";
 import type { RevenantSchedulerContext } from "../types.js";
 
@@ -39,7 +37,7 @@ export const revenantCoreModule = defineNativeModule({
         snapshotRevenantState(context.state.profession),
     },
     resolverHooks: {
-      eventHandlers: revenantCoreEventHandlers,
+      eventHandlers: revenantCoreResolverEventHandlers,
     },
   },
   presentation: revenantCoreUi,

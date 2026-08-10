@@ -7,5 +7,3 @@ const handlers = Object.freeze({
 });
 
 export const vindicatorSkillHandlers = new Map(Object.entries(handlers));
-export const vindicatorEventHandlers = Object.freeze({});
-export const vindicatorEventReactions = Object.freeze({});

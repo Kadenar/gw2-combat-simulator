@@ -1,7 +1,5 @@
 import { renegadeState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { RENEGADE_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
@@ -20,13 +18,9 @@ import type {
   RevenantSkill,
 } from "../../types.js";
 
-function activeSkillIds(
-  context: RevenantResolverContext,
-): Set<SkillId> {
+function activeSkillIds(context: RevenantResolverContext): Set<SkillId> {
   return new Set<SkillId>(
-    professionCoreState(context).activeUpkeeps.map(
-      (upkeep) => upkeep.skillId,
-    ),
+    professionCoreState(context).activeUpkeeps.map((upkeep) => upkeep.skillId),
   );
 }
 
@@ -61,9 +55,8 @@ function reactToDamage(
     soulcleave &&
     active.has(soulcleave.id) &&
     event.skillId !== soulcleave.id &&
-    event.at >= Number(
-      professionCoreState(context).traitProcReadyAt.soulcleave || 0
-    )
+    event.at >=
+      Number(professionCoreState(context).traitProcReadyAt.soulcleave || 0)
   ) {
     const profile = MECHANICS.soulcleave;
     professionCoreState(context).traitProcReadyAt.soulcleave =
@@ -121,3 +114,5 @@ export const revenantRenegadeEventReactions = Object.freeze({
   damage: reactToDamage,
   food_proc: reactToFoodProc,
 });
+
+export const renegadeEventHandlers = Object.freeze({});

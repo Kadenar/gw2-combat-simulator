@@ -1,5 +1,4 @@
 import { necromancerShadeSkillHandlers } from "./shades.js";
-import { scourgeResolverEventReactions } from "./resolver.js";
 import {
   augmentSkillHandler,
   replaceSkillHandler,
@@ -8,9 +7,7 @@ import {
 export const scourgeSkillHandlers = new Map([
   [
     "necromancer.shade",
-    replaceSkillHandler(
-      necromancerShadeSkillHandlers["necromancer.shade"],
-    ),
+    replaceSkillHandler(necromancerShadeSkillHandlers["necromancer.shade"]),
   ],
   [
     "necromancer.barrier",
@@ -19,5 +16,3 @@ export const scourgeSkillHandlers = new Map([
     }),
   ],
 ]);
-
-export const scourgeEventReactions = scourgeResolverEventReactions;

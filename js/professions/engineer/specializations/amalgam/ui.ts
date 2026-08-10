@@ -1,6 +1,4 @@
-import {
-  createProfessionAssumptionControls,
-} from "../../../../app/profession/assumptions.js";
+import { createProfessionAssumptionControls } from "../../../../app/profession/assumptions.js";
 import {
   engineerFSkillBarGroups,
   engineerToolbeltSkillIds,
@@ -33,42 +31,37 @@ const AMALGAM_PROTOCOL_ORDER = new Map<string, number>([
   ["Defensive Protocol: Protect", 6],
 ]);
 
-const AMALGAM_ASSUMPTION_CONTROLS =
-  createProfessionAssumptionControls([
-    {
-      key: "inDamagingField",
-      label: "In damaging field",
-      type: "boolean",
-      defaultValue: false,
-      specializations: ["Amalgam"],
-    },
-  ]);
+const AMALGAM_ASSUMPTION_CONTROLS = createProfessionAssumptionControls([
+  {
+    key: "inDamagingField",
+    label: "In damaging field",
+    type: "boolean",
+    defaultValue: false,
+    specializations: ["Amalgam"],
+  },
+]);
 
 function amalgamProtocolOptions(slot: number): EngineerSkill[] {
   return engineerSkills
     .filter(
       (skill) =>
-        skill.specialization === "Amalgam"
-        && skill.categories?.includes("Morph")
-        && Number(skill.mechanicSlot) === slot,
+        skill.specialization === "Amalgam" &&
+        skill.categories?.includes("Morph") &&
+        Number(skill.mechanicSlot) === slot,
     )
     .sort(
       (left, right) =>
-        (AMALGAM_PROTOCOL_ORDER.get(left.name)
-          ?? Number.MAX_SAFE_INTEGER)
-        - (AMALGAM_PROTOCOL_ORDER.get(right.name)
-          ?? Number.MAX_SAFE_INTEGER)
-        || Number(left.id) - Number(right.id),
+        (AMALGAM_PROTOCOL_ORDER.get(left.name) ?? Number.MAX_SAFE_INTEGER) -
+          (AMALGAM_PROTOCOL_ORDER.get(right.name) ?? Number.MAX_SAFE_INTEGER) ||
+        Number(left.id) - Number(right.id),
     );
 }
 
 function selectedMorphIds(context: EngineerUiContext): number[] {
   return [
-    ...(
-      context.build?.selectedMorphSkillIds
-      || engineerUiState(context).selectedMorphSkillIds
-      || []
-    ),
+    ...(context.build?.selectedMorphSkillIds ||
+      engineerUiState(context).selectedMorphSkillIds ||
+      []),
   ].map(Number);
 }
 
@@ -91,13 +84,16 @@ function amalgamSkillBarGroups(context: EngineerUiContext) {
       if (options.some((skill) => skill.id === selected)) {
         skillIds[slot - 1] = selected;
       }
-      return [slot, {
-        label: `F${slot} Protocol`,
-        optionSkillIds: options.map((skill) => skill.id),
-        selectionKey: "selectedMorphSkillIds",
-        selectionIndex: slot - 2,
-        color: "#67aa87",
-      }];
+      return [
+        slot,
+        {
+          label: `F${slot} Protocol`,
+          optionSkillIds: options.map((skill) => skill.id),
+          selectionKey: "selectedMorphSkillIds",
+          selectionIndex: slot - 2,
+          color: "#67aa87",
+        },
+      ];
     }),
   );
   return engineerFSkillBarGroups(skillIds, optionsBySlot);
@@ -112,11 +108,11 @@ function updateAmalgamSkillBarSelection(
   const slot = index + 2;
   const nextSkill = engineerSkillsById.get(Number(selection.skillId));
   if (
-    !context.build
-    || ![0, 1, 2].includes(index)
-    || nextSkill?.specialization !== "Amalgam"
-    || !nextSkill.categories?.includes("Morph")
-    || Number(nextSkill.mechanicSlot) !== slot
+    !context.build ||
+    ![0, 1, 2].includes(index) ||
+    nextSkill?.specialization !== "Amalgam" ||
+    !nextSkill.categories?.includes("Morph") ||
+    Number(nextSkill.mechanicSlot) !== slot
   ) {
     return false;
   }
@@ -127,12 +123,13 @@ function updateAmalgamSkillBarSelection(
   const previousSkill = engineerSkillsById.get(current[index]);
   const conflictIndex = current.findIndex(
     (skillId, candidateIndex) =>
-      candidateIndex !== index
-      && engineerSkillsById.get(skillId)?.name === nextSkill.name,
+      candidateIndex !== index &&
+      engineerSkillsById.get(skillId)?.name === nextSkill.name,
   );
   if (conflictIndex >= 0 && previousSkill) {
-    const replacement = amalgamProtocolOptions(conflictIndex + 2)
-      .find((skill) => skill.name === previousSkill.name);
+    const replacement = amalgamProtocolOptions(conflictIndex + 2).find(
+      (skill) => skill.name === previousSkill.name,
+    );
     if (!replacement) return false;
     current[conflictIndex] = Number(replacement.id);
   }
@@ -141,33 +138,34 @@ function updateAmalgamSkillBarSelection(
   return true;
 }
 
-export const amalgamUi:
-Partial<ProfessionUiContract> & SchedulerRecord = Object.freeze({
-  eventLogRow: (
-    _context: EngineerUiContext,
-    event: EngineerResolverEvent,
-  ) =>
-    event?.type === "engineer.state" ? null : undefined,
-  assumptionControls: AMALGAM_ASSUMPTION_CONTROLS,
-  skillBarGroups: amalgamSkillBarGroups,
-  updateSkillBarSelection: updateAmalgamSkillBarSelection,
-  paletteGroups: (context: EngineerUiContext) => [{
-    id: "engineer-profession",
-    label: "F",
-    skillIds: uniqueIdsBySkillName(
-      amalgamProfessionSkills(context).filter(id => id != null),
-    ),
-    color: "#67aa87",
-    resourceAnchor: true,
-    includeActionSkills: true,
-  }],
-});
+export const amalgamUi: Partial<ProfessionUiContract> & SchedulerRecord =
+  Object.freeze({
+    eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
+      event?.type === "engineer.state" ? null : undefined,
+    assumptionControls: AMALGAM_ASSUMPTION_CONTROLS,
+    skillBarGroups: amalgamSkillBarGroups,
+    updateSkillBarSelection: updateAmalgamSkillBarSelection,
+    paletteGroups: (context: EngineerUiContext) => [
+      {
+        id: "engineer-profession",
+        label: "F",
+        skillIds: uniqueIdsBySkillName(
+          amalgamProfessionSkills(context).filter((id) => id != null),
+        ),
+        color: "#67aa87",
+        resourceAnchor: true,
+        includeActionSkills: true,
+      },
+    ],
+  });
 
 export function bindAmalgamUi(
   catalog: Readonly<CanonicalCatalog>,
 ): typeof amalgamUi {
   engineerSkills = catalog.skills as readonly EngineerSkill[];
-  engineerSkillsById =
-    catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
+  engineerSkillsById = catalog.skillsById as ReadonlyMap<
+    SkillId,
+    EngineerSkill
+  >;
   return amalgamUi;
 }

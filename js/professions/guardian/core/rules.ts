@@ -35,6 +35,8 @@ import {
 import { validateVirtueCast } from "./virtues.js";
 import { updateWeaponCastState, validateWeaponState } from "./weapon-state.js";
 
+export { snapshotGuardianState } from "./state.js";
+
 type GuardianRechargeModifierContext = GuardianSchedulerContext &
   SchedulerRecord & {
     readonly skill?: GuardianSkill;

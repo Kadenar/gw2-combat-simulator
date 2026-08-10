@@ -1,9 +1,7 @@
 import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
 import { createRevenantModuleData } from "../../catalog-data.js";
-import {
-  heraldEventHandlers,
-  heraldSkillHandlers,
-} from "./handlers.js";
+import { heraldSkillHandlers } from "./handlers.js";
+import { heraldEventHandlers } from "./resolver.js";
 import {
   heraldAttributeRules,
   heraldCastRules,

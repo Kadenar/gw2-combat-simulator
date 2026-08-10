@@ -5,13 +5,11 @@ import {
   onResolvedDamage,
 } from "../../../../platform/gw2/native-profession.js";
 import { createNecromancerModuleData } from "../../catalog-data.js";
-import {
-  reaperEventReactions,
-  reaperSchedulerHooks,
-} from "./handlers.js";
+import { reaperResolverEventReactions } from "./resolver.js";
 import {
   reaperAttributeRules,
   reaperCastRules,
+  reaperSchedulerHooks,
 } from "./rules.js";
 import { reaperState } from "./state.js";
 import { reaperUi } from "./ui.js";
@@ -33,9 +31,18 @@ export const reaperModule = defineNativeModule({
     modifiers: reaperAttributeRules,
     castRules: reaperCastRules,
     reactions: [
-      onResolvedDamage({ id: "necromancer.reaper.damage", handler: reaperEventReactions.damage }),
-      onResolvedControl({ id: "necromancer.reaper.control", handler: reaperEventReactions.control }),
-      onConditionApplied({ id: "necromancer.reaper.condition", handler: reaperEventReactions.condition }),
+      onResolvedDamage({
+        id: "necromancer.reaper.damage",
+        handler: reaperResolverEventReactions.damage,
+      }),
+      onResolvedControl({
+        id: "necromancer.reaper.control",
+        handler: reaperResolverEventReactions.control,
+      }),
+      onConditionApplied({
+        id: "necromancer.reaper.condition",
+        handler: reaperResolverEventReactions.condition,
+      }),
     ],
     schedulerHooks: reaperSchedulerHooks,
   },

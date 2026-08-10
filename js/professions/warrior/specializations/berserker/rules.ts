@@ -8,6 +8,26 @@ import type {
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
 import type { WarriorCastContext } from "../../types.js";
+import { advanceBerserker } from "./mechanics.js";
+import { finishBerserkerCast, observeBerserkerEvent } from "./traits.js";
+
+export const berserkerSchedulerHooks = Object.freeze({
+  advance: {
+    id: "warrior.berserker-advance",
+    order: 20,
+    handler: advanceBerserker,
+  },
+  afterCast: {
+    id: "warrior.berserker-duration",
+    order: 20,
+    handler: finishBerserkerCast,
+  },
+  onEventScheduled: {
+    id: "warrior.king-of-fires",
+    order: 20,
+    handler: observeBerserkerEvent,
+  },
+});
 
 function active(context: Gw2ModifierContext): boolean {
   if (

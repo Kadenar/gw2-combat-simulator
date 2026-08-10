@@ -8,9 +8,13 @@ import type { ThiefSkill } from "./types.js";
 
 export { thiefWeaponSkillMatchesSet };
 export const THIEF_ELITE_SPECIALIZATIONS = Object.freeze([
-  "Daredevil", "Deadeye", "Specter", "Antiquary",
+  "Daredevil",
+  "Deadeye",
+  "Specter",
+  "Antiquary",
 ]);
-export const thiefCatalog = assembleNativeApplicationCatalog(thiefNativeModules);
+export const thiefCatalog =
+  assembleNativeApplicationCatalog(thiefNativeModules);
 export const THIEF_SKILLS = thiefCatalog.skills;
 export function thiefSkillRuntimeOwner(skill: ThiefSkill): string {
   return nativeSkillRuntimeOwner(thiefNativeModules, skill);

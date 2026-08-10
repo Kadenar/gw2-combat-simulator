@@ -4,10 +4,6 @@ import { necromancerMinionSkillHandlers } from "./minions.js";
 import { necromancerShroudSkillHandlers } from "./shroud.js";
 import { necromancerWeaponSkillHandlers } from "./weapons.js";
 import {
-  necromancerCoreResolverEventReactions,
-  necromancerCoreResolverEventHandlers,
-} from "./resolver.js";
-import {
   augmentSkillHandler,
   replaceSkillHandler,
   skillHandler,
@@ -24,9 +20,7 @@ const handlers = Object.freeze({
   "necromancer.weapon-swap": replaceSkillHandler(
     rawCoreHandlers["necromancer.weapon-swap"],
   ),
-  "necromancer.flip": augmentSkillHandler(
-    rawCoreHandlers["necromancer.flip"],
-  ),
+  "necromancer.flip": augmentSkillHandler(rawCoreHandlers["necromancer.flip"]),
   "necromancer.signet-vampirism": replaceSkillHandler(
     rawCoreHandlers["necromancer.signet-vampirism"],
   ),
@@ -116,21 +110,3 @@ const handlers = Object.freeze({
 });
 
 export const necromancerCoreSkillHandlers = new Map(Object.entries(handlers));
-
-const CORE_EVENT_HANDLER_IDS = [
-  "necromancer.state",
-  "necromancer.chill",
-  "necromancer.summon-attack",
-] as const;
-
-export const necromancerCoreEventHandlers = Object.freeze(
-  Object.fromEntries(
-    CORE_EVENT_HANDLER_IDS.map((id) => [
-      id,
-      necromancerCoreResolverEventHandlers[id],
-    ]),
-  ),
-);
-
-export const necromancerCoreEventReactions =
-  necromancerCoreResolverEventReactions;

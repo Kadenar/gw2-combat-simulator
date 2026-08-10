@@ -1,7 +1,7 @@
 import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
 import { createRangerModuleData } from "../../catalog-data.js";
-import { druidSchedulerHooks, druidSkillHandlers } from "./handlers.js";
-import { druidCastRules } from "./rules.js";
+import { druidSkillHandlers } from "./handlers.js";
+import { druidCastRules, druidSchedulerHooks } from "./rules.js";
 import { DRUID_BASE_SKILL_MECHANICS } from "./skills.js";
 import { druidState } from "./state.js";
 import { druidUi } from "./ui.js";

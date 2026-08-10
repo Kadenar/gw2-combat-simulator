@@ -9,15 +9,11 @@ import {
   defineProfessionModule,
   resolveProfessionRuntime,
 } from "../../js/platform/engine/profession.js";
-import {
-  nativeSkillRuntimeOwner,
-} from "../../js/platform/gw2/native-profession.js";
+import { nativeSkillRuntimeOwner } from "../../js/platform/gw2/native-profession.js";
 import { createResolverState } from "../../js/platform/engine/resolver.js";
 import { createScheduler } from "../../js/platform/engine/scheduler.js";
 import { simulateGw2 } from "../../js/platform/gw2/simulate.js";
-import {
-  assertProfessionFamilyConformance,
-} from "../helpers/profession-family-conformance.js";
+import { assertProfessionFamilyConformance } from "../helpers/profession-family-conformance.js";
 import {
   ENGINEER_ELITE_SPECIALIZATIONS,
   engineerCatalog,
@@ -75,9 +71,7 @@ import { heraldModule } from "../../js/professions/revenant/specializations/hera
 import { renegadeModule } from "../../js/professions/revenant/specializations/renegade/module.js";
 import { vindicatorModule } from "../../js/professions/revenant/specializations/vindicator/module.js";
 import { thiefProfession } from "../../js/professions/thief/definition.js";
-import {
-  thiefCatalog,
-} from "../../js/professions/thief/catalog.js";
+import { thiefCatalog } from "../../js/professions/thief/catalog.js";
 import { thiefCoreModule } from "../../js/professions/thief/core/module.js";
 import { antiquaryModule as thiefAntiquaryModule } from "../../js/professions/thief/specializations/antiquary/module.js";
 import { daredevilModule as thiefDaredevilModule } from "../../js/professions/thief/specializations/daredevil/module.js";
@@ -91,10 +85,12 @@ function nativeModifierRules(module) {
 
 function nativeSkillOwnerMap(slices, catalog) {
   const modules = slices.map(([, module]) => module);
-  return new Map(catalog.skills.map(skill => [
-    skill.id,
-    nativeSkillRuntimeOwner(modules, skill),
-  ]));
+  return new Map(
+    catalog.skills.map((skill) => [
+      skill.id,
+      nativeSkillRuntimeOwner(modules, skill),
+    ]),
+  );
 }
 
 test("all migrated profession families share one conformance harness", () => {
@@ -210,11 +206,14 @@ test("elite event presentation is owned by the active specialization", () => {
   for (const [family, specialization, event] of cases) {
     const coreConfig = { specialization: "Core" };
     const activeConfig = { specialization };
-    const coreState = family.resolveRuntime(coreConfig)
+    const coreState = family
+      .resolveRuntime(coreConfig)
       .createProfessionState(coreConfig);
     const activeRuntime = family.resolveRuntime(activeConfig);
     const activeState = activeRuntime.createProfessionState(activeConfig);
-    const coreRow = family.resolveRuntime(coreConfig).ui.eventLogRow?.(
+    const coreRow = family
+      .resolveRuntime(coreConfig)
+      .ui.eventLogRow?.(
         { config: coreConfig, state: { profession: coreState } },
         event,
       );
@@ -312,26 +311,58 @@ test("native module contributions assemble disjoint application and runtime cata
 
   for (const { name, family, catalog, modules } of fixtures) {
     assert.equal(family.catalog, catalog, `${name}:application-catalog`);
-    const contributed = { skills: new Map(), traits: new Map(), specializations: new Map(), handlers: new Map() };
+    const contributed = {
+      skills: new Map(),
+      traits: new Map(),
+      specializations: new Map(),
+      handlers: new Map(),
+    };
     for (const module of modules) {
-      assert.equal(module.kind, "native-profession-module", `${name}:${module.id}`);
-      assert.equal(typeof module.state.scheduler, "function", `${name}:${module.id}`);
-      assert.equal(Object.hasOwn(module, "catalog"), false, `${name}:${module.id}`);
+      assert.equal(
+        module.kind,
+        "native-profession-module",
+        `${name}:${module.id}`,
+      );
+      assert.equal(
+        typeof module.state.scheduler,
+        "function",
+        `${name}:${module.id}`,
+      );
+      assert.equal(
+        Object.hasOwn(module, "catalog"),
+        false,
+        `${name}:${module.id}`,
+      );
       for (const [kind, entries] of [
-        ["skills", [...(module.data.generatedSkills || []), ...(module.data.extraSkills || [])]],
+        [
+          "skills",
+          [
+            ...(module.data.generatedSkills || []),
+            ...(module.data.extraSkills || []),
+          ],
+        ],
         ["traits", module.data.traits || []],
         ["specializations", module.data.specializations || []],
       ]) {
         for (const entry of entries) {
-          assert.equal(contributed[kind].has(entry.id), false, `${name}:${kind}:${entry.id}`);
+          assert.equal(
+            contributed[kind].has(entry.id),
+            false,
+            `${name}:${kind}:${entry.id}`,
+          );
           contributed[kind].set(entry.id, module.id);
         }
       }
-      const handlers = module.data.handlers instanceof Map
-        ? module.data.handlers
-        : new Map(Object.entries(module.data.handlers || {}));
+      const handlers =
+        module.data.handlers instanceof Map
+          ? module.data.handlers
+          : new Map(Object.entries(module.data.handlers || {}));
       for (const handlerId of handlers.keys()) {
-        assert.equal(contributed.handlers.has(handlerId), false, `${name}:handler:${handlerId}`);
+        assert.equal(
+          contributed.handlers.has(handlerId),
+          false,
+          `${name}:handler:${handlerId}`,
+        );
         contributed.handlers.set(handlerId, module.id);
       }
     }
@@ -341,8 +372,11 @@ test("native module contributions assemble disjoint application and runtime cata
       ["specializations", catalog.specializations],
     ]) {
       assert.deepEqual(
-        [...contributed[kind].keys()].sort((left, right) => Number(left) - Number(right)),
-        entries.map((entry) => entry.id)
+        [...contributed[kind].keys()].sort(
+          (left, right) => Number(left) - Number(right),
+        ),
+        entries
+          .map((entry) => entry.id)
           .sort((left, right) => Number(left) - Number(right)),
         `${name}:${kind}`,
       );
@@ -354,7 +388,9 @@ test("native module contributions assemble disjoint application and runtime cata
     );
     for (const active of ["Core", ...family.specializationIds]) {
       const runtime = family.resolveRuntime({ specialization: active });
-      const runtimeIds = new Set(runtime.catalog.skills.map(skill => skill.id));
+      const runtimeIds = new Set(
+        runtime.catalog.skills.map((skill) => skill.id),
+      );
       for (const skill of catalog.skills) {
         const owner = nativeSkillRuntimeOwner(modules, skill);
         assert.equal(
@@ -395,9 +431,10 @@ function testModule(id, options = {}) {
     id,
     catalog: options.catalog || {
       skills: id === "Core" ? [coreSkill] : [eliteSkill],
-      specializations: id === "Core"
-        ? [{ id: 1, name: "Core Line", elite: false }]
-        : [{ id: 2, name: "Elite", elite: true }],
+      specializations:
+        id === "Core"
+          ? [{ id: 1, name: "Core Line", elite: false }]
+          : [{ id: 2, name: "Elite", elite: true }],
     },
     resources: options.resources || {
       createProfessionState: () =>
@@ -455,10 +492,10 @@ test("family UI uses active slices, Core-first event precedence, and family veto
   const eliteOnly = { type: "elite-only", at: 0 };
 
   assert.equal(
-    family.resolveRuntime({ specialization: "Elite" }).ui.eventLogRow(
-      { config: { specialization: "Elite" } },
-      shared,
-    ).description,
+    family
+      .resolveRuntime({ specialization: "Elite" })
+      .ui.eventLogRow({ config: { specialization: "Elite" } }, shared)
+      .description,
     "core",
   );
   assert.equal(
@@ -470,10 +507,8 @@ test("family UI uses active slices, Core-first event precedence, and family veto
     undefined,
   );
   assert.equal(
-    family.ui.eventLogRow(
-      { build: { specialization: "Elite" } },
-      eliteOnly,
-    ).description,
+    family.ui.eventLogRow({ build: { specialization: "Elite" } }, eliteOnly)
+      .description,
     "elite",
   );
   assert.equal(
@@ -484,10 +519,7 @@ test("family UI uses active slices, Core-first event precedence, and family veto
     "Core",
   );
   assert.deepEqual(
-    family.ui.paletteSkillAvailability(
-      { specialization: "Elite" },
-      eliteSkill,
-    ),
+    family.ui.paletteSkillAvailability({ specialization: "Elite" }, eliteSkill),
     { available: false, message: "family veto" },
   );
 });
@@ -506,19 +538,22 @@ test("profession families resolve Core or one known elite and cache contracts", 
   const core = family.resolveRuntime({});
   const elite = family.resolveRuntime({ specialization: "Elite" });
 
-  assert.deepEqual(core.catalog.skills.map(skill => skill.id), [1]);
-  assert.deepEqual(elite.catalog.skills.map(skill => skill.id), [1, 2]);
+  assert.deepEqual(
+    core.catalog.skills.map((skill) => skill.id),
+    [1],
+  );
+  assert.deepEqual(
+    elite.catalog.skills.map((skill) => skill.id),
+    [1, 2],
+  );
   assert.deepEqual(core.createProfessionState({}), {
     core: { coreReady: true },
     specialization: { kind: "Core", state: {} },
   });
-  assert.deepEqual(
-    elite.createProfessionState({ specialization: "Elite" }),
-    {
-      core: { coreReady: true },
-      specialization: { kind: "Elite", state: { eliteReady: true } },
-    },
-  );
+  assert.deepEqual(elite.createProfessionState({ specialization: "Elite" }), {
+    core: { coreReady: true },
+    specialization: { kind: "Elite", state: { eliteReady: true } },
+  });
   assert.equal(family.resolveRuntime({ specialization: "Elite" }), elite);
   assert.equal(family.catalog, familyCatalog);
   assert.throws(
@@ -557,14 +592,15 @@ test("family hook order is deterministic and duplicate hook ids fail", () => {
     handler: () => undefined,
   };
   assert.throws(
-    () => testFamily(
-      testModule("Core", {
-        schedulerHooks: { initialize: duplicate },
-      }),
-      testModule("Elite", {
-        schedulerHooks: { initialize: duplicate },
-      }),
-    ).resolveRuntime({ specialization: "Elite" }),
+    () =>
+      testFamily(
+        testModule("Core", {
+          schedulerHooks: { initialize: duplicate },
+        }),
+        testModule("Elite", {
+          schedulerHooks: { initialize: duplicate },
+        }),
+      ).resolveRuntime({ specialization: "Elite" }),
     /Duplicate initialize hook id: same\.initialize/,
   );
 });
@@ -573,7 +609,7 @@ test("family attribute declarations compile after active module composition", ()
   const compiledRuleIds = [];
   const compileModifierRules = (rules) => ({
     modifyStrikeDamage: (_context, value) => {
-      compiledRuleIds.push(rules.map(rule => rule.id));
+      compiledRuleIds.push(rules.map((rule) => rule.id));
       return value + rules.length;
     },
   });
@@ -594,7 +630,8 @@ test("family attribute declarations compile after active module composition", ()
 
   assert.equal(family.resolveRuntime({}).modifyStrikeDamage({}, 10), 11);
   assert.equal(
-    family.resolveRuntime({ specialization: "Elite" })
+    family
+      .resolveRuntime({ specialization: "Elite" })
       .modifyStrikeDamage({}, 10),
     12,
   );
@@ -607,51 +644,55 @@ test("family attribute declarations compile after active module composition", ()
 test("family composition rejects duplicate registries and catalog ids", () => {
   const handler = () => undefined;
   assert.throws(
-    () => testFamily(
-      testModule("Core", {
-        schedulerHooks: { taskHandlers: { "test.task": handler } },
-      }),
-      testModule("Elite", {
-        schedulerHooks: { taskHandlers: { "test.task": handler } },
-      }),
-    ).resolveRuntime({ specialization: "Elite" }),
+    () =>
+      testFamily(
+        testModule("Core", {
+          schedulerHooks: { taskHandlers: { "test.task": handler } },
+        }),
+        testModule("Elite", {
+          schedulerHooks: { taskHandlers: { "test.task": handler } },
+        }),
+      ).resolveRuntime({ specialization: "Elite" }),
     /Duplicate task handler test\.task/,
   );
   assert.throws(
-    () => testFamily(
-      testModule("Core", {
-        resolverHooks: { eventHandlers: { "test.event": handler } },
-      }),
-      testModule("Elite", {
-        resolverHooks: { eventHandlers: { "test.event": handler } },
-      }),
-    ).resolveRuntime({ specialization: "Elite" }),
+    () =>
+      testFamily(
+        testModule("Core", {
+          resolverHooks: { eventHandlers: { "test.event": handler } },
+        }),
+        testModule("Elite", {
+          resolverHooks: { eventHandlers: { "test.event": handler } },
+        }),
+      ).resolveRuntime({ specialization: "Elite" }),
     /Duplicate event handler test\.event/,
   );
   assert.throws(
-    () => testFamily(
-      testModule("Core", {
-        catalog: {
-          skills: [coreSkill],
-          skillHandlers: { shared: {} },
-        },
-      }),
-      testModule("Elite", {
-        catalog: {
-          skills: [eliteSkill],
-          skillHandlers: { shared: {} },
-        },
-      }),
-    ).resolveRuntime({ specialization: "Elite" }),
+    () =>
+      testFamily(
+        testModule("Core", {
+          catalog: {
+            skills: [coreSkill],
+            skillHandlers: { shared: {} },
+          },
+        }),
+        testModule("Elite", {
+          catalog: {
+            skills: [eliteSkill],
+            skillHandlers: { shared: {} },
+          },
+        }),
+      ).resolveRuntime({ specialization: "Elite" }),
     /Duplicate skill handler shared/,
   );
   assert.throws(
-    () => testFamily(
-      testModule("Core"),
-      testModule("Elite", {
-        catalog: { skills: [coreSkill] },
-      }),
-    ).resolveRuntime({ specialization: "Elite" }),
+    () =>
+      testFamily(
+        testModule("Core"),
+        testModule("Elite", {
+          catalog: { skills: [coreSkill] },
+        }),
+      ).resolveRuntime({ specialization: "Elite" }),
     /Duplicate skill id 1/,
   );
 });
@@ -750,7 +791,10 @@ test("Necromancer modules contain complete vertical slices", () => {
   ]) {
     assert.equal(
       existsSync(
-        new URL(`../../js/professions/necromancer/${relative}`, import.meta.url),
+        new URL(
+          `../../js/professions/necromancer/${relative}`,
+          import.meta.url,
+        ),
       ),
       true,
       relative,
@@ -809,7 +853,11 @@ test("Necromancer modules contain complete vertical slices", () => {
       }
     }
     assert.equal(typeof module.state?.scheduler, "function");
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    assert.ok(
+      (module.data?.generatedSkills?.length || 0) +
+        (module.data?.extraSkills?.length || 0) >
+        0,
+    );
     assert.equal(typeof module.data?.handlers, "object");
     assert.ok(module.presentation);
     for (const rule of nativeModifierRules(module)) {
@@ -822,14 +870,8 @@ test("Necromancer modules contain complete vertical slices", () => {
     modifierRuleOwners.get("necromancer.wicked-corruption-blight"),
     "Harbinger",
   );
-  assert.equal(
-    modifierRuleOwners.get("necromancer.demonic-lore"),
-    "Scourge",
-  );
-  assert.equal(
-    modifierRuleOwners.get("necromancer.soul-eater"),
-    "Reaper",
-  );
+  assert.equal(modifierRuleOwners.get("necromancer.demonic-lore"), "Scourge");
+  assert.equal(modifierRuleOwners.get("necromancer.soul-eater"), "Reaper");
   assert.equal(
     modifierRuleOwners.get("necromancer.spirits-strength"),
     "Ritualist",
@@ -856,8 +898,8 @@ test("Necromancer runtimes exclude sibling catalogs, handlers, and state", () =>
     const state = runtime.createProfessionState(config);
     const activeElite = active === "Core" ? null : active;
     const runtimeEliteLines = runtime.catalog.specializations
-      .filter(specialization => specialization.elite)
-      .map(specialization => specialization.name);
+      .filter((specialization) => specialization.elite)
+      .map((specialization) => specialization.name);
 
     assert.deepEqual(
       runtimeEliteLines,
@@ -867,23 +909,31 @@ test("Necromancer runtimes exclude sibling catalogs, handlers, and state", () =>
     assert.equal(state.specialization.kind, active, `${active}:state-kind`);
     assert.equal(typeof state.core, "object", `${active}:core-state`);
     for (const key of Object.values(inactiveStateKeys).flat()) {
-      assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);
+      assert.equal(
+        Object.hasOwn(state.core, key),
+        false,
+        `${active}:core:${key}`,
+      );
     }
     assert.equal(
-      runtime.catalog.skills.some(skill =>
-        skill.type !== "Weapon" &&
-        NECROMANCER_ELITE_SPECIALIZATIONS.includes(skill.specialization) &&
-        skill.specialization !== activeElite),
+      runtime.catalog.skills.some(
+        (skill) =>
+          skill.type !== "Weapon" &&
+          NECROMANCER_ELITE_SPECIALIZATIONS.includes(skill.specialization) &&
+          skill.specialization !== activeElite,
+      ),
       false,
       active,
     );
     assert.deepEqual(
       [...runtime.catalog.skillHandlers.keys()].sort(),
-      [...new Set(
-        runtime.catalog.skills
-          .map(skill => String(skill.handlerId || ""))
-          .filter(Boolean),
-      )].sort(),
+      [
+        ...new Set(
+          runtime.catalog.skills
+            .map((skill) => String(skill.handlerId || ""))
+            .filter(Boolean),
+        ),
+      ].sort(),
       `${active}:skill-handlers`,
     );
     for (const [owner, keys] of Object.entries(inactiveStateKeys)) {
@@ -918,11 +968,17 @@ test("Necromancer runtime UI exposes only active specialization resources", () =
     const config = { specialization: active };
     const runtime = necromancerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
-    const resourceIds = runtime.ui.resourceViews({
-      config,
-      state: { profession: state },
-    }).map(resource => resource.id);
-    assert.equal(resourceIds.includes("blight"), active === "Harbinger", active);
+    const resourceIds = runtime.ui
+      .resourceViews({
+        config,
+        state: { profession: state },
+      })
+      .map((resource) => resource.id);
+    assert.equal(
+      resourceIds.includes("blight"),
+      active === "Harbinger",
+      active,
+    );
   }
 });
 
@@ -998,13 +1054,9 @@ test("Guardian modules own disjoint vertical slices", () => {
   ];
   const modifierRuleOwners = new Map();
   for (const [directory, module] of slices) {
-    for (const filename of [
-      "module.ts",
-      "state.ts",
-      "skills.ts",
-      "handlers.ts",
-      "ui.ts",
-    ]) {
+    const filenames = ["module.ts", "state.ts", "skills.ts", "ui.ts"];
+    if (module.data?.handlers) filenames.push("handlers.ts");
+    for (const filename of filenames) {
       const url = new URL(
         `../../js/professions/guardian/${directory}/${filename}`,
         import.meta.url,
@@ -1028,7 +1080,11 @@ test("Guardian modules own disjoint vertical slices", () => {
       }
     }
     assert.equal(typeof module.state?.scheduler, "function");
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    assert.ok(
+      (module.data?.generatedSkills?.length || 0) +
+        (module.data?.extraSkills?.length || 0) >
+        0,
+    );
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
@@ -1046,13 +1102,16 @@ test("Guardian modules own disjoint vertical slices", () => {
 
 test("Guardian runtimes exclude inactive elite catalogs, registries, and state", () => {
   assert.equal(guardianProfession.catalog, guardianCatalog);
-  const skillOwners = nativeSkillOwnerMap([
-    ["core", guardianCoreModule],
-    ["dragonhunter", dragonhunterModule],
-    ["firebrand", firebrandModule],
-    ["willbender", willbenderModule],
-    ["luminary", luminaryModule],
-  ], guardianCatalog);
+  const skillOwners = nativeSkillOwnerMap(
+    [
+      ["core", guardianCoreModule],
+      ["dragonhunter", dragonhunterModule],
+      ["firebrand", firebrandModule],
+      ["willbender", willbenderModule],
+      ["luminary", luminaryModule],
+    ],
+    guardianCatalog,
+  );
   for (const active of ["Core", ...GUARDIAN_ELITE_SPECIALIZATIONS]) {
     const config = { specialization: active };
     const runtime = guardianProfession.resolveRuntime(config);
@@ -1060,18 +1119,22 @@ test("Guardian runtimes exclude inactive elite catalogs, registries, and state",
     const activeElite = active === "Core" ? null : active;
     assert.deepEqual(
       runtime.catalog.specializations
-        .filter(specialization => specialization.elite)
-        .map(specialization => specialization.name),
+        .filter((specialization) => specialization.elite)
+        .map((specialization) => specialization.name),
       activeElite ? [activeElite] : [],
       active,
     );
     assert.equal(state.specialization.kind, active, `${active}:state-kind`);
     for (const key of Object.values(guardianInactiveStateKeys).flat()) {
-      assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);
+      assert.equal(
+        Object.hasOwn(state.core, key),
+        false,
+        `${active}:core:${key}`,
+      );
     }
     assert.equal(
       runtime.catalog.skills.some(
-        skill =>
+        (skill) =>
           skillOwners.get(skill.id) !== "Core" &&
           skillOwners.get(skill.id) !== activeElite,
       ),
@@ -1083,7 +1146,7 @@ test("Guardian runtimes exclude inactive elite catalogs, registries, and state",
       [
         ...new Set(
           runtime.catalog.skills
-            .map(skill => String(skill.handlerId || ""))
+            .map((skill) => String(skill.handlerId || ""))
             .filter(Boolean),
         ),
       ].sort(),
@@ -1121,15 +1184,19 @@ test("Guardian runtime UI and public projection preserve their contracts", () =>
     const config = { specialization: active };
     const runtime = guardianProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
-    const resourceIds = runtime.ui.resourceViews({
-      config,
-      state: { profession: state },
-    }).map(resource => resource.id);
+    const resourceIds = runtime.ui
+      .resourceViews({
+        config,
+        state: { profession: state },
+      })
+      .map((resource) => resource.id);
     assert.equal(resourceIds.includes("pages"), active === "Firebrand", active);
-    const paletteIds = runtime.ui.paletteGroups({
-      config,
-      state: { profession: state },
-    }).map(group => group.id);
+    const paletteIds = runtime.ui
+      .paletteGroups({
+        config,
+        state: { profession: state },
+      })
+      .map((group) => group.id);
     assert.equal(paletteIds.includes("radiant-forge"), active === "Luminary");
     assert.equal(paletteIds.includes("tome-justice"), active === "Firebrand");
   }
@@ -1165,10 +1232,7 @@ const mesmerSpecializationStateKeys = Object.freeze({
 });
 
 test("Mesmer modules are vertical slices with disjoint catalog ownership", () => {
-  for (const obsolete of [
-    "mechanics/specific",
-    "resolver/event-handlers.ts",
-  ]) {
+  for (const obsolete of ["mechanics/specific", "resolver/event-handlers.ts"]) {
     assert.equal(
       existsSync(
         new URL(`../../js/professions/mesmer/${obsolete}`, import.meta.url),
@@ -1228,7 +1292,11 @@ test("Mesmer modules are vertical slices with disjoint catalog ownership", () =>
     }
 
     assert.equal(typeof module.state?.scheduler, "function");
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    assert.ok(
+      (module.data?.generatedSkills?.length || 0) +
+        (module.data?.extraSkills?.length || 0) >
+        0,
+    );
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
@@ -1243,12 +1311,17 @@ test("Mesmer modules are vertical slices with disjoint catalog ownership", () =>
     "mechanics.ts",
     "rules.ts",
     "ui.ts",
-  ].map(filename =>
-    readFileSync(
-      new URL(`../../js/professions/mesmer/core/${filename}`, import.meta.url),
-      "utf8",
-    ),
-  ).join("\n");
+  ]
+    .map((filename) =>
+      readFileSync(
+        new URL(
+          `../../js/professions/mesmer/core/${filename}`,
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    )
+    .join("\n");
   assert.doesNotMatch(coreSources, /specializations\//);
 });
 
@@ -1265,27 +1338,29 @@ test("Mesmer runtimes exclude inactive elite catalogs, registries, and state", (
     assert.equal(runtime, mesmerProfession.resolveRuntime(config), active);
     assert.deepEqual(
       runtime.catalog.specializations
-        .filter(specialization => specialization.elite)
-        .map(specialization => specialization.name),
+        .filter((specialization) => specialization.elite)
+        .map((specialization) => specialization.name),
       activeElite ? [activeElite] : [],
       active,
     );
     assert.equal(state.specialization.kind, active, `${active}:state-kind`);
     for (const key of Object.values(mesmerSpecializationStateKeys).flat()) {
-      assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);
+      assert.equal(
+        Object.hasOwn(state.core, key),
+        false,
+        `${active}:core:${key}`,
+      );
     }
     assert.equal(
       runtime.catalog.skills.some(
-        skill =>
+        (skill) =>
           skillOwner.get(skill.id) !== "Core" &&
           skillOwner.get(skill.id) !== activeElite,
       ),
       false,
       `${active}:skills`,
     );
-    for (const [owner, keys] of Object.entries(
-      mesmerSpecializationStateKeys,
-    )) {
+    for (const [owner, keys] of Object.entries(mesmerSpecializationStateKeys)) {
       for (const key of keys) {
         const expected =
           key === "numericResource"
@@ -1331,8 +1406,14 @@ test("Mesmer runtime UI exposes only the active specialization resource", () => 
       state: { profession: state },
     });
     assert.deepEqual(
-      resources.map(resource => resource.id),
-      [active === "Virtuoso" ? "blades" : active === "Troubadour" ? "notes" : "clones"],
+      resources.map((resource) => resource.id),
+      [
+        active === "Virtuoso"
+          ? "blades"
+          : active === "Troubadour"
+            ? "notes"
+            : "clones",
+      ],
       active,
     );
     assert.equal(runtime.ui.skillBarGroups({ config }).length, 1, active);
@@ -1429,7 +1510,11 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
       }
     }
     assert.equal(typeof module.state?.scheduler, "function");
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    assert.ok(
+      (module.data?.generatedSkills?.length || 0) +
+        (module.data?.extraSkills?.length || 0) >
+        0,
+    );
     assert.equal(typeof module.data?.handlers, "object");
     assert.ok(module.presentation);
     for (const rule of nativeModifierRules(module)) {
@@ -1438,10 +1523,7 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
     }
   }
 
-  assert.equal(
-    modifierRuleOwners.get("revenant.reinforced-potency"),
-    "Herald",
-  );
+  assert.equal(modifierRuleOwners.get("revenant.reinforced-potency"), "Herald");
   assert.equal(
     modifierRuleOwners.get("revenant.heartpiercer-strike"),
     "Renegade",
@@ -1463,12 +1545,17 @@ test("Revenant modules are vertical slices with disjoint ownership", () => {
     "mechanics.ts",
     "rules.ts",
     "ui.ts",
-  ].map(filename =>
-    readFileSync(
-      new URL(`../../js/professions/revenant/core/${filename}`, import.meta.url),
-      "utf8",
-    ),
-  ).join("\n");
+  ]
+    .map((filename) =>
+      readFileSync(
+        new URL(
+          `../../js/professions/revenant/core/${filename}`,
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    )
+    .join("\n");
   assert.doesNotMatch(coreSources, /specializations\//);
 });
 
@@ -1482,18 +1569,22 @@ test("Revenant runtimes exclude inactive elite catalogs, hooks, and state", () =
     const activeElite = active === "Core" ? null : active;
     assert.deepEqual(
       runtime.catalog.specializations
-        .filter(specialization => specialization.elite)
-        .map(specialization => specialization.name),
+        .filter((specialization) => specialization.elite)
+        .map((specialization) => specialization.name),
       activeElite ? [activeElite] : [],
       active,
     );
     assert.equal(state.specialization.kind, active, `${active}:state-kind`);
     for (const key of Object.values(revenantSpecializationStateKeys).flat()) {
-      assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);
+      assert.equal(
+        Object.hasOwn(state.core, key),
+        false,
+        `${active}:core:${key}`,
+      );
     }
     assert.equal(
       runtime.catalog.skills.some(
-        skill =>
+        (skill) =>
           skillOwner.get(skill.id) !== "Core" &&
           skillOwner.get(skill.id) !== activeElite,
       ),
@@ -1529,10 +1620,12 @@ test("Revenant runtime UI and public projection preserve their contracts", () =>
     const config = { specialization: active };
     const runtime = revenantProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
-    const resourceIds = runtime.ui.resourceViews({
-      config,
-      state: { profession: state },
-    }).map(resource => resource.id);
+    const resourceIds = runtime.ui
+      .resourceViews({
+        config,
+        state: { profession: state },
+      })
+      .map((resource) => resource.id);
     assert.equal(
       resourceIds.includes("endurance"),
       active === "Vindicator",
@@ -1581,10 +1674,7 @@ const engineerSpecializationStateKeys = Object.freeze({
 });
 
 test("Engineer modules are vertical slices with disjoint ownership", () => {
-  for (const obsolete of [
-    "mechanics/specific",
-    "resolver/event-handlers.ts",
-  ]) {
+  for (const obsolete of ["mechanics/specific", "resolver/event-handlers.ts"]) {
     assert.equal(
       existsSync(
         new URL(`../../js/professions/engineer/${obsolete}`, import.meta.url),
@@ -1596,15 +1686,16 @@ test("Engineer modules are vertical slices with disjoint ownership", () => {
 
   const modifierRuleOwners = new Map();
   for (const [directory, module] of engineerSlices) {
-    for (const filename of [
+    const filenames = [
       "module.ts",
       "state.ts",
       "skills.ts",
-      "handlers.ts",
       "mechanics.ts",
       "rules.ts",
       "ui.ts",
-    ]) {
+    ];
+    if (module.data?.handlers) filenames.push("handlers.ts");
+    for (const filename of filenames) {
       const url = new URL(
         `../../js/professions/engineer/${directory}/${filename}`,
         import.meta.url,
@@ -1632,8 +1723,14 @@ test("Engineer modules are vertical slices with disjoint ownership", () => {
       }
     }
     assert.equal(typeof module.state?.scheduler, "function");
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
-    assert.equal(typeof module.data?.handlers, "object");
+    assert.ok(
+      (module.data?.generatedSkills?.length || 0) +
+        (module.data?.extraSkills?.length || 0) >
+        0,
+    );
+    if (module.data?.handlers) {
+      assert.equal(typeof module.data.handlers, "object");
+    }
     assert.ok(module.presentation);
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
@@ -1641,22 +1738,10 @@ test("Engineer modules are vertical slices with disjoint ownership", () => {
     }
   }
 
-  assert.equal(
-    modifierRuleOwners.get("engineer.object-in-motion"),
-    "Scrapper",
-  );
-  assert.equal(
-    modifierRuleOwners.get("engineer.lasers-edge"),
-    "Holosmith",
-  );
-  assert.equal(
-    modifierRuleOwners.get("engineer.force-signet"),
-    "Mechanist",
-  );
-  assert.equal(
-    modifierRuleOwners.get("engineer.willing-host"),
-    "Amalgam",
-  );
+  assert.equal(modifierRuleOwners.get("engineer.object-in-motion"), "Scrapper");
+  assert.equal(modifierRuleOwners.get("engineer.lasers-edge"), "Holosmith");
+  assert.equal(modifierRuleOwners.get("engineer.force-signet"), "Mechanist");
+  assert.equal(modifierRuleOwners.get("engineer.willing-host"), "Amalgam");
 
   const coreSources = [
     "module.ts",
@@ -1666,12 +1751,17 @@ test("Engineer modules are vertical slices with disjoint ownership", () => {
     "mechanics.ts",
     "rules.ts",
     "ui.ts",
-  ].map(filename =>
-    readFileSync(
-      new URL(`../../js/professions/engineer/core/${filename}`, import.meta.url),
-      "utf8",
-    ),
-  ).join("\n");
+  ]
+    .map((filename) =>
+      readFileSync(
+        new URL(
+          `../../js/professions/engineer/core/${filename}`,
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    )
+    .join("\n");
   assert.doesNotMatch(coreSources, /specializations\//);
 });
 
@@ -1689,16 +1779,17 @@ test("Engineer raw skill mechanics retain a disjoint no-loss union", () => {
       assert.equal(
         owners.has(skillId),
         false,
-        `skill mechanics ${skillId} owned by fragments `
-          + `${owners.get(skillId)} and ${fragmentIndex}`,
+        `skill mechanics ${skillId} owned by fragments ` +
+          `${owners.get(skillId)} and ${fragmentIndex}`,
       );
       owners.set(skillId, fragmentIndex);
     }
   }
   assert.deepEqual(
     [...owners.keys()].sort((left, right) => Number(left) - Number(right)),
-    Object.keys(ENGINEER_SKILL_MECHANICS)
-      .sort((left, right) => Number(left) - Number(right)),
+    Object.keys(ENGINEER_SKILL_MECHANICS).sort(
+      (left, right) => Number(left) - Number(right),
+    ),
   );
 });
 
@@ -1712,20 +1803,24 @@ test("Engineer runtimes exclude inactive elite catalogs, hooks, and state", () =
     const activeElite = active === "Core" ? null : active;
     assert.deepEqual(
       runtime.catalog.specializations
-        .filter(specialization => specialization.elite)
-        .map(specialization => specialization.name),
+        .filter((specialization) => specialization.elite)
+        .map((specialization) => specialization.name),
       activeElite ? [activeElite] : [],
       active,
     );
     assert.equal(state.specialization.kind, active, `${active}:state-kind`);
     for (const key of Object.values(engineerSpecializationStateKeys).flat()) {
-      assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);
+      assert.equal(
+        Object.hasOwn(state.core, key),
+        false,
+        `${active}:core:${key}`,
+      );
     }
     assert.equal(
       runtime.catalog.skills.some(
-        skill =>
-          skillOwner.get(skill.id) !== "Core"
-          && skillOwner.get(skill.id) !== activeElite,
+        (skill) =>
+          skillOwner.get(skill.id) !== "Core" &&
+          skillOwner.get(skill.id) !== activeElite,
       ),
       false,
       `${active}:skills`,
@@ -1778,36 +1873,37 @@ test("Engineer runtime UI and public projection preserve their contracts", () =>
     const config = { specialization: active };
     const runtime = engineerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
-    const resourceIds = runtime.ui.resourceViews({
-      config,
-      state: { profession: state },
-    }).map(resource => resource.id);
+    const resourceIds = runtime.ui
+      .resourceViews({
+        config,
+        state: { profession: state },
+      })
+      .map((resource) => resource.id);
     const uiContext = {
       config,
       specialization: active,
       professionState: state,
       state: { profession: state },
     };
+    assert.equal(resourceIds.includes("heat"), active === "Holosmith", active);
     assert.equal(
-      resourceIds.includes("heat"),
+      runtime.ui
+        .skillBarGroups(uiContext)
+        .some((group) => group.label === "Photon Forge"),
       active === "Holosmith",
       active,
     );
     assert.equal(
-      runtime.ui.skillBarGroups(uiContext)
-        .some(group => group.label === "Photon Forge"),
+      runtime.ui
+        .paletteGroups(uiContext)
+        .some((group) => group.id === "engineer-forge"),
       active === "Holosmith",
       active,
     );
     assert.equal(
-      runtime.ui.paletteGroups(uiContext)
-        .some(group => group.id === "engineer-forge"),
-      active === "Holosmith",
-      active,
-    );
-    assert.equal(
-      runtime.ui.assumptionControls
-        .some(control => control.key === "inDamagingField"),
+      runtime.ui.assumptionControls.some(
+        (control) => control.key === "inDamagingField",
+      ),
       active === "Amalgam",
       active,
     );

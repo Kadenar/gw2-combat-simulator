@@ -4,11 +4,11 @@ import {
   onResolvedDamage,
 } from "../../../../platform/gw2/native-profession.js";
 import { createGuardianModuleData } from "../../catalog-data.js";
+import { dragonhunterSkillHandlers } from "./handlers.js";
 import {
   dragonhunterEventHandlers,
   dragonhunterEventReactions,
-  dragonhunterSkillHandlers,
-} from "./handlers.js";
+} from "./resolver.js";
 import {
   dragonhunterAttributeRules,
   dragonhunterSchedulerHooks,

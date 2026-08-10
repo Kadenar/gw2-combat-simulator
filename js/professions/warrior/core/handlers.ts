@@ -3,13 +3,14 @@ import {
   augmentSkillHandler,
   replaceSkillHandler,
 } from "../../../platform/engine/skill-handlers.js";
-import { hasTrait } from "../../../platform/gw2/trait-state.js";
-import {
-  WARRIOR_SKILL_IDS as ID,
-  WARRIOR_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
+import { WARRIOR_SKILL_IDS as ID } from "../data/ids.js";
 import { applyWarriorSkillResource } from "./resources.js";
-import { grantBerserkersPower } from "./traits.js";
+import {
+  applyMartialCadenceWeaponSwap,
+  applyRecklessDodge,
+  armBurstPrecision,
+  grantBerserkersPowerOnFirstHit,
+} from "./traits.js";
 import type {
   WarriorCastContext,
   WarriorSimulationEvent,
@@ -21,52 +22,8 @@ function afterResourceSkill(
   skill: WarriorSkill,
 ): { spent: number; berserkersPowerGranted: boolean } {
   const spent = applyWarriorSkillResource(context, skill);
-  const state = professionCoreState(context);
-  if (skill.burst && spent > 0 && hasTrait(context, TRAIT.BURST_PRECISION)) {
-    state.burstPrecisionDurations[context.reservationId] = spent >= 30 ? 4 : 2;
-  }
+  armBurstPrecision(context, skill, spent);
   return { spent, berserkersPowerGranted: false };
-}
-
-function berserkersPowerStacks(
-  context: WarriorCastContext,
-  skill: WarriorSkill,
-  spent: number,
-): number {
-  if (
-    !skill.burst ||
-    spent <= 0 ||
-    !hasTrait(context, TRAIT.BERSERKERS_POWER)
-  ) {
-    return 0;
-  }
-  return skill.primalBurst || context.config.specialization === "Spellbreaker"
-    ? 2
-    : spent >= 30
-      ? 4
-      : spent >= 20
-        ? 3
-        : 2;
-}
-
-function grantBerserkersPowerOnFirstHit(
-  context: WarriorCastContext,
-  skill: WarriorSkill,
-  event: WarriorSimulationEvent,
-  handlerState: { spent: number; berserkersPowerGranted: boolean },
-): void {
-  if (
-    handlerState.berserkersPowerGranted ||
-    event.type !== "damage" ||
-    !(Number(event.coefficient) > 0)
-  ) {
-    return;
-  }
-  const stacks = berserkersPowerStacks(context, skill, handlerState.spent);
-  if (stacks > 0) {
-    handlerState.berserkersPowerGranted = true;
-    grantBerserkersPower(context, stacks, event.at + context.epsilon, skill);
-  }
 }
 
 function adjustResourceSkillEffect(
@@ -80,7 +37,12 @@ function adjustResourceSkillEffect(
     berserkersPowerGranted: boolean;
   };
   const spent = Number(state?.spent || 0);
-  grantBerserkersPowerOnFirstHit(context, skill, event, state);
+  if (
+    !state.berserkersPowerGranted &&
+    grantBerserkersPowerOnFirstHit(context, skill, event, spent)
+  ) {
+    state.berserkersPowerGranted = true;
+  }
   if (
     skill.id === ID.BLOODTHIRSTER &&
     event.type === "condition" &&
@@ -125,9 +87,7 @@ function swapWarriorWeapons(
   const weaponSet = context.state.activeWeaponSet === 1 ? 2 : 1;
   context.state.activeWeaponSet = weaponSet;
   professionCoreState(context).autoattackChains = {};
-  if (hasTrait(context, TRAIT.MARTIAL_CADENCE)) {
-    professionCoreState(context).soldierFocusReadyAt = context.effectiveEnd;
-  }
+  applyMartialCadenceWeaponSwap(context, context.effectiveEnd);
   context.emit({
     type: "weapon_set",
     at: context.effectiveEnd,
@@ -188,33 +148,7 @@ function performWarriorDodge(
   const state = professionCoreState(context);
   state.endurance = Math.max(0, state.endurance - 50);
   state.enduranceUpdatedAt = context.start;
-  if (hasTrait(context, TRAIT.RECKLESS_DODGE)) {
-    context.emit({
-      type: "damage",
-      at: context.effectiveEnd,
-      source: "Warrior",
-      sourceId: TRAIT.RECKLESS_DODGE,
-      actorType: "player",
-      skillId: skill.id,
-      skillName: skill.name,
-      name: "Reckless Dodge",
-      coefficient: 1.5,
-    });
-    context.emit({
-      type: "buff",
-      at: context.effectiveEnd,
-      source: "Trait",
-      sourceId: TRAIT.RECKLESS_DODGE,
-      actorType: "effect",
-      skillId: skill.id,
-      skillName: skill.name,
-      name: "Reckless Dodge — Might",
-      kind: "might",
-      boon: "might",
-      stacks: 2,
-      duration: 5,
-    });
-  }
+  applyRecklessDodge(context, skill);
   return true;
 }
 

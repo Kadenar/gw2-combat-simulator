@@ -3,9 +3,7 @@ import {
   validateTraitCoverageManifest,
 } from "../../../platform/gw2/trait-coverage.js";
 import { engineerCatalog } from "../catalog.js";
-import type {
-  CatalogEntity,
-} from "../../../platform/engine/types.js";
+import type { CatalogEntity } from "../../../platform/engine/types.js";
 
 const IMPLEMENTED = new Set([
   "Explosive Entrance",
@@ -85,8 +83,7 @@ const IMPLEMENTED = new Set([
 const OUT_OF_MODEL_REASONS = Object.freeze({
   defensive:
     "Incoming-hit, barrier, healing, condition-cleansing, and damage-reduction effects are outside the outgoing single-target damage model.",
-  ally:
-    "Ally-only support, revival, and area boon delivery are outside the single-player target model.",
+  ally: "Ally-only support, revival, and area boon delivery are outside the single-player target model.",
   movement:
     "Movement speed, evade mobility, and downed-state behavior are not represented by the stationary PvE target model.",
   random:
@@ -100,9 +97,11 @@ function outOfModelReason(trait: CatalogEntity): string {
   if (/ally|allies|reviv|nearby/.test(description)) {
     return OUT_OF_MODEL_REASONS.ally;
   }
-  if (/heal|barrier|incoming|block|damage reduction|condition.*remove/.test(
-    description,
-  )) {
+  if (
+    /heal|barrier|incoming|block|damage reduction|condition.*remove/.test(
+      description,
+    )
+  ) {
     return OUT_OF_MODEL_REASONS.defensive;
   }
   if (/movement|swiftness|superspeed|downed/.test(description)) {
@@ -114,9 +113,10 @@ function outOfModelReason(trait: CatalogEntity): string {
   return OUT_OF_MODEL_REASONS.missingMechanics;
 }
 
-function implementedEvidence(
-  trait: CatalogEntity,
-): { readonly file: string; readonly name: string } {
+function implementedEvidence(trait: CatalogEntity): {
+  readonly file: string;
+  readonly name: string;
+} {
   if (["Compounding Chemicals", "Hybrid Vigor"].includes(trait.name)) {
     return {
       file: "tests/professions/native-build-attributes.test.js",
@@ -147,29 +147,36 @@ function implementedEvidence(
   };
 }
 
-const manifest = engineerCatalog.traits.map(trait => {
+const manifest = engineerCatalog.traits.map((trait) => {
   const implemented = IMPLEMENTED.has(trait.name);
   const status = implemented
     ? TRAIT_COVERAGE_STATUSES.IMPLEMENTED
     : TRAIT_COVERAGE_STATUSES.OUT_OF_MODEL;
-  const description = String(trait.description || "").trim()
-    || `Reviewed passive or utility behavior for ${trait.name}.`;
+  const description =
+    String(trait.description || "").trim() ||
+    `Reviewed passive or utility behavior for ${trait.name}.`;
   const reason = outOfModelReason(trait);
   return {
     traitId: trait.id,
     status,
-    effects: [{
-      description,
-      status,
-      ...(implemented ? {} : {
-        reason,
-      }),
-    }],
-    ...(implemented ? {
-      tests: [implementedEvidence(trait)],
-    } : {
-      reason,
-    }),
+    effects: [
+      {
+        description,
+        status,
+        ...(implemented
+          ? {}
+          : {
+              reason,
+            }),
+      },
+    ],
+    ...(implemented
+      ? {
+          tests: [implementedEvidence(trait)],
+        }
+      : {
+          reason,
+        }),
   };
 });
 

@@ -69,7 +69,7 @@ function timelineItem(
   return { name: String(entry || "") };
 }
 
-function syncProcVisibility(
+export function syncProcVisibility(
   app: ProfessionAppState,
   procSteps: readonly Gw2ProcStep[],
 ): Set<string> {
@@ -83,9 +83,6 @@ function syncProcVisibility(
     ),
   );
   app.procVisibilityKeys = procKeys;
-  if (!current) {
-    app.procVisibility = procKeys;
-  }
   return app.procVisibility as Set<string>;
 }
 

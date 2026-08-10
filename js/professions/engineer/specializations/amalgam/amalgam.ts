@@ -1,7 +1,5 @@
 import { amalgamState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { hasEngineerTrait } from "../../core/state.js";
 import { emitEngineerState } from "../../core/events.js";
@@ -40,13 +38,7 @@ interface MercurialTendenciesPayload extends SchedulerRecord {
 function emitBuff(
   context: EngineerSchedulerContext,
   at: number,
-  {
-  kind,
-  duration,
-  stacks = 1,
-  sourceId,
-  name,
-  }: AmalgamBuff,
+  { kind, duration, stacks = 1, sourceId, name }: AmalgamBuff,
 ): void {
   context.emit({
     type: "buff",
@@ -65,12 +57,7 @@ function emitBuff(
 function emitControl(
   context: EngineerSchedulerContext,
   at: number,
-  {
-  name,
-  controlKind,
-  duration,
-  sourceId,
-  }: AmalgamControl,
+  { name, controlKind, duration, sourceId }: AmalgamControl,
 ): void {
   context.emit({
     type: "control",
@@ -85,12 +72,13 @@ function emitControl(
   });
 }
 
-function selectedMorphNames(
-  context: EngineerSchedulerContext,
-): Set<string> {
+function selectedMorphNames(context: EngineerSchedulerContext): Set<string> {
   return new Set(
-    amalgamState.from(context).selectedMorphSkillIds
-      .map(id => context.catalog.skillsById.get(Number(id))?.name)
+    amalgamState
+      .from(context)
+      .selectedMorphSkillIds.map(
+        (id) => context.catalog.skillsById.get(Number(id))?.name,
+      )
       .filter((name): name is string => Boolean(name)),
   );
 }
@@ -116,10 +104,7 @@ function applyAmalgamStrain(
       name: "Replicating Strain",
     });
   } else if (morphName === "Defensive Protocol: Thorns") {
-    state.rapaciousUntil = Math.max(
-      Number(state.rapaciousUntil || 0),
-      at + 8,
-    );
+    state.rapaciousUntil = Math.max(Number(state.rapaciousUntil || 0), at + 8);
   } else if (morphName === "Offensive Protocol: Pierce") {
     emitControl(context, at, {
       name: "Volatile Strain",
@@ -128,10 +113,7 @@ function applyAmalgamStrain(
       sourceId: "engineer.volatile-strain",
     });
   } else if (morphName === "Offensive Protocol: Obliterate") {
-    state.titanicUntil = Math.max(
-      Number(state.titanicUntil || 0),
-      at + 8,
-    );
+    state.titanicUntil = Math.max(Number(state.titanicUntil || 0), at + 8);
     emitBuff(context, at, {
       kind: "might",
       duration: 8,
@@ -140,10 +122,7 @@ function applyAmalgamStrain(
       name: "Titanic Strain",
     });
   } else if (morphName === "Offensive Protocol: Shred") {
-    state.predatorUntil = Math.max(
-      Number(state.predatorUntil || 0),
-      at + 8,
-    );
+    state.predatorUntil = Math.max(Number(state.predatorUntil || 0), at + 8);
     emitBuff(context, at, {
       kind: "quickness",
       duration: 8,
@@ -157,10 +136,7 @@ function applyAmalgamStrain(
       name: "Predator Strain",
     });
   } else if (morphName === "Offensive Protocol: Demolish") {
-    state.berserkerUntil = Math.max(
-      Number(state.berserkerUntil || 0),
-      at + 8,
-    );
+    state.berserkerUntil = Math.max(Number(state.berserkerUntil || 0), at + 8);
     emitBuff(context, at, {
       kind: "stability",
       duration: 8,
@@ -173,10 +149,10 @@ function applyAmalgamStrain(
 
 function assumesDamagingField(context: EngineerSchedulerContext): boolean {
   return Boolean(
-    context.config.professionAssumptions?.inDamagingField
-    ?? context.config.assumptions?.inDamagingField
-    ?? context.config.inDamagingField
-    ?? false
+    context.config.professionAssumptions?.inDamagingField ??
+    context.config.assumptions?.inDamagingField ??
+    context.config.inDamagingField ??
+    false,
   );
 }
 
@@ -313,11 +289,12 @@ export function observeAmalgamScheduledEvent(
   event: EngineerSimulationEvent,
 ): void {
   if (
-    context.config.specialization !== "Amalgam"
-    || !hasEngineerTrait(context.config, TRAIT.MERCURIAL_TENDENCIES)
-    || event.type !== "control"
-    || event.actorType === "summon"
-  ) return;
+    context.config.specialization !== "Amalgam" ||
+    !hasEngineerTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) ||
+    event.type !== "control" ||
+    event.actorType === "summon"
+  )
+    return;
   context.tasks.schedule({
     type: "engineer.mercurial-tendencies",
     at: event.at,
@@ -334,9 +311,7 @@ export function handleMercurialTendencies(
 ): void {
   const at = task.at;
   const coreState = professionCoreState(context);
-  const readyAt = Number(
-    coreState.traitProcReadyAt.mercurialTendencies || 0,
-  );
+  const readyAt = Number(coreState.traitProcReadyAt.mercurialTendencies || 0);
   if (readyAt > at + context.epsilon) return;
 
   let reducedBy = 0;

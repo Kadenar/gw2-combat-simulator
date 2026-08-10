@@ -4,11 +4,11 @@ import {
   onResolvedControl,
 } from "../../../platform/gw2/native-profession.js";
 import { createMesmerModuleData } from "../catalog-data.js";
-import { mesmerCoreAttributeRules } from "./attribute-rules.js";
 import {
+  mesmerCoreAttributeRules,
   mesmerCastRules,
   mesmerCoreSchedulerHooks,
-  projectMesmerEndState,
+  snapshotMesmerState,
 } from "./rules.js";
 import {
   mesmerCoreEventHandlers,
@@ -17,7 +17,7 @@ import {
 import {
   createMesmerCoreResolverState,
   createMesmerCoreState,
-  snapshotMesmerState,
+  projectMesmerEndState,
 } from "./state.js";
 import { mesmerCoreUi } from "./ui.js";
 import {

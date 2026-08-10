@@ -10,15 +10,15 @@ import {
   necromancerCoreAttributeRules,
   necromancerCoreCastRules,
   necromancerSchedulerHooks,
+  snapshotNecromancerState,
 } from "./rules.js";
 import {
-  necromancerCoreEventHandlers,
-  necromancerCoreEventReactions,
-} from "./handlers.js";
+  necromancerCoreResolverEventHandlers,
+  necromancerCoreResolverEventReactions,
+} from "./resolver.js";
 import {
   createNecromancerCoreState,
   projectNecromancerEndState,
-  snapshotNecromancerState,
 } from "./state.js";
 import { bindNecromancerCoreUi } from "./ui.js";
 import {
@@ -29,8 +29,7 @@ import { necromancerCoreSkillHandlers } from "./handlers.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../data/ids.js";
 import type { NecromancerSchedulerContext } from "../types.js";
 
-export const necromancerCoreModule =
-  defineNativeModule({
+export const necromancerCoreModule = defineNativeModule({
   id: "Core",
   data: createNecromancerModuleData("Core", {
     skillMechanics: NECROMANCER_CORE_BASE_SKILL_MECHANICS,
@@ -53,25 +52,25 @@ export const necromancerCoreModule =
       snapshot: (context: NecromancerSchedulerContext) =>
         snapshotNecromancerState(context.state.profession),
     },
-    resolverHooks: { eventHandlers: necromancerCoreEventHandlers },
+    resolverHooks: { eventHandlers: necromancerCoreResolverEventHandlers },
     reactions: [
       onResolvedDamage({
         id: "necromancer.core.damage",
-        handler: necromancerCoreEventReactions.damage,
+        handler: necromancerCoreResolverEventReactions.damage,
       }),
       onResolvedBlind({
         id: "necromancer.core.blind",
-        handler: necromancerCoreEventReactions.blind,
+        handler: necromancerCoreResolverEventReactions.blind,
       }),
       onResolvedControl({
         id: "necromancer.core.control",
-        handler: necromancerCoreEventReactions.control,
+        handler: necromancerCoreResolverEventReactions.control,
       }),
       onConditionApplied({
         id: "necromancer.core.condition",
-        handler: necromancerCoreEventReactions.condition,
+        handler: necromancerCoreResolverEventReactions.condition,
       }),
     ],
   },
   presentation: bindNecromancerCoreUi,
-  });
+});

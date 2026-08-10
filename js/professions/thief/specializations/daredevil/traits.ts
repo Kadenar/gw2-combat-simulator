@@ -1,17 +1,89 @@
-import { daredevilState } from "./state.js";
+import type { SkillId } from "../../../../platform/engine/types.js";
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_TRAIT_IDS as TRAIT,
 } from "../../data/ids.js";
 import { hasThiefTrait } from "../../core/state.js";
 import {
-  emitThiefState,
   emitThiefCondition,
+  emitThiefState,
   gainThiefEndurance,
 } from "../../core/shared.js";
-import { DAREDEVIL_DODGE_EFFECTS } from "./mechanics.js";
-import type { DaredevilDodgeEffect } from "./mechanics.js";
-import type { ThiefCastContext, ThiefSkill } from "../../types.js";
+import type { ThiefCastContext, ThiefDodge, ThiefSkill } from "../../types.js";
+import { daredevilState } from "./state.js";
+
+interface DaredevilDodgeEffectBase {
+  sourceId: SkillId;
+  stacks?: number;
+  duration?: number;
+}
+
+type DaredevilDodgeEffect = Readonly<
+  | (DaredevilDodgeEffectBase & {
+      type: "strike";
+      coefficient: number;
+      hits: number;
+    })
+  | (DaredevilDodgeEffectBase & {
+      type: "condition";
+      condition: string;
+    })
+  | (DaredevilDodgeEffectBase & {
+      type: "boon";
+      boon: string;
+    })
+>;
+
+const DAREDEVIL_DODGE_EFFECTS: Readonly<
+  Partial<Record<ThiefDodge, readonly DaredevilDodgeEffect[]>>
+> = Object.freeze({
+  "Bounding Dodger": Object.freeze([
+    Object.freeze({
+      type: "strike",
+      sourceId: TRAIT.BOUNDING_DODGER,
+      coefficient: 3.5,
+      hits: 1,
+    }),
+  ]),
+  "Lotus Training": Object.freeze([
+    Object.freeze({
+      type: "strike",
+      sourceId: TRAIT.LOTUS_TRAINING,
+      coefficient: 0.5625,
+      hits: 3,
+    }),
+    Object.freeze({
+      type: "condition",
+      sourceId: TRAIT.LOTUS_TRAINING,
+      condition: "Bleeding",
+      stacks: 6,
+      duration: 4,
+    }),
+    Object.freeze({
+      type: "condition",
+      sourceId: TRAIT.LOTUS_TRAINING,
+      condition: "Torment",
+      stacks: 3,
+      duration: 4,
+    }),
+    Object.freeze({
+      type: "condition",
+      sourceId: TRAIT.LOTUS_TRAINING,
+      condition: "Crippled",
+      stacks: 1,
+      duration: 3,
+    }),
+  ]),
+  "Unhindered Combatant": Object.freeze([
+    Object.freeze({
+      type: "boon",
+      sourceId: TRAIT.UNHINDERED_COMBATANT,
+      boon: "Swiftness",
+      stacks: 1,
+      duration: 8,
+    }),
+  ]),
+});
 
 function emitDodgeEffect(
   context: ThiefCastContext,
@@ -19,11 +91,12 @@ function emitDodgeEffect(
   effect: DaredevilDodgeEffect,
 ): void {
   const state = daredevilState.from(context);
-  const dodgeSkillName = state.selectedDodge === "Bounding Dodger"
-    ? "Bound"
-    : state.selectedDodge === "Lotus Training"
-      ? "Impaling Lotus"
-      : state.selectedDodge;
+  const dodgeSkillName =
+    state.selectedDodge === "Bounding Dodger"
+      ? "Bound"
+      : state.selectedDodge === "Lotus Training"
+        ? "Impaling Lotus"
+        : state.selectedDodge;
   const common = {
     at: context.effectiveEnd,
     source: "Trait",
@@ -53,7 +126,7 @@ function emitDodgeEffect(
       stacks: Number(effect.stacks || 1),
       duration: Number(effect.duration || 0),
     });
-  } else if (effect.type === "boon") {
+  } else {
     context.emit({
       ...common,
       type: "boon",
@@ -86,34 +159,39 @@ export function applyDaredevilDodge(
   }
 }
 
-export function spendDaredevilResources(
+function spendDaredevilTraitResources(
   context: ThiefCastContext,
   skill: ThiefSkill,
 ): void {
   const cost = Number(skill.initiativeCost || 0);
   if (
-    cost > 0
-    && skill.weapon === "Staff"
-    && hasThiefTrait(context.config, TRAIT.STAFF_MASTER)
+    cost > 0 &&
+    skill.weapon === "Staff" &&
+    hasThiefTrait(context.config, TRAIT.STAFF_MASTER)
   ) {
     gainThiefEndurance(context, cost * 2, context.start, "staff-master");
   }
   if (
-    (skill.categories || []).some(category =>
-      String(category).toLowerCase().includes("physical"))
-    && skill.id !== ID.PALM_STRIKE
-    && hasThiefTrait(context.config, TRAIT.BRAWLERS_TENACITY)
+    (skill.categories || []).some((category) =>
+      String(category).toLowerCase().includes("physical"),
+    ) &&
+    skill.id !== ID.PALM_STRIKE &&
+    hasThiefTrait(context.config, TRAIT.BRAWLERS_TENACITY)
   ) {
     gainThiefEndurance(context, 15, context.start, "brawlers-tenacity");
   }
 }
 
 function skillAttacks(skill: ThiefSkill): boolean {
-  return skill.id !== ID.DODGE && (skill.effects || []).some(effect =>
-    effect.type === "strike" || effect.type === "condition");
+  return (
+    skill.id !== ID.DODGE &&
+    (skill.effects || []).some(
+      (effect) => effect.type === "strike" || effect.type === "condition",
+    )
+  );
 }
 
-export function applyWeakeningStrike(
+function applyWeakeningStrike(
   context: ThiefCastContext,
   skill: ThiefSkill,
 ): void {
@@ -131,40 +209,10 @@ export function applyWeakeningStrike(
   emitThiefState(context, context.start, "weakening-strikes");
 }
 
-export function updatePalmStrikeWindow(
+export function beginDaredevilTraits(
   context: ThiefCastContext,
   skill: ThiefSkill,
 ): void {
-  const state = daredevilState.from(context);
-  if (skill.id === ID.FIST_FLURRY) {
-    state.palmStrikeUntil = context.effectiveEnd + 5;
-    emitThiefState(context, context.effectiveEnd, "palm-strike-ready");
-  } else if (skill.id === ID.PALM_STRIKE) {
-    state.palmStrikeUntil = 0;
-    emitThiefState(context, context.effectiveEnd, "palm-strike-used");
-  }
-}
-
-function beginDaredevilCast(
-  context: ThiefCastContext,
-  skill: ThiefSkill,
-): void {
-  spendDaredevilResources(context, skill);
+  spendDaredevilTraitResources(context, skill);
   applyWeakeningStrike(context, skill);
 }
-
-export const daredevilSchedulerHooks = Object.freeze({
-  onCastStart: beginDaredevilCast,
-  afterCast: Object.freeze([
-    {
-      id: "thief.daredevil-dodge",
-      order: 30,
-      handler: applyDaredevilDodge,
-    },
-    {
-      id: "thief.daredevil-palm-strike",
-      order: 40,
-      handler: updatePalmStrikeWindow,
-    },
-  ]),
-});

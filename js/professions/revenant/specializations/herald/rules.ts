@@ -9,14 +9,12 @@ import {
   revenantActiveBoonCount,
   revenantPlayer,
   revenantTimedBuff,
-} from "../../core/attribute-rules.js";
+} from "../../core/rules.js";
 import { emitRevenantBoon } from "../../core/boons.js";
 import { revenantCombatActive } from "../../core/legend.js";
 import { hasRevenantTrait } from "../../core/state.js";
 import { HERALD_MECHANICS as MECHANICS } from "./mechanics.js";
-import type {
-  Gw2ModifierRule,
-} from "../../../../platform/gw2/types.js";
+import type { Gw2ModifierRule } from "../../../../platform/gw2/types.js";
 import type {
   RevenantSchedulerContext,
   RevenantSimulationEvent,
@@ -43,8 +41,7 @@ export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: "damage-additive",
     amount: (context) => revenantActiveBoonCount(context) * 0.01,
     when: (context) =>
-      revenantPlayer(context) &&
-      hasTrait(context, TRAIT.REINFORCED_POTENCY),
+      revenantPlayer(context) && hasTrait(context, TRAIT.REINFORCED_POTENCY),
   },
 ]);
 
@@ -65,9 +62,10 @@ function observeHeraldEvent(
   ) {
     return;
   }
-  const swapSkill = event.skillId == null
-    ? undefined
-    : context.catalog.skillsById.get(event.skillId);
+  const swapSkill =
+    event.skillId == null
+      ? undefined
+      : context.catalog.skillsById.get(event.skillId);
   if (!swapSkill) return;
   const invocation = MECHANICS.legendInvocation;
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
@@ -79,9 +77,9 @@ function observeHeraldEvent(
       boon.duration,
       boon.stacks,
       {
-      at: event.at,
-      sourceId: TRAIT.SPIRIT_BOON,
-      name: `Spirit Boon — ${boon.kind}`,
+        at: event.at,
+        sourceId: TRAIT.SPIRIT_BOON,
+        name: `Spirit Boon — ${boon.kind}`,
       },
     );
   }

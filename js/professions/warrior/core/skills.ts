@@ -2,6 +2,8 @@
 import { WARRIOR_SKILL_IDS as ID } from "../data/ids.js";
 import type { SkillFragment } from "../../../platform/engine/types.js";
 
+export { WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from "./actions.js";
+
 export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   Record<number, SkillFragment>
 > = Object.freeze({

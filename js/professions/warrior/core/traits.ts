@@ -55,6 +55,95 @@ const BODY_BLOW_CONTROL_KINDS = new Set([
   "launch",
 ]);
 
+export function armBurstPrecision(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+  spent: number,
+): void {
+  if (!skill.burst || spent <= 0 || !hasTrait(context, TRAIT.BURST_PRECISION)) {
+    return;
+  }
+  professionCoreState(context).burstPrecisionDurations[context.reservationId] =
+    spent >= 30 ? 4 : 2;
+}
+
+function berserkersPowerStacks(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+  spent: number,
+): number {
+  if (
+    !skill.burst ||
+    spent <= 0 ||
+    !hasTrait(context, TRAIT.BERSERKERS_POWER)
+  ) {
+    return 0;
+  }
+  return skill.primalBurst || context.config.specialization === "Spellbreaker"
+    ? 2
+    : spent >= 30
+      ? 4
+      : spent >= 20
+        ? 3
+        : 2;
+}
+
+export function grantBerserkersPowerOnFirstHit(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+  event: WarriorSimulationEvent,
+  spent: number,
+): boolean {
+  if (event.type !== "damage" || !(Number(event.coefficient) > 0)) {
+    return false;
+  }
+  const stacks = berserkersPowerStacks(context, skill, spent);
+  if (stacks <= 0) return false;
+  grantBerserkersPower(context, stacks, event.at + context.epsilon, skill);
+  return true;
+}
+
+export function applyMartialCadenceWeaponSwap(
+  context: WarriorCastContext,
+  at: number,
+): void {
+  if (hasTrait(context, TRAIT.MARTIAL_CADENCE)) {
+    professionCoreState(context).soldierFocusReadyAt = at;
+  }
+}
+
+export function applyRecklessDodge(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+): void {
+  if (!hasTrait(context, TRAIT.RECKLESS_DODGE)) return;
+  context.emit({
+    type: "damage",
+    at: context.effectiveEnd,
+    source: "Warrior",
+    sourceId: TRAIT.RECKLESS_DODGE,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: skill.name,
+    name: "Reckless Dodge",
+    coefficient: 1.5,
+  });
+  context.emit({
+    type: "buff",
+    at: context.effectiveEnd,
+    source: "Trait",
+    sourceId: TRAIT.RECKLESS_DODGE,
+    actorType: "effect",
+    skillId: skill.id,
+    skillName: skill.name,
+    name: "Reckless Dodge — Might",
+    kind: "might",
+    boon: "might",
+    stacks: 2,
+    duration: 5,
+  });
+}
+
 export function grantBerserkersPower(
   context: WarriorCastContext,
   requestedStacks: number,
@@ -148,10 +237,7 @@ export function completeWarriorSkill(
   if (skill.id === ID.TREMOR) {
     context.state.cooldowns.delete(ID.CRUSHING_BLOW);
   }
-  if (
-    context.config.specialization === "Bladesworn" &&
-    skill.id === ID.GUNSTINGER
-  ) {
+  if (skill.id === ID.GUNSTINGER) {
     const dragonsRoar = context.catalog.skillsById.get(ID.DRAGONS_ROAR);
     if (dragonsRoar) restoreAmmo(context, dragonsRoar, 3, at);
   }

@@ -1,15 +1,4 @@
-import {
-  handleNecromancerPainfulBond,
-  handleNecromancerWeaponSpell,
-} from "./events.js";
-import {
-  handleNecromancerWeaponSpellAllyTrigger,
-  ritualistResolverEventReactions,
-} from "./resolver.js";
-import {
-  necromancerSpiritSkillHandlers,
-  ritualistSchedulerHooks,
-} from "./spirits.js";
+import { necromancerSpiritSkillHandlers } from "./spirits.js";
 import { necromancerWeaponSpellSkillHandlers } from "./weapon-spells.js";
 import { replaceSkillHandler } from "../../../../platform/engine/skill-handlers.js";
 
@@ -33,16 +22,3 @@ export const ritualistSkillHandlers = new Map([
     ),
   ],
 ]);
-
-export const ritualistEventHandlers = Object.freeze(
-  {
-    "necromancer.painful-bond": handleNecromancerPainfulBond,
-    "necromancer.weapon-spell": handleNecromancerWeaponSpell,
-    "necromancer.weapon-spell-ally-trigger":
-      handleNecromancerWeaponSpellAllyTrigger,
-  },
-);
-
-export const ritualistEventReactions = ritualistResolverEventReactions;
-
-export { ritualistSchedulerHooks };

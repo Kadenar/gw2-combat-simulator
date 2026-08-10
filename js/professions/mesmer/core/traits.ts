@@ -4,9 +4,7 @@ import { professionCoreState } from "../../../platform/engine/profession.js";
  * scheduler-owned state.
  */
 
-import {
-  isInternalCooldownReady,
-} from "../../../platform/engine/clock.js";
+import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import type {
   MesmerApplyCondition,
@@ -54,10 +52,7 @@ export function triggerIneptitudeFromInterrupt(
   const defiant = Boolean(ctx.config.target?.defiant);
   if (
     defiant &&
-    !isInternalCooldownReady(
-      event.at,
-      ctx.profession.ineptitudeReadyAt,
-    )
+    !isInternalCooldownReady(event.at, ctx.profession.ineptitudeReadyAt)
   )
     return;
   if (defiant) ctx.profession.ineptitudeReadyAt = event.at + 3;
@@ -78,10 +73,5 @@ export function triggerIneptitudeFromBlind(
   event: MesmerResolverEvent,
   applyCondition: MesmerApplyCondition,
 ): void {
-  applyIneptitudeConfusion(
-    ctx,
-    event,
-    "blind → confusion",
-    applyCondition,
-  );
+  applyIneptitudeConfusion(ctx, event, "blind → confusion", applyCondition);
 }

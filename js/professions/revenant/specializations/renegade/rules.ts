@@ -1,6 +1,4 @@
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { gw2AlliedPlayerAssumptions } from "../../../../platform/gw2/allied-players.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
@@ -15,7 +13,7 @@ import {
   revenantRuntimeSpecializationState,
   revenantTargetHasCondition,
   revenantTimedBuff,
-} from "../../core/attribute-rules.js";
+} from "../../core/rules.js";
 import { RENEGADE_MECHANICS as MECHANICS } from "./mechanics.js";
 import { emitDamage } from "../../core/upkeep.js";
 import { emitRevenantBoon } from "../../core/boons.js";
@@ -84,7 +82,8 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
         : profile.strikeDamagePerStack;
       return kallasFervorStacks(context) * perStack;
     },
-    when: (context) => revenantPlayer(context) && kallasFervorStacks(context) > 0,
+    when: (context) =>
+      revenantPlayer(context) && kallasFervorStacks(context) > 0,
   },
   {
     id: "revenant.kallas-fervor-condition",
@@ -97,7 +96,8 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
         : profile.conditionDamagePerStack;
       return kallasFervorStacks(context) * perStack;
     },
-    when: (context) => revenantPlayer(context) && kallasFervorStacks(context) > 0,
+    when: (context) =>
+      revenantPlayer(context) && kallasFervorStacks(context) > 0,
   },
 ]);
 
@@ -119,9 +119,7 @@ function modifyRenegadeConditionDuration(
   return context.condition === "Bleeding" &&
     hasTrait(context, TRAIT.BLOOD_FURY) &&
     revenantTimedBuff(context, "fury")
-    ? duration + (
-        MECHANICS.renegade.bloodFury.bleedingDurationMultiplier - 1
-      )
+    ? duration + (MECHANICS.renegade.bloodFury.bleedingDurationMultiplier - 1)
     : duration;
 }
 
@@ -218,9 +216,10 @@ function observeRenegadeEvent(
   ) {
     return;
   }
-  const swapSkill = event.skillId == null
-    ? undefined
-    : context.catalog.skillsById.get(event.skillId);
+  const swapSkill =
+    event.skillId == null
+      ? undefined
+      : context.catalog.skillsById.get(event.skillId);
   if (!swapSkill) return;
   const invocation = MECHANICS.legendInvocation;
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
@@ -232,9 +231,9 @@ function observeRenegadeEvent(
       boon.duration,
       boon.stacks,
       {
-      at: event.at,
-      sourceId: TRAIT.SPIRIT_BOON,
-      name: `Spirit Boon — ${boon.kind}`,
+        at: event.at,
+        sourceId: TRAIT.SPIRIT_BOON,
+        name: `Spirit Boon — ${boon.kind}`,
       },
     );
   }

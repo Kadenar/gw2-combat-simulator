@@ -6,12 +6,14 @@ import {
 } from "../../../../platform/gw2/native-profession.js";
 import { createEngineerModuleData } from "../../catalog-data.js";
 import {
-  scrapperEventHandlers,
-  scrapperEventReactions,
+  scrapperResolverEventHandlers,
+  scrapperResolverEventReactions,
+} from "./resolver.js";
+import {
+  scrapperAttributeRules,
+  scrapperCastRules,
   scrapperSchedulerHooks,
-  scrapperSkillHandlers,
-} from "./handlers.js";
-import { scrapperAttributeRules, scrapperCastRules } from "./rules.js";
+} from "./rules.js";
 import { SCRAPPER_SKILL_MECHANICS } from "./skills.js";
 import { scrapperState } from "./state.js";
 import { scrapperUi } from "./ui.js";
@@ -20,7 +22,6 @@ export const scrapperModule = defineNativeModule({
   id: "Scrapper",
   data: createEngineerModuleData("Scrapper", {
     skillMechanics: SCRAPPER_SKILL_MECHANICS,
-    handlers: scrapperSkillHandlers,
   }),
   state: { scheduler: scrapperState.create, resolver: scrapperState.create },
   mechanics: {
@@ -30,15 +31,15 @@ export const scrapperModule = defineNativeModule({
     reactions: [
       onResolvedDamage({
         id: "engineer.scrapper.damage",
-        handler: scrapperEventReactions.damage,
+        handler: scrapperResolverEventReactions.damage,
       }),
       onBuffApplied({
         id: "engineer.scrapper.buff",
-        handler: scrapperEventReactions.buff,
+        handler: scrapperResolverEventReactions.buff,
       }),
     ],
     resolverHooks: {
-      eventHandlers: scrapperEventHandlers,
+      eventHandlers: scrapperResolverEventHandlers,
     },
   },
   presentation: scrapperUi,

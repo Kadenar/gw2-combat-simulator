@@ -1,7 +1,4 @@
-import {
-  augmentAfter,
-  replaceBefore,
-} from "../../core/handler-strategies.js";
+import { augmentAfter, replaceBefore } from "../../core/handler-strategies.js";
 import { revenantConduitSkillHandlers } from "./conduit.js";
 
 const handlers = Object.freeze({
@@ -26,5 +23,3 @@ const handlers = Object.freeze({
 });
 
 export const conduitSkillHandlers = new Map(Object.entries(handlers));
-export const conduitEventHandlers = Object.freeze({});
-export const conduitEventReactions = Object.freeze({});

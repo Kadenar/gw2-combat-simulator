@@ -1,23 +1,6 @@
 import { RANGER_SKILL_IDS as ID } from "../../data/ids.js";
 import { galeshotState } from "./state.js";
-import type {
-  RangerCastContext,
-  RangerSchedulerContext,
-  RangerSkill,
-} from "../../types.js";
-
-export function advanceGaleshotArrows(
-  context: RangerSchedulerContext,
-  target: number,
-): void {
-  const state = galeshotState.from(context);
-  if (target <= state.arrowsUpdatedAt) return;
-  state.arrows = Math.min(
-    state.maximumArrows,
-    state.arrows + (target - state.arrowsUpdatedAt) / 5,
-  );
-  state.arrowsUpdatedAt = target;
-}
+import type { RangerCastContext, RangerSkill } from "../../types.js";
 
 export const galeshotSkillHandlers = Object.freeze({
   "ranger.cyclone-bow-enter": {
@@ -53,13 +36,5 @@ export const galeshotSkillHandlers = Object.freeze({
         state.arrows + Number(skill.arrowsRestored || 0),
       );
     },
-  },
-});
-
-export const galeshotSchedulerHooks = Object.freeze({
-  advance: {
-    id: "ranger.galeshot-arrows",
-    order: 20,
-    handler: advanceGaleshotArrows,
   },
 });

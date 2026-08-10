@@ -4,13 +4,11 @@ import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { EPSILON } from "../../../../platform/engine/clock.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import { timedActive } from "../../core/attribute-rules.js";
+import { timedActive } from "../../core/rules.js";
 import { mesmerRuntimeFor } from "../../core/runtime.js";
 import { initializeChronomancerRuntime } from "./runtime.js";
 import type { Gw2ModifierRule } from "../../../../platform/gw2/types.js";
-import type {
-  AvailabilityResult,
-} from "../../../../platform/engine/types.js";
+import type { AvailabilityResult } from "../../../../platform/engine/types.js";
 import type {
   MesmerPrecastContext,
   MesmerSchedulerContext,
@@ -23,8 +21,8 @@ function chronomancerAvailability(
   skill: MesmerSkill,
 ): AvailabilityResult {
   if (
-    skill.id !== ID.CONTINUUM_SHIFT
-    || chronomancerState.from(context).continuum
+    skill.id !== ID.CONTINUUM_SHIFT ||
+    chronomancerState.from(context).continuum
   ) {
     return { ready: true };
   }

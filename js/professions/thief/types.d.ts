@@ -33,8 +33,7 @@ export type ThiefDodge =
   | "Bounding Dodger"
   | "Unhindered Combatant";
 
-export interface ThiefSpecializationSelection
-  extends Gw2BuildSpecialization {}
+export interface ThiefSpecializationSelection extends Gw2BuildSpecialization {}
 
 export interface ThiefBuild extends Gw2Build {
   assumptions?: ProfessionBuildAssumptions;
@@ -308,9 +307,10 @@ export type ThiefEmissionContext = ThiefSchedulerContext & {
   readonly skill?: ThiefSkill;
 };
 
-export type ThiefScheduledTask<
-  TPayload = SchedulerRecord,
-> = Omit<ScheduledTask<TPayload>, "payload"> & { readonly payload: TPayload };
+export type ThiefScheduledTask<TPayload = SchedulerRecord> = Omit<
+  ScheduledTask<TPayload>,
+  "payload"
+> & { readonly payload: TPayload };
 
 export type ThiefSimulationEvent = SimulationEvent & {
   readonly application?: ThiefSimulationEvent;
@@ -361,7 +361,9 @@ export interface ThiefUiContext extends SchedulerRecord {
   readonly specialization?: string;
   readonly config?: ThiefConfig;
   readonly build?: ThiefBuild;
-  readonly state?: { readonly profession?: ThiefRuntimeState | Partial<ThiefState> };
+  readonly state?: {
+    readonly profession?: ThiefRuntimeState | Partial<ThiefState>;
+  };
   readonly professionState?: ThiefRuntimeState | Partial<ThiefState>;
   readonly initialInitiative?: number;
   readonly initialShadowForce?: number;
@@ -371,7 +373,9 @@ export interface ThiefUiContext extends SchedulerRecord {
 export interface ThiefWeaponMatcherContext extends Gw2WeaponMatcherContext {
   readonly catalog?: CanonicalCatalog<ThiefSkill> | null;
   readonly config?: ThiefConfig;
-  readonly state?: { readonly profession?: ThiefRuntimeState | Partial<ThiefState> };
+  readonly state?: {
+    readonly profession?: ThiefRuntimeState | Partial<ThiefState>;
+  };
   readonly professionState?: ThiefRuntimeState | Partial<ThiefState>;
   readonly specialization?: string;
 }

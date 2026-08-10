@@ -14,29 +14,58 @@ import {
 } from "../../core/rule-helpers.js";
 import { hasEngineerTrait } from "../../core/state.js";
 import { mechanistCastAvailability } from "./availability.js";
-import { isEngineerMechCommand } from "./mech.js";
+import {
+  applyEngineerMechCastTraits,
+  handleEngineerMechAttack,
+  initializeEngineerMech,
+  isEngineerMechCommand,
+  observeEngineerMechEvent,
+} from "./mech.js";
 import { engineerMechAttributes } from "./state.js";
 import type { SchedulerRecord } from "../../../../platform/engine/types.js";
 import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
-import type {
-  EngineerConfig,
-  EngineerRechargeContext,
-} from "../../types.js";
+import type { EngineerConfig, EngineerRechargeContext } from "../../types.js";
+
+export const mechanistSchedulerHooks = Object.freeze({
+  initialize: {
+    id: "engineer.mech-initialize",
+    order: 10,
+    handler: initializeEngineerMech,
+  },
+  onEventScheduled: {
+    id: "engineer.mech-events",
+    order: 10,
+    handler: observeEngineerMechEvent,
+  },
+  afterCast: {
+    id: "engineer.mech-traits",
+    order: 30,
+    handler: applyEngineerMechCastTraits,
+  },
+  taskHandlers: Object.freeze({
+    "engineer.mech-attack": handleEngineerMechAttack,
+  }),
+});
+
+export const {
+  afterCast: mechanistAfterCast,
+  ...mechanistAdvancedSchedulerHooks
+} = mechanistSchedulerHooks;
 
 function engineerMechEvent(context: Gw2ModifierContext): boolean {
   const event = engineerEvent(context);
   if (
-    event?.engineerMech === true
-    || event?.application?.engineerMech === true
+    event?.engineerMech === true ||
+    event?.application?.engineerMech === true
   ) {
     return true;
   }
   if (
-    context.config?.specialization !== "Mechanist"
-    || event?.actorType !== "summon"
+    context.config?.specialization !== "Mechanist" ||
+    event?.actorType !== "summon"
   ) {
     return false;
   }
@@ -44,34 +73,25 @@ function engineerMechEvent(context: Gw2ModifierContext): boolean {
   return slot >= 1 && slot <= 3;
 }
 
-function selectedSignet(
-  context: Gw2ModifierContext,
-  name: string,
-): boolean {
+function selectedSignet(context: Gw2ModifierContext, name: string): boolean {
   return selectedSkillNames(context).has(name);
 }
 
-function jDriveSignet(
-  context: Gw2ModifierContext,
-  name: string,
-): boolean {
+function jDriveSignet(context: Gw2ModifierContext, name: string): boolean {
   return (
-    hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
-    && selectedSignet(context, name)
+    hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) && selectedSignet(context, name)
   );
 }
 
-function configuredSkillNames(
-  config: EngineerConfig | undefined,
-): Set<string> {
+function configuredSkillNames(config: EngineerConfig | undefined): Set<string> {
   const selected = config?.selectedSkills || [];
   return new Set(
     (Array.isArray(selected) ? selected : Object.values(selected)).map(String),
   );
 }
 
-export const mechanistModifierRules: readonly Gw2ModifierRule[] =
-  Object.freeze([
+export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
+  [
     {
       id: "engineer.force-signet",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -85,8 +105,7 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] =
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: "damage-additive",
       amount: 0.12,
-      when: (context) =>
-        jDriveSignet(context, "Superconducting Signet"),
+      when: (context) => jDriveSignet(context, "Superconducting Signet"),
     },
     {
       id: "engineer.mech-base-critical-chance",
@@ -94,11 +113,8 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] =
       operation: "add",
       amount: 0.05,
       when: (context) =>
-        engineerMechEvent(context)
-        && !hasTrait(
-          context,
-          TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
-        ),
+        engineerMechEvent(context) &&
+        !hasTrait(context, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR),
     },
     {
       id: "engineer.jade-cannons-critical-chance",
@@ -106,10 +122,11 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] =
       operation: "add",
       amount: 0.2,
       when: (context) =>
-        engineerMechEvent(context)
-        && hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS),
+        engineerMechEvent(context) &&
+        hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS),
     },
-  ]);
+  ],
+);
 
 function modifyMechanistAttributes(
   context: Gw2ModifierContext,
@@ -127,12 +144,11 @@ function modifyMechanistAttributes(
     ),
     ferocity: Math.max(
       0,
-      Number(modified.ferocity || 0) - (
-        hasTrait(context, TRAIT.NO_SCOPE)
-        && activeBoonStacks(context, "fury", 1) > 0
+      Number(modified.ferocity || 0) -
+        (hasTrait(context, TRAIT.NO_SCOPE) &&
+        activeBoonStacks(context, "fury", 1) > 0
           ? 150
-          : 0
-      ),
+          : 0),
     ),
     conditionDamage: Math.max(
       0,
@@ -154,30 +170,24 @@ function modifyMechanistRechargeDuration(
 ): number {
   const skill = context.skill;
   if (
-    isEngineerMechCommand(skill)
-    && hasEngineerTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)
+    isEngineerMechCommand(skill) &&
+    hasEngineerTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)
   ) {
     return duration * 0.8;
   }
   if (
-    skill?.id !== ID.OVERCLOCK_SIGNET
-    && skill?.categories?.some(
+    skill?.id !== ID.OVERCLOCK_SIGNET &&
+    skill?.categories?.some(
       (category) => String(category).toLowerCase() === "signet",
     )
   ) {
     const overclockReadyAt = Number(
       context.state?.cooldowns?.get(ID.OVERCLOCK_SIGNET) || 0,
     );
-    const jDrive = hasEngineerTrait(
-      context.config,
-      TRAIT.MECH_CORE_J_DRIVE,
-    );
+    const jDrive = hasEngineerTrait(context.config, TRAIT.MECH_CORE_J_DRIVE);
     if (
-      configuredSkillNames(context.config).has("Overclock Signet")
-      && (
-        jDrive
-        || overclockReadyAt <= Number(context.start || 0)
-      )
+      configuredSkillNames(context.config).has("Overclock Signet") &&
+      (jDrive || overclockReadyAt <= Number(context.start || 0))
     ) {
       return duration * (jDrive ? 0.76 : 0.8);
     }

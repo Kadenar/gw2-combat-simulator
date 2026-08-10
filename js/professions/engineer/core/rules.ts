@@ -2,13 +2,9 @@ import {
   createModifierHooks,
   MODIFIER_TARGET,
 } from "../../../platform/gw2/modifier-rules.js";
-import {
-  professionStaticRulesApplied,
-} from "../../../platform/gw2/attribute-provenance.js";
+import { professionStaticRulesApplied } from "../../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
-import {
-  ENGINEER_TRAIT_IDS as TRAIT,
-} from "../data/ids.js";
+import { ENGINEER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { engineerCoreCastAvailability } from "./availability.js";
 import { observeEngineerComboFinisher } from "./combos.js";
 import { advanceEngineerResources } from "./resources.js";
@@ -40,9 +36,9 @@ import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../platform/gw2/types.js";
-import type {
-  EngineerRechargeContext,
-} from "../types.js";
+import type { EngineerRechargeContext } from "../types.js";
+
+export { snapshotEngineerState } from "./state.js";
 
 function modifyEngineerConditionBaseDuration(
   context: Gw2ModifierContext,
@@ -54,20 +50,16 @@ function modifyEngineerConditionBaseDuration(
   if (application?.source === "Trait") return multiplier;
   const skill = eventSkill(context);
   if (
-    event?.skillWeapon !== "Pistol"
-    && event?.application?.skillWeapon !== "Pistol"
-    && skill?.weapon !== "Pistol"
+    event?.skillWeapon !== "Pistol" &&
+    event?.application?.skillWeapon !== "Pistol" &&
+    skill?.weapon !== "Pistol"
   ) {
     return multiplier;
   }
   const skillName =
-    skill?.name
-    || event?.skillName
-    || event?.application?.skillName;
+    skill?.name || event?.skillName || event?.application?.skillName;
   const condition =
-    context.condition
-    || event?.condition
-    || event?.application?.condition;
+    context.condition || event?.condition || event?.application?.condition;
   if (skillName === "Blowtorch" && condition === "Burning") {
     return multiplier * 1.2;
   }
@@ -85,9 +77,9 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "multiply",
       factor: 1.07,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.GLASS_CANNON)
-        && Number(context.config?.playerHealthFraction ?? 1) > 0.75,
+        playerStrike(context) &&
+        hasTrait(context, TRAIT.GLASS_CANNON) &&
+        Number(context.config?.playerHealthFraction ?? 1) > 0.75,
     },
     {
       id: "engineer.big-boomer",
@@ -95,19 +87,17 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "multiply",
       factor: 1.15,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.BIG_BOOMER)
-        && playerHealthFraction(context) > targetHealthFraction(context),
+        playerStrike(context) &&
+        hasTrait(context, TRAIT.BIG_BOOMER) &&
+        playerHealthFraction(context) > targetHealthFraction(context),
     },
     {
       id: "engineer.shaped-charge",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
-      factor: (context) =>
-        1 + Math.min(25, vulnerability(context)) * 0.005,
+      factor: (context) => 1 + Math.min(25, vulnerability(context)) * 0.005,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.SHAPED_CHARGE),
+        playerStrike(context) && hasTrait(context, TRAIT.SHAPED_CHARGE),
     },
     {
       id: "engineer.modified-ammunition",
@@ -115,8 +105,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "multiply",
       factor: (context) => 1 + targetConditionCount(context) * 0.01,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.MODIFIED_AMMUNITION),
+        playerStrike(context) && hasTrait(context, TRAIT.MODIFIED_AMMUNITION),
     },
     {
       id: "engineer.excessive-energy",
@@ -124,9 +113,9 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "damage-additive",
       amount: 0.1,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.EXCESSIVE_ENERGY)
-        && activeBoonStacks(context, "vigor", 1) > 0,
+        playerStrike(context) &&
+        hasTrait(context, TRAIT.EXCESSIVE_ENERGY) &&
+        activeBoonStacks(context, "vigor", 1) > 0,
     },
     {
       id: "engineer.takedown-round",
@@ -134,14 +123,15 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "damage-additive",
       amount: 0.1,
       when: (context) => {
-        const state = context.runtime?.profession != null
-          ? engineerRuntimeState(context)
-          : engineerSchedulerState(context);
+        const state =
+          context.runtime?.profession != null
+            ? engineerRuntimeState(context)
+            : engineerSchedulerState(context);
         return (
-          playerStrike(context)
-          && hasTrait(context, TRAIT.TAKEDOWN_ROUND)
-          && Number(state.endurance || 0)
-            < Number(state.maximumEndurance || 100) - 1e-9
+          playerStrike(context) &&
+          hasTrait(context, TRAIT.TAKEDOWN_ROUND) &&
+          Number(state.endurance || 0) <
+            Number(state.maximumEndurance || 100) - 1e-9
         );
       },
     },
@@ -151,9 +141,9 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "damage-additive",
       amount: 0.15,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.KINETIC_BATTERY)
-        && activeBoonStacks(context, "kinetic-battery", 1) > 0,
+        playerStrike(context) &&
+        hasTrait(context, TRAIT.KINETIC_BATTERY) &&
+        activeBoonStacks(context, "kinetic-battery", 1) > 0,
     },
     {
       id: "engineer.flame-jet-burning-target",
@@ -161,12 +151,14 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "damage-additive",
       amount: 0.1,
       when: (context) =>
-        context.event?.skillName === "Flame Jet"
-        && Boolean(context.query?.targetHasCondition(
-          "Burning",
-          context.time,
-          context.runtime,
-        )),
+        context.event?.skillName === "Flame Jet" &&
+        Boolean(
+          context.query?.targetHasCondition(
+            "Burning",
+            context.time,
+            context.runtime,
+          ),
+        ),
     },
     {
       id: "engineer.high-caliber",
@@ -174,8 +166,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "add",
       amount: 0.15,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.HIGH_CALIBER),
+        playerStrike(context) && hasTrait(context, TRAIT.HIGH_CALIBER),
     },
     {
       id: "engineer.grand-entrance",
@@ -183,9 +174,9 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "add",
       amount: 0.1,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.GRAND_ENTRANCE)
-        && activeBoonStacks(context, "grand-entrance", 1) > 0,
+        playerStrike(context) &&
+        hasTrait(context, TRAIT.GRAND_ENTRANCE) &&
+        activeBoonStacks(context, "grand-entrance", 1) > 0,
     },
     {
       id: "engineer.heavy-metal-critical-chance",
@@ -193,8 +184,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "add",
       amount: heavyMetalBonus,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.HEAVY_METAL),
+        playerStrike(context) && hasTrait(context, TRAIT.HEAVY_METAL),
     },
     {
       id: "engineer.heavy-metal-critical-damage",
@@ -202,8 +192,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "multiply",
       factor: (context) => 1 + heavyMetalBonus(context),
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.HEAVY_METAL),
+        playerStrike(context) && hasTrait(context, TRAIT.HEAVY_METAL),
     },
     {
       id: "engineer.static-discharge-critical-damage",
@@ -218,10 +207,10 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "damage-additive",
       amount: 0.05,
       when: (context) =>
-        hasTrait(context, TRAIT.THERMAL_VISION)
-        && Number(
-          engineerRuntimeState(context).traitProcReadyAt
-            ?.thermalVisionUntil || 0,
+        hasTrait(context, TRAIT.THERMAL_VISION) &&
+        Number(
+          engineerRuntimeState(context).traitProcReadyAt?.thermalVisionUntil ||
+            0,
         ) > context.time,
     },
     {
@@ -230,8 +219,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "add",
       amount: 0.33,
       when: (context) =>
-        context.condition === "Bleeding"
-        && hasTrait(context, TRAIT.SERRATED_STEEL),
+        context.condition === "Bleeding" &&
+        hasTrait(context, TRAIT.SERRATED_STEEL),
     },
     {
       id: "engineer.incendiary-powder-duration",
@@ -239,8 +228,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "add",
       amount: 0.33,
       when: (context) =>
-        context.condition === "Burning"
-        && hasTrait(context, TRAIT.INCENDIARY_POWDER),
+        context.condition === "Burning" &&
+        hasTrait(context, TRAIT.INCENDIARY_POWDER),
     },
     {
       id: "engineer.hematic-focus",
@@ -248,9 +237,9 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] =
       operation: "add",
       amount: 0.15,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.HEMATIC_FOCUS)
-        && activeBoonStacks(context, "fury", 1) > 0,
+        playerStrike(context) &&
+        hasTrait(context, TRAIT.HEMATIC_FOCUS) &&
+        activeBoonStacks(context, "fury", 1) > 0,
     },
   ]);
 
@@ -266,48 +255,36 @@ function modifyEngineerCoreAttributes(
 ): SchedulerRecord {
   const modified = cloneEngineerAttributes(attributes);
   const buildAttributesApplied = professionStaticRulesApplied(context.config);
-  if (
-    hasTrait(context, TRAIT.CHEMICAL_ROUNDS)
-    && !buildAttributesApplied
-  ) {
+  if (hasTrait(context, TRAIT.CHEMICAL_ROUNDS) && !buildAttributesApplied) {
     modified.conditionDamage = Number(modified.conditionDamage || 0) + 120;
   }
-  if (
-    hasTrait(context, TRAIT.THERMAL_VISION)
-    && !buildAttributesApplied
-  ) {
+  if (hasTrait(context, TRAIT.THERMAL_VISION) && !buildAttributesApplied) {
     modified.expertise = Number(modified.expertise || 0) + 150;
   }
   if (
-    hasTrait(context, TRAIT.ENERGY_AMPLIFIER)
-    && activeBoonStacks(context, "regeneration", 1) > 0
-    && !(
-      buildAttributesApplied
-      && Boolean(context.config?.boons?.regeneration)
-    )
+    hasTrait(context, TRAIT.ENERGY_AMPLIFIER) &&
+    activeBoonStacks(context, "regeneration", 1) > 0 &&
+    !(buildAttributesApplied && Boolean(context.config?.boons?.regeneration))
   ) {
     modified.power = Number(modified.power || 0) + 250;
     modified.healingPower = Number(modified.healingPower || 0) + 250;
   }
   if (
-    hasTrait(context, TRAIT.NO_SCOPE)
-    && activeBoonStacks(context, "fury", 1) > 0
-    && !(
-      buildAttributesApplied
-      && Boolean(context.config?.boons?.fury)
-    )
+    hasTrait(context, TRAIT.NO_SCOPE) &&
+    activeBoonStacks(context, "fury", 1) > 0 &&
+    !(buildAttributesApplied && Boolean(context.config?.boons?.fury))
   ) {
     modified.ferocity = Number(modified.ferocity || 0) + 150;
   }
   if (hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) {
     modified.ferocity =
-      Number(modified.ferocity || 0)
-      + activeBoonStacks(context, "explosive-temper", 10) * 20;
+      Number(modified.ferocity || 0) +
+      activeBoonStacks(context, "explosive-temper", 10) * 20;
   }
   if (
-    hasTrait(context, TRAIT.SHARPSHOOTER)
-    && context.event?.condition === "Bleeding"
-    && context.event?.actorType !== "summon"
+    hasTrait(context, TRAIT.SHARPSHOOTER) &&
+    context.event?.condition === "Bleeding" &&
+    context.event?.actorType !== "summon"
   ) {
     modified.conditionDamage = Number(modified.power || 0) * (2 / 3);
   }
@@ -320,16 +297,16 @@ function modifyEngineerCoreRechargeDuration(
 ): number {
   const skill = context.skill;
   if (
-    isEngineerToolbeltSkill(skill)
-    && hasEngineerTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)
+    isEngineerToolbeltSkill(skill) &&
+    hasEngineerTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)
   ) {
     return duration * 0.85;
   }
   if (
     skill?.categories?.some(
       (category) => String(category).toLowerCase() === "gadget",
-    )
-    && hasEngineerTrait(context.config, TRAIT.GADGETEER)
+    ) &&
+    hasEngineerTrait(context.config, TRAIT.GADGETEER)
   ) {
     return duration * 0.8;
   }

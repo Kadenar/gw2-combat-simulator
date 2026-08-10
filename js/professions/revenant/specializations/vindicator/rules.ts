@@ -1,7 +1,5 @@
 import { vindicatorState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
@@ -18,7 +16,7 @@ import {
   revenantPlayer,
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState,
-} from "../../core/attribute-rules.js";
+} from "../../core/rules.js";
 import { VINDICATOR_MECHANICS as MECHANICS } from "./mechanics.js";
 import { completeVindicatorDodge } from "./dodge.js";
 import {
@@ -30,9 +28,7 @@ import type {
   Gw2ModifierRule,
   Gw2Stats,
 } from "../../../../platform/gw2/types.js";
-import type {
-  SkillId,
-} from "../../../../platform/engine/types.js";
+import type { SkillId } from "../../../../platform/engine/types.js";
 import type {
   RevenantPrecastContext,
   RevenantSchedulerContext,
@@ -66,14 +62,12 @@ export const vindicatorModifierRules: readonly Gw2ModifierRule[] =
       when: (context) =>
         revenantPlayer(context) &&
         hasTrait(context, TRAIT.FORERUNNER_OF_DEATH) &&
-        (
-          context.event?.forerunnerOfDeathActive != null
-            ? Boolean(context.event.forerunnerOfDeathActive)
-            : Number(
-                revenantRuntimeSpecializationState(context)
-                  .forerunnerOfDeathUntil || 0,
-              ) > context.time
-        ),
+        (context.event?.forerunnerOfDeathActive != null
+          ? Boolean(context.event.forerunnerOfDeathActive)
+          : Number(
+              revenantRuntimeSpecializationState(context)
+                .forerunnerOfDeathUntil || 0,
+            ) > context.time),
     },
   ]);
 
@@ -100,8 +94,7 @@ function observeVindicatorEvent(
 ): void {
   if (event.type === "revenant.state" && event.reason === "dodge") {
     const skill = context.catalog.skillsById.get(ID.DODGE) as
-      | RevenantSkill
-      | undefined;
+      RevenantSkill | undefined;
     if (skill) completeVindicatorDodge(context, skill, event.at);
     return;
   }
@@ -118,9 +111,10 @@ function observeVindicatorEvent(
   ) {
     return;
   }
-  const swapSkill = event.skillId == null
-    ? undefined
-    : context.catalog.skillsById.get(event.skillId);
+  const swapSkill =
+    event.skillId == null
+      ? undefined
+      : context.catalog.skillsById.get(event.skillId);
   if (!swapSkill) return;
   const invocation = MECHANICS.legendInvocation;
   if (hasRevenantTrait(context.config, TRAIT.SPIRIT_BOON)) {
@@ -132,9 +126,9 @@ function observeVindicatorEvent(
       boon.duration,
       boon.stacks,
       {
-      at: event.at,
-      sourceId: TRAIT.SPIRIT_BOON,
-      name: `Spirit Boon — ${boon.kind}`,
+        at: event.at,
+        sourceId: TRAIT.SPIRIT_BOON,
+        name: `Spirit Boon — ${boon.kind}`,
       },
     );
   }
@@ -157,9 +151,7 @@ function observeVindicatorEvent(
   });
   coreState.endurance = Math.min(
     coreState.maximumEndurance,
-    coreState.endurance +
-      song.enduranceOnCast +
-      song.endurancePerHit,
+    coreState.endurance + song.enduranceOnCast + song.endurancePerHit,
   );
   coreState.enduranceUpdatedAt = event.at;
 }
@@ -191,17 +183,13 @@ function vindicatorCastAvailability(
   const state = vindicatorState.from(context);
   const wrongSide =
     professionCoreState(context).activeLegendId === LEGEND.ALLIANCE &&
-    (
-      (LUXON.has(skill.id) && state.allianceSide !== "luxon") ||
-      (KURZICK.has(skill.id) && state.allianceSide !== "kurzick")
-    );
+    ((LUXON.has(skill.id) && state.allianceSide !== "luxon") ||
+      (KURZICK.has(skill.id) && state.allianceSide !== "kurzick"));
   return wrongSide
     ? denyRevenantSkill(
         skill,
         "revenant.alliance-side",
-        `switch to the ${
-          LUXON.has(skill.id) ? "Luxon" : "Kurzick"
-        } side.`,
+        `switch to the ${LUXON.has(skill.id) ? "Luxon" : "Kurzick"} side.`,
       )
     : { ready: true as const };
 }

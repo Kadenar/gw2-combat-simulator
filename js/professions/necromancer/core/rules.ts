@@ -14,10 +14,7 @@ import {
   NECROMANCER_SKILL_IDS as ID,
   NECROMANCER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
-import {
-  necromancerCastRules,
-  necromancerSchedulerHooks,
-} from "./contract.js";
+import { necromancerCastRules, necromancerSchedulerHooks } from "./contract.js";
 import type {
   SchedulerRecord,
   SkillId,
@@ -52,7 +49,7 @@ export function necromancerRuntimeCoreState(
   const runtime = state as Partial<NecromancerRuntimeState>;
   return runtime.core && typeof runtime.core === "object"
     ? runtime.core
-    : state as Partial<NecromancerCoreState>;
+    : (state as Partial<NecromancerCoreState>);
 }
 
 export function necromancerRuntimeSpecializationState(
@@ -60,11 +57,11 @@ export function necromancerRuntimeSpecializationState(
 ): Partial<NecromancerState> {
   const state = queryProfessionState(context);
   const runtime = state as Partial<NecromancerRuntimeState>;
-  return runtime.specialization
-      && typeof runtime.specialization === "object"
-      && runtime.specialization.state
+  return runtime.specialization &&
+    typeof runtime.specialization === "object" &&
+    runtime.specialization.state
     ? runtime.specialization.state
-    : state as Partial<NecromancerState>;
+    : (state as Partial<NecromancerState>);
 }
 
 export function necromancerEventSkill(
@@ -215,7 +212,8 @@ export function modifyNecromancerCoreAttributes(
   const result = cloneNecromancerAttributes(attributes);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (selectedSkill(context, "Signet of Spite")) {
-    const passiveActive = context.actorType !== "summon" && signetOfSpitePassiveActive(context);
+    const passiveActive =
+      context.actorType !== "summon" && signetOfSpitePassiveActive(context);
     if (staticRulesApplied) {
       if (!passiveActive) result.power -= 180;
     } else if (passiveActive) {
@@ -424,15 +422,14 @@ function modifyNecromancerRechargeStart(
   rechargeStart: number,
 ): number {
   if (
-    context.skill?.id !== ID.ISOLATE
-    || context.skill.flipActivationAtMs == null
-  ) return rechargeStart;
+    context.skill?.id !== ID.ISOLATE ||
+    context.skill.flipActivationAtMs == null
+  )
+    return rechargeStart;
   const baseCastMs = Number(context.skill.castTimeMs || 0);
-  const activationProgress = baseCastMs > 0
-    ? Number(context.skill.flipActivationAtMs) / baseCastMs
-    : 1;
-  return context.start
-    + (rechargeStart - context.start) * activationProgress;
+  const activationProgress =
+    baseCastMs > 0 ? Number(context.skill.flipActivationAtMs) / baseCastMs : 1;
+  return context.start + (rechargeStart - context.start) * activationProgress;
 }
 
 export const necromancerCoreAttributeRules = Object.freeze({
@@ -449,3 +446,4 @@ export const necromancerCoreCastRules = Object.freeze({
 });
 
 export { necromancerSchedulerHooks };
+export { snapshotNecromancerState } from "./state.js";

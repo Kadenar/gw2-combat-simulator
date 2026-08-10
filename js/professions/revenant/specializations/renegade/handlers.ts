@@ -11,15 +11,9 @@ import type {
   RevenantSimulationEvent,
   RevenantSkill,
 } from "../../types.js";
-import {
-  handlerPhase,
-  replaceAfter,
-} from "../../core/handler-strategies.js";
-import {
-  revenantAssassinRenegadeSkillHandlers,
-} from "./renegade.js";
+import { handlerPhase, replaceAfter } from "../../core/handler-strategies.js";
+import { revenantAssassinRenegadeSkillHandlers } from "./renegade.js";
 import type { BandTogetherState } from "./renegade.js";
-import { revenantRenegadeEventReactions } from "./resolver.js";
 
 const bandTogether =
   revenantAssassinRenegadeSkillHandlers["revenant.band-together"];
@@ -44,30 +38,21 @@ const handlers = Object.freeze({
     handlerPhase(bandTogether.beforeEffects),
     {
       resolveMode: bandTogetherHandlerMode,
-      afterEffect: (
-        context,
-        skill,
-        event,
-        state,
-      ) => bandTogether.afterEffect(
-        context,
-        skill as RevenantSkill,
-        event as RevenantSimulationEvent,
-        state as BandTogetherState,
-      ),
-      afterEffects: (
-        context,
-        skill,
-        state,
-      ) => bandTogether.afterEffects(
-        context,
-        skill as RevenantSkill,
-        state as BandTogetherState,
-      ),
+      afterEffect: (context, skill, event, state) =>
+        bandTogether.afterEffect(
+          context,
+          skill as RevenantSkill,
+          event as RevenantSimulationEvent,
+          state as BandTogetherState,
+        ),
+      afterEffects: (context, skill, state) =>
+        bandTogether.afterEffects(
+          context,
+          skill as RevenantSkill,
+          state as BandTogetherState,
+        ),
     },
   ),
 });
 
 export const renegadeSkillHandlers = new Map(Object.entries(handlers));
-export const renegadeEventHandlers = Object.freeze({});
-export const renegadeEventReactions = revenantRenegadeEventReactions;

@@ -6,6 +6,15 @@ import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
+import { observeSpellbreakerEvent } from "./traits.js";
+
+export const spellbreakerSchedulerHooks = Object.freeze({
+  onEventScheduled: {
+    id: "warrior.attacker-insight",
+    order: 20,
+    handler: observeSpellbreakerEvent,
+  },
+});
 
 function insightStacks(context: Gw2ModifierContext): number {
   const profession = (

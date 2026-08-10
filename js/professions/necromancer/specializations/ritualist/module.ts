@@ -1,11 +1,13 @@
-import { defineNativeModule, onResolvedDamage } from "../../../../platform/gw2/native-profession.js";
+import {
+  defineNativeModule,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
 import { createNecromancerModuleData } from "../../catalog-data.js";
 import {
   ritualistEventHandlers,
-  ritualistEventReactions,
-  ritualistSchedulerHooks,
-} from "./handlers.js";
-import { ritualistAttributeRules } from "./rules.js";
+  ritualistResolverEventReactions,
+} from "./resolver.js";
+import { ritualistAttributeRules, ritualistSchedulerHooks } from "./rules.js";
 import { ritualistState } from "./state.js";
 import { ritualistUi } from "./ui.js";
 import { RITUALIST_BASE_SKILL_MECHANICS } from "./skills.js";
@@ -21,7 +23,12 @@ export const ritualistModule = defineNativeModule({
   mechanics: {
     modifiers: ritualistAttributeRules,
     resolverHooks: { eventHandlers: ritualistEventHandlers },
-    reactions: [onResolvedDamage({ id: "necromancer.ritualist.damage", handler: ritualistEventReactions.damage })],
+    reactions: [
+      onResolvedDamage({
+        id: "necromancer.ritualist.damage",
+        handler: ritualistResolverEventReactions.damage,
+      }),
+    ],
     schedulerHooks: ritualistSchedulerHooks,
   },
   presentation: ritualistUi,

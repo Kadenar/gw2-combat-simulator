@@ -1,9 +1,18 @@
-import {
-  professionStaticRulesApplied,
-} from "../../../../platform/gw2/attribute-provenance.js";
+import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import { NECROMANCER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
+import {
+  NECROMANCER_SKILL_IDS as ID,
+  NECROMANCER_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
+import {
+  emitBuff,
+  gainNecromancerLifeForce,
+  hasTrait as hasNecromancerTrait,
+} from "../../core/shared.js";
+import { advanceHarbingerBlight } from "./blight.js";
+import { harbingerState } from "./state.js";
 import {
   cloneNecromancerAttributes,
   necromancerActiveShroud,
@@ -19,7 +28,56 @@ import type {
 import type {
   NecromancerRechargeModifierContext,
   NecromancerSimulationEvent,
+  NecromancerCastContext,
+  NecromancerSkill,
 } from "../../types.js";
+
+function afterCast(
+  context: NecromancerCastContext,
+  skill: NecromancerSkill,
+): void {
+  const state = harbingerState.from(context);
+  const at = context.effectiveEnd;
+  advanceHarbingerBlight(context, at);
+  if (
+    skill.id === ID.HARBINGER_SHROUD &&
+    professionCoreState(context).activeShroud === "harbinger"
+  ) {
+    state.nextBlightAt = Math.floor(at) + 1;
+    if (hasNecromancerTrait(context, TRAIT.CORRUPTED_TALENT)) {
+      gainNecromancerLifeForce(context, 15, at);
+    }
+    if (hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)) {
+      emitBuff(context, skill, "quickness", 4);
+      emitBuff(context, skill, "fury", 4);
+    }
+    if (hasNecromancerTrait(context, TRAIT.IMPLACABLE_FOE)) {
+      emitBuff(context, skill, "stability", 5, 3);
+      emitBuff(context, skill, "implacable-foe", 2);
+    }
+  }
+  if (
+    skill.id === ID.DARK_BARRAGE &&
+    hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)
+  ) {
+    const deathlyHaste = { source: "Trait", sourceId: TRAIT.DEATHLY_HASTE };
+    emitBuff(context, skill, "quickness", 4, 1, { at, metadata: deathlyHaste });
+    emitBuff(context, skill, "fury", 4, 1, { at, metadata: deathlyHaste });
+  }
+}
+
+export const harbingerSchedulerHooks = Object.freeze({
+  advance: {
+    id: "harbinger.advance-blight",
+    order: -10,
+    handler: advanceHarbingerBlight,
+  },
+  afterCast: {
+    id: "harbinger.after-cast",
+    order: -10,
+    handler: afterCast,
+  },
+});
 
 function modifyHarbingerAttributes(
   context: Gw2ModifierContext,
@@ -77,13 +135,13 @@ function modifyHarbingerRechargeDuration(
   duration: number,
 ): number {
   return context.skill?.weapon === "Pistol" &&
-      hasTrait(context, TRAIT.DARK_GUNSLINGER)
+    hasTrait(context, TRAIT.DARK_GUNSLINGER)
     ? duration * 0.8
     : duration;
 }
 
-export const harbingerModifierRules: readonly Gw2ModifierRule[] =
-  Object.freeze([
+export const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
+  [
     {
       id: "necromancer.wicked-corruption-blight",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -117,10 +175,10 @@ export const harbingerModifierRules: readonly Gw2ModifierRule[] =
         hasTrait(context, TRAIT.CASCADING_CORRUPTION) &&
         Number(
           necromancerRuntimeSpecializationState(context).meltdownUntil || 0,
-        )
-          > context.time,
+        ) > context.time,
     },
-  ]);
+  ],
+);
 
 export const harbingerAttributeRules = Object.freeze({
   modifyAttributes: modifyHarbingerAttributes,

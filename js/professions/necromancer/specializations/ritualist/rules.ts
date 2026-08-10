@@ -18,6 +18,8 @@ import type {
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
 
+export { ritualistSchedulerHooks } from "./spirits.js";
+
 function modifyRitualistAttributes(
   context: Gw2ModifierContext,
   attributes: SchedulerRecord,
@@ -55,8 +57,7 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       when: (context) =>
         hasTrait(context, TRAIT.LINGERING_SPIRITS) &&
         Boolean(
-          necromancerRuntimeSpecializationState(context)
-            .activeSpirits?.anguish,
+          necromancerRuntimeSpecializationState(context).activeSpirits?.anguish,
         ),
     },
     {
@@ -76,10 +77,8 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       order: 100,
       when: (context) =>
         Boolean(
-          (
-            context.event?.actorType === "summon"
-            || context.event?.summonKind === "spirit"
-          ) &&
+          (context.event?.actorType === "summon" ||
+            context.event?.summonKind === "spirit") &&
           hasTrait(context, TRAIT.SPIRITS_STRENGTH),
         ),
     },

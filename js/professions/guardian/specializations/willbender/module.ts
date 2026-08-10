@@ -3,7 +3,7 @@ import {
   onResolvedDamage,
 } from "../../../../platform/gw2/native-profession.js";
 import { createGuardianModuleData } from "../../catalog-data.js";
-import { willbenderEventReactions } from "./handlers.js";
+import { willbenderEventReactions } from "./resolver.js";
 import { WILLBENDER_SKILL_MECHANICS } from "./skills.js";
 import { willbenderState } from "./state.js";
 import { willbenderUi } from "./ui.js";

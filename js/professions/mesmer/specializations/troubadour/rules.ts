@@ -1,10 +1,7 @@
 import { MESMER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import {
-  illusionSource,
-  timedActive,
-} from "../../core/attribute-rules.js";
+import { illusionSource, timedActive } from "../../core/rules.js";
 import { initializeTroubadourRuntime } from "./runtime.js";
 import type { SimulationEvent } from "../../../../platform/engine/types.js";
 import type {
