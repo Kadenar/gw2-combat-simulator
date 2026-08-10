@@ -43,8 +43,8 @@ function emitBoon(
   });
 }
 
-export function berserkEntryDuration(context: WarriorCastContext): number {
-  return hasTrait(context, TRAIT.SMASH_BRAWLER) ? 20 : 15;
+export function berserkEntryDuration(_context: WarriorCastContext): number {
+  return 20;
 }
 
 export function applyBerserkEntryTraits(
@@ -74,9 +74,12 @@ function rageBerserkExtension(skill: WarriorSkill): number {
       return 0;
     case ID.WILD_BLOW:
       return 5;
+    case ID.OUTRAGE:
+      // The simulator always has a nearby target, so Outrage uses its
+      // increased three-second extension instead of the one-second base.
+      return 3;
     case ID.SUNDERING_LEAP:
     case ID.SHATTERING_BLOW:
-    case ID.OUTRAGE:
       return 3;
     default:
       return 2;
@@ -90,10 +93,14 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   if (skill.primalBurst && hasTrait(context, TRAIT.SMASH_BRAWLER)) {
     state.berserkUntil += skill.id === ID.DECAPITATE ? 1 : 2;
   }
-  if (skill.categories?.includes("Rage")) {
+  if (
+    skill.categories?.includes("Rage") &&
+    skill.id !== ID.BERSERK &&
+    skill.id !== ID.BERSERK_ID_30435
+  ) {
     state.berserkUntil +=
       rageBerserkExtension(skill) +
-      (hasTrait(context, TRAIT.LAST_BLAZE) ? 1 : 0);
+      (skill.id !== ID.OUTRAGE && hasTrait(context, TRAIT.LAST_BLAZE) ? 1 : 0);
   }
   if (state.berserkUntil > previousUntil) emitBerserkMarker(context, skill);
 }

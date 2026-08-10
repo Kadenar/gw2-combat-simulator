@@ -18,7 +18,7 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-reaper.json",
         "rotation": "Rotations/necromancer/r-power-reaper-bench.json",
-        "benchmarkDps": 40671
+        "benchmarkDps": 40433
       },
       {
         "label": "Condition (Dagger / Sword + Spear)",
@@ -43,7 +43,7 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-ritualist.json",
         "rotation": "Rotations/necromancer/r-power-ritualist-bench.json",
-        "benchmarkDps": 42819,
+        "benchmarkDps": 42901,
         "upToDate": true
       }
     ]
@@ -55,13 +55,13 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-harbinger.json",
         "rotation": "Rotations/necromancer/r-power-harbinger-bench.json",
-        "benchmarkDps": 44002
+        "benchmarkDps": 43617
       },
       {
         "label": "Condition (Pistol / Torch + Scepter / Dagger)",
         "build": "Builds/necromancer/b-condi-harbinger.json",
         "rotation": "Rotations/necromancer/r-condi-harbinger-bench.json",
-        "benchmarkDps": 45492
+        "benchmarkDps": 45253
       }
     ]
   }

@@ -84,9 +84,6 @@ export function bindPageControls(app: ProfessionAppState): void {
       redoRotation(app);
     }
   });
-  requiredElement("btn-sim-rerun").addEventListener("click", () =>
-    app.changed(false),
-  );
   requiredElement("btn-export-build").addEventListener("click", () =>
     downloadJson(app.adapter.filenames.build, getBuildExportPayload(app.build)),
   );
@@ -137,17 +134,6 @@ export function bindPageControls(app: ProfessionAppState): void {
     } catch (error) {
       alert(errorMessage(error));
     }
-  });
-  const targetArmor = requiredValueControl("target-armor");
-  targetArmor.addEventListener("change", () => {
-    app.build.targetArmor = Math.max(1, Number(targetArmor.value) || 2597);
-    app.changed(false);
-  });
-  const targetHealth = requiredValueControl("target-hp");
-  targetHealth.addEventListener("change", () => {
-    app.build.targetHealth = Math.max(0, Number(targetHealth.value) || 0);
-    targetHealth.value = String(app.build.targetHealth);
-    app.changed(false);
   });
   requiredElement("btn-reset-build").addEventListener("click", () => {
     if (!confirm(app.adapter.resetPrompt)) return;

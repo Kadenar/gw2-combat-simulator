@@ -28,6 +28,13 @@
         "dpsReportUrl": "https://dps.report/HQq4-20260716-224707_golem",
         "benchmarkDps": 43869,
         "upToDate": true
+      },
+      {
+        "label": "Condition (Longbow + Sword/Torch)",
+        "build": "Builds/warrior/b-condi-berserker-longbow-sword-torch.json",
+        "rotation": "Rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
+        "benchmarkDps": 43275,
+        "upToDate": true
       }
     ]
   },

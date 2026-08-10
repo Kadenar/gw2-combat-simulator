@@ -6,13 +6,13 @@
         "label": "Power",
         "build": "Builds/mesmer/b-power-chronomancer.json",
         "rotation": "Rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
-        "benchmarkDps": 44450
+        "benchmarkDps": 44443
       },
       {
         "label": "Condition",
         "build": "Builds/mesmer/b-condi-chronomancer.json",
         "rotation": "Rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 46909
+        "benchmarkDps": 46893
       }
     ]
   },
@@ -23,7 +23,7 @@
         "label": "Condition - Dune Cloak",
         "build": "Builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "Rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 41188,
+        "benchmarkDps": 41128,
         "referenceDps": 40936
       }
     ]
@@ -46,7 +46,7 @@
         "label": "Power (Dagger-Sword / Spear)",
         "build": "Builds/mesmer/b-power-troubadour.json",
         "rotation": "Rotations/mesmer/r-power-troubadour-bench.json",
-        "benchmarkDps": 42703,
+        "benchmarkDps": 42690,
         "referenceDps": 42509
       }
     ]

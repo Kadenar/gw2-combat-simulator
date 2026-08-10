@@ -2298,46 +2298,6 @@ header .accent {
   align-items: center;
 }
 
-.target-hp-wrap {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-left: 12px;
-  font-size: 0.8rem;
-  color: var(--text-dim);
-}
-
-.target-hp-wrap label {
-  white-space: nowrap;
-}
-
-.target-hp-wrap input {
-  width: 100px;
-  padding: 3px 6px;
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text-light);
-  font-size: 0.8rem;
-  font-family: var(--mono);
-}
-
-.target-hp-wrap input:focus,
-.target-hp-wrap select:focus {
-  border-color: var(--accent);
-  outline: none;
-}
-
-.target-hp-wrap select {
-  padding: 3px 6px;
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text-light);
-  font-size: 0.8rem;
-  font-family: var(--mono);
-}
-
 .btn {
   padding: 4px 14px;
   border: 1px solid var(--border-light);
@@ -2369,15 +2329,6 @@ header .accent {
 
 .btn-clear:hover {
   background: rgba(204, 68, 68, 0.15);
-}
-
-.btn-rerun {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.btn-rerun:hover {
-  background: rgba(102, 170, 255, 0.15);
 }
 
 .btn-undo {
@@ -2675,6 +2626,19 @@ header .accent {
 
 .rot-skill:hover .rot-x {
   opacity: 1;
+}
+
+/* Touch devices have no hover, so the remove button would stay invisible and
+   the timeline becomes read-only. Reveal it permanently (matches the edit
+   button's `@media (hover: none)` treatment) and enlarge the tap target. */
+@media (hover: none) {
+  .rot-x {
+    opacity: 1;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    font-size: 12px;
+  }
 }
 
 .rot-time {
@@ -5211,6 +5175,14 @@ header .accent {
   border-radius: 3px;
 }
 
+.boon-control input#target-hp,
+.boon-control input#target-armor {
+  width: 100px;
+  padding: 3px 6px;
+  font-size: 0.8rem;
+  font-family: var(--mono);
+}
+
 .assumption-icon-control {
   position: relative;
 }
@@ -5656,6 +5628,36 @@ header .accent {
   .weapon-set-preview {
     max-width: 100%;
     overflow-x: auto;
+  }
+}
+
+/* Rotation builder on phones: keep the panel a fixed viewport-height box (the
+   desktop model) so the palette and timeline stay on screen together, then make
+   each an independent scroll region. Without this the wrapping palette (flex:
+   0 0 auto) grows tall enough to crush the timeline down to its 52px minimum.
+   The base panel keeps `overflow:hidden`; we only drop its 680px min-height
+   floor so the box fits short screens. */
+@media (max-width: 700px) {
+  .rotation-panel {
+    max-height: 85vh;
+  }
+
+  .rotation-palette {
+    flex: 0 0 auto;
+    max-height: 30vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rotation-timeline {
+    flex: 1 1 auto;
+    min-height: 160px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pal-skill {
+    width: 36px;
+    height: 36px;
   }
 }
 

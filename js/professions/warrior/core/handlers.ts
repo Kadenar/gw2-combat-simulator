@@ -64,6 +64,65 @@ function adjustResourceSkillEffect(
   });
 }
 
+function useCombustiveShot(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+): void {
+  const resource = afterResourceSkill(context, skill);
+  const tier = resource.spent >= 30 ? 3 : resource.spent >= 20 ? 2 : 1;
+  const pulses = tier + 1;
+  context.replaceEvent(context.action, {
+    burstTier: tier,
+    comboFieldDuration: tier * 3,
+  });
+  for (let pulse = 0; pulse < pulses; pulse += 1) {
+    const at = context.fullEnd + pulse * 3;
+    const damage = context.emit({
+      type: "damage",
+      at,
+      source: "Warrior",
+      sourceId: skill.id,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} â€” Level ${tier} Damage`,
+      coefficient: 0.5,
+      hits: 1,
+      hitIndex: pulse + 1,
+      totalHits: pulses,
+      skillWeapon: skill.weapon || "Longbow",
+      persistsAfterInterrupt: true,
+    });
+    if (
+      !resource.berserkersPowerGranted &&
+      grantBerserkersPowerOnFirstHit(
+        context,
+        skill,
+        damage as WarriorSimulationEvent,
+        resource.spent,
+      )
+    ) {
+      resource.berserkersPowerGranted = true;
+    }
+    context.emit({
+      type: "condition",
+      at,
+      source: "Warrior",
+      sourceId: skill.id,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      name: `${skill.name} â€” Burning`,
+      condition: "Burning",
+      stacks: 1,
+      duration: 5,
+      applicationIndex: pulse + 1,
+      totalApplications: pulses,
+      persistsAfterInterrupt: true,
+    });
+  }
+}
+
 function adjustMightyThrowTarget(
   context: WarriorCastContext,
   _skill: WarriorSkill,
@@ -178,6 +237,7 @@ export const warriorCoreSkillHandlers = Object.freeze({
   "warrior.resource": augmentSkillHandler(afterResourceSkill, {
     afterEffect: adjustResourceSkillEffect,
   }),
+  "warrior.combustive-shot": replaceSkillHandler(useCombustiveShot),
   "warrior.mighty-throw": augmentSkillHandler(null, {
     afterEffect: adjustMightyThrowTarget,
   }),
