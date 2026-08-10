@@ -26,6 +26,7 @@ const EFFECT_NAMES: Readonly<Record<string, string>> = {
   "target-vulnerability": "Vulnerability",
   "kallas-fervor": "Kalla's Fervor",
   "necromancer-soul-barbs": "Soul Barbs",
+  "berserkers-power": "Berserker's Power",
 };
 
 const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
@@ -34,6 +35,10 @@ const EFFECT_STACK_CAPS: Readonly<Record<string, number>> = {
   "Kalla's Fervor": 5,
   "Compounding Power": 5,
   "Soul Barbs": 1,
+  "Berserker's Power": 4,
+  // Berserk is a boolean mode re-emitted on every entry; its overlapping
+  // windows would otherwise sum into a meaningless double-digit "stack" count.
+  Berserk: 1,
 };
 
 export function resultSummaryMetrics(result: Gw2SimulationResult) {

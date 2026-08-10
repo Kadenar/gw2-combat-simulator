@@ -1,0 +1,315 @@
+{
+  "metadata": {
+    "log": "20260721-123458.zevtc",
+    "report": "https://dps.report/dzrB-20260721-123458_golem",
+    "benchmarkDurationSeconds": 94.803,
+    "benchmarkDamage": 4032199,
+    "benchmarkDps": 42532.3987637522,
+    "timingSource": "EVTC activation and damage packet timings rounded to the nearest 40 ms",
+    "note": "\"To the Limit!\" is precast before Winds of Disenchantment. The opening Breaching Strike starts before Combat Start and lands as combat begins.",
+    "attackerInsightLog": {
+      "effectId": 41963,
+      "applications": 40,
+      "firstApplicationsSeconds": [0, 0.562, 1.321, 1.321, 2.162],
+      "note": "Winds creates a five-second Lightning field. The opening Breaching Strike leap creates Dazing Strike for one Insight stack. Bull's Charge grants one stack from knockdown and one from its Lightning-field leap finisher. Winds boon-removal pulses do not add Insight against the boonless target."
+    }
+  },
+  "rotation": [
+    "\"To the Limit!\"",
+    "Winds of Disenchantment",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297,
+      "interruptMs": 800
+    },
+    {
+      "name": "__combat_start",
+      "offset": 760
+    },
+    "Swap Weapons",
+    "Staggering Blow",
+    {
+      "name": "__wait",
+      "waitMs": 40
+    },
+    "Bull's Charge",
+    "Earthshaker",
+    "Hammer Shock",
+    "Fierce Blow",
+    "Backbreaker",
+    {
+      "name": "Fierce Blow",
+      "interruptMs": 680
+    },
+    "Swap Weapons",
+    "Crushing Blow",
+    "Tremor",
+    "Crushing Blow",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297
+    },
+    "Disrupting Stab",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    {
+      "name": "Keen Strike",
+      "interruptMs": 320
+    },
+    "Swap Weapons",
+    "Earthshaker",
+    "Hammer Shock",
+    "Fierce Blow",
+    "Hammer Swing",
+    "Hammer Bash",
+    "Hammer Smash",
+    "Hammer Swing",
+    "Hammer Bash",
+    {
+      "name": "Hammer Smash",
+      "interruptMs": 360
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    "Staggering Blow",
+    "Swap Weapons",
+    "Crushing Blow",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297
+    },
+    "Disrupting Stab",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    {
+      "name": "Keen Strike",
+      "interruptMs": 360
+    },
+    "Swap Weapons",
+    {
+      "name": "Hammer Swing",
+      "interruptMs": 40
+    },
+    "Earthshaker",
+    "Bull's Charge",
+    "Hammer Shock",
+    "Fierce Blow",
+    "Backbreaker",
+    "Fierce Blow",
+    {
+      "name": "__wait",
+      "waitMs": 160
+    },
+    "Swap Weapons",
+    "Crushing Blow",
+    "Tremor",
+    "Crushing Blow",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297
+    },
+    "Disrupting Stab",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    {
+      "name": "Keen Strike",
+      "interruptMs": 360
+    },
+    "Swap Weapons",
+    "Earthshaker",
+    "Staggering Blow",
+    "Hammer Shock",
+    "Fierce Blow",
+    "Hammer Swing",
+    "Hammer Bash",
+    "Hammer Smash",
+    "Hammer Swing",
+    "Hammer Bash",
+    {
+      "name": "Hammer Smash",
+      "interruptMs": 360
+    },
+    "Swap Weapons",
+    {
+      "name": "Precise Cut",
+      "interruptMs": 40
+    },
+    "Crushing Blow",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297
+    },
+    "Disrupting Stab",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    {
+      "name": "Keen Strike",
+      "interruptMs": 320
+    },
+    "Swap Weapons",
+    "Earthshaker",
+    "Bull's Charge",
+    "Hammer Shock",
+    "Fierce Blow",
+    "Backbreaker",
+    "Fierce Blow",
+    "Staggering Blow",
+    "Swap Weapons",
+    "Crushing Blow",
+    "Tremor",
+    "Crushing Blow",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297
+    },
+    "Disrupting Stab",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    {
+      "name": "Keen Strike",
+      "interruptMs": 360
+    },
+    "Swap Weapons",
+    "Earthshaker",
+    "Hammer Shock",
+    "Fierce Blow",
+    "Hammer Swing",
+    "Hammer Bash",
+    "Hammer Smash",
+    "Hammer Swing",
+    "Hammer Bash",
+    {
+      "name": "Hammer Smash",
+      "interruptMs": 360
+    },
+    "Swap Weapons",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297
+    },
+    "Crushing Blow",
+    "Precise Cut",
+    "Focused Slash",
+    {
+      "name": "Keen Strike",
+      "interruptMs": 400
+    },
+    "Disrupting Stab",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    {
+      "name": "Keen Strike",
+      "interruptMs": 360
+    },
+    "Swap Weapons",
+    "Earthshaker",
+    "Staggering Blow",
+    "Bull's Charge",
+    "Hammer Shock",
+    "Fierce Blow",
+    "Backbreaker",
+    {
+      "name": "Fierce Blow",
+      "interruptMs": 680
+    },
+    "Swap Weapons",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297
+    },
+    "Crushing Blow",
+    "Tremor",
+    {
+      "name": "Crushing Blow",
+      "interruptMs": 520
+    },
+    "Disrupting Stab",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    {
+      "name": "Keen Strike",
+      "interruptMs": 320
+    },
+    "Swap Weapons",
+    "Earthshaker",
+    "Hammer Shock",
+    "Fierce Blow",
+    "Hammer Swing",
+    "Hammer Bash",
+    "Hammer Smash",
+    "Hammer Swing",
+    "Hammer Bash",
+    {
+      "name": "Hammer Smash",
+      "interruptMs": 360
+    },
+    {
+      "name": "__wait",
+      "waitMs": 80
+    },
+    "Staggering Blow",
+    "Swap Weapons",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297
+    },
+    "Crushing Blow",
+    "Disrupting Stab",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    "Keen Strike",
+    "Precise Cut",
+    "Focused Slash",
+    {
+      "name": "Keen Strike",
+      "interruptMs": 320
+    },
+    "Swap Weapons",
+    "Earthshaker",
+    "Bull's Charge",
+    "Hammer Shock",
+    "Fierce Blow",
+    "Backbreaker",
+    "Fierce Blow",
+    "Swap Weapons",
+    {
+      "name": "Breaching Strike",
+      "skillId": 69297
+    },
+    "Crushing Blow",
+    "Tremor",
+    "Crushing Blow"
+  ]
+}

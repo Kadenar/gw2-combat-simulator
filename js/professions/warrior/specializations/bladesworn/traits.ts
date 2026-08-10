@@ -5,11 +5,20 @@ import {
 } from "../../data/ids.js";
 import {
   DRAGON_CHARGE_INTERVAL_SECONDS,
-  DRAGON_TRIGGER_CHANNEL_SECONDS,
+  DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
+  DRAGON_TRIGGER_DURATION_SECONDS,
+  DRAGON_TRIGGER_TICK_RESOURCE_REASON,
+  dragonChargesToAdrenalineSpent,
+  dragonSlashCoefficient,
   dragonFlowPerInterval,
   maximumDragonCharges,
+  projectDragonCharges,
+  projectDragonFlow,
+  requestedDragonCharges,
+  type DragonFlowRateSegment,
 } from "./dragon-trigger.js";
 import { professionCoreState } from "../../../../platform/engine/profession.js";
+import { applyWarriorBurstSpendTraits } from "../../core/traits.js";
 import { bladeswornState } from "./state.js";
 import type {
   WarriorCastContext,
@@ -70,6 +79,9 @@ function emitGunsaberSwapTrait(context: WarriorCastContext, at: number): void {
   }
   if (!traitId) return;
   state.gunsaberSwapTraitReadyAt = at + 4;
+  if (state.traitPositiveFlowUntil <= at + context.epsilon) {
+    state.traitPositiveFlowStartedAt = at;
+  }
   state.traitPositiveFlowUntil = at + 5;
   context.emit({
     type: "buff",
@@ -106,6 +118,20 @@ function emitGunsaberWeaponSwap(
   });
 }
 
+function clearDragonTriggerState(
+  state: ReturnType<typeof bladeswornState.from>,
+): void {
+  state.dragonTriggerActive = false;
+  state.dragonTriggerStartedAt = 0;
+  state.dragonTriggerChargeDeadline = 0;
+  state.nextDragonChargeAt = 0;
+  state.dragonCharges = 0;
+  state.dragonChargesPerInterval = 1;
+  state.dragonTriggerRotationIndex = -1;
+  state.dragonTriggerFlowSpent = 0;
+  state.dragonTriggerEventActivationId = "";
+}
+
 export function enterGunsaber(
   context: WarriorCastContext,
   skill: WarriorSkill,
@@ -129,17 +155,22 @@ export function enterDragonTrigger(
 ): void {
   const state = bladeswornState.from(context);
   if (!state.gunsaberActive) enterGunsaber(context, skill);
+  gainPassiveFlow(context, state.flowUpdatedAt, context.effectiveEnd);
+  state.flowUpdatedAt = context.effectiveEnd;
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = context.effectiveEnd;
   state.dragonTriggerChargeDeadline =
-    context.effectiveEnd + DRAGON_TRIGGER_CHANNEL_SECONDS;
-  state.flowUpdatedAt = context.start;
+    context.effectiveEnd + DRAGON_TRIGGER_DURATION_SECONDS;
   state.nextDragonChargeAt =
     context.effectiveEnd + DRAGON_CHARGE_INTERVAL_SECONDS;
   state.dragonCharges = 0;
   state.dragonChargesPerInterval =
     state.tacticalReloadUntil + context.epsilon >= context.effectiveEnd ? 2 : 1;
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
+  state.dragonTriggerRotationIndex = context.commandIndex;
+  state.dragonTriggerFlowSpent = 0;
+  state.dragonTriggerEventActivationId = context.reservationId;
+  emitDragonTriggerEntry(context, skill);
   if (hasTrait(context, TRAIT.DRAGONSCALE_DEFENSE)) {
     context.emit({
       type: "buff",
@@ -165,13 +196,44 @@ export function useDragonSlash(
   const state = bladeswornState.from(context);
   const maximumCharges = maximumDragonCharges(context);
   const charges = Math.max(1, Math.min(maximumCharges, state.dragonCharges));
+  const requestedCharges = requestedDragonCharges(context, maximumCharges);
   const minimum = Number(skill.dragonSlashMinimumCoefficient || 0);
   const maximum = Number(skill.dragonSlashMaximumCoefficient || minimum);
-  const coefficient =
-    maximumCharges <= 1
-      ? maximum
-      : minimum + (maximum - minimum) * ((charges - 1) / (maximumCharges - 1));
+  const coefficient = dragonSlashCoefficient(
+    minimum,
+    maximum,
+    charges,
+    maximumCharges,
+  );
+  const adrenalineSpent = dragonChargesToAdrenalineSpent(charges);
+  applyWarriorBurstSpendTraits(
+    context,
+    skill,
+    adrenalineSpent,
+    state.dragonTriggerFlowSpent,
+  );
   state.dragonChargesSpentByActivation[context.reservationId] = charges;
+  context.emit({
+    type: "resource",
+    at: context.start,
+    source: "Warrior",
+    sourceId: skill.id,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: skill.name,
+    sourceSkill: skill.name,
+    amount: -charges,
+    value: 0,
+    resource: "dragon charges",
+    reason: "profession mechanic",
+    rotationIndex: context.commandIndex,
+    requestedCharges,
+    maximumCharges,
+    chargesReached: charges,
+    chargingSeconds: Math.max(0, context.start - state.dragonTriggerStartedAt),
+    flowSpent: state.dragonTriggerFlowSpent,
+    adrenalineBarsSpent: adrenalineSpent / 10,
+  });
   context.emit({
     type: "damage",
     at: context.effectiveEnd,
@@ -215,12 +277,7 @@ export function useDragonSlash(
       recipients: "party",
     });
   }
-  state.dragonTriggerActive = false;
-  state.dragonTriggerStartedAt = 0;
-  state.dragonTriggerChargeDeadline = 0;
-  state.nextDragonChargeAt = 0;
-  state.dragonCharges = 0;
-  state.dragonChargesPerInterval = 1;
+  clearDragonTriggerState(state);
 }
 
 export function useArtillerySlash(
@@ -266,15 +323,130 @@ const BASE_FLOW_PER_SECOND = 2;
 const FLOW_STABILIZER_BONUS_PER_SECOND = 4;
 const TRAIT_POSITIVE_FLOW_BONUS_PER_SECOND = 2;
 
-function combatActiveDuration(
+function dragonFlowRateSegments(
   context: WarriorSchedulerContext,
   from: number,
   to: number,
-): number {
-  if (!(to > from)) return 0;
-  if (!context.hasExplicitCombatStart) return to - from;
-  if (context.combatStartTime == null) return 0;
-  return Math.max(0, to - Math.max(from, Number(context.combatStartTime)));
+): readonly DragonFlowRateSegment[] {
+  if (!(to > from)) return [];
+  const state = bladeswornState.from(context);
+  const combatStart = context.hasExplicitCombatStart
+    ? context.combatStartTime
+    : from;
+  if (combatStart == null || combatStart >= to) return [];
+  const activeFrom = Math.max(from, Number(combatStart));
+  const boundaries = [
+    activeFrom,
+    to,
+    state.traitPositiveFlowStartedAt,
+    state.traitPositiveFlowUntil,
+    ...state.flowStabilizerWindows.flatMap((window) => [
+      window.startedAt,
+      window.expiresAt,
+    ]),
+  ]
+    .filter((at) => at > activeFrom && at < to)
+    .concat(activeFrom, to)
+    .sort((left, right) => left - right);
+  const uniqueBoundaries = [...new Set(boundaries)];
+  const segments: DragonFlowRateSegment[] = [];
+  for (let index = 0; index < uniqueBoundaries.length - 1; index += 1) {
+    const start = Number(uniqueBoundaries[index]);
+    const end = Number(uniqueBoundaries[index + 1]);
+    const sample = (start + end) / 2;
+    const flowPerSecond =
+      BASE_FLOW_PER_SECOND +
+      state.flowStabilizerWindows.reduce(
+        (bonus, window) =>
+          sample >= window.startedAt && sample < window.expiresAt
+            ? bonus + FLOW_STABILIZER_BONUS_PER_SECOND
+            : bonus,
+        0,
+      ) +
+      (sample >= state.traitPositiveFlowStartedAt &&
+      sample < state.traitPositiveFlowUntil
+        ? TRAIT_POSITIVE_FLOW_BONUS_PER_SECOND
+        : 0);
+    segments.push({ start, end, flowPerSecond });
+  }
+  return segments;
+}
+
+function dragonTriggerEntryEvent(
+  context: WarriorSchedulerContext,
+): WarriorSimulationEvent | undefined {
+  const activationId =
+    bladeswornState.from(context).dragonTriggerEventActivationId;
+  return context.events.find(
+    (event) =>
+      event.type === "resource" &&
+      event.reason === DRAGON_TRIGGER_ENTRY_RESOURCE_REASON &&
+      event.activationId === activationId,
+  ) as WarriorSimulationEvent | undefined;
+}
+
+function emitDragonTriggerEntry(
+  context: WarriorCastContext,
+  skill: WarriorSkill,
+): void {
+  const state = bladeswornState.from(context);
+  context.emit({
+    type: "resource",
+    at: state.dragonTriggerStartedAt,
+    source: "Warrior",
+    sourceId: skill.id,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: skill.name,
+    sourceSkill: skill.name,
+    activationId: state.dragonTriggerEventActivationId,
+    amount: 0,
+    value: state.flow,
+    resource: "flow",
+    reason: DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
+    rotationIndex: context.commandIndex,
+    maximumFlow: state.maximumFlow,
+    maximumCharges: maximumDragonCharges(context),
+    chargesPerInterval: state.dragonChargesPerInterval,
+    flowPerInterval: dragonFlowPerInterval(context),
+    nextChargeAt: state.nextDragonChargeAt,
+    deadline: state.dragonTriggerChargeDeadline,
+    flowRateSegments: dragonFlowRateSegments(
+      context,
+      state.dragonTriggerStartedAt,
+      state.dragonTriggerChargeDeadline,
+    ),
+  });
+}
+
+function furyActiveBeforeCurrentCast(context: WarriorCastContext): boolean {
+  const configured = context.config.boons?.fury;
+  if (configured === true || Number(configured || 0) > 0) return true;
+  return context.events.some(
+    (event) =>
+      event.type === "buff" &&
+      event.kind === "fury" &&
+      event.affectsSelf !== false &&
+      event.activationId !== context.reservationId &&
+      event.at <= context.start + context.epsilon &&
+      event.at + Number(event.duration || 0) > context.start + context.epsilon,
+  );
+}
+
+function refreshDragonTriggerEntryProjection(
+  context: WarriorSchedulerContext,
+): void {
+  const state = bladeswornState.from(context);
+  if (!state.dragonTriggerActive) return;
+  const event = dragonTriggerEntryEvent(context);
+  if (!event) return;
+  context.replaceEvent(event, {
+    flowRateSegments: dragonFlowRateSegments(
+      context,
+      state.dragonTriggerStartedAt,
+      state.dragonTriggerChargeDeadline,
+    ),
+  });
 }
 
 function gainPassiveFlow(
@@ -283,26 +455,12 @@ function gainPassiveFlow(
   to: number,
 ): void {
   const state = bladeswornState.from(context);
-  const combatDuration = combatActiveDuration(context, from, to);
-  if (!(combatDuration > 0)) return;
-  const combatStart = context.hasExplicitCombatStart
-    ? Number(context.combatStartTime)
-    : from;
-  const bonusFrom = Math.max(from, combatStart);
-  const bonusDuration = Math.max(
-    0,
-    Math.min(to, state.flowStabilizerUntil) - bonusFrom,
-  );
-  const traitBonusDuration = Math.max(
-    0,
-    Math.min(to, state.traitPositiveFlowUntil) - bonusFrom,
-  );
-  state.flow = Math.min(
+  state.flow = projectDragonFlow(
+    state.flow,
     state.maximumFlow,
-    state.flow +
-      combatDuration * BASE_FLOW_PER_SECOND +
-      bonusDuration * FLOW_STABILIZER_BONUS_PER_SECOND +
-      traitBonusDuration * TRAIT_POSITIVE_FLOW_BONUS_PER_SECOND,
+    from,
+    to,
+    dragonFlowRateSegments(context, from, to),
   );
 }
 
@@ -317,26 +475,58 @@ export function advanceBladesworn(
     state.flowUpdatedAt = target;
     return;
   }
-  const maximumCharges = maximumDragonCharges(context);
-  const flowPerInterval = dragonFlowPerInterval(context);
+  refreshDragonTriggerEntryProjection(context);
   const chargeThrough = Math.min(target, state.dragonTriggerChargeDeadline);
-  while (
-    state.nextDragonChargeAt <= chargeThrough + context.epsilon &&
-    state.nextDragonChargeAt > 0
-  ) {
-    gainPassiveFlow(context, state.flowUpdatedAt, state.nextDragonChargeAt);
-    state.flowUpdatedAt = state.nextDragonChargeAt;
-    if (state.dragonCharges < maximumCharges) {
-      state.flow = Math.max(0, state.flow - flowPerInterval);
-      state.dragonCharges = Math.min(
-        maximumCharges,
-        state.dragonCharges + state.dragonChargesPerInterval,
-      );
+  const flowPerInterval = dragonFlowPerInterval(context);
+  const ticks = projectDragonCharges({
+    startTime: state.flowUpdatedAt,
+    firstTickAt: state.nextDragonChargeAt,
+    flow: state.flow,
+    maximumFlow: state.maximumFlow,
+    initialCharges: state.dragonCharges,
+    maximumCharges: maximumDragonCharges(context),
+    chargesPerInterval: state.dragonChargesPerInterval,
+    flowPerInterval,
+    flowRateSegments: dragonFlowRateSegments(
+      context,
+      state.flowUpdatedAt,
+      chargeThrough,
+    ),
+    deadline: chargeThrough,
+  });
+  for (const tick of ticks) {
+    const previousCharges = state.dragonCharges;
+    state.flow = tick.flowAfter;
+    state.dragonCharges = tick.charges;
+    state.flowUpdatedAt = tick.at;
+    if (tick.granted) {
+      state.dragonTriggerFlowSpent += flowPerInterval;
     }
+    context.emit({
+      type: "resource",
+      at: tick.at,
+      source: "Warrior",
+      sourceId: ID.DRAGON_TRIGGER,
+      actorType: "player",
+      skillId: ID.DRAGON_TRIGGER,
+      skillName: "Dragon Trigger",
+      sourceSkill: "Dragon Trigger",
+      amount: tick.charges - previousCharges,
+      value: tick.charges,
+      resource: "dragon charges",
+      reason: DRAGON_TRIGGER_TICK_RESOURCE_REASON,
+      rotationIndex: state.dragonTriggerRotationIndex,
+      flowAfter: tick.flowAfter,
+      granted: tick.granted,
+      deadline: state.dragonTriggerChargeDeadline,
+    });
     state.nextDragonChargeAt += DRAGON_CHARGE_INTERVAL_SECONDS;
   }
   gainPassiveFlow(context, state.flowUpdatedAt, target);
   state.flowUpdatedAt = target;
+  if (target > state.dragonTriggerChargeDeadline + context.epsilon) {
+    clearDragonTriggerState(state);
+  }
 }
 
 function restoreAmmo(
@@ -556,7 +746,13 @@ export function completeBladeswornSkill(
       state.flow + Number(skill.flowGain),
     );
   }
-  if (skill.id === ID.FLOW_STABILIZER) state.flowStabilizerUntil = at + 8;
+  if (skill.id === ID.FLOW_STABILIZER) {
+    if (furyActiveBeforeCurrentCast(context)) {
+      state.flow = Math.min(state.maximumFlow, state.flow + 15);
+    }
+    state.flowStabilizerWindows.push({ startedAt: at, expiresAt: at + 8 });
+    refreshDragonTriggerEntryProjection(context);
+  }
   if (skill.id === ID.TACTICAL_RELOAD) {
     reloadBladeswornAmmo(context, at);
     state.tacticalReloadUntil = at + 10;

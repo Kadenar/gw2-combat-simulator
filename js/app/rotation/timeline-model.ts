@@ -223,6 +223,11 @@ export interface ShatterResourceSpend {
   readonly count: number;
   readonly resource: string;
   readonly sourceSkill: string;
+  readonly requestedCharges?: number;
+  readonly maximumCharges?: number;
+  readonly chargesReached?: number;
+  readonly chargingSeconds?: number;
+  readonly flowSpent?: number;
 }
 
 export function shatterResourceSpends(
@@ -242,6 +247,21 @@ export function shatterResourceSpends(
       count: Math.abs(Number(event.amount || 0)),
       resource: String(event.resource || "resources"),
       sourceSkill: String(event.sourceSkill || ""),
+      ...(event.requestedCharges == null
+        ? {}
+        : { requestedCharges: Number(event.requestedCharges) }),
+      ...(event.maximumCharges == null
+        ? {}
+        : { maximumCharges: Number(event.maximumCharges) }),
+      ...(event.chargesReached == null
+        ? {}
+        : { chargesReached: Number(event.chargesReached) }),
+      ...(event.chargingSeconds == null
+        ? {}
+        : { chargingSeconds: Number(event.chargingSeconds) }),
+      ...(event.flowSpent == null
+        ? {}
+        : { flowSpent: Number(event.flowSpent) }),
     });
   }
   return spends;

@@ -6,9 +6,9 @@ import {
 import { WARRIOR_SKILL_IDS as ID } from "../data/ids.js";
 import { applyWarriorSkillResource } from "./resources.js";
 import {
+  applyWarriorBurstSpendTraits,
   applyMartialCadenceWeaponSwap,
   applyRecklessDodge,
-  armBurstPrecision,
   grantBerserkersPowerOnFirstHit,
 } from "./traits.js";
 import type {
@@ -22,7 +22,7 @@ function afterResourceSkill(
   skill: WarriorSkill,
 ): { spent: number; berserkersPowerGranted: boolean } {
   const spent = applyWarriorSkillResource(context, skill);
-  armBurstPrecision(context, skill, spent);
+  applyWarriorBurstSpendTraits(context, skill, spent);
   return { spent, berserkersPowerGranted: false };
 }
 
@@ -78,6 +78,28 @@ function adjustMightyThrowTarget(
       secondaryTargetOnly: true,
     });
   }
+}
+
+function adjustFierceBlowDamage(
+  context: WarriorCastContext,
+  _skill: WarriorSkill,
+  event: WarriorSimulationEvent,
+): void {
+  if (
+    event.type !== "damage" ||
+    !(Number(event.coefficient) > 0) ||
+    !(
+      context.config.target?.controlled ||
+      context.config.target?.defiant ||
+      professionCoreState(context).targetControlledUntil > event.at
+    )
+  ) {
+    return;
+  }
+  context.replaceEvent(event, {
+    coefficient: 2.7,
+    name: "Fierce Blow — Damage to Controlled or Defiant Foes",
+  });
 }
 
 function swapWarriorWeapons(
@@ -158,6 +180,9 @@ export const warriorCoreSkillHandlers = Object.freeze({
   }),
   "warrior.mighty-throw": augmentSkillHandler(null, {
     afterEffect: adjustMightyThrowTarget,
+  }),
+  "warrior.fierce-blow": augmentSkillHandler(null, {
+    afterEffect: adjustFierceBlowDamage,
   }),
   "warrior.weapon-swap": replaceSkillHandler(swapWarriorWeapons),
   "warrior.gunstinger": augmentSkillHandler(null),

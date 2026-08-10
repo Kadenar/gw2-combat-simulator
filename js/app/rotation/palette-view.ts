@@ -23,6 +23,8 @@ import {
 } from "../../platform/ui/timeline.js";
 import { escapeHtml as esc, gw2ApiText } from "../../platform/ui/html.js";
 import { createRotationItem } from "./actions.js";
+import { openDragonSlashReleaseEditor } from "./charge-release.js";
+import { normalizeRotationInsertionIndex } from "../../platform/ui/insertion-cursor.js";
 import {
   activeSpecialization,
   paletteEndState,
@@ -624,6 +626,26 @@ export function renderPalette(app: ProfessionAppState): void {
         skillId == null
           ? app.skillByName.get(name)
           : app.skillById.get(skillId);
+      if (skill?.dragonSlash) {
+        const insertionIndex =
+          normalizeRotationInsertionIndex(
+            app.rotationInsertionIndex,
+            app.build.rotation.length,
+          ) ?? app.build.rotation.length;
+        openDragonSlashReleaseEditor({
+          app,
+          anchor: icon,
+          skill,
+          insertionIndex,
+          onApply(releaseAtCharges) {
+            app.addRotation(name, {
+              ...identity,
+              ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
+            });
+          },
+        });
+        return;
+      }
       const instant = paletteSkillIsInstant(app, paletteContext, skill, name);
       if (event.shiftKey && instant && app.build.rotation.length) {
         app.addRotation(name, {

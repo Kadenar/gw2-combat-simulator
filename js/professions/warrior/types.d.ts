@@ -79,7 +79,11 @@ export interface BladeswornState {
   flow: number;
   maximumFlow: number;
   flowUpdatedAt: number;
-  flowStabilizerUntil: number;
+  flowStabilizerWindows: Array<{
+    startedAt: number;
+    expiresAt: number;
+  }>;
+  traitPositiveFlowStartedAt: number;
   traitPositiveFlowUntil: number;
   gunsaberSwapTraitReadyAt: number;
   gunsaberActive: boolean;
@@ -89,6 +93,9 @@ export interface BladeswornState {
   nextDragonChargeAt: number;
   dragonCharges: number;
   dragonChargesPerInterval: number;
+  dragonTriggerRotationIndex: number;
+  dragonTriggerFlowSpent: number;
+  dragonTriggerEventActivationId: string;
   tacticalReloadUntil: number;
   overchargedCartridgeWindows: Array<{
     startedAt: number;
@@ -196,4 +203,6 @@ export interface WarriorUiContext extends SchedulerRecord {
   readonly professionState?: WarriorRuntimeState | Partial<WarriorState>;
   readonly initialResource?: number;
   readonly activeWeaponSet?: number;
+  /** Simulation time (seconds) of the rotation point being inspected. */
+  readonly atSeconds?: number;
 }

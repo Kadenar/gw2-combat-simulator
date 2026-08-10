@@ -4,6 +4,7 @@ import {
   suggestedActivationInterruptMs,
   validateActivationInterruptMs,
 } from "../../../js/platform/ui/activation-editor.js";
+import { chargeReleaseRowLabel } from "../../../js/platform/ui/charge-release-editor.js";
 import {
   buildChartSeries,
   buildPhaseDpsSeries,
@@ -72,6 +73,19 @@ test("activation editor suggests and validates manual interruption times", () =>
   assert.equal(validateActivationInterruptMs(920, 920).valid, false);
 });
 
+test("charge release rows expose time, Flow, and coefficient", () => {
+  assert.equal(
+    chargeReleaseRowLabel({
+      charges: 3,
+      at: 12.75,
+      delta: 0.75,
+      flowAfter: 7.5,
+      coefficient: 5.435,
+    }),
+    "3 charges · 12.750s (+0.750s) · 7.50 Flow · 5.43 coefficient",
+  );
+});
+
 test("rotation insertion cursors validate positions and expose accessible gaps", () => {
   assert.equal(normalizeRotationInsertionIndex(0, 3), 0);
   assert.equal(normalizeRotationInsertionIndex(3, 3), 3);
@@ -130,6 +144,16 @@ test("timeline skill tooltips include matching and global cast ordinals", () => 
     "Well of Darkness at 2.500s for 481ms\n" +
       "Well of Darkness cast 2 of 3\n" +
       "Skill cast 3 of 4",
+  );
+  assert.match(
+    formatTimelineSkillTooltip(
+      "Dragon Slash—Force",
+      steps[4],
+      ordinals.get(4),
+      (time) => `${(time / 1000).toFixed(3)}s`,
+      ["Charges reached: 4", "Time spent charging: 0.750s", "Flow spent: 10"],
+    ),
+    /Charges reached: 4\nTime spent charging: 0\.750s\nFlow spent: 10$/,
   );
   assert.equal(ordinals.has(1), false);
   assert.equal(ordinals.has(5), false);

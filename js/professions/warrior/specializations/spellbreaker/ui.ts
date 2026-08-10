@@ -1,6 +1,15 @@
 import { WARRIOR_SKILL_IDS as ID } from "../../data/ids.js";
-import { warriorPaletteGroups, warriorSkillBarGroups } from "../../core/ui.js";
-import type { ProfessionUiContract } from "../../../../platform/engine/types.js";
+import {
+  formatSecondsRemaining,
+  warriorPaletteGroups,
+  warriorSkillBarGroups,
+  warriorSnapshotAt,
+  warriorUiState,
+} from "../../core/ui.js";
+import type {
+  ProfessionUiContract,
+  RotationStateSnapshotItem,
+} from "../../../../platform/engine/types.js";
 import type { WarriorUiContext } from "../../types.js";
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
@@ -9,4 +18,30 @@ export const spellbreakerUi: Partial<ProfessionUiContract> = Object.freeze({
     warriorPaletteGroups(context, SKILLS),
   skillBarGroups: (context: WarriorUiContext) =>
     warriorSkillBarGroups(context, SKILLS),
+  rotationStateSnapshot: (context: WarriorUiContext) => {
+    const state = warriorUiState(context);
+    const at = warriorSnapshotAt(context);
+    const items: RotationStateSnapshotItem[] = [];
+    const insight = (state.attackerInsightExpiries || []).filter(
+      (expiry) => Number(expiry) > at,
+    ).length;
+    if (insight > 0) {
+      items.push({
+        id: "attackers-insight",
+        label: "Attacker's Insight",
+        value: `${insight}`,
+        title: "Attacker's Insight stacks currently active",
+      });
+    }
+    const tether = Number(state.magebaneTetherUntil || 0) - at;
+    if (tether > 0) {
+      items.push({
+        id: "magebane-tether",
+        label: "Magebane Tether",
+        value: formatSecondsRemaining(tether),
+        title: "Magebane Tether remaining on the target",
+      });
+    }
+    return items;
+  },
 });

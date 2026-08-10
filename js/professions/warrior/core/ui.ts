@@ -56,6 +56,16 @@ export function warriorUiSpecialization(
   return context.specialization || context.config?.specialization || "Core";
 }
 
+/** Simulation time (seconds) of the rotation point being inspected. */
+export function warriorSnapshotAt(context: WarriorUiContext = {}): number {
+  return Math.max(0, Number(context.atSeconds || 0));
+}
+
+/** Formats a remaining duration for the active-state bar (e.g. `4.2s`). */
+export function formatSecondsRemaining(seconds: number): string {
+  return `${Math.max(0, seconds).toFixed(1)}s`;
+}
+
 export function warriorBurstSkillIds(): number[] {
   return warriorCatalog.skills
     .filter(

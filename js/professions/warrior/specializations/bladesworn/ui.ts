@@ -1,14 +1,18 @@
 import { WARRIOR_SKILL_IDS as ID } from "../../data/ids.js";
 import {
+  formatSecondsRemaining,
   warriorPaletteGroups,
   warriorSkillBarGroups,
+  warriorSnapshotAt,
   warriorUiState,
 } from "../../core/ui.js";
 import type {
   ProfessionResourceView,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
 } from "../../../../platform/engine/types.js";
 import type { WarriorUiContext } from "../../types.js";
+import { dragonChargeReleaseProjection } from "./charge-release.js";
 
 const PROFESSION_SKILLS = Object.freeze([
   ID.UNSHEATHE_GUNSABER,
@@ -53,6 +57,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 }
 
 export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
+  chargeReleaseProjection: dragonChargeReleaseProjection,
   paletteGroups: (context: WarriorUiContext) => [
     ...warriorPaletteGroups(context, PROFESSION_SKILLS),
     {
@@ -111,4 +116,24 @@ export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
     return undefined;
   },
   resourceViews: resources,
+  rotationStateSnapshot: (context: WarriorUiContext) => {
+    const state = warriorUiState(context);
+    const at = warriorSnapshotAt(context);
+    const window = (state.overchargedCartridgeWindows || []).find(
+      (candidate) =>
+        Number(candidate.startedAt) <= at && Number(candidate.expiresAt) > at,
+    );
+    if (!window) return [];
+    const items: RotationStateSnapshotItem[] = [
+      {
+        id: "overcharged-cartridges",
+        label: "Overcharged Cartridges",
+        value: formatSecondsRemaining(Number(window.expiresAt) - at),
+        title: `Overcharged cartridges active (+${Math.round(
+          Number(window.damageBonus || 0) * 100,
+        )}% damage)`,
+      },
+    ];
+    return items;
+  },
 });

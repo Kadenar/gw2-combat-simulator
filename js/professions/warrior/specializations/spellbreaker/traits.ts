@@ -15,6 +15,7 @@ const ATTACKERS_INSIGHT_DURATION = 15;
 const ATTACKERS_INSIGHT_MAXIMUM = 5;
 const MAGEBANE_TETHER_DURATION = 8;
 const MAGEBANE_TETHER_COOLDOWN = 12;
+const DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS = new Set<number>([ID.KICK]);
 
 function gainAttackersInsight(
   state: { attackerInsightExpiries: number[] },
@@ -35,9 +36,101 @@ function attackerInsightApplications(
   context: WarriorSchedulerContext | WarriorResolverContext,
   event: WarriorSimulationEvent | WarriorResolverEvent,
 ): number {
-  return event.skillId === ID.KICK && context.config.target?.defiant === true
+  return DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS.has(Number(event.skillId)) &&
+    context.config.target?.defiant === true
     ? 2
     : 1;
+}
+
+function configuredTargetBoonCount(
+  context: WarriorSchedulerContext | WarriorResolverContext,
+): number {
+  const target = context.config.target;
+  if (target?.boonless === true) return 0;
+  if (Array.isArray(target?.boons)) {
+    return new Set(target.boons.map(String)).size;
+  }
+  if (target?.boonCount != null) {
+    return Math.max(0, Math.trunc(Number(target.boonCount) || 0));
+  }
+  return target?.boonless === false ? 1 : 0;
+}
+
+function attackerInsightFromBoonRemoval(
+  context: WarriorSchedulerContext | WarriorResolverContext,
+  event: WarriorSimulationEvent | WarriorResolverEvent,
+): { attempted: number; removed: number; applications: number } {
+  const attempted = Math.max(
+    1,
+    Math.trunc(Number(event.attemptedBoonRemovals) || 1),
+  );
+  const removed = Math.min(attempted, configuredTargetBoonCount(context));
+  return { attempted, removed, applications: removed };
+}
+
+function activeComboField(
+  context: WarriorSchedulerContext,
+  type: string,
+  at: number,
+): boolean {
+  return context.events.some((event) => {
+    if (
+      event.type !== "action" ||
+      event.cancelled === true ||
+      Number(event.endsAt) > at + context.epsilon ||
+      event.skillId == null
+    ) {
+      return false;
+    }
+    const field = context.catalog.skillsById.get(event.skillId);
+    return (
+      String(field?.comboField || "").toLowerCase() === type.toLowerCase() &&
+      Number(field?.duration || 0) > 0 &&
+      Number(event.endsAt) + Number(field?.duration || 0) >=
+        at - context.epsilon
+    );
+  });
+}
+
+function emitLightningLeapDaze(
+  context: WarriorSchedulerContext,
+  event: WarriorSimulationEvent,
+): void {
+  if (
+    event.type !== "damage" ||
+    event.actorType !== "player" ||
+    !(Number(event.coefficient) > 0) ||
+    event.skillId == null
+  ) {
+    return;
+  }
+  const skill = context.catalog.skillsById.get(event.skillId);
+  const finisherType = String(
+    event.finisherType || skill?.finisherType || "",
+  ).toLowerCase();
+  const finisherValue = Number(
+    event.finisherValue ?? skill?.finisherValue ?? 0,
+  );
+  if (
+    finisherType !== "leap" ||
+    finisherValue <= 0 ||
+    !activeComboField(context, "Lightning", event.at)
+  ) {
+    return;
+  }
+  context.emitDerived(event, {
+    type: "control",
+    at: event.at,
+    source: "Combo",
+    sourceId: "warrior.combo.lightning-leap",
+    actorType: "player",
+    skillId: event.skillId,
+    skillName: "Dazing Strike",
+    parentSkillName: event.skillName,
+    name: "Dazing Strike",
+    controlKind: "daze",
+    duration: 1,
+  });
 }
 
 function triggerMagebaneTether(
@@ -58,6 +151,17 @@ export function observeSpellbreakerEvent(
   event: WarriorSimulationEvent,
 ): void {
   if (event.actorType !== "player") return;
+  if (event.type === "warrior.boon-removal") {
+    const { applications } = attackerInsightFromBoonRemoval(context, event);
+    if (applications > 0 && hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
+      gainAttackersInsight(
+        spellbreakerState.from(context),
+        event.at,
+        applications,
+      );
+    }
+    return;
+  }
   if (event.type === "control") {
     if (hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
       gainAttackersInsight(
@@ -86,19 +190,43 @@ export function observeSpellbreakerEvent(
     }
     return;
   }
-  if (
-    event.type !== "damage" ||
-    !(Number(event.coefficient) > 0) ||
-    !hasTrait(context, TRAIT.MAGEBANE_TETHER)
-  ) {
+  if (event.type !== "damage" || !(Number(event.coefficient) > 0)) {
     return;
   }
+  emitLightningLeapDaze(context, event);
+  if (!hasTrait(context, TRAIT.MAGEBANE_TETHER)) return;
   const skill =
     event.skillId == null
       ? undefined
       : context.catalog.skillsById.get(event.skillId);
   if (skill?.burst) {
     triggerMagebaneTether(spellbreakerState.from(context), event.at);
+  }
+}
+
+export function reactToSpellbreakerBoonRemoval(
+  context: WarriorResolverContext,
+  event: WarriorResolverEvent,
+): void {
+  const { attempted, removed, applications } = attackerInsightFromBoonRemoval(
+    context,
+    event,
+  );
+  Object.assign(event, {
+    attemptedBoonRemovals: attempted,
+    boonsRemoved: removed,
+  });
+  context.resolved.push(event);
+  if (
+    event.actorType === "player" &&
+    applications > 0 &&
+    hasTrait(context, TRAIT.ATTACKERS_INSIGHT)
+  ) {
+    gainAttackersInsight(
+      spellbreakerState.from(context),
+      event.at,
+      applications,
+    );
   }
 }
 

@@ -373,7 +373,14 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.MERCILESS_HAMMER) &&
-      ["Hammer", "Mace"].includes(String(eventSkill(context)?.weapon || "")) &&
+      ["Hammer", "Mace"].includes(
+        String(
+          context.event?.skillWeapon ||
+            eventSkill(context)?.skillWeapon ||
+            eventSkill(context)?.weapon ||
+            "",
+        ),
+      ) &&
       targetControlled(context),
   },
   {
