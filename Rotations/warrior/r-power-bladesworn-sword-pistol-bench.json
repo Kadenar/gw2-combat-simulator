@@ -5,7 +5,7 @@
     "benchmarkDamage": 3972566,
     "benchmarkDps": 41534.92116599055,
     "timingSource": "EVTC activation durations measured under Quickness; instant casts reconstructed from buff applications",
-    "note": "Sword/Pistol follows the supplied EVTC. The precast order is the player-provided Break Step, stow, armament, reload, Mending, and pistol sequence."
+    "note": "Sword/Pistol follows the supplied EVTC. The precast order is the player-provided Break Step, stow, armament, reload, Mending, and pistol sequence. The concurrent Overcharged Cartridges recast is reconstructed from its Supercharged Cartridges application."
   },
   "rotation": [
     "Unsheathe Gunsaber",
@@ -48,6 +48,7 @@
     "Sever Artery",
     "Gash",
     "Hamstring",
+    { "name": "Overcharged Cartridges", "offset": 0 },
     "Sever Artery",
     "Gash",
     "Dragon Trigger",

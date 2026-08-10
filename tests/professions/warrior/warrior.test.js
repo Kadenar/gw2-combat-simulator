@@ -11,7 +11,10 @@ import { professionRoute } from "../../../js/app/profession/selector.js";
 import { skillBarInspectionStacks } from "../../../js/app/build/skills-panel.js";
 import { autoattackChainSkillAvailable } from "../../../js/app/rotation/palette-model.js";
 import { simulationEventLogRows } from "../../../js/app/rotation/event-log.js";
-import { buildChartSeries } from "../../../js/app/rotation/result-model.js";
+import {
+  buildChartSeries,
+  skillBreakdownRows,
+} from "../../../js/app/rotation/result-model.js";
 import { activeResourceGroup } from "../../../js/app/rotation/resource-view.js";
 import { createSimulationRandom } from "../../../js/platform/engine/simulation-random.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
@@ -2501,6 +2504,25 @@ test("Overcharged Cartridges buffs explosion damage and burning", () => {
   assert.ok(
     Math.abs(roarDamage(roarSupercharged) / roarDamage(roarBase) - 1.2) < 1e-9,
   );
+
+  const timed = simulate(
+    "Bladesworn",
+    [ID.OVERCHARGED_CARTRIDGES, ID.OVERCHARGED_CARTRIDGES],
+    { boons: { quickness: true } },
+  );
+  assert.deepEqual(
+    timed.events
+      .filter((event) =>
+        ["overcharged-cartridges", "supercharged-cartridges"].includes(
+          event.kind,
+        ),
+      )
+      .map((event) => [event.kind, Number(event.at.toFixed(2))]),
+    [
+      ["overcharged-cartridges", 0.28],
+      ["supercharged-cartridges", 1.88],
+    ],
+  );
 });
 
 test("Paragon chants consume adrenaline and start a refrain", () => {
@@ -2670,10 +2692,39 @@ test("Bladesworn swap and Dragon Trigger traits use supplied behavior", () => {
     1.2,
   );
   assert.equal(
+    swap.resolvedEvents.find((event) => event.name === "Unseen Sword").skillId,
+    62847,
+  );
+  assert.equal(
+    skillBreakdownRows(swap).find((entry) => entry.name === "Unseen Sword")
+      .hits,
+    1,
+  );
+  assert.equal(
     swap.events.find((event) => event.kind === "positive-flow").duration,
     5,
   );
   assert.equal(swap.endState.profession.flow, 20);
+
+  const combatOnly = simulate(
+    "Bladesworn",
+    [
+      "Unsheathe Gunsaber",
+      "Sheathe Gunsaber",
+      "__combat_start",
+      "Dragon Trigger",
+    ],
+    {
+      initialResource: 100,
+      selectedTraitIds: [TRAIT.UNSEEN_SWORD],
+    },
+  );
+  assert.deepEqual(
+    combatOnly.resolvedEvents
+      .filter((event) => event.name === "Unseen Sword")
+      .map((event) => event.at),
+    [0.25],
+  );
 
   const trigger = simulate(
     "Bladesworn",
@@ -3138,6 +3189,11 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
     10,
   );
   assert.equal(
+    result.steps.filter((step) => step.skill === "Overcharged Cartridges")
+      .length,
+    10,
+  );
+  assert.equal(
     result.steps.filter((step) => step.skill === "Artillery Slash").length,
     6,
   );
@@ -3150,6 +3206,14 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
       (entry) => entry.name === "Dragon's Roar — Damage per Bullet",
     ).hits,
     28,
+  );
+  assert.equal(
+    result.breakdown.find((entry) => entry.name === "Unseen Sword").hits,
+    9,
+  );
+  assert.equal(
+    skillBreakdownRows(result).some((entry) => entry.name === "Unseen Sword"),
+    true,
   );
   assert.deepEqual(
     Object.fromEntries(
@@ -3182,12 +3246,25 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
     [ID.EXPLOSIVE_THRUST, 11, 73192],
   ]) {
     const simulatedDamage = strikeDamage(skillId, maximumHits);
-    const tolerance = skillId === ID.EXPLOSIVE_THRUST ? 0.09 : 0.07;
+    const tolerance =
+      skillId === ID.DRAGON_SLASH_FORCE
+        ? 0.02
+        : skillId === ID.EXPLOSIVE_THRUST
+          ? 0.09
+          : 0.07;
     assert.ok(
       Math.abs(simulatedDamage / evtcDamage - 1) < tolerance,
       `${warriorCatalog.skillsById.get(skillId).name} damage ${simulatedDamage} drifted from EVTC ${evtcDamage}.`,
     );
   }
+  const unseenSwordDamage = result.breakdown.find(
+    (entry) => entry.name === "Unseen Sword",
+  ).damage;
+  assert.ok(Math.abs(unseenSwordDamage / 60123 - 1) < 0.07);
+  assert.ok(
+    Math.abs(result.totalDamage / savedRotation.metadata.benchmarkDamage - 1) <
+      0.01,
+  );
   assert.ok(result.dps > 0);
 });
 

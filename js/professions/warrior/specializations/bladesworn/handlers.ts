@@ -8,6 +8,7 @@ import {
   exitGunsaber,
   useArtillerySlash,
   useDragonSlash,
+  useOverchargedCartridges,
 } from "./traits.js";
 
 export const bladeswornSkillHandlers = Object.freeze({
@@ -16,4 +17,7 @@ export const bladeswornSkillHandlers = Object.freeze({
   "warrior.dragon-trigger": augmentSkillHandler(enterDragonTrigger),
   "warrior.dragon-slash": replaceSkillHandler(useDragonSlash),
   "warrior.artillery-slash": replaceSkillHandler(useArtillerySlash),
+  "warrior.overcharged-cartridges": augmentSkillHandler(
+    useOverchargedCartridges,
+  ),
 });

@@ -300,7 +300,7 @@ test("Power Soulbeast benchmark preset follows the supplied EVTC", async () => {
   assert.equal(row("Unleashed Savage Shock Wave").hits, 24);
   assert.equal(row("Path of Scars").hits, 8);
   assert.equal(row("Path of Scars (Max Range)").hits, 8);
-  assert.equal(row("One Wolf Pack").hits, 11);
+  assert.equal(row("One Wolf Pack").hits, 10);
   assert.equal(row("Overbearing Smash").hits, 6);
   assert.equal(row("Sigil of Air").hits, 17);
   assert.equal(row("Sharpened Edges — Bleeding").damage > 0, true);

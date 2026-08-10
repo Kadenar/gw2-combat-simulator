@@ -125,6 +125,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
     castTimeMs: 900,
     effects: [],
     quicknessCastTimeMs: 600,
+    handlerId: "warrior.overcharged-cartridges",
   },
   [ID.SWIFT_CUT]: {
     implemented: true,
