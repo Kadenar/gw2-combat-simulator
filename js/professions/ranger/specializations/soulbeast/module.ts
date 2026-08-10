@@ -11,14 +11,14 @@ import { soulbeastAttributeRules, soulbeastCastRules } from "./rules.js";
 import { SOULBEAST_BASE_SKILL_MECHANICS } from "./skills.js";
 import { soulbeastState } from "./state.js";
 import { bindSoulbeastUi } from "./ui.js";
-import { soulbeastEventHandlers } from "./events.js";
 import {
   reactToRangerWinterBite,
   reactToSoulbeastBuff,
   reactToSoulbeastCondition,
   reactToSoulbeastControl,
   reactToSoulbeastDamage,
-} from "./reactions.js";
+  soulbeastEventHandlers,
+} from "./resolver.js";
 
 export const soulbeastModule = defineNativeModule({
   id: "Soulbeast",

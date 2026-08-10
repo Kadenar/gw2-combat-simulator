@@ -1,14 +1,7 @@
 import { amalgamState } from "./state.js";
-import {
-  denyEngineerCast,
-} from "../../core/availability.js";
-import type {
-  AvailabilityResult,
-} from "../../../../platform/engine/types.js";
-import type {
-  EngineerPrecastContext,
-  EngineerSkill,
-} from "../../types.js";
+import { denyEngineerCast } from "../../core/availability.js";
+import type { AvailabilityResult } from "../../../../platform/engine/types.js";
+import type { EngineerPrecastContext, EngineerSkill } from "../../types.js";
 
 export function amalgamCastAvailability(
   context: EngineerPrecastContext,
@@ -25,8 +18,8 @@ export function amalgamCastAvailability(
     );
   }
   if (
-    skill.categories?.includes("Morph")
-    && !state.selectedMorphSkillIds.includes(Number(skill.id))
+    skill.categories?.includes("Morph") &&
+    !state.selectedMorphSkillIds.includes(Number(skill.id))
   ) {
     return denyEngineerCast(
       skill,

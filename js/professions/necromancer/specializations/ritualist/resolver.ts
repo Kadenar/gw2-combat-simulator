@@ -3,6 +3,10 @@ import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import type { SkillId } from "../../../../platform/engine/types.js";
 import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
 import { RITUALIST_MECHANICS as MECHANICS } from "./mechanics.js";
+import {
+  handleNecromancerPainfulBond,
+  handleNecromancerWeaponSpell,
+} from "./events.js";
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -164,4 +168,11 @@ function reactToDamage(
 
 export const ritualistResolverEventReactions = Object.freeze({
   damage: reactToDamage,
+});
+
+export const ritualistEventHandlers = Object.freeze({
+  "necromancer.painful-bond": handleNecromancerPainfulBond,
+  "necromancer.weapon-spell": handleNecromancerWeaponSpell,
+  "necromancer.weapon-spell-ally-trigger":
+    handleNecromancerWeaponSpellAllyTrigger,
 });

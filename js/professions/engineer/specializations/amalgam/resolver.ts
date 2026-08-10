@@ -24,9 +24,9 @@ function isAmalgamSkillHit(
   }
   const skill = resolverSkill(context, event.skillId);
   return Boolean(
-    skill?.specialization === "Amalgam"
-    || skill?.categories?.includes("Amalgam")
-    || skill?.categories?.includes("Morph")
+    skill?.specialization === "Amalgam" ||
+    skill?.categories?.includes("Amalgam") ||
+    skill?.categories?.includes("Morph"),
   );
 }
 
@@ -38,8 +38,8 @@ function reactToAmalgamDamage(
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
   if (
-    hasTrait(context, TRAIT.CARBOLIC_COMPOSITION)
-    && isAmalgamSkillHit(context, event)
+    hasTrait(context, TRAIT.CARBOLIC_COMPOSITION) &&
+    isAmalgamSkillHit(context, event)
   ) {
     applyCondition(details, context, event, {
       name: "Carbolic Composition",
@@ -51,11 +51,9 @@ function reactToAmalgamDamage(
     });
   }
   if (
-    event.actorType !== "summon"
-    && Number(
-      amalgamState.from(context).rapaciousUntil || 0
-    ) > event.at
-    && Number(state.rapacious || 0) <= event.at
+    event.actorType !== "summon" &&
+    Number(amalgamState.from(context).rapaciousUntil || 0) > event.at &&
+    Number(state.rapacious || 0) <= event.at
   ) {
     state.rapacious = event.at + 0.6;
     queueDamage(context, event, {
@@ -68,8 +66,8 @@ function reactToAmalgamDamage(
       context,
       "Rapacious Strain",
       event,
-      "https://render.guildwars2.com/file/"
-        + "5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png",
+      "https://render.guildwars2.com/file/" +
+        "5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png",
     );
   }
 }

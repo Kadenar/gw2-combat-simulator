@@ -1,6 +1,20 @@
 import type { AvailabilityResult } from "../../../../platform/engine/types.js";
 import type { RangerPrecastContext, RangerSkill } from "../../types.js";
 import { druidState } from "./state.js";
+import { advanceDruidState, generateAstralForce } from "./mechanics.js";
+
+export const druidSchedulerHooks = Object.freeze({
+  advance: {
+    id: "ranger.druid-advance",
+    order: 20,
+    handler: advanceDruidState,
+  },
+  afterCast: {
+    id: "ranger.astral-force",
+    order: 20,
+    handler: generateAstralForce,
+  },
+});
 
 function deny(
   skill: RangerSkill,

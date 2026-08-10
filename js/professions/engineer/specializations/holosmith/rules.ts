@@ -8,10 +8,54 @@ import {
   playerStrike,
 } from "../../core/rule-helpers.js";
 import { holosmithCastAvailability } from "./availability.js";
+import {
+  advancePhotonForgeState,
+  handleHolosmithKitEquip,
+  handlePhotonForgeHeat,
+  observeHolosmithScheduledEvent,
+  triggerThermalReleaseValve,
+} from "./photon-forge.js";
 import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
+import type { EngineerCastContext, EngineerSkill } from "../../types.js";
+
+function handleHolosmithAfterCast(
+  context: EngineerCastContext,
+  skill: EngineerSkill,
+): void {
+  handleHolosmithKitEquip(context, skill);
+  if (skill.id === -5) {
+    triggerThermalReleaseValve(context, skill, context.start);
+  }
+}
+
+export const holosmithSchedulerHooks = Object.freeze({
+  onEventScheduled: {
+    id: "engineer.holosmith-events",
+    order: 30,
+    handler: observeHolosmithScheduledEvent,
+  },
+  advance: {
+    id: "engineer.photon-forge",
+    order: 20,
+    handler: advancePhotonForgeState,
+  },
+  afterCast: {
+    id: "engineer.holosmith-after-cast",
+    order: 30,
+    handler: handleHolosmithAfterCast,
+  },
+  taskHandlers: Object.freeze({
+    "engineer.photon-forge-heat": handlePhotonForgeHeat,
+  }),
+});
+
+export const {
+  afterCast: holosmithAfterCast,
+  ...holosmithAdvancedSchedulerHooks
+} = holosmithSchedulerHooks;
 
 function heatTierStrikeFactor(context: Gw2ModifierContext): number {
   const heat = Number(
@@ -21,8 +65,8 @@ function heatTierStrikeFactor(context: Gw2ModifierContext): number {
   const skillName = String(eventSkill(context)?.name || event?.skillName || "");
   if (["Sun Edge", "Sun Ripper", "Gleam Saber"].includes(skillName)) {
     if (
-      heat >= 100
-      && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
+      heat >= 100 &&
+      hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
     ) {
       return 1.3;
     }
@@ -30,51 +74,42 @@ function heatTierStrikeFactor(context: Gw2ModifierContext): number {
   }
   if (skillName === "Blade Burst" && heat > 50) {
     if (
-      heat >= 100
-      && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
+      heat >= 100 &&
+      hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
     ) {
       return 1.35;
     }
     return 1.25;
   }
   const enhancedCapacityTier =
-    event?.enhancedCapacityTier === true
-    || (
-      heat >= 100
-      && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
-    );
+    event?.enhancedCapacityTier === true ||
+    (heat >= 100 && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT));
   if (skillName === "Particle Accelerator" && heat > 50) {
     return enhancedCapacityTier ? 1.35 : 1.1;
   }
   if (!enhancedCapacityTier) return 1;
   if (["Laser Disk", "Launch Wall"].includes(skillName)) return 1.35;
   if (
-    skillName === "Prismatic Singularity"
-    && event?.name === "Explosion Damage"
+    skillName === "Prismatic Singularity" &&
+    event?.name === "Explosion Damage"
   ) {
     return 1.25;
   }
-  if (
-    skillName === "Prime Light Beam"
-    && event?.name === "Field Damage"
-  ) {
+  if (skillName === "Prime Light Beam" && event?.name === "Field Damage") {
     return 1.2;
   }
   return 1;
 }
 
-export const holosmithModifierRules: readonly Gw2ModifierRule[] =
-  Object.freeze([
+export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
+  [
     {
       id: "engineer.lasers-edge",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
       factor: (context) => {
         const state = engineerSpecializationState(context, "Holosmith");
-        const maximum = hasTrait(
-          context,
-          TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
-        )
+        const maximum = hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
           ? 0.225
           : 0.15;
         return 1 + Math.min(maximum, Number(state.heat || 0) * 0.0015);
@@ -82,16 +117,12 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] =
       when: (context) => {
         const state = engineerSpecializationState(context, "Holosmith");
         return (
-          playerStrike(context)
-          && hasTrait(context, TRAIT.LASERS_EDGE)
-          && (
-            Boolean(state.photonForgeActive)
-            || (
-              hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE)
-              && Boolean(state.overheated)
-              && Number(state.heat || 0) > 0
-            )
-          )
+          playerStrike(context) &&
+          hasTrait(context, TRAIT.LASERS_EDGE) &&
+          (Boolean(state.photonForgeActive) ||
+            (hasTrait(context, TRAIT.PHOTONIC_BLASTING_MODULE) &&
+              Boolean(state.overheated) &&
+              Number(state.heat || 0) > 0))
         );
       },
     },
@@ -101,9 +132,9 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] =
       operation: "damage-additive",
       amount: 0.1,
       when: (context) =>
-        playerStrike(context)
-        && hasTrait(context, TRAIT.SOLAR_FOCUSING_LENS)
-        && context.event?.solarFocusingLens === true,
+        playerStrike(context) &&
+        hasTrait(context, TRAIT.SOLAR_FOCUSING_LENS) &&
+        context.event?.solarFocusingLens === true,
     },
     {
       id: "engineer.enhanced-capacity-damage-tier",
@@ -111,8 +142,7 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] =
       operation: "multiply",
       factor: heatTierStrikeFactor,
       when: (context) =>
-        playerStrike(context)
-        && heatTierStrikeFactor(context) > 1,
+        playerStrike(context) && heatTierStrikeFactor(context) > 1,
     },
     {
       id: "engineer.enhanced-capacity-prime-light-beam-duration",
@@ -120,12 +150,13 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] =
       operation: "add",
       amount: 0.5,
       when: (context) =>
-        context.condition === "Burning"
-        && context.event?.skillName === "Prime Light Beam"
-        && hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
-        && context.event?.enhancedCapacityTier === true,
+        context.condition === "Burning" &&
+        context.event?.skillName === "Prime Light Beam" &&
+        hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) &&
+        context.event?.enhancedCapacityTier === true,
     },
-  ]);
+  ],
+);
 
 export const holosmithAttributeRules = Object.freeze({
   modifierRules: holosmithModifierRules,

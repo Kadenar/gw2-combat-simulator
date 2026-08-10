@@ -40,14 +40,18 @@ engine consumers load a profession without pulling in application rendering,
 storage, and modifier-contribution dependencies. Elementalist remains a
 standalone application with its profession-owned scheduler and resolver.
 
-Engineer, Guardian, Mesmer, Necromancer, Revenant, and Thief share the family
-boundary. `core/` owns always-active behavior;
+Engineer, Guardian, Mesmer, Necromancer, Ranger, Revenant, Thief, and Warrior
+share the family boundary. `core/` owns always-active behavior;
 `specializations/<elite>/` owns each elite vertical slice. A slice normally
-contains `module`, `state`, `skills`, `handlers`, `mechanics`, `rules`, and
-`ui`. `modules` owns the single Core-first module tuple; `family` passes it to
-`defineNativeProfession()`. The full application catalog and active runtime
-fragments are derived from those modules. `platform/gw2/native-profession.ts`
-owns the typed authoring API and catalog derivation, while
+contains `module`, `state`, `skills`, `resolver`, `mechanics`, `rules`, and
+`ui`. It contains `handlers` only when it contributes local skill handlers and
+`traits` when it has imperative trait behavior. Empty handler placeholders are
+not used. Profession-unique mechanics retain descriptive filenames. `modules`
+owns the single Core-first module tuple;
+`family` passes it to `defineNativeProfession()`. The full application catalog
+and active runtime fragments are derived from those modules.
+`platform/gw2/native-profession.ts` owns the typed authoring API and catalog
+derivation, while
 `platform/engine/profession.ts` remains responsible for hook composition,
 cached runtime resolution, and generic application UI dispatch.
 
@@ -204,6 +208,7 @@ or imperative modifier bundle escape hatches. Those hooks remain scheduler- or
 resolver-specific; the two phases never share live mutable state.
 
 ### [build-codec.js](js/platform/gw2/build-codec.js)
+
 Factory for the common native-profession build persistence contract.
 `createGw2BuildCodec()` receives a profession ID, current schema version,
 catalog, defaults factory, and optional migration/normalization/validation
@@ -232,6 +237,7 @@ profession-specific errors. Migrations are keyed by source version and each
 advances exactly one version.
 
 ### [attributes.js](js/platform/gw2/attributes.js)
+
 Profession-neutral common attribute assembly and shared build finalization.
 Profession calculators resolve their own ordered trait and skill deltas;
 Native professions pass those deltas to
@@ -239,26 +245,32 @@ Native professions pass those deltas to
 breakdowns.
 
 ### [modifier-rules.js](js/platform/gw2/modifier-rules.js)
+
 Validates and compiles declarative profession scalar modifiers into the
 existing profession hook contract. It pre-indexes rules by target, applies
 ordered flat and multiplicative operations, and rebuilds the outgoing additive
 damage bucket once per strike or condition evaluation.
 
 ### [damage-modifier-buckets.js](js/platform/gw2/damage-modifier-buckets.js)
+
 Low-level GW2 additive outgoing-damage bucket primitive used by the modifier
 rule evaluator, including active-sigil inclusion and exclusion.
 
 ### [trait-state.js](js/platform/gw2/trait-state.js)
+
 Shared stable-ID trait lookup across resolver trait sets and application
 configuration shapes.
 
 ### [damage.js](js/platform/gw2/damage.js)
+
 Damage calculation formulas. Provides strike damage calculation, expected crit multiplier, condition tick damage, and full skill damage breakdowns including per-tick and per-stack effects.
 
 ### [weapon-sigils.js](js/platform/gw2/weapon-sigils.js)
+
 Weapon sigil management. Normalizes sigil selections, provides sigil lookup by weapon set, and enforces sigil constraints (no duplicate sigils per set). Supports duration bonuses from sigils.
 
 ### [event-ownership.js](js/platform/gw2/event-ownership.js)
+
 Canonical player, summon, and effect actor classification used by shared
 player-only sigil, relic, and trait rules.
 
@@ -297,7 +309,7 @@ critical traits, and Bloodsong.
 - [GW2 scheduler policy](js/platform/gw2/scheduler/policy.js) — Quickness,
   Alacrity, and starting-weapon-set policy injected into the neutral scheduler.
 - Owner-local Core and elite `rules.js` modules supply availability,
-  lifecycle hooks, task handlers, and end-state projection.
+  lifecycle hooks, and task handlers; `state.js` owns end-state projection.
 
 ### Resolver
 
@@ -326,8 +338,11 @@ Every family module uses the same roles for shared concepts:
 
 - `module.js` declares `data`, `state`, `mechanics`, and `presentation` with
   `defineNativeModule()`; it does not import the root catalog.
-- `rules.js` owns predicates, declarative scalar modifier rules, cast rules,
-  scheduler hooks, and exceptional ordered transforms.
+- `state.js` owns scheduler/resolver state construction, snapshots, and
+  end-state projection.
+- `rules.js` owns predicates, `mechanics.modifiers` declarative scalar rules,
+  availability, cast rules, scheduler hooks, and exceptional ordered
+  transforms. Modifier rules are not split into `attribute-rules.js`.
 - `build-attributes.js` owns profession trait deltas and conversions before
   shared finalization.
 - `data/<profession>-api-metadata.js` contains generated identity and
@@ -335,11 +350,18 @@ Every family module uses the same roles for shared concepts:
 - `data/trait-coverage.js` records one validated disposition per catalog trait.
 - `skills.js` owns authoritative local mechanics; a root
   `mechanics/skill-mechanics.js` may remain as an inert compatibility view.
+- `handlers.js` owns scheduler-phase skill augment/replace strategy composition
+  only. Lifecycle rules and task handlers do not import it.
+- `resolver.js` owns resolver-phase reactions and custom event handlers.
+- `traits.js` owns imperative trait checks, procs, emitted effects, and trait
+  lifecycle behavior. Skill handlers and resolver modules may delegate to or
+  re-export trait-owned callbacks. Declarative scalar modifier predicates stay
+  in `rules.js`.
 - `mechanics.js` owns local triggered effects and state-machine formulas.
+- Profession-unique mechanic files retain bespoke names such as `shroud.js`,
+  `tomes.js`, or `photon-forge.js`.
 - `catalog-data.js` contains inert generated inputs and exceptional ownership
   options; `catalog.js` exports the complete catalog derived from modules.
-- `handlers.js` owns local augment/replace strategies and event/task
-  registries.
 
 Each family `definition.js` resolves through the native authoring layer and
 then `platform/engine/profession.js`. The engine composes the complete
@@ -365,12 +387,15 @@ beside a TypeScript source, and that `dist` has no stale output.
 Testing utilities and harnesses.
 
 ### [fixture-harness-core.js](tests/helpers/fixture-harness-core.js)
+
 Core test harness. Provides default simulation config and build factory for unit tests.
 
 ### [fixture-harness-page.js](tests/browser/fixture-harness-page.js)
+
 Page fixture harness. DOM utilities and page initialization helpers for integration tests.
 
 ### [browser-interaction-fixture.js](tests/browser/browser-interaction-fixture.js)
+
 Browser interaction testing. Simulates user UI interactions (clicks, form changes) for end-to-end test scenarios.
 
 ---
@@ -401,39 +426,45 @@ shared result, chart, timeline, and event-log renderers
 ## Key Concepts
 
 ### Build
+
 Complete character configuration: gear/prefixes, weapons/sigils, runes/relics, food/utility, infusions, trait selections, skill selections, assumptions (boons/target state).
 
 ### Rotation
+
 Ordered sequence of skill activations with optional timing offsets, representing player action sequence.
 
 ### Simulation Pass
+
 Single execution of a rotation under specific config: determines when skills activate, calculates damage, applies conditions, tracks cooldowns.
 
 ### Attributes
+
 Derived stats from build: Power, Precision, Ferocity, Expertise, Concentration, and derived metrics like Critical Chance, Critical Damage, Duration bonuses.
 
 ### Event
+
 Atomic action with timestamp: action (skill cast), cooldown, resource change, condition, damage, trait proc. Events flow through scheduler → resolver pipeline.
 
 ### Resolver
+
 Post-scheduler phase that converts timed events into damage numbers using calculated attributes and condition formulas.
 
 ---
 
 ## File Organization Summary
 
-| Path | Purpose |
-|------|---------|
-| `js/app/` | Profession-neutral browser shell, composition, and orchestration |
-| `js/platform/engine/` | Shared scheduling, event queue, and simulation primitives |
-| `js/platform/gw2/` | Shared GW2 formulas, data, scheduler events, resolver, gear, relics, and target state |
-| `js/platform/ui/` | Shared palette/resource/timeline/log/result/chart view-model contracts |
-| `js/professions/*/data/` | Profession-owned catalogs, mechanics data, traits, and loaders |
-| `js/professions/*/mechanics/` | Profession rules and skill definitions (per profession) |
-| `js/professions/elementalist/{sim,optimizer}/` | Ported Elementalist simulator and gear optimizer |
-| `Builds/manifest.json`, `Builds/*.json` | Elementalist build presets |
-| `Builds/<profession>/` | Native profession builds and `manifest.json` |
-| `Rotations/`, `Rotations/<profession>/` | Elementalist and native profession rotation examples |
-| `csv input/` | Elementalist skill and hit CSVs |
-| `tests/browser/` | Browser interaction fixtures |
-| `tests/helpers/` | Shared testing utilities |
+| Path                                           | Purpose                                                                               |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `js/app/`                                      | Profession-neutral browser shell, composition, and orchestration                      |
+| `js/platform/engine/`                          | Shared scheduling, event queue, and simulation primitives                             |
+| `js/platform/gw2/`                             | Shared GW2 formulas, data, scheduler events, resolver, gear, relics, and target state |
+| `js/platform/ui/`                              | Shared palette/resource/timeline/log/result/chart view-model contracts                |
+| `js/professions/*/data/`                       | Profession-owned catalogs, mechanics data, traits, and loaders                        |
+| `js/professions/*/mechanics/`                  | Profession rules and skill definitions (per profession)                               |
+| `js/professions/elementalist/{sim,optimizer}/` | Ported Elementalist simulator and gear optimizer                                      |
+| `Builds/manifest.json`, `Builds/*.json`        | Elementalist build presets                                                            |
+| `Builds/<profession>/`                         | Native profession builds and `manifest.json`                                          |
+| `Rotations/`, `Rotations/<profession>/`        | Elementalist and native profession rotation examples                                  |
+| `csv input/`                                   | Elementalist skill and hit CSVs                                                       |
+| `tests/browser/`                               | Browser interaction fixtures                                                          |
+| `tests/helpers/`                               | Shared testing utilities                                                              |

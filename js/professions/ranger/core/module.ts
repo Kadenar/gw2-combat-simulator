@@ -6,11 +6,12 @@ import {
   onResolvedPlayerCriticalHit,
 } from "../../../platform/gw2/native-profession.js";
 import { createRangerModuleData } from "../catalog-data.js";
+import { rangerCoreSkillHandlers } from "./handlers.js";
 import {
+  rangerCoreAttributeRules,
+  rangerCoreCastRules,
   rangerCoreSchedulerHooks,
-  rangerCoreSkillHandlers,
-} from "./handlers.js";
-import { rangerCoreAttributeRules, rangerCoreCastRules } from "./rules.js";
+} from "./rules.js";
 import {
   RANGER_CORE_BASE_SKILL_MECHANICS,
   RANGER_CORE_EXTRA_SKILLS,
@@ -23,7 +24,7 @@ import {
   reactToRangerCoreBuff,
   reactToRangerCoreControl,
   reactToRangerCoreDamage,
-} from "./reactions.js";
+} from "./resolver.js";
 
 export const rangerCoreModule = defineNativeModule({
   id: "Core",

@@ -5,6 +5,26 @@ import type {
 } from "../profession/types.js";
 import { normalizeRotationInsertionIndex } from "../../platform/ui/insertion-cursor.js";
 
+export function createRotationItem(
+  app: ProfessionAppState,
+  name: string,
+  options: RotationActionOptions = {},
+): LegacyRotationItem {
+  const skillId = options.skillId == null ? null : Number(options.skillId);
+  const skill =
+    skillId !== null && Number.isFinite(skillId)
+      ? app.skillById.get(skillId)
+      : app.skillByName.get(name);
+  const defaultInterruptMs = skill?.defaultInterruptMs;
+  const resolvedOptions =
+    defaultInterruptMs != null && options.interruptMs == null
+      ? { ...options, interruptMs: defaultInterruptMs }
+      : options;
+  return Object.keys(resolvedOptions).length
+    ? { name, ...resolvedOptions }
+    : name;
+}
+
 export function insertRotationItems(
   app: ProfessionAppState,
   items: readonly LegacyRotationItem[],
@@ -30,18 +50,5 @@ export function addRotation(
   name: string,
   options: RotationActionOptions = {},
 ): void {
-  const skillId = options.skillId == null ? null : Number(options.skillId);
-  const skill =
-    skillId !== null && Number.isFinite(skillId)
-      ? app.skillById.get(skillId)
-      : app.skillByName.get(name);
-  const defaultInterruptMs = skill?.defaultInterruptMs;
-  const resolvedOptions =
-    defaultInterruptMs != null && options.interruptMs == null
-      ? { interruptMs: defaultInterruptMs, ...options }
-      : options;
-  const item: LegacyRotationItem = Object.keys(resolvedOptions).length
-    ? { name, ...resolvedOptions }
-    : name;
-  insertRotationItems(app, [item]);
+  insertRotationItems(app, [createRotationItem(app, name, options)]);
 }

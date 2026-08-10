@@ -44,8 +44,11 @@ import {
 } from "../../js/app/rotation/timeline-model.js";
 import {
   addRotation,
+  createRotationItem,
   insertRotationItems,
 } from "../../js/app/rotation/actions.js";
+import { parseWaitDurationMs } from "../../js/app/rotation/palette-view.js";
+import { syncProcVisibility } from "../../js/app/rotation/timeline-view.js";
 import {
   ACTION_ICONS,
   resolveProcIcon,
@@ -242,6 +245,52 @@ test("palette additions insert at an armed cursor and advance it", () => {
   ]);
   assert.equal(app.rotationInsertionIndex, 4);
   assert.equal(changeCount, 2);
+});
+
+test("proc visibility remains hidden after its first render", () => {
+  const app = {};
+  const procSteps = [{ type: "trait_proc", skill: "Sharper Images" }];
+  const key = "trait_proc:Sharper Images";
+
+  const firstVisibility = syncProcVisibility(app, procSteps);
+  assert.notEqual(app.procVisibility, app.procVisibilityKeys);
+  firstVisibility.delete(key);
+
+  const nextVisibility = syncProcVisibility(app, [
+    ...procSteps,
+    { type: "relic_proc", skill: "Relic of Fireworks" },
+  ]);
+  assert.equal(nextVisibility.has(key), false);
+  assert.equal(nextVisibility.has("relic_proc:Relic of Fireworks"), true);
+});
+
+test("rotation items preserve default interrupts when options contain nullish values", () => {
+  const skill = { name: "Counter", defaultInterruptMs: 120 };
+  const app = {
+    skillById: new Map(),
+    skillByName: new Map([[skill.name, skill]]),
+  };
+
+  assert.deepEqual(
+    createRotationItem(app, skill.name, { interruptMs: undefined }),
+    {
+      name: skill.name,
+      interruptMs: 120,
+    },
+  );
+  assert.deepEqual(createRotationItem(app, skill.name, { interruptMs: null }), {
+    name: skill.name,
+    interruptMs: 120,
+  });
+});
+
+test("wait duration parsing rejects cancelled, non-finite, and sub-millisecond values", () => {
+  assert.equal(parseWaitDurationMs(null), null);
+  assert.equal(parseWaitDurationMs("not a number"), null);
+  assert.equal(parseWaitDurationMs("Infinity"), null);
+  assert.equal(parseWaitDurationMs("0.9"), null);
+  assert.equal(parseWaitDurationMs("1.4"), 1);
+  assert.equal(parseWaitDurationMs("1000"), 1000);
 });
 
 test("cooldown-reduction procs use a refresh icon and reduction badge", () => {

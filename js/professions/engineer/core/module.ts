@@ -5,25 +5,22 @@ import {
 } from "../../../platform/gw2/native-profession.js";
 import { createEngineerModuleData } from "../catalog-data.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
-import {
-  engineerCoreEventHandlers,
-  engineerCoreEventReactions,
-  engineerCoreSkillHandlers,
-} from "./handlers.js";
+import { engineerCoreSkillHandlers } from "./handlers.js";
 import {
   engineerCoreAttributeRules,
   engineerCoreCastRules,
   engineerCoreSchedulerHooks,
+  snapshotEngineerState,
 } from "./rules.js";
+import {
+  engineerCoreResolverEventHandlers,
+  engineerCoreResolverEventReactions,
+} from "./resolver.js";
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS,
 } from "./skills.js";
-import {
-  createEngineerCoreState,
-  projectEngineerEndState,
-  snapshotEngineerState,
-} from "./state.js";
+import { createEngineerCoreState, projectEngineerEndState } from "./state.js";
 import { bindEngineerCoreUi } from "./ui.js";
 import type { EngineerSchedulerContext } from "../types.js";
 
@@ -51,15 +48,15 @@ export const engineerCoreModule = defineNativeModule({
     reactions: [
       onResolvedDamage({
         id: "engineer.core.damage",
-        handler: engineerCoreEventReactions.damage,
+        handler: engineerCoreResolverEventReactions.damage,
       }),
       onConditionApplied({
         id: "engineer.core.condition",
-        handler: engineerCoreEventReactions.condition,
+        handler: engineerCoreResolverEventReactions.condition,
       }),
     ],
     resolverHooks: {
-      eventHandlers: engineerCoreEventHandlers,
+      eventHandlers: engineerCoreResolverEventHandlers,
     },
   },
   presentation: bindEngineerCoreUi,

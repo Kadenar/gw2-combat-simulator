@@ -3,18 +3,16 @@ import {
   onConditionApplied,
 } from "../../../../platform/gw2/native-profession.js";
 import { createThiefModuleData } from "../../catalog-data.js";
-import {
-  specterSchedulerHooks,
-  specterSkillHandlers,
-} from "./handlers.js";
+import { specterSkillHandlers } from "./handlers.js";
 import {
   specterAttributeRules,
   specterCastRules,
+  specterSchedulerHooks,
 } from "./rules.js";
 import { specterState } from "./state.js";
 import { specterUi } from "./ui.js";
 import { SPECTER_SKILL_MECHANICS } from "./skills.js";
-import { applyLarcenousTorment } from "./traits.js";
+import { applyLarcenousTorment } from "./resolver.js";
 
 export const specterModule = defineNativeModule({
   id: "Specter",

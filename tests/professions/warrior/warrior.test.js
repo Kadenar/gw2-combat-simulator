@@ -39,7 +39,7 @@ import { warriorProfession } from "../../../js/professions/warrior/definition.js
 import { berserkerModule } from "../../../js/professions/warrior/specializations/berserker/module.js";
 import { berserkerAttributeRules } from "../../../js/professions/warrior/specializations/berserker/rules.js";
 import { bladeswornModule } from "../../../js/professions/warrior/specializations/bladesworn/module.js";
-import { advanceBladesworn } from "../../../js/professions/warrior/specializations/bladesworn/handlers.js";
+import { advanceBladesworn } from "../../../js/professions/warrior/specializations/bladesworn/traits.js";
 import { createBladeswornState } from "../../../js/professions/warrior/specializations/bladesworn/state.js";
 import { paragonModule } from "../../../js/professions/warrior/specializations/paragon/module.js";
 import { spellbreakerModule } from "../../../js/professions/warrior/specializations/spellbreaker/module.js";

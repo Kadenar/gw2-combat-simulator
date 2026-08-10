@@ -1,11 +1,5 @@
-import {
-  augmentAfter,
-  replaceBefore,
-} from "../../core/handler-strategies.js";
-import {
-  castElementalBlast,
-  consumeRevenantFacet,
-} from "./upkeep.js";
+import { augmentAfter, replaceBefore } from "../../core/handler-strategies.js";
+import { castElementalBlast, consumeRevenantFacet } from "./upkeep.js";
 
 const handlers = Object.freeze({
   "revenant.elemental-blast": replaceBefore(
@@ -16,6 +10,3 @@ const handlers = Object.freeze({
 });
 
 export const heraldSkillHandlers = new Map(Object.entries(handlers));
-
-export const heraldEventHandlers = Object.freeze({});
-export const heraldEventReactions = Object.freeze({});

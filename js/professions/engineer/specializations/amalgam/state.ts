@@ -1,12 +1,7 @@
-import type {
-  AmalgamState,
-  EngineerConfig,
-} from "../../types.js";
+import type { AmalgamState, EngineerConfig } from "../../types.js";
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
 
-export function createAmalgamState(
-  config: EngineerConfig = {},
-): AmalgamState {
+export function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
   return {
     selectedMorphSkillIds: [...(config.selectedMorphSkillIds || [])],
     evolvedUntil: 0,

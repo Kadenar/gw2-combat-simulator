@@ -2,17 +2,12 @@ import {
   augmentSkillHandler,
   replaceSkillHandler,
 } from "../../../platform/engine/skill-handlers.js";
-import {
-  completeThiefDodge,
-  performThiefDodge,
-} from "./dodge.js";
+import { completeThiefDodge, performThiefDodge } from "./dodge.js";
 import {
   activateCaltrops,
   activateSpiderVenom,
   activateThousandNeedles,
   completeSpearStealthAttack,
-  handleCaltropsPulse,
-  handleThousandNeedlesPulse,
   observeSpearChainEffect,
   prepareSpearChainSkill,
   prepareSpearStealthAttack,
@@ -20,24 +15,16 @@ import {
 } from "./conditions.js";
 import {
   activateAssassinsSignet,
-  expireThievesGuild,
-  handleThievesGuildAttack,
   kneel,
   stand,
   summonThievesGuild,
   swapThiefWeapons,
 } from "./actions.js";
-import {
-  completeSteal,
-  consumeStoredStolenSkill,
-  emitStealTraitEffects,
-} from "./steal.js";
-import {
-  beginStealthAttack,
-  completeStealthAttack,
-} from "./stealth.js";
+import { completeSteal, consumeStoredStolenSkill } from "./steal.js";
+import { beginStealthAttack, completeStealthAttack } from "./stealth.js";
 import type { SkillHandlerPhase } from "../../../platform/engine/types.js";
 import type { ThiefCastContext } from "../types.js";
+import { emitStealTraitEffects } from "./traits.js";
 
 function augmentAfter(handler: SkillHandlerPhase<ThiefCastContext>) {
   return augmentSkillHandler(null, { afterEffects: handler });
@@ -57,12 +44,9 @@ export const thiefCoreSkillHandlers = Object.freeze({
   "thief.spear-chain": augmentSkillHandler(prepareSpearChainSkill, {
     afterEffect: observeSpearChainEffect,
   }),
-  "thief.spear-stealth-attack": augmentSkillHandler(
-    prepareSpearStealthAttack,
-    {
-      afterEffects: completeSpearStealthAttack,
-    },
-  ),
+  "thief.spear-stealth-attack": augmentSkillHandler(prepareSpearStealthAttack, {
+    afterEffects: completeSpearStealthAttack,
+  }),
   "thief.spider-venom": augmentAfter(activateSpiderVenom),
   "thief.prepare-thousand-needles": augmentAfter(prepareThousandNeedles),
   "thief.thousand-needles": augmentAfter(activateThousandNeedles),
@@ -72,11 +56,4 @@ export const thiefCoreSkillHandlers = Object.freeze({
   "thief.weapon-swap": replaceSkillHandler(swapThiefWeapons),
   "thief.kneel": augmentAfter(kneel),
   "thief.free-action": augmentAfter(stand),
-});
-
-export const thiefCoreTaskHandlers = Object.freeze({
-  "thief.thieves-guild-attack": handleThievesGuildAttack,
-  "thief.thieves-guild-expire": expireThievesGuild,
-  "thief.thousand-needles-pulse": handleThousandNeedlesPulse,
-  "thief.caltrops-pulse": handleCaltropsPulse,
 });

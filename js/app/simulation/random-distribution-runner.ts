@@ -207,18 +207,19 @@ export class RandomDistributionRunner {
                 return;
               }
               completedSamples[batchIndex] = data.distribution?.samples || [];
-              completedOutcomes[batchIndex] =
-                data.distribution?.outcomes || [];
+              completedOutcomes[batchIndex] = data.distribution?.outcomes || [];
               completedWorkers += 1;
               if (completedWorkers === batches.length) {
                 const outcomes = completedOutcomes.flatMap(
                   (batchOutcomes) => batchOutcomes || [],
                 );
-                applyDistribution(outcomes.length
-                  ? summarizeRandomDistributionOutcomes(outcomes)
-                  : summarizeRandomDistribution(
-                      completedSamples.flatMap((samples) => samples || []),
-                    ));
+                applyDistribution(
+                  outcomes.length
+                    ? summarizeRandomDistributionOutcomes(outcomes)
+                    : summarizeRandomDistribution(
+                        completedSamples.flatMap((samples) => samples || []),
+                      ),
+                );
               }
             },
           );

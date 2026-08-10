@@ -1,9 +1,7 @@
 import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
 import { createRevenantModuleData } from "../../catalog-data.js";
-import {
-  vindicatorEventHandlers,
-  vindicatorSkillHandlers,
-} from "./handlers.js";
+import { vindicatorSkillHandlers } from "./handlers.js";
+import { vindicatorEventHandlers } from "./resolver.js";
 import {
   vindicatorAttributeRules,
   vindicatorCastRules,
@@ -19,7 +17,10 @@ export const vindicatorModule = defineNativeModule({
     skillMechanics: VINDICATOR_BASE_SKILL_MECHANICS,
     handlers: vindicatorSkillHandlers,
   }),
-  state: { scheduler: vindicatorState.create, resolver: vindicatorState.create },
+  state: {
+    scheduler: vindicatorState.create,
+    resolver: vindicatorState.create,
+  },
   mechanics: {
     modifiers: vindicatorAttributeRules,
     castRules: vindicatorCastRules,

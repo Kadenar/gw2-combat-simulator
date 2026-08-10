@@ -1,7 +1,7 @@
 import {
   triggerIneptitudeFromBlind,
   triggerIneptitudeFromInterrupt,
-} from "./trait-rules.js";
+} from "./traits.js";
 import type {
   MesmerApplyCondition,
   MesmerResolverContext,

@@ -3,24 +3,20 @@ import type {
   GuardianCoreState,
   GuardianFirebrandState,
 } from "./guardian/types.js";
-import type {
-  MesmerCoreState,
-  MesmerVirtuosoState,
-} from "./mesmer/types.js";
+import type { MesmerCoreState, MesmerVirtuosoState } from "./mesmer/types.js";
 import type {
   NecromancerCoreState,
   ScourgeState,
 } from "./necromancer/types.js";
-import type {
-  RevenantCoreState,
-  VindicatorState,
-} from "./revenant/types.js";
+import type { RevenantCoreState, VindicatorState } from "./revenant/types.js";
 
 type Assert<T extends true> = T;
-type Owns<TState, TField extends PropertyKey> =
-  TField extends keyof TState ? true : false;
-type Rejects<TState, TField extends PropertyKey> =
-  TField extends keyof TState ? false : true;
+type Owns<TState, TField extends PropertyKey> = TField extends keyof TState
+  ? true
+  : false;
+type Rejects<TState, TField extends PropertyKey> = TField extends keyof TState
+  ? false
+  : true;
 
 export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Owns<EngineerCoreState, "activeKit">>,

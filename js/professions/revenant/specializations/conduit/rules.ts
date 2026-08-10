@@ -1,7 +1,5 @@
 import { conduitState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { professionStaticRulesApplied } from "../../../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
@@ -18,7 +16,7 @@ import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState,
   revenantTargetVulnerability,
-} from "../../core/attribute-rules.js";
+} from "../../core/rules.js";
 import { denyRevenantSkill } from "../../core/availability.js";
 import { CONDUIT_MECHANICS as MECHANICS } from "./mechanics.js";
 import {
@@ -59,10 +57,13 @@ function affinity(context: Gw2ModifierContext): number {
   );
 }
 
-function equippedLegend(context: Gw2ModifierContext, legendId: string): boolean {
-  return (
-    revenantRuntimeCoreState(context).selectedLegendIds || []
-  ).includes(legendId);
+function equippedLegend(
+  context: Gw2ModifierContext,
+  legendId: string,
+): boolean {
+  return (revenantRuntimeCoreState(context).selectedLegendIds || []).includes(
+    legendId,
+  );
 }
 
 export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -200,8 +201,7 @@ function conduitCastAvailability(
     RELEASE_POTENTIAL_IDS.has(skill.id) &&
     REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[
       professionCoreState(context).activeLegendId
-    ] !==
-      skill.id
+    ] !== skill.id
   ) {
     return denyRevenantSkill(
       skill,
@@ -232,8 +232,7 @@ function afterConduitCast(
     (upkeep) => upkeep.skillId === skill.id,
   );
   if (active && active.nextAffinityAt == null) {
-    active.nextAffinityAt =
-      context.effectiveEnd + 3;
+    active.nextAffinityAt = context.effectiveEnd + 3;
   }
   if (
     active &&
@@ -280,11 +279,7 @@ function advanceConduitUpkeep(
           active.nextAlliedProcAt != null &&
           target + context.epsilon >= active.nextAlliedProcAt
         ) {
-          emitLesserEnchantedDaggers(
-            context,
-            skill,
-            active.nextAlliedProcAt,
-          );
+          emitLesserEnchantedDaggers(context, skill, active.nextAlliedProcAt);
           active.nextAlliedProcAt += 1;
         }
       }
@@ -299,11 +294,7 @@ function gainConduitAffinityFromCost(
   const cost = effectiveRevenantEnergyCost(context, skill);
   if (!(cost > 0)) return;
   if (skill.legendId && !skill.affinityOnHit) {
-    gainConduitAffinity(
-      context,
-      cost >= 25 ? 2 : 1,
-      "enigmatic-connection",
-    );
+    gainConduitAffinity(context, cost >= 25 ? 2 : 1, "enigmatic-connection");
   } else if (
     skill.type === "Weapon" &&
     hasRevenantTrait(context.config, TRAIT.CONDUCTIVE_ARMAMENTS)
@@ -341,19 +332,14 @@ function observeConduitEvent(
     state.conduitForm =
       REVENANT_RELEASE_POTENTIAL_BY_LEGEND[
         professionCoreState(context).activeLegendId
-      ]?.replace(
-        "Release Potential: ",
-        "",
-      ) || "";
+      ]?.replace("Release Potential: ", "") || "";
     syncConduitEnergyCostOverrides(state);
   }
-  const swapSkill = event.skillId == null
-    ? undefined
-    : context.catalog.skillsById.get(event.skillId);
-  if (
-    swapSkill &&
-    hasRevenantTrait(context.config, TRAIT.FOUND_PURPOSE)
-  ) {
+  const swapSkill =
+    event.skillId == null
+      ? undefined
+      : context.catalog.skillsById.get(event.skillId);
+  if (swapSkill && hasRevenantTrait(context.config, TRAIT.FOUND_PURPOSE)) {
     emitNuminousGift(context, swapSkill, { allies: true });
   }
 }

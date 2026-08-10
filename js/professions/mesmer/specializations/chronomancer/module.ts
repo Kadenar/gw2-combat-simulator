@@ -13,10 +13,7 @@ import {
   MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS,
 } from "./skills.js";
 import { chronomancerSkillHandlers } from "./handlers.js";
-
-const chronomancerEventHandlers = Object.freeze({
-  "mesmer.phantasm-resummoned": (): void => {},
-});
+import { chronomancerEventHandlers } from "./resolver.js";
 
 export const chronomancerModule = defineNativeModule({
   id: "Chronomancer",

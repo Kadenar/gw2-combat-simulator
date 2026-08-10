@@ -1,12 +1,13 @@
-import { defineNativeModule, onResolvedDamage } from "../../../../platform/gw2/native-profession.js";
-import { createNecromancerModuleData } from "../../catalog-data.js";
 import {
-  harbingerEventReactions,
-  harbingerSchedulerHooks,
-} from "./handlers.js";
+  defineNativeModule,
+  onResolvedDamage,
+} from "../../../../platform/gw2/native-profession.js";
+import { createNecromancerModuleData } from "../../catalog-data.js";
+import { harbingerResolverEventReactions } from "./resolver.js";
 import {
   harbingerAttributeRules,
   harbingerCastRules,
+  harbingerSchedulerHooks,
 } from "./rules.js";
 import { harbingerState } from "./state.js";
 import { harbingerUi } from "./ui.js";
@@ -23,7 +24,12 @@ export const harbingerModule = defineNativeModule({
   mechanics: {
     modifiers: harbingerAttributeRules,
     castRules: harbingerCastRules,
-    reactions: [onResolvedDamage({ id: "necromancer.harbinger.damage", handler: harbingerEventReactions.damage })],
+    reactions: [
+      onResolvedDamage({
+        id: "necromancer.harbinger.damage",
+        handler: harbingerResolverEventReactions.damage,
+      }),
+    ],
     schedulerHooks: harbingerSchedulerHooks,
   },
   presentation: harbingerUi,

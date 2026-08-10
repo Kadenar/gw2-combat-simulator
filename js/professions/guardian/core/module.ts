@@ -4,25 +4,22 @@ import {
   onResolvedDamage,
 } from "../../../platform/gw2/native-profession.js";
 import { createGuardianModuleData } from "../catalog-data.js";
+import { guardianCoreSkillHandlers } from "./handlers.js";
 import {
   guardianCoreEventHandlers,
   guardianCoreEventReactions,
-  guardianCoreSkillHandlers,
-} from "./handlers.js";
+} from "./resolver.js";
 import {
   guardianCoreAttributeRules,
   guardianCoreCastRules,
   guardianCoreSchedulerHooks,
+  snapshotGuardianState,
 } from "./rules.js";
 import {
   GUARDIAN_CORE_EXTRA_SKILLS,
   GUARDIAN_CORE_SKILL_MECHANICS,
 } from "./skills.js";
-import {
-  createGuardianCoreState,
-  projectGuardianEndState,
-  snapshotGuardianState,
-} from "./state.js";
+import { createGuardianCoreState, projectGuardianEndState } from "./state.js";
 import { bindGuardianCoreUi } from "./ui.js";
 import type { GuardianSchedulerContext } from "../types.js";
 

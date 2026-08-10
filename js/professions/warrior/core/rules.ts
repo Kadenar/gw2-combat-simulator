@@ -40,6 +40,8 @@ import type {
 } from "../types.js";
 import type { WarriorCoreState } from "../types.js";
 
+export { snapshotWarriorState } from "./state.js";
+
 function runtimeState(
   context: Gw2ModifierContext,
 ): Partial<WarriorRuntimeState> {

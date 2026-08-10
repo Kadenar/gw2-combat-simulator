@@ -9,57 +9,76 @@ import {
 } from "../../core/rules.js";
 import type { Gw2ModifierRule } from "../../../../platform/gw2/types.js";
 import { daredevilCastAvailability } from "./availability.js";
+import { updatePalmStrikeWindow } from "./mechanics.js";
+import { applyDaredevilDodge, beginDaredevilTraits } from "./traits.js";
 
-export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: "thief.weakening-strikes",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: 1.1,
-    when: context =>
-      thiefPlayerEvent(context)
-      && hasTrait(context, TRAIT.WEAKENING_STRIKES)
-      && thiefTargetHasCondition(context, "Weakness"),
-  },
-  {
-    id: "thief.havoc-specialist",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: 1.15,
-    when: context =>
-      thiefPlayerEvent(context)
-      && hasTrait(context, TRAIT.HAVOC_SPECIALIST)
-      && Number(thiefRuntimeState(context).endurance || 0)
-        < Number(thiefRuntimeState(context).maximumEndurance || 100),
-  },
-  {
-    id: "thief.bounding-dodger",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
-    amount: 0.15,
-    when: context =>
-      thiefPlayerEvent(context)
-      && hasTrait(context, TRAIT.BOUNDING_DODGER)
-      && Number(
-        thiefRuntimeSpecializationState(context, "Daredevil")
-          .boundingDamageUntil || 0,
-      )
-        > context.time,
-  },
-  {
-    id: "thief.lotus-training",
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: "damage-additive",
-    amount: 0.15,
-    when: context =>
-      thiefPlayerEvent(context)
-      && hasTrait(context, TRAIT.LOTUS_TRAINING)
-      && Number(
-        thiefRuntimeSpecializationState(context, "Daredevil")
-          .lotusConditionDamageUntil || 0,
-      ) > context.time,
-  },
-]);
+export const daredevilSchedulerHooks = Object.freeze({
+  onCastStart: beginDaredevilTraits,
+  afterCast: Object.freeze([
+    {
+      id: "thief.daredevil-dodge",
+      order: 30,
+      handler: applyDaredevilDodge,
+    },
+    {
+      id: "thief.daredevil-palm-strike",
+      order: 40,
+      handler: updatePalmStrikeWindow,
+    },
+  ]),
+});
+
+export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
+  [
+    {
+      id: "thief.weakening-strikes",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.1,
+      when: (context) =>
+        thiefPlayerEvent(context) &&
+        hasTrait(context, TRAIT.WEAKENING_STRIKES) &&
+        thiefTargetHasCondition(context, "Weakness"),
+    },
+    {
+      id: "thief.havoc-specialist",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.15,
+      when: (context) =>
+        thiefPlayerEvent(context) &&
+        hasTrait(context, TRAIT.HAVOC_SPECIALIST) &&
+        Number(thiefRuntimeState(context).endurance || 0) <
+          Number(thiefRuntimeState(context).maximumEndurance || 100),
+    },
+    {
+      id: "thief.bounding-dodger",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.15,
+      when: (context) =>
+        thiefPlayerEvent(context) &&
+        hasTrait(context, TRAIT.BOUNDING_DODGER) &&
+        Number(
+          thiefRuntimeSpecializationState(context, "Daredevil")
+            .boundingDamageUntil || 0,
+        ) > context.time,
+    },
+    {
+      id: "thief.lotus-training",
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.15,
+      when: (context) =>
+        thiefPlayerEvent(context) &&
+        hasTrait(context, TRAIT.LOTUS_TRAINING) &&
+        Number(
+          thiefRuntimeSpecializationState(context, "Daredevil")
+            .lotusConditionDamageUntil || 0,
+        ) > context.time,
+    },
+  ],
+);
 
 export const daredevilAttributeRules = Object.freeze({
   modifierRules: daredevilModifierRules,

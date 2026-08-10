@@ -15,10 +15,6 @@ import {
 } from "./spear.js";
 import { rechargeOtherSwordSkills } from "./sword.js";
 import { deployEngineerTurret } from "./turrets.js";
-import {
-  engineerCoreResolverEventHandlers,
-  engineerCoreResolverEventReactions,
-} from "./resolver.js";
 
 export const engineerCoreSkillHandlers = Object.freeze({
   "engineer.dodge": engineerReplace(performEngineerDodge),
@@ -35,27 +31,12 @@ export const engineerCoreSkillHandlers = Object.freeze({
     engineerFlipSkillHandlers["engineer.consume-flip"],
   ),
   "engineer.gleam-saber": engineerAfterEffects(rechargeOtherSwordSkills),
-  "engineer.lightning-rod": engineerReplaceAfterEffects(
-    scheduleLightningRod,
-  ),
-  "engineer.conduit-surge": engineerReplaceAfterEffects(
-    scheduleConduitSurge,
-  ),
+  "engineer.lightning-rod": engineerReplaceAfterEffects(scheduleLightningRod),
+  "engineer.conduit-surge": engineerReplaceAfterEffects(scheduleConduitSurge),
   "engineer.electric-artillery": engineerReplaceAfterEffects(
     scheduleElectricArtillery,
   ),
-  "engineer.roiling-skies": engineerAfterEffects(
-    scheduleRoilingSkiesControl,
-  ),
-  "engineer.turret-deploy": engineerReplaceAfterEffects(
-    deployEngineerTurret,
-  ),
-  "engineer.devastator": engineerAfterEffects(
-    scheduleDevastatorFollowup,
-  ),
+  "engineer.roiling-skies": engineerAfterEffects(scheduleRoilingSkiesControl),
+  "engineer.turret-deploy": engineerReplaceAfterEffects(deployEngineerTurret),
+  "engineer.devastator": engineerAfterEffects(scheduleDevastatorFollowup),
 });
-
-export const engineerCoreEventHandlers =
-  engineerCoreResolverEventHandlers;
-export const engineerCoreEventReactions =
-  engineerCoreResolverEventReactions;

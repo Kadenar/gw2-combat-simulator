@@ -2,9 +2,7 @@ import {
   augmentSkillHandler,
   replaceSkillHandler,
 } from "../../../platform/engine/skill-handlers.js";
-import type {
-  SkillHandlerPhase,
-} from "../../../platform/engine/types.js";
+import type { SkillHandlerPhase } from "../../../platform/engine/types.js";
 import type { RevenantCastContext } from "../types.js";
 import {
   gainAncientEchoEnergy,
@@ -19,18 +17,10 @@ import {
 } from "./handler-strategies.js";
 import { revenantSpearSkillHandlers } from "./spear.js";
 import { revenantUpkeepSkillHandlers } from "./upkeep.js";
-import {
-  revenantCoreResolverEventHandlers,
-  revenantCoreResolverEventReactions,
-} from "./resolver.js";
 
 const handlers = Object.freeze({
-  "revenant.weapon-swap": replaceAfter(
-    rawCoreHandlers["revenant.weapon-swap"],
-  ),
-  "revenant.legend-swap": replaceAfter(
-    rawCoreHandlers["revenant.legend-swap"],
-  ),
+  "revenant.weapon-swap": replaceAfter(rawCoreHandlers["revenant.weapon-swap"]),
+  "revenant.legend-swap": replaceAfter(rawCoreHandlers["revenant.legend-swap"]),
   "revenant.dodge": replaceSkillHandler<RevenantCastContext>(
     handlerPhase(rawCoreHandlers["revenant.dodge"]),
   ),
@@ -62,6 +52,3 @@ const handlers = Object.freeze({
 });
 
 export const revenantCoreSkillHandlers = new Map(Object.entries(handlers));
-
-export const revenantCoreEventHandlers = revenantCoreResolverEventHandlers;
-export const revenantCoreEventReactions = revenantCoreResolverEventReactions;

@@ -11,6 +11,15 @@ import type {
 } from "../../../../platform/gw2/types.js";
 import type { RangerPrecastContext, RangerSkill } from "../../types.js";
 import { galeshotState } from "./state.js";
+import { advanceGaleshotArrows } from "./mechanics.js";
+
+export const galeshotSchedulerHooks = Object.freeze({
+  advance: {
+    id: "ranger.galeshot-arrows",
+    order: 20,
+    handler: advanceGaleshotArrows,
+  },
+});
 
 function deny(
   skill: RangerSkill,

@@ -5,13 +5,15 @@ import {
 } from "../../../../platform/gw2/native-profession.js";
 import { createWarriorModuleData } from "../../catalog-data.js";
 import { SPELLBREAKER_SKILL_MECHANICS } from "./skills.js";
+import { spellbreakerSkillHandlers } from "./handlers.js";
 import {
   reactToSpellbreakerControl,
   reactToSpellbreakerDamage,
-  spellbreakerSkillHandlers,
+} from "./resolver.js";
+import {
+  spellbreakerAttributeRules,
   spellbreakerSchedulerHooks,
-} from "./handlers.js";
-import { spellbreakerAttributeRules } from "./rules.js";
+} from "./rules.js";
 import { spellbreakerState } from "./state.js";
 import { spellbreakerUi } from "./ui.js";
 

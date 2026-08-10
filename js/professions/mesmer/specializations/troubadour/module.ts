@@ -9,10 +9,7 @@ import {
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS,
 } from "./skills.js";
 import { troubadourSkillHandlers } from "./handlers.js";
-
-const troubadourEventHandlers = Object.freeze({
-  "mesmer.instrument": (): void => {},
-});
+import { troubadourEventHandlers } from "./resolver.js";
 
 export const troubadourModule = defineNativeModule({
   id: "Troubadour",

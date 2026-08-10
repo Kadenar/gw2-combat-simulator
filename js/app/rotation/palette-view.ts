@@ -22,6 +22,7 @@ import {
   rotationEntryName,
 } from "../../platform/ui/timeline.js";
 import { escapeHtml as esc, gw2ApiText } from "../../platform/ui/html.js";
+import { createRotationItem } from "./actions.js";
 import {
   activeSpecialization,
   paletteEndState,
@@ -63,10 +64,7 @@ import type {
   Skill,
 } from "../../platform/engine/types.js";
 import type { PaletteSkillView } from "../../platform/ui/types.js";
-import type {
-  ProfessionAppState,
-  RotationActionOptions,
-} from "../profession/types.js";
+import type { ProfessionAppState } from "../profession/types.js";
 
 const CONCURRENT_OFFSET_MS = 100;
 
@@ -84,24 +82,14 @@ export function suggestedPaletteInterruptMs(
     : Math.max(1, fullCastMs - 1);
 }
 
-function rotationItem(
-  app: ProfessionAppState,
-  name: string,
-  options: RotationActionOptions = {},
-): LegacyRotationItem {
-  const skillId = options.skillId == null ? null : Number(options.skillId);
-  const skill =
-    skillId !== null && Number.isFinite(skillId)
-      ? app.skillById.get(skillId)
-      : app.skillByName.get(name);
-  const defaultInterruptMs = skill?.defaultInterruptMs;
-  const resolvedOptions =
-    defaultInterruptMs != null && options.interruptMs == null
-      ? { interruptMs: defaultInterruptMs, ...options }
-      : options;
-  return Object.keys(resolvedOptions).length
-    ? { name, ...resolvedOptions }
-    : name;
+export function parseWaitDurationMs(raw: string | null): number | null {
+  if (raw == null) return null;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 1 ? Math.round(value) : null;
+}
+
+function promptWaitDurationMs(): number | null {
+  return parseWaitDurationMs(prompt("Wait duration (ms):", "1000"));
 }
 
 /**
@@ -127,11 +115,10 @@ export function resolvePaletteDropItem(
     return null;
   }
   if (name === "__wait") {
-    const raw = prompt("Wait duration (ms):", "1000");
-    if (raw == null || Number(raw) < 1) return null;
-    return rotationItem(app, name, { waitMs: Math.round(Number(raw)) });
+    const waitMs = promptWaitDurationMs();
+    return waitMs == null ? null : createRotationItem(app, name, { waitMs });
   }
-  return rotationItem(app, name, skillId == null ? {} : { skillId });
+  return createRotationItem(app, name, skillId == null ? {} : { skillId });
 }
 
 function currentCooldown(
@@ -628,9 +615,9 @@ export function renderPalette(app: ProfessionAppState): void {
       if (name === "__combat_start" && icon.classList.contains("pal-disabled"))
         return;
       if (name === "__wait") {
-        const raw = prompt("Wait duration (ms):", "1000");
-        if (raw == null || Number(raw) < 1) return;
-        app.addRotation(name, { waitMs: Math.round(Number(raw)) });
+        const waitMs = promptWaitDurationMs();
+        if (waitMs == null) return;
+        app.addRotation(name, { waitMs });
         return;
       }
       const skill =

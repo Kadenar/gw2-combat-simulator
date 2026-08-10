@@ -7,6 +7,35 @@ import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
+import {
+  advanceParagon,
+  beginParagonCast,
+  handleParagonCommandEchoTask,
+  observeParagonEvent,
+  updateParagonCast,
+} from "./traits.js";
+
+export const paragonSchedulerHooks = Object.freeze({
+  onCastStart: beginParagonCast,
+  advance: {
+    id: "warrior.paragon-refrain",
+    order: 20,
+    handler: advanceParagon,
+  },
+  afterCast: {
+    id: "warrior.paragon-motivation",
+    order: 20,
+    handler: updateParagonCast,
+  },
+  onEventScheduled: {
+    id: "warrior.paragon-call-to-action",
+    order: 20,
+    handler: observeParagonEvent,
+  },
+  taskHandlers: Object.freeze({
+    "warrior.paragon-command-echo": handleParagonCommandEchoTask,
+  }),
+});
 
 function paragonRuntimeState(context: Gw2ModifierContext): {
   motivation?: number;

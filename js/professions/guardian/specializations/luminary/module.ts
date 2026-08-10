@@ -3,11 +3,8 @@ import {
   onResolvedDamage,
 } from "../../../../platform/gw2/native-profession.js";
 import { createGuardianModuleData } from "../../catalog-data.js";
-import {
-  luminaryEventHandlers,
-  luminaryEventReactions,
-  luminarySkillHandlers,
-} from "./handlers.js";
+import { luminarySkillHandlers } from "./handlers.js";
+import { luminaryEventHandlers, luminaryEventReactions } from "./resolver.js";
 import {
   luminaryAttributeRules,
   luminaryCastRules,

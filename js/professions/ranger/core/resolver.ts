@@ -1,4 +1,5 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
+/** Core Ranger resolver-phase reactions and event handlers. */
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import {

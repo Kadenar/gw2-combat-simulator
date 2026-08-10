@@ -6,7 +6,7 @@ import {
 } from "../../data/ids.js";
 import { MODIFIER_TARGET } from "../../../../platform/gw2/modifier-rules.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
-import { timedStacks } from "../../core/attribute-rules.js";
+import { timedStacks } from "../../core/rules.js";
 import { initializeMirageRuntime } from "./runtime.js";
 import { mesmerRuntimeFor } from "../../core/runtime.js";
 import type { AvailabilityResult } from "../../../../platform/engine/types.js";
@@ -45,10 +45,10 @@ function mirageAvailability(
   const activeAmbush = runtime.ambushAttacks[runtime.activePrimaryWeapon()];
   const state = mirageState.from(context);
   if (
-    activeAmbush
-    && activeAmbush.name === skill.name
-    && state.ambushSource
-    && state.ambushUntil > context.start + EPSILON
+    activeAmbush &&
+    activeAmbush.name === skill.name &&
+    state.ambushSource &&
+    state.ambushUntil > context.start + EPSILON
   ) {
     return { ready: true };
   }

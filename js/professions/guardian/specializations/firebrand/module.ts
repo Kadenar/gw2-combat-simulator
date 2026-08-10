@@ -5,11 +5,8 @@ import {
   skillAvailability,
 } from "../../../../platform/gw2/native-profession.js";
 import { createGuardianModuleData } from "../../catalog-data.js";
-import {
-  firebrandEventHandlers,
-  firebrandEventReactions,
-  firebrandSkillHandlers,
-} from "./handlers.js";
+import { firebrandSkillHandlers } from "./handlers.js";
+import { firebrandEventHandlers, firebrandEventReactions } from "./resolver.js";
 import {
   firebrandAttributeRules,
   firebrandCastRules,

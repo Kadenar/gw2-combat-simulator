@@ -1361,102 +1361,6 @@ export function modifyMesmerMaximumAmmo(
 }
 
 /**
- * Projects scheduler-owned Mesmer resources, flips, chains, ambush, and
- * Continuum state into the stable simulation result shape.
- *
- * @param {object} projection Projection inputs.
- * @param {object} projection.schedulerContext Final scheduler context.
- * @returns {object} Serializable Mesmer end-state summary.
- */
-export function projectMesmerEndState({
-  schedulerContext: context,
-}: {
-  readonly schedulerContext: MesmerSchedulerContext;
-}): MesmerEndState {
-  const runtime = mesmerRuntimeFor(context);
-  const { state, config } = context;
-  const endTime = state.time;
-  const definition = runtime.resourceDefinition;
-  const publicState = flattenProfessionState(
-    state.profession,
-  ) as unknown as MesmerProfessionState;
-  const availableFlips: Record<string, MesmerProjectedFlip> = {};
-  for (const [skillId, flip] of Object.entries(publicState.availableFlips)) {
-    if (flip.expiresAt < endTime - EPSILON) continue;
-    const name = context.catalog.skillsById.get(Number(skillId))?.name;
-    if (!name) continue;
-    const persistent = !Number.isFinite(flip.expiresAt);
-    availableFlips[name] = {
-      availableAt: Math.round(flip.availableAt * 1000),
-      expiresAt: persistent ? null : Math.round(flip.expiresAt * 1000),
-      remaining: persistent
-        ? null
-        : Math.max(0, Math.round((flip.expiresAt - endTime) * 1000)),
-      persistent,
-    };
-  }
-  const activeInstruments = Object.entries(publicState.instruments || {})
-    .filter(([, expiresAt]) => expiresAt > endTime + EPSILON)
-    .map(([name, expiresAt]) => ({
-      name,
-      expiresAt: Math.round(expiresAt * 1000),
-      remaining: Math.max(0, Math.round((expiresAt - endTime) * 1000)),
-    }));
-  const activeWeapon =
-    state.activeWeaponSet === 1
-      ? config.primaryWeapon
-      : config.weaponSet2Primary || config.primaryWeapon;
-  return {
-    resource:
-      definition.singular === "clone"
-        ? publicState.clones.length
-        : publicState.numericResource,
-    resourceDefinition: definition,
-    clarityRemaining: Math.max(
-      0,
-      Math.round((publicState.clarityUntil - endTime) * 1000),
-    ),
-    counterspellAvailable: publicState.counterspellAvailable,
-    availableAmbush:
-      publicState.ambushSource && publicState.ambushUntil > endTime + EPSILON
-        ? {
-            name: runtime.ambushAttacks[activeWeapon]?.name || "",
-            source: publicState.ambushSource,
-            expiresAt: Math.round(publicState.ambushUntil * 1000),
-            remaining: Math.max(
-              0,
-              Math.round((publicState.ambushUntil - endTime) * 1000),
-            ),
-          }
-        : null,
-    ...(config.specialization === "Mirage"
-      ? {
-          availableMirrors: (publicState.mirrors || []).filter(
-            (mirror) =>
-              mirror.availableAt <= endTime + EPSILON &&
-              mirror.expiresAt > endTime + EPSILON,
-          ).length,
-        }
-      : {}),
-    ...(config.specialization === "Troubadour" ? { activeInstruments } : {}),
-    availableFlips,
-    autoattackChains: Object.fromEntries(
-      context.catalog.autoattackChains.map((chain) => [
-        chain[0],
-        publicState.autoattackChains[chain[0]] || chain[0],
-      ]),
-    ),
-    continuumActive: Boolean(publicState.continuum),
-    continuumRemaining: publicState.continuum
-      ? Math.max(
-          0,
-          Math.round((publicState.continuum.expiresAt - endTime) * 1000),
-        )
-      : 0,
-  };
-}
-
-/**
  * Mesmer availability, recharge, ammo, and profession-owned scheduling rules.
  */
 export const mesmerCastRules = Object.freeze({
@@ -1482,4 +1386,265 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
     [TASK.signetEtherRelock]: handleSignetEtherRelockTask,
     [TASK.signetIllusionsPassive]: handleSignetIllusionsPassiveTask,
   }),
+});
+
+import {
+  createModifierHooks,
+  MODIFIER_TARGET,
+} from "../../../platform/gw2/modifier-rules.js";
+import { hasTrait } from "../../../platform/gw2/trait-state.js";
+import type {
+  Gw2ModifierContext,
+  Gw2ModifierRule,
+  Gw2QueryRuntime,
+  Gw2ResolvedStats,
+} from "../../../platform/gw2/types.js";
+
+export { snapshotMesmerState } from "./state.js";
+
+const MODIFIER_EPSILON = 0.0001;
+
+export function illusionSource(context: Gw2ModifierContext): boolean {
+  return (
+    context.event?.source === "Clone" || context.event?.source === "Phantasm"
+  );
+}
+
+export function timedStacks(
+  context: Gw2ModifierContext,
+  kind: string,
+  duration: number,
+  maximum: number,
+): number {
+  return (
+    context.timeline?.timedStacks(kind, context.time, duration, maximum) || 0
+  );
+}
+
+export function timedActive(
+  context: Gw2ModifierContext,
+  kind: string,
+): boolean {
+  return Boolean(context.timeline?.timedActive(kind, context.time));
+}
+
+function thornsStacksAt(time: number): number {
+  if (time < 3 - MODIFIER_EPSILON) return 0;
+  return Math.min(10, Math.floor((time - 3 + MODIFIER_EPSILON) / 5) + 1);
+}
+
+export function applyMesmerCoreAttributes(
+  context: Gw2ModifierContext,
+  attributes: Gw2ResolvedStats,
+): Gw2ResolvedStats {
+  const thorns =
+    context.config?.relic === "Thorns" ? thornsStacksAt(context.time) * 30 : 0;
+  const midnight =
+    Array.isArray(context.config?.selectedSkills) &&
+    context.config.selectedSkills.includes("Signet of Midnight") &&
+    context.timeline?.skillOnCooldownAt(10234, context.time)
+      ? 180
+      : 0;
+  const domination =
+    Array.isArray(context.config?.selectedSkills) &&
+    context.config.selectedSkills.includes("Signet of Domination") &&
+    context.timeline?.skillOnCooldownAt(10232, context.time)
+      ? 180
+      : 0;
+  return {
+    ...attributes,
+    power: Number(attributes.power || 0),
+    precision: Number(attributes.precision || 0),
+    ferocity:
+      Number(attributes.ferocity || 0) +
+      timedStacks(context, "fencer", 6, 10) * 15,
+    conditionDamage:
+      Number(attributes.conditionDamage || 0) + thorns - domination,
+    expertise: Number(attributes.expertise || 0) - midnight,
+  };
+}
+
+function superiorityComplexFactor(context: Gw2ModifierContext): number {
+  const targetHealth = Number(context.config?.target?.health || 0);
+  const totalDamage = resolvedTotalDamage(context);
+  return context.config?.target?.disabled ||
+    (targetHealth > 0 && totalDamage >= targetHealth * 0.5)
+    ? 1.25
+    : 1.15;
+}
+
+function resolvedTotalDamage(context: Gw2ModifierContext): number {
+  const runtime = context.runtime as
+    | (Gw2QueryRuntime & {
+        readonly totals?: {
+          readonly strike?: number;
+          readonly condition?: number;
+        };
+      })
+    | null
+    | undefined;
+  return (
+    Number(runtime?.totals?.strike || 0) +
+    Number(runtime?.totals?.condition || 0)
+  );
+}
+
+export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] =
+  Object.freeze([
+    {
+      id: "mesmer.phantasmal-fury-critical-chance",
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: "add",
+      amount: (context) =>
+        context.config?.specialization === "Virtuoso" ? 0.4 : 0.25,
+      when: (context) =>
+        context.event?.source === "Phantasm" &&
+        hasTrait(context, TRAIT.PHANTASMAL_FURY),
+    },
+    {
+      id: "mesmer.superiority-complex",
+      target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+      operation: "multiply",
+      factor: superiorityComplexFactor,
+      when: (context) =>
+        hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) &&
+        !illusionSource(context),
+    },
+    {
+      id: "mesmer.compounding-power",
+      target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+      operation: "damage-additive",
+      amount: (context, target) =>
+        timedStacks(context, "compounding", 8, 5) *
+        (target === MODIFIER_TARGET.STRIKE_DAMAGE ? 0.02 : 0.01),
+      when: (context) => !illusionSource(context),
+    },
+    {
+      id: "mesmer.illusionary-membrane",
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.07,
+      when: (context) => timedActive(context, "illusionary-membrane"),
+    },
+    {
+      id: "mesmer.mind-stab-vulnerability",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) =>
+        1 +
+        Number(
+          context.query?.vulnerabilityStacksAt(context.time, context.runtime) ||
+            0,
+        ) *
+          0.01,
+      order: 100,
+      when: (context) => context.event?.skillName === "Mind Stab",
+    },
+    {
+      id: "mesmer.fragility",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) =>
+        1 +
+        Number(
+          context.query?.vulnerabilityStacksAt(context.time, context.runtime) ||
+            0,
+        ) *
+          0.005,
+      order: 100,
+      when: (context) =>
+        hasTrait(context, TRAIT.FRAGILITY) && !illusionSource(context),
+    },
+    {
+      id: "mesmer.vicious-expression",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) => (context.config?.target?.boonless ? 1.15 : 1.1),
+      order: 100,
+      when: (context) => hasTrait(context, TRAIT.VICIOUS_EXPRESSION),
+    },
+    {
+      id: "mesmer.empowered-illusions",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.15,
+      order: 100,
+      when: (context) =>
+        illusionSource(context) && hasTrait(context, TRAIT.EMPOWERED_ILLUSIONS),
+    },
+    {
+      id: "mesmer.phantasmal-force",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) =>
+        1 +
+        context.query!.mightStacksAt(
+          context.time,
+          context.runtime,
+          context.event,
+        ) *
+          0.01,
+      order: 100,
+      when: (context) =>
+        context.event?.source === "Phantasm" &&
+        hasTrait(context, TRAIT.PHANTASMAL_FORCE),
+    },
+    {
+      id: "mesmer.mental-anguish",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) =>
+        context.config?.target?.activatingSkills ? 1.25 : 1.5,
+      order: 100,
+      when: (context) =>
+        Boolean(context.event?.shatter) &&
+        hasTrait(context, TRAIT.MENTAL_ANGUISH),
+    },
+    {
+      id: "mesmer.egotism",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.1,
+      order: 100,
+      when: (context) =>
+        hasTrait(context, TRAIT.EGOTISM) &&
+        !illusionSource(context) &&
+        Number(context.config?.target?.health || 0) > 0 &&
+        resolvedTotalDamage(context) > 0,
+    },
+    {
+      id: "mesmer.event-final-multiplier",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) => Number(context.event?.multiplier || 1),
+      order: 1000,
+    },
+    {
+      id: "mesmer.malicious-sorcery",
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: "add",
+      amount: 0.25,
+      when: (context) =>
+        context.condition === "Confusion" &&
+        hasTrait(context, TRAIT.MALICIOUS_SORCERY),
+    },
+  ]);
+
+export function compileMesmerModifierRules(
+  rules: readonly Gw2ModifierRule[],
+): ReturnType<typeof createModifierHooks> {
+  return createModifierHooks({
+    rules,
+    damageBuckets: {
+      strikeDamage: {
+        includeSigil: (context) => !illusionSource(context),
+      },
+    },
+  });
+}
+
+export const mesmerCoreAttributeRules = Object.freeze({
+  modifyAttributes: applyMesmerCoreAttributes,
+  modifierRules: mesmerCoreModifierRules,
+  compileModifierRules: compileMesmerModifierRules,
 });

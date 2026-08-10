@@ -1,12 +1,10 @@
 import { defineNativeModule } from "../../../../platform/gw2/native-profession.js";
 import { createThiefModuleData } from "../../catalog-data.js";
-import {
-  deadeyeSchedulerHooks,
-  deadeyeSkillHandlers,
-} from "./handlers.js";
+import { deadeyeSkillHandlers } from "./handlers.js";
 import {
   deadeyeAttributeRules,
   deadeyeCastRules,
+  deadeyeSchedulerHooks,
 } from "./rules.js";
 import { deadeyeState } from "./state.js";
 import { deadeyeUi } from "./ui.js";

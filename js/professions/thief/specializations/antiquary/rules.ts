@@ -10,11 +10,27 @@ import {
   thiefRuntimeSpecializationState,
 } from "../../core/rules.js";
 import { antiquaryCastAvailability } from "./availability.js";
+import { handleForgedSurfer, handleSkrittScuffle } from "./artifacts.js";
+import {
+  advanceAntiquaryResources,
+  spendAntiquaryResources,
+} from "./resources.js";
 import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
 import type { ThiefPrecastContext } from "../../types.js";
+
+export const antiquaryTaskHandlers = Object.freeze({
+  "thief.forged-surfer": handleForgedSurfer,
+  "thief.skritt-scuffle": handleSkrittScuffle,
+});
+
+export const antiquarySchedulerHooks = Object.freeze({
+  advance: advanceAntiquaryResources,
+  onCastStart: spendAntiquaryResources,
+  taskHandlers: antiquaryTaskHandlers,
+});
 
 const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
   ID.METAL_LEGION_GUITAR,
@@ -38,101 +54,105 @@ function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): number {
   return 1;
 }
 
-export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: "thief.antiquary-artifact-momentum",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
-    amount: 0.1,
-    when: context =>
-      thiefPlayerEvent(context)
-      && Number(
-        thiefRuntimeSpecializationState(context, "Antiquary")
-          .antiquaryDamageUntil || 0,
-      )
-        > context.time,
-  },
-  {
-    id: "thief.combat-high-strike",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
-    amount: context => Math.min(
-      10,
-      Math.ceil(Math.max(
-        0,
+export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
+  [
+    {
+      id: "thief.antiquary-artifact-momentum",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: 0.1,
+      when: (context) =>
+        thiefPlayerEvent(context) &&
         Number(
           thiefRuntimeSpecializationState(context, "Antiquary")
-            .combatHighExpiresAt || 0,
-        )
-          - context.time,
-      ) / 2),
-    ) * 0.03,
-    when: context =>
-      thiefPlayerEvent(context) && hasTrait(context, TRAIT.COMBAT_HIGH),
-  },
-  {
-    id: "thief.combat-high-condition",
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: "damage-additive",
-    amount: context => Math.min(
-      10,
-      Math.ceil(Math.max(
-        0,
+            .antiquaryDamageUntil || 0,
+        ) > context.time,
+    },
+    {
+      id: "thief.combat-high-strike",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "damage-additive",
+      amount: (context) =>
+        Math.min(
+          10,
+          Math.ceil(
+            Math.max(
+              0,
+              Number(
+                thiefRuntimeSpecializationState(context, "Antiquary")
+                  .combatHighExpiresAt || 0,
+              ) - context.time,
+            ) / 2,
+          ),
+        ) * 0.03,
+      when: (context) =>
+        thiefPlayerEvent(context) && hasTrait(context, TRAIT.COMBAT_HIGH),
+    },
+    {
+      id: "thief.combat-high-condition",
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: "damage-additive",
+      amount: (context) =>
+        Math.min(
+          10,
+          Math.ceil(
+            Math.max(
+              0,
+              Number(
+                thiefRuntimeSpecializationState(context, "Antiquary")
+                  .combatHighExpiresAt || 0,
+              ) - context.time,
+            ) / 2,
+          ),
+        ) * 0.02,
+      when: (context) =>
+        thiefPlayerEvent(context) && hasTrait(context, TRAIT.COMBAT_HIGH),
+    },
+    {
+      id: "thief.kryptis-turret-damage",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.15,
+      when: (context) =>
+        thiefPlayerEvent(context) &&
         Number(
           thiefRuntimeSpecializationState(context, "Antiquary")
-            .combatHighExpiresAt || 0,
-        )
-          - context.time,
-      ) / 2),
-    ) * 0.02,
-    when: context =>
-      thiefPlayerEvent(context) && hasTrait(context, TRAIT.COMBAT_HIGH),
-  },
-  {
-    id: "thief.kryptis-turret-damage",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: 1.15,
-    when: context =>
-      thiefPlayerEvent(context)
-      && Number(
-        thiefRuntimeSpecializationState(context, "Antiquary")
-          .kryptisDamageUntil || 0,
-      )
-        > context.time,
-  },
-  {
-    id: "thief.meticulous-custodian-artifact-strike",
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: meticulousArtifactStrikeFactor,
-    when: context =>
-      thiefPlayerEvent(context)
-      && hasTrait(context, TRAIT.METICULOUS_CUSTODIAN)
-      && METICULOUS_ARTIFACT_STRIKE_IDS.has(Number(context.event?.skillId)),
-  },
-  {
-    id: "thief.meticulous-custodian-mortar-burning",
-    target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: "multiply",
-    factor: 2 / 1.5,
-    when: context =>
-      hasTrait(context, TRAIT.METICULOUS_CUSTODIAN)
-      && context.event?.skillId === ID.MISTBURN_MORTAR
-      && context.event?.condition === "Burning"
-      && context.event?.triggeredBy == null,
-  },
-  {
-    id: "thief.meticulous-custodian-sun-crystal-burning",
-    target: MODIFIER_TARGET.CONDITION_DURATION,
-    operation: "multiply",
-    factor: 5 / 4,
-    when: context =>
-      hasTrait(context, TRAIT.METICULOUS_CUSTODIAN)
-      && context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL
-      && context.event?.condition === "Burning",
-  },
-]);
+            .kryptisDamageUntil || 0,
+        ) > context.time,
+    },
+    {
+      id: "thief.meticulous-custodian-artifact-strike",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: meticulousArtifactStrikeFactor,
+      when: (context) =>
+        thiefPlayerEvent(context) &&
+        hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
+        METICULOUS_ARTIFACT_STRIKE_IDS.has(Number(context.event?.skillId)),
+    },
+    {
+      id: "thief.meticulous-custodian-mortar-burning",
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: "multiply",
+      factor: 2 / 1.5,
+      when: (context) =>
+        hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
+        context.event?.skillId === ID.MISTBURN_MORTAR &&
+        context.event?.condition === "Burning" &&
+        context.event?.triggeredBy == null,
+    },
+    {
+      id: "thief.meticulous-custodian-sun-crystal-burning",
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: "multiply",
+      factor: 5 / 4,
+      when: (context) =>
+        hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
+        context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL &&
+        context.event?.condition === "Burning",
+    },
+  ],
+);
 
 export const antiquaryAttributeRules = Object.freeze({
   modifierRules: antiquaryModifierRules,
@@ -145,7 +165,7 @@ function modifyAntiquaryRechargeDuration(
   const state = antiquaryState.from(context);
   const expirations = (
     state.holoUtilityCooldownReductionExpirations || []
-  ).filter(expiresAt => Number(expiresAt) > context.start);
+  ).filter((expiresAt) => Number(expiresAt) > context.start);
   state.holoUtilityCooldownReductionExpirations = expirations;
   if (context.skill.type !== "Utility" || expirations.length === 0) {
     return duration;

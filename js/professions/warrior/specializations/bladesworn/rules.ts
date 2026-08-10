@@ -19,6 +19,31 @@ import {
   requestedDragonCharges,
 } from "./dragon-trigger.js";
 import type { WarriorCastContext, WarriorSkill } from "../../types.js";
+import {
+  advanceBladesworn,
+  completeBladeswornSkill,
+  observeBladeswornEvent,
+  trackBladeswornAmmoCast,
+} from "./traits.js";
+
+export const bladeswornSchedulerHooks = Object.freeze({
+  advance: { id: "warrior.flow", order: 20, handler: advanceBladesworn },
+  afterCast: {
+    id: "warrior.bladesworn-ammo-cast",
+    order: 20,
+    handler: trackBladeswornAmmoCast,
+  },
+  onCastComplete: {
+    id: "warrior.bladesworn-state",
+    order: 20,
+    handler: completeBladeswornSkill,
+  },
+  onEventScheduled: {
+    id: "warrior.bladesworn-explosions",
+    order: 20,
+    handler: observeBladeswornEvent,
+  },
+});
 
 function modifyAttributes(
   context: Gw2ModifierContext,

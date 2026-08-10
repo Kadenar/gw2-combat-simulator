@@ -3,12 +3,13 @@ import {
   onResolvedDamage,
 } from "../../../../platform/gw2/native-profession.js";
 import { createEngineerModuleData } from "../../catalog-data.js";
+import { amalgamSkillHandlers } from "./handlers.js";
+import { amalgamResolverEventReactions } from "./resolver.js";
 import {
-  amalgamEventReactions,
+  amalgamAttributeRules,
+  amalgamCastRules,
   amalgamSchedulerHooks,
-  amalgamSkillHandlers,
-} from "./handlers.js";
-import { amalgamAttributeRules, amalgamCastRules } from "./rules.js";
+} from "./rules.js";
 import { AMALGAM_SKILL_MECHANICS } from "./skills.js";
 import { amalgamState } from "./state.js";
 import { bindAmalgamUi } from "./ui.js";
@@ -24,10 +25,12 @@ export const amalgamModule = defineNativeModule({
     modifiers: amalgamAttributeRules,
     castRules: amalgamCastRules,
     schedulerHooks: amalgamSchedulerHooks,
-    reactions: [onResolvedDamage({
-      id: "engineer.amalgam.damage",
-      handler: amalgamEventReactions.damage,
-    })],
+    reactions: [
+      onResolvedDamage({
+        id: "engineer.amalgam.damage",
+        handler: amalgamResolverEventReactions.damage,
+      }),
+    ],
   },
   presentation: bindAmalgamUi,
 });

@@ -11,6 +11,8 @@ import {
 } from "../data/ids.js";
 import { rangerCoreCastAvailability } from "./availability.js";
 import { selectedRangerPet } from "./state.js";
+import { advanceRangerResources } from "./resources.js";
+import { completeRangerTraits } from "./traits.js";
 import type { SkillId } from "../../../platform/engine/types.js";
 import type {
   Gw2ModifierContext,
@@ -18,6 +20,29 @@ import type {
   Gw2ResolvedStats,
 } from "../../../platform/gw2/types.js";
 import type { RangerSchedulerContext, RangerSkill } from "../types.js";
+import type { RangerCastContext } from "../types.js";
+
+export const rangerCoreSchedulerHooks = Object.freeze({
+  advance: {
+    id: "ranger.core-resources",
+    order: 10,
+    handler: advanceRangerResources,
+  },
+  onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
+    completeRangerTraits(context, skill);
+    if (
+      skill.id !== ID.PATH_OF_SCARS &&
+      skill.id !== ID.PATH_OF_SCARS_MAX_RANGE
+    ) {
+      return;
+    }
+    const readyAt = Number(
+      context.state.cooldowns.get(skill.id) || context.effectiveEnd,
+    );
+    context.state.cooldowns.set(ID.PATH_OF_SCARS, readyAt);
+    context.state.cooldowns.set(ID.PATH_OF_SCARS_MAX_RANGE, readyAt);
+  },
+});
 
 function playerEvent(context: Gw2ModifierContext): boolean {
   return context.event?.actorType !== "summon";

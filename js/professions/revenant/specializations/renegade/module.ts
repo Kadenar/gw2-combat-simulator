@@ -4,11 +4,11 @@ import {
   onResolvedDamage,
 } from "../../../../platform/gw2/native-profession.js";
 import { createRevenantModuleData } from "../../catalog-data.js";
+import { renegadeSkillHandlers } from "./handlers.js";
 import {
   renegadeEventHandlers,
-  renegadeEventReactions,
-  renegadeSkillHandlers,
-} from "./handlers.js";
+  revenantRenegadeEventReactions,
+} from "./resolver.js";
 import {
   renegadeAttributeRules,
   renegadeCastRules,
@@ -32,11 +32,11 @@ export const renegadeModule = defineNativeModule({
     reactions: [
       onResolvedDamage({
         id: "revenant.renegade.damage",
-        handler: renegadeEventReactions.damage,
+        handler: revenantRenegadeEventReactions.damage,
       }),
       onFoodProcCreated({
         id: "revenant.renegade.food-proc",
-        handler: renegadeEventReactions.food_proc,
+        handler: revenantRenegadeEventReactions.food_proc,
       }),
     ],
     resolverHooks: {
