@@ -2,6 +2,7 @@ import { createSimulationRandom } from "../../engine/simulation-random.js";
 
 import type {
   CreateGw2ResolverRuntimeStateOptions,
+  Gw2CriticalResult,
   Gw2DamageBreakdownEntry,
   Gw2ResolverEvent,
   Gw2ResolverRuntime,
@@ -93,6 +94,7 @@ export function createGw2ResolverRuntimeState({
       type: "strikeDamage" | "conditionDamage",
       hits = 0,
       source: Gw2ResolverEvent | null = null,
+      critical: Gw2CriticalResult | null = null,
     ): void {
       const sourceSkill = source?.skillName || source?.name || name;
       const parentSkill = source?.parentSkillName || "";
@@ -115,6 +117,8 @@ export function createGw2ResolverRuntimeState({
         strikeDamage: 0,
         conditionDamage: 0,
         hits: 0,
+        critHits: 0,
+        critEligibleHits: 0,
       };
       if (current.skillId == null && source?.skillId != null) {
         current.skillId = source.skillId;
@@ -131,6 +135,20 @@ export function createGw2ResolverRuntimeState({
       current.damage += damage;
       current[type] += damage;
       current.hits += hits;
+      // Crit accounting only makes sense for strike hits. In stochastic runs
+      // didCrit is a per-event boolean (all hits of the event share it); in
+      // deterministic runs it is null, so expected crits = chance * hits.
+      if (type === "strikeDamage" && critical) {
+        const eligible = Number(hits) || 0;
+        current.critEligibleHits = (current.critEligibleHits || 0) + eligible;
+        const critShare =
+          critical.didCrit === true
+            ? eligible
+            : critical.didCrit === false
+              ? 0
+              : Number(critical.chance || 0) * eligible;
+        current.critHits = (current.critHits || 0) + critShare;
+      }
       this.breakdown.set(key, current);
     },
 

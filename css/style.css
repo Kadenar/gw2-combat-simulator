@@ -2544,6 +2544,10 @@ header .accent {
   margin-bottom: 2px;
 }
 
+.rot-row + .rot-row {
+  border-top: 1px dotted var(--border-light);
+}
+
 .rot-row-label {
   font-size: 9px;
   text-transform: uppercase;
@@ -3590,7 +3594,7 @@ header .accent {
 
 .res-hdr {
   display: grid;
-  grid-template-columns: 1fr 72px 72px 72px 72px 72px 72px 72px 48px 48px;
+  grid-template-columns: 1fr 72px 72px 72px 72px 72px 72px 72px 48px 56px;
   gap: 4px;
   padding: 2px 4px;
   font-size: 9px;
@@ -3616,7 +3620,7 @@ header .accent {
 
 .res-row {
   display: grid;
-  grid-template-columns: 1fr 72px 72px 72px 72px 72px 72px 72px 48px 48px;
+  grid-template-columns: 1fr 72px 72px 72px 72px 72px 72px 72px 48px 56px;
   gap: 4px;
   padding: 3px 4px;
   font-size: 12px;
@@ -3675,8 +3679,8 @@ header .accent {
 .mesmer-skill-breakdown .res-row,
 .guardian-skill-breakdown .res-hdr,
 .guardian-skill-breakdown .res-row {
-  grid-template-columns: minmax(180px, 1fr) repeat(6, 72px) 48px 48px;
-  min-width: 760px;
+  grid-template-columns: minmax(180px, 1fr) repeat(6, 72px) 48px 48px 56px;
+  min-width: 816px;
 }
 
 .res-row.res-total {

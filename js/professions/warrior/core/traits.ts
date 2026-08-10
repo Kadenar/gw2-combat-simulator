@@ -555,6 +555,24 @@ export function observeWarriorEvent(
       state.targetControlledUntil,
       event.at + Number(event.duration || 1),
     );
+    if (hasTrait(context, TRAIT.MERCILESS_HAMMER)) {
+      gainWarriorAdrenaline(context, 7);
+    }
+    if (
+      hasTrait(context, TRAIT.STALWART_STRENGTH) &&
+      event.at + context.epsilon >=
+        Number(state.traitProcReadyAt.stalwartStrength || 0)
+    ) {
+      state.traitProcReadyAt.stalwartStrength = event.at + 0.25;
+      emitTraitBoon(
+        context,
+        event,
+        TRAIT.STALWART_STRENGTH,
+        "Stalwart Strength",
+        "stability",
+        5,
+      );
+    }
     if (
       hasTrait(context, TRAIT.BODY_BLOW) &&
       BODY_BLOW_CONTROL_KINDS.has(String(event.controlKind || "").toLowerCase())

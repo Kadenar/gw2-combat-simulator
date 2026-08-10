@@ -135,6 +135,18 @@ function activeBoonCount(context: Gw2ModifierContext): number {
   return WARRIOR_BOONS.filter((boon) => boonActive(context, boon)).length;
 }
 
+function targetBoonCount(context: Gw2ModifierContext): number {
+  const target = context.config?.target;
+  if (target?.boonless === true) return 0;
+  if (Array.isArray(target?.boons)) {
+    return new Set(target.boons.map(String)).size;
+  }
+  if (target?.boonCount != null) {
+    return Math.max(0, Math.trunc(Number(target.boonCount) || 0));
+  }
+  return target?.boonless === false ? 1 : 0;
+}
+
 function wieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
   if (eventSkill(context)?.weapon === weapon) return true;
   const weaponSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
@@ -306,8 +318,9 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: "warrior.empowered",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "damage-additive",
-    amount: (context) => activeBoonCount(context) * 0.01,
+    operation: "multiply",
+    factor: (context) => 1 + activeBoonCount(context) * 0.01,
+    order: 100,
     when: (context) => hasTrait(context, TRAIT.EMPOWERED),
   },
   {
@@ -356,12 +369,22 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "warrior.merciless-hammer",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "multiply",
-    factor: 1.2,
+    factor: 1.25,
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.MERCILESS_HAMMER) &&
       ["Hammer", "Mace"].includes(String(eventSkill(context)?.weapon || "")) &&
       targetControlled(context),
+  },
+  {
+    id: "warrior.stalwart-strength",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.1,
+    order: 100,
+    when: (context) =>
+      hasTrait(context, TRAIT.STALWART_STRENGTH) &&
+      boonActive(context, "stability"),
   },
   {
     id: "warrior.furious-burst-fury-critical-chance",
@@ -447,12 +470,21 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: "warrior.warriors-sprint",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: "multiply",
-    factor: 1.1,
-    order: 100,
+    operation: "damage-additive",
+    amount: 0.1,
     when: (context) =>
       hasTrait(context, TRAIT.WARRIORS_SPRINT) &&
       boonActive(context, "swiftness"),
+  },
+  {
+    id: "warrior.destruction-of-the-empowered",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: (context) => 1 + targetBoonCount(context) * 0.03,
+    order: 100,
+    when: (context) =>
+      hasTrait(context, TRAIT.DESTRUCTION_OF_THE_EMPOWERED) &&
+      targetBoonCount(context) > 0,
   },
   {
     id: "warrior.burst-mastery",

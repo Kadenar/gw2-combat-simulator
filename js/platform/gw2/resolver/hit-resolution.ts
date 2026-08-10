@@ -181,6 +181,8 @@ export function createGw2HitResolution({
       Number.isFinite(event.flatStrikeBase) ||
       Number.isFinite(event.flatStrikePowerCoeff);
     const critical = resolveCritical(ctx, event, flatStrike);
+    const critEligible =
+      !flatStrike && !event.noCrit && event.canCrit !== false;
     const strike = flatStrike
       ? resolveFlatStrike(ctx, event, stats.power)
       : resolveScalingStrike(ctx, event, stats.power, critical);
@@ -188,6 +190,7 @@ export function createGw2HitResolution({
     return {
       stats,
       critical,
+      critEligible,
       criticalMultiplier: strike.criticalMultiplier,
       outgoingMultiplier: strike.outgoingMultiplier,
       weaponStrength: strike.weaponStrength,
@@ -210,6 +213,7 @@ export function createGw2HitResolution({
       "strikeDamage",
       Number(event.hits || 1),
       event,
+      hitContext.critEligible ? hitContext.critical : null,
     );
     if (damage > 0) ctx.markDamageTime(event.at);
 

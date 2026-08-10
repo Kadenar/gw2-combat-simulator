@@ -477,6 +477,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOODTHIRSTER_ID_80252]: {
     implemented: true,
+    skillWeapon: "Sword",
     castTimeMs: 750,
     effects: [
       {

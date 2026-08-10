@@ -380,6 +380,7 @@ test("result sorting handles defaults, numeric directions, strings, and cycling"
       "dct",
       "casts",
       "hits",
+      "critChance",
     ],
   );
   const rows = [
