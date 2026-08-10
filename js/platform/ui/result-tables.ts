@@ -27,6 +27,12 @@ export interface SkillBreakdownRow {
   readonly dps: number;
   readonly average: number | null;
   readonly dct: number | null;
+  // Average crit chance across this skill's strike hits (0-1), or null when the
+  // row has no crit-eligible strike hits (pure-condition rows). critHits and
+  // critEligibleHits back the hover tooltip.
+  readonly critChance: number | null;
+  readonly critHits: number;
+  readonly critEligibleHits: number;
 }
 
 interface GroupedSkillBreakdown {
@@ -41,6 +47,8 @@ interface GroupedSkillBreakdown {
   strike: number;
   condition: number;
   hits: number;
+  critHits: number;
+  critEligibleHits: number;
   fallbackCasts: number;
 }
 
@@ -133,6 +141,8 @@ export function skillBreakdownRows(
       strike: 0,
       condition: 0,
       hits: 0,
+      critHits: 0,
+      critEligibleHits: 0,
       fallbackCasts: 0,
     };
     if (!current.parentSkill && parentSkill) current.parentSkill = parentSkill;
@@ -144,6 +154,8 @@ export function skillBreakdownRows(
     current.strike += Number(entry.strikeDamage || 0);
     current.condition += Number(entry.conditionDamage || 0);
     current.hits += Number(entry.hits || 0);
+    current.critHits += Number(entry.critHits || 0);
+    current.critEligibleHits += Number(entry.critEligibleHits || 0);
     current.fallbackCasts = Math.max(
       current.fallbackCasts,
       Number(entry.casts || 0),
@@ -179,6 +191,12 @@ export function skillBreakdownRows(
         // DCT is damage divided by occupied cast time, not encounter duration.
         dct: castTime > 0 ? total / castTime : null,
         casts,
+        critChance:
+          entry.critEligibleHits > 0
+            ? entry.critHits / entry.critEligibleHits
+            : null,
+        critHits: entry.critHits,
+        critEligibleHits: entry.critEligibleHits,
       };
     })
     .filter((row) => row.total > 0)

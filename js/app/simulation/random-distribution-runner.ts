@@ -153,6 +153,10 @@ export class RandomDistributionRunner {
           request.trials,
           workerCount,
         );
+        if (!batches.length) {
+          applyDistribution(summarizeRandomDistribution([]));
+          return;
+        }
         const batchProgress: number[] = batches.map(() => 0);
         const completedSamples: Array<readonly number[] | null> = batches.map(
           () => null,

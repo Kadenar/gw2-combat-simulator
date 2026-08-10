@@ -2400,6 +2400,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOODTHIRSTER]: {
     implemented: true,
+    skillWeapon: "Sword",
     castTimeMs: 750,
     effects: [
       {
@@ -2470,6 +2471,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.BLOODTHIRSTER_ID_80263]: {
     implemented: true,
+    skillWeapon: "Sword",
     castTimeMs: 750,
     effects: [
       {

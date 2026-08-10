@@ -553,6 +553,11 @@ export interface Gw2DamageBreakdownEntry {
   conditionDamage: number;
   hits: number;
   casts?: number;
+  // Crit accounting is tracked only for strike hits. critHits is the expected
+  // (deterministic) or actual (stochastic) number of critical strikes;
+  // critEligibleHits is the number of strike hits those crits are drawn from.
+  critHits?: number;
+  critEligibleHits?: number;
 }
 
 export interface Gw2ConditionBreakdownEntry {
@@ -631,6 +636,7 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
     type: "strikeDamage" | "conditionDamage",
     hits?: number,
     source?: Gw2ResolverEvent | null,
+    critical?: Gw2CriticalResult | null,
   ): void;
   markDamageTime(at: number): void;
 }
@@ -638,6 +644,9 @@ export interface Gw2ResolverRuntime extends SchedulerRecord {
 export interface Gw2HitResolutionContext {
   readonly stats: Gw2ResolvedStats;
   readonly critical: Gw2CriticalResult;
+  // Whether this strike can crit at all (scaling strike, not flagged noCrit /
+  // canCrit=false). Non-eligible hits are excluded from crit-rate reporting.
+  readonly critEligible: boolean;
   readonly criticalMultiplier: number;
   readonly outgoingMultiplier: number;
   readonly weaponStrength: Gw2ResolvedWeaponStrength | null;

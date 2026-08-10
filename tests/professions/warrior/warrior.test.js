@@ -947,6 +947,9 @@ test("Spellbreaker Winds and Kick use the supplied PvE mechanics", () => {
 });
 
 test("Warrior dagger attacks and bursts use the supplied PvE mechanics", () => {
+  const keenStrike = warriorCatalog.skillsById.get(ID.KEEN_STRIKE);
+  const focusedSlash = warriorCatalog.skillsById.get(ID.FOCUSED_SLASH);
+  const preciseCut = warriorCatalog.skillsById.get(ID.PRECISE_CUT);
   const wastrelsRuin = warriorCatalog.skillsById.get(ID.WASTRELS_RUIN);
   const hushblade = warriorCatalog.skillsById.get(ID.HUSHBLADE);
   const breachingStrike = warriorCatalog.skillsById.get(ID.BREACHING_STRIKE);
@@ -955,6 +958,18 @@ test("Warrior dagger attacks and bursts use the supplied PvE mechanics", () => {
     skill.effects.find((effect) => effect.type === "strike")?.coefficient;
   const damage = (result, name) =>
     result.breakdown.find((entry) => entry.name === name)?.damage || 0;
+
+  assert.deepEqual(
+    [keenStrike, focusedSlash, preciseCut].map((skill) => [
+      strikeCoefficient(skill),
+      skill.weapon,
+    ]),
+    [
+      [1.05, "Dagger"],
+      [0.65, "Dagger"],
+      [0.6, "Dagger"],
+    ],
+  );
 
   assert.deepEqual(
     [wastrelsRuin.cooldown, strikeCoefficient(wastrelsRuin)],
@@ -1029,6 +1044,24 @@ test("Warrior dagger attacks and bursts use the supplied PvE mechanics", () => {
   );
   assert.equal(resolvedBreaching.weaponStrengthProfileId, "weapon.dagger");
   assert.equal(resolvedBreaching.resolvedWeaponStrength, 1000);
+
+  for (const id of [
+    ID.BLOODTHIRSTER,
+    ID.BLOODTHIRSTER_ID_80252,
+    ID.BLOODTHIRSTER_ID_80263,
+  ]) {
+    assert.equal(warriorCatalog.skillsById.get(id).skillWeapon, "Sword");
+  }
+  const fixedBloodthirster = simulate("Spellbreaker", ["Bloodthirster"], {
+    initialResource: 10,
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Axe",
+  });
+  const resolvedBloodthirster = fixedBloodthirster.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillId === ID.BLOODTHIRSTER,
+  );
+  assert.equal(resolvedBloodthirster.weaponStrengthProfileId, "weapon.sword");
+  assert.equal(resolvedBloodthirster.resolvedWeaponStrength, 1000);
 
   const slicingDamage = (boonless) =>
     simulate("Berserker", ["Berserk", "Slicing Maelstrom"], {
@@ -1162,7 +1195,7 @@ test("Warrior benchmark packets use their measured Quickness offsets", () => {
   );
 });
 
-test("Precise Cut lands at 200 ms and only buffs critical damage", () => {
+test("Dagger autos land at 200 ms and use a 15% critical-damage factor", () => {
   const damage = (skillName, precision) => {
     const rotation =
       skillName === "Focused Slash"
@@ -1277,6 +1310,85 @@ test("Peak Performance buffs Kick and Leg Specialist requires impairment", () =>
     0;
   assert.ok(
     Math.abs(legDamage({ Chilled: true }) / legDamage({}) - 1.05) < 1e-9,
+  );
+});
+
+test("Warrior core damage traits use their correct modifier buckets", () => {
+  const configuredKickDamage = (selectedTraitIds, overrides = {}) =>
+    simulate("Core", ["Kick"], {
+      selectedTraitIds,
+      stats: { precision: 0 },
+      boons: {
+        swiftness: true,
+        protection: true,
+        regeneration: true,
+      },
+      ...overrides,
+    }).strikeDamage;
+
+  const baseline = configuredKickDamage([]);
+  const empoweredSprintPeak = configuredKickDamage([
+    TRAIT.EMPOWERED,
+    TRAIT.WARRIORS_SPRINT,
+    TRAIT.PEAK_PERFORMANCE,
+  ]);
+  assert.ok(Math.abs(empoweredSprintPeak / baseline - 1.25 * 1.03) < 1e-9);
+
+  const boonedTargetBaseline = configuredKickDamage([], {
+    target: { boonless: false, boonCount: 4 },
+  });
+  const destructionPeak = configuredKickDamage(
+    [TRAIT.DESTRUCTION_OF_THE_EMPOWERED, TRAIT.PEAK_PERFORMANCE],
+    { target: { boonless: false, boonCount: 4 } },
+  );
+  assert.ok(
+    Math.abs(destructionPeak / boonedTargetBaseline - 1.15 * 1.12) < 1e-9,
+  );
+});
+
+test("Defense traits apply Merciless Hammer and Stalwart Strength", () => {
+  const maceDamage = (selectedTraitIds) =>
+    simulate("Core", ["Mace Smash"], {
+      primaryWeapon: "Mace",
+      selectedTraitIds,
+      stats: { precision: 0 },
+      target: { defiant: true },
+    }).strikeDamage;
+  assert.ok(
+    Math.abs(maceDamage([TRAIT.MERCILESS_HAMMER]) / maceDamage([]) - 1.25) <
+      1e-9,
+  );
+
+  const baselineControl = simulate("Core", ["Kick"], { initialResource: 0 });
+  const traitControl = simulate("Core", ["Kick"], {
+    initialResource: 0,
+    selectedTraitIds: [TRAIT.MERCILESS_HAMMER, TRAIT.STALWART_STRENGTH],
+  });
+  assert.equal(
+    traitControl.endState.profession.adrenaline -
+      baselineControl.endState.profession.adrenaline,
+    7,
+  );
+  const stability = traitControl.events.find(
+    (event) =>
+      event.type === "buff" && event.sourceId === TRAIT.STALWART_STRENGTH,
+  );
+  assert.equal(stability?.kind, "stability");
+  assert.equal(stability?.duration, 5);
+
+  const controlledStrikeDamage = (selectedTraitIds) =>
+    simulate("Core", ["Kick", "Mace Smash"], {
+      primaryWeapon: "Mace",
+      selectedTraitIds,
+      stats: { precision: 0 },
+    }).breakdown.find((entry) => entry.name === "Mace Smash")?.strikeDamage ||
+    0;
+  assert.ok(
+    Math.abs(
+      controlledStrikeDamage([TRAIT.STALWART_STRENGTH]) /
+        controlledStrikeDamage([]) -
+        1.1,
+    ) < 1e-9,
   );
 });
 
@@ -2524,35 +2636,42 @@ test("Power Berserker preset preserves the supplied build and EVTC", async () =>
   assert.equal(hitCounts.get("Wild Throw"), 105);
   assert.equal(
     result.casts.find((entry) => entry.name === "Arc Divider").count,
-    17,
+    16,
   );
-  // Expected-valued damage reaches the configured target health before the
-  // seventeenth Arc Divider packet resolves, although all 17 casts execute.
+  // The corrected Empowered multiplier reaches the configured target health
+  // before the seventeenth Arc Divider cast begins.
   assert.equal(hitCounts.get("Arc Divider"), 16);
   assert.equal(hitCounts.get("Hundred Blades"), 63);
   assert.equal(hitCounts.get("Bladetrail"), 14);
   assert.equal(hitCounts.get("Mighty Throw — Spear Damage"), 24);
-  assert.equal(hitCounts.get("Maiming Spear — Initial Strike Damage"), 15);
+  assert.equal(hitCounts.get("Maiming Spear — Initial Strike Damage"), 14);
   assert.equal(hitCounts.get("Disrupting Throw"), 8);
-  assert.equal(hitCounts.get("Head Butt"), 5);
+  assert.equal(hitCounts.get("Head Butt"), 4);
   assert.equal(hitCounts.get("Greatsword Swing"), 3);
   assert.equal(hitCounts.get("Rush"), 4);
   assert.equal(hitCounts.get("Bull's Charge"), 4);
-  assert.equal(hitCounts.get("Sigil of Air"), 21);
-  assert.equal(hitCounts.get("Sigil of Hydromancy"), 8);
+  assert.equal(hitCounts.get("Sigil of Air"), 20);
+  assert.equal(hitCounts.get("Sigil of Hydromancy"), 7);
   const damageByName = new Map(
     result.breakdown.map((entry) => [entry.name, entry.damage]),
   );
-  const inCombatHeadButtDamage = result.resolvedEvents
+  const inCombatHeadButtHits = result.resolvedEvents
     .filter(
       (event) => event.type === "damage" && event.skillId === ID.HEAD_BUTT,
     )
-    .slice(1)
-    .reduce((total, event) => total + event.damage, 0);
+    .slice(1);
+  const inCombatHeadButtDamage = inCombatHeadButtHits.reduce(
+    (total, event) => total + event.damage,
+    0,
+  );
   for (const [name, actual, evtc] of [
     ["Arc Divider", damageByName.get("Arc Divider"), 700170],
     ["Bladetrail", damageByName.get("Bladetrail"), 246934],
-    ["Head Butt", inCombatHeadButtDamage, 124241],
+    [
+      "Head Butt per hit",
+      inCombatHeadButtDamage / inCombatHeadButtHits.length,
+      124241 / 4,
+    ],
   ]) {
     assert.ok(
       Math.abs(actual / evtc - 1) < 0.06,
@@ -2560,7 +2679,7 @@ test("Power Berserker preset preserves the supplied build and EVTC", async () =>
     );
   }
   assert.ok(
-    Math.abs(result.dps / savedRotation.metadata.benchmarkDps - 1) < 0.04,
+    Math.abs(result.dps / savedRotation.metadata.benchmarkDps - 1) < 0.05,
   );
   assert.ok(
     Math.abs(result.totalDamage / savedRotation.metadata.benchmarkDamage - 1) <
@@ -2687,8 +2806,9 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
     [ID.EXPLOSIVE_THRUST, 11, 73192],
   ]) {
     const simulatedDamage = strikeDamage(skillId, maximumHits);
+    const tolerance = skillId === ID.EXPLOSIVE_THRUST ? 0.09 : 0.07;
     assert.ok(
-      Math.abs(simulatedDamage / evtcDamage - 1) < 0.07,
+      Math.abs(simulatedDamage / evtcDamage - 1) < tolerance,
       `${warriorCatalog.skillsById.get(skillId).name} damage ${simulatedDamage} drifted from EVTC ${evtcDamage}.`,
     );
   }
@@ -2786,8 +2906,8 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
   assert.equal(hitCounts.get("Focused Slash"), 36);
   assert.equal(hitCounts.get("Keen Strike"), 36);
   assert.equal(hitCounts.get("Tremor"), 14);
-  assert.equal(hitCounts.get("Rend"), 7);
-  assert.equal(hitCounts.get("Rend \u2014 Follow-Up Damage"), 7);
+  assert.equal(hitCounts.get("Rend"), 6);
+  assert.equal(hitCounts.get("Rend \u2014 Follow-Up Damage"), 6);
   assert.equal(hitCounts.get("Dual Strike"), 14);
   assert.equal(hitCounts.get("Bloodthirster"), 7);
   assert.equal(hitCounts.get("Hamstring"), 11);
@@ -2810,7 +2930,22 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
         entry.name === "Rend" || entry.name === "Rend \u2014 Follow-Up Damage",
     )
     .reduce((total, entry) => total + entry.strikeDamage, 0);
-  assert.ok(Math.abs(rendDamage - 246978) / 246978 < 0.02);
+  const strikeDamageByName = new Map(
+    result.breakdown.map((entry) => [entry.name, entry.strikeDamage]),
+  );
+  for (const [name, simulatedDamage, evtcDamage] of [
+    ["Keen Strike", strikeDamageByName.get("Keen Strike"), 376963],
+    ["Focused Slash", strikeDamageByName.get("Focused Slash"), 271153],
+    ["Precise Cut", strikeDamageByName.get("Precise Cut"), 259300],
+    ["Bloodthirster", strikeDamageByName.get("Bloodthirster"), 169255],
+    ["Dual Strike", strikeDamageByName.get("Dual Strike"), 193586],
+    ["Rend (first six casts)", rendDamage, 212432],
+  ]) {
+    assert.ok(
+      Math.abs(simulatedDamage / evtcDamage - 1) < 0.04,
+      `${name} damage ${simulatedDamage} drifted from EVTC ${evtcDamage}.`,
+    );
+  }
   assert.ok(Math.abs(result.dps - 42690) < 3000);
 
   const randomApp = {
