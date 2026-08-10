@@ -3140,7 +3140,7 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
   assert.equal(raw.gear.Leggins, "Assassin's");
   assert.equal(raw.rune, "Infiltration");
   assert.equal(raw.relic, "Peitha");
-  assert.equal(raw.food, "Plate of Truffle Steak");
+  assert.equal(raw.food, "Cilantro Lime Sous-Vide Steak");
   assert.equal(raw.utility, "Furious Sharpening Stone");
   assert.deepEqual(raw.infusions.slice(0, 2), [
     { stat: "Power", count: 17 },

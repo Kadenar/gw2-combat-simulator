@@ -81,9 +81,10 @@ Burning while its 8-second buff is active.
 ## Power Bladesworn preset
 
 The Bladesworn preset uses Sword/Pistol, Berserker gear with
-Assassin leggings, Infiltration runes, Force/Accuracy sigils, Peitha, Plate of
-Truffle Steak, Furious Sharpening Stone, 17 Power infusions, and 1 Precision
-infusion. It selects Strength `3-3-1`, Tactics `1-1-1`, and Bladesworn `1-2-2`.
+Assassin leggings, Infiltration runes, Force/Accuracy sigils, Peitha, Cilantro
+Lime Sous-Vide Steak, Furious Sharpening Stone, 17 Power infusions, and 1
+Precision infusion. It selects Strength `3-3-1`, Tactics `1-1-1`, and
+Bladesworn `1-2-2`.
 
 The supplied EVTC records 3,972,566 damage over 95.644 seconds (41,534.92 DPS).
 The saved rotation uses the observed Sword windows: Rend's initial and delayed
