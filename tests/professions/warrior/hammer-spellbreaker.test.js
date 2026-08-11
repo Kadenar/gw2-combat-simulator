@@ -322,6 +322,50 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
   );
 });
 
+test("Peak Performance and Magebane Tether use their logged recharge timing", () => {
+  const peak = simulate("Spellbreaker", ["Bull's Charge"], {
+    selectedTraitIds: [TRAIT.PEAK_PERFORMANCE],
+  });
+  const bull = peak.steps.find(({ skill }) => skill === "Bull's Charge");
+  const peakBuff = peak.events.find(
+    (event) => event.type === "buff" && event.kind === "peak-performance",
+  );
+  assert.equal(peakBuff.at * 1000, bull.end);
+  const peakState = warriorProfession.ui
+    .rotationStateSnapshot({
+      specialization: "Spellbreaker",
+      result: peak,
+      atSeconds: peakBuff.at + 2,
+    })
+    .find(({ id }) => id === "peak-performance");
+  assert.deepEqual(peakState, {
+    id: "peak-performance",
+    label: "Peak Performance",
+    value: "4.0s",
+    title: "Peak Performance: +10% strike damage (+15% total from trait)",
+  });
+
+  const magebaneProcs = (alacrity) =>
+    simulate(
+      "Spellbreaker",
+      [
+        "Breaching Strike",
+        { type: "wait", durationMs: 9000 },
+        "Breaching Strike",
+      ],
+      {
+        initialResource: 20,
+        primaryWeapon: "Dagger",
+        secondaryWeapon: "Mace",
+        selectedTraitIds: [TRAIT.MAGEBANE_TETHER],
+        boons: { alacrity },
+      },
+    ).procSteps.filter(({ skill }) => skill === "Magebane Tether").length;
+
+  assert.equal(magebaneProcs(false), 1);
+  assert.equal(magebaneProcs(true), 2);
+});
+
 test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin', () => {
   const core = simulate("Core", ["Dodge", '"To the Limit!"'], {
     initialResource: 0,
@@ -388,11 +432,12 @@ test("Power (Hammer + Dagger/Mace) preset uses the supplied updated rotation", a
     "Winds of Disenchantment",
   ]);
   assert.equal(raw.startingWeaponSet, 2);
+  assert.equal(raw.targetHealth, 4000000);
 
   const preset = manifest
     .find(({ section }) => section === "Spellbreaker")
     .presets.find(({ label }) => label === "Power (Hammer + Dagger/Mace)");
-  assert.equal(preset.benchmarkDps, 42532);
+  assert.equal(preset.benchmarkDps, 43077);
   assert.equal(
     preset.dpsReportUrl,
     "https://dps.report/dzrB-20260721-123458_golem",
@@ -452,6 +497,22 @@ test("Power (Hammer + Dagger/Mace) preset uses the supplied updated rotation", a
     ["Hammer Smash", 8],
   ]) {
     assert.equal(hitCounts.get(name), hits, name);
+  }
+
+  const damageTotals = new Map(
+    result.breakdown.map(({ name, strikeDamage }) => [name, strikeDamage]),
+  );
+  for (const [name, benchmarkDamage] of [
+    ["Fierce Blow — Damage to Controlled or Defiant Foes", 629539],
+    ["Crushing Blow", 525052],
+    ["Breaching Strike", 455762],
+  ]) {
+    const simulatedDamage = damageTotals.get(name);
+    const relativeError = Math.abs(simulatedDamage / benchmarkDamage - 1);
+    assert.ok(
+      relativeError < 0.02,
+      `${name}: simulated ${Math.round(simulatedDamage)}, benchmark ${benchmarkDamage}`,
+    );
   }
 
   const combatStart = result.steps.find(

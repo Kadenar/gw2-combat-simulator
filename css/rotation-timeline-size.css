@@ -1,0 +1,47 @@
+.rotation-size-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-dim);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.rotation-size-control span {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rotation-size-control select {
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-dark);
+  color: var(--text-light, var(--text));
+  font: inherit;
+  cursor: pointer;
+}
+
+.rotation-size-control select:focus-visible {
+  border-color: var(--accent);
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.rotation-panel[data-rotation-size="large"] .rot-row-skills {
+  zoom: 1.25;
+}
+
+.rotation-panel[data-rotation-size="extra-large"] .rot-row-skills {
+  zoom: 1.5;
+}
+
+.rotation-panel[data-rotation-size="large"] .rot-row-label {
+  min-width: 17px;
+  font-size: 11px;
+}
+
+.rotation-panel[data-rotation-size="extra-large"] .rot-row-label {
+  min-width: 21px;
+  font-size: 13px;
+}

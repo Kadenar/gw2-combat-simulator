@@ -25,6 +25,7 @@ import { escapeHtml, gw2ApiText } from "../../../js/platform/ui/html.js";
 import {
   normalizeRotationInsertionIndex,
   rotationInsertionGapHtml,
+  rotationTimelineEntryHtml,
 } from "../../../js/platform/ui/insertion-cursor.js";
 import { targetHealthBreakpointSnapshots } from "../../../js/platform/ui/result-transform.js";
 import {
@@ -34,6 +35,10 @@ import {
   SKILL_COLS,
   sortResultRows,
 } from "../../../js/platform/ui/rotation-results.js";
+import {
+  normalizeRotationTimelineSize,
+  ROTATION_TIMELINE_SIZE_OPTIONS,
+} from "../../../js/platform/ui/rotation-timeline-size.js";
 import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
@@ -55,6 +60,24 @@ function inertContainer() {
     querySelectorAll: () => [],
   };
 }
+
+test("rotation timeline sizes expose two larger display options", () => {
+  assert.deepEqual(
+    ROTATION_TIMELINE_SIZE_OPTIONS.map((option) => [
+      option.value,
+      option.label,
+    ]),
+    [
+      ["normal", "100%"],
+      ["large", "125%"],
+      ["extra-large", "150%"],
+    ],
+  );
+  assert.equal(normalizeRotationTimelineSize("large"), "large");
+  assert.equal(normalizeRotationTimelineSize("extra-large"), "extra-large");
+  assert.equal(normalizeRotationTimelineSize("unsupported"), "normal");
+  assert.equal(normalizeRotationTimelineSize(null), "normal");
+});
 
 test("activation editor suggests and validates manual interruption times", () => {
   assert.equal(suggestedActivationInterruptMs(920, 1200), 919);
@@ -99,6 +122,10 @@ test("rotation insertion cursors validate positions and expose accessible gaps",
     /class="rot-insertion-gap active"/,
   );
   assert.match(rotationInsertionGapHtml(2, null), /Insert at position 3/);
+  assert.match(
+    rotationTimelineEntryHtml(2, null, '<div class="rot-skill">Skill</div>'),
+    /class="rot-entry"[\s\S]*data-insertion-index="2"[\s\S]*class="rot-skill"/,
+  );
 });
 
 test("timeline cast details include start, end, and elapsed cast time", () => {

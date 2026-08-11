@@ -151,11 +151,7 @@ test("Condition Berserker preset preserves the supplied build and EVTC order", a
   ]);
 
   assert.deepEqual(result.warnings, []);
-  assert.ok(
-    Math.abs(
-      result.duration - savedRotation.metadata.benchmarkDurationSeconds,
-    ) < 1,
-  );
+  assert.equal(Math.round(result.duration * 1000), result.steps.at(-1).end);
   assert.ok(
     Math.abs(result.totalDamage / savedRotation.metadata.benchmarkDamage - 1) <
       0.01,
@@ -177,12 +173,21 @@ test("Condition Berserker preset preserves the supplied build and EVTC order", a
   assert.ok(Math.abs(conditionDamage.get("Torment") / 202407 - 1) < 0.02);
   assert.equal(
     result.events.filter(
-      (event) => event.sourceId === "warrior.combo.fire-leap",
+      (event) =>
+        event.type === "buff" &&
+        event.kind === "fire-aura" &&
+        event.sourceId === "warrior.combo.fire-leap",
     ).length,
     13,
   );
   const kingProcs = result.procSteps.filter(
     (proc) => proc.type === "trait_proc" && proc.skill === "King of Fires",
+  );
+  const fireAuraEvents = result.events.filter(
+    (event) => event.type === "buff" && event.kind === "fire-aura",
+  );
+  const fireAuraProcs = result.procSteps.filter(
+    (proc) => proc.skill === "Fire Aura",
   );
   const kingStrikes = result.resolvedEvents.filter(
     (event) =>
@@ -193,6 +198,25 @@ test("Condition Berserker preset preserves the supplied build and EVTC order", a
       event.type === "condition" && event.sourceId === TRAIT.KING_OF_FIRES,
   );
   assert.ok(kingProcs.length > 0);
+  assert.equal(fireAuraProcs.length, fireAuraEvents.length);
+  assert.deepEqual(
+    fireAuraProcs.map((proc) => proc.start),
+    fireAuraEvents.map((event) => Math.round(event.at * 1000)),
+  );
+  assert.deepEqual(
+    [...new Set(fireAuraProcs.map((proc) => proc.type))].sort(),
+    ["skill_proc", "trait_proc"],
+  );
+  assert.equal(
+    fireAuraProcs.every(
+      (proc) =>
+        proc.icon.includes("Fire_Aura.png") &&
+        ["Granted by King of Fires", "Granted by leap combo"].includes(
+          proc.detail,
+        ),
+    ),
+    true,
+  );
   assert.equal(kingStrikes.length, kingProcs.length);
   assert.equal(kingBurning.length, kingProcs.length);
   assert.equal(
@@ -307,7 +331,7 @@ test("Condition Berserker skill data matches the supplied values and log timing"
     [ID.FLAMING_FLURRY]: 1600,
     [ID.SEVER_ARTERY]: 360,
     [ID.GASH]: 520,
-    [ID.HAMSTRING]: 280,
+    [ID.HAMSTRING]: 400,
     [ID.BLOOD_RECKONING]: 280,
     [ID.SHATTERING_BLOW]: 520,
     [ID.SUNDERING_LEAP]: 920,
@@ -569,7 +593,10 @@ test("Combustive Shot scales its pulses and field with adrenaline", async () => 
       ...raw,
       initialResource: tier * 10,
       startingWeaponSet: 1,
-      rotation: ["Combustive Shot"],
+      rotation: [
+        "Combustive Shot",
+        { name: "__wait", durationMs: expectedOffsets.at(-1) },
+      ],
     });
     const app = {
       build,
@@ -656,11 +683,13 @@ test("a delayed primal-burst critical hit immediately detonates its new fire aur
   assert.equal(kingProc.sourceSkill, "Scorched Earth");
 });
 
-test("a final persistent Berserker packet still resolves King of Fires", async () => {
+test("a final persistent Berserker packet does not extend the rotation horizon", async () => {
   const raw = JSON.parse(await readFile(buildUrl, "utf8"));
   const build = migrateWarriorBuild({
     ...raw,
-    targetHealth: 100_000_000,
+    // The later field pulses would kill this target if the resolver drained
+    // beyond the final skill's cast window.
+    targetHealth: 1_000,
     startingWeaponSet: 2,
     rotation: ["__combat_start", "Flames of War"],
   });
@@ -676,8 +705,18 @@ test("a final persistent Berserker packet still resolves King of Fires", async (
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(kingProc.start, 5480);
-  assert.equal(kingProc.sourceSkill, "Flames of War");
+  assert.equal(result.duration, 0.52);
+  assert.equal(result.endState.time, 520);
+  assert.equal(result.deathTime, null);
+  assert.equal(
+    result.events.every((event) => event.at <= result.duration),
+    true,
+  );
+  assert.equal(
+    result.resolvedEvents.every((event) => event.at <= result.duration),
+    true,
+  );
+  assert.equal(kingProc, undefined);
 });
 
 test("Condition Berserker damage packets retain their EVTC cast offsets", async () => {

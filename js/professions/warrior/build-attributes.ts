@@ -19,7 +19,7 @@ export function applyWarriorBuildAttributeRules(
     disabledTrait = null,
   }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
-  const attributes = common.attributes;
+  const { conversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(
     (build.specializations || []) as WarriorSpecializationSelection[],
   ).filter((trait) => trait.name !== disabledTrait);
@@ -43,14 +43,14 @@ export function applyWarriorBuildAttributeRules(
     );
   }
   if (hasTrait("Great Fortitude")) {
-    const power = attributes.Power.final + Number(traitStats.Power || 0);
+    const power = conversionPool.Power || 0;
     addAttribute(traitStats, "Vitality", power * 0.1);
     addAttribute(traitStats, "Ferocity", power * 0.1);
   }
   if (hasTrait("Roaring Reveille"))
     addAttribute(traitStats, "Concentration", 120);
   if (hasTrait("Vigorous Shouts")) {
-    addAttribute(traitStats, "Healing Power", attributes.Power.final * 0.1);
+    addAttribute(traitStats, "Healing Power", (conversionPool.Power || 0) * 0.1);
   }
   if (
     hasTrait("Deep Strikes") &&
@@ -61,7 +61,7 @@ export function applyWarriorBuildAttributeRules(
     addAttribute(
       traitStats,
       "Expertise",
-      (attributes.Precision.final + Number(traitStats.Precision || 0)) * 0.07,
+      (conversionPool.Precision || 0) * 0.07,
     );
   }
   if (hasTrait("Blademaster")) {

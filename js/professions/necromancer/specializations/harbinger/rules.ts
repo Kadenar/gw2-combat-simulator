@@ -84,6 +84,9 @@ function modifyHarbingerAttributes(
   attributes: SchedulerRecord,
 ): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
+  // Pattern C: convert gear-only vitality (config.stats), not the live
+  // vitality that already includes Alchemic Vigor and other trait bonuses.
+  const gearVitality = Number(context.config?.stats?.vitality || 0);
   if (!professionStaticRulesApplied(context.config)) {
     if (
       context.config?.specialization === "Harbinger" ||
@@ -92,13 +95,13 @@ function modifyHarbingerAttributes(
       result.vitality += 240;
     }
     if (hasTrait(context, TRAIT.IMPLACABLE_FOE)) {
-      result.ferocity += Number(result.vitality || 0) * 0.13;
+      result.ferocity += gearVitality * 0.13;
     }
     if (hasTrait(context, TRAIT.TWISTED_MEDICINE)) {
-      result.concentration += Number(result.vitality || 0) * 0.13;
+      result.concentration += gearVitality * 0.13;
     }
     if (hasTrait(context, TRAIT.DARK_GUNSLINGER)) {
-      result.expertise += Math.round(Number(result.vitality || 0) * 0.1);
+      result.expertise += Math.round(gearVitality * 0.1);
     }
   }
   return result;

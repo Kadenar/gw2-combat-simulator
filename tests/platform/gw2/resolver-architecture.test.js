@@ -580,6 +580,68 @@ test("target death resolves its timestamp and stops future events", () => {
   );
 });
 
+test("pending damage can kill mid-cast and suppress the current skill packet", () => {
+  const stream = buildScheduledEventStream({
+    events: [
+      {
+        type: "damage",
+        at: 89.44,
+        name: "Pending Tick",
+        skillName: "Previous Skill",
+        flatDamage: 1,
+        source: "Player",
+        sourceId: "previous-skill",
+      },
+      {
+        type: "damage",
+        at: 89.6,
+        name: "Current Skill Hit",
+        skillName: "Current Skill",
+        flatDamage: 10,
+        source: "Player",
+        sourceId: "current-skill",
+      },
+    ],
+    rotationEndTime: 89.6,
+  });
+  const result = resolveTestGw2Stream({
+    stream,
+    config: {
+      target: { health: 1 },
+      sigilSets: [{ names: [] }],
+    },
+    traits: new Set(),
+    query: {
+      statsAt: () => ({
+        power: 1_000,
+        precision: 1_000,
+        ferocity: 0,
+        conditionDamage: 0,
+        expertise: 0,
+      }),
+      critical: () => ({ chance: 0, damage: 1.5 }),
+      strikeMultiplier: () => 1,
+      conditionMultiplier: () => 1,
+      conditionDurationMultiplier: () => 1,
+      activeWeaponSetAt: () => 1,
+    },
+    helpers: {
+      conditionName: (name) => name,
+      skillsByName: new Map(),
+      weaponStrength: () => 1_000,
+    },
+  });
+
+  assert.equal(result.deathTime, 89.44);
+  assert.equal(result.lastHitTime, 89.44);
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.type === "damage")
+      .map((event) => event.name),
+    ["Pending Tick"],
+  );
+});
+
 test("Egotism starts after the target falls below the Mesmer's health percentage", () => {
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({

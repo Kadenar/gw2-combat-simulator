@@ -31,7 +31,7 @@ export function applyThiefBuildAttributeRules(
   }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
   const thiefBuild = build as ThiefBuild;
-  const attributes = common.attributes;
+  const { conversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(thiefBuild.specializations || [])
     .filter(trait => trait.name !== disabledTrait);
   const hasTrait = (name: string): boolean =>
@@ -54,7 +54,7 @@ export function applyThiefBuildAttributeRules(
     addAttribute(
       traitStats,
       "Ferocity",
-      Math.round(Number(attributes.Precision?.final || 0) * 0.1),
+      Math.round((conversionPool.Precision || 0) * 0.1),
     );
   }
   if (hasTrait("No Quarter") && thiefBuild.assumptions?.fury) {
@@ -72,7 +72,7 @@ export function applyThiefBuildAttributeRules(
     addAttribute(
       traitStats,
       "Vitality",
-      Math.round(Number(attributes.Power?.final || 0) * 0.07),
+      Math.round((conversionPool.Power || 0) * 0.07),
     );
   }
   if (hasTrait("Swindler's Equilibrium")) {
@@ -95,14 +95,14 @@ export function applyThiefBuildAttributeRules(
     addAttribute(
       traitStats,
       "Healing Power",
-      Math.round(Number(attributes["Condition Damage"]?.final || 0) * 0.07),
+      Math.round((conversionPool["Condition Damage"] || 0) * 0.07),
     );
   }
   if (hasTrait("Strength of Shadows")) {
     addAttribute(
       traitStats,
       "Expertise",
-      Math.round(Number(attributes.Vitality?.final || 0) * 0.13),
+      Math.round((conversionPool.Vitality || 0) * 0.13),
     );
   }
   if (selectedSkill(selectedSkills, "Assassin's Signet")) {

@@ -218,7 +218,9 @@ function modifyGuardianAttributes(
     !staticApplied &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
   ) {
-    result.conditionDamage += Number(result.vitality || 0) * 0.07;
+    // Pattern C: convert gear-only vitality (config.stats), excluding trait
+    // bonuses such as Force of Will / Defender's Dogma.
+    result.conditionDamage += Number(context.config?.stats?.vitality || 0) * 0.07;
   }
   return result;
 }

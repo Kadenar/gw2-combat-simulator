@@ -19,7 +19,7 @@ export function applyRangerBuildAttributeRules(
   }: Gw2BuildAttributeRuleContext,
 ) {
   const rangerBuild = build as RangerBuild;
-  const attributes = common.attributes;
+  const { conversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(
     rangerBuild.specializations || [],
   ).filter((trait) => trait.name !== disabledTrait);
@@ -70,8 +70,7 @@ export function applyRangerBuildAttributeRules(
     addAttribute(
       traitStats,
       "Healing Power",
-      (Number(attributes.Power?.final || 0) + Number(traitStats.Power || 0)) *
-        0.07,
+      (conversionPool.Power || 0) * 0.07,
     );
   }
   if (hasTrait("Vicious Quarry") && rangerBuild.assumptions?.fury !== false) {

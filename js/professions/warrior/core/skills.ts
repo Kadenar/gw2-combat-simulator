@@ -64,6 +64,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 167,
+    dualWieldCastTimeMs: 160,
   },
   [ID.GREATSWORD_SWING]: {
     implemented: true,
@@ -196,7 +197,8 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         persistsAfterInterrupt: true,
       },
     ],
-    quicknessCastTimeMs: 280,
+    quicknessCastTimeMs: 400,
+    dualWieldCastTimeMs: 320,
   },
   [ID.SEVER_ARTERY]: {
     implemented: true,
@@ -220,6 +222,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 360,
+    dualWieldCastTimeMs: 280,
   },
   [ID.GASH]: {
     implemented: true,
@@ -243,6 +246,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 520,
+    dualWieldCastTimeMs: 360,
   },
   [ID.SAVAGE_LEAP]: {
     implemented: true,
@@ -659,6 +663,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 360,
+    dualWieldCastTimeMs: 240,
   },
   [ID.WHIRLING_AXE]: {
     implemented: true,
@@ -676,6 +681,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 2500,
+    dualWieldCastTimeMs: 2040,
   },
   [ID.RIPOSTE]: {
     implemented: true,
@@ -841,6 +847,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 350,
+    dualWieldCastTimeMs: 280,
     adrenalineGain: 30,
     handlerId: "warrior.resource",
   },
@@ -913,6 +920,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 560,
+    dualWieldCastTimeMs: 400,
   },
   [ID.VOLLEY]: {
     implemented: true,
@@ -949,6 +957,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         timingScale: "cast",
       },
     ],
+    dualWieldCastTimeMs: 400,
     unaffectedByQuickness: true,
   },
   [ID.BATTLE_STANDARD]: {
@@ -1004,6 +1013,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 400,
+    dualWieldCastTimeMs: 280,
   },
   [ID.EVISCERATE_ID_14422]: {
     implemented: true,
@@ -1111,7 +1121,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 667,
+    quicknessCastTimeMs: 200,
   },
   [ID.FORCEFUL_SHOT]: {
     implemented: true,
@@ -1512,7 +1522,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
         },
       },
     ],
-    quicknessCastTimeMs: 640,
+    // Bull's Charge is a fixed 640 ms cast: unaffected by Quickness and, per the
+    // exclusion set below, by Dual Wielding.
+    castTimeMs: 640,
+    unaffectedByQuickness: true,
   },
   [ID.CRUSHING_BLOW]: {
     implemented: true,
@@ -1545,6 +1558,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 560,
+    dualWieldCastTimeMs: 400,
   },
   [ID.FAN_OF_FIRE]: {
     implemented: true,
@@ -1902,6 +1916,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 440,
+    dualWieldCastTimeMs: 320,
   },
   [ID.FOCUSED_SLASH]: {
     implemented: true,
@@ -1916,6 +1931,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 360,
+    dualWieldCastTimeMs: 240,
   },
   [ID.PRECISE_CUT]: {
     implemented: true,
@@ -1930,6 +1946,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 320,
+    dualWieldCastTimeMs: 240,
   },
   [ID.WASTRELS_RUIN]: {
     implemented: true,
@@ -1942,6 +1959,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 400,
+    dualWieldCastTimeMs: 320,
   },
   [ID.DISRUPTING_STAB]: {
     implemented: true,
@@ -1965,6 +1983,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 440,
+    dualWieldCastTimeMs: 320,
   },
   [ID.HUSHBLADE]: {
     implemented: true,
@@ -1986,6 +2005,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 500,
+    dualWieldCastTimeMs: 400,
   },
   [ID.BREACHING_STRIKE]: {
     implemented: true,
@@ -2321,7 +2341,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
       {
         type: "strike",
-        coefficient: 0.9,
+        coefficient: 1.1,
         hits: 1,
         name: "Maiming Spear — Aftershock Damage",
         atMs: 1517,
@@ -2533,6 +2553,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 500,
+    dualWieldCastTimeMs: 400,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
@@ -2582,6 +2603,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 960,
+    dualWieldCastTimeMs: 720,
   },
   [ID.BLOODTHIRSTER_ID_80263]: {
     implemented: true,
@@ -2606,6 +2628,7 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 500,
+    dualWieldCastTimeMs: 400,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

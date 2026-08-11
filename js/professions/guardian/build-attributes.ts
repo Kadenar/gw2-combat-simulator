@@ -26,7 +26,7 @@ export function applyGuardianBuildAttributeRules(
   }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
   const guardianBuild = build as GuardianBuild;
-  const attributes = common.attributes;
+  const { conversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(
     guardianBuild.specializations || [],
   ).filter((trait) => trait.name !== disabledTrait);
@@ -65,7 +65,7 @@ export function applyGuardianBuildAttributeRules(
     addAttribute(
       traitStats,
       "Condition Damage",
-      Math.round(attributes.Power.final * 0.1),
+      Math.round((conversionPool.Power || 0) * 0.1),
     );
   }
   if (hasTrait("Stalwart Defender") && offHand === "Shield") {
@@ -108,9 +108,7 @@ export function applyGuardianBuildAttributeRules(
     addAttribute(
       traitStats,
       "Condition Damage",
-      Math.round(
-        (attributes.Vitality.final + Number(traitStats.Vitality || 0)) * 0.07,
-      ),
+      Math.round((conversionPool.Vitality || 0) * 0.07),
     );
   }
 

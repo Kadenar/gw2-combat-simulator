@@ -135,6 +135,32 @@ export function timedBuffAt(
   return remaining > 0 ? { remaining, event: latest } : null;
 }
 
+/**
+ * Total stacks of a timed self-buff of `kind` active at `atSeconds`, summed
+ * across every application still within its interval in the simulation's own
+ * buff timeline (`result.events`, type `"buff"`). Mirrors `timedBuffAt` but for
+ * stacking buffs whose separate applications accumulate (e.g. Signet Mastery),
+ * so the count always matches the buff the damage-modifier rules read. Returns
+ * 0 when none are active. Callers apply their own stack cap.
+ */
+export function timedBuffStacksAt(
+  result: Gw2SimulationResult | null | undefined,
+  kind: string,
+  atSeconds: number,
+): number {
+  const at = Math.max(0, Number(atSeconds || 0));
+  let stacks = 0;
+  // result.events is ordered by `at`; stop once applications start after the
+  // point, then keep any whose interval still covers it.
+  for (const event of result?.events || []) {
+    if (Number(event.at || 0) > at) break;
+    if (event.type !== "buff" || event.kind !== kind) continue;
+    const expiresAt = Number(event.at || 0) + Number(event.duration || 0);
+    if (expiresAt > at) stacks += Math.max(1, Number(event.stacks || 1));
+  }
+  return stacks;
+}
+
 function snapshotItems(app: ProfessionAppState): {
   readonly items: RotationStateSnapshotItem[];
   readonly atInsertion: boolean;

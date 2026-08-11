@@ -117,7 +117,14 @@ export function buildChartSeries(
   );
   const endMs = Math.max(
     dpsStartMs,
-    Math.round(Number(result.deathTime ?? result.duration ?? 0) * 1000),
+    Math.round(
+      Number(
+        result.deathTime ??
+          (result.dpsWindow != null
+            ? Number(result.dpsStartTime || 0) + Number(result.dpsWindow)
+            : Number(result.duration || 0)),
+      ) * 1000,
+    ),
   );
   const durationMs = Math.max(1, endMs - dpsStartMs);
   const interval = Math.max(50, Math.min(1000, Number(sampleStepMs) || 250));
@@ -183,7 +190,8 @@ export function buildChartSeries(
       event.type !== "buff" ||
       event.affectsSelf === false ||
       !Number(event.duration || 0)
-    ) continue;
+    )
+      continue;
     const start = Number(event.at || 0) * 1000 - dpsStartMs;
     applications.push({
       name: effectName(event.kind),
@@ -342,10 +350,7 @@ function fightPhases(
       const start = boundaries.get(range.startHealth);
       const end = boundaries.get(range.endHealth);
       const enabled = Boolean(
-        start &&
-          end &&
-          end.timeMs > start.timeMs &&
-          end.damage >= start.damage,
+        start && end && end.timeMs > start.timeMs && end.damage >= start.damage,
       );
       return {
         id: range.id,
@@ -384,8 +389,7 @@ export function buildPhaseDpsSeries(
   points.push({
     t: durationMs,
     v:
-      Math.max(0, endDamage - startDamage) /
-      Math.max(0.001, durationMs / 1000),
+      Math.max(0, endDamage - startDamage) / Math.max(0.001, durationMs / 1000),
   });
   return points;
 }
@@ -458,7 +462,12 @@ function drawLineChart(
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   context.clearRect(0, 0, cssWidth, height);
 
-  const pad = { top: markers.length ? 28 : 16, right: 16, bottom: 28, left: 54 };
+  const pad = {
+    top: markers.length ? 28 : 16,
+    right: 16,
+    bottom: 28,
+    left: 54,
+  };
   const plotWidth = cssWidth - pad.left - pad.right;
   const plotHeight = height - pad.top - pad.bottom;
   const maxValue = niceAxisMaximum(
@@ -585,15 +594,23 @@ function chartHtml(
         )
         .join("")}
     </div>
-    ${healthMarkers.length ? `<div class="chart-phase-toggles" data-role="chart-phase-toggles">
+    ${
+      healthMarkers.length
+        ? `<div class="chart-phase-toggles" data-role="chart-phase-toggles">
       <span class="chart-toggle-label">DPS range</span>
-      ${phases.map(phase => `<button type="button"
+      ${phases
+        .map(
+          (phase) => `<button type="button"
         data-chart-phase="${escapeHtml(phase.id)}"
         aria-pressed="${phase.id === "full" ? "true" : "false"}"
         ${phase.enabled ? "" : 'disabled title="Target health range not reached"'}>
         ${escapeHtml(phase.label)}
-      </button>`).join("")}
-    </div>` : ""}
+      </button>`,
+        )
+        .join("")}
+    </div>`
+        : ""
+    }
     <div class="chart-panels">
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="dps-panel-title">${escapeHtml(options.dpsLabel)} Over Time</div>
@@ -666,11 +683,7 @@ export function mountTimeSeriesCharts(
     effectLines: ChartLine[];
   } = {
     dpsLayout: null,
-    dpsView: dpsViewForPhase(
-      resolvedSeries,
-      healthMarkers,
-      phases[0]!,
-    ),
+    dpsView: dpsViewForPhase(resolvedSeries, healthMarkers, phases[0]!),
     effectsLayout: null,
     effectLines: [],
   };

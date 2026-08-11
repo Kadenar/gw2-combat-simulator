@@ -1,13 +1,11 @@
 import { assertSimulationEvent, EVENT_SCHEMA_VERSION } from "./events.js";
 
-import type {
-  ScheduledEventStream,
-  SimulationEvent,
-} from "./types.js";
+import type { ScheduledEventStream, SimulationEvent } from "./types.js";
 
 interface BuildScheduledEventStreamOptions {
   readonly events: readonly SimulationEvent[];
   readonly rotationEndTime: number;
+  readonly resolutionEndTime?: number;
   readonly resolverHandoff?: Record<string, unknown>;
   readonly source?: string;
 }
@@ -24,6 +22,7 @@ export const SCHEDULED_EVENT_STREAM_VERSION = 1 as const;
  * @param {{
  *   events: readonly SimulationEvent[],
  *   rotationEndTime: number,
+ *   resolutionEndTime?: number,
  *   resolverHandoff?: Record<string, unknown>,
  *   source?: string
  * }} options
@@ -35,12 +34,22 @@ export function buildScheduledEventStream(
   const {
     events,
     rotationEndTime,
+    resolutionEndTime = rotationEndTime,
     resolverHandoff = {},
     source = "platform.engine.scheduler",
   } = options;
-  if (!Array.isArray(events)) throw new TypeError("Scheduled stream requires events.");
+  if (!Array.isArray(events))
+    throw new TypeError("Scheduled stream requires events.");
   if (!Number.isFinite(rotationEndTime)) {
     throw new TypeError("Scheduled stream requires a finite rotation end.");
+  }
+  if (
+    !Number.isFinite(resolutionEndTime) ||
+    resolutionEndTime < rotationEndTime
+  ) {
+    throw new TypeError(
+      "Scheduled stream resolution end must be finite and not precede the rotation end.",
+    );
   }
   for (const event of events) assertSimulationEvent(event);
   return Object.freeze({
@@ -49,6 +58,7 @@ export function buildScheduledEventStream(
     eventSchemaVersion: EVENT_SCHEMA_VERSION,
     source,
     rotationEndTime,
+    resolutionEndTime,
     events: Object.freeze([...events]),
     resolverHandoff: Object.freeze({ ...resolverHandoff }),
   });
@@ -63,20 +73,22 @@ export function buildScheduledEventStream(
 export function assertScheduledEventStream(
   stream: unknown,
 ): ScheduledEventStream {
-  const candidate =
-    stream as Partial<ScheduledEventStream> | null | undefined;
+  const candidate = stream as Partial<ScheduledEventStream> | null | undefined;
   if (
-    !candidate
-    || candidate.kind !== SCHEDULED_EVENT_STREAM_KIND
-    || candidate.version !== SCHEDULED_EVENT_STREAM_VERSION
-    || candidate.eventSchemaVersion !== EVENT_SCHEMA_VERSION
-    || !Array.isArray(candidate.events)
-    || !Number.isFinite(candidate.rotationEndTime)
-    || typeof candidate.source !== "string"
-    || !candidate.source
-    || !candidate.resolverHandoff
-    || typeof candidate.resolverHandoff !== "object"
-    || Array.isArray(candidate.resolverHandoff)
+    !candidate ||
+    candidate.kind !== SCHEDULED_EVENT_STREAM_KIND ||
+    candidate.version !== SCHEDULED_EVENT_STREAM_VERSION ||
+    candidate.eventSchemaVersion !== EVENT_SCHEMA_VERSION ||
+    !Array.isArray(candidate.events) ||
+    !Number.isFinite(candidate.rotationEndTime) ||
+    (candidate.resolutionEndTime != null &&
+      (!Number.isFinite(candidate.resolutionEndTime) ||
+        candidate.resolutionEndTime < Number(candidate.rotationEndTime))) ||
+    typeof candidate.source !== "string" ||
+    !candidate.source ||
+    !candidate.resolverHandoff ||
+    typeof candidate.resolverHandoff !== "object" ||
+    Array.isArray(candidate.resolverHandoff)
   ) {
     throw new Error("Invalid scheduled event stream.");
   }

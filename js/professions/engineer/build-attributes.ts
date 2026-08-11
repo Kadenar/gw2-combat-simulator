@@ -17,7 +17,7 @@ export function applyEngineerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, disabledTrait = null }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
-  const attributes = common.attributes;
+  const { conversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(
     (build as EngineerBuild).specializations || [],
   )
@@ -28,7 +28,7 @@ export function applyEngineerBuildAttributeRules(
   const traitDurations: Gw2NumericAttributes = {};
 
   if (hasTrait("Blast Shield")) {
-    addAttribute(traitStats, "Vitality", attributes.Power.final * 0.1);
+    addAttribute(traitStats, "Vitality", (conversionPool.Power || 0) * 0.1);
   }
   if (hasTrait("Chemical Rounds")) {
     addAttribute(traitStats, "Condition Damage", 120);
@@ -53,7 +53,7 @@ export function applyEngineerBuildAttributeRules(
     addAttribute(
       traitStats,
       "Concentration",
-      Math.round(attributes.Power.final * 0.13),
+      Math.round((conversionPool.Power || 0) * 0.13),
     );
   }
   if (hasTrait("Compounding Chemicals")) {

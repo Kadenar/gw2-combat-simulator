@@ -1,7 +1,4 @@
-import type {
-  SchedulerContext,
-  SimulationEvent,
-} from "../../engine/types.js";
+import type { SchedulerContext, SimulationEvent } from "../../engine/types.js";
 import { FOOD_DATA } from "../gear-data.js";
 import { isGw2PlayerActorEvent } from "../event-ownership.js";
 import type { Gw2Config } from "../types.js";
@@ -17,37 +14,74 @@ export function hasStochasticCriticalFood(config: Gw2Config): boolean {
 }
 
 /**
- * Samples and persists the hit's shared critical fact. A returned event is an
- * eligible critical-sigil cause; food and resolver logic consume the same fact.
+ * Resolves the critical-strike fact shared by scheduler and resolver consumers.
+ *
+ * Only coefficient-bearing damage events are considered, and work is skipped
+ * unless some configured mechanic requested critical facts. The current
+ * critical chance is queried once for the event so every consumer observes the
+ * same combat state.
+ *
+ * In stochastic mode, one actor-scoped roll is stored as `didCrit` on the
+ * canonical event. Resolver reactions and critical-triggered equipment then
+ * consume that stored result instead of rerolling the hit.
+ *
+ * In deterministic mode, eligible critical-sigil hits add their critical
+ * chance to a shared expected-proc accumulator. Crossing one emits a synthetic
+ * critical cause and retains the fractional remainder, producing a stable
+ * low-discrepancy sequence without random rolls. The original event is returned
+ * because deterministic strikes do not receive a binary `didCrit` result.
+ *
+ * This function only establishes whether the hit is a critical-sigil cause. It
+ * does not check the active weapon set or individual sigil cooldowns; the sigil
+ * proc engine applies those constraints after receiving the returned cause.
+ *
+ * @returns The causal damage event when a critical-sigil trigger occurred, or
+ * `null` when the event was ineligible or did not produce a critical trigger.
  */
 export function resolveCriticalTrigger(
   context: SchedulerContext,
   event: SimulationEvent,
   state: MaterializerState,
 ): SimulationEvent | null {
+  // Ignore non-strikes and skip critical work when no consumer requested it.
   if (!(Number(event.coefficient) > 0) || !state.criticalFactsRequired) {
     return null;
   }
 
+  // Player strikes qualify by default; derived effects must explicitly opt in.
   const canTriggerSigils =
     isGw2PlayerActorEvent(event) || event.canTriggerCriticalSigils === true;
+
+  // Evaluate critical chance against combat state at the hit's timestamp.
   const critical = state.query!.critical(event, event.at, state);
 
+  // Stochastic mode creates one binary outcome shared by every consumer.
   if (state.random.stochastic) {
     const didCrit = state.random.roll(
       critical.chance,
       `critical:${String(event.actorType || "player")}`,
     );
+
+    // Persist the result on the canonical event for resolver reactions.
     const canonicalEvent =
       context.events.find((candidate) => candidate.__order === event.__order) ||
       event;
     const cause = context.replaceEvent(canonicalEvent, { didCrit });
+
+    // Only an eligible actual crit can trigger critical sigils.
     return didCrit && canTriggerSigils ? cause : null;
   }
 
+  // Deterministic progress requires an eligible hit with a possible crit.
   if (!canTriggerSigils || !(critical.chance > 0)) return null;
+
+  // Accumulate fractional expected crits across eligible hits.
   state.sigil.criticalProgress += critical.chance;
+
+  // Wait until the accumulator represents one whole critical hit.
   if (state.sigil.criticalProgress < 1 - PROC_PROGRESS_TOLERANCE) return null;
+
+  // Consume one crit and retain any fractional remainder for later hits.
   state.sigil.criticalProgress -= 1;
   return event;
 }

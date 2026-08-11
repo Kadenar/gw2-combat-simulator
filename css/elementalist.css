@@ -1,6 +1,7 @@
 @import url("./rotation-activation-editor.css");
 @import url("./charge-release-editor.css");
 @import url("./rotation-insertion-cursor.css");
+@import url("./rotation-timeline-size.css");
 
 :root {
   --bg-dark: #0c0c14;

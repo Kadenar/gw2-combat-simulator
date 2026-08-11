@@ -30,7 +30,9 @@ function modifyScourgeAttributes(
     !professionStaticRulesApplied(context.config) &&
     hasTrait(context, TRAIT.FELL_BEACON)
   ) {
-    result.expertise += Number(result.conditionDamage || 0) * 0.07;
+    // Pattern C: convert gear-only condition damage (config.stats), excluding
+    // might (baked into the seed) and trait bonuses like Lingering Curse.
+    result.expertise += Number(context.config?.stats?.conditionDamage || 0) * 0.07;
   }
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&

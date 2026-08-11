@@ -61,7 +61,7 @@ function buildResolverResult(
   handoff: Readonly<Gw2ResolverHandoff>,
 ): Gw2ResolverResult {
   const totalDamage = ctx.totals.strike + ctx.totals.condition;
-  const effectiveEnd = ctx.deathTime ?? scheduled.rotationEndTime;
+  const effectiveEnd = ctx.deathTime ?? ctx.horizon;
   const effectiveEvents = scheduled.events.filter(
     (event) => event.at <= effectiveEnd + EPSILON,
   ) as Gw2ResolverEvent[];
@@ -138,6 +138,13 @@ export function resolveGw2Timeline({
     throw new TypeError("GW2 timeline resolver requires createRuntimeState.");
   }
   const scheduled = assertPlatformStream(stream);
+  const hasKillableTarget = Number(config.target?.health || 0) > 0;
+  const resolutionEndTime = hasKillableTarget
+    ? scheduled.rotationEndTime
+    : Math.max(
+        scheduled.rotationEndTime,
+        Number(scheduled.resolutionEndTime ?? scheduled.rotationEndTime),
+      );
   const queue = createEventQueue(
     scheduled.events.map((event) => ({ ...event }) as Gw2ResolverEvent),
   );
@@ -145,7 +152,7 @@ export function resolveGw2Timeline({
   const ctx = createRuntimeState({
     config,
     traits,
-    horizon: scheduled.rotationEndTime,
+    horizon: resolutionEndTime,
     query,
     helpers,
     queue,
@@ -157,7 +164,7 @@ export function resolveGw2Timeline({
     ctx.combatStartTime = handoff.combatStartTime;
   }
 
-  beforeResolveTimeline(ctx, scheduled.events, scheduled.rotationEndTime);
+  beforeResolveTimeline(ctx, scheduled.events, resolutionEndTime);
 
   for (const event of scheduled.events) {
     if (event.type === "proc") {

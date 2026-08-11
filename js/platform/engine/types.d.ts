@@ -145,6 +145,7 @@ export interface ScheduledEventStream {
   readonly eventSchemaVersion: 1;
   readonly source: string;
   readonly rotationEndTime: number;
+  readonly resolutionEndTime?: number;
   readonly events: readonly SimulationEvent[];
   readonly resolverHandoff: Readonly<Record<string, unknown>>;
 }
@@ -255,6 +256,8 @@ export interface Skill extends CatalogSkill {
    * another but do not reserve or delay the player's ordinary cast lane.
    */
   readonly independentCast?: boolean;
+  /** Whether an instant skill may be scheduled during another cast. */
+  readonly canCastConcurrently?: boolean;
   readonly lockouts?: readonly SkillLockout[];
   readonly rechargeAnchor?: "castStart" | "castEnd";
   readonly rechargeOffsetMs?: number;

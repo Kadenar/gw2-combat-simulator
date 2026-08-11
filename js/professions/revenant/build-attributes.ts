@@ -29,7 +29,7 @@ export function applyRevenantBuildAttributeRules(
   { build, disabledTrait = null }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
   const revenantBuild = build as RevenantBuild;
-  const attributes = common.attributes;
+  const { conversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(revenantBuild.specializations || []).filter(
     (trait) => trait.name !== disabledTrait,
   );
@@ -90,29 +90,21 @@ export function applyRevenantBuildAttributeRules(
     addAttribute(
       traitStats,
       "Power",
-      Math.round(
-        (attributes.Toughness.final + Number(traitStats.Toughness || 0)) * 0.13,
-      ),
+      Math.round((conversionPool.Toughness || 0) * 0.13),
     );
   }
   if (hasTrait("Life Attunement")) {
     addAttribute(
       traitStats,
       "Concentration",
-      Math.round(
-        (attributes["Healing Power"].final +
-          Number(traitStats["Healing Power"] || 0)) *
-          0.07,
-      ),
+      Math.round((conversionPool["Healing Power"] || 0) * 0.07),
     );
   }
   if (hasTrait("Elevated Compassion")) {
     addAttribute(
       traitStats,
       "Concentration",
-      Math.round(
-        (attributes.Power.final + Number(traitStats.Power || 0)) * 0.13,
-      ),
+      Math.round((conversionPool.Power || 0) * 0.13),
     );
   }
   return finalizeBuildAttributes(common, {

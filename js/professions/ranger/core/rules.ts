@@ -288,7 +288,9 @@ function modifyRangerAttributes(
       );
     }
     if (hasTrait(context, TRAIT.WELLSPRING) && !petEvent(context)) {
-      adjust("healingPower", Number(result.power || 0) * 0.07);
+      // Pattern C: convert gear-only power (config.stats), not the live power
+      // that already includes might and Strider's Strength.
+      adjust("healingPower", Number(context.config?.stats?.power || 0) * 0.07);
     }
   } else if (!merged) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {

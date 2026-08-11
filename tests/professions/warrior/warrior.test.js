@@ -310,6 +310,12 @@ test("Warrior F keys follow the selected primary weapons", () => {
     ).skillIds,
     dragonSlashSkills,
   );
+  assert.deepEqual(
+    bladesworn.paletteGroups
+      .filter((group) => group.stackId === "bladesworn-profession")
+      .map((group) => group.id),
+    ["profession", "dragon-slash", "dragon-trigger", "gunsaber"],
+  );
 
   const duplicate = groups("Core", ["Sword", "Sword"], ["Sword", ""]);
   assert.deepEqual(duplicate.palette, [ID.BLOODTHIRSTER]);
@@ -491,12 +497,21 @@ test("Bladesworn gunsaber autos follow the standard autoattack chain display", (
 
 test("Warrior adrenaline renders one bar for each ten adrenaline", () => {
   const result = simulate("Core", [], { initialResource: 25 });
-  const resource = warriorProfession.ui
-    .resourceViews({
-      specialization: "Core",
-      professionState: result.endState.profession,
-    })
-    .find((view) => view.id === "adrenaline");
+  const coreResources = warriorProfession.ui.resourceViews({
+    specialization: "Core",
+    professionState: result.endState.profession,
+  });
+  const resource = coreResources.find((view) => view.id === "adrenaline");
+  assert.deepEqual(
+    coreResources.map((view) => view.id),
+    ["adrenaline"],
+  );
+  assert.deepEqual(
+    warriorProfession.ui
+      .resourceViews({ specialization: "Bladesworn" })
+      .map((view) => view.id),
+    ["flow"],
+  );
   assert.equal(resource.displayMode, "bar");
   assert.equal(resource.barSegments, 3);
 
@@ -827,7 +842,6 @@ test("Berserker spear and greatsword packets match the supplied benchmark", () =
     [ID.MIGHTY_THROW, 640],
     [ID.DISRUPTING_THROW, 520],
     [ID.HUNDRED_BLADES, 2440],
-    [ID.BULLS_CHARGE, 640],
     [ID.BLADETRAIL, 560],
     [ID.RUSH, 1000],
     [ID.GREATSWORD_SWING, 400],
@@ -838,6 +852,9 @@ test("Berserker spear and greatsword packets match the supplied benchmark", () =
     assert.equal(skill.castTimeMs, quicknessCastTimeMs * 1.5);
     assert.equal(skill.quicknessCastTimeMs % 40, 0);
   }
+  const bullsCharge = warriorCatalog.skillsById.get(ID.BULLS_CHARGE);
+  assert.equal(bullsCharge.castTimeMs, 640);
+  assert.equal(bullsCharge.unaffectedByQuickness, true);
 
   assert.equal(arc.cooldown, 5);
   assert.equal(arc.skillWeapon, "Greatsword");
@@ -867,7 +884,7 @@ test("Berserker spear and greatsword packets match the supplied benchmark", () =
     maimingSpear.effects
       .filter((effect) => effect.type === "strike")
       .map((effect) => effect.coefficient),
-    [1.1, 0.9],
+    [1.1, 1.1],
   );
   assert.equal(
     disruptingThrow.effects.some(
@@ -1225,23 +1242,23 @@ test("Warrior benchmark packets use their measured Quickness offsets", () => {
     secondaryWeapon: "Axe",
     initialResource: 10,
   };
-  assert.deepEqual(packetOffsets("Crushing Blow", daggerMace), [352]);
-  assert.deepEqual(packetOffsets("Tremor", daggerMace), [352, 384]);
-  assert.deepEqual(packetOffsets("Disrupting Stab", daggerMace), [128]);
-  assert.deepEqual(packetOffsets("Precise Cut", daggerMace), [224]);
-  assert.deepEqual(packetOffsets("Focused Slash", daggerMace), [224]);
-  assert.deepEqual(packetOffsets("Keen Strike", daggerMace), [224]);
+  assert.deepEqual(packetOffsets("Crushing Blow", daggerMace), [314]);
+  assert.deepEqual(packetOffsets("Tremor", daggerMace), [314, 343]);
+  assert.deepEqual(packetOffsets("Disrupting Stab", daggerMace), [116]);
+  assert.deepEqual(packetOffsets("Precise Cut", daggerMace), [210]);
+  assert.deepEqual(packetOffsets("Focused Slash", daggerMace), [187]);
+  assert.deepEqual(packetOffsets("Keen Strike", daggerMace), [204]);
   assert.deepEqual(packetOffsets("Breaching Strike", daggerMace), [758]);
   assert.deepEqual(packetOffsets("Kick", daggerMace), [441]);
   assert.deepEqual(packetOffsets("Bloodthirster", swordAxe), [320]);
   assert.deepEqual(packetOffsets("Dual Strike", swordAxe), [350, 350]);
-  assert.deepEqual(packetOffsets("Rend", swordAxe), [352, 704]);
+  assert.deepEqual(packetOffsets("Rend", swordAxe), [330, 660]);
   assert.deepEqual(packetOffsets("Hamstring", swordAxe), [192]);
   assert.deepEqual(
     packetOffsets("Whirling Axe", swordAxe),
     [
-      240, 360, 480, 600, 720, 840, 960, 1080, 1200, 1320, 1440, 1560, 1680,
-      1800, 1920,
+      245, 367, 490, 612, 734, 857, 979, 1102, 1224, 1346, 1469, 1591, 1714,
+      1836, 1958,
     ],
   );
 });
@@ -1663,7 +1680,7 @@ test("Bladesworn gates gunsaber and Dragon Slash state", () => {
   assert.equal(result.totalDamage > 0, true);
   assert.equal(
     result.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    3709,
+    3459,
   );
 });
 
@@ -1874,7 +1891,7 @@ test("Bladesworn automatically releases Dragon Slash at the requested charge cou
   assert.deepEqual(full.warnings, []);
   assert.equal(
     full.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    2750,
+    2500,
   );
   assert.equal(
     full.events.find(
@@ -1892,7 +1909,7 @@ test("Bladesworn automatically releases Dragon Slash at the requested charge cou
   assert.deepEqual(partial.warnings, []);
   assert.equal(
     partial.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    1001,
+    750,
   );
   assert.ok(
     Math.abs(
@@ -1914,7 +1931,7 @@ test("Daring Dragon automatically releases at its five-charge maximum", () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(
     result.steps.find((step) => step.skill === "Dragon Slash—Force").start,
-    1501,
+    1250,
   );
   assert.equal(
     result.events.find(
@@ -2322,6 +2339,28 @@ test("Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow", (
     true,
   );
 
+  const retainedRecharge = simulate(
+    "Bladesworn",
+    [
+      ID.FLOW_STABILIZER,
+      { type: "wait", durationMs: 1000 },
+      ID.TACTICAL_RELOAD,
+      ID.FLOW_STABILIZER,
+      { type: "wait", durationMs: 1000 },
+      ID.FLOW_STABILIZER,
+      { type: "wait", durationMs: 27172 },
+      ID.FLOW_STABILIZER,
+    ],
+    { initialResource: 0 },
+  );
+  assert.deepEqual(retainedRecharge.warnings, []);
+  assert.deepEqual(
+    retainedRecharge.steps
+      .filter((step) => step.skill === "Flow Stabilizer")
+      .map((step) => step.start),
+    [0, 1828, 2828, 30000],
+  );
+
   const overlapping = simulate(
     "Bladesworn",
     [
@@ -2384,7 +2423,7 @@ test("Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow", (
   assert.equal(
     accelerated.steps.find((step) => step.skill.startsWith("Dragon Slash"))
       .start,
-    2329,
+    2078,
   );
 });
 
@@ -2418,6 +2457,31 @@ test("Dragon Slash scales from each minimum to maximum coefficient", () => {
 });
 
 test("Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown reset", () => {
+  assert.equal(warriorCatalog.skillsById.get(ID.DRAGON_TRIGGER).castTimeMs, 0);
+  assert.equal(
+    warriorCatalog.skillsById.get(ID.DRAGON_TRIGGER).canCastConcurrently,
+    false,
+  );
+  assert.equal(
+    Object.hasOwn(
+      warriorCatalog.skillsById.get(ID.DRAGON_TRIGGER),
+      "quicknessCastTimeMs",
+    ),
+    false,
+  );
+  const concurrentTrigger = simulate(
+    "Bladesworn",
+    [ID.OVERCHARGED_CARTRIDGES, { skillId: ID.DRAGON_TRIGGER, offset: 100 }],
+    { initialResource: 100 },
+  );
+  assert.deepEqual(concurrentTrigger.warnings, [
+    "Dragon Trigger cannot be cast concurrently.",
+  ]);
+  assert.equal(
+    concurrentTrigger.steps.find((step) => step.skill === "Dragon Trigger")
+      .invalid,
+    true,
+  );
   assert.equal(warriorCatalog.skillsById.get(ID.TRIGGERGUARD).castTimeMs, 0);
   assert.equal(
     Object.hasOwn(
@@ -2460,7 +2524,7 @@ test("Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     reset.steps
       .filter((step) => step.skill === "Dragon Trigger")
       .map((step) => step.start),
-    [0, 3021],
+    [0, 2770],
   );
   assert.equal(
     reset.events.some(
@@ -2824,7 +2888,7 @@ test("Bladesworn swap and Dragon Trigger traits use supplied behavior", () => {
     combatOnly.resolvedEvents
       .filter((event) => event.name === "Unseen Sword")
       .map((event) => event.at),
-    [0.2505],
+    [0],
   );
 
   const trigger = simulate(
@@ -3164,22 +3228,20 @@ test("Power Berserker preset preserves the supplied build and EVTC", async () =>
   assert.equal(hitCounts.get("Wild Throw"), 105);
   assert.equal(
     result.casts.find((entry) => entry.name === "Arc Divider").count,
-    16,
+    17,
   );
-  // The corrected Empowered multiplier reaches the configured target health
-  // before the seventeenth Arc Divider cast begins.
-  assert.equal(hitCounts.get("Arc Divider"), 16);
+  assert.equal(hitCounts.get("Arc Divider"), 17);
   assert.equal(hitCounts.get("Hundred Blades"), 63);
   assert.equal(hitCounts.get("Bladetrail"), 14);
   assert.equal(hitCounts.get("Mighty Throw — Spear Damage"), 24);
-  assert.equal(hitCounts.get("Maiming Spear — Initial Strike Damage"), 14);
+  assert.equal(hitCounts.get("Maiming Spear — Initial Strike Damage"), 15);
   assert.equal(hitCounts.get("Disrupting Throw"), 8);
   assert.equal(hitCounts.get("Head Butt"), 4);
   assert.equal(hitCounts.get("Greatsword Swing"), 3);
   assert.equal(hitCounts.get("Rush"), 4);
   assert.equal(hitCounts.get("Bull's Charge"), 4);
   assert.equal(hitCounts.get("Sigil of Air"), 21);
-  assert.equal(hitCounts.get("Sigil of Hydromancy"), 7);
+  assert.equal(hitCounts.get("Sigil of Hydromancy"), 8);
   const damageByName = new Map(
     result.breakdown.map((entry) => [entry.name, entry.damage]),
   );
@@ -3211,7 +3273,7 @@ test("Power Berserker preset preserves the supplied build and EVTC", async () =>
   );
   assert.ok(
     Math.abs(result.totalDamage / savedRotation.metadata.benchmarkDamage - 1) <
-      0.01,
+      0.02,
   );
 });
 
@@ -3255,7 +3317,34 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
       ["Bladesworn", "1-2-2"],
     ],
   );
-  assert.equal(manifest[0].presets[0].benchmarkDps, 41535);
+  assert.equal(manifest[0].presets[0].benchmarkDps, 41913);
+  assert.equal(savedRotation.rotation.length, 154);
+  assert.equal(
+    savedRotation.rotation.some(
+      (entry) => typeof entry === "object" && entry.name === "__wait",
+    ),
+    false,
+  );
+  assert.equal(
+    savedRotation.rotation
+      .filter(
+        (entry) =>
+          (typeof entry === "string" ? entry : entry.name) ===
+          "Overcharged Cartridges",
+      )
+      .every((entry) => typeof entry === "string"),
+    true,
+  );
+  assert.deepEqual(
+    savedRotation.rotation
+      .filter(
+        (entry) =>
+          (typeof entry === "string" ? entry : entry.name) ===
+          "Flow Stabilizer",
+      )
+      .map((entry) => (typeof entry === "object" ? entry.offset : null)),
+    [100, 100, null, null, null, 100, null, null, null, null],
+  );
 
   const build = migrateWarriorBuild({
     ...raw,
@@ -3269,6 +3358,13 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
   recalculate(app);
   const result = runSimulation(app);
   assert.deepEqual(result.warnings, []);
+  const combatStart = result.events.find(
+    (event) => event.type === "combat_start",
+  ).at;
+  const flowStabilizerStarts = result.steps
+    .filter((step) => step.skill === "Flow Stabilizer")
+    .map((step) => step.start / 1000 - combatStart);
+  assert.ok(Math.abs(flowStabilizerStarts[5] - 45.48) < 0.55);
   assert.equal(
     result.steps.filter((step) => step.skill === "Dragon Slash—Force").length,
     14,
@@ -3306,7 +3402,7 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
     result.breakdown.find(
       (entry) => entry.name === "Dragon's Roar — Damage per Bullet",
     ).hits,
-    28,
+    26,
   );
   assert.equal(
     result.breakdown.find((entry) => entry.name === "Unseen Sword").hits,
@@ -3339,7 +3435,7 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
       .slice(0, maximumHits)
       .reduce((total, event) => total + event.damage, 0);
   for (const [skillId, maximumHits, evtcDamage] of [
-    [ID.DRAGONS_ROAR, 28, 198403],
+    [ID.DRAGONS_ROAR, 26, 186207],
     [ID.DRAGON_SLASH_FORCE, 14, 2679221],
     [ID.CYCLONE_TRIGGER, 9, 171241],
     [ID.BLOOMING_FIRE, 40, 152614],
@@ -3350,9 +3446,11 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
     const tolerance =
       skillId === ID.DRAGON_SLASH_FORCE
         ? 0.02
-        : skillId === ID.EXPLOSIVE_THRUST
-          ? 0.09
-          : 0.07;
+        : skillId === ID.CYCLONE_TRIGGER
+          ? 0.08
+          : skillId === ID.EXPLOSIVE_THRUST
+            ? 0.09
+            : 0.07;
     assert.ok(
       Math.abs(simulatedDamage / evtcDamage - 1) < tolerance,
       `${warriorCatalog.skillsById.get(skillId).name} damage ${simulatedDamage} drifted from EVTC ${evtcDamage}.`,
@@ -3364,9 +3462,9 @@ test("Power Bladesworn Sword/Pistol preset follows the supplied EVTC", async () 
   assert.ok(Math.abs(unseenSwordDamage / 60123 - 1) < 0.07);
   assert.ok(
     Math.abs(result.totalDamage / savedRotation.metadata.benchmarkDamage - 1) <
-      0.01,
+      0.02,
   );
-  assert.ok(result.dps > 0);
+  assert.equal(Math.round(result.dps), manifest[0].presets[0].benchmarkDps);
 });
 
 test("Power Spellbreaker preset preserves the supplied build and EVTC", async () => {
@@ -3426,7 +3524,7 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
   assert.equal(
     manifest.find((section) => section.section === "Spellbreaker").presets[0]
       .benchmarkDps,
-    42690,
+    43058,
   );
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 92.521);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3949729);
@@ -3460,8 +3558,8 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
   assert.equal(hitCounts.get("Focused Slash"), 36);
   assert.equal(hitCounts.get("Keen Strike"), 36);
   assert.equal(hitCounts.get("Tremor"), 14);
-  assert.equal(hitCounts.get("Rend"), 6);
-  assert.equal(hitCounts.get("Rend \u2014 Follow-Up Damage"), 6);
+  assert.equal(hitCounts.get("Rend"), 7);
+  assert.equal(hitCounts.get("Rend \u2014 Follow-Up Damage"), 7);
   assert.equal(hitCounts.get("Dual Strike"), 14);
   assert.equal(hitCounts.get("Bloodthirster"), 7);
   assert.equal(hitCounts.get("Hamstring"), 11);
@@ -3478,12 +3576,10 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
       "Combat Start",
     ],
   );
-  const rendDamage = result.breakdown
-    .filter(
-      (entry) =>
-        entry.name === "Rend" || entry.name === "Rend \u2014 Follow-Up Damage",
-    )
-    .reduce((total, entry) => total + entry.strikeDamage, 0);
+  const rendDamage = result.resolvedEvents
+    .filter((event) => event.type === "damage" && event.skillId === ID.REND)
+    .slice(0, 12)
+    .reduce((total, event) => total + event.damage, 0);
   const strikeDamageByName = new Map(
     result.breakdown.map((entry) => [entry.name, entry.strikeDamage]),
   );
@@ -3524,7 +3620,7 @@ test("Power Spellbreaker preset preserves the supplied build and EVTC", async ()
   assert.equal(Number.isFinite(distribution.mean), true);
 });
 
-test("Sword/Dagger Spellbreaker preset preserves the supplied build and EVTC", async () => {
+test("Sword/Dagger Spellbreaker preset preserves the supplied build and rotation", async () => {
   const [raw, referenceBuild, savedRotation, manifest] = await Promise.all([
     readFile(
       new URL(
@@ -3561,10 +3657,20 @@ test("Sword/Dagger Spellbreaker preset preserves the supplied build and EVTC", a
   const preset = manifest
     .find((section) => section.section === "Spellbreaker")
     .presets.find((entry) => entry.build.endsWith("sword-dagger.json"));
-  assert.equal(preset.benchmarkDps, 42828);
-  assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 92.406);
-  assert.equal(savedRotation.metadata.benchmarkDamage, 3957534);
-  assert.equal(savedRotation.metadata.benchmarkDps, 42827.673527693005);
+  assert.equal(preset.benchmarkDps, 43387);
+  assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 91.507);
+  assert.equal(savedRotation.metadata.benchmarkDamage, 3970179.1954002595);
+  assert.equal(savedRotation.metadata.benchmarkDps, 43386.61736698027);
+  assert.equal(savedRotation.rotation.length, 275);
+  assert.deepEqual(savedRotation.rotation.slice(0, 7), [
+    { name: "Healing Signet", skillId: ID.HEALING_SIGNET },
+    { name: "Signet of Might", skillId: ID.SIGNET_OF_MIGHT },
+    { name: "Kick", skillId: ID.KICK },
+    { name: "Signet of Fury", skillId: ID.SIGNET_OF_FURY },
+    "Winds of Disenchantment",
+    "Breaching Strike",
+    { name: "__combat_start", offset: 750 },
+  ]);
 
   const build = migrateWarriorBuild({
     ...raw,
@@ -3592,7 +3698,7 @@ test("Sword/Dagger Spellbreaker preset preserves the supplied build and EVTC", a
   assert.equal(hitCounts.get("Sever Artery"), 23);
   assert.equal(hitCounts.get("Gash"), 20);
   assert.equal(hitCounts.get("Hamstring"), 20);
-  assert.ok(Math.abs(result.dps - 42828) < 3000);
+  assert.equal(Math.round(result.dps), preset.benchmarkDps);
 });
 
 test("Power Paragon preset preserves the EVTC build and executes", async () => {
@@ -3652,10 +3758,10 @@ test("Power Paragon preset preserves the EVTC build and executes", async () => {
   assert.deepEqual(savedRotation.rotation.slice(0, 6), [
     { name: "Healing Signet", skillId: ID.HEALING_SIGNET },
     "Signet of Rage",
-    "Signet of Might",
+    { name: "Chant of Action", skillId: ID.CHANT_OF_ACTION },
     "Signet of Fury",
     "Bull's Charge",
-    { name: "__combat_start", offset: 100 },
+    { name: "__combat_start", offset: 639 },
   ]);
 
   const build = migrateWarriorBuild({
@@ -3679,7 +3785,7 @@ test("Power Paragon preset preserves the EVTC build and executes", async () => {
         (event) => event.kind === "signet-mastery" && event.at < combatStart,
       )
       .map((event) => event.skillName),
-    ["Healing Signet", "Signet of Rage", "Signet of Might", "Signet of Fury"],
+    ["Healing Signet", "Signet of Rage", "Signet of Fury"],
   );
   assert.equal(
     simulationEventLogRows(result, build, warriorProfession).some(

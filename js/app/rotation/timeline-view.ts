@@ -17,6 +17,7 @@ import { escapeHtml as esc } from "../../platform/ui/html.js";
 import {
   mountRotationInsertionCursor,
   rotationInsertionGapHtml,
+  rotationTimelineEntryHtml,
 } from "../../platform/ui/insertion-cursor.js";
 import { activeSpecialization, professionEndState } from "./context.js";
 import {
@@ -505,9 +506,6 @@ export function renderTimeline(app: ProfessionAppState): void {
         for (const marker of continuumEndsByIndex.get(index) || []) {
           rowItems.push(renderContinuumEnd(marker));
         }
-        rowItems.push(
-          rotationInsertionGapHtml(index, app.rotationInsertionIndex),
-        );
         const item = timelineItem(entry);
         const highlightKey = rotationSkillHighlightKey(entry);
         const explicitSkillId =
@@ -636,7 +634,11 @@ export function renderTimeline(app: ProfessionAppState): void {
         );
         const canEditActivation =
           item.interruptMs != null || fullCastMs > 0 || catalogCastMs > 0;
-        rowItems.push(`<div class="rot-skill${item.offset != null ? " rot-concurrent" : ""}${invalid ? " rot-invalid" : ""}${chargeMismatch ? " rot-charge-mismatch" : ""}" draggable="true"
+        rowItems.push(
+          rotationTimelineEntryHtml(
+            index,
+            app.rotationInsertionIndex,
+            `<div class="rot-skill${item.offset != null ? " rot-concurrent" : ""}${invalid ? " rot-invalid" : ""}${chargeMismatch ? " rot-charge-mismatch" : ""}" draggable="true"
                     data-idx="${index}" data-skill-highlight-key="${esc(highlightKey)}" title="${esc(skillTooltip)}${titleSuffix}${resourceTitle}" style="--att-border:#9d7bd0">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ""}
@@ -674,7 +676,9 @@ export function renderTimeline(app: ProfessionAppState): void {
                         : ""
                     }
                     ${item.waitMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.waitMs}ms</span>` : ""}
-                </div>`);
+                </div>`,
+          ),
+        );
       });
       if (rowNumber === rows.length - 1) {
         for (const marker of overlayProcMarkersByIndex.get(

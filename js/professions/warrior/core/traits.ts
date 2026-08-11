@@ -357,7 +357,7 @@ export function beginWarriorSkill(
   ) {
     return;
   }
-  let at = context.start;
+  let at = context.effectiveEnd;
   if (skill.id === ID.KICK) {
     const strike = skill.effects?.find((effect) => effect.type === "strike");
     const authoredOffsetMs = Number(
