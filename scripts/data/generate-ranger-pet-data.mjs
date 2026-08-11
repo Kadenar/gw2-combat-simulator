@@ -38,12 +38,76 @@ const SOULBEAST_FAMILY_SKILL_IDS = Object.freeze({
 });
 
 const SIMULATED_FAMILY_SKILL_IDS = Object.freeze({
-  devourer: [12676],
+  devourer: [12676, 12673],
+  "fanged iboga": [43734, 41864, 45262],
   spider: [12724],
 });
-const simulatedFamilySkillIds = new Set(
-  Object.values(SIMULATED_FAMILY_SKILL_IDS).flat(),
-);
+const AUTONOMOUS_PET_SKILL_IDS = new Set([
+  12676, 12673, 12703, 43734, 41864, 41156,
+]);
+const SIMULATED_SKILL_FALLBACKS = new Map([
+  [
+    12673,
+    {
+      id: 12673,
+      name: "Tail Lash",
+      description: "Push back a foe with your tail.",
+      icon: "https://wiki.guildwars2.com/images/f/f5/Tail_Lash.png",
+      recharge: 20,
+      petNames: ["Carrion Devourer", "Whiptail Devourer", "Lashtail Devourer"],
+    },
+  ],
+  [
+    43734,
+    {
+      id: 43734,
+      name: "Consuming Bite",
+      description:
+        "Bite foes, dealing additional damage for each condition afflicting anyone struck.",
+      icon: "https://wiki.guildwars2.com/images/6/68/Consuming_Bite.png",
+      recharge: 0,
+      petNames: ["Fanged Iboga"],
+    },
+  ],
+  [
+    41864,
+    {
+      id: 41864,
+      name: "Crippling Anguish",
+      description: "Launch a projectile that inflicts conditions.",
+      icon: "https://wiki.guildwars2.com/images/c/c8/Crippling_Anguish.png",
+      recharge: 10,
+      petNames: ["Fanged Iboga"],
+    },
+  ],
+  [
+    45262,
+    {
+      id: 45262,
+      name: "Narcotic Spores",
+      description:
+        "Spit a glob of confusing spores at a foe, inflicting confusion at that location.",
+      icon: "https://wiki.guildwars2.com/images/8/84/Narcotic_Spores.png",
+      recharge: 15,
+      petNames: ["Fanged Iboga"],
+    },
+  ],
+]);
+const SIMULATED_SKILL_OVERRIDES = new Map([
+  [
+    12676,
+    {
+      icon: "https://render.guildwars2.com/file/9D3C1CD36EAFF4F4F5E4EB7B41C318771E579C78/103583.png",
+    },
+  ],
+  [12724, { icon: "https://wiki.guildwars2.com/images/3/3a/Spit.png" }],
+  ...SIMULATED_SKILL_FALLBACKS,
+]);
+const SIMULATED_SKILL_KEY_OVERRIDES = new Map([
+  [12673, "PET_TAIL_LASH"],
+  [41864, "CRIPPLING_ANGUISH_PET"],
+  [45262, "NARCOTIC_SPORES_PET"],
+]);
 
 const SOULBEAST_PET_FAMILY_OVERRIDES = Object.freeze({
   "Aether Hunter": "aether hunter",
@@ -141,7 +205,8 @@ function constantName(value) {
 const usedNames = new Set();
 const keyById = new Map();
 function keyFor(skill) {
-  const base = constantName(skill.name);
+  const override = SIMULATED_SKILL_KEY_OVERRIDES.get(Number(skill.id));
+  const base = override || constantName(skill.name);
   const key = usedNames.has(base) ? `${base}_ID_${skill.id}` : base;
   usedNames.add(base);
   keyById.set(skill.id, key);
@@ -159,16 +224,32 @@ const petSkillIds = [
     ...Object.values(SIMULATED_FAMILY_SKILL_IDS).flat(),
   ]),
 ];
-const skills = await fetchMany("skills", petSkillIds);
+const fetchedSkills = await fetchMany("skills", petSkillIds);
+const fetchedSkillById = new Map(
+  fetchedSkills.map((skill) => [skill.id, skill]),
+);
+const skills = petSkillIds
+  .map((id) => {
+    const skill = fetchedSkillById.get(id) || SIMULATED_SKILL_FALLBACKS.get(id);
+    const override = SIMULATED_SKILL_OVERRIDES.get(id);
+    return skill ? { ...skill, ...override } : null;
+  })
+  .filter(Boolean);
 for (const skill of skills) keyFor(skill);
 const skillById = new Map(skills.map((skill) => [skill.id, skill]));
 
 const skillLines = skills.map((skill) => {
   const recharge =
-    skill.facts?.find((fact) => fact.type === "Recharge")?.value || 0;
-  const petNames = pets
-    .filter((pet) => pet.skills.some((candidate) => candidate.id === skill.id))
-    .map((pet) => pet.name.replace(/^Juvenile\s+/, ""));
+    skill.recharge ||
+    skill.facts?.find((fact) => fact.type === "Recharge")?.value ||
+    0;
+  const petNames =
+    skill.petNames ||
+    pets
+      .filter((pet) =>
+        pet.skills.some((candidate) => candidate.id === skill.id),
+      )
+      .map((pet) => pet.name.replace(/^Juvenile\s+/, ""));
   return `  {
     id: ID.${keyById.get(skill.id)},
     name: ${JSON.stringify(skill.name)},
@@ -181,7 +262,8 @@ const skillLines = skills.map((skill) => {
     recharge: ${Number(recharge)},
     cooldown: ${Number(recharge)},
     petSkill: true,
-    petFamilySkill: ${simulatedFamilySkillIds.has(skill.id)},
+    petFamilySkill: ${AUTONOMOUS_PET_SKILL_IDS.has(skill.id)},
+    petAutonomousSkill: ${AUTONOMOUS_PET_SKILL_IDS.has(skill.id)},
     petNames: ${JSON.stringify(petNames)},
   },`;
 });

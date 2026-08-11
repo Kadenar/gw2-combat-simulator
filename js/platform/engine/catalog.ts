@@ -125,6 +125,8 @@ const EFFECT_METADATA_FIELDS = new Set([
   "finisherType",
   "finisherValue",
   "summonKind",
+  "affectsSummons",
+  "maximumRecipients",
 ]);
 
 /**

@@ -131,6 +131,9 @@ function multiSelectionInspectionGroupHtml(
         (entry) => String(entry.value) === String(selection.selectionValue),
       );
       const selectedSkill = app.skillById.get(Number(selection.skillId));
+      const associatedSkills = (selection.skillIds || [])
+        .map((id) => app.skillById.get(Number(id)))
+        .filter((skill): skill is Skill => skill != null);
       const display = selectedEntry
         ? {
             name: selectedEntry.label,
@@ -139,7 +142,7 @@ function multiSelectionInspectionGroupHtml(
           }
         : selectedSkill;
       if (!display || !options.length) return "";
-      return `<div class="skill-bar-inspection-slot selectable"
+      const selectionSlot = `<div class="skill-bar-inspection-slot selectable"
           data-selection-key="${esc(selection.selectionKey)}"
           data-selection-index="${selection.selectionIndex}">
           <div class="sbar-icon" title="${esc(`${display.name}\n${gw2ApiText(display.description)}`)}">
@@ -160,6 +163,11 @@ function multiSelectionInspectionGroupHtml(
             )
             .join("")}</div>
       </div>`;
+      return associatedSkills.length
+        ? `<div class="skill-bar-inspection-selection">
+            ${selectionSlot}${inspectionSkillStacksHtml(associatedSkills)}
+          </div>`
+        : selectionSlot;
     })
     .join("");
   const skillSlots = group.skillIds

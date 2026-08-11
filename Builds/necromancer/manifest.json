@@ -18,7 +18,7 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-reaper.json",
         "rotation": "Rotations/necromancer/r-power-reaper-bench.json",
-        "benchmarkDps": 40433
+        "benchmarkDps": 43246
       },
       {
         "label": "Condition (Dagger / Sword + Spear)",

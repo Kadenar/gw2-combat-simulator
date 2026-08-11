@@ -10,8 +10,16 @@ import type {
   Gw2ModifierRule,
 } from "../../../../platform/gw2/types.js";
 import type { RangerPrecastContext, RangerSkill } from "../../types.js";
+import { rangerPetByName } from "../../core/state.js";
 import { galeshotState } from "./state.js";
-import { advanceGaleshotArrows } from "./mechanics.js";
+import {
+  advanceGaleshotArrows,
+  completeGaleshotSkill,
+  handleGaleshotDisableTask,
+  handleGaleshotMissileHitTask,
+  handleGaleshotPetHitTask,
+  observeGaleshotEvent,
+} from "./mechanics.js";
 
 export const galeshotSchedulerHooks = Object.freeze({
   advance: {
@@ -19,6 +27,21 @@ export const galeshotSchedulerHooks = Object.freeze({
     order: 20,
     handler: advanceGaleshotArrows,
   },
+  onCastComplete: {
+    id: "ranger.galeshot-traits",
+    order: 20,
+    handler: completeGaleshotSkill,
+  },
+  onEventScheduled: {
+    id: "ranger.galeshot-events",
+    order: 20,
+    handler: observeGaleshotEvent,
+  },
+  taskHandlers: Object.freeze({
+    "ranger.galeshot-missile-hit": handleGaleshotMissileHitTask,
+    "ranger.galeshot-pet-hit": handleGaleshotPetHitTask,
+    "ranger.galeshot-disable": handleGaleshotDisableTask,
+  }),
 });
 
 function deny(
@@ -73,6 +96,19 @@ export function galeshotCastAvailability(
     );
   }
   if (
+    skill.id === ID.QUARRYS_PERIL &&
+    hasTrait(context, TRAIT.PERILOUS_SKIES)
+  ) {
+    return deny(skill, "ranger.perilous-skies", "Pelt replaces this skill.");
+  }
+  if (skill.id === ID.PELT && !hasTrait(context, TRAIT.PERILOUS_SKIES)) {
+    return deny(
+      skill,
+      "ranger.perilous-skies",
+      "select Perilous Skies to replace Quarry's Peril.",
+    );
+  }
+  if (
     state.cycloneBowActive &&
     skill.type === "Weapon" &&
     !skill.cycloneBowSkill
@@ -86,13 +122,47 @@ export function galeshotCastAvailability(
   return { ready: true };
 }
 
-function windForce(context: Gw2ModifierContext): number {
+function galeshotRuntimeState(context: Gw2ModifierContext) {
   const profession = context.runtime?.profession as
-    | { specialization?: { kind?: string; state?: { windForce?: number } } }
+    | {
+        specialization?: {
+          kind?: string;
+          state?: { windForce?: number; galeForceUntil?: number };
+        };
+      }
     | undefined;
   return profession?.specialization?.kind === "Galeshot"
-    ? Number(profession.specialization.state?.windForce || 0)
-    : 0;
+    ? profession.specialization.state
+    : undefined;
+}
+
+function windForce(context: Gw2ModifierContext): number {
+  return Number(galeshotRuntimeState(context)?.windForce || 0);
+}
+
+function galeForceAmount(context: Gw2ModifierContext): number {
+  const galeForce =
+    Number(galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time
+      ? 0.25
+      : 0;
+  // Hawkeye converts the five existing stacks, but Wind Force earned while
+  // Gale Force is active remains a separate stacking damage bonus.
+  return galeForce + windForce(context) * 0.03;
+}
+
+function activePetIsFeathered(context: Gw2ModifierContext): boolean {
+  const runtime = context.runtime as
+    { profession?: { core?: { activePet?: string } } } | undefined;
+  const name = String(
+    runtime?.profession?.core?.activePet || context.config?.selectedPet || "",
+  );
+  return ["avian", "moa", "phoenix", "raptor swiftwing"].includes(
+    rangerPetByName(name).family,
+  );
+}
+
+function eventSkillId(context: Gw2ModifierContext): number {
+  return Number(context.event?.skillId ?? context.skillId);
 }
 
 export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -100,8 +170,9 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "ranger.bird-of-prey",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
-    amount: 0.1,
+    amount: 0.05,
     when: (context) =>
+      context.event?.actorType !== "summon" &&
       hasTrait(context, TRAIT.BIRD_OF_PREY) &&
       Boolean(context.config?.boons?.swiftness),
   },
@@ -109,9 +180,37 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: "ranger.gale-force",
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: "damage-additive",
-    amount: (context) => windForce(context) * 0.02,
+    amount: galeForceAmount,
     when: (context) =>
-      hasTrait(context, TRAIT.GALE_FORCE) && windForce(context) > 0,
+      context.event?.actorType !== "summon" &&
+      hasTrait(context, TRAIT.GALE_FORCE) &&
+      galeForceAmount(context) > 0,
+  },
+  {
+    id: "ranger.flock-together",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: 1.25,
+    when: (context) =>
+      context.event?.actorType === "summon" &&
+      context.event?.source === "ranger-pet" &&
+      hasTrait(context, TRAIT.FLOCK_TOGETHER) &&
+      activePetIsFeathered(context),
+  },
+  {
+    id: "ranger.piercing-gales-vulnerability",
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: "multiply",
+    factor: (context) =>
+      1 +
+      Number(
+        context.query?.vulnerabilityStacksAt(
+          context.time,
+          context.runtime || undefined,
+        ) || 0,
+      ) *
+        0.02,
+    when: (context) => eventSkillId(context) === ID.PIERCING_GALES,
   },
 ]);
 

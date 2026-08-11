@@ -12,25 +12,11 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MISTRAL]: {
     implemented: true,
-    effects: [
-      {
-        type: "strike",
-        coefficient: 0.3,
-        hits: 1,
-      },
-      {
-        type: "strike",
-        coefficient: 0.3,
-        hits: 1,
-      },
-      {
-        type: "condition",
-        condition: "Chilled",
-        stacks: 1,
-        duration: 1,
-      },
-    ],
-    quicknessCastTimeMs: 333,
+    castTimeMs: 0,
+    canCastConcurrently: true,
+    effects: [],
+    arrowsRestored: 1,
+    handlerId: "ranger.mistral",
   },
   [ID.SUMMON_CYCLONE_BOW]: {
     implemented: true,
@@ -43,18 +29,30 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 2,
-        hits: 1,
+        ticks: [{ atMs: 600, coefficient: 2 }],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         name: "Perfect Storm - Traveling Tornado Damage",
       },
       {
         type: "strike",
-        coefficient: 8.399999999999999,
-        hits: 12,
+        ticks: [
+          680, 1200, 1720, 2240, 2760, 3280, 3800, 4320, 4840, 5360, 5880, 6400,
+        ].map((atMs) => ({ atMs, coefficient: 0.7 })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
         name: "Perfect Storm - Stationary Tornado Damage",
       },
+      {
+        type: "control",
+        atMs: 600,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        metadata: { controlKind: "launch" },
+      },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 600,
     arrowsRestored: 2,
     handlerId: "ranger.galeshot-arrows",
   },
@@ -86,8 +84,12 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 3.5,
-        hits: 5,
+        ticks: [480, 480, 520, 520, 600].map((atMs) => ({
+          atMs,
+          coefficient: 0.7,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
       {
         type: "condition",
@@ -96,7 +98,10 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
         duration: 6,
       },
     ],
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 640,
+    arrowsRestored: 1,
+    handlerId: "ranger.galeshot-arrows",
+    missileHits: 5,
   },
   [ID.SOOTHING_BREEZE]: {
     implemented: true,
@@ -108,46 +113,59 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 0.75,
-        hits: 1,
+        ticks: [{ atMs: 480, coefficient: 0.75 }],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
     arrowCost: 0,
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 480,
   },
   [ID.HAWKEYE]: {
     implemented: true,
     effects: [
       {
         type: "strike",
-        coefficient: 6.8,
-        hits: 5,
+        ticks: [800, 920, 1040, 1160, 1280].map((atMs) => ({
+          atMs,
+          coefficient: 1.36,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
       },
     ],
     arrowCost: 0,
     handlerId: "ranger.cyclone-bow-skill",
-    quicknessCastTimeMs: 667,
+    quicknessCastTimeMs: 880,
   },
   [ID.BLUSTER]: {
     implemented: true,
     effects: [
       {
         type: "strike",
-        coefficient: 1.92,
-        hits: 3,
+        ticks: [520, 600, 640].map((atMs) => ({
+          atMs,
+          coefficient: 0.64,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
     arrowCost: 1,
     handlerId: "ranger.cyclone-bow-skill",
-    quicknessCastTimeMs: 500,
+    quicknessCastTimeMs: 680,
+    windForceGain: 1,
+    windForceApplyMs: 480,
   },
   [ID.FLEETING_ZEPHYR]: {
     implemented: true,
     effects: [
       {
         type: "strike",
-        coefficient: 0.8,
-        hits: 1,
+        ticks: [{ atMs: 280, coefficient: 0.8 }],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
       {
         type: "condition",
@@ -158,15 +176,19 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
     ],
     arrowCost: 1,
     handlerId: "ranger.cyclone-bow-skill",
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 520,
+    windForceGain: 1,
+    windForceApplyMs: 240,
   },
   [ID.QUARRYS_PERIL]: {
     implemented: true,
     effects: [
       {
         type: "strike",
-        coefficient: 2.5,
-        hits: 1,
+        ticks: [{ atMs: 800, coefficient: 2.5 }],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
       },
       {
         type: "condition",
@@ -177,35 +199,45 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
     ],
     arrowCost: 2,
     handlerId: "ranger.cyclone-bow-skill",
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 680,
+    windForceGain: 1,
+    windForceApplyMs: 280,
   },
   [ID.PELT]: {
     implemented: true,
     effects: [
       {
         type: "strike",
-        coefficient: 2.5,
-        hits: 1,
+        ticks: [{ atMs: 800, coefficient: 2.5 }],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
       },
     ],
     arrowCost: 1,
     handlerId: "ranger.cyclone-bow-skill",
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 680,
+    windForceGain: 1,
+    windForceApplyMs: 280,
   },
   [ID.SUPERSONIC_ARROW]: {
     implemented: true,
     effects: [
       {
         type: "strike",
-        coefficient: 4,
-        hits: 1,
+        ticks: [{ atMs: 800, coefficient: 4 }],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
       {
         type: "control",
+        metadata: { controlKind: "daze" },
       },
     ],
     arrowCost: 3,
     handlerId: "ranger.cyclone-bow-skill",
-    quicknessCastTimeMs: 667,
+    quicknessCastTimeMs: 1000,
+    windForceGain: 2,
+    windForceApplyMs: 760,
   },
 });

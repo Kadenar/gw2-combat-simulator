@@ -55,8 +55,15 @@ const IMPLEMENTED = new Set([
   "Leader of the Pack",
   "Oppressive Superiority",
   "Vow of the Untamed",
+  "Teachings of the Tengu",
   "Bird of Prey",
+  "Wuthering Wind",
+  "Flock Together",
+  "Perilous Skies",
+  "Thrill of the Catch",
+  "Cloudburst",
   "Gale Force",
+  "Shrike",
 ]);
 
 const manifest = rangerCatalog.traits.map((trait) => {

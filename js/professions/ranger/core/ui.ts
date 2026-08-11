@@ -51,29 +51,65 @@ export function rangerNamedSkillIds(names: readonly string[]): SkillId[] {
 }
 
 function activePetSkillIds(context: RangerUiContext): SkillId[] {
+  const state = rangerUiState(context);
+  if (Array.isArray(state.activePetSkillIds)) {
+    return [...(state.activePetSkillIds as SkillId[])];
+  }
   return [...(selectedRangerUiPet(context)?.skillIds || [])];
 }
 
-export function selectedRangerUiPet(context: RangerUiContext) {
+function commandableSkillIds(skillIds: readonly SkillId[]): SkillId[] {
+  return skillIds.filter(
+    (skillId) =>
+      !(rangerCatalog.skillsById.get(skillId) as RangerSkill | undefined)
+        ?.petAutonomousSkill,
+  );
+}
+
+function commandablePetSkillIds(context: RangerUiContext): SkillId[] {
+  return commandableSkillIds(activePetSkillIds(context));
+}
+
+export function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
   const state = rangerUiState(context);
   const selected = String(
-    context.build?.selectedPet ||
-      context.config?.selectedPet ||
-      state.activePet,
+    slot === 2
+      ? context.build?.selectedPet2 ||
+          context.config?.selectedPet2 ||
+          (state.petNames as string[] | undefined)?.[1] ||
+          "Lynx"
+      : context.build?.selectedPet ||
+          context.config?.selectedPet ||
+          (state.petNames as string[] | undefined)?.[0] ||
+          state.activePet,
   );
   return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
+}
+
+export function activeRangerUiPet(context: RangerUiContext) {
+  const activePet = String(
+    rangerUiState(context).activePet ||
+      selectedRangerUiPet(context)?.name ||
+      "",
+  );
+  return RANGER_PETS.find((pet) => pet.name === activePet) || RANGER_PETS[0];
 }
 
 function updatePetSelection(
   context: RangerUiContext,
   selection: RangerUiSelection,
 ): boolean {
-  if (selection.key !== "selectedPet" || !context.build) return false;
+  if (
+    !["selectedPet", "selectedPet2"].includes(String(selection.key)) ||
+    !context.build
+  )
+    return false;
   const pet = RANGER_PETS.find(
     (candidate) => candidate.name === selection.value,
   );
   if (!pet) return false;
-  context.build.selectedPet = pet.name;
+  if (selection.key === "selectedPet2") context.build.selectedPet2 = pet.name;
+  else context.build.selectedPet = pet.name;
   return true;
 }
 
@@ -159,12 +195,15 @@ function rangerCorePaletteAvailability(
   if (state.beastmodeActive) {
     return { available: false, message: "Leave Beastmode first" };
   }
-  const available = activePetSkillIds(context).includes(skill.id);
+  const available =
+    !skill.petAutonomousSkill && activePetSkillIds(context).includes(skill.id);
   return {
     available,
     message: available
       ? ""
-      : `Select the pet that owns this ${skill.petFamilySkill ? "family attack" : "Beast skill"}`,
+      : skill.petAutonomousSkill
+        ? "The active pet uses this skill automatically"
+        : `Select the pet that owns this ${skill.petFamilySkill ? "family attack" : "Beast skill"}`,
   };
 }
 
@@ -176,6 +215,7 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
     ],
     skillBarGroups: (context: RangerUiContext) => {
       const pet = selectedRangerUiPet(context);
+      const pet2 = selectedRangerUiPet(context, 2);
       const specialization = rangerUiSpecialization(context);
       const groups: ProfessionSkillBarGroup[] = [
         {
@@ -184,7 +224,7 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
           skillIds:
             specialization === "Soulbeast"
               ? [...(pet?.beastmodeSkillIds || [])]
-              : activePetSkillIds(context),
+              : [],
           selections: [
             {
               optionEntries: RANGER_PETS.map((option) => ({
@@ -196,6 +236,19 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
               selectionValue: pet?.name || "",
               selectionKey: "selectedPet",
               selectionIndex: 0,
+              skillIds: commandableSkillIds(pet?.skillIds || []),
+            },
+            {
+              optionEntries: RANGER_PETS.map((option) => ({
+                value: option.name,
+                label: option.name,
+                icon: option.icon,
+                description: option.description,
+              })),
+              selectionValue: pet2?.name || "",
+              selectionKey: "selectedPet2",
+              selectionIndex: 1,
+              skillIds: commandableSkillIds(pet2?.skillIds || []),
             },
           ],
           color: "#7ca64a",
@@ -227,25 +280,25 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
       return groups;
     },
     updateSkillBarSelection: updateRangerCoreSelection,
-    paletteGroups: (context: RangerUiContext) => [
-      ...(rangerUiSpecialization(context) === "Soulbeast"
-        ? []
-        : [
-            {
-              id: "ranger-pet",
-              label: "Pet",
-              skillIds: activePetSkillIds(context),
-              color: "#7ca64a",
-              resourceAnchor: rangerUiSpecialization(context) === "Core",
-            },
-          ]),
-      {
-        id: "ranger-actions",
-        label: "Actions",
-        skillIds: [ID.DODGE, ID.PET_SWAP, ID.SWAP_WEAPONS],
-        color: "#7ca64a",
-      },
-    ],
+    paletteGroups: (context: RangerUiContext) => {
+      if (rangerUiSpecialization(context) === "Soulbeast") return [];
+      const activePet = activeRangerUiPet(context);
+      return [
+        {
+          id: "ranger-pet",
+          label: "Pet",
+          skillIds: [...commandablePetSkillIds(context), ID.PET_SWAP],
+          color: "#7ca64a",
+          resourceAnchor: rangerUiSpecialization(context) === "Core",
+          includeActionSkills: true,
+          statusIcon: {
+            icon: activePet.icon,
+            label: activePet.name,
+            title: `Active pet: ${activePet.name}`,
+          },
+        },
+      ];
+    },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
       const state = rangerUiState(context);
       return [
@@ -262,6 +315,7 @@ export const rangerCoreUi: Partial<ProfessionUiContract> & SchedulerRecord =
           displayMode: "bar",
           shortLabel: "End",
           statusLabel: "Current",
+          paletteSkillId: ID.DODGE,
         },
       ];
     },

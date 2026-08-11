@@ -52,6 +52,9 @@ export const vindicatorUi: Partial<ProfessionUiContract> & SchedulerRecord =
         pipStyle: "endurance",
         shortLabel: "End",
         statusLabel: "Current",
+        // Render the endurance meter beneath the Dodge button (which the
+        // Vindicator dodge spends in one leap) instead of as a standalone bar.
+        paletteSkillId: SKILL.DODGE,
       }];
     },
   });

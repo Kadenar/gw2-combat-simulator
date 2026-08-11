@@ -164,6 +164,9 @@ export const thiefCoreUi = Object.freeze({
       pipStyle: "endurance",
       shortLabel: "End",
       statusLabel: "Current",
+      // Render the endurance meter beneath the Dodge button rather than as a
+      // standalone bar, so the resource sits with the action that spends it.
+      paletteSkillId: ID.DODGE,
     }];
   },
   paletteSkillAvailability: corePaletteSkillAvailability,

@@ -21,6 +21,7 @@ export const rangerApp = defineProfessionApp({
         initialAstralForce: build.initialAstralForce,
         initialArrows: build.initialArrows,
         selectedPet: build.selectedPet,
+        selectedPet2: build.selectedPet2,
         selectedHammerSkillIds: [...build.selectedHammerSkillIds],
         initialUntamedState: build.initialUntamedState,
       };

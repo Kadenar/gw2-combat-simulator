@@ -135,8 +135,8 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     {
       id: "ranger.oppressive-superiority",
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-      operation: "damage-additive",
-      amount: 0.1,
+      operation: "multiply",
+      factor: 1.1,
       when: oppressiveSuperiorityActive,
     },
   ],

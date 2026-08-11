@@ -9,6 +9,7 @@ import {
 import { GALESHOT_BASE_SKILL_MECHANICS } from "./skills.js";
 import { galeshotState } from "./state.js";
 import { galeshotUi } from "./ui.js";
+import { galeshotEventHandlers } from "./resolver.js";
 
 export const galeshotModule = defineNativeModule({
   id: "Galeshot",
@@ -21,6 +22,7 @@ export const galeshotModule = defineNativeModule({
     modifiers: galeshotAttributeRules,
     castRules: galeshotCastRules,
     schedulerHooks: galeshotSchedulerHooks,
+    resolverHooks: { eventHandlers: galeshotEventHandlers },
   },
   presentation: galeshotUi,
 });

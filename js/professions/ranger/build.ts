@@ -20,10 +20,27 @@ import {
 } from "./core/hammer.js";
 import type { RangerCanonicalBuild } from "./types.js";
 
-export const RANGER_BUILD_SCHEMA_VERSION = 3;
+export const RANGER_BUILD_SCHEMA_VERSION = 4;
 export const RANGER_PROFESSION_ID = "ranger";
 
 export { createDefaultTargetConditions };
+
+function keepRangerRotationCommand(
+  command: RangerCanonicalBuild["rotation"][number],
+): boolean {
+  if (command.type !== "cast") return true;
+  if (
+    command.skillId === ID.OVERBEARING_SMASH_SECOND_STRIKE ||
+    command.skillId === "Overbearing Smash (Follow-Up)"
+  ) {
+    return false;
+  }
+  const numericId = Number(command.skillId);
+  const skill = Number.isFinite(numericId)
+    ? rangerCatalog.skillsById.get(numericId)
+    : rangerCatalog.skillsByName.get(String(command.skillId));
+  return skill?.petAutonomousSkill !== true;
+}
 
 export function createRangerBuildDefaults(): RangerCanonicalBuild {
   return {
@@ -59,6 +76,7 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
       Elite: "One Wolf Pack",
     },
     selectedPet: "Pig",
+    selectedPet2: "Lynx",
     selectedHammerSkillIds: [
       ID.UNLEASHED_WILD_SWING,
       ID.OVERBEARING_SMASH,
@@ -119,16 +137,16 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
     const selectedPet = RANGER_PETS.some((pet) => pet.name === requestedPet)
       ? requestedPet
       : "Pig";
+    const requestedPet2 = String(saved.selectedPet2 ?? "Lynx");
+    const selectedPet2 = RANGER_PETS.some((pet) => pet.name === requestedPet2)
+      ? requestedPet2
+      : "Lynx";
     return {
       ...build,
-      rotation: build.rotation.filter(
-        (command) =>
-          command.type !== "cast" ||
-          (command.skillId !== ID.OVERBEARING_SMASH_SECOND_STRIKE &&
-            command.skillId !== "Overbearing Smash (Follow-Up)"),
-      ),
+      rotation: build.rotation.filter(keepRangerRotationCommand),
       assumptions,
       selectedPet,
+      selectedPet2,
       selectedHammerSkillIds: normalizeRangerHammerSkillIds(
         saved.selectedHammerSkillIds,
       ),
@@ -159,6 +177,9 @@ const rangerBuildCodec = createGw2BuildCodec<RangerCanonicalBuild>({
     }
     if (!RANGER_PETS.some((pet) => pet.name === build.selectedPet)) {
       errors.push("selectedPet must name an available Ranger pet.");
+    }
+    if (!RANGER_PETS.some((pet) => pet.name === build.selectedPet2)) {
+      errors.push("selectedPet2 must name an available Ranger pet.");
     }
     if (!["Pet", "Ranger"].includes(build.initialUntamedState)) {
       errors.push('initialUntamedState must be either "Pet" or "Ranger".');

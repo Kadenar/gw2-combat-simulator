@@ -7,17 +7,26 @@ import type {
   RangerState,
 } from "../types.js";
 
-export function selectedRangerPet(config: RangerConfig = {}) {
-  const selected = String(config.selectedPet || "Pig");
+export function selectedRangerPet(config: RangerConfig = {}, slot: 1 | 2 = 1) {
+  const selected = String(
+    slot === 2 ? config.selectedPet2 || "Lynx" : config.selectedPet || "Pig",
+  );
   return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
+}
+
+export function rangerPetByName(name: string) {
+  return RANGER_PETS.find((pet) => pet.name === name) || RANGER_PETS[0];
 }
 
 export function createRangerCoreState(
   config: RangerConfig = {},
 ): RangerCoreState {
   const pet = selectedRangerPet(config);
+  const pet2 = selectedRangerPet(config, 2);
   return {
     activePet: pet?.name || "",
+    activePetSlot: 1,
+    petNames: [pet?.name || "", pet2?.name || ""],
     activePetSkillIds: [...(pet?.skillIds || [])],
     endurance: 100,
     maximumEndurance: 100,
@@ -41,6 +50,17 @@ export function createRangerCoreState(
     petOpeningStrikeReady: true,
     poisonMasterPetAttackReady: false,
     petSwapCount: 0,
+    petAutoGeneration: 0,
+    petAutoNextAt: 0,
+    petAutoBusyUntil: 0,
+    petAutoCooldowns: {},
+    petAutoActivationUses: {},
+    petAutoActivationCounts: [1, 0],
+    petAutoOpeningBasic: true,
+    petAutoTaskId: "",
+    petCommandReadyAt: 0,
+    petCommandDelays: {},
+    comboProjectileFinisherProgress: 0,
   };
 }
 
@@ -53,6 +73,8 @@ export function snapshotRangerState(state: unknown): RangerState {
 export const RANGER_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   Object.freeze([
     "activePet",
+    "activePetSlot",
+    "petNames",
     "activePetSkillIds",
     "endurance",
     "maximumEndurance",
@@ -70,6 +92,9 @@ export const RANGER_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
     "childOfEarthReadyAt",
     "clarionBondReadyAt",
     "petSwapCount",
+    "petAutoNextAt",
+    "petAutoBusyUntil",
+    "petAutoCooldowns",
     "astralForce",
     "maximumAstralForce",
     "celestialAvatarActive",
@@ -85,6 +110,12 @@ export const RANGER_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
     "maximumArrows",
     "arrowsUpdatedAt",
     "windForce",
+    "galeForceUntil",
+    "mistralUntil",
+    "wutheringWindReady",
+    "thrillOfTheCatchReadyAt",
+    "flockTogetherReadyAt",
+    "missileHits",
   ]);
 
 const RANGER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> =
@@ -104,6 +135,12 @@ const RANGER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<Partial<RangerState>> =
     maximumArrows: 8,
     arrowsUpdatedAt: 0,
     windForce: 0,
+    galeForceUntil: 0,
+    mistralUntil: 0,
+    wutheringWindReady: false,
+    thrillOfTheCatchReadyAt: 0,
+    flockTogetherReadyAt: 0,
+    missileHits: 0,
   });
 
 export function projectRangerEndState({

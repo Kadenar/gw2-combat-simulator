@@ -99,7 +99,7 @@
     "targetSkillActivationsPerSecond": 0
   },
   "initialEnergy": 50,
-  "startingWeaponSet": 1,
+  "startingWeaponSet": 2,
   "targetHealth": 3970000,
   "targetArmor": 2597,
   "initialResource": 0

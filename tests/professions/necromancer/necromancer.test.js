@@ -302,6 +302,29 @@ test("EVTC-derived Necromancer multi-hit packet timings remain exact", () => {
   );
 });
 
+test("Relic of Fireworks refreshes from qualifying Reaper Shroud skills", () => {
+  const result = simulate("Reaper", ["Reaper's Shroud", "Soul Spiral"], {
+    initialResource: 100,
+    relic: "Fireworks",
+  });
+  const procs = result.procSteps.filter(
+    (step) => step.skill === "Relic of Fireworks",
+  );
+  const hits = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "damage" &&
+      event.skillId === ID.SOUL_SPIRAL &&
+      event.name === "Soul Spiral",
+  );
+
+  assert.equal(procs.length, 12);
+  assert.ok(procs.every((proc) => proc.sourceSkill === "Soul Spiral"));
+  assert.equal(procs[0].detail, "activated");
+  assert.ok(procs.slice(1).every((proc) => proc.detail === "refreshed"));
+  assert.equal(hits.length, 12);
+  assert.ok(Math.abs(hits[1].damage / hits[0].damage - 1.07) < 1e-12);
+});
+
 test("EVTC-derived Necromancer single-hit offsets remain exact", () => {
   const declarativeOffsets = new Map([
     [ID.DARK_PACT, 640],

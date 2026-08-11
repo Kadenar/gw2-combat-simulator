@@ -50,7 +50,7 @@
         "label": "Power (Greatsword / SwSw - Energy)",
         "build": "Builds/revenant/b-power-vindicator-greatsword-energy.json",
         "rotation": "Rotations/revenant/r-power-vindicator-greatsword-benchmark.json",
-        "benchmarkDps": 43235,
+        "benchmarkDps": 44989,
         "upToDate": true
       },
       {

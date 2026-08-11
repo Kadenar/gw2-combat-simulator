@@ -2,6 +2,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+import { timelineWeaponRows } from "../../../js/app/rotation/timeline-model.js";
+import {
+  activeResourceGroup,
+  paletteSkillResourceView,
+} from "../../../js/app/rotation/resource-view.js";
+import { renderPalette } from "../../../js/app/rotation/palette-view.js";
 import {
   loadProfession,
   loadProfessionAppAdapter,
@@ -27,8 +33,12 @@ import {
 import { RANGER_PETS } from "../../../js/professions/ranger/data/ranger-pet-data.js";
 import { RANGER_TRAIT_COVERAGE } from "../../../js/professions/ranger/data/trait-coverage.js";
 import { rangerProfession } from "../../../js/professions/ranger/definition.js";
-import { rangerCoreAttributeRules } from "../../../js/professions/ranger/core/rules.js";
+import {
+  rangerCoreAttributeRules,
+  rangerCoreModifierRules,
+} from "../../../js/professions/ranger/core/rules.js";
 import { RANGER_SKILL_MECHANICS } from "../../../js/professions/ranger/mechanics/skill-mechanics.js";
+import { soulbeastModifierRules } from "../../../js/professions/ranger/specializations/soulbeast/rules.js";
 import {
   rangerAppAdapter,
   calculateAttributes,
@@ -40,6 +50,7 @@ const baseConfig = Object.freeze({
   initialAstralForce: 100,
   initialArrows: 8,
   selectedPet: "Lynx",
+  selectedPet2: "Fanged Iboga",
   selectedHammerSkillIds: [
     ID.WILD_SWING,
     ID.OVERBEARING_SMASH,
@@ -89,8 +100,8 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
   assert.equal(DATA_SNAPSHOT, "2026-08-08");
   assert.equal(rangerCatalog.specializations.length, 9);
   assert.equal(rangerCatalog.traits.length, 108);
-  assert.equal(rangerCatalog.skills.length, 296);
-  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 291);
+  assert.equal(rangerCatalog.skills.length, 301);
+  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 295);
   assert.equal(
     rangerCatalog.skillsById.has(ID.OVERBEARING_SMASH_SECOND_STRIKE),
     false,
@@ -104,6 +115,17 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
     undefined,
   );
   assert.equal(RANGER_PETS.length, 66);
+  assert.equal(
+    [
+      ID.TWIN_DARTS,
+      ID.PET_TAIL_LASH,
+      ID.CONSUMING_BITE,
+      ID.CRIPPLING_ANGUISH_PET,
+      ID.NARCOTIC_SPORES_PET,
+      ID.FANG_GRAPPLE,
+    ].every((skillId) => rangerCatalog.skillsById.get(skillId)?.icon),
+    true,
+  );
   assert.equal(
     RANGER_PETS.every(
       (pet) =>
@@ -159,6 +181,10 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
     rangerCatalog.skillsById.get(ID.SWAP_WEAPONS).handlerId,
     "ranger.weapon-swap",
   );
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.PET_SWAP).icon,
+    rangerCatalog.skillsById.get(ID.SWAP_WEAPONS).icon,
+  );
   assert.deepEqual(
     [
       ID.COSMIC_RAY,
@@ -185,6 +211,7 @@ test("Ranger builds migrate and validate against the canonical catalog", () => {
   assert.deepEqual(defaults.alternateWeapons, ["Axe", "Axe"]);
   assert.equal(defaults.relic, "Claw");
   assert.equal(defaults.selectedPet, "Pig");
+  assert.equal(defaults.selectedPet2, "Lynx");
   assert.deepEqual(defaults.selectedHammerSkillIds, [
     ID.UNLEASHED_WILD_SWING,
     ID.OVERBEARING_SMASH,
@@ -244,6 +271,29 @@ test("Ranger builds migrate and validate against the canonical catalog", () => {
   assert.deepEqual(
     withoutLegacyOverbearingStage.rotation.map((command) => command.skillId),
     [ID.HAMMER_STRIKE, ID.HAMMER_SLAM],
+  );
+
+  const withoutAutonomousPetCasts = migrateRangerBuild({
+    ...defaults,
+    selectedPet: "Carrion Devourer",
+    selectedPet2: "Fanged Iboga",
+    rotation: [
+      { name: "Twin Darts", skillId: ID.TWIN_DARTS },
+      { name: "Tail Lash", skillId: ID.PET_TAIL_LASH },
+      "Poisonous Cloud",
+      { name: "Regenerate", skillId: ID.REGENERATE },
+      { name: "Consuming Bite", skillId: ID.CONSUMING_BITE },
+      {
+        name: "Crippling Anguish",
+        skillId: ID.CRIPPLING_ANGUISH_PET,
+      },
+      { name: "Narcotic Spores", skillId: ID.NARCOTIC_SPORES_PET },
+      { name: "Fang Grapple", skillId: ID.FANG_GRAPPLE },
+    ],
+  });
+  assert.deepEqual(
+    withoutAutonomousPetCasts.rotation.map((command) => command.skillId),
+    [ID.POISONOUS_CLOUD, ID.NARCOTIC_SPORES_PET],
   );
 });
 
@@ -312,6 +362,145 @@ test("Power Soulbeast benchmark preset follows the supplied EVTC", async () => {
   );
 });
 
+test("Power Galeshot benchmark tracks the supplied EVTC and both pets", async () => {
+  const savedBuild = JSON.parse(
+    await readFile(
+      new URL(
+        "../../../Builds/ranger/b-power-galeshot-longbow-axe.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const savedRotation = JSON.parse(
+    await readFile(
+      new URL(
+        "../../../Rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const savedPetCasts = savedRotation.rotation
+    .map((entry) => {
+      const skillId = typeof entry === "object" ? entry.skillId : undefined;
+      return skillId == null
+        ? rangerCatalog.skillsByName.get(String(entry))
+        : rangerCatalog.skillsById.get(Number(skillId));
+    })
+    .filter((skill) => skill?.petSkill);
+  assert.equal(
+    savedPetCasts.some((skill) => skill.petAutonomousSkill),
+    false,
+  );
+  assert.deepEqual(
+    savedPetCasts.map((skill) => skill.name),
+    [
+      "Poisonous Cloud",
+      "Narcotic Spores",
+      "Narcotic Spores",
+      "Poisonous Cloud",
+      "Poisonous Cloud",
+      "Narcotic Spores",
+    ],
+  );
+  const build = migrateRangerBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const hits = (name) =>
+    result.breakdown.find((entry) => entry.name === name)?.hits;
+  const damage = (name) =>
+    result.breakdown.find((entry) => entry.name === name)?.damage || 0;
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(build.selectedPet, "Carrion Devourer");
+  assert.equal(build.selectedPet2, "Fanged Iboga");
+  assert.equal(hits("Hawkeye"), 45);
+  assert.equal(hits("Barrage"), 60);
+  assert.equal(hits("Wuthering Wind"), 20);
+  assert.equal(hits("Consuming Bite"), 19);
+  assert.equal(hits("Twin Darts"), 29);
+  assert.equal(hits("Poisonous Cloud"), 18);
+  assert.equal(hits("Narcotic Spores"), 18);
+  assert.equal(hits("Crippling Anguish"), 3);
+  assert.equal(hits("Tail Lash"), 2);
+  assert.equal(hits("Fang Grapple"), 3);
+  assert.equal(
+    result.resolvedEvents.find(
+      (event) => event.type === "damage" && event.name === "Barrage",
+    ).at,
+    result.dpsStartTime,
+  );
+  assert.equal(
+    Math.abs(
+      result.dpsWindow - savedRotation.metadata.benchmarkDurationSeconds,
+    ) < 1,
+    true,
+  );
+  for (const [name, evtcDamage, tolerance] of [
+    ["Hawkeye", 573725, 0.03],
+    ["Bluster", 411741, 0.1],
+    ["Barrage", 292503, 0.05],
+    ["Mistral", 275110, 0.04],
+    ["Wuthering Wind", 103312, 0.1],
+    ["Quarry's Peril", 219850, 0.08],
+    ["Splitblade", 188550, 0.06],
+    ["Piercing Gales", 180135, 0.1],
+    ["Winter's Bite", 132522, 0.05],
+    ["Path of Scars (Max Range)", 89655, 0.06],
+    ["Fleeting Zephyr", 32146, 0.12],
+    ["Point-Blank Shot", 32387, 0.13],
+    ["Consuming Bite", 33195, 0.15],
+    ["Twin Darts", 12942, 0.06],
+    ["Narcotic Spores", 5285, 0.13],
+    ["Crippling Anguish", 3187, 0.01],
+  ]) {
+    assert.ok(
+      Math.abs(damage(name) / evtcDamage - 1) < tolerance,
+      `${name} damage ${damage(name)} drifted from EVTC ${evtcDamage}.`,
+    );
+  }
+  assert.equal(
+    result.procSteps.filter((step) => step.skill === "Wuthering Wind").length,
+    20,
+  );
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === "condition" &&
+        event.skillId === ID.CRIPPLING_ANGUISH_PET &&
+        event.condition === "Torment" &&
+        event.stacks === 3,
+    ),
+    true,
+  );
+  assert.equal(damage("Rapid Fire — Confusing Bolt") > 0, true);
+  assert.equal(damage("Rapid Fire — Poison Combo") > 0, true);
+  assert.equal(
+    result.procSteps
+      .filter((step) => step.skill === "Relic of the Claw")
+      .some((step) => ["Tail Lash", "Fang Grapple"].includes(step.sourceSkill)),
+    false,
+  );
+  assert.equal(
+    Math.abs(result.dps - savedRotation.metadata.benchmarkDps) /
+      savedRotation.metadata.benchmarkDps <
+      0.01,
+    true,
+  );
+});
+
 test("Core Ranger exposes only the selected pet Beast skill", () => {
   assert.equal(
     RANGER_PETS.find((pet) => pet.name === "Lynx").skillIds.includes(
@@ -355,6 +544,219 @@ test("Core Ranger exposes only the selected pet Beast skill", () => {
   );
   assert.equal(rendingPounce.start, rapidFire.start);
   assert.equal(pointBlankShot.start, rapidFire.end);
+});
+
+test("Ranger pet AI skills are autonomous and Beast commands stay independent", () => {
+  const carrionContext = {
+    specialization: "Core",
+    professionState: {
+      activePet: "Carrion Devourer",
+      activePetSkillIds: RANGER_PETS.find(
+        (pet) => pet.name === "Carrion Devourer",
+      ).skillIds,
+    },
+  };
+  const carrionPalette = rangerProfession.ui
+    .paletteGroups(carrionContext)
+    .find((group) => group.id === "ranger-pet");
+  assert.deepEqual(carrionPalette.skillIds, [ID.POISONOUS_CLOUD, ID.PET_SWAP]);
+  assert.equal(carrionPalette.includeActionSkills, true);
+  assert.equal(carrionPalette.statusIcon.label, "Carrion Devourer");
+  assert.equal(
+    carrionPalette.statusIcon.icon,
+    RANGER_PETS.find((pet) => pet.name === "Carrion Devourer").icon,
+  );
+
+  const endurance = rangerProfession.ui.resourceViews({
+    specialization: "Galeshot",
+    professionState: { endurance: 35, maximumEndurance: 100 },
+  })[0];
+  assert.equal(endurance.value, 35);
+  assert.equal(endurance.paletteSkillId, ID.DODGE);
+  const resourceApp = {
+    profession: rangerProfession,
+    adapter: { eliteSpecialization: () => "Core" },
+    build: { initialResource: 0 },
+    results: {
+      endState: {
+        profession: { endurance: 35, maximumEndurance: 100 },
+      },
+    },
+  };
+  assert.deepEqual(paletteSkillResourceView(resourceApp, ID.DODGE), {
+    id: "endurance",
+    label: "Current endurance: 35/100",
+    value: 35,
+    maximum: 100,
+  });
+  assert.equal(activeResourceGroup(resourceApp), "");
+
+  const directAuto = simulate("Core", ["Twin Darts"], {
+    selectedPet: "Carrion Devourer",
+  });
+  assert.match(directAuto.warnings[0], /uses this skill automatically/);
+
+  const result = simulate(
+    "Core",
+    [
+      "__combat_start",
+      "Rapid Fire",
+      "Poisonous Cloud",
+      "Point-Blank Shot",
+      { type: "wait", durationMs: 4000 },
+    ],
+    { primaryWeapon: "Longbow", selectedPet: "Carrion Devourer" },
+  );
+  const rapidFire = result.steps.find((step) => step.skill === "Rapid Fire");
+  const poison = result.steps.find((step) => step.skill === "Poisonous Cloud");
+  const pointBlankShot = result.steps.find(
+    (step) => step.skill === "Point-Blank Shot",
+  );
+  const poisonAction = result.events.find(
+    (event) => event.type === "action" && event.skillId === ID.POISONOUS_CLOUD,
+  );
+  assert.equal(poison.start, rapidFire.start);
+  assert.equal(pointBlankShot.start, rapidFire.end);
+  assert.equal(poisonAction.actorType, "summon");
+  assert.equal(poisonAction.at > rapidFire.start / 1000, true);
+  assert.equal(
+    result.events.some(
+      (event) =>
+        event.type === "action" &&
+        event.skillId === ID.TWIN_DARTS &&
+        event.actorType === "summon" &&
+        event.autonomousPetSkill,
+    ),
+    true,
+  );
+});
+
+test("Ranger pet commands require Alacrity on the active pet", () => {
+  const config = {
+    selectedPet: "Fanged Iboga",
+    boons: { alacrity: true },
+  };
+  const playerAlacrity = simulate("Core", ["Narcotic Spores"], config);
+  const petAlacrity = simulate(
+    "Core",
+    ['"We Heal As One!"', "Narcotic Spores"],
+    config,
+  );
+  const rechargeMs = (result) => {
+    const step = result.steps.find(
+      (candidate) => candidate.skill === "Narcotic Spores",
+    );
+    return result.endState.cooldowns["Narcotic Spores"].readyAt - step.end;
+  };
+
+  assert.equal(rechargeMs(playerAlacrity), 15000);
+  assert.equal(rechargeMs(petAlacrity), 12000);
+  assert.equal(
+    petAlacrity.events.some(
+      (event) =>
+        event.type === "buff" &&
+        event.kind === "alacrity" &&
+        event.affectsSummons === true,
+    ),
+    true,
+  );
+});
+
+test("Ranger autonomous pet cooldowns use only pet Alacrity", () => {
+  const config = {
+    selectedPet: "Carrion Devourer",
+    boons: { alacrity: true },
+    stats: { concentration: 1500 },
+  };
+  const baseline = simulate(
+    "Core",
+    ["__combat_start", { type: "wait", durationMs: 24000 }],
+    config,
+  );
+  const petAlacrity = simulate(
+    "Core",
+    [
+      '"We Heal As One!"',
+      "__combat_start",
+      { type: "wait", durationMs: 24000 },
+    ],
+    config,
+  );
+  const tailLashes = (result) =>
+    result.events.filter(
+      (event) =>
+        event.type === "action" &&
+        event.skillId === ID.PET_TAIL_LASH &&
+        event.autonomousPetSkill,
+    ).length;
+
+  assert.equal(tailLashes(baseline), 1);
+  assert.equal(tailLashes(petAlacrity), 2);
+});
+
+test("Galeshot passive arrow recharge uses the player's Alacrity", () => {
+  const rotation = [{ type: "wait", durationMs: 4000 }];
+  const baseline = simulate("Galeshot", rotation, {
+    initialArrows: 0,
+    boons: { alacrity: false },
+  });
+  const alacrity = simulate("Galeshot", rotation, {
+    initialArrows: 0,
+    boons: { alacrity: true },
+  });
+
+  assert.equal(baseline.endState.profession.arrows, 0);
+  assert.equal(alacrity.endState.profession.arrows, 1);
+});
+
+test("Ranger palette groups the active pet, command, swap, and Dodge endurance", () => {
+  const build = createRangerBuildDefaults();
+  build.specializations = [];
+  build.selectedPet = "Carrion Devourer";
+  build.selectedPet2 = "Fanged Iboga";
+  build.weapons = ["Longbow", ""];
+  build.alternateWeapons = ["Axe", "Axe"];
+  const app = {
+    build,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skills: rangerCatalog.skills,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    results: simulate("Core", [], {
+      selectedPet: "Carrion Devourer",
+      selectedPet2: "Fanged Iboga",
+      primaryWeapon: "Longbow",
+      weaponSet2Primary: "Axe",
+      weaponSet2Secondary: "Axe",
+    }),
+  };
+  const paletteElement = {
+    innerHTML: "",
+    querySelectorAll: () => [],
+  };
+  const previousDocument = globalThis.document;
+  globalThis.document = {
+    getElementById: (id) => (id === "rotation-palette" ? paletteElement : null),
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+
+  const html = paletteElement.innerHTML;
+  assert.equal((html.match(/data-skill-id="-4"/g) || []).length, 1);
+  assert.ok(html.indexOf("Carrion Devourer") < html.indexOf("Poisonous Cloud"));
+  assert.ok(
+    html.indexOf("Poisonous Cloud") < html.indexOf('data-skill="Swap Pets"'),
+  );
+  assert.match(html, /class="[^"]*pal-has-resource[^"]*" data-skill="Dodge"/);
+  assert.match(html, /data-resource-id="endurance"/);
+  assert.doesNotMatch(
+    html,
+    /class="active-resource" data-resource-id="endurance"/,
+  );
 });
 
 test("Core Ranger resolves Winter's Bite readiness events", () => {
@@ -537,6 +939,9 @@ test("Ranger skill-bar selections drive pet and Hammer selection", () => {
     "ranger-soulbeast-beastmode",
   );
   assert.equal(petGroup.selections[0].selectionValue, "Pig");
+  assert.equal(petGroup.selections[1].selectionValue, "Lynx");
+  assert.deepEqual(petGroup.selections[0].skillIds, [ID.FORAGE_SWORD]);
+  assert.deepEqual(petGroup.selections[1].skillIds, [ID.RENDING_POUNCE]);
   assert.equal(petGroup.selections[0].optionEntries.length, RANGER_PETS.length);
   assert.equal(
     rangerProfession.ui.updateSkillBarSelection(soulbeastContext, {
@@ -546,11 +951,24 @@ test("Ranger skill-bar selections drive pet and Hammer selection", () => {
     }),
     true,
   );
+  assert.equal(
+    rangerProfession.ui.updateSkillBarSelection(soulbeastContext, {
+      key: "selectedPet2",
+      index: 1,
+      value: "Fanged Iboga",
+    }),
+    true,
+  );
+  assert.equal(build.selectedPet2, "Fanged Iboga");
   const smokescale = RANGER_PETS.find((pet) => pet.name === "Smokescale");
   const mergedPetGroup = rangerProfession.ui
     .skillBarGroups(soulbeastContext)
     .find((group) => group.id === "ranger-pet-selection");
   assert.deepEqual(mergedPetGroup.skillIds, smokescale.beastmodeSkillIds);
+  assert.deepEqual(mergedPetGroup.selections[0].skillIds, [ID.SMOKE_CLOUD]);
+  assert.deepEqual(mergedPetGroup.selections[1].skillIds, [
+    ID.NARCOTIC_SPORES_PET,
+  ]);
   assert.equal(
     rangerProfession.ui
       .skillBarGroups(soulbeastContext)
@@ -683,17 +1101,47 @@ test("Ranger skill-bar selections drive pet and Hammer selection", () => {
 });
 
 test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
+  const expectedQuicknessCastTimes = new Map([
+    ["Long Range Shot", 480],
+    ["Rapid Fire", 1840],
+    ["Hunter's Shot", 320],
+    ["Point-Blank Shot", 360],
+    ["Barrage", 1880],
+    ["Keen Shot", 480],
+    ["Hawkeye", 880],
+    ["Bluster", 680],
+    ["Fleeting Zephyr", 520],
+    ["Quarry's Peril", 680],
+    ["Pelt", 680],
+    ["Supersonic Arrow", 1000],
+    ["Piercing Gales", 640],
+    ["Perfect Storm", 600],
+  ]);
+  for (const [name, castTimeMs] of expectedQuicknessCastTimes) {
+    assert.equal(
+      rangerCatalog.skillsByName.get(name).quicknessCastTimeMs,
+      castTimeMs,
+    );
+    assert.equal(castTimeMs % 40, 0);
+  }
+
   const blocked = simulate("Galeshot", ["Bluster"]);
   assert.match(blocked.warnings[0], /summon the Cyclone Bow/);
 
-  const result = simulate("Galeshot", [
-    "Summon Cyclone Bow",
-    "Bluster",
-    "Fleeting Zephyr",
-    "Quarry's Peril",
-    "Pelt",
-    "Hawkeye",
-  ]);
+  const result = simulate(
+    "Galeshot",
+    [
+      "Summon Cyclone Bow",
+      "Bluster",
+      "Fleeting Zephyr",
+      "Pelt",
+      "Supersonic Arrow",
+      "Hawkeye",
+    ],
+    {
+      selectedTraitIds: [TRAIT.PERILOUS_SKIES],
+    },
+  );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.endState.profession.cycloneBowActive, true);
   assert.equal(result.endState.profession.windForce, 0);
@@ -705,14 +1153,14 @@ test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
     "Bluster",
     "Fleeting Zephyr",
     "Quarry's Peril",
-    "Pelt",
+    "Supersonic Arrow",
   ]);
   const keenBlocked = simulate("Galeshot", [
     "Summon Cyclone Bow",
     "Bluster",
     "Fleeting Zephyr",
     "Quarry's Peril",
-    "Pelt",
+    "Supersonic Arrow",
     "Keen Shot",
   ]);
   assert.match(keenBlocked.warnings[0], /Hawkeye replaces Keen Shot/);
@@ -761,6 +1209,102 @@ test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
     ).available,
     false,
   );
+
+  const hawkeyeHits = result.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.skillId === ID.HAWKEYE,
+  );
+  assert.equal(hawkeyeHits.length, 5);
+  assert.ok(
+    Math.abs(
+      hawkeyeHits.reduce((sum, event) => sum + event.coefficient, 0) - 6.8,
+    ) < 1e-9,
+  );
+
+  const shrike = simulate(
+    "Galeshot",
+    ["Mistral", "Rapid Fire", "Long Range Shot", "Long Range Shot"],
+    {
+      primaryWeapon: "Longbow",
+      selectedTraitIds: [TRAIT.SHRIKE],
+    },
+  );
+  assert.deepEqual(shrike.warnings, []);
+  assert.equal(
+    shrike.resolvedEvents.filter(
+      (event) => event.type === "damage" && event.skillId === ID.MISTRAL,
+    ).length,
+    12,
+  );
+  assert.equal(
+    shrike.resolvedEvents.filter(
+      (event) => event.type === "damage" && event.sourceId === TRAIT.SHRIKE,
+    ).length,
+    3,
+  );
+
+  const barrage = simulate("Galeshot", ["Mistral", "Barrage"], {
+    primaryWeapon: "Longbow",
+  });
+  assert.equal(
+    barrage.resolvedEvents.some(
+      (event) => event.type === "damage" && event.skillId === ID.MISTRAL,
+    ),
+    false,
+  );
+});
+
+test("Cyclone Bow transitions trigger swap sigils and dedicated weapon lines", () => {
+  const result = simulate(
+    "Galeshot",
+    [
+      "__combat_start",
+      "Summon Cyclone Bow",
+      { type: "wait", durationMs: 10000 },
+      "Dismiss Cyclone Bow",
+    ],
+    {
+      sigilSets: [
+        { names: ["Hydromancy"], strike: 1, condition: 1 },
+        { names: [], strike: 1, condition: 1 },
+      ],
+    },
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.procSteps
+      .filter((step) => step.skill === "Sigil of Hydromancy")
+      .map((step) => step.sourceSkill),
+    ["Summon Cyclone Bow", "Dismiss Cyclone Bow"],
+  );
+
+  const transition = rangerProfession.ui.timelineWeaponLineTransition;
+  const rotation = [
+    "Long Range Shot",
+    "Summon Cyclone Bow",
+    "Keen Shot",
+    "Dismiss Cyclone Bow",
+    "Long Range Shot",
+  ];
+  const rows = timelineWeaponRows(rotation, {
+    startingWeaponSet: 1,
+    weaponLineTransition(entry, current) {
+      const name = typeof entry === "string" ? entry : entry.name;
+      return transition({
+        entry: { name },
+        skill: rangerCatalog.skillsByName.get(name),
+        specialization: "Galeshot",
+        ...current,
+      });
+    },
+  });
+  assert.deepEqual(
+    rows.map((row) => row.weaponLine),
+    [null, "Cyclone Bow", null],
+  );
+  assert.deepEqual(
+    rows.map((row) => row.skills.map((skill) => skill.index)),
+    [[0, 1], [2, 3], [4]],
+  );
 });
 
 test("Ranger trait rules affect their owned damage and attributes", () => {
@@ -768,8 +1312,39 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
   assert.equal(
     RANGER_TRAIT_COVERAGE.filter((entry) => entry.status === "implemented")
       .length,
-    52,
+    59,
   );
+
+  const coreOperations = new Map(
+    rangerCoreModifierRules.map((rule) => [rule.id, rule.operation]),
+  );
+  const soulbeastOperations = new Map(
+    soulbeastModifierRules.map((rule) => [rule.id, rule.operation]),
+  );
+  for (const id of [
+    "ranger.remorseless",
+    "ranger.predators-onslaught-player",
+    "ranger.predators-onslaught-pet",
+    "ranger.wolfsong",
+    "ranger.farsighted",
+    "ranger.hunters-tactics-damage",
+    "ranger.light-on-your-feet",
+    "ranger.bountiful-hunter-player",
+    "ranger.bountiful-hunter-pet",
+    "ranger.loud-whistle-player",
+  ]) {
+    assert.equal(coreOperations.get(id), "multiply", id);
+  }
+  for (const id of ["ranger.sic-em-player", "ranger.oppressive-superiority"]) {
+    assert.equal(soulbeastOperations.get(id), "multiply", id);
+  }
+  for (const id of [
+    "ranger.furious-strength",
+    "ranger.twice-as-vicious-strike",
+    "ranger.twice-as-vicious-condition",
+  ]) {
+    assert.equal(soulbeastOperations.get(id), "damage-additive", id);
+  }
 
   const baseline = simulate("Core", ["Rapid Fire"], {
     primaryWeapon: "Longbow",
@@ -779,6 +1354,18 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
     selectedTraitIds: [TRAIT.FARSIGHTED],
   });
   assert.equal(farsighted.totalDamage > baseline.totalDamage, true);
+
+  const dodgeBaseline = simulate("Core", ["Dodge", "Rapid Fire"], {
+    primaryWeapon: "Longbow",
+  });
+  const lightOnYourFeet = simulate("Core", ["Dodge", "Rapid Fire"], {
+    primaryWeapon: "Longbow",
+    selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET],
+  });
+  assert.ok(
+    Math.abs(lightOnYourFeet.totalDamage / dodgeBaseline.totalDamage - 1.1) <
+      1e-9,
+  );
 
   const cycloneRotation = [
     "Summon Cyclone Bow",
@@ -1002,10 +1589,22 @@ test("Ranger Nature Magic traits grant support and scale with boons", () => {
 
 test("Ranger pet-swap and Marksmanship traits resolve at their combat timings", () => {
   const swapped = simulate("Core", ["__combat_start", "Swap Pets"], {
+    selectedPet: "Carrion Devourer",
+    selectedPet2: "Fanged Iboga",
     selectedTraitIds: [TRAIT.SPIRITED_ARRIVAL, TRAIT.CLARION_BOND],
   });
   assert.deepEqual(swapped.warnings, []);
   assert.equal(swapped.endState.profession.petSwapCount, 1);
+  assert.equal(swapped.endState.profession.activePetSlot, 2);
+  assert.equal(swapped.endState.profession.activePet, "Fanged Iboga");
+  assert.deepEqual(swapped.endState.profession.petNames, [
+    "Carrion Devourer",
+    "Fanged Iboga",
+  ]);
+  assert.equal(
+    swapped.endState.profession.activePetSkillIds.includes(ID.CONSUMING_BITE),
+    true,
+  );
   assert.equal(
     swapped.events.some(
       (event) =>
@@ -1144,7 +1743,7 @@ test("Ranger Wilderness Survival traits cover endurance, poison, and disables", 
   );
   const devourer = simulate(
     "Core",
-    ["Twin Darts", { type: "wait", durationMs: 4000 }],
+    ["__combat_start", { type: "wait", durationMs: 4000 }],
     {
       selectedPet: "Carrion Devourer",
       selectedTraitIds: [TRAIT.ARACHNOPHOBIA],
@@ -1262,7 +1861,13 @@ test("Ranger Wilderness Survival traits cover endurance, poison, and disables", 
   assert.equal(
     attributes["Healing Power"].final -
       withoutWellspring["Healing Power"].final,
-    attributes.Power.final * 0.07,
+    (attributes.Power.base +
+      attributes.Power.gear +
+      attributes.Power.runes +
+      attributes.Power.food +
+      attributes.Power.infusions +
+      attributes.Power.jbc) *
+      0.07,
   );
 
   const petTraitContext = {

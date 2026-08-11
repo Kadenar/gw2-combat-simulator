@@ -652,6 +652,14 @@ function validCanonicalMilliseconds(
   return Number.isFinite(value) && value >= 0;
 }
 
+function validCanonicalOffset(
+  command: SchedulerRecord,
+  field: string,
+): boolean {
+  if (!Object.hasOwn(command, field)) return true;
+  return Number.isFinite(Number(command[field]));
+}
+
 function validCanonicalPositiveInteger(
   command: SchedulerRecord,
   field: string,
@@ -681,10 +689,14 @@ function validateRotationCommand(
     return;
   }
   if (
-    !validCanonicalMilliseconds(candidate, "concurrentOffsetMs") ||
+    !(candidate.type === "combat-start"
+      ? validCanonicalOffset(candidate, "concurrentOffsetMs")
+      : validCanonicalMilliseconds(candidate, "concurrentOffsetMs")) ||
     !validCanonicalMilliseconds(candidate, "interruptAfterMs")
   ) {
-    errors.push("rotation timing fields must be non-negative numbers.");
+    errors.push(
+      "rotation timing fields must be finite; cast timing must be non-negative.",
+    );
   }
   if (!validCanonicalPositiveInteger(candidate, "releaseAtCharges")) {
     errors.push("releaseAtCharges must be a positive whole number.");

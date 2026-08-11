@@ -11,6 +11,19 @@ export interface AmmoView {
   readonly pips?: readonly boolean[];
 }
 
+export interface PaletteResourceView {
+  readonly id: string;
+  readonly label: string;
+  readonly value: number;
+  readonly maximum: number;
+}
+
+export interface PaletteStatusIconView {
+  readonly icon: string;
+  readonly label: string;
+  readonly title?: string;
+}
+
 export interface PaletteSkillView extends SchedulerRecord {
   readonly name?: string;
   readonly skillId?: SkillId | null;
@@ -25,6 +38,7 @@ export interface PaletteSkillView extends SchedulerRecord {
   readonly draggable?: boolean;
   readonly cooldownLabel?: string;
   readonly ammo?: AmmoView | null;
+  readonly resource?: PaletteResourceView | null;
   readonly virtual?: boolean;
 }
 
@@ -33,6 +47,7 @@ export interface PaletteGroupView {
   readonly color?: string;
   readonly className?: string;
   readonly skills?: readonly PaletteSkillView[];
+  readonly statusIcon?: PaletteStatusIconView;
 }
 
 export interface NormalizedPaletteGroup extends Omit<

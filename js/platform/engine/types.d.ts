@@ -263,6 +263,8 @@ export interface Skill extends CatalogSkill {
   readonly rechargeOffsetMs?: number;
   readonly cooldown?: number;
   readonly recharge?: number;
+  /** Which actor's active boons determine recharge-rate modifiers. */
+  readonly rechargeBuffAudience?: "self" | "summon";
   /**
    * Allows a profession mechanic to activate this skill while its ordinary
    * recharge is still running. The profession remains responsible for
@@ -674,6 +676,14 @@ export interface ProfessionResourceView {
   readonly pipRows?: number;
   readonly statusItemsLabel?: string;
   readonly statusItems?: readonly ProfessionResourceStatusItem[];
+  /** Render this resource beneath the matching rotation-palette skill. */
+  readonly paletteSkillId?: SkillId;
+}
+
+export interface ProfessionPaletteStatusIcon {
+  readonly icon: string;
+  readonly label: string;
+  readonly title?: string;
 }
 
 export interface ProfessionPaletteGroup {
@@ -687,6 +697,8 @@ export interface ProfessionPaletteGroup {
   readonly reservedSkillIds?: readonly number[];
   readonly skillEntries?: readonly SchedulerRecord[];
   readonly includeActionSkills?: boolean;
+  /** A read-only icon describing the active entity for this skill group. */
+  readonly statusIcon?: ProfessionPaletteStatusIcon;
 }
 
 export interface ProfessionSkillBarGroup extends SchedulerRecord {
@@ -705,6 +717,8 @@ export interface ProfessionSkillBarGroup extends SchedulerRecord {
 
 export interface ProfessionSkillBarSelection {
   readonly skillId?: SkillId;
+  /** Read-only skills previewed beside this selection. */
+  readonly skillIds?: readonly SkillId[];
   readonly optionSkillIds?: readonly SkillId[];
   readonly optionEntries?: readonly ProfessionSkillBarSelectionOption[];
   readonly selectionValue?: string;

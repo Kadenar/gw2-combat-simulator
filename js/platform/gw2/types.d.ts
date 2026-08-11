@@ -503,6 +503,11 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly flatStrikeThresholdMultiplier?: number;
   readonly summonDamagePerCoefficient?: number;
   readonly summonBasePower?: number;
+  readonly summonBasePrecision?: number;
+  readonly summonBaseFerocity?: number;
+  readonly summonBaseConditionDamage?: number;
+  readonly summonBaseExpertise?: number;
+  readonly summonInheritsCriticalAttributes?: boolean;
   readonly independentSummonStrike?: boolean;
   readonly summonInheritsAttributes?: boolean;
   readonly summonUsesProfessionModifiers?: boolean;
