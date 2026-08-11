@@ -117,3 +117,22 @@ export function reactToWarriorDamage(
     String(context.helpers.skillsById?.get(ID.SIGNET_OF_MIGHT)?.icon || ""),
   );
 }
+
+export function reactToWarriorBuff(
+  context: WarriorResolverContext,
+  event: WarriorResolverEvent,
+): void {
+  if (
+    Number(event.sourceId) !== TRAIT.PEAK_PERFORMANCE ||
+    event.kind !== "peak-performance"
+  ) {
+    return;
+  }
+  context.recordProc(
+    "trait",
+    "Peak Performance",
+    event.at,
+    event.skillName,
+    "+10% strike damage for 6 seconds",
+  );
+}

@@ -13,6 +13,10 @@
       "name": "Head Butt"
     },
     {
+      "name": "__combat_start",
+      "offset": 700
+    },
+    {
       "name": "Berserk",
       "skillId": 30185
     },
@@ -36,6 +40,9 @@
     },
     {
       "name": "Tremor"
+    },
+    {
+      "name": "Cyclone Axe"
     },
     {
       "name": "Crushing Blow"

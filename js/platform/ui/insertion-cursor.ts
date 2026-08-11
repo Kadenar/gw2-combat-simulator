@@ -33,6 +33,17 @@ export function rotationInsertionGapHtml(
   </button>`;
 }
 
+export function rotationTimelineEntryHtml(
+  index: number,
+  activeIndex: unknown,
+  skillHtml: string,
+): string {
+  return `<div class="rot-entry">
+    ${rotationInsertionGapHtml(index, activeIndex)}
+    ${skillHtml}
+  </div>`;
+}
+
 export function mountRotationInsertionCursor({
   root,
   insertionIndex,

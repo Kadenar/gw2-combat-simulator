@@ -24,7 +24,7 @@ export function applyNecromancerBuildAttributeRules(
     disabledTrait = null,
   }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
-  const attributes = common.attributes;
+  const { conversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(
     (build.specializations || []) as NecromancerSpecializationSelection[],
   ).filter((trait) => trait.name !== disabledTrait);
@@ -34,7 +34,7 @@ export function applyNecromancerBuildAttributeRules(
   const traitDurations: Gw2NumericAttributes = {};
 
   if (hasTrait("Spiteful Fortitude")) {
-    addAttribute(traitStats, "Vitality", attributes.Power.final * 0.1);
+    addAttribute(traitStats, "Vitality", (conversionPool.Power || 0) * 0.1);
   }
   if (hasTrait("Furious Demise")) {
     addAttribute(traitStats, "Precision", 180);
@@ -48,7 +48,7 @@ export function applyNecromancerBuildAttributeRules(
   if (hasTrait("Alchemic Vigor")) {
     addAttribute(traitStats, "Vitality", 240);
   }
-  const vitality = attributes.Vitality.final + Number(traitStats.Vitality || 0);
+  const vitality = conversionPool.Vitality || 0;
   if (hasTrait("Implacable Foe")) {
     addAttribute(traitStats, "Ferocity", vitality * 0.13);
   }
@@ -62,17 +62,14 @@ export function applyNecromancerBuildAttributeRules(
     addAttribute(traitStats, "Concentration", 180);
   }
   if (hasTrait("Target the Weak")) {
-    const precision =
-      attributes.Precision.final + Number(traitStats.Precision || 0);
+    const precision = conversionPool.Precision || 0;
     addAttribute(traitStats, "Condition Damage", Math.floor(precision * 0.13));
   }
   if (hasTrait("Fell Beacon")) {
     addAttribute(
       traitStats,
       "Expertise",
-      (attributes["Condition Damage"].final +
-        Number(traitStats["Condition Damage"] || 0)) *
-        0.07,
+      (conversionPool["Condition Damage"] || 0) * 0.07,
     );
   }
   if (selectedSkill(selectedSkills, "Signet of Spite")) {

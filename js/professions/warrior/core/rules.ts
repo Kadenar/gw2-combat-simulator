@@ -193,6 +193,10 @@ function modifyWarriorAttributes(
   result.vitality = Number(result.vitality || 0);
   result.healingPower = Number(result.healingPower || 0);
   result.concentration = Number(result.concentration || 0);
+  // Pattern C: attribute conversions read the gear-only pool. config.stats
+  // holds pre-boon gear attributes (might is baked into the seed's power, and
+  // live trait bonuses accrue on `result`), so this converts gear power only.
+  const gearPower = Number(context.config?.stats?.power || 0);
   if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
     result.power +=
       Number(
@@ -211,15 +215,14 @@ function modifyWarriorAttributes(
   }
   if (hasTrait(context, TRAIT.SIGNET_MASTERY))
     result.ferocity += signetStacks * 100;
-  if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
-    const convertedPower = staticRulesApplied
-      ? result.power - Number(context.config?.stats?.power || 0)
-      : result.power;
-    result.vitality += convertedPower * 0.1;
-    result.ferocity += convertedPower * 0.1;
+  if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
+    // Static path bakes this from conversionPool in build-attributes; add no
+    // dynamic delta so might/signets never leak into the conversion.
+    result.vitality += gearPower * 0.1;
+    result.ferocity += gearPower * 0.1;
   }
   if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS) && !staticRulesApplied) {
-    result.healingPower += result.power * 0.13;
+    result.healingPower += gearPower * 0.13;
   }
   if (
     hasTrait(context, TRAIT.DEEP_STRIKES) &&
@@ -244,9 +247,6 @@ function modifyWarriorAttributes(
   if (activeBuffStacks(context, "signet-of-fury-active", 1) > 0) {
     result.precision += 360;
     result.ferocity += 360;
-    if (hasTrait(context, TRAIT.WOUNDING_PRECISION)) {
-      result.expertise += 360 * 0.07;
-    }
   }
   for (const [name, id, attribute] of [
     ["Signet of Might", ID.SIGNET_OF_MIGHT, "power"],
@@ -258,20 +258,10 @@ function modifyWarriorAttributes(
     );
     if (staticRulesApplied ? onCooldown : !onCooldown) {
       const delta = staticRulesApplied ? -180 : 180;
+      // Signet power/precision toggles are real stat changes, but they are not
+      // part of the gear pool, so they no longer feed Great Fortitude /
+      // Wounding Precision conversions (Pattern C).
       result[attribute] += delta;
-      if (
-        id === ID.SIGNET_OF_FURY &&
-        hasTrait(context, TRAIT.WOUNDING_PRECISION)
-      ) {
-        result.expertise += delta * 0.07;
-      }
-      if (
-        id === ID.SIGNET_OF_MIGHT &&
-        hasTrait(context, TRAIT.GREAT_FORTITUDE)
-      ) {
-        result.vitality += delta * 0.1;
-        result.ferocity += delta * 0.1;
-      }
     }
   }
   return result;
@@ -529,8 +519,23 @@ const DUAL_WIELD_OFFHANDS = new Set(["Axe", "Dagger", "Mace", "Sword"]);
 const DUAL_WIELDING_EXCLUDED_SKILL_IDS = new Set<number>([
   ID.AURA_SLICER,
   ID.KICK,
+  ID.BULLS_CHARGE,
   ...BREACHING_STRIKE_IDS,
 ]);
+/** GW2 completes cast durations on 40 ms action-tick boundaries. */
+const ACTION_TICK_MS = 40;
+
+// Dual Wielding increases attack speed by 25%, so cast duration is divided by
+// 1.25. The tick snap must happen once, on the final duration: the game applies
+// every attack-speed modifier (Quickness included) and only then rounds to the
+// nearest action tick. Rounding the Quickness duration first — as the shared
+// scheduler does — then dividing here would double-round and run long.
+function roundToActionTick(durationSeconds: number): number {
+  return (
+    (Math.round((durationSeconds * 1000) / ACTION_TICK_MS) * ACTION_TICK_MS) /
+    1000
+  );
+}
 
 function modifyCastDuration(
   context: WarriorCastContext,
@@ -542,15 +547,23 @@ function modifyCastDuration(
       ? context.config.weaponSet2Secondary || ""
       : context.config.secondaryWeapon || "",
   );
-  return hasTrait(context, TRAIT.DUAL_WIELDING) &&
+  const measured = Number(skill.dualWieldCastTimeMs || 0);
+  const dualWielding =
+    hasTrait(context, TRAIT.DUAL_WIELDING) &&
     DUAL_WIELD_OFFHANDS.has(offhand) &&
     !DUAL_WIELDING_EXCLUDED_SKILL_IDS.has(Number(skill.id)) &&
     (skill.type === "Weapon" ||
       skill.type === "Utility" ||
       Boolean(skill.weapon) ||
-      Boolean(skill.burst))
-    ? duration / 1.25
-    : duration;
+      Boolean(skill.burst) ||
+      measured > 0);
+  if (!dualWielding) return duration;
+  // A measured Dual Wielding cast (captured under Quickness) is used verbatim;
+  // the 1.25 divide is only a fallback for skills without a measured value.
+  if (measured > 0 && context.hasBuff("quickness", context.start)) {
+    return measured / 1000;
+  }
+  return roundToActionTick(duration / 1.25);
 }
 
 export const warriorCoreAttributeRules = Object.freeze({

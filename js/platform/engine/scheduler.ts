@@ -201,6 +201,12 @@ function scheduleDeclarativeEffects<TProfessionState extends object>(
 
 const CORE_CAST_COMPLETE = "platform.cast-complete";
 
+const DAMAGE_BEARING_EVENT_TYPES = new Set([
+  "damage",
+  "condition",
+  "condition_tick",
+]);
+
 /**
  * @param {string} reason
  * @param {string} [code]
@@ -909,6 +915,15 @@ export function createScheduler<
       return false;
     }
     const concurrent = command.concurrentOffsetMs != null;
+    if (concurrent && skill.canCastConcurrently === false) {
+      recordInvalid(
+        commandIndex,
+        skill,
+        state.time,
+        `${skill.name} cannot be cast concurrently.`,
+      );
+      return false;
+    }
     const independent = skill.independentCast === true;
     const stunbreak = skill.stunbreak === true;
     // Instant-cast skills (Berserk, signets, most profession keys) are not held
@@ -1305,6 +1320,22 @@ export function createScheduler<
         (latest, event) => Math.max(latest, Number(event.at)),
         rotationEnd,
       );
+    const directDamageEnd = events
+      .filter((event) => DAMAGE_BEARING_EVENT_TYPES.has(String(event.type)))
+      .reduce(
+        (latest, event) => Math.max(latest, Number(event.at)),
+        rotationEnd,
+      );
+    // Definition-level simulations without a killable target can inspect every
+    // scheduled packet. A real target is still resolved only through the
+    // entered rotation's current cast window.
+    const resolutionEnd = Math.max(
+      state.time,
+      persistentEffectEnd,
+      directDamageEnd,
+      rotationEnd,
+      0.001,
+    );
     return {
       context,
       state,
@@ -1314,7 +1345,8 @@ export function createScheduler<
       snapshot,
       stream: buildScheduledEventStream({
         events,
-        rotationEndTime: Math.max(state.time, persistentEffectEnd, 0.001),
+        rotationEndTime: Math.max(rotationEnd, 0.001),
+        resolutionEndTime: resolutionEnd,
         resolverHandoff: {
           profession: activeProfession.id,
           professionState: snapshot,

@@ -1,5 +1,6 @@
 import {
   defineNativeModule,
+  onBuffApplied,
   onResolvedDamage,
 } from "../../../platform/gw2/native-profession.js";
 import { createWarriorModuleData } from "../catalog-data.js";
@@ -18,7 +19,11 @@ import {
 import { createWarriorCoreState, projectWarriorEndState } from "./state.js";
 import { bindWarriorCoreUi } from "./ui.js";
 import type { WarriorSchedulerContext } from "../types.js";
-import { reactToWarriorBoonRemoval, reactToWarriorDamage } from "./resolver.js";
+import {
+  reactToWarriorBoonRemoval,
+  reactToWarriorBuff,
+  reactToWarriorDamage,
+} from "./resolver.js";
 
 export const warriorCoreModule = defineNativeModule({
   id: "Core",
@@ -47,6 +52,10 @@ export const warriorCoreModule = defineNativeModule({
       onResolvedDamage({
         id: "warrior.core-damage",
         handler: reactToWarriorDamage,
+      }),
+      onBuffApplied({
+        id: "warrior.peak-performance",
+        handler: reactToWarriorBuff,
       }),
     ],
   },

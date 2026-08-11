@@ -1,16 +1,19 @@
 {
   "metadata": {
-    "log": "spellbreaker dm + sd.zevtc",
-    "benchmarkDurationSeconds": 92.406,
-    "benchmarkDamage": 3957534,
-    "benchmarkDps": 42827.673527693005,
-    "timingSource": "EVTC activation and packet timings measured under Quickness and Dual Wielding",
-    "note": "Winds is precast before Combat Start; seven Dagger/Mace windows and seven Sword/Dagger windows preserve the supplied activation sequence."
+    "benchmarkDurationSeconds": 91.507,
+    "benchmarkDamage": 3970179.1954002595,
+    "benchmarkDps": 43386.61736698027,
+    "timingSource": "Supplied simulator rotation",
+    "note": "Healing Signet, Signet of Might, Kick, Signet of Fury, Winds of Disenchantment, and Breaching Strike are precast; Combat Start uses the supplied 750 ms offset."
   },
   "rotation": [
+    { "name": "Healing Signet", "skillId": 14389 },
+    { "name": "Signet of Might", "skillId": 14404 },
+    { "name": "Kick", "skillId": 14502 },
+    { "name": "Signet of Fury", "skillId": 14410 },
     "Winds of Disenchantment",
-    "__combat_start",
     "Breaching Strike",
+    { "name": "__combat_start", "offset": 750 },
     "Crushing Blow",
     "Tremor",
     "Crushing Blow",
@@ -56,12 +59,10 @@
     "Signet of Fury",
     "Crushing Blow",
     "Breaching Strike",
-    { "name": "Precise Cut", "interruptMs": 25 },
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
 
-    { "name": "Sever Artery", "interruptMs": 83 },
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",
@@ -108,7 +109,6 @@
     "Crushing Blow",
     "Swap Weapons",
 
-    { "name": "Sever Artery", "interruptMs": 117 },
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",
@@ -150,12 +150,10 @@
     "Signet of Fury",
     "Crushing Blow",
     "Breaching Strike",
-    { "name": "Precise Cut", "interruptMs": 25 },
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
 
-    { "name": "Sever Artery", "interruptMs": 84 },
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",
@@ -248,7 +246,6 @@
     { "name": "Precise Cut", "interruptMs": 25 },
     "Swap Weapons",
 
-    { "name": "Sever Artery", "interruptMs": 75 },
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",

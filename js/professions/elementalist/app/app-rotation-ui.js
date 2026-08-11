@@ -18,6 +18,7 @@ import {
   mountRotationInsertionCursor,
   normalizeRotationInsertionIndex,
   rotationInsertionGapHtml,
+  rotationTimelineEntryHtml,
 } from "../../../platform/ui/insertion-cursor.js";
 
 const DEFAULT_CONCURRENT_OFFSET_MS = 100;
@@ -928,8 +929,9 @@ export function renderTimeline(
           const canEditActivation =
             Boolean(skill) &&
             (interruptMs !== undefined || fullCastMs > 0 || catalogCastMs > 0);
-          return (
-            rotationInsertionGapHtml(idx, app.rotationInsertionIndex) +
+          return rotationTimelineEntryHtml(
+            idx,
+            app.rotationInsertionIndex,
             `<div class="rot-skill${concurClass}${gapFillClass}" draggable="true" data-idx="${idx}" title="${esc(displayName)}${castInfo}${concurInfo}${interruptInfo}${waitInfo}${gapFillInfo}" style="--att-border:${c}">
                     <img src="${icon || PLACEHOLDER_ICON}" />
                     ${
@@ -941,7 +943,7 @@ export function renderTimeline(
                     <span class="rot-x">\u00d7</span>
                     ${ts && !isConcurrent && interruptMs === undefined ? `<span class="rot-time">${ts}</span>` : ""}
                     ${offsetBadge}${interruptBadge}${waitBadge}${gapFillBadge}
-                </div>`
+                </div>`,
           );
         })
         .join("");

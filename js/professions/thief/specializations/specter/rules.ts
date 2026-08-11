@@ -43,18 +43,20 @@ function modifySpecterAttributes(
 ): Gw2ResolvedStats {
   if (professionStaticRulesApplied(context.config)) return attributes;
   const result = { ...attributes };
+  // Pattern C: conversions read gear-only stats. config.stats excludes might
+  // (baked into the seed's condition damage) and live trait bonuses.
+  const gearConditionDamage = Number(context.config?.stats?.conditionDamage || 0);
+  const gearVitality = Number(context.config?.stats?.vitality || 0);
   if (hasTrait(context, TRAIT.SECOND_OPINION)) {
     result.healingPower =
-      Number(result.healingPower || 0) +
-      Number(attributes.conditionDamage || 0) * 0.07;
+      Number(result.healingPower || 0) + gearConditionDamage * 0.07;
     result.conditionDamage =
       Number(result.conditionDamage || 0) +
       90 +
       (wieldingScepter(context) ? 90 : 0);
   }
   if (hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS)) {
-    result.expertise =
-      Number(result.expertise || 0) + Number(result.vitality || 0) * 0.13;
+    result.expertise = Number(result.expertise || 0) + gearVitality * 0.13;
   }
   return result;
 }

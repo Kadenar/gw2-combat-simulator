@@ -526,6 +526,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 500,
+    dualWieldCastTimeMs: 400,
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,

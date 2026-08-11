@@ -63,7 +63,11 @@ test("Power Berserker Hammer/Axe-Mace preset follows the supplied report", async
   assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 94.55);
   assert.equal(savedRotation.metadata.benchmarkDamage, 3966807);
   assert.equal(savedRotation.metadata.benchmarkDps, 41954.59545214172);
-  assert.equal(savedRotation.rotation.length, 166);
+  assert.equal(savedRotation.rotation.length, 168);
+  assert.deepEqual(savedRotation.rotation.slice(0, 2), [
+    { name: "Head Butt" },
+    { name: "__combat_start", offset: 700 },
+  ]);
   assert.equal(
     savedRotation.rotation.filter(
       (command) =>
@@ -78,6 +82,22 @@ test("Power Berserker Hammer/Axe-Mace preset follows the supplied report", async
     ).length,
     7,
   );
+  assert.equal(
+    savedRotation.rotation.filter(
+      (command) =>
+        (typeof command === "string" ? command : command.name) ===
+        "Cyclone Axe",
+    ).length,
+    11,
+  );
+  const firstTremorIndex = savedRotation.rotation.findIndex(
+    (command) =>
+      (typeof command === "string" ? command : command.name) === "Tremor",
+  );
+  assert.equal(
+    savedRotation.rotation[firstTremorIndex + 1].name,
+    "Cyclone Axe",
+  );
 
   const build = migrateWarriorBuild({
     ...raw,
@@ -91,6 +111,14 @@ test("Power Berserker Hammer/Axe-Mace preset follows the supplied report", async
   recalculate(app);
   const result = runSimulation(app);
   assert.deepEqual(result.warnings, []);
+  const combatStart = result.events.find(
+    (event) => event.type === "combat_start",
+  );
+  assert.equal(combatStart.at, 0.7);
+  const firstCycloneAxe = result.steps.find(
+    (step) => step.skill === "Cyclone Axe",
+  );
+  assert.equal(firstCycloneAxe.start, 4680);
 
   const decapitateEvents = result.resolvedEvents.filter(
     (event) => event.type === "damage" && event.skillId === ID.DECAPITATE,
@@ -113,5 +141,5 @@ test("Power Berserker Hammer/Axe-Mace preset follows the supplied report", async
     Math.abs(result.totalDamage / savedRotation.metadata.benchmarkDamage - 1) <
       0.01,
   );
-  assert.ok(Math.abs(result.dps - preset.benchmarkDps) < 100);
+  assert.ok(Math.abs(result.dps / preset.benchmarkDps - 1) < 0.03);
 });

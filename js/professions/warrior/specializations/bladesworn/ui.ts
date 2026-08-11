@@ -34,6 +34,7 @@ const GUNSABER_SKILLS = Object.freeze([
   ID.CYCLONE_TRIGGER,
   ID.BREAK_STEP,
 ]);
+const PALETTE_STACK_ID = "bladesworn-profession";
 
 function resources(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
@@ -59,24 +60,38 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 export const bladeswornUi: Partial<ProfessionUiContract> = Object.freeze({
   chargeReleaseProjection: dragonChargeReleaseProjection,
   paletteGroups: (context: WarriorUiContext) => [
-    ...warriorPaletteGroups(context, PROFESSION_SKILLS),
+    ...warriorPaletteGroups(context, PROFESSION_SKILLS).map((group) =>
+      group.id === "profession"
+        ? {
+            ...group,
+            className: "bladesworn-f-skills",
+            stackId: PALETTE_STACK_ID,
+          }
+        : group,
+    ),
     {
       id: "dragon-slash",
       label: "Dgn",
       skillIds: DRAGON_SLASH_SKILLS,
       color: "#d56f55",
+      className: "bladesworn-dragon-slash",
+      stackId: PALETTE_STACK_ID,
     },
     {
       id: "dragon-trigger",
       label: "Dgn+",
       skillIds: DRAGON_TRIGGER_SKILLS,
       color: "#ba5f5f",
+      className: "bladesworn-dragon-trigger",
+      stackId: PALETTE_STACK_ID,
     },
     {
       id: "gunsaber",
       label: "Gun",
       skillIds: GUNSABER_SKILLS,
       color: "#c97645",
+      className: "bladesworn-gunsaber",
+      stackId: PALETTE_STACK_ID,
     },
   ],
   skillBarGroups: (context: WarriorUiContext) => [

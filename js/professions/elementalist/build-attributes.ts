@@ -45,7 +45,6 @@ export function applyElementalistBuildAttributeRules(
     activeTraits.some((trait) => trait.name === name);
   const {
     conversionPool,
-    conversionPoolNoFood,
     foodDurations,
     runeDurations,
     sigilCriticalChance,
@@ -63,7 +62,7 @@ export function applyElementalistBuildAttributeRules(
     addAttribute(
       traitStats,
       "Condition Damage",
-      Math.round((conversionPoolNoFood.Toughness || 0) * 0.1),
+      Math.round((conversionPool.Toughness || 0) * 0.1),
     );
   }
   if (selectedSkill(selectedSkills, "Signet of Fire")) {

@@ -1,4 +1,5 @@
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
+import { gw2RechargeRate } from "../../../../platform/gw2/runtime-rules.js";
 import {
   WARRIOR_SKILL_IDS as ID,
   WARRIOR_TRAIT_IDS as TRAIT,
@@ -117,6 +118,7 @@ function emitLightningLeapDaze(
 }
 
 function triggerMagebaneTether(
+  context: WarriorSchedulerContext | WarriorResolverContext,
   state: {
     magebaneTetherUntil: number;
     magebaneTetherReadyAt: number;
@@ -125,7 +127,8 @@ function triggerMagebaneTether(
 ): boolean {
   if (at < state.magebaneTetherReadyAt) return false;
   state.magebaneTetherUntil = at + MAGEBANE_TETHER_DURATION;
-  state.magebaneTetherReadyAt = at + MAGEBANE_TETHER_COOLDOWN;
+  state.magebaneTetherReadyAt =
+    at + MAGEBANE_TETHER_COOLDOWN / gw2RechargeRate(context.config);
   return true;
 }
 
@@ -183,7 +186,7 @@ export function observeSpellbreakerEvent(
       ? undefined
       : context.catalog.skillsById.get(event.skillId);
   if (skill?.burst) {
-    triggerMagebaneTether(spellbreakerState.from(context), event.at);
+    triggerMagebaneTether(context, spellbreakerState.from(context), event.at);
   }
 }
 
@@ -220,7 +223,7 @@ export function reactToSpellbreakerDamage(
       : context.helpers.skillsById?.get(event.skillId);
   if (
     skill?.burst &&
-    triggerMagebaneTether(spellbreakerState.from(context), event.at)
+    triggerMagebaneTether(context, spellbreakerState.from(context), event.at)
   ) {
     context.recordProc(
       "trait",

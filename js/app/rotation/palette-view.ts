@@ -647,7 +647,12 @@ export function renderPalette(app: ProfessionAppState): void {
         return;
       }
       const instant = paletteSkillIsInstant(app, paletteContext, skill, name);
-      if (event.shiftKey && instant && app.build.rotation.length) {
+      if (
+        event.shiftKey &&
+        instant &&
+        skill?.canCastConcurrently !== false &&
+        app.build.rotation.length
+      ) {
         app.addRotation(name, {
           ...identity,
           offset: CONCURRENT_OFFSET_MS,

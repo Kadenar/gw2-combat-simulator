@@ -13,6 +13,9 @@ import type {
 import { emitBerserkMarker } from "./mechanics.js";
 import { berserkerState } from "./state.js";
 
+const FIRE_AURA_ICON =
+  "https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png";
+
 function emitBoon(
   context: WarriorCastContext,
   skill: WarriorSkill,
@@ -264,18 +267,30 @@ function emitFireAura(
 ): void {
   const fromTrait = source === "Trait";
   berserkerState.from(context).fireAuraUntil = event.at + 5;
-  context.emitDerived(event, {
-    type: "buff",
+  const common = {
     at: event.at,
     source,
     sourceId: fromTrait ? TRAIT.KING_OF_FIRES : "warrior.combo.fire-leap",
     actorType: "effect",
     skillId: event.skillId,
     skillName: event.skillName,
+  } as const;
+  context.emitDerived(event, {
+    ...common,
+    type: "buff",
     name: fromTrait ? "King of Fires — Fire Aura" : "Fire Aura — Leap Combo",
     kind: "fire-aura",
     stacks: 1,
     duration: 5,
+  });
+  context.emitDerived(event, {
+    ...common,
+    type: "proc",
+    procType: fromTrait ? "trait" : "skill",
+    name: "Fire Aura",
+    sourceSkill: String(event.skillName || event.name || ""),
+    detail: fromTrait ? "Granted by King of Fires" : "Granted by leap combo",
+    icon: FIRE_AURA_ICON,
   });
 }
 

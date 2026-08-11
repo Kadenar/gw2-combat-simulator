@@ -1,6 +1,14 @@
 import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from "../../../app/simulation/randomness.js";
-import { WARRIOR_SKILL_IDS as ID } from "../data/ids.js";
+import {
+  timedBuffAt,
+  timedBuffStacksAt,
+} from "../../../app/rotation/state-snapshot-view.js";
+import {
+  WARRIOR_SKILL_IDS as ID,
+  WARRIOR_TRAIT_IDS as TRAIT,
+} from "../data/ids.js";
+import { getActiveTraits } from "../data/traits-data.js";
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
@@ -9,13 +17,19 @@ import type {
   ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionUiContract,
+  RotationStateSnapshotItem,
 } from "../../../platform/engine/types.js";
+import type { Gw2SimulationResult } from "../../../platform/gw2/types.js";
+import type { WarriorSpecializationSelection } from "../data/traits-data.js";
 import type {
   WarriorSimulationEvent,
   WarriorSkill,
   WarriorState,
   WarriorUiContext,
 } from "../types.js";
+
+/** Signet Mastery caps at 5 stacks, each granting +100 ferocity. */
+const SIGNET_MASTERY_MAX_STACKS = 5;
 
 let warriorCatalog: Readonly<CanonicalCatalog>;
 
@@ -176,21 +190,7 @@ export function warriorSkillBarGroups(
 
 function resourceViews(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
-  const endurance: ProfessionResourceView = {
-    id: "endurance",
-    singular: "endurance",
-    plural: "endurance",
-    maximum: Number(state.maximumEndurance || 100),
-    value: Number(state.endurance ?? 100),
-    startMaximum: 100,
-    startValue: 100,
-    canStart: false,
-    step: 1,
-    displayMode: "bar",
-    shortLabel: "End",
-    statusLabel: "Current",
-  };
-  if (warriorUiSpecialization(context) === "Bladesworn") return [endurance];
+  if (warriorUiSpecialization(context) === "Bladesworn") return [];
   return [
     {
       id: "adrenaline",
@@ -211,7 +211,6 @@ function resourceViews(context: WarriorUiContext): ProfessionResourceView[] {
       shortLabel: "Adr",
       statusLabel: "Current",
     },
-    endurance,
   ];
 }
 
@@ -311,9 +310,52 @@ function warriorEventLogRow(
   };
 }
 
+/** True when the build has the Arms trait Signet Mastery selected. */
+function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
+  return getActiveTraits(
+    (context.build?.specializations || []) as WarriorSpecializationSelection[],
+  ).some((trait) => Number(trait.id) === TRAIT.SIGNET_MASTERY);
+}
+
+/**
+ * Core Warrior buffs active at the inspection point. Read from the same buff
+ * timeline as their modifiers so the bar never drifts from the simulation.
+ */
+function warriorCoreStateSnapshot(
+  context: WarriorUiContext,
+): RotationStateSnapshotItem[] {
+  const result = context.result as Gw2SimulationResult | null | undefined;
+  const at = warriorSnapshotAt(context);
+  const items: RotationStateSnapshotItem[] = [];
+  const peakPerformance = timedBuffAt(result, "peak-performance", at);
+  if (peakPerformance) {
+    items.push({
+      id: "peak-performance",
+      label: "Peak Performance",
+      value: formatSecondsRemaining(peakPerformance.remaining),
+      title: "Peak Performance: +10% strike damage (+15% total from trait)",
+    });
+  }
+  if (!hasSignetMasteryTrait(context)) return items;
+  const stacks = Math.min(
+    SIGNET_MASTERY_MAX_STACKS,
+    timedBuffStacksAt(result, "signet-mastery", at),
+  );
+  if (stacks > 0) {
+    items.push({
+      id: "signet-mastery",
+      label: "Signet Mastery",
+      value: `${stacks}/${SIGNET_MASTERY_MAX_STACKS}`,
+      title: `Signet Mastery: +${stacks * 100} ferocity (+100 per stack)`,
+    });
+  }
+  return items;
+}
+
 export const warriorCoreUi: Partial<ProfessionUiContract> = Object.freeze({
   assumptionControls: SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
   eventLogRow: warriorEventLogRow,
+  rotationStateSnapshot: warriorCoreStateSnapshot,
   paletteGroups: (context) =>
     warriorUiSpecialization(context) === "Core"
       ? warriorPaletteGroups(context)

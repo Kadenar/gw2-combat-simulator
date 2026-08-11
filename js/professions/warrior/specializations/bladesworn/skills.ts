@@ -14,7 +14,8 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<
   [ID.DRAGON_TRIGGER]: {
     implemented: true,
     effects: [],
-    quicknessCastTimeMs: 167,
+    castTimeMs: 0,
+    canCastConcurrently: false,
     handlerId: "warrior.dragon-trigger",
   },
   [ID.ELECTRIC_FENCE]: {

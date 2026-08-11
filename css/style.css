@@ -1,6 +1,7 @@
 @import url("./rotation-activation-editor.css");
 @import url("./charge-release-editor.css");
 @import url("./rotation-insertion-cursor.css");
+@import url("./rotation-timeline-size.css");
 
 :root {
   --bg-dark: #0c0c14;
@@ -2004,6 +2005,54 @@ header .accent {
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
+}
+
+.profession-resource-stack:has(
+  > .profession-palette-stack[data-palette-stack="bladesworn-profession"]
+) {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: start;
+  justify-items: start;
+}
+
+.profession-resource-stack:has(
+    > .profession-palette-stack[data-palette-stack="bladesworn-profession"]
+  )
+  > .profession-palette-stack,
+.profession-resource-stack:has(
+    > .profession-palette-stack[data-palette-stack="bladesworn-profession"]
+  )
+  > .active-resource-stack {
+  display: contents;
+}
+
+.bladesworn-f-skills {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.profession-resource-stack:has(
+    > .profession-palette-stack[data-palette-stack="bladesworn-profession"]
+  )
+  .active-resource-group:has([data-resource-id="flow"]) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.bladesworn-dragon-slash {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.bladesworn-dragon-trigger {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.bladesworn-gunsaber {
+  grid-column: 1 / -1;
+  grid-row: 3;
 }
 
 .antiquary-artifact-group {

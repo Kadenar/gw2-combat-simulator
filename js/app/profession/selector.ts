@@ -9,6 +9,7 @@
  */
 
 import { embedRoute, isEmbedded } from "../embed.js";
+import { mountRotationTimelineSize } from "../../platform/ui/rotation-timeline-size.js";
 import {
   getProfessionEntry,
   professionRegistry,
@@ -107,6 +108,7 @@ function renderProfessionCards(root: Document): void {
  * are allowed so the same entry point can run on landing and simulator pages.
  */
 export function bindProfessionSelector(root: Document = document): void {
+  mountRotationTimelineSize(root);
   const select = root.getElementById(
     "profession-select",
   ) as HTMLSelectElement | null;

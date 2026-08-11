@@ -47,6 +47,13 @@
   cursor: pointer;
 }
 
+.rot-entry {
+  display: flex;
+  flex: 0 0 56px;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 .rot-insertion-arrow {
   position: absolute;
   top: 17px;
@@ -109,6 +116,11 @@
 .rot-insertion-gap.active {
   flex-basis: 20px;
   min-width: 20px;
+}
+
+.rot-entry > .rot-insertion-gap.active {
+  flex-basis: 12px;
+  min-width: 12px;
 }
 
 @media (max-width: 640px) {

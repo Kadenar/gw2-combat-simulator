@@ -210,6 +210,11 @@ export function modifyNecromancerCoreAttributes(
   attributes: SchedulerRecord,
 ): SchedulerRecord {
   const result = cloneNecromancerAttributes(attributes);
+  // Pattern C: conversions read gear-only stats. config.stats excludes might
+  // (baked into the seed's power/condition damage) and live trait bonuses
+  // (accrued on `result`).
+  const gearPower = Number(context.config?.stats?.power || 0);
+  const gearPrecision = Number(context.config?.stats?.precision || 0);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (selectedSkill(context, "Signet of Spite")) {
     const passiveActive =
@@ -248,13 +253,11 @@ export function modifyNecromancerCoreAttributes(
   }
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)) {
-      result.vitality += Number(result.power || 0) * 0.1;
+      result.vitality += gearPower * 0.1;
     }
     if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) result.precision += 180;
     if (hasTrait(context, TRAIT.TARGET_THE_WEAK)) {
-      result.conditionDamage += Math.floor(
-        Number(result.precision || 0) * 0.13,
-      );
+      result.conditionDamage += Math.floor(gearPrecision * 0.13);
     }
     if (hasTrait(context, TRAIT.LINGERING_CURSE)) {
       result.conditionDamage += 200;

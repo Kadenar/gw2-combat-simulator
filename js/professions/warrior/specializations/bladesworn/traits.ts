@@ -175,7 +175,10 @@ export function enterDragonTrigger(
     context.effectiveEnd + DRAGON_CHARGE_INTERVAL_SECONDS;
   state.dragonCharges = 0;
   state.dragonChargesPerInterval =
-    state.tacticalReloadUntil + context.epsilon >= context.effectiveEnd ? 2 : 1;
+    state.tacticalReloadUntil > 0 &&
+    state.tacticalReloadUntil + context.epsilon >= context.effectiveEnd
+      ? 2
+      : 1;
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
   state.dragonTriggerRotationIndex = context.commandIndex;
   state.dragonTriggerFlowSpent = 0;
@@ -576,7 +579,9 @@ function restoreAmmo(
     context.state.cooldowns.delete(skill.id);
   }
   ammo.charges += restored;
-  if (ammo.charges >= ammo.maximum) ammo.nextRechargeAt = null;
+  // Tactical Reload restores a charge without resetting count-recharge
+  // progress. If the skill is temporarily full, the pending recharge can
+  // still refill a charge spent before that timer completes.
   context.cooldownController.refreshAmmo(skill, at);
   if (lockoutReadyAt > at + context.epsilon) {
     context.state.cooldowns.set(skill.id, lockoutReadyAt);
