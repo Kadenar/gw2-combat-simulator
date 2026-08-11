@@ -20,6 +20,7 @@ import {
   emitState,
   gainNecromancerLifeForce,
   hasTrait,
+  necromancerPartyBoonRecipients,
   registerCreatureSummonReaction,
   runCreatureSummonReactions,
 } from "../../core/shared.js";
@@ -167,6 +168,7 @@ function queueSpiritAutoattacks(
       requiresSpiritGeneration: generation,
       summonKind: "spirit",
       summonOwner: `spirit:${spirit.key}`,
+      summonInheritsCriticalAttributes: true,
       spirit: spirit.key,
       spiritAttackType: "autoattack",
       anguishConditionalDamage: spirit.key === "anguish",
@@ -180,13 +182,16 @@ function emitEmpoweringSpirits(
   key: string,
 ): void {
   if (!hasTrait(context, TRAIT.EMPOWERING_SPIRITS)) return;
-  emitBuff(context, skill, "quickness", 3.75);
+  const boonOptions = {
+    metadata: necromancerPartyBoonRecipients(context),
+  };
+  emitBuff(context, skill, "quickness", 3.75, 1, boonOptions);
   if (key === "anguish") {
-    emitBuff(context, skill, "might", 10, 8);
+    emitBuff(context, skill, "might", 10, 8, boonOptions);
   } else if (key === "wanderlust") {
-    emitBuff(context, skill, "fury", 5);
+    emitBuff(context, skill, "fury", 5, 1, boonOptions);
   } else if (key === "preservation") {
-    emitBuff(context, skill, "resolution", 4);
+    emitBuff(context, skill, "resolution", 4, 1, boonOptions);
   }
 }
 
@@ -355,8 +360,11 @@ function summonSpirit(
   } else if (spirit.key === "wanderlust") {
     emitWanderlustInitial(context, skill, spirit, at);
   } else if (spirit.key === "preservation") {
-    emitBuff(context, skill, "protection", 4);
-    emitBuff(context, skill, "vigor", 4);
+    const boonOptions = {
+      metadata: necromancerPartyBoonRecipients(context),
+    };
+    emitBuff(context, skill, "protection", 4, 1, boonOptions);
+    emitBuff(context, skill, "vigor", 4, 1, boonOptions);
   }
   queueSpiritAutoattacks(context, skill, spirit, at);
 }
@@ -452,6 +460,7 @@ function innervate(
     emitDamage(context, skill, MECHANICS.innervateAnguish.coefficient, {
       source: "Spirit",
       actorType: "player",
+      skillWeapon: "Profession mechanic",
       metadata: {
         summonKind: "spirit",
         summonOwner: "spirit:anguish",
@@ -459,8 +468,11 @@ function innervate(
         spiritAttackType: "innervate",
       },
     });
-    emitBuff(context, skill, "might", 10, 8);
-    emitBuff(context, skill, "fury", 5);
+    const boonOptions = {
+      metadata: necromancerPartyBoonRecipients(context),
+    };
+    emitBuff(context, skill, "might", 10, 8, boonOptions);
+    emitBuff(context, skill, "fury", 5, 1, boonOptions);
   } else if (skill.id === ID.INNERVATE_WANDERLUST) {
     context.emit({
       type: "control",
@@ -475,9 +487,12 @@ function innervate(
       ...spiritMetadata("wanderlust", "innervate"),
     });
   } else if (skill.id === ID.INNERVATE_PRESERVATION) {
-    emitBuff(context, skill, "aegis", 3);
-    emitBuff(context, skill, "resistance", 4);
-    emitBuff(context, skill, "stability", 5);
+    const boonOptions = {
+      metadata: necromancerPartyBoonRecipients(context),
+    };
+    emitBuff(context, skill, "aegis", 3, 1, boonOptions);
+    emitBuff(context, skill, "resistance", 4, 1, boonOptions);
+    emitBuff(context, skill, "stability", 5, 1, boonOptions);
   } else {
     return false;
   }

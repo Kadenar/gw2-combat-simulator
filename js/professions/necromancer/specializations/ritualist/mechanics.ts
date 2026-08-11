@@ -2,13 +2,13 @@ import { NECROMANCER_SKILL_IDS as ID } from "../../data/ids.js";
 
 export const RITUALIST_MECHANICS = Object.freeze({
   explosiveGrowthCoefficient: 1.2,
-  // Two independent Power Ritualist EVTCs resolve the three autonomous
-  // attacks at distinct fixed weapon-strength baselines.
+  // Two independent Power Ritualist EVTCs plus no-Might/Fury controls resolve
+  // the autonomous attacks against owner critical attributes without owner Might.
   spirits: Object.freeze({
     [ID.ANGUISH]: Object.freeze({
       key: "anguish",
       attackCoefficient: 0.4,
-      attackWeaponStrength: 1350,
+      attackWeaponStrength: 1685,
       summonCoefficient: 3.5,
       summonHits: 7,
       // The live barrage packet does not use the spirit autoattack's 1000
@@ -24,7 +24,7 @@ export const RITUALIST_MECHANICS = Object.freeze({
     [ID.WANDERLUST]: Object.freeze({
       key: "wanderlust",
       attackCoefficient: 0.4,
-      attackWeaponStrength: 1270,
+      attackWeaponStrength: 1565,
       summonCoefficient: 1,
       // Live PvE packets resolve at 0.45 per pulse (1.8 over four pulses).
       lingeringCoefficient: 1.8,
@@ -42,7 +42,7 @@ export const RITUALIST_MECHANICS = Object.freeze({
       // The spirit itself has a damaging autoattack even though Preservation's
       // summon and active effects are support-only.
       attackCoefficient: 0.3,
-      attackWeaponStrength: 1215,
+      attackWeaponStrength: 1565,
       summonCoefficient: 0,
       activeCoefficient: 0,
       activeHits: 0,

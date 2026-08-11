@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 4,
+  "profession": "ranger",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "weapons": ["Hammer", ""],
+  "alternateWeapons": ["Sword", "Axe"],
+  "rune": "Scholar",
+  "weaponSigils": [
+    ["Force", "Air"],
+    ["Force", "Impact"]
+  ],
+  "relic": "Claw",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    { "stat": "Power", "count": 18 },
+    { "stat": "Precision", "count": 0 },
+    { "stat": "Condition Damage", "count": 0 }
+  ],
+  "specializations": [
+    { "name": "Beastmastery", "traits": "3-3-3" },
+    { "name": "Skirmishing", "traits": "1-2-3" },
+    { "name": "Untamed", "traits": "3-1-3" }
+  ],
+  "selectedSkills": {
+    "Heal": "\"We Heal As One!\"",
+    "Utility1": "Exploding Spores",
+    "Utility2": "\"Sic 'Em!\"",
+    "Utility3": "Signet of the Wild",
+    "Elite": "\"Strength of the Pack!\""
+  },
+  "selectedPet": "Tiger",
+  "selectedPet2": "Tiger",
+  "selectedHammerSkillIds": [63335, 63197, 63131, 63208],
+  "initialUntamedState": "Pet",
+  "assumptions": {
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "flanking": true,
+    "targetDefiant": true,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "sharePlayerBoonsWithSummons": false,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "initialAstralForce": 100,
+  "initialArrows": 8,
+  "startingWeaponSet": 1,
+  "targetHealth": 0,
+  "targetArmor": 2597
+}

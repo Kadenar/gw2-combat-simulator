@@ -433,7 +433,7 @@ const RELIC_RULES: Readonly<Record<string, Readonly<Gw2RelicRule>>> =
           name: "Relic of the Claw",
         });
       },
-      strikeMultiplier: timedStrikeBuff(1.07),
+      strikeMultiplier: timedStrikeBuff(1.07, isGw2PlayerActorEvent),
     }),
 
     Dragonhunter: defineRelic({

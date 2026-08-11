@@ -66,6 +66,7 @@ export function applyRangerBuildAttributeRules(
   if (hasTrait("Arachnophobia")) addAttribute(traitStats, "Expertise", 150);
   if (hasTrait("Lingering Magic"))
     addAttribute(traitStats, "Concentration", 240);
+  if (hasTrait("Natural Fortitude")) addAttribute(traitStats, "Vitality", 240);
   if (hasTrait("Wellspring")) {
     addAttribute(
       traitStats,

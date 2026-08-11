@@ -1,7 +1,5 @@
 import { scourgeState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 /**
  * Scourge sand shade handlers.
  *
@@ -29,11 +27,9 @@ import {
   emitDamage,
   emitState,
   hasTrait,
+  necromancerPartyBoonRecipients,
 } from "../../core/shared.js";
-import type {
-  NecromancerCastContext,
-  NecromancerSkill,
-} from "../../types.js";
+import type { NecromancerCastContext, NecromancerSkill } from "../../types.js";
 
 function emitShadeCondition(
   context: NecromancerCastContext,
@@ -64,7 +60,7 @@ function applyBarrierTraits(
       "might",
       shadeMechanics.abrasiveGrit.mightDuration,
       shadeMechanics.abrasiveGrit.mightStacks,
-      { at },
+      { at, metadata: necromancerPartyBoonRecipients(context) },
     );
   }
   if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
@@ -74,7 +70,7 @@ function applyBarrierTraits(
       "alacrity",
       shadeMechanics.desertEmpowerment.alacrityDuration,
       1,
-      { at },
+      { at, metadata: necromancerPartyBoonRecipients(context) },
     );
   }
 }
@@ -93,9 +89,10 @@ function shade(
 ): boolean {
   const state = scourgeState.from(context);
   const at = context.effectiveEnd;
-  const impactAt = skill.id === ID.MANIFEST_SAND_SHADE
-    ? context.start + (context.fullEnd - context.start) * (11 / 12)
-    : at;
+  const impactAt =
+    skill.id === ID.MANIFEST_SAND_SHADE
+      ? context.start + (context.fullEnd - context.start) * (11 / 12)
+      : at;
   const shadeMechanics = MECHANICS.shade;
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
     const maximum = hasTrait(context, TRAIT.SAND_SAVANT) ? 1 : 3;
@@ -112,21 +109,20 @@ function shade(
     const coreState = professionCoreState(context);
     coreState.lifeForce = Math.max(
       0,
-      coreState.lifeForce
-        - normalizedNecromancerLifeForceCost(
+      coreState.lifeForce -
+        normalizedNecromancerLifeForceCost(
           coreState,
           Number(skill.lifeForceCost || 0),
         ),
     );
     if (
-      new Set<string | number>([
-        ID.DESERT_SHROUD,
-        ID.SANDSTORM_SHROUD,
-      ]).has(skill.id) &&
+      new Set<string | number>([ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD]).has(
+        skill.id,
+      ) &&
       hasTrait(context, TRAIT.PLAGUE_SENDING)
     ) {
       const hasActiveSelfCondition = coreState.selfConditions.some(
-        application =>
+        (application) =>
           application.appliedAt <= at && application.expiresAt > at,
       );
       coreState.plagueSendingArmed = true;
@@ -175,9 +171,9 @@ function shade(
       skill,
       shadeMechanics.sadisticSearing.condition,
       {
-      source: "Trait",
-      sourceId: TRAIT.SADISTIC_SEARING,
-      actorType: "effect",
+        source: "Trait",
+        sourceId: TRAIT.SADISTIC_SEARING,
+        actorType: "effect",
       },
     );
   } else if (skill.id === ID.SAND_CASCADE) {
@@ -222,7 +218,10 @@ function shade(
         "protection",
         sandstorm.pulseProtectionDuration,
         1,
-        { at: pulseAt },
+        {
+          at: pulseAt,
+          metadata: necromancerPartyBoonRecipients(context),
+        },
       );
     }
     applyBarrierTraits(context, skill, at + sandstorm.delay);
@@ -232,7 +231,10 @@ function shade(
       "protection",
       sandstorm.detonationProtectionDuration,
       1,
-      { at: at + sandstorm.delay },
+      {
+        at: at + sandstorm.delay,
+        metadata: necromancerPartyBoonRecipients(context),
+      },
     );
     emitDamage(context, skill, sandstorm.coefficient, {
       at: at + sandstorm.delay,

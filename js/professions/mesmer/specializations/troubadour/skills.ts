@@ -99,7 +99,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [{ type: "boon", boon: "Aegis", duration: 4 }],
+    effects: [],
   },
   [ID.TALE_OF_THE_SECOND_SCION]: {
     implemented: true,
@@ -139,11 +139,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [
-      { type: "boon", boon: "Might", duration: 15, stacks: 10 },
-      { type: "boon", boon: "Fury", duration: 10 },
-      { type: "boon", boon: "Quickness", duration: 4 },
-    ],
+    effects: [],
   },
   [ID.CRESCENDO]: {
     implemented: true,
@@ -288,10 +284,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     phantasm: false,
     resource: null,
     blade: false,
-    effects: [
-      { type: "boon", boon: "Stability", duration: 4, stacks: 5 },
-      { type: "boon", boon: "Resistance", duration: 3 },
-    ],
+    effects: [],
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
     implemented: true,

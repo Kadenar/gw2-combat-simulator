@@ -73,7 +73,6 @@ function emitCloudburstBoons(
       duration,
       stacks,
       recipients: "party",
-      affectsSummons: true,
       maximumRecipients: 5,
       triggeredBy: skill.name,
     });

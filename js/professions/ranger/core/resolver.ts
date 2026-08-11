@@ -11,6 +11,7 @@ import type {
   RangerResolverEvent,
   RangerSkill,
 } from "../types.js";
+import { rangerPetCompanionId } from "./pets.js";
 import { rangerPetByName } from "./state.js";
 
 function eventSkill(
@@ -23,6 +24,26 @@ function eventSkill(
         RangerSkill | undefined);
 }
 
+function petDerivedConditionMetadata(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): Record<string, unknown> {
+  if (!isPetStrike(event)) return {};
+  return {
+    source: "ranger-pet",
+    actorType: "summon",
+    independentSummonStrike: event.independentSummonStrike,
+    summonUsesProfessionModifiers: event.summonUsesProfessionModifiers,
+    summonInheritsAttributes: event.summonInheritsAttributes,
+    summonBasePower: event.summonBasePower,
+    summonBasePrecision: event.summonBasePrecision,
+    summonBaseFerocity: event.summonBaseFerocity,
+    summonBaseConditionDamage: event.summonBaseConditionDamage,
+    summonBaseExpertise: event.summonBaseExpertise,
+    summonOwner: event.summonOwner ?? rangerPetCompanionId(context),
+  };
+}
+
 function queueBleeding(
   context: RangerResolverContext,
   event: RangerResolverEvent,
@@ -30,12 +51,14 @@ function queueBleeding(
   sourceId: number,
   name: string,
 ): void {
+  const petSource = isPetStrike(event);
   enqueueOrdered(context.queue, {
+    ...petDerivedConditionMetadata(context, event),
     type: "condition",
     at: event.at,
-    source: "Trait",
+    source: petSource ? "ranger-pet" : "Trait",
     sourceId,
-    actorType: "effect",
+    actorType: petSource ? "summon" : "effect",
     skillId: sourceId,
     skillName: name,
     name: `${name} — Bleeding`,
@@ -57,6 +80,7 @@ function queueCondition(
 ): void {
   const petSource = isPetStrike(event);
   enqueueOrdered(context.queue, {
+    ...petDerivedConditionMetadata(context, event),
     type: "condition",
     at: event.at,
     source: petSource ? "ranger-pet" : "Trait",
@@ -90,11 +114,11 @@ function rangerBoonDuration(
 }
 
 function isPetStrike(event: RangerResolverEvent): boolean {
-  return event.actorType === "summon" && event.source === "ranger-pet";
+  return event.source === "ranger-pet";
 }
 
 function isPlayerStrike(event: RangerResolverEvent): boolean {
-  return event.actorType === "player";
+  return event.actorType === "player" && !isPetStrike(event);
 }
 
 function beastmodeActive(context: RangerResolverContext): boolean {
@@ -239,6 +263,71 @@ function triggerArachnophobia(
   );
 }
 
+function triggerStrengthOfThePack(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  if (!isPlayerStrike(event)) return;
+  const active = (context.boons.get("strength-of-the-pack") || []).some(
+    (application) =>
+      application.affectsSelf !== false &&
+      application.at <= event.at &&
+      application.expiresAt > event.at,
+  );
+  if (!active) return;
+  enqueueOrdered(context.queue, {
+    type: "buff",
+    at: event.at,
+    source: "ranger",
+    sourceId: ID.STRENGTH_OF_THE_PACK,
+    actorType: "effect",
+    skillId: ID.STRENGTH_OF_THE_PACK,
+    skillName: '"Strength of the Pack!"',
+    name: '"Strength of the Pack!" - Might',
+    kind: "might",
+    duration: 8,
+    stacks: 1,
+    affectsSelf: false,
+    affectsSummons: true,
+    maximumRecipients: 5,
+    companionIds: [rangerPetCompanionId(context)],
+    triggeredBy: event.skillName,
+  });
+}
+
+function triggerGoForTheThroat(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  const state = professionCoreState(context);
+  if (
+    event.skillId !== ID.FURIOUS_POUNCE ||
+    !hasTrait(context, TRAIT.GO_FOR_THE_THROAT) ||
+    event.at < state.goForTheThroatPetReadyAt
+  ) {
+    return;
+  }
+  state.goForTheThroatPetReadyAt = event.at + 10;
+  enqueueOrdered(context.queue, {
+    type: "buff",
+    at: event.at,
+    source: "Trait",
+    sourceId: ID.LESSER_SIC_EM,
+    actorType: "effect",
+    skillId: ID.LESSER_SIC_EM,
+    skillName: 'Lesser "Sic \'Em!"',
+    name: 'Lesser "Sic \'Em!"',
+    kind: "lesser-sic-em-pet",
+    duration: 5,
+    stacks: 1,
+    affectsSelf: false,
+    affectsSummons: true,
+    maximumRecipients: 1,
+    companionIds: [rangerPetCompanionId(context)],
+    triggeredBy: event.skillName,
+  });
+}
+
 export const rangerCoreCriticalReactions = Object.freeze({
   id: "ranger.sharpened-edges",
   order: 20,
@@ -298,6 +387,30 @@ export function handleRangerPetSwapped(
   event: RangerResolverEvent,
 ): void {
   const state = professionCoreState(context);
+  const outgoingCompanionId = rangerPetCompanionId(context);
+  const removedAt = event.at + 1;
+  for (const application of context.conditionApplications) {
+    if (
+      application.source === "ranger-pet" &&
+      (!application.summonOwner ||
+        String(application.summonOwner) === outgoingCompanionId) &&
+      application.naturalExpiresAt > removedAt
+    ) {
+      application.removedAt = removedAt;
+    }
+  }
+  for (const condition of context.conditionState.values()) {
+    for (const stack of condition.stacks) {
+      if (
+        stack.application.source === "ranger-pet" &&
+        (!stack.application.summonOwner ||
+          String(stack.application.summonOwner) === outgoingCompanionId)
+      ) {
+        stack.expiresAt = Math.min(stack.expiresAt, removedAt);
+      }
+    }
+  }
+  state.petAutoGeneration += 1;
   const pet = rangerPetByName(String(event.activePet || ""));
   state.activePet = pet.name;
   state.activePetSlot = Number(event.activePetSlot) === 2 ? 2 : 1;
@@ -323,6 +436,8 @@ export function reactToRangerCoreDamage(
   triggerHuntersGaze(context, event);
   triggerPoisonMaster(context, event);
   triggerArachnophobia(context, event);
+  triggerStrengthOfThePack(context, event);
+  triggerGoForTheThroat(context, event);
   if (
     skill?.categories?.includes("Trap") &&
     event.activationId &&

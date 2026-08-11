@@ -201,6 +201,7 @@ export function handleNecromancerSummonAttack(
     summonDamagePerCoefficient: event.summonDamagePerCoefficient,
     summonCriticalChance: event.summonCriticalChance,
     summonCriticalDamage: event.summonCriticalDamage,
+    summonInheritsCriticalAttributes: event.summonInheritsCriticalAttributes,
     summonStrikeMultiplier: event.summonStrikeMultiplier,
     independentSummonStrike: event.independentSummonStrike,
     spirit: event.spirit,

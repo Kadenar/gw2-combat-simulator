@@ -6,7 +6,7 @@
         "label": "Condition (Pistol / Torch + Scepter / Torch)",
         "build": "Builds/necromancer/b-condi-scourge.json",
         "rotation": "Rotations/necromancer/r-condi-scourge-bench.json",
-        "benchmarkDps": 39301,
+        "benchmarkDps": 39345,
         "upToDate": true
       }
     ]

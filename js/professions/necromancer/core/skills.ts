@@ -1688,6 +1688,8 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<
         hits: 1,
         name: "Death Spiral — Life Siphon",
         metadata: {
+          skillName: "Death Spiral — Life Siphon",
+          parentSkillName: "Death Spiral",
           flatStrikeBase: 3517,
           flatStrikePowerCoeff: 0.01,
           noCrit: true,

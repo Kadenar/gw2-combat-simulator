@@ -1,7 +1,5 @@
 import { harbingerState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 /**
  * Harbinger blight skill handlers.
  *
@@ -24,6 +22,7 @@ import {
   emitDamage,
   emitState,
   hasTrait,
+  necromancerPartyBoonRecipients,
 } from "../../core/shared.js";
 import type {
   NecromancerCastContext,
@@ -126,15 +125,16 @@ function elixir(
   skill: NecromancerSkill,
 ): boolean {
   const at = context.effectiveEnd;
-  const impactProgress = (
-    {
-      [ID.ELIXIR_OF_PROMISE]: 10 / 17,
-      [ID.ELIXIR_OF_RISK]: 20 / 27,
-      [ID.ELIXIR_OF_AMBITION]: 10 / 17,
-    } as Readonly<Record<string | number, number>>
-  )[skill.id] ?? 1;
-  const impactAt = context.start
-    + (context.fullEnd - context.start) * impactProgress;
+  const impactProgress =
+    (
+      {
+        [ID.ELIXIR_OF_PROMISE]: 10 / 17,
+        [ID.ELIXIR_OF_RISK]: 20 / 27,
+        [ID.ELIXIR_OF_AMBITION]: 10 / 17,
+      } as Readonly<Record<string | number, number>>
+    )[skill.id] ?? 1;
+  const impactAt =
+    context.start + (context.fullEnd - context.start) * impactProgress;
   const state = harbingerState.from(context);
   const ambition = skill.id === ID.ELIXIR_OF_AMBITION;
   const threshold = ambition ? 10 : 5;
@@ -144,6 +144,9 @@ function elixir(
   emitState(context, at, "blight-consumed");
   const elixirMechanics = MECHANICS.elixirs;
   const durationMultiplier = empowered ? elixirMechanics.durationMultiplier : 1;
+  const boonOptions = hasTrait(context, TRAIT.TWISTED_MEDICINE)
+    ? { metadata: necromancerPartyBoonRecipients(context) }
+    : undefined;
   const coefficient =
     (
       elixirMechanics.coefficientBySkillId as Readonly<
@@ -151,7 +154,7 @@ function elixir(
       >
     )[skill.id] || 0;
   if (hasTrait(context, TRAIT.BOLSTERING_BREW)) {
-    emitBuff(context, skill, "protection", 3);
+    emitBuff(context, skill, "protection", 3, 1, boonOptions);
   }
   emitDamage(
     context,
@@ -194,16 +197,11 @@ function elixir(
       Number(duration) * durationMultiplier,
       { at: impactAt },
     );
-    emitCondition(
-      context,
-      skill,
-      "Weakness",
-      1,
-      5 * durationMultiplier,
-      { at: impactAt },
-    );
-    emitBuff(context, skill, "might", 10, 10);
-    emitBuff(context, skill, "fury", 10);
+    emitCondition(context, skill, "Weakness", 1, 5 * durationMultiplier, {
+      at: impactAt,
+    });
+    emitBuff(context, skill, "might", 10, 10, boonOptions);
+    emitBuff(context, skill, "fury", 10, 1, boonOptions);
   } else if (skill.id === ID.ELIXIR_OF_IGNORANCE) {
     context.emit({
       type: "blind",
@@ -215,7 +213,7 @@ function elixir(
       skillName: skill.name,
     });
   } else if (skill.id === ID.ELIXIR_OF_ANGUISH) {
-    emitBuff(context, skill, "quickness", 5);
+    emitBuff(context, skill, "quickness", 5, 1, boonOptions);
   } else if (skill.id === ID.ELIXIR_OF_AMBITION) {
     for (const name of elixirMechanics.ambitionConditions) {
       emitCondition(
@@ -227,10 +225,10 @@ function elixir(
         { at: impactAt },
       );
     }
-    emitBuff(context, skill, "might", 5, 25);
-    emitBuff(context, skill, "fury", 5);
-    emitBuff(context, skill, "quickness", 5);
-    emitBuff(context, skill, "alacrity", 5);
+    emitBuff(context, skill, "might", 5, 25, boonOptions);
+    emitBuff(context, skill, "fury", 5, 1, boonOptions);
+    emitBuff(context, skill, "quickness", 5, 1, boonOptions);
+    emitBuff(context, skill, "alacrity", 5, 1, boonOptions);
   }
   addBlight(state, ambition ? 15 : 10, at);
   emitState(context, at, "blight-gained");
@@ -242,13 +240,14 @@ function blightSkill(
   skill: NecromancerSkill,
 ): boolean {
   const at = context.effectiveEnd;
-  const impactProgress = skill.id === ID.DEVOURING_CUT
-    ? 0.75
-    : skill.id === ID.VORACIOUS_ARC
-      ? 20 / 21
-      : 1;
-  const impactAt = context.start
-    + (context.fullEnd - context.start) * impactProgress;
+  const impactProgress =
+    skill.id === ID.DEVOURING_CUT
+      ? 0.75
+      : skill.id === ID.VORACIOUS_ARC
+        ? 20 / 21
+        : 1;
+  const impactAt =
+    context.start + (context.fullEnd - context.start) * impactProgress;
   const state = harbingerState.from(context);
   const empowered = state.blight >= 5;
   const consumed = empowered ? consumeBlight(state, 5, at) : 0;

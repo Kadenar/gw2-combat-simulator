@@ -1002,9 +1002,42 @@ test("Master Fencer grants self and allied fury on critical hits with an eight-s
         event.affectsSummons,
       ]),
     [
-      [4, false, true],
-      [4, false, true],
+      [4, false, false],
+      [4, false, false],
     ],
+  );
+
+  const openParty = simulateMesmer(
+    ["Flying Cutter"],
+    defaultSimulationConfig({
+      specialization: "Core",
+      selectedTraits: ["Master Fencer"],
+      initialResource: 2,
+      stats: {
+        ...defaults.stats,
+        precision: 2995,
+      },
+      boons: {
+        ...defaults.boons,
+        fury: false,
+      },
+      allies: { count: 2, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
+      randomness: { mode: "stochastic", seed: 1 },
+    }),
+  );
+  const openPartyFury = openParty.events.find(
+    (event) =>
+      event.type === "buff" &&
+      event.skillName === "Master Fencer" &&
+      event.recipients === "allies",
+  );
+  assert.equal(openPartyFury.affectsSummons, true);
+  assert.equal(openPartyFury.alliedPlayerCount, 2);
+  assert.equal(openPartyFury.recipientCount, 4);
+  assert.equal(openPartyFury.companionIds.length, 2);
+  assert.ok(
+    openPartyFury.companionIds.every((id) => id.startsWith("mesmer.clone:")),
   );
 
   const isolated = simulateMesmer(

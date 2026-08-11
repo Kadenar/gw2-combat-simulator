@@ -25,6 +25,7 @@ import {
   syncNecromancerResources,
 } from "./state.js";
 import type {
+  SchedulerRecord,
   SimulationActorType,
   SkillId,
 } from "../../../platform/engine/types.js";
@@ -241,6 +242,24 @@ export function emitBuff(
   });
 }
 
+/** Pattern 2/3 party-boon metadata with concrete active minion identities. */
+export function necromancerPartyBoonRecipients(
+  context: NecromancerEmissionContext,
+): Readonly<SchedulerRecord> {
+  const core = professionCoreState(context);
+  const companionIds: string[] = [];
+  for (const [key, count] of Object.entries(core.activeMinions || {})) {
+    for (let index = 0; index < Number(count || 0); index += 1) {
+      companionIds.push(`minion:${key}:${index}`);
+    }
+  }
+  return {
+    recipients: "party",
+    maximumRecipients: 5,
+    companionIds,
+  };
+}
+
 export function necromancerBoonDuration(
   context: NecromancerCastContext,
   boon: string,
@@ -252,9 +271,7 @@ export function necromancerBoonDuration(
   if (
     hasTrait(context, TRAIT.SAND_SAGE) &&
     active.kind === "Scourge" &&
-    active.state.shades.some(
-      (expiresAt: number) => expiresAt > at,
-    )
+    active.state.shades.some((expiresAt: number) => expiresAt > at)
   ) {
     concentration += 225;
   }
@@ -266,10 +283,7 @@ export function necromancerBoonDuration(
   return Number(baseDuration) * Math.max(1, Math.min(2, 1 + bonus));
 }
 
-export function purgeTimedState(
-  state: NecromancerCoreState,
-  at: number,
-): void {
+export function purgeTimedState(state: NecromancerCoreState, at: number): void {
   state.carapaceExpiries = state.carapaceExpiries.filter(
     (expiresAt: number) => expiresAt > at,
   );
@@ -289,13 +303,8 @@ export function purgeHarbingerTimedState(
   state.blight = state.blightExpiries.length;
 }
 
-export function purgeScourgeTimedState(
-  state: ScourgeState,
-  at: number,
-): void {
-  state.shades = state.shades.filter(
-    (expiresAt: number) => expiresAt > at,
-  );
+export function purgeScourgeTimedState(state: ScourgeState, at: number): void {
+  state.shades = state.shades.filter((expiresAt: number) => expiresAt > at);
 }
 
 export function addCarapace(

@@ -15,6 +15,7 @@ import {
 } from "./life-force.js";
 import { gainNecromancerLifeForce } from "./shared.js";
 import { transferNecromancerSelfConditions } from "./conditions.js";
+import { darkFieldComboFinishers } from "./combos.js";
 import {
   addCarapace,
   emitBuff,
@@ -212,6 +213,7 @@ function onEventScheduled(
   context: NecromancerSchedulerContext,
   event: NecromancerSimulationEvent,
 ): void {
+  darkFieldComboFinishers(context, event);
   const state = professionCoreState(context);
   if (
     event.type === "condition" &&

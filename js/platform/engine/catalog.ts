@@ -101,11 +101,19 @@ const EFFECT_FIELDS = new Set([
   "flatStrikeBase",
   "flatStrikePowerCoeff",
   "persistsAfterInterrupt",
+  "recipients",
+  "affectsSelf",
+  "affectsSummons",
+  "maximumRecipients",
+  "targetCap",
+  "companionIds",
   "metadata",
   "eventType",
   "event",
 ]);
 const EFFECT_METADATA_FIELDS = new Set([
+  "skillName",
+  "parentSkillName",
   "controlKind",
   "duration",
   "breakbar",
@@ -125,8 +133,12 @@ const EFFECT_METADATA_FIELDS = new Set([
   "finisherType",
   "finisherValue",
   "summonKind",
+  "recipients",
+  "affectsSelf",
   "affectsSummons",
   "maximumRecipients",
+  "targetCap",
+  "companionIds",
 ]);
 
 /**

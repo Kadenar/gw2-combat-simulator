@@ -1,7 +1,6 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { isInternalCooldownReady } from "../../../platform/engine/clock.js";
-import { isGw2PlayerActorEvent } from
-  "../../../platform/gw2/event-ownership.js";
+import { isGw2PlayerActorEvent } from "../../../platform/gw2/event-ownership.js";
 import { MESMER_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import type {
   SchedulerState,
@@ -70,13 +69,10 @@ export function createExpectedProcTracker({
     active.state.bloodsongProgress += Number(bleedingStacks || 0);
     while (active.state.bloodsongProgress >= 5 - PROC_PROGRESS_TOLERANCE) {
       active.state.bloodsongProgress -= 5;
-      queueResources(
-        at + epsilon,
-        1,
-        activePrimaryWeapon(),
-        "Bloodsong",
-        { traitId: TRAIT.BLOODSONG, traitName: "Bloodsong" },
-      );
+      queueResources(at + epsilon, 1, activePrimaryWeapon(), "Bloodsong", {
+        traitId: TRAIT.BLOODSONG,
+        traitName: "Bloodsong",
+      });
     }
   };
 
@@ -105,10 +101,7 @@ export function createExpectedProcTracker({
       core.masterFencerProgress -= criticals;
     }
     const readyAt = Number(core.traitReadyAt[TRAIT.MASTER_FENCER] || 0);
-    if (
-      criticals <= 0 ||
-      !isInternalCooldownReady(event.at, readyAt)
-    ) {
+    if (criticals <= 0 || !isInternalCooldownReady(event.at, readyAt)) {
       return;
     }
 
@@ -118,6 +111,9 @@ export function createExpectedProcTracker({
       event.at,
       event.skillName,
       "8s self fury, 4s allied fury",
+    );
+    const companionIds = professionCoreState(state).clones.map(
+      (clone) => `mesmer.clone:${clone.id}`,
     );
     for (const application of [
       { recipients: "self", duration: 8 },
@@ -137,9 +133,12 @@ export function createExpectedProcTracker({
         stacks: 1,
         recipients: application.recipients,
         affectsSelf: application.recipients === "self",
-        affectsSummons:
-          application.recipients === "allies" &&
-          config.sharePlayerBoonsWithSummons !== false,
+        ...(application.recipients === "allies"
+          ? {
+              maximumRecipients: 4,
+              companionIds,
+            }
+          : {}),
       });
     }
   };

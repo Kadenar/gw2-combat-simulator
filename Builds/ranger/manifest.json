@@ -12,6 +12,18 @@
     ]
   },
   {
+    "section": "Untamed",
+    "presets": [
+      {
+        "label": "Power (Hammer / Sword-Axe)",
+        "build": "Builds/ranger/b-power-untamed-hammer-sword-axe.json",
+        "rotation": "Rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
+        "benchmarkDps": 44183,
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Galeshot",
     "presets": [
       {
@@ -19,6 +31,13 @@
         "build": "Builds/ranger/b-power-galeshot-longbow-axe.json",
         "rotation": "Rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
         "benchmarkDps": 42584,
+        "upToDate": true
+      },
+      {
+        "label": "Power Quickness (Longbow / Axe-Axe)",
+        "build": "Builds/ranger/b-power-quick-galeshot-longbow-axe.json",
+        "rotation": "Rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
+        "benchmarkDps": 35366,
         "upToDate": true
       }
     ]

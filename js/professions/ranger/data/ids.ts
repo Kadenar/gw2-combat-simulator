@@ -68,8 +68,11 @@ export const RANGER_SKILL_IDS = Object.freeze({
   THROW_TORCH: 12635, // Throw Torch
   PATH_OF_SCARS: 12638, // Path of Scars
   WHIRLING_DEFENSE: 12639, // Whirling Defense
+  FELINE_SLASH: 12655, // Slash (feline pet AI)
+  FELINE_MAUL: 12657, // Maul (feline pet AI)
   TWIN_DARTS: 12676, // Twin Darts
   PET_TAIL_LASH: 12673, // Tail Lash (pet AI)
+  FELINE_BITE: 12694, // Bite (feline pet AI)
   SPIT: 12724, // Spit
   WATER_SPIRIT: 21773, // Water Spirit
   AQUA_SURGE: 21776, // Aqua Surge
@@ -165,8 +168,11 @@ export const RANGER_SKILL_IDS = Object.freeze({
   RENDING_VINES: 63258, // Rending Vines
   PERILOUS_GIFT: 63319, // Perilous Gift
   UNLEASHED_WILD_SWING: 63335, // Unleashed Wild Swing
+  DEFT_STRIKE: 63336, // Deft Strike
   HEAVY_SMASH: 63337, // Heavy Smash
+  EXPLODING_SPORE: 63352, // Exploding Spore
   UNLEASH_PET: 63344, // Unleash Pet
+  RELENTLESS_WHIRL: 63438, // Relentless Whirl
   DASH: 64038, // Dash
   SLAM: 64699, // Slam
   UNDEAD_PLAGUE: 64882, // Undead Plague

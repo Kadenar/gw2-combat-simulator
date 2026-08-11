@@ -49,6 +49,7 @@ export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
         alliedPlayerCount: recipients.alliedPlayerCount,
         companionIds: recipients.companionIds,
         recipientCount: recipients.recipientCount,
+        boonAudienceResolved: true,
       };
     }
     const coefficientBasedDamage = isCoefficientBasedDamage(event);

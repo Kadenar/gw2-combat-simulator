@@ -1,7 +1,5 @@
 import { mirageState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import {
   MESMER_SKILL_IDS as ID,
@@ -100,7 +98,9 @@ export function createMirageActionController({
     boon: MesmerAttackStatus,
     sourceSkill: string,
     actorType: "player" | "summon" = "player",
+    recipients: "self" | "party" = "self",
   ) => {
+    const boonRecipients = actorType === "summon" ? "party" : recipients;
     addEvent({
       type: "buff",
       at,
@@ -111,13 +111,19 @@ export function createMirageActionController({
       duration: Number(boon.duration || 0),
       skillName: sourceSkill,
       sourceSkill,
+      ...(boonRecipients === "party"
+        ? {
+            recipients: boonRecipients,
+            maximumRecipients: 5,
+            companionIds: professionCoreState(state).clones.map(
+              (clone) => `mesmer.clone:${clone.id}`,
+            ),
+          }
+        : {}),
     });
   };
 
-  const addAmbushVulnerability = (
-    at: number,
-    ambush: MesmerAmbushAttack,
-  ) => {
+  const addAmbushVulnerability = (at: number, ambush: MesmerAmbushAttack) => {
     if (!ambush.vulnerability) return;
     addEvent({
       type: "buff",
@@ -188,11 +194,7 @@ export function createMirageActionController({
     }
   };
 
-  const grantAmbushWindow = (
-    at: number,
-    source: string,
-    duration = 1.5,
-  ) => {
+  const grantAmbushWindow = (at: number, source: string, duration = 1.5) => {
     if (config.specialization !== "Mirage") return;
     mirageState.from(state).ambushUntil = Math.max(
       mirageState.from(state).ambushUntil,
@@ -227,10 +229,7 @@ export function createMirageActionController({
   const grantMirageCloak = (
     at: number,
     source: string,
-    {
-      duration = 0.75,
-      grantCloneCloak = true,
-    }: MesmerMirageCloakOptions = {},
+    { duration = 0.75, grantCloneCloak = true }: MesmerMirageCloakOptions = {},
   ) => {
     if (config.specialization !== "Mirage") return;
     grantAmbushWindow(at, source);
@@ -270,9 +269,10 @@ export function createMirageActionController({
       weapon,
       blade: false,
     };
-    const impactAt = ambush.player.damageAtMs == null
-      ? at
-      : castStart + Number(ambush.player.damageAtMs) / 1000;
+    const impactAt =
+      ambush.player.damageAtMs == null
+        ? at
+        : castStart + Number(ambush.player.damageAtMs) / 1000;
     addDamage(pseudo, impactAt, {
       coefficient: ambush.player.coefficient,
       hits: ambush.player.hits,
@@ -296,10 +296,22 @@ export function createMirageActionController({
       mirageState.from(state).riddleOfSandReady = false;
     }
     for (const boon of ambush.playerBoons || []) {
-      addBoon(impactAt, boon, ambush.name);
+      addBoon(
+        impactAt,
+        boon,
+        ambush.name,
+        "player",
+        ambush.id === ID.CHAOS_VORTEX ? "party" : "self",
+      );
     }
     if (traits.has(TRAIT.MIRAGE_MANTLE)) {
-      addBoon(impactAt, { name: "Alacrity", duration: 4 }, ambush.name);
+      addBoon(
+        impactAt,
+        { name: "Alacrity", duration: 4 },
+        ambush.name,
+        "player",
+        "party",
+      );
       addTraitProc("Mirage Mantle", impactAt, ambush.name, "4s alacrity");
     }
     addAmbushVulnerability(impactAt, ambush);

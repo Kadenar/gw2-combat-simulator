@@ -441,6 +441,7 @@ export interface Gw2TimelineIndex {
     duration: number,
     maximum: number,
     audience?: Gw2BuffAudience,
+    companionId?: string | null,
   ): number;
   timedStacks(
     kind: string,
@@ -546,6 +547,7 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
   readonly activeDuration: number;
   readonly expiresAt: number;
   readonly naturalExpiresAt: number;
+  removedAt?: number;
   damage: number;
   damagingStackSeconds: number;
   readonly damageTicks: Array<{

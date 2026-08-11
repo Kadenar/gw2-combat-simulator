@@ -344,16 +344,30 @@ function skillRowsHtml(
     (left, right) =>
       (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3),
   );
+  const summaryColumns = new Set(["strike", "condition", "total", "dps"]);
   return groupNames
     .map((group) => {
       const groupRows = grouped.get(group) || [];
-      const total = groupRows.reduce(
-        (sum, row) => sum + Number(row.total || 0),
-        0,
-      );
       return `<div class="res-skill-group-heading" data-skill-group="${escapeHtml(group)}">
-      <span>${escapeHtml(group)}</span>
-      <span>${number(total)} total</span>
+      ${columns
+        .map((column) => {
+          if (column.key === "name") {
+            return `<span class="res-skill-group-name">${escapeHtml(group)}</span>`;
+          }
+          if (!summaryColumns.has(column.key)) {
+            return '<span aria-hidden="true"></span>';
+          }
+          const total = groupRows.reduce(
+            (sum, row) => sum + Number(row[column.key] || 0),
+            0,
+          );
+          const label = column.label || column.key;
+          const classAttr = column.className
+            ? ` ${escapeHtml(column.className)}`
+            : "";
+          return `<span class="res-skill-group-total${classAttr}" aria-label="${escapeHtml(`${group} ${label}: ${number(total)}`)}">${number(total)}</span>`;
+        })
+        .join("")}
     </div>${groupRows
       .map((row) => skillRowHtml(row, columns, options))
       .join("")}`;

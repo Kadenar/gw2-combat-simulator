@@ -1868,6 +1868,10 @@ header .accent {
   white-space: nowrap;
 }
 
+.dd-item[hidden] {
+  display: none;
+}
+
 .dd-item:hover {
   background: var(--bg-panel-alt);
 }
@@ -3815,10 +3819,10 @@ header .accent {
 }
 
 .res-skill-group-heading {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 72px 72px 72px 72px 72px 72px 72px 48px 56px;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 4px;
   padding: 7px 4px 4px;
   color: var(--text-bright);
   font-size: 10px;
@@ -3832,10 +3836,20 @@ header .accent {
   margin-top: 6px;
 }
 
-.res-skill-group-heading span:last-child {
+.res-skill-group-heading span:nth-child(n + 2) {
+  text-align: right;
   color: var(--text-dim);
   font-size: 9px;
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.res-skill-group-heading .condi {
+  color: var(--condi);
+}
+
+.res-skill-group-heading .total {
+  color: var(--accent);
 }
 
 .res-row span:nth-child(n + 2) {
@@ -3858,8 +3872,10 @@ header .accent {
 
 .mesmer-skill-breakdown .res-hdr,
 .mesmer-skill-breakdown .res-row,
+.mesmer-skill-breakdown .res-skill-group-heading,
 .guardian-skill-breakdown .res-hdr,
-.guardian-skill-breakdown .res-row {
+.guardian-skill-breakdown .res-row,
+.guardian-skill-breakdown .res-skill-group-heading {
   grid-template-columns: minmax(180px, 1fr) repeat(6, 72px) 48px 48px 56px;
   min-width: 816px;
 }
@@ -4688,91 +4704,176 @@ header .accent {
 
 .active-resource-pips.ranger-arrows,
 .resource-pips.ranger-arrows {
-  align-items: flex-end;
-  gap: 4px;
+  align-items: center;
+  gap: 3px;
   padding: 1px 3px;
 }
 
 .ranger-arrows .active-resource-pip,
 .ranger-arrows .resource-pip {
-  --ranger-arrow-color: #36442c;
+  --ranger-arrow-color: #47591b;
+  --ranger-arrow-detail: #121706;
   position: relative;
-  width: 13px;
-  height: 23px;
-  flex: 0 0 13px;
+  width: 15px;
+  height: 34px;
+  flex: 0 0 15px;
   padding: 0;
   border: 0;
-  border-radius: 0;
-  background: linear-gradient(
-      90deg,
-      #6b5930,
-      var(--ranger-arrow-color) 45% 65%,
-      #251f14
-    )
-    50% 7px / 3px 13px no-repeat;
+  background: none;
   box-shadow: none;
-  opacity: 0.5;
+  opacity: 0.4;
   transform: none;
 }
 
 .ranger-arrows .active-resource-pip::before,
 .ranger-arrows .resource-pip::before {
   position: absolute;
-  top: 0;
-  left: 1px;
-  width: 11px;
-  height: 9px;
+  inset: 0;
   background: var(--ranger-arrow-color);
-  clip-path: polygon(50% 0, 100% 100%, 50% 72%, 0 100%);
+  clip-path: polygon(
+    50% 0,
+    68% 14%,
+    84% 31%,
+    91% 48%,
+    81% 46%,
+    95% 63%,
+    78% 60%,
+    88% 76%,
+    62% 73%,
+    59% 90%,
+    53% 87%,
+    50% 100%,
+    47% 87%,
+    41% 90%,
+    38% 73%,
+    12% 76%,
+    22% 60%,
+    5% 63%,
+    19% 46%,
+    9% 48%,
+    16% 31%,
+    32% 14%
+  );
   content: "";
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
 }
 
 .ranger-arrows .active-resource-pip::after,
 .ranger-arrows .resource-pip::after {
   position: absolute;
-  bottom: 0;
-  left: 1px;
-  width: 11px;
-  height: 7px;
-  background: var(--ranger-arrow-color);
+  inset: 2px 1px 1px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 44%,
+      var(--ranger-arrow-detail) 45% 55%,
+      transparent 56%
+    ),
+    repeating-linear-gradient(
+        35deg,
+        transparent 0 5px,
+        var(--ranger-arrow-detail) 5px 7px,
+        transparent 7px 10px
+      )
+      0 4px / 50% 20px no-repeat,
+    repeating-linear-gradient(
+        -35deg,
+        transparent 0 5px,
+        var(--ranger-arrow-detail) 5px 7px,
+        transparent 7px 10px
+      )
+      100% 4px / 50% 20px no-repeat;
   clip-path: polygon(
-    0 0,
-    42% 35%,
-    42% 100%,
-    58% 100%,
-    58% 35%,
-    100% 0,
-    76% 100%,
-    24% 100%
+    50% 0,
+    100% 38%,
+    91% 75%,
+    57% 88%,
+    50% 100%,
+    43% 88%,
+    9% 75%,
+    0 38%
   );
   content: "";
 }
 
 .ranger-arrows .active-resource-pip.active,
 .ranger-arrows .resource-pip.active {
-  --ranger-arrow-color: #87aa4f;
-  background: linear-gradient(90deg, #c2a75a, #8bab4e 45% 65%, #4b622a) 50%
-    7px / 3px 13px no-repeat;
+  --ranger-arrow-color: #b7dc1b;
+  --ranger-arrow-detail: #172000;
+  border: 0;
+  background: none;
   box-shadow: none;
+  filter: drop-shadow(0 0 4px rgba(183, 220, 27, 0.8));
   opacity: 1;
 }
 
 .active-resource-pips.ranger-wind-force {
-  gap: 3px;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 3px;
 }
 
 .ranger-wind-force .active-resource-pip {
-  width: 9px;
-  height: 9px;
-  border-color: #397d71;
-  background: #17332f;
+  --ranger-feather-color: #397d71;
+  position: relative;
+  width: 13px;
+  height: 24px;
+  flex: 0 0 13px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  opacity: 0.4;
+  transform: none;
+}
+
+.ranger-wind-force .active-resource-pip::before {
+  position: absolute;
+  inset: 0;
+  background: var(--ranger-feather-color);
+  clip-path: polygon(
+    100% 0,
+    93% 35%,
+    77% 29%,
+    89% 45%,
+    70% 42%,
+    80% 57%,
+    59% 55%,
+    68% 68%,
+    47% 68%,
+    53% 80%,
+    31% 81%,
+    0 100%,
+    20% 69%,
+    18% 48%,
+    32% 55%,
+    31% 34%,
+    45% 45%,
+    51% 23%,
+    61% 37%,
+    75% 11%
+  );
+  content: "";
+}
+
+.ranger-wind-force .active-resource-pip::after {
+  position: absolute;
+  bottom: 1px;
+  left: 2px;
+  width: 1px;
+  height: 24px;
+  background: var(--ranger-feather-color);
+  content: "";
+  transform: rotate(27deg);
+  transform-origin: bottom;
 }
 
 .ranger-wind-force .active-resource-pip.active {
-  border-color: #98e3d4;
-  background: #57b7a5;
-  box-shadow: 0 0 6px rgba(87, 183, 165, 0.85);
+  --ranger-feather-color: #78d4c1;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(0 0 4px rgba(87, 183, 165, 0.85));
+  opacity: 1;
 }
 
 .warrior-theme {
