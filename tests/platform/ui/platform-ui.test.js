@@ -622,13 +622,49 @@ test("skill damage rows group player damage before owned entities", () => {
   mountRotationResults(container, {
     skillColumns: [
       { key: "name", label: "Skill", numeric: false },
-      { key: "total", label: "Total", numeric: true },
+      { key: "strike", label: "Strike", numeric: true },
+      {
+        key: "condition",
+        label: "Condition",
+        numeric: true,
+        className: "condi",
+      },
+      { key: "total", label: "Total", numeric: true, className: "total" },
+      { key: "dps", label: "DPS", numeric: true, className: "dps" },
     ],
     skillRows: [
-      { name: "Player Low", total: 10, group: "Player" },
-      { name: "Entity High", total: 100, group: "Entities" },
-      { name: "Player High", total: 20, group: "Player" },
-      { name: "Entity Low", total: 50, group: "Entities" },
+      {
+        name: "Player Low",
+        strike: 6,
+        condition: 4,
+        total: 10,
+        dps: 2,
+        group: "Player",
+      },
+      {
+        name: "Entity High",
+        strike: 75,
+        condition: 25,
+        total: 100,
+        dps: 20,
+        group: "Entities",
+      },
+      {
+        name: "Player High",
+        strike: 15,
+        condition: 5,
+        total: 20,
+        dps: 4,
+        group: "Player",
+      },
+      {
+        name: "Entity Low",
+        strike: 30,
+        condition: 20,
+        total: 50,
+        dps: 10,
+        group: "Entities",
+      },
     ],
   });
 
@@ -640,8 +676,14 @@ test("skill damage rows group player damage before owned entities", () => {
   assert.ok(html.indexOf("Player High") < html.indexOf("Player Low"));
   assert.ok(html.indexOf("Player Low") < entityGroup);
   assert.ok(html.indexOf("Entity High") < html.indexOf("Entity Low"));
-  assert.match(html, /30 total/);
-  assert.match(html, /150 total/);
+  assert.match(html, /aria-label="Player Strike: 21">21</);
+  assert.match(html, /aria-label="Player Condition: 9">9</);
+  assert.match(html, /aria-label="Player Total: 30">30</);
+  assert.match(html, /aria-label="Player DPS: 6">6</);
+  assert.match(html, /aria-label="Entities Strike: 105">105</);
+  assert.match(html, /aria-label="Entities Condition: 45">45</);
+  assert.match(html, /aria-label="Entities Total: 150">150</);
+  assert.match(html, /aria-label="Entities DPS: 30">30</);
 });
 
 test("RNG distribution waits for its manual run button", () => {

@@ -9,7 +9,7 @@
     "Blood Is Power",
     {
       "name": "__combat_start",
-      "offset": 561
+      "offset": 560
     },
     {
       "name": "Haunt",
@@ -25,10 +25,7 @@
       "name": "Nefarious Favor",
       "offset": 362
     },
-    {
-      "name": "Swap Weapons",
-      "offset": 602
-    },
+    "Swap Weapons",
     "Devouring Darkness",
     "Grasping Dead",
     "Oppressive Collapse",
@@ -59,10 +56,7 @@
       "offset": 125
     },
     "Grasping Dead",
-    {
-      "name": "Swap Weapons",
-      "offset": 756
-    },
+    "Swap Weapons",
     "Weeping Shots",
     {
       "name": "Desert Shroud",
@@ -108,10 +102,7 @@
       "name": "Nefarious Favor",
       "offset": 716
     },
-    {
-      "name": "Swap Weapons",
-      "offset": 278
-    },
+    "Swap Weapons",
     "Devouring Darkness",
     "Grasping Dead",
     {
@@ -150,10 +141,7 @@
       "name": "Nefarious Favor",
       "offset": 678
     },
-    {
-      "name": "Swap Weapons",
-      "offset": 117
-    },
+    "Swap Weapons",
     "Weeping Shots",
     "Vile Blast",
     "Oppressive Collapse",
@@ -194,10 +182,7 @@
       "offset": 119
     },
     "Weeping Shots",
-    {
-      "name": "Swap Weapons",
-      "offset": 1000
-    },
+    "Swap Weapons",
     "Devouring Darkness",
     "Grasping Dead",
     {
@@ -231,10 +216,7 @@
     "Devouring Darkness",
     "Blood Curse",
     "Grasping Dead",
-    {
-      "name": "Swap Weapons",
-      "offset": 762
-    },
+    "Swap Weapons",
     "Weeping Shots",
     "Vile Blast",
     {
@@ -279,10 +261,7 @@
       "name": "Nefarious Favor",
       "offset": 519
     },
-    {
-      "name": "Swap Weapons",
-      "offset": 480
-    },
+    "Swap Weapons",
     "Devouring Darkness",
     "Grasping Dead",
     "Oppressive Collapse",
@@ -317,10 +296,7 @@
       "offset": 119
     },
     "Grasping Dead",
-    {
-      "name": "Swap Weapons",
-      "offset": 799
-    },
+    "Swap Weapons",
     "Weeping Shots",
     {
       "name": "Nefarious Favor",
@@ -362,10 +338,7 @@
       "name": "Nefarious Favor",
       "offset": 313
     },
-    {
-      "name": "Swap Weapons",
-      "offset": 1045
-    },
+    "Swap Weapons",
     "Devouring Darkness",
     "Grasping Dead"
   ]

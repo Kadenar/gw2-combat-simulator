@@ -6,16 +6,28 @@ interface BuffAudienceMetadata {
   readonly source?: unknown;
   readonly affectsSelf?: unknown;
   readonly affectsSummons?: unknown;
+  readonly companionIds?: readonly unknown[];
 }
 
 /** Returns whether a buff application belongs to the requested actor scope. */
 export function buffMatchesAudience(
   application: BuffAudienceMetadata,
   audience: Gw2BuffAudience,
+  companionId?: string | null,
 ): boolean {
   if (audience === "all") return application.affectsSelf !== false;
   if (application.affectsSummons !== true) return false;
-  return audience !== "summon-trait" || application.source === "Trait";
+  if (audience === "summon-trait" && application.source !== "Trait") {
+    return false;
+  }
+  const companionIds = Array.isArray(application.companionIds)
+    ? application.companionIds.map(String).filter(Boolean)
+    : [];
+  return (
+    companionIds.length === 0 ||
+    companionId === undefined ||
+    (companionId !== null && companionIds.includes(companionId))
+  );
 }
 
 /**

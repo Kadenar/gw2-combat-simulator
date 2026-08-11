@@ -10,6 +10,7 @@ import {
   emitBuff,
   gainNecromancerLifeForce,
   hasTrait as hasNecromancerTrait,
+  necromancerPartyBoonRecipients,
 } from "../../core/shared.js";
 import { advanceHarbingerBlight } from "./blight.js";
 import { harbingerState } from "./state.js";
@@ -48,8 +49,11 @@ function afterCast(
       gainNecromancerLifeForce(context, 15, at);
     }
     if (hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)) {
-      emitBuff(context, skill, "quickness", 4);
-      emitBuff(context, skill, "fury", 4);
+      const recipients = necromancerPartyBoonRecipients(context);
+      emitBuff(context, skill, "quickness", 4, 1, {
+        metadata: recipients,
+      });
+      emitBuff(context, skill, "fury", 4, 1, { metadata: recipients });
     }
     if (hasNecromancerTrait(context, TRAIT.IMPLACABLE_FOE)) {
       emitBuff(context, skill, "stability", 5, 3);
@@ -60,7 +64,11 @@ function afterCast(
     skill.id === ID.DARK_BARRAGE &&
     hasNecromancerTrait(context, TRAIT.DEATHLY_HASTE)
   ) {
-    const deathlyHaste = { source: "Trait", sourceId: TRAIT.DEATHLY_HASTE };
+    const deathlyHaste = {
+      source: "Trait",
+      sourceId: TRAIT.DEATHLY_HASTE,
+      ...necromancerPartyBoonRecipients(context),
+    };
     emitBuff(context, skill, "quickness", 4, 1, { at, metadata: deathlyHaste });
     emitBuff(context, skill, "fury", 4, 1, { at, metadata: deathlyHaste });
   }

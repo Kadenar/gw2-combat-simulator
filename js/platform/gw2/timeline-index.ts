@@ -134,6 +134,7 @@ export function createGw2TimelineIndex({
    * @param {number} duration
    * @param {number} maximum
    * @param {Gw2BuffAudience} [audience]
+   * @param {string | null} [companionId]
    */
   const buffStacksAt = (
     kind: string,
@@ -141,6 +142,7 @@ export function createGw2TimelineIndex({
     duration: number,
     maximum: number,
     audience: Gw2BuffAudience = "all",
+    companionId?: string | null,
   ): number => {
     refreshIndex();
     const bucket = indexedBuffs.get(String(kind || "").toLowerCase());
@@ -153,7 +155,9 @@ export function createGw2TimelineIndex({
     return sumActiveStacks(
       applications || [],
       // Event duration wins; duration is a fallback for compact buff records.
-      (event) => event.at + Number(event.duration || duration) > time,
+      (event) =>
+        buffMatchesAudience(event, audience, companionId) &&
+        event.at + Number(event.duration || duration) > time,
       (event) => Number(event.stacks || 1),
       maximum,
       (event) => event.at > time + EPSILON,

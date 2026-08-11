@@ -171,12 +171,13 @@ export function createGw2CombatQuery<
     time: number,
     maximum: number,
     audience: Gw2BuffAudience = "all",
+    companionId: string | null = null,
   ): number | null =>
     runtime
       ? sumActiveStacks(
           runtime.boons?.get(kind) || [],
           (application) =>
-            buffMatchesAudience(application, audience) &&
+            buffMatchesAudience(application, audience, companionId) &&
             application.at <= time &&
             application.expiresAt > time,
           (application) => Number(application.stacks || 1),
@@ -193,9 +194,17 @@ export function createGw2CombatQuery<
     runtime: Gw2QueryRuntime | null | undefined,
     audience: Gw2BuffAudience = "all",
     fallbackDuration = 0,
+    companionId: string | null = null,
   ): number =>
-    runtimeBuffStacks(runtime, kind, time, maximum, audience) ??
-    timeline.buffStacksAt(kind, time, fallbackDuration, maximum, audience);
+    runtimeBuffStacks(runtime, kind, time, maximum, audience, companionId) ??
+    timeline.buffStacksAt(
+      kind,
+      time,
+      fallbackDuration,
+      maximum,
+      audience,
+      companionId,
+    );
   /**
    * Player-configured permanent boons do not apply to ordinary summons.
    * Explicitly inherited companion profiles retain their existing behavior.
@@ -208,6 +217,15 @@ export function createGw2CombatQuery<
     gw2EventActorType(event) === "summon" &&
     event?.summonInheritsAttributes !== true &&
     event?.source !== "Phantasm";
+  const summonCompanionId = (
+    event: SimulationEvent | null | undefined,
+  ): string | null => {
+    if (!event || gw2EventActorType(event) !== "summon") return null;
+    if (event.summonOwner) return String(event.summonOwner);
+    if (event.cloneId != null) return `mesmer.clone:${String(event.cloneId)}`;
+    if (event.source === "ranger-pet") return "ranger-pet";
+    return null;
+  };
   /**
    * @param {string} kind
    * @param {number} time
@@ -224,8 +242,16 @@ export function createGw2CombatQuery<
   ): number => {
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
     const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
-    if (isolatedSummon && config.sharePlayerBoonsWithSummons === false) {
-      return dynamicBoonStacksAt(kind, time, maximum, runtime, "summon-trait");
+    if (isolatedSummon) {
+      return dynamicBoonStacksAt(
+        kind,
+        time,
+        maximum,
+        runtime,
+        "summon",
+        0,
+        summonCompanionId(event),
+      );
     }
     const dynamic = dynamicBoonStacksAt(kind, time, maximum, runtime, "all", 1);
     return clamp(configured + dynamic, 0, maximum);
@@ -251,12 +277,21 @@ export function createGw2CombatQuery<
     event: SimulationEvent | null | undefined,
   ): boolean => {
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
+    const inheritsOwnerCriticalState =
+      event?.summonInheritsAttributes === true ||
+      event?.summonInheritsCriticalAttributes === true;
     // Illusions inherit the summoner's base crit chance but never the
     // player-configured permanent Fury. They gain Fury only when a skill
     // applies it dynamically (handled by the runtime/timeline branch below).
     const illusionEvent =
       event?.source === "Clone" || event?.source === "Phantasm";
-    if (!isolatedSummon && !illusionEvent && config.boons?.fury) return true;
+    if (
+      (!isolatedSummon || inheritsOwnerCriticalState) &&
+      !illusionEvent &&
+      config.boons?.fury
+    ) {
+      return true;
+    }
     if (illusionEvent) {
       return (
         dynamicBoonStacksAt(
@@ -264,14 +299,24 @@ export function createGw2CombatQuery<
           time,
           1,
           runtime,
-          config.sharePlayerBoonsWithSummons === false
-            ? "summon-trait"
-            : "summon",
+          "summon",
+          0,
+          summonCompanionId(event),
         ) > 0
       );
     }
-    if (isolatedSummon && config.sharePlayerBoonsWithSummons === false) {
-      return dynamicBoonStacksAt("fury", time, 1, runtime, "summon-trait") > 0;
+    if (isolatedSummon && !inheritsOwnerCriticalState) {
+      return (
+        dynamicBoonStacksAt(
+          "fury",
+          time,
+          1,
+          runtime,
+          "summon",
+          0,
+          summonCompanionId(event),
+        ) > 0
+      );
     }
     return dynamicBoonStacksAt("fury", time, 1, runtime) > 0;
   };
@@ -281,13 +326,16 @@ export function createGw2CombatQuery<
   const summonMightStacksAt = (
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
+    event: SimulationEvent | null | undefined,
   ): number =>
     dynamicBoonStacksAt(
       "might",
       time,
       25,
       runtime,
-      config.sharePlayerBoonsWithSummons === false ? "summon-trait" : "summon",
+      "summon",
+      0,
+      summonCompanionId(event),
     );
   /**
    * @param {number} time
@@ -403,16 +451,18 @@ export function createGw2CombatQuery<
         ...stats,
         power:
           Number(event.summonBasePower) +
-          summonMightStacksAt(time, runtime) * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
+          summonMightStacksAt(time, runtime, event) *
+            MIGHT_ATTRIBUTE_BONUS_PER_STACK,
         precision: inheritCriticalAttributes
           ? stats.precision
           : Number(event.summonBasePrecision ?? 1000),
         ferocity: inheritCriticalAttributes
           ? stats.ferocity
           : Number(event.summonBaseFerocity ?? 0),
-        conditionDamage: Number(
-          event.summonBaseConditionDamage ?? stats.conditionDamage,
-        ),
+        conditionDamage:
+          Number(event.summonBaseConditionDamage ?? stats.conditionDamage) +
+          summonMightStacksAt(time, runtime, event) *
+            MIGHT_ATTRIBUTE_BONUS_PER_STACK,
         expertise: Number(event.summonBaseExpertise ?? stats.expertise),
       };
     }

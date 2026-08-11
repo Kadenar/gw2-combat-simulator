@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 4,
+  "profession": "ranger",
+  "gear": {
+    "Helm": "Berserker's",
+    "Shoulders": "Berserker's",
+    "Chest": "Berserker's",
+    "Gloves": "Berserker's",
+    "Leggins": "Berserker's",
+    "Boots": "Berserker's",
+    "Amulet": "Berserker's",
+    "Ring1": "Berserker's",
+    "Ring2": "Berserker's",
+    "Accessory1": "Berserker's",
+    "Accessory2": "Berserker's",
+    "Back": "Berserker's",
+    "Weapon1": "Berserker's",
+    "Weapon2": "Berserker's"
+  },
+  "weapons": ["Longbow", ""],
+  "alternateWeapons": ["Axe", "Axe"],
+  "rune": "Scholar",
+  "weaponSigils": [
+    ["Force", "Impact"],
+    ["Force", "Impact"]
+  ],
+  "relic": "Claw",
+  "food": "Cilantro Lime Sous-Vide Steak",
+  "utility": "Superior Sharpening Stone",
+  "jadeBotCore": true,
+  "infusions": [
+    { "stat": "Power", "count": 18 },
+    { "stat": "Precision", "count": 0 },
+    { "stat": "Condition Damage", "count": 0 }
+  ],
+  "specializations": [
+    { "name": "Marksmanship", "traits": "3-1-1" },
+    { "name": "Skirmishing", "traits": "1-2-3" },
+    { "name": "Galeshot", "traits": "3-3-1" }
+  ],
+  "selectedSkills": {
+    "Heal": "\"We Heal As One!\"",
+    "Utility1": "Mistral",
+    "Utility2": "Signet of the Wild",
+    "Utility3": "Piercing Gales",
+    "Elite": "Perfect Storm"
+  },
+  "selectedPet": "Carrion Devourer",
+  "selectedPet2": "Fanged Iboga",
+  "selectedHammerSkillIds": [63335, 69262, 63131, 63208],
+  "initialUntamedState": "Pet",
+  "assumptions": {
+    "might": 25,
+    "fury": true,
+    "quickness": true,
+    "alacrity": true,
+    "protection": true,
+    "resolution": true,
+    "regeneration": true,
+    "swiftness": true,
+    "vigor": true,
+    "aegis": false,
+    "sharePlayerBoonsWithSummons": true,
+    "targetMoving": false,
+    "targetBoonless": true,
+    "targetConditions": {
+      "Bleeding": 1,
+      "Burning": true,
+      "Torment": 1,
+      "Confusion": 1,
+      "Poisoned": true,
+      "Chilled": true,
+      "Cripple": true,
+      "Slow": true,
+      "Weakness": true,
+      "Vulnerability": 25
+    }
+  },
+  "initialAstralForce": 100,
+  "initialArrows": 8,
+  "startingWeaponSet": 1,
+  "targetHealth": 3970000,
+  "targetArmor": 2597
+}

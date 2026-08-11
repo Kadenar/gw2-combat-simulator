@@ -39,13 +39,36 @@ const SOULBEAST_FAMILY_SKILL_IDS = Object.freeze({
 
 const SIMULATED_FAMILY_SKILL_IDS = Object.freeze({
   devourer: [12676, 12673],
+  feline: [12655, 12694, 12657],
   "fanged iboga": [43734, 41864, 45262],
   spider: [12724],
 });
 const AUTONOMOUS_PET_SKILL_IDS = new Set([
-  12676, 12673, 12703, 43734, 41864, 41156,
+  12655, 12657, 12676, 12673, 12694, 12703, 43734, 41864, 41156,
 ]);
 const SIMULATED_SKILL_FALLBACKS = new Map([
+  [
+    12655,
+    {
+      id: 12655,
+      name: "Slash",
+      description: "Slash at your foe.",
+      icon: "https://wiki.guildwars2.com/images/c/c3/Maul_%28feline%29.png",
+      recharge: 0,
+      petNames: ["Tiger"],
+    },
+  ],
+  [
+    12657,
+    {
+      id: 12657,
+      name: "Maul",
+      description: "Slash a foe multiple times and make them bleed.",
+      icon: "https://wiki.guildwars2.com/images/c/c3/Maul_%28feline%29.png",
+      recharge: 16,
+      petNames: ["Tiger"],
+    },
+  ],
   [
     12673,
     {
@@ -55,6 +78,17 @@ const SIMULATED_SKILL_FALLBACKS = new Map([
       icon: "https://wiki.guildwars2.com/images/f/f5/Tail_Lash.png",
       recharge: 20,
       petNames: ["Carrion Devourer", "Whiptail Devourer", "Lashtail Devourer"],
+    },
+  ],
+  [
+    12694,
+    {
+      id: 12694,
+      name: "Bite",
+      description: "Bite your foe for severe damage.",
+      icon: "https://wiki.guildwars2.com/images/c/c2/Bite_%28feline%29.png",
+      recharge: 8,
+      petNames: ["Tiger"],
     },
   ],
   [
@@ -104,7 +138,10 @@ const SIMULATED_SKILL_OVERRIDES = new Map([
   ...SIMULATED_SKILL_FALLBACKS,
 ]);
 const SIMULATED_SKILL_KEY_OVERRIDES = new Map([
+  [12655, "FELINE_SLASH"],
+  [12657, "FELINE_MAUL"],
   [12673, "PET_TAIL_LASH"],
+  [12694, "FELINE_BITE"],
   [41864, "CRIPPLING_ANGUISH_PET"],
   [45262, "NARCOTIC_SPORES_PET"],
 ]);

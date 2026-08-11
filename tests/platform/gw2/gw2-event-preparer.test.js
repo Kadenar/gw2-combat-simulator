@@ -1,25 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  isGw2NonWeaponEffectEvent,
-} from "../../../js/platform/gw2/event-ownership.js";
-import {
-  createGw2EventPreparer,
-} from "../../../js/platform/gw2/scheduler/event-preparer.js";
-import {
-  weaponStrengthProfileIdForEvent,
-} from "../../../js/platform/gw2/weapon-strength.js";
+import { isGw2NonWeaponEffectEvent } from "../../../js/platform/gw2/event-ownership.js";
+import { createGw2EventPreparer } from "../../../js/platform/gw2/scheduler/event-preparer.js";
+import { weaponStrengthProfileIdForEvent } from "../../../js/platform/gw2/weapon-strength.js";
 
 test("non-weapon effect ownership has one canonical classifier", () => {
   assert.equal(isGw2NonWeaponEffectEvent({ actorType: "effect" }), true);
-  for (const source of [
-    "Trait",
-    "SIGIL",
-    "relic",
-    "Food",
-    "equipment",
-  ]) {
+  for (const source of ["Trait", "SIGIL", "relic", "Food", "equipment"]) {
     assert.equal(
       isGw2NonWeaponEffectEvent({ actorType: "player", source }),
       true,
@@ -125,4 +113,5 @@ test("event preparation resolves capped boon recipients before handoff", () => {
   assert.deepEqual(prepared.companionIds, []);
   assert.equal(prepared.affectsSummons, false);
   assert.equal(prepared.recipientCount, 5);
+  assert.equal(prepared.boonAudienceResolved, true);
 });

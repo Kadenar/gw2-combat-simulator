@@ -94,6 +94,13 @@ export function createProfessionActionController({
     resourceDefinition.singular === "clone"
       ? professionCoreState(state).clones.length
       : numericResourceState().numericResource;
+  const partyBoonRecipients = () => ({
+    recipients: "party" as const,
+    maximumRecipients: 5,
+    companionIds: professionCoreState(state).clones.map(
+      (clone) => `mesmer.clone:${clone.id}`,
+    ),
+  });
 
   const addResourceSpendEvent = (
     at: number,
@@ -162,10 +169,7 @@ export function createProfessionActionController({
     if (resourceDefinition.singular === "clone") return;
     numericResourceState().numericResource = Math.min(
       resourceDefinition.maximum,
-      numericResourceState().numericResource + Math.max(
-        0,
-        Number(spent || 0),
-      ),
+      numericResourceState().numericResource + Math.max(0, Number(spent || 0)),
     );
   };
 
@@ -272,18 +276,19 @@ export function createProfessionActionController({
       }));
     const addBladeDamage = (
       ticks: readonly { readonly atMs: number; readonly coefficient: number }[],
-    ) => addDamage(
-      skill,
-      at,
-      {
-        ticks,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-        source: "Player",
-        weaponStrengthProfileId: "nonweapon.profession-mechanic",
-      },
-      { shatter: true, blade: true },
-    );
+    ) =>
+      addDamage(
+        skill,
+        at,
+        {
+          ticks,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+          source: "Player",
+          weaponStrengthProfileId: "nonweapon.profession-mechanic",
+        },
+        { shatter: true, blade: true },
+      );
 
     if (shatter.kind === "core-power") {
       addDamage(
@@ -387,9 +392,10 @@ export function createProfessionActionController({
       });
       for (const tick of ticks) addMaimOnHit(at + tick.atMs / 1000);
     } else if (shatter.kind === "blade-control") {
-      const damageAt = shatter.damageAtMs == null
-        ? at
-        : castStart + Number(shatter.damageAtMs) / 1000;
+      const damageAt =
+        shatter.damageAtMs == null
+          ? at
+          : castStart + Number(shatter.damageAtMs) / 1000;
       addDamage(
         skill,
         damageAt,
@@ -567,7 +573,9 @@ export function createProfessionActionController({
         kind: "quickness",
         stacks: 1,
         duration: 6,
+        skillName: skill.name,
         sourceSkill: skill.name,
+        ...partyBoonRecipients(),
       });
       addEvent({
         type: "buff",
@@ -575,7 +583,9 @@ export function createProfessionActionController({
         kind: "might",
         stacks: 5,
         duration: 8,
+        skillName: skill.name,
         sourceSkill: skill.name,
+        ...partyBoonRecipients(),
       });
     }
   };
@@ -667,7 +677,9 @@ export function createProfessionActionController({
           kind,
           stacks,
           duration,
+          skillName: skill.name,
           sourceSkill: skill.name,
+          ...partyBoonRecipients(),
         });
       }
     }
@@ -714,11 +726,47 @@ export function createProfessionActionController({
     }
   };
 
-  const handleTale = (
-    skill: MesmerSkill,
-    at: number,
-    castStart = at,
-  ): void => {
+  const handleTale = (skill: MesmerSkill, at: number, castStart = at): void => {
+    const taleBoons = new Map<
+      number,
+      readonly {
+        readonly kind: string;
+        readonly duration: number;
+        readonly stacks: number;
+      }[]
+    >([
+      [
+        ID.TALE_OF_THE_HONORABLE_ROGUE,
+        [{ kind: "aegis", duration: 4, stacks: 1 }],
+      ],
+      [
+        ID.TALE_OF_THE_SOULKEEPER,
+        [
+          { kind: "might", duration: 15, stacks: 10 },
+          { kind: "fury", duration: 10, stacks: 1 },
+          { kind: "quickness", duration: 4, stacks: 1 },
+        ],
+      ],
+      [
+        ID.TALE_OF_THE_VALIANT_MARSHAL,
+        [
+          { kind: "stability", duration: 4, stacks: 5 },
+          { kind: "resistance", duration: 3, stacks: 1 },
+        ],
+      ],
+    ]);
+    for (const boon of taleBoons.get(skill.id) || []) {
+      addEvent({
+        type: "buff",
+        at,
+        kind: boon.kind,
+        stacks: boon.stacks,
+        duration: boon.duration,
+        skillName: skill.name,
+        sourceSkill: skill.name,
+        ...partyBoonRecipients(),
+      });
+    }
     const requiredInstrument = new Map<number, string>([
       [ID.TALE_OF_THE_SOULKEEPER, "Lute"],
       [ID.TALE_OF_THE_HONORABLE_ROGUE, "Drum"],
@@ -747,7 +795,9 @@ export function createProfessionActionController({
         kind: "protection",
         stacks: 1,
         duration: 3,
+        skillName: skill.name,
         sourceSkill: skill.name,
+        ...partyBoonRecipients(),
       });
       addTraitProc("Raconteur", at, skill.name);
     }

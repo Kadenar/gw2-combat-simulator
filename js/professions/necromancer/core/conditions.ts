@@ -27,6 +27,7 @@ import {
   emitDamage,
   hasTrait,
   necromancerBoonDuration,
+  necromancerPartyBoonRecipients,
 } from "./shared.js";
 import type {
   NecromancerCastContext,
@@ -83,10 +84,7 @@ function conditionDurationMultiplier(
     condition,
     selfCondition: true,
   };
-  const traits = selectedGw2TraitValues(
-    context.config,
-    context.catalog,
-  );
+  const traits = selectedGw2TraitValues(context.config, context.catalog);
   const historicalRelicContext = {
     relic: createRelicTimelineRuntime(context.config.relic, context.events),
   };
@@ -322,7 +320,7 @@ function corruption(
       "might",
       necromancerBoonDuration(context, "Might", 20),
       5,
-      { metadata: { affectsSummons: true } },
+      { metadata: necromancerPartyBoonRecipients(context) },
     );
   }
   return false;

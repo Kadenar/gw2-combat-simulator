@@ -3,6 +3,40 @@ import type { RangerSkill } from "../types.js";
 export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
   [
     {
+      id: 63438,
+      name: "Relentless Whirl",
+      description:
+        "Spin and attack nearby foes. Create an exploding spore on the first hit.",
+      icon: "https://render.guildwars2.com/file/1FD6BA0D5205082CF724026543A9CE3EA9E3AB10/2565748.png",
+      type: "Weapon",
+      weapon: "Hammer",
+      slot: "Weapon_1",
+      specialization: "Untamed",
+      unleashedAmbushSkill: true,
+    },
+    {
+      id: 63336,
+      name: "Deft Strike",
+      description:
+        "Leap forward and strike the ground, creating an exploding spore.",
+      icon: "https://render.guildwars2.com/file/583FF23D285DAFF432CF2C3BFBE27FF4142D4C9B/2565753.png",
+      type: "Weapon",
+      weapon: "Sword",
+      slot: "Weapon_1",
+      specialization: "Untamed",
+      unleashedAmbushSkill: true,
+    },
+    {
+      id: 63352,
+      name: "Exploding Spore",
+      description: "A delayed spore created by an unleashed ambush.",
+      icon: "https://wiki.guildwars2.com/images/d/d4/Exploding_Spores.png",
+      type: "Profession",
+      specialization: "Untamed",
+      simulatorExcluded: true,
+      simulatorExcludedReason: "Created by unleashed ambush skills.",
+    },
+    {
       id: 31796,
       name: "Cosmic Ray",
       description: "Call down energy onto the targeted area to heal allies.",

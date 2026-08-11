@@ -96,6 +96,7 @@ export interface NecromancerCoreState {
   vampirismNextAt: number;
   targetChilledUntil: number;
   targetControlledUntil: number;
+  darkFieldUntil: number;
   dreadUntil: number;
   fearOfDeathReadyAt: number;
   vampiricPresenceReadyAt: number;

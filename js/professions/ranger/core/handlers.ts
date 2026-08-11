@@ -11,7 +11,6 @@ import {
 import type { RangerCastContext, RangerSkill } from "../types.js";
 import {
   applyRangerPetSwapTraits,
-  applyRangerSicEmTraits,
   applyRangerWeaponSwapTraits,
 } from "./traits.js";
 import { rangerPetByName } from "./state.js";
@@ -127,7 +126,6 @@ export const rangerCoreSkillHandlers = Object.freeze({
         duration: 10,
         stacks: 1,
       });
-      applyRangerSicEmTraits(context, skill, merged);
     },
   },
   "ranger.crippling-shot": {

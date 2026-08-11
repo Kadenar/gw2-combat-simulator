@@ -45,6 +45,7 @@ export function createRangerCoreState(
     childOfEarthReadyAt: 0,
     clarionBondReadyAt: 0,
     carnivoreReadyAt: 0,
+    goForTheThroatPetReadyAt: 0,
     huntersGazeReadyAt: 0,
     playerOpeningStrikeReady: true,
     petOpeningStrikeReady: true,

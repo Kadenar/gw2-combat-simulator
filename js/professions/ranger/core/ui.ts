@@ -71,6 +71,8 @@ function commandablePetSkillIds(context: RangerUiContext): SkillId[] {
   return commandableSkillIds(activePetSkillIds(context));
 }
 
+const RANGER_GALESHOT_PALETTE_STACK = "ranger-galeshot";
+
 export function rangerPetPaletteGroup(
   context: RangerUiContext,
 ): ProfessionPaletteGroup {
@@ -81,6 +83,10 @@ export function rangerPetPaletteGroup(
     skillIds: [...commandablePetSkillIds(context), ID.PET_SWAP],
     color: "#7ca64a",
     resourceAnchor: rangerUiSpecialization(context) === "Core",
+    stackId:
+      rangerUiSpecialization(context) === "Galeshot"
+        ? RANGER_GALESHOT_PALETTE_STACK
+        : undefined,
     includeActionSkills: true,
     statusIcon: {
       icon: activePet.icon,

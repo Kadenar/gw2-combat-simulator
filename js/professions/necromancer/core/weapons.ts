@@ -24,6 +24,7 @@ import {
   gainNecromancerLifeForce,
   hasTrait,
   necromancerBoonDuration,
+  necromancerPartyBoonRecipients,
 } from "./shared.js";
 import type {
   ScheduledTask,
@@ -82,17 +83,13 @@ function chillingScythe(
   context.state.cooldowns.delete(ID.GRAVEDIGGER);
 }
 
-function addle(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-): void {
+function addle(context: NecromancerCastContext, skill: NecromancerSkill): void {
   // Immobilize checks the resource at activation, before Addle grants shards.
   const soulShardsAtActivation = Number(
     professionCoreState(context).soulShards || 0,
   );
   const bonusEffects = Boolean(
-    context.config.target?.defiant
-    || context.config.target?.activatingSkills,
+    context.config.target?.defiant || context.config.target?.activatingSkills,
   );
   emitControl(
     context,
@@ -105,12 +102,7 @@ function addle(
     emitCondition(context, skill, "Immobilized", 1, 1.5);
   }
   if (bonusEffects) {
-    gainNecromancerLifeForce(
-      context,
-      10,
-      context.effectiveEnd,
-      "addle-bonus",
-    );
+    gainNecromancerLifeForce(context, 10, context.effectiveEnd, "addle-bonus");
   }
   addShards(context, skill, bonusEffects ? 4 : 2, "addle");
 }
@@ -120,10 +112,7 @@ function extirpate(
   skill: NecromancerSkill,
   event: NecromancerSimulationEvent,
 ): void {
-  if (
-    event?.type !== "damage"
-    || Number(event.hitIndex || 1) !== 1
-  ) return;
+  if (event?.type !== "damage" || Number(event.hitIndex || 1) !== 1) return;
   addShards(context, skill, 2, "extirpate", event.at);
 }
 
@@ -165,9 +154,7 @@ function soulShardDamage(
   });
 }
 
-function preparePerforate(
-  context: NecromancerCastContext,
-): PerforateState {
+function preparePerforate(context: NecromancerCastContext): PerforateState {
   const at = context.effectiveEnd;
   if (context.effectiveEnd < context.fullEnd - context.epsilon) {
     return { at, shardCount: 0, interrupted: true };
@@ -204,11 +191,7 @@ function completePerforate(
 ): void {
   const perforateState = state as Partial<PerforateState> | null;
   if (perforateState?.interrupted) return;
-  emitState(
-    context,
-    perforateState?.at ?? context.effectiveEnd,
-    "perforate",
-  );
+  emitState(context, perforateState?.at ?? context.effectiveEnd, "perforate");
 }
 
 function distress(
@@ -230,8 +213,7 @@ function committedAtBaseOffset(
   baseOffsetMs: number,
 ): boolean {
   const baseCastMs = Number(skill.castTimeMs || 0);
-  const commitProgress =
-    baseCastMs > 0 ? Number(baseOffsetMs) / baseCastMs : 1;
+  const commitProgress = baseCastMs > 0 ? Number(baseOffsetMs) / baseCastMs : 1;
   const commitAt =
     context.start + (context.fullEnd - context.start) * commitProgress;
   return context.effectiveEnd + context.epsilon >= commitAt;
@@ -243,9 +225,9 @@ function oppressiveCollapse(
 ): void {
   const conditionCount = Math.min(
     7,
-    Object.values(context.config.target?.conditions || {})
-      .filter((value) => value === true || Number(value) > 0)
-      .length,
+    Object.values(context.config.target?.conditions || {}).filter(
+      (value) => value === true || Number(value) > 0,
+    ).length,
   );
   if (!conditionCount) return;
   emitBuff(
@@ -254,7 +236,7 @@ function oppressiveCollapse(
     "might",
     necromancerBoonDuration(context, "Might", 8),
     conditionCount * 2,
-    { metadata: { affectsSummons: true } },
+    { metadata: necromancerPartyBoonRecipients(context) },
   );
 }
 
@@ -273,9 +255,7 @@ function nightfallCommitted(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
 ): boolean {
-  const firstPacket = skill.effects?.find(
-    (effect) => effect.type === "strike",
-  );
+  const firstPacket = skill.effects?.find((effect) => effect.type === "strike");
   return committedAtBaseOffset(
     context,
     skill,

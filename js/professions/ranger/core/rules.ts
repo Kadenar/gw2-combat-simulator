@@ -97,6 +97,17 @@ function beastmodeActive(context: Gw2ModifierContext): boolean {
   );
 }
 
+function soulbeastSpecialization(context: Gw2ModifierContext): boolean {
+  const profession = (
+    context.runtime as
+      { profession?: { specialization?: { kind?: string } } } | undefined
+  )?.profession;
+  return (
+    profession?.specialization?.kind === "Soulbeast" ||
+    context.config?.specialization === "Soulbeast"
+  );
+}
+
 function targetConditionCount(context: Gw2ModifierContext): number {
   const active = new Set(
     Object.entries(context.config?.target?.conditions || {})
@@ -325,7 +336,7 @@ function modifyRangerAttributes(
       // that already includes might and Strider's Strength.
       adjust("healingPower", Number(context.config?.stats?.power || 0) * 0.07);
     }
-  } else if (!merged) {
+  } else if (!merged && soulbeastSpecialization(context)) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
       for (const attribute of [
         "power",
@@ -476,6 +487,21 @@ function targetVulnerable(context: Gw2ModifierContext): boolean {
 
 export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
   Object.freeze([
+    {
+      id: "ranger.sic-em-pet",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.4,
+      when: (context) => petEvent(context) && boonActive(context, "sic-em-pet"),
+    },
+    {
+      id: "ranger.lesser-sic-em-pet",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.15,
+      when: (context) =>
+        petEvent(context) && boonActive(context, "lesser-sic-em-pet"),
+    },
     {
       id: "ranger.hunters-tactics-damage",
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
@@ -644,6 +670,19 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
           (context.config?.target?.defiant ||
             context.config?.target?.disabled ||
             context.config?.target?.defianceBroken),
+        ),
+    },
+    {
+      id: "ranger.pounce-defiant",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.2,
+      when: (context) =>
+        context.event?.damageKind === "ranger-pounce-defiant" &&
+        Boolean(
+          context.config?.target?.defiant ||
+          context.config?.target?.disabled ||
+          context.config?.target?.defianceBroken,
         ),
     },
     {

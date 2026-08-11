@@ -215,6 +215,12 @@ export function createGw2ConditionResolution({
     const application = event.application;
     const fraction = clamp(Number(event.fraction || 0), 0, 1);
     if (!application || !fraction) return null;
+    if (
+      Number.isFinite(Number(application.removedAt)) &&
+      event.at >= Number(application.removedAt) - EPSILON
+    ) {
+      return null;
+    }
     const condition = event.condition || application.condition;
 
     const stats = ctx.query.statsAt(event.at, application, ctx);

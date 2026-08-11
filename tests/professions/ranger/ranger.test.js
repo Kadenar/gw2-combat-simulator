@@ -16,6 +16,7 @@ import {
 } from "../../../js/app/profession/registry.js";
 import { professionRoute } from "../../../js/app/profession/selector.js";
 import { simulateGw2 } from "../../../js/platform/gw2/simulate.js";
+import { skillBreakdownRows } from "../../../js/platform/ui/result-tables.js";
 import {
   createRangerBuildDefaults,
   migrateRangerBuild,
@@ -36,6 +37,7 @@ import { RANGER_TRAIT_COVERAGE } from "../../../js/professions/ranger/data/trait
 import { rangerProfession } from "../../../js/professions/ranger/definition.js";
 import {
   rangerCoreAttributeRules,
+  rangerCoreCastRules,
   rangerCoreModifierRules,
 } from "../../../js/professions/ranger/core/rules.js";
 import { RANGER_SKILL_MECHANICS } from "../../../js/professions/ranger/mechanics/skill-mechanics.js";
@@ -101,8 +103,8 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
   assert.equal(DATA_SNAPSHOT, "2026-08-08");
   assert.equal(rangerCatalog.specializations.length, 9);
   assert.equal(rangerCatalog.traits.length, 108);
-  assert.equal(rangerCatalog.skills.length, 301);
-  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 295);
+  assert.equal(rangerCatalog.skills.length, 307);
+  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 300);
   assert.equal(
     rangerCatalog.skillsById.has(ID.OVERBEARING_SMASH_SECOND_STRIKE),
     false,
@@ -200,6 +202,15 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
       "https://render.guildwars2.com/file/2708F4B3239D05C7A063FDC37838C9EFF5FCED50/1128625.png",
       "https://render.guildwars2.com/file/0C909F99672AC81E95167114B132F4BF03296E33/1128626.png",
       "https://render.guildwars2.com/file/08A7C5E751190ED5596C9112005D791D20AA3B31/1128629.png",
+    ],
+  );
+  assert.deepEqual(
+    [ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE].map(
+      (id) => rangerCatalog.skillsById.get(id).icon,
+    ),
+    [
+      "https://render.guildwars2.com/file/1FD6BA0D5205082CF724026543A9CE3EA9E3AB10/2565748.png",
+      "https://render.guildwars2.com/file/583FF23D285DAFF432CF2C3BFBE27FF4142D4C9B/2565753.png",
     ],
   );
 });
@@ -363,6 +374,176 @@ test("Power Soulbeast benchmark preset follows the supplied EVTC", async () => {
   );
 });
 
+test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async () => {
+  const savedBuild = JSON.parse(
+    await readFile(
+      new URL(
+        "../../../Builds/ranger/b-power-untamed-hammer-sword-axe.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const savedRotation = JSON.parse(
+    await readFile(
+      new URL(
+        "../../../Rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const manifest = JSON.parse(
+    await readFile(
+      new URL("../../../Builds/ranger/manifest.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const savedPetCommands = savedRotation.rotation
+    .map((entry) => {
+      const skillId = typeof entry === "object" ? entry.skillId : undefined;
+      return skillId == null
+        ? rangerCatalog.skillsByName.get(String(entry))
+        : rangerCatalog.skillsById.get(Number(skillId));
+    })
+    .filter((skill) => skill?.petSkill && !skill.petAutonomousSkill);
+  assert.deepEqual(
+    savedPetCommands.map((skill) => skill.name),
+    Array(6).fill("Furious Pounce"),
+  );
+
+  const build = migrateRangerBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const hits = (skillId) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === "damage" && event.skillId === skillId,
+    ).length;
+  const namedHits = (skillId, name) =>
+    result.resolvedEvents.filter(
+      (event) =>
+        event.type === "damage" &&
+        event.skillId === skillId &&
+        event.name === name,
+    ).length;
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(build.selectedPet, "Tiger");
+  assert.equal(build.selectedPet2, "Tiger");
+  assert.deepEqual(build.weaponSigils, [
+    ["Force", "Air"],
+    ["Force", "Impact"],
+  ]);
+  assert.equal(build.assumptions.sharePlayerBoonsWithSummons, false);
+  assert.equal(hits(ID.FELINE_SLASH), 68);
+  assert.equal(hits(ID.FELINE_BITE), 13);
+  assert.equal(hits(ID.FELINE_MAUL), 14);
+  assert.equal(hits(ID.FURIOUS_POUNCE), 6);
+  assert.equal(hits(ID.ENVELOPING_HAZE), 36);
+  assert.equal(hits(ID.VENOMOUS_OUTBURST), 11);
+  assert.equal(hits(ID.RENDING_VINES), 11);
+  assert.equal(namedHits(ID.RELENTLESS_WHIRL, "Relentless Whirl"), 20);
+  assert.equal(namedHits(ID.DEFT_STRIKE, "Deft Strike"), 4);
+  assert.equal(hits(ID.EXPLODING_SPORES), 24);
+
+  const tigerStrike = result.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillId === ID.FELINE_SLASH,
+  );
+  assert.equal(tigerStrike.summonBasePower, 1944);
+  assert.equal(tigerStrike.summonBaseFerocity, 900);
+
+  const displayRows = skillBreakdownRows(result);
+  const relentlessRow = displayRows.find(
+    (entry) => entry.name === "Relentless Whirl",
+  );
+  const explodingSporeRow = displayRows.find(
+    (entry) => entry.name === "Exploding Spore",
+  );
+  assert.equal(
+    relentlessRow.strike,
+    result.breakdown
+      .filter((entry) => entry.sourceSkill === "Relentless Whirl")
+      .reduce((total, entry) => total + entry.strikeDamage, 0),
+  );
+  assert.ok(explodingSporeRow.strike > 0);
+  assert.match(
+    rangerCatalog.skillsById.get(ID.RELENTLESS_WHIRL).icon,
+    /^https:\/\//,
+  );
+  assert.match(
+    rangerCatalog.skillsById.get(ID.DEFT_STRIKE).icon,
+    /^https:\/\//,
+  );
+
+  const packBoons = result.events.filter(
+    (event) =>
+      event.type === "buff" &&
+      event.skillId === ID.STRENGTH_OF_THE_PACK &&
+      ["fury", "stability", "swiftness"].includes(event.kind),
+  );
+  assert.deepEqual(
+    packBoons.map(({ kind }) => kind),
+    ["fury", "stability", "swiftness"],
+  );
+  assert.equal(
+    packBoons.every(
+      (event) =>
+        event.affectsSelf === true &&
+        event.affectsSummons === true &&
+        event.alliedPlayerCount === 0 &&
+        event.recipientCount === 2,
+    ),
+    true,
+  );
+  assert.equal(
+    result.events
+      .filter((event) => event.name === '"Strength of the Pack!" - Might')
+      .every(
+        (event) =>
+          event.affectsSelf === false &&
+          event.affectsSummons === true &&
+          event.alliedPlayerCount === 0,
+      ),
+    true,
+  );
+
+  assert.equal(
+    Math.abs(
+      result.dpsWindow - savedRotation.metadata.benchmarkDurationSeconds,
+    ) < 1,
+    true,
+  );
+  assert.equal(
+    Math.abs(result.dps - savedRotation.metadata.benchmarkDps) /
+      savedRotation.metadata.benchmarkDps <
+      0.04,
+    true,
+  );
+  assert.equal(
+    manifest
+      .find(({ section }) => section === "Untamed")
+      .presets.some(
+        ({ build: buildPath, rotation: rotationPath, benchmarkDps }) =>
+          buildPath === "Builds/ranger/b-power-untamed-hammer-sword-axe.json" &&
+          rotationPath ===
+            "Rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json" &&
+          benchmarkDps === 44183,
+      ),
+    true,
+  );
+});
+
 test("Power Galeshot benchmark tracks the supplied EVTC and both pets", async () => {
   const savedBuild = JSON.parse(
     await readFile(
@@ -465,7 +646,7 @@ test("Power Galeshot benchmark tracks the supplied EVTC and both pets", async ()
     ["Consuming Bite", 33195, 0.15],
     ["Twin Darts", 12942, 0.06],
     ["Narcotic Spores", 5285, 0.13],
-    ["Crippling Anguish", 3187, 0.01],
+    ["Crippling Anguish", 3187, 0.04],
   ]) {
     assert.ok(
       Math.abs(damage(name) / evtcDamage - 1) < tolerance,
@@ -500,6 +681,219 @@ test("Power Galeshot benchmark tracks the supplied EVTC and both pets", async ()
       0.01,
     true,
   );
+});
+
+test("Power Quickness Galeshot benchmark tracks its EVTC and Whirling Defense cancels", async () => {
+  const savedBuild = JSON.parse(
+    await readFile(
+      new URL(
+        "../../../Builds/ranger/b-power-quick-galeshot-longbow-axe.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const savedRotation = JSON.parse(
+    await readFile(
+      new URL(
+        "../../../Rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  const build = migrateRangerBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const hits = (name) =>
+    result.breakdown.find((entry) => entry.name === name)?.hits;
+  const damage = (name) =>
+    result.breakdown.find((entry) => entry.name === name)?.damage || 0;
+  const whirlingPackets = new Map();
+  for (const event of result.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.skillId === ID.WHIRLING_DEFENSE,
+  )) {
+    whirlingPackets.set(
+      event.activationId,
+      (whirlingPackets.get(event.activationId) || 0) + 1,
+    );
+  }
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(build.targetHealth, 3970000);
+  assert.equal(build.assumptions.sharePlayerBoonsWithSummons, true);
+  assert.deepEqual(
+    savedRotation.rotation.slice(-2).map((entry) => entry.skillId),
+    [ID.DISMISS_CYCLONE_BOW, ID.RAPID_FIRE],
+  );
+  assert.deepEqual(build.weaponSigils, [
+    ["Force", "Impact"],
+    ["Force", "Impact"],
+  ]);
+  assert.equal(
+    build.specializations.find(({ name }) => name === "Galeshot").traits,
+    "3-3-1",
+  );
+  const cloudburstEvents = result.events.filter(
+    (event) => event.skillName === "Cloudburst",
+  );
+  assert.equal(cloudburstEvents.length, 76);
+  assert.equal(
+    cloudburstEvents.every((event) => event.affectsSummons === true),
+    true,
+  );
+  assert.equal(
+    cloudburstEvents.every(
+      (event) =>
+        event.companionIds.length === 1 &&
+        /^ranger-pet:[12]:\d+$/.test(event.companionIds[0]),
+    ),
+    true,
+  );
+  assert.equal(
+    result.events.some((event) => event.skillName === "Gale Force"),
+    false,
+  );
+  assert.deepEqual([...whirlingPackets.values()], [6, 6, 6, 6, 6]);
+  assert.equal(hits("Whirling Defense"), 30);
+  assert.equal(hits("Bluster"), 81);
+  assert.equal(hits("Barrage"), 60);
+  assert.equal(hits("Splitblade"), 50);
+  assert.equal(hits("Quarry's Peril"), 11);
+  assert.equal(hits("Mistral"), 178);
+  assert.equal(hits("Twin Darts"), 58);
+  assert.equal(hits("Tail Lash"), 3);
+  assert.equal(hits("Consuming Bite"), 31);
+  assert.equal(hits("Poisonous Cloud"), 24);
+  for (const [name, evtcDamage, tolerance] of [
+    ["Twin Darts", 32211, 0.06],
+    ["Consuming Bite", 69837, 0.08],
+    ["Poisonous Cloud", 94952, 0.03],
+  ]) {
+    assert.ok(
+      Math.abs(damage(name) / evtcDamage - 1) < tolerance,
+      `${name} damage ${damage(name)} drifted from EVTC ${evtcDamage}.`,
+    );
+  }
+  assert.equal(
+    result.resolvedEvents
+      .filter((event) => event.type === "damage" && event.name === "Tail Lash")
+      .every((event) => event.criticalChance < 1),
+    true,
+  );
+  const twinDartsBleeding = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "condition" &&
+      event.skillId === ID.TWIN_DARTS &&
+      event.condition === "Bleeding",
+  );
+  assert.equal(twinDartsBleeding.length, 58);
+  assert.equal(
+    twinDartsBleeding.every(
+      (event) => event.stacks === 2 && event.effectiveDuration === 2,
+    ),
+    true,
+  );
+  assert.equal(
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "condition" &&
+          event.skillId === ID.NARCOTIC_SPORES_PET &&
+          event.condition === "Confusion",
+      )
+      .every((event) => event.effectiveDuration === 8),
+    true,
+  );
+  const removedPetConditions = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "condition" &&
+      event.source === "ranger-pet" &&
+      event.removedAt != null,
+  );
+  assert.equal(removedPetConditions.length > 0, true);
+  assert.equal(
+    removedPetConditions.every(
+      (event) =>
+        event.summonOwner &&
+        event.damageTicks.every((tick) => tick.at < event.removedAt),
+    ),
+    true,
+  );
+  assert.equal(
+    result.resolvedEvents.some(
+      (event) =>
+        event.type === "condition" &&
+        event.skillId === TRAIT.SHARPENED_EDGES &&
+        event.source === "ranger-pet" &&
+        event.independentSummonStrike === true,
+    ),
+    true,
+  );
+  const bleedingDamage =
+    result.conditionBreakdown.find((entry) => entry.name === "Bleeding")
+      ?.damage || 0;
+  assert.equal(Math.abs(bleedingDamage / 140500 - 1) < 0.03, true);
+  const confusionDamage =
+    result.conditionBreakdown.find((entry) => entry.name === "Confusion")
+      ?.damage || 0;
+  assert.equal(Math.abs(confusionDamage / 40050 - 1) < 0.04, true);
+  assert.equal(
+    result.dpsWindow > result.steps.at(-1).start / 1000 &&
+      result.dpsWindow < result.steps.at(-1).end / 1000,
+    true,
+  );
+  assert.equal(
+    Math.abs(result.dps - savedRotation.metadata.benchmarkDps) /
+      savedRotation.metadata.benchmarkDps <
+      0.04,
+    true,
+  );
+
+  const unsharedBuild = migrateRangerBuild({
+    ...savedBuild,
+    assumptions: {
+      ...savedBuild.assumptions,
+      sharePlayerBoonsWithSummons: false,
+    },
+    rotation: savedRotation.rotation,
+  });
+  const unsharedApp = {
+    build: unsharedBuild,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(unsharedApp);
+  const unsharedResult = runSimulation(unsharedApp);
+  assert.equal(
+    unsharedResult.events
+      .filter((event) => event.skillName === "Cloudburst")
+      .every((event) => event.affectsSummons === false),
+    true,
+  );
+  const petStrikeDamage = (simulation) =>
+    simulation.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "damage" &&
+          (event.actorType === "summon" || event.source === "ranger-pet"),
+      )
+      .reduce((total, event) => total + event.damage, 0);
+  assert.equal(petStrikeDamage(result) > petStrikeDamage(unsharedResult), true);
 });
 
 test("Core Ranger exposes only the selected pet Beast skill", () => {
@@ -660,6 +1054,39 @@ test("Ranger pet commands require Alacrity on the active pet", () => {
         event.affectsSummons === true,
     ),
     true,
+  );
+});
+
+test("Pack Alpha excludes unleashed-pet and Beastmode skill recharges", () => {
+  const recharge = (skill) =>
+    rangerCoreCastRules.modifyRechargeDuration(
+      {
+        skill,
+        traits: new Set([TRAIT.PACK_ALPHA]),
+        state: {
+          time: 0,
+          profession: { core: { quickDrawUntil: 0 } },
+        },
+      },
+      10,
+    );
+
+  assert.equal(recharge({ name: "Pet skill", petSkill: true }), 8);
+  assert.equal(
+    recharge({
+      name: "Unleashed pet skill",
+      petSkill: true,
+      unleashedPetSkill: true,
+    }),
+    10,
+  );
+  assert.equal(
+    recharge({
+      name: "Beastmode skill",
+      petSkill: true,
+      beastmodeSkill: true,
+    }),
+    10,
   );
 });
 
@@ -1267,6 +1694,22 @@ test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
       .resolveRuntime({ specialization: "Galeshot" })
       .createProfessionState({ specialization: "Galeshot" }),
   };
+  const galeshotPaletteGroups =
+    rangerProfession.ui.paletteGroups(inactiveContext);
+  assert.deepEqual(
+    galeshotPaletteGroups.map((group) => group.id),
+    ["ranger-pet", "ranger-galeshot-profession", "ranger-cyclone-bow"],
+  );
+  assert.equal(
+    galeshotPaletteGroups.every((group) => group.stackId === "ranger-galeshot"),
+    true,
+  );
+  assert.equal(
+    rangerProfession.ui
+      .resourceViews(inactiveContext)
+      .find((view) => view.id === "wind-force").pipStyle,
+    "ranger-wind-force",
+  );
   const dismiss = rangerCatalog.skillsById.get(ID.DISMISS_CYCLONE_BOW);
   assert.equal(
     rangerProfession.ui.paletteSkillAvailability(inactiveContext, dismiss)
@@ -1401,7 +1844,7 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
   assert.equal(
     RANGER_TRAIT_COVERAGE.filter((entry) => entry.status === "implemented")
       .length,
-    59,
+    66,
   );
 
   const coreOperations = new Map(

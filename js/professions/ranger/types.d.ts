@@ -102,6 +102,7 @@ export interface RangerCoreState {
   childOfEarthReadyAt: number;
   clarionBondReadyAt: number;
   carnivoreReadyAt: number;
+  goForTheThroatPetReadyAt: number;
   huntersGazeReadyAt: number;
   playerOpeningStrikeReady: boolean;
   petOpeningStrikeReady: boolean;
@@ -144,6 +145,17 @@ export interface SoulbeastState {
 export interface UntamedState {
   rangerUnleashed: boolean;
   ambushReadyUntil: number;
+  unleashedPowerReadyAt: number;
+  letLooseReadyAt: number;
+  debilitatingBlowsReadyAt: number;
+  enhancingImpactReadyAt: number;
+  ferociousSymbiosisPlayerStacks: number;
+  ferociousSymbiosisPlayerUntil: number;
+  ferociousSymbiosisPlayerReadyAt: number;
+  ferociousSymbiosisPetStacks: number;
+  ferociousSymbiosisPetUntil: number;
+  ferociousSymbiosisPetReadyAt: number;
+  letLooseActivations: Record<string, boolean>;
 }
 
 export interface GaleshotState {
@@ -223,6 +235,7 @@ export interface RangerSkill extends Skill {
   readonly celestialAvatarSkill?: boolean;
   readonly beastmodeSkill?: boolean;
   readonly unleashedPetSkill?: boolean;
+  readonly unleashedAmbushSkill?: boolean;
   readonly unleashedHammerSkill?: boolean;
   readonly cycloneBowSkill?: boolean;
   readonly arrowCost?: number;

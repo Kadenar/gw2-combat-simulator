@@ -813,7 +813,8 @@ export function mountTimeSeriesCharts(
             name: line.name,
             value: Math.round(chartValueAt(line.points, time)),
           }))
-          .filter((entry) => entry.value > 0);
+          .filter((entry) => entry.value > 0)
+          .sort((a, b) => b.value - a.value);
         body = entries.length
           ? entries
               .map(

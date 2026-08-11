@@ -1082,6 +1082,8 @@ test("Scourge barrier, shroud, and greater-shade traits trigger precisely", () =
       initialResource: 100,
       selectedSkills: ["Sand Flare"],
       selectedTraitIds: [TRAIT.ABRASIVE_GRIT, TRAIT.DESERT_EMPOWERMENT],
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
     },
   );
   const greaterShade = simulate(
@@ -1101,6 +1103,8 @@ test("Scourge barrier, shroud, and greater-shade traits trigger precisely", () =
     {
       initialResource: 100,
       selectedTraitIds: [TRAIT.HERALD_OF_SORROW, TRAIT.SOUL_BARBS],
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
     },
   );
   const buffs = (result, kind) =>
@@ -1118,13 +1122,22 @@ test("Scourge barrier, shroud, and greater-shade traits trigger precisely", () =
   assert.equal(buffs(barrier, "might").length, 3);
   assert.equal(
     buffs(barrier, "might").every(
-      (event) => event.stacks === 2 && event.duration === 6,
+      (event) =>
+        event.stacks === 2 &&
+        event.duration === 6 &&
+        event.recipients === "party" &&
+        event.affectsSummons === false,
     ),
     true,
   );
   assert.equal(buffs(barrier, "alacrity").length, 3);
   assert.equal(
-    buffs(barrier, "alacrity").every((event) => event.duration === 1.5),
+    buffs(barrier, "alacrity").every(
+      (event) =>
+        event.duration === 1.5 &&
+        event.recipients === "party" &&
+        event.affectsSummons === false,
+    ),
     true,
   );
   assert.equal(greaterShade.endState.profession.shades.length, 0);
@@ -1148,6 +1161,11 @@ test("Scourge barrier, shroud, and greater-shade traits trigger precisely", () =
       [2, 1.5],
       [3.5, 3],
     ],
+  );
+  assert.ok(
+    buffs(sandstorm, "protection").every(
+      (event) => event.recipients === "party" && !event.affectsSummons,
+    ),
   );
   assert.deepEqual(
     buffs(sandstorm, "necromancer-soul-barbs").map((event) => event.duration),
@@ -1977,6 +1995,75 @@ test("Death Spiral includes its life-siphon damage packet", () => {
   assert.equal(siphon?.noCrit, true);
   assert.equal(resolvedSiphon?.criticalChance, 0);
   assert.equal(resolvedSiphon?.damage, 3537);
+
+  const rows = new Map(
+    skillBreakdownRows(result).map((row) => [row.name, row]),
+  );
+  assert.equal(rows.get("Death Spiral").hits, 1);
+  assert.equal(rows.get("Death Spiral — Life Siphon").hits, 1);
+  assert.equal(
+    rows.get("Death Spiral — Life Siphon").parentSkill,
+    "Death Spiral",
+  );
+});
+
+test("Necromancer dark fields emit separately attributed whirl life steals", () => {
+  const scenarios = [
+    {
+      rotation: ["Nightfall", "Death Spiral"],
+      config: { primaryWeapon: "Greatsword" },
+      parentSkill: "Death Spiral",
+      hits: 2,
+    },
+    {
+      rotation: ["Nightfall", "Gravedigger"],
+      config: { primaryWeapon: "Greatsword" },
+      parentSkill: "Gravedigger",
+      hits: 3,
+    },
+    {
+      rotation: ["Well of Darkness", "Extirpate"],
+      config: {
+        primaryWeapon: "Spear",
+        selectedSkills: ["Well of Darkness"],
+      },
+      parentSkill: "Extirpate",
+      hits: 3,
+    },
+  ];
+
+  for (const scenario of scenarios) {
+    const result = simulate("Ritualist", scenario.rotation, scenario.config);
+    const bolts = result.resolvedEvents.filter(
+      (event) => event.type === "damage" && event.skillId === ID.LEECHING_BOLTS,
+    );
+    assert.equal(bolts.length, scenario.hits);
+    assert.ok(
+      bolts.every(
+        (event) =>
+          event.skillName === "Leeching Bolts" &&
+          event.parentSkillName === scenario.parentSkill &&
+          event.flatStrikeBase === 170 &&
+          event.flatStrikePowerCoeff === 0.03 &&
+          event.noCrit === true,
+      ),
+    );
+    assert.equal(
+      skillBreakdownRows(result).find((row) => row.name === "Leeching Bolts")
+        ?.hits,
+      scenario.hits,
+    );
+  }
+
+  const withoutField = simulate("Ritualist", ["Death Spiral"], {
+    primaryWeapon: "Greatsword",
+  });
+  assert.equal(
+    withoutField.resolvedEvents.some(
+      (event) => event.type === "damage" && event.skillId === ID.LEECHING_BOLTS,
+    ),
+    false,
+  );
 });
 
 test("Greatsword control and Nightfall pulses use their live mechanics", () => {
@@ -2383,6 +2470,11 @@ test("player boon sharing can be disabled for Necromancer minions", () => {
     ...config,
     sharePlayerBoonsWithSummons: false,
   });
+  const capped = simulate("Core", rotation, {
+    ...config,
+    allies: { count: 4, strikesPerSecond: 1 },
+    sharePlayerBoonsWithSummons: true,
+  });
   const minionDamage = (result) =>
     result.resolvedEvents
       .filter(
@@ -2394,7 +2486,57 @@ test("player boon sharing can be disabled for Necromancer minions", () => {
       .reduce((sum, event) => sum + event.damage, 0);
 
   assert.ok(minionDamage(shared) > minionDamage(isolated));
+  assert.equal(minionDamage(capped), minionDamage(isolated));
   assert.ok(minionDamage(isolated) > 0);
+
+  const sharedMight = shared.events.find(
+    (event) =>
+      event.type === "buff" &&
+      event.skillId === ID.BLOOD_IS_POWER &&
+      event.kind === "might",
+  );
+  const cappedMight = capped.events.find(
+    (event) =>
+      event.type === "buff" &&
+      event.skillId === ID.BLOOD_IS_POWER &&
+      event.kind === "might",
+  );
+  assert.equal(sharedMight.recipients, "party");
+  assert.deepEqual(sharedMight.companionIds, ["minion:bone-fiend:0"]);
+  assert.equal(sharedMight.affectsSummons, true);
+  assert.equal(cappedMight.affectsSummons, false);
+
+  const partiallyCapped = simulate(
+    "Core",
+    [
+      "Summon Bone Minions",
+      "Blood Is Power",
+      { type: "wait", durationMs: 4000 },
+    ],
+    {
+      selectedSkills: ["Summon Bone Minions", "Blood Is Power"],
+      boons: { might: 0, fury: false },
+      allies: { count: 3, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
+    },
+  );
+  const damageByOwner = new Map();
+  for (const event of partiallyCapped.resolvedEvents) {
+    if (
+      event.type === "damage" &&
+      event.source === "Minion" &&
+      String(event.summonOwner).startsWith("minion:bone-minion:")
+    ) {
+      damageByOwner.set(
+        event.summonOwner,
+        (damageByOwner.get(event.summonOwner) || 0) + event.damage,
+      );
+    }
+  }
+  assert.ok(
+    damageByOwner.get("minion:bone-minion:0") >
+      damageByOwner.get("minion:bone-minion:1"),
+  );
 });
 
 test("unequipped Necromancer slot skills cannot execute", () => {
@@ -2633,9 +2775,45 @@ test("independent minions inherit dynamically shared Fury", () => {
     selectedSkills: ["Summon Blood Fiend"],
     selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
   });
-
+  const capped = simulate("Ritualist", rotation, {
+    initialResource: 100,
+    selectedSkills: ["Summon Blood Fiend"],
+    selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
+    allies: { count: 4, strikesPerSecond: 1 },
+    sharePlayerBoonsWithSummons: true,
+  });
+  const spiritRotation = [
+    "Ritualist's Shroud",
+    "Wanderlust",
+    { type: "wait", durationMs: 6500 },
+  ];
+  const spiritBase = simulate("Ritualist", spiritRotation, {
+    initialResource: 100,
+  });
+  const spiritEmpowered = simulate("Ritualist", spiritRotation, {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.EMPOWERING_SPIRITS],
+    sharePlayerBoonsWithSummons: true,
+  });
   assert.equal(firstBloodFiendAttack(base).criticalChance, 0.05);
   assert.equal(firstBloodFiendAttack(empowered).criticalChance, 0.3);
+  assert.equal(firstBloodFiendAttack(capped).criticalChance, 0.05);
+  assert.ok(spiritBase.resolvedEvents.length > 0);
+  const spiritBoons = spiritEmpowered.events.filter(
+    (event) =>
+      event.type === "buff" &&
+      event.skillId === ID.WANDERLUST &&
+      ["quickness", "fury"].includes(event.kind),
+  );
+  assert.equal(spiritBoons.length, 2);
+  assert.ok(
+    spiritBoons.every(
+      (event) =>
+        event.recipients === "party" &&
+        event.affectsSummons === false &&
+        event.companionIds.length === 0,
+    ),
+  );
 });
 
 test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
@@ -2954,19 +3132,26 @@ test("Ritualist live spirit packets retain independent ownership and cadence", (
       (event) =>
         event.actorType === "summon" &&
         event.coefficient === 0.3 &&
-        event.weaponStrength === 1215,
+        event.weaponStrength === 1565 &&
+        event.summonInheritsCriticalAttributes === true,
     ),
     true,
   );
   assert.equal(
     wanderlustAutos.every(
-      (event) => event.coefficient === 0.4 && event.weaponStrength === 1270,
+      (event) =>
+        event.coefficient === 0.4 &&
+        event.weaponStrength === 1565 &&
+        event.summonInheritsCriticalAttributes === true,
     ),
     true,
   );
   assert.equal(
     anguishAutos.every(
-      (event) => event.coefficient === 0.4 && event.weaponStrength === 1350,
+      (event) =>
+        event.coefficient === 0.4 &&
+        event.weaponStrength === 1685 &&
+        event.summonInheritsCriticalAttributes === true,
     ),
     true,
   );
@@ -2984,6 +3169,67 @@ test("Ritualist live spirit packets retain independent ownership and cadence", (
       .every((event, index) => Math.abs(event.at - bond[index].at - 1) < 1e-9),
     true,
   );
+});
+
+test("Ritualist spirit autos inherit owner Fury without inheriting owner Might", () => {
+  const rotation = [
+    "Ritualist's Shroud",
+    "Anguish",
+    { type: "wait", durationMs: 8000 },
+  ];
+  const run = (boons) =>
+    simulate("Ritualist", rotation, {
+      initialResource: 100,
+      boons,
+      sharePlayerBoonsWithSummons: false,
+    });
+  const spiritAuto = (result) =>
+    result.resolvedEvents.find(
+      (event) =>
+        event.type === "damage" && event.skillName === "Anguish Autoattack",
+    );
+  const baseline = spiritAuto(run({ might: 0, fury: false }));
+  const might = spiritAuto(run({ might: 25, fury: false }));
+  const fury = spiritAuto(run({ might: 0, fury: true }));
+
+  assert.ok(baseline);
+  assert.ok(might);
+  assert.ok(fury);
+  assert.equal(might.damage, baseline.damage);
+  assert.equal(might.criticalChance, baseline.criticalChance);
+  assert.equal(
+    fury.criticalChance,
+    Math.min(1, baseline.criticalChance + 0.25),
+  );
+  assert.ok(fury.damage > baseline.damage);
+});
+
+test("Innervate Anguish uses profession-mechanic strength without Spirit's Strength", () => {
+  const rotation = ["Ritualist's Shroud", "Anguish", "Innervate Anguish"];
+  const baseline = simulate("Ritualist", rotation, {
+    initialResource: 100,
+  });
+  const strengthened = simulate("Ritualist", rotation, {
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.SPIRITS_STRENGTH],
+  });
+  const innervate = (result) =>
+    result.resolvedEvents.find(
+      (event) =>
+        event.type === "damage" && event.skillName === "Innervate Anguish",
+    );
+  const baselineHit = innervate(baseline);
+  const strengthenedHit = innervate(strengthened);
+
+  assert.ok(baselineHit);
+  assert.ok(strengthenedHit);
+  assert.equal(baselineHit.coefficient, 1.3);
+  assert.equal(
+    baselineHit.weaponStrengthProfileId,
+    "nonweapon.profession-mechanic",
+  );
+  assert.equal(baselineHit.resolvedWeaponStrength, 1100);
+  assert.equal(strengthenedHit.damage, baselineHit.damage);
 });
 
 test("Ritualist weapon spells consume stacks and Resilient Weapon is usable", () => {
@@ -3482,8 +3728,16 @@ test("current Harbinger grandmaster traits use their live PvE mechanics", () => 
     ["Harbinger Shroud", "Dark Barrage", "Exit Harbinger Shroud"],
     {
       selectedTraitIds: [TRAIT.DEATHLY_HASTE],
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
     },
   );
+  const twistedMedicine = simulate("Harbinger", ["Elixir of Risk"], {
+    selectedSkills: ["Elixir of Risk"],
+    selectedTraitIds: [TRAIT.TWISTED_MEDICINE],
+    allies: { count: 4, strikesPerSecond: 1 },
+    sharePlayerBoonsWithSummons: true,
+  });
   const doom = simulate(
     "Harbinger",
     [
@@ -3581,6 +3835,28 @@ test("current Harbinger grandmaster traits use their live PvE mechanics", () => 
         event.kind === "quickness" && event.sourceId !== TRAIT.SOUL_BARBS,
     ).length,
     2,
+  );
+  assert.ok(
+    deathlyHaste.events
+      .filter(
+        (event) =>
+          event.type === "buff" &&
+          ["quickness", "fury"].includes(event.kind) &&
+          event.sourceId !== TRAIT.SOUL_BARBS,
+      )
+      .every(
+        (event) =>
+          event.recipients === "party" && event.affectsSummons === false,
+      ),
+  );
+  const twistedMedicineBoons = twistedMedicine.events.filter(
+    (event) => event.type === "buff" && ["might", "fury"].includes(event.kind),
+  );
+  assert.equal(twistedMedicineBoons.length, 2);
+  assert.ok(
+    twistedMedicineBoons.every(
+      (event) => event.recipients === "party" && event.affectsSummons === false,
+    ),
   );
   assert.equal(
     doom.events.filter(
@@ -4352,6 +4628,8 @@ test("Harbinger can equip torch skills through Weaponmaster Training", async () 
     {
       primaryWeapon: "Pistol",
       secondaryWeapon: "Torch",
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
     },
   );
   assert.deepEqual(torchRotation.warnings, []);
@@ -4365,6 +4643,14 @@ test("Harbinger can equip torch skills through Weaponmaster Training", async () 
     ),
     true,
   );
+  const oppressiveMight = torchRotation.events.find(
+    (event) =>
+      event.type === "buff" &&
+      event.skillId === ID.OPPRESSIVE_COLLAPSE &&
+      event.kind === "might",
+  );
+  assert.equal(oppressiveMight.recipients, "party");
+  assert.equal(oppressiveMight.affectsSummons, false);
 });
 
 test("Necromancer builds migrate and validate against canonical metadata", () => {
@@ -4459,6 +4745,7 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   assert.equal(castCount("Nightmare Weapon"), 6);
   assert.equal(castCount("Summon Bone Minions"), 1);
   assert.equal(rotationCount("Innervate Anguish"), 12);
+  assert.equal(rows.get("Innervate Anguish").hits, 12);
   assert.equal(rows.get("Anguish").hits, 84);
   assert.equal(rows.get("Painful Bond").hits >= 90, true);
   assert.equal(rows.get("Explosive Growth").hits, 24);
@@ -4467,19 +4754,24 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   assert.equal(rows.get("Anguish Autoattack").hits, 16);
   assert.equal(rows.get("Wanderlust Autoattack").hits, 16);
   assert.equal(rows.get("Preservation Autoattack").hits, 21);
+  assert.equal(rows.get("Death Spiral").hits, 6);
+  assert.equal(rows.get("Death Spiral — Life Siphon").hits, 6);
+  assert.equal(rows.get("Leeching Bolts").hits, 30);
   assert.ok(packetError("Anguish", 391_867) < 0.01);
   assert.ok(packetError("Painful Bond", 156_679) < 0.04);
   assert.ok(packetError("Explosive Growth", 132_893) < 0.08);
   assert.ok(packetError("Essence Blast", 264_353) < 0.09);
   assert.ok(packetError("Wanderlust", 158_654) < 0.03);
-  // Autonomous spirit attacks use independent calibrated weapon strengths and
-  // intentionally do not inherit console Might.
+  assert.ok(packetError("Innervate Anguish", 114_759) < 0.02);
+  // Autonomous spirit attacks use owner critical attributes and independently
+  // calibrated weapon strengths, without inheriting console Might.
   assert.ok(packetError("Anguish Autoattack", 83_450) < 0.015);
   assert.ok(packetError("Wanderlust Autoattack", 67_300) < 0.015);
   assert.ok(packetError("Preservation Autoattack", 67_436) < 0.015);
   assert.ok(packetError("Slash", 67_582) < 0.03);
   assert.ok(packetError("Fist", 57_943) < 0.03);
   assert.ok(packetError("Perforate", 299_894) < 0.01);
+  assert.ok(packetError("Death Spiral", 126_817) < 0.01);
   assert.ok(packetError("Summon Spirits", 441_885) < 0.025);
   assert.equal(
     savedRotation.rotation.some(
@@ -4689,8 +4981,15 @@ test("Condition Scourge benchmark preset reconstructs hidden shade casts", async
   assert.equal(castCount("Desert Shroud"), 7);
   assert.equal(castCount("Haunt"), 7);
   assert.equal(castCount("Swap Weapons"), 9);
+  assert.equal(
+    savedRotation.rotation.some(
+      (step) => step?.name === "Swap Weapons" && step.offset != null,
+    ),
+    false,
+  );
   assert.equal(castCount("Vicious Shot"), 46);
   assert.equal(castCount("Weeping Shots"), 13);
+  assert.equal(damageRows.get("Blood Is Power").hits, 7);
   assert.equal(conditionStacks("Poisoned"), 78);
   assert.ok(Math.abs(conditionStacks("Torment") - 375) / 375 < 0.04);
   // The EVTC rolled 114 Barbed Precision applications from 289 critical
@@ -4704,7 +5003,7 @@ test("Condition Scourge benchmark preset reconstructs hidden shade casts", async
     ).length,
     95,
   );
-  assert.equal(conditionStacks("Bleeding"), 221);
+  assert.equal(conditionStacks("Bleeding"), 225);
   assert.ok(strikeError("Manifest Sand Shade", 28_886) < 0.04);
   assert.ok(strikeError("Manifest Sand Shade (F1/F5)", 17_633) < 0.02);
   assert.ok(strikeError("Desert Shroud", 34_552) < 0.01);

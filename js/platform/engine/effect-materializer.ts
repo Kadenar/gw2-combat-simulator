@@ -175,6 +175,22 @@ export function materializeSkillEffectApplications({
       });
     }
   } else if (effect.type === "boon" || effect.type === "buff") {
+    const recipientMetadata = {
+      ...(effect.recipients != null ? { recipients: effect.recipients } : {}),
+      ...(effect.affectsSelf != null
+        ? { affectsSelf: effect.affectsSelf }
+        : {}),
+      ...(effect.affectsSummons != null
+        ? { affectsSummons: effect.affectsSummons }
+        : {}),
+      ...(effect.maximumRecipients != null
+        ? { maximumRecipients: effect.maximumRecipients }
+        : {}),
+      ...(effect.targetCap != null ? { targetCap: effect.targetCap } : {}),
+      ...(effect.companionIds != null
+        ? { companionIds: effect.companionIds }
+        : {}),
+    };
     applications.push({
       at: firstAt,
       event: {
@@ -186,6 +202,7 @@ export function materializeSkillEffectApplications({
         ).toLowerCase(),
         stacks: Math.max(1, Number(effect.stacks || 1)),
         duration: Math.max(0, Number(statusDuration ?? effect.duration ?? 0)),
+        ...recipientMetadata,
         ...(effect.metadata || {}),
       },
     });

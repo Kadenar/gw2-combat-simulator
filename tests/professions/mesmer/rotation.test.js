@@ -4344,6 +4344,8 @@ test("Mirage support and cloak traits emit their current effects", () => {
       primaryWeapon: "Rifle",
       secondaryWeapon: "",
       initialResource: 0,
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
     }),
   );
   assert.ok(
@@ -4368,6 +4370,12 @@ test("Mirage support and cloak traits emit their current effects", () => {
         event.type === "buff" && event.kind === "vigor" && event.duration === 3,
     ),
   );
+  const alacrity = result.events.find(
+    (event) => event.type === "buff" && event.kind === "alacrity",
+  );
+  assert.equal(alacrity.recipients, "party");
+  assert.equal(alacrity.recipientCount, 5);
+  assert.equal(alacrity.affectsSummons, false);
   assert.ok(result.procSteps.some((proc) => proc.skill === "Elusive Mind"));
 });
 
@@ -5605,6 +5613,8 @@ test("Troubadour tales grant their boons and instrument-specific notes", () => {
       defaultSimulationConfig({
         specialization: "Troubadour",
         initialResource: 3,
+        allies: { count: 4, strikesPerSecond: 1 },
+        sharePlayerBoonsWithSummons: true,
       }),
     );
     assert.equal(result.endState.profession.resource, expectedNotes, tale);
@@ -5619,6 +5629,17 @@ test("Troubadour tales grant their boons and instrument-specific notes", () => {
       .filter((event) => event.type === "buff" && event.skillName === tale)
       .map((event) => [event.kind, event.stacks, event.duration]);
     assert.deepEqual(boons, expectedBoons, tale);
+    assert.ok(
+      result.events
+        .filter((event) => event.type === "buff" && event.skillName === tale)
+        .every(
+          (event) =>
+            event.recipients === "party" &&
+            event.recipientCount === 5 &&
+            event.affectsSummons === false,
+        ),
+      tale,
+    );
     if (instrument === "Harmonious Harp") {
       assert.ok(
         result.events.some(
@@ -5772,6 +5793,8 @@ test("Troubadour adept and support traits emit their modeled effects", () => {
     defaultSimulationConfig({
       specialization: "Troubadour",
       selectedTraits: ["Raconteur"],
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
     }),
   );
   assert.ok(
@@ -5779,7 +5802,9 @@ test("Troubadour adept and support traits emit their modeled effects", () => {
       (event) =>
         event.type === "buff" &&
         event.kind === "protection" &&
-        event.duration === 3,
+        event.duration === 3 &&
+        event.recipients === "party" &&
+        event.affectsSummons === false,
     ),
   );
 
@@ -5789,12 +5814,22 @@ test("Troubadour adept and support traits emit their modeled effects", () => {
       specialization: "Troubadour",
       initialResource: 1,
       selectedTraits: ["Life of the Party"],
+      allies: { count: 4, strikesPerSecond: 1 },
+      sharePlayerBoonsWithSummons: true,
     }),
   );
   const partyBoons = party.events.filter(
     (event) =>
       event.type === "buff" &&
       ["quickness", "might", "fury"].includes(event.kind),
+  );
+  assert.ok(
+    partyBoons.every(
+      (event) =>
+        event.recipients === "party" &&
+        event.recipientCount === 5 &&
+        event.affectsSummons === false,
+    ),
   );
   assert.ok(
     partyBoons.some(

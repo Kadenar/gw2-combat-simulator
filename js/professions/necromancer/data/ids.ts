@@ -135,6 +135,7 @@ export const NECROMANCER_SKILL_IDS = Object.freeze({
   CHILLING_SCYTHE: 29867, // Chilling Scythe
   CHILLED_TO_THE_BONE: 30105, // "Chilled to the Bone!"
   GRAVEDIGGER: 30163, // Gravedigger
+  LEECHING_BOLTS: 30319, // Leeching Bolts
   YOUR_SOUL_IS_MINE: 30488, // "Your Soul Is Mine!"
   SUFFER: 30670, // "Suffer!"
   RISE: 30772, // "Rise!"

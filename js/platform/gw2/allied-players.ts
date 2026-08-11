@@ -28,6 +28,7 @@ interface Gw2AlliedPlayerProcOptions {
 interface Gw2AlliedEffectRecipientOptions {
   readonly maximumRecipients?: number;
   readonly includeSelf?: boolean;
+  readonly includeAlliedPlayers?: boolean;
   readonly companionIds?: readonly string[];
 }
 
@@ -39,6 +40,9 @@ interface Gw2BoonRecipientEvent {
   readonly maximumRecipients?: unknown;
   readonly targetCap?: unknown;
   readonly companionIds?: readonly unknown[];
+  readonly alliedPlayerCount?: unknown;
+  readonly recipientCount?: unknown;
+  readonly boonAudienceResolved?: unknown;
 }
 
 /**
@@ -63,8 +67,7 @@ export interface Gw2AlliedEffectRecipients {
 }
 
 /** Canonical audience metadata attached to every resolved boon application. */
-export interface Gw2BoonApplicationRecipients
-  extends Gw2AlliedEffectRecipients {
+export interface Gw2BoonApplicationRecipients extends Gw2AlliedEffectRecipients {
   readonly affectsSelf: boolean;
   readonly affectsSummons: boolean;
 }
@@ -94,19 +97,17 @@ export function gw2AlliedEffectRecipients(
   {
     maximumRecipients = 5,
     includeSelf = true,
+    includeAlliedPlayers = true,
     companionIds = [],
   }: Gw2AlliedEffectRecipientOptions = {},
 ): Gw2AlliedEffectRecipients {
   const party = gw2AlliedPlayerAssumptions(config);
   const limit = Math.max(0, Math.trunc(Number(maximumRecipients || 0)));
   const includesSelf = includeSelf && limit > 0;
-  const alliedPlayerCount = clamp(
-    limit - Number(includesSelf),
-    0,
-    party.count,
-  );
-  const remaining =
-    limit - Number(includesSelf) - alliedPlayerCount;
+  const alliedPlayerCount = includeAlliedPlayers
+    ? clamp(limit - Number(includesSelf), 0, party.count)
+    : 0;
+  const remaining = limit - Number(includesSelf) - alliedPlayerCount;
   const selectedCompanions = [
     ...new Set(companionIds.map(String).filter(Boolean)),
   ].slice(0, remaining);
@@ -120,26 +121,54 @@ export function gw2AlliedEffectRecipients(
 }
 
 /**
- * Resolves a boon event's capped audience. Explicit allied-player assumptions
- * claim slots before profession-owned companions. A generic `affectsSummons`
- * event retains boolean summon eligibility when concrete companion ids are not
- * available, while still losing that eligibility when players fill the cap.
+ * Resolves a boon event's audience. Party players claim capped allied-effect
+ * slots before companions, and the summon-sharing config only controls whether
+ * companions may compete for slots that remain. Summon-only effects bypass
+ * both that config and allied-player selection.
  */
 export function gw2BoonApplicationRecipients(
   config: Gw2AlliedPlayerConfig,
   event: Gw2BoonRecipientEvent = {},
 ): Gw2BoonApplicationRecipients {
+  if (event.boonAudienceResolved === true) {
+    const companionIds = Array.isArray(event.companionIds)
+      ? [...new Set(event.companionIds.map(String).filter(Boolean))]
+      : [];
+    return Object.freeze({
+      includesSelf: event.affectsSelf === true,
+      affectsSelf: event.affectsSelf === true,
+      alliedPlayerCount: Math.max(
+        0,
+        Math.trunc(Number(event.alliedPlayerCount || 0)),
+      ),
+      companionIds: Object.freeze(companionIds),
+      affectsSummons: event.affectsSummons === true,
+      recipientCount: Math.max(
+        0,
+        Math.trunc(Number(event.recipientCount || 0)),
+      ),
+    });
+  }
   const scope = String(event.recipients || "").toLowerCase();
-  const explicitCompanionIds = Array.isArray(event.companionIds)
+  const summonOnly = [
+    "summon",
+    "summons",
+    "pet",
+    "pets",
+    "companions",
+  ].includes(scope);
+  const hasCompanionIds = Array.isArray(event.companionIds);
+  const explicitCompanionIds = hasCompanionIds
     ? [...new Set(event.companionIds.map(String).filter(Boolean))]
     : [];
   const shared =
     scope === "party" ||
     scope === "allies" ||
+    summonOnly ||
     event.affectsSummons === true ||
     explicitCompanionIds.length > 0;
   const includesSelf =
-    event.affectsSelf !== false && scope !== "allies";
+    !summonOnly && event.affectsSelf !== false && scope !== "allies";
 
   if (!shared || scope === "self") {
     const selectedSelf = includesSelf;
@@ -153,44 +182,43 @@ export function gw2BoonApplicationRecipients(
     });
   }
 
-  const hasSummonOverride = Object.hasOwn(event, "affectsSummons");
-  const summonsEligible =
-    event.affectsSummons === true ||
-    (!hasSummonOverride && explicitCompanionIds.length > 0) ||
-    (!hasSummonOverride && config.sharePlayerBoonsWithSummons !== false);
+  const cappedAllyEffect = scope === "party" || scope === "allies";
+  const summonsEligible = summonOnly
+    ? true
+    : cappedAllyEffect
+      ? event.affectsSummons !== false &&
+        config.sharePlayerBoonsWithSummons !== false
+      : event.affectsSummons === true || explicitCompanionIds.length > 0;
   // The sentinel reserves one logical summon slot when the event exposes only
   // boolean summon eligibility. It is never exposed as a concrete recipient.
   const genericSummonId = "__generic-summon__";
   const candidates = summonsEligible
-    ? explicitCompanionIds.length > 0
+    ? hasCompanionIds
       ? explicitCompanionIds
       : [genericSummonId]
     : [];
-  const maximumRecipients =
-    event.maximumRecipients ?? event.targetCap ?? 5;
+  const maximumRecipients = event.maximumRecipients ?? event.targetCap ?? 5;
   const selected = gw2AlliedEffectRecipients(config, {
     maximumRecipients: Number(maximumRecipients),
     includeSelf: includesSelf,
+    includeAlliedPlayers: cappedAllyEffect,
     companionIds: candidates,
   });
-  const genericSummonSelected =
-    selected.companionIds.includes(genericSummonId);
-  const companionIds = genericSummonSelected
-    ? []
-    : [...selected.companionIds];
+  const genericSummonSelected = selected.companionIds.includes(genericSummonId);
+  const companionIds = genericSummonSelected ? [] : [...selected.companionIds];
   return Object.freeze({
     includesSelf: selected.includesSelf,
     affectsSelf: selected.includesSelf,
     alliedPlayerCount: selected.alliedPlayerCount,
     companionIds: Object.freeze(companionIds),
-    affectsSummons:
-      genericSummonSelected || selected.companionIds.length > 0,
+    affectsSummons: genericSummonSelected || selected.companionIds.length > 0,
     // Unknown summon identities cannot be counted accurately. Concrete ids
-    // are counted; generic eligibility remains represented by affectsSummons.
+    // are counted; generic eligibility reserves one logical summon slot.
     recipientCount:
       Number(selected.includesSelf) +
       selected.alliedPlayerCount +
-      companionIds.length,
+      companionIds.length +
+      Number(genericSummonSelected),
   });
 }
 

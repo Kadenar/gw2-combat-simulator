@@ -79,6 +79,7 @@ export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
         Boolean(
           (context.event?.actorType === "summon" ||
             context.event?.summonKind === "spirit") &&
+          context.event?.spiritAttackType !== "innervate" &&
           hasTrait(context, TRAIT.SPIRITS_STRENGTH),
         ),
     },

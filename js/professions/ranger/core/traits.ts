@@ -1,10 +1,14 @@
-import { professionCoreState } from "../../../platform/engine/profession.js";
+import {
+  flattenProfessionState,
+  professionCoreState,
+} from "../../../platform/engine/profession.js";
 import { professionStaticRulesApplied } from "../../../platform/gw2/attribute-provenance.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import {
   RANGER_SKILL_IDS as ID,
   RANGER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
+import { rangerPetCompanionId } from "./pets.js";
 import type { RangerCastContext, RangerSkill } from "../types.js";
 import { rangerPetByName } from "./state.js";
 
@@ -152,6 +156,9 @@ export function completeRangerTraits(
       "regeneration",
       6,
     );
+  }
+  if (String(skill.description || "").startsWith("Command.")) {
+    applyRangerCommandTraits(context, skill);
   }
   if (!isBeastSkill(skill)) return;
   if (
@@ -346,20 +353,92 @@ export function applyRangerPetSwapTraits(
   }
 }
 
-export function applyRangerSicEmTraits(
+export function applyRangerCommandTraits(
   context: RangerCastContext,
   skill: RangerSkill,
-  merged: boolean,
 ): void {
-  if (!merged || !hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
-  context.emit({
-    type: "ranger.boon-extension",
-    at: context.start,
-    source: "ranger",
-    sourceId: TRAIT.RESOUNDING_TIMBRE,
-    actorType: "effect",
-    skillId: skill.id,
-    skillName: "Resounding Timbre",
-    duration: 2,
-  });
+  if (!hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) return;
+  const merged = Boolean(
+    flattenProfessionState(context.state.profession).beastmodeActive,
+  );
+  if (merged) {
+    context.emit({
+      type: "ranger.boon-extension",
+      at: context.start,
+      source: "ranger",
+      sourceId: TRAIT.RESOUNDING_TIMBRE,
+      actorType: "effect",
+      skillId: skill.id,
+      skillName: "Resounding Timbre",
+      duration: 2,
+    });
+    return;
+  }
+  const boonKinds = new Set([
+    "aegis",
+    "alacrity",
+    "fury",
+    "might",
+    "protection",
+    "quickness",
+    "regeneration",
+    "resistance",
+    "resolution",
+    "stability",
+    "swiftness",
+    "vigor",
+  ]);
+  const active = new Map<string, { duration: number; stacks: number }>();
+  for (const kind of boonKinds) {
+    const configured = context.config.boons?.[kind];
+    const stacks =
+      kind === "might"
+        ? Math.min(25, Math.max(0, Number(configured || 0)))
+        : configured
+          ? 1
+          : 0;
+    if (stacks > 0) active.set(kind, { duration: 3600, stacks });
+  }
+  for (const event of context.events) {
+    const kind = String(event.kind || "").toLowerCase();
+    const remaining =
+      Number(event.at) + Number(event.duration || 0) - context.effectiveEnd;
+    if (
+      event.type !== "buff" ||
+      event.affectsSelf === false ||
+      !boonKinds.has(kind) ||
+      Number(event.at) > context.effectiveEnd + context.epsilon ||
+      !(remaining > 0)
+    ) {
+      continue;
+    }
+    const previous = active.get(kind);
+    active.set(kind, {
+      duration: Math.max(remaining, Number(previous?.duration || 0)),
+      stacks: Math.min(
+        kind === "might" || kind === "stability" ? 25 : 1,
+        Number(previous?.stacks || 0) + Math.max(1, Number(event.stacks || 1)),
+      ),
+    });
+  }
+  for (const [kind, application] of active) {
+    context.emit({
+      type: "buff",
+      at: context.effectiveEnd,
+      source: "Trait",
+      sourceId: TRAIT.RESOUNDING_TIMBRE,
+      actorType: "effect",
+      skillId: TRAIT.RESOUNDING_TIMBRE,
+      skillName: "Resounding Timbre",
+      name: `Resounding Timbre - ${kind}`,
+      kind,
+      duration: application.duration,
+      stacks: application.stacks,
+      affectsSelf: false,
+      affectsSummons: true,
+      maximumRecipients: 1,
+      companionIds: [rangerPetCompanionId(context)],
+      triggeredBy: skill.name,
+    });
+  }
 }

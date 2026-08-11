@@ -187,6 +187,7 @@ test("timeline indexes buff stacks by kind and summon audience", () => {
         duration: 2,
         stacks: 4,
         affectsSummons: true,
+        companionIds: ["minion:one"],
       },
       {
         type: "buff",
@@ -214,6 +215,14 @@ test("timeline indexes buff stacks by kind and summon audience", () => {
 
   assert.equal(timeline.buffStacksAt("might", 1, 0, 25), 9);
   assert.equal(timeline.buffStacksAt("Might", 1, 0, 25, "summon"), 11);
+  assert.equal(
+    timeline.buffStacksAt("might", 1, 0, 25, "summon", "minion:one"),
+    11,
+  );
+  assert.equal(
+    timeline.buffStacksAt("might", 1, 0, 25, "summon", "minion:two"),
+    7,
+  );
   assert.equal(timeline.buffStacksAt("might", 1, 0, 25, "summon-trait"), 7);
   assert.equal(timeline.buffStacksAt("might", 1, 0, 5), 5);
   assert.equal(timeline.buffStacksAt("might", 2, 0, 25), 0);
@@ -376,14 +385,14 @@ test("player boon sharing can exclude non-mech summons", () => {
   });
 
   assert.equal(shared.statsAt(1, damageEvent, runtime).power, 1300);
-  // Permanent assumption Might is player-only; shared runtime Might remains.
-  assert.equal(shared.statsAt(1, summonEvent, runtime).power, 1150);
+  // Both permanent and runtime player-only Might stay on the player.
+  assert.equal(shared.statsAt(1, summonEvent, runtime).power, 1000);
   assert.equal(isolated.statsAt(1, summonEvent, runtime).power, 1000);
   assert.equal(isolated.statsAt(1, mechEvent, runtime).power, 1300);
   assert.equal(isolated.statsAt(1, phantasmEvent, runtime).power, 1300);
   assert.equal(isolated.statsAt(1, spiritSkillEvent, runtime).power, 1300);
   assert.equal(isolated.statsAt(1, spiritAutoattackEvent, runtime).power, 1000);
-  assert.equal(shared.critical(summonEvent, 1, runtime).chance, 0.3);
+  assert.equal(shared.critical(summonEvent, 1, runtime).chance, 0.05);
   assert.equal(isolated.critical(summonEvent, 1, runtime).chance, 0.05);
   assert.equal(isolated.critical(mechEvent, 1, runtime).chance, 0.3);
 });
@@ -443,8 +452,15 @@ test("summon-targeted trait boons bypass disabled player boon sharing", () => {
     actorType: "summon",
     coefficient: 1,
   };
+  const independentSummonEvent = {
+    ...summonEvent,
+    independentSummonStrike: true,
+    summonBasePower: 1524,
+    summonBaseConditionDamage: 1000,
+  };
 
   assert.equal(query.statsAt(1, summonEvent).power, 1060);
+  assert.equal(query.statsAt(1, independentSummonEvent).conditionDamage, 1060);
   assert.equal(query.critical(summonEvent, 1).chance, 0.3);
   assert.equal(query.critical(summonEvent, 5).chance, 0.05);
   assert.equal(

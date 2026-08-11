@@ -21,6 +21,7 @@ const allSkills = [...apiSkills, ...petSkills, ...RANGER_SUPPLEMENTAL_SKILLS];
 const byId = new Map(allSkills.map((skill) => [skill.id, skill]));
 const simulatorExcludedSkillIds = new Set<SkillId>([
   ID.BEES_STING,
+  ID.EXPLODING_SPORE,
   ID.WUTHERING_WIND,
 ]);
 const flipParentById = new Map<SkillId, SkillId>();
@@ -44,6 +45,17 @@ const UNTAMED_PROFESSION_SKILLS = Object.freeze([
   ID.VENOMOUS_OUTBURST,
   ID.RENDING_VINES,
   ID.UNLEASH_PET,
+  ID.RELENTLESS_WHIRL,
+  ID.DEFT_STRIKE,
+]);
+const UNTAMED_PET_SKILLS: readonly SkillId[] = Object.freeze([
+  ID.ENVELOPING_HAZE,
+  ID.VENOMOUS_OUTBURST,
+  ID.RENDING_VINES,
+]);
+const UNTAMED_AMBUSH_SKILLS: readonly SkillId[] = Object.freeze([
+  ID.RELENTLESS_WHIRL,
+  ID.DEFT_STRIKE,
 ]);
 const GALESHOT_PROFESSION_SKILLS = Object.freeze([
   ID.SUMMON_CYCLONE_BOW,
@@ -82,10 +94,8 @@ function normalize(skill: RangerSkill): RangerSkill {
   const specialization = String(skill.specialization || "");
   const petSkill = petSkillIds.has(skill.id);
   const beastmodeSkill = SOULBEAST_PROFESSION_SKILLS.includes(skill.id);
-  const unleashedPetSkill =
-    UNTAMED_PROFESSION_SKILLS.some((id) => id === skill.id) &&
-    skill.id !== ID.UNLEASH_RANGER &&
-    skill.id !== ID.UNLEASH_PET;
+  const unleashedPetSkill = UNTAMED_PET_SKILLS.includes(skill.id);
+  const unleashedAmbushSkill = UNTAMED_AMBUSH_SKILLS.includes(skill.id);
   return {
     ...skill,
     cooldown:
@@ -98,6 +108,7 @@ function normalize(skill: RangerSkill): RangerSkill {
     rechargeBuffAudience: petSkill ? "summon" : skill.rechargeBuffAudience,
     beastmodeSkill,
     unleashedPetSkill,
+    unleashedAmbushSkill,
     unleashedHammerSkill:
       specialization === "Untamed" &&
       skill.weapon === "Hammer" &&

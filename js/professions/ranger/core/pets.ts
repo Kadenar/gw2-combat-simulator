@@ -7,7 +7,10 @@ import {
   GW2_ALACRITY_RECHARGE_RATE,
   gw2BuffActiveForAudience,
 } from "../../../platform/gw2/scheduler/policy.js";
-import { RANGER_SKILL_IDS as ID } from "../data/ids.js";
+import {
+  RANGER_SKILL_IDS as ID,
+  RANGER_TRAIT_IDS as TRAIT,
+} from "../data/ids.js";
 import type {
   ScheduledTask,
   SchedulerRecord,
@@ -18,6 +21,7 @@ import type {
 } from "../../../platform/engine/types.js";
 import type {
   RangerCastContext,
+  RangerResolverContext,
   RangerSchedulerContext,
   RangerSkill,
 } from "../types.js";
@@ -25,6 +29,35 @@ import type {
 const PET_AUTO_TASK = "ranger.pet-autonomous-skill";
 const PET_COMMAND_START_TASK = "ranger.pet-command-start";
 const PET_AUTO_OWNER = "ranger.active-pet";
+const QUICKNESS_ACTION_RATE = 1.5;
+
+export function rangerPetCompanionId(
+  context: RangerSchedulerContext | RangerResolverContext,
+): string {
+  const state = professionCoreState(context);
+  return `ranger-pet:${state.activePetSlot}:${state.petAutoGeneration}`;
+}
+
+function petHasTrait(
+  context: RangerSchedulerContext,
+  traitId: SkillId,
+): boolean {
+  const key = String(traitId);
+  return Boolean(
+    context.config.selectedTraitIds?.some(
+      (value) => value === traitId || String(value) === key,
+    ),
+  );
+}
+
+function petHasSelectedSkill(
+  context: RangerSchedulerContext,
+  skillName: string,
+): boolean {
+  const source = context.config.selectedSkills || [];
+  const selected = Array.isArray(source) ? source : Object.values(source);
+  return selected.map(String).includes(skillName);
+}
 
 // Level-80 Carrion Devourer and Fanged Iboga offensive attributes. Their
 // tooltip damage resolves to a 2,880 internal weapon-strength roll.
@@ -39,20 +72,55 @@ export const RANGER_PET_STRIKE_SCALING = Object.freeze({
   damagePerCoefficient: (2880 * 1524) / 2597,
 });
 
-export function rangerPetCombatMetadata(): Readonly<SchedulerRecord> {
+function rangerPetAttributes(context?: RangerSchedulerContext) {
+  const petName = context
+    ? professionCoreState(context).activePet
+    : "Carrion Devourer";
+  let power = 1524;
+  let precision = petName === "Tiger" ? 2211 : 1524;
+  let ferocity = 0;
+  let conditionDamage = 1000;
+  let expertise = 0;
+  if (context) {
+    if (petHasTrait(context, TRAIT.PACK_ALPHA)) {
+      power += 300;
+      precision += 300;
+      ferocity += 300;
+      conditionDamage += 300;
+      expertise += 300;
+    }
+    if (petHasTrait(context, TRAIT.STRIDERS_STRENGTH)) power += 120;
+    if (petHasTrait(context, TRAIT.HONED_AXES)) ferocity += 120;
+    if (petHasTrait(context, TRAIT.PETS_PROWESS)) ferocity += 300;
+    if (
+      petHasSelectedSkill(context, "Signet of the Wild") &&
+      Number(context.state.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <=
+        context.state.time
+    ) {
+      ferocity += 180;
+    }
+  }
+  return { power, precision, ferocity, conditionDamage, expertise };
+}
+
+export function rangerPetCombatMetadata(
+  context?: RangerSchedulerContext,
+): Readonly<SchedulerRecord> {
+  const attributes = rangerPetAttributes(context);
   return {
     weaponStrength: undefined,
     weaponStrengthProfileId: undefined,
     independentSummonStrike: true,
     summonUsesProfessionModifiers: true,
-    summonBasePower: RANGER_PET_STRIKE_SCALING.basePower,
-    summonBasePrecision: RANGER_PET_STRIKE_SCALING.basePrecision,
-    summonBaseFerocity: RANGER_PET_STRIKE_SCALING.baseFerocity,
-    summonBaseConditionDamage: RANGER_PET_STRIKE_SCALING.baseConditionDamage,
-    summonBaseExpertise: RANGER_PET_STRIKE_SCALING.baseExpertise,
-    summonCriticalChance: RANGER_PET_STRIKE_SCALING.criticalChance,
-    summonCriticalDamage: RANGER_PET_STRIKE_SCALING.criticalDamage,
-    summonDamagePerCoefficient: RANGER_PET_STRIKE_SCALING.damagePerCoefficient,
+    summonBasePower: attributes.power,
+    summonBasePrecision: attributes.precision,
+    summonBaseFerocity: attributes.ferocity,
+    summonBaseConditionDamage: attributes.conditionDamage,
+    summonBaseExpertise: attributes.expertise,
+    ...(context ? { summonOwner: rangerPetCompanionId(context) } : {}),
+    summonCriticalChance: (attributes.precision - 1000) / 2100,
+    summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
+    summonDamagePerCoefficient: (2880 * attributes.power) / 2597,
   };
 }
 
@@ -65,9 +133,12 @@ interface PetAutoSkill {
 interface PetAutoProfile {
   readonly openingDelay: number;
   readonly openingRecoveryDelay?: number;
+  readonly quicknessOpeningRecoveryDelay?: number;
+  readonly opening?: PetAutoSkill;
   readonly basic: PetAutoSkill;
   readonly specials: readonly PetAutoSkill[];
   readonly commandRecovery: Readonly<Record<string, number>>;
+  readonly ignoresAlacrity?: boolean;
 }
 
 interface PetAutoTaskPayload extends SchedulerRecord {
@@ -93,14 +164,24 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> =
     },
     "Fanged Iboga": {
       openingDelay: 0.44,
-      basic: { id: ID.CONSUMING_BITE, recovery: 1.84 },
-      // The EVTC shows roughly twenty seconds between AI selections even
-      // though Crippling Anguish's skill recharge is shorter.
+      quicknessOpeningRecoveryDelay: 0.8,
+      basic: { id: ID.CONSUMING_BITE, recovery: 1.87 },
       specials: [
         { id: ID.CRIPPLING_ANGUISH_PET, recovery: 1.8, cooldown: 20 },
         { id: ID.FANG_GRAPPLE, recovery: 2.4, cooldown: 20 },
       ],
       commandRecovery: { [ID.NARCOTIC_SPORES_PET]: 1.84 },
+    },
+    Tiger: {
+      ignoresAlacrity: true,
+      openingDelay: 0.48,
+      opening: { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 7.9 },
+      basic: { id: ID.FELINE_SLASH, recovery: 1.35 },
+      specials: [
+        { id: ID.FELINE_MAUL, recovery: 1.44, cooldown: 16 },
+        { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 7.9 },
+      ],
+      commandRecovery: { [ID.FURIOUS_POUNCE]: 1.76 },
     },
   });
 
@@ -154,11 +235,12 @@ function autonomousSkill(
   context: RangerSchedulerContext,
   profile: PetAutoProfile,
   at: number,
+  quickness: boolean,
 ): PetAutoSkill {
   const state = professionCoreState(context);
   if (state.petAutoOpeningBasic) {
     state.petAutoOpeningBasic = false;
-    return profile.basic;
+    return profile.opening || profile.basic;
   }
   const laterIbogaActivation =
     state.activePet === "Fanged Iboga" &&
@@ -170,6 +252,7 @@ function autonomousSkill(
     specials.find(
       (skill) =>
         (!laterIbogaActivation ||
+          quickness ||
           Number(state.petAutoActivationUses[String(skill.id)] || 0) < 1) &&
         Number(state.petAutoCooldowns[String(skill.id)] || 0) <=
           at + context.epsilon,
@@ -273,30 +356,42 @@ export function handleRangerPetAutoTask(
     return;
   }
   const openingBasic = state.petAutoOpeningBasic;
-  const selected = autonomousSkill(context, profile, task.at);
-  emitAutonomousSkill(context, selected.id, task.at, selected.recovery);
-  state.petAutoBusyUntil = task.at + selected.recovery;
+  const quickness = gw2BuffActiveForAudience(
+    context,
+    "quickness",
+    task.at,
+    "summon",
+  );
+  const selected = autonomousSkill(context, profile, task.at, quickness);
+  const recovery = selected.recovery / (quickness ? QUICKNESS_ACTION_RATE : 1);
+  emitAutonomousSkill(context, selected.id, task.at, recovery);
+  state.petAutoBusyUntil = task.at + recovery;
   if (selected.cooldown) {
-    const rechargeRate = gw2BuffActiveForAudience(
-      context,
-      "alacrity",
-      task.at,
-      "summon",
-    )
-      ? Number(
-          context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE,
-        )
-      : 1;
+    const rechargeRate =
+      !profile.ignoresAlacrity &&
+      gw2BuffActiveForAudience(context, "alacrity", task.at, "summon")
+        ? Number(
+            context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE,
+          )
+        : 1;
+    const cooldown =
+      selected.id === ID.CRIPPLING_ANGUISH_PET && quickness
+        ? 12
+        : Number(selected.cooldown) *
+          (petHasTrait(context, TRAIT.PACK_ALPHA) ? 0.8 : 1);
     state.petAutoCooldowns[String(selected.id)] =
-      task.at + selected.cooldown / Math.max(Number.EPSILON, rechargeRate);
+      task.at + cooldown / Math.max(Number.EPSILON, rechargeRate);
     state.petAutoActivationUses[String(selected.id)] =
       Number(state.petAutoActivationUses[String(selected.id)] || 0) + 1;
   }
   schedulePetAuto(
     context,
     task.at +
-      selected.recovery +
-      (openingBasic ? Number(profile.openingRecoveryDelay || 0) : 0),
+      recovery +
+      (openingBasic
+        ? Number(profile.openingRecoveryDelay || 0) +
+          (quickness ? Number(profile.quicknessOpeningRecoveryDelay || 0) : 0)
+        : 0),
   );
 }
 
@@ -309,6 +404,17 @@ export function observeRangerPetEvent(
     state.petCommandDelays[String(event.activationId || "")] || 0,
   );
   const updates: Record<string, unknown> = {};
+  const companionIds = Array.isArray(event.companionIds)
+    ? event.companionIds.map(String)
+    : [];
+  if (
+    event.type === "buff" &&
+    event.affectsSummons === true &&
+    (companionIds.length === 0 ||
+      companionIds.every((id) => id === "ranger-pet"))
+  ) {
+    updates.companionIds = [rangerPetCompanionId(context)];
+  }
   if (commandDelay > 0 && event.type !== "action") {
     updates.at = Number(event.at) + commandDelay;
   }
@@ -317,7 +423,7 @@ export function observeRangerPetEvent(
     event.actorType === "summon" &&
     (event.type === "damage" || event.type === "condition")
   ) {
-    Object.assign(updates, rangerPetCombatMetadata());
+    Object.assign(updates, rangerPetCombatMetadata(context));
   }
   if (event.source === "ranger-pet" && !event.icon) {
     const skill = context.catalog.skillsById.get(
@@ -362,7 +468,7 @@ export function beginRangerPetCommand(
     state.petAutoOpeningBasic &&
     state.petAutoNextAt > context.start + context.epsilon
       ? state.petAutoNextAt +
-        profile.basic.recovery +
+        (profile.opening || profile.basic).recovery +
         Number(profile.openingRecoveryDelay || 0)
       : 0;
   const actualStart = Math.max(
