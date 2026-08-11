@@ -537,6 +537,7 @@ test("ready native professions expose deliberate public end-state keys", async (
       "spiritInitialUntil",
       "spiritBusyUntil",
       "spiritAutoAnchorAt",
+      "resummonedSpiritAutoCycle",
       "pendingShroudEntryId",
       "pendingSoulTwistSkill",
       "plagueSendingArmed",

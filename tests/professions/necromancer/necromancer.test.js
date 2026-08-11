@@ -2884,6 +2884,12 @@ test("Ritualist live spirit packets retain independent ownership and cadence", (
   const preservationAutos = damageEvents.filter(
     (event) => event.skillName === "Preservation Autoattack",
   );
+  const wanderlustAutos = damageEvents.filter(
+    (event) => event.skillName === "Wanderlust Autoattack",
+  );
+  const anguishAutos = damageEvents.filter(
+    (event) => event.skillName === "Anguish Autoattack",
+  );
   const lingering = wanderlust.filter(
     (event) => event.actorType === "player" && event.source === "Spirit",
   );
@@ -2922,7 +2928,22 @@ test("Ritualist live spirit packets retain independent ownership and cadence", (
   assert.ok(preservationAutos.length > 0);
   assert.equal(
     preservationAutos.every(
-      (event) => event.actorType === "summon" && event.coefficient === 0.3,
+      (event) =>
+        event.actorType === "summon" &&
+        event.coefficient === 0.3 &&
+        event.weaponStrength === 1215,
+    ),
+    true,
+  );
+  assert.equal(
+    wanderlustAutos.every(
+      (event) => event.coefficient === 0.4 && event.weaponStrength === 1270,
+    ),
+    true,
+  );
+  assert.equal(
+    anguishAutos.every(
+      (event) => event.coefficient === 0.4 && event.weaponStrength === 1350,
     ),
     true,
   );
@@ -4420,14 +4441,19 @@ test("Power Ritualist benchmark preset matches the supplied EVTC", async () => {
   assert.equal(rows.get("Explosive Growth").hits, 24);
   assert.equal(rows.get("Essence Blast").hits, 36);
   assert.equal(rows.get("Wanderlust").hits, 30);
-  assert.equal(rows.get("Preservation Autoattack").hits >= 21, true);
+  assert.equal(rows.get("Anguish Autoattack").hits, 16);
+  assert.equal(rows.get("Wanderlust Autoattack").hits, 16);
+  assert.equal(rows.get("Preservation Autoattack").hits, 21);
   assert.ok(packetError("Anguish", 391_867) < 0.01);
   assert.ok(packetError("Painful Bond", 156_679) < 0.04);
   assert.ok(packetError("Explosive Growth", 132_893) < 0.08);
   assert.ok(packetError("Essence Blast", 264_353) < 0.09);
   assert.ok(packetError("Wanderlust", 158_654) < 0.03);
-  // Autonomous summon attacks intentionally do not inherit console Might.
-  assert.ok(packetError("Preservation Autoattack", 61_304) < 0.015);
+  // Autonomous spirit attacks use independent calibrated weapon strengths and
+  // intentionally do not inherit console Might.
+  assert.ok(packetError("Anguish Autoattack", 83_450) < 0.015);
+  assert.ok(packetError("Wanderlust Autoattack", 67_300) < 0.015);
+  assert.ok(packetError("Preservation Autoattack", 67_436) < 0.015);
   assert.ok(packetError("Slash", 67_582) < 0.03);
   assert.ok(packetError("Fist", 57_943) < 0.03);
   assert.ok(packetError("Perforate", 299_894) < 0.01);

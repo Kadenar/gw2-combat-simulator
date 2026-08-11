@@ -73,6 +73,10 @@ function activateShroud(
   state.lastResourceAt = at;
   const active = context.state.profession.specialization;
   if (active.kind === "Ritualist") {
+    active.state.resummonedSpiritAutoCycle =
+      shroud === "ritualist" &&
+      Object.keys(active.state.activeSpirits).length > 0;
+    active.state.spiritAutoAnchorAt = Number.NaN;
     active.state.soulTwistingAvailable =
       shroud === "ritualist" && hasTrait(context, TRAIT.SOUL_TWISTING);
   }

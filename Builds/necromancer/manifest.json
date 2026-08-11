@@ -43,7 +43,7 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-ritualist.json",
         "rotation": "Rotations/necromancer/r-power-ritualist-bench.json",
-        "benchmarkDps": 42901,
+        "benchmarkDps": 43258,
         "upToDate": true
       }
     ]
