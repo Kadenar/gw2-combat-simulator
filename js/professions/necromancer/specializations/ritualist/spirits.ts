@@ -34,6 +34,7 @@ import type {
 interface SpiritDefinition {
   readonly key: string;
   readonly attackCoefficient: number;
+  readonly attackWeaponStrength?: number;
   readonly summonCoefficient: number;
   readonly summonHits?: number;
   readonly summonWeaponStrength?: number;
@@ -119,7 +120,11 @@ function spiritMetadata(
 
 function nextSpiritPulse(state: RitualistState, at: number): number {
   if (!Number.isFinite(state.spiritAutoAnchorAt)) {
-    state.spiritAutoAnchorAt = at + MECHANICS.firstSpiritAttackDelay;
+    const delay = state.resummonedSpiritAutoCycle
+      ? MECHANICS.resummonedSpiritAttackDelay
+      : MECHANICS.firstSpiritAttackDelay;
+    state.spiritAutoAnchorAt = at + delay;
+    state.resummonedSpiritAutoCycle = false;
   }
   const interval = MECHANICS.spiritAttackInterval;
   return state.spiritAutoAnchorAt > at
@@ -155,7 +160,9 @@ function queueSpiritAutoattacks(
       name: `${skill.name} Autoattack`,
       icon: skill.icon || "",
       coefficient: spirit.attackCoefficient,
-      weaponStrength: NECROMANCER_CORE_MECHANICS.summonWeaponStrength,
+      weaponStrength:
+        spirit.attackWeaponStrength ??
+        NECROMANCER_CORE_MECHANICS.summonWeaponStrength,
       requiresSpirit: spirit.key,
       requiresSpiritGeneration: generation,
       summonKind: "spirit",

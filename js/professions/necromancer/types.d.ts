@@ -129,6 +129,7 @@ export interface RitualistState {
   spiritInitialUntil: Record<string, number>;
   spiritBusyUntil: Record<string, number>;
   spiritAutoAnchorAt: number;
+  resummonedSpiritAutoCycle: boolean;
   weaponSpells: Record<string, NecromancerWeaponSpellState>;
   soulTwistingAvailable: boolean;
   pendingSoulTwistSkill?: SkillId | null;

@@ -748,6 +748,7 @@ const inactiveStateKeys = Object.freeze({
     "spiritInitialUntil",
     "spiritBusyUntil",
     "spiritAutoAnchorAt",
+    "resummonedSpiritAutoCycle",
     "weaponSpells",
     "soulTwistingAvailable",
     "painfulBondUntil",

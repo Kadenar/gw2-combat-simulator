@@ -8,6 +8,7 @@ export function createRitualistState(): RitualistState {
     spiritInitialUntil: {},
     spiritBusyUntil: {},
     spiritAutoAnchorAt: Number.NaN,
+    resummonedSpiritAutoCycle: false,
     weaponSpells: {},
     soulTwistingAvailable: false,
     pendingSoulTwistSkill: null,
