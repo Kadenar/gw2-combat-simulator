@@ -1,4 +1,8 @@
-import { RANGER_SKILL_IDS as ID } from "../../data/ids.js";
+import {
+  RANGER_SKILL_IDS as ID,
+  RANGER_TRAIT_IDS as TRAIT,
+} from "../../data/ids.js";
+import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { rangerUiState } from "../../core/ui.js";
 import type {
   PaletteSkillAvailability,
@@ -17,6 +21,7 @@ const BOW_SKILLS = Object.freeze([
   ID.PELT,
   ID.SUPERSONIC_ARROW,
 ]);
+const GALESHOT_PALETTE_STACK = "ranger-galeshot";
 
 function availability(
   context: RangerUiContext,
@@ -40,6 +45,15 @@ function availability(
   }
   if (skill.id === ID.KEEN_SHOT && Number(state.windForce || 0) >= 5) {
     return { available: false, message: "Replaced by Hawkeye" };
+  }
+  if (
+    skill.id === ID.QUARRYS_PERIL &&
+    hasTrait(context, TRAIT.PERILOUS_SKIES)
+  ) {
+    return { available: false, message: "Replaced by Pelt" };
+  }
+  if (skill.id === ID.PELT && !hasTrait(context, TRAIT.PERILOUS_SKIES)) {
+    return { available: false, message: "Requires Perilous Skies" };
   }
   if (
     state.cycloneBowActive &&
@@ -77,16 +91,30 @@ export const galeshotUi: Partial<ProfessionUiContract> & SchedulerRecord =
     paletteGroups: () => [
       {
         id: "ranger-galeshot-profession",
-        label: "Cyclone Bow",
-        skillIds: [
-          ID.SUMMON_CYCLONE_BOW,
-          ID.DISMISS_CYCLONE_BOW,
-          ...BOW_SKILLS,
-        ],
+        label: "F5",
+        skillIds: [ID.SUMMON_CYCLONE_BOW, ID.DISMISS_CYCLONE_BOW],
         color: "#67b4c4",
         resourceAnchor: true,
+        stackId: GALESHOT_PALETTE_STACK,
+      },
+      {
+        id: "ranger-cyclone-bow",
+        label: "CB",
+        skillIds: BOW_SKILLS,
+        color: "#67b4c4",
+        stackId: GALESHOT_PALETTE_STACK,
       },
     ],
+    timelineWeaponLineTransition: (context: RangerUiContext) => {
+      const skill = context.skill as RangerSkill | undefined;
+      if (skill?.handlerId === "ranger.cyclone-bow-enter") {
+        return "Cyclone Bow";
+      }
+      if (skill?.handlerId === "ranger.cyclone-bow-exit") {
+        return null;
+      }
+      return undefined;
+    },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
       const state = rangerUiState(context);
       return [

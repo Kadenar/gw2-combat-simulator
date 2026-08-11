@@ -3,13 +3,18 @@ import {
   professionCoreState,
 } from "../../../platform/engine/profession.js";
 import { replaceSkill } from "../../../platform/gw2/native-profession.js";
-import { RANGER_SKILL_IDS as ID } from "../data/ids.js";
+import { hasTrait } from "../../../platform/gw2/trait-state.js";
+import {
+  RANGER_SKILL_IDS as ID,
+  RANGER_TRAIT_IDS as TRAIT,
+} from "../data/ids.js";
 import type { RangerCastContext, RangerSkill } from "../types.js";
 import {
   applyRangerPetSwapTraits,
   applyRangerSicEmTraits,
   applyRangerWeaponSwapTraits,
 } from "./traits.js";
+import { rangerPetByName } from "./state.js";
 
 function swapRangerWeapons(
   context: RangerCastContext,
@@ -36,6 +41,20 @@ function performRangerDodge(context: RangerCastContext): boolean {
   const state = professionCoreState(context);
   state.endurance = Math.max(0, state.endurance - 50);
   state.enduranceUpdatedAt = context.start;
+  if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
+    context.emit({
+      type: "buff",
+      at: context.effectiveEnd,
+      source: "Trait",
+      sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+      actorType: "effect",
+      skillId: TRAIT.LIGHT_ON_YOUR_FEET,
+      skillName: "Light on your Feet",
+      kind: "light-on-your-feet",
+      duration: 6,
+      stacks: 1,
+    });
+  }
   return true;
 }
 
@@ -43,7 +62,24 @@ function swapRangerPets(
   context: RangerCastContext,
   skill: RangerSkill,
 ): boolean {
-  professionCoreState(context).petSwapCount += 1;
+  const state = professionCoreState(context);
+  state.petSwapCount += 1;
+  state.activePetSlot = state.activePetSlot === 1 ? 2 : 1;
+  const pet = rangerPetByName(state.petNames[state.activePetSlot - 1]);
+  state.activePet = pet.name;
+  state.activePetSkillIds = [...pet.skillIds];
+  state.petOpeningStrikeReady = true;
+  context.emit({
+    type: "ranger.pet-swapped",
+    at: context.effectiveEnd,
+    source: "ranger",
+    sourceId: skill.id,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: skill.name,
+    activePet: pet.name,
+    activePetSlot: state.activePetSlot,
+  });
   applyRangerPetSwapTraits(context, skill);
   return true;
 }

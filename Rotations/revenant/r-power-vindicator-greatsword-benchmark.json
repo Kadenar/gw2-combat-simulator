@@ -1,6 +1,5 @@
 {
   "rotation": [
-    "Swap Weapons",
     "Spear of Archemorus",
     "Eternity's Requiem",
     "Mist Unleashed",
@@ -9,10 +8,6 @@
       "offset": 320
     },
     "__cooldown_reset",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
     "Dodge",
     {
       "name": "Mist Swing",
@@ -25,16 +20,12 @@
     },
     "Swap Weapons",
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 240
-    },
     "Preparation Thrust",
     "Dodge",
     "Preparation Thrust",
     {
       "name": "Impossible Odds",
-      "offset": 201
+      "offset": 600
     },
     "Shackling Wave",
     {
@@ -44,15 +35,7 @@
     "Preparation Thrust",
     "Brutal Blade",
     "Rift Slash",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 240
-    },
     "Preparation Thrust",
     "Dodge",
     "Energy Meld",
@@ -62,21 +45,9 @@
     "Preparation Thrust",
     "Brutal Blade",
     "Rift Slash",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 240
-    },
     "Preparation Thrust",
     "Dodge",
-    {
-      "name": "__wait",
-      "waitMs": 80
-    },
     "Swap Weapons",
     {
       "name": "Swap Legends",
@@ -84,10 +55,6 @@
     },
     "Eternity's Requiem",
     "Spear of Archemorus",
-    {
-      "name": "__wait",
-      "waitMs": 160
-    },
     "Mist Swing",
     {
       "name": "Dodge",
@@ -109,10 +76,6 @@
     "Mist Swing",
     "Mist Slash",
     "Arcing Mists",
-    {
-      "name": "__wait",
-      "waitMs": 80
-    },
     "Nomad's Advance",
     "Mist Unleashed",
     "Mist Swing",
@@ -127,15 +90,7 @@
     "Mist Unleashed",
     "Mist Swing",
     "Mist Slash",
-    {
-      "name": "__wait",
-      "waitMs": 200
-    },
     "Spear of Archemorus",
-    {
-      "name": "__wait",
-      "waitMs": 160
-    },
     "Arcing Mists",
     {
       "name": "Dodge",
@@ -149,15 +104,7 @@
       "offset": 600
     },
     "Swap Weapons",
-    {
-      "name": "__wait",
-      "waitMs": 120
-    },
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 240
-    },
     "Preparation Thrust",
     "Dodge",
     "Shackling Wave",
@@ -176,10 +123,6 @@
     "Brutal Blade",
     "Rift Slash",
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 200
-    },
     "Preparation Thrust",
     "Dodge",
     "Energy Meld",
@@ -190,16 +133,8 @@
     "Brutal Blade",
     "Rift Slash",
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 240
-    },
     "Preparation Thrust",
     "Dodge",
-    {
-      "name": "__wait",
-      "waitMs": 40
-    },
     "Swap Weapons",
     {
       "name": "Swap Legends",
@@ -207,10 +142,6 @@
     },
     "Eternity's Requiem",
     "Spear of Archemorus",
-    {
-      "name": "__wait",
-      "waitMs": 160
-    },
     "Mist Swing",
     {
       "name": "Dodge",
@@ -232,10 +163,6 @@
     "Mist Swing",
     "Mist Slash",
     "Arcing Mists",
-    {
-      "name": "__wait",
-      "waitMs": 80
-    },
     "Nomad's Advance",
     "Mist Unleashed",
     "Mist Swing",
@@ -250,15 +177,7 @@
     "Mist Unleashed",
     "Mist Swing",
     "Mist Slash",
-    {
-      "name": "__wait",
-      "waitMs": 200
-    },
     "Spear of Archemorus",
-    {
-      "name": "__wait",
-      "waitMs": 160
-    },
     "Arcing Mists",
     {
       "name": "Dodge",
@@ -273,15 +192,7 @@
       "offset": 485
     },
     "Swap Weapons",
-    {
-      "name": "__wait",
-      "waitMs": 120
-    },
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 240
-    },
     "Preparation Thrust",
     "Dodge",
     "Shackling Wave",
@@ -300,10 +211,6 @@
     "Brutal Blade",
     "Rift Slash",
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 200
-    },
     "Preparation Thrust",
     "Dodge",
     "Energy Meld",
@@ -314,16 +221,8 @@
     "Brutal Blade",
     "Rift Slash",
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 240
-    },
     "Preparation Thrust",
     "Dodge",
-    {
-      "name": "__wait",
-      "waitMs": 120
-    },
     "Swap Weapons",
     {
       "name": "Swap Legends",
@@ -331,10 +230,6 @@
     },
     "Eternity's Requiem",
     "Spear of Archemorus",
-    {
-      "name": "__wait",
-      "waitMs": 160
-    },
     "Mist Swing",
     {
       "name": "Dodge",
@@ -356,10 +251,6 @@
     "Mist Swing",
     "Mist Slash",
     "Arcing Mists",
-    {
-      "name": "__wait",
-      "waitMs": 80
-    },
     "Nomad's Advance",
     "Mist Unleashed",
     "Mist Swing",
@@ -374,15 +265,7 @@
     "Mist Unleashed",
     "Mist Swing",
     "Mist Slash",
-    {
-      "name": "__wait",
-      "waitMs": 200
-    },
     "Spear of Archemorus",
-    {
-      "name": "__wait",
-      "waitMs": 160
-    },
     "Arcing Mists",
     {
       "name": "Dodge",
@@ -401,10 +284,6 @@
       "offset": 479
     },
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 240
-    },
     "Preparation Thrust",
     "Dodge",
     "Shackling Wave",
@@ -423,10 +302,6 @@
     "Brutal Blade",
     "Rift Slash",
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 200
-    },
     "Preparation Thrust",
     "Dodge",
     "Energy Meld",
@@ -437,10 +312,6 @@
     "Brutal Blade",
     "Rift Slash",
     "Chilling Isolation",
-    {
-      "name": "__wait",
-      "waitMs": 240
-    },
     "Preparation Thrust",
     "Dodge"
   ]

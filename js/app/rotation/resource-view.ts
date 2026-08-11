@@ -11,8 +11,12 @@
  * counter. This is the supported hook for profession-specific visuals such as
  * Mesmer notes and Revenant affinity emblems.
  */
-import type { ProfessionResourceView } from "../../platform/engine/types.js";
+import type {
+  ProfessionResourceView,
+  SkillId,
+} from "../../platform/engine/types.js";
 import type { ProfessionAppState } from "../profession/types.js";
+import type { PaletteResourceView } from "../../platform/ui/types.js";
 import { resourceDisplayViews } from "../../platform/ui/resource-display.js";
 import { escapeHtml as esc } from "../../platform/ui/html.js";
 import {
@@ -26,6 +30,44 @@ export function formatResourceValue(value: unknown): string {
   const numeric = Number(value || 0);
   if (!Number.isFinite(numeric)) return "0";
   return String(Math.round((numeric + Number.EPSILON) * 1000) / 1000);
+}
+
+function activeResourceDefinitions(
+  app: ProfessionAppState,
+): ProfessionResourceView[] {
+  const professionState = paletteProfessionState(app);
+  const specialization =
+    typeof app.adapter?.eliteSpecialization === "function"
+      ? activeSpecialization(app)
+      : String(app.build?.specialization || "Core");
+  return resourceDisplayViews(app.profession, {
+    specialization,
+    value: professionState.resource ?? app.build?.initialResource,
+    professionState,
+    initialResource: app.build?.initialResource,
+    initialBlight: app.build?.initialBlight,
+  });
+}
+
+/** Returns the live resource meter attached to a rotation-palette skill. */
+export function paletteSkillResourceView(
+  app: ProfessionAppState,
+  skillId: SkillId,
+): PaletteResourceView | null {
+  // Some isolated palette consumers project skills without a profession.
+  if (!app.profession?.ui) return null;
+  const definition = activeResourceDefinitions(app).find(
+    (candidate) =>
+      candidate.paletteSkillId != null &&
+      String(candidate.paletteSkillId) === String(skillId),
+  );
+  if (!definition) return null;
+  return {
+    id: definition.id,
+    label: `${definition.statusLabel} ${definition.plural}: ${formatResourceValue(definition.value)}/${definition.maximum}`,
+    value: definition.value,
+    maximum: definition.maximum,
+  };
 }
 
 function resourcePipRows(maximum: number, rowCount: number): number[] {
@@ -126,14 +168,9 @@ function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
  * Multiple resource views are wrapped in an `active-resource-stack`.
  */
 export function activeResourceGroup(app: ProfessionAppState): string {
-  const professionState = paletteProfessionState(app);
-  const definitions = resourceDisplayViews(app.profession, {
-    specialization: activeSpecialization(app),
-    value: professionState.resource ?? app.build.initialResource,
-    professionState,
-    initialResource: app.build.initialResource,
-    initialBlight: app.build.initialBlight,
-  });
+  const definitions = activeResourceDefinitions(app).filter(
+    (definition) => definition.paletteSkillId == null,
+  );
   const groups = definitions
     .map((definition) => {
       const buildValue = definition.buildKey

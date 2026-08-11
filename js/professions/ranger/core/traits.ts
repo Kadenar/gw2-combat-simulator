@@ -6,7 +6,7 @@ import {
   RANGER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
 import type { RangerCastContext, RangerSkill } from "../types.js";
-import { selectedRangerPet } from "./state.js";
+import { rangerPetByName } from "./state.js";
 
 function boonDuration(
   context: RangerCastContext,
@@ -185,7 +185,7 @@ export function completeRangerTraits(
   }
   if (
     hasTrait(context, TRAIT.WOLFSONG) &&
-    selectedRangerPet(context.config).family === "canine"
+    rangerPetByName(professionCoreState(context).activePet).family === "canine"
   ) {
     context.emit({
       type: "buff",

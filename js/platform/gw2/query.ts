@@ -397,13 +397,23 @@ export function createGw2CombatQuery<
       event?.summonInheritsAttributes !== true &&
       Number.isFinite(Number(event.summonBasePower))
     ) {
+      const inheritCriticalAttributes =
+        event.summonInheritsCriticalAttributes === true;
       return {
         ...stats,
         power:
           Number(event.summonBasePower) +
           summonMightStacksAt(time, runtime) * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
-        precision: 1000,
-        ferocity: 0,
+        precision: inheritCriticalAttributes
+          ? stats.precision
+          : Number(event.summonBasePrecision ?? 1000),
+        ferocity: inheritCriticalAttributes
+          ? stats.ferocity
+          : Number(event.summonBaseFerocity ?? 0),
+        conditionDamage: Number(
+          event.summonBaseConditionDamage ?? stats.conditionDamage,
+        ),
+        expertise: Number(event.summonBaseExpertise ?? stats.expertise),
       };
     }
     return stats;
@@ -421,18 +431,22 @@ export function createGw2CombatQuery<
     ) {
       if (
         event?.independentSummonStrike === true &&
-        event?.summonInheritsAttributes !== true
+        event?.summonInheritsAttributes !== true &&
+        event?.summonInheritsCriticalAttributes !== true
       ) {
         const summonFuryBonus = furyActiveAt(time, runtime, event) ? 0.25 : 0;
+        const baseChance =
+          Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus;
+        const chance =
+          event.summonUsesProfessionModifiers === true
+            ? activeProfession.modifyCriticalChance(
+                hookContext(time, { event, runtime }),
+                baseChance,
+              )
+            : baseChance;
         return {
           chance:
-            event.canCrit === false || event.noCrit
-              ? 0
-              : clamp(
-                  Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus,
-                  0,
-                  1,
-                ),
+            event.canCrit === false || event.noCrit ? 0 : clamp(chance, 0, 1),
           damage: Math.max(1, Number(event.summonCriticalDamage ?? 1.5)),
         };
       }

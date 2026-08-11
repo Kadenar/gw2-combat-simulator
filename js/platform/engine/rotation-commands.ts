@@ -7,10 +7,16 @@ import type {
   RotationCommand,
 } from "./types.js";
 
-function finiteMilliseconds(value: unknown, field: string): number {
+function finiteMilliseconds(
+  value: unknown,
+  field: string,
+  { allowNegative = false }: { readonly allowNegative?: boolean } = {},
+): number {
   const number = Number(value);
-  if (!Number.isFinite(number) || number < 0) {
-    throw new TypeError(`${field} must be a non-negative number.`);
+  if (!Number.isFinite(number) || (!allowNegative && number < 0)) {
+    throw new TypeError(
+      `${field} must be ${allowNegative ? "a finite" : "a non-negative"} number.`,
+    );
   }
   return number;
 }
@@ -70,6 +76,7 @@ export function normalizeRotationCommand(
           concurrentOffsetMs: finiteMilliseconds(
             concurrent,
             "Concurrent offset",
+            { allowNegative: true },
           ),
         };
   }

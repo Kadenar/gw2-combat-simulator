@@ -582,7 +582,7 @@ test("normalized commands migrate legacy timing and charge-release options", () 
   );
 });
 
-test("normalized commands preserve delayed combat-start offsets", () => {
+test("normalized commands preserve signed combat-start offsets", () => {
   assert.deepEqual(
     normalizeRotation(
       ["Fixture Slash", { name: "__combat_start", offset: 100 }],
@@ -591,6 +591,16 @@ test("normalized commands preserve delayed combat-start offsets", () => {
     [
       { type: "cast", skillId: 900001 },
       { type: "combat-start", concurrentOffsetMs: 100 },
+    ],
+  );
+  assert.deepEqual(
+    normalizeRotation(
+      ["Fixture Slash", { name: "__combat_start", offset: -440 }],
+      testProfession.catalog,
+    ),
+    [
+      { type: "cast", skillId: 900001 },
+      { type: "combat-start", concurrentOffsetMs: -440 },
     ],
   );
 });
@@ -1686,6 +1696,58 @@ test("catalog skill handlers receive calculated recharge timing", () => {
     config: { boons: { alacrity: true } },
   });
   assert.equal(observedReadyAt, 17);
+});
+
+test("summon-owned cooldowns require Alacrity applied to summons", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 930041,
+        name: "Summon Skill",
+        cooldown: 20,
+        castTimeMs: 0,
+        rechargeBuffAudience: "summon",
+        effects: [],
+      },
+      {
+        id: 930042,
+        name: "Grant Summon Alacrity",
+        castTimeMs: 0,
+        effects: [
+          {
+            type: "buff",
+            kind: "alacrity",
+            duration: 10,
+            metadata: { affectsSummons: true },
+          },
+        ],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "summon-alacrity-fixture",
+    name: "Summon Alacrity Fixture",
+    catalog,
+  });
+  const playerAlacrity = simulateGw2({
+    profession,
+    rotation: ["Summon Skill"],
+    config: { boons: { alacrity: true } },
+  });
+  const summonAlacrity = simulateGw2({
+    profession,
+    rotation: ["Grant Summon Alacrity", "Summon Skill"],
+    config: { boons: { alacrity: true } },
+  });
+
+  assert.equal(
+    playerAlacrity.endState.cooldowns["Summon Skill"].readyAt,
+    20000,
+  );
+  assert.equal(
+    summonAlacrity.endState.cooldowns["Summon Skill"].readyAt,
+    16000,
+  );
 });
 
 test("canonical augmenting skill handlers observe declarative effects", () => {

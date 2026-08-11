@@ -908,12 +908,12 @@ test("Revenant Power Vindicator Greatsword defaults resolve", async () => {
     "LegendaryAssassin",
   ]);
   assert.equal(energyBuild.startingLegend, "LegendaryAlliance");
-  assert.equal(energyBuild.startingWeaponSet, 1);
+  assert.equal(energyBuild.startingWeaponSet, 2);
   assert.equal(dodgeCount, 25);
   assert.deepEqual(replay.rotation.slice(6, 9), [
-    { name: "__wait", waitMs: 40 },
-    "Dodge",
     { name: "Mist Swing", skillId: 62913, offset: 41 },
+    { name: "Swap Legends", offset: 397 },
+    "Swap Weapons",
   ]);
 });
 

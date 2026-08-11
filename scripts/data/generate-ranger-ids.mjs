@@ -7,6 +7,10 @@ import {
 
 const SUPPLEMENTAL_SKILLS = [
   ["Twin Darts", 12676],
+  ["Pet Tail Lash", 12673],
+  ["Crippling Anguish Pet", 41864],
+  ["Consuming Bite", 43734],
+  ["Narcotic Spores Pet", 45262],
   ["Spit", 12724],
   ["Cosmic Ray", 31796],
   ["Seed of Life", 31406],
@@ -17,9 +21,10 @@ const SUPPLEMENTAL_SKILLS = [
   ["Hawkeye", 76664],
   ["Bluster", 77319],
   ["Fleeting Zephyr", 77012],
-  ["Quarry's Peril", 77334],
+  ["Quarry's Peril", 76807],
   ["Pelt", 76722],
   ["Supersonic Arrow", 77174],
+  ["Wuthering Wind", 76905],
 ];
 
 async function fetchJson(pathname) {

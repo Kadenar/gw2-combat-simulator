@@ -19,7 +19,10 @@ const apiSkills = SKILLS as readonly RangerSkill[];
 const petSkills = RANGER_PET_SKILLS as readonly RangerSkill[];
 const allSkills = [...apiSkills, ...petSkills, ...RANGER_SUPPLEMENTAL_SKILLS];
 const byId = new Map(allSkills.map((skill) => [skill.id, skill]));
-const simulatorExcludedSkillIds = new Set<SkillId>([ID.BEES_STING]);
+const simulatorExcludedSkillIds = new Set<SkillId>([
+  ID.BEES_STING,
+  ID.WUTHERING_WIND,
+]);
 const flipParentById = new Map<SkillId, SkillId>();
 for (const skill of allSkills) {
   if (
@@ -92,6 +95,7 @@ function normalize(skill: RangerSkill): RangerSkill {
     flipParentId: flipParentById.get(skill.id) ?? null,
     petSkill,
     independentCast: petSkill || unleashedPetSkill,
+    rechargeBuffAudience: petSkill ? "summon" : skill.rechargeBuffAudience,
     beastmodeSkill,
     unleashedPetSkill,
     unleashedHammerSkill:

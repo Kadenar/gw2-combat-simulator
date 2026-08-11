@@ -37,6 +37,13 @@ export function paletteView(
     stackId: String(group.stackId || ""),
     resourceAnchor: Boolean(group.resourceAnchor),
     includeActionSkills: Boolean(group.includeActionSkills),
+    statusIcon: group.statusIcon
+      ? {
+          icon: String(group.statusIcon.icon || ""),
+          label: String(group.statusIcon.label || ""),
+          title: String(group.statusIcon.title || group.statusIcon.label || ""),
+        }
+      : undefined,
   }));
 }
 
@@ -58,6 +65,7 @@ function ammoView(ammo: AmmoView | null | undefined): {
 
 export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   const ammo = ammoView(view.ammo);
+  const resource = view.resource;
   const skillId = view.skillId == null ? "" : String(view.skillId);
   const disabled = Boolean(view.disabled);
   const contextDisabled = Boolean(view.contextDisabled);
@@ -72,6 +80,7 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
     view.highlighted ? "pal-ambush-active" : "",
     ammo ? "pal-has-ammo" : "",
     ammo && ammo.current > 0 ? "pal-ammo-available" : "",
+    resource ? "pal-has-resource" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -87,6 +96,24 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   const ariaLabel = ammo
     ? `${view.name || ""}: ${ammo.current}/${ammo.maximum} charges`
     : "";
+  const resourceMaximum = Math.max(0, Number(resource?.maximum || 0));
+  const resourceValue = Math.max(
+    0,
+    Math.min(resourceMaximum, Number(resource?.value || 0)),
+  );
+  const resourcePercent = resourceMaximum
+    ? (resourceValue / resourceMaximum) * 100
+    : 0;
+  const resourceIndicator = resource
+    ? `<span class="pal-skill-resource" data-resource-id="${escapeHtml(resource.id)}"
+        role="progressbar" aria-label="${escapeHtml(resource.label)}"
+        aria-valuemin="0" aria-valuemax="${resourceMaximum}"
+        aria-valuenow="${resourceValue}">
+        <span style="width:${resourcePercent}%"></span>
+      </span>
+      <span class="pal-skill-resource-value" data-resource-id="${escapeHtml(resource.id)}"
+        aria-hidden="true">${Math.round(resourceValue)}/${resourceMaximum}</span>`
+    : "";
   return `<div class="${classes}" data-skill="${escapeHtml(view.name)}"
     ${skillId ? `data-skill-id="${escapeHtml(skillId)}"` : ""}
     title="${escapeHtml(view.title || view.name)}" draggable="${draggable ? "true" : "false"}"
@@ -97,6 +124,7 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
     ${view.variantBadge ? `<span class="skill-variant-badge pal-variant-badge">${escapeHtml(view.variantBadge)}</span>` : ""}
     ${view.cooldownLabel ? `<span class="pal-cd">${escapeHtml(view.cooldownLabel)}</span>` : ""}
     ${ammoIndicator}
+    ${resourceIndicator}
   </div>`;
 }
 
@@ -111,11 +139,19 @@ export function virtualPaletteSkillHtml(view: PaletteSkillView = {}): string {
 
 export function paletteGroupHtml(view: PaletteGroupView = {}): string {
   const skills = view.skills || [];
+  const statusIcon = view.statusIcon;
   // Empty groups occupy no layout space.
-  if (!skills.length) return "";
+  if (!skills.length && !statusIcon) return "";
+  const statusIconHtml = statusIcon
+    ? `<div class="pal-status-icon" title="${escapeHtml(statusIcon.title || statusIcon.label)}"
+        aria-label="${escapeHtml(statusIcon.label)}">
+        <img src="${escapeHtml(statusIcon.icon || PALETTE_PLACEHOLDER_ICON)}"
+          alt="${escapeHtml(statusIcon.label)}" />
+      </div>`
+    : "";
   return `<div class="pal-group${view.className ? ` ${escapeHtml(view.className)}` : ""}">
     <div class="pal-label" style="color:${escapeHtml(view.color || "#a88be8")}">${escapeHtml(view.label)}</div>
-    <div class="pal-row">${skills
+    <div class="pal-row">${statusIconHtml}${skills
       .map((skill) =>
         skill?.virtual
           ? virtualPaletteSkillHtml(skill)

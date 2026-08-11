@@ -10,10 +10,19 @@ import {
   RANGER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
 import { rangerCoreCastAvailability } from "./availability.js";
-import { selectedRangerPet } from "./state.js";
+import { rangerPetByName } from "./state.js";
 import { advanceRangerResources } from "./resources.js";
 import { completeRangerTraits } from "./traits.js";
-import type { SkillId } from "../../../platform/engine/types.js";
+import {
+  beginRangerPetCommand,
+  observeRangerPetEvent,
+  rangerPetTaskHandlers,
+} from "./pets.js";
+import { observeRangerComboFinisher } from "./combos.js";
+import type {
+  SimulationEvent,
+  SkillId,
+} from "../../../platform/engine/types.js";
 import type {
   Gw2ModifierContext,
   Gw2ModifierRule,
@@ -28,6 +37,20 @@ export const rangerCoreSchedulerHooks = Object.freeze({
     order: 10,
     handler: advanceRangerResources,
   },
+  onCastStart: {
+    id: "ranger.pet-command",
+    order: 10,
+    handler: beginRangerPetCommand,
+  },
+  onEventScheduled: {
+    id: "ranger.core-events",
+    order: 10,
+    handler(context: RangerSchedulerContext, event: SimulationEvent): void {
+      observeRangerPetEvent(context, event);
+      observeRangerComboFinisher(context, event);
+    },
+  },
+  taskHandlers: rangerPetTaskHandlers,
   onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
     completeRangerTraits(context, skill);
     if (
@@ -206,6 +229,16 @@ function openingStrikeReady(context: Gw2ModifierContext): boolean {
     : playerEvent(context) && core?.playerOpeningStrikeReady === true;
 }
 
+function activePetFamily(context: Gw2ModifierContext): string {
+  const activePet = (
+    context.runtime as
+      { profession?: { core?: { activePet?: string } } } | undefined
+  )?.profession?.core?.activePet;
+  return rangerPetByName(
+    String(activePet || context.config?.selectedPet || "Pig"),
+  ).family;
+}
+
 function modifyRangerAttributes(
   context: Gw2ModifierContext,
   attributes: Gw2ResolvedStats,
@@ -224,14 +257,14 @@ function modifyRangerAttributes(
     result[attribute] = Number(result[attribute] || 0) + amount;
   };
   if (petEvent(context) && hasTrait(context, TRAIT.FANG_AND_CLAW)) {
-    const family = selectedRangerPet(context.config).family;
+    const family = activePetFamily(context);
     if (["feline", "avian", "drake"].includes(family)) {
       adjust("precision", 420);
       adjust("ferocity", 450);
     }
   }
   if (petEvent(context) && hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
-    const family = selectedRangerPet(context.config).family;
+    const family = activePetFamily(context);
     if (["spider", "devourer"].includes(family)) adjust("expertise", 225);
   }
   if (!staticRulesApplied) {
@@ -370,6 +403,14 @@ function modifyRangerConditionBaseDuration(
   context: Gw2ModifierContext,
   duration: number,
 ): number {
+  let result = duration;
+  if (
+    playerEvent(context) &&
+    hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
+    boonActive(context, "light-on-your-feet")
+  ) {
+    result *= 1.1;
+  }
   const skill = eventSkill(context);
   if (
     skill?.categories?.includes("Trap") &&
@@ -379,19 +420,19 @@ function modifyRangerConditionBaseDuration(
   }
   if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && positional(context)) {
     if (skill?.id === ID.CROSSFIRE && context.condition === "Bleeding") {
-      return duration + 2;
+      return result + 2;
     }
     if (skill?.id === ID.POISON_VOLLEY && context.condition === "Poisoned") {
-      return duration + 2;
+      return result + 2;
     }
     if (
       skill?.id === ID.CRIPPLING_SHOT &&
       context.condition === "Immobilized"
     ) {
-      return duration + 1;
+      return result + 1;
     }
   }
-  return duration;
+  return result;
 }
 
 function positional(context: Gw2ModifierContext): boolean {
@@ -438,8 +479,8 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
     {
       id: "ranger.hunters-tactics-damage",
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-      operation: "damage-additive",
-      amount: 0.1,
+      operation: "multiply",
+      factor: 1.1,
       when: (context) =>
         playerEvent(context) &&
         positional(context) &&
@@ -456,6 +497,16 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
         hasTrait(context, TRAIT.HUNTERS_TACTICS),
     },
     {
+      id: "ranger.light-on-your-feet",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: 1.1,
+      when: (context) =>
+        playerEvent(context) &&
+        hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
+        boonActive(context, "light-on-your-feet"),
+    },
+    {
       id: "ranger.vicious-quarry-critical-chance",
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: "add",
@@ -466,8 +517,8 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
     {
       id: "ranger.farsighted",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.1,
+      operation: "multiply",
+      factor: 1.1,
       when: (context) =>
         playerEvent(context) &&
         eventSkill(context)?.type === "Weapon" &&
@@ -477,24 +528,24 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
     {
       id: "ranger.bountiful-hunter-player",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: (context) => activeBoonCount(context, "player") * 0.01,
+      operation: "multiply",
+      factor: (context) => 1 + activeBoonCount(context, "player") * 0.01,
       when: (context) =>
         playerEvent(context) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER),
     },
     {
       id: "ranger.bountiful-hunter-pet",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: (context) => activeBoonCount(context, "pet") * 0.01,
+      operation: "multiply",
+      factor: (context) => 1 + activeBoonCount(context, "pet") * 0.01,
       when: (context) =>
         petEvent(context) && hasTrait(context, TRAIT.BOUNTIFUL_HUNTER),
     },
     {
       id: "ranger.wolfsong",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.1,
+      operation: "multiply",
+      factor: 1.1,
       when: (context) =>
         playerEvent(context) &&
         targetVulnerable(context) &&
@@ -503,8 +554,8 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
     {
       id: "ranger.remorseless",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.25,
+      operation: "multiply",
+      factor: 1.25,
       when: (context) =>
         openingStrikeReady(context) && hasTrait(context, TRAIT.REMORSELESS),
     },
@@ -519,8 +570,8 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
     {
       id: "ranger.predators-onslaught-player",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.1,
+      operation: "multiply",
+      factor: 1.1,
       when: (context) =>
         playerEvent(context) &&
         targetImpaired(context) &&
@@ -529,8 +580,8 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
     {
       id: "ranger.predators-onslaught-pet",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: "damage-additive",
-      amount: 0.1,
+      operation: "multiply",
+      factor: 1.1,
       when: (context) =>
         petEvent(context) &&
         targetImpaired(context) &&
@@ -603,6 +654,17 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
       when: (context) =>
         context.event?.damageKind ===
         "ranger-unleashed-disabled-condition-count",
+    },
+    {
+      id: "ranger.consuming-bite-condition-count",
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: "multiply",
+      factor: (context) => {
+        const conditions = Math.min(5, targetConditionCount(context));
+        return (0.45 + conditions * 0.025) / 0.45;
+      },
+      when: (context) =>
+        Number(context.event?.skillId ?? context.skillId) === ID.CONSUMING_BITE,
     },
   ]);
 

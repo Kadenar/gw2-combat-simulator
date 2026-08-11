@@ -11,6 +11,7 @@ import type {
   RangerResolverEvent,
   RangerSkill,
 } from "../types.js";
+import { rangerPetByName } from "./state.js";
 
 function eventSkill(
   context: RangerResolverContext,
@@ -292,10 +293,23 @@ export function handleRangerBeastSkillUsed(
   }
 }
 
+export function handleRangerPetSwapped(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  const state = professionCoreState(context);
+  const pet = rangerPetByName(String(event.activePet || ""));
+  state.activePet = pet.name;
+  state.activePetSlot = Number(event.activePetSlot) === 2 ? 2 : 1;
+  state.activePetSkillIds = [...pet.skillIds];
+  state.petOpeningStrikeReady = true;
+}
+
 export const rangerCoreEventHandlers = Object.freeze({
   "ranger.blood-thirst": handleRangerBloodThirst,
   "ranger.winter-bite-ready": handleRangerWinterBiteReady,
   "ranger.beast-skill-used": handleRangerBeastSkillUsed,
+  "ranger.pet-swapped": handleRangerPetSwapped,
 });
 
 export function reactToRangerCoreDamage(

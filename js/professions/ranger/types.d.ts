@@ -27,6 +27,7 @@ export interface RangerBuild extends Gw2Build {
   specializations?: RangerSpecializationSelection[];
   assumptions?: RangerAssumptions;
   selectedPet?: string;
+  selectedPet2?: string;
   selectedHammerSkillIds?: number[];
   initialUntamedState?: RangerInitialUntamedState;
 }
@@ -40,6 +41,7 @@ export interface RangerCanonicalBuild extends Gw2CanonicalBuild {
   initialAstralForce: number;
   initialArrows: number;
   selectedPet: string;
+  selectedPet2: string;
   selectedHammerSkillIds: number[];
   initialUntamedState: RangerInitialUntamedState;
 }
@@ -48,6 +50,7 @@ export interface RangerApplicationBuild extends ProfessionApplicationBuild {
   initialAstralForce: number;
   initialArrows: number;
   selectedPet: string;
+  selectedPet2: string;
   selectedHammerSkillIds: number[];
   initialUntamedState: RangerInitialUntamedState;
 }
@@ -59,6 +62,7 @@ export interface RangerConfig extends Gw2Config {
   readonly initialAstralForce?: number;
   readonly initialArrows?: number;
   readonly selectedPet?: string;
+  readonly selectedPet2?: string;
   readonly selectedHammerSkillIds?: readonly number[];
   readonly initialUntamedState?: RangerInitialUntamedState;
   readonly assumptions?: RangerAssumptions;
@@ -78,6 +82,8 @@ export interface RangerPetDefinition {
 
 export interface RangerCoreState {
   activePet: string;
+  activePetSlot: 1 | 2;
+  petNames: [string, string];
   activePetSkillIds: SkillId[];
   endurance: number;
   maximumEndurance: number;
@@ -101,6 +107,17 @@ export interface RangerCoreState {
   petOpeningStrikeReady: boolean;
   poisonMasterPetAttackReady: boolean;
   petSwapCount: number;
+  petAutoGeneration: number;
+  petAutoNextAt: number;
+  petAutoBusyUntil: number;
+  petAutoCooldowns: Record<string, number>;
+  petAutoActivationUses: Record<string, number>;
+  petAutoActivationCounts: [number, number];
+  petAutoOpeningBasic: boolean;
+  petAutoTaskId: string;
+  petCommandReadyAt: number;
+  petCommandDelays: Record<string, number>;
+  comboProjectileFinisherProgress: number;
 }
 
 export interface DruidState {
@@ -135,6 +152,14 @@ export interface GaleshotState {
   maximumArrows: number;
   arrowsUpdatedAt: number;
   windForce: number;
+  galeForceUntil: number;
+  mistralUntil: number;
+  wutheringWindReady: boolean;
+  wutheringWindReadyAt: number;
+  wutheringWindActivationIds: Record<string, boolean>;
+  thrillOfTheCatchReadyAt: number;
+  flockTogetherReadyAt: number;
+  missileHits: number;
 }
 
 export interface RangerState extends RangerCoreState {
@@ -153,6 +178,14 @@ export interface RangerState extends RangerCoreState {
   maximumArrows?: number;
   arrowsUpdatedAt?: number;
   windForce?: number;
+  galeForceUntil?: number;
+  mistralUntil?: number;
+  wutheringWindReady?: boolean;
+  wutheringWindReadyAt?: number;
+  wutheringWindActivationIds?: Record<string, boolean>;
+  thrillOfTheCatchReadyAt?: number;
+  flockTogetherReadyAt?: number;
+  missileHits?: number;
 }
 
 export interface RangerRuntimeState {
@@ -186,6 +219,7 @@ export interface RangerEndStateProjectionOptions {
 export interface RangerSkill extends Skill {
   readonly petSkill?: boolean;
   readonly petFamilySkill?: boolean;
+  readonly petAutonomousSkill?: boolean;
   readonly celestialAvatarSkill?: boolean;
   readonly beastmodeSkill?: boolean;
   readonly unleashedPetSkill?: boolean;
@@ -193,7 +227,10 @@ export interface RangerSkill extends Skill {
   readonly cycloneBowSkill?: boolean;
   readonly arrowCost?: number;
   readonly arrowsRestored?: number;
+  readonly windForceGain?: number;
+  readonly windForceApplyMs?: number;
   readonly petNames?: readonly string[];
+  readonly missileHits?: number;
 }
 
 export interface RangerUiContext extends SchedulerRecord {
@@ -207,6 +244,7 @@ export interface RangerUiContext extends SchedulerRecord {
   readonly build?: RangerBuild;
   readonly initialAstralForce?: number;
   readonly initialArrows?: number;
+  readonly selectedPet2?: string;
 }
 
 export interface RangerUiSelection extends SchedulerRecord {

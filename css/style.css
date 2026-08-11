@@ -5,6 +5,7 @@
 
 :root {
   --bg-dark: #0c0c14;
+  --bg-deep: #0c0c14;
   --bg-panel: #14141f;
   --bg-panel-alt: #1a1a28;
   --border: #2a2a3a;
@@ -1681,10 +1682,7 @@ header .accent {
   grid-row: 1;
 }
 
-.ranger-mechanics
-  .ranger-pet
-  .skill-bar-inspection-slot:first-child
-  .sbar-icon {
+.ranger-mechanics .ranger-pet .skill-bar-inspection-slot.selectable .sbar-icon {
   width: 56px;
   height: 56px;
 }
@@ -1720,6 +1718,12 @@ header .accent {
 .skill-bar-inspection-skills {
   gap: 5px;
   flex-wrap: wrap;
+}
+
+.skill-bar-inspection-selection {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
 }
 
 .skill-bar-inspection-slot .sbar-icon {
@@ -2077,6 +2081,37 @@ header .accent {
   flex-wrap: wrap;
 }
 
+.pal-status-icon {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  flex: 0 0 42px;
+  border: 2px solid #7ca64a;
+  border-radius: 4px;
+  background: #232632;
+}
+
+.pal-status-icon::after {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #d8efbc;
+  border-radius: 50%;
+  background: #7fc34b;
+  box-shadow: 0 0 5px rgba(127, 195, 75, 0.9);
+  content: "";
+}
+
+.pal-status-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Full-width spacer that forces the following pal-groups onto a new line. */
 .pal-break {
   flex-basis: 100%;
@@ -2167,6 +2202,58 @@ header .accent {
 .pal-skill.pal-has-ammo {
   margin-bottom: 11px;
   overflow: visible;
+}
+
+.pal-skill.pal-has-resource {
+  margin-bottom: 22px;
+  overflow: visible;
+}
+
+.pal-skill-resource-value {
+  position: absolute;
+  right: 0;
+  left: 0;
+  bottom: -21px;
+  text-align: center;
+  font-size: 9px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted, #9aa4b2);
+  pointer-events: none;
+}
+
+.pal-skill-resource-value[data-resource-id="endurance"] {
+  color: #e5c35a;
+}
+
+.pal-skill-resource {
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 5px;
+  overflow: hidden;
+  border: 1px solid var(--accent-dim);
+  border-radius: 3px;
+  background: #20252a;
+  pointer-events: none;
+}
+
+.pal-skill-resource > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.pal-skill-resource[data-resource-id="endurance"] {
+  border-color: #c7a343;
+  background: #292412;
+}
+
+.pal-skill-resource[data-resource-id="endurance"] > span {
+  background: #e5c35a;
+  box-shadow: 0 0 5px rgba(229, 195, 90, 0.75);
 }
 
 .pal-skill.pal-has-ammo img {

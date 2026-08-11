@@ -884,7 +884,7 @@ test("Berserker spear and greatsword packets match the supplied benchmark", () =
     maimingSpear.effects
       .filter((effect) => effect.type === "strike")
       .map((effect) => effect.coefficient),
-    [1.1, 1.1],
+    [1.1, 1.125],
   );
   assert.equal(
     disruptingThrow.effects.some(

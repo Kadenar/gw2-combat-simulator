@@ -731,6 +731,12 @@ test("palette primitives escape values and render state, ammo, cooldowns, and gr
     draggable: true,
     cooldownLabel: "<5s",
     ammo: { current: 1, maximum: 2, pips: [true, false] },
+    resource: {
+      id: "endurance",
+      label: "Current endurance: 50/100",
+      value: 50,
+      maximum: 100,
+    },
   });
   assert.match(html, /pal-disabled/);
   assert.match(html, /draggable="false"/);
@@ -740,6 +746,10 @@ test("palette primitives escape values and render state, ammo, cooldowns, and gr
   assert.match(html, /data-fallback-icon="data:image\/svg\+xml/);
   assert.match(html, /data-skill-id="12345"/);
   assert.match(html, /skill-variant-badge pal-variant-badge/);
+  assert.match(html, /pal-has-resource/);
+  assert.match(html, /data-resource-id="endurance"/);
+  assert.match(html, /style="width:50%"/);
+  assert.match(html, /aria-valuenow="50"/);
   assert.match(html, /&lt;MAX&gt;/);
   assert.doesNotMatch(html, /<bad>/);
   assert.doesNotMatch(html, /onerror="bad"/);
@@ -758,9 +768,26 @@ test("palette primitives escape values and render state, ammo, cooldowns, and gr
   assert.match(
     paletteGroupHtml({
       label: "<Group>",
+      statusIcon: {
+        icon: "pet.png",
+        label: "Fanged Iboga",
+        title: "Active pet: Fanged Iboga",
+      },
       skills: [{ ...virtualView, virtual: true }],
     }),
     /&lt;Group&gt;/,
+  );
+  assert.match(
+    paletteGroupHtml({
+      label: "Pet",
+      statusIcon: {
+        icon: "pet.png",
+        label: "Fanged Iboga",
+        title: "Active pet: Fanged Iboga",
+      },
+      skills: [virtualView],
+    }),
+    /Active pet: Fanged Iboga/,
   );
   assert.match(
     paletteGroupHtml({

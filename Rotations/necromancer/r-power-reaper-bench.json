@@ -11,6 +11,10 @@
       "name": "Nightfall"
     },
     {
+      "type": "wait",
+      "durationMs": 400
+    },
+    {
       "name": "Well of Darkness"
     },
     {

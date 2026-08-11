@@ -66,7 +66,7 @@ const QUICKNESS_ACTION_RATE = 1.5;
 /** GW2 completes calculated cast durations on 40 ms action-tick boundaries. */
 const ACTION_TICK_MS = 40;
 /** Alacrity increases recharge rate by 25%, so duration is divided by 1.25. */
-const ALACRITY_RECHARGE_RATE = 1.25;
+export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
 const OUT_OF_COMBAT_SWAP_SKILLS = new Set(["Swap Weapons", "Swap Legends"]);
 
 /** Rounds a positive duration up to the next server/action interval. */
@@ -122,6 +122,26 @@ function scaleCastBoundTiming(
 function titleCase(value: unknown): string {
   const normalized = String(value || "").toLowerCase();
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+export function gw2BuffActiveForAudience<TProfessionState extends object>(
+  context: SchedulerContext<TProfessionState>,
+  kind: string,
+  at: number,
+  audience: "self" | "summon" = "self",
+): boolean {
+  if (audience === "self") return context.hasBuff(kind, at);
+  const normalized = String(kind || "").toLowerCase();
+  return context.events.some(
+    (event) =>
+      event.type === "buff" &&
+      String(event.kind || "").toLowerCase() === normalized &&
+      event.affectsSummons === true &&
+      Number(event.stacks || 1) > 0 &&
+      event.at <= at + context.epsilon &&
+      event.at + Math.max(0, Number(event.duration || 0)) >
+        at + context.epsilon,
+  );
 }
 
 function configuredWeaponSet(
@@ -269,8 +289,14 @@ export function createGw2SchedulerPolicy(
       ) {
         return 0;
       }
-      const rate = context.hasBuff("alacrity", at)
-        ? Number(config.alacrityRechargeRate || ALACRITY_RECHARGE_RATE)
+      const hasAlacrity = gw2BuffActiveForAudience(
+        context,
+        "alacrity",
+        at,
+        skill.rechargeBuffAudience || "self",
+      );
+      const rate = hasAlacrity
+        ? Number(config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
         : 1;
       // Alacrity is evaluated when recharge begins, which can differ from cast
       // start for skills whose recharge anchor is cast end or an effect event.

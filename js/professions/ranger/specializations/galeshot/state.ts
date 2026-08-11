@@ -8,6 +8,14 @@ export function createGaleshotState(config: RangerConfig = {}): GaleshotState {
     maximumArrows: 8,
     arrowsUpdatedAt: 0,
     windForce: 0,
+    galeForceUntil: 0,
+    mistralUntil: 0,
+    wutheringWindReady: false,
+    wutheringWindReadyAt: 0,
+    wutheringWindActivationIds: {},
+    thrillOfTheCatchReadyAt: 0,
+    flockTogetherReadyAt: 0,
+    missileHits: 0,
   };
 }
 

@@ -2341,7 +2341,12 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<
       },
       {
         type: "strike",
-        coefficient: 1.1,
+        // Base aftershock coefficient is 0.75; the aftershock deals 50% more to
+        // the foe closest to the epicenter (per the skill fact). On a single
+        // target that foe is always the golem, so the effective coefficient is
+        // 0.75 * 1.5 = 1.125. The epicenter bonus is folded in here because the
+        // simulator has no target-position model to gate it on.
+        coefficient: 1.125,
         hits: 1,
         name: "Maiming Spear — Aftershock Damage",
         atMs: 1517,

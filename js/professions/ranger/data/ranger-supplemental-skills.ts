@@ -72,6 +72,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
       specialization: "Galeshot",
       cycloneBowSkill: true,
       arrowCost: 0,
+      missileHits: 1,
     },
     {
       id: 76664,
@@ -86,6 +87,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
       cooldown: 1,
       cycloneBowSkill: true,
       arrowCost: 0,
+      missileHits: 5,
     },
     {
       id: 77319,
@@ -99,6 +101,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
       cooldown: 3,
       cycloneBowSkill: true,
       arrowCost: 1,
+      missileHits: 3,
     },
     {
       id: 77012,
@@ -112,9 +115,10 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
       cooldown: 8,
       cycloneBowSkill: true,
       arrowCost: 1,
+      missileHits: 1,
     },
     {
-      id: 77334,
+      id: 76807,
       name: "Quarry's Peril",
       description: "Fire a volley that immobilizes enemies when it lands.",
       icon: "https://render.guildwars2.com/file/59A95C37FEB95E03A4C1F853902F553E801DBAA0/3680189.png",
@@ -125,6 +129,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
       cooldown: 12,
       cycloneBowSkill: true,
       arrowCost: 2,
+      missileHits: 1,
     },
     {
       id: 76722,
@@ -137,9 +142,11 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
       specialization: "Galeshot",
       ammo: 2,
       ammoRecharge: 12,
+      ammoCastLockout: 1,
       cooldown: 12,
       cycloneBowSkill: true,
       arrowCost: 1,
+      missileHits: 1,
     },
     {
       id: 77174,
@@ -154,6 +161,18 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
       cooldown: 25,
       cycloneBowSkill: true,
       arrowCost: 3,
+      missileHits: 1,
+    },
+    {
+      id: 76905,
+      name: "Wuthering Wind",
+      description:
+        "The active pet's next attack after Bluster creates a damaging swell of wind.",
+      icon: "https://render.guildwars2.com/file/BE5F0405E79D13C89F0D9EF13B1B11479D0C3805/3679993.png",
+      type: "Profession",
+      specialization: "Galeshot",
+      simulatorExcluded: true,
+      simulatorExcludedReason: "Triggered by the Wuthering Wind trait.",
     },
   ],
 );

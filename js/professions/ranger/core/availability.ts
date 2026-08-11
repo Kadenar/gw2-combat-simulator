@@ -56,6 +56,13 @@ export function rangerCoreCastAvailability(
     );
   }
   if (!skill.petSkill) return { ready: true };
+  if (skill.petAutonomousSkill) {
+    return deny(
+      skill,
+      "ranger.pet-autonomous",
+      "the active pet uses this skill automatically.",
+    );
+  }
   const state = flattenProfessionState(context.state.profession);
   if (state.beastmodeActive) {
     return deny(skill, "ranger.pet-merged", "leave Beastmode first.");

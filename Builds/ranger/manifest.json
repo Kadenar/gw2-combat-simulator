@@ -10,5 +10,17 @@
         "upToDate": true
       }
     ]
+  },
+  {
+    "section": "Galeshot",
+    "presets": [
+      {
+        "label": "Power (Longbow / Axe-Axe)",
+        "build": "Builds/ranger/b-power-galeshot-longbow-axe.json",
+        "rotation": "Rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
+        "benchmarkDps": 42584,
+        "upToDate": true
+      }
+    ]
   }
 ]

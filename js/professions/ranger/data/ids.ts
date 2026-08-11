@@ -69,6 +69,7 @@ export const RANGER_SKILL_IDS = Object.freeze({
   PATH_OF_SCARS: 12638, // Path of Scars
   WHIRLING_DEFENSE: 12639, // Whirling Defense
   TWIN_DARTS: 12676, // Twin Darts
+  PET_TAIL_LASH: 12673, // Tail Lash (pet AI)
   SPIT: 12724, // Spit
   WATER_SPIRIT: 21773, // Water Spirit
   AQUA_SURGE: 21776, // Aqua Surge
@@ -278,6 +279,9 @@ export const RANGER_SKILL_IDS = Object.freeze({
   JACARANDAS_EMBRACE: 44980, // Jacaranda's Embrace
   HEAD_TOSS: 43636, // Head Toss
   FANG_GRAPPLE: 41156, // Fang Grapple
+  CRIPPLING_ANGUISH_PET: 41864, // Crippling Anguish (pet AI)
+  CONSUMING_BITE: 43734, // Consuming Bite
+  NARCOTIC_SPORES_PET: 45262, // Narcotic Spores (pet AI)
   GUARDIANS_ROAR: 65109, // Guardian's Roar
   BLOODTHIRSTY_CHARGE: 66622, // Bloodthirsty Charge
   GALE_BREATH: 63716, // Gale Breath
@@ -298,9 +302,10 @@ export const RANGER_SKILL_IDS = Object.freeze({
   HAWKEYE: 76664, // Hawkeye
   BLUSTER: 77319, // Bluster
   FLEETING_ZEPHYR: 77012, // Fleeting Zephyr
-  QUARRYS_PERIL: 77334, // Quarry's Peril
+  QUARRYS_PERIL: 76807, // Quarry's Peril (PvE)
   PELT: 76722, // Pelt
   SUPERSONIC_ARROW: 77174, // Supersonic Arrow
+  WUTHERING_WIND: 76905, // Wuthering Wind
 });
 
 export const RANGER_TRAIT_IDS = Object.freeze({

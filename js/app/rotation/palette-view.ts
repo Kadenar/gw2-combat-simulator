@@ -57,7 +57,10 @@ import {
   weaponPaletteSectionHtml,
   weaponPaletteStackHtml,
 } from "./palette-model.js";
-import { activeResourceGroup } from "./resource-view.js";
+import {
+  activeResourceGroup,
+  paletteSkillResourceView,
+} from "./resource-view.js";
 import type {
   LegacyRotationItem,
   PaletteSkillAvailability,
@@ -164,12 +167,14 @@ function addGroup(
   isAvailable: (skill: Skill) => boolean = () => true,
   unavailableMessage: (skill: Skill) => string = () => "",
   className = "",
+  statusIcon?: ProfessionPaletteGroup["statusIcon"],
 ): string {
-  if (!skills.length) return "";
+  if (!skills.length && !statusIcon) return "";
   return paletteGroupHtml({
     label,
     color,
     className,
+    statusIcon,
     skills: skills.map((skill) =>
       paletteSkillView(
         app,
@@ -245,6 +250,7 @@ export function paletteSkillView(
     draggable: contextAvailable,
     cooldownLabel: cd.remaining ? seconds(cd.remaining) : "",
     ammo: ammoDisplay,
+    resource: paletteSkillResourceView(app, skill.id),
   };
 }
 
@@ -329,7 +335,16 @@ export function renderPalette(app: ProfessionAppState): void {
     const flip = utilityFlipByParent.get(skill.name);
     return flip ? [skill, flip] : [skill];
   });
-  const actions = paletteActionSkills(app, spec);
+  const groupedActionSkillIds = new Set(
+    [...renderedProfessionGroups, ...renderedLoadoutGroups].flatMap((group) =>
+      group.skills
+        .filter((skill) => skill.type === "Action" && !skill.concealed)
+        .map((skill) => String(skill.id)),
+    ),
+  );
+  const actions = paletteActionSkills(app, spec).filter(
+    (skill) => !groupedActionSkillIds.has(String(skill.id)),
+  );
   const dodgeAuto = vindicatorDodgeAutoPaletteSkill(app, spec);
   if (dodgeAuto) {
     const dodgeIndex = actions.findIndex((skill) => skill.name === "Dodge");
@@ -519,6 +534,7 @@ export function renderPalette(app: ProfessionAppState): void {
           professionSkillAvailable,
           professionSkillUnavailableMessage,
           candidate.className,
+          candidate.statusIcon,
         );
       if (!group.stackId) {
         return stackWithResources(renderGroup(group), group.resourceAnchor);
