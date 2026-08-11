@@ -1,9 +1,12 @@
 import {
+  defaultIsSkillAvailable,
   defineProfessionApp,
   preferOffhand,
 } from "../../../app/profession/define-app.js";
+import { flattenProfessionState } from "../../../platform/engine/profession.js";
 import { applyRangerBuildAttributeRules } from "../build-attributes.js";
 import { createDefaultTargetConditions, toApplicationBuild } from "../build.js";
+import { RANGER_SKILL_IDS as ID } from "../data/ids.js";
 import { rangerProfession } from "../definition.js";
 import type { RangerApplicationBuild } from "../types.js";
 
@@ -26,6 +29,17 @@ export const rangerApp = defineProfessionApp({
         initialUntamedState: build.initialUntamedState,
       };
     },
+  },
+  isSkillAvailable(skill, context = {}) {
+    if (!defaultIsSkillAvailable(skill, context)) return false;
+    if (
+      skill.id === ID.PET_SWAP &&
+      context.specialization === "Soulbeast" &&
+      flattenProfessionState(context.professionState).beastmodeActive !== false
+    ) {
+      return false;
+    }
+    return true;
   },
   defaultOffhand: preferOffhand("Axe"),
 });

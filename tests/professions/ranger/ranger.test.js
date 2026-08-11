@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+import { paletteActionSkills } from "../../../js/app/rotation/palette-model.js";
 import { timelineWeaponRows } from "../../../js/app/rotation/timeline-model.js";
 import {
   activeResourceGroup,
@@ -819,6 +820,9 @@ test("Druid gates, drains, and releases Celestial Avatar", () => {
 });
 
 test("Soulbeast starts merged and grants only the selected pet's Beast skills", () => {
+  const alreadyMerged = simulate("Soulbeast", ["Beastmode"]);
+  assert.match(alreadyMerged.warnings[0], /already active/);
+
   const blocked = simulate("Soulbeast", ["Smoke Assault"]);
   assert.match(blocked.warnings[0], /select the pet that grants/);
 
@@ -836,6 +840,78 @@ test("Soulbeast starts merged and grants only the selected pet's Beast skills", 
     { selectedPet: "Smokescale" },
   );
   assert.match(leftBeastmode.warnings[0], /enter Beastmode/);
+  assert.equal(leftBeastmode.endState.profession.beastmodeActive, false);
+});
+
+test("Soulbeast palette swaps between merged skills and the active pet", () => {
+  const merged = simulate("Soulbeast", [], { selectedPet: "Smokescale" });
+  const unmerged = simulate("Soulbeast", ["Leave Beastmode"], {
+    selectedPet: "Smokescale",
+  });
+  const context = (professionState) => ({
+    specialization: "Soulbeast",
+    config: { specialization: "Soulbeast", selectedPet: "Smokescale" },
+    professionState,
+  });
+  const availability = (professionState, skillId) =>
+    rangerProfession.ui.paletteSkillAvailability(
+      context(professionState),
+      rangerCatalog.skillsById.get(skillId),
+    ).available;
+
+  const mergedGroups = rangerProfession.ui.paletteGroups(
+    context(merged.endState.profession),
+  );
+  assert.deepEqual(
+    mergedGroups.map((group) => group.id),
+    ["ranger-soulbeast-profession"],
+  );
+  assert.deepEqual(mergedGroups[0].skillIds, [
+    ID.LEAVE_BEASTMODE,
+    ...RANGER_PETS.find((pet) => pet.name === "Smokescale").beastmodeSkillIds,
+  ]);
+  assert.equal(availability(merged.endState.profession, ID.BEASTMODE), false);
+  assert.equal(
+    availability(merged.endState.profession, ID.LEAVE_BEASTMODE),
+    true,
+  );
+
+  const unmergedGroups = rangerProfession.ui.paletteGroups(
+    context(unmerged.endState.profession),
+  );
+  assert.deepEqual(
+    unmergedGroups.map((group) => group.id),
+    ["ranger-soulbeast-profession", "ranger-pet"],
+  );
+  assert.deepEqual(unmergedGroups[0].skillIds, [ID.BEASTMODE]);
+  assert.deepEqual(unmergedGroups[1].skillIds, [ID.SMOKE_CLOUD, ID.PET_SWAP]);
+  assert.equal(unmergedGroups[1].statusIcon.label, "Smokescale");
+  assert.equal(availability(unmerged.endState.profession, ID.BEASTMODE), true);
+  assert.equal(
+    availability(unmerged.endState.profession, ID.LEAVE_BEASTMODE),
+    false,
+  );
+
+  const actionApp = {
+    skills: [...rangerCatalog.skills],
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    build: { ...createRangerBuildDefaults(), rotation: [] },
+    results: { endState: { profession: merged.endState.profession } },
+  };
+  assert.equal(
+    paletteActionSkills(actionApp, "Soulbeast").some(
+      (skill) => skill.id === ID.PET_SWAP,
+    ),
+    false,
+  );
+  actionApp.results.endState.profession = unmerged.endState.profession;
+  assert.equal(
+    paletteActionSkills(actionApp, "Soulbeast").some(
+      (skill) => skill.id === ID.PET_SWAP,
+    ),
+    true,
+  );
 });
 
 test("Hammer variants are selected for every Ranger specialization", () => {
@@ -940,6 +1016,10 @@ test("Ranger skill-bar selections drive pet and Hammer selection", () => {
   );
   assert.equal(petGroup.selections[0].selectionValue, "Pig");
   assert.equal(petGroup.selections[1].selectionValue, "Lynx");
+  assert.deepEqual(
+    petGroup.selections.map((selection) => selection.filterPlaceholder),
+    ["Filter pets...", "Filter pets..."],
+  );
   assert.deepEqual(petGroup.selections[0].skillIds, [ID.FORAGE_SWORD]);
   assert.deepEqual(petGroup.selections[1].skillIds, [ID.RENDING_POUNCE]);
   assert.equal(petGroup.selections[0].optionEntries.length, RANGER_PETS.length);
@@ -964,7 +1044,16 @@ test("Ranger skill-bar selections drive pet and Hammer selection", () => {
   const mergedPetGroup = rangerProfession.ui
     .skillBarGroups(soulbeastContext)
     .find((group) => group.id === "ranger-pet-selection");
-  assert.deepEqual(mergedPetGroup.skillIds, smokescale.beastmodeSkillIds);
+  const fangedIboga = RANGER_PETS.find((pet) => pet.name === "Fanged Iboga");
+  assert.deepEqual(mergedPetGroup.skillIds, []);
+  assert.deepEqual(
+    mergedPetGroup.selections[0].leadingSkillIds,
+    smokescale.beastmodeSkillIds,
+  );
+  assert.deepEqual(
+    mergedPetGroup.selections[1].leadingSkillIds,
+    fangedIboga.beastmodeSkillIds,
+  );
   assert.deepEqual(mergedPetGroup.selections[0].skillIds, [ID.SMOKE_CLOUD]);
   assert.deepEqual(mergedPetGroup.selections[1].skillIds, [
     ID.NARCOTIC_SPORES_PET,

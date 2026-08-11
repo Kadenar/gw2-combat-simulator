@@ -1651,6 +1651,15 @@ header .accent {
   justify-self: center;
 }
 
+.ranger-mechanics .ranger-pet > .skill-bar-inspection-skills {
+  flex-direction: column;
+  align-items: center;
+}
+
+.ranger-mechanics .ranger-pet .skill-bar-inspection-selection {
+  align-items: center;
+}
+
 .ranger-mechanics .ranger-hammer {
   grid-column: 1 / -1;
   grid-row: 2;
@@ -1824,6 +1833,28 @@ header .accent {
 
 .sbar-dropdown.open {
   display: block;
+}
+
+.sbar-dropdown-filter {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 7px 8px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  outline: none;
+  background: var(--bg-panel-alt);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: text;
+}
+
+.sbar-dropdown-filter:focus {
+  border-color: var(--accent);
 }
 
 .dd-item {

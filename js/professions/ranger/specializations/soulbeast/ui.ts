@@ -1,8 +1,13 @@
 import { RANGER_SKILL_IDS as ID } from "../../data/ids.js";
-import { rangerUiState, selectedRangerUiPet } from "../../core/ui.js";
+import {
+  rangerPetPaletteGroup,
+  rangerUiState,
+  selectedRangerUiPet,
+} from "../../core/ui.js";
 import type {
   CanonicalCatalog,
   PaletteSkillAvailability,
+  ProfessionPaletteGroup,
   ProfessionUiContract,
   SchedulerRecord,
   SkillId,
@@ -43,7 +48,33 @@ function availability(
   if (skill.beastmodeSkill && !active && skill.id !== ID.BEASTMODE) {
     return { available: false, message: "Enter Beastmode first" };
   }
+  if (skill.id === ID.BEASTMODE && active) {
+    return { available: false, message: "Beastmode is already active" };
+  }
+  if (skill.id === ID.LEAVE_BEASTMODE && !active) {
+    return { available: false, message: "Beastmode is not active" };
+  }
   return { available: true, message: "" };
+}
+
+function paletteGroups(context: RangerUiContext): ProfessionPaletteGroup[] {
+  const active = beastmodeActive(context);
+  const groups: ProfessionPaletteGroup[] = [
+    {
+      id: "ranger-soulbeast-profession",
+      label: "Beastmode",
+      skillIds: active
+        ? [
+            ID.LEAVE_BEASTMODE,
+            ...(selectedRangerUiPet(context)?.beastmodeSkillIds || []),
+          ]
+        : [ID.BEASTMODE],
+      color: "#b78b42",
+      resourceAnchor: true,
+    },
+  ];
+  if (!active) groups.push(rangerPetPaletteGroup(context));
+  return groups;
 }
 
 const soulbeastUi: Partial<ProfessionUiContract> & SchedulerRecord =
@@ -59,19 +90,7 @@ const soulbeastUi: Partial<ProfessionUiContract> & SchedulerRecord =
         className: "ranger-soulbeast-beastmode",
       },
     ],
-    paletteGroups: (context: RangerUiContext) => [
-      {
-        id: "ranger-soulbeast-profession",
-        label: "Beastmode",
-        skillIds: [
-          ID.BEASTMODE,
-          ID.LEAVE_BEASTMODE,
-          ...(selectedRangerUiPet(context)?.beastmodeSkillIds || []),
-        ],
-        color: "#b78b42",
-        resourceAnchor: true,
-      },
-    ],
+    paletteGroups,
     paletteSkillAvailability: availability,
     eventLogRow: (_context: RangerUiContext, event: SchedulerRecord) =>
       SOULBEAST_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined,
