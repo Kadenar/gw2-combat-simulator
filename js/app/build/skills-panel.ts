@@ -131,6 +131,9 @@ function multiSelectionInspectionGroupHtml(
         (entry) => String(entry.value) === String(selection.selectionValue),
       );
       const selectedSkill = app.skillById.get(Number(selection.skillId));
+      const leadingSkills = (selection.leadingSkillIds || [])
+        .map((id) => app.skillById.get(Number(id)))
+        .filter((skill): skill is Skill => skill != null);
       const associatedSkills = (selection.skillIds || [])
         .map((id) => app.skillById.get(Number(id)))
         .filter((skill): skill is Skill => skill != null);
@@ -149,7 +152,11 @@ function multiSelectionInspectionGroupHtml(
               <img src="${esc(display.icon || "")}" alt="">
           </div>
           <div class="sbar-arrow">&#9660;</div>
-          <div class="sbar-dropdown">${options
+          <div class="sbar-dropdown">${
+            selection.filterPlaceholder
+              ? `<input class="sbar-dropdown-filter" type="search" placeholder="${esc(selection.filterPlaceholder)}" aria-label="${esc(selection.filterPlaceholder)}" autocomplete="off" spellcheck="false">`
+              : ""
+          }${options
             .map(
               (option) =>
                 `<div class="dd-item" data-selection-value="${esc(option.value)}"${
@@ -161,11 +168,15 @@ function multiSelectionInspectionGroupHtml(
                   <span>${esc(option.label)}</span>
               </div>`,
             )
-            .join("")}</div>
+            .join("")}${
+            selection.filterPlaceholder
+              ? '<div class="dd-empty sbar-dropdown-filter-empty" hidden>No matching options</div>'
+              : ""
+          }</div>
       </div>`;
-      return associatedSkills.length
+      return leadingSkills.length || associatedSkills.length
         ? `<div class="skill-bar-inspection-selection">
-            ${selectionSlot}${inspectionSkillStacksHtml(associatedSkills)}
+            ${inspectionSkillStacksHtml(leadingSkills)}${selectionSlot}${inspectionSkillStacksHtml(associatedSkills)}
           </div>`
         : selectionSlot;
     })
@@ -419,6 +430,31 @@ export function renderSkills(app: ProfessionAppState): void {
       const icon = slot.querySelector(".sbar-icon");
       const dropdown = slot.querySelector(".sbar-dropdown");
       if (!icon || !dropdown) return;
+      const filterInput = dropdown.querySelector(".sbar-dropdown-filter");
+      const filterEmpty = dropdown.querySelector(".sbar-dropdown-filter-empty");
+      const filterOptions = () => {
+        if (!(filterInput instanceof HTMLInputElement)) return;
+        const query = filterInput.value.trim().toLocaleLowerCase();
+        let visibleOptions = 0;
+        dropdown.querySelectorAll<HTMLElement>(".dd-item").forEach((item) => {
+          const label = item.querySelector("span")?.textContent || "";
+          const visible = label.toLocaleLowerCase().includes(query);
+          item.hidden = !visible;
+          if (visible) visibleOptions += 1;
+        });
+        if (filterEmpty instanceof HTMLElement) {
+          filterEmpty.hidden = visibleOptions > 0;
+        }
+      };
+      if (filterInput instanceof HTMLInputElement) {
+        filterInput.addEventListener("input", filterOptions);
+        filterInput.addEventListener("keydown", (event) => {
+          if (event.key !== "Escape") return;
+          event.stopPropagation();
+          dropdown.classList.remove("open");
+          filterInput.blur();
+        });
+      }
       icon.addEventListener("click", (event) => {
         event.stopPropagation();
         document.querySelectorAll(".sbar-dropdown.open").forEach((drop) => {
@@ -426,7 +462,13 @@ export function renderSkills(app: ProfessionAppState): void {
             drop.classList.remove("open");
           }
         });
-        dropdown.classList.toggle("open");
+        const opening = !dropdown.classList.contains("open");
+        dropdown.classList.toggle("open", opening);
+        if (opening && filterInput instanceof HTMLInputElement) {
+          filterInput.value = "";
+          filterOptions();
+          filterInput.focus();
+        }
       });
       slot.querySelectorAll(".dd-item").forEach((item) => {
         if (!(item instanceof HTMLElement)) return;

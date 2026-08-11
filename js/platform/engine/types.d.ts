@@ -717,6 +717,10 @@ export interface ProfessionSkillBarGroup extends SchedulerRecord {
 
 export interface ProfessionSkillBarSelection {
   readonly skillId?: SkillId;
+  /** When set, render an option filter using this placeholder. */
+  readonly filterPlaceholder?: string;
+  /** Read-only skills previewed before this selection. */
+  readonly leadingSkillIds?: readonly SkillId[];
   /** Read-only skills previewed beside this selection. */
   readonly skillIds?: readonly SkillId[];
   readonly optionSkillIds?: readonly SkillId[];
