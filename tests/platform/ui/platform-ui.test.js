@@ -36,12 +36,14 @@ import {
   sortResultRows,
 } from "../../../js/platform/ui/rotation-results.js";
 import {
+  normalizeRotationDeadTimeVisibility,
   normalizeRotationTimelineSize,
   ROTATION_TIMELINE_SIZE_OPTIONS,
 } from "../../../js/platform/ui/rotation-timeline-size.js";
 import {
   bindTimelineInteractions,
   formatTimelineCastDetails,
+  formatTimelineDuration,
   formatTimelineSkillTooltip,
   getSkillDropInsertionIndex,
   insertRotationEntry,
@@ -49,6 +51,7 @@ import {
   moveRotationEntry,
   removeRotationEntryOptions,
   rotationEntryName,
+  timelineDeadTimeMarkers,
   timelineSkillCastOrdinals,
   updateRotationEntry,
 } from "../../../js/platform/ui/timeline.js";
@@ -77,6 +80,10 @@ test("rotation timeline sizes expose two larger display options", () => {
   assert.equal(normalizeRotationTimelineSize("extra-large"), "extra-large");
   assert.equal(normalizeRotationTimelineSize("unsupported"), "normal");
   assert.equal(normalizeRotationTimelineSize(null), "normal");
+  assert.equal(normalizeRotationDeadTimeVisibility("true"), true);
+  assert.equal(normalizeRotationDeadTimeVisibility(true), true);
+  assert.equal(normalizeRotationDeadTimeVisibility("false"), false);
+  assert.equal(normalizeRotationDeadTimeVisibility(null), false);
 });
 
 test("activation editor suggests and validates manual interruption times", () => {
@@ -136,6 +143,38 @@ test("timeline cast details include start, end, and elapsed cast time", () => {
     ),
     "Cast: 1.25s → 2.01s\nCast time: 0.76s",
   );
+});
+
+test("timeline dead time excludes explicit waits, concurrent casts, and gap-fill attacks", () => {
+  const markers = timelineDeadTimeMarkers([
+    { ri: 0, skill: "Long Cast", start: 0, end: 1000 },
+    { ri: 1, skill: "Instant Cast", start: 200, end: 200 },
+    { ri: 2, skill: "Wait", start: 1000, end: 1400, type: "wait" },
+    { ri: 3, skill: "Next Cast", start: 1400, end: 1800 },
+    {
+      ri: 4,
+      skill: "Gap-filled Cast",
+      start: 2000,
+      end: 2400,
+      partialFill: { startMs: 1800, durationMs: 150 },
+    },
+    {
+      ri: 5,
+      skill: "Invalid Cast",
+      start: 3000,
+      end: 3200,
+      invalid: true,
+    },
+  ]);
+
+  assert.deepEqual(markers, [
+    { insertionIndex: 4, start: 1950, end: 2000, durationMs: 50 },
+  ]);
+  assert.equal(formatTimelineDuration(400), "400ms");
+  assert.equal(formatTimelineDuration(1000), "1s");
+  assert.equal(formatTimelineDuration(1250), "1.25s");
+  assert.equal(formatTimelineDuration(12_500), "12.5s");
+  assert.equal(formatTimelineDuration(100_000), "100s");
 });
 
 test("timeline skill tooltips include matching and global cast ordinals", () => {

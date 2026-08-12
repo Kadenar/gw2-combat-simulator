@@ -3,7 +3,9 @@ import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
   formatTimelineCastDetails,
+  formatTimelineDuration,
   formatTimelineSkillTooltip,
+  timelineDeadTimeMarkers,
   timelineSkillCastOrdinals,
   updateRotationEntry,
 } from "../../platform/ui/timeline.js";
@@ -347,6 +349,13 @@ export function renderTimeline(app: ProfessionAppState): void {
   });
   const formatTime = (timeMs: number): string =>
     formatResultTimelineTime(timeMs, app.results);
+  const deadTimes = timelineDeadTimeMarkers(resultSteps);
+  const deadTimesByIndex = new Map<number, typeof deadTimes>();
+  for (const marker of deadTimes) {
+    const markers = deadTimesByIndex.get(marker.insertionIndex) || [];
+    markers.push(marker);
+    deadTimesByIndex.set(marker.insertionIndex, markers);
+  }
   const procColors: Readonly<Record<string, string>> = {
     relic_proc: "#ddaa33",
     sigil_proc: "#4488cc",
@@ -438,6 +447,18 @@ export function renderTimeline(app: ProfessionAppState): void {
             <span class="rot-time">${time}</span>
         </div>`;
   };
+  const renderDeadTime = (marker: (typeof deadTimes)[number]): string => {
+    const duration = formatTimelineDuration(marker.durationMs);
+    const detail = [
+      `Dead time: ${duration} wasted`,
+      `No skill cast from ${formatTime(marker.start)} to ${formatTime(marker.end)}`,
+    ].join("\n");
+    return `<div class="rot-skill rot-injected rot-dead-time" role="note"
+            aria-label="${esc(detail)}" title="${esc(detail)}">
+            <span class="rot-dead-time-label">Dead</span>
+            <strong class="rot-dead-time-duration">${esc(duration)}</strong>
+        </div>`;
+  };
   const renderOverlayProcMarker = (
     marker: (typeof overlayProcMarkers)[number],
   ): string => {
@@ -497,6 +518,9 @@ export function renderTimeline(app: ProfessionAppState): void {
         : `Weapon set ${row.weaponSet}: ${weaponLabel}`;
       const rowItems: string[] = [];
       row.skills.forEach(({ entry, index }) => {
+        for (const marker of deadTimesByIndex.get(index) || []) {
+          rowItems.push(renderDeadTime(marker));
+        }
         for (const marker of overlayProcMarkersByIndex.get(index) || []) {
           rowItems.push(renderOverlayProcMarker(marker));
         }

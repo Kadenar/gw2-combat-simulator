@@ -4,7 +4,9 @@ import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
   formatTimelineCastDetails,
+  formatTimelineDuration,
   getSkillDropInsertionIndex,
+  timelineDeadTimeMarkers,
   updateRotationEntry,
   updateSkillDropIndicator,
 } from "../../../platform/ui/timeline.js";
@@ -802,6 +804,25 @@ export function renderTimeline(
   if (app.sim.results?.steps) {
     for (const st of app.sim.results.steps) stepMap[st.ri] = st;
   }
+  const deadTimes = timelineDeadTimeMarkers(app.sim.results?.steps || []);
+  const deadTimesByIndex = new Map();
+  for (const marker of deadTimes) {
+    const markers = deadTimesByIndex.get(marker.insertionIndex) || [];
+    markers.push(marker);
+    deadTimesByIndex.set(marker.insertionIndex, markers);
+  }
+  const renderDeadTime = (marker) => {
+    const duration = formatTimelineDuration(marker.durationMs);
+    const detail = [
+      `Dead time: ${duration} wasted`,
+      `No skill cast from ${app._formatResultsTimeMs(marker.start, 2)} to ${app._formatResultsTimeMs(marker.end, 2)}`,
+    ].join("\n");
+    return `<div class="rot-skill rot-injected rot-dead-time" role="note"
+            aria-label="${esc(detail)}" title="${esc(detail)}">
+            <span class="rot-dead-time-label">Dead</span>
+            <strong class="rot-dead-time-duration">${esc(duration)}</strong>
+        </div>`;
+  };
 
   const elite = app._getEliteSpec();
   const isWeaver = elite === "Weaver";
@@ -929,7 +950,10 @@ export function renderTimeline(
           const canEditActivation =
             Boolean(skill) &&
             (interruptMs !== undefined || fullCastMs > 0 || catalogCastMs > 0);
-          return rotationTimelineEntryHtml(
+          const deadTimeHtml = (deadTimesByIndex.get(idx) || [])
+            .map(renderDeadTime)
+            .join("");
+          return `${deadTimeHtml}${rotationTimelineEntryHtml(
             idx,
             app.rotationInsertionIndex,
             `<div class="rot-skill${concurClass}${gapFillClass}" draggable="true" data-idx="${idx}" title="${esc(displayName)}${castInfo}${concurInfo}${interruptInfo}${waitInfo}${gapFillInfo}" style="--att-border:${c}">
@@ -944,7 +968,7 @@ export function renderTimeline(
                     ${ts && !isConcurrent && interruptMs === undefined ? `<span class="rot-time">${ts}</span>` : ""}
                     ${offsetBadge}${interruptBadge}${waitBadge}${gapFillBadge}
                 </div>`,
-          );
+          )}`;
         })
         .join("");
       const finalGap =
