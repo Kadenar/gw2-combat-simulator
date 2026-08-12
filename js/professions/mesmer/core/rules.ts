@@ -1320,7 +1320,7 @@ export function modifyMesmerRecharge(
   const traits = mesmerRuntimeFor(context).traits;
   let multiplier = 1;
   if (
-    mesmerRuntimeFor(context).shatters[skill.id] &&
+    (mesmerRuntimeFor(context).shatters[skill.id] || mesmerRuntimeFor(context).instruments[skill.id]) &&
     traits.has(TRAIT.MASTER_OF_MISDIRECTION)
   )
     multiplier *= 0.85;
