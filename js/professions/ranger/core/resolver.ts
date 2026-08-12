@@ -230,15 +230,86 @@ function triggerPoisonMaster(
     return;
   }
   state.poisonMasterPetAttackReady = false;
-  queueCondition(
-    context,
-    event,
-    "Poisoned",
-    8,
-    2,
-    TRAIT.POISON_MASTER,
-    "Poison Master",
-  );
+  enqueueOrdered(context.queue, {
+    type: "condition",
+    at: event.at,
+    source: "Trait",
+    sourceId: TRAIT.POISON_MASTER,
+    actorType: "effect",
+    skillId: TRAIT.POISON_MASTER,
+    skillName: "Poison Master",
+    name: "Poison Master - Poisoned",
+    condition: "Poisoned",
+    duration: 8,
+    stacks: 2,
+    triggeredBy: event.skillName,
+  });
+}
+
+function triggerPoisonousStrikes(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  const state = professionCoreState(context);
+  if (event.at > state.poisonousStrikesExpiresAt) {
+    state.poisonousStrikesCharges = 0;
+  }
+  const merged = beastmodeActive(context);
+  const eligibleStrike = merged ? isPlayerStrike(event) : isPetStrike(event);
+  if (
+    state.poisonousStrikesCharges <= 0 ||
+    !eligibleStrike ||
+    !(Number(event.coefficient) > 0)
+  ) {
+    return;
+  }
+  state.poisonousStrikesCharges -= 1;
+  enqueueOrdered(context.queue, {
+    type: "condition",
+    at: event.at,
+    source: "ranger",
+    sourceId: ID.DOUBLE_ARC,
+    actorType: "effect",
+    skillId: ID.DOUBLE_ARC,
+    skillName: "Poisonous Strikes",
+    name: "Poisonous Strikes - Poisoned",
+    condition: "Poisoned",
+    duration: 6,
+    stacks: 1,
+    triggeredBy: event.skillName,
+  });
+}
+
+function triggerSharpeningStone(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  const state = professionCoreState(context);
+  if (event.at > state.sharpeningStoneExpiresAt) {
+    state.sharpeningStoneCharges = 0;
+  }
+  if (
+    state.sharpeningStoneCharges <= 0 ||
+    !isPlayerStrike(event) ||
+    !(Number(event.coefficient) > 0)
+  ) {
+    return;
+  }
+  state.sharpeningStoneCharges -= 1;
+  enqueueOrdered(context.queue, {
+    type: "condition",
+    at: event.at,
+    source: "ranger",
+    sourceId: ID.SHARPENING_STONE,
+    actorType: "effect",
+    skillId: ID.SHARPENING_STONE,
+    skillName: "Sharpening Stone",
+    name: "Sharpening Stone - Bleeding",
+    condition: "Bleeding",
+    duration: 8,
+    stacks: 1,
+    triggeredBy: event.skillName,
+  });
 }
 
 function triggerArachnophobia(
@@ -300,14 +371,28 @@ function triggerGoForTheThroat(
   event: RangerResolverEvent,
 ): void {
   const state = professionCoreState(context);
+  const skill = eventSkill(context, event);
+  const beastSkillId = state.activePetSkillIds.at(-1);
   if (
-    event.skillId !== ID.FURIOUS_POUNCE ||
+    event.skillId !== beastSkillId ||
+    !skill?.petSkill ||
+    skill.petFamilySkill ||
     !hasTrait(context, TRAIT.GO_FOR_THE_THROAT) ||
     event.at < state.goForTheThroatPetReadyAt
   ) {
     return;
   }
   state.goForTheThroatPetReadyAt = event.at + 10;
+  context.recordProc(
+    "trait",
+    'Lesser "Sic \'Em!"',
+    event.at,
+    event.skillName,
+    "8s, +15% pet strike damage",
+    context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
+      context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
+      "",
+  );
   enqueueOrdered(context.queue, {
     type: "buff",
     at: event.at,
@@ -318,7 +403,7 @@ function triggerGoForTheThroat(
     skillName: 'Lesser "Sic \'Em!"',
     name: 'Lesser "Sic \'Em!"',
     kind: "lesser-sic-em-pet",
-    duration: 5,
+    duration: 8,
     stacks: 1,
     affectsSelf: false,
     affectsSummons: true,
@@ -375,11 +460,30 @@ export function handleRangerWinterBiteReady(
 
 export function handleRangerBeastSkillUsed(
   context: RangerResolverContext,
-  _event: RangerResolverEvent,
+  event: RangerResolverEvent,
 ): void {
   if (hasTrait(context, TRAIT.POISON_MASTER) && !beastmodeActive(context)) {
     professionCoreState(context).poisonMasterPetAttackReady = true;
   }
+  if (!beastmodeActive(context)) triggerGoForTheThroat(context, event);
+}
+
+export function handleRangerPoisonousStrikes(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  const state = professionCoreState(context);
+  state.poisonousStrikesCharges = Math.max(0, Number(event.charges || 0));
+  state.poisonousStrikesExpiresAt = event.at + Number(event.duration || 0);
+}
+
+export function handleRangerSharpeningStone(
+  context: RangerResolverContext,
+  event: RangerResolverEvent,
+): void {
+  const state = professionCoreState(context);
+  state.sharpeningStoneCharges = Math.max(0, Number(event.charges || 0));
+  state.sharpeningStoneExpiresAt = event.at + Number(event.duration || 0);
 }
 
 export function handleRangerPetSwapped(
@@ -416,12 +520,17 @@ export function handleRangerPetSwapped(
   state.activePetSlot = Number(event.activePetSlot) === 2 ? 2 : 1;
   state.activePetSkillIds = [...pet.skillIds];
   state.petOpeningStrikeReady = true;
+  if (context.profession.specialization.kind === "Soulbeast") {
+    context.profession.specialization.state.archetype = pet.archetype;
+  }
 }
 
 export const rangerCoreEventHandlers = Object.freeze({
   "ranger.blood-thirst": handleRangerBloodThirst,
   "ranger.winter-bite-ready": handleRangerWinterBiteReady,
   "ranger.beast-skill-used": handleRangerBeastSkillUsed,
+  "ranger.poisonous-strikes": handleRangerPoisonousStrikes,
+  "ranger.sharpening-stone": handleRangerSharpeningStone,
   "ranger.pet-swapped": handleRangerPetSwapped,
 });
 
@@ -435,9 +544,10 @@ export function reactToRangerCoreDamage(
   consumeOpeningStrike(context, event);
   triggerHuntersGaze(context, event);
   triggerPoisonMaster(context, event);
+  triggerPoisonousStrikes(context, event);
+  triggerSharpeningStone(context, event);
   triggerArachnophobia(context, event);
   triggerStrengthOfThePack(context, event);
-  triggerGoForTheThroat(context, event);
   if (
     skill?.categories?.includes("Trap") &&
     event.activationId &&

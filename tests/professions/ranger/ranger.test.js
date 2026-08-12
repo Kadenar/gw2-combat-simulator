@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { paletteActionSkills } from "../../../js/app/rotation/palette-model.js";
+import {
+  currentAutoattackSkill,
+  paletteActionSkills,
+  weaponSkills,
+} from "../../../js/app/rotation/palette-model.js";
 import { timelineWeaponRows } from "../../../js/app/rotation/timeline-model.js";
 import {
   activeResourceGroup,
@@ -35,6 +39,7 @@ import {
 import { RANGER_PETS } from "../../../js/professions/ranger/data/ranger-pet-data.js";
 import { RANGER_TRAIT_COVERAGE } from "../../../js/professions/ranger/data/trait-coverage.js";
 import { rangerProfession } from "../../../js/professions/ranger/definition.js";
+import { rangerPetCombatMetadata } from "../../../js/professions/ranger/core/pets.js";
 import {
   rangerCoreAttributeRules,
   rangerCoreCastRules,
@@ -103,8 +108,8 @@ test("Ranger catalog pins API identity and explicit module-owned mechanics", () 
   assert.equal(DATA_SNAPSHOT, "2026-08-08");
   assert.equal(rangerCatalog.specializations.length, 9);
   assert.equal(rangerCatalog.traits.length, 108);
-  assert.equal(rangerCatalog.skills.length, 307);
-  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 300);
+  assert.equal(rangerCatalog.skills.length, 309);
+  assert.equal(Object.keys(RANGER_SKILL_MECHANICS).length, 302);
   assert.equal(
     rangerCatalog.skillsById.has(ID.OVERBEARING_SMASH_SECOND_STRIKE),
     false,
@@ -237,7 +242,13 @@ test("Ranger builds migrate and validate against the canonical catalog", () => {
   assert.equal(Object.hasOwn(defaults.assumptions, "targetDistance"), false);
   assert.deepEqual(
     rangerProfession.ui.assumptionControls.map((control) => control.key),
-    ["flanking", "behind", "targetDefiant", "simulationMode"],
+    [
+      "flanking",
+      "behind",
+      "targetDefiant",
+      "astralForceHealingEventsPerSecond",
+      "simulationMode",
+    ],
   );
 
   const migrated = migrateRangerBuild({
@@ -309,6 +320,51 @@ test("Ranger builds migrate and validate against the canonical catalog", () => {
   );
 });
 
+test("Ranger manifest DPS values match the current simulations", async () => {
+  const manifest = JSON.parse(
+    await readFile(
+      new URL("../../../Builds/ranger/manifest.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  for (const section of manifest) {
+    for (const preset of section.presets) {
+      const [savedBuild, savedRotation] = await Promise.all([
+        readFile(
+          new URL(`../../../${preset.build}`, import.meta.url),
+          "utf8",
+        ).then(JSON.parse),
+        readFile(
+          new URL(`../../../${preset.rotation}`, import.meta.url),
+          "utf8",
+        ).then(JSON.parse),
+      ]);
+      const build = migrateRangerBuild({
+        ...savedBuild,
+        rotation: savedRotation.rotation,
+      });
+      const app = {
+        build,
+        adapter: rangerAppAdapter,
+        profession: rangerProfession,
+        skillById: rangerCatalog.skillsById,
+        skillByName: rangerCatalog.skillsByName,
+        attributeWeaponSet: 1,
+      };
+      recalculate(app);
+      const result = runSimulation(app);
+
+      assert.deepEqual(result.warnings, [], preset.label);
+      assert.equal(
+        preset.benchmarkDps,
+        Math.round(result.dps),
+        `${section.section}: ${preset.label}`,
+      );
+    }
+  }
+});
+
 test("Power Soulbeast benchmark preset follows the supplied EVTC", async () => {
   const savedBuild = JSON.parse(
     await readFile(
@@ -332,6 +388,15 @@ test("Power Soulbeast benchmark preset follows the supplied EVTC", async () => {
     ...savedBuild,
     rotation: savedRotation.rotation,
   });
+  assert.deepEqual(savedRotation.rotation.slice(1, 4), [
+    { name: "Frost Trap", skillId: ID.FROST_TRAP },
+    {
+      name: "Overbearing Smash",
+      skillId: ID.OVERBEARING_SMASH,
+      interruptMs: 466,
+    },
+    { name: "__combat_start", offset: 350 },
+  ]);
   const app = {
     build,
     adapter: rangerAppAdapter,
@@ -341,6 +406,11 @@ test("Power Soulbeast benchmark preset follows the supplied EVTC", async () => {
     attributeWeaponSet: 1,
   };
   recalculate(app);
+  assert.equal(app.attributeData.attributes.Power.final, 3301);
+  assert.equal(app.attributeData.attributes.Ferocity.final, 2205);
+  assert.equal(app.attributeData.attributes.Expertise.final, 0);
+  assert.equal(app.attributeData.attributes.Concentration.final, 0);
+  assert.equal(app.attributeData.attributes["Healing Power"].final, 0);
   const result = runSimulation(app);
   const row = (name) => result.breakdown.find((entry) => entry.name === name);
 
@@ -358,12 +428,17 @@ test("Power Soulbeast benchmark preset follows the supplied EVTC", async () => {
     ["Force", "Impact"],
   ]);
   assert.equal(row("Whirling Defense").hits, 48);
+  assert.equal(row("Frost Trap").hits, 20);
   assert.equal(row("Splitblade").hits, 60);
   assert.equal(row("Unleashed Savage Shock Wave").hits, 24);
   assert.equal(row("Path of Scars").hits, 8);
   assert.equal(row("Path of Scars (Max Range)").hits, 8);
   assert.equal(row("One Wolf Pack").hits, 10);
   assert.equal(row("Overbearing Smash").hits, 6);
+  const [oneWolfPack, frostTrap, overbearingSmash, combatStart] = result.steps;
+  assert.equal(frostTrap.start, oneWolfPack.end);
+  assert.equal(combatStart.start, overbearingSmash.start + 350);
+  assert.equal(overbearingSmash.end, overbearingSmash.start + 466);
   assert.equal(row("Sigil of Air").hits, 17);
   assert.equal(row("Sharpened Edges — Bleeding").damage > 0, true);
   assert.equal(
@@ -371,6 +446,379 @@ test("Power Soulbeast benchmark preset follows the supplied EVTC", async () => {
       savedRotation.metadata.benchmarkDps <
       0.08,
     true,
+  );
+});
+
+test("Power Soulbeast Sword-Axe preset preserves the shared build and report", async () => {
+  const [savedBuild, axeBuild, savedRotation, manifest] = await Promise.all([
+    readFile(
+      new URL(
+        "../../../Builds/ranger/b-power-soulbeast-hammer-sword-axe.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../../../Builds/ranger/b-power-soulbeast-hammer-axe.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../../../Rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL("../../../Builds/ranger/manifest.json", import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+  const { alternateWeapons: savedAlternateWeapons, ...savedSharedBuild } =
+    savedBuild;
+  const { alternateWeapons: axeAlternateWeapons, ...axeSharedBuild } = axeBuild;
+
+  assert.deepEqual(savedAlternateWeapons, ["Sword", "Axe"]);
+  assert.deepEqual(axeAlternateWeapons, ["Axe", "Axe"]);
+  assert.deepEqual(savedSharedBuild, axeSharedBuild);
+  assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 91.491);
+  assert.equal(savedRotation.metadata.benchmarkDamage, 3972273);
+  assert.equal(savedRotation.metadata.benchmarkDps, 3972273 / 91.491);
+  assert.equal(savedRotation.rotation.length, 156);
+  assert.equal(
+    savedRotation.rotation.filter(
+      (entry) => typeof entry === "object" && entry.name === "Pounce",
+    ).length,
+    8,
+  );
+  assert.equal(
+    savedRotation.rotation.filter(
+      (entry) => typeof entry === "object" && entry.name === "Serpent's Strike",
+    ).length,
+    8,
+  );
+  assert.equal(
+    savedRotation.rotation.filter(
+      (entry) =>
+        typeof entry === "object" &&
+        entry.name === "Slash" &&
+        entry.interruptMs != null,
+    ).length,
+    0,
+  );
+  const openingFrostTrap = savedRotation.rotation[1];
+  assert.equal(openingFrostTrap.name, "Frost Trap");
+  assert.equal(Object.hasOwn(openingFrostTrap, "offset"), false);
+  assert.deepEqual(savedRotation.rotation[3], {
+    name: "__combat_start",
+    offset: 320,
+  });
+  assert.equal(savedRotation.rotation[2].interruptMs, 466);
+  assert.equal(
+    savedRotation.rotation.filter(
+      (entry) =>
+        typeof entry === "object" &&
+        entry.name === "Whirling Defense" &&
+        entry.interruptMs === 2640,
+    ).length,
+    4,
+  );
+  assert.equal(
+    savedRotation.rotation.filter(
+      (entry) =>
+        typeof entry === "object" && entry.name === "Path of Scars (Max Range)",
+    ).length,
+    4,
+  );
+  assert.deepEqual(
+    savedRotation.rotation
+      .filter(
+        (entry) => typeof entry === "object" && entry.name === "Path of Scars",
+      )
+      .map((entry) => entry.interruptMs),
+    [360, 400, 400, 400],
+  );
+  assert.deepEqual(
+    savedRotation.rotation
+      .filter(
+        (entry) =>
+          (typeof entry === "string" ? entry : entry.name) === "Frost Trap",
+      )
+      .map((entry) =>
+        typeof entry === "string" ? undefined : entry.interruptMs,
+      ),
+    [undefined, 440, undefined, 480],
+  );
+  assert.deepEqual(
+    savedRotation.rotation
+      .slice(-3)
+      .map((entry) => (typeof entry === "string" ? entry : entry.name)),
+    ["Overbearing Smash", "Unleashed Savage Shock Wave", "Unleashed Thump"],
+  );
+
+  const build = migrateRangerBuild({
+    ...savedBuild,
+    rotation: savedRotation.rotation,
+  });
+  const app = {
+    build,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const result = runSimulation(app);
+  const row = (name) => result.breakdown.find((entry) => entry.name === name);
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(row("Whirling Defense").hits, 48);
+  assert.equal(row("Unleashed Savage Shock Wave").hits, 24);
+  assert.equal(row("Unleashed Wild Swing").hits, 11);
+  assert.equal(row("Serpent's Strike").hits, 8);
+  assert.equal(row("Pounce").hits, 8);
+  assert.equal(row("Frost Trap").hits, 20);
+  assert.equal(row("Path of Scars").hits, 8);
+  assert.equal(row("Path of Scars (Max Range)").hits, 8);
+  assert.equal(row("Maul").hits, 16);
+  assert.equal(row("Heavy Smash").hits, 15);
+  assert.equal(row("Hammer Slam").hits, 15);
+  assert.equal(row("Hammer Strike").hits, 15);
+  assert.equal(row("Precision Swipe").hits, 8);
+  assert.equal(row("Worldly Impact").hits, 4);
+  assert.equal(row("Unleashed Thump").hits, 4);
+  assert.equal(row("Slash").hits, 8);
+  assert.equal(row("Crippling Thrust").hits, 8);
+  assert.equal(row("Overbearing Smash").hits, 8);
+  const firstSwordStrike = result.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillId === ID.POUNCE,
+  );
+  assert.equal(firstSwordStrike.criticalDamage, 3.05);
+  const firstHammerStrike = result.resolvedEvents.find(
+    (event) => event.type === "damage" && event.skillId === ID.HEAVY_SMASH,
+  );
+  assert.ok(Math.abs(firstHammerStrike.criticalDamage - 2.97) < 1e-12);
+  const [oneWolfPack, frostTrap, overbearingSmash, combatStart] = result.steps;
+  assert.equal(frostTrap.start, oneWolfPack.end);
+  assert.equal(combatStart.start, overbearingSmash.start + 320);
+  assert.equal(overbearingSmash.end, overbearingSmash.start + 466);
+  const frostPackets = result.events.filter(
+    (event) => event.type === "damage" && event.skillId === ID.FROST_TRAP,
+  );
+  assert.equal(frostPackets.length, 20);
+  assert.deepEqual(
+    frostPackets
+      .slice(0, 5)
+      .map((event) => Math.round((event.at - frostPackets[0].at) * 1000)),
+    [0, 1000, 2000, 3000, 4000],
+  );
+  assert.equal(
+    Math.round((combatStart.start / 1000 - frostPackets[0].at) * 1000),
+    -40,
+  );
+  const lesserSicEmProcs = result.procSteps.filter(
+    (step) => step.skill === 'Lesser "Sic \'Em!"',
+  );
+  assert.equal(lesserSicEmProcs.length, 4);
+  assert.equal(
+    lesserSicEmProcs.every(
+      (step) =>
+        step.sourceSkill === "Worldly Impact" &&
+        step.detail === "5s, +15% strike damage" &&
+        Boolean(step.icon),
+    ),
+    true,
+  );
+  assert.ok(
+    Math.abs(
+      result.dpsWindow - savedRotation.metadata.benchmarkDurationSeconds,
+    ) < 1,
+  );
+  assert.ok(
+    Math.abs(result.dps / savedRotation.metadata.benchmarkDps - 1) < 0.04,
+  );
+
+  const preset = manifest
+    .find(({ section }) => section === "Soulbeast")
+    .presets.find(({ label }) => label === "Power (Hammer / Sword-Axe)");
+  assert.equal(
+    preset.build,
+    "Builds/ranger/b-power-soulbeast-hammer-sword-axe.json",
+  );
+  assert.equal(
+    preset.rotation,
+    "Rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
+  );
+  assert.equal(preset.benchmarkDps, Math.round(result.dps));
+  assert.equal(
+    preset.dpsReportUrl,
+    "https://dps.report/pGzS-20260718-125337_golem",
+  );
+});
+
+test("Go for the Throat follows Soulbeast F3 and unmerged pet F2", () => {
+  const soulbeast = simulate("Soulbeast", ["Worldly Impact"], {
+    selectedPet: "Pig",
+    selectedTraitIds: [TRAIT.GO_FOR_THE_THROAT],
+  });
+  const soulbeastProcs = soulbeast.procSteps.filter(
+    (step) => step.skill === 'Lesser "Sic \'Em!"',
+  );
+  assert.equal(soulbeastProcs.length, 1);
+  assert.equal(soulbeastProcs[0].sourceSkill, "Worldly Impact");
+  assert.equal(soulbeastProcs[0].detail, "5s, +15% strike damage");
+  assert.equal(Boolean(soulbeastProcs[0].icon), true);
+
+  const core = simulate("Core", ["Intimidating Howl"], {
+    selectedPet: "Krytan Drakehound",
+    selectedTraitIds: [TRAIT.GO_FOR_THE_THROAT],
+  });
+  const coreProcs = core.procSteps.filter(
+    (step) => step.skill === 'Lesser "Sic \'Em!"',
+  );
+  assert.equal(coreProcs.length, 1);
+  assert.equal(coreProcs[0].sourceSkill, "Intimidating Howl");
+  assert.equal(coreProcs[0].detail, "8s, +15% pet strike damage");
+  assert.equal(Boolean(coreProcs[0].icon), true);
+
+  const familySkill = simulate("Core", ["Spit"], {
+    selectedPet: "Forest Spider",
+    selectedTraitIds: [TRAIT.GO_FOR_THE_THROAT],
+  });
+  assert.equal(
+    familySkill.procSteps.some((step) => step.skill === 'Lesser "Sic \'Em!"'),
+    false,
+  );
+});
+
+test("Soulbeast condition modifiers and duration bonuses use their actual targets", () => {
+  const rotation = ["Splitblade", { type: "wait", durationMs: 10000 }];
+  const config = {
+    primaryWeapon: "Axe",
+    secondaryWeapon: "Axe",
+    selectedPet: "Pig",
+    professionAssumptions: { flanking: true, targetDefiant: true },
+    stats: { conditionDamage: 1000, expertise: 0 },
+    target: { health: 10000000 },
+  };
+  const baseline = simulate("Soulbeast", rotation, config);
+  const huntersTactics = simulate("Soulbeast", rotation, {
+    ...config,
+    selectedTraitIds: [TRAIT.HUNTERS_TACTICS],
+  });
+  const oppressive = simulate("Soulbeast", rotation, {
+    ...config,
+    selectedTraitIds: [TRAIT.OPPRESSIVE_SUPERIORITY],
+  });
+  const oppressiveWithExpertise = simulate("Soulbeast", rotation, {
+    ...config,
+    selectedTraitIds: [TRAIT.OPPRESSIVE_SUPERIORITY],
+    stats: { ...config.stats, expertise: 150 },
+  });
+  const bleeding = (result) =>
+    result.breakdown
+      .filter((row) => row.name.includes("Bleeding"))
+      .reduce((total, row) => total + row.damage, 0);
+  const splitbladeStrike = (result) =>
+    result.breakdown.find((row) => row.name === "Splitblade").damage;
+  const splitbladeBleedDuration = (result) => {
+    const application = result.resolvedEvents.find(
+      (event) =>
+        event.type === "condition" &&
+        event.skillId === ID.SPLITBLADE &&
+        event.condition === "Bleeding",
+    );
+    return application.expiresAt - application.at;
+  };
+
+  assert.equal(bleeding(huntersTactics), bleeding(baseline));
+  assert.ok(splitbladeStrike(huntersTactics) > splitbladeStrike(baseline));
+  assert.ok(Math.abs(splitbladeBleedDuration(oppressive) - 6.6) < 1e-9);
+  assert.ok(
+    Math.abs(splitbladeBleedDuration(oppressiveWithExpertise) - 7.2) < 1e-9,
+  );
+});
+
+test("Twice as Vicious activates from a disable", () => {
+  const rotation = ["Overbearing Smash", "Heavy Smash"];
+  const config = {
+    primaryWeapon: "Hammer",
+    selectedPet: "Pig",
+    selectedHammerSkillIds: [
+      ID.WILD_SWING,
+      ID.OVERBEARING_SMASH,
+      ID.SAVAGE_SHOCK_WAVE,
+      ID.THUMP,
+    ],
+  };
+  const baseline = simulate("Soulbeast", rotation, config);
+  const twiceAsVicious = simulate("Soulbeast", rotation, {
+    ...config,
+    selectedTraitIds: [TRAIT.TWICE_AS_VICIOUS],
+  });
+  const heavySmashDamage = (result) =>
+    result.breakdown.find((row) => row.name === "Heavy Smash").damage;
+
+  assert.ok(
+    Math.abs(
+      heavySmashDamage(twiceAsVicious) / heavySmashDamage(baseline) - 1.07,
+    ) < 1e-12,
+  );
+});
+
+test("Ranger Ice projectile finishers resolve per projectile without triggering Twice as Vicious", () => {
+  const rotation = [
+    "Frost Trap",
+    "Splitblade",
+    "Ricochet",
+    "Ricochet",
+    "Ricochet",
+    "Ricochet",
+    "Ricochet",
+  ];
+  const deterministic = simulate("Soulbeast", rotation, {
+    primaryWeapon: "Axe",
+    secondaryWeapon: "Axe",
+    selectedPet: "Pig",
+    selectedTraitIds: [TRAIT.TWICE_AS_VICIOUS],
+  });
+  const withoutTwiceAsVicious = simulate("Soulbeast", rotation, {
+    primaryWeapon: "Axe",
+    secondaryWeapon: "Axe",
+    selectedPet: "Pig",
+  });
+  const comboConditions = deterministic.resolvedEvents.filter(
+    (event) => event.sourceId === "ranger.combo.ice-projectile",
+  );
+
+  assert.deepEqual(
+    comboConditions.map((event) => [
+      event.skillName,
+      event.condition,
+      event.duration,
+    ]),
+    [
+      ["Splitblade", "Chilled", 1],
+      ["Ricochet", "Chilled", 1],
+    ],
+  );
+  assert.equal(deterministic.totalDamage, withoutTwiceAsVicious.totalDamage);
+
+  const stochastic = simulate("Soulbeast", rotation.slice(0, 6), {
+    primaryWeapon: "Axe",
+    secondaryWeapon: "Axe",
+    selectedPet: "Pig",
+    randomness: { mode: "stochastic", seed: 1 },
+  });
+  assert.equal(
+    stochastic.resolvedEvents.filter(
+      (event) => event.sourceId === "ranger.combo.ice-projectile",
+    ).length,
+    2,
   );
 });
 
@@ -461,7 +909,8 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
     (event) => event.type === "damage" && event.skillId === ID.FELINE_SLASH,
   );
   assert.equal(tigerStrike.summonBasePower, 1944);
-  assert.equal(tigerStrike.summonBaseFerocity, 900);
+  assert.equal(tigerStrike.summonBaseFerocity, 600);
+  assert.equal(tigerStrike.summonBaseExpertise, 0);
 
   const displayRows = skillBreakdownRows(result);
   const relentlessRow = displayRows.find(
@@ -538,7 +987,7 @@ test("Power Untamed benchmark tracks the supplied EVTC and Tiger cadence", async
           buildPath === "Builds/ranger/b-power-untamed-hammer-sword-axe.json" &&
           rotationPath ===
             "Rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json" &&
-          benchmarkDps === 44183,
+          benchmarkDps === Math.round(result.dps),
       ),
     true,
   );
@@ -1090,6 +1539,41 @@ test("Pack Alpha excludes unleashed-pet and Beastmode skill recharges", () => {
   );
 });
 
+test("Pack Alpha improves only the Pig's five documented attributes", () => {
+  const metadata = rangerPetCombatMetadata({
+    config: { selectedTraitIds: [TRAIT.PACK_ALPHA] },
+    state: {
+      cooldowns: new Map(),
+      profession: {
+        core: { activePet: "Pig", activePetSlot: 1, petAutoGeneration: 0 },
+      },
+    },
+  });
+
+  assert.deepEqual(
+    {
+      power: metadata.summonBasePower,
+      precision: metadata.summonBasePrecision,
+      toughness: metadata.summonBaseToughness,
+      vitality: metadata.summonBaseVitality,
+      conditionDamage: metadata.summonBaseConditionDamage,
+      ferocity: metadata.summonBaseFerocity,
+      expertise: metadata.summonBaseExpertise,
+      healingPower: metadata.summonBaseHealingPower,
+    },
+    {
+      power: 1824,
+      precision: 1480,
+      toughness: 2511,
+      vitality: 3885,
+      conditionDamage: 1000,
+      ferocity: 0,
+      expertise: 0,
+      healingPower: 600,
+    },
+  );
+});
+
 test("Ranger autonomous pet cooldowns use only pet Alacrity", () => {
   const config = {
     selectedPet: "Carrion Devourer",
@@ -1234,7 +1718,10 @@ test("Druid gates, drains, and releases Celestial Avatar", () => {
     "Release Celestial Avatar",
   ]);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.endState.profession.astralForce, 0);
+  assert.ok(
+    Math.abs(result.endState.profession.astralForce - 100 * (12.5 / 15) * 0.5) <
+      0.01,
+  );
   assert.equal(result.endState.profession.celestialAvatarActive, false);
   assert.equal(
     Object.hasOwn(
@@ -1388,6 +1875,138 @@ test("Hammer variants are selected for every Ranger specialization", () => {
   assert.deepEqual(druidSelected.warnings, []);
 });
 
+test("Ranger Hammer autoattacks advance their palette chain", () => {
+  const config = {
+    primaryWeapon: "Hammer",
+    selectedHammerSkillIds: [
+      ID.UNLEASHED_WILD_SWING,
+      ID.OVERBEARING_SMASH,
+      ID.UNLEASHED_SAVAGE_SHOCK_WAVE,
+      ID.UNLEASHED_THUMP,
+    ],
+  };
+  const afterStrike = simulate("Soulbeast", ["Hammer Strike"], config);
+  const afterSlam = simulate(
+    "Soulbeast",
+    ["Hammer Strike", "Hammer Slam"],
+    config,
+  );
+  const afterSmash = simulate(
+    "Soulbeast",
+    ["Hammer Strike", "Hammer Slam", "Heavy Smash"],
+    config,
+  );
+
+  assert.equal(
+    afterStrike.endState.profession.autoattackChains[ID.HAMMER_STRIKE],
+    ID.HAMMER_SLAM,
+  );
+  assert.equal(
+    afterSlam.endState.profession.autoattackChains[ID.HAMMER_STRIKE],
+    ID.HEAVY_SMASH,
+  );
+  assert.equal(
+    afterSmash.endState.profession.autoattackChains[ID.HAMMER_STRIKE],
+    undefined,
+  );
+
+  const build = {
+    ...createRangerBuildDefaults(),
+    weapons: ["Hammer", ""],
+    selectedHammerSkillIds: config.selectedHammerSkillIds,
+  };
+  const app = {
+    build,
+    skills: [...rangerCatalog.skills],
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    results: afterStrike,
+  };
+  assert.equal(currentAutoattackSkill(app).id, ID.HAMMER_SLAM);
+  app.results = afterSlam;
+  assert.equal(currentAutoattackSkill(app).id, ID.HEAVY_SMASH);
+  app.results = afterSmash;
+  assert.equal(currentAutoattackSkill(app).id, ID.HAMMER_STRIKE);
+});
+
+test("Selected unleashed Hammer skills remain castable after Overbearing Smash", () => {
+  const selectedHammerSkillIds = [
+    ID.UNLEASHED_WILD_SWING,
+    ID.OVERBEARING_SMASH,
+    ID.UNLEASHED_SAVAGE_SHOCK_WAVE,
+    ID.UNLEASHED_THUMP,
+  ];
+  const result = simulate("Soulbeast", ["Overbearing Smash"], {
+    primaryWeapon: "Hammer",
+    selectedHammerSkillIds,
+  });
+  const build = {
+    ...createRangerBuildDefaults(),
+    weapons: ["Hammer", ""],
+    selectedHammerSkillIds,
+  };
+  const app = {
+    build,
+    skills: [...rangerCatalog.skills],
+    skillById: rangerCatalog.skillsById,
+    skillByName: rangerCatalog.skillsByName,
+    adapter: rangerAppAdapter,
+    profession: rangerProfession,
+    results: result,
+  };
+  const availableIds = new Set(weaponSkills(app, 1).map((skill) => skill.id));
+
+  for (const skillId of [
+    ID.UNLEASHED_WILD_SWING,
+    ID.UNLEASHED_SAVAGE_SHOCK_WAVE,
+    ID.UNLEASHED_THUMP,
+  ]) {
+    assert.equal(availableIds.has(skillId), true);
+    assert.deepEqual(
+      rangerProfession.ui.paletteSkillAvailability(
+        {
+          build,
+          specialization: "Soulbeast",
+          professionState: result.endState.profession,
+          time: result.durationMs / 1000,
+        },
+        rangerCatalog.skillsById.get(skillId),
+      ),
+      { available: true, message: "" },
+    );
+  }
+
+  const paletteElement = {
+    innerHTML: "",
+    querySelectorAll: () => [],
+  };
+  const previousDocument = globalThis.document;
+  globalThis.document = {
+    getElementById: (id) => (id === "rotation-palette" ? paletteElement : null),
+  };
+  try {
+    renderPalette(app);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+  for (const skillId of [
+    ID.UNLEASHED_WILD_SWING,
+    ID.UNLEASHED_SAVAGE_SHOCK_WAVE,
+    ID.UNLEASHED_THUMP,
+  ]) {
+    const skill = rangerCatalog.skillsById.get(skillId);
+    assert.equal(skill.paletteFlip, false);
+    const markup = paletteElement.innerHTML.match(
+      new RegExp(
+        `<div class="([^"]*)" data-skill="${skill.name}"\\s+data-skill-id="${skill.id}"[^>]*>`,
+      ),
+    );
+    assert.ok(markup, `${skill.name} should be rendered`);
+    assert.doesNotMatch(markup[1], /pal-context-disabled/);
+    assert.match(markup[0], /draggable="true"/);
+  }
+});
+
 test("Untamed starts in the selected unleashed state", () => {
   const pet = simulate("Untamed", [], { initialUntamedState: "Pet" });
   const ranger = simulate("Untamed", [], { initialUntamedState: "Ranger" });
@@ -1407,6 +2026,63 @@ test("Untamed starts in the selected unleashed state", () => {
     false,
   );
   assert.equal(availability(ranger.endState.profession, ID.UNLEASH_PET), true);
+});
+
+test("Untamed ambush skills require the specialization and an active unleash proc", () => {
+  const relentlessWhirl = rangerCatalog.skillsById.get(ID.RELENTLESS_WHIRL);
+
+  for (const specialization of ["Core", "Druid", "Soulbeast", "Galeshot"]) {
+    assert.equal(
+      rangerAppAdapter.isSkillAvailable(relentlessWhirl, { specialization }),
+      false,
+      `${specialization} should not have Relentless Whirl`,
+    );
+  }
+  assert.equal(
+    rangerAppAdapter.isSkillAvailable(relentlessWhirl, {
+      specialization: "Untamed",
+    }),
+    true,
+  );
+
+  const availability = (professionState, time = 0) =>
+    rangerProfession.ui.paletteSkillAvailability(
+      { specialization: "Untamed", professionState, time },
+      relentlessWhirl,
+    );
+
+  assert.deepEqual(
+    availability({ rangerUnleashed: false, ambushReadyUntil: 4 }),
+    { available: false, message: "Unleash Ranger first" },
+  );
+  assert.deepEqual(availability({ rangerUnleashed: true }), {
+    available: false,
+    message: "Unleash to make an ambush available",
+  });
+  assert.deepEqual(
+    availability({ rangerUnleashed: true, ambushReadyUntil: 4 }, 3.9),
+    { available: true, message: "" },
+  );
+  assert.deepEqual(
+    availability({ rangerUnleashed: true, ambushReadyUntil: 4 }, 4),
+    {
+      available: false,
+      message: "Unleash to make an ambush available",
+    },
+  );
+
+  assert.match(
+    simulate("Untamed", ["Relentless Whirl"], {
+      primaryWeapon: "Hammer",
+    }).warnings[0],
+    /Unleash Ranger first/,
+  );
+  assert.deepEqual(
+    simulate("Untamed", ["Unleash Ranger", "Relentless Whirl"], {
+      primaryWeapon: "Hammer",
+    }).warnings,
+    [],
+  );
 });
 
 test("Ranger skill-bar selections drive pet and Hammer selection", () => {
@@ -1877,7 +2553,6 @@ test("Ranger trait rules affect their owned damage and attributes", () => {
   ]) {
     assert.equal(soulbeastOperations.get(id), "damage-additive", id);
   }
-
   const baseline = simulate("Core", ["Rapid Fire"], {
     primaryWeapon: "Longbow",
   });

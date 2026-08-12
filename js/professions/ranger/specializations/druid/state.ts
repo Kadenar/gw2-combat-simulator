@@ -10,6 +10,8 @@ export function createDruidState(config: RangerConfig = {}): DruidState {
     maximumAstralForce: 100,
     celestialAvatarActive: false,
     celestialAvatarEndsAt: 0,
+    astralForceUpdatedAt: 0,
+    naturalMenderReadyAt: 3,
   };
 }
 

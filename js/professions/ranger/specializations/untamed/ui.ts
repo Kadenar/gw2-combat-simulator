@@ -33,7 +33,8 @@ function availability(
   context: RangerUiContext,
   skill: RangerSkill,
 ): PaletteSkillAvailability {
-  const rangerUnleashed = Boolean(rangerUiState(context).rangerUnleashed);
+  const state = rangerUiState(context);
+  const rangerUnleashed = Boolean(state.rangerUnleashed);
   if (skill.id === ID.UNLEASH_RANGER && rangerUnleashed) {
     return { available: false, message: "Ranger is already unleashed" };
   }
@@ -42,6 +43,17 @@ function availability(
   }
   if (skill.unleashedPetSkill && rangerUnleashed) {
     return { available: false, message: "Unleash Pet first" };
+  }
+  if (skill.unleashedAmbushSkill) {
+    if (!rangerUnleashed) {
+      return { available: false, message: "Unleash Ranger first" };
+    }
+    if (Number(context.time || 0) >= Number(state.ambushReadyUntil || 0)) {
+      return {
+        available: false,
+        message: "Unleash to make an ambush available",
+      };
+    }
   }
   return { available: true, message: "" };
 }

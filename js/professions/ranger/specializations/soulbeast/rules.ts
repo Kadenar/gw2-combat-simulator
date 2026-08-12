@@ -134,7 +134,7 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     },
     {
       id: "ranger.oppressive-superiority",
-      target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
       factor: 1.1,
       when: oppressiveSuperiorityActive,
@@ -144,11 +144,11 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 
 export const soulbeastAttributeRules = Object.freeze({
   modifierRules: soulbeastModifierRules,
-  modifyConditionBaseDuration(
+  modifyConditionDuration(
     context: Gw2ModifierContext,
     duration: number,
   ): number {
-    return oppressiveSuperiorityActive(context) ? duration * 1.1 : duration;
+    return oppressiveSuperiorityActive(context) ? duration + 0.1 : duration;
   },
 });
 export const soulbeastCastRules = Object.freeze({

@@ -81,6 +81,16 @@ export const druidUi: Partial<ProfessionUiContract> & SchedulerRecord =
         resourceAnchor: true,
       },
     ],
+    timelineWeaponLineTransition: (context: RangerUiContext) => {
+      const skill = context.skill as RangerSkill | undefined;
+      if (skill?.handlerId === "ranger.celestial-avatar-enter") {
+        return "Celestial Avatar";
+      }
+      if (skill?.handlerId === "ranger.celestial-avatar-exit") {
+        return null;
+      }
+      return undefined;
+    },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
       const state = rangerUiState(context);
       return [

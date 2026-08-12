@@ -13,6 +13,7 @@ import { rangerCoreCastAvailability } from "./availability.js";
 import { rangerPetByName } from "./state.js";
 import { advanceRangerResources } from "./resources.js";
 import { completeRangerTraits } from "./traits.js";
+import { updateRangerWeaponState } from "./weapon-state.js";
 import {
   beginRangerPetCommand,
   observeRangerPetEvent,
@@ -51,6 +52,11 @@ export const rangerCoreSchedulerHooks = Object.freeze({
     },
   },
   taskHandlers: rangerPetTaskHandlers,
+  afterCast: {
+    id: "ranger.weapon-state",
+    order: 10,
+    handler: updateRangerWeaponState,
+  },
   onCastComplete(context: RangerCastContext, skill: RangerSkill): void {
     completeRangerTraits(context, skill);
     if (
@@ -250,6 +256,34 @@ function activePetFamily(context: Gw2ModifierContext): string {
   ).family;
 }
 
+const PACK_ALPHA_RUNTIME_ATTRIBUTES = Object.freeze([
+  "power",
+  "conditionDamage",
+  "precision",
+  "toughness",
+  "vitality",
+] as const);
+
+const SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES: Readonly<
+  Record<string, Readonly<Partial<Record<keyof Gw2ResolvedStats, number>>>>
+> = Object.freeze({
+  Stout: Object.freeze({ toughness: 200, vitality: 100 }),
+  Deadly: Object.freeze({ conditionDamage: 150, precision: 100 }),
+  Versatile: Object.freeze({ vitality: 200, concentration: 225 }),
+  Ferocious: Object.freeze({ power: 150, ferocity: 100 }),
+  Supportive: Object.freeze({ vitality: 100 }),
+});
+
+function petArchetype(context: Gw2ModifierContext, active: boolean): string {
+  const configured = active
+    ? (
+        context.runtime as
+          { profession?: { core?: { activePet?: string } } } | undefined
+      )?.profession?.core?.activePet || context.config?.selectedPet
+    : context.config?.selectedPet;
+  return rangerPetByName(String(configured || "Pig")).archetype;
+}
+
 function modifyRangerAttributes(
   context: Gw2ModifierContext,
   attributes: Gw2ResolvedStats,
@@ -288,7 +322,14 @@ function modifyRangerAttributes(
     if (hasTrait(context, TRAIT.HONED_AXES)) {
       adjust(
         "ferocity",
-        120 + (activePrimaryWeapon(context) === "Axe" ? 120 : 0),
+        120 +
+          (weaponSetIncludes(
+            context,
+            Number(context.runtime?.activeWeaponSet),
+            ["Axe"],
+          )
+            ? 120
+            : 0),
       );
     }
     if (
@@ -298,22 +339,20 @@ function modifyRangerAttributes(
       adjust("ferocity", 250);
     }
     if (merged && hasTrait(context, TRAIT.PACK_ALPHA)) {
-      for (const attribute of [
-        "power",
-        "precision",
-        "toughness",
-        "vitality",
-        "ferocity",
-        "conditionDamage",
-        "expertise",
-        "concentration",
-        "healingPower",
-      ] as const) {
+      for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) {
         adjust(attribute, 150);
       }
     }
     if (merged && hasTrait(context, TRAIT.PETS_PROWESS)) {
       adjust("ferocity", 300);
+    }
+    if (merged) {
+      for (const [attribute, amount] of Object.entries(
+        SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES[petArchetype(context, true)] ||
+          {},
+      )) {
+        adjust(attribute as keyof Gw2ResolvedStats, Number(amount));
+      }
     }
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) adjust("expertise", 150);
     if (hasTrait(context, TRAIT.LINGERING_MAGIC)) {
@@ -338,29 +377,45 @@ function modifyRangerAttributes(
     }
   } else if (!merged && soulbeastSpecialization(context)) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
-      for (const attribute of [
-        "power",
-        "precision",
-        "toughness",
-        "vitality",
-        "ferocity",
-        "conditionDamage",
-        "expertise",
-        "concentration",
-        "healingPower",
-      ] as const) {
+      for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) {
         adjust(attribute, -150);
       }
     }
     if (hasTrait(context, TRAIT.PETS_PROWESS)) adjust("ferocity", -300);
+    for (const [attribute, amount] of Object.entries(
+      SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES[petArchetype(context, false)] ||
+        {},
+    )) {
+      adjust(attribute as keyof Gw2ResolvedStats, -Number(amount));
+    }
+  } else if (staticRulesApplied && merged) {
+    const configuredArchetype = petArchetype(context, false);
+    const activeArchetype = petArchetype(context, true);
+    if (configuredArchetype !== activeArchetype) {
+      for (const [attribute, amount] of Object.entries(
+        SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES[configuredArchetype] || {},
+      )) {
+        adjust(attribute as keyof Gw2ResolvedStats, -Number(amount));
+      }
+      for (const [attribute, amount] of Object.entries(
+        SOULBEAST_ARCHETYPE_RUNTIME_ATTRIBUTES[activeArchetype] || {},
+      )) {
+        adjust(attribute as keyof Gw2ResolvedStats, Number(amount));
+      }
+    }
   }
-  if (
-    staticRulesApplied &&
-    hasTrait(context, TRAIT.HONED_AXES) &&
-    activePrimaryWeapon(context) === "Axe" &&
-    calculatedWeapon !== "Axe"
-  ) {
-    result.ferocity = Number(result.ferocity || 0) + 120;
+  if (staticRulesApplied && hasTrait(context, TRAIT.HONED_AXES)) {
+    const activeHasAxe = weaponSetIncludes(
+      context,
+      Number(context.runtime?.activeWeaponSet),
+      ["Axe"],
+    );
+    const calculatedHasAxe = weaponSetIncludes(context, calculatedWeaponSet, [
+      "Axe",
+    ]);
+    if (activeHasAxe !== calculatedHasAxe) {
+      adjust("ferocity", activeHasAxe ? 120 : -120);
+    }
   }
   if (
     staticRulesApplied &&
@@ -504,7 +559,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
     },
     {
       id: "ranger.hunters-tactics-damage",
-      target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: "multiply",
       factor: 1.1,
       when: (context) =>
@@ -629,6 +684,7 @@ export const rangerCoreModifierRules: readonly Gw2ModifierRule[] =
       factor: 1.25,
       when: (context) =>
         context.condition === "Poisoned" &&
+        playerEvent(context) &&
         hasTrait(context, TRAIT.POISON_MASTER),
     },
     {

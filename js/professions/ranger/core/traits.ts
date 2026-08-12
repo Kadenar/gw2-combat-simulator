@@ -9,7 +9,11 @@ import {
   RANGER_TRAIT_IDS as TRAIT,
 } from "../data/ids.js";
 import { rangerPetCompanionId } from "./pets.js";
-import type { RangerCastContext, RangerSkill } from "../types.js";
+import type {
+  RangerCastContext,
+  RangerSchedulerContext,
+  RangerSkill,
+} from "../types.js";
 import { rangerPetByName } from "./state.js";
 
 function boonDuration(
@@ -175,16 +179,22 @@ export function completeRangerTraits(
       10,
     );
   }
+  const notBeforeCombat =
+    !context.hasExplicitCombatStart ||
+    (context.combatStartTime != null &&
+      context.start >= context.combatStartTime);
   if (
-    hasTrait(context, TRAIT.POISON_MASTER) &&
-    context.combatStartTime != null &&
-    context.start >= context.combatStartTime
+    (hasTrait(context, TRAIT.POISON_MASTER) ||
+      hasTrait(context, TRAIT.GO_FOR_THE_THROAT)) &&
+    notBeforeCombat
   ) {
     context.emit({
       type: "ranger.beast-skill-used",
       at: context.effectiveEnd,
       source: "Trait",
-      sourceId: TRAIT.POISON_MASTER,
+      sourceId: hasTrait(context, TRAIT.POISON_MASTER)
+        ? TRAIT.POISON_MASTER
+        : TRAIT.GO_FOR_THE_THROAT,
       actorType: "effect",
       skillId: skill.id,
       skillName: skill.name,
@@ -212,21 +222,22 @@ export function completeRangerTraits(
 }
 
 export function applyRangerWeaponSwapTraits(
-  context: RangerCastContext,
+  context: RangerCastContext | RangerSchedulerContext,
   skill: RangerSkill,
+  at = "effectiveEnd" in context ? context.effectiveEnd : context.state.time,
 ): void {
   const state = professionCoreState(context);
   const inCombat =
-    context.combatStartTime != null && context.start >= context.combatStartTime;
+    context.combatStartTime != null && at >= context.combatStartTime;
   if (
     inCombat &&
-    hasTrait(context, TRAIT.TAIL_WIND) &&
-    context.start >= state.tailWindReadyAt
+    hasTrait({ config: context.config }, TRAIT.TAIL_WIND) &&
+    at >= state.tailWindReadyAt
   ) {
-    state.tailWindReadyAt = context.start + 9;
+    state.tailWindReadyAt = at + 9;
     context.emit({
       type: "buff",
-      at: context.effectiveEnd,
+      at,
       source: "Trait",
       sourceId: TRAIT.TAIL_WIND,
       actorType: "effect",
@@ -239,14 +250,14 @@ export function applyRangerWeaponSwapTraits(
   }
   if (
     inCombat &&
-    hasTrait(context, TRAIT.QUICK_DRAW) &&
-    context.start >= state.quickDrawReadyAt
+    hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) &&
+    at >= state.quickDrawReadyAt
   ) {
-    state.quickDrawReadyAt = context.start + 9;
-    state.quickDrawUntil = context.start + 5;
+    state.quickDrawReadyAt = at + 9;
+    state.quickDrawUntil = at + 5;
     context.emit({
       type: "buff",
-      at: context.effectiveEnd,
+      at,
       source: "Trait",
       sourceId: TRAIT.QUICK_DRAW,
       actorType: "effect",
@@ -259,13 +270,13 @@ export function applyRangerWeaponSwapTraits(
   }
   if (
     inCombat &&
-    hasTrait(context, TRAIT.FURIOUS_GRIP) &&
-    context.start >= state.furiousGripReadyAt
+    hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP) &&
+    at >= state.furiousGripReadyAt
   ) {
-    state.furiousGripReadyAt = context.start + 9;
+    state.furiousGripReadyAt = at + 9;
     context.emit({
       type: "buff",
-      at: context.effectiveEnd,
+      at,
       source: "Trait",
       sourceId: TRAIT.FURIOUS_GRIP,
       actorType: "effect",

@@ -35,6 +35,7 @@ export interface RangerBuild extends Gw2Build {
 export interface RangerAssumptions extends Record<string, unknown> {
   readonly flanking?: boolean;
   readonly targetDefiant?: boolean;
+  readonly astralForceHealingEventsPerSecond?: number;
 }
 
 export interface RangerCanonicalBuild extends Gw2CanonicalBuild {
@@ -107,6 +108,10 @@ export interface RangerCoreState {
   playerOpeningStrikeReady: boolean;
   petOpeningStrikeReady: boolean;
   poisonMasterPetAttackReady: boolean;
+  poisonousStrikesCharges: number;
+  poisonousStrikesExpiresAt: number;
+  sharpeningStoneCharges: number;
+  sharpeningStoneExpiresAt: number;
   petSwapCount: number;
   petAutoGeneration: number;
   petAutoNextAt: number;
@@ -126,6 +131,8 @@ export interface DruidState {
   maximumAstralForce: number;
   celestialAvatarActive: boolean;
   celestialAvatarEndsAt: number;
+  astralForceUpdatedAt: number;
+  naturalMenderReadyAt: number;
 }
 
 export interface SoulbeastState {

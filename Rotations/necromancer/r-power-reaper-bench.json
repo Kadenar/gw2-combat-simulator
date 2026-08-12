@@ -11,8 +11,8 @@
       "name": "Nightfall"
     },
     {
-      "type": "wait",
-      "durationMs": 400
+      "name": "__combat_start",
+      "offset": 400
     },
     {
       "name": "Well of Darkness"

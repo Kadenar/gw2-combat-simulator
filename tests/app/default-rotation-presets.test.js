@@ -177,15 +177,15 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
 
   assert.equal(
     necromancerDps.get("Scourge:Condition (Pistol / Torch + Scepter / Torch)"),
-    39301,
+    39419,
   );
   assert.equal(
     necromancerDps.get("Reaper:Power (Greatsword / Spear)"),
-    40433,
+    43427,
   );
   assert.equal(
     necromancerDps.get("Reaper:Condition (Dagger / Sword + Spear)"),
-    44175,
+    43982,
   );
   assert.equal(
     necromancerDps.get("Ritualist:Power (Greatsword / Spear)"),

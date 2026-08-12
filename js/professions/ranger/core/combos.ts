@@ -1,9 +1,31 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
-import type { SimulationEvent } from "../../../platform/engine/types.js";
-import type { RangerSchedulerContext } from "../types.js";
+import { createSimulationRandom } from "../../../platform/engine/simulation-random.js";
+import type {
+  SimulationEvent,
+  SimulationRandom,
+} from "../../../platform/engine/types.js";
+import type { RangerCoreState, RangerSchedulerContext } from "../types.js";
 
 interface ActiveComboField {
   readonly type: string;
+}
+
+const PROJECTILE_FINISHER_STREAM = "ranger.projectile-finisher";
+const projectileFinisherRandoms = new WeakMap<
+  RangerCoreState,
+  Readonly<SimulationRandom>
+>();
+
+function projectileFinisherRandom(
+  context: RangerSchedulerContext,
+  state: RangerCoreState,
+): Readonly<SimulationRandom> {
+  let random = projectileFinisherRandoms.get(state);
+  if (!random) {
+    random = createSimulationRandom(context.config.randomness);
+    projectileFinisherRandoms.set(state, random);
+  }
+  return random;
 }
 
 function activeComboField(
@@ -21,9 +43,14 @@ function activeComboField(
         return false;
       }
       const skill = context.catalog.skillsById.get(event.skillId);
+      const startsAt =
+        skill?.comboFieldStartMs == null
+          ? Number(event.endsAt)
+          : Number(event.at) + Number(skill.comboFieldStartMs) / 1000;
       return (
         Boolean(skill?.comboField) &&
-        Number(event.endsAt) + Number(skill?.duration || 0) >=
+        startsAt <= at + context.epsilon &&
+        startsAt + Number(skill?.comboFieldDuration ?? skill?.duration ?? 0) >=
           at - context.epsilon
       );
     })
@@ -55,16 +82,27 @@ export function observeRangerComboFinisher(
     return;
   }
   const field = activeComboField(context, Number(event.at));
-  if (!field || !["Poison", "Ethereal"].includes(field.type)) return;
+  if (!field || !["Poison", "Ethereal", "Ice"].includes(field.type)) return;
 
   if (finisherChance < 1) {
     const state = professionCoreState(context);
-    state.comboProjectileFinisherProgress += finisherChance;
-    if (state.comboProjectileFinisherProgress < 1 - context.epsilon) return;
-    state.comboProjectileFinisherProgress -= 1;
+    const random = projectileFinisherRandom(context, state);
+    if (random.stochastic) {
+      if (!random.roll(finisherChance, PROJECTILE_FINISHER_STREAM)) return;
+    } else {
+      state.comboProjectileFinisherProgress += finisherChance;
+      if (state.comboProjectileFinisherProgress < 1 - context.epsilon) return;
+      state.comboProjectileFinisherProgress -= 1;
+    }
   }
 
   const isPoison = field.type === "Poison";
+  const isIce = field.type === "Ice";
+  const comboName = isPoison
+    ? "Poison Combo"
+    : isIce
+      ? "Chilling Bolts"
+      : "Confusing Bolt";
   context.emitDerived(event, {
     type: "condition",
     at: event.at,
@@ -73,9 +111,9 @@ export function observeRangerComboFinisher(
     actorType: event.actorType,
     skillId: event.skillId,
     skillName: skill.name,
-    name: `${skill.name} — ${isPoison ? "Poison Combo" : "Confusing Bolt"}`,
-    condition: isPoison ? "Poisoned" : "Confusion",
+    name: `${skill.name} — ${comboName}`,
+    condition: isPoison ? "Poisoned" : isIce ? "Chilled" : "Confusion",
     stacks: 1,
-    duration: isPoison ? 2 : 5,
+    duration: isPoison ? 2 : isIce ? 1 : 5,
   });
 }

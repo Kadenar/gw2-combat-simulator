@@ -77,17 +77,24 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
     ? professionCoreState(context).activePet
     : "Carrion Devourer";
   let power = 1524;
-  let precision = petName === "Tiger" ? 2211 : 1524;
+  let precision = petName === "Tiger" ? 2211 : petName === "Pig" ? 1180 : 1524;
+  let toughness = petName === "Pig" ? 2211 : 1000;
+  let vitality = petName === "Pig" ? 3585 : 1000;
   let ferocity = 0;
-  let conditionDamage = 1000;
+  let conditionDamage = petName === "Pig" ? 700 : 1000;
   let expertise = 0;
+  const healingPower = petName === "Pig" ? 600 : 0;
+  if (petName === "Jacaranda") {
+    power = 1868;
+    conditionDamage = 400;
+  }
   if (context) {
     if (petHasTrait(context, TRAIT.PACK_ALPHA)) {
       power += 300;
       precision += 300;
-      ferocity += 300;
+      toughness += 300;
+      vitality += 300;
       conditionDamage += 300;
-      expertise += 300;
     }
     if (petHasTrait(context, TRAIT.STRIDERS_STRENGTH)) power += 120;
     if (petHasTrait(context, TRAIT.HONED_AXES)) ferocity += 120;
@@ -100,7 +107,16 @@ function rangerPetAttributes(context?: RangerSchedulerContext) {
       ferocity += 180;
     }
   }
-  return { power, precision, ferocity, conditionDamage, expertise };
+  return {
+    power,
+    precision,
+    toughness,
+    vitality,
+    ferocity,
+    conditionDamage,
+    expertise,
+    healingPower,
+  };
 }
 
 export function rangerPetCombatMetadata(
@@ -114,9 +130,12 @@ export function rangerPetCombatMetadata(
     summonUsesProfessionModifiers: true,
     summonBasePower: attributes.power,
     summonBasePrecision: attributes.precision,
+    summonBaseToughness: attributes.toughness,
+    summonBaseVitality: attributes.vitality,
     summonBaseFerocity: attributes.ferocity,
     summonBaseConditionDamage: attributes.conditionDamage,
     summonBaseExpertise: attributes.expertise,
+    summonBaseHealingPower: attributes.healingPower,
     ...(context ? { summonOwner: rangerPetCompanionId(context) } : {}),
     summonCriticalChance: (attributes.precision - 1000) / 2100,
     summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
@@ -182,6 +201,15 @@ const PET_AUTO_PROFILES: Readonly<Record<string, PetAutoProfile>> =
         { id: ID.FELINE_BITE, recovery: 1.32, cooldown: 7.9 },
       ],
       commandRecovery: { [ID.FURIOUS_POUNCE]: 1.76 },
+    },
+    Jacaranda: {
+      openingDelay: 0.44,
+      basic: { id: ID.JACARANDA_ROOT_SLAP, recovery: 1.6 },
+      specials: [
+        { id: ID.JACARANDA_CALL_LIGHTNING, recovery: 1.48, cooldown: 10 },
+        { id: ID.PHOTOSYNTHESIZE, recovery: 1.48, cooldown: 20 },
+      ],
+      commandRecovery: { [ID.JACARANDAS_EMBRACE]: 1.48 },
     },
   });
 

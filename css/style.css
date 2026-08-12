@@ -1657,7 +1657,7 @@ header .accent {
 }
 
 .ranger-mechanics .ranger-pet .skill-bar-inspection-selection {
-  align-items: center;
+  align-items: flex-start;
 }
 
 .ranger-mechanics .ranger-hammer {
@@ -1691,9 +1691,12 @@ header .accent {
   grid-row: 1;
 }
 
-.ranger-mechanics .ranger-pet .skill-bar-inspection-slot.selectable .sbar-icon {
-  width: 56px;
-  height: 56px;
+.ranger-mechanics
+  .ranger-pet
+  .skill-bar-inspection-slot.selectable
+  .sbar-icon
+  img {
+  transform: scale(1.4);
 }
 
 .ranger-mechanics .ranger-pet .dd-item img {
