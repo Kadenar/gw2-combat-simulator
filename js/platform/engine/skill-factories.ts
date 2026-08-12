@@ -41,6 +41,9 @@
  * adding the skill through the rotation palette's interrupt action.
  * @property {number} [interruptCommitMs] Minimum interrupted-cast duration
  * required for persistent effects to resolve.
+ * @property {boolean} [retainsCastLockoutAfterInterrupt] Whether an interrupted
+ * cast keeps the player's cast lane blocked until its uninterrupted end while
+ * recharge and cast completion still begin at the interruption point.
  * @property {readonly object[]} [effects] Declarative effects created by
  * `effect-factories.js`. An empty array is valid for handler-only skills.
  * @property {string} [handlerId] Id of a handler registered in the canonical

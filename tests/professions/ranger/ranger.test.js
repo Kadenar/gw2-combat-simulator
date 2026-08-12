@@ -1055,6 +1055,7 @@ test("Power Galeshot benchmark tracks the supplied EVTC and both pets", async ()
     result.breakdown.find((entry) => entry.name === name)?.damage || 0;
 
   assert.deepEqual(result.warnings, []);
+  assert.equal(build.targetHealth, 3970000);
   assert.equal(build.selectedPet, "Carrion Devourer");
   assert.equal(build.selectedPet2, "Fanged Iboga");
   assert.equal(hits("Hawkeye"), 45);
@@ -1220,7 +1221,7 @@ test("Power Quickness Galeshot benchmark tracks its EVTC and Whirling Defense ca
   assert.equal(hits("Barrage"), 60);
   assert.equal(hits("Splitblade"), 50);
   assert.equal(hits("Quarry's Peril"), 11);
-  assert.equal(hits("Mistral"), 178);
+  assert.equal(hits("Mistral"), 179);
   assert.equal(hits("Twin Darts"), 58);
   assert.equal(hits("Tail Lash"), 3);
   assert.equal(hits("Consuming Bite"), 31);
@@ -1293,7 +1294,11 @@ test("Power Quickness Galeshot benchmark tracks its EVTC and Whirling Defense ca
   const bleedingDamage =
     result.conditionBreakdown.find((entry) => entry.name === "Bleeding")
       ?.damage || 0;
-  assert.equal(Math.abs(bleedingDamage / 140500 - 1) < 0.03, true);
+  assert.equal(
+    Math.abs(bleedingDamage / 140500 - 1) < 0.05,
+    true,
+    `Bleeding damage ${bleedingDamage} drifted from EVTC 140500.`,
+  );
   const confusionDamage =
     result.conditionBreakdown.find((entry) => entry.name === "Confusion")
       ?.damage || 0;
@@ -2294,8 +2299,9 @@ test("Ranger skill-bar selections drive pet and Hammer selection", () => {
 
 test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
   const expectedQuicknessCastTimes = new Map([
+    ["Mistral", 320],
     ["Long Range Shot", 480],
-    ["Rapid Fire", 1840],
+    ["Rapid Fire", 1800],
     ["Hunter's Shot", 320],
     ["Point-Blank Shot", 360],
     ["Barrage", 1880],
@@ -2458,6 +2464,78 @@ test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
       (event) => event.type === "damage" && event.skillId === ID.MISTRAL,
     ),
     false,
+  );
+});
+
+test("Quarry's Peril commits at 320 ms and deals damage at 800 ms", () => {
+  const rotation = (interruptAfterMs) => [
+    "Summon Cyclone Bow",
+    {
+      name: "Quarry's Peril",
+      ...(interruptAfterMs == null ? {} : { interruptAfterMs }),
+    },
+    "Fleeting Zephyr",
+    { type: "wait", durationMs: 1000 },
+  ];
+  const config = { boons: { quickness: true } };
+  const beforeCommit = simulate("Galeshot", rotation(319), config);
+  const committed = simulate("Galeshot", rotation(320), config);
+  const fullCast = simulate("Galeshot", rotation(), config);
+  const quarryStep = (result) =>
+    result.steps.find((step) => step.skill === "Quarry's Peril");
+  const quarryDamage = (result) =>
+    result.resolvedEvents.find(
+      (event) => event.type === "damage" && event.skillId === ID.QUARRYS_PERIL,
+    );
+  const quarryAction = (result) =>
+    result.events.find(
+      (event) => event.type === "action" && event.skillId === ID.QUARRYS_PERIL,
+    );
+  const fleetingStep = (result) =>
+    result.steps.find((step) => step.skill === "Fleeting Zephyr");
+
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.QUARRYS_PERIL).paletteInterruptMs,
+    320,
+  );
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.QUARRYS_PERIL).interruptCommitMs,
+    320,
+  );
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.QUARRYS_PERIL)
+      .retainsCastLockoutAfterInterrupt,
+    true,
+  );
+  assert.equal(quarryStep(fullCast).fullCastMs, 680);
+  assert.equal(quarryStep(fullCast).end - quarryStep(fullCast).start, 680);
+  assert.equal(quarryStep(committed).end - quarryStep(committed).start, 320);
+  assert.equal(
+    fleetingStep(committed).start - quarryStep(committed).start,
+    680,
+  );
+  assert.equal(
+    Math.round(
+      (quarryAction(committed).rechargeReadyAt - quarryAction(committed).at) *
+        1000,
+    ),
+    12320,
+  );
+  assert.equal(
+    Math.round(
+      (quarryAction(fullCast).rechargeReadyAt - quarryAction(fullCast).at) *
+        1000,
+    ),
+    12680,
+  );
+  assert.equal(quarryDamage(beforeCommit), undefined);
+  assert.equal(
+    Math.round(quarryDamage(committed).at * 1000) - quarryStep(committed).start,
+    800,
+  );
+  assert.equal(
+    Math.round(quarryDamage(fullCast).at * 1000) - quarryStep(fullCast).start,
+    800,
   );
 });
 

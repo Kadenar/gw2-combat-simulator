@@ -291,6 +291,8 @@ export interface Skill extends CatalogSkill {
   readonly defaultInterruptMs?: number;
   readonly paletteInterruptMs?: number;
   readonly interruptCommitMs?: number;
+  /** Keep the serial cast lane blocked through the original cast end. */
+  readonly retainsCastLockoutAfterInterrupt?: boolean;
   readonly effects?: readonly SkillEffect[];
   readonly handlerId?: string;
   readonly parentId?: SkillId;

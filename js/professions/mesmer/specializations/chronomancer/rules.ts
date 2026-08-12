@@ -63,7 +63,9 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] =
       factor: 1.05,
       when: (context) =>
         hasTrait(context, TRAIT.DANGER_TIME) &&
-        ["Player", "Clone"].includes(String(context.event?.source || "")) &&
+        ["Player", "Clone", "Phantasm"].includes(
+          String(context.event?.source || ""),
+        ) &&
         timedActive(context, "danger-time"),
     },
     {
@@ -72,7 +74,9 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] =
       operation: "multiply",
       factor: 1.1,
       order: 100,
-      when: (context) => timedActive(context, "time-bomb"),
+      when: (context) =>
+        String(context.event?.source || "") === "Player" &&
+        timedActive(context, "time-bomb"),
     },
   ]);
 

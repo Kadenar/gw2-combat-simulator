@@ -728,6 +728,14 @@ export function createCanonicalCatalog({
       throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
     }
     if (
+      merged.retainsCastLockoutAfterInterrupt != null &&
+      typeof merged.retainsCastLockoutAfterInterrupt !== "boolean"
+    ) {
+      throw new TypeError(
+        `Skill ${id} has an invalid retainsCastLockoutAfterInterrupt.`,
+      );
+    }
+    if (
       merged.rechargeAnchor != null &&
       !RECHARGE_ANCHORS.has(merged.rechargeAnchor)
     ) {

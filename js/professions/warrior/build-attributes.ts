@@ -1,5 +1,7 @@
 import {
   addAttribute,
+  addAttributes,
+  createTraitConversionPool,
   finalizeBuildAttributes,
 } from "../../platform/gw2/attributes.js";
 import { getActiveTraits } from "./data/traits-data.js";
@@ -19,7 +21,7 @@ export function applyWarriorBuildAttributeRules(
     disabledTrait = null,
   }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
-  const { conversionPool } = common.commonContext;
+  const { conversionPool: commonConversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(
     (build.specializations || []) as WarriorSpecializationSelection[],
   ).filter((trait) => trait.name !== disabledTrait);
@@ -27,6 +29,7 @@ export function applyWarriorBuildAttributeRules(
     activeTraits.some((trait) => trait.name === name);
   const weapons = [...(build.weapons || []), ...(build.alternateWeapons || [])];
   const traitStats: Gw2NumericAttributes = {};
+  const traitConversionStats: Gw2NumericAttributes = {};
   const traitDurations: Gw2NumericAttributes = {};
 
   if (selectedSkills.some((skill) => skill.name === "Signet of Might")) {
@@ -36,12 +39,18 @@ export function applyWarriorBuildAttributeRules(
     addAttribute(traitStats, "Precision", 180);
   }
   if (hasTrait("Forceful Greatsword")) {
-    addAttribute(
-      traitStats,
-      "Power",
-      weapons.includes("Greatsword") ? 240 : 120,
-    );
+    addAttribute(traitConversionStats, "Power", 120);
+    if (weapons.includes("Greatsword")) {
+      addAttribute(traitStats, "Power", 120);
+    }
   }
+
+  addAttributes(traitStats, traitConversionStats);
+  const conversionPool = createTraitConversionPool(
+    commonConversionPool,
+    traitConversionStats,
+  );
+
   if (hasTrait("Great Fortitude")) {
     const power = conversionPool.Power || 0;
     addAttribute(traitStats, "Vitality", power * 0.1);
@@ -50,7 +59,11 @@ export function applyWarriorBuildAttributeRules(
   if (hasTrait("Roaring Reveille"))
     addAttribute(traitStats, "Concentration", 120);
   if (hasTrait("Vigorous Shouts")) {
-    addAttribute(traitStats, "Healing Power", (conversionPool.Power || 0) * 0.1);
+    addAttribute(
+      traitStats,
+      "Healing Power",
+      (conversionPool.Power || 0) * 0.1,
+    );
   }
   if (
     hasTrait("Deep Strikes") &&
