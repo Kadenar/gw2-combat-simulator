@@ -22,58 +22,45 @@
         </p>
       </header>
 
+      <nav class="landing-tabs" role="tablist" aria-label="Home sections">
+        <button
+          class="landing-tab"
+          id="tab-simulator"
+          type="button"
+          role="tab"
+          aria-controls="panel-simulator"
+          aria-selected="true"
+          data-tab="simulator"
+        >
+          Simulator
+        </button>
+        <button
+          class="landing-tab"
+          id="tab-analyzer"
+          type="button"
+          role="tab"
+          aria-controls="panel-analyzer"
+          aria-selected="false"
+          tabindex="-1"
+          data-tab="analyzer"
+        >
+          Log analyzer
+        </button>
+      </nav>
+
+      <div
+        class="landing-tabpanel"
+        id="panel-simulator"
+        role="tabpanel"
+        aria-labelledby="tab-simulator"
+        data-tabpanel="simulator"
+      >
       <section class="landing-section" aria-labelledby="profession-heading">
         <div class="landing-section-heading">
           <p class="landing-eyebrow">Available simulators</p>
           <h2 id="profession-heading">Choose your profession</h2>
         </div>
         <div class="profession-grid" data-profession-grid></div>
-      </section>
-
-      <section class="landing-section" aria-labelledby="log-analysis-heading">
-        <div class="landing-section-heading">
-          <p class="landing-eyebrow">Log analysis</p>
-          <h2 id="log-analysis-heading">Inspect a training-golem EVTC</h2>
-        </div>
-        <div class="landing-panel evtc-analyzer" data-evtc-analyzer>
-          <div class="evtc-analyzer-toolbar">
-            <div>
-              <h3>Browser-side EVTC analyzer</h3>
-              <p>Inspect supported profession RNG mechanics (where supported) as well as APM and other metrics.</p>
-            </div>
-            <button class="evtc-reset" type="button" data-evtc-reset hidden>
-              Remove file
-            </button>
-          </div>
-          <input
-            class="evtc-file-input"
-            type="file"
-            accept=".evtc,.zip,.zevtc"
-            data-evtc-input
-          />
-          <div
-            class="evtc-dropzone"
-            role="button"
-            tabindex="0"
-            data-evtc-dropzone
-            aria-describedby="evtc-formats"
-          >
-            <strong>Drop an EVTC golem log here</strong>
-            <span id="evtc-formats"
-              >Accepted formats: .evtc, .evtc.zip, and .zevtc</span
-            >
-            <span class="evtc-picker-label">Choose a file</span>
-          </div>
-          <p
-            class="evtc-status"
-            role="status"
-            aria-live="polite"
-            data-evtc-status
-            hidden
-          ></p>
-          <div class="evtc-player-selection" data-evtc-selection hidden></div>
-          <div class="evtc-results" data-evtc-results hidden></div>
-        </div>
       </section>
 
       <section
@@ -206,6 +193,68 @@
           </article>
         </div>
       </section>
+      </div>
+
+      <div
+        class="landing-tabpanel"
+        id="panel-analyzer"
+        role="tabpanel"
+        aria-labelledby="tab-analyzer"
+        data-tabpanel="analyzer"
+        hidden
+      >
+        <section
+          class="landing-section"
+          aria-labelledby="log-analysis-heading"
+        >
+          <div class="landing-section-heading">
+            <p class="landing-eyebrow">Log analysis</p>
+            <h2 id="log-analysis-heading">Inspect a training-golem EVTC</h2>
+          </div>
+          <div class="landing-panel evtc-analyzer" data-evtc-analyzer>
+            <div class="evtc-analyzer-toolbar">
+              <div>
+                <h3>Browser-side EVTC analyzer</h3>
+                <p>
+                  Inspect supported profession RNG mechanics (where supported)
+                  as well as APM and other metrics.
+                </p>
+              </div>
+              <button class="evtc-reset" type="button" data-evtc-reset hidden>
+                Remove file
+              </button>
+            </div>
+            <input
+              class="evtc-file-input"
+              type="file"
+              accept=".evtc,.zip,.zevtc"
+              data-evtc-input
+            />
+            <div
+              class="evtc-dropzone"
+              role="button"
+              tabindex="0"
+              data-evtc-dropzone
+              aria-describedby="evtc-formats"
+            >
+              <strong>Drop an EVTC golem log here</strong>
+              <span id="evtc-formats"
+                >Accepted formats: .evtc, .evtc.zip, and .zevtc</span
+              >
+              <span class="evtc-picker-label">Choose a file</span>
+            </div>
+            <p
+              class="evtc-status"
+              role="status"
+              aria-live="polite"
+              data-evtc-status
+              hidden
+            ></p>
+            <div class="evtc-player-selection" data-evtc-selection hidden></div>
+            <div class="evtc-results" data-evtc-results hidden></div>
+          </div>
+        </section>
+      </div>
 
       <footer class="landing-footer">
         <p>
@@ -217,5 +266,6 @@
 
     <script type="module" src="js/app/profession/selector.js"></script>
     <script type="module" src="js/evtc-analyzer/ui.js"></script>
+    <script type="module" src="js/app/home-tabs.js"></script>
   </body>
 </html>
