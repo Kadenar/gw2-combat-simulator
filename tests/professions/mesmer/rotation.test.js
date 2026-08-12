@@ -2942,23 +2942,31 @@ test("player control skills retain ownership and trigger Relic of the Claw", () 
   }
 });
 
-test("Relic of the Claw buffs phantasms without merging their damage into the player row", () => {
+test("Danger Time buffs phantasms while Claw and Time Bomb remain player-only", () => {
   const rotation = [
-    "Signet of Domination",
+    "Time Sink",
     "Phantasmal Swordsman",
     { name: "__wait", waitMs: 6000 },
   ];
   const config = defaultSimulationConfig({
     specialization: "Chronomancer",
-    selectedTraits: ["Chronophantasma"],
+    selectedTraits: [],
     primaryWeapon: "Sword",
     secondaryWeapon: "Sword",
-    initialResource: 0,
+    initialResource: 3,
     relic: "",
     modifiers: { strike: 1, condition: 1 },
   });
   const base = simulateMesmer(rotation, config);
-  const equipped = simulateMesmer(rotation, { ...config, relic: "Claw" });
+  const dangerTime = simulateMesmer(rotation, {
+    ...config,
+    selectedTraits: ["Danger Time"],
+  });
+  const timeBomb = simulateMesmer(rotation, {
+    ...config,
+    selectedTraits: ["Time Bomb"],
+  });
+  const claw = simulateMesmer(rotation, { ...config, relic: "Claw" });
   const strikeDamage = (result, actorType) =>
     result.resolvedEvents
       .filter(
@@ -2969,17 +2977,36 @@ test("Relic of the Claw buffs phantasms without merging their damage into the pl
       )
       .reduce((sum, event) => sum + event.damage, 0);
 
-  for (const actorType of ["player", "phantasm"]) {
-    assert.ok(
-      Math.abs(
-        strikeDamage(equipped, actorType) / strikeDamage(base, actorType) -
-          1.07,
-      ) < 1e-12,
-      actorType,
-    );
-  }
+  assert.ok(strikeDamage(dangerTime, "player") > strikeDamage(base, "player"));
+  assert.ok(
+    strikeDamage(dangerTime, "phantasm") > strikeDamage(base, "phantasm"),
+  );
+  assert.ok(
+    Math.abs(
+      strikeDamage(claw, "player") / strikeDamage(base, "player") - 1.07,
+    ) < 1e-12,
+  );
+  assert.equal(strikeDamage(claw, "phantasm"), strikeDamage(base, "phantasm"));
+  assert.ok(
+    Math.abs(
+      strikeDamage(timeBomb, "player") / strikeDamage(base, "player") - 1.1,
+    ) < 1e-12,
+  );
+  assert.equal(
+    strikeDamage(timeBomb, "phantasm"),
+    strikeDamage(base, "phantasm"),
+  );
+  const timeBombBuff = timeBomb.events.find(
+    (event) => event.type === "buff" && event.kind === "time-bomb",
+  );
+  const explosion = timeBomb.resolvedEvents.find(
+    (event) => event.type === "damage" && event.name === "Time Bomb",
+  );
+  assert.equal(explosion.coefficient, 3);
+  assert.equal(explosion.source, "Player");
+  assert.ok(explosion.at < timeBombBuff.at + timeBombBuff.duration);
 
-  const rows = skillBreakdownRows(equipped);
+  const rows = skillBreakdownRows(dangerTime);
   const playerRow = rows.find(
     (row) => row.name === "Phantasmal Swordsman" && row.group === "Player",
   );
@@ -2992,12 +3019,12 @@ test("Relic of the Claw buffs phantasms without merging their damage into the pl
     "Sword Attack",
   ]);
   assert.ok(
-    Math.abs(playerRow.strike - strikeDamage(equipped, "player")) < 1e-9,
+    Math.abs(playerRow.strike - strikeDamage(dangerTime, "player")) < 1e-9,
   );
   assert.ok(
     Math.abs(
       entityRows.reduce((sum, row) => sum + row.strike, 0) -
-        strikeDamage(equipped, "phantasm"),
+        strikeDamage(dangerTime, "phantasm"),
     ) < 1e-9,
   );
 });
