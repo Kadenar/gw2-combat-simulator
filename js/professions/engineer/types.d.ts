@@ -44,8 +44,7 @@ export interface EngineerCanonicalBuild extends Gw2CanonicalBuild {
   selectedMorphSkillIds: number[];
 }
 
-export interface EngineerApplicationBuild
-  extends ProfessionApplicationBuild {
+export interface EngineerApplicationBuild extends ProfessionApplicationBuild {
   initialHeat: number;
   selectedMorphSkillIds: number[];
 }
@@ -58,8 +57,7 @@ export interface EngineerConfig extends Gw2Config {
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedMorphSkillIds?: readonly number[];
   readonly selectedSkills?:
-    | readonly string[]
-    | Readonly<Record<string, string>>;
+    readonly string[] | Readonly<Record<string, string>>;
 }
 
 export interface EngineerMechAttributes extends SchedulerRecord {
@@ -136,7 +134,6 @@ export interface AmalgamState {
   evolvedUntil: number;
   willingHostUntil: number;
   plasmaticStateUntil: number;
-  plasmaticLockoutUntil: number;
   thornsUntil: number;
   rapaciousUntil: number;
   predatorUntil: number;
@@ -164,7 +161,6 @@ export interface EngineerRuntimeState {
 }
 
 export interface EngineerSkill extends Skill {
-  readonly aftercastMs?: number;
   readonly comboField?: string;
   readonly duration?: number;
   readonly finisherType?: string;
@@ -176,15 +172,15 @@ export interface EngineerSkill extends Skill {
   readonly mechanicSlot?: number;
   readonly paletteFlipSkillId?: SkillId | null;
   readonly flipParentName?: string;
-  readonly quicknessAftercastMs?: number;
   readonly simulatorExcluded?: boolean;
   readonly toolbeltParentName?: string;
 }
 
-export type EngineerSchedulerContext = SchedulerContext<EngineerRuntimeState> & {
-  readonly catalog: CanonicalCatalog<EngineerSkill>;
-  readonly config: EngineerConfig;
-};
+export type EngineerSchedulerContext =
+  SchedulerContext<EngineerRuntimeState> & {
+    readonly catalog: CanonicalCatalog<EngineerSkill>;
+    readonly config: EngineerConfig;
+  };
 
 export type EngineerCastContext = CastLifecycleContext<EngineerRuntimeState> & {
   readonly catalog: CanonicalCatalog<EngineerSkill>;

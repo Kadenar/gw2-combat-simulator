@@ -1,9 +1,7 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { emitEngineerState } from "./events.js";
 import { ENGINEER_SKILL_IDS as ID } from "../data/ids.js";
-import type {
-  SchedulerRecord,
-} from "../../../platform/engine/types.js";
+import type { SchedulerRecord } from "../../../platform/engine/types.js";
 import type {
   EngineerCastContext,
   EngineerScheduledTask,
@@ -14,6 +12,13 @@ import type {
 interface LightningRodTaskPayload extends SchedulerRecord {
   readonly activationId: string;
 }
+
+const LIGHTNING_ROD_FIRST_PULSE_DELAY_SECONDS = 0.16;
+const LIGHTNING_ROD_PULSE_INTERVAL_SECONDS = 0.5;
+const LIGHTNING_ROD_PULSE_COUNT = 8;
+// The supplied EVTC unlocks Electric Artillery 4.196-4.203 seconds after
+// Lightning Rod starts across all eleven activations.
+const ELECTRIC_ARTILLERY_ARMING_TIME_SECONDS = 4.2;
 
 function emitSpearEvent(
   context: EngineerCastContext,
@@ -39,21 +44,20 @@ export function scheduleLightningRod(
 ): void {
   const state = professionCoreState(context);
   const activationId = context.reservationId;
-  const firstAt = context.effectiveEnd + 0.16;
-  const readyAt = firstAt + 3.5;
+  const firstAt =
+    context.effectiveEnd + LIGHTNING_ROD_FIRST_PULSE_DELAY_SECONDS;
+  const readyAt = context.start + ELECTRIC_ARTILLERY_ARMING_TIME_SECONDS;
   const ownerId = `engineer.lightning-rod:${activationId}`;
   state.lightningRodActivationId = activationId;
   state.lightningRodChargeExpiries = [];
   state.electricArtilleryAvailable = false;
-  // The palette may queue the flip while it is charging; cast availability
-  // still holds the command until electricArtilleryReadyAt.
-  state.availableFlips[ID.ELECTRIC_ARTILLERY] = true;
+  state.availableFlips[ID.ELECTRIC_ARTILLERY] = false;
   state.electricArtilleryReadyAt = readyAt;
-  state.electricArtilleryExpiresAt = firstAt + 3.5 + 14;
+  state.electricArtilleryExpiresAt = readyAt + 14;
   emitEngineerState(context, context.effectiveEnd, "lightning-rod-active");
 
-  for (let index = 0; index < 8; index += 1) {
-    const at = firstAt + index * 0.5;
+  for (let index = 0; index < LIGHTNING_ROD_PULSE_COUNT; index += 1) {
+    const at = firstAt + index * LIGHTNING_ROD_PULSE_INTERVAL_SECONDS;
     context.emit({
       type: "engineer.lightning-rod-pulse",
       at,
@@ -64,8 +68,10 @@ export function scheduleLightningRod(
       skillName: skill.name,
       name: skill.name,
       hitIndex: index + 1,
-      totalHits: 8,
-      ...(index === 7 ? { extendsResolutionHorizon: true } : {}),
+      totalHits: LIGHTNING_ROD_PULSE_COUNT,
+      ...(index === LIGHTNING_ROD_PULSE_COUNT - 1
+        ? { extendsResolutionHorizon: true }
+        : {}),
     });
     context.tasks.schedule({
       type: "engineer.lightning-rod-charge",
@@ -107,9 +113,9 @@ export function scheduleElectricArtillery(
 ): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const charges = state.lightningRodChargeExpiries
-    .filter(expiresAt => Number(expiresAt) > at)
-    .length;
+  const charges = state.lightningRodChargeExpiries.filter(
+    (expiresAt) => Number(expiresAt) > at,
+  ).length;
   context.emit({
     type: "engineer.electric-artillery",
     at,
@@ -139,8 +145,9 @@ export function handleLightningRodCharge(
 ): void {
   const state = professionCoreState(context);
   if (state.lightningRodActivationId !== task.payload?.activationId) return;
-  state.lightningRodChargeExpiries = state.lightningRodChargeExpiries
-    .filter(expiresAt => Number(expiresAt) > task.at);
+  state.lightningRodChargeExpiries = state.lightningRodChargeExpiries.filter(
+    (expiresAt) => Number(expiresAt) > task.at,
+  );
   if (state.lightningRodChargeExpiries.length < 12) {
     state.lightningRodChargeExpiries.push(task.at + 14);
   }
@@ -199,15 +206,17 @@ export function scheduleDevastatorFollowup(
 ): void {
   const impactAt = context.fullEnd;
   if (professionCoreState(context).focusedUntil <= impactAt) return;
+  const activationId = `${context.reservationId}:focused-devastation`;
   for (let index = 0; index < 6; index += 1) {
     const at = impactAt + 0.16 * (index + 1);
     context.emit({
       type: "damage",
       at,
       source: "engineer",
-      sourceId: skill.id,
+      sourceId: ID.FOCUSED_DEVASTATION,
+      activationId,
       actorType: "player",
-      skillId: skill.id,
+      skillId: ID.FOCUSED_DEVASTATION,
       skillName: "Focused Devastation",
       name: "Focused Devastation",
       coefficient: 0.2,
@@ -215,6 +224,7 @@ export function scheduleDevastatorFollowup(
       hitIndex: index + 1,
       totalHits: 6,
       skillWeapon: "Spear",
+      weaponStrengthProfileId: "nonweapon.unequipped",
       persistsAfterInterrupt: true,
       ...(index === 5 ? { extendsResolutionHorizon: true } : {}),
     });
@@ -222,9 +232,10 @@ export function scheduleDevastatorFollowup(
       type: "condition",
       at,
       source: "engineer",
-      sourceId: skill.id,
+      sourceId: ID.FOCUSED_DEVASTATION,
+      activationId,
       actorType: "player",
-      skillId: skill.id,
+      skillId: ID.FOCUSED_DEVASTATION,
       skillName: "Focused Devastation",
       name: "Focused Devastation — Burning",
       condition: "Burning",

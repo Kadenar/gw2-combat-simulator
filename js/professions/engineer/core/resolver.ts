@@ -11,9 +11,7 @@ import type {
   SimulationActorType,
   SkillId,
 } from "../../../platform/engine/types.js";
-import type {
-  Gw2EventDraft,
-} from "../../../platform/gw2/types.js";
+import type { Gw2EventDraft } from "../../../platform/gw2/types.js";
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
@@ -59,9 +57,7 @@ export function resolverSkill(
   skillId: SkillId | null | undefined,
 ): EngineerSkill | undefined {
   if (skillId == null) return;
-  return context.helpers.skillsById?.get(skillId) as
-    | EngineerSkill
-    | undefined;
+  return context.helpers.skillsById?.get(skillId) as EngineerSkill | undefined;
 }
 
 function handleEngineerState(
@@ -116,13 +112,9 @@ export function queueDamage(
     noCrit,
     explosion,
     blastFinisher,
-    ...(blastFinisher
-      ? { finisherType: "Blast", finisherValue: 1 }
-      : {}),
+    ...(blastFinisher ? { finisherType: "Blast", finisherValue: 1 } : {}),
     ...(weaponStrength == null ? {} : { weaponStrength }),
-    ...(weaponStrengthProfileId == null
-      ? {}
-      : { weaponStrengthProfileId }),
+    ...(weaponStrengthProfileId == null ? {} : { weaponStrengthProfileId }),
     triggeredBy: event.skillName,
   });
 }
@@ -134,7 +126,7 @@ function handleEngineerComboField(
   const state = professionCoreState(context);
   const fields = state.activeComboFields || [];
   state.activeComboFields = fields
-    .filter(field => Number(field.expiresAt || 0) >= event.at)
+    .filter((field) => Number(field.expiresAt || 0) >= event.at)
     .concat({
       startsAt: event.at,
       expiresAt: Number(event.expiresAt || event.at),
@@ -149,11 +141,13 @@ function hasActiveEngineerComboField(
   at: number,
 ): boolean {
   const state = professionCoreState(context);
-  state.activeComboFields = (state.activeComboFields || [])
-    .filter(field => Number(field.expiresAt || 0) >= at);
-  return state.activeComboFields.some(field =>
-    Number(field.startsAt || 0) <= at
-    && Number(field.expiresAt || 0) >= at);
+  state.activeComboFields = (state.activeComboFields || []).filter(
+    (field) => Number(field.expiresAt || 0) >= at,
+  );
+  return state.activeComboFields.some(
+    (field) =>
+      Number(field.startsAt || 0) <= at && Number(field.expiresAt || 0) >= at,
+  );
 }
 
 export function queueBuff(
@@ -308,10 +302,7 @@ function isExplosion(
   event: EngineerResolverEvent,
 ): boolean {
   if (event.explosion || event.damageKind === "explosion") return true;
-  const skill = resolverSkill(
-    context,
-    event.skillId ?? event.sourceId,
-  );
+  const skill = resolverSkill(context, event.skillId ?? event.sourceId);
   return (
     skill?.categories?.some(
       (category) => String(category).toLowerCase() === "explosion",
@@ -332,7 +323,7 @@ function isAimAssistedProjectile(
     skill?.kit === "Grenade Kit" ||
     skill?.categories?.some(
       (category) => String(category).toLowerCase() === "projectile",
-    )
+    ),
   );
 }
 
@@ -356,13 +347,8 @@ export function activeBoonStacks(
   const base = permanent === true ? 1 : Number(permanent || 0);
   const applications = context.boons?.get(normalized) || [];
   const dynamic = applications
-    .filter(application =>
-      application.at <= at
-      && application.expiresAt > at)
-    .reduce(
-      (sum, application) => sum + Number(application.stacks || 1),
-      0,
-    );
+    .filter((application) => application.at <= at && application.expiresAt > at)
+    .reduce((sum, application) => sum + Number(application.stacks || 1), 0);
   return clamp(base + dynamic, 0, maximum);
 }
 
@@ -370,9 +356,7 @@ function usesRandomTraitProcs(context: EngineerResolverContext): boolean {
   return context.random?.stochastic === true;
 }
 
-function rolledCritical(
-  details: EngineerResolverReactionDetails,
-): boolean {
+function rolledCritical(details: EngineerResolverReactionDetails): boolean {
   return details.hitContext?.critical?.didCrit === true;
 }
 
@@ -400,10 +384,10 @@ function reactToEngineerDamage(
     event.activationId || `${event.skillId || event.sourceId}:${event.at}`,
   );
   if (
-    finisherType === "Blast"
-    && finisherValue > 0
-    && hasActiveEngineerComboField(context, event.at)
-    && !comboState.completedBlastFinisherActivations[activation]
+    finisherType === "Blast" &&
+    finisherValue > 0 &&
+    hasActiveEngineerComboField(context, event.at) &&
+    !comboState.completedBlastFinisherActivations[activation]
   ) {
     comboState.completedBlastFinisherActivations[activation] = true;
     const blastCount = Math.max(1, Math.trunc(finisherValue));
@@ -451,9 +435,9 @@ function reactToEngineerDamage(
     });
   }
   if (
-    explosion
-    && hasTrait(context, TRAIT.SHORT_FUSE)
-    && Number(state.shortFuse || 0) <= event.at
+    explosion &&
+    hasTrait(context, TRAIT.SHORT_FUSE) &&
+    Number(state.shortFuse || 0) <= event.at
   ) {
     state.shortFuse = event.at + 3;
     queueBuff(context, event, {
@@ -478,8 +462,8 @@ function reactToEngineerDamage(
     recordTrait(context, "Explosive Temper", event);
   }
   if (
-    event.name === "Explosive Entrance"
-    && hasTrait(context, TRAIT.GRAND_ENTRANCE)
+    event.name === "Explosive Entrance" &&
+    hasTrait(context, TRAIT.GRAND_ENTRANCE)
   ) {
     queueBuff(context, event, {
       name: "Grand Entrance — resistance",
@@ -500,9 +484,9 @@ function reactToEngineerDamage(
     recordTrait(context, "Grand Entrance", event);
   }
   if (
-    explosion
-    && event.name !== "Aim-Assisted Rocket"
-    && hasTrait(context, TRAIT.SHRAPNEL)
+    explosion &&
+    event.name !== "Aim-Assisted Rocket" &&
+    hasTrait(context, TRAIT.SHRAPNEL)
   ) {
     let triggered = false;
     if (usesRandomTraitProcs(context)) {
@@ -536,7 +520,7 @@ function reactToEngineerDamage(
   }
 
   if (
-    event.actorType === "player" &&
+    event.actorType !== "summon" &&
     hasTrait(context, TRAIT.SERRATED_STEEL) &&
     criticalChance > 0
   ) {
@@ -568,10 +552,10 @@ function reactToEngineerDamage(
   }
 
   if (
-    event.actorType === "player"
-    && hasTrait(context, TRAIT.NO_SCOPE)
-    && criticalChance > 0
-    && Number(state.noScope || 0) <= event.at
+    event.actorType === "player" &&
+    hasTrait(context, TRAIT.NO_SCOPE) &&
+    criticalChance > 0 &&
+    Number(state.noScope || 0) <= event.at
   ) {
     let triggered = false;
     if (usesRandomTraitProcs(context)) {
@@ -599,9 +583,8 @@ function reactToEngineerDamage(
   }
 
   if (
-    event.actorType != null
-    && ["player", "summon"].includes(event.actorType)
-    &&
+    event.actorType != null &&
+    ["player", "summon"].includes(event.actorType) &&
     hasTrait(context, TRAIT.INCENDIARY_POWDER) &&
     criticalChance > 0
   ) {
@@ -611,14 +594,11 @@ function reactToEngineerDamage(
     let triggered = false;
     if (usesRandomTraitProcs(context)) {
       triggered =
-        rolledCritical(details) &&
-        Number(state[readyKey] || 0) <= event.at;
+        rolledCritical(details) && Number(state[readyKey] || 0) <= event.at;
     } else {
-      state[progressKey] =
-        Number(state[progressKey] || 0) + criticalChance;
+      state[progressKey] = Number(state[progressKey] || 0) + criticalChance;
       triggered =
-        state[progressKey] >= 1 &&
-        Number(state[readyKey] || 0) <= event.at;
+        state[progressKey] >= 1 && Number(state[readyKey] || 0) <= event.at;
     }
     if (triggered) {
       if (!usesRandomTraitProcs(context)) {
@@ -632,9 +612,7 @@ function reactToEngineerDamage(
         duration: 8,
         sourceId: TRAIT.INCENDIARY_POWDER,
         actorType: event.actorType === "summon" ? "summon" : "effect",
-        metadata: event.actorType === "summon"
-          ? { engineerMech: true }
-          : {},
+        metadata: event.actorType === "summon" ? { engineerMech: true } : {},
       });
       recordTrait(context, "Incendiary Powder", event);
     }
@@ -667,7 +645,6 @@ function reactToEngineerDamage(
       event,
     );
   }
-
 }
 
 function reactToEngineerCondition(
@@ -676,8 +653,8 @@ function reactToEngineerCondition(
 ): void {
   if (
     event.condition === "Burning" &&
-    event.actorType !== "summon"
-    && hasTrait(context, TRAIT.THERMAL_VISION)
+    event.actorType !== "summon" &&
+    hasTrait(context, TRAIT.THERMAL_VISION)
   ) {
     const state = professionCoreState(context);
     state.traitProcReadyAt.thermalVisionUntil = Math.max(
@@ -687,8 +664,8 @@ function reactToEngineerCondition(
   }
   if (
     event.condition === "Bleeding" &&
-    event.actorType !== "summon"
-    && hasTrait(context, TRAIT.SANGUINE_ARRAY)
+    event.actorType !== "summon" &&
+    hasTrait(context, TRAIT.SANGUINE_ARRAY)
   ) {
     queueBuff(context, event, {
       name: "Sanguine Array",
@@ -701,9 +678,9 @@ function reactToEngineerCondition(
     recordTrait(context, "Sanguine Array", event);
   }
   if (
-    event.condition === "Bleeding"
-    && event.actorType !== "summon"
-    && hasTrait(context, TRAIT.HEMATIC_FOCUS)
+    event.condition === "Bleeding" &&
+    event.actorType !== "summon" &&
+    hasTrait(context, TRAIT.HEMATIC_FOCUS)
   ) {
     const state = procState(context);
     if (Number(state.hematicFocus || 0) <= event.at) {
@@ -736,10 +713,7 @@ function handleRefractionCutterExtraBlades(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
 ): void {
-  const extraBlades = Math.max(
-    0,
-    Math.trunc(Number(event.extraBlades || 0)),
-  );
+  const extraBlades = Math.max(0, Math.trunc(Number(event.extraBlades || 0)));
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + 0.36;
     enqueueOrdered(context.queue, {
@@ -778,7 +752,6 @@ function handleRefractionCutterExtraBlades(
   }
 }
 
-
 export const engineerCoreResolverEventHandlers = Object.freeze({
   "engineer.state": handleEngineerState,
   "engineer.combo-field": handleEngineerComboField,
@@ -787,8 +760,7 @@ export const engineerCoreResolverEventHandlers = Object.freeze({
   "engineer.conduit-surge": handleConduitSurge,
   "engineer.electric-artillery": handleElectricArtillery,
   "engineer.radiant-arc-quickness": handleRadiantArcQuickness,
-  "engineer.refraction-cutter-extra-blades":
-    handleRefractionCutterExtraBlades,
+  "engineer.refraction-cutter-extra-blades": handleRefractionCutterExtraBlades,
 });
 
 export const engineerCoreResolverEventReactions = Object.freeze({

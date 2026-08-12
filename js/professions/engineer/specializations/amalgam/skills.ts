@@ -9,6 +9,8 @@ import type { SkillFragment } from "../../../../platform/engine/types.js";
 
 const DEMOLISH_QUICKNESS_CAST_TIME_MS = 1000 + 560;
 const DEMOLISH_RECHARGE_OFFSET_MS = 1000;
+const PLASMATIC_STATE_QUICKNESS_CAST_TIME_MS = 480 + 480;
+const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
 
 export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   Object.freeze({
@@ -619,10 +621,10 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
     [ID.PLASMATIC_STATE]: {
       implemented: true,
       handlerId: "engineer.plasmatic-state",
-      quicknessCastTimeMs: 480,
-      aftercastMs: 660,
-      quicknessAftercastMs: 440,
+      quicknessCastTimeMs: PLASMATIC_STATE_QUICKNESS_CAST_TIME_MS,
       cooldown: 25,
+      rechargeAnchor: "castStart",
+      rechargeOffsetMs: PLASMATIC_STATE_RECHARGE_OFFSET_MS,
       effects: [
         {
           type: "strike",
