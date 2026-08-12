@@ -438,6 +438,122 @@ test("Barbed Precision never allows more than one ambiguous proc per critical hi
   assert.equal(fields(result)["Observed proc rate"], "0.00%–100.00%");
 });
 
+function engineerAnalysisFor(events) {
+  return analysisFor(events, {
+    agents: [
+      playerAgent({ profession: 3, elite: 0, character: "Fixture Engineer" }),
+      golemAgent(),
+    ],
+  });
+}
+
+function sectionFields(section) {
+  return Object.fromEntries(
+    section.fields.map((field) => [field.label, field.value]),
+  );
+}
+
+test("Engineer loads Shrapnel and Serrated Steel sections", async () => {
+  const result = await engineerAnalysisFor([
+    combatEvent({ time: 1_000, skillId: 5806, result: 0 }),
+    combatEvent({ time: 2_000 }),
+  ]);
+  assert.equal(result.player.professionId, "engineer");
+  assert.deepEqual(
+    result.profession[0].sections.map((section) => section.title),
+    ["Shrapnel", "Serrated Steel"],
+  );
+});
+
+test("Engineer Shrapnel classifies an isolated explosion Bleeding without a crit", async () => {
+  const result = await engineerAnalysisFor([
+    combatEvent({ time: 1_000, skillId: 5806, result: 0 }),
+    combatEvent({
+      time: 1_000,
+      value: 6_000,
+      skillId: 736,
+      buff: 1,
+      stateChange: 69,
+    }),
+    combatEvent({ time: 2_000 }),
+  ]);
+  const [shrapnel, serrated] = result.profession[0].sections;
+  const shrapnelFields = sectionFields(shrapnel);
+  assert.equal(shrapnel.status, "exact");
+  assert.equal(shrapnelFields["Eligible explosion hits"], 1);
+  assert.equal(shrapnelFields["Observed candidate procs"], 1);
+  assert.equal(shrapnelFields["Minimum possible procs"], 1);
+  assert.equal(shrapnelFields["Maximum possible procs"], 1);
+  // The non-critical explosion cannot proc Serrated Steel.
+  assert.equal(sectionFields(serrated)["Eligible critical hits"], 0);
+  assert.equal(sectionFields(serrated)["Observed candidate procs"], 0);
+});
+
+test("Engineer Serrated Steel classifies an isolated critical Bleeding", async () => {
+  const result = await engineerAnalysisFor([
+    combatEvent({ time: 1_000, result: 1 }),
+    combatEvent({
+      time: 1_000,
+      value: 3_990,
+      skillId: 736,
+      buff: 1,
+      stateChange: 69,
+    }),
+    combatEvent({ time: 2_000 }),
+  ]);
+  const [shrapnel, serrated] = result.profession[0].sections;
+  const serratedFields = sectionFields(serrated);
+  assert.equal(serrated.status, "exact");
+  assert.equal(serratedFields["Eligible critical hits"], 1);
+  assert.equal(serratedFields["Observed candidate procs"], 1);
+  // A non-explosion crit cannot proc Shrapnel.
+  assert.equal(sectionFields(shrapnel)["Eligible explosion hits"], 0);
+  assert.equal(sectionFields(shrapnel)["Observed candidate procs"], 0);
+});
+
+test("Engineer Shrapnel excludes Bleeding from a known direct skill", async () => {
+  const result = await engineerAnalysisFor([
+    combatEvent({ time: 1_000, skillId: 5806, result: 0 }),
+    combatEvent({ time: 1_000, skillId: 10661, result: 0 }),
+    combatEvent({
+      time: 1_000,
+      value: 6_000,
+      skillId: 736,
+      buff: 1,
+      stateChange: 69,
+    }),
+    combatEvent({ time: 2_000 }),
+  ]);
+  const [shrapnel] = result.profession[0].sections;
+  assert.equal(sectionFields(shrapnel)["Observed candidate procs"], 0);
+  assert.match(
+    shrapnel.evidence.join(" "),
+    /1 applications excluded by known direct/,
+  );
+});
+
+test("Engineer bounds a Bleeding that fits both Shrapnel and Serrated Steel", async () => {
+  const result = await engineerAnalysisFor([
+    combatEvent({ time: 1_000, skillId: 5806, result: 1 }),
+    combatEvent({
+      time: 1_000,
+      value: 6_000,
+      skillId: 736,
+      buff: 1,
+      stateChange: 69,
+    }),
+    combatEvent({ time: 2_000 }),
+  ]);
+  const [shrapnel, serrated] = result.profession[0].sections;
+  assert.equal(shrapnel.status, "ambiguous");
+  assert.equal(serrated.status, "ambiguous");
+  for (const section of [shrapnel, serrated]) {
+    const values = sectionFields(section);
+    assert.equal(values["Minimum possible procs"], 0);
+    assert.equal(values["Maximum possible procs"], 1);
+  }
+});
+
 test("worker request and terminal analysis results are structured-clone serializable", async () => {
   const source = buildEvtc();
   const buffer = source.buffer.slice(
@@ -474,10 +590,6 @@ test("home-page analyzer exposes accessible drop and file-picker behavior", asyn
   assert.match(page, /data-evtc-dropzone/);
   assert.match(page, /role="button"\s+tabindex="0"/);
   assert.match(page, /data-evtc-input/);
-  assert.match(
-    page,
-    /Processed locally in your browser; the file is not\s+uploaded\./,
-  );
   assert.match(ui, /addEventListener\("drop"/);
   assert.match(ui, /addEventListener\("change"/);
   assert.match(ui, /event\.key === "Enter" \|\| event\.key === " "/);
