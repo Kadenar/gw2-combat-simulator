@@ -1,10 +1,11 @@
 import {
-  addAttribute,
   finalizeBuildAttributes,
+  resolveAttributeEffects,
 } from "../../platform/gw2/attributes.js";
 import { getActiveTraits } from "./data/traits-data.js";
 import type {
   Gw2BuildAttributeRuleContext,
+  Gw2AttributeEffect,
   Gw2CommonAttributeResult,
 } from "../../platform/gw2/types.js";
 import type { RangerBuild } from "./types.js";
@@ -44,59 +45,130 @@ export function applyRangerBuildAttributeRules(
   ).filter((trait) => trait.name !== disabledTrait);
   const hasTrait = (name: string): boolean =>
     activeTraits.some((trait) => trait.name === name);
-  const traitStats: Record<string, number> = {};
   const traitDurations: Record<string, number> = {};
   const weapons =
     weaponSet === 2 ? rangerBuild.alternateWeapons : rangerBuild.weapons;
   const soulbeast = rangerBuild.specializations?.some(
     (specialization) => specialization.name === "Soulbeast",
   );
-
-  if (hasTrait("Strider's Strength")) {
-    addAttribute(traitStats, "Power", weapons?.includes("Sword") ? 240 : 120);
-  }
-  if (hasTrait("Honed Axes")) {
-    addAttribute(traitStats, "Ferocity", weapons?.includes("Axe") ? 240 : 120);
-  }
+  const attributeEffects: Gw2AttributeEffect[] = [
+    {
+      kind: "flat",
+      source: "Strider's Strength",
+      to: "Power",
+      amount: weapons?.includes("Sword") ? 240 : 120,
+      feedsConversions: false,
+      enabled: hasTrait("Strider's Strength"),
+    },
+    {
+      kind: "flat",
+      source: "Honed Axes",
+      to: "Ferocity",
+      amount: weapons?.includes("Axe") ? 240 : 120,
+      feedsConversions: false,
+      enabled: hasTrait("Honed Axes"),
+    },
+  ];
   if (soulbeast && hasTrait("Pack Alpha")) {
     for (const attribute of PACK_ALPHA_ATTRIBUTES) {
-      addAttribute(traitStats, attribute, 150);
+      attributeEffects.push({
+        kind: "flat",
+        source: "Pack Alpha",
+        to: attribute,
+        amount: 150,
+        feedsConversions: false,
+      });
     }
   }
-  if (soulbeast && hasTrait("Pet's Prowess")) {
-    addAttribute(traitStats, "Ferocity", 300);
-  }
-  if (hasTrait("Ambidexterity")) {
-    const favored = weapons?.some((weapon) =>
-      ["Dagger", "Mace", "Torch"].includes(weapon),
-    );
-    addAttribute(traitStats, "Condition Damage", favored ? 240 : 120);
-  }
-  if (hasTrait("Arachnophobia")) addAttribute(traitStats, "Expertise", 150);
-  if (hasTrait("Lingering Magic"))
-    addAttribute(traitStats, "Concentration", 240);
-  if (hasTrait("Natural Fortitude")) addAttribute(traitStats, "Vitality", 240);
-  if (hasTrait("Wellspring")) {
-    addAttribute(
-      traitStats,
-      "Healing Power",
-      (conversionPool.Power || 0) * 0.07,
-    );
-  }
-  if (hasTrait("Vicious Quarry") && rangerBuild.assumptions?.fury !== false) {
-    addAttribute(traitStats, "Ferocity", 250);
-  }
-  if (selectedSkills.some((skill) => skill.name === "Signet of the Wild")) {
-    addAttribute(traitStats, "Ferocity", 180);
-  }
+  const favoredWeapon = weapons?.some((weapon) =>
+    ["Dagger", "Mace", "Torch"].includes(weapon),
+  );
+  attributeEffects.push(
+    {
+      kind: "flat",
+      source: "Pet's Prowess",
+      to: "Ferocity",
+      amount: 300,
+      feedsConversions: false,
+      enabled: soulbeast && hasTrait("Pet's Prowess"),
+    },
+    {
+      kind: "flat",
+      source: "Ambidexterity",
+      to: "Condition Damage",
+      amount: favoredWeapon ? 240 : 120,
+      feedsConversions: false,
+      enabled: hasTrait("Ambidexterity"),
+    },
+    {
+      kind: "flat",
+      source: "Arachnophobia",
+      to: "Expertise",
+      amount: 150,
+      feedsConversions: false,
+      enabled: hasTrait("Arachnophobia"),
+    },
+    {
+      kind: "flat",
+      source: "Lingering Magic",
+      to: "Concentration",
+      amount: 240,
+      feedsConversions: false,
+      enabled: hasTrait("Lingering Magic"),
+    },
+    {
+      kind: "flat",
+      source: "Natural Fortitude",
+      to: "Vitality",
+      amount: 240,
+      feedsConversions: false,
+      enabled: hasTrait("Natural Fortitude"),
+    },
+    {
+      kind: "conversion",
+      source: "Wellspring",
+      from: "Power",
+      to: "Healing Power",
+      multiplier: 0.07,
+      rounding: "none",
+      input: "common",
+      enabled: hasTrait("Wellspring"),
+    },
+    {
+      kind: "flat",
+      source: "Vicious Quarry",
+      to: "Ferocity",
+      amount: 250,
+      feedsConversions: false,
+      enabled:
+        hasTrait("Vicious Quarry") && rangerBuild.assumptions?.fury !== false,
+    },
+    {
+      kind: "flat",
+      source: "Signet of the Wild",
+      to: "Ferocity",
+      amount: 180,
+      feedsConversions: false,
+      enabled: selectedSkills.some(
+        (skill) => skill.name === "Signet of the Wild",
+      ),
+    },
+  );
   if (soulbeast) {
     const archetype = selectedRangerPet(rangerBuild)?.archetype || "";
     for (const [attribute, amount] of Object.entries(
       SOULBEAST_ARCHETYPE_ATTRIBUTES[archetype] || {},
     )) {
-      addAttribute(traitStats, attribute, amount);
+      attributeEffects.push({
+        kind: "flat",
+        source: `Soulbeast ${archetype}`,
+        to: attribute,
+        amount,
+        feedsConversions: false,
+      });
     }
   }
+  const traitStats = resolveAttributeEffects(conversionPool, attributeEffects);
 
   return finalizeBuildAttributes(common, {
     activeTraits,

@@ -30,7 +30,7 @@ import { createThiefBuildDefaults } from "../../js/professions/thief/build.js";
 import { calculateAttributes as calculateThiefAttributes } from "../../js/professions/thief/app/app-definition.js";
 import { THIEF_TRAIT_IDS } from "../../js/professions/thief/data/ids.js";
 import { createThiefCoreState } from "../../js/professions/thief/core/state.js";
-import { createTraitConversionPool } from "../../js/platform/gw2/attributes.js";
+import { resolveAttributeEffects } from "../../js/platform/gw2/attributes.js";
 import { createWarriorBuildDefaults } from "../../js/professions/warrior/build.js";
 import { calculateAttributes as calculateWarriorAttributes } from "../../js/professions/warrior/app/app-definition.js";
 
@@ -63,30 +63,76 @@ function traitDelta(
   return withTrait[attribute].final - withoutTrait[attribute].final;
 }
 
-test("trait conversion pools merge explicit stats without mutating either bucket", () => {
+test("attribute effects use explicit immutable conversion input pools", () => {
   const commonStats = { Power: 1000, Vitality: 1000 };
-  const eligibleTraitStats = {
+  const effects = [
+    {
+      kind: "flat",
+      source: "Eligible Power",
+      to: "Power",
+      amount: 120,
+      feedsConversions: true,
+    },
+    {
+      kind: "flat",
+      source: "Final-only Vitality",
+      to: "Vitality",
+      amount: 180,
+      feedsConversions: false,
+    },
+    {
+      kind: "conversion",
+      source: "Eligible Power Conversion",
+      from: "Power",
+      to: "Ferocity",
+      multiplier: 0.1,
+      rounding: "round",
+      input: "eligible",
+    },
+    {
+      kind: "conversion",
+      source: "Common Power Conversion",
+      from: "Power",
+      to: "Expertise",
+      multiplier: 0.1,
+      rounding: "floor",
+      input: "common",
+    },
+    {
+      kind: "conversion",
+      source: "No Chained Conversion",
+      from: "Ferocity",
+      to: "Precision",
+      multiplier: 1,
+      rounding: "none",
+      input: "eligible",
+    },
+    {
+      kind: "conversion",
+      source: "Conversion With Addend",
+      from: "Power",
+      to: "Condition Damage",
+      multiplier: 0.05,
+      addend: 3,
+      rounding: "none",
+      input: "common",
+    },
+  ];
+
+  assert.deepEqual(resolveAttributeEffects(commonStats, effects), {
     Power: 120,
     Vitality: 180,
-    Expertise: 150,
-    "Condition Damage": 120,
-    Concentration: 240,
-  };
-
-  assert.deepEqual(createTraitConversionPool(commonStats, eligibleTraitStats), {
-    Power: 1120,
-    Vitality: 1180,
-    Expertise: 150,
-    "Condition Damage": 120,
-    Concentration: 240,
+    Ferocity: 112,
+    Expertise: 100,
+    "Condition Damage": 53,
   });
   assert.deepEqual(commonStats, { Power: 1000, Vitality: 1000 });
-  assert.deepEqual(eligibleTraitStats, {
-    Power: 120,
-    Vitality: 180,
-    Expertise: 150,
-    "Condition Damage": 120,
-    Concentration: 240,
+  assert.deepEqual(effects[0], {
+    kind: "flat",
+    source: "Eligible Power",
+    to: "Power",
+    amount: 120,
+    feedsConversions: true,
   });
 });
 
