@@ -2467,6 +2467,78 @@ test("Galeshot tracks Cyclone Bow arrows and Wind Force", () => {
   );
 });
 
+test("Quarry's Peril commits at 320 ms and deals damage at 800 ms", () => {
+  const rotation = (interruptAfterMs) => [
+    "Summon Cyclone Bow",
+    {
+      name: "Quarry's Peril",
+      ...(interruptAfterMs == null ? {} : { interruptAfterMs }),
+    },
+    "Fleeting Zephyr",
+    { type: "wait", durationMs: 1000 },
+  ];
+  const config = { boons: { quickness: true } };
+  const beforeCommit = simulate("Galeshot", rotation(319), config);
+  const committed = simulate("Galeshot", rotation(320), config);
+  const fullCast = simulate("Galeshot", rotation(), config);
+  const quarryStep = (result) =>
+    result.steps.find((step) => step.skill === "Quarry's Peril");
+  const quarryDamage = (result) =>
+    result.resolvedEvents.find(
+      (event) => event.type === "damage" && event.skillId === ID.QUARRYS_PERIL,
+    );
+  const quarryAction = (result) =>
+    result.events.find(
+      (event) => event.type === "action" && event.skillId === ID.QUARRYS_PERIL,
+    );
+  const fleetingStep = (result) =>
+    result.steps.find((step) => step.skill === "Fleeting Zephyr");
+
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.QUARRYS_PERIL).paletteInterruptMs,
+    320,
+  );
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.QUARRYS_PERIL).interruptCommitMs,
+    320,
+  );
+  assert.equal(
+    rangerCatalog.skillsById.get(ID.QUARRYS_PERIL)
+      .retainsCastLockoutAfterInterrupt,
+    true,
+  );
+  assert.equal(quarryStep(fullCast).fullCastMs, 680);
+  assert.equal(quarryStep(fullCast).end - quarryStep(fullCast).start, 680);
+  assert.equal(quarryStep(committed).end - quarryStep(committed).start, 320);
+  assert.equal(
+    fleetingStep(committed).start - quarryStep(committed).start,
+    680,
+  );
+  assert.equal(
+    Math.round(
+      (quarryAction(committed).rechargeReadyAt - quarryAction(committed).at) *
+        1000,
+    ),
+    12320,
+  );
+  assert.equal(
+    Math.round(
+      (quarryAction(fullCast).rechargeReadyAt - quarryAction(fullCast).at) *
+        1000,
+    ),
+    12680,
+  );
+  assert.equal(quarryDamage(beforeCommit), undefined);
+  assert.equal(
+    Math.round(quarryDamage(committed).at * 1000) - quarryStep(committed).start,
+    800,
+  );
+  assert.equal(
+    Math.round(quarryDamage(fullCast).at * 1000) - quarryStep(fullCast).start,
+    800,
+  );
+});
+
 test("Cyclone Bow transitions trigger swap sigils and dedicated weapon lines", () => {
   const result = simulate(
     "Galeshot",

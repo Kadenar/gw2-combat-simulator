@@ -297,6 +297,60 @@ test("interrupted casts complete at their effective end", () => {
   ]);
 });
 
+test("interrupted casts can retain their original cast-lane lockout", () => {
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 980010,
+        name: "Retained Aftercast",
+        castTimeMs: 1000,
+        cooldown: 10,
+        retainsCastLockoutAfterInterrupt: true,
+        effects: [],
+      },
+      {
+        id: 980011,
+        name: "Following Cast",
+        castTimeMs: 0,
+        effects: [],
+      },
+    ],
+  });
+  const profession = defineProfession({
+    id: "temporal-retained-aftercast",
+    name: "Temporal Retained Aftercast",
+    catalog,
+  });
+  const scheduled = createScheduler({ profession }).run([
+    { name: "Retained Aftercast", interruptMs: 400 },
+    "Following Cast",
+  ]);
+  const uninterrupted = createScheduler({ profession }).run([
+    "Retained Aftercast",
+  ]);
+  const interruptedAction = scheduled.events.find(
+    (event) =>
+      event.type === "action" && event.skillName === "Retained Aftercast",
+  );
+  const followingAction = scheduled.events.find(
+    (event) => event.type === "action" && event.skillName === "Following Cast",
+  );
+  const uninterruptedAction = uninterrupted.events.find(
+    (event) =>
+      event.type === "action" && event.skillName === "Retained Aftercast",
+  );
+
+  assert.equal(interruptedAction.endsAt, 0.4);
+  assert.equal(interruptedAction.castLockoutEndsAt, 1);
+  assert.equal(interruptedAction.rechargeReadyAt, 10.4);
+  assert.equal(scheduled.state.cooldowns.get(980010), 10.4);
+  assert.equal(scheduled.steps[0].end, 400);
+  assert.equal(followingAction.at, 1);
+  assert.equal(scheduled.steps[1].start, 1000);
+  assert.equal(uninterruptedAction.endsAt, 1);
+  assert.equal(uninterruptedAction.rechargeReadyAt, 11);
+});
+
 test("scheduler policies own chronological tasks and causal derivatives", () => {
   const profession = defineProfession({
     id: "temporal-policy",

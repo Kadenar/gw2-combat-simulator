@@ -101,8 +101,9 @@ export function createGw2ResolverRuntimeState({
       const skillId = source?.skillId ?? null;
       const sourceId = source?.sourceId ?? skillId ?? sourceSkill;
       const identityId = skillId ?? sourceId;
+      const actorIdentity = source?.actorType ?? source?.source ?? "";
       const key = source
-        ? `${String(identityId)}|${parentSkill}|${name}`
+        ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}`
         : name;
       const current: Gw2DamageBreakdownEntry = this.breakdown.get(key) || {
         name,

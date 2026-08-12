@@ -77,6 +77,16 @@ interface PhantasmEffectControllerOptions {
   readonly traitDamage: Readonly<Record<string, MesmerTraitDamage>>;
 }
 
+function phantasmAttackDisplayName(
+  skillId: number,
+  damageGroupName: string,
+): string {
+  if (skillId !== ID.PHANTASMAL_SWORDSMAN) return "";
+  if (damageGroupName === "Phantasm leap") return "Sword Attack";
+  if (damageGroupName === "Phantasm Blurred Frenzy") return "Blurred Frenzy";
+  return "";
+}
+
 export function createPhantasmEffectController({
   traits,
   resourceDefinition,
@@ -98,12 +108,12 @@ export function createPhantasmEffectController({
   ): readonly MesmerPhantasmExecution[] => {
     if (skill.resource?.mode !== "phantasm") return [];
     const bountifulBerserker =
-      skill.id === ID.PHANTASMAL_BERSERKER
-      && traits.has(TRAIT.BOUNTIFUL_BLADES);
+      skill.id === ID.PHANTASMAL_BERSERKER &&
+      traits.has(TRAIT.BOUNTIFUL_BLADES);
     const count =
-      Number(skill.resource.count || 1)
-      * (skill.id === ID.PHANTASMAL_LANCER && clarityConsumed ? 2 : 1)
-      * (bountifulBerserker ? 2 : 1);
+      Number(skill.resource.count || 1) *
+      (skill.id === ID.PHANTASMAL_LANCER && clarityConsumed ? 2 : 1) *
+      (bountifulBerserker ? 2 : 1);
     const timing = phantasmAttackTimings[skill.id];
     if (!timing) {
       throw new TypeError(
@@ -123,12 +133,13 @@ export function createPhantasmEffectController({
       );
       const spawnAt = endpoint(timing.spawnAtMs);
       const repeatDamageAt = endpoint(
-        timing.chronophantasmaDamageAtMsByEntity?.[entityIndex]
-          ?? timing.chronophantasmaDamageAtMs,
+        timing.chronophantasmaDamageAtMsByEntity?.[entityIndex] ??
+          timing.chronophantasmaDamageAtMs,
       );
-      const virtuosoBladeTick = timing.virtuosoBladeTicks?.[
-        Math.min(entityIndex, timing.virtuosoBladeTicks.length - 1)
-      ];
+      const virtuosoBladeTick =
+        timing.virtuosoBladeTicks?.[
+          Math.min(entityIndex, timing.virtuosoBladeTicks.length - 1)
+        ];
       return {
         skill,
         entityIndex,
@@ -142,14 +153,13 @@ export function createPhantasmEffectController({
           : spawnAt,
         initialBladeAt:
           timing.phantasmalBladeDelayAfterSpawnMs != null
-            ? spawnAt
-              + Number(timing.phantasmalBladeDelayAfterSpawnMs) / 1000
+            ? spawnAt + Number(timing.phantasmalBladeDelayAfterSpawnMs) / 1000
             : damageAt,
         hasChronophantasma,
         virtuosoBladeAt:
-          resourceDefinition.singular === "blade"
-          && !hasChronophantasma
-          && virtuosoBladeTick
+          resourceDefinition.singular === "blade" &&
+          !hasChronophantasma &&
+          virtuosoBladeTick
             ? endpoint(virtuosoBladeTick.atMs)
             : null,
         timing,
@@ -249,10 +259,7 @@ export function createPhantasmEffectController({
     });
     if (traits.has(TRAIT.PHANTASMAL_BLADES)) {
       for (const item of executions) {
-        addPhantasmalBlade(
-          item,
-          item.repeatDamageAt,
-        );
+        addPhantasmalBlade(item, item.repeatDamageAt);
       }
       addTraitProc(
         "Phantasmal Blades",
@@ -277,13 +284,11 @@ export function createPhantasmEffectController({
     const baseTicks = Array.isArray(sourcedGroup.ticks)
       ? sourcedGroup.ticks
       : null;
-    const baseHits = baseTicks?.length
-      || Math.max(1, Math.trunc(Number(sourcedGroup.hits || 1)));
+    const baseHits =
+      baseTicks?.length ||
+      Math.max(1, Math.trunc(Number(sourcedGroup.hits || 1)));
     const baseCoefficient = baseTicks
-      ? baseTicks.reduce(
-          (total, tick) => total + Number(tick.coefficient),
-          0,
-        )
+      ? baseTicks.reduce((total, tick) => total + Number(tick.coefficient), 0)
       : Number(sourcedGroup.coefficient || 0);
     const damageGroup: MesmerDamageGroup = {
       ...sourcedGroup,
@@ -292,11 +297,21 @@ export function createPhantasmEffectController({
       hits: baseHits,
     };
     const groupName = group.name || "";
+    const attackDisplayName = phantasmAttackDisplayName(
+      execution.skill.id,
+      groupName,
+    );
+    const initialEventExtra = attackDisplayName
+      ? {
+          name: attackDisplayName,
+          parentSkillName: execution.skill.name,
+        }
+      : undefined;
     const measuredTicks =
       execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[
         groupName
-      ]
-      ?? (Array.isArray(execution.timing.damageTicks?.[groupName])
+      ] ??
+      (Array.isArray(execution.timing.damageTicks?.[groupName])
         ? execution.timing.damageTicks[groupName]
         : null);
     const fixedTicks = group.ticks?.length ? group.ticks : null;
@@ -304,13 +319,12 @@ export function createPhantasmEffectController({
     const interval = Number(group.intervalMs || 0);
     let initialEvents: ReturnType<MesmerAddDamage>;
     if (packets?.length) {
-      const hits = Math.max(
-        1,
-        Math.trunc(Number(damageGroup.hits || 1)),
-      );
+      const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || 1)));
       const timingAnchorAt = measuredTicks?.length
         ? castStart
-        : group.timingAnchor === "castStart" ? castStart : at;
+        : group.timingAnchor === "castStart"
+          ? castStart
+          : at;
       const ticks = Array.from({ length: hits }, (_, index) => {
         const packet = packets[index % packets.length];
         const packetAt = measuredTicks?.length
@@ -323,31 +337,43 @@ export function createPhantasmEffectController({
             : Number(packet.coefficient) * execution.damageMultiplier,
         };
       });
-      initialEvents = addDamage(execution.skill, timingAnchorAt, {
-        ...damageGroup,
-        coefficient: undefined,
-        hits: undefined,
-        atMs: undefined,
-        intervalMs: undefined,
-        ticks,
-        timingAnchor: "castStart",
-        timingScale: "fixed",
-      });
+      initialEvents = addDamage(
+        execution.skill,
+        timingAnchorAt,
+        {
+          ...damageGroup,
+          coefficient: undefined,
+          hits: undefined,
+          atMs: undefined,
+          intervalMs: undefined,
+          ticks,
+          timingAnchor: "castStart",
+          timingScale: "fixed",
+        },
+        initialEventExtra,
+      );
     } else if (interval > 0 && Number(damageGroup.hits || 1) > 1) {
-      const timingAnchorAt = group.timingAnchor === "castStart" ? castStart : at;
+      const timingAnchorAt =
+        group.timingAnchor === "castStart" ? castStart : at;
       initialEvents = addDamage(
         execution.skill,
         timingAnchorAt,
         damageGroup,
+        initialEventExtra,
       );
     } else {
-      initialEvents = addDamage(execution.skill, execution.damageAt, {
-        ...damageGroup,
-        atMs: undefined,
-        intervalMs: undefined,
-        timingAnchor: undefined,
-        timingScale: undefined,
-      });
+      initialEvents = addDamage(
+        execution.skill,
+        execution.damageAt,
+        {
+          ...damageGroup,
+          atMs: undefined,
+          intervalMs: undefined,
+          timingAnchor: undefined,
+          timingScale: undefined,
+        },
+        initialEventExtra,
+      );
     }
     const initialHitTimes = initialEvents.map((event) => event.at);
     let repeatHitTimes: readonly number[] = [];
@@ -355,33 +381,40 @@ export function createPhantasmEffectController({
       const repeatMeasuredTicks =
         execution.timing.chronophantasmaDamageTicksByEntity?.[
           execution.entityIndex
-        ]?.[groupName]
-        ?? execution.timing.chronophantasmaDamageTicks?.[groupName]
-        ?? null;
+        ]?.[groupName] ??
+        execution.timing.chronophantasmaDamageTicks?.[groupName] ??
+        null;
       if (repeatMeasuredTicks?.length) {
-        const hits = Math.max(
-          1,
-          Math.trunc(Number(damageGroup.hits || 1)),
-        );
-        repeatHitTimes = addDamage(execution.skill, castStart, {
-          ...damageGroup,
-          coefficient: undefined,
-          hits: undefined,
-          atMs: undefined,
-          intervalMs: undefined,
-          ticks: Array.from({ length: hits }, (_, index) => ({
-            atMs:
-              (execution.endpoint(
-                repeatMeasuredTicks[index % repeatMeasuredTicks.length].atMs,
-              ) - castStart) * 1000,
-            coefficient: Number(damageGroup.coefficient || 0) / hits,
-          })),
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-        }, {
-          name: `${execution.skill.name} - Chronophantasma`,
-          multiplier: 1.05,
-        }).map((event) => event.at);
+        const hits = Math.max(1, Math.trunc(Number(damageGroup.hits || 1)));
+        repeatHitTimes = addDamage(
+          execution.skill,
+          castStart,
+          {
+            ...damageGroup,
+            coefficient: undefined,
+            hits: undefined,
+            atMs: undefined,
+            intervalMs: undefined,
+            ticks: Array.from({ length: hits }, (_, index) => ({
+              atMs:
+                (execution.endpoint(
+                  repeatMeasuredTicks[index % repeatMeasuredTicks.length].atMs,
+                ) -
+                  castStart) *
+                1000,
+              coefficient: Number(damageGroup.coefficient || 0) / hits,
+            })),
+            timingAnchor: "castStart",
+            timingScale: "fixed",
+          },
+          {
+            name: `${attackDisplayName || execution.skill.name} - Chronophantasma`,
+            ...(attackDisplayName
+              ? { parentSkillName: execution.skill.name }
+              : {}),
+            multiplier: 1.05,
+          },
+        ).map((event) => event.at);
       } else {
         const repeatOffset = execution.repeatDamageAt - execution.damageAt;
         const shiftedHitTimes = initialHitTimes.map(
@@ -389,22 +422,30 @@ export function createPhantasmEffectController({
         );
         if (shiftedHitTimes.length > 0) {
           const repeatOrigin = Math.min(...shiftedHitTimes);
-          repeatHitTimes = addDamage(execution.skill, repeatOrigin, {
-            ...damageGroup,
-            coefficient: undefined,
-            hits: undefined,
-            atMs: undefined,
-            intervalMs: undefined,
-            ticks: initialEvents.map((event, index) => ({
-              atMs: (shiftedHitTimes[index] - repeatOrigin) * 1000,
-              coefficient: Number(event.coefficient || 0),
-            })),
-            timingAnchor: "castStart",
-            timingScale: "fixed",
-          }, {
-            name: `${execution.skill.name} - Chronophantasma`,
-            multiplier: 1.05,
-          }).map((event) => event.at);
+          repeatHitTimes = addDamage(
+            execution.skill,
+            repeatOrigin,
+            {
+              ...damageGroup,
+              coefficient: undefined,
+              hits: undefined,
+              atMs: undefined,
+              intervalMs: undefined,
+              ticks: initialEvents.map((event, index) => ({
+                atMs: (shiftedHitTimes[index] - repeatOrigin) * 1000,
+                coefficient: Number(event.coefficient || 0),
+              })),
+              timingAnchor: "castStart",
+              timingScale: "fixed",
+            },
+            {
+              name: `${attackDisplayName || execution.skill.name} - Chronophantasma`,
+              ...(attackDisplayName
+                ? { parentSkillName: execution.skill.name }
+                : {}),
+              multiplier: 1.05,
+            },
+          ).map((event) => event.at);
         }
       }
     }
@@ -429,31 +470,38 @@ export function createPhantasmEffectController({
     for (const effect of entityConditions) {
       const condition = { ...effect, name: effect.condition };
       const conditionTicks = condition.packetLabel
-        ? execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[
+        ? (execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[
             condition.packetLabel
-          ]
-          ?? execution.timing.damageTicks?.[condition.packetLabel]
-          ?? null
+          ] ??
+          execution.timing.damageTicks?.[condition.packetLabel] ??
+          null)
         : null;
       if (conditionTicks && conditionTicks.length > 0) {
         const packetStacks =
           Number(condition.stacks || 1) / conditionTicks.length;
         const applicationTimes = conditionTicks.map((tick) =>
-          execution.endpoint(tick.atMs)
+          execution.endpoint(tick.atMs),
         );
         const conditionOrigin = Math.min(...applicationTimes);
-        addCondition(execution.skill.name, conditionOrigin, {
-          ...condition,
-          stacks: undefined,
-          ticks: applicationTimes.map((applicationAt) => ({
-            atMs: (applicationAt - conditionOrigin) * 1000,
-            condition: condition.name,
-            duration: condition.duration,
-            stacks: packetStacks,
-          })),
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-        }, "Phantasm", "", conditionEventExtra);
+        addCondition(
+          execution.skill.name,
+          conditionOrigin,
+          {
+            ...condition,
+            stacks: undefined,
+            ticks: applicationTimes.map((applicationAt) => ({
+              atMs: (applicationAt - conditionOrigin) * 1000,
+              condition: condition.name,
+              duration: condition.duration,
+              stacks: packetStacks,
+            })),
+            timingAnchor: "castStart",
+            timingScale: "fixed",
+          },
+          "Phantasm",
+          "",
+          conditionEventExtra,
+        );
       } else {
         addCondition(
           execution.skill.name,
@@ -469,24 +517,22 @@ export function createPhantasmEffectController({
     const repeatOffset = execution.repeatDamageAt - execution.damageAt;
     for (const effect of entityConditions) {
       const condition = { ...effect, name: effect.condition };
-      const initialConditionTicks =
-        condition.packetLabel
-          ? execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[
-              condition.packetLabel
-            ]
-            ?? execution.timing.damageTicks?.[condition.packetLabel]
-            ?? null
-          : null;
-      const repeatConditionTicks =
-        condition.packetLabel
-          ? execution.timing.chronophantasmaDamageTicksByEntity?.[
-              execution.entityIndex
-            ]?.[condition.packetLabel]
-            ?? execution.timing.chronophantasmaDamageTicks?.[
-              condition.packetLabel
-            ]
-            ?? null
-          : null;
+      const initialConditionTicks = condition.packetLabel
+        ? (execution.timing.damageTicksByEntity?.[execution.entityIndex]?.[
+            condition.packetLabel
+          ] ??
+          execution.timing.damageTicks?.[condition.packetLabel] ??
+          null)
+        : null;
+      const repeatConditionTicks = condition.packetLabel
+        ? (execution.timing.chronophantasmaDamageTicksByEntity?.[
+            execution.entityIndex
+          ]?.[condition.packetLabel] ??
+          execution.timing.chronophantasmaDamageTicks?.[
+            condition.packetLabel
+          ] ??
+          null)
+        : null;
       const conditionTicks = repeatConditionTicks ?? initialConditionTicks;
       if (conditionTicks && conditionTicks.length > 0) {
         const packetStacks =
@@ -494,22 +540,28 @@ export function createPhantasmEffectController({
         const applicationTimes = conditionTicks.map((tick) =>
           repeatConditionTicks
             ? execution.endpoint(tick.atMs)
-            : execution.endpoint(tick.atMs) + repeatOffset
+            : execution.endpoint(tick.atMs) + repeatOffset,
         );
         const conditionOrigin = Math.min(...applicationTimes);
-        addCondition(execution.skill.name, conditionOrigin, {
-          ...condition,
-          stacks: undefined,
-          ticks: applicationTimes.map((applicationAt) => ({
-            atMs: (applicationAt - conditionOrigin) * 1000,
-            condition: condition.name,
-            duration: condition.duration,
-            stacks: packetStacks,
-          })),
-          timingAnchor: "castStart",
-          timingScale: "fixed",
-        }, "Phantasm", `${execution.skill.name} - Chronophantasma`,
-        conditionEventExtra);
+        addCondition(
+          execution.skill.name,
+          conditionOrigin,
+          {
+            ...condition,
+            stacks: undefined,
+            ticks: applicationTimes.map((applicationAt) => ({
+              atMs: (applicationAt - conditionOrigin) * 1000,
+              condition: condition.name,
+              duration: condition.duration,
+              stacks: packetStacks,
+            })),
+            timingAnchor: "castStart",
+            timingScale: "fixed",
+          },
+          "Phantasm",
+          `${execution.skill.name} - Chronophantasma`,
+          conditionEventExtra,
+        );
       } else {
         addCondition(
           execution.skill.name,

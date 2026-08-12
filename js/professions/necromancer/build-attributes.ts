@@ -47,16 +47,13 @@ export function applyNecromancerBuildAttributeRules(
     addAttribute(traitConversionStats, "Precision", 180);
   }
   if (hasTrait("Lingering Curse")) {
-    addAttribute(traitConversionStats, "Condition Damage", 200);
+    addAttribute(traitStats, "Condition Damage", 200);
   }
   if (hasTrait("Vital Persistence")) {
     addAttribute(traitConversionStats, "Vitality", 180);
   }
   if (hasTrait("Alchemic Vigor")) {
     addAttribute(traitConversionStats, "Vitality", 240);
-  }
-  if (hasTrait("Boon of Creation")) {
-    addAttribute(traitConversionStats, "Concentration", 180);
   }
   addAttributes(traitStats, traitConversionStats);
   const conversionPool = createTraitConversionPool(
@@ -73,6 +70,9 @@ export function applyNecromancerBuildAttributeRules(
   }
   if (hasTrait("Dark Gunslinger")) {
     addAttribute(traitStats, "Expertise", Math.round(vitality * 0.1));
+  }
+  if (hasTrait("Boon of Creation")) {
+    addAttribute(traitStats, "Concentration", 180);
   }
   if (hasTrait("Target the Weak")) {
     addAttribute(traitStats, "Condition Damage", Math.floor(precision * 0.13));

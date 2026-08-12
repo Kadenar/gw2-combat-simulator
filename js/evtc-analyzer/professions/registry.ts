@@ -17,6 +17,13 @@ const baseAnalyzers = new Map<string, AnalyzerLoader>([
       return module.engineerEvtcAnalyzer;
     },
   ],
+  [
+    "ranger",
+    async () => {
+      const module = await import("./ranger.js");
+      return module.rangerEvtcAnalyzer;
+    },
+  ],
 ]);
 
 const specializationAnalyzers = new Map<string, readonly AnalyzerLoader[]>();

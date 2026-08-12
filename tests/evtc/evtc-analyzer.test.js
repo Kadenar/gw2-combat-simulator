@@ -554,6 +554,107 @@ test("Engineer bounds a Bleeding that fits both Shrapnel and Serrated Steel", as
   }
 });
 
+const RANGER_PET_ADDRESS = 0x4000n;
+
+function rangerAnalysisFor(events) {
+  return analysisFor(events, {
+    agents: [
+      playerAgent({ profession: 4, elite: 0, character: "Fixture Ranger" }),
+      golemAgent(),
+    ],
+  });
+}
+
+function petEvent(overrides = {}) {
+  return combatEvent({
+    source: RANGER_PET_ADDRESS,
+    sourceInstance: 5,
+    sourceMasterInstance: 1,
+    ...overrides,
+  });
+}
+
+test("Ranger Sharpened Edges reports the ranger and pet critical split", async () => {
+  const result = await rangerAnalysisFor([
+    combatEvent({ time: 1_000, result: 1 }),
+    petEvent({ time: 1_500, result: 1 }),
+    combatEvent({ time: 2_000 }),
+  ]);
+  assert.equal(result.player.professionId, "ranger");
+  const section = result.profession[0].sections[0];
+  assert.equal(section.title, "Sharpened Edges");
+  const values = sectionFields(section);
+  assert.equal(values["Your critical hits"], 1);
+  assert.equal(values["Pet critical hits"], 1);
+  assert.equal(values["Eligible critical hits"], 2);
+});
+
+test("Ranger Sharpened Edges classifies isolated ranger and pet critical Bleeding", async () => {
+  const result = await rangerAnalysisFor([
+    combatEvent({ time: 1_000, result: 1 }),
+    combatEvent({
+      time: 1_000,
+      value: 3_000,
+      skillId: 736,
+      buff: 1,
+      stateChange: 69,
+    }),
+    petEvent({ time: 1_500, result: 1 }),
+    petEvent({
+      time: 1_500,
+      value: 3_000,
+      skillId: 736,
+      buff: 1,
+      stateChange: 69,
+    }),
+    combatEvent({ time: 2_000 }),
+  ]);
+  const section = result.profession[0].sections[0];
+  assert.equal(section.status, "exact");
+  const values = sectionFields(section);
+  assert.equal(values["Your critical hits"], 1);
+  assert.equal(values["Pet critical hits"], 1);
+  assert.equal(values["Observed candidate procs"], 2);
+  assert.equal(values["Minimum possible procs"], 2);
+  assert.equal(values["Maximum possible procs"], 2);
+});
+
+test("Ranger Sharpened Edges will not attribute a pet Bleeding to a ranger critical", async () => {
+  const result = await rangerAnalysisFor([
+    combatEvent({ time: 1_000, result: 1 }),
+    petEvent({
+      time: 1_000,
+      value: 3_000,
+      skillId: 736,
+      buff: 1,
+      stateChange: 69,
+    }),
+    combatEvent({ time: 2_000 }),
+  ]);
+  const values = sectionFields(result.profession[0].sections[0]);
+  // The pet never critically hit, so its Bleeding cannot be its own proc.
+  assert.equal(values["Pet critical hits"], 0);
+  assert.equal(values["Observed candidate procs"], 0);
+});
+
+test("Ranger Sharpened Edges excludes Bleeding from a known direct pet skill", async () => {
+  const result = await rangerAnalysisFor([
+    petEvent({ time: 1_000, result: 1 }),
+    petEvent({ time: 1_000, skillId: 12676, result: 0 }),
+    petEvent({
+      time: 1_000,
+      value: 3_000,
+      skillId: 736,
+      buff: 1,
+      stateChange: 69,
+    }),
+    combatEvent({ time: 2_000 }),
+  ]);
+  const section = result.profession[0].sections[0];
+  assert.equal(sectionFields(section)["Observed candidate procs"], 0);
+  assert.match(section.evidence.join(" "), /excluded by known direct/);
+});
+
 test("worker request and terminal analysis results are structured-clone serializable", async () => {
   const source = buildEvtc();
   const buffer = source.buffer.slice(

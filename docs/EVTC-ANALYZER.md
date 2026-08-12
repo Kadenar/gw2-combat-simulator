@@ -91,7 +91,8 @@ the UI asks the user to choose rather than guessing.
 
 ## Profession analysis and attribution
 
-Necromancer is the first profession analyzer. Its Barbed Precision section uses
+Necromancer, Engineer, and Ranger currently ship profession analyzers.
+Necromancer's Barbed Precision section uses
 the simulator's trait ID, chance, duration, and direct-skill mechanics. It
 correlates player critical strikes and Bleeding applications by source, target,
 time, duration, known direct applications, and condition-transfer collisions.
@@ -114,6 +115,23 @@ that derived signature, or beyond Barbed Precision's 100% condition-duration
 cap, are excluded. Ambiguous upper bounds use one-to-one matching between
 applications and eligible critical hits, so the reported proc rate cannot
 exceed 100%.
+
+Engineer adds two Bleeding-proc sections. **Shrapnel** is a 33% chance on an
+**explosion hit** (not restricted to critical hits) for a 6s Bleed; only skills
+flagged as explosions in the simulator's skill mechanics are eligible triggers.
+**Serrated Steel** is a 33% chance on a **critical hit** for a 3s Bleed, plus
+its own +33% Bleeding duration. Because both traits emit the shared Bleeding
+buff, they are separated by trigger type and by their 2:1 duration signature: a
+Bleed whose duration also fits the other proc's band while that proc's trigger
+is present is bounded as **ambiguous** for both rather than counted twice.
+
+Ranger adds **Sharpened Edges**, a 33% chance on a **critical hit** for a 3s
+Bleed that fires independently for the ranger and the pet. The section reports
+the ranger's and pet's critical-hit counts separately and correlates each
+scope's Bleeding only against that scope's own critical strikes, using EVTC
+master-instance ownership to attribute pet strikes (pet swaps aggregate under
+the ranger). Pet direct-skill Bleeding is identified from core skill mechanics
+and pet skill descriptions; anything indistinguishable from the proc is bounded.
 
 ## Adding a profession RNG analyzer
 

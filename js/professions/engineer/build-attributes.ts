@@ -34,10 +34,12 @@ export function applyEngineerBuildAttributeRules(
     addAttribute(traitConversionStats, "Expertise", 150);
   }
   if (hasTrait("Compounding Chemicals")) {
-    addAttribute(traitConversionStats, "Concentration", 240);
+    // This is a flat bonus, but it does not feed attribute conversions.
+    addAttribute(traitStats, "Concentration", 240);
   }
   if (hasTrait("Hybrid Vigor")) {
-    addAttribute(traitConversionStats, "Vitality", 240);
+    // Keep this outside conversions until its in-game behavior is confirmed.
+    addAttribute(traitStats, "Vitality", 240);
   }
 
   addAttributes(traitStats, traitConversionStats);
