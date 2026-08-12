@@ -1500,6 +1500,7 @@ test("phantasms and Chronophantasma repeats use per-entity EVTC packet cadences"
   const cases = [
     {
       skill: "Phantasmal Swordsman",
+      attackNames: ["Sword Attack", "Blurred Frenzy"],
       primaryWeapon: "Sword",
       secondaryWeapon: "Sword",
       initial: [845, 1321, 1362, 1645, 1679, 1920, 1962, 2246, 2279],
@@ -1545,13 +1546,19 @@ test("phantasms and Chronophantasma repeats use per-entity EVTC packet cadences"
       (event) =>
         event.type === "damage" &&
         event.source === "Phantasm" &&
-        event.name === testCase.skill,
+        (testCase.attackNames
+          ? testCase.attackNames.includes(event.name)
+          : event.name === testCase.skill),
     );
     const repeatEvents = result.events.filter(
       (event) =>
         event.type === "damage" &&
         event.source === "Phantasm" &&
-        event.name === `${testCase.skill} - Chronophantasma`,
+        (testCase.attackNames
+          ? testCase.attackNames.some(
+              (name) => event.name === `${name} - Chronophantasma`,
+            )
+          : event.name === `${testCase.skill} - Chronophantasma`),
     );
     const offsets = (events) =>
       events
@@ -2861,6 +2868,137 @@ test("Relic of the Claw buffs strikes after a control skill for eight seconds", 
         proc.sourceSkill === "Bladesong Dissonance" &&
         proc.detail === "activated",
     ),
+  );
+});
+
+test("player control skills retain ownership and trigger Relic of the Claw", () => {
+  const cases = [
+    {
+      skillName: "Time Sink",
+      skillId: ID.TIME_SINK,
+      rotation: ["Time Sink"],
+      config: {
+        specialization: "Chronomancer",
+        initialResource: 3,
+      },
+    },
+    {
+      skillName: "Illusionary Wave",
+      skillId: ID.ILLUSIONARY_WAVE,
+      rotation: ["Illusionary Wave"],
+      config: {
+        specialization: "Core",
+        primaryWeapon: "Greatsword",
+        secondaryWeapon: "",
+      },
+    },
+    {
+      skillName: "Counter Blade",
+      skillId: ID.COUNTER_BLADE,
+      rotation: ["Illusionary Riposte", "Counter Blade"],
+      config: {
+        specialization: "Core",
+        primaryWeapon: "Sword",
+        secondaryWeapon: "Sword",
+      },
+    },
+  ];
+
+  for (const testCase of cases) {
+    const result = simulateMesmer(
+      testCase.rotation,
+      defaultSimulationConfig({
+        ...testCase.config,
+        relic: "Claw",
+        initialResource: testCase.config.initialResource ?? 0,
+      }),
+    );
+    const control = result.events.find(
+      (event) => event.type === "control" && event.skillId === testCase.skillId,
+    );
+
+    assert.deepEqual(
+      {
+        source: control?.source,
+        sourceId: control?.sourceId,
+        actorType: control?.actorType,
+      },
+      {
+        source: "Player",
+        sourceId: testCase.skillId,
+        actorType: "player",
+      },
+      testCase.skillName,
+    );
+    assert.equal(
+      result.procSteps.some(
+        (proc) =>
+          proc.skill === "Relic of the Claw" &&
+          proc.sourceSkill === testCase.skillName,
+      ),
+      true,
+      testCase.skillName,
+    );
+  }
+});
+
+test("Relic of the Claw buffs phantasms without merging their damage into the player row", () => {
+  const rotation = [
+    "Signet of Domination",
+    "Phantasmal Swordsman",
+    { name: "__wait", waitMs: 6000 },
+  ];
+  const config = defaultSimulationConfig({
+    specialization: "Chronomancer",
+    selectedTraits: ["Chronophantasma"],
+    primaryWeapon: "Sword",
+    secondaryWeapon: "Sword",
+    initialResource: 0,
+    relic: "",
+    modifiers: { strike: 1, condition: 1 },
+  });
+  const base = simulateMesmer(rotation, config);
+  const equipped = simulateMesmer(rotation, { ...config, relic: "Claw" });
+  const strikeDamage = (result, actorType) =>
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "damage" &&
+          event.skillName === "Phantasmal Swordsman" &&
+          event.actorType === actorType,
+      )
+      .reduce((sum, event) => sum + event.damage, 0);
+
+  for (const actorType of ["player", "phantasm"]) {
+    assert.ok(
+      Math.abs(
+        strikeDamage(equipped, actorType) / strikeDamage(base, actorType) -
+          1.07,
+      ) < 1e-12,
+      actorType,
+    );
+  }
+
+  const rows = skillBreakdownRows(equipped);
+  const playerRow = rows.find(
+    (row) => row.name === "Phantasmal Swordsman" && row.group === "Player",
+  );
+  const entityRows = rows.filter(
+    (row) => row.parentSkill === "Phantasmal Swordsman",
+  );
+
+  assert.deepEqual(entityRows.map((row) => row.name).sort(), [
+    "Blurred Frenzy",
+    "Sword Attack",
+  ]);
+  assert.ok(
+    Math.abs(playerRow.strike - strikeDamage(equipped, "player")) < 1e-9,
+  );
+  assert.ok(
+    Math.abs(
+      entityRows.reduce((sum, row) => sum + row.strike, 0) -
+        strikeDamage(equipped, "phantasm"),
+    ) < 1e-9,
   );
 });
 

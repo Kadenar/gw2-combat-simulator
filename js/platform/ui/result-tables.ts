@@ -1,7 +1,4 @@
-import type {
-  SimulationActorType,
-  SkillId,
-} from "../engine/types.js";
+import type { SimulationActorType, SkillId } from "../engine/types.js";
 import { gw2EventActorType } from "../gw2/event-ownership.js";
 import type {
   Gw2DamageBreakdownEntry,
@@ -74,14 +71,25 @@ function breakdownActorType(
 const breakdownGroup = (
   actorType: SimulationActorType,
 ): "Player" | "Entities" =>
-  actorType === "summon" || actorType === "phantasm"
-    ? "Entities"
-    : "Player";
+  actorType === "summon" || actorType === "phantasm" ? "Entities" : "Player";
 
-const eventIdentity = (
-  id: SkillId | null | undefined,
-  name: string,
-): string => id == null ? "" : `${String(id)}|${name}`;
+const CHRONOPHANTASMA_SUFFIX = " - Chronophantasma";
+
+function breakdownDisplayName(
+  entry: Gw2DamageBreakdownEntry,
+  sourceSkill: string,
+  parentSkill: string,
+  group: "Player" | "Entities",
+): string {
+  if (group !== "Entities" || !parentSkill) return sourceSkill;
+  const name = String(entry.name || sourceSkill);
+  return name.endsWith(CHRONOPHANTASMA_SUFFIX)
+    ? name.slice(0, -CHRONOPHANTASMA_SUFFIX.length)
+    : name;
+}
+
+const eventIdentity = (id: SkillId | null | undefined, name: string): string =>
+  id == null ? "" : `${String(id)}|${name}`;
 
 export function skillBreakdownRows(
   result: Gw2ResolverResult,
@@ -128,9 +136,10 @@ export function skillBreakdownRows(
     const sourceId = entry.sourceId ?? sourceEvent?.sourceId ?? null;
     const actorType = breakdownActorType(entry, sourceEvent);
     const group = breakdownGroup(actorType);
-    const groupKey = `${group}|${sourceSkill}`;
+    const name = breakdownDisplayName(entry, sourceSkill, parentSkill, group);
+    const groupKey = `${group}|${name}`;
     const current = grouped.get(groupKey) || {
-      name: sourceSkill,
+      name,
       sourceSkill,
       parentSkill,
       icon,

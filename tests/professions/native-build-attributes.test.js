@@ -31,6 +31,8 @@ import { calculateAttributes as calculateThiefAttributes } from "../../js/profes
 import { THIEF_TRAIT_IDS } from "../../js/professions/thief/data/ids.js";
 import { createThiefCoreState } from "../../js/professions/thief/core/state.js";
 import { createTraitConversionPool } from "../../js/platform/gw2/attributes.js";
+import { createWarriorBuildDefaults } from "../../js/professions/warrior/build.js";
+import { calculateAttributes as calculateWarriorAttributes } from "../../js/professions/warrior/app/app-definition.js";
 
 const engineerCoreRules = engineerProfession.resolveRuntime({});
 const guardianCoreRules = guardianProfession.resolveRuntime({});
@@ -292,6 +294,45 @@ test("Engineer omits conditional and obsolete attribute effects", () => {
   );
 });
 
+test("only Forceful Greatsword's base Power feeds conversions", () => {
+  const build = createWarriorBuildDefaults();
+  build.food = "";
+  build.utility = "";
+  build.specializations = [
+    { name: "Strength", traits: "1-2-1" },
+    { name: "Tactics", traits: "1-1-2" },
+  ];
+
+  for (const { weapons, alternateWeapons, power } of [
+    {
+      weapons: ["Axe", "Axe"],
+      alternateWeapons: ["Sword", "Sword"],
+      power: 120,
+    },
+    {
+      weapons: ["Greatsword", ""],
+      alternateWeapons: ["Sword", "Sword"],
+      power: 240,
+    },
+  ]) {
+    build.weapons = weapons;
+    build.alternateWeapons = alternateWeapons;
+    const all = calculateWarriorAttributes(build).attributes;
+    const withoutForceful = calculateWarriorAttributes(
+      build,
+      [],
+      1,
+      "Forceful Greatsword",
+    ).attributes;
+
+    assert.equal(all.Power.final - withoutForceful.Power.final, power);
+    assert.equal(
+      all["Healing Power"].final - withoutForceful["Healing Power"].final,
+      12,
+    );
+  }
+});
+
 test("Guardian includes Force of Will before Power of the Virtuous", () => {
   const build = createGuardianBuildDefaults();
   build.specializations = [
@@ -469,7 +510,7 @@ test("Dark Gunslinger rounds its Expertise conversion for game parity", () => {
   );
 });
 
-test("Lingering Curse feeds Fell Beacon and Boon of Creation remains flat", () => {
+test("Lingering Curse and Boon of Creation do not feed conversions", () => {
   const scourge = createNecromancerBuildDefaults();
   scourge.specializations = [
     { name: "Curses", traits: "1-1-3" },
@@ -488,11 +529,7 @@ test("Lingering Curse feeds Fell Beacon and Boon of Creation remains flat", () =
       withoutLingeringCurse["Condition Damage"].final,
     200,
   );
-  assert.ok(
-    Math.abs(
-      all.Expertise.final - withoutLingeringCurse.Expertise.final - 200 * 0.07,
-    ) < 1e-9,
-  );
+  assert.equal(all.Expertise.final, withoutLingeringCurse.Expertise.final);
 
   const ritualist = createNecromancerBuildDefaults();
   ritualist.specializations = [{ name: "Ritualist", traits: "1-1-1" }];

@@ -314,6 +314,7 @@ export interface MesmerConditionApplication extends SchedulerRecord {
 
 export interface MesmerEventExtra extends SchedulerRecord {
   readonly name?: string;
+  readonly parentSkillName?: string;
   readonly source?: string;
   readonly sourceId?: SkillId;
   readonly skillId?: SkillId | null;
@@ -581,11 +582,7 @@ export interface MesmerMirageController {
     delay?: number,
   ): void;
   executeCloneAmbushes(at: number, clones?: readonly MesmerClone[]): void;
-  executePlayerAmbush(
-    skill: MesmerSkill,
-    at: number,
-    castStart?: number,
-  ): void;
+  executePlayerAmbush(skill: MesmerSkill, at: number, castStart?: number): void;
   grantMirageCloak(
     at: number,
     source: string,
@@ -663,8 +660,7 @@ export type MesmerRefreshAmmo = (
 ) => AmmoState | null;
 
 export type MesmerState =
-  | SchedulerState<MesmerRuntimeState>
-  | Pick<MesmerProfessionState, "clones">;
+  SchedulerState<MesmerRuntimeState> | Pick<MesmerProfessionState, "clones">;
 
 export interface MesmerProjectedFlip {
   readonly availableAt: number;
@@ -771,8 +767,7 @@ export interface MesmerSequencedCloneAttack extends MesmerCloneAttackBase {
 }
 
 export type MesmerCloneAttack =
-  | MesmerDirectCloneAttack
-  | MesmerSequencedCloneAttack;
+  MesmerDirectCloneAttack | MesmerSequencedCloneAttack;
 
 export interface MesmerAmbushStrike {
   readonly coefficient: number;

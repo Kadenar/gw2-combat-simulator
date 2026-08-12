@@ -1002,6 +1002,15 @@ export function createScheduler<
       interruptAfterMs == null
         ? fullEnd
         : Math.min(fullEnd, start + Number(interruptAfterMs) / 1000);
+    const interrupted = effectiveEnd < fullEnd - epsilon;
+    // Some skills commit and begin recharge at their interrupt point but retain
+    // the remainder of their ordinary cast as aftercast. Keep completion and
+    // recharge anchored to effectiveEnd while reserving the cast lane through
+    // fullEnd for those skills.
+    const castLockoutEnd =
+      interrupted && skill.retainsCastLockoutAfterInterrupt === true
+        ? fullEnd
+        : effectiveEnd;
     const cancelledBeforeCommit = cancelledBeforeInterruptCommit(
       context,
       skill,
@@ -1087,7 +1096,10 @@ export function createScheduler<
       endsAt: effectiveEnd,
       fullEndsAt: fullEnd,
       rechargeReadyAt,
-      interrupted: effectiveEnd < fullEnd - epsilon,
+      interrupted,
+      ...(castLockoutEnd > effectiveEnd + epsilon
+        ? { castLockoutEndsAt: castLockoutEnd }
+        : {}),
       ...(cancelledBeforeCommit ? { cancelled: true } : {}),
     });
     reservation.action = action;
@@ -1168,16 +1180,16 @@ export function createScheduler<
       end: Math.round(effectiveEnd * 1000),
       actualStart: Math.round(start * 1000),
       fullCastMs: Math.round((fullEnd - start) * 1000),
-      interrupted: effectiveEnd < fullEnd - epsilon,
+      interrupted,
     });
-    latestReservedEnd = Math.max(latestReservedEnd, effectiveEnd);
+    latestReservedEnd = Math.max(latestReservedEnd, castLockoutEnd);
     if (independent) {
-      independentReadyAt = Math.max(independentReadyAt, effectiveEnd);
+      independentReadyAt = Math.max(independentReadyAt, castLockoutEnd);
     } else {
       previousCastStart = start;
       hasPreviousCast = true;
-      latestBlockingEnd = Math.max(latestBlockingEnd, effectiveEnd);
-      if (!concurrent) serialReadyAt = effectiveEnd;
+      latestBlockingEnd = Math.max(latestBlockingEnd, castLockoutEnd);
+      if (!concurrent) serialReadyAt = castLockoutEnd;
       // A stunbreak clears any pending self-stun; a self-stunning skill sets a
       // fresh one, unless stability is up when the cast ends.
       if (stunbreak) selfStunUntil = state.time;
