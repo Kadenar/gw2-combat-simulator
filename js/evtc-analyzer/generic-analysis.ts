@@ -1,6 +1,6 @@
 import { EvtcError } from "./errors.js";
 import { addressHex } from "./player-detection.js";
-import { EVTC_STATE_CHANGE } from "./types.js";
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from "./types.js";
 import type {
   BuffApplicationSummary,
   CastSummary,
@@ -153,12 +153,19 @@ export function analyzeGenericCombat(
   }
   const applications = new Map<string, MutableApplication>();
   for (const event of context.log.events) {
-    if (
+    // Count one action per skill cast. Current arcdps builds log casts as
+    // CBTS_ANIMATION_START/STOP state changes; older builds emit a plain
+    // activation event (stateChange NONE) whose CANCEL_FIRE marks the cast
+    // reaching tooltip time. A build uses one encoding or the other, so
+    // accepting both cannot double-count. Anchoring on the start keeps the
+    // recorded timestamp at the moment the cast began.
+    const isPlayerCast =
       context.isSelectedPlayerSource(event) &&
-      event.activation === 3 &&
-      event.value > 0 &&
-      event.stateChange === EVTC_STATE_CHANGE.NONE
-    ) {
+      (event.stateChange === EVTC_STATE_CHANGE.ANIMATION_START ||
+        (event.stateChange === EVTC_STATE_CHANGE.NONE &&
+          event.activation === EVTC_ACTIVATION.CANCEL_FIRE &&
+          event.value > 0));
+    if (isPlayerCast) {
       const cast = castsBySkill.get(event.skillId) || { timestamps: [] };
       cast.timestamps.push(event.time - startTime);
       castsBySkill.set(event.skillId, cast);

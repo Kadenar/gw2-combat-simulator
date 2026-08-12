@@ -20,6 +20,6 @@ export async function bootstrapProfessionApp(
   const globalScope = window as unknown as Record<string, unknown>;
   globalScope.professionApp = app;
   if (adapter.globalName) globalScope[adapter.globalName] = app;
-  app.init();
+  await app.init();
   return app;
 }

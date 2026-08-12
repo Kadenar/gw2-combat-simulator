@@ -270,7 +270,7 @@ function renderAnalysis(
     }
     profession.append(warnings);
   }
-  container.append(identity, profession, generic);
+  container.append(identity, generic, profession);
   container.hidden = false;
 }
 

@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "clean": "node scripts/build/clean-dist.mjs",
-    "build": "npm run clean && tsc -p tsconfig.build.json",
-    "prestart": "npm run build",
+    "build": "npm run clean && npm run build:modules && npm run build:site",
+    "build:dev": "npm run clean && npm run build:modules && npm run build:site -- --mode development",
+    "build:modules": "tsc -p tsconfig.build.json",
+    "build:site": "vite build",
+    "prestart": "npm run build:dev",
     "start": "node server.mjs",
     "pretest": "npm run build",
     "test": "node --import ./scripts/testing/register-dist-loader.mjs --test --test-isolation=none",
     "typecheck": "tsc -p jsconfig.typed.json",
-    "check": "npm run build && npm run typecheck && node scripts/build/check-js.mjs && node scripts/build/check-dist.mjs",
+    "check": "npm run build && npm run typecheck && node scripts/build/check-js.mjs && node scripts/build/check-dist.mjs && node scripts/build/check-site.mjs",
     "update:profession-data": "node scripts/data/update-profession-api-data.mjs",
     "update:mesmer-data": "node scripts/data/update-mesmer-api-data.mjs",
     "update:guardian-data": "node scripts/data/update-guardian-api-data.mjs",
@@ -21,9 +24,10 @@
     "generate:revenant-ids": "node scripts/data/generate-revenant-ids.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^8.2.1"
   }
 }

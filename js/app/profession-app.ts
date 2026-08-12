@@ -57,6 +57,7 @@ export class ProfessionApp implements ProfessionAppState {
   templateUndoBuild: ProfessionApplicationBuild | null;
   readonly modifierContributionRunner: ModifierContributionRunner;
   readonly randomDistributionRunner: RandomDistributionRunner;
+  private initialRenderGeneration: number;
 
   constructor(adapter: Gw2AppAdapter) {
     if (!adapter?.profession) {
@@ -88,16 +89,42 @@ export class ProfessionApp implements ProfessionAppState {
     this.templateUndoBuild = null;
     this.modifierContributionRunner = new ModifierContributionRunner(this);
     this.randomDistributionRunner = new RandomDistributionRunner(this);
+    this.initialRenderGeneration = 0;
   }
 
-  init(): void {
+  async init(): Promise<void> {
     bindPageControls(this);
-    this.changed();
-    initBuildTemplates(this);
+    const templatesReady = initBuildTemplates(this);
+    this.updateSimulationState();
+    renderGear(this);
+    renderTraits(this);
+    renderAttributes(this);
+    renderSkills(this);
+    renderAssumptions(this);
+    await templatesReady;
+    // Commit the asynchronously inserted templates under the loading overlay.
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
     document.getElementById("loading-overlay")?.classList.add("hidden");
+    this.scheduleInitialDeferredRender();
   }
 
   changed(rebuildStatic = true, rebuildGear = rebuildStatic): void {
+    this.initialRenderGeneration += 1;
+    this.updateSimulationState();
+    if (rebuildStatic) {
+      if (rebuildGear) renderGear(this);
+      renderTraits(this);
+      renderAttributes(this);
+      renderSkills(this);
+      renderAssumptions(this);
+    }
+    updateTemplateSelection(this);
+    this.adapter.renderRotationBuilder(this);
+  }
+
+  private updateSimulationState(): void {
     recordRotationHistory(this);
     const previousContributions = this.results?.contributions;
     normalizeSelectedSkills(this);
@@ -109,15 +136,16 @@ export class ProfessionApp implements ProfessionAppState {
     this.randomDistributionRunner.schedule();
     this.modifierContributionRunner.schedule();
     saveBuild(this.build, this.adapter);
-    if (rebuildStatic) {
-      if (rebuildGear) renderGear(this);
-      renderTraits(this);
-      renderAttributes(this);
-      renderSkills(this);
-      renderAssumptions(this);
-    }
-    updateTemplateSelection(this);
-    this.adapter.renderRotationBuilder(this);
+  }
+
+  private scheduleInitialDeferredRender(): void {
+    const generation = ++this.initialRenderGeneration;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (generation !== this.initialRenderGeneration) return;
+        this.adapter.renderRotationBuilder(this);
+      });
+    });
   }
 
   addRotation(name: string, options: RotationActionOptions = {}): void {

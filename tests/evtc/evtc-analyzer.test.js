@@ -257,6 +257,34 @@ test("generic analysis derives actions-per-minute from casts and weapon swaps", 
   assert.equal(actionsPerMinute.apm, 3);
 });
 
+test("generic analysis counts casts from CBTS_ANIMATION_START events", () => {
+  // Current arcdps builds emit skill casts as animation state changes rather
+  // than plain activation events; the analyzer must not report zero casts.
+  const log = parseEvtc(
+    buildEvtc({
+      events: [
+        combatEvent({ time: 1_000, value: 1_000 }),
+        combatEvent({ time: 2_000, stateChange: 67, value: 900, skillId: 100 }),
+        combatEvent({ time: 2_900, stateChange: 68, activation: 3, value: 900 }),
+        combatEvent({ time: 3_000, stateChange: 67, value: 750, skillId: 736 }),
+        combatEvent({ time: 3_750, stateChange: 68, activation: 4, value: 750 }),
+        combatEvent({ time: 61_000, value: 1_000 }),
+      ],
+    }),
+  );
+  const encounter = validateGolemEncounter(log);
+  const player = detectPlayers(log, encounter).selected;
+  const { actionsPerMinute, casts } = analyzeGenericCombat(
+    new EvtcAnalysisContext(log, encounter, player),
+  );
+  assert.equal(actionsPerMinute.castCount, 2);
+  assert.equal(actionsPerMinute.castApm, 2);
+  assert.deepEqual(
+    casts.map((cast) => cast.skillId).sort((left, right) => left - right),
+    [100, 736],
+  );
+});
+
 test("Barbed Precision reports exact classification for an isolated matching application", async () => {
   const result = await analysisFor([
     combatEvent({ time: 1_000, result: 1 }),
