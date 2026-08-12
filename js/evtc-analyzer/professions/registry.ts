@@ -10,6 +10,13 @@ const baseAnalyzers = new Map<string, AnalyzerLoader>([
       return module.necromancerEvtcAnalyzer;
     },
   ],
+  [
+    "engineer",
+    async () => {
+      const module = await import("./engineer.js");
+      return module.engineerEvtcAnalyzer;
+    },
+  ],
 ]);
 
 const specializationAnalyzers = new Map<string, readonly AnalyzerLoader[]>();

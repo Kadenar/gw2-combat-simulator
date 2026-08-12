@@ -39,7 +39,7 @@
           <div class="evtc-analyzer-toolbar">
             <div>
               <h3>Browser-side EVTC analyzer</h3>
-              <p>Inspect supported profession RNG mechanics.</p>
+              <p>Inspect supported profession RNG mechanics (where supported) as well as APM and other metrics.</p>
             </div>
             <button class="evtc-reset" type="button" data-evtc-reset hidden>
               Remove file
@@ -56,7 +56,7 @@
             role="button"
             tabindex="0"
             data-evtc-dropzone
-            aria-describedby="evtc-formats evtc-privacy"
+            aria-describedby="evtc-formats"
           >
             <strong>Drop an EVTC golem log here</strong>
             <span id="evtc-formats"
@@ -64,9 +64,6 @@
             >
             <span class="evtc-picker-label">Choose a file</span>
           </div>
-          <p id="evtc-privacy">
-            Processed locally in your browser; the file is not uploaded.
-          </p>
           <p
             class="evtc-status"
             role="status"
