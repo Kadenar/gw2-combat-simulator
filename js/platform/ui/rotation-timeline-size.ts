@@ -1,4 +1,5 @@
 export const ROTATION_TIMELINE_SIZE_STORAGE_KEY = "gw2-rotation-timeline-size";
+export const ROTATION_DEAD_TIME_STORAGE_KEY = "gw2-rotation-dead-time";
 
 export const ROTATION_TIMELINE_SIZE_OPTIONS = Object.freeze([
   { value: "normal", label: "100%" },
@@ -16,6 +17,10 @@ export function normalizeRotationTimelineSize(
     (option) => option.value === value,
   );
   return match?.value || "normal";
+}
+
+export function normalizeRotationDeadTimeVisibility(value: unknown): boolean {
+  return value === true || value === "true";
 }
 
 function readStoredSize(root: Document): RotationTimelineSize {
@@ -41,6 +46,27 @@ function storeSize(root: Document, size: RotationTimelineSize): void {
   }
 }
 
+function readStoredDeadTimeVisibility(root: Document): boolean {
+  try {
+    return normalizeRotationDeadTimeVisibility(
+      root.defaultView?.localStorage.getItem(ROTATION_DEAD_TIME_STORAGE_KEY),
+    );
+  } catch {
+    return false;
+  }
+}
+
+function storeDeadTimeVisibility(root: Document, visible: boolean): void {
+  try {
+    root.defaultView?.localStorage.setItem(
+      ROTATION_DEAD_TIME_STORAGE_KEY,
+      String(visible),
+    );
+  } catch {
+    // Browser storage may be unavailable in private or embedded contexts.
+  }
+}
+
 export function mountRotationTimelineSize(root: Document = document): void {
   const timeline = root.getElementById("rotation-timeline");
   const toolbar = timeline
@@ -50,43 +76,76 @@ export function mountRotationTimelineSize(root: Document = document): void {
   if (!timeline || !toolbar || !panel) return;
 
   const storedSize = readStoredSize(root);
+  const showDeadTime = readStoredDeadTimeVisibility(root);
   panel.dataset.rotationSize = storedSize;
+  panel.dataset.showDeadTime = String(showDeadTime);
 
   const existing = root.getElementById("rotation-timeline-size");
   if (existing?.tagName === "SELECT") {
     (existing as HTMLSelectElement).value = storedSize;
+  } else {
+    const control = root.createElement("label");
+    control.className = "rotation-size-control";
+    control.htmlFor = "rotation-timeline-size";
+
+    const label = root.createElement("span");
+    label.textContent = "Timeline size";
+    control.append(label);
+
+    const select = root.createElement("select");
+    select.id = "rotation-timeline-size";
+    select.title = "Change the size of skills in the rotation timeline";
+    for (const option of ROTATION_TIMELINE_SIZE_OPTIONS) {
+      const element = root.createElement("option");
+      element.value = option.value;
+      element.textContent = option.label;
+      select.append(element);
+    }
+    select.value = storedSize;
+    select.addEventListener("change", () => {
+      const size = normalizeRotationTimelineSize(select.value);
+      select.value = size;
+      panel.dataset.rotationSize = size;
+      storeSize(root, size);
+    });
+    control.append(select);
+
+    const startState = toolbar.querySelector(".start-att-selector");
+    toolbar.insertBefore(
+      control,
+      startState || toolbar.querySelector(".rotation-btns"),
+    );
+  }
+
+  const existingDeadTimeToggle = root.getElementById("rotation-show-dead-time");
+  if (existingDeadTimeToggle?.tagName === "INPUT") {
+    (existingDeadTimeToggle as HTMLInputElement).checked = showDeadTime;
     return;
   }
 
-  const control = root.createElement("label");
-  control.className = "rotation-size-control";
-  control.htmlFor = "rotation-timeline-size";
+  const deadTimeControl = root.createElement("label");
+  deadTimeControl.className = "rotation-dead-time-control";
+  deadTimeControl.htmlFor = "rotation-show-dead-time";
+  deadTimeControl.title =
+    "Show time between skills when no skill cast is active";
 
-  const label = root.createElement("span");
-  label.textContent = "Timeline size";
-  control.append(label);
-
-  const select = root.createElement("select");
-  select.id = "rotation-timeline-size";
-  select.title = "Change the size of skills in the rotation timeline";
-  for (const option of ROTATION_TIMELINE_SIZE_OPTIONS) {
-    const element = root.createElement("option");
-    element.value = option.value;
-    element.textContent = option.label;
-    select.append(element);
-  }
-  select.value = storedSize;
-  select.addEventListener("change", () => {
-    const size = normalizeRotationTimelineSize(select.value);
-    select.value = size;
-    panel.dataset.rotationSize = size;
-    storeSize(root, size);
+  const deadTimeToggle = root.createElement("input");
+  deadTimeToggle.type = "checkbox";
+  deadTimeToggle.id = "rotation-show-dead-time";
+  deadTimeToggle.checked = showDeadTime;
+  deadTimeToggle.addEventListener("change", () => {
+    panel.dataset.showDeadTime = String(deadTimeToggle.checked);
+    storeDeadTimeVisibility(root, deadTimeToggle.checked);
   });
-  control.append(select);
+  deadTimeControl.append(deadTimeToggle);
+
+  const deadTimeLabel = root.createElement("span");
+  deadTimeLabel.textContent = "Dead time";
+  deadTimeControl.append(deadTimeLabel);
 
   const startState = toolbar.querySelector(".start-att-selector");
   toolbar.insertBefore(
-    control,
+    deadTimeControl,
     startState || toolbar.querySelector(".rotation-btns"),
   );
 }

@@ -1,4 +1,5 @@
 import { amalgamState } from "./state.js";
+import { isInternalCooldownReady } from "../../../../platform/engine/clock.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
 import { ENGINEER_TRAIT_IDS as TRAIT } from "../../data/ids.js";
 import {
@@ -52,10 +53,11 @@ function reactToAmalgamDamage(
   }
   if (
     event.actorType !== "summon" &&
+    Number(amalgamState.from(context).evolvedUntil || 0) > event.at &&
     Number(amalgamState.from(context).rapaciousUntil || 0) > event.at &&
-    Number(state.rapacious || 0) <= event.at
+    isInternalCooldownReady(event.at, Number(state.rapacious || 0))
   ) {
-    state.rapacious = event.at + 0.6;
+    state.rapacious = event.at + 0.5;
     queueDamage(context, event, {
       name: "Rapacious Strain",
       coefficient: 0.3,

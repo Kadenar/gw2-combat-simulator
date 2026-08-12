@@ -92,6 +92,47 @@ header .accent {
   color: var(--accent);
 }
 
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.github-link:hover,
+.github-link:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
+.github-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.github-link-icon {
+  flex: 0 0 auto;
+}
+
+/* Simulator pages: mirror the absolute home-link on the opposite corner. */
+header .github-link {
+  position: absolute;
+  right: 0;
+  top: 10px;
+}
+
+@media (max-width: 720px) {
+  header .github-link {
+    position: static;
+    display: inline-flex;
+    margin-bottom: 7px;
+  }
+}
+
 .profession-picker {
   display: inline-flex;
   align-items: center;

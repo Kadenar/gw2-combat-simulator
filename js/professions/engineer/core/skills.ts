@@ -386,6 +386,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   [ID.FIRE_BOMB]: {
     implemented: true,
     quicknessCastTimeMs: 600,
+    interruptCommitMs: 400,
     cooldown: 8,
     comboField: "Fire",
     duration: 3,
@@ -2174,6 +2175,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     paletteFlipSkillId: ID.DETONATE,
     castTimeMs: 500,
     cooldown: 12,
+    rechargeAnchor: "castStart",
   },
   [ID.DETONATE]: {
     implemented: true,
@@ -2979,12 +2981,16 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   [ID.NEGATIVE_BASH]: {
     implemented: true,
     castTimeMs: 500,
+    quicknessCastTimeMs: 640,
     cooldown: 0,
     effects: [
       {
         type: "strike",
         coefficient: 1,
         hits: 1,
+        atMs: 320,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         name: "Negative Bash",
         actorType: "player",
       },
@@ -2993,6 +2999,9 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         condition: "Vulnerability",
         stacks: 1,
         duration: 8,
+        atMs: 320,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         actorType: "player",
       },
     ],
@@ -3237,12 +3246,16 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   [ID.EQUALIZING_BLOW]: {
     implemented: true,
     castTimeMs: 500,
+    quicknessCastTimeMs: 440,
     cooldown: 0,
     effects: [
       {
         type: "strike",
         coefficient: 1.4,
         hits: 1,
+        atMs: 320,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         name: "Equalizing Blow",
         actorType: "player",
       },
@@ -3251,6 +3264,9 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         condition: "Vulnerability",
         stacks: 3,
         duration: 8,
+        atMs: 320,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         actorType: "player",
       },
       {
@@ -3258,18 +3274,25 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         boon: "might",
         duration: 8,
         stacks: 3,
+        atMs: 320,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
   },
   [ID.POSITIVE_STRIKE]: {
     implemented: true,
     castTimeMs: 500,
+    quicknessCastTimeMs: 480,
     cooldown: 0,
     effects: [
       {
         type: "strike",
         coefficient: 0.7,
         hits: 1,
+        atMs: 360,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         name: "Positive Strike",
         actorType: "player",
       },
@@ -3278,6 +3301,9 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         boon: "might",
         duration: 8,
         stacks: 1,
+        atMs: 360,
+        timingAnchor: "castStart",
+        timingScale: "fixed",
       },
     ],
   },
@@ -3307,6 +3333,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   [ID.ROCKET_CHARGE]: {
     implemented: true,
     castTimeMs: 1750,
+    quicknessCastTimeMs: 1920,
     cooldown: 12,
     effects: [
       {
@@ -4369,14 +4396,14 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.MAGNETIC_BOMB]: {
     implemented: true,
-    quicknessCastTimeMs: 480,
+    quicknessCastTimeMs: 600,
     cooldown: 20,
     effects: [
       {
         type: "strike",
         coefficient: 1.5,
         hits: 1,
-        atMs: 1880,
+        atMs: 1760,
         timingAnchor: "castEnd",
         timingScale: "fixed",
         name: "Magnetic Bomb",
@@ -4389,7 +4416,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
       {
         type: "control",
         actorType: "player",
-        atMs: 1880,
+        atMs: 1760,
         timingAnchor: "castEnd",
         timingScale: "fixed",
         persistsAfterInterrupt: true,

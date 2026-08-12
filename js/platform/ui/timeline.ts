@@ -32,6 +32,21 @@ export interface EventTimelineMarker {
   readonly detail: string | undefined;
 }
 
+export interface TimelineDeadTimeMarker {
+  readonly insertionIndex: number;
+  readonly start: number;
+  readonly end: number;
+  readonly durationMs: number;
+}
+
+interface TimelineDeadTimeStep extends SchedulerStep {
+  readonly type?: unknown;
+  readonly partialFill?: {
+    readonly startMs?: unknown;
+    readonly durationMs?: unknown;
+  };
+}
+
 export function clearTimelineDropIndicators(
   root: HTMLElement | null | undefined,
 ): void {
@@ -67,18 +82,49 @@ export function formatTimelineCastDetails(
   return `Cast: ${formatTime(start)} → ${formatTime(end)}\nCast time: ${castSeconds.toFixed(2)}s`;
 }
 
-const NON_SKILL_STEP_NAMES = new Set(["Wait", "Combat Start"]);
+const NON_SKILL_STEP_NAMES = new Set([
+  "Wait",
+  "Combat Start",
+  "Cooldown Reset",
+  "__wait",
+  "__combat_start",
+  "__cooldown_reset",
+]);
+const NON_SKILL_STEP_TYPES = new Set([
+  "wait",
+  "combat_start",
+  "cooldown_reset",
+]);
+const TIMELINE_WAIT_STEP_NAMES = new Set(["Wait", "__wait"]);
+const TIMELINE_WAIT_STEP_TYPES = new Set(["wait"]);
+
+function isValidTimelineStep(step: TimelineDeadTimeStep): boolean {
+  return (
+    Number.isInteger(Number(step?.ri)) && Number(step.ri) >= 0 && !step.invalid
+  );
+}
+
+function isTimelineWaitStep(step: TimelineDeadTimeStep): boolean {
+  return (
+    isValidTimelineStep(step) &&
+    (TIMELINE_WAIT_STEP_NAMES.has(String(step.skill || "")) ||
+      TIMELINE_WAIT_STEP_TYPES.has(String(step.type || "")))
+  );
+}
+
+function isTimelineSkillStep(step: TimelineDeadTimeStep): boolean {
+  return (
+    isValidTimelineStep(step) &&
+    !NON_SKILL_STEP_NAMES.has(String(step.skill || "")) &&
+    !NON_SKILL_STEP_TYPES.has(String(step.type || ""))
+  );
+}
 
 export function timelineSkillCastOrdinals(
   steps: readonly SchedulerStep[] = [],
 ): Map<number, TimelineCastOrdinal> {
   const casts = steps
-    .filter(
-      (step) =>
-        Number.isInteger(Number(step?.ri)) &&
-        !step.invalid &&
-        !NON_SKILL_STEP_NAMES.has(String(step.skill || "")),
-    )
+    .filter(isTimelineSkillStep)
     .sort(
       (left, right) =>
         Number(left.start || 0) - Number(right.start || 0) ||
@@ -104,6 +150,97 @@ export function timelineSkillCastOrdinals(
       ];
     }),
   );
+}
+
+export function timelineDeadTimeMarkers(
+  steps: readonly TimelineDeadTimeStep[] = [],
+): TimelineDeadTimeMarker[] {
+  const intervals: Array<{
+    start: number;
+    end: number;
+    insertionIndex: number;
+    containsSkill: boolean;
+  }> = [];
+
+  for (const step of steps) {
+    const isSkill = isTimelineSkillStep(step);
+    if (!isSkill && !isTimelineWaitStep(step)) continue;
+    const start = Math.round(Number(step.start));
+    const end = Math.round(Number(step.end));
+    const insertionIndex = Number(step.ri);
+    if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
+      intervals.push({ start, end, insertionIndex, containsSkill: isSkill });
+    }
+
+    if (!isSkill) continue;
+    const partialFillStart = Math.round(Number(step.partialFill?.startMs));
+    const partialFillDuration = Math.round(
+      Number(step.partialFill?.durationMs),
+    );
+    if (
+      Number.isFinite(partialFillStart) &&
+      Number.isFinite(partialFillDuration) &&
+      partialFillDuration > 0
+    ) {
+      intervals.push({
+        start: partialFillStart,
+        end: partialFillStart + partialFillDuration,
+        insertionIndex,
+        containsSkill: true,
+      });
+    }
+  }
+
+  intervals.sort(
+    (left, right) =>
+      left.start - right.start ||
+      right.end - left.end ||
+      left.insertionIndex - right.insertionIndex,
+  );
+  const busy: typeof intervals = [];
+  for (const interval of intervals) {
+    const previous = busy.at(-1);
+    if (previous && interval.start <= previous.end) {
+      previous.end = Math.max(previous.end, interval.end);
+      previous.containsSkill ||= interval.containsSkill;
+    } else {
+      busy.push({ ...interval });
+    }
+  }
+
+  const markers: TimelineDeadTimeMarker[] = [];
+  const futureContainsSkill = new Array<boolean>(busy.length);
+  let containsFutureSkill = false;
+  for (let index = busy.length - 1; index >= 0; index -= 1) {
+    containsFutureSkill ||= busy[index]?.containsSkill || false;
+    futureContainsSkill[index] = containsFutureSkill;
+  }
+  let previousContainsSkill = busy[0]?.containsSkill || false;
+  for (let index = 1; index < busy.length; index += 1) {
+    const previous = busy[index - 1];
+    const next = busy[index];
+    if (!previous || !next) continue;
+    const durationMs = next.start - previous.end;
+    if (durationMs > 0 && previousContainsSkill && futureContainsSkill[index]) {
+      markers.push({
+        insertionIndex: next.insertionIndex,
+        start: previous.end,
+        end: next.start,
+        durationMs,
+      });
+    }
+    previousContainsSkill ||= next.containsSkill;
+  }
+  return markers;
+}
+
+export function formatTimelineDuration(durationMs: unknown): string {
+  const milliseconds = Math.max(0, Math.round(Number(durationMs) || 0));
+  if (milliseconds < 1000) return `${milliseconds}ms`;
+  const seconds = milliseconds / 1000;
+  const precision = seconds < 10 ? 2 : seconds < 100 ? 1 : 0;
+  const formatted = seconds.toFixed(precision);
+  return `${precision > 0 ? formatted.replace(/\.?0+$/, "") : formatted}s`;
 }
 
 export function formatTimelineSkillTooltip(

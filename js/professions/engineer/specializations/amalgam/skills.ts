@@ -8,6 +8,7 @@ import { ENGINEER_SKILL_IDS as ID } from "../../data/ids.js";
 import type { SkillFragment } from "../../../../platform/engine/types.js";
 
 const DEMOLISH_QUICKNESS_CAST_TIME_MS = 1000 + 560;
+const DEMOLISH_RECHARGE_OFFSET_MS = 1000;
 
 export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
   Object.freeze({
@@ -85,6 +86,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       implemented: true,
       quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
       cooldown: 20,
+      rechargeAnchor: "castStart",
+      rechargeOffsetMs: DEMOLISH_RECHARGE_OFFSET_MS,
       effects: [
         {
           type: "strike",
@@ -328,6 +331,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       implemented: true,
       quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
       cooldown: 20,
+      rechargeAnchor: "castStart",
+      rechargeOffsetMs: DEMOLISH_RECHARGE_OFFSET_MS,
       effects: [
         {
           type: "strike",
@@ -356,6 +361,8 @@ export const AMALGAM_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> =
       implemented: true,
       quicknessCastTimeMs: DEMOLISH_QUICKNESS_CAST_TIME_MS,
       cooldown: 20,
+      rechargeAnchor: "castStart",
+      rechargeOffsetMs: DEMOLISH_RECHARGE_OFFSET_MS,
       effects: [
         {
           type: "strike",
