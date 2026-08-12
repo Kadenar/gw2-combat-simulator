@@ -96,6 +96,20 @@ export function addAttributes(
   }
 }
 
+/**
+ * Adds explicitly eligible trait attributes to the normal equipment-backed
+ * conversion inputs. Keeping this as a separate pool prevents the results of
+ * one attribute conversion from becoming the input to another conversion.
+ */
+export function createTraitConversionPool(
+  conversionPool: Readonly<Gw2NumericAttributes>,
+  traitConversionStats: Readonly<Gw2NumericAttributes>,
+): Gw2NumericAttributes {
+  const combined = { ...conversionPool };
+  addAttributes(combined, traitConversionStats);
+  return combined;
+}
+
 export function derivedAttribute(
   final: number,
   traits = 0,

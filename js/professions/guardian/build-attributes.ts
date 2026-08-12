@@ -1,5 +1,7 @@
 import {
   addAttribute,
+  addAttributes,
+  createTraitConversionPool,
   finalizeBuildAttributes,
 } from "../../platform/gw2/attributes.js";
 import { getActiveTraits } from "./data/traits-data.js";
@@ -26,13 +28,14 @@ export function applyGuardianBuildAttributeRules(
   }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
   const guardianBuild = build as GuardianBuild;
-  const { conversionPool } = common.commonContext;
+  const { conversionPool: commonConversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(
     guardianBuild.specializations || [],
   ).filter((trait) => trait.name !== disabledTrait);
   const hasTrait = (name: string): boolean =>
     activeTraits.some((trait) => trait.name === name);
   const traitStats: Gw2NumericAttributes = {};
+  const traitConversionStats: Gw2NumericAttributes = {};
   const traitDurations: Gw2NumericAttributes = {};
   const weapons =
     weaponSet === 2 ? guardianBuild.alternateWeapons : guardianBuild.weapons;
@@ -61,13 +64,6 @@ export function applyGuardianBuildAttributeRules(
   if (hasTrait("Radiant Power")) {
     addAttribute(traitStats, "Ferocity", 150);
   }
-  if (hasTrait("Kindled Zeal")) {
-    addAttribute(
-      traitStats,
-      "Condition Damage",
-      Math.round((conversionPool.Power || 0) * 0.1),
-    );
-  }
   if (hasTrait("Stalwart Defender") && offHand === "Shield") {
     addAttribute(traitStats, "Toughness", 240);
   }
@@ -75,27 +71,45 @@ export function applyGuardianBuildAttributeRules(
     addAttribute(traitStats, "Concentration", 120);
   }
   if (hasTrait("Defender's Dogma")) {
-    addAttribute(traitStats, "Vitality", 180);
+    addAttribute(traitConversionStats, "Vitality", 180);
   }
   if (hasTrait("Force of Will")) {
-    addAttribute(traitStats, "Vitality", 300);
+    addAttribute(traitConversionStats, "Vitality", 300);
   }
   if (
     hasTrait("Imbued Haste") &&
     guardianBuild.assumptions?.quickness !== false
   ) {
-    addAttribute(traitStats, "Condition Damage", 250);
-    addAttribute(traitStats, "Healing Power", 250);
-    addAttribute(traitStats, "Vitality", 250);
+    addAttribute(traitConversionStats, "Condition Damage", 250);
+    addAttribute(traitConversionStats, "Healing Power", 250);
+    addAttribute(traitConversionStats, "Vitality", 250);
   }
   if (hasTrait("Searing Pact")) {
-    addAttribute(traitStats, "Condition Damage", 120);
+    addAttribute(traitConversionStats, "Condition Damage", 120);
   }
-  if (hasTrait("Power for Power")) addAttribute(traitStats, "Power", 120);
+  if (hasTrait("Power for Power")) {
+    addAttribute(traitConversionStats, "Power", 120);
+  }
   if (hasTrait("Conceited Curate")) {
-    addAttribute(traitStats, "Vitality", 180);
+    addAttribute(traitConversionStats, "Vitality", 180);
   }
-  if (hasTrait("Light's Gift")) addAttribute(traitStats, "Vitality", 180);
+  if (hasTrait("Light's Gift")) {
+    addAttribute(traitConversionStats, "Vitality", 180);
+  }
+
+  addAttributes(traitStats, traitConversionStats);
+  const conversionPool = createTraitConversionPool(
+    commonConversionPool,
+    traitConversionStats,
+  );
+
+  if (hasTrait("Kindled Zeal")) {
+    addAttribute(
+      traitStats,
+      "Condition Damage",
+      Math.round((conversionPool.Power || 0) * 0.1),
+    );
+  }
 
   const signetMultiplier = hasTrait("Perfect Inscriptions") ? 1.2 : 1;
   if (selectedSkill(selectedSkills, "Bane Signet")) {

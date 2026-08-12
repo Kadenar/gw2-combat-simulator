@@ -6,13 +6,13 @@
         "label": "Power",
         "build": "Builds/mesmer/b-power-chronomancer.json",
         "rotation": "Rotations/mesmer/r-power-chronomancer-evtc-rebuild.json",
-        "benchmarkDps": 44443
+        "benchmarkDps": 43720
       },
       {
         "label": "Condition",
         "build": "Builds/mesmer/b-condi-chronomancer.json",
         "rotation": "Rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 46893
+        "benchmarkDps": 46048
       }
     ]
   },

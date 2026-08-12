@@ -792,6 +792,9 @@ function completeMesmerSkill(
       runtime.addEvent({
         type: "control",
         at,
+        source: "Player",
+        sourceId: skill.id,
+        actorType: "player",
         skillId: skill.id,
         skillName: skill.name,
       });
