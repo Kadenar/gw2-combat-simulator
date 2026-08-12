@@ -46,13 +46,11 @@ jobs:
         shell: bash
         run: |
           mkdir _site
-          git archive HEAD | tar -x -C _site
-          cp -a dist/js/. _site/js/
-          node scripts/build/version-pages-assets.mjs _site "$GITHUB_SHA"
+          cp -a dist/site/. _site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '_site'
+          path: "_site"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5

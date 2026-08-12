@@ -30,7 +30,7 @@ same visual system and keep independent browser-local builds.
 
 ## Run
 
-Node.js 20 or newer is required.
+Node.js 20.19 or newer is required.
 
 ```powershell
 cd gw2-combat-simulator
@@ -40,12 +40,13 @@ npm start
 Open `http://127.0.0.1:4173`.
 
 `npm start`, `npm test`, and `npm run check` compile the migrated TypeScript
-modules automatically. Run `npm run build` directly when only the browser
-JavaScript output needs to be refreshed. TypeScript is emitted into the ignored
-`dist/js/` tree after a clean build. The development server serves compiled
-modules from there and falls back to `js/` only for JavaScript-only or generated
-modules. Do not commit compiled output or add `.js` siblings beside `.ts`
-sources.
+modules automatically. Local startup creates an unminified, source-mapped
+multi-page bundle in `dist/site/`; `npm run build` creates the minified
+deployment bundle. TypeScript is also emitted into the ignored `dist/js/` tree
+for tests and command-line analysis. The development server prefers the
+bundled site, serves hashed assets with immutable caching and compression, and
+falls back to compiled or source modules for test fixtures. Do not commit
+compiled output or add `.js` siblings beside `.ts` sources.
 
 ## Test
 
