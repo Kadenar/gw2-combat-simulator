@@ -25,6 +25,8 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 600,
+    finisherType: "Projectile",
+    finisherValue: 0.2,
     missileHits: 1,
   },
   [ID.POISON_VOLLEY]: {
@@ -205,7 +207,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         duration: 4,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 360,
   },
   [ID.STALKERS_STRIKE]: {
     implemented: true,
@@ -228,7 +230,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         duration: 8,
       },
     ],
-    quicknessCastTimeMs: 333,
+    quicknessCastTimeMs: 760,
   },
   [ID.SPLITBLADE]: {
     implemented: true,
@@ -416,6 +418,9 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
       },
     ],
     quicknessCastTimeMs: 520,
+    comboField: "Ice",
+    comboFieldDuration: 5,
+    comboFieldStartMs: 880,
   },
   [ID.STORM_SPIRIT]: {
     implemented: true,
@@ -487,17 +492,30 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 0.8999999999999999,
-        hits: 3,
+        ticks: [0, 1000, 2000].map((atMs) => ({
+          atMs,
+          coefficient: 0.3,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
       },
       {
         type: "condition",
-        condition: "Poisoned",
-        stacks: 2,
-        duration: 8,
+        ticks: [0, 1000, 2000].map((atMs) => ({
+          atMs,
+          condition: "Poisoned",
+          stacks: 2,
+          duration: 8,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
       },
     ],
     quicknessCastTimeMs: 333,
+    comboField: "Poison",
+    comboFieldDuration: 2,
   },
   [ID.FROST_SPIRIT]: {
     implemented: true,
@@ -531,6 +549,10 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         boon: "might",
         duration: 15,
         stacks: 8,
+      },
+      {
+        type: "blind",
+        duration: 5,
       },
       {
         type: "boon",
@@ -605,23 +627,35 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 0.9,
-        hits: 9,
+        ticks: Array.from({ length: 9 }, (_, index) => ({
+          atMs: index * 1000,
+          coefficient: 0.1,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
       },
       {
         type: "condition",
-        condition: "Burning",
-        stacks: 3,
-        duration: 5,
-      },
-      {
-        type: "condition",
-        condition: "Burning",
-        stacks: 8,
-        duration: 1,
+        ticks: [
+          { atMs: 0, condition: "Burning", stacks: 3, duration: 5 },
+          ...Array.from({ length: 8 }, (_, index) => ({
+            atMs: (index + 1) * 1000,
+            condition: "Burning",
+            stacks: 1,
+            duration: 1,
+          })),
+        ],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
       },
     ],
+    recharge: 25,
+    cooldown: 25,
     quicknessCastTimeMs: 333,
+    comboField: "Fire",
+    comboFieldDuration: 8,
   },
   [ID.CRIPPLING_SHOT]: {
     implemented: true,
@@ -844,15 +878,10 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.SHARPENING_STONE]: {
     implemented: true,
-    effects: [
-      {
-        type: "condition",
-        condition: "Bleeding",
-        stacks: 1,
-        duration: 8,
-      },
-    ],
-    quicknessCastTimeMs: 333,
+    effects: [],
+    castTimeMs: 0,
+    canCastConcurrently: true,
+    handlerId: "ranger.sharpening-stone",
   },
   [ID.SIGNET_OF_THE_HUNT]: {
     implemented: true,
@@ -1068,7 +1097,16 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         stacks: 1,
         duration: 10,
       },
+      {
+        type: "blind",
+        duration: 3,
+      },
     ],
+    recharge: 1,
+    cooldown: 15,
+    ammo: 2,
+    ammoRecharge: 15,
+    ammoCastLockout: 1,
     quicknessCastTimeMs: 333,
   },
   [ID.PATH_OF_SCARS]: {
@@ -1332,7 +1370,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 320,
   },
   [ID.SERPENT_STAB]: {
     implemented: true,
@@ -1349,7 +1387,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 280,
   },
   [ID.DOUBLE_ARC]: {
     implemented: true,
@@ -1358,12 +1396,6 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         type: "condition",
         condition: "Bleeding",
         stacks: 6,
-        duration: 6,
-      },
-      {
-        type: "condition",
-        condition: "Bleeding",
-        stacks: 4,
         duration: 6,
       },
       {
@@ -1378,7 +1410,10 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         duration: 6,
       },
     ],
-    quicknessCastTimeMs: 500,
+    recharge: 6,
+    cooldown: 6,
+    quicknessCastTimeMs: 600,
+    handlerId: "ranger.poisonous-strikes",
   },
   [ID.DEADLY_DELIVERY]: {
     implemented: true,
@@ -1407,7 +1442,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 440,
   },
   [ID.GROUNDWORK_GOUGE]: {
     implemented: true,
@@ -1424,7 +1459,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         hits: 1,
       },
     ],
-    quicknessCastTimeMs: 167,
+    quicknessCastTimeMs: 280,
   },
   [ID.INSTINCTIVE_ENGAGE]: {
     implemented: true,
@@ -1441,16 +1476,10 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         stacks: 1,
       },
       {
-        type: "boon",
-        boon: "quickness",
-        duration: 2,
-        stacks: 1,
-      },
-      {
         type: "condition",
         condition: "Slow",
         stacks: 1,
-        duration: 3,
+        duration: 2,
       },
       {
         type: "condition",
@@ -1459,7 +1488,11 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         duration: 8,
       },
     ],
-    quicknessCastTimeMs: 500,
+    recharge: 12,
+    cooldown: 12,
+    quicknessCastTimeMs: 840,
+    finisherType: "Leap",
+    finisherValue: 1,
   },
   [ID.MAUL_ID_46629]: {
     implemented: true,
@@ -3103,21 +3136,93 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
-        coefficient: 1,
-        hits: 5,
+        ticks: [0, 1500, 3000, 4500, 6000].map((atMs) => ({
+          atMs,
+          coefficient: 0.2,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
         source: "ranger-pet",
         actorType: "summon",
       },
       {
         type: "condition",
-        condition: "Vulnerability",
-        stacks: 5,
-        duration: 8,
+        ticks: [0, 1500, 3000, 4500, 6000].map((atMs) => ({
+          atMs,
+          condition: "Vulnerability",
+          stacks: 1,
+          duration: 8,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        ticks: [1, 2, 2, 2, 2].map((duration, index) => ({
+          atMs: index * 1500,
+          condition: "Immobilized",
+          stacks: 1,
+          duration,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
         source: "ranger-pet",
         actorType: "summon",
       },
     ],
-    quicknessCastTimeMs: 667,
+    quicknessCastTimeMs: 880,
+    petSkill: true,
+  },
+  [ID.JACARANDA_ROOT_SLAP]: {
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        coefficient: 0.4,
+        hits: 1,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 800,
+    petSkill: true,
+  },
+  [ID.JACARANDA_CALL_LIGHTNING]: {
+    implemented: true,
+    effects: [
+      {
+        type: "strike",
+        ticks: [0, 1000, 2000, 3000, 4000].map((atMs) => ({
+          atMs,
+          coefficient: 0.5,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+      {
+        type: "condition",
+        ticks: [0, 1000, 2000, 3000, 4000].map((atMs) => ({
+          atMs,
+          condition: "Vulnerability",
+          stacks: 1,
+          duration: 6,
+        })),
+        timingAnchor: "castStart",
+        timingScale: "fixed",
+        persistsAfterInterrupt: true,
+        source: "ranger-pet",
+        actorType: "summon",
+      },
+    ],
+    quicknessCastTimeMs: 500,
     petSkill: true,
   },
   [ID.HEAD_TOSS]: {

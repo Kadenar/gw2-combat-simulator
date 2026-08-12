@@ -32,6 +32,9 @@ export const rangerApp = defineProfessionApp({
   },
   isSkillAvailable(skill, context = {}) {
     if (!defaultIsSkillAvailable(skill, context)) return false;
+    if (skill.unleashedAmbushSkill && context.specialization !== "Untamed") {
+      return false;
+    }
     if (
       skill.id === ID.PET_SWAP &&
       context.specialization === "Soulbeast" &&

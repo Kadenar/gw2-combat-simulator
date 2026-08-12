@@ -48,7 +48,12 @@ export function applyNecromancerBuildAttributeRules(
   if (hasTrait("Alchemic Vigor")) {
     addAttribute(traitStats, "Vitality", 240);
   }
-  const vitality = conversionPool.Vitality || 0;
+  // Flat trait attributes are applied before attribute conversions in-game.
+  // Keep the conversion inputs separate from later conversion outputs so
+  // conversions do not chain into one another.
+  const vitality = (conversionPool.Vitality || 0) + (traitStats.Vitality || 0);
+  const precision =
+    (conversionPool.Precision || 0) + (traitStats.Precision || 0);
   if (hasTrait("Implacable Foe")) {
     addAttribute(traitStats, "Ferocity", vitality * 0.13);
   }
@@ -62,7 +67,6 @@ export function applyNecromancerBuildAttributeRules(
     addAttribute(traitStats, "Concentration", 180);
   }
   if (hasTrait("Target the Weak")) {
-    const precision = conversionPool.Precision || 0;
     addAttribute(traitStats, "Condition Damage", Math.floor(precision * 0.13));
   }
   if (hasTrait("Fell Beacon")) {

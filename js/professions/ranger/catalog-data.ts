@@ -4,6 +4,7 @@ import { RANGER_PET_SKILLS } from "./data/ranger-pet-data.js";
 import { RANGER_SKILL_IDS as ID } from "./data/ids.js";
 import { RANGER_SUPPLEMENTAL_SKILLS } from "./data/ranger-supplemental-skills.js";
 import { TRAITS } from "./data/traits-data.js";
+import { isRangerHammerVariant } from "./core/hammer.js";
 import type {
   CatalogEntity,
   SkillFragment,
@@ -103,6 +104,7 @@ function normalize(skill: RangerSkill): RangerSkill {
         ? Number(skill.ammoRecharge || skill.recharge || 0)
         : Number(skill.recharge || 0),
     flipParentId: flipParentById.get(skill.id) ?? null,
+    paletteFlip: isRangerHammerVariant(skill.id) ? false : skill.paletteFlip,
     petSkill,
     independentCast: petSkill || unleashedPetSkill,
     rechargeBuffAudience: petSkill ? "summon" : skill.rechargeBuffAudience,

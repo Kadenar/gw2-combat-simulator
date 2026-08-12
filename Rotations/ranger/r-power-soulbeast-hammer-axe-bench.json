@@ -8,9 +8,9 @@
   },
   "rotation": [
     "One Wolf Pack",
-    { "name": "Frost Trap", "skillId": 12492, "offset": 160 },
-    { "name": "Overbearing Smash", "skillId": 69262 },
-    "__combat_start",
+    { "name": "Frost Trap", "skillId": 12492 },
+    { "name": "Overbearing Smash", "skillId": 69262, "interruptMs": 466 },
+    { "name": "__combat_start", "offset": 350 },
     { "name": "Worldly Impact", "skillId": 40729 },
     { "name": "\"Sic 'Em!\"", "skillId": 12633, "offset": 320 },
     "Unleashed Savage Shock Wave",

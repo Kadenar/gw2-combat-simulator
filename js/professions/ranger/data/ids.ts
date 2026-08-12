@@ -283,6 +283,8 @@ export const RANGER_SKILL_IDS = Object.freeze({
   SAVANNAH_STRIKE: 42963, // Savannah Strike
   BLINDING_ROAR: 42180, // Blinding Roar
   JACARANDAS_EMBRACE: 44980, // Jacaranda's Embrace
+  JACARANDA_ROOT_SLAP: 45990, // Root Slap (Jacaranda pet AI)
+  JACARANDA_CALL_LIGHTNING: 40487, // Call Lightning (Jacaranda pet AI)
   HEAD_TOSS: 43636, // Head Toss
   FANG_GRAPPLE: 41156, // Fang Grapple
   CRIPPLING_ANGUISH_PET: 41864, // Crippling Anguish (pet AI)

@@ -6,7 +6,7 @@
         "label": "Condition (Pistol / Torch + Scepter / Torch)",
         "build": "Builds/necromancer/b-condi-scourge.json",
         "rotation": "Rotations/necromancer/r-condi-scourge-bench.json",
-        "benchmarkDps": 39345,
+        "benchmarkDps": 39662,
         "upToDate": true
       }
     ]
@@ -18,20 +18,20 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-reaper.json",
         "rotation": "Rotations/necromancer/r-power-reaper-bench.json",
-        "benchmarkDps": 43246
+        "benchmarkDps": 43427
       },
       {
         "label": "Condition (Dagger / Sword + Spear)",
         "build": "Builds/necromancer/b-condi-reaper.json",
         "rotation": "Rotations/necromancer/r-condi-reaper-bench.json",
-        "benchmarkDps": 44175,
+        "benchmarkDps": 44171,
         "upToDate": true
       },
       {
         "label": "Condition (Fields - Pistol / Torch + Greatsword)",
         "build": "Builds/necromancer/b-condi-fields-reaper.json",
         "rotation": "Rotations/necromancer/r-condi-fields-reaper-bench.json",
-        "benchmarkDps": 52036,
+        "benchmarkDps": 52041,
         "upToDate": true
       }
     ]
@@ -43,7 +43,7 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-ritualist.json",
         "rotation": "Rotations/necromancer/r-power-ritualist-bench.json",
-        "benchmarkDps": 43258,
+        "benchmarkDps": 43284,
         "upToDate": true
       }
     ]
@@ -55,13 +55,13 @@
         "label": "Power (Greatsword / Spear)",
         "build": "Builds/necromancer/b-power-harbinger.json",
         "rotation": "Rotations/necromancer/r-power-harbinger-bench.json",
-        "benchmarkDps": 43617
+        "benchmarkDps": 43688
       },
       {
         "label": "Condition (Pistol / Torch + Scepter / Dagger)",
         "build": "Builds/necromancer/b-condi-harbinger.json",
         "rotation": "Rotations/necromancer/r-condi-harbinger-bench.json",
-        "benchmarkDps": 45253
+        "benchmarkDps": 45308
       }
     ]
   }

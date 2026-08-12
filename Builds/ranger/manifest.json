@@ -1,12 +1,32 @@
 [
   {
+    "section": "Druid",
+    "presets": [
+      {
+        "label": "Condition Alacrity (Dagger-Torch / Axe-Dagger)",
+        "build": "Builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
+        "rotation": "Rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
+        "benchmarkDps": 29604,
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Soulbeast",
     "presets": [
       {
         "label": "Power (Hammer / Axe-Axe)",
         "build": "Builds/ranger/b-power-soulbeast-hammer-axe.json",
         "rotation": "Rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
-        "benchmarkDps": 43222,
+        "benchmarkDps": 43074,
+        "upToDate": true
+      },
+      {
+        "label": "Power (Hammer / Sword-Axe)",
+        "build": "Builds/ranger/b-power-soulbeast-hammer-sword-axe.json",
+        "rotation": "Rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
+        "benchmarkDps": 42658,
+        "dpsReportUrl": "https://dps.report/pGzS-20260718-125337_golem",
         "upToDate": true
       }
     ]
@@ -18,7 +38,7 @@
         "label": "Power (Hammer / Sword-Axe)",
         "build": "Builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "Rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
-        "benchmarkDps": 44183,
+        "benchmarkDps": 44840,
         "upToDate": true
       }
     ]
@@ -30,14 +50,14 @@
         "label": "Power (Longbow / Axe-Axe)",
         "build": "Builds/ranger/b-power-galeshot-longbow-axe.json",
         "rotation": "Rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
-        "benchmarkDps": 42584,
+        "benchmarkDps": 42455,
         "upToDate": true
       },
       {
         "label": "Power Quickness (Longbow / Axe-Axe)",
         "build": "Builds/ranger/b-power-quick-galeshot-longbow-axe.json",
         "rotation": "Rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
-        "benchmarkDps": 35366,
+        "benchmarkDps": 35399,
         "upToDate": true
       }
     ]

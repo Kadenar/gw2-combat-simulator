@@ -8,6 +8,25 @@ import type {
   Gw2CommonAttributeResult,
 } from "../../platform/gw2/types.js";
 import type { RangerBuild } from "./types.js";
+import { selectedRangerPet } from "./core/state.js";
+
+const PACK_ALPHA_ATTRIBUTES = Object.freeze([
+  "Power",
+  "Condition Damage",
+  "Precision",
+  "Toughness",
+  "Vitality",
+]);
+
+const SOULBEAST_ARCHETYPE_ATTRIBUTES: Readonly<
+  Record<string, Readonly<Record<string, number>>>
+> = Object.freeze({
+  Stout: Object.freeze({ Toughness: 200, Vitality: 100 }),
+  Deadly: Object.freeze({ "Condition Damage": 150, Precision: 100 }),
+  Versatile: Object.freeze({ Vitality: 200, Concentration: 225 }),
+  Ferocious: Object.freeze({ Power: 150, Ferocity: 100 }),
+  Supportive: Object.freeze({ Vitality: 100 }),
+});
 
 export function applyRangerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
@@ -40,17 +59,7 @@ export function applyRangerBuildAttributeRules(
     addAttribute(traitStats, "Ferocity", weapons?.includes("Axe") ? 240 : 120);
   }
   if (soulbeast && hasTrait("Pack Alpha")) {
-    for (const attribute of [
-      "Power",
-      "Precision",
-      "Toughness",
-      "Vitality",
-      "Ferocity",
-      "Condition Damage",
-      "Expertise",
-      "Concentration",
-      "Healing Power",
-    ]) {
+    for (const attribute of PACK_ALPHA_ATTRIBUTES) {
       addAttribute(traitStats, attribute, 150);
     }
   }
@@ -79,6 +88,14 @@ export function applyRangerBuildAttributeRules(
   }
   if (selectedSkills.some((skill) => skill.name === "Signet of the Wild")) {
     addAttribute(traitStats, "Ferocity", 180);
+  }
+  if (soulbeast) {
+    const archetype = selectedRangerPet(rangerBuild)?.archetype || "";
+    for (const [attribute, amount] of Object.entries(
+      SOULBEAST_ARCHETYPE_ATTRIBUTES[archetype] || {},
+    )) {
+      addAttribute(traitStats, attribute, amount);
+    }
   }
 
   return finalizeBuildAttributes(common, {

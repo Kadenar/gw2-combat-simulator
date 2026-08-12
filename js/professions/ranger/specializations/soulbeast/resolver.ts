@@ -12,6 +12,7 @@ import type {
   RangerResolverEvent,
   RangerSkill,
 } from "../../types.js";
+import { rangerPetByName } from "../../core/state.js";
 import { soulbeastState } from "./state.js";
 
 export function handleSoulbeastModeEvent(
@@ -113,8 +114,9 @@ function firstBeastAbilityHit(
   context: RangerResolverContext,
   event: RangerResolverEvent,
 ): boolean {
-  const skill = eventSkill(context, event);
-  if (!skill?.beastmodeSkill || !event.activationId) return false;
+  const activePet = rangerPetByName(professionCoreState(context).activePet);
+  const beastSkillId = activePet.beastmodeSkillIds.at(-1);
+  if (event.skillId !== beastSkillId || !event.activationId) return false;
   const activations = soulbeastState.from(context).beastAbilityActivations;
   if (activations[event.activationId]) return false;
   activations[event.activationId] = true;
@@ -257,6 +259,16 @@ export function reactToSoulbeastDamage(
     event.at >= state.goForTheThroatReadyAt
   ) {
     state.goForTheThroatReadyAt = event.at + 10;
+    context.recordProc(
+      "trait",
+      'Lesser "Sic \'Em!"',
+      event.at,
+      event.skillName,
+      "5s, +15% strike damage",
+      context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
+        context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
+        "",
+    );
     queueSoulbeastBuff(
       context,
       event,

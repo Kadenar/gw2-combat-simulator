@@ -68,6 +68,9 @@ function swapRangerPets(
   state.activePet = pet.name;
   state.activePetSkillIds = [...pet.skillIds];
   state.petOpeningStrikeReady = true;
+  if (context.state.profession.specialization.kind === "Soulbeast") {
+    context.state.profession.specialization.state.archetype = pet.archetype;
+  }
   context.emit({
     type: "ranger.pet-swapped",
     at: context.effectiveEnd,
@@ -105,6 +108,38 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: "player",
         skillId: skill.id,
         skillName: skill.name,
+      });
+    },
+  },
+  "ranger.poisonous-strikes": {
+    mode: "augment" as const,
+    afterEffects(context: RangerCastContext, skill: RangerSkill) {
+      context.emit({
+        type: "ranger.poisonous-strikes",
+        at: context.effectiveEnd,
+        source: "ranger",
+        sourceId: skill.id,
+        actorType: "player",
+        skillId: skill.id,
+        skillName: skill.name,
+        charges: 2,
+        duration: 7,
+      });
+    },
+  },
+  "ranger.sharpening-stone": {
+    mode: "augment" as const,
+    afterEffects(context: RangerCastContext, skill: RangerSkill) {
+      context.emit({
+        type: "ranger.sharpening-stone",
+        at: context.start,
+        source: "ranger",
+        sourceId: skill.id,
+        actorType: "player",
+        skillId: skill.id,
+        skillName: skill.name,
+        charges: 10,
+        duration: 30,
       });
     },
   },
