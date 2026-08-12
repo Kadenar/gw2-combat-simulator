@@ -727,7 +727,7 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<
         timingScale: "fixed",
       },
     ],
-    quicknessCastTimeMs: 1840,
+    quicknessCastTimeMs: 1800,
     finisherType: "Projectile",
     finisherValue: 0.2,
     missileHits: 10,

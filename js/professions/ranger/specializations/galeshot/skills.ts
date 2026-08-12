@@ -12,8 +12,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<
   },
   [ID.MISTRAL]: {
     implemented: true,
-    castTimeMs: 0,
-    canCastConcurrently: true,
+    quicknessCastTimeMs: 320,
     effects: [],
     arrowsRestored: 1,
     handlerId: "ranger.mistral",

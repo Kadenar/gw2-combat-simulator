@@ -30,6 +30,7 @@ import { createThiefBuildDefaults } from "../../js/professions/thief/build.js";
 import { calculateAttributes as calculateThiefAttributes } from "../../js/professions/thief/app/app-definition.js";
 import { THIEF_TRAIT_IDS } from "../../js/professions/thief/data/ids.js";
 import { createThiefCoreState } from "../../js/professions/thief/core/state.js";
+import { createTraitConversionPool } from "../../js/platform/gw2/attributes.js";
 
 const engineerCoreRules = engineerProfession.resolveRuntime({});
 const guardianCoreRules = guardianProfession.resolveRuntime({});
@@ -59,6 +60,33 @@ function traitDelta(
   ).attributes;
   return withTrait[attribute].final - withoutTrait[attribute].final;
 }
+
+test("trait conversion pools merge explicit stats without mutating either bucket", () => {
+  const commonStats = { Power: 1000, Vitality: 1000 };
+  const eligibleTraitStats = {
+    Power: 120,
+    Vitality: 180,
+    Expertise: 150,
+    "Condition Damage": 120,
+    Concentration: 240,
+  };
+
+  assert.deepEqual(createTraitConversionPool(commonStats, eligibleTraitStats), {
+    Power: 1120,
+    Vitality: 1180,
+    Expertise: 150,
+    "Condition Damage": 120,
+    Concentration: 240,
+  });
+  assert.deepEqual(commonStats, { Power: 1000, Vitality: 1000 });
+  assert.deepEqual(eligibleTraitStats, {
+    Power: 120,
+    Vitality: 180,
+    Expertise: 150,
+    "Condition Damage": 120,
+    Concentration: 240,
+  });
+});
 
 test("shared attribute provenance applies profession static rules once", () => {
   const applied = {
@@ -191,6 +219,27 @@ test("Engineer exposes current unconditional trait attributes", () => {
     traitDelta(calculateEngineerAttributes, build, "Hybrid Vigor", "Vitality"),
     240,
   );
+
+  const firearms = createEngineerBuildDefaults();
+  firearms.specializations = [{ name: "Firearms", traits: "1-2-1" }];
+  assert.equal(
+    traitDelta(
+      calculateEngineerAttributes,
+      firearms,
+      "Chemical Rounds",
+      "Condition Damage",
+    ),
+    120,
+  );
+  assert.equal(
+    traitDelta(
+      calculateEngineerAttributes,
+      firearms,
+      "Thermal Vision",
+      "Expertise",
+    ),
+    150,
+  );
 });
 
 test("Engineer omits conditional and obsolete attribute effects", () => {
@@ -275,6 +324,97 @@ test("Guardian includes Force of Will before Power of the Virtuous", () => {
   );
 });
 
+test("Guardian eligible flat traits feed attribute conversions", () => {
+  const vitalitySources = [
+    {
+      specialization: { name: "Dragonhunter", traits: "1-1-1" },
+      trait: "Defender's Dogma",
+      amount: 180,
+    },
+    {
+      specialization: { name: "Willbender", traits: "3-1-1" },
+      trait: "Conceited Curate",
+      amount: 180,
+    },
+    {
+      specialization: { name: "Firebrand", traits: "1-1-1" },
+      trait: "Imbued Haste",
+      amount: 250,
+    },
+    {
+      specialization: { name: "Luminary", traits: "1-1-1" },
+      trait: "Light's Gift",
+      amount: 180,
+    },
+  ];
+
+  for (const { specialization, trait, amount } of vitalitySources) {
+    const build = createGuardianBuildDefaults();
+    build.food = "";
+    build.utility = "";
+    build.assumptions.quickness = true;
+    build.specializations = [
+      specialization,
+      { name: "Virtues", traits: "1-1-1" },
+    ];
+    const all = calculateGuardianAttributes(build).attributes;
+    const withoutConversion = calculateGuardianAttributes(
+      build,
+      [],
+      1,
+      "Power of the Virtuous",
+    ).attributes;
+
+    assert.equal(
+      traitDelta(calculateGuardianAttributes, build, trait, "Vitality"),
+      amount,
+      trait,
+    );
+    assert.equal(
+      all["Condition Damage"].final -
+        withoutConversion["Condition Damage"].final,
+      Math.round(all.Vitality.final * 0.07),
+      trait,
+    );
+  }
+
+  const power = createGuardianBuildDefaults();
+  power.food = "";
+  power.utility = "";
+  power.specializations = [
+    { name: "Zeal", traits: "1-3-1" },
+    { name: "Willbender", traits: "2-1-1" },
+  ];
+  const withPower = calculateGuardianAttributes(power).attributes;
+  const withoutKindledZeal = calculateGuardianAttributes(
+    power,
+    [],
+    1,
+    "Kindled Zeal",
+  ).attributes;
+  assert.equal(
+    traitDelta(calculateGuardianAttributes, power, "Power for Power", "Power"),
+    120,
+  );
+  assert.equal(
+    withPower["Condition Damage"].final -
+      withoutKindledZeal["Condition Damage"].final,
+    Math.round(withPower.Power.final * 0.1),
+  );
+
+  const conditionDamage = createGuardianBuildDefaults();
+  conditionDamage.specializations = [{ name: "Willbender", traits: "1-1-1" }];
+  assert.equal(
+    traitDelta(
+      calculateGuardianAttributes,
+      conditionDamage,
+      "Searing Pact",
+      "Condition Damage",
+    ),
+    120,
+  );
+});
+
 test("Mesmer static regeneration traits remain represented", () => {
   const build = createMesmerBuildDefaults();
   build.specializations = [{ name: "Chaos", traits: "1-1-1" }];
@@ -326,6 +466,44 @@ test("Dark Gunslinger rounds its Expertise conversion for game parity", () => {
       "Expertise",
     ),
     148,
+  );
+});
+
+test("Lingering Curse feeds Fell Beacon and Boon of Creation remains flat", () => {
+  const scourge = createNecromancerBuildDefaults();
+  scourge.specializations = [
+    { name: "Curses", traits: "1-1-3" },
+    { name: "Scourge", traits: "2-1-1" },
+  ];
+
+  const all = calculateNecromancerAttributes(scourge).attributes;
+  const withoutLingeringCurse = calculateNecromancerAttributes(
+    scourge,
+    [],
+    1,
+    "Lingering Curse",
+  ).attributes;
+  assert.equal(
+    all["Condition Damage"].final -
+      withoutLingeringCurse["Condition Damage"].final,
+    200,
+  );
+  assert.ok(
+    Math.abs(
+      all.Expertise.final - withoutLingeringCurse.Expertise.final - 200 * 0.07,
+    ) < 1e-9,
+  );
+
+  const ritualist = createNecromancerBuildDefaults();
+  ritualist.specializations = [{ name: "Ritualist", traits: "1-1-1" }];
+  assert.equal(
+    traitDelta(
+      calculateNecromancerAttributes,
+      ritualist,
+      "Boon of Creation",
+      "Concentration",
+    ),
+    180,
   );
 });
 
@@ -543,6 +721,167 @@ test("Thief weapon traits use the displayed weapon set", () => {
   const sword = calculateThiefAttributes(build, [], 2).attributes;
   assert.equal(dagger.Power.traits, 160);
   assert.equal(sword.Power.traits, 80);
+});
+
+test("Thief eligible power traits feed Marauder's Resilience", () => {
+  const cases = [
+    {
+      trait: "Dagger Training",
+      specializations: [
+        { name: "Deadly Arts", traits: "1-1-1" },
+        { name: "Daredevil", traits: "1-2-1" },
+      ],
+      weapons: ["Dagger", "Dagger"],
+      alternateWeapons: ["Sword", "Pistol"],
+      amounts: [160, 80],
+    },
+    {
+      trait: "Staff Master",
+      specializations: [{ name: "Daredevil", traits: "1-1-1" }],
+      weapons: ["Staff", ""],
+      alternateWeapons: ["Sword", "Pistol"],
+      amounts: [240, 120],
+    },
+    {
+      trait: "Swindler's Equilibrium",
+      specializations: [
+        { name: "Acrobatics", traits: "1-2-1" },
+        { name: "Daredevil", traits: "1-2-1" },
+      ],
+      weapons: ["Sword", "Pistol"],
+      alternateWeapons: ["Dagger", "Dagger"],
+      amounts: [240, 120],
+    },
+  ];
+
+  for (const testCase of cases) {
+    const build = createThiefBuildDefaults();
+    build.food = "";
+    build.utility = "";
+    build.specializations = testCase.specializations;
+    build.weapons = testCase.weapons;
+    build.alternateWeapons = testCase.alternateWeapons;
+
+    for (const weaponSet of [1, 2]) {
+      const all = calculateThiefAttributes(build, [], weaponSet).attributes;
+      const withoutSource = calculateThiefAttributes(
+        build,
+        [],
+        weaponSet,
+        testCase.trait,
+      ).attributes;
+      const withoutConversion = calculateThiefAttributes(
+        build,
+        [],
+        weaponSet,
+        "Marauder's Resilience",
+      ).attributes;
+
+      assert.equal(
+        all.Power.final - withoutSource.Power.final,
+        testCase.amounts[weaponSet - 1],
+        `${testCase.trait}, weapon set ${weaponSet}`,
+      );
+      assert.equal(
+        all.Vitality.final - withoutConversion.Vitality.final,
+        Math.round(all.Power.final * 0.07),
+        `${testCase.trait}, weapon set ${weaponSet}`,
+      );
+      assert.equal(
+        all.Vitality.final - withoutSource.Vitality.final,
+        Math.round(all.Power.final * 0.07) -
+          Math.round(withoutSource.Power.final * 0.07),
+        `${testCase.trait}, weapon set ${weaponSet}`,
+      );
+    }
+  }
+});
+
+test("Silent Scope feeds Practiced Tolerance", () => {
+  const build = createThiefBuildDefaults();
+  build.specializations = [
+    { name: "Critical Strikes", traits: "1-2-1" },
+    { name: "Deadeye", traits: "1-1-1" },
+  ];
+
+  const all = calculateThiefAttributes(build).attributes;
+  const withoutSilentScope = calculateThiefAttributes(
+    build,
+    [],
+    1,
+    "Silent Scope",
+  ).attributes;
+  const withoutPracticedTolerance = calculateThiefAttributes(
+    build,
+    [],
+    1,
+    "Practiced Tolerance",
+  ).attributes;
+
+  assert.equal(all.Precision.final - withoutSilentScope.Precision.final, 120);
+  assert.equal(
+    all.Ferocity.final - withoutPracticedTolerance.Ferocity.final,
+    Math.round(all.Precision.final * 0.1),
+  );
+  assert.equal(
+    all.Ferocity.final - withoutSilentScope.Ferocity.final,
+    Math.round(all.Precision.final * 0.1) -
+      Math.round(withoutSilentScope.Precision.final * 0.1),
+  );
+});
+
+test("Deadly Ambition and both Second Opinion values feed its conversion", () => {
+  const build = createThiefBuildDefaults();
+  build.specializations = [
+    { name: "Deadly Arts", traits: "3-1-1" },
+    { name: "Specter", traits: "1-1-1" },
+  ];
+  build.weapons = ["Scepter", "Dagger"];
+  build.alternateWeapons = ["Dagger", "Dagger"];
+
+  for (const [weaponSet, secondOpinionAmount] of [
+    [1, 180],
+    [2, 90],
+  ]) {
+    const all = calculateThiefAttributes(build, [], weaponSet).attributes;
+    const withoutSecondOpinion = calculateThiefAttributes(
+      build,
+      [],
+      weaponSet,
+      "Second Opinion",
+    ).attributes;
+    const withoutDeadlyAmbition = calculateThiefAttributes(
+      build,
+      [],
+      weaponSet,
+      "Deadly Ambition",
+    ).attributes;
+
+    assert.equal(
+      all["Condition Damage"].final -
+        withoutSecondOpinion["Condition Damage"].final,
+      secondOpinionAmount,
+    );
+    assert.equal(
+      all["Healing Power"].final - withoutSecondOpinion["Healing Power"].final,
+      Math.round(all["Condition Damage"].final * 0.07),
+    );
+    assert.equal(
+      all["Healing Power"].final - withoutDeadlyAmbition["Healing Power"].final,
+      Math.round(all["Condition Damage"].final * 0.07) -
+        Math.round(withoutDeadlyAmbition["Condition Damage"].final * 0.07),
+    );
+  }
+});
+
+test("Preparedness remains an eligible flat Expertise trait", () => {
+  const build = createThiefBuildDefaults();
+  build.specializations = [{ name: "Trickery", traits: "1-1-1" }];
+
+  assert.equal(
+    traitDelta(calculateThiefAttributes, build, "Preparedness", "Expertise"),
+    150,
+  );
 });
 
 test("Thief uses current flat trait and conversion values", () => {

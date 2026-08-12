@@ -117,7 +117,14 @@ function implementedEvidence(trait: CatalogEntity): {
   readonly file: string;
   readonly name: string;
 } {
-  if (["Compounding Chemicals", "Hybrid Vigor"].includes(trait.name)) {
+  if (
+    [
+      "Chemical Rounds",
+      "Thermal Vision",
+      "Compounding Chemicals",
+      "Hybrid Vigor",
+    ].includes(trait.name)
+  ) {
     return {
       file: "tests/professions/native-build-attributes.test.js",
       name: "Engineer exposes current unconditional trait attributes",

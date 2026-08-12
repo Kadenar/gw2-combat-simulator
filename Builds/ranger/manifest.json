@@ -50,14 +50,14 @@
         "label": "Power (Longbow / Axe-Axe)",
         "build": "Builds/ranger/b-power-galeshot-longbow-axe.json",
         "rotation": "Rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
-        "benchmarkDps": 42455,
+        "benchmarkDps": 42426,
         "upToDate": true
       },
       {
         "label": "Power Quickness (Longbow / Axe-Axe)",
         "build": "Builds/ranger/b-power-quick-galeshot-longbow-axe.json",
         "rotation": "Rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
-        "benchmarkDps": 35399,
+        "benchmarkDps": 35276,
         "upToDate": true
       }
     ]

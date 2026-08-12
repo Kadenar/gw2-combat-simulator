@@ -1,5 +1,7 @@
 import {
   addAttribute,
+  addAttributes,
+  createTraitConversionPool,
   finalizeBuildAttributes,
 } from "../../platform/gw2/attributes.js";
 import { getActiveTraits } from "./data/traits-data.js";
@@ -24,36 +26,45 @@ export function applyNecromancerBuildAttributeRules(
     disabledTrait = null,
   }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
-  const { conversionPool } = common.commonContext;
+  const { conversionPool: commonConversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(
     (build.specializations || []) as NecromancerSpecializationSelection[],
   ).filter((trait) => trait.name !== disabledTrait);
   const hasTrait = (name: string) =>
     activeTraits.some((trait) => trait.name === name);
   const traitStats: Gw2NumericAttributes = {};
+  const traitConversionStats: Gw2NumericAttributes = {};
   const traitDurations: Gw2NumericAttributes = {};
 
   if (hasTrait("Spiteful Fortitude")) {
-    addAttribute(traitStats, "Vitality", (conversionPool.Power || 0) * 0.1);
+    addAttribute(
+      traitStats,
+      "Vitality",
+      (commonConversionPool.Power || 0) * 0.1,
+    );
   }
   if (hasTrait("Furious Demise")) {
-    addAttribute(traitStats, "Precision", 180);
+    addAttribute(traitConversionStats, "Precision", 180);
   }
   if (hasTrait("Lingering Curse")) {
-    addAttribute(traitStats, "Condition Damage", 200);
+    addAttribute(traitConversionStats, "Condition Damage", 200);
   }
   if (hasTrait("Vital Persistence")) {
-    addAttribute(traitStats, "Vitality", 180);
+    addAttribute(traitConversionStats, "Vitality", 180);
   }
   if (hasTrait("Alchemic Vigor")) {
-    addAttribute(traitStats, "Vitality", 240);
+    addAttribute(traitConversionStats, "Vitality", 240);
   }
-  // Flat trait attributes are applied before attribute conversions in-game.
-  // Keep the conversion inputs separate from later conversion outputs so
-  // conversions do not chain into one another.
-  const vitality = (conversionPool.Vitality || 0) + (traitStats.Vitality || 0);
-  const precision =
-    (conversionPool.Precision || 0) + (traitStats.Precision || 0);
+  if (hasTrait("Boon of Creation")) {
+    addAttribute(traitConversionStats, "Concentration", 180);
+  }
+  addAttributes(traitStats, traitConversionStats);
+  const conversionPool = createTraitConversionPool(
+    commonConversionPool,
+    traitConversionStats,
+  );
+  const vitality = conversionPool.Vitality || 0;
+  const precision = conversionPool.Precision || 0;
   if (hasTrait("Implacable Foe")) {
     addAttribute(traitStats, "Ferocity", vitality * 0.13);
   }
@@ -62,9 +73,6 @@ export function applyNecromancerBuildAttributeRules(
   }
   if (hasTrait("Dark Gunslinger")) {
     addAttribute(traitStats, "Expertise", Math.round(vitality * 0.1));
-  }
-  if (hasTrait("Boon of Creation")) {
-    addAttribute(traitStats, "Concentration", 180);
   }
   if (hasTrait("Target the Weak")) {
     addAttribute(traitStats, "Condition Damage", Math.floor(precision * 0.13));
