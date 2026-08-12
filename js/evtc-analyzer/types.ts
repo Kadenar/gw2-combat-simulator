@@ -10,6 +10,16 @@ export const EVTC_STATE_CHANGE = Object.freeze({
   BUFF_APPLY: 69,
 } as const);
 
+// arcdps cbtactivation: how a skill activation (cast) event was produced.
+export const EVTC_ACTIVATION = Object.freeze({
+  NONE: 0,
+  START: 1, // activation_normal: cast started
+  QUICKNESS: 2, // legacy, unused by current arcdps
+  CANCEL_FIRE: 3, // stopped after reaching tooltip time (cast fired)
+  CANCEL_CANCEL: 4, // stopped before firing (cast aborted)
+  RESET: 5, // animation completed fully
+} as const);
+
 export interface ParsedEvtcHeader {
   readonly magic: "EVTC";
   readonly arcdpsBuild: string;
