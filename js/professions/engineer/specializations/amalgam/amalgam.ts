@@ -234,15 +234,12 @@ export function activateAmalgamMorph(
 
 export function activatePlasmaticState(
   context: EngineerCastContext,
-  skill: EngineerSkill,
+  _skill: EngineerSkill,
 ): void {
   const castDuration = Math.max(0, context.fullEnd - context.start);
-  const at = context.start + castDuration * (640 / 720);
-  const aftercastMs = context.hasBuff("quickness", context.start)
-    ? skill.quicknessAftercastMs
-    : skill.aftercastMs;
-  amalgamState.from(context).plasmaticLockoutUntil =
-    context.effectiveEnd + Math.max(0, Number(aftercastMs || 0)) / 1000;
+  // Plasmatic State is a two-phase cast. Its buff and first damage packet land
+  // 640 ms into the 1,440 ms base timeline.
+  const at = context.start + castDuration * (640 / 1440);
   amalgamState.from(context).plasmaticStateUntil = Math.max(
     amalgamState.from(context).plasmaticStateUntil,
     at + 6,

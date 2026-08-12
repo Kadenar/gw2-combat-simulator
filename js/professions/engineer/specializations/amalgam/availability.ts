@@ -9,14 +9,6 @@ export function amalgamCastAvailability(
 ): AvailabilityResult {
   if (context.config.specialization !== "Amalgam") return { ready: true };
   const state = amalgamState.from(context);
-  if (Number(state.plasmaticLockoutUntil || 0) > context.start) {
-    return denyEngineerCast(
-      skill,
-      "engineer.plasmatic-aftercast",
-      "Plasmatic State is completing its second packet.",
-      state.plasmaticLockoutUntil,
-    );
-  }
   if (
     skill.categories?.includes("Morph") &&
     !state.selectedMorphSkillIds.includes(Number(skill.id))

@@ -14,23 +14,23 @@ import { flattenProfessionState } from "../../../platform/engine/profession.js";
 export function selectedEngineerTraits(
   config: EngineerConfig = {},
 ): Set<SkillId> {
-  return new Set([
-    ...(config.traitIds || []),
-    ...(config.selectedTraitIds || []),
-    ...(config.selectedTraits || []),
-  ].map((value) =>
-    Number.isFinite(Number(value)) ? Number(value) : value
-  ));
+  return new Set(
+    [
+      ...(config.traitIds || []),
+      ...(config.selectedTraitIds || []),
+      ...(config.selectedTraits || []),
+    ].map((value) => (Number.isFinite(Number(value)) ? Number(value) : value)),
+  );
 }
 
 export function hasEngineerTrait(
   configOrTraits: EngineerConfig | ReadonlySet<SkillId>,
   traitId: SkillId,
 ): boolean {
-  const traits = typeof (configOrTraits as ReadonlySet<SkillId>).has
-      === "function"
-    ? configOrTraits as ReadonlySet<SkillId>
-    : selectedEngineerTraits(configOrTraits as EngineerConfig);
+  const traits =
+    typeof (configOrTraits as ReadonlySet<SkillId>).has === "function"
+      ? (configOrTraits as ReadonlySet<SkillId>)
+      : selectedEngineerTraits(configOrTraits as EngineerConfig);
   return traits.has(traitId) || traits.has(String(traitId));
 }
 
@@ -58,9 +58,7 @@ export function createEngineerCoreState(
   };
 }
 
-export function snapshotEngineerState(
-  state: unknown,
-): EngineerState {
+export function snapshotEngineerState(state: unknown): EngineerState {
   return structuredClone(
     flattenProfessionState(state),
   ) as unknown as EngineerState;
@@ -90,7 +88,6 @@ export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
   "electricArtilleryExpiresAt",
   "willingHostUntil",
   "plasmaticStateUntil",
-  "plasmaticLockoutUntil",
   "thornsUntil",
   "rapaciousUntil",
   "predatorUntil",
@@ -100,8 +97,9 @@ export const ENGINEER_PUBLIC_END_STATE_KEYS = Object.freeze([
   "kineticCharges",
 ] as const satisfies readonly (keyof EngineerState)[]);
 
-const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS:
-  Readonly<Partial<EngineerState>> = Object.freeze({
+const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<
+  Partial<EngineerState>
+> = Object.freeze({
   heat: 0,
   maximumHeat: 100,
   photonForgeActive: false,
@@ -122,7 +120,6 @@ const ENGINEER_PUBLIC_INACTIVE_STATE_DEFAULTS:
   evolvedUntil: 0,
   willingHostUntil: 0,
   plasmaticStateUntil: 0,
-  plasmaticLockoutUntil: 0,
   thornsUntil: 0,
   rapaciousUntil: 0,
   predatorUntil: 0,

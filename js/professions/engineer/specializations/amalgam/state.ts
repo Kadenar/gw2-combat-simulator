@@ -7,7 +7,6 @@ export function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
     evolvedUntil: 0,
     willingHostUntil: 0,
     plasmaticStateUntil: 0,
-    plasmaticLockoutUntil: 0,
     thornsUntil: 0,
     rapaciousUntil: 0,
     predatorUntil: 0,

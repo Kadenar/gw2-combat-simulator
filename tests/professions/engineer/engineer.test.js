@@ -1501,10 +1501,24 @@ test("Engineer benchmark packets use total coefficients and measured cadence", (
   assert.equal(mechanic("Freeze Grenade").quicknessCastTimeMs, 680);
   assert.equal(mechanic("Flame Jet").castTimeMs, 2570);
   assert.equal(mechanic("Flame Jet").effects[0].coefficient, 2.5);
-  assert.equal(mechanic("Napalm").effects[0].coefficient, 5);
+  assert.equal(
+    mechanic("Napalm").effects[0].ticks.reduce(
+      (total, packet) => total + packet.coefficient,
+      0,
+    ),
+    5,
+  );
   assert.equal(mechanic("Napalm").quicknessCastTimeMs, 1760);
   assert.equal(mechanic("Napalm").cooldown, 25);
+  assert.deepEqual(
+    mechanic("Napalm").effects[0].ticks.map((packet) => packet.atMs),
+    [280, 441, 560, 679, 842, 955, 1077, 1240, 1361, 1482],
+  );
   assert.equal(mechanic("Napalm").effects[1].ticks.length, 10);
+  assert.deepEqual(
+    mechanic("Napalm").effects[1].ticks.map((packet) => packet.atMs),
+    mechanic("Napalm").effects[0].ticks.map((packet) => packet.atMs),
+  );
   assert.equal(mechanic("Flame Blast").cooldown, 6);
   assert.equal(mechanic("Flame Blast").quicknessCastTimeMs, 800);
   assert.equal(mechanic("Flame Blast").measuredCancelMs, 480);
@@ -1665,8 +1679,10 @@ test("Engineer benchmark packets use total coefficients and measured cadence", (
   assert.equal(flux.effects[2].ticks.length, 12);
 
   const plasmatic = mechanic("Plasmatic State");
-  assert.equal(plasmatic.castTimeMs, 720);
-  assert.equal(plasmatic.quicknessCastTimeMs, 480);
+  assert.equal(plasmatic.castTimeMs, 1440);
+  assert.equal(plasmatic.quicknessCastTimeMs, 480 + 480);
+  assert.equal(plasmatic.rechargeAnchor, "castStart");
+  assert.equal(plasmatic.rechargeOffsetMs, 480);
   assert.equal(
     plasmatic.effects[0].ticks.reduce(
       (sum, packet) => sum + packet.coefficient,
@@ -2412,8 +2428,7 @@ test("Engineer spear focus selects one branch and Lightning Rod pulses eight tim
   const artilleryStep = focused.steps.find(
     (step) => step.skill === "Electric Artillery",
   );
-  assert.ok(artilleryStep.start - rodStep.start >= 4000);
-  assert.ok(artilleryStep.start - rodStep.start <= 4100);
+  assert.equal(artilleryStep.start - rodStep.start, 4200);
   assert.equal(
     focused.events.find((event) => event.type === "engineer.electric-artillery")
       .charges,
@@ -2495,25 +2510,44 @@ test("Electric Artillery is unavailable until Lightning Rod creates its flip", (
   );
 });
 
-test("Lightning Rod arms Electric Artillery for the rotation palette", () => {
-  const result = simulate("Amalgam", ["Lightning Rod"], {
+test("Lightning Rod exposes Electric Artillery after charging", () => {
+  const charging = simulate("Amalgam", ["Lightning Rod"], {
     selectedMorphSkillIds: [77103, 77104, 76705],
   });
-  const context = {
-    professionState: result.endState.profession,
-    time: result.duration,
+  const charged = simulate(
+    "Amalgam",
+    ["Lightning Rod", { type: "wait", durationMs: 4000 }],
+    {
+      selectedMorphSkillIds: [77103, 77104, 76705],
+    },
+  );
+  const chargingContext = {
+    professionState: charging.endState.profession,
+    time: charging.duration,
+  };
+  const chargedContext = {
+    professionState: charged.endState.profession,
+    time: charged.duration,
   };
   const rod = engineerCatalog.skillsByName.get("Lightning Rod");
   const artillery = engineerCatalog.skillsByName.get("Electric Artillery");
   assert.equal(
-    engineerProfession.ui.isPaletteSkillAvailable(context, rod),
+    engineerProfession.ui.isPaletteSkillAvailable(chargingContext, rod),
     false,
   );
   assert.equal(
-    engineerProfession.ui.isPaletteSkillAvailable(context, artillery),
+    engineerProfession.ui.isPaletteSkillAvailable(chargingContext, artillery),
+    false,
+  );
+  assert.equal(
+    engineerProfession.ui.isPaletteSkillAvailable(chargedContext, artillery),
     true,
   );
-  assert.equal(result.endState.profession.availableFlips[artillery.id], true);
+  assert.equal(
+    charging.endState.profession.availableFlips[artillery.id],
+    false,
+  );
+  assert.equal(charged.endState.profession.availableFlips[artillery.id], true);
 });
 
 test("Roiling Skies changes control branch with focus and always cripples", () => {
@@ -2573,6 +2607,26 @@ test("focused Devastator completes its full cast and triggers six hits", () => {
   );
   assert.equal(focused.length, 6);
   assert.ok(focused.every((event) => event.coefficient === 0.2));
+  assert.ok(focused.every((event) => event.skillId === 73064));
+  assert.ok(focused.every((event) => event.sourceId === 73064));
+  assert.equal(new Set(focused.map((event) => event.activationId)).size, 1);
+  assert.notEqual(
+    focused[0].activationId,
+    result.resolvedEvents.find((event) => event.name === "Devastator")
+      .activationId,
+  );
+  assert.ok(
+    focused.every(
+      (event) =>
+        event.weaponStrengthProfileId === "nonweapon.unequipped" &&
+        event.resolvedWeaponStrength === 690.5,
+    ),
+  );
+  assert.ok(
+    result.resolvedEvents
+      .filter((event) => event.name === "Devastator")
+      .every((event) => event.skillId === 72974),
+  );
   assert.equal(
     result.resolvedEvents.filter(
       (event) =>
@@ -2581,6 +2635,44 @@ test("focused Devastator completes its full cast and triggers six hits", () => {
     ).length,
     6,
   );
+  assert.ok(
+    result.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "condition" &&
+          event.name === "Focused Devastation — Burning",
+      )
+      .every((event) => event.skillId === 73064 && event.sourceId === 73064),
+  );
+  assert.equal(
+    result.breakdown.find((entry) => entry.name === "Devastator").skillId,
+    72974,
+  );
+  assert.equal(
+    result.breakdown.find((entry) => entry.name === "Focused Devastation")
+      .skillId,
+    73064,
+  );
+
+  const stochastic = simulate(
+    "Amalgam",
+    ["Conduit Surge", "Devastator", { type: "wait", durationMs: 2000 }],
+    {
+      selectedMorphSkillIds: [77103, 77104, 76705],
+      randomness: { mode: "stochastic", seed: 73064 },
+    },
+  );
+  const stochasticStrengths = new Set(
+    stochastic.resolvedEvents
+      .filter(
+        (event) =>
+          event.type === "damage" && event.name === "Focused Devastation",
+      )
+      .map((event) => event.resolvedWeaponStrength),
+  );
+  assert.equal(stochasticStrengths.size, 1);
+  assert.ok([...stochasticStrengths][0] >= 656);
+  assert.ok([...stochasticStrengths][0] < 725);
 });
 
 test("benchmark Amalgam traits activate on morph and Evolve chronology", () => {
@@ -2662,6 +2754,44 @@ test("Evolve raises attributes by ten percent for eight seconds", () => {
       1e-12,
   );
   assert.equal(evolved.endState.profession.evolvedUntil, 8.78);
+});
+
+test("Evolve cannot raise condition duration above the global cap", () => {
+  const result = simulate(
+    "Amalgam",
+    [
+      "Evolve",
+      "Grenade Kit",
+      "Shrapnel Grenade",
+      { type: "wait", durationMs: 13000 },
+    ],
+    {
+      selectedSkills: [
+        "Healing Turret",
+        "Grenade Kit",
+        "Flamethrower",
+        "Bomb Kit",
+        "Flux State",
+      ],
+      selectedMorphSkillIds: [77103, 77104, 76705],
+      selectedTraitIds: [TRAIT.SERRATED_STEEL],
+      stats: { expertise: 1500 },
+      target: { conditions: {} },
+    },
+  );
+  const directBleeds = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "condition" &&
+      event.skillName === "Shrapnel Grenade" &&
+      event.condition === "Bleeding",
+  );
+
+  assert.equal(directBleeds.length, 3);
+  assert.ok(
+    directBleeds.every(
+      (event) => Math.abs(event.effectiveDuration - 14) < 1e-12,
+    ),
+  );
 });
 
 test("Evolve grants each selected protocol strain without leaking it to casts", () => {
@@ -3026,7 +3156,7 @@ test("Thorns damaging-field assumption creates six one-second retaliations", () 
   );
 });
 
-test("Plasmatic State applies two packets, its buff, and measured aftercast", () => {
+test("Plasmatic State models both phases as one cast", () => {
   const result = simulate("Amalgam", ["Plasmatic State", "Puncturing Jab"], {
     boons: { quickness: true },
     selectedSkills: [
@@ -3042,13 +3172,25 @@ test("Plasmatic State applies two packets, its buff, and measured aftercast", ()
   const following = result.steps.find(
     (step) => step.skill === "Puncturing Jab",
   );
-  assert.equal(step.end - step.start, 480);
-  assert.equal(following.start - step.start, 920);
+  assert.equal(step.end - step.start, 960);
+  assert.equal(following.start - step.start, 960);
+  const action = result.events.find(
+    (event) => event.type === "action" && event.skillName === "Plasmatic State",
+  );
+  assert.equal(Math.round((action.rechargeReadyAt - action.at) * 1000), 25_480);
   assert.equal(
     result.resolvedEvents.filter(
       (event) => event.type === "damage" && event.name === "Plasmatic State",
     ).length,
     2,
+  );
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter(
+        (event) => event.type === "damage" && event.name === "Plasmatic State",
+      )
+      .map((event) => Math.round((event.at - step.start / 1000) * 1000)),
+    [427, 787],
   );
   const firstPacket = result.resolvedEvents.find(
     (event) => event.type === "damage" && event.name === "Plasmatic State",
@@ -4957,7 +5099,7 @@ test("condition alacrity Amalgam benchmark preset preserves supplied build", asy
     preset.rotation,
     "Rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
   );
-  assert.equal(savedRotation.rotation.length, 251);
+  assert.equal(savedRotation.rotation.length, 248);
 
   const build = migrateEngineerBuild({
     ...raw,
@@ -5024,7 +5166,7 @@ test("condition alacrity Amalgam benchmark preset preserves supplied build", asy
     .filter((entry) => entry.name.endsWith("— Bleeding"))
     .reduce((total, entry) => total + entry.damage, 0);
   assert.ok(
-    Math.abs(bleedingDamage - 934151.92) < 2,
+    Math.abs(bleedingDamage - 924372.96) < 2,
     `Unexpected bleeding damage: ${bleedingDamage}`,
   );
   const conduit = result.breakdown.find(
@@ -5102,7 +5244,7 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
   assert.ok(
     Math.abs(savedRotation.metadata.benchmarkDps - 43592.66853809378) < 1e-9,
   );
-  assert.equal(savedRotation.rotation.length, 217);
+  assert.equal(savedRotation.rotation.length, 213);
 
   const rotationName = (entry) =>
     typeof entry === "string" ? entry : entry.name;
@@ -5130,6 +5272,18 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
   const result = runSimulation(app);
 
   assert.deepEqual(result.warnings, []);
+  const serratedSteelSources = new Set(
+    result.procSteps
+      .filter((step) => step.skill === "Serrated Steel")
+      .map((step) => step.sourceSkill),
+  );
+  for (const source of [
+    "Rapacious Strain",
+    "Aim-Assisted Rocket",
+    "Orbital Command Strike",
+  ]) {
+    assert.equal(serratedSteelSources.has(source), true, source);
+  }
   assert.equal(
     simulationEventLogRows(result, build, engineerProfession).some((row) =>
       row.description.includes("Heat"),
@@ -5138,7 +5292,7 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
   );
   assert.ok(Math.abs(result.dps - 43593) < 750);
   for (const [skill, count] of [
-    ["Shrapnel Grenade", 17],
+    ["Shrapnel Grenade", 16],
     ["Fire Bomb", 11],
     ["Galvanic Bomb", 6],
     ["Big Ol' Bomb", 6],
@@ -5155,7 +5309,7 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
   }
   assert.equal(
     result.breakdown.find((entry) => entry.name === "Magnetic Bomb").hits,
-    2,
+    3,
   );
   const nourishment = result.breakdown.find(
     (entry) => entry.name === "Nourishment",
