@@ -23,6 +23,7 @@ import type {
   Gw2ApplyBuildAttributeRules,
   Gw2AttributeBreakdown,
   Gw2AttributeData,
+  Gw2AttributeEffect,
   Gw2AttributeMap,
   Gw2Build,
   Gw2CalculateAttributes,
@@ -97,17 +98,42 @@ export function addAttributes(
 }
 
 /**
- * Adds explicitly eligible trait attributes to the normal equipment-backed
- * conversion inputs. Keeping this as a separate pool prevents the results of
- * one attribute conversion from becoming the input to another conversion.
+ * Resolves flat attribute effects and conversions in separate phases. Only
+ * explicitly eligible flat effects are added to the conversion snapshot, and
+ * conversion results never become inputs to later conversions.
  */
-export function createTraitConversionPool(
-  conversionPool: Readonly<Gw2NumericAttributes>,
-  traitConversionStats: Readonly<Gw2NumericAttributes>,
+export function resolveAttributeEffects(
+  commonConversionPool: Readonly<Gw2NumericAttributes>,
+  effects: readonly Gw2AttributeEffect[],
 ): Gw2NumericAttributes {
-  const combined = { ...conversionPool };
-  addAttributes(combined, traitConversionStats);
-  return combined;
+  const activeEffects = effects.filter((effect) => effect.enabled !== false);
+  const traitStats: Gw2NumericAttributes = {};
+  const eligibleConversionPool = { ...commonConversionPool };
+
+  for (const effect of activeEffects) {
+    if (effect.kind !== "flat") continue;
+    addAttribute(traitStats, effect.to, effect.amount);
+    if (effect.feedsConversions) {
+      addAttribute(eligibleConversionPool, effect.to, effect.amount);
+    }
+  }
+
+  for (const effect of activeEffects) {
+    if (effect.kind !== "conversion") continue;
+    const inputPool =
+      effect.input === "common" ? commonConversionPool : eligibleConversionPool;
+    const rawAmount =
+      (inputPool[effect.from] ?? 0) * effect.multiplier + (effect.addend ?? 0);
+    const amount =
+      effect.rounding === "round"
+        ? Math.round(rawAmount)
+        : effect.rounding === "floor"
+          ? Math.floor(rawAmount)
+          : rawAmount;
+    addAttribute(traitStats, effect.to, amount);
+  }
+
+  return traitStats;
 }
 
 export function derivedAttribute(

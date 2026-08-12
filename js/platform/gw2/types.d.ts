@@ -922,6 +922,33 @@ export interface Gw2DeclarativeSimulationOptions {
 
 export type Gw2NumericAttributes = Record<string, number>;
 
+export type Gw2AttributeEffectRounding = "none" | "round" | "floor";
+
+interface Gw2AttributeEffectBase {
+  readonly source: string;
+  readonly enabled?: boolean;
+}
+
+export interface Gw2FlatAttributeEffect extends Gw2AttributeEffectBase {
+  readonly kind: "flat";
+  readonly to: string;
+  readonly amount: number;
+  readonly feedsConversions: boolean;
+}
+
+export interface Gw2ConversionAttributeEffect extends Gw2AttributeEffectBase {
+  readonly kind: "conversion";
+  readonly from: string;
+  readonly to: string;
+  readonly multiplier: number;
+  readonly addend?: number;
+  readonly rounding: Gw2AttributeEffectRounding;
+  readonly input: "common" | "eligible";
+}
+
+export type Gw2AttributeEffect =
+  Gw2FlatAttributeEffect | Gw2ConversionAttributeEffect;
+
 export interface Gw2AttributeBreakdown {
   final: number;
   base: number;

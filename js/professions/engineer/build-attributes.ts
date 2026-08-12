@@ -1,12 +1,11 @@
 import {
-  addAttribute,
-  addAttributes,
-  createTraitConversionPool,
   finalizeBuildAttributes,
+  resolveAttributeEffects,
 } from "../../platform/gw2/attributes.js";
 import { getActiveTraits } from "./data/traits-data.js";
 import type {
   Gw2BuildAttributeRuleContext,
+  Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes,
@@ -17,60 +16,102 @@ export function applyEngineerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
   { build, disabledTrait = null }: Gw2BuildAttributeRuleContext,
 ): Gw2FinalizedAttributeResult {
+  const engineerBuild = build as EngineerBuild;
   const { conversionPool: commonConversionPool } = common.commonContext;
   const activeTraits = getActiveTraits(
-    (build as EngineerBuild).specializations || [],
+    engineerBuild.specializations || [],
   ).filter((trait) => trait.name !== disabledTrait);
   const hasTrait = (name: string): boolean =>
     activeTraits.some((trait) => trait.name === name);
-  const traitStats: Gw2NumericAttributes = {};
-  const traitConversionStats: Gw2NumericAttributes = {};
   const traitDurations: Gw2NumericAttributes = {};
-
-  if (hasTrait("Chemical Rounds")) {
-    addAttribute(traitConversionStats, "Condition Damage", 120);
-  }
-  if (hasTrait("Thermal Vision")) {
-    addAttribute(traitConversionStats, "Expertise", 150);
-  }
-  if (hasTrait("Compounding Chemicals")) {
-    // This is a flat bonus, but it does not feed attribute conversions.
-    addAttribute(traitStats, "Concentration", 240);
-  }
-  if (hasTrait("Hybrid Vigor")) {
-    // Keep this outside conversions until its in-game behavior is confirmed.
-    addAttribute(traitStats, "Vitality", 240);
-  }
-
-  addAttributes(traitStats, traitConversionStats);
-  const conversionPool = createTraitConversionPool(
+  const attributeEffects: readonly Gw2AttributeEffect[] = [
+    {
+      kind: "flat",
+      source: "Chemical Rounds",
+      to: "Condition Damage",
+      amount: 120,
+      feedsConversions: true,
+      enabled: hasTrait("Chemical Rounds"),
+    },
+    {
+      kind: "flat",
+      source: "Thermal Vision",
+      to: "Expertise",
+      amount: 150,
+      feedsConversions: true,
+      enabled: hasTrait("Thermal Vision"),
+    },
+    {
+      kind: "flat",
+      source: "Compounding Chemicals",
+      to: "Concentration",
+      amount: 240,
+      feedsConversions: false,
+      enabled: hasTrait("Compounding Chemicals"),
+    },
+    {
+      kind: "flat",
+      source: "Hybrid Vigor",
+      to: "Vitality",
+      amount: 240,
+      // Keep this outside conversions until its in-game behavior is confirmed.
+      feedsConversions: false,
+      enabled: hasTrait("Hybrid Vigor"),
+    },
+    {
+      kind: "conversion",
+      source: "Blast Shield",
+      from: "Power",
+      to: "Vitality",
+      multiplier: 0.1,
+      rounding: "none",
+      input: "eligible",
+      enabled: hasTrait("Blast Shield"),
+    },
+    {
+      kind: "flat",
+      source: "Energy Amplifier",
+      to: "Power",
+      amount: 250,
+      feedsConversions: false,
+      enabled:
+        hasTrait("Energy Amplifier") &&
+        engineerBuild.assumptions?.regeneration !== false,
+    },
+    {
+      kind: "flat",
+      source: "Energy Amplifier",
+      to: "Healing Power",
+      amount: 250,
+      feedsConversions: false,
+      enabled:
+        hasTrait("Energy Amplifier") &&
+        engineerBuild.assumptions?.regeneration !== false,
+    },
+    {
+      kind: "flat",
+      source: "No Scope",
+      to: "Ferocity",
+      amount: 150,
+      feedsConversions: false,
+      enabled:
+        hasTrait("No Scope") && engineerBuild.assumptions?.fury !== false,
+    },
+    {
+      kind: "conversion",
+      source: "Kinetic Accelerators",
+      from: "Power",
+      to: "Concentration",
+      multiplier: 0.13,
+      rounding: "round",
+      input: "eligible",
+      enabled: hasTrait("Kinetic Accelerators"),
+    },
+  ];
+  const traitStats = resolveAttributeEffects(
     commonConversionPool,
-    traitConversionStats,
+    attributeEffects,
   );
-
-  if (hasTrait("Blast Shield")) {
-    addAttribute(traitStats, "Vitality", (conversionPool.Power || 0) * 0.1);
-  }
-  if (
-    hasTrait("Energy Amplifier") &&
-    (build as EngineerBuild).assumptions?.regeneration !== false
-  ) {
-    addAttribute(traitStats, "Power", 250);
-    addAttribute(traitStats, "Healing Power", 250);
-  }
-  if (
-    hasTrait("No Scope") &&
-    (build as EngineerBuild).assumptions?.fury !== false
-  ) {
-    addAttribute(traitStats, "Ferocity", 150);
-  }
-  if (hasTrait("Kinetic Accelerators")) {
-    addAttribute(
-      traitStats,
-      "Concentration",
-      Math.round((conversionPool.Power || 0) * 0.13),
-    );
-  }
 
   return finalizeBuildAttributes(common, {
     activeTraits,

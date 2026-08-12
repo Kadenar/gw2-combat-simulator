@@ -2,26 +2,21 @@ import { getActiveTraits } from "./data/traits-data.js";
 import {
   addAttribute,
   derivedAttribute,
+  resolveAttributeEffects,
   SPECIFIC_DURATION_ATTRIBUTES,
 } from "../../platform/gw2/attributes.js";
+import type { Skill } from "../../platform/engine/types.js";
 import type {
-  Skill,
-} from "../../platform/engine/types.js";
-import type {
+  Gw2AttributeEffect,
   Gw2Build,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes,
 } from "../../platform/gw2/types.js";
-import type {
-  ElementalistBuild,
-} from "./types.js";
+import type { ElementalistBuild } from "./types.js";
 
-function selectedSkill(
-  skills: readonly Skill[],
-  name: string,
-): boolean {
-  return (skills || []).some(skill => skill?.name === name);
+function selectedSkill(skills: readonly Skill[], name: string): boolean {
+  return (skills || []).some((skill) => skill?.name === name);
 }
 
 export function applyElementalistBuildAttributeRules(
@@ -36,11 +31,8 @@ export function applyElementalistBuildAttributeRules(
 ): Gw2FinalizedAttributeResult {
   const elementalistBuild = build as ElementalistBuild;
   const attributes = structuredClone(common.attributes);
-  const traitStats: Gw2NumericAttributes = {};
   const traitDurations: Gw2NumericAttributes = {};
-  const activeTraits = getActiveTraits(
-    elementalistBuild.specializations || [],
-  );
+  const activeTraits = getActiveTraits(elementalistBuild.specializations || []);
   const hasTrait = (name: string): boolean =>
     activeTraits.some((trait) => trait.name === name);
   const {
@@ -50,39 +42,69 @@ export function applyElementalistBuildAttributeRules(
     sigilCriticalChance,
     sigilDurations,
   } = common.commonContext;
-
-  if (hasTrait("Ferocious Winds")) {
-    addAttribute(
-      traitStats,
-      "Ferocity",
-      Math.round((conversionPool.Precision || 0) * 0.07),
-    );
-  }
-  if (hasTrait("Strength of Stone")) {
-    addAttribute(
-      traitStats,
-      "Condition Damage",
-      Math.round((conversionPool.Toughness || 0) * 0.1),
-    );
-  }
-  if (selectedSkill(selectedSkills, "Signet of Fire")) {
-    addAttribute(traitStats, "Precision", 180);
-  }
+  const attributeEffects: Gw2AttributeEffect[] = [
+    {
+      kind: "conversion",
+      source: "Ferocious Winds",
+      from: "Precision",
+      to: "Ferocity",
+      multiplier: 0.07,
+      rounding: "round",
+      input: "common",
+      enabled: hasTrait("Ferocious Winds"),
+    },
+    {
+      kind: "conversion",
+      source: "Strength of Stone",
+      from: "Toughness",
+      to: "Condition Damage",
+      multiplier: 0.1,
+      rounding: "round",
+      input: "common",
+      enabled: hasTrait("Strength of Stone"),
+    },
+    {
+      kind: "flat",
+      source: "Signet of Fire",
+      to: "Precision",
+      amount: 180,
+      feedsConversions: false,
+      enabled: selectedSkill(selectedSkills, "Signet of Fire"),
+    },
+  ];
 
   let traitCriticalChance = 0;
   for (const trait of activeTraits) {
-    addAttribute(
-      traitStats,
-      "Condition Damage",
-      Number(trait.conditionDamage || 0),
+    attributeEffects.push(
+      {
+        kind: "flat",
+        source: trait.name,
+        to: "Condition Damage",
+        amount: Number(trait.conditionDamage || 0),
+        feedsConversions: false,
+      },
+      {
+        kind: "flat",
+        source: trait.name,
+        to: "Ferocity",
+        amount: Number(trait.ferocity || 0),
+        feedsConversions: false,
+      },
+      {
+        kind: "flat",
+        source: trait.name,
+        to: "Concentration",
+        amount: Number(trait.concentration || 0),
+        feedsConversions: false,
+      },
+      {
+        kind: "flat",
+        source: trait.name,
+        to: "Vitality",
+        amount: Number(trait.vitality || 0),
+        feedsConversions: false,
+      },
     );
-    addAttribute(traitStats, "Ferocity", Number(trait.ferocity || 0));
-    addAttribute(
-      traitStats,
-      "Concentration",
-      Number(trait.concentration || 0),
-    );
-    addAttribute(traitStats, "Vitality", Number(trait.vitality || 0));
     addAttribute(
       traitDurations,
       "Burning Duration",
@@ -95,6 +117,7 @@ export function applyElementalistBuildAttributeRules(
     );
     traitCriticalChance += Number(trait.criticalChance || 0);
   }
+  const traitStats = resolveAttributeEffects(conversionPool, attributeEffects);
 
   for (const [name, amount] of Object.entries(traitStats)) {
     if (!attributes[name]) continue;
@@ -113,22 +136,22 @@ export function applyElementalistBuildAttributeRules(
   );
   attributes["Critical Damage"] = derivedAttribute(150 + ferocity / 15);
   attributes["Boon Duration"] = derivedAttribute(
-    concentration / 15
-      + (runeDurations["Boon Duration"] || 0)
-      + (traitDurations["Boon Duration"] || 0)
-      + (foodDurations["Boon Duration"] || 0)
-      + (sigilDurations["Boon Duration"] || 0),
+    concentration / 15 +
+      (runeDurations["Boon Duration"] || 0) +
+      (traitDurations["Boon Duration"] || 0) +
+      (foodDurations["Boon Duration"] || 0) +
+      (sigilDurations["Boon Duration"] || 0),
     traitDurations["Boon Duration"] || 0,
     sigilDurations["Boon Duration"] || 0,
     runeDurations["Boon Duration"] || 0,
     foodDurations["Boon Duration"] || 0,
   );
   attributes["Condition Duration"] = derivedAttribute(
-    expertise / 15
-      + (runeDurations["Condition Duration"] || 0)
-      + (traitDurations["Condition Duration"] || 0)
-      + (foodDurations["Condition Duration"] || 0)
-      + (sigilDurations["Condition Duration"] || 0),
+    expertise / 15 +
+      (runeDurations["Condition Duration"] || 0) +
+      (traitDurations["Condition Duration"] || 0) +
+      (foodDurations["Condition Duration"] || 0) +
+      (sigilDurations["Condition Duration"] || 0),
     traitDurations["Condition Duration"] || 0,
     sigilDurations["Condition Duration"] || 0,
     runeDurations["Condition Duration"] || 0,
@@ -136,10 +159,10 @@ export function applyElementalistBuildAttributeRules(
   );
   for (const key of SPECIFIC_DURATION_ATTRIBUTES) {
     const value =
-      (runeDurations[key] || 0)
-      + (traitDurations[key] || 0)
-      + (foodDurations[key] || 0)
-      + (sigilDurations[key] || 0);
+      (runeDurations[key] || 0) +
+      (traitDurations[key] || 0) +
+      (foodDurations[key] || 0) +
+      (sigilDurations[key] || 0);
     if (value) {
       attributes[key] = derivedAttribute(
         value,

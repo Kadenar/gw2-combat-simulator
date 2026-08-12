@@ -1,13 +1,12 @@
 import {
-  addAttribute,
-  addAttributes,
-  createTraitConversionPool,
   finalizeBuildAttributes,
+  resolveAttributeEffects,
 } from "../../platform/gw2/attributes.js";
 import { getActiveTraits } from "./data/traits-data.js";
 import type { Skill } from "../../platform/engine/types.js";
 import type {
   Gw2BuildAttributeRuleContext,
+  Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes,
@@ -38,92 +37,141 @@ export function applyThiefBuildAttributeRules(
   );
   const hasTrait = (name: string): boolean =>
     activeTraits.some((trait) => trait.name === name);
-  const traitStats: Gw2NumericAttributes = {};
-  const traitConversionStats: Gw2NumericAttributes = {};
   const traitDurations: Gw2NumericAttributes = {};
-
-  if (hasTrait("Dagger Training")) {
-    addAttribute(
-      traitConversionStats,
-      "Power",
-      wields(thiefBuild, "Dagger", weaponSet) ? 160 : 80,
-    );
-  }
-  if (hasTrait("Deadly Ambition")) {
-    addAttribute(traitConversionStats, "Condition Damage", 180);
-  }
-  if (hasTrait("Revealed Training")) addAttribute(traitStats, "Power", 80);
-  if (hasTrait("No Quarter") && thiefBuild.assumptions?.fury) {
-    addAttribute(traitStats, "Ferocity", 250);
-  }
-  if (hasTrait("Preparedness")) {
-    addAttribute(traitConversionStats, "Expertise", 150);
-  }
-  if (hasTrait("Staff Master")) {
-    addAttribute(
-      traitConversionStats,
-      "Power",
-      wields(thiefBuild, "Staff", weaponSet) ? 240 : 120,
-    );
-  }
-  if (hasTrait("Swindler's Equilibrium")) {
-    addAttribute(
-      traitConversionStats,
-      "Power",
-      wields(thiefBuild, "Sword", weaponSet) ? 240 : 120,
-    );
-  }
-  if (hasTrait("Silent Scope")) {
-    addAttribute(traitConversionStats, "Precision", 120);
-  }
-  if (hasTrait("Premeditation")) {
-    addAttribute(traitStats, "Concentration", 180);
-  }
-  if (hasTrait("Second Opinion")) {
-    addAttribute(
-      traitConversionStats,
-      "Condition Damage",
-      wields(thiefBuild, "Scepter", weaponSet) ? 180 : 90,
-    );
-  }
-
-  addAttributes(traitStats, traitConversionStats);
-  const conversionPool = createTraitConversionPool(
+  const attributeEffects: readonly Gw2AttributeEffect[] = [
+    {
+      kind: "flat",
+      source: "Dagger Training",
+      to: "Power",
+      amount: wields(thiefBuild, "Dagger", weaponSet) ? 160 : 80,
+      feedsConversions: true,
+      enabled: hasTrait("Dagger Training"),
+    },
+    {
+      kind: "flat",
+      source: "Deadly Ambition",
+      to: "Condition Damage",
+      amount: 180,
+      feedsConversions: true,
+      enabled: hasTrait("Deadly Ambition"),
+    },
+    {
+      kind: "flat",
+      source: "Revealed Training",
+      to: "Power",
+      amount: 80,
+      feedsConversions: false,
+      enabled: hasTrait("Revealed Training"),
+    },
+    {
+      kind: "flat",
+      source: "No Quarter",
+      to: "Ferocity",
+      amount: 250,
+      feedsConversions: false,
+      enabled: hasTrait("No Quarter") && Boolean(thiefBuild.assumptions?.fury),
+    },
+    {
+      kind: "flat",
+      source: "Preparedness",
+      to: "Expertise",
+      amount: 150,
+      feedsConversions: true,
+      enabled: hasTrait("Preparedness"),
+    },
+    {
+      kind: "flat",
+      source: "Staff Master",
+      to: "Power",
+      amount: wields(thiefBuild, "Staff", weaponSet) ? 240 : 120,
+      feedsConversions: true,
+      enabled: hasTrait("Staff Master"),
+    },
+    {
+      kind: "flat",
+      source: "Swindler's Equilibrium",
+      to: "Power",
+      amount: wields(thiefBuild, "Sword", weaponSet) ? 240 : 120,
+      feedsConversions: true,
+      enabled: hasTrait("Swindler's Equilibrium"),
+    },
+    {
+      kind: "flat",
+      source: "Silent Scope",
+      to: "Precision",
+      amount: 120,
+      feedsConversions: true,
+      enabled: hasTrait("Silent Scope"),
+    },
+    {
+      kind: "flat",
+      source: "Premeditation",
+      to: "Concentration",
+      amount: 180,
+      feedsConversions: false,
+      enabled: hasTrait("Premeditation"),
+    },
+    {
+      kind: "flat",
+      source: "Second Opinion",
+      to: "Condition Damage",
+      amount: wields(thiefBuild, "Scepter", weaponSet) ? 180 : 90,
+      feedsConversions: true,
+      enabled: hasTrait("Second Opinion"),
+    },
+    {
+      kind: "conversion",
+      source: "Practiced Tolerance",
+      from: "Precision",
+      to: "Ferocity",
+      multiplier: 0.1,
+      rounding: "round",
+      input: "eligible",
+      enabled: hasTrait("Practiced Tolerance"),
+    },
+    {
+      kind: "conversion",
+      source: "Marauder's Resilience",
+      from: "Power",
+      to: "Vitality",
+      multiplier: 0.07,
+      rounding: "round",
+      input: "eligible",
+      enabled: hasTrait("Marauder's Resilience"),
+    },
+    {
+      kind: "conversion",
+      source: "Second Opinion",
+      from: "Condition Damage",
+      to: "Healing Power",
+      multiplier: 0.07,
+      rounding: "round",
+      input: "eligible",
+      enabled: hasTrait("Second Opinion"),
+    },
+    {
+      kind: "conversion",
+      source: "Strength of Shadows",
+      from: "Vitality",
+      to: "Expertise",
+      multiplier: 0.13,
+      rounding: "round",
+      input: "eligible",
+      enabled: hasTrait("Strength of Shadows"),
+    },
+    {
+      kind: "flat",
+      source: "Assassin's Signet",
+      to: "Power",
+      amount: 180,
+      feedsConversions: false,
+      enabled: selectedSkill(selectedSkills, "Assassin's Signet"),
+    },
+  ];
+  const traitStats = resolveAttributeEffects(
     commonConversionPool,
-    traitConversionStats,
+    attributeEffects,
   );
-
-  if (hasTrait("Practiced Tolerance")) {
-    addAttribute(
-      traitStats,
-      "Ferocity",
-      Math.round((conversionPool.Precision || 0) * 0.1),
-    );
-  }
-  if (hasTrait("Marauder's Resilience")) {
-    addAttribute(
-      traitStats,
-      "Vitality",
-      Math.round((conversionPool.Power || 0) * 0.07),
-    );
-  }
-  if (hasTrait("Second Opinion")) {
-    addAttribute(
-      traitStats,
-      "Healing Power",
-      Math.round((conversionPool["Condition Damage"] || 0) * 0.07),
-    );
-  }
-  if (hasTrait("Strength of Shadows")) {
-    addAttribute(
-      traitStats,
-      "Expertise",
-      Math.round((conversionPool.Vitality || 0) * 0.13),
-    );
-  }
-  if (selectedSkill(selectedSkills, "Assassin's Signet")) {
-    addAttribute(traitStats, "Power", 180);
-  }
 
   return finalizeBuildAttributes(common, {
     activeTraits,

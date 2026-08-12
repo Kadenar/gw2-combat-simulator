@@ -1,11 +1,12 @@
 import {
-  addAttribute,
   finalizeBuildAttributes,
+  resolveAttributeEffects,
 } from "../../platform/gw2/attributes.js";
 import { bolsteredBondsBonuses } from "./bolstered-bonds.js";
 import { getActiveTraits } from "./data/traits-data.js";
 import type {
   Gw2BuildAttributeRuleContext,
+  Gw2AttributeEffect,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes,
@@ -30,17 +31,13 @@ export function applyRevenantBuildAttributeRules(
 ): Gw2FinalizedAttributeResult {
   const revenantBuild = build as RevenantBuild;
   const { conversionPool } = common.commonContext;
-  const activeTraits = getActiveTraits(revenantBuild.specializations || []).filter(
-    (trait) => trait.name !== disabledTrait,
-  );
+  const activeTraits = getActiveTraits(
+    revenantBuild.specializations || [],
+  ).filter((trait) => trait.name !== disabledTrait);
   const hasTrait = (name: string): boolean =>
     activeTraits.some((trait) => trait.name === name);
-  const traitStats: Gw2NumericAttributes = {};
   const traitDurations: Gw2NumericAttributes = {};
   const traitCriticalChance = hasTrait("Brutal Momentum") ? 10 : 0;
-  if (hasTrait("Seething Malice")) {
-    addAttribute(traitStats, "Condition Damage", 120);
-  }
   if (hasTrait("Pact of Pain")) {
     traitDurations["Condition Duration"] = 15;
   }
@@ -56,57 +53,95 @@ export function applyRevenantBuildAttributeRules(
       traitDurations[`${condition} Duration`] = duration;
     }
   }
-  if (hasTrait("Life Attunement")) {
-    addAttribute(traitStats, "Healing Power", 120);
-  }
-  if (hasTrait("Reinforced Potency")) {
-    addAttribute(traitStats, "Concentration", 240);
-  }
-  if (hasTrait("Empire Divided")) {
-    addAttribute(
-      traitStats,
-      "Power",
-      Number(
-        revenantBuild.assumptions?.playerHealthFraction ??
-          revenantBuild.playerHealthFraction ??
-          1,
-      ) > 0.5
-        ? 240
-        : 0,
-    );
-  }
+  const attributeEffects: Gw2AttributeEffect[] = [
+    {
+      kind: "flat",
+      source: "Seething Malice",
+      to: "Condition Damage",
+      amount: 120,
+      feedsConversions: false,
+      enabled: hasTrait("Seething Malice"),
+    },
+    {
+      kind: "flat",
+      source: "Life Attunement",
+      to: "Healing Power",
+      amount: 120,
+      feedsConversions: true,
+      enabled: hasTrait("Life Attunement"),
+    },
+    {
+      kind: "flat",
+      source: "Reinforced Potency",
+      to: "Concentration",
+      amount: 240,
+      feedsConversions: false,
+      enabled: hasTrait("Reinforced Potency"),
+    },
+    {
+      kind: "flat",
+      source: "Empire Divided",
+      to: "Power",
+      amount:
+        Number(
+          revenantBuild.assumptions?.playerHealthFraction ??
+            revenantBuild.playerHealthFraction ??
+            1,
+        ) > 0.5
+          ? 240
+          : 0,
+      feedsConversions: false,
+      enabled: hasTrait("Empire Divided"),
+    },
+  ];
   if (hasTrait("Bolstered Bonds")) {
     for (const [attribute, amount] of Object.entries(
       bolsteredBondsBonuses(revenantBuild.selectedLegends),
     )) {
-      addAttribute(
-        traitStats,
-        BUILD_ATTRIBUTE_NAMES[attribute as keyof typeof BUILD_ATTRIBUTE_NAMES],
+      attributeEffects.push({
+        kind: "flat",
+        source: "Bolstered Bonds",
+        to: BUILD_ATTRIBUTE_NAMES[
+          attribute as keyof typeof BUILD_ATTRIBUTE_NAMES
+        ],
         amount,
-      );
+        feedsConversions: false,
+      });
     }
   }
-  if (hasTrait("Versed in Stone")) {
-    addAttribute(
-      traitStats,
-      "Power",
-      Math.round((conversionPool.Toughness || 0) * 0.13),
-    );
-  }
-  if (hasTrait("Life Attunement")) {
-    addAttribute(
-      traitStats,
-      "Concentration",
-      Math.round((conversionPool["Healing Power"] || 0) * 0.07),
-    );
-  }
-  if (hasTrait("Elevated Compassion")) {
-    addAttribute(
-      traitStats,
-      "Concentration",
-      Math.round((conversionPool.Power || 0) * 0.13),
-    );
-  }
+  attributeEffects.push(
+    {
+      kind: "conversion",
+      source: "Versed in Stone",
+      from: "Toughness",
+      to: "Power",
+      multiplier: 0.13,
+      rounding: "round",
+      input: "common",
+      enabled: hasTrait("Versed in Stone"),
+    },
+    {
+      kind: "conversion",
+      source: "Life Attunement",
+      from: "Healing Power",
+      to: "Concentration",
+      multiplier: 0.07,
+      rounding: "round",
+      input: "eligible",
+      enabled: hasTrait("Life Attunement"),
+    },
+    {
+      kind: "conversion",
+      source: "Elevated Compassion",
+      from: "Power",
+      to: "Concentration",
+      multiplier: 0.13,
+      rounding: "round",
+      input: "common",
+      enabled: hasTrait("Elevated Compassion"),
+    },
+  );
+  const traitStats = resolveAttributeEffects(conversionPool, attributeEffects);
   return finalizeBuildAttributes(common, {
     activeTraits,
     traitStats,
