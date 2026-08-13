@@ -67,6 +67,7 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   const ammo = ammoView(view.ammo);
   const resource = view.resource;
   const skillId = view.skillId == null ? "" : String(view.skillId);
+  const hotkeyAction = String(view.hotkeyAction || "");
   const disabled = Boolean(view.disabled);
   const contextDisabled = Boolean(view.contextDisabled);
   // Permanent and context-sensitive disablement have distinct CSS, but either
@@ -116,6 +117,7 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
     : "";
   return `<div class="${classes}" data-skill="${escapeHtml(view.name)}"
     ${skillId ? `data-skill-id="${escapeHtml(skillId)}"` : ""}
+    ${hotkeyAction ? `data-hotkey-action="${escapeHtml(hotkeyAction)}"` : ""}
     title="${escapeHtml(view.title || view.name)}" draggable="${draggable ? "true" : "false"}"
     ${ariaLabel ? `aria-label="${escapeHtml(ariaLabel)}"` : ""}
     style="--att-border:${escapeHtml(view.color || "#a88be8")}">

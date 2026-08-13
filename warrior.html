@@ -34,7 +34,6 @@
         <strong>Warrior PvE API snapshot: August 8, 2026</strong>
       </div>
 
-
       <section class="build-section">
         <div class="build-left">
           <div class="panel gear-panel">
@@ -100,65 +99,73 @@
         </div>
       </section>
 
-      <section class="perma-section">
-        <div class="panel perma-panel">
-          <h3>Permanent Boons &amp; Target Conditions</h3>
-          <div id="perma-boons"></div>
-        </div>
-      </section>
-
-      <section class="rotation-section">
-        <div class="panel rotation-panel">
-          <h3>Rotation Builder</h3>
-          <div id="rotation-palette" class="rotation-palette"></div>
-          <p class="palette-hint">
-            Click to queue · <b>Shift+click</b> an instant-cast skill to fire it
-            during the previous cast · <b>Ctrl+click</b> a non-instant skill to
-            interrupt it
-          </p>
-          <div class="rotation-mid">
-            <div class="rotation-tl-label">Rotation</div>
-            <div id="start-att-selector" class="start-att-selector"></div>
-            <div class="rotation-btns">
-              <button
-                id="btn-sim-undo"
-                class="btn btn-undo"
-                title="Undo rotation change (Ctrl+Z)"
-                disabled
-              >
-                ↶ Undo
-              </button>
-              <button
-                id="btn-sim-redo"
-                class="btn btn-undo"
-                title="Redo rotation change (Ctrl+Y)"
-                disabled
-              >
-                ↷ Redo
-              </button>
-              <button id="btn-sim-clear" class="btn btn-clear">✕ Clear</button>
-              <button id="btn-export-rotation" class="btn btn-io">
-                ↓ Save Rotation
-              </button>
-              <button id="btn-import-rotation" class="btn btn-io">
-                ↑ Load Rotation
-              </button>
-              <input
-                type="file"
-                id="rotation-file-input"
-                accept=".json"
-                hidden
-              />
-            </div>
+      <div class="simulation-workspace">
+        <section class="perma-section">
+          <div class="panel perma-panel">
+            <h3>Simulation Config</h3>
+            <div id="perma-boons"></div>
           </div>
-          <div id="rotation-active-buffs" class="rotation-active-buffs" hidden></div>
-          <div id="rotation-timeline" class="rotation-timeline"></div>
-          <div id="rotation-warnings" class="rotation-warnings"></div>
-          <div id="rotation-procs" class="rotation-procs"></div>
-          <div id="rotation-event-log" class="rotation-event-log"></div>
-        </div>
-        <div id="rotation-results" class="rotation-results"></div>
-      </section>
+        </section>
+
+        <section class="rotation-section">
+          <div class="panel rotation-panel">
+            <h3>Rotation Builder</h3>
+            <div id="rotation-palette" class="rotation-palette"></div>
+            <p class="palette-hint">
+              Click to queue · <b>Shift+click</b> an instant-cast skill to fire
+              it during the previous cast · <b>Ctrl+click</b> a non-instant
+              skill to interrupt it
+            </p>
+            <div class="rotation-mid">
+              <div class="rotation-tl-label">Rotation</div>
+              <div id="start-att-selector" class="start-att-selector"></div>
+              <div class="rotation-btns">
+                <button
+                  id="btn-sim-undo"
+                  class="btn btn-undo"
+                  title="Undo rotation change (Ctrl+Z)"
+                  disabled
+                >
+                  ↶ Undo
+                </button>
+                <button
+                  id="btn-sim-redo"
+                  class="btn btn-undo"
+                  title="Redo rotation change (Ctrl+Y)"
+                  disabled
+                >
+                  ↷ Redo
+                </button>
+                <button id="btn-sim-clear" class="btn btn-clear">
+                  ✕ Clear
+                </button>
+                <button id="btn-export-rotation" class="btn btn-io">
+                  ↓ Save Rotation
+                </button>
+                <button id="btn-import-rotation" class="btn btn-io">
+                  ↑ Load Rotation
+                </button>
+                <input
+                  type="file"
+                  id="rotation-file-input"
+                  accept=".json"
+                  hidden
+                />
+              </div>
+            </div>
+            <div
+              id="rotation-active-buffs"
+              class="rotation-active-buffs"
+              hidden
+            ></div>
+            <div id="rotation-timeline" class="rotation-timeline"></div>
+            <div id="rotation-warnings" class="rotation-warnings"></div>
+            <div id="rotation-procs" class="rotation-procs"></div>
+            <div id="rotation-event-log" class="rotation-event-log"></div>
+          </div>
+          <div id="rotation-results" class="rotation-results"></div>
+        </section>
+      </div>
     </div>
 
     <script type="module" src="js/app/profession/selector.js"></script>
