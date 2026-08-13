@@ -412,11 +412,13 @@ export function timelineRows(
   rotation: readonly TimelineRotationEntry[] = [],
   {
     startingWeaponSet = 1,
+    startingWeaponLine = null,
     isWeaponSwap = () => false,
     isWeaponSetRefresh = () => false,
     weaponLineTransition = () => undefined,
   }: {
     readonly startingWeaponSet?: number;
+    readonly startingWeaponLine?: string | null;
     readonly isWeaponSwap?: (entry: TimelineRotationEntry) => boolean;
     readonly isWeaponSetRefresh?: (entry: TimelineRotationEntry) => boolean;
     readonly weaponLineTransition?: (
@@ -428,12 +430,12 @@ export function timelineRows(
   const rows: TimelineRow[] = [
     {
       weaponSet: startingWeaponSet,
-      weaponLine: null,
+      weaponLine: startingWeaponLine,
       skills: [],
     },
   ];
   let weaponSet = startingWeaponSet;
-  let weaponLine: string | null = null;
+  let weaponLine: string | null = startingWeaponLine;
   rotation.forEach((entry, index) => {
     rows.at(-1)?.skills.push({ entry, index });
     const swapsWeaponSet = isWeaponSwap(entry);
@@ -673,6 +675,7 @@ export function bindTimelineInteractions(
     options.onEditActivation || options.onEditInterrupt,
   );
   bindEdit(".rot-charge-release-badge", options.onEditReleaseAtCharges);
+  bindEdit(".rot-double-edge-badge", options.onEditDoubleEdgeOutcome);
   bindEdit(".rot-wait-badge", options.onEditWait);
 
   return { applyDrop, cleanup };

@@ -1,44 +1,11 @@
-import {
-  THIEF_ARTIFACT_IDS,
-} from "../../data/ids.js";
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type {
-  AntiquaryState,
-  ThiefArtifactOutcomeSequence,
-  ThiefConfig,
-  ThiefDoubleEdgeOutcome,
-} from "../../types.js";
+import type { AntiquaryState, ThiefConfig } from "../../types.js";
 
-function artifactSequence(config: ThiefConfig): ThiefArtifactOutcomeSequence {
-  const offensive = [...THIEF_ARTIFACT_IDS.OFFENSIVE];
-  const defensive = [...THIEF_ARTIFACT_IDS.DEFENSIVE];
-  if (config.deterministicChoices?.artifactDrawSequence === "reverse") {
-    offensive.reverse();
-    defensive.reverse();
-  }
-  return { offensive, defensive };
-}
-
-function doubleEdgeSequence(config: ThiefConfig): ThiefDoubleEdgeOutcome[] {
-  const choice =
-    config.deterministicChoices?.doubleEdgeOutcomeSequence
-    || "alternate";
-  if (choice === "success") return ["success"];
-  if (choice === "backfire") return ["backfire"];
-  return ["success", "backfire"];
-}
-
-export function createAntiquaryState(
-  config: ThiefConfig = {},
-): AntiquaryState {
+export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
   return {
     initiativePipRows: 3,
     artifactSlots: [],
     artifactUsesRemaining: 0,
-    artifactOutcomeSequence: artifactSequence(config),
-    artifactOutcomeIndices: { offensive: 0, defensive: 0 },
-    doubleEdgeOutcomeSequence: doubleEdgeSequence(config),
-    doubleEdgeOutcomeIndex: 0,
     scoundrelsLuck: 0,
     scoundrelsLuckReadyAt: 0,
     improvisationReadyAt: 0,

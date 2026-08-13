@@ -33,7 +33,7 @@ export {
 const sortNames = (values: readonly string[]): string[] =>
   [...values].sort((left, right) => left.localeCompare(right));
 
-// The legacy engine does not consume the shared day/night simulation setting.
+// Elementalist does not consume the shared day/night simulation setting.
 const DAY_NIGHT_FOODS = new Set(["Ghost Pepper Popper"]);
 const DAY_NIGHT_SIGILS = new Set(["Night"]);
 

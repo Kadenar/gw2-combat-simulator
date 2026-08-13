@@ -18,11 +18,30 @@ export const PROFESSION_APPLICATION_KINDS = Object.freeze({
 export type ProfessionApplicationKind =
   (typeof PROFESSION_APPLICATION_KINDS)[keyof typeof PROFESSION_APPLICATION_KINDS];
 
+/** Armor classes, ordered as navigation surfaces group professions. */
+export const ARMOR_WEIGHTS = Object.freeze([
+  "light",
+  "medium",
+  "heavy",
+] as const);
+
+export type ArmorWeight = (typeof ARMOR_WEIGHTS)[number];
+
+/** Display labels for each armor class group. */
+export const ARMOR_WEIGHT_LABELS: Readonly<Record<ArmorWeight, string>> =
+  Object.freeze({
+    light: "Light Armor",
+    medium: "Medium Armor",
+    heavy: "Heavy Armor",
+  });
+
 export interface ProfessionRegistryEntry {
   /** Stable lowercase identifier used by builds and pages. */
   readonly id: string;
   /** Whether the route uses the shared app boundary or a legacy application. */
   readonly applicationKind: ProfessionApplicationKind;
+  /** Armor class used to group professions in navigation surfaces. */
+  readonly armorWeight: ArmorWeight;
   /** Human-readable profession name. */
   readonly name: string;
   /** Official base-profession icon used by navigation surfaces. */
@@ -33,16 +52,63 @@ export interface ProfessionRegistryEntry {
   readonly themeClass: string;
   /** Landing-card summary. */
   readonly specializationSummary: string;
+  /** Marks a preserved compatibility implementation in navigation surfaces. */
+  readonly legacy?: boolean;
+  /** Marks an in-progress implementation in navigation surfaces. */
+  readonly workInProgress?: boolean;
   /** Lazy profession loader. */
   readonly loadProfession: () => Promise<ProfessionAppContract>;
   /** Lazy shared-shell adapter loader, or `null` for a standalone application. */
   readonly loadAppAdapter: (() => Promise<Gw2AppAdapter>) | null;
 }
 
+// Entries are ordered by armor class so navigation surfaces group
+// professions Light → Medium → Heavy: the shared UI (landing card grid and
+// simulator header select) renders in registry order.
 const entries: ProfessionRegistryEntry[] = [
+  // Light armor: Elementalist, Mesmer, Necromancer.
+  {
+    id: "elementalist",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    armorWeight: "light",
+    name: "Elementalist",
+    icon: "https://render.guildwars2.com/file/BBED46EB20C80D0DDE0F99402493C7E6FFAE1530/156629.png",
+    route: "elementalist.html",
+    themeClass: "elementalist-theme",
+    specializationSummary: "Core · Tempest · Weaver · Catalyst · Evoker",
+    workInProgress: true,
+    loadProfession: async () => {
+      const module =
+        await import("../../professions/elementalist/definition.js");
+      return module.elementalistProfession;
+    },
+    loadAppAdapter: async () => {
+      const module =
+        await import("../../professions/elementalist/app/app-definition.js");
+      return module.elementalistAppAdapter;
+    },
+  },
+  {
+    id: "elementalist-legacy",
+    applicationKind: PROFESSION_APPLICATION_KINDS.STANDALONE,
+    armorWeight: "light",
+    name: "Elementalist",
+    icon: "https://render.guildwars2.com/file/BBED46EB20C80D0DDE0F99402493C7E6FFAE1530/156629.png",
+    route: "elementalist-legacy.html",
+    themeClass: "elementalist-theme",
+    specializationSummary: "Frozen compatibility simulator",
+    legacy: true,
+    loadProfession: async () => {
+      const module =
+        await import("../../professions/elementalist/legacy/definition.js");
+      return module.elementalistLegacyProfession;
+    },
+    loadAppAdapter: null,
+  },
   {
     id: "mesmer",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    armorWeight: "light",
     name: "Mesmer",
     icon: "https://render.guildwars2.com/file/AF61567E16A83F145D6FB35D63BF01074A3A5AB9/156635.png",
     route: "mesmer.html",
@@ -60,24 +126,88 @@ const entries: ProfessionRegistryEntry[] = [
     },
   },
   {
-    id: "elementalist",
-    applicationKind: PROFESSION_APPLICATION_KINDS.STANDALONE,
-    name: "Elementalist",
-    icon: "https://render.guildwars2.com/file/BBED46EB20C80D0DDE0F99402493C7E6FFAE1530/156629.png",
-    route: "elementalist.html",
-    themeClass: "",
-    specializationSummary: "Core · Tempest · Weaver · Catalyst · Evoker",
+    id: "necromancer",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    armorWeight: "light",
+    name: "Necromancer",
+    icon: "https://render.guildwars2.com/file/CA5A4E96080FCF057C9DA0ED35C693477580421C/156637.png",
+    route: "necromancer.html",
+    themeClass: "necromancer-theme",
+    specializationSummary: "Core · Reaper · Scourge · Harbinger · Ritualist",
     loadProfession: async () => {
       const module =
-        await import("../../professions/elementalist/definition.js");
-      return module.elementalistProfession;
+        await import("../../professions/necromancer/definition.js");
+      return module.necromancerProfession;
     },
-    // Elementalist remains a standalone legacy application.
-    loadAppAdapter: null,
+    loadAppAdapter: async () => {
+      const module =
+        await import("../../professions/necromancer/app/app-definition.js");
+      return module.necromancerAppAdapter;
+    },
   },
+  // Medium armor: Ranger, Thief, Engineer.
+  {
+    id: "ranger",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    armorWeight: "medium",
+    name: "Ranger",
+    icon: "https://render.guildwars2.com/file/49B10316B424F4E20139EB5E51ADCF24A8724E9B/156640.png",
+    route: "ranger.html",
+    themeClass: "ranger-theme",
+    specializationSummary: "Core · Druid · Soulbeast · Untamed · Galeshot",
+    loadProfession: async () => {
+      const module = await import("../../professions/ranger/definition.js");
+      return module.rangerProfession;
+    },
+    loadAppAdapter: async () => {
+      const module =
+        await import("../../professions/ranger/app/app-definition.js");
+      return module.rangerAppAdapter;
+    },
+  },
+  {
+    id: "thief",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    armorWeight: "medium",
+    name: "Thief",
+    icon: "https://render.guildwars2.com/file/13A2C0EF23F23FF2084875629465279DDA807E3D/103581.png",
+    route: "thief.html",
+    themeClass: "thief-theme",
+    specializationSummary: "Core · Daredevil · Deadeye · Specter · Antiquary",
+    loadProfession: async () => {
+      const module = await import("../../professions/thief/definition.js");
+      return module.thiefProfession;
+    },
+    loadAppAdapter: async () => {
+      const module =
+        await import("../../professions/thief/app/app-definition.js");
+      return module.thiefAppAdapter;
+    },
+  },
+  {
+    id: "engineer",
+    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    armorWeight: "medium",
+    name: "Engineer",
+    icon: "https://render.guildwars2.com/file/A94D00911BD47CDE39A104F90C7D07DE623554ED/156631.png",
+    route: "engineer.html",
+    themeClass: "engineer-theme",
+    specializationSummary: "Core · Scrapper · Holosmith · Mechanist · Amalgam",
+    loadProfession: async () => {
+      const module = await import("../../professions/engineer/definition.js");
+      return module.engineerProfession;
+    },
+    loadAppAdapter: async () => {
+      const module =
+        await import("../../professions/engineer/app/app-definition.js");
+      return module.engineerAppAdapter;
+    },
+  },
+  // Heavy armor: Guardian, Warrior, Revenant.
   {
     id: "guardian",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    armorWeight: "heavy",
     name: "Guardian",
     icon: "https://render.guildwars2.com/file/6E0D0AC6E0CE5C0C29B3D736ABEA070F4A58540E/156633.png",
     route: "guardian.html",
@@ -95,81 +225,9 @@ const entries: ProfessionRegistryEntry[] = [
     },
   },
   {
-    id: "necromancer",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
-    name: "Necromancer",
-    icon: "https://render.guildwars2.com/file/CA5A4E96080FCF057C9DA0ED35C693477580421C/156637.png",
-    route: "necromancer.html",
-    themeClass: "necromancer-theme",
-    specializationSummary: "Core · Reaper · Scourge · Harbinger · Ritualist",
-    loadProfession: async () => {
-      const module =
-        await import("../../professions/necromancer/definition.js");
-      return module.necromancerProfession;
-    },
-    loadAppAdapter: async () => {
-      const module =
-        await import("../../professions/necromancer/app/app-definition.js");
-      return module.necromancerAppAdapter;
-    },
-  },
-  {
-    id: "engineer",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
-    name: "Engineer",
-    icon: "https://render.guildwars2.com/file/A94D00911BD47CDE39A104F90C7D07DE623554ED/156631.png",
-    route: "engineer.html",
-    themeClass: "engineer-theme",
-    specializationSummary: "Core · Scrapper · Holosmith · Mechanist · Amalgam",
-    loadProfession: async () => {
-      const module = await import("../../professions/engineer/definition.js");
-      return module.engineerProfession;
-    },
-    loadAppAdapter: async () => {
-      const module =
-        await import("../../professions/engineer/app/app-definition.js");
-      return module.engineerAppAdapter;
-    },
-  },
-  {
-    id: "revenant",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
-    name: "Revenant",
-    icon: "https://render.guildwars2.com/file/696A48DD61EE01FD1F4FBBBDB82D74611E04EA39/965717.png",
-    route: "revenant.html",
-    themeClass: "revenant-theme",
-    specializationSummary: "Core · Herald · Renegade · Vindicator · Conduit",
-    loadProfession: async () => {
-      const module = await import("../../professions/revenant/definition.js");
-      return module.revenantProfession;
-    },
-    loadAppAdapter: async () => {
-      const module =
-        await import("../../professions/revenant/app/app-definition.js");
-      return module.revenantAppAdapter;
-    },
-  },
-  {
-    id: "ranger",
-    applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
-    name: "Ranger",
-    icon: "https://render.guildwars2.com/file/49B10316B424F4E20139EB5E51ADCF24A8724E9B/156640.png",
-    route: "ranger.html",
-    themeClass: "ranger-theme",
-    specializationSummary: "Core · Druid · Soulbeast · Untamed · Galeshot",
-    loadProfession: async () => {
-      const module = await import("../../professions/ranger/definition.js");
-      return module.rangerProfession;
-    },
-    loadAppAdapter: async () => {
-      const module =
-        await import("../../professions/ranger/app/app-definition.js");
-      return module.rangerAppAdapter;
-    },
-  },
-  {
     id: "warrior",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
+    armorWeight: "heavy",
     name: "Warrior",
     icon: "https://render.guildwars2.com/file/0A97E13F29B3597A447EEC04A09BE5BD699A2250/156643.png",
     route: "warrior.html",
@@ -187,21 +245,22 @@ const entries: ProfessionRegistryEntry[] = [
     },
   },
   {
-    id: "thief",
+    id: "revenant",
     applicationKind: PROFESSION_APPLICATION_KINDS.NATIVE,
-    name: "Thief",
-    icon: "https://render.guildwars2.com/file/13A2C0EF23F23FF2084875629465279DDA807E3D/103581.png",
-    route: "thief.html",
-    themeClass: "thief-theme",
-    specializationSummary: "Core · Daredevil · Deadeye · Specter · Antiquary",
+    armorWeight: "heavy",
+    name: "Revenant",
+    icon: "https://render.guildwars2.com/file/696A48DD61EE01FD1F4FBBBDB82D74611E04EA39/965717.png",
+    route: "revenant.html",
+    themeClass: "revenant-theme",
+    specializationSummary: "Core · Herald · Renegade · Vindicator · Conduit",
     loadProfession: async () => {
-      const module = await import("../../professions/thief/definition.js");
-      return module.thiefProfession;
+      const module = await import("../../professions/revenant/definition.js");
+      return module.revenantProfession;
     },
     loadAppAdapter: async () => {
       const module =
-        await import("../../professions/thief/app/app-definition.js");
-      return module.thiefAppAdapter;
+        await import("../../professions/revenant/app/app-definition.js");
+      return module.revenantAppAdapter;
     },
   },
 ];
@@ -227,6 +286,24 @@ function validateEntry(
   }
   if (typeof entry.loadProfession !== "function") {
     throw new TypeError(`${entry.id} requires a profession loader.`);
+  }
+  if (!ARMOR_WEIGHTS.includes(entry.armorWeight)) {
+    throw new TypeError(`${entry.id} has an invalid armor weight.`);
+  }
+  if (entry.legacy != null && typeof entry.legacy !== "boolean") {
+    throw new TypeError(`${entry.id} legacy must be a boolean.`);
+  }
+  if (
+    entry.workInProgress != null &&
+    typeof entry.workInProgress !== "boolean"
+  ) {
+    throw new TypeError(`${entry.id} workInProgress must be a boolean.`);
+  }
+  if (
+    entry.legacy === true &&
+    entry.applicationKind !== PROFESSION_APPLICATION_KINDS.STANDALONE
+  ) {
+    throw new TypeError(`${entry.id} legacy applications must be standalone.`);
   }
   if (
     !Object.values(PROFESSION_APPLICATION_KINDS).includes(entry.applicationKind)
@@ -285,6 +362,28 @@ export const standaloneProfessionRegistry: readonly ProfessionRegistryEntry[] =
         entry.applicationKind === PROFESSION_APPLICATION_KINDS.STANDALONE,
     ),
   );
+
+export interface ProfessionArmorGroup {
+  readonly weight: ArmorWeight;
+  readonly label: string;
+  readonly entries: readonly ProfessionRegistryEntry[];
+}
+
+/**
+ * Registry entries partitioned by armor class in `ARMOR_WEIGHTS` order, for
+ * navigation surfaces that render grouped headers. Empty groups are omitted.
+ */
+export const professionGroups: readonly ProfessionArmorGroup[] = Object.freeze(
+  ARMOR_WEIGHTS.map((weight) =>
+    Object.freeze({
+      weight,
+      label: ARMOR_WEIGHT_LABELS[weight],
+      entries: Object.freeze(
+        professionRegistry.filter((entry) => entry.armorWeight === weight),
+      ),
+    }),
+  ).filter((group) => group.entries.length > 0),
+);
 
 const byId = new Map<string, ProfessionRegistryEntry>(
   professionRegistry.map((entry) => [entry.id, entry]),

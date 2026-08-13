@@ -1,7 +1,5 @@
 import { luminaryState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 import { enqueueOrdered } from "../../../../platform/engine/event-queue.js";
 import { isGw2PlayerActorEvent } from "../../../../platform/gw2/event-ownership.js";
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from "../../data/ids.js";
@@ -118,11 +116,10 @@ function grantLightAura(
 function isLuminaryDetonator(skill: GuardianSkill): boolean {
   if (skill.id === GUARDIAN_SKILL_IDS.GLARING_BURST) return false;
   return Boolean(
-    skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE ||
-      RADIANT_VIRTUE_IDS.has(skill.id) ||
-      skill.radiantForgeSkill === true ||
-      (skill.specialization === "Luminary" &&
-        skill.categories?.includes("Stance")),
+    RADIANT_VIRTUE_IDS.has(skill.id) ||
+    skill.radiantForgeSkill === true ||
+    (skill.specialization === "Luminary" &&
+      skill.categories?.includes("Stance")),
   );
 }
 
@@ -151,16 +148,26 @@ function processLightAuraAndFields(
   const virtueOne =
     skill.categories?.includes("Virtue") &&
     String(skill.slot) === "Profession_1";
+  const enteringRadiantForge =
+    skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE;
   const grantsImmediately =
     skill.id === GUARDIAN_SKILL_IDS.EFFULGENT_STANCE ||
     [
       GUARDIAN_SKILL_IDS.RADIANT_RESOLVE,
       GUARDIAN_SKILL_IDS.RADIANT_RESOLVE_ID_78604,
     ].some((skillId) => skillId === skill.id) ||
-    (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE && sovereign) ||
+    (enteringRadiantForge && sovereign) ||
     (virtueOne &&
       hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND));
-  if (grantsImmediately) grantLightAura(context, skill, activationAt);
+  if (grantsImmediately) {
+    if (enteringRadiantForge) {
+      // Entering the forge refreshes the trait-granted aura without consuming
+      // an aura that was already active.
+      state.lightAuraUntil = activationAt + 4;
+    } else {
+      grantLightAura(context, skill, activationAt);
+    }
+  }
   if (
     virtueOne &&
     hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND)
@@ -261,14 +268,9 @@ export function handleRadiantWeaponEquipped(
   const weapon = skill.radiantWeapon;
   state.radiantWeaponsUsed[weapon] = true;
   if (hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
-    emitGuardianBuff(
-      context,
-      skill,
-      at,
-      "guardian-radiant-armaments",
-      10,
-      { radiantWeapon: weapon },
-    );
+    emitGuardianBuff(context, skill, at, "guardian-radiant-armaments", 10, {
+      radiantWeapon: weapon,
+    });
     emitGuardianProc(context, {
       name: "Radiant Armaments",
       at,
@@ -316,9 +318,7 @@ export function handleRadiantWeaponEquipped(
 function virtueFor(skill: GuardianSkill): GuardianVirtue | null {
   if (!RADIANT_VIRTUE_IDS.has(skill.id)) return null;
   const slot = Number(String(skill.slot || "").match(/(\d)$/)?.[1] || 0);
-  return (
-    ([null, "justice", "resolve", "courage"] as const)[slot] || null
-  );
+  return ([null, "justice", "resolve", "courage"] as const)[slot] || null;
 }
 
 function resetRadiantWeaponCooldowns(
@@ -330,10 +330,7 @@ function resetRadiantWeaponCooldowns(
       ? [RADIANT_WEAPON_SKILLS.hammer]
       : virtue === "resolve"
         ? [RADIANT_WEAPON_SKILLS.staff]
-        : [
-            RADIANT_WEAPON_SKILLS.blade,
-            RADIANT_WEAPON_SKILLS.shield,
-          ];
+        : [RADIANT_WEAPON_SKILLS.blade, RADIANT_WEAPON_SKILLS.shield];
   for (const id of ids) context.state.cooldowns.delete(id);
   return ids.length > 0;
 }
@@ -459,10 +456,7 @@ export function reactToEffulgentStrike(
   ) {
     return;
   }
-  state.effulgentStacks = Math.min(
-    10,
-    Number(state.effulgentStacks || 0) + 1,
-  );
+  state.effulgentStacks = Math.min(10, Number(state.effulgentStacks || 0) + 1);
 }
 
 export function handleEffulgentActivated(

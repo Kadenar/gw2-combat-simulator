@@ -3,6 +3,7 @@ import { isSlotSkillSelectable } from "./selection.js";
 
 import type {
   ProfessionSkillBarGroup,
+  SchedulerRecord,
   Skill,
 } from "../../platform/engine/types.js";
 import type {
@@ -10,6 +11,10 @@ import type {
   ProfessionSlotLoadoutBar,
   ProfessionSlotLoadoutSelector,
 } from "../profession/types.js";
+import {
+  groupWeaponSkillsByAttunement,
+  weaponBarSkillStacks,
+} from "../profession/weapon-attunement-groups.js";
 
 function requiredElement(id: string): HTMLElement {
   const element = document.getElementById(id);
@@ -22,25 +27,53 @@ function requiredElement(id: string): HTMLElement {
  * @param {string} type
  * @returns {Skill[]}
  */
-function availableSlotSkills(app: ProfessionAppState, type: string): Skill[] {
+export function availableSlotSkills(
+  app: ProfessionAppState,
+  type: string,
+): Skill[] {
   const spec = app.adapter.eliteSpecialization(app.build);
-  return [
-    ...new Map(
-      app.skills
-        .filter(
-          (skill) =>
-            skill.implemented !== false &&
-            skill.type === type &&
-            isSlotSkillSelectable(app, skill, spec) &&
-            (!skill.specialization || skill.specialization === spec) &&
-            app.adapter.isSkillAvailable(skill, {
-              build: app.build,
-              specialization: spec,
-            }),
-        )
-        .map((skill) => [skill.name, skill]),
-    ).values(),
-  ];
+  const byDisplayName = new Map<string, Skill>();
+  for (const skill of app.skills) {
+    if (
+      skill.implemented === false ||
+      skill.type !== type ||
+      !isSlotSkillSelectable(app, skill, spec) ||
+      (skill.specialization && skill.specialization !== spec) ||
+      !app.adapter.isSkillAvailable(skill, {
+        build: app.build,
+        specialization: spec,
+      })
+    ) {
+      continue;
+    }
+    const displayName = String(skill.displayName || skill.name);
+    if (!byDisplayName.has(displayName)) byDisplayName.set(displayName, skill);
+  }
+  return [...byDisplayName.values()];
+}
+
+/** Resolves the armed member of a selected skill's flip chain for display. */
+export function skillBarDisplaySkill(
+  app: ProfessionAppState,
+  selected: Skill | null | undefined,
+): Skill | null | undefined {
+  if (!selected) return selected;
+  const professionState = app.results?.endState?.profession as
+    SchedulerRecord | undefined;
+  const availableFlips = professionState?.availableFlips;
+  if (!availableFlips || typeof availableFlips !== "object") return selected;
+  const flips = availableFlips as Record<string, unknown>;
+  const visited = new Set<number>();
+  let current = selected;
+  let display = selected;
+  while (current.flipSkillId != null && !visited.has(Number(current.id))) {
+    visited.add(Number(current.id));
+    const flip = app.skillById.get(Number(current.flipSkillId));
+    if (!flip || flip.flipParentId !== current.id) break;
+    if (flips[flip.id] ?? flips[flip.name]) display = flip;
+    current = flip;
+  }
+  return display;
 }
 
 export interface SkillBarInspectionStack {
@@ -198,6 +231,7 @@ function multiSelectionInspectionGroupHtml(
  */
 export function renderSkills(app: ProfessionAppState): void {
   const spec = app.adapter.eliteSpecialization(app.build);
+  const hasSecondWeaponSet = app.profession.ui.weaponSwapChangesSet !== false;
   const skillsForSet = ([mh, oh]: readonly string[]): Skill[] => {
     return [
       ...new Map(
@@ -237,14 +271,11 @@ export function renderSkills(app: ProfessionAppState): void {
     `<div class="wskill ${chained ? "chain-skill" : "main"}" title="${esc(skill.name)}\n${esc(gw2ApiText(skill.description))}">
             <img src="${esc(skill.icon)}" alt="">${skill.variantBadge ? `<span class="skill-variant-badge wskill-variant-badge">${esc(skill.variantBadge)}</span>` : ""}<span class="wslot-num">${esc(String(skill.slot).replace("Weapon_", ""))}</span>
         </div>`;
-  const weaponSlots = (skills: readonly Skill[]): string => {
-    const bySlot = new Map<string, Skill[]>();
-    for (const skill of skills) {
-      const slot = String(skill.slot);
-      if (!bySlot.has(slot)) bySlot.set(slot, []);
-      bySlot.get(slot)?.push(skill);
-    }
-    return [...bySlot.values()]
+  const weaponSlots = (
+    skills: readonly Skill[],
+    flattenSameSlots = false,
+  ): string => {
+    return weaponBarSkillStacks(skills, flattenSameSlots)
       .map(
         (slotSkills) =>
           `<div class="weapon-slot">${slotSkills
@@ -260,11 +291,34 @@ export function renderSkills(app: ProfessionAppState): void {
       )
       .join("");
   };
+  const weaponSetPreview = (
+    setNumber: number,
+    skills: readonly Skill[],
+  ): string => {
+    const groups = groupWeaponSkillsByAttunement(skills, spec);
+    if (groups.length === 1 && groups[0].attunement == null) {
+      const label = hasSecondWeaponSet
+        ? `<span class="weapon-set-preview-label">Set ${setNumber}</span>`
+        : "";
+      return `<div class="weapon-set-preview">${label}${weaponSlots(skills)}</div>`;
+    }
+    return `<div class="weapon-set-preview-group" data-weapon-set="${setNumber}">
+        ${hasSecondWeaponSet ? `<span class="weapon-set-preview-group-label">Set ${setNumber}</span>` : ""}
+        ${groups
+          .map(
+            ({ attunement, skills: attunementSkills }) =>
+              `<div class="weapon-set-preview weapon-attunement-preview" data-attunement="${esc(String(attunement))}">
+                <span class="weapon-set-preview-label">${esc(String(attunement))}</span>${weaponSlots(attunementSkills, attunement === "Dual")}
+              </div>`,
+          )
+          .join("")}
+      </div>`;
+  };
   requiredElement("weapon-bar").innerHTML = `
-            <div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 1</span>${weaponSlots(set1Skills)}</div>
+            ${weaponSetPreview(1, set1Skills)}
             ${
-              app.build.alternateWeapons[0]
-                ? `<div class="weapon-set-preview"><span class="weapon-set-preview-label">Set 2</span>${weaponSlots(set2Skills)}</div>`
+              hasSecondWeaponSet && app.build.alternateWeapons[0]
+                ? weaponSetPreview(2, set2Skills)
                 : ""
             }`;
 
@@ -282,13 +336,14 @@ export function renderSkills(app: ProfessionAppState): void {
   const selectedSkillBarHtml = slots
     .map(([key, type]) => {
       const current = app.skillByName.get(app.build.selectedSkills[key]);
+      const display = skillBarDisplaySkill(app, current);
       return `<div class="skill-bar-slot ${type === "Heal" ? "heal-border" : type === "Elite" ? "elite-border" : ""}" data-key="${key}">
-                <div class="sbar-icon" title="${esc(current?.name || "Choose skill")}"><img src="${esc(current?.icon || "")}" alt=""></div>
+                <div class="sbar-icon" title="${esc(display?.displayName || display?.name || "Choose skill")}"><img src="${esc(display?.icon || "")}" alt=""></div>
                 <div class="sbar-arrow">▼</div>
                 <div class="sbar-dropdown">${availableSlotSkills(app, type)
                   .map(
                     (skill) =>
-                      `<div class="dd-item" data-name="${esc(skill.name)}"><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.name)}</span></div>`,
+                      `<div class="dd-item" data-name="${esc(skill.name)}"><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></div>`,
                   )
                   .join("")}</div>
             </div>`;

@@ -1,6 +1,9 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { THIEF_SKILL_IDS as ID } from "../data/ids.js";
-import { thiefEnduranceReadyAt } from "./resources.js";
+import {
+  thiefEnduranceReadyAt,
+  thiefInitiativeRegenerationRate,
+} from "./resources.js";
 import { spearChainStageForSkill } from "./conditions.js";
 import type { AvailabilityResult } from "../../../platform/engine/types.js";
 import type {
@@ -24,7 +27,9 @@ function deny(
   };
 }
 
-function activeWeapons(context: ThiefPrecastContext): readonly [string, string] {
+function activeWeapons(
+  context: ThiefPrecastContext,
+): readonly [string, string] {
   return context.state.activeWeaponSet === 2
     ? [
         context.config.weaponSet2Primary || "",
@@ -42,10 +47,13 @@ export function thiefCoreCastAvailability(
 ): AvailabilityResult {
   const state = professionCoreState(context);
   const specialization = context.state.profession.specialization;
-  const stealthAttackState: Partial<AntiquaryState> =
-    specialization.kind === "Antiquary"
-    ? specialization.state
-    : state as ThiefCoreState & Partial<AntiquaryState>;
+  const specializationState = specialization.state as Partial<AntiquaryState>;
+  const stealthAttackState: Partial<AntiquaryState> = Object.hasOwn(
+    specializationState,
+    "stealthAttackCharges",
+  )
+    ? specializationState
+    : (state as ThiefCoreState & Partial<AntiquaryState>);
   if (skill.id === ID.DODGE) {
     return state.endurance + Number(context.epsilon || 0.0001) >= 50
       ? { ready: true }
@@ -57,8 +65,8 @@ export function thiefCoreCastAvailability(
         );
   }
   if (
-    skill.dualWieldFollowup
-    && Number(state.availableFlips[skill.id] || 0) <= context.start
+    skill.dualWieldFollowup &&
+    Number(state.availableFlips[skill.id] || 0) <= context.start
   ) {
     return deny(
       skill,
@@ -67,10 +75,7 @@ export function thiefCoreCastAvailability(
     );
   }
   const spearStage = spearChainStageForSkill(skill.id);
-  if (
-    spearStage != null
-    && Number(state.spearChainStage || 0) !== spearStage
-  ) {
+  if (spearStage != null && Number(state.spearChainStage || 0) !== spearStage) {
     return deny(
       skill,
       "thief.spear-chain",
@@ -95,9 +100,9 @@ export function thiefCoreCastAvailability(
     }
   }
   if (
-    skill.dualWieldOpener
-    && skill.flipSkillId != null
-    && Number(state.availableFlips[skill.flipSkillId] || 0) > context.start
+    skill.dualWieldOpener &&
+    skill.flipSkillId != null &&
+    Number(state.availableFlips[skill.flipSkillId] || 0) > context.start
   ) {
     return deny(
       skill,
@@ -107,11 +112,10 @@ export function thiefCoreCastAvailability(
   }
   const [mainHand] = activeWeapons(context);
   const stealthed =
-    state.stealthUntil > context.start
-    && state.revealedUntil <= context.start;
+    state.stealthUntil > context.start && state.revealedUntil <= context.start;
   const bonusStealthAttack =
-    Number(stealthAttackState.stealthAttackCharges || 0) > 0
-    && Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start;
+    Number(stealthAttackState.stealthAttackCharges || 0) > 0 &&
+    Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start;
   if (skill.stealthAttack) {
     if (!stealthed && !bonusStealthAttack) {
       return deny(skill, "thief.not-stealthed", "requires stealth.");
@@ -124,10 +128,10 @@ export function thiefCoreCastAvailability(
       );
     }
   } else if (
-    (stealthed || bonusStealthAttack)
-    && !skill.ignoresStealthWeaponReplacement
-    && skill.type === "Weapon"
-    && skill.slot === "Weapon_1"
+    (stealthed || bonusStealthAttack) &&
+    !skill.ignoresStealthWeaponReplacement &&
+    skill.type === "Weapon" &&
+    skill.slot === "Weapon_1"
   ) {
     return deny(
       skill,
@@ -142,11 +146,11 @@ export function thiefCoreCastAvailability(
     return deny(skill, "thief.not-kneeling", "kneel first.");
   }
   if (
-    skill.weapon === "Rifle"
-    && skill.id !== ID.KNEEL
-    && skill.id !== ID.FREE_ACTION
-    && !skill.stealthAttack
-    && Boolean(skill.kneelSkill) !== Boolean(state.kneeling)
+    skill.weapon === "Rifle" &&
+    skill.id !== ID.KNEEL &&
+    skill.id !== ID.FREE_ACTION &&
+    !skill.stealthAttack &&
+    Boolean(skill.kneelSkill) !== Boolean(state.kneeling)
   ) {
     return deny(
       skill,
@@ -155,9 +159,10 @@ export function thiefCoreCastAvailability(
     );
   }
   if (
-    skill.slot === "Profession_2"
-    && (skill.categories || []).includes("stolen skill")
-    && state.storedStolenSkillId !== skill.id
+    skill.slot === "Profession_2" &&
+    (skill.categories || []).includes("stolen skill") &&
+    (state.storedStolenSkillId !== skill.id ||
+      Number(state.storedStolenSkillCount || 0) <= 0)
   ) {
     return deny(
       skill,
@@ -172,13 +177,14 @@ export function thiefCoreCastAvailability(
       skill,
       "thief.initiative",
       `requires ${skill.initiativeCost} initiative.`,
-      context.start + Math.max(0, missing),
+      context.start +
+        Math.max(0, missing) / thiefInitiativeRegenerationRate(state),
     );
   }
   const chain = context.catalog.autoattackChainPositions.get(Number(skill.id));
   if (
-    chain
-    && (state.autoattackChains[chain.root] || chain.root) !== skill.id
+    chain &&
+    (state.autoattackChains[chain.root] || chain.root) !== skill.id
   ) {
     return deny(
       skill,

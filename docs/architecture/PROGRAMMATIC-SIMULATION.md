@@ -200,8 +200,13 @@ An explicit cast can also include:
   skillId: 5882,
   concurrentOffsetMs: 100,
   interruptAfterMs: 500,
+  doubleEdgeOutcome: "backfire", // Antiquary risky-recast result
 }
 ```
+
+`doubleEdgeOutcome` is consulted only when an Antiquary Double Edge skill is
+recast while recharging. Ready casts always succeed, and an omitted outcome
+defaults to `"success"`.
 
 Names are convenient, but IDs are safer for long-lived scripts. Inspect the
 active catalog when finding IDs:

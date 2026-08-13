@@ -158,7 +158,10 @@ export function isTerrestrialSkill(
 export function professionSkillAssociations(
   profession,
   specializationData,
-  { weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS } = {},
+  {
+    weaponExclusions = DEFAULT_TERRESTRIAL_WEAPON_EXCLUSIONS,
+    extraSkillIds = [],
+  } = {},
 ) {
   const specializationById = new Map(
     specializationData.map((specialization) => [
@@ -202,6 +205,7 @@ export function professionSkillAssociations(
   const seedIds = [
     ...(profession.skills || []).map((skill) => skill.id),
     ...weaponBySkillId.keys(),
+    ...extraSkillIds,
   ];
   return {
     seedIds: [...new Set(seedIds)].sort((left, right) => left - right),

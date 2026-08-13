@@ -208,14 +208,19 @@ export function createGw2HitResolution({
     hitContext: Gw2HitResolutionContext,
   ): Gw2ResolverEvent {
     const damage = hitContext.damage;
-    ctx.totals.strike += damage;
+    const damageType =
+      event.damageKind === "condition" ? "conditionDamage" : "strikeDamage";
+    if (damageType === "conditionDamage") ctx.totals.condition += damage;
+    else ctx.totals.strike += damage;
     ctx.addBreakdown(
       event.name || event.skillName || String(event.sourceId),
       damage,
-      "strikeDamage",
-      Number(event.hits || 1),
+      damageType,
+      damageType === "strikeDamage" ? Number(event.hits || 1) : 0,
       event,
-      hitContext.critEligible ? hitContext.critical : null,
+      damageType === "strikeDamage" && hitContext.critEligible
+        ? hitContext.critical
+        : null,
     );
     if (damage > 0) ctx.markDamageTime(event.at);
 

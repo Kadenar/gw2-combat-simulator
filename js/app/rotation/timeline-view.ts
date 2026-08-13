@@ -34,6 +34,12 @@ import { renderPalette, resolvePaletteDropItem } from "./palette-view.js";
 import { renderRotationStateSnapshot } from "./state-snapshot-view.js";
 import { createRotationItem } from "./actions.js";
 import { openDragonSlashReleaseEditor } from "./charge-release.js";
+import {
+  closeDoubleEdgeEditor,
+  doubleEdgeOutcomeLabel,
+  hasConfigurableDoubleEdgeOutcome,
+  openDoubleEdgeEditor,
+} from "./double-edge.js";
 import { formatResultTimelineTime } from "./result-model.js";
 import {
   continuumEndTimelineMarkers,
@@ -47,6 +53,7 @@ import {
   shatterResourceSpends,
   sigilProcTimelineMarkers,
   targetHealthTimelineMarkers,
+  timelineStepsWithChargeFills,
   timelineWeaponRows,
 } from "./timeline-model.js";
 import type {
@@ -64,6 +71,7 @@ type TimelineItem = SchedulerRecord & {
   offset?: unknown;
   interruptMs?: unknown;
   releaseAtCharges?: unknown;
+  doubleEdgeOutcome?: unknown;
   waitMs?: unknown;
 };
 
@@ -204,6 +212,44 @@ function editRotationActivation(
   return false;
 }
 
+function editDoubleEdgeOutcome(
+  app: ProfessionAppState,
+  index: number,
+  event?: Event,
+): boolean {
+  const entry = app.build.rotation[index];
+  if (entry === undefined) return false;
+  const item = timelineItem(entry);
+  const explicitSkillId = item.skillId == null ? null : Number(item.skillId);
+  const skill =
+    explicitSkillId !== null && Number.isFinite(explicitSkillId)
+      ? app.skillById.get(explicitSkillId)
+      : app.skillByName.get(item.name);
+  if (!hasConfigurableDoubleEdgeOutcome(skill)) return false;
+  const eventTarget = event?.currentTarget;
+  const anchor =
+    (eventTarget instanceof HTMLElement ? eventTarget : null) ||
+    document.querySelector<HTMLElement>(
+      `#rotation-timeline .rot-double-edge-badge[data-idx="${index}"]`,
+    );
+  if (!anchor) return false;
+  openDoubleEdgeEditor({
+    anchor,
+    skillName: String(skill.displayName || skill.name),
+    icon: skill.icon || undefined,
+    outcome: item.doubleEdgeOutcome === "backfire" ? "backfire" : "success",
+    onApply(outcome) {
+      const currentEntry = app.build.rotation[index];
+      if (currentEntry === undefined) return;
+      app.build.rotation[index] = updateRotationEntry(currentEntry, {
+        doubleEdgeOutcome: outcome,
+      }) as LegacyRotationItem;
+      app.changed(false);
+    },
+  });
+  return false;
+}
+
 function timelineInteractionOptions(
   app: ProfessionAppState,
 ): TimelineInteractionOptions {
@@ -249,6 +295,37 @@ function timelineInteractionOptions(
         });
         return null;
       }
+      if (hasConfigurableDoubleEdgeOutcome(skill)) {
+        const anchor =
+          document.querySelector<HTMLElement>(
+            "#rotation-palette .pal-skill.dragging",
+          ) ||
+          [
+            ...document.querySelectorAll<HTMLElement>(
+              "#rotation-palette .pal-skill[data-skill]",
+            ),
+          ].find((element) => element.dataset.skill === name) ||
+          null;
+        if (!anchor) return null;
+        openDoubleEdgeEditor({
+          anchor,
+          skillName: String(skill.displayName || skill.name),
+          icon: skill.icon || undefined,
+          outcome: "success",
+          onApply(outcome) {
+            const item = createRotationItem(app, name, {
+              ...(Number.isFinite(parsedSkillId)
+                ? { skillId: parsedSkillId }
+                : {}),
+              doubleEdgeOutcome: outcome,
+            });
+            app.build.rotation.splice(insertAt, 0, item);
+            app.rotationInsertionIndex = null;
+            app.changed(false);
+          },
+        });
+        return null;
+      }
       return resolvePaletteDropItem(
         app,
         name,
@@ -272,6 +349,8 @@ function timelineInteractionOptions(
       editRotationActivation(app, index, event),
     onEditReleaseAtCharges: (index, event) =>
       editReleaseAtCharges(app, index, event),
+    onEditDoubleEdgeOutcome: (index, event) =>
+      editDoubleEdgeOutcome(app, index, event),
     onEditWait: (index) =>
       editRotationOption(app, index, "waitMs", "Wait duration (ms):"),
   };
@@ -280,6 +359,7 @@ function timelineInteractionOptions(
 export function renderTimeline(app: ProfessionAppState): void {
   closeActivationEditor();
   closeChargeReleaseEditor();
+  closeDoubleEdgeEditor();
   const element = document.getElementById("rotation-timeline");
   const procElement = document.getElementById("rotation-procs");
   if (!element) return;
@@ -325,8 +405,19 @@ export function renderTimeline(app: ProfessionAppState): void {
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
   const resourceSpends = shatterResourceSpends(app.results);
+  const startingWeaponSet = app.build.startingWeaponSet;
+  const specialization = activeSpecialization(app);
+  const startingWeaponLine =
+    app.profession.ui.timelineWeaponLineTransition({
+      initial: true,
+      build: app.build,
+      specialization,
+      weaponSet: startingWeaponSet,
+      weaponLine: null,
+    }) ?? null;
   const rows = timelineWeaponRows(app.build.rotation, {
-    startingWeaponSet: app.build.startingWeaponSet,
+    startingWeaponSet,
+    startingWeaponLine,
     weaponSwapChangesSet:
       app.profession.ui.weaponSwapChangesSet !== false &&
       Boolean(app.build.alternateWeapons?.[0]),
@@ -342,14 +433,16 @@ export function renderTimeline(app: ProfessionAppState): void {
         entry: item,
         skill,
         build: app.build,
-        specialization: activeSpecialization(app),
+        specialization,
         ...current,
       });
     },
   });
   const formatTime = (timeMs: number): string =>
     formatResultTimelineTime(timeMs, app.results);
-  const deadTimes = timelineDeadTimeMarkers(resultSteps);
+  const deadTimes = timelineDeadTimeMarkers(
+    timelineStepsWithChargeFills(resultSteps, resourceSpends),
+  );
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
   for (const marker of deadTimes) {
     const markers = deadTimesByIndex.get(marker.insertionIndex) || [];
@@ -652,6 +745,10 @@ export function renderTimeline(app: ProfessionAppState): void {
         const chargeReleaseLabel = skill?.dragonSlash
           ? `⚡${item.releaseAtCharges == null ? "Max" : Number(item.releaseAtCharges)}${time ? `\n${time}` : ""}`
           : "";
+        const doubleEdgeOutcome =
+          item.doubleEdgeOutcome === "backfire" ? "backfire" : "success";
+        const doubleEdgeLabel =
+          doubleEdgeOutcome === "backfire" ? "DE!" : "DE✓";
         const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
         const fullCastMs = Math.round(
           Number(step?.fullCastMs) || catalogCastMs,
@@ -697,6 +794,12 @@ export function renderTimeline(app: ProfessionAppState): void {
                       skill?.dragonSlash
                         ? `<span class="rot-gapfill-badge rot-charge-release-badge rot-timed-action-badge"
                         data-idx="${index}" title="Release at ${item.releaseAtCharges == null ? "maximum" : item.releaseAtCharges} charges; cast at ${esc(time)}">${esc(chargeReleaseLabel)}</span>`
+                        : ""
+                    }
+                    ${
+                      hasConfigurableDoubleEdgeOutcome(skill)
+                        ? `<span class="rot-gapfill-badge rot-double-edge-badge rot-timed-action-badge"
+                        data-idx="${index}" title="Risky recast: ${esc(doubleEdgeOutcomeLabel(doubleEdgeOutcome))}">${esc(doubleEdgeLabel)}</span>`
                         : ""
                     }
                     ${item.waitMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.waitMs}ms</span>` : ""}

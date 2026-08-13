@@ -1,7 +1,5 @@
 import { firebrandState } from "./state.js";
-import {
-  professionCoreState,
-} from "../../../../platform/engine/profession.js";
+import { professionCoreState } from "../../../../platform/engine/profession.js";
 /**
  * @fileoverview Implements Firebrand tome cast gating, shared page
  * regeneration and spending, tome state replay, and Ashes of the Just damage
@@ -114,6 +112,11 @@ function stowTome(context: GuardianCastContext, skill: GuardianSkill): boolean {
   firebrandState.from(context).activeTome = "";
   firebrandState.from(context).swiftScholarTome = "";
   firebrandState.from(context).swiftScholarCount = 0;
+  emitGuardianEvent(context, skill, "weapon_set", {
+    weaponSet: context.state.activeWeaponSet,
+    mechanicSwap: true,
+    weaponLine: null,
+  });
   emitGuardianEvent(context, skill, "guardian.tome-stowed", {
     activeTome: "",
   });
@@ -146,10 +149,7 @@ function useTomePage(
   state.swiftScholarCount += 1;
   if (state.swiftScholarCount >= 3) {
     state.swiftScholarCount = 0;
-    state.tomePages = Math.min(
-      state.maximumTomePages,
-      state.tomePages + 1,
-    );
+    state.tomePages = Math.min(state.maximumTomePages, state.tomePages + 1);
     if (state.tomePages >= state.maximumTomePages) {
       state.nextTomePageAt = Number.POSITIVE_INFINITY;
     }
@@ -192,6 +192,7 @@ function useTomePage(
     const at = context.effectiveEnd;
     const party = gw2AlliedPlayerAssumptions(context.config);
     state.ashesCharges = 2;
+    state.ashesBurnDuration = FIREBRAND_MECHANICS.ashesBurn.duration;
     state.ashesNextTriggerAt = at;
     state.ashesExpiresAt = at + ASHES_DURATION;
     context.emit({
@@ -244,8 +245,7 @@ function useTomePage(
         condition: "Burning",
         stacks: 1,
         duration: FIREBRAND_MECHANICS.ashesBurn.duration,
-        activationId:
-          `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
+        activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
         triggeredByAlly: proc.allyIndex,
         extendsResolutionHorizon: index === alliedProcs.length - 1,
       });
@@ -261,16 +261,29 @@ function useTomePage(
       ashesExpiresAt: state.ashesExpiresAt,
     });
   }
-  if (state.tomePages === 0) state.activeTome = "";
+  if (state.tomePages === 0) {
+    state.activeTome = "";
+    emitGuardianEvent(context, skill, "weapon_set", {
+      weaponSet: context.state.activeWeaponSet,
+      mechanicSwap: true,
+      weaponLine: null,
+      automatic: true,
+    });
+  }
   emitGuardianEvent(context, skill, "guardian.tome-page-used", {
     tome: skill.tome,
     pageCost,
     pagesRemaining: state.tomePages,
     activeTome: state.activeTome,
     nextTomePageAt: state.nextTomePageAt,
-    ashesCharges: state.ashesCharges,
-    ashesNextTriggerAt: state.ashesNextTriggerAt,
-    ashesExpiresAt: state.ashesExpiresAt,
+    ...(skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST
+      ? {
+          ashesCharges: state.ashesCharges,
+          ashesBurnDuration: state.ashesBurnDuration,
+          ashesNextTriggerAt: state.ashesNextTriggerAt,
+          ashesExpiresAt: state.ashesExpiresAt,
+        }
+      : {}),
   });
   return false;
 }
@@ -312,6 +325,9 @@ function handleTomePageUsed(
   firebrandState.from(context).ashesCharges = Number(
     event.ashesCharges ?? firebrandState.from(context).ashesCharges,
   );
+  firebrandState.from(context).ashesBurnDuration = Number(
+    event.ashesBurnDuration ?? firebrandState.from(context).ashesBurnDuration,
+  );
   firebrandState.from(context).ashesNextTriggerAt = Number(
     event.ashesNextTriggerAt ?? firebrandState.from(context).ashesNextTriggerAt,
   );
@@ -325,8 +341,8 @@ function handleAshesExpired(
   event: GuardianResolverEvent,
 ): void {
   if (
-    Number(firebrandState.from(context).ashesExpiresAt || 0)
-    <= Number(event.at) + Number(context.epsilon || 0.0001)
+    Number(firebrandState.from(context).ashesExpiresAt || 0) <=
+    Number(event.at) + Number(context.epsilon || 0.0001)
   ) {
     firebrandState.from(context).ashesCharges = 0;
   }
@@ -372,19 +388,17 @@ export function advanceTomeState(
   }
   if (
     selectedGuardianSpecialization({ config: context.config }) !== "Firebrand"
-  ) return;
+  )
+    return;
   const courage = context.catalog.skillsById.get(
     GUARDIAN_SKILL_IDS.TOME_OF_COURAGE,
   );
-  while (
-    courage &&
-    state.nextCourageAegisAt <= target + context.epsilon
-  ) {
+  while (courage && state.nextCourageAegisAt <= target + context.epsilon) {
     const at = state.nextCourageAegisAt;
     if (
-      at >= Number(
-        professionCoreState(context).virtueReadyAt.courage || 0
-      ) - context.epsilon ||
+      at >=
+        Number(professionCoreState(context).virtueReadyAt.courage || 0) -
+          context.epsilon ||
       hasGuardianTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)
     ) {
       context.emit({
@@ -447,7 +461,7 @@ export function reactToAshesHit(
     name: "Ashes of the Just — Burning",
     condition: burn.condition,
     stacks: burn.stacks,
-    duration: burn.duration,
+    duration: state.ashesBurnDuration,
   });
   state.ashesCharges -= 1;
   state.ashesNextTriggerAt = event.at + burn.interval;

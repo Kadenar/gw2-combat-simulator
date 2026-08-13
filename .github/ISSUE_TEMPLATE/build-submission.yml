@@ -1,0 +1,91 @@
+name: Submit a build
+description: Submit exported build and rotation JSON files for maintainer review.
+title: "[Build submission]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for contributing a build. Submissions are reviewed manually and
+        do not create a pull request automatically.
+
+        Issue attachments in this public repository are publicly accessible.
+        Remove private notes or identifying information before uploading files.
+
+  - type: input
+    id: preset-name
+    attributes:
+      label: Preset name
+      description: The name that should appear in the simulator's build list.
+      placeholder: Power (Spear / Greatsword)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: profession
+    attributes:
+      label: Profession
+      options:
+        - Elementalist
+        - Engineer
+        - Guardian
+        - Mesmer
+        - Necromancer
+        - Ranger
+        - Revenant
+        - Thief
+        - Warrior
+    validations:
+      required: true
+
+  - type: input
+    id: specialization
+    attributes:
+      label: Specialization
+      description: Enter the elite specialization, or Core if none is selected.
+      placeholder: Willbender
+    validations:
+      required: true
+
+  - type: upload
+    id: build-json
+    attributes:
+      label: Build JSON
+      description: Upload the build.json file exported by the simulator.
+    validations:
+      required: true
+
+  - type: upload
+    id: rotation-json
+    attributes:
+      label: Rotation JSON
+      description: Upload the matching rotation.json file.
+    validations:
+      required: true
+
+  - type: input
+    id: benchmark-url
+    attributes:
+      label: Benchmark source
+      description: Optional DPS report, video, or other reference URL.
+      placeholder: https://dps.report/...
+
+  - type: input
+    id: expected-dps
+    attributes:
+      label: Expected simulator DPS
+      description: Optional rounded DPS produced by the uploaded pair.
+      placeholder: "42000"
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Include assumptions, known limitations, or anything reviewers should know.
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Submission confirmation
+      options:
+        - label: I confirm these files may be published in this repository.
+          required: true

@@ -148,6 +148,7 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   PORTENT_OF_FREEDOM: 40114, // Portent of Freedom
   SYMBOL_OF_VENGEANCE: 40624, // Symbol of Vengeance
   MANTRA_OF_POTENCE: 40915, // Mantra of Potence
+  UNHINDERED_DELIVERY: 41328, // Unhindered Delivery
   STOW_TOME: 41380, // Stow Tome
   RESTORING_REPRIEVE: 41475, // Restoring Reprieve
   SHIELD_OF_THE_AVENGER_ID_41571: 41571, // Shield of the Avenger
@@ -156,6 +157,8 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   ECHO_OF_TRUTH: 42360, // Echo of Truth
   TOME_OF_COURAGE_ID_42371: 42371, // Tome of Courage
   OPENING_PASSAGE: 42864, // Opening Passage
+  FLAME_SURGE: 42924, // Flame Surge
+  REJUVENATING_RESPITE: 42960, // Rejuvenating Respite
   POTENT_HASTE: 42983, // Potent Haste
   MANTRA_OF_LIBERATION: 43357, // Mantra of Liberation
   BOW_OF_TRUTH_ID_43565: 43565, // Bow of Truth
@@ -176,12 +179,15 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   ROILING_LIGHT: 62521, // Roiling Light
   EXECUTIONERS_CALLING: 62525, // Executioner's Calling
   WILLBENDER_FLAMES: 62528, // Willbender Flames
+  WILLBENDER_JUSTICE: 62529, // Justice
   CRASHING_COURAGE: 62532, // Crashing Courage
   HEEL_CRACK: 62549, // Heel Crack
+  WILLBENDER_FLAMES_COURAGE: 62552, // Willbender Flames
   HEAVENS_PALM: 62561, // Heaven's Palm
   WHIRLING_LIGHT: 62565, // Whirling Light
   FLOWING_RESOLVE: 62603, // Flowing Resolve
   FLASH_COMBO: 62608, // Flash Combo
+  RUSHING_JUSTICE_IMPACT: 62624, // Rushing Justice
   WILLBENDER_FLAMES_ID_62618: 62618, // Willbender Flames
   REVERSAL_OF_FORTUNE: 62622, // Reversal of Fortune
   CRASHING_COURAGE_ID_62648: 62648, // Crashing Courage
@@ -232,6 +238,7 @@ export const GUARDIAN_TRAIT_IDS = Object.freeze({
   RADIANT_POWER: 568,
   RIGHTEOUS_INSTINCTS: 1683,
   RADIANT_FIRE: 567,
+  PERFECT_INSCRIPTIONS: 579,
   AMPLIFIED_WRATH: 1686,
   FOCUS_MASTERY: 633,
   INSPIRED_VIRTUE: 621,
@@ -253,6 +260,12 @@ export const GUARDIAN_TRAIT_IDS = Object.freeze({
   ZEALOTS_AGGRESSION: 1835,
   HEAVY_LIGHT: 1963,
   BIG_GAME_HUNTER: 1955,
+  LETHAL_TEMPO: 2189,
+  POWER_FOR_POWER: 2190,
+  SEARING_PACT: 2191,
+  PHOENIX_PROTOCOL: 2195,
+  RESTORATIVE_VIRTUES: 2197,
+  TYRANTS_MOMENTUM: 2201,
   PURITY_OF_WORD: 2089,
   SWIFT_SCHOLAR: 2062,
   IMBUED_HASTE: 2148,

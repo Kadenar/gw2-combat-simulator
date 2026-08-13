@@ -1,12 +1,10 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 import { THIEF_TRAIT_IDS as TRAIT } from "../data/ids.js";
 import { hasThiefTrait } from "./state.js";
-import {
-  emitThiefState,
-  gainThiefInitiative,
-} from "./shared.js";
+import { emitThiefState, gainThiefInitiative } from "./shared.js";
 import type {
   ThiefPrecastContext,
+  ThiefCoreState,
   ThiefResourceContext,
   ThiefSchedulerContext,
   ThiefSkill,
@@ -15,19 +13,29 @@ import type {
 const ENDURANCE_REGENERATION_PER_SECOND = 5;
 const VIGOR_ENDURANCE_REGENERATION_MULTIPLIER = 1.5;
 const MAXIMUM_ENDURANCE_REGENERATION_PER_SECOND = 10;
+const INITIATIVE_REGENERATION_PER_SECOND = 1;
+const KNEELING_INITIATIVE_REGENERATION_PER_SECOND = 1 / 3;
+
+export function thiefInitiativeRegenerationRate(
+  state: Pick<ThiefCoreState, "kneeling">,
+): number {
+  return (
+    INITIATIVE_REGENERATION_PER_SECOND +
+    (state.kneeling ? KNEELING_INITIATIVE_REGENERATION_PER_SECOND : 0)
+  );
+}
 
 export function thiefEnduranceRegenerationRate(
   context: ThiefResourceContext,
   at = Number(context.start ?? context.state?.time ?? 0),
 ): number {
   const vigorActive = Boolean(
-    context.config?.boons?.vigor
-    || context.hasBuff?.("vigor", at),
+    context.config?.boons?.vigor || context.hasBuff?.("vigor", at),
   );
   return Math.min(
     MAXIMUM_ENDURANCE_REGENERATION_PER_SECOND,
-    ENDURANCE_REGENERATION_PER_SECOND
-      * (vigorActive ? VIGOR_ENDURANCE_REGENERATION_MULTIPLIER : 1),
+    ENDURANCE_REGENERATION_PER_SECOND *
+      (vigorActive ? VIGOR_ENDURANCE_REGENERATION_MULTIPLIER : 1),
   );
 }
 
@@ -48,9 +56,9 @@ export function advanceThiefCoreResources(
   target: number,
 ): void {
   const state = professionCoreState(context);
-  state.leadAttackExpirations = (
-    state.leadAttackExpirations || []
-  ).filter(expiresAt => Number(expiresAt) > target);
+  state.leadAttackExpirations = (state.leadAttackExpirations || []).filter(
+    (expiresAt) => Number(expiresAt) > target,
+  );
   state.leadAttacksStacks = state.leadAttackExpirations.length;
   state.leadAttacksUntil = state.leadAttackExpirations.length
     ? Math.max(...state.leadAttackExpirations)
@@ -59,8 +67,8 @@ export function advanceThiefCoreResources(
     state.spiderVenomCharges = 0;
   }
   if (
-    state.activeThievesGuild
-    && Number(state.activeThievesGuild.expiresAt || 0) <= target
+    state.activeThievesGuild &&
+    Number(state.activeThievesGuild.expiresAt || 0) <= target
   ) {
     state.activeThievesGuild = null;
   }
@@ -71,7 +79,8 @@ export function advanceThiefCoreResources(
   if (target > initiativeFrom) {
     state.initiative = Math.min(
       state.maximumInitiative,
-      state.initiative + (target - initiativeFrom),
+      state.initiative +
+        (target - initiativeFrom) * thiefInitiativeRegenerationRate(state),
     );
     state.initiativeUpdatedAt = target;
   }
@@ -79,12 +88,9 @@ export function advanceThiefCoreResources(
   if (target > enduranceFrom) {
     state.endurance = Math.min(
       state.maximumEndurance,
-      state.endurance
-        + (target - enduranceFrom)
-        * thiefEnduranceRegenerationRate(
-          context,
-          (enduranceFrom + target) / 2,
-        ),
+      state.endurance +
+        (target - enduranceFrom) *
+          thiefEnduranceRegenerationRate(context, (enduranceFrom + target) / 2),
     );
     state.enduranceUpdatedAt = target;
   }
@@ -102,9 +108,10 @@ export function spendThiefCoreResources(
     emitThiefState(context, context.start, "initiative-spent");
   }
   if (
-    (skill.categories || []).some(category =>
-      String(category).toLowerCase().includes("signet"))
-    && hasThiefTrait(context.config, TRAIT.SIGNETS_OF_POWER)
+    (skill.categories || []).some((category) =>
+      String(category).toLowerCase().includes("signet"),
+    ) &&
+    hasThiefTrait(context.config, TRAIT.SIGNETS_OF_POWER)
   ) {
     gainThiefInitiative(context, 3, context.start, "signets-of-power");
   }

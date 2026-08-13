@@ -50,6 +50,17 @@ header {
   padding: 8px 0 12px;
 }
 
+body[data-profession] header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--bg-dark);
+}
+
+body[data-profession] header .update-info {
+  margin: 8px auto 0;
+}
+
 header h1 {
   font-size: 22px;
   font-weight: 600;
@@ -92,24 +103,34 @@ header .accent {
   color: var(--accent);
 }
 
-.github-link {
+.community-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.community-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--text-dim);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-decoration: none;
+  cursor: pointer;
 }
 
-.github-link:hover,
-.github-link:focus-visible {
+.community-link:hover,
+.community-link:focus-visible {
   color: var(--accent);
   outline: none;
 }
 
-.github-link:focus-visible {
+.community-link:focus-visible {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -119,14 +140,14 @@ header .accent {
 }
 
 /* Simulator pages: mirror the absolute home-link on the opposite corner. */
-header .github-link {
+header .community-actions {
   position: absolute;
   right: 0;
   top: 10px;
 }
 
 @media (max-width: 720px) {
-  header .github-link {
+  header .community-actions {
     position: static;
     display: inline-flex;
     margin-bottom: 7px;
@@ -175,6 +196,18 @@ header .github-link {
 .update-info strong {
   color: var(--accent);
   font-weight: 600;
+}
+
+.update-info-wip {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 1px solid color-mix(in srgb, #e0a94a 60%, #555);
+  border-radius: 999px;
+  color: #e0a94a;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .patch-box strong {
@@ -269,6 +302,10 @@ header .github-link {
 .build-templates {
   max-width: 860px;
   margin: 0 auto 12px;
+}
+
+.profession-main {
+  min-width: 0;
 }
 
 .build-templates-panel {
@@ -497,6 +534,69 @@ header .github-link {
   }
 }
 
+@media (min-width: 1200px) {
+  #app.has-template-sidebar {
+    max-width: 1584px;
+  }
+
+  .profession-layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+  }
+
+  .build-templates {
+    position: sticky;
+    top: calc(var(--profession-header-height, 112px) + 12px);
+    z-index: 10;
+    width: 100%;
+    max-width: none;
+    max-height: calc(100vh - var(--profession-header-height, 112px) - 24px);
+    margin: 0;
+  }
+
+  .build-templates-panel {
+    max-height: inherit;
+    overflow-y: auto;
+  }
+
+  .build-templates-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .build-templates-header .template-actions-hint {
+    display: none;
+  }
+
+  .build-templates .presets-group {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .build-templates .presets-group-label {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .template-preset-list {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .template-preset {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .template-toast {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
 /* ─── Legacy Elementalist presets bar ─── */
 .presets-bar {
   max-width: 860px;
@@ -697,7 +797,7 @@ header .github-link {
 /* ─── Build Section ─── */
 .build-section {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: minmax(0, 1fr) 270px;
   gap: 12px;
   margin-bottom: 12px;
   align-items: start;
@@ -1452,6 +1552,10 @@ header .github-link {
   min-width: 0;
 }
 
+.equipped-skill-bar-column {
+  container: skill-bar-column / inline-size;
+}
+
 .weapon-bar-column .weapon-bar {
   flex-direction: column;
   flex-wrap: nowrap;
@@ -1636,6 +1740,7 @@ header .github-link {
 
 .skill-bar {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
   min-height: 72px;
@@ -1655,6 +1760,7 @@ header .github-link {
 
 .skill-bar-selected {
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .skill-bar-inspection {
@@ -1677,13 +1783,21 @@ header .github-link {
   justify-self: center;
 }
 
-.guardian-tomes .guardian-tome-chapters {
-  grid-row: 2;
-}
-
 .guardian-tomes .guardian-tome-chapters .sbar-icon {
   width: 38px;
   height: 38px;
+}
+
+@container skill-bar-column (max-width: 720px) {
+  .skill-bar-inspection.guardian-tomes {
+    grid-template-columns: repeat(2, max-content);
+  }
+}
+
+@container skill-bar-column (max-width: 470px) {
+  .skill-bar-inspection.guardian-tomes {
+    grid-template-columns: max-content;
+  }
 }
 
 .skill-bar-inspection.necromancer-shroud {
@@ -3025,6 +3139,17 @@ header .github-link {
 
 .rot-charge-release-badge:hover {
   background: #a46020;
+  color: #fff;
+}
+
+.rot-double-edge-badge {
+  color: #ef9b9b;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.rot-double-edge-badge:hover {
+  background: #923c3c;
   color: #fff;
 }
 
@@ -4588,6 +4713,22 @@ header .github-link {
   background: rgba(8, 8, 16, 0.62);
 }
 
+.weapon-set-preview-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.weapon-set-preview-group-label {
+  padding-left: 7px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
 .weapon-set-preview-label {
   display: inline-flex;
   align-items: center;
@@ -4622,6 +4763,11 @@ header .github-link {
 .engineer-theme {
   --accent: #d29b3d;
   --accent-dim: #8b6122;
+}
+
+.elementalist-theme {
+  --accent: #d76338;
+  --accent-dim: #914126;
 }
 
 .revenant-theme {
@@ -5482,9 +5628,7 @@ header .github-link {
 }
 
 .attribute-note {
-  margin-top: 10px;
-  color: var(--text-dim);
-  font-size: 11px;
+  display: none;
 }
 
 .boon-control {
@@ -5756,6 +5900,30 @@ header .github-link {
   gap: 12px;
 }
 
+.profession-group-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profession-group-heading::after {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  content: "";
+}
+
+.profession-group-heading:not(:first-child) {
+  margin-top: 14px;
+}
+
 .profession-card {
   --profession-accent: var(--accent);
   position: relative;
@@ -5880,6 +6048,24 @@ header .github-link {
 .profession-card-copy strong {
   color: var(--text-bright);
   font-size: 19px;
+}
+
+.profession-legacy-badge,
+.profession-wip-badge {
+  display: inline-flex;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--profession-accent) 55%, #555);
+  border-radius: 999px;
+  color: var(--profession-accent);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.profession-wip-badge {
+  border-color: color-mix(in srgb, #e0a94a 60%, #555);
+  color: #e0a94a;
 }
 
 .profession-card-copy small {

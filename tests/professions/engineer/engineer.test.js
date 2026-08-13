@@ -70,6 +70,10 @@ function simulate(specialization, rotation, config = {}) {
   });
 }
 
+function mechanic(name) {
+  return engineerCatalog.skillsByName.get(name);
+}
+
 test("Engineer catalog pins API identity and explicit skill mechanics", () => {
   assert.equal(DATA_SNAPSHOT, "2026-07-28");
   assert.equal(engineerCatalog.specializations.length, 9);
@@ -1860,6 +1864,7 @@ test("Engineer hammer skills use the requested packets and field cadence", () =>
   assert.equal(electro.cooldown, 6);
   assert.equal(electro.effects[0].coefficient, 3);
   assert.equal(electro.effects[0].hits, 2);
+  assert.equal(electro.effects[0].metadata.damageKind, "explosion");
   assert.equal(electro.finisherType, "Whirl");
 
   const rocket = skill("Rocket Charge");
@@ -3859,6 +3864,134 @@ test("Scrapper traits apply gyro control, superspeed, boons, and charges", () =>
         1.05 ** 3,
     ) < 1e-12,
   );
+
+  const appliedForce = simulate("Scrapper", ["Puncturing Jab"], {
+    selectedTraitIds: [TRAIT.APPLIED_FORCE],
+    boons: { might: 25 },
+    stats: { power: 2000 },
+    target: { conditions: {} },
+  });
+  const withoutAppliedForce = simulate("Scrapper", ["Puncturing Jab"], {
+    boons: { might: 25 },
+    stats: { power: 2000 },
+    target: { conditions: {} },
+  });
+  assert.ok(
+    Math.abs(
+      appliedForce.resolvedEvents.find((event) => event.type === "damage")
+        .damage /
+        withoutAppliedForce.resolvedEvents.find(
+          (event) => event.type === "damage",
+        ).damage -
+        3500 / 2750,
+    ) < 1e-12,
+  );
+});
+
+test("Mine Field materializes five mines plus detonation with cripple", () => {
+  const mineField = mechanic("Mine Field");
+  const detonation = mechanic("Detonate Mine Field");
+  assert.equal(mineField.cooldown, 17);
+  assert.equal(mineField.effects[0].coefficient, 3.85);
+  assert.equal(mineField.effects[0].hits, 5);
+  assert.equal(detonation.effects[0].coefficient, 0.77);
+  assert.equal(detonation.effects[0].hits, 1);
+
+  const result = simulate("Core", ["Mine Field", "Detonate Mine Field"]);
+  assert.equal(result.warnings.length, 0);
+  const mines = result.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.name === "Damage per Mine",
+  );
+  assert.equal(mines.length, 6);
+  assert.ok(mines.every((event) => event.coefficient === 0.77));
+
+  const cripple = result.resolvedEvents.filter(
+    (event) => event.type === "condition" && event.condition === "Crippled",
+  );
+  assert.equal(cripple.length, 6);
+  assert.ok(cripple.every((event) => event.duration === 2.5));
+});
+
+test("power Scrapper toolbelt skills use their per-hit and control facts", () => {
+  const orbitalStrike = mechanic("Orbital Strike");
+  assert.equal(orbitalStrike.cooldown, 40);
+  assert.equal(orbitalStrike.effects[0].coefficient, 1.33);
+  assert.equal(orbitalStrike.finisherType, "Blast");
+
+  const grenadeBarrage = mechanic("Grenade Barrage");
+  assert.equal(grenadeBarrage.cooldown, 25);
+  assert.equal(grenadeBarrage.effects[0].coefficient, 3.6);
+  assert.equal(grenadeBarrage.effects[0].hits, 6);
+
+  const staticShock = mechanic("Static Shock");
+  assert.equal(staticShock.cooldown, 20);
+  assert.equal(staticShock.effects[0].coefficient, 1);
+  assert.equal(staticShock.effects[1].metadata.controlKind, "daze");
+
+  const result = simulate("Core", ["Grenade Barrage"]);
+  const grenades = result.resolvedEvents.filter(
+    (event) => event.type === "damage" && event.name === "Grenade Barrage",
+  );
+  assert.equal(grenades.length, 6);
+  assert.ok(grenades.every((event) => event.coefficient === 0.6));
+});
+
+test("Medic Gyro and Reconstruction Field expose their water fields", () => {
+  const reconstructionField = mechanic("Reconstruction Field");
+  assert.equal(reconstructionField.cooldown, 25);
+  assert.equal(reconstructionField.comboField, "Water");
+  assert.equal(reconstructionField.duration, 2);
+  assert.deepEqual(reconstructionField.effects[0], {
+    type: "boon",
+    boon: "protection",
+    duration: 2,
+    stacks: 1,
+  });
+
+  const medicGyro = mechanic("Medic Gyro");
+  assert.equal(medicGyro.cooldown, 20);
+  assert.equal(medicGyro.comboField, "Water");
+  assert.equal(medicGyro.duration, 5);
+});
+
+test("Poison Gas Shell pulses its five-second poison field", () => {
+  const poisonGasShell = mechanic("Poison Gas Shell");
+  assert.equal(poisonGasShell.comboField, "Poison");
+  assert.equal(poisonGasShell.duration, 5);
+  assert.equal(poisonGasShell.effects[1].condition, "Poisoned");
+  assert.equal(poisonGasShell.effects[1].duration, 3);
+  assert.equal(poisonGasShell.effects[1].applications, 5);
+  assert.equal(poisonGasShell.effects[1].intervalMs, 1000);
+
+  const result = simulate(
+    "Core",
+    [
+      "Elite Mortar Kit",
+      "Poison Gas Shell",
+      { type: "wait", durationMs: 5000 },
+    ],
+    {
+      selectedSkills: [
+        "Healing Turret",
+        "Grenade Kit",
+        "Throw Mine",
+        "Rifle Turret",
+        "Elite Mortar Kit",
+      ],
+    },
+  );
+  const poison = result.resolvedEvents.filter(
+    (event) =>
+      event.type === "condition" &&
+      event.skillName === "Poison Gas Shell" &&
+      event.condition === "Poisoned",
+  );
+  assert.equal(poison.length, 5);
+  assert.deepEqual(
+    poison.map((event) => event.at - poison[0].at),
+    [0, 1, 2, 3, 4],
+  );
+  assert.ok(poison.every((event) => event.duration === 3));
 });
 
 test("Mechanical Genius gives the jade mech independent inherited attributes", () => {
@@ -5333,6 +5466,168 @@ test("condition Amalgam three-kit benchmark preserves the supplied log", async (
     ),
     Array(6).fill(640),
   );
+});
+
+test("power Scrapper hammer preset preserves the supplied build and log", async () => {
+  const [raw, savedRotation, manifest] = await Promise.all([
+    readFile(
+      new URL(
+        "../../../Builds/engineer/b-power-scrapper-hammer.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL(
+        "../../../Rotations/engineer/r-power-scrapper-hammer-bench.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL("../../../Builds/engineer/manifest.json", import.meta.url),
+      "utf8",
+    ).then(JSON.parse),
+  ]);
+
+  assert.deepEqual(raw.specializations, [
+    { name: "Explosives", traits: "3-2-3" },
+    { name: "Firearms", traits: "3-3-1" },
+    { name: "Scrapper", traits: "1-3-3" },
+  ]);
+  const dragonSlots = new Set([
+    "Leggins",
+    "Ring1",
+    "Ring2",
+    "Accessory1",
+    "Back",
+  ]);
+  assert.ok(
+    Object.entries(raw.gear).every(
+      ([slot, prefix]) =>
+        prefix === (dragonSlots.has(slot) ? "Dragon's" : "Berserker's"),
+    ),
+  );
+  assert.deepEqual(raw.weapons, ["Hammer", ""]);
+  assert.equal(raw.rune, "Dragonhunter");
+  assert.deepEqual(raw.weaponSigils[0], ["Force", "Impact"]);
+  assert.equal(raw.relic, "Bloodstone");
+  assert.equal(raw.food, "Cilantro Lime Sous-Vide Steak");
+  assert.equal(raw.utility, "Superior Sharpening Stone");
+  assert.deepEqual(raw.infusions, [
+    { stat: "Power", count: 18 },
+    { stat: "Precision", count: 0 },
+    { stat: "Condition Damage", count: 0 },
+  ]);
+  assert.deepEqual(raw.selectedSkills, {
+    Heal: "Medic Gyro",
+    Utility1: "Grenade Kit",
+    Utility2: "Throw Mine",
+    Utility3: "Bomb Kit",
+    Elite: "Elite Mortar Kit",
+  });
+
+  const preset = manifest
+    .find((section) => section.section === "Scrapper")
+    .presets.find(
+      (entry) => entry.build === "Builds/engineer/b-power-scrapper-hammer.json",
+    );
+  assert.equal(
+    preset.rotation,
+    "Rotations/engineer/r-power-scrapper-hammer-bench.json",
+  );
+  assert.equal(
+    preset.dpsReportUrl,
+    "https://dps.report/55xd-20260422-192633_golem",
+  );
+  assert.equal(preset.benchmarkDps, 42208);
+  assert.equal(preset.upToDate, true);
+  assert.equal(savedRotation.metadata.benchmarkDurationSeconds, 94.247);
+  assert.equal(savedRotation.metadata.benchmarkDamage, 3977935);
+  assert.ok(
+    Math.abs(savedRotation.metadata.benchmarkDps - 42207.55037295617) < 1e-9,
+  );
+  assert.equal(savedRotation.rotation.length, 239);
+  assert.equal(
+    savedRotation.rotation.some(
+      (entry) =>
+        typeof entry === "object" &&
+        entry.name === "Positive Strike" &&
+        entry.interruptMs != null,
+    ),
+    false,
+  );
+
+  const build = migrateEngineerBuild({
+    ...raw,
+    rotation: savedRotation.rotation,
+  });
+  assert.equal(validateEngineerBuild(build).valid, true);
+  const app = {
+    build,
+    skillByName: engineerCatalog.skillsByName,
+    attributeWeaponSet: 1,
+  };
+  recalculate(app);
+  const activeTraitNames = new Set(
+    app.attributeData.activeTraits.map((trait) => trait.name),
+  );
+  assert.equal(activeTraitNames.has("Explosive Temper"), true);
+  assert.equal(activeTraitNames.has("Big Boomer"), true);
+  assert.equal(activeTraitNames.has("Blast Shield"), false);
+  const result = runSimulation(app);
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(Math.abs(result.dpsWindow - 94.247) < 0.75);
+  assert.ok(Math.abs(result.dps - savedRotation.metadata.benchmarkDps) < 1500);
+  assert.ok(Math.abs(result.strikeDamage - 3766547) < 150000);
+  assert.ok(Math.abs(result.conditionDamage - 211388) < 10000);
+  for (const [name, logDamage, tolerance] of [
+    ["Electro-whirl", 638776, 25000],
+    ["Shrapnel Grenade", 349341, 10000],
+    ["Thunderclap", 308032, 15000],
+    ["Bloodstone Explosion", 142345, 5000],
+  ]) {
+    const packet = result.breakdown.find((entry) => entry.name === name);
+    assert.ok(Math.abs(packet.damage - logDamage) < tolerance, name);
+  }
+  assert.equal(
+    result.breakdown
+      .filter(
+        (entry) =>
+          entry.name === "Damage per Mine" &&
+          entry.sourceSkill === "Mine Field",
+      )
+      .reduce((hits, entry) => hits + entry.hits, 0),
+    30,
+  );
+  const mineRows = skillBreakdownRows(result).filter(
+    (row) => row.name === "Mine Field" || row.name === "Detonate Mine Field",
+  );
+  assert.equal(mineRows.length, 1);
+  assert.equal(mineRows[0].name, "Mine Field");
+  assert.equal(mineRows[0].hits, 30);
+  assert.equal(
+    result.breakdown.find((entry) => entry.name === "Bloodstone Explosion")
+      .hits,
+    6,
+  );
+  for (const [skill, count] of [
+    ["Electro-whirl", 17],
+    ["Shrapnel Grenade", 17],
+    ["Poison Gas Shell", 7],
+    ["Mine Field", 5],
+    ["Detonate Mine Field", 5],
+    ["Medic Gyro", 5],
+    ["Function Gyro", 4],
+    ["Grenade Barrage", 4],
+  ]) {
+    assert.equal(
+      result.steps.filter((step) => step.skill === skill).length,
+      count,
+      skill,
+    );
+  }
 });
 
 test("Engineer is a loadable native application", async () => {

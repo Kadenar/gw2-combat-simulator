@@ -702,6 +702,12 @@ function validateRotationCommand(
     errors.push("releaseAtCharges must be a positive whole number.");
   }
   if (
+    Object.hasOwn(candidate, "doubleEdgeOutcome") &&
+    !["success", "backfire"].includes(String(candidate.doubleEdgeOutcome))
+  ) {
+    errors.push("doubleEdgeOutcome must be success or backfire.");
+  }
+  if (
     candidate.type !== "cast" &&
     Object.hasOwn(candidate, "interruptAfterMs")
   ) {
@@ -712,6 +718,12 @@ function validateRotationCommand(
     Object.hasOwn(candidate, "releaseAtCharges")
   ) {
     errors.push("only cast commands may contain releaseAtCharges.");
+  }
+  if (
+    candidate.type !== "cast" &&
+    Object.hasOwn(candidate, "doubleEdgeOutcome")
+  ) {
+    errors.push("only cast commands may contain doubleEdgeOutcome.");
   }
   if (candidate.type === "wait") {
     if (

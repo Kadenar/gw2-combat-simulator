@@ -28,8 +28,6 @@ export function antiquaryCastAvailability(
       !state.artifactSlots.some((slot) => slot.skillId === skill.id)
     ) {
       const retryAt =
-        context.config.deterministicChoices?.artifactDrawSequence ===
-          "choose" &&
         Number(state.nextSkrittScufflePilferAt || 0) > context.start
           ? Number(state.nextSkrittScufflePilferAt)
           : null;

@@ -9,6 +9,7 @@ import {
 import { deadeyeState } from "./state.js";
 import { deadeyeUi } from "./ui.js";
 import { DEADEYE_SKILL_MECHANICS } from "./skills.js";
+import { deadeyeTaskHandlers } from "./tasks.js";
 
 export const deadeyeModule = defineNativeModule({
   id: "Deadeye",
@@ -20,7 +21,10 @@ export const deadeyeModule = defineNativeModule({
   mechanics: {
     modifiers: deadeyeAttributeRules,
     castRules: deadeyeCastRules,
-    schedulerHooks: deadeyeSchedulerHooks,
+    schedulerHooks: {
+      ...deadeyeSchedulerHooks,
+      taskHandlers: deadeyeTaskHandlers,
+    },
   },
   presentation: deadeyeUi,
 });

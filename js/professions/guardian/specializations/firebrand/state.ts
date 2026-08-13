@@ -1,9 +1,7 @@
 import { GUARDIAN_TRAIT_IDS } from "../../data/ids.js";
 import { defineProfessionSpecializationState } from "../../../../platform/engine/profession.js";
-import type {
-  GuardianConfig,
-  GuardianFirebrandState,
-} from "../../types.js";
+import { FIREBRAND_MECHANICS } from "./mechanics.js";
+import type { GuardianConfig, GuardianFirebrandState } from "../../types.js";
 
 export function createFirebrandState(
   config: GuardianConfig = {},
@@ -21,7 +19,9 @@ export function createFirebrandState(
   const tomePageInterval = selectedTraits.has(GUARDIAN_TRAIT_IDS.LOREMASTER)
     ? 5
     : 8;
-  const configuredInitialPages = Number(config.initialTomePages ?? traitMaximum);
+  const configuredInitialPages = Number(
+    config.initialTomePages ?? traitMaximum,
+  );
   const initialPages =
     selectedTraits.has(GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS) &&
     configuredInitialPages === 5
@@ -38,14 +38,17 @@ export function createFirebrandState(
         ? tomePageInterval
         : Number.POSITIVE_INFINITY,
     ashesCharges: 0,
+    ashesBurnDuration: FIREBRAND_MECHANICS.ashesBurn.duration,
     ashesNextTriggerAt: 0,
     ashesExpiresAt: 0,
     nextCourageAegisAt: 0,
+    tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
     swiftScholarTome: "",
     swiftScholarCount: 0,
     liberatorsVowReadyAt: 0,
     stalwartSpeedReadyAt: 0,
     quickfireReadyAt: 0,
+    mantraRechargeReadyAt: {},
   };
 }
 

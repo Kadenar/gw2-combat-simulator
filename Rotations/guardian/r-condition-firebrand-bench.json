@@ -1,0 +1,383 @@
+{
+  "metadata": {
+    "benchmarkDurationSeconds": 96.066,
+    "benchmarkDamage": 3930656,
+    "benchmarkDps": 40916.2,
+    "simulatedDps": 41293.88310035118,
+    "castTimeQuantizationMs": 40,
+    "timingSource": "Supplied ArcDPS EVTC animation and damage events",
+    "note": "Quickness cast times, strike packets, and interrupted filler timings are rounded to 40 ms. The EVTC uses Feel My Wrath rather than Mantra of Liberation and is modeled with four allied players. All 11 Zealot's Flame self-buff applications, 12 Flame Rush packets, 6 Flame Surge packets, and ten Through the Heart casts canceled before impact are represented; the selected parent mantras remain the preparation skills."
+  },
+  "rotation": [
+    "Jurisdiction",
+    "Purging Flames",
+    "Symbol of Ignition",
+    {
+      "name": "Flame Rush",
+      "offset": 120
+    },
+    {
+      "name": "Through the Heart",
+      "offset": 240,
+      "interruptMs": 40
+    },
+    "Swap Weapons",
+    "Symbol of Vengeance",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 560
+    },
+    {
+      "name": "Flame Rush",
+      "offset": 80
+    },
+    "Zealot's Flame",
+    "Tome of Justice",
+    "Chapter 4: Scorched Aftermath",
+    {
+      "name": "Flame Surge",
+      "offset": 840
+    },
+    "Chapter 2: Igniting Burst",
+    "Epilogue: Ashes of the Just",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 440
+    },
+    "Stow Tome",
+    "Zealot's Fire",
+    "Blazing Edge",
+    "Zealot's Flame",
+    "Zealot's Fire",
+    "Core Cleave",
+    "Bleeding Edge",
+    "Searing Slash",
+    "Core Cleave",
+    "Bleeding Edge",
+    "Searing Slash",
+    "Tome of Justice",
+    "Chapter 2: Igniting Burst",
+    "Stow Tome",
+    "Symbol of Vengeance",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 280
+    },
+    "Zealot's Flame",
+    "Zealot's Fire",
+    "Swap Weapons",
+    "Symbol of Ignition",
+    {
+      "name": "Through the Heart",
+      "offset": 0,
+      "interruptMs": 0
+    },
+    "Hail of Justice",
+    "Peacekeeper",
+    "\"Feel My Wrath!\"",
+    "Tome of Justice",
+    "Chapter 4: Scorched Aftermath",
+    "Stow Tome",
+    "Hail of Justice",
+    "Purging Flames",
+    "Tome of Justice",
+    "Chapter 2: Igniting Burst",
+    "Stow Tome",
+    "Jurisdiction",
+    {
+      "name": "Through the Heart",
+      "offset": 0,
+      "interruptMs": 80
+    },
+    "Through the Heart",
+    {
+      "name": "Flame Rush",
+      "offset": 120
+    },
+    "Through the Heart",
+    {
+      "name": "Flame Rush",
+      "offset": 400
+    },
+    "Peacekeeper",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 80
+    },
+    {
+      "name": "Flame Surge",
+      "offset": 760
+    },
+    "Tome of Justice",
+    "Epilogue: Ashes of the Just",
+    "Chapter 1: Searing Spell",
+    "Stow Tome",
+    "Symbol of Ignition",
+    "Hail of Justice",
+    "Swap Weapons",
+    "Symbol of Vengeance",
+    "Zealot's Flame",
+    "Tome of Justice",
+    "Chapter 2: Igniting Burst",
+    {
+      "name": "Rejuvenating Respite",
+      "offset": 600
+    },
+    "Stow Tome",
+    "Zealot's Fire",
+    "Blazing Edge",
+    "Core Cleave",
+    "Bleeding Edge",
+    "Searing Slash",
+    "Tome of Justice",
+    "Chapter 4: Scorched Aftermath",
+    "Stow Tome",
+    "Core Cleave",
+    "Bleeding Edge",
+    "Zealot's Flame",
+    "Searing Slash",
+    "Zealot's Fire",
+    "Symbol of Vengeance",
+    "Tome of Justice",
+    "Chapter 2: Igniting Burst",
+    "Stow Tome",
+    "Purging Flames",
+    "Swap Weapons",
+    "Symbol of Ignition",
+    "Hail of Justice",
+    "Peacekeeper",
+    "Tome of Justice",
+    "Chapter 1: Searing Spell",
+    {
+      "name": "Flame Rush",
+      "offset": 160
+    },
+    "Epilogue: Ashes of the Just",
+    {
+      "name": "Flame Rush",
+      "offset": 40
+    },
+    "Stow Tome",
+    "Jurisdiction",
+    {
+      "name": "Flame Surge",
+      "offset": 160
+    },
+    "Hail of Justice",
+    "Tome of Justice",
+    "Chapter 2: Igniting Burst",
+    "Chapter 4: Scorched Aftermath",
+    "Stow Tome",
+    "\"Feel My Wrath!\"",
+    "Peacekeeper",
+    "Through the Heart",
+    "Symbol of Ignition",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 280
+    },
+    {
+      "name": "Through the Heart",
+      "offset": 80,
+      "interruptMs": 40
+    },
+    "Swap Weapons",
+    "Symbol of Vengeance",
+    "Zealot's Flame",
+    "Zealot's Fire",
+    "Blazing Edge",
+    "Tome of Justice",
+    "Chapter 1: Searing Spell",
+    "Chapter 2: Igniting Burst",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 200
+    },
+    "Stow Tome",
+    "Core Cleave",
+    "Bleeding Edge",
+    {
+      "name": "Rejuvenating Respite",
+      "offset": 280
+    },
+    "Zealot's Flame",
+    "Searing Slash",
+    "Zealot's Fire",
+    "Purging Flames",
+    "Core Cleave",
+    "Bleeding Edge",
+    "Searing Slash",
+    "Symbol of Vengeance",
+    "Tome of Justice",
+    "Chapter 4: Scorched Aftermath",
+    "Chapter 2: Igniting Burst",
+    {
+      "name": "Flame Rush",
+      "offset": 80
+    },
+    "Epilogue: Ashes of the Just",
+    {
+      "name": "Flame Rush",
+      "offset": 480
+    },
+    "Stow Tome",
+    "Swap Weapons",
+    {
+      "name": "Through the Heart",
+      "offset": 0,
+      "interruptMs": 120
+    },
+    "Symbol of Ignition",
+    "Hail of Justice",
+    {
+      "name": "Flame Surge",
+      "offset": 40
+    },
+    "Peacekeeper",
+    "Hail of Justice",
+    "Jurisdiction",
+    "Through the Heart",
+    "Tome of Justice",
+    "Chapter 2: Igniting Burst",
+    "Stow Tome",
+    "Through the Heart",
+    "Through the Heart",
+    "Through the Heart",
+    "Peacekeeper",
+    "Tome of Justice",
+    "Chapter 1: Searing Spell",
+    "Stow Tome",
+    "Through the Heart",
+    {
+      "name": "Through the Heart",
+      "offset": 600,
+      "interruptMs": 40
+    },
+    "Symbol of Ignition",
+    "Hail of Justice",
+    "Swap Weapons",
+    "Symbol of Vengeance",
+    "Zealot's Flame",
+    "Purging Flames",
+    "Tome of Justice",
+    "Chapter 4: Scorched Aftermath",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 200
+    },
+    "Chapter 2: Igniting Burst",
+    "Stow Tome",
+    "Zealot's Fire",
+    "Blazing Edge",
+    "Zealot's Flame",
+    "Zealot's Fire",
+    "Core Cleave",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 320
+    },
+    {
+      "name": "Flame Rush",
+      "offset": 280
+    },
+    "Bleeding Edge",
+    "Searing Slash",
+    {
+      "name": "Flame Rush",
+      "offset": 200
+    },
+    "Tome of Justice",
+    "Epilogue: Ashes of the Just",
+    {
+      "name": "Flame Surge",
+      "offset": 480
+    },
+    "Stow Tome",
+    "Core Cleave",
+    "Bleeding Edge",
+    "Searing Slash",
+    "Symbol of Vengeance",
+    "Zealot's Flame",
+    "Zealot's Fire",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 240
+    },
+    "Swap Weapons",
+    {
+      "name": "Through the Heart",
+      "offset": 0,
+      "interruptMs": 40
+    },
+    "Symbol of Ignition",
+    "Hail of Justice",
+    "Tome of Justice",
+    "Chapter 2: Igniting Burst",
+    "Stow Tome",
+    "Peacekeeper",
+    "Jurisdiction",
+    "Tome of Justice",
+    "Chapter 4: Scorched Aftermath",
+    "Stow Tome",
+    "Hail of Justice",
+    {
+      "name": "Through the Heart",
+      "offset": 1120,
+      "interruptMs": 120
+    },
+    "\"Feel My Wrath!\"",
+    {
+      "name": "Restoring Reprieve",
+      "offset": 760
+    },
+    "Through the Heart",
+    {
+      "name": "Through the Heart",
+      "offset": 600,
+      "interruptMs": 0
+    },
+    "Purging Flames",
+    "Through the Heart",
+    "Peacekeeper",
+    {
+      "name": "Rejuvenating Respite",
+      "offset": 200
+    },
+    "Tome of Justice",
+    "Chapter 2: Igniting Burst",
+    "Stow Tome",
+    "Through the Heart",
+    {
+      "name": "Through the Heart",
+      "offset": 600,
+      "interruptMs": 40
+    },
+    "Symbol of Ignition",
+    "Swap Weapons",
+    "Symbol of Vengeance",
+    "Zealot's Flame",
+    "Zealot's Fire",
+    "Blazing Edge",
+    {
+      "name": "Flame Rush",
+      "offset": 120
+    },
+    "Tome of Justice",
+    "Epilogue: Ashes of the Just",
+    {
+      "name": "Flame Rush",
+      "offset": 480
+    },
+    "Stow Tome",
+    "Core Cleave",
+    {
+      "name": "Flame Surge",
+      "offset": 600
+    },
+    "Bleeding Edge",
+    "Searing Slash",
+    "Core Cleave",
+    "Bleeding Edge",
+    "Searing Slash"
+  ]
+}

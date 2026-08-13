@@ -350,12 +350,14 @@ function modifyThiefCoreAttributes(
       result.power += 540;
     }
   }
-  if (
-    hasTrait(context, TRAIT.REVEALED_TRAINING) &&
-    Number(state.revealedUntil || 0) > context.time
-  ) {
+  if (hasTrait(context, TRAIT.REVEALED_TRAINING)) {
     if (!staticRulesApplied) result.power += 80;
-    result.power += 120;
+    if (
+      Number(state.revealedUntil || 0) > context.time &&
+      !thiefEventSkill(context)?.stealthAttack
+    ) {
+      result.power += 120;
+    }
   }
   return result;
 }

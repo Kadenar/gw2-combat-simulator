@@ -10,7 +10,10 @@
     "Dodge",
     "__combat_start",
     "Cloak and Dagger",
-    "Backstab",
+    {
+      "name": "Backstab",
+      "interruptMs": 280
+    },
     "Dodge",
     "Fist Flurry",
     "Impairing Daggers",
@@ -26,7 +29,10 @@
     "Wild Strike",
     "Lotus Strike",
     "Cloak and Dagger",
-    "Backstab",
+    {
+      "name": "Backstab",
+      "interruptMs": 280
+    },
     "Steal",
     "Dodge",
     "Double Strike",
@@ -46,7 +52,10 @@
     "Palm Strike",
     "Dodge",
     "Cloak and Dagger",
-    "Backstab",
+    {
+      "name": "Backstab",
+      "interruptMs": 280
+    },
     "Dodge",
     "Double Strike",
     "Wild Strike",
@@ -55,7 +64,10 @@
     "Wild Strike",
     "Lotus Strike",
     "Cloak and Dagger",
-    "Backstab",
+    {
+      "name": "Backstab",
+      "interruptMs": 280
+    },
     "Dodge",
     "Double Strike",
     "Wild Strike",
@@ -64,7 +76,10 @@
     "Wild Strike",
     "Lotus Strike",
     "Cloak and Dagger",
-    "Backstab",
+    {
+      "name": "Backstab",
+      "interruptMs": 280
+    },
     "Dodge",
     "Double Strike",
     "Wild Strike",
@@ -132,7 +147,10 @@
     "Palm Strike",
     "Dodge",
     "Cloak and Dagger",
-    "Backstab",
+    {
+      "name": "Backstab",
+      "interruptMs": 280
+    },
     "Dodge",
     "Double Strike",
     "Wild Strike",
@@ -201,8 +219,11 @@
     "Backstab",
     "Dodge",
     "Heartseeker",
+    "Heartseeker",
     "Double Strike",
-    "Wild Strike",
-    "Heartseeker"
+    {
+      "name": "Wild Strike",
+      "interruptMs": 240
+    }
   ]
 }

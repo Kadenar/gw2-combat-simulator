@@ -173,6 +173,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     effects: [
       {
         type: "strike",
+        // Six grenades at 0.6 coefficient each.
         coefficient: 3.6,
         hits: 6,
         atMs: 169.32,
@@ -2198,7 +2199,11 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         type: "strike",
         coefficient: 3,
         hits: 1,
-        metadata: { finisherType: "Blast", finisherValue: 1 },
+        metadata: {
+          damageKind: "explosion",
+          finisherType: "Blast",
+          finisherValue: 1,
+        },
         name: "Detonate (engineer skill)",
         actorType: "player",
       },
@@ -2236,14 +2241,30 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.MINE_FIELD]: {
     implemented: true,
-    castTimeMs: 1000,
+    quicknessCastTimeMs: 920,
     cooldown: 17,
     effects: [
       {
         type: "strike",
-        coefficient: 0.77,
-        hits: 1,
+        coefficient: 3.85,
+        hits: 5,
         name: "Damage per Mine",
+        actorType: "player",
+        metadata: {
+          damageKind: "explosion",
+        },
+      },
+      {
+        type: "condition",
+        ticks: [
+          { atMs: 0, condition: "Crippled", stacks: 1, duration: 2.5 },
+          { atMs: 0, condition: "Crippled", stacks: 1, duration: 2.5 },
+          { atMs: 0, condition: "Crippled", stacks: 1, duration: 2.5 },
+          { atMs: 0, condition: "Crippled", stacks: 1, duration: 2.5 },
+          { atMs: 0, condition: "Crippled", stacks: 1, duration: 2.5 },
+        ],
+        timingAnchor: "castStart",
+        timingScale: "fixed",
         actorType: "player",
       },
     ],
@@ -2259,6 +2280,17 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         coefficient: 0.77,
         hits: 1,
         name: "Damage per Mine",
+        actorType: "player",
+        metadata: {
+          damageKind: "explosion",
+          skillName: "Mine Field",
+        },
+      },
+      {
+        type: "condition",
+        condition: "Crippled",
+        stacks: 1,
+        duration: 2.5,
         actorType: "player",
       },
     ],
@@ -2836,7 +2868,7 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         type: "control",
         actorType: "player",
         metadata: {
-          controlKind: "stun",
+          controlKind: "daze",
           duration: 2,
         },
       },
@@ -3130,6 +3162,9 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         timingScale: "cast",
         name: "Electro-whirl",
         actorType: "player",
+        metadata: {
+          damageKind: "explosion",
+        },
       },
     ],
   },
@@ -3328,6 +3363,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
     implemented: true,
     castTimeMs: 750,
     cooldown: 40,
+    finisherType: "Blast",
+    finisherValue: 1,
     effects: [
       {
         type: "strike",
@@ -3459,7 +3496,10 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
   [ID.POISON_GAS_SHELL]: {
     implemented: true,
     castTimeMs: 500,
+    quicknessCastTimeMs: 520,
     cooldown: 10,
+    comboField: "Poison",
+    duration: 5,
     effects: [
       {
         type: "strike",
@@ -3473,7 +3513,13 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<
         condition: "Poisoned",
         stacks: 1,
         duration: 3,
+        applications: 5,
+        atMs: 0,
+        intervalMs: 1000,
+        timingAnchor: "castEnd",
+        timingScale: "fixed",
         actorType: "player",
+        persistsAfterInterrupt: true,
       },
     ],
     kit: "Elite Mortar Kit",

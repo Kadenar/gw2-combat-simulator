@@ -200,6 +200,7 @@ export interface StrikeEffect extends SkillEffectBase {
   readonly weapon?: string;
   readonly weaponStrength?: number;
   readonly weaponStrengthProfileId?: string;
+  readonly weaponStrengthSource?: "equipped";
 }
 
 export interface ConditionEffect extends SkillEffectBase {
@@ -864,6 +865,7 @@ export interface ProfessionResourceDefinition<
 }
 
 export interface ProfessionSchedulerHookDefinition {
+  readonly prepareEvent?: unknown;
   readonly initialize?: unknown;
   readonly availability?: unknown;
   readonly validateCast?: unknown;
@@ -1007,6 +1009,10 @@ export interface NormalizedProfessionContract<
   readonly eventReactions: Readonly<
     Record<string, (...args: never[]) => unknown>
   >;
+  readonly prepareEvent: (
+    context: SchedulerContext<TProfessionState>,
+    event: SimulationEventInput,
+  ) => SimulationEventInput;
   readonly initialize: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly availability: (
     context: CastContext<TProfessionState>,
@@ -1129,6 +1135,7 @@ export interface CastCommand {
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
   readonly releaseAtCharges?: number;
+  readonly doubleEdgeOutcome?: "success" | "backfire";
 }
 
 export interface WaitCommand {
@@ -1154,6 +1161,7 @@ export interface LegacyRotationEntry {
   offset?: number;
   interruptMs?: number | null;
   releaseAtCharges?: number | null;
+  doubleEdgeOutcome?: "success" | "backfire" | null;
   waitMs?: number;
 }
 

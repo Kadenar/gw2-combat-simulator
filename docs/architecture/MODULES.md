@@ -453,18 +453,18 @@ Post-scheduler phase that converts timed events into damage numbers using calcul
 
 ## File Organization Summary
 
-| Path                                           | Purpose                                                                               |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `js/app/`                                      | Profession-neutral browser shell, composition, and orchestration                      |
-| `js/platform/engine/`                          | Shared scheduling, event queue, and simulation primitives                             |
-| `js/platform/gw2/`                             | Shared GW2 formulas, data, scheduler events, resolver, gear, relics, and target state |
-| `js/platform/ui/`                              | Shared palette/resource/timeline/log/result/chart view-model contracts                |
-| `js/professions/*/data/`                       | Profession-owned catalogs, mechanics data, traits, and loaders                        |
-| `js/professions/*/core/`, `.../specializations/` | Core and per-elite vertical slices: skills, rules, mechanics, resolver, and UI       |
-| `js/professions/elementalist/{sim,optimizer}/` | Ported Elementalist simulator and gear optimizer                                      |
-| `Builds/manifest.json`, `Builds/*.json`        | Elementalist build presets                                                            |
-| `Builds/<profession>/`                         | Native profession builds and `manifest.json`                                          |
-| `Rotations/`, `Rotations/<profession>/`        | Elementalist and native profession rotation examples                                  |
-| `csv input/`                                   | Elementalist skill and hit CSVs                                                       |
-| `tests/browser/`                               | Browser interaction fixtures                                                          |
-| `tests/helpers/`                               | Shared testing utilities                                                              |
+| Path                                                              | Purpose                                                                               |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `js/app/`                                                         | Profession-neutral browser shell, composition, and orchestration                      |
+| `js/platform/engine/`                                             | Shared scheduling, event queue, and simulation primitives                             |
+| `js/platform/gw2/`                                                | Shared GW2 formulas, data, scheduler events, resolver, gear, relics, and target state |
+| `js/platform/ui/`                                                 | Shared palette/resource/timeline/log/result/chart view-model contracts                |
+| `js/professions/*/data/`                                          | Profession-owned catalogs, mechanics data, traits, and loaders                        |
+| `js/professions/*/core/`, `.../specializations/`                  | Core and per-elite vertical slices: skills, rules, mechanics, resolver, and UI        |
+| `js/professions/elementalist/{sim,optimizer}/`                    | Ported Elementalist simulator and gear optimizer                                      |
+| `Builds/elementalist/manifest.json`, `Builds/elementalist/*.json` | Elementalist build presets                                                            |
+| `Builds/<profession>/`                                            | Native profession builds and `manifest.json`                                          |
+| `Rotations/`, `Rotations/<profession>/`                           | Elementalist and native profession rotation examples                                  |
+| `js/professions/elementalist/legacy/data/csv/`                    | Legacy Elementalist skill and hit CSVs                                                |
+| `tests/browser/`                                                  | Browser interaction fixtures                                                          |
+| `tests/helpers/`                                                  | Shared testing utilities                                                              |

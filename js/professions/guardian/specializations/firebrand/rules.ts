@@ -11,6 +11,12 @@ import {
   observeFirebrandScheduledEvent,
   updateFirebrandCastState,
 } from "./traits.js";
+import {
+  advanceFirebrandMantras,
+  completeFirebrandMantra,
+  firebrandMantraAvailability,
+  initializeFirebrandMantras,
+} from "./mantras.js";
 import type {
   Gw2ModifierContext,
   Gw2ResolvedStats,
@@ -44,6 +50,11 @@ export const firebrandAttributeRules = Object.freeze({
 export const firebrandCastRules = Object.freeze({
   availability: Object.freeze([
     {
+      id: "guardian.firebrand.mantras",
+      order: 20,
+      handler: firebrandMantraAvailability,
+    },
+    {
       id: "guardian.tome-pages",
       order: 30,
       handler: tomePageAvailability,
@@ -59,7 +70,19 @@ export const firebrandCastRules = Object.freeze({
 });
 
 export const firebrandSchedulerHooks = Object.freeze({
+  initialize: Object.freeze([
+    {
+      id: "guardian.firebrand.mantras",
+      order: 10,
+      handler: initializeFirebrandMantras,
+    },
+  ]),
   advance: Object.freeze([
+    {
+      id: "guardian.firebrand.mantras",
+      order: 5,
+      handler: advanceFirebrandMantras,
+    },
     {
       id: "guardian.tomes",
       order: 10,
@@ -71,6 +94,13 @@ export const firebrandSchedulerHooks = Object.freeze({
       id: "guardian.firebrand.traits",
       order: 30,
       handler: updateFirebrandCastState,
+    },
+  ]),
+  onCastComplete: Object.freeze([
+    {
+      id: "guardian.firebrand.mantras",
+      order: 20,
+      handler: completeFirebrandMantra,
     },
   ]),
   onEventScheduled: Object.freeze([

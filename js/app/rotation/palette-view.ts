@@ -24,6 +24,10 @@ import {
 import { escapeHtml as esc, gw2ApiText } from "../../platform/ui/html.js";
 import { createRotationItem } from "./actions.js";
 import { openDragonSlashReleaseEditor } from "./charge-release.js";
+import {
+  hasConfigurableDoubleEdgeOutcome,
+  openDoubleEdgeEditor,
+} from "./double-edge.js";
 import { normalizeRotationInsertionIndex } from "../../platform/ui/insertion-cursor.js";
 import {
   activeSpecialization,
@@ -328,12 +332,19 @@ export function renderPalette(app: ProfessionAppState): void {
     if (shift) mechanics.splice(splitIndex + 1, 0, shift);
   }
   const selected = rotationSelectedSlotSkills(app);
-  // Non-weapon flips (Mantra of Pain → Power Spike) ride alongside their
-  // selected parent so the palette can offer the flip while it is armed.
+  // Follow complete utility flip chains so three-stage skills such as
+  // Firebrand mantras can expose both their ordinary and final charges.
   const utilityFlipByParent = rotationUtilityFlipByParent(app);
-  const selectedWithFlips = uniqueByName(selected).flatMap((skill) => {
-    const flip = utilityFlipByParent.get(skill.name);
-    return flip ? [skill, flip] : [skill];
+  const selectedWithFlipChains = uniqueByName(selected).flatMap((skill) => {
+    const chain: Skill[] = [];
+    const visited = new Set<number>();
+    let current: Skill | undefined = skill;
+    while (current && !visited.has(Number(current.id))) {
+      chain.push(current);
+      visited.add(Number(current.id));
+      current = utilityFlipByParent.get(current.name);
+    }
+    return chain;
   });
   const groupedActionSkillIds = new Set(
     [...renderedProfessionGroups, ...renderedLoadoutGroups].flatMap((group) =>
@@ -439,12 +450,26 @@ export function renderPalette(app: ProfessionAppState): void {
     }
     return "";
   };
-  // A charged mantra shows its flip (Power Spike); the parent (Mantra of Pain)
-  // stays locked until every charge is spent and the flip reverts.
-  const armedFlipFor = (skill: Skill): Skill | null => {
-    const flip = utilityFlipByParent.get(skill.name);
-    return flip && availableFlips[flip.name] ? flip : null;
+  const activeFlipDescendantFor = (skill: Skill): Skill | null => {
+    const visited = new Set<number>();
+    let flip = utilityFlipByParent.get(skill.name);
+    while (flip && !visited.has(Number(flip.id))) {
+      if (flipAvailable(flip)) return flip;
+      visited.add(Number(flip.id));
+      flip = utilityFlipByParent.get(flip.name);
+    }
+    return null;
   };
+  // A charged mantra replaces its selected parent. Spending the final charge
+  // removes every armed flip and brings the preparation skill back.
+  const armedFlipFor = (skill: Skill): Skill | null => {
+    return activeFlipDescendantFor(skill);
+  };
+  const selectedWithFlips = selectedWithFlipChains.filter((skill) =>
+    usesStatefulFlip(skill)
+      ? flipAvailable(skill)
+      : !activeFlipDescendantFor(skill),
+  );
   const utilitySkillAvailable = (skill: Skill): boolean => {
     if (!professionAllowsPaletteSkill(skill)) return false;
     if (usesStatefulFlip(skill)) return flipAvailable(skill);
@@ -657,6 +682,21 @@ export function renderPalette(app: ProfessionAppState): void {
             app.addRotation(name, {
               ...identity,
               ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
+            });
+          },
+        });
+        return;
+      }
+      if (hasConfigurableDoubleEdgeOutcome(skill)) {
+        openDoubleEdgeEditor({
+          anchor: icon,
+          skillName: String(skill.displayName || skill.name),
+          icon: skill.icon || undefined,
+          outcome: "success",
+          onApply(outcome) {
+            app.addRotation(name, {
+              ...identity,
+              doubleEdgeOutcome: outcome,
             });
           },
         });

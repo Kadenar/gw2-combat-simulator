@@ -95,6 +95,7 @@ const EFFECT_FIELDS = new Set([
   "weapon",
   "weaponStrength",
   "weaponStrengthProfileId",
+  "weaponStrengthSource",
   "skillWeapon",
   "canCrit",
   "flatDamage",
@@ -139,6 +140,9 @@ const EFFECT_METADATA_FIELDS = new Set([
   "maximumRecipients",
   "targetCap",
   "companionIds",
+  "elementalistHitboxIndex",
+  "elementalistSmallHitboxCap",
+  "elementalistLargeHitboxOnly",
 ]);
 
 /**
@@ -355,6 +359,15 @@ function normalizeEffect(effect: unknown): SkillEffect {
       "Skill effect metadata has unsupported field" +
         `${unknownMetadata.length === 1 ? "" : "s"}: ` +
         unknownMetadata.join(", "),
+    );
+  }
+  if (
+    normalizedEffect.weaponStrengthSource != null &&
+    (normalizedEffect.type !== "strike" ||
+      normalizedEffect.weaponStrengthSource !== "equipped")
+  ) {
+    throw new TypeError(
+      'Effect weaponStrengthSource must be "equipped" on a strike effect.',
     );
   }
   if (normalizedEffect.atMsList != null) {

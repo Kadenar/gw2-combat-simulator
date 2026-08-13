@@ -1,0 +1,164 @@
+{
+  "rotation": [
+    "Glyph of Elementals",
+    "Wildfire",
+    "Dragon's Tooth",
+    "Signet of Fire",
+    "Overload Fire",
+    {
+      "name": "Feel the Burn!",
+      "offset": 318
+    },
+    "Phoenix",
+    "Heat Sync",
+    "Dragon's Tooth",
+    {
+      "name": "Air Attunement",
+      "offset": 118
+    },
+    {
+      "name": "Lightning Strike",
+      "offset": 317
+    },
+    "Lightning Orb",
+    "Cyclone",
+    {
+      "name": "Water Attunement",
+      "offset": 451
+    },
+    "Water Trident",
+    "Shatterstone",
+    "Tidal Surge",
+    {
+      "name": "Earth Attunement",
+      "offset": 51
+    },
+    "Rock Barrier",
+    "Dust Storm",
+    {
+      "name": "Hurl",
+      "offset": 117
+    },
+    "Sand Squall",
+    "Signet of Fire",
+    "Stone Shards",
+    {
+      "name": "Stone Shards",
+      "interruptMs": 167
+    },
+    "Overload Earth",
+    "Rock Barrier",
+    "Dust Devil",
+    {
+      "name": "Hurl",
+      "offset": 151
+    },
+    {
+      "name": "Stone Shards",
+      "interruptMs": 283
+    },
+    "Water Attunement",
+    "Shatterstone",
+    {
+      "name": "Ice Shards",
+      "interruptMs": 34
+    },
+    "Water Trident",
+    "Water Globe",
+    "Water Trident",
+    "Shatterstone",
+    {
+      "name": "Fire Attunement",
+      "offset": 200
+    },
+    "Dragon's Tooth",
+    "Phoenix",
+    {
+      "name": "Feel the Burn!",
+      "offset": 367
+    },
+    "Flamestrike",
+    "Flamestrike",
+    "Flamestrike",
+    {
+      "name": "Flamestrike",
+      "interruptMs": 150
+    },
+    "Signet of Fire",
+    "Wildfire",
+    {
+      "name": "Flamestrike",
+      "interruptMs": 116
+    },
+    "Dragon's Tooth",
+    "Overload Fire",
+    "Phoenix",
+    "Heat Sync",
+    "Dragon's Tooth",
+    {
+      "name": "Air Attunement",
+      "offset": 134
+    },
+    {
+      "name": "Lightning Strike",
+      "offset": 250
+    },
+    "Lightning Orb",
+    "Cyclone",
+    {
+      "name": "Water Attunement",
+      "offset": 551
+    },
+    "Water Trident",
+    "Shatterstone",
+    "Tidal Surge",
+    {
+      "name": "Earth Attunement",
+      "offset": 250
+    },
+    "Rock Barrier",
+    "Dust Storm",
+    {
+      "name": "Hurl",
+      "offset": 84
+    },
+    "Signet of Fire",
+    "Stone Shards",
+    "Sand Squall",
+    {
+      "name": "Stone Shards",
+      "interruptMs": 401
+    },
+    "Overload Earth",
+    "Rock Barrier",
+    "Dust Devil",
+    {
+      "name": "Hurl",
+      "offset": 200
+    },
+    {
+      "name": "Stone Shards",
+      "interruptMs": 450
+    },
+    "Feel the Burn!",
+    "Water Attunement",
+    "Shatterstone",
+    "Water Trident",
+    "Ice Shards",
+    {
+      "name": "Ice Shards",
+      "interruptMs": 167
+    },
+    "Water Trident",
+    {
+      "name": "Fire Attunement",
+      "offset": 684
+    },
+    {
+      "name": "Flamestrike",
+      "interruptMs": 231
+    },
+    "Phoenix",
+    "Flamestrike"
+  ]
+}
