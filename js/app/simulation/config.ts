@@ -2,6 +2,7 @@ import type { SkillId } from "../../platform/engine/types.js";
 import type {
   Gw2AttributeBreakdown,
   Gw2Config,
+  Gw2Stats,
 } from "../../platform/gw2/types.js";
 import { createAttributeProvenance } from "../../platform/gw2/attribute-provenance.js";
 import {
@@ -11,6 +12,7 @@ import {
 import { assumptionControlsForSpecialization } from "../profession/assumptions.js";
 import type {
   Gw2SimulationConfigOptions,
+  ProfessionAttributeData,
   ProfessionBuildAssumptions,
 } from "../profession/types.js";
 import {
@@ -25,6 +27,7 @@ import {
 export function createGw2SimulationConfig({
   app,
   attributeData,
+  attributeDataByWeaponSet,
   specialization,
   disabled = null,
   selectedTraits = [],
@@ -32,9 +35,6 @@ export function createGw2SimulationConfig({
   initialResource = 0,
   adjustConditionDurationBonus = (_name, bonus) => bonus,
 }: Gw2SimulationConfigOptions): Gw2Config {
-  const breakdown = (name: string): Partial<Gw2AttributeBreakdown> =>
-    attributeData.attributes[name] || {};
-  const attr = (name: string): number => breakdown(name).final || 0;
   const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
   const targetSkillActivationsPerSecond = Math.max(
     0,
@@ -56,49 +56,71 @@ export function createGw2SimulationConfig({
         : names,
     )
     .map(aggregateSigilSet);
-  const displayedConditionDuration = breakdown("Condition Duration");
-  const genericConditionDurationBonus = Math.max(
-    0,
-    Number(displayedConditionDuration.final || 0) -
-      attr("Expertise") / 15 -
-      Number(displayedConditionDuration.sigils || 0),
-  );
-  const conditionDurationBonuses: Record<string, number> = Object.fromEntries(
-    ["Bleeding", "Burning", "Confusion", "Poison", "Torment"]
-      .map((name): [string, number] => {
-        const duration = breakdown(`${name} Duration`);
-        const bonus = adjustConditionDurationBonus(
+  const statsFromAttributes = (data: ProfessionAttributeData): Gw2Stats => {
+    const breakdown = (name: string): Partial<Gw2AttributeBreakdown> =>
+      data.attributes[name] || {};
+    const attr = (name: string): number => breakdown(name).final || 0;
+    const displayedConditionDuration = breakdown("Condition Duration");
+    const conditionDurationBonuses: Record<string, number> = Object.fromEntries(
+      ["Bleeding", "Burning", "Confusion", "Poison", "Torment"]
+        .map((name): [string, number] => {
+          const duration = breakdown(`${name} Duration`);
+          const bonus = adjustConditionDurationBonus(
+            name,
+            Number(duration.final || 0) - Number(duration.sigils || 0),
+          );
+          return [name === "Poison" ? "Poisoned" : name, Math.max(0, bonus)];
+        })
+        .filter(([, bonus]) => bonus > 0),
+    );
+    const displayedBoonDuration = breakdown("Boon Duration");
+    const boonDurationBonuses: Record<string, number> = Object.fromEntries(
+      ["Quickness", "Might", "Fury"]
+        .map((name): [string, number] => [
           name,
-          Number(duration.final || 0) - Number(duration.sigils || 0),
-        );
-        return [name === "Poison" ? "Poisoned" : name, Math.max(0, bonus)];
-      })
-      .filter(([, bonus]) => bonus > 0),
-  );
-  const displayedBoonDuration = breakdown("Boon Duration");
-  const genericBoonDurationBonus = Math.max(
-    0,
-    Number(displayedBoonDuration.final || 0) -
-      attr("Concentration") / 15 -
-      Number(displayedBoonDuration.sigils || 0),
-  );
-  const boonDurationBonuses: Record<string, number> = Object.fromEntries(
-    ["Quickness", "Might", "Fury"]
-      .map((name): [string, number] => [
-        name,
-        Math.max(
-          0,
-          Number(breakdown(`${name} Duration`).final || 0) -
-            Number(breakdown(`${name} Duration`).sigils || 0),
-        ),
-      ])
-      .filter(([, bonus]) => bonus > 0),
-  );
+          Math.max(
+            0,
+            Number(breakdown(`${name} Duration`).final || 0) -
+              Number(breakdown(`${name} Duration`).sigils || 0),
+          ),
+        ])
+        .filter(([, bonus]) => bonus > 0),
+    );
+    return {
+      power: attr("Power"),
+      precision: attr("Precision"),
+      ferocity: attr("Ferocity"),
+      conditionDamage: attr("Condition Damage"),
+      expertise: attr("Expertise"),
+      concentration: attr("Concentration"),
+      boonDurationBonus: Math.max(
+        0,
+        Number(displayedBoonDuration.final || 0) -
+          attr("Concentration") / 15 -
+          Number(displayedBoonDuration.sigils || 0),
+      ),
+      boonDurationBonuses,
+      vitality: attr("Vitality"),
+      criticalChanceBonus: 0,
+      conditionDurationBonus: Math.max(
+        0,
+        Number(displayedConditionDuration.final || 0) -
+          attr("Expertise") / 15 -
+          Number(displayedConditionDuration.sigils || 0),
+      ),
+      conditionDurationBonuses,
+    };
+  };
+  const fallbackStats = statsFromAttributes(attributeData);
+  const weaponSetStats =
+    attributeDataByWeaponSet?.length === 2
+      ? attributeDataByWeaponSet.map(statsFromAttributes)
+      : [fallbackStats, fallbackStats];
   const professionAssumptionControls = assumptionControlsForSpecialization(
     app.adapter?.assumptionControls || [],
     specialization,
   );
-  const calculatedWeaponSet = Number(app.attributeWeaponSet) === 2 ? 2 : 1;
+  const calculatedWeaponSet = app.build.startingWeaponSet === 2 ? 2 : 1;
   const calculatedPrimaryWeapon =
     (calculatedWeaponSet === 2
       ? app.build.alternateWeapons
@@ -150,20 +172,8 @@ export function createGw2SimulationConfig({
         assumptions[control.key] ?? control.defaultValue,
       ]),
     ),
-    stats: {
-      power: attr("Power"),
-      precision: attr("Precision"),
-      ferocity: attr("Ferocity"),
-      conditionDamage: attr("Condition Damage"),
-      expertise: attr("Expertise"),
-      concentration: attr("Concentration"),
-      boonDurationBonus: genericBoonDurationBonus,
-      boonDurationBonuses,
-      vitality: attr("Vitality"),
-      criticalChanceBonus: 0,
-      conditionDurationBonus: genericConditionDurationBonus,
-      conditionDurationBonuses,
-    },
+    stats: weaponSetStats[calculatedWeaponSet - 1] || fallbackStats,
+    weaponSetStats,
     sigilSets,
     relic: disabled?.type === "Relic" ? "" : app.build.relic,
     food: disabled?.type === "Food" ? "" : app.build.food,

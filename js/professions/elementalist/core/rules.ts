@@ -1,5 +1,6 @@
 import { criticalChance } from "../../../platform/gw2/damage.js";
 import { hasTrait as hasGw2Trait } from "../../../platform/gw2/trait-state.js";
+import { materializeSkillEffectApplications } from "../../../platform/engine/effect-materializer.js";
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_OVERLOAD_SKILL_IDS,
@@ -14,6 +15,7 @@ import type {
   SimulationEvent,
   SimulationEventInput,
   Skill,
+  SkillEffect,
 } from "../../../platform/engine/types.js";
 import {
   ELEMENTALIST_ATTUNEMENTS,
@@ -31,6 +33,7 @@ import {
   elementalistElementalAvailability,
   elementalistElementalTaskHandlers,
   observeElementalistElementalEvent,
+  usesReferenceElementalProfile,
 } from "./elementals.js";
 
 const ATTUNEMENT_RECHARGE_SECONDS = 10;
@@ -91,6 +94,16 @@ const PISTOL_NO_CONSUME = new Set([
 const PISTOL_NO_GRANT = new Set([
   "Aerial Agility (chain)",
   "Aerial Agility (dash)",
+]);
+const PERSISTING_FLAMES_FIELD_SKILLS = new Set([
+  "Lava Font",
+  "Pyroclastic Blast",
+  "Burning Retreat",
+  "Burning Speed",
+  "Flamewall",
+  "Wildfire",
+  "Flame Uprising",
+  "Ring of Fire",
 ]);
 const CONJURE_SKILLS: Readonly<Record<string, string>> = Object.freeze({
   "Conjure Frost Bow": "Frost Bow",
@@ -192,30 +205,180 @@ function specialization(context: ElementalistCastContext): string {
   return String(context.config.specialization || "Core");
 }
 
+function projectedFreshAirReadyAt(
+  context: ElementalistCastContext,
+  upTo: number,
+): number | null {
+  if (!hasTrait(context, "Fresh Air")) return null;
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  if (state.primaryAttunement === "Air") return null;
+  let progress = state.freshAirProgress;
+  const candidates = [...state.freshAirCandidates].sort(
+    (left, right) => left.at - right.at,
+  );
+  for (const candidate of candidates) {
+    if (candidate.at > upTo + context.epsilon) break;
+    progress += candidate.criticalChance;
+    if (progress + context.epsilon >= 1) return candidate.at;
+  }
+  return null;
+}
+
 function prepareElementalistHitboxEvent(
   context: ElementalistSchedulerContext,
   event: SimulationEventInput,
 ): SimulationEventInput {
+  const skill =
+    context.catalog.skillsById.get(event.skillId ?? event.sourceId) ||
+    context.catalog.skillsByName.get(String(event.skillName || event.name));
+  const preparedEvent =
+    skill?.overload &&
+    String(event.skillName || event.name || "") === skill.name
+      ? { ...event, skillWeapon: "Profession mechanic" }
+      : event;
   const professionAssumptions = (context.config.professionAssumptions ||
     {}) as SchedulerRecord;
   const hitboxSize = String(
     professionAssumptions.hitboxSize || context.config.hitboxSize || "large",
   );
-  if (hitboxSize !== "small") return event;
-  const hitIndex = Number(event.elementalistHitboxIndex || 0);
-  const smallHitboxCap = Number(event.elementalistSmallHitboxCap || 0);
+  if (hitboxSize !== "small") return preparedEvent;
+  const hitIndex = Number(preparedEvent.elementalistHitboxIndex || 0);
+  const smallHitboxCap = Number(preparedEvent.elementalistSmallHitboxCap || 0);
   const excluded =
-    event.elementalistLargeHitboxOnly === true ||
+    preparedEvent.elementalistLargeHitboxOnly === true ||
     (smallHitboxCap > 0 && hitIndex > smallHitboxCap);
-  if (!excluded) return event;
+  if (!excluded) return preparedEvent;
   return {
-    ...event,
+    ...preparedEvent,
     type: "marker",
-    name: `${String(event.skillName || event.name || "Elementalist effect")} misses small hitbox`,
+    name: `${String(preparedEvent.skillName || preparedEvent.name || "Elementalist effect")} misses small hitbox`,
     cancelled: true,
     detail: "excluded by Elementalist target-hitbox rules",
     elementalistHitboxExcluded: true,
   };
+}
+
+function scheduleReferenceElementalProfile(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): boolean {
+  if (
+    skill.name !== "Glyph of Elementals" ||
+    !usesReferenceElementalProfile(context)
+  ) {
+    return false;
+  }
+  const effects = Array.isArray(skill.referenceEffects)
+    ? (skill.referenceEffects as readonly SkillEffect[])
+    : [];
+  for (const effect of effects) {
+    const baseDuration =
+      effect.type === "boon" || effect.type === "buff"
+        ? Math.max(0, Number(effect.duration || 0))
+        : undefined;
+    const duration =
+      baseDuration == null
+        ? undefined
+        : (context.schedulerPolicy.effectDuration?.(
+            context,
+            skill,
+            effect,
+            baseDuration,
+          ) ?? baseDuration);
+    const applications = materializeSkillEffectApplications({
+      skill,
+      effect,
+      start: context.start,
+      fullEnd: context.fullEnd,
+      baseEvent: {
+        source: context.profession.id,
+        sourceId: skill.id,
+        actorType: "player",
+        skillId: skill.id,
+        skillName: skill.name,
+      },
+      skillWeaponFallback: "Unequipped",
+      statusDuration: duration,
+    });
+    for (const application of applications) {
+      const flatStrikeBase = Number(application.event.flatStrikeBase);
+      const referenceBoonMultiplier =
+        context.config.glyphBoonedElementals === true &&
+        Number.isFinite(flatStrikeBase)
+          ? 1.7
+          : 1;
+      context.emit({
+        ...application.event,
+        ...(Number.isFinite(flatStrikeBase)
+          ? {
+              flatStrikeBase: flatStrikeBase * referenceBoonMultiplier,
+              noCrit: true,
+            }
+          : {}),
+      });
+    }
+  }
+  return true;
+}
+
+function scheduleGrandFinaleProfile(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): boolean {
+  if (skill.name !== "Grand Finale") return false;
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
+    const expiresAt = state.hammerOrbs[element];
+    return expiresAt != null && expiresAt >= context.start;
+  });
+  const conditions: Readonly<
+    Record<ElementalistAttunement, readonly [string, number, number]>
+  > = {
+    Fire: ["Burning", 2, 5],
+    Water: ["Vulnerability", 6, 10],
+    Air: ["Weakness", 1, 5],
+    Earth: ["Bleeding", 4, 5],
+  };
+  const at = context.effectiveEnd + 0.68;
+  for (let index = 0; index < active.length; index += 1) {
+    const element = active[index];
+    context.emit({
+      type: "damage",
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: "player",
+      skillId: skill.id,
+      skillName: skill.name,
+      coefficient: 1.4,
+      skillWeapon: "Hammer",
+      finisherType: "Projectile",
+      finisherValue: 1,
+      hitIndex: index + 1,
+      totalHits: active.length,
+    });
+    const [condition, stacks, duration] = conditions[element];
+    emitCondition(
+      context,
+      at,
+      condition,
+      stacks,
+      duration,
+      skill.name,
+      skill.id,
+    );
+  }
+  return true;
+}
+
+function scheduleElementalistSkill(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): boolean {
+  return (
+    scheduleReferenceElementalProfile(context, skill) ||
+    scheduleGrandFinaleProfile(context, skill)
+  );
 }
 
 function skillWeapon(skill: Skill): string {
@@ -546,7 +709,15 @@ export function elementalistCoreAvailability(
         `already attuned to ${target}.`,
       );
     }
-    const readyAt = Number(state.attunementReadyAt[target] || 0);
+    const naturalReadyAt = Number(state.attunementReadyAt[target] || 0);
+    const freshAirReadyAt =
+      target === "Air"
+        ? projectedFreshAirReadyAt(context, naturalReadyAt)
+        : null;
+    const readyAt =
+      freshAirReadyAt == null
+        ? naturalReadyAt
+        : Math.min(naturalReadyAt, freshAirReadyAt);
     return readyAt > context.start + context.epsilon
       ? unavailable(
           skill,
@@ -650,17 +821,6 @@ export function elementalistCoreAvailability(
           : `cast three other skills after ${chain.etching} first.`,
       );
     }
-  }
-
-  if (
-    skill.name === "Elemental Explosion" &&
-    !ELEMENTALIST_ATTUNEMENTS.every((element) => state.pistolBullets[element])
-  ) {
-    return unavailable(
-      skill,
-      "elementalist.pistol-bullets",
-      "requires all four elemental bullets.",
-    );
   }
 
   const hammerElements = HAMMER_ORB_SKILLS[skill.name]
@@ -769,6 +929,7 @@ export function emitElementalistBuff(
   duration: number,
   source: string,
   sourceId: Skill["id"],
+  priority = 0,
 ): void {
   const normalizedKind = kind.toLowerCase();
   const adjustedDuration = elementalistBuffDuration(
@@ -788,6 +949,7 @@ export function emitElementalistBuff(
     stacks,
     duration: adjustedDuration,
     skillName: source,
+    priority,
   });
 }
 
@@ -1297,19 +1459,26 @@ function onAttunementComplete(
         isEvoker &&
         existingReadyAt > at &&
         existingReadyAt - at < defaultReadyAt - at;
-      setElementalistAttunementReadyAt(
-        context,
-        attunement,
-        preserveShortEvokerRecharge
-          ? existingReadyAt
-          : Math.max(existingReadyAt, defaultReadyAt),
-      );
+      let nextReadyAt = preserveShortEvokerRecharge
+        ? existingReadyAt
+        : Math.max(existingReadyAt, defaultReadyAt);
+      if (attunement === "Air" && hasTrait(context, "Fresh Air")) {
+        const freshAirReadyAt = projectedFreshAirReadyAt(
+          context as unknown as ElementalistCastContext,
+          nextReadyAt,
+        );
+        if (freshAirReadyAt != null) {
+          nextReadyAt = Math.min(nextReadyAt, freshAirReadyAt);
+        }
+      }
+      setElementalistAttunementReadyAt(context, attunement, nextReadyAt);
     }
   }
   state.attunementEnteredAt = at;
   context.emit({
     type: "elementalist.attunement",
     at,
+    priority: -20,
     source: skill.name,
     sourceId: skill.id,
     actorType: "player",
@@ -1386,7 +1555,7 @@ function onAttunementComplete(
     triggerElementalistElectricDischarge(context, at, skill.id);
     if (previous !== "Air" && hasTrait(context, "Fresh Air")) {
       state.freshAirLastResetAt = at;
-      emitBuff(context, at, "Fresh Air", 1, 5, skill.name, skill.id);
+      emitBuff(context, at, "Fresh Air", 1, 5, skill.name, skill.id, -10);
     }
     if (hasTrait(context, "One with Air")) {
       emitBuff(context, at, "Superspeed", 1, 3, skill.name, skill.id);
@@ -1434,7 +1603,9 @@ function applyFieldAndAura(
   const at = context.effectiveEnd;
   if (skill.comboField && Number(skill.fieldDuration) > 0) {
     const bonus =
-      hasTrait(context, "Persisting Flames") && skill.comboField === "Fire"
+      hasTrait(context, "Persisting Flames") &&
+      skill.comboField === "Fire" &&
+      PERSISTING_FLAMES_FIELD_SKILLS.has(skill.name)
         ? 2
         : 0;
     const duration = Number(skill.fieldDuration) + bonus;
@@ -1642,40 +1813,7 @@ function applyHammerState(
     const expiresAt = state.hammerOrbs[element];
     return expiresAt != null && expiresAt >= context.start;
   });
-  const conditions: Readonly<
-    Record<ElementalistAttunement, readonly [string, number, number]>
-  > = {
-    Fire: ["Burning", 2, 5],
-    Water: ["Vulnerability", 6, 10],
-    Air: ["Weakness", 1, 5],
-    Earth: ["Bleeding", 4, 5],
-  };
-  for (let index = 1; index < active.length; index += 1) {
-    context.emit({
-      type: "damage",
-      at: at + 0.68,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: "player",
-      skillId: skill.id,
-      skillName: skill.name,
-      coefficient: 1,
-      skillWeapon: "Hammer",
-      hitIndex: index + 1,
-      totalHits: active.length,
-    });
-  }
   for (const element of active) {
-    const [condition, stacks, duration] = conditions[element];
-    emitCondition(
-      context,
-      at + 0.68,
-      condition,
-      stacks,
-      duration,
-      skill.name,
-      skill.id,
-    );
     state.hammerOrbBuffUntil[element] = at + 1;
     for (const event of activeBuffEvents(
       context,
@@ -1954,11 +2092,59 @@ export function elementalistOnCastStart(
   }
 }
 
+function extendPersistingFlamesPackets(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): void {
+  if (
+    !hasTrait(context, "Persisting Flames") ||
+    !PERSISTING_FLAMES_FIELD_SKILLS.has(skill.name)
+  ) {
+    return;
+  }
+  const fieldPackets = context.events
+    .filter(
+      (event) =>
+        event.activationId === context.reservationId &&
+        event.type === "damage" &&
+        event.damageKind === "field-tick",
+    )
+    .sort((left, right) => left.at - right.at);
+  if (fieldPackets.length < 2) return;
+  const template = fieldPackets.at(-1);
+  const previous = fieldPackets.at(-2);
+  if (!template || !previous) return;
+  const interval = template.at - previous.at;
+  if (!(interval > context.epsilon)) return;
+  const attachedConditions = context.events.filter(
+    (event) =>
+      event.activationId === context.reservationId &&
+      event.type === "condition" &&
+      Math.abs(event.at - template.at) <= context.epsilon,
+  );
+  for (let index = 1; index <= 2; index += 1) {
+    const at = template.at + interval * index;
+    context.emit({
+      ...template,
+      at,
+      elementalistLargeHitboxOnly: false,
+    });
+    for (const condition of attachedConditions) {
+      context.emit({
+        ...condition,
+        at,
+        elementalistLargeHitboxOnly: false,
+      });
+    }
+  }
+}
+
 export function elementalistAfterCast(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  extendPersistingFlamesPackets(context, skill);
   const activationEvents = context.events
     .filter(
       (event) =>
@@ -2223,149 +2409,6 @@ export function elementalistOnCastComplete(
   applyGenericPostCast(context, skill);
 }
 
-function activeField(
-  state: ElementalistCoreState,
-  at: number,
-): { type: string } | null {
-  return (
-    state.activeComboFields.find(
-      (field) => field.startsAt <= at && field.expiresAt > at,
-    ) || null
-  );
-}
-
-function comboKey(event: SimulationEvent): string {
-  return `${String(event.activationId || event.skillId)}:${event.at}:${String(event.finisherType)}`;
-}
-
-function applyCombo(
-  context: ElementalistSchedulerContext,
-  event: SimulationEvent,
-  fieldType: string,
-  finisherType: string,
-): void {
-  const at = event.at;
-  const sourceId = event.skillId ?? event.sourceId;
-  const source = `Combo (${fieldType}/${finisherType})`;
-  if (fieldType === "Fire") {
-    if (finisherType === "Blast") {
-      emitBuff(context, at, "Might", 3, 20, source, sourceId);
-    } else if (finisherType === "Leap") {
-      applyElementalistAura(context, {
-        at,
-        aura: "Fire Aura",
-        duration: 5,
-        skillName: source,
-        sourceId,
-      });
-    } else {
-      emitCondition(context, at, "Burning", 1, 1, source, sourceId);
-    }
-  } else if (fieldType === "Ice") {
-    if (finisherType === "Blast" || finisherType === "Leap") {
-      applyElementalistAura(context, {
-        at,
-        aura: "Frost Aura",
-        duration: finisherType === "Leap" ? 5 : 3,
-        skillName: source,
-        sourceId,
-      });
-    } else {
-      emitCondition(context, at, "Chilled", 1, 1, source, sourceId);
-    }
-  } else if (fieldType === "Lightning") {
-    if (finisherType === "Blast") {
-      emitBuff(context, at, "Swiftness", 1, 10, source, sourceId);
-    } else if (finisherType !== "Leap") {
-      emitCondition(context, at, "Vulnerability", 2, 5, source, sourceId);
-    }
-  } else if (fieldType === "Water" && finisherType === "Projectile") {
-    emitBuff(context, at, "Regeneration", 1, 2, source, sourceId);
-  } else if (fieldType === "Poison") {
-    if (finisherType === "Blast" || finisherType === "Leap") {
-      emitCondition(
-        context,
-        at,
-        "Weakness",
-        1,
-        finisherType === "Leap" ? 8 : 3,
-        source,
-        sourceId,
-      );
-    } else {
-      emitCondition(context, at, "Poisoned", 1, 2, source, sourceId);
-    }
-  } else if (fieldType === "Dark") {
-    if (finisherType === "Blast" || finisherType === "Leap") {
-      applyElementalistAura(context, {
-        at,
-        aura: "Dark Aura",
-        duration: finisherType === "Leap" ? 5 : 3,
-        skillName: source,
-        sourceId,
-      });
-    } else {
-      context.emitDerived(event, {
-        type: "damage",
-        at,
-        source,
-        sourceId,
-        actorType: "effect",
-        skillName:
-          finisherType === "Whirl"
-            ? "Leeching Bolt"
-            : "Life Stealing Projectile",
-        coefficient: 0,
-        flatStrikeBase: finisherType === "Whirl" ? 170 : 202,
-        flatStrikePowerCoeff: 0.03,
-        noCrit: true,
-      });
-    }
-  }
-}
-
-function observeComboFinisher(
-  context: ElementalistSchedulerContext,
-  event: SimulationEvent,
-): void {
-  const finisherType = String(event.finisherType || "");
-  if (!finisherType) return;
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  const key = comboKey(event);
-  const resolved = (state as SchedulerRecord).resolvedComboKeys as
-    Set<string> | undefined;
-  const keys = resolved || new Set<string>();
-  (state as SchedulerRecord).resolvedComboKeys = keys;
-  if (keys.has(key)) return;
-  keys.add(key);
-  const field = activeField(state, event.at);
-  if (!field) return;
-  context.emitDerived(event, {
-    type: "elementalist.combo",
-    at: event.at,
-    source: String(event.skillName || "Elementalist Combo"),
-    sourceId: event.skillId ?? event.sourceId,
-    actorType: "effect",
-    skillName: String(event.skillName || "Elementalist Combo"),
-    attunement: state.primaryAttunement,
-    field: field.type,
-    finisherType,
-  });
-  const value = Math.max(0, Number(event.finisherValue || 1));
-  if (finisherType === "Projectile") {
-    state.comboProgress.Projectile += value;
-    while (state.comboProgress.Projectile >= 1) {
-      state.comboProgress.Projectile -= 1;
-      applyCombo(context, event, field.type, finisherType);
-    }
-    return;
-  }
-  const repeats = finisherType === "Whirl" ? Math.max(1, Math.floor(value)) : 1;
-  for (let index = 0; index < repeats; index += 1) {
-    applyCombo(context, event, field.type, finisherType);
-  }
-}
-
 function observeFreshAir(
   context: ElementalistSchedulerContext,
   event: SimulationEvent,
@@ -2381,68 +2424,54 @@ function observeFreshAir(
     return;
   }
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  if (state.attunementReadyAt.Air <= event.at + context.epsilon) return;
-  state.freshAirProgress += eventCriticalChance(context);
-  if (state.freshAirProgress + context.epsilon < 1) return;
-  state.freshAirProgress -= 1;
-  setElementalistAttunementReadyAt(
-    context as unknown as SchedulerRecord,
-    "Air",
-    event.at,
-  );
-  context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
-  context.state.cooldowns.delete(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
-  context.emitDerived(event, {
-    type: "elementalist.fresh-air",
+  state.freshAirCandidates.push({
     at: event.at,
-    source: "Fresh Air",
-    sourceId: "Fresh Air",
-    actorType: "effect",
-    skillName: "Fresh Air",
-  });
-}
-
-function observeBurningPrecision(
-  context: ElementalistSchedulerContext,
-  event: SimulationEvent,
-): void {
-  if (
-    event.type !== "damage" ||
-    event.actorType !== "player" ||
-    event.canCrit === false ||
-    event.noCrit ||
-    !(Number(event.coefficient) > 0) ||
-    !hasTrait(context, "Burning Precision")
-  ) {
-    return;
-  }
-  const state = elementalistCoreState(context as unknown as SchedulerRecord);
-  const chance = eventCriticalChance(context);
-  state.burningPrecisionProgress += chance * 0.33;
-  if (
-    state.burningPrecisionProgress + context.epsilon < 1 ||
-    Number(state.procReadyAt.burningPrecision || 0) > event.at + context.epsilon
-  ) {
-    return;
-  }
-  state.burningPrecisionProgress -= 1;
-  state.procReadyAt.burningPrecision = event.at + 5;
-  emitCondition(
-    context,
-    event.at,
-    "Burning",
-    1,
-    3,
-    "Burning Precision",
-    "Burning Precision",
-  );
-  emitElementalistProc(context, {
-    at: event.at,
-    name: "Burning Precision",
-    procType: "trait",
+    criticalChance: eventCriticalChance(context),
     sourceId: event.skillId ?? event.sourceId,
     sourceSkill: String(event.skillName || event.source || ""),
   });
+}
+
+function processFreshAirCandidates(
+  context: ElementalistSchedulerContext,
+  through: number,
+): void {
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  if (!state.freshAirCandidates.length) return;
+  const pending = [];
+  const candidates = [...state.freshAirCandidates].sort(
+    (left, right) => left.at - right.at,
+  );
+  for (const candidate of candidates) {
+    if (candidate.at > through + context.epsilon) {
+      pending.push(candidate);
+      continue;
+    }
+    if (state.primaryAttunement === "Air") continue;
+    state.freshAirProgress += candidate.criticalChance;
+    if (state.freshAirProgress + context.epsilon < 1) continue;
+    state.freshAirProgress -= 1;
+    if (state.attunementReadyAt.Air > candidate.at + context.epsilon) {
+      setElementalistAttunementReadyAt(
+        context as unknown as SchedulerRecord,
+        "Air",
+        candidate.at,
+      );
+      context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
+      context.state.cooldowns.delete(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
+    }
+    context.emit({
+      type: "elementalist.fresh-air",
+      at: candidate.at,
+      source: "Fresh Air",
+      sourceId: "Fresh Air",
+      actorType: "effect",
+      skillName: "Fresh Air",
+      sourceSkill: candidate.sourceSkill,
+      triggeringSkillId: candidate.sourceId,
+    });
+  }
+  state.freshAirCandidates = pending;
 }
 
 function eventCriticalChance(context: ElementalistSchedulerContext): number {
@@ -2656,28 +2685,6 @@ function observeLightningRod(
   }
 }
 
-function observePersistingFlames(
-  context: ElementalistSchedulerContext,
-  event: SimulationEvent,
-): void {
-  if (
-    event.type !== "condition" ||
-    event.condition !== "Burning" ||
-    !hasTrait(context, "Persisting Flames")
-  ) {
-    return;
-  }
-  emitBuff(
-    context,
-    event.at + context.epsilon,
-    "Persisting Flames",
-    1,
-    15,
-    String(event.skillName || "Persisting Flames"),
-    event.skillId ?? event.sourceId,
-  );
-}
-
 export function observeElementalistEvent(
   context: ElementalistSchedulerContext,
   event: SimulationEvent,
@@ -2711,11 +2718,8 @@ export function observeElementalistEvent(
     );
   }
   observeFreshAir(context, event);
-  observeBurningPrecision(context, event);
   observeCriticalTraits(context, event);
   observeLightningRod(context, event);
-  observePersistingFlames(context, event);
-  observeComboFinisher(context, event);
 }
 
 export function advanceElementalistState(
@@ -2723,6 +2727,7 @@ export function advanceElementalistState(
   at: number,
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  processFreshAirCandidates(context, at);
   updateEndurance(state, at, Boolean(context.config.boons?.vigor));
   state.activeComboFields = state.activeComboFields.filter(
     (field) => field.expiresAt > at,
@@ -2766,6 +2771,9 @@ export function modifyElementalistRechargeDuration(
 ): number {
   const skill = context.skill;
   if (!skill) return duration;
+  if (skill.name === "Glyph of Elementals") {
+    return usesReferenceElementalProfile(context) ? duration : 0;
+  }
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = Number(
     (context as unknown as SchedulerRecord).start ?? context.state.time ?? 0,
@@ -2820,12 +2828,23 @@ export function modifyElementalistRechargeDuration(
   return adjustedDuration;
 }
 
+function modifyElementalistCastDuration(
+  context: ElementalistCastContext,
+  duration: number,
+): number {
+  return context.skill.name === "Glyph of Elementals" &&
+    usesReferenceElementalProfile(context)
+    ? 0
+    : duration;
+}
+
 export const elementalistCoreCastRules = Object.freeze({
   availability: {
     id: "elementalist.core-availability",
     order: 10,
     handler: elementalistCoreAvailability,
   },
+  modifyCastDuration: modifyElementalistCastDuration,
   modifyRechargeDuration: modifyElementalistRechargeDuration,
 });
 
@@ -2849,6 +2868,11 @@ export const elementalistCoreSchedulerHooks = Object.freeze({
     id: "elementalist.core-cast-start",
     order: 10,
     handler: elementalistOnCastStart,
+  },
+  scheduleSkill: {
+    id: "elementalist.special-skill-profile",
+    order: 10,
+    handler: scheduleElementalistSkill,
   },
   afterCast: {
     id: "elementalist.core-after-cast",

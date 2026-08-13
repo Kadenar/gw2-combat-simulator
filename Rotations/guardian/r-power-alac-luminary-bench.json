@@ -36,10 +36,6 @@
     "Gleaming Blade",
     "Lucent Thrust",
     {
-      "name": "Glaring Burst",
-      "interruptMs": 35
-    },
-    {
       "name": "Radiant Bulwark",
       "interruptMs": 241
     },
@@ -48,10 +44,6 @@
     {
       "name": "Exit Radiant Forge",
       "offset": 481
-    },
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 39
     },
     "Symbol of Luminance",
     "Helio Rush",
@@ -73,10 +65,6 @@
     "Piercing Stance",
     "Strike",
     {
-      "name": "Vengeful Strike",
-      "interruptMs": 39
-    },
-    {
       "name": "Enter Radiant Forge",
       "offset": 38
     },
@@ -86,10 +74,6 @@
       "name": "Exit Radiant Forge",
       "offset": 440
     },
-    {
-      "name": "Strike",
-      "interruptMs": 80
-    },
     "Binding Blade",
     "Whirling Wrath",
     "Symbol of Resolution",
@@ -97,10 +81,6 @@
     {
       "name": "Swap Weapons",
       "offset": 719
-    },
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 118
     },
     "Gleaming Disc",
     "Helio Rush",
@@ -118,10 +98,6 @@
       "name": "Enter Radiant Forge",
       "offset": 440
     },
-    {
-      "name": "Glaring Burst",
-      "interruptMs": 143
-    },
     "Dazzling Hammer",
     "Shining Spin",
     "Glaring Burst",
@@ -131,10 +107,6 @@
     "Glaring Burst",
     "Luminous Staff",
     "Piercing Stance",
-    {
-      "name": "Glaring Burst",
-      "interruptMs": 39
-    },
     "Gleaming Blade",
     "Lucent Thrust",
     {
@@ -151,10 +123,6 @@
       "name": "Exit Radiant Forge",
       "offset": 399
     },
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 76
-    },
     "Symbol of Luminance",
     "Helio Rush",
     "Solar Storm",
@@ -165,10 +133,6 @@
     },
     "Symbol of Resolution",
     "Whirling Wrath",
-    {
-      "name": "Strike",
-      "interruptMs": 38
-    },
     "Leap of Faith",
     "Binding Blade",
     "Strike",
@@ -196,24 +160,12 @@
       "offset": 486
     },
     "Strike",
-    {
-      "name": "Vengeful Strike",
-      "interruptMs": 41
-    },
     "Whirling Wrath",
-    {
-      "name": "Strike",
-      "interruptMs": 44
-    },
     "Symbol of Resolution",
     "Leap of Faith",
     {
       "name": "Swap Weapons",
       "offset": 720
-    },
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 113
     },
     "Gleaming Disc",
     "Helio Rush",
@@ -227,10 +179,6 @@
       "name": "Enter Radiant Forge",
       "offset": 438
     },
-    {
-      "name": "Glaring Burst",
-      "interruptMs": 38
-    },
     "Dazzling Hammer",
     "Shining Spin",
     "Glaring Burst",
@@ -240,16 +188,8 @@
     "Glaring Burst",
     "Luminous Staff",
     "Piercing Stance",
-    {
-      "name": "Glaring Burst",
-      "interruptMs": 49
-    },
     "Gleaming Blade",
     "Lucent Thrust",
-    {
-      "name": "Glaring Burst",
-      "interruptMs": 43
-    },
     {
       "name": "Radiant Bulwark",
       "interruptMs": 199
@@ -259,10 +199,6 @@
     {
       "name": "Exit Radiant Forge",
       "offset": 482
-    },
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 81
     },
     "Symbol of Luminance",
     "Helio Rush",
@@ -296,10 +232,6 @@
     "Wrathful Strike",
     "Strike",
     {
-      "name": "Vengeful Strike",
-      "interruptMs": 47
-    },
-    {
       "name": "Enter Radiant Forge",
       "offset": 45
     },
@@ -311,21 +243,9 @@
       "offset": 523
     },
     "Strike",
-    {
-      "name": "Vengeful Strike",
-      "interruptMs": 117
-    },
     "Whirling Wrath",
-    {
-      "name": "Strike",
-      "interruptMs": 38
-    },
     "Symbol of Resolution",
     "Leap of Faith",
-    {
-      "name": "Strike",
-      "interruptMs": 137
-    },
     {
       "name": "Swap Weapons",
       "offset": 136
@@ -356,10 +276,6 @@
     "Gleaming Blade",
     "Lucent Thrust",
     {
-      "name": "Glaring Burst",
-      "interruptMs": 39
-    },
-    {
       "name": "Radiant Bulwark",
       "interruptMs": 195
     },
@@ -369,18 +285,10 @@
       "name": "Exit Radiant Forge",
       "offset": 480
     },
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 77
-    },
     "Symbol of Luminance",
     "Helio Rush",
     "Solar Storm",
     "Daybreaking Slash",
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 40
-    },
     "Gleaming Disc",
     "Helio Rush",
     {
@@ -389,10 +297,6 @@
     },
     "Symbol of Resolution",
     "Whirling Wrath",
-    {
-      "name": "Strike",
-      "interruptMs": 42
-    },
     "Leap of Faith",
     "Binding Blade",
     {
@@ -408,10 +312,6 @@
     "Wrathful Strike",
     "Strike",
     {
-      "name": "Vengeful Strike",
-      "interruptMs": 123
-    },
-    {
       "name": "Enter Radiant Forge",
       "offset": 122
     },
@@ -423,15 +323,7 @@
       "offset": 559
     },
     "Strike",
-    {
-      "name": "Vengeful Strike",
-      "interruptMs": 42
-    },
     "Whirling Wrath",
-    {
-      "name": "Strike",
-      "interruptMs": 119
-    },
     "Symbol of Resolution",
     "Leap of Faith",
     {
@@ -465,10 +357,6 @@
     "Gleaming Blade",
     "Lucent Thrust",
     {
-      "name": "Glaring Burst",
-      "interruptMs": 63
-    },
-    {
       "name": "Radiant Bulwark",
       "interruptMs": 200
     },
@@ -478,32 +366,16 @@
       "name": "Exit Radiant Forge",
       "offset": 440
     },
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 160
-    },
     "Symbol of Luminance",
     "Helio Rush",
     "Solar Storm",
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 118
-    },
     "Gleaming Disc",
     {
       "name": "Swap Weapons",
       "offset": 561
     },
-    {
-      "name": "Strike",
-      "interruptMs": 38
-    },
     "Symbol of Resolution",
     "Whirling Wrath",
-    {
-      "name": "Strike",
-      "interruptMs": 35
-    },
     "Leap of Faith",
     "Binding Blade",
     "Strike",
@@ -511,10 +383,6 @@
     "Wrathful Strike",
     "Daring Advance",
     "Piercing Stance",
-    {
-      "name": "Strike",
-      "interruptMs": 51
-    },
     {
       "name": "Enter Radiant Forge",
       "offset": 50
@@ -534,31 +402,15 @@
     },
     "Shining Spin",
     {
-      "name": "Glaring Burst",
-      "interruptMs": 45
-    },
-    {
       "name": "Exit Radiant Forge",
       "offset": 43
     },
-    {
-      "name": "Strike",
-      "interruptMs": 118
-    },
     "Whirling Wrath",
-    {
-      "name": "Strike",
-      "interruptMs": 119
-    },
     "Symbol of Resolution",
     "Leap of Faith",
     {
       "name": "Swap Weapons",
       "offset": 722
-    },
-    {
-      "name": "Daybreaking Slash",
-      "interruptMs": 82
     },
     "Gleaming Disc",
     "Helio Rush",

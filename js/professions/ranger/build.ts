@@ -47,6 +47,7 @@ export function createRangerBuildDefaults(): RangerCanonicalBuild {
     schemaVersion: RANGER_BUILD_SCHEMA_VERSION,
     profession: RANGER_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
+    alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
     weapons: ["Hammer", ""],
     alternateWeapons: ["Axe", "Axe"],
     rune: "Scholar",

@@ -1,6 +1,7 @@
 import { professionCoreState } from "../../../platform/engine/profession.js";
 /** Core Ranger resolver-phase reactions and event handlers. */
 import { enqueueOrdered } from "../../../platform/engine/event-queue.js";
+import { gw2StatsForWeaponSet } from "../../../platform/gw2/runtime-rules.js";
 import { hasTrait } from "../../../platform/gw2/trait-state.js";
 import {
   RANGER_SKILL_IDS as ID,
@@ -104,11 +105,15 @@ function rangerBoonDuration(
 ): number {
   const name = `${kind.charAt(0).toUpperCase()}${kind.slice(1)}`;
   const stats = context.query.statsAt(event.at, event, context);
+  const configuredStats = gw2StatsForWeaponSet(
+    context.config,
+    context.activeWeaponSet,
+  );
   const sigil = context.query.activeSigilSetAt(event.at);
   const bonus =
     Number(stats.concentration || 0) / 1500 +
-    Number(context.config.stats?.boonDurationBonus || 0) / 100 +
-    Number(context.config.stats?.boonDurationBonuses?.[name] || 0) / 100 +
+    Number(configuredStats.boonDurationBonus || 0) / 100 +
+    Number(configuredStats.boonDurationBonuses?.[name] || 0) / 100 +
     Number(sigil?.boonDurationBonus || 0) / 100;
   return baseDuration * Math.max(1, Math.min(2, 1 + bonus));
 }

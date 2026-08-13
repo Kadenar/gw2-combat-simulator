@@ -123,12 +123,18 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       defaults.specializations,
       catalog,
     );
+    const gear = normalizeGear(saved.gear, defaults, aliases);
     let migrated = {
       ...defaults,
       ...saved,
       schemaVersion,
       profession: professionId,
-      gear: normalizeGear(saved.gear, defaults, aliases),
+      gear,
+      alternateWeaponPrefixes: normalizeWeaponPrefixes(
+        saved.alternateWeaponPrefixes,
+        [gear.Weapon1, gear.Weapon2],
+        aliases,
+      ),
       weapons: normalizeWeaponPair(saved.weapons, defaults.weapons, catalog),
       alternateWeapons: normalizeWeaponPair(
         saved.alternateWeapons,
@@ -302,6 +308,20 @@ function normalizeGear(
     if (!GEAR_STATS_BY_NAME[gear[slot]]) gear[slot] = defaults.gear[slot];
   }
   return gear;
+}
+
+function normalizeWeaponPrefixes(
+  value: unknown,
+  fallback: readonly string[],
+  aliases: Readonly<Record<string, string>>,
+): string[] {
+  const prefixes = Array.isArray(value) ? value : fallback;
+  return [0, 1].map((index) => {
+    const prefix = aliases[String(prefixes[index] || "")] || prefixes[index];
+    return typeof prefix === "string" && GEAR_STATS_BY_NAME[prefix]
+      ? prefix
+      : fallback[index];
+  });
 }
 
 /**
@@ -846,6 +866,18 @@ function validateCommonBuild(
         errors.push(`${slot} must contain a known gear prefix.`);
       }
     }
+  }
+  if (
+    candidate.alternateWeaponPrefixes != null &&
+    (!Array.isArray(candidate.alternateWeaponPrefixes) ||
+      candidate.alternateWeaponPrefixes.length !== 2 ||
+      candidate.alternateWeaponPrefixes.some(
+        (prefix) => !GEAR_STATS_BY_NAME[prefix],
+      ))
+  ) {
+    errors.push(
+      "alternateWeaponPrefixes must contain two known gear prefixes.",
+    );
   }
   if (!listedName(RELIC_NAMES, candidate.relic)) {
     errors.push("relic must be a known relic.");
