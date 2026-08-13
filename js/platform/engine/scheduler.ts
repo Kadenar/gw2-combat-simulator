@@ -361,7 +361,10 @@ export function createScheduler<
       return `${prefix}:${++activationOrder}`;
     },
     emit(/** @type {SimulationEventInput} */ event) {
-      const prepared = schedulerPolicy.prepareEvent?.(context, event) ?? event;
+      const professionPrepared = activeProfession.prepareEvent(context, event);
+      const prepared =
+        schedulerPolicy.prepareEvent?.(context, professionPrepared) ??
+        professionPrepared;
       const normalized = createEvent({
         ...prepared,
         __order: eventOrder++,
@@ -1311,7 +1314,8 @@ export function createScheduler<
     const professionTaskEnd = events
       .filter((event) => event.extendsProfessionTaskHorizon === true)
       .reduce(
-        (latest, event) => Math.max(latest, Number(event.at)),
+        (latest, event) =>
+          Math.max(latest, Number(event.fullEndsAt ?? event.at)),
         rotationEnd,
       );
     while (taskQueue.nextAt() <= professionTaskEnd + epsilon) {

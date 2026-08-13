@@ -8,7 +8,11 @@ import type {
   Skill,
 } from "../../../../platform/engine/types.js";
 import { hasTrait as hasGw2Trait } from "../../../../platform/gw2/trait-state.js";
-import { applyElementalistAura } from "../../core/rules.js";
+import {
+  applyElementalistAura,
+  elementalistBuffDuration,
+  emitElementalistBuff,
+} from "../../core/rules.js";
 import {
   elementalistCoreState,
   type ElementalistAttunement,
@@ -83,7 +87,14 @@ function onCastStart(
       skillName: skill.name,
       kind: "quickness",
       stacks: 1,
-      duration: durationMultiplier,
+      duration: elementalistBuffDuration(
+        context as never,
+        "quickness",
+        durationMultiplier,
+        skill.name,
+        skill.id,
+      ),
+      sphereSpecialistScaled: true,
     });
     const boon =
       skill.attunement === "Fire"
@@ -102,8 +113,38 @@ function onCastStart(
       skillName: skill.name,
       kind: boon[0],
       stacks: boon[1],
-      duration: boon[2] * durationMultiplier,
+      duration: elementalistBuffDuration(
+        context as never,
+        boon[0],
+        boon[2] * durationMultiplier,
+        skill.name,
+        skill.id,
+      ),
+      sphereSpecialistScaled: true,
     });
+  }
+}
+
+function afterCast(
+  context: CastLifecycleContext<SchedulerRecord>,
+  skill: Skill,
+): void {
+  if (
+    skill.skillFamily !== "Jade Sphere" ||
+    !hasTrait(context, "Sphere Specialist")
+  ) {
+    return;
+  }
+  for (const event of context.events) {
+    if (
+      event.activationId === context.reservationId &&
+      event.type === "buff" &&
+      event.sphereSpecialistScaled !== true
+    ) {
+      context.replaceEvent(event, {
+        duration: Number(event.duration || 0) * 2,
+      });
+    }
   }
 }
 
@@ -154,17 +195,15 @@ function onCastComplete(
     ];
     for (const [element, kind, stacks, duration] of boons) {
       if (state.sphereExpiry[element] <= at) continue;
-      context.emit({
-        type: "buff",
+      emitElementalistBuff(
+        context as never,
         at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: "player",
-        skillName: skill.name,
         kind,
         stacks,
         duration,
-      });
+        skill.name,
+        skill.id,
+      );
     }
   }
 }
@@ -179,6 +218,8 @@ function onEventScheduled(
     event.type === "damage" &&
     event.actorType === "player" &&
     Number(event.coefficient) > 0 &&
+    event.damageKind !== "field-tick" &&
+    !event.isField &&
     state.shatteringIceUntil > event.at &&
     state.shatteringIceReadyAt <= event.at + context.epsilon
   ) {
@@ -211,17 +252,15 @@ function onEventScheduled(
   ) {
     const before = state.energy;
     state.energy = Math.min(CATALYST_MAXIMUM_ENERGY, state.energy + 2);
-    context.emitDerived(event, {
-      type: "buff",
-      at: event.at,
-      source: "Energized Elements",
-      sourceId: event.sourceId,
-      actorType: "player",
-      skillName: "Energized Elements",
-      kind: "fury",
-      stacks: 1,
-      duration: 2,
-    });
+    emitElementalistBuff(
+      context as never,
+      event.at,
+      "Fury",
+      1,
+      2,
+      "Energized Elements",
+      event.sourceId,
+    );
     if (state.energy !== before) {
       context.emitDerived(event, {
         type: "resource",
@@ -271,17 +310,15 @@ function onEventScheduled(
     ) {
       core.procReadyAt[synergyKey] = event.at + 10;
       if (attunement === "Fire" || attunement === "Earth") {
-        context.emitDerived(event, {
-          type: "buff",
-          at: event.at,
-          source: "Elemental Synergy",
-          sourceId: event.sourceId,
-          actorType: "player",
-          skillName: "Elemental Synergy",
-          kind: attunement === "Fire" ? "might" : "stability",
-          stacks: attunement === "Fire" ? 6 : 2,
-          duration: attunement === "Fire" ? 10 : 6,
-        });
+        emitElementalistBuff(
+          context as never,
+          event.at,
+          attunement === "Fire" ? "Might" : "Stability",
+          attunement === "Fire" ? 6 : 2,
+          attunement === "Fire" ? 10 : 6,
+          "Elemental Synergy",
+          event.sourceId,
+        );
       } else if (attunement === "Air") {
         core.endurance = Math.min(100, core.endurance + 50);
       }
@@ -307,17 +344,15 @@ function onEventScheduled(
       stacks: 2,
       duration: 15,
     });
-    context.emitDerived(event, {
-      type: "buff",
-      at: event.at,
-      source: "Vicious Empowerment",
-      sourceId: event.sourceId,
-      actorType: "player",
-      skillName: "Vicious Empowerment",
-      kind: "might",
-      stacks: 2,
-      duration: 10,
-    });
+    emitElementalistBuff(
+      context as never,
+      event.at,
+      "Might",
+      2,
+      10,
+      "Vicious Empowerment",
+      event.sourceId,
+    );
     return;
   }
   if (
@@ -364,6 +399,11 @@ export const catalystSchedulerHooks = Object.freeze({
     id: "elementalist.catalyst-spend",
     order: 30,
     handler: onCastStart,
+  },
+  afterCast: {
+    id: "elementalist.catalyst-after-cast",
+    order: 30,
+    handler: afterCast,
   },
   onEventScheduled: {
     id: "elementalist.catalyst-gain",

@@ -1,4 +1,5 @@
 import { defaultWeaponSkillMatchesSet } from "../../../platform/gw2/weapon-skill-matcher.js";
+import { ELEMENTALIST_ASSUMPTION_CONTROLS } from "../assumptions.js";
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from "../data/ids.js";
 import {
   ELEMENTALIST_ATTUNEMENTS,
@@ -287,6 +288,7 @@ function rotationStateSnapshot(
 
 export const elementalistCoreUi: Partial<ProfessionUiContract> &
   SchedulerRecord = Object.freeze({
+  assumptionControls: ELEMENTALIST_ASSUMPTION_CONTROLS,
   weaponSkillMatchesSet: elementalistWeaponSkillMatchesSet,
   skillBarGroups: () => [
     {

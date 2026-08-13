@@ -35,6 +35,10 @@ const PROFILE_ROWS: ReadonlyArray<readonly [string, number, number]> =
     ["summon.weapon-type-3", 2448, 3050],
     ["bundle.ascended", 920, 1017],
     ["transform.radiant-forge", 954, 1076],
+    ["transform.radiant-forge.hammer", 985, 1111],
+    ["transform.radiant-forge.staff", 985, 1111],
+    ["transform.radiant-forge.sword", 905, 1000],
+    ["transform.radiant-forge.shield", 806, 909],
     ["transform.rampage", 726, 819],
     ["transform.photon-forge", 954, 1076],
     ["transform.celestial-avatar", 580, 654],
@@ -168,6 +172,25 @@ const SHROUD_PROFILE_IDS: Readonly<Record<string, string>> = Object.freeze({
   lich: "transform.lich-form",
 });
 
+const RADIANT_FORGE_PROFILE_IDS: Readonly<Record<string, string>> =
+  Object.freeze({
+    hammer: "transform.radiant-forge.hammer",
+    staff: "transform.radiant-forge.staff",
+    blade: "transform.radiant-forge.sword",
+    sword: "transform.radiant-forge.sword",
+    bulwark: "transform.radiant-forge.shield",
+    shield: "transform.radiant-forge.shield",
+  });
+
+function radiantForgeProfileId(...candidates: unknown[]): string | null {
+  for (const candidate of candidates) {
+    const profileId =
+      RADIANT_FORGE_PROFILE_IDS[String(candidate || "").toLowerCase()];
+    if (profileId) return profileId;
+  }
+  return null;
+}
+
 interface WeaponStrengthProfileContext {
   readonly skill?: Skill | null;
   readonly state?: Record<string, unknown> | null;
@@ -196,9 +219,13 @@ export function weaponStrengthProfileIdForEvent(
     professionValue && typeof professionValue === "object"
       ? (professionValue as Record<string, unknown>)
       : {};
-  if (skill?.radiantForgeSkill) {
-    return "transform.radiant-forge";
-  }
+  if (skill?.radiantForgeSkill)
+    return radiantForgeProfileId(
+      event.radiantWeapon,
+      skill.radiantWeapon,
+      profession.radiantWeapon,
+    );
+  if (skill?.cycloneBowSkill) return "transform.cyclone-bow";
   if (skill?.forgeSkill) {
     return "transform.photon-forge";
   }
@@ -216,6 +243,16 @@ export function weaponStrengthProfileIdForEvent(
     if (profile) return profile.id;
   }
 
+  if (event.weaponStrengthSource === "equipped") {
+    const activeSet = Number(state?.activeWeaponSet) === 2 ? 2 : 1;
+    const configured =
+      activeSet === 2
+        ? config.weaponSet2Primary || config.primaryWeapon
+        : config.primaryWeapon;
+    const profile = weaponStrengthProfileForName(configured);
+    if (profile) return profile.id;
+  }
+
   if (isGw2NonWeaponEffectEvent(event)) {
     return "nonweapon.unequipped";
   }
@@ -225,7 +262,11 @@ export function weaponStrengthProfileIdForEvent(
     return SHROUD_PROFILE_IDS[activeShroud];
   }
   if (profession.radiantForge === true) {
-    return "transform.radiant-forge";
+    const profileId = radiantForgeProfileId(
+      event.radiantWeapon,
+      profession.radiantWeapon,
+    );
+    if (profileId) return profileId;
   }
   if (profession.photonForgeActive === true) {
     return "transform.photon-forge";

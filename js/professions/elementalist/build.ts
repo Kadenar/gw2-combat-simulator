@@ -10,6 +10,11 @@ import {
   normalizeSimulationRandomnessAssumptions,
   validateSimulationRandomnessAssumptions,
 } from "../../app/simulation/randomness.js";
+import {
+  normalizeProfessionAssumptions,
+  validateProfessionAssumptions,
+} from "../../app/profession/assumptions.js";
+import { ELEMENTALIST_ASSUMPTION_CONTROLS } from "./assumptions.js";
 import { elementalistCatalog } from "./catalog.js";
 import type { Gw2ApplicationBuild } from "../../platform/gw2/types.js";
 import type { SchedulerRecord } from "../../platform/engine/types.js";
@@ -78,6 +83,7 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
     },
     assumptions: {
       ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
+      hitboxSize: "large",
       might: 25,
       fury: true,
       quickness: true,
@@ -123,7 +129,10 @@ const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
       ...build,
       alternateWeapons: ["", ""],
       startingWeaponSet: 1,
-      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
+      assumptions: normalizeProfessionAssumptions(
+        normalizeSimulationRandomnessAssumptions(build.assumptions),
+        ELEMENTALIST_ASSUMPTION_CONTROLS,
+      ),
       startAttunement: attunement(saved.startAttunement, "Fire"),
       secondaryAttunement: attunement(saved.secondaryAttunement, "Air"),
       initialCatalystEnergy: bounded(saved.initialCatalystEnergy ?? 30, 0, 30),
@@ -135,6 +144,12 @@ const elementalistBuildCodec = createGw2BuildCodec<ElementalistCanonicalBuild>({
   },
   validateExtra(build) {
     const errors = validateSimulationRandomnessAssumptions(build.assumptions);
+    errors.push(
+      ...validateProfessionAssumptions(
+        build.assumptions,
+        ELEMENTALIST_ASSUMPTION_CONTROLS,
+      ),
+    );
     if (
       Array.isArray(build.alternateWeapons) &&
       build.alternateWeapons.some(Boolean)
@@ -255,10 +270,15 @@ function normalizeSavedBuild(candidate: unknown): unknown {
     ...(Object.hasOwn(snapshotFields, "evokerStartEmpowered")
       ? { initialEvokerEmpowered: snapshotFields.evokerStartEmpowered }
       : {}),
-    assumptions: migrateSnapshotAssumptions(
-      snapshotFields.permaBoons,
-      build.assumptions,
-    ),
+    assumptions: {
+      ...migrateSnapshotAssumptions(
+        snapshotFields.permaBoons,
+        build.assumptions,
+      ),
+      ...(Object.hasOwn(snapshotFields, "hitboxSize")
+        ? { hitboxSize: snapshotFields.hitboxSize }
+        : {}),
+    },
   };
 }
 

@@ -5,7 +5,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
   Object.freeze({
     [ID.STEAL_WARMTH]: {
       implemented: true,
-      handlerId: "thief.stolen-skill",
+      handlerId: "thief.deadeye-stolen-skill",
       castTimeMs: 250,
       cooldown: 0.5,
       initiativeCost: 0,
@@ -40,7 +40,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.STEAL_RESISTANCE]: {
       implemented: true,
-      handlerId: "thief.stolen-skill",
+      handlerId: "thief.deadeye-stolen-skill",
       castTimeMs: 250,
       cooldown: 0.5,
       initiativeCost: 0,
@@ -75,7 +75,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.STEAL_PRECISION]: {
       implemented: true,
-      handlerId: "thief.stolen-skill",
+      handlerId: "thief.deadeye-stolen-skill",
       castTimeMs: 250,
       cooldown: 0.5,
       initiativeCost: 0,
@@ -102,12 +102,13 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
         {
           type: "blind",
           actorType: "player",
+          metadata: { duration: 6 },
         },
       ],
     },
     [ID.STEAL_HEALTH]: {
       implemented: true,
-      handlerId: "thief.stolen-skill",
+      handlerId: "thief.deadeye-stolen-skill",
       castTimeMs: 250,
       cooldown: 0.5,
       initiativeCost: 0,
@@ -136,7 +137,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.STEAL_STRENGTH]: {
       implemented: true,
-      handlerId: "thief.stolen-skill",
+      handlerId: "thief.deadeye-stolen-skill",
       castTimeMs: 250,
       cooldown: 0.5,
       initiativeCost: 0,
@@ -171,7 +172,9 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.SHADOW_FLARE]: {
       implemented: true,
+      handlerId: "thief.deadeye-shadow-flare",
       castTimeMs: 750,
+      quicknessCastTimeMs: 480,
       cooldown: 20,
       initiativeCost: 0,
       effects: [
@@ -222,24 +225,30 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MERCY]: {
       implemented: true,
+      handlerId: "thief.deadeye-mercy",
       castTimeMs: 0,
       cooldown: 1,
+      ammo: 2,
+      ammoRecharge: 30,
+      ammoCastLockout: 1,
       initiativeCost: 0,
       effects: [],
     },
     [ID.STEAL_TIME]: {
       implemented: true,
-      handlerId: "thief.stolen-skill",
+      handlerId: "thief.deadeye-stolen-skill",
       castTimeMs: 250,
+      quicknessCastTimeMs: 280,
       cooldown: 0.5,
       initiativeCost: 0,
       effects: [
         {
           type: "strike",
-          coefficient: 0.5,
+          coefficient: 1,
           hits: 1,
           name: "Steal Time",
           actorType: "player",
+          weaponStrengthSource: "equipped",
         },
         {
           type: "buff",
@@ -264,7 +273,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.STEAL_DURABILITY]: {
       implemented: true,
-      handlerId: "thief.stolen-skill",
+      handlerId: "thief.deadeye-stolen-skill",
       castTimeMs: 250,
       cooldown: 0.5,
       initiativeCost: 0,
@@ -308,7 +317,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.STEAL_DEFENSES]: {
       implemented: true,
-      handlerId: "thief.stolen-skill",
+      handlerId: "thief.deadeye-stolen-skill",
       castTimeMs: 250,
       cooldown: 0.5,
       initiativeCost: 0,
@@ -343,8 +352,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MALICIOUS_DEATHS_JUDGMENT]: {
       implemented: true,
-      handlerId: "thief.stealth-attack",
-      castTimeMs: 500,
+      handlerId: "thief.deadeye-stealth-attack",
+      quicknessCastTimeMs: 600,
       cooldown: 1,
       initiativeCost: 0,
       effects: [
@@ -355,13 +364,6 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           name: "Malicious Death's Judgment — Packet 1",
           actorType: "player",
         },
-        {
-          type: "strike",
-          coefficient: 1.32,
-          hits: 1,
-          name: "Damage on Untargeted Foes",
-          actorType: "player",
-        },
       ],
       requiredMainHand: "Rifle",
       stealthAttack: true,
@@ -369,7 +371,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.STEAL_MOBILITY]: {
       implemented: true,
-      handlerId: "thief.stolen-skill",
+      handlerId: "thief.deadeye-stolen-skill",
       castTimeMs: 250,
       cooldown: 0.5,
       initiativeCost: 0,
@@ -398,17 +400,20 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MALICIOUS_RESTORATION]: {
       implemented: true,
-      castTimeMs: 750,
+      castTimeMs: 0,
       cooldown: 25,
       initiativeCost: 0,
       effects: [],
-      malicious: true,
     },
     [ID.SHADOW_MELD]: {
       implemented: true,
+      handlerId: "thief.deadeye-shadow-meld",
       castTimeMs: 500,
+      quicknessCastTimeMs: 440,
       cooldown: 5,
       ammo: 2,
+      ammoRecharge: 25,
+      ammoCastLockout: 5,
       initiativeCost: 0,
       effects: [
         {
@@ -421,6 +426,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.SHADOW_SWAP]: {
       implemented: true,
+      handlerId: "thief.deadeye-shadow-swap",
       castTimeMs: 0,
       cooldown: 0,
       initiativeCost: 0,
@@ -457,14 +463,6 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
           type: "control",
           actorType: "player",
           metadata: {
-            controlKind: "launch",
-            duration: 450,
-          },
-        },
-        {
-          type: "control",
-          actorType: "player",
-          metadata: {
             controlKind: "knockback",
             duration: 450,
           },
@@ -473,7 +471,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MALICIOUS_SURPRISE_SHOT]: {
       implemented: true,
-      handlerId: "thief.stealth-attack",
+      handlerId: "thief.deadeye-stealth-attack",
       castTimeMs: 250,
       cooldown: 1,
       initiativeCost: 0,
@@ -506,14 +504,14 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MALICIOUS_SNEAK_ATTACK]: {
       implemented: true,
-      handlerId: "thief.stealth-attack",
+      handlerId: "thief.deadeye-stealth-attack",
       castTimeMs: 1000,
       cooldown: 1,
       initiativeCost: 0,
       effects: [
         {
           type: "strike",
-          coefficient: 9,
+          coefficient: 1.8,
           hits: 5,
           name: "Malicious Sneak Attack",
           actorType: "player",
@@ -543,7 +541,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MALICIOUS_BACKSTAB]: {
       implemented: true,
-      handlerId: "thief.stealth-attack",
+      handlerId: "thief.deadeye-stealth-attack",
       quicknessCastTimeMs: 440,
       cooldown: 1,
       initiativeCost: 0,
@@ -562,8 +560,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MALICIOUS_TACTICAL_STRIKE]: {
       implemented: true,
-      handlerId: "thief.stealth-attack",
-      castTimeMs: 0,
+      handlerId: "thief.deadeye-stealth-attack",
+      quicknessCastTimeMs: 440,
       cooldown: 1,
       initiativeCost: 0,
       effects: [
@@ -604,7 +602,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MALICIOUS_SHADOWSQUALL]: {
       implemented: true,
-      handlerId: "thief.stealth-attack",
+      handlerId: "thief.deadeye-stealth-attack",
       castTimeMs: 2500,
       cooldown: 0,
       initiativeCost: 0,
@@ -640,7 +638,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MALICIOUS_HOOK_STRIKE]: {
       implemented: true,
-      handlerId: "thief.stealth-attack",
+      handlerId: "thief.deadeye-stealth-attack",
       castTimeMs: 0,
       cooldown: 1,
       initiativeCost: 0,
@@ -673,7 +671,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> =
     },
     [ID.MALICIOUS_CUNNING_SALVO]: {
       implemented: true,
-      handlerId: "thief.stealth-attack",
+      handlerId: "thief.deadeye-stealth-attack",
       castTimeMs: 500,
       cooldown: 1,
       initiativeCost: 0,

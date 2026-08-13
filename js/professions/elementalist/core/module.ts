@@ -10,7 +10,10 @@ import {
   projectElementalistEndState,
 } from "./state.js";
 import { bindElementalistCoreUi } from "./ui.js";
-import { applyElementalistResolverAttunement } from "./resolver.js";
+import {
+  applyElementalistResolverAttunement,
+  applyElementalistResolverSignetFire,
+} from "./resolver.js";
 
 export const elementalistCoreModule = defineNativeModule({
   id: "Core",
@@ -32,6 +35,8 @@ export const elementalistCoreModule = defineNativeModule({
         "elementalist.combo": () => {},
         "elementalist.fresh-air": () => {},
         "elementalist.evasive-arcana": () => {},
+        "elementalist.attunement-enter": () => {},
+        "elementalist.signet-fire": applyElementalistResolverSignetFire,
       },
     },
   },

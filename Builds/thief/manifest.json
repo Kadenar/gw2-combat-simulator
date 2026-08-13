@@ -1,5 +1,24 @@
 [
   {
+    "section": "Deadeye",
+    "presets": [
+      {
+        "label": "Power Quickness (Sword / Pistol)",
+        "build": "Builds/thief/b-power-quick-deadeye-sword-pistol.json",
+        "rotation": "Rotations/thief/r-power-quick-deadeye-sword-pistol-bench.json",
+        "benchmarkDps": 35365,
+        "upToDate": true
+      },
+      {
+        "label": "Power Quickness (Rifle)",
+        "build": "Builds/thief/b-power-quick-deadeye-rifle.json",
+        "rotation": "Rotations/thief/r-power-quick-deadeye-rifle-bench.json",
+        "benchmarkDps": 36721,
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Antiquary",
     "presets": [
       {

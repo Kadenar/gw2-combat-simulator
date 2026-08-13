@@ -2239,7 +2239,7 @@ test("Relic of Mistburn uses a strict one-second internal cooldown", () => {
   );
 });
 
-test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () => {
+test("Relic of Bloodstone explodes on the third blast and grants Fervor", () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -2268,10 +2268,9 @@ test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () =>
     stats: { power: 2000, precision: 1000, ferocity: 0 },
     target: { armor: 2597, conditions: {} },
   };
-  const threeBlasts = simulateGw2({
+  const twoBlasts = simulateGw2({
     profession,
     rotation: [
-      "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       { type: "wait", durationMs: 1000 },
@@ -2282,7 +2281,6 @@ test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () =>
     profession,
     rotation: [
       "Bloodstone Fixture Strike",
-      "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
       "Bloodstone Fixture Blast",
@@ -2316,7 +2314,7 @@ test("Relic of Bloodstone explodes on the fourth blast and grants Fervor", () =>
     ["1/3 stacks"],
   );
   assert.equal(
-    threeBlasts.procSteps.some((step) => step.skill === "Relic of Bloodstone"),
+    twoBlasts.procSteps.some((step) => step.skill === "Relic of Bloodstone"),
     false,
   );
   assert.equal(fervor.length, 1);

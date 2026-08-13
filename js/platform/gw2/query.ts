@@ -447,12 +447,15 @@ export function createGw2CombatQuery<
     ) {
       const inheritCriticalAttributes =
         event.summonInheritsCriticalAttributes === true;
+      const summonMightStacks =
+        event.summonIgnoresMight === true
+          ? 0
+          : summonMightStacksAt(time, runtime, event);
       return {
         ...stats,
         power:
           Number(event.summonBasePower) +
-          summonMightStacksAt(time, runtime, event) *
-            MIGHT_ATTRIBUTE_BONUS_PER_STACK,
+          summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
         precision: inheritCriticalAttributes
           ? stats.precision
           : Number(event.summonBasePrecision ?? 1000),
@@ -461,8 +464,7 @@ export function createGw2CombatQuery<
           : Number(event.summonBaseFerocity ?? 0),
         conditionDamage:
           Number(event.summonBaseConditionDamage ?? stats.conditionDamage) +
-          summonMightStacksAt(time, runtime, event) *
-            MIGHT_ATTRIBUTE_BONUS_PER_STACK,
+          summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
         expertise: Number(event.summonBaseExpertise ?? stats.expertise),
       };
     }

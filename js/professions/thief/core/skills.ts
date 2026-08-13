@@ -2590,7 +2590,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.DEADLY_AIM]: {
     implemented: true,
-    castTimeMs: 750,
+    quicknessCastTimeMs: 600,
     cooldown: 0,
     initiativeCost: 0,
     effects: [
@@ -2804,7 +2804,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<
   },
   [ID.THREE_ROUND_BURST]: {
     implemented: true,
-    castTimeMs: 1000,
+    quicknessCastTimeMs: 840,
     cooldown: 0,
     initiativeCost: 4,
     effects: [

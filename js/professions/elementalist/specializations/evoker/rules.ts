@@ -8,7 +8,17 @@ import type {
   SimulationEvent,
   Skill,
 } from "../../../../platform/engine/types.js";
-import type { ElementalistAttunement } from "../../core/state.js";
+import {
+  emitElementalistBuff,
+  grantElementalistRockSolid,
+  triggerElementalistEarthenBlast,
+  triggerElementalistElectricDischarge,
+  triggerElementalistSunspot,
+} from "../../core/rules.js";
+import {
+  elementalistCoreState,
+  type ElementalistAttunement,
+} from "../../core/state.js";
 import { evokerState, type EvokerState } from "./state.js";
 
 export const FAMILIAR_ELEMENTS: Readonly<
@@ -43,6 +53,30 @@ const FULL_SPEAR_ETCHINGS = new Set([
   "Derecho",
   "Haboob",
 ]);
+const FAMILIAR_FLIP_DELAYS: Readonly<
+  Record<string, readonly [string, number]>
+> = Object.freeze({
+  Ignite: ["Conflagration", 0.96],
+  Zap: ["Lightning Blitz", 0.68],
+  Splash: ["Buoyant Deluge", 0.84],
+  Calcify: ["Seismic Impact", 0.28],
+});
+const FAMILIAR_INTERRUPT_WINDOWS: Readonly<
+  Record<string, readonly [string, number]>
+> = Object.freeze({
+  Ignite: ["Conflagration", 2.4],
+  Zap: ["Lightning Blitz", 2.3],
+  Splash: ["Buoyant Deluge", 2.4],
+  Calcify: ["Seismic Impact", 2.2],
+});
+const FAMILIAR_BASIC_BY_EMPOWERED = Object.freeze(
+  Object.fromEntries(
+    Object.entries(FAMILIAR_INTERRUPT_WINDOWS).map(([basic, [empowered]]) => [
+      empowered,
+      basic,
+    ]),
+  ) as Readonly<Record<string, string>>,
+);
 
 function hasTrait(context: unknown, trait: string): boolean {
   return hasGw2Trait(context as never, trait);
@@ -210,6 +244,291 @@ function grantWeaponSkillCharges(
   });
 }
 
+function cancelActivationEffects(
+  context: SchedulerContext<SchedulerRecord>,
+  activationId: string,
+  from: number,
+): void {
+  for (const event of [...context.events]) {
+    if (
+      event.activationId === activationId &&
+      event.at >= from &&
+      event.type !== "action"
+    ) {
+      context.replaceEvent(event, {
+        type: "marker",
+        cancelled: true,
+        detail: "cancelled by familiar flip interaction",
+      });
+    }
+  }
+}
+
+function onCastStart(
+  context: CastLifecycleContext<SchedulerRecord>,
+  skill: Skill,
+): void {
+  const state = evokerState.from(context);
+  const interrupt = FAMILIAR_INTERRUPT_WINDOWS[skill.name];
+  if (interrupt) {
+    const [empoweredSkill, window] = interrupt;
+    const recent = state.lastEmpoweredFamiliarByBasic[skill.name];
+    if (
+      recent?.skill === empoweredSkill &&
+      context.start - recent.start < window
+    ) {
+      cancelActivationEffects(context, recent.activationId, context.start);
+      state.cancelledFamiliarActivations[context.reservationId] = true;
+      const core = elementalistCoreState(context as unknown as SchedulerRecord);
+      core.activeComboFields = core.activeComboFields.filter(
+        (field) =>
+          field.skillName !== empoweredSkill || field.startsAt < context.start,
+      );
+      state.lastEmpoweredFamiliarByBasic[skill.name] = null;
+    }
+  }
+
+  const basic = FAMILIAR_BASIC_BY_EMPOWERED[skill.name];
+  if (basic) {
+    state.lastEmpoweredFamiliarByBasic[basic] = {
+      skill: skill.name,
+      activationId: context.reservationId,
+      start: context.start,
+    };
+  }
+}
+
+function afterCast(
+  context: CastLifecycleContext<SchedulerRecord>,
+  skill: Skill,
+): void {
+  const state = evokerState.from(context);
+  if (state.cancelledFamiliarActivations[context.reservationId]) {
+    cancelActivationEffects(context, context.reservationId, context.start);
+    delete state.cancelledFamiliarActivations[context.reservationId];
+    return;
+  }
+  if (skill.name === "Ignite") {
+    if (context.start - state.igniteLastUsedAt >= 15) state.igniteTier = 0;
+    const durations = [2, 0.5, 1, 1.5];
+    for (const event of context.events) {
+      if (
+        event.activationId === context.reservationId &&
+        event.type === "condition" &&
+        event.condition === "Burning"
+      ) {
+        context.replaceEvent(event, { duration: durations[state.igniteTier] });
+      }
+    }
+    state.igniteTier = (state.igniteTier + 1) % durations.length;
+    state.igniteLastUsedAt = context.start;
+  }
+  if (skill.name === "Fox's Fury") {
+    const might = context.buffStacks("might", context.start);
+    const tier = might >= 20 ? 2 : might >= 10 ? 1 : 0;
+    const at =
+      context.start +
+      0.56 / (context.hasBuff("quickness", context.start) ? 1.5 : 1);
+    context.emit({
+      type: "damage",
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: "player",
+      skillName: skill.name,
+      skillId: skill.id,
+      coefficient: [1.5, 2.25, 3][tier],
+      skillWeapon: "Unequipped",
+    });
+    context.emit({
+      type: "condition",
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: "player",
+      skillName: skill.name,
+      skillId: skill.id,
+      condition: "Burning",
+      stacks: [1, 2, 3][tier],
+      duration: [3, 5, 7][tier],
+    });
+  }
+}
+
+function grantFamiliarProwess(
+  context: CastLifecycleContext<SchedulerRecord>,
+  skill: Skill,
+): void {
+  const at = context.effectiveEnd;
+  const current = context.events
+    .filter(
+      (event) =>
+        event.type === "buff" &&
+        event.kind === "familiar's-prowess" &&
+        event.at <= at &&
+        event.at + Number(event.duration || 0) > at,
+    )
+    .at(-1);
+  if (current) {
+    const expiry = current.at + Number(current.duration || 0);
+    context.replaceEvent(current, {
+      duration: Math.min(expiry + 5, at + 15) - current.at,
+    });
+    return;
+  }
+  context.emit({
+    type: "buff",
+    at,
+    source: "Familiar's Prowess",
+    sourceId: skill.id,
+    actorType: "player",
+    skillName: "Familiar's Prowess",
+    kind: "familiar's-prowess",
+    stacks: 1,
+    duration: 5,
+  });
+}
+
+function rechargeWeaponSkills(
+  context: CastLifecycleContext<SchedulerRecord>,
+  percentage: number,
+): void {
+  const at = context.effectiveEnd;
+  for (const candidate of context.catalog.skills) {
+    if (candidate.type !== "Weapon") continue;
+    const reduction = context.rechargeDurationFor(candidate, at) * percentage;
+    const readyAt = Number(context.state.cooldowns.get(candidate.id) || 0);
+    if (readyAt > at) {
+      context.state.cooldowns.set(
+        candidate.id,
+        Math.max(at, readyAt - reduction),
+      );
+    }
+    context.cooldownController.reduceAmmoRecharge(candidate, reduction, at);
+  }
+}
+
+function triggerSpecializedElementEntry(
+  context: CastLifecycleContext<SchedulerRecord>,
+  skill: Skill,
+  element: ElementalistAttunement,
+): void {
+  const at = context.effectiveEnd;
+  const core = elementalistCoreState(context as unknown as SchedulerRecord);
+  context.emit({
+    type: "elementalist.attunement-enter",
+    at,
+    source: skill.name,
+    sourceId: skill.id,
+    actorType: "player",
+    skillName: skill.name,
+    to: element,
+  });
+  if (element === "Fire") {
+    triggerElementalistSunspot(context as never, at, skill.id);
+  } else if (element === "Air") {
+    triggerElementalistElectricDischarge(context as never, at, skill.id);
+    if (hasTrait(context, "One with Air")) {
+      emitElementalistBuff(
+        context as never,
+        at,
+        "Superspeed",
+        1,
+        3,
+        skill.name,
+        skill.id,
+      );
+    }
+    if (hasTrait(context, "Inscription")) {
+      emitElementalistBuff(
+        context as never,
+        at,
+        "Resistance",
+        1,
+        3,
+        skill.name,
+        skill.id,
+      );
+    }
+    if (hasTrait(context, "Fresh Air")) {
+      emitElementalistBuff(
+        context as never,
+        at,
+        "Fresh Air",
+        1,
+        5,
+        skill.name,
+        skill.id,
+      );
+    }
+  } else if (element === "Water" && hasTrait(context, "Latent Stamina")) {
+    if (Number(core.procReadyAt.latentStamina || 0) <= at + context.epsilon) {
+      core.procReadyAt.latentStamina = at + 10;
+      emitElementalistBuff(
+        context as never,
+        at,
+        "Vigor",
+        1,
+        3,
+        "Latent Stamina",
+        skill.id,
+      );
+    }
+  } else if (element === "Earth") {
+    triggerElementalistEarthenBlast(context as never, at, skill.id);
+    grantElementalistRockSolid(context as never, at, skill.id);
+  }
+}
+
+function emitElectricEnchantment(
+  context: SchedulerContext<SchedulerRecord>,
+  event: SimulationEvent,
+): void {
+  context.emitDerived(event, {
+    type: "damage",
+    at: event.at,
+    source: "Electric Enchantment",
+    sourceId: event.skillId ?? event.sourceId,
+    actorType: "effect",
+    skillName: "Electric Enchantment",
+    coefficient: 0.4,
+    skillWeapon: "Unequipped",
+  });
+  context.emitDerived(event, {
+    type: "condition",
+    at: event.at,
+    source: "Electric Enchantment",
+    sourceId: event.skillId ?? event.sourceId,
+    actorType: "effect",
+    skillName: "Electric Enchantment",
+    condition: "Burning",
+    stacks: 1,
+    duration: 1.5,
+  });
+}
+
+function materializeArmedElectricEnchantments(
+  context: CastLifecycleContext<SchedulerRecord>,
+  state: EvokerState,
+): void {
+  const candidates = context.events
+    .filter(
+      (event) =>
+        event.type === "damage" &&
+        event.actorType === "player" &&
+        Number(event.coefficient || 0) > 0 &&
+        event.at >= context.effectiveEnd &&
+        event.electricEnchantmentConsumed !== true,
+    )
+    .sort((left, right) => left.at - right.at);
+  for (const event of candidates) {
+    if (state.electricEnchantmentStacks <= 0) break;
+    state.electricEnchantmentStacks -= 1;
+    context.replaceEvent(event, { electricEnchantmentConsumed: true });
+    emitElectricEnchantment(context, event);
+  }
+}
+
 function onCastComplete(
   context: CastLifecycleContext<SchedulerRecord>,
   skill: Skill,
@@ -221,69 +540,29 @@ function onCastComplete(
     FAMILIAR_ELEMENTS[skill.name] &&
     hasTrait(context, "Familiar's Prowess")
   ) {
-    context.emit({
-      type: "buff",
-      at: context.effectiveEnd,
-      source: "Familiar's Prowess",
-      sourceId: skill.id,
-      actorType: "player",
-      skillName: "Familiar's Prowess",
-      kind: "familiar's-prowess",
-      stacks: 1,
-      duration: 5,
-    });
+    grantFamiliarProwess(context, skill);
   }
   const familiarElement = FAMILIAR_ELEMENTS[skill.name];
   if (familiarElement && hasTrait(context, "Familiar's Blessing")) {
-    context.emit({
-      type: "buff",
+    const quick = familiarElement === "Fire" || familiarElement === "Air";
+    emitElementalistBuff(
+      context as never,
       at,
-      source: "Familiar's Blessing",
-      sourceId: skill.id,
-      actorType: "player",
-      skillName: "Familiar's Blessing",
-      kind:
-        familiarElement === "Fire" || familiarElement === "Air"
-          ? "quickness"
-          : "alacrity",
-      stacks: 1,
-      duration:
-        familiarElement === "Fire" || familiarElement === "Air" ? 1.75 : 4,
-    });
+      quick ? "Quickness" : "Alacrity",
+      1,
+      quick ? 1.75 : 4,
+      "Familiar's Blessing",
+      skill.id,
+    );
+  }
+  if (familiarElement && hasTrait(context, "Galvanic Enchantment")) {
+    state.electricEnchantmentStacks += 2;
   }
   if (skill.name === "Lightning Blitz") {
-    const enchantmentCount = hasTrait(context, "Galvanic Enchantment") ? 3 : 1;
-    const packets = context.events
-      .filter(
-        (event) =>
-          event.activationId === context.reservationId &&
-          event.type === "damage" &&
-          event.skillId === skill.id,
-      )
-      .slice(0, enchantmentCount);
-    for (const packet of packets) {
-      context.emit({
-        type: "damage",
-        at: packet.at,
-        source: "Electric Enchantment",
-        sourceId: skill.id,
-        actorType: "effect",
-        skillName: "Electric Enchantment",
-        coefficient: 0.4,
-        skillWeapon: "Unequipped",
-      });
-      context.emit({
-        type: "condition",
-        at: packet.at,
-        source: "Electric Enchantment",
-        sourceId: skill.id,
-        actorType: "effect",
-        skillName: "Electric Enchantment",
-        condition: "Burning",
-        stacks: 1,
-        duration: 1.5,
-      });
-    }
+    state.electricEnchantmentStacks += 1;
+  }
+  if (familiarElement) {
+    materializeArmedElectricEnchantments(context, state);
   }
   if (skill.name === "Zap") {
     context.emit({
@@ -301,6 +580,19 @@ function onCastComplete(
   if (BASIC_FAMILIARS.has(skill.name)) {
     state.charges = 0;
     state.empowered = Math.min(3, state.empowered + 1);
+    const flip = FAMILIAR_FLIP_DELAYS[skill.name];
+    const empowered = flip
+      ? context.catalog.skillsByName.get(flip[0])
+      : undefined;
+    if (flip && empowered) {
+      context.state.cooldowns.set(
+        empowered.id,
+        Math.max(
+          Number(context.state.cooldowns.get(empowered.id) || 0),
+          at + flip[1],
+        ),
+      );
+    }
     emitResource(context, skill, state);
   } else if (FAMILIAR_ELEMENTS[skill.name]) {
     state.empowered = 0;
@@ -315,68 +607,41 @@ function onCastComplete(
   if (skill.name === "Hare's Agility") {
     state.electricEnchantmentStacks += 5;
   } else if (skill.name === "Toad's Fortitude" && state.element === "Earth") {
-    context.emit({
-      type: "buff",
+    emitElementalistBuff(
+      context as never,
       at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: "player",
-      skillName: skill.name,
-      kind: "resistance",
-      stacks: 1,
-      duration: 4,
-    });
+      "Resistance",
+      1,
+      4,
+      skill.name,
+      skill.id,
+    );
   } else if (skill.name === "Fox's Fury") {
-    const might = context.buffStacks("might", context.start);
-    const tier = might >= 20 ? 2 : might >= 10 ? 1 : 0;
-    const coefficients = [1.5, 2.25, 3];
-    const burningStacks = [1, 2, 3];
-    const burningDurations = [3, 5, 7];
-    context.emit({
-      type: "damage",
+    emitElementalistBuff(
+      context as never,
       at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: "player",
-      skillName: skill.name,
-      skillId: skill.id,
-      coefficient: coefficients[tier],
-      skillWeapon: "Unequipped",
-    });
-    context.emit({
-      type: "condition",
+      "Might",
+      8 + (state.element === "Fire" ? 3 : 0),
+      10,
+      skill.name,
+      skill.id,
+    );
+    emitElementalistBuff(
+      context as never,
       at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: "player",
-      skillName: skill.name,
-      skillId: skill.id,
-      condition: "Burning",
-      stacks: burningStacks[tier],
-      duration: burningDurations[tier],
-    });
-    context.emit({
-      type: "buff",
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: "player",
-      skillName: skill.name,
-      kind: "might",
-      stacks: 8 + (state.element === "Fire" ? 3 : 0),
-      duration: 10,
-    });
-    context.emit({
-      type: "buff",
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: "player",
-      skillName: skill.name,
-      kind: "fury",
-      stacks: 1,
-      duration: 10,
-    });
+      "Fury",
+      1,
+      10,
+      skill.name,
+      skill.id,
+    );
+  }
+
+  if (familiarElement && hasTrait(context, "Specialized Elements")) {
+    rechargeWeaponSkills(context, BASIC_FAMILIARS.has(skill.name) ? 0.1 : 0.33);
+    if (!BASIC_FAMILIARS.has(skill.name)) {
+      triggerSpecializedElementEntry(context, skill, familiarElement);
+    }
   }
 }
 
@@ -384,41 +649,38 @@ function onEventScheduled(
   context: SchedulerContext<SchedulerRecord>,
   event: SimulationEvent,
 ): void {
+  const state = evokerState.from(context);
+  if (
+    event.type === "condition" &&
+    event.condition === "Burning" &&
+    state.element === "Fire" &&
+    state.ignitePassiveReadyAt <= event.at + context.epsilon
+  ) {
+    state.ignitePassiveReadyAt = event.at + 1;
+    emitElementalistBuff(
+      context as never,
+      event.at,
+      "Might",
+      1,
+      6,
+      "Fire Familiar",
+      event.skillId ?? event.sourceId,
+    );
+  }
   if (
     event.type === "damage" &&
     event.actorType === "player" &&
     Number(event.coefficient) > 0
   ) {
-    const state = evokerState.from(context);
     if (state.electricEnchantmentStacks > 0) {
       state.electricEnchantmentStacks -= 1;
-      context.emitDerived(event, {
-        type: "damage",
-        at: event.at,
-        source: "Electric Enchantment",
-        sourceId: event.skillId ?? event.sourceId,
-        actorType: "effect",
-        skillName: "Electric Enchantment",
-        coefficient: 0.4,
-        skillWeapon: "Unequipped",
-      });
-      context.emitDerived(event, {
-        type: "condition",
-        at: event.at,
-        source: "Electric Enchantment",
-        sourceId: event.skillId ?? event.sourceId,
-        actorType: "effect",
-        skillName: "Electric Enchantment",
-        condition: "Burning",
-        stacks: 1,
-        duration: 1.5,
-      });
+      context.replaceEvent(event, { electricEnchantmentConsumed: true });
+      emitElectricEnchantment(context, event);
     }
   }
   if (event.type === "elementalist.evasive-arcana") {
     const attunement = String(event.attunement || "");
     if (attunement === "Air") return;
-    const state = evokerState.from(context);
     const before = state.charges;
     const gain = state.element === attunement ? 2 : 1;
     state.charges = Math.min(state.maximumCharges, state.charges + gain);
@@ -438,8 +700,12 @@ function onEventScheduled(
     });
     return;
   }
-  if (event.type !== "elementalist.attunement") return;
-  const state = evokerState.from(context);
+  if (
+    event.type !== "elementalist.attunement" &&
+    event.type !== "elementalist.attunement-enter"
+  ) {
+    return;
+  }
   if (event.to !== state.element) return;
   if (hasTrait(context, "Elemental Balance")) {
     state.elementalBalanceProgress += 1;
@@ -495,6 +761,16 @@ export const evokerCastRules = Object.freeze({
 });
 
 export const evokerSchedulerHooks = Object.freeze({
+  onCastStart: {
+    id: "elementalist.evoker-start",
+    order: 30,
+    handler: onCastStart,
+  },
+  afterCast: {
+    id: "elementalist.evoker-after-cast",
+    order: 30,
+    handler: afterCast,
+  },
   onCastComplete: {
     id: "elementalist.evoker-complete",
     order: 30,

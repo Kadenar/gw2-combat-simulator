@@ -9,15 +9,17 @@ import {
 import { updateSpearChainState } from "./conditions.js";
 import type { ThiefCastContext, ThiefSkill } from "../types.js";
 
-function enterStealthFromSkill(
+export function grantThiefStealth(
   context: ThiefCastContext,
   skill: ThiefSkill,
   at: number,
+  explicitDuration?: number,
 ): void {
-  const duration = (skill.effects || [])
-    .filter(effect =>
-      effect.type === "buff" && effect.kind === "stealth")
-    .reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
+  const duration =
+    explicitDuration ??
+    (skill.effects || [])
+      .filter((effect) => effect.type === "buff" && effect.kind === "stealth")
+      .reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
   if (!(duration > 0)) return;
   const state = professionCoreState(context);
   if (state.revealedUntil > at) return;
@@ -26,10 +28,7 @@ function enterStealthFromSkill(
     at + 15,
     Math.max(at, state.stealthUntil) + duration,
   );
-  if (
-    entering
-    && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)
-  ) {
+  if (entering && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(context, 2, at, "enter-stealth");
   }
   if (entering && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {
@@ -72,15 +71,13 @@ export function updateThiefWeaponState(
   } else if (skill.type === "Weapon") {
     state.autoattackChains = {};
   }
-  if (completed) enterStealthFromSkill(context, skill, at);
+  if (completed && !(skill.categories || []).includes("stolen skill")) {
+    grantThiefStealth(context, skill, at);
+  }
   if (completed && Number(skill.enduranceGain || 0) > 0) {
     gainThiefEndurance(context, Number(skill.enduranceGain), at, skill.name);
   }
-  if (
-    skill.shadowstepSkill
-    && context.config.relic === "Peitha"
-    && completed
-  ) {
+  if (skill.shadowstepSkill && context.config.relic === "Peitha" && completed) {
     context.emit({
       type: "peitha",
       at,

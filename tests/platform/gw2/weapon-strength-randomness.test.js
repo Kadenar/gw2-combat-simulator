@@ -41,6 +41,10 @@ const EXPECTED_PROFILES = Object.freeze({
   "summon.weapon-type-3": [2448, 3050, 2749],
   "bundle.ascended": [920, 1017, 968.5],
   "transform.radiant-forge": [954, 1076, 1015],
+  "transform.radiant-forge.hammer": [985, 1111, 1048],
+  "transform.radiant-forge.staff": [985, 1111, 1048],
+  "transform.radiant-forge.sword": [905, 1000, 952.5],
+  "transform.radiant-forge.shield": [806, 909, 857.5],
   "transform.rampage": [726, 819, 772.5],
   "transform.photon-forge": [954, 1076, 1015],
   "transform.celestial-avatar": [580, 654, 617],
@@ -111,15 +115,60 @@ test("skill metadata classifies transforms, kits, shrouds, and effects", () => {
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {
-      skill: { id: 1, name: "Radiant", radiantForgeSkill: true },
+      skill: {
+        id: 1,
+        name: "Radiant Hammer",
+        radiantForgeSkill: true,
+        radiantWeapon: "hammer",
+      },
     }),
-    "transform.radiant-forge",
+    "transform.radiant-forge.hammer",
+  );
+  assert.equal(
+    weaponStrengthProfileIdForEvent(
+      { ...event, radiantWeapon: "blade" },
+      {
+        skill: { id: 1, name: "Glaring Burst", radiantForgeSkill: true },
+      },
+    ),
+    "transform.radiant-forge.sword",
+  );
+  assert.equal(
+    weaponStrengthProfileIdForEvent(event, {
+      skill: {
+        id: 1,
+        name: "Radiant Shield",
+        radiantForgeSkill: true,
+        radiantWeapon: "bulwark",
+      },
+    }),
+    "transform.radiant-forge.shield",
+  );
+  assert.equal(
+    weaponStrengthProfileIdForEvent(event, {
+      skill: { id: 1, name: "Cyclone Bow", cycloneBowSkill: true },
+    }),
+    "transform.cyclone-bow",
   );
   assert.equal(
     weaponStrengthProfileIdForEvent(event, {
       skill: { id: 1, name: "Shroud", shroud: "reaper" },
     }),
     "transform.reaper-shroud",
+  );
+  assert.equal(
+    weaponStrengthProfileIdForEvent(
+      { ...event, weaponStrengthSource: "equipped" },
+      {
+        skill: { id: 1, name: "Stolen Skill", type: "Profession" },
+        state: { activeWeaponSet: 2 },
+        config: {
+          primaryWeapon: "Dagger",
+          weaponSet2Primary: "Rifle",
+        },
+      },
+    ),
+    "weapon.rifle",
   );
   assert.equal(
     weaponStrengthProfileIdForEvent({

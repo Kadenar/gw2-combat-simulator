@@ -58,6 +58,13 @@ test("parses a valid uncompressed EVTC with complete records", () => {
   assert.equal(log.events.length, 3);
 });
 
+test("accepts the 24-byte ArcDPS footer emitted after complete records", () => {
+  const footer = Buffer.alloc(24);
+  footer.writeUInt32LE(10, 16);
+  const log = parseEvtc(Buffer.concat([buildEvtc(), footer]));
+  assert.equal(log.events.length, 3);
+});
+
 test("expands deflate ZIP and zevtc-compatible inputs in the browser adapter", async () => {
   const evtc = buildEvtc();
   for (const fileName of ["fixture.evtc.zip", "fixture.zevtc"]) {
@@ -265,9 +272,19 @@ test("generic analysis counts casts from CBTS_ANIMATION_START events", () => {
       events: [
         combatEvent({ time: 1_000, value: 1_000 }),
         combatEvent({ time: 2_000, stateChange: 67, value: 900, skillId: 100 }),
-        combatEvent({ time: 2_900, stateChange: 68, activation: 3, value: 900 }),
+        combatEvent({
+          time: 2_900,
+          stateChange: 68,
+          activation: 3,
+          value: 900,
+        }),
         combatEvent({ time: 3_000, stateChange: 67, value: 750, skillId: 736 }),
-        combatEvent({ time: 3_750, stateChange: 68, activation: 4, value: 750 }),
+        combatEvent({
+          time: 3_750,
+          stateChange: 68,
+          activation: 4,
+          value: 750,
+        }),
         combatEvent({ time: 61_000, value: 1_000 }),
       ],
     }),

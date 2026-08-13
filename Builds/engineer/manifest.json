@@ -63,5 +63,18 @@
         "upToDate": true
       }
     ]
+  },
+  {
+    "section": "Scrapper",
+    "presets": [
+      {
+        "label": "Power (Hammer)",
+        "build": "Builds/engineer/b-power-scrapper-hammer.json",
+        "rotation": "Rotations/engineer/r-power-scrapper-hammer-bench.json",
+        "dpsReportUrl": "https://dps.report/55xd-20260422-192633_golem",
+        "benchmarkDps": 42208,
+        "upToDate": true
+      }
+    ]
   }
 ]

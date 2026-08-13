@@ -1,5 +1,18 @@
 [
   {
+    "section": "Firebrand",
+    "presets": [
+      {
+        "label": "Condition (Axe / Torch + Pistol / Pistol)",
+        "build": "Builds/guardian/b-condition-firebrand.json",
+        "rotation": "Rotations/guardian/r-condition-firebrand-bench.json",
+        "benchmarkDps": 37524,
+        "sourceBenchmarkDps": 40916,
+        "upToDate": true
+      }
+    ]
+  },
+  {
     "section": "Dragonhunter",
     "presets": [
       {
@@ -20,13 +33,13 @@
         "label": "Power",
         "build": "Builds/guardian/b-power-luminary.json",
         "rotation": "Rotations/guardian/r-power-luminary-bench.json",
-        "benchmarkDps": 42317
+        "benchmarkDps": 42015
       },
       {
         "label": "Power Alacrity (Greatsword / Spear)",
         "build": "Builds/guardian/b-power-alac-luminary.json",
         "rotation": "Rotations/guardian/r-power-alac-luminary-bench.json",
-        "benchmarkDps": 38217
+        "benchmarkDps": 37977
       }
     ]
   }

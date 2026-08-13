@@ -12,6 +12,7 @@ import type {
   SchedulerContext,
   SchedulerRecord,
   SimulationEvent,
+  SimulationEventInput,
   Skill,
 } from "../../../platform/engine/types.js";
 import {
@@ -23,6 +24,14 @@ import {
   type ElementalistAuraState,
   type ElementalistCoreState,
 } from "./state.js";
+import {
+  beginElementalistGlyphCast,
+  completeElementalistFlameBarrageCommand,
+  completeElementalistGlyphCast,
+  elementalistElementalAvailability,
+  elementalistElementalTaskHandlers,
+  observeElementalistElementalEvent,
+} from "./elementals.js";
 
 const ATTUNEMENT_RECHARGE_SECONDS = 10;
 const OFF_ATTUNEMENT_RECHARGE_SECONDS = 1.5;
@@ -83,6 +92,66 @@ const PISTOL_NO_GRANT = new Set([
   "Aerial Agility (chain)",
   "Aerial Agility (dash)",
 ]);
+const CONJURE_SKILLS: Readonly<Record<string, string>> = Object.freeze({
+  "Conjure Frost Bow": "Frost Bow",
+  "Conjure Lightning Hammer": "Lightning Hammer",
+  "Conjure Fiery Greatsword": "Fiery Greatsword",
+});
+const CONJURED_WEAPONS = new Set(Object.values(CONJURE_SKILLS));
+const AURA_TRANSMUTE_SKILLS: Readonly<Record<string, string>> = Object.freeze({
+  "Transmute Frost": "Frost Aura",
+  "Transmute Lightning": "Shocking Aura",
+  "Transmute Earth": "Magnetic Aura",
+  "Transmute Fire": "Fire Aura",
+});
+const ETCHING_CHAINS = Object.freeze([
+  {
+    etching: "Etching: Volcano",
+    lesser: "Lesser Volcano",
+    full: "Volcano",
+  },
+  {
+    etching: "Etching: Jökulhlaup",
+    lesser: "Lesser Jökulhlaup",
+    full: "Jökulhlaup",
+  },
+  {
+    etching: "Etching: Derecho",
+    lesser: "Lesser Derecho",
+    full: "Derecho",
+  },
+  {
+    etching: "Etching: Haboob",
+    lesser: "Lesser Haboob",
+    full: "Haboob",
+  },
+] as const);
+const FULL_ETCHING_CHARGE_SKILLS = new Set([
+  "Overload Fire",
+  "Overload Air",
+  "Overload Earth",
+]);
+const SPEAR_FOLLOWUP_ARM_SKILLS = new Set([
+  "Seethe",
+  "Ripple",
+  "Energize",
+  "Harden",
+]);
+const BOON_KINDS = new Set([
+  "aegis",
+  "alacrity",
+  "fury",
+  "might",
+  "protection",
+  "quickness",
+  "regeneration",
+  "resistance",
+  "resolution",
+  "stability",
+  "superspeed",
+  "swiftness",
+  "vigor",
+]);
 
 type ElementalistCastContext = CastContext<ElementalistRuntimeState>;
 type ElementalistLifecycleContext =
@@ -121,6 +190,94 @@ function unavailable(
 
 function specialization(context: ElementalistCastContext): string {
   return String(context.config.specialization || "Core");
+}
+
+function prepareElementalistHitboxEvent(
+  context: ElementalistSchedulerContext,
+  event: SimulationEventInput,
+): SimulationEventInput {
+  const professionAssumptions = (context.config.professionAssumptions ||
+    {}) as SchedulerRecord;
+  const hitboxSize = String(
+    professionAssumptions.hitboxSize || context.config.hitboxSize || "large",
+  );
+  if (hitboxSize !== "small") return event;
+  const hitIndex = Number(event.elementalistHitboxIndex || 0);
+  const smallHitboxCap = Number(event.elementalistSmallHitboxCap || 0);
+  const excluded =
+    event.elementalistLargeHitboxOnly === true ||
+    (smallHitboxCap > 0 && hitIndex > smallHitboxCap);
+  if (!excluded) return event;
+  return {
+    ...event,
+    type: "marker",
+    name: `${String(event.skillName || event.name || "Elementalist effect")} misses small hitbox`,
+    cancelled: true,
+    detail: "excluded by Elementalist target-hitbox rules",
+    elementalistHitboxExcluded: true,
+  };
+}
+
+function skillWeapon(skill: Skill): string {
+  return String(skill.weapon || skill.skillWeapon || "");
+}
+
+function etchingChain(name: string) {
+  return ETCHING_CHAINS.find(
+    (chain) =>
+      name === chain.etching || name === chain.lesser || name === chain.full,
+  );
+}
+
+function activeAura(
+  state: ElementalistCoreState,
+  aura: string,
+  at: number,
+): ElementalistAuraState | null {
+  return (
+    state.activeAuras.find(
+      (candidate) => candidate.type === aura && candidate.expiresAt > at,
+    ) || null
+  );
+}
+
+function combatStarted(
+  context: ElementalistSchedulerContext,
+  at: number,
+): boolean {
+  return (
+    !context.hasExplicitCombatStart ||
+    (context.combatStartTime != null && at >= context.combatStartTime)
+  );
+}
+
+function activeHammerOrbElements(
+  state: ElementalistCoreState,
+  at: number,
+): ElementalistAttunement[] {
+  return ELEMENTALIST_ATTUNEMENTS.filter((element) => {
+    const expiresAt = state.hammerOrbs[element];
+    return expiresAt != null && expiresAt >= at;
+  });
+}
+
+function hammerOrbMatchesAttunement(
+  context: ElementalistCastContext,
+  state: ElementalistCoreState,
+  element: ElementalistAttunement,
+): boolean {
+  if (specialization(context) !== "Weaver") {
+    return element === state.primaryAttunement;
+  }
+  const grantedBy = state.hammerOrbGrantedBy[element];
+  const grantingSkill = grantedBy
+    ? context.catalog.skillsByName.get(grantedBy)
+    : null;
+  const required = String(grantingSkill?.attunement || element).split("+");
+  const secondary = state.secondaryAttunement || state.primaryAttunement;
+  return (
+    required.includes(state.primaryAttunement) && required.includes(secondary)
+  );
 }
 
 function targetAttunement(skill: Skill): ElementalistAttunement | null {
@@ -360,6 +517,11 @@ export function elementalistCoreAvailability(
   context: ElementalistCastContext,
   skill: Skill,
 ): AvailabilityResult {
+  const elementalAvailability = elementalistElementalAvailability(
+    context,
+    skill,
+  );
+  if (elementalAvailability) return elementalAvailability;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const target = targetAttunement(skill);
   if (target) {
@@ -409,10 +571,32 @@ export function elementalistCoreAvailability(
         );
   }
 
+  if (skill.name === "__drop_bundle") {
+    return state.conjureEquipped
+      ? ready()
+      : unavailable(
+          skill,
+          "elementalist.no-bundle",
+          "no conjured weapon is equipped.",
+        );
+  }
+  if (skill.name.startsWith("__pickup_")) {
+    const weapon = skill.name.slice("__pickup_".length);
+    const expiresAt = Number(state.conjurePickups[weapon] || 0);
+    return expiresAt >= context.start
+      ? ready()
+      : unavailable(
+          skill,
+          "elementalist.conjure-pickup",
+          `the ${weapon} pickup is unavailable or expired.`,
+        );
+  }
+
   if (["Heal", "Utility", "Elite"].includes(String(skill.type))) {
     const selected = selectedSkillNames(context);
     const selectedChainSkill =
-      skill.name === "Tailored Victory" && selected.has("Weave Self");
+      (skill.name === "Tailored Victory" && selected.has("Weave Self")) ||
+      (skill.name === "Flame Barrage" && selected.has("Glyph of Elementals"));
     if (!isSelectedSlotSkill(skill, selected) && !selectedChainSkill) {
       return unavailable(
         skill,
@@ -422,7 +606,120 @@ export function elementalistCoreAvailability(
     }
   }
 
+  const aura = AURA_TRANSMUTE_SKILLS[skill.name];
+  if (aura && !activeAura(state, aura, context.start)) {
+    return unavailable(
+      skill,
+      "elementalist.aura-transmute",
+      `requires an active ${aura}.`,
+    );
+  }
+
+  if (
+    skill.name === "Hurl" &&
+    state.rockBarrierExpiresAt <= context.start + context.epsilon
+  ) {
+    return unavailable(
+      skill,
+      "elementalist.rock-barrier",
+      "requires an active Rock Barrier.",
+    );
+  }
+  if (
+    skill.name === "Rock Barrier" &&
+    state.rockBarrierExpiresAt > context.start + context.epsilon
+  ) {
+    return unavailable(
+      skill,
+      "elementalist.rock-barrier-active",
+      "Hurl or wait for the current barrier to expire.",
+      state.rockBarrierExpiresAt,
+    );
+  }
+
+  const chain = etchingChain(skill.name);
+  if (chain && skill.name !== chain.etching) {
+    const progress = state.etchings[chain.etching];
+    const requiredStage = skill.name === chain.lesser ? "lesser" : "full";
+    if (progress?.stage !== requiredStage) {
+      return unavailable(
+        skill,
+        "elementalist.spear-etching",
+        requiredStage === "lesser"
+          ? `cast ${chain.etching} first.`
+          : `cast three other skills after ${chain.etching} first.`,
+      );
+    }
+  }
+
+  if (
+    skill.name === "Elemental Explosion" &&
+    !ELEMENTALIST_ATTUNEMENTS.every((element) => state.pistolBullets[element])
+  ) {
+    return unavailable(
+      skill,
+      "elementalist.pistol-bullets",
+      "requires all four elemental bullets.",
+    );
+  }
+
+  const hammerElements = HAMMER_ORB_SKILLS[skill.name]
+    ? [HAMMER_ORB_SKILLS[skill.name]]
+    : HAMMER_DUAL_ORB_SKILLS[skill.name];
+  if (hammerElements) {
+    const retryAt = state.hammerOrbLastCastAt + 0.48;
+    if (retryAt > context.start + context.epsilon) {
+      return unavailable(
+        skill,
+        "elementalist.hammer-orb-lockout",
+        `the shared orb lockout ends at ${retryAt.toFixed(3)}.`,
+        retryAt,
+      );
+    }
+    if (
+      hammerElements.some((element) => {
+        const expiresAt = state.hammerOrbs[element];
+        return expiresAt != null && expiresAt >= context.start;
+      })
+    ) {
+      return unavailable(
+        skill,
+        "elementalist.hammer-orb-active",
+        "Grand Finale must consume the active orb before it can be created again.",
+      );
+    }
+  }
+
+  if (skill.name === "Grand Finale") {
+    const compatible = activeHammerOrbElements(state, context.start).some(
+      (element) => hammerOrbMatchesAttunement(context, state, element),
+    );
+    if (!compatible) {
+      return unavailable(
+        skill,
+        "elementalist.hammer-orbs",
+        "requires an active orb compatible with the current attunement.",
+      );
+    }
+  }
+
   if (skill.type === "Weapon") {
+    const weapon = skillWeapon(skill);
+    if (CONJURED_WEAPONS.has(weapon)) {
+      if (state.conjureEquipped !== weapon) {
+        return unavailable(
+          skill,
+          "elementalist.conjure-required",
+          `requires the ${weapon} bundle.`,
+        );
+      }
+    } else if (state.conjureEquipped) {
+      return unavailable(
+        skill,
+        "elementalist.bundle-equipped",
+        `drop ${state.conjureEquipped} before using normal weapon skills.`,
+      );
+    }
     const chainAvailability = autoattackChainAvailability(
       context,
       skill,
@@ -444,18 +741,6 @@ export function elementalistCoreAvailability(
           `requires ${String(skill.attunement)} attunement.`,
         );
   }
-  if (skill.name === "Grand Finale") {
-    const active = Object.values(state.hammerOrbs).some(
-      (expiresAt) => expiresAt != null && expiresAt >= context.start,
-    );
-    if (!active) {
-      return unavailable(
-        skill,
-        "elementalist.hammer-orbs",
-        "requires at least one active Hammer orb.",
-      );
-    }
-  }
   return ready();
 }
 
@@ -476,7 +761,7 @@ function attunementRechargeSeconds(
   return adjusted;
 }
 
-function emitBuff(
+export function emitElementalistBuff(
   context: ElementalistSchedulerContext,
   at: number,
   kind: string,
@@ -485,16 +770,104 @@ function emitBuff(
   source: string,
   sourceId: Skill["id"],
 ): void {
+  const normalizedKind = kind.toLowerCase();
+  const adjustedDuration = elementalistBuffDuration(
+    context,
+    normalizedKind,
+    duration,
+    source,
+    sourceId,
+  );
   context.emit({
     type: "buff",
     at,
     source,
     sourceId,
     actorType: "player",
-    kind: kind.toLowerCase(),
+    kind: normalizedKind,
     stacks,
-    duration,
+    duration: adjustedDuration,
     skillName: source,
+  });
+}
+
+export function elementalistBuffDuration(
+  context: ElementalistSchedulerContext,
+  kind: string,
+  duration: number,
+  source: string,
+  sourceId: Skill["id"],
+): number {
+  const normalizedKind = kind.toLowerCase();
+  if (!BOON_KINDS.has(normalizedKind)) return duration;
+  const sourceSkill =
+    context.catalog.skillsById.get(Number(sourceId)) ||
+    context.catalog.skillsByName.get(source) ||
+    context.catalog.skills[0];
+  if (!sourceSkill) return duration;
+  return (
+    context.schedulerPolicy.effectDuration?.(
+      context,
+      sourceSkill,
+      { type: "boon", boon: normalizedKind, duration },
+      duration,
+    ) ?? duration
+  );
+}
+
+const emitBuff = emitElementalistBuff;
+
+function activeBuffEvents(
+  context: ElementalistSchedulerContext,
+  kind: string,
+  at: number,
+): SimulationEvent[] {
+  const normalized = kind.toLowerCase();
+  return context.events.filter(
+    (event) =>
+      event.type === "buff" &&
+      String(event.kind || "").toLowerCase() === normalized &&
+      event.at <= at &&
+      event.at + Number(event.duration || 0) > at,
+  );
+}
+
+function grantEmpoweringAuras(
+  context: ElementalistSchedulerContext,
+  at: number,
+  skillName: string,
+  sourceId: Skill["id"],
+): void {
+  const current = activeBuffEvents(context, "Empowering Auras", at);
+  const refreshUntil = at + 10;
+  for (const event of current) {
+    context.replaceEvent(event, {
+      duration: Math.max(0, refreshUntil - event.at),
+    });
+  }
+  const activeStacks = current.reduce(
+    (total, event) => total + Number(event.stacks || 0),
+    0,
+  );
+  if (activeStacks < 5) {
+    emitBuff(context, at, "Empowering Auras", 1, 10, skillName, sourceId);
+  }
+}
+
+function extendTempestuousAria(
+  context: ElementalistSchedulerContext,
+  at: number,
+  skillName: string,
+  sourceId: Skill["id"],
+): void {
+  const current = activeBuffEvents(context, "Tempestuous Aria", at).at(-1);
+  if (!current) {
+    emitBuff(context, at, "Tempestuous Aria", 1, 5, skillName, sourceId);
+    return;
+  }
+  const currentExpiry = current.at + Number(current.duration || 0);
+  context.replaceEvent(current, {
+    duration: Math.min(at + 10, currentExpiry + 5) - current.at,
   });
 }
 
@@ -569,6 +942,7 @@ export function applyElementalistAura(
     aura,
     duration: adjustedDuration,
   });
+  if (!combatStarted(context, at)) return;
   if (hasTrait(context, "Zephyr's Boon")) {
     emitBuff(context, at, "Fury", 1, 5, skillName, sourceId);
     emitBuff(context, at, "Swiftness", 1, 5, skillName, sourceId);
@@ -584,10 +958,16 @@ export function applyElementalistAura(
     emitBuff(context, at, "Alacrity", 1, 4, skillName, sourceId);
   }
   if (hasTrait(context, "Tempestuous Aria")) {
-    emitBuff(context, at, "Tempestuous Aria", 1, 5, skillName, sourceId);
+    extendTempestuousAria(context, at, skillName, sourceId);
   }
   if (hasTrait(context, "Empowering Auras")) {
-    emitBuff(context, at, "Empowering Auras", 1, 10, skillName, sourceId);
+    grantEmpoweringAuras(context, at, skillName, sourceId);
+  }
+  if (
+    String(context.config.specialization || "Core") === "Catalyst" &&
+    hasTrait(context, "Elemental Epitome")
+  ) {
+    emitBuff(context, at, "Elemental Empowerment", 1, 10, skillName, sourceId);
   }
 }
 
@@ -598,6 +978,7 @@ export function triggerElementalistSunspot(
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   if (
+    !combatStarted(context, at) ||
     !hasTrait(context, "Sunspot") ||
     !evokerTraitProcReady(context, state, "sunspot", at)
   ) {
@@ -633,6 +1014,7 @@ export function triggerElementalistFlameExpulsion(
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   if (
+    !combatStarted(context, at) ||
     !hasTrait(context, "Pyromancer's Puissance") ||
     !evokerTraitProcReady(context, state, "flameExpulsion", at)
   ) {
@@ -665,7 +1047,8 @@ export function triggerElementalistElectricDischarge(
   at: number,
   sourceId: Skill["id"],
 ): void {
-  if (!hasTrait(context, "Electric Discharge")) return;
+  if (!combatStarted(context, at) || !hasTrait(context, "Electric Discharge"))
+    return;
   context.emit({
     type: "damage",
     at,
@@ -694,6 +1077,7 @@ export function triggerElementalistEarthenBlast(
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   if (
+    !combatStarted(context, at) ||
     !hasTrait(context, "Earthen Blast") ||
     !evokerTraitProcReady(context, state, "earthenBlast", at)
   ) {
@@ -712,13 +1096,14 @@ export function triggerElementalistEarthenBlast(
   });
 }
 
-function grantElementalistRockSolid(
+export function grantElementalistRockSolid(
   context: ElementalistSchedulerContext,
   at: number,
   sourceId: Skill["id"],
 ): void {
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   if (
+    !combatStarted(context, at) ||
     !hasTrait(context, "Rock Solid") ||
     !evokerTraitProcReady(context, state, "rockSolid", at)
   ) {
@@ -817,6 +1202,12 @@ function onAttunementComplete(
   } else {
     state.primaryAttunement = target;
     state.secondaryAttunement = null;
+    const isEvoker = specialization(context) === "Evoker";
+    const evokerElement = String(specializationState.element || "");
+    const previousRechargeSeconds =
+      isEvoker && previous === evokerElement
+        ? OFF_ATTUNEMENT_RECHARGE_SECONDS
+        : ATTUNEMENT_RECHARGE_SECONDS;
     setElementalistAttunementReadyAt(
       context,
       previous,
@@ -825,26 +1216,29 @@ function onAttunementComplete(
         at +
           alacrityAdjusted(
             context,
-            attunementRechargeSeconds(context, ATTUNEMENT_RECHARGE_SECONDS),
+            attunementRechargeSeconds(context, previousRechargeSeconds),
           ),
       ),
     );
     for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
       if (attunement === target || attunement === previous) continue;
+      const existingReadyAt = state.attunementReadyAt[attunement];
+      const defaultReadyAt =
+        at +
+        alacrityAdjusted(
+          context,
+          attunementRechargeSeconds(context, OFF_ATTUNEMENT_RECHARGE_SECONDS),
+        );
+      const preserveShortEvokerRecharge =
+        isEvoker &&
+        existingReadyAt > at &&
+        existingReadyAt - at < defaultReadyAt - at;
       setElementalistAttunementReadyAt(
         context,
         attunement,
-        Math.max(
-          state.attunementReadyAt[attunement],
-          at +
-            alacrityAdjusted(
-              context,
-              attunementRechargeSeconds(
-                context,
-                OFF_ATTUNEMENT_RECHARGE_SECONDS,
-              ),
-            ),
-        ),
+        preserveShortEvokerRecharge
+          ? existingReadyAt
+          : Math.max(existingReadyAt, defaultReadyAt),
       );
     }
   }
@@ -860,6 +1254,15 @@ function onAttunementComplete(
     from: previous,
     to: target,
     secondaryAttunement: state.secondaryAttunement,
+  });
+  context.emit({
+    type: "sigil_swap",
+    at,
+    source: skill.name,
+    sourceId: skill.id,
+    actorType: "player",
+    skillId: skill.id,
+    skillName: skill.name,
   });
   if (weaveSelfActive) {
     const visited = new Set(
@@ -903,6 +1306,14 @@ function onAttunementComplete(
       emitBuff(context, at, "Weave Self Air", 1, 10, skill.name, skill.id);
     }
   }
+  if (!combatStarted(context, at)) return;
+  if (
+    specialization(context) === "Weaver" &&
+    target === previous &&
+    hasTrait(context, "Elements of Rage")
+  ) {
+    emitBuff(context, at, "Elements of Rage", 1, 8, skill.name, skill.id);
+  }
   if (previous === "Fire" && target !== "Fire") {
     triggerElementalistFlameExpulsion(context, at, skill.id);
   }
@@ -934,7 +1345,9 @@ function onAttunementComplete(
   if (hasTrait(context, "Arcane Prowess")) {
     emitBuff(context, at, "Might", 1, 8, "Arcane Prowess", skill.id);
   }
-  grantElementalAttunementBoon(context, at, target, skill.id);
+  if (specialization(context) !== "Weaver" || target !== previous) {
+    grantElementalAttunementBoon(context, at, target, skill.id);
+  }
   if (specialization(context) === "Weaver") {
     const unravelActive = state.unravelUntil > at;
     if (
@@ -998,13 +1411,68 @@ function applyPistolState(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
-  if (skill.weapon !== "Pistol") return;
+  if (skillWeapon(skill) !== "Pistol") return;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const at = context.effectiveEnd;
   const dual = PISTOL_DUAL_ELEMENTS[skill.name];
   if (dual) {
     const active = dual.filter((element) => state.pistolBullets[element]);
     if (active.length) {
-      for (const element of active) state.pistolBullets[element] = false;
+      for (const element of active) {
+        state.pistolBullets[element] = false;
+        if (skill.name === "Frostfire Flurry") {
+          if (element === "Fire") {
+            applyElementalistAura(context, {
+              at,
+              aura: "Fire Aura",
+              duration: 3,
+              skillName: skill.name,
+              sourceId: skill.id,
+            });
+          } else if (element === "Water") {
+            emitCondition(
+              context,
+              at,
+              "Vulnerability",
+              4,
+              8,
+              skill.name,
+              skill.id,
+            );
+          }
+        } else if (skill.name === "Purblinding Plasma" && element === "Fire") {
+          emitCondition(context, at, "Burning", 3, 4, skill.name, skill.id);
+        } else if (skill.name === "Molten Meteor" && element === "Earth") {
+          emitCondition(context, at, "Bleeding", 3, 8, skill.name, skill.id);
+        } else if (skill.name === "Flowing Finesse") {
+          if (element === "Water") {
+            applyElementalistAura(context, {
+              at,
+              aura: "Frost Aura",
+              duration: 3,
+              skillName: skill.name,
+              sourceId: skill.id,
+            });
+          } else if (element === "Air") {
+            emitBuff(context, at, "Superspeed", 1, 4, skill.name, skill.id);
+          }
+        } else if (skill.name === "Enervating Earth") {
+          if (element === "Air") {
+            context.emit({
+              type: "control",
+              at,
+              source: skill.name,
+              sourceId: skill.id,
+              actorType: "player",
+              skillName: skill.name,
+              skillId: skill.id,
+              controlKind: "crowd-control",
+            });
+          } else if (element === "Earth") {
+            emitCondition(context, at, "Bleeding", 4, 8, skill.name, skill.id);
+          }
+        }
+      }
     } else {
       state.pistolBullets[state.primaryAttunement] = true;
     }
@@ -1014,13 +1482,47 @@ function applyPistolState(
   if (!element) return;
   if (state.pistolBullets[element] && !PISTOL_NO_CONSUME.has(skill.name)) {
     state.pistolBullets[element] = false;
-    if (skill.name === "Searing Salvo") {
+    if (skill.name === "Raging Ricochet") {
+      emitBuff(context, at, "Might", 1, 10, skill.name, skill.id);
+    } else if (skill.name === "Searing Salvo") {
       applyElementalistAura(context, {
-        at: context.effectiveEnd,
+        at,
         aura: "Fire Aura",
         duration: 4,
         skillName: skill.name,
         sourceId: skill.id,
+      });
+    } else if (skill.name === "Frozen Fusillade") {
+      context.emit({
+        type: "damage",
+        at: at + 4,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: "player",
+        skillName: skill.name,
+        skillId: skill.id,
+        coefficient: 0.75,
+        skillWeapon: "Pistol",
+      });
+      emitCondition(context, at + 4, "Bleeding", 5, 8, skill.name, skill.id);
+    } else if (skill.name === "Dazing Discharge") {
+      state.dazingDischargeUntil = at + 5;
+    } else if (skill.name === "Shattering Stone") {
+      state.shatteringStoneHitsRemaining = 3;
+      state.shatteringStoneUntil = at + 10;
+    } else if (skill.name === "Boulder Blast") {
+      context.emit({
+        type: "damage",
+        at,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: "effect",
+        skillName: skill.name,
+        skillId: skill.id,
+        coefficient: 0,
+        noCrit: true,
+        finisherType: "Projectile",
+        finisherValue: 1,
       });
     }
   } else if (!PISTOL_NO_GRANT.has(skill.name)) {
@@ -1032,26 +1534,50 @@ function applyHammerState(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
-  if (skill.weapon !== "Hammer") return;
+  if (skillWeapon(skill) !== "Hammer") return;
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const at = context.effectiveEnd;
   const single = HAMMER_ORB_SKILLS[skill.name];
   const dual = HAMMER_DUAL_ORB_SKILLS[skill.name];
   if (single || dual) {
+    const previouslyActive = new Set(activeHammerOrbElements(state, at));
     for (const [element, expiresAt] of Object.entries(state.hammerOrbs)) {
       if (expiresAt != null && expiresAt >= at) {
         state.hammerOrbs[element as ElementalistAttunement] = at + 15;
+        for (const event of activeBuffEvents(
+          context,
+          `hammer ${element} orb`,
+          at,
+        )) {
+          context.replaceEvent(event, { duration: at + 15 - event.at });
+        }
       }
     }
     for (const element of single ? [single] : dual) {
       state.hammerOrbs[element] = at + 15;
+      state.hammerOrbGrantedBy[element] = skill.name;
+      state.hammerOrbActivationIds[element] = context.reservationId;
+      state.hammerOrbBuffUntil[element] = at + 15;
+      if (!previouslyActive.has(element)) {
+        emitBuff(
+          context,
+          at,
+          `Hammer ${element} Orb`,
+          1,
+          15,
+          skill.name,
+          skill.id,
+        );
+      }
     }
+    state.hammerOrbLastCastAt = at;
     return;
   }
   if (skill.name !== "Grand Finale") return;
-  const active = ELEMENTALIST_ATTUNEMENTS.filter(
-    (element) => Number(state.hammerOrbs[element] || 0) >= context.start,
-  );
+  const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
+    const expiresAt = state.hammerOrbs[element];
+    return expiresAt != null && expiresAt >= context.start;
+  });
   const conditions: Readonly<
     Record<ElementalistAttunement, readonly [string, number, number]>
   > = {
@@ -1086,7 +1612,17 @@ function applyHammerState(
       skill.name,
       skill.id,
     );
+    state.hammerOrbBuffUntil[element] = at + 1;
+    for (const event of activeBuffEvents(
+      context,
+      `hammer ${element} orb`,
+      at,
+    )) {
+      context.replaceEvent(event, { duration: at + 1 - event.at });
+    }
     state.hammerOrbs[element] = null;
+    state.hammerOrbGrantedBy[element] = null;
+    state.hammerOrbActivationIds[element] = null;
   }
 }
 
@@ -1166,7 +1702,8 @@ function applyGenericPostCast(
   const at = context.effectiveEnd;
   if (
     hasTrait(context, "Pyromancer's Puissance") &&
-    state.primaryAttunement === "Fire"
+    state.primaryAttunement === "Fire" &&
+    combatStarted(context, at)
   ) {
     emitBuff(context, at, "Might", 1, 15, skill.name, skill.id);
   }
@@ -1296,16 +1833,271 @@ function applyGenericPostCast(
   }
 }
 
+export function elementalistOnCastStart(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): void {
+  beginElementalistGlyphCast(context, skill);
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const chain = etchingChain(skill.name);
+  if (chain && skill.name === chain.etching && skillWeapon(skill) === "Spear") {
+    state.etchings[chain.etching] = { stage: "lesser", otherCasts: 0 };
+  }
+
+  if (skill.name === "Grand Finale") {
+    const activations = new Set(
+      Object.values(state.hammerOrbActivationIds).filter(
+        (value): value is string => Boolean(value),
+      ),
+    );
+    for (const event of [...context.events]) {
+      if (
+        activations.has(String(event.activationId || "")) &&
+        event.at >= context.start &&
+        (event.type === "damage" || event.type === "condition")
+      ) {
+        context.replaceEvent(event, {
+          type: "marker",
+          cancelled: true,
+          detail: "cancelled by Grand Finale",
+        });
+      }
+    }
+  }
+
+  if (
+    skillWeapon(skill) === "Spear" &&
+    String(skill.slot || "") !== "Weapon_1"
+  ) {
+    const followup = {
+      damage: state.spearNextDamageBonus,
+      critical: state.spearNextGuaranteedCritical,
+      control: state.spearNextControlHit,
+    };
+    if (followup.damage || followup.critical || followup.control) {
+      state.spearFollowups[context.reservationId] = followup;
+      state.spearNextDamageBonus = false;
+      state.spearNextGuaranteedCritical = false;
+      state.spearNextControlHit = false;
+    }
+  }
+}
+
+export function elementalistAfterCast(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): void {
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const activationEvents = context.events
+    .filter(
+      (event) =>
+        event.activationId === context.reservationId &&
+        event.type === "damage" &&
+        Number(event.coefficient || 0) > 0,
+    )
+    .sort((left, right) => left.at - right.at);
+
+  if (skill.name === "Frigid Flurry" && state.pistolBullets.Water === true) {
+    for (const event of activationEvents) {
+      context.replaceEvent(event, {
+        finisherType: "Projectile",
+        finisherValue: 0.2,
+      });
+    }
+  }
+
+  const followup = state.spearFollowups[context.reservationId];
+  if (!followup) return;
+  for (const event of activationEvents) {
+    context.replaceEvent(event, {
+      ...(followup.damage
+        ? { coefficient: Number(event.coefficient || 0) * 1.2 }
+        : {}),
+      ...(followup.critical ? { forceCrit: true } : {}),
+    });
+  }
+  if (followup.control && activationEvents[0]) {
+    const first = activationEvents[0];
+    context.emit({
+      type: "control",
+      at: first.at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: "player",
+      skillName: skill.name,
+      skillId: skill.id,
+      controlKind: "crowd-control",
+    });
+  }
+  delete state.spearFollowups[context.reservationId];
+}
+
+function applyConjureState(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): void {
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const at = context.effectiveEnd;
+  const conjuredWeapon = CONJURE_SKILLS[skill.name];
+  let swapped = false;
+  if (conjuredWeapon) {
+    state.conjureEquipped = conjuredWeapon;
+    state.conjurePickups[conjuredWeapon] = at + 35;
+    swapped = true;
+    if (hasTrait(context, "Conjurer")) {
+      applyElementalistAura(context, {
+        at,
+        aura: "Fire Aura",
+        duration: 4,
+        skillName: "Conjurer",
+        sourceId: skill.id,
+      });
+    }
+  } else if (skill.name === "__drop_bundle") {
+    swapped = state.conjureEquipped != null;
+    state.conjureEquipped = null;
+  } else if (skill.name.startsWith("__pickup_")) {
+    const weapon = skill.name.slice("__pickup_".length);
+    if (Number(state.conjurePickups[weapon] || 0) >= context.start) {
+      state.conjureEquipped = weapon;
+      delete state.conjurePickups[weapon];
+      swapped = true;
+    }
+  }
+  if (swapped) {
+    context.emit({
+      type: "sigil_swap",
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: "player",
+      skillName: skill.name,
+    });
+  }
+}
+
+function applySpecialSkillProgression(
+  context: ElementalistLifecycleContext,
+  skill: Skill,
+): void {
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const at = context.effectiveEnd;
+
+  if (skill.name === "Rock Barrier") {
+    state.rockBarrierExpiresAt = at + 30;
+  } else if (skill.name === "Hurl") {
+    state.rockBarrierExpiresAt = 0;
+    const root = context.catalog.skillsByName.get("Rock Barrier");
+    if (root) {
+      context.state.cooldowns.set(
+        root.id,
+        at +
+          context.rechargeDurationFor(root, at, { rockBarrierRelease: true }),
+      );
+    }
+  }
+
+  const aura = AURA_TRANSMUTE_SKILLS[skill.name];
+  if (aura) {
+    state.activeAuras = state.activeAuras.filter(
+      (candidate) => candidate.type !== aura || candidate.expiresAt <= at,
+    );
+  }
+
+  if (skill.name === "Elemental Explosion") {
+    const auraByAttunement: Readonly<
+      Record<ElementalistAttunement, readonly [string, number]>
+    > = {
+      Fire: ["Fire Aura", 4],
+      Water: ["Frost Aura", 4],
+      Air: ["Shocking Aura", 3],
+      Earth: ["Magnetic Aura", 3],
+    };
+    const [auraName, duration] = auraByAttunement[state.primaryAttunement];
+    applyElementalistAura(context, {
+      at,
+      aura: auraName,
+      duration,
+      skillName: skill.name,
+      sourceId: skill.id,
+    });
+    for (const element of ELEMENTALIST_ATTUNEMENTS) {
+      state.pistolBullets[element] = false;
+    }
+  }
+
+  const chain = etchingChain(skill.name);
+  if (chain && skill.name !== chain.etching && skillWeapon(skill) === "Spear") {
+    state.etchings[chain.etching] = null;
+  } else if (!chain || skill.name === chain.etching) {
+    for (const candidate of ETCHING_CHAINS) {
+      const progress = state.etchings[candidate.etching];
+      if (!progress || progress.stage !== "lesser") continue;
+      if (skill.name === candidate.etching) continue;
+      const otherCasts =
+        progress.otherCasts +
+        (FULL_ETCHING_CHARGE_SKILLS.has(skill.name) ? 3 : 1);
+      state.etchings[candidate.etching] = {
+        stage: otherCasts >= 3 ? "full" : "lesser",
+        otherCasts,
+      };
+    }
+  }
+
+  if (skill.name === "Seethe") state.spearNextDamageBonus = true;
+  if (skill.name === "Ripple") state.spearNextRechargeReduction = true;
+  if (skill.name === "Energize") state.spearNextGuaranteedCritical = true;
+  if (skill.name === "Harden") state.spearNextControlHit = true;
+
+  if (
+    specialization(context) === "Weaver" &&
+    skillWeapon(skill) === "Spear" &&
+    String(skill.slot || "") === "Weapon_3" &&
+    String(skill.attunement || "").includes("+") &&
+    state.primaryAttunement !== state.secondaryAttunement
+  ) {
+    setElementalistAttunementReadyAt(context, state.primaryAttunement, at);
+  }
+
+  if (Number(skill.enduranceCost || 0) > 0) {
+    updateEndurance(state, at, Boolean(context.config.boons?.vigor));
+    state.endurance = Math.min(
+      100,
+      state.endurance + Number(skill.enduranceCost),
+    );
+  }
+
+  if (
+    skill.name === "Signet of Fire" &&
+    !hasTrait(context, "Written in Stone")
+  ) {
+    state.signetOfFireDisabledUntil = Number(context.rechargeReadyAt || at);
+    context.emit({
+      type: "elementalist.signet-fire",
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: "player",
+      skillName: skill.name,
+      disabledUntil: state.signetOfFireDisabledUntil,
+    });
+  }
+}
+
 export function elementalistOnCastComplete(
   context: ElementalistLifecycleContext,
   skill: Skill,
 ): void {
+  completeElementalistGlyphCast(context, skill);
+  completeElementalistFlameBarrageCommand(context, skill);
   const target = targetAttunement(skill);
   if (target) {
     onAttunementComplete(context, skill, target);
     return;
   }
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  applyConjureState(context, skill);
+  applySpecialSkillProgression(context, skill);
   updateAutoattackChainState(context, skill, state);
   shareAttunementVariantRecharge(context, skill);
   if (skill.name === "Dodge") {
@@ -1470,8 +2262,7 @@ function observeComboFinisher(
   const state = elementalistCoreState(context as unknown as SchedulerRecord);
   const key = comboKey(event);
   const resolved = (state as SchedulerRecord).resolvedComboKeys as
-    | Set<string>
-    | undefined;
+    Set<string> | undefined;
   const keys = resolved || new Set<string>();
   (state as SchedulerRecord).resolvedComboKeys = keys;
   if (keys.has(key)) return;
@@ -1798,6 +2589,34 @@ export function observeElementalistEvent(
   context: ElementalistSchedulerContext,
   event: SimulationEvent,
 ): void {
+  observeElementalistElementalEvent(context, event);
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  if (event.type === "combat_start") {
+    state.catalystBaseEmpowermentActive = true;
+  }
+  if (
+    event.type === "damage" &&
+    event.actorType === "player" &&
+    Number(event.coefficient || 0) > 0 &&
+    event.damageKind !== "field-tick" &&
+    !event.isField &&
+    state.shatteringStoneHitsRemaining > 0 &&
+    event.at <= state.shatteringStoneUntil + context.epsilon
+  ) {
+    state.shatteringStoneHitsRemaining -= 1;
+    if (state.shatteringStoneHitsRemaining === 0) {
+      state.shatteringStoneUntil = 0;
+    }
+    emitCondition(
+      context,
+      event.at + context.epsilon,
+      "Bleeding",
+      1,
+      5,
+      "Shattering Stone",
+      event.skillId ?? event.sourceId,
+    );
+  }
   observeFreshAir(context, event);
   observeBurningPrecision(context, event);
   observeCriticalTraits(context, event);
@@ -1816,6 +2635,36 @@ export function advanceElementalistState(
     (field) => field.expiresAt > at,
   );
   state.activeAuras = state.activeAuras.filter((aura) => aura.expiresAt > at);
+  for (const element of ELEMENTALIST_ATTUNEMENTS) {
+    if (Number(state.hammerOrbs[element] || 0) < at) {
+      state.hammerOrbs[element] = null;
+      state.hammerOrbGrantedBy[element] = null;
+      state.hammerOrbActivationIds[element] = null;
+    }
+  }
+  for (const [weapon, expiresAt] of Object.entries(state.conjurePickups)) {
+    if (expiresAt < at) delete state.conjurePickups[weapon];
+  }
+  if (state.shatteringStoneUntil < at) {
+    state.shatteringStoneUntil = 0;
+    state.shatteringStoneHitsRemaining = 0;
+  }
+  if (state.dazingDischargeUntil < at) state.dazingDischargeUntil = 0;
+  if (state.rockBarrierExpiresAt > 0 && state.rockBarrierExpiresAt <= at) {
+    const expiresAt = state.rockBarrierExpiresAt;
+    state.rockBarrierExpiresAt = 0;
+    const root = context.catalog.skillsByName.get("Rock Barrier");
+    if (root) {
+      context.state.cooldowns.set(
+        root.id,
+        expiresAt +
+          context.rechargeDurationFor(root, expiresAt, {
+            rockBarrierRelease: true,
+          }),
+      );
+      delete state.autoattackChains[Number(root.id)];
+    }
+  }
 }
 
 export function modifyElementalistRechargeDuration(
@@ -1824,14 +2673,45 @@ export function modifyElementalistRechargeDuration(
 ): number {
   const skill = context.skill;
   if (!skill) return duration;
+  const state = elementalistCoreState(context as unknown as SchedulerRecord);
+  const at = Number(
+    (context as unknown as SchedulerRecord).start ?? context.state.time ?? 0,
+  );
+  if (
+    skill.name === "Rock Barrier" &&
+    !(context as unknown as SchedulerRecord).rockBarrierRelease
+  ) {
+    return 0;
+  }
   if (skill.type !== "Weapon") {
     return (skill.overload || skill.skillFamily === "Jade Sphere") &&
       hasTrait(context, "Elemental Enchantment")
       ? duration * 0.85
       : duration;
   }
-  let adjustedDuration =
-    skill.name === "Ride the Lightning" ? duration * 0.5 : duration;
+  let adjustedDuration = duration;
+  let additiveReduction = 0;
+  if (
+    state.spearNextRechargeReduction &&
+    skillWeapon(skill) === "Spear" &&
+    String(skill.slot || "") !== "Weapon_1"
+  ) {
+    additiveReduction += 0.33;
+    state.spearNextRechargeReduction = false;
+  }
+  if (
+    state.dazingDischargeUntil > at &&
+    skillWeapon(skill) === "Pistol" &&
+    String(skill.slot || "") !== "Weapon_1"
+  ) {
+    additiveReduction += 0.33;
+    state.dazingDischargeUntil = 0;
+  }
+  adjustedDuration *= Math.max(0, 1 - additiveReduction);
+  if (skill.name === "Purblinding Plasma" && state.pistolBullets.Air) {
+    adjustedDuration *= 2 / 3;
+  }
+  if (skill.name === "Ride the Lightning") adjustedDuration *= 0.5;
   const attunement = String(skill.attunement || "");
   if (
     (attunement === "Fire" && hasTrait(context, "Pyromancer's Training")) ||
@@ -1857,6 +2737,31 @@ export const elementalistCoreCastRules = Object.freeze({
 });
 
 export const elementalistCoreSchedulerHooks = Object.freeze({
+  taskHandlers: elementalistElementalTaskHandlers,
+  prepareEvent: {
+    id: "elementalist.hitbox",
+    order: 10,
+    handler: prepareElementalistHitboxEvent,
+  },
+  initialize: {
+    id: "elementalist.core-initialize",
+    order: 10,
+    handler(context: ElementalistSchedulerContext) {
+      elementalistCoreState(
+        context as unknown as SchedulerRecord,
+      ).catalystBaseEmpowermentActive = !context.hasExplicitCombatStart;
+    },
+  },
+  onCastStart: {
+    id: "elementalist.core-cast-start",
+    order: 10,
+    handler: elementalistOnCastStart,
+  },
+  afterCast: {
+    id: "elementalist.core-after-cast",
+    order: 10,
+    handler: elementalistAfterCast,
+  },
   advance: {
     id: "elementalist.core-state",
     order: 10,

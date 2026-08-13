@@ -6,7 +6,12 @@ import {
 import { ELEMENTALIST_GENERATED_SKILLS } from "./data/native-skill-data.js";
 import { WEAPON_DATA } from "./data/gear-data.js";
 import { ELITE_SPECS, SPECIALIZATIONS, TRAITS } from "./data/traits-data.js";
-import type { CatalogEntity, Skill } from "../../platform/engine/types.js";
+import type {
+  CatalogEntity,
+  SchedulerRecord,
+  Skill,
+  SkillEffect,
+} from "../../platform/engine/types.js";
 import { ELEMENTALIST_SKILL_MECHANICS } from "./mechanics/skill-mechanics.js";
 
 const SPECIALIZATION_ID_BASE = 1_120_000;
@@ -16,6 +21,79 @@ const ELEMENTALIST_FALLBACK_ICON =
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="8" fill="#40252b"/><text x="32" y="38" text-anchor="middle" fill="#d65c69" font-size="26">E</text></svg>',
   );
+
+const ELEMENTALIST_BUNDLE_ACTIONS: readonly Skill[] = Object.freeze([
+  {
+    id: 2662,
+    name: "Flame Barrage",
+    displayName: "Flame Barrage",
+    description:
+      "Command your summoned Fire Elemental to unleash a flame barrage.",
+    icon: "https://render.guildwars2.com/file/011D983FEAFB946EF0F45E7F290838CFA31D63D0/103380.png",
+    type: "Elite",
+    weapon: "",
+    slot: "Elite",
+    specialization: "",
+    categories: ["Glyph", "Elemental command"],
+    cooldown: 15,
+    ammo: 0,
+    ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null,
+    flipParentId: 1100276,
+    flipParent: "Glyph of Elementals",
+    castTimeMs: 0,
+    slotSelectable: false,
+    implemented: true,
+    simulatorExcluded: false,
+    effects: [],
+  },
+  {
+    id: -31,
+    name: "__drop_bundle",
+    displayName: "Drop Bundle",
+    description: "Drop the currently equipped conjured weapon.",
+    icon: ELEMENTALIST_FALLBACK_ICON,
+    type: "Action",
+    weapon: "",
+    slot: "Action",
+    specialization: "",
+    categories: ["Bundle"],
+    cooldown: 0,
+    ammo: 0,
+    ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null,
+    castTimeMs: 0,
+    implemented: true,
+    simulatorExcluded: false,
+    effects: [],
+  },
+  ...["Frost Bow", "Lightning Hammer", "Fiery Greatsword"].map(
+    (weapon, index): Skill => ({
+      id: -32 - index,
+      name: `__pickup_${weapon}`,
+      displayName: `Pick up ${weapon}`,
+      description: `Pick up the available ${weapon}.`,
+      icon: ELEMENTALIST_FALLBACK_ICON,
+      type: "Action",
+      weapon: "",
+      slot: "Action",
+      specialization: "",
+      categories: ["Bundle"],
+      cooldown: 0,
+      ammo: 0,
+      ammoRecharge: 0,
+      nextChainId: null,
+      flipSkillId: null,
+      castTimeMs: 300,
+      unaffectedByQuickness: true,
+      implemented: true,
+      simulatorExcluded: false,
+      effects: [],
+    }),
+  ),
+]);
 
 const SKILL_ICON_OVERRIDES = new Map<string, string>([
   [
@@ -57,6 +135,146 @@ const API_TRAITS_BY_NAME = new Map(
 const SLOT_SKILL_TYPES = new Set(["Heal", "Utility", "Elite"]);
 const ATTUNEMENT_VARIANT_PATTERN = /\s*\((?:Fire|Water|Air|Earth)\)$/;
 
+export const ELEMENTALIST_SMALL_HITBOX_CAPS: ReadonlyMap<string, number> =
+  new Map([
+    ["Meteor Shower", 12],
+    ["Lightning Orb", 11],
+    ["Frost Storm", 14],
+    ["Invoke Lightning", 9],
+    ["Glyph of Storms (Air)", 20],
+    ["Glyph of Storms (Water)", 11],
+    ["Dust Storm", 6],
+    ["Fiery Whirl", 4],
+  ]);
+
+function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
+  return {
+    elementalistHitboxIndex: hitIndex,
+    elementalistSmallHitboxCap: smallHitboxCap,
+  };
+}
+
+function withSmallHitboxCap(
+  skill: Skill,
+  smallHitboxCap: number,
+): readonly SkillEffect[] {
+  let hitIndex = 0;
+  let lastStrikeIndices: number[] = [];
+  return (skill.effects || []).map((effect) => {
+    if (effect.type === "strike") {
+      const hitCount = Array.isArray(effect.ticks)
+        ? effect.ticks.length
+        : Math.max(1, Math.trunc(Number(effect.hits || 1)));
+      lastStrikeIndices = Array.from(
+        { length: hitCount },
+        () => (hitIndex += 1),
+      );
+      if (Array.isArray(effect.ticks)) {
+        return {
+          ...effect,
+          ticks: effect.ticks.map((tick, index) => ({
+            ...tick,
+            metadata: {
+              ...(tick.metadata || {}),
+              ...hitboxMetadata(lastStrikeIndices[index], smallHitboxCap),
+            },
+          })),
+        };
+      }
+      if (hitCount !== 1) {
+        throw new TypeError(
+          `${skill.name} needs individually timed strikes for hitbox caps.`,
+        );
+      }
+      return {
+        ...effect,
+        metadata: {
+          ...(effect.metadata || {}),
+          ...hitboxMetadata(lastStrikeIndices[0], smallHitboxCap),
+        },
+      };
+    }
+
+    if (!lastStrikeIndices.length) return effect;
+    if (
+      Array.isArray(effect.ticks) &&
+      effect.ticks.length === lastStrikeIndices.length
+    ) {
+      return {
+        ...effect,
+        ticks: effect.ticks.map((tick, index) => ({
+          ...tick,
+          metadata: {
+            ...((tick as SchedulerRecord).metadata as SchedulerRecord),
+            ...hitboxMetadata(lastStrikeIndices[index], smallHitboxCap),
+          },
+        })),
+      } as SkillEffect;
+    }
+    return {
+      ...effect,
+      metadata: {
+        ...(effect.metadata || {}),
+        ...hitboxMetadata(
+          lastStrikeIndices[lastStrikeIndices.length - 1],
+          smallHitboxCap,
+        ),
+      },
+    } as SkillEffect;
+  });
+}
+
+function withLargeWildfireDuration(skill: Skill): readonly SkillEffect[] {
+  return (skill.effects || []).map((effect) => {
+    if (effect.type === "strike") {
+      return {
+        ...effect,
+        ticks: [
+          ...(effect.ticks || []),
+          ...[12840, 14340].map((atMs) => ({
+            atMs,
+            coefficient: 0.44,
+            metadata: {
+              damageKind: "field-tick",
+              elementalistLargeHitboxOnly: true,
+            },
+          })),
+        ],
+      };
+    }
+    if (effect.type === "condition") {
+      return {
+        ...effect,
+        ticks: [
+          ...(effect.ticks || []),
+          ...[12840, 14340].map((atMs) => ({
+            atMs,
+            condition: "Burning",
+            stacks: 1,
+            duration: 3,
+            metadata: { elementalistLargeHitboxOnly: true },
+          })),
+        ],
+      };
+    }
+    return effect;
+  });
+}
+
+function withElementalistHitboxBehavior(skill: Skill): Skill {
+  const withLargeDuration =
+    skill.name === "Wildfire"
+      ? { ...skill, effects: withLargeWildfireDuration(skill) }
+      : skill;
+  const smallHitboxCap = ELEMENTALIST_SMALL_HITBOX_CAPS.get(skill.name);
+  return smallHitboxCap == null
+    ? withLargeDuration
+    : {
+        ...withLargeDuration,
+        effects: withSmallHitboxCap(withLargeDuration, smallHitboxCap),
+      };
+}
+
 function apiSkill(name: string): Skill | undefined {
   const alias = SKILL_NAME_ALIASES.get(name);
   const base = name.replace(/\s*\(.*\)$/, "");
@@ -77,32 +295,42 @@ function apiSkill(name: string): Skill | undefined {
 }
 
 export const ELEMENTALIST_NATIVE_SKILLS: readonly Skill[] = Object.freeze(
-  ELEMENTALIST_GENERATED_SKILLS.map((skill) => {
-    const metadata = apiSkill(skill.name);
-    const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, "");
-    const isAttunementSlotVariant =
-      SLOT_SKILL_TYPES.has(String(skill.type)) &&
-      Boolean(skill.attunement) &&
-      selectionName !== skill.name;
-    return {
-      ...skill,
-      ...(skill.type === "Weapon" &&
-      String(skill.attunement || "").includes("+")
-        ? { specialization: "Weaver" }
-        : {}),
-      ...(isAttunementSlotVariant
-        ? {
-            displayName: selectionName,
-          }
-        : {}),
-      ...(skill.name === "Tailored Victory" ? { slotSelectable: false } : {}),
-      ...(metadata?.description ? { description: metadata.description } : {}),
-      icon:
-        SKILL_ICON_OVERRIDES.get(skill.name) ||
-        metadata?.icon ||
-        ELEMENTALIST_FALLBACK_ICON,
-    };
-  }),
+  ELEMENTALIST_GENERATED_SKILLS.map(withElementalistHitboxBehavior).map(
+    (skill) => {
+      const metadata = apiSkill(skill.name);
+      const selectionName = skill.name.replace(ATTUNEMENT_VARIANT_PATTERN, "");
+      const isAttunementSlotVariant =
+        SLOT_SKILL_TYPES.has(String(skill.type)) &&
+        Boolean(skill.attunement) &&
+        selectionName !== skill.name;
+      return {
+        ...skill,
+        ...(skill.type === "Weapon" &&
+        String(skill.attunement || "").includes("+")
+          ? { specialization: "Weaver" }
+          : {}),
+        ...(isAttunementSlotVariant
+          ? {
+              displayName: selectionName,
+            }
+          : {}),
+        ...(skill.name === "Tailored Victory" ? { slotSelectable: false } : {}),
+        ...(skill.name === "Glyph of Elementals"
+          ? {
+              castTimeMs: 1250,
+              quicknessCastTimeMs: undefined,
+              cooldown: 0,
+              effects: [],
+            }
+          : {}),
+        ...(metadata?.description ? { description: metadata.description } : {}),
+        icon:
+          SKILL_ICON_OVERRIDES.get(skill.name) ||
+          metadata?.icon ||
+          ELEMENTALIST_FALLBACK_ICON,
+      };
+    },
+  ),
 );
 
 function circularElementalistAutoattackChains(): readonly (readonly number[])[] {
@@ -209,9 +437,10 @@ export function createElementalistModuleData(id: string) {
   return createNativeModuleData({
     id,
     generatedSkills: ELEMENTALIST_NATIVE_SKILLS,
-    skillMechanics: ELEMENTALIST_SKILL_MECHANICS,
+    ...(id === "Core" ? { skillMechanics: ELEMENTALIST_SKILL_MECHANICS } : {}),
     traits: ELEMENTALIST_TRAITS,
     specializations: ELEMENTALIST_SPECIALIZATIONS,
+    ...(id === "Core" ? { extraSkills: ELEMENTALIST_BUNDLE_ACTIONS } : {}),
     ...(id === "Core"
       ? {
           weapons: ELEMENTALIST_WEAPONS,

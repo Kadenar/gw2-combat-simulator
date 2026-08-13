@@ -19,25 +19,24 @@ export function beginStealthAttack(
 ): void {
   const state = professionCoreState(context);
   const specialization = context.state.profession.specialization;
-  const stealthAttackState: Partial<AntiquaryState> =
-    specialization.kind === "Antiquary"
-    ? specialization.state
-    : state as ThiefCoreState & Partial<AntiquaryState>;
+  const specializationState = specialization.state as Partial<AntiquaryState>;
+  const stealthAttackState: Partial<AntiquaryState> = Object.hasOwn(
+    specializationState,
+    "stealthAttackCharges",
+  )
+    ? specializationState
+    : (state as ThiefCoreState & Partial<AntiquaryState>);
   const stealthed =
-    state.stealthUntil > context.start
-    && state.revealedUntil <= context.start;
+    state.stealthUntil > context.start && state.revealedUntil <= context.start;
   if (
-    !stealthed
-    && Number(stealthAttackState.stealthAttackCharges || 0) > 0
-    && Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start
+    !stealthed &&
+    Number(stealthAttackState.stealthAttackCharges || 0) > 0 &&
+    Number(stealthAttackState.stealthAttackExpiresAt || 0) > context.start
   ) {
     stealthAttackState.stealthAttackCharges =
       Number(stealthAttackState.stealthAttackCharges || 0) - 1;
   }
-  if (
-    stealthed
-    && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)
-  ) {
+  if (stealthed && hasThiefTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(context, 1, context.start, "leave-stealth");
   }
   if (stealthed && hasThiefTrait(context.config, TRAIT.LEECHING_VENOMS)) {

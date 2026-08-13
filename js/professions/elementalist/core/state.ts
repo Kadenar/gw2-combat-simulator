@@ -28,6 +28,18 @@ export interface ElementalistAuraState {
   skillName: string;
 }
 
+export interface ElementalistSummonedElementalState extends SchedulerRecord {
+  element: ElementalistAttunement | null;
+  summonGeneration: number;
+  actionGeneration: number;
+  activeUntil: number;
+  busyUntil: number;
+  nextActionAt: number;
+  flameBurstReadyAt: number;
+  currentActivationId: string | null;
+  started: boolean;
+}
+
 export interface ElementalistCoreState extends SchedulerRecord {
   primaryAttunement: ElementalistAttunement;
   secondaryAttunement: ElementalistAttunement | null;
@@ -53,7 +65,33 @@ export interface ElementalistCoreState extends SchedulerRecord {
   activeAuras: ElementalistAuraState[];
   comboProgress: Record<string, number>;
   pistolBullets: Record<ElementalistAttunement, boolean>;
+  dazingDischargeUntil: number;
+  shatteringStoneHitsRemaining: number;
+  shatteringStoneUntil: number;
   hammerOrbs: Record<ElementalistAttunement, number | null>;
+  hammerOrbGrantedBy: Record<ElementalistAttunement, string | null>;
+  hammerOrbActivationIds: Record<ElementalistAttunement, string | null>;
+  hammerOrbBuffUntil: Record<ElementalistAttunement, number>;
+  hammerOrbLastCastAt: number;
+  etchings: Record<
+    string,
+    { stage: "lesser" | "full"; otherCasts: number } | null
+  >;
+  rockBarrierExpiresAt: number;
+  spearNextDamageBonus: boolean;
+  spearNextRechargeReduction: boolean;
+  spearNextGuaranteedCritical: boolean;
+  spearNextControlHit: boolean;
+  spearFollowups: Record<
+    string,
+    { damage: boolean; critical: boolean; control: boolean }
+  >;
+  conjureEquipped: string | null;
+  conjurePickups: Record<string, number>;
+  signetOfFireDisabledUntil: number;
+  catalystBaseEmpowermentActive: boolean;
+  availableFlips: Record<string, number>;
+  summonedElemental: ElementalistSummonedElementalState;
   procReadyAt: Record<string, number>;
   unravelUntil: number;
   arcaneEchoUntil: number;
@@ -117,7 +155,42 @@ export function createElementalistCoreState(
       Air: Boolean(configuredBullets.Air),
       Earth: Boolean(configuredBullets.Earth),
     },
+    dazingDischargeUntil: 0,
+    shatteringStoneHitsRemaining: 0,
+    shatteringStoneUntil: 0,
     hammerOrbs: { Fire: null, Water: null, Air: null, Earth: null },
+    hammerOrbGrantedBy: { Fire: null, Water: null, Air: null, Earth: null },
+    hammerOrbActivationIds: {
+      Fire: null,
+      Water: null,
+      Air: null,
+      Earth: null,
+    },
+    hammerOrbBuffUntil: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
+    hammerOrbLastCastAt: Number.NEGATIVE_INFINITY,
+    etchings: {},
+    rockBarrierExpiresAt: 0,
+    spearNextDamageBonus: false,
+    spearNextRechargeReduction: false,
+    spearNextGuaranteedCritical: false,
+    spearNextControlHit: false,
+    spearFollowups: {},
+    conjureEquipped: null,
+    conjurePickups: {},
+    signetOfFireDisabledUntil: 0,
+    catalystBaseEmpowermentActive: false,
+    availableFlips: {},
+    summonedElemental: {
+      element: null,
+      summonGeneration: 0,
+      actionGeneration: 0,
+      activeUntil: 0,
+      busyUntil: 0,
+      nextActionAt: 0,
+      flameBurstReadyAt: 0,
+      currentActivationId: null,
+      started: false,
+    },
     procReadyAt: {},
     unravelUntil: 0,
     arcaneEchoUntil: 0,
@@ -128,14 +201,11 @@ export function elementalistCoreState(
   context: SchedulerRecord,
 ): ElementalistCoreState {
   const state = context.state as
-    | { profession?: { core?: ElementalistCoreState } }
-    | undefined;
+    { profession?: { core?: ElementalistCoreState } } | undefined;
   const runtime = context.runtime as
-    | { profession?: { core?: ElementalistCoreState } }
-    | undefined;
+    { profession?: { core?: ElementalistCoreState } } | undefined;
   const profession = context.profession as
-    | { core?: ElementalistCoreState }
-    | undefined;
+    { core?: ElementalistCoreState } | undefined;
   const core =
     state?.profession?.core || runtime?.profession?.core || profession?.core;
   if (!core) throw new TypeError("Elementalist Core state is unavailable.");
@@ -150,8 +220,7 @@ export function setElementalistAttunementReadyAt(
   const state = elementalistCoreState(context);
   state.attunementReadyAt[attunement] = readyAt;
   const schedulerState = context.state as
-    | { time?: number; cooldowns?: Map<number, number> }
-    | undefined;
+    { time?: number; cooldowns?: Map<number, number> } | undefined;
   const cooldowns = schedulerState?.cooldowns;
   if (!cooldowns) return;
   const skillId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement];
@@ -183,7 +252,25 @@ export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = Object.freeze([
   "activeComboFields",
   "activeAuras",
   "pistolBullets",
+  "dazingDischargeUntil",
+  "shatteringStoneHitsRemaining",
+  "shatteringStoneUntil",
   "hammerOrbs",
+  "hammerOrbGrantedBy",
+  "hammerOrbBuffUntil",
+  "hammerOrbLastCastAt",
+  "etchings",
+  "rockBarrierExpiresAt",
+  "spearNextDamageBonus",
+  "spearNextRechargeReduction",
+  "spearNextGuaranteedCritical",
+  "spearNextControlHit",
+  "conjureEquipped",
+  "conjurePickups",
+  "signetOfFireDisabledUntil",
+  "catalystBaseEmpowermentActive",
+  "availableFlips",
+  "summonedElemental",
   "unravelUntil",
   "weaveSelfUntil",
   "weaveSelfVisited",
@@ -213,7 +300,35 @@ const ELEMENTALIST_PUBLIC_INACTIVE_STATE_DEFAULTS: Readonly<SchedulerRecord> =
     activeComboFields: [],
     activeAuras: [],
     pistolBullets: { Fire: false, Water: false, Air: false, Earth: false },
+    dazingDischargeUntil: 0,
+    shatteringStoneHitsRemaining: 0,
+    shatteringStoneUntil: 0,
     hammerOrbs: { Fire: null, Water: null, Air: null, Earth: null },
+    hammerOrbGrantedBy: { Fire: null, Water: null, Air: null, Earth: null },
+    hammerOrbBuffUntil: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
+    hammerOrbLastCastAt: null,
+    etchings: {},
+    rockBarrierExpiresAt: 0,
+    spearNextDamageBonus: false,
+    spearNextRechargeReduction: false,
+    spearNextGuaranteedCritical: false,
+    spearNextControlHit: false,
+    conjureEquipped: null,
+    conjurePickups: {},
+    signetOfFireDisabledUntil: 0,
+    catalystBaseEmpowermentActive: false,
+    availableFlips: {},
+    summonedElemental: {
+      element: null,
+      summonGeneration: 0,
+      actionGeneration: 0,
+      activeUntil: 0,
+      busyUntil: 0,
+      nextActionAt: 0,
+      flameBurstReadyAt: 0,
+      currentActivationId: null,
+      started: false,
+    },
     unravelUntil: 0,
     weaveSelfUntil: 0,
     weaveSelfVisited: [],

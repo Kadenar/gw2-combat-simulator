@@ -37,8 +37,10 @@ export interface GuardianApplicationBuild extends ProfessionApplicationBuild {
   initialTomePages: number;
 }
 
-export interface GuardianBuildAttributeRuleContext
-  extends Omit<Gw2BuildAttributeRuleContext, "build"> {
+export interface GuardianBuildAttributeRuleContext extends Omit<
+  Gw2BuildAttributeRuleContext,
+  "build"
+> {
   readonly build: GuardianBuild;
 }
 
@@ -90,14 +92,17 @@ export interface GuardianFirebrandState {
   tomePageInterval: number;
   nextTomePageAt: number;
   ashesCharges: number;
+  ashesBurnDuration: number;
   ashesNextTriggerAt: number;
   ashesExpiresAt: number;
   nextCourageAegisAt: number;
+  tomeDormantReadyAt: Record<"justice" | "resolve" | "courage", number>;
   swiftScholarTome: string;
   swiftScholarCount: number;
   liberatorsVowReadyAt: number;
   stalwartSpeedReadyAt: number;
   quickfireReadyAt: number;
+  mantraRechargeReadyAt: Record<string, number>;
 }
 
 export interface GuardianLuminaryState {
@@ -124,7 +129,8 @@ export interface GuardianDragonhunterState {
 }
 
 export interface GuardianState
-  extends GuardianCoreState,
+  extends
+    GuardianCoreState,
     GuardianDragonhunterState,
     GuardianFirebrandState,
     GuardianLuminaryState {}
@@ -202,6 +208,7 @@ export type GuardianVirtue = "justice" | "resolve" | "courage";
 export type GuardianResolverEvent = Gw2ResolverEvent & {
   readonly activeTome?: string;
   readonly ashesCharges?: number;
+  readonly ashesBurnDuration?: number;
   readonly ashesNextTriggerAt?: number;
   readonly ashesExpiresAt?: number;
   readonly automatic?: boolean;

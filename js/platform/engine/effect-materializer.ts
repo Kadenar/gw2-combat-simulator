@@ -91,6 +91,7 @@ export function materializeSkillEffectApplications({
             skillWeaponFallback,
           weaponStrength: effect.weaponStrength,
           weaponStrengthProfileId: effect.weaponStrengthProfileId,
+          weaponStrengthSource: effect.weaponStrengthSource,
           canCrit: effect.canCrit !== false,
           ...(effect.coefficientModifiers
             ? { coefficientModifiers: effect.coefficientModifiers }
@@ -124,6 +125,7 @@ export function materializeSkillEffectApplications({
             applicationIndex,
             totalApplications: ticks.length,
             ...(effect.metadata || {}),
+            ...(tick.metadata || {}),
           },
         });
       }
