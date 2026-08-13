@@ -26,6 +26,7 @@ export interface NecromancerBuild extends Gw2Build {
   assumptions?: SchedulerRecord;
   initialResource?: number;
   initialBlight?: number;
+  initialCascadingCorruptionStacks?: number;
   selectedSkills?: Record<string, string>;
 }
 
@@ -33,12 +34,14 @@ export interface NecromancerCanonicalBuild extends Gw2CanonicalBuild {
   assumptions: SchedulerRecord;
   initialResource: number;
   initialBlight: number;
+  initialCascadingCorruptionStacks: number;
 }
 
 export interface NecromancerConfig extends Gw2Config {
   readonly specialization?: string;
   readonly initialResource?: number;
   readonly initialBlight?: number;
+  readonly initialCascadingCorruptionStacks?: number;
   readonly duration?: number;
   readonly selectedSkills?:
     readonly string[] | Readonly<Record<string, string>>;
@@ -316,4 +319,5 @@ export interface NecromancerUiContext extends SchedulerRecord {
   readonly value?: number;
   readonly initialResource?: number;
   readonly initialBlight?: number;
+  readonly initialCascadingCorruptionStacks?: number;
 }

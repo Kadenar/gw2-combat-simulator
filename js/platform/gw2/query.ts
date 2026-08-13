@@ -6,10 +6,12 @@ import {
   createRelicTimelineRuntime,
   relicConditionDurationBonus,
   relicCriticalChanceBonus,
+  relicOutgoingDamageBonus,
 } from "./relic-rules.js";
 import {
   gw2ConditionDurationMultiplier,
   gw2SigilSet,
+  gw2StatsForWeaponSet,
   gw2StaticAttributes,
   MIGHT_ATTRIBUTE_BONUS_PER_STACK,
 } from "./runtime-rules.js";
@@ -54,6 +56,7 @@ interface HookContextOptions {
   readonly event?: SimulationEvent | null;
   readonly condition?: string | null;
   readonly runtime?: Gw2QueryRuntime | null;
+  readonly damageAdditiveBonus?: number;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
 }
 
@@ -134,28 +137,26 @@ export function createGw2CombatQuery<
         runtime?.relic ? runtime : historicalRelicContext,
         at,
       ));
-  const configWithBaselineStats: Gw2Config = {
-    ...config,
-    stats: {
-      ...config.stats,
-      power: config.stats?.power ?? config.attributes?.power ?? 1000,
-      precision:
-        config.stats?.precision ?? config.attributes?.precision ?? 1000,
-      toughness:
-        config.stats?.toughness ?? config.attributes?.toughness ?? 1000,
-      vitality: config.stats?.vitality ?? config.attributes?.vitality ?? 1000,
-      ferocity: config.stats?.ferocity ?? config.attributes?.ferocity ?? 0,
-      conditionDamage:
-        config.stats?.conditionDamage ??
-        config.attributes?.conditionDamage ??
-        0,
-      expertise: config.stats?.expertise ?? config.attributes?.expertise ?? 0,
-      concentration:
-        config.stats?.concentration ?? config.attributes?.concentration ?? 0,
-      healingPower:
-        config.stats?.healingPower ?? config.attributes?.healingPower ?? 0,
-    },
+  const configWithBaselineStats = (weaponSet: number): Gw2Config => {
+    const stats = gw2StatsForWeaponSet(config, weaponSet);
+    return {
+      ...config,
+      stats: {
+        ...stats,
+        power: stats.power ?? 1000,
+        precision: stats.precision ?? 1000,
+        toughness: stats.toughness ?? 1000,
+        vitality: stats.vitality ?? 1000,
+        ferocity: stats.ferocity ?? 0,
+        conditionDamage: stats.conditionDamage ?? 0,
+        expertise: stats.expertise ?? 0,
+        concentration: stats.concentration ?? 0,
+        healingPower: stats.healingPower ?? 0,
+      },
+    };
   };
+  const startingWeaponSet = Number(config.startingWeaponSet) === 2 ? 2 : 1;
+  const staticConfig = configWithBaselineStats(startingWeaponSet);
   let query: Readonly<Gw2CombatQuery> | null = null;
 
   /**
@@ -398,17 +399,36 @@ export function createGw2CombatQuery<
     time: number,
     runtime: Gw2QueryRuntime | null | undefined,
   ) => gw2SigilSet(config, activeWeaponSetAt(time, runtime));
+  const activeConfigAt = (
+    time: number,
+    runtime: Gw2QueryRuntime | null | undefined,
+  ): Gw2Config => {
+    if (!config.weaponSetStats?.length) return staticConfig;
+    const weaponSet = activeWeaponSetAt(time, runtime);
+    const activeConfig = configWithBaselineStats(weaponSet);
+    const calculatedPrimaryWeapon =
+      (weaponSet === 2 ? config.weaponSet2Primary : config.primaryWeapon) || "";
+    return {
+      ...activeConfig,
+      attributeProvenance: {
+        ...(config.attributeProvenance || {}),
+        calculatedWeaponSet: weaponSet,
+        calculatedPrimaryWeapon,
+      },
+    };
+  };
   const hookContext = (
     time: number,
     {
       event = null,
       condition = null,
       runtime = null,
+      damageAdditiveBonus = 0,
       criticalChanceContributors,
     }: HookContextOptions = {},
   ): SchedulerRecord => ({
     profession: activeProfession,
-    config,
+    config: activeConfigAt(time, runtime),
     time,
     event,
     skillId: event?.skillId ?? null,
@@ -420,6 +440,7 @@ export function createGw2CombatQuery<
     timeline,
     events,
     runtime,
+    damageAdditiveBonus,
     criticalChanceContributors,
   });
   /**
@@ -433,11 +454,13 @@ export function createGw2CombatQuery<
     event: SimulationEvent | null = null,
     runtime: Gw2QueryRuntime | null = null,
   ): Gw2ResolvedStats => {
+    const activeConfig = activeConfigAt(time, runtime);
     const stats = activeProfession.modifyAttributes(
       hookContext(time, { event, runtime }),
       gw2StaticAttributes(
-        configWithBaselineStats,
+        activeConfig,
         mightStacksAt(time, runtime, event),
+        activeWeaponSetAt(time, runtime),
       ),
     ) as unknown as Gw2ResolvedStats;
     if (
@@ -517,7 +540,9 @@ export function createGw2CombatQuery<
         event?.source === "Clone" || event?.source === "Phantasm";
       if (!illusionEvent) {
         const configuredBonus =
-          Number(config.stats?.criticalChanceBonus || 0) / 100;
+          Number(
+            activeConfigAt(time, runtime).stats?.criticalChanceBonus || 0,
+          ) / 100;
         chance += configuredBonus;
         addContributor("configured-bonus", "Configured bonus", configuredBonus);
         const sigilBonus =
@@ -597,10 +622,18 @@ export function createGw2CombatQuery<
       time: number,
       runtime: Gw2QueryRuntime | null = null,
     ) {
+      const relicContext = runtime?.relic ? runtime : historicalRelicContext;
+      const relicBonus = relicOutgoingDamageBonus(
+        relicContext,
+        "strike",
+        time,
+        event,
+      );
       if (event?.independentSummonStrike === true) {
         const base =
           (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-          Number(event.summonStrikeMultiplier ?? 1);
+          Number(event.summonStrikeMultiplier ?? 1) *
+          (1 + relicBonus);
         return event?.summonUsesProfessionModifiers === true
           ? activeProfession.modifyStrikeDamage(
               hookContext(time, { event, runtime }),
@@ -615,11 +648,15 @@ export function createGw2CombatQuery<
           : 1;
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-        Number(sigils.strike || 1) *
+        (Number(sigils.strike || 1) + relicBonus) *
         timeOfDayMultiplier *
         Number(config.modifiers?.strike || 1);
       return activeProfession.modifyStrikeDamage(
-        hookContext(time, { event, runtime }),
+        hookContext(time, {
+          event,
+          runtime,
+          damageAdditiveBonus: relicBonus,
+        }),
         base,
       );
     },
@@ -629,15 +666,24 @@ export function createGw2CombatQuery<
       event: SimulationEvent | null = null,
       runtime: Gw2QueryRuntime | null = null,
     ) {
+      const relicContext = runtime?.relic ? runtime : historicalRelicContext;
+      const relicBonus = relicOutgoingDamageBonus(
+        relicContext,
+        "condition",
+        time,
+        event,
+      );
+      const sigils = activeSigilSetAt(time, runtime);
       const base =
         (1 + vulnerabilityStacksAt(time, runtime) / 100) *
-        Number(activeSigilSetAt(time, runtime).condition || 1) *
+        (Number(sigils.condition || 1) + relicBonus) *
         Number(config.modifiers?.condition || 1);
       return activeProfession.modifyConditionDamage(
         hookContext(time, {
           event,
           condition: name,
           runtime,
+          damageAdditiveBonus: relicBonus,
         }),
         base,
       );

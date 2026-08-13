@@ -1,5 +1,6 @@
 import { enterAvatar, leaveAvatar } from "./mechanics.js";
 import { hasTrait } from "../../../../platform/gw2/trait-state.js";
+import { gw2StatsForWeaponSet } from "../../../../platform/gw2/runtime-rules.js";
 import {
   RANGER_SKILL_IDS as ID,
   RANGER_TRAIT_IDS as TRAIT,
@@ -10,7 +11,10 @@ function boonDuration(
   context: RangerCastContext,
   baseDuration: number,
 ): number {
-  const stats = context.config.stats;
+  const stats = gw2StatsForWeaponSet(
+    context.config,
+    context.state.activeWeaponSet,
+  );
   const bonus =
     Number(stats?.concentration || 0) / 1500 +
     Number(stats?.boonDurationBonus || 0) / 100 +

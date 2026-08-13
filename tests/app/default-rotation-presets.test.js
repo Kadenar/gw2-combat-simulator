@@ -197,7 +197,7 @@ test("Necromancer and Thief displayed benchmark DPS stays current", async () => 
     thiefManifest
       .flatMap((section) => section.presets)
       .map((preset) => preset.benchmarkDps),
-    [35365, 36721, 43248, 40790, 42082, 36275, 43036, 38212],
+    [35365, 36721, 43248, 40790, 42082, 36275, 43036, 38045],
   );
 });
 
@@ -506,7 +506,7 @@ test("Guardian and Mesmer rotations are paired with their build templates", asyn
     },
     {
       section: "Luminary",
-      label: "Power",
+      label: "Power (Greatsword / Spear)",
       rotation: "Rotations/guardian/r-power-luminary-bench.json",
     },
     {

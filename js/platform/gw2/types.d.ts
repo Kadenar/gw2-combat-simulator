@@ -85,6 +85,7 @@ export interface Gw2SigilProc extends SchedulerRecord {
 
 export interface Gw2Config extends SchedulerRecord {
   readonly stats?: Gw2Stats;
+  readonly weaponSetStats?: readonly Gw2Stats[];
   readonly attributes?: Gw2Stats;
   readonly boons?: Readonly<Record<string, boolean | number>>;
   readonly sharePlayerBoonsWithSummons?: boolean;
@@ -268,6 +269,13 @@ export interface Gw2RelicRule {
     context: Gw2RelicContext,
     state: Gw2RelicState,
     event: SimulationEvent,
+  ) => number;
+  readonly outgoingDamageBonus?: (
+    context: Gw2RelicRuntimeContext,
+    state: Gw2RelicState,
+    damageType: "strike" | "condition",
+    at: number,
+    event: SimulationEvent | null,
   ) => number;
   readonly criticalChanceBonus?: (
     context: Gw2RelicRuntimeContext,
@@ -970,6 +978,7 @@ export type Gw2AttributeMap = Record<string, Gw2AttributeBreakdown>;
 
 export interface Gw2Build extends SchedulerRecord {
   gear?: Record<string, string>;
+  alternateWeaponPrefixes?: string[];
   weapons?: string[];
   alternateWeapons?: string[];
   rune?: string;
@@ -996,6 +1005,7 @@ export interface Gw2CanonicalBuild extends SchedulerRecord {
   schemaVersion: number;
   profession: string;
   gear: Record<string, string>;
+  alternateWeaponPrefixes: string[];
   weapons: string[];
   alternateWeapons: string[];
   rune: string;
@@ -1074,6 +1084,7 @@ export interface Gw2ApplicationBuild extends SchedulerRecord {
   schemaVersion: number;
   profession: string;
   gear: Record<string, string>;
+  alternateWeaponPrefixes: string[];
   weapons: string[];
   alternateWeapons: string[];
   rune: string;
@@ -1158,6 +1169,7 @@ export interface Gw2AttributeCommonContext {
 export interface Gw2CommonAttributeResult extends SchedulerRecord {
   attributes: Gw2AttributeMap;
   gear: Record<string, string>;
+  alternateWeaponPrefixes: string[];
   weapons: string[];
   alternateWeapons: string[];
   runes: string;
@@ -1173,6 +1185,7 @@ export interface Gw2CommonAttributeResult extends SchedulerRecord {
 export interface Gw2FinalizedAttributeResult extends SchedulerRecord {
   attributes: Gw2AttributeMap;
   gear: Record<string, string>;
+  alternateWeaponPrefixes: string[];
   weapons: string[];
   alternateWeapons: string[];
   runes: string;
@@ -1233,6 +1246,7 @@ export interface Gw2AttributeData {
   UTILITY_DATA?: Readonly<
     Record<string, readonly { readonly from: string; readonly to: string }[]>
   >;
+  UTILITY_STAT_DATA?: Readonly<Record<string, Readonly<Gw2NumericAttributes>>>;
   WEAPON_DATA?: Readonly<Record<string, Gw2WeaponDataEntry>>;
 }
 
@@ -1276,6 +1290,7 @@ export interface Gw2ModifierContext extends SchedulerRecord {
   readonly timeline?: Readonly<Gw2TimelineIndex>;
   readonly events?: readonly SimulationEvent[];
   readonly runtime?: Gw2QueryRuntime | null;
+  readonly damageAdditiveBonus?: number;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
 }
 

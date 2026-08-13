@@ -9,22 +9,26 @@ interface AdditiveDamageBucketOptions {
 function additiveSigil(
   context: Gw2ModifierContext,
   damageType: "strike" | "condition",
-): { readonly factor: number; readonly bonus: number } {
+): {
+  readonly factor: number;
+  readonly sigilBonus: number;
+  readonly equipmentBonus: number;
+} {
   const sigils = context.timeline?.activeSigilSetAt(context.time) || {};
   const factorValue =
     damageType === "condition" ? sigils.condition : sigils.strike;
   const bonusValue =
     damageType === "condition" ? sigils.conditionAdd : sigils.strikeAdd;
-  const factor = Math.max(
-    Number.EPSILON,
-    Number(factorValue || 1),
-  );
+  const equipmentBonus = Number(context.damageAdditiveBonus || 0);
+  const sigilFactor = Number(factorValue || 1);
+  const factor = Math.max(Number.EPSILON, sigilFactor + equipmentBonus);
   const configuredBonus = Number(bonusValue);
   return {
     factor,
-    bonus: Number.isFinite(configuredBonus)
+    sigilBonus: Number.isFinite(configuredBonus)
       ? configuredBonus
-      : factor - 1,
+      : sigilFactor - 1,
+    equipmentBonus,
   };
 }
 
@@ -43,12 +47,10 @@ export function applyAdditiveDamageBucket(
 ): number {
   const sigil = additiveSigil(context, damageType);
   return (
-    Number(multiplier || 1)
-    / sigil.factor
-    * (
-      1
-      + (includeSigil ? sigil.bonus : 0)
-      + Number(bonus || 0)
-    )
+    (Number(multiplier || 1) / sigil.factor) *
+    (1 +
+      (includeSigil ? sigil.sigilBonus : 0) +
+      sigil.equipmentBonus +
+      Number(bonus || 0))
   );
 }

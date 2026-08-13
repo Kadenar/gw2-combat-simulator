@@ -56,6 +56,12 @@ export interface ElementalistCoreState extends SchedulerRecord {
   } | null;
   freshAirProgress: number;
   freshAirLastResetAt: number;
+  freshAirCandidates: Array<{
+    at: number;
+    criticalChance: number;
+    sourceId: string | number;
+    sourceSkill: string;
+  }>;
   burningPrecisionProgress: number;
   bountifulPowerProgress: number;
   criticalProcProgress: Record<string, number>;
@@ -141,6 +147,7 @@ export function createElementalistCoreState(
     pendingAutoattackCarryover: null,
     freshAirProgress: 0,
     freshAirLastResetAt: Number.NEGATIVE_INFINITY,
+    freshAirCandidates: [],
     burningPrecisionProgress: 0,
     bountifulPowerProgress: 0,
     criticalProcProgress: {},

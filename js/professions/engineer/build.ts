@@ -16,9 +16,7 @@ import type {
   SchedulerRecord,
   Skill,
 } from "../../platform/engine/types.js";
-import type {
-  EngineerCanonicalBuild,
-} from "./types.js";
+import type { EngineerCanonicalBuild } from "./types.js";
 
 /**
  * Engineer persisted-build definition.
@@ -51,6 +49,7 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
     schemaVersion: ENGINEER_BUILD_SCHEMA_VERSION,
     profession: ENGINEER_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Viper's"])),
+    alternateWeaponPrefixes: ["Viper's", "Viper's"],
     weapons: ["Rifle", ""],
     alternateWeapons: ["Pistol", "Shield"],
     rune: "Trapper",
@@ -110,10 +109,7 @@ function normalizeMorphs(value: unknown): number[] {
     const id = Number(rawId);
     const skill = engineerCatalog.skillsById.get(id);
     const slot = Number(skill?.mechanicSlot);
-    if (
-      !AMALGAM_MORPHS.has(id)
-      || ![2, 3, 4].includes(slot)
-    ) {
+    if (!AMALGAM_MORPHS.has(id) || ![2, 3, 4].includes(slot)) {
       continue;
     }
     if (selectedNames.has(skill!.name)) continue;
@@ -128,8 +124,7 @@ function normalizeMorphs(value: unknown): number[] {
       engineerCatalog.skillsById.get(defaultId),
       ...engineerCatalog.skills.filter(
         (skill) =>
-          AMALGAM_MORPHS.has(skill.id)
-          && Number(skill.mechanicSlot) === slot,
+          AMALGAM_MORPHS.has(skill.id) && Number(skill.mechanicSlot) === slot,
       ),
     ].filter(Boolean) as Skill[];
     const replacement = candidates.find(
@@ -148,28 +143,29 @@ function normalizeMorphRotation(
   morphIds: readonly number[],
 ): RotationCommand[] {
   const selectedByName = new Map<string, Skill>(
-    morphIds.map((skillId) => {
-    const skill = engineerCatalog.skillsById.get(Number(skillId));
-      return [skill?.name, skill];
-    }).filter(([name, skill]) => name && skill) as [string, Skill][],
+    morphIds
+      .map((skillId) => {
+        const skill = engineerCatalog.skillsById.get(Number(skillId));
+        return [skill?.name, skill];
+      })
+      .filter(([name, skill]) => name && skill) as [string, Skill][],
   );
   const rawRotation = Array.isArray(savedRotation) ? savedRotation : [];
   return rotation.map((command, index) => {
     const raw = rawRotation[index];
-    const rawCommand = raw && typeof raw === "object"
-      ? raw as SchedulerRecord
-      : null;
-    const legacyName = typeof raw === "string"
-      ? raw
-      : rawCommand
-        && rawCommand.skillId == null
-        && rawCommand.id == null
-        && typeof rawCommand.name === "string"
+    const rawCommand =
+      raw && typeof raw === "object" ? (raw as SchedulerRecord) : null;
+    const legacyName =
+      typeof raw === "string"
+        ? raw
+        : rawCommand &&
+            rawCommand.skillId == null &&
+            rawCommand.id == null &&
+            typeof rawCommand.name === "string"
           ? rawCommand.name
           : null;
-    const selected = legacyName == null
-      ? undefined
-      : selectedByName.get(legacyName);
+    const selected =
+      legacyName == null ? undefined : selectedByName.get(legacyName);
     return command.type === "cast" && selected
       ? { ...command, skillId: selected.id }
       : command;
@@ -185,9 +181,7 @@ const engineerBuildCodec = createGw2BuildCodec<EngineerCanonicalBuild>({
     const selectedMorphSkillIds = normalizeMorphs(saved.selectedMorphSkillIds);
     return {
       ...build,
-      assumptions: normalizeSimulationRandomnessAssumptions(
-        build.assumptions,
-      ),
+      assumptions: normalizeSimulationRandomnessAssumptions(build.assumptions),
       initialHeat: Math.max(
         0,
         Math.min(150, Number(saved.initialHeat ?? 0) || 0),
@@ -201,9 +195,7 @@ const engineerBuildCodec = createGw2BuildCodec<EngineerCanonicalBuild>({
     };
   },
   validateExtra(build) {
-    const errors = validateSimulationRandomnessAssumptions(
-      build.assumptions,
-    );
+    const errors = validateSimulationRandomnessAssumptions(build.assumptions);
     if (!(Number(build.initialHeat) >= 0 && Number(build.initialHeat) <= 150)) {
       errors.push("initialHeat must be between 0 and 150.");
     }

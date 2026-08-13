@@ -554,7 +554,7 @@ test("Unstable Bladestorm anchors its paired EVTC packets to cast start", () => 
   assert.equal(result.endState.profession.resource, 1);
 });
 
-test("target death resolves its timestamp and stops future events", () => {
+test("target death finishes the lethal activation and stops future events", () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
     ["Bladecall", { name: "__wait", waitMs: 5000 }, "Unstable Bladestorm"],
@@ -570,7 +570,9 @@ test("target death resolves its timestamp and stops future events", () => {
   );
 
   assert.equal(result.deathTime, damageEvents[0].at);
+  assert.equal(damageEvents.length, 3);
   assert.ok(damageEvents.every((event) => event.at === result.deathTime));
+  assert.ok(damageEvents.every((event) => event.skillName === "Bladecall"));
   assert.equal(
     damageEvents.some((event) => event.skillName === "Unstable Bladestorm"),
     false,
@@ -591,6 +593,17 @@ test("pending damage can kill mid-cast and suppress the current skill packet", (
         flatDamage: 1,
         source: "Player",
         sourceId: "previous-skill",
+        activationId: "previous-activation",
+      },
+      {
+        type: "damage",
+        at: 89.44,
+        name: "Same-Time Follow-up",
+        skillName: "Different Skill",
+        flatDamage: 10,
+        source: "Player",
+        sourceId: "different-skill",
+        activationId: "different-activation",
       },
       {
         type: "damage",
@@ -600,6 +613,7 @@ test("pending damage can kill mid-cast and suppress the current skill packet", (
         flatDamage: 10,
         source: "Player",
         sourceId: "current-skill",
+        activationId: "current-activation",
       },
     ],
     rotationEndTime: 89.6,

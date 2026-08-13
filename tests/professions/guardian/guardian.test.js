@@ -51,6 +51,37 @@ test("Guardian uses a current API catalog with real skills and trait lines", () 
   );
 });
 
+test("Masterful Writ utilities grant their flat attributes", () => {
+  const baseline = createGuardianBuildDefaults();
+  baseline.utility = "";
+  const strength = structuredClone(baseline);
+  strength.utility = "Writ of Masterful Strength";
+  const malice = structuredClone(baseline);
+  malice.utility = "Writ of Masterful Malice";
+
+  const baselineAttributes = calculateGuardianAttributes(
+    baseline,
+    [],
+  ).attributes;
+  const strengthAttributes = calculateGuardianAttributes(
+    strength,
+    [],
+  ).attributes;
+  const maliceAttributes = calculateGuardianAttributes(malice, []).attributes;
+
+  assert.equal(strengthAttributes.Power.utility, 200);
+  assert.equal(
+    strengthAttributes.Power.final - baselineAttributes.Power.final,
+    200,
+  );
+  assert.equal(maliceAttributes["Condition Damage"].utility, 200);
+  assert.equal(
+    maliceAttributes["Condition Damage"].final -
+      baselineAttributes["Condition Damage"].final,
+    200,
+  );
+});
+
 test("Justice active burning resolves through simulateGw2", () => {
   const withoutJustice = simulateGw2({
     profession: guardianProfession,
@@ -3200,7 +3231,7 @@ test("Luminary Radiant Forge transitions reset weapon autoattack chains", () => 
   );
 });
 
-test("Radiant Forge strikes use the equipped radiant weapon strength", () => {
+test("Radiant Forge strikes use its normalized transform weapon strength", () => {
   const result = simulateGw2({
     profession: guardianProfession,
     rotation: [
@@ -3235,12 +3266,16 @@ test("Radiant Forge strikes use the equipped radiant weapon strength", () => {
     );
   };
 
-  assertProfile("Dazzling Hammer", "transform.radiant-forge.hammer", 1048);
-  assertProfile("Shining Spin", "transform.radiant-forge.hammer", 1048);
-  assertProfile("Luminous Staff", "transform.radiant-forge.staff", 1048);
-  assertProfile("Gleaming Blade", "transform.radiant-forge.sword", 952.5);
-  assertProfile("Lucent Thrust", "transform.radiant-forge.sword", 952.5);
-  assertProfile("Brilliant Slam", "transform.radiant-forge.shield", 857.5);
+  for (const skillName of [
+    "Dazzling Hammer",
+    "Shining Spin",
+    "Luminous Staff",
+    "Gleaming Blade",
+    "Lucent Thrust",
+    "Brilliant Slam",
+  ]) {
+    assertProfile(skillName, "transform.radiant-forge", 1015);
+  }
 
   assert.deepEqual(
     hitsFor("Glaring Burst").map((event) => [
@@ -3249,8 +3284,8 @@ test("Radiant Forge strikes use the equipped radiant weapon strength", () => {
       event.resolvedWeaponStrength,
     ]),
     [
-      ["hammer", "transform.radiant-forge.hammer", 1048],
-      ["blade", "transform.radiant-forge.sword", 952.5],
+      ["hammer", "transform.radiant-forge", 1015],
+      ["blade", "transform.radiant-forge", 1015],
     ],
   );
   assert.deepEqual(result.warnings, []);
@@ -3854,6 +3889,24 @@ test("Luminary stances apply modifiers, combos, delayed damage, and control", ()
     rotation: ["Daring Advance", { type: "wait", durationMs: 1000 }],
     config: { ...config, specialization: "Luminary" },
   });
+  const daringThenPiercing = simulateGw2({
+    profession: guardianProfession,
+    rotation: [
+      "Daring Advance",
+      "Piercing Stance",
+      { type: "wait", durationMs: 1000 },
+    ],
+    config: { ...config, specialization: "Luminary" },
+  });
+  const quickPiercing = simulateGw2({
+    profession: guardianProfession,
+    rotation: ["Piercing Stance"],
+    config: {
+      ...config,
+      specialization: "Luminary",
+      boons: { quickness: true },
+    },
+  });
   const effulgent = simulateGw2({
     profession: guardianProfession,
     rotation: [
@@ -3891,6 +3944,17 @@ test("Luminary stances apply modifiers, combos, delayed damage, and control", ()
   const piercingBuffs = piercing.events.filter(
     (event) => event.kind === "guardian-piercing-stance",
   );
+  const quickPiercingAction = quickPiercing.events.find(
+    (event) => event.type === "action" && event.skillName === "Piercing Stance",
+  );
+  const quickPiercingBuff = quickPiercing.events.find(
+    (event) => event.kind === "guardian-piercing-stance",
+  );
+  const quickPiercingPackets = quickPiercing.events.filter(
+    (event) =>
+      ["damage", "control"].includes(event.type) &&
+      event.skillName === "Piercing Stance",
+  );
 
   assert.equal(
     piercing.events.find(
@@ -3900,7 +3964,25 @@ test("Luminary stances apply modifiers, combos, delayed damage, and control", ()
     "daze",
   );
   assert.equal(piercingBuffs[0].duration, 8);
-  assert.equal(piercingBuffs[1].at + piercingBuffs[1].duration, 16);
+  assert.ok(
+    Math.abs(piercingBuffs[1].at + piercingBuffs[1].duration - 16.24) < 1e-9,
+  );
+  assert.equal(quickPiercingAction.endsAt - quickPiercingAction.at, 0.2);
+  assert.ok(
+    Math.abs(quickPiercingBuff.at - quickPiercingAction.at - 0.16) < 1e-9,
+  );
+  assert.ok(
+    quickPiercingPackets.every(
+      (event) => Math.abs(event.at - quickPiercingBuff.at) < 1e-9,
+    ),
+  );
+  assert.equal(
+    daringThenPiercing.resolvedEvents.find(
+      (event) => event.skillName === "Daring Advance",
+    ).damage,
+    daring.resolvedEvents.find((event) => event.skillName === "Daring Advance")
+      .damage,
+  );
   assert.ok(
     piercing.procSteps.some((step) => step.skill === "Relic of the Claw"),
   );

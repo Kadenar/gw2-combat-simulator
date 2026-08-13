@@ -3686,6 +3686,16 @@ test("Devouring Darkness scales torment with distinct target conditions", () => 
 });
 
 test("current Harbinger grandmaster traits use their live PvE mechanics", () => {
+  const cascadingFromStartingStacks = simulate(
+    "Harbinger",
+    ["Elixir of Promise"],
+    {
+      initialBlight: 5,
+      initialCascadingCorruptionStacks: 15,
+      selectedSkills: ["Elixir of Promise"],
+      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION],
+    },
+  );
   const cascading = simulate(
     "Harbinger",
     [
@@ -3753,6 +3763,16 @@ test("current Harbinger grandmaster traits use their live PvE mechanics", () => 
   );
 
   assert.deepEqual(cascading.warnings, []);
+  assert.equal(
+    cascadingFromStartingStacks.breakdown.some(
+      (entry) => entry.name === "Cascading Corruption",
+    ),
+    true,
+  );
+  assert.equal(
+    cascadingFromStartingStacks.endState.profession.cascadingCorruptionStacks,
+    0,
+  );
   const riskWeakness = cascading.resolvedEvents.find(
     (event) =>
       event.skillId === ID.ELIXIR_OF_RISK && event.condition === "Weakness",
@@ -4270,6 +4290,7 @@ test("Necromancer resources and palette change with specialization state", () =>
       maximumLifeForce: 100,
       lifeForcePoolCapacity: 13256.28,
       blight: 12,
+      cascadingCorruptionStacks: 7,
     },
   });
   const reaperEntry = necromancerProfession.ui.paletteGroups({
@@ -4293,11 +4314,39 @@ test("Necromancer resources and palette change with specialization state", () =>
 
   assert.deepEqual(
     harbingerResources.map((resource) => resource.id),
-    ["life-force", "blight"],
+    ["life-force", "blight", "cascading-corruption"],
   );
   assert.equal(harbingerResources[0].maximum, 13256);
   assert.equal(harbingerResources[0].value, 13256 * 0.8);
   assert.equal(harbingerResources[0].startMaximum, 100);
+  assert.equal(harbingerResources[2].value, 7);
+  assert.equal(
+    harbingerResources[2].buildKey,
+    "initialCascadingCorruptionStacks",
+  );
+  assert.deepEqual(
+    necromancerProfession.ui.rotationStateSnapshot({
+      specialization: "Harbinger",
+      build: {
+        specializations: [{ name: "Harbinger", traits: "3-3-1" }],
+      },
+      professionState: { blight: 12, cascadingCorruptionStacks: 7 },
+    }),
+    [
+      {
+        id: "harbinger-blight",
+        label: "Blight",
+        value: "12/25",
+        title: "Current Harbinger Blight stacks",
+      },
+      {
+        id: "cascading-corruption-stacks",
+        label: "Cascading Corruption",
+        value: "7/20",
+        title: "Cascading Corruption stacks toward the next Meltdown",
+      },
+    ],
+  );
   assert.deepEqual(
     necromancerProfession.ui
       .resourceViews({
@@ -4314,7 +4363,7 @@ test("Necromancer resources and palette change with specialization state", () =>
         },
       })
       .map((resource) => resource.id),
-    ["life-force", "blight", "soul-shards"],
+    ["life-force", "blight", "cascading-corruption", "soul-shards"],
   );
   assert.deepEqual(reaperEntry, [ID.REAPERS_SHROUD]);
   assert.equal(reaperBar[0].skillIds.includes(ID.EXIT_REAPERS_SHROUD), true);
@@ -4663,11 +4712,13 @@ test("Necromancer builds migrate and validate against canonical metadata", () =>
     weapons: ["Greatsword", "Focus"],
     initialResource: 500,
     initialBlight: -4,
+    initialCascadingCorruptionStacks: 30,
     selectedSkillIds: [ID.SUMMON_BLOOD_FIEND, ID.BLOOD_IS_POWER, ID.LICH_FORM],
   });
   assert.deepEqual(migrated.weapons, ["Greatsword", ""]);
   assert.equal(migrated.initialResource, 100);
   assert.equal(migrated.initialBlight, 0);
+  assert.equal(migrated.initialCascadingCorruptionStacks, 19);
   assert.equal(migrated.selectedSkills.Heal, "Summon Blood Fiend");
   assert.equal(migrated.selectedSkills.Elite, "Lich Form");
   assert.deepEqual(validateNecromancerBuild(migrated), {

@@ -51,7 +51,7 @@
     "section": "Luminary",
     "presets": [
       {
-        "label": "Power",
+        "label": "Power (Greatsword / Spear)",
         "build": "Builds/guardian/b-power-luminary.json",
         "rotation": "Rotations/guardian/r-power-luminary-bench.json",
         "benchmarkDps": 42015
@@ -60,7 +60,7 @@
         "label": "Power Alacrity (Greatsword / Spear)",
         "build": "Builds/guardian/b-power-alac-luminary.json",
         "rotation": "Rotations/guardian/r-power-alac-luminary-bench.json",
-        "benchmarkDps": 37991,
+        "benchmarkDps": 38081,
         "sourceBenchmarkDps": 37129,
         "dpsReportUrl": "https://dps.report/ABHB-20260603-234544_golem",
         "upToDate": true

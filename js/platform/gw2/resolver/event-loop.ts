@@ -70,13 +70,25 @@ export function runGw2ResolverEventLoop(
   }
   const queue = ctx.queue;
   const hp = targetHealth(ctx);
+  let lethalActivationId: string | null = null;
   sortQueuedEvents(queue);
 
   while (queue.length > 0) {
     const event = takeNextEvent(queue);
     if (!event) break;
     if (event.at > ctx.horizon + EPSILON) break;
-    if (ctx.deathTime != null && event.at > ctx.deathTime) break;
+    if (ctx.deathTime != null) {
+      if (event.at > ctx.deathTime + EPSILON) break;
+      // Finish the lethal activation and simultaneous condition-tick batch,
+      // but reject a distinct attack ordered after the target already died.
+      if (
+        isCombatGatedEvent(event) &&
+        event.type !== "condition_tick" &&
+        (lethalActivationId == null ||
+          event.activationId !== lethalActivationId)
+      )
+        continue;
+    }
     if (shouldSkipEvent(ctx, event)) continue;
     if (
       ctx.combatStartTime != null &&
@@ -98,6 +110,8 @@ export function runGw2ResolverEventLoop(
       ctx.totals.strike + ctx.totals.condition >= hp
     ) {
       ctx.deathTime = event.at;
+      lethalActivationId =
+        typeof event.activationId === "string" ? event.activationId : null;
     }
   }
 }

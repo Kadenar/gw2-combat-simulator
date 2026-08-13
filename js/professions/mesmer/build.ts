@@ -34,6 +34,7 @@ export function createMesmerBuildDefaults(): MesmerCanonicalBuild {
     schemaVersion: BUILD_SCHEMA_VERSION,
     profession: PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
+    alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
     weapons: ["Dagger", "Sword"],
     alternateWeapons: ["Spear", ""],
     rune: "Scholar",
@@ -150,11 +151,9 @@ const mesmerBuildCodec = createGw2BuildCodec({
   },
   validateExtra(build) {
     const errors = validateSimulationRandomnessAssumptions(build.assumptions);
-    if (
-      !(
-        Number(build.initialResource) >= 0 && Number(build.initialResource) <= 5
-      )
-    ) {
+    if (!(
+      Number(build.initialResource) >= 0 && Number(build.initialResource) <= 5
+    )) {
       errors.push("initialResource must be between 0 and 5.");
     }
     return errors;

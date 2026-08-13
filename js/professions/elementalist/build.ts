@@ -56,6 +56,7 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
     schemaVersion: ELEMENTALIST_BUILD_SCHEMA_VERSION,
     profession: ELEMENTALIST_PROFESSION_ID,
     gear: Object.fromEntries(GEAR_SLOTS.map((slot) => [slot, "Berserker's"])),
+    alternateWeaponPrefixes: ["Berserker's", "Berserker's"],
     weapons: ["Sword", "Dagger"],
     alternateWeapons: ["", ""],
     rune: "Scholar",
@@ -84,6 +85,9 @@ export function createElementalistBuildDefaults(): ElementalistCanonicalBuild {
     assumptions: {
       ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
       hitboxSize: "large",
+      elementalSimulationProfile: "evtc",
+      startingAttunementPreDwelled: true,
+      glyphBoonedElementals: false,
       might: 25,
       fury: true,
       quickness: true,
@@ -245,6 +249,12 @@ function normalizeSavedBuild(candidate: unknown): unknown {
     !snapshot.profession;
   const build = hasSnapshotWrapper ? record(snapshot.build) : snapshot;
   const snapshotFields = hasSnapshotWrapper ? snapshot : build;
+  const explicitElementalSimulationProfile = Object.hasOwn(
+    snapshotFields,
+    "elementalSimulationProfile",
+  )
+    ? String(snapshotFields.elementalSimulationProfile)
+    : null;
   const selectedSkills = Object.hasOwn(snapshotFields, "selectedSkills")
     ? migrateSnapshotSelectedSkills(snapshotFields.selectedSkills)
     : build.selectedSkills;
@@ -277,6 +287,18 @@ function normalizeSavedBuild(candidate: unknown): unknown {
       ),
       ...(Object.hasOwn(snapshotFields, "hitboxSize")
         ? { hitboxSize: snapshotFields.hitboxSize }
+        : {}),
+      ...(hasSnapshotWrapper ||
+      Object.hasOwn(snapshotFields, "glyphBoonedElementals")
+        ? {
+            elementalSimulationProfile:
+              explicitElementalSimulationProfile === "evtc"
+                ? "evtc"
+                : "reference",
+            glyphBoonedElementals: Boolean(
+              snapshotFields.glyphBoonedElementals,
+            ),
+          }
         : {}),
     },
   };

@@ -4,6 +4,7 @@ import { isGw2PlayerActorEvent } from "../event-ownership.js";
 import { FOOD_DATA, NOURISHMENT_ICON } from "../gear-data.js";
 import { onResolvedPlayerCriticalHit } from "../native-mechanics.js";
 import { clamp } from "../numeric.js";
+import { gw2StatsForWeaponSet } from "../runtime-rules.js";
 import {
   handleBlastComboRelic,
   handleBoonRelics,
@@ -97,10 +98,11 @@ function createCriticalFoodEffect(
   if (conditionalEffect?.type === "boon") {
     const name = conditionalEffect.name;
     const sigils = ctx.query.activeSigilSetAt(event.at);
+    const stats = gw2StatsForWeaponSet(ctx.config, ctx.activeWeaponSet);
     const bonus =
-      Number(ctx.config.stats?.concentration || 0) / 1500 +
-      Number(ctx.config.stats?.boonDurationBonus || 0) / 100 +
-      Number(ctx.config.stats?.boonDurationBonuses?.[name] || 0) / 100 +
+      Number(stats.concentration || 0) / 1500 +
+      Number(stats.boonDurationBonus || 0) / 100 +
+      Number(stats.boonDurationBonuses?.[name] || 0) / 100 +
       Number(sigils.boonDurationBonus || 0) / 100;
     foodEvent = {
       ...commonEvent,

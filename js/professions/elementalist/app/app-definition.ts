@@ -14,6 +14,12 @@ function build(app: { build: unknown }): ElementalistApplicationBuild {
   return app.build as ElementalistApplicationBuild;
 }
 
+function assumptions(app: {
+  build: unknown;
+}): Readonly<Record<string, unknown>> {
+  return (build(app).assumptions || {}) as Readonly<Record<string, unknown>>;
+}
+
 function explicitlyCastsGlyphOfElementals(
   rotation: readonly unknown[],
 ): boolean {
@@ -59,6 +65,12 @@ export const elementalistApp = defineProfessionApp({
       evokerElement: build(app).evokerElement,
       initialEvokerCharges: build(app).initialEvokerCharges,
       initialEvokerEmpowered: build(app).initialEvokerEmpowered,
+      startingAttunementPreDwelled:
+        assumptions(app).startingAttunementPreDwelled !== false,
+      elementalSimulationProfile: String(
+        assumptions(app).elementalSimulationProfile || "evtc",
+      ),
+      glyphBoonedElementals: Boolean(assumptions(app).glyphBoonedElementals),
       autoSummonFireElemental: !explicitlyCastsGlyphOfElementals(
         build(app).rotation,
       ),
